@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { SINGLE_COMPETITOR_GAP } from '@/lib/vision/competitor-sync-core'
 import { renderMarkdown } from '@/lib/vision/markdown'
 import { VisionInlineSelect } from '@/components/admin/VisionInlineEdit'
 import {
@@ -19,7 +20,7 @@ export default async function VisionHomePage() {
   const [doc, sparks, byBucket, byArea, feedbackNew, unaddressed, competitors, blockers, todos] =
     await Promise.all([
       prisma.productVisionDoc.findFirst({ where: { isCurrent: true } }),
-      prisma.productItem.count({ where: { status: 'SPARK' } }),
+      prisma.productItem.count({ where: { status: 'SPARK', NOT: SINGLE_COMPETITOR_GAP } }),
       prisma.productItem.groupBy({ by: ['bucket'], _count: { _all: true }, where: OPEN }),
       prisma.productItem.groupBy({ by: ['area'], _count: { _all: true }, where: OPEN }),
       prisma.productFeedback.count({ where: { status: 'NEW' } }),

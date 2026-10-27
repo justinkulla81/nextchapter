@@ -5,14 +5,39 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { KindSelect, AreaSelect } from '@/components/admin/VisionKindSelect'
 import { createItem, promoteSpark, deleteItem } from '../actions'
 import { KIND_LABELS, AREA_LABELS, areaClass, formatDate } from '@/lib/vision/labels'
+import { SINGLE_COMPETITOR_GAP } from '@/lib/vision/competitor-sync-core'
 
 export const maxDuration = 30
 
 export default async function VisionBrainstormPage() {
   await requireAdmin()
-  const sparks = await prisma.productItem.findMany({
-    where: { status: 'SPARK' }, orderBy: { createdAt: 'desc' }, take: 200,
-  })
+  const [sparks, singles, singleCount] = await Promise.all([
+    prisma.productItem.findMany({ where: { status: 'SPARK', NOT: SINGLE_COMPETITOR_GAP }, orderBy: { createdAt: 'desc' }, take: 200 }),
+    prisma.productItem.findMany({ where: { status: 'SPARK', ...SINGLE_COMPETITOR_GAP }, orderBy: { title: 'asc' }, take: 300 }),
+    prisma.productItem.count({ where: { status: 'SPARK', ...SINGLE_COMPETITOR_GAP } }),
+  ])
+  const SparkRow = ({ s }: { s: (typeof sparks)[number] }) => (
+    <li className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3">
+      <span className="min-w-0">
+        <span className="text-sm">{s.title}</span>
+        <span className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span className={`rounded-full px-2 py-0.5 ${areaClass(s.area)}`}>{AREA_LABELS[s.area]}</span>
+          <span>{KIND_LABELS[s.kind]}</span>
+          <span>{formatDate(s.createdAt)}</span>
+          {s.body?.startsWith('Seen at competitors: ') && <span>{s.body.split('\n')[0]}</span>}
+        </span>
+      </span>
+      {/* Two discrete outcomes -> adjacent buttons, per design-principles.md. */}
+      <span className="flex shrink-0 gap-2">
+        <form action={promoteSpark.bind(null, s.id)}>
+          <SubmitButton size="sm" pendingLabel="Promoting…">Take it seriously</SubmitButton>
+        </form>
+        <form action={deleteItem.bind(null, s.id)}>
+          <SubmitButton size="sm" variant="outline" pendingLabel="Deleting…">Discard</SubmitButton>
+        </form>
+      </span>
+    </li>
+  )
 
   return (
     <div className="space-y-6">
@@ -53,28 +78,15 @@ export default async function VisionBrainstormPage() {
           </p>
         ) : (
           <ul className="space-y-2">
-            {sparks.map((s) => (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3">
-                <span className="min-w-0">
-                  <span className="text-sm">{s.title}</span>
-                  <span className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span className={`rounded-full px-2 py-0.5 ${areaClass(s.area)}`}>{AREA_LABELS[s.area]}</span>
-                    <span>{KIND_LABELS[s.kind]}</span>
-                    <span>{formatDate(s.createdAt)}</span>
-                  </span>
-                </span>
-                {/* Two discrete outcomes -> adjacent buttons, per design-principles.md. */}
-                <span className="flex shrink-0 gap-2">
-                  <form action={promoteSpark.bind(null, s.id)}>
-                    <SubmitButton size="sm" pendingLabel="Promoting…">Take it seriously</SubmitButton>
-                  </form>
-                  <form action={deleteItem.bind(null, s.id)}>
-                    <SubmitButton size="sm" variant="outline" pendingLabel="Deleting…">Discard</SubmitButton>
-                  </form>
-                </span>
-              </li>
-            ))}
+            {sparks.map((s) => <SparkRow key={s.id} s={s} />)}
           </ul>
+        )}
+        {singleCount > 0 && (
+          <details className="mt-4 rounded-lg border border-border p-3">
+            <summary className="cursor-pointer text-sm font-semibold">Gaps only one competitor has ({singleCount})</summary>
+            <p className="mt-2 text-xs text-muted-foreground">A weaker signal than the list above, kept here in case one becomes more common. When a second competitor shows the same gap it moves up to the main list on its own.{singleCount > singles.length ? ` Showing the first ${singles.length}.` : ''}</p>
+            <ul className="mt-3 space-y-2">{singles.map((s) => <SparkRow key={s.id} s={s} />)}</ul>
+          </details>
         )}
         <p className="mt-2 text-xs text-muted-foreground">
           The same capture box and spark strip sit on the{' '}
