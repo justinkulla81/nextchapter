@@ -21,18 +21,20 @@ export function gapIdeas(weNeed: string[], existingTitles: string[], max = 8): s
 }
 
 /**
- * Ideas made from competitor gaps carry "Seen at competitors: A, B". One that only a single competitor has is a weak
- * signal, so Brainstorm keeps those in a secondary list and the primary list holds the ones two or more share.
+ * Ideas made from competitor gaps carry "Seen at competitors: A; B". The names are separated by "; " because company
+ * names contain commas ("Kuder, Inc."). One that only a single competitor has is a weak signal, so Brainstorm keeps
+ * those in a secondary list and the primary list holds the ones two or more share.
  */
-export const SINGLE_COMPETITOR_GAP = { body: { startsWith: 'Seen at competitors: ' }, NOT: { body: { contains: ', ' } } } as const
+const SEEN_SEP = '; '
+export const SINGLE_COMPETITOR_GAP = { body: { startsWith: 'Seen at competitors: ' }, NOT: { body: { contains: SEEN_SEP } } } as const
 
 /** Adds a competitor's name to an idea's "seen at" line without repeating it. */
 export function addSeenAt(body: string | null, competitor: string): string {
   const m = (body ?? '').match(/^Seen at competitors: (.*)$/m)
   if (!m) return `Seen at competitors: ${competitor}${body ? `\n${body}` : ''}`
-  const names = m[1].split(', ').filter(Boolean)
+  const names = m[1].split(SEEN_SEP).filter(Boolean)
   if (names.some((n) => key(n) === key(competitor))) return body!
-  return (body ?? '').replace(m[0], `Seen at competitors: ${[...names, competitor].join(', ')}`)
+  return (body ?? '').replace(m[0], `Seen at competitors: ${[...names, competitor].join(SEEN_SEP)}`)
 }
 
 export interface AwardRow { awardKey: string; description: string | null; agency: string | null; subAgency: string | null; amount: number; startDate: Date | null; endDate: Date | null; url: string }

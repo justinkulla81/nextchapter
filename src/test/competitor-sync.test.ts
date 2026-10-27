@@ -10,8 +10,10 @@ describe('product gap ideas', () => {
   it('adds a competitor to the seen-at line once', () => {
     const b = addSeenAt(null, 'Acme')
     expect(b).toBe('Seen at competitors: Acme')
-    expect(addSeenAt(b, 'Globex')).toBe('Seen at competitors: Acme, Globex')
+    expect(addSeenAt(b, 'Globex')).toBe('Seen at competitors: Acme; Globex')
     expect(addSeenAt(b, 'acme')).toBe(b)
+    const c = addSeenAt(addSeenAt(null, 'Kuder, Inc.'), 'Kuder, Inc.')
+    expect(c).toBe('Seen at competitors: Kuder, Inc.')
   })
 })
 
