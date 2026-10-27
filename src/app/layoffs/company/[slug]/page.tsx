@@ -17,7 +17,7 @@ import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getRecentNotices } from '@/lib/seo/topic-data'
 import { industryPath } from '@/lib/seo/topics'
-import { getCompanies, getNewsMentions, type CompanySummary, mergedSlug, noticeDay, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
+import { getCompanies, getNewsMentions, type CompanySummary, mergedSlug, noticeDay, resolveCompanySlug, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
 import { titleMeta } from '@/lib/seo/title'
 import { stateHelpLinks, type CrossLink } from '@/lib/seo/layoff-links'
 import { StatementForm } from '@/components/employers/StatementForm'
@@ -40,6 +40,9 @@ async function load(slug: string) {
   // A spelling from before one employer's filings were merged ("intel-corporation" → "intel").
   const merged = stripSlugSuffixes(slug)
   if (merged !== slug && companies.has(merged)) permanentRedirect(`/layoffs/company/${merged}`)
+  // A fuller or shorter spelling of an employer we do have ("woodbridge-group-lansing").
+  const alias = resolveCompanySlug(slug, companies.keys())
+  if (alias && alias !== slug) permanentRedirect(`/layoffs/company/${alias}`)
   return null
 }
 
