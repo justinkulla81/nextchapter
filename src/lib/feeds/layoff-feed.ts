@@ -73,7 +73,7 @@ export async function layoffFeed(o: LayoffFeedOpts): Promise<FeedDoc> {
     const help = `If you are affected: ${sName} unemployment benefits ${SITE_URL}/unemployment-benefits/${stateSlug(n.state)}${n.board ? `; local help from ${n.board.name}` : ''}.`
     const record = n.sourceUrl ? `State record: ${n.sourceUrl}` : ''
     const description = [lead, ...facts, help, record].filter(Boolean).join(' ')
-    const html = `<p>${xmlEscape(lead)}</p>${facts.length ? `<ul>${facts.map((f) => `<li>${xmlEscape(f)}</li>`).join('')}</ul>` : ''}<p>If you are affected: <a href="${feedLink(`/unemployment-benefits/${stateSlug(n.state)}`, o.campaign)}">${xmlEscape(sName)} unemployment benefits</a>${n.board ? `; local help from ${n.board.website ? `<a href="${xmlEscape(n.board.website)}">${xmlEscape(n.board.name)}</a>` : xmlEscape(n.board.name)}` : ''}.</p><p>${n.sourceUrl ? `<a href="${xmlEscape(n.sourceUrl)}">State record</a> · ` : ''}<a href="${feedLink(`/layoffs/company/${n.slug}`, o.campaign)}">All notices from ${xmlEscape(n.employer)}</a></p>`
+    const html = `<p>${xmlEscape(lead)}</p>${facts.length ? `<ul>${facts.map((f) => `<li>${xmlEscape(f)}</li>`).join('')}</ul>` : ''}<p>If you are affected: <a href="${xmlEscape(feedLink(`/unemployment-benefits/${stateSlug(n.state)}`, o.campaign))}">${xmlEscape(sName)} unemployment benefits</a>${n.board ? `; local help from ${n.board.website ? `<a href="${xmlEscape(n.board.website)}">${xmlEscape(n.board.name)}</a>` : xmlEscape(n.board.name)}` : ''}.</p><p>${n.sourceUrl ? `<a href="${xmlEscape(n.sourceUrl)}">State record</a> · ` : ''}<a href="${xmlEscape(feedLink(`/layoffs/company/${n.slug}`, o.campaign))}">All notices from ${xmlEscape(n.employer)}</a></p>`
     return {
       title: `${n.employer}: ${n.workers ? `${num(n.workers)} workers, ` : ''}${sName}`,
       link: feedLink(`/layoffs/company/${n.slug}`, o.campaign),
@@ -97,7 +97,7 @@ export const allLayoffFeed = () => layoffFeed({
 export const largeLayoffFeed = () => layoffFeed({
   minWorkers: LARGE_NOTICE_WORKERS,
   title: `Large layoffs: ${LARGE_NOTICE_WORKERS}+ workers (WARN) from NextChapter`,
-  description: `Only WARN notices naming ${LARGE_NOTICE_WORKERS} or more workers, in any state. A few a week, each with the state record.`,
+  description: `Only WARN notices naming ${LARGE_NOTICE_WORKERS} or more workers, in any state. Each with the state record.`,
   selfPath: '/feeds/layoffs-100plus.xml', pagePath: '/layoffs', campaign: 'layoffs-100plus',
 })
 

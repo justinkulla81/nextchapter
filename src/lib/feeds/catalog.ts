@@ -13,7 +13,7 @@ export function feedGroups(): FeedGroup[] {
       id: 'start', title: 'Start here', blurb: 'The three feeds most people keep.',
       feeds: [
         { key: 'weekly', title: 'Weekly layoff summary', blurb: 'One item a week: notices filed, workers named, the largest.', path: '/feeds/layoffs-weekly.xml', page: '/layoffs/week' },
-        { key: '100plus', title: `Large layoffs (${LARGE_NOTICE_WORKERS}+ workers)`, blurb: 'Only notices naming 100 or more workers, any state. A few a week.', path: '/feeds/layoffs-100plus.xml', page: '/layoffs' },
+        { key: '100plus', title: `Large layoffs (${LARGE_NOTICE_WORKERS}+ workers)`, blurb: 'Only notices naming 100 or more workers, any state.', path: '/feeds/layoffs-100plus.xml', page: '/layoffs' },
         { key: 'all', title: 'All layoff notices', blurb: 'Every new WARN notice we collect, all states.', path: '/feeds/layoffs', page: '/layoffs' },
       ],
     },
