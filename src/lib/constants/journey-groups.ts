@@ -1,3 +1,5 @@
+import type { JourneyType } from '@prisma/client'
+
 // The 13 situations (src/lib/constants/personas.ts) as two short questions instead of one long list.
 // Question 1 is a broad "where are you" with four answers; question 2 narrows to one situation
 // with at most four answers. Every persona slug appears in exactly one group (tested).
@@ -53,4 +55,41 @@ export const JOURNEY_GROUPS: JourneyGroup[] = [
 
 export function groupForSlug(slug: string): JourneyGroup | undefined {
   return JOURNEY_GROUPS.find((g) => g.slugs.includes(slug))
+}
+
+// The same four questions for onboarding's twelve journey cards (src/lib/journey/journey.ts), which are not the thirteen
+// homepage situations: each journey sits in exactly one group (tested), at most four to a group, so the first onboarding
+// question is two short screens instead of a list of twelve. The four group labels are the homepage picker's.
+export type OnboardingGroupKey = 'out' | 'working' | 'direction' | 'own'
+
+// "Returning after a break" is about explaining a gap, so it sits with the people out of work, not with those who have a job.
+const ONBOARDING_JOURNEYS: Record<OnboardingGroupKey, JourneyType[]> = {
+  out: ['LAID_OFF', 'RETURNING', 'TIME_OFF'],
+  working: ['EXPLORING_MOVE', 'GROWING', 'PROMOTION'],
+  direction: ['CAREER_CHANGE', 'STUDENT_NEW_GRAD'],
+  own: ['FRACTIONAL', 'ENTREPRENEUR', 'BUY_BUSINESS', 'NEXT_ACT'],
+}
+
+// The hint says what is inside this group's cards, which are not the homepage's situations.
+const ONBOARDING_HINTS: Record<OnboardingGroupKey, string> = {
+  out: 'Laid off, coming back after a break, or on leave',
+  working: 'Thinking about a move, a promotion, or managing my career',
+  direction: 'A new field, or a first job after school',
+  own: 'Fractional work, my own venture, buying a business, or planning my next act',
+}
+
+export interface OnboardingGroup {
+  key: OnboardingGroupKey
+  label: string
+  hint: string
+  journeys: JourneyType[]
+}
+
+export const ONBOARDING_GROUPS: OnboardingGroup[] = JOURNEY_GROUPS.map((g) => {
+  const key = g.key as OnboardingGroupKey
+  return { key, label: g.label, hint: ONBOARDING_HINTS[key], journeys: ONBOARDING_JOURNEYS[key] }
+})
+
+export function onboardingGroupOfJourney(journey: JourneyType | null | undefined): OnboardingGroup | undefined {
+  return journey ? ONBOARDING_GROUPS.find((g) => g.journeys.includes(journey)) : undefined
 }
