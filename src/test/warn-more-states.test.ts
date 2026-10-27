@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseHawaiiWarn, parseMinnesotaList, parseNevadaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
+import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseHawaiiWarn, parseKentuckyWorkbook, parseMinnesotaList, resolveKentuckyFiles, parseNevadaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
 import type { PdfItem } from '@/lib/warn/pdf-table'
 
 const it_ = (s: string, x: number, y: number): PdfItem => ({ s, x, y })
@@ -147,5 +147,38 @@ describe('Hawaii current WARN list', () => {
     expect(rows.map((r) => r.employer)).toEqual(['Ben Bridge Jeweler, Inc.', 'Hawaiian Airlines – Non-Union Workforce Reduction', 'Laie Water Company, Inc.'])
     expect(rows.map((r) => r.noticeDate?.toISOString().slice(0, 10))).toEqual(['2026-10-15', '2026-10-02', '2026-09-25'])
     expect(rows.every((r) => r.state === 'HI')).toBe(true)
+  })
+})
+
+describe('Kentucky WARN workbooks', () => {
+  it('reads the current workbook: serial-number dates, the date received as the notice date, NAICS as the industry', () => {
+    const rows = parseKentuckyWorkbook([{ name: 'WARN Report-10262026', rows: [
+      ['Date Received', 'Workforce Board', 'County', 'Company: Company Name', 'NAICS', 'Number of Employees Affected', 'Closure or Layoff?', 'Projected Date'],
+      ['46316', 'Lincoln Trail', 'Grayson', 'Leggett & Platt, Inc', '423210', '145', 'Closure', '46377'],
+      ['46307', 'Kentuckiana Works', 'Jefferson County - Louisville', 'RNDC of Kentucky, LLC', '424820', '206', 'Layoff', '46311'],
+    ] }])
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toMatchObject({ state: 'KY', employer: 'Leggett & Platt, Inc', employees: 145, layoffType: 'Closure', county: 'Grayson' })
+    expect(rows[0].noticeDate?.toISOString().slice(0, 10)).toBe('2026-10-21')
+    expect(rows[0].effectiveDate?.toISOString().slice(0, 10)).toBe('2026-12-21')
+    expect(rows[0].industry).toContain('42')
+    expect(rows[1].noticeDate?.toISOString().slice(0, 10)).toBe('2026-10-12')
+  })
+  it('reads a prior-year sheet with blank county and company headers and text dates', () => {
+    const rows = parseKentuckyWorkbook([{ name: '2025', rows: [
+      ['Date Received', 'Region', '2', '', 'NAICS Code', 'Employees', 'Closure or Layoff?', 'Projected Date', 'Trade'],
+      ['12/16/2025', 'Lincoln Trail', 'Hardin', 'Blue Oval SK Group/Battery Plant', '335911', '1514', 'Closure', '2/14/2026', '966'],
+    ] }, { name: 'Notes', rows: [['nothing here']] }])
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ employer: 'Blue Oval SK Group/Battery Plant', employees: 1514, county: 'Hardin', layoffType: 'Closure' })
+    expect(rows[0].noticeDate?.toISOString().slice(0, 10)).toBe('2025-12-16')
+    expect(rows[0].effectiveDate?.toISOString().slice(0, 10)).toBe('2026-02-14')
+  })
+  it('finds the current and prior-year workbooks on the Rapid Response page', () => {
+    const html = '<a href="/Services/Documents/Employer%20Guide%20to%20WARN.pdf">Employer guide to WARN</a><a href="/Services/Documents/Website-WARN%20Notice%20Report%2010262026.xlsx"><span>WARN Notice Report</span></a><a href="/Services/Documents/Prior%20Year%20Warn%20Notices.xlsx">Prior Year Warn Notices</a>'
+    expect(resolveKentuckyFiles(html)).toEqual({
+      current: 'https://kyworks.ky.gov/Services/Documents/Website-WARN%20Notice%20Report%2010262026.xlsx',
+      prior: 'https://kyworks.ky.gov/Services/Documents/Prior%20Year%20Warn%20Notices.xlsx',
+    })
   })
 })

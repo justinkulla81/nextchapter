@@ -37,6 +37,9 @@ import {
   WEST_VIRGINIA_PAGE,
   HAWAII_PAGE,
   parseHawaiiWarn,
+  KENTUCKY_PAGE,
+  resolveKentuckyFiles,
+  parseKentuckyWorkbook,
   parseWestVirginiaWarn,
   NEW_JERSEY_FILE,
   parseNewJerseyWarn,
@@ -350,7 +353,6 @@ export const SCRAPED_STATES: Record<string, string> = {
   CT: 'https://dolpublicdocumentlibrary.ct.gov/CsblrCategory?prefix=%2Frapid_response%2Fwarn_documents',
   HI: 'https://labor.hawaii.gov/wdc/real-time-warn-updates/',
   IL: 'https://www2.illinois.gov/dceo/WorkforceDevelopment/warn/Pages/default.aspx',
-  KY: 'https://kcc.ky.gov/employer/Pages/Business-Downsizing-Assistance---WARN.aspx',
   MO: 'https://jobs.mo.gov/warn/',
   MT: 'https://wsd.dli.mt.gov/wioa/related-links/warn-notice-page',
   ND: 'https://www.jobsnd.com/documents',
@@ -620,6 +622,22 @@ export const WARN_SOURCES: WarnSource[] = [
     },
     parse: (buf: Buffer) => parseNewMexicoWarn(buf),
     alsoUrls: async () => resolveNewMexicoPdfs(await fetchText(NEW_MEXICO_PAGE)).slice(1),
+    hasIndustry: false,
+  },
+  {
+    state: 'KY',
+    url: KENTUCKY_PAGE,
+    format: 'xlsx', // fetched as bytes: the page only links the workbook
+    resolve: async () => {
+      const { current } = resolveKentuckyFiles(await fetchText(KENTUCKY_PAGE))
+      if (!current) throw new Error('KY: no "WARN Notice Report" workbook linked')
+      return current
+    },
+    parse: (buf: Buffer) => parseKentuckyWorkbook(readXlsx(buf)),
+    alsoUrls: async () => {
+      const { prior } = resolveKentuckyFiles(await fetchText(KENTUCKY_PAGE))
+      return prior ? [prior] : []
+    },
     hasIndustry: false,
   },
   {
