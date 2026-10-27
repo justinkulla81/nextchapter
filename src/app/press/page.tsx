@@ -89,6 +89,7 @@ export default async function PressPage() {
               <li><Link href="/reports/latest" className={LINK}>White Collar Employment Report</Link>, monthly: hiring, job changes, search length, AI attribution and public programs.</li>
               <li><Link href="/reports/white-collar-index" className={LINK}>White-Collar Long-Search Index</Link>, updated with each edition from Census microdata.</li>
               <li><Link href="/layoffs" className={LINK}>Layoff tracker</Link> and the <Link href="/data" className={LINK}>WARN notice download</Link>, refreshed at least hourly.</li>
+              <li><Link href="/feeds" className={LINK}>Layoff and conference feeds</Link>: new WARN notices by RSS or JSON, by state, industry or size (100+ workers), plus a weekly summary and an <a href="/feeds/nextchapter.opml" className={LINK}>OPML file</a> of every feed.</li>
               <li><Link href="/resources/ai-skills-pay-premium" className={LINK}>AI-skill pay premium</Link> in job postings, refreshed daily from the live job board.</li>
               <li><Link href="/reports/early-warning" className={LINK}>Early-warning labor indicators</Link> by group, with the bright spots and the concerns side by side.</li>
             </ul>

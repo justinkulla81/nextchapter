@@ -366,6 +366,19 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'feeds',
+    intent: 'Subscribe to layoff notices by RSS',
+    owner: '/feeds',
+    kind: 'page',
+    primary: 'layoff notices rss feed',
+    secondary: ['WARN notices rss', 'layoff alerts by state rss', 'layoff news feed', 'WARN notice feed'],
+    seo: {
+      title: 'Layoff Notice RSS Feeds by State and Industry',
+      description: 'Free RSS and JSON feeds of new WARN layoff notices by state, industry and size, each with the state record, how it compares, and help for affected workers.',
+      h1: 'Layoff and conference feeds',
+    },
+  },
+  {
     id: 'layoff-data',
     intent: 'Download layoff data',
     owner: '/data',

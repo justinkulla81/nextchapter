@@ -53,8 +53,8 @@ const nextConfig: NextConfig = {
         destination: `/${kind}/:state`,
         permanent: false,
       })),
-      // /feeds has no page of its own (the feeds are files under it); someone typing it wants the jobs.
-      { source: '/feeds', destination: '/jobs', permanent: false },
+      // /feeds is the feeds directory page; /feeds/industries is only a folder of feeds, so it goes there.
+      { source: '/feeds/industries', destination: '/feeds', permanent: false },
       // Nothing lives at /search; people and search engines' site-search boxes expect it to run a job search (/jobs?q=).
       { source: '/search', destination: '/jobs', permanent: false },
       // Parent addresses that have only dynamic children and no page of their own (someone trims a URL, or a crawler

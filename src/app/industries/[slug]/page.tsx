@@ -1,4 +1,5 @@
 import { fitDescription } from '@/lib/seo/templates'
+import { FeedLine } from '@/components/seo/FeedLine'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, Section, TopicShell, functionChip } from '@/components/topics/blocks'
@@ -76,6 +77,9 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           <Chips kind="industry_to_association" event="topic_link_clicked" items={orgs.map((o) => ({ href: associationPath(o), label: o }))} />
         </Section>
       )}
+      <Section id="feed" title={`${industry.name} layoff notices by feed`}>
+        <p className="text-sm"><FeedLine feed={`/feeds/industries/${slug}`} label={`Get new ${industry.name} layoff notices by RSS`} /></p>
+      </Section>
       <Section id="more" title="Other industries">
         <Chips kind="industry_to_industry" event="topic_link_clicked" items={INDUSTRIES.filter((i) => i.slug !== slug).map((i) => ({ href: `/industries/${i.slug}`, label: i.name }))} />
       </Section>

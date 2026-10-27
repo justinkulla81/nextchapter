@@ -1,9 +1,7 @@
-import { layoffFeed } from '@/lib/feeds/layoff-feed'
-import { rssResponse } from '@/lib/feeds/rss'
+import { allLayoffFeed } from '@/lib/feeds/layoff-feed'
+import { feedResponse } from '@/lib/feeds/rss'
 
-export const revalidate = 900
-
-// New WARN layoff notices, all states. One state: /feeds/layoffs/<state>.
-export async function GET() {
-  return rssResponse(await layoffFeed(null, '/feeds/layoffs', '/layoffs'))
+// New WARN layoff notices, all states. One state: /feeds/layoffs/<state>. Add ?format=json for JSON Feed.
+export async function GET(req: Request) {
+  return feedResponse(req, await allLayoffFeed())
 }

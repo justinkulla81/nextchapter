@@ -1,6 +1,7 @@
 import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { FeedLine } from '@/components/seo/FeedLine'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffTracker } from '@/components/news/LayoffTracker'
@@ -125,6 +126,7 @@ export default async function LayoffsHubPage() {
             <h2 id="next" className="text-xl font-semibold tracking-tight text-navy">If you’ve been laid off</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               <li><Link href="/start/laid-off" className={LINK}>What to do after a layoff</Link></li>
+              <li><FeedLine feed="/feeds/layoffs-100plus.xml" label="Get large layoffs (100+ workers) by RSS" /></li>
               <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits by state</Link></li>
               <li><Link href="/resources/72-hours" className={LINK}>The first 72 hours after a layoff</Link></li>
               <li><Link href="/resources/cobra-aca" className={LINK}>COBRA and marketplace health coverage</Link></li>

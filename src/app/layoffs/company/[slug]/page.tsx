@@ -2,6 +2,7 @@ import { meetsCompanyLayoffBar } from '@/lib/seo/page-bars'
 import { layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { FeedLine } from '@/components/seo/FeedLine'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
@@ -232,6 +233,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
                   <Link href={`/unemployment-benefits/${stateSlug(s)}`} className={LINK}>{stateName(s)} unemployment benefits and how to file</Link>
                 </li>
               ))}
+              {c.states.slice(0, 1).map((s) => <li key={`feed-${s}`}><FeedLine feed={`/feeds/layoffs/${stateSlug(s)}`} label={`Get new ${stateName(s)} notices by RSS`} /></li>)}
               <li><Link href="/resources/72-hours" className={LINK}>The first 72 hours after a layoff</Link></li>
               <li><Link href="/resources/cobra-aca" className={LINK}>COBRA and marketplace health coverage</Link></li>
               <li><Link href="/resources/bridge-income" className={LINK}>Bridge income while you search</Link></li>
