@@ -18,3 +18,19 @@ describe('readLayoffHeadline', () => {
     expect(readLayoffHeadline('Banking giant cuts 500 jobs')).toBeNull()
   })
 })
+
+describe('isPlausibleCompany', () => {
+  it('rejects the fragments the headline shapes let through, and keeps real names', async () => {
+    const { isPlausibleCompany } = await import('@/lib/warn/news-headline')
+    for (const bad of ['The', 'AI', 'U.S.', 'Announcing', 'Corporate Jobs', 'Mosaic to', 'Cisco posts record revenue and', "Mikel Arteta defends Arsenal's decision", 'South Fort Meade facility', 'LC4 budget proposal', 'Netherlands aims', 'Artiva to discontinue AlloNK', 'AI blamed for', 'Will AI Reorganization and', 'iconic Iowa manufacturer']) {
+      expect(isPlausibleCompany(bad), bad).toBe(false)
+    }
+    for (const good of ['Microsoft', 'Procter & Gamble', 'Bed Bath and Beyond', 'Sucker Punch Productions', 'S&S Worldwide', 'T-Mobile', 'Hawaiian Airlines', 'EA', 'UBS', 'Italy\'s Generali']) {
+      expect(isPlausibleCompany(good), good).toBe(true)
+    }
+  })
+  it('drops a possessive from the name', async () => {
+    const { readLayoffHeadline } = await import('@/lib/warn/news-headline')
+    expect(readLayoffHeadline('Kroger’s lays off 3,000 employees')?.company).toBe('Kroger')
+  })
+})
