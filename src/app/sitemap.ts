@@ -30,7 +30,9 @@ import { NONPROFIT_ORG_PAGES_INDEXED, getStateNonprofitCounts, nonprofitsForSite
 import { prisma } from '@/lib/prisma'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
-export const revalidate = 3600
+// Rendered per request, not at build: it reads the layoff, workforce, conference and nonprofit tables, which timed out the
+// 2026-10-27 build. The CDN keeps it for an hour (next.config.ts headers).
+export const dynamic = 'force-dynamic'
 
 type Freq = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
 
