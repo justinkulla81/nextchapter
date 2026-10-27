@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useRef, useState } from 'react'
+import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { saveAppliedJob, type ApplySaveState } from '@/lib/leads/apply-save'
 import { posthog } from '@/lib/posthog/client'
@@ -30,19 +30,17 @@ function pickVariant(): Variant {
   }
 }
 
+const noSubscribe = () => () => {}
+
 export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: string; company: string; applyUrl: string; emailOn: boolean }) {
   const [open, setOpen] = useState(false)
   const [trigger, setTrigger] = useState<'apply_click' | 'save_link' | 'apply_gate'>('save_link')
-  const [variant, setVariant] = useState<Variant>('control')
+  // Read on the browser only; the server and the first paint say 'control', then it settles on the saved variant.
+  const variant = useSyncExternalStore<Variant>(noSubscribe, pickVariant, () => 'control')
   const [gateOpen, setGateOpen] = useState(false)
   const employerLinkRef = useRef<HTMLAnchorElement>(null)
   const [state, action, pending] = useActionState<ApplySaveState, FormData>(saveAppliedJob, undefined)
   const emailRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    const v = pickVariant()
-    setVariant(v)
-  }, [])
 
   useEffect(() => {
     if (!gateOpen) return
@@ -56,9 +54,12 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
     return () => document.removeEventListener('keydown', onKey)
   }, [gateOpen, jobId, company, variant])
 
-  useEffect(() => {
+  // Close the gate when a save comes back (adjusting state while rendering, not in an effect).
+  const [seenSaved, setSeenSaved] = useState(state?.saved)
+  if (state?.saved !== seenSaved) {
+    setSeenSaved(state?.saved)
     if (state?.saved) setGateOpen(false)
-  }, [state?.saved])
+  }
 
   useEffect(() => {
     if (open && trigger === 'save_link') emailRef.current?.focus()
