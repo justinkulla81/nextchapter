@@ -17461,6 +17461,18 @@ model OrgBrand {
   @@id([kind, sourceId])
 }
 
+/// An organization whose website we tried and could not read colors from (no site found, refused, or no brand colors), so the scan does not retry it every run.
+/// Same key as OrgBrand. SQL: prisma/manual/2026-10-27-org-brand-miss.sql.
+model OrgBrandMiss {
+  kind      String
+  sourceId  String
+  reason    String
+  checkedAt DateTime @default(now())
+
+  @@id([kind, sourceId])
+  @@index([checkedAt])
+}
+
 /// Employee counts with year and source (scripts/companies/import-wikidata-headcount.ts). SQL: prisma/manual/2026-10-26-company-headcount.sql
 model CompanyHeadcount {
   companyId   String   @id

@@ -44,6 +44,7 @@ export default async function WorkforceStatePage({ params }: { params: Promise<{
 
   return (
     <SeoPage
+      stateSlug={state}
       trail={[{ name: 'Workforce boards', path: '/workforce-boards' }, { name: d.name, path: `/workforce-boards/${state}` }]}
       h1={workforceStateSeo(d.name).h1}
       lede={<>{d.name} has {d.boards.length} workforce {d.boards.length === 1 ? 'board' : 'boards'} and {d.centers.length} American Job {d.centers.length === 1 ? 'Center' : 'Centers'}. Job seekers get free help with search, training and benefits there; employers get hiring and layoff support.</>}

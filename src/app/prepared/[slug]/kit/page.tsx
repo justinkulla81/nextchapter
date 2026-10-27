@@ -4,33 +4,31 @@ import { notFound } from 'next/navigation'
 import { CopyBlock } from '@/components/org-kit/CopyBlock'
 import { getOrgBrand } from '@/lib/branding/store'
 import { orgThemeVars } from '@/lib/branding/theme'
-import { boardKitContext, boardKitStats } from '@/lib/org-claims/board-kit-data'
-import { BOARD_KIT_SOURCES, boardKitCopy, boardKitLink, boardKitQrLink, type BoardKitSource } from '@/lib/org-claims/board-kit'
+import { kitCodes, kitStats, orgKitContext } from '@/lib/org-claims/org-kit-data'
+import { KIT_SOURCES, kitCopy, kitLink, kitQrLink, type KitSource } from '@/lib/org-claims/org-kit'
 import { SITE_URL } from '@/lib/org-claims/urls'
 import { qrSvg } from '@/lib/qr/qr-svg'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { prisma } from '@/lib/prisma'
 
-// A workforce board's launch kit: its page in its own colors, the words to send, a flyer with a QR code, and what its sends brought in.
+// An organization's launch kit (a workforce board, job center, economic development organization, college or employer): its page in its own colors, the words to send, a flyer with a QR code, and what its sends brought in.
 // Unlisted, like the claim page it belongs to; it holds no personal information. The links are created ahead of time
-// (scripts/branding/prepare-board-kits.ts); a board without them has no kit page.
+// (scripts/branding/prepare-kits.ts); an organization without them has no kit page.
 export const metadata: Metadata = { robots: { index: false, follow: false }, title: { absolute: 'Your launch kit | NextChapter' } }
 export const dynamic = 'force-dynamic'
 
 export default async function BoardKitPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const ctx = await boardKitContext(slug)
+  const ctx = await orgKitContext(slug)
   if (!ctx) notFound()
-  const rows = await prisma.referralLink.findMany({ where: { label: { startsWith: `ob:${ctx.boardId}:` } }, select: { label: true, code: true } })
-  const codes = Object.fromEntries(rows.map((r) => [r.label.split(':')[2], r.code])) as Partial<Record<BoardKitSource, string>>
-  if (BOARD_KIT_SOURCES.some((s) => !codes[s.source])) notFound()
+  const codes = await kitCodes(ctx.kind, ctx.id)
+  if (KIT_SOURCES.some((s) => !codes[s.source])) notFound()
 
-  const [brand, stats] = await Promise.all([getOrgBrand('WORKFORCE_BOARD', ctx.boardId), boardKitStats(ctx.boardId)])
-  const links = Object.fromEntries(BOARD_KIT_SOURCES.map((s) => [s.source, boardKitLink(SITE_URL, codes[s.source]!, ctx.pagePath)])) as Record<BoardKitSource, string>
-  const copy = boardKitCopy({ boardName: ctx.name, area: ctx.area, links })
-  const qr = qrSvg(boardKitQrLink(SITE_URL, codes.print!, ctx.pagePath), { size: 144 })
+  const [brand, stats] = await Promise.all([getOrgBrand(ctx.brandKind, ctx.brandId), kitStats(ctx.kind, ctx.id)])
+  const links = Object.fromEntries(KIT_SOURCES.map((s) => [s.source, kitLink(SITE_URL, codes[s.source]!, ctx.pagePath)])) as Record<KitSource, string>
+  const copy = kitCopy({ kind: ctx.kind, name: ctx.name, area: ctx.area, links })
+  const qr = qrSvg(kitQrLink(SITE_URL, codes.print!, ctx.pagePath), { size: 144 })
   const vars = orgThemeVars(brand?.pair)
-  captureServerEvent(`org-kit:${ctx.boardId}`, 'org_kit_viewed', { kind: 'WORKFORCE_BOARD', boardId: ctx.boardId, branded: !!brand })
+  captureServerEvent(`org-kit:${ctx.kind}:${ctx.id}`, 'org_kit_viewed', { kind: ctx.kind, orgId: ctx.id, branded: !!brand })
 
   return (
     <div style={vars} className="min-h-screen bg-off-white">
@@ -56,9 +54,9 @@ export default async function BoardKitPage({ params }: { params: Promise<{ slug:
       <main className="mx-auto max-w-4xl space-y-10 px-4 py-10 sm:px-6">
         <section aria-labelledby="send-h" className="space-y-4">
           <h2 id="send-h" className="font-serif text-2xl font-semibold text-navy">What to send</h2>
-          <CopyBlock title={`Email: ${copy.email.subject}`} note="For your newsletter, a mailing to past participants, or a note to employers and partners." text={copy.email.body} boardId={ctx.boardId} block="email" />
-          <CopyBlock title="Your website or newsletter" note="A short line with the link. Put it on a page job seekers already visit." text={copy.newsletter} boardId={ctx.boardId} block="web" />
-          <CopyBlock title="Social post" note="For LinkedIn, Facebook and the rest." text={copy.social} boardId={ctx.boardId} block="social" />
+          <CopyBlock title={`Email: ${copy.email.subject}`} note="For your newsletter, a mailing to your own people, or a note to partners." text={copy.email.body} kind={ctx.kind} orgId={ctx.id} block="email" />
+          <CopyBlock title="Your website or newsletter" note="A short line with the link. Put it on a page job seekers already visit." text={copy.newsletter} kind={ctx.kind} orgId={ctx.id} block="web" />
+          <CopyBlock title="Social post" note="For LinkedIn, Facebook and the rest." text={copy.social} kind={ctx.kind} orgId={ctx.id} block="social" />
         </section>
 
         <section aria-labelledby="print-h" className="space-y-4">

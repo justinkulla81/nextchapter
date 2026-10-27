@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { getEmployerBrand } from '@/lib/branding/store'
+import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { cache } from 'react'
@@ -84,8 +86,11 @@ export default async function PublicJobPage({ params }: { params: Params }) {
     tags?.company && (await isCompanyOfferedToSearch(tags.company.id).catch(() => false)) ? employerPath(tags.company.canonicalNameNormalized, tags.company.id) : null
   const industry = bucketFromIndustryText(tags?.industry)
   const fn = functionByName(tags?.targetFunction)
+  // The employer's own colors, read from its website (src/lib/branding): a thin strip and the company name only; the buttons stay ours.
+  const brand = await getEmployerBrand(job.companyName)
 
   return (
+    <OrgBrandScope brand={brand?.pair}>
     <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
       <StructuredData data={jobPostingJsonLd(job)} />
       <PublicJobViewTracker jobId={job.id} company={job.companyName} remote={remote} hasPay={!!pay} />
@@ -93,6 +98,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
         <SiteNav />
       </header>
 
+      {brand && <div aria-hidden className="h-1.5 w-full" style={{ background: 'linear-gradient(90deg, var(--org-1) 75%, var(--org-2) 75%)' }} />}
       <main className="mx-auto w-full max-w-5xl px-6 pb-16">
         <Link href="/jobs" className="text-sm text-muted-foreground hover:text-foreground">
           ← Search all jobs
@@ -101,7 +107,8 @@ export default async function PublicJobPage({ params }: { params: Params }) {
         <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_21rem]">
           <article className="min-w-0">
             <h1 className="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{job.title}</h1>
-            <p className="mt-2 text-lg">{job.companyName}</p>
+            <p className="mt-2 text-lg" style={brand ? { color: 'var(--org-1-text)' } : undefined}>{job.companyName}</p>
+            {brand && <p className="mt-0.5 text-xs text-muted-foreground">Listing collected from {job.companyName}&apos;s career site. NextChapter is independent of {job.companyName}.</p>}
             <p className="mt-1 text-sm text-muted-foreground">
               {[place, pay, `Posted ${dateFmt.format(datePostedOf(job))}`].filter(Boolean).join(' · ')}
             </p>
@@ -169,5 +176,6 @@ export default async function PublicJobPage({ params }: { params: Params }) {
         <BrowseTheSite />
       </main>
     </div>
+    </OrgBrandScope>
   )
 }

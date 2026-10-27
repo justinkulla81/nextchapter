@@ -63,7 +63,13 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
       lede={lede}
       jsonLd={orgJsonLd(page, path, hiring.jobs)}
     >
-      {row.kind === 'WORKFORCE_BOARD' && <OrgCandidateBand orgName={row.name} branded={!!vars} peopleCount={peopleCount} properties={props} />}
+      <OrgCandidateBand
+        orgName={row.name}
+        branded={!!vars}
+        peopleCount={peopleCount}
+        heading={row.kind === 'JOB_CENTER' ? 'Looking for work near here? See where you stand.' : undefined}
+        properties={props}
+      />
       <section aria-labelledby="market" className="mt-10">
         <h2 id="market" className={H2}>Jobs where it serves</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
