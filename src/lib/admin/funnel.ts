@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { BOT_SIGNATURES } from '@/lib/http/user-agent'
+import { homeAbOn, visitorsPerArm } from '@/lib/home-ab'
 
 // Admin funnel: traffic -> email/journey -> registration -> onboarding -> résumé
 // -> activation -> engagement -> Candidate+ -> hired.
@@ -34,6 +35,7 @@ export interface FunnelData {
   landing: { path: string; visitors: number; leadsSameSource: number }[]
   offers: OfferRow[]
   b2b: B2bRow[]
+  homeTest: HomeTestData
 }
 
 export interface B2bRow {
@@ -98,6 +100,56 @@ function reachedByPath(since: Date, pathRegex: string): Promise<number> {
     SELECT COUNT(DISTINCT "ip")::bigint AS n FROM "HomepageVisitEvent"
     WHERE "eventType" = 'PAGE_VIEW' AND "ip" IS NOT NULL AND "path" ~ ${pathRegex}
       AND "createdAt" >= ${since} AND ${humanOnly()}`)
+}
+
+export interface HomeTestArm {
+  variant: 'a' | 'b'
+  label: string
+  visitors: number
+  /** Viewed a second page. */
+  multiPage: number
+  /** Clicked a link to the Market Reality start page. */
+  clickedStart: number
+  /** Left an email on the journey picker. */
+  gaveEmail: number
+}
+
+export interface HomeTestData {
+  on: boolean
+  arms: HomeTestArm[]
+  /** Visitors each arm needs to see the start-click rate double, from the control's own rate (5% assumed until it has a click). */
+  perArmToSeeDouble: number | null
+}
+
+// The homepage test (src/lib/home-ab.ts): each assigned visitor's homepage views carry their variant in `href`. Arms are
+// joined to clicks, pages and leads by IP, the same identity the rest of this page uses. An IP seen in both arms (a shared
+// network, or a cleared cookie) counts in both; at this traffic that is a handful at most.
+async function computeHomeTest(since: Date): Promise<HomeTestData> {
+  const rows = await prisma.$queryRaw<{ v: string; visitors: bigint; multi: bigint; clicked: bigint; emailed: bigint }[]>(Prisma.sql`
+    WITH arm AS (
+      SELECT DISTINCT "ip", substring("href" from 9 for 1) AS v FROM "HomepageVisitEvent"
+      WHERE "eventType" = 'PAGE_VIEW' AND "ip" IS NOT NULL AND "href" IN ('ab:home:a', 'ab:home:b')
+        AND "createdAt" >= ${since} AND ${humanOnly()}
+    )
+    SELECT arm.v AS v,
+      COUNT(*)::bigint AS visitors,
+      COUNT(*) FILTER (WHERE (SELECT COUNT(DISTINCT e."path") FROM "HomepageVisitEvent" e
+        WHERE e."ip" = arm."ip" AND e."eventType" = 'PAGE_VIEW' AND e."path" IS NOT NULL AND e."createdAt" >= ${since}) >= 2)::bigint AS multi,
+      COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM "HomepageVisitEvent" e
+        WHERE e."ip" = arm."ip" AND e."eventType" = 'LINK_CLICK' AND e."href" LIKE '%/onboarding/desire%' AND e."createdAt" >= ${since}))::bigint AS clicked,
+      COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM "HomepageLead" l
+        WHERE l."ip" = arm."ip" AND l."kind" = 'journey' AND l."createdAt" >= ${since}))::bigint AS emailed
+    FROM arm GROUP BY arm.v`)
+  const by = new Map(rows.map((r) => [r.v, r]))
+  const arm = (variant: 'a' | 'b', label: string): HomeTestArm => {
+    const r = by.get(variant)
+    return { variant, label, visitors: Number(r?.visitors ?? 0), multiPage: Number(r?.multi ?? 0), clickedStart: Number(r?.clicked ?? 0), gaveEmail: Number(r?.emailed ?? 0) }
+  }
+  const arms = [arm('a', 'A · Control (current homepage)'), arm('b', 'B · Journey picker in the hero')]
+  const control = arms[0]
+  const rate = control.visitors > 0 && control.clickedStart > 0 ? control.clickedStart / control.visitors : 0.05
+  const need = visitorsPerArm(rate, 1)
+  return { on: homeAbOn(), arms, perArmToSeeDouble: Number.isFinite(need) ? need : null }
 }
 
 async function computeB2b(since: Date): Promise<B2bRow[]> {
@@ -253,7 +305,7 @@ export async function computeFunnel(windowDays: FunnelWindowDays): Promise<Funne
     prisma.candidateProfile.count({ where: { ...registeredWhere, hireOutcomes: { some: {} } } }),
   ])
 
-  const [offers, b2b] = await Promise.all([computeOffers(since, registered), computeB2b(since)])
+  const [offers, b2b, homeTest] = await Promise.all([computeOffers(since, registered), computeB2b(since), computeHomeTest(since)])
 
   const landing = landingRows.map((r) => ({
     path: r.path,
@@ -289,6 +341,7 @@ export async function computeFunnel(windowDays: FunnelWindowDays): Promise<Funne
     landing,
     offers,
     b2b,
+    homeTest,
   }
 }
 

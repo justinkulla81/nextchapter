@@ -164,6 +164,44 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
 
       <section className="space-y-3">
         <div>
+          <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Homepage test</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The test is {data.homeTest.on ? 'running' : 'switched off (HOME_AB=off): everyone gets the control'}. Each signed-out person on a normal browser is
+            put in one arm for 30 days; bots, crawlers and signed-in members always see the control and are not counted. B puts the journey picker’s first
+            question in the hero under a new headline.
+          </p>
+        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs text-muted-foreground">
+              <th className="pb-1 font-normal">Arm</th>
+              <th className="pb-1 text-right font-normal">Visitors</th>
+              <th className="pb-1 text-right font-normal">Looked at 2+ pages</th>
+              <th className="pb-1 text-right font-normal">Clicked to start</th>
+              <th className="pb-1 text-right font-normal">Gave email on the picker</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.homeTest.arms.map((a) => (
+              <tr key={a.variant} className="border-t">
+                <td className="py-1.5 font-medium">{a.label}</td>
+                <td className="py-1.5 text-right tabular-nums">{a.visitors.toLocaleString('en-US')}</td>
+                <td className="py-1.5 text-right tabular-nums">{a.multiPage} <span className="text-xs text-muted-foreground">({pct(a.multiPage, a.visitors)})</span></td>
+                <td className="py-1.5 text-right tabular-nums">{a.clickedStart} <span className="text-xs text-muted-foreground">({pct(a.clickedStart, a.visitors)})</span></td>
+                <td className="py-1.5 text-right tabular-nums">{a.gaveEmail} <span className="text-xs text-muted-foreground">({pct(a.gaveEmail, a.visitors)})</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="text-sm text-muted-foreground">
+          How to read it: at this traffic only a large difference will show. To see the start-click rate double from the control’s own rate, each arm needs about{' '}
+          {data.homeTest.perArmToSeeDouble ? data.homeTest.perArmToSeeDouble.toLocaleString('en-US') : 'more than a million'} visitors; the arms have{' '}
+          {data.homeTest.arms.map((a) => a.visitors).join(' and ')} so far. Treat a gap before then as a hint, not a result. Email gives are too rare to compare for months.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <div>
           <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">3 · Organizations (B2B)</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Visitors to each audience&apos;s pages, and who raised a hand. These are different people from the candidate band, so they are not part

@@ -5,6 +5,8 @@ import { APP_TOP_LEVEL, PORTAL_ROOT_PAGES } from '@/lib/app-top-level'
 import { CANDIDATE_ORG_PAGES, HOSTS, LEGACY_EMPLOYER_HOST_PREFIX, appPathFor, cookieForAppPath, hostForAppPath, portalHostFor, portalHostOn, portalOrigin, publicPathFor, type PortalHost } from '@/lib/portal-hosts'
 import { CUSTOMER_SUBDOMAINS_ON, customerSlugForHost } from '@/lib/organizations/front-door'
 import { pausedPrefixes } from '@/lib/paused-pages'
+import { HOME_AB_COOKIE, HOME_AB_MAX_AGE_SECONDS, HOME_AB_VARIANT_PATH, decideHomeVariant } from '@/lib/home-ab'
+import { SERVER_COOKIES_SECURE } from '@/lib/supabase/cookie-options'
 import { MAIN_SITE_SEGMENTS, ORG_SUBDOMAINS_ON, mainOrigin, orgKindForHost, orgOrigin } from '@/lib/org-hosts'
 
 export const ADMIN_HOST = 'admin.launchyournextchapter.com'
@@ -77,7 +79,36 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  // (localhost too, so the test can be tried on a dev server; production never receives that host.)
+  if ((MAIN_HOSTS.has(host) || /^localhost(:\d+)?$/.test(host)) && pathname === '/' && (request.method === 'GET' || request.method === 'HEAD')) {
+    return serveHomepageTest(request)
+  }
+
   return updateSession(request)
+}
+
+// The homepage test (src/lib/home-ab.ts): which cached homepage this visitor gets at "/". The variant is a rewrite, so the
+// address and the cache stay as they are. Anyone who is not clearly a signed-out person's browser gets the control, untouched.
+async function serveHomepageTest(request: NextRequest): Promise<NextResponse> {
+  const hasSession = request.cookies.getAll().some((c) => c.name.startsWith('sb-') && c.name.includes('auth-token'))
+  const { variant, assign } = decideHomeVariant({
+    cookie: request.cookies.get(HOME_AB_COOKIE)?.value,
+    userAgent: request.headers.get('user-agent'),
+    hasSession,
+    random: () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32,
+  })
+  let response: NextResponse
+  if (variant === 'b') {
+    const url = request.nextUrl.clone()
+    url.pathname = HOME_AB_VARIANT_PATH
+    response = await updateSession(request, { rewriteTo: url })
+  } else {
+    response = await updateSession(request)
+  }
+  if (assign) {
+    response.cookies.set(HOME_AB_COOKIE, variant, { path: '/', maxAge: HOME_AB_MAX_AGE_SECONDS, sameSite: 'lax', secure: SERVER_COOKIES_SECURE, httpOnly: true })
+  }
+  return response
 }
 
 // College and workforce portals on their own hosts (src/lib/org-hosts.ts).

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { HomeTryIt } from '@/components/home/HomeTryIt'
+import { JourneyPicker } from '@/components/home/JourneyPicker'
 import { HomeLearnMore } from '@/components/home/HomeLearnMore'
 import { HomeFunding } from '@/components/home/HomeFunding'
 import { AiJobsStat } from '@/components/marketing/AiJobsStat'
@@ -59,7 +60,13 @@ const TOPIC_LINKS = [
   { label: 'Glossary', href: '/glossary' },
 ]
 
-export function NewHome() {
+// The homepage test (src/lib/home-ab.ts): 'control' is the page as it was; 'picker' puts the journey picker's first question in
+// the hero, under an outcome headline, and drops the separate "Not ready to sign up?" section (the picker is now up here).
+// `variant` is also on every homepage_cta_clicked event, so PostHog can split them.
+export type HomeVariantName = 'control' | 'picker'
+
+export function NewHome({ variant = 'control' }: { variant?: HomeVariantName } = {}) {
+  const picker = variant === 'picker'
   return (
     <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
       <header>
@@ -68,18 +75,31 @@ export function NewHome() {
 
       <section className="mx-auto max-w-3xl px-6 pt-10 pb-16 text-center" aria-labelledby="home-hero-heading">
         <h1 id="home-hero-heading" className="font-display text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-6xl">
-          Get hired faster, with a coach that knows your whole search.
+          {picker ? 'Find out why your job search is stalling, and what to fix first.' : 'Get hired faster, with a coach that knows your whole search.'}
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">
-          Your résumé is the least complete thing about you. NextChapter works from your applications, your networking and your learning,
-          and tailors every step to you.
+          {picker
+            ? 'Two clicks tell us where you are. You get a plan for your first week, free, with no résumé and no account.'
+            : 'Your résumé is the least complete thing about you. NextChapter works from your applications, your networking and your learning, and tailors every step to you.'}
         </p>
+        {picker && (
+          <div className="mt-8 text-left">
+            <JourneyPicker variant={variant} />
+          </div>
+        )}
         <div className="mt-8">
-          <TrackedLink href={MARKET_REALITY_START_HREF} event="homepage_cta_clicked" properties={{ cta: 'hero_assessment' }} className={action}>
+          <TrackedLink href={MARKET_REALITY_START_HREF} event="homepage_cta_clicked" properties={{ cta: 'hero_assessment', variant }} className={action}>
             Get your Market Reality Assessment
           </TrackedLink>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">Free for candidates, always. Takes about five minutes.</p>
+        {picker && (
+          <p className="mt-2 text-sm">
+            <TrackedLink href="/jobs" event="homepage_cta_clicked" properties={{ cta: 'hero_search_jobs', variant }} className="text-muted-foreground underline underline-offset-4">
+              Just want to search jobs?
+            </TrackedLink>
+          </p>
+        )}
         <p className="mx-auto mt-6 max-w-md text-sm text-muted-foreground">
           <span className="font-semibold text-ink">Why:</span> a hiring manager scores you on 15 things, and a résumé speaks to 2 of them.{' '}
           <Link href="/why-stuck" className="text-brand underline underline-offset-4">
@@ -88,7 +108,7 @@ export function NewHome() {
         </p>
       </section>
 
-      <HomeTryIt />
+      {!picker && <HomeTryIt />}
 
       <section className="mx-auto max-w-3xl px-6 py-12 text-center" aria-label="How it works, in a video">
         <div className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-border bg-white shadow-lg">
@@ -110,7 +130,7 @@ export function NewHome() {
       </Suspense>
 
       <Suspense fallback={null}>
-        <AiExposureSection page="home" cta={{ event: 'homepage_cta_clicked', properties: { cta: 'ai_exposure_assessment' }, className: action }} />
+        <AiExposureSection page="home" cta={{ event: 'homepage_cta_clicked', properties: { cta: 'ai_exposure_assessment', variant }, className: action }} />
       </Suspense>
 
       <HomeFunding />
@@ -138,7 +158,7 @@ export function NewHome() {
         <div className="mx-auto max-w-4xl px-6 py-16 text-center">
           <h2 className="font-display text-3xl font-semibold tracking-tight text-balance">Ready to start your next chapter?</h2>
           <div className="mt-6">
-            <TrackedLink href="/onboarding/desire" event="homepage_cta_clicked" properties={{ cta: 'footer_assessment' }} className={action}>
+            <TrackedLink href={MARKET_REALITY_START_HREF} event="homepage_cta_clicked" properties={{ cta: 'footer_assessment', variant }} className={action}>
               Get your Market Reality Assessment
             </TrackedLink>
           </div>

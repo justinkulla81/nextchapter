@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getClientIp } from '@/lib/http/client-ip'
 import { isTrustedOwnerIp, isLoopbackIp } from '@/lib/http/trusted-ips'
 import { createClient } from '@/lib/supabase/server'
+import { HOME_AB_COOKIE, homeAbStamp, isHomePath } from '@/lib/home-ab'
 
 // Hit by the client-side HomepageVisitTracker beacon — never blocks
 // navigation (fire-and-forget from the browser), so failures here are
@@ -44,12 +45,16 @@ export async function POST(request: NextRequest) {
       // Session lookup failing must never block recording the visit.
     }
 
+    // Homepage test (src/lib/home-ab.ts): a homepage view by an assigned visitor carries its variant in `href`, which a
+    // PAGE_VIEW otherwise leaves empty. The path stays "/", so every report that groups by path is unchanged.
+    const stamp = eventType === 'PAGE_VIEW' && isHomePath(path) ? homeAbStamp(request.cookies.get(HOME_AB_COOKIE)?.value) : null
+
     await prisma.homepageVisitEvent.create({
       data: {
         ip,
         eventType,
         path: eventType === 'PAGE_VIEW' ? path : null,
-        href: eventType === 'LINK_CLICK' ? href : null,
+        href: eventType === 'LINK_CLICK' ? href : stamp,
         referrer: eventType === 'PAGE_VIEW' ? referrer : null,
         userAgent: request.headers.get('user-agent'),
         candidateId,
