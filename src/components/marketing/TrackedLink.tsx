@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePostHog } from '@/lib/posthog/client'
 import type { ReactNode } from 'react'
+import { absoluteWebUrl } from '@/lib/http/external-url'
 
 /**
  * A link that fires a PostHog event on click. External links (LinkedIn)
@@ -22,6 +23,8 @@ export function TrackedLink({
 }) {
   const posthog = usePostHog()
   const onClick = () => posthog?.capture(event, properties)
+  // A scheme-less outside address ("example.org/page") would otherwise be a relative link and 404.
+  href = absoluteWebUrl(href) ?? href
   if (/^https?:\/\//.test(href)) {
     return (
       <a href={href} target="_blank" rel={rel ? `noopener noreferrer ${rel}` : 'noopener noreferrer'} onClick={onClick} className={className} aria-label={ariaLabel}>

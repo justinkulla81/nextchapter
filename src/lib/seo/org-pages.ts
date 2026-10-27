@@ -1,3 +1,4 @@
+import { absoluteWebUrl } from '@/lib/http/external-url'
 import 'server-only'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
@@ -158,7 +159,7 @@ async function loadStateData(state: string): Promise<StateData> {
   const centerSlugs = orgSlugs(centerRows)
   const centers: OrgRow[] = centerRows.map((r) => ({
     kind: 'JOB_CENTER', id: r.id, state, name: cleanOrgName(r.name), slug: centerSlugs.get(r.id)!, city: r.city, label: CENTER_LABEL(r.centerType),
-    website: null, street: r.street, zip: r.zip, phone: r.phone, hours: r.hours, email: r.generalEmail, countyFips: r.countyFips, detailsUrl: r.detailsUrl,
+    website: null, street: r.street, zip: r.zip, phone: r.phone, hours: r.hours, email: r.generalEmail, countyFips: r.countyFips, detailsUrl: absoluteWebUrl(r.detailsUrl),
     countyTokens: [], boardId: r.workforceBoardId, updatedAt: r.updatedAt, sourceNote: 'CareerOneStop, U.S. Department of Labor',
   }))
   // One page per organization: an EDA district and the state directory's copy of it are folded together, keeping the
@@ -168,7 +169,7 @@ async function loadStateData(state: string): Promise<StateData> {
     return {
       ...primary,
       counties: [...new Set(all.flatMap((r) => r.counties))],
-      website: all.map((r) => r.website).find((w) => !!w) ?? null,
+      website: all.map((r) => absoluteWebUrl(r.website)).find((w) => !!w) ?? null,
       city: all.map((r) => r.city).find((c) => !!c) ?? null,
       // A phone only where an official directory published it; research-found numbers stay off the page.
       phone: all.filter((r) => r.source !== 'RESEARCH').map((r) => r.phone).find((x) => !!x) ?? null,
@@ -179,14 +180,14 @@ async function loadStateData(state: string): Promise<StateData> {
   const partnerSlugs = orgSlugs(merged)
   const econDev: OrgRow[] = merged.map((r) => ({
     kind: 'ECON_DEV', id: r.id, state, name: cleanOrgName(r.name), slug: partnerSlugs.get(r.id)!, city: r.city, label: EDO_LABEL[r.kind] ?? 'Economic development organization',
-    website: r.website, street: null, zip: null, phone: r.phone, hours: null, email: null, countyFips: null, detailsUrl: r.sourceUrl,
+    website: absoluteWebUrl(r.website), street: null, zip: null, phone: r.phone, hours: null, email: null, countyFips: null, detailsUrl: absoluteWebUrl(r.sourceUrl),
     countyTokens: r.kind === 'STATE_AGENCY' ? 'all' : r.counties.map(keyOf), boardId: null, updatedAt: r.updatedAt, aliasIds: r.aliasIds,
     sourceNote: EDO_SOURCE[r.source] ?? 'public directories',
   }))
   const boards: OrgRow[] = boardRows.map((b) => {
     const keys = boardCountyKeys(b)
     return {
-      kind: 'WORKFORCE_BOARD', id: b.id, state, name: b.name, slug: b.slug, city: null, label: 'Workforce development board', website: b.website, street: null, zip: b.zip,
+      kind: 'WORKFORCE_BOARD', id: b.id, state, name: b.name, slug: b.slug, city: null, label: 'Workforce development board', website: absoluteWebUrl(b.website), street: null, zip: b.zip,
       phone: null, hours: null, email: null, countyFips: null, detailsUrl: null, countyTokens: keys, serviceArea: b.statewide ? null : b.serviceArea, boardId: b.id, updatedAt: new Date(0), sourceNote: 'CareerOneStop, U.S. Department of Labor',
     }
   })
