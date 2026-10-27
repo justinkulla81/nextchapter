@@ -4,7 +4,7 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { classifyLocation } from '@/lib/jobs/us-location'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
-import { isPublicJob } from '@/lib/jobs/public-job-page'
+import { isPublicJob, isStaleVerified } from '@/lib/jobs/public-job-page'
 import { PUBLIC_JOB_SELECT } from '@/lib/jobs/public-job-page-server'
 
 // The homepage job board: an anonymous, unpersonalized search over the same live
@@ -112,7 +112,6 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
   // do the same here. The count can't be filtered in SQL, so it is scaled by the US share
   // of the rows fetched and rounded, and the page says "about".
   const usRows = rows.filter((r) => classifyLocation(r.location) !== 'non_us')
-  const approxTotal = roundCount(Math.round(total * (usRows.length / rows.length)))
 
   const [wide, ghosts] = await Promise.all([
     prisma.exclusiveJobPosting.findMany({
@@ -122,11 +121,16 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
     getConfirmedGhostIds(),
   ])
   const nowMs = Date.now()
+  // A job the crawl has not confirmed open within PUBLIC_JOB_VERIFIED_DAYS is dropped: its own page 404s, and the board copy
+  // (BoardLightRow) carries no verification date to filter on in SQL. The count is scaled by the share kept, like the US share.
+  const stale = new Set(wide.filter((w) => isStaleVerified(w.lastVerifiedAt, nowMs)).map((w) => w.id))
+  const freshUsRows = usRows.filter((r) => !stale.has(r.id))
+  const approxTotal = roundCount(Math.round(total * (freshUsRows.length / rows.length)))
   const urlById = new Map(wide.map((w) => [w.id, w.url]))
   const publicIds = new Set(wide.filter((w) => isPublicJob(w, nowMs, ghosts.has(w.id))).map((w) => w.id))
 
   const jobs: PublicBoardJob[] = []
-  for (const r of usRows) {
+  for (const r of freshUsRows) {
     const url = urlById.get(r.id)
     if (!url) continue
     jobs.push({
