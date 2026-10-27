@@ -11,6 +11,8 @@ import { AUTHORS } from '@/lib/seo/authors'
 import { SITE_URL } from '@/lib/seo/facts'
 import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
+import { stateMeetsBar } from '@/lib/cobra-aca/states'
+import { RULES_AS_OF as COBRA_ACA_UPDATED } from '@/lib/cobra-aca/rules'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-announcements'
@@ -55,6 +57,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/tools', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
   { path: '/tools/severance-calculator', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
   { path: '/tools/layoff-deadlines', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/cobra-vs-aca-calculator', updated: '2026-10-26', freq: 'monthly', priority: 0.7 },
   { path: '/tools/salary-converter', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
   { path: '/tools/layoff-runway', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
   { path: '/tools/unemployment-estimator', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
@@ -290,6 +293,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Unemployment benefits: dated by the last verification against sources.
     entry('/unemployment-benefits', UI_LAST_VERIFIED, 'monthly', 0.7),
     ...ALL_STATE_CODES.map((c) => entry(`/unemployment-benefits/${stateSlug(c)}`, UI_LAST_VERIFIED, 'monthly', 0.6)),
+    // COBRA vs ACA: the explainer lives at /resources/cobra-aca (a static page). State pages that meet their bar (src/lib/cobra-aca/states.ts).
+    ...ALL_STATE_CODES.filter(stateMeetsBar).map((c) => entry(`/resources/cobra-aca/${stateSlug(c)}`, COBRA_ACA_UPDATED, 'monthly', 0.5)),
 
     // Workforce boards, rapid response and higher education by state, and the WARN checker. Dated by the
     // directory refresh, which is monthly; a database failure leaves these out rather than failing the sitemap.

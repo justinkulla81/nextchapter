@@ -154,6 +154,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
               <li><Link href={`/unemployment-benefits/${state}`} className={LINK}>{d.name} unemployment benefits: amounts, weeks and how to file</Link></li>
               <li><Link href="/start/laid-off" className={LINK}>What to do after a layoff</Link></li>
               <li><Link href="/resources/cobra-aca" className={LINK}>Keeping your health coverage: COBRA and the marketplace</Link></li>
+              <li><Link href={`/resources/cobra-aca/${state}`} className={LINK}>COBRA vs ACA in {d.name}: which costs less</Link></li>
             </ul>
           </section>
 

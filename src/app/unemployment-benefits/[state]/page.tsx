@@ -232,6 +232,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
           <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
             <li><Link href="/resources/unemployed" className={LINK}>You’re unemployed now: what actually works</Link></li>
             <li><Link href="/resources/cobra-aca" className={LINK}>Keeping health coverage: COBRA vs. the marketplace</Link></li>
+            <li><Link href={`/resources/cobra-aca/${state}`} className={LINK}>COBRA vs ACA in {name}: which costs less</Link></li>
             <li><Link href="/resources/bridge-income" className={LINK}>Bridge income while you search</Link></li>
             <li>
               {hasLayoffPage ? (

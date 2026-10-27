@@ -7,7 +7,8 @@ import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 
 export function generateStaticParams() {
-  return GUIDE_LANDING_CONTENT.map((content) => ({ slug: content.slug }))
+  // cobra-aca has its own page (src/app/resources/cobra-aca/page.tsx); the gated guide is an extra on it.
+  return GUIDE_LANDING_CONTENT.filter((content) => content.slug !== 'cobra-aca').map((content) => ({ slug: content.slug }))
 }
 
 export async function generateMetadata({

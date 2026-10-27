@@ -32,6 +32,9 @@ export async function saveDeadlineReminders(_prev: DeadlineSignupState | undefin
   if (!lastDay || !plausibleLastDay(lastDay)) return { error: 'Enter your last day of work, within the last 60 days.', email }
   const stateRaw = text(formData, 'state', 2).toUpperCase()
   const state = (ALL_STATE_CODES as readonly string[]).includes(stateRaw) ? stateRaw : ''
+  // Which box: the layoff deadlines tool, or one of the COBRA vs ACA pages (so the admin funnel can tell them apart).
+  const sourceRaw = text(formData, 'source', 40)
+  const source = /^cobra_vs_aca:(tool|explainer|state)$/.test(sourceRaw) ? sourceRaw : 'layoff_deadlines'
 
   if (!(await allowByIp('deadline-reminders', 10, HOUR_MS)) || !(await allowByTarget('deadline-reminders', email, 5, DAY_MS))) {
     return { error: 'Too many requests from this network. Try again later.', email }
@@ -44,7 +47,7 @@ export async function saveDeadlineReminders(_prev: DeadlineSignupState | undefin
     const existing = await prisma.homepageLead.findUnique({ where: { email_kind_situation_searchQ_searchLoc_searchRemote: key }, select })
     const lead = existing
       ? await prisma.homepageLead.update({ where: { id: existing.id }, data: { unsubscribedAt: null }, select })
-      : await prisma.homepageLead.create({ data: { ...key, source: 'layoff_deadlines', ip }, select })
+      : await prisma.homepageLead.create({ data: { ...key, source, ip }, select })
 
     const needsConfirm = !lead.confirmedAt && (!lead.confirmSentAt || lead.confirmSentAt.getTime() < Date.now() - DAY_MS)
     const confirmEmailed = needsConfirm
@@ -54,7 +57,7 @@ export async function saveDeadlineReminders(_prev: DeadlineSignupState | undefin
           enabled: deadlineEmailsOn(),
         })
       : false
-    captureServerEvent(email, 'alert_subscribed', { kind: 'deadline_reminders', state, confirmEmailed, returning: !!existing })
+    captureServerEvent(email, 'alert_subscribed', { kind: 'deadline_reminders', source, state, confirmEmailed, returning: !!existing })
     return { saved: true, email, confirmEmailed, token: lead.unsubscribeToken }
   } catch (error) {
     console.error('deadline reminders signup failed:', error instanceof Error ? error.message : error)
