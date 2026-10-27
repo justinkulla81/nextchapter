@@ -61,7 +61,9 @@ export function HomepageVisitTracker() {
       const anchor = target?.closest('a')
       const href = anchor?.getAttribute('href')
       if (!href) return
-      track('LINK_CLICK', { href })
+      // path = the page the click happened on, so a click on a job page's Apply button can be told apart from a footer link.
+      const here = window.location.search ? `${window.location.pathname}${window.location.search}` : window.location.pathname
+      track('LINK_CLICK', { href, path: here })
     }
 
     document.addEventListener('click', onClick, true)
