@@ -183,6 +183,20 @@ export async function getCompanies(): Promise<Map<string, CompanySummary>> {
   return by
 }
 
+/**
+ * The page a slug that matches no employer should go to: the same employer under a fuller or shorter spelling
+ * ("acme" for "acme-holdings", "oracle-america" for "oracle"), or null when nothing matches. A prefix counts only
+ * when exactly one slug starts with it, so a guess never lands on the wrong employer.
+ */
+export function resolveCompanySlug(slug: string, known: Iterable<string>): string | null {
+  const keys = new Set(known)
+  if (keys.has(slug)) return slug
+  const base = mergedSlug(stripSlugSuffixes(slug))
+  if (keys.has(base)) return base
+  const longer = [...keys].filter((k) => k.startsWith(`${base}-`))
+  return longer.length === 1 ? longer[0] : null
+}
+
 /** Press reports that name the employer, newest first. */
 export async function getNewsMentions(company: CompanySummary) {
   const keys = [...new Set([...company.notices.map((n) => normalizeOrgName(n.employer)), normalizeOrgName(company.name)])]
