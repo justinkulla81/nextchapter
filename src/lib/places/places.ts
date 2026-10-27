@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client'
 import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { heavy, memoTtl, retryOnPoolTimeout } from '@/lib/db/heavy'
+import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 
 // County and city lists change rarely; kept on the instance so a crawl does not query them for every page (it once exhausted the connection pool).
 const PLACES_TTL = 6 * 3600_000
@@ -174,9 +175,10 @@ export const getStateCityPlaces = memoTtl(PLACES_TTL, (state: string) => state, 
 const jobsWhere = (extra: Prisma.Sql) => Prisma.sql`WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} ${extra}`
 
 /** Open public roles: for each state its total, and the count for each city (placeKey), from one scan of the board. */
-type JobAggregate = [state: string, total: number, cities: [key: string, n: number][]][]
+export type JobAggregate = [state: string, total: number, cities: [key: string, n: number][]][]
 
-async function loadJobAggregate(): Promise<JobAggregate> {
+/** One scan of the board (up to two minutes). Run by the cron /api/cron/board-figures, not by a page. */
+export async function loadJobAggregate(): Promise<JobAggregate> {
   const rows = await prisma.$queryRaw<{ st: string; city: string | null; n: number }[]>`
     SELECT "locationState" AS st, lower("locationCity") AS city, count(*)::int AS n
     FROM "ExclusiveJobPosting"
@@ -194,9 +196,14 @@ async function loadJobAggregate(): Promise<JobAggregate> {
 }
 
 // One scan of the board serves every place page: a state's job counts used to be a scan each, and Texas's timed out (the
-// database's statement timeout) while crawlers asked for county and city pages. The result is kept in the data cache for six
-// hours, shared by every instance, and rebuilt into maps once per instance per ten minutes. The scan runs through heavy().
-const cachedJobAggregate = unstable_cache(() => heavy(loadJobAggregate), ['places-job-aggregate-v1'], { revalidate: 6 * 60 * 60 })
+// database's statement timeout) while crawlers asked for county and city pages. The scan now runs in the cron
+// /api/cron/board-figures and its result is stored (BoardFigure); a page reads the stored row, and the instance rebuilds it into
+// maps once per ten minutes. The live scan, through heavy(), only runs when no row exists yet.
+const cachedJobAggregate = unstable_cache(
+  async () => (await readBoardFigure<JobAggregate>('places-job-aggregate')) ?? heavy(loadJobAggregate),
+  ['places-job-aggregate-v2'],
+  { revalidate: 600 },
+)
 const sharedJobAggregate = memoTtl(
   10 * 60_000,
   () => '*',

@@ -1,6 +1,7 @@
 import 'server-only'
 import { unstable_cache } from 'next/cache'
 import { heavy, memoTtl } from '@/lib/db/heavy'
+import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { PUBLIC_JOB_SELECT } from '@/lib/jobs/public-job-page-server'
@@ -86,7 +87,7 @@ function percentile(sorted: number[], q: number): number | null {
 
 interface ScanRow { id: string; b: string; state: string | null; company: string; posted: Date; pay: number | null; fn: string | null }
 
-interface TypeSummary { total: number; payCount: number; median: number | null; states: { st: string; n: number }[]; ids: string[]; bases: string[] }
+export interface TypeSummary { total: number; payCount: number; median: number | null; states: { st: string; n: number }[]; ids: string[]; bases: string[] }
 
 interface Dataset {
   stats: TitleStat[]
@@ -94,6 +95,7 @@ interface Dataset {
   types: Map<string, TypeSummary>
 }
 
+/** One pass over the open board (25-50 s). Run by the cron /api/cron/board-figures (buildTitleFigures), not by a page. */
 async function scan(): Promise<Dataset> {
   // Titles with enough listings are picked in the same query, so only their rows come back.
   const rowsQuery = prisma.$queryRaw<{ id: string; b: string; state: string | null; company: string; posted: Date; pay: number | null; fn: string | null }[]>`
@@ -140,10 +142,54 @@ async function scan(): Promise<Dataset> {
 
 const sharedScan = memoTtl(6 * 3600_000, () => 'scan', () => heavy(scan))
 
-// The title list and the job-type summaries are small, so they are also kept in the shared data cache: the index pages, the
-// sitemap and the type pages then do not wait for the scan on a server that has not run it yet, and they survive a deploy.
-const cachedStats = unstable_cache(async () => (await sharedScan()).stats, ['job-title-stats-v4'], { revalidate: 21600 })
-const cachedTypes = unstable_cache(async () => [...(await sharedScan()).types], ['job-type-summaries-v3'], { revalidate: 21600 })
+/** What one title's page needs from its listings, worked out once so the page does not need the rows. */
+export interface TitleParts {
+  /** The 60 newest listing ids. */
+  jobIds: string[]
+  states: { code: string; jobs: number; median: number | null; payCount: number }[]
+  employers: { name: string; jobs: number }[]
+}
+
+function titleParts(rows: ScanRow[]): TitleParts {
+  const byState = new Map<string, { jobs: number; pay: number[] }>()
+  const byEmployer = new Map<string, number>()
+  for (const r of rows) {
+    byEmployer.set(r.company, (byEmployer.get(r.company) ?? 0) + 1)
+    if (!r.state) continue
+    const e = byState.get(r.state) ?? { jobs: 0, pay: [] }
+    e.jobs++
+    if (r.pay != null) e.pay.push(r.pay)
+    byState.set(r.state, e)
+  }
+  return {
+    jobIds: [...rows].sort((a, b) => b.posted.getTime() - a.posted.getTime()).slice(0, 60).map((r) => r.id),
+    // A listing can carry a code that is not a state or DC (a territory, a typo); those have no state page.
+    states: [...byState].filter(([code]) => code in STATE_NAMES).sort((a, b) => b[1].jobs - a[1].jobs).slice(0, 12).map(([code, e]) => ({ code, jobs: e.jobs, median: e.pay.length >= 8 ? round(median(e.pay)) : null, payCount: e.pay.length })),
+    employers: [...byEmployer].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([name, jobs]) => ({ name, jobs })),
+  }
+}
+
+/** Every figure the title and job-type pages read, from one scan: the title list, the job-type summaries, and each title's parts. */
+export async function buildTitleFigures(): Promise<{ stats: TitleStat[]; types: [string, TypeSummary][]; parts: Map<string, TitleParts> }> {
+  const data = await scan()
+  const parts = new Map<string, TitleParts>()
+  for (const t of data.stats) parts.set(t.slug, titleParts(data.rowsByBase.get(t.base) ?? []))
+  return { stats: data.stats, types: [...data.types], parts }
+}
+
+// The scan runs in the cron /api/cron/board-figures, which stores its results (BoardFigure); these read the stored rows. The
+// live scan only runs when no row exists yet, never on a normal request (it took 25-50 s and, run by many cold instances at
+// once, starved the database's connection pool).
+const cachedStats = unstable_cache(
+  async () => (await readBoardFigure<TitleStat[]>('job-title-stats')) ?? (await sharedScan()).stats,
+  ['job-title-stats-v5'],
+  { revalidate: 600 },
+)
+const cachedTypes = unstable_cache(
+  async () => (await readBoardFigure<[string, TypeSummary][]>('job-type-summaries')) ?? [...(await sharedScan()).types],
+  ['job-type-summaries-v4'],
+  { revalidate: 600 },
+)
 
 /** Every title with enough open listings for a page, most listings first. */
 export async function getTitleIndex(): Promise<TitleStat[]> {
@@ -182,28 +228,17 @@ function median(xs: number[]): number | null {
 /** One title's page data, or null when the title has no page. */
 export async function getTitleDetail(slug: string): Promise<TitleDetail | null> {
   if (!/^[a-z0-9-]{3,80}$/.test(slug)) return null
-  const data = await sharedScan()
-  const stat = data.stats.find((t) => t.slug === slug)
+  const stats = await getTitleIndex()
+  const stat = stats.find((t) => t.slug === slug)
   if (!stat) return null
-  const rows = data.rowsByBase.get(stat.base) ?? []
-  const byState = new Map<string, { jobs: number; pay: number[] }>()
-  const byEmployer = new Map<string, number>()
-  for (const r of rows) {
-    byEmployer.set(r.company, (byEmployer.get(r.company) ?? 0) + 1)
-    if (!r.state) continue
-    const e = byState.get(r.state) ?? { jobs: 0, pay: [] }
-    e.jobs++
-    if (r.pay != null) e.pay.push(r.pay)
-    byState.set(r.state, e)
-  }
+  const parts = (await readBoardFigure<TitleParts>(`job-title:${slug}`)) ?? titleParts((await sharedScan()).rowsByBase.get(stat.base) ?? [])
   const last = stat.base.split(' ').slice(-1)[0]
   return {
     stat,
-    jobs: await newestJobs([...rows].sort((a, b) => b.posted.getTime() - a.posted.getTime()).slice(0, 60).map((r) => r.id), 15),
-    // A listing can carry a code that is not a state or DC (a territory, a typo); those have no state page.
-    states: [...byState].filter(([code]) => code in STATE_NAMES).sort((a, b) => b[1].jobs - a[1].jobs).slice(0, 12).map(([code, e]) => ({ code, name: stateName(code), slug: stateSlug(code), jobs: e.jobs, median: e.pay.length >= 8 ? round(median(e.pay)) : null, payCount: e.pay.length })),
-    employers: [...byEmployer].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([name, jobs]) => ({ name, jobs })),
-    related: data.stats.filter((t) => t.slug !== slug && t.base.split(' ').slice(-1)[0] === last).slice(0, 8),
+    jobs: await newestJobs(parts.jobIds, 15),
+    states: parts.states.map((e) => ({ code: e.code, name: stateName(e.code), slug: stateSlug(e.code), jobs: e.jobs, median: e.median, payCount: e.payCount })),
+    employers: parts.employers,
+    related: stats.filter((t) => t.slug !== slug && t.base.split(' ').slice(-1)[0] === last).slice(0, 8),
   }
 }
 
