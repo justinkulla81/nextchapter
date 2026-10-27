@@ -1,159 +1,151 @@
-import { describe, expect, it } from 'vitest'
-import { AEI_OBSERVED_EXPOSURE } from '@/lib/market/aei-observed-exposure'
-import {
-  HIGH_AI_EXPOSURE,
-  INDUSTRY_MIN_NOTICES,
-  ROLE_FAMILIES,
-  assessRisk,
-  industryRising,
-  roleExposure,
-  type EmployerFacts,
-  type RiskInput,
-} from '@/lib/layoff-risk/rules'
-import { FEDERAL_WARN, STATE_WARN_LAWS, WARN_GUIDE_AS_OF, WARN_SOURCES, stateWarnLaw, usedSources } from '@/lib/warn-guide/rules'
-import { ALL_STATE_CODES } from '@/lib/seo/states'
-import { companyWarnFacts } from '@/lib/warn/company-facts'
-import { LAYOFF_TERMS } from '@/lib/warn/layoff-definitions'
+import { describe, expect, it, vi } from 'vitest'
+import type { BenefitProgramRow } from '@/lib/benefits/types'
+import { buildLayoffGuide, guideKind, planningDate, type GuideNotice } from '@/lib/warn/layoff-guide'
+import { filingFacts, guidePrograms } from '@/lib/warn/layoff-guide-programs'
 
-const employer = (over: Partial<EmployerFacts> = {}): EmployerFacts => ({
-  name: 'Acme',
-  slug: 'acme',
-  recentNotices: 0,
-  recentMonths: 0,
-  latest: null,
-  announcedRecently: false,
-  ...over,
+// The form's server action pulls in the database client; the render test only needs the markup.
+vi.mock('@/lib/leads/actions', () => ({ submitJourneyLead: vi.fn() }))
+
+const at = (iso: string) => new Date(`${iso}T12:00:00Z`)
+const now = at('2026-10-27')
+const notice = (over: Partial<GuideNotice> = {}): GuideNotice => ({
+  state: 'WA', workers: 100, noticeDate: at('2026-10-20'), noticeDateKnown: true, effectiveDate: at('2026-12-19'), ...over,
 })
-const base: RiskInput = { employer: null, size: null, industry: null, roleCode: null }
 
-describe('layoff risk check', () => {
-  it('is low when nothing applies, and says what it could not check', () => {
-    const r = assessRisk(base)
-    expect(r.signal).toBe('low')
-    expect(r.signs.every((s) => !s.applies)).toBe(true)
-    expect(r.signs.every((s) => s.detail.length > 0)).toBe(true)
+describe('guideKind', () => {
+  it('is a layoff when there are notices and no newer announcement', () => {
+    expect(guideKind({ notices: [notice()], announcements: [] })).toBe('layoff')
   })
-
-  it('needs an employer sign to be high: one filing alone is watch', () => {
-    expect(assessRisk({ ...base, employer: employer({ recentNotices: 1, recentMonths: 1 }) }).signal).toBe('watch')
+  it('follows a buyout announced after the latest notice', () => {
+    expect(guideKind({ notices: [notice()], announcements: [{ kind: 'buyout', date: at('2026-10-25') }] })).toBe('buyout')
   })
-
-  it('is high when the employer filed and shows a second sign', () => {
-    expect(assessRisk({ ...base, employer: employer({ recentNotices: 3, recentMonths: 2 }) }).signal).toBe('high')
-    expect(assessRisk({ ...base, employer: employer({ recentNotices: 1, recentMonths: 1, announcedRecently: true }) }).signal).toBe('high')
+  it('keeps layoff when the buyout was announced before the latest notice', () => {
+    expect(guideKind({ notices: [notice()], announcements: [{ kind: 'buyout', date: at('2026-09-01') }] })).toBe('layoff')
   })
-
-  it('does not call a repeat filer or an announcer high without a filing', () => {
-    expect(assessRisk({ ...base, employer: employer({ announcedRecently: true }) }).signal).toBe('watch')
-  })
-
-  it('is watch when the industry and the kind of work both show a sign, and low with only one', () => {
-    const industry = { bucket: 'Technology & Software', last6: 40, prior6: 20 }
-    expect(assessRisk({ ...base, industry, roleCode: '15' }).signal).toBe('watch')
-    expect(assessRisk({ ...base, industry }).signal).toBe('low')
-    expect(assessRisk({ ...base, roleCode: '15' }).signal).toBe('low')
-  })
-
-  it('calls an industry trend only with enough notices and a real rise', () => {
-    expect(industryRising({ bucket: 'x', last6: 12, prior6: 6 })).toBe(false) // 18 notices: too few
-    expect(industryRising({ bucket: 'x', last6: 30, prior6: 25 })).toBe(false) // under 1.25x
-    expect(industryRising({ bucket: 'x', last6: 30, prior6: 24 })).toBe(true) // exactly 1.25x
-    expect(industryRising({ bucket: 'x', last6: INDUSTRY_MIN_NOTICES, prior6: 0 })).toBe(true)
-    expect(industryRising(null)).toBe(false)
-  })
-
-  it('marks exactly the five role groups at or above the exposure threshold', () => {
-    const high = ROLE_FAMILIES.filter((r) => (roleExposure(r.code) ?? 0) >= HIGH_AI_EXPOSURE).map((r) => r.code).sort()
-    expect(high).toEqual(['13', '15', '23', '41', '43'])
-  })
-
-  it('only offers kinds of work that exist in the exposure file', () => {
-    for (const r of ROLE_FAMILIES) expect(AEI_OBSERVED_EXPOSURE[r.code]).toBeDefined()
-  })
-
-  it('warns that an employer under 100 people is invisible to the record', () => {
-    expect(assessRisk({ ...base, size: 'u100' }).limits.join(' ')).toMatch(/under 100/i)
-    expect(assessRisk({ ...base, size: '5000+' }).limits.join(' ')).not.toMatch(/Employers under 100/)
-  })
-
-  it('always says the result is not a forecast', () => {
-    expect(assessRisk(base).limits.join(' ')).toMatch(/not a forecast/i)
+  it('uses the announcement alone when there are no notices', () => {
+    expect(guideKind({ notices: [], announcements: [{ kind: 'buyout', date: at('2026-10-25') }] })).toBe('buyout')
+    expect(guideKind({ notices: [], announcements: [{ kind: 'layoff', date: at('2026-10-25') }] })).toBe('layoff')
   })
 })
 
-describe('WARN guide facts', () => {
-  it('backs every federal rule and state summary with a source that exists', () => {
-    for (const f of Object.values(FEDERAL_WARN)) {
-      expect(f.sources.length).toBeGreaterThan(0)
-      for (const k of f.sources) expect(WARN_SOURCES[k]).toBeDefined()
-    }
-    for (const s of STATE_WARN_LAWS) {
-      expect(s.sources.length).toBeGreaterThan(0)
-      for (const k of s.sources) expect(WARN_SOURCES[k].url).toMatch(/^https?:\/\//)
-    }
+describe('planningDate', () => {
+  it('picks the effective date nearest today inside the window', () => {
+    const d = planningDate([notice({ effectiveDate: at('2026-12-19') }), notice({ effectiveDate: at('2026-11-10') })], now)
+    expect(d?.toISOString().slice(0, 10)).toBe('2026-11-10')
   })
-
-  it('names real states once each and finds them by code', () => {
-    const codes = STATE_WARN_LAWS.map((s) => s.code)
-    expect(new Set(codes).size).toBe(codes.length)
-    for (const c of codes) expect((ALL_STATE_CODES as readonly string[]).includes(c)).toBe(true)
-    expect(stateWarnLaw('nj')?.name).toBe('New Jersey')
-    expect(stateWarnLaw('TX')).toBeNull()
-  })
-
-  it('carries a read-on date and lists every source it uses once', () => {
-    expect(WARN_GUIDE_AS_OF).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-    const used = usedSources()
-    expect(new Set(used).size).toBe(used.length)
-  })
-
-  it('does not put the sourced numbers out of line with the statute text it quotes', () => {
-    expect(FEDERAL_WARN.coverage.text).toContain('100 or more')
-    expect(FEDERAL_WARN.notice.text).toContain('60 days')
-    expect(FEDERAL_WARN.plantClosing.text).toContain('50 or more')
-    expect(FEDERAL_WARN.massLayoff.text).toContain('33%')
-    expect(FEDERAL_WARN.massLayoff.text).toContain('500')
-    expect(FEDERAL_WARN.penalty.text).toContain('$500')
+  it('ignores dates too far back or too far ahead, and missing ones', () => {
+    expect(planningDate([notice({ effectiveDate: at('2026-06-01') })], now)).toBeNull()
+    expect(planningDate([notice({ effectiveDate: at('2027-03-01') })], now)).toBeNull()
+    expect(planningDate([notice({ effectiveDate: null })], now)).toBeNull()
   })
 })
 
-describe('company filing facts', () => {
-  const d = (s: string, workers: number | null) => ({ noticeDate: new Date(`${s}T00:00:00Z`), workers })
-  const now = new Date('2026-10-27T00:00:00Z').getTime()
-
-  it('counts the last 12 months, the months with filings and the workers named', () => {
-    const f = companyWarnFacts({ states: ['CA', 'TX'], notices: [d('2026-10-01', 100), d('2026-10-15', null), d('2026-03-02', 40), d('2024-01-10', 500)] }, now)
-    expect(f.total).toBe(4)
-    expect(f.recent).toBe(3)
-    expect(f.recentWorkers).toBe(140)
-    expect(f.recentUnknown).toBe(1)
-    expect(f.recentMonthsWithFilings).toBe(2)
-    expect(f.monthsWithFilings).toBe(3)
-    expect(f.first?.toISOString().slice(0, 10)).toBe('2024-01-10')
-    expect(f.latest?.toISOString().slice(0, 10)).toBe('2026-10-15')
+describe('buildLayoffGuide', () => {
+  it('dates the steps from the effective date and names states with workers', () => {
+    const g = buildLayoffGuide({ name: 'Acme', notices: [notice({ workers: 120 }), notice({ workers: 30 })], announcements: [], now })
+    expect(g.kind).toBe('layoff')
+    expect(g.stepsFrom?.toISOString().slice(0, 10)).toBe('2026-12-19')
+    expect(g.steps).toHaveLength(4)
+    expect(g.steps[0].date.toISOString().slice(0, 10)).toBe('2026-12-21')
+    expect(g.facts.map((f) => f.text)).toContain('WA: 2 notices, naming 150 workers.')
   })
-
-  it('handles an employer with no notices', () => {
-    const f = companyWarnFacts({ states: [], notices: [] }, now)
-    expect(f.total).toBe(0)
-    expect(f.first).toBeNull()
-    expect(f.latest).toBeNull()
+  it('does not state a worker count the filings do not give', () => {
+    const g = buildLayoffGuide({ name: 'Acme', notices: [notice({ workers: null })], announcements: [], now })
+    expect(g.facts.map((f) => f.text)).toContain('WA: 1 notice.')
+  })
+  it('adds the New York and New Jersey notice rules only for those states', () => {
+    const ny = buildLayoffGuide({ name: 'Acme', notices: [notice({ state: 'NY' })], announcements: [], now })
+    expect(ny.stateNotes.map((n) => n.state)).toEqual(['NY'])
+    const wa = buildLayoffGuide({ name: 'Acme', notices: [notice()], announcements: [], now })
+    expect(wa.stateNotes).toEqual([])
+  })
+  it('gives a buyout the offer questions and no dated steps or filing counts', () => {
+    const g = buildLayoffGuide({ name: 'Acme', notices: [], announcements: [{ kind: 'buyout', date: at('2026-10-25') }], now })
+    expect(g.kind).toBe('buyout')
+    expect(g.steps).toEqual([])
+    expect(g.facts).toEqual([])
+    expect(g.questions[0].heading).toBe('The offer')
+  })
+  it('gives an old filing no step list and no filing counts', () => {
+    const g = buildLayoffGuide({ name: 'Acme', notices: [notice({ noticeDate: at('2025-01-10'), effectiveDate: at('2025-03-10') })], announcements: [], now })
+    expect(g.steps).toEqual([])
+    expect(g.facts).toEqual([])
   })
 })
 
-describe('journey hand-off', () => {
-  it('has an onboarding situation for each persona the layoff pages hand off', async () => {
-    const { getPersona } = await import('@/lib/constants/personas')
-    expect(getPersona('laid-off')?.situation).toBeTruthy()
-    expect(getPersona('thinking-about-a-move')?.situation).toBeTruthy()
+describe('scripts and topics', () => {
+  it('fills the employer name into the scripts and varies by kind', () => {
+    const layoff = buildLayoffGuide({ name: 'Acme', notices: [notice()], announcements: [], now })
+    expect(layoff.scripts.map((x) => x.id)).toEqual(['layoff-meeting', 'layoff-ask', 'layoff-network', 'layoff-interview'])
+    expect(layoff.scripts.find((x) => x.id === 'layoff-interview')?.text).toContain('Acme reduced its workforce in October 2026')
+    const buyout = buildLayoffGuide({ name: 'Acme', notices: [], announcements: [{ kind: 'buyout', date: at('2026-10-25') }], now })
+    expect(buyout.scripts.map((x) => x.id)).toEqual(['buyout-receive', 'buyout-ask', 'buyout-network'])
+  })
+  it('covers FSA, 401(k), non-compete, NDA and company property', () => {
+    const g = buildLayoffGuide({ name: 'Acme', notices: [notice()], announcements: [], now })
+    const all = g.topics.flatMap((t) => t.items).join(' ')
+    for (const word of ['FSA', '401(k)', 'Non-compete', 'Confidentiality (NDA)', 'Non-disparagement', 'laptop']) expect(all).toContain(word)
   })
 })
 
-describe('layoff definitions', () => {
-  it('defines each unit once, with a plain definition', () => {
-    const keys = LAYOFF_TERMS.map((t) => t.key)
-    expect(new Set(keys).size).toBe(keys.length)
-    for (const t of LAYOFF_TERMS) expect(t.definition.length).toBeGreaterThan(40)
-    expect(keys).toEqual(expect.arrayContaining(['filing', 'layoff', 'reported', 'workers', 'not-counted']))
+describe('filingFacts', () => {
+  it('gives the agency, filing page and benefit limits for a state', () => {
+    const [f] = filingFacts(['WA'])
+    expect(f.stateName).toBe('Washington')
+    expect(f.page).toBe('/unemployment-benefits/washington')
+    expect(f.fileUrl).toMatch(/^https:\/\//)
+    expect(f.maxWeekly).toBeGreaterThan(0)
+  })
+  it('skips a state with no data', () => {
+    expect(filingFacts(['ZZ'])).toEqual([])
+  })
+})
+
+describe('guidePrograms', () => {
+  const row = (over: Partial<BenefitProgramRow>): BenefitProgramRow => ({
+    id: 'x', category: 'SUPPORT', name: 'State final pay', provider: null, scope: 'STATE', state: 'WA', locality: null, amount: '$500', eligibility: null,
+    status: 'OPEN', statusNote: null, url: 'https://example.gov/p', segments: [], verified: true, checkedAt: null, source: null, city: null,
+    employer: null, employerKey: null, geoAreaId: null, applyUrl: null, ...over,
+  })
+  it('lists a verified program for the state and none for another state', () => {
+    const src = [row({ id: 'a' }), row({ id: 'b', state: 'OR', name: 'Oregon final pay' })]
+    const out = guidePrograms({ states: ['WA'], source: src })
+    expect(out.map((p) => p.id)).toEqual(['a'])
+    expect(out[0].where).toBe('WA')
+  })
+  it('leaves out a student tax credit that is not about losing a job', () => {
+    const src = [row({ id: 'tax', name: 'Lifetime Learning Credit', scope: 'NATIONAL', state: null })]
+    expect(guidePrograms({ states: ['WA'], source: src })).toEqual([])
+  })
+  it('does not list a program written for a group the page cannot know the reader belongs to', () => {
+    const src = [row({ id: 'vet', name: 'State continuation for one group', segments: ['veteran'] }), row({ id: 'ok' })]
+    expect(guidePrograms({ states: ['WA'], source: src }).map((p) => p.id)).toEqual(['ok'])
+  })
+  it('leaves out a closed or unverified program', () => {
+    const src = [row({ id: 'c', status: 'CLOSED' }), row({ id: 'u', verified: false })]
+    expect(guidePrograms({ states: ['WA'], source: src })).toEqual([])
+  })
+})
+
+describe('CompanyLayoffGuide', () => {
+  it('renders the facts, dated steps, filing, scripts, programs and the lead form', async () => {
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { createElement } = await import('react')
+    const { CompanyLayoffGuide } = await import('@/components/layoffs/CompanyLayoffGuide')
+    const guide = buildLayoffGuide({ name: 'Acme', notices: [notice({ state: 'NY' })], announcements: [], now })
+    const html = renderToStaticMarkup(createElement(CompanyLayoffGuide, {
+      name: 'Acme', slug: 'acme', guide, states: ['NY'], filing: filingFacts(['NY']),
+      programs: [{ id: 'p1', name: 'Transition grant', where: 'NY', amount: '$500', url: 'https://example.gov/p', help: 'support' }],
+    }))
+    expect(html).toContain('If you were affected by the Acme layoffs')
+    expect(html).toContain('Dec 19, 2026')
+    expect(html).toContain('New York requires covered employers to give 90 days')
+    expect(html).toContain('Questions to ask Acme')
+    expect(html).toContain('File for unemployment benefits')
+    expect(html).toContain('/unemployment-benefits/new-york')
+    expect(html).toContain('Settle these before your last day')
+    expect(html).toContain('Transition grant')
+    expect(html).toContain('Make this guide yours')
+    expect(html).toContain('layoffs:guide:acme')
   })
 })

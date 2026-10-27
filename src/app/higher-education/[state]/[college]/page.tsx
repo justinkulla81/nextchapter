@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { ClaimHint } from '@/components/seo/ClaimHint'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
 import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { conferencesHostedBy, hasHostedConferences } from '@/lib/events/conference-places'
@@ -120,7 +121,7 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
       trail={[{ name: 'Higher education', path: '/higher-education' }, { name: st, path: `/higher-education/${state}` }, { name: c.name, path }]}
       h1={`${c.name}: programs, outcomes and local jobs`}
       jsonLd={ld}
-      lede={<><span className="block text-sm">{[where, kind(c)].filter(Boolean).join(' · ')}</span>{description(c, st)}</>}
+      lede={<><span className="block text-sm">{[where, kind(c)].filter(Boolean).join(' · ')}</span>{description(c, st)}<ClaimHint who={`Work in career services or alumni relations at ${c.name}?`} href={c.claimSlug ? `/prepared/${c.claimSlug}` : '/higher-education#claim'} event="seo_claim_clicked" properties={events} /></>}
     >
       <section aria-labelledby="facts" className="mt-10">
         <h2 id="facts" className={H2}>{c.name} at a glance</h2>

@@ -46,7 +46,12 @@ export const networkCompanySeo = (company: string) => ({
 
 /** /employers/[slug]: jobs and pay; the layoff record sits on /layoffs/company. */
 export const employerSeo = (company: string, openRoles: number | null) => ({
-  title: pick(...(openRoles && openRoles > 0 ? [`${company} Jobs and Salaries: ${openRoles.toLocaleString('en-US')} Open Roles`] : []), `${company} Jobs and Salaries`, `${company} Jobs`),
+  // People look an employer up as "<employer> careers" or "<employer> jobs" (Search Console, 2026-10: "gathering littles careers"), so both words lead the title.
+  title: pick(
+    ...(openRoles && openRoles > 0 ? [`${company} Careers, Jobs and Pay: ${openRoles.toLocaleString('en-US')} Open Roles`, `${company} Careers and Jobs: ${openRoles.toLocaleString('en-US')} Open Roles`] : []),
+    `${company} Careers and Jobs`,
+    `${company} Jobs`,
+  ),
   h1: `${company}: jobs, salaries and hiring`,
 })
 

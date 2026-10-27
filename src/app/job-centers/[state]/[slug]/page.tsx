@@ -4,6 +4,8 @@ import { OrgPageView } from '@/components/seo/OrgPageView'
 import { canonical } from '@/lib/seo/canonical'
 import { areaHiring, claimSlugFor, getOrgPage, renamedOrgSlug } from '@/lib/seo/org-pages'
 import { stateName } from '@/lib/seo/states'
+import { orgPageTitle } from '@/lib/seo/org-page-rules'
+import { titleMeta } from '@/lib/seo/title'
 
 // One page per organization, built on first visit and refreshed daily. A page below the content bar
 // (src/lib/seo/org-page-rules.ts) renders but is noindex and left out of the sitemap.
@@ -22,7 +24,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { row, blocks } = p
   const st = stateName(row.state)
   return {
-    title: `${row.name}, ${row.city ? row.city + ', ' : ''}${row.state}`,
+    title: titleMeta(orgPageTitle(row)),
     description: `${row.label} ${row.city ? 'in ' + row.city + ', ' + st : 'in ' + st}. ${blocks.jobsOpen.toLocaleString('en-US')} open professional jobs in the area it serves, ${blocks.entryLevel.toLocaleString('en-US')} entry-level, with contact details, colleges and other local help.`,
     ...canonical(`/job-centers/${state}/${slug}`),
     ...(p.indexable ? {} : { robots: { index: false, follow: true } }),

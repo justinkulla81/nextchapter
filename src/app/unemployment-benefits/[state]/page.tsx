@@ -15,6 +15,13 @@ import { ALL_STATE_CODES, stateFromSlug, stateName, stateSlug } from '@/lib/seo/
 import { getStateSummaries } from '@/lib/warn/layoff-pages'
 import { jobCentersUrl, stateBoardsUrl } from '@/lib/workforce/directory'
 import { titleMeta } from '@/lib/seo/title'
+import { DeadlineEmailBox } from '@/components/cobra-aca/DeadlineEmailBox'
+import { LaidOffStart } from '@/components/cobra-aca/LaidOffStart'
+import { SeveranceVerdict } from '@/components/severance/SeveranceVerdict'
+import { FirstSixtyDays } from '@/components/severance/FirstSixtyDays'
+import { getPersona } from '@/lib/constants/personas'
+import { journeyChoices } from '@/lib/leads/infer-journey'
+import { severanceByState } from '@/lib/severance/state-groups'
 
 // Facts are static; the daily refresh keeps the link to this state's layoff
 // page and its list of workforce boards current.
@@ -89,6 +96,11 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
       .catch(() => []),
   ])
   const hasLayoffPage = layoffStates.some((s) => s.state === code)
+  const severanceRow = severanceByState().find((r) => r.code === code)!
+  const choices = journeyChoices('laid-off')
+    .map((s) => getPersona(s))
+    .filter((p): p is NonNullable<ReturnType<typeof getPersona>> => !!p)
+    .map((p) => ({ slug: p.slug, label: p.label }))
 
   const rows: { label: string; value: React.ReactNode; fact?: Sourced<unknown> }[] = [
     { label: 'Maximum weekly benefit', value: ui.maxWeeklyBenefit.value != null ? usd(ui.maxWeeklyBenefit.value) : check, fact: ui.maxWeeklyBenefit },
@@ -162,6 +174,8 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
           </p>
         )}
 
+        <SeveranceVerdict row={severanceRow} agency={agency} />
+
         <section aria-labelledby="facts" className="mt-10">
           <h2 id="facts" className={H2}>{name} benefits at a glance</h2>
           <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-white">
@@ -195,8 +209,10 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
           </p>
         </section>
 
+        <FirstSixtyDays name={name} slug={state} waitingWeek={ui.waitingWeek.value} agency={agency} fileUrl={ui.fileUrl.value} stateCode={code} />
+
         <section aria-labelledby="severance" className="mt-12">
-          <h2 id="severance" className={H2}>Severance and unemployment in {name}</h2>
+          <h2 id="severance" className={H2}>Severance and pay in lieu of notice in {name}</h2>
           <div className="mt-4 space-y-3 leading-relaxed">
             <p><span className="font-medium">Severance pay:</span> {ui.severance.value ?? `${check} before you sign a severance agreement.`}</p>
             <p><span className="font-medium">Pay in lieu of notice</span> (including WARN Act pay): {ui.payInLieuOfNotice.value ?? `${check}.`}</p>
@@ -227,12 +243,30 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
           )}
         </section>
 
+        <section aria-labelledby="remind" className="mt-12">
+          <h2 id="remind" className={H2}>Get the dates in your inbox</h2>
+          <div className="mt-4 max-w-xl">
+            <DeadlineEmailBox
+              source="unemployment:state"
+              state={code}
+              journeyChoices={choices}
+              eventPrefix="unemployment"
+              blurb={`One email as each date comes up over the next two months: filing, the severance agreement review, health coverage. Then nothing. No account needed.`}
+            />
+          </div>
+          <div className="mt-4">
+            <LaidOffStart placement="unemployment_state" eventPrefix="unemployment" />
+          </div>
+        </section>
+
         <section aria-labelledby="professionals" className="mt-12 rounded-xl border border-border bg-off-white p-6">
           <h2 id="professionals" className="text-xl font-semibold tracking-tight text-navy">If you’re a laid-off professional</h2>
           <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
             <li><Link href="/resources/unemployed" className={LINK}>You’re unemployed now: what actually works</Link></li>
             <li><Link href="/resources/cobra-aca" className={LINK}>Keeping health coverage: COBRA vs. the marketplace</Link></li>
+            <li><Link href={`/resources/cobra-aca/${state}`} className={LINK}>COBRA vs ACA in {name}: which costs less</Link></li>
             <li><Link href="/resources/bridge-income" className={LINK}>Bridge income while you search</Link></li>
+            <li><Link href="/resources/severance-pay" className={LINK}>Severance pay: taxes, negotiating and the agreement</Link></li>
             <li>
               {hasLayoffPage ? (
                 <Link href={`/layoffs/${state}`} className={LINK}>{name} layoffs: recent WARN notices and local job centers</Link>

@@ -89,6 +89,14 @@ export function isIndexableJob(job: Pick<PublicJobRow, 'description'>): boolean 
   return new TextEncoder().encode(job.description ?? '').length >= PUBLIC_JOB_MIN_INDEX_DESCRIPTION
 }
 
+/**
+ * True when the crawl last confirmed the job open more than PUBLIC_JOB_VERIFIED_DAYS ago. A job with no verification date at all
+ * (employer-posted, never crawled) is not stale. Lists use this to stop showing a job whose own page would 404 (isPublicJob).
+ */
+export function isStaleVerified(lastVerifiedAt: Date | null, nowMs: number): boolean {
+  return !!lastVerifiedAt && nowMs - lastVerifiedAt.getTime() > PUBLIC_JOB_VERIFIED_DAYS * DAY_MS
+}
+
 /** The allowlist above. `confirmedGhost`: an admin confirmed member ghost flags on it. */
 export function isPublicJob(job: PublicJobRow, nowMs: number, confirmedGhost = false): boolean {
   if (job.status !== 'approved' || job.archivedAt || job.closeReason) return false
