@@ -158,6 +158,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
         { href: '/support/admin/linkedin-drafts', label: 'LinkedIn post drafts' },
         { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },
+        { href: '/support/admin/captured-emails', label: 'Captured emails' },
       ],
     },
     {
