@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
-import { loadCapturedEmails, groupByEmail } from '@/lib/leads/captured-emails'
+import { loadCapturedEmailsForDays, groupByEmail } from '@/lib/leads/captured-emails'
 
 export const maxDuration = 30
 export const dynamic = 'force-dynamic'
@@ -12,7 +12,6 @@ const RANGES = [
   { days: 365, label: 'Year' },
 ]
 
-const DAY_MS = 24 * 60 * 60 * 1000
 const TIME_ZONE = 'America/New_York'
 
 function formatDay(d: Date): string {
@@ -27,7 +26,7 @@ export default async function CapturedEmailsPage({ searchParams }: { searchParam
   const requested = Number(sp.days)
   const days = RANGES.some((r) => r.days === requested) ? requested : 30
 
-  const rows = await loadCapturedEmails(new Date(Date.now() - days * DAY_MS))
+  const rows = await loadCapturedEmailsForDays(days)
   const people = groupByEmail(rows)
 
   const perChannel = new Map<string, number>()

@@ -31,6 +31,13 @@ function fullName(first?: string | null, last?: string | null): string | null {
   return name || null
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** The last `days` days of captures. */
+export function loadCapturedEmailsForDays(days: number): Promise<CapturedEmail[]> {
+  return loadCapturedEmails(new Date(Date.now() - days * DAY_MS))
+}
+
 export async function loadCapturedEmails(since: Date): Promise<CapturedEmail[]> {
   const where = { createdAt: { gte: since } }
   const take = PER_SOURCE_LIMIT
