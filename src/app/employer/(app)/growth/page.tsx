@@ -8,11 +8,11 @@ import { AddInternalRoleForm, InternalRoleOpenToggle } from '@/components/employ
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-export const metadata: Metadata = { title: 'Growth' }
+export const metadata: Metadata = { title: 'Retention' }
 
 export default async function EmployerGrowthPage() {
   const orgUser = await requireEmployeesRole(['ADMIN', 'VIEWER'])
-  if (!(await orgProgramTypes(orgUser.orgId)).has('GROWTH')) return <NotOnProgram program="Growth" what={PROGRAM_TYPE_BLURB.GROWTH} />
+  if (!(await orgProgramTypes(orgUser.orgId)).has('GROWTH')) return <NotOnProgram program="Retention" what={PROGRAM_TYPE_BLURB.GROWTH} />
   const [r, roles] = await Promise.all([growthReport(orgUser.orgId), listInternalRoles(orgUser.orgId)])
   const isAdmin = orgUser.role === 'ADMIN'
   const o = r.overall
@@ -20,7 +20,7 @@ export default async function EmployerGrowthPage() {
   return (
     <div className="space-y-10">
       <div className="space-y-2">
-        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Growth</p>
+        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Employees · Retention</p>
         <h1 className="text-2xl font-semibold tracking-tight">Keep and grow your people</h1>
         <p className="max-w-2xl text-sm text-muted-foreground">
           Counts only. Nobody’s individual activity is shown here, and each count waits until at least 10 people have joined. Promotions and raises count only
@@ -102,7 +102,7 @@ export default async function EmployerGrowthPage() {
             Internal roles
           </h2>
           <p className="text-sm text-muted-foreground">
-            Only people on your Growth program see these, never the public job board. When someone presses “I’m interested”, they’re choosing to share their name
+            Only the employees you enrolled see these, never the public job board. When someone presses “I’m interested”, they’re choosing to share their name
             with you for that role.
           </p>
         </div>

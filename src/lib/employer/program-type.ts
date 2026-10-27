@@ -11,8 +11,8 @@ export const PROGRAM_TYPES: OutplacementProgramType[] = ['OUTPLACEMENT', 'GROWTH
 
 export const PROGRAM_TYPE_LABEL: Record<OutplacementProgramType, string> = {
   OUTPLACEMENT: 'Outplacement',
-  GROWTH: 'Growth',
-  LEARNING: 'Learning',
+  GROWTH: 'Retention',
+  LEARNING: 'Learning and development',
 }
 
 // "{org} has set up a NextChapter ___ benefit for you."

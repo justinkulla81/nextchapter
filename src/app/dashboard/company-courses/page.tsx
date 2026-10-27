@@ -20,7 +20,7 @@ export default async function CompanyCoursesPage() {
       <div className="space-y-8">
         <PageHeader
           title="Company courses"
-          intro="When your employer offers NextChapter Learning, the courses they cover show up here, free to you."
+          intro="When your employer offers learning and development through NextChapter, the courses they cover show up here, free to you."
           action={<ActionLink variant="primary" href="/dashboard/learning" event="company_courses_skills_plan_opened" props={{ hasPrograms: false }}>See your skills plan</ActionLink>}
         />
         <EmptyCard title="Nothing is covered by an employer yet" why="Your skills plan has the courses that would do the most for your search." />
