@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { withCronRun } from '@/lib/cron/run'
 import { runWatchByMode } from '@/lib/vision/competitor-free'
 import { prisma } from '@/lib/prisma'
-import { syncCrmWins, syncProductGaps, syncRebidOpportunities } from '@/lib/vision/competitor-sync'
+import { syncCrmWins, syncGapsFor, syncRebidOpportunities } from '@/lib/vision/competitor-sync'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export const maxDuration = 300
@@ -22,7 +22,7 @@ export const GET = withCronRun('competitor-watch', async (request: NextRequest) 
       const cards = await prisma.productCompetitor.findMany({ where: { status: 'ACTIVE' } })
       synced = { wins: await syncCrmWins(cards), ideas: 0 }
       await syncRebidOpportunities(cards)
-      for (const c of cards) { if (synced.ideas >= 25) break; synced.ideas += await syncProductGaps(c) } // at most 25 new ideas a run so the roadmap is not flooded
+      synced.ideas = (await syncGapsFor(cards, 3, 25)).created // at most 25 new gaps a run, one model call, so the roadmap is not flooded
     } catch (e) { console.error('Competitor watch sync failed', e) }
   }
   captureServerEvent('cron', 'competitor_watch_run', { ...r, ...synced })

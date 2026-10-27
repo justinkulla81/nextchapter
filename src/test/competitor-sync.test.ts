@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { addSeenAt, downloadEmail, gapIdeas, winsFromAwards, winsFromCard } from '@/lib/vision/competitor-sync-core'
+import { addSeenAt, downloadEmail, gapIdeas, gapMatchPrompt, parseGapMatches, winsFromAwards, winsFromCard } from '@/lib/vision/competitor-sync-core'
 
 const now = new Date('2026-10-25T12:00:00Z')
 
@@ -45,5 +45,24 @@ describe('download email', () => {
     expect(html).toContain('DOL grant — DOL — 2025')
     expect(html).toContain('Mobile app')
     expect(html).not.toContain('<b>')
+  })
+})
+
+describe('gap matching by meaning', () => {
+  it('keeps only in-range, unrepeated matches and real groups', () => {
+    const text = 'Here: {"matches":[{"new":0,"existing":1},{"new":0,"existing":0},{"new":9,"existing":1},{"new":1,"existing":"x"}],' +
+      '"groups":[{"label":"Cohort-based learning programs","members":[1,2,2]},{"label":"Too few","members":[3]},{"label":"Reuses a matched gap","members":[0,3]}]}'
+    const r = parseGapMatches(text, 4, 2)
+    expect([...r.matches]).toEqual([[0, 1]])
+    expect(r.groups).toEqual([{ label: 'Cohort-based learning programs', members: [1, 2] }])
+  })
+  it('returns nothing for an unreadable answer', () => {
+    expect(parseGapMatches('no json', 3, 3).matches.size).toBe(0)
+    expect(parseGapMatches('{bad', 3, 3).groups).toEqual([])
+  })
+  it('lists existing and new gaps with indices', () => {
+    const p = gapMatchPrompt(['A idea here'], [{ title: 'B idea here' }])
+    expect(p).toContain('E0\tA idea here')
+    expect(p).toContain('N0\tB idea here')
   })
 })

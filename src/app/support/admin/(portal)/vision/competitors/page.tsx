@@ -139,7 +139,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
       {sp.error && <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm">{sp.error}</p>}
       {sp.gaps !== undefined && (
         <p className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-3 text-sm">
-          {Number(sp.gaps) > 0 ? `${sp.gaps} new ideas added to the product list.` : 'Nothing new: every gap is already on the product list.'} <Link href="/support/admin/vision/items" className="underline">Open the product list</Link>
+          {Number(sp.gaps) > 0 || Number(sp.merged) > 0 ? `${sp.gaps} new ideas added to the product list, ${sp.merged ?? 0} added to an idea that already says the same thing.` : 'Nothing new: every gap is already on the product list.'} <Link href="/support/admin/vision/items" className="underline">Open the product list</Link>
         </p>
       )}
       {sp.added && (
