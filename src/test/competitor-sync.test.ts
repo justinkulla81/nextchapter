@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { addSeenAt, downloadEmail, gapIdeas, gapMatchPrompt, parseGapMatches, winsFromAwards, winsFromCard } from '@/lib/vision/competitor-sync-core'
+import { addSeenAt, downloadEmail, gapIdeas, addWording, gapMatchPrompt, parseGapMatches, wordingsOf, winsFromAwards, winsFromCard } from '@/lib/vision/competitor-sync-core'
 
 const now = new Date('2026-10-25T12:00:00Z')
 
@@ -64,5 +64,13 @@ describe('gap matching by meaning', () => {
     const p = gapMatchPrompt(['A idea here'], [{ title: 'B idea here' }])
     expect(p).toContain('E0\tA idea here')
     expect(p).toContain('N0\tB idea here')
+  })
+})
+
+describe('absorbed wordings', () => {
+  it('records each other wording once and reads them back', () => {
+    const b = addWording(addWording('Seen at competitors: Acme', 'Cohort learning'), 'cohort  learning!')
+    expect(b).toBe('Seen at competitors: Acme\nAlso worded: Cohort learning')
+    expect(wordingsOf(addWording(b, 'Group classes'))).toEqual(['Cohort learning', 'Group classes'])
   })
 })

@@ -6,7 +6,7 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import type { ProductCompetitor } from '@prisma/client'
 import type { NamedEntry, WinEntry } from './competitor-areas'
 import { awardIsWorkforce } from '@/lib/bids/relevance'
-import { addSeenAt, downloadEmail, gapMatchPrompt, parseGapMatches, winsFromAwards, winsFromCard, type CrmWin, type GapMatches } from './competitor-sync-core'
+import { addSeenAt, addWording, wordingsOf, downloadEmail, gapMatchPrompt, parseGapMatches, winsFromAwards, winsFromCard, type CrmWin, type GapMatches } from './competitor-sync-core'
 import { getAnthropicClient } from '@/lib/anthropic'
 
 const SITE = 'https://launchyournextchapter.com'
@@ -42,11 +42,12 @@ export async function syncGapsFor(cards: GapCard[], perCard = GAPS_PER_CARD, max
   const existing = await prisma.productItem.findMany({ where: { kind: 'FEATURE' }, select: { id: true, title: true, body: true } })
   const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '')
   const byKey = new Map(existing.map((e) => [key(e.title), e]))
+  for (const e of existing) for (const w of wordingsOf(e.body)) if (!byKey.has(key(w))) byKey.set(key(w), e)
   const bodies = new Map(existing.map((e) => [e.id, e.body]))
   const seenIdeas = existing.filter((e) => e.body?.startsWith('Seen at competitors: '))
-  const addName = async (id: string, names: string[]) => {
+  const addName = async (id: string, names: string[], wordings: string[] = []) => {
     const was = bodies.get(id) ?? null
-    const next = names.reduce((b, n) => addSeenAt(b, n), was)
+    const next = wordings.reduce((b, w) => addWording(b, w), names.reduce((b, n) => addSeenAt(b, n), was))
     if (next !== was) { await prisma.productItem.update({ where: { id }, data: { body: next } }); bodies.set(id, next) }
   }
 
@@ -70,12 +71,12 @@ export async function syncGapsFor(cards: GapCard[], perCard = GAPS_PER_CARD, max
   const { result, costUsd } = await matchGapsByMeaning(seenIdeas.map((e) => e.title), news)
   const grouped = new Set(result.groups.flatMap((g) => g.members))
   let created = 0
-  for (const [n, e] of result.matches) { await addName(seenIdeas[e].id, news[n].names); matched++ }
+  for (const [n, e] of result.matches) { await addName(seenIdeas[e].id, news[n].names, [news[n].title]); matched++ }
   for (const g of result.groups) {
     const names = [...new Set(g.members.flatMap((m) => news[m].names))]
     const clash = byKey.get(key(g.label))
-    if (clash) { await addName(clash.id, names); matched++; continue }
-    await prisma.productItem.create({ data: { kind: 'FEATURE', area: 'PRODUCT', title: g.label, status: 'SPARK', body: names.reduce((b, n) => addSeenAt(b, n), null as string | null) } })
+    if (clash) { await addName(clash.id, names, g.members.map((m) => news[m].title)); matched++; continue }
+    await prisma.productItem.create({ data: { kind: 'FEATURE', area: 'PRODUCT', title: g.label, status: 'SPARK', body: g.members.map((m) => news[m].title).filter((t) => key(t) !== key(g.label)).reduce((b, t) => addWording(b, t), names.reduce((b, n) => addSeenAt(b, n), null as string | null)) } })
     created++
   }
   for (const [n, item] of news.entries()) {
