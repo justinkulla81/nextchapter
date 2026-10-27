@@ -7767,6 +7767,7 @@ model Company {
   cultureResponses CompanyCultureResponse[]
 
   @@index([industry])
+  events CompanyEvent[]
 }
 
 // One row per job opening we have ever seen for a company — kept after the board
@@ -7920,6 +7921,25 @@ model PayAreaIndex {
 // Computed nightly, purely from ExclusiveJobPosting + inferFunctionFromTitle()
 // — no WARN input (see this section's header comment). One row per
 // company per ISO week.
+/// A company event read from an SEC filing: ACQUISITION (8-K item 2.01), LEADERSHIP (8-K item 5.02) or FUNDRAISE (8-K item 3.02, Form D).
+/// SQL: prisma/manual/company-events.sql. Written by src/lib/events/sec-events.ts.
+model CompanyEvent {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kind      String
+  headline  String
+  eventDate DateTime
+  sourceUrl String
+  accession String
+  filerName String
+  createdAt DateTime @default(now())
+
+  @@unique([accession, kind])
+  @@index([companyId, eventDate])
+  @@index([eventDate])
+}
+
 model CompanySignal {
   id            String   @id @default(cuid())
   companyId     String

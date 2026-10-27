@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound, permanentRedirect } from 'next/navigation'
+import { eventsForEmployerNames } from '@/lib/events/sec-events'
+import { noticesForOrgPage } from '@/lib/seo/org-notices'
 import { OrgPageView } from '@/components/seo/OrgPageView'
 import { canonical } from '@/lib/seo/canonical'
 import { areaHiring, claimSlugFor, getOrgPage, renamedOrgSlug } from '@/lib/seo/org-pages'
@@ -40,6 +42,7 @@ export default async function Page({ params }: { params: Params }) {
     if (current) permanentRedirect(`/economic-development/${state}/${current}`)
     notFound()
   }
-  const [hiring, claim] = await Promise.all([areaHiring(p.row.state, p.area), claimSlugFor('ECON_DEV', p.row.id, p.row.aliasIds)])
-  return <OrgPageView page={p} path={`/economic-development/${state}/${slug}`} hiring={hiring} claimSlug={claim} />
+  const [hiring, claim, notices] = await Promise.all([areaHiring(p.row.state, p.area), claimSlugFor('ECON_DEV', p.row.id, p.row.aliasIds), noticesForOrgPage(p)])
+  const events = await eventsForEmployerNames(hiring.employers.map((e) => e.name)).catch(() => [])
+  return <OrgPageView page={p} path={`/economic-development/${state}/${slug}`} hiring={hiring} claimSlug={claim} notices={notices} events={events} />
 }

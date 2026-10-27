@@ -3,6 +3,7 @@ import { readTables, columnOf, parseDate, parseCount, stripTags } from './html'
 import { parseCsv } from './csv'
 import { excelSerialToDate, type XlsxSheet } from './xlsx'
 import type { WarnRow } from './sources'
+import type { LetterRow } from './letters'
 import { columnEdges, fixedEdges, pdfPages, pdfTableRows, type ColumnEdges, type ColumnSpec, type PdfItem } from './pdf-table'
 
 /**
@@ -908,8 +909,8 @@ export async function parseNewMexicoWarn(buf: Buffer): Promise<WarnRow[]> {
  */
 export const WEST_VIRGINIA_PAGE = 'https://workforcewv.org/job-seeker/layoffs-downsizing/warn-listing/'
 
-export function parseWestVirginiaWarn(html: string): WarnRow[] {
-  const out: WarnRow[] = []
+export function parseWestVirginiaWarn(html: string): LetterRow[] {
+  const out: LetterRow[] = []
   const seen = new Set<string>()
   for (const m of html.matchAll(/<a\s[^>]*href="([^"]*\/wp-content\/uploads\/(\d{4})\/(\d{2})\/[^"]*\.pdf)"[^>]*>([\s\S]*?)<\/a>/gi)) {
     const [, href, year, month, inner] = m
@@ -929,6 +930,7 @@ export function parseWestVirginiaWarn(html: string): WarnRow[] {
       .replace(/\b(warn|notice|state|update|received|supplemental|revised|pdf)\b/gi, ' ')
       .replace(/\b(r\d|\d{5,6})\b/g, ' ')
       .replace(/\b\d{1,2}[-/]\d{4}\b/g, ' ')
+      .replace(/\b\d{1,2}\s+\d{1,2}\s+\d{4}\b/g, ' ')
       .replace(/\s(january|february|march|april|may|june|july|august|september|october|november|december)\s*$/i, ' ')
       .replace(/^[\s–-]+|[\s–-]+$/g, '')
       .replace(/^west virginia\s+/i, '')
@@ -949,6 +951,7 @@ export function parseWestVirginiaWarn(html: string): WarnRow[] {
       county: null,
       address: null,
       industry: null,
+      letterUrl: new URL(href, WEST_VIRGINIA_PAGE).toString(),
     })
   }
   return out
@@ -1039,11 +1042,11 @@ export function parseMinnesotaList(text: string): WarnRow[] {
  */
 export const HAWAII_PAGE = 'https://labor.hawaii.gov/wdd/warn-notices/'
 
-export function parseHawaiiWarn(html: string): WarnRow[] {
-  const out: WarnRow[] = []
+export function parseHawaiiWarn(html: string): LetterRow[] {
+  const out: LetterRow[] = []
   const seen = new Set<string>()
-  for (const m of html.matchAll(/<a\s[^>]*href="[^"]*\/wdd\/warn-notices\/warn-notice-[^"]*"[^>]*>([\s\S]*?)<\/a>/gi)) {
-    const text = stripTags(m[1]).replace(/\s+/g, ' ').trim()
+  for (const m of html.matchAll(/<a\s[^>]*href="([^"]*\/wdd\/warn-notices\/warn-notice-[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const text = stripTags(m[2]).replace(/\s+/g, ' ').trim()
     const split = text.match(/^(.*\S)\s+[–—-]\s+([A-Z][a-z]+ \d{1,2}, \d{4})$/)
     if (!split) continue
     // "Hawaiian Airlines – Non-Union Workforce Reduction (Alaska Air Group merger)": the parenthesis says why, not who.
@@ -1064,6 +1067,7 @@ export function parseHawaiiWarn(html: string): WarnRow[] {
       county: null,
       address: null,
       industry: null,
+      letterUrl: new URL(m[1], HAWAII_PAGE).toString(),
     })
   }
   return out

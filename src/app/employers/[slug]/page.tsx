@@ -21,6 +21,10 @@ import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 import { EmployerFollowBox } from '@/components/seo/EmployerFollowBox'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 import { titleMeta } from '@/lib/seo/title'
+import { AreaNotices } from '@/components/seo/AreaNotices'
+import { CompanyEvents } from '@/components/seo/CompanyEvents'
+import { eventsForCompanyIds } from '@/lib/events/sec-events'
+import { noticesForEmployer } from '@/lib/seo/org-notices'
 
 // One page per employer with something of its own to say: open roles from its career site, what it hires for and
 // pays. Built on first visit, refreshed daily. A page below the bar renders but is
@@ -83,6 +87,8 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   const hq = [e.hqMetro, e.industry].filter(Boolean).join(' · ')
   const industryBucket = bucketFromIndustryText(e.industry)
   const seenAt = await conferencesForEmployer(e.name)
+  const layoffs = await noticesForEmployer(e.name).catch(() => null)
+  const secEvents = await eventsForCompanyIds([e.id], 12, 8).catch(() => [])
   // Soonest first: events with upcoming confirmed dates, then the rest by name. The whole list is shown (an employer rarely appears at more than a few dozen).
   const seenAll = seenAt.length ? await prisma.conferenceEvent.findMany({ where: { id: { in: seenAt.map((x) => x.id) }, published: true }, select: { id: true, name: true, startDate: true, endDate: true, datesConfirmed: true, importance: true } }).catch(() => []) : []
   const seenConfs = sortConferences(seenAll)
@@ -215,6 +221,25 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
           )}
           <p className="mt-2 text-xs text-muted-foreground">Only salary ranges the employer posted. No estimates.</p>
         </section>
+      )}
+
+      <CompanyEvents
+        id="company-news"
+        title={`${e.name} news from SEC filings`}
+        intro={`Acquisitions, leadership changes and capital raised by ${e.name}, from its SEC filings in the last 12 months.`}
+        events={secEvents}
+      />
+
+      {layoffs && layoffs.slug && (
+        <AreaNotices
+          id="notices"
+          title={`Layoff notices from ${e.name}`}
+          intro={`WARN notices ${e.name} has filed with state labor departments.`}
+          notices={layoffs}
+          moreHref={`/layoffs/company/${layoffs.slug}`}
+          moreLabel={`${e.name} layoff history`}
+          showState
+        />
       )}
 
       {faq.length > 0 && (

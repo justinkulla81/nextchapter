@@ -108,6 +108,9 @@ export function cityFromAddress(address: string | null | undefined, state: strin
   }
   const withState = a.match(/^([A-Za-z .'-]+),\s*([A-Z]{2})$/)
   if (withState) return withState[2] === state ? withState[1].trim() : null
+  // Virginia writes "Richmond VA" with no comma.
+  const bareState = a.match(/^([A-Za-z][A-Za-z .'-]*?)\s+([A-Z]{2})$/)
+  if (bareState) return bareState[2] === state ? bareState[1].trim() : null
   // A bare city: letters only, a few words.
   return /^[A-Za-z .'-]{2,40}$/.test(a) && a.split(' ').length <= 4 ? a : null
 }

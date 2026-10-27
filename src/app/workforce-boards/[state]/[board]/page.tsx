@@ -1,6 +1,8 @@
 import { workforceBoardSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import { notFound, permanentRedirect } from 'next/navigation'
+import { eventsForEmployerNames } from '@/lib/events/sec-events'
+import { noticesForOrgPage } from '@/lib/seo/org-notices'
 import { OrgPageView } from '@/components/seo/OrgPageView'
 import { canonical } from '@/lib/seo/canonical'
 import { areaHiring, claimSlugFor, getOrgPage, renamedOrgSlug } from '@/lib/seo/org-pages'
@@ -40,6 +42,7 @@ export default async function WorkforceBoardPage({ params }: { params: Params })
     if (current) permanentRedirect(`/workforce-boards/${state}/${current}`)
     notFound()
   }
-  const [hiring, claim] = await Promise.all([areaHiring(p.row.state, p.area), claimSlugFor('WORKFORCE_BOARD', p.row.id)])
-  return <OrgPageView h1={workforceBoardSeo(p.row.name, p.row.state).h1} page={p} path={`/workforce-boards/${state}/${board}`} hiring={hiring} claimSlug={claim} />
+  const [hiring, claim, notices] = await Promise.all([areaHiring(p.row.state, p.area), claimSlugFor('WORKFORCE_BOARD', p.row.id), noticesForOrgPage(p)])
+  const events = await eventsForEmployerNames(hiring.employers.map((e) => e.name)).catch(() => [])
+  return <OrgPageView h1={workforceBoardSeo(p.row.name, p.row.state).h1} page={p} path={`/workforce-boards/${state}/${board}`} hiring={hiring} claimSlug={claim} notices={notices} events={events} />
 }

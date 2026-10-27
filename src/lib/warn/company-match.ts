@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { strictOrgKey } from '@/lib/crm/normalize'
+import { resolveAmbiguous } from './ambiguous-resolve'
 
 export interface WarnCompanyMatchResult {
   companyId: string | null
@@ -43,7 +44,12 @@ export async function matchOrCreateCompanyForEmployer(rawEmployer: string, index
 
   const looseMatches = companies.filter((c) => orgNamesMatch(c.name, employer))
   if (looseMatches.length > 0) {
-    return { companyId: null, status: 'AMBIGUOUS', candidates: looseMatches.map((c) => ({ id: c.id, name: c.name })) }
+    // Containment alone finds "Meta" inside "Metallics". Whole-word rules settle the clear cases (a site or legal tail on a known
+    // company, or no real relation at all); only what they cannot decide waits for a person.
+    const candidates = looseMatches.map((c) => ({ id: c.id, name: c.name }))
+    const res = resolveAmbiguous(employer, candidates)
+    if (res.kind === 'match') return { companyId: res.id, status: 'MATCHED', candidates: null }
+    if (res.kind === 'review') return { companyId: null, status: 'AMBIGUOUS', candidates }
   }
 
   // Genuinely new employer. Strip the location parenthetical before storing —
