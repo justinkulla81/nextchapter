@@ -15,4 +15,10 @@ describe('extractCompanies', () => {
     expect(extractCompanies('Small Business Expo', 'Presented by First Horizon Bank and Delta Air Lines. Free entry.').sponsors).toEqual(['First Horizon Bank', 'Delta Air Lines'])
     expect(extractCompanies('Founders Night', 'Sponsors: Acme Corp, Globex & Initech.').sponsors).toEqual(['Acme Corp', 'Globex', 'Initech'])
   })
+  it('drops coincidental names', () => {
+    expect(extractCompanies('Pharmacy Career Fair').employers).toEqual([])
+    expect(extractCompanies('CES HIRING EVENT').employers).toEqual([])
+    expect(extractCompanies('Orange County Job Fair').employers).toEqual([])
+    expect(extractCompanies('Epic Hiring Event').employers).toEqual(['Epic'])
+  })
 })
