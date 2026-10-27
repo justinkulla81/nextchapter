@@ -20,6 +20,7 @@ const PER_SOURCE_LIMIT = 2000
 const KIND_LABEL: Record<string, string> = {
   journey: 'Journey picker',
   job_alert: 'Job alert',
+  apply_save: 'Saved job',
 }
 
 function clean(email: string): string {
