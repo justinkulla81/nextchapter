@@ -337,6 +337,10 @@
       "schedule": "0 10 * * 1"
     },
     {
+      "path": "/api/cron/ceo-speaking",
+      "schedule": "30 9 * * *"
+    },
+    {
       "path": "/api/cron/monthly-user-report",
       "schedule": "0 23 28-31 * *"
     },

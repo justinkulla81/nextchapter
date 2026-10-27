@@ -11153,10 +11153,44 @@ model CrmTask {
   sourceRef     String? @unique
   /// The Google Calendar reminder made for this task, when it has one.
   googleEventId String?
+  /// Function the task belongs to (a key from src/lib/crm/todo-areas.ts). Null = inferred from the title and organization.
+  area          String?
 
   @@index([status, dueAt])
   @@index([personId])
   @@index([opportunityId])
+}
+
+/// A speaking, panel, research-application or demo-day spot for Justin as CEO. One row per opportunity.
+/// kind: KEYNOTE | PANEL | RESEARCH_APPLICATION | DEMO_DAY | PODCAST_WEBINAR | AWARD_CHALLENGE
+/// status: NEW | PLANNING | APPLIED | ACCEPTED | DONE | PASSED
+/// source: ADMIN (typed in) | CONFERENCE (from the conference catalog) | DISCOVERY (weekly web search)
+model CeoSpeakingOpportunity {
+  id         String    @id @default(cuid())
+  kind       String
+  title      String
+  hostName   String?
+  url        String?
+  eventDate  DateTime?
+  deadline   DateTime?
+  location   String?
+  audience   String?
+  /// Why it fits NextChapter, one or two sentences.
+  why        String?   @db.Text
+  /// 1 best fit, 2 good, 3 stretch.
+  fit        Int       @default(2)
+  status     String    @default("NEW")
+  notes      String?   @db.Text
+  source     String    @default("ADMIN")
+  /// Unique key for imported rows (`conf:<series id>:<edition or year>`, or a normalized link) so re-imports never duplicate.
+  sourceRef  String?   @unique
+  /// The CrmTask kept in step with this row.
+  taskId     String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
+
+  @@index([status, deadline])
+  @@index([kind])
 }
 
 model CrmDeadline {

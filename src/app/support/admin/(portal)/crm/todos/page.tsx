@@ -5,13 +5,14 @@ import { formatDate } from '@/lib/crm/labels'
 import { CrmSyncHealthAlert } from '@/components/admin/CrmSyncHealthAlert'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { todoSource, todoTier, dueTimeLabel, TODO_TIERS, type TodoTier } from '@/lib/crm/todo-source'
+import { TODO_AREA_GROUPS, areaMeta, inferArea } from '@/lib/crm/todo-areas'
 import { addTodo, setTodoDone } from './actions'
 
 export const maxDuration = 30
 
 type Show = 'all' | 'overdue' | 'today' | 'week' | 'later' | 'nodate'
 type Sort = 'due' | 'due-desc' | 'added'
-type Group = 'tier' | 'date'
+type Group = 'tier' | 'date' | 'area'
 
 const SHOW: { key: Show; label: string }[] = [
   { key: 'all', label: 'Any date' },
@@ -70,7 +71,7 @@ export default async function CrmTodosPage({
   const tiers: TodoTier[] = picked.length ? picked : DEFAULT_TIERS
   const show = (SHOW.find((s) => s.key === one(sp.show))?.key ?? 'all') as Show
   const sort = (SORT.find((s) => s.key === one(sp.sort))?.key ?? 'due') as Sort
-  const group = (one(sp.group) === 'date' ? 'date' : 'tier') as Group
+  const group = (one(sp.group) === 'date' ? 'date' : one(sp.group) === 'area' ? 'area' : 'tier') as Group
   const waitingOnly = one(sp.waiting) === '1'
   const q = (one(sp.q) ?? '').trim().slice(0, 100)
   const filtered = picked.length > 0 || show !== 'all' || sort !== 'due' || group !== 'tier' || waitingOnly || q !== ''
@@ -81,7 +82,7 @@ export default async function CrmTodosPage({
       orderBy: [{ dueAt: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }],
       include: {
         person: { select: { id: true, fullName: true } },
-        org: { select: { id: true, name: true } },
+        org: { select: { id: true, name: true, orgTypes: true } },
         opportunity: { select: { id: true, title: true } },
       },
     }),
@@ -100,7 +101,7 @@ export default async function CrmTodosPage({
   const endOfWeek = new Date(startOfToday)
   endOfWeek.setDate(endOfWeek.getDate() + 7)
 
-  const all = open.map((t) => ({ ...t, tier: todoTier(t), waiting: todoSource(t) === 'waiting' }))
+  const all = open.map((t) => ({ ...t, tier: todoTier(t), waiting: todoSource(t) === 'waiting', areaKey: inferArea({ ...t, orgTypes: t.org?.orgTypes }) }))
   const isLate = (t: { dueAt: Date | null }) => !!t.dueAt && t.dueAt < startOfToday
   const countTier = (k: TodoTier) => all.filter((t) => t.tier === k).length
   const lateTier = (k: TodoTier) => all.filter((t) => t.tier === k && isLate(t)).length
@@ -134,6 +135,10 @@ export default async function CrmTodosPage({
       ? TODO_TIERS.filter((t) => tiers.includes(t.key)).map((t) => ({
           key: t.key, title: `${t.code} · ${t.label}`, sub: t.hint, tone: t.key, items: shown.filter((x) => x.tier === t.key),
         }))
+      : group === 'area'
+      ? TODO_AREA_GROUPS.flatMap((g) => g.areas.map((a) => ({
+          key: a.key, title: g.areas.length > 1 ? `${g.group} · ${a.label}` : g.group, tone: 'plain' as const, items: shown.filter((x) => x.areaKey === a.key),
+        })))
       : [
           { key: 'late', title: 'Overdue', tone: 'late' as const, items: shown.filter((t) => isLate(t)) },
           { key: 'week', title: 'Next 7 days', tone: 'plain' as const, items: shown.filter((t) => t.dueAt && t.dueAt >= startOfToday && t.dueAt < endOfWeek) },
@@ -164,6 +169,17 @@ export default async function CrmTodosPage({
           <input name="title" required maxLength={300} placeholder="What needs doing?" className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
         </label>
         <Choice name="tier" label="Type" value="todo" options={[{ key: 'todo', label: 'P0 · To-do' }, { key: 'system', label: 'P000 · System issue' }]} />
+        <label className="text-xs text-muted-foreground">
+          Function
+          <select name="area" defaultValue="" className="mt-1 block rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground">
+            <option value="">Auto</option>
+            {TODO_AREA_GROUPS.map((g) => (
+              <optgroup key={g.group} label={g.group}>
+                {g.areas.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        </label>
         <label className="text-xs text-muted-foreground">
           Due
           <input name="dueDate" type="date" className="mt-1 block rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
@@ -209,7 +225,7 @@ export default async function CrmTodosPage({
             </select>
           </label>
           <Choice name="sort" label="Sort" value={sort} options={[{ key: 'due', label: 'Soonest' }, { key: 'due-desc', label: 'Latest' }, { key: 'added', label: 'Newest added' }]} />
-          <Choice name="group" label="Group by" value={group} options={[{ key: 'tier', label: 'Type' }, { key: 'date', label: 'Due date' }]} />
+          <Choice name="group" label="Group by" value={group} options={[{ key: 'tier', label: 'Type' }, { key: 'area', label: 'Function' }, { key: 'date', label: 'Due date' }]} />
           <button type="submit" className="cursor-pointer rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">Apply filters</button>
           {filtered && <Link href={BASE} className="px-1 py-1.5 text-sm text-muted-foreground underline">Reset</Link>}
         </div>
@@ -244,6 +260,7 @@ export default async function CrmTodosPage({
                         <p className="flex flex-wrap items-center gap-2 font-medium">
                           <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${TONE[t.tier].badge}`}>{tm.code}</span>
                           {t.waiting && <span className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">Waiting on them</span>}
+                          <span className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">{areaMeta(t.areaKey).label}</span>
                           <span>{t.title}</span>
                         </p>
                         <p className="mt-0.5 text-xs text-muted-foreground">

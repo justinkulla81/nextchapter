@@ -46,7 +46,7 @@ export interface GapMatches {
 
 export function gapMatchPrompt(existingTitles: string[], news: { title: string }[]): string {
   return [
-    'NextChapter is a career-transition platform. Below are EXISTING product ideas (E, index, title) and NEW competitor gaps (N, index, title).',
+    'NextChapter is a job transition platform. Below are EXISTING product ideas (E, index, title) and NEW competitor gaps (N, index, title).',
     'Decide, for each NEW gap, whether it describes the SAME product capability as an existing idea or as another new gap. Be strict: same capability, not merely the same topic.',
     'Return JSON only: {"matches":[{"new":i,"existing":j}],"groups":[{"label":"short name of the capability","members":[i,j,...]}]}.',
     '"matches" lists NEW gaps that restate an EXISTING idea. "groups" lists sets of 2+ NEW gaps that restate each other and match no existing idea. Leave unique gaps out.',

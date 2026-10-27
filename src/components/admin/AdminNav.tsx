@@ -94,6 +94,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
       defaultOpen: true,
       links: [
         { href: '/support/admin/crm/todos', label: 'To-dos' },
+        { href: '/support/admin/crm/speaking', label: 'Speaking & applications' },
         // Same idea (what's overdue right now: a broken promise, a missed next
         // step), split by whether the overdue item belongs to a company or a person.
         { href: '/support/admin/crm/queue', label: 'Company follow-ups', badge: badgeFor('crmQueue') },
