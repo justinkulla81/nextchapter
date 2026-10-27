@@ -28,6 +28,7 @@ import { boardSlugs } from '@/lib/seo/workforce-pages'
 import { visibleBoards } from '@/lib/workforce/board-area'
 import { NONPROFIT_ORG_PAGES_INDEXED, getStateNonprofitCounts, nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
 import { prisma } from '@/lib/prisma'
+import { cachedSitemap } from '@/lib/seo/sitemap-cache'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
 // Rendered per request, not at build: it reads the layoff, workforce, conference and nonprofit tables, which timed out the
@@ -212,7 +213,7 @@ async function loadTopicPages(entry: (path: string, updated: string, freq: Freq,
 
 const latestOf = (dates: string[]) => dates.reduce((a, b) => (b > a ? b : a), dates[0])
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   // News items that have their own page — the ones with our take.
   const [news, layoffStates, companies, announcements, weeks] = await Promise.all([
     getPublishedNews(500),
@@ -318,4 +319,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Author pages.
     ...Object.keys(AUTHORS).map((slug) => entry(`/authors/${slug}`, latestOf([newestGuide, newestInsight, ...(newestReport ? [newestReport] : [])]), 'monthly', 0.4)),
   ]
+}
+
+// The finished list is kept in the data cache (six hours, a stale copy served while it refreshes), like the other database-backed
+// sitemaps. Without this every request to /sitemap.xml rebuilt it from the database (about 2 seconds, MISS on every call): the
+// CDN header in next.config.ts is not applied to a dynamic route on Vercel.
+const cachedMainSitemap = cachedSitemap('main-sitemap-v1', buildSitemap)
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  return cachedMainSitemap()
 }
