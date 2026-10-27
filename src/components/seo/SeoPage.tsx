@@ -4,19 +4,26 @@ import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/Publi
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
+import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
+import { stateBrandFromSlug, statePhrase } from '@/lib/branding/state-colors'
+import { stateName } from '@/lib/seo/states'
 
 export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export const LINK = 'text-brand underline underline-offset-4'
 
 /** The frame for the programmatic public pages (workforce, higher education by state, rapid response, tools). */
-export function SeoPage({ trail, h1, lede, jsonLd, children }: {
+export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug }: {
   trail: { name: string; path: string }[]
   h1: string
   lede: ReactNode
   jsonLd?: Record<string, unknown>[]
   children: ReactNode
+  /** A state page's slug ("new-york"): the page takes the state's flag colors and opens with the free-assessment offer. */
+  stateSlug?: string
 }) {
-  return (
+  const st = stateBrandFromSlug(stateSlug)
+  const page = (
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd(trail)} />
       {jsonLd?.map((d, i) => <StructuredData key={i} data={d} />)}
@@ -33,12 +40,23 @@ export function SeoPage({ trail, h1, lede, jsonLd, children }: {
           </nav>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{h1}</h1>
           <div className="mt-4 max-w-3xl text-lg text-muted-foreground">{lede}</div>
+          {st && (
+            <OrgCandidateBand
+              orgName={stateName(st.code)}
+              branded
+              peopleCount={null}
+              heading={`Looking for work in ${stateName(st.code)}? See where you stand.`}
+              independent={`Independent page. Not from or affiliated with ${statePhrase(st.code)}.`}
+              properties={{ kind: 'STATE', state: st.code }}
+            />
+          )}
           {children}
         </div>
       </main>
       <PublicSiteFooter page="seo" />
     </div>
   )
+  return st ? <OrgBrandScope brand={st.brand}>{page}</OrgBrandScope> : page
 }
 
 export function Stat({ value, label, note }: { value: string; label: string; note?: string }) {

@@ -1,4 +1,7 @@
 import type { Metadata } from 'next'
+import { getOrgBrand } from '@/lib/branding/store'
+import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
+import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { LinkToUs } from '@/components/seo/LinkToUs'
 import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
@@ -80,6 +83,8 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
   const layoffLinks = await layoffAndRapidLinks(code)
   const topFn = m?.topFunctions[0] ? functionByName(m.topFunctions[0].function) : null
   const where = c.city ? `${c.city}, ${st}` : st
+  // The college's own colors, read from its website (src/lib/branding), when we have them.
+  const brand = await getOrgBrand('COLLEGE', c.unitid)
 
   const faq: { q: string; a: string }[] = []
   if (c.enrollment) faq.push({ q: `How big is ${c.name}?`, a: `${c.name} enrolls about ${n0(c.enrollment)} students and is a ${kind(c)} institution in ${where}${c.annualAwards ? `. It awards about ${n0(c.annualAwards)} degrees and certificates a year` : ''}.` })
@@ -122,12 +127,21 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
   const events = { page: 'college', audience: 'higher_ed', unitid: c.unitid, state: code, slug: c.canonicalSlug, indexable: c.indexable }
 
   return (
+    <OrgBrandScope brand={brand?.pair}>
     <SeoPage
       trail={[{ name: 'Higher education', path: '/higher-education' }, { name: st, path: `/higher-education/${state}` }, { name: c.name, path }]}
       h1={`${c.name}: programs, outcomes and local jobs`}
       jsonLd={ld}
       lede={<><span className="block text-sm">{[where, kind(c)].filter(Boolean).join(' · ')}</span>{description(c, st)}<ClaimHint who={`Work in career services or alumni relations at ${c.name}?`} href={c.claimSlug ? `/prepared/${c.claimSlug}` : '/higher-education#claim'} event="seo_claim_clicked" properties={events} /></>}
     >
+      <OrgCandidateBand
+        orgName={c.name}
+        branded={!!brand}
+        peopleCount={null}
+        heading={`Student or alum of ${c.name}? See where you stand.`}
+        independent={`Independent page. Not from or affiliated with ${c.name}.`}
+        properties={{ kind: 'COLLEGE', unitid: c.unitid }}
+      />
       <section aria-labelledby="facts" className="mt-10">
         <h2 id="facts" className={H2}>{c.name} at a glance</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -329,5 +343,6 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
       </p>
       <LinkToUs path={path} name={c.name} kind="college" />
     </SeoPage>
+    </OrgBrandScope>
   )
 }

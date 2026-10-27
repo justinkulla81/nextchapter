@@ -58,6 +58,7 @@ export default async function CountyPlacePage({ params }: { params: Promise<{ st
 
   return (
     <SeoPage
+      stateSlug={state}
       trail={[{ name: 'Local job markets', path: '/places' }, { name, path: placeUrl.state(state) }, { name: c.name, path }]}
       h1={placeCountySeo(c.name, s.code).h1}
       lede={<>

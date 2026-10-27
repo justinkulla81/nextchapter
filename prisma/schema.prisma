@@ -17477,6 +17477,36 @@ model PublicOrgPage {
   @@index([matchStatus])
 }
 
+/// The two brand colors read from an organization's own website (src/lib/branding), used to theme its public page and its launch kit before it claims.
+/// Keyed like PublicOrgPage: kind (WORKFORCE_BOARD, JOB_CENTER, ECON_DEV) plus the source id. SOURCE is SCAN (read from the site) or MANUAL (set by hand). SQL: prisma/manual/2026-10-27-org-brand.sql.
+model OrgBrand {
+  kind             String
+  sourceId         String
+  siteUrl          String?
+  primary          String
+  secondary        String
+  secondaryDerived Boolean  @default(false)
+  /// The ranked colors the scan saw, so a person can pick a different pair.
+  candidates       Json?
+  source           String   @default("SCAN")
+  scannedAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@id([kind, sourceId])
+}
+
+/// An organization whose website we tried and could not read colors from (no site found, refused, or no brand colors), so the scan does not retry it every run.
+/// Same key as OrgBrand. SQL: prisma/manual/2026-10-27-org-brand-miss.sql.
+model OrgBrandMiss {
+  kind      String
+  sourceId  String
+  reason    String
+  checkedAt DateTime @default(now())
+
+  @@id([kind, sourceId])
+  @@index([checkedAt])
+}
+
 /// Employee counts with year and source (scripts/companies/import-wikidata-headcount.ts). SQL: prisma/manual/2026-10-26-company-headcount.sql
 model CompanyHeadcount {
   companyId   String   @id

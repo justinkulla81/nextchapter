@@ -407,10 +407,10 @@ export async function quickAddCompetitor(formData: FormData) {
 /** Puts every active competitor's "what we would need" gaps on the product list as ideas (repeats only add the competitor's name). */
 export async function addAllGapsToProductList() {
   const admin = await requireAdmin()
-  const made = await syncAllGaps()
-  captureServerEvent(admin.email ?? 'admin', 'vision_gaps_synced', { ideas: made })
+  const r = await syncAllGaps()
+  captureServerEvent(admin.email ?? 'admin', 'vision_gaps_synced', { ideas: r.created, merged: r.matched, costUsd: Math.round(r.costUsd * 10000) / 10000 })
   revalidatePath(`${V}/competitors`)
-  return redirect(`${V}/competitors?gaps=${made}`)
+  return redirect(`${V}/competitors?gaps=${r.created}&merged=${r.matched}`)
 }
 
 /** Reads the site again. Fills blanks, adds new customers and wins, refreshes the public numbers; never deletes what is there. */

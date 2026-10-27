@@ -6,7 +6,7 @@ import type { ClaimableOrg } from '@/lib/org-claims/org'
 import type { CommunityStats } from '@/lib/org-claims/community-stats'
 
 /** The claim page for any organization in the CRM: its name, the community numbers with their source and dates, and one action. */
-export function OrgClaimPage({ org, stats }: { org: ClaimableOrg; stats: CommunityStats | null }) {
+export function OrgClaimPage({ org, stats, peopleCount = null }: { org: ClaimableOrg; stats: CommunityStats | null; peopleCount?: number | null }) {
   const cards = communityStatCards(stats)
   const domain = cleanDomain(org.emailDomain)
   return (
@@ -21,6 +21,9 @@ export function OrgClaimPage({ org, stats }: { org: ClaimableOrg; stats: Communi
         <h1 id="org-claim-h" className="font-serif text-4xl font-semibold leading-tight tracking-tight text-navy sm:text-5xl [text-wrap:balance]">
           {cards.length ? `What layoff filings show near ${org.name}` : `The ${org.name} page`}
         </h1>
+        {peopleCount != null && (
+          <p className="max-w-2xl text-lg text-navy">{peopleCount.toLocaleString('en-US')} {peopleCount === 1 ? 'person has' : 'people have'} already connected with {org.name} on NextChapter.</p>
+        )}
         {cards.length && stats ? (
           <>
             <StatStrip stats={cards} />

@@ -1,6 +1,9 @@
 import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { LinkToUs } from '@/components/seo/LinkToUs'
 import { ClaimHint } from '@/components/seo/ClaimHint'
+import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
+import { orgThemeVars } from '@/lib/branding/theme'
+import type { BrandPair } from '@/lib/branding/scan'
 import Link from 'next/link'
 import { H2, LINK, SeoPage, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -26,8 +29,12 @@ function addressLine(row: { street: string | null; city: string | null; state: s
 const ROOT_NAME = { JOB_CENTER: 'American Job Centers', ECON_DEV: 'Economic development', WORKFORCE_BOARD: 'Workforce boards' } as const
 
 /** The page for an American Job Center or an economic development organization. */
-export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events }: {
+export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events, brand = null, peopleCount = null }: {
   h1?: string
+  /** The organization's two colors, read from its own website (workforce boards): paints the candidate band. */
+  brand?: BrandPair | null
+  /** People connected with the organization, already held back under the floor (null = show nothing). */
+  peopleCount?: number | null
   notices: PageNotices
   events: Awaited<ReturnType<typeof eventsForCompanyIds>>
   page: OrgPage
@@ -48,13 +55,21 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
       <ClaimHint who={`Do you run ${row.name}?`} href={claimSlug ? `/prepared/${claimSlug}` : '/government-workforce#claim'} event="org_page_claim_clicked" properties={{ ...props, hasClaimPage: !!claimSlug, jobsOpen: b.jobsOpen }} />
     </>
   )
-  return (
+  const vars = orgThemeVars(brand)
+  const page_ = (
     <SeoPage
       trail={[{ name: ROOT_NAME[row.kind], path: ORG_PAGE_ROOT[row.kind] }, { name: st, path: `${ORG_PAGE_ROOT[row.kind]}/${ss}` }, { name: row.name, path }]}
       h1={h1 ?? row.name}
       lede={lede}
       jsonLd={orgJsonLd(page, path, hiring.jobs)}
     >
+      <OrgCandidateBand
+        orgName={row.name}
+        branded={!!vars}
+        peopleCount={peopleCount}
+        heading={row.kind === 'JOB_CENTER' ? 'Looking for work near here? See where you stand.' : undefined}
+        properties={props}
+      />
       <section aria-labelledby="market" className="mt-10">
         <h2 id="market" className={H2}>Jobs where it serves</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -178,4 +193,6 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
       <LinkToUs path={path} name={row.name} kind="org" />
     </SeoPage>
   )
+  // The wrapper only exists to carry the colors; without them the page renders exactly as before.
+  return vars ? <div style={vars} className="flex flex-1 flex-col">{page_}</div> : page_
 }
