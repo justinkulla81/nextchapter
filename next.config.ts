@@ -169,6 +169,8 @@ const nextConfig: NextConfig = {
           { key: "Content-Security-Policy", value: csp.replace("frame-ancestors 'self'", "frame-ancestors *") },
         ],
       },
+      // Pages that read the job-title scan are rendered per request (not at build) and kept by the CDN for six hours.
+      ...["/jobs/title", "/salaries", "/tools/pay-check"].map((source) => ({ source, headers: [{ key: "Cache-Control", value: "public, s-maxage=21600, stale-while-revalidate=86400" }] })),
       { source: "/images/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/marketing/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/guides/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },

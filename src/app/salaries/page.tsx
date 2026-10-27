@@ -5,7 +5,9 @@ import { usd } from '@/lib/seo/job-title-rules'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 
-export const revalidate = 21600
+// Not prerendered: the title scan reads the whole board, and a build runs it in up to seven workers at once, which timed out
+// the 2026-10-27 deploys. The CDN keeps each rendered page for six hours (next.config.ts headers).
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = pageMetadata('/salaries')
 
 export default async function SalariesPage() {
