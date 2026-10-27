@@ -154,7 +154,6 @@ export default async function AdminVisitorActivityPage({
 
   const result = paginatedResult(rows, total, params)
 
-  const result = paginatedResult(rows, total, params)
 
   const columns: AdminColumn<Row>[] = [
     { header: 'Time', className: 'px-3 py-2 tabular-nums', render: (r) => formatAdminDateTime(r.createdAt) },
