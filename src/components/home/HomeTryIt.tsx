@@ -13,7 +13,7 @@ export function HomeTryIt() {
   const [tab, setTab] = useState<'journey' | 'search'>('journey')
   const pick = (t: 'journey' | 'search') => {
     setTab(t)
-    posthog.capture('home_tryit_tab_selected', { tab: t })
+    posthog.capture('home_tryit_tab_selected', { tab: t, variant: 'control' })
   }
 
   return (
@@ -33,7 +33,7 @@ export function HomeTryIt() {
             Search jobs
           </Button>
         </div>
-        <div className="mt-8">{tab === 'journey' ? <JourneyPicker /> : <JobSearchForm source="home" />}</div>
+        <div className="mt-8">{tab === 'journey' ? <JourneyPicker variant="control" /> : <JobSearchForm source="home" />}</div>
       </div>
     </section>
   )

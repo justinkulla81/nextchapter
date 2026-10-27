@@ -37,7 +37,8 @@ function rememberSituation(slug: string | null | undefined) {
 
 // `source` says which page the form sits on ('home', or 'network:<type>:<slug>'); `compact` skips the
 // how-long question for pages that already know the person's context; `situations` limits the choices.
-export function JourneyPicker({ source = 'home', compact = false, situations }: { source?: string; compact?: boolean; situations?: string[] }) {
+// `variant` names the homepage test arm the picker sits in ('control' | 'picker'; src/lib/home-ab.ts) and goes on every event.
+export function JourneyPicker({ source = 'home', compact = false, situations, variant }: { source?: string; compact?: boolean; situations?: string[]; variant?: string }) {
   const [groupKey, setGroupKey] = useState<string | null>(null)
   const [situation, setSituation] = useState<string | null>(null)
   const [followup, setFollowup] = useState<string | null>(null)
@@ -52,7 +53,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations }: 
   const planPreview = situation ? planFor(situation) : null
   const chooseSituation = (slug: string) => {
     setSituation(slug)
-    posthog.capture('journey_picker_situation_selected', { situation: slug, group: group?.key, source })
+    posthog.capture('journey_picker_situation_selected', { situation: slug, group: group?.key, source, variant })
   }
 
   if (state?.done) {
@@ -71,7 +72,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations }: 
           href={MARKET_REALITY_START_HREF}
           onClick={() => {
             rememberSituation(slug)
-            posthog.capture('journey_picker_continue_clicked', { situation: slug })
+            posthog.capture('journey_picker_continue_clicked', { situation: slug, source, variant })
           }}
           className="mt-5 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
         >
@@ -107,7 +108,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations }: 
                   type="button"
                   onClick={() => {
                     setGroupKey(g.key)
-                    posthog.capture('journey_picker_group_selected', { group: g.key, source })
+                    posthog.capture('journey_picker_group_selected', { group: g.key, source, variant })
                     // One situation in the group: nothing left to ask, go straight on.
                     if (g.slugs.length === 1) chooseSituation(g.slugs[0])
                   }}
@@ -167,7 +168,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations }: 
                 className="h-12 justify-center rounded-xl text-base"
                 onClick={() => {
                   setFollowup(f.value)
-                  posthog.capture('journey_picker_followup_selected', { situation, followup: f.value })
+                  posthog.capture('journey_picker_followup_selected', { situation, followup: f.value, source, variant })
                 }}
               >
                 {f.label}
@@ -195,7 +196,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations }: 
             action={action}
             noValidate
             className="mx-auto mt-5 flex max-w-md flex-col gap-3 sm:flex-row"
-            onSubmit={() => posthog.capture('journey_picker_submitted', { situation, followup, source })}
+            onSubmit={() => posthog.capture('journey_picker_submitted', { situation, followup, source, variant })}
           >
             <input type="hidden" name="situation" value={situation ?? ''} />
             <input type="hidden" name="followup" value={followup ?? ''} />
@@ -226,7 +227,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations }: 
               href={MARKET_REALITY_START_HREF}
               onClick={() => {
                 rememberSituation(situation)
-                posthog.capture('journey_picker_skip_to_assessment_clicked', { situation, source })
+                posthog.capture('journey_picker_skip_to_assessment_clicked', { situation, source, variant })
               }}
               className="text-muted-foreground underline underline-offset-4"
             >
