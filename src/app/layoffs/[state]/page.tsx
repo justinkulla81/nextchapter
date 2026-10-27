@@ -2,6 +2,7 @@ import { fitDescription, layoffsStateSeo } from '@/lib/seo/templates'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { FeedLine } from '@/components/seo/FeedLine'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { StructuredData } from '@/components/StructuredData'
@@ -154,6 +155,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               <li><Link href={`/unemployment-benefits/${state}`} className={LINK}>{d.name} unemployment benefits: amounts, weeks and how to file</Link></li>
               <li><Link href="/start/laid-off" className={LINK}>What to do after a layoff</Link></li>
+              <li><FeedLine feed={`/feeds/layoffs/${state}`} label={`Get new ${d.name} notices by RSS`} /></li>
               <li><Link href="/resources/cobra-aca" className={LINK}>Keeping your health coverage: COBRA and the marketplace</Link></li>
               <li><Link href={`/resources/cobra-aca/${state}`} className={LINK}>COBRA vs ACA in {d.name}: which costs less</Link></li>
               {helpLinks.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}

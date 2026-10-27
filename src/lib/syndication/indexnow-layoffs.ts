@@ -8,6 +8,7 @@ import { isNetworkCompany } from '@/lib/network/eligibility'
 import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-announcements'
 import { getCompanies, getPublicNotices, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
+import { WEBSUB_HUB } from '@/lib/feeds/rss'
 import { chunk, INDEXNOW_BATCH, INDEXNOW_ENDPOINT, indexNowBody } from '@/lib/syndication/syndication'
 
 // Hourly: every layoff page whose record changed since it was last announced (a new WARN notice, a new announcement,
@@ -52,17 +53,41 @@ async function currentPages(): Promise<Page[]> {
   return out
 }
 
+/** Feeds whose content changed: the all-states feeds always, plus each state feed whose state page is due. */
+export function changedFeeds(duePaths: string[]): string[] {
+  const feeds = new Set<string>([`${SITE_URL}/feeds/layoffs`, `${SITE_URL}/feeds/layoffs-100plus.xml`, `${SITE_URL}/feeds/layoffs-weekly.xml`])
+  for (const p of duePaths) {
+    const m = /^\/layoffs\/([a-z-]+)$/.exec(p)
+    if (m && !['this-week', 'week', 'by-state', 'company'].includes(m[1])) feeds.add(`${SITE_URL}/feeds/layoffs/${m[1]}`)
+  }
+  return [...feeds]
+}
+
+async function pingWebSub(due: string[]): Promise<string> {
+  try {
+    const feeds = changedFeeds(due)
+    const body = new URLSearchParams({ 'hub.mode': 'publish' })
+    for (const f of feeds) body.append('hub.url', f)
+    const res = await fetch(WEBSUB_HUB, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body, signal: AbortSignal.timeout(15_000) })
+    return `${feeds.length} feeds, hub answered ${res.status}`
+  } catch (e) {
+    return `failed: ${e instanceof Error ? e.message : String(e)}`.slice(0, 200)
+  }
+}
+
 export async function runLayoffIndexNow(opts: { dryRun?: boolean } = {}) {
   const [current, saved] = await Promise.all([currentPages(), readJsonGz<State>(STATE_BUCKET, STATE_PATH)])
   const announced = { ...(saved?.pages ?? {}) }
   const stamp = new Map(current.map((p) => [p.path, p.lastModified]))
   const due = planOrgPageUpdates(current, announced)
-  const result = { dryRun: !!opts.dryRun, pages: current.length, due: due.length, refreshed: 0, sent: 0, stoppedEarly: null as string | null, sample: due.slice(0, 3).map((p) => `${SITE_URL}${p}`) }
+  const result = { dryRun: !!opts.dryRun, pages: current.length, due: due.length, refreshed: 0, sent: 0, stoppedEarly: null as string | null, websub: null as string | null, sample: due.slice(0, 3).map((p) => `${SITE_URL}${p}`) }
   if (opts.dryRun || !due.length) return result
   // First run: the whole set is "due". Announce it, but only refresh pages when a handful changed; a mass refresh is a deploy's job.
   if (due.length <= 200) {
     for (const p of due) { revalidatePath(p); result.refreshed++ }
   }
+  // Tell WebSub hubs which layoff feeds changed, so readers like Feedly show the notice within seconds. Best effort.
+  result.websub = await pingWebSub(due)
   for (const batch of chunk(due, INDEXNOW_BATCH)) {
     const res = await fetch(INDEXNOW_ENDPOINT, {
       method: 'POST',
