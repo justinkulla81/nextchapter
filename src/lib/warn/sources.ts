@@ -1,5 +1,6 @@
 import { readXlsx, excelSerialToDate, type XlsxSheet } from './xlsx'
 import { pdfText } from './pdf'
+import { fetchWashington, WASHINGTON_PAGE } from './washington'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import {
   TABLE_SPECS,
@@ -38,6 +39,9 @@ import {
   HAWAII_PAGE,
   parseHawaiiWarn,
   KENTUCKY_PAGE,
+  SOUTH_CAROLINA_PAGE,
+  resolveSouthCarolinaPdfs,
+  parseSouthCarolinaWarn,
   resolveKentuckyFiles,
   parseKentuckyWorkbook,
   parseWestVirginiaWarn,
@@ -183,6 +187,8 @@ export interface WarnSource {
    * cannot be fetched (the new year's, in early January) is skipped; the main one must load.
    */
   alsoUrls?: (primaryUrl: string) => Promise<string[]> | string[]
+  /** A source read by its own code (a form that is posted page by page), not by one fetch and a parser. `url` is still the page it comes from. */
+  custom?: () => Promise<WarnRow[]>
   /**
    * A list that shows a page at a time, newest first. After the first page, `&page=2`, `&page=3`... are read until a page has no
    * rows or is older than the age limit. The Geographic Solutions portals show 25 notices a page, and reading only the first
@@ -359,10 +365,8 @@ export const SCRAPED_STATES: Record<string, string> = {
   NY: 'https://dol.ny.gov/warn-notices',
   OK: 'https://www.employoklahoma.gov/Participants/s/warnnotices',
   PA: 'https://www.pa.gov/agencies/dli/programs-services/workforce-development-home/warn-requirements/warn-notices',
-  SC: 'https://scworks.org/employer/employer-programs/risk-closing/layoff-notification-reports',
   TN: 'https://www.tn.gov/workforce/general-resources/major-publications0/major-publications-redirect/reports.html',
   VA: 'https://www.vec.virginia.gov/warn-notices',
-  WA: 'https://esd.wa.gov/about-employees/WARN',
 }
 
 /** One notice as warn-transformer standardizes it. */
@@ -638,6 +642,27 @@ export const WARN_SOURCES: WarnSource[] = [
       const { prior } = resolveKentuckyFiles(await fetchText(KENTUCKY_PAGE))
       return prior ? [prior] : []
     },
+    hasIndustry: false,
+  },
+  {
+    state: 'SC',
+    url: SOUTH_CAROLINA_PAGE,
+    format: 'xlsx', // fetched as bytes: the page only links the PDF
+    resolve: async () => {
+      const pdfs = resolveSouthCarolinaPdfs(await fetchText(SOUTH_CAROLINA_PAGE))
+      if (!pdfs.length) throw new Error('SC: no yearly WARN report PDF linked')
+      return pdfs[0]
+    },
+    parse: (buf: Buffer) => parseSouthCarolinaWarn(buf),
+    alsoUrls: async () => resolveSouthCarolinaPdfs(await fetchText(SOUTH_CAROLINA_PAGE)).slice(1),
+    hasIndustry: false,
+  },
+  {
+    state: 'WA',
+    url: WASHINGTON_PAGE,
+    format: 'html',
+    parse: () => [],
+    custom: () => fetchWashington(new Date(Date.now() - 540 * 86_400_000)),
     hasIndustry: false,
   },
   {
