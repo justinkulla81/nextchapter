@@ -16853,6 +16853,17 @@ model AiMarketSnapshot {
   @@index([computedAt])
 }
 
+// Whole-board figures that need a pass over ~650k live postings (10-17 s each): the top-employers rankings, the
+// workforce page counts, the "jobs by AI exposure" split. The cron /api/cron/board-figures computes them off the
+// request path and stores each result here under a key; the pages read the row instead of running the scan, which
+// held database connections and starved the pool after every deploy (2026-10-27).
+// prisma/manual/2026-10-27-board-figure.sql.
+model BoardFigure {
+  key        String   @id
+  payload    Json
+  computedAt DateTime @default(now())
+}
+
 enum LinkedInDraftStatus {
   DRAFT
   POSTED

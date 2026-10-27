@@ -1,6 +1,7 @@
 import 'server-only'
 import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { paysMore } from '@/lib/skills/ai-market'
 import { JOURNEYS } from '@/lib/journey/journey'
@@ -38,7 +39,7 @@ type JobRow = {
   entry_training: number
 }
 
-async function jobCounts(): Promise<JobRow> {
+export async function jobCounts(): Promise<JobRow> {
   // One pass over the open board (~10 s at 500k rows), hence the daily cache. Counted per role,
   // not per row: rows sharing a crawlerFingerprint (a re-issued aggregator URL whose old row is
   // still live) count once, using the most recently checked row; rows with no fingerprint count
@@ -100,7 +101,10 @@ async function taxonomyCounts(): Promise<TaxonomyRow> {
 }
 
 const DAY = 86_400
-const cachedJobs = unstable_cache(jobCounts, ['workforce-numbers-jobs-v5'], { revalidate: DAY })
+// The board scan runs in the cron /api/cron/board-figures; this reads its stored result. The live scan only runs when no snapshot exists yet.
+const cachedJobs = unstable_cache(async () => (await readBoardFigure<JobRow>('workforce-jobs')) ?? jobCounts(), ['workforce-numbers-jobs-v6'], {
+  revalidate: 600,
+})
 const cachedTaxonomy = unstable_cache(taxonomyCounts, ['workforce-numbers-taxonomy-v1'], { revalidate: DAY })
 
 async function safe<T>(label: string, run: () => Promise<T>): Promise<T | null> {

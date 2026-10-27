@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { employerSlug } from '@/lib/seo/employer-slug'
 import { employerPageCompanyIds } from '@/lib/seo/employer-pages'
 import { JOB_FUNCTIONS } from '@/lib/seo/topics'
+import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 
 // Public employer rankings (/top-employers, /top-employers/<function>) and the monthly report's employer table.
 // Every figure is counted from the open board, per role (rows sharing a crawlerFingerprint count once, as in
@@ -136,8 +137,14 @@ export async function buildEmployerRankings(): Promise<EmployerRankings> {
   }
 }
 
-const DAY = 86_400
-export const getEmployerRankings = unstable_cache(buildEmployerRankings, ['employer-rankings-v8'], { revalidate: DAY })
+// Read from BoardFigure, which the cron /api/cron/board-figures refreshes. The live scan (10-17 s over the open board) only
+// runs here when no snapshot exists yet, never on a normal request.
+const SNAPSHOT_READ_TTL = 600
+export const getEmployerRankings = unstable_cache(
+  async () => (await readBoardFigure<EmployerRankings>('employer-rankings')) ?? buildEmployerRankings(),
+  ['employer-rankings-v9'],
+  { revalidate: SNAPSHOT_READ_TTL }
+)
 
 // ---- by function -------------------------------------------------------------------------------------------
 
@@ -171,7 +178,11 @@ export async function buildFunctionRankings(): Promise<FunctionRanking[]> {
   return [...byFn.values()].filter((g) => order.has(g.function)).sort((a, b) => order.get(a.function)! - order.get(b.function)!)
 }
 
-export const getFunctionRankings = unstable_cache(buildFunctionRankings, ['employer-rankings-functions-v2'], { revalidate: DAY })
+export const getFunctionRankings = unstable_cache(
+  async () => (await readBoardFigure<FunctionRanking[]>('function-rankings')) ?? buildFunctionRankings(),
+  ['employer-rankings-functions-v3'],
+  { revalidate: SNAPSHOT_READ_TTL }
+)
 
 export async function getFunctionRanking(fnName: string): Promise<FunctionRanking | null> {
   const all = await getFunctionRankings()
