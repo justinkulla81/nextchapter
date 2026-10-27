@@ -70,7 +70,16 @@ export async function syncWarnState(stateCode: string, promote = true): Promise<
     })
     if (!res.ok) throw new Error(`${source.state} WARN returned ${res.status}`)
     const buf = Buffer.from(await res.arrayBuffer())
-    let rows = source.parse(buf, url)
+    let rows = await source.parse(buf, url)
+    // A state that files a PDF a year is read for last year too; a file that will not load is skipped.
+    for (const extra of source.alsoUrls ? await source.alsoUrls(url) : []) {
+      try {
+        const r = await fetch(extra, { signal: AbortSignal.timeout(60_000), headers: { 'User-Agent': WARN_USER_AGENT } })
+        if (r.ok) rows = [...rows, ...(await source.parse(Buffer.from(await r.arrayBuffer()), extra))]
+      } catch {
+        // The primary file loaded; the extra one is only a wider window.
+      }
+    }
     // Sources that publish the headcount on a separate page fill it in here.
     if (source.enrich) rows = await source.enrich(rows)
     result.fetched = rows.length

@@ -3,6 +3,7 @@ import { readTables, columnOf, parseDate, parseCount, stripTags } from './html'
 import { parseCsv } from './csv'
 import { excelSerialToDate } from './xlsx'
 import type { WarnRow } from './sources'
+import { pdfPages, pdfTableRows, type ColumnSpec, type PdfItem } from './pdf-table'
 
 /**
  * A state whose WARN page is a plain HTML table.
@@ -55,6 +56,13 @@ export const TABLE_SPECS: TableSpec[] = [
   {
     state: 'NE',
     employer: ['Company'], noticeDate: ['Date'], employees: ['Jobs Affected'], location: ['Location'],
+  },
+  {
+    // Georgia (Technical College System of Georgia, which took over WARN on 1 Jan 2023) builds its list in the browser from a
+    // WordPress data call that needs a page-issued token, so the weekly browser job renders it (RENDERED_STATES). The table has
+    // the company, the date it was submitted and the number affected; the county and separation dates sit on each entry's page.
+    state: 'GA',
+    employer: ['Company Name'], noticeDate: ['Submitted Date'], employees: ['Total Number of Affected Employees', 'Affected'],
   },
   {
     state: 'OR',
@@ -760,6 +768,150 @@ export function parseIowaWarn(sheets: { name: string; rows: (string | number)[][
       layoffType: iType >= 0 ? String(row[iType] ?? '').trim() || null : null,
       county: iCounty >= 0 ? String(row[iCounty] ?? '').trim() || null : null,
       address: iCity >= 0 ? String(row[iCity] ?? '').trim() || null : null,
+      industry: null,
+    })
+  }
+  return out
+}
+
+
+/**
+ * Louisiana posts one PDF per year, https://www.laworks.net/Downloads/WFD/WarnNotices<year>.pdf, updated as notices arrive: company,
+ * address, notice date, layoff date, employees affected, industry. A name, address or industry wraps over two or three lines, so
+ * the rows are rebuilt by position (pdf-table.ts), not by the order the text comes in.
+ */
+export const louisianaPdf = (year: number) => `https://www.laworks.net/Downloads/WFD/WarnNotices${year}.pdf`
+
+const LA_COLUMNS: ColumnSpec[] = [
+  { key: 'company', header: /^Company Name$/ }, { key: 'address', header: /^Address$/ }, { key: 'notice', header: /^Notice$/ },
+  { key: 'layoff', header: /^Layoff$/ }, { key: 'employees', header: /^Employees$/ }, { key: 'industry', header: /^Industry$/ },
+]
+
+export function parseLouisianaItems(pages: PdfItem[][]): WarnRow[] {
+  const out: WarnRow[] = []
+  for (const items of pages) {
+    if (!items.some((i) => /^Company Name$/.test(i.s))) continue
+    for (const r of pdfTableRows(items, LA_COLUMNS, 'notice')) {
+      if (!r.company) continue
+      out.push({
+        state: 'LA',
+        employer: r.company,
+        normalizedEmployer: normalizeOrgName(r.company),
+        noticeDate: parseDate(r.notice),
+        effectiveDate: parseDate(r.layoff),
+        employees: parseCount(r.employees),
+        layoffType: null,
+        county: null,
+        address: r.address || null,
+        industry: normalizeIndustry(r.industry || null, 'LA'),
+      })
+    }
+  }
+  return out
+}
+
+export async function parseLouisianaWarn(buf: Buffer): Promise<WarnRow[]> {
+  const rows = parseLouisianaItems(await pdfPages(buf))
+  if (!rows.length) throw new Error('LA: the WARN PDF produced no rows; its layout has changed')
+  return rows
+}
+
+/**
+ * New Mexico (Department of Workforce Solutions, now dws.nm.gov) posts one PDF per year, linked from its Rapid Response page:
+ * notice date, job site name, county, workforce area, total layoff, layoff date, received date, city. One line a row.
+ */
+export const NEW_MEXICO_PAGE = 'https://www.dws.nm.gov/Rapid-Response'
+
+export function resolveNewMexicoPdfs(pageHtml: string): string[] {
+  const found = [...pageHtml.matchAll(/href="([^"]*?(20\d{2})_WARN[^"]*\.pdf)"/gi)].map((m) => ({ year: parseInt(m[2], 10), href: m[1] }))
+  const byYear = new Map<number, string>()
+  for (const f of found) if (!byYear.has(f.year)) byYear.set(f.year, f.href)
+  // This year's and last year's: a 12-month window reaches back into the previous file until the new year is well along.
+  return [...byYear.entries()].sort((a, b) => b[0] - a[0]).slice(0, 2).map(([, href]) => (href.startsWith('http') ? href : new URL(href, 'https://www.dws.nm.gov').toString()))
+}
+
+const NM_COLUMNS: ColumnSpec[] = [
+  { key: 'notice', header: /^NOTICE DATE$/i }, { key: 'site', header: /^JOB SITE NAME$/i }, { key: 'county', header: /^COUNTY NAME$/i },
+  { key: 'wda', header: /^WDA NAME$/i }, { key: 'total', header: /^TOTAL LAYOFF$/i }, { key: 'layoff', header: /^LAYOFF DATE$/i },
+  { key: 'received', header: /^RECEIVED DATE$/i }, { key: 'city', header: /^CITY NAME$/i },
+]
+
+export function parseNewMexicoItems(pages: PdfItem[][]): WarnRow[] {
+  const out: WarnRow[] = []
+  for (const items of pages) {
+    if (!items.some((i) => /^JOB SITE NAME$/i.test(i.s))) continue
+    for (const r of pdfTableRows(items, NM_COLUMNS, 'notice')) {
+      if (!r.site) continue
+      out.push({
+        state: 'NM',
+        employer: r.site,
+        normalizedEmployer: normalizeOrgName(r.site),
+        noticeDate: parseDate(r.notice),
+        effectiveDate: parseDate(r.layoff),
+        employees: parseCount(r.total),
+        layoffType: null,
+        county: r.county || null,
+        address: r.city || null,
+        industry: null,
+      })
+    }
+  }
+  return out
+}
+
+export async function parseNewMexicoWarn(buf: Buffer): Promise<WarnRow[]> {
+  const rows = parseNewMexicoItems(await pdfPages(buf))
+  if (!rows.length) throw new Error('NM: the WARN PDF produced no rows; its layout has changed')
+  return rows
+}
+
+/**
+ * West Virginia (WorkForce West Virginia) lists one PDF per notice, each linked with the employer and the date in its text
+ * ("Greenbrier Minerals WARN 2-13-26"). The headcount is only inside each employer's letter, which has no fixed layout, so rows
+ * carry the employer and date. A link with no date in its text takes the first of the month it was uploaded in (the file's path).
+ */
+export const WEST_VIRGINIA_PAGE = 'https://workforcewv.org/job-seeker/layoffs-downsizing/warn-listing/'
+
+export function parseWestVirginiaWarn(html: string): WarnRow[] {
+  const out: WarnRow[] = []
+  const seen = new Set<string>()
+  for (const m of html.matchAll(/<a\s[^>]*href="([^"]*\/wp-content\/uploads\/(\d{4})\/(\d{2})\/[^"]*\.pdf)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const [, href, year, month, inner] = m
+    const text = stripTags(inner).replace(/[_]+/g, ' ').replace(/\s+/g, ' ').trim()
+    // The list's own file ("Download Warn Notice PDF") and attachments are not notices.
+    if (!/warn/i.test(`${text} ${href}`) || /^download|occupations/i.test(text)) continue
+    const dateText = text.match(/(\d{1,2})[-/_](\d{1,2})[-/_](\d{2,4})/)
+    let noticeDate: Date | null = null
+    if (dateText) {
+      const y = dateText[3].length === 2 ? 2000 + parseInt(dateText[3], 10) : parseInt(dateText[3], 10)
+      const d = new Date(Date.UTC(y, parseInt(dateText[1], 10) - 1, parseInt(dateText[2], 10)))
+      if (!Number.isNaN(d.getTime()) && d.getUTCFullYear() === y) noticeDate = d
+    }
+    noticeDate ??= new Date(Date.UTC(parseInt(year, 10), parseInt(month, 10) - 1, 1))
+    const employer = text
+      .replace(/(\d{1,2})[-/_](\d{1,2})[-/_](\d{2,4})/g, ' ')
+      .replace(/\b(warn|notice|state|update|received|supplemental|revised|pdf)\b/gi, ' ')
+      .replace(/\b(r\d|\d{5,6})\b/g, ' ')
+      .replace(/\b\d{1,2}[-/]\d{4}\b/g, ' ')
+      .replace(/\s(january|february|march|april|may|june|july|august|september|october|november|december)\s*$/i, ' ')
+      .replace(/^[\s–-]+|[\s–-]+$/g, '')
+      .replace(/^west virginia\s+/i, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (employer.length < 2) continue
+    const key = `${employer.toLowerCase()}|${noticeDate.toISOString().slice(0, 10)}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push({
+      state: 'WV',
+      employer,
+      normalizedEmployer: normalizeOrgName(employer),
+      noticeDate,
+      effectiveDate: null,
+      employees: null,
+      layoffType: null,
+      county: null,
+      address: null,
       industry: null,
     })
   }

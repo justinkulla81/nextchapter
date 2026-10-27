@@ -26,6 +26,13 @@ import {
   MISSISSIPPI_PAGE,
   resolveMississippiPdf,
   parseMississippiWarn,
+  louisianaPdf,
+  parseLouisianaWarn,
+  NEW_MEXICO_PAGE,
+  resolveNewMexicoPdfs,
+  parseNewMexicoWarn,
+  WEST_VIRGINIA_PAGE,
+  parseWestVirginiaWarn,
   NEW_JERSEY_FILE,
   parseNewJerseyWarn,
   RHODE_ISLAND_PAGE,
@@ -161,7 +168,13 @@ export interface WarnSource {
   url: string | (() => string)
   /** 'xlsx' is fetched as bytes; 'json' and 'html' as text. */
   format: 'xlsx' | 'json' | 'html'
-  parse: (buf: Buffer, url: string) => WarnRow[]
+  parse: (buf: Buffer, url: string) => WarnRow[] | Promise<WarnRow[]>
+  /**
+   * Further files of the same kind that are read with the same parser and added to the rows: a state that files one PDF a year
+   * is read for this year and last, so a 12-month window is complete until the new year's file is well along. A file that
+   * cannot be fetched (the new year's, in early January) is skipped; the main one must load.
+   */
+  alsoUrls?: (primaryUrl: string) => Promise<string[]> | string[]
   /**
    * Second pass for sources that split a notice across two pages.
    *
@@ -363,6 +376,7 @@ export function parseScrapedNotices(state: string, notices: ScrapedNotice[]): Wa
 }
 
 export const RENDERED_STATES: Record<string, string> = {
+  GA: 'https://www.tcsg.edu/warn-public-view/',
   MA: 'https://www.mass.gov/info-details/worker-adjustment-and-retraining-notification-act-warn-layoff-and-closure-updates',
   WI: 'https://dwd.wisconsin.gov/dislocatedworker/warn/',
 }
@@ -455,16 +469,23 @@ const GEOSOLINC_SOURCES: WarnSource[] = Object.entries(GEOSOLINC_PORTALS).map(([
  *   NC  Tableau, same problem. Also covered by layoffs.fyi.
  *   MN  sits behind a Radware CAPTCHA.
  *   NH NV  return Akamai "Access Denied" even to a rendered browser, so this
- *       is not a matter of headers.
+ *       is not a matter of headers. NH also publishes no notice list of its own.
  *   WA  an ASP.NET search form inside an iframe; submitting it did not return
  *       a results table.
  *   PA  its notices page renders navigation and nothing else, in a browser as
  *       well as a fetch, and links no data file.
- *   NM  publishes a PDF per year whose text extracts cleanly; not wired up yet.
- *   GA IL LA MI VA WV  no machine-readable notice list found. Michigan posts a
- *       PDF per notice with the employer and date in the filename, which is
- *       the most promising of these.
- *   AR DC MT ND OK SC WY  no WARN page found at any address that resolves.
+ *   IL MI VA  no machine-readable notice list found. Michigan posts a PDF per
+ *       notice with the employer and date in the filename, which is the most
+ *       promising of these.
+ *   AR  the Division of Workforce Services publishes no notices (it treats them as confidential under A.C.A. 11-10-314).
+ *   WY  follows the federal law and keeps no public list.
+ *   DC MT ND OK SC  no WARN page found at any address that resolves.
+ *
+ * Added 2026-10-26 (these were listed above as unusable until someone looked again):
+ *   LA  a PDF per year; rebuilt by position with unpdf (pdf-table.ts) because the text alone cannot say where a wrapped name ends.
+ *   NM  a PDF per year, linked from the Rapid Response page on dws.nm.gov (the old dws.state.nm.us redirects there).
+ *   WV  a page of one PDF per notice, employer and date in the link text; no headcount without reading each letter.
+ *   GA  Technical College System of Georgia's public view, built in the browser: see RENDERED_STATES.
  *   TN  runs the Geographic Solutions portal but does not serve WARN there.
  */
 export const WARN_SOURCES: WarnSource[] = [
@@ -549,6 +570,34 @@ export const WARN_SOURCES: WarnSource[] = [
     },
     parse: (buf: Buffer) => parseMississippiWarn(pdfText(buf)),
     hasIndustry: true,
+  },
+  {
+    state: 'LA',
+    url: () => louisianaPdf(new Date().getUTCFullYear()),
+    format: 'xlsx', // fetched as bytes; it is a PDF, parsed by position
+    parse: (buf: Buffer) => parseLouisianaWarn(buf),
+    alsoUrls: () => [louisianaPdf(new Date().getUTCFullYear() - 1)],
+    hasIndustry: false,
+  },
+  {
+    state: 'NM',
+    url: NEW_MEXICO_PAGE,
+    format: 'xlsx', // fetched as bytes; it is a PDF, parsed by position
+    resolve: async () => {
+      const pdfs = resolveNewMexicoPdfs(await fetchText(NEW_MEXICO_PAGE))
+      if (!pdfs.length) throw new Error('NM: no yearly WARN PDF linked')
+      return pdfs[0]
+    },
+    parse: (buf: Buffer) => parseNewMexicoWarn(buf),
+    alsoUrls: async () => resolveNewMexicoPdfs(await fetchText(NEW_MEXICO_PAGE)).slice(1),
+    hasIndustry: false,
+  },
+  {
+    state: 'WV',
+    url: WEST_VIRGINIA_PAGE,
+    format: 'html',
+    parse: (buf: Buffer) => parseWestVirginiaWarn(buf.toString('utf8')),
+    hasIndustry: false,
   },
   {
     state: 'NJ',

@@ -18,6 +18,7 @@ const UA =
 
 /** Kept in step with RENDERED_STATES in src/lib/warn/sources.ts. */
 const PAGES: Record<string, string> = {
+  GA: 'https://www.tcsg.edu/warn-public-view/',
   MA: 'https://www.mass.gov/info-details/worker-adjustment-and-retraining-notification-act-warn-layoff-and-closure-updates',
   WI: 'https://dwd.wisconsin.gov/dislocatedworker/warn/',
 }
@@ -54,6 +55,9 @@ async function download(state: string, spec: { page: string; link: string }): Pr
   }
 }
 
+/** States whose table shows a page at a time; every page is collected into one table before it is posted. */
+const PAGED = new Set(['GA'])
+
 async function render(state: string, url: string): Promise<string | null> {
   const browser = await chromium.launch({ headless: true })
   try {
@@ -67,6 +71,24 @@ async function render(state: string, url: string): Promise<string | null> {
       })
       .catch(() => undefined)
     await page.waitForTimeout(3_000)
+    if (PAGED.has(state)) {
+      // DataTables shows 25 rows a page; its length menu has "All" (-1), so ask for everything and read the table once.
+      const sel = 'table.gv-datatables'
+      const head = await page.$eval(`${sel} thead`, (el) => el.outerHTML)
+      // "All" is capped at 200 rows by the server and the table opens oldest first, so sort newest first before asking for them.
+      await page.evaluate(() => {
+        const jq = (window as unknown as { jQuery?: (s: string) => { DataTable: () => { order: (o: [number, string]) => { draw: () => void } } } }).jQuery
+        jq?.('table.gv-datatables').DataTable().order([4, 'desc']).draw()
+      }).catch(() => undefined)
+      await page.waitForTimeout(2_500)
+      await page.selectOption('select[name$="_length"]', '-1')
+      await page.waitForFunction(() => document.querySelectorAll('table.gv-datatables tbody tr').length > 30, { timeout: 15_000 }).catch(() => undefined)
+      await page.waitForTimeout(1_500)
+      const rows = await page.$$eval(`${sel} tbody tr`, (trs) => trs.map((tr) => tr.outerHTML))
+      const html = `<table>${head}<tbody>${[...new Set(rows)].join('')}</tbody></table>`
+      console.error(`${state}: collected ${new Set(rows).size} rows`)
+      return html
+    }
     const html = await page.content()
     console.error(`${state}: rendered ${html.length} bytes`)
     return html
