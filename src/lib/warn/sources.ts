@@ -25,6 +25,7 @@ import {
   parseIowaWarn,
   MISSISSIPPI_PAGE,
   resolveMississippiPdf,
+  resolveMississippiPdfs,
   parseMississippiWarn,
   louisianaPdf,
   parseLouisianaWarn,
@@ -176,6 +177,12 @@ export interface WarnSource {
    * cannot be fetched (the new year's, in early January) is skipped; the main one must load.
    */
   alsoUrls?: (primaryUrl: string) => Promise<string[]> | string[]
+  /**
+   * A list that shows a page at a time, newest first. After the first page, `&page=2`, `&page=3`... are read until a page has no
+   * rows or is older than the age limit. The Geographic Solutions portals show 25 notices a page, and reading only the first
+   * left Arizona, Idaho and Kansas at 25 each when they hold 200 or more.
+   */
+  paginate?: { maxPages: number }
   /**
    * Second pass for sources that split a notice across two pages.
    *
@@ -405,7 +412,8 @@ const TABLE_SOURCES: WarnSource[] = TABLE_SPECS.filter((spec) => !(spec.state in
  * happened before the people affected had email.
  */
 const ENRICH_WINDOW_DAYS = 180
-const ENRICH_MAX = 25
+/** Overridable for a one-off backfill (WARN_ENRICH_MAX=200): a notice's headcount is on its own page, one request each. */
+const ENRICH_MAX = Number(process.env.WARN_ENRICH_MAX) || 25
 
 const GEOSOLINC_SOURCES: WarnSource[] = Object.entries(GEOSOLINC_PORTALS).map(([state, host]) => ({
   state,
@@ -413,6 +421,7 @@ const GEOSOLINC_SOURCES: WarnSource[] = Object.entries(GEOSOLINC_PORTALS).map(([
   format: 'html' as const,
   parse: (buf: Buffer) => parseGeosolincList(buf, state),
   hasIndustry: false,
+  paginate: { maxPages: 40 },
   enrich: async (rows: WarnRow[]) => {
     const cutoff = new Date(Date.now() - ENRICH_WINDOW_DAYS * 86_400_000)
     let budget = ENRICH_MAX
@@ -421,6 +430,7 @@ const GEOSOLINC_SOURCES: WarnSource[] = Object.entries(GEOSOLINC_PORTALS).map(([
       if (!row.detailPath || row.employees != null) continue
       if (row.noticeDate && row.noticeDate < cutoff) continue
       budget--
+      await new Promise((r) => setTimeout(r, 250))
       try {
         const res = await fetch(`https://${host}${row.detailPath}`, {
           headers: { 'User-Agent': WARN_USER_AGENT },
@@ -577,6 +587,7 @@ export const WARN_SOURCES: WarnSource[] = [
       return pdf
     },
     parse: (buf: Buffer) => parseMississippiWarn(pdfText(buf)),
+    alsoUrls: async () => resolveMississippiPdfs(await fetchText(MISSISSIPPI_PAGE)).slice(1),
     hasIndustry: true,
   },
   {

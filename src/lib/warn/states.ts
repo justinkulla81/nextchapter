@@ -681,6 +681,16 @@ export function resolveMississippiPdf(pageHtml: string): string | null {
   return best.href.startsWith('http') ? best.href : `https://mdes.ms.gov${best.href}`
 }
 
+/** Every quarterly PDF the page links, newest first: a 12-month window spans five of them (the new program year and the last one). */
+export function resolveMississippiPdfs(pageHtml: string): string[] {
+  const seen = new Set<string>()
+  const links = [...pageHtml.matchAll(/href="([^"]*warn-py(\d{4})-(?:qtr-|q)(\d)[^"]*\.pdf)"/gi)]
+    .map((m) => ({ href: m[1], year: parseInt(m[2], 10), quarter: parseInt(m[3], 10) }))
+    .filter((l) => (seen.has(l.href) ? false : (seen.add(l.href), true)))
+    .sort((a, b) => b.year - a.year || b.quarter - a.quarter)
+  return links.slice(0, 5).map((l) => (l.href.startsWith('http') ? l.href : `https://mdes.ms.gov${l.href}`))
+}
+
 export function parseMississippiWarn(text: string): WarnRow[] {
   const cells = text
     .split(/Í[^®]{0,4}®/)

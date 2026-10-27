@@ -115,3 +115,12 @@ describe('Nevada WARN PDF', () => {
     expect(rows[0].layoffType).toBe('Layoff')
   })
 })
+
+describe('Mississippi quarterly PDFs', () => {
+  it('lists the newest five once each, across both naming styles', async () => {
+    const { resolveMississippiPdfs } = await import('@/lib/warn/states')
+    const html = ['/media/1/warn-py2026-qtr-1-jul-sep-2026.pdf', '/media/2/warn-py2025-qtr-4-apr-jun-2026.pdf', '/media/3/warn-py2025-qtr-3-jan-mar-2026.pdf', '/media/3/warn-py2025-qtr-3-jan-mar-2026.pdf',
+      '/media/4/warn-py2025-qtr-2-oct-dec-2025.pdf', '/media/5/warn-py2025-qtr-1-jul-sep-2025.pdf', '/media/6/warn-py2024-q4-warn-apr2025-jun2025.pdf'].map((h) => `<a href="${h}">x</a>`).join('')
+    expect(resolveMississippiPdfs(html)).toEqual([1, 2, 3, 4, 5].map((n) => `https://mdes.ms.gov/media/${n}/${['warn-py2026-qtr-1-jul-sep-2026', 'warn-py2025-qtr-4-apr-jun-2026', 'warn-py2025-qtr-3-jan-mar-2026', 'warn-py2025-qtr-2-oct-dec-2025', 'warn-py2025-qtr-1-jul-sep-2025'][n - 1]}.pdf`))
+  })
+})
