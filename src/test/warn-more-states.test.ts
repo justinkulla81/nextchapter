@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
+import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseNevadaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
 import type { PdfItem } from '@/lib/warn/pdf-table'
 
 const it_ = (s: string, x: number, y: number): PdfItem => ({ s, x, y })
@@ -95,5 +95,23 @@ describe('Georgia WARN table (rendered by the browser job)', () => {
     expect(rows).toHaveLength(2)
     expect(rows[1]).toMatchObject({ state: 'GA', employer: 'SDH Services East', employees: 1204 })
     expect(rows[1].noticeDate?.toISOString().slice(0, 10)).toBe('2026-08-08')
+  })
+})
+
+// Positions copied from https://detr.nv.gov/content/media/WARN_and_Non_WARN_Master_w_Logo.pdf (saved from a browser).
+describe('Nevada WARN PDF', () => {
+  const header = [it_('Received', 44, 669), it_('Effective Date', 83, 669), it_('Type', 142, 669), it_('Employer', 282, 669), it_('City', 405, 669), it_('County', 455, 669),
+    it_('Notification', 503, 669), it_('Date', 50, 660), it_('(Layoff,', 138, 660), it_('Affected', 174, 660), it_('(WARN, Non-', 500, 660), it_('Closure)', 137, 651), it_('Total', 180, 651), it_('WARN)', 509, 651)]
+  const row = (y: number, received: string, effective: string, type: string, n: string, employer: string, city: string, county: string, note: string) =>
+    [it_(received, 43, y), it_(effective, 99, y), it_(type, 133, y), it_(n, 197, y), it_(employer, 207, y), it_(city, 388, y), it_(county, 436, y), it_(note, 498, y)]
+  it('keeps only WARN rows, reads fixed columns, and leaves the header lines out', () => {
+    const rows = parseNevadaItems([[...header,
+      ...row(642, '1/8/2026', '3/10/2026', 'Layoff', '3', 'SMBC Manubank', 'Remote', 'Remote', 'Non-WARN'),
+      ...row(632, '1/22/2026', '3/15/2026', 'Layoff', '1', 'Spirit Airlines', 'Las Vegas', 'Clark', 'WARN'),
+      ...row(531, '5/4/2026', '5/2/2026', 'Closure', '999', 'Spirit Airlines', 'Las Vegas/Reno', 'Clark/Washoe', 'WARN')]])
+    expect(rows).toHaveLength(2)
+    expect(rows[1]).toMatchObject({ state: 'NV', employer: 'Spirit Airlines', employees: 999, layoffType: 'Closure', county: 'Clark/Washoe', address: 'Las Vegas/Reno' })
+    expect(rows[1].noticeDate?.toISOString().slice(0, 10)).toBe('2026-05-04')
+    expect(rows[0].layoffType).toBe('Layoff')
   })
 })

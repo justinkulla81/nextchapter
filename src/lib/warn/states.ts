@@ -3,7 +3,7 @@ import { readTables, columnOf, parseDate, parseCount, stripTags } from './html'
 import { parseCsv } from './csv'
 import { excelSerialToDate } from './xlsx'
 import type { WarnRow } from './sources'
-import { columnEdges, pdfPages, pdfTableRows, type ColumnEdges, type ColumnSpec, type PdfItem } from './pdf-table'
+import { columnEdges, fixedEdges, pdfPages, pdfTableRows, type ColumnEdges, type ColumnSpec, type PdfItem } from './pdf-table'
 
 /**
  * A state whose WARN page is a plain HTML table.
@@ -942,4 +942,54 @@ export function parseWestVirginiaWarn(html: string): WarnRow[] {
     })
   }
   return out
+}
+
+/**
+ * Nevada (Department of Employment, Training and Rehabilitation) posts "WARN and Non-WARN Master", one PDF for the year, at
+ * https://detr.nv.gov/content/media/WARN_and_Non_WARN_Master_w_Logo.pdf: received date, effective date, layoff or closure,
+ * total affected, employer, city, county, and whether it was a WARN or a Non-WARN (voluntary) notice. Only WARN notices are
+ * kept. The site refuses scripted requests (Akamai) but serves the file to a person's browser, so it is read from a file
+ * saved by hand: see FILE_STATES.
+ *
+ * The headers are centred over wide columns, so the column starts are fixed here rather than read from the header.
+ */
+const NV_COLUMNS = fixedEdges([
+  { key: 'received', from: 0 }, { key: 'effective', from: 80 }, { key: 'type', from: 125 }, { key: 'affected', from: 160 },
+  { key: 'employer', from: 205 }, { key: 'city', from: 380 }, { key: 'county', from: 430 }, { key: 'notification', from: 490 },
+])
+
+export function parseNevadaItems(pages: PdfItem[][]): WarnRow[] {
+  const out: WarnRow[] = []
+  for (const items of pages) {
+    const header = items.find((i) => /^Employer$/.test(i.s))
+    if (!header) continue
+    // Rows start below the header's three lines: the first dated row is the highest data line.
+    const dates = items.filter((i) => /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(i.s) && i.x < 80)
+    if (!dates.length) continue
+    const firstRowY = Math.max(...dates.map((d) => d.y))
+    for (const r of pdfTableRows(items, [], 'received', NV_COLUMNS, { dataTop: firstRowY + 4 })) {
+      const employer = oneLine(r.employer)
+      if (!employer || !/^WARN$/i.test(oneLine(r.notification))) continue
+      const type = oneLine(r.type)
+      out.push({
+        state: 'NV',
+        employer,
+        normalizedEmployer: normalizeOrgName(employer),
+        noticeDate: parseDate(oneLine(r.received)),
+        effectiveDate: parseDate(oneLine(r.effective)),
+        employees: parseCount(oneLine(r.affected)),
+        layoffType: /closure/i.test(type) ? 'Closure' : /layoff/i.test(type) ? 'Layoff' : null,
+        county: oneLine(r.county) || null,
+        address: oneLine(r.city) || null,
+        industry: null,
+      })
+    }
+  }
+  return out
+}
+
+export async function parseNevadaWarn(buf: Buffer): Promise<WarnRow[]> {
+  const rows = parseNevadaItems(await pdfPages(buf))
+  if (!rows.length) throw new Error('NV: the WARN PDF produced no WARN rows; its layout has changed')
+  return rows
 }
