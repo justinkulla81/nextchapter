@@ -33,6 +33,8 @@ import { MANDATE_STATUS_LABELS } from '@/lib/crm/mandates'
 import { Suspense } from 'react'
 import { publicPageForOrg } from '@/lib/seo/public-page-for-org'
 import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
+import { costLines } from '@/lib/warn/layoff-cost'
+import { setLayoffCosts } from '@/app/support/admin/(portal)/crm/warn/actions'
 
 export const maxDuration = 30
 
@@ -724,6 +726,21 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
                     <span className="text-xs text-muted-foreground">
                       {n.noticeDate ? formatDate(n.noticeDate) : `Fetched ${formatDate(n.fetchedAt)}`}
                       {n.sourceUrl && <> · <a href={n.sourceUrl} target="_blank" rel="noreferrer" className="underline">Source ↗</a></>}
+                    </span>
+                    <span className="basis-full text-xs">
+                      <span className={n.costLowUsd != null ? 'font-medium' : 'text-muted-foreground'}>{costLines(n).cost}</span>
+                      {costLines(n).outplacement && <span className="text-muted-foreground"> · {costLines(n).outplacement}</span>}
+                      <details className="mt-1 inline-block align-top">
+                        <summary className="cursor-pointer text-muted-foreground underline">edit</summary>
+                        <form action={setLayoffCosts} className="mt-1 flex flex-wrap items-center gap-1">
+                          <input type="hidden" name="noticeId" value={n.id} />
+                          <input name="costLow" placeholder="Low $M" defaultValue={n.costLowUsd != null ? n.costLowUsd / 1e6 : ''} className="w-20 rounded border border-border px-1 py-0.5" />
+                          <input name="costHigh" placeholder="High $M" defaultValue={n.costHighUsd != null ? n.costHighUsd / 1e6 : ''} className="w-20 rounded border border-border px-1 py-0.5" />
+                          <input name="costNote" placeholder="What for" defaultValue={n.costNote ?? ''} className="w-44 rounded border border-border px-1 py-0.5" />
+                          <input name="outplacementProvider" placeholder="Outplacement firm" defaultValue={n.outplacementProvider ?? ''} className="w-44 rounded border border-border px-1 py-0.5" />
+                          <button type="submit" className="rounded border border-border px-2 py-0.5 hover:bg-muted">Save</button>
+                        </form>
+                      </details>
                     </span>
                   </li>
                 ))}

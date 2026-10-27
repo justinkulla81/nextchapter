@@ -4,6 +4,7 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { pageText } from '@/lib/workforce/college-pages'
 import { fetchItem205, readLayoffFiling, sameEmployer, SEC_USER_AGENT } from './sec-8k'
 import { alertNewLayoff } from './layoff-alert'
+import { readFilingCosts } from './layoff-cost'
 
 /** Filing documents read per run; each is one fetch, and Item 2.05 is a handful a day. */
 const MAX_DOCS = 25
@@ -45,13 +46,14 @@ export async function runSec8kCheck(): Promise<Sec8kResult> {
 
     const res = await fetch(f.url, { headers: { 'User-Agent': SEC_USER_AGENT }, signal: AbortSignal.timeout(20_000) }).catch(() => null)
     if (!res?.ok) continue
-    const { isLayoff, employees, percent } = readLayoffFiling(pageText((await res.text()).slice(0, 400_000)))
+    const text = pageText((await res.text()).slice(0, 400_000))
+    const { isLayoff, employees, percent } = readLayoffFiling(text)
     if (!isLayoff) { result.notLayoff++; continue }
 
     const notice = await prisma.warnNotice.create({
       data: {
         employer: f.company, normalizedEmployer: key, source: 'MANUAL_ANNOUNCEMENT', state: f.state,
-        noticeDate: when, employees, sourceUrl: f.url,
+        noticeDate: when, employees, sourceUrl: f.url, ...readFilingCosts(text),
         layoffType: `SEC 8-K Item 2.05 (restructuring filing)${percent ? ` · ${percent}% of staff` : ''}`,
       },
       select: { id: true },

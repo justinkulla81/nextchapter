@@ -3,6 +3,8 @@
  * morning digest, and what that email and the notice's label say. Pure, so
  * the rules are testable without a database or a mail server.
  */
+import { costLines, type CostFields } from './layoff-cost'
+
 export const ALERT_MIN_EMPLOYEES = 250
 
 export type LayoffKind = 'news' | 'sec' | 'warn'
@@ -53,6 +55,8 @@ export interface AlertInput {
   place?: string | null
   /** Everyone related to the layoff, by role. */
   groups?: ContactGroup[]
+  /** What the layoff costs the employer and who runs the outplacement, when known. */
+  costs?: Partial<CostFields>
   /** The industry and local job picture, as label/value rows. */
   picture?: { rows: [string, string][] }
 }
@@ -128,6 +132,9 @@ export function alertBody(a: AlertInput, links: { source: string | null; org: st
       ? `${a.people} ${a.people === 1 ? 'person' : 'people'}${a.warm ? `, ${a.warm} warm` : ', none warm'}`
       : 'organization only, no contacts'])
   }
+  const { cost, outplacement } = costLines(a.costs ?? {})
+  facts.push(['Cost to employer', esc(cost)])
+  if (outplacement) facts.push(['Outplacement', esc(outplacement.replace(/^Outplacement: /, ''))])
   if (a.contactsFound) facts.push(['Named contacts found', String(a.contactsFound)])
 
   const sizeLine = [
