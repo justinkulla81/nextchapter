@@ -166,6 +166,23 @@ export function CompanyLayoffGuide({ name, slug, guide, states, filing, programs
         </p>
       </div>
 
+      <div className="mt-6">
+        <h3 className={H3}>More guides</h3>
+        <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm">
+          {[
+            ['/topics/what-to-say-when-laid-off', 'What to say when you get laid off'],
+            ...(buyout ? [['/topics/should-i-take-the-buyout', 'Should I take the buyout?']] : []),
+            ['/topics/severance', 'Severance package: what it is and how to negotiate'],
+            ['/topics/fired-vs-laid-off', 'Fired vs laid off: the difference and why it matters'],
+            ['/topics/acquisition-layoffs', 'Layoffs after an acquisition: what to expect and ask'],
+          ].map(([href, label]) => (
+            <li key={href}>
+              <TrackedLink href={href} event="layoff_guide_link_clicked" properties={track('related_guide')} className={LINK}>{label}</TrackedLink>
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <div className="mt-8">
         <GuideLeadForm slug={slug} company={name} state={states[0] ?? null} />
       </div>
