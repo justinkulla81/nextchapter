@@ -64,7 +64,8 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     // Everyone tied to this layoff, by role. A failure here sends the shorter email, not none.
     const notice = await prisma.warnNotice.findUnique({
       where: { id: l.noticeId },
-      select: { state: true, county: true, address: true, workforceBoardId: true, promotedOrgId: true, companyId: true, industry: true, alertSentAt: true, alertHeldAt: true, alertGaveUpAt: true },
+      select: { state: true, county: true, address: true, workforceBoardId: true, promotedOrgId: true, companyId: true, industry: true, alertSentAt: true, alertHeldAt: true, alertGaveUpAt: true,
+        costLowUsd: true, costHighUsd: true, costNote: true, outplacementProvider: true, outplacementNote: true },
     }).catch(() => null)
     if (notice?.alertSentAt || notice?.alertGaveUpAt) return false
     // Find the people to call now, so the email is not empty: one Hunter search for a company with no head of HR on file.
@@ -106,6 +107,7 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
       const where = [city ?? notice?.county, state].filter(Boolean).join(', ')
       input.place = where ? `${where}${placeNote ? ` (${placeNote})` : ''}` : related.placeLabel
     }
+    input.costs = notice ?? undefined
     input.picture = { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) }
 
     // Only email once the alert is populated; otherwise hold it and look again on the next run.

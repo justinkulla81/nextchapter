@@ -71,7 +71,8 @@ export async function loadOrgDemandData(org: OrgRef) {
       orderBy: [{ noticeDate: 'desc' }, { fetchedAt: 'desc' }],
       take: 25,
       select: { id: true, state: true, employer: true, noticeDate: true, effectiveDate: true, employees: true,
-        layoffType: true, sourceUrl: true, source: true, fetchedAt: true },
+        layoffType: true, sourceUrl: true, source: true, fetchedAt: true,
+        costLowUsd: true, costHighUsd: true, costNote: true, outplacementProvider: true, outplacementNote: true },
     }),
     synthetic ? Promise.resolve([]) : prisma.layoffNewsMention.findMany({
       where: { companyKey: org.canonicalNameNormalized },

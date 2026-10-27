@@ -159,3 +159,31 @@ export async function runWarnSyncNow(): Promise<{ message: string }> {
   )
   return { message: parts.join(' · ') }
 }
+
+/**
+ * Records what a layoff costs and which outplacement firm was selected, by
+ * hand, when a filing or news story gave neither. Costs are typed in millions.
+ */
+export async function setLayoffCosts(formData: FormData): Promise<void> {
+  const admin = await requireAdmin()
+  const id = String(formData.get('noticeId') ?? '')
+  if (!id) return
+  const millions = (key: string): number | null => {
+    const n = parseFloat(String(formData.get(key) ?? '').replace(/[$,]/g, ''))
+    return Number.isFinite(n) && n > 0 ? n * 1e6 : null
+  }
+  const text = (key: string): string | null => String(formData.get(key) ?? '').trim().slice(0, 200) || null
+  const low = millions('costLow')
+  const high = millions('costHigh')
+  const provider = text('outplacementProvider')
+  await prisma.warnNotice.update({
+    where: { id },
+    data: {
+      costLowUsd: low ?? high, costHighUsd: high ?? low, costNote: text('costNote'),
+      outplacementProvider: provider, outplacementNote: provider ? null : undefined,
+    },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'layoff_costs_set', { hasCost: !!(low ?? high), hasOutplacement: !!provider })
+  revalidatePath(BASE)
+  revalidatePath('/support/admin/crm/organizations')
+}

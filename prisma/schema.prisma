@@ -12112,6 +12112,15 @@ model WarnNotice {
   alertHeldAt   DateTime?
   alertGaveUpAt DateTime?
 
+  /// What the layoff costs the employer, as the filing states it (SEC 8-K Item 2.05 usually does; WARN and news almost never). Dollars.
+  costLowUsd  Float?
+  costHighUsd Float?
+  /// What the money is for, in the filing's words: "employee termination costs".
+  costNote    String?
+  /// The outplacement vendor when one is named or selected; the note says when outplacement is offered but no vendor is named.
+  outplacementProvider String?
+  outplacementNote     String?
+
   @@unique([state, normalizedEmployer, noticeDate, employees])
   @@index([promotedAt, dismissedAt])
   @@index([effectiveDate])

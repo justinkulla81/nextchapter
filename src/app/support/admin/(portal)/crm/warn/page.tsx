@@ -17,6 +17,7 @@ import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { formatDate } from '@/lib/crm/labels'
 import { correctFutureDates } from '@/lib/warn/filed-date'
+import { costLines } from '@/lib/warn/layoff-cost'
 
 export const maxDuration = 60
 
@@ -294,6 +295,7 @@ export default async function WarnReviewPage({
                       <SortHeader label="Roles" sortKey="employees" current={sort} basePath="/support/admin/crm/warn" params={sortParams} defaultDir="desc" className="px-2 py-1.5 font-medium" />
                       <SortHeader label="State" sortKey="state" current={sort} basePath="/support/admin/crm/warn" params={sortParams} className="px-2 py-1.5 font-medium" />
                       <th className="px-2 py-1.5 font-medium">Where</th>
+                      <th className="px-2 py-1.5 font-medium" title="What the employer says the layoff costs it, and the outplacement firm when one is named">Cost / outplacement</th>
                       <th className="px-2 py-1.5 font-medium" title="The local WIOA workforce development board — it runs rapid response for this layoff">Workforce board</th>
                       <SortHeader label="Industry" sortKey="industry" current={sort} basePath="/support/admin/crm/warn" params={sortParams} className="px-2 py-1.5 font-medium" />
                       <SortHeader label="Filed" sortKey="noticeDate" current={sort} basePath="/support/admin/crm/warn" params={sortParams} defaultDir="desc" className="px-2 py-1.5 font-medium" />
@@ -337,6 +339,17 @@ export default async function WarnReviewPage({
                         <td className="px-2 py-1.5 tabular-nums">{n.employees ?? <span className="text-muted-foreground">—</span>}</td>
                         <td className="px-2 py-1.5 text-xs">{n.state ?? '—'}</td>
                         <td className="px-2 py-1.5 text-xs text-muted-foreground">{n.county ?? '—'}</td>
+                        <td className="px-2 py-1.5 text-xs">
+                          {(() => {
+                            const c = costLines(n)
+                            return (
+                              <div className="flex flex-col gap-0.5">
+                                <span className={n.costLowUsd != null ? 'font-medium' : 'text-muted-foreground'}>{c.cost}</span>
+                                {c.outplacement && <span className="text-muted-foreground">{c.outplacement}</span>}
+                              </div>
+                            )
+                          })()}
+                        </td>
                         <td className="px-2 py-1.5 align-top">
                           <WarnWorkforceBoard
                             board={n.workforceBoardId ? boardById.get(n.workforceBoardId) ?? null : null}
