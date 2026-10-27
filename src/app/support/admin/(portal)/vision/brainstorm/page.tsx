@@ -11,11 +11,14 @@ export const maxDuration = 30
 
 export default async function VisionBrainstormPage() {
   await requireAdmin()
-  const [sparks, singles, singleCount] = await Promise.all([
+  const [sparkRows, singles, singleCount] = await Promise.all([
     prisma.productItem.findMany({ where: { status: 'SPARK', NOT: SINGLE_COMPETITOR_GAP }, orderBy: { createdAt: 'desc' }, take: 200 }),
     prisma.productItem.findMany({ where: { status: 'SPARK', ...SINGLE_COMPETITOR_GAP }, orderBy: { title: 'asc' }, take: 300 }),
     prisma.productItem.count({ where: { status: 'SPARK', ...SINGLE_COMPETITOR_GAP } }),
   ])
+  // Gaps several competitors share come first: the more of them have it, the stronger the signal.
+  const sharedBy = (body: string | null) => (body?.startsWith('Seen at competitors: ') ? (body.split('\n')[0].match(/; /g)?.length ?? 0) + 1 : 0)
+  const sparks = [...sparkRows].sort((x, y) => sharedBy(y.body) - sharedBy(x.body))
   const SparkRow = ({ s }: { s: (typeof sparks)[number] }) => (
     <li className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3">
       <span className="min-w-0">
@@ -24,7 +27,7 @@ export default async function VisionBrainstormPage() {
           <span className={`rounded-full px-2 py-0.5 ${areaClass(s.area)}`}>{AREA_LABELS[s.area]}</span>
           <span>{KIND_LABELS[s.kind]}</span>
           <span>{formatDate(s.createdAt)}</span>
-          {s.body?.startsWith('Seen at competitors: ') && <span>{s.body.split('\n')[0]}</span>}
+          {s.body?.startsWith('Seen at competitors: ') && <span>{sharedBy(s.body) > 1 ? `${sharedBy(s.body)} competitors. ` : ''}{s.body.split('\n')[0]}</span>}
         </span>
       </span>
       {/* Two discrete outcomes -> adjacent buttons, per design-principles.md. */}
