@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { VisionMatrixCell } from '@/components/admin/VisionMatrixCell'
 import { CompetitorForm } from '@/components/admin/CompetitorForm'
-import { quickAddCompetitor, refreshCompetitorFromWebsite, deleteCompetitor, saveWatchSettings, decideCellProposal, emailCompetitorDownload } from '../actions'
+import { quickAddCompetitor, addAllGapsToProductList, refreshCompetitorFromWebsite, deleteCompetitor, saveWatchSettings, decideCellProposal, emailCompetitorDownload } from '../actions'
 import { getWatchSettings, spentThisMonth } from '@/lib/vision/competitor-watch'
 import { EVENT_LABEL, type EventKind } from '@/lib/vision/competitor-watch-core'
 import { formatDate } from '@/lib/vision/labels'
@@ -88,7 +88,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
   const CARD_CAP = 25
   const cards = showAll || shown.length <= CARD_CAP
     ? shown
-    : [...shown.slice(0, CARD_CAP), ...shown.slice(CARD_CAP).filter((c) => c.id === sp.added)]
+    : [...shown.slice(0, CARD_CAP), ...shown.slice(CARD_CAP).filter((c) => c.id === sp.added || c.id === sp.focus)]
 
   const areaCount = new Map<string, number>()
   for (const c of allCompetitors) if (c.relationship === 'DIRECT' || c.relationship === 'ADJACENT') for (const a of c.areas) areaCount.set(a, (areaCount.get(a) ?? 0) + 1)
@@ -137,6 +137,11 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
       </header>
 
       {sp.error && <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm">{sp.error}</p>}
+      {sp.gaps !== undefined && (
+        <p className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-3 text-sm">
+          {Number(sp.gaps) > 0 ? `${sp.gaps} new ideas added to the product list.` : 'Nothing new: every gap is already on the product list.'} <Link href="/support/admin/vision/items" className="underline">Open the product list</Link>
+        </p>
+      )}
       {sp.added && (
         <p className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-3 text-sm">
           {sp.existing ? 'Already tracked. ' : sp.refreshed ? 'Refreshed from the website. ' : 'Added from the website. '}
@@ -194,6 +199,10 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
         <form action={quickAddCompetitor} className="mt-3 flex flex-wrap gap-2">
           <input name="url" required placeholder="futurefit.ai" aria-label="Competitor website" className="h-11 min-w-[16rem] flex-1 rounded-md border border-input bg-background px-3 text-base" />
           <SubmitButton pendingLabel="Reading the site… (up to a minute)" className="h-11 px-5 text-base">Add from website</SubmitButton>
+        </form>
+        <form action={addAllGapsToProductList} className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+          <SubmitButton size="sm" variant="outline" pendingLabel="Adding…">Add every gap to the product list</SubmitButton>
+          <span className="text-xs text-muted-foreground">Puts what we would need, from every active competitor card, on the product list. Repeats only add the competitor&apos;s name.</span>
         </form>
         <details className="mt-3">
           <summary className="cursor-pointer text-sm underline">Add by hand instead</summary>
@@ -285,7 +294,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
               c.pricingNote && { k: 'Pricing', v: c.pricingNote },
             ].filter(Boolean) as { k: string; v: string }[]
             return (
-              <details key={c.id} id={`c-${c.id}`} open={sp.added === c.id} className={`group rounded-xl border p-3 ${sp.added === c.id ? 'border-emerald-500 ring-1 ring-emerald-500/40' : 'border-border'}`}>
+              <details key={c.id} id={`c-${c.id}`} open={sp.added === c.id || sp.focus === c.id} className={`group rounded-xl border p-3 ${sp.added === c.id || sp.focus === c.id ? 'border-emerald-500 ring-1 ring-emerald-500/40' : 'border-border'}`}>
                 <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
                     <h3 className="text-lg font-semibold">{c.url ? <a href={c.url} target="_blank" rel="noreferrer" className="hover:underline">{c.name} ↗</a> : c.name}</h3>

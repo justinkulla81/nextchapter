@@ -11,12 +11,11 @@ import { addSeenAt, downloadEmail, gapIdeas, winsFromAwards, winsFromCard, type 
 const SITE = 'https://launchyournextchapter.com'
 const TO = 'justin@launchyournextchapter.com'
 
-/** The first few features we lack that a DIRECT competitor has become product-list ideas (status SPARK). The card lists its most important gaps first; taking all of them from every card would put hundreds of near-duplicates on the list. Repeats add the competitor's name instead of a second idea. */
+/** The features we lack that an active competitor has become product-list ideas (status SPARK). The card lists its most important gaps first, so only the first few per card are taken: all of them from every card would put hundreds of near-duplicates on the list. Repeats add the competitor's name instead of a second idea. */
 const GAPS_PER_CARD = 3
-export async function syncProductGaps(c: ProductCompetitor): Promise<number> {
-  if (c.relationship !== 'DIRECT') return 0
+export async function syncProductGaps(c: ProductCompetitor, perCard = GAPS_PER_CARD): Promise<number> {
   if (c.status !== 'ACTIVE' || c.weNeed.length === 0) return 0
-  const needs = c.weNeed.slice(0, GAPS_PER_CARD)
+  const needs = c.weNeed.slice(0, perCard)
   const existing = await prisma.productItem.findMany({ where: { kind: 'FEATURE' }, select: { id: true, title: true, body: true } })
   const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '')
   const byKey = new Map(existing.map((e) => [key(e.title), e]))
@@ -34,6 +33,14 @@ export async function syncProductGaps(c: ProductCompetitor): Promise<number> {
     created++
   }
   return created
+}
+
+/** Every active competitor's gaps onto the product list in one pass (the Competitors page button). Idempotent; returns how many new ideas were made. */
+export async function syncAllGaps(perCard = 8): Promise<number> {
+  const cards = await prisma.productCompetitor.findMany({ where: { status: 'ACTIVE' } })
+  let n = 0
+  for (const c of cards) n += await syncProductGaps(c, perCard)
+  return n
 }
 
 export async function orgFor(buyer: string, government: boolean): Promise<string | null> {
