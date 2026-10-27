@@ -9,6 +9,21 @@ function triggerFrom(request: NextRequest): string {
   return TRIGGERS.has(t) ? t : 'schedule'
 }
 
+/**
+ * A busy moment at the database (the connection pool full, the pooler briefly unreachable) fails a job in its first
+ * seconds, and the same job a few seconds later is fine. Those are retried once here instead of being recorded as a
+ * failure and emailed. A statement timeout (57014) is not retried: running the same slow query again only repeats it.
+ */
+const TRANSIENT_CODES = new Set(['P2024', 'P1001', 'P1002', 'P1008', 'P1017'])
+const RETRY_WITHIN_MS = 30_000
+const RETRY_PAUSE_MS = 5_000
+export function isTransientDbError(e: unknown): boolean {
+  const code = (e as { code?: string } | null)?.code
+  if (code && TRANSIENT_CODES.has(code)) return true
+  const message = e instanceof Error ? e.message : String(e)
+  return /Timed out fetching a new connection|Can't reach database server|max clients reached|Server has closed the connection/i.test(message)
+}
+
 type Handler = (request: NextRequest) => Promise<Response> | Response
 
 /**
@@ -47,7 +62,15 @@ export function withCronRun(job: string, handler: Handler) {
         : Promise.resolve()
 
     try {
-      const response = await handler(request)
+      let response: Response
+      try {
+        response = await handler(request)
+      } catch (e) {
+        if (!isTransientDbError(e) || Date.now() - started > RETRY_WITHIN_MS) throw e
+        console.warn('Cron job hit a transient database error, retrying once:', job, e)
+        await new Promise((r) => setTimeout(r, RETRY_PAUSE_MS))
+        response = await handler(request)
+      }
       if (response.ok) await finish('OK')
       else await finish('FAILED', `Responded ${response.status}`)
       return response

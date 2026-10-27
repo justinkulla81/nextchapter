@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { extractTopSkills } from '@/lib/companies/skills-extraction'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
@@ -45,14 +46,28 @@ interface PostingRow {
 // computable with no snapshot table, per the real ExclusiveJobPosting
 // semantics documented on that model. Grouped by normalizeOrgName(companyName)
 // since there's no DB-level normalized column to filter on (see header note).
+// The database's default statement timeout (about 2 minutes) cancelled these full-board reads on a slow moment
+// ("canceling statement due to statement timeout", code 57014), failing the whole nightly job. The cron has up to 800
+// seconds, so each read gets a longer limit of its own, set for that one transaction only.
+const READ_TIMEOUT_MS = 280_000
+function withLongTimeout<T>(run: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+  return prisma.$transaction(
+    async (tx) => {
+      await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = '${READ_TIMEOUT_MS / 1000 - 10}s'`)
+      return run(tx)
+    },
+    { timeout: READ_TIMEOUT_MS, maxWait: 60_000 },
+  )
+}
+
 async function openPostingsAsOfGrouped(asOf: Date): Promise<Map<string, PostingRow[]>> {
   // Descriptions are stored whole now; only the first 1,000 characters (what this was
   // tuned on) are read, clipped in SQL, so the three full-board reads stay small.
-  const rows = await prisma.$queryRaw<PostingRow[]>`
+  const rows = await withLongTimeout((tx) => tx.$queryRaw<PostingRow[]>`
     SELECT "companyName", "title", "level", left("description", 1000) AS "description", "createdAt"
     FROM public."ExclusiveJobPosting"
     WHERE "institutionScopeId" IS NULL AND "createdAt" <= ${asOf}
-      AND ("archivedAt" IS NULL OR "archivedAt" > ${asOf})`
+      AND ("archivedAt" IS NULL OR "archivedAt" > ${asOf})`)
 
   const grouped = new Map<string, PostingRow[]>()
   for (const row of rows) {
@@ -69,12 +84,12 @@ async function openPostingsAsOfGrouped(asOf: Date): Promise<Map<string, PostingR
 // themselves, so count in SQL (one row per employer name) instead of pulling every open posting
 // of that date into memory. Same grouping key and same exclusions as openPostingsAsOfGrouped.
 async function openCountsAsOf(asOf: Date): Promise<Map<string, number>> {
-  const rows = await prisma.$queryRaw<{ companyName: string; n: number }[]>`
+  const rows = await withLongTimeout((tx) => tx.$queryRaw<{ companyName: string; n: number }[]>`
     SELECT "companyName", count(*)::int AS n
     FROM public."ExclusiveJobPosting"
     WHERE "institutionScopeId" IS NULL AND "createdAt" <= ${asOf}
       AND ("archivedAt" IS NULL OR "archivedAt" > ${asOf})
-    GROUP BY "companyName"`
+    GROUP BY "companyName"`)
 
   const counts = new Map<string, number>()
   for (const row of rows) {

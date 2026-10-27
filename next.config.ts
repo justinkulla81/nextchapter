@@ -55,6 +55,8 @@ const nextConfig: NextConfig = {
       })),
       // /feeds has no page of its own (the feeds are files under it); someone typing it wants the jobs.
       { source: '/feeds', destination: '/jobs', permanent: false },
+      // Nothing lives at /search; people and search engines' site-search boxes expect it to run a job search (/jobs?q=).
+      { source: '/search', destination: '/jobs', permanent: false },
       // Parent addresses that have only dynamic children and no page of their own (someone trims a URL, or a crawler
       // walks a breadcrumb up). Each goes to the nearest real page. src/test/route-orphans.test.ts fails when a new
       // parent like this appears without a redirect here or an entry in its allowlist.

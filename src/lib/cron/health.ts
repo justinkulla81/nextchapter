@@ -48,3 +48,21 @@ export function assessJob(
 }
 
 export const UNHEALTHY: ReadonlySet<JobHealth> = new Set(['failed', 'timed_out', 'overdue'])
+
+/** Jobs that run at least hourly: one bad run is followed by another within the hour. */
+export const FREQUENT_JOB_MAX_GAP_MINUTES = 180
+
+/**
+ * A frequent job's single failed or cut-off run is not worth an email when the run before it was fine — the next run
+ * is minutes away and replaces it. Two bad runs in a row (or a first-ever run that fails) still count as broken.
+ */
+export function forgiveOneOff(
+  s: Pick<CronSchedule, 'maxGapMinutes'>,
+  assessed: { health: JobHealth; detail: string },
+  previousStatus: string | null | undefined,
+): { health: JobHealth; detail: string } {
+  if (s.maxGapMinutes > FREQUENT_JOB_MAX_GAP_MINUTES) return assessed
+  if (assessed.health !== 'failed' && assessed.health !== 'timed_out') return assessed
+  if (previousStatus !== 'OK') return assessed
+  return { health: 'healthy', detail: `One run did not finish (${assessed.health.replace('_', ' ')}); the run before it was fine and the next will retry.` }
+}

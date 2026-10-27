@@ -4,7 +4,7 @@ import { syncGmailConnection } from '@/lib/email-tracking/sync-gmail'
 import { withCronRun } from '@/lib/cron/run'
 import { isGmailPushConfigured, needsPushWatch, startGmailWatch } from '@/lib/email-tracking/gmail-push'
 
-export const maxDuration = 60
+export const maxDuration = 120
 
 /**
  * Rapid-response pass for the fake-recruiter check.
@@ -19,11 +19,24 @@ export const maxDuration = 60
  * /api/google/gmail-push webhook, and this job keeps the watches alive. Mailboxes that are far behind are left to the hourly
  * job so a backlog never eats this one's short time budget.
  */
+const TIMED_OUT = Symbol('timed out')
+async function withTimeout<T>(work: Promise<T>, ms: number): Promise<T | typeof TIMED_OUT> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<typeof TIMED_OUT>((resolve) => { timer = setTimeout(() => resolve(TIMED_OUT), ms) })
+  // The abandoned promise may still reject later; that must not become an unhandled rejection.
+  work.catch(() => {})
+  try { return await Promise.race([work, timeout]) } finally { clearTimeout(timer) }
+}
+
 export const GET = withCronRun('scam-watch', async () => {
   const started = Date.now()
-  // 20 seconds under the 60-second limit: Gmail retries wait only while they fit before this (gmail-api.ts backoff), and the
+  // 30 seconds under the 120-second limit: Gmail retries wait only while they fit before this (gmail-api.ts backoff), and the
   // last step of a pass (saving the bookmark, the run record) needs the rest.
-  const deadline = started + 40_000
+  const deadline = started + 70_000
+  // A single slow mailbox (a hung Gmail or scam-check call) used to run the whole function into its limit, which left the run
+  // "cut off" and emailed an alert every few times a day. Each step now gives up at HARD_STOP and the run finishes normally; the
+  // sync bookmark only moves once a day is fully processed, so an abandoned mailbox is simply picked up on the next pass.
+  const HARD_STOP = started + 100_000
   const recentlySynced = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
   const connections = await prisma.emailConnection.findMany({
     where: { disconnectedAt: null, needsReconnectAt: null, lastSyncAt: { gte: recentlySynced } },
@@ -39,18 +52,26 @@ export const GET = withCronRun('scam-watch', async () => {
     const toWatch = await prisma.emailConnection.findMany({ where: { disconnectedAt: null, needsReconnectAt: null } })
     for (const c of toWatch) {
       if (Date.now() > deadline - 20_000) break
-      if (needsPushWatch(c) && (await startGmailWatch(c))) watched++
+      if (needsPushWatch(c) && (await withTimeout(startGmailWatch(c), 10_000)) === true) watched++
     }
   }
 
   let ran = 0
+  let abandoned = 0
   for (const c of connections) {
     if (Date.now() > deadline) break
     try {
-      if (await syncGmailConnection(c.id, { maxMessages: 100, deadline })) ran++
+      const left = HARD_STOP - Date.now()
+      if (left <= 0) break
+      const result = await withTimeout(syncGmailConnection(c.id, { maxMessages: 100, deadline }), left)
+      if (result === TIMED_OUT) {
+        abandoned++
+        break
+      }
+      if (result) ran++
     } catch (error) {
       console.error('Scam-watch sync failed for connection', c.id, error)
     }
   }
-  return NextResponse.json({ connections: connections.length, ran, watched, ms: Date.now() - started })
+  return NextResponse.json({ connections: connections.length, ran, watched, abandoned, ms: Date.now() - started })
 })

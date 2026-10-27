@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { assessJob } from '@/lib/cron/health'
+import { assessJob, forgiveOneOff } from '@/lib/cron/health'
 import { intervalMinutes, maxGapMinutes, cronSchedules, RERUN_SAFE_JOBS } from '@/lib/cron/schedule'
 
 const now = new Date('2026-10-13T12:00:00Z')
@@ -65,5 +65,28 @@ describe('alertSubject', () => {
     const { alertSubject } = await import('@/lib/cron/watchdog')
     expect(alertSubject(1)).toBe('1 background job needs attention')
     expect(alertSubject(2)).toBe('2 background jobs need attention')
+  })
+})
+
+describe('forgiveOneOff / isTransientDbError', () => {
+  const frequent = { maxGapMinutes: 80 }
+  const daily = { maxGapMinutes: 2940 }
+  it('forgives a single bad run of a frequent job after a good one', () => {
+    const r = forgiveOneOff(frequent, { health: 'timed_out', detail: 'x' }, 'OK')
+    expect(r.health).toBe('healthy')
+  })
+  it('still flags two bad runs in a row, a first run, and daily jobs', () => {
+    expect(forgiveOneOff(frequent, { health: 'timed_out', detail: 'x' }, 'TIMED_OUT').health).toBe('timed_out')
+    expect(forgiveOneOff(frequent, { health: 'failed', detail: 'x' }, undefined).health).toBe('failed')
+    expect(forgiveOneOff(daily, { health: 'failed', detail: 'x' }, 'OK').health).toBe('failed')
+  })
+  it('does not forgive overdue jobs', () => {
+    expect(forgiveOneOff(frequent, { health: 'overdue', detail: 'x' }, 'OK').health).toBe('overdue')
+  })
+  it('treats pool timeouts as transient but statement timeouts as not', async () => {
+    const { isTransientDbError } = await import('@/lib/cron/run')
+    expect(isTransientDbError(Object.assign(new Error('x'), { code: 'P2024' }))).toBe(true)
+    expect(isTransientDbError(new Error('Timed out fetching a new connection from the connection pool'))).toBe(true)
+    expect(isTransientDbError(new Error('canceling statement due to statement timeout'))).toBe(false)
   })
 })

@@ -4,7 +4,7 @@ import { createResend } from '@/lib/email/resend-client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { cronSchedules, RERUN_SAFE_JOBS } from './schedule'
 import { invokeCron } from './invoke'
-import { assessJob, STUCK_AFTER_MS, UNHEALTHY, type JobHealth } from './health'
+import { assessJob, forgiveOneOff, STUCK_AFTER_MS, UNHEALTHY, type JobHealth } from './health'
 
 const ALERT_TO = 'justin@launchyournextchapter.com'
 const SITE = 'https://launchyournextchapter.com'
@@ -44,16 +44,17 @@ export async function loadJobStatuses(now = new Date(), opts: { recordFirstSeen?
   const [latestRuns] = await Promise.all([
     Promise.all(
       schedules.map((s) =>
-        prisma.cronRun.findFirst({
+        prisma.cronRun.findMany({
           where: { job: s.job },
           orderBy: { startedAt: 'desc' },
+          take: 2,
           select: { status: true, startedAt: true, error: true, durationMs: true, trigger: true },
         }),
       ),
     ),
   ])
   // Jobs with no run yet are timed from when the watchdog first saw them.
-  const neverRan = schedules.filter((_, i) => !latestRuns[i]).map((s) => s.job)
+  const neverRan = schedules.filter((_, i) => !latestRuns[i][0]).map((s) => s.job)
   const seen = neverRan.length
     ? await prisma.cronJobAlert.findMany({ where: { job: { in: neverRan }, reason: FIRST_SEEN } })
     : []
@@ -69,8 +70,8 @@ export async function loadJobStatuses(now = new Date(), opts: { recordFirstSeen?
     }
   }
   return schedules.map((s, i) => {
-    const latest = latestRuns[i]
-    const { health, detail } = assessJob(s, latest, latest ? null : firstSeen.get(s.job) ?? now, now)
+    const latest = latestRuns[i][0] ?? null
+    const { health, detail } = forgiveOneOff(s, assessJob(s, latest, latest ? null : firstSeen.get(s.job) ?? now, now), latestRuns[i][1]?.status)
     return { job: s.job, schedule: s.schedule, health, detail, lastStartedAt: latest?.startedAt ?? null, lastDurationMs: latest?.durationMs ?? null, lastTrigger: latest?.trigger ?? null }
   })
 }
