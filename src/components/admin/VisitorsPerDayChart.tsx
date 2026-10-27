@@ -101,7 +101,7 @@ export function VisitorsPerDayChart({
             <g key={s.label}>
               <path d={linePath} fill="none" stroke={s.color} strokeWidth={2} />
               {s.days.map((d, i) => (
-                <circle key={d.dateKey} cx={xFor(i)} cy={yFor(d.count)} r={3} fill={s.color}>
+                <circle key={d.dateKey} cx={xFor(i)} cy={yFor(d.count)} r={days.length > 90 ? 1.5 : 3} fill={s.color}>
                   <title>{`${labelFor(d.dateKey)} — ${s.label}: ${d.count}`}</title>
                 </circle>
               ))}
