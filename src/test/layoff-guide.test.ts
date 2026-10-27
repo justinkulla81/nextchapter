@@ -94,7 +94,7 @@ describe('filingFacts', () => {
     expect(f.stateName).toBe('Washington')
     expect(f.page).toBe('/unemployment-benefits/washington')
     expect(f.fileUrl).toMatch(/^https:\/\//)
-    expect(f.maxWeeklyBenefit ?? f.maxWeekly).not.toBeUndefined()
+    expect(f.maxWeekly).toBeGreaterThan(0)
   })
   it('skips a state with no data', () => {
     expect(filingFacts(['ZZ'])).toEqual([])
