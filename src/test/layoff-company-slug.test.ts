@@ -4,6 +4,7 @@ import { resolveCompanySlug } from '@/lib/warn/layoff-pages'
 const known = ['oracle', 'acme-holdings', 'intel', 'delta-air-lines', 'delta-air-cargo']
 
 describe('resolveCompanySlug', () => {
+  it('drops a trailing place', () => expect(resolveCompanySlug('acme-holdings-lansing', known)).toBe('acme-holdings'))
   it('keeps an exact slug', () => expect(resolveCompanySlug('intel', known)).toBe('intel'))
   it('drops legal suffixes and follows merged subsidiaries', () => {
     expect(resolveCompanySlug('intel-corporation', known)).toBe('intel')

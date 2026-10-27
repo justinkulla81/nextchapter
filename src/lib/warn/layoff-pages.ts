@@ -194,7 +194,15 @@ export function resolveCompanySlug(slug: string, known: Iterable<string>): strin
   const base = mergedSlug(stripSlugSuffixes(slug))
   if (keys.has(base)) return base
   const longer = [...keys].filter((k) => k.startsWith(`${base}-`))
-  return longer.length === 1 ? longer[0] : null
+  if (longer.length === 1) return longer[0]
+  // A place appended to the name ("woodbridge-group-lansing" for "woodbridge-group"): drop trailing words,
+  // keeping at least two, and accept only an exact employer slug so a guess never lands on the wrong one.
+  const parts = base.split('-')
+  for (let n = parts.length - 1; n >= 2; n--) {
+    const shorter = mergedSlug(parts.slice(0, n).join('-'))
+    if (keys.has(shorter)) return shorter
+  }
+  return null
 }
 
 /** Press reports that name the employer, newest first. */
