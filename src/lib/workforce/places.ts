@@ -39,7 +39,8 @@ export function placeKey(raw: string): string {
  */
 export function placeKeys(raw: string): string[] {
   const plain = raw.toLowerCase().replace(/\bsaint\b/g, 'st').replace(/\bst\.\s*/g, 'st ').replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim()
-  return [...new Set([placeKey(raw), plain])].filter(Boolean)
+  // A filing that spaces a one-word name ("CLEAR WATER" for Clearwater) still finds it.
+  return [...new Set([placeKey(raw), plain, plain.replace(/ /g, '')])].filter(Boolean)
 }
 
 /**

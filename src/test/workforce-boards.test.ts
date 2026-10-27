@@ -24,6 +24,12 @@ describe('placeKey / countyKey', () => {
   })
 })
 
+describe('placeKeys', () => {
+  it('finds a one-word city a filing spaces out', () => {
+    expect(placeKeys('CLEAR WATER')).toContain('clearwater')
+  })
+})
+
 describe('cityFromAddress', () => {
   it('reads Virginia\'s "City VA" with no comma, and not another state\'s', () => {
     expect(cityFromAddress('Richmond VA', 'VA')).toBe('Richmond')
@@ -55,7 +61,7 @@ describe('cityFromAddress', () => {
 
 describe('place helpers', () => {
   it('tries a city with and without its suffix', () => {
-    expect(placeKeys('PLANT CITY')).toEqual(['plant', 'plant city'])
+    expect(placeKeys('PLANT CITY')).toEqual(['plant', 'plant city', 'plantcity'])
   })
   it('reads the towns and cities a service area names', () => {
     expect(areaPlaces('Towns: Abington, Barnstable Town, Brockton')).toEqual(['abington', 'barnstable', 'brockton'])
