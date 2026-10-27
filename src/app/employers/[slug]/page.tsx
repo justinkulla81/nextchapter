@@ -1,4 +1,7 @@
 import { LocalEventSection } from '@/components/events/LocalEventSection'
+import { getEmployerBrand } from '@/lib/branding/store'
+import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
+import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { LinkToUs } from '@/components/seo/LinkToUs'
 import { employerSeo, fitDescription } from '@/lib/seo/templates'
 import { ClaimHint } from '@/components/seo/ClaimHint'
@@ -93,6 +96,8 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   const seenAll = seenAt.length ? await prisma.conferenceEvent.findMany({ where: { id: { in: seenAt.map((x) => x.id) }, published: true }, select: { id: true, name: true, startDate: true, endDate: true, datesConfirmed: true, importance: true } }).catch(() => []) : []
   const seenConfs = sortConferences(seenAll)
   const topFunction = p?.topFunctions[0] ? functionByName(p.topFunctions[0].function) : null
+  // The employer's own colors, read from its website (src/lib/branding), when we have them.
+  const brand = await getEmployerBrand(e.name)
 
   const faq: { q: string; a: string }[] = []
   if (p && p.openNow > 0) {
@@ -139,12 +144,21 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   ]
 
   return (
+    <OrgBrandScope brand={brand?.pair}>
     <SeoPage
       trail={[{ name: 'Employers', path: '/employers' }, { name: e.name, path }]}
       h1={employerSeo(e.name, null).h1}
       jsonLd={ld}
       lede={<>{hq && <span className="block text-sm">{hq}</span>}{(industryBucket || topFunction) && <span className="block text-sm">Explore: {industryBucket && <a href={industryPath(industryBucket)} className="underline underline-offset-2">{industryBucket}</a>}{industryBucket && topFunction && ' · '}{topFunction && <a href={functionPath(topFunction.name)} className="underline underline-offset-2">{topFunction.name} jobs</a>}</span>}{description(e)}<ClaimHint who={`Work at ${e.name}?`} href={e.claimSlug ? `/prepared/${e.claimSlug}` : '/for-organizations'} event="seo_claim_clicked" properties={{ page: 'employer', audience: 'employer', companyId: e.id, slug: e.slug, openRoles: p?.openNow ?? 0 }} /></>}
     >
+      <OrgCandidateBand
+        orgName={e.name}
+        branded={!!brand}
+        peopleCount={null}
+        heading={`Interested in ${e.name}? See where you stand.`}
+        independent={`Independent page. Not from or affiliated with ${e.name}.`}
+        properties={{ kind: 'EMPLOYER', slug: e.slug }}
+      />
       {p && p.openNow > 0 && (
         <section aria-labelledby="hiring" className="mt-10">
           <h2 id="hiring" className={H2}>Hiring now</h2>
@@ -276,5 +290,6 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
       <LocalEventSection id="local-events" title={`Job fairs and events with ${e.name}`} intro="Local hiring events and business events this employer sponsors or recruits at." scope={{ link: { kind: 'COMPANY', id: e.id } }} />
       <LinkToUs path={path} name={e.name} kind="employer" />
     </SeoPage>
+    </OrgBrandScope>
   )
 }

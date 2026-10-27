@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { parseKitLabel } from '@/lib/cohorts/launch-kit'
-import { parseBoardKitLabel } from '@/lib/org-claims/board-kit'
+import { parseKitLabelAny } from '@/lib/org-claims/org-kit'
 import { REFERRAL_COOKIE, REFERRAL_COOKIE_MAX_AGE_SECONDS } from '@/lib/candidates/referral'
 import { safeNext } from '@/lib/auth/safe-next'
 
@@ -26,8 +26,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     })
     const kit = parseKitLabel(link.label)
     if (kit) captureServerEvent(`kit:${kit.cohortId}`, 'cohort_kit_link_clicked', { cohortId: kit.cohortId, source: kit.source })
-    const boardKit = parseBoardKitLabel(link.label)
-    if (boardKit) captureServerEvent(`org-kit:${boardKit.boardId}`, 'org_kit_link_clicked', { kind: 'WORKFORCE_BOARD', boardId: boardKit.boardId, source: boardKit.source })
+    const orgKit = parseKitLabelAny(link.label)
+    if (orgKit) captureServerEvent(`org-kit:${orgKit.kind}:${orgKit.id}`, 'org_kit_link_clicked', { kind: orgKit.kind, orgId: orgKit.id, source: orgKit.source })
     await prisma.referralLink.update({ where: { id: link.id }, data: { clickCount: { increment: 1 } } }).catch(() => {})
   }
   return response

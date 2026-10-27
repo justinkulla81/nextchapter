@@ -50,6 +50,7 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
 
   return (
     <SeoPage
+      stateSlug={state}
       trail={[{ name: 'Higher education', path: '/higher-education' }, { name: d.name, path: `/higher-education/${state}` }]}
       h1={higherEdStateSeo(d.name).h1}
       lede={<>{d.colleges.length} colleges in {d.name}, and the job market their graduates enter. A career services or alumni staff member can claim their college’s page and set up a free workspace.</>}

@@ -1,4 +1,7 @@
 import { fitDescription, layoffsStateSeo } from '@/lib/seo/templates'
+import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
+import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
+import { stateBrand, statePhrase } from '@/lib/branding/state-colors'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -65,7 +68,10 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
   const latest = d.all[0].noticeDate
   const sources = [...new Set(d.all.map((n) => n.sourceUrl).filter((u): u is string => !!u).map((u) => new URL(u).origin + new URL(u).pathname))]
 
+  const st = stateBrand(d.code)
+
   return (
+    <OrgBrandScope brand={st}>
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: d.name, path: `/layoffs/${state}` }])} />
       <PublicSiteHeader current="news" />
@@ -81,6 +87,16 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
             Employers filed {d.recent.length.toLocaleString()} layoff notices in {d.name} in the last 12 months
             {workers > 0 ? <>, naming {workers.toLocaleString()} workers</> : ''}. The most recent was filed {noticeDay(latest)}.
           </p>
+          {st && (
+            <OrgCandidateBand
+              orgName={d.name}
+              branded
+              peopleCount={null}
+              heading={`Affected by a layoff in ${d.name}? See where you stand.`}
+              independent={`Independent page. Not from or affiliated with ${statePhrase(d.code)}.`}
+              properties={{ kind: 'LAYOFF_STATE', state: d.code }}
+            />
+          )}
 
           <section aria-labelledby="economy" className="mt-10">
             <h2 id="economy" className={H2}>{d.name} jobs picture</h2>
@@ -175,5 +191,6 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
       </main>
       <PublicSiteFooter page="layoffs" />
     </div>
+    </OrgBrandScope>
   )
 }

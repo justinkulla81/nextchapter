@@ -2,33 +2,32 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getOrgBrand } from '@/lib/branding/store'
 import { orgThemeVars } from '@/lib/branding/theme'
-import { boardKitContext } from '@/lib/org-claims/board-kit-data'
-import { boardKitCopy, boardKitQrLink } from '@/lib/org-claims/board-kit'
+import { kitCodes, orgKitContext } from '@/lib/org-claims/org-kit-data'
+import { kitCopy, kitQrLink } from '@/lib/org-claims/org-kit'
 import { SITE_URL } from '@/lib/org-claims/urls'
 import { qrSvg } from '@/lib/qr/qr-svg'
-import { prisma } from '@/lib/prisma'
 import { PrintButton } from '@/components/org-kit/PrintButton'
 
-// The board's flyer: one Letter page in its colors, with a QR code that goes to its page and counts as "Flyer and QR code". Print it, or
+// The organization's flyer: one Letter page in its colors, with a QR code that goes to its page and counts as "Flyer and QR code". Print it, or
 // choose "Save as PDF" in the print window.
 export const metadata: Metadata = { robots: { index: false, follow: false }, title: { absolute: 'Flyer | NextChapter' } }
 export const dynamic = 'force-dynamic'
 
 export default async function BoardFlyerPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const ctx = await boardKitContext(slug)
+  const ctx = await orgKitContext(slug)
   if (!ctx) notFound()
-  const printLink = await prisma.referralLink.findFirst({ where: { label: `ob:${ctx.boardId}:print` }, select: { code: true } })
-  if (!printLink) notFound()
-  const brand = await getOrgBrand('WORKFORCE_BOARD', ctx.boardId)
-  const copy = boardKitCopy({ boardName: ctx.name, area: ctx.area, links: { email: '', web: '', social: '', print: '' } })
-  const qr = qrSvg(boardKitQrLink(SITE_URL, printLink.code, ctx.pagePath), { size: 190 })
+  const printCode = (await kitCodes(ctx.kind, ctx.id)).print
+  if (!printCode) notFound()
+  const brand = await getOrgBrand(ctx.brandKind, ctx.brandId)
+  const copy = kitCopy({ kind: ctx.kind, name: ctx.name, area: ctx.area, links: { email: '', web: '', social: '', print: '' } })
+  const qr = qrSvg(kitQrLink(SITE_URL, printCode, ctx.pagePath), { size: 190 })
   const vars = orgThemeVars(brand?.pair)
 
   return (
     <div style={vars} className="min-h-screen bg-neutral-200 py-6 print:bg-white print:py-0">
       <style>{`@page{size:Letter;margin:0}`}</style>
-      <div className="mx-auto mb-4 flex max-w-[8.5in] justify-end px-4 print:hidden"><PrintButton boardId={ctx.boardId} /></div>
+      <div className="mx-auto mb-4 flex max-w-[8.5in] justify-end px-4 print:hidden"><PrintButton kind={ctx.kind} orgId={ctx.id} /></div>
       <div className="mx-auto flex h-[11in] w-[8.5in] max-w-full flex-col bg-white shadow print:shadow-none">
         <div
           className={`px-12 py-10 ${brand ? '' : 'bg-navy text-white'}`}

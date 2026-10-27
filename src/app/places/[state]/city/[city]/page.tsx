@@ -58,6 +58,7 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
 
   return (
     <SeoPage
+      stateSlug={state}
       trail={trail}
       h1={placeCitySeo(p.name, code).h1}
       lede={<>

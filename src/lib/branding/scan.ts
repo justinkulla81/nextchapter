@@ -219,8 +219,8 @@ export function pickPair(candidates: ColorCandidate[]): BrandPair | null {
   }
   const second = others.find(accent) ?? others[0]
   const p = toHsl(hexToRgb(primary)!)
-  // No second brand color on the site: a lighter (or darker) shade of the primary stands in, so every page still has two colors.
-  const secondary = second ? second.hex : rgbToHex(hslToRgb(p.h, Math.min(1, p.s), p.l < 0.5 ? Math.min(0.85, p.l + 0.35) : Math.max(0.2, p.l - 0.3)))
+  // No second brand color on the site: a soft tint of the primary (or a deeper shade of a light one) stands in, so every page still has two colors.
+  const secondary = second ? second.hex : p.l < 0.55 ? tint(primary, 0.55) : rgbToHex(hslToRgb(p.h, Math.min(1, p.s), Math.max(0.2, p.l - 0.3)))
   return buildPair(primary, secondary, !second)
 }
 
@@ -228,8 +228,10 @@ export function pickPair(candidates: ColorCandidate[]): BrandPair | null {
  * Scan a site. `html` is the home page; `stylesheets` are its CSS files, each with a short label for the "where" note.
  * An empty candidate list means the site did not tell us its colors (script-drawn pages, image-only headers).
  */
-export function scanBrand(html: string, stylesheets: { label: string; css: string }[] = []): ScanResult {
+export function scanBrand(html: string, stylesheets: { label: string; css: string }[] = [], hints: { hex: string; weight: number; where: string }[] = []): ScanResult {
   const raws: Raw[] = []
+  // Colors taken from the site's own icon: the most direct statement of the brand, weighted above any stylesheet.
+  for (const h of hints) raws.push({ hex: h.hex, weight: h.weight, where: h.where })
   for (const hex of metaColors(html)) raws.push({ hex, weight: 40, where: 'the site’s theme color' })
   // Inline style attributes and <style> blocks in the page itself.
   const styleBlocks = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1])
@@ -254,4 +256,24 @@ export function scanComputedColors(entries: { color: string; weight: number }[],
   }
   const candidates = merge(raws)
   return { candidates, pair: pickPair(candidates) }
+}
+
+// ---- how sure we are ------------------------------------------------------------------------------------------------------------------
+
+/** A color is a strong read when the site said it (theme color, a brand-named property) or showed it (its own icon), not merely used it a lot. */
+export function isStrongSource(where: string | undefined): boolean {
+  return !!where && /own icon|theme color|named as a brand color/.test(where)
+}
+
+/**
+ * The pair to use for a company page, where a wrong color is worse than none: only when the primary is a strong read. A secondary that is
+ * only a frequent stylesheet color is replaced by a soft tint of the primary. Null means "leave the page in NextChapter's look".
+ */
+export function confidentPair(result: ScanResult): BrandPair | null {
+  const pair = result.pair
+  if (!pair) return null
+  const where = (hex: string) => result.candidates.find((c) => c.hex === hex)?.where
+  if (!isStrongSource(where(pair.primary))) return null
+  if (pair.secondaryDerived || isStrongSource(where(pair.secondary))) return pair
+  return buildPair(pair.primary, tint(pair.primary, 0.55), true)
 }

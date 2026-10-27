@@ -23,6 +23,9 @@ import { stateHelpLinks, type CrossLink } from '@/lib/seo/layoff-links'
 import { StatementForm } from '@/components/employers/StatementForm'
 import { approvedStatementMap } from '@/lib/employer-statements/store'
 import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } from '@/lib/warn/company-announcements'
+import { getEmployerBrand } from '@/lib/branding/store'
+import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
+import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 
 // Pages are built on first visit and refreshed daily; there are over a
 // thousand employers, too many to prerender on every deploy.
@@ -107,8 +110,11 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const helpLinks: CrossLink[] = [...new Map(stateHelp.flat().map((l) => [l.href, l])).values()]
   const workers = c.notices.reduce((s, n) => s + (n.workers ?? 0), 0)
   const unknownCounts = c.notices.some((n) => n.workers == null)
+  // The employer's own colors, read from its website (src/lib/branding), when we have them.
+  const brand = await getEmployerBrand(c.name)
 
   return (
+    <OrgBrandScope brand={brand?.pair}>
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: c.name, path: `/layoffs/company/${slug}` }])} />
       <PublicSiteHeader current="news" />
@@ -133,6 +139,15 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             {workers > 0 && <>, naming {workers.toLocaleString()} workers{unknownCounts ? ' where a count was given' : ''}</>}. The most
             recent was filed {noticeDay(c.latest)}.
           </p>}
+
+          <OrgCandidateBand
+            orgName={c.name}
+            branded={!!brand}
+            peopleCount={null}
+            heading={`Affected by changes at ${c.name}? See where you stand.`}
+            independent={`Independent page. Not from or affiliated with ${c.name}.`}
+            properties={{ kind: 'LAYOFF_COMPANY', slug }}
+          />
 
           {ann && (
             <section aria-labelledby="announced" className="mt-10">
@@ -250,5 +265,6 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
       </main>
       <PublicSiteFooter page="layoffs" />
     </div>
+    </OrgBrandScope>
   )
 }
