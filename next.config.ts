@@ -42,6 +42,14 @@ const nextConfig: NextConfig = {
   // this redirect exists only for already-external references.
   async redirects() {
     return [
+      // Pages cached before 2026-10-26 (PR 506) still carry outside links stored without https, which browsers and
+      // crawlers resolve under the state ("/economic-development/utah/garfield.utah.gov/..."). Real slugs never
+      // contain a dot, so a dotted segment is one of those; send it to the state index, not the outside host.
+      ...['economic-development', 'job-centers', 'workforce-boards'].map((kind) => ({
+        source: `/${kind}/:state/:host([a-z0-9-]+(?:\\.[a-z0-9-]+)+)/:rest*`,
+        destination: `/${kind}/:state`,
+        permanent: false,
+      })),
       // /feeds has no page of its own (the feeds are files under it); someone typing it wants the jobs.
       { source: '/feeds', destination: '/jobs', permanent: false },
       // Retired 2026-10-23: the website shows plans, not prices.
