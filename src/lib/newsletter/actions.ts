@@ -16,6 +16,8 @@ const SOURCES = new Set([
   'site-footer',
   // Hub pages of the public salary and local job market sections.
   'salaries', 'places',
+  // The AI-skill pay premium explainer.
+  'ai-pay-premium',
 ])
 const MAX_PER_HOUR_PER_IP = 5
 

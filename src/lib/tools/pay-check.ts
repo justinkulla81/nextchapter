@@ -11,6 +11,8 @@ export interface PayCheckStat {
   p25: number
   median: number
   p75: number
+  /** The function most of this title's listings are tagged with (src/lib/pay/ai-premium.ts), where its AI-skill premium comes from. */
+  fn?: string | null
 }
 
 export interface PayCheckResult {

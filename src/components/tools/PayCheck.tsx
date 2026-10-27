@@ -60,6 +60,30 @@ export function PayCheck({ titles, journeyChoices }: { titles: { slug: string; n
               </div>
             ))}
           </dl>
+          <div className="rounded-lg bg-off-white p-4 text-sm">
+            <p className="font-semibold text-navy">A range to cite in a pay conversation</p>
+            <p className="mt-1 text-muted-foreground">
+              Employers advertise {usd(result.median)} (median) to {usd(result.p75)} (upper quarter) for {result.name.toLowerCase()} roles. Those are listings, not offers: use them as evidence, and expect level, city and industry to move the number.
+            </p>
+          </div>
+          {result.ai && (
+            <div className="rounded-lg bg-off-white p-4 text-sm" data-testid="pay-check-ai">
+              <p className="font-semibold text-navy">What AI skills add, for {result.ai.label} roles</p>
+              <p className="mt-1 text-muted-foreground">{result.ai.sentence}</p>
+              {result.ai.illustration && (
+                <p className="mt-2 text-muted-foreground">
+                  Illustration, not a forecast: moving this title’s median by that {result.ai.illustration.pct > 0 ? '+' : ''}{result.ai.illustration.pct}% gives about {usd(result.ai.illustration.medianWithAi)}.
+                </p>
+              )}
+              <p className="mt-2 text-xs text-muted-foreground">
+                From {result.ai.nAi.toLocaleString('en-US')} paid listings that ask for an AI skill and {result.ai.nBase.toLocaleString('en-US')} that never mention AI. A difference in advertised pay is not what people are paid and does not show a skill causes a raise.{' '}
+                <Link href="/resources/ai-skills-pay-premium" className="underline underline-offset-2" onClick={() => posthog.capture('ai_pay_link_clicked', { page: 'pay_check', cta: 'explainer', title: result.slug })}>
+                  See the table for every function
+                </Link>
+                .
+              </p>
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
             From {result.payCount.toLocaleString('en-US')} current listings that state pay, on employers&apos; own career sites. Listed pay is what employers advertise, not what people are paid, and it does not account for your city, level or industry.{' '}
             <Link href={`/salaries/${result.slug}`} className="underline underline-offset-2">See the full range</Link>.
