@@ -113,3 +113,20 @@ export function groupPartnerDuplicates<T extends { id: string; name: string; kin
     return { primary: sorted[0], aliases: sorted.slice(1) }
   })
 }
+
+/**
+ * The title text for an organization's own page (job center or economic development): its name first, because people search an
+ * organization by name; where it is, unless the name already says so ("Fairfield County, OH" got "OH" twice); and what the page
+ * has, when it fits in 60 characters. Richest wording first, the plain name last.
+ */
+export function orgPageTitle(row: { name: string; city: string | null; state: string }, limit = 60): string {
+  const name = row.name.trim()
+  const lower = name.toLowerCase()
+  const cityNamed = !!row.city && lower.includes(row.city.toLowerCase())
+  const stateNamed = new RegExp(`(^|[\\s,(])${row.state}($|[\\s,)])`, 'i').test(name)
+  const where = [cityNamed ? null : row.city, stateNamed ? null : row.state].filter(Boolean).join(', ')
+  const base = where ? `${name}, ${where}` : name
+  const candidates = [`${base}: Local Jobs and Contacts`, base, name]
+  // The descriptor is worth more than the brand suffix: titleMeta drops the brand when the two do not fit together.
+  return candidates.find((c) => c.length <= limit) ?? name
+}

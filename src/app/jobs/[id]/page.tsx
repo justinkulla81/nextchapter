@@ -16,6 +16,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { isExcerpt } from '@/lib/jobs/posting-text'
 import { datePostedOf, descriptionParagraphs, isIndexableJob, isRemoteJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
 import { closedJobRedirectTarget, getPublicJob } from '@/lib/jobs/public-job-page-server'
+import { employerPath, isCompanyOfferedToSearch } from '@/lib/seo/employer-pages'
 import { prisma } from '@/lib/prisma'
 import { BrowseTheSite } from '@/components/marketing/BrowseTheSite'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
@@ -75,7 +76,12 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   const excerpt = isExcerpt(job.description)
   const remote = isRemoteJob(job)
   // Where the job sits on the industry and function pages. A failed read just leaves the links out.
-  const tags = await prisma.exclusiveJobPosting.findUnique({ where: { id: job.id }, select: { industry: true, targetFunction: true } }).catch(() => null)
+  const tags = await prisma.exclusiveJobPosting
+    .findUnique({ where: { id: job.id }, select: { industry: true, targetFunction: true, company: { select: { id: true, canonicalNameNormalized: true } } } })
+    .catch(() => null)
+  // The employer's own page lists every open role it has; link to it when that page is offered to search engines.
+  const employerHref =
+    tags?.company && (await isCompanyOfferedToSearch(tags.company.id).catch(() => false)) ? employerPath(tags.company.canonicalNameNormalized, tags.company.id) : null
   const industry = bucketFromIndustryText(tags?.industry)
   const fn = functionByName(tags?.targetFunction)
 
@@ -103,6 +109,19 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             <TrainingProvidedLine jobId={job.id} signals={job.postingSignals} phrase={job.trainingPhrase} surface="public_job" className="mt-3 text-base" />
 
             <ApplyAndSave jobId={job.id} company={job.companyName} applyUrl={job.url} emailOn={applySaveEmailOn()} />
+
+            {employerHref && (
+              <p className="mt-6 text-sm">
+                <TrackedLink
+                  href={employerHref}
+                  event="public_job_employer_link_clicked"
+                  properties={{ jobId: job.id, company: job.companyName }}
+                  className="font-medium text-brand underline underline-offset-4"
+                >
+                  See every open role at {job.companyName}
+                </TrackedLink>
+              </p>
+            )}
 
             {(industry || fn || job.locationState) && (
               <p className="mt-6 text-sm text-muted-foreground">

@@ -1,5 +1,6 @@
 import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { LinkToUs } from '@/components/seo/LinkToUs'
+import { ClaimHint } from '@/components/seo/ClaimHint'
 import Link from 'next/link'
 import { H2, LINK, SeoPage, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -38,6 +39,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1 }: {
       {row.serviceArea && <span className="block text-sm">Service area: {row.serviceArea}</span>}
       {row.label}{row.city ? ` in ${row.city}, ${row.state}` : ` in ${st}`}.{' '}
       {area.statewide || area.counties.length > 0 ? `It serves ${where}, where ${n0(b.jobsOpen)} professional ${b.jobsOpen === 1 ? 'job is' : 'jobs are'} open today.` : ''}
+      <ClaimHint who={`Do you run ${row.name}?`} href={claimSlug ? `/prepared/${claimSlug}` : '/government-workforce#claim'} event="org_page_claim_clicked" properties={{ ...props, hasClaimPage: !!claimSlug, jobsOpen: b.jobsOpen }} />
     </>
   )
   return (
