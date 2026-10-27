@@ -17,7 +17,7 @@ import { prisma } from '../../src/lib/prisma'
 import { fetchSite } from '../../src/lib/branding/fetch-site'
 import { companyHomeOf, guessHosts, pageMatchesCompany } from '../../src/lib/branding/company-domain'
 import { confidentPair, scanBrand, scanComputedColors, type ScanResult } from '../../src/lib/branding/scan'
-import { brandMissIds, brandedIds, employerBrandKey, recordBrandMiss, saveOrgBrand } from '../../src/lib/branding/store'
+import { brandMissIds, brandedIds, employerBrandKey, getOrgBrand, recordBrandMiss, saveOrgBrand } from '../../src/lib/branding/store'
 import { getCompanies } from '../../src/lib/warn/layoff-pages'
 
 const arg = (n: string) => { const i = process.argv.indexOf(n); return i >= 0 ? process.argv[i + 1] : undefined }
@@ -174,7 +174,12 @@ async function main() {
         ok++
         const p = out.result.pair!
         console.log(`✓ ${t.name}  ${out.siteUrl}  ${p.primary} / ${p.secondary}${p.secondaryDerived ? ' (derived)' : ''}  [${out.via}]`)
-        if (apply) await saveOrgBrand({ kind: 'EMPLOYER', sourceId: t.key, siteUrl: out.siteUrl, pair: p, candidates: out.result.candidates, source: 'SCAN' })
+        if (apply) {
+          // A pair set by hand (scripts/branding/set-brand.ts) is never replaced by a scan.
+          const existing = await getOrgBrand('EMPLOYER', t.key)
+          if (existing?.source === 'MANUAL') console.log('  colors were set by hand; left alone')
+          else await saveOrgBrand({ kind: 'EMPLOYER', sourceId: t.key, siteUrl: out.siteUrl, pair: p, candidates: out.result.candidates, source: 'SCAN' })
+        }
       } else {
         misses[out.reason] = (misses[out.reason] ?? 0) + 1
         if (apply && !out.reason.startsWith('error')) await recordBrandMiss('EMPLOYER', t.key, out.reason)

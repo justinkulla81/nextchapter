@@ -1,0 +1,33 @@
+{
+  "note": "Brand colors set by hand for large, well-known employers where the scan reads a product site or an interface color. Approximations of each company's published brand colors (primary, secondary). Applied by set-brand.ts with source MANUAL; a scan never replaces them.",
+  "employers": [
+    { "name": "Amazon", "primary": "#232f3e", "secondary": "#ff9900" },
+    { "name": "Oracle", "primary": "#c74634", "secondary": "#312d2a" },
+    { "name": "T-Mobile", "primary": "#e20074", "secondary": "#262626" },
+    { "name": "Home Depot", "primary": "#f96302", "secondary": "#1a1a1a" },
+    { "name": "Fifth Third Bank", "primary": "#00843d", "secondary": "#003a70" },
+    { "name": "FedEx", "primary": "#4d148c", "secondary": "#ff6200" },
+    { "name": "Federal Express Corporation", "primary": "#4d148c", "secondary": "#ff6200" },
+    { "name": "Verizon", "primary": "#cd040b", "secondary": "#000000" },
+    { "name": "Samsung", "primary": "#1428a0", "secondary": "#000000" },
+    { "name": "Spirit Airlines", "primary": "#ffec00", "secondary": "#000000" },
+    { "name": "Uber Technologies Inc", "primary": "#000000", "secondary": "#276ef1" },
+    { "name": "Microsoft", "primary": "#0078d4", "secondary": "#50e6ff" },
+    { "name": "Google", "primary": "#4285f4", "secondary": "#ea4335" },
+    { "name": "Intel Corporation", "primary": "#0068b5", "secondary": "#00c7fd" },
+    { "name": "IBM", "primary": "#0f62fe", "secondary": "#161616" },
+    { "name": "Salesforce", "primary": "#00a1e0", "secondary": "#032d60" },
+    { "name": "Walmart", "primary": "#0071ce", "secondary": "#ffc220" },
+    { "name": "Target Corporation", "primary": "#cc0000", "secondary": "#000000" },
+    { "name": "Boeing", "primary": "#1d439c", "secondary": "#0d2759" },
+    { "name": "Dell Technologies", "primary": "#007db8", "secondary": "#000000" },
+    { "name": "HP", "primary": "#0096d6", "secondary": "#000000" },
+    { "name": "Cisco", "primary": "#049fd9", "secondary": "#1b3a5c" },
+    { "name": "UPS", "primary": "#351c15", "secondary": "#ffb500" },
+    { "name": "United Parcel Service", "primary": "#351c15", "secondary": "#ffb500" },
+    { "name": "Delta Air Lines", "primary": "#003366", "secondary": "#c01933" },
+    { "name": "General Motors", "primary": "#0170ce", "secondary": "#000000" },
+    { "name": "Starbucks", "primary": "#006241", "secondary": "#1e3932" },
+    { "name": "Wells Fargo", "primary": "#d71e28", "secondary": "#ffcd41" }
+  ]
+}
