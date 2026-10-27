@@ -33,7 +33,8 @@ export async function saveAppliedJob(_prev: ApplySaveState, formData: FormData):
 
   const email = text(formData, 'email', 200).toLowerCase()
   if (!EMAIL.test(email)) return { error: 'Enter a valid email address.', email }
-  const trigger = text(formData, 'trigger', 20) === 'apply_click' ? 'apply_click' : 'save_link'
+  const rawTrigger = text(formData, 'trigger', 20)
+  const trigger = rawTrigger === 'apply_click' || rawTrigger === 'apply_gate' ? rawTrigger : 'save_link'
 
   if (!(await allowByIp('apply-save', 10, HOUR_MS)) || !(await allowByTarget('apply-save', email, 10, DAY_MS))) {
     return { error: 'Too many requests from this network. Try again later.', email }
