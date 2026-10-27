@@ -18,6 +18,7 @@ import { sortConferences } from '@/lib/seo/topic-data'
 import { conferencesForEmployer } from '@/lib/events/conference-employers'
 import { prisma } from '@/lib/prisma'
 import { SaveSearchForm } from '@/components/home/SaveSearchForm'
+import { EmployerFollowBox } from '@/components/seo/EmployerFollowBox'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 import { titleMeta } from '@/lib/seo/title'
 
@@ -180,7 +181,9 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
       )}
 
       <section aria-label={`Get new ${e.name} openings by email`} className="mt-12">
-        <SaveSearchForm q={e.name} loc="" remote={false} source="page:employer" heading={`Get new ${e.name} openings by email`} blurb={`We’ll email you when ${e.name} posts a role. No account needed.`} cta="Email me new openings" />
+        <EmployerFollowBox name={e.name} slug={e.slug}>
+          <SaveSearchForm q={e.name} loc="" remote={false} source="page:employer" heading={`Get new ${e.name} openings by email`} blurb={`We’ll email you when ${e.name} posts a role. No account needed.`} cta="Email me new openings" />
+        </EmployerFollowBox>
       </section>
 
       {(e.pay.length > 0 || (p && p.payLevel in PAY_LEVEL && p.payLevelSample >= 5)) && (
