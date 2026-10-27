@@ -37,6 +37,14 @@ export function addSeenAt(body: string | null, competitor: string): string {
   return (body ?? '').replace(m[0], `Seen at competitors: ${[...names, competitor].join(SEEN_SEP)}`)
 }
 
+/** Other wordings of the same gap, kept on the idea ("Also worded: ...", one per line) so a gap absorbed into it is recognised next run instead of being sent to the model again. */
+export const wordingsOf = (body: string | null): string[] => [...(body ?? '').matchAll(/^Also worded: (.*)$/gm)].map((m) => m[1].trim()).filter(Boolean)
+export function addWording(body: string | null, title: string): string {
+  const k = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '')
+  if (wordingsOf(body).some((w) => k(w) === k(title))) return body ?? ''
+  return `${body ?? ''}${body ? '\n' : ''}Also worded: ${title.replace(/\s+/g, ' ').replace(/;\s*/g, ', ').trim()}`  // no "; ", which marks a second competitor
+}
+
 export interface GapMatches {
   /** New gap index -> existing idea index it restates. */
   matches: Map<number, number>
