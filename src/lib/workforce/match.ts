@@ -171,6 +171,13 @@ export async function matchNoticesToBoards(budgetMs = 60_000): Promise<{ checked
       if (legal !== null) legalCity = legal || null
     }
     let board = pickBoard(boards, county, legalCity)
+    // The county from a street address can be wrong when the line also carries another state's head office ("Florham Park, NJ 07932
+    // CLEAR WATER, FL"); when it names no board, the city on its own gets a second try.
+    if (!board && how === 'address' && city) {
+      const byCity = await cached(`${state}|${placeKey(city)}`, () => countyForCity(city, state))
+      board = pickBoard(boards, byCity, legalCity)
+      if (board) how = 'city'
+    }
     if (board && !how) how = city && areaPlaces(board.serviceArea).length ? 'city' : 'statewide'
     if (!board) {
       board = boardFromNamedArea(boards, n.address)
