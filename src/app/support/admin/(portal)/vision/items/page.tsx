@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Prisma, ProductItemKind, ProductItemArea, ProductItemStatus, ProductRoadmapBucket } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { SINGLE_COMPETITOR_GAP } from '@/lib/vision/competitor-sync-core'
 import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { KindSelect, AreaSelect } from '@/components/admin/VisionKindSelect'
@@ -58,7 +59,7 @@ export default async function VisionItemsPage({
       take: 300,
     }),
     prisma.productItem.findMany({
-      where: { status: 'SPARK', ...(area ? { area: area as ProductItemArea } : {}) },
+      where: { status: 'SPARK', NOT: SINGLE_COMPETITOR_GAP, ...(area ? { area: area as ProductItemArea } : {}) },
       orderBy: { createdAt: 'desc' },
       select: { id: true, title: true, kind: true, area: true },
       take: 30,

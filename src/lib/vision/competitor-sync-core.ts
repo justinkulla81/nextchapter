@@ -20,6 +20,12 @@ export function gapIdeas(weNeed: string[], existingTitles: string[], max = 8): s
   return out
 }
 
+/**
+ * Ideas made from competitor gaps carry "Seen at competitors: A, B". One that only a single competitor has is a weak
+ * signal, so Brainstorm keeps those in a secondary list and the primary list holds the ones two or more share.
+ */
+export const SINGLE_COMPETITOR_GAP = { body: { startsWith: 'Seen at competitors: ' }, NOT: { body: { contains: ', ' } } } as const
+
 /** Adds a competitor's name to an idea's "seen at" line without repeating it. */
 export function addSeenAt(body: string | null, competitor: string): string {
   const m = (body ?? '').match(/^Seen at competitors: (.*)$/m)
