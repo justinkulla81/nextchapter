@@ -133,7 +133,7 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
   const rowById = new Map(pageRowsRaw.map((c) => [c.id, c]))
   const pageRows = pageIds.map((id) => rowById.get(id)).filter((c): c is NonNullable<typeof c> => !!c)
   const pageStates = [...new Set(pageRows.map((c) => c.state))]
-  const [contacts, boards, orgs] = await Promise.all([
+  const [contacts, boards, orgs, accounts] = await Promise.all([
     prisma.collegeContact.findMany({ where: { collegeId: { in: pageIds } } }),
     // The board for each college on the page, for the link to its area.
     prisma.workforceBoard.findMany({
@@ -144,7 +144,13 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
       where: { id: { in: pageRows.map((c) => c.crmOrgId).filter((id): id is string => !!id) } },
       select: { id: true, dealStatus: true },
     }),
+    // Colleges that are already customers (a workspace linked to the CRM record).
+    prisma.institution.findMany({
+      where: { crmOrganizationId: { in: pageRows.map((c) => c.crmOrgId).filter((id): id is string => !!id) } },
+      select: { crmOrganizationId: true },
+    }).catch(() => [] as { crmOrganizationId: string | null }[]),
   ])
+  const customerOrgIds = new Set(accounts.map((a) => a.crmOrganizationId))
   const byCollege = new Map<string, typeof contacts>()
   for (const c of contacts) byCollege.set(c.collegeId, [...(byCollege.get(c.collegeId) ?? []), c])
   const parts = (c: (typeof pageRows)[number]) => (c.scoreParts ?? {}) as unknown as ScoreParts
@@ -268,6 +274,9 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
                       <CrmDealStatusSelect collegeId={c.id} value={c.crmOrgId ? dealByOrg.get(c.crmOrgId) ?? null : null} />
                       {c.crmOrgId && (
                         <Link href={`/support/admin/crm/organizations/${c.crmOrgId}`} className="mt-1 block text-[11px] text-primary hover:underline">In the CRM</Link>
+                      )}
+                      {c.crmOrgId && customerOrgIds.has(c.crmOrgId) && (
+                        <Link href="/support/admin/institutions" className="mt-1 block text-[11px] text-primary hover:underline">Customer account</Link>
                       )}
                     </td>
                     <td className="px-2 py-2">

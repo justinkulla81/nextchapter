@@ -24,3 +24,13 @@ describe('admin menu', () => {
     expect(titles).toEqual(['Product', 'Planned'])
   })
 })
+
+describe('mailing menu', () => {
+  it('has one Mailing lists entry; its sub-pages are reached from that page', () => {
+    const email = buildSectionsForArea('ecosystem', {}).find((s) => s.title === 'Email')
+    const hrefs = email?.links.map((l) => l.href) ?? []
+    expect(hrefs).toContain('/support/admin/crm/mailing')
+    expect(hrefs).not.toContain('/support/admin/crm/mailing/lists')
+    expect(hrefs).not.toContain('/support/admin/crm/mailing/unsubscribes')
+  })
+})

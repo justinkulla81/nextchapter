@@ -141,10 +141,9 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
       collapsible: true,
       links: [
         // Each list has a cadence; due sends are drafted for you and wait
-        // here for approval.
+        // here for approval. Lists and sender settings, unsubscribes and
+        // "Add to a list?" are reached from this page's header links.
         { href: '/support/admin/crm/mailing', label: 'Mailing lists', badge: badgeFor('mailingAttention') },
-        { href: '/support/admin/crm/mailing/lists', label: 'Lists and sender settings' },
-        { href: '/support/admin/crm/mailing/unsubscribes', label: 'Unsubscribes' },
         { href: '/support/admin/crm/segments', label: 'One-off emails' },
         { href: '/support/admin/crm/outreach', label: 'Cold outreach tests' },
         { href: '/support/admin/crm/sent', label: 'Sent email' },
