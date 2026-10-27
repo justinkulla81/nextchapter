@@ -8,6 +8,7 @@ import { quickAddCompetitor, refreshCompetitorFromWebsite, deleteCompetitor, sav
 import { getWatchSettings, spentThisMonth } from '@/lib/vision/competitor-watch'
 import { EVENT_LABEL, type EventKind } from '@/lib/vision/competitor-watch-core'
 import { formatDate } from '@/lib/vision/labels'
+import type { ProductCompetitorOverlap } from '@prisma/client'
 import { COMPETITOR_AREAS, RELATIONSHIPS, CATEGORIES, areaLabel, relationshipLabel, statusLabel, categoryLabel, type NamedEntry, type WinEntry } from '@/lib/vision/competitor-areas'
 
 export const maxDuration = 60
@@ -57,6 +58,8 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
   const relFilter = sp.rel ?? ''
   const catFilter = sp.cat ?? ''
   const gone = sp.gone === '1'
+  const showAll = sp.all === '1'
+  const showMatrix = sp.matrix === '1'
 
   const [watch, spent, proposals, recentEvents] = await Promise.all([
     getWatchSettings(),
@@ -80,6 +83,12 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
   const shown = allCompetitors.filter((c) => (!areaFilter || c.areas.includes(areaFilter)) && (!relFilter || c.relationship === relFilter) && (!catFilter || c.category === catFilter) && (!gone || c.status !== 'ACTIVE'))
   const relOrder = (r: string) => RELATIONSHIPS.findIndex((x) => x.key === r)
   shown.sort((a, b) => relOrder(a.relationship) - relOrder(b.relationship) || a.name.localeCompare(b.name))
+  // Every card carries its own edit form, and the matrix is one dropdown per competitor per feature. Rendering all of
+  // it made the page tens of megabytes and froze the browser tab, so cards are capped and the matrix is opt-in.
+  const CARD_CAP = 25
+  const cards = showAll || shown.length <= CARD_CAP
+    ? shown
+    : [...shown.slice(0, CARD_CAP), ...shown.slice(CARD_CAP).filter((c) => c.id === sp.added)]
 
   const areaCount = new Map<string, number>()
   for (const c of allCompetitors) if (c.relationship === 'DIRECT' || c.relationship === 'ADJACENT') for (const a of c.areas) areaCount.set(a, (areaCount.get(a) ?? 0) + 1)
@@ -91,8 +100,9 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
   }
   const needs = [...needCount.entries()].map(([k, v]) => ({ text: allCompetitors.flatMap((c) => c.weNeed).find((x) => x.toLowerCase().slice(0, 60) === k) ?? k, ...v })).sort((a, b) => b.n - a.n).slice(0, 8)
 
-  const cellOf = (competitorId: string, itemId: string) =>
-    competitors.find((c) => c.id === competitorId)?.cells.find((x) => x.itemId === itemId)?.overlap ?? 'UNKNOWN'
+  const cellMap = new Map<string, ProductCompetitorOverlap>()
+  for (const c of competitors) for (const x of c.cells) cellMap.set(`${c.id}:${x.itemId}`, x.overlap)
+  const cellOf = (competitorId: string, itemId: string) => cellMap.get(`${competitorId}:${itemId}`) ?? 'UNKNOWN'
   const gaps = features
     .map((f) => ({ ...f, have: competitors.filter((c) => c.cells.find((x) => x.itemId === f.id)?.overlap === 'HAS').length }))
     .filter((f) => f.have >= Math.max(1, Math.ceil(competitors.length / 2)))
@@ -260,7 +270,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
         </p>
       ) : (
         <section className="space-y-2">
-          {shown.map((c) => {
+          {cards.map((c) => {
             const customers = (c.customers as NamedEntry[] | null) ?? []
             const wins = (c.wins as WinEntry[] | null) ?? []
             const numbers = [
@@ -363,12 +373,23 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
               </details>
             )
           })}
+          {cards.length < shown.length && (
+            <p className="rounded-lg border border-dashed border-border p-3 text-center text-sm">
+              Showing {cards.length} of {shown.length}. <Link href={qs({ all: '1' })} className="underline">Show all {shown.length}</Link> (slow), or narrow with the filters above.
+            </p>
+          )}
         </section>
       )}
 
 
-      {competitors.length > 0 && (
-        <details className="rounded-lg border border-border p-3">
+      {competitors.length > 0 && !showMatrix && (
+        <p className="rounded-lg border border-border p-3 text-sm">
+          <Link href={`${qs({ matrix: '1' })}#matrix`} className="font-semibold underline">Open the feature-by-feature matrix (advanced)</Link>
+          <span className="ml-2 text-xs text-muted-foreground">{competitors.length} competitors by {features.length} features, so it loads on request.</span>
+        </p>
+      )}
+      {competitors.length > 0 && showMatrix && (
+        <details id="matrix" open className="rounded-lg border border-border p-3">
           <summary className="cursor-pointer text-sm font-semibold">Feature-by-feature matrix (advanced)</summary>
           <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
             Them down the side, our own planned features across the top. Because the columns are the same items we plan against, gaps and moats fall out as a query.
