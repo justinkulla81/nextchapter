@@ -5,11 +5,18 @@
 // (src/test/page-bars.test.ts).
 import { isNetworkCompany, totalWorkers } from '@/lib/network/eligibility'
 
-const TWENTY_FOUR_MONTHS_MS = 2 * 365 * 24 * 60 * 60 * 1000
+const TWELVE_MONTHS_MS = 365 * 24 * 60 * 60 * 1000
+const TWENTY_FOUR_MONTHS_MS = 2 * TWELVE_MONTHS_MS
 
-/** Employer layoff pages: a recent filing, and either enough workers for the employer page, two or more filings, or 50+ named workers. */
+/**
+ * Employer layoff pages. Every employer with a filing in the last 12 months is indexed, however small (the owner wants every recent
+ * layoff page in search: a worker looking up their employer finds it only if the page is). A filing 12 to 24 months old keeps the
+ * older bar: enough workers for the employer page, two or more filings, or 50+ named workers. Older than 24 months: never.
+ */
 export function meetsCompanyLayoffBar(c: { latest: Date; notices: { workers: number | null }[] }, now = Date.now()): boolean {
-  if (now - c.latest.getTime() > TWENTY_FOUR_MONTHS_MS) return false
+  const age = now - c.latest.getTime()
+  if (age > TWENTY_FOUR_MONTHS_MS) return false
+  if (age <= TWELVE_MONTHS_MS) return true
   return isNetworkCompany(c, now) || c.notices.length >= 2 || totalWorkers(c) >= 50
 }
 
