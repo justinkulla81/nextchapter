@@ -49,7 +49,11 @@ export function NoticeTable({
             <Fragment key={n.id}>
             <tr>
               <td className="px-4 py-3 whitespace-nowrap tabular-nums text-muted-foreground">
-                <time dateTime={n.noticeDate.toISOString().slice(0, 10)}>{noticeDay(n.noticeDate)}</time>
+                {n.noticeDateKnown ? (
+                  <time dateTime={n.noticeDate.toISOString().slice(0, 10)}>{noticeDay(n.noticeDate)}</time>
+                ) : n.effectiveDate ? (
+                  <span title="This state publishes the effective date, not the filing date"><span className="text-xs">Effective </span><time dateTime={n.effectiveDate.toISOString().slice(0, 10)}>{noticeDay(n.effectiveDate)}</time></span>
+                ) : null}
               </td>
               <th scope="row" className="px-4 py-3 font-medium text-navy">
                 {linkEmployer && n.slug ? (
@@ -57,7 +61,7 @@ export function NoticeTable({
                 ) : (
                   n.employer
                 )}
-                {n.effectiveDate && (
+                {n.noticeDateKnown && n.effectiveDate && (
                   <span className="block text-xs font-normal text-muted-foreground">Takes effect {noticeDay(n.effectiveDate)}</span>
                 )}
               </th>
