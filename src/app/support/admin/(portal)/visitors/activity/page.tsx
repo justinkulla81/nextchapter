@@ -1,9 +1,11 @@
 import Link from 'next/link'
+import { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { VisitorsTrafficChart } from '@/components/admin/VisitorsTrafficChart'
+import { TrafficRangeProvider, VisitorsRangeSummary, type RangeTotals, type TrafficRange } from '@/components/admin/VisitorsActivityRange'
 import { AverageBarChart } from '@/components/admin/AverageBarChart'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
@@ -11,11 +13,14 @@ import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
 import { candidateDisplayName } from '@/lib/messaging/threads'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
-import { byHourOfDay, byWeekday, perDaySeries, perHourSeries } from '@/lib/admin/visitor-time-buckets'
+import { allTimeDayCount, byHourOfDay, byWeekday, perDaySeries, perHourSeries } from '@/lib/admin/visitor-time-buckets'
 
 export const maxDuration = 30
 
 const CHART_WINDOW_DAYS = 30
+// All time reads every event, newest first, up to this many. Past it the oldest are dropped and the chart says so.
+const ALL_TIME_EVENT_CAP = 200_000
+const DAY_MS = 24 * 60 * 60 * 1000
 
 // Module-level, not inline in the component: react-hooks/purity flags Date.now().
 function now(): Date {
@@ -68,9 +73,11 @@ export default async function AdminVisitorActivityPage({
       }
 
   const current = now()
-  const chartWindowStart = new Date(current.getTime() - CHART_WINDOW_DAYS * 24 * 60 * 60 * 1000)
+  const botPatterns = BOT_SIGNATURES.map((sig) => `%${sig}%`)
+  const botFilter = showBots ? Prisma.sql`TRUE` : Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${botPatterns})))`
+  const since = (days: number) => new Date(current.getTime() - days * DAY_MS)
 
-  const [events, total, chartEvents] = await Promise.all([
+  const [events, total, chartEvents, totalsRows] = await Promise.all([
     prisma.homepageVisitEvent.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -80,16 +87,39 @@ export default async function AdminVisitorActivityPage({
     }),
     prisma.homepageVisitEvent.count({ where }),
     prisma.homepageVisitEvent.findMany({
-      where: { createdAt: { gte: chartWindowStart } },
+      orderBy: { createdAt: 'desc' },
       select: { createdAt: true, userAgent: true, ip: true, eventType: true },
-      take: 100000,
+      take: ALL_TIME_EVENT_CAP,
     }),
+    // The count under the title, for each range the chart offers: events and distinct visitors, same bot rule as the log.
+    prisma.$queryRaw<{ e1: bigint; v1: bigint; e7: bigint; v7: bigint; e30: bigint; v30: bigint; eall: bigint; vall: bigint }[]>(Prisma.sql`
+      SELECT
+        count(*) FILTER (WHERE "createdAt" >= ${since(1)}) AS e1,
+        count(DISTINCT "ip") FILTER (WHERE "createdAt" >= ${since(1)}) AS v1,
+        count(*) FILTER (WHERE "createdAt" >= ${since(7)}) AS e7,
+        count(DISTINCT "ip") FILTER (WHERE "createdAt" >= ${since(7)}) AS v7,
+        count(*) FILTER (WHERE "createdAt" >= ${since(30)}) AS e30,
+        count(DISTINCT "ip") FILTER (WHERE "createdAt" >= ${since(30)}) AS v30,
+        count(*) AS eall,
+        count(DISTINCT "ip") AS vall
+      FROM "HomepageVisitEvent"
+      WHERE ${botFilter}`),
   ])
+
+  const t = totalsRows[0]
+  const totals: Record<TrafficRange, RangeTotals> = {
+    day: { events: Number(t?.e1 ?? 0), visitors: Number(t?.v1 ?? 0) },
+    '7d': { events: Number(t?.e7 ?? 0), visitors: Number(t?.v7 ?? 0) },
+    '30d': { events: Number(t?.e30 ?? 0), visitors: Number(t?.v30 ?? 0) },
+    all: { events: Number(t?.eall ?? 0), visitors: Number(t?.vall ?? 0) },
+  }
+  const allTimeDays = allTimeDayCount(chartEvents, current)
 
   const trafficData = {
     day: { pageViews: perHourSeries(chartEvents, current, 24, false), uniqueVisitors: perHourSeries(chartEvents, current, 24, true) },
     '7d': { pageViews: perDaySeries(chartEvents, current, 7, false), uniqueVisitors: perDaySeries(chartEvents, current, 7, true) },
     '30d': { pageViews: perDaySeries(chartEvents, current, 30, false), uniqueVisitors: perDaySeries(chartEvents, current, 30, true) },
+    all: { pageViews: perDaySeries(chartEvents, current, allTimeDays, false), uniqueVisitors: perDaySeries(chartEvents, current, allTimeDays, true) },
   }
   const colors = { views: 'var(--color-brand)', visitors: 'var(--color-warning)' }
   const weekdaySeries = [
@@ -200,10 +230,11 @@ export default async function AdminVisitorActivityPage({
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
+      <TrafficRangeProvider>
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Visitor activity</h1>
         <p className="mt-1 text-muted-foreground">
-          {total} {showBots ? '' : 'human '}homepage visit events.{' '}
+          <VisitorsRangeSummary totals={totals} showBots={showBots} />{' '}
           <Link href="/support/admin/visitors" className="text-primary underline underline-offset-4">
             See the full visitor stats
           </Link>
@@ -219,8 +250,9 @@ export default async function AdminVisitorActivityPage({
 
       <div className="rounded-lg border border-border p-4">
         <h2 className="mb-3 text-sm font-medium text-foreground">Human page views &amp; unique visitors</h2>
-        <VisitorsTrafficChart data={trafficData} />
+        <VisitorsTrafficChart data={trafficData} allTimeTruncated={chartEvents.length >= ALL_TIME_EVENT_CAP} />
       </div>
+      </TrafficRangeProvider>
 
       <div className="rounded-lg border border-border p-4">
         <h2 className="text-sm font-medium text-foreground">By day of the week</h2>

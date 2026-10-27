@@ -84,6 +84,16 @@ export function perDaySeries(events: TrafficEvent[], now: Date, days: number, un
   return trailingKeys(now, days, DAY_MS, etDateKey).map((key) => ({ key, count: counts.get(key) ?? 0 }))
 }
 
+/** Days from the first human page view to today (ET, inclusive), at least `min`, so "all time" starts where the data does. */
+export function allTimeDayCount(events: TrafficEvent[], now: Date, min = 30): number {
+  let earliest: Date | null = null
+  for (const e of humanPageViews(events)) if (!earliest || e.createdAt < earliest) earliest = e.createdAt
+  if (!earliest) return min
+  const first = Date.parse(`${etDateKey(earliest)}T12:00:00Z`)
+  const last = Date.parse(`${etDateKey(now)}T12:00:00Z`)
+  return Math.max(min, Math.round((last - first) / DAY_MS) + 1)
+}
+
 export function perHourSeries(events: TrafficEvent[], now: Date, hours: number, unique: boolean): BucketCount[] {
   const counts = countByKey(events, etHourKey, unique)
   return trailingKeys(now, hours, HOUR_MS, etHourKey).map((key) => ({ key, count: counts.get(key) ?? 0 }))
