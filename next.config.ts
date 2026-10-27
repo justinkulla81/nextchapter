@@ -195,10 +195,13 @@ const nextConfig: NextConfig = {
         ],
       },
       // Pages that read the job-title scan are rendered per request (not at build) and kept by the CDN for six hours.
-      ...["/jobs/title", "/salaries", "/tools/pay-check"].map((source) => ({ source, headers: [{ key: "Cache-Control", value: "public, s-maxage=21600, stale-while-revalidate=86400" }] })),
+      // Next answers a per-request page with "private, no-store", which ignores a Cache-Control set here, so these pages were
+      // never cached (checked live 2026-10-27: x-vercel-cache MISS every time). Vercel-CDN-Cache-Control is read by Vercel's CDN
+      // alone and is not overridden; the browser still gets no-store.
+      ...["/jobs/title", "/salaries", "/tools/pay-check"].map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=21600, stale-while-revalidate=86400" }] })),
       // Rendered per request, not at build; the CDN keeps each page for an hour.
-      { source: "/sitemap.xml", headers: [{ key: "Cache-Control", value: "public, s-maxage=3600, stale-while-revalidate=86400" }] },
-      { source: "/top-employers", headers: [{ key: "Cache-Control", value: "public, s-maxage=3600, stale-while-revalidate=86400" }] },
+      { source: "/sitemap.xml", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
+      { source: "/top-employers", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       { source: "/images/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/marketing/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/guides/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
