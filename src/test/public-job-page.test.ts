@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, isIndexableJob, isPublicJob, jobPostingJsonLd, payLabel, type PublicJobRow } from '@/lib/jobs/public-job-page'
+import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, isIndexableJob, isPublicJob, isStaleVerified, jobPostingJsonLd, payLabel, type PublicJobRow } from '@/lib/jobs/public-job-page'
 
 const NOW = Date.parse('2026-10-22T12:00:00Z')
 const DAY = 86_400_000
@@ -70,6 +70,17 @@ describe('isPublicJob', () => {
   it('rejects an admin-confirmed ghost job', () => expect(isPublicJob(job(), NOW, true)).toBe(false))
   it('does not reject "International" or "Internal"', () =>
     expect(isPublicJob(job({ title: 'Internal Audit Director, International' }), NOW)).toBe(true))
+})
+
+describe('isStaleVerified', () => {
+  it('is false within the verification window', () => expect(isStaleVerified(new Date(NOW - 6 * DAY), NOW)).toBe(false))
+  it('is true past the window', () => expect(isStaleVerified(new Date(NOW - 8 * DAY), NOW)).toBe(true))
+  it('is false with no verification date (employer-posted)', () => expect(isStaleVerified(null, NOW)).toBe(false))
+  it('agrees with isPublicJob on the cutoff', () => {
+    const old = new Date(NOW - 8 * DAY)
+    expect(isStaleVerified(old, NOW)).toBe(true)
+    expect(isPublicJob(job({ lastVerifiedAt: old }), NOW)).toBe(false)
+  })
 })
 
 describe('jobPostingJsonLd', () => {

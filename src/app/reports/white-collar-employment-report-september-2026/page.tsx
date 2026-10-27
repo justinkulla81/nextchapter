@@ -4,6 +4,7 @@ import Script from 'next/script'
 import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { ReportEnhancements } from '@/components/reports/ReportEnhancements'
+import { ReportNextSteps } from '@/components/reports/ReportNextSteps'
 import { SITE_URL } from '@/lib/reports'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { ShareBar } from '@/components/marketing/ShareBar'
@@ -230,6 +231,8 @@ export default function WhiteCollarEmploymentReportSeptember2026() {
           </p>
         </div>
       </section>
+
+      <ReportNextSteps page="report_edition" />
 
       <PublicSiteFooter page="reports" />
 

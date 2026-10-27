@@ -34,6 +34,7 @@ FAMILIES = {  # name: (sitemap path, path regex)
     'jobs': ('/jobs/sitemap/0.xml', r'/jobs/'),
     'salaries': ('/salaries/sitemap.xml', r'/salaries/.+'),
     'jobs/title': ('/salaries/sitemap.xml', r'/jobs/title/.+'),
+    'cobra-aca/state': ('/sitemap.xml', r'^/resources/cobra-aca/[a-z-]+$'),
     'nonprofits': ('/sitemap.xml', r'^/nonprofits/[a-z-]+/.+'),
     'associations': ('/sitemap.xml', r'^/associations/.+'),
     'conferences': ('/sitemap.xml', r'^/conferences/.+'),

@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-133 clusters, 793 phrases.
+136 clusters, 831 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -26,11 +26,14 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/resources/unemployed` | page | job search while unemployed | Job search while out of work | unemployed professional; unemployed what to do; how to look for a job while unemployed; how to structure a job search; job search routine |
 | `/resources/pre-exit` | page | how to prepare for a layoff | Prepare for a layoff or a departure | signs of a layoff; about to be laid off; before you leave a job; preparing to leave a job; exit checklist; what to take when leaving a job |
 | `/topics/severance` | page | severance package | Understand and negotiate a severance package | severance pay; severance agreement; severance negotiation; how to negotiate severance; what is severance; severance and unemployment; is severance required; how much severance; layoff package |
-| `/resources/cobra-aca` | page | health insurance after a layoff: COBRA vs. marketplace | Health insurance after a job loss | cobra; health insurance after layoff; health insurance after job loss; aca marketplace after job loss; special enrollment period; cobra deadline; cobra cost |
+| `/resources/cobra-aca` | page | health insurance after a layoff: COBRA vs. marketplace | Compare COBRA with an ACA Marketplace plan after a job loss | cobra; cobra vs aca; cobra or aca; aca vs cobra; cobra vs obamacare; cobra or obamacare; cobra vs affordable care act; cobra vs marketplace; which is better cobra or marketplace; is aca cheaper than cobra; health insurance after layoff; health insurance after job loss; aca marketplace after job loss; special enrollment period; cobra deadline; cobra cost |
+| `/resources/cobra-aca/:state` | family | cobra vs aca in {state} | Compare COBRA with an ACA Marketplace plan in one state | is aca cheaper than cobra in {state}; cobra vs aca cost {state}; {state} cobra vs marketplace; can i get aca instead of cobra in {state}; {state} health insurance after a layoff |
+| `/tools/cobra-vs-aca-calculator` | page | cobra vs aca calculator | Work out what COBRA and a Marketplace plan would each cost me | cobra vs aca cost calculator; cobra or marketplace cost calculator; aca subsidy calculator after layoff; how much is health insurance after a layoff |
+| `/resources/severance-pay` | page | is severance taxed | Understand how severance is taxed, how long I have to sign, and what to ask for | severance pay taxes; severance tax withholding; is severance taxed at 22%; is severance taxed at a higher rate; how long do i have to sign a severance agreement; do i have to sign a severance agreement; severance agreement over 40; severance agreement 21 days 7 days; lump sum severance or salary continuation; what to ask for in a severance package; is severance pay required by law |
 | `/resources/bridge-income` | page | bridge income | Earn while searching | income while job searching; interim jobs; contract work after layoff; freelance after layoff; consulting after layoff; side income after layoff |
 | `/funding` | page | funding for laid-off workers | Money to relocate, retrain or study after a job loss | relocation assistance; retraining grants; training grants for laid off workers; tuition assistance after layoff; displaced worker programs; free courses for job seekers; wioa training funds; reskilling funding |
 | `/unemployment-benefits` | page | unemployment benefits by state | Unemployment insurance rules across states | unemployment benefits; unemployment insurance; how to file for unemployment; apply for unemployment; unemployment eligibility; weekly unemployment benefit amount; maximum unemployment benefit by state; how long does unemployment last; unemployment waiting week; does severance affect unemployment |
-| `/unemployment-benefits/:state` | family | {state} unemployment benefits | Unemployment benefits in one state | {state} unemployment; file for unemployment in {state}; {state} weekly unemployment benefit; {state} unemployment eligibility; {state} unemployment weeks |
+| `/unemployment-benefits/:state` | family | {state} unemployment benefits | Unemployment benefits in one state | {state} unemployment; file for unemployment in {state}; {state} weekly unemployment benefit; {state} unemployment eligibility; {state} unemployment weeks; does severance affect unemployment in {state}; can i collect unemployment if i get severance in {state}; {state} severance and unemployment |
 | `/layoffs` | page | layoff tracker | Which companies are laying off, and where | layoffs; recent layoffs; layoffs today; layoffs 2026; companies laying off; layoff list; mass layoffs; WARN notices; WARN notice list; WARN Act layoffs; who is laying off |
 | `/layoffs/this-week` | page | layoffs this week | Layoff notices filed in the last seven days | layoffs this week 2026; recent layoff notices; new WARN notices this week; latest layoff announcements |
 | `/layoffs/week` | page | layoffs by week | Layoff notices week by week | weekly layoffs; weekly layoff report; layoffs last week; WARN notices by week |
@@ -85,7 +88,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/start/building-something` | page | starting something while you keep your job | Start something on the side | side business; startup while keeping your job; start a company; leave a job to start a company |
 | `/topics` | page | job search and career change topics | Browse job search and career topics | career topics; layoff topics; job search questions |
 | `/tools` | page | free job search and layoff tools | Free calculators and lookups for job seekers | free job search tools online; layoff tools; job loss calculator; free career tools |
-| `/tools/severance-calculator` | page | severance calculator | Work out a severance figure | severance pay calculator; how much severance should I get; severance by years of service; severance weeks per year; severance estimate |
+| `/tools/severance-calculator` | page | severance calculator | Work out a severance figure | severance pay calculator; how much severance should I get; severance by years of service; severance weeks per year; severance estimate; severance calculator after taxes; severance pay tax calculator; net severance pay |
 | `/tools/salary-converter` | page | salary converter | Convert hourly pay to a yearly salary | hourly to salary calculator; hourly to yearly; salary to hourly; annual salary to hourly wage; hourly rate to annual salary |
 | `/tools/layoff-runway` | page | layoff runway calculator | Work out how long money lasts after a layoff | how long will my savings last after a layoff; savings runway calculator; how many months of savings do I need; job loss budget calculator |
 | `/tools/unemployment-estimator` | page | unemployment benefit estimator | Estimate unemployment benefits | unemployment calculator; how much unemployment will I get; unemployment benefits calculator by state; estimate unemployment pay |
@@ -216,9 +219,21 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/resources/cobra-aca`
 
-- Title: Health Insurance After a Layoff: COBRA vs. Marketplace
-- Description: How to keep or replace health insurance after leaving a job: COBRA vs. ACA Marketplace, the real deadlines, and how to compare what each will cost you.
-- H1: Health insurance after a layoff: COBRA vs. marketplace
+- Title: COBRA vs ACA After a Layoff: Which Costs Less?
+- Description: COBRA or the ACA Marketplace after a layoff: how the cost compares, the 60-day deadlines, the 2026 and 2027 subsidy rules and Medicaid, with a free calculator.
+- H1: COBRA vs ACA: health insurance after a layoff
+
+### `/tools/cobra-vs-aca-calculator`
+
+- Title: COBRA vs ACA Calculator: What You Would Pay
+- Description: Free COBRA vs ACA calculator: enter your COBRA quote and household income to see the Marketplace cost after the premium tax credit, with your deadlines.
+- H1: COBRA vs ACA cost calculator
+
+### `/resources/severance-pay`
+
+- Title: Severance Pay: Taxes, Your Agreement, What Is Typical
+- Description: How severance is taxed, how many days you have to review and sign an agreement, what to ask for, and how it affects unemployment in your state. Sourced.
+- H1: Severance pay: taxes, your agreement and what is typical
 
 ### `/resources/bridge-income`
 
@@ -308,8 +323,8 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/ai-training`
 
-- Title: AI Training for Colleges, Workforce Boards and Employers
-- Description: NextChapter measures the AI-skill gap for the people you serve and builds short courses that close it, for the budgets and grants that already pay for training.
+- Title: AI Training for Employees, Colleges and Workforce Boards
+- Description: AI training programs for employees and the people you serve: we measure the AI-skill gap and build short courses for budgets that already pay for training.
 
 ### `/jobs`
 
@@ -506,7 +521,7 @@ Title is shown before the site suffix " | NextChapter".
 ### `/tools/severance-calculator`
 
 - Title: Severance Calculator: Pay by Years of Service
-- Description: Free severance calculator: enter your pay and years of service to see the common one-to-two weeks per year range, and what paid health coverage adds.
+- Description: Free severance calculator: the common one-to-two weeks per year range from your pay, what is left after withholding, and your state’s unemployment rule.
 - H1: Severance calculator
 
 ### `/tools/salary-converter`

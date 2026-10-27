@@ -125,9 +125,9 @@ export const GUIDE_LANDING_CONTENT: GuideLandingContent[] = [
   },
   {
     slug: 'cobra-aca',
-    title: 'COBRA & marketplace coverage.',
+    title: 'COBRA vs ACA after a layoff.',
     metaDescription:
-      'How to keep or replace your health insurance after leaving a job — COBRA vs. ACA Marketplace, the real deadlines, and how to actually compare the cost.',
+      'COBRA or the ACA Marketplace after leaving a job: the cost, the 60-day deadlines, the 2026 and 2027 subsidy rules, every state, and a free calculator.',
     excerpt: [
       "You have 60 days after losing employer coverage to elect COBRA — but waiting the full 60 days creates a retroactive coverage gap that can complicate billing if you need care in the meantime, so the real decision window is closer to 30 days. COBRA keeps your exact same plan and network, at full premium (your former employer's contribution disappears, plus typically a 2% administrative fee) — usually more expensive than what you were paying, but with zero disruption to your doctors or prescriptions.",
       "The ACA Marketplace is the other option, and it's often — not always — cheaper, especially if your income drops enough to qualify for a subsidy. The tradeoff is a different network, so if you have an ongoing prescription or a specialist you don't want to lose, check that provider's Marketplace-plan coverage before switching. The right call depends on your specific premium math and whether continuity of care outweighs cost for you right now — there's no universal right answer, only the one that fits your situation.",
