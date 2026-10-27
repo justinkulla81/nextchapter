@@ -10,11 +10,11 @@ import { buttonVariants } from '@/components/ui/button'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { cn } from '@/lib/utils'
 
-export const metadata: Metadata = { title: 'Learning' }
+export const metadata: Metadata = { title: 'Learning and development' }
 
 export default async function EmployerLearningPage() {
   const orgUser = await requireEmployeesRole(['ADMIN', 'VIEWER'])
-  if (!(await orgProgramTypes(orgUser.orgId)).has('LEARNING')) return <NotOnProgram program="Learning" what={PROGRAM_TYPE_BLURB.LEARNING} />
+  if (!(await orgProgramTypes(orgUser.orgId)).has('LEARNING')) return <NotOnProgram program="Learning and development" what={PROGRAM_TYPE_BLURB.LEARNING} />
   const r = await learningReport(orgUser.orgId)
   const isAdmin = orgUser.role === 'ADMIN'
   captureServerEvent(orgUser.userId, 'org_ai_gap_viewed', { orgId: orgUser.orgId, surface: 'learning', shown: r.aiGap !== null, counted: r.aiGap?.counted ?? 0 })
@@ -22,7 +22,7 @@ export default async function EmployerLearningPage() {
   return (
     <div className="space-y-10">
       <div className="space-y-2">
-        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Learning</p>
+        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Employees · Learning and development</p>
         <h1 className="text-2xl font-semibold tracking-tight">Skills for the roles ahead</h1>
         <p className="max-w-2xl text-sm text-muted-foreground">
           Each person gets a skills plan for their role and the next one, with your courses first. You see counts only, once at least 10 people have joined.

@@ -21,7 +21,7 @@ export default async function InternalRolesPage() {
       <div className="space-y-8">
         <PageHeader
           title="Roles at your company"
-          intro="When your employer offers NextChapter Growth, the roles they post for their own people show up here."
+          intro="When your employer offers career growth through NextChapter, the roles they post for their own people show up here."
           action={
             <ActionLink href="/dashboard/find-my-job" kind="primary" event="internal_roles_find_job_clicked" props={{ source: 'internal_roles_empty' }}>
               Find a job

@@ -39,19 +39,19 @@ interface NavLink {
 // items), the real enforcement is requireOutplacementRole at each page/
 // action (see src/lib/employer/outplacement-auth.ts's own comment on why
 // both exist).
-// Growth and Learning show only for an org with that program.
+// Retention and Learning and development (the Employees section) show only for an org with that program.
 function buildLinks(role: OutplacementRole, programs: OutplacementProgramType[], employeesOnly = false): NavLink[] {
   // A person who holds only the Employees section (no outplacement access) sees only its pages.
   if (employeesOnly) {
     const only: NavLink[] = []
-    if (programs.includes('GROWTH')) only.push({ href: '/employer/growth', label: 'Growth' })
-    if (programs.includes('LEARNING')) only.push({ href: '/employer/learning', label: 'Learning' })
+    if (programs.includes('GROWTH')) only.push({ href: '/employer/growth', label: 'Retention' })
+    if (programs.includes('LEARNING')) only.push({ href: '/employer/learning', label: 'Learning and development' })
     return only
   }
   const links: NavLink[] = [{ href: '/employer', label: 'Overview' }]
   if (role === 'ADMIN' || role === 'VIEWER') {
-    if (programs.includes('GROWTH')) links.push({ href: '/employer/growth', label: 'Growth' })
-    if (programs.includes('LEARNING')) links.push({ href: '/employer/learning', label: 'Learning' })
+    if (programs.includes('GROWTH')) links.push({ href: '/employer/growth', label: 'Retention' })
+    if (programs.includes('LEARNING')) links.push({ href: '/employer/learning', label: 'Learning and development' })
   }
   if (role === 'ADMIN') {
     links.push(

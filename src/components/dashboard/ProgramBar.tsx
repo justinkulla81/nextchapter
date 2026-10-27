@@ -1,14 +1,20 @@
-import { programForCandidate } from '@/lib/employer/program-server'
+import { orgProgram, programForCandidate } from '@/lib/employer/program-server'
+import { staffProgramsForCandidate } from '@/lib/employer/staff-programs'
 import { readableTextOn } from '@/lib/higher-ed/branding'
 
 // The employer's own brand across the top of the dashboard for someone enrolled through their
-// company's outplacement program (the same idea as the college bar for alumni). Shows only when
+// company's outplacement program, or its retention or learning and development program for
+// current employees (the same idea as the college bar for alumni). Shows only when
 // the company has set a look; otherwise nothing, so nobody sees an unbranded strip. Always
 // co-marked "with NextChapter", never replacing the NextChapter name.
 export async function ProgramBar({ candidateId, className }: { candidateId: string; className?: string }) {
-  let program: Awaited<ReturnType<typeof programForCandidate>> = null
+  let program: { name: string; settings: Awaited<ReturnType<typeof orgProgram>>['settings'] } | null = null
   try {
     program = await programForCandidate(candidateId)
+    if (!program) {
+      const staff = (await staffProgramsForCandidate(candidateId))[0]
+      if (staff) program = await orgProgram(staff.orgId)
+    }
   } catch (error) {
     console.error('Failed to load employer program bar:', error)
   }

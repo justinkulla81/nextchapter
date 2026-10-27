@@ -22,7 +22,7 @@ export async function addInternalRole(_prev: StaffFormState, f: FormData): Promi
   const role = await createInternalRole(g.orgUser.orgId, g.orgUser.orgName, g.orgUser.email ?? g.orgUser.userId, input)
   captureServerEvent(g.orgUser.userId, 'internal_role_posted', { orgId: g.orgUser.orgId, postingId: role.id, hasApplyLink: !!input.applyUrl })
   revalidatePath('/employer/growth')
-  return { ok: `${input.title} is posted. People on your Growth program see it under Roles at your company.` }
+  return { ok: `${input.title} is posted. Your enrolled employees see it under Roles at your company.` }
 }
 
 export async function setInternalRoleOpen(postingId: string, open: boolean): Promise<{ error?: string }> {
