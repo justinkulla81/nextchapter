@@ -25,6 +25,6 @@ describe('scraped states', () => {
   })
 
   it('cover the states our own fetchers do not read', () => {
-    expect(Object.keys(SCRAPED_STATES).sort()).toEqual(['CT', 'HI', 'IL', 'KY', 'MO', 'MT', 'ND', 'NY', 'OK', 'PA', 'SC', 'TN', 'VA', 'WA'])
+    expect(Object.keys(SCRAPED_STATES).sort()).toEqual(['CT', 'HI', 'IL', 'MO', 'MT', 'ND', 'NY', 'OK', 'PA', 'SC', 'TN', 'VA', 'WA'])
   })
 })

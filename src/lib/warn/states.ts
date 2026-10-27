@@ -1,7 +1,7 @@
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { readTables, columnOf, parseDate, parseCount, stripTags } from './html'
 import { parseCsv } from './csv'
-import { excelSerialToDate } from './xlsx'
+import { excelSerialToDate, type XlsxSheet } from './xlsx'
 import type { WarnRow } from './sources'
 import { columnEdges, fixedEdges, pdfPages, pdfTableRows, type ColumnEdges, type ColumnSpec, type PdfItem } from './pdf-table'
 
@@ -1065,6 +1065,69 @@ export function parseHawaiiWarn(html: string): WarnRow[] {
       address: null,
       industry: null,
     })
+  }
+  return out
+}
+
+/**
+ * Kentucky (Kentucky Career Center, now at kyworks.ky.gov) posts a "WARN Notice Report" workbook for the current year and a "Prior Year
+ * Warn Notices" workbook with a sheet per year, both linked from its Rapid Response page. A row has the date received, the workforce
+ * board, county, company, a full NAICS code, the headcount, closure or layoff and the projected date. The two files differ a little:
+ * the current one names its columns ("Company: Company Name"), the prior one leaves the county and company headers blank and puts the
+ * dates in text. The daily Big Local News scraper had these two dates swapped, so Kentucky's notices showed as filed months after
+ * they were.
+ */
+export const KENTUCKY_PAGE = 'https://kyworks.ky.gov/Services/Pages/Rapid-Response-Layoffs-and-Closures.aspx'
+
+export function resolveKentuckyFiles(pageHtml: string): { current: string | null; prior: string | null } {
+  let current: string | null = null
+  let prior: string | null = null
+  for (const m of pageHtml.matchAll(/<a\s[^>]*href="([^"]+\.xlsx?)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const text = stripTags(m[2]).replace(/\s+/g, ' ').trim()
+    const href = m[1].startsWith('http') ? m[1] : new URL(m[1], 'https://kyworks.ky.gov').toString()
+    if (/prior year/i.test(text)) prior ??= href
+    else if (/warn notice report/i.test(text)) current ??= href
+  }
+  return { current, prior }
+}
+
+export function parseKentuckyWorkbook(sheets: XlsxSheet[]): WarnRow[] {
+  const out: WarnRow[] = []
+  const date = (v: string | undefined): Date | null => {
+    const t = (v ?? '').trim()
+    if (!t) return null
+    return /[/-]/.test(t) ? parseDate(t) : excelSerialToDate(t)
+  }
+  for (const sheet of sheets) {
+    const h = sheet.rows.findIndex((r) => r.some((c) => /^date received$/i.test(String(c ?? '').trim())))
+    if (h === -1) continue
+    const header = sheet.rows[h].map((c) => String(c ?? ''))
+    const iDate = columnOf(header, 'Date Received')
+    const iCounty = columnOf(header, 'County') >= 0 ? columnOf(header, 'County') : 2
+    // The prior-year sheets leave the company column's header blank (it sits right after the county).
+    const iCompany = columnOf(header, 'Company Name', 'Company') >= 0 ? columnOf(header, 'Company Name', 'Company') : 3
+    const iNaics = columnOf(header, 'NAICS Code', 'NAICS')
+    const iCount = columnOf(header, 'Number of Employees Affected', 'Employees')
+    const iType = columnOf(header, 'Closure or Layoff')
+    const iProjected = columnOf(header, 'Projected Date')
+    for (const row of sheet.rows.slice(h + 1)) {
+      const employer = String(row[iCompany] ?? '').replace(/\s+/g, ' ').trim()
+      const noticeDate = date(row[iDate])
+      if (!employer || !noticeDate) continue
+      const type = String(row[iType] ?? '')
+      out.push({
+        state: 'KY',
+        employer,
+        normalizedEmployer: normalizeOrgName(employer),
+        noticeDate,
+        effectiveDate: iProjected >= 0 ? date(row[iProjected]) : null,
+        employees: parseCount(String(row[iCount] ?? '')),
+        layoffType: /closure/i.test(type) ? 'Closure' : /layoff/i.test(type) ? 'Layoff' : null,
+        county: String(row[iCounty] ?? '').replace(/\s+/g, ' ').trim() || null,
+        address: null,
+        industry: normalizeIndustry(String(row[iNaics] ?? '').trim() || null, 'KY'),
+      })
+    }
   }
   return out
 }
