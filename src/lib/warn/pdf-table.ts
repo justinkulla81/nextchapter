@@ -47,6 +47,12 @@ export function columnEdges(items: PdfItem[], columns: ColumnSpec[]): ColumnEdge
   }))
 }
 
+/** Columns at fixed positions, for a table whose headers are centred over wide columns so their positions say little about where the data starts. */
+export function fixedEdges(columns: { key: string; from: number }[]): ColumnEdges {
+  const sorted = [...columns].sort((a, b) => a.from - b.from)
+  return sorted.map((c, i) => ({ key: c.key, from: i === 0 ? -Infinity : c.from, to: i === sorted.length - 1 ? Infinity : sorted[i + 1].from, headerY: Infinity }))
+}
+
 const DATE_CELL = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/
 /** How far (in PDF points; a line is about 12) a piece of text may sit from the row it belongs to. */
 const MAX_WRAP = 45
@@ -58,14 +64,14 @@ const MAX_WRAP = 45
  * One record per row that has a date in `anchorKey`; every other piece of text joins the nearest such row by height, so a name
  * that wraps above and below the line carrying the dates stays with its own record.
  */
-export function pdfTableRows(items: PdfItem[], columns: ColumnSpec[], anchorKey: string, edgesFromHeader?: ColumnEdges): Record<string, string>[] {
+export function pdfTableRows(items: PdfItem[], columns: ColumnSpec[], anchorKey: string, edgesFromHeader?: ColumnEdges, options: { dataTop?: number } = {}): Record<string, string>[] {
   const edges = edgesFromHeader ?? columnEdges(items, columns)
   const keyOf = (x: number) => edges.find((e) => x >= e.from && x < e.to)?.key ?? null
   const anchors = items.filter((i) => keyOf(i.x) === anchorKey && DATE_CELL.test(i.s))
   if (!anchors.length) return []
   const ys = [...new Set(anchors.map((a) => Math.round(a.y)))].sort((a, b) => b - a)
   // A page that continues the table has no header to cut at; its own top is data.
-  const dataTop = edgesFromHeader ? Infinity : edges[0].headerY - 6
+  const dataTop = options.dataTop ?? (edgesFromHeader ? Infinity : edges[0].headerY - 6)
   const byAnchor = new Map<number, PdfItem[]>(ys.map((y) => [y, []]))
   for (const it of items) {
     const key = keyOf(it.x)

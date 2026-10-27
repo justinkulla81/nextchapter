@@ -551,7 +551,7 @@ export async function importFileState(state: string, file: Buffer, fileUrl: stri
 
   const run = await prisma.warnSyncRun.create({ data: { state } })
   try {
-    const rows = spec.parse(file)
+    const rows = await spec.parse(file)
     result.fetched = rows.length
     if (!rows.length) throw new Error(`${state}: the downloaded file produced no rows — its layout has changed`)
 

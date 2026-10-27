@@ -31,6 +31,7 @@ import {
   NEW_MEXICO_PAGE,
   resolveNewMexicoPdfs,
   parseNewMexicoWarn,
+  parseNevadaWarn,
   WEST_VIRGINIA_PAGE,
   parseWestVirginiaWarn,
   NEW_JERSEY_FILE,
@@ -268,11 +269,20 @@ export function parseTexasWorkbook(sheets: XlsxSheet[]): WarnRow[] {
  * The weekly browser job opens `page`, finds the newest link matching
  * `link`, and posts the file to /api/admin/warn/import-file.
  */
-export const FILE_STATES: Record<string, { page: string; link: string; parse: (buf: Buffer) => WarnRow[]; hasIndustry: boolean }> = {
+export const FILE_STATES: Record<string, { page: string; link: string; parse: (buf: Buffer) => WarnRow[] | Promise<WarnRow[]>; hasIndustry: boolean }> = {
   TX: {
     page: 'https://www.twc.texas.gov/data-reports/warn-notice',
     link: 'warn-act-listings',
     parse: (buf) => parseTexasWorkbook(readXlsx(buf)),
+    hasIndustry: false,
+  },
+  // Nevada's site answers scripted requests with Akamai's "Access Denied", even from a rendered browser on a server, but serves
+  // the file to a person's own browser. So the weekly job does not fetch it (it is not in scripts/warn/render-states.ts FILES): the
+  // year's PDF is saved from a real browser and posted with importFileState. Only the "WARN" rows are kept, not "Non-WARN".
+  NV: {
+    page: 'https://detr.nv.gov/Page/WARN',
+    link: 'WARN_and_Non_WARN_Master',
+    parse: (buf) => parseNevadaWarn(buf),
     hasIndustry: false,
   },
   // Rhode Island began answering scripted requests with 403 in autumn 2026.
@@ -315,19 +325,17 @@ const TABLE_HAS_INDUSTRY = new Set(['FL', 'MD', 'IN'])
  * the state's public record; the scraper only reads it.
  *
  * These are the states whose pages are PDFs, dashboards or search forms that
- * our own fetchers could not read.
+ * our own fetchers could not read. GA, LA and NM were here until 2026-10-26: their scrapers had returned nothing for months (the
+ * Louisiana one needs a module the job does not install), and our own readers now cover them (WARN_SOURCES, RENDERED_STATES).
  */
 export const SCRAPED_STATES: Record<string, string> = {
   CT: 'https://dolpublicdocumentlibrary.ct.gov/CsblrCategory?prefix=%2Frapid_response%2Fwarn_documents',
-  GA: 'https://www.tcsg.edu/warn-public-view/',
   HI: 'https://labor.hawaii.gov/wdc/real-time-warn-updates/',
   IL: 'https://www2.illinois.gov/dceo/WorkforceDevelopment/warn/Pages/default.aspx',
   KY: 'https://kcc.ky.gov/employer/Pages/Business-Downsizing-Assistance---WARN.aspx',
-  LA: 'https://www.laworks.net/Downloads/Downloads_WFD.asp',
   MO: 'https://jobs.mo.gov/warn/',
   MT: 'https://wsd.dli.mt.gov/wioa/related-links/warn-notice-page',
   ND: 'https://www.jobsnd.com/documents',
-  NM: 'https://www.dws.state.nm.us/Rapid-Response',
   NY: 'https://dol.ny.gov/warn-notices',
   OK: 'https://www.employoklahoma.gov/Participants/s/warnnotices',
   PA: 'https://www.pa.gov/agencies/dli/programs-services/workforce-development-home/warn-requirements/warn-notices',
