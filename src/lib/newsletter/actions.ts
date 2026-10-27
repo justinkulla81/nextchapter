@@ -14,6 +14,8 @@ const SOURCES = new Set([
   // The three signup spots on the White Collar Employment Report.
   'employment-report', 'employment-report-popup', 'employment-report-pdf',
   'site-footer',
+  // Hub pages of the public salary and local job market sections.
+  'salaries', 'places',
 ])
 const MAX_PER_HOUR_PER_IP = 5
 
