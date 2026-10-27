@@ -121,7 +121,10 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
                  '[^a-z0-9 ]', '', 'g'),
                  '[[:space:]]+(llc|inc|incorporated|corp|corporation|co|company|ltd|lp|llp)$', '') AS gkey
         FROM "WarnNotice" w
-        WHERE w."dismissedAt" IS NULL AND w."noticeDate" IS NOT NULL AND w."noticeDate" <= NOW()
+        -- Only layoffs attributed to a U.S. state. An announcement with no state (a company's global cuts, a foreign
+        -- government) is not a U.S. layoff: 128 of them, 335,448 workers, were half of this year's headline total
+        -- until 2026-10-27 (src/lib/warn/layoff-counts.ts says what is left out).
+        WHERE w."dismissedAt" IS NULL AND w."state" IS NOT NULL AND w."noticeDate" IS NOT NULL AND w."noticeDate" <= NOW()
       ),
       kept AS (
         SELECT b.*,
@@ -188,7 +191,10 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
                  '[^a-z0-9 ]', '', 'g'),
                  '[[:space:]]+(llc|inc|incorporated|corp|corporation|co|company|ltd|lp|llp)$', '') AS gkey
         FROM "WarnNotice" w
-        WHERE w."dismissedAt" IS NULL AND w."noticeDate" IS NOT NULL AND w."noticeDate" <= NOW()
+        -- Only layoffs attributed to a U.S. state. An announcement with no state (a company's global cuts, a foreign
+        -- government) is not a U.S. layoff: 128 of them, 335,448 workers, were half of this year's headline total
+        -- until 2026-10-27 (src/lib/warn/layoff-counts.ts says what is left out).
+        WHERE w."dismissedAt" IS NULL AND w."state" IS NOT NULL AND w."noticeDate" IS NOT NULL AND w."noticeDate" <= NOW()
       ),
       kept AS (
         SELECT b.*,
@@ -240,7 +246,7 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         // Several sites under one name: the bracketed address of whichever
         // row sorted first would describe only one of them.
         employer: cleanEmployer(r.sites > 1 ? r.employer.replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+-\s+.*$/, '') : r.employer, r.company),
-        state: r.state ?? 'US',
+        state: r.state ?? 'US', // never null since 2026-10-27 (the query keeps only rows with a state); kept for the type
         county: r.county?.replace(/\s+County$/i, '') ?? null,
         workers: r.workers,
         sites: r.sites,

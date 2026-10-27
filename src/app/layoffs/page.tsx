@@ -5,6 +5,8 @@ import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffTracker } from '@/components/news/LayoffTracker'
 import { getLayoffTracker } from '@/lib/warn/public-tracker'
+import { getLayoffCounts } from '@/lib/warn/layoff-counts'
+import { LayoffNumbersNote } from '@/components/layoffs/LayoffNumbersNote'
 import { getLargestRecentEmployers, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { getNationalLaborData } from '@/lib/market/bls-national'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
@@ -18,11 +20,12 @@ export const metadata: Metadata = { ...base, alternates: { ...base.alternates, t
 const LINK = 'text-brand underline underline-offset-4'
 
 export default async function LayoffsHubPage() {
-  const [tracker, national, states, employers] = await Promise.all([
+  const [tracker, national, states, employers, counts] = await Promise.all([
     getLayoffTracker(60),
     getNationalLaborData(),
     getStateSummaries().catch(() => []),
     getLargestRecentEmployers(60).catch(() => []),
+    getLayoffCounts(),
   ])
   const withNotices = new Set(states.map((s) => s.state))
   const without = ALL_STATE_CODES.filter((c) => !withNotices.has(c))
@@ -42,11 +45,14 @@ export default async function LayoffsHubPage() {
             </>
           )}
 
+ <LayoffNumbersNote counts={counts} />
+
           <section aria-labelledby="use-data" className="mt-12 rounded-xl border border-border bg-white p-6">
             <h2 id="use-data" className="text-xl font-semibold tracking-tight text-navy">Use the layoff data</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               <li><Link href="/layoffs/this-week" className={LINK}>Layoffs this week</Link>: notices filed in the last seven days.</li>
               <li><Link href="/layoffs/week" className={LINK}>Layoffs by week</Link>, every week of the last two years.</li>
+              <li><Link href="/layoffs/by-state" className={LINK}>WARN notices by state</Link>: notices and workers named in the last 12 months, each state’s own record and a file to download.</li>
               <li><Link href="/data" className={LINK}>Download the WARN record</Link> as CSV or JSON, free to reuse with a link back.</li>
               <li><Link href="/data/embed" className={LINK}>Embed layoff notices</Link> for any state on your site, or <Link href="/feeds/layoffs" className={LINK}>subscribe by RSS</Link>.</li>
             </ul>
@@ -122,6 +128,8 @@ export default async function LayoffsHubPage() {
               <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits by state</Link></li>
               <li><Link href="/resources/72-hours" className={LINK}>The first 72 hours after a layoff</Link></li>
               <li><Link href="/resources/cobra-aca" className={LINK}>COBRA and marketplace health coverage</Link></li>
+              <li><Link href="/resources/warn-act" className={LINK}>The WARN Act in plain language: 60 days’ notice and what you are owed</Link></li>
+              <li><Link href="/tools/layoff-risk-check" className={LINK}>Layoff risk check: warning signs where you work</Link></li>
             </ul>
           </section>
           <div className="mt-10">
