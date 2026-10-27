@@ -274,7 +274,9 @@ export async function computeFunnel(windowDays: FunnelWindowDays): Promise<Funne
 
   // Member cohort: registered profiles created in the window. Anonymous (never registered)
   // profiles are counted as "started" only, so the registration drop-off is visible.
-  const cohortWhere = { createdAt: { gte: since } }
+  // Demo workspaces (the workforce demo generator) create profiles with userId 'demo-…'; they are not people, and 332 of them
+  // (made 15–16 October) once made "started an account" read 336 for a month with 4 real ones.
+  const cohortWhere = { createdAt: { gte: since }, NOT: { userId: { startsWith: 'demo-' } } }
   const registeredWhere = { ...cohortWhere, registrationCompletedAt: { not: null } }
   const [started, registered, onboarded, withResume, activated, engaged, plus, hired] = await Promise.all([
     prisma.candidateProfile.count({ where: cohortWhere }),
@@ -291,7 +293,7 @@ export async function computeFunnel(windowDays: FunnelWindowDays): Promise<Funne
     }),
     countRaw(Prisma.sql`
       SELECT COUNT(*)::bigint AS n FROM "CandidateProfile" p
-      WHERE p."createdAt" >= ${since} AND p."registrationCompletedAt" IS NOT NULL AND p."introCommittedAt" IS NOT NULL
+      WHERE p."createdAt" >= ${since} AND p."userId" NOT LIKE 'demo-%' AND p."registrationCompletedAt" IS NOT NULL AND p."introCommittedAt" IS NOT NULL
         AND (SELECT COUNT(*) FROM "CandidateVisitDay" v WHERE v."candidateId" = p."id") >= 3
         AND EXISTS (SELECT 1 FROM "Resume" r WHERE r."candidateId" = p."id")
         AND EXISTS (SELECT 1 FROM "TrackedJob" t WHERE t."candidateId" = p."id" AND (t."savedAt" IS NOT NULL OR t."firstClickedAt" IS NOT NULL))`),
