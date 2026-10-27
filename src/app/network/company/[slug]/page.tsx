@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, permanentRedirect } from 'next/navigation'
+import { permanentRedirect, redirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -11,7 +11,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { DEFAULT_IMAGE, breadcrumbJsonLd, organizationRef, personRef } from '@/lib/seo/jsonld'
 import { SITE_URL } from '@/lib/seo/facts'
 import { stateName, stateSlug } from '@/lib/seo/states'
-import { getCompanies, noticeDay } from '@/lib/warn/layoff-pages'
+import { getCompanies, noticeDay, resolveCompanySlug } from '@/lib/warn/layoff-pages'
 import { getNetworkCompany } from '@/lib/network/company'
 import { networkCompanySeo } from '@/lib/seo/templates'
 import { aboutCount, networkTitle, totalWorkers } from '@/lib/network/eligibility'
@@ -48,8 +48,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function NetworkCompanyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const known = (await getCompanies()).get(slug)
-  if (!known) notFound()
+  const companies = await getCompanies()
+  const known = companies.get(slug)
+  if (!known) {
+    // No WARN filings under this slug: another spelling of an employer that has them, else the layoffs hub. Never a dead end.
+    const alias = resolveCompanySlug(slug, companies.keys())
+    if (alias) permanentRedirect(`/network/company/${alias}`)
+    redirect('/layoffs')
+  }
   const data = await getNetworkCompany(slug)
   if (!data) permanentRedirect(`/layoffs/company/${slug}`)
 

@@ -8,7 +8,9 @@ import { getEmployerRankings, getFunctionRankings, SHARE_MIN_ROLES } from '@/lib
 import { titleMeta } from '@/lib/seo/title'
 import { fitDescription } from '@/lib/seo/templates'
 
-export const revalidate = 3600
+// Not prerendered: the rankings scan every open job, and a build runs seven workers at once, which timed out the
+// 2026-10-27 deploy. The data is cached for a day (employer-rankings.ts) and the CDN keeps each page (next.config.ts headers).
+export const dynamic = 'force-dynamic'
 
 const TITLE = 'Top employers: entry-level hiring, no experience needed and AI hiring'
 const DESCRIPTION =

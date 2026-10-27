@@ -81,6 +81,27 @@ export async function syncWarnState(stateCode: string, promote = true): Promise<
         console.error(`${stateCode}: extra WARN file ${extra} was skipped: ${e instanceof Error ? e.message : String(e)}`)
       }
     }
+    // A list shown a page at a time is read page by page, newest first, until a page is empty or older than the age limit.
+    if (source.paginate) {
+      const oldest = new Date(Date.now() - MAX_AGE_DAYS * 86_400_000)
+      for (let page = 2; page <= source.paginate.maxPages; page++) {
+        const pageUrl = `${url}${url.includes('?') ? '&' : '?'}page=${page}`
+        let more: WarnRow[]
+        try {
+          const r = await fetch(pageUrl, { signal: AbortSignal.timeout(60_000), headers: { 'User-Agent': WARN_USER_AGENT } })
+          if (!r.ok) break
+          more = await source.parse(Buffer.from(await r.arrayBuffer()), pageUrl)
+        } catch (e) {
+          console.error(`${stateCode}: page ${page} of the WARN list could not be read: ${e instanceof Error ? e.message : String(e)}`)
+          break
+        }
+        if (!more.length) break
+        rows = [...rows, ...more]
+        const dated = more.filter((r) => r.noticeDate)
+        if (dated.length && dated.every((r) => r.noticeDate! < oldest)) break
+        await new Promise((r) => setTimeout(r, 300))
+      }
+    }
     // Sources that publish the headcount on a separate page fill it in here.
     if (source.enrich) rows = await source.enrich(rows)
     result.fetched = rows.length

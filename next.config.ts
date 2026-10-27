@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
   // own default when unset.
   distDir: process.env.NEXT_DIST_DIR || ".next",
   experimental: {
+    // A page whose data query times out while the build runs seven workers against the database is retried instead of
+    // failing the whole deploy (a single /top-employers timeout did that on 2026-10-27).
+    staticGenerationRetryCount: 3,
     // Default is 1MB — a real LinkedIn "Connections.csv" export (the file
     // the Networking page's CSV import Server Action reads) can exceed that
     // for anyone with a few thousand connections, which fails with a 413
@@ -52,6 +55,18 @@ const nextConfig: NextConfig = {
       })),
       // /feeds has no page of its own (the feeds are files under it); someone typing it wants the jobs.
       { source: '/feeds', destination: '/jobs', permanent: false },
+      // Parent addresses that have only dynamic children and no page of their own (someone trims a URL, or a crawler
+      // walks a breadcrumb up). Each goes to the nearest real page. src/test/route-orphans.test.ts fails when a new
+      // parent like this appears without a redirect here or an entry in its allowlist.
+      ...[
+        ['/network', '/layoffs'],
+        ['/network/company', '/layoffs'],
+        ['/layoffs/company', '/layoffs'],
+        ['/jobs/type', '/jobs'],
+        ['/authors', '/about'],
+        ['/places/:state/city', '/places/:state'],
+        ['/places/:state/county', '/places/:state'],
+      ].map(([source, destination]) => ({ source, destination, permanent: false })),
       // Retired 2026-10-23: the website shows plans, not prices.
       {
         source: '/insights/outplacement-cost-per-employee',
@@ -179,6 +194,8 @@ const nextConfig: NextConfig = {
       },
       // Pages that read the job-title scan are rendered per request (not at build) and kept by the CDN for six hours.
       ...["/jobs/title", "/salaries", "/tools/pay-check"].map((source) => ({ source, headers: [{ key: "Cache-Control", value: "public, s-maxage=21600, stale-while-revalidate=86400" }] })),
+      // Rendered per request, not at build; the CDN keeps each page for an hour.
+      { source: "/top-employers", headers: [{ key: "Cache-Control", value: "public, s-maxage=3600, stale-while-revalidate=86400" }] },
       { source: "/images/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/marketing/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/guides/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
