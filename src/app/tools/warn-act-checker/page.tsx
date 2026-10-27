@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
 import { WarnActChecker } from '@/components/tools/WarnActChecker'
+import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 
 export const metadata: Metadata = pageMetadata('/tools/warn-act-checker')
 
@@ -33,6 +34,9 @@ export default function WarnActCheckerPage() {
           The checker leaves out the exceptions (unforeseeable business circumstances, a faltering company, natural disaster), state notice laws and 90-day aggregation. Find your state’s boards and job centers on <Link href="/rapid-response" className={LINK}>rapid response by state</Link>.
         </p>
       </section>
+      <div className="mt-10">
+        <LayoffAlertForm source="tools:warn-act-checker" />
+      </div>
       <ActionBand
         title="Support for the people leaving"
         body="NextChapter provides outplacement for employers: coaching, a job search plan and reporting on outcomes."

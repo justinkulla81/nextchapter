@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { CollegeTable, EconomySection, EmployerList, HeadquarteredList, LayoffsSection, PlaceLinks, WorkforceSection } from '@/components/places/PlaceSections'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
+import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { conferencesAtPlace } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
@@ -67,6 +68,9 @@ export default async function StatePlacePage({ params }: { params: Promise<{ sta
 
       <LayoffsSection id="layoffs" title={`${name} layoffs`} scope={name} stats={d.layoffs} notices={d.recentNotices}
         trackerHref={d.layoffs.notices > 0 ? `/layoffs/${state}` : null} placeHref={linkPlace} />
+      <div className="mt-6">
+        <LayoffAlertForm state={code} stateLabel={name} source="places:state" />
+      </div>
 
       <EmployerList id="hiring" title={`Employers hiring most in ${name}`} intro="Employers with the most open professional roles on our job board right now." items={d.hiring} />
       <HeadquarteredList id="largest" title={`Largest employers headquartered in ${name}`} items={d.headquartered} />
