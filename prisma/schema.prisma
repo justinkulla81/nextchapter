@@ -11161,6 +11161,53 @@ model CrmTask {
   @@index([opportunityId])
 }
 
+/// A thought leader whose conference, panel and podcast appearances we follow so Justin does not miss the stages they are on.
+/// status: ACTIVE | SUGGESTED (found by the weekly search, waiting for Justin) | PAUSED
+/// source: SEED | ADMIN | DISCOVERY
+model SpeakerWatch {
+  id            String    @id @default(cuid())
+  name          String
+  /// Lowercased name: the lookup key, unique.
+  nameKey       String    @unique
+  org           String?
+  title         String?
+  /// What they are known for, a few words ("AI and jobs", "skills-based hiring").
+  topics        String?
+  /// Set when the person is already in the CRM.
+  crmPersonId   String?
+  status        String    @default("ACTIVE")
+  source        String    @default("ADMIN")
+  /// Why a suggested voice was suggested.
+  note          String?
+  lastCheckedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  appearances   SpeakerAppearance[]
+
+  @@index([status])
+}
+
+/// One stage a watched voice is booked on (or was). role: KEYNOTE | PANEL | TALK | PODCAST | TESTIMONY | OTHER
+model SpeakerAppearance {
+  id            String       @id @default(cuid())
+  speakerId     String
+  speaker       SpeakerWatch @relation(fields: [speakerId], references: [id], onDelete: Cascade)
+  eventName     String
+  hostName      String?
+  url           String?
+  eventDate     DateTime?
+  role          String       @default("PANEL")
+  location      String?
+  /// `<speaker id>:<link key>`, so a re-post never duplicates.
+  sourceRef     String       @unique
+  /// The CeoSpeakingOpportunity this appearance put in front of Justin, when there was one to act on.
+  opportunityId String?
+  createdAt     DateTime     @default(now())
+
+  @@index([speakerId, eventDate])
+  @@index([hostName])
+}
+
 /// A speaking, panel, research-application or demo-day spot for Justin as CEO. One row per opportunity.
 /// kind: KEYNOTE | PANEL | RESEARCH_APPLICATION | DEMO_DAY | PODCAST_WEBINAR | AWARD_CHALLENGE
 /// status: NEW | PLANNING | APPLIED | ACCEPTED | DONE | PASSED

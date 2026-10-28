@@ -207,9 +207,20 @@ export async function importSpeakingLeads(leads: SpeakingLeadInput[], dryRun: bo
     (await prisma.ceoSpeakingOpportunity.findMany({ where: { sourceRef: { in: refs } }, select: { sourceRef: true } })).map((x) => x.sourceRef),
   )
   const results: { title: string; alreadyLogged: boolean }[] = []
+  const seenInBatch = new Set<string>()
   for (const [i, l] of leads.entries()) {
     const sourceRef = refs[i]
-    if (have.has(sourceRef)) { results.push({ title: l.title, alreadyLogged: true }); continue }
+    if (have.has(sourceRef)) {
+      // A row nobody has acted on follows the search: a moved deadline, new dates or a new link replace the old ones.
+      if (!dryRun && !seenInBatch.has(sourceRef)) {
+        const cur = await prisma.ceoSpeakingOpportunity.findUnique({ where: { sourceRef }, select: { id: true, status: true, deadline: true, eventDate: true } })
+        if (cur && cur.status === 'NEW' && ((l.deadline && l.deadline.getTime() !== cur.deadline?.getTime()) || (l.eventDate && l.eventDate.getTime() !== cur.eventDate?.getTime()))) {
+          await prisma.ceoSpeakingOpportunity.update({ where: { id: cur.id }, data: { deadline: l.deadline ?? cur.deadline, eventDate: l.eventDate ?? cur.eventDate } })
+        }
+      }
+      results.push({ title: l.title, alreadyLogged: true }); continue
+    }
+    seenInBatch.add(sourceRef)
     have.add(sourceRef)
     if (!dryRun) await prisma.ceoSpeakingOpportunity.create({ data: { ...l, sourceRef, source: 'DISCOVERY' } })
     results.push({ title: l.title, alreadyLogged: false })

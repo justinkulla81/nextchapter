@@ -50,6 +50,8 @@ export default async function SpeakingPage({ searchParams }: { searchParams: Pro
         </p>
       </header>
 
+      <p className="text-sm"><Link href="/support/admin/crm/speaking/voices" className="underline">Voices to watch</Link> <span className="text-muted-foreground">· where Simon Johnson, Molly Kinder and other thought leaders are speaking</span></p>
+
       <form action={addSpeakingOpportunity} className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-6">
         <label className="text-xs text-muted-foreground sm:col-span-2">Name<input name="title" required maxLength={200} placeholder="HR Tech 2027 panel" className={input} /></label>
         <label className="text-xs text-muted-foreground">Type

@@ -45,3 +45,29 @@ describe('kindFromConferenceType', () => {
     expect(kindFromConferenceType('REPORT')).toBeNull()
   })
 })
+
+import { parseAppearances, kindForRole, nameKey } from '@/lib/speaking/voices'
+
+describe('speaker appearances', () => {
+  it('keeps good rows, drops bad links, and normalizes names', () => {
+    const r = parseAppearances({
+      appearances: [
+        { speaker: 'Simon Johnson', eventName: 'AI & Work Summit', url: 'https://x.org/a', eventDate: '2027-03-02', role: 'KEYNOTE', next: { url: 'https://x.org/2028' } },
+        { speaker: 'Molly Kinder', eventName: 'Panel', url: 'ftp://bad' },
+        { eventName: 'No speaker' },
+      ],
+      suggestedVoices: [{ name: 'Jane Roe', org: 'Org' }, { org: 'no name' }],
+      checked: ['  Simon   JOHNSON '],
+    })
+    expect(r.appearances).toHaveLength(1)
+    expect(r.errors).toHaveLength(2)
+    expect(r.suggested).toHaveLength(1)
+    expect(r.checked).toEqual(['simon johnson'])
+    expect(nameKey('Molly  Kinder')).toBe('molly kinder')
+  })
+  it('maps roles to opportunity kinds', () => {
+    expect(kindForRole('KEYNOTE')).toBe('KEYNOTE')
+    expect(kindForRole('PODCAST')).toBe('PODCAST_WEBINAR')
+    expect(kindForRole('TESTIMONY')).toBe('PANEL')
+  })
+})
