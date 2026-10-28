@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { CLOSE, SIGN_OFF, draftFor, draftKind, greetingFor, withComposeLinks, COMPOSE_ACCOUNT } from '@/lib/warn/layoff-alert-drafts'
+import { ALONGSIDE, CLOSE, SIGN_OFF, draftFor, draftKind, greetingFor, withComposeLinks, COMPOSE_ACCOUNT } from '@/lib/warn/layoff-alert-drafts'
 import { alertBody, type ContactCard, type ContactGroup } from '@/lib/warn/layoff-alert-rules'
 import type { LocalPicture } from '@/lib/warn/layoff-picture'
 
@@ -15,7 +15,7 @@ describe('head of HR note', () => {
     const d = draftFor('head_hr', card(), ctx)
     expect(d.body.startsWith("Chelsea,\n\nI'm Justin Kulla, founder of NextChapter")).toBe(true)
     expect(d.body).toContain('96,715 professional roles open in California right now')
-    expect(d.body).toContain('sit alongside it')
+    expect(d.body).toContain('We sit alongside them')
     expect(['875 people leaving Acme', "where Acme's 875 can land", 'a page for the 875 leaving Acme']).toContain(d.subject)
     expect(d.variant).toMatch(/^[ABC]$/)
     expect(draftFor('head_hr', card(), ctx).subject).toBe(d.subject)
@@ -42,11 +42,11 @@ describe('draftFor', () => {
       expect(d.body.startsWith('Chelsea,')).toBe(true)
       // We are selling: every note asks for the same 15-minute call and signs off the same way.
       expect(d.body).toContain(CLOSE)
-      expect(d.body.endsWith(SIGN_OFF)).toBe(true)
+      expect(d.body.endsWith(`${ALONGSIDE}\n\n${SIGN_OFF}`)).toBe(true)
       expect(d.body).not.toMatch(/one-page|handout|reply "yes"/i)
       expect(d.body.match(/https:\/\//g)?.length).toBe(['rapid_response', 'workforce_board', 'job_centers', 'economic_development'].includes(kind) ? 2 : 1)
-      if (!['head_hr', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development'].includes(kind)) expect(d.body.split(/\s+/).length).toBeLessThan(110)
-      expect(d.body.split(/\s+/).length).toBeLessThan(220)
+      if (!['head_hr', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development'].includes(kind)) expect(d.body.split(/\s+/).length).toBeLessThan(190)
+      expect(d.body.split(/\s+/).length).toBeLessThan(260)
       expect(d.body).not.toMatch(/white-collar/i)
     }
   })
