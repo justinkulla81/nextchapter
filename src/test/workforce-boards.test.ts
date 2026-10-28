@@ -22,6 +22,12 @@ describe('placeKey / countyKey', () => {
     expect(countyKey('Doña Ana County')).toBe(countyKey('Dona Ana'))
     expect(countyKey('Miami-Dade County')).toBe(countyKey('Dade'))
   })
+  it('drops a trailing city after a dash, the way Kentucky writes Jefferson County - Louisville', () => {
+    expect(countyKey('Jefferson County - Louisville')).toBe('jefferson')
+    expect(countyKey('Jefferson County - Louisville')).toBe(countyKey('Jefferson'))
+    // A dash with no spaces is part of a name and stays.
+    expect(countyKey('Miami-Dade County')).toBe(countyKey('Dade'))
+  })
 })
 
 describe('placeKeys', () => {
