@@ -1,7 +1,8 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { uploadResume } from '@/app/dashboard/resume/actions'
+import { uploadResume, type FormState } from '@/app/dashboard/resume/actions'
+import { startResumeUpload } from '@/app/onboarding/resume-actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { NewNarrativeForm } from '@/components/dashboard/portfolio/NarrativeManager'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { InlineLoadingState } from '@/components/ui/spinner'
+import { SpinnerCursor } from '@/components/ui/spinner-cursor'
 import { cn } from '@/lib/utils'
 import { useSaveSucceeded } from '@/components/dashboard/RetuneMoment'
 import { ResumeReadback } from '@/components/dashboard/ResumeReadback'
@@ -27,6 +29,8 @@ export function ResumeUploadForm({
   showNarrativePicker = true,
   resumeBookOptIn = true,
   redesign = false,
+  background = false,
+  initialError,
 }: {
   narratives?: ResumeUploadNarrativeOption[]
   // Off during onboarding (see /onboarding/resume) — a brand-new candidate
@@ -40,8 +44,15 @@ export function ResumeUploadForm({
   resumeBookOptIn?: boolean
   /** Redesigned page: a titled section, no box, no green file button, and a reason beside the disabled Upload. */
   redesign?: boolean
+  /**
+   * Onboarding: the upload returns as soon as the file is stored and the résumé is read afterwards, while the page
+   * shows its progress (startResumeUpload). Off on the dashboard, which reads the result straight away.
+   */
+  background?: boolean
+  /** Why the last upload was turned down (for example, not a résumé), shown above the button. */
+  initialError?: string
 }) {
-  const [state, formAction, pending] = useActionState(uploadResume, undefined)
+  const [state, formAction, pending] = useActionState<FormState, FormData>(background ? startResumeUpload : uploadResume, undefined)
   const [hasFile, setHasFile] = useState(false)
   const [narrativeChoice, setNarrativeChoice] = useState<string>(NONE_VALUE)
   const [creatingNarrative, setCreatingNarrative] = useState(false)
@@ -163,13 +174,14 @@ export function ResumeUploadForm({
           </Label>
         </div>
 
-        {state?.error && <p className={redesign ? 'text-base text-destructive' : 'text-sm text-destructive'}>{state.error}</p>}
+        {(state?.error ?? initialError) && <p className={redesign ? 'text-base text-destructive' : 'text-sm text-destructive'}>{state?.error ?? initialError}</p>}
 
         <Button type="submit" disabled={pending || !hasFile} variant={hasFile ? (redesign ? 'default' : 'success') : 'secondary'}>
-          {pending ? 'Uploading and analyzing…' : 'Upload resume'}
+          {pending ? (background ? 'Uploading…' : 'Uploading and analyzing…') : 'Upload resume'}
         </Button>
         {redesign && !hasFile && !pending && <p className="text-base text-muted-foreground">Choose a file above to turn on Upload.</p>}
-        {pending && <InlineLoadingState label="This takes a few seconds — analyzing your resume…" />}
+        {pending && <InlineLoadingState label={background ? 'Uploading your résumé…' : 'This takes a few seconds — analyzing your resume…'} />}
+        {background && <SpinnerCursor active={pending} />}
       </form>
       {showNarrativePicker && uploads > 0 && !pending && <ResumeReadback key={uploads} />}
     </>

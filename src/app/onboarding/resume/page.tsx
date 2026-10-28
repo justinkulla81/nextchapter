@@ -17,6 +17,10 @@ import { effectiveJourney } from '@/lib/journey/journey'
 import { entryOf, resumeRequired } from '@/lib/onboarding/resume-rule'
 import { skipResume } from '@/app/onboarding/bundle-actions'
 import { SkipResumeButton } from '@/components/onboarding/bundles/SkipResumeButton'
+import { ResumeParseProgress } from '@/components/onboarding/bundles/ResumeParseProgress'
+import { ResumeParseProblem } from '@/components/onboarding/bundles/ResumeParseProblem'
+import { readParseState } from '@/lib/resume/parse-state'
+import { parseView } from '@/lib/resume/parse-view'
 
 export default async function OnboardingResumePage() {
   const user = await getCurrentUser()
@@ -34,6 +38,8 @@ export default async function OnboardingResumePage() {
   const profile = user ? await getOrCreateCandidateProfile(user.id) : null
   // Members on the short question bundles (O2) get the same upload and the same duplicate-account checks, in the bundle's frame.
   const bundles = flowOfProfile(profile, user?.email) === 'bundles'
+  // Why the last upload was turned down, when it was (not a résumé, or no contact details on it).
+  let rejectedReason: string | undefined
 
   if (profile) {
     if (profile.registrationCompletedAt) {
@@ -55,6 +61,23 @@ export default async function OnboardingResumePage() {
         </div>
       )
     }
+
+    // The upload returns once the file is stored; the reading happens afterwards (startResumeUpload). While it
+    // runs, or after it failed, this page is the only place that answers for it: nothing later in onboarding
+    // may show half-filled answers, so the steps after this one stay behind resumeStepComplete as before.
+    const reading = parseView(readParseState(profile.journeyDetails))
+    if (reading.kind === 'processing' || reading.kind === 'failed') {
+      return (
+        <ReadingFrame bundles={bundles}>
+          {reading.kind === 'processing' ? (
+            <ResumeParseProgress fileName={reading.fileName} />
+          ) : (
+            <ResumeParseProblem fileName={reading.fileName} stalled={reading.stalled} />
+          )}
+        </ReadingFrame>
+      )
+    }
+    if (reading.kind === 'rejected') rejectedReason = reading.reason
 
     // Returning to this page after the resume step was already completed —
     // either in an earlier visit (resumeStepComplete) or just now for the
@@ -116,7 +139,7 @@ export default async function OnboardingResumePage() {
     const required = resumeRequired({ journey: profile ? effectiveJourney(profile) : null, entry: entryOf(profile?.journeyDetails) })
     return (
       <BundleShell id="resume" title={required ? 'Start with your résumé' : 'Add your résumé, or skip for now'}>
-        <ResumeUploadForm showNarrativePicker={false} resumeBookOptIn={profile?.resumeBookOptIn ?? true} />
+        <ResumeUploadForm showNarrativePicker={false} resumeBookOptIn={profile?.resumeBookOptIn ?? true} background initialError={rejectedReason} />
         {required ? (
           <p className="text-sm text-muted-foreground">Your Market Reality is worked out from your résumé, so this step cannot be skipped.</p>
         ) : (
@@ -176,7 +199,24 @@ export default async function OnboardingResumePage() {
         action plan, you&apos;ll be able to retake it — so don&apos;t overthink your answers here.
       </p>
 
-      <ResumeUploadForm showNarrativePicker={false} resumeBookOptIn={profile?.resumeBookOptIn ?? true} />
+      <ResumeUploadForm showNarrativePicker={false} resumeBookOptIn={profile?.resumeBookOptIn ?? true} background initialError={rejectedReason} />
+    </div>
+  )
+}
+
+// The frame around the reading/failed states: the bundle shell on the short question flow, the plain heading otherwise.
+function ReadingFrame({ bundles, children }: { bundles: boolean; children: React.ReactNode }) {
+  if (bundles) {
+    return (
+      <BundleShell id="resume" title="Reading your résumé">
+        {children}
+      </BundleShell>
+    )
+  }
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold tracking-tight">Reading your resume</h1>
+      {children}
     </div>
   )
 }
