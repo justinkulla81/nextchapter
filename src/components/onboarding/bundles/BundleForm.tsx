@@ -8,6 +8,7 @@ import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
 import { BUNDLES, bundleQuestions, journeyOfSituation, openRequired, type Answers, type BundleId, type QuestionId } from '@/lib/onboarding/bundles'
 import { computePayoff, type JobCounts, type PayoffInput } from '@/lib/onboarding/payoff'
 import { cn } from '@/lib/utils'
+import { SpinnerCursor } from '@/components/ui/spinner-cursor'
 import { PayoffPanel } from './PayoffPanel'
 import { PrimaryAction } from './PrimaryAction'
 import { QuestionField } from './QuestionField'
@@ -92,6 +93,7 @@ export function BundleForm({
 
   return (
     <form action={formAction} className={cn('space-y-8', pending && 'cursor-progress [&_*]:cursor-progress')}>
+      <SpinnerCursor active={pending} />
       {hidden && Object.entries(hidden).map(([name, value]) => <input key={name} type="hidden" name={name} value={value} />)}
       <div className="space-y-6">
         {questions.map((q) => (

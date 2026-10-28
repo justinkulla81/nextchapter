@@ -1,10 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { submitIntroCommitment } from '@/app/onboarding/actions'
-import { SubmitButton } from '@/components/ui/submit-button'
-import { Card, CardContent } from '@/components/ui/card'
-import { HowHeardCard } from '@/components/onboarding/HowHeardCard'
-import { prisma } from '@/lib/prisma'
+import { PrimaryAction } from '@/components/onboarding/bundles/PrimaryAction'
+import { SpinnerCursor } from '@/components/ui/spinner-cursor'
 import { flowOfProfile } from '@/lib/onboarding/flag'
 import { progressOf } from '@/lib/onboarding/progress'
 import { isGoogleConnectOn } from '@/lib/google/connect-switch'
@@ -22,65 +20,25 @@ export default async function WelcomePage() {
   // The short question bundles end with the Google reveal (optional, and skippable there), before this welcome.
   if (isGoogleConnectOn() && flowOfProfile(profile) === 'bundles' && !progressOf(profile.journeyDetails).googleRevealAt) redirect('/onboarding/google')
 
-  // Ask only when we don't already know: no invite/link/CRM source and no earlier answer.
-  const referral = await prisma.candidateReferral.findUnique({ where: { candidateId: profile.id }, select: { setBy: true } })
-  const showHowHeard = !referral && (!profile.leadSource || profile.leadSourceSetBy === 'auto')
-
   const name = profile.firstName ? `, ${profile.firstName}` : ''
 
+  // Same shape as the question screens: one serif headline, one line, the primary action right under it.
   return (
     <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome to NextChapter{name}.</h1>
-        <p className="text-muted-foreground">
-          NextChapter is the leading job transition platform. The quick version:
+      <div className="space-y-3">
+        <h1 className="font-display text-4xl leading-tight font-semibold tracking-tight text-balance text-ink">Welcome to NextChapter{name}.</h1>
+        <p className="text-base text-muted-foreground">
+          Each week you commit to a Search Sprint. Doing the work is what moves your grade.
         </p>
       </div>
 
-      <Card>
-        <CardContent className="space-y-4 pt-6 text-sm text-foreground">
-          <p>
-            You already know what getting hired actually takes: outreach, applications, interview
-            prep, networking — done consistently, not in bursts. NextChapter turns that into a{' '}
-            <strong>Search Sprint</strong>{' '}
-            you commit to before each week starts, and tracks your progress as your{' '}
-            <strong>Market Reality Assessment</strong>{' '}
-            — how competitive you look to employers right now. Connect Gmail and Calendar and it
-            runs as your own networking and job application CRM, automatically logging outreach,
-            replies, and interviews so you never have to enter them by hand.
-          </p>
-          <ul className="list-disc space-y-1.5 pl-5">
-            <li>Your Market Reality Assessment set your starting grade.</li>
-            <li>Complete your weekly Search Sprint and your grade moves, because you&apos;re proving you&apos;re doing the work.</li>
-            <li><strong>Learning</strong>, <strong>Working</strong>, and <strong>Networking</strong> raise it the same way, over time.</li>
-            <li>A <strong>skills and personality assessment</strong> personalizes your job matches and recommendations.</li>
-          </ul>
-          <p>Do the work, improve your Market Reality, and here&apos;s what you get:</p>
-          <ul className="list-disc space-y-1.5 pl-5">
-            <li>The <strong>Certified Executive Dossier</strong>, handed to recruiters and hiring managers</li>
-            <li><strong>Executive recruiter visibility</strong></li>
-            <li>Access to the private <strong>NC Job Board</strong></li>
-          </ul>
-          <p className="text-muted-foreground">
-            Honestly, the points aren&apos;t the point — they&apos;re just a proxy for doing what
-            actually gets people hired. Let&apos;s get started.
-          </p>
-        </CardContent>
-      </Card>
-
-      {showHowHeard && <HowHeardCard />}
-
-      <div className="rounded-lg border-2 border-success bg-success/5 p-6 text-center">
-        <p className="text-sm font-medium text-foreground">
-          Commit below and we&apos;ll queue up {INTRO_WELCOME_BONUS_POINTS} bonus points for your
-          first Search Sprint — they land the moment you set it.
+      <form action={submitIntroCommitment} className="space-y-3">
+        <SpinnerCursor />
+        <PrimaryAction pendingLabel="Locking it in…">I&apos;m committed — take me to my dashboard</PrimaryAction>
+        <p className="text-sm text-muted-foreground">
+          Commit now and {INTRO_WELCOME_BONUS_POINTS} bonus points land with your first Search Sprint.
         </p>
-        <form action={submitIntroCommitment} className="mt-4 flex justify-center">
-          <SubmitButton size="lg" pendingLabel="Locking it in…">
-            I&apos;m committed — take me to my dashboard
-          </SubmitButton>
-        </form>
-      </div>
+      </form>
     </div>
   )
 }
