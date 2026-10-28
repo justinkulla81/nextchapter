@@ -7,6 +7,8 @@ import { withAudienceHtml } from '@/lib/email/audience-tag'
 import { ALERT_HOLD_HOURS, alertBody, alertReadiness, alertSubject, shouldAlert, type AlertInput, type LayoffKind } from './layoff-alert-rules'
 import { enrichLayoffHr } from './layoff-hr-enrich'
 import { layoffPeople } from './layoff-alert-people'
+import { withComposeLinks } from './layoff-alert-drafts'
+import { draftContext } from './layoff-alert-links'
 import { inferHq } from './layoff-hq-state'
 import { buildLocalPicture, classifyLayoffIndustry } from './layoff-context'
 import { pictureRows, placeFromHeadlines, talkingPoints, type Audience } from './layoff-picture'
@@ -103,7 +105,8 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     const PARTNER: Record<string, Audience> = { rapid_response: 'rapid_response', workforce_board: 'workforce_board', job_centers: 'job_centers', economic_development: 'economic_development' }
     const groups = related?.groups.map((g) => (PARTNER[g.key] ? { ...g, pitch: talkingPoints(picture, PARTNER[g.key]) ?? undefined } : g)) ?? []
     if (related) {
-      input.groups = groups
+      // A "Write email" button on each contact with an address: Gmail compose from justin@launchyournextchapter.com, a note written for their role. A failure here sends the alert without buttons.
+      input.groups = await draftContext(picture, l.employer, state, notice?.county ?? null).then((x) => withComposeLinks(groups, x)).catch((e) => { console.error('Layoff alert drafts failed for', l.employer, e); return groups })
       const where = [city ?? notice?.county, state].filter(Boolean).join(', ')
       input.place = where ? `${where}${placeNote ? ` (${placeNote})` : ''}` : related.placeLabel
     }
