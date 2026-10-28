@@ -19,6 +19,7 @@ vi.mock('@/lib/security/rate-limit', () => ({
   allowRequest: (...a: unknown[]) => allowRequest(...a),
 }))
 vi.mock('@/emails/admin-new-lead', () => ({ default: () => null }))
+vi.mock('@/lib/leads/lifecycle/file-lead', () => ({ fileLeadInCrm: async () => 'person_1' }))
 
 import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 

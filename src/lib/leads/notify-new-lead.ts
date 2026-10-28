@@ -4,6 +4,8 @@ import { createResend } from '@/lib/email/resend-client'
 import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
 import { allowByTarget, allowRequest, DAY_MS } from '@/lib/security/rate-limit'
 import AdminNewLeadEmail from '@/emails/admin-new-lead'
+import { fileLeadInCrm } from '@/lib/leads/lifecycle/file-lead'
+import { waitlistVariant } from '@/lib/leads/lifecycle/config'
 
 // Emails the admin when someone gives us an email address on the public site
 // (journey picker, job alerts, newsletter, guides, résumé submissions,
@@ -14,7 +16,9 @@ import AdminNewLeadEmail from '@/emails/admin-new-lead'
 // Two limits keep a script from filling the inbox: one alert per address per
 // week, and DAILY_CAP alerts a day in all. Past the cap the lead is still
 // stored and still appears in the daily digest and the captured-emails page.
-// The contact form is not routed through here: it already emails the admin.
+// Every lead is also filed in the CRM here (see lifecycle/file-lead.ts), so the
+// record exists the moment the address arrives. The contact form is not routed
+// through here: it already files itself and emails the admin.
 
 const DAILY_CAP = 40
 
@@ -25,9 +29,21 @@ export interface NewLead {
   channel: string
   /** Which page or offer it came from. */
   detail?: string
+  /** The journey (persona slug) they picked, when they picked one. */
+  journey?: string
 }
 
 async function send(lead: NewLead): Promise<void> {
+  // File the lead in the CRM first, whether or not an alert goes out.
+  const personId = await fileLeadInCrm({
+    email: lead.email,
+    name: lead.name,
+    channel: lead.channel,
+    detail: lead.detail,
+    journey: lead.journey,
+    b2b: lead.channel === 'Waitlist' && waitlistVariant(lead.detail ?? '') === 'waitlist_b2b',
+  })
+
   const adminEmail = getAccountActivityAdminEmail()
   if (!adminEmail || !process.env.RESEND_API_KEY) return
   // Never alert on the admin's own test signups.
@@ -47,6 +63,7 @@ async function send(lead: NewLead): Promise<void> {
       channel: lead.channel,
       detail: lead.detail ?? '',
       listUrl: `${appUrl}/support/admin/captured-emails`,
+      crmUrl: personId ? `https://admin.launchyournextchapter.com/support/admin/crm/people/${personId}` : null,
     }),
   })
   if (error) console.error('Failed to send new-lead alert:', error)
