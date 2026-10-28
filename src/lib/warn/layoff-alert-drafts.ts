@@ -86,10 +86,9 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
       subject: p.openInState != null ? `${n(p.openInState)} open roles for the ${who} leaving ${org}` : `A page for the ${who} leaving ${org}`,
       body: [hello,
         `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for laid-off professionals.`,
-        `${open ?? fallbackOpen} The ${who} leaving ${org} can land in them, and I built a page that shows each person the roles that fit their work. It is free for them: ${page}`,
-        `We work alongside outplacement, never instead of it, and the goal is the same: get your people into their next role faster. 28% of unemployed professionals are still searching after 27 weeks, so speed matters.`,
-        `Each person gets five things: a job search built on their skills, help with networking (often the fastest route to a new job), retraining with an emphasis on AI, fractional work while they search, and coaching.`,
-        `We're new, so we'll build a program that fits you and your people, and price won't be the reason to say no. Would you be open to a 15-minute call this week?`,
+        `I saw that ${who} are leaving ${org} and wanted to reach out. ${p.openInState != null && state ? `There are ${n(p.openInState)} professional roles open in ${state} right now${p.openSeniorInState ? `, ${n(p.openSeniorInState)} at manager level or above` : ''}, so there is somewhere for them to go.` : ''} I put together a page that shows each person the roles that fit the work they've done. It's free for them: ${page}`.replace(/\s{2,}/g, ' '),
+        `We're not a replacement for outplacement. If you already work with a provider, we sit alongside it. We just help people get hired faster, with a job search built around their skills, help with networking, retraining (a lot of it on AI), fractional work while they look, and coaching.`,
+        `We're a young company, so we're happy to build something that fits you and your people, and cost won't be the reason it doesn't happen. Could we grab 15 minutes this week?`,
         'Justin'].join('\n\n'),
     }
   }
