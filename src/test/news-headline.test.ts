@@ -33,4 +33,10 @@ describe('isPlausibleCompany', () => {
     const { readLayoffHeadline } = await import('@/lib/warn/news-headline')
     expect(readLayoffHeadline('Kroger’s lays off 3,000 employees')?.company).toBe('Kroger')
   })
+  it('files a short brand name under the company it stands for', async () => {
+    const { readLayoffHeadline } = await import('@/lib/warn/news-headline')
+    const r = readLayoffHeadline('Amex to cut 5% of workforce as it restructures for AI')
+    expect(r?.company).toBe('American Express')
+    expect(r?.companyKey).toBe('american express')
+  })
 })
