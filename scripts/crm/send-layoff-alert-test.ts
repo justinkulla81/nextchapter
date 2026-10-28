@@ -39,7 +39,7 @@ async function main() {
     picture: { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) },
   }
   const { draftFor, draftKind } = await import('../../src/lib/warn/layoff-alert-drafts')
-  const dctx = { picture, employerPage: null, peoplePage: `${SITE}/network/company/${employerSlug(n.employer, null)}` }
+  const dctx = { picture, peoplePage: `${SITE}/network/company/${employerSlug(n.employer, null)}` }
   const printed = ['head_hr', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development'].map((k) => {
     const c = withPitch.find((g) => g.key === k)?.cards.find((x) => x.email)
     const kind = c ? draftKind(k, c.title) : null
