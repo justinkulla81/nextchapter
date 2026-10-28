@@ -132,7 +132,6 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'members', label: 'Members', comingIn: null },
       { key: 'jobs', label: 'Alumni jobs', comingIn: null, requiredRoles: POST_JOBS },
       { key: 'region', label: 'Local market', comingIn: null },
-      { key: 'layoffs', label: 'Layoff alerts', comingIn: null },
       { key: 'outreach', label: 'Outreach', comingIn: null },
       { key: 'mentors', label: 'Mentoring', comingIn: null },
       { key: 'events', label: 'Events', comingIn: null },
@@ -140,6 +139,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'volunteers', label: 'Volunteers', comingIn: null },
       { key: 'connect', label: 'Circles, fairs & class notes', comingIn: null },
       { key: 'engagement', label: 'Engagement', comingIn: null },
+      // Layoffs come last: the workspace starts with what is going well (src/lib/higher-ed/workspaces.ts, owner rule 2026-10-27).
+      { key: 'layoffs', label: 'Layoff alerts', comingIn: null },
     ],
   },
   {
@@ -225,8 +226,9 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'overview', label: 'Overview', comingIn: null, orgKind: 'workforce' },
       { key: 'home', label: 'Shared Dossiers', workforceLabel: 'Hiring', comingIn: null },
-      { key: 'support', label: 'Layoff support', comingIn: null, orgKind: 'workforce' },
       { key: 'page', label: 'Employer page and roles', workforceLabel: 'Jobs you post', comingIn: null },
+      // Layoff support comes last: the workspace starts with hiring and jobs.
+      { key: 'support', label: 'Layoff support', comingIn: null, orgKind: 'workforce' },
     ],
   },
   {
@@ -242,10 +244,11 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'home', label: 'Dashboard', comingIn: null },
       { key: 'companies', label: 'Member companies', comingIn: null },
-      { key: 'layoffs', label: 'Layoffs', comingIn: null },
       { key: 'participants', label: 'Participants', comingIn: null },
       { key: 'local', label: 'Kept in region', comingIn: null },
       { key: 'region', label: 'Local market', comingIn: null },
+      // Layoffs come last: the workspace starts with companies, people and jobs.
+      { key: 'layoffs', label: 'Layoffs', comingIn: null },
     ],
   },
   {

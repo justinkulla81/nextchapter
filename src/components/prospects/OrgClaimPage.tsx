@@ -4,9 +4,14 @@ import { communityStatCards, sourceLine } from '@/lib/org-claims/format'
 import { cleanDomain } from '@/lib/org-claims/rules'
 import type { ClaimableOrg } from '@/lib/org-claims/org'
 import type { CommunityStats } from '@/lib/org-claims/community-stats'
+import { claimBenefits } from '@/lib/org-claims/claim-benefits'
+import type { KitKind } from '@/lib/org-claims/org-kit'
 
-/** The claim page for any organization in the CRM: its name, the community numbers with their source and dates, and one action. */
-export function OrgClaimPage({ org, stats, peopleCount = null }: { org: ClaimableOrg; stats: CommunityStats | null; peopleCount?: number | null }) {
+/**
+ * The claim page for any organization in the CRM. It starts with what the page gives people (jobs, who is hiring, contacts, events, training,
+ * other help), then the one action; the layoff-filing numbers for its place come last, as context.
+ */
+export function OrgClaimPage({ org, stats, peopleCount = null, page = null }: { org: ClaimableOrg; stats: CommunityStats | null; peopleCount?: number | null; page?: { kind: KitKind; path: string } | null }) {
   const cards = communityStatCards(stats)
   const domain = cleanDomain(org.emailDomain)
   return (
@@ -18,24 +23,22 @@ export function OrgClaimPage({ org, stats, peopleCount = null }: { org: Claimabl
 
       <section className="space-y-6 py-12" aria-labelledby="org-claim-h">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">For {org.name}</p>
-        <h1 id="org-claim-h" className="font-serif text-4xl font-semibold leading-tight tracking-tight text-navy sm:text-5xl [text-wrap:balance]">
-          {cards.length ? `What layoff filings show near ${org.name}` : `The ${org.name} page`}
-        </h1>
+        <h1 id="org-claim-h" className="font-serif text-4xl font-semibold leading-tight tracking-tight text-navy sm:text-5xl [text-wrap:balance]">The {org.name} page</h1>
+        <p className="max-w-2xl text-lg text-muted-foreground">
+          We built a page for {org.name} from public data. It is free for the people who find it. Claiming it makes it yours.
+        </p>
         {peopleCount != null && (
           <p className="max-w-2xl text-lg text-navy">{peopleCount.toLocaleString('en-US')} {peopleCount === 1 ? 'person has' : 'people have'} already connected with {org.name} on NextChapter.</p>
         )}
-        {cards.length && stats ? (
-          <>
-            <StatStrip stats={cards} />
-            <p className="text-xs text-muted-foreground">{sourceLine(stats)}</p>
-          </>
-        ) : (
-          <p className="max-w-2xl text-muted-foreground">
-            {stats
-              ? `We hold no layoff-notice data for ${stats.place.stateName} in this period, so we show no numbers.`
-              : `We do not have a place on file for ${org.name}, so we show no community numbers.`}
-          </p>
-        )}
+        <div className="rounded-2xl border border-border bg-white p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">What your page gives people</h2>
+          <ul className="mt-3 grid gap-2 text-base text-navy sm:grid-cols-2">
+            {claimBenefits(page?.kind).map((b) => <li key={b} className="flex gap-2"><span aria-hidden className="text-orange">•</span>{b}</li>)}
+          </ul>
+          {page && (
+            <p className="mt-4 text-sm"><a href={page.path} className="font-medium text-brand underline underline-offset-4">See your page</a></p>
+          )}
+        </div>
       </section>
 
       <section id="claim" className="space-y-5 border-t border-border py-10" aria-labelledby="claim-h">
@@ -45,6 +48,20 @@ export function OrgClaimPage({ org, stats, peopleCount = null }: { org: Claimabl
           <OrgClaimForm slug={org.slug} orgName={org.name} domain={domain} sections={org.orgTypes.includes('EMPLOYER')} />
         </div>
       </section>
+
+      {stats && (
+        <section className="space-y-4 border-t border-border py-10" aria-labelledby="context-h">
+          <h2 id="context-h" className="font-serif text-xl font-semibold tracking-tight text-navy">Community context</h2>
+          {cards.length ? (
+            <>
+              <StatStrip stats={cards} />
+              <p className="text-xs text-muted-foreground">{sourceLine(stats)}</p>
+            </>
+          ) : (
+            <p className="max-w-2xl text-sm text-muted-foreground">We hold no layoff-notice data for {stats.place.stateName} in this period, so we show no numbers.</p>
+          )}
+        </section>
+      )}
 
       <p className="border-t border-border pt-6 text-xs text-muted-foreground">
         This page is unlisted and shows no personal information. The numbers are public filings, not figures from {org.name}.

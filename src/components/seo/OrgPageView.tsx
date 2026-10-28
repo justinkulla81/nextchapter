@@ -81,46 +81,6 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
         <p className="mt-3 max-w-3xl text-sm text-muted-foreground">Counts are live postings from employers’ own career sites in the area’s cities, checked daily.</p>
       </section>
 
-      <AreaNotices
-        id="notices"
-        title={row.kind === 'WORKFORCE_BOARD' ? 'Layoff notices in this board’s area' : 'Layoff notices where it serves'}
-        intro={`WARN notices filed with ${st} for employers in the workforce area${area.statewide ? '' : ' this organization serves'}.`}
-        notices={notices}
-        moreHref={`/layoffs/${ss}`}
-        moreLabel={`All layoff notices in ${st}`}
-      />
-
-      <CompanyEvents
-        id="company-news"
-        title="Company news from SEC filings"
-        intro="Acquisitions, leadership changes and capital raised by the employers hiring most in this area, from their SEC filings in the last six months."
-        events={events}
-        showCompany
-      />
-
-      <LocalEventSection id="local-events" title={`Events hosted by ${row.name}`} intro="Job fairs, workshops and business events this organization runs or co-hosts." scope={{ link: { kind: row.kind, id: row.id } }} />
-
-      <section aria-labelledby="contact" className="mt-12">
-        <h2 id="contact" className={H2}>How to reach it</h2>
-        <dl className="mt-4 grid max-w-3xl gap-3 rounded-xl border border-border bg-white p-5 text-sm sm:grid-cols-2">
-          {(row.street || row.city) && <div><dt className="text-xs text-muted-foreground">Address</dt><dd>{addressLine(row)}</dd></div>}
-          {row.phone && <div><dt className="text-xs text-muted-foreground">Phone</dt><dd><a href={`tel:${row.phone.replace(/[^\d+]/g, '')}`} className={LINK}>{row.phone}</a></dd></div>}
-          {row.hours && <div><dt className="text-xs text-muted-foreground">Hours</dt><dd>{row.hours}</dd></div>}
-          {row.email && <div><dt className="text-xs text-muted-foreground">General inbox</dt><dd><a href={`mailto:${row.email}`} className={LINK}>{row.email}</a></dd></div>}
-          {row.website && <div><dt className="text-xs text-muted-foreground">Website</dt><dd><TrackedLink href={row.website} rel="nofollow" event="org_page_outbound_clicked" properties={{ ...props, target: 'website' }} className={LINK}>{row.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}</TrackedLink></dd></div>}
-          {row.detailsUrl && <div><dt className="text-xs text-muted-foreground">Official listing</dt><dd><TrackedLink href={row.detailsUrl} rel="nofollow" event="org_page_outbound_clicked" properties={{ ...props, target: 'listing' }} className={LINK}>{row.kind === 'JOB_CENTER' ? 'CareerOneStop' : 'Source'}</TrackedLink></dd></div>}
-        </dl>
-      </section>
-
-      {area.counties.length > 0 && (
-        <section aria-labelledby="counties" className="mt-12">
-          <h2 id="counties" className={H2}>{area.counties.length === 1 ? 'County served' : 'Counties served'}</h2>
-          <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
-            {area.counties.map((c) => <li key={c.fips}><Link href={placeUrl.county(ss, c.slug)} className={LINK}>{c.name}</Link></li>)}
-          </ul>
-        </section>
-      )}
-
       {hiring.employers.length > 0 && (
         <section aria-labelledby="hiring" className="mt-12">
           <h2 id="hiring" className={H2}>Employers hiring most in the area</h2>
@@ -150,6 +110,20 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
         </section>
       )}
 
+      <section aria-labelledby="contact" className="mt-12">
+        <h2 id="contact" className={H2}>How to reach it</h2>
+        <dl className="mt-4 grid max-w-3xl gap-3 rounded-xl border border-border bg-white p-5 text-sm sm:grid-cols-2">
+          {(row.street || row.city) && <div><dt className="text-xs text-muted-foreground">Address</dt><dd>{addressLine(row)}</dd></div>}
+          {row.phone && <div><dt className="text-xs text-muted-foreground">Phone</dt><dd><a href={`tel:${row.phone.replace(/[^\d+]/g, '')}`} className={LINK}>{row.phone}</a></dd></div>}
+          {row.hours && <div><dt className="text-xs text-muted-foreground">Hours</dt><dd>{row.hours}</dd></div>}
+          {row.email && <div><dt className="text-xs text-muted-foreground">General inbox</dt><dd><a href={`mailto:${row.email}`} className={LINK}>{row.email}</a></dd></div>}
+          {row.website && <div><dt className="text-xs text-muted-foreground">Website</dt><dd><TrackedLink href={row.website} rel="nofollow" event="org_page_outbound_clicked" properties={{ ...props, target: 'website' }} className={LINK}>{row.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}</TrackedLink></dd></div>}
+          {row.detailsUrl && <div><dt className="text-xs text-muted-foreground">Official listing</dt><dd><TrackedLink href={row.detailsUrl} rel="nofollow" event="org_page_outbound_clicked" properties={{ ...props, target: 'listing' }} className={LINK}>{row.kind === 'JOB_CENTER' ? 'CareerOneStop' : 'Source'}</TrackedLink></dd></div>}
+        </dl>
+      </section>
+
+      <LocalEventSection id="local-events" title={`Events hosted by ${row.name}`} intro="Job fairs, workshops and business events this organization runs or co-hosts." scope={{ link: { kind: row.kind, id: row.id } }} />
+
       {b.colleges.length > 0 && (
         <section aria-labelledby="colleges" className="mt-12">
           <h2 id="colleges" className={H2}>Colleges in the area</h2>
@@ -176,6 +150,23 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
         </section>
       )}
 
+      {area.counties.length > 0 && (
+        <section aria-labelledby="counties" className="mt-12">
+          <h2 id="counties" className={H2}>{area.counties.length === 1 ? 'County served' : 'Counties served'}</h2>
+          <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
+            {area.counties.map((c) => <li key={c.fips}><Link href={placeUrl.county(ss, c.slug)} className={LINK}>{c.name}</Link></li>)}
+          </ul>
+        </section>
+      )}
+
+      <CompanyEvents
+        id="company-news"
+        title="Company news from SEC filings"
+        intro="Acquisitions, leadership changes and capital raised by the employers hiring most in this area, from their SEC filings in the last six months."
+        events={events}
+        showCompany
+      />
+
       <ActionBand
         title={`Run ${row.name}?`}
         body="Claim this page and set up a free workspace. Use a work email at your organization’s domain."
@@ -183,6 +174,15 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
         href={claimSlug ? `/prepared/${claimSlug}` : '/government-workforce#claim'}
         event="org_page_claim_clicked"
         properties={{ ...props, hasClaimPage: !!claimSlug, jobsOpen: b.jobsOpen }}
+      />
+
+      <AreaNotices
+        id="notices"
+        title={row.kind === 'WORKFORCE_BOARD' ? 'Layoff notices in this board’s area' : 'Layoff notices where it serves'}
+        intro={`WARN notices filed with ${st} for employers in the workforce area${area.statewide ? '' : ' this organization serves'}.`}
+        notices={notices}
+        moreHref={`/layoffs/${ss}`}
+        moreLabel={`All layoff notices in ${st}`}
       />
 
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
