@@ -113,6 +113,11 @@ function count(n: string | undefined, k: string | undefined): number | null {
   return total > 0 && total < 500_000 && !(total >= 1990 && total <= 2100 && !n.includes(',')) ? total : null
 }
 
+/** Short names a headline uses for a well-known company, mapped to the name it is tracked under (normalized, lower case). */
+const BRAND_NAMES: Record<string, string> = {
+  amex: 'American Express',
+}
+
 export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
   // Quote marks around a phrase ('large part') are not part of it; a possessive's apostrophe is.
   const h = headline
@@ -135,7 +140,8 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
     ?? h.match(SHARE_PCT) ?? h.match(SHARE_WORDS) ?? h.match(LARGE_PART) ?? h.match(HEADCOUNT)
   const raw = (m?.groups?.co ?? m?.groups?.tco?.replace(/\s+(?:teams?|staff|workforce|employees|workers)$/i, ''))?.trim()
   if (!raw) return null
-  const company = raw.replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
+  const named = raw.replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
+  const company = BRAND_NAMES[named.toLowerCase()] ?? named
   if (company.length < 2 || NOT_A_NAME.test(company) || !isPlausibleCompany(company)) return null
   const companyKey = normalizeOrgName(company)
   if (!companyKey) return null
