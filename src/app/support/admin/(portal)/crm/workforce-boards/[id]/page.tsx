@@ -18,6 +18,7 @@ import { getAreaBrief } from '@/lib/workforce/area-brief-data'
 import { AreaBriefView } from '@/components/workforce/AreaBriefView'
 import { getOrgBrand } from '@/lib/branding/store'
 import { claimSlugFor } from '@/lib/seo/org-pages'
+import { boardIntroFor } from '@/lib/workforce/board-intro-data'
 
 export const maxDuration = 60
 
@@ -131,6 +132,7 @@ export default async function WorkforceBoardPage({
   const windowLabel = windowDef.label.toLowerCase()
   const brief = await getAreaBrief({ boardId: board.id }).catch(() => null)
   // The board's brand colors (read from its website) and its launch kit, when they exist: the kit page is what gets sent to the board.
+  const intro = await boardIntroFor(board).catch(() => null)
   const [brand, claimSlug, kitLink] = await Promise.all([
     getOrgBrand('WORKFORCE_BOARD', board.id),
     claimSlugFor('WORKFORCE_BOARD', board.id),
@@ -183,6 +185,17 @@ export default async function WorkforceBoardPage({
           <BoardContact role={board.directorTitle ?? 'Director'} name={board.directorName} email={board.directorEmail} phone={board.directorPhone} />
           <BoardContact role="Board chair" name={board.chairName} email={board.chairEmail} phone={board.chairPhone} />
         </div>
+        {intro && (
+          <details className="rounded-lg border border-border p-3 text-sm">
+            <summary className="cursor-pointer font-medium">
+              First email to {board.directorName ?? 'the director'}{' '}
+              <a href={intro.href} target="_blank" rel="noreferrer" className="ml-2 text-primary hover:underline">Write email</a>
+            </summary>
+            <p className="mt-2 text-xs text-muted-foreground">Opens Gmail from justin@launchyournextchapter.com, to {intro.to}. Same wording as the layoff alert notes, with this board&apos;s live numbers. Nothing is sent from here.</p>
+            <p className="mt-2 font-medium">Subject: {intro.subject}</p>
+            <pre className="mt-1 whitespace-pre-wrap font-sans text-sm text-foreground">{intro.body}</pre>
+          </details>
+        )}
       </header>
 
       <details className="rounded-lg border border-border p-4" open>
