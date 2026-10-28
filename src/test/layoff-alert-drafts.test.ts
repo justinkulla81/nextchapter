@@ -8,14 +8,14 @@ const picture: LocalPicture = {
   topIndustries: [{ key: 'technology', openings: 33465 }], unemploymentRate: 4.9, areaLabel: 'Los Angeles County', layoffs12mo: null, layoffEvents12mo: null,
 }
 const card = (o: Partial<ContactCard> = {}): ContactCard => ({ name: 'Chelsea Lee', title: 'Head of HR', org: 'Acme', email: 'chelsea@acme.com', phone: null, strength: null, href: null, greet: 'Chelsea', ...o })
-const ctx = { picture, employerPage: 'https://launchyournextchapter.com/prepared/acme' }
+const ctx = { picture, peoplePage: 'https://launchyournextchapter.com/network/company/acme' }
 
 describe('head of HR note', () => {
   it("is Justin's wording and signs off 'Justin'", () => {
     const d = draftFor('head_hr', card(), ctx)
     expect(d.body).toContain('we complement it')
-    expect(d.body).toContain('Claim it with your work email')
-    expect(d.body).toContain('nothing for them to fill out')
+    expect(d.body).toContain('free for them to use: https://launchyournextchapter.com/network/company/acme')
+    expect(d.body).not.toMatch(/claim/i)
     expect(d.body).toContain('I saw the news that 875 people are leaving Acme.')
     expect(d.body.endsWith('\n\nJustin')).toBe(true)
   })

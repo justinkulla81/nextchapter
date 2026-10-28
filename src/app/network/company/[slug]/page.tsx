@@ -6,6 +6,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { JourneyPicker } from '@/components/home/JourneyPicker'
+import { PersonaOnboardingCta } from '@/components/start/PersonaOnboardingCta'
 import { NetworkViewTracker } from '@/components/network/NetworkViewTracker'
 import { canonical } from '@/lib/seo/canonical'
 import { DEFAULT_IMAGE, breadcrumbJsonLd, organizationRef, personRef } from '@/lib/seo/jsonld'
@@ -138,13 +139,19 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
           </p>
 
           <section aria-labelledby="join" className="mt-8 rounded-xl border border-border bg-white p-6">
-            <h2 id="join" className="text-xl font-semibold tracking-tight text-navy">Join in two taps, no résumé needed</h2>
+            <h2 id="join" className="text-xl font-semibold tracking-tight text-navy">Affected by the {c.name} layoff? Start here</h2>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              For current and former {c.name} employees, and anyone planning their next move. Pick what sounds like you and we send a first-week plan.
+              We already know your employer and your situation, so there is nothing to fill in first. One tap starts a plan built for a layoff: benefits and deadlines first, then jobs matched to your background.
             </p>
-            <div className="mt-5">
-              <JourneyPicker source={`network:company:${slug}`} compact situations={SITUATIONS} />
+            <div className="mt-4">
+              <PersonaOnboardingCta persona="laid-off" situation="just_laid_off" source={`network:company:${slug}`} label="Start my plan" />
             </div>
+            <details className="mt-5 text-sm">
+              <summary className="cursor-pointer font-medium text-brand">Not laid off? Pick what sounds like you</summary>
+              <div className="mt-4">
+                <JourneyPicker source={`network:company:${slug}`} compact situations={SITUATIONS} />
+              </div>
+            </details>
           </section>
 
           <section aria-labelledby="what-filed" className="mt-12">

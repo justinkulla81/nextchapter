@@ -9,9 +9,14 @@ import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 export function PersonaOnboardingCta({
   persona,
   situation,
+  source,
+  label = 'Get your Market Reality Assessment',
 }: {
   persona: string
   situation: SituationKey
+  /** The page it sits on, when that page already knows who the visitor is ('network:company:<slug>'). */
+  source?: string
+  label?: string
 }) {
   const posthog = usePostHog()
 
@@ -24,13 +29,13 @@ export function PersonaOnboardingCta({
         <Link
           href={MARKET_REALITY_START_HREF}
           onClick={() => {
-            posthog?.capture('persona_landing_cta_clicked', { persona, situation })
+            posthog?.capture('persona_landing_cta_clicked', { persona, situation, source })
             sessionStorage.setItem(SITUATION_SESSION_KEY, situation)
           }}
         />
       }
     >
-      Get your Market Reality Assessment
+      {label}
     </Button>
   )
 }

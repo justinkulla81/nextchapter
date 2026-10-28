@@ -14,7 +14,7 @@ import { layoffPeople } from '../../src/lib/warn/layoff-alert-people'
 import { buildLocalPicture, classifyLayoffIndustry } from '../../src/lib/warn/layoff-context'
 import { pictureRows, talkingPoints, type Audience } from '../../src/lib/warn/layoff-picture'
 import { withComposeLinks } from '../../src/lib/warn/layoff-alert-drafts'
-import { claimUrlFor } from '../../src/lib/org-claims/urls'
+import { employerSlug } from '../../src/lib/warn/layoff-pages'
 
 const SITE = 'https://launchyournextchapter.com'
 const TO = 'justin@launchyournextchapter.com'
@@ -32,7 +32,7 @@ async function main() {
   const picture = await buildLocalPicture({ employer: n.employer, employees: n.employees, state, county: n.county, industryKey: industry?.key ?? null })
   const rel = await layoffPeople(org?.id ?? n.promotedOrgId ?? null, { state, county: n.county, address: n.address, workforceBoardId: n.workforceBoardId, industryKey: industry?.key ?? null })
   const withPitch = rel.groups.map((g) => (PARTNER[g.key] ? { ...g, pitch: talkingPoints(picture, PARTNER[g.key]) ?? undefined } : g))
-  const groups = withComposeLinks(withPitch, { picture, employerPage: org ? claimUrlFor(n.normalizedEmployer) : null })
+  const groups = withComposeLinks(withPitch, { picture, peoplePage: `${SITE}/network/company/${employerSlug(n.employer, null)}` })
   const input: AlertInput = {
     employer: n.employer, employees: n.employees, percent: null, kind: n.source === 'WARN_FILING' ? 'warn' : 'news', confirmed: true,
     inCrm: !!org, people: 0, warm: 0, contactsFound: 0, place: [n.county, state].filter(Boolean).join(', ') || rel.placeLabel, groups,
