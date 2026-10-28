@@ -20,7 +20,7 @@ export const SIGN_OFF = 'Best,\nJustin Kulla\nFounder & CEO, NextChapter\n2248 B
  * "reply yes" in place of the call, and none ends on a favor. A test fails when a kind drops it.
  */
 export const ALONGSIDE = "We’re not a replacement for the services you already offer. We sit alongside them. We help people get hired faster with five things: a job search built around their skills, help with networking (the hardest part to do, and the most effective), retraining (a lot of it on AI), fractional work while they look, and coaching. NextChapter is designed not just to help your people get new jobs, but great jobs and as quickly as possible."
-export const CLOSE = "We're a young company, so we're happy to build something that fits you and your people, and cost won't be the reason it doesn't happen. Could we grab 15 minutes this week?"
+export const CLOSE = "We're a young company, so we're investing to build something that fits you and your people, and cost won't be the reason it doesn't happen. Could we grab 15 minutes this week?"
 
 
 const HONOR = /^(dr|mr|mrs|ms|miss|mx|hon|rev|prof|sen|rep|sir|dame|judge|chief|capt|col|gen)\.?$/i
@@ -108,8 +108,8 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
       body: [hello,
         `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for laid-off professionals.`,
         `I saw that ${who} are leaving ${org} and wanted to reach out. ${p.openInState != null && state ? `There are ${n(p.openInState)} professional roles open in ${state} right now${p.openSeniorInState ? `, ${n(p.openSeniorInState)} at manager level or above` : ''}, so there is somewhere for them to go.` : ''} I put together a page that shows each person the roles that fit the work they've done. It's free for them to get started with their job transition, regardless of whether you partner with us: ${page}`.replace(/\s{2,}/g, ' '),
-        CLOSE,
         ALONGSIDE,
+        CLOSE,
         SIGN_OFF].join('\n\n'),
     }
   }
@@ -171,8 +171,8 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
         body: [hello,
           `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for laid-off professionals.`,
           [lead[kind], market, hiring(p) ?? '', unemployment, pageLine[kind]].filter(Boolean).join(' '),
-          CLOSE,
           ALONGSIDE,
+          CLOSE,
           SIGN_OFF].join('\n\n'),
       }
     }
@@ -183,7 +183,7 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
         `Open to a short call about working together?`]
       break
   }
-  return { subject, body: [hello, ...lines.slice(0, -1), CLOSE, ALONGSIDE, SIGN_OFF].join('\n\n') }
+  return { subject, body: [hello, ...lines.slice(0, -1), ALONGSIDE, CLOSE, SIGN_OFF].join('\n\n') }
 }
 
 /**
