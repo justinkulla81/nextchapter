@@ -13,6 +13,7 @@ const ctx = { picture, peoplePage: 'https://launchyournextchapter.com/network/co
 describe('head of HR note', () => {
   it("is Justin's wording, tightened, with the people page link, signed 'Justin'", () => {
     const d = draftFor('head_hr', card(), ctx)
+    expect(d.body.startsWith("Chelsea,\n\nI'm Justin Kulla, founder of NextChapter")).toBe(true)
     expect(d.body).toContain('96,715 professional roles are open in California')
     expect(d.body).toContain('alongside outplacement')
     expect(d.subject).toBe('96,715 open roles for the 875 people leaving Acme')
