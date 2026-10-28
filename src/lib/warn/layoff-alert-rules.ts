@@ -26,6 +26,8 @@ export interface ContactCard {
   greet?: string
   /** A Gmail compose link, from justin@launchyournextchapter.com, prefilled with a note written for this person's role. */
   compose?: string | null
+  /** Which subject-line test arm the drafted note uses ('A', 'B', 'C'), shown beside the button so opens can be compared. */
+  variant?: string
 }
 
 /** The people in one role around a layoff: the employer's HR head, the state's Rapid Response team, and so on. */
@@ -100,7 +102,7 @@ function cardRow(c: ContactCard): string {
     ? `<a href="mailto:${esc(c.email)}" style="color:${ACCENT}">${esc(c.email)}</a>${c.guessed ? ` <span style="color:${MUTED}">(guessed)</span>` : ''}`
     : `<span style="color:${MUTED}">No email yet</span>`
   const compose = c.compose
-    ? `<div style="margin-top:6px"><a href="${esc(c.compose)}" style="display:inline-block;padding:4px 10px;background:${ACCENT};border-radius:6px;color:#fff;text-decoration:none;font-size:12px;font-weight:600">Write email</a></div>`
+    ? `<div style="margin-top:6px"><a href="${esc(c.compose)}" style="display:inline-block;padding:4px 10px;background:${ACCENT};border-radius:6px;color:#fff;text-decoration:none;font-size:12px;font-weight:600">Write email</a>${c.variant ? ` <span style="color:${MUTED};font-size:11px">Subject ${esc(c.variant)}</span>` : ''}</div>`
     : ''
   return `<tr>
 <td style="padding:10px 12px;border-top:1px solid ${LINE};vertical-align:top"><div style="font-weight:600">${link(c.href, c.name, `color:${INK};text-decoration:none`)} ${strength}</div><div style="color:${MUTED};font-size:13px">${sub}</div></td>

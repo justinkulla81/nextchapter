@@ -35,7 +35,15 @@ export interface DraftContext {
   peoplePage: string | null
 }
 
-export interface Draft { subject: string; body: string }
+/** `variant` is the subject-line test arm ('A', 'B', 'C'), set when a note has several subjects; the same address always gets the same one. */
+export interface Draft { subject: string; body: string; variant?: string; /** Every subject arm, for review. */ subjects?: string[] }
+
+function pickSubject(subjects: string[], key: string): { subject: string; variant: string; subjects: string[] } {
+  let h = 0
+  for (const ch of key.toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  const i = h % subjects.length
+  return { subject: subjects[i], variant: 'ABC'[i], subjects }
+}
 
 const n = (x: number) => x.toLocaleString('en-US')
 const industry = (key: string | null) => (key ? INDUSTRY_NAME[key] ?? key.replace(/_/g, ' ') : null)
@@ -76,6 +84,7 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
   const open = openingNumber(p)
   const ind = industry(p.industryKey)
   const who = jobs(p)
+  const emp = p.employees ? n(p.employees) : null
   const org = p.employer
   const place = p.county ? `${p.county.replace(/\s+county$/i, '')} County` : state
   const fallbackOpen = `${org} is letting ${who} go${state ? ` in ${state}` : ''}.`
@@ -83,9 +92,12 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
   // The head of HR note: Justin's wording, tightened (2026-10-28). Hook is a checkable number and the page; the call ask stays.
   if (kind === 'head_hr') {
     return {
-      subject: 'Helping your affected people',
+      ...pickSubject([
+        ...(emp ? [`${emp} people leaving ${org}`, `where ${org}'s ${emp} can land`] : [`people leaving ${org}`]),
+        `a page for the ${emp ?? ''} leaving ${org}`.replace(/\s{2,}/g, ' '),
+      ], c.email ?? c.name),
       body: [hello,
-        `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for white collar professionals.`,
+        `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for laid-off professionals.`,
         `I saw that ${who} are leaving ${org} and wanted to reach out. ${p.openInState != null && state ? `There are ${n(p.openInState)} professional roles open in ${state} right now${p.openSeniorInState ? `, ${n(p.openSeniorInState)} at manager level or above` : ''}, so there is somewhere for them to go.` : ''} I put together a page that shows each person the roles that fit the work they've done. It's free for them to get started with their job transition, regardless of whether you partner with us: ${page}`.replace(/\s{2,}/g, ' '),
         `We're not a replacement for legacy outplacement. If you already work with a provider, we sit alongside it. We do five things better though: we help people get hired faster with a job search built around their skills, help with networking (that we all know is the hardest to do but most effective), retraining (a lot of it on AI), fractional work while they look, and coaching.`,
         `We're a young company, so we're happy to build something that fits you and your people, and cost won't be the reason it doesn't happen. Could we grab 15 minutes this week?`,
@@ -120,30 +132,47 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
         'Who should it go to? A name is enough.']
       break
     case 'rapid_response':
-      subject = open && state ? `${n(p.openInState!)} open roles in ${state}, for your ${org} meeting` : `For your ${org} Rapid Response meeting`
-      lines = [open ?? fallbackOpen,
-        `${[hiring(p), `If the ${who} leaving ${org} come through your meeting, the roles are here: ${statePage}`].filter(Boolean).join(' ')}`,
-        'May I send a one-page handout for the session?']
-      break
     case 'workforce_board':
-      subject = open && place ? `${n(p.openInState!)} open roles in ${state}, and the ${org} layoff in ${place}` : `The ${org} layoff and where ${place ?? 'your region'} is hiring`
-      lines = [open ?? fallbackOpen,
-        [hiring(p), p.unemploymentRate != null && p.areaLabel ? `${p.areaLabel} unemployment is ${p.unemploymentRate}%.` : null].filter(Boolean).join(' '),
-        `The page, built from public data and our own postings: ${statePage}`,
-        'Want a demo for your region?'].filter(Boolean) as string[]
-      break
     case 'job_centers':
-      subject = `For anyone who comes in from ${org}`
-      lines = [open ?? fallbackOpen,
-        `${hiring(p) ?? ''} For anyone who walks in from the ${org} layoff, the roles are here: ${statePage}`.trim(),
-        'May I send a one-page handout with a QR code for your front desk?']
-      break
-    case 'economic_development':
-      subject = `Keeping ${org}'s talent in ${place ?? 'the state'}`
-      lines = [p.openInIndustry != null && ind && state ? `${n(p.openInIndustry)} roles in ${ind} are open in ${state} right now, on our job board.` : (open ?? fallbackOpen),
-        `${org} is letting ${who} go. ${hiring(p) ?? ''} Skilled people leave a region when they cannot find work in it; the roles are here: ${statePage}`.replace(/\s+/g, ' ').trim(),
-        'Would a one-page note to share with member employers help?']
-      break
+    case 'economic_development': {
+      // Public partners, in Justin's voice (2026-10-28): his intro first, the number, the page, "we sit alongside", one short ask.
+      const market = p.openInState != null && state ? `There are ${n(p.openInState)} professional roles open in ${state} right now${p.openSeniorInState ? `, ${n(p.openSeniorInState)} at manager level or above` : ''}.` : ''
+      const where = place && kind !== 'rapid_response' ? ` in ${place}` : ''
+      const lead: Record<string, string> = {
+        rapid_response: `I saw that ${who} are leaving ${org}${where} and wanted to reach out before your employer meeting.`,
+        workforce_board: `I saw that ${who} are leaving ${org}${where} and wanted to reach out.`,
+        job_centers: `I saw that ${who} are leaving ${org}${where}, and some of them may walk into your center.`,
+        economic_development: `I saw that ${who} are leaving ${org}${where} and wanted to reach out about keeping that talent in the region.`,
+      }
+      const pageLine: Record<string, string> = {
+        rapid_response: `I put together a page that shows where the roles are. It's free for the people you refer: ${statePage}`,
+        workforce_board: `I put together a page that shows where the roles are. It's free for the people you refer: ${statePage}`,
+        job_centers: `I put together a page you can point them to. It's free for them: ${statePage}`,
+        economic_development: `I put together a page that shows where the roles are. It's free for the people affected: ${statePage}`,
+      }
+      const unemployment = kind === 'workforce_board' && p.unemploymentRate != null && p.areaLabel ? `${p.areaLabel} unemployment is ${p.unemploymentRate}%.` : ''
+      const ask: Record<string, string> = {
+        rapid_response: 'Could I send a one-page handout you can use in the meeting?',
+        workforce_board: 'Could we grab 15 minutes this week? I can show you a demo built for your region.',
+        job_centers: 'May I send a one-page handout with a QR code for your front desk?',
+        economic_development: 'Would a one-page note to share with member employers be useful?',
+      }
+      const subjects: Record<string, string[]> = {
+        rapid_response: [`before your ${org} meeting`, ...(emp ? [`where ${org}'s ${emp} can land in ${state ?? 'the state'}`] : [])],
+        workforce_board: [emp ? `${org}'s ${emp}, in ${place ?? 'your region'}` : `${org}, in ${place ?? 'your region'}`, `a page for your ${org} layoff`],
+        job_centers: [`if someone from ${org} walks in`, `a page for anyone leaving ${org}`],
+        economic_development: [`keeping ${org}'s ${emp ?? 'talent'} in ${place ?? 'the state'}`, ...(emp ? [`where ${org}'s ${emp} can land, in ${state ?? 'the state'}`] : [])],
+      }
+      return {
+        ...pickSubject(subjects[kind], c.email ?? c.name),
+        body: [hello,
+          `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for laid-off professionals.`,
+          [lead[kind], market, hiring(p) ?? '', unemployment, pageLine[kind]].filter(Boolean).join(' '),
+          `We're not a replacement for the services you already offer. We sit alongside them. We help people get hired faster with five things: a job search built around their skills, help with networking (the hardest part to do, and the most effective), retraining (a lot of it on AI), fractional work while they look, and coaching.`,
+          ask[kind],
+          'Best,\nJustin Kulla, Founder and CEO.'].join('\n\n'),
+      }
+    }
     case 'recruiters':
       subject = `${who === 'the people' ? 'Professionals' : who} leaving ${org}${state ? ` in ${state}` : ''}`
       lines = [`${org} is letting ${who} go${state ? ` in ${state}` : ''}${ind ? `, in ${ind}` : ''}.`,
@@ -165,7 +194,7 @@ export function withComposeLinks(groups: ContactGroup[], x: DraftContext): Conta
       const kind = draftKind(g.key, c.title)
       if (!kind || !c.email) return c
       const d = draftFor(kind, c, x)
-      return { ...c, compose: gmailComposeHref(c.email, d.subject, d.body, COMPOSE_ACCOUNT) }
+      return { ...c, compose: gmailComposeHref(c.email, d.subject, d.body, COMPOSE_ACCOUNT), variant: d.variant }
     }),
   }))
 }

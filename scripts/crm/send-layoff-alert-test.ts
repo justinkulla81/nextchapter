@@ -38,6 +38,16 @@ async function main() {
     inCrm: !!org, people: 0, warm: 0, contactsFound: 0, place: [n.county, state].filter(Boolean).join(', ') || rel.placeLabel, groups,
     picture: { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) },
   }
+  const { draftFor, draftKind } = await import('../../src/lib/warn/layoff-alert-drafts')
+  const dctx = { picture, employerPage: null, peoplePage: `${SITE}/network/company/${employerSlug(n.employer, null)}` }
+  const printed = ['head_hr', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development'].map((k) => {
+    const c = withPitch.find((g) => g.key === k)?.cards.find((x) => x.email)
+    const kind = c ? draftKind(k, c.title) : null
+    if (!c || !kind) return `## ${k}: no contact with an email`
+    const dr = draftFor(kind, c, dctx)
+    return `## ${k} (to ${c.name})\nSUBJECT ARMS: ${dr.subjects?.map((s, i) => `${'ABC'[i]}) ${s}`).join(' | ') ?? dr.subject}\n\n${dr.body}`
+  })
+  if (out) writeFileSync(out.replace(/\.html$/, '.drafts.md'), printed.join('\n\n---\n\n'))
   const html = alertBody(input, { source: n.sourceUrl, org: org ? `${SITE}/support/admin/crm/organizations/${org.id}` : null, notices: `${SITE}/support/admin/crm/warn` })
   const banner = `<p style="max-width:640px;margin:0 auto 12px;padding:8px 12px;background:#FFF0D6;border-radius:6px;font:13px/1.4 sans-serif;color:#9A5B00">Test of the new "Write email" buttons. Each opens Gmail from ${TO} with a note for that person's role. Nothing sends until you press Send in Gmail. Real alerts have not changed.</p>`
   const full = `${banner}${html}`
