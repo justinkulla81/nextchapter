@@ -11155,6 +11155,8 @@ model CrmTask {
   googleEventId String?
   /// Function the task belongs to (a key from src/lib/crm/todo-areas.ts). Null = inferred from the title and organization.
   area          String?
+  /// Priority set by hand (system | call | todo | automated). Null = derived from the task (src/lib/crm/todo-source.ts).
+  tierOverride  String?
 
   @@index([status, dueAt])
   @@index([personId])

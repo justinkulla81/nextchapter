@@ -35,7 +35,13 @@ export const TODO_TIERS: { key: TodoTier; code: string; label: string; hint: str
   { key: 'automated', code: 'Auto', label: 'Automated', hint: 'Opened by the system from leads. Work them or clear them.' },
 ]
 
-export function todoTier(t: { sourceRef: string | null; title: string; kind: string }): TodoTier {
+export function isTier(v: unknown): v is TodoTier {
+  return TODO_TIERS.some((t) => t.key === v)
+}
+
+/** A tier set by hand (tierOverride) wins; otherwise it is derived from the task. */
+export function todoTier(t: { sourceRef: string | null; title: string; kind: string; tierOverride?: string | null }): TodoTier {
+  if (isTier(t.tierOverride)) return t.tierOverride
   if (t.sourceRef) return 'call'
   if (t.title.startsWith(AUTOMATED_TITLE_PREFIX)) return 'automated'
   if (t.kind === 'ADMIN') return 'system'
@@ -64,4 +70,13 @@ export function etWallToUtc(date: string, time: string): Date {
     utc += want - Date.UTC(g('year'), g('month') - 1, g('day'), g('hour') % 24, g('minute'))
   }
   return new Date(utc)
+}
+
+/** A due instant as New York wall-clock date (YYYY-MM-DD) and time (HH:MM), for the edit form. */
+export function utcToEtWall(d: Date): { date: string; time: string } {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: ET, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+  }).formatToParts(d)
+  const g = (k: string) => parts.find((p) => p.type === k)!.value
+  return { date: `${g('year')}-${g('month')}-${g('day')}`, time: `${g('hour') === '24' ? '00' : g('hour')}:${g('minute')}` }
 }
