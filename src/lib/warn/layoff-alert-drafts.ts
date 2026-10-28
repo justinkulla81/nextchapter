@@ -14,7 +14,7 @@ import type { ContactCard, ContactGroup } from './layoff-alert-rules'
 
 export const COMPOSE_ACCOUNT = 'justin@launchyournextchapter.com'
 const SITE = 'https://launchyournextchapter.com'
-const SIGN_OFF = 'Best,\nJustin Kulla, Founder and CEO'
+export const SIGN_OFF = 'Best,\nJustin Kulla\nFounder & CEO, NextChapter\n2248 Broadway #1838, New York, NY 10024\njustin@launchyournextchapter.com\n203-247-9497'
 /**
  * Every note ends on the same ask: a 15-minute call. We are selling (Justin, 2026-10-28), so no note offers a handout, a one-pager or a
  * "reply yes" in place of the call, and none ends on a favor. A test fails when a kind drops it.

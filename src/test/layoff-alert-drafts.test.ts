@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { CLOSE, draftFor, draftKind, greetingFor, withComposeLinks, COMPOSE_ACCOUNT } from '@/lib/warn/layoff-alert-drafts'
+import { CLOSE, SIGN_OFF, draftFor, draftKind, greetingFor, withComposeLinks, COMPOSE_ACCOUNT } from '@/lib/warn/layoff-alert-drafts'
 import { alertBody, type ContactCard, type ContactGroup } from '@/lib/warn/layoff-alert-rules'
 import type { LocalPicture } from '@/lib/warn/layoff-picture'
 
@@ -23,7 +23,7 @@ describe('head of HR note', () => {
     expect(d.body).toContain('15 minutes this week')
     expect(d.body.match(/https:\/\//g)?.length).toBe(1)
     expect(d.body).not.toContain('/prepared/')
-    expect(d.body.endsWith('Best,\nJustin Kulla, Founder and CEO')).toBe(true)
+    expect(d.body.endsWith(SIGN_OFF)).toBe(true)
   })
 })
 
@@ -42,7 +42,7 @@ describe('draftFor', () => {
       expect(d.body.startsWith('Chelsea,')).toBe(true)
       // We are selling: every note asks for the same 15-minute call and signs off the same way.
       expect(d.body).toContain(CLOSE)
-      expect(d.body.endsWith('Best,\nJustin Kulla, Founder and CEO')).toBe(true)
+      expect(d.body.endsWith(SIGN_OFF)).toBe(true)
       expect(d.body).not.toMatch(/one-page|handout|reply "yes"/i)
       expect(d.body.match(/https:\/\//g)?.length).toBe(['rapid_response', 'workforce_board', 'job_centers', 'economic_development'].includes(kind) ? 2 : 1)
       if (!['head_hr', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development'].includes(kind)) expect(d.body.split(/\s+/).length).toBeLessThan(110)
