@@ -106,7 +106,7 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     const groups = related?.groups.map((g) => (PARTNER[g.key] ? { ...g, pitch: talkingPoints(picture, PARTNER[g.key]) ?? undefined } : g)) ?? []
     if (related) {
       // A "Write email" button on each contact with an address: Gmail compose from justin@launchyournextchapter.com, a note written for their role. A failure here sends the alert without buttons.
-      input.groups = await draftContext(picture, l.employer, state, notice?.county ?? null).then((x) => withComposeLinks(groups, x)).catch((e) => { console.error('Layoff alert drafts failed for', l.employer, e); return groups })
+      input.groups = await draftContext(picture, l.employer, state, notice?.county ?? null, l.noticeId).then((x) => withComposeLinks(groups, x)).catch((e) => { console.error('Layoff alert drafts failed for', l.employer, e); return groups })
       const where = [city ?? notice?.county, state].filter(Boolean).join(', ')
       input.place = where ? `${where}${placeNote ? ` (${placeNote})` : ''}` : related.placeLabel
     }

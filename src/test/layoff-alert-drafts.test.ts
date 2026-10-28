@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ALONGSIDE, CLOSE, SIGN_OFF, draftFor, draftKind, greetingFor, withComposeLinks, COMPOSE_ACCOUNT } from '@/lib/warn/layoff-alert-drafts'
+import { ALONGSIDE, CLOSE, SIGN_OFF, draftFor, composeKey, readComposeKey, draftKind, greetingFor, withComposeLinks, COMPOSE_ACCOUNT } from '@/lib/warn/layoff-alert-drafts'
 import { alertBody, type ContactCard, type ContactGroup } from '@/lib/warn/layoff-alert-rules'
 import type { LocalPicture } from '@/lib/warn/layoff-picture'
 
@@ -87,5 +87,18 @@ describe('withComposeLinks', () => {
     const links = { source: null, org: null, notices: 'https://x.test' }
     expect(alertBody({ ...base, groups: [group([card()])] }, links)).not.toContain('Write email')
     expect(alertBody({ ...base, groups: withComposeLinks([group([card()])], ctx) }, links)).toContain('Write email')
+  })
+})
+
+describe('tracked compose links', () => {
+  it('round-trips the click key', () => {
+    expect(readComposeKey(composeKey('rapid_response', 'B', 'abc:1', 'p9'))).toEqual({ group: 'rapid_response', variant: 'B', personId: 'p9', noticeId: 'abc:1' })
+    expect(readComposeKey(composeKey('head_hr', undefined, 'n1'))).toEqual({ group: 'head_hr', variant: null, personId: null, noticeId: 'n1' })
+    expect(readComposeKey('weekly_digest')).toBeNull()
+  })
+  it('wraps the compose link when a tracker is given', () => {
+    const group: ContactGroup = { key: 'head_hr', label: 'Head of HR', why: 'w', emptyHint: '', cards: [card()] }
+    const [g] = withComposeLinks([group], { ...ctx, track: (href, m) => `https://track.test/?g=${m.group}&v=${m.variant}&u=${encodeURIComponent(href)}` })
+    expect(g.cards[0].compose).toMatch(/^https:\/\/track\.test\/\?g=head_hr&v=[ABC]&u=https%3A%2F%2Fmail\.google\.com/)
   })
 })

@@ -22,6 +22,8 @@ export interface ContactCard {
   strength: 'hot' | 'warm' | null
   /** Where to open this person (their CRM page, or the center's website). */
   href: string | null
+  /** The CRM person this card is, when it is one (not a center or an office); a click on their Write email button is logged on their record. */
+  personId?: string
   /** How to greet them in a drafted email: a first name, "Dr. Last", or "team" for a center or office. */
   greet?: string
   /** A Gmail compose link, from justin@launchyournextchapter.com, prefilled with a note written for this person's role. */
