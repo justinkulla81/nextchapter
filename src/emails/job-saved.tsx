@@ -48,7 +48,7 @@ export default function JobSavedEmail({ title, company, jobUrl, fitUrl, unsubscr
         See how I fit →
       </a>
       <p style={footer}>
-        You saved this job at launchyournextchapter.com. This is the only email we send for it.{' '}
+        You saved this job at launchyournextchapter.com. If you do not make a profile we will send up to two short reminders, then stop.{' '}
         <a href={unsubscribeUrl}>Unsubscribe</a>
       </p>
       <AudienceTag audience="candidate" />

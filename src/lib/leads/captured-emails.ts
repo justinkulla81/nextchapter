@@ -13,6 +13,10 @@ export interface CapturedEmail {
   detail: string
   capturedAt: Date
   unsubscribed: boolean
+  /** The journey (persona slug) they picked, when they picked one. */
+  journey?: string
+  /** Where the form was submitted from, to match a first page view. */
+  ip?: string | null
 }
 
 const PER_SOURCE_LIMIT = 2000
@@ -53,13 +57,13 @@ export async function loadCapturedEmails(since: Date): Promise<CapturedEmail[]> 
       where,
       take,
       orderBy,
-      select: { email: true, kind: true, source: true, createdAt: true, unsubscribedAt: true },
+      select: { email: true, kind: true, source: true, situation: true, journeySlug: true, ip: true, createdAt: true, unsubscribedAt: true },
     }),
     prisma.newsletterSubscriber.findMany({
       where,
       take,
       orderBy,
-      select: { email: true, source: true, createdAt: true, unsubscribedAt: true },
+      select: { email: true, source: true, ip: true, createdAt: true, unsubscribedAt: true },
     }),
     prisma.contactSubmission.findMany({
       where,
@@ -104,6 +108,8 @@ export async function loadCapturedEmails(since: Date): Promise<CapturedEmail[]> 
       detail: r.source,
       capturedAt: r.createdAt,
       unsubscribed: r.unsubscribedAt != null,
+      journey: (r.kind === 'journey' ? r.situation : r.journeySlug) || undefined,
+      ip: r.ip,
     })
   }
   for (const r of newsletter) {
@@ -114,6 +120,7 @@ export async function loadCapturedEmails(since: Date): Promise<CapturedEmail[]> 
       detail: r.source ?? '',
       capturedAt: r.createdAt,
       unsubscribed: r.unsubscribedAt != null,
+      ip: r.ip,
     })
   }
   for (const r of contact) {
@@ -190,6 +197,10 @@ export interface CapturedPerson {
   email: string
   name: string | null
   channels: string[]
+  journey?: string
+  ip?: string | null
+  /** The first thing they did, in words: "Newsletter · home". */
+  firstWhere: string
   firstSeen: Date
   lastSeen: Date
   unsubscribed: boolean
@@ -205,6 +216,9 @@ export function groupByEmail(rows: CapturedEmail[]): CapturedPerson[] {
         email: r.email,
         name: r.name,
         channels: [r.channel],
+        journey: r.journey,
+        ip: r.ip,
+        firstWhere: [r.channel, r.detail].filter(Boolean).join(' · '),
         firstSeen: r.capturedAt,
         lastSeen: r.capturedAt,
         unsubscribed: r.unsubscribed,
@@ -213,7 +227,12 @@ export function groupByEmail(rows: CapturedEmail[]): CapturedPerson[] {
     }
     if (!p.channels.includes(r.channel)) p.channels.push(r.channel)
     if (!p.name && r.name) p.name = r.name
-    if (r.capturedAt < p.firstSeen) p.firstSeen = r.capturedAt
+    if (!p.journey && r.journey) p.journey = r.journey
+    if (!p.ip && r.ip) p.ip = r.ip
+    if (r.capturedAt < p.firstSeen) {
+      p.firstSeen = r.capturedAt
+      p.firstWhere = [r.channel, r.detail].filter(Boolean).join(' · ')
+    }
     if (r.capturedAt > p.lastSeen) p.lastSeen = r.capturedAt
     p.unsubscribed = p.unsubscribed && r.unsubscribed
   }
