@@ -69,6 +69,22 @@ const nextConfig: NextConfig = {
         ['/places/:state/city', '/places/:state'],
         ['/places/:state/county', '/places/:state'],
       ].map(([source, destination]) => ({ source, destination, permanent: false })),
+      // Addresses crawlers and first-time visitors guess on any company site (the alert emails of 2026-10-28 were all
+      // these, in one minute). Each goes to the nearest real page.
+      ...[
+        ['/about-us', '/about'],
+        ['/team', '/about'],
+        ['/contact-us', '/contact'],
+        ['/partners', '/for-organizations'],
+        ['/sponsorship', '/contact'],
+        ['/speakers', '/conferences'],
+        ['/call-for-speakers', '/conferences'],
+        ['/cfp', '/conferences'],
+        ['/organizers', '/conferences'],
+        ['/organisers', '/conferences'],
+      ].map(([source, destination]) => ({ source, destination, permanent: true })),
+      // redirect-non-candidate.ts sends contest employers here after sign-in; the address has no page of its own.
+      { source: '/noexperience/employers', destination: '/noexperience/employers/contests', permanent: false },
       // Retired 2026-10-23: the website shows plans, not prices.
       {
         source: '/insights/outplacement-cost-per-employee',
