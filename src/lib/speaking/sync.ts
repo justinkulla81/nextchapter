@@ -4,8 +4,11 @@ import { kindFromConferenceType, isKind, OPEN_STATUSES, type SpeakingKind } from
 import { speakerFit } from './relevance'
 
 const DAY = 86_400_000
-/** How far ahead a deadline becomes a to-do. Later ones sit on the speaking page until they get close. */
-export const TODO_WINDOW_DAYS = 45
+/**
+ * How far ahead a deadline becomes a to-do (Justin, 2026-10-28: 36 open was too many). Later ones, and anything
+ * without a deadline, sit on the speaking page until Going for it or until the deadline gets close.
+ */
+export const TODO_WINDOW_DAYS = 21
 const MAX_NEW_PER_RUN = 40
 
 function place(city: string | null, state: string | null): string | null {
@@ -109,8 +112,8 @@ function dueFor(deadline: Date | null, now: Date): Date {
 }
 
 /**
- * Keeps one to-do per open opportunity. New + close deadline (or a top fit) =
- * "Decide"; Going for it = "Apply"; any later stage closes it. Idempotent: the
+ * Keeps one to-do per open opportunity. New + best or good fit + deadline in the
+ * next 21 days = "Decide"; Going for it = "Apply"; any later stage closes it. Idempotent: the
  * task id is stored on the row, so running it twice never doubles up.
  */
 export async function syncSpeakingTasks(now = new Date()): Promise<{ opened: number; closed: number }> {
@@ -123,7 +126,7 @@ export async function syncSpeakingTasks(now = new Date()): Promise<{ opened: num
   for (const r of rows) {
     const open = OPEN_STATUSES.includes(r.status as never)
     const expired = !!r.deadline && r.deadline < now
-    const wanted = open && !expired && (r.status === 'PLANNING' || (r.deadline ? r.deadline <= horizon : r.fit === 1))
+    const wanted = open && !expired && (r.status === 'PLANNING' || (r.fit <= 2 && !!r.deadline && r.deadline <= horizon))
     const verb = r.status === 'PLANNING' ? 'Apply' : 'Decide on'
     const title = `Speaking: ${verb} ${r.title}`.slice(0, 300)
     if (wanted) {
@@ -142,7 +145,8 @@ export async function syncSpeakingTasks(now = new Date()): Promise<{ opened: num
     } else if (r.taskId) {
       const res = await prisma.crmTask.updateMany({ where: { id: r.taskId, status: 'OPEN' }, data: { status: 'DONE', completedAt: now } })
       closed += res.count
-      if (!open) await prisma.ceoSpeakingOpportunity.update({ where: { id: r.id }, data: { taskId: null } })
+      // Cleared either way, so a row that later comes inside the window gets a fresh to-do.
+      await prisma.ceoSpeakingOpportunity.update({ where: { id: r.id }, data: { taskId: null } })
     }
   }
   return { opened, closed }
