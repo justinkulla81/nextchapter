@@ -42,7 +42,7 @@ describe('draftFor', () => {
       expect(d.body.startsWith('Chelsea,')).toBe(true)
       // We are selling: every note asks for the same 15-minute call and signs off the same way.
       expect(d.body).toContain(CLOSE)
-      expect(d.body.endsWith(`${ALONGSIDE}\n\n${SIGN_OFF}`)).toBe(true)
+      expect(d.body.endsWith(`${ALONGSIDE}\n\n${CLOSE}\n\n${SIGN_OFF}`)).toBe(true)
       expect(d.body).not.toMatch(/one-page|handout|reply "yes"/i)
       expect(d.body.match(/https:\/\//g)?.length).toBe(['rapid_response', 'workforce_board', 'job_centers', 'economic_development'].includes(kind) ? 2 : 1)
       if (!['head_hr', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development'].includes(kind)) expect(d.body.split(/\s+/).length).toBeLessThan(190)
