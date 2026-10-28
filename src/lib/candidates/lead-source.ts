@@ -83,12 +83,23 @@ export async function inferLeadSource(candidateId: string): Promise<void> {
       take: 50,
       select: { path: true, referrer: true },
     })
+    let cameBackViaOurEmail = false
     for (const v of visits) {
+      // A click from one of our own welcome or reminder emails (utm_source=lead_email) says how they came
+      // back, not how they found us: look past it for the first real visit.
+      if (v.path?.includes('utm_source=lead_email')) {
+        cameBackViaOurEmail = true
+        continue
+      }
       const label = classifyTrafficSource(v.path, v.referrer)
       if (label === 'Internal') continue
       source = TRAFFIC_TO_LEAD[label] ?? 'OTHER'
       detail = source === 'OTHER' || source === 'SEARCH' || source === 'SOCIAL' ? label : null
       break
+    }
+    if (!source && cameBackViaOurEmail) {
+      source = 'EMAIL'
+      detail = 'Website lead: came back through our welcome or reminder email'
     }
   }
   if (!source) return
