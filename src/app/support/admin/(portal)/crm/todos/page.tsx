@@ -6,6 +6,7 @@ import { CrmSyncHealthAlert } from '@/components/admin/CrmSyncHealthAlert'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { todoSource, todoTier, dueTimeLabel, TODO_TIERS, type TodoTier } from '@/lib/crm/todo-source'
 import { TODO_AREA_GROUPS, areaMeta, inferArea } from '@/lib/crm/todo-areas'
+import { followUpKind } from '@/lib/crm/followup-kind'
 import { addTodo, setTodoDone } from './actions'
 
 export const maxDuration = 30
@@ -74,9 +75,12 @@ export default async function CrmTodosPage({
   const group = (one(sp.group) === 'date' ? 'date' : one(sp.group) === 'area' ? 'area' : 'tier') as Group
   const waitingOnly = one(sp.waiting) === '1'
   const q = (one(sp.q) ?? '').trim().slice(0, 100)
-  const filtered = picked.length > 0 || show !== 'all' || sort !== 'due' || group !== 'tier' || waitingOnly || q !== ''
+  const hideFollowUps = one(sp.nofu) === '1'
+  const filtered = hideFollowUps || picked.length > 0 || show !== 'all' || sort !== 'due' || group !== 'tier' || waitingOnly || q !== ''
 
-  const [open, done] = await Promise.all([
+  const todayEnd = new Date()
+  todayEnd.setHours(24, 0, 0, 0)
+  const [open, done, fuPeople, fuCompanies] = await Promise.all([
     prisma.crmTask.findMany({
       where: { status: 'OPEN' },
       orderBy: [{ dueAt: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }],
@@ -92,7 +96,41 @@ export default async function CrmTodosPage({
       take: 10,
       select: { id: true, title: true, completedAt: true },
     }),
+    // People and company follow-ups that are due (overdue or today), the same ones the People and Company follow-ups lists show.
+    hideFollowUps ? Promise.resolve([]) : prisma.crmPerson.findMany({
+      where: { deletedAt: null, nextFollowUpAt: { not: null, lt: todayEnd }, passedAt: null },
+      orderBy: { nextFollowUpAt: 'asc' },
+      take: 60,
+      select: { id: true, fullName: true, email: true, guessedEmail: true, nextFollowUpAt: true, nextFollowUpNote: true, queueSnoozedAt: true, affiliations: { orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }], take: 1, select: { org: { select: { id: true, name: true } } } } },
+    }),
+    hideFollowUps ? Promise.resolve([]) : prisma.crmOpportunity.findMany({
+      where: { outcome: 'OPEN', orgId: { not: null }, OR: [{ committedFollowUpAt: { lt: todayEnd } }, { committedFollowUpAt: null, nextStepDueAt: { lt: todayEnd } }], org: { queueSnoozedAt: null } },
+      orderBy: [{ committedFollowUpAt: 'asc' }, { nextStepDueAt: 'asc' }],
+      take: 40,
+      select: { id: true, title: true, nextStep: true, committedTo: true, committedFollowUpAt: true, nextStepDueAt: true, org: { select: { id: true, name: true } } },
+    }),
   ])
+
+  type FollowUpItem = { key: string; title: string; note: string | null; due: Date; href: string; company: { id: string; name: string } | null; label: string; automated: boolean; emailHref?: string }
+  const needle0 = q.toLowerCase()
+  const followUpItems: FollowUpItem[] = [
+    ...fuPeople
+      .filter((p) => !p.queueSnoozedAt || p.queueSnoozedAt < p.nextFollowUpAt!)
+      .map((p): FollowUpItem => {
+        const k = followUpKind(p.nextFollowUpNote)
+        return {
+          key: `p-${p.id}`, title: p.fullName, note: p.nextFollowUpNote, due: p.nextFollowUpAt!, href: `/support/admin/crm/people/${p.id}`, company: p.affiliations[0]?.org ?? null,
+          label: k.automated ? `Automated · ${k.label}` : 'Person follow-up', automated: k.automated,
+          emailHref: k.type === 'layoffs' && (p.email ?? p.guessedEmail) && p.affiliations[0] ? `/support/admin/crm/people/${p.id}/layoff-email` : undefined,
+        }
+      }),
+    ...fuCompanies.map((o): FollowUpItem => ({
+      key: `o-${o.id}`, title: o.org!.name, note: [o.title, o.committedTo ? `Promised: ${o.committedTo}` : o.nextStep].filter(Boolean).join(' · '), due: (o.committedFollowUpAt ?? o.nextStepDueAt)!,
+      href: `/support/admin/crm/organizations/${o.org!.id}`, company: o.org, label: 'Company follow-up', automated: false,
+    })),
+  ]
+    .filter((f) => !needle0 || [f.title, f.note, f.company?.name].some((x) => x?.toLowerCase().includes(needle0)))
+    .sort((a, b) => a.due.getTime() - b.due.getTime())
 
   const startOfToday = new Date()
   startOfToday.setHours(0, 0, 0, 0)
@@ -209,6 +247,10 @@ export default async function CrmTodosPage({
             )
           })}
           <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm">
+            <input type="checkbox" name="nofu" value="1" defaultChecked={hideFollowUps} className="h-3.5 w-3.5" />
+            Hide people and company follow-ups
+          </label>
+          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm">
             <input type="checkbox" name="waiting" value="1" defaultChecked={waitingOnly} className="h-3.5 w-3.5" />
             Only waiting on others
           </label>
@@ -235,11 +277,42 @@ export default async function CrmTodosPage({
         </p>
       </form>
 
-      {visible.length === 0 ? (
+      {followUpItems.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="flex flex-wrap items-center gap-2 border-b border-border pb-1 text-xs font-semibold uppercase tracking-wide">
+            <span className="h-2 w-2 rounded-full bg-gray" aria-hidden />
+            People and company follow-ups · {followUpItems.length}
+            <span className="font-normal normal-case tracking-normal text-muted-foreground">Due today or overdue. <Link href="/support/admin/crm/queue/people" className="underline">Filter and work them on the People follow-ups list.</Link></span>
+          </h2>
+          <ul className="space-y-2">
+            {followUpItems.map((f) => {
+              const late = f.due < startOfToday
+              return (
+                <li key={f.key} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 text-sm">
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-center gap-2 font-medium">
+                      <span className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">{f.label}</span>
+                      <Link href={f.href} className="hover:underline">{f.title}</Link>
+                      {f.company && f.company.name !== f.title && <Link href={`/support/admin/crm/organizations/${f.company.id}`} className="text-xs font-normal text-muted-foreground underline">{f.company.name}</Link>}
+                    </p>
+                    {f.note && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{f.note}</p>}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-right text-xs ${late ? 'font-medium text-destructive' : 'text-muted-foreground'}`}>{late ? 'Overdue · ' : ''}{formatDate(f.due)}</span>
+                    {f.emailHref && <a href={f.emailHref} target="_blank" rel="noreferrer" className="rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-muted">Write email</a>}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
+
+      {visible.length === 0 && followUpItems.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
           Nothing open here.
         </p>
-      ) : (
+      ) : visible.length === 0 ? null : (
         visible.map((s) => {
           const tone = s.tone === 'late' || s.tone === 'plain' ? null : TONE[s.tone]
           return (

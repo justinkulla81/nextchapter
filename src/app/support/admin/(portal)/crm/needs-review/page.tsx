@@ -46,7 +46,7 @@ export default async function CrmNeedsReviewPage() {
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Outbound emails the sync found but couldn&apos;t confirm are about NextChapter — real mail you sent,
           not yet counted toward touch counts or &quot;waiting on a reply&quot; until you say it belongs.
-          Approving confirms it; discarding removes it, same as it having never been logged.
+          Approving confirms it, and that person&apos;s future emails are logged without asking. Discarding removes it, and that person is never asked about again.
         </p>
       </header>
 

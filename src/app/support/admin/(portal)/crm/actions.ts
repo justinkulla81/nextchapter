@@ -981,7 +981,8 @@ export async function restoreRemovedPeople(ids: string[]): Promise<RestoreResult
  * the sync (it is real outreach), but with needsReview: true — see
  * CrmActivity's own comment. Approving confirms it belongs in the CRM's
  * touch counts and "waiting on a reply"; discarding removes it, same as it
- * never having been logged. Both recompute the person's derived fields,
+ * never having been logged. Either answer is about the PERSON: it is kept (CrmPerson.emailReviewDecision) so the sync
+ * stops asking about them, logging their outbound mail without asking when approved and skipping it when discarded. Both recompute the person's derived fields,
  * since REAL_TOUCH excludes anything still unreviewed.
  */
 export async function approveActivities(ids: string[]): Promise<{ approved: number }> {
@@ -995,7 +996,12 @@ export async function approveActivities(ids: string[]): Promise<{ approved: numb
     where: { id: { in: rows.map((r) => r.id) } },
     data: { needsReview: false, reviewedAt: new Date(), reviewedByEmail: admin.email ?? null },
   })
-  await refreshTouchFields([...new Set(rows.map((r) => r.personId).filter((x): x is string => Boolean(x)))])
+  const people = [...new Set(rows.map((r) => r.personId).filter((x): x is string => Boolean(x)))]
+  // Standing answer: this person's outbound mail is logged from now on without asking.
+  await prisma.crmPerson.updateMany({ where: { id: { in: people } }, data: { emailReviewDecision: 'APPROVED' } })
+  // Anything else of theirs already waiting on the list is approved with it.
+  await prisma.crmActivity.updateMany({ where: { personId: { in: people }, needsReview: true }, data: { needsReview: false, reviewedAt: new Date(), reviewedByEmail: admin.email ?? null } })
+  await refreshTouchFields(people)
   captureServerEvent(admin.email ?? 'admin', 'crm_activity_review_approved', { count: rows.length })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/needs-review`)
@@ -1010,8 +1016,12 @@ export async function discardActivities(ids: string[]): Promise<{ discarded: num
     select: { id: true, personId: true },
   })
   if (rows.length === 0) return { discarded: 0 }
-  await prisma.crmActivity.deleteMany({ where: { id: { in: rows.map((r) => r.id) } } })
-  await refreshTouchFields([...new Set(rows.map((r) => r.personId).filter((x): x is string => Boolean(x)))])
+  const people = [...new Set(rows.map((r) => r.personId).filter((x): x is string => Boolean(x)))]
+  // Standing answer: this person is never asked about again, and their unconfirmed mail is skipped by the sync. Anything of theirs still
+  // waiting on the list goes too.
+  await prisma.crmPerson.updateMany({ where: { id: { in: people } }, data: { emailReviewDecision: 'DISCARDED' } })
+  await prisma.crmActivity.deleteMany({ where: { OR: [{ id: { in: rows.map((r) => r.id) } }, { personId: { in: people }, needsReview: true }] } })
+  await refreshTouchFields(people)
   captureServerEvent(admin.email ?? 'admin', 'crm_activity_review_discarded', { count: rows.length })
   revalidatePath(CRM)
   revalidatePath(`${CRM}/needs-review`)
