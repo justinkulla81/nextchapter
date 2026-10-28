@@ -80,14 +80,26 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
   const place = p.county ? `${p.county.replace(/\s+county$/i, '')} County` : state
   const fallbackOpen = `${org} is letting ${who} go${state ? ` in ${state}` : ''}.`
 
+  // The head of HR note is Justin's own wording (2026-10-28), kept whole, with his short sign-off.
+  if (kind === 'head_hr') {
+    return {
+      subject: open && state ? `${n(p.openInState!)} open roles in ${state} for the people leaving ${org}` : `For the people leaving ${org}`,
+      body: [hello,
+        `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for laid-off professionals.`,
+        `I saw the news that ${who} are leaving ${org}. You're not alone; there's a lot of change hitting the market now. Whether or not you have decided to move forward with a legacy outplacement company, we complement it. You want the best for your people, and it's also in your interest to get them into their next role as fast as possible. We do five things that make that possible: personalized job searching based on skills, networking assistance (since we know that can be the most effective way to get a new job), learning and retraining (with an emphasis on AI), fractional work while they are searching, and coaching, which many people need now more than ever.`,
+        `I built a page matching those roles to the work your people did, free for them to use: ${page}`,
+        `We're new, so we're willing to work with you on a program that's right for you and your people; we won't let expensive programs be a reason to say no. Our goal is to help the most people possible. Would you be open to a quick 15 minute call this week to discuss how we can help?`,
+        'Justin'].join('\n\n'),
+    }
+  }
+
   let subject: string, lines: string[]
   switch (kind) {
-    case 'head_hr':
     case 'rewards':
       subject = open && state ? `${n(p.openInState!)} open roles in ${state} for the people leaving ${org}` : `For the people leaving ${org}`
       lines = [open ?? fallbackOpen,
         `For the ${who} leaving ${org}, we built a page of the roles that fit their work: ${page}`,
-        kind === 'head_hr' ? `Who owns their transition at ${org}? A one-line reply is enough, and I'll send the one-pager to them.` : `It can sit beside your outplacement and severance package, and you see counts of who engaged, interviewed and landed, never names. Want the one-pager?`]
+        `It can sit beside your outplacement and severance package, and you see counts of who engaged, interviewed and landed, never names. Want the one-pager?`]
       break
     case 'er':
       subject = `A paragraph for ${org}'s separation notes`

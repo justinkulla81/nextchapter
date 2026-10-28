@@ -10,6 +10,15 @@ const picture: LocalPicture = {
 const card = (o: Partial<ContactCard> = {}): ContactCard => ({ name: 'Chelsea Lee', title: 'Head of HR', org: 'Acme', email: 'chelsea@acme.com', phone: null, strength: null, href: null, greet: 'Chelsea', ...o })
 const ctx = { picture, employerPage: 'https://launchyournextchapter.com/prepared/acme' }
 
+describe('head of HR note', () => {
+  it("is Justin's wording and signs off 'Justin'", () => {
+    const d = draftFor('head_hr', card(), ctx)
+    expect(d.body).toContain('we complement it')
+    expect(d.body).toContain('I saw the news that 875 people are leaving Acme.')
+    expect(d.body.endsWith('\n\nJustin')).toBe(true)
+  })
+})
+
 describe('greetingFor', () => {
   it('uses the first name, and Dr. Last for a doctor', () => {
     expect(greetingFor('Chelsea Lee')).toBe('Chelsea')
@@ -24,7 +33,7 @@ describe('draftFor', () => {
       const d = draftFor(kind, card(), ctx)
       expect(d.body.startsWith('Chelsea,')).toBe(true)
       expect(d.body.match(/https:\/\//g)?.length).toBe(1)
-      expect(d.body.split(/\s+/).length).toBeLessThan(110)
+      if (kind !== 'head_hr') expect(d.body.split(/\s+/).length).toBeLessThan(110)
       expect(d.body).not.toMatch(/white-collar|free\b/i)
     }
   })
