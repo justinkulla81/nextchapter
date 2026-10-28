@@ -11,6 +11,7 @@ import JobSavedEmail from '@/emails/job-saved'
 import { cookies } from 'next/headers'
 import { addToSavedJobsCookie, SAVED_JOBS_COOKIE, SAVED_JOBS_MAX_AGE_SECONDS } from '@/lib/leads/claim-saved-jobs'
 import { notifyNewLead } from '@/lib/leads/notify-new-lead'
+import { lifecycleEmailsOn } from '@/lib/leads/lifecycle/config'
 
 // "Save this job" on a public job page, no account needed. It stores the email with the job id
 // and, only when APPLY_SAVE_EMAIL=1, sends one email: the job, the way back to it, and the way to see how well they fit. One
@@ -64,7 +65,8 @@ export async function saveAppliedJob(_prev: ApplySaveState, formData: FormData):
     if (!existing) notifyNewLead({ email, channel: 'Saved job', detail: 'job_page' })
 
     let emailed = false
-    if (applySaveEmailOn() && !lead.planSentAt && process.env.RESEND_API_KEY && !isUndeliverableAddress(email)) {
+    // With the lifecycle emails on, the welcome (which names the saved job) replaces this one, so a save never sends two.
+    if (applySaveEmailOn() && !lifecycleEmailsOn() && !lead.planSentAt && process.env.RESEND_API_KEY && !isUndeliverableAddress(email)) {
       const startOfDay = new Date()
       startOfDay.setUTCHours(0, 0, 0, 0)
       const sentToday = await prisma.homepageLead.count({ where: { kind: 'apply_save', planSentAt: { gte: startOfDay } } })

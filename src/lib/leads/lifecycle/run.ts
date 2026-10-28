@@ -20,7 +20,7 @@ interface Lead {
   channel: string
   detail: string | null
   capturedAt: Date
-  /** When an earlier system already sent the welcome (the saved-job email), so the reminders count from then. */
+  /** When an earlier system already sent the welcome, so the reminders count from then. None do today. */
   welcomeSentAt: Date | null
 }
 
@@ -31,7 +31,7 @@ async function gatherLeads(now: Date): Promise<{ leads: Lead[]; unsubscribed: Se
   const [saved, alerts, newsletter, waitlist, unsubHome, unsubNews] = await Promise.all([
     prisma.homepageLead.findMany({
       where: { kind: 'apply_save', createdAt: { gte: since }, unsubscribedAt: null },
-      select: { email: true, searchQ: true, createdAt: true, planSentAt: true },
+      select: { email: true, searchQ: true, createdAt: true },
     }),
     // An alert counts from the click that confirmed it: before that they have not said yes.
     prisma.homepageLead.findMany({
@@ -55,7 +55,7 @@ async function gatherLeads(now: Date): Promise<{ leads: Lead[]; unsubscribed: Se
 
   const leads: Lead[] = []
   for (const s of saved) {
-    leads.push({ email: clean(s.email), name: null, variant: 'saved_job', channel: 'Saved job', detail: jobLabel.get(s.searchQ) ?? null, capturedAt: s.createdAt, welcomeSentAt: s.planSentAt })
+    leads.push({ email: clean(s.email), name: null, variant: 'saved_job', channel: 'Saved job', detail: jobLabel.get(s.searchQ) ?? null, capturedAt: s.createdAt, welcomeSentAt: null })
   }
   for (const a of alerts) {
     if (!a.confirmedAt) continue
