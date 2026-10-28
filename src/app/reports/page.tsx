@@ -1,4 +1,6 @@
 import { pageMetadata } from '@/lib/seo/keywords'
+import { canonicalWithFeeds } from '@/lib/seo/canonical'
+import { FeedLine } from '@/components/seo/FeedLine'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
@@ -10,7 +12,7 @@ import { LONGER_SEARCH_BODY, LONGER_SEARCH_FIGURES, LONGER_SEARCH_HEADLINE } fro
 
 const URL = `${SITE_URL}/reports`
 
-export const metadata: Metadata = pageMetadata('/reports')
+export const metadata: Metadata = { ...pageMetadata('/reports'), ...canonicalWithFeeds('/reports') }
 
 const monthShortLabel = (iso: string) =>
   new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -154,6 +156,9 @@ export default function ReportsHubPage() {
 
       <section className="border-t border-light-gray bg-white px-6 py-16">
         <NewsletterSignup source="employment-report" />
+        <p className="mx-auto mt-6 max-w-3xl text-center text-sm">
+          <FeedLine feed="/news/feed.xml" label="Get each monthly report by RSS" />
+        </p>
       </section>
 
       <PublicSiteFooter page="reports" />

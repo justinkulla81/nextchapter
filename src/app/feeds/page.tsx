@@ -7,12 +7,13 @@ import { feedGroups, feedUrl } from '@/lib/feeds/catalog'
 import { FEED_LICENSE } from '@/lib/feeds/rss'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { pageMetadata } from '@/lib/seo/keywords'
+import { canonicalWithFeeds } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 
 export const revalidate = 86400
 
 const PATH = '/feeds'
-export const metadata: Metadata = pageMetadata(PATH)
+export const metadata: Metadata = { ...pageMetadata(PATH), ...canonicalWithFeeds(PATH) }
 
 const H2 = 'text-2xl font-bold tracking-tight text-navy'
 const LINK = 'text-brand underline underline-offset-4'
@@ -25,9 +26,9 @@ export default function FeedsPage() {
       <PublicSiteHeader />
       <main className="flex-1 bg-off-white py-12">
         <div className="mx-auto max-w-4xl px-6">
-          <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">Layoff and conference feeds</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">Layoff, report and conference feeds</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
-            New WARN layoff notices as they reach us, free, by state or industry, each with the state&apos;s own record linked, how the notice compares, and help for the people affected. For reporters, HR teams, recruiters and anyone who wants to know first.
+            The monthly White Collar Employment Report and new WARN layoff notices as they reach us, free, by state or industry, each with the state&apos;s own record linked, how the notice compares, and help for the people affected. For reporters, HR teams, recruiters and anyone who wants to know first.
           </p>
           <p className="mt-3 text-sm leading-relaxed text-ink">
             Paste a feed address into any reader (Feedly, Inoreader, NetNewsWire, Reeder), or import <a href="/feeds/nextchapter.opml" className={LINK}>every feed at once as an OPML file</a>. Each feed also comes as JSON Feed: add <code className="rounded bg-muted px-1">?format=json</code> to its address. New notices are pushed to readers that support WebSub. {FEED_LICENSE} See <Link href="/press" className={LINK}>Press and data</Link> for citations and downloads, or the <Link href="/data" className={LINK}>full dataset</Link>.
