@@ -83,7 +83,7 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
   // The head of HR note: Justin's wording, tightened (2026-10-28). Hook is a checkable number and the page; the call ask stays.
   if (kind === 'head_hr') {
     return {
-      subject: `${who} leaving ${org}: where they can land`,
+      subject: p.openInState != null ? `${n(p.openInState)} open roles for the ${who} leaving ${org}` : `A page for the ${who} leaving ${org}`,
       body: [hello,
         `${open ?? fallbackOpen} The ${who} leaving ${org} can land in them, and I built a page that shows each person the roles that fit their work. It is free for them: ${page}`,
         `I'm Justin Kulla, founder of NextChapter, the leading job transition platform for laid-off professionals. We work alongside outplacement, never instead of it, and the goal is the same: get your people into their next role faster. 28% of unemployed professionals are still searching after 27 weeks, so speed matters.`,
