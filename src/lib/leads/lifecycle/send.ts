@@ -3,6 +3,7 @@ import { createResend, isUndeliverableAddress } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getMailingSettings } from '@/lib/mailing/lists'
+import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
 import { makeUnsubscribeToken } from '@/lib/mailing/unsubscribe-token'
 import LeadLifecycleEmail from '@/emails/lead-lifecycle'
 import type { LeadStep, LeadVariant } from './config'
@@ -75,11 +76,14 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
   }
 
   try {
+    const adminCopy = getAccountActivityAdminEmail()
     const audience = input.variant === 'waitlist_b2b' ? 'general' : 'candidate'
     const resend = createResend(process.env.RESEND_API_KEY, audience)
     const { error } = await resend.emails.send({
       from: FROM,
       to: email,
+      // The admin is copied on every live send while this rolls out, so the owner sees what each person got.
+      ...(!input.test && adminCopy && adminCopy.toLowerCase() !== email ? { bcc: adminCopy } : {}),
       subject: input.test ? `[TEST ${input.step}] ${content.subject}` : content.subject,
       react: LeadLifecycleEmail({ content, ctaUrl, unsubscribeUrl, postalAddress: settings.postalAddress, pixelUrl, audience }),
       headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>` },
