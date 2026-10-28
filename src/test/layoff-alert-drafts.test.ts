@@ -11,12 +11,12 @@ const card = (o: Partial<ContactCard> = {}): ContactCard => ({ name: 'Chelsea Le
 const ctx = { picture, peoplePage: 'https://launchyournextchapter.com/network/company/acme' }
 
 describe('head of HR note', () => {
-  it('leads with a number, links the people page once, and asks for a one-word reply', () => {
+  it("is Justin's own wording with the people page link, signed 'Justin'", () => {
     const d = draftFor('head_hr', card(), ctx)
-    expect(d.body).toContain('96,715 professional roles are open in California')
-    expect(d.body).toContain('https://launchyournextchapter.com/network/company/acme')
-    expect(d.body).toContain('reply "yes"')
-    expect(d.body.split(/\s+/).length).toBeLessThan(90)
+    expect(d.body).toContain('we complement it')
+    expect(d.body).toContain('free for them to use: https://launchyournextchapter.com/network/company/acme')
+    expect(d.body).toContain('15 minute call')
+    expect(d.body).not.toContain('/prepared/')
     expect(d.body.endsWith('\n\nJustin')).toBe(true)
   })
 })
@@ -35,7 +35,7 @@ describe('draftFor', () => {
       const d = draftFor(kind, card(), ctx)
       expect(d.body.startsWith('Chelsea,')).toBe(true)
       expect(d.body.match(/https:\/\//g)?.length).toBe(1)
-      expect(d.body.split(/\s+/).length).toBeLessThan(110)
+      if (kind !== 'head_hr') expect(d.body.split(/\s+/).length).toBeLessThan(110)
       expect(d.body).not.toMatch(/white-collar/i)
     }
   })
