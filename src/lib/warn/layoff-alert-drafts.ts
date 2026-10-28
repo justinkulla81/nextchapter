@@ -33,6 +33,8 @@ export interface DraftContext {
   picture: LocalPicture
   /** The page for the people affected, on our site (/network/company/<slug>): their employer and situation are known, so it asks them nothing up front. */
   peoplePage: string | null
+  /** The layoff's county page (/places/<state>/county/<county>), when it exists; the partner notes fall back to the state page. */
+  localPage?: string | null
 }
 
 /** `variant` is the subject-line test arm ('A', 'B', 'C'), set when a note has several subjects; the same address always gets the same one. */
@@ -144,12 +146,11 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
         job_centers: `I saw that ${who} are leaving ${org}${where}, and some of them may walk into your center.`,
         economic_development: `I saw that ${who} are leaving ${org}${where} and wanted to reach out about keeping that talent in the region.`,
       }
-      const pageLine: Record<string, string> = {
-        rapid_response: `I put together a page that shows where the roles are. It's free for the people you refer: ${statePage}`,
-        workforce_board: `I put together a page that shows where the roles are. It's free for the people you refer: ${statePage}`,
-        job_centers: `I put together a page you can point them to. It's free for them: ${statePage}`,
-        economic_development: `I put together a page that shows where the roles are. It's free for the people affected: ${statePage}`,
-      }
+      // Two links for a public partner: the page for the people leaving the employer (what they can hand out) and the local picture.
+      const local = x.localPage ?? statePage
+      const localName = x.localPage && place ? place : state ?? 'your state'
+      const share = x.peoplePage ? `I put together a page for the ${who} leaving ${org}, matched to the work they did. It's free for ${kind === 'job_centers' ? 'them' : kind === 'economic_development' ? 'the people affected' : 'the people you refer'}: ${x.peoplePage} And here is the picture for ${localName}, with where the roles are: ${local}` : `I put together a page that shows where the roles are. It's free for the people you refer: ${local}`
+      const pageLine: Record<string, string> = { rapid_response: share, workforce_board: share, job_centers: share, economic_development: share }
       const unemployment = kind === 'workforce_board' && p.unemploymentRate != null && p.areaLabel ? `${p.areaLabel} unemployment is ${p.unemploymentRate}%.` : ''
       const ask: Record<string, string> = {
         rapid_response: 'Could I send a one-page handout you can use in the meeting?',

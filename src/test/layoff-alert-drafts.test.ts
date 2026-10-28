@@ -36,11 +36,11 @@ describe('greetingFor', () => {
 })
 
 describe('draftFor', () => {
-  it('opens on a checkable number, links once, and stays short', () => {
+  it('opens on a checkable number, and stays short; partners get two links, everyone else one', () => {
     for (const kind of ['head_hr', 'rewards', 'er', 'ta', 'other_employee', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development', 'recruiters'] as const) {
       const d = draftFor(kind, card(), ctx)
       expect(d.body.startsWith('Chelsea,')).toBe(true)
-      expect(d.body.match(/https:\/\//g)?.length).toBe(1)
+      expect(d.body.match(/https:\/\//g)?.length).toBe(['rapid_response', 'workforce_board', 'job_centers', 'economic_development'].includes(kind) ? 2 : 1)
       if (!['head_hr', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development'].includes(kind)) expect(d.body.split(/\s+/).length).toBeLessThan(110)
       expect(d.body.split(/\s+/).length).toBeLessThan(220)
       expect(d.body).not.toMatch(/white-collar/i)

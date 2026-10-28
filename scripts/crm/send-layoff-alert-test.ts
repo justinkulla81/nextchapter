@@ -32,14 +32,19 @@ async function main() {
   const picture = await buildLocalPicture({ employer: n.employer, employees: n.employees, state, county: n.county, industryKey: industry?.key ?? null })
   const rel = await layoffPeople(org?.id ?? n.promotedOrgId ?? null, { state, county: n.county, address: n.address, workforceBoardId: n.workforceBoardId, industryKey: industry?.key ?? null })
   const withPitch = rel.groups.map((g) => (PARTNER[g.key] ? { ...g, pitch: talkingPoints(picture, PARTNER[g.key]) ?? undefined } : g))
-  const groups = withComposeLinks(withPitch, { picture, peoplePage: `${SITE}/network/company/${employerSlug(n.employer, null)}` })
+  // The county page, only when it answers (a county that has no page would be a dead link in an email).
+  const countySlug = n.county ? `${n.county.replace(/\s+county$/i, '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')}-county` : null
+  const stateSlugValue = state ? (await import('../../src/lib/seo/states')).stateSlug(state) : null
+  const countyUrl = countySlug && stateSlugValue ? `${SITE}/places/${stateSlugValue}/county/${countySlug}` : null
+  const localPage = countyUrl && (await fetch(countyUrl, { redirect: 'manual' })).status === 200 ? countyUrl : null
+  const groups = withComposeLinks(withPitch, { picture, peoplePage: `${SITE}/network/company/${employerSlug(n.employer, null)}`, localPage })
   const input: AlertInput = {
     employer: n.employer, employees: n.employees, percent: null, kind: n.source === 'WARN_FILING' ? 'warn' : 'news', confirmed: true,
     inCrm: !!org, people: 0, warm: 0, contactsFound: 0, place: [n.county, state].filter(Boolean).join(', ') || rel.placeLabel, groups,
     picture: { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) },
   }
   const { draftFor, draftKind } = await import('../../src/lib/warn/layoff-alert-drafts')
-  const dctx = { picture, peoplePage: `${SITE}/network/company/${employerSlug(n.employer, null)}` }
+  const dctx = { picture, peoplePage: `${SITE}/network/company/${employerSlug(n.employer, null)}`, localPage }
   const printed = ['head_hr', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development'].map((k) => {
     const c = withPitch.find((g) => g.key === k)?.cards.find((x) => x.email)
     const kind = c ? draftKind(k, c.title) : null
