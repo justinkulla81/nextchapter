@@ -12,7 +12,7 @@ export type Provider = {
   ask: (prompt: string) => Promise<ProviderAnswer>
 }
 
-const SYSTEM = 'Answer the question the way you would for a real person. Use web search. Name specific sites and tools.'
+const SYSTEM = 'Always search the web before answering. Then answer the way you would for a real person, naming specific sites and tools.'
 
 export const PROVIDERS: Provider[] = [
   {
@@ -85,7 +85,7 @@ export const PROVIDERS: Provider[] = [
     estCostUsd: 0.035,
     enabled: () => !!process.env.GEMINI_API_KEY,
     async ask(prompt) {
-      const model = process.env.AI_CITATION_GEMINI_MODEL || 'gemini-2.5-flash'
+      const model = process.env.AI_CITATION_GEMINI_MODEL || 'gemini-3.8-flash'
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: 'POST',
         headers: { 'x-goog-api-key': process.env.GEMINI_API_KEY as string, 'Content-Type': 'application/json' },
