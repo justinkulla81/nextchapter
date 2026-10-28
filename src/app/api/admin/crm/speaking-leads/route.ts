@@ -2,14 +2,25 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { importSpeakingLeads, parseSpeakingLeads, syncSpeakingTasks } from '@/lib/speaking/sync'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { prisma } from '@/lib/prisma'
 
 export const maxDuration = 60
 const MAX_LEADS = 100
 
 // Write path for the weekly speaking-discovery task (same Bearer key as the p0-leads endpoint). Re-posting a lead is
 // harmless: each is keyed on its link, and a repeat comes back alreadyLogged.
-export function GET() {
-  return NextResponse.json({ version: 1, kinds: ['KEYNOTE', 'PANEL', 'RESEARCH_APPLICATION', 'DEMO_DAY', 'PODCAST_WEBINAR', 'AWARD_CHALLENGE'] })
+export async function GET(request: NextRequest) {
+  const kinds = ['KEYNOTE', 'PANEL', 'RESEARCH_APPLICATION', 'DEMO_DAY', 'PODCAST_WEBINAR', 'AWARD_CHALLENGE']
+  // ?open=1 (Bearer): the open rows, oldest first, so the weekly search can re-check their dates and links.
+  if (request.nextUrl.searchParams.get('open') === '1') {
+    if (!isBearerAuthorized(request.headers.get('authorization'), process.env.NC_ATS_API_KEY)) return NextResponse.json({ version: 1, kinds })
+    const open = await prisma.ceoSpeakingOpportunity.findMany({
+      where: { status: { in: ['NEW', 'PLANNING'] } }, orderBy: { updatedAt: 'asc' }, take: 60,
+      select: { kind: true, title: true, hostName: true, url: true, eventDate: true, deadline: true },
+    })
+    return NextResponse.json({ version: 1, kinds, open })
+  }
+  return NextResponse.json({ version: 1, kinds })
 }
 
 export async function POST(request: NextRequest) {
