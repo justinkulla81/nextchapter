@@ -220,10 +220,6 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
             Professional jobs listed in the cities of <Link href={`/places/${state}/county/${m.county.slug}`} className={LINK}>{m.county.name}</Link>, where the college is.
           </p>
-          <p className="mt-2 flex max-w-3xl flex-wrap gap-x-4 gap-y-1 text-sm">
-            <Link href={`/places/${state}/county/${m.county.slug}#layoffs`} className={LINK}>Layoff notices in {m.county.name}</Link>
-            {layoffLinks.map((l) => <Link key={l.href} href={l.href} className={LINK}>{l.label}</Link>)}
-          </p>
           <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Stat value={n0(m.jobsOpen)} label="open professional jobs" />
             <Stat value={n0(m.entryLevel)} label="entry level" note={m.noExperience > 0 ? `${n0(m.noExperience)} say no experience is needed` : undefined} />
@@ -312,15 +308,6 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
         </section>
       )}
 
-      <AreaNotices
-        id="notices"
-        title={`Layoff notices from ${c.name}`}
-        intro={`WARN notices ${c.name} has filed with ${st} as an employer.`}
-        notices={collegeNotices}
-        moreHref={`/layoffs/${state}`}
-        moreLabel={`All layoff notices in ${st}`}
-      />
-
       <ActionBand
         title={`Work in career services or alumni relations at ${c.name}?`}
         body={`Claim this page and set up a free workspace for ${c.name}’s alumni and students. Use a work email at the college’s domain.`}
@@ -341,6 +328,21 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
         <span className="font-medium text-foreground">Sources:</span> enrollment and degrees from IPEDS (U.S. Department of Education); graduation, earnings and net price from the College Scorecard{c.dataYear ? ` (${c.dataYear})` : ''};
         open jobs from employers’ career sites, checked daily; unemployment from the Bureau of Labor Statistics; workforce boards and American Job Centers from CareerOneStop.
       </p>
+      <AreaNotices
+        id="notices"
+        title={`Layoff notices from ${c.name}`}
+        intro={`WARN notices ${c.name} has filed with ${st} as an employer.`}
+        notices={collegeNotices}
+        moreHref={`/layoffs/${state}`}
+        moreLabel={`All layoff notices in ${st}`}
+      />
+
+      {m && (
+        <p className="mt-6 flex max-w-3xl flex-wrap gap-x-4 gap-y-1 text-sm">
+          <Link href={`/places/${state}/county/${m.county.slug}#layoffs`} className={LINK}>Layoff notices in {m.county.name}</Link>
+          {layoffLinks.map((l) => <Link key={l.href} href={l.href} className={LINK}>{l.label}</Link>)}
+        </p>
+      )}
       <LinkToUs path={path} name={c.name} kind="college" />
     </SeoPage>
     </OrgBrandScope>

@@ -12,6 +12,7 @@ import { communityStatsFor } from '@/lib/org-claims/community-stats'
 import { OrgClaimPage } from '@/components/prospects/OrgClaimPage'
 import { boardConnectionCount } from '@/lib/affiliations/public-count'
 import { prisma } from '@/lib/prisma'
+import { orgKitContext } from '@/lib/org-claims/org-kit-data'
 
 // Unlisted: built from public data for one organization, not for search engines (yet).
 export const metadata: Metadata = { robots: { index: false, follow: false }, title: { absolute: 'Prepared for you | NextChapter' } }
@@ -38,7 +39,8 @@ export default async function ProspectPage({ params }: { params: Promise<{ slug:
     const boardLink = await prisma.publicOrgPage.findFirst({ where: { kind: 'WORKFORCE_BOARD', crmOrgId: org.id }, select: { sourceId: true } }).catch(() => null)
     const peopleCount = boardLink ? await boardConnectionCount([boardLink.sourceId]) : null
     captureServerEvent(`org-claim:${org.id}`, 'org_claim_page_viewed', { orgId: org.id, slug, hasStats: !!stats?.warn, scope: stats?.scope ?? null, needsReviewDomain: !org.emailDomain, peopleShown: peopleCount != null })
-    return <OrgClaimPage org={org} stats={stats} peopleCount={peopleCount} />
+    const kit = await orgKitContext(slug)
+    return <OrgClaimPage org={org} stats={stats} peopleCount={peopleCount} page={kit ? { kind: kit.kind, path: kit.pagePath } : null} />
   }
   const [market, notices, area, college, hub, readiness] = await Promise.all([
     getMarket(p), getNotices(p), getArea(p.areaId), p.kind === 'college' ? getCollege('Washington & Jefferson') : Promise.resolve(null), getHub(p), getReadiness(p),

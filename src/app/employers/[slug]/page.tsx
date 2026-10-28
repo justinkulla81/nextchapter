@@ -244,18 +244,16 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         events={secEvents}
       />
 
-      {layoffs && layoffs.slug && (
-        <AreaNotices
-          id="notices"
-          title={`Layoff notices from ${e.name}`}
-          intro={`WARN notices ${e.name} has filed with state labor departments.`}
-          notices={layoffs}
-          moreHref={`/layoffs/company/${layoffs.slug}`}
-          moreLabel={`${e.name} layoff history`}
-          showState
-        />
+      {seenConfs.length > 0 && (
+        <section aria-labelledby="conferences" className="mt-10">
+          <h2 id="conferences" className={H2}>Conferences where {e.name} appears</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Listed as an exhibitor, sponsor or speaker on the event’s own pages.</p>
+          <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm">
+            {seenConfs.map((c) => <li key={c.id}><Link href={`/conferences/${c.id}`} className="underline underline-offset-4">{c.name}</Link></li>)}
+          </ul>
+        </section>
       )}
-
+      <LocalEventSection id="local-events" title={`Job fairs and events with ${e.name}`} intro="Local hiring events and business events this employer sponsors or recruits at." scope={{ link: { kind: 'COMPANY', id: e.id } }} />
       {faq.length > 0 && (
         <section aria-labelledby="faq" className="mt-12">
           <h2 id="faq" className={H2}>Common questions</h2>
@@ -278,16 +276,18 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         <span className="font-medium text-foreground">Sources:</span> open roles from {e.name}’s career site and applicant system, checked daily;
         market pay ranges from posted salaries across the board. Updated {p?.firstSeenAt ? 'daily' : 'regularly'}.
       </p>
-      {seenConfs.length > 0 && (
-        <section aria-labelledby="conferences" className="mt-10">
-          <h2 id="conferences" className={H2}>Conferences where {e.name} appears</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Listed as an exhibitor, sponsor or speaker on the event’s own pages.</p>
-          <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm">
-            {seenConfs.map((c) => <li key={c.id}><Link href={`/conferences/${c.id}`} className="underline underline-offset-4">{c.name}</Link></li>)}
-          </ul>
-        </section>
+      {layoffs && layoffs.slug && (
+        <AreaNotices
+          id="notices"
+          title={`Layoff notices from ${e.name}`}
+          intro={`WARN notices ${e.name} has filed with state labor departments.`}
+          notices={layoffs}
+          moreHref={`/layoffs/company/${layoffs.slug}`}
+          moreLabel={`${e.name} layoff history`}
+          showState
+        />
       )}
-      <LocalEventSection id="local-events" title={`Job fairs and events with ${e.name}`} intro="Local hiring events and business events this employer sponsors or recruits at." scope={{ link: { kind: 'COMPANY', id: e.id } }} />
+
       <LinkToUs path={path} name={e.name} kind="employer" />
     </SeoPage>
     </OrgBrandScope>
