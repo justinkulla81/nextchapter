@@ -85,11 +85,11 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
     return {
       subject: 'Helping your affected people',
       body: [hello,
-        `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for laid-off professionals.`,
-        `I saw that ${who} are leaving ${org} and wanted to reach out. ${p.openInState != null && state ? `There are ${n(p.openInState)} professional roles open in ${state} right now${p.openSeniorInState ? `, ${n(p.openSeniorInState)} at manager level or above` : ''}, so there is somewhere for them to go.` : ''} I put together a page that shows each person the roles that fit the work they've done. It's free for them: ${page}`.replace(/\s{2,}/g, ' '),
-        `We're not a replacement for outplacement. If you already work with a provider, we sit alongside it. We just help people get hired faster, with a job search built around their skills, help with networking, retraining (a lot of it on AI), fractional work while they look, and coaching.`,
+        `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for white collar professionals.`,
+        `I saw that ${who} are leaving ${org} and wanted to reach out. ${p.openInState != null && state ? `There are ${n(p.openInState)} professional roles open in ${state} right now${p.openSeniorInState ? `, ${n(p.openSeniorInState)} at manager level or above` : ''}, so there is somewhere for them to go.` : ''} I put together a page that shows each person the roles that fit the work they've done. It's free for them to get started with their job transition, regardless of whether you partner with us: ${page}`.replace(/\s{2,}/g, ' '),
+        `We're not a replacement for legacy outplacement. If you already work with a provider, we sit alongside it. We do five things better though: we help people get hired faster with a job search built around their skills, help with networking (that we all know is the hardest to do but most effective), retraining (a lot of it on AI), fractional work while they look, and coaching.`,
         `We're a young company, so we're happy to build something that fits you and your people, and cost won't be the reason it doesn't happen. Could we grab 15 minutes this week?`,
-        'Justin'].join('\n\n'),
+        'Best,\nJustin Kulla, Founder and CEO.'].join('\n\n'),
     }
   }
 

@@ -11,17 +11,17 @@ const card = (o: Partial<ContactCard> = {}): ContactCard => ({ name: 'Chelsea Le
 const ctx = { picture, peoplePage: 'https://launchyournextchapter.com/network/company/acme' }
 
 describe('head of HR note', () => {
-  it("is Justin's wording, tightened, with the people page link, signed 'Justin'", () => {
+  it("is Justin's own edited wording with the people page link", () => {
     const d = draftFor('head_hr', card(), ctx)
     expect(d.body.startsWith("Chelsea,\n\nI'm Justin Kulla, founder of NextChapter")).toBe(true)
     expect(d.body).toContain('96,715 professional roles open in California right now')
     expect(d.body).toContain('sit alongside it')
     expect(d.subject).toBe('Helping your affected people')
-    expect(d.body).toContain("It's free for them: https://launchyournextchapter.com/network/company/acme")
+    expect(d.body).toContain('regardless of whether you partner with us: https://launchyournextchapter.com/network/company/acme')
     expect(d.body).toContain('15 minutes this week')
     expect(d.body.match(/https:\/\//g)?.length).toBe(1)
     expect(d.body).not.toContain('/prepared/')
-    expect(d.body.endsWith('\n\nJustin')).toBe(true)
+    expect(d.body.endsWith('Best,\nJustin Kulla, Founder and CEO.')).toBe(true)
   })
 })
 
