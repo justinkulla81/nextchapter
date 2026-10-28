@@ -6,6 +6,9 @@ import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { JourneyPicker } from '@/components/home/JourneyPicker'
+import { EmployerEmailCapture } from '@/components/network/EmployerEmailCapture'
+import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
+import { getEmployerBrand } from '@/lib/branding/store'
 import { NetworkViewTracker } from '@/components/network/NetworkViewTracker'
 import { canonical } from '@/lib/seo/canonical'
 import { DEFAULT_IMAGE, breadcrumbJsonLd, organizationRef, personRef } from '@/lib/seo/jsonld'
@@ -60,7 +63,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
   if (!data) permanentRedirect(`/layoffs/company/${slug}`)
 
   const { company: c, state, atEmployer, inState } = data
-  const statements = await approvedStatementMap(slug, c.name)
+  const [statements, brand] = await Promise.all([approvedStatementMap(slug, c.name), getEmployerBrand(c.name).catch(() => null)])
   const workers = totalWorkers(c)
   const stateLabel = stateName(state)
   const path = `/network/company/${slug}`
@@ -111,6 +114,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
   }
 
   return (
+    <OrgBrandScope brand={brand?.pair}>
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: c.name, path }])} />
       <StructuredData data={pageLd} />
@@ -124,62 +128,28 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
             <span aria-hidden> › </span>
             <span className="text-foreground">{c.name}</span>
           </nav>
-          <h1 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-            {networkCompanySeo(c.name).h1}
-          </h1>
-
-          {/* The answer first, in plain sentences, so a reader or an answer engine gets it without scrolling. */}
-          <p className="mt-4 max-w-3xl text-lg text-ink">
-            {c.name} filed {c.notices.length.toLocaleString('en-US')} WARN layoff {noticeWord} in {states.join(', ')}, most recently on{' '}
-            {noticeDay(c.latest)}, naming {workers.toLocaleString('en-US')} workers. If you work or worked at {c.name}, {aboutCount(inState.total)}{' '}
-            professional jobs are open in {stateLabel} today
-            {atEmployer.total > 0 && <>, including {aboutCount(atEmployer.total)} at {c.name}</>}. File for unemployment in the state where you worked,
-            check your health coverage options, and start looking now.
-          </p>
-
-          <section aria-labelledby="join" className="mt-8 rounded-xl border border-border bg-white p-6">
-            <h2 id="join" className="text-xl font-semibold tracking-tight text-navy">Join in two taps, no résumé needed</h2>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              For current and former {c.name} employees, and anyone planning their next move. Pick what sounds like you and we send a first-week plan.
+<div className="mt-4 rounded-2xl bg-[var(--org-1,#14213D)] p-6 text-[var(--org-1-ink,#ffffff)] sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">NextChapter · for people leaving {c.name}</p>
+            <h1 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+              {networkCompanySeo(c.name).h1}
+            </h1>
+            <p className="mt-3 max-w-2xl text-base opacity-90">
+              {aboutCount(inState.total)} professional jobs are open in {stateLabel}
+              {atEmployer.total > 0 && <>, including {aboutCount(atEmployer.total)} at {c.name}</>}. Put in your email and we send a plan built for a layoff: benefits and deadlines first, then jobs matched to your background.
             </p>
-            <div className="mt-5">
-              <JourneyPicker source={`network:company:${slug}`} compact situations={SITUATIONS} />
-            </div>
-          </section>
+            <EmployerEmailCapture slug={slug} employer={c.name} />
+          </div>
 
-          <section aria-labelledby="what-filed" className="mt-12">
-            <h2 id="what-filed" className={H2}>What did {c.name} file?</h2>
-            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-              A WARN notice gives the number of workers and the dates the employer reported. It does not say why. Notices are published by each state.
-            </p>
-            <div className="mt-4">
-              <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
-            </div>
-            <p className="mt-3 text-sm">
-              <Link href={`/layoffs/company/${slug}`} className={LINK}>Full notice record and news mentions for {c.name}</Link>
-            </p>
-          </section>
-
-          <section aria-labelledby="first" className="mt-12">
-            <h2 id="first" className={H2}>What should I do first if I was affected?</h2>
-            <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm">
-              {c.states.map((s) => (
-                <li key={s}>
-                  <Link href={`/unemployment-benefits/${stateSlug(s)}`} className={LINK}>File for {stateName(s)} unemployment benefits</Link>: amounts, weeks, the waiting week and where to file.
-                </li>
-              ))}
-              <li><Link href="/resources/cobra-aca" className={LINK}>Compare COBRA and marketplace health coverage</Link> before your coverage ends.</li>
-              <li><Link href="/resources/72-hours" className={LINK}>Use the first 72 hours</Link> on the steps that matter most.</li>
-              <li><Link href="/resources/bridge-income" className={LINK}>Line up bridge income</Link> while you search.</li>
-            </ol>
-          </section>
-
-          <section aria-labelledby="jobs" className="mt-12">
-            <h2 id="jobs" className={H2}>Where are the jobs?</h2>
+          <section aria-labelledby="jobs" className="mt-10">
+            <h2 id="jobs" className={H2}>Jobs open now</h2>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
               {aboutCount(inState.total)} professional jobs are open in {stateLabel}
               {atEmployer.total > 0 && <>, and {aboutCount(atEmployer.total)} at {c.name}</>}. Taken from employers&apos; own career sites and checked to still be open.
             </p>
+            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-[var(--org-1-soft,#eef2f7)] p-4">
+              <p className="min-w-0 flex-1 text-sm text-navy">These are the newest roles, not yet matched to you. Add your email at the top and tell us about your work, and we pick the jobs that fit you.</p>
+              <a href="#network-email" className="inline-flex h-11 items-center rounded-full bg-[var(--org-1,#14213D)] px-5 text-sm font-semibold text-[var(--org-1-ink,#ffffff)] hover:brightness-95">Personalize my jobs</a>
+            </div>
             {shownJobs.length > 0 && (
               <div className="mt-4 rounded-xl border border-border bg-white">
                 <h3 className="border-b border-border px-4 py-3 text-sm font-semibold text-navy">{shownLabel}</h3>
@@ -212,6 +182,20 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
             </p>
           </section>
 
+          <section aria-labelledby="first" className="mt-12">
+            <h2 id="first" className={H2}>What should I do first if I was affected?</h2>
+            <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm">
+              {c.states.map((s) => (
+                <li key={s}>
+                  <Link href={`/unemployment-benefits/${stateSlug(s)}`} className={LINK}>File for {stateName(s)} unemployment benefits</Link>: amounts, weeks, the waiting week and where to file.
+                </li>
+              ))}
+              <li><Link href="/resources/cobra-aca" className={LINK}>Compare COBRA and marketplace health coverage</Link> before your coverage ends.</li>
+              <li><Link href="/resources/72-hours" className={LINK}>Use the first 72 hours</Link> on the steps that matter most.</li>
+              <li><Link href="/resources/bridge-income" className={LINK}>Line up bridge income</Link> while you search.</li>
+            </ol>
+          </section>
+
           <section aria-labelledby="help" className="mt-12">
             <h2 id="help" className={H2}>What help is there for benefits and retraining?</h2>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
@@ -223,6 +207,14 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
               <li><Link href="/ai-skills" className={LINK}>Which AI skills employers ask for, and what they pay</Link></li>
               <li><Link href="/coaching" className={LINK}>Work with a career coach</Link></li>
             </ul>
+          </section>
+
+          <section aria-labelledby="join" className="mt-12 rounded-xl border border-border bg-white p-6">
+            <h2 id="join" className="text-xl font-semibold tracking-tight text-navy">Not laid off? Pick what sounds like you</h2>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">For anyone planning their next move at {c.name} or anywhere else. No résumé needed; we send a first-week plan.</p>
+            <div className="mt-5">
+              <JourneyPicker source={`network:company:${slug}`} compact situations={SITUATIONS} />
+            </div>
           </section>
 
           <section aria-labelledby="faq" className="mt-12">
@@ -237,6 +229,19 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
             </dl>
           </section>
 
+          <section aria-labelledby="what-filed" className="mt-12">
+            <h2 id="what-filed" className={H2}>What did {c.name} file?</h2>
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              A WARN notice gives the number of workers and the dates the employer reported. It does not say why. Notices are published by each state.
+            </p>
+            <div className="mt-4">
+              <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
+            </div>
+            <p className="mt-3 text-sm">
+              <Link href={`/layoffs/company/${slug}`} className={LINK}>Full notice record and news mentions for {c.name}</Link>
+            </p>
+          </section>
+
           <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
             Notices are as filed with state labor departments and refreshed daily; the newest is dated {noticeDay(c.latest)}. Job counts are rounded.
             NextChapter is independent of {c.name}. See the <Link href="/layoffs" className={LINK}>layoff tracker</Link> for how notices are collected.
@@ -245,5 +250,6 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
       </main>
       <PublicSiteFooter page="layoffs" />
     </div>
+    </OrgBrandScope>
   )
 }

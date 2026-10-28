@@ -5,6 +5,7 @@ import { isHrLeaderTitle } from '@/lib/crm/org-domains'
 import { pickBoard } from '@/lib/workforce/match'
 import { cityFromAddress } from '@/lib/workforce/places'
 import { industryName, recruiterFit } from '@/lib/crm/coverage'
+import { greetingFor } from './layoff-alert-drafts'
 import { orderGroups, type ContactCard, type ContactGroup } from './layoff-alert-rules'
 
 const SITE = 'https://launchyournextchapter.com'
@@ -33,7 +34,7 @@ function card(p: PersonRow, title: string | null, org: string | null): ContactCa
   return {
     name: p.fullName, title, org,
     email: email ?? p.guessedEmail, guessed: !email && !!p.guessedEmail,
-    phone: p.phone, strength: s === 'hot' || s === 'warm' ? s : null,
+    phone: p.phone, strength: s === 'hot' || s === 'warm' ? s : null, greet: greetingFor(p.fullName),
     href: `${SITE}/support/admin/crm/people/${p.id}`,
   }
 }
@@ -101,7 +102,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
         { n: board.directorName, t: board.directorTitle || 'Executive Director', e: board.directorEmail, p: board.directorPhone },
         { n: board.chairName, t: 'Board Chair', e: board.chairEmail, p: board.chairPhone },
       ].filter((x) => x.n && x.n.trim().split(/\s+/).length >= 2).map((x) => ({
-        name: x.n!.trim(), title: x.t, org: board!.name, email: x.e || null, phone: x.p || null, strength: null,
+        name: x.n!.trim(), title: x.t, org: board!.name, email: x.e || null, phone: x.p || null, strength: null, greet: greetingFor(x.n),
         href: board!.website || `${SITE}/support/admin/crm/workforce-boards/${board!.id}`,
       }))
     : []
@@ -114,7 +115,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
     .map((c) => ({
       name: c.name, title: c.businessEmail ? `${c.centerType ?? 'American Job'} center, business services` : `${c.centerType ?? 'American Job'} center`,
       org: [c.street, c.city].filter(Boolean).join(', ') || null,
-      email: c.businessEmail || c.generalEmail || null, phone: c.phone, strength: null, href: c.detailsUrl,
+      email: c.businessEmail || c.generalEmail || null, phone: c.phone, strength: null, greet: 'team', href: c.detailsUrl,
     }))
 
   const econ = state
@@ -171,6 +172,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
         title: [`${people.length} ${people.length === 1 ? 'recruiter' : 'recruiters'}`, local ? state : 'national', ...industries].filter(Boolean).join(' · '),
         org: `${solo ? '' : 'Start with '}${solo ? (aff?.title ?? '') : `${lead.fullName}${aff?.title ? `, ${aff.title}` : ''}`}${others.length ? `. Also ${others.join(', ')}${people.length > 3 ? ` and ${people.length - 3} more` : ''}` : ''}`.trim() || null,
         href: solo ? c.href : `${SITE}/support/admin/crm/organizations/${aff!.org.id}`,
+        greet: greetingFor(lead.fullName),
       }
     })
 
@@ -188,7 +190,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
     name: l.contactName ?? l.name,
     title: l.contactName ? (l.contactTitle ?? KIND[l.kind] ?? l.kind) : (KIND[l.kind] ?? l.kind),
     org: l.contactName ? l.name : l.city,
-    email: l.contactEmail, phone: l.contactPhone, strength: null, href: l.website,
+    email: l.contactEmail, phone: l.contactPhone, strength: null, greet: l.contactName ? greetingFor(l.contactName) : 'team', href: l.website,
   }))
   // People we know come first, then named contacts, then the organizations with no contact yet.
   const econCards = [...econ.map((p) => card(p, p.affiliations[0]?.title ?? null, p.affiliations[0]?.org.name ?? null)), ...geoCards]
