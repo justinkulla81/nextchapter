@@ -69,6 +69,8 @@ export function countyKey(raw: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // Doña Ana → Dona Ana
     .toLowerCase()
+    // Kentucky writes "Jefferson County - Louisville": the county, a dash, the city. The city part is not part of the county's name.
+    .replace(/\s+-\s+.*$/, '')
     .replace(/\s+(county|parish|borough|census area|city and borough|municipality)$/, '')
     .replace(/\bsaint\b/g, 'st')
     .replace(/\bst\.\s*/g, 'st ')
