@@ -41,6 +41,23 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
     }
   }
 
+  if (variant === 'applied_job' && step === 'nudge1') {
+    const role = c.detail ?? 'the job you applied for'
+    return {
+      subject: 'Heard back about your application?',
+      headline: 'Time to follow up?',
+      paragraphs: [
+        hello(c),
+        `It has been three days since you went to apply for ${role}. If you have not heard back, a short note to the recruiter or hiring manager keeps you in view.`,
+        `Something like: “Hello, I applied for ${role} and wanted to confirm it reached you. I am very interested and glad to answer any questions.”`,
+        'To see more jobs like this one ranked for you, create a free profile. Add your résumé and every job on the site comes back ordered by how well you fit.',
+      ],
+      benefits: BENEFITS,
+      ctaLabel: 'Create my free profile',
+      footerNote: 'This is the only follow-up reminder we send about this application.',
+    }
+  }
+
   if (step === 'nudge1') {
     return {
       subject: 'Two minutes to a job search that fits you',
@@ -72,6 +89,23 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
   }
 
   const note = `If you do not make a profile we will send ${remindersLeft(NUDGE_DAYS[variant].length)}, then stop.`
+
+  if (variant === 'applied_job') {
+    return {
+      subject: c.detail ? `Your application: ${c.detail}` : 'Your application',
+      headline: 'We kept your application',
+      paragraphs: [
+        hello(c),
+        c.detail ? `You went to apply for ${c.detail}. We saved it here, so you can open it again while it is listed.` : 'You went to apply for a job. We saved it here, so you can open it again while it is listed.',
+        'In three days we send one note to help you follow up with the employer.',
+        'Create a free profile and every job comes back ranked for you, so the ones like this come first.',
+        FREE,
+      ],
+      benefits: BENEFITS,
+      ctaLabel: 'Create my free profile',
+      footerNote: 'We send one follow-up reminder in three days, then stop.',
+    }
+  }
 
   if (variant === 'saved_job') {
     return {

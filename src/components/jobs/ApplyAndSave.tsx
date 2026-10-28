@@ -32,7 +32,7 @@ function pickVariant(): Variant {
 
 const noSubscribe = () => () => {}
 
-export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: string; company: string; applyUrl: string; emailOn: boolean }) {
+export function ApplyAndSave({ jobId, company, applyUrl, emailOn, reminderOn }: { jobId: string; company: string; applyUrl: string; emailOn: boolean; reminderOn: boolean }) {
   const [open, setOpen] = useState(false)
   const [trigger, setTrigger] = useState<'apply_click' | 'save_link' | 'apply_gate'>('save_link')
   // Read on the browser only; the server and the first paint say 'control', then it settles on the saved variant.
@@ -120,9 +120,6 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
 
       {/* Before Apply is clicked the fit offer sits here on phones (desktop has the side card); after it, the offer leads the box. */}
       {!open && <JobFitCard jobId={jobId} placement="inline" className="mt-5 lg:hidden" />}
-      {open && trigger === 'apply_click' && !state?.saved && (
-        <JobFitCard jobId={jobId} placement="after_apply" heading={`Applied to ${company}? See if you’d get an interview.`} className="mt-4" />
-      )}
 
       {gateOpen && variant === 'gate' && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={() => setGateOpen(false)}>
@@ -200,8 +197,10 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
           <div className="mt-4">
             <p role="status" className="rounded-2xl border border-success/30 bg-success/5 px-4 py-3 text-sm">
               {state.emailed
-                ? <>Saved. We emailed <span className="font-medium">{state.email}</span> a link back to this job.</>
-                : <>Saved{state.email ? <> for <span className="font-medium">{state.email}</span></> : ''}. Keep this page open to come back to the job.</>}
+                ? <>Saved. We emailed <span className="font-medium">{state.email}</span> a link back to this job{trigger === 'apply_click' && reminderOn ? ', and we’ll send a reminder in 3 days to follow up' : ''}.</>
+                : reminderOn && (trigger === 'apply_click' || trigger === 'apply_gate')
+                  ? <>Saved for <span className="font-medium">{state.email}</span>. We’ll email you this job, then a reminder in 3 days to follow up.</>
+                  : <>Saved{state.email ? <> for <span className="font-medium">{state.email}</span></> : ''}. Keep this page open to come back to the job.</>}
             </p>
             <SaveJourneyStep email={state.email ?? ''} what="job" properties={{ placement: 'job_saved', jobId, company, trigger }} />
           </div>
@@ -212,8 +211,14 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
             className={cn('mt-4 rounded-2xl border border-border bg-white p-4', pending && 'cursor-wait')}
             onSubmit={() => posthog.capture('job_save_submitted_client', { jobId, company, trigger })}
           >
-            <p className="text-sm font-semibold">{trigger === 'apply_click' ? 'Or keep this job for later.' : 'Keep this job and see how you fit.'}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{emailOn ? 'We email you the job so you can find it again. Then create a free account to see your fit.' : 'Save it with your email, then create a free account to see your fit.'}</p>
+            <p className="text-sm font-semibold">{trigger === 'apply_click' ? `Applying to ${company}? We’ll keep track of it for you.` : 'Keep this job and see how you fit.'}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {trigger === 'apply_click' && reminderOn
+                ? 'We email you this job now and a reminder in 3 days to follow up. Optional.'
+                : emailOn
+                  ? 'We email you the job so you can find it again. Then create a free account to see your fit.'
+                  : 'Save it with your email, then create a free account to see your fit.'}
+            </p>
             <input type="hidden" name="jobId" value={jobId} />
             <input type="hidden" name="trigger" value={trigger} />
             <div className="hidden" aria-hidden>
@@ -237,10 +242,9 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
               <Button
                 type="submit"
                 disabled={pending}
-                variant={trigger === 'apply_click' ? 'outline' : 'default'}
-                className={cn('h-11 rounded-full px-5', trigger !== 'apply_click' && 'bg-action text-action-foreground hover:brightness-95')}
+                className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95"
               >
-                {pending ? 'Saving…' : (emailOn ? 'Email me this job' : 'Save this job')}
+                {pending ? 'Saving…' : trigger === 'apply_click' && reminderOn ? 'Remind me to follow up' : emailOn ? 'Email me this job' : 'Save this job'}
               </Button>
             </div>
             {state?.error && (
@@ -250,6 +254,11 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
             )}
           </form>
         ))}
+
+      {/* After an Apply click the tracking box leads (the one primary action); the fit offer follows it. */}
+      {open && trigger === 'apply_click' && !state?.saved && (
+        <JobFitCard jobId={jobId} placement="after_apply" heading={`Applied to ${company}? See if you’d get an interview.`} className="mt-4" />
+      )}
     </div>
   )
 }

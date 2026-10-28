@@ -45,6 +45,25 @@ describe('nextLifecycleStep', () => {
   })
 })
 
+describe('applied job', () => {
+  it('welcomes, then sends one follow-up reminder at day 3 and stops', () => {
+    const base = { variant: 'applied_job' as const, capturedAt: T0, welcomeAt: T0, nudge1At: null, nudge2At: null }
+    expect(nextLifecycleStep({ ...base, now: at(2) })).toBeNull()
+    expect(nextLifecycleStep({ ...base, now: at(3) })).toBe('nudge1')
+    expect(nextLifecycleStep({ ...base, nudge1At: at(3), now: at(40) })).toBeNull()
+  })
+
+  it('says follow up, names the job, and the welcome promises only the one reminder', () => {
+    const ctx = { firstName: null, detail: 'Analyst at Example Co' }
+    const welcome = leadEmailContent('applied_job', 'welcome', ctx)
+    expect(welcome.paragraphs.join(' ')).toContain('Analyst at Example Co')
+    expect(welcome.footerNote).toContain('one follow-up reminder')
+    const nudge = leadEmailContent('applied_job', 'nudge1', ctx)
+    expect(nudge.headline).toBe('Time to follow up?')
+    expect(nudge.paragraphs.join(' ')).toContain('Analyst at Example Co')
+  })
+})
+
 describe('waitlistVariant', () => {
   it('skips members mid-signup and someone else\'s address, acknowledges business audiences', () => {
     expect(waitlistVariant('onboarding_no_gmail')).toBeNull()
