@@ -140,26 +140,16 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
             <EmployerEmailCapture slug={slug} employer={c.name} />
           </div>
 
-          <section aria-labelledby="first" className="mt-12">
-            <h2 id="first" className={H2}>What should I do first if I was affected?</h2>
-            <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm">
-              {c.states.map((s) => (
-                <li key={s}>
-                  <Link href={`/unemployment-benefits/${stateSlug(s)}`} className={LINK}>File for {stateName(s)} unemployment benefits</Link>: amounts, weeks, the waiting week and where to file.
-                </li>
-              ))}
-              <li><Link href="/resources/cobra-aca" className={LINK}>Compare COBRA and marketplace health coverage</Link> before your coverage ends.</li>
-              <li><Link href="/resources/72-hours" className={LINK}>Use the first 72 hours</Link> on the steps that matter most.</li>
-              <li><Link href="/resources/bridge-income" className={LINK}>Line up bridge income</Link> while you search.</li>
-            </ol>
-          </section>
-
-          <section aria-labelledby="jobs" className="mt-12">
-            <h2 id="jobs" className={H2}>Where are the jobs?</h2>
+          <section aria-labelledby="jobs" className="mt-10">
+            <h2 id="jobs" className={H2}>Jobs open now</h2>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
               {aboutCount(inState.total)} professional jobs are open in {stateLabel}
               {atEmployer.total > 0 && <>, and {aboutCount(atEmployer.total)} at {c.name}</>}. Taken from employers&apos; own career sites and checked to still be open.
             </p>
+            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-[var(--org-1-soft,#eef2f7)] p-4">
+              <p className="min-w-0 flex-1 text-sm text-navy">These are the newest roles, not yet matched to you. Add your email at the top and tell us about your work, and we pick the jobs that fit you.</p>
+              <a href="#network-email" className="inline-flex h-11 items-center rounded-full bg-[var(--org-1,#14213D)] px-5 text-sm font-semibold text-[var(--org-1-ink,#ffffff)] hover:brightness-95">Personalize my jobs</a>
+            </div>
             {shownJobs.length > 0 && (
               <div className="mt-4 rounded-xl border border-border bg-white">
                 <h3 className="border-b border-border px-4 py-3 text-sm font-semibold text-navy">{shownLabel}</h3>
@@ -190,6 +180,20 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
                 See all {aboutCount(inState.total)} jobs in {stateLabel}
               </TrackedLink>
             </p>
+          </section>
+
+          <section aria-labelledby="first" className="mt-12">
+            <h2 id="first" className={H2}>What should I do first if I was affected?</h2>
+            <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm">
+              {c.states.map((s) => (
+                <li key={s}>
+                  <Link href={`/unemployment-benefits/${stateSlug(s)}`} className={LINK}>File for {stateName(s)} unemployment benefits</Link>: amounts, weeks, the waiting week and where to file.
+                </li>
+              ))}
+              <li><Link href="/resources/cobra-aca" className={LINK}>Compare COBRA and marketplace health coverage</Link> before your coverage ends.</li>
+              <li><Link href="/resources/72-hours" className={LINK}>Use the first 72 hours</Link> on the steps that matter most.</li>
+              <li><Link href="/resources/bridge-income" className={LINK}>Line up bridge income</Link> while you search.</li>
+            </ol>
           </section>
 
           <section aria-labelledby="help" className="mt-12">

@@ -43,7 +43,7 @@ export function EmployerEmailCapture({ slug, employer }: { slug: string; employe
               }}
               className={`mt-4 inline-flex items-center ${BUTTON}`}
             >
-              Start my Market Reality Assessment
+              Personalize my jobs
             </Link>
           </>
         ) : (
