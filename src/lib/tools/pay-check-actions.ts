@@ -14,6 +14,7 @@ import { jobAlertDailyCap } from '@/lib/leads/job-alert-config'
 import PayCheckResultEmail from '@/emails/pay-check-result'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { aiIllustration, aiPremiumForFunction, aiPremiumSentence } from '@/lib/pay/ai-premium'
+import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 
 // The pay check on /tools/pay-check: a title and an annual figure in, a plain comparison out, no account and no AI.
 // Optionally the result by email, which also puts the person on the lead path (the journey question).
@@ -93,6 +94,7 @@ export async function emailPayCheck(prev: PayCheckState | undefined, formData: F
     const lead = existing
       ? await prisma.homepageLead.update({ where: { id: existing.id }, data: { unsubscribedAt: null, followup: r.verdict }, select })
       : await prisma.homepageLead.create({ data: { ...key, source: 'pay_check', followup: r.verdict, ip }, select })
+    if (!existing) notifyNewLead({ email, channel: 'Pay check', detail: stat.slug })
 
     let emailed = false
     if (payCheckEmailsOn() && !lead.planSentAt && process.env.RESEND_API_KEY && !isUndeliverableAddress(email) && (await sentToday()) < jobAlertDailyCap()) {

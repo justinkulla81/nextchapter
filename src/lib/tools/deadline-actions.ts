@@ -8,6 +8,7 @@ import { ALL_STATE_CODES } from '@/lib/seo/states'
 import { deadlineEmailsOn } from '@/lib/leads/job-alert-config'
 import { sendAlertConfirmation } from '@/lib/leads/job-alerts'
 import { parseLastDay, plausibleLastDay } from '@/lib/tools/layoff-deadlines'
+import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 
 // "Email me a reminder before each deadline" on /tools/layoff-deadlines. Stored as a HomepageLead of kind
 // deadline_reminders (last day in `situation`, state in `searchLoc`), confirmed by email before anything is sent
@@ -48,6 +49,7 @@ export async function saveDeadlineReminders(_prev: DeadlineSignupState | undefin
     const lead = existing
       ? await prisma.homepageLead.update({ where: { id: existing.id }, data: { unsubscribedAt: null }, select })
       : await prisma.homepageLead.create({ data: { ...key, source, ip }, select })
+    if (!existing) notifyNewLead({ email, channel: 'Deadline reminders', detail: source })
 
     const needsConfirm = !lead.confirmedAt && (!lead.confirmSentAt || lead.confirmSentAt.getTime() < Date.now() - DAY_MS)
     const confirmEmailed = needsConfirm

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { allowByIp, HOUR_MS } from '@/lib/security/rate-limit'
+import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 
 export async function POST(request: NextRequest) {
   if (!(await allowByIp('waitlist', 20, HOUR_MS))) {
@@ -23,6 +24,7 @@ export async function POST(request: NextRequest) {
   await prisma.waitlistSignup.create({
     data: { audience, payload },
   })
+  if (typeof payload.email === 'string') notifyNewLead({ email: payload.email, name: typeof payload.name === 'string' ? payload.name : null, channel: 'Waitlist', detail: audience })
 
   return NextResponse.json({ ok: true })
 }

@@ -9,6 +9,7 @@ import { getCompanies } from '@/lib/warn/layoff-pages'
 import { layoffAlertEmailsOn } from '@/lib/leads/job-alert-config'
 import { sendAlertConfirmation } from '@/lib/leads/job-alerts'
 import { layoffWatchLabel } from '@/lib/leads/layoff-alerts'
+import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 
 // "Tell me about new layoff notices" on the /layoffs pages: one employer, one state, or everything. Stored as a
 // HomepageLead of kind layoff_alert, confirmed by email before anything is sent (see lib/leads/layoff-alerts.ts).
@@ -48,6 +49,7 @@ export async function saveLayoffAlert(_prev: LayoffAlertState, formData: FormDat
     const lead = existing
       ? await prisma.homepageLead.update({ where: { id: existing.id }, data: { unsubscribedAt: null }, select })
       : await prisma.homepageLead.create({ data: { ...key, source: text(formData, 'source', 100) || 'layoffs', ip }, select })
+    if (!existing) notifyNewLead({ email, channel: 'Layoff alert', detail: [employer, state].filter(Boolean).join(' ') })
 
     const needsConfirm = !lead.confirmedAt && (!lead.confirmSentAt || lead.confirmSentAt.getTime() < Date.now() - DAY_MS)
     const label = layoffWatchLabel({ searchQ: employer, searchLoc: state })

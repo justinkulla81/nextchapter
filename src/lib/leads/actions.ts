@@ -10,6 +10,7 @@ import { planFor } from '@/lib/leads/first-week-plans'
 import { cleanPublicQuery } from '@/lib/jobs/public-board'
 import JourneyPlanEmail from '@/emails/journey-plan'
 import { sendJobAlertConfirmation } from '@/lib/leads/job-alerts'
+import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 
 // Homepage lead capture, no account needed. Two forms:
 //  - the journey picker: where you are in your search, and a one-time first-week plan email
@@ -71,6 +72,7 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
           data: { ...key, source, followup, ip },
           select: { id: true, unsubscribeToken: true, planSentAt: true },
         })
+    if (!existing) notifyNewLead({ email, channel: 'Journey picker', detail: source })
 
     // One plan email per address per week, whichever situation they picked, and never to a
     // plan already sent for this one. Sending is best effort: a failure keeps the lead.
@@ -146,6 +148,7 @@ export async function saveJobSearchAlert(_prev: SavedSearchState, formData: Form
     const lead = existing
       ? await prisma.homepageLead.update({ where: { id: existing.id }, data: { unsubscribedAt: null }, select: { id: true, unsubscribeToken: true, confirmedAt: true, confirmSentAt: true } })
       : await prisma.homepageLead.create({ data: { ...key, source: alertSource, ip }, select: { id: true, unsubscribeToken: true, confirmedAt: true, confirmSentAt: true } })
+    if (!existing) notifyNewLead({ email, channel: 'Job alert', detail: alertSource })
 
     // Double opt-in: one confirmation email per saved search (again after a day if it was never clicked).
     // Sends only when JOB_ALERT_EMAILS=1 and under the daily cap.

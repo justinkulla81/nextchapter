@@ -5,6 +5,7 @@ import { getClientIp } from '@/lib/http/client-ip'
 import { allowByIp, allowByTarget, DAY_MS, HOUR_MS } from '@/lib/security/rate-limit'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { analyzeResume, teaserFor, RESUME_MAX_CHARS, RESUME_MIN_CHARS, type ResumeFinding, type ResumeTeaser } from '@/lib/tools/resume-check'
+import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 
 // The résumé check on /tools/resume-check: pasted text in, a score out, no AI and no cost per check. The score and the
 // number of fixes show first; the fixes themselves unlock once the person leaves an email, which puts them on the lead
@@ -56,6 +57,7 @@ export async function emailResumeCheck(prev: ResumeCheckState | undefined, formD
     const lead = existing
       ? await prisma.homepageLead.update({ where: { id: existing.id }, data: { followup: r.band }, select })
       : await prisma.homepageLead.create({ data: { ...key, source: 'resume_check', followup: r.band, ip }, select })
+    if (!existing) notifyNewLead({ email, channel: 'Résumé check' })
     captureServerEvent(email, 'lead_captured', { kind: 'resume_check', source: 'resume_check', score: r.score, band: r.band, returning: !!existing })
     return { ...base, findings: r.findings, token: lead.unsubscribeToken, email }
   } catch (error) {
