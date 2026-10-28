@@ -14,6 +14,13 @@ describe('speakerFit', () => {
   it('does not accept a lone startup or AI mention', () => {
     expect(speakerFit({ name: 'AI Dev Day', whyAttend: 'machine learning engineers' })).toBeNull()
   })
+  it('accepts academic, MBA, government, non-profit and edtech audiences', () => {
+    expect(speakerFit({ name: 'MBA Career Management Summit' })).not.toBeNull()
+    expect(speakerFit({ name: 'Public Policy and Economic Development Forum' })).not.toBeNull()
+    expect(speakerFit({ name: 'Social Impact and Philanthropy Convening' })).not.toBeNull()
+    expect(speakerFit({ name: 'Digital Learning Innovation Conference' })).not.toBeNull()
+    expect(speakerFit({ name: 'Academic Labor Economics Symposium', whyAttend: 'faculty and researchers' })).not.toBeNull()
+  })
 })
 
 describe('parseSpeakingLeads', () => {
