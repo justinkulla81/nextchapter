@@ -4,6 +4,7 @@ The owner has decided this order. Do not design against another order or re-add 
 
 1. Questions, with "Where you are" (journey) first.
 2. Résumé. Required for unemployed journeys (laid off, returning to work, new grad) and for Market Reality lead-gen arrivals (`?goal=market-reality`). Optional ("Skip for now") for everyone else; skippers are prompted on Home to "Upload your résumé to get your Market Reality".
+   The upload returns as soon as the file is stored (`startResumeUpload`); reading it, the profile fill and the analysis run afterwards (`src/lib/resume/background-parse.ts`) while the page shows progress. State lives in `journeyDetails.resumeParse`; a Resume row counts as a résumé only once reading has finished. Failure shows "Try again" / "Upload a different file".
 3. Aiming, level and function (asked directly if there is no résumé).
 4. Where.
 5. Coach.

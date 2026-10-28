@@ -159,13 +159,14 @@ export async function extractProfileFieldsFromResume(
   // existing resumes (after the caps were raised) without touching a profile the member
   // may have corrected by hand — the full run rewrites city, name, phone and so on.
   opts: { entriesOnly?: boolean } = {}
-): Promise<void> {
+// True when the résumé was read and the profile written; false when nothing could be read (the background parse retries on false).
+): Promise<boolean> {
   const resume = await prisma.resume.findUniqueOrThrow({ where: { id: resumeId } })
 
   if (!resume.extractedText) {
     // Silent before: an image-only PDF or a failed text extraction simply did nothing.
     captureServerEvent(resume.candidateId, 'resume_extraction_skipped', { resumeId, reason: 'no_extracted_text' })
-    return
+    return false
   }
 
   try {
@@ -194,7 +195,7 @@ export async function extractProfileFieldsFromResume(
 
     if (!data) {
       captureServerEvent(resume.candidateId, 'resume_extraction_failed', { resumeId, reason: 'no_parsed_output' })
-      return
+      return false
     }
 
     const graduationDate = data.graduationDate ? new Date(data.graduationDate) : null
@@ -360,6 +361,7 @@ export async function extractProfileFieldsFromResume(
         console.error('Failed to recompute level rank after resume upload:', error)
       })
     }
+    return true
   } catch (error) {
     console.error('Failed to auto-fill profile fields from resume:', error)
     captureServerEvent(resume.candidateId, 'resume_extraction_failed', {
@@ -369,5 +371,6 @@ export async function extractProfileFieldsFromResume(
     })
     // Best-effort auto-fill — failure here must never block the resume
     // upload or its ATS/results/experience analysis.
+    return false
   }
 }
