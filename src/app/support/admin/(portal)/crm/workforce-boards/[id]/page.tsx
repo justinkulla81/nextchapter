@@ -191,7 +191,8 @@ export default async function WorkforceBoardPage({
               First email to {board.directorName ?? 'the director'}{' '}
               <a href={intro.href} target="_blank" rel="noreferrer" className="ml-2 text-primary hover:underline">Write email</a>
             </summary>
-            <p className="mt-2 text-xs text-muted-foreground">Opens Gmail from justin@launchyournextchapter.com, to {intro.to}. Same wording as the layoff alert notes, with this board&apos;s live numbers. Nothing is sent from here.</p>
+            <p className="mt-2 text-xs text-muted-foreground">Opens Gmail from justin@launchyournextchapter.com, to {intro.to}. Same wording as the layoff alert notes, with this board&apos;s live numbers. Nothing is sent from here. The link in it is tracked ({intro.clicks} {intro.clicks === 1 ? 'click' : 'clicks'} so far); once you send it, the hourly Gmail sync logs the email and any reply on this person&apos;s record.</p>
+            {intro.toNote && <p className="mt-2 rounded bg-amber-50 p-2 text-xs text-amber-900">{intro.toNote}</p>}
             <p className="mt-2 font-medium">Subject: {intro.subject}</p>
             <pre className="mt-1 whitespace-pre-wrap font-sans text-sm text-foreground">{intro.body}</pre>
           </details>
