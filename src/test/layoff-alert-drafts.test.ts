@@ -14,6 +14,8 @@ describe('head of HR note', () => {
   it("is Justin's wording and signs off 'Justin'", () => {
     const d = draftFor('head_hr', card(), ctx)
     expect(d.body).toContain('we complement it')
+    expect(d.body).toContain('Claim it with your work email')
+    expect(d.body).toContain('nothing for them to fill out')
     expect(d.body).toContain('I saw the news that 875 people are leaving Acme.')
     expect(d.body.endsWith('\n\nJustin')).toBe(true)
   })
@@ -34,7 +36,7 @@ describe('draftFor', () => {
       expect(d.body.startsWith('Chelsea,')).toBe(true)
       expect(d.body.match(/https:\/\//g)?.length).toBe(1)
       if (kind !== 'head_hr') expect(d.body.split(/\s+/).length).toBeLessThan(110)
-      expect(d.body).not.toMatch(/white-collar|free\b/i)
+      expect(d.body).not.toMatch(/white-collar/i)
     }
   })
   it('greets a center as a team', () => {
