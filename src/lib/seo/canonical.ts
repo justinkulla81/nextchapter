@@ -14,6 +14,26 @@ export function canonical(path: string): Pick<Metadata, 'alternates'> {
 }
 
 /**
+ * `canonical(path)` plus the feed autodiscovery links, so a reader app pointed
+ * at the page finds the layoff and report feeds. A page's own `alternates`
+ * replaces the parent's whole, so each page that should advertise feeds spreads
+ * this instead of relying on the root layout.
+ */
+export function canonicalWithFeeds(path: string): Pick<Metadata, 'alternates'> {
+  return {
+    alternates: {
+      canonical: path,
+      types: {
+        'application/rss+xml': [
+          { url: '/feeds/layoffs', title: 'NextChapter layoff notices' },
+          { url: '/news/feed.xml', title: 'NextChapter monthly employment report and news' },
+        ],
+      },
+    },
+  }
+}
+
+/**
  * For utility pages nobody should land on from a search: sign-in, sign-up,
  * password reset, one-time token links, thank-you screens. Links on them are
  * still followed.

@@ -1,12 +1,12 @@
 import { NewHome } from '@/components/home/NewHome'
 import { StructuredData } from '@/components/StructuredData'
-import { canonical } from '@/lib/seo/canonical'
+import { canonicalWithFeeds } from '@/lib/seo/canonical'
 import { organizationJsonLd, organizationRef } from '@/lib/seo/jsonld'
 
 // The page is static: the news feed and newsletter moved off the homepage (see /news).
 export const revalidate = 300
 
-export const metadata = canonical('/')
+export const metadata = canonicalWithFeeds('/')
 
 const jsonLd = {
   '@context': 'https://schema.org',
