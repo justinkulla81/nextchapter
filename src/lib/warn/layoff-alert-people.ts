@@ -6,6 +6,10 @@ import { pickBoard } from '@/lib/workforce/match'
 import { cityFromAddress } from '@/lib/workforce/places'
 import { industryName, recruiterFit } from '@/lib/crm/coverage'
 import { greetingFor } from './layoff-alert-drafts'
+import { getStateData } from '@/lib/seo/org-pages'
+import { publicPageForCrmOrg } from '@/lib/seo/org-page-links'
+import { orgPagePath } from '@/lib/seo/org-page-rules'
+import { stateSlug } from '@/lib/seo/states'
 import { orderGroups, type ContactCard, type ContactGroup } from './layoff-alert-rules'
 
 const SITE = 'https://launchyournextchapter.com'
@@ -84,10 +88,20 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
   }
 
   const state = place.state
+  // The branded public page of a partner (workforce board, job center, a CRM organization with one), when it has one.
+  const stateData = state ? await getStateData(state).catch(() => null) : null
+  const pageUrl = (kind: 'WORKFORCE_BOARD' | 'JOB_CENTER', id: string): string | undefined => {
+    const row = (kind === 'JOB_CENTER' ? stateData?.centers : stateData?.boards)?.find((r) => r.id === id || r.aliasIds?.includes(id))
+    return row && state ? `${SITE}${orgPagePath(kind, stateSlug(state), row.slug)}` : undefined
+  }
+  const orgPage = async (orgId: string | undefined): Promise<string | undefined> => {
+    const l = orgId ? await publicPageForCrmOrg(orgId).catch(() => null) : null
+    return l ? `${SITE}${l.path}` : undefined
+  }
   const rapid = state
     ? await prisma.crmPerson.findMany({
         where: { deletedAt: null, mergedIntoId: null, notes: { contains: RAPID_RESPONSE_NOTE }, affiliations: { some: { isCurrent: true, org: { usState: state } } } },
-        select: { ...personSelect, affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { name: true } } }, take: 1 } },
+        select: { ...personSelect, affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { id: true, name: true } } }, take: 1 } },
         take: 8,
       })
     : []
@@ -102,7 +116,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
         { n: board.directorName, t: board.directorTitle || 'Executive Director', e: board.directorEmail, p: board.directorPhone },
         { n: board.chairName, t: 'Board Chair', e: board.chairEmail, p: board.chairPhone },
       ].filter((x) => x.n && x.n.trim().split(/\s+/).length >= 2).map((x) => ({
-        name: x.n!.trim(), title: x.t, org: board!.name, email: x.e || null, phone: x.p || null, strength: null, greet: greetingFor(x.n),
+        name: x.n!.trim(), title: x.t, org: board!.name, email: x.e || null, phone: x.p || null, strength: null, greet: greetingFor(x.n), page: pageUrl('WORKFORCE_BOARD', board!.id), pageName: board!.name,
         href: board!.website || `${SITE}/support/admin/crm/workforce-boards/${board!.id}`,
       }))
     : []
@@ -115,7 +129,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
     .map((c) => ({
       name: c.name, title: c.businessEmail ? `${c.centerType ?? 'American Job'} center, business services` : `${c.centerType ?? 'American Job'} center`,
       org: [c.street, c.city].filter(Boolean).join(', ') || null,
-      email: c.businessEmail || c.generalEmail || null, phone: c.phone, strength: null, greet: 'team', href: c.detailsUrl,
+      email: c.businessEmail || c.generalEmail || null, phone: c.phone, strength: null, greet: 'team', href: c.detailsUrl, page: pageUrl('JOB_CENTER', c.id), pageName: c.name,
     }))
 
   const econ = state
@@ -129,7 +143,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
             },
           },
         },
-        select: { ...personSelect, affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { name: true } } }, take: 1 } },
+        select: { ...personSelect, affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { id: true, name: true } } }, take: 1 } },
         take: 8,
       })
     : []
@@ -193,12 +207,14 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
     email: l.contactEmail, phone: l.contactPhone, strength: null, greet: l.contactName ? greetingFor(l.contactName) : 'team', href: l.website,
   }))
   // People we know come first, then named contacts, then the organizations with no contact yet.
-  const econCards = [...econ.map((p) => card(p, p.affiliations[0]?.title ?? null, p.affiliations[0]?.org.name ?? null)), ...geoCards]
+  const withOrgPage = async (p: (typeof econ)[number]): Promise<ContactCard> => ({ ...card(p, p.affiliations[0]?.title ?? null, p.affiliations[0]?.org.name ?? null), page: await orgPage(p.affiliations[0]?.org.id), pageName: p.affiliations[0]?.org.name })
+  const econCards = [...(await Promise.all(econ.map(withOrgPage))), ...geoCards]
+  const rapidCards = await Promise.all(rapid.map(async (p) => ({ ...card(p, p.affiliations[0]?.title ?? 'Rapid Response contact', p.affiliations[0]?.org.name ?? null), page: await orgPage(p.affiliations[0]?.org.id), pageName: p.affiliations[0]?.org.name })))
 
   const groups: ContactGroup[] = [
     group('head_hr', 'Head of HR', 'Signs off on severance and vendors. Start here.', 'Run the HR finder for this employer.', head, orgHref),
     group('hr_team', 'Other HR and outplacement buyers', 'Total rewards, employee relations, talent acquisition, HR partners.', 'Hunter domain search with the HR filter finds these.', hrTeam, orgHref),
-    group('rapid_response', `State Rapid Response${state ? ` (${state})` : ''}`, 'Meets the employer within days and offers state services.', 'Add the state coordinator from the Department of Labor directory.', rapid.map((p) => card(p, p.affiliations[0]?.title ?? 'Rapid Response contact', p.affiliations[0]?.org.name ?? null))),
+    group('rapid_response', `State Rapid Response${state ? ` (${state})` : ''}`, 'Meets the employer within days and offers state services.', 'Add the state coordinator from the Department of Labor directory.', rapidCards),
     group('workforce_board', board ? `Local workforce board: ${board.name}` : 'Local workforce board', 'Funds dislocated-worker services in the area and joins the Rapid Response meeting.', 'No board matched this notice yet.', boardCards),
     group('job_centers', 'American Job Centers nearby', 'Where laid-off people walk in. The business-services inbox is the employer-facing contact.', 'No centers listed for this board.', centerCards),
     // Ranked by fit already (state first, then industry), so the strongest recruiter leads regardless of relationship strength.

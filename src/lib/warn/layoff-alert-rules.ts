@@ -26,6 +26,9 @@ export interface ContactCard {
   greet?: string
   /** A Gmail compose link, from justin@launchyournextchapter.com, prefilled with a note written for this person's role. */
   compose?: string | null
+  /** The partner's own branded page on our site (workforce board, job center, economic development group), when it has one; and its name. */
+  page?: string
+  pageName?: string
   /** Which subject-line test arm the drafted note uses ('A', 'B', 'C'), shown beside the button so opens can be compared. */
   variant?: string
 }

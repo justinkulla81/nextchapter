@@ -14,7 +14,13 @@ import type { ContactCard, ContactGroup } from './layoff-alert-rules'
 
 export const COMPOSE_ACCOUNT = 'justin@launchyournextchapter.com'
 const SITE = 'https://launchyournextchapter.com'
-const SIGN_OFF = 'Best,\nJustin Kulla\nFounder and CEO, NextChapter'
+const SIGN_OFF = 'Best,\nJustin Kulla, Founder and CEO'
+/**
+ * Every note ends on the same ask: a 15-minute call. We are selling (Justin, 2026-10-28), so no note offers a handout, a one-pager or a
+ * "reply yes" in place of the call, and none ends on a favor. A test fails when a kind drops it.
+ */
+export const CLOSE = "We're a young company, so we're happy to build something that fits you and your people, and cost won't be the reason it doesn't happen. Could we grab 15 minutes this week?"
+
 
 const HONOR = /^(dr|mr|mrs|ms|miss|mx|hon|rev|prof|sen|rep|sir|dame|judge|chief|capt|col|gen)\.?$/i
 const FORMAL = /^(dr|hon|rev|prof|judge|sen|rep)\.?$/i
@@ -102,8 +108,8 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
         `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for laid-off professionals.`,
         `I saw that ${who} are leaving ${org} and wanted to reach out. ${p.openInState != null && state ? `There are ${n(p.openInState)} professional roles open in ${state} right now${p.openSeniorInState ? `, ${n(p.openSeniorInState)} at manager level or above` : ''}, so there is somewhere for them to go.` : ''} I put together a page that shows each person the roles that fit the work they've done. It's free for them to get started with their job transition, regardless of whether you partner with us: ${page}`.replace(/\s{2,}/g, ' '),
         `We're not a replacement for legacy outplacement. If you already work with a provider, we sit alongside it. We do five things better though: we help people get hired faster with a job search built around their skills, help with networking (that we all know is the hardest to do but most effective), retraining (a lot of it on AI), fractional work while they look, and coaching.`,
-        `We're a young company, so we're happy to build something that fits you and your people, and cost won't be the reason it doesn't happen. Could we grab 15 minutes this week?`,
-        'Best,\nJustin Kulla, Founder and CEO.'].join('\n\n'),
+        CLOSE,
+        SIGN_OFF].join('\n\n'),
     }
   }
 
@@ -147,17 +153,12 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
         economic_development: `I saw that ${who} are leaving ${org}${where} and wanted to reach out about keeping that talent in the region.`,
       }
       // Two links for a public partner: the page for the people leaving the employer (what they can hand out) and the local picture.
-      const local = x.localPage ?? statePage
-      const localName = x.localPage && place ? place : state ?? 'your state'
-      const share = x.peoplePage ? `I put together a page for the ${who} leaving ${org}, matched to the work they did. It's free for ${kind === 'job_centers' ? 'them' : kind === 'economic_development' ? 'the people affected' : 'the people you refer'}: ${x.peoplePage} And here is the picture for ${localName}, with where the roles are: ${local}` : `I put together a page that shows where the roles are. It's free for the people you refer: ${local}`
+      // The second link is the partner's own branded page when it has one (a board, a job center, an economic development group), else the county picture.
+      const local = c.page ?? x.localPage ?? statePage
+      const second = c.page ? `And here is the page I built for ${c.pageName ?? 'your organization'}, with the roles and employers near you: ${c.page}` : `And here is the picture for ${x.localPage && place ? place : state ?? 'your state'}, with where the roles are: ${local}`
+      const share = x.peoplePage ? `I put together a page for the ${who} leaving ${org}, matched to the work they did. It's free for ${kind === 'job_centers' ? 'them' : kind === 'economic_development' ? 'the people affected' : 'the people you refer'}: ${x.peoplePage} ${second}` : `I put together a page that shows where the roles are. It's free for the people you refer: ${local}`
       const pageLine: Record<string, string> = { rapid_response: share, workforce_board: share, job_centers: share, economic_development: share }
       const unemployment = kind === 'workforce_board' && p.unemploymentRate != null && p.areaLabel ? `${p.areaLabel} unemployment is ${p.unemploymentRate}%.` : ''
-      const ask: Record<string, string> = {
-        rapid_response: 'Could I send a one-page handout you can use in the meeting?',
-        workforce_board: 'Could we grab 15 minutes this week? I can show you a demo built for your region.',
-        job_centers: 'May I send a one-page handout with a QR code for your front desk?',
-        economic_development: 'Would a one-page note to share with member employers be useful?',
-      }
       const subjects: Record<string, string[]> = {
         rapid_response: [`before your ${org} meeting`, ...(emp ? [`where ${org}'s ${emp} can land in ${state ?? 'the state'}`] : [])],
         workforce_board: [emp ? `${org}'s ${emp}, in ${place ?? 'your region'}` : `${org}, in ${place ?? 'your region'}`, `a page for your ${org} layoff`],
@@ -170,8 +171,8 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
           `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for laid-off professionals.`,
           [lead[kind], market, hiring(p) ?? '', unemployment, pageLine[kind]].filter(Boolean).join(' '),
           `We're not a replacement for the services you already offer. We sit alongside them. We help people get hired faster with five things: a job search built around their skills, help with networking (the hardest part to do, and the most effective), retraining (a lot of it on AI), fractional work while they look, and coaching.`,
-          ask[kind],
-          'Best,\nJustin Kulla, Founder and CEO.'].join('\n\n'),
+          CLOSE,
+          SIGN_OFF].join('\n\n'),
       }
     }
     case 'recruiters':
@@ -181,7 +182,7 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
         `Open to a short call about working together?`]
       break
   }
-  return { subject, body: [hello, ...lines].join('\n\n') + '\n\n' + SIGN_OFF }
+  return { subject, body: [hello, ...lines.slice(0, -1), CLOSE, SIGN_OFF].join('\n\n') }
 }
 
 /**

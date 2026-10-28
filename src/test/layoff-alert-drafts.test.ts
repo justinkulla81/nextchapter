@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { draftFor, draftKind, greetingFor, withComposeLinks, COMPOSE_ACCOUNT } from '@/lib/warn/layoff-alert-drafts'
+import { CLOSE, draftFor, draftKind, greetingFor, withComposeLinks, COMPOSE_ACCOUNT } from '@/lib/warn/layoff-alert-drafts'
 import { alertBody, type ContactCard, type ContactGroup } from '@/lib/warn/layoff-alert-rules'
 import type { LocalPicture } from '@/lib/warn/layoff-picture'
 
@@ -23,7 +23,7 @@ describe('head of HR note', () => {
     expect(d.body).toContain('15 minutes this week')
     expect(d.body.match(/https:\/\//g)?.length).toBe(1)
     expect(d.body).not.toContain('/prepared/')
-    expect(d.body.endsWith('Best,\nJustin Kulla, Founder and CEO.')).toBe(true)
+    expect(d.body.endsWith('Best,\nJustin Kulla, Founder and CEO')).toBe(true)
   })
 })
 
@@ -40,6 +40,10 @@ describe('draftFor', () => {
     for (const kind of ['head_hr', 'rewards', 'er', 'ta', 'other_employee', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development', 'recruiters'] as const) {
       const d = draftFor(kind, card(), ctx)
       expect(d.body.startsWith('Chelsea,')).toBe(true)
+      // We are selling: every note asks for the same 15-minute call and signs off the same way.
+      expect(d.body).toContain(CLOSE)
+      expect(d.body.endsWith('Best,\nJustin Kulla, Founder and CEO')).toBe(true)
+      expect(d.body).not.toMatch(/one-page|handout|reply "yes"/i)
       expect(d.body.match(/https:\/\//g)?.length).toBe(['rapid_response', 'workforce_board', 'job_centers', 'economic_development'].includes(kind) ? 2 : 1)
       if (!['head_hr', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development'].includes(kind)) expect(d.body.split(/\s+/).length).toBeLessThan(110)
       expect(d.body.split(/\s+/).length).toBeLessThan(220)
@@ -54,6 +58,17 @@ describe('draftFor', () => {
     expect(draftKind('hr_team', 'Employee Relations Manager')).toBe('er')
     expect(draftKind('hr_team', 'Total Rewards Director')).toBe('rewards')
     expect(draftKind('head_hr', 'CHRO')).toBe('head_hr')
+  })
+})
+
+describe('partner page link', () => {
+  it("uses the partner's own page in place of the county picture when it has one", () => {
+    const c = card({ page: 'https://launchyournextchapter.com/workforce-boards/california/south-bay', pageName: 'South Bay Workforce Investment Board' })
+    const d = draftFor('workforce_board', c, { ...ctx, localPage: 'https://launchyournextchapter.com/places/california/county/los-angeles-county' })
+    expect(d.body).toContain('the page I built for South Bay Workforce Investment Board')
+    expect(d.body).toContain('workforce-boards/california/south-bay')
+    expect(d.body).not.toContain('/county/')
+    expect(draftFor('workforce_board', card(), { ...ctx, localPage: 'https://launchyournextchapter.com/places/california/county/los-angeles-county' }).body).toContain('/county/los-angeles-county')
   })
 })
 
