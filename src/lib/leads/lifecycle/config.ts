@@ -2,13 +2,14 @@
 // welcome that asks them to make a free profile, then a couple of reminders
 // until they do (or unsubscribe). See run.ts for who gets what and when.
 
-export type LeadVariant = 'saved_job' | 'job_alert' | 'newsletter' | 'waitlist' | 'waitlist_b2b'
+export type LeadVariant = 'applied_job' | 'saved_job' | 'job_alert' | 'newsletter' | 'waitlist' | 'waitlist_b2b'
 export type LeadStep = 'welcome' | 'nudge1' | 'nudge2'
 
-export const LEAD_VARIANTS: LeadVariant[] = ['saved_job', 'job_alert', 'newsletter', 'waitlist', 'waitlist_b2b']
+export const LEAD_VARIANTS: LeadVariant[] = ['applied_job', 'saved_job', 'job_alert', 'newsletter', 'waitlist', 'waitlist_b2b']
 
 /** Days after the welcome that each reminder goes out. A variant with none gets the welcome only. */
 export const NUDGE_DAYS: Record<LeadVariant, number[]> = {
+  applied_job: [3],
   saved_job: [3, 10],
   job_alert: [4, 12],
   newsletter: [7],

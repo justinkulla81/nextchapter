@@ -17,6 +17,8 @@ const TESTS: { variant: LeadVariant; step: LeadStep; detail: string | null }[] =
   { variant: 'waitlist', step: 'welcome', detail: 'general' },
   { variant: 'waitlist_b2b', step: 'welcome', detail: 'Employer' },
   { variant: 'saved_job', step: 'nudge1', detail: 'Senior Product Manager at Example Co' },
+  { variant: 'applied_job', step: 'welcome', detail: 'Senior Product Manager at Example Co' },
+  { variant: 'applied_job', step: 'nudge1', detail: 'Senior Product Manager at Example Co' },
   { variant: 'saved_job', step: 'nudge2', detail: 'Senior Product Manager at Example Co' },
 ]
 

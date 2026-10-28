@@ -11,7 +11,7 @@ const MAX_SENDS_PER_RUN = 100
 
 // One variant per address when someone gave us their email in more than one
 // place: the strongest signal of intent wins.
-const PRIORITY: LeadVariant[] = ['saved_job', 'job_alert', 'waitlist', 'newsletter', 'waitlist_b2b']
+const PRIORITY: LeadVariant[] = ['applied_job', 'saved_job', 'job_alert', 'waitlist', 'newsletter', 'waitlist_b2b']
 
 interface Lead {
   email: string
@@ -31,7 +31,7 @@ async function gatherLeads(now: Date): Promise<{ leads: Lead[]; unsubscribed: Se
   const [saved, alerts, newsletter, waitlist, unsubHome, unsubNews] = await Promise.all([
     prisma.homepageLead.findMany({
       where: { kind: 'apply_save', createdAt: { gte: since }, unsubscribedAt: null },
-      select: { email: true, searchQ: true, createdAt: true },
+      select: { email: true, searchQ: true, followup: true, createdAt: true },
     }),
     // An alert counts from the click that confirmed it: before that they have not said yes.
     prisma.homepageLead.findMany({
@@ -55,7 +55,9 @@ async function gatherLeads(now: Date): Promise<{ leads: Lead[]; unsubscribed: Se
 
   const leads: Lead[] = []
   for (const s of saved) {
-    leads.push({ email: clean(s.email), name: null, variant: 'saved_job', channel: 'Saved job', detail: jobLabel.get(s.searchQ) ?? null, capturedAt: s.createdAt, welcomeSentAt: null })
+    // Went on to the employer (Apply click, or the prompt before it) versus only saving the job.
+    const applied = s.followup === 'apply_click' || s.followup === 'apply_gate'
+    leads.push({ email: clean(s.email), name: null, variant: applied ? 'applied_job' : 'saved_job', channel: applied ? 'Applied job' : 'Saved job', detail: jobLabel.get(s.searchQ) ?? null, capturedAt: s.createdAt, welcomeSentAt: null })
   }
   for (const a of alerts) {
     if (!a.confirmedAt) continue
