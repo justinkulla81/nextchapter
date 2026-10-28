@@ -12,6 +12,17 @@ export interface LeadStatus {
   clicked: boolean
 }
 
+/**
+ * Gmail and Apple Mail load the tracking pixel the moment a message arrives, so an open within a minute of the
+ * send is the mail provider, not the person. Only a later open counts.
+ */
+const PREFETCH_MS = 60_000
+export function isRealOpen(sentAt: Date, openedAt: Date | null, openCount: number): boolean {
+  if (openCount === 0 || !openedAt) return false
+  if (openedAt.getTime() - sentAt.getTime() >= PREFETCH_MS) return true
+  return openCount > 1
+}
+
 export async function loadLeadStatuses(emails: string[]): Promise<Map<string, LeadStatus>> {
   const out = new Map<string, LeadStatus>()
   if (emails.length === 0) return out
@@ -26,13 +37,13 @@ export async function loadLeadStatuses(emails: string[]): Promise<Map<string, Le
   if (persons.length > 0) {
     const sent = await prisma.crmActivity.findMany({
       where: { type: 'EMAIL', personId: { in: persons.map((p) => p.id) }, sourceRef: { startsWith: 'lifecycle:' } },
-      select: { personId: true, outreachTracking: { select: { openCount: true, links: { select: { clickCount: true } } } } },
+      select: { personId: true, occurredAt: true, outreachTracking: { select: { openCount: true, openedAt: true, links: { select: { clickCount: true } } } } },
     })
     for (const a of sent) {
       const status = out.get(byId.get(a.personId!)!)
       if (!status) continue
       status.sent++
-      if ((a.outreachTracking?.openCount ?? 0) > 0) status.opened = true
+      if (isRealOpen(a.occurredAt, a.outreachTracking?.openedAt ?? null, a.outreachTracking?.openCount ?? 0)) status.opened = true
       if (a.outreachTracking?.links.some((l) => l.clickCount > 0)) status.clicked = true
     }
   }

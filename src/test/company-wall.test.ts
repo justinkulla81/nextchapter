@@ -171,6 +171,8 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/workforce/college-rank.ts': 'admin workforce tooling',
     'src/lib/workforce/college-org-link.ts': 'admin workforce tooling: links each college to its CRM organization (scripts/colleges/link-crm.ts and the Review List actions)',
     'src/components/admin/CrmCompetitorContracts.tsx': 'admin-only (rendered only on the admin CRM organization page): competitor awards, open bids and re-bid opportunities tied to one organization',
+    'src/lib/warn/layoff-alert-click.ts': 'click redirect from the owner\'s layoff alert email (api/e/go): writes one CRM note that the Write email button was opened; reads no CRM field back to anyone',
+    'src/lib/leads/lifecycle/conversion.ts': 'registration: writes one CRM note when a website lead becomes a member (where they came in, what we sent, whether they clicked); reads CRM rows only to build that note and returns nothing to the member',
     'src/lib/leads/lifecycle/file-lead.ts': 'public signup forms call it through notifyNewLead: writes only (files the lead as a CRM person, a note and a mailing-list row) and returns a person id that is never sent to the browser; reads no CRM field back to a candidate',
     'src/lib/leads/lifecycle/run.ts': 'cron only (lead-lifecycle): finds leads by their own signup tables, checks CRM registration and send history to decide the next email; returns counts, never a CRM record',
     'src/lib/leads/lifecycle/send.ts': 'cron and the admin test button: logs each welcome or reminder as a CRM email activity with open and click tracking; reads nothing back to a candidate',

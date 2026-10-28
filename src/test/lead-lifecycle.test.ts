@@ -97,3 +97,15 @@ describe('lead email copy', () => {
     expect(c.paragraphs.join(' ')).toContain('as an employer')
   })
 })
+
+import { isRealOpen } from '@/lib/leads/lead-status'
+
+describe('isRealOpen', () => {
+  const sent = new Date('2026-10-27T12:00:00Z')
+  it('ignores the pixel load a mail provider does on arrival, counts a later open', () => {
+    expect(isRealOpen(sent, new Date(sent.getTime() + 2_000), 1)).toBe(false)
+    expect(isRealOpen(sent, new Date(sent.getTime() + 5 * 60_000), 1)).toBe(true)
+    expect(isRealOpen(sent, new Date(sent.getTime() + 2_000), 3)).toBe(true)
+    expect(isRealOpen(sent, null, 0)).toBe(false)
+  })
+})
