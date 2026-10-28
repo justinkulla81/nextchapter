@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { getClientIp } from '@/lib/http/client-ip'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 
 export type NewsletterState = { error?: string; subscribed?: boolean; email?: string } | undefined
 
@@ -62,6 +63,7 @@ export async function subscribeToNewsletter(_prev: NewsletterState, formData: Fo
     }
   } else {
     await prisma.newsletterSubscriber.create({ data: { email, source, ip } })
+    notifyNewLead({ email, channel: 'Newsletter', detail: source ?? undefined })
   }
 
   await markSubscribed()

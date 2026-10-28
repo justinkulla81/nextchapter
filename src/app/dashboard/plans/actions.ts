@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 
 export type MembershipWaitlistFormState = { error?: string; sent?: boolean } | undefined
 
@@ -27,6 +28,7 @@ export async function joinMembershipWaitlist(
   await prisma.membershipTierWaitlist.create({
     data: { candidateId, email, firstName, lastName, tier, source },
   })
+  notifyNewLead({ email, name: [firstName, lastName].filter(Boolean).join(' ') || null, channel: 'Plan waitlist', detail: `${tier} · ${source}` })
   captureServerEvent(candidateId ?? email, 'membership_tier_waitlist_joined', { tier, source })
 
   return { sent: true }

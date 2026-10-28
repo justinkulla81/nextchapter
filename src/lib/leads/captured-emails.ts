@@ -21,6 +21,10 @@ const KIND_LABEL: Record<string, string> = {
   journey: 'Journey picker',
   job_alert: 'Job alert',
   apply_save: 'Saved job',
+  deadline_reminders: 'Deadline reminders',
+  pay_check: 'Pay check',
+  resume_check: 'Résumé check',
+  layoff_alert: 'Layoff alert',
 }
 
 function clean(email: string): string {

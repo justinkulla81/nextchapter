@@ -7,6 +7,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { sendGuideDeliveryEmail } from '@/lib/email/send-guide-delivery'
 import { GUIDES } from '@/lib/constants/guides'
 import { allowByIp, allowByTarget, DAY_MS, HOUR_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
+import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 
 export type GuideLeadFormState = { error?: string; sent?: boolean } | undefined
 
@@ -43,6 +44,7 @@ export async function submitGuideLead(
   await prisma.guideLead.create({
     data: { candidateId, email, firstName, guideSlug: slug, source },
   })
+  notifyNewLead({ email, name: firstName, channel: 'Guide download', detail: `${slug} · ${source}` })
 
   await sendGuideDeliveryEmail(email, firstName, guide.title, slug)
 

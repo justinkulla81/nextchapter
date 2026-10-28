@@ -10,6 +10,7 @@ import { REFERRAL_COOKIE } from '@/lib/candidates/referral'
 import { sendResumeLeadConfirmationEmail } from '@/lib/email/send-resume-lead-confirmation'
 import { allowByIp, allowByTarget, DAY_MS, HOUR_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
 import { validateUpload } from '@/lib/uploads/validate-upload'
+import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 
 export type ResumeLeadFormState = { error?: string; sent?: boolean } | undefined
 
@@ -76,6 +77,7 @@ export async function submitResumeLead(
   await prisma.resumeSubmissionLead.create({
     data: { candidateId, fullName, email, targetRole, filePath, fileName, source },
   })
+  notifyNewLead({ email, name: fullName, channel: 'Résumé submission', detail: source })
 
   await sendResumeLeadConfirmationEmail(email, fullName, profile?.confidentialSearchMode ?? false)
 
