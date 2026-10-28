@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { Chips, JobList, JoinBand, LINK, Section, TopicShell } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
@@ -27,7 +27,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function TitleJobsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const d = await getTitleDetail(slug)
-  if (!d) notFound()
+  if (!d) {
+    // A title with too few open jobs has no page; send the visitor to a search for it instead of a 404.
+    if (!/^[a-z0-9-]{3,80}$/.test(slug)) notFound()
+    redirect(`/jobs?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`)
+  }
   const { stat } = d
   const path = `/jobs/title/${slug}`
   const seo = titleJobsSeo(stat.name, stat.jobs)
