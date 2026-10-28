@@ -83,7 +83,7 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
   // The head of HR note: Justin's wording, tightened (2026-10-28). Hook is a checkable number and the page; the call ask stays.
   if (kind === 'head_hr') {
     return {
-      subject: p.openInState != null ? `${n(p.openInState)} open roles for the ${who} leaving ${org}` : `A page for the ${who} leaving ${org}`,
+      subject: 'Helping your affected people',
       body: [hello,
         `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for laid-off professionals.`,
         `I saw that ${who} are leaving ${org} and wanted to reach out. ${p.openInState != null && state ? `There are ${n(p.openInState)} professional roles open in ${state} right now${p.openSeniorInState ? `, ${n(p.openSeniorInState)} at manager level or above` : ''}, so there is somewhere for them to go.` : ''} I put together a page that shows each person the roles that fit the work they've done. It's free for them: ${page}`.replace(/\s{2,}/g, ' '),

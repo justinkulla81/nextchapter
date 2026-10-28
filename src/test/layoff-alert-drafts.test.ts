@@ -16,7 +16,7 @@ describe('head of HR note', () => {
     expect(d.body.startsWith("Chelsea,\n\nI'm Justin Kulla, founder of NextChapter")).toBe(true)
     expect(d.body).toContain('96,715 professional roles open in California right now')
     expect(d.body).toContain('sit alongside it')
-    expect(d.subject).toBe('96,715 open roles for the 875 people leaving Acme')
+    expect(d.subject).toBe('Helping your affected people')
     expect(d.body).toContain("It's free for them: https://launchyournextchapter.com/network/company/acme")
     expect(d.body).toContain('15 minutes this week')
     expect(d.body.match(/https:\/\//g)?.length).toBe(1)
