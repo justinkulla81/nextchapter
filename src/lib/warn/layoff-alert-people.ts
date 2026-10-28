@@ -38,7 +38,7 @@ function card(p: PersonRow, title: string | null, org: string | null): ContactCa
   return {
     name: p.fullName, title, org,
     email: email ?? p.guessedEmail, guessed: !email && !!p.guessedEmail,
-    phone: p.phone, strength: s === 'hot' || s === 'warm' ? s : null, greet: greetingFor(p.fullName),
+    phone: p.phone, strength: s === 'hot' || s === 'warm' ? s : null, greet: greetingFor(p.fullName), personId: p.id,
     href: `${SITE}/support/admin/crm/people/${p.id}`,
   }
 }

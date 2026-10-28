@@ -32,7 +32,7 @@ async function main() {
   const picture = await buildLocalPicture({ employer: n.employer, employees: n.employees, state, county: n.county, industryKey: industry?.key ?? null })
   const rel = await layoffPeople(org?.id ?? n.promotedOrgId ?? null, { state, county: n.county, address: n.address, workforceBoardId: n.workforceBoardId, industryKey: industry?.key ?? null })
   const withPitch = rel.groups.map((g) => (PARTNER[g.key] ? { ...g, pitch: talkingPoints(picture, PARTNER[g.key]) ?? undefined } : g))
-  const dctx = await (await import('../../src/lib/warn/layoff-alert-links')).draftContext(picture, n.employer, state, n.county)
+  const dctx = await (await import('../../src/lib/warn/layoff-alert-links')).draftContext(picture, n.employer, state, n.county, `test:${n.id}`)
   const groups = withComposeLinks(withPitch, dctx)
   const input: AlertInput = {
     employer: n.employer, employees: n.employees, percent: null, kind: n.source === 'WARN_FILING' ? 'warn' : 'news', confirmed: true,

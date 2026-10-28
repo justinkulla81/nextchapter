@@ -12,6 +12,15 @@ import { stateSlug } from '@/lib/seo/states'
 import { INDUSTRY_NAME, type LocalPicture } from './layoff-picture'
 import type { ContactCard, ContactGroup } from './layoff-alert-rules'
 
+/** The key a tracked compose click carries through /api/e/go, and the read of it back. */
+export const COMPOSE_KEY_PREFIX = 'layoff_compose:'
+export const composeKey = (group: string, variant: string | undefined, noticeId: string, personId?: string) => `${COMPOSE_KEY_PREFIX}${group}:${variant ?? '-'}:${personId ?? '-'}:${noticeId}`
+export function readComposeKey(key: string): { group: string; variant: string | null; personId: string | null; noticeId: string } | null {
+  if (!key.startsWith(COMPOSE_KEY_PREFIX)) return null
+  const [group, variant, personId, ...rest] = key.slice(COMPOSE_KEY_PREFIX.length).split(':')
+  return group && rest.length ? { group, variant: variant === '-' ? null : variant, personId: personId === '-' ? null : personId, noticeId: rest.join(':') } : null
+}
+
 export const COMPOSE_ACCOUNT = 'justin@launchyournextchapter.com'
 const SITE = 'https://launchyournextchapter.com'
 export const SIGN_OFF = 'Best,\nJustin Kulla\nFounder & CEO, NextChapter\n2248 Broadway #1838, New York, NY 10024\njustin@launchyournextchapter.com\n203-247-9497'
@@ -42,6 +51,8 @@ export interface DraftContext {
   peoplePage: string | null
   /** The layoff's county page (/places/<state>/county/<county>), when it exists; the partner notes fall back to the state page. */
   localPage?: string | null
+  /** Wraps a compose link so a click is counted (src/app/api/e/go) before it opens Gmail. Absent: the plain link. */
+  track?: (href: string, meta: { group: string; variant: string | undefined; personId: string | undefined }) => string
 }
 
 /** `variant` is the subject-line test arm ('A', 'B', 'C'), set when a note has several subjects; the same address always gets the same one. */
@@ -197,7 +208,8 @@ export function withComposeLinks(groups: ContactGroup[], x: DraftContext): Conta
       const kind = draftKind(g.key, c.title)
       if (!kind || !c.email) return c
       const d = draftFor(kind, c, x)
-      return { ...c, compose: gmailComposeHref(c.email, d.subject, d.body, COMPOSE_ACCOUNT), variant: d.variant }
+      const href = gmailComposeHref(c.email, d.subject, d.body, COMPOSE_ACCOUNT)
+      return { ...c, compose: x.track ? x.track(href, { group: g.key, variant: d.variant, personId: c.personId }) : href, variant: d.variant }
     }),
   }))
 }
