@@ -4,6 +4,8 @@ import {
   cdata,
   chunk,
   FEED_TAIL,
+  bingDailyLimit,
+  bingSubmitBody,
   googleIndexingEnabled,
   googleIndexingQuota,
   googleKeylessConfig,
@@ -78,6 +80,19 @@ describe('Google keyless sign-in', () => {
   })
   it('addresses the impersonation request to the service account', () => {
     expect(impersonationUrl(email)).toBe(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/nextchapter-indexing%40nextchapter-admin.iam.gserviceaccount.com:generateAccessToken`)
+  })
+})
+
+describe('Bing URL submission', () => {
+  it('sizes the day from the quota and the configured limit', () => {
+    expect(bingDailyLimit(null, {})).toBe(50)
+    expect(bingDailyLimit(10, {})).toBe(10)
+    expect(bingDailyLimit(10_000, {})).toBe(50)
+    expect(bingDailyLimit(10_000, { BING_DAILY_LIMIT: '10' })).toBe(10)
+    expect(bingDailyLimit(0, {})).toBe(0)
+  })
+  it('names our site and the urls', () => {
+    expect(bingSubmitBody(['https://launchyournextchapter.com/layoffs'])).toEqual({ siteUrl: 'https://launchyournextchapter.com/', urlList: ['https://launchyournextchapter.com/layoffs'] })
   })
 })
 

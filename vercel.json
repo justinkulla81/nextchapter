@@ -117,6 +117,10 @@
       "schedule": "45 11 * * *"
     },
     {
+      "path": "/api/cron/bing-url-submit",
+      "schedule": "20 12 * * *"
+    },
+    {
       "path": "/api/cron/research-inbox-sweep",
       "schedule": "0 12 * * *"
     },
