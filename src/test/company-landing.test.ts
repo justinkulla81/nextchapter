@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { landingHeadline, landingVariant, pickVicPhoto, Q1, VIC_PHOTOS } from '@/lib/layoffs/landing'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { landingHeadline, landingVariant, pickPagePhoto, PAGE_PHOTOS, Q1 } from '@/lib/layoffs/landing'
 import { PERSONAS } from '@/lib/constants/personas'
 
 describe('company page landing helpers', () => {
@@ -16,11 +18,21 @@ describe('company page landing helpers', () => {
     expect(landingHeadline('neither', 'Costco', null)).toBe('Thinking about your next move from Costco? Start by seeing what is out there.')
   })
 
-  it('keeps the same photo for a company every time, and varies across companies', () => {
-    expect(pickVicPhoto('microsoft')).toBe(pickVicPhoto('microsoft'))
-    const seen = new Set(['microsoft', 'amazon', 'intel', 'salesforce', 'boeing', 'tiktok', 'meta', 'oracle', 'ibm', 'cisco'].map((s) => pickVicPhoto(s).src))
-    expect(seen.size).toBeGreaterThan(2)
-    for (const p of VIC_PHOTOS) expect(p.src).toMatch(/^\/marketing\/vic-.*\.webp$/)
+  it('keeps the same photo for a company every time, and varies across companies and people', () => {
+    expect(pickPagePhoto('microsoft')).toBe(pickPagePhoto('microsoft'))
+    const slugs = ['microsoft', 'amazon', 'intel', 'salesforce', 'boeing', 'tiktok', 'meta', 'oracle', 'ibm', 'cisco', 'nike', 'visa', 'dell', 'hp', 'ups']
+    const picks = slugs.map((s) => pickPagePhoto(s))
+    expect(new Set(picks.map((p) => p.src)).size).toBeGreaterThan(5)
+    expect(new Set(picks.map((p) => p.who))).toEqual(new Set(['vic', 'chris', 'sarah']))
+  })
+
+  it('lists only pictures that exist, with descriptive alt text and no names for the story personas', () => {
+    for (const p of PAGE_PHOTOS) {
+      expect(existsSync(join(process.cwd(), 'public', p.src))).toBe(true)
+      expect(p.alt.length).toBeGreaterThan(20)
+      if (p.who !== 'vic') expect(p.alt).not.toMatch(/chris|sarah/i)
+    }
+    expect(PAGE_PHOTOS.map((p) => p.src)).not.toContain('/marketing/chris-home-office.webp')
   })
 
   it('maps every answer to a real journey', () => {
