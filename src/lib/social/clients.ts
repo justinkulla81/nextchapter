@@ -8,6 +8,7 @@ export function blueskyConfigured(): boolean {
   return !!process.env.BLUESKY_HANDLE && !!process.env.BLUESKY_APP_PASSWORD
 }
 
+// X needs X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN and X_ACCESS_SECRET (app set to Read and write), plus X_POSTING_ENABLED=1 to post.
 export function xConfigured(): boolean {
   return !!process.env.X_API_KEY && !!process.env.X_API_SECRET && !!process.env.X_ACCESS_TOKEN && !!process.env.X_ACCESS_SECRET
 }
