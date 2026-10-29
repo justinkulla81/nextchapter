@@ -25,3 +25,13 @@ describe('etWallToUtc', () => {
     expect(dueTimeLabel(new Date('2026-10-23T19:30:00Z'))).toBe('3:30 PM ET')
   })
 })
+
+describe('todoTier override', () => {
+  it('uses a tier set by hand over the derived one', () => {
+    expect(todoTier({ sourceRef: 'evt:1', title: 'Send deck', kind: 'FOLLOW_UP', tierOverride: 'todo' })).toBe('todo')
+    expect(todoTier({ sourceRef: null, title: 'Call the printer', kind: 'FOLLOW_UP', tierOverride: 'system' })).toBe('system')
+  })
+  it('ignores an unknown override', () => {
+    expect(todoTier({ sourceRef: null, title: 'Call the printer', kind: 'FOLLOW_UP', tierOverride: 'bogus' })).toBe('todo')
+  })
+})

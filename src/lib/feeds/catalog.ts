@@ -26,8 +26,11 @@ export function feedGroups(): FeedGroup[] {
       feeds: INDUSTRIES.map((i) => ({ key: `industry-${i.slug}`, title: `${i.name} layoff notices`, blurb: '', path: `/feeds/industries/${i.slug}`, page: `/industries/${i.slug}` })),
     },
     {
-      id: 'other', title: 'Conferences', blurb: 'Conferences and trade shows with dates, costs and calls for speakers.',
-      feeds: [{ key: 'conferences', title: 'Conferences and trade shows', blurb: 'Upcoming events, newest updates first.', path: '/feeds/conferences', page: '/conferences' }],
+      id: 'other', title: 'Reports, news and conferences', blurb: 'The monthly employment report, our news picks, and conferences with dates, costs and calls for speakers.',
+      feeds: [
+        { key: 'news', title: 'Monthly employment report and news', blurb: 'Each month\'s White Collar Employment Report, plus the articles we pick on the job market.', path: '/news/feed.xml', page: '/reports' },
+        { key: 'conferences', title: 'Conferences and trade shows', blurb: 'Upcoming events, newest updates first.', path: '/feeds/conferences', page: '/conferences' },
+      ],
     },
   ]
 }

@@ -28,6 +28,13 @@ const UTM_SOURCE_LABELS: Record<string, string> = {
   gemini: 'Gemini',
   claude: 'Claude',
   copilot: 'Copilot',
+  grok: 'Grok',
+  'grok.com': 'Grok',
+  meta_ai: 'Meta AI',
+  'meta.ai': 'Meta AI',
+  mistral: 'Mistral',
+  deepseek: 'DeepSeek',
+  poe: 'Poe',
   // Set by Google's own job listings (Google for Jobs structured data), not by us.
   google_jobs_apply: 'Google for Jobs',
   email: 'Email',
@@ -54,6 +61,13 @@ const REFERRER_DOMAIN_LABELS: [domain: string, label: string][] = [
   ['claude.ai', 'Claude'],
   ['gemini.google.com', 'Gemini'],
   ['copilot.microsoft.com', 'Copilot'],
+  ['grok.com', 'Grok'],
+  ['x.ai', 'Grok'],
+  ['meta.ai', 'Meta AI'],
+  ['chat.mistral.ai', 'Mistral'],
+  ['chat.deepseek.com', 'DeepSeek'],
+  ['poe.com', 'Poe'],
+  ['you.com', 'You.com'],
   ['bing.com', 'Bing'],
   ['duckduckgo.com', 'DuckDuckGo'],
   ['search.yahoo.com', 'Yahoo'],
@@ -139,7 +153,7 @@ export type TrafficSourceGroup =
   | 'Internal'
   | 'Other sites'
 
-const AI_ASSISTANTS = new Set(['ChatGPT', 'Perplexity', 'Gemini', 'Claude', 'Copilot'])
+const AI_ASSISTANTS = new Set(['ChatGPT', 'Perplexity', 'Gemini', 'Claude', 'Copilot', 'Grok', 'Meta AI', 'Mistral', 'DeepSeek', 'Poe', 'You.com'])
 const SEARCH_ENGINES = new Set(['Google', 'Bing', 'DuckDuckGo', 'Yahoo', 'Ecosia', 'Brave Search'])
 const SOCIAL = new Set(['YouTube', 'Facebook', 'Instagram', 'LinkedIn', 'Twitter/X', 'Reddit'])
 

@@ -96,7 +96,7 @@ export const SOURCE_LABELS: Record<ProductFeedbackSource, string> = {
 
 export const FEEDBACK_STATUS_LABELS: Record<ProductFeedbackStatus, string> = {
   NEW: 'Not triaged', TRIAGED: 'Linked to an item',
-  ADDRESSED: 'They have been told', ARCHIVED: 'Archived',
+  ADDRESSED: 'They have been told', ARCHIVED: 'Resolved',
 }
 
 export const OVERLAP_LABELS: Record<ProductCompetitorOverlap, string> = {

@@ -5,6 +5,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
 import { runLinkedInDraftSweep } from '@/lib/linkedin/layoff-post-sweep'
 import { retryHeldLayoffAlerts } from '@/lib/warn/layoff-alert'
+import { runLayoffIndexNow } from '@/lib/syndication/indexnow-layoffs'
 
 export const maxDuration = 300
 
@@ -52,5 +53,14 @@ export const GET = withCronRun('layoff-news', async (_request: NextRequest) => {
   } catch (e) {
     linkedin = { error: e instanceof Error ? e.message : String(e) }
   }
-  return NextResponse.json({ news, primary, held, linkedin })
+  // A layoff added above gets its page announced to IndexNow and the feed hubs now, not at the next hourly run.
+  let indexnow: Awaited<ReturnType<typeof runLayoffIndexNow>> | { error: string } | { skipped: true } = { skipped: true }
+  if ('added' in news && news.added.length > 0) {
+    try {
+      indexnow = await runLayoffIndexNow()
+    } catch (e) {
+      indexnow = { error: e instanceof Error ? e.message : String(e) }
+    }
+  }
+  return NextResponse.json({ news, primary, held, linkedin, indexnow })
 })

@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse, type NextFetchEvent, type NextRequest } from 'next/server'
+import { matchAiCrawler } from '@/lib/http/ai-crawlers'
 import { updateSession } from '@/lib/supabase/middleware'
 import { PROTECTED_APP_PATH_PREFIXES, pathStartsWith } from '@/lib/supabase/portal'
 import { APP_TOP_LEVEL, PORTAL_ROOT_PAGES } from '@/lib/app-top-level'
@@ -17,9 +18,24 @@ const MAIN_HOSTS = new Set(['launchyournextchapter.com', 'www.launchyournextchap
 // adapter in this app sets an explicit cookie Domain, so cookies already
 // default to host-only scoping — serving admin from a distinct hostname is
 // enough for real isolation on its own, no cookie changes needed.
-export async function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const host = request.headers.get('host') ?? ''
   const { pathname } = request.nextUrl
+
+  // AI visibility: note which named AI crawlers read which pages (src/lib/http/ai-crawlers.ts). Fire and forget, main
+  // site only, and never on the tracking route itself.
+  if (request.method === 'GET' && MAIN_HOSTS.has(host) && !pathname.startsWith('/api/') && process.env.CRON_SECRET) {
+    const crawler = matchAiCrawler(request.headers.get('user-agent'))
+    if (crawler) {
+      event.waitUntil(
+        fetch(`${request.nextUrl.origin}/api/track/ai-crawler`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.CRON_SECRET}` },
+          body: JSON.stringify({ bot: crawler.bot, path: pathname }),
+        }).catch(() => {}),
+      )
+    }
+  }
 
   // Emergency brake for the heavy public SEO pages (2026-10-26). Their big aggregate queries exhausted the database
   // connection pool and made /jobs time out. With PAUSE_HEAVY_PAGES=1 they answer 503 + Retry-After instantly and never
@@ -29,6 +45,18 @@ export async function proxy(request: NextRequest) {
       status: 503,
       headers: { 'Retry-After': '86400', 'Cache-Control': 'no-store', 'Content-Type': 'text/plain; charset=utf-8' },
     })
+  }
+
+  // /Employers, /Jobs and the like (typed or bookmarked with a capital) 404 because route folders are lowercase. Only the
+  // first segment is lowercased, and only when the lowercase form is a real top-level route, so case-sensitive tokens
+  // deeper in a path (/ref/<token>) are never touched.
+  if (MAIN_HOSTS.has(host) && (request.method === 'GET' || request.method === 'HEAD')) {
+    const first = pathname.split('/')[1] ?? ''
+    if (first && first !== first.toLowerCase() && APP_TOP_LEVEL.has(first.toLowerCase())) {
+      const url = request.nextUrl.clone()
+      url.pathname = `/${first.toLowerCase()}${pathname.slice(first.length + 1)}`
+      return NextResponse.redirect(url, 308)
+    }
   }
 
   // A stale bookmark or link to /support/admin/** on the main domain now

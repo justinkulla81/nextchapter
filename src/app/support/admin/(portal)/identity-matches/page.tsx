@@ -32,8 +32,8 @@ export default async function IdentityMatchesAdminPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Identity Matches</h1>
         <p className="mt-1 text-muted-foreground">
           A newly-registered candidate who may already exist elsewhere as a reference, a coach/recruiter
-          invite lead, or someone else&apos;s outreach contact. Confirming links the two records — nothing
-          links automatically, even on an exact email match.
+          invite lead, or someone else&apos;s outreach contact. An exact email match is the same person and
+          links automatically; only look-alike names wait here for you to confirm.
         </p>
       </div>
 

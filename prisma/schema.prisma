@@ -4529,12 +4529,11 @@ enum CandidateIdentityMatchStatus {
 // A newly-registered candidate may already exist elsewhere in the system as
 // a reference, a coach/recruiter invite lead, or someone else's outreach/
 // LinkedIn contact — all of which are free-text records with no real link to
-// a CandidateProfile until a human confirms it's the same person. Always
-// admin-reviewed, exactly like BountyClaim/ScholarshipApplication — no code
-// path here ever auto-confirms, regardless of match strength (explicit
-// product decision: even an exact email match still requires a click,
-// because the actual link operation touches another person's data, not just
-// this candidate's own).
+// a CandidateProfile until the match is confirmed. An EMAIL_EXACT match is
+// the same person and links automatically (stored already CONFIRMED, reviewedBy
+// 'auto: exact email match'); weaker matches (look-alike names) stay PENDING
+// for an admin click. Changed 2026-10-28 — previously even an exact email
+// match required a click.
 // A candidate saying an automatic detection was wrong — a "rejection" that
 // wasn't, an "application" that was a newsletter. Kept (never just deleted)
 // with the rule that fired, so misfires can be reviewed by rule and fixed in
@@ -7765,9 +7764,9 @@ model Company {
   // Culture survey answers from members who worked here — aggregate-only reads
   // (src/lib/companies/culture-profile.ts), never shown per person.
   cultureResponses CompanyCultureResponse[]
+  events           CompanyEvent[]
 
   @@index([industry])
-  events CompanyEvent[]
 }
 
 // One row per job opening we have ever seen for a company — kept after the board
@@ -11157,6 +11156,8 @@ model CrmTask {
   googleEventId String?
   /// Function the task belongs to (a key from src/lib/crm/todo-areas.ts). Null = inferred from the title and organization.
   area          String?
+  /// Priority set by hand (system | call | todo | automated). Null = derived from the task (src/lib/crm/todo-source.ts).
+  tierOverride  String?
 
   @@index([status, dueAt])
   @@index([personId])
@@ -11167,23 +11168,23 @@ model CrmTask {
 /// status: ACTIVE | SUGGESTED (found by the weekly search, waiting for Justin) | PAUSED
 /// source: SEED | ADMIN | DISCOVERY
 model SpeakerWatch {
-  id            String    @id @default(cuid())
+  id            String              @id @default(cuid())
   name          String
   /// Lowercased name: the lookup key, unique.
-  nameKey       String    @unique
+  nameKey       String              @unique
   org           String?
   title         String?
   /// What they are known for, a few words ("AI and jobs", "skills-based hiring").
   topics        String?
   /// Set when the person is already in the CRM.
   crmPersonId   String?
-  status        String    @default("ACTIVE")
-  source        String    @default("ADMIN")
+  status        String              @default("ACTIVE")
+  source        String              @default("ADMIN")
   /// Why a suggested voice was suggested.
   note          String?
   lastCheckedAt DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @default(now()) @updatedAt
   appearances   SpeakerAppearance[]
 
   @@index([status])
@@ -11215,28 +11216,28 @@ model SpeakerAppearance {
 /// status: NEW | PLANNING | APPLIED | ACCEPTED | DONE | PASSED
 /// source: ADMIN (typed in) | CONFERENCE (from the conference catalog) | DISCOVERY (weekly web search)
 model CeoSpeakingOpportunity {
-  id         String    @id @default(cuid())
-  kind       String
-  title      String
-  hostName   String?
-  url        String?
-  eventDate  DateTime?
-  deadline   DateTime?
-  location   String?
-  audience   String?
+  id        String    @id @default(cuid())
+  kind      String
+  title     String
+  hostName  String?
+  url       String?
+  eventDate DateTime?
+  deadline  DateTime?
+  location  String?
+  audience  String?
   /// Why it fits NextChapter, one or two sentences.
-  why        String?   @db.Text
+  why       String?   @db.Text
   /// 1 best fit, 2 good, 3 stretch.
-  fit        Int       @default(2)
-  status     String    @default("NEW")
-  notes      String?   @db.Text
-  source     String    @default("ADMIN")
+  fit       Int       @default(2)
+  status    String    @default("NEW")
+  notes     String?   @db.Text
+  source    String    @default("ADMIN")
   /// Unique key for imported rows (`conf:<series id>:<edition or year>`, or a normalized link) so re-imports never duplicate.
-  sourceRef  String?   @unique
+  sourceRef String?   @unique
   /// The CrmTask kept in step with this row.
-  taskId     String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @default(now()) @updatedAt
+  taskId    String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
 
   @@index([status, deadline])
   @@index([kind])
@@ -12216,10 +12217,10 @@ model WarnNotice {
   alertGaveUpAt DateTime?
 
   /// What the layoff costs the employer, as the filing states it (SEC 8-K Item 2.05 usually does; WARN and news almost never). Dollars.
-  costLowUsd  Float?
-  costHighUsd Float?
+  costLowUsd           Float?
+  costHighUsd          Float?
   /// What the money is for, in the filing's words: "employee termination costs".
-  costNote    String?
+  costNote             String?
   /// The outplacement vendor when one is named or selected; the note says when outplacement is offered but no vendor is named.
   outplacementProvider String?
   outplacementNote     String?
@@ -12231,6 +12232,8 @@ model WarnNotice {
   @@index([workforceBoardId, noticeDate])
   @@index([companyId])
   @@index([companyMatchStatus])
+  /// MANUAL_ANNOUNCEMENT only: set when an admin publishes the announcement to the all-states layoff RSS feed (CRM > WARN). Null = not in the feed.
+  rssPublishedAt     DateTime?
 }
 
 enum WarnCompanyMatchStatus {
@@ -17688,4 +17691,52 @@ model LocalEventSource {
   note       String?
 
   @@index([kind, state])
+}
+
+// AI visibility (2026-10-28). Daily count of named AI crawlers/assistant fetchers per page, written by the proxy.
+// Only AI user agents are logged (src/lib/http/ai-crawlers.ts), so growth is bounded by distinct pages x bots per day.
+model AiCrawlerHit {
+  id         String   @id @default(cuid())
+  day        DateTime @db.Date
+  bot        String // e.g. "GPTBot"
+  vendor     String // e.g. "OpenAI"
+  purpose    String // TRAINING | SEARCH | USER_FETCH
+  path       String
+  hits       Int      @default(1)
+  lastSeenAt DateTime @default(now())
+
+  @@unique([day, bot, path])
+  @@index([day])
+}
+
+// One weekly sweep of the tracked prompts across AI assistants (src/lib/ai-visibility/run.ts).
+model AiCitationRun {
+  id            String             @id @default(cuid())
+  startedAt     DateTime           @default(now())
+  finishedAt    DateTime?
+  estCostUsd    Decimal            @default(0) @db.Decimal(8, 4)
+  skippedForCap Boolean            @default(false)
+  results       AiCitationResult[]
+
+  @@index([startedAt])
+}
+
+model AiCitationResult {
+  id           String        @id @default(cuid())
+  runId        String
+  run          AiCitationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  provider     String // claude | perplexity | openai | gemini
+  promptKey    String
+  prompt       String
+  cited        Boolean // our domain appears in the sources
+  mentioned    Boolean // our brand named in the answer text
+  ourUrls      String[]
+  citedDomains String[] // every domain the assistant sourced
+  snippet      String?
+  error        String?
+  estCostUsd   Decimal       @default(0) @db.Decimal(8, 4)
+  createdAt    DateTime      @default(now())
+
+  @@index([runId])
+  @@index([provider, createdAt])
 }

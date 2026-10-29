@@ -42,6 +42,8 @@ export const metadata: Metadata = {
   },
   description: fitDescription(description),
   keywords: HOME_KEYWORDS,
+  // Bing Webmaster Tools ownership tag (ChatGPT search reads Bing's index). Set BING_SITE_VERIFICATION to the tag's content value.
+  ...(process.env.BING_SITE_VERIFICATION ? { verification: { other: { 'msvalidate.01': process.env.BING_SITE_VERIFICATION } } } : {}),
   robots: {
     index: true,
     follow: true,

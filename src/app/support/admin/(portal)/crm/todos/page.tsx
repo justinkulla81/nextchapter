@@ -4,10 +4,11 @@ import { prisma } from '@/lib/prisma'
 import { formatDate } from '@/lib/crm/labels'
 import { CrmSyncHealthAlert } from '@/components/admin/CrmSyncHealthAlert'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { todoSource, todoTier, dueTimeLabel, TODO_TIERS, type TodoTier } from '@/lib/crm/todo-source'
-import { TODO_AREA_GROUPS, areaMeta, inferArea } from '@/lib/crm/todo-areas'
+import { todoSource, todoTier, dueTimeLabel, utcToEtWall, TODO_TIERS, type TodoTier } from '@/lib/crm/todo-source'
+import { TODO_AREA_GROUPS, areaMeta, inferArea, isAreaKey } from '@/lib/crm/todo-areas'
 import { followUpKind } from '@/lib/crm/followup-kind'
-import { addTodo, setTodoDone } from './actions'
+import { SubmitButton } from '@/components/ui/submit-button'
+import { addTodo, setTodoDone, updateTodo } from './actions'
 
 export const maxDuration = 30
 
@@ -33,6 +34,7 @@ const TONE: Record<TodoTier, { dot: string; row: string; badge: string; heading:
   automated: { dot: 'bg-gray', row: 'border-border bg-muted/30', badge: 'bg-light-gray text-navy', heading: 'border-border' },
 }
 
+const TIER_RANK = Object.fromEntries(TODO_TIERS.map((t, i) => [t.key, i])) as Record<TodoTier, number>
 const DEFAULT_TIERS: TodoTier[] = ['system', 'call', 'todo']
 const BASE = '/support/admin/crm/todos'
 
@@ -74,9 +76,11 @@ export default async function CrmTodosPage({
   const sort = (SORT.find((s) => s.key === one(sp.sort))?.key ?? 'due') as Sort
   const group = (one(sp.group) === 'date' ? 'date' : one(sp.group) === 'area' ? 'area' : 'tier') as Group
   const waitingOnly = one(sp.waiting) === '1'
+  const areaRaw = one(sp.area)
+  const areaFilter = isAreaKey(areaRaw) ? areaRaw : null
   const q = (one(sp.q) ?? '').trim().slice(0, 100)
   const hideFollowUps = one(sp.nofu) === '1'
-  const filtered = hideFollowUps || picked.length > 0 || show !== 'all' || sort !== 'due' || group !== 'tier' || waitingOnly || q !== ''
+  const filtered = hideFollowUps || picked.length > 0 || show !== 'all' || sort !== 'due' || group !== 'tier' || waitingOnly || areaFilter !== null || q !== ''
 
   const todayEnd = new Date()
   todayEnd.setHours(24, 0, 0, 0)
@@ -154,17 +158,19 @@ export default async function CrmTodosPage({
     : show === 'week' ? t.dueAt >= startOfToday && t.dueAt < endOfWeek
     : t.dueAt >= endOfWeek
   const shown = all
-    .filter((t) => tiers.includes(t.tier) && dateOk(t) && (!waitingOnly || t.waiting))
+    .filter((t) => tiers.includes(t.tier) && dateOk(t) && (!waitingOnly || t.waiting) && (!areaFilter || t.areaKey === areaFilter))
     .filter((t) => !needle || [t.title, t.notes, t.person?.fullName, t.org?.name, t.opportunity?.title].some((s) => s?.toLowerCase().includes(needle)))
   const dueKey = (t: { dueAt: Date | null }, none: number) => t.dueAt?.getTime() ?? none
+  // Priority first in every grouping (P000, then P00, then P0), then the chosen sort.
   shown.sort((a, b) =>
-    sort === 'added' ? b.createdAt.getTime() - a.createdAt.getTime()
-    : sort === 'due-desc' ? dueKey(b, -Infinity) - dueKey(a, -Infinity)
-    : dueKey(a, Infinity) - dueKey(b, Infinity))
+    TIER_RANK[a.tier] - TIER_RANK[b.tier]
+    || (sort === 'added' ? b.createdAt.getTime() - a.createdAt.getTime()
+      : sort === 'due-desc' ? dueKey(b, -Infinity) - dueKey(a, -Infinity)
+      : dueKey(a, Infinity) - dueKey(b, Infinity)))
 
   if (filtered) {
     captureServerEvent(admin.email ?? 'admin', 'crm_todos_filtered', {
-      tiers, show, sort, group, waitingOnly, hasSearch: q !== '', results: shown.length,
+      tiers, show, sort, group, area: areaFilter ?? 'any', waitingOnly, hasSearch: q !== '', results: shown.length,
     })
   }
 
@@ -261,6 +267,17 @@ export default async function CrmTodosPage({
             <input name="q" defaultValue={q} placeholder="Title, note, person or organization" className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
           </label>
           <label className="text-xs text-muted-foreground">
+            Function
+            <select name="area" defaultValue={areaFilter ?? ''} className="mt-1 block rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground">
+              <option value="">Any function</option>
+              {TODO_AREA_GROUPS.map((g) => (
+                <optgroup key={g.group} label={g.group}>
+                  {g.areas.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-muted-foreground">
             Due
             <select name="show" defaultValue={show} className="mt-1 block rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground">
               {SHOW.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
@@ -352,6 +369,40 @@ export default async function CrmTodosPage({
                           <button type="submit" className="rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-muted">Done</button>
                         </form>
                       </div>
+                      <details className="basis-full text-xs">
+                        <summary className="w-fit cursor-pointer text-muted-foreground underline">Edit</summary>
+                        <form action={updateTodo.bind(null, t.id)} className="mt-2 flex flex-wrap items-end gap-2 rounded-md border border-border bg-background p-3">
+                          <label className="min-w-64 flex-1 text-xs text-muted-foreground">
+                            Title
+                            <input name="title" required maxLength={300} defaultValue={t.title} className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
+                          </label>
+                          <Choice name="tier" label="Priority" value={t.tier} options={TODO_TIERS.map((x) => ({ key: x.key, label: x.code }))} />
+                          <label className="text-xs text-muted-foreground">
+                            Function
+                            <select name="area" defaultValue={t.area ?? ''} className="mt-1 block rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground">
+                              <option value="">Auto · {areaMeta(inferArea({ ...t, area: null, orgTypes: t.org?.orgTypes })).label}</option>
+                              {TODO_AREA_GROUPS.map((g) => (
+                                <optgroup key={g.group} label={g.group}>
+                                  {g.areas.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
+                                </optgroup>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="text-xs text-muted-foreground">
+                            Due
+                            <input name="dueDate" type="date" defaultValue={t.dueAt ? utcToEtWall(t.dueAt).date : ''} className="mt-1 block rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
+                          </label>
+                          <label className="text-xs text-muted-foreground">
+                            Time (ET)
+                            <input name="dueTime" type="time" defaultValue={t.dueAt ? utcToEtWall(t.dueAt).time : ''} className="mt-1 block rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
+                          </label>
+                          <label className="basis-full text-xs text-muted-foreground">
+                            Note
+                            <textarea name="notes" rows={3} defaultValue={t.notes ?? ''} className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
+                          </label>
+                          <SubmitButton size="sm" pendingLabel="Saving…">Save changes</SubmitButton>
+                        </form>
+                      </details>
                     </li>
                   )
                 })}

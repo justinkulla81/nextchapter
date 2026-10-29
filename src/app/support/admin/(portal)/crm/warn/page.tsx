@@ -18,6 +18,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { formatDate } from '@/lib/crm/labels'
 import { correctFutureDates } from '@/lib/warn/filed-date'
 import { costLines } from '@/lib/warn/layoff-cost'
+import { setAnnouncementRss } from './actions'
 
 export const maxDuration = 60
 
@@ -324,6 +325,19 @@ export default async function WarnReviewPage({
                               <Link href={`/support/admin/crm/warn/${n.id}`} className="whitespace-nowrap text-[11px] font-normal text-primary underline underline-offset-4">Layoff details</Link>
                               {n.source === 'MANUAL_ANNOUNCEMENT' && (
                                 <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">Announced</span>
+                              )}
+                              {n.source === 'MANUAL_ANNOUNCEMENT' && !n.dismissedAt && (
+                                <form action={setAnnouncementRss} className="inline">
+                                  <input type="hidden" name="id" value={n.id} />
+                                  <input type="hidden" name="publish" value={n.rssPublishedAt ? '0' : '1'} />
+                                  <button
+                                    type="submit"
+                                    className="rounded-full border border-border px-1.5 py-0.5 text-[10px] font-normal text-primary hover:bg-muted"
+                                    title={n.rssPublishedAt ? 'In the layoff RSS feed. Click to take it out.' : 'Not in the layoff RSS feed. Click to publish it there.'}
+                                  >
+                                    {n.rssPublishedAt ? 'In RSS · remove' : 'Publish to RSS'}
+                                  </button>
+                                </form>
                               )}
                             </span>
                             {n.company && (

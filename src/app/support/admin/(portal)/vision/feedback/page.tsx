@@ -6,7 +6,7 @@ import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { VisionFeedbackCandidate } from '@/components/admin/VisionFeedbackCandidate'
 import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
-import { createFeedback, linkFeedback, markFeedbackAddressed, archiveFeedback } from '../actions'
+import { createFeedback, linkFeedback, markFeedbackAddressed, archiveFeedback, reopenFeedback } from '../actions'
 import { SOURCES, SOURCE_LABELS, FEEDBACK_STATUS_LABELS, formatDate } from '@/lib/vision/labels'
 
 export const maxDuration = 30
@@ -132,7 +132,7 @@ export default async function VisionFeedbackPage({
         filters={[{
           key: 'status', label: 'Status', value: status,
           options: [
-            { value: '', label: 'Everything but archived' },
+            { value: '', label: 'Everything but resolved' },
             ...(['NEW', 'TRIAGED', 'ADDRESSED', 'ARCHIVED'] as const).map((s) => ({
               value: s, label: `${FEEDBACK_STATUS_LABELS[s]} (${countBy.get(s) ?? 0})`,
             })),
@@ -163,6 +163,11 @@ export default async function VisionFeedbackPage({
                   <span>{SOURCE_LABELS[f.source]}</span>
                   <span>said {formatDate(f.receivedAt)}</span>
                   <span className="rounded-full bg-muted px-2 py-0.5">{FEEDBACK_STATUS_LABELS[f.status]}</span>
+                  <form action={f.status === 'ARCHIVED' ? reopenFeedback.bind(null, f.id) : archiveFeedback.bind(null, f.id)} className="ml-auto">
+                    <SubmitButton size="sm" variant="outline" pendingLabel="Saving…">
+                      {f.status === 'ARCHIVED' ? 'Reopen' : 'Resolve'}
+                    </SubmitButton>
+                  </form>
                 </p>
 
                 {f.links.length > 0 && (
@@ -216,9 +221,6 @@ export default async function VisionFeedbackPage({
                       </form>
                     )}
 
-                    <form action={archiveFeedback.bind(null, f.id)}>
-                      <SubmitButton size="sm" variant="outline" pendingLabel="Archiving…">Archive</SubmitButton>
-                    </form>
                   </div>
                 </details>
               </li>

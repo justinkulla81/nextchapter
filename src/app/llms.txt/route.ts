@@ -38,6 +38,10 @@ export function GET() {
 - [Search firms](${u('/search-firms')}): search firms, recruiting firms and staffing companies with open searches: a page for each with the roles it is recruiting for, specialties, places, posted pay and how long its searches stay open.
 - [Coaches](${u('/coaches')}): invite clients with a code, a pre-session brief and session notes.
 
+## For AI assistants and developers
+
+- [MCP server](${u('/mcp')}): a free, read-only Model Context Protocol server at ${u('/api/mcp')}. Tools: search current professional job openings, and find career guides on layoffs, severance, unemployment, resumes and networking.
+
 ## Research and data
 
 - [Employer pages](${u('/employers')}): one page per employer at /employers/<name>: open professional roles from its career site, what it hires for, posted pay against the market, where it hires. Updated daily; employers can claim their page.
@@ -47,7 +51,7 @@ export function GET() {
 - [NextChapter White Collar Employment Report](${u('/reports')}): a monthly, independent read on the U.S. white-collar labor market — layoffs, long-term unemployment, AI attribution and the safety net, with methods and data files published.
 - [White-Collar Long-Search Index](${u('/reports/white-collar-index')}): monthly long-term unemployment among U.S. managers and professionals, 2019 = 100, from Census CPS microdata; history downloadable as CSV.
 ${report ? `- [Latest edition: ${report.month}](${u(reportPath(report))}): ${report.dek}\n` : ''}- [Layoff tracker](${u('/layoffs')}): WARN notices filed with state labor agencies, this year's totals, coverage notes and the BLS context, with a page for each state and employer.
-- [Feeds](${u('/feeds')}): free RSS and JSON feeds of new WARN layoff notices: all states, only 100+ worker notices, a weekly summary, one feed per state and per industry, and conferences. Each item links the state record and says how the notice compares. One file with every feed: ${u('/feeds/nextchapter.opml')}.
+- [Feeds](${u('/feeds')}): free RSS and JSON feeds of new WARN layoff notices: all states, only 100+ worker notices, a weekly summary, one feed per state and per industry, the monthly employment report, and conferences. Each item links the state record and says how the notice compares. One file with every feed: ${u('/feeds/nextchapter.opml')}.
 - [Local job markets](${u('/places')}): a page for every state and county and for each city with jobs, layoff notices, a college or a job center: unemployment, WARN layoff notices, open jobs, the employers hiring most, colleges, the workforce board and American Job Centers.
 - [Employer pages for current and former employees](${u('/layoffs')}): for each employer with a recent, sizeable WARN filing, the notices, open professional jobs in its state, unemployment benefits, retraining help and a way to join. Linked from each employer's layoff page.
 - [American Job Centers](${u('/job-centers')}): a page for each American Job Center, by state: the counties it serves, open professional jobs and entry-level roles there, colleges and other local help, address, hours and phone.

@@ -5,6 +5,10 @@
   "ignoreCommand": "sh scripts/vercel-ignore-build.sh",
   "crons": [
     {
+      "path": "/api/cron/ai-citation-check",
+      "schedule": "0 11 * * 1"
+    },
+    {
       "path": "/api/cron/deadline-reminders",
       "schedule": "0 15 * * *"
     },

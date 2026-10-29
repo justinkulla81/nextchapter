@@ -1,6 +1,7 @@
 import { getPublishedNews } from '@/lib/news/published'
 import { newsDisplayTitle } from '@/lib/news/slug'
 import { reportsNewestFirst } from '@/lib/reports'
+import { feedLink } from '@/lib/feeds/layoff-feed'
 
 export const revalidate = 300
 
@@ -21,7 +22,7 @@ export async function GET() {
   // listed twice.
   const items = (await getPublishedNews(50)).filter((i) => i.kind !== 'report')
   const editions = reportsNewestFirst().map((e) => {
-    const link = `${SITE}/reports/${e.slug}`
+    const link = feedLink(`/reports/${e.slug}`, 'news')
     return `    <item>
       <title>${esc(`NextChapter White Collar Employment Report — ${e.month}`)}</title>
       <link>${esc(link)}</link>
@@ -32,7 +33,7 @@ export async function GET() {
     </item>`
   })
   const newsItems = items.map((i) => {
-    const link = i.slug ? `${SITE}/news/${i.slug}` : i.url
+    const link = i.slug ? feedLink(`/news/${i.slug}`, 'news') : i.url
     const text = i.take ?? i.blurb ?? ''
     return `    <item>
       <title>${esc(newsDisplayTitle(i))}</title>

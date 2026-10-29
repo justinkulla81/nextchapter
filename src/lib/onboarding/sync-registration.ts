@@ -88,7 +88,7 @@ export async function syncRegistrationCompletion(
 
   // This real person may already exist elsewhere — a reference, a coach/
   // recruiter invite lead, or someone else's outreach/LinkedIn contact.
-  // Flags matches for admin review; never links anything automatically.
+  // Exact email matches link automatically; weaker ones are flagged for admin review.
   // Failure here must never block registration itself finishing.
   if (confirmedEmail) {
     const fullName = [updated.firstName, updated.lastName].filter(Boolean).join(' ').trim() || null

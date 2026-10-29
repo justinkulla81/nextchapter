@@ -170,6 +170,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/bids/crm-filing.ts': 'admin bid-finder tooling: imported only by the board-bids and competitor-awards crons; files bids and competitor wins on CRM organizations',
     'src/lib/vision/competitor-sync.ts': 'admin competitor tooling: imported only by the admin Competitors actions, the competitor-watch cron and the bid-finder filing',
     'src/lib/workforce/college-crm.ts': 'admin workforce tooling',
+    'src/lib/workforce/board-intro-data.ts': 'admin workforce tooling: imported only by the admin workforce-board page (behind requireAdmin); finds the director\'s CRM person to build the first email and its tracked link; returns nothing to a candidate',
     'src/lib/workforce/college-rank.ts': 'admin workforce tooling',
     'src/lib/workforce/college-org-link.ts': 'admin workforce tooling: links each college to its CRM organization (scripts/colleges/link-crm.ts and the Review List actions)',
     'src/components/admin/CrmCompetitorContracts.tsx': 'admin-only (rendered only on the admin CRM organization page): competitor awards, open bids and re-bid opportunities tied to one organization',
