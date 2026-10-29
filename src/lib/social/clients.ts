@@ -3,6 +3,7 @@ import { createHmac, randomBytes } from 'node:crypto'
 
 const TIMEOUT_MS = 30_000
 
+// Bluesky needs BLUESKY_HANDLE and an app password (never the login password) in BLUESKY_APP_PASSWORD, both set in Vercel production.
 export function blueskyConfigured(): boolean {
   return !!process.env.BLUESKY_HANDLE && !!process.env.BLUESKY_APP_PASSWORD
 }
