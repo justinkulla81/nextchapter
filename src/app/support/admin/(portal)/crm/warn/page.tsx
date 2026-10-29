@@ -159,6 +159,8 @@ export default async function WarnReviewPage({
     <div className="space-y-4">
       <nav className="text-sm">
         <Link href="/support/admin/crm/leads" className="text-muted-foreground hover:underline">← All leads</Link>
+        <span aria-hidden className="mx-2 text-muted-foreground">·</span>
+        <Link href="/support/admin/crm/warn/publishing" className="text-primary underline underline-offset-4">Layoff publishing: RSS, LinkedIn and Google indexing</Link>
       </nav>
 
       <header className="flex flex-wrap items-start justify-between gap-3">
