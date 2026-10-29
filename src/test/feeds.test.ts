@@ -4,7 +4,7 @@ vi.mock('server-only', () => ({}))
 vi.mock('@/lib/warn/layoff-pages', () => ({ TWELVE_MONTHS_MS: 365 * 86_400_000, getPublicNotices: async () => [], noticeDay: (d: Date) => d.toISOString().slice(0, 10) }))
 const announcedAt = new Date(Date.now() - 2 * 86_400_000)
 vi.mock('@/lib/warn/company-announcements', () => ({
-  getAnnouncements: async () => new Map([['tiktok', { slug: 'tiktok', name: 'TikTok', latest: announcedAt, items: [{ id: 'a1', date: announcedAt, kind: 'layoff', summary: 'Reported layoffs across trust and safety', workers: null, sourceUrl: 'https://news.example/tiktok' }] }]]),
+  getAnnouncements: async () => new Map([['tiktok', { slug: 'tiktok', name: 'TikTok', latest: announcedAt, items: [{ id: 'a1', date: announcedAt, kind: 'layoff', summary: 'Reported layoffs across trust and safety', workers: null, sourceUrl: 'https://news.example/tiktok', rssPublishedAt: announcedAt }, { id: 'a2', date: announcedAt, kind: 'layoff', summary: 'Not published yet', workers: null, sourceUrl: null, rssPublishedAt: null }] }]]),
   hasRecentAnnouncement: () => true,
 }))
 vi.mock('@/lib/seo/topic-data', () => ({ getRecentNotices: async () => [] }))
@@ -80,6 +80,8 @@ describe('feeds', () => {
     expect(item?.title).toBe('TikTok: Reported layoffs across trust and safety')
     expect(item?.link).toContain('/layoffs/company/tiktok')
     expect(item?.description).toContain('not a WARN filing')
+    // Only what an admin published: the unpublished announcement stays out of the feed.
+    expect(all.items.some((i) => i.guid === 'nextchapter-announcement-a2')).toBe(false)
     const large = await layoffFeed({ minWorkers: 100, title: 't', description: 'd', selfPath: '/feeds/x', pagePath: '/layoffs', campaign: 'x' })
     expect(large.items).toHaveLength(0)
   })
