@@ -120,6 +120,7 @@ export default function WhyStuckPage() {
             <video
               controls
               preload="metadata"
+              poster="/marketing/chris-home-office.webp"
               className="w-full"
               src="https://uvoulytrsrxasqzutlmq.supabase.co/storage/v1/object/public/site-media/chris-story.mp4"
             >

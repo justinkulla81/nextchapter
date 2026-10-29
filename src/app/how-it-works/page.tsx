@@ -151,6 +151,7 @@ export default function HowItWorksPage() {
             <video
               controls
               preload="metadata"
+              poster="/marketing/sarah-conference-room.webp"
               className="w-full"
               src="https://uvoulytrsrxasqzutlmq.supabase.co/storage/v1/object/public/site-media/sarah-story.mp4"
             >
