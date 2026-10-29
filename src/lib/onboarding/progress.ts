@@ -5,6 +5,7 @@
 import { BUNDLES_MARKER_KEY, BUNDLES_MARKER_VALUE } from '@/lib/onboarding/flag'
 import { BUNDLE_ORDER, BUNDLE_ROUTE, type BundleId } from '@/lib/onboarding/bundles'
 import { isGoogleConnectOn } from '@/lib/google/connect-switch'
+import { DETAILS_PATH, needsContactDetails } from '@/lib/onboarding/details'
 
 const KEY = 'onboardingBundles'
 
@@ -56,12 +57,17 @@ export const FINISH_PATH = '/onboarding/finish'
 export function nextPreAccountPath(p: {
   desireComplete: boolean
   resumeStepComplete: boolean
+  firstName: string | null
+  lastName: string | null
+  email: string | null
   onboardingResumeConfirmedAt: unknown
   onboardingLocationConfirmedAt: unknown
   journeyDetails: unknown
 }, googleOn: boolean = isGoogleConnectOn()): string {
   if (!p.desireComplete) return BUNDLE_ROUTE.where_you_are
   if (!p.resumeStepComplete) return BUNDLE_ROUTE.resume
+  // Nobody goes on without a name and an email: the résumé gave them, or this step asks (src/lib/onboarding/details.ts).
+  if (needsContactDetails(p)) return DETAILS_PATH
   if (!p.onboardingResumeConfirmedAt) return BUNDLE_ROUTE.aiming
   if (!p.onboardingLocationConfirmedAt) return BUNDLE_ROUTE.where
   const done = progressOf(p.journeyDetails)

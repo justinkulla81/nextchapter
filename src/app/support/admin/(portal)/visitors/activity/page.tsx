@@ -11,7 +11,7 @@ import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
-import { candidateDisplayName } from '@/lib/messaging/threads'
+import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
 import { allTimeDayCount, byHourOfDay, byWeekday, perDaySeries, perHourSeries } from '@/lib/admin/visitor-time-buckets'
 
@@ -37,14 +37,14 @@ interface Row {
   referrer: string | null
   userAgent: string | null
   location: string | null
-  candidate: { id: string; firstName: string | null; lastName: string | null } | null
+  candidate: { id: string; firstName: string | null; lastName: string | null; email: string | null } | null
   // Best-effort — set when this event's own candidateId is null (a session-
   // less, pre-signup or logged-out visit) but the IP matches exactly one
   // real candidate's CandidateProfile.signupIp. Never set when more than one
   // candidate shares that IP (a shared office network, a VPN) — an ambiguous
   // match is worse than none, so it falls back to the generic Human/Bot
   // label instead of guessing.
-  inferredCandidate: { id: string; firstName: string | null; lastName: string | null } | null
+  inferredCandidate: { id: string; firstName: string | null; lastName: string | null; email: string | null } | null
   source: string
   device: string
   // Per-IP totals across all of this visitor's recorded events (not just this row).
@@ -126,7 +126,7 @@ export default async function AdminVisitorActivityPage({
       orderBy: { createdAt: 'desc' },
       skip: params.skip,
       take: params.take,
-      include: { candidate: { select: { id: true, firstName: true, lastName: true } } },
+      include: { candidate: { select: { id: true, firstName: true, lastName: true, email: true } } },
     }),
     prisma.homepageVisitEvent.count({ where }),
     prisma.homepageVisitEvent.findMany({
@@ -193,7 +193,7 @@ export default async function AdminVisitorActivityPage({
     unmatchedIps.length > 0
       ? await prisma.candidateProfile.findMany({
           where: { signupIp: { in: unmatchedIps } },
-          select: { id: true, firstName: true, lastName: true, signupIp: true },
+          select: { id: true, firstName: true, lastName: true, email: true, signupIp: true },
         })
       : []
   const candidatesByIp = new Map<string, typeof signupMatches>()
@@ -261,7 +261,7 @@ export default async function AdminVisitorActivityPage({
         if (r.candidate) {
           return (
             <Link href={`/support/admin/candidates/${r.candidate.id}`} className="text-primary underline underline-offset-4">
-              {candidateDisplayName(r.candidate)}
+              {adminCandidateLabel(r.candidate)}
             </Link>
           )
         }
@@ -272,7 +272,7 @@ export default async function AdminVisitorActivityPage({
                 href={`/support/admin/candidates/${r.inferredCandidate.id}`}
                 className="text-primary underline underline-offset-4"
               >
-                {candidateDisplayName(r.inferredCandidate)}
+                {adminCandidateLabel(r.inferredCandidate)}
               </Link>
               <span className="text-muted-foreground"> (by IP)</span>
             </>

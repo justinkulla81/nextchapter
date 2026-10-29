@@ -10,7 +10,7 @@ import { analyzeVisits } from '@/lib/admin/visitor-analytics'
 import { loadSearchConsole, type SearchConsoleResult, type SearchRow } from '@/lib/google/search-console'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
-import { candidateDisplayName } from '@/lib/messaging/threads'
+import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource, trafficSourceGroup, type TrafficSourceGroup } from '@/lib/marketing/classify-traffic-source'
 
 export const maxDuration = 30
@@ -217,7 +217,7 @@ export default async function AdminVisitorsPage({
   const personCandidateIds = shownPeople.map((p) => p.candidateId).filter((id): id is string => !!id)
   const personCandidates = new Map(
     (personCandidateIds.length
-      ? await prisma.candidateProfile.findMany({ where: { id: { in: personCandidateIds } }, select: { id: true, firstName: true, lastName: true } })
+      ? await prisma.candidateProfile.findMany({ where: { id: { in: personCandidateIds } }, select: { id: true, firstName: true, lastName: true, email: true } })
       : []
     ).map((c) => [c.id, c] as const)
   )
@@ -419,7 +419,7 @@ export default async function AdminVisitorsPage({
                     <td className="py-1 pr-2">
                       {c ? (
                         <Link href={`/support/admin/candidates/${c.id}`} className="text-primary underline underline-offset-4">
-                          {candidateDisplayName(c)}
+                          {adminCandidateLabel(c)}
                         </Link>
                       ) : (
                         'Anonymous'

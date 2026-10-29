@@ -78,6 +78,11 @@ export const getDashboardProfile = cache(async () => {
     redirect('/onboarding/create-account')
   }
 
+  // A registered member with no name on file (an account made before the details step existed) is asked once.
+  if (!profile.firstName?.trim() || !profile.lastName?.trim()) {
+    redirect('/onboarding/details')
+  }
+
   if (!profile.introCommittedAt) {
     redirect('/onboarding/welcome')
   }

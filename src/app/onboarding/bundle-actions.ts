@@ -17,7 +17,8 @@ import { saveSituation } from '@/lib/onboarding/save-situation'
 import { coachWrites, matchOverrides, parsePlace, whereYouAreWrites } from '@/lib/onboarding/answers'
 import { BUNDLE_ROUTE, journeyOfSituation, validateAnswers, type Answers, type BundleId, type QuestionId } from '@/lib/onboarding/bundles'
 import { progressPatch } from '@/lib/onboarding/progress'
-import { ENTRY_KEY, entryFromGoalParam, entryOf, resumeRequired } from '@/lib/onboarding/resume-rule'
+import { ENTRY_KEY, entryFromGoalParam, entryOf } from '@/lib/onboarding/resume-rule'
+import { DETAILS_PATH } from '@/lib/onboarding/details'
 import { NETWORK_COMFORT_VALUES } from '@/lib/onboarding/finish'
 import { loadScanStatus, type ScanStatus } from '@/lib/onboarding/scan-counts'
 import { computeMatchState } from '@/lib/personalization/match-compute'
@@ -86,20 +87,19 @@ export async function submitWhereYouAre(_prev: BundleFormState, formData: FormDa
   redirect(BUNDLE_ROUTE.resume)
 }
 
-// O2, for members who may skip it (everyone except the unemployed and Market Reality arrivals; see resume-rule.ts).
-// Checked here too, not only on the screen, so a required résumé cannot be skipped by posting to this action. They are
-// asked to upload one on login instead.
+// O2, for anyone without a résumé to hand. Nobody is required to upload one (see resume-rule.ts): skipping goes on to the
+// details step, which asks for a name, an email and optionally LinkedIn instead. Their Market Reality sharpens once a
+// résumé is added, and the report's own plan asks for one (market-reality-report.ts).
 export async function skipResume(): Promise<void> {
   const candidateId = await requireCandidateId()
   const p = await detailsOf(candidateId)
   const journey = effectiveJourney(p)
-  if (resumeRequired({ journey, entry: entryOf(p.journeyDetails) })) redirect(BUNDLE_ROUTE.resume)
 
   await prisma.candidateProfile.update({ where: { id: candidateId }, data: { resumeStepComplete: true } })
   await applyJourneyChange(candidateId, { details: { resumeSkippedAt: new Date().toISOString() }, source: 'ONBOARDING' })
-  captureServerEvent(candidateId, 'onboarding_resume_skipped', { candidateId, journey, flow: 'bundles' })
+  captureServerEvent(candidateId, 'onboarding_resume_skipped', { candidateId, journey, flow: 'bundles', marketRealityEntry: entryOf(p.journeyDetails) !== null })
   revalidatePath('/onboarding', 'layout')
-  redirect(BUNDLE_ROUTE.aiming)
+  redirect(DETAILS_PATH)
 }
 
 // O3. Level, function and target role, confirmed from the résumé. Years and industries stay as the résumé read them.

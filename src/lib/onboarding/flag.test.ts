@@ -53,7 +53,7 @@ describe('bundle progress', () => {
   })
 
   it('sends the hub to the first bundle that is not done', () => {
-    const base = { desireComplete: true, resumeStepComplete: true, onboardingResumeConfirmedAt: new Date(), onboardingLocationConfirmedAt: new Date(), journeyDetails: {} }
+    const base = { desireComplete: true, resumeStepComplete: true, firstName: 'Ana', lastName: 'Lee', email: 'ana@example.com', onboardingResumeConfirmedAt: new Date(), onboardingLocationConfirmedAt: new Date(), journeyDetails: {} }
     expect(nextPreAccountPath({ ...base, desireComplete: false })).toBe('/onboarding/desire')
     expect(nextPreAccountPath({ ...base, resumeStepComplete: false })).toBe('/onboarding/resume')
     expect(nextPreAccountPath({ ...base, onboardingResumeConfirmedAt: null })).toBe('/onboarding/confirm')

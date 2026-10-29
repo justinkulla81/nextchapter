@@ -3,7 +3,7 @@
 The owner has decided this order. Do not design against another order or re-add the old steps. Built behind `ONBOARDING_BUNDLES=on` (branch `claude/onboarding-google-account-step`).
 
 1. Questions, with "Where you are" (journey) first.
-2. Résumé. Required for unemployed journeys (laid off, returning to work, new grad) and for Market Reality lead-gen arrivals (`?goal=market-reality`). Optional ("Skip for now") for everyone else; skippers are prompted on Home to "Upload your résumé to get your Market Reality".
+2. Résumé. Never required (owner decision, 2026-10-29): anyone may skip it, Market Reality arrivals and unemployed journeys included. Skippers go to the details step (`/onboarding/details`: first name, last name, email, LinkedIn optional) and are prompted on Home to "Upload your résumé to get your Market Reality". The same details step runs when a résumé is read but held no name or email. No account can be created without a name and an email (`needsContactDetails`, `src/lib/onboarding/details.ts`), and a registered member with no name on file is asked once on the dashboard.
    The upload returns as soon as the file is stored (`startResumeUpload`); reading it, the profile fill and the analysis run afterwards (`src/lib/resume/background-parse.ts`) while the page shows progress. State lives in `journeyDetails.resumeParse`; a Resume row counts as a résumé only once reading has finished. Failure shows "Try again" / "Upload a different file".
 3. Aiming, level and function (asked directly if there is no résumé).
 4. Where.
