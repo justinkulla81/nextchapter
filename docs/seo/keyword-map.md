@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-145 clusters, 889 phrases.
+154 clusters, 931 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -26,6 +26,15 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/resources/unemployed` | page | job search while unemployed | Job search while out of work | unemployed professional; unemployed what to do; how to look for a job while unemployed; how to structure a job search; job search routine |
 | `/resources/pre-exit` | page | how to prepare for a layoff | Prepare for a layoff or a departure | signs of a layoff; about to be laid off; before you leave a job; preparing to leave a job; exit checklist; what to take when leaving a job |
 | `/topics/severance` | page | severance package | Understand and negotiate a severance package | severance pay; severance agreement; severance negotiation; how to negotiate severance; what is severance; severance and unemployment; is severance required; how much severance; layoff package |
+| `/topics/first-two-weeks-after-layoff` | page | what to do after being laid off | Know what to do in the first two weeks after a layoff | laid off what to do first; first steps after a layoff; after a layoff checklist |
+| `/topics/resume-ats-ai-screening` | page | resume for ats and ai screening | Write a resume that parses in applicant tracking and AI screening | resume ats; ats friendly resume; resume for applicant tracking system; beat ats; resume ai screening |
+| `/topics/hidden-job-market` | page | hidden job market | Find jobs that are never posted publicly | unadvertised jobs; jobs not posted online; how to find unposted jobs; hidden jobs |
+| `/topics/linkedin-after-layoff` | page | linkedin after layoff | Update LinkedIn after a layoff | update linkedin after being laid off; linkedin open to work after layoff; linkedin headline after layoff |
+| `/topics/career-coach-cost` | page | is a career coach worth it | Decide whether a career coach is worth the cost | career coach cost; how much does a career coach cost; career coach for job transition; should i hire a career coach |
+| `/topics/unemployment-and-job-search` | page | unemployment work search requirements | Understand work search rules while collecting unemployment | job search while on unemployment; collect unemployment and look for work; unemployment weekly certification; work search log |
+| `/topics/best-job-sites-for-executives` | page | executive job search | Find senior and executive jobs | best job sites for executives; senior executive job search; director level jobs; how to find executive jobs |
+| `/topics/networking-after-layoff` | page | networking after layoff | Network after a layoff without feeling embarrassed | how to network when laid off; networking when unemployed; reach out to contacts after layoff; embarrassed to network |
+| `/mcp` | page | job search mcp server | Connect an AI assistant to NextChapter job search | mcp server for jobs; job search api for ai assistants |
 | `/resources/cobra-aca` | page | health insurance after a layoff: COBRA vs. marketplace | Compare COBRA with an ACA Marketplace plan after a job loss | cobra; cobra vs aca; cobra or aca; aca vs cobra; cobra vs obamacare; cobra or obamacare; cobra vs affordable care act; cobra vs marketplace; which is better cobra or marketplace; is aca cheaper than cobra; health insurance after layoff; health insurance after job loss; aca marketplace after job loss; special enrollment period; cobra deadline; cobra cost |
 | `/resources/cobra-aca/:state` | family | cobra vs aca in {state} | Compare COBRA with an ACA Marketplace plan in one state | is aca cheaper than cobra in {state}; cobra vs aca cost {state}; {state} cobra vs marketplace; can i get aca instead of cobra in {state}; {state} health insurance after a layoff |
 | `/tools/cobra-vs-aca-calculator` | page | cobra vs aca calculator | Work out what COBRA and a Marketplace plan would each cost me | cobra vs aca cost calculator; cobra or marketplace cost calculator; aca subsidy calculator after layoff; how much is health insurance after a layoff |
@@ -225,6 +234,51 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Severance Package: What It Is and How to Negotiate
 - Description: What a severance package usually includes, what is negotiable, how severance affects unemployment benefits and health coverage, and what to check before you sign.
+
+### `/topics/first-two-weeks-after-layoff`
+
+- Title: Laid Off: What to Do in the First Two Weeks
+- Description: The first two weeks after a layoff, in order: unemployment, severance review, health coverage, then your network. What has a deadline and what can wait.
+
+### `/topics/resume-ats-ai-screening`
+
+- Title: ATS Resume: How to Get Through AI Screening
+- Description: How to format an ATS-friendly resume, match a job posting without stuffing keywords, and what AI resume screening can and cannot do.
+
+### `/topics/hidden-job-market`
+
+- Title: The Hidden Job Market: How to Find Unposted Jobs
+- Description: Four ways into the hidden job market: referrals, recruiters, direct outreach and early alerts, plus a simple weekly rhythm to keep it going.
+
+### `/topics/linkedin-after-layoff`
+
+- Title: LinkedIn After a Layoff: What to Change First
+- Description: What to change on LinkedIn after a layoff: headline, About, open-to-work settings and the one post that brings introductions.
+
+### `/topics/career-coach-cost`
+
+- Title: Is a Career Coach Worth It? Cost and What to Ask
+- Description: When a career coach is worth paying for, what to ask before you buy, and the free options to try first, including outplacement.
+
+### `/topics/unemployment-and-job-search`
+
+- Title: Unemployment and Your Job Search: The Rules
+- Description: What most states require to keep collecting unemployment: weekly certification, a work-search record, reporting earnings and severance.
+
+### `/topics/best-job-sites-for-executives`
+
+- Title: Executive Job Search: Where Senior Roles Are Found
+- Description: Where senior and executive roles are found: search firms, LinkedIn, career pages and your network, and how to work each channel.
+
+### `/topics/networking-after-layoff`
+
+- Title: Networking After a Layoff: A Message That Works
+- Description: How to network after a layoff: the message to send, who to contact first and how to keep conversations going.
+
+### `/mcp`
+
+- Title: NextChapter MCP Server for Job Search
+- Description: A free, read-only MCP server that lets an AI assistant search current professional job openings and find career guides on layoffs and job search.
 
 ### `/resources/cobra-aca`
 
