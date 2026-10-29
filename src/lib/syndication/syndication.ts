@@ -93,6 +93,20 @@ export function planGoogle(live: LiveJob[], sent: ReadonlySet<string>, quota: nu
   return { deleted, updated }
 }
 
+// ── Bing Webmaster URL submission ────────────────────────────────────────────
+// Bing's own API (separate from IndexNow): submit URLs for crawling, within the site's daily quota. Needs an API key from
+// the Bing Webmaster Tools account (BING_WEBMASTER_API_KEY); without one the daily run does nothing.
+export const BING_API = 'https://ssl.bing.com/webmaster/api.svc/json'
+export const BING_DEFAULT_DAILY_LIMIT = 50
+
+export function bingDailyLimit(quota: number | null, env: Record<string, string | undefined> = process.env): number {
+  const own = Number(env.BING_DAILY_LIMIT)
+  const limit = Number.isInteger(own) && own > 0 ? own : BING_DEFAULT_DAILY_LIMIT
+  return quota != null && Number.isFinite(quota) ? Math.max(0, Math.min(limit, Math.floor(quota))) : limit
+}
+
+export const bingSubmitBody = (urls: string[]) => ({ siteUrl: `${SITE_URL}/`, urlList: urls })
+
 // ── XML helpers (Indeed-style <source><job>…</job></source>) ──────────────────
 // Shared by NextChapter's own careers feeds (src/lib/careers/job-feed.ts).
 
