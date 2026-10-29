@@ -50,3 +50,31 @@ export function weeklyLayoffPost(notices: WeekNotice[], now: Date, utm: string):
     ` Free data, every notice: ${SITE_URL}/layoffs/this-week?${utm}`
   return { key: `layoffs-week-${weekKey(now)}`, text }
 }
+
+export interface FilingForPost {
+  employer: string
+  state: string | null
+  workers: number | null
+  date: Date
+  /** /layoffs/company/<slug> */
+  path: string
+}
+
+const day = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+
+/**
+ * One employer's WARN filing as a post, for an admin to send by hand (CRM > WARN > Publishing). State records only: press
+ * reports and buyouts are never posted this way until a second source confirms them. Under 280 characters with the link
+ * counted as 23, and no claim beyond what the filing says.
+ */
+export function filingPostText(f: FilingForPost, utm: string): string {
+  const where = f.state ? ` in ${stateName(f.state)}` : ''
+  const workers = f.workers ? `, naming ${n(f.workers)} workers` : ''
+  const link = `${SITE_URL}${f.path}?${utm}`
+  const tail = ` What was filed and what to do if you are affected: ${link}`
+  const head = (name: string) => `${name} filed a WARN layoff notice${where} on ${day(f.date)}${workers}.`
+  const budget = 280 - 23 + link.length // the link costs 23 characters on X whatever its length
+  let name = f.employer
+  while (name.length > 12 && (head(name) + tail).length > budget) name = name.slice(0, -2).trimEnd()
+  return head(name === f.employer ? name : `${name}…`) + tail
+}

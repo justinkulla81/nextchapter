@@ -33,11 +33,13 @@ export interface PublishingRow {
   linkedin: LinkedInState
   linkedinPostedAt: Date | null
   indexRequestedAt: Date | null
+  /** WARN filings only: when an admin posted it to X. */
+  xPostedAt: Date | null
 }
 
 export async function loadPublishingQueue(now = new Date()): Promise<{ rows: PublishingRow[]; requestsLast24h: number }> {
   const select = {
-    id: true, employer: true, employees: true, state: true, noticeDate: true, layoffType: true, source: true, rssPublishedAt: true,
+    id: true, employer: true, employees: true, state: true, noticeDate: true, layoffType: true, source: true, rssPublishedAt: true, xPostedAt: true,
     companyMatchStatus: true, company: { select: { name: true } }, linkedinDraft: { select: { status: true, postedAt: true } },
   } as const
   const [announcements, filings, requests] = await Promise.all([
@@ -70,6 +72,7 @@ export async function loadPublishingQueue(now = new Date()): Promise<{ rows: Pub
       date: n.noticeDate,
       path,
       rssPublishedAt: n.rssPublishedAt,
+      xPostedAt: n.xPostedAt,
       linkedin: n.linkedinDraft?.status ?? null,
       linkedinPostedAt: n.linkedinDraft?.postedAt ?? null,
       indexRequestedAt: requested.get(path) ?? null,
