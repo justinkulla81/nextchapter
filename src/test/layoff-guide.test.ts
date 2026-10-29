@@ -128,7 +128,7 @@ describe('guidePrograms', () => {
 })
 
 describe('CompanyLayoffGuide', () => {
-  it('renders the facts, dated steps, filing, scripts, programs and the lead form', async () => {
+  it('renders the facts, dated steps, filing, scripts and programs, with no sign-up form (that is at the top of the page)', async () => {
     const { renderToStaticMarkup } = await import('react-dom/server')
     const { createElement } = await import('react')
     const { CompanyLayoffGuide } = await import('@/components/layoffs/CompanyLayoffGuide')
@@ -146,7 +146,7 @@ describe('CompanyLayoffGuide', () => {
     expect(html).toContain('Settle these before your last day')
     expect(html).toContain('Transition grant')
     expect(html).toContain('/topics/what-to-say-when-laid-off')
-    expect(html).toContain('Make this guide yours')
-    expect(html).toContain('layoffs:guide:acme')
+    expect(html).not.toContain('Make this guide yours')
+    expect(html).not.toContain('layoffs:guide:acme')
   })
 })

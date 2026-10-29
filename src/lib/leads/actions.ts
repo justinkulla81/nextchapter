@@ -23,6 +23,10 @@ export type SavedSearchState = { error?: string; saved?: boolean; email?: string
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const FOLLOWUPS = new Set(['just_starting', 'weeks', 'months', 'long'])
+// The company page's journey form (src/components/layoffs/landing) sends its answers with the email. Only these values are kept.
+const PAGE_VARIANTS = new Set(['layoff', 'buyout', 'neither'])
+const NEXT_STEPS = new Set(['field', 'pivot', 'school', 'move'])
+const HELP_PICKS = ['market', 'ai', 'network', 'coach']
 const APP_URL = () => process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 const GENERIC_ERROR = 'Something went wrong. Try again in a minute.'
 
@@ -48,6 +52,20 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
   // Which page the form was on. Only the homepage, a /network page, an employer's layoff guide or the save step on /jobs may be named; anything else is 'home'.
   const sourceRaw = text(formData, 'source', 100)
   const source = /^(network:[a-z0-9:-]{1,90}|layoffs:guide:[a-z0-9-]{1,80}|jobs:(job|search))$/.test(sourceRaw) ? sourceRaw : 'home'
+  const variantRaw = text(formData, 'variant', 20)
+  const answers = {
+    pageVariant: PAGE_VARIANTS.has(variantRaw) ? variantRaw : '',
+    answerKey: /^[a-z-]{1,30}$/.test(text(formData, 'answerKey', 30)) ? text(formData, 'answerKey', 30) : '',
+    nextStep: NEXT_STEPS.has(text(formData, 'next', 20)) ? text(formData, 'next', 20) : '',
+    helpPicked: text(formData, 'help', 60).split(',').filter((h) => HELP_PICKS.includes(h)).join(','),
+    schoolUnitid: /^\d{4,8}$/.test(text(formData, 'schoolUnitid', 8)) ? text(formData, 'schoolUnitid', 8) : '',
+    schoolName: '',
+    joinCommunity: false,
+  }
+  if (answers.schoolUnitid) {
+    answers.schoolName = text(formData, 'schoolName', 120)
+    answers.joinCommunity = text(formData, 'joinCommunity', 2) === '1'
+  }
   if (!persona) return { error: 'Pick the one that sounds most like you.', email }
   if (!EMAIL.test(email)) return { error: 'Enter a valid email address.', email }
 
@@ -65,11 +83,11 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
     const lead = existing
       ? await prisma.homepageLead.update({
           where: { id: existing.id },
-          data: { followup, unsubscribedAt: null },
+          data: { followup, unsubscribedAt: null, ...Object.fromEntries(Object.entries(answers).filter(([, v]) => v !== '' && v !== false)) },
           select: { id: true, unsubscribeToken: true, planSentAt: true },
         })
       : await prisma.homepageLead.create({
-          data: { ...key, source, followup, ip },
+          data: { ...key, source, followup, ip, ...answers },
           select: { id: true, unsubscribeToken: true, planSentAt: true },
         })
     if (!existing) notifyNewLead({ email, channel: 'Journey picker', detail: source })
@@ -117,7 +135,7 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
       }
     }
 
-    captureServerEvent(email, 'journey_lead_submitted', { situation: persona.slug, followup, source, emailed, capped, returning: !!existing })
+    captureServerEvent(email, 'journey_lead_submitted', { situation: persona.slug, followup, source, emailed, capped, returning: !!existing, ...answers, helpCount: answers.helpPicked ? answers.helpPicked.split(',').length : 0 })
     return { done: true, email, slug: persona.slug, capped }
   } catch (error) {
     console.error('journey lead failed:', error instanceof Error ? error.message : error)

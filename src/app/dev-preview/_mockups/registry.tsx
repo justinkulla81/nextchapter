@@ -37,6 +37,7 @@ import { ApplyHelperLive } from './apply-helper-live'
 import { ComparePlacesJobless, ComparePlacesEmployed, ComparePlacesLife, ComparePlacesEmpty, ComparePlacesNoCity } from './compare-places-live'
 import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
 import { PublicLookWorkforce, PublicLookHigherEd, PublicLookRecruiter } from './public-look'
+import { CompanyLandingBuyout, CompanyLandingLayout, CompanyLandingNeither } from './company-landing'
 import { StartPlanLive, StartHelpLive, GraduationLive, ReaskLive, OtherPathsSchoolLive } from './start-grad-live'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
@@ -63,6 +64,9 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'company-page/buyout', place: 'Public pages', title: 'Company page, buyout version (Microsoft sample)', replaces: '/layoffs/company/<slug> for a buyout', Component: CompanyLandingBuyout },
+  { path: 'company-page/layoff', place: 'Public pages', title: 'Company page, layoff version (Microsoft sample)', replaces: '/layoffs/company/<slug> with WARN notices', Component: CompanyLandingLayout },
+  { path: 'company-page/neither', place: 'Public pages', title: 'Company page, no layoff or buyout (Costco sample)', replaces: '/layoffs/company/<slug> with neither', Component: CompanyLandingNeither },
   { path: 'public-look/workforce', place: 'Public pages', title: 'Workforce board page, shared look (sample data)', replaces: '/workforce-boards, /job-centers, /economic-development pages', Component: PublicLookWorkforce },
   { path: 'public-look/higher-ed', place: 'Public pages', title: 'College page, shared look (sample data)', replaces: '/higher-education pages', Component: PublicLookHigherEd },
   { path: 'public-look/recruiter', place: 'Public pages', title: 'Search firm page, shared look (sample data)', replaces: '/search-firms pages', Component: PublicLookRecruiter },
