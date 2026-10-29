@@ -42,6 +42,7 @@ export async function matchOrCreateCompanyForEmployer(rawEmployer: string, index
   const strictMatch = companies.find((c) => strictOrgKey(c.name, normalizeOrgName) === strictKey)
   if (strictMatch) return { companyId: strictMatch.id, status: 'MATCHED', candidates: null }
 
+  let created_from_review: { id: string; name: string }[] | null = null
   const looseMatches = companies.filter((c) => orgNamesMatch(c.name, employer))
   if (looseMatches.length > 0) {
     // Containment alone finds "Meta" inside "Metallics". Whole-word rules settle the clear cases (a site or legal tail on a known
@@ -49,7 +50,9 @@ export async function matchOrCreateCompanyForEmployer(rawEmployer: string, index
     const candidates = looseMatches.map((c) => ({ id: c.id, name: c.name }))
     const res = resolveAmbiguous(employer, candidates)
     if (res.kind === 'match') return { companyId: res.id, status: 'MATCHED', candidates: null }
-    if (res.kind === 'review') return { companyId: null, status: 'AMBIGUOUS', candidates }
+    // Undecided: it gets its own company rather than waiting on a person. Every employer has a page, so a wrong guess either way is worse than a
+    // twin that can be merged later; the candidates stay on the result for whoever looks.
+    if (res.kind === 'review') created_from_review = candidates
   }
 
   // Genuinely new employer. Strip the location parenthetical before storing —
@@ -65,5 +68,5 @@ export async function matchOrCreateCompanyForEmployer(rawEmployer: string, index
   })
   // So the next notice from the same employer in this import finds it.
   if (index && !index.some((c) => c.id === created.id)) index.push({ id: created.id, name: created.name })
-  return { companyId: created.id, status: 'MATCHED', candidates: null }
+  return { companyId: created.id, status: 'MATCHED', candidates: created_from_review }
 }
