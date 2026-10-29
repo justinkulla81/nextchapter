@@ -85,3 +85,119 @@ export async function postX(text: string): Promise<string> {
   if (!res.ok) throw new Error(`x post: ${res.status} ${await res.text()}`)
   return ((await res.json()) as { data: { id: string } }).data.id
 }
+
+const clean = (v: string | undefined) => (v ?? '').trim().replace(/\/+$/, '')
+
+// Mastodon needs MASTODON_INSTANCE (e.g. https://mastodon.social) and MASTODON_ACCESS_TOKEN (an app with write:statuses). Free API.
+export function mastodonConfigured(): boolean {
+  return /^https:\/\//.test(clean(process.env.MASTODON_INSTANCE)) && !!process.env.MASTODON_ACCESS_TOKEN
+}
+
+/** Posts a public status to Mastodon. The idempotency key stops a retried request from posting twice. Returns the status URL. */
+export async function postMastodon(text: string, idempotencyKey?: string): Promise<string> {
+  const res = await fetch(`${clean(process.env.MASTODON_INSTANCE)}/api/v1/statuses`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${process.env.MASTODON_ACCESS_TOKEN}`,
+      ...(idempotencyKey ? { 'idempotency-key': idempotencyKey } : {}),
+    },
+    body: JSON.stringify({ status: text, visibility: 'public', language: 'en' }),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
+  if (!res.ok) throw new Error(`mastodon post: ${res.status} ${await res.text()}`)
+  return ((await res.json()) as { url: string }).url
+}
+
+// Telegram needs TELEGRAM_BOT_TOKEN (from @BotFather) and TELEGRAM_CHANNEL_ID (@channelname or the numeric id); the bot must be a channel admin.
+export function telegramConfigured(): boolean {
+  return !!process.env.TELEGRAM_BOT_TOKEN && !!process.env.TELEGRAM_CHANNEL_ID
+}
+
+export async function postTelegram(text: string): Promise<string> {
+  const res = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHANNEL_ID, text }),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
+  if (!res.ok) throw new Error(`telegram post: ${res.status}`)
+  return String(((await res.json()) as { result: { message_id: number } }).result.message_id)
+}
+
+// Discord needs DISCORD_WEBHOOK_URL (channel settings > Integrations > Webhooks).
+export function discordConfigured(): boolean {
+  return /^https:\/\/(discord|discordapp)\.com\/api\/webhooks\//.test(process.env.DISCORD_WEBHOOK_URL ?? '')
+}
+
+export async function postDiscord(text: string): Promise<string> {
+  const res = await fetch(`${process.env.DISCORD_WEBHOOK_URL}?wait=true`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ content: text }),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
+  if (!res.ok) throw new Error(`discord post: ${res.status}`)
+  return ((await res.json()) as { id: string }).id
+}
+
+// Slack needs SLACK_WEBHOOK_URL (an incoming webhook for the channel).
+export function slackConfigured(): boolean {
+  return /^https:\/\/hooks\.slack\.com\/services\//.test(process.env.SLACK_WEBHOOK_URL ?? '')
+}
+
+export async function postSlack(text: string): Promise<string> {
+  const res = await fetch(process.env.SLACK_WEBHOOK_URL!, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ text }),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
+  if (!res.ok) throw new Error(`slack post: ${res.status}`)
+  return 'ok'
+}
+
+// Threads needs THREADS_USER_ID and THREADS_ACCESS_TOKEN (long-lived, threads_content_publish; the Meta app must pass review).
+export function threadsConfigured(): boolean {
+  return !!process.env.THREADS_USER_ID && !!process.env.THREADS_ACCESS_TOKEN
+}
+
+/** Two steps: create a text container, then publish it. Returns the thread id. */
+export async function postThreads(text: string): Promise<string> {
+  const base = `https://graph.threads.net/v1.0/${process.env.THREADS_USER_ID}`
+  const token = process.env.THREADS_ACCESS_TOKEN!
+  const created = await fetch(`${base}/threads`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+    body: JSON.stringify({ media_type: 'TEXT', text }),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
+  if (!created.ok) throw new Error(`threads create: ${created.status} ${await created.text()}`)
+  const { id } = (await created.json()) as { id: string }
+  const published = await fetch(`${base}/threads_publish`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+    body: JSON.stringify({ creation_id: id }),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
+  if (!published.ok) throw new Error(`threads publish: ${published.status} ${await published.text()}`)
+  return ((await published.json()) as { id: string }).id
+}
+
+// Facebook Page needs FACEBOOK_PAGE_ID and FACEBOOK_PAGE_TOKEN (a Page access token with pages_manage_posts; the Meta app must pass review).
+export function facebookConfigured(): boolean {
+  return !!process.env.FACEBOOK_PAGE_ID && !!process.env.FACEBOOK_PAGE_TOKEN
+}
+
+/** Posts to the Page feed; the first link in the text goes in the `link` field so Facebook shows a link card. */
+export async function postFacebook(text: string): Promise<string> {
+  const link = /https?:\/\/\S+/.exec(text)?.[0]
+  const res = await fetch(`https://graph.facebook.com/v21.0/${process.env.FACEBOOK_PAGE_ID}/feed`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${process.env.FACEBOOK_PAGE_TOKEN}` },
+    body: JSON.stringify({ message: link ? text.replace(link, '').replace(/\s+$/, '') : text, ...(link ? { link } : {}) }),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  })
+  if (!res.ok) throw new Error(`facebook post: ${res.status} ${await res.text()}`)
+  return ((await res.json()) as { id: string }).id
+}
