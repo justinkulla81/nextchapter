@@ -10647,6 +10647,8 @@ model CrmPerson {
   /// 'hunter-domain-search', or 'hunter-guess-verified' for a guess that
   /// verified); null for addresses that arrived any other way.
   emailVerifiedStatus String?
+  /// Standing answer on the Emails to confirm list: APPROVED (log their outbound mail without asking) or DISCARDED (skip it, never ask). Null: ask.
+  emailReviewDecision String?
   emailVerifiedAt     DateTime?
   emailVerifyScore    Int?
   emailSource         String?

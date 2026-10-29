@@ -43,7 +43,7 @@ export function CrmNeedsReviewList({ rows }: { rows: ReviewRow[] }) {
     setResult(null)
     start(async () => {
       const res = await approveActivities(ids)
-      setResult(`Approved ${res.approved}.`)
+      setResult(`Approved ${res.approved}. Those people won't be asked about again.`)
       setSelected(new Set())
       router.refresh()
     })
@@ -53,7 +53,7 @@ export function CrmNeedsReviewList({ rows }: { rows: ReviewRow[] }) {
     setResult(null)
     start(async () => {
       const res = await discardActivities(ids)
-      setResult(`Discarded ${res.discarded}.`)
+      setResult(`Discarded ${res.discarded}. Those people won't be asked about again.`)
       setSelected(new Set())
       router.refresh()
     })

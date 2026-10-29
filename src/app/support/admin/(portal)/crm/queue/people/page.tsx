@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { QueueRowActions } from '@/components/admin/QueueRowActions'
 import { sinceLabel, qualityClass, PERSON_ROLE_LABELS } from '@/lib/crm/labels'
+import { followUpKind, parseFollowUpFilter, matchesFollowUpFilter, FOLLOW_UP_FILTERS, type FollowUpKind } from '@/lib/crm/followup-kind'
 import type { CrmPersonRole, CrmPriorityTier } from '@prisma/client'
 
 export const maxDuration = 30
@@ -53,12 +54,13 @@ const CATEGORY_NAME: Record<string, string> = {
 export default async function CrmPeopleQueuePage({
   searchParams,
 }: {
-  searchParams: Promise<{ p2?: string }>
+  searchParams: Promise<{ p2?: string; f?: string }>
 }) {
   await requireAdmin()
   const now = new Date()
   const sp = await searchParams
   const includeP2 = sp.p2 === '1'
+  const filter = parseFollowUpFilter(sp.f)
   const priorityTiers: CrmPriorityTier[] = includeP2 ? ['P0', 'P1', 'P2'] : ['P0', 'P1']
 
   const [followUpPeopleRaw, promisedOppsRaw, priorityPeopleRaw] = await Promise.all([
@@ -69,7 +71,7 @@ export default async function CrmPeopleQueuePage({
       where: { nextFollowUpAt: { not: null }, deletedAt: null },
       orderBy: { nextFollowUpAt: 'asc' },
       take: 15 + FETCH_BUFFER,
-      select: { id: true, fullName: true, nextFollowUpAt: true, nextFollowUpNote: true, queueSnoozedAt: true },
+      select: { id: true, fullName: true, email: true, guessedEmail: true, nextFollowUpAt: true, nextFollowUpNote: true, queueSnoozedAt: true, affiliations: { orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }], take: 1, select: { org: { select: { id: true, name: true } } } } },
     }),
     // A promise made TO someone outranks an internal reminder — see
     // scoring.ts's own comment on committedFollowUpAt vs nextStepDueAt.
@@ -82,7 +84,7 @@ export default async function CrmPeopleQueuePage({
       take: 15 + FETCH_BUFFER,
       select: {
         id: true, committedFollowUpAt: true, committedTo: true,
-        primaryPerson: { select: { id: true, fullName: true, queueSnoozedAt: true } },
+        primaryPerson: { select: { id: true, fullName: true, queueSnoozedAt: true, affiliations: { orderBy: [{ isPrimary: 'desc' }, { isCurrent: 'desc' }], take: 1, select: { org: { select: { id: true, name: true } } } } } },
       },
     }),
     prisma.crmPerson.findMany({
@@ -100,17 +102,19 @@ export default async function CrmPeopleQueuePage({
   const followUpPeople = followUpPeopleRaw.filter((p) => !isSnoozedStale(p.queueSnoozedAt, p.nextFollowUpAt))
   const promisedOpps = promisedOppsRaw.filter((o) => !isSnoozedStale(o.primaryPerson?.queueSnoozedAt ?? null, o.committedFollowUpAt))
 
-  type FollowUpRow = { key: string; personId?: string; title: string; date: Date; detail?: string; kind: 'promise' | 'follow-up' }
+  type FollowUpRow = { key: string; personId?: string; title: string; date: Date; detail?: string; kind: 'promise' | 'follow-up'; auto: FollowUpKind; company?: { id: string; name: string }; emailable: boolean }
   const followUps: FollowUpRow[] = [
     ...promisedOpps.map((o): FollowUpRow => ({
       key: `opp-${o.id}`, personId: o.primaryPerson?.id, title: o.primaryPerson?.fullName ?? 'Unknown',
       date: o.committedFollowUpAt!, detail: o.committedTo ? `“${o.committedTo}”` : undefined, kind: 'promise',
+      auto: followUpKind(null), company: o.primaryPerson?.affiliations[0]?.org, emailable: false,
     })),
     ...followUpPeople.map((p): FollowUpRow => ({
       key: `person-${p.id}`, personId: p.id, title: p.fullName,
       date: p.nextFollowUpAt!, detail: p.nextFollowUpNote ?? undefined, kind: 'follow-up',
+      auto: followUpKind(p.nextFollowUpNote), company: p.affiliations[0]?.org, emailable: !!(p.email ?? p.guessedEmail) && !!p.affiliations[0],
     })),
-  ].sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 20)
+  ].filter((f) => matchesFollowUpFilter(f.auto, filter)).sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, 20)
 
   const priorityPeople = priorityPeopleRaw.filter((p) => !isSnoozedStale(p.queueSnoozedAt, p.lastTouchedAt ?? p.createdAt))
   const byCategory = new Map<string, typeof priorityPeople>()
@@ -118,9 +122,10 @@ export default async function CrmPeopleQueuePage({
     const cat = categoryOf(p.roles)
     byCategory.set(cat, [...(byCategory.get(cat) ?? []), p])
   }
-  const categories = CATEGORY_ORDER.filter((c) => (byCategory.get(c)?.length ?? 0) > 0)
+  // The category bands are priority people, not follow-ups: they show only under All.
+  const categories = filter === 'all' ? CATEGORY_ORDER.filter((c) => (byCategory.get(c)?.length ?? 0) > 0) : []
 
-  const totalItems = followUps.length + priorityPeople.length
+  const totalItems = followUps.length + (filter === 'all' ? priorityPeople.length : 0)
 
   return (
     <div className="space-y-6">
@@ -135,7 +140,7 @@ export default async function CrmPeopleQueuePage({
         </div>
         <nav className="flex flex-wrap gap-2 text-sm">
           <Link
-            href={`/support/admin/crm/queue/people${includeP2 ? '' : '?p2=1'}`}
+            href={`/support/admin/crm/queue/people?${new URLSearchParams({ ...(includeP2 ? {} : { p2: '1' }), ...(filter === 'all' ? {} : { f: filter }) }).toString()}`}
             className="rounded-md border border-border px-3 py-1.5 hover:bg-muted"
           >
             {includeP2 ? 'Hide P2' : 'Include P2'}
@@ -144,6 +149,22 @@ export default async function CrmPeopleQueuePage({
           <Link href="/support/admin/crm" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">All people</Link>
         </nav>
       </header>
+
+      <div className="flex flex-wrap items-center gap-2 text-sm" role="group" aria-label="Which follow-ups to show">
+        <span className="text-xs text-muted-foreground">Show</span>
+        <div className="flex overflow-hidden rounded-md border border-border">
+          {FOLLOW_UP_FILTERS.map((o) => (
+            <Link
+              key={o.key}
+              href={`/support/admin/crm/queue/people?${new URLSearchParams({ ...(includeP2 ? { p2: '1' } : {}), ...(o.key === 'all' ? {} : { f: o.key }) }).toString()}`}
+              aria-current={filter === o.key ? 'true' : undefined}
+              className={`border-r border-border px-3 py-1.5 last:border-r-0 ${filter === o.key ? 'bg-navy text-white' : 'hover:bg-muted'}`}
+            >
+              {o.label}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       <div className="flex flex-wrap gap-2 text-sm" aria-label="What is waiting">
         <SummaryChip count={followUps.filter((f) => f.date < now).length} label="overdue" tone="critical" />
@@ -176,6 +197,9 @@ export default async function CrmPeopleQueuePage({
               chip={overdue ? `${Math.abs(days)}d overdue` : days === 0 ? 'today' : `in ${days}d`}
               chipTone={overdue ? 'critical' : 'warning'}
               detail={f.detail}
+              auto={f.auto}
+              company={f.company}
+              emailHref={f.auto.type === 'layoffs' && f.emailable && f.personId ? `/support/admin/crm/people/${f.personId}/layoff-email` : undefined}
             />
           )
         })}
@@ -241,7 +265,7 @@ function Band({ tone, title, count, empty, children }: { tone: keyof typeof TONE
 const CHIP = { critical: 'bg-destructive/10 text-destructive', warning: 'bg-orange/15 text-orange', good: 'bg-brand/15 text-brand', muted: 'bg-muted text-muted-foreground' } as const
 
 function Row({
-  personId, title, quality, score, meta, chip, chipTone, detail,
+  personId, title, quality, score, meta, chip, chipTone, detail, auto, company, emailHref,
 }: {
   personId?: string
   title: string
@@ -251,6 +275,9 @@ function Row({
   chip: string
   chipTone: keyof typeof CHIP
   detail?: string
+  auto?: FollowUpKind
+  company?: { id: string; name: string }
+  emailHref?: string
 }) {
   return (
     <li className="rounded-lg border border-border p-3">
@@ -263,6 +290,12 @@ function Row({
           )}
           <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>{meta}</span>
+            {auto && (
+              <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${auto.automated ? 'border-border bg-muted text-muted-foreground' : 'border-orange/50 text-orange'}`}>
+                {auto.automated ? `Automated · ${auto.label}` : 'Yours'}
+              </span>
+            )}
+            {company && <Link href={`/support/admin/crm/organizations/${company.id}`} className="underline">{company.name}</Link>}
             {quality && quality !== 'UNGRADED' && (
               <span className={`rounded px-1 py-0.5 font-semibold ${qualityClass(quality as 'A')}`}>{quality}</span>
             )}
@@ -273,6 +306,9 @@ function Row({
           <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${CHIP[chipTone]}`}>{chip}</span>
           {score !== null && (
             <span className="rounded bg-muted px-2 py-0.5 text-xs font-semibold tabular-nums">{Math.round(score)}</span>
+          )}
+          {emailHref && (
+            <a href={emailHref} target="_blank" rel="noreferrer" className="rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-muted">Write email</a>
           )}
           <QueueRowActions personId={personId} />
         </div>

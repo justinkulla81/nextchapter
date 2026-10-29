@@ -134,6 +134,13 @@ export async function buildSweepContext(
  * "does this belong in the CRM?" review. True when the person's only role is
  * Friends and family (the same test meeting-prep uses). Cached per sweep.
  */
+export async function reviewDecisionFor(personId: string, cache: Map<string, string | null>): Promise<string | null> {
+  if (cache.has(personId)) return cache.get(personId) ?? null
+  const row = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { emailReviewDecision: true } })
+  cache.set(personId, row?.emailReviewDecision ?? null)
+  return row?.emailReviewDecision ?? null
+}
+
 export async function isFriendsFamilyOnly(personId: string, cache: Map<string, boolean>): Promise<boolean> {
   const hit = cache.get(personId)
   if (hit !== undefined) return hit
@@ -406,6 +413,7 @@ async function sweepMailbox(
   const touched = new Set<string>()
   const personCache = new Map<string, string | null>()
   const familyCache = new Map<string, boolean>()
+  const decisionCache = new Map<string, string | null>()
   const result = { ...base }
 
   // A fetch that fails after retrying is counted, not skipped. It used to
@@ -572,7 +580,11 @@ async function sweepMailbox(
         fullBody = content.body
         attachmentNames = content.attachmentNames
       }
-      const needsReview = direction === 'OUTBOUND' && !relevant && !(await isFriendsFamilyOnly(personId, familyCache))
+      // A standing answer from the Emails to confirm list: discarded people are skipped (never asked about again), approved ones are logged
+      // without asking.
+      const decision = direction === 'OUTBOUND' && !relevant ? await reviewDecisionFor(personId, decisionCache) : null
+      if (decision === 'DISCARDED') continue
+      const needsReview = direction === 'OUTBOUND' && !relevant && decision !== 'APPROVED' && !(await isFriendsFamilyOnly(personId, familyCache))
       const created = await prisma.crmActivity.upsert({
         where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
         create: {
