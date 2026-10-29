@@ -58,7 +58,11 @@ export function GoogleAnalytics() {
 
   return (
     <>
-      <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+      {/* The 180 KB gtag.js loads after the window load event, not at the start: with afterInteractive Next adds a high-priority
+          <link rel=preload> for it in the head, and it competes with the page's own CSS and fonts for bandwidth on a slow phone.
+          Events are not lost: the init script below defines gtag() and queues every call on window.dataLayer straight away, and
+          gtag.js replays the queue when it arrives (the same thing Google's own snippet relies on). */}
+      <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="lazyOnload" />
       <Script id="ga4-init" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
