@@ -6,7 +6,7 @@ import { getRecentNotices } from '@/lib/seo/topic-data'
 import { TWELVE_MONTHS_MS, getPublicNotices, noticeDay, type PublicNotice } from '@/lib/warn/layoff-pages'
 import { getWeeks, getWeekNotices } from '@/lib/layoffs/weekly'
 import { weekLabel } from '@/lib/layoffs/weeks'
-import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-announcements'
+import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } from '@/lib/warn/company-announcements'
 
 /** Notices with this many workers or more go in the "large layoffs" feed. */
 export const LARGE_NOTICE_WORKERS = 100
@@ -90,7 +90,7 @@ export async function layoffFeed(o: LayoffFeedOpts): Promise<FeedDoc> {
   // a layoff page before any WARN notice exists, and a reader should see the page appear. Filtered feeds (a state, large
   // notices, an industry) are about filings, so they stay WARN-only.
   if (!o.state && !o.minWorkers && !o.bucket) {
-    const announcements = await getAnnouncements().catch(() => new Map())
+    const announcements = await getAnnouncements().catch(() => new Map<string, CompanyAnnouncements>())
     for (const a of announcements.values()) {
       if (!hasRecentAnnouncement(a)) continue
       for (const it of a.items.filter((x) => x.date.getTime() >= cutoff)) {
