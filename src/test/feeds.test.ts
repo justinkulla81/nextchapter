@@ -2,11 +2,16 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/warn/layoff-pages', () => ({ TWELVE_MONTHS_MS: 365 * 86_400_000, getPublicNotices: async () => [], noticeDay: (d: Date) => d.toISOString().slice(0, 10) }))
+const announcedAt = new Date(Date.now() - 2 * 86_400_000)
+vi.mock('@/lib/warn/company-announcements', () => ({
+  getAnnouncements: async () => new Map([['tiktok', { slug: 'tiktok', name: 'TikTok', latest: announcedAt, items: [{ id: 'a1', date: announcedAt, kind: 'layoff', summary: 'Reported layoffs across trust and safety', workers: null, sourceUrl: 'https://news.example/tiktok' }] }]]),
+  hasRecentAnnouncement: () => true,
+}))
 vi.mock('@/lib/seo/topic-data', () => ({ getRecentNotices: async () => [] }))
 vi.mock('@/lib/layoffs/weekly', () => ({ getWeeks: async () => [], getWeekNotices: async () => null }))
 
 import { allFeeds, opml } from '@/lib/feeds/catalog'
-import { feedLink, noticeContext } from '@/lib/feeds/layoff-feed'
+import { allLayoffFeed, feedLink, layoffFeed, noticeContext } from '@/lib/feeds/layoff-feed'
 import { jsonFeed, rssXml } from '@/lib/feeds/rss'
 import { changedFeeds } from '@/lib/syndication/indexnow-layoffs'
 
@@ -67,5 +72,15 @@ describe('feeds', () => {
     expect(feeds).toContain('https://launchyournextchapter.com/feeds/layoffs/texas')
     expect(feeds).toContain('https://launchyournextchapter.com/feeds/layoffs-weekly.xml')
     expect(feeds.some((f) => f.includes('company') || f.endsWith('/week'))).toBe(false)
+  })
+
+  it('puts a new announcement-only employer page in the all-states feed, but not in a filtered feed', async () => {
+    const all = await allLayoffFeed()
+    const item = all.items.find((i) => i.guid === 'nextchapter-announcement-a1')
+    expect(item?.title).toBe('TikTok: Reported layoffs across trust and safety')
+    expect(item?.link).toContain('/layoffs/company/tiktok')
+    expect(item?.description).toContain('not a WARN filing')
+    const large = await layoffFeed({ minWorkers: 100, title: 't', description: 'd', selfPath: '/feeds/x', pagePath: '/layoffs', campaign: 'x' })
+    expect(large.items).toHaveLength(0)
   })
 })
