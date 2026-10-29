@@ -47,6 +47,18 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     })
   }
 
+  // /Employers, /Jobs and the like (typed or bookmarked with a capital) 404 because route folders are lowercase. Only the
+  // first segment is lowercased, and only when the lowercase form is a real top-level route, so case-sensitive tokens
+  // deeper in a path (/ref/<token>) are never touched.
+  if (MAIN_HOSTS.has(host) && (request.method === 'GET' || request.method === 'HEAD')) {
+    const first = pathname.split('/')[1] ?? ''
+    if (first && first !== first.toLowerCase() && APP_TOP_LEVEL.has(first.toLowerCase())) {
+      const url = request.nextUrl.clone()
+      url.pathname = `/${first.toLowerCase()}${pathname.slice(first.length + 1)}`
+      return NextResponse.redirect(url, 308)
+    }
+  }
+
   // A stale bookmark or link to /support/admin/** on the main domain now
   // bounces to the isolated subdomain instead of rendering there directly.
   if (MAIN_HOSTS.has(host) && pathname.startsWith('/support/admin')) {
