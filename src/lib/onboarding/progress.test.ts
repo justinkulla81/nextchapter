@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { CONNECT_PATH, FINISH_PATH, afterAccountPath, nextPreAccountPath, progressPatch } from './progress'
 
-const answered = { desireComplete: true, resumeStepComplete: true, onboardingResumeConfirmedAt: new Date(), onboardingLocationConfirmedAt: new Date() }
+const answered = { desireComplete: true, resumeStepComplete: true, firstName: 'Ana', lastName: 'Lee', email: 'ana@example.com', onboardingResumeConfirmedAt: new Date(), onboardingLocationConfirmedAt: new Date() }
 const withCoachDone = progressPatch(null, { completed: 'coach' })
 
 describe('nextPreAccountPath', () => {
@@ -25,6 +25,12 @@ describe('nextPreAccountPath', () => {
   it('treats a skipped résumé like an uploaded one: the step is complete', () => {
     // Skipping sets resumeStepComplete, so the next step is the aiming questions.
     expect(nextPreAccountPath({ ...answered, onboardingResumeConfirmedAt: null, journeyDetails: { resumeSkippedAt: 'x' } })).toBe('/onboarding/confirm')
+  })
+
+  it('asks for the details first when the résumé step is done but a name or email is missing', () => {
+    expect(nextPreAccountPath({ ...answered, firstName: null, journeyDetails: null })).toBe('/onboarding/details')
+    expect(nextPreAccountPath({ ...answered, email: null, onboardingResumeConfirmedAt: null, journeyDetails: null })).toBe('/onboarding/details')
+    expect(nextPreAccountPath({ ...answered, resumeStepComplete: false, firstName: null, journeyDetails: null })).toBe('/onboarding/resume')
   })
 })
 

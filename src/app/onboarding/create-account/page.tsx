@@ -6,6 +6,7 @@ import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { flowOfProfile } from '@/lib/onboarding/flag'
 import { progressOf } from '@/lib/onboarding/progress'
 import { isGoogleConnectOn } from '@/lib/google/connect-switch'
+import { DETAILS_PATH, needsContactDetails } from '@/lib/onboarding/details'
 
 export default async function CreateAccountPage() {
   const profile = await getCandidateProfileForUser()
@@ -17,6 +18,9 @@ export default async function CreateAccountPage() {
   if (profile.registrationCompletedAt) {
     redirect('/dashboard')
   }
+
+  // No account without a name: the résumé usually supplies it, otherwise the details step asks.
+  if (needsContactDetails(profile)) redirect(DETAILS_PATH)
 
   // Authoritative block from syncRegistrationCompletion — the confirmed
   // email already belongs to another registered account. The client-side

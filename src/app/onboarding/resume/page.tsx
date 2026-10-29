@@ -13,8 +13,8 @@ import { flowOfProfile } from '@/lib/onboarding/flag'
 import { computePayoff } from '@/lib/onboarding/payoff'
 import { prefilledAnswers } from '@/lib/onboarding/prefilled'
 import { BUNDLE_ROUTE } from '@/lib/onboarding/bundles'
-import { effectiveJourney } from '@/lib/journey/journey'
-import { entryOf, resumeRequired } from '@/lib/onboarding/resume-rule'
+import { entryOf } from '@/lib/onboarding/resume-rule'
+import { DETAILS_PATH, needsContactDetails } from '@/lib/onboarding/details'
 import { skipResume } from '@/app/onboarding/bundle-actions'
 import { SkipResumeButton } from '@/components/onboarding/bundles/SkipResumeButton'
 import { ResumeParseProgress } from '@/components/onboarding/bundles/ResumeParseProgress'
@@ -126,8 +126,10 @@ export default async function OnboardingResumePage() {
         <BundleShell id="resume" title="We read your résumé.">
           <PayoffPanel payoff={computePayoff('resume', {}, { journey: null, prefilled })} label="What you gained" />
           <div className="flex flex-wrap items-center gap-5">
-            <PrimaryLink href={BUNDLE_ROUTE.aiming}>Continue</PrimaryLink>
-            <p className="text-sm text-muted-foreground">Next: check three answers we read from it.</p>
+            <PrimaryLink href={needsContactDetails(profile) ? DETAILS_PATH : BUNDLE_ROUTE.aiming}>Continue</PrimaryLink>
+            <p className="text-sm text-muted-foreground">
+              {needsContactDetails(profile) ? 'Next: we need your name and email.' : 'Next: check three answers we read from it.'}
+            </p>
           </div>
         </BundleShell>
       )
@@ -135,19 +137,19 @@ export default async function OnboardingResumePage() {
   }
 
   if (bundles) {
-    // Required for people out of work and for Market Reality arrivals; everyone else may skip it and is asked on login.
-    const required = resumeRequired({ journey: profile ? effectiveJourney(profile) : null, entry: entryOf(profile?.journeyDetails) })
+    // Never required: skipping goes to the details step (name, email, LinkedIn). A Market Reality arrival is told what the résumé adds.
+    const marketReality = entryOf(profile?.journeyDetails) !== null
     return (
-      <BundleShell id="resume" title={required ? 'Start with your résumé' : 'Add your résumé, or skip for now'}>
+      <BundleShell id="resume" title="Add your résumé, or skip for now">
         <ResumeUploadForm showNarrativePicker={false} resumeBookOptIn={profile?.resumeBookOptIn ?? true} background initialError={rejectedReason} />
-        {required ? (
-          <p className="text-sm text-muted-foreground">Your Market Reality is worked out from your résumé, so this step cannot be skipped.</p>
-        ) : (
-          <form action={skipResume} className="space-y-2">
-            <SkipResumeButton />
-            <p className="text-sm text-muted-foreground">You can add it any time. We will remind you on your home page, and it unlocks your Market Reality.</p>
-          </form>
-        )}
+        <form action={skipResume} className="space-y-2">
+          <SkipResumeButton />
+          <p className="text-sm text-muted-foreground">
+            {marketReality
+              ? 'No résumé handy? Skip it and give us your name and email instead. Your Market Reality is sharpest with a résumé, and you can add one any time.'
+              : 'No résumé handy? Skip it and give us your name and email instead. You can add one any time.'}
+          </p>
+        </form>
         <PayoffPanel payoff={computePayoff('resume', {}, { journey: null, prefilled: [] })} />
       </BundleShell>
     )
