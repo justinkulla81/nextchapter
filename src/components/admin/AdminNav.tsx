@@ -350,6 +350,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/visitors/applied`, label: 'Jobs applied to' },
         { href: `${A}/visitors/ai`, label: 'AI assistants' },
         { href: `${A}/funnel`, label: 'Funnel' },
+        { href: `${A}/search-queries`, label: 'Search queries' },
         { href: `${A}/action-counts`, label: 'Action counts' },
         { href: `${A}/population`, label: 'Population report' },
         { href: `${A}/path-interest`, label: 'What members are thinking about' },
