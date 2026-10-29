@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ActionBand, H2, SeoPage } from '@/components/seo/SeoPage'
 import { RelatedLinks } from '@/components/seo/RelatedLinks'
@@ -46,6 +47,17 @@ export default async function TopicPage({ params }: { params: Promise<{ slug: st
             {s.bullets && (
               <ul className="mt-3 list-disc space-y-1.5 pl-5 text-base leading-relaxed text-foreground">
                 {s.bullets.map((b) => <li key={b}>{b}</li>)}
+              </ul>
+            )}
+            {s.links && (
+              <ul className="mt-3 list-disc space-y-1.5 pl-5 text-base leading-relaxed text-foreground">
+                {s.links.map((l) =>
+                  l.href.startsWith('http') ? (
+                    <li key={l.href}><a href={l.href} target="_blank" rel="noopener noreferrer" className="text-brand underline underline-offset-4">{l.label}</a></li>
+                  ) : (
+                    <li key={l.href}><Link href={l.href} className="text-brand underline underline-offset-4">{l.label}</Link></li>
+                  ),
+                )}
               </ul>
             )}
           </section>

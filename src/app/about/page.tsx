@@ -86,7 +86,7 @@ export default function AboutPage() {
               The leading job transition platform
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-              NextChapter gets people back to work faster. Our AI runs the job search, shows people which careers fit,
+              NextChapter is the leading job transition platform for white-collar workers, and it gets people back to work faster. Our AI runs the job search, shows people which careers fit,
               and points them to the retraining that actually gets them hired. Employers, workforce boards and
               outplacement firms use NextChapter to move their people into new jobs at scale.
             </p>
