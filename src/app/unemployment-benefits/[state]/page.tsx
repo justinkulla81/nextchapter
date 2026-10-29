@@ -22,6 +22,8 @@ import { FirstSixtyDays } from '@/components/severance/FirstSixtyDays'
 import { getPersona } from '@/lib/constants/personas'
 import { journeyChoices } from '@/lib/leads/infer-journey'
 import { severanceByState } from '@/lib/severance/state-groups'
+import { FILING_GUIDE_UPDATED } from '@/lib/data/state-ui-appeals'
+import { StateFilingGuide, appealSentence, READY_LIST } from '@/components/benefits/StateFilingGuide'
 
 // Facts are static; the daily refresh keeps the link to this state's layoff
 // page and its list of workforce boards current.
@@ -137,7 +139,10 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
   if (ui.waitingWeek.value != null)
     faq.push({ q: `Does ${name} have a waiting week for unemployment?`, a: ui.waitingWeek.value ? 'Yes. The first eligible week is an unpaid waiting week.' : 'No. There is no unpaid waiting week.' })
   if (ui.severance.value) faq.push({ q: `Does severance affect unemployment in ${name}?`, a: ui.severance.value })
-  if (ui.fileUrl.value) faq.push({ q: `How do I file for unemployment in ${name}?`, a: `File an initial claim with ${agency} at ${ui.fileUrl.value}.` })
+  if (ui.fileUrl.value) faq.push({ q: `How do I file for unemployment in ${name}?`, a: `File an initial claim with ${agency} at ${ui.fileUrl.value}. File the first week you are out of work, then request payment every week or every two weeks on the schedule the agency gives you.` })
+  faq.push({ q: `What do I need to file for unemployment in ${name}?`, a: `${READY_LIST.slice(0, 4).join('; ')}.` })
+  const appealText = appealSentence(code, name)
+  if (appealText) faq.push({ q: `How long do I have to appeal an unemployment denial in ${name}?`, a: appealText })
 
   return (
     <div className="flex flex-1 flex-col">
@@ -160,7 +165,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
         </nav>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{unemploymentStateSeo(name).h1}</h1>
         <p className="mt-4 text-lg leading-relaxed text-foreground">{lead(name, ui)}</p>
-        <AuthorByline updated={UI_LAST_VERIFIED} />
+        <AuthorByline updated={FILING_GUIDE_UPDATED} />
         <p className="mt-1 text-sm text-muted-foreground">Last verified {formatContentDate(UI_LAST_VERIFIED)} against official sources.</p>
 
         {ui.fileUrl.value && (
@@ -210,6 +215,8 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
             that date; confirm them with {agency}.
           </p>
         </section>
+
+        <StateFilingGuide name={name} code={code} ui={ui} agency={agency} />
 
         <FirstSixtyDays name={name} slug={state} waitingWeek={ui.waitingWeek.value} agency={agency} fileUrl={ui.fileUrl.value} stateCode={code} />
 

@@ -9,6 +9,7 @@ import { H2, LINK, SeoPage, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { COLLEGE_SECTORS } from '@/lib/workforce/board-area'
 import { stateName, stateSlug } from '@/lib/seo/states'
+import { StateFilingLink } from '@/components/benefits/StateFilingGuide'
 import { orgJsonLd } from '@/lib/seo/org-page-jsonld'
 import { ORG_PAGE_ROOT, orgPagePath } from '@/lib/seo/org-page-rules'
 import { placeUrl } from '@/lib/places/places'
@@ -71,6 +72,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
         heading={row.kind === 'JOB_CENTER' ? 'Looking for work near here? See where you stand.' : undefined}
         properties={props}
       />
+      {(row.kind === 'JOB_CENTER' || row.kind === 'WORKFORCE_BOARD') && <StateFilingLink name={st} slug={ss} className="mt-6" />}
       <section aria-labelledby="market" className="mt-10">
         <h2 id="market" className={H2}>Jobs where it serves</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

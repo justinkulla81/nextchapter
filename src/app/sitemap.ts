@@ -1,3 +1,4 @@
+import { FILING_GUIDE_UPDATED } from '@/lib/data/state-ui-appeals'
 import { meetsCompanyLayoffBar, meetsStateBoardBar } from '@/lib/seo/page-bars'
 import { CAREER_ROLES } from '@/lib/careers/roles'
 import type { MetadataRoute } from 'next'
@@ -302,7 +303,7 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Unemployment benefits: dated by the last verification against sources.
     entry('/unemployment-benefits', UI_LAST_VERIFIED, 'monthly', 0.7),
-    ...ALL_STATE_CODES.map((c) => entry(`/unemployment-benefits/${stateSlug(c)}`, UI_LAST_VERIFIED, 'monthly', 0.6)),
+    ...ALL_STATE_CODES.map((c) => entry(`/unemployment-benefits/${stateSlug(c)}`, FILING_GUIDE_UPDATED, 'monthly', 0.6)),
     // COBRA vs ACA: the explainer lives at /resources/cobra-aca (a static page). State pages that meet their bar (src/lib/cobra-aca/states.ts).
     ...ALL_STATE_CODES.filter(stateMeetsBar).map((c) => entry(`/resources/cobra-aca/${stateSlug(c)}`, COBRA_ACA_UPDATED, 'monthly', 0.5)),
 

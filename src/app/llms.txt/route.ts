@@ -57,7 +57,7 @@ ${report ? `- [Latest edition: ${report.month}](${u(reportPath(report))}): ${rep
 - [American Job Centers](${u('/job-centers')}): a page for each American Job Center, by state: the counties it serves, open professional jobs and entry-level roles there, colleges and other local help, address, hours and phone.
 - [Economic development organizations](${u('/economic-development')}): a page for each regional, county and state economic development organization, by state, with the area it serves and the jobs open there.
 - [Workforce boards](${u('/workforce-boards')}): a page for each local workforce development board with its counties, local unemployment, open jobs and job centers.
-- [Unemployment benefits by state](${u('/unemployment-benefits')}): maximum and minimum weekly benefit, weeks, waiting week, severance rules and where to file, for all 50 states and DC, from Department of Labor and state agency sources.
+- [Unemployment benefits by state](${u('/unemployment-benefits')}): maximum and minimum weekly benefit, weeks, waiting week, severance rules, step-by-step how to file, what to have ready and the appeal deadline, for all 50 states and DC, from Department of Labor and state agency sources.
 - [Editorial standards](${u('/editorial-standards')}): how NextChapter researches and sources content, keeps it separate from what it sells, and handles corrections.
 
 ## Find what you need, by topic

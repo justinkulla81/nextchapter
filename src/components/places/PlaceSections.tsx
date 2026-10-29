@@ -1,3 +1,4 @@
+import { StateFilingLink } from '@/components/benefits/StateFilingGuide'
 import Link from 'next/link'
 import { H2, LINK, Stat } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -138,6 +139,7 @@ export function WorkforceSection({ id, state, stateSlugValue, boards, centers, s
       <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
         The public workforce board and American Job Centers serving {scope}. They offer free help with job search, training and filing for benefits.
       </p>
+      <StateFilingLink name={state} slug={stateSlugValue} className="mt-3" />
       {boards.length > 0 && (
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {boards.map((b) => (
