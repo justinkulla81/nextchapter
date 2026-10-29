@@ -44,6 +44,7 @@ export default async function SearchFirmsHub({ searchParams }: { searchParams: P
 
   return (
     <SeoPage
+      look="audience"
       trail={[{ name: 'Search firms', path: '/search-firms' }]}
       h1="Search firms and recruiters hiring now"
       lede={<>{n0(all.length)} search firms, recruiting firms and staffing companies with open searches on our board. Each page shows what the firm is recruiting for, its specialties, where, and how long its searches stay open.</>}

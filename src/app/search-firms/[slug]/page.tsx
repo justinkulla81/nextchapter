@@ -90,6 +90,7 @@ export default async function SearchFirmPublicPage({ params }: { params: Promise
 
   return (
     <SeoPage
+      look="audience"
       trail={[{ name: 'Search firms', path: '/search-firms' }, { name: f.name, path }]}
       h1={`${f.name}: open searches and specialties`}
       jsonLd={ld}

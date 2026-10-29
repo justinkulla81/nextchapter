@@ -36,6 +36,7 @@ import { FundingLive } from './funding-live'
 import { ApplyHelperLive } from './apply-helper-live'
 import { ComparePlacesJobless, ComparePlacesEmployed, ComparePlacesLife, ComparePlacesEmpty, ComparePlacesNoCity } from './compare-places-live'
 import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
+import { PublicLookWorkforce, PublicLookHigherEd, PublicLookRecruiter } from './public-look'
 import { StartPlanLive, StartHelpLive, GraduationLive, ReaskLive, OtherPathsSchoolLive } from './start-grad-live'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
@@ -62,6 +63,9 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'public-look/workforce', place: 'Public pages', title: 'Workforce board page, shared look (sample data)', replaces: '/workforce-boards, /job-centers, /economic-development pages', Component: PublicLookWorkforce },
+  { path: 'public-look/higher-ed', place: 'Public pages', title: 'College page, shared look (sample data)', replaces: '/higher-education pages', Component: PublicLookHigherEd },
+  { path: 'public-look/recruiter', place: 'Public pages', title: 'Search firm page, shared look (sample data)', replaces: '/search-firms pages', Component: PublicLookRecruiter },
   { path: 'marketing/coach-clients', place: 'Partner pages', title: 'Coach: client list (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: CoachClients },
   { path: 'marketing/coach-pre-session-brief', place: 'Partner pages', title: 'Coach: pre-session brief (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: CoachBrief },
   { path: 'marketing/coach-session-log', place: 'Partner pages', title: 'Coach: full client view and session log (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: CoachSessionLog },
