@@ -1,46 +1,18 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
-import type { CandidateIdentityMatchSource, CandidateIdentityMatchStrength } from '@prisma/client'
+import { recordIdentityMatch as flagMatch } from '@/lib/candidates/identity-match-link'
 
 function normalizePersonName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
-interface MatchDetails {
-  name: string | null
-  email: string | null
-  company: string | null
-}
-
-async function flagMatch(
-  candidateId: string,
-  source: CandidateIdentityMatchSource,
-  sourceRecordId: string,
-  strength: CandidateIdentityMatchStrength,
-  details: MatchDetails
-): Promise<void> {
-  await prisma.candidateIdentityMatch.upsert({
-    where: { candidateId_source_sourceRecordId: { candidateId, source, sourceRecordId } },
-    update: {},
-    create: {
-      candidateId,
-      source,
-      sourceRecordId,
-      strength,
-      matchedName: details.name,
-      matchedEmail: details.email,
-      matchedCompany: details.company,
-    },
-  })
-}
-
 // Runs once, right after a candidate's email is confirmed
 // (syncRegistrationCompletion) — checks whether this real person already
 // exists elsewhere as a reference, a coach/recruiter invite lead, or
-// someone else's outreach/LinkedIn contact, and flags every match for
-// admin review. Never links anything itself — see CandidateIdentityMatch's
-// schema comment for why even an exact email match still requires a click.
+// someone else's outreach/LinkedIn contact. An exact email match links
+// automatically (same email = same person); weaker matches are flagged for
+// admin review.
 export async function findIdentityMatchesForCandidate(
   candidateId: string,
   email: string,

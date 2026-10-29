@@ -4529,12 +4529,11 @@ enum CandidateIdentityMatchStatus {
 // A newly-registered candidate may already exist elsewhere in the system as
 // a reference, a coach/recruiter invite lead, or someone else's outreach/
 // LinkedIn contact — all of which are free-text records with no real link to
-// a CandidateProfile until a human confirms it's the same person. Always
-// admin-reviewed, exactly like BountyClaim/ScholarshipApplication — no code
-// path here ever auto-confirms, regardless of match strength (explicit
-// product decision: even an exact email match still requires a click,
-// because the actual link operation touches another person's data, not just
-// this candidate's own).
+// a CandidateProfile until the match is confirmed. An EMAIL_EXACT match is
+// the same person and links automatically (stored already CONFIRMED, reviewedBy
+// 'auto: exact email match'); weaker matches (look-alike names) stay PENDING
+// for an admin click. Changed 2026-10-28 — previously even an exact email
+// match required a click.
 // A candidate saying an automatic detection was wrong — a "rejection" that
 // wasn't, an "application" that was a newsletter. Kept (never just deleted)
 // with the rule that fired, so misfires can be reviewed by rule and fixed in

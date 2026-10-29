@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
 import { namesLookAlike } from '@/lib/text/person-name-match'
 import { recordReferral } from '@/lib/candidates/referral'
+import { recordIdentityMatch } from '@/lib/candidates/identity-match-link'
 
 export const LEAD_SOURCE_LABELS: Record<CandidateLeadSource, string> = {
   REFERRAL_ADMIN: 'Referral — you',
@@ -112,9 +113,10 @@ export async function inferLeadSource(candidateId: string): Promise<void> {
 
 /**
  * Flags every unlinked CRM person whose email or name resembles this new
- * candidate's — people you invited above all, but anyone already in the CRM
- * — for review on the Review List (and Identity Matches). Never links
- * anything itself.
+ * candidate's — people you invited above all, but anyone already in the CRM.
+ * An exact email match is the same person and links automatically; a
+ * look-alike name is flagged for review on the Review List (and Identity
+ * Matches). Returns how many were left for review.
  */
 export async function findCrmInviteMatches(candidateId: string): Promise<number> {
   const candidate = await prisma.candidateProfile.findUnique({
@@ -140,16 +142,10 @@ export async function findCrmInviteMatches(candidateId: string): Promise<number>
     const emailHit = !!email && (p.email?.toLowerCase() === email || p.emails.some((e) => e.toLowerCase() === email))
     const nameHit = !!fullName && namesLookAlike(fullName, p.fullName)
     if (!emailHit && !nameHit) continue
-    await prisma.candidateIdentityMatch.upsert({
-      where: { candidateId_source_sourceRecordId: { candidateId, source: 'CRM_INVITE', sourceRecordId: p.id } },
-      update: {},
-      create: {
-        candidateId, source: 'CRM_INVITE', sourceRecordId: p.id,
-        strength: emailHit ? 'EMAIL_EXACT' : 'NAME_SIMILAR',
-        matchedName: p.fullName, matchedEmail: p.email, matchedCompany: p.affiliations[0]?.org.name ?? null,
-      },
+    const outcome = await recordIdentityMatch(candidateId, 'CRM_INVITE', p.id, emailHit ? 'EMAIL_EXACT' : 'NAME_SIMILAR', {
+      name: p.fullName, email: p.email, company: p.affiliations[0]?.org.name ?? null,
     })
-    flagged++
+    if (outcome === 'pending') flagged++
   }
   return flagged
 }
@@ -159,7 +155,7 @@ export async function findCrmInviteMatches(candidateId: string): Promise<number>
  * signed up (you invited them on LinkedIn, then marked it in the CRM once
  * they'd joined). findCrmInviteMatches only runs at signup, so it never saw
  * them — this checks existing candidates when the flag is set. Same bar:
- * an exact email or a look-alike name; flagged for review, never linked.
+ * an exact email links automatically, a look-alike name is flagged for review.
  */
 export async function findSignupsForInvitedPerson(personId: string): Promise<number> {
   const person = await prisma.crmPerson.findUnique({
@@ -179,16 +175,10 @@ export async function findSignupsForInvitedPerson(personId: string): Promise<num
     const emailHit = !!c.email && emails.has(c.email.trim().toLowerCase())
     const nameHit = !!fullName && namesLookAlike(fullName, person.fullName)
     if (!emailHit && !nameHit) continue
-    await prisma.candidateIdentityMatch.upsert({
-      where: { candidateId_source_sourceRecordId: { candidateId: c.id, source: 'CRM_INVITE', sourceRecordId: personId } },
-      update: {},
-      create: {
-        candidateId: c.id, source: 'CRM_INVITE', sourceRecordId: personId,
-        strength: emailHit ? 'EMAIL_EXACT' : 'NAME_SIMILAR',
-        matchedName: person.fullName, matchedEmail: person.email, matchedCompany: person.affiliations[0]?.org.name ?? null,
-      },
+    const outcome = await recordIdentityMatch(c.id, 'CRM_INVITE', personId, emailHit ? 'EMAIL_EXACT' : 'NAME_SIMILAR', {
+      name: person.fullName, email: person.email, company: person.affiliations[0]?.org.name ?? null,
     })
-    flagged++
+    if (outcome === 'pending') flagged++
   }
   return flagged
 }
