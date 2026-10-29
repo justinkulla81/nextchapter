@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePostHog } from '@/lib/posthog/client'
 import { Logo } from '@/components/Logo'
@@ -36,8 +36,9 @@ export function ReportEnhancements({
   const [pdfOpen, setPdfOpen] = useState(false)
 
   useEffect(() => {
+    // The server-rendered wordmark text stays until the Logo portal is mounted next to it (see the layout effect below). Emptying
+    // it here first left the cover with a gap for a frame, so the heading jumped and settled back (layout shift ~0.19 on a slow phone).
     const wm = document.querySelector<HTMLElement>('.ncr .wordmark')
-    if (wm) wm.textContent = ''
     const slot = document.querySelector<HTMLElement>('#newsletter-slot')
     if (slot) slot.textContent = ''
 
@@ -66,6 +67,13 @@ export function ReportEnhancements({
       brief?.removeEventListener('click', onBrief)
     }
   }, [posthog])
+
+  // Runs in the same commit as the portal, before paint: drop the server-rendered text, keep the Logo element.
+  useLayoutEffect(() => {
+    const wm = targets.wordmark
+    if (!wm) return
+    for (const node of Array.from(wm.childNodes)) if (node.nodeType === Node.TEXT_NODE) node.remove()
+  }, [targets.wordmark])
 
   return (
     <>

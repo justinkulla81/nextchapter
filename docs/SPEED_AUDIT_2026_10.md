@@ -170,3 +170,32 @@ A serif stand-in font change (size-adjusted Times New Roman) was tried for the r
 - Production, one page: `npx lighthouse@12.6.1 <url> --only-categories=performance --form-factor=mobile --screenEmulation.mobile --throttling-method=devtools --output=json --output-path=out.json`.
 - Local before and after: `next build` and `next start` with `NEXT_PUBLIC_GA_MEASUREMENT_ID=G-TEST000000 NEXT_PUBLIC_POSTHOG_KEY=phc_localtestkey`, so test visits never reach the real Google Analytics or PostHog projects.
 - Real-user numbers: PostHog, event `$web_vitals`, properties `$web_vitals_LCP_value`, `_INP_value`, `_CLS_value`, `_FCP_value`.
+
+## Follow-up: fixes 1 to 3 from the remaining list (2026-10-29)
+
+Method: local production build, Lighthouse 12.6.1 mobile with applied throttling (`--throttling-method=devtools`), two runs each, before and after.
+
+| What | Result |
+|---|---|
+| Report page layout shift | **Fixed: CLS 0.197 → 0** (score 0.73/0.74 → 0.86/0.87; LCP 2.2 → 2.1 s; TBT 560/550 → 410/450 ms, within noise). Home unchanged: CLS 0, LCP 1.8 to 1.9 s |
+| Report page body shipped twice | Not changed. Measured, see below |
+| Font trimming | Not changed. Measured, see below |
+| Unused JavaScript | Not changed. Measured, see below |
+
+### The report's layout shift was not the fonts
+
+The audit's guess (font swap) was wrong. A layout-shift trace of the report page on throttled mobile shows two shifts of about 0.095 each, 110 ms apart, both on the cover heading and everything under it moving 5 px down and then 5 px back. The cause is `ReportEnhancements`: after hydration it emptied the server-rendered "NextChapter" wordmark (`textContent = ''`) and then mounted the real `<Logo />` in it on the next render. For one frame the wordmark was empty, which changed its baseline in the flex row and moved the heading. Setting `font-display: optional`, a size-matched Times New Roman fallback and a page-level preload of Source Serif made no difference to CLS (0.196 to 0.197), so none of that was kept.
+
+Fix (`src/components/reports/ReportEnhancements.tsx`): leave the server text in place, mount the Logo portal next to it, and remove the text node in a layout effect in the same commit, before paint. The wordmark ends up as one `NextChapter` span, as before. The change is real-world too: real users measured 0.069 at the 75th percentile, so this was a slow-connection problem, and it is now zero in the throttled trace.
+
+### Report body "shipped twice": real, but small once compressed, and no safe fix
+
+The HTML is 760 KB because Next's framework data script carries the same string again (378 KB in one script, 427 KB across 19 scripts), as the audit said. Compressed it is much smaller than the audit's "about 150 KB": Brotli (what Vercel serves) 100 KB with the scripts versus 80 KB without, so the duplicate costs about 20 KB; gzip 207 KB versus 101 KB. Removing it would mean keeping the body out of the framework data, which can only be done by (a) bundling the 295 KB body into client JavaScript, which costs more than it saves, (b) a client component that renders blank on soft navigation unless it refetches the body, or (c) turning the page into a separate route handler. Each changes behavior or risks an empty report for people who arrive by link click, so I did not do it. Stripping whitespace from the body saves only 3%.
+
+### Fonts: nothing safe to trim
+
+Both fonts are already the Latin-only variable files (Inter 48.5 KB, Source Serif 4 51 KB transferred) and both load on the home page as well, so there is no unused-subset to drop. Narrowing the weight axis to 400 to 700 would shrink them, but the site uses weights 300, 800 and 900 in about 20 places, so it would change how those render. Subsetting needs a font tool that is not installed here. Left as is.
+
+### Unused JavaScript: the big chunk is already deferred
+
+The largest unused-code finding on the home and report pages (46 KB unused of a 72 KB chunk) is posthog-js, which `src/lib/posthog/client.ts` already loads dynamically at browser idle, after first paint. The other 26 KB "unused" is inside Next's own runtime chunk. The remaining first-load chunks are 36, 14, 10 and 10 KB (gzip) of app code, with no heavy library to split off. No change made. The Google tag (177 KB) was out of scope.
