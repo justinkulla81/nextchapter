@@ -64,3 +64,11 @@ describe('filingPostText', () => {
     expect(t).toContain('/layoffs/company/acme?utm_source=x')
   })
 })
+
+describe('channel registry', () => {
+  it('keeps X out of the automatic filing stream (billed per post)', async () => {
+    const { CHANNELS } = await import('@/lib/social/channels')
+    expect(CHANNELS.find((c) => c.id === 'x')!.autoFilings).toBe(false)
+    expect(CHANNELS.filter((c) => c.autoFilings).map((c) => c.id).sort()).toEqual(['bluesky', 'discord', 'facebook', 'mastodon', 'slack', 'telegram', 'threads'])
+  })
+})

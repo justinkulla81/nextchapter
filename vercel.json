@@ -113,6 +113,10 @@
       "schedule": "0 13 * * 1"
     },
     {
+      "path": "/api/cron/social-filings",
+      "schedule": "40 * * * *"
+    },
+    {
       "path": "/api/cron/google-indexing-jobs",
       "schedule": "45 11 * * *"
     },
