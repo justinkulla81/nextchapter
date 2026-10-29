@@ -14,7 +14,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { canonical } from '@/lib/seo/canonical'
 import { isNetworkCompany } from '@/lib/network/eligibility'
-import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getRecentNotices } from '@/lib/seo/topic-data'
 import { industryPath } from '@/lib/seo/topics'
@@ -113,11 +113,26 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const unknownCounts = c.notices.some((n) => n.workers == null)
   // The employer's own colors, read from its website (src/lib/branding), when we have them.
   const brand = await getEmployerBrand(c.name)
+  // Dated markup for search and AI answer engines: when the page's facts last changed, and the plain answers to what people ask.
+  const modified = (ann && ann.latest > c.latest ? ann.latest : c.latest).toISOString().slice(0, 10)
+  const path = `/layoffs/company/${slug}`
+  const headline = recentAnn ? `${c.name} layoffs and buyouts: what was announced` : layoffsCompanySeo(c.name).h1
+  const faq = hasNotices
+    ? [
+        { q: `Is ${c.name} laying off employees?`, a: `${c.name} has filed ${c.notices.length.toLocaleString()} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'}. The latest was filed ${noticeDay(c.latest)}.` },
+        { q: `How many ${c.name} workers are affected?`, a: workers > 0 ? `The notices on record name ${workers.toLocaleString()} workers${unknownCounts ? ', counting only the notices that gave a number' : ''}.` : 'The notices on record do not state a worker count.' },
+        { q: `Where are the ${c.name} layoffs?`, a: `${c.name} filed in ${c.states.map(stateName).join(', ')}.` },
+      ]
+    : []
 
   return (
     <OrgBrandScope brand={brand?.pair}>
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: c.name, path: `/layoffs/company/${slug}` }])} />
+      <StructuredData data={articleJsonLd({ headline, path, dateModified: modified, type: 'Article' })} />
+      {faq.length > 0 && (
+        <StructuredData data={{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }} />
+      )}
       <PublicSiteHeader current="news" />
       <main className="flex-1 bg-off-white py-12">
         <div className="mx-auto max-w-6xl px-6">
@@ -127,8 +142,9 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <span className="text-foreground">{c.name}</span>
           </nav>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-            {recentAnn ? `${c.name} layoffs and buyouts: what was announced` : layoffsCompanySeo(c.name).h1}
+            {headline}
           </h1>
+          <p className="mt-2 text-sm text-muted-foreground">Updated {noticeDay(new Date(`${modified}T12:00:00Z`))}</p>
           {!hasNotices && ann && (
             <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
               {c.name} has not filed a WARN notice that we have on record. Below is what has been announced or reported, with the source for each.

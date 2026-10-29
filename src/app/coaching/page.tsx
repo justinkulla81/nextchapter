@@ -1,5 +1,6 @@
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronRight, Check } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -138,6 +139,14 @@ export default async function CoachingPage() {
           </div>
 
           <div className="space-y-8">
+            <Image
+              src="/marketing/vic-coffee-chat.webp"
+              alt="Victoria, your free AI coach, laughing over a coffee"
+              width={800}
+              height={800}
+              sizes="(min-width: 1024px) 380px, 100vw"
+              className="aspect-[4/3] w-full rounded-2xl object-cover"
+            />
             {canRequestMatch && (
               <Card className="h-fit border-brand/20 bg-off-white">
                 <CardContent className="space-y-3 pt-6">

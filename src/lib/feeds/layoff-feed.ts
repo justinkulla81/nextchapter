@@ -6,6 +6,7 @@ import { getRecentNotices } from '@/lib/seo/topic-data'
 import { TWELVE_MONTHS_MS, getPublicNotices, noticeDay, type PublicNotice } from '@/lib/warn/layoff-pages'
 import { getWeeks, getWeekNotices } from '@/lib/layoffs/weekly'
 import { weekLabel } from '@/lib/layoffs/weeks'
+import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-announcements'
 
 /** Notices with this many workers or more go in the "large layoffs" feed. */
 export const LARGE_NOTICE_WORKERS = 100
@@ -85,6 +86,29 @@ export async function layoffFeed(o: LayoffFeedOpts): Promise<FeedDoc> {
       image: `${SITE_URL}/layoffs/${stateSlug(n.state)}/opengraph-image`,
     }
   })
+  // The all-states feed also carries employer announcements and press-reported cuts (Microsoft, TikTok and the like): they get
+  // a layoff page before any WARN notice exists, and a reader should see the page appear. Filtered feeds (a state, large
+  // notices, an industry) are about filings, so they stay WARN-only.
+  if (!o.state && !o.minWorkers && !o.bucket) {
+    const announcements = await getAnnouncements().catch(() => new Map())
+    for (const a of announcements.values()) {
+      if (!hasRecentAnnouncement(a)) continue
+      for (const it of a.items.filter((x) => x.date.getTime() >= cutoff)) {
+        const lead = `${a.name}: ${it.summary} (${noticeDay(it.date)}). This is an announcement or press report, not a WARN filing.`
+        items.push({
+          title: `${a.name}: ${it.summary}`,
+          link: feedLink(`/layoffs/company/${a.slug}`, o.campaign),
+          guid: `nextchapter-announcement-${it.id}`,
+          date: it.date,
+          description: [lead, it.sourceUrl ? `Source: ${it.sourceUrl}` : ''].filter(Boolean).join(' '),
+          html: `<p>${xmlEscape(lead)}</p><p>${it.sourceUrl ? `<a href="${xmlEscape(it.sourceUrl)}">Source</a> · ` : ''}<a href="${xmlEscape(feedLink(`/layoffs/company/${a.slug}`, o.campaign))}">${xmlEscape(a.name)} layoff page</a></p>`,
+          categories: ['Announcement'],
+        })
+      }
+    }
+    items.sort((x, y) => y.date.getTime() - x.date.getTime())
+    items.length = Math.min(items.length, 100)
+  }
   return { title: o.title, description: o.description, path: o.pagePath, selfPath: o.selfPath, items, hub: true }
 }
 
