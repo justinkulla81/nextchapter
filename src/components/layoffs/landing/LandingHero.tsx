@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { landingHeadline, pickVicPhoto, type LandingVariant } from '@/lib/layoffs/landing'
+import { landingHeadline, pickPagePhoto, type LandingVariant } from '@/lib/layoffs/landing'
 
 const VIC_NOTE: Record<LandingVariant, string> = {
   buyout: 'Whichever way you are leaning, the first week matters most. Tell us where you stand and we will send the plan.',
@@ -18,7 +18,9 @@ export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = t
   /** One sourced line under the headline (what was announced or filed), already worded. */
   context: React.ReactNode
 }) {
-  const photo = pickVicPhoto(slug)
+  const photo = pickPagePhoto(slug)
+  // Never the same face twice on a page: Vic's small headshot shows only when the big picture is someone else.
+  const showVicHeadshot = photo.who !== 'vic'
   return (
     <section aria-labelledby="landing-h1" className="grid gap-6 rounded-3xl bg-gradient-to-br from-navy to-brand p-6 text-white sm:p-10 lg:grid-cols-[1.5fr_1fr] lg:items-center">
       <div>
@@ -31,7 +33,7 @@ export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = t
       <div className="overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/20">
         <Image src={photo.src} alt={photo.alt} width={800} height={800} priority className="aspect-[4/3] w-full object-cover" />
         <div className="flex items-start gap-3 p-4">
-          <Image src="/marketing/victoria-headshot-v4.jpg" alt="Vic" width={48} height={48} className="size-12 shrink-0 rounded-full border-2 border-orange object-cover" />
+          {showVicHeadshot && <Image src="/marketing/victoria-headshot-v4.jpg" alt="Vic" width={48} height={48} className="size-12 shrink-0 rounded-full border-2 border-orange object-cover" />}
           <div className="text-sm">
             <p className="font-semibold">Vic</p>
             <p className="opacity-90">{VIC_NOTE[variant]}</p>
