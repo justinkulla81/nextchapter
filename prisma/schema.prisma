@@ -17738,3 +17738,12 @@ model AiCitationResult {
   @@index([runId])
   @@index([provider, createdAt])
 }
+
+/// A layoff page an admin asked Google to index by hand (Search Console > URL inspection > Request indexing). Google has no
+/// API for this, so the admin does it in Search Console and marks it here. One row per page path.
+model LayoffIndexRequest {
+  id          String   @id @default(cuid())
+  path        String   @unique
+  requestedAt DateTime @default(now())
+  requestedBy String?
+}
