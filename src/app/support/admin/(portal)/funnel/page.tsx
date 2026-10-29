@@ -5,6 +5,8 @@ import { computeClaimFunnel } from '@/lib/admin/claim-funnel'
 import { ClaimFunnel } from '@/components/admin/ClaimFunnel'
 import { computeNurtureFunnel } from '@/lib/admin/nurture-funnel'
 import { NurtureFunnel } from '@/components/admin/NurtureFunnel'
+import { computeCampaignFunnel } from '@/lib/admin/campaign-funnel'
+import { CampaignFunnel } from '@/components/admin/CampaignFunnel'
 
 export const metadata = { title: 'Funnel' }
 export const maxDuration = 30
@@ -89,7 +91,12 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
   await requireAdmin()
   const { days } = await searchParams
   const windowDays = parseWindow(days)
-  const [data, claims, nurture] = await Promise.all([computeFunnel(windowDays), computeClaimFunnel(windowDays), computeNurtureFunnel(windowDays)])
+  const [data, claims, nurture, campaigns] = await Promise.all([
+    computeFunnel(windowDays),
+    computeClaimFunnel(windowDays),
+    computeNurtureFunnel(windowDays),
+    computeCampaignFunnel(windowDays),
+  ])
 
   return (
     <div className="mx-auto max-w-4xl space-y-10 p-6">
@@ -128,6 +135,8 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
         note="Everyone whose profile was created in this window, followed to today. A step means reached at any time, so recent signups have had less time to get to the later steps."
         stages={data.members}
       />
+
+      <CampaignFunnel data={campaigns} />
 
       <section className="space-y-3">
         <div>
