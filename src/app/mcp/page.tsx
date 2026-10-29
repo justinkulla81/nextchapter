@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { ActionBand, H2, SeoPage } from '@/components/seo/SeoPage'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { SITE_URL } from '@/lib/seo/facts'
@@ -36,7 +37,7 @@ export default function McpPage() {
           <ul className="mt-3 list-disc space-y-2 pl-5 text-base leading-relaxed text-foreground">
             <li>Read-only. The server never writes data and never sees a user’s profile.</li>
             <li>US professional roles. Hourly and internship roles and confidential listings are not included.</li>
-            <li>Job searches are limited per network address each hour. For more, browse the <a className="text-brand underline underline-offset-4" href="/jobs">job board</a>.</li>
+            <li>Job searches are limited per network address each hour. For more, browse the <Link className="text-brand underline underline-offset-4" href="/jobs">job board</Link>.</li>
           </ul>
         </section>
         <ActionBand title="Prefer to browse?" body="The same openings are on the job board, free to search without an account." label="Search jobs" href="/jobs" event="mcp_page_jobs_clicked" properties={{ source: 'mcp_page' }} />
