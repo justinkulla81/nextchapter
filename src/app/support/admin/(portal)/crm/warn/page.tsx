@@ -321,6 +321,7 @@ export default async function WarnReviewPage({
                               ) : (
                                 n.employer
                               )}
+                              <Link href={`/support/admin/crm/warn/${n.id}`} className="whitespace-nowrap text-[11px] font-normal text-primary underline underline-offset-4">Layoff details</Link>
                               {n.source === 'MANUAL_ANNOUNCEMENT' && (
                                 <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">Announced</span>
                               )}
