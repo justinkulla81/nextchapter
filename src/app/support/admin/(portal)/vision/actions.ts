@@ -292,9 +292,20 @@ export async function markFeedbackAddressed(feedbackId: string, formData: FormDa
   revalidatePath(`${V}/feedback`)
 }
 
+/** Closes an item without telling anyone. Stored as ARCHIVED, shown as "Resolved". */
 export async function archiveFeedback(feedbackId: string) {
-  await requireAdmin()
+  const admin = await requireAdmin()
   await prisma.productFeedback.update({ where: { id: feedbackId }, data: { status: 'ARCHIVED' } })
+  captureServerEvent(admin.email ?? 'admin', 'vision_feedback_resolved', { feedbackId })
+  revalidatePath(`${V}/feedback`)
+}
+
+/** Puts a resolved item back in the open list, as linked if it still has links, otherwise new. */
+export async function reopenFeedback(feedbackId: string) {
+  const admin = await requireAdmin()
+  const links = await prisma.productFeedbackLink.count({ where: { feedbackId } })
+  await prisma.productFeedback.update({ where: { id: feedbackId }, data: { status: links > 0 ? 'TRIAGED' : 'NEW' } })
+  captureServerEvent(admin.email ?? 'admin', 'vision_feedback_reopened', { feedbackId })
   revalidatePath(`${V}/feedback`)
 }
 
