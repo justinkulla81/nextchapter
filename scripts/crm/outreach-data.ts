@@ -62,7 +62,8 @@ const MIN_EMPLOYER_LAYOFF = 50
 const PROFESSIONAL_INDUSTRY = /^(tech:|51\b|52\b|54\b|55\b)/i
 const PROFESSIONAL_KEYS = new Set(Object.keys((JSON.parse(readFileSync(new URL('./professional-employers.json', import.meta.url), 'utf8')) as { employers: Record<string, string> }).employers))
 const PROFESSIONAL_EMPLOYERS = new Set(['hasbro', 'conifer health solutions', "conifer's health solutions", 'tscan therapeutics', 'truist bank', 'bechtel power corporation', 'bechtel power'])
-const EMPLOYER_TEMPLATES = ['head_hr', 'rewards', 'er', 'ta']
+// board_filing and rr_filing quote white-collar figures, so they need the same professional-heavy layoff as the employer emails.
+const EMPLOYER_TEMPLATES = ['head_hr', 'rewards', 'er', 'ta', 'hr_filing', 'board_filing', 'rr_filing']
 function professionalHeavy(n: Notice | undefined): boolean {
   if (!n || n.employees < MIN_EMPLOYER_LAYOFF) return false
   const name = n.employer.toLowerCase().replace(/[.,]|\b(inc|llc|corp|corporation|co)\b/g, '').replace(/\s+/g, ' ').trim()
@@ -343,6 +344,7 @@ async function main() {
     const notice = freshNotice ?? byBoard.get(b.id)
     const area = b.counties.map((c) => areaByName.get(`${b.state}|${countyBase(c)}`)).filter(Boolean).sort((x, y) => y!.j12 - x!.j12)[0]
     let pilotDone = false
+    let filingDone = false // a filing email goes to one person per board, the director before the chair
     for (const p of [{ n: b.directorName, t: b.directorTitle || 'Executive Director', e: b.directorEmail }, { n: b.chairName, t: 'Board Chair', e: b.chairEmail }]) {
       if (p.n && p.e && p.n.trim().split(/\s+/).length >= 2) {
         const g = boardGrowth.get(b.id)
@@ -350,6 +352,7 @@ async function main() {
         // The city-type pilot writes to one person per board, the director when there is one.
         if (grp && pilotDone) continue
         if (grp) pilotDone = true
+        if (freshNotice && !grp) { if (filingDone) continue; filingDone = true }
         add(freshNotice && !grp ? 'board_filing' : 'board', { first: first(p.n.trim(), null), email: p.e, org: b.name, title: p.t }, { notice, area, state: b.state, board: b.name, extra: { board_group: grp, board_growth: g ? `${g.growth}%` : '' } })
       }
     }
@@ -427,8 +430,11 @@ async function main() {
   // One address, one email: later rows for an address already used are flagged, so a mail merge can skip them.
   const seen = new Set<string>()
   // A filing email beats the general one to the same address, so the person gets the one about the layoff in front of them.
-  rows.sort((a, b) => Number(b.template.endsWith('_filing')) - Number(a.template.endsWith('_filing')))
-  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); const h = [...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7)
+  const rank = (r: Row) => (r.template === 'hr_filing' && /chief|chro|cpo/i.test(r.recipient_title) ? 0 : 1)
+  rows.sort((a, b) => Number(b.template.endsWith('_filing')) - Number(a.template.endsWith('_filing')) || rank(a) - rank(b))
+  // One HR person per company for a filing email: the most senior, not the whole department.
+  const hrCompanies = new Set<string>()
+  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); if (r.template === 'hr_filing') { const ck = r.company.toLowerCase(); if (hrCompanies.has(ck)) r.duplicate = 'yes'; else hrCompanies.add(ck) } const h = [...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7)
     if (r.template === 'board' && r.board_group) {
       // City-type pilot: the metro's growth, not a random split. The subject is held fixed (concept 1) so the comparison is clean.
       r.variant = r.board_group; r.concept = 'C1'; r.subject = r.arm_C1a || r.subject_a
