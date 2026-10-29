@@ -134,6 +134,8 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/mailing/prompt-cards.ts': 'admin mailing',
     'src/lib/mailing/tracking.ts': 'admin mailing',
     'src/lib/warn/layoff-contacts-run.ts': 'admin WARN tooling',
+    'src/lib/outreach/touches.ts': 'admin outreach: reads every email, call, LinkedIn message and text with the person type, for the CRM Outreach page; admin pages only',
+    'src/lib/outreach/quotas.ts': 'admin outreach: reads the weekly outreach targets for the CRM Outreach page; admin pages only',
     'src/lib/outreach/report.ts': 'admin outreach: reads cold-email sends and replies for the CRM Outreach tests page',
     'src/lib/outreach/reply-context.ts': 'admin outreach: addresses cold-emailed recently, so the Gmail sync logs their replies',
     'src/lib/linkedin/layoff-post-sweep.ts': 'admin WARN tooling: drafts suggested LinkedIn posts from credible layoffs; imported only by the layoff-news cron (registered here by the outreach session because main was red on it)',

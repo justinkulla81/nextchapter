@@ -1,20 +1,35 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { outreachData, TIMING_NAME } from '@/lib/outreach/report'
+import { loadTouches } from '@/lib/outreach/touches'
+import { loadQuotas } from '@/lib/outreach/quotas'
+import { OutreachTracker, RANGES, type RangeKey } from '@/components/admin/OutreachTracker'
 import { CampaignCard, Chip, HowToRead, RecipientTable, Tile, pct } from '@/components/admin/OutreachParts'
 
 export const maxDuration = 30
 
-/** Admin → CRM → Outreach tests: every cold-email campaign, how each side is doing, and who has been emailed. */
-export default async function OutreachPage() {
-  await requireAdmin()
-  const d = await outreachData()
+/** Admin → CRM → Outreach: every email, call, LinkedIn message and text by kind and by who it went to, over time and against weekly targets, then the cold-email tests. */
+export default async function OutreachPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const admin = await requireAdmin()
+  const sp = await searchParams
+  const raw = Array.isArray(sp.range) ? sp.range[0] : sp.range
+  const range: RangeKey = RANGES.find((r) => r.key === raw)?.key ?? '90'
+  const [d, { touches, capped }, quotas] = await Promise.all([outreachData(), loadTouches(), loadQuotas()])
   const t = d.totals
+  captureServerEvent(admin.email ?? 'admin', 'crm_outreach_viewed', { range, touches: touches.length, quotas: quotas?.length ?? null })
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Cold outreach tests</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Outreach</h1>
+        <p className="mt-1 text-muted-foreground">Everything we have sent or said to people, automated and by hand: how much, to whom, how it landed, and how it compares with your weekly targets.</p>
+      </div>
+
+      <OutreachTracker touches={touches} quotas={quotas} range={range} capped={capped} />
+
+      <div className="border-t border-border pt-8">
+        <h2 className="text-lg font-semibold tracking-tight">Cold email tests</h2>
         <p className="mt-1 text-muted-foreground">Cold email campaigns, each comparing two groups. Open a campaign to see every person emailed and what they did.</p>
       </div>
 
