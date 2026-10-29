@@ -38,6 +38,10 @@ export function GET() {
 - [Search firms](${u('/search-firms')}): search firms, recruiting firms and staffing companies with open searches: a page for each with the roles it is recruiting for, specialties, places, posted pay and how long its searches stay open.
 - [Coaches](${u('/coaches')}): invite clients with a code, a pre-session brief and session notes.
 
+## For AI assistants and developers
+
+- [MCP server](${u('/mcp')}): a free, read-only Model Context Protocol server at ${u('/api/mcp')}. Tools: search current professional job openings, and find career guides on layoffs, severance, unemployment, resumes and networking.
+
 ## Research and data
 
 - [Employer pages](${u('/employers')}): one page per employer at /employers/<name>: open professional roles from its career site, what it hires for, posted pay against the market, where it hires. Updated daily; employers can claim their page.

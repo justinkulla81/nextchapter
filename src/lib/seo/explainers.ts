@@ -3,6 +3,7 @@
 // title, description and phrases they own are in keywords.ts. Keep every statement general and checkable.
 
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
+import { QUESTION_TOPICS } from './explainers-questions'
 
 export interface TopicSection {
   h2: string
@@ -861,6 +862,7 @@ export const TOPICS: TopicContent[] = [
     cta: { title: 'See how your state treats it', body: 'Maximum weekly benefit, how many weeks, the waiting week, how severance counts and where to file, state by state.', label: 'Find your state', href: '/unemployment-benefits' },
     updated: '2026-10-27',
   },
+  ...QUESTION_TOPICS,
 ]
 
 export const TOPIC_SLUGS = TOPICS.map((t) => t.slug)
