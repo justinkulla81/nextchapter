@@ -3,6 +3,8 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { computeFunnel, type FunnelStage, type FunnelWindowDays } from '@/lib/admin/funnel'
 import { computeClaimFunnel } from '@/lib/admin/claim-funnel'
 import { ClaimFunnel } from '@/components/admin/ClaimFunnel'
+import { computeNurtureFunnel } from '@/lib/admin/nurture-funnel'
+import { NurtureFunnel } from '@/components/admin/NurtureFunnel'
 
 export const metadata = { title: 'Funnel' }
 export const maxDuration = 30
@@ -87,7 +89,7 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
   await requireAdmin()
   const { days } = await searchParams
   const windowDays = parseWindow(days)
-  const [data, claims] = await Promise.all([computeFunnel(windowDays), computeClaimFunnel(windowDays)])
+  const [data, claims, nurture] = await Promise.all([computeFunnel(windowDays), computeClaimFunnel(windowDays), computeNurtureFunnel(windowDays)])
 
   return (
     <div className="mx-auto max-w-4xl space-y-10 p-6">
@@ -236,6 +238,8 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
       </section>
 
       <ClaimFunnel data={claims} />
+
+      <NurtureFunnel data={nurture} />
 
       <section className="space-y-3">
         <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">

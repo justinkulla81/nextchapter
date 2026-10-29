@@ -99,21 +99,30 @@ export function landingVariant(o: { hasRecentBuyout: boolean; hasNoticesOrLayoff
   return o.hasNoticesOrLayoffReport ? 'layoff' : 'neither'
 }
 
-/** The coach photos, all of Vic. The first is the named note; the rest rotate by company so a page keeps the same face between visits. */
-export const VIC_PHOTOS = [
-  { src: '/marketing/vic-office-charcoal.webp', alt: 'Vic laughing in an open-plan office' },
-  { src: '/marketing/vic-conference-room.webp', alt: 'Vic in a glass conference room' },
-  { src: '/marketing/vic-desk-burgundy.webp', alt: 'Vic at her desk' },
-  { src: '/marketing/vic-hallway.webp', alt: 'Vic in an office hallway' },
-  { src: '/marketing/vic-video-call.webp', alt: 'Vic on a video call' },
-  { src: '/marketing/vic-coffee-chat.webp', alt: 'Vic talking over coffee' },
-] as const
+export type PhotoPerson = 'vic' | 'chris' | 'sarah'
+export interface PagePhoto { src: string; alt: string; who: PhotoPerson }
+
+/** The pictures on the company pages, alternating Vic with the site's two story personas (Chris and Sarah, shown without names: they are
+ *  fictional, not members). All warm and candid. chris-home-office.webp is left out on purpose: he reads tense, and the page is not meant to. */
+export const PAGE_PHOTOS: readonly PagePhoto[] = [
+  { who: 'vic', src: '/marketing/vic-office-charcoal.webp', alt: 'A woman laughing in an open-plan office' },
+  { who: 'chris', src: '/marketing/chris-coffee-shop.webp', alt: 'A man smiling as he talks with someone over a laptop in a café' },
+  { who: 'vic', src: '/marketing/vic-conference-room.webp', alt: 'A woman in a green cardigan in a glass conference room' },
+  { who: 'sarah', src: '/marketing/sarah-kitchen-laptop.webp', alt: 'A woman smiling at her laptop at a kitchen counter, notebook beside her' },
+  { who: 'vic', src: '/marketing/vic-desk-burgundy.webp', alt: 'A woman in a burgundy blazer at her desk' },
+  { who: 'chris', src: '/marketing/chris-interview-ready.webp', alt: 'A man in a grey blazer walking through an office lobby with a folder' },
+  { who: 'vic', src: '/marketing/vic-hallway.webp', alt: 'A woman in a grey blazer in an office hallway' },
+  { who: 'sarah', src: '/marketing/sarah-walking-outside.webp', alt: 'A woman laughing as she walks down a city street with a coffee' },
+  { who: 'vic', src: '/marketing/vic-video-call.webp', alt: 'A woman on a video call in a home office' },
+  { who: 'sarah', src: '/marketing/sarah-conference-room.webp', alt: 'A woman in a cream blazer smiling in a glass conference room' },
+  { who: 'vic', src: '/marketing/vic-coffee-chat.webp', alt: 'A woman talking over coffee in a café' },
+]
 
 /** A stable pick from a company slug (a simple string hash), so no flicker and the same picture for search engines. */
-export function pickVicPhoto(slug: string, offset = 0): (typeof VIC_PHOTOS)[number] {
+export function pickPagePhoto(slug: string): PagePhoto {
   let h = 0
   for (let i = 0; i < slug.length; i++) h = (h * 31 + slug.charCodeAt(i)) >>> 0
-  return VIC_PHOTOS[(h + offset) % VIC_PHOTOS.length]
+  return PAGE_PHOTOS[h % PAGE_PHOTOS.length]
 }
 
 /** Federal figures on people who were unemployed in September 2026 (BLS, not seasonally adjusted; NextChapter calculation from Census CPS).
