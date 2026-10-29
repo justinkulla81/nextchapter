@@ -3,6 +3,7 @@ import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import { workforceStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { StateFilingLink } from '@/components/benefits/StateFilingGuide'
 import { B2bAssetBox } from '@/components/marketing/B2bAssetBox'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
@@ -61,6 +62,7 @@ export default async function WorkforceStatePage({ params }: { params: Promise<{
         {d.layoffs.notices > 0 && (
           <p className="mt-3 text-sm"><Link href={`/layoffs/${state}`} className={LINK}>See every {d.name} layoff notice</Link></p>
         )}
+        <StateFilingLink name={d.name} slug={state} className="mt-2" />
       </section>
 
       <section aria-labelledby="boards" className="mt-12">

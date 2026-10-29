@@ -6,6 +6,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { getStateOrgList } from '@/lib/seo/org-pages'
 import { orgPagePath } from '@/lib/seo/org-page-rules'
 import { stateSlug } from '@/lib/seo/states'
+import { StateFilingLink } from '@/components/benefits/StateFilingGuide'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -34,6 +35,7 @@ export default async function Page({ params }: { params: Promise<{ state: string
       h1={`American Job Centers in ${d.name}`}
       lede={<>{d.rows.length.toLocaleString('en-US')} listed in {d.name}. Each page shows the counties it serves, the jobs open there and how to reach it.</>}
     >
+      <StateFilingLink name={d.name} slug={state} className="mt-6" />
       <section aria-labelledby="list" className="mt-10">
         <h2 id="list" className={H2}>All in {d.name}</h2>
         <div className="mt-4 columns-1 gap-8 text-sm sm:columns-2 lg:columns-3">
