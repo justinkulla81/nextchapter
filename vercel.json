@@ -359,6 +359,10 @@
     {
       "path": "/api/cron/lead-lifecycle",
       "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/lead-nurture",
+      "schedule": "15 14 * * *"
     }
   ]
 }

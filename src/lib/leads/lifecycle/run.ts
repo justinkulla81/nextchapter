@@ -87,6 +87,16 @@ async function gatherLeads(now: Date): Promise<{ leads: Lead[]; unsubscribed: Se
 }
 
 
+/**
+ * Every address the lifecycle emails cover right now (a saved or applied job, a confirmed job alert, the newsletter, a waitlist
+ * signup, from the last 30 days). The nurture sequence (src/lib/leads/nurture) leaves these addresses to the lifecycle emails,
+ * so nobody gets both.
+ */
+export async function lifecycleAddresses(now = new Date()): Promise<Set<string>> {
+  const { leads } = await gatherLeads(now)
+  return new Set(leads.map((l) => clean(l.email)))
+}
+
 export interface StepState {
   now: Date
   variant: LeadVariant

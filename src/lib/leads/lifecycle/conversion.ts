@@ -22,7 +22,7 @@ export async function noteLeadConversion(candidateId: string, email: string | nu
       select: { subject: true, body: true, occurredAt: true },
     }),
     prisma.crmActivity.findMany({
-      where: { personId: person.id, type: 'EMAIL', sourceRef: { startsWith: 'lifecycle:' } },
+      where: { personId: person.id, type: 'EMAIL', OR: [{ sourceRef: { startsWith: 'lifecycle:' } }, { sourceRef: { startsWith: 'nurture:' } }] },
       orderBy: { occurredAt: 'asc' },
       select: { sourceRef: true, outreachTracking: { select: { links: { select: { clickCount: true } } } } },
     }),
