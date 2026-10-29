@@ -1,0 +1,139 @@
+import 'server-only'
+import { cleanPublicQuery, searchPublicBoardCached } from '@/lib/jobs/public-board'
+import { TOPICS } from '@/lib/seo/explainers'
+import { SITE_URL } from '@/lib/seo/facts'
+
+// A small, read-only Model Context Protocol server (Streamable HTTP, stateless JSON-RPC) so AI assistants can search
+// the same public job board as /jobs and look up our career guides. Public data only: nothing personalised, nothing
+// confidential, no accounts. Rate limited per IP in the route.
+
+export const MCP_PROTOCOL_VERSION = '2025-06-18'
+const SUPPORTED_VERSIONS = new Set(['2025-06-18', '2025-03-26', '2024-11-05'])
+
+type JsonRpcId = string | number | null
+export type JsonRpcRequest = { jsonrpc: '2.0'; id?: JsonRpcId; method: string; params?: Record<string, unknown> }
+export type JsonRpcResponse = { jsonrpc: '2.0'; id: JsonRpcId; result?: unknown; error?: { code: number; message: string } }
+
+const TOOLS = [
+  {
+    name: 'search_jobs',
+    description:
+      'Search current professional job openings on NextChapter, newest first. Matches words in the title or company name. Returns title, company, location, posted date, pay range when listed, and a link. US roles only; hourly and internship roles are excluded.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Words to match in the job title or company, e.g. "director of finance".' },
+        location: { type: 'string', description: 'City or state to match, e.g. "Denver" or "TX".' },
+        remote: { type: 'boolean', description: 'Only remote roles.' },
+      },
+    },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+  },
+  {
+    name: 'find_career_guide',
+    description:
+      'Find NextChapter’s plain-language guides on layoffs and job search: severance, unemployment, resumes and ATS, networking, LinkedIn, interviews, career pivots, executive search. Returns the guide title, a short answer and its link.',
+    inputSchema: {
+      type: 'object',
+      properties: { question: { type: 'string', description: 'The question or topic, e.g. "how do I negotiate severance".' } },
+      required: ['question'],
+    },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+  },
+] as const
+
+function pay(min: number | null, max: number | null): string | null {
+  const k = (n: number) => `$${Math.round(n / 1000)}k`
+  if (min && max) return `${k(min)}–${k(max)}`
+  if (min) return `from ${k(min)}`
+  if (max) return `up to ${k(max)}`
+  return null
+}
+
+const STOP = new Set(['the', 'a', 'an', 'to', 'of', 'and', 'or', 'for', 'in', 'on', 'my', 'i', 'how', 'do', 'what', 'is', 'can', 'should', 'after', 'about', 'with', 'you', 'me'])
+const words = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ').split(/\s+/).filter((w) => w.length > 2 && !STOP.has(w))
+
+/** Score each guide by shared words with its title, lede and question list; return the best few. */
+export function findGuides(question: string, limit = 3) {
+  const q = new Set(words(question))
+  if (q.size === 0) return []
+  return TOPICS.map((t) => {
+    const title = new Set(words(t.h1))
+    const body = new Set(words(`${t.lede} ${t.faq.map((f) => f.q).join(' ')}`))
+    let score = 0
+    for (const w of q) score += (title.has(w) ? 3 : 0) + (body.has(w) ? 1 : 0)
+    return { t, score }
+  })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ t }) => ({ title: t.h1, answer: t.lede, url: `${SITE_URL}/topics/${t.slug}`, updated: t.updated }))
+}
+
+async function callTool(name: string, args: Record<string, unknown>) {
+  if (name === 'search_jobs') {
+    const query = cleanPublicQuery({
+      q: typeof args.query === 'string' ? args.query : '',
+      loc: typeof args.location === 'string' ? args.location : '',
+      remote: args.remote === true ? '1' : '',
+    })
+    const result = await searchPublicBoardCached(query)
+    const jobs = result.jobs.map((j) => ({
+      title: j.title,
+      company: j.company,
+      location: j.location,
+      posted: j.postedAt,
+      pay: pay(j.salaryMin, j.salaryMax),
+      url: j.pagePath ? `${SITE_URL}${j.pagePath}` : j.url,
+    }))
+    return { total_matches: result.total, shown: jobs.length, jobs, browse_more: `${SITE_URL}/jobs` }
+  }
+  if (name === 'find_career_guide') {
+    const question = typeof args.question === 'string' ? args.question.slice(0, 300) : ''
+    const guides = findGuides(question)
+    return { guides, all_guides: `${SITE_URL}/topics` }
+  }
+  return null
+}
+
+const ok = (id: JsonRpcId, result: unknown): JsonRpcResponse => ({ jsonrpc: '2.0', id, result })
+const err = (id: JsonRpcId, code: number, message: string): JsonRpcResponse => ({ jsonrpc: '2.0', id, error: { code, message } })
+
+/** Handles one JSON-RPC message. Returns null for a notification (no reply). */
+export async function handleMcpMessage(msg: JsonRpcRequest, allowSearch: () => Promise<boolean>): Promise<JsonRpcResponse | null> {
+  if (!msg || msg.jsonrpc !== '2.0' || typeof msg.method !== 'string') return err(null, -32600, 'Invalid request')
+  const id = msg.id
+  if (id === undefined) return null // notification, e.g. notifications/initialized
+  switch (msg.method) {
+    case 'initialize': {
+      const asked = typeof msg.params?.protocolVersion === 'string' ? msg.params.protocolVersion : ''
+      return ok(id, {
+        protocolVersion: SUPPORTED_VERSIONS.has(asked) ? asked : MCP_PROTOCOL_VERSION,
+        capabilities: { tools: { listChanged: false } },
+        serverInfo: { name: 'nextchapter-jobs', title: 'NextChapter jobs and career guides', version: '1.0.0' },
+        instructions: 'Search current professional job openings and find plain-language career guides for people between jobs. Public data only.',
+      })
+    }
+    case 'ping':
+      return ok(id, {})
+    case 'tools/list':
+      return ok(id, { tools: TOOLS })
+    case 'tools/call': {
+      const name = typeof msg.params?.name === 'string' ? msg.params.name : ''
+      const args = (msg.params?.arguments as Record<string, unknown> | undefined) ?? {}
+      if (!TOOLS.some((t) => t.name === name)) return err(id, -32602, `Unknown tool: ${name}`)
+      if (name === 'search_jobs' && !(await allowSearch())) {
+        return ok(id, { isError: true, content: [{ type: 'text', text: 'Too many searches from this network. Try again later or browse https://launchyournextchapter.com/jobs.' }] })
+      }
+      try {
+        const data = await callTool(name, args)
+        return ok(id, { content: [{ type: 'text', text: JSON.stringify(data) }], structuredContent: data })
+      } catch (e) {
+        console.error('mcp tool failed:', e instanceof Error ? e.message : e)
+        return ok(id, { isError: true, content: [{ type: 'text', text: 'Search is unavailable right now. Try again in a minute.' }] })
+      }
+    }
+    default:
+      return err(id, -32601, `Method not found: ${msg.method}`)
+  }
+}
