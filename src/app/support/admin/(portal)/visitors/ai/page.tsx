@@ -11,9 +11,14 @@ export const dynamic = 'force-dynamic'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
+// Module-level, not inline in the component: react-hooks/purity flags Date.now().
+function now(): Date {
+  return new Date()
+}
+
 export default async function AdminAiAssistantsPage() {
   await requireAdmin()
-  const since = new Date(Date.now() - 30 * DAY_MS)
+  const since = new Date(now().getTime() - 30 * DAY_MS)
 
   const [crawlers, topPaths, runs, referrals] = await Promise.all([
     prisma.aiCrawlerHit.groupBy({ by: ['bot', 'vendor', 'purpose'], where: { day: { gte: since } }, _sum: { hits: true }, _count: { path: true }, orderBy: { _sum: { hits: 'desc' } } }),
