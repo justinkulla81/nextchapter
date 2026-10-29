@@ -12234,6 +12234,9 @@ model WarnNotice {
   @@index([companyMatchStatus])
   /// MANUAL_ANNOUNCEMENT only: set when an admin publishes the announcement to the all-states layoff RSS feed (CRM > WARN). Null = not in the feed.
   rssPublishedAt     DateTime?
+  /// WARN filings: when an admin posted it to X from CRM > WARN > Publishing, and the post's id. Null = not posted.
+  xPostedAt          DateTime?
+  xPostRef           String?
 }
 
 enum WarnCompanyMatchStatus {

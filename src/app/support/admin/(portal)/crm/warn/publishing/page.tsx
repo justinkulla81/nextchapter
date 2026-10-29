@@ -6,7 +6,9 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { loadPublishingQueue, type PublishingRow } from '@/lib/warn/publishing-queue'
 import { DAILY_INDEX_LIMIT, applyFilters, dailyPicks, readFilters, type Filters } from '@/lib/warn/publishing-rules'
 import { setAnnouncementRss } from '../actions'
-import { setIndexRequested, setLinkedInPosted } from './actions'
+import { postFilingToX, setIndexRequested, setLinkedInPosted } from './actions'
+import { xConfigured } from '@/lib/social/clients'
+import { filingPostText } from '@/lib/social/posts'
 
 export const maxDuration = 30
 export const dynamic = 'force-dynamic'
@@ -137,6 +139,7 @@ export default async function LayoffPublishingPage({ searchParams }: { searchPar
                 <th className="px-2 py-2 font-medium">Google index</th>
                 <th className="px-2 py-2 font-medium">Layoff RSS feed</th>
                 <th className="px-2 py-2 font-medium">LinkedIn</th>
+                <th className="px-2 py-2 font-medium">X</th>
               </tr>
             </thead>
             <tbody>
@@ -174,6 +177,22 @@ export default async function LayoffPublishingPage({ searchParams }: { searchPar
                         {r.linkedin === 'POSTED' ? 'Undo posted' : 'Mark as posted on LinkedIn'}
                       </SubmitButton>
                     </form>
+                  </td>
+                  <td className="px-2 py-2">
+                    {r.kind !== 'filing' ? (
+                      <span className="text-xs text-muted-foreground">Press reports and buyouts wait for a second source</span>
+                    ) : r.xPostedAt ? (
+                      <span className="text-xs text-muted-foreground">Posted {formatDate(r.xPostedAt)}</span>
+                    ) : !xConfigured() ? (
+                      <span className="text-xs text-muted-foreground">X is not connected yet</span>
+                    ) : (
+                      <form action={postFilingToX} className="space-y-1">
+                        <input type="hidden" name="id" value={r.noticeId} />
+                        <input type="hidden" name="path" value={r.path} />
+                        <p className="max-w-xs text-xs text-muted-foreground">{filingPostText({ employer: r.employer, state: r.state, workers: r.workers, date: r.date, path: r.path }, 'utm_source=x&utm_medium=social&utm_campaign=warn-filing')}</p>
+                        <SubmitButton variant="outline" size="sm" className={ACT} savedLabel="Posted">Post to X</SubmitButton>
+                      </form>
+                    )}
                   </td>
                 </tr>
               ))}

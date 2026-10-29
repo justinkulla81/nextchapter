@@ -53,3 +53,14 @@ describe('oauth1Header', () => {
     expect(h).toBe(oauth1Header('POST', 'https://api.x.com/2/tweets', { key: 'ck', secret: 'cs', token: 'at', tokenSecret: 'ts' }, 'abc123', '1700000000'))
   })
 })
+
+describe('filingPostText', () => {
+  it('is under 280 characters with the link counted as 23, and names only what the filing says', async () => {
+    const { filingPostText } = await import('@/lib/social/posts')
+    const t = filingPostText({ employer: 'Acme Widgets Incorporated of North America and Affiliated Companies Holdings', state: 'WA', workers: 1985, date: new Date('2026-05-13T12:00:00Z'), path: '/layoffs/company/acme' }, 'utm_source=x')
+    const link = t.match(/https:\/\/\S+/)![0]
+    expect(t.length - link.length + 23).toBeLessThanOrEqual(280)
+    expect(t).toContain('WARN layoff notice in Washington on May 13, naming 1,985 workers')
+    expect(t).toContain('/layoffs/company/acme?utm_source=x')
+  })
+})

@@ -7,7 +7,7 @@ const day = 86_400_000
 let n = 0
 const row = (o: Partial<PublishingRow> = {}): PublishingRow => ({
   noticeId: `n${++n}`, employer: `Co ${n}`, kind: 'filing', type: 'warn', state: 'TX', summary: null, workers: 100, date: new Date(NOW - 5 * day),
-  path: `/layoffs/company/co-${n}`, rssPublishedAt: null, linkedin: null, linkedinPostedAt: null, indexRequestedAt: null, ...o,
+  path: `/layoffs/company/co-${n}`, rssPublishedAt: null, linkedin: null, linkedinPostedAt: null, indexRequestedAt: null, xPostedAt: null, ...o,
 })
 
 describe('readFilters', () => {
