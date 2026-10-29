@@ -137,20 +137,18 @@ export default async function OnboardingResumePage() {
   }
 
   if (bundles) {
-    // Never required: skipping goes to the details step (name, email, LinkedIn). A Market Reality arrival is told what the résumé adds.
+    // The résumé is the main action. Skipping is never required but is kept minor: a quiet link under the payoff that goes to the details step (name, email, LinkedIn).
     const marketReality = entryOf(profile?.journeyDetails) !== null
     return (
-      <BundleShell id="resume" title="Add your résumé, or skip for now">
+      <BundleShell id="resume" title="Start with your résumé">
         <ResumeUploadForm showNarrativePicker={false} resumeBookOptIn={profile?.resumeBookOptIn ?? true} background initialError={rejectedReason} />
-        <form action={skipResume} className="space-y-2">
-          <SkipResumeButton />
-          <p className="text-sm text-muted-foreground">
-            {marketReality
-              ? 'No résumé handy? Skip it and give us your name and email instead. Your Market Reality is sharpest with a résumé, and you can add one any time.'
-              : 'No résumé handy? Skip it and give us your name and email instead. You can add one any time.'}
-          </p>
-        </form>
         <PayoffPanel payoff={computePayoff('resume', {}, { journey: null, prefilled: [] })} />
+        <form action={skipResume} className="space-y-1">
+          <p className="text-xs text-muted-foreground">
+            {marketReality ? 'Your Market Reality is worked out from your résumé.' : 'A résumé fills in most of your profile for you.'} No résumé handy?
+          </p>
+          <SkipResumeButton />
+        </form>
       </BundleShell>
     )
   }
