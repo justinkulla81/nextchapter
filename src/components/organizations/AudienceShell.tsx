@@ -24,10 +24,12 @@ interface AudienceShellProps {
   primaryNote?: string
   loginHref?: string
   footerLinks?: { href: string; label: string }[]
+  /** 'audience': the shared look of the public pages (tinted heading panel). Default keeps the plain page. */
+  look?: 'plain' | 'audience'
   children: ReactNode
 }
 
-export function AudienceShell({ page, parent, eyebrow, headline, subhead, primary, primaryNote, loginHref, footerLinks, children }: AudienceShellProps) {
+export function AudienceShell({ page, parent, eyebrow, headline, subhead, primary, primaryNote, loginHref, footerLinks, look = 'plain', children }: AudienceShellProps) {
   const crumb = parent ?? { href: '/for-organizations', label: 'For organizations' }
   return (
     <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
@@ -57,7 +59,8 @@ export function AudienceShell({ page, parent, eyebrow, headline, subhead, primar
       </header>
 
       <main>
-        <section className="mx-auto max-w-3xl px-6 pt-14 pb-12 text-center" aria-labelledby="audience-heading">
+        <div className={look === 'audience' ? 'mx-auto mt-8 mb-6 max-w-5xl px-6' : undefined}>
+        <section className={look === 'audience' ? 'rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun px-6 pt-12 pb-12 text-center' : 'mx-auto max-w-3xl px-6 pt-14 pb-12 text-center'} aria-labelledby="audience-heading">
           <p className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">{eyebrow}</p>
           <h1 id="audience-heading" className="mt-3 font-display text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">
             {headline}
@@ -70,6 +73,7 @@ export function AudienceShell({ page, parent, eyebrow, headline, subhead, primar
           </div>
           {primaryNote && <p className="mt-3 text-sm text-muted-foreground">{primaryNote}</p>}
         </section>
+        </div>
 
         {children}
       </main>

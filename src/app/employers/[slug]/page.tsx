@@ -9,6 +9,9 @@ import { hiringPlaces, listOf } from '@/lib/seo/employer-locations'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
+import { searchSchools } from '@/lib/layoffs/landing-actions'
+import { submitJourneyLead } from '@/lib/leads/actions'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { getEmployerBySlug, type EmployerPage } from '@/lib/seo/employer-pages'
@@ -159,6 +162,9 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         independent={`Independent page. Not from or affiliated with ${e.name}.`}
         properties={{ kind: 'EMPLOYER', slug: e.slug }}
       />
+      <div className="mt-10">
+        <SituationFlow variant="neither" company={e.name} slug={e.slug} state={null} action={submitJourneyLead} searchSchools={searchSchools} source={`employer:${e.slug}`} />
+      </div>
       {p && p.openNow > 0 && (
         <section aria-labelledby="hiring" className="mt-10">
           <h2 id="hiring" className={H2}>Hiring now</h2>

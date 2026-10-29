@@ -6,5 +6,5 @@ import { portalMetadata } from '@/lib/marketing/portal-seo'
 export const metadata: Metadata = portalMetadata(HIGHER_EDUCATION.seo)
 
 export default function HigherEducationPage() {
-  return <PortalMarketingPage content={HIGHER_EDUCATION.content} />
+  return <PortalMarketingPage look="audience" content={HIGHER_EDUCATION.content} />
 }

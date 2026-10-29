@@ -71,7 +71,7 @@ export interface Q2Answer { key: 'field' | 'pivot' | 'school' | 'move'; label: s
 export const Q2: Q2Answer[] = [
   { key: 'field', label: 'Stay in my field', hint: 'A better seat in the same work', tone: 'sky', heading: 'A better seat in the same work.', text: 'We will match jobs in your line of work and show how your pay compares.' },
   { key: 'pivot', label: 'Pivot to something new', hint: 'A different kind of work', tone: 'plum', heading: 'Your skills travel further than your title.', text: 'We will show which fields use what you already do, and what the gap is.' },
-  { key: 'school', label: 'Go back to school or retrain', hint: 'A degree, certificate or course', tone: 'sky', heading: 'Which school?', text: 'Type your college. We take you to its page and its community, so you hear from people who went there.' },
+  { key: 'school', label: 'Go back to school or retrain', hint: 'A degree, certificate or course', tone: 'sky', heading: 'Which school?', text: 'Type your college. We take you to its page and list you with its alumni.' },
   { key: 'move', label: 'Move somewhere new', hint: 'A different city or state', tone: 'mint', heading: 'A new place can change the whole picture.', text: 'We will compare cost of living, pay and openings in the places you pick.' },
 ]
 
@@ -116,6 +116,8 @@ export const PAGE_PHOTOS: readonly PagePhoto[] = [
   { who: 'vic', src: '/marketing/vic-video-call.webp', alt: 'A woman on a video call in a home office' },
   { who: 'sarah', src: '/marketing/sarah-conference-room.webp', alt: 'A woman in a cream blazer smiling in a glass conference room' },
   { who: 'vic', src: '/marketing/vic-coffee-chat.webp', alt: 'A woman talking over coffee in a café' },
+  { who: 'chris', src: '/marketing/chris-office-laugh.webp', alt: 'A man in a green shirt laughing with a coworker in a bright office' },
+  { who: 'sarah', src: '/marketing/sarah-coworking.webp', alt: 'A woman in a mustard cardigan smiling as she talks at a shared table in a coworking space' },
 ]
 
 /** A stable pick from a company slug (a simple string hash), so no flicker and the same picture for search engines. */

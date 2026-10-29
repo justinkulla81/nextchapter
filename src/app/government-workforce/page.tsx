@@ -10,5 +10,5 @@ export const revalidate = 3600
 export const metadata: Metadata = portalMetadata(WORKFORCE.seo)
 
 export default function GovernmentWorkforcePage() {
-  return <PortalMarketingPage content={{ ...WORKFORCE.content, proof: { kind: 'live', node: <WorkforceNumbers page={WORKFORCE.content.analyticsKey} /> } }} />
+  return <PortalMarketingPage look="audience" content={{ ...WORKFORCE.content, proof: { kind: 'live', node: <WorkforceNumbers page={WORKFORCE.content.analyticsKey} /> } }} />
 }

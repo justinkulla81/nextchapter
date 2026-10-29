@@ -11,6 +11,7 @@ import { cleanPublicQuery } from '@/lib/jobs/public-board'
 import JourneyPlanEmail from '@/emails/journey-plan'
 import { sendJobAlertConfirmation } from '@/lib/leads/job-alerts'
 import { notifyNewLead } from '@/lib/leads/notify-new-lead'
+import { schoolPagePath } from '@/lib/layoffs/school-page'
 
 // Homepage lead capture, no account needed. Two forms:
 //  - the journey picker: where you are in your search, and a one-time first-week plan email
@@ -51,7 +52,7 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
   const followup = FOLLOWUPS.has(followupRaw) ? followupRaw : ''
   // Which page the form was on. Only the homepage, a /network page, an employer's layoff guide or the save step on /jobs may be named; anything else is 'home'.
   const sourceRaw = text(formData, 'source', 100)
-  const source = /^(network:[a-z0-9:-]{1,90}|layoffs:guide:[a-z0-9-]{1,80}|jobs:(job|search))$/.test(sourceRaw) ? sourceRaw : 'home'
+  const source = /^(network:[a-z0-9:-]{1,90}|layoffs:guide:[a-z0-9-]{1,80}|employer:[a-z0-9-]{1,80}|jobs:(job|search))$/.test(sourceRaw) ? sourceRaw : 'home'
   const variantRaw = text(formData, 'variant', 20)
   const answers = {
     pageVariant: PAGE_VARIANTS.has(variantRaw) ? variantRaw : '',
@@ -121,6 +122,7 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
             steps: plan.steps,
             startUrl: `${APP_URL()}/start/${persona.slug}`,
             unsubscribeUrl,
+            school: answers.joinCommunity && answers.schoolName ? { name: answers.schoolName, url: (await schoolPagePath(answers.schoolUnitid).then((p) => (p ? `${APP_URL()}${p}` : null))) } : undefined,
           }),
           headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>` },
         })

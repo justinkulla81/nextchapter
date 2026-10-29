@@ -142,7 +142,9 @@ export function PlanCard({ plan, page, portal }: { plan: Plan; page: string; por
   )
 }
 
-export function PortalMarketingPage({ content: c }: { content: PortalPageContent }) {
+const STEP_TINTS = ['bg-tint-sun', 'bg-tint-mint', 'bg-tint-plum', 'bg-tint-sky'] as const
+
+export function PortalMarketingPage({ content: c, look = 'plain' }: { content: PortalPageContent; look?: 'plain' | 'audience' }) {
   const sampleProof = c.proof.kind === 'sample'
   const [lead, ...rest] = c.visuals
   const gallery = sampleProof ? rest : c.visuals
@@ -163,6 +165,7 @@ export function PortalMarketingPage({ content: c }: { content: PortalPageContent
         primaryNote={c.primaryNote}
         loginHref={c.loginHref}
         footerLinks={[{ href: '/pricing', label: 'Plans' }, ...(c.footerLinks ?? [])]}
+        look={look}
       >
         {c.proof.kind === 'live' ? (
           c.proof.node
@@ -196,7 +199,7 @@ export function PortalMarketingPage({ content: c }: { content: PortalPageContent
         <AudienceSection id="how-it-works" title="How it works">
           <ol className="grid gap-4 md:grid-cols-3">
             {c.steps.map((s, i) => (
-              <li key={s.title} className={CARD}>
+              <li key={s.title} className={look === 'audience' ? `rounded-2xl p-5 ${STEP_TINTS[i % STEP_TINTS.length]}` : CARD}>
                 <p aria-hidden className="font-display text-3xl font-semibold text-ink/30">
                   {i + 1}
                 </p>

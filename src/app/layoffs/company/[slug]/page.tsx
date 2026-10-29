@@ -34,6 +34,7 @@ import { PeerEmployers } from '@/components/layoffs/landing/PeerEmployers'
 import { landingVariant, SEARCH_TIME_FACTS } from '@/lib/layoffs/landing'
 import { searchSchools } from '@/lib/layoffs/landing-actions'
 import { getPeerEmployers } from '@/lib/layoffs/peers'
+import { BUYOUT_UNEMPLOYMENT_CHECKED, buyoutRuleFor } from '@/lib/warn/buyout-unemployment'
 import { submitJourneyLead } from '@/lib/leads/actions'
 
 // Pages are built on first visit and refreshed daily; there are over a
@@ -130,6 +131,8 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
     hasRecentBuyout: !!recentAnn?.items.some((a) => a.kind === 'buyout'),
     hasNoticesOrLayoffReport: hasNotices || !!recentAnn,
   })
+  const rule = buyoutRuleFor(c.states[0])
+  const buyoutRule = rule && c.states[0] ? { ...rule, stateName: stateName(c.states[0]), checked: BUYOUT_UNEMPLOYMENT_CHECKED } : null
   const peers = await getPeerEmployers(c.name, hasNotices ? primaryState(c.notices) : null)
   const searchFact = `People still out of work in ${SEARCH_TIME_FACTS.asOf.split(' ')[0]} had been looking for ${Math.round(SEARCH_TIME_FACTS.averageWeeksAll)} weeks on average, so a week spent now is a week saved later.`
   const noticeSentence = (
@@ -172,7 +175,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
 
           <div className="mt-4 space-y-12">
             <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} />
-            <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} />
+            <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} buyoutRule={buyoutRule} />
             <SearchTimeFacts />
             <PeerEmployers company={c.name} near={peers.near} similar={peers.similar} metro={peers.homeState ? stateName(peers.homeState) : null} />
           </div>
