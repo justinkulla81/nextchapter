@@ -86,20 +86,20 @@ export async function layoffFeed(o: LayoffFeedOpts): Promise<FeedDoc> {
       image: `${SITE_URL}/layoffs/${stateSlug(n.state)}/opengraph-image`,
     }
   })
-  // The all-states feed also carries employer announcements and press-reported cuts (Microsoft, TikTok and the like): they get
-  // a layoff page before any WARN notice exists, and a reader should see the page appear. Filtered feeds (a state, large
-  // notices, an industry) are about filings, so they stay WARN-only.
+  // The all-states feed also carries the employer announcements and press-reported cuts (Microsoft, TikTok and the like) that
+  // an admin has chosen to publish in CRM > WARN (rssPublishedAt). Nothing is added automatically. Filtered feeds (a state,
+  // large notices, an industry) are about filings, so they stay WARN-only.
   if (!o.state && !o.minWorkers && !o.bucket) {
     const announcements = await getAnnouncements().catch(() => new Map<string, CompanyAnnouncements>())
     for (const a of announcements.values()) {
       if (!hasRecentAnnouncement(a)) continue
-      for (const it of a.items.filter((x) => x.date.getTime() >= cutoff)) {
+      for (const it of a.items.filter((x) => x.rssPublishedAt && x.date.getTime() >= cutoff)) {
         const lead = `${a.name}: ${it.summary} (${noticeDay(it.date)}). This is an announcement or press report, not a WARN filing.`
         items.push({
           title: `${a.name}: ${it.summary}`,
           link: feedLink(`/layoffs/company/${a.slug}`, o.campaign),
           guid: `nextchapter-announcement-${it.id}`,
-          date: it.date,
+          date: it.rssPublishedAt!,
           description: [lead, it.sourceUrl ? `Source: ${it.sourceUrl}` : ''].filter(Boolean).join(' '),
           html: `<p>${xmlEscape(lead)}</p><p>${it.sourceUrl ? `<a href="${xmlEscape(it.sourceUrl)}">Source</a> · ` : ''}<a href="${xmlEscape(feedLink(`/layoffs/company/${a.slug}`, o.campaign))}">${xmlEscape(a.name)} layoff page</a></p>`,
           categories: ['Announcement'],

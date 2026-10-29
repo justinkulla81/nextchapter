@@ -9,6 +9,7 @@ import { promoteWarnNoticeById, syncAllWarnStates } from '@/lib/warn/sync'
 import { matchOrCreateCompanyForEmployer } from '@/lib/warn/company-match'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { syncChroContactToCrm } from '@/lib/crm/chro-sync'
+import { pingLayoffFeeds } from '@/lib/syndication/indexnow-layoffs'
 
 const BASE = '/support/admin/crm/warn'
 
@@ -186,4 +187,24 @@ export async function setLayoffCosts(formData: FormData): Promise<void> {
   captureServerEvent(admin.email ?? 'admin', 'layoff_costs_set', { hasCost: !!(low ?? high), hasOutplacement: !!provider })
   revalidatePath(BASE)
   revalidatePath('/support/admin/crm/organizations')
+}
+
+/**
+ * Publishes (or takes back) one layoff announcement in the all-states layoff RSS feed. Announcements are never added
+ * automatically: the admin chooses. Only MANUAL_ANNOUNCEMENT rows can be published; WARN filings are in the feed already.
+ */
+export async function setAnnouncementRss(formData: FormData): Promise<void> {
+  const admin = await requireAdmin()
+  const id = String(formData.get('id') ?? '')
+  const publish = formData.get('publish') === '1'
+  if (!id) return
+  const r = await prisma.warnNotice.updateMany({
+    where: { id, source: 'MANUAL_ANNOUNCEMENT' },
+    data: { rssPublishedAt: publish ? new Date() : null },
+  })
+  if (r.count === 0) return
+  captureServerEvent(admin.email ?? 'admin', publish ? 'layoff_announcement_rss_published' : 'layoff_announcement_rss_removed', { noticeId: id })
+  revalidatePath(BASE)
+  revalidatePath('/feeds/layoffs')
+  if (publish) await pingLayoffFeeds()
 }

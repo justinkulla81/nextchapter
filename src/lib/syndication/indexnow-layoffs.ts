@@ -75,6 +75,9 @@ async function pingWebSub(due: string[]): Promise<string> {
   }
 }
 
+/** Tells feed readers the all-states layoff feeds changed (an announcement was just published to RSS). Best effort. */
+export const pingLayoffFeeds = () => pingWebSub([])
+
 export async function runLayoffIndexNow(opts: { dryRun?: boolean } = {}) {
   const [current, saved] = await Promise.all([currentPages(), readJsonGz<State>(STATE_BUCKET, STATE_PATH)])
   const announced = { ...(saved?.pages ?? {}) }

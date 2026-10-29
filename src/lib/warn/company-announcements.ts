@@ -19,6 +19,8 @@ export interface CompanyAnnouncement {
   summary: string
   workers: number | null
   sourceUrl: string | null
+  /** When an admin published it to the layoff RSS feed (CRM > WARN); null = not in the feed. */
+  rssPublishedAt: Date | null
 }
 
 export interface CompanyAnnouncements {
@@ -41,7 +43,7 @@ async function load(): Promise<Map<string, CompanyAnnouncements>> {
       // A bare NOT(contains) drops rows whose sourceUrl is NULL, and a company announcement may have no link.
       OR: [{ sourceUrl: null }, { NOT: { sourceUrl: { contains: 'layoffs.fyi', mode: 'insensitive' } } }],
     },
-    select: { id: true, employer: true, employees: true, noticeDate: true, layoffType: true, sourceUrl: true, companyMatchStatus: true, company: { select: { name: true } } },
+    select: { id: true, employer: true, employees: true, noticeDate: true, layoffType: true, sourceUrl: true, rssPublishedAt: true, companyMatchStatus: true, company: { select: { name: true } } },
     orderBy: { noticeDate: 'desc' },
   })
   const by = new Map<string, CompanyAnnouncements>()
@@ -59,6 +61,7 @@ async function load(): Promise<Map<string, CompanyAnnouncements>> {
       summary,
       workers: r.employees,
       sourceUrl: r.sourceUrl && /^https:\/\//.test(r.sourceUrl) ? r.sourceUrl : null,
+      rssPublishedAt: r.rssPublishedAt,
     })
     if (r.noticeDate! > entry.latest) entry.latest = r.noticeDate!
     by.set(slug, entry)
