@@ -25,10 +25,6 @@ const sourceSerif4 = localFont({
   variable: "--font-source-serif",
   weight: "200 900",
   display: "swap",
-  // The headings are serif, so the stand-in text shown until the font arrives is Times New Roman, resized to the same
-  // width and line height. Without this the report's cover heading jumped twice when the font swapped in (layout shift
-  // 0.197 in a throttled mobile run, Google's 'good' limit is 0.1).
-  adjustFontFallback: "Times New Roman",
   // Only the candidate dashboard's headings use it, so don't make every
   // public page download it up front (it competed with the hero text for
   // bandwidth and pushed out LCP on mobile).
