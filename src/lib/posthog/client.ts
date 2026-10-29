@@ -30,6 +30,8 @@ function load(): Promise<PostHog> {
         // app — recording is opt-in only, turned on deliberately later if wanted,
         // never a silent default for a site handling this kind of content.
         disable_session_recording: true,
+        // PostHog's survey widget (surveys.js, 37 KB) is not used: the app's own forms and prompts do their own capture().
+        disable_surveys: true,
       })
       real = ph
       for (const run of queue.splice(0)) run(ph)
