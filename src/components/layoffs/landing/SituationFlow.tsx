@@ -42,13 +42,17 @@ function Choice({ label, hint, pressed, onClick }: { label: string; hint: string
  * (with a college search that goes to that school's page), and what would help most. The answers ride along with the email as one lead.
  * `action` is the journey-lead server action; the preview passes a stand-in so nothing is sent.
  */
-export function SituationFlow({ variant, company, slug, state, action, searchSchools }: {
+export function SituationFlow({ variant, company, slug, state, action, searchSchools, buyoutRule, source }: {
   variant: LandingVariant
   company: string
   slug: string
   state: string | null
   action: (prev: JourneyState, formData: FormData) => Promise<JourneyState>
   searchSchools: (q: string) => Promise<School[]>
+  /** Which page the lead came from (see the allowed list in submitJourneyLead). Defaults to this company's layoff page. */
+  source?: string
+  /** What the company's state agency says about taking a buyout (src/lib/warn/buyout-unemployment.ts), when we have it. */
+  buyoutRule?: { stateName: string; agency: string; text: string; url: string; checked: string } | null
 }) {
   const answers = Q1[variant]
   const [q1, setQ1] = useState<Q1Answer | null>(null)
@@ -113,10 +117,21 @@ export function SituationFlow({ variant, company, slug, state, action, searchSch
             <ul className="list-disc space-y-1.5 pl-5 text-sm">
               {q1.bullets.map((b) => <li key={b}>{b}</li>)}
             </ul>
-            {q1.note && <p className="rounded-xl bg-white p-3 text-sm">{q1.note}</p>}
+            {q1.note && (
+              <div className="space-y-2 rounded-xl bg-white p-3 text-sm">
+                <p>{q1.note}</p>
+                {buyoutRule && (
+                  <p>
+                    <span className="font-semibold">In {buyoutRule.stateName}:</span> the {buyoutRule.agency}. {buyoutRule.text}{' '}
+                    <a href={buyoutRule.url} target="_blank" rel="noopener" className="underline underline-offset-4">Read it on their site</a>
+                    <span className="text-muted-foreground"> (checked {buyoutRule.checked}; each claim is decided on its facts)</span>
+                  </p>
+                )}
+              </div>
+            )}
 
             <input type="hidden" name="situation" value={q1.persona} />
-            <input type="hidden" name="source" value={`layoffs:guide:${slug}`} />
+            <input type="hidden" name="source" value={source ?? `layoffs:guide:${slug}`} />
             <input type="hidden" name="answerKey" value={q1.key} />
             <input type="hidden" name="next" value={q2?.key ?? ''} />
             <input type="hidden" name="help" value={q3.map((x) => x.key).join(',')} />
@@ -189,7 +204,7 @@ export function SituationFlow({ variant, company, slug, state, action, searchSch
                     <p className="font-semibold text-navy">{school.name}</p>
                     <label className="flex items-start gap-2">
                       <input type="checkbox" checked={wantsCommunity} onChange={(e) => setWantsCommunity(e.target.checked)} className="mt-1" />
-                      <span>Email me updates from the {school.name} community. It is included with the plan email above.</span>
+                      <span>Add me to the {school.name} alumni list. The plan email links to its page and says how the alumni network opens.</span>
                     </label>
                     {!q1 && <p className="text-xs text-muted-foreground">Answer question 1 to add your email.</p>}
                   </div>

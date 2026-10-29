@@ -6,5 +6,5 @@ import { portalMetadata } from '@/lib/marketing/portal-seo'
 export const metadata: Metadata = portalMetadata(RECRUITERS.seo)
 
 export default function RecruitersPage() {
-  return <PortalMarketingPage content={RECRUITERS.content} />
+  return <PortalMarketingPage look="audience" content={RECRUITERS.content} />
 }

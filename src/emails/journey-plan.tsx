@@ -7,6 +7,8 @@ interface JourneyPlanEmailProps {
   steps: string[]
   startUrl: string
   unsubscribeUrl: string
+  /** The school they picked on a company page and asked to be listed with (its page on this site, when it has one). */
+  school?: { name: string; url: string | null }
 }
 
 const container: React.CSSProperties = {
@@ -31,7 +33,7 @@ const button: React.CSSProperties = {
 const footer: React.CSSProperties = { marginTop: '32px', ...emailStyles.muted }
 
 /** The one-time first-week plan for someone who told us where they are on the homepage. */
-export default function JourneyPlanEmail({ situationLabel, intro, steps, startUrl, unsubscribeUrl }: JourneyPlanEmailProps) {
+export default function JourneyPlanEmail({ situationLabel, intro, steps, startUrl, unsubscribeUrl, school }: JourneyPlanEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
@@ -46,6 +48,11 @@ export default function JourneyPlanEmail({ situationLabel, intro, steps, startUr
           </li>
         ))}
       </ol>
+      {school && (
+        <p>
+          <strong>Your school: {school.name}.</strong> {school.url && <><a href={school.url}>See its page</a>. </>}You are on its alumni list. Make a free account and add {school.name} to your profile: when five alumni are on NextChapter, the alumni network appears on your Network page.
+        </p>
+      )}
       <p>The last step takes about five minutes and is free. It gives you a plan for the weeks after this one.</p>
       <a href={startUrl} style={button}>
         Get your Market Reality Assessment →

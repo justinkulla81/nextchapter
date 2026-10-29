@@ -33,11 +33,15 @@ const SHOTS_BY_PERSONA = {
   chris: {
     'chris-home-office': 'Navy quarter-zip over a white tee. He is at a home-office desk with an unbranded silver laptop (plain back, no logo) and a mug, reading the screen with a focused, relaxed expression, morning window light, bookshelf behind. Square 1:1.',
     'chris-coffee-shop': 'Olive green jacket over a grey sweater. He sits at a cafe table with an unbranded silver laptop whose back is plain with no logo, mid-conversation and smiling at someone off camera, background softly blurred. Square 1:1.',
+    'chris-office-laugh': 'Sage green button-down shirt with the sleeves rolled up. He is in a bright open office near a big window, laughing with a coworker who is out of frame, a coffee cup in one hand, desks and monitors softly blurred behind him. Square 1:1.',
+    'chris-walking-city': 'Navy overcoat over a grey sweater. He is walking down a busy city street at midday carrying a canvas messenger bag, smiling to himself and glancing slightly off camera, storefronts softly blurred. Square 1:1.',
     'chris-interview-ready': 'Charcoal blazer over a light blue shirt, no tie. He is in an office lobby holding a folder, glancing to the side with a calm, confident half-smile, caught mid-step. Square 1:1.',
   },
   sarah: {
     'sarah-conference-room': 'Cream blazer over a navy top. She is in a glass conference room with a whiteboard behind her, listening to someone out of frame and nodding with a warm expression. Square 1:1.',
     'sarah-kitchen-laptop': 'Soft green sweater. She is at a home kitchen counter with a laptop and a notepad, looking up with a natural smile as if someone just walked in. Natural daylight. Square 1:1.',
+    'sarah-coworking': 'Mustard cardigan over a white tee. She sits at a long shared table in a coworking space with a laptop (plain back, no logo) and a notebook, mid-conversation and smiling at someone just off frame, plants and other people softly blurred. Square 1:1.',
+    'sarah-video-call': 'Navy blouse with a thin patterned scarf. She is on a video call at a home desk with headphones on, smiling warmly at the screen, a bookshelf and a trailing plant behind her, soft window light. Square 1:1.',
     'sarah-walking-outside': 'Black blazer over a white blouse. She is walking along a city sidewalk carrying a tote bag and a coffee, caught mid-stride, laughing at something off camera. Golden hour. Square 1:1.',
   },
 }
