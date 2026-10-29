@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
-import { GuideLeadForm } from '@/components/layoffs/GuideLeadForm'
 import { guideDay, type Guide } from '@/lib/warn/layoff-guide'
 import type { FilingFact, GuideProgram } from '@/lib/warn/layoff-guide-programs'
 
@@ -181,10 +180,6 @@ export function CompanyLayoffGuide({ name, slug, guide, states, filing, programs
             </li>
           ))}
         </ul>
-      </div>
-
-      <div className="mt-8">
-        <GuideLeadForm slug={slug} company={name} state={states[0] ?? null} />
       </div>
     </section>
   )

@@ -13,7 +13,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { canonical } from '@/lib/seo/canonical'
-import { isNetworkCompany } from '@/lib/network/eligibility'
+import { isNetworkCompany, primaryState } from '@/lib/network/eligibility'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getRecentNotices } from '@/lib/seo/topic-data'
@@ -27,6 +27,14 @@ import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } fr
 import { getEmployerBrand } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
+import { LandingHero } from '@/components/layoffs/landing/LandingHero'
+import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
+import { SearchTimeFacts } from '@/components/layoffs/landing/SearchTimeFacts'
+import { PeerEmployers } from '@/components/layoffs/landing/PeerEmployers'
+import { landingVariant, SEARCH_TIME_FACTS } from '@/lib/layoffs/landing'
+import { searchSchools } from '@/lib/layoffs/landing-actions'
+import { getPeerEmployers } from '@/lib/layoffs/peers'
+import { submitJourneyLead } from '@/lib/leads/actions'
 
 // Pages are built on first visit and refreshed daily; there are over a
 // thousand employers, too many to prerender on every deploy.
@@ -117,6 +125,25 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const modified = (ann && ann.latest > c.latest ? ann.latest : c.latest).toISOString().slice(0, 10)
   const path = `/layoffs/company/${slug}`
   const headline = recentAnn ? `${c.name} layoffs and buyouts: what was announced` : layoffsCompanySeo(c.name).h1
+  const latestAnn = recentAnn?.items[0]
+  const variant = landingVariant({
+    hasRecentBuyout: !!recentAnn?.items.some((a) => a.kind === 'buyout'),
+    hasNoticesOrLayoffReport: hasNotices || !!recentAnn,
+  })
+  const peers = await getPeerEmployers(c.name, hasNotices ? primaryState(c.notices) : null)
+  const searchFact = `People still out of work in ${SEARCH_TIME_FACTS.asOf.split(' ')[0]} had been looking for ${Math.round(SEARCH_TIME_FACTS.averageWeeksAll)} weeks on average, so a week spent now is a week saved later.`
+  const noticeSentence = (
+    <>
+      {c.name} has filed {c.notices.length.toLocaleString()} WARN {c.notices.length === 1 ? 'notice' : 'notices'} with{' '}
+      {c.states.length === 1 ? `the ${stateName(c.states[0])} labor department` : `labor departments in ${c.states.length} states`}
+      {workers > 0 && <>, naming {workers.toLocaleString()} workers{unknownCounts ? ' where a count was given' : ''}</>}. The most recent was filed {noticeDay(c.latest)}.
+    </>
+  )
+  const heroContext =
+    variant === 'buyout' && latestAnn ? <>Reported {noticeDay(latestAnn.date)}: {latestAnn.summary}. {searchFact}</>
+    : hasNotices ? <>{noticeSentence} {searchFact}</>
+    : latestAnn ? <>Reported {noticeDay(latestAnn.date)}: {latestAnn.summary}. {c.name} has not filed a WARN notice that we have on record. {searchFact}</>
+    : <>{searchFact}</>
   const faq = hasNotices
     ? [
         { q: `Is ${c.name} laying off employees?`, a: `${c.name} has filed ${c.notices.length.toLocaleString()} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'}. The latest was filed ${noticeDay(c.latest)}.` },
@@ -140,22 +167,15 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link>
             <span aria-hidden> › </span>
             <span className="text-foreground">{c.name}</span>
+            <span className="ml-3">Updated {noticeDay(new Date(`${modified}T12:00:00Z`))}</span>
           </nav>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-            {headline}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">Updated {noticeDay(new Date(`${modified}T12:00:00Z`))}</p>
-          {!hasNotices && ann && (
-            <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
-              {c.name} has not filed a WARN notice that we have on record. Below is what has been announced or reported, with the source for each.
-            </p>
-          )}
-          {hasNotices && <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
-            {c.name} has filed {c.notices.length.toLocaleString()} WARN {c.notices.length === 1 ? 'notice' : 'notices'} with{' '}
-            {c.states.length === 1 ? `the ${stateName(c.states[0])} labor department` : `labor departments in ${c.states.length} states`}
-            {workers > 0 && <>, naming {workers.toLocaleString()} workers{unknownCounts ? ' where a count was given' : ''}</>}. The most
-            recent was filed {noticeDay(c.latest)}.
-          </p>}
+
+          <div className="mt-4 space-y-12">
+            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} />
+            <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} />
+            <SearchTimeFacts />
+            <PeerEmployers company={c.name} near={peers.near} similar={peers.similar} metro={peers.homeState ? stateName(peers.homeState) : null} />
+          </div>
 
           <OrgCandidateBand
             orgName={c.name}
@@ -188,46 +208,6 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
               </ul>
             </section>
           )}
-
-          {hasNotices && <section aria-labelledby="notices" className="mt-10">
-            <h2 id="notices" className={H2}>Notices</h2>
-            <div className="mt-4">
-              <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
-            </div>
-            <StatementForm
-              slug={slug}
-              companyName={c.name}
-              notices={c.notices.slice(0, 15).map((n) => ({ id: n.id, label: `${noticeDay(n.noticeDate)}, ${stateName(n.state)}${n.workers != null ? `, ${n.workers.toLocaleString()} workers` : ''}` }))}
-            />
-          </section>}
-
-          {mentions.length > 0 && (
-            <section aria-labelledby="news" className="mt-12">
-              <h2 id="news" className={H2}>In the news</h2>
-              <ul className="mt-4 space-y-3">
-                {mentions.map((m) => (
-                  <li key={m.id} className="text-sm">
-                    <TrackedLink href={m.url} event="layoff_news_clicked" properties={{ mentionId: m.id, company: slug }} className="font-medium text-navy hover:text-brand hover:underline">
-                      {m.headline}
-                    </TrackedLink>
-                    <span className="text-muted-foreground">
-                      {m.publisher && ` · ${m.publisher}`}
-                      {m.publishedAt && ` · ${noticeDay(m.publishedAt)}`}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {hasNotices && <section aria-labelledby="boards" className="mt-12">
-            <h2 id="boards" className={H2}>Local workforce boards</h2>
-            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-              The public workforce boards for each location in these notices. Their American Job Centers offer free help with
-              job search, training and filing for benefits, and some run rapid-response services for workers in a WARN layoff.
-            </p>
-            <div className="mt-4"><BoardList notices={c.notices} page="company" /></div>
-          </section>}
 
           <CompanyLayoffGuide
             name={c.name}
@@ -271,6 +251,46 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             </ul>
           </section>
 
+          {hasNotices && <section aria-labelledby="notices" className="mt-10">
+            <h2 id="notices" className={H2}>Notices</h2>
+            <div className="mt-4">
+              <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
+            </div>
+            <StatementForm
+              slug={slug}
+              companyName={c.name}
+              notices={c.notices.slice(0, 15).map((n) => ({ id: n.id, label: `${noticeDay(n.noticeDate)}, ${stateName(n.state)}${n.workers != null ? `, ${n.workers.toLocaleString()} workers` : ''}` }))}
+            />
+          </section>}
+
+          {mentions.length > 0 && (
+            <section aria-labelledby="news" className="mt-12">
+              <h2 id="news" className={H2}>In the news</h2>
+              <ul className="mt-4 space-y-3">
+                {mentions.map((m) => (
+                  <li key={m.id} className="text-sm">
+                    <TrackedLink href={m.url} event="layoff_news_clicked" properties={{ mentionId: m.id, company: slug }} className="font-medium text-navy hover:text-brand hover:underline">
+                      {m.headline}
+                    </TrackedLink>
+                    <span className="text-muted-foreground">
+                      {m.publisher && ` · ${m.publisher}`}
+                      {m.publishedAt && ` · ${noticeDay(m.publishedAt)}`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {hasNotices && <section aria-labelledby="boards" className="mt-12">
+            <h2 id="boards" className={H2}>Local workforce boards</h2>
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              The public workforce boards for each location in these notices. Their American Job Centers offer free help with
+              job search, training and filing for benefits, and some run rapid-response services for workers in a WARN layoff.
+            </p>
+            <div className="mt-4"><BoardList notices={c.notices} page="company" /></div>
+          </section>}
+
           {hasNotices && <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
             These are the notices {c.name} filed under the WARN Act, as published by each state. A notice gives the number of
             workers and dates the employer reported; it does not say why. See the{' '}
@@ -279,6 +299,9 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           <div className="mt-10">
             <LayoffAlertForm employer={slug} employerName={c.name} source="layoffs:company" />
           </div>
+          <p className="mt-12 text-center text-sm text-muted-foreground">
+            Want to browse openings on your own? <Link href="/jobs" className={LINK}>Go to the job board →</Link>
+          </p>
         </div>
       </main>
       <PublicSiteFooter page="layoffs" />

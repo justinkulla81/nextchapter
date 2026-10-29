@@ -16896,6 +16896,16 @@ model HomepageLead {
   lastAlertAt      DateTime?
   /// The journey (persona slug) we guessed from the search or the person chose after confirming. Empty = unknown.
   journeySlug      String    @default("")
+  /// Company page journey form (src/components/layoffs/landing): the page version (layoff | buyout | neither), the answer to
+  /// question 1, the next step (field | pivot | school | move), the help picked (market,ai,network,coach), and the school
+  /// (College Scorecard unitid and name) with whether they asked to join its community. Empty / false = not asked.
+  pageVariant      String    @default("")
+  answerKey        String    @default("")
+  nextStep         String    @default("")
+  helpPicked       String    @default("")
+  schoolUnitid     String    @default("")
+  schoolName       String    @default("")
+  joinCommunity    Boolean   @default(false)
   createdAt        DateTime  @default(now())
 
   @@unique([email, kind, situation, searchQ, searchLoc, searchRemote])
