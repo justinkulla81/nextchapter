@@ -68,7 +68,7 @@ export default function EditorialStandardsPage() {
 
         <h2 className={H2}>What we sell, and how content stays separate</h2>
         <p className="mt-4">
-          NextChapter sells career-transition software and services to professionals, employers and workforce
+          NextChapter sells job transition software and services to professionals, employers and workforce
           programs. That gives us a commercial interest in the subjects we write about. To keep the two apart:
         </p>
         <ul className="mt-4 list-disc space-y-2 pl-5">

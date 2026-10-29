@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-154 clusters, 931 phrases.
+160 clusters, 961 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -109,7 +109,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/layoffs/by-state` | page | WARN notices by state | Find every state’s WARN layoff notices in one place | WARN notice list by state; layoffs by state 2026; state WARN notice database; WARN notices by state 2026 |
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
 | `/tools/resume-check` | page | free resume check | Score my resume with a free tool | resume checker; resume score; check my resume; free resume score; resume analyzer |
-| `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; what is COBRA; what is outplacement; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
+| `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; what is COBRA; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
 | `/events` | page | job fairs near me | Job fairs and business events near me | career fairs near me; hiring events near me; small business workshops near me; startup events near me |
 | `/events/:state` | family | {state} job fairs | Job fairs and business events in one state | {state} career fairs; {state} hiring events; {state} small business workshops; {state} startup events |
 | `/places` | page | local job markets | Job market in my area | jobs near me; job market by state and county; local unemployment rate; job openings by county; largest employers near me |
@@ -145,6 +145,12 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/topics/interview-questions-and-answers` | page | interview questions and answers | Answer common interview questions | interview questions; common interview questions; tell me about yourself; behavioral interview questions; what is your biggest weakness; questions to ask the interviewer |
 | `/topics/career-advice` | page | career advice | General career advice | career advice for professionals; career guidance; career help; career development advice; how to advance your career; when to change jobs |
 | `/topics/problems-at-work` | page | problems at work | Deal with a problem at work | work problems; difficult boss; bad boss; micromanager; toxic workplace; burnout at work; passed over for promotion; conflict with coworker |
+| `/topics/what-is-a-job-transition-platform` | page | what is a job transition platform | Understand what a job transition platform is | job transition platform meaning; job transition services; what is job transition; job transition help |
+| `/topics/job-transition-platforms-for-laid-off-professionals` | page | best job transition platform for laid-off professionals | Pick a service to help after a layoff | best outplacement services; outplacement for laid off professionals; job transition services for laid off workers; where to get help after a layoff |
+| `/topics/what-is-outplacement` | page | what is outplacement | Understand outplacement as a laid-off employee | outplacement meaning; what does outplacement include; how to get outplacement; is outplacement worth it |
+| `/topics/career-test` | page | career test | Find what career fits me | career assessment; career quiz; career test for adults; best career for me; free career test |
+| `/topics/resume-examples` | page | resume examples for experienced professionals | See resume examples | resume examples; resume bullet examples; resume summary examples; resume samples; good resume bullet points |
+| `/topics/how-to-choose-a-career-coach` | page | how to choose a career coach | Choose a career coach | ai career coach vs human; how to find a career coach; what to ask a career coach |
 | `/submit-resume` | page | submit resume to recruiters | Put my resume in front of recruiters | send my resume to recruiters; get recruiters to find me; resume submission; recruiter introductions |
 | `/scam-watch` | page | fake recruiter scams | Is this recruiter or job offer fake | job scam; recruiter scam; fake job offer; is this recruiter real; linkedin recruiter scam; job offer scam email |
 | `/for-managers/give-a-reference` | page | give a reference for an employee you let go | Manager wants to give a reference after a layoff | reference for a former employee; write a reference after a layoff; manager reference; recommendation for a laid off employee |
@@ -787,6 +793,37 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Problems at Work: Difficult Boss, Burnout, Passed Over
 - Description: What to do about a difficult boss, burnout, a micromanager or a missed promotion: document it, talk first, use the formal channel and line up options early.
+
+### `/topics/what-is-a-job-transition-platform`
+
+- Title: What Is a Job Transition Platform? A Plain Definition
+- Description: A job transition platform helps people move from one job to the next after a layoff or career change. What it includes, who pays for it and how to choose one.
+
+### `/topics/job-transition-platforms-for-laid-off-professionals`
+
+- Title: Job Transition Platforms for Laid-Off Professionals
+- Description: If your severance offers outplacement, use it first. Then free public help, then free-to-start tools. How the options compare and how to choose between them.
+
+### `/topics/what-is-outplacement`
+
+- Title: What Is Outplacement? What It Includes and How to Get It
+- Description: Outplacement is job search help an employer pays for when it ends your job. What it includes, how to ask HR for it and what to do if it is not offered.
+
+### `/topics/career-test`
+
+- Title: Career Test: How to Find the Right Next Career
+- Description: A career test can suggest jobs to explore, but it cannot tell you what employers will hire you for. How to use one, a free option and how to check the market.
+
+### `/topics/resume-examples`
+
+- Title: Resume Examples for Experienced Professionals
+- Description: Before-and-after resume bullet and summary examples for experienced professionals, how to write a layoff line and how to check your own resume for free.
+- H1: Resume examples for experienced professionals: before and after
+
+### `/topics/how-to-choose-a-career-coach`
+
+- Title: How to Choose a Career Coach: AI or Human
+- Description: Choose a career coach by what you need: a plan, accountability, interview practice or a career change. AI or human, what to ask and what to avoid.
 
 ### `/submit-resume`
 

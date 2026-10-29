@@ -92,7 +92,7 @@ export const REPORT_BODY_HTML = `<header class="cover">
 <section id="disclosure" class="no-break-before" aria-label="About this report">
   <div class="box disclose">
     <div class="eyebrow">About this report and its independence</div>
-    <p><strong>Commercial disclosure.</strong> This report is produced by NextChapter, a commercial company that sells career-transition software and services to professionals, employers and workforce programs. No individual-level NextChapter user or customer data are used in the analysis; findings are based on identified public and third-party sources. To keep the analysis separate from that interest:</p>
+    <p><strong>Commercial disclosure.</strong> This report is produced by NextChapter, a commercial company that sells job transition software and services to professionals, employers and workforce programs. No individual-level NextChapter user or customer data are used in the analysis; findings are based on identified public and third-party sources. To keep the analysis separate from that interest:</p>
     <ul>
       <li>All figures come from public sources or from NextChapter calculations on public data, with methods and data files published. No NextChapter customer data is used in any statistic.</li>
       <li>The measures reported each month are fixed in advance (see Appendix B), whether they move up or down.</li>
@@ -1272,7 +1272,7 @@ export const REPORT_BODY_HTML = `<header class="cover">
     <p class="note" style="margin:6px 0 0">Assumptions: nonfarm business output approximated as about 77% of nominal GDP ($32.6 trillion annualized, Q2 2026, BEA); output per worker approximated as GDP per employed person; unemployed workers assumed as productive as the average employed worker, which likely overstates the loss. We cannot attribute the productivity gain to AI, or the additional long-term unemployment to the same cause. NextChapter estimate; see "Who captures the gains" in the Future Research Agenda.</p>
   </div>
   <h3>The labor-market services economy</h3>
-  <div class="box disclose" style="margin:0 0 14px"><p style="margin:0"><strong>Conflict of interest.</strong> NextChapter sells career-transition services, so it has a direct commercial interest in this question. We report only third-party data, include figures that cut against a "growing market" story, and draw no conclusion about NextChapter's own market.</p></div>
+  <div class="box disclose" style="margin:0 0 14px"><p style="margin:0"><strong>Conflict of interest.</strong> NextChapter sells job transition services, so it has a direct commercial interest in this question. We report only third-party data, include figures that cut against a "growing market" story, and draw no conclusion about NextChapter's own market.</p></div>
   <p>The question: as job searches get longer and screening becomes automated, are workers and employers spending more on help navigating the labor market, such as recruiting, staffing, executive search, outplacement, coaching and job-search tools? The evidence says total spending is not rising, but its mix is shifting.</p>
   <div class="exhibit">
     <div class="lbl-row"><span class="lbl o">What others find</span></div>
@@ -1687,7 +1687,7 @@ export const REPORT_BODY_HTML = `<header class="cover">
   <div class="about">
     <div class="eyebrow">About NextChapter</div>
     <h2 id="h-about" style="font-size:1.4rem">About the publisher</h2>
-    <p>NextChapter is a career-transition platform for senior professionals and executives, and offers programs for employers, universities and public workforce agencies. This section is the only part of the report that describes NextChapter's services. Several public programs described in Chapter 13A accept private and nonprofit participants as sponsors, consortium partners or data contributors; NextChapter could participate in such programs, and any participation would be disclosed in this report. Learn more at <a href="https://launchyournextchapter.com">launchyournextchapter.com</a>.</p>
+    <p>NextChapter is a job transition platform for senior professionals and executives, and offers programs for employers, universities and public workforce agencies. This section is the only part of the report that describes NextChapter's services. Several public programs described in Chapter 13A accept private and nonprofit participants as sponsors, consortium partners or data contributors; NextChapter could participate in such programs, and any participation would be disclosed in this report. Learn more at <a href="https://launchyournextchapter.com">launchyournextchapter.com</a>.</p>
     <p class="note">Contact: Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</p>
   </div>
 </section>

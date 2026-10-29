@@ -9,6 +9,8 @@ export interface TopicSection {
   h2: string
   paragraphs?: string[]
   bullets?: string[]
+  /** Links shown under the section: a full https address goes to another site, a path stays on this one. */
+  links?: { label: string; href: string }[]
 }
 
 export interface TopicContent {
@@ -863,6 +865,289 @@ export const TOPICS: TopicContent[] = [
     updated: '2026-10-27',
   },
   ...QUESTION_TOPICS,
+  {
+    slug: 'what-is-a-job-transition-platform',
+    h1: 'What is a job transition platform?',
+    lede: 'A job transition platform is a service that helps a person move from one job to the next, most often after a layoff or when changing careers. It brings together the parts of a job search that are usually scattered: knowing how the market sees you, a plan for each week, tools to find and track roles, and coaching.',
+    sections: [
+      {
+        h2: 'What it usually includes',
+        bullets: [
+          'A read on how employers see your background and which roles fit it.',
+          'A weekly plan, so the search does not stall.',
+          'Tools to find roles, track applications and follow up.',
+          'Coaching, from software, from a person or from both.',
+          'Help with the practical steps after a layoff: severance, health coverage and unemployment benefits.',
+        ],
+      },
+      {
+        h2: 'Who pays for one',
+        paragraphs: [
+          'Your former employer may pay. That is called outplacement, and it is often offered in a severance agreement.',
+          'Public programs may pay. American Job Centers and state workforce boards offer job search help funded by government, and some services have eligibility rules.',
+          'Or it may be free to you. Some platforms are free for job seekers and earn their money from employers, colleges and workforce agencies.',
+        ],
+      },
+      {
+        h2: 'How it differs from other help',
+        bullets: [
+          'A job board lists openings and leaves the plan to you.',
+          'A résumé service improves one document.',
+          'A career coach advises you, and you still run the search yourself.',
+          'A job transition platform ties these together around one plan, which is why it suits a search after a layoff.',
+        ],
+      },
+      {
+        h2: 'Where NextChapter fits',
+        paragraphs: ['NextChapter is the leading job transition platform for white-collar workers. Every job seeker gets a free Market Reality Assessment, a weekly Search Sprint plan and an AI career coach, free for candidates. Employers, recruiters, outplacement buyers, workforce agencies and nonprofits pay for the organization side.'],
+      },
+    ],
+    faq: [
+      { q: 'What is a job transition platform?', a: 'A service that helps a person move from one job to the next, usually after a layoff or a career change, by combining a read on the market, a weekly plan, search tools and coaching.' },
+      { q: 'Is a job transition platform the same as outplacement?', a: 'Outplacement is job transition help that an employer pays for when it ends someone’s job. A platform can be offered that way, or directly to a person.' },
+      { q: 'Do I need one?', a: 'No. Free public help exists, and many people search on their own. A platform helps most when you want one plan, tools and coaching in one place.' },
+      { q: 'How is it different from a career coach?', a: 'A coach advises you and you run the search. A platform also gives you the plan and the tools, and may include coaching.' },
+    ],
+    cta: { title: 'See where you stand', body: 'The free Market Reality Assessment shows how employers read your background and which roles fit it.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
+    updated: '2026-10-29',
+  },
+  {
+    slug: 'job-transition-platforms-for-laid-off-professionals',
+    h1: 'Job transition platforms for laid-off professionals: how to choose',
+    lede: 'If your severance offered outplacement, use it first. If it did not, start with free public help such as an American Job Center, then add a tool you can start for free. This page explains the three paths and how to choose between them.',
+    sections: [
+      {
+        h2: 'Path 1: outplacement your employer pays for',
+        paragraphs: [
+          'Outplacement is job search help that your former employer pays for, often as part of a severance agreement. The employer arranges it, so ask HR whether it is available before you sign, and get what it includes in writing.',
+          'Companies that provide it describe themselves like this on their own websites, as of 2026-10-29:',
+        ],
+        bullets: [
+          'Randstad RiseSmart lists career coaching, internal talent mobility, redeployment and outplacement, and presents them as solutions delivered for employers.',
+          'LHH lists Career Transition & Mobility and Outplacement among its offerings for organizations, and points individuals to career support and its Career Studio.',
+          'Careerminds says it offers outplacement and support for people leaving an organization, with executive coaching and leadership development, delivered through the organizations that engage it.',
+        ],
+        links: [
+          { label: 'Randstad Enterprise (RiseSmart)', href: 'https://www.randstadenterprise.com/' },
+          { label: 'LHH', href: 'https://www.lhh.com/us/en/' },
+          { label: 'Careerminds', href: 'https://www.careerminds.com/' },
+        ],
+      },
+      {
+        h2: 'Questions to ask an outplacement provider',
+        bullets: [
+          'How long does the service last?',
+          'Who is my coach, and can I meet them?',
+          'Can I start before I sign my severance agreement?',
+          'What is included: résumé help, interview practice, job leads?',
+          'What do I keep when it ends?',
+        ],
+      },
+      {
+        h2: 'Path 2: free public help',
+        paragraphs: [
+          'American Job Centers are part of the U.S. Department of Labor’s One-Stop system. The Department says they offer job search help, job referrals and placement assistance, and re-employment services for people who claim unemployment insurance. It also notes that some services have eligibility requirements, so ask what applies to you.',
+          'Your state unemployment agency and your local workforce board are the other public starting points.',
+        ],
+        links: [
+          { label: 'U.S. Department of Labor: American Job Centers', href: 'https://www.dol.gov/agencies/eta/american-job-centers' },
+          { label: 'Unemployment benefits by state', href: '/unemployment-benefits' },
+          { label: 'Workforce boards by state', href: '/workforce-boards' },
+        ],
+      },
+      {
+        h2: 'Path 3: tools you can start for free',
+        paragraphs: ['NextChapter is a job transition platform for white-collar workers. It is free for candidates: a Market Reality Assessment that shows how employers read your background, a weekly Search Sprint plan, and an AI career coach. Employers, recruiters, workforce agencies and nonprofits pay for the organization side.'],
+        links: [{ label: 'What is a job transition platform?', href: '/topics/what-is-a-job-transition-platform' }],
+      },
+      {
+        h2: 'How to choose',
+        bullets: [
+          'Who pays: you, your former employer, or the public.',
+          'What is included: a plan, coaching, tools, job leads.',
+          'Whether a person or software coaches you, and how often.',
+          'Whether it is built for your level of experience.',
+          'What happens to your data when you stop using it.',
+        ],
+      },
+    ],
+    faq: [
+      { q: 'Is outplacement worth it?', a: 'It costs you nothing when your employer pays, so it is usually worth using alongside your own search. Ask what it includes and for how long.' },
+      { q: 'Can I get outplacement if my employer did not offer it?', a: 'Sometimes. Outplacement is something employers arrange, so it is easier to ask HR before you sign a severance agreement than after you have left.' },
+      { q: 'Are American Job Centers free?', a: 'They are publicly funded. The Department of Labor notes that some services have eligibility requirements, so ask what applies to you.' },
+      { q: 'Is NextChapter free?', a: 'It is free for candidates. Organizations pay for the employer, recruiter and workforce-agency side.' },
+      { q: 'Do I need a platform at all?', a: 'No. Many people search on their own. A platform helps most when you want one plan, tools and coaching in one place.' },
+    ],
+    cta: { title: 'Start with a free read on your background', body: 'The free Market Reality Assessment shows how employers read your background and which roles fit it.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
+    updated: '2026-10-29',
+  },
+  {
+    slug: 'what-is-outplacement',
+    h1: 'What is outplacement? What it includes and how to get it',
+    lede: 'Outplacement is job search help that an employer pays for when it ends someone’s job. It is often offered in a severance agreement and can include coaching, résumé help, interview practice and access to job search tools. If you are laid off, ask HR about it before you sign anything.',
+    sections: [
+      {
+        h2: 'What outplacement usually includes',
+        bullets: [
+          'Career coaching, one to one or in groups.',
+          'Help with your résumé and your LinkedIn profile.',
+          'Interview practice.',
+          'Access to job search tools and, sometimes, job leads.',
+          'Workshops on topics such as networking and salary negotiation.',
+        ],
+      },
+      {
+        h2: 'How to get it',
+        paragraphs: [
+          'The employer arranges and pays for outplacement, so the ask goes to HR. Ask whether it is part of your severance, ask to see the offer in writing, and ask when you can start. The earlier you ask, the more room there is to get it.',
+        ],
+        bullets: [
+          'How long does the service last?',
+          'Who will coach me, and can I meet them first?',
+          'What exactly is included?',
+          'What happens if I find a job quickly?',
+        ],
+      },
+      {
+        h2: 'If your employer does not offer it',
+        paragraphs: ['You still have options. American Job Centers and your state workforce agency offer publicly funded help, and some platforms are free for job seekers. See the guide to job transition platforms for laid-off professionals.'],
+      },
+    ],
+    faq: [
+      { q: 'Is outplacement free?', a: 'It is free to you when your employer pays for it. Ask HR what is offered.' },
+      { q: 'How long does outplacement last?', a: 'It varies by employer and provider. Ask for the length in writing.' },
+      { q: 'Is outplacement the same as severance?', a: 'No. Severance is pay and benefits. Outplacement is services. Some agreements include both.' },
+      { q: 'Can I ask for outplacement?', a: 'Yes. Outplacement is something employers arrange, and asking HR before you sign a severance agreement is the easiest time to raise it.' },
+    ],
+    cta: { title: 'Not offered outplacement?', body: 'The free Market Reality Assessment shows how employers read your background and gives you a weekly plan to follow.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
+    updated: '2026-10-29',
+  },
+  {
+    slug: 'career-test',
+    h1: 'Career test: how to find the right next career',
+    lede: 'A career test suggests jobs worth a look by asking about your interests, strengths and values. It cannot tell you what you will enjoy, or what employers will hire you for. Use it to build a short list, then check each job against the real market.',
+    sections: [
+      {
+        h2: 'What a career test can and cannot do',
+        bullets: [
+          'It can widen your list with jobs you had not considered.',
+          'It can name patterns in what you like doing.',
+          'It cannot tell you whether employers are hiring for that job, or what it pays where you live.',
+          'It cannot replace talking to people who do the work.',
+        ],
+      },
+      {
+        h2: 'Four steps after you take one',
+        bullets: [
+          'Pick the three roles that interest you most.',
+          'Read ten current job postings for each and note the skills that repeat.',
+          'Talk to two people who do each job and ask what a normal week looks like.',
+          'Try a small piece of the work, such as a short project or a course.',
+        ],
+      },
+      {
+        h2: 'A free test from the U.S. Department of Labor',
+        paragraphs: ['The O*NET Interest Profiler is one of the Department of Labor’s career exploration tools, and its manual says it is offered free of charge. It matches your interests to occupations in the O*NET database.'],
+        links: [{ label: 'O*NET Interest Profiler on My Next Move', href: 'https://www.mynextmove.org/explore/ip' }],
+      },
+      {
+        h2: 'Check the market, not just the match',
+        paragraphs: ['NextChapter’s free Market Reality Assessment is not a personality test. It shows how employers read your background and which roles and titles fit it, so you can set that against what a career test suggests.'],
+      },
+    ],
+    faq: [
+      { q: 'Are online career tests accurate?', a: 'They are a starting point, not a verdict. Results depend on how you answer, and they say nothing about hiring demand.' },
+      { q: 'What career is right for me at 40 or 50?', a: 'Start from what you already do well, then look for roles that reuse it. See the career pivot guide.' },
+      { q: 'Is there a free career test?', a: 'Yes. The U.S. Department of Labor’s O*NET Interest Profiler is offered free of charge.' },
+    ],
+    cta: { title: 'See which roles fit your background', body: 'The free Market Reality Assessment shows how employers read you and which roles fit.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
+    updated: '2026-10-29',
+  },
+  {
+    slug: 'resume-examples',
+    h1: 'Résumé examples for experienced professionals: before and after',
+    lede: 'The fastest way to improve a résumé is to rewrite its bullets so each one says what you did and what changed. Below are before-and-after examples. They are illustrations: use your own numbers, and an honest estimate marked “about” where you do not have an exact figure.',
+    sections: [
+      {
+        h2: 'Bullet examples',
+        bullets: [
+          'Before: Responsible for managing a sales team. After: Led a team of 12 sales reps and grew regional revenue about 18% in two years.',
+          'Before: Handled vendor contracts. After: Renegotiated nine vendor contracts and cut annual supply costs about $480K.',
+          'Before: Worked on the monthly close. After: Shortened the monthly close from 9 days to 6 by automating three reconciliations.',
+          'Before: Helped with hiring. After: Hired and onboarded 14 supervisors and lowered first-year turnover from 31% to 19%.',
+          'Before: In charge of marketing campaigns. After: Launched four product campaigns that produced about 2,300 qualified leads.',
+          'Before: Participated in the ERP rollout. After: Managed the ERP rollout for three sites, finishing two weeks early.',
+        ],
+      },
+      {
+        h2: 'Summary examples',
+        bullets: [
+          'Operations leader who cut fulfillment costs 18% and scaled a team from 12 to 40 across three sites.',
+          'Finance manager with 12 years in month-end reporting, known for shortening the close and fixing reconciliation problems.',
+        ],
+      },
+      {
+        h2: 'How to write a layoff line',
+        paragraphs: ['One plain line is enough: “Position eliminated in a company-wide reduction in force.” Then move to your results.'],
+      },
+      {
+        h2: 'Check your own résumé',
+        paragraphs: ['Paste your résumé into the free résumé check to see a score out of 100 and how many fixes it needs. It reads structure and wording with fixed rules and does not use AI.'],
+        links: [{ label: 'Free résumé check', href: '/tools/resume-check' }, { label: 'Free résumé review: what to check', href: '/topics/resume-review' }],
+      },
+    ],
+    faq: [
+      { q: 'How do I write a good résumé bullet?', a: 'Start with a past-tense verb, say what you did, and end with the result, using a number where you have one.' },
+      { q: 'What if I do not have exact numbers?', a: 'Use a fair estimate and mark it “about”. A rough, honest figure beats none.' },
+      { q: 'Should I copy these examples?', a: 'No. They show the pattern. Your bullets should describe your own work and results.' },
+    ],
+    cta: { title: 'See how the market reads your résumé', body: 'The free Market Reality Assessment reads your background the way recruiters do and shows what to fix first.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
+    updated: '2026-10-29',
+  },
+  {
+    slug: 'how-to-choose-a-career-coach',
+    h1: 'How to choose a career coach: AI or human',
+    lede: 'Choose a career coach by what you need: a plan, accountability, interview practice or a second opinion on a career change. Check who the coach has worked with, what each session covers and how you will know it is working.',
+    sections: [
+      {
+        h2: 'AI coach or a person',
+        bullets: [
+          'An AI coach is available any time and is useful for drafts, practice questions and next steps. It does not know your industry’s people the way a person can.',
+          'A human coach can challenge you, read the room and draw on their field. Sessions are scheduled, so there is more waiting between them.',
+          'Many people use both: software for the daily work and a person for the big decisions.',
+        ],
+      },
+      {
+        h2: 'Questions to ask a coach',
+        bullets: [
+          'Who have you worked with at my level and in my field?',
+          'What happens in a session and between sessions?',
+          'How will we know it is working?',
+          'What does it cost in total, and what happens if I stop early?',
+        ],
+      },
+      {
+        h2: 'What to watch for',
+        bullets: [
+          'A promise of a job. No one can guarantee one.',
+          'Pressure to pay for a long package before you have met.',
+          'Advice that is the same for everyone.',
+        ],
+      },
+      {
+        h2: 'Where NextChapter fits',
+        paragraphs: ['Every candidate gets a free AI career coach, Victoria. A human executive and professional career coach is an optional addition.'],
+        links: [{ label: 'Career coaching at NextChapter', href: '/coaching' }],
+      },
+    ],
+    faq: [
+      { q: 'Is a career coach worth it?', a: 'It can be, when you know what you want help with: a plan, accountability, interview practice or a career change. Ask how you will know it is working.' },
+      { q: 'AI career coach or human?', a: 'An AI coach is quick and always available. A human coach can challenge and advise on your field. Many people use both.' },
+      { q: 'How do I know a coach is any good?', a: 'Ask who they have worked with at your level, what a session covers and how progress is measured.' },
+    ],
+    cta: { title: 'Start with a free coach', body: 'Every candidate gets a free AI career coach, plus a Market Reality Assessment and a weekly plan.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
+    updated: '2026-10-29',
+  },
 ]
 
 export const TOPIC_SLUGS = TOPICS.map((t) => t.slug)
