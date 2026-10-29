@@ -28,6 +28,7 @@ export default async function Page({ params }: { params: Promise<{ state: string
   for (const r of d.rows) (byCity.get(r.city ?? 'Statewide and regional') ?? byCity.set(r.city ?? 'Statewide and regional', []).get(r.city ?? 'Statewide and regional')!).push(r)
   return (
     <SeoPage
+      look="audience"
       stateSlug={state}
       trail={[{ name: 'American Job Centers', path: '/job-centers' }, { name: d.name, path: `/job-centers/${state}` }]}
       h1={`American Job Centers in ${d.name}`}

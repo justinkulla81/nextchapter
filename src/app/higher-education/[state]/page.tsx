@@ -50,6 +50,7 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
 
   return (
     <SeoPage
+      look="audience"
       stateSlug={state}
       trail={[{ name: 'Higher education', path: '/higher-education' }, { name: d.name, path: `/higher-education/${state}` }]}
       h1={higherEdStateSeo(d.name).h1}

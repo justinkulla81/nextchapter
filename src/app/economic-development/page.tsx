@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <SeoPage trail={[{ name: 'Economic development organizations', path: '/economic-development' }]} h1="Economic development organizations" lede={<>The regional and state economic development organizations that bring employers to each area, with the counties each serves, the professional jobs open there and how to reach it.</>}>
+    <SeoPage look="audience" trail={[{ name: 'Economic development organizations', path: '/economic-development' }]} h1="Economic development organizations" lede={<>The regional and state economic development organizations that bring employers to each area, with the counties each serves, the professional jobs open there and how to reach it.</>}>
       <section aria-labelledby="states" className="mt-10">
         <h2 id="states" className={H2}>Choose a state</h2>
         <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3 lg:grid-cols-4">

@@ -129,6 +129,7 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
   return (
     <OrgBrandScope brand={brand?.pair}>
     <SeoPage
+      look="audience"
       trail={[{ name: 'Higher education', path: '/higher-education' }, { name: st, path: `/higher-education/${state}` }, { name: c.name, path }]}
       h1={`${c.name}: programs, outcomes and local jobs`}
       jsonLd={ld}

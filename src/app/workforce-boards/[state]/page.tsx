@@ -44,6 +44,7 @@ export default async function WorkforceStatePage({ params }: { params: Promise<{
 
   return (
     <SeoPage
+      look="audience"
       stateSlug={state}
       trail={[{ name: 'Workforce boards', path: '/workforce-boards' }, { name: d.name, path: `/workforce-boards/${state}` }]}
       h1={workforceStateSeo(d.name).h1}

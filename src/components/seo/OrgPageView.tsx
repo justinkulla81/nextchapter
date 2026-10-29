@@ -58,6 +58,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
   const vars = orgThemeVars(brand)
   const page_ = (
     <SeoPage
+      look="audience"
       trail={[{ name: ROOT_NAME[row.kind], path: ORG_PAGE_ROOT[row.kind] }, { name: st, path: `${ORG_PAGE_ROOT[row.kind]}/${ss}` }, { name: row.name, path }]}
       h1={h1 ?? row.name}
       lede={lede}

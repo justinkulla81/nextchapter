@@ -16,6 +16,7 @@ export default async function WorkforceHubPage() {
   const centers = states.reduce((s, x) => s + x.centers, 0)
   return (
     <SeoPage
+      look="audience"
       trail={[{ name: 'Workforce boards', path: '/workforce-boards' }]}
       h1="Workforce development boards and American Job Centers"
       lede={<>{boards.toLocaleString()} local workforce boards and {centers.toLocaleString()} American Job Centers across {states.length} states, from the public CareerOneStop directory. Pick a state to see its boards, local unemployment and recent layoff notices.</>}

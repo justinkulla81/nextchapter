@@ -27,6 +27,13 @@
   --color-action-foreground: var(--action-foreground);
   --color-ink: var(--ink);
   --font-display: var(--font-source-serif), Georgia, "Times New Roman", serif;
+  --color-tint-sky: #e7f0fb;
+  --color-tint-sun: #fff1e0;
+  --color-tint-mint: #e6f4ee;
+  --color-tint-plum: #f1eaf5;
+  --color-tint-sun-ink: #8a4b08;
+  --color-tint-mint-ink: #1f6a4a;
+  --color-tint-plum-ink: #5b3a6b;
   --color-off-white: #f7f9fa;
   --color-light-gray: #e2e8f0;
   --color-gray: #8892a0;
@@ -277,3 +284,15 @@
     background-color: var(--button-primary-hover, var(--primary));
   }
 }
+
+/* The audience look for public and claimable pages (SeoPage look="audience"): stat cards and the next-step card take the
+   NextChapter tints instead of plain white, so workforce, higher-education and recruiter pages read as one family. */
+[data-look='audience'] .seo-stat:nth-child(4n + 1) { background-color: var(--color-tint-sun); }
+[data-look='audience'] .seo-stat:nth-child(4n + 2) { background-color: var(--color-tint-mint); }
+[data-look='audience'] .seo-stat:nth-child(4n + 3) { background-color: var(--color-tint-plum); }
+[data-look='audience'] .seo-stat:nth-child(4n + 4) { background-color: var(--color-tint-sky); }
+[data-look='audience'] .seo-stat { border-color: transparent; }
+[data-look='audience'] .seo-stat:nth-child(4n + 1) .seo-stat-value { color: var(--color-tint-sun-ink); }
+[data-look='audience'] .seo-stat:nth-child(4n + 2) .seo-stat-value { color: var(--color-tint-mint-ink); }
+[data-look='audience'] .seo-stat:nth-child(4n + 3) .seo-stat-value { color: var(--color-tint-plum-ink); }
+[data-look='audience'] .seo-action { background-color: var(--color-tint-sky); border-color: transparent; }

@@ -28,6 +28,7 @@ export default async function Page({ params }: { params: Promise<{ state: string
   for (const r of d.rows) (byCity.get(r.city ?? 'Statewide and regional') ?? byCity.set(r.city ?? 'Statewide and regional', []).get(r.city ?? 'Statewide and regional')!).push(r)
   return (
     <SeoPage
+      look="audience"
       stateSlug={state}
       trail={[{ name: 'Economic development organizations', path: '/economic-development' }, { name: d.name, path: `/economic-development/${state}` }]}
       h1={`Economic development organizations in ${d.name}`}
