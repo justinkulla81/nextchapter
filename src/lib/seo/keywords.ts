@@ -766,7 +766,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/data/embed',
     kind: 'page',
     primary: 'layoff widget for website',
-    secondary: ['embed layoff tracker', 'unemployment benefits widget', 'jobs widget by industry'],
+    secondary: ['embed layoff tracker', 'unemployment benefits widget', 'jobs widget by industry', 'AI exposure widget for a job'],
     seo: {
       title: 'Free Layoff, Jobs and Benefits Widgets for Your Site',
       description: 'Add live layoff notices, open jobs by industry or state unemployment benefits widgets to your website with one copy-paste snippet. Free, with a link back.',
@@ -1467,6 +1467,27 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
       description: 'Type your job title to see how much of the work AI already does, which related jobs pay more or are less exposed, and the skills to build. Free, from real usage.',
       h1: 'Is my job safe from AI? Free AI exposure check',
     },
+  },
+  {
+    id: 'ai-job-check-prompts',
+    intent: 'A job seeker wants ready-made AI prompts for a search after a layoff',
+    owner: '/tools/ai-job-check/prompts',
+    kind: 'page',
+    primary: 'ChatGPT prompts for job search after layoff',
+    secondary: ['AI prompts for job search', 'prompts for laid off workers', 'ChatGPT prompts for career change', 'prompts to find transferable skills', 'AI prompts for resume'],
+    seo: {
+      title: 'ChatGPT Prompts for a Job Search After a Layoff: Free Pack',
+      description: 'Twelve copy-and-paste prompts for ChatGPT, Claude or any AI assistant: first 7 days after a layoff, transferable skills and a career change plan, with real numbers.',
+      h1: 'ChatGPT prompts for a job search after a layoff',
+    },
+  },
+  {
+    id: 'ai-job-compare',
+    intent: 'Compare two related jobs on AI exposure, pay and openings',
+    owner: '/tools/ai-job-check/compare/:pair',
+    kind: 'family',
+    primary: '{job} vs {job} AI exposure and pay',
+    secondary: ['{job} vs {job} salary', '{job} or {job} which pays more', 'compare {job} and {job}'],
   },
   {
     id: 'resume-bullet-rewriter',
@@ -2224,6 +2245,18 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     seo: {
       title: 'Workforce Board Workspace for Job Seeker Services',
       description: 'Claim your organization’s page with a work email at your domain. A free workspace gives workforce boards and chambers a page, services and basic counts.',
+    },
+  },
+  {
+    id: 'rapid-response-landing',
+    intent: 'Rapid Response team or workforce board looks for layoff response support',
+    owner: '/for-rapid-response',
+    kind: 'page',
+    primary: 'layoff response for workforce boards',
+    secondary: ['rapid response team software', 'dislocated worker services software', 'laid-off worker sign-up page'],
+    seo: {
+      title: 'Layoff Response for Workforce Boards and Rapid Response Teams',
+      description: 'One sign-up page for the workers in a layoff: local jobs ranked at the top, career support and AI skills, with counts of who stayed in your region.',
     },
   },
   {

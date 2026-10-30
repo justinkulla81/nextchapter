@@ -59,6 +59,8 @@ const nextConfig: NextConfig = {
       })),
       // /feeds is the feeds directory page; /feeds/industries is only a folder of feeds, so it goes there.
       { source: '/feeds/industries', destination: '/feeds', permanent: false },
+      // Comparison pages live under /tools/ai-job-check/compare/[pair]; the folder itself has no page.
+      { source: '/tools/ai-job-check/compare', destination: '/tools/ai-job-check', permanent: false },
       // Nothing lives at /search; people and search engines' site-search boxes expect it to run a job search (/jobs?q=).
       { source: '/search', destination: '/jobs', permanent: false },
       // Parent addresses that have only dynamic children and no page of their own (someone trims a URL, or a crawler

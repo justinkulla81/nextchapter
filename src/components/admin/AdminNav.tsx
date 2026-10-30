@@ -66,7 +66,7 @@ export const AREAS: { key: AdminArea; label: string; href: string; hint: string 
 ]
 
 /** Which area a path belongs to. Order matters: the specific prefixes first. */
-const CRM_PATHS_OUTSIDE_CRM = ['/support/admin/linkedin-drafts', '/support/admin/network-leads', '/support/admin/school-links']
+const CRM_PATHS_OUTSIDE_CRM = ['/support/admin/linkedin-drafts', '/support/admin/content-drafts', '/support/admin/network-leads', '/support/admin/school-links']
 
 export function areaForPath(pathname: string): AdminArea {
   if (pathname.startsWith('/support/admin/crm') || CRM_PATHS_OUTSIDE_CRM.some((p) => pathname.startsWith(p))) return 'ecosystem'
@@ -158,6 +158,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         // state on this page that is actually waiting on you.
         { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
         { href: '/support/admin/linkedin-drafts', label: 'LinkedIn post drafts' },
+        { href: '/support/admin/content-drafts', label: 'Content drafts' },
         { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },
         { href: '/support/admin/captured-emails', label: 'Captured emails' },
       ],

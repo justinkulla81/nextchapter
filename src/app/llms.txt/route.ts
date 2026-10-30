@@ -21,6 +21,7 @@ export function GET() {
 - [Home](${u('/')}): overview of the Market Reality Assessment, the weekly Search Sprint system, and how the platform works end to end.
 - [FAQ](${u('/faq')}): plans (free for candidates), privacy, how the Market Reality Assessment works, and how employer matching works.
 - [AI job check](${u('/tools/ai-job-check')}): type a job title to see how much of the work AI already does (Anthropic Economic Index), related jobs that pay more or are less exposed, and skills to build. A page for each occupation.
+- [AI job check prompts](${u('/tools/ai-job-check/prompts')}): twelve copy-and-paste prompts for an AI assistant that point it at the numbers on NextChapter pages and ask it to cite them.
 - [Résumé bullet rewriter](${u('/tools/resume-bullet-rewriter')}) and [interview answer coach](${u('/tools/interview-answer-coach')}): free AI tools that rewrite résumé bullets and coach an interview answer, keeping only the facts the person gives.
 - [Career coach](${u('/coaching')}): Victoria, the free AI career coach, and an optional human executive and professional career coach on top — mock interviews, resume review, negotiation support. Plans are on [Plans](${u('/pricing')}).
 
@@ -42,7 +43,7 @@ export function GET() {
 
 ## For AI assistants and developers
 
-- [MCP server](${u('/mcp')}): a free, read-only Model Context Protocol server at ${u('/api/mcp')}. Tools: search current professional job openings (search_jobs), look up recent layoff notices by employer or state (recent_layoff_notices), unemployment insurance basics by state (unemployment_benefits_by_state), verified relocation, retraining, health-coverage and tax programs for laid-off professionals by state (laid_off_benefits_and_programs), AI exposure for a job title (ai_exposure_for_job_title), and career guides on layoffs, severance, unemployment, resumes and networking (find_career_guide). Each answer carries its source and an as-of date. The same layoff notices are a free JSON API at ${u('/api/public/layoffs')}, described at ${u('/api/public/openapi.json')}.
+- [MCP server](${u('/mcp')}): a free, read-only Model Context Protocol server at ${u('/api/mcp')}. Tools: search current professional job openings with AI exposure, level, pay and the employer's layoff record, and a direct apply link (search_jobs), score a résumé out of 100 with the fix for each check (score_resume), look up recent layoff notices by employer or state (recent_layoff_notices), unemployment insurance basics by state (unemployment_benefits_by_state), verified relocation, retraining, health-coverage and tax programs for laid-off professionals by state (laid_off_benefits_and_programs), AI exposure for a job title (ai_exposure_for_job_title), and career guides on layoffs, severance, unemployment, resumes and networking (find_career_guide). Each answer carries its source and an as-of date. The same layoff notices are a free JSON API at ${u('/api/public/layoffs')}, described at ${u('/api/public/openapi.json')}.
 
 ## Research and data
 

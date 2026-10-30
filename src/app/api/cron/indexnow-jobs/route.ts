@@ -3,6 +3,7 @@ import { withCronRun } from '@/lib/cron/run'
 import { runIndexNow } from '@/lib/syndication/indexnow-server'
 import { runCollegeIndexNow } from '@/lib/syndication/indexnow-colleges'
 import { runEmployerIndexNow } from '@/lib/syndication/indexnow-employers'
+import { recordJobSearchHealth } from '@/lib/syndication/job-search-health'
 import { runSearchFirmIndexNow } from '@/lib/syndication/search-firm-indexnow'
 
 export const maxDuration = 800
@@ -18,5 +19,7 @@ export const GET = withCronRun('indexnow-jobs', async () => {
   const searchFirms = await runSearchFirmIndexNow().catch((e) => ({ error: String(e) }))
   // College pages (/higher-education/<state>/<college>) too, when new or reloaded.
   const colleges = await runCollegeIndexNow().catch((e) => ({ error: e instanceof Error ? e.message : String(e) }))
-  return NextResponse.json({ ...jobs, employers, searchFirms, colleges })
+  // Today's coverage numbers for the admin Job health page.
+  const health = await recordJobSearchHealth().catch((e) => ({ error: e instanceof Error ? e.message.slice(0, 200) : String(e) }))
+  return NextResponse.json({ ...jobs, employers, searchFirms, colleges, health })
 })

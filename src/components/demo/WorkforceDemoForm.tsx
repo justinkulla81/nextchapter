@@ -14,12 +14,14 @@ const TYPES = [
   { key: 'COMMUNITY_ORG', label: 'Community organization' },
 ]
 
-export function WorkforceDemoForm() {
+export function WorkforceDemoForm({ defaults }: { defaults?: { name: string; city: string; state: string; from: string } }) {
   const [state, action] = useActionState<DemoFormState, FormData>(createWorkforceDemo, undefined)
-  const v = state?.values ?? {}
+  // After an error the visitor's own entries come back; before the first submit, the link's prefill is used.
+  const v = state?.values ?? { name: defaults?.name ?? '', anchorCity: defaults?.city ?? '', anchorState: defaults?.state ?? '' }
   const [type, setType] = useState(v.orgType || 'ECONOMIC_DEVELOPMENT')
   return (
     <form action={action} className="space-y-5">
+      <input type="hidden" name="from" value={defaults?.from ?? ''} />
       <div className="space-y-1.5">
         <Label htmlFor="d-name">Your organization</Label>
         <Input id="d-name" name="name" required maxLength={80} defaultValue={v.name} placeholder="One Louisville" />

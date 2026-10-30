@@ -113,3 +113,11 @@ describe('XML helpers', () => {
     expect(cdata('a]]>b\u0001')).toBe('<![CDATA[a]]]]><![CDATA[>b]]>')
   })
 })
+
+describe('IndexNow takes every indexable job', () => {
+  const live = [{ id: 'a', at: 3, offered: true }, { id: 'b', at: 2, offered: false }]
+  it('plans an unoffered job only when asked', () => {
+    expect(planChanges(live, new Set(), 10).added).toEqual(['a'])
+    expect(planChanges(live, new Set(), 10, { includeUnoffered: true }).added).toEqual(['a', 'b'])
+  })
+})

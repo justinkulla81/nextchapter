@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "NextChapter Job X-ray",
+  "version": "1.0.0",
+  "description": "On a LinkedIn, Indeed or Google Jobs posting, see how much AI is used in the job, whether the employer has filed layoff notices, and how the pay compares. Read-only.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://launchyournextchapter.com/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.linkedin.com/jobs/*", "https://*.indeed.com/*", "https://www.google.com/search*"],
+      "js": ["sites.js", "pay.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+}

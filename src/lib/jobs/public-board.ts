@@ -50,6 +50,8 @@ export interface PublicBoardQuery {
   minPay?: number
   /** Mobile app: rows to skip, for paging. */
   offset?: number
+  /** Only these ncrawl seniority levels (BoardLightRow.level), e.g. ['DIRECTOR']. Off by default. */
+  levels?: string[]
 }
 
 export function cleanPublicQuery(raw: { q?: string | null; loc?: string | null; remote?: string | null }): PublicBoardQuery {
@@ -78,6 +80,7 @@ function publicWhere(query: PublicBoardQuery): Prisma.BoardLightRowWhereInput {
     and.push({ OR: [{ targetRemotePolicy: 'remote' }, { location: { contains: 'remote', mode: 'insensitive' } }] })
   }
   if (query.minPay) and.push({ OR: [{ salaryMin: { gte: query.minPay } }, { salaryMax: { gte: query.minPay } }] })
+  if (query.levels?.length) and.push({ level: { in: query.levels } })
   if (query.since) {
     and.push({ OR: [{ postedAt: { gt: query.since } }, { postedAt: null, createdAt: { gt: query.since } }] })
   }

@@ -8,7 +8,7 @@ import { SITE_URL } from '@/lib/reports'
 
 const TITLE = 'AI training for colleges, workforce boards and employers'
 const DESCRIPTION =
-  'NextChapter, the leading job transition platform, measures the AI-skill gap for the people you serve and builds the short courses that close it, for the budgets and grants that already pay for training.'
+  'NextChapter, the leading job transition platform, measures the AI-skill gap for the people you serve and, with you, picks or builds the short courses that close it, for the budgets and grants that already pay for training.'
 
 export const metadata: Metadata = pageMetadata('/ai-training')
 
@@ -49,7 +49,7 @@ export default function AiTrainingPage() {
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">For colleges, workforce boards and employers</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy text-balance sm:text-4xl">AI training that closes the gap employers are hiring for</h1>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          NextChapter, the leading job transition platform, measures which AI skills the people you serve are missing and builds the short courses that close the gap. We work with the
+          NextChapter, the leading job transition platform, measures which AI skills the people you serve are missing and, with you, picks or builds the short courses that close the gap. We work with the
           career services, workforce and training budgets you already have.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">

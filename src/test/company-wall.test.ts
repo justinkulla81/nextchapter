@@ -154,6 +154,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/seo/org-page-links.ts': 'admin CRM link: finds the public page for an organization from the PublicOrgPage link table; returns a path, nothing from the CRM record',
     'src/lib/seo/org-pages.ts': 'public job center / economic development / board pages: reads only the linked CRM organization name to build the /prepared claim slug; returns the slug, nothing else',
     'src/lib/seo/workforce-pages.ts':'public college pages: reads only the CRM organization name to build the /prepared claim slug; returns the slug, nothing else',
+    'src/lib/marketing/rapid-response-personalize.ts': "public campaign landing page (requested by Justin, 2026-10-30): when someone we emailed clicks a tracked link to /for-rapid-response, reads that link's CRM contact only to find their current organization; returns the organization's name, city and state, and no person name, email, title, note or status",
     'src/lib/org-claims/org.ts':'public claim page: resolves a CRM organization by slug; returns its name, type and email domain only',
     'src/lib/org-claims/community-stats.ts': 'public claim page and mailing merge field: reads the organization name to find its place, then public WARN filing counts',
     'src/lib/org-claims/claim.ts': 'public claim page: a verified claimant is written into the CRM as a lead (writes only) and the owner is emailed',
