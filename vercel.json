@@ -109,6 +109,10 @@
       "schedule": "50 11 * * *"
     },
     {
+      "path": "/api/cron/content-drafts",
+      "schedule": "30 10 * * *"
+    },
+    {
       "path": "/api/cron/social-posts",
       "schedule": "0 13 * * *"
     },
