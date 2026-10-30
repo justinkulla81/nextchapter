@@ -12,7 +12,7 @@ import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 import { ShareBar } from '@/components/marketing/ShareBar'
 import { AiPremiumSection } from '@/components/salaries/AiPremiumSection'
 
-export const revalidate = 21600
+export const revalidate = 86400
 export const dynamicParams = true
 export function generateStaticParams() {
   return []
