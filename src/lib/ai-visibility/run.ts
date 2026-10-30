@@ -5,7 +5,9 @@ import { PROVIDERS } from './providers'
 
 export const OUR_DOMAIN = 'launchyournextchapter.com'
 const BRAND = /nextchapter|launchyournextchapter|launch your next chapter/i
-const CONCURRENCY = 4
+// Each provider has its own pool and the providers run side by side: one run is about 30 questions x 4 providers, and one provider
+// after another took longer than the 300 s a cron may run (the first manual run was still going after 5 minutes).
+const PER_PROVIDER = 3
 
 /** Monthly spend ceiling on assistant lookups, in USD. Approved 2026-10-28 at $20. */
 export function monthlyCapUsd(): number {
@@ -49,11 +51,11 @@ export async function runCitationCheck(opts: { providerIds?: string[]; limit?: n
   let asked = 0
   let cited = 0
 
-  const jobs = providers.flatMap((p) => prompts.map((q) => ({ p, q })))
-  let next = 0
-  async function worker() {
-    while (next < jobs.length) {
-      const { p, q } = jobs[next++]
+  const queues = providers.map((p) => ({ p, next: 0 }))
+  async function worker(queue: { p: (typeof providers)[number]; next: number }) {
+    const { p } = queue
+    while (queue.next < prompts.length) {
+      const q = prompts[queue.next++]
       // Reserve the cost before the call so parallel workers cannot overshoot the cap together.
       if (spent + p.estCostUsd > cap) {
         skippedForCap = true
@@ -76,7 +78,7 @@ export async function runCitationCheck(opts: { providerIds?: string[]; limit?: n
       await prisma.aiCitationResult.create({ data: { runId: run.id, provider: p.id, promptKey: q.key, prompt: q.prompt, estCostUsd: p.estCostUsd, ...data } })
     }
   }
-  await Promise.all(Array.from({ length: CONCURRENCY }, worker))
+  await Promise.all(queues.flatMap((queue) => Array.from({ length: PER_PROVIDER }, () => worker(queue))))
 
   await prisma.aiCitationRun.update({ where: { id: run.id }, data: { finishedAt: new Date(), estCostUsd: runCost, skippedForCap } })
   return { runId: run.id, providers: providers.map((p) => p.id), asked, cited, spentUsd: Number(runCost.toFixed(4)), skippedForCap }

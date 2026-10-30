@@ -42,12 +42,17 @@ export function applyFilters(rows: PublishingRow[], f: Filters, now = Date.now()
  * as many as are left of the day's ten after the requests already made in the last 24 hours. Recomputed on every view, so
  * each day starts a fresh ten.
  */
-export function dailyPicks(rows: PublishingRow[], requestsLast24h: number, now = Date.now()): PublishingRow[] {
+export function dailyPicks(rows: PublishingRow[], requestsLast24h: number, now = Date.now(), skipPaths: ReadonlySet<string> = new Set()): PublishingRow[] {
   const slots = Math.max(0, DAILY_INDEX_LIMIT - requestsLast24h)
   const seen = new Set<string>()
   return rows
-    .filter((r) => r.state != null && !r.indexRequestedAt)
+    .filter((r) => r.state != null && !r.indexRequestedAt && !skipPaths.has(r.path))
     .sort(byPriority(now))
     .filter((r) => (seen.has(r.path) ? false : (seen.add(r.path), true)))
     .slice(0, slots)
+}
+
+/** The first pages in line for today's picks, one per page, so Google can be asked which of them it already has before the ten are chosen. */
+export function pickCandidates(rows: PublishingRow[], limit = 30, now = Date.now()): PublishingRow[] {
+  return dailyPicks(rows, 0, now).slice(0, limit)
 }

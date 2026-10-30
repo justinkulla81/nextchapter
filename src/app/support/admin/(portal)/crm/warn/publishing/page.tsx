@@ -4,7 +4,8 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { formatDate } from '@/lib/crm/labels'
 import { SITE_URL } from '@/lib/seo/facts'
 import { loadPublishingQueue, type PublishingRow } from '@/lib/warn/publishing-queue'
-import { DAILY_INDEX_LIMIT, applyFilters, dailyPicks, readFilters, type Filters } from '@/lib/warn/publishing-rules'
+import { DAILY_INDEX_LIMIT, applyFilters, dailyPicks, pickCandidates, readFilters, type Filters } from '@/lib/warn/publishing-rules'
+import { inspectIndexState } from '@/lib/google/search-console'
 import { setAnnouncementRss } from '../actions'
 import { postFilingToX, setIndexRequested, setLinkedInPosted } from './actions'
 import { xConfigured } from '@/lib/social/clients'
@@ -92,7 +93,12 @@ export default async function LayoffPublishingPage({ searchParams }: { searchPar
   await requireAdmin()
   const filters = readFilters(await searchParams)
   const { rows, requestsLast24h } = await loadPublishingQueue()
-  const picks = dailyPicks(rows, requestsLast24h)
+  // Ask Google which of the first candidates it already has, so a slot is never spent on a page that is indexed. A failed lookup
+  // counts as not indexed and the page stays in the list.
+  const candidates = pickCandidates(rows)
+  const states = await inspectIndexState(candidates.map((r) => `${SITE_URL}${r.path}`)).catch(() => new Map())
+  const onGoogle = new Set(candidates.filter((r) => states.get(`${SITE_URL}${r.path}`) === 'indexed').map((r) => r.path))
+  const picks = dailyPicks(rows, requestsLast24h, Date.now(), onGoogle)
   const shown = applyFilters(rows, filters)
 
   return (
@@ -108,7 +114,7 @@ export default async function LayoffPublishingPage({ searchParams }: { searchPar
       <section className="rounded-lg border border-border bg-muted/40 p-4">
         <h2 className="text-base font-semibold">Today&apos;s Google indexing picks</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          {requestsLast24h} of {DAILY_INDEX_LIMIT} requested in the last 24 hours. Each day the list is the largest U.S. layoffs from the last 48 hours first, then the largest remaining, not yet requested. Open a page, choose Request indexing in Search Console, then mark it here. Bing and other IndexNow search engines are told about every layoff page automatically.
+          {requestsLast24h} of {DAILY_INDEX_LIMIT} requested in the last 24 hours. Each day the list is the largest U.S. layoffs from the last 48 hours first, then the largest remaining, not yet requested and not already on Google{onGoogle.size ? ` (${onGoogle.size} left out because Google has them)` : ''}. Open a page, choose Request indexing in Search Console, then mark it here. Bing and other IndexNow search engines are told about every layoff page automatically.
         </p>
         {picks.length === 0 ? (
           <p className="mt-3 text-sm">{requestsLast24h >= DAILY_INDEX_LIMIT ? 'Today’s ten are done.' : 'No U.S. layoff is waiting for a request.'}</p>
