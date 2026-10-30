@@ -52,7 +52,8 @@ const nextConfig: NextConfig = {
       // crawlers resolve under the state ("/economic-development/utah/garfield.utah.gov/..."). Real slugs never
       // contain a dot, so a dotted segment is one of those; send it to the state index, not the outside host.
       ...['economic-development', 'job-centers', 'workforce-boards'].map((kind) => ({
-        source: `/${kind}/:state/:host([a-z0-9-]+(?:\\.[a-z0-9-]+)+)/:rest*`,
+        // Not the sitemap files: /job-centers/sitemap/0.xml is a dotted segment under a "state" called sitemap.
+        source: `/${kind}/:state((?!sitemap/)[^/]+)/:host([a-z0-9-]+(?:\\.[a-z0-9-]+)+)/:rest*`,
         destination: `/${kind}/:state`,
         permanent: false,
       })),
