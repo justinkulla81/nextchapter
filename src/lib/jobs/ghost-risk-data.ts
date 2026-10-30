@@ -6,7 +6,8 @@ import { groupClosedPostings } from '@/lib/jobs/board-light-rows'
 // How many times each company + title + location has been posted and closed. One query over
 // the closed postings (thousands, not tens of thousands), memoised for a few
 // minutes because every board render needs it.
-const TTL_MS = 5 * 60 * 1000
+// An hour: ghost risk turns on days of age and closures, and every instance re-read ~20k rows each time this expired.
+const TTL_MS = 60 * 60 * 1000
 let cache: { at: number; counts: Promise<Map<string, number>> } | null = null
 
 async function load(): Promise<Map<string, number>> {

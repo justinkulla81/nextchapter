@@ -120,8 +120,9 @@ async function loadPublicNotices(): Promise<PublicNotice[]> {
   return mapped.sort((a, b) => b.noticeDate.getTime() - a.noticeDate.getTime() || (b.workers ?? 0) - (a.workers ?? 0))
 }
 
-// One load per instance per five minutes, shared by every page that needs the record; the per-request cache sits on top.
-const sharedNotices = memoTtl(5 * 60_000, () => 'all', () => heavy(loadPublicNotices))
+// One load per instance per hour, shared by every page that needs the record; the per-request cache sits on top. Every load reads the whole
+// filing table and its company names, and each server instance made its own: every five minutes that was most of the database's outbound data.
+const sharedNotices = memoTtl(60 * 60_000, () => 'all', () => heavy(loadPublicNotices))
 export const getPublicNotices = cache(() => sharedNotices())
 
 export interface StateSummary {

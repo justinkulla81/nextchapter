@@ -115,14 +115,18 @@ export async function crmOrgForCollege(c: { name: string; crmOrgId: string | nul
   return (c.crmOrgId ? byId.get(c.crmOrgId) : undefined) ?? byKey.get(strictOrgKey(c.name, normalizeOrgName)) ?? null
 }
 
+/** Every college-to-CRM link, read once an hour per instance: it is the same for every state, and the state listings below each re-read all of it. */
+const collegeLinks = memoTtl(3600_000, () => 'all', () => retryOnPoolTimeout(async () =>
+  // Until prisma/manual/2026-10-25-college-org-link.sql is applied the table is missing: fall back to name matching.
+  prisma.collegeOrgLink.findMany({ where: { crmOrgId: { not: null } }, select: { unitid: true, crmOrgId: true } }).catch(() => [])))
+
 /** All colleges in a state, one per IPEDS id (the Scorecard table first, the ranked table fills the rest). */
 export const getStateCollegeListings = memoTtl(3600_000, (state: string) => state, (state: string): Promise<CollegeListing[]> => retryOnPoolTimeout(async () => {
   const [profiles, locals, orgs, links] = await Promise.all([
     prisma.collegeProfile.findMany({ where: { state } }),
     prisma.localCollege.findMany({ where: { state } }),
     universityOrgs(),
-    // Until prisma/manual/2026-10-25-college-org-link.sql is applied the table is missing: fall back to name matching.
-    prisma.collegeOrgLink.findMany({ where: { crmOrgId: { not: null } }, select: { unitid: true, crmOrgId: true } }).catch(() => []),
+    collegeLinks(),
   ])
   const linkById = new Map(links.map((l) => [l.unitid, l.crmOrgId]))
   const localById = new Map(locals.map((l) => [l.id, l]))
