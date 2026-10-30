@@ -5,6 +5,8 @@ export interface AdminColumn<T> {
   header: string
   render: (row: T) => ReactNode
   className?: string
+  /** Extra classes for this column's body cells (compact tables). */
+  cellClassName?: string
   /** If set, the header becomes a clickable link that sorts by this key. */
   sortKey?: string
 }
@@ -39,6 +41,7 @@ export function AdminDataTable<T>({
   emptyMessage = 'Nothing here yet.',
   pagination,
   sorting,
+  compact = false,
 }: {
   columns: AdminColumn<T>[]
   rows: T[]
@@ -46,15 +49,24 @@ export function AdminDataTable<T>({
   emptyMessage?: string
   pagination?: AdminPaginationInfo
   sorting?: AdminSortInfo
+  /** Dense, single-line rows with small uppercase headers — for log-style tables with many columns. */
+  compact?: boolean
 }) {
   return (
     <div className="space-y-3">
       <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full text-sm">
+        <table className={compact ? 'w-full whitespace-nowrap text-[13px]' : 'w-full text-sm'}>
           <thead>
             <tr className="border-b border-border bg-muted/50 text-left">
               {columns.map((col) => (
-                <th key={col.header} className={col.className ?? 'px-3 py-2 font-medium'}>
+                <th
+                  key={col.header}
+                  className={
+                    compact
+                      ? 'px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground'
+                      : (col.className ?? 'px-3 py-2 font-medium')
+                  }
+                >
                   {col.sortKey && sorting ? (
                     <Link
                       href={buildSortHref(sorting, col.sortKey)}
@@ -78,9 +90,16 @@ export function AdminDataTable<T>({
               // Script §B3.4 base partner row height (40px). This table is
               // reused across most admin list pages, so this one edit is
               // the density token's widest reference implementation.
-              <tr key={rowKey(row)} className="min-h-[var(--row-height-partner)] border-b border-border last:border-0">
+              <tr
+                key={rowKey(row)}
+                className={
+                  compact
+                    ? 'border-b border-border last:border-0 hover:bg-muted/40'
+                    : 'min-h-[var(--row-height-partner)] border-b border-border last:border-0'
+                }
+              >
                 {columns.map((col) => (
-                  <td key={col.header} className="px-3 py-2">
+                  <td key={col.header} className={`${compact ? 'px-3 py-1.5' : 'px-3 py-2'} ${col.cellClassName ?? ''}`}>
                     {col.render(row)}
                   </td>
                 ))}
