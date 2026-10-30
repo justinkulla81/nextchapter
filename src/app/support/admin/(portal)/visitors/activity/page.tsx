@@ -52,6 +52,10 @@ interface Row {
   recipient: EmailRecipient | null
   // Set when this visit has no tag of its own but its IP matches a tagged email visit within the past week.
   likelyRecipient: EmailRecipient | null
+  // Emails this visitor gave us: the signup address of the account, or the address on a lead form submitted from the same IP.
+  givenEmails: { email: string; how: string }[]
+  // CRM people those emails (and the email recipient) belong to.
+  crmPeople: { id: string; name: string }[]
   device: string
   // Per-IP totals across all of this visitor's recorded events (not just this row).
   views: number
@@ -272,6 +276,54 @@ export default async function AdminVisitorActivityPage({
     }
   }
 
+  // Who gave us an email: lead forms submitted from these IPs. An IP shared by several leads is still listed; the admin sees every address.
+  const leadRows =
+    uniqueIps.length > 0
+      ? await prisma.homepageLead.findMany({
+          where: { ip: { in: uniqueIps } },
+          select: { ip: true, email: true, kind: true },
+        })
+      : []
+  const leadsByIp = new Map<string, { email: string; how: string }[]>()
+  for (const l of leadRows) {
+    if (!l.ip) continue
+    const how = l.kind === 'job_alert' ? 'job alert form' : 'journey form'
+    const list = leadsByIp.get(l.ip) ?? []
+    if (!list.some((x) => x.email.toLowerCase() === l.email.toLowerCase())) list.push({ email: l.email, how })
+    leadsByIp.set(l.ip, list)
+  }
+  const givenEmailsFor = (e: (typeof events)[number]) => {
+    const out: { email: string; how: string }[] = []
+    const person = e.candidate ?? inferredCandidateByIp.get(e.ip ?? '')
+    if (person?.email) out.push({ email: person.email, how: e.candidate ? 'account' : 'account, matched by IP' })
+    for (const l of e.ip ? (leadsByIp.get(e.ip) ?? []) : []) {
+      if (!out.some((x) => x.email.toLowerCase() === l.email.toLowerCase())) out.push(l)
+    }
+    return out
+  }
+
+  // Which of those addresses (and the people we emailed) are already in the CRM.
+  const givenByEvent = new Map(events.map((e) => [e.id, givenEmailsFor(e)] as const))
+  const emailsToCheck = Array.from(
+    new Set(
+      [
+        ...Array.from(givenByEvent.values()).flat().map((g) => g.email),
+        ...Array.from(recipientByLink.values()).map((r) => r.email ?? ''),
+      ]
+        .map((x) => x.trim().toLowerCase())
+        .filter(Boolean)
+    )
+  )
+  const crmRows =
+    emailsToCheck.length > 0
+      ? await prisma.$queryRaw<{ id: string; fullName: string; email: string }[]>(Prisma.sql`
+          SELECT DISTINCT ON (lower(e)) p."id", p."fullName", lower(e) AS "email"
+          FROM "CrmPerson" p, LATERAL unnest(array_append(p."emails", p."email")) AS e
+          WHERE lower(e) = ANY(${emailsToCheck})
+          ORDER BY lower(e), p."createdAt" ASC`)
+      : []
+  const crmByEmail = new Map(crmRows.map((r) => [r.email, { id: r.id, name: r.fullName }] as const))
+
   const rows: Row[] = events.map((e) => ({
     id: e.id,
     createdAt: e.createdAt,
@@ -293,6 +345,18 @@ export default async function AdminVisitorActivityPage({
       if (classifyUserAgent(e.userAgent) !== 'human' || isDatacenterIp(e.ip)) return null
       const id = inferEmailLinkByIp(e, ipAnchors, (linkId) => recipientByLink.get(linkId)?.personId)
       return id ? (recipientByLink.get(id) ?? null) : null
+    })(),
+    givenEmails: givenByEvent.get(e.id) ?? [],
+    crmPeople: (() => {
+      const found = new Map<string, { id: string; name: string }>()
+      const link = extractEmailLinkId(e.path)
+      const recipient = link ? recipientByLink.get(link) : null
+      if (recipient) found.set(recipient.personId, { id: recipient.personId, name: recipient.name })
+      for (const g of givenByEvent.get(e.id) ?? []) {
+        const hit = crmByEmail.get(g.email.trim().toLowerCase())
+        if (hit) found.set(hit.id, hit)
+      }
+      return Array.from(found.values())
     })(),
     device: classifyDevice(e.userAgent),
     views: e.ip ? (totalsByIp.get(e.ip)?.views ?? 0) : 0,
@@ -358,6 +422,37 @@ export default async function AdminVisitorActivityPage({
         ) : (
           '—'
         ),
+    },
+    {
+      header: 'Email and CRM',
+      render: (r) => {
+        const fromEmail = !!r.recipient || !!r.likelyRecipient
+        if (!fromEmail && r.givenEmails.length === 0 && r.crmPeople.length === 0) return <span className="text-muted-foreground">—</span>
+        return (
+          <div className="space-y-0.5">
+            {fromEmail && (
+              <div>
+                <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">
+                  {r.recipient ? 'Came from our email' : 'Likely from our email'}
+                </span>
+              </div>
+            )}
+            {r.givenEmails.map((g) => (
+              <div key={g.email} className="text-xs">
+                <span className="font-medium">Gave email</span> <span className="text-muted-foreground">({g.how})</span> {g.email}
+              </div>
+            ))}
+            {r.crmPeople.map((p) => (
+              <div key={p.id} className="text-xs">
+                <span className="rounded bg-success/10 px-1.5 py-0.5 font-medium text-success">In CRM</span>{' '}
+                <Link href={`/support/admin/crm/people/${p.id}`} className="text-primary hover:underline">
+                  {p.name}
+                </Link>
+              </div>
+            ))}
+          </div>
+        )
+      },
     },
     {
       header: 'Source',
