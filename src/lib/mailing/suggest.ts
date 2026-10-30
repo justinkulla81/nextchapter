@@ -15,6 +15,7 @@ const ROLE_LISTS: Partial<Record<CrmPersonRole, string>> = {
   CHRO: 'employers_hr',
   LEARNING_DEV_HEAD: 'employers_learning',
   ADVISOR: 'advisors',
+  CONNECTOR: 'advisors',
   JOB_SEEKER: 'candidates',
   BD_PARTNER: 'bd_partners',
   GTM_PARTNER: 'bd_partners',
