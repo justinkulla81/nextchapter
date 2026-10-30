@@ -4,13 +4,21 @@
 // Message" window and close the full-page tab; with none open, the compose tab
 // becomes the inbox with the window docked over it. On any failure the
 // full-page compose stays as it is.
+// Links to an existing Gmail draft (digest and layoff-watch emails) dock into an open Gmail tab the same way.
 const handled = new Set()
 
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
   if (info.status !== 'complete' || !tab.url || handled.has(tabId)) return
   let url
   try { url = new URL(tab.url) } catch { return }
-  if (url.hostname !== 'mail.google.com' || url.searchParams.get('nc') !== 'dock') return
+  if (url.hostname !== 'mail.google.com') return
+  const draftId = url.hash.match(/compose=([^&]+)/)?.[1]
+  if (draftId && draftId !== 'new' && tab.openerTabId !== undefined) {
+    handled.add(tabId)
+    try { await dockDraft(tabId, tab, url) } catch (error) { console.error('Docking the draft failed; leaving it open in its own tab:', error) } finally { handled.delete(tabId) }
+    return
+  }
+  if (url.searchParams.get('nc') !== 'dock') return
   handled.add(tabId)
   try {
     const account = url.pathname.match(/^\/mail\/u\/(\d+)\//)?.[1]
@@ -52,6 +60,41 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
   }
 })
 
+// A link to an existing Gmail draft (the digest and layoff-watch emails use these) opens in a new tab. If the
+// account has another Gmail tab open, open the draft as a New Message window there and close the new tab.
+async function dockDraft(tabId, tab, url) {
+  const account = url.pathname.match(/^\/mail\/u\/(\d+)\//)?.[1]
+  if (!account) return
+  const gmailTabs = await chrome.tabs.query({ url: 'https://mail.google.com/*' })
+  const sameAccount = gmailTabs.filter((t) => {
+    if (t.id === tabId || !t.url) return false
+    const u = new URL(t.url)
+    return u.searchParams.get('tf') !== 'cm' && u.pathname.match(/^\/mail\/u\/(\d+)\//)?.[1] === account
+  })
+  const target = sameAccount.find((t) => t.id === tab.openerTabId) ?? sameAccount[0]
+  if (!target) return
+  await chrome.tabs.update(target.id, { active: true })
+  await chrome.windows.update(target.windowId, { focused: true })
+  const [{ result } = {}] = await chrome.scripting.executeScript({ target: { tabId: target.id }, func: openDraftHere, args: [url.hash] })
+  if (!result) {
+    await chrome.tabs.update(tabId, { active: true })
+    return
+  }
+  await chrome.tabs.remove(tabId)
+}
+
+// Runs inside the Gmail tab.
+async function openDraftHere(hash) {
+  const dialogs = () => [...document.querySelectorAll('[role="dialog"]')].filter((d) => d.querySelector('div[aria-label="Message Body"][contenteditable="true"]'))
+  const before = dialogs().length
+  location.hash = hash
+  for (let i = 0; i < 40; i++) {
+    if (dialogs().length > before) return true
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
+  return false
+}
+
 // Runs inside the Gmail tab, so it can't use anything from this file.
 async function openDockedCompose({ to, subject, body }) {
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -66,7 +109,8 @@ async function openDockedCompose({ to, subject, body }) {
   const dialogs = () => [...document.querySelectorAll('[role="dialog"]')].filter((d) => d.querySelector('div[aria-label="Message Body"][contenteditable="true"]'))
   const before = new Set(dialogs())
 
-  const compose = [...document.querySelectorAll('div[role="button"], button')].find((e) => e.textContent.trim() === 'Compose')
+  // A Gmail tab that just opened is still loading, so wait for its Compose button.
+  const compose = await poll(() => [...document.querySelectorAll('div[role="button"], button')].find((e) => e.textContent.trim() === 'Compose'))
   if (compose) compose.click()
   else location.hash = '#inbox?compose=new'
 
