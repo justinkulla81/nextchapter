@@ -265,3 +265,56 @@ export async function strikingDistance(): Promise<{ siteUrl: string; startDate: 
   }
   return { error: lastError }
 }
+
+export type IndexState = 'indexed' | 'not_indexed' | 'unknown'
+
+const INSPECT_API = 'https://searchconsole.googleapis.com/v1/urlInspection/index:inspect'
+
+async function searchConsoleSession(): Promise<{ token: string; siteUrl: string } | { error: string }> {
+  const connections = await getAllGoogleConnections()
+  if (connections.length === 0) return { error: 'No Google account is connected.' }
+  let lastError = 'No connected account can see the launchyournextchapter.com property.'
+  for (const connection of connections) {
+    try {
+      const token = await getValidAccessTokenFor(connection)
+      const sitesRes = await authedFetch(token, `${API}/sites`)
+      if (!sitesRes.ok) throw new SearchConsoleHttpError(sitesRes.status, await sitesRes.text())
+      const sites = ((await sitesRes.json()) as { siteEntry?: { siteUrl: string; permissionLevel: string }[] }).siteEntry ?? []
+      const siteUrl = pickSite(sites)
+      if (siteUrl) return { token, siteUrl }
+    } catch (err) {
+      lastError = err instanceof SearchConsoleHttpError ? `Google said ${googleMessage(err.body)}` : err instanceof Error ? err.message : 'Unknown error'
+    }
+  }
+  return { error: lastError }
+}
+
+// One page's state from Google's URL inspection API. Throws on any failure so unstable_cache never stores a guess; cached six hours,
+// because a page's state changes slowly and the API allows 2,000 inspections a day for the property.
+const inspectOne = unstable_cache(
+  async (url: string): Promise<IndexState> => {
+    const session = await searchConsoleSession()
+    if ('error' in session) throw new Error(session.error)
+    const res = await authedFetch(session.token, INSPECT_API, { method: 'POST', body: JSON.stringify({ inspectionUrl: url, siteUrl: session.siteUrl }) })
+    if (!res.ok) throw new SearchConsoleHttpError(res.status, await res.text())
+    const data = (await res.json()) as { inspectionResult?: { indexStatusResult?: { verdict?: string } } }
+    const verdict = data.inspectionResult?.indexStatusResult?.verdict
+    if (!verdict) throw new Error('No verdict in the inspection result.')
+    return verdict === 'PASS' ? 'indexed' : 'not_indexed'
+  },
+  ['gsc-index-state-v1'],
+  { revalidate: 6 * 60 * 60 },
+)
+
+/** Whether Google has each page, for the daily indexing picks. A failed lookup is 'unknown', which the picks treat as not indexed. */
+export async function inspectIndexState(urls: string[]): Promise<Map<string, IndexState>> {
+  const out = new Map<string, IndexState>()
+  const queue = [...urls]
+  async function worker() {
+    for (let url = queue.shift(); url; url = queue.shift()) {
+      out.set(url, await inspectOne(url).catch(() => 'unknown' as IndexState))
+    }
+  }
+  await Promise.all(Array.from({ length: 5 }, worker))
+  return out
+}

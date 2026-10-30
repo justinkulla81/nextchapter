@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DAILY_INDEX_LIMIT, applyFilters, dailyPicks, readFilters } from '@/lib/warn/publishing-rules'
+import { DAILY_INDEX_LIMIT, applyFilters, dailyPicks, pickCandidates, readFilters } from '@/lib/warn/publishing-rules'
 import type { PublishingRow } from '@/lib/warn/publishing-queue'
 
 const NOW = Date.parse('2026-10-29T12:00:00Z')
@@ -48,5 +48,20 @@ describe('dailyPicks', () => {
     const a = row({ workers: 500, path: '/layoffs/company/same' })
     const b = row({ workers: 400, path: '/layoffs/company/same' })
     expect(dailyPicks([a, b], 0, NOW)).toHaveLength(1)
+  })
+})
+
+describe('daily picks that skip pages Google already has', () => {
+  it('leaves out skipped paths and fills the slots from the next pages in line', () => {
+    const rows = Array.from({ length: 14 }, (_, i) => row({ workers: 1000 - i, path: `/layoffs/company/p${i}` }))
+    const skip = new Set(['/layoffs/company/p0', '/layoffs/company/p1', '/layoffs/company/p2'])
+    const picks = dailyPicks(rows, 0, NOW, skip)
+    expect(picks).toHaveLength(DAILY_INDEX_LIMIT)
+    expect(picks.some((r) => skip.has(r.path))).toBe(false)
+    expect(picks[0].path).toBe('/layoffs/company/p3')
+  })
+  it('offers the first candidates once per page, largest first', () => {
+    const rows = [row({ workers: 10, path: '/layoffs/company/a' }), row({ workers: 500, path: '/layoffs/company/b' }), row({ workers: 400, path: '/layoffs/company/b' })]
+    expect(pickCandidates(rows, 30, NOW).map((r) => r.path)).toEqual(['/layoffs/company/b', '/layoffs/company/a'])
   })
 })
