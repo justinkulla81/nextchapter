@@ -12110,6 +12110,20 @@ model CrmSyncSetting {
   updatedByEmail String?
 }
 
+/// A weekly outreach target, set from CRM > Outreach tests. groupKey is a person group from
+/// src/lib/outreach/person-groups.ts or 'ALL'; channel is email, call, linkedin, text or 'ALL'.
+/// Counts every touch (automated and by hand) in that slice, Monday to Sunday Eastern.
+model CrmOutreachQuota {
+  id             String   @id @default(cuid())
+  groupKey       String
+  channel        String
+  weeklyTarget   Int
+  updatedAt      DateTime @updatedAt
+  updatedByEmail String?
+
+  @@unique([groupKey, channel])
+}
+
 /// What kind of funder this is. "VC fund" was doing too much work: a federal
 /// grant, a rolling credits programme and an angel are not the same pursuit
 /// and should not sit in one bucket.

@@ -146,7 +146,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         // "Add to a list?" are reached from this page's header links.
         { href: '/support/admin/crm/mailing', label: 'Mailing lists', badge: badgeFor('mailingAttention') },
         { href: '/support/admin/crm/segments', label: 'One-off emails' },
-        { href: '/support/admin/crm/outreach', label: 'Cold outreach tests' },
+        { href: '/support/admin/crm/outreach', label: 'Outreach' },
         { href: '/support/admin/crm/sent', label: 'Sent email' },
       ],
     },

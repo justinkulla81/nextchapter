@@ -1,6 +1,7 @@
 import 'server-only'
 import type { CrmActivityType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { easternToUtc } from '@/lib/outreach/touch-stats'
 import { refreshTouchFields } from './sync'
 
 export const CONTACT_CHANNELS = ['EMAIL', 'LINKEDIN', 'CALL', 'MEETING', 'TEXT', 'OTHER'] as const
@@ -37,6 +38,10 @@ export async function logManualContact(input: {
   /** YYYY-MM-DD, Eastern. Omitted or today: now. */
   date?: string | null
   note?: string | null
+  /** HH:mm Eastern: the exact time, so the time-of-day chart can use it. Without it an earlier day is dated midday and counted as time unknown. */
+  time?: string | null
+  /** How a call went ("Connected", "Voicemail", ...): stored as the activity's outcome, which the Outreach page reads back. */
+  outcome?: string | null
   /** INBOUND = they replied to you (reply came outside the mail sync). */
   direction?: 'OUTBOUND' | 'INBOUND'
   loggedByEmail: string | null
@@ -46,9 +51,12 @@ export async function logManualContact(input: {
     : 'OTHER'
   const type = TYPES[channel]
   const day = input.date?.trim()
-  const occurredAt = !day || day >= localToday()
-    ? new Date()
-    : new Date(`${day}T16:00:00Z`) // midday Eastern
+  const exact = input.time?.trim() ? easternToUtc(day || localToday(), input.time.trim()) : null
+  const occurredAt = exact
+    ? (exact > new Date() ? new Date() : exact)
+    : !day || day >= localToday()
+      ? new Date()
+      : new Date(`${day}T16:00:00Z`) // midday Eastern
 
   const inbound = input.direction === 'INBOUND'
   const via = channel === 'LINKEDIN' ? 'LinkedIn' : channel.toLowerCase()
@@ -57,6 +65,7 @@ export async function logManualContact(input: {
       type, direction: inbound ? 'INBOUND' : 'OUTBOUND', personId: input.personId, occurredAt,
       subject: inbound ? `Replied by ${via}` : `Contacted by ${via}`,
       body: input.note?.trim() || null,
+      outcome: input.outcome?.trim() || null,
       isAutoLogged: false, loggedByEmail: input.loggedByEmail,
     },
   })
