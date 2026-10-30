@@ -718,7 +718,7 @@ export async function WorkforceRapid({ ctx }: Props) {
             {responses.map((r) => (
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
                 <span>
-                  <span className="font-medium">{r.title}</span> · {r.enrollments.length} signed up{r.isActive ? '' : ' · closed'}
+                  <span className="font-medium">{r.title}</span> · {r.enrollments.length} signed up{r.isActive ? '' : r.createdBy.startsWith('agent:') && !r.enrollments.length ? ' · draft ready, review and publish' : ' · closed'}
                   <span className="block text-xs text-muted-foreground">
                     Sign-up page:{' '}
                     <a href={`/i/${ctx.institution.slug}/rapid/${r.id}`} target="_blank" className="text-primary hover:underline">
@@ -728,10 +728,10 @@ export async function WorkforceRapid({ ctx }: Props) {
                 </span>
                 {canEdit && (
                   <ConfirmActionButton
-                    label={r.isActive ? 'Close sign-ups' : 'Reopen'}
+                    label={r.isActive ? 'Close sign-ups' : r.createdBy.startsWith('agent:') ? 'Publish' : 'Reopen'}
                     variant="outline"
-                    confirm={r.isActive ? 'Close this offer? The page will say sign-ups have closed.' : 'Reopen sign-ups?'}
-                    confirmLabel={r.isActive ? 'Close sign-ups' : 'Reopen'}
+                    confirm={r.isActive ? 'Close this offer? The page will say sign-ups have closed.' : r.createdBy.startsWith('agent:') ? 'Publish this offer? Its sign-up page goes live.' : 'Reopen sign-ups?'}
+                    confirmLabel={r.isActive ? 'Close sign-ups' : r.createdBy.startsWith('agent:') ? 'Publish' : 'Reopen'}
                     run={toggleRapidResponse.bind(null, ctx.institution.slug, r.id, !r.isActive)}
                   />
                 )}

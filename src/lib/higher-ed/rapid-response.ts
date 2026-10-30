@@ -51,6 +51,8 @@ export async function listRapidResponses(institutionId: string) {
 }
 
 export async function setRapidResponseActive(institutionId: string, id: string, isActive: boolean) {
+  // An agent draft that staff publish is theirs from then on, so a later close reads as closed, not as a draft.
+  if (isActive) await prisma.rapidResponse.updateMany({ where: { id, institutionId, createdBy: 'agent:rapid-response' }, data: { createdBy: 'published:agent:rapid-response' } })
   return (await prisma.rapidResponse.updateMany({ where: { id, institutionId }, data: { isActive } })).count > 0
 }
 
