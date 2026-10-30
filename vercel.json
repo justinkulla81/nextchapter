@@ -313,6 +313,10 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "path": "/api/cron/mailing-verify",
+      "schedule": "40 * * * *"
+    },
+    {
       "path": "/api/cron/mailing-autoassign",
       "schedule": "30 10 * * *"
     },
