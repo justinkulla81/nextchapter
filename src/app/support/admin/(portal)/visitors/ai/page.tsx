@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { monthlyCapUsd, OUR_DOMAIN } from '@/lib/ai-visibility/run'
 import { CITATION_PROMPTS } from '@/lib/ai-visibility/prompts'
 import { PROVIDERS } from '@/lib/ai-visibility/providers'
+import { isDataKey } from '@/lib/ai-visibility/prompts-data'
 import { classifyTrafficSource, trafficSourceGroup } from '@/lib/marketing/classify-traffic-source'
 import { classifyUserAgent } from '@/lib/http/user-agent'
 
@@ -23,7 +24,7 @@ export default async function AdminAiAssistantsPage() {
   const [crawlers, topPaths, runs, referrals] = await Promise.all([
     prisma.aiCrawlerHit.groupBy({ by: ['bot', 'vendor', 'purpose'], where: { day: { gte: since } }, _sum: { hits: true }, _count: { path: true }, orderBy: { _sum: { hits: 'desc' } } }),
     prisma.aiCrawlerHit.groupBy({ by: ['path'], where: { day: { gte: since }, purpose: { in: ['SEARCH', 'USER_FETCH'] } }, _sum: { hits: true }, orderBy: { _sum: { hits: 'desc' } }, take: 15 }),
-    prisma.aiCitationRun.findMany({ orderBy: { startedAt: 'desc' }, take: 6, include: { results: { select: { provider: true, cited: true, mentioned: true, error: true } } } }),
+    prisma.aiCitationRun.findMany({ orderBy: { startedAt: 'desc' }, take: 6, include: { results: { select: { provider: true, promptKey: true, cited: true, mentioned: true, error: true } } } }),
     // Only rows that could be AI: an AI utm tag or an AI assistant referrer, so the scan stays small.
     prisma.homepageVisitEvent.findMany({
       where: {
@@ -110,26 +111,26 @@ export default async function AdminAiAssistantsPage() {
       <section>
         <h2 className="text-lg font-medium">Citation check (weekly, Mondays)</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          {CITATION_PROMPTS.length} questions asked of each assistant with web search on. Providers live: {enabled.length ? enabled.join(', ') : 'none'}. Estimated spend this month ${Number(spent._sum.estCostUsd ?? 0).toFixed(2)} of ${monthlyCapUsd()} cap. Add PERPLEXITY_API_KEY, OPENAI_API_KEY or GEMINI_API_KEY to switch on more assistants.
+          Each week: this week’s questions about the newest filings (where we should be cited) and a rotating 20 of the {CITATION_PROMPTS.length} general advice questions, asked of each assistant with web search on. Providers live: {enabled.length ? enabled.join(', ') : 'none'}. Estimated spend this month ${Number(spent._sum.estCostUsd ?? 0).toFixed(2)} of ${monthlyCapUsd()} cap. Add PERPLEXITY_API_KEY, OPENAI_API_KEY or GEMINI_API_KEY to switch on more assistants.
         </p>
         {runs.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">No run yet.</p>
         ) : (
-          <table className="mt-2 w-full max-w-3xl text-sm">
-            <thead><tr className="text-left"><th>Run</th><th>Assistant</th><th>Questions</th><th>We were cited</th><th>We were named</th><th>Errors</th></tr></thead>
+          <table className="mt-2 w-full max-w-4xl text-sm">
+            <thead><tr className="text-left"><th>Run</th><th>Assistant</th><th>Data questions: cited / asked</th><th>General questions: cited / asked</th><th>We were named</th><th>Errors</th></tr></thead>
             <tbody>
               {runs.flatMap((run) => {
-                const by = new Map<string, { n: number; cited: number; named: number; err: number }>()
+                const by = new Map<string, { dataN: number; dataCited: number; genN: number; genCited: number; named: number; err: number }>()
                 for (const r of run.results) {
-                  const row = by.get(r.provider) ?? { n: 0, cited: 0, named: 0, err: 0 }
-                  row.n++
-                  if (r.cited) row.cited++
-                  if (r.mentioned) row.named++
+                  const row = by.get(r.provider) ?? { dataN: 0, dataCited: 0, genN: 0, genCited: 0, named: 0, err: 0 }
                   if (r.error) row.err++
+                  else if (isDataKey(r.promptKey)) { row.dataN++; if (r.cited) row.dataCited++ }
+                  else { row.genN++; if (r.cited) row.genCited++ }
+                  if (r.mentioned) row.named++
                   by.set(r.provider, row)
                 }
                 return [...by.entries()].map(([prov, r]) => (
-                  <tr key={`${run.id}-${prov}`}><td>{run.startedAt.toISOString().slice(0, 10)}</td><td>{prov}</td><td>{r.n}</td><td>{r.cited}</td><td>{r.named}</td><td>{r.err}</td></tr>
+                  <tr key={`${run.id}-${prov}`}><td>{run.startedAt.toISOString().slice(0, 10)}</td><td>{prov}</td><td>{r.dataCited} / {r.dataN}</td><td>{r.genCited} / {r.genN}</td><td>{r.named}</td><td>{r.err}</td></tr>
                 ))
               })}
             </tbody>

@@ -14,6 +14,7 @@ import { CrmInlineSelect } from '@/components/admin/CrmInlineSelect'
 import { CrmInlineOrgEdit } from '@/components/admin/CrmInlineOrgEdit'
 import { CrmInlineRoles } from '@/components/admin/CrmInlineRoles'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
+import { ADDED_OPTIONS, addedLabel, addedSince, readAdded } from '@/lib/crm/added-since'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { CrmContactCell } from '@/components/admin/CrmContactCell'
 import { CrmInlineFollowUp } from '@/components/admin/CrmInlineFollowUp'
@@ -130,6 +131,7 @@ export default async function CrmPeoplePage({
   const quality = sp.quality ?? ''
   const warmth = sp.warmth ?? ''
   const touched = sp.touched ?? ''
+  const added = readAdded(sp.added)
   const waiting = sp.waiting ?? ''
   const invited = sp.invited === '1' ? '1' : ''
   const goal = sp.goal ?? ''
@@ -146,7 +148,7 @@ export default async function CrmPeoplePage({
   // Organization is not sortable: it lives on a to-many affiliation, which
   // Prisma cannot order by. Offering a column that silently did nothing would
   // be worse than leaving it plain.
-  const SORTS = ['name', 'quality', 'warmth', 'touched', 'score']
+  const SORTS = ['name', 'quality', 'warmth', 'touched', 'added', 'score']
   const sort = readSort(sp, SORTS, { sort: 'score', dir: 'desc' })
   // P0/P1/P2 rows lead every ordering, in that order; unset sorts last. A
   // tier that merely added points would sometimes still sit below the fold,
@@ -156,6 +158,7 @@ export default async function CrmPeoplePage({
     sort.sort === 'name' ? [PINNED, { fullName: sort.dir }]
     : sort.sort === 'quality' ? [PINNED, { leadQuality: sort.dir }, { fullName: 'asc' as const }]
     : sort.sort === 'warmth' ? [PINNED, { warmth: sort.dir }, { fullName: 'asc' as const }]
+    : sort.sort === 'added' ? [{ createdAt: sort.dir }, { fullName: 'asc' as const }]
     : sort.sort === 'touched' ? [PINNED, { lastTouchedAt: { sort: sort.dir, nulls: 'last' as const } }]
     : [PINNED, { priorityScore: sort.dir }, { fullName: 'asc' as const }]
 
@@ -199,6 +202,7 @@ export default async function CrmPeoplePage({
     ...(role ? { roles: { has: role as CrmPersonRole } } : {}),
     ...(quality ? { leadQuality: quality as CrmLeadQuality } : {}),
     ...(warmth ? { warmth: warmth as CrmWarmth } : {}),
+    ...(added ? { createdAt: { gte: addedSince(added) } } : {}),
     ...(touched === 'never' ? { lastTouchedAt: null } : {}),
     ...(touched === 'ever' ? { lastTouchedAt: { not: null } } : {}),
     ...(waiting === 'waiting' ? { awaitingReplySince: { not: null }, passedAt: null, keepInTouchAt: null } : {}),
@@ -231,7 +235,7 @@ export default async function CrmPeoplePage({
       take: perPage,
       select: {
         id: true, fullName: true, email: true, roles: true, goals: true, leadQuality: true, warmth: true, priority: true,
-        lastTouchedAt: true, touchCount: true, awaitingReplySince: true, nextMeetingAt: true, passedAt: true, keepInTouchAt: true, priorityScore: true, linkedinUrl: true, photoUrl: true,
+        createdAt: true, lastTouchedAt: true, touchCount: true, awaitingReplySince: true, nextMeetingAt: true, passedAt: true, keepInTouchAt: true, priorityScore: true, linkedinUrl: true, photoUrl: true,
         nextFollowUpNote: true, nextFollowUpAt: true, candidateId: true, candidateInvitedAt: true,
         mailingMemberships: { where: { status: 'ACTIVE' }, select: { list: { select: { key: true, name: true } } } },
         reportSends: { where: { editionKey: { in: reportKeys } }, select: { editionKey: true, method: true, channel: true, sentAt: true, clickedAt: true, repliedAt: true } },
@@ -272,7 +276,7 @@ export default async function CrmPeoplePage({
 
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const baseParams = {
-    q, role, quality, warmth, touched, waiting, invited, goal, priority, list, report, method, photo,
+    q, role, quality, warmth, touched, added, waiting, invited, goal, priority, list, report, method, photo,
     minScore: Number.isFinite(minScore) ? String(minScore) : '',
     per: String(perPage), sort: sort.sort, dir: sort.dir,
   }
@@ -375,6 +379,7 @@ export default async function CrmPeoplePage({
           { key: 'role', label: 'Contact type', value: role, options: [{ value: '', label: 'Any contact type' }, ...PERSON_ROLES.map((r) => ({ value: r, label: PERSON_ROLE_LABELS[r] }))] },
           { key: 'quality', label: 'Quality', value: quality, options: [{ value: '', label: 'Any quality' }, ...QUALITIES.map((x) => ({ value: x, label: QUALITY_LABELS[x] }))] },
           { key: 'warmth', label: 'Warmth', value: warmth, options: [{ value: '', label: 'Any warmth' }, ...WARMTHS.map((x) => ({ value: x, label: WARMTH_LABELS[x] }))] },
+          { key: 'added', label: 'Added', value: added, options: ADDED_OPTIONS },
           { key: 'touched', label: 'Contact', value: touched, options: [{ value: '', label: 'Contacted or not' }, { value: 'never', label: 'Never contacted' }, { value: 'ever', label: 'Contacted at least once' }] },
           { key: 'waiting', label: 'Waiting on reply', value: waiting, options: [{ value: '', label: 'Waiting or not' }, { value: 'waiting', label: 'Waiting on their reply' }, { value: 'not-waiting', label: 'Not waiting on them' }, { value: 'passed', label: 'Not interested' }, { value: 'keep-in-touch', label: 'Keep in touch (newsletter)' }] },
           { key: 'invited', label: 'Invited', value: invited, options: [{ value: '', label: 'Invited or not' }, { value: '1', label: 'Invited to NextChapter' }] },
@@ -398,7 +403,7 @@ export default async function CrmPeoplePage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {total.toLocaleString()} {total === 1 ? 'person' : 'people'}
-          {q || role || quality || warmth || touched || waiting || invited || list || report || method || photo ? ' matching these filters' : ''}
+          {q || role || quality || warmth || touched || added || waiting || invited || list || report || method || photo ? ' matching these filters' : ''}
         </p>
         {/* Three discrete options -> adjacent buttons, per design-principles.md. */}
         <div className="flex items-center gap-1 text-xs" role="group" aria-label="People per page">
@@ -457,6 +462,7 @@ export default async function CrmPeoplePage({
                   <SortHeader label="Name" sortKey="name" current={sort} basePath="/support/admin/crm" params={baseParams} />
                   <th className="px-3 py-2 font-medium">Organization</th>
                   <SortHeader label="Contacted" sortKey="touched" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" />
+                  <SortHeader label="Added" sortKey="added" current={sort} basePath="/support/admin/crm" params={baseParams} defaultDir="desc" />
                   <th className="px-3 py-2 font-medium">Contact type</th>
                   <th className="px-3 py-2 font-medium">Goal</th>
                   <th className="px-3 py-2 font-medium">Deal status</th>
@@ -534,6 +540,7 @@ export default async function CrmPeoplePage({
                         meetingLabel={meetingLabel(p.nextMeetingAt)}
                       />
                     </td>
+                    <td className="whitespace-nowrap px-3 py-1.5 text-xs text-muted-foreground">{addedLabel(p.createdAt)}</td>
                     <td className="px-3 py-1.5">
                       <CrmInlineRoles personId={p.id} roles={p.roles} name={p.fullName} />
                     </td>
