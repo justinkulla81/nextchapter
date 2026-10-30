@@ -215,3 +215,53 @@ export async function loadSearchConsole(): Promise<SearchConsoleResult> {
     throw err
   }
 }
+
+export interface StrikingRow {
+  query: string
+  page: string
+  clicks: number
+  impressions: number
+  ctr: number
+  position: number
+}
+
+const STRIKING_MIN_POSITION = 8
+const STRIKING_MAX_POSITION = 20
+const STRIKING_MIN_IMPRESSIONS = 10
+
+/**
+ * Query and page pairs that rank just off page one (average position 8 to 20 over the last 28 days) and are seen often
+ * enough to matter. Rewriting the page's title and description for these queries is the cheapest traffic win.
+ * Not cached: it is read by hand, a few times a week.
+ */
+export async function strikingDistance(): Promise<{ siteUrl: string; startDate: string; endDate: string; rows: StrikingRow[] } | { error: string }> {
+  const connections = await getAllGoogleConnections()
+  if (connections.length === 0) return { error: 'No Google account is connected.' }
+  let lastError = 'No connected account can see the launchyournextchapter.com property.'
+  for (const connection of connections) {
+    try {
+      const token = await getValidAccessTokenFor(connection)
+      const sitesRes = await authedFetch(token, `${API}/sites`)
+      if (!sitesRes.ok) throw new SearchConsoleHttpError(sitesRes.status, await sitesRes.text())
+      const sites = ((await sitesRes.json()) as { siteEntry?: { siteUrl: string; permissionLevel: string }[] }).siteEntry ?? []
+      const siteUrl = pickSite(sites)
+      if (!siteUrl) continue
+      const end = new Date()
+      const start = new Date(end.getTime() - WINDOW_DAYS * 24 * 60 * 60 * 1000)
+      const res = await authedFetch(token, `${API}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+        method: 'POST',
+        body: JSON.stringify({ startDate: isoDay(start), endDate: isoDay(end), dimensions: ['query', 'page'], rowLimit: 25000 }),
+      })
+      if (!res.ok) throw new SearchConsoleHttpError(res.status, await res.text())
+      const data = ((await res.json()) as { rows?: { keys: string[]; clicks: number; impressions: number; ctr: number; position: number }[] }).rows ?? []
+      const rows = data
+        .map((r) => ({ query: r.keys[0], page: r.keys[1], clicks: r.clicks, impressions: r.impressions, ctr: r.ctr, position: r.position }))
+        .filter((r) => r.position >= STRIKING_MIN_POSITION && r.position <= STRIKING_MAX_POSITION && r.impressions >= STRIKING_MIN_IMPRESSIONS)
+        .sort((a, b) => b.impressions - a.impressions)
+      return { siteUrl, startDate: isoDay(start), endDate: isoDay(end), rows }
+    } catch (err) {
+      lastError = err instanceof SearchConsoleHttpError ? `Google said ${googleMessage(err.body)}` : err instanceof Error ? err.message : 'Unknown error'
+    }
+  }
+  return { error: lastError }
+}
