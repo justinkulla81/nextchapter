@@ -17783,3 +17783,23 @@ model LayoffIndexRequest {
   requestedAt DateTime @default(now())
   requestedBy String?
 }
+
+// A note the outplacement agent drafted for one seat's person to send to someone they already know (docs/OUTPLACEMENT_AGENT.md).
+// One row per seat, week and contact. The person sends it themselves; nothing is ever sent or written to their Google account.
+// Never read by employer-facing code: employers only ever see counts (src/lib/employer/outplacement-reporting.ts).
+model OutplacementAgentDraft {
+  id          String   @id @default(cuid())
+  seatId      String
+  candidateId String
+  contactId   String
+  weekKey     String // Monday of the week, YYYY-MM-DD, New York time
+  subject     String
+  body        String
+  reason      String // why this person this week, from the weekly outreach plan
+  inputTokens  Int     @default(0)
+  outputTokens Int     @default(0)
+  createdAt   DateTime @default(now())
+
+  @@unique([seatId, weekKey, contactId])
+  @@index([candidateId, weekKey])
+}
