@@ -13,6 +13,8 @@ import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import { lifecycleEmailsOn } from '@/lib/leads/lifecycle/config'
 import { StructuredData } from '@/components/StructuredData'
 import { PayVsMarket } from '@/components/jobs/PayVsMarket'
+import { JobAiExposure } from '@/components/jobs/JobAiExposure'
+import { EmployerLayoffLine } from '@/components/jobs/EmployerLayoffLine'
 import { JobFitCard } from '@/components/jobs/JobFitCard'
 import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
 import { buttonVariants } from '@/components/ui/button'
@@ -75,7 +77,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   const remote = isRemoteJob(job)
   // Where the job sits on the industry and function pages. A failed read just leaves the links out.
   const tags = await prisma.exclusiveJobPosting
-    .findUnique({ where: { id: job.id }, select: { industry: true, targetFunction: true, company: { select: { id: true, canonicalNameNormalized: true } } } })
+    .findUnique({ where: { id: job.id }, select: { industry: true, targetFunction: true, socCode: true, company: { select: { id: true, canonicalNameNormalized: true } } } })
     .catch(() => null)
   // The employer's own page lists every open role it has; link to it when that page is offered to search engines.
   const employerHref =
@@ -154,6 +156,9 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             )}
 
             <PayVsMarket jobId={job.id} title={job.title} salaryMin={job.salaryMin} salaryMax={job.salaryMax} payPeriod={job.payPeriod} />
+
+            <JobAiExposure jobId={job.id} socCode={tags?.socCode} />
+            <EmployerLayoffLine jobId={job.id} company={job.companyName} />
 
             <h2 className="mt-10 font-display text-xl font-semibold">About the job</h2>
             <div className="mt-3 space-y-4 text-[15px] leading-relaxed">
