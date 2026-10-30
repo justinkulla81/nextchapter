@@ -11,18 +11,21 @@ import { JobFitCard } from '@/components/jobs/JobFitCard'
 // The Apply button on a public job page plus the one-field "save this job" box under it.
 // Control: Apply opens the employer's page in a new tab; this page stays open behind it and the
 // box appears, so the person finds it when they come back. Nothing blocks the apply.
-// Gate (50% of browsers, kept in localStorage): Apply first opens a small prompt that says why we ask for an
+// Gate (90% of browsers, kept in localStorage; the other 10% are a control so the comparison keeps running): Apply first opens a small prompt that says why we ask for an
 // email. Saving or the "skip" link then opens the employer's page the same way. Every apply_* event carries
 // `variant` so PostHog can compare Apply-through rate and emails captured per job-page view.
 type Variant = 'control' | 'gate'
-const VARIANT_KEY = 'nc_apply_capture_variant'
+// v2: the first 50/50 test (2026-10-27) showed the prompt did not cut Apply-through and captured about 7x the emails, so the split
+// moved to 90/10 and everyone is drawn again.
+const VARIANT_KEY = 'nc_apply_capture_variant_v2'
+const GATE_SHARE = 0.9
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function pickVariant(): Variant {
   try {
     const saved = localStorage.getItem(VARIANT_KEY)
     if (saved === 'control' || saved === 'gate') return saved
-    const next: Variant = Math.random() < 0.5 ? 'gate' : 'control'
+    const next: Variant = Math.random() < GATE_SHARE ? 'gate' : 'control'
     localStorage.setItem(VARIANT_KEY, next)
     return next
   } catch {
