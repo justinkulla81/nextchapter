@@ -12,6 +12,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerTintColor: colors.navy, contentStyle: { backgroundColor: colors.bg } }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="sign-in" options={{ presentation: 'modal', title: 'Sign in to save' }} />
+        <Stack.Screen name="delete-account" options={{ presentation: 'modal', title: 'Delete my account' }} />
       </Stack>
     </QueryClientProvider>
   )

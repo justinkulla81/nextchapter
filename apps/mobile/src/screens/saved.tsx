@@ -38,7 +38,7 @@ export function Saved() {
       contentContainerStyle={{ padding: 16, gap: 10 }}
       ListEmptyComponent={<Empty title="Nothing saved yet" body="Use Save search on the Jobs tab, or watch an employer on the Layoffs tab." />}
       ListHeaderComponent={<Button label="Turn on notifications" kind="ghost" onPress={async () => Alert.alert((await enablePush().catch(() => false)) ? 'Notifications are on' : 'Notifications are off', 'You can change this in Settings.')} style={{ marginBottom: 6 }} />}
-      ListFooterComponent={<View style={{ gap: 12, marginTop: 12 }}><Text style={s.small}>Signed in as {session.user.email}</Text><Button label="Sign out" kind="ghost" onPress={() => signOut()} /><Footer /></View>}
+      ListFooterComponent={<View style={{ gap: 12, marginTop: 12 }}><Text style={s.small}>Signed in as {session.user.email}</Text><Button label="Sign out" kind="ghost" onPress={() => signOut()} /><Button label="Delete my account" kind="ghost" onPress={() => router.push('/delete-account')} /><Footer /></View>}
       renderItem={({ item }) => (
         <Pressable
           accessibilityRole="button"

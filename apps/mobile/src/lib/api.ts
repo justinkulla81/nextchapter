@@ -50,3 +50,4 @@ export const registerDevice = (pushToken: string, platform: 'ios' | 'android') =
 export const listSaved = () => call<{ items: SavedItem[] }>('/api/mobile/saved', { auth: true })
 export const saveItem = (item: Omit<SavedItem, 'id'>) => call<{ item: SavedItem }>('/api/mobile/saved', { method: 'POST', auth: true, body: JSON.stringify(item) })
 export const removeSaved = (id: string) => call<{ ok: true }>(`/api/mobile/saved${qs({ id })}`, { method: 'DELETE', auth: true })
+export const deleteAccount = (password: string, confirm: string) => call<{ ok: true }>('/api/mobile/account', { method: 'POST', auth: true, body: JSON.stringify({ password, confirm }) })
