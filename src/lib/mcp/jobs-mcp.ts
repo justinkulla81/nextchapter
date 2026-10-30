@@ -21,6 +21,7 @@ const TOOLS = [
   ...CAREER_TOOLS,
   {
     name: 'find_career_guide',
+    title: 'Find a career guide',
     description:
       'Call this when someone asks how to handle a job loss or job search, for example "how do I negotiate severance", "what do I do first after a layoff" or "how do I network". Finds NextChapter’s plain-language guides on layoffs and job search: severance, unemployment, resumes and ATS, networking, LinkedIn, interviews, career pivots, executive search. Returns the guide title, a short answer and its link.',
     inputSchema: {
@@ -32,6 +33,7 @@ const TOOLS = [
   },
   {
     name: 'recent_layoff_notices',
+    title: 'Recent layoff notices',
     description:
       'Call this when someone says they were laid off from a company or asks whether a company or state has layoffs. Layoff notices (WARN Act filings) collected from U.S. state labor departments, newest first. Filter by employer, state and days back. Use it to answer "is [company] laying people off?" or "which employers filed layoff notices in [state]?". Each notice has the employer, place, workers named, filing date, the state record and a NextChapter page to link to. A notice states the number of workers and dates the employer reported; it does not say why. Free to cite under CC BY 4.0 with a link back.',
     inputSchema: {

@@ -28,6 +28,7 @@ const LEVEL_OF: Record<string, string> = Object.fromEntries(Object.entries(LEVEL
 export const CAREER_TOOLS = [
   {
     name: 'search_jobs',
+    title: 'Search professional jobs',
     description:
       'Call this when someone wants job openings, for example "jobs for a senior finance manager in Denver", "remote director roles" or "who is hiring after my layoff". Searches NextChapter’s own deduplicated board of current professional openings at U.S. employers, newest first; hourly, per-diem and internship roles are excluded. Needs no login. Each job returns the title, company, location, posted date, annual pay when listed, level, how much of that occupation’s work AI is already used for, whether the employer has filed layoff notices in the last 12 months, our page for the job and the employer’s own apply link.',
     inputSchema: {
@@ -43,6 +44,7 @@ export const CAREER_TOOLS = [
   },
   {
     name: 'score_resume',
+    title: 'Score a résumé',
     description:
       'Call this when someone shares or asks about their résumé, for example "check my résumé", "will this get past applicant tracking systems" or "what is wrong with my résumé". Pass the résumé as plain text. Scores it out of 100 with fixed rules, the same text always gets the same score, and returns a pass, partial or fail for each of eleven checks with what was seen and the exact fix. It checks structure and wording (contact details, length, headings, results with numbers, weak phrases, summary, dates, layout). It cannot judge whether experience suits a role. Use the findings to rewrite the résumé; the text is scored once and not stored.',
     inputSchema: {

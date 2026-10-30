@@ -122,6 +122,9 @@ describe('jobs MCP server', () => {
   it('tells an assistant when to call each tool', async () => {
     const r = await handleMcpMessage({ jsonrpc: '2.0', id: 30, method: 'tools/list' }, allow)
     const tools = (r?.result as { tools: { name: string; description: string }[] }).tools
-    for (const t of tools) expect(t.description, t.name).toMatch(/Call this when/)
+    for (const t of tools) {
+      expect(t.description, t.name).toMatch(/Call this when/)
+      expect((t as { title?: string }).title, t.name).toBeTruthy()
+    }
   })
 })
