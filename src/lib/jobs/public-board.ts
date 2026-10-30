@@ -36,6 +36,8 @@ export interface PublicBoardJob {
 export interface PublicBoardResult {
   total: number
   jobs: PublicBoardJob[]
+  /** Mobile app paging: the `offset` for the next page, or null when the board has no more rows for this search. */
+  nextOffset?: number | null
 }
 
 export interface PublicBoardQuery {
@@ -44,6 +46,10 @@ export interface PublicBoardQuery {
   remote: boolean
   /** Only jobs posted (or first listed) after this. Used by the saved-search alert emails. */
   since?: Date
+  /** Mobile app: only jobs whose listed pay reaches this yearly figure (top or bottom of the range). */
+  minPay?: number
+  /** Mobile app: rows to skip, for paging. */
+  offset?: number
   /** Only these ncrawl seniority levels (BoardLightRow.level), e.g. ['DIRECTOR']. Off by default. */
   levels?: string[]
 }
@@ -73,6 +79,7 @@ function publicWhere(query: PublicBoardQuery): Prisma.BoardLightRowWhereInput {
   if (query.remote) {
     and.push({ OR: [{ targetRemotePolicy: 'remote' }, { location: { contains: 'remote', mode: 'insensitive' } }] })
   }
+  if (query.minPay) and.push({ OR: [{ salaryMin: { gte: query.minPay } }, { salaryMax: { gte: query.minPay } }] })
   if (query.levels?.length) and.push({ level: { in: query.levels } })
   if (query.since) {
     and.push({ OR: [{ postedAt: { gt: query.since } }, { postedAt: null, createdAt: { gt: query.since } }] })
@@ -105,11 +112,12 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
     prisma.boardLightRow.findMany({
       where: { AND: [where, noIntern] },
       orderBy: [{ postedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
+      skip: query.offset ?? 0,
       take: OVERFETCH, // headroom: non-US and confidential rows are dropped below
       select: { id: true, title: true, companyName: true, location: true, postedAt: true, createdAt: true, salaryMin: true, salaryMax: true },
     }),
   ])
-  if (rows.length === 0) return { total, jobs: [] }
+  if (rows.length === 0) return { total, jobs: [], nextOffset: null }
 
   // The member board drops jobs confidently outside the US (board-shortlist keepRelevant);
   // do the same here. The count can't be filtered in SQL, so it is scaled by the US share
@@ -149,7 +157,11 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
     })
     if (jobs.length === PUBLIC_BOARD_PAGE_SIZE) break
   }
-  return { total: approxTotal, jobs }
+  const full = jobs.length === PUBLIC_BOARD_PAGE_SIZE
+  const last = jobs[jobs.length - 1]
+  const consumed = full && last ? rows.findIndex((r) => r.id === last.id) + 1 : rows.length
+  const nextOffset = full || rows.length === OVERFETCH ? (query.offset ?? 0) + consumed : null
+  return { total: approxTotal, jobs, nextOffset }
 }
 
 function roundCount(n: number): number {
