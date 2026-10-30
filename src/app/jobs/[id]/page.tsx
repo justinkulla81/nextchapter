@@ -118,6 +118,18 @@ export default async function PublicJobPage({ params }: { params: Params }) {
 
             <ApplyAndSave jobId={job.id} company={job.companyName} applyUrl={job.url} emailOn={applySaveEmailOn() || lifecycleEmailsOn()} reminderOn={lifecycleEmailsOn()} />
 
+            <p className="mt-4 text-sm text-muted-foreground">
+              Just laid off?{' '}
+              <TrackedLink
+                href="/start/laid-off"
+                event="job_page_laid_off_prompt_clicked"
+                properties={{ jobId: job.id, company: job.companyName, placement: 'under_apply' }}
+                className="font-medium text-brand underline underline-offset-4"
+              >
+                Start here: a plan for the first weeks
+              </TrackedLink>
+            </p>
+
             {employerHref && (
               <p className="mt-6 text-sm">
                 <TrackedLink

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { classifyBrowser, classifyOs } from '@/lib/http/device'
 import { VisitorsPerDayChart } from '@/components/admin/VisitorsPerDayChart'
 import { classifyUserAgent } from '@/lib/http/user-agent'
+import { isDatacenterIp } from '@/lib/http/datacenter-ip'
 import { DeviceShareChart } from '@/components/admin/DeviceShareChart'
 import { analyzeVisits } from '@/lib/admin/visitor-analytics'
 import { buildKeyStats } from '@/lib/admin/key-stats'
@@ -200,7 +201,9 @@ export default async function AdminVisitorsPage({
   })
   const total = await prisma.homepageVisitEvent.count()
 
-  const humanAllEvents = chartEvents.filter((e) => classifyUserAgent(e.userAgent) === 'human')
+  // Cloud-network visits (link scanners, AI agents) look like Chrome to the user-agent check, so they are dropped by address.
+  const datacenterVisits = chartEvents.filter((e) => e.eventType === 'PAGE_VIEW' && isDatacenterIp(e.ip)).length
+  const humanAllEvents = chartEvents.filter((e) => classifyUserAgent(e.userAgent) === 'human' && !isDatacenterIp(e.ip))
   const humanChartEvents = humanAllEvents.filter((e) => e.eventType === 'PAGE_VIEW')
   const sourceLabels = humanChartEvents.map((e) => classifyTrafficSource(e.path, e.referrer))
   const groupOrder: TrafficSourceGroup[] = ['AI assistants', 'Search engines', 'Google for Jobs', 'Social', 'Email', 'RSS feeds', 'Direct', 'Internal', 'Other sites']
@@ -264,7 +267,7 @@ export default async function AdminVisitorsPage({
   }
   const signupsByDay = distinctPerDay(signupRows.map((r) => ({ key: r.email.toLowerCase(), createdAt: r.createdAt })))
   const marketRealityByDay = distinctPerDay(marketRealityRows.map((r) => ({ key: r.candidateId, createdAt: r.createdAt })))
-  const keyStatsDays: KeyStatsDayWithMembers[] = buildKeyStats(keyStatsEvents, { dayKey: etDateKey, dateKeys: keyStatsKeys }).map((d) => ({
+  const keyStatsDays: KeyStatsDayWithMembers[] = buildKeyStats(keyStatsEvents.filter((e) => !isDatacenterIp(e.ip)), { dayKey: etDateKey, dateKeys: keyStatsKeys }).map((d) => ({
     ...d,
     emailSignups: signupsByDay.get(d.dateKey)?.size ?? 0,
     marketRealityMembers: marketRealityByDay.get(d.dateKey)?.size ?? 0,
@@ -299,6 +302,11 @@ export default async function AdminVisitorsPage({
             Traffic charts and the visit log
           </Link>
         </p>
+        {datacenterVisits > 0 && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            {datacenterVisits} page views from cloud networks (link scanners and automated browsers) in the last {CHART_WINDOW_DAYS} days are left out of every number below.
+          </p>
+        )}
       </div>
 
       <KeyStatsSection days={keyStatsDays} countryTrackedSince={firstCountry ? etDateKey(firstCountry.createdAt) : null} />
