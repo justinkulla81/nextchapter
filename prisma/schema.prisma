@@ -13663,6 +13663,8 @@ enum MailingMemberStatus {
   UNSUBSCRIBED
   BOUNCED
   COMPLAINED
+  /// Taken off by hand or by the daily clean-up (wrong type now, stale address). Stays on record so auto-assign never re-adds it; an admin can add them back.
+  REMOVED
 }
 
 enum MailingAddedVia {

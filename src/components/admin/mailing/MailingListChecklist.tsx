@@ -1,5 +1,8 @@
 'use client'
 
+import { LIST_GROUPS } from '@/lib/mailing/suggest'
+import { posthog } from '@/lib/posthog/client'
+
 export interface ListOption {
   id: string
   key: string
@@ -24,9 +27,28 @@ export function MailingListChecklist({
   name?: string
   disabled?: boolean
 }) {
+  // One send can target a whole group (every employer list, every higher-ed list); the roster counts each address once.
+  const groups = onChange ? LIST_GROUPS.map((g) => ({ label: g.label, ids: lists.filter((l) => g.keys.includes(l.key)).map((l) => l.id) })).filter((g) => g.ids.length > 1) : []
   return (
     <fieldset className="grid gap-1.5 sm:grid-cols-2" disabled={disabled}>
       <legend className="sr-only">Mailing lists</legend>
+      {groups.length > 0 && (
+        <div className="flex flex-wrap gap-2 sm:col-span-2">
+          {groups.map((g) => {
+            const all = g.ids.every((id) => value.includes(id))
+            return (
+              <button
+                key={g.label}
+                type="button"
+                className="rounded-md border border-border px-2.5 py-1 text-xs font-medium hover:bg-muted/50"
+                onClick={() => { posthog.capture('mailing_list_group_toggled', { group: g.label, listCount: g.ids.length, selected: !all }); onChange?.(all ? value.filter((v) => !g.ids.includes(v)) : [...new Set([...value, ...g.ids])]) }}
+              >
+                {all ? `Clear ${g.label.toLowerCase()}` : `Select ${g.label.toLowerCase()}`}
+              </button>
+            )
+          })}
+        </div>
+      )}
       {lists.map((l) => {
         const checked = value.includes(l.id)
         return (
