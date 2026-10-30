@@ -55,6 +55,7 @@ import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, Waitin
 import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
+import { careerDraftsFor } from '@/lib/staff-agents/career-services-run'
 import { removeFromCaseload } from '@/app/i/[slug]/(portal)/caseload-actions'
 import { AssignControl } from './AssignControl'
 import { ConfirmActionButton } from './ConfirmActionButton'
@@ -468,8 +469,28 @@ async function DevelopmentTransition({ ctx }: ScreenProps) {
 
 // ── Career Services ─────────────────────────────────────────────────────────
 
+// A note the career-services agent wrote for this person. Already in place; the counselor edits it and sends it from their own email.
+function CheckInDraft({ draft }: { draft: { subject: string; body: string; email: string | null } }) {
+  return (
+    <details className="mt-1 font-normal">
+      <summary className="cursor-pointer text-xs font-medium text-primary">Check-in note ready</summary>
+      <div className="mt-2 max-w-md space-y-2 rounded-lg border border-border p-3 text-sm">
+        <p className="font-semibold">{draft.subject}</p>
+        <p className="whitespace-pre-wrap">{draft.body}</p>
+        {draft.email && (
+          <a className="text-primary underline" href={`mailto:${draft.email}?subject=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(draft.body)}`}>
+            Open in your email
+          </a>
+        )}
+      </div>
+    </details>
+  )
+}
+
 async function CareerCaseload({ ctx, base, searchParams }: ScreenProps) {
   const [rows, team] = await Promise.all([listCaseloadActivity(ctx), counselors(ctx.institution.id)])
+  // Check-in notes the career-services agent wrote (none exist unless this college switched it on); the counselor sends them from their own email.
+  const drafts = await careerDraftsFor(ctx.institution.id, rows.map((r) => r.memberId))
   const canEdit = !ctx.readOnly && ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN'].some((r) => ctx.tokens.has(r as 'COACH'))
   // Directors see everyone's caseload, so they need to know whose is whose.
   const showCounselor = team.length > 1 && new Set(rows.map((r) => r.counselorId)).size > 1
@@ -495,7 +516,10 @@ async function CareerCaseload({ ctx, base, searchParams }: ScreenProps) {
           <Table caption="Caseload" head={['Name', 'Class', ...(showCounselor ? ['With'] : []), 'Situation', 'Last activity', 'Weekly Search Sprint', 'Next check-in', ...(canEdit ? [''] : [])]}>
             {rows.map((r) => (
               <tr key={r.assignmentId}>
-                <td className="px-4 py-2 font-medium">{fullName(r)}</td>
+                <td className="px-4 py-2 font-medium">
+                  {fullName(r)}
+                  {drafts.get(r.memberId) && <CheckInDraft draft={drafts.get(r.memberId)!} />}
+                </td>
                 <td className="px-4 py-2 tabular-nums">{r.classYear ?? '—'}</td>
                 {showCounselor && <td className="px-4 py-2">{nameOf.get(r.counselorId) ?? '—'}</td>}
                 <td className="px-4 py-2">

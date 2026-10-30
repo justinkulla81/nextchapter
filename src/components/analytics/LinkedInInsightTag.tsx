@@ -12,7 +12,8 @@ const PARTNER_ID = process.env.NEXT_PUBLIC_LINKEDIN_PARTNER_ID
 // GoogleAnalytics uses. Anything not listed (every signed-in workspace, forms
 // that collect personal details, new top-level routes) stays untagged until it
 // is added here on purpose.
-const EXACT_PATHS = ['/', '/for-managers']
+// '/demo' is where /demo/workforce lands: it redirects to workforce.launchyournextchapter.com/demo.
+const EXACT_PATHS = ['/', '/for-managers', '/demo']
 const PUBLIC_PREFIXES = [
   '/about',
   '/pricing',

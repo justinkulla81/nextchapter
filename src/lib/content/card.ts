@@ -147,7 +147,7 @@ export function buildVersions(card: Card, campaign: string): Versions {
   }
 
   const newsletter = {
-    subject: short(stop(card.headline), 70),
+    subject: short(stop(card.headline), 95),
     body: [
       `**${stop(card.headline)}**`,
       card.points.map(sentence).join(' '),

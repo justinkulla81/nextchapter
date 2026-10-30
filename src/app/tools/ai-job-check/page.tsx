@@ -56,7 +56,7 @@ export default function AiJobCheckPage() {
           ))}
         </dl>
         <p className="mt-6 text-sm text-muted-foreground">
-          Exposure data: <a href={AI_EXPOSURE_SOURCE.url} className={LINK} rel="noopener">{AI_EXPOSURE_SOURCE.name}</a>, {AI_EXPOSURE_SOURCE.released}. More: <Link href="/ai-skills" className={LINK}>AI skills and pay</Link>, <Link href="/tools/layoff-risk-check" className={LINK}>layoff risk check</Link> and <Link href="/tools" className={LINK}>all tools</Link>.
+          Exposure data: <a href={AI_EXPOSURE_SOURCE.url} className={LINK} rel="noopener">{AI_EXPOSURE_SOURCE.name}</a>, {AI_EXPOSURE_SOURCE.released}. More: <Link href="/data/ai-jobs-index" className={LINK}>the AI Jobs Index</Link>, <Link href="/ai-skills" className={LINK}>AI skills and pay</Link>, <Link href="/tools/layoff-risk-check" className={LINK}>layoff risk check</Link> and <Link href="/tools" className={LINK}>all tools</Link>.
         </p>
       </section>
 

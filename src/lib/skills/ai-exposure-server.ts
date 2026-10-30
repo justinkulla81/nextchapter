@@ -71,6 +71,17 @@ async function loadExposureRows(): Promise<ExposureRow[]> {
   return (await readBoardFigure<ExposureRow[]>('exposure-rows')) ?? buildExposureRows()
 }
 
+/** Live openings per 6-digit occupation, from the stored board figure only: never the live scan, so a page can call it. Empty when none is stored. */
+export async function loadOpeningsBySoc(): Promise<Map<string, number>> {
+  const out = new Map<string, number>()
+  try {
+    for (const r of (await readBoardFigure<ExposureRow[]>('exposure-rows')) ?? []) if (r.soc6) out.set(r.soc6, (out.get(r.soc6) ?? 0) + r.count)
+  } catch (error) {
+    console.error('Openings by occupation unavailable:', error)
+  }
+  return out
+}
+
 /**
  * The approved, unexpired openings split by the exposure of the occupation each one is placed in. `fn` limits it to one
  * job function (the label the board already uses); omit it for every opening. Postings without an occupation, or whose

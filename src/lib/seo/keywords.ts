@@ -1490,6 +1490,19 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     secondary: ['{job} vs {job} salary', '{job} or {job} which pays more', 'compare {job} and {job}'],
   },
   {
+    id: 'ai-jobs-index',
+    intent: 'A researcher, journalist or worker wants current data on AI exposure, openings and AI-skill pay by occupation',
+    owner: '/data/ai-jobs-index',
+    kind: 'page',
+    primary: 'AI jobs index',
+    secondary: ['AI exposure by occupation data', 'AI jobs data', 'which occupations are most exposed to AI', 'AI job market data download', 'AI skills pay and openings by occupation'],
+    seo: {
+      title: 'NextChapter AI Jobs Index: AI Exposure, Openings and Pay',
+      description: 'Monthly AI jobs index: how much of each occupation AI already does, how many jobs are open, and what AI skills add to advertised pay. Free CSV and citation.',
+      h1: 'The NextChapter AI Jobs Index',
+    },
+  },
+  {
     id: 'resume-bullet-rewriter',
     intent: 'A job seeker wants stronger résumé bullet points',
     owner: '/tools/resume-bullet-rewriter',

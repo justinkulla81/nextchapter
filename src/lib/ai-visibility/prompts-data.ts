@@ -10,7 +10,7 @@ export interface CitationPrompt { key: string; prompt: string }
 const DAY_MS = 86_400_000
 export const DATA_EMPLOYERS = 8
 export const DATA_STATES = 2
-/** How many of the general questions each weekly run asks; the 30 rotate so every one is asked about every other week. */
+/** How many of the general questions each weekly run asks; the full list (about 300) rotates through the weeks. */
 export const GENERAL_PER_RUN = 20
 
 /** Questions about this week's filings: the largest recent employers, the busiest states, and two fixed questions about our own figures. */

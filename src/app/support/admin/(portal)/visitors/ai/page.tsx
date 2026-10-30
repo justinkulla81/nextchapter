@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { monthlyCapUsd, OUR_DOMAIN } from '@/lib/ai-visibility/run'
+import Link from 'next/link'
 import { CITATION_PROMPTS } from '@/lib/ai-visibility/prompts'
 import { PROVIDERS } from '@/lib/ai-visibility/providers'
 import { isDataKey } from '@/lib/ai-visibility/prompts-data'
@@ -145,7 +146,7 @@ export default async function AdminAiAssistantsPage() {
       <section>
         <h2 className="text-lg font-medium">Citation check (weekly, Mondays)</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Each week: this week’s questions about the newest filings (where we should be cited) and a rotating 20 of the {CITATION_PROMPTS.length} general advice questions, asked of each assistant with web search on. Providers live: {enabled.length ? enabled.join(', ') : 'none'}. Estimated spend this month ${Number(spent._sum.estCostUsd ?? 0).toFixed(2)} of ${monthlyCapUsd()} cap. Add PERPLEXITY_API_KEY, OPENAI_API_KEY or GEMINI_API_KEY to switch on more assistants.
+          Each week: this week’s questions about the newest filings (where we should be cited) and a rotating 20 of the {CITATION_PROMPTS.length} general advice questions, asked of each assistant with web search on. Providers live: {enabled.length ? enabled.join(', ') : 'none'}. Estimated spend this month ${Number(spent._sum.estCostUsd ?? 0).toFixed(2)} of ${monthlyCapUsd()} cap. Add PERPLEXITY_API_KEY, OPENAI_API_KEY or GEMINI_API_KEY to switch on more assistants. <Link href="/support/admin/visitors/ai/gaps" className="text-brand underline underline-offset-4">See the gap report: where we are absent, who is cited, and the page to write.</Link>
         </p>
         {runs.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">No run yet.</p>

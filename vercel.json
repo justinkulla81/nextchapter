@@ -97,6 +97,14 @@
       "schedule": "30 10 * * *"
     },
     {
+      "path": "/api/cron/job-feed-direct",
+      "schedule": "15 12 * * *"
+    },
+    {
+      "path": "/api/cron/job-feed-jooble",
+      "schedule": "30 12 * * *"
+    },
+    {
       "path": "/api/cron/indexnow-jobs",
       "schedule": "30 11 * * *"
     },

@@ -55,6 +55,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/press', updated: '2026-10-27', freq: 'weekly', priority: 0.6 },
   { path: '/feeds', updated: '2026-10-27', freq: 'weekly', priority: 0.6 },
   { path: '/data', updated: '2026-10-27', freq: 'daily', priority: 0.7 },
+  { path: '/data/ai-jobs-index', updated: '2026-10-30', freq: 'monthly', priority: 0.8 },
   { path: '/data/embed', updated: '2026-10-27', freq: 'monthly', priority: 0.5 },
   { path: '/layoffs/2026', updated: '2026-10-30', freq: 'daily', priority: 0.8 },
   { path: '/layoffs/week', updated: '2026-10-27', freq: 'daily', priority: 0.6 },

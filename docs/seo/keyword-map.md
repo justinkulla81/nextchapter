@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-189 clusters, 1093 phrases.
+190 clusters, 1099 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -131,6 +131,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/ai-job-check` | page | is my job safe from AI | A worker asks whether AI will affect their job and what to do about it | will AI replace my job; AI exposure by job; jobs most exposed to AI; AI job risk by occupation; how much of my job can AI do; AI job check |
 | `/tools/ai-job-check/prompts` | page | ChatGPT prompts for job search after layoff | A job seeker wants ready-made AI prompts for a search after a layoff | AI prompts for job search; prompts for laid off workers; ChatGPT prompts for career change; prompts to find transferable skills; AI prompts for resume |
 | `/tools/ai-job-check/compare/:pair` | family | {job} vs {job} AI exposure and pay | Compare two related jobs on AI exposure, pay and openings | {job} vs {job} salary; {job} or {job} which pays more; compare {job} and {job} |
+| `/data/ai-jobs-index` | page | AI jobs index | A researcher, journalist or worker wants current data on AI exposure, openings and AI-skill pay by occupation | AI exposure by occupation data; AI jobs data; which occupations are most exposed to AI; AI job market data download; AI skills pay and openings by occupation |
 | `/tools/resume-bullet-rewriter` | page | resume bullet point rewriter | A job seeker wants stronger résumé bullet points | rewrite resume bullets; resume bullet points generator; improve resume bullet points; resume bullet point examples; AI resume bullet rewriter; resume bullet points checker |
 | `/tools/interview-answer-coach` | page | interview answer feedback | A job seeker wants feedback on an interview answer before the interview | practice interview answers; interview answer coach; how to answer why were you laid off; how to answer tell me about yourself; AI interview practice; interview answer checker |
 | `/resources/warn-act` | page | WARN Act rights | A worker asks what a WARN notice means and what an employer owes | WARN notice meaning; what is the WARN Act; WARN Act severance; WARN Act pay; WARN Act exceptions; WARN Act for employees; state WARN laws |
@@ -787,6 +788,12 @@ Title is shown before the site suffix " | NextChapter".
 - Title: ChatGPT Prompts for a Job Search After a Layoff: Free Pack
 - Description: Twelve copy-and-paste prompts for ChatGPT, Claude or any AI assistant: first 7 days after a layoff, transferable skills and a career change plan, with real numbers.
 - H1: ChatGPT prompts for a job search after a layoff
+
+### `/data/ai-jobs-index`
+
+- Title: NextChapter AI Jobs Index: AI Exposure, Openings and Pay
+- Description: Monthly AI jobs index: how much of each occupation AI already does, how many jobs are open, and what AI skills add to advertised pay. Free CSV and citation.
+- H1: The NextChapter AI Jobs Index
 
 ### `/tools/resume-bullet-rewriter`
 

@@ -106,6 +106,22 @@ export const PUBLIC_JOB_OFFERED_SQL = Prisma.sql`(
 )`
 
 /**
+ * Feed jobs in shard `shard` (0–15): the public allowlist, listed on the employer's own career system (directListing),
+ * never hourly pay. For the aggregator feeds (src/lib/syndication/job-feed-server.ts).
+ */
+export async function feedJobIdsInShard(shard: number): Promise<{ id: string }[]> {
+  if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
+  return prisma.$queryRaw<{ id: string }[]>`
+    SELECT id FROM "ExclusiveJobPosting"
+    WHERE ${PUBLIC_JOB_STATIC_SQL}
+      AND (hashtext(id) & 15) = ${shard}::int
+      AND ${PUBLIC_JOB_LIVE_SQL}
+      AND "directListing"
+      AND ("payPeriod" IS NULL OR "payPeriod" <> 'hour')
+    ORDER BY id`
+}
+
+/**
  * One job sitemap file: every public job in shard `shard` (0–15) whose page is indexable (the posting's own text, 1,500+ bytes), with
  * its last verification. Not narrowed to PUBLIC_JOB_OFFERED_SQL: Google for Jobs lists any complete posting, pay stated or not, and
  * Indeed-style coverage means offering all of them. The Indexing API push (200 a day) stays on the offered set.
