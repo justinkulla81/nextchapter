@@ -107,6 +107,22 @@ export const PUBLIC_JOB_OFFERED_SQL = Prisma.sql`(
   OR 'no_experience_ok' = ANY("postingSignals")
 )`
 
+/**
+ * Feed jobs in shard `shard` (0–15): the public allowlist, listed on the employer's own career system (directListing),
+ * never hourly pay. For the aggregator feeds (src/lib/syndication/job-feed-server.ts).
+ */
+export async function feedJobIdsInShard(shard: number): Promise<{ id: string }[]> {
+  if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
+  return prisma.$queryRaw<{ id: string }[]>`
+    SELECT id FROM "ExclusiveJobPosting"
+    WHERE ${PUBLIC_JOB_STATIC_SQL}
+      AND (hashtext(id) & 15) = ${shard}::int
+      AND ${PUBLIC_JOB_LIVE_SQL}
+      AND "directListing"
+      AND ("payPeriod" IS NULL OR "payPeriod" <> 'hour')
+    ORDER BY id`
+}
+
 /** One job sitemap file: every public job in shard `shard` (0–15) that is offered to search engines, with its last verification. */
 export async function publicJobsInShard(shard: number): Promise<{ id: string; lastVerifiedAt: Date }[]> {
   if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
