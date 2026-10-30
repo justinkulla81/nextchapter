@@ -5,6 +5,7 @@ import { monthlyCapUsd, OUR_DOMAIN } from '@/lib/ai-visibility/run'
 import { PROVIDERS } from '@/lib/ai-visibility/providers'
 import { CITATION_PROMPTS, GROUP_LABEL } from '@/lib/ai-visibility/prompts'
 import { GENERAL_PER_RUN } from '@/lib/ai-visibility/prompts-data'
+import { CitationBatchButton } from '@/components/admin/CitationBatchButton'
 import { buildGapReport, fullRunCostUsd, GAP_WINDOW_DAYS, pct } from '@/lib/ai-visibility/gaps'
 
 export const maxDuration = 30
@@ -31,6 +32,8 @@ export default async function CitationGapsPage() {
   const weekly = perQuestion * GENERAL_PER_RUN
   const s = report.share
   const asked = report.statuses.length - report.notAsked
+  const openaiLive = live.some((p) => p.id === 'openai')
+  const openaiRemaining = report.statuses.filter((s) => !s.answered.includes('openai')).length
 
   return (
     <div className="space-y-8">
@@ -59,6 +62,14 @@ export default async function CitationGapsPage() {
           </table>
         )}
       </section>
+
+      {openaiLive && openaiRemaining > 0 && (
+        <section>
+          <h2 className="text-lg font-medium">Baseline: ChatGPT</h2>
+          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{openaiRemaining} questions have no ChatGPT answer yet. Each click asks the next 60 (about $2) and stops at its own $3 budget. The monthly cap is not changed.</p>
+          <CitationBatchButton providerId="openai" label="ChatGPT" remaining={openaiRemaining} />
+        </section>
+      )}
 
       <section>
         <h2 className="text-lg font-medium">What a run costs</h2>

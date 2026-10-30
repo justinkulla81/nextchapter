@@ -49,6 +49,8 @@ export async function runCitationCheck(
     concurrency?: number
     /** Skip a question an assistant already answered (without error) since this time, so an interrupted full pass can be resumed. */
     skipAnsweredSince?: Date
+    /** With skipAnsweredSince: ask at most this many not-yet-answered questions per assistant, so one call fits a function's time limit. */
+    maxPerProvider?: number
   } = {},
 ) {
   const providers = PROVIDERS.filter((p) => p.enabled() && (!opts.providerIds || opts.providerIds.includes(p.id)))
@@ -73,12 +75,14 @@ export async function runCitationCheck(
   let asked = 0
   let cited = 0
 
-  const queues = providers.map((p) => ({ p, next: 0 }))
-  async function worker(queue: { p: (typeof providers)[number]; next: number }) {
+  const queues = providers.map((p) => {
+    const todo = prompts.filter((q) => !answered.has(`${p.id}\u0000${q.key}`))
+    return { p, next: 0, todo: opts.maxPerProvider ? todo.slice(0, opts.maxPerProvider) : todo }
+  })
+  async function worker(queue: { p: (typeof providers)[number]; next: number; todo: typeof prompts }) {
     const { p } = queue
-    while (queue.next < prompts.length) {
-      const q = prompts[queue.next++]
-      if (answered.has(`${p.id}\u0000${q.key}`)) continue
+    while (queue.next < queue.todo.length) {
+      const q = queue.todo[queue.next++]
       // Reserve the cost before the call so parallel workers cannot overshoot the cap together.
       if (spent + p.estCostUsd > cap) {
         skippedForCap = true
