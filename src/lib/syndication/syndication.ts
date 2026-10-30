@@ -42,12 +42,13 @@ export interface LiveJob {
  * What to tell a search engine this run, given the jobs public now and the ones it was
  * already told about (and not since told were removed).
  *   removed: told about, no longer public — all of them (they 404 now)
- *   added:   public, not yet told — newest first, at most `newCap`
+ *   added:   public, not yet told — newest first, at most `newCap`. Only offered jobs unless `includeUnoffered` (IndexNow takes
+ *            every indexable job; the Google Indexing API's 200 a day stays on the offered ones)
  */
-export function planChanges(live: LiveJob[], announced: ReadonlySet<string>, newCap: number): { removed: string[]; added: string[]; waiting: number } {
+export function planChanges(live: LiveJob[], announced: ReadonlySet<string>, newCap: number, opts: { includeUnoffered?: boolean } = {}): { removed: string[]; added: string[]; waiting: number } {
   const liveIds = new Set(live.map((j) => j.id))
   const removed = [...announced].filter((id) => !liveIds.has(id)).sort()
-  const fresh = live.filter((j) => !announced.has(j.id) && j.offered !== false).sort((a, b) => b.at - a.at || (a.id < b.id ? -1 : 1))
+  const fresh = live.filter((j) => !announced.has(j.id) && (opts.includeUnoffered || j.offered !== false)).sort((a, b) => b.at - a.at || (a.id < b.id ? -1 : 1))
   const added = fresh.slice(0, Math.max(0, newCap)).map((j) => j.id)
   return { removed, added, waiting: fresh.length - added.length }
 }

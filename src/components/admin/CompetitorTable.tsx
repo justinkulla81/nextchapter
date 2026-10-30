@@ -18,13 +18,17 @@ export interface CompetitorRow {
   monthlyVisits: number | null
   trafficNote: string | null
   fundingRaisedUsd: number | null
+  lastRound: string | null
+  investors: string | null
+  /** Booths, sponsorships, speaking slots and podcasts we have on file. */
+  presence: number
   foundedYear: number | null
   hq: string | null
   reviewedAt: string | null
   needsReview: boolean
 }
 
-type SortKey = 'name' | 'relationship' | 'category' | 'headcount' | 'revenueUsd' | 'monthlyVisits' | 'fundingRaisedUsd' | 'foundedYear' | 'reviewedAt'
+type SortKey = 'name' | 'relationship' | 'category' | 'headcount' | 'revenueUsd' | 'monthlyVisits' | 'fundingRaisedUsd' | 'presence' | 'foundedYear' | 'reviewedAt'
 interface Option { key: string; label: string }
 
 const REL_STYLE: Record<string, string> = {
@@ -136,7 +140,7 @@ export function CompetitorTable({ rows, relationships, categories, areas }: { ro
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full min-w-[960px] text-sm">
+        <table className="w-full min-w-[1100px] text-sm">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               {head('name', 'Company')}
@@ -146,6 +150,8 @@ export function CompetitorTable({ rows, relationships, categories, areas }: { ro
               {head('revenueUsd', 'Revenue / yr', true)}
               {head('monthlyVisits', 'Visits / mo', true)}
               {head('fundingRaisedUsd', 'Raised', true)}
+              <th scope="col" className="whitespace-nowrap px-2 py-2 text-left font-medium">Last round</th>
+              {head('presence', 'Events & podcasts', true)}
               {head('foundedYear', 'Founded', true)}
               {head('reviewedAt', 'Reviewed')}
             </tr>
@@ -165,11 +171,13 @@ export function CompetitorTable({ rows, relationships, categories, areas }: { ro
                 <td className="px-2 py-1.5 text-right tabular-nums" title={r.revenueNote ?? undefined}>{compact(r.revenueUsd, true)}</td>
                 <td className="px-2 py-1.5 text-right tabular-nums" title={r.trafficNote ?? undefined}>{compact(r.monthlyVisits)}</td>
                 <td className="px-2 py-1.5 text-right tabular-nums">{compact(r.fundingRaisedUsd, true)}</td>
+                <td className="max-w-[14rem] truncate px-2 py-1.5 text-xs text-muted-foreground" title={[r.lastRound, r.investors && `Investors: ${r.investors}`].filter(Boolean).join('\n') || undefined}>{r.lastRound ?? '—'}</td>
+                <td className="px-2 py-1.5 text-right tabular-nums">{r.presence || '—'}</td>
                 <td className="px-2 py-1.5 text-right tabular-nums">{r.foundedYear ?? '—'}</td>
                 <td className="whitespace-nowrap px-2 py-1.5 text-xs text-muted-foreground">{r.reviewedAt ? r.reviewedAt.slice(0, 10) : 'never'}</td>
               </tr>
             ))}
-            {shown.length === 0 && <tr><td colSpan={9} className="px-2 py-6 text-center text-muted-foreground">No competitors match these filters.</td></tr>}
+            {shown.length === 0 && <tr><td colSpan={11} className="px-2 py-6 text-center text-muted-foreground">No competitors match these filters.</td></tr>}
           </tbody>
           {shown.length > 0 && (
             <tfoot className="bg-muted/30 text-xs text-muted-foreground">
@@ -178,7 +186,7 @@ export function CompetitorTable({ rows, relationships, categories, areas }: { ro
                 <td className="px-2 py-1.5 text-right tabular-nums">{total((r) => r.headcount).toLocaleString()} <span className="opacity-60">({have((r) => r.headcount)})</span></td>
                 <td className="px-2 py-1.5 text-right tabular-nums">{compact(total((r) => r.revenueUsd), true)} <span className="opacity-60">({have((r) => r.revenueUsd)})</span></td>
                 <td className="px-2 py-1.5 text-right tabular-nums">{compact(total((r) => r.monthlyVisits))} <span className="opacity-60">({have((r) => r.monthlyVisits)})</span></td>
-                <td colSpan={3} />
+                <td colSpan={5} />
               </tr>
             </tfoot>
           )}

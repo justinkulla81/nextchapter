@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, isIndexableJob, isPublicJob, isStaleVerified, jobPostingJsonLd, payLabel, type PublicJobRow } from '@/lib/jobs/public-job-page'
+import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, isIndexableJob, isPublicJob, isStaleVerified, jobPostingJsonLd, missingRequiredJobFields, payLabel, plausiblePay, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
 
 const NOW = Date.parse('2026-10-22T12:00:00Z')
 const DAY = 86_400_000
@@ -49,7 +49,7 @@ describe('isPublicJob', () => {
     ['closed', { closeReason: 'removed' }],
     ['archived', { archivedAt: new Date(NOW) }],
     ['expired', { expiresAt: new Date(NOW - 1) }],
-    ['not verified in 7 days', { lastVerifiedAt: new Date(NOW - 8 * DAY) }],
+    ['not verified in 14 days', { lastVerifiedAt: new Date(NOW - 15 * DAY) }],
     ['never verified', { lastVerifiedAt: null }],
     ['short description', { description: 'too short' }],
     ['confidential', { disclosure: 'CONFIDENTIAL' }],
@@ -73,11 +73,11 @@ describe('isPublicJob', () => {
 })
 
 describe('isStaleVerified', () => {
-  it('is false within the verification window', () => expect(isStaleVerified(new Date(NOW - 6 * DAY), NOW)).toBe(false))
-  it('is true past the window', () => expect(isStaleVerified(new Date(NOW - 8 * DAY), NOW)).toBe(true))
+  it('is false within the verification window', () => expect(isStaleVerified(new Date(NOW - 13 * DAY), NOW)).toBe(false))
+  it('is true past the window', () => expect(isStaleVerified(new Date(NOW - 15 * DAY), NOW)).toBe(true))
   it('is false with no verification date (employer-posted)', () => expect(isStaleVerified(null, NOW)).toBe(false))
   it('agrees with isPublicJob on the cutoff', () => {
-    const old = new Date(NOW - 8 * DAY)
+    const old = new Date(NOW - 15 * DAY)
     expect(isStaleVerified(old, NOW)).toBe(true)
     expect(isPublicJob(job({ lastVerifiedAt: old }), NOW)).toBe(false)
   })
@@ -90,7 +90,7 @@ describe('jobPostingJsonLd', () => {
       '@type': 'JobPosting',
       title: 'Practice Manager',
       datePosted: new Date(NOW - 12 * DAY).toISOString(),
-      validThrough: new Date(NOW - DAY + 30 * DAY).toISOString(),
+      validThrough: new Date(NOW - DAY + 14 * DAY).toISOString(),
       hiringOrganization: { name: 'Luminis Health', sameAs: 'https://www.luminishealth.org' },
       jobLocation: { address: { addressLocality: 'Lanham', addressRegion: 'MD', addressCountry: 'US' } },
       baseSalary: { currency: 'USD', value: { minValue: 80000, maxValue: 110000, unitText: 'YEAR' } },
@@ -141,5 +141,45 @@ describe('isIndexableJob', () => {
   })
   it('does not change who gets a page at all', () => {
     expect(isPublicJob(job({ description: 'x'.repeat(280) }), NOW)).toBe(true)
+  })
+})
+
+describe('validThroughOf', () => {
+  it('never runs past the day our page stops, even when the posting expires later', () => {
+    const lv = new Date(NOW - 2 * DAY)
+    expect(validThroughOf({ expiresAt: new Date(NOW + 60 * DAY), lastVerifiedAt: lv })?.toISOString()).toBe(new Date(NOW + 12 * DAY).toISOString())
+    expect(validThroughOf({ expiresAt: new Date(NOW + 3 * DAY), lastVerifiedAt: lv })?.toISOString()).toBe(new Date(NOW + 3 * DAY).toISOString())
+    expect(validThroughOf({ expiresAt: null, lastVerifiedAt: null })).toBeNull()
+  })
+})
+
+describe('plausiblePay', () => {
+  it('keeps stated pay with a unit', () => expect(plausiblePay({ salaryMin: 80000, salaryMax: 110000, payPeriod: 'year' })).toEqual({ min: 80000, max: 110000, unit: 'YEAR' }))
+  it('puts a backwards range right', () => expect(plausiblePay({ salaryMin: 110000, salaryMax: 80000, payPeriod: 'year' })).toEqual({ min: 80000, max: 110000, unit: 'YEAR' }))
+  it.each([
+    ['no unit', { salaryMin: 80000, salaryMax: 90000, payPeriod: null }],
+    ['a yearly figure of $12', { salaryMin: 12, salaryMax: 12, payPeriod: 'year' }],
+    ['an hourly figure of $900', { salaryMin: 900, salaryMax: 900, payPeriod: 'hour' }],
+    ['no figures', { salaryMin: null, salaryMax: null, payPeriod: 'year' }],
+  ])('leaves out %s', (_n, pay) => expect(plausiblePay(pay as never)).toBeNull())
+  it('writes no baseSalary into the page data for a bad figure', () => {
+    expect(jobPostingJsonLd(job({ salaryMin: 900, salaryMax: 900, payPeriod: 'hour' })).baseSalary).toBeUndefined()
+  })
+})
+
+describe('missingRequiredJobFields', () => {
+  it('passes a normal job, remote or not', () => {
+    expect(missingRequiredJobFields(jobPostingJsonLd(job()))).toEqual([])
+    expect(missingRequiredJobFields(jobPostingJsonLd(job({ workArrangement: 'remote' })))).toEqual([])
+  })
+  it('names what is missing', () => {
+    const ld = jobPostingJsonLd(job())
+    delete ld.jobLocation
+    delete ld.validThrough
+    expect(missingRequiredJobFields(ld)).toEqual(['validThrough', 'jobLocation|applicantLocationRequirements'])
+  })
+  it('flags a validThrough that is not after datePosted', () => {
+    const ld = { ...jobPostingJsonLd(job()), validThrough: new Date(NOW - 30 * DAY).toISOString() }
+    expect(missingRequiredJobFields(ld)).toEqual(['validThrough(after datePosted)'])
   })
 })

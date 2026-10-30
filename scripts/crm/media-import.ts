@@ -24,7 +24,7 @@ const COMPETITOR_ORG = /outplacement|\b(lhh|right management|risesmart|intoo|car
 function load(): Rec[] {
   const out: Rec[] = []
   const read = (f: string) => (existsSync(`${DIR}/${f}`) ? (JSON.parse(readFileSync(`${DIR}/${f}`, 'utf8')) as any[]) : [])
-  for (const j of [...read('journalists.json'), ...['A', 'B', 'C', 'D'].flatMap((g) => read(`local-${g}.json`))]) out.push({ name: j.name, org: j.outlet, domain: j.outlet_domain, title: j.title_or_beat, kind: j.kind, email: j.email, contactUrl: j.contact_url, evidence: j.evidence_urls ?? [], note: j.evidence_note, role: 'PRESS', orgType: 'MEDIA', group: 'journalist', extra: j.state ? `State ${j.state}. ` : '' })
+  for (const j of [...read('journalists.json'), ...['A', 'B', 'C', 'D', 'E', 'F'].flatMap((g) => read(`local-${g}.json`))]) out.push({ name: j.name, org: j.outlet, domain: j.outlet_domain, title: j.title_or_beat, kind: j.kind, email: j.email, contactUrl: j.contact_url, evidence: j.evidence_urls ?? [], note: j.evidence_note, role: 'PRESS', orgType: 'MEDIA', group: 'journalist', extra: j.state ? `State ${j.state}. ` : '' })
   for (const a of read('academics.json')) out.push({ name: a.name, org: a.institution, domain: a.institution_domain, title: a.title, kind: a.kind, email: a.email, contactUrl: a.contact_url, evidence: a.evidence_urls ?? [], note: a.evidence_note, role: 'POLICY_ANALYST', orgType: /fed|policy/.test(a.kind) ? 'THINK_TANK' : 'UNIVERSITY', group: 'academic', extra: a.research_focus ? `Research: ${a.research_focus}. ` : '' })
   for (const c of read('creators.json')) out.push({ name: c.name, org: c.handle_or_publication, domain: '', title: `${c.platform} · ${c.audience}`, kind: c.kind, email: c.email, contactUrl: c.contact_url, evidence: c.evidence_urls ?? [], note: c.evidence_note, role: /newsletter|youtube|podcast/.test(c.kind) ? 'PRESS' : 'CONNECTOR', orgType: 'MEDIA', group: 'creator', extra: `Topic: ${c.topic}. ` })
   return out
@@ -79,7 +79,7 @@ async function main() {
     if (res.outcome === 'removed') tally.removed++
     else {
       tally[res.outcome]++
-      if (r.review && res.outcome !== 'review') { await prisma.crmPerson.update({ where: { id: res.personId }, data: { needsCompletion: true } }); tally.flagged = (tally.flagged ?? 0) + 1 }
+      if (r.review && res.outcome === 'added') { await prisma.crmPerson.update({ where: { id: res.personId }, data: { needsCompletion: true } }); tally.flagged = (tally.flagged ?? 0) + 1 }
     }
   }
   writeFileSync(`${DIR}/import-dropped.txt`, drop.join('\n'))

@@ -5,10 +5,11 @@
  */
 import { cleanUrl, type NamedEntry, type WinEntry } from './competitor-areas'
 
-export const EVENT_KINDS = ['NEWS', 'WIN', 'LOGO', 'FUNDING', 'ACQUISITION', 'LAYOFF', 'CLOSURE', 'SITE_CHANGE'] as const
+export const EVENT_KINDS = ['NEWS', 'WIN', 'LOGO', 'FUNDING', 'ACQUISITION', 'LAYOFF', 'CLOSURE', 'SITE_CHANGE', 'BOOTH', 'SPONSOR', 'SPEAKING', 'PODCAST'] as const
 export type EventKind = (typeof EVENT_KINDS)[number]
 export const EVENT_LABEL: Record<EventKind, string> = {
   NEWS: 'News', WIN: 'Grant or contract won', LOGO: 'New customer', FUNDING: 'Funding', ACQUISITION: 'Acquisition', LAYOFF: 'Layoffs', CLOSURE: 'Shut down', SITE_CHANGE: 'Website changed',
+  BOOTH: 'Exhibits at', SPONSOR: 'Sponsors', SPEAKING: 'Speaks at', PODCAST: 'Podcast',
 }
 
 export const REFRESH_EVERY_DAYS = 30

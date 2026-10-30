@@ -64,7 +64,7 @@ export interface IndexNowResult {
 export async function runIndexNow(opts: { dryRun?: boolean } = {}): Promise<IndexNowResult> {
   const dryRun = !!opts.dryRun
   const [live, announced] = await Promise.all([loadLiveJobs(), readAnnounced(STATE_PATH)])
-  const plan = planChanges(live, announced, INDEXNOW_NEW_PER_RUN)
+  const plan = planChanges(live, announced, INDEXNOW_NEW_PER_RUN, { includeUnoffered: true })
   const result: IndexNowResult = {
     dryRun,
     live: live.length,

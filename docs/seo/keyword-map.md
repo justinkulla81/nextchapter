@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-188 clusters, 1089 phrases.
+189 clusters, 1093 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -196,6 +196,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/higher-education` | page | alumni career services for colleges | College buys alumni career support | alumni career services; student career services; college career services platform; alumni relations; career services workspace |
 | `/higher-education/:state` | family | {state} college career services | Colleges in one state | {state} colleges alumni support; {state} colleges career services; {state} university alumni career help |
 | `/government-workforce` | page | workforce board software | Workforce agency buys job seeker support | workforce development software; job seeker services; WIOA career services; economic development job seekers; chamber of commerce workforce |
+| `/for-rapid-response` | page | layoff response for workforce boards | Rapid Response team or workforce board looks for layoff response support | rapid response team software; dislocated worker services software; laid-off worker sign-up page |
 | `/workforce-boards` | page | workforce development boards | Find a local workforce board or job center | american job centers; local workforce board near me; workforce board directory; workforce investment board; job center near me; one-stop career center |
 | `/workforce-boards/:state` | family | {state} workforce development boards | Workforce boards in one state | {state} american job centers; {state} workforce boards; {state} job centers near me |
 | `/workforce-boards/:state/:board` | family | {board} workforce board | One workforce board | {board} american job center; {board} counties served; {board} contact |
@@ -1066,6 +1067,11 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Workforce Board Workspace for Job Seeker Services
 - Description: Claim your organization’s page with a work email at your domain. A free workspace gives workforce boards and chambers a page, services and basic counts.
+
+### `/for-rapid-response`
+
+- Title: Layoff Response for Workforce Boards and Rapid Response Teams
+- Description: One sign-up page for the workers in a layoff: local jobs ranked at the top, career support and AI skills, with counts of who stayed in your region.
 
 ### `/workforce-boards`
 
