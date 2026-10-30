@@ -26,7 +26,9 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 const n0 = (v: number | null | undefined) => (v == null ? '' : Math.round(v).toLocaleString('en-US'))
 const pct = (v: number | null | undefined, d = 1) => (v == null ? '' : `${v.toFixed(d)}%`)
 const cleanName = (name: string) => name.replace(/&amp;/gi, '&').replace(/&#0?39;|&apos;/gi, "'").replace(/\*[^*]*\*/g, '').replace(/\s+-\s+.*$/, '').replace(/(?<=\S)\s+\d{3,}\b.*$/, '').replace(/,\s*[A-Z]{2},?\s*\d{5}.*$/, '')
-const clean = (name: string) => cleanName(name).replace(/\([^)]*\)/g, '').replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+20\d\d\b/gi, '').replace(/,?\s*et\s?al\.?/i, '').replace(/[’']s\b/g, '')
+// "Formagrid Inc. dba Airtable" is shown as the trade name, "Airtable".
+const tradeName = (name: string) => name.replace(/^.*\b(?:dba|d\/b\/a)\s+/i, '')
+const clean = (name: string) => tradeName(cleanName(name)).replace(/\([^)]*\)/g, '').replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+20\d\d\b/gi, '').replace(/,?\s*et\s?al\.?/i, '').replace(/[’']s\b/g, '')
   .replace(/,?\s+(inc|llc|l\.l\.c|corp|corporation|co|company|ltd|plc|lp|llp)\.?\s*$/i, '').replace(/\s+/g, ' ').trim()
 const q = (v: unknown) => '"' + String(v ?? '').replace(/"/g, '""') + '"'
 const cityOf = (n: Notice | undefined, state: string) => {
