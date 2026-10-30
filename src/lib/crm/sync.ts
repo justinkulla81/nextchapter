@@ -130,6 +130,23 @@ export async function buildSweepContext(
 }
 
 /**
+ * The same email can reach the CRM under two Gmail message ids: a copy in a second connected mailbox, or the row the app logged when it sent the
+ * message itself. Same person, direction and subject within a few seconds is that one email, not a second one.
+ */
+async function alreadyLoggedAsAnotherCopy(personId: string, direction: 'INBOUND' | 'OUTBOUND', subject: string | null | undefined, at: Date, ref: string) {
+  const near = 5_000
+  const dup = await prisma.crmActivity.findFirst({
+    where: {
+      type: 'EMAIL', personId, direction, subject: subject ?? null,
+      occurredAt: { gte: new Date(at.getTime() - near), lte: new Date(at.getTime() + near) },
+      NOT: { sourceRef: ref },
+    },
+    select: { id: true },
+  })
+  return !!dup
+}
+
+/**
  * Mail to family and friends is personal, not outreach — it never needs a
  * "does this belong in the CRM?" review. True when the person's only role is
  * Friends and family (the same test meeting-prep uses). Cached per sweep.
@@ -585,6 +602,7 @@ async function sweepMailbox(
       const decision = direction === 'OUTBOUND' && !relevant ? await reviewDecisionFor(personId, decisionCache) : null
       if (decision === 'DISCARDED') continue
       const needsReview = direction === 'OUTBOUND' && !relevant && decision !== 'APPROVED' && !(await isFriendsFamilyOnly(personId, familyCache))
+      if (await alreadyLoggedAsAnotherCopy(personId, direction, msg.subject, msg.internalDate, `${id}:${personId}`)) continue
       const created = await prisma.crmActivity.upsert({
         where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
         create: {
@@ -1059,6 +1077,7 @@ async function backfillFromMailbox(
       if (!item) continue
       const { id, msg, direction, fullBody } = item
       const relevant = mentionsNextChapter(msg.subject, msg.snippet)
+      if (await alreadyLoggedAsAnotherCopy(personId, direction, msg.subject, msg.internalDate, `${id}:${personId}`)) continue
       await prisma.crmActivity.upsert({
         where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
         create: {
