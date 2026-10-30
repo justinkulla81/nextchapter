@@ -1,8 +1,9 @@
 // A Write email link from the CRM opens Gmail's full-page compose (the only
 // thing Gmail lets a prefilled link open). If Gmail is already open in another
 // tab for the same account, move the message into that tab's small "New
-// Message" window and close the full-page tab. With no Gmail tab open, or on
-// any failure, the full-page compose stays as it is.
+// Message" window and close the full-page tab; with none open, the compose tab
+// becomes the inbox with the window docked over it. On any failure the
+// full-page compose stays as it is.
 const handled = new Set()
 
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
@@ -20,7 +21,21 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
       const u = new URL(t.url)
       return u.searchParams.get('tf') !== 'cm' && u.pathname.match(/^\/mail\/u\/(\d+)\//)?.[1] === account
     })
-    if (!target) return
+    if (!target) {
+      // No Gmail tab for this account: turn the compose tab itself into that account's inbox, then dock the message over it.
+      if (account === undefined) return
+      await chrome.tabs.update(tabId, { url: `https://mail.google.com/mail/u/${account}/#inbox` })
+      await new Promise((resolve) => {
+        const done = (id, change) => {
+          if (id !== tabId || change.status !== 'complete') return
+          chrome.tabs.onUpdated.removeListener(done)
+          resolve()
+        }
+        chrome.tabs.onUpdated.addListener(done)
+      })
+      await chrome.scripting.executeScript({ target: { tabId }, func: openDockedCompose, args: [message] })
+      return
+    }
     // Gmail ignores typing into a tab that is not in front, so bring it forward before filling the window.
     await chrome.tabs.update(target.id, { active: true })
     await chrome.windows.update(target.windowId, { focused: true })
