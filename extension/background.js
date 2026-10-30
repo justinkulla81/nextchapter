@@ -21,10 +21,14 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
       return u.searchParams.get('tf') !== 'cm' && u.pathname.match(/^\/mail\/u\/(\d+)\//)?.[1] === account
     })
     if (!target) return
-    const [{ result } = {}] = await chrome.scripting.executeScript({ target: { tabId: target.id }, func: openDockedCompose, args: [message] })
-    if (!result) return
+    // Gmail ignores typing into a tab that is not in front, so bring it forward before filling the window.
     await chrome.tabs.update(target.id, { active: true })
     await chrome.windows.update(target.windowId, { focused: true })
+    const [{ result } = {}] = await chrome.scripting.executeScript({ target: { tabId: target.id }, func: openDockedCompose, args: [message] })
+    if (!result) {
+      await chrome.tabs.update(tabId, { active: true })
+      return
+    }
     await chrome.tabs.remove(tabId)
   } catch (error) {
     console.error('Docked compose failed; leaving the full-page compose open:', error)
@@ -58,12 +62,23 @@ async function openDockedCompose({ to, subject, body }) {
   const bodyField = dialog.querySelector('div[aria-label="Message Body"][contenteditable="true"]')
   if (!toField || !subjectField || !bodyField) return false
 
-  toField.focus()
-  document.execCommand('insertText', false, to)
-  // Enter turns the typed address into a recipient chip.
-  for (const type of ['keydown', 'keyup']) toField.dispatchEvent(new KeyboardEvent(type, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }))
-  subjectField.focus()
-  document.execCommand('insertText', false, subject)
+  // Gmail finishes setting the window up after it appears and can wipe what was typed too early.
+  await wait(700)
+  const hasRecipient = () => !!dialog.querySelector('[email], [data-hovercard-id]')
+  for (let attempt = 0; attempt < 4 && !(hasRecipient() && subjectField.value === subject); attempt++) {
+    if (!hasRecipient()) {
+      toField.focus()
+      document.execCommand('insertText', false, to)
+      // Enter turns the typed address into a recipient chip.
+      for (const type of ['keydown', 'keyup']) toField.dispatchEvent(new KeyboardEvent(type, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true }))
+    }
+    if (subjectField.value !== subject) {
+      subjectField.focus()
+      subjectField.select()
+      document.execCommand('insertText', false, subject)
+    }
+    await wait(500)
+  }
   bodyField.focus()
   // Gmail puts the signature below the cursor, so the note goes in above it.
   getSelection().collapse(bodyField, 0)
