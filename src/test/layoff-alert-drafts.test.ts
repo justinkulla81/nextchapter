@@ -79,6 +79,7 @@ describe('withComposeLinks', () => {
     const u = new URL(g.cards[0].compose!)
     expect(u.origin + u.pathname).toBe('https://mail.google.com/mail/')
     expect(u.searchParams.get('authuser')).toBe(COMPOSE_ACCOUNT)
+    expect(u.searchParams.get('nc')).toBe('dock')
     expect(u.searchParams.get('to')).toBe('chelsea@acme.com')
     expect(g.cards[1].compose).toBeUndefined()
   })
