@@ -30,7 +30,7 @@ export async function FreshLinks({ tone, placement }: { tone: 'dark' | 'light'; 
   return (
     <div className={tone === 'dark' ? 'mt-12 space-y-6 text-left' : 'space-y-6'}>
       <LinkList title="Latest layoffs" links={layoffs} placement={placement} tone={tone} />
-      <LinkList title="Newest jobs with pay listed" links={jobs} placement={placement} tone={tone} />
+      <LinkList title="Newest jobs" links={jobs} placement={placement} tone={tone} />
     </div>
   )
 }

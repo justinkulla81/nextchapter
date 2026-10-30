@@ -1,7 +1,11 @@
 import 'server-only'
 import { getRecentNotices } from '@/lib/seo/topic-data'
 import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-announcements'
-import { cleanPublicQuery, searchPublicBoardCached } from '@/lib/jobs/public-board'
+import { unstable_cache } from 'next/cache'
+import { prisma } from '@/lib/prisma'
+import { heavy } from '@/lib/db/heavy'
+import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION } from '@/lib/jobs/public-job-page'
+import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_OFFERED_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
 
 // The newest layoff pages and job pages, as plain links for the home page and /news. Their job is crawling: a page that is
 // linked from a busy page is found in hours, not weeks, and every new page gets its first internal link here. Only pages
@@ -40,13 +44,25 @@ export async function getFreshLayoffLinks(): Promise<FreshLink[]> {
     .map((x) => ({ label: `${x.name} layoffs`, href: `/layoffs/company/${x.slug}`, kind: 'layoff' as const, key: x.slug }))
 }
 
+// The newest jobs that are in the job sitemap (public page, real posting text, live, offered to search engines): the same SQL as
+// src/app/jobs/sitemap.ts, newest first, eight rows. Cached for half an hour so a page view never runs it.
+const newestOfferedJobs = unstable_cache(
+  () => heavy(() => prisma.$queryRaw<{ id: string; title: string; companyName: string }[]>`
+    SELECT id, title, "companyName" FROM "ExclusiveJobPosting"
+    WHERE ${PUBLIC_JOB_STATIC_SQL}
+      AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
+      AND ${PUBLIC_JOB_LIVE_SQL}
+      AND ${PUBLIC_JOB_OFFERED_SQL}
+    ORDER BY coalesce("postedAt", "createdAt") DESC
+    LIMIT ${JOB_LINKS}`),
+  ['fresh-job-links-v1'],
+  { revalidate: 1800 },
+)
+
 export async function getFreshJobLinks(): Promise<FreshLink[]> {
   try {
-    const result = await searchPublicBoardCached(cleanPublicQuery({ q: '', loc: '', remote: '' }))
-    return result.jobs
-      .filter((j) => j.pagePath && (j.salaryMin || j.salaryMax))
-      .slice(0, JOB_LINKS)
-      .map((j) => ({ label: `${j.title}, ${j.company}`, href: j.pagePath!, kind: 'job' as const, key: j.id }))
+    const rows = await newestOfferedJobs()
+    return rows.map((j) => ({ label: `${j.title}, ${j.companyName}`, href: `/jobs/${j.id}`, kind: 'job' as const, key: j.id }))
   } catch {
     return []
   }
