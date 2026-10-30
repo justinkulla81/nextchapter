@@ -11,7 +11,7 @@ import { conferencesAtPlace } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
-import { getCountyPage, getPlaceLinker, meetsCountyBar, placeUrl } from '@/lib/places/places'
+import { countyIndexable, getCountyPage, getPlaceLinker, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
 import { titleMeta } from '@/lib/seo/title'
 
@@ -39,11 +39,13 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
     d.jobsOpen ? `${d.jobsOpen.toLocaleString()} open jobs` : null,
     d.layoffs.notices ? `${d.layoffs.notices} layoff notices in 12 months` : null,
   ].filter(Boolean)
+  // A county with a layoff notice in the last 12 months leads with the layoffs: that is the search it answers.
+  const layoffTitle = d.layoffs.notices > 0 ? titleMeta(`${c.name}, ${s.code} Layoffs: Recent Notices and Local Help`) : null
   return {
-    title: titleMeta(placeCountySeo(c.name, s.code).title),
+    title: layoffTitle ?? titleMeta(placeCountySeo(c.name, s.code).title),
     description: `${c.name}, ${name}: ${bits.length ? bits.join(', ') + '. ' : ''}Employers, colleges, the local workforce board and American Job Centers.`,
     ...canonical(placeUrl.county(state, county)),
-    ...(meetsCountyBar(c.population, d.cities.length) ? {} : { robots: { index: false, follow: true } }),
+    ...(countyIndexable(c.population, d.cities.length, d.layoffs.notices) ? {} : { robots: { index: false, follow: true } }),
   }
 }
 
