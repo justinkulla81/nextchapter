@@ -15,7 +15,7 @@ import { getCountyPage, getPlaceLinker, meetsCountyBar, placeUrl } from '@/lib/p
 import { placeJsonLd } from '@/lib/places/jsonld'
 import { titleMeta } from '@/lib/seo/title'
 
-export const revalidate = 86400
+export const revalidate = 604800 // 7 days: slow-changing page, one of the larger ISR write sources
 export const dynamicParams = true
 export function generateStaticParams() {
   return []

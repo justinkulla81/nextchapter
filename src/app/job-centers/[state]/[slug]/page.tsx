@@ -12,7 +12,7 @@ import { titleMeta } from '@/lib/seo/title'
 
 // One page per organization, built on first visit and refreshed daily. A page below the content bar
 // (src/lib/seo/org-page-rules.ts) renders but is noindex and left out of the sitemap.
-export const revalidate = 86400
+export const revalidate = 604800 // 7 days: slow-changing page, one of the larger ISR write sources
 export const dynamicParams = true
 export function generateStaticParams() {
   return []
