@@ -8,12 +8,13 @@ import { VisitorsTrafficChart } from '@/components/admin/VisitorsTrafficChart'
 import { TrafficRangeProvider, VisitorsRangeSummary, type RangeTotals, type TrafficRange } from '@/components/admin/VisitorsActivityRange'
 import { AverageBarChart } from '@/components/admin/AverageBarChart'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
+import { isDatacenterIp } from '@/lib/http/datacenter-ip'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
-import { extractEmailLinkId, resolveEmailRecipients, type EmailRecipient } from '@/lib/marketing/email-attribution'
+import { buildEmailIpAnchors, extractEmailLinkId, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, resolveEmailRecipients, type EmailRecipient } from '@/lib/marketing/email-attribution'
 import { allTimeDayCount, byHourOfDay, byWeekday, perDaySeries, perHourSeries } from '@/lib/admin/visitor-time-buckets'
 
 export const maxDuration = 30
@@ -49,6 +50,8 @@ interface Row {
   source: string
   // Set when the visit came from a tracked outbound email: the person it was sent to.
   recipient: EmailRecipient | null
+  // Set when this visit has no tag of its own but its IP matches a tagged email visit within the past week.
+  likelyRecipient: EmailRecipient | null
   device: string
   // Per-IP totals across all of this visitor's recorded events (not just this row).
   views: number
@@ -228,7 +231,25 @@ export default async function AdminVisitorActivityPage({
       .map(([ip, candidates]) => [ip, candidates[0]])
   )
 
-  const recipientByLink = await resolveEmailRecipients(events.map((e) => extractEmailLinkId(e.path)).filter((id): id is string => !!id))
+  // Tagged email visits from these IPs in the week before the oldest event shown: the anchors for the same-IP guess.
+  const oldestShown = events.reduce((min, e) => (e.createdAt < min ? e.createdAt : min), new Date())
+  const anchorVisits =
+    uniqueIps.length > 0
+      ? await prisma.homepageVisitEvent.findMany({
+          where: {
+            ip: { in: uniqueIps },
+            eventType: 'PAGE_VIEW',
+            path: { contains: 'nc_e=' },
+            createdAt: { gte: new Date(oldestShown.getTime() - IP_MATCH_WINDOW_MS) },
+          },
+          select: { ip: true, path: true, createdAt: true, userAgent: true },
+        })
+      : []
+  const ipAnchors = buildEmailIpAnchors(anchorVisits.filter((v) => classifyUserAgent(v.userAgent) === 'human' && !isDatacenterIp(v.ip)))
+  const recipientByLink = await resolveEmailRecipients([
+    ...events.map((e) => extractEmailLinkId(e.path)),
+    ...Array.from(ipAnchors.values()).flatMap((list) => list.map((a) => a.linkId)),
+  ].filter((id): id is string => !!id))
 
   // Per-person totals: one row per IP, same bot rule as the log. "Person" is an IP — the best identity an
   // anonymous visit carries.
@@ -268,6 +289,11 @@ export default async function AdminVisitorActivityPage({
       const id = extractEmailLinkId(e.path)
       return id ? (recipientByLink.get(id) ?? null) : null
     })(),
+    likelyRecipient: (() => {
+      if (classifyUserAgent(e.userAgent) !== 'human' || isDatacenterIp(e.ip)) return null
+      const id = inferEmailLinkByIp(e, ipAnchors, (linkId) => recipientByLink.get(linkId)?.personId)
+      return id ? (recipientByLink.get(id) ?? null) : null
+    })(),
     device: classifyDevice(e.userAgent),
     views: e.ip ? (totalsByIp.get(e.ip)?.views ?? 0) : 0,
     clicks: e.ip ? (totalsByIp.get(e.ip)?.clicks ?? 0) : 0,
@@ -294,6 +320,16 @@ export default async function AdminVisitorActivityPage({
           )
         }
         const person = r.candidate ?? r.inferredCandidate
+        if (!person && r.likelyRecipient) {
+          return (
+            <>
+              <Link href={`/support/admin/crm/people/${r.likelyRecipient.personId}`} className="font-medium text-primary hover:underline">
+                {r.likelyRecipient.name}
+              </Link>
+              <span className="text-muted-foreground" title="Same IP address as their email click within the past 7 days. A guess, not a certain match."> (likely, same IP as their email click)</span>
+            </>
+          )
+        }
         if (person) {
           return (
             <>
