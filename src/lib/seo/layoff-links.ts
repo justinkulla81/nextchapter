@@ -12,6 +12,13 @@ import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
  */
 export interface CrossLink { label: string; href: string }
 
+/** The free tools for someone who was just laid off, linked from every layoff page so each page passes visitors (and links) to them. */
+export const LAYOFF_TOOL_LINKS: CrossLink[] = [
+  { label: 'Layoff deadlines: what to do and by when, from your last day', href: '/tools/layoff-deadlines' },
+  { label: 'Unemployment benefit estimator: about how much you could get', href: '/tools/unemployment-estimator' },
+  { label: 'Severance calculator: what an offer is worth after taxes', href: '/tools/severance-calculator' },
+]
+
 /** The pages that help people laid off in a state, each only if it exists. */
 export async function stateHelpLinks(code: string): Promise<CrossLink[]> {
   const slug = stateSlug(code)

@@ -34,6 +34,14 @@ export function meetsCountyBar(population: number | null, qualifyingCities: numb
   return qualifyingCities >= 1 || (population ?? 0) >= COUNTY_MIN_POPULATION
 }
 
+/**
+ * A county page with a layoff notice of its own in the last 12 months is offered to search engines whatever its size: "layoffs in
+ * <county>" is searched after a closure, and the page then holds real, recent filings, which a small rural county's page otherwise lacks.
+ */
+export function countyIndexable(population: number | null, qualifyingCities: number, recentNotices: number): boolean {
+  return recentNotices >= 1 || meetsCountyBar(population, qualifyingCities)
+}
+
 /** Open public roles a city needs before it gets a page on jobs alone. */
 export const CITY_MIN_JOBS = 3
 
@@ -261,6 +269,16 @@ export function noticeAreas(place: string | null, cityKeys: Set<string>): { coun
   if (both) return { county: both[1], city: both[2] }
   if (isCountyPlace(place)) return { county: place, city: null }
   return cityKeys.has(placeKey(place)) ? { county: null, city: place } : { county: place, city: null }
+}
+
+/** `${state}|${countyKey}` for every county that a WARN notice in the last 12 months names as its place (the sitemap's cheap test). */
+export async function getCountiesWithRecentNotices(): Promise<Set<string>> {
+  const out = new Set<string>()
+  for (const n of await getPublicNotices()) {
+    if (n.noticeDate.getTime() < cutoff12() || !isCountyPlace(n.place)) continue
+    out.add(`${n.state}|${countyKey(n.place)}`)
+  }
+  return out
 }
 
 export interface LayoffStats { notices: number; workers: number; employers: number }

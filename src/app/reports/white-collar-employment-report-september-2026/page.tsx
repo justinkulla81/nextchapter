@@ -1,3 +1,4 @@
+import { CiteThisReport } from '@/components/reports/CiteThisReport'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Script from 'next/script'
@@ -220,6 +221,7 @@ export default function WhiteCollarEmploymentReportSeptember2026() {
         <div className="mx-auto w-full max-w-3xl px-6 py-10">
           <AuthorByline updated={MODIFIED} className="mb-4" />
           <div className="mb-6"><ShareBar url={URL} title="NextChapter White Collar Employment Report: September 2026" placement="report_edition" label="Send this report to someone" /></div>
+          <CiteThisReport title="NextChapter White Collar Employment Report, September 2026" url={URL} published="October 5, 2026" />
           <p className="text-xs font-semibold uppercase tracking-wider text-brand">About the author</p>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             <span className="font-semibold text-navy">Justin Kulla</span> is the founder of NextChapter; a former CTO

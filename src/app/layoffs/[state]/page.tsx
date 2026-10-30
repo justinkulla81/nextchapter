@@ -17,7 +17,7 @@ import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { TWELVE_MONTHS_MS, getPublicNotices, noticeDay } from '@/lib/warn/layoff-pages'
 import { getPlaceLinker, getStateCounties, placeUrl } from '@/lib/places/places'
 import { titleMeta } from '@/lib/seo/title'
-import { stateHelpLinks } from '@/lib/seo/layoff-links'
+import { LAYOFF_TOOL_LINKS, stateHelpLinks } from '@/lib/seo/layoff-links'
 
 export const revalidate = 86400
 
@@ -175,6 +175,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
               <li><Link href="/resources/cobra-aca" className={LINK}>Keeping your health coverage: COBRA and the marketplace</Link></li>
               <li><Link href={`/resources/cobra-aca/${state}`} className={LINK}>COBRA vs ACA in {d.name}: which costs less</Link></li>
               {helpLinks.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}
+              {LAYOFF_TOOL_LINKS.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}
             </ul>
           </section>
 
