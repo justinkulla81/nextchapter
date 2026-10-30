@@ -8,7 +8,7 @@ import { HomeLearnMore } from '@/components/home/HomeLearnMore'
 import { HomeFunding } from '@/components/home/HomeFunding'
 import { AiJobsStat } from '@/components/marketing/AiJobsStat'
 import { AiExposureSection } from '@/components/marketing/AiExposureSection'
-import { Suspense } from 'react'
+import { Suspense, type ReactNode } from 'react'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 
 // The redesigned homepage (docs/candidate-redesign.md page contract): one headline, one
@@ -67,7 +67,7 @@ const TOPIC_LINKS = [
 // `variant` is also on every homepage_cta_clicked event, so PostHog can split them.
 export type HomeVariantName = 'control' | 'picker'
 
-export function NewHome({ variant = 'control' }: { variant?: HomeVariantName } = {}) {
+export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeVariantName; fresh?: ReactNode } = {}) {
   const picker = variant === 'picker'
   return (
     <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
@@ -164,6 +164,7 @@ export function NewHome({ variant = 'control' }: { variant?: HomeVariantName } =
               Get your Market Reality Assessment
             </TrackedLink>
           </div>
+          {fresh}
           <nav aria-label="Topics" className="mt-12 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-white/80">
             {TOPIC_LINKS.map((l) => (
               <Link key={l.href} href={l.href} className="underline-offset-4 hover:text-white hover:underline">

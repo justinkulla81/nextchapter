@@ -11,6 +11,7 @@ import { getLayoffTracker } from '@/lib/warn/public-tracker'
 import { LayoffTracker } from '@/components/news/LayoffTracker'
 import { getNationalLaborData } from '@/lib/market/bls-national'
 import { StructuredData } from '@/components/StructuredData'
+import { FreshLinks } from '@/components/marketing/FreshLinks'
 
 const SITE = 'https://launchyournextchapter.com'
 
@@ -73,6 +74,10 @@ export default async function NewsPage() {
           <p className="mt-6 text-sm text-muted-foreground">
             Follow along: <a href="/news/feed.xml" className="text-primary underline underline-offset-4">RSS feed</a>
           </p>
+
+          <div className="mt-16 border-t border-border pt-10">
+            <FreshLinks tone="light" placement="news" />
+          </div>
 
           {tracker && (
             <div className="mt-20 border-t border-border pt-16">
