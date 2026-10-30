@@ -2,6 +2,8 @@ import 'server-only'
 import { cleanPublicQuery, searchPublicBoardCached } from '@/lib/jobs/public-board'
 import { TOPICS } from '@/lib/seo/explainers'
 import { SITE_URL } from '@/lib/seo/facts'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { LAID_OFF_TOOLS, LAID_OFF_TOOL_NAMES, callLaidOffTool } from '@/lib/mcp/laid-off-tools'
 import { queryLayoffs, validState } from '@/lib/layoffs/public-query'
 
 // A small, read-only Model Context Protocol server (Streamable HTTP, stateless JSON-RPC) so AI assistants can search
@@ -56,6 +58,7 @@ const TOOLS = [
     },
     annotations: { readOnlyHint: true, openWorldHint: false },
   },
+  ...LAID_OFF_TOOLS,
 ] as const
 
 function pay(min: number | null, max: number | null): string | null {
@@ -115,6 +118,7 @@ async function callTool(name: string, args: Record<string, unknown>) {
     const guides = findGuides(question)
     return { guides, all_guides: `${SITE_URL}/topics` }
   }
+  if (LAID_OFF_TOOL_NAMES.includes(name)) return callLaidOffTool(name, args)
   return null
 }
 
@@ -132,8 +136,8 @@ export async function handleMcpMessage(msg: JsonRpcRequest, allowSearch: () => P
       return ok(id, {
         protocolVersion: SUPPORTED_VERSIONS.has(asked) ? asked : MCP_PROTOCOL_VERSION,
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: 'nextchapter-jobs', title: 'NextChapter jobs and career guides', version: '1.0.0' },
-        instructions: 'Search current professional job openings and find plain-language career guides for people between jobs. Public data only.',
+        serverInfo: { name: 'nextchapter-jobs', title: 'NextChapter jobs, layoffs and career guides', version: '1.1.0' },
+        instructions: 'Search current professional job openings, look up layoff notices, unemployment benefits by state, programs for laid-off workers and AI exposure by job title, and find plain-language career guides for people between jobs. Public data only.',
       })
     }
     case 'ping':
@@ -144,11 +148,17 @@ export async function handleMcpMessage(msg: JsonRpcRequest, allowSearch: () => P
       const name = typeof msg.params?.name === 'string' ? msg.params.name : ''
       const args = (msg.params?.arguments as Record<string, unknown> | undefined) ?? {}
       if (!TOOLS.some((t) => t.name === name)) return err(id, -32602, `Unknown tool: ${name}`)
-      if (name === 'search_jobs' && !(await allowSearch())) {
+      if ((name === 'search_jobs' || name === 'ai_exposure_for_job_title') && !(await allowSearch())) {
         return ok(id, { isError: true, content: [{ type: 'text', text: 'Too many searches from this network. Try again later or browse https://launchyournextchapter.com/jobs.' }] })
       }
       try {
         const data = await callTool(name, args)
+        const failed = typeof data === 'object' && data !== null && 'error' in data
+        try {
+          captureServerEvent('mcp_client', 'mcp_tool_called', { tool: name, state: typeof args.state === 'string' ? args.state.slice(0, 2).toUpperCase() : null, ok: !failed })
+        } catch {
+          // Analytics never blocks an answer.
+        }
         return ok(id, { content: [{ type: 'text', text: JSON.stringify(data) }], structuredContent: data })
       } catch (e) {
         console.error('mcp tool failed:', e instanceof Error ? e.message : e)
