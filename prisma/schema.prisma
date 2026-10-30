@@ -1974,6 +1974,8 @@ model HomepageVisitEvent {
   href      String? // LINK_CLICK only — the destination the visitor clicked
   referrer  String? // PAGE_VIEW only — where the visitor came from
   userAgent String?
+  // ISO country code from Vercel's edge (x-vercel-ip-country); null on rows recorded before 2026-10-29.
+  country   String?
   createdAt DateTime               @default(now())
 
   // Set only when the beacon request carried a real (non-anonymous) Supabase

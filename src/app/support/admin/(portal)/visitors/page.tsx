@@ -7,6 +7,8 @@ import { VisitorsPerDayChart } from '@/components/admin/VisitorsPerDayChart'
 import { classifyUserAgent } from '@/lib/http/user-agent'
 import { DeviceShareChart } from '@/components/admin/DeviceShareChart'
 import { analyzeVisits } from '@/lib/admin/visitor-analytics'
+import { buildKeyStats } from '@/lib/admin/key-stats'
+import { KeyStatsSection, type KeyStatsDayWithMembers } from '@/components/admin/KeyStatsSection'
 import { loadSearchConsole, type SearchConsoleResult, type SearchRow } from '@/lib/google/search-console'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
@@ -16,6 +18,10 @@ import { classifyTrafficSource, trafficSourceGroup, type TrafficSourceGroup } fr
 export const maxDuration = 30
 
 const CHART_WINDOW_DAYS = 30
+const KEY_STATS_DAYS = 60
+const KEY_STATS_EVENT_CAP = 250_000
+const DAY_MS = 24 * 60 * 60 * 1000
+const MARKET_REALITY_PATH = '/dashboard/market-reality'
 const ET_TIME_ZONE = 'America/New_York'
 
 // en-CA formats as YYYY-MM-DD — a clean, sortable, ET-anchored day key with
@@ -203,6 +209,40 @@ export default async function AdminVisitorsPage({
   const osRows = tally(humanChartEvents.map((e) => classifyOs(e.userAgent)))
   const browserRows = tally(humanChartEvents.map((e) => classifyBrowser(e.userAgent)))
   const searchConsole = await loadSearchConsole()
+
+  const keyStatsKeys = Array.from({ length: KEY_STATS_DAYS }, (_, i) => etDateKey(new Date(now().getTime() - (KEY_STATS_DAYS - 1 - i) * DAY_MS)))
+  const keyStatsStart = new Date(now().getTime() - (KEY_STATS_DAYS + 1) * DAY_MS)
+  const [keyStatsEvents, signupRows, marketRealityRows, firstCountry] = await Promise.all([
+    prisma.homepageVisitEvent.findMany({
+      where: { createdAt: { gte: keyStatsStart }, eventType: 'PAGE_VIEW' },
+      select: { createdAt: true, ip: true, path: true, userAgent: true, country: true },
+      orderBy: { createdAt: 'desc' },
+      take: KEY_STATS_EVENT_CAP,
+    }),
+    prisma.homepageLead.findMany({ where: { createdAt: { gte: keyStatsStart } }, select: { email: true, createdAt: true } }),
+    prisma.candidatePageActivityEvent.findMany({
+      where: { createdAt: { gte: keyStatsStart }, eventType: 'PAGE_VIEW', path: { startsWith: MARKET_REALITY_PATH } },
+      select: { candidateId: true, createdAt: true },
+    }),
+    prisma.homepageVisitEvent.findFirst({ where: { country: { not: null } }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } }),
+  ])
+  const distinctPerDay = (rows: { key: string; createdAt: Date }[]) => {
+    const perDay = new Map<string, Set<string>>()
+    for (const r of rows) {
+      const k = etDateKey(r.createdAt)
+      const set = perDay.get(k) ?? new Set<string>()
+      set.add(r.key)
+      perDay.set(k, set)
+    }
+    return perDay
+  }
+  const signupsByDay = distinctPerDay(signupRows.map((r) => ({ key: r.email.toLowerCase(), createdAt: r.createdAt })))
+  const marketRealityByDay = distinctPerDay(marketRealityRows.map((r) => ({ key: r.candidateId, createdAt: r.createdAt })))
+  const keyStatsDays: KeyStatsDayWithMembers[] = buildKeyStats(keyStatsEvents, { dayKey: etDateKey, dateKeys: keyStatsKeys }).map((d) => ({
+    ...d,
+    emailSignups: signupsByDay.get(d.dateKey)?.size ?? 0,
+    marketRealityMembers: marketRealityByDay.get(d.dateKey)?.size ?? 0,
+  }))
   const analysis = analyzeVisits(humanAllEvents, {
     dayKey: etDateKey,
     dateKeys: Array.from({ length: CHART_WINDOW_DAYS }, (_, i) => etDateKey(new Date(now().getTime() - (CHART_WINDOW_DAYS - 1 - i) * 24 * 60 * 60 * 1000))),
@@ -234,6 +274,8 @@ export default async function AdminVisitorsPage({
           </Link>
         </p>
       </div>
+
+      <KeyStatsSection days={keyStatsDays} countryTrackedSince={firstCountry ? etDateKey(firstCountry.createdAt) : null} />
 
       <div className="rounded-lg border border-border p-4">
         <h2 className="text-sm font-medium text-foreground">Mobile vs desktop</h2>
