@@ -33,5 +33,7 @@ describe('db heavy helpers', async () => {
     let calls = 0
     await expect(retryOnPoolTimeout(async () => { if (calls++ < 2) throw Object.assign(new Error('pool'), { code: 'P2024' }); return 'done' })).resolves.toBe('done')
     await expect(retryOnPoolTimeout(async () => { throw new Error('other') })).rejects.toThrow('other')
+    calls = 0
+    await expect(retryOnPoolTimeout(async () => { if (calls++ < 1) throw new Error('Error in connector: FATAL: (EMAXCONN) max client connections reached, limit: 600'); return 'done' })).resolves.toBe('done')
   })
 })
