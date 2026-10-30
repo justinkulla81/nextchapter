@@ -6,7 +6,7 @@
 
 export interface StaffAgentLimits { orgMonthlyCalls: number; dailyCalls: number; monthlyCalls: number }
 
-export const DEFAULT_STAFF_LIMITS: StaffAgentLimits = { orgMonthlyCalls: 20, dailyCalls: 100, monthlyCalls: 1500 }
+export const DEFAULT_STAFF_LIMITS: StaffAgentLimits = { orgMonthlyCalls: 60, dailyCalls: 150, monthlyCalls: 2500 }
 
 const positiveInt = (v: string | undefined, fallback: number): number => {
   const n = Number.parseInt(v ?? '', 10)

@@ -17803,3 +17803,24 @@ model OutplacementAgentDraft {
   @@unique([seatId, weekKey, contactId])
   @@index([candidateId, weekKey])
 }
+
+// A note one of the staff agents drafted for a staff member to review and send themselves (docs/STAFF_AGENTS.md). One row per agent,
+// person and week. `subjectId` is the person it is about (an InstitutionMember id for the career-services agent), `ownerId` the staff
+// member it is for. Never sent by us; never written to anyone's Google account.
+model StaffAgentDraft {
+  id            String   @id @default(cuid())
+  institutionId String
+  agent         String
+  subjectId     String
+  ownerId       String
+  weekKey       String
+  subject       String
+  body          String
+  reason        String
+  inputTokens   Int      @default(0)
+  outputTokens  Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@unique([agent, subjectId, weekKey])
+  @@index([institutionId, agent, createdAt])
+}
