@@ -7,6 +7,8 @@ import { AuthorByline } from '@/components/seo/AuthorByline'
 import { articleJsonLd } from '@/lib/seo/jsonld'
 import { pageH1, pageMetadata, pageSeo } from '@/lib/seo/keywords'
 import { TOPICS, getTopic } from '@/lib/seo/explainers'
+import { TOPIC_TOOLS } from '@/lib/seo/topic-tools'
+import { TrackedLink } from '@/components/marketing/TrackedLink'
 
 export function generateStaticParams() {
   return TOPICS.map((t) => ({ slug: t.slug }))
@@ -73,6 +75,18 @@ export default async function TopicPage({ params }: { params: Promise<{ slug: st
             ))}
           </div>
         </section>
+        {(TOPIC_TOOLS[t.slug] ?? []).length > 0 && (
+          <section>
+            <h2 className={H2}>Free tools for this</h2>
+            <ul className="mt-4 list-disc space-y-1.5 pl-5 text-base">
+              {TOPIC_TOOLS[t.slug].map((tool) => (
+                <li key={tool.href}>
+                  <TrackedLink href={tool.href} event="topic_tool_clicked" properties={{ topic: t.slug, tool: tool.href }} className="text-brand underline underline-offset-4">{tool.label}</TrackedLink>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
       <ActionBand title={t.cta.title} body={t.cta.body} label={t.cta.label} href={t.cta.href} event="topic_page_cta_clicked" properties={{ topic: t.slug, href: t.cta.href }} />
       <RelatedLinks path={path} />
