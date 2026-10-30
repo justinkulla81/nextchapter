@@ -32,7 +32,7 @@ export const B2B_ASSETS: Record<B2bAssetKey, B2bAsset> = {
   'workforce-demo': {
     key: 'workforce-demo',
     label: 'See your region’s workspace in 60 seconds',
-    blurb: 'Pick your state or area and get a working demo built on real local job and training data. No call, no sales form.',
+    blurb: 'Pick your state or area and get a working demo built on real local job and training data. No call needed. We ask for your work email so the demo is yours.',
     href: '/demo/workforce',
     openLabel: 'Build my region’s demo',
     requestLabel: 'Build my region’s demo',
