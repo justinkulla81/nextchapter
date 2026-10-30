@@ -14,6 +14,7 @@ const TOOLS = [
   { href: '/tools/salary-converter', name: 'Salary converter', body: 'Hourly to yearly, monthly, weekly and back, for any schedule.' },
   { href: '/tools/pay-check', name: 'Pay check', body: 'See where your salary sits against what employers list for your job title.' },
   { href: '/tools/resume-check', name: 'Résumé check', body: 'Paste your résumé to get a score out of 100 and see what to fix.' },
+  { href: '/tools/resume-job-match', name: 'Résumé vs job description', body: 'Paste a posting and your résumé to see which keywords you say and which you are missing.' },
   { href: '/tools/resume-bullet-rewriter', name: 'Résumé bullet rewriter', body: 'Paste a few bullets and get stronger versions that keep your facts.' },
   { href: '/tools/interview-answer-coach', name: 'Interview answer coach', body: 'Write your answer to a common question and get feedback and a stronger version.' },
   { href: '/tools/severance-calculator', name: 'Severance calculator', body: 'Turn years of service and pay into the common range of one to two weeks per year.' },
