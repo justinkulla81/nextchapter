@@ -83,6 +83,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/layoffs/by-state', updated: '2026-10-27', freq: 'daily', priority: 0.6 },
   { path: '/tools/unemployment-estimator', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
   { path: '/tools/pay-check', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/warn-notice-generator', updated: '2026-10-30', freq: 'monthly', priority: 0.8 },
   { path: '/tools/resume-check', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
   { path: '/tools/resume-job-match', updated: '2026-10-30', freq: 'monthly', priority: 0.8 },
   { path: '/funding', updated: '2026-10-23', freq: 'monthly', priority: 0.8 },
