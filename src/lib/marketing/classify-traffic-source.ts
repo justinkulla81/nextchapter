@@ -43,6 +43,14 @@ const UTM_SOURCE_LABELS: Record<string, string> = {
   twitter: 'Twitter/X',
   x: 'Twitter/X',
   reddit: 'Reddit',
+  // Our own feeds and social posts tag their links (feedLink, social/run.ts), so these are exact, not guessed.
+  rss: 'RSS feed',
+  bluesky: 'Bluesky',
+  mastodon: 'Mastodon',
+  threads: 'Threads',
+  telegram: 'Telegram',
+  discord: 'Discord',
+  slack: 'Slack',
   bing: 'Bing',
   direct: 'Direct',
 }
@@ -149,13 +157,14 @@ export type TrafficSourceGroup =
   | 'Search engines'
   | 'Social'
   | 'Email'
+  | 'RSS feeds'
   | 'Direct'
   | 'Internal'
   | 'Other sites'
 
 const AI_ASSISTANTS = new Set(['ChatGPT', 'Perplexity', 'Gemini', 'Claude', 'Copilot', 'Grok', 'Meta AI', 'Mistral', 'DeepSeek', 'Poe', 'You.com'])
 const SEARCH_ENGINES = new Set(['Google', 'Bing', 'DuckDuckGo', 'Yahoo', 'Ecosia', 'Brave Search'])
-const SOCIAL = new Set(['YouTube', 'Facebook', 'Instagram', 'LinkedIn', 'Twitter/X', 'Reddit'])
+const SOCIAL = new Set(['YouTube', 'Facebook', 'Instagram', 'LinkedIn', 'Twitter/X', 'Reddit', 'Bluesky', 'Mastodon', 'Threads', 'Telegram', 'Discord', 'Slack'])
 
 export function trafficSourceGroup(label: string): TrafficSourceGroup {
   if (AI_ASSISTANTS.has(label)) return 'AI assistants'
@@ -163,6 +172,7 @@ export function trafficSourceGroup(label: string): TrafficSourceGroup {
   if (SEARCH_ENGINES.has(label)) return 'Search engines'
   if (SOCIAL.has(label)) return 'Social'
   if (label === 'Email') return 'Email'
+  if (label === 'RSS feed') return 'RSS feeds'
   if (label === 'Direct') return 'Direct'
   if (label === 'Internal') return 'Internal'
   return 'Other sites'

@@ -133,6 +133,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/mailing/autoassign.ts': 'admin mailing: daily cron and backfill that subscribe CRM people to lists by type',
     'src/lib/mailing/prompt-cards.ts': 'admin mailing',
     'src/lib/mailing/tracking.ts': 'admin mailing',
+    'src/lib/marketing/email-attribution.ts': 'admin visitor pages: names the CRM contact behind a tracked email click; admin pages only',
     'src/lib/warn/layoff-contacts-run.ts': 'admin WARN tooling',
     'src/lib/outreach/touches.ts': 'admin outreach: reads every email, call, LinkedIn message and text with the person type, for the CRM Outreach page; admin pages only',
     'src/lib/outreach/quotas.ts': 'admin outreach: reads the weekly outreach targets for the CRM Outreach page; admin pages only',
