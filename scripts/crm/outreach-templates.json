@@ -269,7 +269,7 @@
       "why": "Opens on the specific filing, names what it costs the community, links the company page, asks for 15 minutes.",
       "subjects": [
         "{{company}} layoffs: {{page_workers}} workers",
-        "{{company}} layoff in {{county}}"
+        "{{company}} layoffs: {{page_workers}} workers"
       ],
       "preview": "The first weeks decide how long they're out of work.",
       "body": "{{first_name}},\n\n{{company}} filed {{page_notices}} naming {{page_workers}} workers in {{page_states}}, the latest on {{page_latest}}. These are the people you want paying taxes and spending money in {{county}}, not moving away for work.\n\nThe first weeks decide how long they're out. 28% of unemployed professionals are still looking after 27 weeks, up from 23% a year ago (our monthly report: https://launchyournextchapter.com/reports/white-collar-employment-report-september-2026?utm_source=cold&utm_medium=email&utm_content=board_filing). Every month someone is out of work is lost pay and lost tax base for your area, and a lot of these roles are the ones AI is changing, so many will need retraining as well as a new job.\n\nI built NextChapter to get people started in week one: a plan, retraining for their skill gaps and for AI, and a local job search. We put up a page for the {{company}} workers that sends them to your center: {{page_boards_url}}\n\nI'd like to help you get them back to work quickly. Do you have 15 minutes this week?",
@@ -284,7 +284,7 @@
       "why": "Opens on the specific filing and the 60-day window, links the company page, asks for 15 minutes.",
       "subjects": [
         "{{company}} layoffs: {{page_workers}} workers",
-        "{{company}} layoff in {{state}}"
+        "{{company}} layoffs: {{page_workers}} workers"
       ],
       "preview": "The first weeks decide how long they're out of work.",
       "body": "{{first_name}},\n\n{{company}} filed {{page_notices}} naming {{page_workers}} workers in {{page_states}}, the latest on {{page_latest}}. These are the people you want paying taxes and spending money in {{state}}, not moving away for work.\n\nThe first weeks decide how long they're out. 28% of unemployed professionals are still looking after 27 weeks, up from 23% a year ago (our monthly report: https://launchyournextchapter.com/reports/white-collar-employment-report-september-2026?utm_source=cold&utm_medium=email&utm_content=rr_filing). Every month someone is out of work is lost pay and lost tax base for {{state}}, and a lot of these roles are the ones AI is changing, so many will need retraining as well as a new job.\n\nI built NextChapter to get people started in week one: a plan, retraining for their skill gaps and for AI, and a local job search. We put up a page for the {{company}} workers that sends them to your center: {{page_boards_url}}\n\nI'd like to help you get them back to work quickly. Do you have 15 minutes this week?",
@@ -299,7 +299,7 @@
       "why": "Opens on their own filing, links the page their employees can use, asks for 15 minutes.",
       "subjects": [
         "{{company}} layoff: a plan for your people",
-        "{{company}} layoff: support for employees"
+        "{{company}} layoff: a plan for your people"
       ],
       "preview": "A plan for the first week after a layoff.",
       "body": "{{first_name}},\n\n{{company}} filed {{page_notices}} naming {{page_workers}} workers in {{page_states}}, the latest on {{page_latest}}. People who leave without a plan call HR for months, and how this goes shapes how the people who stay see {{company}}.\n\nThe first weeks matter most: 28% of unemployed professionals are still looking after 27 weeks, up from 23% a year ago (our monthly report: https://launchyournextchapter.com/reports/white-collar-employment-report-september-2026?utm_source=cold&utm_medium=email&utm_content=hr_filing). I built NextChapter to get people started in week one: a plan from their work history, retraining for their skill gaps and for AI, and a local job search. We built a page for the people leaving: {{page_url}}\n\nCould we talk for 15 minutes about how it fits your transition support?",
