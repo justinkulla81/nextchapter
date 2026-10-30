@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { COUNTY_MIN_POPULATION, meetsCountyBar } from '@/lib/places/places'
+import { COUNTY_MIN_POPULATION, countyIndexable, meetsCountyBar } from '@/lib/places/places'
 import { NONPROFIT_ORG_PAGES_INDEXED } from '@/lib/seo/nonprofit-pages'
 import { ASSOCIATION_MIN_INDEXABLE_CONFERENCES } from '@/lib/seo/topic-quality'
 import { SEARCH_FIRM_MIN_PUBLIC_ROLES, isSearchFirmIndexable } from '@/lib/seo/search-firm-bar'
@@ -22,5 +22,14 @@ describe('thin-page bars', () => {
     expect(ASSOCIATION_MIN_INDEXABLE_CONFERENCES).toBeGreaterThanOrEqual(4)
     expect(isSearchFirmIndexable(SEARCH_FIRM_MIN_PUBLIC_ROLES - 1)).toBe(false)
     expect(SEARCH_FIRM_MIN_PUBLIC_ROLES).toBeGreaterThanOrEqual(5)
+  })
+})
+
+describe('a small county with a recent layoff notice', () => {
+  it('is offered to search engines, and a quiet small county still is not', () => {
+    expect(countyIndexable(2_300, 0, 1)).toBe(true)
+    expect(countyIndexable(null, 0, 3)).toBe(true)
+    expect(countyIndexable(2_300, 0, 0)).toBe(false)
+    expect(countyIndexable(COUNTY_MIN_POPULATION, 0, 0)).toBe(true)
   })
 })

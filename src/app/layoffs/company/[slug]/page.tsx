@@ -21,7 +21,7 @@ import { getRecentNotices } from '@/lib/seo/topic-data'
 import { industryPath } from '@/lib/seo/topics'
 import { getCompanies, getNewsMentions, type CompanySummary, mergedSlug, noticeDay, resolveCompanySlug, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
 import { titleMeta } from '@/lib/seo/title'
-import { stateHelpLinks, type CrossLink } from '@/lib/seo/layoff-links'
+import { LAYOFF_TOOL_LINKS, stateHelpLinks, type CrossLink } from '@/lib/seo/layoff-links'
 import { StatementForm } from '@/components/employers/StatementForm'
 import { approvedStatementMap } from '@/lib/employer-statements/store'
 import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } from '@/lib/warn/company-announcements'
@@ -250,6 +250,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
                 <li><Link href={industryPath(bucket)} className={LINK}>{bucket}: open jobs, conferences and other recent layoffs</Link></li>
               )}
               <li><Link href="/start/laid-off" className={LINK}>Start here: a plan for the weeks after a layoff</Link></li>
+              {LAYOFF_TOOL_LINKS.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}
               {helpLinks.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}
               {c.states.map((s) => (
                 <li key={s}>
@@ -267,6 +268,10 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <h2 id="notices" className={H2}>Notices</h2>
             <div className="mt-4">
               <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
+            </div>
+            {/* Right under the notices, where someone who came for this employer is reading: the offer to hear about the next one. */}
+            <div className="mt-6">
+              <LayoffAlertForm employer={slug} employerName={c.name} source="layoffs:company" />
             </div>
             <StatementForm
               slug={slug}
@@ -310,9 +315,11 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             workers and dates the employer reported; it does not say why. See the{' '}
             <Link href="/layoffs" className={LINK}>layoff tracker</Link> for how notices are collected and what they cover.
           </p>}
-          <div className="mt-10">
-            <LayoffAlertForm employer={slug} employerName={c.name} source="layoffs:company" />
-          </div>
+          {!hasNotices && (
+            <div className="mt-10">
+              <LayoffAlertForm employer={slug} employerName={c.name} source="layoffs:company" />
+            </div>
+          )}
           <p className="mt-12 text-center text-sm text-muted-foreground">
             Want to browse openings on your own? <Link href="/jobs" className={LINK}>Go to the job board →</Link>
           </p>

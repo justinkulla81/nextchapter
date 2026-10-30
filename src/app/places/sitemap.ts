@@ -2,7 +2,8 @@ import type { MetadataRoute } from 'next'
 import { unstable_cache } from 'next/cache'
 import { SITE_URL } from '@/lib/seo/facts'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
-import { getAllCityEntries, getAllCounties, meetsCountyBar, placeUrl } from '@/lib/places/places'
+import { getAllCityEntries, getAllCounties, getCountiesWithRecentNotices, meetsCountyBar, placeUrl } from '@/lib/places/places'
+import { countyKey } from '@/lib/workforce/places'
 
 // The place pages: /places, every state, every county, and the cities that pass the bar (places.ts). Listed in the
 // sitemap index (src/app/sitemap-index.xml/route.ts) and served at /places/sitemap.xml.
@@ -23,18 +24,20 @@ const build = unstable_cache(
     const out = states()
     const counties = await getAllCounties()
     const cities = await getAllCityEntries()
+    const withNotices = await getCountiesWithRecentNotices()
     const citiesIn = new Map<string, number>()
     for (const c of cities) if (c.county) citiesIn.set(`${c.state}|${c.county}`, (citiesIn.get(`${c.state}|${c.county}`) ?? 0) + 1)
     for (const code of ALL_STATE_CODES) {
       for (const c of counties.get(code) ?? []) {
-        if (!meetsCountyBar(c.population, citiesIn.get(`${code}|${c.name}`) ?? 0)) continue
+        // Big enough or with a city of its own, or named by a layoff notice in the last 12 months (countyIndexable in places.ts).
+        if (!meetsCountyBar(c.population, citiesIn.get(`${code}|${c.name}`) ?? 0) && !withNotices.has(`${code}|${countyKey(c.name)}`)) continue
         out.push({ url: `${SITE_URL}${placeUrl.county(stateSlug(code), c.slug)}`, changeFrequency: 'weekly', priority: 0.5 })
       }
     }
     for (const c of cities) out.push({ url: `${SITE_URL}${placeUrl.city(stateSlug(c.state), c.slug)}`, changeFrequency: 'daily', priority: 0.4 })
     return out
   },
-  ['places-sitemap-v2'],
+  ['places-sitemap-v3'],
   { revalidate: 21600 },
 )
 
