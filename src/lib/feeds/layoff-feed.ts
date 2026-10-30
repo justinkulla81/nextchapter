@@ -170,3 +170,36 @@ export async function weeklyLayoffFeed(): Promise<FeedDoc> {
     path: '/layoffs/week', selfPath: '/feeds/layoffs-weekly.xml', items, hub: true,
   }
 }
+
+/** One item per day for the last two weeks: WARN notices dated that day, the workers they name and the largest. Today is left out until it is over. */
+export async function dailyLayoffFeed(): Promise<FeedDoc> {
+  const all = (await getPublicNotices()).filter((n) => n.noticeDateKnown)
+  const startOfToday = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate())
+  const items: FeedItem[] = []
+  for (let i = 1; i <= 14; i++) {
+    const start = startOfToday - i * 86_400_000
+    const day = new Date(start)
+    const notices = all.filter((n) => n.noticeDate.getTime() >= start && n.noticeDate.getTime() < start + 86_400_000)
+    if (notices.length === 0) continue
+    const workers = notices.reduce((s, n) => s + (n.workers ?? 0), 0)
+    const states = new Set(notices.map((n) => n.state)).size
+    const top = [...notices].filter((n) => n.workers).sort((a, b) => b.workers! - a.workers!).slice(0, 5)
+    const label = noticeDay(day)
+    const lead = `${num(notices.length)} WARN layoff notice${notices.length === 1 ? '' : 's'} dated ${label}, in ${states} state${states === 1 ? '' : 's'}${workers ? `, naming ${num(workers)} workers` : ''}.`
+    const biggest = top.length ? `Largest: ${top.map((n) => `${n.employer} (${stateName(n.state)}, ${num(n.workers!)})`).join('; ')}.` : ''
+    items.push({
+      title: `Layoffs on ${label}: ${num(notices.length)} notices${workers ? `, ${num(workers)} workers` : ''}`,
+      link: feedLink('/layoffs/this-week', 'layoffs-daily'),
+      guid: `nextchapter-warn-day-${day.toISOString().slice(0, 10)}-${notices.length}`,
+      date: new Date(start + 86_400_000),
+      description: `${lead} ${biggest}`.trim(),
+      html: `<p>${xmlEscape(lead)}</p>${top.length ? `<ol>${top.map((n) => `<li>${xmlEscape(n.employer)}, ${xmlEscape(stateName(n.state))}: ${num(n.workers!)} workers</li>`).join('')}</ol>` : ''}<p>Counted by the date on each filing; a state can publish a notice later, so a day's count can grow. Free to quote with a link to ${SITE_URL}/layoffs/2026.</p>`,
+      categories: ['Daily summary'],
+    })
+  }
+  return {
+    title: 'Daily layoff numbers (WARN) from NextChapter',
+    description: 'One item a day: how many WARN layoff notices were dated that day, how many workers they name, and the largest. Free to quote with a link back.',
+    path: '/layoffs/this-week', selfPath: '/feeds/layoffs-daily.xml', items, hub: true,
+  }
+}

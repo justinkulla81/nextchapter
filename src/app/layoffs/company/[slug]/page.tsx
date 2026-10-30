@@ -11,6 +11,7 @@ import { buildLayoffGuide } from '@/lib/warn/layoff-guide'
 import { filingFacts, guidePrograms } from '@/lib/warn/layoff-guide-programs'
 import { CiteThisData } from '@/components/layoffs/CiteThisData'
 import { StructuredData } from '@/components/StructuredData'
+import { LAYOFF_YEAR, MONTH_SLUGS, monthName } from '@/lib/layoffs/monthly'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { canonical } from '@/lib/seo/canonical'
@@ -99,7 +100,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // (src/lib/seo/page-bars.ts), stays reachable but out of search results.
   const stale = !meetsCompanyLayoffBar(c) && !recent
   return {
-    title: titleMeta(recent ? `${c.name} Layoffs and Buyouts: What Was Announced` : layoffsCompanySeo(c.name).title),
+    title: titleMeta(recent ? `${c.name} Layoffs and Buyouts: What Was Announced` : layoffsCompanySeo(c.name, c.notices.length ? { year: c.latest.getUTCFullYear(), workers, notices: c.notices.length } : undefined).title),
     description,
     ...canonical(`/layoffs/company/${slug}`),
     ...(stale ? { robots: { index: false, follow: true } } : {}),
@@ -122,6 +123,8 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const helpLinks: CrossLink[] = [...new Map(stateHelp.flat().map((l) => [l.href, l])).values()]
   const workers = c.notices.reduce((s, n) => s + (n.workers ?? 0), 0)
   const unknownCounts = c.notices.some((n) => n.workers == null)
+  const oldestNotice = c.notices.reduce((m, n) => (n.noticeDate < m ? n.noticeDate : m), c.latest)
+  const largest = c.notices.reduce<(typeof c.notices)[number] | null>((m, n) => ((n.workers ?? 0) > (m?.workers ?? 0) ? n : m), null)
   // The employer's own colors, read from its website (src/lib/branding), when we have them.
   const brand = await getEmployerBrand(c.name)
   // Dated markup for search and AI answer engines: when the page's facts last changed, and the plain answers to what people ask.
@@ -188,6 +191,25 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <SearchTimeFacts />
             <PeerEmployers company={c.name} near={peers.near} similar={peers.similar} metro={peers.homeState ? stateName(peers.homeState) : null} />
           </div>
+
+          {hasNotices && (
+            <section aria-labelledby="glance" className="mt-12 rounded-xl border border-border bg-white p-6">
+              <h2 id="glance" className="text-xl font-semibold tracking-tight text-navy">{c.name} layoffs at a glance</h2>
+              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">WARN notices filed</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{c.notices.length.toLocaleString('en-US')}</dd></div>
+                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Workers named</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{workers > 0 ? workers.toLocaleString('en-US') : 'Not stated'}</dd></div>
+                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">First and latest filing</dt><dd className="mt-1 font-semibold text-navy">{noticeDay(oldestNotice)}{oldestNotice.getTime() !== c.latest.getTime() ? ` to ${noticeDay(c.latest)}` : ''}</dd></div>
+                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Largest notice</dt><dd className="mt-1 font-semibold text-navy">{largest?.workers ? `${largest.workers.toLocaleString('en-US')} workers, ${stateName(largest.state)}` : 'Not stated'}</dd></div>
+              </dl>
+              <p className="mt-4 text-sm text-muted-foreground">
+                See how this compares: {c.latest.getUTCFullYear() === LAYOFF_YEAR && (
+                  <><Link href={`/layoffs/2026/${MONTH_SLUGS[c.latest.getUTCMonth()]}`} className={LINK}>all {monthName(c.latest.getUTCMonth())} {LAYOFF_YEAR} layoffs</Link>, </>
+                )}
+                <Link href="/layoffs/2026" className={LINK}>layoffs in 2026</Link>
+                {c.states.slice(0, 2).map((s) => <span key={s}>, <Link href={`/layoffs/${stateSlug(s)}`} className={LINK}>{stateName(s)} layoffs</Link></span>)}.
+              </p>
+            </section>
+          )}
 
           <OrgCandidateBand
             orgName={c.name}
@@ -307,6 +329,20 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             </p>
             <div className="mt-4"><BoardList notices={c.notices} page="company" /></div>
           </section>}
+
+          {faq.length > 0 && (
+            <section aria-labelledby="faq" className="mt-12">
+              <h2 id="faq" className={H2}>Questions about {c.name} layoffs</h2>
+              <dl className="mt-4 space-y-3">
+                {faq.map((f) => (
+                  <div key={f.q} className="rounded-xl border border-border bg-white p-4 text-sm">
+                    <dt className="font-semibold text-navy">{f.q}</dt>
+                    <dd className="mt-1 text-muted-foreground">{f.a}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
 
           {hasNotices && <CiteThisData path={path} asOf={noticeDay(new Date(`${modified}T12:00:00Z`))} source="layoffs-company" csvHref={c.states.length === 1 ? `/data/layoffs.csv?state=${c.states[0]}` : '/data/layoffs.csv'} />}
 

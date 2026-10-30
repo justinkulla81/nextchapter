@@ -33,8 +33,18 @@ export const layoffsStateSeo = (state: string) => ({
 })
 
 /** /layoffs/company/[slug]: the owner of "<company> layoffs". */
-export const layoffsCompanySeo = (company: string) => ({
-  title: pick(`${company} Layoffs: WARN Notices and Dates`, `${company} Layoffs and WARN Notices`, `${company} Layoffs`),
+// With the year and the numbers (Search Console, 2026-10: "tiaa layoffs 2026" showed at position 8 with no clicks), the title
+// answers the search in the result itself; a long name falls back to the plain wording.
+export const layoffsCompanySeo = (company: string, facts?: { year: number; workers: number; notices: number }) => ({
+  title: pick(
+    ...(facts
+      ? [
+          ...(facts.workers > 0 ? [`${company} Layoffs ${facts.year}: ${facts.workers.toLocaleString('en-US')} Workers, ${facts.notices} ${facts.notices === 1 ? 'Notice' : 'Notices'}`] : []),
+          `${company} Layoffs ${facts.year}: WARN Notices and Dates`,
+          `${company} Layoffs ${facts.year}`,
+        ]
+      : []),
+    `${company} Layoffs: WARN Notices and Dates`, `${company} Layoffs and WARN Notices`, `${company} Layoffs`),
   h1: `${company} layoffs: WARN notices and dates`,
 })
 
