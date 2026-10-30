@@ -1469,7 +1469,6 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
-<<<<<<< HEAD
     id: 'ai-job-check-prompts',
     intent: 'A job seeker wants ready-made AI prompts for a search after a layoff',
     owner: '/tools/ai-job-check/prompts',
@@ -1491,7 +1490,6 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     secondary: ['{job} vs {job} salary', '{job} or {job} which pays more', 'compare {job} and {job}'],
   },
   {
-=======
     id: 'ai-jobs-index',
     intent: 'A researcher, journalist or worker wants current data on AI exposure, openings and AI-skill pay by occupation',
     owner: '/data/ai-jobs-index',
@@ -1505,7 +1503,6 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
->>>>>>> b58d2683 (AI citation gap report with 300 tracked questions, and the NextChapter AI Jobs Index)
     id: 'resume-bullet-rewriter',
     intent: 'A job seeker wants stronger résumé bullet points',
     owner: '/tools/resume-bullet-rewriter',
