@@ -21,7 +21,9 @@ export function readComposeKey(key: string): { group: string; variant: string | 
   return group && rest.length ? { group, variant: variant === '-' ? null : variant, personId: personId === '-' ? null : personId, noticeId: rest.join(':') } : null
 }
 
-export const COMPOSE_ACCOUNT = 'justin@launchyournextchapter.com'
+/** The Gmail account Write email opens in (it has Yesware), and the address the note is sent from (a send-as address on that account). */
+export const COMPOSE_ACCOUNT = 'justin.kulla@gmail.com'
+export const COMPOSE_FROM = 'justin@launchyournextchapter.com'
 const SITE = 'https://launchyournextchapter.com'
 export const SIGN_OFF = 'Best,\nJustin Kulla\nFounder & CEO, NextChapter\n2248 Broadway #1838, New York, NY 10024\njustin@launchyournextchapter.com\n203-247-9497'
 /**
@@ -208,7 +210,7 @@ export function withComposeLinks(groups: ContactGroup[], x: DraftContext): Conta
       const kind = draftKind(g.key, c.title)
       if (!kind || !c.email) return c
       const d = draftFor(kind, c, x)
-      const href = gmailComposeHref(c.email, d.subject, d.body, COMPOSE_ACCOUNT)
+      const href = gmailComposeHref(c.email, d.subject, d.body, COMPOSE_ACCOUNT, COMPOSE_FROM)
       return { ...c, compose: x.track ? x.track(href, { group: g.key, variant: d.variant, personId: c.personId }) : href, variant: d.variant }
     }),
   }))
