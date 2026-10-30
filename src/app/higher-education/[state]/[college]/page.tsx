@@ -24,7 +24,7 @@ import { functionByName, functionPath } from '@/lib/seo/topics'
 // One page per college: IPEDS and College Scorecard facts, the job market in its county, the workforce board and
 // American Job Centers that serve it, and peer colleges. Built on first visit, refreshed daily. A college below the
 // bar (college-bar.ts) renders but is kept out of search results and the sitemap. No layoff data on any page.
-export const revalidate = 86400
+export const revalidate = 604800 // 7 days: slow-changing page, one of the larger ISR write sources
 export const dynamicParams = true
 export function generateStaticParams() {
   return []

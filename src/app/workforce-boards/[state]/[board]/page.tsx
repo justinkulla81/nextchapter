@@ -14,7 +14,7 @@ import { boardConnectionCount } from '@/lib/affiliations/public-count'
 // A workforce board's page: who it is and what it serves, plus (shared with the job center and economic development
 // pages, src/components/seo/OrgPageView.tsx) the jobs open in its area, the employers hiring, colleges and the
 // other partners there. A page below the content bar (src/lib/seo/org-page-rules.ts) renders but is noindex.
-export const revalidate = 86400
+export const revalidate = 604800 // 7 days: slow-changing page, one of the larger ISR write sources
 export const dynamicParams = true
 export function generateStaticParams() {
   return []

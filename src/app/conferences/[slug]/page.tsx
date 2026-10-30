@@ -21,7 +21,7 @@ import { effectiveFunctions } from '@/lib/seo/function-inference'
 import { costLabel, hasUpcomingDates, whenLabel, whereLabel } from '@/lib/events/format'
 import { titleMeta } from '@/lib/seo/title'
 
-export const revalidate = 3600
+export const revalidate = 86400 // was hourly: one of the larger ISR write sources
 export const dynamicParams = true
 export function generateStaticParams() {
   return []
