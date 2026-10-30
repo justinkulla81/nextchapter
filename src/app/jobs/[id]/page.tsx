@@ -32,7 +32,7 @@ import { cn } from '@/lib/utils'
 // Google drops a page once its job closes. Rendered on first request and cached (ISR);
 // one primary-key read per render. No IP rate limit: crawlers must be able to read it.
 
-export const revalidate = 43200 // 12 hours
+export const revalidate = 86400 // 24 hours: this route was two thirds of ISR writes (Oct 23-30)
 export const dynamicParams = true
 
 export function generateStaticParams() {

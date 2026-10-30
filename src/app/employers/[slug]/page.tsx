@@ -35,7 +35,7 @@ import { noticesForEmployer } from '@/lib/seo/org-notices'
 // One page per employer with something of its own to say: open roles from its career site, what it hires for and
 // pays. Built on first visit, refreshed daily. A page below the bar renders but is
 // kept out of search results (and out of the sitemap).
-export const revalidate = 86400
+export const revalidate = 604800 // 7 days: second-largest source of ISR writes
 export const dynamicParams = true
 export function generateStaticParams() {
   return []
