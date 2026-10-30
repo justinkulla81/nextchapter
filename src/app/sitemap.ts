@@ -1,6 +1,8 @@
 import { FILING_GUIDE_UPDATED } from '@/lib/data/state-ui-appeals'
 import { meetsCompanyLayoffBar, meetsStateBoardBar } from '@/lib/seo/page-bars'
 import { CAREER_ROLES } from '@/lib/careers/roles'
+import { checkPath } from '@/lib/ai-check/slug'
+import AI_CHECK_OCCUPATIONS from '@/lib/ai-check/occupations.json'
 import type { MetadataRoute } from 'next'
 import { cachedIndexableOrgPages } from '@/lib/seo/org-pages'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
@@ -69,6 +71,9 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/tools/cobra-vs-aca-calculator', updated: '2026-10-26', freq: 'monthly', priority: 0.7 },
   { path: '/tools/salary-converter', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
   { path: '/tools/layoff-runway', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/ai-job-check', updated: '2026-10-30', freq: 'weekly', priority: 0.8 },
+  { path: '/tools/resume-bullet-rewriter', updated: '2026-10-30', freq: 'monthly', priority: 0.7 },
+  { path: '/tools/interview-answer-coach', updated: '2026-10-30', freq: 'monthly', priority: 0.7 },
   { path: '/tools/layoff-risk-check', updated: '2026-10-27', freq: 'monthly', priority: 0.7 },
   { path: '/tools/job-loss-readiness', updated: '2026-10-30', freq: 'monthly', priority: 0.7 },
   { path: '/resources/warn-act', updated: '2026-10-27', freq: 'monthly', priority: 0.7 },
@@ -251,6 +256,8 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     // The homepage shows the latest News, so it changes when News does.
     entry('/', latestOf(['2026-10-06', ...(newestNews ? [newestNews] : [])]), 'weekly', 1),
     ...STATIC_PAGES.map((p) => entry(p.path, p.updated, p.freq, p.priority)),
+    // One AI job check page per occupation, from a committed list (no database read at build time).
+    ...AI_CHECK_OCCUPATIONS.map((o) => entry(checkPath(o.title, o.soc), '2026-10-30', 'monthly', 0.6)),
     ...CAREER_ROLES.map((r) => entry(`/careers/${r.slug}`, '2026-10-26', 'weekly', r.kind === 'platform' ? 0.4 : 0.6)),
 
     // The White Collar Employment Report: hub, the evergreen index, and every edition.
