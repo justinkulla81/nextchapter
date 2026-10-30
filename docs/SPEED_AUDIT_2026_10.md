@@ -199,3 +199,42 @@ Both fonts are already the Latin-only variable files (Inter 48.5 KB, Source Seri
 ### Unused JavaScript: the big chunk is already deferred
 
 The largest unused-code finding on the home and report pages (46 KB unused of a 72 KB chunk) is posthog-js, which `src/lib/posthog/client.ts` already loads dynamically at browser idle, after first paint. The other 26 KB "unused" is inside Next's own runtime chunk. The remaining first-load chunks are 36, 14, 10 and 10 KB (gzip) of app code, with no heavy library to split off. No change made. The Google tag (177 KB) was out of scope.
+
+## Follow-up: lighter Google tag and cold-page speed (2026-10-29)
+
+### Google tag: loads on first interaction, or after 4 seconds
+
+`src/components/analytics/GoogleAnalytics.tsx`. The inline `gtag()` / `dataLayer` setup is unchanged and still runs early, so every call is queued. The 177 KB `gtag.js` is now added by an effect on the first `pointerdown`, `keydown`, `scroll` or `touchstart`, or after 4 seconds, whichever is first (before: after the window load event). The CSP already allows `googletagmanager.com` and `google-analytics.com`.
+
+Checked in a local production build, in the browser:
+
+| Case | Result |
+|---|---|
+| No interaction | no `gtag.js` request at 434 ms or 3,441 ms (`dataLayer` already holds the queued `js` and `config`); requested at 4,291 ms; the `page_view` collect request followed |
+| Scroll | `gtag.js` requested at 510 ms; the `page_view` collect request followed |
+| The three custom events (`email_captured`, `guide_download_started`, `situational_entry_selected`) called through `window.gtag` after load | each added a `dataLayer` entry, and a batched collect request went out afterwards (the events share one POST body, so the page does not show an event name for it) |
+
+**Tradeoff:** a visitor who leaves in under 4 seconds without scrolling, clicking, typing or touching is no longer in Google Analytics. PostHog still sees them. The gain is that the 177 KB script no longer competes with anything during the first 4 seconds of a visit. Not measured on production; check Search Console's Core Web Vitals report two to four weeks after this ships, and compare Google Analytics sessions week on week.
+
+### Cold city page: one slow query, now an index
+
+`/places/<state>/city/<city>` was 2.0 s on its first view (Westford, MA). Almost all of it was one statement: the city's jobs, employers hiring and headquarters queries filter on `lower("locationCity")`, which the existing `"locationCity"` index cannot serve, so Postgres bitmap-scanned the state's roughly 34,000 postings.
+
+`EXPLAIN ANALYZE`, production database, Westford MA recent jobs: **1,807 ms before, 17 ms after.** The hiring-employers query for Acton MA now takes 2.1 ms; the headquarters query takes 0.6 ms. The fix is a partial expression index, `"ExclusiveJobPosting_seo_place_lower_idx"` (69 MB, same predicate as `PUBLIC_JOB_STATIC_SQL`), applied to production with `CREATE INDEX CONCURRENTLY` (no write lock); the SQL is in `prisma/manual/2026-10-29-place-city-lower-index.sql`. No code or content change.
+
+On the local build against the production database, the first view of a city in a state not yet loaded was 5.1 s and of another city in the same state 1.3 s. Those include this laptop's round trips to the database, so they say nothing about production; the production first-view time was not re-measured.
+
+### Warm-up cron: `/api/cron/page-warmup`
+
+Daily at 08:40 UTC (4:40 am Eastern). It reads the live sitemaps over HTTP (the main one, places, salaries, and one employer file a day in turn), takes 50 pages of each of six types, and requests them one at a time with a 250 ms gap so the first real visit is a cache hit. It does not read the database except for the cron ledger row. It stops at 270 seconds, records how many pages were already cached, rendered or failed, skips sections `PAUSE_HEAVY_PAGES` switches off, and counts as failed if more than half the requests fail. It only reads, so it is in `RERUN_SAFE_JOBS`.
+
+| Type | Pages in the sitemaps today | Asked for per day |
+|---|---|---|
+| Employer (one file of 10,000) | 10,000 | 50 |
+| Job title | 886 | 50 |
+| Salary | 421 | 50 |
+| Place city | 5,186 | 50 |
+| Unemployment state | 51 | 50 |
+| Nonprofits state | 51 | 50 |
+
+The window moves 50 along each day and wraps, so the 51-page lists are covered about daily and the 5,186 city pages take about 100 days. **Limits:** the pages revalidate after 24 hours, so a warmed page can expire before Googlebot arrives, and the cron reaches only a small share of the long tail. It does not replace the index fix above, which is what makes a cold render cheap. Dry run (read-only) against the live sitemaps picked 300 addresses; the route itself was not run, because it asks production for the pages. Check the first run in the admin Job health page.

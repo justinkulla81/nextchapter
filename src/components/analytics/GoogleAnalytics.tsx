@@ -30,6 +30,19 @@ const EXCLUDED_PREFIXES = [
   '/api',
 ]
 
+// gtag.js (177 KB) is fetched on the visitor's first interaction, or after this long if there is none.
+const LOAD_AFTER_MS = 4000
+const INTERACTION_EVENTS = ['pointerdown', 'keydown', 'scroll', 'touchstart'] as const
+
+function loadGtagOnce(id: string) {
+  if (document.querySelector('script[data-ga-loader]')) return
+  const el = document.createElement('script')
+  el.async = true
+  el.src = `https://www.googletagmanager.com/gtag/js?id=${id}`
+  el.setAttribute('data-ga-loader', '')
+  document.head.appendChild(el)
+}
+
 const AI_REFERRER_DOMAINS = ['chatgpt.com', 'perplexity.ai', 'gemini.google.com', 'copilot.microsoft.com']
 
 declare global {
@@ -54,15 +67,30 @@ export function GoogleAnalytics() {
     })
   }, [pathname, excluded])
 
+  useEffect(() => {
+    if (!GA_ID || excluded) return
+    const id = GA_ID
+    const timer = window.setTimeout(load, LOAD_AFTER_MS)
+    function load() {
+      window.clearTimeout(timer)
+      INTERACTION_EVENTS.forEach((name) => window.removeEventListener(name, load))
+      loadGtagOnce(id)
+    }
+    INTERACTION_EVENTS.forEach((name) => window.addEventListener(name, load, { passive: true, once: true }))
+    return () => {
+      window.clearTimeout(timer)
+      INTERACTION_EVENTS.forEach((name) => window.removeEventListener(name, load))
+    }
+  }, [excluded])
+
   if (!GA_ID || excluded) return null
 
   return (
     <>
-      {/* The 180 KB gtag.js loads after the window load event, not at the start: with afterInteractive Next adds a high-priority
-          <link rel=preload> for it in the head, and it competes with the page's own CSS and fonts for bandwidth on a slow phone.
-          Events are not lost: the init script below defines gtag() and queues every call on window.dataLayer straight away, and
-          gtag.js replays the queue when it arrives (the same thing Google's own snippet relies on). */}
-      <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="lazyOnload" />
+      {/* The 177 KB gtag.js is added by the effect above on the first interaction (or after 4 s), not at the start or on
+          window load: it would compete with the page's own CSS and fonts on a slow phone. Events are not lost: the init
+          script below defines gtag() and queues every call on window.dataLayer straight away, and gtag.js replays the
+          queue when it arrives (the same thing Google's own snippet relies on). */}
       <Script id="ga4-init" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
