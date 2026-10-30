@@ -1,6 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { CITATION_PROMPTS } from './prompts'
+import { getRecentNotices } from '@/lib/seo/topic-data'
+import { rotateGeneral, weekIndexOf, weeklyDataPrompts } from './prompts-data'
 import { PROVIDERS } from './providers'
 
 export const OUR_DOMAIN = 'launchyournextchapter.com'
@@ -37,7 +39,9 @@ async function spentThisMonth(): Promise<number> {
  */
 export async function runCitationCheck(opts: { providerIds?: string[]; limit?: number } = {}) {
   const providers = PROVIDERS.filter((p) => p.enabled() && (!opts.providerIds || opts.providerIds.includes(p.id)))
-  const prompts = CITATION_PROMPTS.slice(0, opts.limit ?? CITATION_PROMPTS.length)
+  // This week's questions about the newest filings first (they are the ones we should win), then a rotating share of the general ones.
+  const dataPrompts = weeklyDataPrompts(await getRecentNotices().catch(() => []))
+  const prompts = [...dataPrompts, ...rotateGeneral(CITATION_PROMPTS, weekIndexOf())].slice(0, opts.limit ?? Infinity)
   const run = await prisma.aiCitationRun.create({ data: {} })
   if (providers.length === 0) {
     await prisma.aiCitationRun.update({ where: { id: run.id }, data: { finishedAt: new Date() } })
