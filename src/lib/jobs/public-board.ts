@@ -44,6 +44,8 @@ export interface PublicBoardQuery {
   remote: boolean
   /** Only jobs posted (or first listed) after this. Used by the saved-search alert emails. */
   since?: Date
+  /** Only these ncrawl seniority levels (BoardLightRow.level), e.g. ['DIRECTOR']. Off by default. */
+  levels?: string[]
 }
 
 export function cleanPublicQuery(raw: { q?: string | null; loc?: string | null; remote?: string | null }): PublicBoardQuery {
@@ -71,6 +73,7 @@ function publicWhere(query: PublicBoardQuery): Prisma.BoardLightRowWhereInput {
   if (query.remote) {
     and.push({ OR: [{ targetRemotePolicy: 'remote' }, { location: { contains: 'remote', mode: 'insensitive' } }] })
   }
+  if (query.levels?.length) and.push({ level: { in: query.levels } })
   if (query.since) {
     and.push({ OR: [{ postedAt: { gt: query.since } }, { postedAt: null, createdAt: { gt: query.since } }] })
   }
