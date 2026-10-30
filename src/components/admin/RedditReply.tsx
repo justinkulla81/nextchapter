@@ -11,6 +11,7 @@ export function RedditReply({ id, employer, text }: { id: string; employer: stri
   const storageKey = `reddit-done:${id}`
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only: localStorage is not available when the page is rendered
     try { setDone(localStorage.getItem(storageKey) === '1') } catch { /* private window: the box just starts unticked */ }
   }, [storageKey])
 
