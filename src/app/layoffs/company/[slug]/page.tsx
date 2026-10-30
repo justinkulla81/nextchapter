@@ -3,6 +3,7 @@ import { layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FeedLine } from '@/components/seo/FeedLine'
+import { unstable_noStore as noStore } from 'next/cache'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
@@ -83,6 +84,13 @@ function guidePlaces(c: CompanySummary): Record<string, string | null> {
   return out
 }
 
+/** "Omnicom Layoffs 2026: 15,000 Jobs Cut" when the announcement gives a number, else the year and the plain wording. */
+function announcedTitle(name: string, lead: { kind: 'buyout' | 'layoff'; date: Date; workers: number | null }): string {
+  const year = lead.date.getUTCFullYear()
+  if (lead.kind === 'buyout') return `${name} Buyouts ${year}: What Was Announced`
+  return lead.workers ? `${name} Layoffs ${year}: ${lead.workers.toLocaleString('en-US')} Jobs Cut` : `${name} Layoffs ${year}: What Was Announced`
+}
+
 const KIND_LABEL = { buyout: 'Voluntary buyout offer', layoff: 'Reported layoff' } as const
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -100,7 +108,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // (src/lib/seo/page-bars.ts), stays reachable but out of search results.
   const stale = !meetsCompanyLayoffBar(c) && !recent
   return {
-    title: titleMeta(recent ? `${c.name} Layoffs and Buyouts: What Was Announced` : layoffsCompanySeo(c.name, c.notices.length ? { year: c.latest.getUTCFullYear(), workers, notices: c.notices.length } : undefined).title),
+    title: titleMeta(recent && lead ? announcedTitle(c.name, lead) : layoffsCompanySeo(c.name, c.notices.length ? { year: c.latest.getUTCFullYear(), workers, notices: c.notices.length } : undefined).title),
     description,
     ...canonical(`/layoffs/company/${slug}`),
     ...(stale ? { robots: { index: false, follow: true } } : {}),
@@ -113,7 +121,13 @@ const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export default async function CompanyLayoffsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const page = await loadPage(slug)
-  if (!page) notFound()
+  // A page is built on the first request and kept a day, and that holds for a 404 too: an employer asked for before its
+  // announcement was filed would stay missing for a day after it was. Rendering the not-found case per request keeps it
+  // from being cached (the lookup is a short-lived in-memory list, so unknown slugs cost nothing).
+  if (!page) {
+    noStore()
+    notFound()
+  }
   const { c, ann } = page
   const recentAnn = hasRecentAnnouncement(ann) ? ann : undefined
   const hasNotices = c.notices.length > 0

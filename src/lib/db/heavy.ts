@@ -45,8 +45,16 @@ export function memoTtl<A extends unknown[], T>(ttlMs: number, keyOf: (...args: 
   }
 }
 
-/** True for Prisma's "timed out fetching a connection from the pool" (P2024). */
-export const isPoolTimeout = (e: unknown) => typeof e === 'object' && e !== null && (e as { code?: string }).code === 'P2024'
+/**
+ * True for a read that failed only because no connection was free: Prisma's "timed out fetching a connection from the pool" (P2024),
+ * or the pooler's own "max client connections reached" (EMAXCONN, seen 2026-10-30 in the two minutes after a deploy, when every
+ * instance starts cold at once). Both clear within seconds, so the read is worth trying again.
+ */
+export const isPoolTimeout = (e: unknown) => {
+  if (typeof e !== 'object' || e === null) return false
+  const { code, message } = e as { code?: string; message?: string }
+  return code === 'P2024' || (typeof message === 'string' && /EMAXCONN|max client connections reached/i.test(message))
+}
 
 /** Retries a read that failed only because the connection pool was busy, twice, with a short wait. */
 export async function retryOnPoolTimeout<T>(run: () => Promise<T>): Promise<T> {
