@@ -40,6 +40,7 @@ const REL_STYLE: Record<string, string> = {
   ADJACENT: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
   PARTNER: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
   SUPPLIER: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
+  NOT_A_COMPETITOR: 'bg-muted text-muted-foreground',
 }
 
 function List({ title, items, tone }: { title: string; items: string[]; tone?: string }) {
@@ -82,7 +83,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
     }),
   ])
   const competitors = allCompetitors
-  const shown = allCompetitors.filter((c) => (!areaFilter || c.areas.includes(areaFilter)) && (!relFilter || c.relationship === relFilter) && (!catFilter || c.category === catFilter) && (!gone || c.status !== 'ACTIVE'))
+  const shown = allCompetitors.filter((c) => (!areaFilter || c.areas.includes(areaFilter)) && (relFilter ? c.relationship === relFilter : c.relationship !== 'NOT_A_COMPETITOR') && (!catFilter || c.category === catFilter) && (!gone || c.status !== 'ACTIVE'))
   const relOrder = (r: string) => RELATIONSHIPS.findIndex((x) => x.key === r)
   shown.sort((a, b) => relOrder(a.relationship) - relOrder(b.relationship) || a.name.localeCompare(b.name))
   // Every card carries its own edit form, and the matrix is one dropdown per competitor per feature. Rendering all of
@@ -116,7 +117,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
   const presenceBy = new Map<string, number>()
   if (tableView) for (const g of await prisma.competitorEvent.groupBy({ by: ['competitorId'], where: { kind: { in: ['BOOTH', 'SPONSOR', 'SPEAKING', 'PODCAST'] } }, _count: true })) presenceBy.set(g.competitorId, g._count)
   const tableRows: CompetitorRow[] = tableView ? allCompetitors.map((c) => ({
-    id: c.id, name: c.name, url: c.url, relationship: c.relationship, category: c.category, areas: c.areas, status: c.status,
+    id: c.id, name: c.name, url: c.url, relationship: c.relationship, keyCompetitor: c.keyCompetitor, category: c.category, areas: c.areas, status: c.status,
     headcount: c.headcount, revenueUsd: c.revenueUsd, revenueNote: c.revenueNote, monthlyVisits: c.monthlyVisits, trafficNote: c.trafficNote,
     fundingRaisedUsd: c.fundingRaisedUsd, lastRound: c.lastRound, investors: c.investors, presence: presenceBy.get(c.id) ?? 0, foundedYear: c.foundedYear, hq: c.hq, reviewedAt: c.lastReviewedAt?.toISOString() ?? null, needsReview: c.needsReview,
   })) : []
@@ -325,7 +326,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
               <details key={c.id} id={`c-${c.id}`} open={sp.added === c.id || sp.focus === c.id} className={`group rounded-xl border p-3 ${sp.added === c.id || sp.focus === c.id ? 'border-emerald-500 ring-1 ring-emerald-500/40' : 'border-border'}`}>
                 <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="text-lg font-semibold">{c.url ? <a href={c.url} target="_blank" rel="noreferrer" className="hover:underline">{c.name} ↗</a> : c.name}</h3>
+                    <h3 className="text-lg font-semibold">{c.keyCompetitor && <span title="Key competitor" aria-label="Key competitor" className="mr-1 text-amber-500">★</span>}{c.url ? <a href={c.url} target="_blank" rel="noreferrer" className="hover:underline">{c.name} ↗</a> : c.name}</h3>
                     <p className="text-xs text-muted-foreground">{[categoryLabel(c.category), c.segment, c.lastReviewedAt ? `checked ${formatDate(c.lastReviewedAt)}` : 'never checked'].filter(Boolean).join(' · ')}</p>
                     {c.positioning && <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground group-open:hidden">{c.positioning}</p>}
                   </div>

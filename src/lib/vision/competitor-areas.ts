@@ -34,6 +34,7 @@ export const RELATIONSHIPS = [
   { key: 'ADJACENT', label: 'Adjacent', hint: 'Overlaps in part, or sells to a different buyer.' },
   { key: 'PARTNER', label: 'Possible partner', hint: 'More useful beside us than against us.' },
   { key: 'SUPPLIER', label: 'Data or tool supplier', hint: 'We could buy from them or build on them.' },
+  { key: 'NOT_A_COMPETITOR', label: 'Not a competitor', hint: 'Ruled out: does not compete with us. Hidden from the lists, and not re-read.' },
 ] as const
 export const relationshipLabel = (key: string) => RELATIONSHIPS.find((r) => r.key === key)?.label ?? key
 const REL_KEYS = new Set<string>(RELATIONSHIPS.map((r) => r.key))

@@ -159,7 +159,7 @@ export async function runWatch(kind: 'refresh' | 'news', opts: { batch?: number;
   let spent = await spentThisMonth(now)
   if (!s.enabled) return { ...base, skipped: 'watch is off', spentMonth: spent }
   if ((kind === 'refresh' && !s.refreshEnabled) || (kind === 'news' && !s.newsEnabled)) return { ...base, skipped: `${kind} is off`, spentMonth: spent }
-  const cards = await prisma.productCompetitor.findMany()
+  const cards = await prisma.productCompetitor.findMany({ where: { relationship: { not: 'NOT_A_COMPETITOR' } } })
   const due = pickDue(cards, kind, now, opts.batch ?? 20)
   const byId = new Map(cards.map((c) => [c.id, c]))
   const stopAt = Date.now() + (opts.deadlineMs ?? 240_000)
