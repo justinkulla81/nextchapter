@@ -18,6 +18,7 @@ import { cityFromAddress } from '../../src/lib/workforce/places'
 import { normalizeOrgName } from '../../src/lib/text/org-name-match'
 import { claimUrlFor } from '../../src/lib/org-claims/urls'
 import { cleanDomain, domainMatches } from '../../src/lib/org-claims/rules'
+import { employerSlug } from '../../src/lib/warn/layoff-pages'
 
 const STATES: Record<string, string> = { AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'the District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming' }
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -53,7 +54,7 @@ const poss = (n: string) => (/s$/i.test(n) ? `${n}'` : `${n}'s`)
 const list = (a: string[]) => (a.length <= 1 ? a.join('') : a.length === 2 ? `${a[0]} and ${a[1]}` : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`)
 
 interface Area { id: string; name: string; state: string; unemp: number | null; unempPrior: number | null; wcUnemp: number | null; asOf: string | null; wc: number | null; j90: number; j12: number; majors: string[]; college: string | null }
-interface Notice { industry?: string | null; key?: string; employer: string; employees: number; county: string | null; address: string | null; state: string; effective: Date | null; noticeDate: Date; board: string | null }
+interface Notice { industry?: string | null; key?: string; employer: string; employees: number; county: string | null; address: string | null; state: string; effective: Date | null; noticeDate: Date; board: string | null; slug?: string }
 
 // Employer emails go only to layoffs of 50 or more in professional-heavy work. An explicit allowlist, never "everything except": a filing whose industry
 // is blank, or in an industry not listed, stays out unless the employer is named below (reviewed by hand; add a name only after checking the filing).
@@ -61,7 +62,8 @@ const MIN_EMPLOYER_LAYOFF = 50
 const PROFESSIONAL_INDUSTRY = /^(tech:|51\b|52\b|54\b|55\b)/i
 const PROFESSIONAL_KEYS = new Set(Object.keys((JSON.parse(readFileSync(new URL('./professional-employers.json', import.meta.url), 'utf8')) as { employers: Record<string, string> }).employers))
 const PROFESSIONAL_EMPLOYERS = new Set(['hasbro', 'conifer health solutions', "conifer's health solutions", 'tscan therapeutics', 'truist bank', 'bechtel power corporation', 'bechtel power'])
-const EMPLOYER_TEMPLATES = ['head_hr', 'rewards', 'er', 'ta']
+// board_filing and rr_filing quote white-collar figures, so they need the same professional-heavy layoff as the employer emails.
+const EMPLOYER_TEMPLATES = ['head_hr', 'rewards', 'er', 'ta', 'hr_filing', 'board_filing', 'rr_filing']
 function professionalHeavy(n: Notice | undefined): boolean {
   if (!n || n.employees < MIN_EMPLOYER_LAYOFF) return false
   const name = n.employer.toLowerCase().replace(/[.,]|\b(inc|llc|corp|corporation|co)\b/g, '').replace(/\s+/g, ' ').trim()
@@ -131,16 +133,30 @@ async function main() {
   const boardNames = new Map((await prisma.workforceBoard.findMany({ select: { id: true, name: true } })).map((b) => [b.id, b.name]))
   const notices = await prisma.warnNotice.findMany({
     where: { source: 'WARN_FILING', state: { not: null }, dismissedAt: null, noticeDate: { gte: employerSince, lte: now }, employees: { not: null } },
-    select: { industry: true, normalizedEmployer: true, employer: true, employees: true, county: true, address: true, state: true, effectiveDate: true, noticeDate: true, promotedOrgId: true, workforceBoardId: true },
+    select: { industry: true, normalizedEmployer: true, employer: true, employees: true, county: true, address: true, state: true, effectiveDate: true, noticeDate: true, promotedOrgId: true, workforceBoardId: true, companyMatchStatus: true, company: { select: { name: true } } },
   })
   const bigger = (a: Notice | undefined, b: Notice) => (!a || b.employees > a.employees ? b : a)
   const byOrg = new Map<string, Notice>(), byBoard = new Map<string, Notice>(), byCounty = new Map<string, Notice>(), byState = new Map<string, Notice>()
   let top: Notice | undefined
+  // A filing email goes out only for a notice filed in the last FILING_DAYS days, so the 60-day window is still open.
+  const FILING_DAYS = Number(process.env.FILING_DAYS ?? 14)
+  const slugAgg = new Map<string, { notices: number; workers: number; states: Set<string>; latest: Date }>()
+  const freshByBoard = new Map<string, Notice>(), freshByState = new Map<string, Notice>(), freshByOrg = new Map<string, Notice>()
   const stateAll = new Map<string, Notice[]>()
   const countyAgg = new Map<string, { employers: Set<string>; jobs: number }>()
   const stateTotals = new Map<string, { notices: number; jobs: number }>()
   for (const w of notices) {
-    const nt: Notice = { industry: w.industry, key: w.normalizedEmployer, employer: clean(w.employer), employees: w.employees!, county: w.county, address: w.address, state: w.state!, effective: w.effectiveDate, noticeDate: w.noticeDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
+    const nt: Notice = { industry: w.industry, key: w.normalizedEmployer, employer: clean(w.employer), employees: w.employees!, county: w.county, address: w.address, state: w.state!, effective: w.effectiveDate, noticeDate: w.noticeDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null, slug: employerSlug(w.employer, w.companyMatchStatus === 'MATCHED' ? w.company?.name ?? null : null) }
+    if (nt.slug) {
+      const g = slugAgg.get(nt.slug) ?? { notices: 0, workers: 0, states: new Set<string>(), latest: w.noticeDate! }
+      g.notices++; g.workers += w.employees!; g.states.add(w.state!); if (w.noticeDate! > g.latest) g.latest = w.noticeDate!
+      slugAgg.set(nt.slug, g)
+      if (now.getTime() - w.noticeDate!.getTime() <= FILING_DAYS * 86_400_000) {
+        if (w.workforceBoardId) freshByBoard.set(w.workforceBoardId, bigger(freshByBoard.get(w.workforceBoardId), nt))
+        freshByState.set(w.state!, bigger(freshByState.get(w.state!), nt))
+        if (w.promotedOrgId) freshByOrg.set(w.promotedOrgId, bigger(freshByOrg.get(w.promotedOrgId), nt))
+      }
+    }
     if (w.promotedOrgId) byOrg.set(w.promotedOrgId, bigger(byOrg.get(w.promotedOrgId), nt))
     if (w.noticeDate! < since) continue // older than 90 days: only the employer list uses it
     if (w.workforceBoardId) byBoard.set(w.workforceBoardId, bigger(byBoard.get(w.workforceBoardId), nt))
@@ -257,6 +273,17 @@ async function main() {
     if (own && (st?.jobs ?? 0) < 2 * own) row.line_local = ''
     row.line_majors = area?.majors.length ? `The largest local employers include ${list(area.majors)}.` : ''
     const cName = area?.name ?? ctx.notice?.county ?? ''
+    // The company's page and the figures it shows (all its notices, every state), for the *_filing emails.
+    const agg = ctx.notice?.slug ? slugAgg.get(ctx.notice.slug) : undefined
+    if (agg && ctx.notice?.slug) {
+      const SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      row.page_url = `https://launchyournextchapter.com/layoffs/company/${ctx.notice.slug}`
+      row.page_boards_url = `${row.page_url}#boards`
+      row.page_notices = `${agg.notices} WARN ${agg.notices === 1 ? 'notice' : 'notices'}`
+      row.page_workers = n0(agg.workers)
+      row.page_states = agg.states.size === 1 ? `1 state` : `${agg.states.size} states`
+      row.page_latest = `${SHORT[agg.latest.getUTCMonth()]} ${agg.latest.getUTCDate()}`
+    }
     row.line_company = row.company ? `That includes ${poss(row.company)} ${n0(ctx.notice!.employees)} jobs.` : ''
     // The largest layoff is named only when the state or area has more than that one notice.
     row.line_largest = row.company && st && ctx.notice!.employees < st.jobs ? `, the largest being ${poss(row.company)} ${n0(ctx.notice!.employees)}${cName ? ` in ${cName}` : ''}` : ''
@@ -304,17 +331,20 @@ async function main() {
     select: { title: true, orgId: true, org: { select: { name: true } }, person: { select: { fullName: true, firstName: true, email: true } } },
   })) {
     const t = a.title ?? ''
-    const template = isHrLeaderTitle(t) ? 'head_hr' : /total rewards|compensation|benefits/i.test(t) ? 'rewards' : /employee relations|labor relations|business partner|hrbp|human resources (director|manager)|hr (director|manager)/i.test(t) ? 'er' : /talent acquisition|recruit/i.test(t) ? 'ta' : null
-    const n0 = byOrg.get(a.orgId)
+    const fresh = freshByOrg.get(a.orgId)
+    const template = isHrLeaderTitle(t) && fresh && professionalHeavy({ ...fresh }) ? 'hr_filing' : isHrLeaderTitle(t) ? 'head_hr' : /total rewards|compensation|benefits/i.test(t) ? 'rewards' : /employee relations|labor relations|business partner|hrbp|human resources (director|manager)|hr (director|manager)/i.test(t) ? 'er' : /talent acquisition|recruit/i.test(t) ? 'ta' : null
+    const n0 = template === 'hr_filing' ? freshByOrg.get(a.orgId) : byOrg.get(a.orgId)
     const notice = n0 ? { ...n0, employer: clean(a.org.name) } : undefined
     if (template && notice) add(template, { first: first(a.person.fullName, a.person.firstName), email: a.person.email!, org: a.org.name, title: t, orgId: a.orgId }, { notice })
   }
 
   // 2. Workforce board directors and chairs.
   for (const b of await prisma.workforceBoard.findMany({ select: { id: true, name: true, state: true, counties: true, directorName: true, directorTitle: true, directorEmail: true, chairName: true, chairEmail: true } })) {
-    const notice = byBoard.get(b.id)
+    const freshNotice = freshByBoard.get(b.id)
+    const notice = freshNotice ?? byBoard.get(b.id)
     const area = b.counties.map((c) => areaByName.get(`${b.state}|${countyBase(c)}`)).filter(Boolean).sort((x, y) => y!.j12 - x!.j12)[0]
     let pilotDone = false
+    let filingDone = false // a filing email goes to one person per board, the director before the chair
     for (const p of [{ n: b.directorName, t: b.directorTitle || 'Executive Director', e: b.directorEmail }, { n: b.chairName, t: 'Board Chair', e: b.chairEmail }]) {
       if (p.n && p.e && p.n.trim().split(/\s+/).length >= 2) {
         const g = boardGrowth.get(b.id)
@@ -322,7 +352,8 @@ async function main() {
         // The city-type pilot writes to one person per board, the director when there is one.
         if (grp && pilotDone) continue
         if (grp) pilotDone = true
-        add('board', { first: first(p.n.trim(), null), email: p.e, org: b.name, title: p.t }, { notice, area, state: b.state, board: b.name, extra: { board_group: grp, board_growth: g ? `${g.growth}%` : '' } })
+        if (freshNotice && !grp) { if (filingDone) continue; filingDone = true }
+        add(freshNotice && !grp ? 'board_filing' : 'board', { first: first(p.n.trim(), null), email: p.e, org: b.name, title: p.t }, { notice, area, state: b.state, board: b.name, extra: { board_group: grp, board_growth: g ? `${g.growth}%` : '' } })
       }
     }
   }
@@ -369,7 +400,7 @@ async function main() {
     const a = p.affiliations[0]; if (!a) continue
     const notes = p.notes ?? '', title = a.title ?? '', state = a.org.usState ?? ''
     const who = { first: first(p.fullName, p.firstName), email: p.email!, org: a.org.name, title, orgId: a.orgId }
-    if (/State Rapid Response Coordinators page/.test(notes)) { if (state) add('rr', who, { notice: byState.get(state), state }); continue }
+    if (/State Rapid Response Coordinators page/.test(notes)) { if (state) add(freshByState.get(state) ? 'rr_filing' : 'rr', who, { notice: freshByState.get(state) ?? byState.get(state), state }); continue }
     if (/Found by web search/.test(notes) && a.org.orgTypes.includes('GOVERNMENT') && state && !/which filed a WARN/.test(notes)) {
       const template = /unemployment|reemployment|\bRESEA\b/i.test(title) ? 'state_ui' : /labor market|information|career|pathway|adult learner|research/i.test(title) ? 'state_career' : 'state_agency'
       add(template, who, { notice: byState.get(state), state }); continue
@@ -398,7 +429,12 @@ async function main() {
   try { for (const l of readFileSync('/Users/salitkulla/nc-hunter-results/suppress.txt', 'utf8').split('\n')) if (l.trim()) suppress.set(l.trim().toLowerCase(), 'do not contact') } catch { /* no list yet */ }
   // One address, one email: later rows for an address already used are flagged, so a mail merge can skip them.
   const seen = new Set<string>()
-  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); const h = [...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7)
+  // A filing email beats the general one to the same address, so the person gets the one about the layoff in front of them.
+  const rank = (r: Row) => (r.template === 'hr_filing' && /chief|chro|cpo/i.test(r.recipient_title) ? 0 : 1)
+  rows.sort((a, b) => Number(b.template.endsWith('_filing')) - Number(a.template.endsWith('_filing')) || rank(a) - rank(b))
+  // One HR person per company for a filing email: the most senior, not the whole department.
+  const hrCompanies = new Set<string>()
+  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); if (r.template === 'hr_filing') { const ck = r.company.toLowerCase(); if (hrCompanies.has(ck)) r.duplicate = 'yes'; else hrCompanies.add(ck) } const h = [...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7)
     if (r.template === 'board' && r.board_group) {
       // City-type pilot: the metro's growth, not a random split. The subject is held fixed (concept 1) so the comparison is clean.
       r.variant = r.board_group; r.concept = 'C1'; r.subject = r.arm_C1a || r.subject_a
