@@ -7,6 +7,9 @@
 // Links to an existing Gmail draft (digest and layoff-watch emails) dock into an open Gmail tab the same way.
 const handled = new Set()
 
+// A real Gmail tab: not a full-page compose (those carry fs, view=cm, tf=cm or nc in the address), which can't host a New Message window.
+const isMailbox = (u) => !u.searchParams.has('fs') && !u.searchParams.has('nc') && u.searchParams.get('view') !== 'cm' && u.searchParams.get('tf') !== 'cm'
+
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
   if (info.status !== 'complete' || !tab.url || handled.has(tabId)) return
   let url
@@ -27,7 +30,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
     const target = gmailTabs.find((t) => {
       if (t.id === tabId || !t.url) return false
       const u = new URL(t.url)
-      return u.searchParams.get('tf') !== 'cm' && u.pathname.match(/^\/mail\/u\/(\d+)\//)?.[1] === account
+      return isMailbox(u) && u.pathname.match(/^\/mail\/u\/(\d+)\//)?.[1] === account
     })
     if (!target) {
       // No Gmail tab for this account: turn the compose tab itself into that account's inbox, then dock the message over it.
@@ -69,7 +72,7 @@ async function dockDraft(tabId, tab, url) {
   const sameAccount = gmailTabs.filter((t) => {
     if (t.id === tabId || !t.url) return false
     const u = new URL(t.url)
-    return u.searchParams.get('tf') !== 'cm' && u.pathname.match(/^\/mail\/u\/(\d+)\//)?.[1] === account
+    return isMailbox(u) && u.pathname.match(/^\/mail\/u\/(\d+)\//)?.[1] === account
   })
   const target = sameAccount.find((t) => t.id === tab.openerTabId) ?? sameAccount[0]
   if (!target) return
