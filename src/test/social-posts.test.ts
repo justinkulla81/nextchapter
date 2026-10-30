@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { linkFacets, oauth1Header } from '@/lib/social/clients'
-import { MIN_NOTICES, weekKey, weeklyLayoffPost, type WeekNotice } from '@/lib/social/posts'
+import { MIN_DAILY_NOTICES, MIN_NOTICES, dailyLayoffPost, reportPost, weekKey, weeklyLayoffPost, type DayNotice, type WeekNotice } from '@/lib/social/posts'
 
 const now = new Date('2026-10-26T13:00:00Z')
 const day = 86_400_000
@@ -66,9 +66,56 @@ describe('filingPostText', () => {
 })
 
 describe('channel registry', () => {
-  it('keeps X out of the automatic filing stream (billed per post)', async () => {
+  it('puts X in the automatic filing stream, under its own cap (billed per post)', async () => {
     const { CHANNELS } = await import('@/lib/social/channels')
-    expect(CHANNELS.find((c) => c.id === 'x')!.autoFilings).toBe(false)
-    expect(CHANNELS.filter((c) => c.autoFilings).map((c) => c.id).sort()).toEqual(['bluesky', 'discord', 'facebook', 'mastodon', 'slack', 'telegram', 'threads'])
+    expect(CHANNELS.find((c) => c.id === 'x')!.autoFilings).toBe(true)
+    expect(CHANNELS.filter((c) => c.autoFilings).map((c) => c.id).sort()).toEqual(['bluesky', 'discord', 'facebook', 'mastodon', 'slack', 'telegram', 'threads', 'x'])
+  })
+})
+
+describe('dailyLayoffPost', () => {
+  const hour = 3_600_000
+  const fresh = (hoursAgo: number, state = 'CA', workers: number | null = 100): DayNotice => ({ state, workers, fetchedAt: new Date(now.getTime() - hoursAgo * hour) })
+
+  it('skips a quiet day', () => {
+    expect(dailyLayoffPost(Array.from({ length: MIN_DAILY_NOTICES - 1 }, () => fresh(1)), now, 'u=1')).toBeNull()
+  })
+
+  it('totals what we collected in the last 24 hours, names no employer, and keys the day', () => {
+    const rows = [fresh(2, 'TX', 50), fresh(3, 'TX', 70), fresh(5, 'CA', 200), fresh(30, 'NY', 999)]
+    const post = dailyLayoffPost(rows, now, 'utm_source=bluesky')!
+    expect(post.key).toBe('layoffs-day-2026-10-26')
+    expect(post.text).toContain('3 WARN notices in 2 states, naming 320 workers')
+    expect(post.text).toContain('Most workers: California, Texas')
+    expect(post.text).not.toContain('New York')
+    expect(post.text).toContain('/layoffs/this-week?utm_source=bluesky')
+    expect(post.text.length).toBeLessThanOrEqual(280)
+  })
+})
+
+describe('reportPost', () => {
+  const edition = { slug: 'white-collar-employment-report-september-2026', month: 'September 2026', title: 'Jobs are growing, and some searches are taking longer', publishedAt: '2026-10-22' }
+
+  it('announces a recent edition once, under 280 characters with the link counted as 23', () => {
+    const post = reportPost(edition, now, 'utm_source=x')!
+    expect(post.key).toBe('report-white-collar-employment-report-september-2026')
+    expect(post.text).toContain('September 2026')
+    expect(post.text).toContain('/reports/white-collar-employment-report-september-2026?utm_source=x')
+    const link = post.text.slice(post.text.indexOf('https://'))
+    expect(post.text.length - link.length + 23).toBeLessThanOrEqual(280)
+  })
+
+  it('never announces an old edition, a future one, or none', () => {
+    expect(reportPost({ ...edition, publishedAt: '2026-09-01' }, now, 'u=1')).toBeNull()
+    expect(reportPost({ ...edition, publishedAt: '2026-11-30' }, now, 'u=1')).toBeNull()
+    expect(reportPost(null, now, 'u=1')).toBeNull()
+  })
+})
+
+describe('X filing rules', () => {
+  it('limits X to the biggest filings and three a day', async () => {
+    const { FILING_RULES, MAX_PER_CHANNEL_PER_DAY } = await import('@/lib/social/filings')
+    expect(FILING_RULES.x).toEqual({ minWorkers: 250, perDay: 3 })
+    expect(FILING_RULES.x!.perDay).toBeLessThan(MAX_PER_CHANNEL_PER_DAY)
   })
 })

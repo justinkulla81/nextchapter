@@ -13,6 +13,7 @@ import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
+import { extractEmailLinkId, resolveEmailRecipients, type EmailRecipient } from '@/lib/marketing/email-attribution'
 import { allTimeDayCount, byHourOfDay, byWeekday, perDaySeries, perHourSeries } from '@/lib/admin/visitor-time-buckets'
 
 export const maxDuration = 30
@@ -46,6 +47,8 @@ interface Row {
   // label instead of guessing.
   inferredCandidate: { id: string; firstName: string | null; lastName: string | null; email: string | null } | null
   source: string
+  // Set when the visit came from a tracked outbound email: the person it was sent to.
+  recipient: EmailRecipient | null
   device: string
   // Per-IP totals across all of this visitor's recorded events (not just this row).
   views: number
@@ -209,6 +212,8 @@ export default async function AdminVisitorActivityPage({
       .map(([ip, candidates]) => [ip, candidates[0]])
   )
 
+  const recipientByLink = await resolveEmailRecipients(events.map((e) => extractEmailLinkId(e.path)).filter((id): id is string => !!id))
+
   // Per-person totals: one row per IP, same bot rule as the log. "Person" is an IP — the best identity an
   // anonymous visit carries.
   const totalsByIp = new Map<string, { views: number; clicks: number; applyClicks: number }>()
@@ -243,6 +248,10 @@ export default async function AdminVisitorActivityPage({
     candidate: e.candidate,
     inferredCandidate: !e.candidate && e.ip ? (inferredCandidateByIp.get(e.ip) ?? null) : null,
     source: e.eventType === 'PAGE_VIEW' ? classifyTrafficSource(e.path, e.referrer) : '—',
+    recipient: (() => {
+      const id = extractEmailLinkId(e.path)
+      return id ? (recipientByLink.get(id) ?? null) : null
+    })(),
     device: classifyDevice(e.userAgent),
     views: e.ip ? (totalsByIp.get(e.ip)?.views ?? 0) : 0,
     clicks: e.ip ? (totalsByIp.get(e.ip)?.clicks ?? 0) : 0,
@@ -258,6 +267,16 @@ export default async function AdminVisitorActivityPage({
     {
       header: 'Visitor',
       render: (r) => {
+        if (r.recipient) {
+          return (
+            <>
+              <Link href={`/support/admin/crm/people/${r.recipient.personId}`} className="text-primary underline underline-offset-4">
+                {r.recipient.name}
+              </Link>
+              <span className="text-muted-foreground"> (clicked our email)</span>
+            </>
+          )
+        }
         if (r.candidate) {
           return (
             <Link href={`/support/admin/candidates/${r.candidate.id}`} className="text-primary underline underline-offset-4">
@@ -306,7 +325,7 @@ export default async function AdminVisitorActivityPage({
           '—'
         ),
     },
-    { header: 'Source', render: (r) => r.source },
+    { header: 'Source', render: (r) => (r.recipient ? `Email to ${r.recipient.name}` : r.source) },
     { header: 'Device', render: (r) => `${r.device} · ${classifyBrowser(r.userAgent)}` },
     { header: 'Page type', render: (r) => r.pageType },
     {
