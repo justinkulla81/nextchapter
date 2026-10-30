@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/privacy-policy' },
 }
 
-const EFFECTIVE_DATE = 'October 26, 2026'
+const EFFECTIVE_DATE = 'October 30, 2026'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -241,6 +241,18 @@ export default function PrivacyPolicyPage() {
             and profile details are sent to Anthropic&apos;s API solely to generate these results
             for you — Anthropic processes this data as our service provider and does not use it to
             train its models under our commercial agreement with them.
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h3 className="text-lg font-semibold text-navy">AI assistants and our public MCP server</h3>
+          <p>
+            Our public MCP server (launchyournextchapter.com/api/mcp) lets an AI assistant you use, such as ChatGPT or Claude, search
+            jobs, look up layoff notices and programs, and score a resume. It needs no account. When the assistant sends us resume text to
+            score, we read it once with fixed rules to produce the score and fixes, return the result to the assistant, and do not store
+            the text or send it to Anthropic or any other AI model. We record that a tool was called, with the tool name, the score and
+            band, and the state or goal when one was asked for, but not the text you sent. What the assistant company does with your
+            conversation is governed by its own privacy policy.
           </p>
         </section>
 

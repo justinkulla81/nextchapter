@@ -10,6 +10,7 @@ import type { MailingMemberStatus } from '@prisma/client'
  *   mailed, until that's switched off.
  * - On a list where the address is UNSUBSCRIBED or COMPLAINED, it stays that
  *   way; only the person themselves can change it.
+ * - REMOVED (taken off by hand or the clean-up): stays off until an admin adds them back.
  * - Already ACTIVE: nothing to do.
  */
 export type SuppressionReason = 'BOUNCED' | 'COMPLAINED' | 'DO_NOT_EMAIL'
@@ -26,6 +27,7 @@ export function canAddToList(
   if (suppression === 'COMPLAINED') return { ok: false, reason: 'complained' }
   if (suppression === 'BOUNCED') return { ok: false, reason: 'bounced' }
   if (existingStatus === 'ACTIVE') return { ok: false, reason: 'already_active' }
+  if (existingStatus === 'REMOVED') return { ok: true, action: 'reactivate' }
   if (existingStatus === 'UNSUBSCRIBED') return { ok: false, reason: 'unsubscribed' }
   if (existingStatus === 'COMPLAINED') return { ok: false, reason: 'complained' }
   if (existingStatus === 'BOUNCED') return { ok: false, reason: 'bounced' }

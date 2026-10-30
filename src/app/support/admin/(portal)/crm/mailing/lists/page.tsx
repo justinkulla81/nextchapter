@@ -99,7 +99,7 @@ export default async function MailingListsPage() {
           <label className="text-xs sm:col-span-2">
             <span className="mb-1 block font-medium">Footer line</span>
             <input name="footerText" defaultValue={settings.footerText} className={input} />
-            <span className="mt-1 block text-[11px] text-muted-foreground">The words in [brackets] become the unsubscribe link. With no brackets and the word "reply" in the line, no link goes in the email (mail apps still get their own Unsubscribe button). {'{{postalAddress}}'} becomes the address above.</span>
+            <span className="mt-1 block text-[11px] text-muted-foreground">The words in [brackets] become the unsubscribe link. With no brackets and the word &quot;reply&quot; in the line, no link goes in the email (mail apps still get their own Unsubscribe button). {'{{postalAddress}}'} becomes the address above.</span>
           </label>
           <div><SubmitButton pendingLabel="Saving…">Save settings</SubmitButton></div>
         </form>

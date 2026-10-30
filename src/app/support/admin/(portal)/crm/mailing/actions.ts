@@ -398,15 +398,17 @@ export async function addPersonToLists(personId: string, listIds: string[], opts
 }
 
 /**
- * Taking someone off a list by hand. An ACTIVE membership you added is just
- * removed (you may add them back later); one they unsubscribed from stays
- * on record as such.
+ * Taking someone off a list by hand. An ACTIVE membership is marked REMOVED
+ * (you may add them back later, and auto-assign never will); one they
+ * unsubscribed from stays on record as such.
  */
 export async function removePersonFromList(personId: string, listId: string) {
   const by = await admin()
   const person = await prisma.crmPerson.findUniqueOrThrow({ where: { id: personId }, select: { email: true } })
-  await prisma.mailingListMember.deleteMany({
+  // A status, not a deleted row: the daily auto-assign would otherwise see a missing membership and add them straight back.
+  await prisma.mailingListMember.updateMany({
     where: { listId, status: 'ACTIVE', OR: [{ personId }, ...(person.email ? [{ email: person.email.toLowerCase() }] : [])] },
+    data: { status: 'REMOVED', statusAt: new Date() },
   })
   captureServerEvent(by, 'mailing_person_removed', { personId, listId })
   revalidatePath(`/support/admin/crm/people/${personId}`)
@@ -417,7 +419,7 @@ export async function removeListMember(memberId: string) {
   const by = await admin()
   const m = await prisma.mailingListMember.findUnique({ where: { id: memberId }, select: { listId: true, personId: true, status: true } })
   if (!m || m.status !== 'ACTIVE') return
-  await prisma.mailingListMember.delete({ where: { id: memberId } })
+  await prisma.mailingListMember.update({ where: { id: memberId }, data: { status: 'REMOVED', statusAt: new Date() } })
   captureServerEvent(by, 'mailing_person_removed', { personId: m.personId, listId: m.listId, from: 'readership' })
   revalidatePath(`${BASE}/lists/${m.listId}`)
 }

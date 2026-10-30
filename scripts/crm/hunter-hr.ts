@@ -108,6 +108,8 @@ async function search(max: number, out: string) {
       searches++
       const domain = q.o.emailDomain ?? hostOf(q.o.website)
       const params: Record<string, string> = { limit: '10', department: 'hr', seniority: 'senior,executive', type: 'personal' }
+      // HUNTER_JOB_TITLES narrows the search to named titles (e.g. chief people officer, total rewards, talent mobility).
+      if (process.env.HUNTER_JOB_TITLES) params.job_titles = process.env.HUNTER_JOB_TITLES
       if (domain) params.domain = domain; else params.company = searchName(q.o.name)
       const row: Row = { orgId: q.o.id, org: q.o.name, employees: q.t.employees || null, mode: q.t.mode, domain: null, viaName: !domain, hits: [] }
       try {

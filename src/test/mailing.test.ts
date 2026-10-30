@@ -254,19 +254,19 @@ describe('rendering', () => {
 
 describe('list suggestions', () => {
   it('falls back to the organization type only when no role names a list', () => {
-    expect(suggestListKeys({ roles: ['OTHER'], pipelineKeys: [], orgTypes: ['UNIVERSITY', 'EMPLOYER'] }).sort()).toEqual(['higher_ed', 'monthly_update'])
-    expect(suggestListKeys({ roles: ['COACH_PROSPECT'], pipelineKeys: [], orgTypes: ['UNIVERSITY'] }).sort()).toEqual(['coaches', 'monthly_update'])
+    expect(suggestListKeys({ roles: ['OTHER'], pipelineKeys: [], orgTypes: ['THINK_TANK', 'EMPLOYER'] }).sort()).toEqual(['monthly_update', 'research_partners'])
+    expect(suggestListKeys({ roles: ['COACH_PROSPECT'], pipelineKeys: [], orgTypes: ['THINK_TANK'] }).sort()).toEqual(['coaches', 'monthly_update'])
     expect(suggestListKeys({ roles: ['OTHER'], pipelineKeys: [], orgTypes: ['EMPLOYER', 'GOVERNMENT'] })).toEqual(['monthly_update'])
   })
   it('maps roles, pipelines and customers; always suggests the Monthly Update', () => {
     expect(suggestListKeys({ roles: [], pipelineKeys: [] })).toEqual(['monthly_update'])
     expect(suggestListKeys({ roles: ['INVESTOR_ANGEL', 'COACH_PROSPECT'], pipelineKeys: ['outplacement'] }).sort())
-      .toEqual(['coaches', 'employers', 'investors', 'monthly_update'])
+      .toEqual(['coaches', 'employers_hr', 'monthly_update'])
     expect(suggestListKeys({ roles: ['HIGHER_ED_CAREER', 'RECRUITER_PROSPECT'], pipelineKeys: ['workforce_boards'] }).sort())
-      .toEqual(['higher_ed', 'monthly_update', 'recruiters', 'workforce'])
+      .toEqual(['higher_ed_career', 'monthly_update', 'recruiters', 'workforce'])
     expect(suggestListKeys({ roles: ['BD_PARTNER', 'ADVISOR', 'POLICY_ANALYST'], pipelineKeys: ['bd_partnerships'] }).sort())
       .toEqual(['advisors', 'bd_partners', 'monthly_update', 'research_partners'])
-    expect(suggestListKeys({ roles: ['PRESS'], pipelineKeys: ['hiring_managers'] })).toEqual(['monthly_update'])
+    expect(suggestListKeys({ roles: ['PRESS'], pipelineKeys: ['hiring_managers'] }).sort()).toEqual(['monthly_update', 'press'])
   })
 })
 
@@ -323,5 +323,39 @@ describe('option counts', () => {
     expect(f.roles).toEqual({ INVESTOR_VC: 2, JOB_SEEKER: 1 })
     expect(f.priorities).toEqual({ P0: 1, P1: 0, P2: 1 })
     expect(f.history).toEqual({ any: 2, emailed: 2, exchanged: 1, no_reply: 1, never: 0 })
+  })
+})
+
+describe('list rules after the split', () => {
+  const keys = (roles: string[], extra: { pipelineKeys?: string[]; orgTypes?: string[] } = {}) =>
+    suggestListKeys({ roles: roles as never, pipelineKeys: extra.pipelineKeys ?? [], orgTypes: extra.orgTypes })
+  it('never suggests the investor list from a contact type or pipeline', () => {
+    expect(keys(['INVESTOR_VC', 'INVESTOR_ANGEL', 'INCUBATOR'], { pipelineKeys: ['fundraising'], orgTypes: ['VC_FUND'] })).not.toContain('investors')
+  })
+  it('sends grants to their own list, apart from investors', () => {
+    expect(keys(['GRANTS'])).toContain('funders')
+    expect(keys([], { pipelineKeys: ['grants'] })).toContain('funders')
+  })
+  it('sorts employers into HR, hiring and learning sub-lists', () => {
+    expect(keys(['CHRO'])).toContain('employers_hr')
+    expect(keys(['OUTPLACEMENT_BUYER'])).toContain('employers_hr')
+    expect(keys(['HIRING_MANAGER'])).toContain('employers_hiring')
+    expect(keys(['LEARNING_DEV_HEAD'])).toContain('employers_learning')
+    expect(keys(['CHRO'])).not.toContain('employers')
+  })
+  it('sorts higher ed by what they do, and leaves a bare university org for review', () => {
+    expect(keys(['ALUMNI_OFFICE'])).toContain('higher_ed_alumni')
+    expect(keys(['HIGHER_ED_CAREER'])).toContain('higher_ed_career')
+    expect(keys(['HIGHER_ED_DEVELOPMENT'])).toContain('higher_ed_development')
+    expect(keys(['HIGHER_ED_EXEC_ED'])).toContain('higher_ed_exec_ed')
+    expect(keys([], { orgTypes: ['UNIVERSITY'] })).toEqual(['monthly_update'])
+  })
+  it('puts press on the press list', () => {
+    expect(keys(['PRESS'])).toContain('press')
+  })
+  it('lets an admin add back someone who was removed, but not an unsubscribe', () => {
+    expect(canAddToList('REMOVED', null)).toEqual({ ok: true, action: 'reactivate' })
+    expect(canAddToList('UNSUBSCRIBED', null)).toEqual({ ok: false, reason: 'unsubscribed' })
+    expect(canAddToList('REMOVED', 'BOUNCED')).toEqual({ ok: false, reason: 'bounced' })
   })
 })
