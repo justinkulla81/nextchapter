@@ -17823,6 +17823,8 @@ model StaffAgentDraft {
 
   @@unique([agent, subjectId, weekKey])
   @@index([institutionId, agent, createdAt])
+}
+
 /// One day's ready-to-post draft built from NextChapter's own data (src/lib/content/). The channel versions
 /// (LinkedIn, X, Reddit, short video, newsletter) are template text in `versions`; the numbers they were built
 /// from are in `facts`. Nothing is posted by the system: a person copies a version and records it as a ContentDraftPost.
