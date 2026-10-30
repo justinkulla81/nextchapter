@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ALONGSIDE, CLOSE, SIGN_OFF, draftFor, composeKey, readComposeKey, draftKind, greetingFor, withComposeLinks, COMPOSE_ACCOUNT } from '@/lib/warn/layoff-alert-drafts'
+import { ALONGSIDE, CLOSE, SIGN_OFF, draftFor, composeKey, readComposeKey, draftKind, greetingFor, withComposeLinks, COMPOSE_ACCOUNT, COMPOSE_FROM } from '@/lib/warn/layoff-alert-drafts'
 import { alertBody, type ContactCard, type ContactGroup } from '@/lib/warn/layoff-alert-rules'
 import type { LocalPicture } from '@/lib/warn/layoff-picture'
 
@@ -80,6 +80,7 @@ describe('withComposeLinks', () => {
     expect(u.origin + u.pathname).toBe('https://mail.google.com/mail/')
     expect(u.searchParams.get('authuser')).toBe(COMPOSE_ACCOUNT)
     expect(u.searchParams.get('nc')).toBe('dock')
+    expect(u.searchParams.get('ncfrom')).toBe(COMPOSE_FROM)
     expect(u.searchParams.get('to')).toBe('chelsea@acme.com')
     expect(g.cards[1].compose).toBeUndefined()
   })
