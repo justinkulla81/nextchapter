@@ -7,6 +7,7 @@ import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/Publi
 import { LayoffTracker } from '@/components/news/LayoffTracker'
 import { getLayoffTracker } from '@/lib/warn/public-tracker'
 import { getLayoffCounts } from '@/lib/warn/layoff-counts'
+import { CiteThisData } from '@/components/layoffs/CiteThisData'
 import { LayoffNumbersNote } from '@/components/layoffs/LayoffNumbersNote'
 import { getLargestRecentEmployers, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { getNationalLaborData } from '@/lib/market/bls-national'
@@ -47,10 +48,12 @@ export default async function LayoffsHubPage() {
           )}
 
  <LayoffNumbersNote counts={counts} />
+          <CiteThisData path="/layoffs" asOf={counts?.asOf} source="layoffs-hub" />
 
           <section aria-labelledby="use-data" className="mt-12 rounded-xl border border-border bg-white p-6">
             <h2 id="use-data" className="text-xl font-semibold tracking-tight text-navy">Use the layoff data</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
+              <li><Link href="/layoffs/2026" className={LINK}>Layoffs 2026</Link>: every month, state, industry and company in one page.</li>
               <li><Link href="/layoffs/this-week" className={LINK}>Layoffs this week</Link>: notices filed in the last seven days.</li>
               <li><Link href="/layoffs/week" className={LINK}>Layoffs by week</Link>, every week of the last two years.</li>
               <li><Link href="/layoffs/by-state" className={LINK}>WARN notices by state</Link>: notices and workers named in the last 12 months, each state’s own record and a file to download.</li>

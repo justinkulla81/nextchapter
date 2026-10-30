@@ -50,7 +50,7 @@ export const PROVIDERS: Provider[] = [
         headers: { Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: 'sonar', messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: prompt }], max_tokens: 700 }),
       })
-      if (!r.ok) throw new Error(`perplexity ${r.status}`)
+      if (!r.ok) throw new Error(`perplexity ${r.status}: ${(await r.text()).replace(/\s+/g, ' ').slice(0, 160)}`)
       const j = await r.json()
       const sources: string[] = [...(j.citations ?? []), ...(j.search_results ?? []).map((s: { url?: string }) => s.url).filter(Boolean)]
       return { text: j.choices?.[0]?.message?.content ?? '', sources }
@@ -64,9 +64,9 @@ export const PROVIDERS: Provider[] = [
       const r = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
         headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: process.env.AI_CITATION_OPENAI_MODEL || 'gpt-5-mini', tools: [{ type: 'web_search' }], instructions: SYSTEM, input: prompt, max_output_tokens: 900 }),
+        body: JSON.stringify({ model: process.env.AI_CITATION_OPENAI_MODEL || 'gpt-5-mini', tools: [{ type: 'web_search' }], tool_choice: 'required', reasoning: { effort: 'low' }, instructions: SYSTEM, input: prompt, max_output_tokens: 4000 }),
       })
-      if (!r.ok) throw new Error(`openai ${r.status}`)
+      if (!r.ok) throw new Error(`openai ${r.status}: ${(await r.text()).replace(/\s+/g, ' ').slice(0, 160)}`)
       const j = await r.json()
       const sources: string[] = []
       let text = ''
@@ -91,7 +91,7 @@ export const PROVIDERS: Provider[] = [
         headers: { 'x-goog-api-key': process.env.GEMINI_API_KEY as string, 'Content-Type': 'application/json' },
         body: JSON.stringify({ systemInstruction: { parts: [{ text: SYSTEM }] }, contents: [{ role: 'user', parts: [{ text: prompt }] }], tools: [{ google_search: {} }] }),
       })
-      if (!r.ok) throw new Error(`gemini ${r.status}`)
+      if (!r.ok) throw new Error(`gemini ${r.status}: ${(await r.text()).replace(/\s+/g, ' ').slice(0, 160)}`)
       const j = await r.json()
       const cand = j.candidates?.[0]
       const text = (cand?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? '').join('')

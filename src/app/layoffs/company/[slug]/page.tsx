@@ -9,6 +9,7 @@ import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { CompanyLayoffGuide } from '@/components/layoffs/CompanyLayoffGuide'
 import { buildLayoffGuide } from '@/lib/warn/layoff-guide'
 import { filingFacts, guidePrograms } from '@/lib/warn/layoff-guide-programs'
+import { CiteThisData } from '@/components/layoffs/CiteThisData'
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
@@ -27,6 +28,7 @@ import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } fr
 import { getEmployerBrand } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
+import { ClaimHint } from '@/components/seo/ClaimHint'
 import { LandingHero } from '@/components/layoffs/landing/LandingHero'
 import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
 import { SearchTimeFacts } from '@/components/layoffs/landing/SearchTimeFacts'
@@ -172,6 +174,13 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <span className="text-foreground">{c.name}</span>
             <span className="ml-3">Updated {noticeDay(new Date(`${modified}T12:00:00Z`))}</span>
           </nav>
+          <ClaimHint
+            who={`HR or workforce staff helping the people affected by the ${c.name} layoff?`}
+            label="See how outplacement works for these workers"
+            href="/outplacement"
+            event="seo_org_ask_clicked"
+            properties={{ page: 'layoff', audience: 'employer_hr', slug, hasNotices }}
+          />
 
           <div className="mt-4 space-y-12">
             <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} />
@@ -293,6 +302,8 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             </p>
             <div className="mt-4"><BoardList notices={c.notices} page="company" /></div>
           </section>}
+
+          {hasNotices && <CiteThisData path={path} asOf={noticeDay(new Date(`${modified}T12:00:00Z`))} source="layoffs-company" csvHref={c.states.length === 1 ? `/data/layoffs.csv?state=${c.states[0]}` : '/data/layoffs.csv'} />}
 
           {hasNotices && <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
             These are the notices {c.name} filed under the WARN Act, as published by each state. A notice gives the number of
