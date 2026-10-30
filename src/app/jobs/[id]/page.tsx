@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getEmployerBrand } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import Link from 'next/link'
-import { notFound, permanentRedirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
@@ -18,7 +18,7 @@ import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
 import { buttonVariants } from '@/components/ui/button'
 import { isExcerpt } from '@/lib/jobs/posting-text'
 import { datePostedOf, descriptionParagraphs, isIndexableJob, isRemoteJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
-import { closedJobRedirectTarget, getPublicJob } from '@/lib/jobs/public-job-page-server'
+import { getPublicJob } from '@/lib/jobs/public-job-page-server'
 import { employerPath, isCompanyOfferedToSearch } from '@/lib/seo/employer-pages'
 import { prisma } from '@/lib/prisma'
 import { BrowseTheSite } from '@/components/marketing/BrowseTheSite'
@@ -63,13 +63,8 @@ const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric'
 export default async function PublicJobPage({ params }: { params: Params }) {
   const { id } = await params
   const job = await loadJob(id)
-  if (!job) {
-    // A job that closed hands its page's value to the employer's page (or its function or industry page).
-    // Anything else is a plain 404.
-    const to = await closedJobRedirectTarget(id)
-    if (to) permanentRedirect(to)
-    notFound()
-  }
+  // A closed job answers 404 (not a redirect to another page, which Google counts as a soft 404 for job postings), so it leaves Google for Jobs.
+  if (!job) notFound()
 
   const place = placeLabel(job)
   const pay = payLabel(job.salaryMin, job.salaryMax, job.payPeriod)

@@ -318,3 +318,31 @@ export async function inspectIndexState(urls: string[]): Promise<Map<string, Ind
   await Promise.all(Array.from({ length: 5 }, worker))
   return out
 }
+
+export interface SitemapProblems {
+  /** Job sitemap files Google lists for the property, and the errors and warnings it reports on them. */
+  files: number
+  errors: number
+  warnings: number
+  /** URLs submitted in the job sitemaps (what Google read). */
+  submitted: number
+}
+
+/**
+ * Google's own report on our job sitemaps, from the Search Console sitemaps API with the Google grant already stored for the admin
+ * (no new credentials). The index-coverage errors (404, 5xx) are not in any API, so they stay a manual read of the Pages report.
+ */
+export async function sitemapProblems(): Promise<SitemapProblems> {
+  const session = await searchConsoleSession()
+  if ('error' in session) throw new Error(session.error)
+  const res = await authedFetch(session.token, `${API}/sites/${encodeURIComponent(session.siteUrl)}/sitemaps`)
+  if (!res.ok) throw new SearchConsoleHttpError(res.status, await res.text())
+  const data = (await res.json()) as { sitemap?: { path: string; errors?: string; warnings?: string; contents?: { type: string; submitted?: string }[] }[] }
+  const jobs = (data.sitemap ?? []).filter((m) => /\/jobs\/sitemap\//.test(m.path))
+  return {
+    files: jobs.length,
+    errors: jobs.reduce((n, m) => n + Number(m.errors ?? 0), 0),
+    warnings: jobs.reduce((n, m) => n + Number(m.warnings ?? 0), 0),
+    submitted: jobs.reduce((n, m) => n + (m.contents ?? []).reduce((k, c) => k + Number(c.submitted ?? 0), 0), 0),
+  }
+}
