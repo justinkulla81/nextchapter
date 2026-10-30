@@ -17,3 +17,12 @@ describe('firstDollarFigure', () => {
     expect(firstDollarFigure('Significant growth in 2023')).toBeNull()
   })
 })
+
+import { cleanRelationship } from '@/lib/vision/competitor-areas'
+describe('cleanRelationship', () => {
+  it('accepts the ruled-out value and falls back to DIRECT for anything unknown', () => {
+    expect(cleanRelationship('NOT_A_COMPETITOR')).toBe('NOT_A_COMPETITOR')
+    expect(cleanRelationship('PARTNER')).toBe('PARTNER')
+    expect(cleanRelationship('nonsense')).toBe('DIRECT')
+  })
+})

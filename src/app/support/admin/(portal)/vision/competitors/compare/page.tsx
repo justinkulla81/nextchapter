@@ -32,14 +32,15 @@ const year = (d: Date | null) => (d ? String(d.getUTCFullYear()) : '')
 export default async function CompetitorComparePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   await requireAdmin()
   const sp = await searchParams
+  const keyOnly = sp.key === '1'
   const rel = sp.rel && RELATIONSHIPS.some((r) => r.key === sp.rel) ? sp.rel : ''
 
   const [events, cards] = await Promise.all([
     prisma.competitorEvent.findMany({ where: { kind: { in: PRESENCE } }, orderBy: [{ occurredAt: 'desc' }, { createdAt: 'desc' }], take: 3000 }),
-    prisma.productCompetitor.findMany({ where: { status: 'ACTIVE' }, orderBy: { name: 'asc' }, select: { id: true, name: true, url: true, relationship: true, fundingRaisedUsd: true, lastRound: true, investors: true, pricingNote: true, weWin: true, theyWin: true, weNeed: true } }),
+    prisma.productCompetitor.findMany({ where: { status: 'ACTIVE', ...(keyOnly ? { keyCompetitor: true } : {}) }, orderBy: [{ keyCompetitor: 'desc' }, { name: 'asc' }], select: { id: true, name: true, url: true, relationship: true, keyCompetitor: true, fundingRaisedUsd: true, lastRound: true, investors: true, pricingNote: true, weWin: true, theyWin: true, weNeed: true } }),
   ])
   const by = new Map(cards.map((c) => [c.id, c]))
-  const inScope = (id: string) => { const c = by.get(id); return !!c && (!rel || c.relationship === rel) }
+  const inScope = (id: string) => { const c = by.get(id); return !!c && (rel ? c.relationship === rel : c.relationship !== 'NOT_A_COMPETITOR') }
   const shownEvents = events.filter((e) => inScope(e.competitorId))
 
   // Conferences: one row per event name, with who exhibited, sponsored or spoke.
@@ -57,7 +58,7 @@ export default async function CompetitorComparePage({ searchParams }: { searchPa
   const mostActive = [...perCompany.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)
 
   const rivals = cards.filter((c) => (!rel ? c.relationship === 'DIRECT' || c.relationship === 'ADJACENT' : c.relationship === rel))
-  const href = (r: string) => `${V}/compare${r ? `?rel=${r}` : ''}`
+  const href = (r: string, k = keyOnly) => { const q = new URLSearchParams(); if (r) q.set('rel', r); if (k) q.set('key', '1'); const t = q.toString(); return `${V}/compare${t ? `?${t}` : ''}` }
   const pill = (on: boolean) => `rounded-md border px-2.5 py-1 text-sm ${on ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:bg-muted'}`
   const link = (id: string) => `${V}?focus=${id}#c-${id}`
 
@@ -70,6 +71,7 @@ export default async function CompetitorComparePage({ searchParams }: { searchPa
         <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label="Relationship">
           <Link href={href('')} className={pill(!rel)}>Direct and adjacent</Link>
           {RELATIONSHIPS.map((r) => <Link key={r.key} href={href(r.key)} className={pill(rel === r.key)}>{r.label}</Link>)}
+          <Link href={href(rel, !keyOnly)} aria-pressed={keyOnly} className={pill(keyOnly)}>★ Key competitors only</Link>
         </div>
       </header>
 
@@ -120,7 +122,7 @@ export default async function CompetitorComparePage({ searchParams }: { searchPa
             <tbody className="divide-y divide-border align-top">
               {rivals.map((c) => (
                 <tr key={c.id}>
-                  <td className="px-2 py-1.5 font-medium"><Link href={link(c.id)} className="hover:underline">{c.name}</Link>{c.url && <a href={c.url} target="_blank" rel="noreferrer" aria-label={`${c.name} website`} className="ml-1 text-muted-foreground">↗</a>}</td>
+                  <td className="px-2 py-1.5 font-medium">{c.keyCompetitor && <span className="mr-1 text-amber-500" title="Key competitor">★</span>}<Link href={link(c.id)} className="hover:underline">{c.name}</Link>{c.url && <a href={c.url} target="_blank" rel="noreferrer" aria-label={`${c.name} website`} className="ml-1 text-muted-foreground">↗</a>}</td>
                   <td className="px-2 py-1.5 text-xs text-muted-foreground">{relationshipLabel(c.relationship)}</td>
                   <td className="px-2 py-1.5 text-right tabular-nums">{money(c.fundingRaisedUsd)}</td>
                   <td className="px-2 py-1.5 text-xs">{[c.lastRound, c.investors].filter(Boolean).join(' · ') || '—'}</td>

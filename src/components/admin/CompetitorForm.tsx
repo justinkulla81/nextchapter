@@ -11,7 +11,7 @@ export interface CompetitorFormValues {
   fundingRaisedUsd?: number | null; headcount?: number | null; revenueNote?: string | null; userCountNote?: string | null
   revenueUsd?: number | null; monthlyVisits?: number | null; trafficNote?: string | null
   sourceUrl?: string | null; notes?: string | null
-  status?: string; statusNote?: string | null; lessons?: string[]; partnerIdea?: string | null; category?: string | null
+  keyCompetitor?: boolean; status?: string; statusNote?: string | null; lessons?: string[]; partnerIdea?: string | null; category?: string | null
 }
 
 const input = 'h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm'
@@ -45,6 +45,8 @@ export function CompetitorForm({ v = {}, submitLabel }: { v?: CompetitorFormValu
           ))}
         </div>
       </fieldset>
+
+      <label className="flex items-center gap-2 text-sm sm:col-span-3"><input type="checkbox" name="keyCompetitor" defaultChecked={v.keyCompetitor ?? false} /> Key competitor: one to watch closely</label>
 
       <fieldset className="sm:col-span-3">
         <legend className="mb-1 text-sm font-medium">Where they compete with us</legend>

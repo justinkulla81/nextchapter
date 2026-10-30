@@ -346,6 +346,7 @@ export async function upsertCompetitor(formData: FormData) {
     lessons: parseLines(formData.get('lessons'), 8),
     partnerIdea: text('partnerIdea', 300),
     category: text('category', 40),
+    keyCompetitor: formData.get('keyCompetitor') === 'on',
     revenueNote: text('revenueNote', 160),
     fundingRaisedUsd: funding && funding <= 2_147_483_647 ? funding : null,
     headcount: num('headcount'),
@@ -440,6 +441,31 @@ export async function refreshCompetitorFromWebsite(competitorId: string) {
   } catch (err) { failure = err instanceof Error ? err.message : 'unknown error' }
   revalidatePath(`${V}/competitors`)
   return redirect(`${V}/competitors?${failure ? `error=${encodeURIComponent(`Could not refresh ${c.name}: ${failure}`)}` : `added=${c.id}&refreshed=1`}`)
+}
+
+/**
+ * One-click flags from the table and cards: change the relationship (including "Not a competitor") or star a competitor to watch closely.
+ * A person choosing a relationship protects it from the monthly website refresh, which only rewrites cards that were not set by hand.
+ */
+export async function setCompetitorFlags(competitorId: string, flags: { relationship?: string; keyCompetitor?: boolean }): Promise<{ ok: boolean; error?: string }> {
+  const admin = await requireAdmin()
+  const data: { relationship?: string; keyCompetitor?: boolean; filledBy?: string } = {}
+  if (flags.relationship !== undefined) {
+    const rel = cleanRelationship(flags.relationship)
+    if (rel !== flags.relationship) return { ok: false, error: 'That is not a relationship we know.' }
+    data.relationship = rel
+    data.filledBy = 'hand'
+  }
+  if (typeof flags.keyCompetitor === 'boolean') data.keyCompetitor = flags.keyCompetitor
+  if (Object.keys(data).length === 0) return { ok: false, error: 'Nothing to change.' }
+  try {
+    await prisma.productCompetitor.update({ where: { id: competitorId }, data })
+  } catch {
+    return { ok: false, error: 'Could not save. The competitor may have been deleted; reload the page.' }
+  }
+  captureServerEvent(admin.email ?? 'admin', 'vision_competitor_flagged', { competitorId, relationship: data.relationship ?? null, keyCompetitor: data.keyCompetitor ?? null })
+  revalidatePath(`${V}/competitors`)
+  return { ok: true }
 }
 
 export async function deleteCompetitor(competitorId: string) {

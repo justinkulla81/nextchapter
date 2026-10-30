@@ -11980,7 +11980,10 @@ model ProductCompetitor {
   /// When the competitor is also an organisation we track.
   crmOrgId String?
 
-  /// DIRECT | ADJACENT | PARTNER | SUPPLIER. A data supplier or a possible partner is not a rival, and the
+  /// A person starred this one as a competitor to watch closely.
+  keyCompetitor Boolean @default(false)
+
+  /// DIRECT | ADJACENT | PARTNER | SUPPLIER | NOT_A_COMPETITOR. A data supplier or a possible partner is not a rival, and the
   /// page says so rather than leaving them out.
   relationship String   @default("DIRECT")
   /// Where they compete, from the fixed vocabulary in src/lib/vision/competitor-areas.ts.
