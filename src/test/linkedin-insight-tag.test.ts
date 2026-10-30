@@ -3,7 +3,7 @@ import { isLinkedInTagPath } from '@/components/analytics/LinkedInInsightTag'
 
 describe('LinkedIn Insight Tag page allowlist', () => {
   it('tags public marketing and SEO pages', () => {
-    for (const p of ['/', '/pricing', '/for-organizations', '/for-rapid-response', '/demo/workforce', '/layoffs/by-state/ca', '/employers/acme', '/places/texas']) {
+    for (const p of ['/', '/pricing', '/for-organizations', '/for-rapid-response', '/demo', '/demo/workforce', '/layoffs/by-state/ca', '/employers/acme', '/places/texas']) {
       expect(isLinkedInTagPath(p), p).toBe(true)
     }
   })
