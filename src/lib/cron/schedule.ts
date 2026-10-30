@@ -57,7 +57,7 @@ export function cronSchedules(): CronSchedule[] {
  */
 export const RERUN_SAFE_JOBS: ReadonlySet<string> = new Set([
   'crm-sync', 'gmail-sync', 'warn-sync', 'layoff-news', 'ats-job-board-feed', 'company-signals', 'company-events', 'company-outcomes', 'company-graph', 'company-hiring-index',
-  'funding-opportunities', 'catalog-seeds', 'federal-contracts', 'board-bids', 'competitor-awards', 'news-discovery', 'likely-openings',
+  'funding-opportunities', 'content-drafts', 'catalog-seeds', 'federal-contracts', 'board-bids', 'competitor-awards', 'news-discovery', 'likely-openings',
   'workforce-boards', 'workforce-board-intel', 'refresh-youtube-content',
   'expire-job-postings', 'benefits-network-expire-listings', 'population-snapshot',
   'partner-scores', 'activity-streaks', 'board-light-rows', 'indexnow-jobs', 'indexnow-seo-pages', 'indexnow-layoffs', 'google-indexing-jobs', 'bing-url-submit', 'pivot-market', 'market-size', 'ai-market', 'board-figures', 'page-warmup',

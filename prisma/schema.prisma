@@ -17803,3 +17803,44 @@ model OutplacementAgentDraft {
   @@unique([seatId, weekKey, contactId])
   @@index([candidateId, weekKey])
 }
+
+/// One day's ready-to-post draft built from NextChapter's own data (src/lib/content/). The channel versions
+/// (LinkedIn, X, Reddit, short video, newsletter) are template text in `versions`; the numbers they were built
+/// from are in `facts`. Nothing is posted by the system: a person copies a version and records it as a ContentDraftPost.
+/// prisma/manual/2026-10-30-content-drafts.sql.
+model ContentDraft {
+  id        String   @id @default(cuid())
+  /// The day the draft was made for, YYYY-MM-DD (US Eastern).
+  day       String
+  /// layoff | ai-job | ai-pay | market | deadline
+  kind      String
+  /// What the draft is about within the day (an employer, an occupation); with day and kind it makes the draft unique.
+  subject   String
+  /// DRAFT | POSTED | SKIPPED
+  status    String   @default("DRAFT")
+  headline  String
+  big       String
+  bigLabel  String
+  /// The tracked utm_campaign on every link in this draft.
+  campaign  String
+  versions  Json
+  facts     Json
+  createdAt DateTime @default(now())
+  posts     ContentDraftPost[]
+
+  @@unique([day, kind, subject])
+  @@index([day])
+}
+
+/// A channel a ContentDraft was posted to by hand, with the URL of the live post.
+model ContentDraftPost {
+  id       String       @id @default(cuid())
+  draftId  String
+  draft    ContentDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  /// linkedin | x | reddit | video | newsletter
+  channel  String
+  url      String
+  postedAt DateTime     @default(now())
+
+  @@index([draftId])
+}
