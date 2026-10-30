@@ -7,6 +7,8 @@ import { VisitorsPerDayChart } from '@/components/admin/VisitorsPerDayChart'
 import { classifyUserAgent } from '@/lib/http/user-agent'
 import { isDatacenterIp } from '@/lib/http/datacenter-ip'
 import { DeviceShareChart } from '@/components/admin/DeviceShareChart'
+import { JobSourceShareChart } from '@/components/admin/JobSourceShareChart'
+import { classifyJobSource, JOB_SOURCE_KINDS, type JobSourceKind } from '@/lib/admin/job-source'
 import { analyzeVisits } from '@/lib/admin/visitor-analytics'
 import { buildKeyStats } from '@/lib/admin/key-stats'
 import { KeyStatsSection, type KeyStatsDayWithMembers } from '@/components/admin/KeyStatsSection'
@@ -281,6 +283,29 @@ export default async function AdminVisitorsPage({
     emailSignups: signupsByDay.get(d.dateKey)?.size ?? 0,
     marketRealityMembers: marketRealityByDay.get(d.dateKey)?.size ?? 0,
   }))
+  // Job-page views split by where the job's Apply link goes (employer vs aggregator).
+  const jobViews = humanChartEvents.flatMap((e) => {
+    const m = /^\/jobs\/([^/?#]+)\/?(?:[?#].*)?$/.exec(e.path ?? '')
+    return m ? [{ id: m[1], dateKey: etDateKey(e.createdAt) }] : []
+  })
+  const jobSourceRows = jobViews.length
+    ? await prisma.exclusiveJobPosting.findMany({
+        where: { id: { in: Array.from(new Set(jobViews.map((v) => v.id))) } },
+        select: { id: true, url: true, sourceCategory: true },
+      })
+    : []
+  const jobSourceById = new Map(jobSourceRows.map((r) => [r.id, classifyJobSource(r.url, r.sourceCategory)] as const))
+  const jobSourceDateKeys = Array.from({ length: CHART_WINDOW_DAYS }, (_, i) => etDateKey(new Date(now().getTime() - (CHART_WINDOW_DAYS - 1 - i) * 24 * 60 * 60 * 1000)))
+  const jobSourceDays = jobSourceDateKeys.map((dateKey) => ({
+    dateKey,
+    counts: Object.fromEntries(JOB_SOURCE_KINDS.map((k) => [k, 0])) as Record<JobSourceKind, number>,
+  }))
+  const jobSourceDayByKey = new Map(jobSourceDays.map((d) => [d.dateKey, d] as const))
+  for (const v of jobViews) {
+    const kind = jobSourceById.get(v.id)
+    const day = jobSourceDayByKey.get(v.dateKey)
+    if (kind && day) day.counts[kind] += 1
+  }
   const analysis = analyzeVisits(humanAllEvents, {
     dayKey: etDateKey,
     dateKeys: Array.from({ length: CHART_WINDOW_DAYS }, (_, i) => etDateKey(new Date(now().getTime() - (CHART_WINDOW_DAYS - 1 - i) * 24 * 60 * 60 * 1000))),
@@ -326,6 +351,14 @@ export default async function AdminVisitorsPage({
           Share of human visits by device, last {CHART_WINDOW_DAYS} days. A visit is one person (IP address) on one day.
         </p>
         <DeviceShareChart days={analysis.device.perDay} overall={analysis.device.overall} />
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <h2 className="text-sm font-medium text-foreground">Job pages: direct vs aggregator</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Share of human job-page views by where the job&apos;s Apply link goes, last {CHART_WINDOW_DAYS} days. Direct is the employer or recruiter&apos;s own page.
+        </p>
+        <JobSourceShareChart days={jobSourceDays} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
