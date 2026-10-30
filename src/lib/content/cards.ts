@@ -14,11 +14,11 @@ const usd = (v: number) => `$${n(Math.round(v / 1000) * 1000)}`
 const FILE_FIRST = DEADLINE_STEPS.find((s) => s.id === 'd2')!.body
 
 export const CREDIBILITY_SOURCE: Record<Credibility, string> = {
-  'warn-filing': 'the state WARN filing',
-  'sec-filing': "the company's SEC filing",
-  'two-publishers': 'news reports from two publishers',
-  'trusted-outlet': 'a major news outlet',
-  unconfirmed: 'news reports',
+  'warn-filing': 'State WARN filing',
+  'sec-filing': 'Company SEC filing',
+  'two-publishers': 'News reports from two publishers',
+  'trusted-outlet': 'Major news outlet',
+  unconfirmed: 'News reports',
 }
 
 export interface LayoffInput {
@@ -35,7 +35,8 @@ export interface LayoffInput {
 }
 
 export function layoffCard(x: LayoffInput): Card {
-  const where = x.place ?? (x.state ? stateName(x.state) : null)
+  // A place that names several counties ("Clark/Washoe County") reads badly; the state alone is clearer.
+  const where = x.place && !x.place.includes('/') ? x.place : x.state ? stateName(x.state) : null
   const headline =
     x.credibility === 'warn-filing'
       ? `${x.employer} filed a layoff notice naming ${n(x.employees)} workers${where ? ` in ${where}` : ''}`
@@ -50,7 +51,7 @@ export function layoffCard(x: LayoffInput): Card {
     kind: 'layoff', subject: x.slug, headline, big: n(x.employees), bigLabel: x.credibility === 'warn-filing' ? 'workers named in the notice' : 'jobs cut',
     points,
     action: `If you are affected, file for unemployment right away. ${FILE_FIRST.split('. ')[0]}`,
-    source: CREDIBILITY_SOURCE[x.credibility].replace(/^./, (c) => c.toUpperCase()),
+    source: CREDIBILITY_SOURCE[x.credibility],
     path: `/layoffs/company/${x.slug}`,
     subreddits: ['layoffs', 'jobs', 'careerguidance'],
     hashtags: ['layoffs', 'jobsearch', 'careers'],
