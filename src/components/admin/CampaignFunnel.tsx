@@ -1,4 +1,5 @@
 import type { CampaignFunnelData, ProfileCutRow } from '@/lib/admin/campaign-funnel'
+import { SEGMENTS } from '@/lib/marketing/campaign-tag'
 
 function pct(part: number, whole: number): string {
   if (whole <= 0) return '–'
@@ -66,8 +67,8 @@ export function CampaignFunnel({ data }: { data: CampaignFunnelData }) {
 
       {data.campaigns.length === 0 ? (
         <p className="rounded-md border p-3 text-sm text-muted-foreground">
-          No tagged visits in this window. Tag every campaign link as utm_campaign=&lt;segment&gt;-&lt;channel&gt;, for example
-          laid-off-recent-google. Segments: laid-off-recent, laid-off-long, career-change, returner, ai-retraining, senior.
+          No tagged visits in this window. Build every campaign link on the Tagged links page, as utm_campaign=&lt;segment&gt;-&lt;channel&gt;,
+          for example laid-off-recent-google. Segments: {SEGMENTS.map((s) => s.key).join(', ')}.
         </p>
       ) : (
         <>
