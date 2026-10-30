@@ -17,7 +17,8 @@ export default async function RedditTodoPage() {
   await requireAdmin()
   const now = Date.now()
   const all = await getPublicNotices().catch(() => [])
-  const recent = all.filter((x) => x.fetchedAt.getTime() > now - 3 * DAY && x.noticeDateKnown)
+  // Collected in the last three days AND filed in the last 30: a state that posts an old filing late is not news to answer.
+  const recent = all.filter((x) => x.fetchedAt.getTime() > now - 3 * DAY && x.noticeDateKnown && x.noticeDate.getTime() > now - 30 * DAY)
 
   // One notice per employer, the largest first; threads are looked up one at a time to stay polite to Reddit.
   const seen = new Set<string>()
