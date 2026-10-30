@@ -13,14 +13,11 @@ vi.mock('@/lib/warn/company-announcements', () => ({
   getAnnouncements: async () => new Map([['tiktok', { slug: 'tiktok', name: 'TikTok', latest: new Date(Date.now() - 0.5 * day), items: [] }]]),
   hasRecentAnnouncement: () => true,
 }))
-vi.mock('@/lib/jobs/public-board', () => ({
-  cleanPublicQuery: () => ({ q: '', loc: '', remote: false }),
-  searchPublicBoardCached: async () => ({ total: 3, jobs: [
-    { id: 'a', title: 'Director', company: 'X', pagePath: '/jobs/a', salaryMin: 150000, salaryMax: null },
-    { id: 'b', title: 'No pay', company: 'Y', pagePath: '/jobs/b', salaryMin: null, salaryMax: null },
-    { id: 'c', title: 'No page', company: 'Z', pagePath: null, salaryMin: 90000, salaryMax: 100000 },
-  ] }),
-}))
+vi.mock('next/cache', () => ({ unstable_cache: (fn: () => unknown) => fn }))
+vi.mock('@/lib/db/heavy', () => ({ heavy: (fn: () => unknown) => fn() }))
+vi.mock('@/lib/prisma', () => ({ prisma: { $queryRaw: async () => [{ id: 'a', title: 'Director', companyName: 'X' }, { id: 'b', title: 'Manager', companyName: 'Y' }] } }))
+vi.mock('@/lib/jobs/public-job-page', () => ({ PUBLIC_JOB_MIN_INDEX_DESCRIPTION: 1500 }))
+vi.mock('@/lib/jobs/public-job-page-server', () => ({ PUBLIC_JOB_STATIC_SQL: '', PUBLIC_JOB_LIVE_SQL: '', PUBLIC_JOB_OFFERED_SQL: '' }))
 
 import { getFreshJobLinks, getFreshLayoffLinks } from '@/lib/seo/fresh-links'
 
@@ -30,8 +27,9 @@ describe('fresh links', () => {
     expect(links.map((l) => l.href)).toEqual(['/layoffs/company/tiktok', '/layoffs/company/acme', '/layoffs/company/beta'])
     expect(links[0].label).toBe('TikTok layoffs')
   })
-  it('lists only jobs with a public page and stated pay', async () => {
+  it('links the newest jobs the sitemap offers, to their own pages', async () => {
     const links = await getFreshJobLinks()
-    expect(links.map((l) => l.href)).toEqual(['/jobs/a'])
+    expect(links.map((l) => l.href)).toEqual(['/jobs/a', '/jobs/b'])
+    expect(links[0].label).toBe('Director, X')
   })
 })
