@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-180 clusters, 1039 phrases.
+182 clusters, 1051 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -63,7 +63,9 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/funding` | page | funding for laid-off workers | Money to relocate, retrain or study after a job loss | relocation assistance; retraining grants; training grants for laid off workers; tuition assistance after layoff; displaced worker programs; free courses for job seekers; wioa training funds; reskilling funding |
 | `/unemployment-benefits` | page | unemployment benefits by state | Unemployment insurance rules across states | unemployment benefits; unemployment insurance; how to file for unemployment; apply for unemployment; unemployment eligibility; weekly unemployment benefit amount; maximum unemployment benefit by state; how long does unemployment last; unemployment waiting week; does severance affect unemployment |
 | `/unemployment-benefits/:state` | family | {state} unemployment benefits | Unemployment benefits in one state | {state} unemployment; file for unemployment in {state}; {state} weekly unemployment benefit; {state} unemployment eligibility; {state} unemployment weeks; does severance affect unemployment in {state}; can i collect unemployment if i get severance in {state}; {state} severance and unemployment |
-| `/layoffs` | page | layoff tracker | Which companies are laying off, and where | layoffs; recent layoffs; layoffs today; layoffs 2026; companies laying off; layoff list; mass layoffs; WARN notices; WARN notice list; WARN Act layoffs; who is laying off |
+| `/layoffs` | page | layoff tracker | Which companies are laying off, and where | layoffs; recent layoffs; layoffs today; companies laying off; layoff list; mass layoffs; WARN notices; WARN notice list; WARN Act layoffs; who is laying off |
+| `/layoffs/2026` | page | layoffs 2026 | How many layoffs there have been this year, by month, state and company | layoffs in 2026; 2026 layoffs; layoff statistics 2026; layoffs by month 2026; companies laying off 2026; biggest layoffs 2026; layoff list 2026; how many layoffs in 2026 |
+| `/layoffs/2026/:month` | family | {month} 2026 layoffs | Layoffs in one month of 2026 | layoffs in {month} 2026; {month} 2026 layoff notices; {month} 2026 WARN notices |
 | `/layoffs/this-week` | page | layoffs this week | Layoff notices filed in the last seven days | layoffs this week 2026; recent layoff notices; new WARN notices this week; latest layoff announcements |
 | `/layoffs/week` | page | layoffs by week | Layoff notices week by week | weekly layoffs; weekly layoff report; layoffs last week; WARN notices by week |
 | `/layoffs/week/:week` | family | layoffs week of {date} | Layoffs in one calendar week | layoffs {week}; WARN notices week of {date} |
@@ -444,6 +446,12 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Layoff Tracker: Recent Layoffs and WARN Notices by State
 - Description: Recent layoffs from WARN Act notices filed with state labor departments, collected daily: totals, the latest filings, and a page for every state and employer.
+
+### `/layoffs/2026`
+
+- Title: Layoffs 2026: Every WARN Notice by Month, State and Company
+- Description: Layoffs in 2026 from WARN notices filed with state labor departments: totals by month, state, industry and company, a free CSV, and a line to cite.
+- H1: Layoffs 2026: every WARN notice, month by month
 
 ### `/layoffs/this-week`
 
