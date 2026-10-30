@@ -78,3 +78,58 @@ export function filingPostText(f: FilingForPost, utm: string): string {
   while (name.length > 12 && (head(name) + tail).length > budget) name = name.slice(0, -2).trimEnd()
   return head(name === f.employer ? name : `${name}…`) + tail
 }
+
+/** Fewer new notices than this in a day is not worth a post. */
+export const MIN_DAILY_NOTICES = 3
+const DAY_MS_ = 86_400_000
+
+export interface DayNotice {
+  state: string
+  workers: number | null
+  /** When we collected the notice: "new today" means new to our record, since a state can publish a filing days late. */
+  fetchedAt: Date
+}
+
+const dayKey = (d: Date) => d.toISOString().slice(0, 10)
+
+/**
+ * The daily roundup: WARN notices collected in the last 24 hours as totals, never employer names. Null on a quiet day.
+ */
+export function dailyLayoffPost(notices: DayNotice[], now: Date, utm: string): SocialPost | null {
+  const cutoff = now.getTime() - DAY_MS_
+  const today = notices.filter((x) => x.fetchedAt.getTime() > cutoff && x.fetchedAt.getTime() <= now.getTime())
+  if (today.length < MIN_DAILY_NOTICES) return null
+  const workers = today.reduce((s, x) => s + (x.workers ?? 0), 0)
+  const states = new Set(today.map((x) => x.state)).size
+  const byState = new Map<string, number>()
+  for (const x of today) byState.set(x.state, (byState.get(x.state) ?? 0) + (x.workers ?? 0))
+  const top = [...byState].sort((a, b) => b[1] - a[1]).slice(0, 3).filter(([, w]) => w > 0).map(([s]) => stateName(s))
+  const text =
+    `New layoff notices in the last 24 hours: ${n(today.length)} WARN notices in ${n(states)} ${states === 1 ? 'state' : 'states'}${workers ? `, naming ${n(workers)} workers` : ''}.` +
+    (top.length ? ` Most workers: ${top.join(', ')}.` : '') +
+    ` Every notice, with the state record: ${SITE_URL}/layoffs/this-week?${utm}`
+  return { key: `layoffs-day-${dayKey(now)}`, text }
+}
+
+/** A report edition published in the last 10 days, so turning posting on never announces an old report. */
+export const REPORT_POST_WINDOW_DAYS = 10
+
+export interface ReportForPost {
+  slug: string
+  month: string
+  title: string
+  /** ISO date (YYYY-MM-DD). */
+  publishedAt: string
+}
+
+export function reportPost(r: ReportForPost | null, now: Date, utm: string): SocialPost | null {
+  if (!r) return null
+  const at = new Date(`${r.publishedAt}T12:00:00Z`).getTime()
+  if (at > now.getTime() || now.getTime() - at > REPORT_POST_WINDOW_DAYS * DAY_MS_) return null
+  const link = `${SITE_URL}/reports/${r.slug}?${utm}`
+  let title = r.title
+  const build = (t: string) => `New: the NextChapter White Collar Employment Report, ${r.month}. ${t} Free to read: ${link}`
+  const budget = 280 - 23 + link.length
+  while (title.length > 20 && build(title).length > budget) title = title.slice(0, -2).trimEnd()
+  return { key: `report-${r.slug}`, text: build(title === r.title ? `${title}.` : `${title}…`) }
+}

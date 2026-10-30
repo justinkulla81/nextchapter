@@ -11,7 +11,7 @@ export interface Channel {
   /** Keys are present, and for X the billing switch is on. */
   ready: () => boolean
   post: (text: string, key: string) => Promise<string>
-  /** Gets each qualifying WARN filing automatically. X does not: every X post is billed ($0.20 with a link), so filings go there by hand. */
+  /** Gets each qualifying WARN filing automatically. X is billed per post ($0.20 with a link), so it gets only the largest, under its own daily cap (see FILING_RULES in filings.ts). */
   autoFilings: boolean
 }
 
@@ -25,5 +25,5 @@ export const CHANNELS: Channel[] = [
   { id: 'slack', ready: slackConfigured, post: (t) => postSlack(t), autoFilings: true },
   { id: 'threads', ready: threadsConfigured, post: (t) => postThreads(t), autoFilings: true },
   { id: 'facebook', ready: facebookConfigured, post: (t) => postFacebook(t), autoFilings: true },
-  { id: 'x', ready: () => xConfigured() && on('X_POSTING_ENABLED'), post: (t) => postX(t), autoFilings: false },
+  { id: 'x', ready: () => xConfigured() && on('X_POSTING_ENABLED'), post: (t) => postX(t), autoFilings: true },
 ]
