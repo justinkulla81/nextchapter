@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
         href: eventType === 'LINK_CLICK' ? href : stamp,
         referrer: eventType === 'PAGE_VIEW' ? referrer : null,
         userAgent: request.headers.get('user-agent'),
+        country: request.headers.get('x-vercel-ip-country')?.slice(0, 2).toUpperCase() || null,
         candidateId,
       },
     })
