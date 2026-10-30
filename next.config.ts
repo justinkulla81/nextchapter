@@ -124,6 +124,7 @@ const nextConfig: NextConfig = {
         ['/schedule', '/conferences'],
         ['/tickets', '/conferences'],
         ['/register-now', '/conferences'],
+        ['/layoff', '/layoffs'],
       ].map(([source, destination]) => ({ source, destination, permanent: true })),
       // redirect-non-candidate.ts sends contest employers here after sign-in; the address has no page of its own.
       { source: '/noexperience/employers', destination: '/noexperience/employers/contests', permanent: false },
