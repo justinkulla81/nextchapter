@@ -21,7 +21,7 @@ describe('404 alert', () => {
   })
   it('emails once for a real missing page on our hosts', async () => {
     process.env.RESEND_API_KEY = 'k'
-    expect(await alertNotFound({ path: '/jobs/old-listing', host: 'launchyournextchapter.com', referrer: '' })).toBe(true)
+    expect(await alertNotFound({ path: '/jobs/old-listing', host: 'launchyournextchapter.com', referrer: '' }, 0)).toBe(true)
     expect(send).toHaveBeenCalledTimes(1)
   })
   it('does not email for other hosts, probes, or when over the cap', async () => {
@@ -31,5 +31,17 @@ describe('404 alert', () => {
     allow.mockResolvedValueOnce(false)
     expect(await alertNotFound({ path: '/y', host: 'launchyournextchapter.com', referrer: '' })).toBe(false)
     expect(send).not.toHaveBeenCalled()
+  })
+  it('stays quiet when the page is live again after the deploy window, and emails when it is still missing', async () => {
+    process.env.RESEND_API_KEY = 'k'
+    send.mockClear()
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    fetchSpy.mockResolvedValueOnce(new Response(null, { status: 200 }))
+    expect(await alertNotFound({ path: '/support/admin/new-page', host: 'admin.launchyournextchapter.com', referrer: '' }, 1)).toBe(false)
+    expect(send).not.toHaveBeenCalled()
+    fetchSpy.mockResolvedValueOnce(new Response(null, { status: 404 }))
+    expect(await alertNotFound({ path: '/jobs/gone', host: 'launchyournextchapter.com', referrer: '' }, 1)).toBe(true)
+    expect(send).toHaveBeenCalledTimes(1)
+    fetchSpy.mockRestore()
   })
 })

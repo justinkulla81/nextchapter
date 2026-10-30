@@ -11,6 +11,21 @@ const MAIN_HOSTS = ['launchyournextchapter.com', 'www.launchyournextchapter.com'
 // Scanners hit these constantly; they are not a broken link on our site.
 export const PROBE = /(\.(php|asp|aspx|jsp|env|git|sql|bak|zip|ini|xml)(\/|$))|wp-|xmlrpc|phpmyadmin|cgi-bin|\.well-known|\/\./i
 
+/**
+ * A page that a merge adds is a 404 from the old deploy until the new one is live, a few minutes later. The alert waits
+ * this long and looks again, so only a page that is still missing after the deploy reaches the inbox.
+ */
+export const RECHECK_AFTER_MS = 4 * 60_000
+
+async function stillMissing(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, { redirect: 'manual', cache: 'no-store', signal: AbortSignal.timeout(15_000) })
+    return res.status === 404
+  } catch {
+    return true
+  }
+}
+
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 
 export function cleanPath(raw: unknown): string | null {
@@ -22,8 +37,9 @@ export function cleanPath(raw: unknown): string | null {
 /**
  * Emails the owner that a visitor hit a missing page. One email per address per day, and at most 20 a day
  * in total, so a crawler cannot fill the inbox. Returns whether an email was sent.
+ * A page that is no longer a 404 after `recheckAfterMs` (a deploy finished meanwhile) is not reported.
  */
-export async function alertNotFound(input: { path: unknown; host: unknown; referrer: unknown }): Promise<boolean> {
+export async function alertNotFound(input: { path: unknown; host: unknown; referrer: unknown }, recheckAfterMs = RECHECK_AFTER_MS): Promise<boolean> {
   const path = cleanPath(input.path)
   const host = typeof input.host === 'string' ? input.host.toLowerCase() : ''
   if (!path || !MAIN_HOSTS.includes(host) || PROBE.test(path)) return false
@@ -43,6 +59,10 @@ export async function alertNotFound(input: { path: unknown; host: unknown; refer
     // Not a URL.
   }
   const url = `https://${host}${path}`
+  if (recheckAfterMs > 0) {
+    await new Promise((r) => setTimeout(r, recheckAfterMs))
+    if (!(await stillMissing(url))) return false
+  }
   try {
     const { error } = await createResend(process.env.RESEND_API_KEY, 'admin').emails.send({
       from: FROM,
