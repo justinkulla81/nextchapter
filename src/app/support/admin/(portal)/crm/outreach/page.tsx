@@ -6,6 +6,8 @@ import { loadTouches } from '@/lib/outreach/touches'
 import { loadQuotas } from '@/lib/outreach/quotas'
 import { OutreachTracker, RANGES, type RangeKey } from '@/components/admin/OutreachTracker'
 import { CampaignCard, Chip, HowToRead, RecipientTable, Tile, pct } from '@/components/admin/OutreachParts'
+import { B2bLeadsPanel } from '@/components/admin/B2bLeadsPanel'
+import { loadB2b } from '@/lib/outreach/b2b-leads'
 
 export const maxDuration = 30
 
@@ -17,6 +19,7 @@ export default async function OutreachPage({ searchParams }: { searchParams: Pro
   const range: RangeKey = RANGES.find((r) => r.key === raw)?.key ?? '90'
   const [d, { touches, capped }, quotas] = await Promise.all([outreachData(), loadTouches(), loadQuotas()])
   const t = d.totals
+  const b2b = await loadB2b(d.recipients.flatMap((r) => (r.repliedAt && (r.replyClass === 'positive' || r.replyClass === 'referral') ? [r.repliedAt] : [])))
   captureServerEvent(admin.email ?? 'admin', 'crm_outreach_viewed', { range, touches: touches.length, quotas: quotas?.length ?? null })
 
   return (
@@ -25,6 +28,8 @@ export default async function OutreachPage({ searchParams }: { searchParams: Pro
         <h1 className="text-2xl font-semibold tracking-tight">Outreach</h1>
         <p className="mt-1 text-muted-foreground">Everything we have sent or said to people, automated and by hand: how much, to whom, how it landed, and how it compares with your weekly targets.</p>
       </div>
+
+      <B2bLeadsPanel days={b2b} />
 
       <OutreachTracker touches={touches} quotas={quotas} range={range} capped={capped} />
 

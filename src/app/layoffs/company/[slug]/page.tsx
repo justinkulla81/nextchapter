@@ -27,6 +27,7 @@ import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } fr
 import { getEmployerBrand } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
+import { ClaimHint } from '@/components/seo/ClaimHint'
 import { LandingHero } from '@/components/layoffs/landing/LandingHero'
 import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
 import { SearchTimeFacts } from '@/components/layoffs/landing/SearchTimeFacts'
@@ -172,6 +173,13 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <span className="text-foreground">{c.name}</span>
             <span className="ml-3">Updated {noticeDay(new Date(`${modified}T12:00:00Z`))}</span>
           </nav>
+          <ClaimHint
+            who={`HR or workforce staff helping the people affected by the ${c.name} layoff?`}
+            label="See how outplacement works for these workers"
+            href="/outplacement"
+            event="seo_org_ask_clicked"
+            properties={{ page: 'layoff', audience: 'employer_hr', slug, hasNotices }}
+          />
 
           <div className="mt-4 space-y-12">
             <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} />
