@@ -110,7 +110,7 @@
     },
     {
       "path": "/api/cron/social-posts",
-      "schedule": "0 13 * * 1"
+      "schedule": "0 13 * * *"
     },
     {
       "path": "/api/cron/social-filings",
