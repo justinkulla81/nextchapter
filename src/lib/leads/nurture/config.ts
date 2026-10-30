@@ -29,7 +29,7 @@ export const DEFAULT_DAILY_CAP = 20
 /** Only leads from the last 30 days are ever considered (day 14 plus its window, with room). */
 export const LOOKBACK_DAYS = 30
 
-/** Off until the owner has read the copy and says so: set NURTURE_EMAILS=1. Off, the cron is a dry run that sends nothing. */
+/** Off until the owner says so: set NURTURE_EMAILS=1. Off, the cron is a dry run that sends nothing. The owner turned it on in production on 2026-10-30. */
 export function nurtureEmailsOn(): boolean {
   return process.env.NURTURE_EMAILS === '1'
 }
