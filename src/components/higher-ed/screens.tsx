@@ -56,6 +56,7 @@ import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
 import { careerDraftsFor } from '@/lib/staff-agents/career-services-run'
+import { BriefCard } from './BriefCard'
 import { removeFromCaseload } from '@/app/i/[slug]/(portal)/caseload-actions'
 import { AssignControl } from './AssignControl'
 import { ConfirmActionButton } from './ConfirmActionButton'
@@ -313,6 +314,7 @@ async function AlumniHome({ ctx, base }: ScreenProps) {
   return (
     <div className="space-y-6">
       <WaitingForYou ctx={ctx} office="alumni" base={base} />
+      <BriefCard institutionId={ctx.institution.id} agent="alumni_services" />
       <MilestonesFeed ctx={ctx} />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile label="Members" value={c.members.toLocaleString()} href={`${base}/members`} />

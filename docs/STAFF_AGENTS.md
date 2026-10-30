@@ -9,9 +9,9 @@ Same idea as the seat agent (`docs/OUTPLACEMENT_AGENT.md`): software does the pr
 |---|---|---|---|---|
 | Rapid response professional | Rapid response (`/i/<slug>/...`, `screens-lifecycle.tsx`) | A WARN notice filed in the organization's own counties with no offer yet gets a drafted sign-up page (title and text) saved as a closed offer marked "draft ready" | Publish | **Built** |
 | Career services (higher ed) | Career, caseloads (`caseload.ts`, `views.ts`) | People on a caseload who share search detail and went quiet (14+ days, or a sprint with nothing done) get a drafted check-in note under their name on the caseload screen | Edit and send from own email | **Built** |
-| Alumni services (higher ed) | Alumni, check-ins, layoff matches (`layoffs.ts`, `outreach.ts`) | Weekly: alumni in transition and a drafted "we have your back" note, saved as a draft campaign | Review and send campaign | Designed |
-| Development / fundraising (higher ed) | Development, Resilience Fund (`fund.ts`, `gratitude.ts`, `outcomes-report.ts`) | Alumni who landed work after help and donors to thank: drafted stewardship notes and the donor-report paragraph from the real numbers | Review and send | Designed |
-| Workforce development professional | Workforce hub (`hub-actions.ts`, member companies, board intel) | Weekly: member-company layoffs and hiring signals, participants who stalled (counts only unless consented), drafted employer outreach | Send from hub | Designed |
+| Alumni services (higher ed) | Alumni home | Weekly brief on alumni in transition, layoff matches not yet contacted and recent placements, with this week's actions and a drafted note to affected alumni | Reads it, sends the note themselves | **Built** (brief) |
+| Development / fundraising (higher ed) | Development home, Resilience Fund (`fund.ts`) | Weekly brief on fund progress, funded alumni who landed work and gratitude notes waiting, with actions and a drafted donor progress note from the real counts | Reads it, sends the note themselves | **Built** (brief) |
+| Workforce development professional | Workforce hub home (`hub.ts`) | Weekly brief on participants, member companies, layoffs with seats and WARN filings in the region (counts only, groups under 5 hidden), with actions and a drafted note to a member company | Reads it, sends the note themselves | **Built** (brief) |
 | Department of labor / state agency | No portal today (`/government-workforce` is a marketing page) | Weekly regional brief from public data only (WARN filings, job counts, board figures) plus a drafted narrative for the agency's own report. No member data at all | Needs a decision: a small workspace, or a weekly email | Designed, needs owner decision |
 
 Reuse: every agent takes its facts from existing functions (no new data collection), calls the same Haiku model, and goes through one cap. The core is `src/lib/staff-agents/`: `switch.ts` (global and per-organization switch), `cap.ts` and `reserve.ts` (counters), one file per agent for the prompt and reply checks, and `run.ts` for the daily run. Adding an agent means one prompt file, one gatherer and one key in `StaffAgentKey`.
@@ -36,8 +36,14 @@ Model `claude-haiku-4-5-20251001` ($1 per million input tokens, $5 per million o
 - Activity and sprint numbers decide who gets a note. They are never given to the model, and the note is rejected if it says it noticed activity, mentions a sprint or promises anything. The model sees first name, class year and situation only.
 - Saved in `StaffAgentDraft` (one row per member and week), shown under the name on the caseload screen as "Check-in note ready" with an "Open in your email" link the counselor sends themselves. Apply `prisma/manual/staff-agent-draft.sql` first; the screen shows no drafts if the table is missing.
 
+## Weekly brief agents (built: alumni services, development, workforce development)
+- One model call per organization per agent per week, saved in `StaffAgentDraft` (`subjectId` = the organization) and shown at the top of that workspace's home screen (`BriefCard`). Switches: `agents.alumniServices`, `agents.development`, `agents.workforceDev`.
+- Facts are counts the screens already show (`donorReport`, `hubDashboard`, layoff matches, transition flags). Groups under 5 are given as "fewer than 5". No individual is named.
+- Guard: every number in the brief must appear in the facts the model was given, otherwise the brief is discarded. No guarantees or funding promises. The brief has a summary, two or three actions and one draft note staff send themselves.
+- Cost: about 400 input and 300 output tokens, about $0.002 per brief; three briefs a week is about $0.025 a month per organization.
+
 ## To turn on (after the owner approves the cost model)
-1. Set `STAFF_AGENTS_ENABLED=on` in Vercel production and redeploy. 2. Switch an organization on by setting `agents.rapidResponse` and/or `agents.careerServices` to true in its `enabledFeatures`. Rapid response needs no database change; career services needs `prisma/manual/staff-agent-draft.sql` applied first.
+1. Set `STAFF_AGENTS_ENABLED=on` in Vercel production and redeploy. 2. Switch an organization on by setting `agents.rapidResponse` and/or `agents.careerServices`, `agents.alumniServices`, `agents.development` or `agents.workforceDev` to true in its `enabledFeatures`. Rapid response needs no database change; career services needs `prisma/manual/staff-agent-draft.sql` applied first.
 
 ## Not built, and not verified
-The other four agents; a staff-facing switch screen (today the per-organization switch is set in the database); a run against a real organization's region and programs (not done here).
+The department of labor agent (no portal to show it in; needs the owner's call); a staff-facing switch screen (today the per-organization switch is set in the database); a run against a real organization's region and programs (not done here).
