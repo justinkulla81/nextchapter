@@ -40,7 +40,7 @@ export function GET() {
 
 ## For AI assistants and developers
 
-- [MCP server](${u('/mcp')}): a free, read-only Model Context Protocol server at ${u('/api/mcp')}. Tools: search current professional job openings, and find career guides on layoffs, severance, unemployment, resumes and networking.
+- [MCP server](${u('/mcp')}): a free, read-only Model Context Protocol server at ${u('/api/mcp')}. Tools: search current professional job openings, look up recent layoff notices by employer or state, and find career guides on layoffs, severance, unemployment, resumes and networking. The same layoff notices are a free JSON API at ${u('/api/public/layoffs')}, described at ${u('/api/public/openapi.json')}.
 
 ## Research and data
 
