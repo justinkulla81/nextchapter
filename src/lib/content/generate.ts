@@ -49,6 +49,9 @@ export async function loadLayoffCandidates(now: Date): Promise<LayoffCandidate[]
     const heads = m.map((x) => x.headline)
     const why = credibilityOf(n, m.map((x) => x.publisher), now, heads)
     if (!why || why === 'unconfirmed') return []
+    // A filing re-fetched long after the fact is not news: its layoffs took effect already or it was filed weeks ago.
+    if (n.effectiveDate && n.effectiveDate.getTime() < now.getTime() - 3 * DAY_MS) return []
+    if (n.noticeDate && n.noticeDate.getTime() < now.getTime() - 45 * DAY_MS) return []
     const isNews = n.source !== 'WARN_FILING' && why !== 'sec-filing'
     if (isNews && looksNonUs(heads)) return []
     return [{ n, why }]

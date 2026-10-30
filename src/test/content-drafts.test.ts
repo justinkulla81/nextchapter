@@ -56,6 +56,7 @@ describe('content drafts', () => {
   it('states the layoff by what the source says and never names a person', () => {
     const [warn, news] = cards()
     expect(warn.headline).toBe('Acme Corp filed a layoff notice naming 1,200 workers in Cook County, IL')
+    expect(layoffCard({ employer: 'Spirit', employees: 999, state: 'NV', place: 'Clark/Washoe County, NV', effectiveDate: null, credibility: 'warn-filing', slug: 's', openRolesInState: null }).headline).toBe('Spirit filed a layoff notice naming 999 workers in Nevada')
     expect(warn.points[0]).toBe('The layoffs are effective December 15')
     expect(news.headline).toBe('Globex has announced about 3,000 job cuts')
     expect(news.points[0]).toMatch(/60 days/)

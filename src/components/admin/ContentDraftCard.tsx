@@ -80,6 +80,7 @@ export function ContentDraftCard({ d }: { d: ContentDraftData }) {
             <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => run(() => skipDraft(d.id), () => track('skip'))}>Skip</Button>
           )}
         </div>
+        {!url.trim() ? <p className="text-xs text-muted-foreground">Mark posted turns on once you paste the address of the live post.</p> : null}
         {note ? <p role="status" className="text-sm">{note}</p> : null}
         {d.posts.length ? (
           <ul className="text-sm text-muted-foreground">
