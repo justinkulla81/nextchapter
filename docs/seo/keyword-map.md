@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-190 clusters, 1099 phrases.
+191 clusters, 1108 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -138,6 +138,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/layoffs/by-state` | page | WARN notices by state | Find every state’s WARN layoff notices in one place | WARN notice list by state; layoffs by state 2026; state WARN notice database; WARN notices by state 2026 |
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
 | `/tools/resume-check` | page | free resume check | Score my resume with a free tool | resume checker; resume score; check my resume; free resume score; resume analyzer |
+| `/tools/resume-job-match` | page | resume vs job description | Compare my resume to a job description and see missing keywords | resume job description match; compare resume to job description; resume keyword checker; resume scanner; ats resume scanner; resume keywords for a job; match resume to job description; resume job match score |
 | `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; what is COBRA; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
 | `/events` | page | job fairs near me | Job fairs and business events near me | career fairs near me; hiring events near me; small business workshops near me; startup events near me |
 | `/events/:state` | family | {state} job fairs | Job fairs and business events in one state | {state} career fairs; {state} hiring events; {state} small business workshops; {state} startup events |
@@ -830,6 +831,12 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Free Resume Check: Score Your Resume Out of 100
 - Description: Paste your resume to get a free score out of 100 and see how many fixes it needs. Rule-based, no AI, and we do not save your resume.
 - H1: Free resume check: score your resume in a minute
+
+### `/tools/resume-job-match`
+
+- Title: Resume vs Job Description: Free Keyword Match Tool
+- Description: Paste a job posting and your resume to see which keywords you already say and which you are missing. Free, no AI, and nothing leaves your browser.
+- H1: Resume vs job description: see which keywords you are missing
 
 ### `/glossary`
 
