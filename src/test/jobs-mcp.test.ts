@@ -18,6 +18,9 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { findGuides, handleMcpMessage } from '@/lib/mcp/jobs-mcp'
 
 const allow = async () => true
+type Prog = { programPage?: string; lastCheckedOn?: string; status: string; coverage: string; goal: string }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Any = any
 
 describe('jobs MCP server', () => {
   it('answers initialize with the requested protocol version and tools capability', async () => {
@@ -58,7 +61,7 @@ describe('jobs MCP server', () => {
   })
   const call = async (name: string, args: Record<string, unknown>) => {
     const r = await handleMcpMessage({ jsonrpc: '2.0', id: 20, method: 'tools/call', params: { name, arguments: args } }, allow)
-    return (r?.result as { structuredContent: Record<string, any> }).structuredContent
+    return (r?.result as { structuredContent: Record<string, Any> }).structuredContent
   }
   it('gives unemployment basics for a state with a source and date', async () => {
     const d = await call('unemployment_benefits_by_state', { state: 'tx' })
@@ -71,12 +74,12 @@ describe('jobs MCP server', () => {
   it('lists only verified, open, unrestricted programs, state first', async () => {
     const d = await call('laid_off_benefits_and_programs', { state: 'NY', limit: 25 })
     expect(d.programs.length).toBeGreaterThan(0)
-    expect(d.programs.every((p: any) => p.programPage?.startsWith('https://') && p.lastCheckedOn && ['OPEN', 'ROLLING'].includes(p.status))).toBe(true)
-    expect(d.programs.every((p: any) => p.coverage === 'Nationwide' || p.coverage === 'New York')).toBe(true)
-    const firstNational = d.programs.findIndex((p: any) => p.coverage === 'Nationwide')
-    expect(d.programs.slice(Math.max(firstNational, 0)).every((p: any) => firstNational < 0 || p.coverage === 'Nationwide')).toBe(true)
+    expect(d.programs.every((p: Prog) => p.programPage?.startsWith('https://') && p.lastCheckedOn && ['OPEN', 'ROLLING'].includes(p.status))).toBe(true)
+    expect(d.programs.every((p: Prog) => p.coverage === 'Nationwide' || p.coverage === 'New York')).toBe(true)
+    const firstNational = d.programs.findIndex((p: Prog) => p.coverage === 'Nationwide')
+    expect(d.programs.slice(Math.max(firstNational, 0)).every((p: Prog) => firstNational < 0 || p.coverage === 'Nationwide')).toBe(true)
     const retrain = await call('laid_off_benefits_and_programs', { state: 'NY', goal: 'retrain' })
-    expect(retrain.programs.every((p: any) => p.goal === 'retrain')).toBe(true)
+    expect(retrain.programs.every((p: Prog) => p.goal === 'retrain')).toBe(true)
     expect(d.asOf).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
   it('answers AI exposure from a job title, with source and link', async () => {
