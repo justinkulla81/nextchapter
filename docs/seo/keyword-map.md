@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-182 clusters, 1051 phrases.
+183 clusters, 1057 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -124,6 +124,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/severance-calculator` | page | severance calculator | Work out a severance figure | severance pay calculator; how much severance should I get; severance by years of service; severance weeks per year; severance estimate; severance calculator after taxes; severance pay tax calculator; net severance pay |
 | `/tools/salary-converter` | page | salary converter | Convert hourly pay to a yearly salary | hourly to salary calculator; hourly to yearly; salary to hourly; annual salary to hourly wage; hourly rate to annual salary |
 | `/tools/layoff-runway` | page | layoff runway calculator | Work out how long money lasts after a layoff | how long will my savings last after a layoff; savings runway calculator; how many months of savings do I need; job loss budget calculator |
+| `/tools/job-loss-readiness` | page | layoff readiness check | Check how ready I am if my job ended, while still employed | am i prepared for a layoff; what if i lose my job; what happens to my benefits if i get laid off; what happens to my life insurance if i lose my job; layoff preparedness |
 | `/tools/unemployment-estimator` | page | unemployment benefit estimator | Estimate unemployment benefits | unemployment calculator; how much unemployment will I get; unemployment benefits calculator by state; estimate unemployment pay |
 | `/tools/layoff-deadlines` | page | deadlines after a layoff | Find the dates that matter after a layoff | layoff deadlines; cobra deadline after layoff; when to file for unemployment after layoff; what to do after being laid off by when; layoff checklist dates |
 | `/tools/layoff-risk-check` | page | layoff risk calculator | See whether there are warning signs of a layoff at an employer | layoff risk assessment; am I going to be laid off; signs of layoffs; my layoff risk; layoff risk check; is my job safe from layoffs |
@@ -744,6 +745,12 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Layoff Runway: How Long Will Your Money Last?
 - Description: Free calculator: enter savings, monthly spending and severance to see how many months they cover, and what your state’s unemployment benefits add.
 - H1: Layoff runway: how long your money will last
+
+### `/tools/job-loss-readiness`
+
+- Title: Layoff Readiness Check: If Your Job Ended Tomorrow
+- Description: Still employed and nervous? See how long your money would last, what unemployment would pay, and what ends with your health, life and disability cover.
+- H1: Layoff readiness check: if your job ended tomorrow
 
 ### `/tools/unemployment-estimator`
 
