@@ -9,6 +9,7 @@ import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { CompanyLayoffGuide } from '@/components/layoffs/CompanyLayoffGuide'
 import { buildLayoffGuide } from '@/lib/warn/layoff-guide'
 import { filingFacts, guidePrograms } from '@/lib/warn/layoff-guide-programs'
+import { CiteThisData } from '@/components/layoffs/CiteThisData'
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
@@ -293,6 +294,8 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             </p>
             <div className="mt-4"><BoardList notices={c.notices} page="company" /></div>
           </section>}
+
+          {hasNotices && <CiteThisData path={path} asOf={noticeDay(new Date(`${modified}T12:00:00Z`))} source="layoffs-company" csvHref={c.states.length === 1 ? `/data/layoffs.csv?state=${c.states[0]}` : '/data/layoffs.csv'} />}
 
           {hasNotices && <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
             These are the notices {c.name} filed under the WARN Act, as published by each state. A notice gives the number of
