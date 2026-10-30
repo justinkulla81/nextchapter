@@ -2,8 +2,6 @@ import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { retryOnPoolTimeout } from '@/lib/db/heavy'
-import { employerPath, isCompanyOfferedToSearch } from '@/lib/seo/employer-pages'
-import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import {
   PUBLIC_JOB_GHOST_AGE_DAYS,
@@ -123,7 +121,11 @@ export async function feedJobIdsInShard(shard: number): Promise<{ id: string }[]
     ORDER BY id`
 }
 
-/** One job sitemap file: every public job in shard `shard` (0–15) that is offered to search engines, with its last verification. */
+/**
+ * One job sitemap file: every public job in shard `shard` (0–15) whose page is indexable (the posting's own text, 1,500+ bytes), with
+ * its last verification. Not narrowed to PUBLIC_JOB_OFFERED_SQL: Google for Jobs lists any complete posting, pay stated or not, and
+ * Indeed-style coverage means offering all of them. The Indexing API push (200 a day) stays on the offered set.
+ */
 export async function publicJobsInShard(shard: number): Promise<{ id: string; lastVerifiedAt: Date }[]> {
   if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
   return prisma.$queryRaw<{ id: string; lastVerifiedAt: Date }[]>`
@@ -132,7 +134,6 @@ export async function publicJobsInShard(shard: number): Promise<{ id: string; la
       AND (hashtext(id) & 15) = ${shard}::int
       AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
       AND ${PUBLIC_JOB_LIVE_SQL}
-      AND ${PUBLIC_JOB_OFFERED_SQL}
     ORDER BY id
     LIMIT 50000`
 }
@@ -162,40 +163,4 @@ export async function publicJobRowsByIds(ids: string[]): Promise<PublicJobRow[]>
   const rows = await prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids } }, select: PUBLIC_JOB_SELECT })
   const now = Date.now()
   return rows.filter((r) => isPublicJob(r, now))
-}
-
-/**
- * Where a job that was public and has since closed should send people (and search engines): its employer's page when that
- * page is offered to search engines, else the function or industry page it was tagged with, else null (a plain 404).
- * A job that never had a public page (private, unverified, unknown) is null too. One primary-key read, plus one more
- * for the employer check; any failure is null, so the page falls back to its 404.
- */
-export async function closedJobRedirectTarget(id: string): Promise<string | null> {
-  if (!/^[a-z0-9]{10,40}$/i.test(id)) return null
-  try {
-    const job = await retryOnPoolTimeout(() =>
-      prisma.exclusiveJobPosting.findUnique({
-        where: { id },
-        select: {
-          status: true, archivedAt: true, closeReason: true, expiresAt: true, source: true, disclosure: true, distribution: true,
-          institutionScopeId: true, orgScopeId: true, industry: true, targetFunction: true,
-          company: { select: { id: true, canonicalNameNormalized: true } },
-        },
-      }),
-    )
-    if (!job) return null
-    const wasPublic =
-      job.status === 'approved' && job.disclosure === 'OPEN' && job.distribution === 'OPEN' && !job.institutionScopeId && !job.orgScopeId &&
-      (PUBLIC_JOB_SOURCES as readonly string[]).includes(job.source)
-    const closed = !!job.archivedAt || !!job.closeReason || (!!job.expiresAt && job.expiresAt.getTime() < Date.now())
-    if (!wasPublic || !closed) return null
-
-    if (job.company && (await isCompanyOfferedToSearch(job.company.id))) return employerPath(job.company.canonicalNameNormalized, job.company.id)
-    const fn = functionByName(job.targetFunction)
-    if (fn) return functionPath(fn.name)
-    const industry = bucketFromIndustryText(job.industry)
-    return industry ? industryPath(industry) : null
-  } catch {
-    return null
-  }
 }

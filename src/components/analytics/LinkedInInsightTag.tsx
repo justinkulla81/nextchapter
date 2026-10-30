@@ -30,6 +30,8 @@ const PUBLIC_PREFIXES = [
   '/workforce-boards',
   '/job-centers',
   '/search-firms',
+  '/for-rapid-response',
+  '/demo/workforce',
   '/ai-training',
   '/ai-skills',
   '/contact',

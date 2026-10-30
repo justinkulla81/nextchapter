@@ -51,7 +51,8 @@ export async function createWorkforceDemo(_prev: DemoFormState, f: FormData): Pr
   }
   if ('error' in r) return { error: r.error, values }
 
-  captureServerEvent(`demo:${r.slug}`, 'workforce_demo_generated', { slug: r.slug, orgType, state: values.anchorState.toUpperCase(), source: admin ? 'admin' : 'public', emailDomain: email.split('@')[1] })
+  const from = String(f.get('from') ?? '').trim().slice(0, 40)
+  captureServerEvent(`demo:${r.slug}`, 'workforce_demo_generated', { slug: r.slug, orgType, state: values.anchorState.toUpperCase(), source: admin ? 'admin' : 'public', emailDomain: email.split('@')[1], from: /^[a-z0-9-]+$/.test(from) ? from : null })
   if (!admin) {
     const store = await cookies()
     const mine = guestSlugs(store.get(DEMO_GUEST_COOKIE)?.value)

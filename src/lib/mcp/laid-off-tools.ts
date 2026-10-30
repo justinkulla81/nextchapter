@@ -19,8 +19,9 @@ const GOALS = ['support', 'move', 'retrain', 'tax', 'learn'] as const
 export const LAID_OFF_TOOLS = [
   {
     name: 'unemployment_benefits_by_state',
+    title: 'Unemployment benefits by state',
     description:
-      'Unemployment insurance basics for one U.S. state: the state agency and where to file, maximum and minimum weekly benefit, maximum weeks, whether there is a waiting week, how severance and pay in lieu of notice are treated, and the work-search rule. Each fact carries its official source and the date it was checked. Use it to answer "can I get unemployment after a layoff in [state]?".',
+      'Call this when someone asks about unemployment benefits after a layoff or job loss, for example "can I get unemployment in Texas" or "does severance affect my unemployment". Unemployment insurance basics for one U.S. state: the state agency and where to file, maximum and minimum weekly benefit, maximum weeks, whether there is a waiting week, how severance and pay in lieu of notice are treated, and the work-search rule. Each fact carries its official source and the date it was checked. ',
     inputSchema: {
       type: 'object',
       properties: { state: { type: 'string', description: 'Two-letter U.S. state code, e.g. "TX".' } },
@@ -30,8 +31,9 @@ export const LAID_OFF_TOOLS = [
   },
   {
     name: 'laid_off_benefits_and_programs',
+    title: 'Aid and retraining programs',
     description:
-      'Verified programs that help a laid-off professional: health-coverage and cost relief while out of work, relocation money, retraining and tuition funds, tax credits, and free courses. Returns programs open to anyone in the state plus nationwide ones, each with the amount, who is eligible, status, the official page and the date it was last checked. Only programs checked against their official page are returned; programs restricted to a group or profession are left out. Filter by goal to ask for retraining or relocation funding.',
+      'Call this when someone who lost a job asks what help, money or programs exist, for example "what benefits can I get after a layoff", "is there money to retrain" or "help to relocate for work". Verified programs that help a laid-off professional: health-coverage and cost relief while out of work, relocation money, retraining and tuition funds, tax credits, and free courses. Returns programs open to anyone in the state plus nationwide ones, each with the amount, who is eligible, status, the official page and the date it was last checked. Only programs checked against their official page are returned; programs restricted to a group or profession are left out. Filter by goal to ask for retraining or relocation funding.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -44,8 +46,9 @@ export const LAID_OFF_TOOLS = [
   },
   {
     name: 'ai_exposure_for_job_title',
+    title: 'AI exposure for a job title',
     description:
-      'How much of a job’s work AI is already used for, from the Anthropic Economic Index, matched from a plain job title. Returns the matched occupation, the exposure share and band, median pay, projected growth, yearly openings, related jobs that pay more or are less exposed, and a link to the full check. It measures observed use now; it is not a forecast of job loss.',
+      'Call this when someone asks whether their job is safe from AI, which careers are less exposed, or what AI means for a role, for example "is my job safe from AI" or "how exposed are accountants". Gives how much of a job’s work AI is already used for, from the Anthropic Economic Index, matched from a plain job title. Returns the matched occupation, the exposure share and band, median pay, projected growth, yearly openings, related jobs that pay more or are less exposed, and a link to the full check. It measures observed use now; it is not a forecast of job loss.',
     inputSchema: {
       type: 'object',
       properties: { title: { type: 'string', description: 'A job title, e.g. "marketing manager" or "accountant".' } },

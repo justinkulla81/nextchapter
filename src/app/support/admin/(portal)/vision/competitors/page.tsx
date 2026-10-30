@@ -113,10 +113,12 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
     .map((f) => ({ ...f, none: competitors.filter((c) => c.cells.find((x) => x.itemId === f.id)?.overlap === 'NONE').length }))
     .filter((f) => competitors.length > 0 && f.none === competitors.length)
 
+  const presenceBy = new Map<string, number>()
+  if (tableView) for (const g of await prisma.competitorEvent.groupBy({ by: ['competitorId'], where: { kind: { in: ['BOOTH', 'SPONSOR', 'SPEAKING', 'PODCAST'] } }, _count: true })) presenceBy.set(g.competitorId, g._count)
   const tableRows: CompetitorRow[] = tableView ? allCompetitors.map((c) => ({
     id: c.id, name: c.name, url: c.url, relationship: c.relationship, category: c.category, areas: c.areas, status: c.status,
     headcount: c.headcount, revenueUsd: c.revenueUsd, revenueNote: c.revenueNote, monthlyVisits: c.monthlyVisits, trafficNote: c.trafficNote,
-    fundingRaisedUsd: c.fundingRaisedUsd, foundedYear: c.foundedYear, hq: c.hq, reviewedAt: c.lastReviewedAt?.toISOString() ?? null, needsReview: c.needsReview,
+    fundingRaisedUsd: c.fundingRaisedUsd, lastRound: c.lastRound, investors: c.investors, presence: presenceBy.get(c.id) ?? 0, foundedYear: c.foundedYear, hq: c.hq, reviewedAt: c.lastReviewedAt?.toISOString() ?? null, needsReview: c.needsReview,
   })) : []
 
   const staleBefore = staleCutoff()
@@ -141,7 +143,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
           Who we compete with, where, what they have won, who they sell to, and what we would need to beat them.
           {competitors.length > 0 && <> {competitors.length} tracked.</>}
         </p>
-        <p className="mt-2 text-sm"><Link href="/support/admin/vision/capabilities" className="underline">Compare capabilities, area by area, with sources</Link></p>
+        <p className="mt-2 text-sm"><Link href="/support/admin/vision/competitors/compare" className="font-medium underline">Where they show up, funding, and prices next to ours</Link> · <Link href="/support/admin/vision/capabilities" className="underline">Compare capabilities, area by area, with sources</Link></p>
       </header>
 
       {sp.error && <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm">{sp.error}</p>}

@@ -4,7 +4,7 @@
 //
 // ── Which jobs get a public page (an allowlist: every rule must pass) ─────────
 //   status approved, not archived, no closeReason, not past expiresAt
-//   verified live (lastVerifiedAt) within the last 7 days
+//   verified live (lastVerifiedAt) within the last 14 days (PUBLIC_JOB_VERIFIED_DAYS)
 //   a description of at least 200 characters
 //   disclosure OPEN (company named) and distribution OPEN (shown to every member —
 //     TARGETED goes only to fit-matched members, EXCLUDED to nobody)
@@ -24,7 +24,11 @@
 // Change all three together.
 
 export const PUBLIC_JOB_SOURCES = ['ats_feed', 'admin', 'employer', 'recruiter'] as const
-export const PUBLIC_JOB_VERIFIED_DAYS = 7
+/**
+ * How recently the crawl must have confirmed a job open for it to keep a page. The crawl re-checks a job every 4 to 16 days
+ * (2026-10-30: 349k of 652k live jobs verified within 7 days, 617k within 14), so 7 days hid about 300k open jobs behind a 404.
+ */
+export const PUBLIC_JOB_VERIFIED_DAYS = 14
 export const PUBLIC_JOB_MIN_DESCRIPTION = 200
 /**
  * A job page is offered to search engines only when it holds the real posting text, not a ~280-character snippet from an
@@ -34,8 +38,8 @@ export const PUBLIC_JOB_MIN_DESCRIPTION = 200
  */
 export const PUBLIC_JOB_MIN_INDEX_DESCRIPTION = 1500
 export const PUBLIC_JOB_GHOST_AGE_DAYS = 90
-/** validThrough when the posting has no expiry of its own: last verified + this. */
-export const PUBLIC_JOB_VALID_DAYS = 30
+/** validThrough when the posting has no expiry of its own: last verified + this. The same as the days the page lives, so the date never promises a page that is gone. */
+export const PUBLIC_JOB_VALID_DAYS = PUBLIC_JOB_VERIFIED_DAYS
 /** Job sitemap files (src/app/jobs/sitemap.ts), by (hashtext(id) & 15). */
 export const PUBLIC_JOB_SITEMAP_SHARDS = 16
 
@@ -169,14 +173,51 @@ const EMPLOYMENT_TYPE: Record<string, string> = {
 
 const UNIT_TEXT: Record<string, string> = { year: 'YEAR', month: 'MONTH', week: 'WEEK', day: 'DAY', hour: 'HOUR' }
 
+/** When the employer posted it; never a future date (a source clock a day ahead would fail Google's check). */
 export function datePostedOf(job: Pick<PublicJobRow, 'postedAt' | 'createdAt'>): Date {
-  return job.postedAt ?? job.createdAt
+  const d = job.postedAt ?? job.createdAt
+  return d.getTime() > Date.now() ? job.createdAt : d
 }
 
+/** The earlier of the posting's own expiry and the day our page stops (last verified + PUBLIC_JOB_VALID_DAYS). */
 export function validThroughOf(job: Pick<PublicJobRow, 'expiresAt' | 'lastVerifiedAt'>): Date | null {
-  if (job.expiresAt) return job.expiresAt
-  if (job.lastVerifiedAt) return new Date(job.lastVerifiedAt.getTime() + PUBLIC_JOB_VALID_DAYS * DAY_MS)
-  return null
+  const pageEnds = job.lastVerifiedAt ? new Date(job.lastVerifiedAt.getTime() + PUBLIC_JOB_VALID_DAYS * DAY_MS) : null
+  if (job.expiresAt && pageEnds) return job.expiresAt < pageEnds ? job.expiresAt : pageEnds
+  return job.expiresAt ?? pageEnds
+}
+
+/**
+ * Pay Google may show: only what the source stated, with a unit, in a believable range. A range stored backwards is put right;
+ * a figure that cannot be a real wage for its unit (a yearly "$12", an hourly "$900") is left out rather than shown wrong.
+ */
+export function plausiblePay(job: Pick<PublicJobRow, 'salaryMin' | 'salaryMax' | 'payPeriod'>): { min: number | null; max: number | null; unit: string } | null {
+  const unit = job.payPeriod ? UNIT_TEXT[job.payPeriod] : undefined
+  if (!unit) return null
+  let min = job.salaryMin || null
+  let max = job.salaryMax || null
+  if (min && max && min > max) [min, max] = [max, min]
+  const top = max ?? min
+  if (!top) return null
+  const BOUNDS: Record<string, [number, number]> = { YEAR: [15_000, 5_000_000], MONTH: [1_000, 400_000], WEEK: [250, 100_000], DAY: [50, 20_000], HOUR: [7, 500] }
+  const [lo, hi] = BOUNDS[unit]
+  if (top < lo || top > hi || (min && min < lo)) return null
+  return { min, max, unit }
+}
+
+/** The fields Google's Jobs experience requires, absent from a JobPosting object. Empty means it qualifies. */
+export function missingRequiredJobFields(ld: Record<string, unknown>): string[] {
+  const missing: string[] = []
+  const has = (k: string) => ld[k] !== undefined && ld[k] !== null && ld[k] !== ''
+  for (const k of ['title', 'description', 'datePosted', 'validThrough', 'hiringOrganization', 'identifier', 'directApply']) if (!has(k)) missing.push(k)
+  const org = ld.hiringOrganization as { name?: string } | undefined
+  if (has('hiringOrganization') && !org?.name) missing.push('hiringOrganization.name')
+  if (!has('jobLocation') && !has('applicantLocationRequirements')) missing.push('jobLocation|applicantLocationRequirements')
+  if (has('jobLocationType') && !has('applicantLocationRequirements')) missing.push('applicantLocationRequirements')
+  const posted = Date.parse(String(ld.datePosted))
+  const through = Date.parse(String(ld.validThrough))
+  if (has('datePosted') && Number.isNaN(posted)) missing.push('datePosted(valid)')
+  if (has('validThrough') && (Number.isNaN(through) || (!Number.isNaN(posted) && through <= posted))) missing.push('validThrough(after datePosted)')
+  return missing
 }
 
 /**
@@ -228,14 +269,14 @@ export function jobPostingJsonLd(job: PublicJobRow): Record<string, unknown> {
     }
   }
 
-  const unit = job.payPeriod ? UNIT_TEXT[job.payPeriod] : undefined
-  if (unit && (job.salaryMin || job.salaryMax)) {
-    const value: Record<string, unknown> = { '@type': 'QuantitativeValue', unitText: unit }
-    if (job.salaryMin && job.salaryMax && job.salaryMin !== job.salaryMax) {
-      value.minValue = job.salaryMin
-      value.maxValue = job.salaryMax
+  const pay = plausiblePay(job)
+  if (pay) {
+    const value: Record<string, unknown> = { '@type': 'QuantitativeValue', unitText: pay.unit }
+    if (pay.min && pay.max && pay.min !== pay.max) {
+      value.minValue = pay.min
+      value.maxValue = pay.max
     } else {
-      value.value = job.salaryMin || job.salaryMax
+      value.value = pay.min || pay.max
     }
     data.baseSalary = { '@type': 'MonetaryAmount', currency: job.salaryCurrency || 'USD', value }
   }

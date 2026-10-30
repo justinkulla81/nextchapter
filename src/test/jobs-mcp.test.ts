@@ -7,6 +7,13 @@ vi.mock('@/lib/jobs/public-board', () => ({
   searchPublicBoardCached: async () => ({ total: 1, jobs: [{ id: 'a', title: 'Director of Finance', company: 'Acme', location: 'Denver, CO', postedAt: '2026-10-27', salaryMin: 180000, salaryMax: 220000, url: 'https://acme.example/jobs/1', pagePath: '/jobs/abc' }] }),
 }))
 
+vi.mock('@/lib/prisma', () => ({
+  prisma: { exclusiveJobPosting: { findMany: async () => [{ id: 'a', socCode: '11-2021.00', level: 'DIRECTOR', payPeriod: 'year', employmentType: 'full_time', workArrangement: 'hybrid' }] } },
+}))
+vi.mock('@/lib/warn/layoff-pages', () => ({
+  employerSlug: (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+  getPublicNotices: async () => [{ slug: 'acme', workers: 120, noticeDate: new Date(Date.now() - 20 * 86_400_000) }, { slug: 'old-co', workers: 5, noticeDate: new Date(Date.now() - 800 * 86_400_000) }],
+}))
 vi.mock('@/lib/posthog/server', () => ({ captureServerEvent: vi.fn() }))
 vi.mock('@/lib/careers/candidate-occupation', () => ({ searchOccupationTitles: async () => [{ socCode: '11-2021.00', title: 'Marketing Managers', score: 1 }] }))
 vi.mock('@/lib/skills/ai-exposure-server', () => ({ loadExposureMap: async () => new Map([['11-2021', { title: 'Marketing Managers', score: 0.31 }]]) }))
@@ -31,16 +38,21 @@ describe('jobs MCP server', () => {
   it('lists the read-only tools', async () => {
     const r = await handleMcpMessage({ jsonrpc: '2.0', id: 2, method: 'tools/list' }, allow)
     const tools = (r?.result as { tools: { name: string }[] }).tools
-    expect(tools.map((t) => t.name)).toEqual(['search_jobs', 'find_career_guide', 'recent_layoff_notices', 'unemployment_benefits_by_state', 'laid_off_benefits_and_programs', 'ai_exposure_for_job_title'])
+    expect(tools.map((t) => t.name)).toEqual(['search_jobs', 'score_resume', 'find_career_guide', 'recent_layoff_notices', 'unemployment_benefits_by_state', 'laid_off_benefits_and_programs', 'ai_exposure_for_job_title'])
   })
   it('returns no reply for a notification', async () => {
     expect(await handleMcpMessage({ jsonrpc: '2.0', method: 'notifications/initialized' }, allow)).toBeNull()
   })
   it('searches jobs and links to our own page', async () => {
     const r = await handleMcpMessage({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'search_jobs', arguments: { query: 'finance director' } } }, allow)
-    const data = (r?.result as { structuredContent: { jobs: { url: string; pay: string }[] } }).structuredContent
+    const data = (r?.result as { structuredContent: { jobs: { url: string; annualPayUsd: { min: number; max: number }; level: string; applyUrl: string; aiExposure: { band: string }; employerLayoffNotices: { workersNamed: number; page: string } }[] } }).structuredContent
     expect(data.jobs[0].url).toBe('https://launchyournextchapter.com/jobs/abc')
-    expect(data.jobs[0].pay).toBe('$180k–$220k')
+    expect(data.jobs[0].annualPayUsd).toEqual({ min: 180000, max: 220000 })
+    expect(data.jobs[0].level).toBe('director')
+    expect(data.jobs[0].applyUrl).toBe('https://acme.example/jobs/1')
+    expect(data.jobs[0].aiExposure.band).toBe('High')
+    expect(data.jobs[0].employerLayoffNotices.workersNamed).toBe(120)
+    expect(data.jobs[0].employerLayoffNotices.page).toBe('https://launchyournextchapter.com/layoffs/company/acme')
   })
   it('says so when rate limited', async () => {
     const r = await handleMcpMessage({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'search_jobs', arguments: {} } }, async () => false)
@@ -93,5 +105,26 @@ describe('jobs MCP server', () => {
     vi.mocked(captureServerEvent).mockClear()
     await call('unemployment_benefits_by_state', { state: 'CA' })
     expect(captureServerEvent).toHaveBeenCalledWith('mcp_client', 'mcp_tool_called', expect.objectContaining({ tool: 'unemployment_benefits_by_state', ok: true }))
+  })
+  it('scores a résumé with fixed rules and returns fixes, never logging the text', async () => {
+    vi.mocked(captureServerEvent).mockClear()
+    const text = `Jane Roe\njane@example.com 555-123-4567 Denver, CO\n\nSummary\nFinance leader with 12 years running planning teams.\n\nExperience\nDirector of Finance, Acme Corp 2018 - Present\n- Responsible for the budget process\n- Cut close time by 30% across 4 business units\n${'- Led a team of 6 analysts to deliver forecasts that saved $2M a year\n'.repeat(12)}\nEducation\nBS Accounting, State University 2006\n\nSkills\nExcel, SQL, forecasting`
+    const d = await call('score_resume', { resume_text: text })
+    expect(d.score).toBeGreaterThan(0)
+    expect(d.outOf).toBe(100)
+    expect(d.findings.length).toBeGreaterThan(5)
+    expect(d.findings[0]).toHaveProperty('fix')
+    const sent = JSON.stringify(vi.mocked(captureServerEvent).mock.calls)
+    expect(sent).not.toContain('Jane Roe')
+    expect(sent).toContain('score_resume')
+    expect((await call('score_resume', { resume_text: 'too short' })).error).toMatch(/plain text/)
+  })
+  it('tells an assistant when to call each tool', async () => {
+    const r = await handleMcpMessage({ jsonrpc: '2.0', id: 30, method: 'tools/list' }, allow)
+    const tools = (r?.result as { tools: { name: string; description: string }[] }).tools
+    for (const t of tools) {
+      expect(t.description, t.name).toMatch(/Call this when/)
+      expect((t as { title?: string }).title, t.name).toBeTruthy()
+    }
   })
 })

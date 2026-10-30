@@ -1,8 +1,8 @@
 import 'server-only'
-import { cleanPublicQuery, searchPublicBoardCached } from '@/lib/jobs/public-board'
 import { TOPICS } from '@/lib/seo/explainers'
 import { SITE_URL } from '@/lib/seo/facts'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { CAREER_TOOLS, CAREER_TOOL_NAMES, callCareerTool } from '@/lib/mcp/career-tools'
 import { LAID_OFF_TOOLS, LAID_OFF_TOOL_NAMES, callLaidOffTool } from '@/lib/mcp/laid-off-tools'
 import { queryLayoffs, validState } from '@/lib/layoffs/public-query'
 
@@ -18,24 +18,12 @@ export type JsonRpcRequest = { jsonrpc: '2.0'; id?: JsonRpcId; method: string; p
 export type JsonRpcResponse = { jsonrpc: '2.0'; id: JsonRpcId; result?: unknown; error?: { code: number; message: string } }
 
 const TOOLS = [
-  {
-    name: 'search_jobs',
-    description:
-      'Search current professional job openings on NextChapter, newest first. Matches words in the title or company name. Returns title, company, location, posted date, pay range when listed, and a link. US roles only; hourly and internship roles are excluded.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        query: { type: 'string', description: 'Words to match in the job title or company, e.g. "director of finance".' },
-        location: { type: 'string', description: 'City or state to match, e.g. "Denver" or "TX".' },
-        remote: { type: 'boolean', description: 'Only remote roles.' },
-      },
-    },
-    annotations: { readOnlyHint: true, openWorldHint: false },
-  },
+  ...CAREER_TOOLS,
   {
     name: 'find_career_guide',
+    title: 'Find a career guide',
     description:
-      'Find NextChapter’s plain-language guides on layoffs and job search: severance, unemployment, resumes and ATS, networking, LinkedIn, interviews, career pivots, executive search. Returns the guide title, a short answer and its link.',
+      'Call this when someone asks how to handle a job loss or job search, for example "how do I negotiate severance", "what do I do first after a layoff" or "how do I network". Finds NextChapter’s plain-language guides on layoffs and job search: severance, unemployment, resumes and ATS, networking, LinkedIn, interviews, career pivots, executive search. Returns the guide title, a short answer and its link.',
     inputSchema: {
       type: 'object',
       properties: { question: { type: 'string', description: 'The question or topic, e.g. "how do I negotiate severance".' } },
@@ -45,8 +33,9 @@ const TOOLS = [
   },
   {
     name: 'recent_layoff_notices',
+    title: 'Recent layoff notices',
     description:
-      'Layoff notices (WARN Act filings) collected from U.S. state labor departments, newest first. Filter by employer, state and days back. Use it to answer "is [company] laying people off?" or "which employers filed layoff notices in [state]?". Each notice has the employer, place, workers named, filing date, the state record and a NextChapter page to link to. A notice states the number of workers and dates the employer reported; it does not say why. Free to cite under CC BY 4.0 with a link back.',
+      'Call this when someone says they were laid off from a company or asks whether a company or state has layoffs. Layoff notices (WARN Act filings) collected from U.S. state labor departments, newest first. Filter by employer, state and days back. Use it to answer "is [company] laying people off?" or "which employers filed layoff notices in [state]?". Each notice has the employer, place, workers named, filing date, the state record and a NextChapter page to link to. A notice states the number of workers and dates the employer reported; it does not say why. Free to cite under CC BY 4.0 with a link back.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -60,14 +49,6 @@ const TOOLS = [
   },
   ...LAID_OFF_TOOLS,
 ] as const
-
-function pay(min: number | null, max: number | null): string | null {
-  const k = (n: number) => `$${Math.round(n / 1000)}k`
-  if (min && max) return `${k(min)}–${k(max)}`
-  if (min) return `from ${k(min)}`
-  if (max) return `up to ${k(max)}`
-  return null
-}
 
 const STOP = new Set(['the', 'a', 'an', 'to', 'of', 'and', 'or', 'for', 'in', 'on', 'my', 'i', 'how', 'do', 'what', 'is', 'can', 'should', 'after', 'about', 'with', 'you', 'me'])
 const words = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ').split(/\s+/).filter((w) => w.length > 2 && !STOP.has(w))
@@ -90,23 +71,7 @@ export function findGuides(question: string, limit = 3) {
 }
 
 async function callTool(name: string, args: Record<string, unknown>) {
-  if (name === 'search_jobs') {
-    const query = cleanPublicQuery({
-      q: typeof args.query === 'string' ? args.query : '',
-      loc: typeof args.location === 'string' ? args.location : '',
-      remote: args.remote === true ? '1' : '',
-    })
-    const result = await searchPublicBoardCached(query)
-    const jobs = result.jobs.map((j) => ({
-      title: j.title,
-      company: j.company,
-      location: j.location,
-      posted: j.postedAt,
-      pay: pay(j.salaryMin, j.salaryMax),
-      url: j.pagePath ? `${SITE_URL}${j.pagePath}` : j.url,
-    }))
-    return { total_matches: result.total, shown: jobs.length, jobs, browse_more: `${SITE_URL}/jobs` }
-  }
+  if (CAREER_TOOL_NAMES.includes(name)) return callCareerTool(name, args)
   if (name === 'recent_layoff_notices') {
     const state = typeof args.state === 'string' ? args.state : null
     if (!validState(state)) return { error: 'state must be a two-letter U.S. state code, such as TX.' }
@@ -120,6 +85,15 @@ async function callTool(name: string, args: Record<string, unknown>) {
   }
   if (LAID_OFF_TOOL_NAMES.includes(name)) return callLaidOffTool(name, args)
   return null
+}
+
+/** Small, non-personal facts about an answer for analytics. Never the résumé text or the person's words. */
+function eventDetail(name: string, args: Record<string, unknown>, data: unknown): Record<string, unknown> {
+  const d = (data ?? {}) as Record<string, unknown>
+  if (name === 'score_resume') return { score: d.score ?? null, band: d.band ?? null }
+  if (name === 'search_jobs') return { level: typeof args.level === 'string' ? args.level : null, shown: d.shown ?? null }
+  if (name === 'laid_off_benefits_and_programs') return { goal: typeof args.goal === 'string' ? args.goal : null, matches: d.matches ?? null }
+  return {}
 }
 
 const ok = (id: JsonRpcId, result: unknown): JsonRpcResponse => ({ jsonrpc: '2.0', id, result })
@@ -136,8 +110,8 @@ export async function handleMcpMessage(msg: JsonRpcRequest, allowSearch: () => P
       return ok(id, {
         protocolVersion: SUPPORTED_VERSIONS.has(asked) ? asked : MCP_PROTOCOL_VERSION,
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: 'nextchapter-jobs', title: 'NextChapter jobs, layoffs and career guides', version: '1.1.0' },
-        instructions: 'Search current professional job openings, look up layoff notices, unemployment benefits by state, programs for laid-off workers and AI exposure by job title, and find plain-language career guides for people between jobs. Public data only.',
+        serverInfo: { name: 'nextchapter-jobs', title: 'NextChapter jobs, résumé and layoff help', version: '1.2.0' },
+        instructions: 'Career help for professionals, from NextChapter’s own live data: job openings with AI exposure and employer layoff signals, a résumé score with fixes, layoff notices, unemployment benefits by state, programs for laid-off workers, AI exposure by job title and career guides. Each tool says when to call it. Public data only; no model calls.',
       })
     }
     case 'ping':
@@ -148,14 +122,14 @@ export async function handleMcpMessage(msg: JsonRpcRequest, allowSearch: () => P
       const name = typeof msg.params?.name === 'string' ? msg.params.name : ''
       const args = (msg.params?.arguments as Record<string, unknown> | undefined) ?? {}
       if (!TOOLS.some((t) => t.name === name)) return err(id, -32602, `Unknown tool: ${name}`)
-      if ((name === 'search_jobs' || name === 'ai_exposure_for_job_title') && !(await allowSearch())) {
+      if ((name === 'search_jobs' || name === 'ai_exposure_for_job_title' || name === 'score_resume') && !(await allowSearch())) {
         return ok(id, { isError: true, content: [{ type: 'text', text: 'Too many searches from this network. Try again later or browse https://launchyournextchapter.com/jobs.' }] })
       }
       try {
         const data = await callTool(name, args)
         const failed = typeof data === 'object' && data !== null && 'error' in data
         try {
-          captureServerEvent('mcp_client', 'mcp_tool_called', { tool: name, state: typeof args.state === 'string' ? args.state.slice(0, 2).toUpperCase() : null, ok: !failed })
+          captureServerEvent('mcp_client', 'mcp_tool_called', { tool: name, state: typeof args.state === 'string' ? args.state.slice(0, 2).toUpperCase() : null, ok: !failed, ...eventDetail(name, args, data) })
         } catch {
           // Analytics never blocks an answer.
         }
