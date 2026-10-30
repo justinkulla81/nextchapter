@@ -1,8 +1,8 @@
 // A Write email link from the CRM opens Gmail's full-page compose (the only
 // thing Gmail lets a prefilled link open). If Gmail is already open in another
 // tab for the same account, move the message into that tab's small "New
-// Message" window and close the full-page tab. With no Gmail tab open, or on
-// any failure, the full-page compose stays as it is.
+// Message" window and close the full-page tab. With no Gmail tab open, one is
+// opened for the account first. On any failure, the full-page compose stays.
 const handled = new Set()
 
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
@@ -20,12 +20,24 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
       const u = new URL(t.url)
       return u.searchParams.get('tf') !== 'cm' && u.pathname.match(/^\/mail\/u\/(\d+)\//)?.[1] === account
     })
-    if (!target) return
+    let opened = null
+    if (!target) {
+      // No Gmail tab yet: open one for this account, then dock into it.
+      if (!account) return
+      opened = await chrome.tabs.create({ url: `https://mail.google.com/mail/u/${account}/#inbox`, windowId: tab.windowId, active: false })
+      await new Promise((resolve) => {
+        const done = (id, change) => { if (id === opened.id && change.status === 'complete') { chrome.tabs.onUpdated.removeListener(done); resolve() } }
+        chrome.tabs.onUpdated.addListener(done)
+        setTimeout(() => { chrome.tabs.onUpdated.removeListener(done); resolve() }, 20000)
+      })
+    }
+    const dockTab = target ?? opened
     // Gmail ignores typing into a tab that is not in front, so bring it forward before filling the window.
-    await chrome.tabs.update(target.id, { active: true })
-    await chrome.windows.update(target.windowId, { focused: true })
-    const [{ result } = {}] = await chrome.scripting.executeScript({ target: { tabId: target.id }, func: openDockedCompose, args: [message] })
+    await chrome.tabs.update(dockTab.id, { active: true })
+    await chrome.windows.update(dockTab.windowId, { focused: true })
+    const [{ result } = {}] = await chrome.scripting.executeScript({ target: { tabId: dockTab.id }, func: openDockedCompose, args: [message] })
     if (!result) {
+      if (opened) await chrome.tabs.remove(opened.id)
       await chrome.tabs.update(tabId, { active: true })
       return
     }
@@ -51,7 +63,8 @@ async function openDockedCompose({ to, subject, body }) {
   const dialogs = () => [...document.querySelectorAll('[role="dialog"]')].filter((d) => d.querySelector('div[aria-label="Message Body"][contenteditable="true"]'))
   const before = new Set(dialogs())
 
-  const compose = [...document.querySelectorAll('div[role="button"], button')].find((e) => e.textContent.trim() === 'Compose')
+  // A Gmail tab that just opened is still loading, so wait for its Compose button.
+  const compose = await poll(() => [...document.querySelectorAll('div[role="button"], button')].find((e) => e.textContent.trim() === 'Compose'))
   if (compose) compose.click()
   else location.hash = '#inbox?compose=new'
 
