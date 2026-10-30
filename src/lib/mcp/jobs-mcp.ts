@@ -2,6 +2,7 @@ import 'server-only'
 import { cleanPublicQuery, searchPublicBoardCached } from '@/lib/jobs/public-board'
 import { TOPICS } from '@/lib/seo/explainers'
 import { SITE_URL } from '@/lib/seo/facts'
+import { queryLayoffs, validState } from '@/lib/layoffs/public-query'
 
 // A small, read-only Model Context Protocol server (Streamable HTTP, stateless JSON-RPC) so AI assistants can search
 // the same public job board as /jobs and look up our career guides. Public data only: nothing personalised, nothing
@@ -37,6 +38,21 @@ const TOOLS = [
       type: 'object',
       properties: { question: { type: 'string', description: 'The question or topic, e.g. "how do I negotiate severance".' } },
       required: ['question'],
+    },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+  },
+  {
+    name: 'recent_layoff_notices',
+    description:
+      'Layoff notices (WARN Act filings) collected from U.S. state labor departments, newest first. Filter by employer, state and days back. Use it to answer "is [company] laying people off?" or "which employers filed layoff notices in [state]?". Each notice has the employer, place, workers named, filing date, the state record and a NextChapter page to link to. A notice states the number of workers and dates the employer reported; it does not say why. Free to cite under CC BY 4.0 with a link back.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        employer: { type: 'string', description: 'Employer name or part of it, e.g. "Comcast".' },
+        state: { type: 'string', description: 'Two-letter U.S. state code, e.g. "TX".' },
+        days: { type: 'integer', description: 'How many days back to look (1 to 365, default 30).' },
+        limit: { type: 'integer', description: 'Most notices to return (1 to 100, default 10).' },
+      },
     },
     annotations: { readOnlyHint: true, openWorldHint: false },
   },
@@ -87,6 +103,12 @@ async function callTool(name: string, args: Record<string, unknown>) {
       url: j.pagePath ? `${SITE_URL}${j.pagePath}` : j.url,
     }))
     return { total_matches: result.total, shown: jobs.length, jobs, browse_more: `${SITE_URL}/jobs` }
+  }
+  if (name === 'recent_layoff_notices') {
+    const state = typeof args.state === 'string' ? args.state : null
+    if (!validState(state)) return { error: 'state must be a two-letter U.S. state code, such as TX.' }
+    const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+    return queryLayoffs({ employer: typeof args.employer === 'string' ? args.employer.slice(0, 80) : null, state, days: num(args.days), limit: num(args.limit) ?? 10 })
   }
   if (name === 'find_career_guide') {
     const question = typeof args.question === 'string' ? args.question.slice(0, 300) : ''
