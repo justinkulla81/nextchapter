@@ -66,6 +66,8 @@ export async function runCitationCheck(opts: { providerIds?: string[]; limit?: n
       let data
       try {
         const a = await p.ask(q.prompt)
+        // An empty answer is a failed call, not an answer that cites nobody (a reasoning model can spend its whole token budget thinking).
+        if (!a.text.trim()) throw new Error('empty answer')
         const domains = [...new Set(a.sources.map(domainOf).filter((d): d is string => !!d))]
         const ourUrls = [...new Set(a.sources.filter((u) => domainOf(u) === OUR_DOMAIN || domainOf(u)?.endsWith(`.${OUR_DOMAIN}`)))]
         const isCited = ourUrls.length > 0
