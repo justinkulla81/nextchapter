@@ -156,6 +156,19 @@ export async function loadSentEmails(): Promise<{ rows: SentEmailRow[]; capped: 
     })
   }
 
+  // The Gmail sync can log one send twice: a second message id (no longer in Gmail) with the same recipient, subject and second. Show it once.
+  const seen = new Map<string, number>()
+  const deduped: SentEmailRow[] = []
+  for (const r of rows) {
+    if (r.source !== 'gmail' || !r.personId) { deduped.push(r); continue }
+    const k = `${r.personId}|${r.subject}|${Math.floor(r.sentAt.getTime() / 1000)}`
+    const at = seen.get(k)
+    if (at === undefined) { seen.set(k, deduped.length); deduped.push(r); continue }
+    if (!deduped[at].repliedAt && r.repliedAt) deduped[at] = r
+  }
+  rows.length = 0
+  rows.push(...deduped)
+
   rows.sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime())
   const capped: SentSource[] = []
   if (acts.length >= SOURCE_CAP) capped.push('cold', 'crm', 'gmail')
