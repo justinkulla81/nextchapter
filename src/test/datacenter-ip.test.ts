@@ -12,6 +12,8 @@ describe('isDatacenterIp', () => {
     expect(isDatacenterIp('34.30.115.30')).toBe(true)
     expect(isDatacenterIp('34.72.176.129')).toBe(true)
     expect(isDatacenterIp('18.200.218.82')).toBe(true)
+    expect(isDatacenterIp('172.252.65.105')).toBe(true)
+    expect(isDatacenterIp('9.169.121.184')).toBe(true)
   })
 
   it('leaves home and campus addresses alone', () => {
@@ -19,7 +21,8 @@ describe('isDatacenterIp', () => {
     expect(isDatacenterIp('192.147.249.189')).toBe(false)
     expect(isDatacenterIp('51.60.0.1')).toBe(false)
     expect(isDatacenterIp('74.180.0.1')).toBe(false)
-    expect(isDatacenterIp('172.252.65.105')).toBe(false)
+    expect(isDatacenterIp('172.253.0.1')).toBe(false)
+    expect(isDatacenterIp('9.170.0.1')).toBe(false)
     expect(isDatacenterIp('18.31.0.1')).toBe(false)
     expect(isDatacenterIp('34.128.0.1')).toBe(false)
   })
