@@ -3,7 +3,6 @@ import { layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FeedLine } from '@/components/seo/FeedLine'
-import { unstable_noStore as noStore } from 'next/cache'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
@@ -121,13 +120,10 @@ const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export default async function CompanyLayoffsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const page = await loadPage(slug)
-  // A page is built on the first request and kept a day, and that holds for a 404 too: an employer asked for before its
-  // announcement was filed would stay missing for a day after it was. Rendering the not-found case per request keeps it
-  // from being cached (the lookup is a short-lived in-memory list, so unknown slugs cost nothing).
-  if (!page) {
-    noStore()
-    notFound()
-  }
+  // A page is built on the first request and kept a day, and that holds for a 404 too, so an employer asked for before its
+  // announcement was filed stays missing until the next deploy. Do not try to opt this branch out of the cache with
+  // unstable_noStore(): in this route it throws DYNAMIC_SERVER_USAGE and the page answers 500 (tried 2026-10-30, reverted).
+  if (!page) notFound()
   const { c, ann } = page
   const recentAnn = hasRecentAnnouncement(ann) ? ann : undefined
   const hasNotices = c.notices.length > 0
