@@ -11969,6 +11969,11 @@ model ProductCompetitor {
   fundingRaisedUsd Int?
   headcount        Int?
   userCountNote    String?
+  /// Yearly revenue as one number so the table can sort on it; revenueNote says whether it is reported or an estimate, and from where.
+  revenueUsd       Float?
+  /// Website visits a month (Similarweb or Semrush public figure); trafficNote carries the source and the month.
+  monthlyVisits    Int?
+  trafficNote      String?
   sourceUrl        String?
   lastReviewedAt   DateTime?
 
