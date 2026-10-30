@@ -12,6 +12,8 @@ const DATACENTER_CIDRS = [
   '34.16.0.0/12', // Google LLC (ARIN GOOGL-2), Google Cloud
   '34.32.0.0/11', // Google LLC (ARIN GOOGL-2)
   '34.64.0.0/10', // Google LLC (ARIN GOOGL-2); Council Bluffs, Iowa
+  '172.252.0.0/16', // Subnet Digital LLC (ARIN EGNL-1), a hosting provider (geofeed at egihosting.com); opened outreach pages in sequence
+  '9.169.0.0/17', // RIPE netname "cloud", country US; Boydton, Virginia
   '18.32.0.0/11', // Amazon Technologies (ARIN AT-88-Z), AWS
   '18.64.0.0/10',
   '18.128.0.0/9',
