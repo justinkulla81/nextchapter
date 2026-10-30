@@ -420,11 +420,32 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs',
     kind: 'page',
     primary: 'layoff tracker',
-    secondary: ['layoffs', 'recent layoffs', 'layoffs today', 'layoffs 2026', 'companies laying off', 'layoff list', 'mass layoffs', 'WARN notices', 'WARN notice list', 'WARN Act layoffs', 'who is laying off'],
+    secondary: ['layoffs', 'recent layoffs', 'layoffs today', 'companies laying off', 'layoff list', 'mass layoffs', 'WARN notices', 'WARN notice list', 'WARN Act layoffs', 'who is laying off'],
     seo: {
       title: 'Layoff Tracker: Recent Layoffs and WARN Notices by State',
       description: 'Recent layoffs from WARN Act notices filed with state labor departments, collected daily: totals, the latest filings, and a page for every state and employer.',
     },
+  },
+  {
+    id: 'layoffs-2026',
+    intent: 'How many layoffs there have been this year, by month, state and company',
+    owner: '/layoffs/2026',
+    kind: 'page',
+    primary: 'layoffs 2026',
+    secondary: ['layoffs in 2026', '2026 layoffs', 'layoff statistics 2026', 'layoffs by month 2026', 'companies laying off 2026', 'biggest layoffs 2026', 'layoff list 2026', 'how many layoffs in 2026'],
+    seo: {
+      title: 'Layoffs 2026: Every WARN Notice by Month, State and Company',
+      description: 'Layoffs in 2026 from WARN notices filed with state labor departments: totals by month, state, industry and company, a free CSV, and a line to cite.',
+      h1: 'Layoffs 2026: every WARN notice, month by month',
+    },
+  },
+  {
+    id: 'layoffs-2026-month',
+    intent: 'Layoffs in one month of 2026',
+    owner: '/layoffs/2026/:month',
+    kind: 'family',
+    primary: '{month} 2026 layoffs',
+    secondary: ['layoffs in {month} 2026', '{month} 2026 layoff notices', '{month} 2026 WARN notices'],
   },
   {
     id: 'layoffs-this-week',
