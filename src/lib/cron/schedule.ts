@@ -60,7 +60,7 @@ export const RERUN_SAFE_JOBS: ReadonlySet<string> = new Set([
   'funding-opportunities', 'content-drafts', 'catalog-seeds', 'federal-contracts', 'board-bids', 'competitor-awards', 'news-discovery', 'likely-openings',
   'workforce-boards', 'workforce-board-intel', 'refresh-youtube-content',
   'expire-job-postings', 'benefits-network-expire-listings', 'population-snapshot',
-  'partner-scores', 'activity-streaks', 'board-light-rows', 'indexnow-jobs', 'indexnow-seo-pages', 'indexnow-layoffs', 'google-indexing-jobs', 'bing-url-submit', 'pivot-market', 'market-size', 'ai-market', 'board-figures', 'page-warmup',
+  'partner-scores', 'activity-streaks', 'board-light-rows', 'job-feed-direct', 'job-feed-jooble', 'indexnow-jobs', 'indexnow-seo-pages', 'indexnow-layoffs', 'google-indexing-jobs', 'bing-url-submit', 'pivot-market', 'market-size', 'ai-market', 'board-figures', 'page-warmup',
   // Asks the AI assistants a fixed list of questions. It costs money, but the run stops at the monthly cap (src/lib/ai-visibility/run.ts), so a second click cannot overspend.
   'ai-citation-check',
 ])
