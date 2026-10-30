@@ -37,7 +37,7 @@ async function search(out: string, max: number, reserve: number) {
   // EXCLUDE=a.json,b.json skips colleges already searched in earlier rounds, so no credit is spent twice.
   const done = new Set<string>((process.env.EXCLUDE ?? '').split(',').filter(Boolean).flatMap((f) => (JSON.parse(readFileSync(f, 'utf8')) as any[]).map((r) => String(r.unitid))))
   const colleges = (await prisma.$queryRawUnsafe<any[]>(`select p.unitid, p.name, p.website, p.state from "CollegeProfile" p
-    where p.level='4-year' and p.website is not null
+    where p.level='${process.env.LEVEL ?? '4-year'}' and p.website is not null
       ${process.env.GRAD ? '' : 'and (select count(*) from "CollegeContact" c where c."collegeId"=p.unitid and c.name is not null) < 2'}
     order by ${process.env.GRAD ? 'coalesce(p.endowment, 0)' : 'coalesce(p."alumniEstimate", p.enrollment*5, 0)'} desc`)).filter((c) => !done.has(String(c.unitid))).slice(0, budget)
   console.log(`budget ${budget}, colleges ${colleges.length}`)
