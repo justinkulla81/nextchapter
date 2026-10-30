@@ -16,14 +16,15 @@ const DIR = `${process.env.HOME}/nc-hunter-results/2026-10-30-media`
 const apply = process.argv.includes('--apply')
 const KEY = process.env.HUNTER_API_KEY
 
-interface Rec { name: string; org: string; domain: string; title: string; kind: string; email: string; contactUrl: string; evidence: string[]; note: string; role: CrmPersonRole; orgType: CrmOrgType; group: string; extra: string }
+interface Rec { review?: boolean; name: string; org: string; domain: string; title: string; kind: string; email: string; contactUrl: string; evidence: string[]; note: string; role: CrmPersonRole; orgType: CrmOrgType; group: string; extra: string }
 const COMPETITOR = /\b(resume writ\w*|resume services?|career coach\w*|job coach\w*|interview coach\w*|lhh|right management|risesmart|intoo|careerminds|the ladders|jobscan|zety|topresume)\b/i
+const REVIEW_NAMES = /^(Jess Mador|Libby Allnatt|Scott Morgan|Paul Thompson|Jacob Kirn|Isabel Hart|John Migueis|Mitchell Hartman)$/i
 const COMPETITOR_ORG = /outplacement|\b(lhh|right management|risesmart|intoo|careerminds|challenger,? gray)\b/i
 
 function load(): Rec[] {
   const out: Rec[] = []
   const read = (f: string) => (existsSync(`${DIR}/${f}`) ? (JSON.parse(readFileSync(`${DIR}/${f}`, 'utf8')) as any[]) : [])
-  for (const j of read('journalists.json')) out.push({ name: j.name, org: j.outlet, domain: j.outlet_domain, title: j.title_or_beat, kind: j.kind, email: j.email, contactUrl: j.contact_url, evidence: j.evidence_urls ?? [], note: j.evidence_note, role: 'PRESS', orgType: 'MEDIA', group: 'journalist', extra: j.state ? `State ${j.state}. ` : '' })
+  for (const j of [...read('journalists.json'), ...['A', 'B', 'C', 'D'].flatMap((g) => read(`local-${g}.json`))]) out.push({ name: j.name, org: j.outlet, domain: j.outlet_domain, title: j.title_or_beat, kind: j.kind, email: j.email, contactUrl: j.contact_url, evidence: j.evidence_urls ?? [], note: j.evidence_note, role: 'PRESS', orgType: 'MEDIA', group: 'journalist', extra: j.state ? `State ${j.state}. ` : '' })
   for (const a of read('academics.json')) out.push({ name: a.name, org: a.institution, domain: a.institution_domain, title: a.title, kind: a.kind, email: a.email, contactUrl: a.contact_url, evidence: a.evidence_urls ?? [], note: a.evidence_note, role: 'POLICY_ANALYST', orgType: /fed|policy/.test(a.kind) ? 'THINK_TANK' : 'UNIVERSITY', group: 'academic', extra: a.research_focus ? `Research: ${a.research_focus}. ` : '' })
   for (const c of read('creators.json')) out.push({ name: c.name, org: c.handle_or_publication, domain: '', title: `${c.platform} · ${c.audience}`, kind: c.kind, email: c.email, contactUrl: c.contact_url, evidence: c.evidence_urls ?? [], note: c.evidence_note, role: /newsletter|youtube|podcast/.test(c.kind) ? 'PRESS' : 'CONNECTOR', orgType: 'MEDIA', group: 'creator', extra: `Topic: ${c.topic}. ` })
   return out
@@ -49,11 +50,12 @@ async function main() {
       !r.name || r.name.trim().split(/\s+/).length < 2 ? 'single-word name'
       : !r.org ? 'no organization'
       : (COMPETITOR_ORG.test(`${r.org} ${r.title}`) || COMPETITOR.test(`${r.title}`)) ? 'competitor-like'
-      : r.group === 'journalist' && r.evidence.length < 2 ? 'fewer than 2 evidence links'
       : r.evidence.length < 1 ? 'no evidence link'
       : seen.has(r.name.toLowerCase()) ? 'duplicate'
       : ''
     if (why) { drop.push(`${r.name} | ${r.org} | ${why}`); continue }
+    // One full evidence link, or a title that reads as an editor or a non-business beat, goes to the Review List.
+    r.review = (r.group === 'journalist' && r.evidence.length < 2) || REVIEW_NAMES.test(r.name)
     seen.add(r.name.toLowerCase()); keep.push(r)
   }
   const tally: Record<string, number> = { kept: keep.length, dropped: drop.length, added: 0, matched: 0, review: 0, removed: 0, withEmail: 0, emailDropped: 0 }
@@ -74,7 +76,11 @@ async function main() {
       orgId: org.id, orgName: org.name, roles, goals: goalsForRoles(roles), priority: 'P2',
       note: `${r.kind} (${r.group}). ${r.extra}${r.note} Evidence: ${r.evidence.slice(0, 3).join(' ; ')}.${r.contactUrl ? ` Public contact: ${r.contactUrl}.` : ''} Found by web research 2026-10-30; a reach-for-citation contact, not a buyer.`,
     })
-    if (res.outcome === 'removed') tally.removed++; else tally[res.outcome]++
+    if (res.outcome === 'removed') tally.removed++
+    else {
+      tally[res.outcome]++
+      if (r.review && res.outcome !== 'review') { await prisma.crmPerson.update({ where: { id: res.personId }, data: { needsCompletion: true } }); tally.flagged = (tally.flagged ?? 0) + 1 }
+    }
   }
   writeFileSync(`${DIR}/import-dropped.txt`, drop.join('\n'))
   console.log(tally, byKind)
