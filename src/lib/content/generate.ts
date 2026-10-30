@@ -108,7 +108,7 @@ export async function generateDailyDrafts(now = new Date()): Promise<GenerateRes
   }
 
   // Job of the day: the next occupation in the rotation that has an exposure score and was not drafted in 90 days.
-  try {
+  if (!today.some((r) => r.kind === 'ai-job')) try {
     const [map, usedSocs] = [await loadExposureMap(), new Set(recent.filter((r) => r.kind === 'ai-job').map((r) => r.subject))]
     const start = Math.floor(now.getTime() / DAY_MS)
     for (let i = 0; i < occupations.length; i++) {
