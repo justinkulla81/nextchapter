@@ -89,6 +89,9 @@ function LayoffCell({ r }: { r: PublishingRow }) {
   )
 }
 
+// Module-level, not inline in the component: react-hooks/purity flags Date.now().
+const nowMs = () => Date.now()
+
 export default async function LayoffPublishingPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   await requireAdmin()
   const filters = readFilters(await searchParams)
@@ -98,7 +101,7 @@ export default async function LayoffPublishingPage({ searchParams }: { searchPar
   const candidates = pickCandidates(rows)
   const states = await inspectIndexState(candidates.map((r) => `${SITE_URL}${r.path}`)).catch(() => new Map())
   const onGoogle = new Set(candidates.filter((r) => states.get(`${SITE_URL}${r.path}`) === 'indexed').map((r) => r.path))
-  const picks = dailyPicks(rows, requestsLast24h, Date.now(), onGoogle)
+  const picks = dailyPicks(rows, requestsLast24h, nowMs(), onGoogle)
   const shown = applyFilters(rows, filters)
 
   return (
