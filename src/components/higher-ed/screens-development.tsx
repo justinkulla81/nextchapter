@@ -21,6 +21,7 @@ import { SignalRowActions } from './SignalRowActions'
 import { AwardForm, FundSettingsForm } from './FundForms'
 import { ConfirmActionButton } from './ConfirmActionButton'
 import { CrmUploadForm } from './CrmUploadForm'
+import { BriefCard } from './BriefCard'
 
 type Props = { ctx: WorkspaceContext; base: string }
 
@@ -70,6 +71,7 @@ export async function DevelopmentRoi({ ctx, base }: Props) {
   const gratitude = await prisma.outcomeReport.count({ where: { gratitudeStatus: 'PENDING', member: { institutionId: ctx.institution.id } } })
   return (
     <div className="space-y-8">
+      <BriefCard institutionId={ctx.institution.id} agent="development" />
       <p className="max-w-3xl text-sm text-muted-foreground">
         Users are alumni who joined and used the tools, coaching or a mentor call that year. They&apos;re compared with alumni who never joined, matched by
         class decade and whether they gave the year before. Group sizes are always shown; lift appears once both groups have {MIN_GROUP}. As of the last
