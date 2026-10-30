@@ -2,6 +2,7 @@ import { NewHome } from '@/components/home/NewHome'
 import { StructuredData } from '@/components/StructuredData'
 import { canonicalWithFeeds } from '@/lib/seo/canonical'
 import { organizationJsonLd, organizationRef } from '@/lib/seo/jsonld'
+import { FreshLinks } from '@/components/marketing/FreshLinks'
 
 // The page is static: the news feed and newsletter moved off the homepage (see /news).
 export const revalidate = 300
@@ -23,7 +24,7 @@ export default function Home() {
     <>
       <StructuredData data={jsonLd} />
       <StructuredData data={organizationJsonLd()} />
-      <NewHome />
+      <NewHome fresh={<FreshLinks tone="dark" placement="home" />} />
     </>
   )
 }
