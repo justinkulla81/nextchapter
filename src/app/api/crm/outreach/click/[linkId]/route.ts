@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { withEmailAttribution } from '@/lib/marketing/email-attribution'
 
 /**
  * Public by necessity — this URL is embedded in an email delivered to an
@@ -23,5 +24,6 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     },
   })
 
-  return NextResponse.redirect(link.originalUrl)
+  // A link to our own site carries this link's id into the landing URL, so the visitor log can name the recipient.
+  return NextResponse.redirect(withEmailAttribution(link.originalUrl, linkId))
 }

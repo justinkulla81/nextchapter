@@ -13,6 +13,7 @@ import { loadSearchConsole, type SearchConsoleResult, type SearchRow } from '@/l
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
+import { extractEmailLinkId, resolveEmailRecipients } from '@/lib/marketing/email-attribution'
 import { classifyTrafficSource, trafficSourceGroup, type TrafficSourceGroup } from '@/lib/marketing/classify-traffic-source'
 
 export const maxDuration = 30
@@ -202,10 +203,35 @@ export default async function AdminVisitorsPage({
   const humanAllEvents = chartEvents.filter((e) => classifyUserAgent(e.userAgent) === 'human')
   const humanChartEvents = humanAllEvents.filter((e) => e.eventType === 'PAGE_VIEW')
   const sourceLabels = humanChartEvents.map((e) => classifyTrafficSource(e.path, e.referrer))
-  const groupOrder: TrafficSourceGroup[] = ['AI assistants', 'Search engines', 'Google for Jobs', 'Social', 'Email', 'Direct', 'Internal', 'Other sites']
+  const groupOrder: TrafficSourceGroup[] = ['AI assistants', 'Search engines', 'Google for Jobs', 'Social', 'Email', 'RSS feeds', 'Direct', 'Internal', 'Other sites']
   const groupCounts = tally(sourceLabels.map(trafficSourceGroup))
   const sourceGroups = groupOrder.map((g) => groupCounts.find((c) => c.label === g) ?? { label: g, count: 0 }).filter((r) => r.count > 0)
   const aiAndSearchDetail = tally(sourceLabels.filter((l) => ['AI assistants', 'Search engines', 'Google for Jobs'].includes(trafficSourceGroup(l))))
+  // Outbound email, by recipient: the tracked click link redirects here with the link id in the landing path.
+  const emailVisitsByLink = new Map<string, { visits: number; ips: Set<string>; last: Date; pages: Set<string> }>()
+  for (const e of humanChartEvents) {
+    const id = extractEmailLinkId(e.path)
+    if (!id) continue
+    const v = emailVisitsByLink.get(id) ?? { visits: 0, ips: new Set<string>(), last: e.createdAt, pages: new Set<string>() }
+    v.visits += 1
+    if (e.ip) v.ips.add(e.ip)
+    if (e.createdAt > v.last) v.last = e.createdAt
+    v.pages.add((e.path ?? '/').split('?')[0])
+    emailVisitsByLink.set(id, v)
+  }
+  const recipients = await resolveEmailRecipients(Array.from(emailVisitsByLink.keys()))
+  const emailPeople = new Map<string, { personId: string; name: string; subject: string | null; visits: number; last: Date; pages: Set<string> }>()
+  for (const [linkId, v] of emailVisitsByLink) {
+    const r = recipients.get(linkId)
+    if (!r) continue
+    const cur = emailPeople.get(r.personId)
+    if (cur) {
+      cur.visits += v.visits
+      if (v.last > cur.last) cur.last = v.last
+      v.pages.forEach((p) => cur.pages.add(p))
+    } else emailPeople.set(r.personId, { personId: r.personId, name: r.name, subject: r.subject, visits: v.visits, last: v.last, pages: new Set(v.pages) })
+  }
+  const emailPeopleRows = Array.from(emailPeople.values()).sort((a, b) => b.last.getTime() - a.last.getTime())
   const osRows = tally(humanChartEvents.map((e) => classifyOs(e.userAgent)))
   const browserRows = tally(humanChartEvents.map((e) => classifyBrowser(e.userAgent)))
   const searchConsole = await loadSearchConsole()
@@ -298,6 +324,34 @@ export default async function AdminVisitorsPage({
         />
         <BreakdownTable title="Operating system" rows={osRows} />
         <BreakdownTable title="Browser" rows={browserRows} />
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <h2 className="text-sm font-medium text-foreground">People who came from our emails</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Last {CHART_WINDOW_DAYS} days. Each row is a CRM contact who clicked a link in an email we sent and landed on the site. Twitter/X, Bluesky and RSS arrivals are counted in &ldquo;Where visitors come from&rdquo; above, since those links are public and not tied to a person.
+        </p>
+        {emailPeopleRows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No one has clicked through from an email yet. Links in emails sent after this change are tagged.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <tbody>
+              {emailPeopleRows.map((p) => (
+                <tr key={p.personId} className="border-t border-border first:border-t-0">
+                  <td className="py-1 pr-2">
+                    <Link href={`/support/admin/crm/people/${p.personId}`} className="text-primary underline underline-offset-4">
+                      {p.name}
+                    </Link>
+                  </td>
+                  <td className="py-1 pr-2 text-muted-foreground">{p.subject ?? ''}</td>
+                  <td className="py-1 pr-2 break-all text-muted-foreground">{Array.from(p.pages).join(', ')}</td>
+                  <td className="py-1 pr-2 text-right tabular-nums">{p.visits} {p.visits === 1 ? 'visit' : 'visits'}</td>
+                  <td className="py-1 text-right tabular-nums">{formatAdminDateTime(p.last)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <div className="rounded-lg border border-border p-4">
