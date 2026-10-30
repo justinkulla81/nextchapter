@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { VisionMatrixCell } from '@/components/admin/VisionMatrixCell'
 import { CompetitorForm } from '@/components/admin/CompetitorForm'
+import { CompetitorTable, type CompetitorRow } from '@/components/admin/CompetitorTable'
 import { quickAddCompetitor, addAllGapsToProductList, refreshCompetitorFromWebsite, deleteCompetitor, saveWatchSettings, decideCellProposal, emailCompetitorDownload } from '../actions'
 import { getWatchSettings, spentThisMonth } from '@/lib/vision/competitor-watch'
 import { EVENT_LABEL, type EventKind } from '@/lib/vision/competitor-watch-core'
@@ -60,6 +61,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
   const gone = sp.gone === '1'
   const showAll = sp.all === '1'
   const showMatrix = sp.matrix === '1'
+  const tableView = sp.view === 'table'
 
   const [watch, spent, proposals, recentEvents] = await Promise.all([
     getWatchSettings(),
@@ -111,12 +113,18 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
     .map((f) => ({ ...f, none: competitors.filter((c) => c.cells.find((x) => x.itemId === f.id)?.overlap === 'NONE').length }))
     .filter((f) => competitors.length > 0 && f.none === competitors.length)
 
+  const tableRows: CompetitorRow[] = tableView ? allCompetitors.map((c) => ({
+    id: c.id, name: c.name, url: c.url, relationship: c.relationship, category: c.category, areas: c.areas, status: c.status,
+    headcount: c.headcount, revenueUsd: c.revenueUsd, revenueNote: c.revenueNote, monthlyVisits: c.monthlyVisits, trafficNote: c.trafficNote,
+    fundingRaisedUsd: c.fundingRaisedUsd, foundedYear: c.foundedYear, hq: c.hq, reviewedAt: c.lastReviewedAt?.toISOString() ?? null, needsReview: c.needsReview,
+  })) : []
+
   const staleBefore = staleCutoff()
   const staleCount = competitors.filter((c) => !c.lastReviewedAt || c.lastReviewedAt < staleBefore).length
   const reviewCount = competitors.filter((c) => c.needsReview).length
   const qs = (over: Record<string, string>) => {
     const p = new URLSearchParams()
-    for (const [k, v] of Object.entries({ area: areaFilter, rel: relFilter, cat: catFilter, gone: gone ? '1' : '', ...over })) if (v) p.set(k, v)
+    for (const [k, v] of Object.entries({ area: areaFilter, rel: relFilter, cat: catFilter, gone: gone ? '1' : '', view: tableView ? 'table' : '', ...over })) if (v) p.set(k, v)
     const t = p.toString()
     return `/support/admin/vision/competitors${t ? `?${t}` : ''}`
   }
@@ -239,6 +247,22 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
       )}
 
       {competitors.length > 0 && (
+        <div className="flex items-center gap-2 text-sm" role="group" aria-label="View">
+          <Link href={qs({ view: '' })} className={`rounded-md border px-2.5 py-1 ${!tableView ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:bg-muted'}`}>Cards</Link>
+          <Link href={qs({ view: 'table' })} className={`rounded-md border px-2.5 py-1 ${tableView ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:bg-muted'}`}>Table: sort and filter all {competitors.length}</Link>
+        </div>
+      )}
+
+      {tableView && competitors.length > 0 && (
+        <CompetitorTable
+          rows={tableRows}
+          relationships={RELATIONSHIPS.map((r) => ({ key: r.key, label: r.label }))}
+          categories={CATEGORIES.map((c) => ({ key: c.key, label: c.label }))}
+          areas={COMPETITOR_AREAS.map((x) => ({ key: x.key, label: x.label }))}
+        />
+      )}
+
+      {competitors.length > 0 && !tableView && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-muted-foreground">Show:</span>
           <Link href={qs({ rel: '' })} className={`rounded-md border px-2.5 py-1 ${!relFilter ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:bg-muted'}`}>All {competitors.length}</Link>
@@ -253,7 +277,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
         </div>
       )}
 
-      {competitors.length > 0 && (
+      {competitors.length > 0 && !tableView && (
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           <span className="text-sm text-muted-foreground">Market:</span>
           {CATEGORIES.map((c) => {
@@ -266,14 +290,14 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
         </div>
       )}
 
-      {competitors.length > 0 && staleCount > 0 && (
+      {competitors.length > 0 && staleCount > 0 && !tableView && (
         <p className="rounded-lg border border-orange/40 bg-orange/5 p-3 text-sm">
           <strong>{staleCount}</strong> of {competitors.length} have not been reviewed in {STALE_DAYS} days.
           A card is only useful while it is current, and an undated number in a deck is worse than no number.
         </p>
       )}
 
-      {shown.length === 0 ? (
+      {tableView ? null : shown.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
           {competitors.length === 0 ? 'No competitors yet. Paste a website above to add the first.' : 'No competitors match this filter.'}
         </p>
@@ -286,7 +310,9 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
               money(c.fundingRaisedUsd) && { k: 'Raised', v: money(c.fundingRaisedUsd)! },
               c.lastRound && { k: 'Last round', v: c.lastRound },
               c.revenueNote && { k: 'Revenue', v: c.revenueNote },
+              c.revenueUsd && !c.revenueNote && { k: 'Revenue', v: money(c.revenueUsd)! },
               c.headcount && { k: 'Employees', v: c.headcount.toLocaleString() },
+              c.monthlyVisits && { k: 'Visits a month', v: `${c.monthlyVisits.toLocaleString()}${c.trafficNote ? ` (${c.trafficNote})` : ''}` },
               c.userCountNote && { k: 'Users', v: c.userCountNote },
               c.investors && { k: 'Investors', v: c.investors },
               c.foundedYear && { k: 'Founded', v: String(c.foundedYear) },

@@ -350,6 +350,9 @@ export async function upsertCompetitor(formData: FormData) {
     fundingRaisedUsd: funding && funding <= 2_147_483_647 ? funding : null,
     headcount: num('headcount'),
     userCountNote: text('userCountNote', 160),
+    revenueUsd: parseUsd(String(formData.get('revenueUsd') ?? '')),
+    monthlyVisits: (() => { const v = parseUsd(String(formData.get('monthlyVisits') ?? '')); return v && v <= 2_147_483_647 ? Math.round(v) : null })(),
+    trafficNote: text('trafficNote', 160),
     sourceUrl: text('sourceUrl', 300),
     // A person saving the card is the review; every save re-dates it, since these go stale silently.
     filledBy: 'hand',

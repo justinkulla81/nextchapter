@@ -110,6 +110,19 @@ export function parseUsd(v: unknown): number | null {
   return out > 0 && out < 1e12 ? out : null
 }
 
+/** First "$12.3M" / "$4 billion" / "$850K" / "$1,234" in a note; null for a range, a "<", or no dollar figure. */
+export function firstDollarFigure(note: string): number | null {
+  const m = note.match(/\$\s?(\d[\d,]*(?:\.\d+)?)\s*(billion|million|thousand|bn|b|m|k)?\b/i)
+  if (!m) return null
+  const after = note.slice((m.index ?? 0) + m[0].length, (m.index ?? 0) + m[0].length + 3)
+  const before = note.slice(Math.max(0, (m.index ?? 0) - 2), m.index ?? 0)
+  if (/^\s?[-–—]\s?\$?\d/.test(after) || /<|up to/i.test(before)) return null
+  const u = (m[2] ?? '').toLowerCase()
+  const mult = u.startsWith('b') ? 1e9 : u.startsWith('m') ? 1e6 : u === 'k' || u === 'thousand' ? 1e3 : 1
+  const out = Math.round(parseFloat(m[1].replace(/,/g, '')) * mult)
+  return out > 0 && out < 1e12 ? out : null
+}
+
 export const STATUSES = [
   { key: 'ACTIVE', label: 'Operating' },
   { key: 'ACQUIRED', label: 'Acquired' },

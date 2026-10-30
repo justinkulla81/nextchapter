@@ -9,6 +9,7 @@ export interface CompetitorFormValues {
   weWin?: string[]; theyWin?: string[]; weNeed?: string[]
   pricingNote?: string | null; foundedYear?: number | null; hq?: string | null; lastRound?: string | null; investors?: string | null
   fundingRaisedUsd?: number | null; headcount?: number | null; revenueNote?: string | null; userCountNote?: string | null
+  revenueUsd?: number | null; monthlyVisits?: number | null; trafficNote?: string | null
   sourceUrl?: string | null; notes?: string | null
   status?: string; statusNote?: string | null; lessons?: string[]; partnerIdea?: string | null; category?: string | null
 }
@@ -83,6 +84,9 @@ export function CompetitorForm({ v = {}, submitLabel }: { v?: CompetitorFormValu
       <Field label="Last round"><input name="lastRound" defaultValue={v.lastRound ?? ''} placeholder="$24M Series B, 2025" className={input} /></Field>
       <Field label="Investors"><input name="investors" defaultValue={v.investors ?? ''} className={input} /></Field>
       <Field label="Revenue"><input name="revenueNote" defaultValue={v.revenueNote ?? ''} placeholder="~$20M ARR (reported)" className={input} /></Field>
+      <Field label="Revenue a year (USD, for sorting)" hint="One number, e.g. 25M. The note above says if it is an estimate."><input name="revenueUsd" defaultValue={v.revenueUsd ?? ''} placeholder="25M" className={input} /></Field>
+      <Field label="Website visits a month"><input name="monthlyVisits" defaultValue={v.monthlyVisits ?? ''} placeholder="1.2M" className={input} /></Field>
+      <Field label="Where the visits figure came from"><input name="trafficNote" defaultValue={v.trafficNote ?? ''} placeholder="Similarweb, Sep 2026 (estimate)" className={input} /></Field>
       <Field label="Employees"><input name="headcount" inputMode="numeric" defaultValue={v.headcount ?? ''} className={input} /></Field>
       <Field label="Users or customers claimed"><input name="userCountNote" defaultValue={v.userCountNote ?? ''} className={input} /></Field>
       <Field label="Founded"><input name="foundedYear" inputMode="numeric" defaultValue={v.foundedYear ?? ''} className={input} /></Field>
