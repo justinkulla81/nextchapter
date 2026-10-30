@@ -191,7 +191,10 @@ export async function feedResponse(variant: FeedVariant, req?: Request): Promise
     return new Response('Too many requests. The feed changes once a day.', { status: 429, headers: { 'Retry-After': '3600' } })
   }
   const m = await readFeedManifest(variant).catch(() => null)
-  if (!m || m.parts.length === 0) return new Response('The job feed is being built. Try again later.', { status: 503, headers: { 'Retry-After': '3600' } })
+  // A feed with any part over 72 hours old (the build left behind before #422, or a cron that stopped) lists
+  // jobs that may have closed, so it is not served.
+  const stale = m && m.parts.some((p) => Date.now() - Date.parse(p.builtAt) > 72 * 3600_000)
+  if (!m || m.parts.length === 0 || stale) return new Response('The job feed is being built. Try again later.', { status: 503, headers: { 'Retry-After': '3600' } })
   const { head, tail } = await feedHeadTail(m, variant)
   const length = head.length + tail.length + m.parts.reduce((n, p) => n + p.bytes, 0)
 
