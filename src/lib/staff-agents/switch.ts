@@ -6,7 +6,7 @@ export function isStaffAgentsOn(env: Record<string, string | undefined> = proces
   return (env.STAFF_AGENTS_ENABLED ?? '').trim().toLowerCase() === 'on'
 }
 
-export type StaffAgentKey = 'rapidResponse'
+export type StaffAgentKey = 'rapidResponse' | 'careerServices'
 
 /** True when the organization's enabledFeatures turns this agent on. Anything not stored is off. */
 export function agentSwitchedOn(enabledFeatures: unknown, key: StaffAgentKey): boolean {

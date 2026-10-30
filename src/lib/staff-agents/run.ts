@@ -7,6 +7,7 @@ import { openCohorts } from '@/lib/higher-ed/programs'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { reserveStaffAgentCall } from './reserve'
 import { agentSwitchedOn, isStaffAgentsOn } from './switch'
+import { runCareerServicesAgent } from './career-services-run'
 import { buildOfferUserMessage, OFFER_MAX_TOKENS, OFFER_SYSTEM, parseOfferReply } from './rapid-response'
 
 // The rapid-response agent: when a WARN notice is filed in an organization's own region and it has no offer yet, the agent writes the
@@ -70,13 +71,14 @@ export async function runRapidResponseAgent(institutionId: string, now = new Dat
 /** Every non-sample organization with the agent switched on. Does nothing while STAFF_AGENTS_ENABLED is off. */
 export async function runStaffAgentsDaily(now = new Date()): Promise<{ enabled: boolean; orgs: number; drafted: number; capped: number }> {
   if (!isStaffAgentsOn()) return { enabled: false, orgs: 0, drafted: 0, capped: 0 }
-  const insts = await prisma.institution.findMany({ where: { isSampleData: false, enabledFeatures: { path: ['agents', 'rapidResponse'], equals: true } }, select: { id: true } })
+  const insts = await prisma.institution.findMany({ where: { isSampleData: false, OR: [{ enabledFeatures: { path: ['agents', 'rapidResponse'], equals: true } }, { enabledFeatures: { path: ['agents', 'careerServices'], equals: true } }] }, select: { id: true } })
   let drafted = 0
   let capped = 0
   for (const i of insts) {
-    const r = await runRapidResponseAgent(i.id, now)
-    drafted += r.drafted
-    if (r.capped) capped++
+    for (const r of [await runRapidResponseAgent(i.id, now), await runCareerServicesAgent(i.id, now)]) {
+      drafted += r.drafted
+      if (r.capped) capped++
+    }
   }
   captureServerEvent('cron', 'staff_agents_daily_run', { orgs: insts.length, drafted, capped })
   return { enabled: true, orgs: insts.length, drafted, capped }
