@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { LinkedInInsightTag } from "@/components/analytics/LinkedInInsightTag";
 import { HomepageVisitTracker } from "@/components/marketing/HomepageVisitTracker";
 import "./globals.css";
 import { HOME_KEYWORDS, pageSeo } from '@/lib/seo/keywords'
@@ -79,6 +80,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <PortalCanonicalUrl />
         <GoogleAnalytics />
+        <LinkedInInsightTag />
         <HomepageVisitTracker />
         <PostHogProvider>{children}</PostHogProvider>
       </body>
