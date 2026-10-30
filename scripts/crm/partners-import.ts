@@ -22,7 +22,7 @@ const G: Record<string, { label: string; role: CrmPersonRole; orgType: CrmOrgTyp
   investor: { label: 'investor portfolio talent', role: 'STRATEGIC', orgType: 'VC_FUND' },
 }
 async function main() {
-  const rows: any[] = ['A', 'B', 'C'].flatMap((g) => (existsSync(`${DIR}/partners-${g}.json`) ? JSON.parse(readFileSync(`${DIR}/partners-${g}.json`, 'utf8')) : []))
+  const rows: any[] = ['A', 'B', 'C', 'D'].flatMap((g) => (existsSync(`${DIR}/partners-${g}.json`) ? JSON.parse(readFileSync(`${DIR}/partners-${g}.json`, 'utf8')) : []))
   const seen = new Set<string>(); const t: Record<string, number> = { kept: 0, dropped: 0, added: 0, matched: 0, review: 0, removed: 0, withEmail: 0 }
   for (const r of rows) {
     const g = G[r.group]; const key = `${r.name}|${r.domain}`.toLowerCase()

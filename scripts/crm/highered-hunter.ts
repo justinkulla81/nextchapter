@@ -34,17 +34,19 @@ function roleOf(t: string): CrmPersonRole | null {
 async function search(out: string, max: number, reserve: number) {
   const acct = (await (await fetch(`https://api.hunter.io/v2/account?api_key=${KEY}`)).json()).data.requests.searches
   const budget = Math.min(max, acct.available - acct.used - reserve)
-  const colleges = await prisma.$queryRawUnsafe<any[]>(`select p.unitid, p.name, p.website, p.state from "CollegeProfile" p
+  // EXCLUDE=a.json,b.json skips colleges already searched in earlier rounds, so no credit is spent twice.
+  const done = new Set<string>((process.env.EXCLUDE ?? '').split(',').filter(Boolean).flatMap((f) => (JSON.parse(readFileSync(f, 'utf8')) as any[]).map((r) => String(r.unitid))))
+  const colleges = (await prisma.$queryRawUnsafe<any[]>(`select p.unitid, p.name, p.website, p.state from "CollegeProfile" p
     where p.level='4-year' and p.website is not null
-      and (select count(*) from "CollegeContact" c where c."collegeId"=p.unitid and c.name is not null) < 2
-    order by coalesce(p."alumniEstimate", p.enrollment*5, 0) desc limit ${budget}`)
+      ${process.env.GRAD ? '' : 'and (select count(*) from "CollegeContact" c where c."collegeId"=p.unitid and c.name is not null) < 2'}
+    order by ${process.env.GRAD ? 'coalesce(p.endowment, 0)' : 'coalesce(p."alumniEstimate", p.enrollment*5, 0)'} desc`)).filter((c) => !done.has(String(c.unitid))).slice(0, budget)
   console.log(`budget ${budget}, colleges ${colleges.length}`)
   const rows: any[] = []; let i = 0
   async function worker() {
     for (;;) {
       const c = colleges[i++]; if (!c) return
       const domain = host(c.website); if (!domain) continue
-      const qs = new URLSearchParams({ domain, limit: '10', type: 'personal', job_titles: TITLES, api_key: KEY! })
+      const qs = new URLSearchParams({ domain, limit: '10', type: 'personal', job_titles: process.env.TITLES ?? TITLES, api_key: KEY! })
       let j: any = null
       for (let a = 0; a < 5; a++) {
         const res = await fetch(`https://api.hunter.io/v2/domain-search?${qs}`).catch(() => null)
