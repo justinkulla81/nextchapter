@@ -158,7 +158,15 @@ export async function extractProfileFieldsFromResume(
   // entriesOnly: sync the education and job entries and nothing else. Used to re-read
   // existing resumes (after the caps were raised) without touching a profile the member
   // may have corrected by hand — the full run rewrites city, name, phone and so on.
-  opts: { entriesOnly?: boolean } = {}
+  opts: {
+    entriesOnly?: boolean
+    // Awaited after the model replies and before anything is written. Told whether the reply held any education or
+    // jobs; returning false stops the run with nothing written (the background parse uses it to reject a non-résumé).
+    beforeWrite?: (found: { hasEntries: boolean }) => Promise<boolean>
+    // Called once the profile fields the next screen needs are written, before the slower education/work-history
+    // sync, structural flags and level rank. The background parse hands the member on here; the rest finishes behind it.
+    onProfileWritten?: () => Promise<void>
+  } = {}
 // True when the résumé was read and the profile written; false when nothing could be read (the background parse retries on false).
 ): Promise<boolean> {
   const resume = await prisma.resume.findUniqueOrThrow({ where: { id: resumeId } })
@@ -198,6 +206,7 @@ export async function extractProfileFieldsFromResume(
       return false
     }
 
+    if (opts.beforeWrite && !(await opts.beforeWrite({ hasEntries: data.employers.length > 0 || data.education.length > 0 }))) return false
     const graduationDate = data.graduationDate ? new Date(data.graduationDate) : null
     const firstJobStartDate = data.firstJobStartDate ? new Date(data.firstJobStartDate) : null
     const yearsExperience = computeYearsExperienceFromResume(graduationDate, firstJobStartDate)
@@ -307,6 +316,8 @@ export async function extractProfileFieldsFromResume(
     if (!opts.entriesOnly && prefill && prefill.filled.length > 0) {
       captureServerEvent(resume.candidateId, 'profile_prefilled_from_resume', { fields: prefill.filled, resumeId, source: 'upload' })
     }
+
+    await opts.onProfileWritten?.()
 
     const [{ insertedCount: educationInserted }, { insertedCount: employersInserted, undatedCount }] = await Promise.all([
       syncResumeEducation(
