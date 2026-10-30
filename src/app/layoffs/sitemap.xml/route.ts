@@ -1,6 +1,7 @@
 import { SITE_URL } from '@/lib/seo/facts'
 import { stateSlug } from '@/lib/seo/states'
 import { TWELVE_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
+import { MONTH_MIN_NOTICES, getMonths } from '@/lib/layoffs/monthly'
 import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-announcements'
 
 // Every recent layoff page in one sitemap: the tracker hub, each state with a notice in the last 12 months, and every employer
@@ -17,6 +18,9 @@ export async function GET() {
   const urls: { loc: string; lastmod: string }[] = []
   const newest = [...states].reduce((m, s) => (s.latest > m ? s.latest : m), new Date(0))
   if (states.length) urls.push({ loc: `${SITE_URL}/layoffs`, lastmod: newest.toISOString() })
+  // The year page and each month with enough notices to be indexed.
+  if (states.length) urls.push({ loc: `${SITE_URL}/layoffs/2026`, lastmod: newest.toISOString() })
+  for (const m of (await getMonths().catch(() => [])).filter((x) => x.count >= MONTH_MIN_NOTICES)) urls.push({ loc: `${SITE_URL}/layoffs/2026/${m.slug}`, lastmod: newest.toISOString() })
   for (const s of states) urls.push({ loc: `${SITE_URL}/layoffs/${stateSlug(s.state)}`, lastmod: s.latest.toISOString() })
   for (const c of companies.values()) {
     if (c.latest.getTime() >= cutoff) urls.push({ loc: `${SITE_URL}/layoffs/company/${c.slug}`, lastmod: c.latest.toISOString() })
