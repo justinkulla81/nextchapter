@@ -14,7 +14,7 @@ import { loadSearchConsole, type SearchConsoleResult, type SearchRow } from '@/l
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
-import { extractEmailLinkId, resolveEmailRecipients } from '@/lib/marketing/email-attribution'
+import { buildEmailIpAnchors, extractEmailLinkId, inferEmailLinkByIp, resolveEmailRecipients } from '@/lib/marketing/email-attribution'
 import { classifyTrafficSource, trafficSourceGroup, type TrafficSourceGroup } from '@/lib/marketing/classify-traffic-source'
 
 export const maxDuration = 30
@@ -223,7 +223,7 @@ export default async function AdminVisitorsPage({
     emailVisitsByLink.set(id, v)
   }
   const recipients = await resolveEmailRecipients(Array.from(emailVisitsByLink.keys()))
-  const emailPeople = new Map<string, { personId: string; name: string; subject: string | null; visits: number; last: Date; pages: Set<string> }>()
+  const emailPeople = new Map<string, { personId: string; name: string; subject: string | null; visits: number; likely: number; last: Date; pages: Set<string> }>()
   for (const [linkId, v] of emailVisitsByLink) {
     const r = recipients.get(linkId)
     if (!r) continue
@@ -232,7 +232,16 @@ export default async function AdminVisitorsPage({
       cur.visits += v.visits
       if (v.last > cur.last) cur.last = v.last
       v.pages.forEach((p) => cur.pages.add(p))
-    } else emailPeople.set(r.personId, { personId: r.personId, name: r.name, subject: r.subject, visits: v.visits, last: v.last, pages: new Set(v.pages) })
+    } else emailPeople.set(r.personId, { personId: r.personId, name: r.name, subject: r.subject, visits: v.visits, likely: 0, last: v.last, pages: new Set(v.pages) })
+  }
+  // Weaker signal: untagged visits from the same IP as a tagged one, within a week, when only one person used that IP.
+  const ipAnchors = buildEmailIpAnchors(humanChartEvents)
+  for (const e of humanChartEvents) {
+    const linkId = inferEmailLinkByIp(e, ipAnchors, (id) => recipients.get(id)?.personId)
+    const person = linkId ? emailPeople.get(recipients.get(linkId)?.personId ?? '') : undefined
+    if (!person) continue
+    person.likely += 1
+    if (e.createdAt > person.last) person.last = e.createdAt
   }
   const emailPeopleRows = Array.from(emailPeople.values()).sort((a, b) => b.last.getTime() - a.last.getTime())
   const osRows = tally(humanChartEvents.map((e) => classifyOs(e.userAgent)))
@@ -337,7 +346,7 @@ export default async function AdminVisitorsPage({
       <div className="rounded-lg border border-border p-4">
         <h2 className="text-sm font-medium text-foreground">People who came from our emails</h2>
         <p className="mb-3 text-xs text-muted-foreground">
-          Last {CHART_WINDOW_DAYS} days. Each row is a CRM contact who clicked a link in an email we sent and landed on the site. Twitter/X, Bluesky and RSS arrivals are counted in &ldquo;Where visitors come from&rdquo; above, since those links are public and not tied to a person.
+          Last {CHART_WINDOW_DAYS} days. Each row is a CRM contact who clicked a link in an email we sent and landed on the site. &ldquo;Likely, same IP&rdquo; counts later page views from the same address within 7 days; it is a guess, so it is shown apart from the certain count. Twitter/X, Bluesky and RSS arrivals are counted in &ldquo;Where visitors come from&rdquo; above, since those links are public and not tied to a person.
         </p>
         {emailPeopleRows.length === 0 ? (
           <p className="text-sm text-muted-foreground">No one has clicked through from an email yet. Links in emails sent after this change are tagged.</p>
@@ -353,7 +362,13 @@ export default async function AdminVisitorsPage({
                   </td>
                   <td className="py-1 pr-2 text-muted-foreground">{p.subject ?? ''}</td>
                   <td className="py-1 pr-2 break-all text-muted-foreground">{Array.from(p.pages).join(', ')}</td>
-                  <td className="py-1 pr-2 text-right tabular-nums">{p.visits} {p.visits === 1 ? 'visit' : 'visits'}</td>
+                  <td className="py-1 pr-2 text-right tabular-nums">{p.visits} {p.visits === 1 ? 'visit' : 'visits'}
+                    {p.likely > 0 && (
+                      <span className="block text-xs text-muted-foreground" title="Later page views from the same IP address as their email click, within 7 days. A guess, not a certain match.">
+                        + {p.likely} likely, same IP
+                      </span>
+                    )}
+                  </td>
                   <td className="py-1 text-right tabular-nums">{formatAdminDateTime(p.last)}</td>
                 </tr>
               ))}

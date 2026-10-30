@@ -69,3 +69,46 @@ export async function resolveEmailRecipients(linkIds: string[]): Promise<Map<str
   }
   return out
 }
+
+// Second, weaker signal: a later visit from the same IP as a tagged email visit is probably the same person. Never
+// used when the visit carries its own nc_e, and dropped when the IP has tagged visits from more than one person
+// (shared office network, VPN) — a wrong name is worse than none.
+export const IP_MATCH_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
+
+export interface IpVisit {
+  ip: string | null
+  path: string | null
+  createdAt: Date
+}
+
+export type EmailIpAnchors = Map<string, { linkId: string; at: Date }[]>
+
+/** The tagged (nc_e) visits, grouped by IP and sorted oldest first. Callers pass human, non-datacenter visits only. */
+export function buildEmailIpAnchors(visits: IpVisit[]): EmailIpAnchors {
+  const anchors: EmailIpAnchors = new Map()
+  for (const v of visits) {
+    const linkId = extractEmailLinkId(v.path)
+    if (!linkId || !v.ip) continue
+    anchors.set(v.ip, [...(anchors.get(v.ip) ?? []), { linkId, at: v.createdAt }])
+  }
+  for (const list of anchors.values()) list.sort((a, b) => a.at.getTime() - b.at.getTime())
+  return anchors
+}
+
+/** The link id of the one person this visit probably belongs to, or null. */
+export function inferEmailLinkByIp(
+  visit: IpVisit,
+  anchors: EmailIpAnchors,
+  personIdOfLink: (linkId: string) => string | undefined
+): string | null {
+  if (!visit.ip || extractEmailLinkId(visit.path)) return null
+  const at = visit.createdAt.getTime()
+  const nearby = (anchors.get(visit.ip) ?? []).filter((a) => a.at.getTime() <= at && at - a.at.getTime() <= IP_MATCH_WINDOW_MS)
+  const people = new Set<string>()
+  for (const a of nearby) {
+    const person = personIdOfLink(a.linkId)
+    if (person) people.add(person)
+  }
+  if (people.size !== 1) return null
+  return nearby[nearby.length - 1].linkId
+}
