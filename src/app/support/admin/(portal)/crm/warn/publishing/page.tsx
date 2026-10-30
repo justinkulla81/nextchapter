@@ -16,7 +16,9 @@ export const dynamic = 'force-dynamic'
 // Google has no push for these pages (its Indexing API is for job postings only), so the manual route is Search Console's
 // URL inspection > Request indexing. A handful a day is what it allows.
 const GSC_PROPERTY = process.env.GSC_PROPERTY || 'sc-domain:launchyournextchapter.com'
-const inspectLink = (url: string) => `https://search.google.com/search-console/inspect?resource_id=${encodeURIComponent(GSC_PROPERTY)}&id=${encodeURIComponent(url)}`
+// Search Console has no link that opens a URL's inspection by its address (the inspect page takes an opaque id and answers 404 to a
+// guessed one), so the button opens the property and the address shown under each layoff is pasted into its inspect box at the top.
+const searchConsoleLink = () => `https://search.google.com/search-console?resource_id=${encodeURIComponent(GSC_PROPERTY)}`
 const BASE = '/support/admin/crm/warn/publishing'
 
 const BTN = 'inline-flex h-7 items-center rounded-md border border-border px-2 text-xs font-normal'
@@ -57,7 +59,7 @@ function IndexActions({ r }: { r: PublishingRow }) {
   const url = `${SITE_URL}${r.path}`
   return (
     <div className="flex flex-wrap gap-1">
-      <a href={inspectLink(url)} target="_blank" rel="noopener noreferrer" className={ACT}>Open in Search Console</a>
+      <a href={searchConsoleLink()} target="_blank" rel="noopener noreferrer" className={ACT} title="Opens Search Console. Paste the address into the box at the top, press Enter, then choose Request indexing.">Open Search Console</a>
       <form action={setIndexRequested}>
         <input type="hidden" name="path" value={r.path} />
         <input type="hidden" name="requested" value={r.indexRequestedAt ? '0' : '1'} />
