@@ -21,8 +21,9 @@ export interface XrayResult {
 
 async function occupationFor(title: string): Promise<XrayResult['occupation']> {
   const [found, exposure] = await Promise.all([searchOccupationTitles(title), loadExposureMap()])
-  const hit = found.find((c) => exposure.has(soc6Of(c.socCode)))
-  if (!hit) return null
+  // Only the best match counts, and only when it is a close match: a weak fallback would put the wrong job's numbers on a posting.
+  const hit = found[0]
+  if (!hit || hit.score < 0.75 || !exposure.has(soc6Of(hit.socCode))) return null
   const e = exposureFor(hit.socCode, exposure)
   if (!e) return null
   const occ = await prisma.occupation.findUnique({ where: { socCode: hit.socCode }, select: { medianWage: true } }).catch(() => null)
