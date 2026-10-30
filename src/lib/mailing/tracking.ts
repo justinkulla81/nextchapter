@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { suppress } from './lists'
 import { baseSubject, isUnsubscribeReply } from './replies'
+import { applyOptOutReply } from './opt-out'
 
 /** Resend's webhook events this app acts on. */
 export type ResendEvent = {
@@ -150,6 +151,9 @@ export async function onInboundMessage(
       update: {},
     })
   }
+
+  // A plain "no" / "stop" to a report or edition takes them off everything, without waiting for the queue.
+  if (ctx.knownEmails.has(email)) await applyOptOutReply({ messageId: msg.id, email, subject: msg.subject, text: msg.snippet })
 
   const key = baseSubject(msg.subject)
   if (!key) return
