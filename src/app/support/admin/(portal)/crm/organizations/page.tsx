@@ -7,6 +7,7 @@ import { ORG_TYPES, ORG_TYPE_LABELS } from '@/lib/crm/labels'
 import { CrmPeekPanel, CrmPeekButton } from '@/components/admin/CrmPeekPanel'
 import { CrmOrgBulkBar } from '@/components/admin/CrmOrgBulkBar'
 import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
+import { ADDED_OPTIONS, addedLabel, addedSince, readAdded } from '@/lib/crm/added-since'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { CrmOrganizationsViewTracker } from '@/components/admin/WorkforceBoardsViewTracker'
@@ -38,17 +39,20 @@ export default async function CrmOrganizationsPage({
   const comm = sp.comm === 'any' || sp.comm === 'none' || sp.comm === 'waiting' ? sp.comm : ''
   const ldHead = sp.ldhead === 'missing' || sp.ldhead === 'has' ? sp.ldhead : ''
   const chro = sp.chro === 'missing' || sp.chro === 'has' ? sp.chro : ''
+  const added = readAdded(sp.added)
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const requested = parseInt(sp.per ?? '', 10)
   const perPage = (PAGE_SIZES as readonly number[]).includes(requested) ? requested : DEFAULT_PAGE_SIZE
-  const SORTS = ['name', 'score', 'people']
+  const SORTS = ['name', 'score', 'people', 'added']
   const sort = readSort(sp, SORTS, { sort: 'score', dir: 'desc' })
   const orderBy =
     sort.sort === 'name' ? [{ name: sort.dir }]
+    : sort.sort === 'added' ? [{ createdAt: sort.dir }, { name: 'asc' as const }]
     : sort.sort === 'people' ? [{ affiliations: { _count: sort.dir } }]
     : [{ priorityScore: sort.dir }, { name: 'asc' as const }]
 
-  const where = await organizationsWhere({ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro })
+  const baseWhere = await organizationsWhere({ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro })
+  const where = added ? { AND: [baseWhere, { createdAt: { gte: addedSince(added) } }] } : baseWhere
 
   // Counts for the relationship buttons ignore the other filters, so the
   // numbers say how big each group is, not how many survived a search.
@@ -63,7 +67,7 @@ export default async function CrmOrganizationsPage({
       skip: (page - 1) * perPage,
       take: perPage,
       select: {
-        id: true, name: true, orgTypes: true, hiringClient: true, goals: true, hqRegion: true, dealStatus: true,
+        id: true, createdAt: true, name: true, orgTypes: true, hiringClient: true, goals: true, hqRegion: true, dealStatus: true,
         investorProfile: { select: { checkSizeNote: true } },
         _count: { select: { affiliations: true, opportunities: true, researchItems: true } },
       },
@@ -73,7 +77,7 @@ export default async function CrmOrganizationsPage({
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
-    for (const [k, v] of Object.entries({ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro, per: String(perPage), sort: sort.sort, dir: sort.dir, ...over })) if (v) p.set(k, String(v))
+    for (const [k, v] of Object.entries({ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro, added, per: String(perPage), sort: sort.sort, dir: sort.dir, ...over })) if (v) p.set(k, String(v))
     return p.toString()
   }
 
@@ -125,6 +129,7 @@ export default async function CrmOrganizationsPage({
           { key: 'ldhead', label: 'Head of L&D', value: ldHead, options: [{ value: 'missing', label: 'Missing a head of L&D' }, { value: 'has', label: 'Has a head of L&D' }] },
           { key: 'layoffs', label: 'Layoffs', value: layoffs, options: [{ value: '', label: 'Any layoff history' }, { value: 'any', label: 'Has layoffs' }] },
           { key: 'comm', label: 'Communication', value: comm, options: [{ value: '', label: 'Any communication' }, { value: 'any', label: 'We have emailed or heard from them' }, { value: 'waiting', label: 'Waiting on their reply' }, { value: 'none', label: 'No communication yet' }] },
+          { key: 'added', label: 'Added', value: added, options: ADDED_OPTIONS },
           { key: 'deal', label: 'Deal', value: deal, options: [{ value: '', label: 'Any deal status' }, { value: 'any', label: 'Has a deal' }, ...DEAL_STATUSES.map((d) => ({ value: d, label: DEAL_STATUS_LABELS[d] }))] },
         ]}
       />
@@ -157,11 +162,11 @@ export default async function CrmOrganizationsPage({
             <thead>
               <tr className="border-b border-border bg-muted/50 text-left">
                 <th className="w-8 px-3 py-2"><CrmSelectAll pageCount={rows.length} /></th>
-                <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro, per: String(perPage) }} />
+                <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro, added, per: String(perPage) }} />
                 <th className="px-3 py-2 font-medium">What it is to us</th>
                 <th className="px-3 py-2 font-medium">Goal</th>
                 <th className="px-3 py-2 font-medium">Deal</th>
-                <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro, per: String(perPage) }} defaultDir="desc" />
+                <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro, added, per: String(perPage) }} defaultDir="desc" />
                 <th className="px-3 py-2 font-medium" title="Emails we sent to people at this organization, replies back, and the last one">Communication</th>
                 <th className="px-3 py-2 font-medium" title="WARN filings and announced layoffs at this organization, with the jobs they name and the latest date">Layoffs</th>
                 <th className="px-3 py-2 font-medium">Pipelines</th>
@@ -169,6 +174,7 @@ export default async function CrmOrganizationsPage({
                 <th className="px-3 py-2 font-medium" title="Open RFPs, RFIs and pre-solicitations this organization issues">RFPs</th>
                 <th className="px-3 py-2 font-medium">Research</th>
                 <th className="px-3 py-2 font-medium">Check size</th>
+                <SortHeader label="Added" sortKey="added" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro, added, per: String(perPage) }} defaultDir="desc" />
               </tr>
             </thead>
             <tbody>
@@ -235,6 +241,7 @@ export default async function CrmOrganizationsPage({
                   <td className="px-3 py-2">{oppCounts.get(o.id)?.rfps || <span className="text-muted-foreground">—</span>}</td>
                   <td className="px-3 py-2">{o._count.researchItems || <span className="text-muted-foreground">—</span>}</td>
                   <td className="px-3 py-2 text-xs">{o.investorProfile?.checkSizeNote ?? <span className="text-muted-foreground">—</span>}</td>
+                  <td className="whitespace-nowrap px-3 py-2 text-xs text-muted-foreground">{addedLabel(o.createdAt)}</td>
                 </tr>
               ))}
             </tbody>
