@@ -23,6 +23,11 @@ const RETRY_BUDGET_MS = 200_000
  * against the whole ledger's age (which flagged every new cron within 15 min).
  */
 const FIRST_SEEN = 'first_seen'
+/**
+ * The marker also records the schedule it was taken under, so a job whose schedule changes (weekly to daily, say)
+ * starts a fresh grace period instead of being judged against the old marker with the new, shorter gap.
+ */
+export const firstSeenReason = (schedule: string) => `${FIRST_SEEN}:${schedule}`
 
 /** "1 background job needs attention" / "2 background jobs need attention". */
 export function alertSubject(count: number): string {
@@ -56,17 +61,17 @@ export async function loadJobStatuses(now = new Date(), opts: { recordFirstSeen?
   // Jobs with no run yet are timed from when the watchdog first saw them.
   const neverRan = schedules.filter((_, i) => !latestRuns[i][0]).map((s) => s.job)
   const seen = neverRan.length
-    ? await prisma.cronJobAlert.findMany({ where: { job: { in: neverRan }, reason: FIRST_SEEN } })
+    ? await prisma.cronJobAlert.findMany({ where: { job: { in: neverRan }, reason: { startsWith: FIRST_SEEN } } })
     : []
-  const firstSeen = new Map(seen.map((r) => [r.job, r.alertedAt]))
+  const scheduleOf = new Map(schedules.map((s) => [s.job, s.schedule]))
+  // A marker taken under another schedule (or before schedules were recorded) no longer counts.
+  const firstSeen = new Map(seen.filter((r) => r.reason === firstSeenReason(scheduleOf.get(r.job) ?? '')).map((r) => [r.job, r.alertedAt]))
   if (opts.recordFirstSeen) {
     const fresh = neverRan.filter((j) => !firstSeen.has(j))
-    if (fresh.length) {
-      await prisma.cronJobAlert.createMany({
-        data: fresh.map((job) => ({ job, reason: FIRST_SEEN, alertedAt: now })),
-        skipDuplicates: true,
-      })
-      for (const j of fresh) firstSeen.set(j, now)
+    for (const job of fresh) {
+      const reason = firstSeenReason(scheduleOf.get(job) ?? '')
+      await prisma.cronJobAlert.upsert({ where: { job }, create: { job, reason, alertedAt: now }, update: { reason, alertedAt: now } })
+      firstSeen.set(job, now)
     }
   }
   return schedules.map((s, i) => {
@@ -112,7 +117,7 @@ export async function runJobWatchdog(now = new Date()) {
   // A first-seen marker for a job still waiting on its first run is kept.
   const ranJobs = statuses.filter((s) => s.lastStartedAt).map((s) => s.job)
   await prisma.cronJobAlert.deleteMany({
-    where: { OR: [{ job: { notIn: [...badJobs] }, reason: { not: FIRST_SEEN } }, { job: { in: ranJobs }, reason: FIRST_SEEN }] },
+    where: { OR: [{ job: { notIn: [...badJobs] }, NOT: { reason: { startsWith: FIRST_SEEN } } }, { job: { in: ranJobs }, reason: { startsWith: FIRST_SEEN } }] },
   })
   const prior = await prisma.cronJobAlert.findMany({ where: { job: { in: [...badJobs] } } })
   const priorByJob = new Map(prior.map((p) => [p.job, p]))

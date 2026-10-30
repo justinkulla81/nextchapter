@@ -68,6 +68,31 @@ describe('alertSubject', () => {
   })
 })
 
+describe('first-seen markers', () => {
+  it('re-times a never-run job whose schedule changed since it was first seen', async () => {
+    vi.resetModules()
+    vi.doMock('server-only', () => ({}))
+    vi.doMock('@/lib/email/resend-client', () => ({ createResend: vi.fn() }))
+    vi.doMock('@/lib/posthog/server', () => ({ captureServerEvent: vi.fn() }))
+    vi.doMock('@/lib/cron/invoke', () => ({ invokeCron: vi.fn() }))
+    const sched = [{ job: 'social-posts', path: '/api/cron/social-posts', schedule: '0 13 * * *', maxGapMinutes: 2940 }]
+    vi.doMock('@/lib/cron/schedule', () => ({ cronSchedules: () => sched, RERUN_SAFE_JOBS: new Set() }))
+    const upsert = vi.fn(async () => ({}))
+    const old = new Date('2026-10-26T00:00:00Z')
+    vi.doMock('@/lib/prisma', () => ({
+      prisma: {
+        cronRun: { findMany: async () => [] },
+        cronJobAlert: { findMany: async () => [{ job: 'social-posts', reason: 'first_seen:0 13 * * 1', alertedAt: old }], upsert },
+      },
+    }))
+    const { loadJobStatuses, firstSeenReason } = await import('@/lib/cron/watchdog')
+    const now = new Date('2026-10-30T02:30:00Z')
+    const [st] = await loadJobStatuses(now, { recordFirstSeen: true })
+    expect(st.health).toBe('waiting')
+    expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ create: { job: 'social-posts', reason: firstSeenReason('0 13 * * *'), alertedAt: now } }))
+  })
+})
+
 describe('forgiveOneOff / isTransientDbError', () => {
   const frequent = { maxGapMinutes: 80 }
   const daily = { maxGapMinutes: 2940 }
