@@ -18,6 +18,8 @@ export interface ContactCard {
   /** The address was worked out from a format, not published or verified. */
   guessed?: boolean
   phone: string | null
+  /** The person's LinkedIn profile, when we have one (for a firm card, the recruiter to start with). */
+  linkedin?: string | null
   /** How warm our relationship is; null for a directory entry nobody has touched. */
   strength: 'hot' | 'warm' | null
   /** Where to open this person (their CRM page, or the center's website). */
@@ -106,12 +108,13 @@ function cardRow(c: ContactCard): string {
   const email = c.email
     ? `<a href="mailto:${esc(c.email)}" style="color:${ACCENT}">${esc(c.email)}</a>${c.guessed ? ` <span style="color:${MUTED}">(guessed)</span>` : ''}`
     : `<span style="color:${MUTED}">No email yet</span>`
+  const linkedin = c.linkedin ? `<div><a href="${esc(c.linkedin)}" style="color:${ACCENT}">LinkedIn</a></div>` : ''
   const compose = c.compose
     ? `<div style="margin-top:6px"><a href="${esc(c.compose)}" style="display:inline-block;padding:4px 10px;background:${ACCENT};border-radius:6px;color:#fff;text-decoration:none;font-size:12px;font-weight:600">Write email</a>${c.variant ? ` <span style="color:${MUTED};font-size:11px">Subject ${esc(c.variant)}</span>` : ''}</div>`
     : ''
   return `<tr>
 <td style="padding:10px 12px;border-top:1px solid ${LINE};vertical-align:top"><div style="font-weight:600">${link(c.href, c.name, `color:${INK};text-decoration:none`)} ${strength}</div><div style="color:${MUTED};font-size:13px">${sub}</div></td>
-<td style="padding:10px 12px;border-top:1px solid ${LINE};vertical-align:top;font-size:13px;text-align:right">${email}${c.phone ? `<div style="color:${MUTED}">${esc(c.phone)}</div>` : ''}${compose}</td>
+<td style="padding:10px 12px;border-top:1px solid ${LINE};vertical-align:top;font-size:13px;text-align:right">${email}${c.phone ? `<div style="color:${MUTED}">${esc(c.phone)}</div>` : ''}${linkedin}${compose}</td>
 </tr>`
 }
 

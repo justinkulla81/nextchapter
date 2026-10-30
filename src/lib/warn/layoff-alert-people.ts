@@ -24,12 +24,20 @@ const HR_TEAM = /human resources|\bhr\b|people (operations|partner|team|&|and cu
 const ECON_NAMES = ['economic development', 'chamber', 'development authority', 'development council', 'development corporation']
 
 const personSelect = {
-  id: true, fullName: true, email: true, emails: true, guessedEmail: true, phone: true, roles: true,
+  id: true, fullName: true, linkedinUrl: true, email: true, emails: true, guessedEmail: true, phone: true, roles: true,
   warmth: true, connectedAt: true, linkedinDegree: true, firstRepliedAt: true, lastTouchedAt: true, touchCount: true, notes: true,
 } as const
 type PersonRow = {
-  id: string; fullName: string; email: string | null; emails: string[]; guessedEmail: string | null; phone: string | null; roles: string[]
+  id: string; fullName: string; linkedinUrl: string | null; email: string | null; emails: string[]; guessedEmail: string | null; phone: string | null; roles: string[]
   warmth: string; connectedAt: Date | null; linkedinDegree: string | null; firstRepliedAt: Date | null; lastTouchedAt: Date | null; touchCount: number; notes: string | null
+}
+
+/** Only a linkedin.com address, as a full https URL. */
+function linkedinHref(u: string | null): string | null {
+  const t = u?.trim()
+  if (!t) return null
+  const full = /^https?:\/\//i.test(t) ? t : `https://${t}`
+  return /^https?:\/\/([a-z]+\.)?linkedin\.com\//i.test(full) ? full : null
 }
 
 function card(p: PersonRow, title: string | null, org: string | null): ContactCard {
@@ -38,7 +46,7 @@ function card(p: PersonRow, title: string | null, org: string | null): ContactCa
   return {
     name: p.fullName, title, org,
     email: email ?? p.guessedEmail, guessed: !email && !!p.guessedEmail,
-    phone: p.phone, strength: s === 'hot' || s === 'warm' ? s : null, greet: greetingFor(p.fullName), personId: p.id,
+    phone: p.phone, linkedin: linkedinHref(p.linkedinUrl), strength: s === 'hot' || s === 'warm' ? s : null, greet: greetingFor(p.fullName), personId: p.id,
     href: `${SITE}/support/admin/crm/people/${p.id}`,
   }
 }
