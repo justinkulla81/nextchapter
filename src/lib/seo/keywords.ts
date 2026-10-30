@@ -1143,6 +1143,19 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'job-loss-readiness',
+    intent: 'Check how ready I am if my job ended, while still employed',
+    owner: '/tools/job-loss-readiness',
+    kind: 'page',
+    primary: 'layoff readiness check',
+    secondary: ['am i prepared for a layoff', 'what if i lose my job', 'what happens to my benefits if i get laid off', 'what happens to my life insurance if i lose my job', 'layoff preparedness'],
+    seo: {
+      title: 'Layoff Readiness Check: If Your Job Ended Tomorrow',
+      description: 'Still employed and nervous? See how long your money would last, what unemployment would pay, and what ends with your health, life and disability cover.',
+      h1: 'Layoff readiness check: if your job ended tomorrow',
+    },
+  },
+  {
     id: 'unemployment-estimator',
     intent: 'Estimate unemployment benefits',
     owner: '/tools/unemployment-estimator',
@@ -2114,7 +2127,7 @@ export const RELATED: Record<string, string[]> = {
   '/start/building-something': ['/resources/bridge-income', '/topics/career-exploration', '/dossier', '/coaching'],
   '/resources/72-hours': ['/start/laid-off', '/unemployment-benefits', '/topics/severance', '/resources/cobra-aca', '/layoffs'],
   '/resources/unemployed': ['/topics/job-search-strategy', '/unemployment-benefits', '/resources/bridge-income', '/why-stuck'],
-  '/resources/pre-exit': ['/topics/severance', '/resources/72-hours', '/resources/narrative-workshop', '/resources/network-activation'],
+  '/resources/pre-exit': ['/tools/job-loss-readiness', '/topics/severance', '/resources/72-hours', '/resources/narrative-workshop', '/resources/network-activation'],
   '/resources/cobra-aca': ['/tools/cobra-vs-aca-calculator', '/unemployment-benefits', '/topics/severance', '/funding', '/resources/72-hours'],
   '/resources/bridge-income': ['/start/happy-with-fractional-work', '/resources/unemployed', '/unemployment-benefits', '/topics/job-search-strategy'],
   '/resources/gatekeeper': ['/topics/resume-tips', '/topics/executive-recruiters', '/resources/network-activation', '/jobs'],

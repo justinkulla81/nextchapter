@@ -68,6 +68,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/tools/salary-converter', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
   { path: '/tools/layoff-runway', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
   { path: '/tools/layoff-risk-check', updated: '2026-10-27', freq: 'monthly', priority: 0.7 },
+  { path: '/tools/job-loss-readiness', updated: '2026-10-30', freq: 'monthly', priority: 0.7 },
   { path: '/resources/warn-act', updated: '2026-10-27', freq: 'monthly', priority: 0.7 },
   { path: '/layoffs/by-state', updated: '2026-10-27', freq: 'daily', priority: 0.6 },
   { path: '/tools/unemployment-estimator', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
