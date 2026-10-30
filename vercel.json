@@ -321,6 +321,10 @@
       "schedule": "30 7 * * *"
     },
     {
+      "path": "/api/cron/outplacement-agent",
+      "schedule": "0 11 * * 1"
+    },
+    {
       "path": "/api/cron/census-comms",
       "schedule": "0 15 * * *"
     },

@@ -6,6 +6,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ListRow, RowList } from '@/components/candidate/ListRow'
 import { EmptyCard } from '@/components/candidate/EmptyCard'
+import { getSeatDraftsForWeek } from '@/lib/outplacement-agent/run'
 import { TrackedAction } from '@/components/candidate/TrackedAction'
 
 export const metadata: Metadata = { title: "This week's outreach" }
@@ -13,9 +14,10 @@ export const metadata: Metadata = { title: "This week's outreach" }
 export default async function ThisWeekPage() {
   const profile = await getDashboardProfile()
   const items = await getWeeklyOutreachPlan(profile.id)
+  const drafts = new Map((await getSeatDraftsForWeek(profile.id)).map((d) => [d.contactId, d]))
 
   // The redesign (docs/candidate-redesign.md): one headline, one primary action (the first draft), a short list.
-  captureServerEvent(profile.id, 'this_week_viewed', { people: items.length, firstContactId: items[0]?.contactId ?? null })
+  captureServerEvent(profile.id, 'this_week_viewed', { people: items.length, agentDrafts: drafts.size, firstContactId: items[0]?.contactId ?? null })
   const draftHref = (item: (typeof items)[number]) => {
     const params = new URLSearchParams({ purpose: item.purpose, ask: item.askSize, hook: item.hook, from: 'this-week' })
     if (item.roleTitle) params.set('role', item.roleTitle)
@@ -53,6 +55,7 @@ export default async function ThisWeekPage() {
               name={item.name}
               title={`${item.name}${item.company ? ` · ${item.company}` : ''}`}
               why={item.reason}
+              fact={drafts.get(item.contactId) && <AgentDraft subject={drafts.get(item.contactId)!.subject} body={drafts.get(item.contactId)!.body} />}
               actions={
                 <TrackedAction variant="secondary" href={draftHref(item)} event="outreach_draft_opened" properties={{ contactId: item.contactId, source: 'this_week_row', purpose: item.purpose, askSize: item.askSize }}>
                   See the draft
@@ -66,5 +69,18 @@ export default async function ThisWeekPage() {
         See who is waiting on a reply
       </TrackedAction>
     </div>
+  )
+}
+
+// A note the outplacement agent already wrote for this person. It is there when the page opens; they read it, change it and send it themselves.
+function AgentDraft({ subject, body }: { subject: string; body: string }) {
+  return (
+    <details className="mt-1">
+      <summary className="cursor-pointer text-sm font-medium text-ink">Your draft is ready</summary>
+      <div className="mt-2 space-y-2 rounded-xl border border-border p-4 text-sm text-ink">
+        <p className="font-semibold">{subject}</p>
+        <p className="whitespace-pre-wrap">{body}</p>
+      </div>
+    </details>
   )
 }

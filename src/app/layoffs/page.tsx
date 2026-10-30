@@ -1,6 +1,9 @@
 import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { StructuredData } from '@/components/StructuredData'
+import { SITE_URL } from '@/lib/seo/facts'
+import { LAYOFF_DATA_LICENSE_URL } from '@/lib/data/layoff-export'
 import { FeedLine } from '@/components/seo/FeedLine'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
@@ -35,6 +38,22 @@ export default async function LayoffsHubPage() {
 
   return (
     <div className="flex flex-1 flex-col">
+      <StructuredData
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'Dataset',
+          name: 'U.S. layoff notices (WARN Act filings) by employer and state',
+          description: 'Layoff notices that employers filed with state labor departments under the WARN Act, with the employer, place, workers named, filing date and a link to each state record.',
+          url: `${SITE_URL}/layoffs`,
+          license: LAYOFF_DATA_LICENSE_URL,
+          isAccessibleForFree: true,
+          creator: { '@type': 'Organization', name: 'NextChapter', url: SITE_URL },
+          distribution: [
+            { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: `${SITE_URL}/data/layoffs.json` },
+            { '@type': 'DataDownload', encodingFormat: 'text/csv', contentUrl: `${SITE_URL}/data/layoffs.csv` },
+          ],
+        }}
+      />
       <PublicSiteHeader current="news" />
       <main className="flex-1 bg-off-white py-12">
         <div className="mx-auto max-w-6xl px-6">

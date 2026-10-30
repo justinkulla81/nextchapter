@@ -10,6 +10,7 @@ import { STATE_UI, UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import type { Sourced, StateUI } from '@/lib/data/state-ui-types'
 import { prisma } from '@/lib/prisma'
 import { canonical } from '@/lib/seo/canonical'
+import { SITE_URL } from '@/lib/seo/facts'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { getStateSummaries } from '@/lib/warn/layoff-pages'
@@ -147,6 +148,17 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd([{ name: 'Unemployment benefits', path: '/unemployment-benefits' }, { name, path: `/unemployment-benefits/${state}` }])} />
+      <StructuredData
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          name: unemploymentStateSeo(name).h1,
+          url: `${SITE_URL}/unemployment-benefits/${state}`,
+          dateModified: UI_LAST_VERIFIED,
+          about: { '@type': 'GovernmentService', name: `Unemployment insurance in ${name}`, serviceType: 'Unemployment insurance', areaServed: { '@type': 'State', name }, ...(ui.agencyName.value ? { provider: { '@type': 'GovernmentOrganization', name: ui.agencyName.value, ...(ui.fileUrl.value ? { url: ui.fileUrl.value } : {}) } } : {}) },
+          ...(ui.maxWeeklyBenefit.source ? { citation: ui.maxWeeklyBenefit.source } : {}),
+        }}
+      />
       {faq.length > 0 && (
         <StructuredData
           data={{
