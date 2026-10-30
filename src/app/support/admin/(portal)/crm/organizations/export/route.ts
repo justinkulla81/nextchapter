@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { csvContentHeaders, rowsToCsv } from '@/lib/admin/csv-export'
 import { organizationsWhere } from '@/lib/crm/organizations-filter'
+import { addedSince, readAdded } from '@/lib/crm/added-since'
 import { ORG_TYPE_LABELS, QUALITY_LABELS } from '@/lib/crm/labels'
 
 export const maxDuration = 60
@@ -16,7 +17,9 @@ const MAX_ROWS = 5000
 export async function GET(req: NextRequest) {
   const admin = await requireAdmin()
   const params = Object.fromEntries(req.nextUrl.searchParams.entries())
-  const where = await organizationsWhere(params)
+  const baseWhere = await organizationsWhere(params)
+  const added = readAdded(params.added)
+  const where = added ? { AND: [baseWhere, { createdAt: { gte: addedSince(added) } }] } : baseWhere
 
   const orgs = await prisma.crmOrganization.findMany({
     where,
