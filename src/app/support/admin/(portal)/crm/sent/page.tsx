@@ -9,8 +9,10 @@ import { RepliesByDay } from '@/components/admin/RepliesByDay'
 export const maxDuration = 60
 
 const PAGE_SIZE = 50
-const ENGAGEMENT = { all: 'Any result', opened: 'Opened', clicked: 'Clicked a link', replied: 'Replied', bounced: 'Bounced', quiet: 'No open or reply' } as const
+const ENGAGEMENT = { all: 'Any result', opened: 'Opened', clicked: 'Clicked a link', bounced: 'Bounced', quiet: 'No open or reply' } as const
 type Engagement = keyof typeof ENGAGEMENT
+const REPLY_FILTER = { all: 'Everyone', replied: 'Replied', none: 'No reply' } as const
+type ReplyFilter = keyof typeof REPLY_FILTER
 
 const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })
 const REPLY_LABEL: Record<string, string> = { positive: 'Interested', referral: 'Pointed to someone', question: 'Question', no: 'Said no', other: 'Replied' }
@@ -40,10 +42,12 @@ function perDay(rows: SentEmailRow[]): SentDay[] {
   return out
 }
 
-function matches(r: SentEmailRow, e: Engagement, q: string) {
+function matches(r: SentEmailRow, e: Engagement, reply: ReplyFilter, kind: string, q: string) {
+  if (reply === 'replied' && !r.repliedAt) return false
+  if (reply === 'none' && r.repliedAt) return false
+  if (kind && (r.replyClass ?? 'other') !== kind) return false
   if (e === 'opened' && !(r.tracked && r.opens > 0)) return false
   if (e === 'clicked' && !(r.tracked && r.clicks > 0)) return false
-  if (e === 'replied' && !r.repliedAt) return false
   if (e === 'bounced' && !r.bounced) return false
   if (e === 'quiet' && (!r.tracked || r.opens > 0 || r.repliedAt || r.bounced)) return false
   if (q) {
@@ -60,6 +64,8 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
   const one = (k: string) => (Array.isArray(sp[k]) ? sp[k]![0] : sp[k]) ?? ''
   const source = (['cold', 'crm', 'gmail', 'mailing'] as const).find((s) => s === one('source')) ?? null
   const engagement = (Object.keys(ENGAGEMENT) as Engagement[]).find((e) => e === one('result')) ?? 'all'
+  const kind = Object.keys(REPLY_LABEL).find((k) => k === one('kind')) ?? ''
+  const reply: ReplyFilter = one('reply') === 'none' && !kind ? 'none' : kind || one('reply') === 'replied' || one('result') === 'replied' ? 'replied' : 'all'
   const q = one('q').trim().slice(0, 100)
   const page = Math.max(1, Number.parseInt(one('page'), 10) || 1)
 
@@ -67,17 +73,23 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
   const days = perDay(all)
   const inSource = source ? all.filter((r) => r.source === source) : all
   const t = totalsOf(inSource)
-  const shown = inSource.filter((r) => matches(r, engagement, q))
+  const shown = inSource.filter((r) => matches(r, engagement, reply, kind, q))
   const pages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE))
   const cur = Math.min(page, pages)
   const slice = shown.slice((cur - 1) * PAGE_SIZE, cur * PAGE_SIZE)
 
-  captureServerEvent(admin.email ?? 'admin', 'crm_sent_emails_viewed', { source: source ?? 'all', result: engagement, hasQuery: !!q, page: cur, matched: shown.length })
+  captureServerEvent(admin.email ?? 'admin', 'crm_sent_emails_viewed', { source: source ?? 'all', result: engagement, reply, replyKind: kind || null, hasQuery: !!q, page: cur, matched: shown.length })
 
-  const href = (p: number) => {
+  const repliedCount = inSource.filter((r) => r.repliedAt).length
+  const replyCount: Record<ReplyFilter, number> = { all: inSource.length, replied: repliedCount, none: inSource.length - repliedCount }
+
+  const href = (p: number, over: { reply?: ReplyFilter } = {}) => {
     const u = new URLSearchParams()
+    const rp = over.reply ?? reply
     if (source) u.set('source', source)
     if (engagement !== 'all') u.set('result', engagement)
+    if (rp !== 'all') u.set('reply', rp)
+    if (kind && rp === 'replied') u.set('kind', kind)
     if (q) u.set('q', q)
     if (p > 1) u.set('page', String(p))
     const s = u.toString()
@@ -104,13 +116,33 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
         <SentEmailsChart days={days} />
       </div>
 
-      <RepliesByDay rows={all} days={days} />
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by replies">
+        <span className="text-sm text-muted-foreground">People who</span>
+        {(Object.keys(REPLY_FILTER) as ReplyFilter[]).map((f) => (
+          <Link
+            key={f}
+            href={href(1, { reply: f })}
+            aria-current={reply === f ? 'true' : undefined}
+            className={`rounded-md border px-3 py-1.5 text-sm ${reply === f ? 'border-navy bg-navy font-medium text-white' : 'border-border bg-white text-foreground hover:bg-muted'}`}
+          >
+            {REPLY_FILTER[f]} <span className={reply === f ? 'text-white/80' : 'text-muted-foreground'}>({replyCount[f].toLocaleString()})</span>
+          </Link>
+        ))}
+        <a href="#replies-heading" className="ml-auto text-sm text-primary underline">Replies by day</a>
+      </div>
 
       <form method="get" action="/support/admin/crm/sent" className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-white p-4">
         <label className="space-y-1 text-xs text-muted-foreground">Source
           <select name="source" defaultValue={source ?? ''} className="block rounded-md border border-border bg-white px-2 py-1.5 text-sm text-foreground">
             <option value="">All sources</option>
             {(Object.keys(SOURCE_LABEL) as SentSource[]).map((s) => <option key={s} value={s}>{SOURCE_LABEL[s]}</option>)}
+          </select>
+        </label>
+        <input type="hidden" name="reply" value={reply} />
+        <label className="space-y-1 text-xs text-muted-foreground">Kind of reply
+          <select name="kind" defaultValue={kind} className="block rounded-md border border-border bg-white px-2 py-1.5 text-sm text-foreground">
+            <option value="">Any reply</option>
+            {Object.entries(REPLY_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </label>
         <label className="space-y-1 text-xs text-muted-foreground">What they did
@@ -122,7 +154,7 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
           <input name="q" defaultValue={q} placeholder="Person, organization, subject or mailing list" className="block w-full rounded-md border border-border bg-white px-2 py-1.5 text-sm text-foreground" />
         </label>
         <button type="submit" className="rounded-md bg-navy px-4 py-1.5 text-sm font-medium text-white hover:opacity-90">Apply filters</button>
-        {(source || engagement !== 'all' || q) && <Link href="/support/admin/crm/sent" className="py-1.5 text-sm text-muted-foreground underline">Clear filters</Link>}
+        {(source || engagement !== 'all' || reply !== 'all' || q) && <Link href="/support/admin/crm/sent" className="py-1.5 text-sm text-muted-foreground underline">Clear filters</Link>}
       </form>
 
       {capped.length > 0 && (!source || capped.includes(source)) && (
@@ -188,6 +220,8 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
           </div>
         )}
       </div>
+
+      <RepliesByDay rows={all} days={days} />
 
       <p className="text-xs text-muted-foreground">
         Opens and clicks are tracked for cold outreach, email composed in the CRM and mailing lists. Email you send straight from Gmail carries no tracking, so only replies show. Replies are matched by conversation, and out-of-office messages are not counted. Counts here are per email, so a person who got three emails appears three times.
