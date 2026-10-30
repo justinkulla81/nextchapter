@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { buildLocalPicture } from '@/lib/warn/layoff-context'
-import { COMPOSE_ACCOUNT, draftFor, draftKind, greetingFor } from '@/lib/warn/layoff-alert-drafts'
+import { COMPOSE_ACCOUNT, COMPOSE_FROM, draftFor, draftKind, greetingFor } from '@/lib/warn/layoff-alert-drafts'
 import { employerSlug } from '@/lib/warn/layoff-pages'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -42,5 +42,5 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
   if (!kind) return Response.redirect(new URL(`/support/admin/crm/people/${id}`, req.url), 302)
   const draft = draftFor(kind, { name: person.fullName, title, org: employer, email: to, phone: null, strength: null, href: null, personId: id, greet: greetingFor(person.fullName) }, { picture, peoplePage: `${SITE}/network/company/${employerSlug(employer, null)}`, localPage: null })
   captureServerEvent(admin.email ?? 'admin', 'followup_layoff_email_opened', { personId: id, kind, hasNotice: !!notice })
-  return Response.redirect(gmailComposeHref(to, draft.subject, draft.body, COMPOSE_ACCOUNT), 302)
+  return Response.redirect(gmailComposeHref(to, draft.subject, draft.body, COMPOSE_ACCOUNT, COMPOSE_FROM), 302)
 }

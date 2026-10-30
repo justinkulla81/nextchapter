@@ -4,12 +4,15 @@
 // account composes (Gmail's authuser), so a link opened by someone signed in to
 // several accounts starts from the right sender. A link with an account is a CRM
 // Write email link; it carries nc=dock so the NextChapter Capture extension can
-// move the message into an open Gmail tab's small New Message window.
-export function gmailComposeHref(to: string, subject: string, body?: string, account?: string): string {
+// move the message into an open Gmail tab's small New Message window. `from` is
+// one of that account's Send mail as addresses to send from (ncfrom, which the
+// extension picks in the window's From menu; Gmail has no link parameter for it).
+export function gmailComposeHref(to: string, subject: string, body?: string, account?: string, from?: string): string {
   const params = new URLSearchParams({ view: 'cm', fs: '1', to, su: subject })
   if (account) {
     params.set('authuser', account)
     params.set('nc', 'dock')
+    if (from) params.set('ncfrom', from)
   }
   if (body) params.set('body', body)
   return `https://mail.google.com/mail/?${params.toString()}`

@@ -5,7 +5,7 @@ import { noticesForOrgPage } from '@/lib/seo/org-notices'
 import { getPublicNotices, TWELVE_MONTHS_MS } from '@/lib/warn/layoff-pages'
 import { areaPhrase } from '@/lib/org-claims/org-kit'
 import { orgPagePath } from '@/lib/seo/org-page-rules'
-import { COMPOSE_ACCOUNT } from '@/lib/warn/layoff-alert-drafts'
+import { COMPOSE_ACCOUNT, COMPOSE_FROM } from '@/lib/warn/layoff-alert-drafts'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { boardIntroDraft } from './board-intro-draft'
 import { kitLink } from '@/lib/org-claims/org-kit'
@@ -44,7 +44,7 @@ export async function boardIntroFor(board: { id: string; state: string; director
     areaNotices: local.total,
     areaWorkers: local.workers,
   })
-  return { ...draft, href: gmailComposeHref(to, draft.subject, draft.body, COMPOSE_ACCOUNT), to, toNote, clicks: link?.clicks ?? 0 }
+  return { ...draft, href: gmailComposeHref(to, draft.subject, draft.body, COMPOSE_ACCOUNT, COMPOSE_FROM), to, toNote, clicks: link?.clicks ?? 0 }
 }
 
 /**

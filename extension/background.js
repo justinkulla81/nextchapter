@@ -22,7 +22,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
   handled.add(tabId)
   try {
     const account = url.pathname.match(/^\/mail\/u\/(\d+)\//)?.[1]
-    const message = { to: url.searchParams.get('to') || '', subject: url.searchParams.get('su') || '', body: url.searchParams.get('body') || '' }
+    const message = { to: url.searchParams.get('to') || '', subject: url.searchParams.get('su') || '', body: url.searchParams.get('body') || '', from: url.searchParams.get('ncfrom') || '' }
     const gmailTabs = await chrome.tabs.query({ url: 'https://mail.google.com/*' })
     const target = gmailTabs.find((t) => {
       if (t.id === tabId || !t.url) return false
@@ -96,7 +96,7 @@ async function openDraftHere(hash) {
 }
 
 // Runs inside the Gmail tab, so it can't use anything from this file.
-async function openDockedCompose({ to, subject, body }) {
+async function openDockedCompose({ to, subject, body, from }) {
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
   const poll = async (get) => {
     for (let i = 0; i < 40; i++) {
@@ -123,6 +123,17 @@ async function openDockedCompose({ to, subject, body }) {
 
   // Gmail finishes setting the window up after it appears and can wipe what was typed too early.
   await wait(700)
+  // Send from one of the account's other addresses (a Send mail as alias). Gmail swaps the signature when this changes, so it comes first.
+  const press = (el) => { for (const type of ['mousedown', 'mouseup', 'click']) el.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window })) }
+  const fromButton = () => [...dialog.querySelectorAll('div[role="button"][aria-haspopup="true"]')].find((e) => /<[^>]+@[^>]+>/.test(e.textContent))
+  for (let attempt = 0; from && attempt < 4 && fromButton() && !fromButton().textContent.includes(`<${from}>`); attempt++) {
+    press(fromButton())
+    const option = await poll(() => [...dialog.querySelectorAll('[role="menuitem"]')].find((e) => e.textContent.includes(`<${from}>`)))
+    // Gmail ignores a click on the menu in the instant it opens.
+    await wait(600)
+    if (option) press(option)
+    await wait(600)
+  }
   const hasRecipient = () => !!dialog.querySelector('[email], [data-hovercard-id]')
   for (let attempt = 0; attempt < 4 && !(hasRecipient() && subjectField.value === subject); attempt++) {
     if (!hasRecipient()) {
