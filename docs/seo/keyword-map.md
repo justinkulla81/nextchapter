@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-162 clusters, 973 phrases.
+182 clusters, 1051 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -35,6 +35,26 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/topics/best-job-sites-for-executives` | page | executive job search | Find senior and executive jobs | best job sites for executives; senior executive job search; director level jobs; how to find executive jobs |
 | `/topics/networking-after-layoff` | page | networking after layoff | Network after a layoff without feeling embarrassed | how to network when laid off; networking when unemployed; reach out to contacts after layoff; embarrassed to network |
 | `/mcp` | page | job search mcp server | Connect an AI assistant to NextChapter job search | mcp server for jobs; job search api for ai assistants |
+| `/topics/job-search-tracker` | page | job application tracker | Organize job applications and follow-ups | track job applications; job search spreadsheet |
+| `/topics/skills-gap-analysis` | page | skills gap analysis | Find the skills gap for a target role | find my skills gap; skills gap for jobs; what skills am i missing; skills i need for a job |
+| `/topics/is-this-salary-fair` | page | is this job offer fair | Check whether a job offer pays fairly | check salary for my level; compare job offer pay; what should i be paid |
+| `/topics/fake-job-postings` | page | fake job postings | Spot fake job postings and recruiter scams | job posting scam; how to spot a fake job; is this job real; fake recruiter |
+| `/topics/ai-and-entry-level-jobs` | page | ai and entry-level jobs | Understand how AI affects entry-level jobs | is ai eliminating entry level jobs; ai entry level hiring; entry level jobs ai; ai replacing junior jobs |
+| `/topics/ai-cover-letters` | page | ai cover letter | Use AI to write a cover letter well | cover letter with ai; chatgpt cover letter; write a cover letter with ai |
+| `/topics/relocating-for-a-job` | page | relocating for a job | Compare cities before relocating for work | move for a job; compare cities to move; relocate for work; moving for a new job |
+| `/topics/benefits-after-layoff` | page | benefits after a layoff | Know which benefits and help apply after a layoff | benefits after being laid off; what benefits do i get when laid off; snap after layoff |
+| `/topics/american-job-centers` | page | american job center | Use an American Job Center after a layoff | one stop career center; workforce center near me; dislocated worker program |
+| `/topics/buy-a-business-vs-job` | page | buy a business instead of a job | Decide between buying a business and a job | should i buy a business; buying a business after layoff; buy a small business or get a job |
+| `/topics/interview-after-career-gap` | page | interview after a career gap | Interview well after a career gap | career gap interview; interviewing after time off; returning to work interview |
+| `/topics/resume-gap` | page | explain a resume gap | Explain a gap on a resume | explain a gap in my resume; employment gap on resume; gap in work history |
+| `/topics/negotiate-a-job-offer` | page | negotiate a job offer | Negotiate a job offer | how to negotiate salary; negotiate salary offer; counter offer salary; negotiating a new job offer |
+| `/topics/references-after-layoff` | page | references after a layoff | Line up references after a layoff | job references after being laid off; who to ask for a reference; reference after layoff |
+| `/topics/how-long-job-search-takes` | page | how long does a job search take | Know how long a job search takes | job search timeline |
+| `/topics/job-search-while-employed` | page | job search while employed | Search for a job while employed | looking for a job while employed; job hunting while working; search for a new job in secret |
+| `/topics/401k-after-layoff` | page | 401k after a layoff | Decide what to do with a 401(k) after a layoff | what to do with 401k after layoff; 401k rollover after layoff; cash out 401k after losing job |
+| `/topics/freelance-after-layoff` | page | freelance after a layoff | Freelance or consult after a layoff | freelancing after losing job; start freelancing after layoff |
+| `/topics/informational-interviews` | page | informational interview questions | Ask for and run informational interviews | how to ask for an informational interview |
+| `/topics/thank-you-email-after-interview` | page | interview thank you email | Send a thank-you email after an interview | thank you note after interview; follow up after interview |
 | `/resources/cobra-aca` | page | health insurance after a layoff: COBRA vs. marketplace | Compare COBRA with an ACA Marketplace plan after a job loss | cobra; cobra vs aca; cobra or aca; aca vs cobra; cobra vs obamacare; cobra or obamacare; cobra vs affordable care act; cobra vs marketplace; which is better cobra or marketplace; is aca cheaper than cobra; health insurance after layoff; health insurance after job loss; aca marketplace after job loss; special enrollment period; cobra deadline; cobra cost |
 | `/resources/cobra-aca/:state` | family | cobra vs aca in {state} | Compare COBRA with an ACA Marketplace plan in one state | is aca cheaper than cobra in {state}; cobra vs aca cost {state}; {state} cobra vs marketplace; can i get aca instead of cobra in {state}; {state} health insurance after a layoff |
 | `/tools/cobra-vs-aca-calculator` | page | cobra vs aca calculator | Work out what COBRA and a Marketplace plan would each cost me | cobra vs aca cost calculator; cobra or marketplace cost calculator; aca subsidy calculator after layoff; how much is health insurance after a layoff |
@@ -287,6 +307,106 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: NextChapter MCP Server for Job Search
 - Description: A free, read-only MCP server that lets an AI assistant search current professional job openings and find career guides on layoffs and job search.
+
+### `/topics/job-search-tracker`
+
+- Title: Job Search Tracker: Organize Applications and Follow-Ups
+- Description: What to record for every application and contact, the habits that keep a job search tracker useful, and how to read it when the search stalls.
+
+### `/topics/skills-gap-analysis`
+
+- Title: Skills Gap Analysis: Find What You Are Missing
+- Description: A five-step method to find your skills gap from real job postings, what counts as proof, and which gaps are only wish lists.
+
+### `/topics/is-this-salary-fair`
+
+- Title: Is This Job Offer Fair? How to Check Pay
+- Description: Where to find pay for your role and city, how to compare the whole package, and what to do if an offer is low.
+
+### `/topics/fake-job-postings`
+
+- Title: Fake Job Postings: How to Spot Recruiter Scams
+- Description: Warning signs of a job scam, how to check a posting and a recruiter, and what to do if you shared money or details.
+
+### `/topics/ai-and-entry-level-jobs`
+
+- Title: Is AI Eliminating Entry-Level Jobs? Reading the Evidence
+- Description: What to look at to judge how AI affects entry-level hiring in your field, what tends to hold up, and what early-career workers can do.
+
+### `/topics/ai-cover-letters`
+
+- Title: AI Cover Letter: Use It Without Sounding Like AI
+- Description: A process for drafting a cover letter with AI, what to check before you send, and when a short note works better.
+
+### `/topics/relocating-for-a-job`
+
+- Title: Relocating for a Job: How to Compare Cities
+- Description: The four things to compare before a move for work, checks to make before you commit, and how remote work changes it.
+
+### `/topics/benefits-after-layoff`
+
+- Title: Benefits and Help After a Layoff: What You May Qualify For
+- Description: Unemployment, health coverage, workforce services and other help you may qualify for after a layoff, in the order that matters.
+
+### `/topics/american-job-centers`
+
+- Title: American Job Centers: Free Help for Laid-Off Workers
+- Description: What American Job Centers offer for free, how to use one, and how dislocated worker training funds work.
+
+### `/topics/buy-a-business-vs-job`
+
+- Title: Buy a Business or Find a Job? How to Decide
+- Description: Questions to answer before buying a business, checks to run before you sign, and a middle path that keeps your options open.
+
+### `/topics/interview-after-career-gap`
+
+- Title: Interviewing After a Career Gap
+- Description: How to answer for a career gap in a sentence or two, show you are current, and practice so it does not derail the interview.
+
+### `/topics/resume-gap`
+
+- Title: How to Explain a Resume Gap
+- Description: How to show a gap on a resume honestly in one line, what to say in a cover note or interview, and what never to do.
+
+### `/topics/negotiate-a-job-offer`
+
+- Title: How to Negotiate a Job Offer
+- Description: What to do before you reply, how to make the counter, and how to negotiate the whole package when base pay will not move.
+
+### `/topics/references-after-layoff`
+
+- Title: References After a Layoff: Who to Ask and What to Say
+- Description: Who to ask for a reference after a layoff, how to ask, and what to request from your former employer.
+
+### `/topics/how-long-job-search-takes`
+
+- Title: How Long Does a Job Search Take?
+- Description: What shapes the length of a job search, how to plan your money and week, and what to change when it takes long.
+
+### `/topics/job-search-while-employed`
+
+- Title: Looking for a Job While You Still Have One
+- Description: How to keep a job search private, manage your time, handle references, and know when to tell your employer.
+
+### `/topics/401k-after-layoff`
+
+- Title: Your 401(k) After a Layoff: Keep, Roll Over or Cash Out
+- Description: Your options for a 401(k) after a layoff, tax and penalty details to check, and what to compare before you decide.
+
+### `/topics/freelance-after-layoff`
+
+- Title: Freelancing or Consulting After a Layoff
+- Description: How to get first clients, run the business side, report income if you collect unemployment, and keep your options open.
+
+### `/topics/informational-interviews`
+
+- Title: Informational Interviews: How to Ask and What to Say
+- Description: How to ask for a short conversation, what to ask, and how to follow up without asking for a job.
+
+### `/topics/thank-you-email-after-interview`
+
+- Title: Thank-You Email After an Interview
+- Description: What to include in a short thank-you email after an interview, practical points, and what to do if you forgot something.
 
 ### `/resources/cobra-aca`
 
