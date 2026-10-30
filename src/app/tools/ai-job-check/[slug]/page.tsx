@@ -6,6 +6,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { AiJobCheckEmployer } from '@/components/tools/AiJobCheckEmployer'
 import { AiJobCheckForm } from '@/components/tools/AiJobCheckForm'
 import { AiJobCheckShare } from '@/components/tools/AiJobCheckShare'
+import { comparePath, pairsWith, titleOf } from '@/lib/ai-check/compare'
 import { loadOccupationCheck } from '@/lib/ai-check/load'
 import { checkPath, checkSlug, socFromSlug } from '@/lib/ai-check/slug'
 import { loadExposureForSoc } from '@/lib/skills/ai-exposure-server'
@@ -51,6 +52,12 @@ export default async function AiJobCheckResultPage({ params }: { params: Promise
   const { exposure: e } = check
   const path = checkPath(e.title, soc6)
   if (slug !== checkSlug(e.title, soc6)) permanentRedirect(path)
+
+  const compares = pairsWith(soc6).flatMap((other) => {
+    const href = comparePath(soc6, other)
+    const t = titleOf(other)
+    return href && t ? [{ href, label: `${e.title} vs ${t}` }] : []
+  })
 
   const FAQ = [
     { q: `Will AI replace ${e.title.toLowerCase()}?`, a: `This data cannot say. It measures how much of the work AI is already used for today: ${scorePercent(e.score)} of the tasks, which is ${BAND_LABEL[e.band].toLowerCase()}. It is not a forecast of job loss.` },
@@ -162,6 +169,22 @@ export default async function AiJobCheckResultPage({ params }: { params: Promise
               </ul>
             </div>
           )}
+        </section>
+      )}
+
+      {compares.length > 0 && (
+        <section aria-labelledby="compare" className="mt-10 max-w-3xl">
+          <h2 id="compare" className={H2}>Compare with a related job</h2>
+          <ul className="mt-3 space-y-2 text-sm">
+            {compares.slice(0, 5).map((c) => (
+              <li key={c.href}>
+                <Link href={c.href} className={LINK}>{c.label}: AI exposure, pay and openings</Link>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-sm">
+            <Link href="/tools/ai-job-check/prompts" className={LINK}>Prompts to run on your own résumé in any AI assistant</Link>
+          </p>
         </section>
       )}
 

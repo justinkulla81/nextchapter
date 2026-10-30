@@ -21,6 +21,7 @@ export function GET() {
 - [Home](${u('/')}): overview of the Market Reality Assessment, the weekly Search Sprint system, and how the platform works end to end.
 - [FAQ](${u('/faq')}): plans (free for candidates), privacy, how the Market Reality Assessment works, and how employer matching works.
 - [AI job check](${u('/tools/ai-job-check')}): type a job title to see how much of the work AI already does (Anthropic Economic Index), related jobs that pay more or are less exposed, and skills to build. A page for each occupation.
+- [AI job check prompts](${u('/tools/ai-job-check/prompts')}): twelve copy-and-paste prompts for an AI assistant that point it at the numbers on NextChapter pages and ask it to cite them.
 - [Résumé bullet rewriter](${u('/tools/resume-bullet-rewriter')}) and [interview answer coach](${u('/tools/interview-answer-coach')}): free AI tools that rewrite résumé bullets and coach an interview answer, keeping only the facts the person gives.
 - [Career coach](${u('/coaching')}): Victoria, the free AI career coach, and an optional human executive and professional career coach on top — mock interviews, resume review, negotiation support. Plans are on [Plans](${u('/pricing')}).
 
