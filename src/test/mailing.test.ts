@@ -350,6 +350,10 @@ describe('list rules after the split', () => {
     expect(keys(['HIGHER_ED_EXEC_ED'])).toContain('higher_ed_exec_ed')
     expect(keys([], { orgTypes: ['UNIVERSITY'] })).toEqual(['monthly_update'])
   })
+  it('puts connectors on the advisors list, and still never an investor on the investor list', () => {
+    expect(keys(['CONNECTOR'])).toContain('advisors')
+    expect(keys(['CONNECTOR', 'INVESTOR_VC'])).not.toContain('investors')
+  })
   it('puts press on the press list', () => {
     expect(keys(['PRESS'])).toContain('press')
   })
