@@ -15,7 +15,7 @@ export default function McpPage() {
     <SeoPage
       trail={[{ name: 'MCP server', path: PATH }]}
       h1={h1}
-      lede="A free, read-only Model Context Protocol server that lets an AI assistant search current professional job openings and look up our career guides on layoffs and job search. Public data only: no account, nothing personal."
+      lede="A free, read-only Model Context Protocol server that lets an AI assistant search current professional job openings, look up recent layoff notices, and find our career guides on layoffs and job search. Public data only: no account, nothing personal."
     >
       <div className="mt-10 max-w-3xl space-y-10">
         <section>
@@ -29,6 +29,7 @@ export default function McpPage() {
           <h2 className={H2}>Tools</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-base leading-relaxed text-foreground">
             <li><strong>search_jobs</strong>: current professional openings, newest first. Inputs: query (words in the title or company), location, remote. Returns title, company, location, posted date, pay when listed and a link.</li>
+            <li><strong>recent_layoff_notices</strong>: layoff notices (WARN Act filings) from state labor departments, newest first. Inputs: employer, state, days back, limit. Returns the employer, place, workers named, filing date, the state record and our page to link to. Free to cite under CC BY 4.0 with a link back.</li>
             <li><strong>find_career_guide</strong>: our plain-language guides, matched to a question such as “how do I negotiate severance”. Returns the guide title, a short answer and its link.</li>
           </ul>
         </section>
