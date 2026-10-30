@@ -108,11 +108,22 @@ export interface RenderInput {
 
 const WRAP = 'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#1f2328;max-width:600px'
 
+/**
+ * A footer with no [link words] that tells people to reply is the plain-text opt-out: no link goes in the body. The
+ * List-Unsubscribe header (set when the edition is sent) still gives mail apps their own Unsubscribe button. Any other
+ * footer without a link keeps one added, so an opt-out is never lost by editing the text.
+ */
+export function isReplyOptOutFooter(text: string): boolean {
+  return !/\[([^\]]+)\]/.test(text) && /\breply\b/i.test(text)
+}
+
 function footerHtml(text: string, postalAddress: string, unsubscribeUrl: string): string {
   const escaped = escapeHtml(text.replace(/\{\{\s*postalAddress\s*\}\}/g, postalAddress))
-  const linked = /\[([^\]]+)\]/.test(escaped)
-    ? escaped.replace(/\[([^\]]+)\]/, `<a href="${escapeHtml(unsubscribeUrl)}" style="color:#8a8f98">$1</a>`)
-    : `${escaped} <a href="${escapeHtml(unsubscribeUrl)}" style="color:#8a8f98">Unsubscribe</a>`
+  const linked = isReplyOptOutFooter(text)
+    ? escaped
+    : /\[([^\]]+)\]/.test(escaped)
+      ? escaped.replace(/\[([^\]]+)\]/, `<a href="${escapeHtml(unsubscribeUrl)}" style="color:#8a8f98">$1</a>`)
+      : `${escaped} <a href="${escapeHtml(unsubscribeUrl)}" style="color:#8a8f98">Unsubscribe</a>`
   return `<p style="margin-top:32px;font-size:12px;line-height:1.5;color:#8a8f98">${linked}</p>`
 }
 
@@ -137,6 +148,7 @@ export function renderEmail(input: RenderInput): { html: string; text: string } 
   const footerPlain = input.footerText
     .replace(/\{\{\s*postalAddress\s*\}\}/g, input.postalAddress)
     .replace(/\[([^\]]+)\]/, `$1 (${input.unsubscribeUrl})`)
-  const text = `${htmlToText(body)}\n\n--\n${/\(http/.test(footerPlain) ? footerPlain : `${footerPlain} Unsubscribe: ${input.unsubscribeUrl}`}`
+  const footerText = isReplyOptOutFooter(input.footerText) || /\(http/.test(footerPlain) ? footerPlain : `${footerPlain} Unsubscribe: ${input.unsubscribeUrl}`
+  const text = `${htmlToText(body)}\n\n--\n${footerText}`
   return { html, text }
 }

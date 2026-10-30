@@ -24,6 +24,7 @@ import { namesLookAlike } from '@/lib/text/person-name-match'
 import { detectReportEdition } from '@/lib/mailing/edition-parser'
 import { buildOutreachReplyEmails } from '@/lib/outreach/reply-context'
 import { classifyReply, replyOutcome } from '@/lib/outreach/reply-class'
+import { applyOptOutReply } from '@/lib/mailing/opt-out'
 import { alertOutreachReply } from '@/lib/outreach/reply-alert'
 import { buildMailingSweepContext, markReportManual, onInboundMessage, type MailingSweepContext } from '@/lib/mailing/tracking'
 import { raiseListPrompt } from '@/lib/mailing/lists'
@@ -639,6 +640,8 @@ async function sweepMailbox(
         const replyClass = classifyReply(msg.subject, fullBody ?? msg.snippet)
         captureServerEvent(personId, 'outreach_reply_received', { class: replyClass })
         await alertOutreachReply({ personId, replyClass, subject: msg.subject, text: fullBody ?? snippetOf(msg.snippet) })
+        // A plain "no" / "stop" takes them off everything we send, not just the next follow-up.
+        if (replyClass === 'no') await applyOptOutReply({ messageId: id, email: fromEmail, subject: msg.subject, text: fullBody ?? msg.snippet })
       }
       if (isNewPerson) result.suggested++
       touched.add(personId)
