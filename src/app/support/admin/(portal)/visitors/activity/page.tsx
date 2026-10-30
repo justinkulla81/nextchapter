@@ -10,7 +10,7 @@ import { AverageBarChart } from '@/components/admin/AverageBarChart'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
-import { formatAdminDateTime } from '@/lib/admin/format-date'
+import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
 import { extractEmailLinkId, resolveEmailRecipients, type EmailRecipient } from '@/lib/marketing/email-attribution'
@@ -87,12 +87,28 @@ function isApplyClick(eventType: string, href: string | null, path: string | nul
   return path === null || path.startsWith('/jobs/')
 }
 
-function FullUrl({ url }: { url: string }) {
+// Link shown as host + path without the protocol, cut to one line; the full address is the hover text and the link target.
+function ShortUrl({ url, max = 'max-w-[26ch]' }: { url: string; max?: string }) {
+  const label = url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '')
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer nofollow" className="break-all text-primary underline underline-offset-4">
-      {url}
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      title={url}
+      className={`inline-block ${max} truncate align-bottom text-primary hover:underline`}
+    >
+      {label}
     </a>
   )
+}
+
+function referrerHost(referrer: string): string {
+  try {
+    return new URL(referrer).hostname.replace(/^www\./, '')
+  } catch {
+    return referrer
+  }
 }
 
 // Who visited and when: the traffic chart, the weekday and hour-of-day charts,
@@ -263,76 +279,89 @@ export default async function AdminVisitorActivityPage({
   const result = paginatedResult(rows, total, params)
 
   const columns: AdminColumn<Row>[] = [
-    { header: 'Time', className: 'px-3 py-2 tabular-nums', render: (r) => formatAdminDateTime(r.createdAt) },
+    { header: 'When', cellClassName: 'tabular-nums text-muted-foreground', render: (r) => formatAdminShortDateTime(r.createdAt) },
     {
       header: 'Visitor',
       render: (r) => {
         if (r.recipient) {
           return (
             <>
-              <Link href={`/support/admin/crm/people/${r.recipient.personId}`} className="text-primary underline underline-offset-4">
+              <Link href={`/support/admin/crm/people/${r.recipient.personId}`} className="font-medium text-primary hover:underline">
                 {r.recipient.name}
               </Link>
               <span className="text-muted-foreground"> (clicked our email)</span>
             </>
           )
         }
-        if (r.candidate) {
-          return (
-            <Link href={`/support/admin/candidates/${r.candidate.id}`} className="text-primary underline underline-offset-4">
-              {adminCandidateLabel(r.candidate)}
-            </Link>
-          )
-        }
-        if (r.inferredCandidate) {
+        const person = r.candidate ?? r.inferredCandidate
+        if (person) {
           return (
             <>
-              <Link
-                href={`/support/admin/candidates/${r.inferredCandidate.id}`}
-                className="text-primary underline underline-offset-4"
-              >
-                {adminCandidateLabel(r.inferredCandidate)}
+              <Link href={`/support/admin/candidates/${person.id}`} className="font-medium text-primary hover:underline">
+                {adminCandidateLabel(person)}
               </Link>
-              <span className="text-muted-foreground"> (by IP)</span>
+              {!r.candidate && <span className="text-muted-foreground"> (by IP)</span>}
             </>
           )
         }
         const cls = classifyUserAgent(r.userAgent)
-        return cls === 'bot' ? '🤖 Bot' : cls === 'human' ? '🧑 Human' : '❓ Unknown'
+        return <span className="font-medium">{cls === 'bot' ? '🤖 Bot' : cls === 'human' ? '🧑 Human' : '❓ Unknown'}</span>
       },
     },
-    { header: 'IP', render: (r) => r.ip ?? 'unknown' },
     { header: 'Location', render: (r) => r.location ?? '—' },
     {
-      header: 'This person total',
-      className: 'px-3 py-2 tabular-nums',
-      render: (r) => (r.ip ? `${r.views} views · ${r.clicks} clicks · ${r.applyClicks} apply` : '—'),
-    },
-    {
-      header: 'Came from',
+      header: 'Visits',
+      cellClassName: 'tabular-nums',
       render: (r) =>
-        r.eventType === 'PAGE_VIEW' ? (r.referrer ? <FullUrl url={r.referrer} /> : 'direct / no referrer') : '—',
-    },
-    {
-      header: 'Clicked',
-      render: (r) =>
-        r.eventType === 'LINK_CLICK' && r.href ? (
-          <>
-            {r.isApplyClick && <span className="mr-1 font-medium text-success">Apply ✓</span>}
-            <FullUrl url={absoluteUrl(r.href)} />
-          </>
+        r.ip ? (
+          <span title={`${r.views} views, ${r.clicks} clicks, ${r.applyClicks} apply clicks from this IP`}>
+            {r.views} <span className="text-muted-foreground">views</span> · {r.clicks}{' '}
+            <span className="text-muted-foreground">clicks</span>
+            {r.applyClicks > 0 && <span className="ml-1.5 font-medium text-success">{r.applyClicks} apply</span>}
+          </span>
         ) : (
           '—'
         ),
     },
-    { header: 'Source', render: (r) => (r.recipient ? `Email to ${r.recipient.name}` : r.source) },
-    { header: 'Device', render: (r) => `${r.device} · ${classifyBrowser(r.userAgent)}` },
-    { header: 'Page type', render: (r) => r.pageType },
     {
-      header: 'Page',
+      header: 'Source',
       render: (r) =>
-        r.path ? <FullUrl url={absoluteUrl(r.path)} /> : r.eventType === 'PAGE_VIEW' ? '/ (recorded before path tracking)' : '—',
+        r.recipient ? (
+          `Email to ${r.recipient.name}`
+        ) : r.eventType !== 'PAGE_VIEW' ? (
+          '—'
+        ) : (
+          <span title={r.referrer ?? undefined}>
+            {r.source}
+            {r.referrer && <span className="text-muted-foreground"> · {referrerHost(r.referrer)}</span>}
+          </span>
+        ),
     },
+    {
+      header: 'Page or click',
+      render: (r) => {
+        if (r.eventType === 'LINK_CLICK' && r.href) {
+          return (
+            <>
+              {r.isApplyClick && <span className="mr-1.5 rounded bg-success/10 px-1.5 py-0.5 text-xs font-medium text-success">Apply</span>}
+              <ShortUrl url={absoluteUrl(r.href)} max="max-w-[34ch]" />
+            </>
+          )
+        }
+        if (r.path) return <ShortUrl url={absoluteUrl(r.path)} max="max-w-[34ch]" />
+        return r.eventType === 'PAGE_VIEW' ? <span className="text-muted-foreground">/ (before path tracking)</span> : '—'
+      },
+    },
+    {
+      header: 'Type',
+      render: (r) => <span className={r.pageType === 'Job posting' ? '' : 'text-muted-foreground'}>{r.pageType}</span>,
+    },
+    {
+      header: 'Device',
+      cellClassName: 'text-muted-foreground',
+      render: (r) => `${r.device} · ${classifyBrowser(r.userAgent)}`,
+    },
+    { header: 'IP', cellClassName: 'tabular-nums text-muted-foreground', render: (r) => r.ip ?? 'unknown' },
   ]
 
   return (
@@ -386,6 +415,7 @@ export default async function AdminVisitorActivityPage({
         columns={columns}
         rows={result.rows}
         rowKey={(r) => r.id}
+        compact
         emptyMessage="No visitor activity recorded yet."
         pagination={{
           page: result.page,

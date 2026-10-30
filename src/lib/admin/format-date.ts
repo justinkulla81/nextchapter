@@ -16,3 +16,14 @@ export function formatAdminDate(date: Date): string {
 export function formatAdminTime(date: Date): string {
   return date.toLocaleTimeString('en-US', { timeZone: ET_TIME_ZONE })
 }
+
+// "Oct 30, 8:03 AM" — one short line for dense log tables.
+export function formatAdminShortDateTime(date: Date): string {
+  return date.toLocaleString('en-US', {
+    timeZone: ET_TIME_ZONE,
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
