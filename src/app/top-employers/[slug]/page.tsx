@@ -9,7 +9,7 @@ import { getFunctionRanking } from '@/lib/seo/employer-rankings'
 import { titleMeta } from '@/lib/seo/title'
 import { fitDescription } from '@/lib/seo/templates'
 
-export const revalidate = 3600
+export const revalidate = 86400
 export const dynamicParams = true
 export function generateStaticParams() {
   return []

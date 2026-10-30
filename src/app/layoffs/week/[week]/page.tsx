@@ -12,7 +12,7 @@ import { stateName, stateSlug } from '@/lib/seo/states'
 import { titleMeta } from '@/lib/seo/title'
 import { noticeDay } from '@/lib/warn/layoff-pages'
 
-export const revalidate = 21600
+export const revalidate = 86400
 export const dynamicParams = true
 export function generateStaticParams() {
   return []

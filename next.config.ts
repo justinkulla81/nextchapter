@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   // /places/sitemap.xml queries every state's counties and the qualifying cities while the build prerenders it, and takes
   // longer than Next's 60 second default; every production deploy since 2026-10-26 failed on it. It refreshes every 6 hours at runtime.
   staticPageGenerationTimeout: 300,
+  // The TypeScript step is 2.5 of a ~4.5 minute Vercel build, and CI (.github/workflows/ci.yml) already runs
+  // `tsc --noEmit` on every push and PR. Skipped on Vercel only, so a local `next build` still type-checks.
+  typescript: { ignoreBuildErrors: !!process.env.VERCEL },
   // Lets verification builds run into a throwaway directory
   // (NEXT_DIST_DIR=.next-verify-foo next build) instead of overwriting the
   // real .next a dev server or the deployed build might be using — this
