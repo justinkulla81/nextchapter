@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-183 clusters, 1057 phrases.
+186 clusters, 1078 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -128,6 +128,9 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/unemployment-estimator` | page | unemployment benefit estimator | Estimate unemployment benefits | unemployment calculator; how much unemployment will I get; unemployment benefits calculator by state; estimate unemployment pay |
 | `/tools/layoff-deadlines` | page | deadlines after a layoff | Find the dates that matter after a layoff | layoff deadlines; cobra deadline after layoff; when to file for unemployment after layoff; what to do after being laid off by when; layoff checklist dates |
 | `/tools/layoff-risk-check` | page | layoff risk calculator | See whether there are warning signs of a layoff at an employer | layoff risk assessment; am I going to be laid off; signs of layoffs; my layoff risk; layoff risk check; is my job safe from layoffs |
+| `/tools/ai-job-check` | page | is my job safe from AI | A worker asks whether AI will affect their job and what to do about it | will AI replace my job; AI exposure by job; jobs most exposed to AI; AI job risk by occupation; how much of my job can AI do; AI job check |
+| `/tools/resume-bullet-rewriter` | page | resume bullet point rewriter | A job seeker wants stronger résumé bullet points | rewrite resume bullets; resume bullet points generator; improve resume bullet points; resume bullet point examples; AI resume bullet rewriter; resume bullet points checker |
+| `/tools/interview-answer-coach` | page | interview answer feedback | A job seeker wants feedback on an interview answer before the interview | practice interview answers; interview answer coach; how to answer why were you laid off; how to answer tell me about yourself; AI interview practice; interview answer checker |
 | `/resources/warn-act` | page | WARN Act rights | A worker asks what a WARN notice means and what an employer owes | WARN notice meaning; what is the WARN Act; WARN Act severance; WARN Act pay; WARN Act exceptions; WARN Act for employees; state WARN laws |
 | `/layoffs/by-state` | page | WARN notices by state | Find every state’s WARN layoff notices in one place | WARN notice list by state; layoffs by state 2026; state WARN notice database; WARN notices by state 2026 |
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
@@ -769,6 +772,24 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Layoff Risk Check: Are There Warning Signs at Your Employer?
 - Description: Check five warning signs against public layoff records: your employer’s WARN notices, your industry’s trend and AI exposure. Free, nothing saved, not a prediction.
 - H1: Layoff risk check: are there warning signs where you work?
+
+### `/tools/ai-job-check`
+
+- Title: Is My Job Safe from AI? Free AI Exposure Check by Job Title
+- Description: Type your job title to see how much of the work AI already does, which related jobs pay more or are less exposed, and the skills to build. Free, from real usage.
+- H1: Is my job safe from AI? Free AI exposure check
+
+### `/tools/resume-bullet-rewriter`
+
+- Title: Free Résumé Bullet Rewriter: Stronger Bullets, Your Facts
+- Description: Paste up to four résumé bullet points and get stronger versions that keep your facts, plus a prompt for the number worth adding. Free, no account, nothing saved.
+- H1: Free résumé bullet rewriter
+
+### `/tools/interview-answer-coach`
+
+- Title: Free Interview Answer Coach: Feedback and a Stronger Answer
+- Description: Pick a common interview question, write your answer, and get honest feedback and a stronger version built from what you said. Free, no account, nothing saved.
+- H1: Free interview answer coach
 
 ### `/resources/warn-act`
 

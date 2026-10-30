@@ -1,0 +1,1057 @@
+[
+ {
+  "soc": "15-1252",
+  "title": "Software Developers",
+  "postings": 22529
+ },
+ {
+  "soc": "11-2022",
+  "title": "Sales Managers",
+  "postings": 21639
+ },
+ {
+  "soc": "11-2021",
+  "title": "Marketing Managers",
+  "postings": 15003
+ },
+ {
+  "soc": "11-3031",
+  "title": "Financial Managers",
+  "postings": 14244
+ },
+ {
+  "soc": "17-2112",
+  "title": "Industrial Engineers",
+  "postings": 10055
+ },
+ {
+  "soc": "11-1021",
+  "title": "General and Operations Managers",
+  "postings": 10008
+ },
+ {
+  "soc": "13-1071",
+  "title": "Human Resources Specialists",
+  "postings": 8006
+ },
+ {
+  "soc": "23-1011",
+  "title": "Lawyers",
+  "postings": 7964
+ },
+ {
+  "soc": "13-2011",
+  "title": "Accountants and Auditors",
+  "postings": 7863
+ },
+ {
+  "soc": "11-9111",
+  "title": "Medical and Health Services Managers",
+  "postings": 7424
+ },
+ {
+  "soc": "17-2141",
+  "title": "Mechanical Engineers",
+  "postings": 7193
+ },
+ {
+  "soc": "17-2071",
+  "title": "Electrical Engineers",
+  "postings": 7140
+ },
+ {
+  "soc": "15-2051",
+  "title": "Data Scientists",
+  "postings": 6884
+ },
+ {
+  "soc": "11-9041",
+  "title": "Architectural and Engineering Managers",
+  "postings": 6673
+ },
+ {
+  "soc": "13-2051",
+  "title": "Financial and Investment Analysts",
+  "postings": 5707
+ },
+ {
+  "soc": "11-3051",
+  "title": "Industrial Production Managers",
+  "postings": 5194
+ },
+ {
+  "soc": "17-2051",
+  "title": "Civil Engineers",
+  "postings": 4705
+ },
+ {
+  "soc": "11-3071",
+  "title": "Transportation, Storage, and Distribution Managers",
+  "postings": 4576
+ },
+ {
+  "soc": "11-3021",
+  "title": "Computer and Information Systems Managers",
+  "postings": 4486
+ },
+ {
+  "soc": "13-1161",
+  "title": "Market Research Analysts and Marketing Specialists",
+  "postings": 4087
+ },
+ {
+  "soc": "15-1221",
+  "title": "Computer and Information Research Scientists",
+  "postings": 4022
+ },
+ {
+  "soc": "11-1011",
+  "title": "Chief Executives",
+  "postings": 3623
+ },
+ {
+  "soc": "15-1243",
+  "title": "Database Architects",
+  "postings": 3623
+ },
+ {
+  "soc": "11-3121",
+  "title": "Human Resources Managers",
+  "postings": 3485
+ },
+ {
+  "soc": "11-3061",
+  "title": "Purchasing Managers",
+  "postings": 3448
+ },
+ {
+  "soc": "13-1081",
+  "title": "Logisticians",
+  "postings": 3278
+ },
+ {
+  "soc": "11-9021",
+  "title": "Construction Managers",
+  "postings": 3216
+ },
+ {
+  "soc": "13-1111",
+  "title": "Management Analysts",
+  "postings": 3167
+ },
+ {
+  "soc": "17-2061",
+  "title": "Computer Hardware Engineers",
+  "postings": 2959
+ },
+ {
+  "soc": "15-1211",
+  "title": "Computer Systems Analysts",
+  "postings": 2797
+ },
+ {
+  "soc": "11-3013",
+  "title": "Facilities Managers",
+  "postings": 2529
+ },
+ {
+  "soc": "15-1255",
+  "title": "Web and Digital Interface Designers",
+  "postings": 2499
+ },
+ {
+  "soc": "23-2011",
+  "title": "Paralegals and Legal Assistants",
+  "postings": 2313
+ },
+ {
+  "soc": "41-1011",
+  "title": "First-Line Supervisors of Retail Sales Workers",
+  "postings": 2190
+ },
+ {
+  "soc": "43-6014",
+  "title": "Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",
+  "postings": 2111
+ },
+ {
+  "soc": "15-1241",
+  "title": "Computer Network Architects",
+  "postings": 2057
+ },
+ {
+  "soc": "15-1253",
+  "title": "Software Quality Assurance Analysts and Testers",
+  "postings": 1911
+ },
+ {
+  "soc": "13-1041",
+  "title": "Compliance Officers",
+  "postings": 1858
+ },
+ {
+  "soc": "41-4012",
+  "title": "Sales Representatives, Wholesale and Manufacturing, Except Technical and Scientific Products",
+  "postings": 1774
+ },
+ {
+  "soc": "41-3031",
+  "title": "Securities, Commodities, and Financial Services Sales Agents",
+  "postings": 1715
+ },
+ {
+  "soc": "11-9121",
+  "title": "Natural Sciences Managers",
+  "postings": 1678
+ },
+ {
+  "soc": "15-1244",
+  "title": "Network and Computer Systems Administrators",
+  "postings": 1659
+ },
+ {
+  "soc": "41-4011",
+  "title": "Sales Representatives, Wholesale and Manufacturing, Technical and Scientific Products",
+  "postings": 1651
+ },
+ {
+  "soc": "43-1011",
+  "title": "First-Line Supervisors of Office and Administrative Support Workers",
+  "postings": 1607
+ },
+ {
+  "soc": "17-2072",
+  "title": "Electronics Engineers, Except Computer",
+  "postings": 1542
+ },
+ {
+  "soc": "27-1011",
+  "title": "Art Directors",
+  "postings": 1540
+ },
+ {
+  "soc": "13-2053",
+  "title": "Insurance Underwriters",
+  "postings": 1517
+ },
+ {
+  "soc": "13-2052",
+  "title": "Personal Financial Advisors",
+  "postings": 1474
+ },
+ {
+  "soc": "17-2011",
+  "title": "Aerospace Engineers",
+  "postings": 1447
+ },
+ {
+  "soc": "15-1242",
+  "title": "Database Administrators",
+  "postings": 1432
+ },
+ {
+  "soc": "11-9051",
+  "title": "Food Service Managers",
+  "postings": 1412
+ },
+ {
+  "soc": "13-1141",
+  "title": "Compensation, Benefits, and Job Analysis Specialists",
+  "postings": 1377
+ },
+ {
+  "soc": "41-9031",
+  "title": "Sales Engineers",
+  "postings": 1377
+ },
+ {
+  "soc": "13-1031",
+  "title": "Claims Adjusters, Examiners, and Investigators",
+  "postings": 1346
+ },
+ {
+  "soc": "27-2012",
+  "title": "Producers and Directors",
+  "postings": 1346
+ },
+ {
+  "soc": "15-2031",
+  "title": "Operations Research Analysts",
+  "postings": 1336
+ },
+ {
+  "soc": "11-2032",
+  "title": "Public Relations Managers",
+  "postings": 1328
+ },
+ {
+  "soc": "41-2031",
+  "title": "Retail Salespersons",
+  "postings": 1325
+ },
+ {
+  "soc": "11-9033",
+  "title": "Education Administrators, Postsecondary",
+  "postings": 1248
+ },
+ {
+  "soc": "11-3131",
+  "title": "Training and Development Managers",
+  "postings": 1230
+ },
+ {
+  "soc": "11-3111",
+  "title": "Compensation and Benefits Managers",
+  "postings": 1217
+ },
+ {
+  "soc": "11-9141",
+  "title": "Property, Real Estate, and Community Association Managers",
+  "postings": 1210
+ },
+ {
+  "soc": "15-2011",
+  "title": "Actuaries",
+  "postings": 1164
+ },
+ {
+  "soc": "13-2041",
+  "title": "Credit Analysts",
+  "postings": 1152
+ },
+ {
+  "soc": "15-1212",
+  "title": "Information Security Analysts",
+  "postings": 1009
+ },
+ {
+  "soc": "43-3031",
+  "title": "Bookkeeping, Accounting, and Auditing Clerks",
+  "postings": 999
+ },
+ {
+  "soc": "13-2054",
+  "title": "Financial Risk Specialists",
+  "postings": 938
+ },
+ {
+  "soc": "19-1042",
+  "title": "Medical Scientists, Except Epidemiologists",
+  "postings": 906
+ },
+ {
+  "soc": "13-2072",
+  "title": "Loan Officers",
+  "postings": 869
+ },
+ {
+  "soc": "41-3021",
+  "title": "Insurance Sales Agents",
+  "postings": 862
+ },
+ {
+  "soc": "15-1232",
+  "title": "Computer User Support Specialists",
+  "postings": 807
+ },
+ {
+  "soc": "27-3031",
+  "title": "Public Relations Specialists",
+  "postings": 805
+ },
+ {
+  "soc": "27-1024",
+  "title": "Graphic Designers",
+  "postings": 795
+ },
+ {
+  "soc": "17-2111",
+  "title": "Health and Safety Engineers, Except Mining Safety Engineers and Inspectors",
+  "postings": 793
+ },
+ {
+  "soc": "49-1011",
+  "title": "First-Line Supervisors of Mechanics, Installers, and Repairers",
+  "postings": 764
+ },
+ {
+  "soc": "43-3011",
+  "title": "Bill and Account Collectors",
+  "postings": 762
+ },
+ {
+  "soc": "11-9031",
+  "title": "Education and Childcare Administrators, Preschool and Daycare",
+  "postings": 703
+ },
+ {
+  "soc": "51-1011",
+  "title": "First-Line Supervisors of Production and Operating Workers",
+  "postings": 676
+ },
+ {
+  "soc": "13-1121",
+  "title": "Meeting, Convention, and Event Planners",
+  "postings": 647
+ },
+ {
+  "soc": "13-2031",
+  "title": "Budget Analysts",
+  "postings": 618
+ },
+ {
+  "soc": "29-1141",
+  "title": "Registered Nurses",
+  "postings": 606
+ },
+ {
+  "soc": "19-2041",
+  "title": "Environmental Scientists and Specialists, Including Health",
+  "postings": 604
+ },
+ {
+  "soc": "13-2081",
+  "title": "Tax Examiners and Collectors, and Revenue Agents",
+  "postings": 596
+ },
+ {
+  "soc": "43-3051",
+  "title": "Payroll and Timekeeping Clerks",
+  "postings": 582
+ },
+ {
+  "soc": "15-1251",
+  "title": "Computer Programmers",
+  "postings": 544
+ },
+ {
+  "soc": "11-9032",
+  "title": "Education Administrators, Kindergarten through Secondary",
+  "postings": 530
+ },
+ {
+  "soc": "17-2041",
+  "title": "Chemical Engineers",
+  "postings": 529
+ },
+ {
+  "soc": "33-3021",
+  "title": "Detectives and Criminal Investigators",
+  "postings": 529
+ },
+ {
+  "soc": "17-2021",
+  "title": "Agricultural Engineers",
+  "postings": 508
+ },
+ {
+  "soc": "43-6011",
+  "title": "Executive Secretaries and Executive Administrative Assistants",
+  "postings": 498
+ },
+ {
+  "soc": "15-1254",
+  "title": "Web Developers",
+  "postings": 486
+ },
+ {
+  "soc": "43-3021",
+  "title": "Billing and Posting Clerks",
+  "postings": 486
+ },
+ {
+  "soc": "13-1151",
+  "title": "Training and Development Specialists",
+  "postings": 455
+ },
+ {
+  "soc": "11-2011",
+  "title": "Advertising and Promotions Managers",
+  "postings": 453
+ },
+ {
+  "soc": "15-1231",
+  "title": "Computer Network Support Specialists",
+  "postings": 445
+ },
+ {
+  "soc": "17-2031",
+  "title": "Bioengineers and Biomedical Engineers",
+  "postings": 422
+ },
+ {
+  "soc": "19-5011",
+  "title": "Occupational Health and Safety Specialists",
+  "postings": 421
+ },
+ {
+  "soc": "43-5061",
+  "title": "Production, Planning, and Expediting Clerks",
+  "postings": 419
+ },
+ {
+  "soc": "43-6012",
+  "title": "Legal Secretaries and Administrative Assistants",
+  "postings": 418
+ },
+ {
+  "soc": "17-2081",
+  "title": "Environmental Engineers",
+  "postings": 414
+ },
+ {
+  "soc": "15-2041",
+  "title": "Statisticians",
+  "postings": 413
+ },
+ {
+  "soc": "27-1021",
+  "title": "Commercial and Industrial Designers",
+  "postings": 407
+ },
+ {
+  "soc": "13-2082",
+  "title": "Tax Preparers",
+  "postings": 376
+ },
+ {
+  "soc": "29-1123",
+  "title": "Physical Therapists",
+  "postings": 376
+ },
+ {
+  "soc": "11-9151",
+  "title": "Social and Community Service Managers",
+  "postings": 364
+ },
+ {
+  "soc": "17-2161",
+  "title": "Nuclear Engineers",
+  "postings": 339
+ },
+ {
+  "soc": "13-1051",
+  "title": "Cost Estimators",
+  "postings": 325
+ },
+ {
+  "soc": "11-3012",
+  "title": "Administrative Services Managers",
+  "postings": 307
+ },
+ {
+  "soc": "13-1131",
+  "title": "Fundraisers",
+  "postings": 303
+ },
+ {
+  "soc": "27-3042",
+  "title": "Technical Writers",
+  "postings": 289
+ },
+ {
+  "soc": "11-9013",
+  "title": "Farmers, Ranchers, and Other Agricultural Managers",
+  "postings": 284
+ },
+ {
+  "soc": "27-1025",
+  "title": "Interior Designers",
+  "postings": 283
+ },
+ {
+  "soc": "17-2131",
+  "title": "Materials Engineers",
+  "postings": 281
+ },
+ {
+  "soc": "25-9031",
+  "title": "Instructional Coordinators",
+  "postings": 275
+ },
+ {
+  "soc": "27-3043",
+  "title": "Writers and Authors",
+  "postings": 266
+ },
+ {
+  "soc": "43-9061",
+  "title": "Office Clerks, General",
+  "postings": 254
+ },
+ {
+  "soc": "43-4011",
+  "title": "Brokerage Clerks",
+  "postings": 253
+ },
+ {
+  "soc": "19-4061",
+  "title": "Social Science Research Assistants",
+  "postings": 252
+ },
+ {
+  "soc": "49-9071",
+  "title": "Maintenance and Repair Workers, General",
+  "postings": 242
+ },
+ {
+  "soc": "43-9041",
+  "title": "Insurance Claims and Policy Processing Clerks",
+  "postings": 237
+ },
+ {
+  "soc": "11-9081",
+  "title": "Lodging Managers",
+  "postings": 232
+ },
+ {
+  "soc": "11-9171",
+  "title": "Funeral Home Managers",
+  "postings": 224
+ },
+ {
+  "soc": "19-2031",
+  "title": "Chemists",
+  "postings": 221
+ },
+ {
+  "soc": "43-3061",
+  "title": "Procurement Clerks",
+  "postings": 221
+ },
+ {
+  "soc": "17-3011",
+  "title": "Architectural and Civil Drafters",
+  "postings": 216
+ },
+ {
+  "soc": "41-9021",
+  "title": "Real Estate Brokers",
+  "postings": 209
+ },
+ {
+  "soc": "39-1014",
+  "title": "First-Line Supervisors of Entertainment and Recreation Workers, Except Gambling Services",
+  "postings": 196
+ },
+ {
+  "soc": "19-4021",
+  "title": "Biological Technicians",
+  "postings": 195
+ },
+ {
+  "soc": "39-9032",
+  "title": "Recreation Workers",
+  "postings": 195
+ },
+ {
+  "soc": "17-3012",
+  "title": "Electrical and Electronics Drafters",
+  "postings": 194
+ },
+ {
+  "soc": "39-9041",
+  "title": "Residential Advisors",
+  "postings": 176
+ },
+ {
+  "soc": "43-4051",
+  "title": "Customer Service Representatives",
+  "postings": 173
+ },
+ {
+  "soc": "17-3027",
+  "title": "Mechanical Engineering Technologists and Technicians",
+  "postings": 171
+ },
+ {
+  "soc": "27-3041",
+  "title": "Editors",
+  "postings": 165
+ },
+ {
+  "soc": "29-2072",
+  "title": "Medical Records Specialists",
+  "postings": 164
+ },
+ {
+  "soc": "41-1012",
+  "title": "First-Line Supervisors of Non-Retail Sales Workers",
+  "postings": 164
+ },
+ {
+  "soc": "17-2151",
+  "title": "Mining and Geological Engineers, Including Mining Safety Engineers",
+  "postings": 161
+ },
+ {
+  "soc": "13-1075",
+  "title": "Labor Relations Specialists",
+  "postings": 160
+ },
+ {
+  "soc": "17-2121",
+  "title": "Marine Engineers and Naval Architects",
+  "postings": 158
+ },
+ {
+  "soc": "27-3023",
+  "title": "News Analysts, Reporters, and Journalists",
+  "postings": 158
+ },
+ {
+  "soc": "43-4161",
+  "title": "Human Resources Assistants, Except Payroll and Timekeeping",
+  "postings": 152
+ },
+ {
+  "soc": "21-2021",
+  "title": "Directors, Religious Activities and Education",
+  "postings": 148
+ },
+ {
+  "soc": "11-9161",
+  "title": "Emergency Management Directors",
+  "postings": 147
+ },
+ {
+  "soc": "13-1011",
+  "title": "Agents and Business Managers of Artists, Performers, and Athletes",
+  "postings": 146
+ },
+ {
+  "soc": "51-8021",
+  "title": "Stationary Engineers and Boiler Operators",
+  "postings": 140
+ },
+ {
+  "soc": "17-2171",
+  "title": "Petroleum Engineers",
+  "postings": 135
+ },
+ {
+  "soc": "51-9061",
+  "title": "Inspectors, Testers, Sorters, Samplers, and Weighers",
+  "postings": 135
+ },
+ {
+  "soc": "19-3011",
+  "title": "Economists",
+  "postings": 134
+ },
+ {
+  "soc": "19-1012",
+  "title": "Food Scientists and Technologists",
+  "postings": 126
+ },
+ {
+  "soc": "35-1012",
+  "title": "First-Line Supervisors of Food Preparation and Serving Workers",
+  "postings": 119
+ },
+ {
+  "soc": "21-2011",
+  "title": "Clergy",
+  "postings": 118
+ },
+ {
+  "soc": "47-2081",
+  "title": "Drywall and Ceiling Tile Installers",
+  "postings": 116
+ },
+ {
+  "soc": "19-1031",
+  "title": "Conservation Scientists",
+  "postings": 114
+ },
+ {
+  "soc": "19-3033",
+  "title": "Clinical and Counseling Psychologists",
+  "postings": 111
+ },
+ {
+  "soc": "19-3051",
+  "title": "Urban and Regional Planners",
+  "postings": 110
+ },
+ {
+  "soc": "41-9011",
+  "title": "Demonstrators and Product Promoters",
+  "postings": 110
+ },
+ {
+  "soc": "17-3026",
+  "title": "Industrial Engineering Technologists and Technicians",
+  "postings": 109
+ },
+ {
+  "soc": "27-1014",
+  "title": "Special Effects Artists and Animators",
+  "postings": 109
+ },
+ {
+  "soc": "19-2032",
+  "title": "Materials Scientists",
+  "postings": 108
+ },
+ {
+  "soc": "21-1012",
+  "title": "Educational, Guidance, and Career Counselors and Advisors",
+  "postings": 107
+ },
+ {
+  "soc": "19-4031",
+  "title": "Chemical Technicians",
+  "postings": 104
+ },
+ {
+  "soc": "27-1026",
+  "title": "Merchandise Displayers and Window Trimmers",
+  "postings": 102
+ },
+ {
+  "soc": "41-2021",
+  "title": "Counter and Rental Clerks",
+  "postings": 98
+ },
+ {
+  "soc": "15-2021",
+  "title": "Mathematicians",
+  "postings": 97
+ },
+ {
+  "soc": "19-1021",
+  "title": "Biochemists and Biophysicists",
+  "postings": 95
+ },
+ {
+  "soc": "47-1011",
+  "title": "First-Line Supervisors of Construction Trades and Extraction Workers",
+  "postings": 93
+ },
+ {
+  "soc": "47-5071",
+  "title": "Roustabouts, Oil and Gas",
+  "postings": 92
+ },
+ {
+  "soc": "29-2034",
+  "title": "Radiologic Technologists and Technicians",
+  "postings": 90
+ },
+ {
+  "soc": "43-3071",
+  "title": "Tellers",
+  "postings": 88
+ },
+ {
+  "soc": "29-1215",
+  "title": "Family Medicine Physicians",
+  "postings": 87
+ },
+ {
+  "soc": "11-9131",
+  "title": "Postmasters and Mail Superintendents",
+  "postings": 86
+ },
+ {
+  "soc": "33-1012",
+  "title": "First-Line Supervisors of Police and Detectives",
+  "postings": 86
+ },
+ {
+  "soc": "33-3051",
+  "title": "Police and Sheriff's Patrol Officers",
+  "postings": 83
+ },
+ {
+  "soc": "37-1012",
+  "title": "First-Line Supervisors of Landscaping, Lawn Service, and Groundskeeping Workers",
+  "postings": 83
+ },
+ {
+  "soc": "19-1022",
+  "title": "Microbiologists",
+  "postings": 82
+ },
+ {
+  "soc": "41-2022",
+  "title": "Parts Salespersons",
+  "postings": 82
+ },
+ {
+  "soc": "17-1011",
+  "title": "Architects, Except Landscape and Naval",
+  "postings": 79
+ },
+ {
+  "soc": "13-2061",
+  "title": "Financial Examiners",
+  "postings": 78
+ },
+ {
+  "soc": "19-4013",
+  "title": "Food Science Technicians",
+  "postings": 78
+ },
+ {
+  "soc": "43-4041",
+  "title": "Credit Authorizers, Checkers, and Clerks",
+  "postings": 76
+ },
+ {
+  "soc": "29-9021",
+  "title": "Health Information Technologists and Medical Registrars",
+  "postings": 74
+ },
+ {
+  "soc": "29-1071",
+  "title": "Physician Assistants",
+  "postings": 73
+ },
+ {
+  "soc": "29-2091",
+  "title": "Orthotists and Prosthetists",
+  "postings": 72
+ },
+ {
+  "soc": "33-9032",
+  "title": "Security Guards",
+  "postings": 69
+ },
+ {
+  "soc": "53-7065",
+  "title": "Stockers and Order Fillers",
+  "postings": 68
+ },
+ {
+  "soc": "31-2022",
+  "title": "Physical Therapist Aides",
+  "postings": 66
+ },
+ {
+  "soc": "37-1011",
+  "title": "First-Line Supervisors of Housekeeping and Janitorial Workers",
+  "postings": 65
+ },
+ {
+  "soc": "17-3013",
+  "title": "Mechanical Drafters",
+  "postings": 63
+ },
+ {
+  "soc": "33-9021",
+  "title": "Private Detectives and Investigators",
+  "postings": 63
+ },
+ {
+  "soc": "51-3022",
+  "title": "Meat, Poultry, and Fish Cutters and Trimmers",
+  "postings": 61
+ },
+ {
+  "soc": "53-3031",
+  "title": "Driver/Sales Workers",
+  "postings": 61
+ },
+ {
+  "soc": "33-1011",
+  "title": "First-Line Supervisors of Correctional Officers",
+  "postings": 60
+ },
+ {
+  "soc": "41-9022",
+  "title": "Real Estate Sales Agents",
+  "postings": 60
+ },
+ {
+  "soc": "21-1022",
+  "title": "Healthcare Social Workers",
+  "postings": 59
+ },
+ {
+  "soc": "29-2053",
+  "title": "Psychiatric Technicians",
+  "postings": 59
+ },
+ {
+  "soc": "41-3041",
+  "title": "Travel Agents",
+  "postings": 59
+ },
+ {
+  "soc": "49-9021",
+  "title": "Heating, Air Conditioning, and Refrigeration Mechanics and Installers",
+  "postings": 59
+ },
+ {
+  "soc": "43-4131",
+  "title": "Loan Interviewers and Clerks",
+  "postings": 58
+ },
+ {
+  "soc": "19-2011",
+  "title": "Astronomers",
+  "postings": 57
+ },
+ {
+  "soc": "29-1131",
+  "title": "Veterinarians",
+  "postings": 57
+ },
+ {
+  "soc": "33-1021",
+  "title": "First-Line Supervisors of Firefighting and Prevention Workers",
+  "postings": 57
+ },
+ {
+  "soc": "17-3022",
+  "title": "Civil Engineering Technologists and Technicians",
+  "postings": 56
+ },
+ {
+  "soc": "21-1021",
+  "title": "Child, Family, and School Social Workers",
+  "postings": 55
+ },
+ {
+  "soc": "29-9093",
+  "title": "Surgical Assistants",
+  "postings": 54
+ },
+ {
+  "soc": "51-9071",
+  "title": "Jewelers and Precious Stone and Metal Workers",
+  "postings": 53
+ },
+ {
+  "soc": "53-2012",
+  "title": "Commercial Pilots",
+  "postings": 53
+ },
+ {
+  "soc": "19-1013",
+  "title": "Soil and Plant Scientists",
+  "postings": 52
+ },
+ {
+  "soc": "17-3023",
+  "title": "Electrical and Electronic Engineering Technologists and Technicians",
+  "postings": 51
+ },
+ {
+  "soc": "19-3022",
+  "title": "Survey Researchers",
+  "postings": 50
+ },
+ {
+  "soc": "19-4042",
+  "title": "Environmental Science and Protection Technicians, Including Health",
+  "postings": 50
+ },
+ {
+  "soc": "53-2021",
+  "title": "Air Traffic Controllers",
+  "postings": 50
+ }
+]
