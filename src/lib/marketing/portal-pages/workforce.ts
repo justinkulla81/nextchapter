@@ -25,6 +25,9 @@ const layoffs = shot('workforce-hub-layoffs', {
   why: 'A seat gives each affected worker the full job search tools, and you see how many signed up, never who.',
 })
 
+/** The workforce workspace screens, in the order the layoff response page shows them (layoffs first). */
+export const WORKFORCE_SHOTS = [layoffs, dashboard, admin]
+
 export const WORKFORCE: PortalPageDef = {
   seo: {
     ...pageSeo('/government-workforce'),

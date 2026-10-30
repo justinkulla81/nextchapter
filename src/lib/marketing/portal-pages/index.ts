@@ -5,6 +5,7 @@ import { HIGHER_EDUCATION } from './higher-education'
 import { HIRING } from './hiring'
 import { NONPROFITS } from './nonprofits'
 import { OUTPLACEMENT } from './outplacement'
+import { RAPID_RESPONSE } from './rapid-response'
 import { RECRUITERS } from './recruiters'
 import { WORKFORCE } from './workforce'
 import type { PortalPageDef } from './types'
@@ -13,6 +14,7 @@ import type { PortalPageDef } from './types'
 export const PORTAL_PAGES: PortalPageDef[] = [
   HIGHER_EDUCATION,
   WORKFORCE,
+  RAPID_RESPONSE,
   NONPROFITS,
   EMPLOYERS,
   HIRING,

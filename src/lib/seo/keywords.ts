@@ -2248,6 +2248,18 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'rapid-response-landing',
+    intent: 'Rapid Response team or workforce board looks for layoff response support',
+    owner: '/for-rapid-response',
+    kind: 'page',
+    primary: 'layoff response for workforce boards',
+    secondary: ['rapid response team software', 'dislocated worker services software', 'laid-off worker sign-up page'],
+    seo: {
+      title: 'Layoff Response for Workforce Boards and Rapid Response Teams',
+      description: 'One sign-up page for the workers in a layoff: local jobs ranked at the top, career support and AI skills, with counts of who stayed in your region.',
+    },
+  },
+  {
     id: 'workforce-boards-hub',
     intent: 'Find a local workforce board or job center',
     owner: '/workforce-boards',

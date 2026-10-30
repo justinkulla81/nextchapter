@@ -7,7 +7,22 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 }
 
-export default function WorkforceDemoPage() {
+type Query = Record<string, string | string[] | undefined>
+const one = (v: string | string[] | undefined, max: number) => (Array.isArray(v) ? v[0] : v)?.trim().slice(0, max) ?? ''
+
+// The campaign page (https://launchyournextchapter.com/for-rapid-response) links here with the visitor's organization,
+// city and state already filled in, and `from` so the demo that results can be traced to the campaign. Nothing here is
+// trusted: each value is cut to length and only ever lands in a form field the visitor can change.
+export default async function WorkforceDemoPage({ searchParams }: { searchParams: Promise<Query> }) {
+  const q = await searchParams
+  const state = one(q.state, 2).toUpperCase()
+  const from = one(q.from, 40)
+  const defaults = {
+    name: one(q.name, 80),
+    city: one(q.city, 60),
+    state: /^[A-Z]{2}$/.test(state) ? state : '',
+    from: /^[a-z0-9-]+$/.test(from) ? from : '',
+  }
   return (
     <main className="mx-auto max-w-2xl space-y-8 px-4 py-12">
       <div className="space-y-3">
@@ -22,7 +37,7 @@ export default function WorkforceDemoPage() {
           <li>See how many landed and how many stayed in your region.</li>
         </ul>
       </div>
-      <WorkforceDemoForm />
+      <WorkforceDemoForm defaults={defaults} />
       <p className="text-xs text-muted-foreground">The demo is read-only and lasts 30 days. Sample people and companies are fictional; regional figures are public data with their sources.</p>
     </main>
   )
