@@ -325,6 +325,10 @@
       "schedule": "0 11 * * 1"
     },
     {
+      "path": "/api/cron/staff-agents",
+      "schedule": "30 11 * * *"
+    },
+    {
       "path": "/api/cron/census-comms",
       "schedule": "0 15 * * *"
     },
