@@ -13,6 +13,10 @@ const FILING_DAYS = 14
 const FILING_MIN_WORKERS = 100
 const MAX_ROWS = 80
 
+// Rows sourced from layoffs.fyi get no layoff page (the tracker leaves them out, see topic-data.ts and company-announcements.ts), so a
+// page we would ask Google to index would be a 404. A NOT(contains) alone drops rows whose sourceUrl is NULL, hence the OR.
+const HAS_PAGE_SOURCE = { OR: [{ sourceUrl: null }, { NOT: { sourceUrl: { contains: 'layoffs.fyi', mode: 'insensitive' as const } } }] }
+
 export type LayoffType = 'warn' | 'news' | 'buyout'
 export type LinkedInState = 'POSTED' | 'DRAFT' | 'SKIPPED' | null
 
@@ -44,11 +48,11 @@ export async function loadPublishingQueue(now = new Date()): Promise<{ rows: Pub
   } as const
   const [announcements, filings, requests] = await Promise.all([
     prisma.warnNotice.findMany({
-      where: { source: 'MANUAL_ANNOUNCEMENT', dismissedAt: null, noticeDate: { gte: new Date(now.getTime() - ANNOUNCEMENT_DAYS * DAY_MS), lte: now } },
+      where: { ...HAS_PAGE_SOURCE, source: 'MANUAL_ANNOUNCEMENT', dismissedAt: null, noticeDate: { gte: new Date(now.getTime() - ANNOUNCEMENT_DAYS * DAY_MS), lte: now } },
       orderBy: { noticeDate: 'desc' }, take: MAX_ROWS, select,
     }),
     prisma.warnNotice.findMany({
-      where: { source: { not: 'MANUAL_ANNOUNCEMENT' }, dismissedAt: null, employees: { gte: FILING_MIN_WORKERS }, noticeDate: { gte: new Date(now.getTime() - FILING_DAYS * DAY_MS), lte: now } },
+      where: { ...HAS_PAGE_SOURCE, source: { not: 'MANUAL_ANNOUNCEMENT' }, dismissedAt: null, employees: { gte: FILING_MIN_WORKERS }, noticeDate: { gte: new Date(now.getTime() - FILING_DAYS * DAY_MS), lte: now } },
       orderBy: { employees: 'desc' }, take: MAX_ROWS, select,
     }),
     prisma.layoffIndexRequest.findMany({ select: { path: true, requestedAt: true } }),
