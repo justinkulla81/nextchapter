@@ -37,19 +37,37 @@ async function spentThisMonth(): Promise<number> {
  * One sweep: every tracked prompt on every provider that has a key, stopping the moment the month's estimated spend
  * would pass the cap. Results are stored one row per prompt and provider.
  */
-export async function runCitationCheck(opts: { providerIds?: string[]; limit?: number } = {}) {
+export async function runCitationCheck(
+  opts: {
+    providerIds?: string[]
+    limit?: number
+    /** One-off full pass: every tracked general question, no weekly filing questions, no rotation. */
+    all?: boolean
+    /** One-off spend ceiling for this run, in USD on top of what the month has already spent. The standing monthly cap is not changed. */
+    budgetUsd?: number
+    /** Questions in flight per assistant (default 3). */
+    concurrency?: number
+    /** Skip a question an assistant already answered (without error) since this time, so an interrupted full pass can be resumed. */
+    skipAnsweredSince?: Date
+  } = {},
+) {
   const providers = PROVIDERS.filter((p) => p.enabled() && (!opts.providerIds || opts.providerIds.includes(p.id)))
   // This week's questions about the newest filings first (they are the ones we should win), then a rotating share of the general ones.
-  const dataPrompts = weeklyDataPrompts(await getRecentNotices().catch(() => []))
-  const prompts = [...dataPrompts, ...rotateGeneral(CITATION_PROMPTS, weekIndexOf())].slice(0, opts.limit ?? Infinity)
+  const dataPrompts = opts.all ? [] : weeklyDataPrompts(await getRecentNotices().catch(() => []))
+  const prompts = [...dataPrompts, ...(opts.all ? CITATION_PROMPTS : rotateGeneral(CITATION_PROMPTS, weekIndexOf()))].slice(0, opts.limit ?? Infinity)
+  const answered = new Set<string>()
+  if (opts.skipAnsweredSince) {
+    const done = await prisma.aiCitationResult.findMany({ where: { createdAt: { gte: opts.skipAnsweredSince }, error: null }, select: { provider: true, promptKey: true } })
+    for (const d of done) answered.add(`${d.provider}\u0000${d.promptKey}`)
+  }
   const run = await prisma.aiCitationRun.create({ data: {} })
   if (providers.length === 0) {
     await prisma.aiCitationRun.update({ where: { id: run.id }, data: { finishedAt: new Date() } })
     return { runId: run.id, providers: [] as string[], asked: 0, cited: 0, spentUsd: 0, skippedForCap: false }
   }
 
-  const cap = monthlyCapUsd()
   let spent = await spentThisMonth()
+  const cap = opts.budgetUsd !== undefined ? spent + opts.budgetUsd : monthlyCapUsd()
   let runCost = 0
   let skippedForCap = false
   let asked = 0
@@ -60,6 +78,7 @@ export async function runCitationCheck(opts: { providerIds?: string[]; limit?: n
     const { p } = queue
     while (queue.next < prompts.length) {
       const q = prompts[queue.next++]
+      if (answered.has(`${p.id}\u0000${q.key}`)) continue
       // Reserve the cost before the call so parallel workers cannot overshoot the cap together.
       if (spent + p.estCostUsd > cap) {
         skippedForCap = true
@@ -84,7 +103,7 @@ export async function runCitationCheck(opts: { providerIds?: string[]; limit?: n
       await prisma.aiCitationResult.create({ data: { runId: run.id, provider: p.id, promptKey: q.key, prompt: q.prompt, estCostUsd: p.estCostUsd, ...data } })
     }
   }
-  await Promise.all(queues.flatMap((queue) => Array.from({ length: PER_PROVIDER }, () => worker(queue))))
+  await Promise.all(queues.flatMap((queue) => Array.from({ length: opts.concurrency ?? PER_PROVIDER }, () => worker(queue))))
 
   await prisma.aiCitationRun.update({ where: { id: run.id }, data: { finishedAt: new Date(), estCostUsd: runCost, skippedForCap } })
   return { runId: run.id, providers: providers.map((p) => p.id), asked, cited, spentUsd: Number(runCost.toFixed(4)), skippedForCap }

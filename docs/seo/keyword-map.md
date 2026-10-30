@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-189 clusters, 1093 phrases.
+187 clusters, 1084 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -72,7 +72,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/press` | page | white-collar unemployment data to cite | Cite and download our labor-market data | white-collar long-search index; long-term unemployment white-collar data; how to cite layoff data |
 | `/feeds` | page | layoff notices rss feed | Subscribe to layoff notices by RSS | WARN notices rss; layoff alerts by state rss; layoff news feed; WARN notice feed |
 | `/data` | page | layoff data download | Download layoff data | WARN notices csv; WARN notice data; layoff data by state; layoffs dataset |
-| `/data/embed` | page | layoff widget for website | Embed layoff, jobs and benefits widgets | embed layoff tracker; unemployment benefits widget; jobs widget by industry; AI exposure widget for a job |
+| `/data/embed` | page | layoff widget for website | Embed layoff, jobs and benefits widgets | embed layoff tracker; unemployment benefits widget; jobs widget by industry |
 | `/layoffs/:state` | family | {state} layoffs | Layoffs in one state | {state} WARN notices; {state} layoff list; recent layoffs in {state}; {state} companies laying off |
 | `/layoffs/company/:slug` | family | {company} layoffs | Layoffs at one employer | {company} WARN notice; {company} layoff dates; {company} layoff 2026 |
 | `/network/company/:slug` | family | {company} laid-off workers | What happens to workers laid off from one employer | former {company} employees; {company} laid off employees jobs; {company} severance and benefits; {company} alumni |
@@ -129,8 +129,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/layoff-deadlines` | page | deadlines after a layoff | Find the dates that matter after a layoff | layoff deadlines; cobra deadline after layoff; when to file for unemployment after layoff; what to do after being laid off by when; layoff checklist dates |
 | `/tools/layoff-risk-check` | page | layoff risk calculator | See whether there are warning signs of a layoff at an employer | layoff risk assessment; am I going to be laid off; signs of layoffs; my layoff risk; layoff risk check; is my job safe from layoffs |
 | `/tools/ai-job-check` | page | is my job safe from AI | A worker asks whether AI will affect their job and what to do about it | will AI replace my job; AI exposure by job; jobs most exposed to AI; AI job risk by occupation; how much of my job can AI do; AI job check |
-| `/tools/ai-job-check/prompts` | page | ChatGPT prompts for job search after layoff | A job seeker wants ready-made AI prompts for a search after a layoff | AI prompts for job search; prompts for laid off workers; ChatGPT prompts for career change; prompts to find transferable skills; AI prompts for resume |
-| `/tools/ai-job-check/compare/:pair` | family | {job} vs {job} AI exposure and pay | Compare two related jobs on AI exposure, pay and openings | {job} vs {job} salary; {job} or {job} which pays more; compare {job} and {job} |
+| `/data/ai-jobs-index` | page | AI jobs index | A researcher, journalist or worker wants current data on AI exposure, openings and AI-skill pay by occupation | AI exposure by occupation data; AI jobs data; which occupations are most exposed to AI; AI job market data download; AI skills pay and openings by occupation |
 | `/tools/resume-bullet-rewriter` | page | resume bullet point rewriter | A job seeker wants stronger résumé bullet points | rewrite resume bullets; resume bullet points generator; improve resume bullet points; resume bullet point examples; AI resume bullet rewriter; resume bullet points checker |
 | `/tools/interview-answer-coach` | page | interview answer feedback | A job seeker wants feedback on an interview answer before the interview | practice interview answers; interview answer coach; how to answer why were you laid off; how to answer tell me about yourself; AI interview practice; interview answer checker |
 | `/resources/warn-act` | page | WARN Act rights | A worker asks what a WARN notice means and what an employer owes | WARN notice meaning; what is the WARN Act; WARN Act severance; WARN Act pay; WARN Act exceptions; WARN Act for employees; state WARN laws |
@@ -196,7 +195,6 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/higher-education` | page | alumni career services for colleges | College buys alumni career support | alumni career services; student career services; college career services platform; alumni relations; career services workspace |
 | `/higher-education/:state` | family | {state} college career services | Colleges in one state | {state} colleges alumni support; {state} colleges career services; {state} university alumni career help |
 | `/government-workforce` | page | workforce board software | Workforce agency buys job seeker support | workforce development software; job seeker services; WIOA career services; economic development job seekers; chamber of commerce workforce |
-| `/for-rapid-response` | page | layoff response for workforce boards | Rapid Response team or workforce board looks for layoff response support | rapid response team software; dislocated worker services software; laid-off worker sign-up page |
 | `/workforce-boards` | page | workforce development boards | Find a local workforce board or job center | american job centers; local workforce board near me; workforce board directory; workforce investment board; job center near me; one-stop career center |
 | `/workforce-boards/:state` | family | {state} workforce development boards | Workforce boards in one state | {state} american job centers; {state} workforce boards; {state} job centers near me |
 | `/workforce-boards/:state/:board` | family | {board} workforce board | One workforce board | {board} american job center; {board} counties served; {board} contact |
@@ -782,11 +780,11 @@ Title is shown before the site suffix " | NextChapter".
 - Description: Type your job title to see how much of the work AI already does, which related jobs pay more or are less exposed, and the skills to build. Free, from real usage.
 - H1: Is my job safe from AI? Free AI exposure check
 
-### `/tools/ai-job-check/prompts`
+### `/data/ai-jobs-index`
 
-- Title: ChatGPT Prompts for a Job Search After a Layoff: Free Pack
-- Description: Twelve copy-and-paste prompts for ChatGPT, Claude or any AI assistant: first 7 days after a layoff, transferable skills and a career change plan, with real numbers.
-- H1: ChatGPT prompts for a job search after a layoff
+- Title: NextChapter AI Jobs Index: AI Exposure, Openings and Pay
+- Description: Monthly AI jobs index: how much of each occupation AI already does, how many jobs are open, and what AI skills add to advertised pay. Free CSV and citation.
+- H1: The NextChapter AI Jobs Index
 
 ### `/tools/resume-bullet-rewriter`
 
@@ -1067,11 +1065,6 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Workforce Board Workspace for Job Seeker Services
 - Description: Claim your organization’s page with a work email at your domain. A free workspace gives workforce boards and chambers a page, services and basic counts.
-
-### `/for-rapid-response`
-
-- Title: Layoff Response for Workforce Boards and Rapid Response Teams
-- Description: One sign-up page for the workers in a layoff: local jobs ranked at the top, career support and AI skills, with counts of who stayed in your region.
 
 ### `/workforce-boards`
 
