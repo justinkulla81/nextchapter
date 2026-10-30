@@ -11,7 +11,7 @@ export interface RosterMember {
   email: string
   personId: string | null
   listKey: string
-  status: 'ACTIVE' | 'UNSUBSCRIBED' | 'BOUNCED' | 'COMPLAINED'
+  status: 'ACTIVE' | 'UNSUBSCRIBED' | 'BOUNCED' | 'COMPLAINED' | 'REMOVED'
 }
 
 export interface RosterRow {

@@ -64,12 +64,15 @@ export async function addToLists(input: {
       if (verdict.reason !== 'already_active') result.blocked.push({ listId: list.id, listName: list.name, reason: ADD_BLOCKED_MESSAGE[verdict.reason] })
       continue
     }
-    await prisma.mailingListMember.create({
-      data: {
-        listId: list.id, email, personId: input.personId, status: 'ACTIVE', addedVia: input.addedVia,
-        consentNote: input.consentNote?.trim() || null, addedByEmail: input.addedByEmail ?? null,
-      },
-    })
+    const data = {
+      personId: input.personId, status: 'ACTIVE' as const, addedVia: input.addedVia,
+      consentNote: input.consentNote?.trim() || null, addedByEmail: input.addedByEmail ?? null,
+    }
+    if (verdict.action === 'reactivate') {
+      await prisma.mailingListMember.update({ where: { listId_email: { listId: list.id, email } }, data: { ...data, statusAt: new Date() } })
+    } else {
+      await prisma.mailingListMember.create({ data: { listId: list.id, email, ...data } })
+    }
     result.added.push({ listId: list.id, listName: list.name })
   }
   return result
@@ -256,6 +259,7 @@ export async function addManyToLists(input: {
   let alreadyOn = 0
   let blocked = 0
   const rows: Prisma.MailingListMemberCreateManyInput[] = []
+  const reactivate: { listId: string; email: string; personId: string }[] = []
   const seen = new Set<string>()
   for (const listId of input.listIds) {
     for (const p of people) {
@@ -263,14 +267,22 @@ export async function addManyToLists(input: {
       if (seen.has(k)) continue
       seen.add(k)
       const v = canAddToList(statusOf.get(k) ?? null, suppressionOf.get(p.email) ?? null)
-      if (v.ok) {
+      if (v.ok && v.action === 'reactivate') {
+        reactivate.push({ listId, email: p.email, personId: p.personId })
+      } else if (v.ok) {
         rows.push({ listId, email: p.email, personId: p.personId, status: 'ACTIVE', addedVia: input.addedVia, consentNote: input.consentNote ?? null, addedByEmail: input.addedByEmail ?? null })
       } else if (v.reason === 'already_active') alreadyOn++
       else blocked++
     }
   }
   const { count } = await prisma.mailingListMember.createMany({ data: rows, skipDuplicates: true })
-  return { added: count, alreadyOn, blocked }
+  for (const r of reactivate) {
+    await prisma.mailingListMember.update({
+      where: { listId_email: { listId: r.listId, email: r.email } },
+      data: { status: 'ACTIVE', statusAt: new Date(), personId: r.personId, addedVia: input.addedVia, consentNote: input.consentNote ?? null, addedByEmail: input.addedByEmail ?? null },
+    })
+  }
+  return { added: count + reactivate.length, alreadyOn, blocked }
 }
 
 // ── Do not email ─────────────────────────────────────────────────────────────
