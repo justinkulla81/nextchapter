@@ -17803,3 +17803,35 @@ model OutplacementAgentDraft {
   @@unique([seatId, weekKey, contactId])
   @@index([candidateId, weekKey])
 }
+
+/// The mobile app (apps/mobile): one row per installed app. Anonymous until the person signs in to save a search.
+model MobileDevice {
+  id         String   @id @default(cuid())
+  /// Expo push token, e.g. ExponentPushToken[...]. Unique per install.
+  pushToken  String   @unique
+  platform   String // 'ios' | 'android'
+  /// Supabase auth user id once they sign in; null while anonymous.
+  userId     String?
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+/// A search or employer a signed-in app user saved; the mobile-push cron pushes new matches and new layoffs.
+model MobileSavedSearch {
+  id           String    @id @default(cuid())
+  userId       String
+  /// 'jobs' (words, place, remote, minimum pay) or 'employer' (layoff filings at q).
+  kind         String
+  q            String    @default("")
+  loc          String    @default("")
+  remote       Boolean   @default(false)
+  /// Yearly dollars; 0 = no minimum (0, not null, so the unique key below holds).
+  minPay       Int       @default(0)
+  createdAt    DateTime  @default(now())
+  lastPushedAt DateTime?
+
+  @@unique([userId, kind, q, loc, remote, minPay])
+  @@index([userId])
+}
