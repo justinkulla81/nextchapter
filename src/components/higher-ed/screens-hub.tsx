@@ -11,6 +11,7 @@ import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, participants, 
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
 import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, ParticipantForm, SeatRequestAnswer } from './HubForms'
+import { BriefCard } from './BriefCard'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
@@ -28,6 +29,7 @@ export async function HubHome({ ctx }: Props) {
   const activation = d.participants ? Math.round((d.joined / d.participants) * 100) : null
   return (
     <div className="space-y-6">
+      <BriefCard institutionId={ctx.institution.id} agent="workforce_dev" />
       {!d.local && (
         <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
           Set your region in <Link href={`/i/${slug}/hub/local`} className="font-medium text-primary hover:underline">Kept in region</Link> so local jobs rank first for your participants and we can count who stays.
