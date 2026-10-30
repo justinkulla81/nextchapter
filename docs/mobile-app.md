@@ -18,6 +18,7 @@ Sign-in is asked for only when someone taps Save search or "Alert me about new f
 - `jobs`: same board and filters as https://launchyournextchapter.com/jobs plus `minPay` and `offset` paging. Cached 5 minutes per query (`searchPublicBoardCached`), 300 requests per hour per address.
 - `ai-check`: uses the O*NET title matcher and stored exposure data. No model call, so nothing is metered.
 - `layoffs`: `queryLayoffs` (the same function behind https://launchyournextchapter.com/api/public/layoffs), cached 15 minutes.
+- `account` (POST): account deletion from the app (see the store checklist). Needs the password and the word DELETE.
 - `devices` (POST): stores an Expo push token, tied to the user when a bearer token is sent.
 - `saved` (GET, POST, DELETE): needs a Supabase bearer token, checked with Supabase on every call. 25 saved items per user.
 - `src/app/api/cron/mobile-push`: hourly (`17 * * * *`). Sends new-match and new-layoff pushes through Expo's push service (free). **It does nothing until `MOBILE_PUSH_ENABLED=1` is set in Vercel**, so merging sends no notification.

@@ -33,7 +33,14 @@
       "expo-web-browser",
       "expo-secure-store",
       "expo-sharing",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#0B2545",
+          "imageWidth": 200
+        }
+      ],
       "expo-font",
       [
         "expo-notifications",
@@ -44,10 +51,18 @@
     ],
     "scheme": "nextchapter",
     "extra": {
-      "router": {}
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "16a5b170-79d5-4430-8606-6f38785e7318"
+      }
     },
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "owner": "launchyournextchapter"
   }
 }
