@@ -425,6 +425,7 @@ export default async function AdminVisitorActivityPage({
     },
     {
       header: 'Email and CRM',
+      cellClassName: 'max-w-[20ch]',
       render: (r) => {
         const fromEmail = !!r.recipient || !!r.likelyRecipient
         if (!fromEmail && r.givenEmails.length === 0 && r.crmPeople.length === 0) return <span className="text-muted-foreground">—</span>
@@ -433,19 +434,19 @@ export default async function AdminVisitorActivityPage({
             {fromEmail && (
               <div>
                 <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">
-                  {r.recipient ? 'Came from our email' : 'Likely from our email'}
+                  {r.recipient ? 'From email' : 'Likely email'}
                 </span>
               </div>
             )}
             {r.givenEmails.map((g) => (
-              <div key={g.email} className="text-xs">
-                <span className="font-medium">Gave email</span> <span className="text-muted-foreground">({g.how})</span> {g.email}
+              <div key={g.email} className="truncate text-xs" title={`Gave email (${g.how}): ${g.email}`}>
+                <span className="font-medium">Gave</span> {g.email}
               </div>
             ))}
             {r.crmPeople.map((p) => (
-              <div key={p.id} className="text-xs">
-                <span className="rounded bg-success/10 px-1.5 py-0.5 font-medium text-success">In CRM</span>{' '}
-                <Link href={`/support/admin/crm/people/${p.id}`} className="text-primary hover:underline">
+              <div key={p.id} className="truncate text-xs">
+                <span className="rounded bg-success/10 px-1.5 py-0.5 font-medium text-success">CRM</span>{' '}
+                <Link href={`/support/admin/crm/people/${p.id}`} title={p.name} className="text-primary hover:underline">
                   {p.name}
                 </Link>
               </div>
@@ -469,6 +470,10 @@ export default async function AdminVisitorActivityPage({
         ),
     },
     {
+      header: 'Type',
+      render: (r) => <span className={r.pageType === 'Job posting' ? '' : 'text-muted-foreground'}>{r.pageType}</span>,
+    },
+    {
       header: 'Page or click',
       render: (r) => {
         if (r.eventType === 'LINK_CLICK' && r.href) {
@@ -482,10 +487,6 @@ export default async function AdminVisitorActivityPage({
         if (r.path) return <ShortUrl url={absoluteUrl(r.path)} max="max-w-[34ch]" />
         return r.eventType === 'PAGE_VIEW' ? <span className="text-muted-foreground">/ (before path tracking)</span> : '—'
       },
-    },
-    {
-      header: 'Type',
-      render: (r) => <span className={r.pageType === 'Job posting' ? '' : 'text-muted-foreground'}>{r.pageType}</span>,
     },
     {
       header: 'Device',
