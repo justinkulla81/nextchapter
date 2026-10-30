@@ -44,16 +44,28 @@ export const PROVIDERS: Provider[] = [
     id: 'perplexity',
     estCostUsd: 0.012,
     enabled: () => !!process.env.PERPLEXITY_API_KEY,
+    // Perplexity moved Sonar behind its Agent API (POST /v1/responses, OpenAI-compatible); /chat/completions now answers 403.
+    // Web search is opt-in there, and the sources come back as a search_results item in the output.
     async ask(prompt) {
-      const r = await fetch('https://api.perplexity.ai/chat/completions', {
+      const r = await fetch('https://api.perplexity.ai/v1/responses', {
         method: 'POST',
         headers: { Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'sonar', messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: prompt }], max_tokens: 700 }),
+        body: JSON.stringify({ model: process.env.AI_CITATION_PERPLEXITY_MODEL || 'perplexity/sonar', input: `${SYSTEM}\n\n${prompt}`, tools: [{ type: 'web_search' }], max_output_tokens: 1500 }),
       })
       if (!r.ok) throw new Error(`perplexity ${r.status}: ${(await r.text()).replace(/\s+/g, ' ').slice(0, 160)}`)
       const j = await r.json()
-      const sources: string[] = [...(j.citations ?? []), ...(j.search_results ?? []).map((s: { url?: string }) => s.url).filter(Boolean)]
-      return { text: j.choices?.[0]?.message?.content ?? '', sources }
+      const sources: string[] = []
+      let text = ''
+      for (const item of j.output ?? []) {
+        if (item.type === 'search_results') for (const res of item.results ?? []) if (res.url) sources.push(res.url)
+        if (item.type === 'message') {
+          for (const part of item.content ?? []) {
+            text += part.text ?? ''
+            for (const a of part.annotations ?? []) if (a.url) sources.push(a.url)
+          }
+        }
+      }
+      return { text, sources }
     },
   },
   {
