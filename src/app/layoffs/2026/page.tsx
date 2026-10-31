@@ -4,6 +4,7 @@ import { PublicSiteFooter, PublicSiteHeader } from '@/components/marketing/Publi
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { CiteThisData } from '@/components/layoffs/CiteThisData'
+import { MonthBars } from '@/components/layoffs/MonthBars'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { LayoffNumbersNote } from '@/components/layoffs/LayoffNumbersNote'
 import { FeedLine } from '@/components/seo/FeedLine'
@@ -71,6 +72,10 @@ export default async function Layoffs2026Page() {
 
           <section aria-labelledby="months" className="mt-12">
             <h2 id="months" className={H2}>Layoffs by month, {LAYOFF_YEAR}</h2>
+            <div className="mt-4 rounded-xl border border-border bg-white p-4">
+              <MonthBars months={months} label={`Layoffs by month, ${LAYOFF_YEAR}`} />
+              <p className="mt-2 text-xs text-muted-foreground">Workers named in WARN notices, by notice date. <Link href="/data/embed" className={LINK}>Put this chart on your site</Link>, for the whole country or any state.</p>
+            </div>
             <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-white">
               <table className="w-full text-sm">
                 <caption className="sr-only">WARN layoff notices by month, {LAYOFF_YEAR}</caption>

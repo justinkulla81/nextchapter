@@ -20,7 +20,7 @@ export default function EmbedPage() {
         <div className="mx-auto max-w-5xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/data/embed', 'Embeddable widgets')}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
-            Show live layoff notices, open jobs, unemployment benefits or the AI exposure of any job on your own site, with one snippet. The data stays current on its own. Free to use; keep the link under the frame.
+            Show live layoff notices, a layoffs-by-month chart, open jobs, unemployment benefits or the AI exposure of any job on your own site, with one snippet. The data stays current on its own. Free to use; keep the link under the frame.
           </p>
           <div className="mt-8">
             <EmbedBuilder states={states} industries={industries} jobs={jobs} />
