@@ -11,7 +11,7 @@ const FAQ = [
   { q: 'Who has to receive the notice?', a: 'The affected employees (or their representative), the State dislocated worker unit, and the chief elected official of the local government where the site is. The generator drafts all three.' },
   { q: 'How far ahead does it have to go out?', a: 'Federal law requires written notice at least 60 days before a plant closing or mass layoff. A few states ask for more. New Jersey and New York ask for 90 days. Choose your state in the tool to see the date.' },
   { q: 'Is the draft legal advice or a finished notice?', a: 'No. It is a starting draft built from the federal regulation’s list of required contents. A lawyer should read it for your facts, your state’s additions, and any exception that shortens the notice period.' },
-  { q: 'Does it cover state laws?', a: 'It shows the rule for the states we have read from the state’s own pages (California, New Jersey, New York, Illinois and Washington) and tells you when yours is not listed. It does not add a state’s extra notice items to the draft.' },
+  { q: 'Does it cover state laws?', a: 'It shows the rule and the notice deadline for the eleven states whose own statute or labor department pages we have read (California, Delaware, Illinois, Iowa, Maine, Maryland, New Hampshire, New Jersey, New York, Vermont and Washington) and tells you when yours is not listed. It does not add a state’s extra notice items to the draft.' },
   { q: 'Is anything I type saved or sent?', a: 'No. The draft is built in your browser. Nothing is sent to us or stored.' },
 ]
 

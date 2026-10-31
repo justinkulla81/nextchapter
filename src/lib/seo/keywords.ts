@@ -1607,6 +1607,14 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'warn-act-state',
+    intent: 'A state\u2019s own WARN Act or layoff notice law',
+    owner: '/resources/warn-act/:state',
+    kind: 'family',
+    primary: '{state} mini-WARN law',
+    secondary: ['{state} layoff notice law', '{state} WARN notice requirements', '{state} plant closing law', '{state} WARN Act statute'],
+  },
+  {
     id: 'glossary',
     intent: 'Define a layoff or job search term',
     owner: '/glossary',

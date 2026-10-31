@@ -26,6 +26,7 @@ import { TOPICS } from '@/lib/seo/explainers'
 import { INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
 import { WEEK_MIN_NOTICES, getWeeks } from '@/lib/layoffs/weekly'
 import { MONTH_MIN_NOTICES, getMonths } from '@/lib/layoffs/monthly'
+import { STATE_WARN_LAWS } from '@/lib/warn-guide/rules'
 import { getCatalogIndex, getConferenceAssessments } from '@/lib/seo/topic-data'
 import { assessAssociation } from '@/lib/seo/topic-quality'
 import { topicsWithSnapshot } from '@/lib/seo/topic-snapshot'
@@ -333,6 +334,8 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/workforce-boards', DIRECTORY_UPDATED, 'monthly', 0.6),
     entry('/rapid-response', DIRECTORY_UPDATED, 'monthly', 0.6),
     entry('/tools/warn-act-checker', DIRECTORY_UPDATED, 'yearly', 0.6),
+    // One page for each state whose own notice law was read from its statute or labor department (src/lib/warn-guide/rules.ts).
+    ...STATE_WARN_LAWS.map((l) => entry(`/resources/warn-act/${stateSlug(l.code)}`, '2026-10-30', 'monthly', 0.6)),
     entry('/economic-development', DIRECTORY_UPDATED, 'monthly', 0.6),
     ...seoStatePages.flatMap((p) => p),
 

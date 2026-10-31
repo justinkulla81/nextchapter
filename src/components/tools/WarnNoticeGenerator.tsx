@@ -8,9 +8,6 @@ import { STATE_WARN_LAWS, stateWarnLaw } from '@/lib/warn-guide/rules'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 
-/** Days of notice each sourced state law asks for (src/lib/warn-guide/rules.ts). Other states: the federal 60. */
-const STATE_DAYS: Record<string, number> = { CA: 60, NJ: 90, NY: 90, IL: 60, WA: 60 }
-
 const today = () => new Date().toISOString().slice(0, 10)
 
 const EMPTY: NoticeInput = {
@@ -81,7 +78,7 @@ function Draft({ title, text, filename, onUse }: { title: string; text: string; 
 }
 
 // A draft of the three federal WARN notices from a few facts. It runs in the browser: nothing is sent or saved, and the events
-// carry choices and counts, never names or addresses. A state box shows the rule for the five states whose laws are sourced.
+// carry choices and counts, never names or addresses. A state box shows the rule for the states whose laws are sourced.
 export function WarnNoticeGenerator() {
   const [v, setV] = useState<NoticeInput>(EMPTY)
   const [state, setState] = useState('')
@@ -104,7 +101,7 @@ export function WarnNoticeGenerator() {
   const setPosition = (i: number, patch: Partial<NoticeInput['positions'][number]>) => set('positions', v.positions.map((p, k) => (k === i ? { ...p, ...patch } : p)))
 
   const law = state ? stateWarnLaw(state) : null
-  const days = (state && STATE_DAYS[state]) || 60
+  const days = law?.noticeDays ?? 60
   const deadline = noticeDeadline(v.firstSeparation, days)
 
   const submit = (e: React.FormEvent) => {
