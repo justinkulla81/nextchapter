@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-191 clusters, 1108 phrases.
+192 clusters, 1116 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -139,6 +139,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
 | `/tools/resume-check` | page | free resume check | Score my resume with a free tool | resume checker; resume score; check my resume; free resume score; resume analyzer |
 | `/tools/resume-job-match` | page | resume vs job description | Compare my resume to a job description and see missing keywords | resume job description match; compare resume to job description; resume keyword checker; resume scanner; ats resume scanner; resume keywords for a job; match resume to job description; resume job match score |
+| `/tools/warn-notice-generator` | page | WARN notice template | Draft the WARN notices for a layoff or plant closing | WARN notice generator; WARN Act notice letter; WARN notice sample; WARN notice requirements; WARN notice to employees template; mass layoff notice letter; layoff notice template |
 | `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; what is COBRA; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
 | `/events` | page | job fairs near me | Job fairs and business events near me | career fairs near me; hiring events near me; small business workshops near me; startup events near me |
 | `/events/:state` | family | {state} job fairs | Job fairs and business events in one state | {state} career fairs; {state} hiring events; {state} small business workshops; {state} startup events |
@@ -837,6 +838,12 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Resume vs Job Description: Free Keyword Match Tool
 - Description: Paste a job posting and your resume to see which keywords you already say and which you are missing. Free, no AI, and nothing leaves your browser.
 - H1: Resume vs job description: see which keywords you are missing
+
+### `/tools/warn-notice-generator`
+
+- Title: WARN Notice Template: Free Generator for Employers
+- Description: Draft the WARN notices to employees, a union and the State and local government from a few facts, with the 60 or 90 day deadline. Free; nothing leaves your browser.
+- H1: WARN notice template and generator
 
 ### `/glossary`
 
