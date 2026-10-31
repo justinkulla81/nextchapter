@@ -34,10 +34,12 @@ const PUBLIC = Prisma.sql`status = 'approved' AND "archivedAt" IS NULL AND "clos
 const BASE = Prisma.sql`lower(btrim(regexp_replace(regexp_replace(regexp_replace(title, '[[:space:]]+[-–—|][[:space:]]+.*$', ''), '[[:space:]]*[,(:/].*$', ''), '[[:space:]]+', ' ', 'g')))`
 
 // Annualized midpoint of the stated pay, or null when the listing does not state a usable annual figure.
+// The pay columns are 32-bit ints and a junk listing can state 10,000,000 an hour, so the arithmetic is done in bigint: a
+// plain int x 2,080 overflows and failed the whole scan ("integer out of range").
 const PAY = Prisma.sql`CASE
   WHEN "salaryMin" IS NULL THEN NULL
-  WHEN "payPeriod" = 'year' AND "salaryMin" BETWEEN 25000 AND 1500000 AND COALESCE("salaryMax", "salaryMin") BETWEEN "salaryMin" AND "salaryMin" * 3 THEN ("salaryMin" + COALESCE("salaryMax", "salaryMin")) / 2.0
-  WHEN "payPeriod" = 'hour' AND "salaryMin" * 2080 BETWEEN 25000 AND 400000 AND COALESCE("salaryMax", "salaryMin") BETWEEN "salaryMin" AND "salaryMin" * 3 THEN ("salaryMin" + COALESCE("salaryMax", "salaryMin")) / 2.0 * 2080
+  WHEN "payPeriod" = 'year' AND "salaryMin" BETWEEN 25000 AND 1500000 AND COALESCE("salaryMax", "salaryMin")::bigint BETWEEN "salaryMin"::bigint AND "salaryMin"::bigint * 3 THEN ("salaryMin"::bigint + COALESCE("salaryMax", "salaryMin")::bigint) / 2.0
+  WHEN "payPeriod" = 'hour' AND "salaryMin"::bigint * 2080 BETWEEN 25000 AND 400000 AND COALESCE("salaryMax", "salaryMin")::bigint BETWEEN "salaryMin"::bigint AND "salaryMin"::bigint * 3 THEN ("salaryMin"::bigint + COALESCE("salaryMax", "salaryMin")::bigint) / 2.0 * 2080
   ELSE NULL END`
 
 export interface TitleStat {
