@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-193 clusters, 1121 phrases.
+201 clusters, 1196 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -141,7 +141,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/resume-job-match` | page | resume vs job description | Compare my resume to a job description and see missing keywords | resume job description match; compare resume to job description; resume keyword checker; resume scanner; ats resume scanner; resume keywords for a job; match resume to job description; resume job match score |
 | `/tools/warn-notice-generator` | page | WARN notice template | Draft the WARN notices for a layoff or plant closing | WARN notice generator; WARN Act notice letter; WARN notice sample; WARN notice requirements; WARN notice to employees template; mass layoff notice letter; layoff notice template |
 | `/resources/warn-act/:state` | family | {state} mini-WARN law | A state’s own WARN Act or layoff notice law | {state} layoff notice law; {state} WARN notice requirements; {state} plant closing law; {state} WARN Act statute |
-| `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; what is COBRA; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
+| `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is COBRA; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
 | `/events` | page | job fairs near me | Job fairs and business events near me | career fairs near me; hiring events near me; small business workshops near me; startup events near me |
 | `/events/:state` | family | {state} job fairs | Job fairs and business events in one state | {state} career fairs; {state} hiring events; {state} small business workshops; {state} startup events |
 | `/places` | page | local job markets | Job market in my area | jobs near me; job market by state and county; local unemployment rate; job openings by county; largest employers near me |
@@ -169,6 +169,14 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/topics/acquisition-layoffs` | page | layoffs after an acquisition | Judge the risk of layoffs after my company is acquired | will i be laid off after an acquisition; company acquired what happens to my job; layoffs after a merger; merger layoffs; acquisition layoffs timeline; what to ask if your company is acquired; worried about layoffs after acquisition |
 | `/topics/should-i-take-the-buyout` | page | should i take the buyout | Decide whether to accept a voluntary buyout offer | voluntary buyout; voluntary separation package; voluntary separation program; buyout offer from employer; voluntary severance; deferred resignation; is a buyout worth it |
 | `/topics/fired-vs-laid-off` | page | fired vs laid off | Understand the difference between being fired and laid off | difference between fired and laid off; laid off vs fired; terminated vs laid off; laid off or fired unemployment; fired vs let go; can i collect unemployment if i was fired |
+| `/topics/reduction-in-force` | page | reduction in force | Understand a reduction in force and what to do after a RIF letter | what is a RIF; what is a reduction in force; reduction in force meaning; RIF vs layoff; RIF letter; RIF notice what to do; RIF severance pay; RIF and unemployment; how are employees chosen for a RIF; RIF selection criteria; RIF over 40; can i be rehired after a RIF |
+| `/topics/federal-rif` | page | federal RIF | Know your rights in a federal reduction in force | federal reduction in force; federal RIF rights; federal RIF notice; federal RIF severance; federal RIF appeal; MSPB RIF appeal; federal employee unemployment UCFE; RIF bump and retreat rights; CTAP and ICTAP; federal employees laid off; federal RIF retirement |
+| `/topics/unemployment-denied-appeal` | page | unemployment denied | Appeal a denied unemployment claim or an overpayment | unemployment appeal; how to appeal unemployment; unemployment appeal hearing; unemployment overpayment; unemployment overpayment waiver; unemployment claim denied; why was my unemployment denied; unemployment denied what to do |
+| `/topics/unemployment-after-quitting-or-firing` | page | unemployment after quitting | Collect unemployment after quitting or being fired | can i collect unemployment if i quit; unemployment after being fired; unemployment if you quit; good cause to quit unemployment; fired for misconduct unemployment; unemployment forced resignation; unemployment after resigning; unemployment misconduct |
+| `/topics/unemployment-taxes-1099g` | page | is unemployment taxable | Understand tax on unemployment benefits and the 1099-G | unemployment taxes; 1099-G unemployment; form 1099-G; unemployment tax withholding; withhold taxes from unemployment; do you pay taxes on unemployment; is unemployment income taxable; how much tax is taken out of unemployment |
+| `/topics/unemployment-extension` | page | unemployment extension | Know what happens when unemployment runs out | extended unemployment benefits; extended benefits; what happens when unemployment runs out; unemployment benefits ran out; unemployment exhausted; unemployment benefits exhausted; is there an unemployment extension |
+| `/topics/unemployment-payment-timing` | page | how long until first unemployment payment | Know when the first unemployment payment arrives and why it is late | how long does it take to get unemployment; when will i get my first unemployment check; unemployment payment delayed; unemployment pending; unemployment claim pending; what does pending mean unemployment; unemployment payment late |
+| `/topics/unemployment-self-employed` | page | unemployment for self-employed | Find out whether self-employed people and gig workers can claim unemployment | self employed unemployment; unemployment for contractors; unemployment for gig workers; 1099 unemployment; unemployment for independent contractors; can freelancers get unemployment; unemployment for freelancers |
 | `/topics/how-to-lay-off-employees` | page | how to lay off employees | Employer plans a layoff | layoff checklist for employers; layoff communication plan; layoff process; how to conduct a layoff; layoff meeting script |
 | `/topics/cover-letter-tips` | page | cover letter tips | Write a cover letter | cover letter for experienced professionals; cover letter after layoff; cover letter for career change; how long should a cover letter be; do I need a cover letter |
 | `/topics/executive-recruiters` | page | executive recruiters | Work with executive recruiters and search firms | executive search firms; retained search firms; headhunters; how to work with an executive recruiter; how to get on a recruiter’s radar; contingent vs retained recruiters; find an executive recruiter; executive search |
@@ -940,6 +948,46 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Fired vs Laid Off: The Difference and Why It Matters
 - Description: How a layoff differs from a firing, what each means for unemployment, severance and COBRA, what the paperwork should say and how to explain either in an interview.
+
+### `/topics/reduction-in-force`
+
+- Title: Reduction in Force (RIF): Meaning, Rights and Next Steps
+- Description: What a reduction in force is, how it differs from a layoff, what a RIF letter should say, and the severance, WARN and unemployment steps to take in the first week.
+
+### `/topics/federal-rif`
+
+- Title: Federal RIF: Rights, Notice, Severance and How to Appeal
+- Description: What a federal reduction in force means: 60-day notice, retention order, severance pay, unemployment (UCFE), MSPB appeal and priority for other federal jobs.
+
+### `/topics/unemployment-denied-appeal`
+
+- Title: Unemployment Denied: How to Appeal and What to Do Now
+- Description: Unemployment denied? The appeal deadline, why claims are denied, what happens at a hearing, and what to do about an overpayment notice, step by step.
+
+### `/topics/unemployment-after-quitting-or-firing`
+
+- Title: Unemployment After Quitting or Being Fired: What Counts
+- Description: Can you collect unemployment after quitting or being fired? What counts as misconduct and good cause, what to do if forced to resign, and how to file.
+
+### `/topics/unemployment-taxes-1099g`
+
+- Title: Is Unemployment Taxable? 1099-G, Withholding and State Tax
+- Description: Unemployment is taxable income. How the 1099-G works, how to withhold 10%, which states exempt benefits, and what to do about a wrong or unexpected form.
+
+### `/topics/unemployment-extension`
+
+- Title: Unemployment Extension: What to Do When Benefits Run Out
+- Description: How many weeks unemployment lasts, when Extended Benefits switch on, whether a federal extension exists and what to line up before your last payment.
+
+### `/topics/unemployment-payment-timing`
+
+- Title: How Long Until Your First Unemployment Payment?
+- Description: Most first unemployment payments arrive in two to three weeks. Why a claim is pending or late, what to check, and what to do while you wait.
+
+### `/topics/unemployment-self-employed`
+
+- Title: Unemployment for Self-Employed, Contractors and Gig Workers
+- Description: Can self-employed people, 1099 contractors and gig workers get unemployment? Who is covered, when W-2 wages count and what to use instead.
 
 ### `/topics/how-to-lay-off-employees`
 

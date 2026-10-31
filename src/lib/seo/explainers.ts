@@ -5,6 +5,7 @@
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { QUESTION_TOPICS } from './explainers-questions'
 import { QUESTION_TOPICS_2 } from './explainers-questions-2'
+import { CLAIM_TOPICS } from './explainers-claims'
 
 export interface TopicSection {
   h2: string
@@ -867,6 +868,7 @@ export const TOPICS: TopicContent[] = [
   },
   ...QUESTION_TOPICS,
   ...QUESTION_TOPICS_2,
+  ...CLAIM_TOPICS,
   {
     slug: 'what-is-a-job-transition-platform',
     h1: 'What is a job transition platform?',

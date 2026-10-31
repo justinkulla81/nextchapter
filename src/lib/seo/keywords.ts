@@ -1620,7 +1620,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/glossary',
     kind: 'page',
     primary: 'layoff and job search glossary',
-    secondary: ['what is a WARN notice', 'what is a reduction in force', 'what is COBRA', 'what is a retained search', 'what is garden leave', 'what is an applicant tracking system', 'what is a dislocated worker', 'what is an american job center', 'what is a release agreement', 'what is fractional work', 'what are transferable skills', 'what is total compensation', 'what is a non-compete'],
+    secondary: ['what is a WARN notice', 'what is COBRA', 'what is a retained search', 'what is garden leave', 'what is an applicant tracking system', 'what is a dislocated worker', 'what is an american job center', 'what is a release agreement', 'what is fractional work', 'what are transferable skills', 'what is total compensation', 'what is a non-compete'],
     seo: {
       title: 'Layoff and Job Search Glossary: Plain Definitions',
       description: 'Plain definitions of WARN notice, reduction in force, severance, COBRA, outplacement, executive recruiter, reverse recruiter, ATS and more layoff terms.',
@@ -1922,6 +1922,110 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     seo: {
       title: 'Fired vs Laid Off: The Difference and Why It Matters',
       description: 'How a layoff differs from a firing, what each means for unemployment, severance and COBRA, what the paperwork should say and how to explain either in an interview.',
+    },
+  },
+  {
+    id: 'reduction-in-force',
+    intent: 'Understand a reduction in force and what to do after a RIF letter',
+    owner: '/topics/reduction-in-force',
+    kind: 'page',
+    primary: 'reduction in force',
+    secondary: ['what is a RIF', 'what is a reduction in force', 'reduction in force meaning', 'RIF vs layoff', 'RIF letter', 'RIF notice what to do', 'RIF severance pay', 'RIF and unemployment', 'how are employees chosen for a RIF', 'RIF selection criteria', 'RIF over 40', 'can i be rehired after a RIF'],
+    seo: {
+      title: 'Reduction in Force (RIF): Meaning, Rights and Next Steps',
+      description:
+        'What a reduction in force is, how it differs from a layoff, what a RIF letter should say, and the severance, WARN and unemployment steps to take in the first week.',
+    },
+  },
+  {
+    id: 'federal-rif',
+    intent: 'Know your rights in a federal reduction in force',
+    owner: '/topics/federal-rif',
+    kind: 'page',
+    primary: 'federal RIF',
+    secondary: ['federal reduction in force', 'federal RIF rights', 'federal RIF notice', 'federal RIF severance', 'federal RIF appeal', 'MSPB RIF appeal', 'federal employee unemployment UCFE', 'RIF bump and retreat rights', 'CTAP and ICTAP', 'federal employees laid off', 'federal RIF retirement'],
+    seo: {
+      title: 'Federal RIF: Rights, Notice, Severance and How to Appeal',
+      description:
+        'What a federal reduction in force means: 60-day notice, retention order, severance pay, unemployment (UCFE), MSPB appeal and priority for other federal jobs.',
+    },
+  },
+  {
+    id: 'unemployment-denied',
+    intent: 'Appeal a denied unemployment claim or an overpayment',
+    owner: '/topics/unemployment-denied-appeal',
+    kind: 'page',
+    primary: 'unemployment denied',
+    secondary: ['unemployment appeal', 'how to appeal unemployment', 'unemployment appeal hearing', 'unemployment overpayment', 'unemployment overpayment waiver', 'unemployment claim denied', 'why was my unemployment denied', 'unemployment denied what to do'],
+    seo: {
+      title: 'Unemployment Denied: How to Appeal and What to Do Now',
+      description:
+        'Unemployment denied? The appeal deadline, why claims are denied, what happens at a hearing, and what to do about an overpayment notice, step by step.',
+    },
+  },
+  {
+    id: 'unemployment-quit-fired',
+    intent: 'Collect unemployment after quitting or being fired',
+    owner: '/topics/unemployment-after-quitting-or-firing',
+    kind: 'page',
+    primary: 'unemployment after quitting',
+    secondary: ['can i collect unemployment if i quit', 'unemployment after being fired', 'unemployment if you quit', 'good cause to quit unemployment', 'fired for misconduct unemployment', 'unemployment forced resignation', 'unemployment after resigning', 'unemployment misconduct'],
+    seo: {
+      title: 'Unemployment After Quitting or Being Fired: What Counts',
+      description:
+        'Can you collect unemployment after quitting or being fired? What counts as misconduct and good cause, what to do if forced to resign, and how to file.',
+    },
+  },
+  {
+    id: 'unemployment-taxes',
+    intent: 'Understand tax on unemployment benefits and the 1099-G',
+    owner: '/topics/unemployment-taxes-1099g',
+    kind: 'page',
+    primary: 'is unemployment taxable',
+    secondary: ['unemployment taxes', '1099-G unemployment', 'form 1099-G', 'unemployment tax withholding', 'withhold taxes from unemployment', 'do you pay taxes on unemployment', 'is unemployment income taxable', 'how much tax is taken out of unemployment'],
+    seo: {
+      title: 'Is Unemployment Taxable? 1099-G, Withholding and State Tax',
+      description:
+        'Unemployment is taxable income. How the 1099-G works, how to withhold 10%, which states exempt benefits, and what to do about a wrong or unexpected form.',
+    },
+  },
+  {
+    id: 'unemployment-extension',
+    intent: 'Know what happens when unemployment runs out',
+    owner: '/topics/unemployment-extension',
+    kind: 'page',
+    primary: 'unemployment extension',
+    secondary: ['extended unemployment benefits', 'extended benefits', 'what happens when unemployment runs out', 'unemployment benefits ran out', 'unemployment exhausted', 'unemployment benefits exhausted', 'is there an unemployment extension'],
+    seo: {
+      title: 'Unemployment Extension: What to Do When Benefits Run Out',
+      description:
+        'How many weeks unemployment lasts, when Extended Benefits switch on, whether a federal extension exists and what to line up before your last payment.',
+    },
+  },
+  {
+    id: 'unemployment-payment-timing',
+    intent: 'Know when the first unemployment payment arrives and why it is late',
+    owner: '/topics/unemployment-payment-timing',
+    kind: 'page',
+    primary: 'how long until first unemployment payment',
+    secondary: ['how long does it take to get unemployment', 'when will i get my first unemployment check', 'unemployment payment delayed', 'unemployment pending', 'unemployment claim pending', 'what does pending mean unemployment', 'unemployment payment late'],
+    seo: {
+      title: 'How Long Until Your First Unemployment Payment?',
+      description:
+        'Most first unemployment payments arrive in two to three weeks. Why a claim is pending or late, what to check, and what to do while you wait.',
+    },
+  },
+  {
+    id: 'unemployment-self-employed',
+    intent: 'Find out whether self-employed people and gig workers can claim unemployment',
+    owner: '/topics/unemployment-self-employed',
+    kind: 'page',
+    primary: 'unemployment for self-employed',
+    secondary: ['self employed unemployment', 'unemployment for contractors', 'unemployment for gig workers', '1099 unemployment', 'unemployment for independent contractors', 'can freelancers get unemployment', 'unemployment for freelancers'],
+    seo: {
+      title: 'Unemployment for Self-Employed, Contractors and Gig Workers',
+      description:
+        'Can self-employed people, 1099 contractors and gig workers get unemployment? Who is covered, when W-2 wages count and what to use instead.',
     },
   },
   {
@@ -2453,6 +2557,14 @@ export const ANCHORS: Record<string, string> = {
   '/topics/acquisition-layoffs': 'Layoffs after an acquisition',
   '/topics/should-i-take-the-buyout': 'Should I take the buyout?',
   '/topics/fired-vs-laid-off': 'Fired vs laid off',
+  '/topics/reduction-in-force': 'Reduction in force (RIF)',
+  '/topics/federal-rif': 'Federal RIF rights and appeal',
+  '/topics/unemployment-denied-appeal': 'Unemployment denied: how to appeal',
+  '/topics/unemployment-after-quitting-or-firing': 'Unemployment after quitting or being fired',
+  '/topics/unemployment-taxes-1099g': 'Is unemployment taxable?',
+  '/topics/unemployment-extension': 'Unemployment extension',
+  '/topics/unemployment-payment-timing': 'When your first unemployment payment arrives',
+  '/topics/unemployment-self-employed': 'Unemployment for the self-employed',
   '/topics/cover-letter-tips': 'Cover letter tips',
   '/topics/severance': 'Severance package: what it is and how to negotiate',
   '/topics/job-search-strategy': 'Job search strategy',
@@ -2544,6 +2656,14 @@ export const RELATED: Record<string, string[]> = {
   '/topics/acquisition-layoffs': ['/tools/layoff-runway', '/topics/severance', '/topics/what-to-say-when-laid-off', '/resources/pre-exit', '/layoffs', '/coaching'],
   '/topics/should-i-take-the-buyout': ['/tools/severance-calculator', '/tools/layoff-runway', '/topics/severance', '/resources/cobra-aca', '/unemployment-benefits', '/coaching'],
   '/topics/fired-vs-laid-off': ['/unemployment-benefits', '/topics/explain-a-layoff', '/topics/severance', '/resources/cobra-aca', '/glossary', '/coaching'],
+  '/topics/reduction-in-force': ['/topics/federal-rif', '/resources/warn-act', '/topics/severance', '/unemployment-benefits', '/tools/layoff-deadlines', '/topics/explain-a-layoff', '/coaching'],
+  '/topics/federal-rif': ['/topics/reduction-in-force', '/unemployment-benefits', '/tools/layoff-deadlines', '/resources/cobra-aca', '/funding', '/coaching'],
+  '/topics/unemployment-denied-appeal': ['/unemployment-benefits', '/topics/unemployment-after-quitting-or-firing', '/topics/unemployment-payment-timing', '/tools/layoff-runway', '/funding'],
+  '/topics/unemployment-after-quitting-or-firing': ['/topics/unemployment-denied-appeal', '/topics/fired-vs-laid-off', '/unemployment-benefits', '/start/resigned', '/tools/unemployment-estimator'],
+  '/topics/unemployment-taxes-1099g': ['/tools/unemployment-estimator', '/resources/severance-pay', '/unemployment-benefits', '/tools/layoff-runway'],
+  '/topics/unemployment-extension': ['/unemployment-benefits', '/topics/american-job-centers', '/funding', '/topics/benefits-after-layoff', '/resources/bridge-income'],
+  '/topics/unemployment-payment-timing': ['/topics/unemployment-denied-appeal', '/unemployment-benefits', '/tools/layoff-runway', '/topics/benefits-after-layoff', '/tools/unemployment-estimator'],
+  '/topics/unemployment-self-employed': ['/resources/bridge-income', '/topics/freelance-after-layoff', '/funding', '/unemployment-benefits', '/tools/layoff-runway'],
   '/topics/reverse-recruiter': ['/topics/executive-recruiters', '/coaching', '/submit-resume', '/scam-watch', '/dossier'],
   '/topics/what-is-a-job-transition-platform': ['/topics/job-transition-platforms-for-laid-off-professionals', '/start/laid-off', '/topics/what-is-outplacement', '/coaching', '/glossary'],
   '/topics/job-transition-platforms-for-laid-off-professionals': ['/topics/what-is-outplacement', '/unemployment-benefits', '/workforce-boards', '/topics/severance', '/start/laid-off'],
