@@ -7,21 +7,24 @@ type Option = { slug: string; label: string }
 
 const SITE = 'https://launchyournextchapter.com'
 
+type Widget = 'layoffs' | 'layoff-chart' | 'hiring' | 'benefits' | 'ai-job-check'
+const HEIGHT: Record<Widget, number> = { layoffs: 420, 'layoff-chart': 360, hiring: 420, benefits: 300, 'ai-job-check': 230 }
+
 // Picks a widget and a state or industry, shows it live, and gives the copy-paste snippet. The snippet carries a plain
 // text link under the frame, so the page that embeds it links to ours even where iframes are stripped.
 export function EmbedBuilder({ states, industries, jobs }: { states: Option[]; industries: Option[]; jobs: Option[] }) {
   const posthog = usePostHog()
-  const [widget, setWidget] = useState<'layoffs' | 'hiring' | 'benefits' | 'ai-job-check'>('layoffs')
-  const [target, setTarget] = useState<{ layoffs: string; hiring: string; benefits: string; 'ai-job-check': string }>({ layoffs: states[0]?.slug ?? '', hiring: industries[0]?.slug ?? '', benefits: states[0]?.slug ?? '', 'ai-job-check': jobs[0]?.slug ?? '' })
+  const [widget, setWidget] = useState<Widget>('layoffs')
+  const [target, setTarget] = useState<Record<Widget, string>>({ layoffs: states[0]?.slug ?? '', 'layoff-chart': 'us', hiring: industries[0]?.slug ?? '', benefits: states[0]?.slug ?? '', 'ai-job-check': jobs[0]?.slug ?? '' })
   const [copied, setCopied] = useState(false)
-  const options = widget === 'hiring' ? industries : widget === 'ai-job-check' ? jobs : states
+  const options = widget === 'hiring' ? industries : widget === 'ai-job-check' ? jobs : widget === 'layoff-chart' ? [{ slug: 'us', label: 'United States' }, ...states] : states
   const slug = target[widget]
   const label = options.find((o) => o.slug === slug)?.label ?? slug
   const snippet = useMemo(() => {
     const src = `${SITE}/embed/${widget}/${slug}`
-    const page = widget === 'ai-job-check' ? `/tools/ai-job-check/${slug}` : widget === 'layoffs' ? `/layoffs/${slug}` : widget === 'hiring' ? `/industries/${slug}` : `/unemployment-benefits/${slug}`
-    const text = widget === 'ai-job-check' ? `AI exposure for ${label}` : widget === 'layoffs' ? `${label} layoffs: WARN notices` : widget === 'hiring' ? `${label}: jobs, conferences and layoffs` : `${label} unemployment benefits`
-    return `<iframe src="${src}" width="100%" height="${widget === 'benefits' ? 300 : widget === 'ai-job-check' ? 230 : 420}" style="border:0;max-width:560px" loading="lazy" title="${text}"></iframe>\n<p><a href="${SITE}${page}">${text}</a>, from NextChapter</p>`
+    const page = widget === 'ai-job-check' ? `/tools/ai-job-check/${slug}` : widget === 'layoff-chart' ? (slug === 'us' ? '/layoffs/2026' : `/layoffs/${slug}`) : widget === 'layoffs' ? `/layoffs/${slug}` : widget === 'hiring' ? `/industries/${slug}` : `/unemployment-benefits/${slug}`
+    const text = widget === 'ai-job-check' ? `AI exposure for ${label}` : widget === 'layoff-chart' ? `${label} layoffs by month` : widget === 'layoffs' ? `${label} layoffs: WARN notices` : widget === 'hiring' ? `${label}: jobs, conferences and layoffs` : `${label} unemployment benefits`
+    return `<iframe src="${src}" width="100%" height="${HEIGHT[widget]}" style="border:0;max-width:560px" loading="lazy" title="${text}"></iframe>\n<p><a href="${SITE}${page}">${text}</a>, from NextChapter</p>`
   }, [widget, slug, label])
 
   async function copy() {
@@ -38,7 +41,7 @@ export function EmbedBuilder({ states, industries, jobs }: { states: Option[]; i
   return (
     <div className="rounded-xl border border-border bg-white p-5">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Widget">
-        {([['layoffs', 'Layoff notices'], ['hiring', 'Jobs hiring'], ['benefits', 'Unemployment benefits'], ['ai-job-check', 'AI exposure for a job']] as const).map(([k, l]) => (
+        {([['layoffs', 'Layoff notices'], ['layoff-chart', 'Layoffs by month chart'], ['hiring', 'Jobs hiring'], ['benefits', 'Unemployment benefits'], ['ai-job-check', 'AI exposure for a job']] as const).map(([k, l]) => (
           <button key={k} type="button" onClick={() => setWidget(k)} aria-pressed={widget === k} className={`rounded-full border px-3 py-1.5 text-sm ${widget === k ? 'border-brand bg-brand text-white' : 'border-border text-navy'}`}>{l}</button>
         ))}
       </div>
@@ -49,7 +52,7 @@ export function EmbedBuilder({ states, industries, jobs }: { states: Option[]; i
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <div>
           <p className="text-sm font-medium text-navy">Preview</p>
-          <iframe key={`${widget}-${slug}`} src={`/embed/${widget}/${slug}`} title={`${label} widget preview`} className="mt-2 w-full max-w-[560px] border-0" style={{ height: widget === 'benefits' ? 300 : widget === 'ai-job-check' ? 230 : 420 }} loading="lazy" />
+          <iframe key={`${widget}-${slug}`} src={`/embed/${widget}/${slug}`} title={`${label} widget preview`} className="mt-2 w-full max-w-[560px] border-0" style={{ height: HEIGHT[widget] }} loading="lazy" />
         </div>
         <div>
           <p className="text-sm font-medium text-navy">Copy this into your page</p>
