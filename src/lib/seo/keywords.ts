@@ -766,7 +766,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/data/embed',
     kind: 'page',
     primary: 'layoff widget for website',
-    secondary: ['embed layoff tracker', 'unemployment benefits widget', 'jobs widget by industry', 'AI exposure widget for a job'],
+    secondary: ['embed layoff tracker', 'layoffs chart for website', 'unemployment benefits widget', 'jobs widget by industry', 'AI exposure widget for a job'],
     seo: {
       title: 'Free Layoff, Jobs and Benefits Widgets for Your Site',
       description: 'Add live layoff notices, open jobs by industry or state unemployment benefits widgets to your website with one copy-paste snippet. Free, with a link back.',
