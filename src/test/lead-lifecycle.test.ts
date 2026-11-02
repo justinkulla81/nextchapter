@@ -16,9 +16,10 @@ const at = (days: number) => new Date(T0.getTime() + days * DAY)
 describe('nextLifecycleStep', () => {
   const base = { variant: 'saved_job' as const, capturedAt: T0, welcomeAt: null, nudge1At: null, nudge2At: null }
 
-  it('welcomes someone who just signed up, but never the back catalogue', () => {
+  it('welcomes someone who just signed up or was missed in the last two weeks, but never the back catalogue', () => {
     expect(nextLifecycleStep({ ...base, now: at(0.1) })).toBe('welcome')
-    expect(nextLifecycleStep({ ...base, now: at(5) })).toBeNull()
+    expect(nextLifecycleStep({ ...base, now: at(5) })).toBe('welcome')
+    expect(nextLifecycleStep({ ...base, now: at(20) })).toBeNull()
   })
 
   it('sends the reminders on the variant schedule, one at a time', () => {

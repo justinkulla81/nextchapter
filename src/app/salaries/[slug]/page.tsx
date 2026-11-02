@@ -8,7 +8,6 @@ import { getTitleDetail, hasSalaryPage } from '@/lib/seo/job-titles'
 import { usd } from '@/lib/seo/job-title-rules'
 import { salarySeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
-import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 import { ShareBar } from '@/components/marketing/ShareBar'
 import { AiPremiumSection } from '@/components/salaries/AiPremiumSection'
 
@@ -46,6 +45,7 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
     <TopicShell
       trail={[{ name: 'Salaries', path: '/salaries' }, { name: stat.name, path }]}
       title={seo.h1}
+      capture={{ kind: 'title', slug, label: stat.name, save: { q: stat.name, loc: '' } }}
       intro={`${stat.name} listings that state pay run from ${usd(stat.p25!)} to ${usd(stat.p75!)} for the middle half, based on ${stat.payCount.toLocaleString('en-US')} current job listings. ${stat.jobs.toLocaleString('en-US')} ${stat.name.toLowerCase()} roles are open now.`}
       jsonLd={[
         {
@@ -78,9 +78,6 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
       </Section>
       <div className="mt-8">
         <ShareBar url={`${SITE_URL}/salaries/${slug}`} title={`${stat.name} salary: what the jobs pay`} placement="salary_page" label="Send this to a friend" />
-      </div>
-      <div className="mt-8">
-        <SaveSearchForm q={stat.name} loc="" remote={false} source="page:salary" heading={`Get ${stat.name.toLowerCase()} jobs that pay like this`} blurb="We’ll email you new openings for this title. No account needed." cta="Email me new jobs" />
       </div>
       {d.related.length > 0 && (
         <Section id="related" title="Related salaries">

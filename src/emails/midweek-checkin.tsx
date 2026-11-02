@@ -96,7 +96,7 @@ export default function MidweekCheckinEmail({
         <Lead>Check your dashboard for today&apos;s plan.</Lead>
       )}
 
-        <Button href={dashboardUrl ?? `${appUrl}/dashboard`}>{isReset && resetTask ? 'Start this now' : 'Open my dashboard'}</Button>
+        <Button campaign="weekly_checkin" href={dashboardUrl ?? `${appUrl}/dashboard`}>{isReset && resetTask ? 'Start this now' : 'Open my dashboard'}</Button>
 
         {gap && (
           <p style={{ margin: '24px 0 0', fontSize: '16px', fontWeight: 600, color: INK }}>

@@ -155,6 +155,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   return (
     <OrgBrandScope brand={brand?.pair}>
     <SeoPage
+      capture={{ kind: 'company', slug: e.slug, label: e.name }}
       trail={[{ name: 'Employers', path: '/employers' }, { name: e.name, path }]}
       h1={employerSeo(e.name, null).h1}
       jsonLd={ld}

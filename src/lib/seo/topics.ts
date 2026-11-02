@@ -98,6 +98,11 @@ export const CRAWLER_INDUSTRY_BUCKET: Record<string, string> = {
   telecom: 'Telecommunications',
 }
 
+/** Every raw industry value (bucket name or crawler code) that bucketFromIndustryText reads as this bucket. */
+export function industryRawValues(bucket: string): string[] {
+  return [bucket, ...Object.entries(CRAWLER_INDUSTRY_BUCKET).filter(([, b]) => b === bucket).map(([code]) => code)]
+}
+
 /** A company's free-text or coded industry -> a bucket name, or null when it names none. */
 export function bucketFromIndustryText(text: string | null | undefined): string | null {
   const t = (text ?? '').trim()

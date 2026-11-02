@@ -38,6 +38,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
     <TopicShell
       trail={[{ name: 'Industries', path: '/industries' }, { name: industry.name, path }]}
       title={`${industry.name}: jobs, conferences and layoffs`}
+      capture={{ kind: 'industry', slug, label: industry.name, save: { q: industry.name, loc: '' } }}
       intro={intro}
       jsonLd={[
         {

@@ -17,8 +17,12 @@ export const NUDGE_DAYS: Record<LeadVariant, number[]> = {
   waitlist_b2b: [],
 }
 
-/** Only people who gave us an address this recently get a welcome, so switching the emails on never mails the back catalogue. */
-export const WELCOME_WINDOW_MS = 48 * 60 * 60 * 1000
+/**
+ * Only people who gave us an address this recently get a welcome, so switching the emails on never mails the back catalogue.
+ * Two weeks, not two days: an address that came in before the emails went on, or while the cron was down, still gets its
+ * welcome and reminders instead of being stranded with nothing. Each step is sent once per address, whatever the window.
+ */
+export const WELCOME_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
 
 /** Minimum gap between two reminders, whatever the schedule says. */
 export const MIN_NUDGE_GAP_MS = 3 * 24 * 60 * 60 * 1000

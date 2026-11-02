@@ -11,35 +11,29 @@ import { JobFitCard } from '@/components/jobs/JobFitCard'
 // The Apply button on a public job page plus the one-field "save this job" box under it.
 // Control: Apply opens the employer's page in a new tab; this page stays open behind it and the
 // box appears, so the person finds it when they come back. Nothing blocks the apply.
-// Gate (90% of browsers, kept in localStorage; the other 10% are a control so the comparison keeps running): Apply first opens a small prompt that says why we ask for an
-// email. Saving or the "skip" link then opens the employer's page the same way. Every apply_* event carries
-// `variant` so PostHog can compare Apply-through rate and emails captured per job-page view.
-type Variant = 'control' | 'gate'
-// v2: the first 50/50 test (2026-10-27) showed the prompt did not cut Apply-through and captured about 7x the emails, so the split
-// moved to 90/10 and everyone is drawn again.
-const VARIANT_KEY = 'nc_apply_capture_variant_v2'
-const GATE_SHARE = 0.9
+// Gate (everyone, owner decision 2026-11-02): Apply first opens a prompt that asks for an email, with alert boxes for new jobs at this
+// employer, with this title and in this industry. Saving opens the employer's page the same way, then the fit and account steps follow.
+// The skip link stays but is small and muted (owner decision 2026-11-02: ask hard, say why, keep an exit). Someone who already gave an email on this browser (kept in localStorage) goes straight to the employer ('returning').
+// Every apply_* event carries `variant` ('gate' or 'returning') so PostHog can compare Apply-through rate and emails captured per job-page view.
+type Variant = 'returning' | 'gate'
+const EMAIL_KEY = 'nc_apply_email_given_v1'
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function pickVariant(): Variant {
   try {
-    const saved = localStorage.getItem(VARIANT_KEY)
-    if (saved === 'control' || saved === 'gate') return saved
-    const next: Variant = Math.random() < GATE_SHARE ? 'gate' : 'control'
-    localStorage.setItem(VARIANT_KEY, next)
-    return next
+    return localStorage.getItem(EMAIL_KEY) ? 'returning' : 'gate'
   } catch {
-    return 'control'
+    return 'gate'
   }
 }
 
 const noSubscribe = () => () => {}
 
-export function ApplyAndSave({ jobId, company, applyUrl, emailOn, reminderOn }: { jobId: string; company: string; applyUrl: string; emailOn: boolean; reminderOn: boolean }) {
+export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, emailOn, reminderOn }: { jobId: string; company: string; jobTitle: string; industry: string | null; applyUrl: string; emailOn: boolean; reminderOn: boolean }) {
   const [open, setOpen] = useState(false)
   const [trigger, setTrigger] = useState<'apply_click' | 'save_link' | 'apply_gate'>('save_link')
-  // Read on the browser only; the server and the first paint say 'control', then it settles on the saved variant.
-  const variant = useSyncExternalStore<Variant>(noSubscribe, pickVariant, () => 'control')
+  // Read on the browser only; the server and the first paint say 'gate' (a button, never a bare link), then it settles on the saved variant.
+  const variant = useSyncExternalStore<Variant>(noSubscribe, pickVariant, () => 'gate')
   const [gateOpen, setGateOpen] = useState(false)
   const employerLinkRef = useRef<HTMLAnchorElement>(null)
   const [state, action, pending] = useActionState<ApplySaveState, FormData>(saveAppliedJob, undefined)
@@ -61,7 +55,12 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn, reminderOn }: 
   const [seenSaved, setSeenSaved] = useState(state?.saved)
   if (state?.saved !== seenSaved) {
     setSeenSaved(state?.saved)
-    if (state?.saved) setGateOpen(false)
+    if (state?.saved) {
+      setGateOpen(false)
+      try {
+        localStorage.setItem(EMAIL_KEY, '1')
+      } catch {}
+    }
   }
 
   useEffect(() => {
@@ -146,12 +145,13 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn, reminderOn }: 
                 setOpen(true)
               }}
             >
-              <h2 id="apply-gate-title" className="text-lg font-semibold">Save this job before you go to {company}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {emailOn
-                  ? 'Add your email and we send you this job, so you can find it again and see if you’d get an interview. One email about this job. Unsubscribe any time.'
-                  : 'Add your email and we save this job for you, so you can come back to it and see if you’d get an interview.'}
-              </p>
+              <h2 id="apply-gate-title" className="text-lg font-semibold">Apply at {company}, and get more jobs like this</h2>
+              <ul className="mt-2 space-y-1 text-sm">
+                <li className="flex gap-2"><span aria-hidden className="text-success">✓</span><span>New jobs like this one in your inbox, so you hear first</span></li>
+                <li className="flex gap-2"><span aria-hidden className="text-success">✓</span><span>See if you’d get an interview here, free, about a minute</span></li>
+                <li className="flex gap-2"><span aria-hidden className="text-success">✓</span><span>This job saved, with a reminder to follow up</span></li>
+              </ul>
+              <p className="mt-2 text-xs text-muted-foreground">That’s why we ask for your email. We never share it. Unsubscribe any time.</p>
               <input type="hidden" name="jobId" value={jobId} />
               <input type="hidden" name="trigger" value="apply_gate" />
               <div className="hidden" aria-hidden>
@@ -176,7 +176,21 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn, reminderOn }: 
                   {state.error}
                 </p>
               )}
-              <Button type="submit" disabled={pending} className="mt-3 h-11 w-full rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
+              <fieldset className="mt-4 space-y-2">
+                <legend className="text-sm font-medium">Send me new jobs</legend>
+                {[
+                  { name: 'alert_company', label: `at ${company}`, on: true },
+                  { name: 'alert_title', label: `titled ${jobTitle.replace(/\s+[-–—|].*$/, '')}`, on: true },
+                  ...(industry ? [{ name: 'alert_industry', label: `in ${industry}`, on: true }] : []),
+                ].map((a) => (
+                  <label key={a.name} className="flex items-start gap-2 text-sm">
+                    <input type="checkbox" name={a.name} value="1" defaultChecked={a.on} className="mt-0.5 size-4" />
+                    <span>{a.label}</span>
+                  </label>
+                ))}
+                <p className="text-xs text-muted-foreground">One email a day at most. We ask you to confirm first.</p>
+              </fieldset>
+              <Button type="submit" disabled={pending} className="mt-4 h-11 w-full rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
                 {pending ? 'Saving…' : `Save and go to ${company}`}
               </Button>
               <button
@@ -186,9 +200,9 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn, reminderOn }: 
                   employerLinkRef.current?.click()
                   setGateOpen(false)
                 }}
-                className="mt-3 block w-full text-center text-xs text-muted-foreground underline underline-offset-4"
+                className="mt-4 block w-full text-center text-[11px] text-muted-foreground/70 underline underline-offset-2"
               >
-                Skip and go to the employer site
+                No thanks, go to the employer site
               </button>
             </form>
           </div>
@@ -205,6 +219,12 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn, reminderOn }: 
                   ? <>Saved for <span className="font-medium">{state.email}</span>. We’ll email you this job, then a reminder in 3 days to follow up.</>
                   : <>Saved{state.email ? <> for <span className="font-medium">{state.email}</span></> : ''}. Keep this page open to come back to the job.</>}
             </p>
+            {!!state.alerts && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {emailOn ? `Check ${state.email} to confirm your ${state.alerts === 1 ? 'job alert' : `${state.alerts} job alerts`}. They start after you click the link.` : `Your ${state.alerts === 1 ? 'job alert is' : `${state.alerts} job alerts are`} saved.`}
+              </p>
+            )}
+            <JobFitCard jobId={jobId} placement="after_save" heading="Would you get an interview?" className="mt-3" />
             <SaveJourneyStep email={state.email ?? ''} what="job" properties={{ placement: 'job_saved', jobId, company, trigger }} />
           </div>
         ) : (

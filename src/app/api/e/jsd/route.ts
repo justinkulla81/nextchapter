@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { readClickUrl } from '@/lib/job-search-daily/click-link'
+import { withEmailUtm } from '@/lib/email/utm'
 
 // A tracked link in the Job Search Daily email. Records the click against
 // the send (first click time, count, last link) and redirects. Never blocks
@@ -23,5 +24,5 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Failed to record Job Search Daily click:', error)
   }
-  return NextResponse.redirect(parsed.url)
+  return NextResponse.redirect(withEmailUtm(parsed.url, 'job_search_daily', [new URL(appUrl).hostname]))
 }

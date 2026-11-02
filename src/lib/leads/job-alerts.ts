@@ -5,6 +5,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { searchPublicBoard, type PublicBoardJob } from '@/lib/jobs/public-board'
 import { getPersona } from '@/lib/constants/personas'
 import { inferJourney } from '@/lib/leads/infer-journey'
+import { parseScope } from '@/lib/leads/alert-scope'
 import { JOB_ALERT_MAX_JOBS, jobAlertDailyCap, jobAlertEmailsOn } from '@/lib/leads/job-alert-config'
 import JobAlertConfirmEmail from '@/emails/job-alert-confirm'
 import JobAlertDigestEmail from '@/emails/job-alert-digest'
@@ -24,6 +25,9 @@ export interface AlertSearch {
 
 /** "marketing manager in Chicago", "remote jobs", "all new jobs". */
 export function searchLabel(s: AlertSearch): string {
+  // A job-page alert is about one employer, title or industry: say that, not the prefix.
+  const scope = parseScope(s.searchQ)
+  if (scope) return scope.kind === 'company' ? `jobs at ${scope.value}` : `${scope.value} jobs`
   const words = s.searchQ.trim()
   const place = s.searchLoc.trim()
   const parts = [words || 'all new jobs']
@@ -55,7 +59,7 @@ export interface ConfirmableLead {
 }
 
 /** Sends the one-time confirmation email. `what` is the phrase after "You asked for". Returns whether it went out. */
-export async function sendAlertConfirmation(lead: ConfirmableLead, opts: { what: string; subject: string; enabled: boolean; variant?: 'course_path' }): Promise<boolean> {
+export async function sendAlertConfirmation(lead: ConfirmableLead, opts: { what: string; subject: string; enabled: boolean; variant?: 'course_path'; reminder?: boolean }): Promise<boolean> {
   if (!opts.enabled || !process.env.RESEND_API_KEY || isUndeliverableAddress(lead.email)) return false
   if ((await sentToday()) >= jobAlertDailyCap()) return false
   try {
@@ -67,6 +71,7 @@ export async function sendAlertConfirmation(lead: ConfirmableLead, opts: { what:
       react: JobAlertConfirmEmail({
         what: opts.what,
         variant: opts.variant,
+        reminder: opts.reminder,
         confirmUrl: `${APP_URL()}/api/job-alerts/confirm/${lead.unsubscribeToken}`,
         unsubscribeUrl: `${APP_URL()}/api/unsubscribe/lead/${lead.unsubscribeToken}`,
       }),
@@ -86,12 +91,62 @@ export async function sendAlertConfirmation(lead: ConfirmableLead, opts: { what:
 }
 
 /** The confirmation email for a saved job search. */
-export function sendJobAlertConfirmation(lead: ConfirmableLead & AlertSearch): Promise<boolean> {
+export function sendJobAlertConfirmation(lead: ConfirmableLead & AlertSearch, reminder = false): Promise<boolean> {
   return sendAlertConfirmation(lead, {
-    what: `new jobs matching ${searchLabel(lead)}`,
-    subject: `Confirm your job alerts: ${searchLabel(lead)}`,
+    what: parseScope(lead.searchQ) ? `new ${searchLabel(lead)}` : `new jobs matching ${searchLabel(lead)}`,
+    subject: reminder ? `Still want job alerts? ${searchLabel(lead)}` : `Confirm your job alerts: ${searchLabel(lead)}`,
     enabled: jobAlertEmailsOn(),
+    reminder,
   })
+}
+
+const REMINDER_MIN_DAYS = 2
+const REMINDER_MAX_DAYS = 10
+export const confirmReminderRef = (leadId: string) => `alert-confirm-reminder:${leadId}`
+
+/**
+ * The one follow-up to a job-alert confirmation nobody clicked: two to ten days after it went out, once per saved search.
+ * "Once" is the unique CRM email activity (type + sourceRef) logged on the person just before the send and removed if the
+ * send fails. Returns how many went out (or would, with job alert emails off).
+ */
+export async function sendConfirmReminders(limit = 25): Promise<number> {
+  const now = Date.now()
+  const leads = await prisma.homepageLead.findMany({
+    where: {
+      kind: 'job_alert',
+      confirmedAt: null,
+      unsubscribedAt: null,
+      confirmSentAt: { gte: new Date(now - REMINDER_MAX_DAYS * DAY_MS), lte: new Date(now - REMINDER_MIN_DAYS * DAY_MS) },
+    },
+    orderBy: { confirmSentAt: 'asc' },
+    take: limit,
+    select: { id: true, email: true, unsubscribeToken: true, searchQ: true, searchLoc: true, searchRemote: true },
+  })
+  const on = jobAlertEmailsOn()
+  let count = 0
+  for (const lead of leads) {
+    const email = lead.email.trim().toLowerCase()
+    const person = await prisma.crmPerson.findFirst({ where: { deletedAt: null, OR: [{ email }, { emails: { has: email } }] }, select: { id: true } })
+    if (!person) continue
+    const sourceRef = confirmReminderRef(lead.id)
+    if (await prisma.crmActivity.findFirst({ where: { type: 'EMAIL', sourceRef }, select: { id: true } })) continue
+    if (!on) {
+      count++
+      continue
+    }
+    let activityId: string
+    try {
+      const a = await prisma.crmActivity.create({
+        data: { type: 'EMAIL', direction: 'OUTBOUND', personId: person.id, subject: 'Still want job alerts? (confirmation reminder)', body: 'One reminder to confirm the job alert, sent once.', isAutoLogged: true, sourceRef },
+      })
+      activityId = a.id
+    } catch {
+      continue // another run is sending this one
+    }
+    if (await sendJobAlertConfirmation(lead, true)) count++
+    else await prisma.crmActivity.delete({ where: { id: activityId } }).catch(() => {})
+  }
+  return count
 }
 
 export interface JobAlertRunSummary {
@@ -102,6 +157,8 @@ export interface JobAlertRunSummary {
   sent: number
   failed: number
   cappedOut: number
+  /** Confirmation reminders sent (or that would go out, with job alert emails off). */
+  confirmReminders: number
   sampleJobTitles: string[]
 }
 
@@ -123,7 +180,7 @@ export async function runJobAlerts(): Promise<JobAlertRunSummary> {
   const byEmail = new Map<string, typeof leads>()
   for (const l of leads) byEmail.set(l.email, [...(byEmail.get(l.email) ?? []), l])
 
-  const summary: JobAlertRunSummary = { enabled, confirmedSearches: leads.length, people: byEmail.size, peopleWithNewJobs: 0, sent: 0, failed: 0, cappedOut: 0, sampleJobTitles: [] }
+  const summary: JobAlertRunSummary = { enabled, confirmedSearches: leads.length, people: byEmail.size, peopleWithNewJobs: 0, sent: 0, failed: 0, cappedOut: 0, confirmReminders: 0, sampleJobTitles: [] }
   const cap = jobAlertDailyCap()
   let budget = enabled ? Math.max(0, cap - (await sentToday())) : Infinity
 
@@ -190,5 +247,9 @@ export async function runJobAlerts(): Promise<JobAlertRunSummary> {
       summary.failed++
     }
   }
+  summary.confirmReminders = await sendConfirmReminders().catch((e) => {
+    console.error('confirm reminders failed:', e)
+    return 0
+  })
   return summary
 }

@@ -135,7 +135,7 @@ export interface LifecycleSummary {
  * The lifecycle pass, run every few minutes by the cron. For each address that
  * gave us an email on the site in the last 30 days: file them in the CRM, skip
  * anyone registered, unsubscribed or on the stop list, then send the next
- * email that is due (welcome within 48 hours of signing up, then the reminders
+ * email that is due (welcome within two weeks of signing up, then the reminders
  * on the variant's schedule). Does nothing but file CRM records until
  * LEAD_LIFECYCLE_EMAILS=1; until then it reports what it would send.
  */

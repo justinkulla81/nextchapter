@@ -15,7 +15,7 @@ export function JobFitCard({
   className,
 }: {
   jobId: string
-  placement: 'inline' | 'side' | 'after_apply'
+  placement: 'inline' | 'side' | 'after_apply' | 'after_save'
   heading?: string
   className?: string
 }) {

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { readEmailClickUrl } from '@/lib/email/click-link'
+import { withEmailUtm } from '@/lib/email/utm'
 import { readComposeKey } from '@/lib/warn/layoff-alert-drafts'
 import { recordComposeClick } from '@/lib/warn/layoff-alert-click'
 
@@ -22,5 +23,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Failed to record email click:', error)
   }
-  return NextResponse.redirect(parsed.url)
+  // Tag the landing so the visit is counted as Email in PostHog, not Direct; the campaign is the email's own key.
+  return NextResponse.redirect(withEmailUtm(parsed.url, parsed.emailKey, [new URL(appUrl).hostname]))
 }

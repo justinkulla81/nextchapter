@@ -97,6 +97,8 @@ export async function sharedLoad<T>(key: string, revalidateSec: number, load: ()
     packed = await pack()
   } catch (e) {
     if (loadFailed) throw e
+    // The shared cache itself failed (not the query): read directly, but say so, since every such call reaches the database.
+    console.warn('sharedLoad fell back to a direct read', key, e instanceof Error ? e.message : e)
     return load()
   }
   return JSON.parse(gunzipSync(Buffer.from(packed, 'base64')).toString(), (_k, v) => (opts.reviveDates !== false && typeof v === 'string' && ISO_DATE.test(v) ? new Date(v) : v)) as T
