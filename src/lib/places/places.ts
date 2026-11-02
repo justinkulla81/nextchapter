@@ -56,6 +56,17 @@ export function cityDisplayName(name: string): string {
     .trim()
 }
 
+/**
+ * The key a job, filing or office gives a city whose Census key is longer. "Oklahoma City city" has the key
+ * "oklahoma city", but "Oklahoma City, OK" goes through placeKey as "oklahoma"; "Nashville-Davidson metropolitan
+ * government" is filed as just "Nashville". Null when there is no shorter spelling, or when another place in the state
+ * owns the shorter key.
+ */
+function shortCityKey(p: { key: string; name: string }, taken: Set<string>): string | null {
+  const shorter = p.key.endsWith(' city') ? p.key.slice(0, -' city'.length) : p.name.includes('-') ? placeKey(p.name.split('-')[0]) : ''
+  return shorter && shorter !== p.key && !taken.has(shorter) ? shorter : null
+}
+
 // ---------------------------------------------------------------------------------------------
 // Counties
 
@@ -308,6 +319,14 @@ function buildCityEntries(
 ): CityEntry[] {
   const byKey = new Map(places.map((p) => [p.key, p]))
   const keySet = new Set(byKey.keys())
+  // "Oklahoma City", "Salt Lake City", "Kansas City": the big ones the job board spells without the suffix.
+  const aliasOf = new Map<string, string>()
+  const aliasFor = new Map<string, string>()
+  for (const p of places) {
+    const short = shortCityKey(p, keySet)
+    if (short && !aliasOf.has(short)) { aliasOf.set(short, p.key); aliasFor.set(p.key, short) }
+  }
+  const canon = (k: string) => (byKey.has(k) ? k : aliasOf.get(k) ?? k)
   const tally = new Map<string, { notices: number; workers: number; centers: number; colleges: number }>()
   const at = (k: string) => tally.get(k) ?? tally.set(k, { notices: 0, workers: 0, centers: 0, colleges: 0 }).get(k)!
   const c24 = cutoff24()
@@ -315,18 +334,18 @@ function buildCityEntries(
     if (n.noticeDate.getTime() < c24) continue
     const city = noticeAreas(n.place, keySet).city
     if (!city) continue
-    const k = placeKey(city)
+    const k = canon(placeKey(city))
     if (!byKey.has(k)) continue
     const t = at(k)
     t.notices++
     t.workers += n.workers ?? 0
   }
-  for (const c of centers) if (c.city && byKey.has(placeKey(c.city))) at(placeKey(c.city)).centers++
-  for (const c of colleges) if (c.city && byKey.has(placeKey(c.city))) at(placeKey(c.city)).colleges++
+  for (const c of centers) if (c.city && byKey.has(canon(placeKey(c.city)))) at(canon(placeKey(c.city))).centers++
+  for (const c of colleges) if (c.city && byKey.has(canon(placeKey(c.city)))) at(canon(placeKey(c.city))).colleges++
   const out: CityEntry[] = []
   for (const p of places) {
     const t = tally.get(p.key)
-    const j = jobs.get(p.key) ?? 0
+    const j = (jobs.get(p.key) ?? 0) + (aliasFor.has(p.key) ? jobs.get(aliasFor.get(p.key)!) ?? 0 : 0)
     const passes = j >= CITY_MIN_JOBS || (t && (t.notices > 0 || t.centers > 0 || t.colleges > 0))
     if (!passes) continue
     out.push({ state: p.state, slug: p.slug, name: p.name, population: p.population, county: p.county, jobs: j, notices: t?.notices ?? 0, workers: t?.workers ?? 0, centers: t?.centers ?? 0, colleges: t?.colleges ?? 0 })
@@ -513,7 +532,10 @@ export async function getCountyPage(state: string, slug: string): Promise<County
     return (!!a.county && countyKey(a.county) === cKey) || (!!a.city && cityKeys.has(placeKey(a.city)))
   })
   const stateJobs = jobs.get(state) ?? new Map<string, number>()
-  const jobsOpen = inCounty.reduce((s, p) => s + (stateJobs.get(p.key) ?? 0), 0)
+  const jobsOpen = inCounty.reduce((s, p) => {
+    const short = shortCityKey(p, stateKeys)
+    return s + (stateJobs.get(p.key) ?? 0) + (short ? stateJobs.get(short) ?? 0 : 0)
+  }, 0)
   const spellings = [...new Set(inCounty.flatMap(citySpellings))]
   const [hiring, headquartered] = await Promise.all([
     spellings.length && jobsOpen ? topHiringEmployers(state, spellings, 10) : Promise.resolve([]),
