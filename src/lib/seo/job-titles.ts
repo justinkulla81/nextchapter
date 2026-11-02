@@ -11,6 +11,7 @@ import { stateName, stateSlug } from '@/lib/seo/states'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { TITLE_MIN_JOBS, TITLE_MIN_PAY, displayTitle, titleSlug, GENERIC_TITLES } from '@/lib/seo/job-title-rules'
 import { modalFunction } from '@/lib/pay/ai-premium'
+import { computeTitlePlaces, parsePlace, PLACE_MIN_SHOWN, type PlaceIndexRow, type TitlePlace } from '@/lib/seo/job-title-places'
 
 // Data for the salary pages (/salaries/<title>) and the job-title pages (/jobs/title/<title>), and the job-type pages
 // (/jobs/type/<type>). Everything comes from the open public job listings: the same rows the job board shows, counted
@@ -87,7 +88,7 @@ function percentile(sorted: number[], q: number): number | null {
   return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo)
 }
 
-interface ScanRow { id: string; b: string; state: string | null; company: string; posted: Date; pay: number | null; fn: string | null }
+interface ScanRow { id: string; b: string; state: string | null; city: string | null; company: string; posted: Date; pay: number | null; fn: string | null }
 
 export interface TypeSummary { total: number; payCount: number; median: number | null; states: { st: string; n: number }[]; ids: string[]; bases: string[] }
 
@@ -100,12 +101,12 @@ interface Dataset {
 /** One pass over the open board (25-50 s). Run by the cron /api/cron/board-figures (buildTitleFigures), not by a page. */
 async function scan(): Promise<Dataset> {
   // Titles with enough listings are picked in the same query, so only their rows come back.
-  const rowsQuery = prisma.$queryRaw<{ id: string; b: string; state: string | null; company: string; posted: Date; pay: number | null; fn: string | null }[]>`
+  const rowsQuery = prisma.$queryRaw<{ id: string; b: string; state: string | null; city: string | null; company: string; posted: Date; pay: number | null; fn: string | null }[]>`
     WITH t AS (
-      SELECT id, ${BASE} AS b, "locationState" AS state, "companyName" AS company, COALESCE("postedAt", "createdAt") AS posted, ${PAY} AS pay, "targetFunction" AS fn
+      SELECT id, ${BASE} AS b, "locationState" AS state, "locationCity" AS city, "companyName" AS company, COALESCE("postedAt", "createdAt") AS posted, ${PAY} AS pay, "targetFunction" AS fn
       FROM "ExclusiveJobPosting" WHERE ${PUBLIC}
     ), c AS (SELECT b FROM t WHERE length(b) BETWEEN 6 AND 60 AND b !~ '[0-9]' GROUP BY b HAVING count(*) >= ${TITLE_MIN_JOBS})
-    SELECT t.id, t.b, t.state, t.company, t.posted, t.pay::float8 AS pay, t.fn FROM t JOIN c ON c.b = t.b`
+    SELECT t.id, t.b, t.state, t.city, t.company, t.posted, t.pay::float8 AS pay, t.fn FROM t JOIN c ON c.b = t.b`
   // Job types (remote, hybrid, contract, part-time, interim) are summed over all listings, not only those under a title page.
   const typesQuery = prisma.$queryRaw<{ ty: string; total: number; pay_n: number; med: number | null; states: { st: string; n: number }[] | null; ids: string[] | null; bases: string[] | null }[]>`
     WITH t AS (
@@ -124,7 +125,7 @@ async function scan(): Promise<Dataset> {
   const [rows, typeRows] = await Promise.all([rowsQuery, typesQuery])
   const rowsByBase = new Map<string, ScanRow[]>()
   for (const r of rows) {
-    const row: ScanRow = { id: r.id, b: r.b, state: r.state, company: r.company, posted: new Date(r.posted), pay: r.pay == null ? null : Number(r.pay), fn: r.fn }
+    const row: ScanRow = { id: r.id, b: r.b, state: r.state, city: r.city, company: r.company, posted: new Date(r.posted), pay: r.pay == null ? null : Number(r.pay), fn: r.fn }
     ;(rowsByBase.get(r.b) ?? rowsByBase.set(r.b, []).get(r.b)!).push(row)
   }
   const stats: TitleStat[] = []
@@ -172,11 +173,18 @@ function titleParts(rows: ScanRow[]): TitleParts {
 }
 
 /** Every figure the title and job-type pages read, from one scan: the title list, the job-type summaries, and each title's parts. */
-export async function buildTitleFigures(): Promise<{ stats: TitleStat[]; types: [string, TypeSummary][]; parts: Map<string, TitleParts> }> {
+export async function buildTitleFigures(): Promise<{ stats: TitleStat[]; types: [string, TypeSummary][]; parts: Map<string, TitleParts>; places: TitlePlace[] }> {
   const data = await scan()
   const parts = new Map<string, TitleParts>()
   for (const t of data.stats) parts.set(t.slug, titleParts(data.rowsByBase.get(t.base) ?? []))
-  return { stats: data.stats, types: [...data.types], parts }
+  const places = computeTitlePlaces(
+    data.stats.map((t) => ({
+      slug: t.slug,
+      name: t.name,
+      rows: (data.rowsByBase.get(t.base) ?? []).map((r) => ({ id: r.id, state: r.state, city: r.city, company: r.company, posted: r.posted.getTime(), pay: r.pay })),
+    })),
+  )
+  return { stats: data.stats, types: [...data.types], parts, places }
 }
 
 // The scan runs in the cron /api/cron/board-figures, which stores its results (BoardFigure); these read the stored rows. The
@@ -260,4 +268,29 @@ export async function getJobTypeDetail(slug: string): Promise<JobTypeDetail | nu
     medianPay: sum && sum.payCount >= TITLE_MIN_PAY ? round(sum.median) : null,
     payCount: sum?.payCount ?? 0,
   }
+}
+
+
+const cachedPlaceIndex = unstable_cache(async () => (await readBoardFigure<PlaceIndexRow[]>('job-title-places-index')) ?? [], ['job-title-places-index-v1'], { revalidate: 600 })
+
+/** Every (title, place) pair that has a page: the sitemap and the title pages' city links read this. Empty until the cron has run. */
+export async function getTitlePlaceIndex(): Promise<PlaceIndexRow[]> {
+  return cachedPlaceIndex()
+}
+
+export interface TitlePlaceDetail {
+  stat: TitleStat
+  place: TitlePlace
+  jobs: TitleJob[]
+}
+
+/** One title's page for one place, or null when the pair has no page (below the bar, or the listings are gone). */
+export async function getTitlePlaceDetail(slug: string, placeSlug: string): Promise<TitlePlaceDetail | null> {
+  if (!/^[a-z0-9-]{3,80}$/.test(slug) || !parsePlace(placeSlug)) return null
+  const [stats, place] = await Promise.all([getTitleIndex(), readBoardFigure<TitlePlace>(`job-title-place:${slug}:${placeSlug}`)])
+  const stat = stats.find((t) => t.slug === slug)
+  if (!stat || !place) return null
+  const jobs = await newestJobs(place.jobIds, 15)
+  // The figures are up to six hours old; a page whose listings were mostly taken down since is thin, so it falls back to the title page.
+  return jobs.length >= PLACE_MIN_SHOWN ? { stat, place, jobs } : null
 }

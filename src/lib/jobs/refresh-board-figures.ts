@@ -5,6 +5,7 @@ import { jobCounts } from '@/lib/marketing/workforce-numbers'
 import { buildExposureRows } from '@/lib/skills/ai-exposure-server'
 import { loadJobAggregate } from '@/lib/places/places'
 import { buildTitleFigures } from '@/lib/seo/job-titles'
+import { placeIndex } from '@/lib/seo/job-title-places'
 
 // The whole-board scans (10-65 s each over ~650k live postings), run one at a time instead of on public pages:
 // top employers, the workforce page counts, the jobs-by-AI-exposure split, the place job counts and the job-title
@@ -13,10 +14,13 @@ const single = (key: BoardFigureKey, build: () => Promise<unknown>) => async () 
 
 /** One scan feeds the title list, the job-type summaries and one row per title page. */
 async function refreshTitleFigures() {
-  const { stats, types, parts } = await buildTitleFigures()
+  const { stats, types, parts, places } = await buildTitleFigures()
   await writeBoardFigure('job-title-stats', stats)
   await writeBoardFigure('job-type-summaries', types)
   await replaceBoardFigures('job-title:', stats.flatMap((t) => (parts.has(t.slug) ? [[`job-title:${t.slug}`, parts.get(t.slug)] as [BoardFigureKey, unknown]] : [])))
+  // One row per (title, place) page. The prefix is `job-title-place:`, which `job-title:` does not match, so neither pass removes the other's rows.
+  await replaceBoardFigures('job-title-place:', places.map((p) => [`job-title-place:${p.titleSlug}:${p.key}`, p] as [BoardFigureKey, unknown]))
+  await writeBoardFigure('job-title-places-index', placeIndex(places))
 }
 
 const STEPS: readonly (readonly [string, () => Promise<void>])[] = [
