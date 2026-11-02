@@ -2,6 +2,8 @@ import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { DetailsForm } from '@/components/onboarding/DetailsForm'
 import { prisma } from '@/lib/prisma'
 import { entryOf } from '@/lib/onboarding/resume-rule'
+import { cookies } from 'next/headers'
+import { LEAD_COOKIE, emailFromLeadCookie } from '@/lib/leads/lifecycle/prefill'
 
 // Who we are building this for. A name and an email are needed before an account can exist; LinkedIn is optional.
 // Reached after skipping the résumé, when a résumé held no name or email, and by a registered member with no name on file.
@@ -9,6 +11,8 @@ export default async function OnboardingDetailsPage() {
   const profile = await getCandidateProfileForUser()
   const hasResume = (await prisma.resume.count({ where: { candidateId: profile.id, looksLikeResume: { not: false } } })) > 0
   const marketReality = entryOf(profile.journeyDetails) !== null
+  // Someone who came from the profile button in one of our emails: the signed cookie holds the address they gave us.
+  const leadEmail = emailFromLeadCookie((await cookies()).get(LEAD_COOKIE)?.value)
 
   return (
     <div className="space-y-8">
@@ -23,7 +27,7 @@ export default async function OnboardingDetailsPage() {
         </p>
       </div>
       <DetailsForm
-        defaults={{ firstName: profile.firstName ?? '', lastName: profile.lastName ?? '', email: profile.email ?? '', linkedInUrl: profile.linkedInUrl ?? '' }}
+        defaults={{ firstName: profile.firstName ?? '', lastName: profile.lastName ?? '', email: profile.email || leadEmail || '', linkedInUrl: profile.linkedInUrl ?? '' }}
       />
     </div>
   )
