@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-227 clusters, 1376 phrases.
+228 clusters, 1382 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -162,6 +162,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/salaries/:slug` | family | {title} salary | What one job title pays | {title} average salary; {title} pay range; how much does a {title} make; {title} salary by state; {title} median pay |
 | `/jobs/title` | page | jobs by title | Browse open jobs by title | job titles; open jobs by job title; job openings by profession |
 | `/jobs/title/:slug` | family | {title} jobs | Open jobs for one title | {title} job openings; {title} openings; {title} jobs hiring now; {title} jobs with salary |
+| `/jobs/title/:slug/:place` | family | {title} jobs in {city} | Open jobs for one title in one city or state | {title} jobs in {state}; {title} jobs near {city}; {title} jobs {city}; {title} openings in {city}; {title} hiring in {city} |
 | `/jobs/type/:type` | family | {type} professional jobs | Remote, hybrid, contract, part-time or interim jobs | {type} jobs; remote jobs for managers; remote director jobs; contract jobs for professionals; part-time professional jobs; interim executive jobs; hybrid jobs |
 | `/coaching` | page | career coach | Find a career coach | professional coach; executive coach; career coaching; AI career coach; job search coach; executive coaching for job seekers; find a career coach; online career coach; free career coach |
 | `/topics/laid-off-over-40` | page | laid off at 50 | Laid off later in a career | laid off at 40; laid off over 50; laid off after 20 years; laid off later in life; age discrimination layoff; job search after 50 |
