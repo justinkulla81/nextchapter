@@ -3,5 +3,6 @@ import { withCronRun } from '@/lib/cron/run'
 import { runConferenceHeadsUp } from '@/lib/events/run-heads-up'
 
 // Daily. Sends nothing until CONFERENCE_HEADSUP_ENABLED=1 (see run-heads-up.ts).
+// No cron in vercel.json while this is off (saves a slot of the 100 allowed); add one back when switching it on. See CRON_BUNDLES in lib/cron/schedule.ts.
 export const maxDuration = 300
 export const GET = withCronRun('conference-heads-up', async () => NextResponse.json(await runConferenceHeadsUp()))

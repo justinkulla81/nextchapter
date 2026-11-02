@@ -41,13 +41,36 @@ export function maxGapMinutes(expr: string): number {
   return intervalMinutes(expr) * 2 + 60
 }
 
+/**
+ * Crons that run several small jobs in one slot (src/lib/cron/bundle.ts). Each listed job keeps its own route and
+ * ledger row, so the watchdog and Job health judge it by name on the bundle's schedule.
+ */
+export const CRON_BUNDLES: Readonly<Record<string, readonly string[]>> = {
+  'bundle-membership': ['membership-lapse-check', 'membership-dossier-refresh', 'membership-market-check', 'membership-network-nudge', 'activity-streaks', 'benefits-network-expire-listings'],
+  'bundle-daily-1300': ['week1-kickoff', 'candidate-email-dispatch', 'talent-intake', 'social-posts'],
+  'bundle-search-pings': ['google-indexing-jobs', 'indexnow-seo-pages', 'bing-url-submit'],
+  'bundle-company-light': ['company-outcomes', 'company-events'],
+  'bundle-tuesday-digests': ['market-digest-recruiters', 'market-digest-employers'],
+  'bundle-daily-1500': ['deadline-reminders', 'census-comms'],
+  'bundle-daily-1030': ['meeting-prep-send', 'mailing-autoassign', 'content-drafts', 'ats-job-board-feed'],
+  'bundle-daily-1200': ['job-search-daily', 'help-feedback-digest', 'research-inbox-sweep'],
+  'bundle-monday-1100': ['senior-brief', 'outplacement-agent'],
+  'bundle-daily-1400': ['registration-reminders', 'interim-role-reverify'],
+}
+
+/**
+ * Flag-gated jobs with a route but no cron while their flag is off, to save a slot (the limit is 100). Add the cron back
+ * to vercel.json when switching one on: mobile-push (MOBILE_PUSH_ENABLED), supporter-digest (SUPPORTER_DIGEST_ENABLED),
+ * conference-heads-up (CONFERENCE_HEADSUP_ENABLED).
+ */
+
 export function cronSchedules(): CronSchedule[] {
-  return (vercelConfig.crons ?? []).map((c) => ({
-    job: jobNameFromPath(c.path),
-    path: c.path,
-    schedule: c.schedule,
-    maxGapMinutes: maxGapMinutes(c.schedule),
-  }))
+  return (vercelConfig.crons ?? []).flatMap((c) => {
+    const job = jobNameFromPath(c.path)
+    const jobs = CRON_BUNDLES[job]
+    if (!jobs) return [{ job, path: c.path, schedule: c.schedule, maxGapMinutes: maxGapMinutes(c.schedule) }]
+    return jobs.map((j) => ({ job: j, path: `/api/cron/${j}`, schedule: c.schedule, maxGapMinutes: maxGapMinutes(c.schedule) }))
+  })
 }
 
 /**

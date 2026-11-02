@@ -5,10 +5,6 @@
   "ignoreCommand": "sh scripts/vercel-ignore-build.sh",
   "crons": [
     {
-      "path": "/api/cron/mobile-push",
-      "schedule": "17 * * * *"
-    },
-    {
       "path": "/api/cron/seo-title-tests",
       "schedule": "40 10 * * *"
     },
@@ -17,7 +13,7 @@
       "schedule": "0 11 * * 1"
     },
     {
-      "path": "/api/cron/deadline-reminders",
+      "path": "/api/cron/bundle-daily-1500",
       "schedule": "0 15 * * *"
     },
     {
@@ -33,11 +29,11 @@
       "schedule": "0 0 * * *"
     },
     {
-      "path": "/api/cron/meeting-prep-send",
+      "path": "/api/cron/bundle-daily-1030",
       "schedule": "30 10 * * *"
     },
     {
-      "path": "/api/cron/registration-reminders",
+      "path": "/api/cron/bundle-daily-1400",
       "schedule": "0 14 * * *"
     },
     {
@@ -45,11 +41,11 @@
       "schedule": "15 13 * * *"
     },
     {
-      "path": "/api/cron/job-search-daily",
+      "path": "/api/cron/bundle-daily-1200",
       "schedule": "0 12 * * *"
     },
     {
-      "path": "/api/cron/candidate-email-dispatch",
+      "path": "/api/cron/bundle-daily-1300",
       "schedule": "0 13 * * *"
     },
     {
@@ -57,15 +53,7 @@
       "schedule": "30 5 * * *"
     },
     {
-      "path": "/api/cron/supporter-digest",
-      "schedule": "0 15 * * 0"
-    },
-    {
-      "path": "/api/cron/week1-kickoff",
-      "schedule": "0 13 * * *"
-    },
-    {
-      "path": "/api/cron/senior-brief",
+      "path": "/api/cron/bundle-monday-1100",
       "schedule": "0 11 * * 1"
     },
     {
@@ -81,20 +69,12 @@
       "schedule": "0 15 * * 2"
     },
     {
-      "path": "/api/cron/interim-role-reverify",
-      "schedule": "0 14 * * *"
-    },
-    {
       "path": "/api/cron/expire-job-postings",
       "schedule": "0 10 * * *"
     },
     {
       "path": "/api/cron/board-light-rows",
       "schedule": "40 9 * * *"
-    },
-    {
-      "path": "/api/cron/ats-job-board-feed",
-      "schedule": "30 10 * * *"
     },
     {
       "path": "/api/cron/job-feed-direct",
@@ -117,44 +97,20 @@
       "schedule": "12 * * * *"
     },
     {
-      "path": "/api/cron/indexnow-seo-pages",
+      "path": "/api/cron/bundle-search-pings",
       "schedule": "50 11 * * *"
-    },
-    {
-      "path": "/api/cron/content-drafts",
-      "schedule": "30 10 * * *"
-    },
-    {
-      "path": "/api/cron/social-posts",
-      "schedule": "0 13 * * *"
     },
     {
       "path": "/api/cron/social-filings",
       "schedule": "40 * * * *"
     },
     {
-      "path": "/api/cron/google-indexing-jobs",
-      "schedule": "45 11 * * *"
-    },
-    {
-      "path": "/api/cron/bing-url-submit",
-      "schedule": "20 12 * * *"
-    },
-    {
-      "path": "/api/cron/research-inbox-sweep",
-      "schedule": "0 12 * * *"
-    },
-    {
       "path": "/api/cron/market-digest-coaches",
       "schedule": "30 14 * * 2"
     },
     {
-      "path": "/api/cron/market-digest-recruiters",
+      "path": "/api/cron/bundle-tuesday-digests",
       "schedule": "0 15 * * 2"
-    },
-    {
-      "path": "/api/cron/market-digest-employers",
-      "schedule": "30 15 * * 2"
     },
     {
       "path": "/api/cron/win-back",
@@ -189,11 +145,7 @@
       "schedule": "0 11 * * *"
     },
     {
-      "path": "/api/cron/company-events",
-      "schedule": "30 11 * * *"
-    },
-    {
-      "path": "/api/cron/company-outcomes",
+      "path": "/api/cron/bundle-company-light",
       "schedule": "10 11 * * *"
     },
     {
@@ -245,24 +197,8 @@
       "schedule": "30 11 * * *"
     },
     {
-      "path": "/api/cron/membership-lapse-check",
+      "path": "/api/cron/bundle-membership",
       "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/membership-dossier-refresh",
-      "schedule": "15 6 * * *"
-    },
-    {
-      "path": "/api/cron/membership-market-check",
-      "schedule": "30 6 * * *"
-    },
-    {
-      "path": "/api/cron/membership-network-nudge",
-      "schedule": "45 6 * * *"
-    },
-    {
-      "path": "/api/cron/benefits-network-expire-listings",
-      "schedule": "0 7 * * *"
     },
     {
       "path": "/api/cron/crm-sync",
@@ -301,28 +237,12 @@
       "schedule": "45 11 * * *"
     },
     {
-      "path": "/api/cron/talent-intake",
-      "schedule": "0 13 * * *"
-    },
-    {
-      "path": "/api/cron/help-feedback-digest",
-      "schedule": "0 12 * * *"
-    },
-    {
-      "path": "/api/cron/activity-streaks",
-      "schedule": "15 6 * * *"
-    },
-    {
       "path": "/api/cron/mailing-send",
       "schedule": "*/5 * * * *"
     },
     {
       "path": "/api/cron/mailing-verify",
       "schedule": "40 * * * *"
-    },
-    {
-      "path": "/api/cron/mailing-autoassign",
-      "schedule": "30 10 * * *"
     },
     {
       "path": "/api/cron/course-scan",
@@ -345,16 +265,8 @@
       "schedule": "30 7 * * *"
     },
     {
-      "path": "/api/cron/outplacement-agent",
-      "schedule": "0 11 * * 1"
-    },
-    {
       "path": "/api/cron/staff-agents",
       "schedule": "30 11 * * *"
-    },
-    {
-      "path": "/api/cron/census-comms",
-      "schedule": "0 15 * * *"
     },
     {
       "path": "/api/cron/higher-ed-weekly",
@@ -375,10 +287,6 @@
     {
       "path": "/api/cron/events-refresh",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/conference-heads-up",
-      "schedule": "30 14 * * *"
     },
     {
       "path": "/api/cron/conference-recheck",
