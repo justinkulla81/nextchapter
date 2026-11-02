@@ -264,8 +264,9 @@ async function loadCatalogIndex() {
   })
   return rows.map((r) => ({ ...r, ownFunctions: r.functions, functions: effectiveFunctions(r), updatedAt: r.updatedAt.toISOString(), startDate: r.startDate?.toISOString() ?? null, endDate: r.endDate?.toISOString() ?? null, speakingDeadline: r.speakingDeadline?.toISOString() ?? null, checkedAt: r.checkedAt?.toISOString() ?? null }))
 }
-// About 2.7 MB: over the 2 MB limit of the Next data cache (every call silently missed it), so kept in memory per instance.
-const cachedCatalog = memoTtl(10 * 60_000, () => 'catalog', loadCatalogIndex)
+// About 2.7 MB raw, over the 2 MB limit of the Next data cache, so it used to miss it on every call and each cold instance re-read the whole
+// catalog (about two reads a minute). sharedLoad compresses it well under the limit. Its dates are already strings: they stay strings.
+const cachedCatalog = memoTtl(10 * 60_000, () => 'catalog', () => sharedLoad('conference-catalog', 3600, loadCatalogIndex, { reviveDates: false }))
 export const getCatalogIndex = cache(() => cachedCatalog())
 
 export type CatalogRow = Awaited<ReturnType<typeof loadCatalogIndex>>[number]
