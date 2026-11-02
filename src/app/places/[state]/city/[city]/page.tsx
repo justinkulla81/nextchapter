@@ -13,6 +13,7 @@ import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
 import { getCityPage, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
+import { PlaceSignals } from '@/components/places/PlaceSignals'
 import { titleMeta } from '@/lib/seo/title'
 import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 
@@ -92,6 +93,8 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
 
       <ConferenceSection id="conferences" title={`Conferences in ${p.name}`} intro={`Industry conferences and trade shows held in ${p.name}.`}
         source={`place:city:${code}:${p.slug}`} load={() => conferencesAtPlace('city', code, p.slug, 12)} more={{ href: '/conferences', label: 'All conferences' }} />
+
+      <PlaceSignals scope={p.name} outlookScope={d.county?.name} fips={d.county ? [d.county.fips] : []} boardIds={d.boards.map((b) => b.id)} workforceHref="#workforce" />
 
       <WorkforceSection id="workforce" state={name} stateSlugValue={state} boards={d.boards} centers={d.centers} scope={p.name} />
 
