@@ -9,6 +9,10 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, INDUSTRIES } from '@/lib/seo/topics'
 import { loadIndustry } from '@/lib/seo/topic-load'
 import { titleMeta } from '@/lib/seo/title'
+import { industryImage } from '@/lib/seo/topic-images'
+import { FitCheck } from '@/components/capture/FitCheck'
+import { captureSource } from '@/lib/capture/page-capture'
+import { AI_SKILL_ITEMS } from '@/lib/skills/ai-skills'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -38,6 +42,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
     <TopicShell
       trail={[{ name: 'Industries', path: '/industries' }, { name: industry.name, path }]}
       title={`${industry.name}: jobs, conferences and layoffs`}
+      hero={industryImage(slug)}
       capture={{ kind: 'industry', slug, label: industry.name, save: { q: industry.name, loc: '' } }}
       intro={intro}
       jsonLd={[
@@ -77,6 +82,14 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
         <Section id="employers" title="Employers hiring">
           <Chips kind="industry_to_employer" event="topic_link_clicked" items={jobs.employers.map((e) => ({ href: `/employers/${e.slug}`, label: e.name, detail: `${e.count.toLocaleString()} open` }))} />
         </Section>
+      )}
+      {stats && stats.skills.length > 0 && (
+        <FitCheck
+          label={industry.name}
+          source={captureSource({ kind: 'industry', slug })}
+          skills={stats.skills.slice(0, 10).map((x) => x.name)}
+          aiSkills={AI_SKILL_ITEMS.filter((i) => i.group === 'applied').slice(0, 8).map((i) => ({ label: i.label, words: [i.label, ...i.aliases] }))}
+        />
       )}
       <Section id="learn" title={`Learn and get funded for ${industry.name.toLowerCase()}`} note="Free to use. We point to the official page for each programme.">
         <ul className="list-disc space-y-1 pl-5 text-sm">
