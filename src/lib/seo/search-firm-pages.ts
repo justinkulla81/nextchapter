@@ -5,7 +5,7 @@ import { persisted, storeNow } from '@/lib/seo/topic-snapshot'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
-import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_SELECT, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
+import { PUBLIC_JOB_LIST_SELECT, PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_STATIC_SQL, withDescriptionStubs } from '@/lib/jobs/public-job-page-server'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import { STAFFING_INDUSTRY, isSearchFirmOrg } from '@/lib/seo/search-firm-link'
 import { resolveClaimableOrg } from '@/lib/org-claims/org'
@@ -57,7 +57,7 @@ function toRow(r: Prisma.ExclusiveJobPostingGetPayload<{ select: typeof SELECT }
   }
 }
 
-const SELECT = { ...PUBLIC_JOB_SELECT, level: true, targetFunction: true, industry: true, aiSkillGroups: true } satisfies Prisma.ExclusiveJobPostingSelect
+const SELECT = { ...PUBLIC_JOB_LIST_SELECT, level: true, targetFunction: true, industry: true, aiSkillGroups: true } satisfies Prisma.ExclusiveJobPostingSelect
 
 export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFirmPage | null> => {
   if (!isUsableFirmSlug(slug)) return null
@@ -79,7 +79,7 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
   const names = [...new Set([org.name, firm?.name].filter((n): n is string => !!n))]
   const or: Prisma.ExclusiveJobPostingWhereInput[] = [{ sourceCategory: 'search_firm', sourceName: { in: names } }]
   if (org.companyId) or.push({ companyId: org.companyId })
-  const [rows, ghosts] = await Promise.all([
+  const [listed, ghosts] = await Promise.all([
     prisma.exclusiveJobPosting.findMany({
       where: { status: 'approved', archivedAt: null, closeReason: null, OR: or },
       select: SELECT,
@@ -88,6 +88,7 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
     }),
     getConfirmedGhostIds(),
   ])
+  const rows = await withDescriptionStubs(listed)
   const now = Date.now()
   const live = rows.filter((r) => isPublicJob(r, now, ghosts.has(r.id)))
   const summary = summarizeSearches(live.map(toRow), now)

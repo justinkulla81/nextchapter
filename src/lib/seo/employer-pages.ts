@@ -3,7 +3,7 @@ import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import { orgSlug } from '@/lib/crm/org-slug'
 import { summarizePay, type PayGroup } from '@/lib/companies/pay-ranges'
-import { PUBLIC_JOB_SELECT, getConfirmedGhostIdsForPage } from '@/lib/seo/employer-jobs'
+import { PUBLIC_JOB_LIST_SELECT, getConfirmedGhostIdsForPage, withDescriptionStubs } from '@/lib/seo/employer-jobs'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
 import { canonicalFromEmployerSlug, employerSlug, idSuffixFromSlug } from '@/lib/seo/employer-slug'
 import { higherEdSql, isHigherEdName } from '@/lib/seo/higher-ed'
@@ -96,15 +96,16 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
   }
   if (!company || employerSlug(company.canonicalNameNormalized, company.id) !== slug) return null
 
-  const [rows, ghosts] = await Promise.all([
+  const [listed, ghosts] = await Promise.all([
     prisma.exclusiveJobPosting.findMany({
       where: { companyId: company.id, status: 'approved', archivedAt: null },
-      select: PUBLIC_JOB_SELECT,
+      select: PUBLIC_JOB_LIST_SELECT,
       orderBy: { lastVerifiedAt: 'desc' },
       take: 60,
     }),
     getConfirmedGhostIdsForPage(),
   ])
+  const rows = await withDescriptionStubs(listed)
 
   const now = Date.now()
   const live = rows.filter((r) => isPublicJob(r, now, ghosts.has(r.id)))
