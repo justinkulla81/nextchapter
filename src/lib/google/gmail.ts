@@ -44,6 +44,19 @@ export async function listNewsletterMessages(accessToken: string, senderQuery: s
   return data.messages ?? []
 }
 
+/** Messages matching a Gmail search, newest first, read or not; the caller remembers which it has handled. */
+export async function listMessagesByQuery(accessToken: string, query: string, maxResults = 10): Promise<GmailMessageSummary[]> {
+  const params = new URLSearchParams({ q: query, maxResults: String(maxResults) })
+  const response = await fetch(`${GMAIL_API_BASE}/messages?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  if (!response.ok) {
+    throw new Error(`Gmail message list failed: ${response.status} ${await response.text()}`)
+  }
+  const data = (await response.json()) as { messages?: { id: string }[] }
+  return data.messages ?? []
+}
+
 interface GmailPart {
   mimeType?: string
   body?: { data?: string }
