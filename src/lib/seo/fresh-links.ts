@@ -44,18 +44,27 @@ export async function getFreshLayoffLinks(): Promise<FreshLink[]> {
     .map((x) => ({ label: `${x.name} layoffs`, href: `/layoffs/company/${x.slug}`, kind: 'layoff' as const, key: x.slug }))
 }
 
-// The newest jobs that are in the job sitemap (public page, real posting text, live, offered to search engines): the same SQL as
+// The newest jobs that are in the job sitemap (public page, real posting text, live, offered to search engines): the same rules as
 // src/app/jobs/sitemap.ts, newest first, eight rows. Cached for half an hour so a page view never runs it.
+// It first takes the newest NEWEST_WINDOW postings by creation date (an index walk) and only then applies the full rules, which
+// read each row's description. Filtering the whole table first ran 100 seconds or more per call, four at a time, and held
+// database connections (seen 2026-11-02). The window holds dozens of qualifying jobs, far more than the eight shown.
+const NEWEST_WINDOW = 5000
 const newestOfferedJobs = unstable_cache(
   () => heavy(() => prisma.$queryRaw<{ id: string; title: string; companyName: string }[]>`
-    SELECT id, title, "companyName" FROM "ExclusiveJobPosting"
+    SELECT id, title, "companyName" FROM (
+      SELECT * FROM "ExclusiveJobPosting"
+      WHERE status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL
+      ORDER BY "createdAt" DESC
+      LIMIT ${NEWEST_WINDOW}
+    ) AS "ExclusiveJobPosting"
     WHERE ${PUBLIC_JOB_STATIC_SQL}
       AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
       AND ${PUBLIC_JOB_LIVE_SQL}
       AND ${PUBLIC_JOB_OFFERED_SQL}
     ORDER BY coalesce("postedAt", "createdAt") DESC
     LIMIT ${JOB_LINKS}`),
-  ['fresh-job-links-v1'],
+  ['fresh-job-links-v2'],
   { revalidate: 1800 },
 )
 

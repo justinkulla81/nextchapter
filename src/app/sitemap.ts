@@ -136,6 +136,15 @@ const REPLICATION_UPDATED = '2026-10-07'
 // The board and college directories are refreshed from CareerOneStop and IPEDS about monthly.
 const DIRECTORY_UPDATED = '2026-10-25'
 
+// A loader that fails (a database error, a connection limit) used to log and return nothing, and the shortened list was then cached
+// for six hours: on 2026-11-02 a rebuild during a connection spike cached 839 of about 5,500 URLs. Each loader now records its failure
+// here, and buildSitemap throws if any section is missing, so a partial list is never cached; the last complete copy keeps being served.
+let sitemapFailures: string[] = []
+function sectionFailed(section: string, error: unknown) {
+  sitemapFailures.push(section)
+  console.error(`sitemap: ${section} left out`, error instanceof Error ? error.message : error)
+}
+
 // Two queries for every state (all boards, and which states have colleges), not one pair per state: this loader
 // ran fifty-odd concurrent reads beside the topic and nonprofit loaders and, failing quietly, dropped every
 // workforce, rapid-response and higher-education page from the sitemap.
@@ -167,7 +176,7 @@ async function loadSeoStatePages(entry: (path: string, updated: string, freq: Fr
         ]
       })
   } catch (e) {
-    console.error('sitemap: workforce state pages left out', e)
+    sectionFailed('workforce state pages', e)
     return []
   }
 }
@@ -186,7 +195,7 @@ async function loadNonprofitPages(entry: (path: string, updated: string, freq: F
       ...edo.filter((e) => e.state in STATE_NAMES).map((e) => entry(`/economic-development/${stateSlug(e.state)}`, DIRECTORY_UPDATED, 'monthly', 0.5)),
     ]
   } catch (e) {
-    console.error('sitemap: nonprofit and economic development pages left out', e)
+    sectionFailed('nonprofit and economic development pages', e)
     return []
   }
 }
@@ -208,7 +217,7 @@ async function loadCoursePages(entry: (path: string, updated: string, freq: Freq
       ...catalog.map((c) => entry(coursePath(c), day, 'monthly', 0.4)),
     ]
   } catch (error) {
-    console.error('sitemap: AI course pages left out', error instanceof Error ? error.message : error)
+    sectionFailed('AI course pages', error)
     return []
   }
 }
@@ -249,7 +258,7 @@ async function loadTopicPages(entry: (path: string, updated: string, freq: Freq,
       ...assocEntries,
     ]
   } catch (error) {
-    console.error('topic pages left out of the sitemap:', error instanceof Error ? error.message : error)
+    sectionFailed('topic pages', error)
     return hubs
   }
 }
@@ -257,14 +266,15 @@ async function loadTopicPages(entry: (path: string, updated: string, freq: Freq,
 const latestOf = (dates: string[]) => dates.reduce((a, b) => (b > a ? b : a), dates[0])
 
 async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
+  sitemapFailures = []
   // News items that have their own page — the ones with our take.
   const [news, layoffStates, companies, announcements, weeks, months] = await Promise.all([
     getPublishedNews(500),
-    getStateSummaries().catch(() => []),
-    getCompanies().catch(() => new Map()),
-    getAnnouncements().catch(() => new Map()),
-    getWeeks().catch(() => []),
-    getMonths().catch(() => []),
+    getStateSummaries().catch((e) => (sectionFailed('layoff states', e), [])),
+    getCompanies().catch((e) => (sectionFailed('layoff companies', e), new Map())),
+    getAnnouncements().catch((e) => (sectionFailed('layoff announcements', e), new Map())),
+    getWeeks().catch((e) => (sectionFailed('layoff weeks', e), [])),
+    getMonths().catch((e) => (sectionFailed('layoff months', e), [])),
   ])
   // Employers with a recent announcement are listed even without a WARN filing (their page exists and is indexable).
   const announced = [...announcements.values()].filter((a) => hasRecentAnnouncement(a))
@@ -284,6 +294,7 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
 
   const [stateAndWorkforcePages, topicPages, nonprofitPages, coursePages] = await Promise.all([loadSeoStatePages(entry), loadTopicPages(entry), loadNonprofitPages(entry), loadCoursePages(entry)])
   const seoStatePages = [...stateAndWorkforcePages, nonprofitPages]
+  if (sitemapFailures.length > 0) throw new Error(`sitemap sections failed, not cached: ${[...new Set(sitemapFailures)].join(', ')}`)
 
   return [
     // The homepage shows the latest News, so it changes when News does.
@@ -381,8 +392,16 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
 // The finished list is kept in the data cache (six hours, a stale copy served while it refreshes), like the other database-backed
 // sitemaps. Without this every request to /sitemap.xml rebuilt it from the database (about 2 seconds, MISS on every call): the
 // CDN header in next.config.ts is not applied to a dynamic route on Vercel.
-const cachedMainSitemap = cachedSitemap('main-sitemap-v1', buildSitemap)
+// v3 is the list with the AI course pages. If it cannot be built complete (the database is at its limit), the last complete list under the
+// older key is served instead, so crawlers never see a short one. A failed build throws and is never cached.
+const cachedMainSitemap = cachedSitemap('main-sitemap-v3', buildSitemap)
+const previousMainSitemap = cachedSitemap('main-sitemap-v1', buildSitemap)
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return cachedMainSitemap()
+  try {
+    return await cachedMainSitemap()
+  } catch (error) {
+    console.error('sitemap: serving the previous complete list;', error instanceof Error ? error.message : error)
+    return previousMainSitemap()
+  }
 }
