@@ -50,6 +50,9 @@ const TOOLS = [
   ...LAID_OFF_TOOLS,
 ] as const
 
+// The directory portal reads the display name from annotations.title (the spec's top-level title is kept too).
+const LISTED_TOOLS = TOOLS.map((t) => ({ ...t, annotations: { ...t.annotations, title: t.title } }))
+
 const STOP = new Set(['the', 'a', 'an', 'to', 'of', 'and', 'or', 'for', 'in', 'on', 'my', 'i', 'how', 'do', 'what', 'is', 'can', 'should', 'after', 'about', 'with', 'you', 'me'])
 const words = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ').split(/\s+/).filter((w) => w.length > 2 && !STOP.has(w))
 
@@ -117,7 +120,7 @@ export async function handleMcpMessage(msg: JsonRpcRequest, allowSearch: () => P
     case 'ping':
       return ok(id, {})
     case 'tools/list':
-      return ok(id, { tools: TOOLS })
+      return ok(id, { tools: LISTED_TOOLS })
     case 'tools/call': {
       const name = typeof msg.params?.name === 'string' ? msg.params.name : ''
       const args = (msg.params?.arguments as Record<string, unknown> | undefined) ?? {}
