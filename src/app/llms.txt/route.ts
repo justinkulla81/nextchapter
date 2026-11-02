@@ -50,6 +50,7 @@ export function GET() {
 
 - [Employer pages](${u('/employers')}): one page per employer at /employers/<name>: open professional roles from its career site, what it hires for, posted pay against the market, where it hires. Updated daily; employers can claim their page.
 
+- [AI courses by level and profession](${u('/ai-courses')}): free and paid AI courses and certifications for finance, legal, HR, marketing, sales and more, sorted beginner to advanced, with a short level finder.
 - [AI skills in job postings](${u('/ai-skills')}): which functions ask for AI skills, the advertised pay premium raw and like for like, and independent research by seniority. Updated weekly.
 - [AI training](${u('/ai-training')}): for colleges, workforce boards and employers, a measured AI-skill gap and the short courses that close it.
 - [NextChapter White Collar Employment Report](${u('/reports')}): a monthly, independent read on the U.S. white-collar labor market — layoffs, long-term unemployment, AI attribution and the safety net, with methods and data files published.
