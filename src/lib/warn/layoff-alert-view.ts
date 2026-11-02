@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { alertBody, type AlertInput, type LayoffKind } from './layoff-alert-rules'
 import { layoffPeople } from './layoff-alert-people'
 import { withComposeLinks } from './layoff-alert-drafts'
+import { loadAlertSources } from './layoff-alert-sources'
 import { draftContext } from './layoff-alert-links'
 import { inferHq } from './layoff-hq-state'
 import { buildLocalPicture, classifyLayoffIndustry } from './layoff-context'
@@ -59,6 +60,7 @@ export async function layoffAlertView(noticeId: string): Promise<{ employer: str
     employer: n.employer, employees: n.employees, percent: null, kind, confirmed: n.source === 'WARN_FILING' || kind === 'sec',
     inCrm: !!org, people: people.length, warm, contactsFound: 0,
     costs: n,
+    sources: await loadAlertSources(n.id, n.sourceUrl, kind === 'warn' ? 'WARN filing' : kind === 'sec' ? 'SEC 8-K filing' : 'Notice'),
     picture: { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) },
   }
   if (related) {
@@ -68,6 +70,6 @@ export async function layoffAlertView(noticeId: string): Promise<{ employer: str
   }
   return {
     employer: n.employer,
-    html: alertBody(input, { source: n.sourceUrl, org: orgId ? `${SITE}/support/admin/crm/organizations/${orgId}` : null, notices: `${SITE}/support/admin/crm/warn` }),
+    html: alertBody(input, { source: null, org: orgId ? `${SITE}/support/admin/crm/organizations/${orgId}` : null, notices: `${SITE}/support/admin/crm/warn` }),
   }
 }
