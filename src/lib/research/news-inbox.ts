@@ -8,7 +8,7 @@ import { unwrapFeedLink } from '@/lib/news/discover'
 import { sourceFromUrl, stripSourceSuffix } from '@/lib/news/kind'
 import { cleanNewsTags } from '@/lib/news/tags'
 import { revalidatePath } from 'next/cache'
-import { canAutoPublish, extractNewsLinks, noteBeforeFirstLink, type NewsTone } from './news-inbox-text'
+import { AUTO_PUBLISH_MIN_CONFIDENCE, canAutoPublish, extractNewsLinks, noteBeforeFirstLink, type NewsTone } from './news-inbox-text'
 
 export const NEWS_ADDRESS = 'news@launchyournextchapter.com'
 // Gmail ignores dots, so the same mailbox shows up as justin.kulla@ or justinkulla@ depending on how it was typed.
@@ -139,8 +139,10 @@ async function fileOne(url: string, pasted: string | null, note: string | null, 
     // Politics stays out of News and the weekly email whatever the model chose.
     const route = routed.political ? { ...routed, website: false, weekly: false, audiences: [] } : routed
     const source = pasted ? null : sourceFromUrl(url)
-    const where = [route.report && 'monthly report', route.website && 'website News', route.weekly && 'weekly email'].filter(Boolean)
-    const audiences = route.weekly ? route.audiences : []
+    // The weekly email goes out on its own, so it takes only what the router is sure of; the rest waits for Justin.
+    const sureForWeekly = route.credibilityTier === 'recognized' && route.confidenceScore >= AUTO_PUBLISH_MIN_CONFIDENCE
+    const audiences = route.weekly && sureForWeekly ? route.audiences : []
+    const where = [route.report && 'monthly report', route.website && 'website News', audiences.length > 0 && 'weekly email'].filter(Boolean)
     const recent = await prisma.researchLibraryItem.findMany({
       where: { discoveryTopic: { startsWith: 'Sent to news@ · ' }, newsPublishedAt: { not: null } },
       orderBy: { newsPublishedAt: 'desc' },
@@ -188,7 +190,7 @@ async function fileOne(url: string, pasted: string | null, note: string | null, 
     if (route.political) result.political++
     if (route.report) result.forReport++
     if (route.website) result.forWebsite++
-    if (route.weekly) result.forWeekly++
+    if (audiences.length > 0) result.forWeekly++
     if (!route.relevant) result.notRelevant++
   } catch (err) {
     // A routing failure still files the article, unrouted, for a person.
