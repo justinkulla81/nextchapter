@@ -37,7 +37,7 @@ export interface CityMeasure {
 }
 
 /** A city where one employer posts more than this share of openings is not ranked: one company would decide its score. */
-export const MAX_EMPLOYER_SHARE = 0.35
+export const MAX_EMPLOYER_SHARE = 0.5
 export const CONCENTRATION_NOTE = `A city where one employer posts more than ${Math.round(MAX_EMPLOYER_SHARE * 100)}% of its openings is not ranked, so a single company cannot decide a city's score.`
 const diverse = (c: CityStat) => c.topShare <= MAX_EMPLOYER_SHARE
 
@@ -83,7 +83,7 @@ export const CITY_MEASURES: Record<CityMeasure['id'], CityMeasure> = {
   paycost: {
     id: 'paycost', kind: 'city', family: 'Pay', unit: 'openings',
     min: { national: 200, region: 100, state: 100 },
-    qualifies: (c, min, ctx) => c.n >= min && diverse(c) && c.paid >= 30 && c.payMed != null && ctx.costOf(c) != null,
+    qualifies: (c, min, ctx) => c.n >= min && diverse(c) && c.paid >= 50 && c.payMed != null && ctx.costOf(c) != null,
     value: (c, ctx) => (c.payMed as number) / ((ctx.costOf(c) as Cost).rpp / 100),
     valueLabel: (v) => usdK(v),
     sample: (c) => c.paid,
@@ -97,7 +97,7 @@ export const CITY_MEASURES: Record<CityMeasure['id'], CityMeasure> = {
       ]
     },
     baseline: (all, ctx) => {
-      const rows = all.filter((c) => c.paid >= 30 && c.payMed != null && ctx.costOf(c))
+      const rows = all.filter((c) => c.paid >= 50 && c.payMed != null && ctx.costOf(c))
       if (!rows.length) return null
       const v = rows.reduce((s, c) => s + (c.payMed as number) / ((ctx.costOf(c) as Cost).rpp / 100), 0) / rows.length
       return { label: 'the typical city in our data', valueLabel: usdK(v) }
@@ -105,7 +105,7 @@ export const CITY_MEASURES: Record<CityMeasure['id'], CityMeasure> = {
     lead: (name, v, scope) => `${name} leads ${scope} for pay after the cost of living: its median posted salary buys what ${v} buys at average US prices.`,
     method: [
       'The score is a city\'s median posted annual salary (the midpoint of each posted range) divided by its local price level, with the United States at 100.',
-      'Price levels are the Bureau of Economic Analysis regional price parities for the city\'s metro area, or its state where no metro figure exists. Only cities with at least 30 listings that post a salary are ranked.',
+      'Price levels are the Bureau of Economic Analysis regional price parities for the city\'s metro area, or its state where no metro figure exists. Only cities with at least 50 listings that post a salary are ranked.',
     ],
     base: { title: 'Best cities for pay after cost of living', slug: 'best-cities-for-pay-vs-cost-of-living' },
     scoped: (p) => ({ title: `Best cities for pay after cost of living in ${p}`, slug: (id) => `best-cities-for-pay-vs-cost-of-living-in-${id}` }),

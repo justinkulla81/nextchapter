@@ -7,8 +7,8 @@ import { stateSlug } from '@/lib/seo/states'
 import { rankCities, rankCounties, wave1Specs } from '@/lib/rankings/build-edition'
 import { STATE_FIPS } from '@/lib/rankings/regions'
 import { loadCityStats, loadCountyStats } from '@/lib/rankings/scan'
-import { previousEdition, readRanking, readRankingIndex, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
-import type { CityStat, CountyStat, PlaceInfo, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
+import { previousEdition, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
+import type { CityStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/measures'
 
 const titleCase = (s: string) => s.replace(/\b[a-z]/g, (c) => c.toUpperCase())
@@ -46,7 +46,15 @@ export function costOf(c: CityStat, name: string): Cost | null {
 export async function buildRankings(now = new Date()): Promise<{ edition: string; built: number; skipped: string[]; cities: number; counties: number }> {
   const edition = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`
   const builtAt = now.toISOString()
-  const [cities, countiesRaw] = await Promise.all([loadCityStats(), loadCountyStats()])
+  const [citiesRaw, countiesRaw] = await Promise.all([loadCityStats(), loadCountyStats()])
+  // A city is keyed the way the place pages key it ("st. louis" and "st louis" are one place); if two spellings both qualify, the bigger sample stands.
+  const keyed = new Map<string, CityStat>()
+  for (const c of citiesRaw) {
+    const city = placeKey(c.city) || c.city
+    const k = `${c.st}|${city}`
+    if (!keyed.has(k) || (keyed.get(k) as CityStat).n < c.n) keyed.set(k, { ...c, city })
+  }
+  const cities = [...keyed.values()]
   const states = [...new Set(cities.map((c) => c.st))]
   const [info, hrefs] = await Promise.all([placeInfo(states), countyHrefs([...new Set(countiesRaw.map((c) => c.st))])])
   const counties: CountyStat[] = countiesRaw.map((c) => ({ ...c, href: hrefs.get(c.fips) ?? c.href }))
@@ -59,6 +67,7 @@ export async function buildRankings(now = new Date()): Promise<{ edition: string
 
   const earlier = new Map((await readRankingIndex()).map((e) => [e.slug, e.editions]))
   const entries: RankingIndexEntry[] = []
+  const placeRanks: PlaceRanks = {}
   const skipped: string[] = []
   const prevEd = previousEdition(edition)
   for (const spec of wave1Specs(topStates)) {
@@ -69,8 +78,11 @@ export async function buildRankings(now = new Date()): Promise<{ edition: string
       : rankCities(spec, cities, infoOf, ctx, edition, builtAt, prevRanks)
     if (!ed) { skipped.push(spec.slug); continue }
     await writeRanking(ed)
+    for (const r of ed.rows.slice(0, 25)) (placeRanks[r.key] ??= []).push({ slug: ed.slug, title: ed.title, rank: r.rank, valueLabel: r.valueLabel, places: ed.rows.length })
     entries.push({ slug: ed.slug, edition, title: ed.title, family: ed.family, measure: ed.measure, scopeKind: ed.scope.kind, scopeId: ed.scope.id, scopeName: ed.scope.name, topName: ed.rows[0].name, topValueLabel: ed.rows[0].valueLabel, places: ed.rows.length, editions: [...new Set([edition, ...(earlier.get(ed.slug) ?? [])])].sort().reverse() })
   }
+  for (const k of Object.keys(placeRanks)) placeRanks[k].sort((a, b) => a.rank - b.rank)
   await writeRankingIndex(entries)
+  await writePlaceRanks(placeRanks)
   return { edition, built: entries.length, skipped, cities: cities.length, counties: counties.length }
 }
