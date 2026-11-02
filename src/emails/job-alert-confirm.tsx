@@ -5,10 +5,12 @@ interface JobAlertConfirmEmailProps {
   what: string
   confirmUrl: string
   unsubscribeUrl: string
+  /** A course path (/ai-courses) reads differently from an alert: one link, nothing recurring is promised. */
+  variant?: 'course_path'
 }
 
 /** Sent once after someone saves a job search. Alerts start only after they click. */
-export default function JobAlertConfirmEmail({ what, confirmUrl, unsubscribeUrl }: JobAlertConfirmEmailProps) {
+export default function JobAlertConfirmEmail({ what, confirmUrl, unsubscribeUrl, variant }: JobAlertConfirmEmailProps) {
   return (
     <CardEmail
       preheader="Confirm your email alerts"
@@ -17,9 +19,19 @@ export default function JobAlertConfirmEmail({ what, confirmUrl, unsubscribeUrl 
     >
       <Card center pad="28px 32px 36px">
         <Wordmark />
-        <Headline>Confirm your email alerts</Headline>
-        <Lead>You asked for {what}. One click and we start. We send at most one email a day, and only when there is something new.</Lead>
-        <Button href={confirmUrl}>Yes, send me the alerts</Button>
+        {variant === 'course_path' ? (
+          <>
+            <Headline>Your AI course path</Headline>
+            <Lead>You asked for {what}. One click opens it.</Lead>
+            <Button href={confirmUrl}>Open my course path</Button>
+          </>
+        ) : (
+          <>
+            <Headline>Confirm your email alerts</Headline>
+            <Lead>You asked for {what}. One click and we start. We send at most one email a day, and only when there is something new.</Lead>
+            <Button href={confirmUrl}>Yes, send me the alerts</Button>
+          </>
+        )}
         <Small>If you did not ask for this, ignore this email and nothing will be sent.</Small>
       </Card>
     </CardEmail>

@@ -4,7 +4,8 @@ import { GET as candidate_email_dispatch } from '../candidate-email-dispatch/rou
 import { GET as talent_intake } from '../talent-intake/route'
 import { GET as social_posts } from '../social-posts/route'
 
-export const maxDuration = 300
+// Jobs run in this order, lightest first, so one slow job at the end cannot hold up the rest.
+export const maxDuration = 800
 
 export const GET = cronBundle({
   'week1-kickoff': week1_kickoff,

@@ -4,17 +4,26 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { inferJourney } from '@/lib/leads/infer-journey'
 import { followFromConfirmedLead } from '@/lib/company-tracker/follow-from-email'
 
-const KINDS = new Set(['job_alert', 'layoff_alert', 'deadline_reminders'])
+const KINDS = new Set(['job_alert', 'layoff_alert', 'deadline_reminders', 'course_path'])
 
 /** The confirm link in the first alert email (job search or layoff watch). Turns alerts on, guesses the journey, then shows the next step. */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
-  const to = new URL(`/jobs/alerts/confirmed?t=${encodeURIComponent(token)}`, request.url)
+  let to = new URL(`/jobs/alerts/confirmed?t=${encodeURIComponent(token)}`, request.url)
   try {
     const lead = await prisma.homepageLead.findUnique({
       where: { unsubscribeToken: token },
-      select: { id: true, email: true, kind: true, source: true, searchQ: true, searchLoc: true, confirmedAt: true, journeySlug: true },
+      select: { id: true, email: true, kind: true, source: true, searchQ: true, searchLoc: true, situation: true, confirmedAt: true, journeySlug: true },
     })
+    // A course path: confirming lands on that path, and no journey is guessed from a function name.
+    if (lead?.kind === 'course_path') {
+      if (!lead.confirmedAt) {
+        await prisma.homepageLead.update({ where: { id: lead.id }, data: { confirmedAt: new Date(), unsubscribedAt: null } })
+        captureServerEvent(lead.email, 'alert_confirmed', { kind: lead.kind })
+      }
+      to = new URL(`/ai-courses/for/${encodeURIComponent(lead.searchQ)}/${encodeURIComponent(lead.situation.toLowerCase())}?confirmed=1`, request.url)
+      return NextResponse.redirect(to)
+    }
     if (lead && KINDS.has(lead.kind) && !lead.confirmedAt) {
       // An answer the same email gave in the journey picker beats a guess from the search words.
       const earlier = await prisma.homepageLead.findFirst({
