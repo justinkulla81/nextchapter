@@ -1,3 +1,4 @@
+import { higherEdSql } from '@/lib/seo/higher-ed'
 import 'server-only'
 import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -30,7 +31,8 @@ export const LIVE_PUBLIC_SQL = `"status" = 'approved' AND "archivedAt" IS NULL A
   AND COALESCE("postingType", '') <> 'recruiter_search' AND COALESCE("sourceCategory", '') <> 'search_firm'`
 
 /** Employers that hire for others (a Company classed as staffing, or named like a staffing / search / job-scam site). */
-const NOT_STAFFING = `c.industry IS DISTINCT FROM 'Staffing & Human Capital'
+const NOT_STAFFING = `NOT ${higherEdSql('COALESCE(c.name, r."companyName")')}
+  AND c.industry IS DISTINCT FROM 'Staffing & Human Capital'
   AND COALESCE(c.name, r."companyName") !~* '(staffing|recruit|talent|\\msearch\\M|work at home|workforce solutions|headhunt)'
   AND COALESCE(c.name, r."companyName") !~* '^(confidential|company confidential|confidential company|remote|clients? blackbox|stealth.*|undisclosed|anonymous|various|multiple companies|hiring now|our client)$'`
 

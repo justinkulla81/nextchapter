@@ -25,5 +25,6 @@ describe('employer page index rule', () => {
     expect(isEmployerIndexable(p(1), null, { hqConfirmed: true })).toBe(false)
     expect(isEmployerIndexable(null, 'Retail', { hqConfirmed: true })).toBe(false)
   })
+  it('never indexes a college or university', () => expect(isEmployerIndexable(p(9, 9), 'Education', { higherEd: true, secEvent: true })).toBe(false))
   it('leaves a thin page out', () => expect(isEmployerIndexable(p(1), 'Retail')).toBe(false))
 })
