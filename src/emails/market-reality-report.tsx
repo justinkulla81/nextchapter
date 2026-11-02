@@ -23,7 +23,7 @@ export default function MarketRealityReportEmail({
         <Lead>Hi {candidateName},</Lead>
         {justEarnedBadge && <Lead>Nice work — you just earned the &quot;Market Reality Assessment&quot; badge!</Lead>}
         <Lead>Find out how employers will actually read your resume — what&apos;s working, what to fix first.</Lead>
-        <Button href={reportUrl}>See your grade</Button>
+        <Button campaign="market_reality_report" href={reportUrl}>See your grade</Button>
       </Card>
     </CardEmail>
   )

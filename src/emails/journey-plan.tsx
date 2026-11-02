@@ -45,7 +45,7 @@ export default function JourneyPlanEmail({ situationLabel, intro, steps, startUr
           </Lead>
         )}
         <Lead>The last step takes about five minutes and is free. It gives you a plan for the weeks after this one.</Lead>
-        <Button href={startUrl}>Get your Market Reality Assessment</Button>
+        <Button campaign="journey_plan" href={startUrl}>Get your Market Reality Assessment</Button>
       </Card>
     </CardEmail>
   )

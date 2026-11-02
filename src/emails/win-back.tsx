@@ -21,7 +21,7 @@ export default function WinBackEmail({ content, ctaUrl, unsubscribeUrl }: WinBac
         {content.body.map((line) => (
           <Lead key={line}>{line}</Lead>
         ))}
-        <Button href={ctaUrl}>{content.cta}</Button>
+        <Button campaign="win_back" href={ctaUrl}>{content.cta}</Button>
         {content.closing && (
           <p style={{ margin: '28px auto 0', maxWidth: '500px', fontSize: '17px', lineHeight: '1.6' }}>{content.closing}</p>
         )}

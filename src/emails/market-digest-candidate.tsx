@@ -70,7 +70,7 @@ export default function MarketDigestCandidateEmail({
             {nuggetSummary && ` — ${nuggetSummary}`}
           </Lead>
         )}
-        <Button href={dashboardUrl}>Go to your dashboard</Button>
+        <Button campaign="market_digest" href={dashboardUrl}>Go to your dashboard</Button>
       </Card>
     </CardEmail>
   )

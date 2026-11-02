@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { AudienceTag, type EmailAudience } from '@/lib/email/audience-tag'
+import { withEmailUtm } from '@/lib/email/utm'
 
 // The NextChapter card email look: grey page, white rounded cards, a wordmark,
 // one big headline, an optional hero number card, one green pill button, and
@@ -107,10 +108,10 @@ export function Small({ children }: { children: ReactNode }) {
   return <p style={{ margin: '12px 0 0', fontSize: '14px', color: MUTED }}>{children}</p>
 }
 
-/** The green pill button. */
-export function Button({ href, children }: { href: string; children: ReactNode }) {
+/** The green pill button. A link to our own site gets email UTM tags so the visit shows as Email in PostHog; `campaign` names the email. */
+export function Button({ href, children, campaign = 'unlabeled' }: { href: string; children: ReactNode; campaign?: string }) {
   return (
-    <a href={href} style={{ display: 'inline-block', padding: '14px 28px', backgroundColor: GREEN, color: '#ffffff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}>
+    <a href={withEmailUtm(href, campaign)} style={{ display: 'inline-block', padding: '14px 28px', backgroundColor: GREEN, color: '#ffffff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}>
       {children}
     </a>
   )

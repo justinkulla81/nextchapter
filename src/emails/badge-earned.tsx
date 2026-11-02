@@ -58,7 +58,7 @@ export default function BadgeEarnedEmail({ firstName, badgeLabels, statsUrl, uns
             </tr>
           </tbody>
         </table>
-        <Button href={statsUrl}>See your badges</Button>
+        <Button campaign="badge_earned" href={statsUrl}>See your badges</Button>
       </Card>
     </CardEmail>
   )
