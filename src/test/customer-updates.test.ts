@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { customerUpdatesBody, updatesSince } from '@/lib/mailing/customer-updates-body'
+import { candidateUpdatesBody, customerUpdatesBody, updatesSince } from '@/lib/mailing/customer-updates-body'
 import type { CustomerUpdate } from '@/data/customer-updates'
 
 const e = (date: string, title: string, audiences: CustomerUpdate['audiences'] = ['employer', 'recruiter', 'coach', 'institution']): CustomerUpdate =>
@@ -36,5 +36,18 @@ describe('customerUpdatesBody', () => {
     const html = customerUpdatesBody([{ date: '2026-10-20', audiences: ['employer', 'recruiter', 'coach', 'institution'], title: '<script>x</script>', summary: 'a & b' }], null)
     expect(html).not.toContain('<script>')
     expect(html).toContain('a &amp; b')
+  })
+})
+
+describe('candidateUpdatesBody', () => {
+  it('lists each change, links it, and blocks sending until the marker is dealt with', () => {
+    const html = candidateUpdatesBody([{ date: '2026-10-30', title: 'Résumé match', summary: 'Find keywords & gaps.', href: 'https://example.com/x' }], 'November 2026')
+    expect(html).toContain('href="https://example.com/x"')
+    expect(html).toContain('November 2026')
+    expect(html).toContain('&amp;')
+    expect(html).toContain('[[Write:')
+  })
+  it('asks for content when nothing shipped', () => {
+    expect(candidateUpdatesBody([], null)).toContain('[[Write: what we added or changed')
   })
 })

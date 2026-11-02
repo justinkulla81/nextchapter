@@ -10,8 +10,9 @@ import { normalizeListEmail } from './rules'
  * draft: it only sends after you approve it on the Monthly Update page.
  */
 
-export { CUSTOMER_UPDATES_LIST_KEY, updatesSince, customerUpdatesBody } from './customer-updates-body'
-import { CUSTOMER_UPDATES_LIST_KEY } from './customer-updates-body'
+export { CUSTOMER_UPDATES_LIST_KEY, CANDIDATE_UPDATES_LIST_KEY, updatesSince, customerUpdatesBody, candidateUpdatesBody } from './customer-updates-body'
+import { CUSTOMER_UPDATES_LIST_KEY, CANDIDATE_UPDATES_LIST_KEY } from './customer-updates-body'
+import { registeredMemberEmails } from './lists'
 
 /**
  * Accounts that have actually started using a portal: an accepted invitation
@@ -56,7 +57,7 @@ export async function syncCustomerUpdatesList(opts: { dryRun?: boolean } = {}): 
     update: {},
     create: {
       key: CUSTOMER_UPDATES_LIST_KEY,
-      name: 'Product updates for customers',
+      name: 'Product updates: B2B customers',
       description: 'A monthly note on what we added or changed, for accounts that are activated. Drafted for you to approve.',
       audience: 'Activated employer, recruiter, coach and institution accounts',
       cadence: 'MONTHLY',
@@ -64,6 +65,8 @@ export async function syncCustomerUpdatesList(opts: { dryRun?: boolean } = {}): 
       sortOrder: 40,
     },
   })
+  // Split out from the members' list on 2026-11-02; rename once, never overwrite a later hand edit.
+  await prisma.mailingList.updateMany({ where: { key: CUSTOMER_UPDATES_LIST_KEY, name: 'Product updates for customers' }, data: { name: 'Product updates: B2B customers' } })
   const contacts = await activatedB2bContacts()
   const emails = contacts.map((c) => c.email)
   const [existing, suppressed] = await Promise.all([
@@ -81,4 +84,41 @@ export async function syncCustomerUpdatesList(opts: { dryRun?: boolean } = {}): 
   }
   if (!opts.dryRun && fresh.length) captureServerEvent('system', 'customer_updates_list_synced', { added: fresh.length, activated: contacts.length })
   return { added: fresh.length, activated: contacts.length }
+}
+
+/**
+ * Makes sure the members' product-updates list exists and holds every
+ * registered member (the same people as the Candidates list). Only adds, so
+ * anyone who unsubscribed, bounced or is suppressed stays out.
+ */
+export async function syncCandidateUpdatesList(opts: { dryRun?: boolean } = {}): Promise<{ added: number; members: number }> {
+  const list = await prisma.mailingList.upsert({
+    where: { key: CANDIDATE_UPDATES_LIST_KEY },
+    update: {},
+    create: {
+      key: CANDIDATE_UPDATES_LIST_KEY,
+      name: 'Product updates: members',
+      description: 'A monthly note on what we added or changed for job seekers. Drafted for you to approve.',
+      audience: 'Registered members',
+      cadence: 'MONTHLY',
+      isActive: true,
+      sortOrder: 41,
+    },
+  })
+  const emails = [...(await registeredMemberEmails())]
+  const [existing, suppressed] = await Promise.all([
+    prisma.mailingListMember.findMany({ where: { listId: list.id, email: { in: emails } }, select: { email: true } }),
+    prisma.mailingSuppression.findMany({ where: { email: { in: emails } }, select: { email: true } }),
+  ])
+  const have = new Set(existing.map((m) => m.email))
+  const blocked = new Set(suppressed.map((s) => s.email))
+  const fresh = emails.filter((e) => !have.has(e) && !blocked.has(e))
+  if (!opts.dryRun && fresh.length) {
+    await prisma.mailingListMember.createMany({
+      data: fresh.map((email) => ({ listId: list.id, email, status: 'ACTIVE' as const, addedVia: 'WEBSITE_SIGNUP' as const, consentNote: 'Registered member' })),
+      skipDuplicates: true,
+    })
+    captureServerEvent('system', 'candidate_updates_list_synced', { added: fresh.length, members: emails.length })
+  }
+  return { added: fresh.length, members: emails.length }
 }
