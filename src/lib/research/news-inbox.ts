@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { getAllGoogleConnections, getValidAccessTokenFor } from '@/lib/google/connection'
 import { getMessageContent, listMessagesForSearch } from '@/lib/google/gmail'
 import { fetchArticle } from './fetch-article'
 import { routeNewsItem } from './route-news'
@@ -198,4 +199,26 @@ async function fileOne(url: string, pasted: string | null, note: string | null, 
     result.articles++
     result.failed++
   }
+}
+
+/**
+ * news@ is an alias on the company-domain mailbox, which is not the primary
+ * connection, so every connected mailbox is read. Mail Justin sent from a
+ * personal address also sits in that address's Sent folder; the same article
+ * is filed once (rows are matched on url).
+ */
+export async function sweepNewsInboxAllMailboxes(): Promise<NewsInboxResult & { mailboxes: number }> {
+  const total = { emails: 0, articles: 0, forReport: 0, forWebsite: 0, forWeekly: 0, published: 0, newsletters: 0, political: 0, notRelevant: 0, failed: 0, mailboxes: 0 }
+  for (const connection of await getAllGoogleConnections()) {
+    try {
+      const token = await getValidAccessTokenFor(connection)
+      const r = await sweepNewsInbox(token)
+      total.mailboxes++
+      for (const k of Object.keys(r) as (keyof NewsInboxResult)[]) total[k] += r[k]
+    } catch (err) {
+      total.failed++
+      console.error('News inbox: could not read mailbox', connection.email, err)
+    }
+  }
+  return total
 }

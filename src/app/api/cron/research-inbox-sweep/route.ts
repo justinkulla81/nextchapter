@@ -4,7 +4,7 @@ import { getActiveGoogleConnection, getValidAccessToken } from '@/lib/google/con
 import { listAlertMessages, getMessageHtml, markMessageRead, extractAlertUrls } from '@/lib/google/gmail'
 import { ingestResearchUrl } from '@/lib/research/ingest'
 import { sweepNewsletters } from '@/lib/research/newsletter-sweep'
-import { sweepNewsInbox } from '@/lib/research/news-inbox'
+import { sweepNewsInboxAllMailboxes } from '@/lib/research/news-inbox'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
 
@@ -68,7 +68,7 @@ export const GET = withCronRun('research-inbox-sweep', async () => {
   // What Justin sent to news@: its own pass, so a failure here hides neither sweep above.
   let newsInbox = null
   try {
-    newsInbox = await sweepNewsInbox(accessToken)
+    newsInbox = await sweepNewsInboxAllMailboxes()
     captureServerEvent('cron', 'news_inbox_sweep_run', { trigger: 'cron', ...newsInbox })
   } catch (err) {
     console.error('News inbox sweep failed:', err)
