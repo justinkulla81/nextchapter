@@ -307,6 +307,9 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     // are noindex). Each dated by its newest notice.
     ...(newestNotice ? [entry('/layoffs', newestNotice, 'daily', 0.7)] : []),
     ...layoffStates.map((s) => entry(`/layoffs/${stateSlug(s.state)}`, s.latest.toISOString(), 'daily', 0.6)),
+    // The embeddable chart and snippets for the nation and each of those states, for reporters and bloggers.
+    ...(newestNotice ? [entry('/data/layoffs/us', newestNotice, 'daily', 0.5)] : []),
+    ...layoffStates.map((s) => entry(`/data/layoffs/${stateSlug(s.state)}`, s.latest.toISOString(), 'daily', 0.4)),
     // One page per complete week with at least three notices (fewer is noindex on the page).
     // One page per month of the year with at least ten notices; the current month changes daily.
     ...months.filter((m) => m.count >= MONTH_MIN_NOTICES).map((m) => entry(`/layoffs/2026/${m.slug}`, newestNotice ?? new Date().toISOString(), 'daily', 0.5)),

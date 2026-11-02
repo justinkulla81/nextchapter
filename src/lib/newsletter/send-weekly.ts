@@ -2,6 +2,8 @@ import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import NewsletterWeeklyEmail from '@/emails/newsletter-weekly'
+import { getPublicNotices } from '@/lib/warn/layoff-pages'
+import { buildLayoffWeekBrief } from './layoff-week'
 
 /**
  * Sends this week's article to everyone on the newsletter list.
@@ -38,6 +40,8 @@ export async function sendWeeklyNewsletter(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
   const resend = createResend(process.env.RESEND_API_KEY)
+  // The layoffs block is read once for the whole send; a failed read leaves it out and the email goes as before.
+  const layoffs = buildLayoffWeekBrief(await getPublicNotices().catch(() => []))
   let sent = 0
   for (const s of subscribers) {
     if (candidateEmails.has(s.email)) continue
@@ -55,6 +59,8 @@ export async function sendWeeklyNewsletter(
           newsUrl: `${appUrl}/news`,
           signupUrl: `${appUrl}/onboarding/desire`,
           unsubscribeUrl: `${appUrl}/api/unsubscribe/newsletter/${s.unsubscribeToken}`,
+          layoffs,
+          layoffsUrl: `${appUrl}/layoffs/this-week`,
         }),
         headers: { 'List-Unsubscribe': `<${appUrl}/api/unsubscribe/newsletter/${s.unsubscribeToken}>` },
       })
