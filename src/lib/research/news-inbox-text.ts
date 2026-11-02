@@ -37,3 +37,35 @@ export function noteBeforeFirstLink(text: string): string | null {
     .trim()
   return head ? head.slice(0, 500) : null
 }
+
+/** The router must be at least this sure before a story goes live without Justin. */
+export const AUTO_PUBLISH_MIN_CONFIDENCE = 0.85
+/** Of the last few stories published this way, no more than this many may be negative: News should not be only bad news. */
+export const AUTO_PUBLISH_RECENT = 5
+export const AUTO_PUBLISH_MAX_RECENT_NEGATIVE = 2
+
+export type NewsTone = 'positive' | 'neutral' | 'negative'
+
+export interface AutoPublishInput {
+  website: boolean
+  political: boolean
+  tone: NewsTone
+  credibilityTier: 'recognized' | 'unknown'
+  confidenceScore: number
+  hasTitle: boolean
+}
+
+/**
+ * Whether a story the router sent to website News may go live without Justin.
+ * Only a confident, credible, non-political one; and a negative one only while
+ * the most recent auto-published stories (newest first) are not mostly negative.
+ */
+export function canAutoPublish(r: AutoPublishInput, recentTones: NewsTone[]): boolean {
+  if (!r.website || r.political || !r.hasTitle) return false
+  if (r.credibilityTier !== 'recognized' || r.confidenceScore < AUTO_PUBLISH_MIN_CONFIDENCE) return false
+  if (r.tone === 'negative') {
+    const negatives = recentTones.slice(0, AUTO_PUBLISH_RECENT).filter((t) => t === 'negative').length
+    if (negatives >= AUTO_PUBLISH_MAX_RECENT_NEGATIVE) return false
+  }
+  return true
+}

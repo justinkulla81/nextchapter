@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { extractNewsLinks, noteBeforeFirstLink } from '@/lib/research/news-inbox-text'
+import { canAutoPublish, extractNewsLinks, noteBeforeFirstLink, type AutoPublishInput } from '@/lib/research/news-inbox-text'
 
 const clean = (u: string) => {
   const url = new URL(u)
@@ -27,5 +27,25 @@ describe('noteBeforeFirstLink', () => {
   })
   it('is null when the email starts with the link', () => {
     expect(noteBeforeFirstLink('https://x.com/y')).toBeNull()
+  })
+})
+
+describe('canAutoPublish', () => {
+  const ok: AutoPublishInput = { website: true, political: false, tone: 'positive', credibilityTier: 'recognized', confidenceScore: 0.9, hasTitle: true }
+  it('publishes a confident, credible, non-political story', () => {
+    expect(canAutoPublish(ok, [])).toBe(true)
+  })
+  it('holds political, unsure, unknown-source, untitled and not-for-website stories', () => {
+    expect(canAutoPublish({ ...ok, political: true }, [])).toBe(false)
+    expect(canAutoPublish({ ...ok, confidenceScore: 0.84 }, [])).toBe(false)
+    expect(canAutoPublish({ ...ok, credibilityTier: 'unknown' }, [])).toBe(false)
+    expect(canAutoPublish({ ...ok, hasTitle: false }, [])).toBe(false)
+    expect(canAutoPublish({ ...ok, website: false }, [])).toBe(false)
+  })
+  it('keeps News from being only bad news', () => {
+    const negative = { ...ok, tone: 'negative' as const }
+    expect(canAutoPublish(negative, ['negative', 'positive', 'neutral'])).toBe(true)
+    expect(canAutoPublish(negative, ['negative', 'positive', 'negative'])).toBe(false)
+    expect(canAutoPublish(ok, ['negative', 'negative', 'negative'])).toBe(true)
   })
 })
