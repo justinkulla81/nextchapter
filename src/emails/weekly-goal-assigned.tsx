@@ -1,8 +1,7 @@
-import { emailStyles } from '@/lib/email/email-styles'
 import EngagementBlock from '@/emails/engagement-block'
 import type { EngagementLead } from '@/lib/journey/engagement'
 import type { Grade } from '@/lib/scoring/grade'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Body, Button, Card, CardEmail, CardGap, Headline, Hero, INK, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface WeeklyGoalAssignedEmailProps {
   engagement?: EngagementLead | null
@@ -24,69 +23,9 @@ interface WeeklyGoalAssignedEmailProps {
   unsubscribeUrl: string
 }
 
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-  fontSize: '15px',
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const statBox: React.CSSProperties = {
-  marginTop: '20px',
-  padding: '16px',
-  borderRadius: '8px',
-  backgroundColor: '#f5f5f0',
-}
-
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  backgroundColor: '#2e7d5b',
-  color: '#ffffff',
-  textDecoration: 'none',
-  padding: '12px 20px',
-  borderRadius: '8px',
-  marginTop: '20px',
-  ...emailStyles.cta,
-}
-
-const benefitsList: React.CSSProperties = {
-  paddingLeft: '20px',
-  marginTop: '8px',
-}
-
-const winsBox: React.CSSProperties = {
-  marginTop: '20px',
-  padding: '16px',
-  borderRadius: '8px',
-  backgroundColor: '#eaf4ef',
-}
-
-const planList: React.CSSProperties = {
-  paddingLeft: '20px',
-  marginTop: '8px',
-  ...emailStyles.body,
-  fontSize: '15px',
-}
-
-const secondaryLink: React.CSSProperties = {
-  color: '#1d4e89',
-  fontWeight: 600,
-  textDecoration: 'none',
-}
-
-const footer: React.CSSProperties = {
-  marginTop: '32px',
-  ...emailStyles.muted,
-}
+const listStyle: React.CSSProperties = { margin: '0 0 16px', paddingLeft: '20px', fontSize: '16px', lineHeight: '1.6', color: INK }
+const subhead: React.CSSProperties = { margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: INK }
+const left: React.CSSProperties = { textAlign: 'left' }
 
 const A_GRADE_BENEFITS = [
   'Who to contact, the apply kit and explain-my-gaps on every NC Job Board job',
@@ -122,91 +61,97 @@ export default function WeeklyGoalAssignedEmail({
         : 'the same target as last week'
 
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
-        {firstName ? `Hi ${firstName} — ` : ''}your new week is set.
-      </p>
-
-      {introCopy && <p style={{ marginTop: '12px' }}>{introCopy}</p>}
-
-      <EngagementBlock lead={engagement} appUrl={appUrl} />
+    <CardEmail
+      preheader={`This week's target: ${thisWeekTarget} points.`}
+      audience="candidate"
+      footer={
+        <a href={unsubscribeUrl} style={{ color: MUTED }}>
+          Turn off these weekly emails
+        </a>
+      }
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>
+          {firstName ? `Hi ${firstName} — ` : ''}your new week is set.
+        </Headline>
+        {introCopy && <Lead>{introCopy}</Lead>}
+        <Hero value={String(thisWeekTarget)} caption="points target this week" />
+        <div style={left}>
+          <Body>
+            Last week: {lastWeekPoints} of {lastWeekTarget} points —{' '}
+            {hitLastWeekTarget ? 'you hit the Weekly Sprint Target' : "you didn't hit the Weekly Sprint Target"}.
+          </Body>
+          <Body>
+            This week&apos;s target: <strong>{thisWeekTarget} points</strong> ({deltaCopy}).
+          </Body>
+          <EngagementBlock lead={engagement} appUrl={appUrl} />
+        </div>
+      </Card>
 
       {completedLastWeek.length > 0 && (
-        <div style={winsBox}>
-          <p style={{ margin: 0, fontWeight: 600 }}>Look what you got done last week</p>
-          <ul style={planList}>
-            {completedLastWeek.map((item) => (
+        <>
+          <CardGap />
+          <Card>
+            <p style={subhead}>Look what you got done last week</p>
+            <ul style={{ ...listStyle, margin: 0 }}>
+              {completedLastWeek.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </Card>
+        </>
+      )}
+
+      <CardGap />
+      <Card>
+        <p style={subhead}>Your plan this week:</p>
+        {thisWeekPlan.length > 0 ? (
+          <ul style={{ ...listStyle, margin: firstStep ? '0 0 16px' : 0 }}>
+            {thisWeekPlan.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
+        ) : (
+          <Body>Already picked for you and ready on your dashboard — no setup needed, just get started.</Body>
+        )}
+
+        {firstStep && (
+          <p style={{ margin: 0, fontSize: '16px', lineHeight: '1.6', color: INK }}>
+            <strong>Start with:</strong> {firstStep}
+          </p>
+        )}
+      </Card>
+
+      <CardGap />
+      <Card center pad="28px 32px 36px">
+        <div style={left}>
+          {grade === 'A' ? (
+            <>
+              <p style={subhead}>Your Market Reality Assessment is an A. That unlocks:</p>
+              <ul style={listStyle}>
+                {A_GRADE_BENEFITS.map((benefit) => (
+                  <li key={benefit}>{benefit}</li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            gapSummary && (
+              <Body>
+                <strong>Market Reality Assessment: {grade}.</strong> {gapSummary}
+              </Body>
+            )
+          )}
+
+          <p style={{ margin: '0 0 28px', fontSize: '16px' }}>
+            <a href={marketRealityReportUrl} style={{ color: '#1d4e89', fontWeight: 600, textDecoration: 'none' }}>
+              See your full Market Reality Report
+            </a>
+          </p>
         </div>
-      )}
 
-      <div style={statBox}>
-        <p style={{ margin: 0, fontWeight: 600 }}>
-          Last week: {lastWeekPoints} of {lastWeekTarget} points —{' '}
-          {hitLastWeekTarget ? 'you hit the Weekly Sprint Target' : "you didn't hit the Weekly Sprint Target"}.
-        </p>
-        <p style={{ margin: '8px 0 0' }}>
-          This week&apos;s target: <strong>{thisWeekTarget} points</strong> ({deltaCopy}).
-        </p>
-      </div>
-
-      <p style={{ marginTop: '20px', fontWeight: 600 }}>Your plan this week:</p>
-      {thisWeekPlan.length > 0 ? (
-        <ul style={planList}>
-          {thisWeekPlan.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      ) : (
-        <p style={{ marginTop: '4px' }}>
-          Already picked for you and ready on your dashboard — no setup needed, just get started.
-        </p>
-      )}
-
-      {firstStep && (
-        <p style={{ marginTop: '16px' }}>
-          <strong>Start with:</strong> {firstStep}
-        </p>
-      )}
-
-      {grade === 'A' ? (
-        <>
-          <p style={{ marginTop: '20px', fontWeight: 600 }}>
-            Your Market Reality Assessment is an A. That unlocks:
-          </p>
-          <ul style={benefitsList}>
-            {A_GRADE_BENEFITS.map((benefit) => (
-              <li key={benefit}>{benefit}</li>
-            ))}
-          </ul>
-        </>
-      ) : (
-        gapSummary && (
-          <p style={{ marginTop: '20px' }}>
-            <strong>Market Reality Assessment: {grade}.</strong> {gapSummary}
-          </p>
-        )
-      )}
-
-      <p style={{ marginTop: '12px' }}>
-        <a href={marketRealityReportUrl} style={secondaryLink}>
-          See your full Market Reality Report →
-        </a>
-      </p>
-
-      <a href={dashboardUrl} style={button}>
-        Let&apos;s go →
-      </a>
-
-      <p style={footer}>
-        <a href={unsubscribeUrl} style={{ color: '#4a5568' }}>
-          Turn off these weekly emails
-        </a>
-      </p>
-      <AudienceTag audience="candidate" />
-    </div>
+        <Button href={dashboardUrl}>Go to my dashboard</Button>
+      </Card>
+    </CardEmail>
   )
 }

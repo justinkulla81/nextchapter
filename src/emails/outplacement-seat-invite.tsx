@@ -1,7 +1,6 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
 import type { OutplacementProgramType } from '@prisma/client'
 import { PROGRAM_TYPE_BENEFIT, PROGRAM_TYPE_PITCH } from '@/lib/employer/program-type'
+import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface OutplacementSeatInviteEmailProps {
   orgName: string
@@ -13,37 +12,6 @@ interface OutplacementSeatInviteEmailProps {
   programType?: OutplacementProgramType
 }
 
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  marginTop: '16px',
-  padding: '12px 20px',
-  backgroundColor: '#2e7d5b',
-  color: '#ffffff',
-  borderRadius: '999px',
-  textDecoration: 'none',
-  fontWeight: 600,
-}
-
-const footer: React.CSSProperties = {
-  marginTop: '32px',
-  ...emailStyles.muted,
-}
-
 // Sent when an employer_admin enrolls someone who has no existing
 // NextChapter account — same "admin-generated, pre-confirmed magic link"
 // shape as CoachClientInviteEmail. Deliberately does not name the employer
@@ -53,21 +21,28 @@ const footer: React.CSSProperties = {
 // body, which would have no reason to leave the org side.
 export default function OutplacementSeatInviteEmail({ orgName, acceptUrl, welcome, services, programType = 'OUTPLACEMENT' }: OutplacementSeatInviteEmailProps) {
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p>Hi there,</p>
-      <p>
-        {orgName} has set up a NextChapter {PROGRAM_TYPE_BENEFIT[programType]} benefit for you.{' '}
-        {services?.length ? `Your program includes: ${services.join(', ')}.` : `NextChapter is ${PROGRAM_TYPE_PITCH[programType]}.`} Everything you do there is
-        private to you. {orgName} never sees your individual activity, only anonymous, aggregate participation
-        numbers across everyone enrolled.
-      </p>
-      {welcome && <p style={{ whiteSpace: 'pre-line', borderLeft: '3px solid #e5e5e5', paddingLeft: '12px' }}>{welcome}</p>}
-      <a href={acceptUrl} style={button}>
-        Set up your account →
-      </a>
-      <p style={footer}>If you weren&apos;t expecting this, you can ignore this email.</p>
-      <AudienceTag audience="candidate" />
-    </div>
+    <CardEmail
+      audience="candidate"
+      preheader={`${orgName} has set up a NextChapter benefit for you.`}
+      footer={<span style={{ color: MUTED }}>If you weren&apos;t expecting this, you can ignore this email.</span>}
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>
+          {orgName} has set up a NextChapter {PROGRAM_TYPE_BENEFIT[programType]} benefit for you.
+        </Headline>
+        <Lead>
+          {services?.length ? `Your program includes: ${services.join(', ')}.` : `NextChapter is ${PROGRAM_TYPE_PITCH[programType]}.`} Everything you do there is
+          private to you. {orgName} never sees your individual activity, only anonymous, aggregate participation
+          numbers across everyone enrolled.
+        </Lead>
+        {welcome && (
+          <div style={{ textAlign: 'left', margin: '0 auto 28px', maxWidth: '500px' }}>
+            <p style={{ margin: 0, whiteSpace: 'pre-line', borderLeft: '3px solid #e5e5e5', paddingLeft: '12px', fontSize: '16px', lineHeight: '1.6' }}>{welcome}</p>
+          </div>
+        )}
+        <Button href={acceptUrl}>Set up your account</Button>
+      </Card>
+    </CardEmail>
   )
 }

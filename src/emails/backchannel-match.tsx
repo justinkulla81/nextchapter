@@ -1,5 +1,5 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import type { CSSProperties } from 'react'
+import { Card, CardEmail, Headline, INK, Lead, MUTED, BRAND, Wordmark } from '@/lib/email/card-layout'
 
 export interface BackchannelPerson {
   name: string
@@ -28,50 +28,30 @@ interface BackchannelMatchEmailProps {
   unsubscribeUrl: string
 }
 
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-  fontSize: '15px',
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const noteBox: React.CSSProperties = {
-  backgroundColor: '#f4f6f8',
-  borderRadius: '8px',
-  padding: '16px',
+const noteBox: CSSProperties = {
+  backgroundColor: '#e8f0f8',
+  borderRadius: '16px',
+  padding: '16px 20px',
   margin: '8px 0 0',
   whiteSpace: 'pre-wrap',
   fontSize: '14px',
   lineHeight: '1.6',
+  color: INK,
+  textAlign: 'left',
 }
 
-const button: React.CSSProperties = {
+const muted: CSSProperties = { margin: 0, fontSize: '14px', lineHeight: '1.5', color: MUTED }
+
+// Smaller green pill for the per-person Email button (the one action per row).
+const personButton: CSSProperties = {
   display: 'inline-block',
+  padding: '10px 20px',
   backgroundColor: '#2e7d5b',
   color: '#ffffff',
+  borderRadius: '999px',
   textDecoration: 'none',
-  padding: '8px 16px',
-  borderRadius: '8px',
-  ...emailStyles.cta,
+  fontWeight: 600,
   fontSize: '14px',
-}
-
-const personRow: React.CSSProperties = {
-  padding: '16px 0 0',
-}
-
-const footer: React.CSSProperties = {
-  marginTop: '32px',
-  ...emailStyles.muted,
 }
 
 export default function BackchannelMatchEmail({
@@ -90,75 +70,88 @@ export default function BackchannelMatchEmail({
   unsubscribeUrl,
 }: BackchannelMatchEmailProps) {
   const roleLabel = role ? <strong>{role}</strong> : 'a role'
-  const roleNode = role && roleUrl ? <a href={roleUrl} style={{ color: '#0b2545' }}>{roleLabel}</a> : roleLabel
+  const roleNode = role && roleUrl ? <a href={roleUrl} style={{ color: BRAND }}>{roleLabel}</a> : roleLabel
+  // The first person with an email gets the filled green pill; the rest are outlined.
+  const primary = people.find((person) => person.email)
 
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
-        You may have a way in at {companyName}.
-      </p>
-      <p>
-        {firstName ? `Hi ${firstName}, ` : ''}
-        {role ? <>you applied for {roleNode} at {companyName}</> : <>you applied to {companyName}</>}
-        {appliedOn ? ` on ${appliedOn}` : ''}. {people.length + moreCount === 1 ? 'Someone' : 'People'} you know
-        {people.length + moreCount === 1 ? ' works' : ' work'} there, and a word from inside gets your name in front of a
-        real person.
-      </p>
-      <p style={{ ...emailStyles.muted, margin: 0 }}>
-        {why.text}{' '}
-        <a href={why.url} style={{ color: '#4a5568' }}>
-          {why.source}
-        </a>
-      </p>
-      <div>
-        {people.map((person) => (
-          <div key={person.actionUrl} style={personRow}>
-            <p style={{ margin: 0, fontWeight: 600 }}>{person.name}</p>
-            {person.title && <p style={{ ...emailStyles.muted, margin: 0 }}>{person.title}</p>}
-            {person.email && <p style={{ ...emailStyles.muted, margin: 0 }}>{person.email}</p>}
-            <p style={{ margin: '8px 0 0' }}>
-              {person.email ? (
-                <a href={person.actionUrl} style={button}>
-                  Email {person.name.split(/\s+/)[0]}
-                </a>
-              ) : (
-                <a href={person.actionUrl} style={{ color: '#0b2545' }}>
-                  No email yet. Add one on their contact page
-                </a>
-              )}
-            </p>
-          </div>
-        ))}
-        {moreCount > 0 && (
-          <p style={{ ...personRow, margin: 0 }}>
-            <a href={moreUrl} style={{ color: '#0b2545' }}>
-              And {moreCount} more at {companyName}
-            </a>
-          </p>
-        )}
-      </div>
-      <p style={{ ...emailStyles.muted, margin: '24px 0 0' }}>
-        {people.some((person) => person.email)
-          ? 'The draft each Email button opens. Edit it, then send.'
-          : 'A note you could send. Add an email on a contact’s page and we’ll open it as a Gmail draft.'}
-      </p>
-      <p style={noteBox}>{note.body}</p>
-      {otherCompanyCount > 0 && (
-        <p style={emailStyles.muted}>
-          You also know people at {otherCompanyCount} other{' '}
-          {otherCompanyCount === 1 ? 'company' : 'companies'} you’ve applied to.{' '}
-          <a href={otherCompaniesUrl} style={{ color: '#4a5568' }}>
-            See who
-          </a>
-        </p>
-      )}
-      <p style={footer}>
-        <a href={unsubscribeUrl} style={{ color: '#4a5568' }}>
+    <CardEmail
+      preheader={`You may have a way in at ${companyName}.`}
+      audience="candidate"
+      footer={
+        <a href={unsubscribeUrl} style={{ color: MUTED }}>
           Turn off these emails
         </a>
-      </p>
-      <AudienceTag audience="candidate" />
-    </div>
+      }
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>You may have a way in at {companyName}.</Headline>
+        <Lead>
+          {firstName ? `Hi ${firstName}, ` : ''}
+          {role ? <>you applied for {roleNode} at {companyName}</> : <>you applied to {companyName}</>}
+          {appliedOn ? ` on ${appliedOn}` : ''}. {people.length + moreCount === 1 ? 'Someone' : 'People'} you know
+          {people.length + moreCount === 1 ? ' works' : ' work'} there, and a word from inside gets your name in front of a
+          real person.
+        </Lead>
+        <p style={{ ...muted, margin: '0 0 8px' }}>
+          {why.text}{' '}
+          <a href={why.url} style={{ color: MUTED }}>
+            {why.source}
+          </a>
+        </p>
+        <div style={{ textAlign: 'left' }}>
+          {people.map((person) => (
+            <div key={person.actionUrl} style={{ padding: '16px 0 0' }}>
+              <p style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: INK }}>{person.name}</p>
+              {person.title && <p style={muted}>{person.title}</p>}
+              {person.email && <p style={muted}>{person.email}</p>}
+              <p style={{ margin: '8px 0 0' }}>
+                {person.email ? (
+                  person === primary ? (
+                    <a href={person.actionUrl} style={personButton}>
+                      Email {person.name.split(/\s+/)[0]}
+                    </a>
+                  ) : (
+                    <a
+                      href={person.actionUrl}
+                      style={{ ...personButton, backgroundColor: '#ffffff', color: '#2e7d5b', border: '1.5px solid #2e7d5b', padding: '8.5px 18.5px' }}
+                    >
+                      Email {person.name.split(/\s+/)[0]}
+                    </a>
+                  )
+                ) : (
+                  <a href={person.actionUrl} style={{ color: BRAND }}>
+                    No email yet. Add one on their contact page
+                  </a>
+                )}
+              </p>
+            </div>
+          ))}
+          {moreCount > 0 && (
+            <p style={{ margin: '16px 0 0', fontSize: '16px' }}>
+              <a href={moreUrl} style={{ color: BRAND }}>
+                And {moreCount} more at {companyName}
+              </a>
+            </p>
+          )}
+          <p style={{ ...muted, margin: '24px 0 0' }}>
+            {people.some((person) => person.email)
+              ? 'The draft each Email button opens. Edit it, then send.'
+              : 'A note you could send. Add an email on a contact’s page and we’ll open it as a Gmail draft.'}
+          </p>
+          <p style={noteBox}>{note.body}</p>
+          {otherCompanyCount > 0 && (
+            <p style={{ ...muted, margin: '16px 0 0' }}>
+              You also know people at {otherCompanyCount} other{' '}
+              {otherCompanyCount === 1 ? 'company' : 'companies'} you’ve applied to.{' '}
+              <a href={otherCompaniesUrl} style={{ color: MUTED }}>
+                See who
+              </a>
+            </p>
+          )}
+        </div>
+      </Card>
+    </CardEmail>
   )
 }

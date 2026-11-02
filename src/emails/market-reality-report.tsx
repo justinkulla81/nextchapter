@@ -1,42 +1,9 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, Headline, Lead, Wordmark } from '@/lib/email/card-layout'
 
 interface MarketRealityReportEmailProps {
   candidateName: string
   reportUrl: string
   justEarnedBadge?: boolean
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-  fontSize: '15px',
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  backgroundColor: '#2e7d5b',
-  color: '#ffffff',
-  textDecoration: 'none',
-  padding: '12px 20px',
-  borderRadius: '8px',
-  marginTop: '20px',
-  ...emailStyles.cta,
-}
-
-const footer: React.CSSProperties = {
-  marginTop: '32px',
-  ...emailStyles.muted,
 }
 
 export default function MarketRealityReportEmail({
@@ -45,17 +12,19 @@ export default function MarketRealityReportEmail({
   justEarnedBadge,
 }: MarketRealityReportEmailProps) {
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p>Hi {candidateName},</p>
-      {justEarnedBadge && <p>Nice work — you just earned the &quot;Market Reality Assessment&quot; badge!</p>}
-      <p>We have your Market Reality Assessment.</p>
-      <p>Find out how employers will actually read your resume — what&apos;s working, what to fix first.</p>
-      <a href={reportUrl} style={button}>
-        See your grade
-      </a>
-      <p style={footer}>This report is only visible to you — never shared with employers.</p>
-      <AudienceTag audience="candidate" />
-    </div>
+    <CardEmail
+      preheader="Find out how employers will actually read your resume."
+      audience="candidate"
+      footer={<>This report is only visible to you — never shared with employers.</>}
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>We have your Market Reality Assessment</Headline>
+        <Lead>Hi {candidateName},</Lead>
+        {justEarnedBadge && <Lead>Nice work — you just earned the &quot;Market Reality Assessment&quot; badge!</Lead>}
+        <Lead>Find out how employers will actually read your resume — what&apos;s working, what to fix first.</Lead>
+        <Button href={reportUrl}>See your grade</Button>
+      </Card>
+    </CardEmail>
   )
 }

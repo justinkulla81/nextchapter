@@ -1,53 +1,10 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface InterimRoleCheckInEmailProps {
   firstName: string | null
   companyName: string | null
   stillActiveUrl: string
   endedUrl: string
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-  fontSize: '15px',
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const buttonRow: React.CSSProperties = {
-  marginTop: '20px',
-  display: 'flex',
-  gap: '12px',
-}
-
-const primaryButton: React.CSSProperties = {
-  display: 'inline-block',
-  backgroundColor: '#2e7d5b',
-  color: '#ffffff',
-  textDecoration: 'none',
-  padding: '12px 20px',
-  borderRadius: '8px',
-  ...emailStyles.cta,
-}
-
-const secondaryButton: React.CSSProperties = {
-  display: 'inline-block',
-  backgroundColor: '#f2f2f2',
-  color: '#0a0a0a',
-  textDecoration: 'none',
-  padding: '12px 20px',
-  borderRadius: '8px',
-  ...emailStyles.cta,
 }
 
 export default function InterimRoleCheckInEmail({
@@ -59,24 +16,22 @@ export default function InterimRoleCheckInEmail({
   const roleLabel = companyName ? `at ${companyName}` : 'your interim work'
 
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
-        {firstName ? `Hi ${firstName} — ` : ''}still doing {roleLabel}?
-      </p>
-      <p>
-        Quick check so your resume and Dossier stay accurate — nothing else to do here beyond
-        picking one of these.
-      </p>
-      <div style={buttonRow}>
-        <a href={stillActiveUrl} style={primaryButton}>
-          Yes, still active
-        </a>
-        <a href={endedUrl} style={secondaryButton}>
-          No, it&apos;s ended
-        </a>
-      </div>
-      <AudienceTag audience="candidate" />
-    </div>
+    <CardEmail audience="candidate" preheader="Quick check so your resume and Dossier stay accurate.">
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>
+          {firstName ? `Hi ${firstName} — ` : ''}still doing {roleLabel}?
+        </Headline>
+        <Lead>
+          Quick check so your resume and Dossier stay accurate — nothing else to do here beyond picking one of these.
+        </Lead>
+        <Button href={stillActiveUrl}>Yes, still active</Button>
+        <p style={{ margin: '20px 0 0', fontSize: '15px' }}>
+          <a href={endedUrl} style={{ color: MUTED, textDecoration: 'underline' }}>
+            No, it&apos;s ended
+          </a>
+        </p>
+      </Card>
+    </CardEmail>
   )
 }

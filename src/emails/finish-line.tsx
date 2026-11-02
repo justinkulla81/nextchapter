@@ -1,5 +1,5 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import type { CSSProperties } from 'react'
+import { Button, Card, CardEmail, CardGap, Headline, INK, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface FinishLineEmailProps {
   firstName: string | null
@@ -12,48 +12,8 @@ interface FinishLineEmailProps {
   unsubscribeUrl: string
 }
 
-const container: React.CSSProperties = {
-  fontFamily: 'Georgia, "Times New Roman", serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-}
-
-const logo: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const bulletList: React.CSSProperties = {
-  paddingLeft: '20px',
-  marginTop: '16px',
-}
-
-const bulletItem: React.CSSProperties = {
-  marginTop: '8px',
-}
-
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  backgroundColor: '#2e7d5b',
-  color: '#ffffff',
-  textDecoration: 'none',
-  padding: '12px 20px',
-  borderRadius: '8px',
-  marginTop: '24px',
-  ...emailStyles.cta,
-}
-
-const footer: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  marginTop: '32px',
-  ...emailStyles.muted,
-}
+const bulletList: CSSProperties = { paddingLeft: '20px', margin: '0 0 28px', fontSize: '16px', lineHeight: '1.6', color: INK }
+const bulletItem: CSSProperties = { marginTop: '8px' }
 
 export default function FinishLineEmail({
   firstName,
@@ -66,46 +26,54 @@ export default function FinishLineEmail({
   unsubscribeUrl,
 }: FinishLineEmailProps) {
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p style={{ fontSize: '13px', letterSpacing: '0.03em', textTransform: 'uppercase', color: '#4a5568' }}>
-        Your week in review
-      </p>
-      <p>Hi {firstName || 'there'} — {victoriaName} here.</p>
-
-      {introCopy && <p>{introCopy}</p>}
-
-      <ul style={bulletList}>
-        {bullets.map((bullet, i) => (
-          <li key={i} style={bulletItem}>
-            {bullet}
-          </li>
-        ))}
-      </ul>
-
-      <a href={dashboardUrl ?? `${appUrl}/dashboard`} style={button}>
-        Open my dashboard
-      </a>
-
-      {checkIn && (
-        <div style={{ marginTop: '28px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
-          <p style={{ fontWeight: 600, margin: 0 }}>One tap, so we send the right things: where are you in your search?</p>
+    <CardEmail
+      preheader="Your week in review"
+      audience="candidate"
+      footer={
+        <>
+          Don&apos;t want daily emails?{' '}
+          <a href={unsubscribeUrl} style={{ color: MUTED }}>
+            Turn them off
+          </a>
+          .
+        </>
+      }
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>
+          Hi {firstName || 'there'} — {victoriaName} here.
+        </Headline>
+        <p style={{ margin: '-8px 0 24px', fontSize: '13px', letterSpacing: '0.03em', textTransform: 'uppercase', color: MUTED }}>
+          Your week in review
+        </p>
+        {introCopy && <Lead>{introCopy}</Lead>}
+        <div style={{ textAlign: 'left' }}>
           <ul style={bulletList}>
-            <li style={bulletItem}><a href={checkIn.stillSearchingUrl}>Still searching</a></li>
-            <li style={bulletItem}><a href={checkIn.managingMyCareerUrl}>Managing my career, not actively searching</a></li>
-            <li style={bulletItem}><a href={checkIn.gotAnOfferUrl}>I got an offer</a></li>
+            {bullets.map((bullet, i) => (
+              <li key={i} style={bulletItem}>
+                {bullet}
+              </li>
+            ))}
           </ul>
         </div>
+        <Button href={dashboardUrl ?? `${appUrl}/dashboard`}>Open my dashboard</Button>
+      </Card>
+      {checkIn && (
+        <>
+          <CardGap />
+          <Card pad="24px 32px">
+            <p style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: INK }}>
+              One tap, so we send the right things: where are you in your search?
+            </p>
+            <ul style={{ ...bulletList, margin: '8px 0 0' }}>
+              <li style={bulletItem}><a href={checkIn.stillSearchingUrl} style={{ color: INK }}>Still searching</a></li>
+              <li style={bulletItem}><a href={checkIn.managingMyCareerUrl} style={{ color: INK }}>Managing my career, not actively searching</a></li>
+              <li style={bulletItem}><a href={checkIn.gotAnOfferUrl} style={{ color: INK }}>I got an offer</a></li>
+            </ul>
+          </Card>
+        </>
       )}
-
-      <p style={footer}>
-        Don&apos;t want daily emails?{' '}
-        <a href={unsubscribeUrl} style={{ color: '#4a5568' }}>
-          Turn them off
-        </a>
-        .
-      </p>
-      <AudienceTag audience="candidate" />
-    </div>
+    </CardEmail>
   )
 }

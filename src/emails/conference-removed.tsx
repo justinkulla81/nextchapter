@@ -1,5 +1,4 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, Headline, INK, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface Props {
   firstName: string | null
@@ -12,31 +11,36 @@ interface Props {
   addUrl: string
 }
 
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px', margin: '0 auto', padding: '32px 24px', color: '#0a0a0a', ...emailStyles.body, fontSize: '15px',
-}
-const button: React.CSSProperties = {
-  display: 'inline-block', backgroundColor: '#2e7d5b', color: '#ffffff', textDecoration: 'none', padding: '12px 20px', borderRadius: '8px', marginTop: '16px', ...emailStyles.cta,
-}
-
 // A one-off service message about something the member added, not a marketing email: no unsubscribe link.
 export default function ConferenceRemovedEmail({ firstName, conferenceName, reason, goals, notes, addUrl }: Props) {
   return (
-    <div style={container}>
-      <p style={{ fontSize: '20px', fontWeight: 700, color: '#0b2545' }}>NextChapter</p>
-      <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>We took {conferenceName} off your conferences</p>
-      <p>{firstName ? `Hi ${firstName}, ` : ''}we reviewed {conferenceName} and removed it. {reason}</p>
-      {(goals || notes) && (
-        <div style={{ margin: '16px 0', padding: '12px 16px', backgroundColor: '#f3f4f6', borderRadius: '8px' }}>
-          <p style={{ margin: 0, fontWeight: 600 }}>What you wrote about it, so you keep it</p>
-          {goals && <p style={{ margin: '8px 0 0' }}>Your goals: {goals}</p>}
-          {notes && <p style={{ margin: '8px 0 0' }}>Your notes: {notes}</p>}
-        </div>
-      )}
-      <p>If you meant a different conference, paste its link and it is added right away.</p>
-      <a href={addUrl} style={button}>Add a conference →</a>
-      <AudienceTag audience="candidate" />
-    </div>
+    <CardEmail preheader={`We took ${conferenceName} off your conferences`} audience="candidate">
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>We took {conferenceName} off your conferences</Headline>
+        <Lead>
+          {firstName ? `Hi ${firstName}, ` : ''}we reviewed {conferenceName} and removed it. {reason}
+        </Lead>
+        {(goals || notes) && (
+          <div style={{ textAlign: 'left', margin: '0 0 28px', padding: '20px 24px', backgroundColor: '#e8f0f8', borderRadius: '20px', fontSize: '16px', lineHeight: '1.5', color: INK }}>
+            <p style={{ margin: 0, fontWeight: 600 }}>What you wrote about it, so you keep it</p>
+            {goals && (
+              <p style={{ margin: '8px 0 0' }}>
+                <span style={{ color: MUTED }}>Your goals: </span>
+                {goals}
+              </p>
+            )}
+            {notes && (
+              <p style={{ margin: '8px 0 0' }}>
+                <span style={{ color: MUTED }}>Your notes: </span>
+                {notes}
+              </p>
+            )}
+          </div>
+        )}
+        <Lead>If you meant a different conference, paste its link and it is added right away.</Lead>
+        <Button href={addUrl}>Add a conference</Button>
+      </Card>
+    </CardEmail>
   )
 }

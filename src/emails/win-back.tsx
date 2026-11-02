@@ -1,6 +1,5 @@
-import { emailStyles } from '@/lib/email/email-styles'
 import type { WinBackContent } from '@/lib/winback/sequence'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface WinBackEmailProps {
   content: WinBackContent
@@ -8,47 +7,25 @@ interface WinBackEmailProps {
   unsubscribeUrl: string
 }
 
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-  fontSize: '15px',
-}
-
-const button: React.CSSProperties = {
-  display: 'block',
-  textAlign: 'center',
-  textDecoration: 'none',
-  padding: '12px 20px',
-  borderRadius: '8px',
-  marginTop: '24px',
-  backgroundColor: '#1d4e89',
-  color: '#ffffff',
-  ...emailStyles.cta,
-}
-
 // Sent to members who have gone quiet, up to three times (src/lib/winback).
 export default function WinBackEmail({ content, ctaUrl, unsubscribeUrl }: WinBackEmailProps) {
   return (
-    <div style={container}>
-      <p style={{ fontSize: '20px', fontWeight: 700, color: '#0b2545' }}>NextChapter</p>
-      <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>{content.heading}</p>
-      {content.body.map((line) => (
-        <p key={line}>{line}</p>
-      ))}
-      <a href={ctaUrl} style={button}>
-        {content.cta}
-      </a>
-      {content.closing && <p style={{ marginTop: '24px' }}>{content.closing}</p>}
-      <p style={{ marginTop: '32px', ...emailStyles.muted }}>
-        <a href={unsubscribeUrl} style={{ color: '#4a5568' }}>
-          Turn off these emails
-        </a>
-      </p>
-      <AudienceTag audience="candidate" />
-    </div>
+    <CardEmail
+      preheader={content.heading}
+      audience="candidate"
+      footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Turn off these emails</a>}
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>{content.heading}</Headline>
+        {content.body.map((line) => (
+          <Lead key={line}>{line}</Lead>
+        ))}
+        <Button href={ctaUrl}>{content.cta}</Button>
+        {content.closing && (
+          <p style={{ margin: '28px auto 0', maxWidth: '500px', fontSize: '17px', lineHeight: '1.6' }}>{content.closing}</p>
+        )}
+      </Card>
+    </CardEmail>
   )
 }
