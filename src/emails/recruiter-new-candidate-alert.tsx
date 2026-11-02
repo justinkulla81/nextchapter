@@ -1,5 +1,4 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, FactList, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface RecruiterNewCandidateAlertEmailProps {
   fullName: string
@@ -10,37 +9,6 @@ interface RecruiterNewCandidateAlertEmailProps {
   geo: string
   portalUrl: string
   unsubscribeUrl: string
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  marginTop: '16px',
-  padding: '12px 20px',
-  backgroundColor: '#2e7d5b',
-  color: '#ffffff',
-  borderRadius: '999px',
-  textDecoration: 'none',
-  fontWeight: 600,
-}
-
-const footer: React.CSSProperties = {
-  marginTop: '32px',
-  ...emailStyles.muted,
 }
 
 // Sent when a candidate crosses into (opted-in AND Dossier unlocked) — see
@@ -59,24 +27,26 @@ export default function RecruiterNewCandidateAlertEmail({
   unsubscribeUrl,
 }: RecruiterNewCandidateAlertEmailProps) {
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p>Hi {fullName.split(' ')[0]},</p>
-      <p>A new candidate just unlocked visibility in the Recruiter Database:</p>
-      <ul>
-        <li>Target role: {targetRoleType}</li>
-        <li>Function: {primaryFunction}</li>
-        <li>Level: {level}</li>
-        <li>Industry: {industry}</li>
-        <li>Location: {geo}</li>
-      </ul>
-      <a href={portalUrl} style={button}>
-        View the Recruiter Database →
-      </a>
-      <p style={footer}>
-        <a href={unsubscribeUrl}>Unsubscribe from these alerts</a>
-      </p>
-      <AudienceTag audience="recruiter" />
-    </div>
+    <CardEmail
+      preheader={`A new ${targetRoleType} candidate is visible in the Recruiter Database.`}
+      audience="recruiter"
+      footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Unsubscribe from these alerts</a>}
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>{fullName.split(' ')[0]}, a new candidate just unlocked visibility</Headline>
+        <FactList
+          rows={[
+            { label: 'Target role', value: targetRoleType },
+            { label: 'Function', value: primaryFunction },
+            { label: 'Level', value: level },
+            { label: 'Industry', value: industry },
+            { label: 'Location', value: geo },
+          ]}
+        />
+        <Lead>The full profile is in the Recruiter Database.</Lead>
+        <Button href={portalUrl}>View the Recruiter Database</Button>
+      </Card>
+    </CardEmail>
   )
 }

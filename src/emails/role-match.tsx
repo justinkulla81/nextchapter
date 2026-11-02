@@ -1,37 +1,10 @@
-import { emailStyles } from '@/lib/email/email-styles'
 import type { RoleMatchEmailRole } from '@/lib/email/send-role-match-email'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, FactList, Headline, Lead, Wordmark } from '@/lib/email/card-layout'
 
 interface RoleMatchEmailProps {
   firstName: string | null
   role: RoleMatchEmailRole
   actionUrl: string
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  marginTop: '16px',
-  padding: '12px 20px',
-  backgroundColor: '#2e7d5b',
-  color: '#ffffff',
-  borderRadius: '999px',
-  textDecoration: 'none',
-  fontWeight: 600,
 }
 
 const ROLE_TYPE_LABEL: Record<RoleMatchEmailRole['type'], string> = {
@@ -42,24 +15,25 @@ const ROLE_TYPE_LABEL: Record<RoleMatchEmailRole['type'], string> = {
   CONSULTING_UNPAID: 'consulting opportunity',
 }
 
-export default function RoleMatchEmail({ firstName, role, actionUrl }: RoleMatchEmailProps) {
+export default function RoleMatchEmail({ role, actionUrl }: RoleMatchEmailProps) {
+  // Every member sees every job (owner's rule, 2026-10-16), so the role is always named.
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p>Hi {firstName || 'there'},</p>
-      {/* Every member sees every job (owner's rule, 2026-10-16), so the role is always named. */}
-      <>
-          <p>
-            <strong>{role.verdict}:</strong> {role.roleTitle} at <strong>{role.companyName}</strong>, a{' '}
-            {ROLE_TYPE_LABEL[role.type]} that fits your background.
-          </p>
-          {role.description && <p>{role.description}</p>}
-          <p>{role.compLabel}</p>
-          <a href={actionUrl} style={button}>
-            See the opportunity →
-          </a>
-      </>
-      <AudienceTag audience="candidate" />
-    </div>
+    <CardEmail preheader={`${role.verdict}: ${role.roleTitle} at ${role.companyName}`} audience="candidate">
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>
+          {role.verdict}: {role.roleTitle} at {role.companyName}
+        </Headline>
+        <FactList
+          rows={[
+            { label: 'Company', value: role.companyName },
+            { label: 'Type', value: ROLE_TYPE_LABEL[role.type] },
+            { label: 'Pay', value: role.compLabel },
+          ]}
+        />
+        {role.description && <Lead>{role.description}</Lead>}
+        <Button href={actionUrl}>See the opportunity</Button>
+      </Card>
+    </CardEmail>
   )
 }
