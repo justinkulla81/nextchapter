@@ -56,6 +56,20 @@ export default async function CapturedEmailsPage({ searchParams }: { searchParam
     ['Registered', count((s) => s.registered)],
   ] as const
 
+  // The same funnel split by the first form each address used, so the weak
+  // doors (many captured, few registered) stand out.
+  const bySource = new Map<string, { captured: number; clicked: number; registered: number }>()
+  for (const p of people) {
+    const key = p.firstWhere.split(' · ')[0] || 'Other'
+    const row = bySource.get(key) ?? { captured: 0, clicked: 0, registered: 0 }
+    const s = statuses.get(p.email)
+    row.captured += 1
+    if (s?.clicked) row.clicked += 1
+    if (s?.registered) row.registered += 1
+    bySource.set(key, row)
+  }
+  const sources = [...bySource.entries()].sort((a, b) => b[1].captured - a[1].captured)
+
   const tested = sp.tested != null ? Number(sp.tested) : null
 
   return (
@@ -89,6 +103,34 @@ export default async function CapturedEmailsPage({ searchParams }: { searchParam
       </p>
 
       <p className="text-sm text-muted-foreground">{funnel.map(([label, n]) => `${label} ${n}`).join(' · ')}</p>
+
+      {sources.length > 0 && (
+        <section className="space-y-2 rounded-md border p-4">
+          <h2 className="text-sm font-medium">Registered by where they signed up</h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-muted-foreground">
+                <th className="py-1 pr-3 font-medium">First form</th>
+                <th className="py-1 pr-3 font-medium">Captured</th>
+                <th className="py-1 pr-3 font-medium">Clicked</th>
+                <th className="py-1 pr-3 font-medium">Registered</th>
+                <th className="py-1 font-medium">Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sources.map(([name, r]) => (
+                <tr key={name} className="border-t">
+                  <td className="py-1 pr-3">{name}</td>
+                  <td className="py-1 pr-3">{r.captured}</td>
+                  <td className="py-1 pr-3">{r.clicked}</td>
+                  <td className="py-1 pr-3">{r.registered}</td>
+                  <td className="py-1">{Math.round((r.registered / r.captured) * 100)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
 
       <section className="space-y-2 rounded-md border p-4">
         <h2 className="text-sm font-medium">Welcome and reminder emails</h2>

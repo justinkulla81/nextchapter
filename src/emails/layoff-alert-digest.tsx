@@ -25,6 +25,8 @@ export default function LayoffAlertDigestEmail({ watching, notices, startUrl, un
       preheader={headline}
       footer={
         <>
+          Know someone else affected? Forward this email, or send them <a href="https://launchyournextchapter.com/?utm_source=forward" style={{ color: MUTED }}>launchyournextchapter.com</a>.
+          <br />
           You get this because you asked to be told about layoff notices at launchyournextchapter.com. At most one email a day.{' '}
           <a href={unsubscribeUrl} style={{ color: MUTED }}>
             Unsubscribe
