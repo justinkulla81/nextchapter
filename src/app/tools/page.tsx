@@ -21,6 +21,7 @@ const TOOLS = [
   { href: '/tools/ai-job-check', name: 'AI job check', body: 'Type your job title to see how much of the work AI already does and which related jobs pay more.' },
   { href: '/tools/layoff-risk-check', name: 'Layoff risk check', body: 'Check five warning signs against public layoff records. Not a prediction.' },
   { href: '/tools/warn-notice-generator', name: 'WARN notice generator', body: 'Draft the notices to employees, a union and the State and local government, with the notice deadline.' },
+  { href: '/templates', name: 'Email and letter templates', body: 'Reference requests, thank-you notes, severance and salary negotiation, a LinkedIn post about a layoff.' },
   { href: '/resources/warn-act', name: 'WARN Act in plain language', body: 'Who is covered, when 60 days’ notice is due, what is owed, and five state laws.' },
   { href: '/tools/warn-act-checker', name: 'WARN Act checker', body: 'For employers: is 60 days’ notice of a layoff likely required?' },
   { href: '/unemployment-benefits', name: 'Unemployment benefits by state', body: 'Weekly amount, weeks, waiting week and where to file, for every state.' },
