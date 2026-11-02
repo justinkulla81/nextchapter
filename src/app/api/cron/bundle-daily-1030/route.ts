@@ -4,7 +4,8 @@ import { GET as mailing_autoassign } from '../mailing-autoassign/route'
 import { GET as content_drafts } from '../content-drafts/route'
 import { GET as ats_job_board_feed } from '../ats-job-board-feed/route'
 
-export const maxDuration = 300
+// Jobs run in this order, lightest first, so one slow job at the end cannot hold up the rest.
+export const maxDuration = 800
 
 export const GET = cronBundle({
   'meeting-prep-send': meeting_prep_send,
