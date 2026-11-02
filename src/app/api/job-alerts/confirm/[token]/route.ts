@@ -25,6 +25,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       // Someone watching layoffs most likely has one close by: lead with that situation.
       const guess = (lead.kind === 'layoff_alert' || lead.kind === 'deadline_reminders') && !earlier ? { slug: 'laid-off', basis: 'search_words' as const } : inferJourney({ q: lead.searchQ, loc: lead.searchLoc }, earlier?.situation)
       await prisma.homepageLead.update({ where: { id: lead.id }, data: { confirmedAt: new Date(), unsubscribedAt: null, journeySlug: lead.journeySlug || guess.slug } })
+      // The prompt on a job page saves up to three alerts for one address behind one email: the one click confirms them all.
+      if (lead.kind === 'job_alert' && lead.source === 'job_page') {
+        await prisma.homepageLead.updateMany({
+          where: { email: lead.email, kind: 'job_alert', source: 'job_page', confirmedAt: null, unsubscribedAt: null, id: { not: lead.id } },
+          data: { confirmedAt: new Date(), confirmSentAt: new Date(), journeySlug: guess.slug },
+        })
+      }
       captureServerEvent(lead.email, 'alert_confirmed', { kind: lead.kind })
       captureServerEvent(lead.email, 'journey_inferred', { situation: guess.slug, basis: guess.basis })
       // An employer page's box is a follow: a member with this email now has the company on their profile.

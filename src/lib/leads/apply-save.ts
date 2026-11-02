@@ -12,12 +12,16 @@ import { cookies } from 'next/headers'
 import { addToSavedJobsCookie, SAVED_JOBS_COOKIE, SAVED_JOBS_MAX_AGE_SECONDS } from '@/lib/leads/claim-saved-jobs'
 import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 import { lifecycleEmailsOn } from '@/lib/leads/lifecycle/config'
+import { scopeQ, type AlertScopeKind } from '@/lib/leads/alert-scope'
+import { sendJobAlertConfirmation } from '@/lib/leads/job-alerts'
+import { baseTitle } from '@/lib/seo/job-title-rules'
+import { bucketFromIndustryText } from '@/lib/seo/topics'
 
 // "Save this job" on a public job page, no account needed. It stores the email with the job id
 // and, only when APPLY_SAVE_EMAIL=1, sends one email: the job, the way back to it, and the way to see how well they fit. One
 // email per address per job. Over the daily cap the lead is still saved and the person is told.
 
-export type ApplySaveState = { error?: string; saved?: boolean; emailed?: boolean; email?: string } | undefined
+export type ApplySaveState = { error?: string; saved?: boolean; emailed?: boolean; email?: string; alerts?: number } | undefined
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const APP_URL = () => process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
@@ -64,6 +68,35 @@ export async function saveAppliedJob(_prev: ApplySaveState, formData: FormData):
         })
     if (!existing) notifyNewLead({ email, channel: 'Saved job', detail: 'job_page' })
 
+    // Alerts ticked in the prompt: new jobs at this employer, with this title, in this industry. The values come from the job,
+    // never from the form, so the form can only switch each one on or off. Each is its own saved search; one confirmation email covers them all.
+    const wanted: AlertScopeKind[] = (['company', 'title', 'industry'] as const).filter((k) => text(formData, `alert_${k}`, 2) === '1')
+    let alerts = 0
+    if (wanted.length) {
+      const industry = wanted.includes('industry')
+        ? bucketFromIndustryText((await prisma.exclusiveJobPosting.findUnique({ where: { id: job.id }, select: { industry: true } }).catch(() => null))?.industry)
+        : null
+      const values: Record<AlertScopeKind, string | null> = { company: job.companyName, title: baseTitle(job.title) || null, industry }
+      let confirmFor: { id: string; unsubscribeToken: string; searchQ: string } | null = null
+      for (const kind of wanted) {
+        const value = values[kind]
+        if (!value) continue
+        const alertKey = { email, kind: 'job_alert', situation: '', searchQ: scopeQ(kind, value), searchLoc: '', searchRemote: false }
+        const have = await prisma.homepageLead.findUnique({
+          where: { email_kind_situation_searchQ_searchLoc_searchRemote: alertKey },
+          select: { id: true, unsubscribeToken: true, confirmedAt: true },
+        })
+        const row = have
+          ? await prisma.homepageLead.update({ where: { id: have.id }, data: { unsubscribedAt: null }, select: { id: true, unsubscribeToken: true, confirmedAt: true } })
+          : await prisma.homepageLead.create({ data: { ...alertKey, source: 'job_page', ip }, select: { id: true, unsubscribeToken: true, confirmedAt: true } })
+        alerts++
+        if (!row.confirmedAt && !confirmFor) confirmFor = { id: row.id, unsubscribeToken: row.unsubscribeToken, searchQ: alertKey.searchQ }
+        captureServerEvent(email, 'alert_subscribed', { source: 'job_page', scope: kind, jobId: job.id, returning: !!have })
+      }
+      // Alerts need the click in one email (double opt-in); the confirm link switches on every alert this page saved for the address.
+      if (confirmFor) await sendJobAlertConfirmation({ ...confirmFor, email, searchLoc: '', searchRemote: false })
+    }
+
     let emailed = false
     // With the lifecycle emails on, the welcome (which names the saved job) replaces this one, so a save never sends two.
     if (applySaveEmailOn() && !lifecycleEmailsOn() && !lead.planSentAt && process.env.RESEND_API_KEY && !isUndeliverableAddress(email)) {
@@ -107,8 +140,8 @@ export async function saveAppliedJob(_prev: ApplySaveState, formData: FormData):
       console.error('saved jobs cookie failed:', e)
     }
 
-    captureServerEvent(email, 'lead_captured', { kind: 'apply_save', source: 'job_page', trigger, jobId: job.id, company: job.companyName, emailed, returning: !!existing })
-    return { saved: true, emailed, email }
+    captureServerEvent(email, 'lead_captured', { kind: 'apply_save', source: 'job_page', trigger, jobId: job.id, company: job.companyName, emailed, alerts, returning: !!existing })
+    return { saved: true, emailed, email, alerts }
   } catch (error) {
     console.error('apply save failed:', error instanceof Error ? error.message : error)
     return { error: GENERIC_ERROR, email }
