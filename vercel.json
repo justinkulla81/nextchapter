@@ -158,7 +158,7 @@
     },
     {
       "path": "/api/cron/win-back",
-      "schedule": "0 16 * * *"
+      "schedule": "0 15 * * 3"
     },
     {
       "path": "/api/cron/backchannel-match",
