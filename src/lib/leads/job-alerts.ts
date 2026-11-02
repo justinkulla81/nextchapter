@@ -5,6 +5,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { searchPublicBoard, type PublicBoardJob } from '@/lib/jobs/public-board'
 import { getPersona } from '@/lib/constants/personas'
 import { inferJourney } from '@/lib/leads/infer-journey'
+import { parseScope } from '@/lib/leads/alert-scope'
 import { JOB_ALERT_MAX_JOBS, jobAlertDailyCap, jobAlertEmailsOn } from '@/lib/leads/job-alert-config'
 import JobAlertConfirmEmail from '@/emails/job-alert-confirm'
 import JobAlertDigestEmail from '@/emails/job-alert-digest'
@@ -24,6 +25,9 @@ export interface AlertSearch {
 
 /** "marketing manager in Chicago", "remote jobs", "all new jobs". */
 export function searchLabel(s: AlertSearch): string {
+  // A job-page alert is about one employer, title or industry: say that, not the prefix.
+  const scope = parseScope(s.searchQ)
+  if (scope) return scope.kind === 'company' ? `jobs at ${scope.value}` : `${scope.value} jobs`
   const words = s.searchQ.trim()
   const place = s.searchLoc.trim()
   const parts = [words || 'all new jobs']
@@ -88,7 +92,7 @@ export async function sendAlertConfirmation(lead: ConfirmableLead, opts: { what:
 /** The confirmation email for a saved job search. */
 export function sendJobAlertConfirmation(lead: ConfirmableLead & AlertSearch): Promise<boolean> {
   return sendAlertConfirmation(lead, {
-    what: `new jobs matching ${searchLabel(lead)}`,
+    what: parseScope(lead.searchQ) ? `new ${searchLabel(lead)}` : `new jobs matching ${searchLabel(lead)}`,
     subject: `Confirm your job alerts: ${searchLabel(lead)}`,
     enabled: jobAlertEmailsOn(),
   })

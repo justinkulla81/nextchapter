@@ -6,6 +6,8 @@ import { classifyLocation } from '@/lib/jobs/us-location'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import { isPublicJob, isStaleVerified } from '@/lib/jobs/public-job-page'
 import { PUBLIC_JOB_SELECT } from '@/lib/jobs/public-job-page-server'
+import { parseScope } from '@/lib/leads/alert-scope'
+import { industryRawValues } from '@/lib/seo/topics'
 
 // The homepage job board: an anonymous, unpersonalized search over the same live
 // board members see. No fit score, no ranking by who you are — newest first, then
@@ -65,9 +67,14 @@ export function cleanPublicQuery(raw: { q?: string | null; loc?: string | null; 
   return { q: clean(raw.q), loc, remote }
 }
 
-function publicWhere(query: PublicBoardQuery): Prisma.BoardLightRowWhereInput {
+function publicWhere(query: PublicBoardQuery, industryIds?: string[]): Prisma.BoardLightRowWhereInput {
   const and: Prisma.BoardLightRowWhereInput[] = []
-  for (const word of query.q.split(' ').filter(Boolean).slice(0, MAX_WORDS)) {
+  // A job-page alert ("company:Acme", "title:...", "industry:...", see leads/alert-scope.ts) matches one field, not every word in two.
+  const scope = parseScope(query.q)
+  if (scope?.kind === 'company') and.push({ companyName: { equals: scope.value, mode: 'insensitive' } })
+  else if (scope?.kind === 'title') and.push({ title: { contains: scope.value, mode: 'insensitive' } })
+  else if (scope?.kind === 'industry') and.push({ id: { in: industryIds ?? [] } })
+  for (const word of scope ? [] : query.q.split(' ').filter(Boolean).slice(0, MAX_WORDS)) {
     and.push({
       OR: [
         { title: { contains: word, mode: 'insensitive' } },
@@ -94,8 +101,20 @@ function publicWhere(query: PublicBoardQuery): Prisma.BoardLightRowWhereInput {
   }
 }
 
+// Industry sits on the posting, not on the board copy: resolve the posting ids first (newest 2,000 is plenty for one day's alert).
+async function industryPostingIds(bucket: string): Promise<string[]> {
+  const rows = await prisma.exclusiveJobPosting.findMany({
+    where: { industry: { in: industryRawValues(bucket) } },
+    orderBy: { createdAt: 'desc' },
+    take: 2000,
+    select: { id: true },
+  })
+  return rows.map((r) => r.id)
+}
+
 export async function searchPublicBoard(query: PublicBoardQuery): Promise<PublicBoardResult> {
-  const where = publicWhere(query)
+  const scope = parseScope(query.q)
+  const where = publicWhere(query, scope?.kind === 'industry' ? await industryPostingIds(scope.value) : undefined)
   // Internships live in the Higher Ed portals, not on member surfaces; the copy has no type column, so drop them by title.
   const noIntern: Prisma.BoardLightRowWhereInput = {
     NOT: {

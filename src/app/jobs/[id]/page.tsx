@@ -124,7 +124,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             <NoExperienceLine jobId={job.id} signals={job.postingSignals} phrase={job.noExperiencePhrase} surface="public_job" className="mt-3 text-base" />
             <TrainingProvidedLine jobId={job.id} signals={job.postingSignals} phrase={job.trainingPhrase} surface="public_job" className="mt-3 text-base" />
 
-            <ApplyAndSave jobId={job.id} company={job.companyName} applyUrl={job.url} emailOn={applySaveEmailOn() || lifecycleEmailsOn()} reminderOn={lifecycleEmailsOn()} />
+            <ApplyAndSave jobId={job.id} company={job.companyName} jobTitle={job.title} industry={industry} applyUrl={job.url} emailOn={applySaveEmailOn() || lifecycleEmailsOn()} reminderOn={lifecycleEmailsOn()} />
 
             <p className="mt-4 text-sm text-muted-foreground">
               Just laid off?{' '}
