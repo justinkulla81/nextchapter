@@ -17902,3 +17902,19 @@ model ContentDraftPost {
 
   @@index([draftId])
 }
+
+/// One A/B test of a page template's title (src/lib/seo/title-tests.ts). Half the pages of a type (split by a hash of the path) show the
+/// current title (arm A), half show the alternate (arm B). The nightly job /api/cron/seo-title-tests reads Search Console click rate per
+/// arm and, once the gap is real, records the winner here; from then on every page of the type uses it.
+model SeoTitleTest {
+  key           String    @id
+  /// running | decided
+  status        String    @default("running")
+  /// A | B once decided
+  winner        String?
+  startedAt     DateTime  @default(now())
+  decidedAt     DateTime?
+  lastCheckedAt DateTime?
+  /// The last read: impressions, clicks, click rate and average position per arm, and the verdict.
+  result        Json?
+}

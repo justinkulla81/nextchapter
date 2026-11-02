@@ -1,4 +1,6 @@
 import 'server-only'
+import { gunzipSync, gzipSync } from 'node:zlib'
+import { unstable_cache } from 'next/cache'
 
 // Shared helpers for the public SEO pages, which run scans that read tens of thousands of rows. A crawl asks for many
 // pages at once, and one server instance serves many requests at the same time, so without a limit those scans take
@@ -66,4 +68,36 @@ export async function retryOnPoolTimeout<T>(run: () => Promise<T>): Promise<T> {
       await new Promise((r) => setTimeout(r, 800 * (attempt + 1)))
     }
   }
+}
+
+const ISO_DATE = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z$/
+
+/**
+ * A loader's result kept for `revalidateSec` in Next's data cache, which every server instance on Vercel shares. memoTtl only holds a
+ * result on one instance, and instances start cold all day, so each one re-read the same tables from the database; those reads were
+ * the bulk of its outbound data. Stored as gzipped JSON (an entry is capped at 2 MB), with dates read back as dates. Where the cache is not
+ * available (a script, a test) it just runs the loader. Results must be plain data: no Maps, Sets or class instances.
+ */
+export async function sharedLoad<T>(key: string, revalidateSec: number, load: () => Promise<T>): Promise<T> {
+  let loadFailed = false
+  const pack = unstable_cache(
+    async () => {
+      try {
+        return gzipSync(JSON.stringify(await load())).toString('base64')
+      } catch (e) {
+        loadFailed = true
+        throw e
+      }
+    },
+    ['shared-load', key],
+    { revalidate: revalidateSec, tags: [`shared-load:${key}`] }
+  )
+  let packed: string
+  try {
+    packed = await pack()
+  } catch (e) {
+    if (loadFailed) throw e
+    return load()
+  }
+  return JSON.parse(gunzipSync(Buffer.from(packed, 'base64')).toString(), (_k, v) => (typeof v === 'string' && ISO_DATE.test(v) ? new Date(v) : v)) as T
 }

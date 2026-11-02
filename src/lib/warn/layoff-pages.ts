@@ -1,6 +1,6 @@
 import 'server-only'
 import { cache } from 'react'
-import { heavy, memoTtl } from '@/lib/db/heavy'
+import { heavy, memoTtl, sharedLoad } from '@/lib/db/heavy'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { cityFromAddress } from '@/lib/workforce/places'
@@ -125,7 +125,7 @@ async function loadPublicNotices(): Promise<PublicNotice[]> {
 
 // One load per instance per hour, shared by every page that needs the record; the per-request cache sits on top. Every load reads the whole
 // filing table and its company names, and each server instance made its own: every five minutes that was most of the database's outbound data.
-const sharedNotices = memoTtl(60 * 60_000, () => 'all', () => heavy(loadPublicNotices))
+const sharedNotices = memoTtl(60 * 60_000, () => 'all', () => heavy(() => sharedLoad('public-notices', 3600, loadPublicNotices)))
 export const getPublicNotices = cache(() => sharedNotices())
 
 export interface StateSummary {

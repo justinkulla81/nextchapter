@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TEMPLATES, fillTemplate, slotsIn, templateBySlug } from '@/lib/templates/library'
+import { TEMPLATES, TEMPLATE_LINK_PATHS, TEMPLATE_LINK_SLUGS, fillTemplate, slotsIn, templateBySlug } from '@/lib/templates/library'
 import { KEYWORD_CLUSTERS } from '@/lib/seo/keywords'
 
 const norm = (s: string) => s.toLowerCase().replace(/[“”"’']/g, '').replace(/\s+/g, ' ').trim()
@@ -33,18 +33,27 @@ describe('template library', () => {
     const owned = new Map<string, string>()
     for (const c of KEYWORD_CLUSTERS) for (const p of [c.primary, ...c.secondary]) owned.set(norm(p), c.owner)
     const own = new Map<string, string>()
+    const clashes: string[] = []
     for (const t of TEMPLATES) {
       for (const p of [t.primary, ...t.secondary]) {
         const k = norm(p)
-        expect(owned.has(k), `"${p}" (${t.slug}) is owned by ${owned.get(k)}`).toBe(false)
-        expect(own.has(k), `"${p}" is used by both ${own.get(k)} and ${t.slug}`).toBe(false)
+        if (owned.has(k)) clashes.push(`"${p}" (${t.slug}) is owned by ${owned.get(k)}`)
+        if (own.has(k)) clashes.push(`"${p}" is used by both ${own.get(k)} and ${t.slug}`)
         own.set(k, t.slug)
       }
     }
+    expect(clashes).toEqual([])
   })
 
   it('links related templates that exist', () => {
     for (const t of TEMPLATES) for (const r of t.related) expect(templateBySlug(r), `${t.slug} -> ${r}`).toBeTruthy()
+  })
+
+  it('links every template from at least one guide, and only from pages the keyword map owns', () => {
+    const owners = new Set(KEYWORD_CLUSTERS.map((c) => c.owner))
+    for (const t of TEMPLATES) expect(TEMPLATE_LINK_SLUGS.includes(t.slug), `${t.slug} is linked from no guide`).toBe(true)
+    for (const s of TEMPLATE_LINK_SLUGS) expect(templateBySlug(s), `unknown template ${s}`).toBeTruthy()
+    for (const p of TEMPLATE_LINK_PATHS) expect(owners.has(p), `${p} is not an owner page`).toBe(true)
   })
 
   it('shows a visible gap for an empty field and a fallback for an optional one', () => {

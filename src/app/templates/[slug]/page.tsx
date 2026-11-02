@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
 import { TemplateFiller } from '@/components/templates/TemplateFiller'
-import { TEMPLATES, templateBySlug } from '@/lib/templates/library'
+import { TEMPLATES, guidesFor, templateBySlug } from '@/lib/templates/library'
+import { ANCHORS, clusterFor } from '@/lib/seo/keywords'
 import { fitDescription } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
 import { canonical } from '@/lib/seo/canonical'
@@ -25,6 +26,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
   const { slug } = await params
   const t = templateBySlug(slug)
   if (!t) notFound()
+  const guides = guidesFor(t.slug).map((href) => ({ href, label: ANCHORS[href] ?? clusterFor(href).primary }))
   const related = t.related.map((s) => templateBySlug(s)).filter((x): x is NonNullable<typeof x> => !!x)
   return (
     <SeoPage
@@ -51,6 +53,14 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
           ))}
         </dl>
       </section>
+      {guides.length > 0 && (
+        <section aria-labelledby="guides" className="mt-12">
+          <h2 id="guides" className={H2}>Read the guide</h2>
+          <ul className="mt-4 max-w-3xl list-disc space-y-2 pl-5 text-sm">
+            {guides.map((g) => <li key={g.href}><Link href={g.href} className={LINK}>{g.label}</Link></li>)}
+          </ul>
+        </section>
+      )}
       {related.length > 0 && (
         <section aria-labelledby="more" className="mt-12">
           <h2 id="more" className={H2}>More templates</h2>
