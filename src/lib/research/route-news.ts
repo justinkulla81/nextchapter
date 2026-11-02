@@ -43,7 +43,7 @@ Decide three things independently:
 
 Stay out of politics as much as possible. political is true when the story is about, or framed around, a politician, party, campaign, election, partisan fight or political commentary (a named office-holder or candidate, a bill's political battle, an opinion column taking a side). When political is true, set website and weekly to false. A neutral, factual report of a rule or program that directly changes jobs or benefits, from an official or established news source and without a political figure's framing, is not political.
 
-tone is the story's effect on a job seeker: "positive" (hiring, growth, wins, new programs, success stories, good news about the market), "neutral" (data, explainers, how-to), or "negative" (layoffs, cuts, weak data). Negative stories are fine and useful; tone only records it.
+tone is the story's effect on a job seeker. "positive": hiring and growth, wins, new programs, good news about the market, and human stories: someone landing a role, rebuilding after a layoff, a comeback, a career change that worked, an employer that looks after its people, motivation and encouragement. A story that mentions a layoff is not negative if it is really about recovery, resilience or a good outcome. "neutral": data, explainers, how-to, analysis that cuts both ways. "negative": layoffs and cuts reported as bad news, weak data, warnings. Negative stories are fine and useful; tone only records it so the mix stays balanced.
 
 relevant is true if any of the three is true. If it is false, set all three to false, audiences to [], and explain why in reason.
 

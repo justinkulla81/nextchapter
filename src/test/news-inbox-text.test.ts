@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canAutoPublish, extractNewsLinks, noteBeforeFirstLink, type AutoPublishInput } from '@/lib/research/news-inbox-text'
+import { balanceByTone, canAutoPublish, extractNewsLinks, noteBeforeFirstLink, type AutoPublishInput } from '@/lib/research/news-inbox-text'
 
 const clean = (u: string) => {
   const url = new URL(u)
@@ -47,5 +47,22 @@ describe('canAutoPublish', () => {
     expect(canAutoPublish(negative, ['negative', 'positive', 'neutral'])).toBe(true)
     expect(canAutoPublish(negative, ['negative', 'positive', 'negative'])).toBe(false)
     expect(canAutoPublish(ok, ['negative', 'negative', 'negative'])).toBe(true)
+  })
+})
+
+describe('balanceByTone', () => {
+  const neg = (id: string) => ({ id, discoveryTopic: 'Sent to news@ · negative' })
+  const pos = (id: string) => ({ id, discoveryTopic: 'Sent to news@ · positive' })
+  const plain = (id: string) => ({ id, discoveryTopic: null })
+  it('never lets negatives outnumber half of a multi-item email', () => {
+    const rows = [neg('a'), neg('b'), neg('c'), pos('d'), plain('e'), neg('f')]
+    expect(balanceByTone(rows, 4, false).map((r) => r.id)).toEqual(['a', 'b', 'd', 'e'])
+  })
+  it('sends fewer rather than a run of bad news', () => {
+    expect(balanceByTone([neg('a'), neg('b'), neg('c')], 4, false).map((r) => r.id)).toEqual(['a', 'b'])
+  })
+  it('a single-item email skips a negative right after a negative one', () => {
+    expect(balanceByTone([neg('a'), pos('b')], 1, true).map((r) => r.id)).toEqual(['b'])
+    expect(balanceByTone([neg('a'), pos('b')], 1, false).map((r) => r.id)).toEqual(['a'])
   })
 })

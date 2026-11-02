@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { balanceByTone, isNegativeTopic } from '@/lib/research/news-inbox-text'
 import type { ResearchLibraryItem, DigestSend, DigestAudience } from '@prisma/client'
 
 export async function getQueuedDigestItems(): Promise<ResearchLibraryItem[]> {
@@ -102,13 +103,22 @@ export interface DigestNugget {
 // Coach must still be eligible for Recruiter's own next send. This is what
 // makes the pool self-dequeuing per audience (see markItemsSent above).
 export async function getDigestNuggets(audience: DigestAudience, limit: number): Promise<DigestNugget[]> {
-  return prisma.researchLibraryItem.findMany({
-    // A link with no headline prints nothing in the email, but used to be
-    // picked anyway — it was marked sent, and the real article queued
-    // behind it waited another week.
-    where: { digestAudiences: { has: audience }, NOT: { sentAudiences: { has: audience } }, title: { not: null } },
-    orderBy: { dateFound: 'desc' },
-    take: limit,
-    select: { id: true, title: true, url: true, summary: true },
-  })
+  // Tone is only known for what Justin sent to news@ (kept in discoveryTopic); everything else counts as not negative.
+  const [rows, lastSent] = await Promise.all([
+    prisma.researchLibraryItem.findMany({
+      // A link with no headline prints nothing in the email, but used to be
+      // picked anyway — it was marked sent, and the real article queued
+      // behind it waited another week.
+      where: { digestAudiences: { has: audience }, NOT: { sentAudiences: { has: audience } }, title: { not: null } },
+      orderBy: { dateFound: 'desc' },
+      take: limit * 4,
+      select: { id: true, title: true, url: true, summary: true, discoveryTopic: true },
+    }),
+    prisma.researchLibraryItem.findFirst({
+      where: { sentAudiences: { has: audience } },
+      orderBy: { sentAt: 'desc' },
+      select: { discoveryTopic: true },
+    }),
+  ])
+  return balanceByTone(rows, limit, isNegativeTopic(lastSent?.discoveryTopic ?? null)).map(({ id, title, url, summary }) => ({ id, title, url, summary }))
 }

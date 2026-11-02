@@ -69,3 +69,27 @@ export function canAutoPublish(r: AutoPublishInput, recentTones: NewsTone[]): bo
   }
   return true
 }
+
+const NEGATIVE_TOPIC = /· negative$/
+
+export const isNegativeTopic = (topic: string | null): boolean => !!topic && NEGATIVE_TOPIC.test(topic)
+
+/**
+ * Picks up to `limit` items, newest first, so an email is never mostly bad news:
+ * at most half may be negative, and a single-item email may not be negative right
+ * after a negative one. Better fewer items than a run of layoff stories.
+ */
+export function balanceByTone<T extends { discoveryTopic: string | null }>(rows: T[], limit: number, lastSentNegative: boolean): T[] {
+  const maxNegative = limit <= 1 ? (lastSentNegative ? 0 : 1) : Math.floor(limit / 2)
+  const out: T[] = []
+  let negative = 0
+  for (const row of rows) {
+    if (out.length >= limit) break
+    if (isNegativeTopic(row.discoveryTopic)) {
+      if (negative >= maxNegative) continue
+      negative++
+    }
+    out.push(row)
+  }
+  return out
+}

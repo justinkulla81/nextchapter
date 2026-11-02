@@ -311,6 +311,7 @@ export async function checkNewsInboxNow(_prev: NewsFormState | undefined): Promi
     `${result.forWebsite} for website News (${result.published} published automatically, ${result.forWebsite - result.published} waiting for you)`,
     `${result.forWeekly} for the weekly email`,
     `${result.political} kept out as political`,
+    ...(result.newsletters ? [`${result.newsletters} newsletter${result.newsletters === 1 ? '' : 's'} to send as single stories`] : []),
     `${result.notRelevant} not used`,
   ]
   return {
