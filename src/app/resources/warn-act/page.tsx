@@ -43,7 +43,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'My state has its own law. Which one applies?',
-    a: 'Both can apply. Several states cover smaller employers or require more notice than the federal Act. Five states are summarized below with their own sources; for any other state, start at your state labor department. The federal rule applies in every state.',
+    a: 'Both can apply. Several states cover smaller employers or require more notice than the federal Act. Eleven states are summarized below with their own sources; for any other state, start at your state labor department. The federal rule applies in every state.',
   },
   {
     q: 'Where can I see whether my employer filed a notice?',
@@ -58,6 +58,12 @@ const ROWS = [
   { law: 'New York', who: '50 or more full-time employees in the state', days: '90 days', mass: '25 or more full-time and 33% of the site, or 250 or more' },
   { law: 'Illinois', who: '75 or more full-time employees', days: '60 days', mass: '25 or more full-time and one third of the site, or 250 or more' },
   { law: 'Washington', who: '50 or more employees in the state (since July 27, 2025)', days: '60 days', mass: '50 or more in 30 days' },
+  { law: 'Maine', who: '100 or more persons at the facility', days: '90 days (closing)', mass: 'Severance of one week’s pay per year of service, after 3 years' },
+  { law: 'Iowa', who: '25 or more employees (not counting part-time)', days: '30 days', mass: '25 or more at a site in 30 days' },
+  { law: 'Maryland', who: '50 or more employees', days: '60 days', mass: '25% or 15 employees, whichever is greater, over 3 months' },
+  { law: 'New Hampshire', who: '100 or more employees (not counting part-time)', days: '60 days', mass: 'Closing of 50 or more; layoff of 250, or 25 if they are 33%' },
+  { law: 'Vermont', who: '50 or more full-time employees, or the part-time equivalent', days: '45 days to the state, 30 to employees', mass: '50 or more in 90 days; up to ten days’ severance if notice is short' },
+  { law: 'Delaware', who: '100 or more employees (not counting part-time)', days: '60 days', mass: '50 or more at 33% of a site, or 500; relocations of 50 miles' },
 ]
 
 export default function WarnActPage() {
@@ -140,13 +146,13 @@ export default function WarnActPage() {
       </section>
 
       <section aria-labelledby="states" className="mt-12">
-        <h2 id="states" className={H2}>Five states go further</h2>
+        <h2 id="states" className={H2}>{STATE_WARN_LAWS.length} states go further</h2>
         <p className="mt-3 max-w-3xl text-base text-muted-foreground">
-          States can cover smaller employers, require longer notice or add pay. These five were read from the state’s own pages and are summarized with their sources. Other states have laws too; they are not listed because we have not sourced them yet, so check your state labor department.
+          States can cover smaller employers, require longer notice or add pay. These {STATE_WARN_LAWS.length} were read from the state’s own statute or labor department pages and are summarized with their sources. Other states have laws too; they are not listed because we have not sourced them yet, so check your state labor department.
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[680px] border-collapse text-sm">
-            <caption className="sr-only">Federal WARN Act and five state laws compared</caption>
+            <caption className="sr-only">Federal WARN Act and state laws compared</caption>
             <thead>
               <tr className="text-left text-xs text-muted-foreground">
                 <th scope="col" className="border-b border-border py-2 pr-3 font-medium">Law</th>
@@ -174,7 +180,8 @@ export default function WarnActPage() {
               <p className="mt-1 text-muted-foreground">{s.summary}<SourceRefs keys={s.sources} /></p>
               <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">How it differs:</span> {s.differs}</p>
               {s.caveat && <p className="mt-1 text-sm text-muted-foreground"><span className="font-medium text-foreground">Check:</span> {s.caveat}</p>}
-              <p className="mt-1 text-sm">
+              <p className="mt-1 flex flex-wrap gap-x-4 text-sm">
+                <Link href={`/resources/warn-act/${stateSlug(s.code)}`} className={LINK}>{s.name} WARN Act rules</Link>
                 <Link href={`/layoffs/${stateSlug(s.code)}`} className={LINK}>{s.name} layoff notices on file</Link>
               </p>
             </li>
@@ -192,6 +199,7 @@ export default function WarnActPage() {
           <li><Link href="/resources/72-hours" className={LINK}>The first 72 hours after a layoff</Link></li>
           <li><Link href="/tools/layoff-risk-check" className={LINK}>Layoff risk check: how many warning signs apply to you</Link></li>
           <li><Link href="/tools/warn-act-checker" className={LINK}>WARN Act checker</Link>, for employers: is 60 days’ notice of a layoff likely required?</li>
+          <li><Link href="/tools/warn-notice-generator" className={LINK}>WARN notice generator</Link>, for employers: draft the notices and see the deadline</li>
         </ul>
         <div className="mt-5"><PlanStart situationSlug="laid-off" placement="warn_act_explainer" label="Get your free Market Reality Assessment" /></div>
       </section>

@@ -97,9 +97,17 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
         location: c.format === 'VIRTUAL' ? { '@type': 'VirtualLocation', url: c.url ?? `${SITE_URL}${path}` } : { '@type': 'Place', name: [c.city, c.state].filter(Boolean).join(', ') || c.name, address: { '@type': 'PostalAddress', ...(c.city ? { addressLocality: c.city } : {}), ...(c.state ? { addressRegion: c.state } : {}), addressCountry: c.country } },
         description: c.whyAttend ?? `${c.name}, a ${KIND_LABEL[c.kind as keyof typeof KIND_LABEL]?.toLowerCase() ?? 'conference'} for ${exact}.`,
         url: `${SITE_URL}${path}`,
+        image: [`${SITE_URL}${path}/opengraph-image`],
         ...(performers.length > 0 ? { performer: performers.map((p) => ({ '@type': 'Person', name: p.name, ...(p.title ? { jobTitle: p.title } : {}), ...(p.organization ? { worksFor: { '@type': 'Organization', name: p.organization } } : {}) })) } : {}),
         ...(c.organizer ? { organizer: { '@type': 'Organization', name: c.organizer, ...(c.url ? { url: c.url } : {}) } } : {}),
-        ...(c.access === 'FREE' ? { isAccessibleForFree: true } : c.costLow != null ? { offers: { '@type': 'Offer', price: c.costLow, priceCurrency: 'USD', ...(c.url ? { url: c.url } : {}), availability: 'https://schema.org/InStock' } } : {}),
+        // Google asks for a performer; with no named speakers the organizer is the only party the event publishes.
+        ...(performers.length === 0 && c.organizer ? { performer: { '@type': 'Organization', name: c.organizer } } : {}),
+        ...(c.access === 'FREE' || c.costLow != null
+          ? {
+              ...(c.access === 'FREE' ? { isAccessibleForFree: true } : {}),
+              offers: { '@type': 'Offer', price: c.access === 'FREE' ? 0 : c.costLow, priceCurrency: 'USD', ...(c.url ? { url: c.url } : {}), availability: 'https://schema.org/InStock', validFrom: (c.checkedAt ?? new Date()).toISOString().slice(0, 10) },
+            }
+          : {}),
       }
     : null
   const trail = [{ name: 'Conferences', path: '/conferences' }, { name: c.name, path }]

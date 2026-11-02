@@ -26,6 +26,8 @@ import { TOPICS } from '@/lib/seo/explainers'
 import { INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
 import { WEEK_MIN_NOTICES, getWeeks } from '@/lib/layoffs/weekly'
 import { MONTH_MIN_NOTICES, getMonths } from '@/lib/layoffs/monthly'
+import { STATE_WARN_LAWS } from '@/lib/warn-guide/rules'
+import { TEMPLATES } from '@/lib/templates/library'
 import { getCatalogIndex, getConferenceAssessments } from '@/lib/seo/topic-data'
 import { assessAssociation } from '@/lib/seo/topic-quality'
 import { topicsWithSnapshot } from '@/lib/seo/topic-snapshot'
@@ -56,6 +58,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/feeds', updated: '2026-10-27', freq: 'weekly', priority: 0.6 },
   { path: '/data', updated: '2026-10-27', freq: 'daily', priority: 0.7 },
   { path: '/data/ai-jobs-index', updated: '2026-10-30', freq: 'monthly', priority: 0.8 },
+  { path: '/templates', updated: '2026-10-31', freq: 'monthly', priority: 0.8 },
   { path: '/data/embed', updated: '2026-10-27', freq: 'monthly', priority: 0.5 },
   { path: '/layoffs/2026', updated: '2026-10-30', freq: 'daily', priority: 0.8 },
   { path: '/layoffs/week', updated: '2026-10-27', freq: 'daily', priority: 0.6 },
@@ -83,7 +86,9 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/layoffs/by-state', updated: '2026-10-27', freq: 'daily', priority: 0.6 },
   { path: '/tools/unemployment-estimator', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
   { path: '/tools/pay-check', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/warn-notice-generator', updated: '2026-10-30', freq: 'monthly', priority: 0.8 },
   { path: '/tools/resume-check', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/resume-job-match', updated: '2026-10-30', freq: 'monthly', priority: 0.8 },
   { path: '/funding', updated: '2026-10-23', freq: 'monthly', priority: 0.8 },
   { path: '/pricing', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
   { path: '/ai-skills', updated: '2026-10-20', freq: 'weekly', priority: 0.7 },
@@ -331,6 +336,9 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/workforce-boards', DIRECTORY_UPDATED, 'monthly', 0.6),
     entry('/rapid-response', DIRECTORY_UPDATED, 'monthly', 0.6),
     entry('/tools/warn-act-checker', DIRECTORY_UPDATED, 'yearly', 0.6),
+    // One page for each state whose own notice law was read from its statute or labor department (src/lib/warn-guide/rules.ts).
+    ...TEMPLATES.map((t) => entry(`/templates/${t.slug}`, '2026-10-31', 'monthly', 0.7)),
+    ...STATE_WARN_LAWS.map((l) => entry(`/resources/warn-act/${stateSlug(l.code)}`, '2026-10-30', 'monthly', 0.6)),
     entry('/economic-development', DIRECTORY_UPDATED, 'monthly', 0.6),
     ...seoStatePages.flatMap((p) => p),
 
