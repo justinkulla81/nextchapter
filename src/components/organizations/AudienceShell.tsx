@@ -21,6 +21,8 @@ interface AudienceShellProps {
   headline: string
   subhead: string
   primary: { label: string; href: string }
+  /** A lighter second step beside the primary action (for example a free workspace next to a demo). Same analytics key. */
+  secondary?: { label: string; href: string }
   primaryNote?: string
   loginHref?: string
   footerLinks?: { href: string; label: string }[]
@@ -29,7 +31,7 @@ interface AudienceShellProps {
   children: ReactNode
 }
 
-export function AudienceShell({ page, parent, eyebrow, headline, subhead, primary, primaryNote, loginHref, footerLinks, look = 'plain', children }: AudienceShellProps) {
+export function AudienceShell({ page, parent, eyebrow, headline, subhead, primary, secondary, primaryNote, loginHref, footerLinks, look = 'plain', children }: AudienceShellProps) {
   const crumb = parent ?? { href: '/for-organizations', label: 'For organizations' }
   return (
     <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
@@ -66,10 +68,21 @@ export function AudienceShell({ page, parent, eyebrow, headline, subhead, primar
             {headline}
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">{subhead}</p>
-          <div className="mt-8">
-            <TrackedLink href={primary.href} event="audience_cta_clicked" properties={{ page, cta: primary.label }} className={actionButton}>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <TrackedLink href={primary.href} event="audience_cta_clicked" gtagEvent="audience_cta_clicked" properties={{ page, cta: primary.label }} className={actionButton}>
               {primary.label}
             </TrackedLink>
+            {secondary && (
+              <TrackedLink
+                href={secondary.href}
+                event="audience_cta_clicked"
+                gtagEvent="audience_cta_clicked"
+                properties={{ page, cta: secondary.label, placement: 'secondary' }}
+                className="inline-flex h-14 items-center rounded-full border border-ink px-8 text-base font-semibold text-ink hover:bg-muted"
+              >
+                {secondary.label}
+              </TrackedLink>
+            )}
           </div>
           {primaryNote && <p className="mt-3 text-sm text-muted-foreground">{primaryNote}</p>}
         </section>

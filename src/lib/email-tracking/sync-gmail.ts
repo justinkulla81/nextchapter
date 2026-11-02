@@ -38,6 +38,20 @@ const MESSAGES_PAGE_SIZE = 500
 // everything older than the newest 1,000 was skipped for good (63% of one
 // real inbox since July, including most of its rejection emails).
 const SLICE_MS = 24 * 60 * 60 * 1000
+
+/**
+ * The end of the next one-day slice after `cursorMs`, or null once the bookmark has reached `syncStartMs`.
+ *
+ * The walk used to stop at "now" re-read each pass. Each pass set the bookmark to the moment it began, so a caught-up
+ * mailbox was always a few seconds short of the new "now" and the loop went round again, re-listing the same last
+ * two or three days of mail until the 220-second deadline cut it off (every hourly gmail-sync run took exactly 220
+ * seconds for weeks, and a page-visit sync, which has no deadline, would never have stopped). The target is fixed
+ * when the sync starts instead; mail that arrives during the run is picked up by the next one.
+ */
+export function nextSliceEnd(cursorMs: number, syncStartMs: number): number | null {
+  if (cursorMs >= syncStartMs) return null
+  return Math.min(cursorMs + SLICE_MS, syncStartMs)
+}
 // Per run, so a page-visit sync stays well inside its time limit; a mailbox
 // that's behind catches up over successive runs instead of timing out.
 const MAX_MESSAGES_PER_SYNC = 400
@@ -495,8 +509,11 @@ export async function syncGmailConnection(
   let scopeInsufficient = false
   let daysDone = 0
 
-  while (cursor.getTime() < Date.now() && !scopeInsufficient) {
-    const sliceEnd = new Date(Math.min(cursor.getTime() + SLICE_MS, Date.now()))
+  const syncStartedAt = Date.now()
+  while (!scopeInsufficient) {
+    const sliceEndMs = nextSliceEnd(cursor.getTime(), syncStartedAt)
+    if (sliceEndMs === null) break
+    const sliceEnd = new Date(sliceEndMs)
     // Gmail's after:/before: are date-granular — overlap a day back so
     // nothing near a boundary is dropped; already-tracked ids are skipped.
     const after = Math.floor((cursor.getTime() - QUERY_OVERLAP_MS) / 1000)
@@ -572,5 +589,5 @@ export async function syncGmailConnection(
   if (scopeInsufficient) {
     await prisma.emailConnection.update({ where: { id: connection.id }, data: { needsReconnectAt: new Date() } })
   }
-  return { synced, caughtUp: cursor.getTime() >= Date.now() - 60_000 }
+  return { synced, caughtUp: cursor.getTime() >= syncStartedAt }
 }

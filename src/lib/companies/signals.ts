@@ -37,7 +37,6 @@ interface PostingRow {
   companyName: string
   title: string
   level: string | null
-  description: string | null
   createdAt: Date
 }
 
@@ -60,55 +59,76 @@ function withLongTimeout<T>(run: (tx: Prisma.TransactionClient) => Promise<T>): 
   )
 }
 
-async function openPostingsAsOfGrouped(asOf: Date): Promise<Map<string, PostingRow[]>> {
-  // Descriptions are stored whole now; only the first 1,000 characters (what this was
-  // tuned on) are read, clipped in SQL, so the three full-board reads stay small.
-  // One query for the whole board returned ~530,000 rows of text in a single result, past the
-  // largest string Prisma can pass back ("Failed to convert rust `String` into napi `string`"),
-  // so it is read in pages by id and grouped as it goes.
+// Every open posting, WITHOUT its description: the board is ~560,000 live rows and the descriptions are ~1.6 GB of
+// compressed text, so reading all of them is what pushed this job to 430-760 seconds and into statement timeouts and
+// the "convert rust String into napi string" failure. The columns read here are cheap, so one query is enough.
+// "Open as of the run" is simply archivedAt IS NULL: asOf is the moment the run starts, so no archive date can be after it.
+async function openPostingsGrouped(): Promise<Map<string, PostingRow[]>> {
+  const rows = await withLongTimeout((tx) => tx.$queryRaw<PostingRow[]>`
+    SELECT "companyName", "title", "level", "createdAt"
+    FROM public."ExclusiveJobPosting"
+    WHERE "institutionScopeId" IS NULL AND "archivedAt" IS NULL`)
   const grouped = new Map<string, PostingRow[]>()
-  const PAGE = 20_000
-  let lastId = ''
-  for (;;) {
-    const rows = await withLongTimeout((tx) => tx.$queryRaw<(PostingRow & { id: string })[]>`
-      SELECT "id", "companyName", "title", "level", left("description", 1000) AS "description", "createdAt"
-      FROM public."ExclusiveJobPosting"
-      WHERE "institutionScopeId" IS NULL AND "createdAt" <= ${asOf}
-        AND ("archivedAt" IS NULL OR "archivedAt" > ${asOf})
-        AND "id" > ${lastId}
-      ORDER BY "id"
-      LIMIT ${PAGE}`)
-    for (const { id: _id, ...row } of rows) {
-      const key = normalizeOrgName(row.companyName)
-      if (!key) continue
-      const list = grouped.get(key)
-      if (list) list.push(row)
-      else grouped.set(key, [row])
-    }
-    if (rows.length < PAGE) break
-    lastId = rows[rows.length - 1].id
+  for (const row of rows) {
+    const key = normalizeOrgName(row.companyName)
+    if (!key) continue
+    const list = grouped.get(key)
+    if (list) list.push(row)
+    else grouped.set(key, [row])
   }
   return grouped
 }
 
-// The 4- and 12-week comparisons only need how many roles an employer had then, not the postings
-// themselves, so count in SQL (one row per employer name) instead of pulling every open posting
-// of that date into memory. Same grouping key and same exclusions as openPostingsAsOfGrouped.
-async function openCountsAsOf(asOf: Date): Promise<Map<string, number>> {
-  const rows = await withLongTimeout((tx) => tx.$queryRaw<{ companyName: string; n: number }[]>`
-    SELECT "companyName", count(*)::int AS n
-    FROM public."ExclusiveJobPosting"
-    WHERE "institutionScopeId" IS NULL AND "createdAt" <= ${asOf}
-      AND ("archivedAt" IS NULL OR "archivedAt" > ${asOf})
-    GROUP BY "companyName"`)
+// Skills are counted from the title and the first 1,000 characters of the description, for the newest SKILL_SAMPLE
+// postings of each employer name (2,429 of ~65,000 names have more than 40 open roles and hold 59% of the rows).
+// Employers with SKILL_SAMPLE roles or fewer are read in full; for bigger ones buildCompanySignals scales the counts
+// up to the real number of open roles. Read in buckets of employer names so no single result is huge.
+const SKILL_SAMPLE = 30
+const SAMPLE_BUCKETS = 4
+async function sampleTextsGrouped(): Promise<Map<string, string[]>> {
+  const grouped = new Map<string, string[]>()
+  for (let bucket = 0; bucket < SAMPLE_BUCKETS; bucket++) {
+    const rows = await withLongTimeout((tx) => tx.$queryRaw<{ companyName: string; title: string; description: string | null }[]>`
+      SELECT "companyName", "title", left("description", 1000) AS "description"
+      FROM (
+        SELECT "companyName", "title", "description",
+               row_number() OVER (PARTITION BY "companyName" ORDER BY "createdAt" DESC, "id") AS rn
+        FROM public."ExclusiveJobPosting"
+        WHERE "institutionScopeId" IS NULL AND "archivedAt" IS NULL
+          AND (hashtext("companyName") & ${SAMPLE_BUCKETS - 1}::int) = ${bucket}::int
+      ) t
+      WHERE rn <= ${SKILL_SAMPLE}::int`)
+    for (const row of rows) {
+      const key = normalizeOrgName(row.companyName)
+      if (!key) continue
+      const text = `${row.title} ${row.description ?? ''}`
+      const list = grouped.get(key)
+      if (list) list.push(text)
+      else grouped.set(key, [text])
+    }
+  }
+  return grouped
+}
 
-  const counts = new Map<string, number>()
+// The 4- and 12-week comparisons only need how many roles an employer had then, not the postings themselves, so both
+// are counted in one SQL pass (one row per employer name) instead of two full-table scans.
+async function pastOpenCounts(fourWeeksAgo: Date, twelveWeeksAgo: Date): Promise<{ past4: Map<string, number>; past12: Map<string, number> }> {
+  const rows = await withLongTimeout((tx) => tx.$queryRaw<{ companyName: string; n4: number; n12: number }[]>`
+    SELECT "companyName",
+           count(*) FILTER (WHERE "createdAt" <= ${fourWeeksAgo} AND ("archivedAt" IS NULL OR "archivedAt" > ${fourWeeksAgo}))::int AS n4,
+           count(*) FILTER (WHERE "createdAt" <= ${twelveWeeksAgo} AND ("archivedAt" IS NULL OR "archivedAt" > ${twelveWeeksAgo}))::int AS n12
+    FROM public."ExclusiveJobPosting"
+    WHERE "institutionScopeId" IS NULL AND "createdAt" <= ${fourWeeksAgo}
+    GROUP BY "companyName"`)
+  const past4 = new Map<string, number>()
+  const past12 = new Map<string, number>()
   for (const row of rows) {
     const key = normalizeOrgName(row.companyName)
     if (!key) continue
-    counts.set(key, (counts.get(key) ?? 0) + row.n)
+    past4.set(key, (past4.get(key) ?? 0) + row.n4)
+    past12.set(key, (past12.get(key) ?? 0) + row.n12)
   }
-  return counts
+  return { past4, past12 }
 }
 
 // rolesDelta12wk relative-change thresholds — a company needs BOTH a 15%
@@ -186,19 +206,23 @@ export interface ComputedCompanySignal {
   medianPostingAgeDays: number | null
 }
 
-// Computes one ComputedCompanySignal per company with at least one
-// currently-open posting — the cron's full nightly output, in three bulk
-// queries regardless of how many companies exist.
-export async function computeAllCompanySignals(asOf: Date = new Date()): Promise<ComputedCompanySignal[]> {
-  const fourWeeksAgo = new Date(asOf.getTime() - 28 * DAY_MS)
-  const twelveWeeksAgo = new Date(asOf.getTime() - 84 * DAY_MS)
+export interface SignalInputs {
+  current: Map<string, PostingRow[]>
+  /** Title + description text of up to SKILL_SAMPLE of each employer's newest open postings. */
+  sampleTexts: Map<string, string[]>
+  past4wk: Map<string, number>
+  past12wk: Map<string, number>
+}
 
-  const [currentGrouped, fourWeeksAgoCounts, twelveWeeksAgoCounts] = await Promise.all([
-    openPostingsAsOfGrouped(asOf),
-    openCountsAsOf(fourWeeksAgo),
-    openCountsAsOf(twelveWeeksAgo),
-  ])
+/** Skill counts from a sample, scaled up to all the employer's open roles when the sample is smaller than that. */
+export function scaleSkillCounts(ranked: { term: string; count: number }[], sampled: number, total: number): { term: string; count: number }[] {
+  if (sampled <= 0 || sampled >= total) return ranked
+  const scale = total / sampled
+  return ranked.map((r) => ({ term: r.term, count: Math.max(1, Math.round(r.count * scale)) }))
+}
 
+// The pure part: one ComputedCompanySignal per company with at least one currently-open posting.
+export function buildCompanySignals({ current: currentGrouped, sampleTexts, past4wk: fourWeeksAgoCounts, past12wk: twelveWeeksAgoCounts }: SignalInputs, asOf: Date): ComputedCompanySignal[] {
   const results: ComputedCompanySignal[] = []
   const importWeeks = bulkImportWeeks([...currentGrouped.values()].flatMap((rows) => rows.map((p) => p.createdAt)))
 
@@ -211,7 +235,9 @@ export async function computeAllCompanySignals(asOf: Date = new Date()): Promise
     const rolesDelta12wk = openRolesTotal - past12wk
     // No roles 12 weeks ago: only call it growing if we were plausibly already
     // watching this employer (its first posting is not from a bulk import).
-    const earliest = new Date(Math.min(...current.map((p) => p.createdAt.getTime())))
+    let earliestMs = Infinity
+    for (const p of current) if (p.createdAt.getTime() < earliestMs) earliestMs = p.createdAt.getTime()
+    const earliest = new Date(earliestMs)
     const trajectory =
       past12wk === 0 && wasDiscoveredInBulkImport(earliest, importWeeks)
         ? 'flat'
@@ -228,10 +254,8 @@ export async function computeAllCompanySignals(asOf: Date = new Date()): Promise
       .sort((a, b) => b.count - a.count)
       .slice(0, 5)
 
-    const topSkillsRequested = extractTopSkills(
-      current.map((p) => `${p.title} ${p.description ?? ''}`),
-      10
-    )
+    const texts = sampleTexts.get(companyNameNormalized) ?? []
+    const topSkillsRequested = scaleSkillCounts(extractTopSkills(texts, 10), texts.length, openRolesTotal)
 
     const postingAges = current.map((p) => Math.floor((asOf.getTime() - p.createdAt.getTime()) / DAY_MS))
     const medianPostingAgeDays = medianOf(postingAges)
@@ -251,4 +275,16 @@ export async function computeAllCompanySignals(asOf: Date = new Date()): Promise
   }
 
   return results
+}
+
+// The nightly job's full output. The reads run one after another, not at once: three heavy scans in parallel were
+// competing for the same database and each other.
+export async function computeAllCompanySignals(asOf: Date = new Date()): Promise<ComputedCompanySignal[]> {
+  const fourWeeksAgo = new Date(asOf.getTime() - 28 * DAY_MS)
+  const twelveWeeksAgo = new Date(asOf.getTime() - 84 * DAY_MS)
+
+  const current = await openPostingsGrouped()
+  const { past4, past12 } = await pastOpenCounts(fourWeeksAgo, twelveWeeksAgo)
+  const sampleTexts = await sampleTextsGrouped()
+  return buildCompanySignals({ current, sampleTexts, past4wk: past4, past12wk: past12 }, asOf)
 }

@@ -15,10 +15,12 @@ const FROM = 'NextChapter <support@launchyournextchapter.com>'
 
 export const lifecycleRef = (step: LeadStep, email: string) => `lifecycle:${step}:${email.toLowerCase()}`
 
-function profileUrl(variant: LeadVariant, step: LeadStep, journey?: string | null): string {
-  // Someone who picked a journey lands on its page, whose button carries the situation into sign-up.
-  if (journey) return `${appUrl()}/start/${journey}?from=lead_email&utm_source=lead_email&utm_campaign=${variant}_${step}`
-  return `${appUrl()}/onboarding/desire?from=lead_${variant}&utm_source=lead_email&utm_campaign=${variant}_${step}`
+function profileUrl(email: string, variant: LeadVariant, step: LeadStep, journey?: string | null): string {
+  // Through the signed link, which remembers the address for the onboarding details step. Someone who picked a journey lands on its
+  // page, whose button carries the situation into sign-up; everyone else gets the situation question.
+  const from = journey ? 'lead_email' : `lead_${variant}`
+  const query = new URLSearchParams({ from, utm_source: 'lead_email', utm_campaign: `${variant}_${step}`, ...(journey ? { j: journey } : {}) })
+  return `${appUrl()}/api/lead-profile/${makeUnsubscribeToken(email, null)}?${query}`
 }
 
 export interface LifecycleSend {
@@ -47,7 +49,7 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
   const content = leadEmailContent(input.variant, input.step, { ...input.context, choices })
   const settings = await getMailingSettings()
   const unsubscribeUrl = `${appUrl()}/updates/unsubscribe/${makeUnsubscribeToken(email, null)}`
-  const directCta = profileUrl(input.variant, input.step, input.context.journey)
+  const directCta = profileUrl(email, input.variant, input.step, input.context.journey)
 
   let ctaUrl: string | null = content.ctaLabel ? directCta : null
   let pixelUrl: string | undefined

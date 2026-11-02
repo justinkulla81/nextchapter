@@ -193,6 +193,11 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
           </p>
         )}
 
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <LaidOffStart placement="unemployment_state_top" eventPrefix="unemployment" label="Get my layoff plan" />
+          <span className="text-sm text-muted-foreground">Free for candidates, always. About 5 minutes.</span>
+        </div>
+
         <SeveranceVerdict row={severanceRow} agency={agency} />
 
         <section aria-labelledby="facts" className="mt-10">
