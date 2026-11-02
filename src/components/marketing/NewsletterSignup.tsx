@@ -5,7 +5,7 @@ import { subscribeToNewsletter, type NewsletterState } from '@/lib/newsletter/ac
 
 type NewsletterSource =
   | 'home' | 'how-it-works' | 'why-stuck' | 'news' | 'resources'
-  | 'employment-report' | 'employment-report-popup' | 'employment-report-pdf' | 'site-footer' | 'salaries' | 'places' | 'ai-pay-premium'
+  | 'employment-report' | 'employment-report-popup' | 'employment-report-pdf' | 'site-footer' | 'salaries' | 'places' | 'rankings' | 'ai-pay-premium'
 
 type Variant = 'default' | 'report' | 'compact' | 'inline'
 
