@@ -19,6 +19,8 @@ import { JobFitCard } from '@/components/jobs/JobFitCard'
 import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
 import { buttonVariants } from '@/components/ui/button'
 import { isExcerpt } from '@/lib/jobs/posting-text'
+import { testedTitle } from '@/lib/seo/title-test-state'
+import { jobTitleB } from '@/lib/seo/title-tests'
 import { datePostedOf, descriptionParagraphs, isIndexableJob, isRemoteJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
 import { getPublicJob } from '@/lib/jobs/public-job-page-server'
 import { employerPath, isCompanyOfferedToSearch } from '@/lib/seo/employer-pages'
@@ -52,7 +54,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const place = placeLabel(job)
   const lead = descriptionParagraphs(job.description).join(' ').slice(0, 150).trim()
   return {
-    title: `${job.title} at ${job.companyName}${place ? ` · ${place}` : ''}`,
+    title: await testedTitle(
+      'jobs',
+      `/jobs/${job.id}`,
+      `${job.title} at ${job.companyName}${place ? ` · ${place}` : ''}`,
+      jobTitleB(job.title, job.companyName, place, payLabel(job.salaryMin, job.salaryMax, job.payPeriod)),
+    ),
     description: `${job.companyName} is hiring a ${job.title}${place ? ` (${place})` : ''}. ${lead}…`,
     alternates: { canonical: `/jobs/${job.id}` },
     // A job with only a snippet of the posting stays visible to visitors but is kept out of search (see isIndexableJob).
