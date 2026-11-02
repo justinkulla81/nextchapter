@@ -84,8 +84,14 @@ describe('runLeadLifecycle', () => {
     expect(sendLifecycleEmail).not.toHaveBeenCalled()
   })
 
-  it('does not mail the back catalogue: a signup from last week gets no welcome', async () => {
+  it('catches up a signup from last week that never got a welcome', async () => {
     db.newsletter = [{ email: 'old@example.org', createdAt: ago(24 * 7) }]
+    await runLeadLifecycle(now)
+    expect(sendLifecycleEmail.mock.calls[0][0]).toMatchObject({ step: 'welcome', variant: 'newsletter' })
+  })
+
+  it('does not mail the back catalogue: a signup from three weeks ago gets no welcome', async () => {
+    db.newsletter = [{ email: 'old@example.org', createdAt: ago(24 * 21) }]
     await runLeadLifecycle(now)
     expect(sendLifecycleEmail).not.toHaveBeenCalled()
   })
