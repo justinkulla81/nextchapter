@@ -6,7 +6,9 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 // and the follow-up date it was issued for) and expires. Issuing a link needs
 // the Bearer key (see /api/admin/crm/digest-links); using one needs nothing,
 // the same way an unsubscribe link works.
-export type DigestAction = 'done' | 'pause'
+// 'x' drops a person's follow-up from the digest (same change as done); 'task'
+// cancels one open CRM to-do (the id in the token is the task id).
+export type DigestAction = 'done' | 'pause' | 'x' | 'task'
 
 export const PAUSE_DAYS = 7
 const LINK_TTL_DAYS = 14
@@ -33,6 +35,10 @@ export function signDigestAction(personId: string, action: DigestAction, dueAt: 
   return `${Buffer.from(body).toString('base64url')}.${sign(body, key)}`
 }
 
+export function signDigestTask(taskId: string, now = new Date()): string | null {
+  return signDigestAction(taskId, 'task', new Date(0), now)
+}
+
 export type VerifiedDigestAction = { personId: string; action: DigestAction; due: string }
 
 export function verifyDigestAction(token: string, now = new Date()): VerifiedDigestAction | null {
@@ -50,7 +56,7 @@ export function verifyDigestAction(token: string, now = new Date()): VerifiedDig
   const given = Buffer.from(sig)
   if (expected.length !== given.length || !timingSafeEqual(expected, given)) return null
   const [personId, action, exp, due] = body.split('.')
-  if (!personId || (action !== 'done' && action !== 'pause') || !due) return null
+  if (!personId || (action !== 'done' && action !== 'pause' && action !== 'x' && action !== 'task') || !due) return null
   if (Number(exp) < now.getTime() / 1000) return null
   return { personId, action, due }
 }

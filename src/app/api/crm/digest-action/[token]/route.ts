@@ -23,7 +23,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const { token } = await params
   const v = verifyDigestAction(token)
   if (!v) return page(BAD_LINK, 400)
-  const label = v.action === 'done' ? 'Mark this follow-up done' : `Pause this follow-up for ${PAUSE_DAYS} days`
+  const label =
+    v.action === 'done' ? 'Mark this follow-up done'
+    : v.action === 'x' ? 'Remove this follow-up from the digest'
+    : v.action === 'task' ? 'Cancel this to-do'
+    : `Pause this follow-up for ${PAUSE_DAYS} days`
   return page(
     `<form method="post"><p>${label}.</p><button type="submit" style="font-size:16px;padding:10px 18px;border-radius:6px;border:1px solid #1a56db;background-color:#1a56db;color:#ffffff;cursor:pointer">Confirm</button></form><script>document.forms[0].submit()</script>`
   )
@@ -33,6 +37,15 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
   const { token } = await params
   const v = verifyDigestAction(token)
   if (!v) return page(BAD_LINK, 400)
+
+  if (v.action === 'task') {
+    const task = await prisma.crmTask.findUnique({ where: { id: v.personId }, select: { id: true, title: true, status: true } })
+    if (!task) return page(`<p>That to-do no longer exists.</p>`, 404)
+    if (task.status !== 'OPEN') return page(`<p><b>${escapeHtml(task.title)}</b>: already closed, so nothing changed.</p>`)
+    await prisma.crmTask.update({ where: { id: task.id }, data: { status: 'CANCELLED', completedAt: new Date() } })
+    captureServerEvent('daily-digest', 'crm_task_dismissed', { taskId: task.id, via: 'digest_link' })
+    return page(`<p><b>${escapeHtml(task.title)}</b>: removed from your to-dos.</p><p><a href="https://launchyournextchapter.com/support/admin/crm/todos" style="color:#1a56db">Open to-dos</a></p>`)
+  }
 
   const person = await prisma.crmPerson.findFirst({
     where: { id: v.personId, deletedAt: null },
@@ -46,13 +59,13 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
     return page(`<p><b>${escapeHtml(person.fullName)}</b>: this follow-up was already updated, so nothing changed.</p>${crm}`)
   }
 
-  if (v.action === 'done') {
+  if (v.action === 'done' || v.action === 'x') {
     await prisma.crmPerson.update({
       where: { id: person.id },
       data: { nextFollowUpAt: null, nextFollowUpNote: null },
     })
     captureServerEvent('daily-digest', 'crm_followup_cleared', { personId: person.id, via: 'digest_link' })
-    return page(`<p><b>${escapeHtml(person.fullName)}</b>: follow-up marked done.</p>${crm}`)
+    return page(`<p><b>${escapeHtml(person.fullName)}</b>: ${v.action === 'x' ? 'removed from the digest' : 'follow-up marked done'}.</p>${crm}`)
   }
 
   const until = new Date()
