@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { escapeHtml } from './render'
 import { appUrl } from './editions'
 import { CUSTOMER_UPDATES } from '@/data/customer-updates'
-import { CUSTOMER_UPDATES_LIST_KEY, customerUpdatesBody, updatesSince } from './customer-updates-body'
+import { CANDIDATE_UPDATES } from '@/data/candidate-updates'
+import { CANDIDATE_UPDATES_LIST_KEY, CUSTOMER_UPDATES_LIST_KEY, candidateUpdatesBody, customerUpdatesBody, updatesSince } from './customer-updates-body'
 
 /**
  * A first draft for a new edition, from what the database already knows —
@@ -77,11 +78,19 @@ export async function prefillEdition({ listId, listName, periodLabel }: PrefillI
   // updates file (what changed since the last one went out), never copied from
   // the last email: last month's bullets must not carry over.
   const listRow = await prisma.mailingList.findUnique({ where: { id: listId }, select: { key: true } })
-  if (listRow?.key === CUSTOMER_UPDATES_LIST_KEY) {
+  if (listRow?.key === CUSTOMER_UPDATES_LIST_KEY || listRow?.key === CANDIDATE_UPDATES_LIST_KEY) {
     const prev = await prisma.mailingEdition.findFirst({
       where: { lists: { some: { listId } }, sentAt: { not: null } }, orderBy: { sentAt: 'desc' }, select: { sentAt: true },
     })
     const since = prev?.sentAt ?? new Date(Date.now() - 45 * 86_400_000)
+    if (listRow.key === CANDIDATE_UPDATES_LIST_KEY) {
+      return {
+        subject: periodLabel ? `What's new for your job search: ${periodLabel}` : "What's new for your job search",
+        previewText: 'New tools and changes at NextChapter.',
+        bodyHtml: candidateUpdatesBody(updatesSince(CANDIDATE_UPDATES, since), periodLabel),
+        copiedFromId: null,
+      }
+    }
     return {
       subject: periodLabel ? `What's new at NextChapter: ${periodLabel}` : "What's new at NextChapter",
       previewText: 'What we added or changed for your account.',

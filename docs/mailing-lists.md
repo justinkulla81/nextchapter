@@ -56,7 +56,7 @@ the signup boxes need no change. An unsubscribe recorded there carries over.
 `scripts/backfill-report-sends-2026-09.ts` marks September's manual sends
 (run with `--dry-run` first).
 
-## Product updates for customers (monthly)
+## Product updates: B2B customers (monthly)
 
 A monthly "What's new at NextChapter" email to **activated** employer,
 recruiter, coach and institution accounts. List key `customer_updates`,
@@ -74,3 +74,16 @@ on the Monthly Update page (the same flow as every other list).
   lists everything dated after the last send, no model calls, so it costs
   nothing. It always keeps a `[[Write: …]]` line, so it cannot be sent until
   you have read and finished it.
+
+## Product updates: members (monthly)
+
+The candidate side of the split. List key `candidate_updates`, monthly, same
+approval flow. Subject "What's new for your job search".
+
+- **Who is on it** (`syncCandidateUpdatesList` in `src/lib/mailing/customer-updates.ts`):
+  registered members, the same people as the Candidates list. Topped up by the
+  drafts job; only adds, so unsubscribes and suppressions stay out.
+- **What goes in it** (`src/data/candidate-updates.ts`): one entry per
+  member-visible change, added in the same pull request as the change. Employer,
+  recruiter, coach and institution changes go in `src/data/customer-updates.ts`.
+  A change both groups see gets an entry in each file.
