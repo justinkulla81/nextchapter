@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-201 clusters, 1197 phrases.
+212 clusters, 1282 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -178,7 +178,18 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/topics/unemployment-payment-timing` | page | how long until first unemployment payment | Know when the first unemployment payment arrives and why it is late | how long does it take to get unemployment; when will i get my first unemployment check; unemployment payment delayed; unemployment pending; unemployment claim pending; what does pending mean unemployment; unemployment payment late |
 | `/topics/unemployment-self-employed` | page | unemployment for self-employed | Find out whether self-employed people and gig workers can claim unemployment | self employed unemployment; unemployment for contractors; unemployment for gig workers; 1099 unemployment; unemployment for independent contractors; can freelancers get unemployment; unemployment for freelancers |
 | `/topics/how-to-lay-off-employees` | page | how to lay off employees | Employer plans a layoff | layoff checklist for employers; layoff communication plan; layoff process; how to conduct a layoff; layoff meeting script |
-| `/topics/cover-letter-tips` | page | cover letter tips | Write a cover letter | cover letter for experienced professionals; cover letter after layoff; cover letter for career change; how long should a cover letter be; do I need a cover letter |
+| `/topics/cover-letter-tips` | page | cover letter tips | Write a cover letter | cover letter for experienced professionals; cover letter after layoff; how long should a cover letter be; do I need a cover letter |
+| `/topics/resume-template` | page | resume template | Find a simple resume template or layout | resume templates; free resume template; resume template for experienced professionals; professional resume template; simple resume template; resume layout; resume sections; what to include on a resume |
+| `/topics/resume-format` | page | resume format | Choose a resume format | chronological resume; functional resume; combination resume; chronological vs functional resume; which resume format is best; resume format for experienced professionals; how to format a resume; resume font and margins; resume font size; resume margins |
+| `/topics/resume-objective` | page | resume objective | Decide whether to use a resume objective | resume objective examples; resume objective vs summary; resume summary vs objective; do i need a resume objective; career objective for resume; resume objective for career change |
+| `/topics/resume-skills` | page | resume skills | Decide which skills to put on a resume | skills to put on a resume; skills section on resume; how to list skills on a resume; hard skills for resume; soft skills for resume; technical skills on resume; how many skills on a resume |
+| `/topics/resume-length` | page | how long should a resume be | Decide how long a resume should be | resume length; one page resume; two page resume; one page or two page resume; is a two page resume ok; how many pages should a resume be; how far back should a resume go |
+| `/topics/resume-career-change` | page | resume for career change | Write a resume when changing careers | career change resume; resume for a career pivot; how to write a resume when changing careers; transferable skills on a resume; career change resume summary |
+| `/topics/federal-resume` | page | federal resume format | Write a federal resume for USAJOBS | federal resume; usajobs resume; how to write a federal resume; usajobs resume builder; federal resume length; federal resume requirements |
+| `/topics/cover-letter-examples` | page | cover letter example | Read cover letter examples | cover letter examples; cover letter sample; cover letter samples; good cover letter examples; professional cover letter example |
+| `/topics/cover-letter-template` | page | cover letter template | Use a cover letter template | cover letter format; cover letter structure; cover letter outline; how to write a cover letter; cover letter sections; professional cover letter template; simple cover letter template; email cover letter |
+| `/topics/how-to-start-a-cover-letter` | page | how to start a cover letter | Start a cover letter | cover letter opening; cover letter opening lines; cover letter first paragraph; cover letter introduction; how to begin a cover letter; cover letter opening sentence; how to end a cover letter; cover letter closing |
+| `/topics/cover-letter-career-change` | page | cover letter for career change | Write a cover letter when changing careers | career change cover letter; cover letter career change example; cover letter when changing careers; cover letter for a different industry; cover letter with no experience in the field |
 | `/topics/executive-recruiters` | page | executive recruiters | Work with executive recruiters and search firms | executive search firms; retained search firms; headhunters; how to work with an executive recruiter; how to get on a recruiter’s radar; contingent vs retained recruiters; find an executive recruiter; executive search |
 | `/topics/reverse-recruiter` | page | reverse recruiter | Have someone represent me to employers | reverse recruiting; reverse recruiting services; candidate marketing; job search representation; someone to find jobs for me; recruiter that works for the candidate |
 | `/topics/resume-review` | page | free resume review | Get my resume reviewed | resume review; resume feedback; review my resume; is my resume good; resume critique; ats resume checker |
@@ -998,6 +1009,61 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Cover Letter Tips for Experienced Professionals
 - Description: A good cover letter is short: why this role, two results that match it and what you will do first. When to write one and how to explain a change or a layoff.
+
+### `/topics/resume-template`
+
+- Title: Resume Template: A Simple Layout That Gets Read
+- Description: A simple one-column resume template for experienced professionals: the sections, how to write each bullet, and what to avoid so screening software can read it.
+
+### `/topics/resume-format`
+
+- Title: Resume Format: Chronological, Functional or Combination
+- Description: Which resume format to use: why reverse-chronological is the default, when a combination format fits a career change, and the font, size and margins to use.
+
+### `/topics/resume-objective`
+
+- Title: Resume Objective: When to Use One and What to Write Instead
+- Description: Should you put an objective on your resume? When an objective helps, how it differs from a summary, with examples for career changers and new graduates.
+
+### `/topics/resume-skills`
+
+- Title: Resume Skills: What to List and How to List It
+- Description: Which skills to put on a resume, how many, how to group them and match them to the job posting, and how to show a skill with a result instead of a list.
+
+### `/topics/resume-length`
+
+- Title: How Long Should a Resume Be? One Page or Two
+- Description: One page or two? A simple rule by years of experience, what to cut, how far back to go, and why you should not shrink the type to make a resume fit.
+
+### `/topics/resume-career-change`
+
+- Title: Resume for a Career Change: How to Write It
+- Description: How to write a resume for a career change: name the target role, lead with transferable results, use a combination format and fill the gap with proof.
+
+### `/topics/federal-resume`
+
+- Title: Federal Resume Format: How to Write One for USAJOBS
+- Description: What a federal resume must include (hours, salary, supervisor, detailed duties), how long it runs, and how to match a USAJOBS announcement.
+
+### `/topics/cover-letter-examples`
+
+- Title: Cover Letter Examples You Can Adapt (Three Full Letters)
+- Description: Three full cover letter examples, for an experienced hire, a career changer and a return to work, with what they share and how to adapt them to your own results.
+
+### `/topics/cover-letter-template`
+
+- Title: Cover Letter Template: Structure, Format and What to Write
+- Description: A cover letter template with the outline, a fill-in version, the right length and format, and the mistakes that get a letter ignored.
+
+### `/topics/how-to-start-a-cover-letter`
+
+- Title: How to Start a Cover Letter: Opening Lines That Work
+- Description: Four ways to open a cover letter that earn a second read, what to avoid, and how to end it with a plain ask to talk.
+
+### `/topics/cover-letter-career-change`
+
+- Title: Cover Letter for a Career Change: Structure and Example
+- Description: How to write a cover letter for a career change: explain the move in one line, show a result that transfers, say how you prepared, with a full example.
 
 ### `/topics/executive-recruiters`
 
