@@ -1,3 +1,5 @@
+import { testedTitle } from '@/lib/seo/title-test-state'
+import { employerTitleB } from '@/lib/seo/title-tests'
 import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { getEmployerBrand } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
@@ -75,7 +77,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const e = await getEmployerBySlug(slug)
   if (!e) return {}
   return {
-    title: titleMeta(title(e)),
+    title: titleMeta(await testedTitle('employers', `/employers/${slug}`, title(e), employerTitleB(e.name, e.profile?.openNow ?? null))),
     description: description(e),
     ...canonical(`/employers/${slug}`),
     ...(e.indexable ? {} : { robots: { index: false, follow: true } }),
