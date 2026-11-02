@@ -3,7 +3,7 @@ import { layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FeedLine } from '@/components/seo/FeedLine'
-import { notFound, permanentRedirect } from 'next/navigation'
+import { permanentRedirect, redirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { CompanyLayoffGuide } from '@/components/layoffs/CompanyLayoffGuide'
@@ -123,7 +123,8 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   // A page is built on the first request and kept a day, and that holds for a 404 too, so an employer asked for before its
   // announcement was filed stays missing until the next deploy. Do not try to opt this branch out of the cache with
   // unstable_noStore(): in this route it throws DYNAMIC_SERVER_USAGE and the page answers 500 (tried 2026-10-30, reverted).
-  if (!page) notFound()
+  // An employer with no filing or announcement (a typo, a word that is not a company) goes to the hub, not a 404.
+  if (!page) redirect('/layoffs')
   const { c, ann } = page
   const recentAnn = hasRecentAnnouncement(ann) ? ann : undefined
   const hasNotices = c.notices.length > 0
