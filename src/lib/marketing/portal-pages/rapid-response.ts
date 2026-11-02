@@ -24,11 +24,12 @@ export const RAPID_RESPONSE: PortalPageDef = {
     analyticsKey: 'rapid_response',
     path: '/for-rapid-response',
     eyebrow: 'Rapid Response and workforce boards',
-    headline: 'A page for the workers in your next layoff',
+    headline: 'When a layoff hits your region, send the workers one link',
     subhead:
-      'NextChapter is the leading job transition platform. When a layoff is announced in your region, your team sends the affected workers one link. They get local jobs at the top of their search, career support and AI skills. You get counts of who stayed in the region.',
-    primary: { label: 'Build your region’s demo', href: DEMO },
-    primaryNote: 'It takes about a minute and uses your region’s real WARN notices and job data. We ask for a work email so the demo is yours.',
+      'NextChapter is the leading job transition platform. Each worker gets full job search tools with local jobs on top, career support and the AI skills their best-fit employers ask for. You see how many signed up and how many stayed in your region, never who.',
+    primary: { label: 'See your region’s layoffs in a live demo', href: DEMO },
+    secondary: { label: 'Claim your free workspace', href: '/government-workforce#claim' },
+    primaryNote: 'The demo takes about a minute and uses your region’s real WARN notices and job data. We ask for a work email so the demo is yours. The workspace is free for up to 50 active members.',
     parent: { href: '/for-organizations', label: 'For organizations' },
     loginHref: PORTALS.workforce.loginHref,
     // The page replaces this node with the personal line and the live layoff counts.
@@ -71,7 +72,7 @@ export const RAPID_RESPONSE: PortalPageDef = {
     finalCta: {
       title: 'Build your demo, or talk it through with us',
       intro: 'Build a demo for your region at https://launchyournextchapter.com/demo/workforce. To talk it through, send us a message and we will set up 15 minutes.',
-      action: { label: 'Build your region’s demo', href: DEMO },
+      action: { label: 'See your region’s layoffs in a live demo', href: DEMO },
       form: { audience: 'ORGANIZATION', source: 'rapid-response', heading: 'Talk to us' },
     },
     footerLinks: [

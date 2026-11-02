@@ -63,6 +63,8 @@ export interface PortalPageContent {
   headline: string
   subhead: string
   primary: { label: string; href: string }
+  /** A lighter second step shown beside the primary action. */
+  secondary?: { label: string; href: string }
   primaryNote?: string
   loginHref?: string
   parent?: { href: string; label: string }
@@ -162,6 +164,7 @@ export function PortalMarketingPage({ content: c, look = 'plain' }: { content: P
         headline={c.headline}
         subhead={c.subhead}
         primary={c.primary}
+        secondary={c.secondary}
         primaryNote={c.primaryNote}
         loginHref={c.loginHref}
         footerLinks={[{ href: '/pricing', label: 'Plans' }, ...(c.footerLinks ?? [])]}

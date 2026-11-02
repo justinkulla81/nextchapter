@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { usePostHog } from '@/lib/posthog/client'
+import { adsEvent } from '@/lib/analytics/ads-events'
 import type { ContactAudience } from '@prisma/client'
 import { submitContactForm, type ContactFormState } from '@/app/contact/actions'
 import { CONTACT_AUDIENCES, SUPPORT_EMAIL } from '@/lib/contact/constants'
@@ -27,6 +28,13 @@ export function ContactForm({ initialAudience, source }: { initialAudience: Cont
   const posthog = usePostHog()
   const [audience, setAudience] = useState<ContactAudience>(initialAudience)
   const [state, action, pending] = useActionState<ContactFormState, FormData>(submitContactForm, undefined)
+
+  // A sent message is a conversion for the ad campaigns (imported from GA4), so it goes to GA4 as well as PostHog.
+  const sent = !!state?.sent
+  useEffect(() => {
+    if (sent) adsEvent('contact_form_sent', { audience, source: source ?? 'contact' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sent])
 
   if (state?.sent) {
     return (

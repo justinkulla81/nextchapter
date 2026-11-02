@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { requestB2bAsset, type B2bAssetState } from '@/lib/marketing/b2b-asset-actions'
 import { B2B_ASSETS, type B2bAssetKey } from '@/lib/marketing/b2b-assets'
 import { posthog } from '@/lib/posthog/client'
+import { adsEvent } from '@/lib/analytics/ads-events'
 import { cn } from '@/lib/utils'
 
 // A free, specific offer on a partner page. Open assets are one button. Gated ones ask for a work email and the
@@ -41,7 +42,7 @@ export function B2bAssetBox({ assetKey, page }: { assetKey: B2bAssetKey; page: s
           action={action}
           noValidate
           className={cn('mt-4 space-y-3', pending && 'cursor-wait')}
-          onSubmit={() => posthog.capture('b2b_asset_submitted_client', { asset: asset.key, page })}
+          onSubmit={() => adsEvent('b2b_asset_submitted_client', { asset: asset.key, page })}
         >
           <input type="hidden" name="asset" value={asset.key} />
           <input type="hidden" name="page" value={page} />

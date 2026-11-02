@@ -10,8 +10,10 @@ import { absoluteWebUrl } from '@/lib/http/external-url'
  * open in a new tab.
  */
 export function TrackedLink({
-  href, event, properties, className, children, ariaLabel, rel,
+  href, event, properties, className, children, ariaLabel, rel, gtagEvent,
 }: {
+  /** Also send this event to Google Analytics 4, where the ad account imports it as a conversion. */
+  gtagEvent?: string
   href: string
   event: string
   properties?: Record<string, unknown>
@@ -22,7 +24,14 @@ export function TrackedLink({
   rel?: string
 }) {
   const posthog = usePostHog()
-  const onClick = () => posthog?.capture(event, properties)
+  const onClick = () => {
+    posthog?.capture(event, properties)
+    try {
+      if (gtagEvent && typeof window.gtag === 'function') window.gtag('event', gtagEvent, properties)
+    } catch {
+      // Analytics must never break a click.
+    }
+  }
   // A scheme-less outside address ("example.org/page") would otherwise be a relative link and 404.
   href = absoluteWebUrl(href) ?? href
   if (/^https?:\/\//.test(href)) {

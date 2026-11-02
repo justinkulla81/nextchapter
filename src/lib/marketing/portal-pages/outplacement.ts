@@ -33,12 +33,13 @@ export const OUTPLACEMENT: PortalPageDef = {
   content: {
     analyticsKey: 'outplacement',
     path: '/outplacement',
-    eyebrow: 'Outplacement',
-    headline: 'Outplacement that leaves each person with a Dossier they keep',
+    eyebrow: 'Outplacement for US reductions',
+    headline: 'Outplacement your people keep, with a compliance record for every seat',
     subhead:
-      'Give each person leaving a seat with job search tools and a Dossier that stays theirs. HR sees reporting in counts, and legal gets a compliance record for each seat.',
-    primary: { label: 'Talk to us', href: '#talk' },
-    primaryNote: 'Outplacement is set up by contract with our team.',
+      'Each person leaving gets a seat, job search tools and a Dossier that stays theirs. HR sees counts, never individuals. Legal gets a compliance record for each seat. Add everyone from one list.',
+    primary: { label: 'Get the vendor scorecard', href: '#free' },
+    secondary: { label: 'Start a pilot', href: '#talk' },
+    primaryNote: 'The scorecard is the eight questions to ask every outplacement vendor, with a sheet to compare the answers. Use it on us too.',
     loginHref: PORTALS.outplacement.loginHref,
     parent: { href: '/employers', label: 'For employers' },
     proof: {
@@ -49,8 +50,8 @@ export const OUTPLACEMENT: PortalPageDef = {
     visuals: [reporting, roster, compliance],
     steps: [
       {
-        title: 'Talk to us',
-        body: 'We scope the program with you by contract: the plan, the number of seats and the term.',
+        title: 'Start a pilot',
+        body: 'Tell us about the reduction you are planning. We set up a pilot of up to 10 seats at no charge, then scope the full program with you by contract: the plan, the number of seats and the term.',
       },
       {
         title: 'Enroll the people leaving',
@@ -64,6 +65,10 @@ export const OUTPLACEMENT: PortalPageDef = {
     plansFor: ['outplacement'],
     plansIntro: 'Outplacement is set up by contract, and each plan below is a starting point we scope with you. Talk to us about it.',
     faq: [
+      {
+        q: 'What does the pilot include?',
+        a: 'Up to 10 seats at no charge for a reduction you are planning, with the seats, Dossiers, HR reporting and compliance records described on this page. If it fits, we scope the full program with you by contract.',
+      },
       {
         q: 'Do you publish a placement rate?',
         a: 'No. We do not state a placement rate or a speed until we have outcome data to back it. Reporting shows seats, activation and engagement for your own cohorts, and time to placement once enough people have recorded a placement.',
@@ -91,9 +96,9 @@ export const OUTPLACEMENT: PortalPageDef = {
     ],
     asset: 'outplacement-rfp-kit',
     finalCta: {
-      title: 'Talk to us about outplacement',
-      intro: 'Tell us about the reduction you are planning or the program you run. We will show the reporting and the compliance record on your own seat count.',
-      form: { audience: 'ORGANIZATION', source: 'outplacement', heading: 'Talk to us' },
+      title: 'Run your next reduction as a pilot',
+      intro: 'Tell us about the reduction you are planning or the program you run. We will set up a pilot of up to 10 seats at no charge and show the reporting and the compliance record on your own seat count. Or ask for 15 minutes this week.',
+      form: { audience: 'ORGANIZATION', source: 'outplacement', heading: 'Start a pilot' },
     },
     footerLinks: [
       { href: '/employers', label: 'For employers' },
