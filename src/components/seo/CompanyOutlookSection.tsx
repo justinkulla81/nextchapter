@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
+import { layoffNoticesYearBefore } from '@/lib/seo/company-outlook-data'
 import { H2, LINK } from '@/components/seo/SeoPage'
 import { companyOutlook } from '@/lib/seo/company-outlook'
 import { industryOutlook } from '@/lib/seo/industry-outlook'
@@ -9,8 +9,6 @@ import { JOLTS_CODE_BY_BUCKET } from '@/lib/market/industry-jolts-data'
 import { getPlaceSignals } from '@/lib/places/signals'
 import type { Hub } from '@/lib/places/hubs'
 import { bucketFromIndustryText, industryPath } from '@/lib/seo/topics'
-
-const DAY = 86_400_000
 
 /**
  * The company's outlook with its evidence, then the outlook of its industry and of its main hub area beside it as
@@ -27,7 +25,7 @@ export async function CompanyOutlookSection({ name, companyId, industry, hiring,
 }) {
   // Federal contract awards are not fed in yet: the sync matches recipient names exactly, and a common name can match an
   // unrelated vendor. They join the outlook once those matches are checked.
-  const layoffs24 = await prisma.warnNotice.count({ where: { companyId, dismissedAt: null, OR: [{ noticeDate: { gte: new Date(Date.now() - 2 * 365 * DAY), lt: new Date(Date.now() - 365 * DAY) } }, { noticeDate: null, fetchedAt: { gte: new Date(Date.now() - 2 * 365 * DAY), lt: new Date(Date.now() - 365 * DAY) } }] } }).catch(() => 0)
+  const layoffs24 = await layoffNoticesYearBefore(companyId)
   const o = companyOutlook({ layoffs12, layoffs12to24: layoffs24, fundraises12, federal: null, hiring })
   if (o.label === 'Not enough data') return null
 
