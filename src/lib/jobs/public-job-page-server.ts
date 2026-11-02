@@ -5,6 +5,7 @@ import { retryOnPoolTimeout } from '@/lib/db/heavy'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import {
   PUBLIC_JOB_GHOST_AGE_DAYS,
+  PUBLIC_JOB_MIN_DESCRIPTION,
   PUBLIC_JOB_MIN_INDEX_DESCRIPTION,
   PUBLIC_JOB_SITEMAP_SHARDS,
   PUBLIC_JOB_SOURCES,
@@ -53,6 +54,23 @@ export const PUBLIC_JOB_SELECT = {
   requisitionId: true,
   company: { select: { website: true } },
 } satisfies Prisma.ExclusiveJobPostingSelect
+
+/** PUBLIC_JOB_SELECT without the posting text: a list that never shows it should not pull it (about 2 KB a row). */
+const { description: _description, ...listSelect } = PUBLIC_JOB_SELECT
+export const PUBLIC_JOB_LIST_SELECT = listSelect
+
+/**
+ * Puts back just enough of each posting's text for isPublicJob's length check (the first PUBLIC_JOB_MIN_DESCRIPTION characters),
+ * so a list of 60 jobs reads a few KB of text instead of 120 KB.
+ */
+export async function withDescriptionStubs<T extends { id: string }>(rows: T[]): Promise<(T & { description: string | null })[]> {
+  if (!rows.length) return []
+  const stubs = await prisma.$queryRaw<{ id: string; d: string | null }[]>(
+    Prisma.sql`SELECT id, left(description, ${PUBLIC_JOB_MIN_DESCRIPTION}) AS d FROM "ExclusiveJobPosting" WHERE id IN (${Prisma.join(rows.map((r) => r.id))})`
+  )
+  const byId = new Map(stubs.map((x) => [x.id, x.d]))
+  return rows.map((r) => ({ ...r, description: byId.get(r.id) ?? null }))
+}
 
 /** The job, or null when it has no public page (closed, private, not verified…). One primary-key read. */
 export async function getPublicJob(id: string): Promise<PublicJobRow | null> {

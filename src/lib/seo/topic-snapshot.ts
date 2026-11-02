@@ -1,7 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { after } from 'next/server'
-import { heavy } from '@/lib/db/heavy'
+import { heavy, sharedLoad } from '@/lib/db/heavy'
 import { prisma } from '@/lib/prisma'
 import { INDUSTRIES, JOB_FUNCTIONS } from '@/lib/seo/topics'
 import type { JobFilter } from '@/lib/seo/topic-data'
@@ -22,9 +22,16 @@ export function topicFilters(): JobFilter[] {
 }
 
 /** One read per request however many loaders ask. */
+// The table is read whole (97 rows, a few hundred KB) and a crawl asked for it tens of thousands of times: now once every ten minutes
+// across instances. Dates inside the stored data stay strings, as they do from the database; only updatedAt is turned back into a Date.
 const rowsByKey = cache(async () => {
-  const rows = await prisma.topicSnapshot.findMany({ select: { key: true, data: true, updatedAt: true } }).catch(() => [])
-  return new Map(rows.map((r) => [r.key, r]))
+  const rows = await sharedLoad(
+    'topic-snapshots',
+    600,
+    async () => (await prisma.topicSnapshot.findMany({ select: { key: true, data: true, updatedAt: true } })).map((r) => ({ key: r.key, data: r.data, updatedAt: r.updatedAt.toISOString() })),
+    { reviveDates: false },
+  ).catch(() => [])
+  return new Map(rows.map((r) => [r.key, { ...r, updatedAt: new Date(r.updatedAt) }]))
 })
 
 export async function readSnapshot<T>(key: string): Promise<T | null> {

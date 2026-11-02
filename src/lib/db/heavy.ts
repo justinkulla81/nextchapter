@@ -78,7 +78,7 @@ const ISO_DATE = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z$/
  * the bulk of its outbound data. Stored as gzipped JSON (an entry is capped at 2 MB), with dates read back as dates. Where the cache is not
  * available (a script, a test) it just runs the loader. Results must be plain data: no Maps, Sets or class instances.
  */
-export async function sharedLoad<T>(key: string, revalidateSec: number, load: () => Promise<T>): Promise<T> {
+export async function sharedLoad<T>(key: string, revalidateSec: number, load: () => Promise<T>, opts: { reviveDates?: boolean } = {}): Promise<T> {
   let loadFailed = false
   const pack = unstable_cache(
     async () => {
@@ -99,5 +99,5 @@ export async function sharedLoad<T>(key: string, revalidateSec: number, load: ()
     if (loadFailed) throw e
     return load()
   }
-  return JSON.parse(gunzipSync(Buffer.from(packed, 'base64')).toString(), (_k, v) => (typeof v === 'string' && ISO_DATE.test(v) ? new Date(v) : v)) as T
+  return JSON.parse(gunzipSync(Buffer.from(packed, 'base64')).toString(), (_k, v) => (opts.reviveDates !== false && typeof v === 'string' && ISO_DATE.test(v) ? new Date(v) : v)) as T
 }
