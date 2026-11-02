@@ -14,6 +14,7 @@ import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
 import { countyIndexable, getCountyPage, getPlaceLinker, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
+import { PlaceSignals } from '@/components/places/PlaceSignals'
 import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 604800 // 7 days: slow-changing page, one of the larger ISR write sources
@@ -75,6 +76,7 @@ export default async function CountyPlacePage({ params }: { params: Promise<{ st
       jsonLd={[placeJsonLd({ type: 'AdministrativeArea', name: `${c.name}, ${name}`, path, population: c.population, containedIn: { name, path: placeUrl.state(state), type: 'State' } })]}
     >
       <EconomySection id="economy" title={`${c.name} economy`} labor={c} scope={c.name} />
+      <PlaceSignals scope={c.name} fips={[c.fips]} boardIds={d.boards.map((b) => b.id)} workforceHref="#workforce" />
 
       <LayoffsSection id="layoffs" title={`${c.name} layoffs`} scope={c.name} stats={d.layoffs} notices={d.notices}
         trackerHref={(await hasLayoffStatePage(code)) ? `/layoffs/${state}` : null} placeHref={linkPlace} />

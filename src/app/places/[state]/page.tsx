@@ -13,6 +13,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { getPlaceLinker, getStatePage, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
+import { PlaceSignals } from '@/components/places/PlaceSignals'
 import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 86400
@@ -70,6 +71,7 @@ export default async function StatePlacePage({ params }: { params: Promise<{ sta
       jsonLd={[placeJsonLd({ type: 'State', name, path: placeUrl.state(state), population: d.area?.population })]}
     >
       {d.area && <EconomySection id="economy" title={`${name} economy`} labor={d.area} scope={name} />}
+      <PlaceSignals scope={name} fips={d.counties.map((c) => c.fips)} boardIds={d.boards.map((b) => b.id)} workforceHref="#workforce" />
 
       <LayoffsSection id="layoffs" title={`${name} layoffs`} scope={name} stats={d.layoffs} notices={d.recentNotices}
         trackerHref={d.layoffs.notices > 0 ? `/layoffs/${state}` : null} placeHref={linkPlace} />
