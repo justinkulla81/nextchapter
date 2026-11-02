@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-227 clusters, 1375 phrases.
+227 clusters, 1376 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -199,7 +199,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/topics/how-to-email-a-recruiter` | page | how to email a recruiter | Write to a recruiter | cold email a recruiter; how to message a recruiter on linkedin; how to reach out to a recruiter; email to recruiter example; how to contact a recruiter |
 | `/topics/salary-expectations` | page | salary expectations | Answer the salary expectations question | how to answer salary expectations; what are your salary expectations; salary expectations in a cover letter; desired salary on a job application; what is your salary requirement; how to answer what salary are you looking for |
 | `/topics/follow-up-after-applying` | page | how to follow up on a job application | Follow up on an application | follow up after applying; job application follow up email; when to follow up on a job application; how long to wait after applying for a job |
-| `/topics/resignation-letter` | page | resignation letter | Write a resignation letter | how to write a resignation letter; two weeks notice letter; resignation email; short resignation letter; resignation letter example; how to resign from a job |
+| `/topics/resignation-letter` | page | resignation letter | Write a resignation letter | resignation letter template; how to write a resignation letter; two weeks notice letter; resignation email; short resignation letter; resignation letter example; how to resign from a job |
 | `/topics/how-to-quit-a-job` | page | how to quit a job | Quit a job well | how to quit professionally; how to quit your job; how to tell your boss you are quitting; how to leave a job on good terms; how much notice to give when quitting; exit interview |
 | `/topics/should-i-quit-my-job` | page | should i quit my job | Decide whether to quit | signs it is time to quit; is it time to leave my job; should i quit without another job; should i stay or leave my job; how to decide to quit your job |
 | `/topics/should-i-accept-a-counteroffer` | page | should i accept a counteroffer | Decide on a counteroffer | accepting a counteroffer; counteroffer from current employer; how to respond to a counteroffer; counteroffer when quitting; is it a mistake to accept a counteroffer |
