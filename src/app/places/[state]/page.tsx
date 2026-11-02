@@ -15,6 +15,7 @@ import { getPlaceLinker, getStatePage, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
 import { PlaceSignals } from '@/components/places/PlaceSignals'
 import { titleMeta } from '@/lib/seo/title'
+import { stateImage } from '@/lib/places/place-image'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -61,6 +62,8 @@ export default async function StatePlacePage({ params }: { params: Promise<{ sta
   return (
     <SeoPage
       stateSlug={state}
+      look="scene"
+      hero={stateImage(code)}
       capture={{ kind: 'state', slug: state, label: name, save: { q: '', loc: name } }}
       trail={[{ name: 'Local job markets', path: '/places' }, { name, path: placeUrl.state(state) }]}
       h1={placeStateSeo(name).h1}

@@ -55,14 +55,14 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
         },
       ]}
     >
-      <Section id="market" title={`The market for ${stat.name.toLowerCase()} work`} note="Every figure names its source. Skills and AI figures describe the whole function this title sits in, not this title alone.">
+      <Section id="market" title={`The market for ${stat.name.toLowerCase()} work`} note={`Every figure names its source. Skills and AI-skill shares describe the whole ${ins.fnLabel ?? 'function'} function this title sits in.${ins.occupation ? ` Outlook, pay and AI-use figures are for the government category “${ins.occupation.title}”, the closest occupation to this title.` : ''}`}>
         <FactGrid
           facts={[
             { key: 'open', label: `Verified open ${stat.name.toLowerCase()} jobs`, value: stat.jobs.toLocaleString('en-US'), source: 'NextChapter, checked against employer career sites', period: 'last 7 days' },
             ...(hasSalaryPage(stat) ? [{ key: 'listed', label: 'Median pay in listings that state it', value: usd(stat.median!), source: 'NextChapter verified openings' }] : []),
-            ...(ins.outlook ? [{ key: 'outlook', label: 'Employment outlook', value: ins.outlook.line, source: ins.outlook.source }] : []),
-            ...(ins.outlook?.median ? [{ key: 'wage', label: 'National median pay, all levels', value: usd(ins.outlook.median), source: 'BLS OEWS', period: ins.outlook.data.wageYear ?? undefined }] : []),
-            ...(ins.outlook?.openings ? [{ key: 'openings', label: 'Openings a year, replacement and growth', value: ins.outlook.openings.toLocaleString('en-US'), source: 'BLS Employment Projections' }] : []),
+            ...(ins.outlook ? [{ key: 'outlook', label: 'Employment outlook', value: ins.outlook.line, source: 'BLS Employment Projections', period: `${ins.outlook.data.baseYear}–${ins.outlook.data.projectedYear}` }] : []),
+            ...(ins.outlook?.data.medianWage ? [{ key: 'wage', label: 'National median pay, all levels', value: usd(ins.outlook.data.medianWage), source: 'BLS OEWS', period: ins.outlook.data.wageYear ?? undefined }] : []),
+            ...(ins.outlook?.data.annualOpenings ? [{ key: 'openings', label: 'Openings a year nationally, growth plus replacement', value: ins.outlook.data.annualOpenings.toLocaleString('en-US'), source: 'BLS Employment Projections' }] : []),
             ...(ins.exposure ? [{ key: 'ai', label: 'AI use at work', value: ins.exposure.sentence, source: 'Anthropic Economic Index' }] : []),
             ...(ins.stats && ins.fnLabel ? [{ key: 'aiskills', label: `${ins.fnLabel} openings that ask for AI skills`, value: `${ins.stats.aiSkillPct}%`, source: 'NextChapter verified openings' }] : []),
             ...(ins.stats && ins.fnLabel ? [{ key: 'remote', label: `${ins.fnLabel} openings that are remote`, value: `${ins.stats.remotePct}%`, source: 'NextChapter verified openings' }] : []),

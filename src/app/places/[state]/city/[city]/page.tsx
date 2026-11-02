@@ -16,6 +16,7 @@ import { placeJsonLd } from '@/lib/places/jsonld'
 import { PlaceSignals } from '@/components/places/PlaceSignals'
 import { PlaceRanks } from '@/components/rankings/PlaceRanks'
 import { titleMeta } from '@/lib/seo/title'
+import { settingImage } from '@/lib/places/place-image'
 
 export const revalidate = 604800 // 7 days: slow-changing page, one of the larger ISR write sources
 export const dynamicParams = true
@@ -64,6 +65,8 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
   return (
     <SeoPage
       stateSlug={state}
+      look="scene"
+      hero={settingImage(p.population, `${state}-${city}`, 'city')}
       capture={{ kind: 'city', slug: `${state}-${city}`, label: p.name, save: { q: '', loc: `${p.name}, ${code}` } }}
       trail={trail}
       h1={placeCitySeo(p.name, code).h1}
