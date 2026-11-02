@@ -1839,6 +1839,14 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     secondary: ['{title} job openings', '{title} openings', '{title} jobs hiring now', '{title} jobs with salary'],
   },
   {
+    id: 'jobs-title-place-page',
+    intent: 'Open jobs for one title in one city or state',
+    owner: '/jobs/title/:slug/:place',
+    kind: 'family',
+    primary: '{title} jobs in {city}',
+    secondary: ['{title} jobs in {state}', '{title} jobs near {city}', '{title} jobs {city}', '{title} openings in {city}', '{title} hiring in {city}'],
+  },
+  {
     id: 'jobs-type-page',
     intent: 'Remote, hybrid, contract, part-time or interim jobs',
     owner: '/jobs/type/:type',

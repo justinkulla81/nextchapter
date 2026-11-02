@@ -4,7 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 import { Chips, JobList, JoinBand, LINK, Section, TopicShell } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
-import { getTitleDetail, hasSalaryPage } from '@/lib/seo/job-titles'
+import { getTitleDetail, getTitlePlaceIndex, hasSalaryPage } from '@/lib/seo/job-titles'
 import { usd } from '@/lib/seo/job-title-rules'
 import { titleJobsSeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
@@ -34,6 +34,8 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
   }
   const { stat } = d
   const path = `/jobs/title/${slug}`
+  // The cities and states with a page of their own for this title (job-title-places.ts), biggest first.
+  const places = (await getTitlePlaceIndex()).filter((r) => r[0] === slug).sort((x, y) => y[3] - x[3]).slice(0, 16)
   const seo = titleJobsSeo(stat.name, stat.jobs)
   return (
     <TopicShell
@@ -64,6 +66,11 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
       {d.states.length > 0 && (
         <Section id="states" title={`Where ${stat.name.toLowerCase()} jobs are`}>
           <Chips kind="title_to_state" event="topic_link_clicked" items={d.states.map((s) => ({ href: `/places/${s.slug}`, label: s.name, detail: s.jobs.toLocaleString('en-US') }))} />
+        </Section>
+      )}
+      {places.length > 0 && (
+        <Section id="places" title={`${stat.name} jobs by city and state`}>
+          <Chips kind="title_to_place" event="topic_link_clicked" items={places.map(([, key, , jobs, name]) => ({ href: `/jobs/title/${slug}/${key}`, label: name, detail: jobs.toLocaleString('en-US') }))} />
         </Section>
       )}
       {d.employers.length > 0 && (

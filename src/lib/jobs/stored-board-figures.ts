@@ -14,6 +14,8 @@ export type BoardFigureKey =
   | 'job-title-stats'
   | 'job-type-summaries'
   | `job-title:${string}`
+  | 'job-title-places-index'
+  | `job-title-place:${string}`
 
 export async function readBoardFigure<T>(key: BoardFigureKey): Promise<T | null> {
   const row = await prisma.boardFigure.findUnique({ where: { key }, select: { payload: true } })
