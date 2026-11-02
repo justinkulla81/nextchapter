@@ -44,7 +44,7 @@ describe('runLeadLifecycle', () => {
     process.env.LEAD_LIFECYCLE_EMAILS = '1'
   })
 
-  it('welcomes a confirmed job alert and acknowledges a business waitlist signup, skipping members mid-signup', async () => {
+  it('welcomes a confirmed job alert and acknowledges a business waitlist signup, leaving members who may still be mid-signup alone for a day', async () => {
     db.homepageLead = [{ kind: 'job_alert', email: 'Alert@Example.org', searchQ: 'product manager', searchLoc: 'Denver', confirmedAt: ago(1) }]
     db.waitlist = [
       { audience: 'Employer', payload: { email: 'hr@acme.example' }, createdAt: ago(2) },
@@ -61,6 +61,12 @@ describe('runLeadLifecycle', () => {
     )
     expect(calls).toHaveLength(2)
     expect(summary.steps.welcome).toBe(2)
+  })
+
+  it('welcomes a member who stopped at the no-Gmail step once a day has passed, with a note that Gmail is not needed', async () => {
+    db.waitlist = [{ audience: 'onboarding_no_gmail', payload: { email: 'member@example.org' }, createdAt: ago(24 * 3) }]
+    await runLeadLifecycle(now)
+    expect(sendLifecycleEmail.mock.calls[0][0]).toMatchObject({ email: 'member@example.org', variant: 'waitlist', step: 'welcome', context: { detail: 'onboarding_no_gmail' } })
   })
 
   it('sends nothing to someone registered, unsubscribed, on the stop list or off the website-leads list', async () => {

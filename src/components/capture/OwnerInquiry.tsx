@@ -13,7 +13,7 @@ export function OwnerInquiry({ who, what, href, hrefLabel, source, label }: { wh
 
   if (state?.sent) {
     return (
-      <section aria-label="Organization inquiry" className="mt-12 rounded-2xl border border-success/30 bg-success/5 p-5">
+      <section aria-label="Organization inquiry" className="mt-8 rounded-3xl bg-tint-mint p-5 sm:p-6">
         <p role="status" className="text-sm">
           Thanks. We&apos;ll write to{state.email ? <> <span className="font-medium">{state.email}</span></> : ' you'} shortly.{' '}
           <Link href={href} className="font-medium text-brand underline underline-offset-4">{hrefLabel}</Link>
@@ -23,7 +23,7 @@ export function OwnerInquiry({ who, what, href, hrefLabel, source, label }: { wh
   }
 
   return (
-    <section aria-label="Organization inquiry" className={cn('mt-12 rounded-2xl border border-border bg-white p-5', pending && 'cursor-wait')}>
+    <section aria-label="Organization inquiry" className={cn('mt-8 rounded-3xl bg-tint-plum p-5 sm:p-6', pending && 'cursor-wait')}>
       <p className="text-sm font-semibold text-navy">{who}</p>
       <p className="mt-0.5 text-xs text-muted-foreground">{what}</p>
       <form

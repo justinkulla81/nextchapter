@@ -48,6 +48,6 @@ const B2B_AUDIENCE = /employer|recruit|coach|organi[sz]ation|partner|school|coll
  * candidates.
  */
 export function waitlistVariant(audience: string): LeadVariant | null {
-  if (audience === 'friend_referral' || audience === 'onboarding_no_gmail') return null
+  if (audience === 'friend_referral') return null
   return B2B_AUDIENCE.test(audience) ? 'waitlist_b2b' : 'waitlist'
 }

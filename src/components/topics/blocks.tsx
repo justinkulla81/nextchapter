@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { PERSONALIZE_HREF } from '@/components/home/PersonalizePanel'
@@ -12,6 +13,16 @@ import { PageCaptureTop, PageCaptureOwner } from '@/components/capture/PageCaptu
 import type { PageCaptureConfig } from '@/lib/capture/page-capture'
 
 export const LINK = 'text-brand underline underline-offset-4'
+
+// Each section sits on its own soft color so a long page reads as a set of panels, not one white wall. The color is picked from the
+// section id, so it never changes between renders; a page can pass `tone` to choose.
+const TONES = [
+  { bg: 'bg-tint-sky', bar: 'bg-light-blue', top: 'border-t-light-blue' },
+  { bg: 'bg-tint-sun', bar: 'bg-orange', top: 'border-t-orange' },
+  { bg: 'bg-tint-mint', bar: 'bg-success', top: 'border-t-success' },
+  { bg: 'bg-tint-plum', bar: 'bg-accent-employer', top: 'border-t-accent-employer' },
+] as const
+const toneFor = (id: string, tone?: number) => TONES[(tone ?? [...id].reduce((n, c) => n + c.charCodeAt(0), 0)) % TONES.length]
 export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 const CARD = 'rounded-xl border border-border bg-white p-5'
 
@@ -19,7 +30,7 @@ const clip = (t: string, n: number) => (t.length > n ? `${t.slice(0, n).replace(
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 
 /** Page frame shared by every topic page: header, breadcrumb, h1, intro, footer. */
-export function TopicShell({ trail, title, intro, children, jsonLd, capture }: {
+export function TopicShell({ trail, title, intro, children, jsonLd, capture, hero }: {
   trail: { name: string; path: string }[]
   title: string
   intro: string
@@ -27,6 +38,8 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture }: {
   jsonLd?: Record<string, unknown>[]
   /** Adds the journey question and email save under the intro and the owner inquiry at the bottom (components/capture). */
   capture?: PageCaptureConfig
+  /** A picture for the header (public/images/topics). Without one the header is plain text. */
+  hero?: string
 }) {
   return (
     <div className="flex flex-1 flex-col">
@@ -35,17 +48,26 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture }: {
       <PublicSiteHeader />
       <main className="flex-1 bg-off-white py-12">
         <div className="mx-auto max-w-6xl px-6">
-          <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
-            <Link href="/" className="hover:text-foreground">Home</Link>
-            {trail.map((t, i) => (
-              <span key={t.path}>
-                <span aria-hidden> › </span>
-                {i === trail.length - 1 ? <span className="text-foreground">{t.name}</span> : <Link href={t.path} className="hover:text-foreground">{t.name}</Link>}
-              </span>
-            ))}
-          </nav>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{title}</h1>
-          <p className="mt-4 max-w-3xl text-lg text-muted-foreground">{intro}</p>
+          <div className={hero ? 'overflow-hidden rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun md:grid md:grid-cols-[1.15fr_1fr]' : undefined}>
+            <div className={hero ? 'p-6 sm:p-10' : undefined}>
+              <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
+                <Link href="/" className="hover:text-foreground">Home</Link>
+                {trail.map((t, i) => (
+                  <span key={t.path}>
+                    <span aria-hidden> › </span>
+                    {i === trail.length - 1 ? <span className="text-foreground">{t.name}</span> : <Link href={t.path} className="hover:text-foreground">{t.name}</Link>}
+                  </span>
+                ))}
+              </nav>
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{title}</h1>
+              <p className="mt-4 max-w-3xl text-lg text-muted-foreground">{intro}</p>
+            </div>
+            {hero && (
+              <div className="relative order-first aspect-[16/7] md:order-none md:aspect-auto md:min-h-[260px]">
+                <Image src={hero} alt="" fill priority sizes="(min-width: 768px) 45vw, 100vw" className="object-cover object-right" />
+              </div>
+            )}
+          </div>
           {capture && <PageCaptureTop capture={capture} />}
           {children}
           {capture && <PageCaptureOwner capture={capture} />}
@@ -56,10 +78,11 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture }: {
   )
 }
 
-export function Section({ id, title, note, children }: { id: string; title: string; note?: string; children: React.ReactNode }) {
+export function Section({ id, title, note, children, tone }: { id: string; title: string; note?: string; children: React.ReactNode; tone?: number }) {
+  const t = toneFor(id, tone)
   return (
-    <section aria-labelledby={id} className="mt-12">
-      <h2 id={id} className={H2}>{title}</h2>
+    <section aria-labelledby={id} className={`mt-8 rounded-3xl p-5 sm:p-7 ${t.bg}`}>
+      <h2 id={id} className={`${H2} flex items-center gap-3`}><span aria-hidden className={`h-6 w-1.5 shrink-0 rounded-full ${t.bar}`} />{title}</h2>
       {note && <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{note}</p>}
       <div className="mt-4">{children}</div>
     </section>
@@ -130,9 +153,9 @@ export function ConferenceList({ rows, total, upcoming, source }: { rows: Conf[]
 
 export function JoinBand({ source, what }: { source: string; what: string }) {
   return (
-    <section className="mt-12 rounded-xl border border-border bg-white p-6">
-      <h2 className="text-xl font-semibold tracking-tight text-navy">See how the market reads your background</h2>
-      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+    <section className="mt-8 rounded-3xl bg-gradient-to-br from-brand to-light-blue p-6 text-white sm:p-8">
+      <h2 className="text-xl font-semibold tracking-tight">See how the market reads your background</h2>
+      <p className="mt-2 max-w-2xl text-sm text-white/90">
         NextChapter is the leading job transition platform. A free account gives you a plain-language read on {what}, matched jobs and a weekly action plan.
       </p>
       <TrackedLink href={PERSONALIZE_HREF} event="topic_cta_clicked" properties={{ source }} className="mt-4 inline-flex items-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95">
@@ -150,8 +173,8 @@ export function FactGrid({ facts }: { facts: { key: string; label: string; value
   if (facts.length === 0) return null
   return (
     <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {facts.map((f) => (
-        <div key={f.key} className={CARD}>
+      {facts.map((f, i) => (
+        <div key={f.key} className={`${CARD} border-t-4 ${TONES[i % TONES.length].top}`}>
           <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{f.label}</dt>
           <dd className="mt-1 text-base font-semibold text-navy">{f.value}</dd>
           <p className="mt-1 text-xs text-muted-foreground">Source: {f.source}{f.period ? `, ${f.period}` : ''}.</p>
@@ -162,10 +185,10 @@ export function FactGrid({ facts }: { facts: { key: string; label: string; value
 }
 
 /** Top skills / states as plain lists with counts. */
-export function RankList({ title, items }: { title: string; items: { label: string; detail?: string }[] }) {
+export function RankList({ title, items, tone = 0 }: { title: string; items: { label: string; detail?: string }[]; tone?: number }) {
   if (items.length === 0) return null
   return (
-    <div className={CARD}>
+    <div className={`${CARD} border-t-4 ${TONES[tone % TONES.length].top}`}>
       <h3 className="text-sm font-semibold text-navy">{title}</h3>
       <ol className="mt-2 space-y-1 text-sm text-muted-foreground">
         {items.map((i, idx) => (

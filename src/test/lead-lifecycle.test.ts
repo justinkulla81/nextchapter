@@ -66,8 +66,8 @@ describe('applied job', () => {
 })
 
 describe('waitlistVariant', () => {
-  it('skips members mid-signup and someone else\'s address, acknowledges business audiences', () => {
-    expect(waitlistVariant('onboarding_no_gmail')).toBeNull()
+  it('treats a member who stopped mid-signup as a candidate, skips someone else\'s address, acknowledges business audiences', () => {
+    expect(waitlistVariant('onboarding_no_gmail')).toBe('waitlist')
     expect(waitlistVariant('friend_referral')).toBeNull()
     expect(waitlistVariant('Employer')).toBe('waitlist_b2b')
     expect(waitlistVariant('general')).toBe('waitlist')

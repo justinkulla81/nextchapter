@@ -208,6 +208,23 @@ function baseContent(variant: LeadVariant, step: LeadStep, c: LeadEmailContext):
     }
   }
 
+  // Stopped at the onboarding step that asked for a Gmail account; Google connect is no longer required, so say so.
+  if (c.detail === 'onboarding_no_gmail') {
+    return {
+      subject: 'You do not need Gmail to finish your NextChapter profile',
+      headline: 'You can finish without Gmail',
+      paragraphs: [
+        hello(c),
+        'You stopped at the step that asked for a Gmail account. You no longer need one: you can finish your profile with just your email address.',
+        'Add your résumé, or skip it and answer a few questions, and every job on the site comes back ranked for you.',
+        FREE,
+      ],
+      benefits: BENEFITS,
+      ctaLabel: 'Finish my free profile',
+      footerNote: note,
+    }
+  }
+
   // waitlist (candidate)
   return {
     subject: 'You are on the NextChapter list',
