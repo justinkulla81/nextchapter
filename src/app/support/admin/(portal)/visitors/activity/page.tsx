@@ -7,6 +7,9 @@ import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTa
 import { VisitorsTrafficChart } from '@/components/admin/VisitorsTrafficChart'
 import { TrafficRangeProvider, VisitorsRangeSummary, type RangeTotals, type TrafficRange } from '@/components/admin/VisitorsActivityRange'
 import { AverageBarChart } from '@/components/admin/AverageBarChart'
+import { VisitorsPerDayChart } from '@/components/admin/VisitorsPerDayChart'
+import { loadCapturedEmailsForDays } from '@/lib/leads/captured-emails'
+import { capturedPerDay } from '@/lib/admin/captured-per-day'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { isDatacenterIp } from '@/lib/http/datacenter-ip'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
@@ -190,6 +193,19 @@ export default async function AdminVisitorActivityPage({
     '30d': { pageViews: perDaySeries(chartEvents, current, 30, false), uniqueVisitors: perDaySeries(chartEvents, current, 30, true) },
     all: { pageViews: perDaySeries(chartEvents, current, allTimeDays, false), uniqueVisitors: perDaySeries(chartEvents, current, allTimeDays, true) },
   }
+  // Emails captured per day: every form on the public site plus new registrations.
+  const [captured, registrationRows] = await Promise.all([
+    loadCapturedEmailsForDays(CHART_WINDOW_DAYS),
+    prisma.candidateProfile.findMany({ where: { createdAt: { gte: since(CHART_WINDOW_DAYS) } }, select: { createdAt: true } }),
+  ])
+  const capturedDays = capturedPerDay(captured, registrationRows.map((r) => r.createdAt), current, CHART_WINDOW_DAYS)
+  const toDays = (rows: { key: string; count: number }[]) => rows.map((d) => ({ dateKey: d.key, count: d.count }))
+  const capturedSeries = [
+    { label: 'All captured', days: toDays(capturedDays.total), color: 'var(--color-navy)' },
+    { label: 'Registrations', days: toDays(capturedDays.registrations), color: 'var(--color-success)' },
+    { label: 'Newsletter signups', days: toDays(capturedDays.newsletter), color: 'var(--color-brand)' },
+    { label: 'Saved jobs', days: toDays(capturedDays.savedJobs), color: 'var(--color-warning)' },
+  ]
   const colors = { views: 'var(--color-brand)', visitors: 'var(--color-warning)' }
   const weekdaySeries = [
     { label: 'Human page views', color: colors.views, buckets: byWeekday(chartEvents, current, CHART_WINDOW_DAYS, false) },
@@ -521,6 +537,17 @@ export default async function AdminVisitorActivityPage({
         <VisitorsTrafficChart data={trafficData} allTimeTruncated={chartEvents.length >= ALL_TIME_EVENT_CAP} />
       </div>
       </TrafficRangeProvider>
+
+      <div className="rounded-lg border border-border p-4">
+        <h2 className="text-sm font-medium text-foreground">Emails captured per day</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Last {CHART_WINDOW_DAYS} days (Eastern time). All captured is every form on the site (journey picker, job alerts, saved jobs, newsletter, contact, guides, résumé, waitlists) plus new registrations.{' '}
+          <Link href="/support/admin/captured-emails" className="text-primary underline underline-offset-4">
+            See the list
+          </Link>
+        </p>
+        <VisitorsPerDayChart series={capturedSeries} emptyMessage="No emails captured in this window yet." />
+      </div>
 
       <div className="rounded-lg border border-border p-4">
         <h2 className="text-sm font-medium text-foreground">By day of the week</h2>
