@@ -18,6 +18,8 @@ export default function JourneyPlanEmail({ situationLabel, intro, steps, startUr
       audience="candidate"
       footer={
         <>
+          Know someone else affected? Forward this email, or send them <a href="https://launchyournextchapter.com/?utm_source=forward" style={{ color: MUTED }}>launchyournextchapter.com</a>.
+          <br />
           You asked for this plan at launchyournextchapter.com. This is the only email we send unless you ask for more.
           <br />
           <a href={unsubscribeUrl} style={{ color: MUTED }}>Unsubscribe</a>
