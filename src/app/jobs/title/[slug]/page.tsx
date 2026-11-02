@@ -8,7 +8,6 @@ import { getTitleDetail, getTitlePlaceIndex, hasSalaryPage } from '@/lib/seo/job
 import { usd } from '@/lib/seo/job-title-rules'
 import { titleJobsSeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
-import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -41,6 +40,7 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
     <TopicShell
       trail={[{ name: 'Jobs', path: '/jobs' }, { name: 'Jobs by title', path: '/jobs/title' }, { name: stat.name, path }]}
       title={seo.h1}
+      capture={{ kind: 'title', slug, label: stat.name, save: { q: stat.name, loc: '' } }}
       intro={`Open ${stat.name.toLowerCase()} jobs taken from employers’ own career sites and checked to still be open.${hasSalaryPage(stat) ? ` Listings that state pay show a median of ${usd(stat.median!)} a year.` : ''}`}
       jsonLd={[
         {
@@ -53,9 +53,6 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
         <JobList jobs={d.jobs} total={stat.jobs} source={`title:${slug}`} />
         <p className="mt-3 text-sm"><Link href={`/jobs?q=${encodeURIComponent(stat.name)}`} className={LINK}>Search all {stat.name.toLowerCase()} jobs</Link></p>
       </Section>
-      <div className="mt-8">
-        <SaveSearchForm q={stat.name} loc="" remote={false} source="page:title" heading={`Get new ${stat.name.toLowerCase()} jobs by email`} blurb="We’ll email you when new matches are posted. No account needed." cta="Email me new jobs" />
-      </div>
       {hasSalaryPage(stat) && (
         <Section id="pay" title={`${stat.name} salary`}>
           <p className="max-w-3xl text-sm text-muted-foreground">

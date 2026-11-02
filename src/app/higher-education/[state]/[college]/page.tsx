@@ -130,6 +130,7 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
     <OrgBrandScope brand={brand?.pair}>
     <SeoPage
       look="audience"
+      capture={{ kind: 'college', slug: c.canonicalSlug, label: c.name, save: { q: '', loc: c.city ? `${c.city}, ${code}` : code } }}
       trail={[{ name: 'Higher education', path: '/higher-education' }, { name: st, path: `/higher-education/${state}` }, { name: c.name, path }]}
       h1={`${c.name}: programs, outcomes and local jobs`}
       jsonLd={ld}
