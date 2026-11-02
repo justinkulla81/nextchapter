@@ -2,6 +2,7 @@ import { placeCitySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { redirectToCity } from '@/lib/places/resolve'
 import { SeoPage, LINK, ActionBand } from '@/components/seo/SeoPage'
 import { CollegeTable, EconomySection, EmployerList, HeadquarteredList, JobList, LayoffsSection, PlaceLinks, WorkforceSection } from '@/components/places/PlaceSections'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
@@ -48,7 +49,10 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
 export default async function CityPlacePage({ params }: { params: Promise<{ state: string; city: string }> }) {
   const { state, city } = await params
   const s = await load(state, city)
-  if (!s) notFound()
+  if (!s) {
+    await redirectToCity(state, city)
+    notFound()
+  }
   const { code, name, d } = s
   const p = d.place
   const path = placeUrl.city(state, city)
