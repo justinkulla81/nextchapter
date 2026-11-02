@@ -5,6 +5,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { buildSupporterSummary, supporterHeadline } from '@/lib/supporters/summary'
 import { sendSupporterDigestEmail } from '@/lib/email/send-supporter-email'
 
+// No cron in vercel.json while this is off (saves a slot of the 100 allowed); add one back when switching it on. See CRON_BUNDLES in lib/cron/schedule.ts.
 export const maxDuration = 300
 
 // Weekly note to each member's supporters. SHIPS DISABLED: it emails people
