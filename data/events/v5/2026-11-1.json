@@ -1,0 +1,1018 @@
+[
+ {
+  "id": "ethdenver",
+  "name": "ETHDenver",
+  "organizer": "ETHDenver LLC",
+  "url": "https://ethdenver.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Largest Ethereum builder gathering: protocol engineers, founders and product leads hiring and building in Web3.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site advertises free tickets via an application ('Apply to Attend'); 2026 edition was Feb 18-21 at the National Western Center; 2027 dates not yet posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://app.ethdenver.com/",
+  "speakingDeadline": null,
+  "speakingNote": "2026 contributor and speaker applications opened in November.",
+  "cheaperWays": "Free ticket by application.",
+  "applyUrl": "https://app.ethdenver.com/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": "Crypto and digital assets",
+  "roles": [
+   "blockchain engineer",
+   "crypto product lead"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "acams-assembly-hollywood",
+  "name": "ACAMS The Assembly Hollywood",
+  "organizer": "ACAMS",
+  "url": "https://www.acams.org/en/events/the-assembly/the-assembly-hollywood",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-14",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Hollywood",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Legal",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Financial-crime and AML compliance leaders, including digital asset compliance officers from banks, exchanges and regulators.",
+  "access": "PAID",
+  "costLow": 1445,
+  "costHigh": 2595,
+  "costNote": "Private sector standard $2,395 member / $2,595 non-member; early bird $1,895 / $2,095 until Dec 11, 2026; public sector flat $1,445 member / $1,645 non-member; virtual from $845.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Public sector rate and virtual pass; early-bird discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Crypto and digital assets",
+  "roles": [
+   "digital asset compliance"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "acams-assembly-las-vegas",
+  "name": "ACAMS The Assembly Las Vegas",
+  "organizer": "ACAMS",
+  "url": "https://www.acams.org/en/events/the-assembly/the-assembly-las-vegas",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-09-28",
+  "endDate": "2027-09-30",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Legal",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Anti-financial-crime and digital asset compliance professionals from banks, fintechs and exchanges.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not captured; hybrid event with virtual attendance option.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Crypto and digital assets",
+  "roles": [
+   "digital asset compliance"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "solana-breakpoint",
+  "name": "Solana Breakpoint",
+  "organizer": "Solana Foundation",
+  "url": "https://solana.com/breakpoint",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-15",
+  "endDate": "2026-11-17",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "London",
+  "state": null,
+  "country": "GB",
+  "industries": [
+   "Financial Services & Banking",
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering",
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Global flagship of the Solana ecosystem: protocol and smart-contract engineers, crypto product leads and founders.",
+  "access": "PAID",
+  "costLow": 100,
+  "costHigh": 800,
+  "costNote": "General admission $550 rising to $800 late-bird; developer $250 and student $100 by application. Outside North America; flagship of the ecosystem.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speaker applications closed for this edition.",
+  "cheaperWays": "Developer and student tickets by application.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Crypto and digital assets",
+  "roles": [
+   "blockchain engineer",
+   "crypto product lead"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "tei-annual-conference",
+  "name": "TEI Annual Conference",
+  "organizer": "Tax Executives Institute",
+  "url": "https://www.tei.org/events-education/events/2027-annual-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-24",
+  "endDate": "2027-10-27",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Scottsdale",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance",
+   "Legal"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "The in-house corporate tax community: tax directors and VPs of tax from large companies.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees posted about 6 months before. Open to TEI members and other in-house tax professionals; private practice, consultants and government employees are ineligible.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.tei.org/events-education/events/2027-annual-conference",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Tax",
+  "roles": [
+   "tax director",
+   "state and local tax specialist",
+   "international tax advisor"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "cost-annual-meeting",
+  "name": "COST Annual Meeting",
+  "organizer": "Council On State Taxation",
+  "url": "https://www.cost.org/events/58th-annual-meeting/General-Information/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-21",
+  "endDate": "2027-09-24",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance",
+   "Legal"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "State and local tax leaders from major corporations and their advisors.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "COST member companies; join through COST membership. Spring Meeting is April 19-21, 2027 in Chicago.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.cost.org/about-cost/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Tax",
+  "roles": [
+   "state and local tax specialist",
+   "tax director"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ipt-annual-conference",
+  "name": "IPT Annual Conference",
+  "organizer": "Institute for Professionals in Taxation",
+  "url": "https://www.ipt.org/event.aspx?EventKey=CON2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-27",
+  "endDate": "2027-06-30",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "State and local tax practitioners: property, sales and use, and income tax specialists from corporations, firms and government.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not captured. Also: IPT Sales Tax Symposium Sept 26-29, 2027 (Aurora, CO); Property Tax Symposium Nov 7-10, 2027 (Aventura, FL).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Tax",
+  "roles": [
+   "state and local tax specialist",
+   "tax director"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "aba-tax-may-meeting",
+  "name": "ABA Section of Taxation May Tax Meeting",
+  "organizer": "American Bar Association Section of Taxation",
+  "url": "https://www.americanbar.org/groups/taxation/events/upcoming-meetings/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-20",
+  "endDate": "2027-05-22",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit",
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal",
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Tax lawyers, Treasury and IRS officials and advisors shaping federal tax policy.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not captured; dates subject to change per ABA.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Tax",
+  "roles": [
+   "tax director",
+   "international tax advisor"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "nacm-annual-conference",
+  "name": "NACM Annual Conference",
+  "organizer": "National Association for Court Management",
+  "url": "https://nacmnet.org/conferences/upcoming-conferences/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-18",
+  "endDate": "2027-07-22",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Tacoma",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Legal Services",
+   "Government & Public Sector"
+  ],
+  "functions": [
+   "Operations",
+   "Administration"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The court administrator community: clerks, court executives and judges' administrators from across the country.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not posted on the upcoming-conferences page. Midyear Conference Feb 7-9, 2027 in San Diego.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://nacmnet.org/conferences/call-for-proposals/",
+  "speakingDeadline": null,
+  "speakingNote": "Call for proposals page exists; deadline not captured.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": "Courts and public interest law",
+  "roles": [
+   "judge and court administrator"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "nclc-consumer-rights-litigation-conference",
+  "name": "NCLC Consumer Rights Litigation Conference and Class Action Symposium",
+  "organizer": "National Consumer Law Center",
+  "url": "https://www.nclc.org/annual-conferences/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-21",
+  "endDate": "2027-10-24",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "About 900 consumer and legal aid attorneys and advocates; a legal services track is often subsidized.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration prices not posted yet. 2027 Spring Training May 5-8 in Baltimore.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "2026 edition offered a free intensive for legal services attorneys.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": "Courts and public interest law",
+  "roles": [
+   "legal aid attorney"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "lsc-innovations-in-technology-conference",
+  "name": "LSC Innovations in Technology Conference (ITC)",
+  "organizer": "Legal Services Corporation",
+  "url": "https://www.lsc.gov/itc27",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-03",
+  "endDate": "2027-02-05",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Legal aid technologists, directors and attorneys building access-to-justice tools.",
+  "access": "PAID",
+  "costLow": 800,
+  "costHigh": 900,
+  "costNote": "Attendee $800 before Oct 30, 2026, $900 after; speaker $650 / $725; group of 5+ $750 / $850. Hilton New Orleans Riverside.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Group and speaker rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": "Courts and public interest law",
+  "roles": [
+   "legal aid attorney",
+   "public defender"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "fabcon-sqlcon",
+  "name": "FabCon & SQLCon",
+  "organizer": "Tech Conferences LLC",
+  "url": "https://fabriccon.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-08",
+  "endDate": "2027-03-12",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The Microsoft Fabric and SQL community: data engineers, BI developers and Microsoft product teams.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket prices not shown on home page. Workshops March 8-9; sessions March 10-12.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": "Data engineering and analytics",
+  "roles": [
+   "data engineer",
+   "analytics engineer",
+   "bi developer"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "airflow-summit",
+  "name": "Airflow Summit",
+  "organizer": "SG Software Guru (Apache Airflow community)",
+  "url": "https://airflowsummit.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Data engineers and platform teams who run Apache Airflow pipelines.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 in-person edition was Aug 31-Sep 2 in Austin; a free online Reconnect runs Nov 4-5, 2026. 2027 dates not posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": "Data engineering and analytics",
+  "roles": [
+   "data engineer",
+   "analytics engineer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "tableau-conference",
+  "name": "Tableau Conference",
+  "organizer": "Salesforce (Tableau)",
+  "url": "https://www.salesforce.com/tableau-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "BI developers, analysts and data leaders working in Tableau.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was May 5-7 in San Diego; Salesforce lists 2027 for spring; dates not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Data engineering and analytics",
+  "roles": [
+   "bi developer",
+   "data scientist"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "cca-annual-convention",
+  "name": "CCA Annual Convention",
+  "organizer": "Competitive Carriers Association",
+  "url": "https://www.ccamobile.org/cca-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-13",
+  "endDate": "2027-09-15",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Palm Springs",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Telecommunications"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Regional and rural wireless carriers, network and spectrum leaders, vendors and FCC staff.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not captured. CCA Summit Feb 9-10, 2027 in Washington, DC.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Wireless and 5G",
+  "roles": [
+   "network planner",
+   "wireless product manager",
+   "rf engineer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "scte-techexpo",
+  "name": "SCTE TechExpo",
+  "organizer": "SCTE (a CableLabs subsidiary)",
+  "url": "https://techexpo.scte.org/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Telecommunications"
+  ],
+  "functions": [
+   "Engineering",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Broadband and wireless engineers from cable operators and their vendors.",
+  "access": "MIXED",
+  "costLow": 179,
+  "costHigh": 1399,
+  "costNote": "2026 edition Sept 29-Oct 1 in Atlanta: expo-only $179-$219, full access $1,299-$1,399; CableLabs members free. 2027 dates not posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Expo-only pass; academics and faculty can request special rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Wireless and 5G",
+  "roles": [
+   "rf engineer",
+   "network planner"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "ispamerica",
+  "name": "ISPAMERICA",
+  "organizer": "Wireless Internet Service Providers Association",
+  "url": "https://www.wispa.org/events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-04",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Cherokee",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Telecommunications"
+  ],
+  "functions": [
+   "Engineering",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Fixed wireless ISP operators and engineers; training, technology demos and vendors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not captured. Formerly WISPAMERICA; Harrah's Cherokee Resort.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Wireless and 5G",
+  "roles": [
+   "rf engineer",
+   "network planner"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "achca-convention",
+  "name": "ACHCA Annual Convention & Expo",
+  "organizer": "American College of Health Care Administrators",
+  "url": "https://www.achca.org/convention",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-06",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [
+   "Operations",
+   "Executive Leadership"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Licensed nursing home and assisted living administrators; the profession's own college.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not captured. Student and professional poster exposition applications due Jan 29, 2027.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.achca.org/speaking-opportunities",
+  "speakingDeadline": null,
+  "speakingNote": "Speaking Opportunities page exists; deadline not captured.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Long-term care and senior living",
+  "roles": [
+   "nursing home administrator"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "fhca-annual-conference",
+  "name": "FHCA Annual Conference & Trade Show",
+  "organizer": "Florida Health Care Association",
+  "url": "https://www.fhca.org/calendar",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "1,000+ Florida long-term care leaders, administrators and nurse executives plus 300+ exhibitors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition ran through July 30 in Orlando; 2027 dates not posted. Nurse Leadership Program June 2-4, 2027 (call for presentations closes Nov 9, 2026).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Long-term care and senior living",
+  "roles": [
+   "nursing home administrator"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "nic-spring-conference",
+  "name": "NIC Spring Conference",
+  "organizer": "National Investment Center for Seniors Housing & Care",
+  "url": "https://www.nic.org/events/2027-nic-spring-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-17",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Construction & Real Estate"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Senior living owners, operators, lenders and investors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not listed; the page offers a waitlist.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": "Long-term care and senior living",
+  "roles": [
+   "senior living executive"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "senior-living-innovation-forum",
+  "name": "Senior Living Innovation Forum (SLIF Spring)",
+  "organizer": "Senior Living Innovation Forum",
+  "url": "https://seniorlivinginnovationforum.com/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-06",
+  "endDate": "2027-06-08",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Pasadena",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Invite-only retreat of CXOs from top senior living providers.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "No public ticket; qualified senior housing executives attend complimentary, including two nights lodging and meals.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://seniorlivinginnovationforum.com/spring/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": "Long-term care and senior living",
+  "roles": [
+   "senior living executive"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ }
+]
