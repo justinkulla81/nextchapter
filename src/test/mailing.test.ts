@@ -7,7 +7,7 @@ import { verifyResendSignature } from '@/lib/mailing/webhook-signature'
 import { makeUnsubscribeToken, readUnsubscribeToken } from '@/lib/mailing/unsubscribe-token'
 import { isUnsubscribeReply, baseSubject } from '@/lib/mailing/replies'
 import { renderEmail, sanitizeBodyHtml } from '@/lib/mailing/render'
-import { suggestListKeys } from '@/lib/mailing/suggest'
+import { suggestListKeys, withMasterKeys } from '@/lib/mailing/suggest'
 import { REPORT_SLUG_PREFIX, reportSlugFor } from '@/lib/reports'
 
 describe('edition parser', () => {
@@ -361,5 +361,18 @@ describe('list rules after the split', () => {
     expect(canAddToList('REMOVED', null)).toEqual({ ok: true, action: 'reactivate' })
     expect(canAddToList('UNSUBSCRIBED', null)).toEqual({ ok: false, reason: 'unsubscribed' })
     expect(canAddToList('REMOVED', 'BOUNCED')).toEqual({ ok: false, reason: 'bounced' })
+  })
+})
+
+describe('master lists', () => {
+  it('adds Employers or Higher ed with any of their sub-lists, once', () => {
+    expect(withMasterKeys(['employers_hr', 'employers_learning', 'coaches']).sort()).toEqual(['coaches', 'employers', 'employers_hr', 'employers_learning'])
+    expect(withMasterKeys(['higher_ed_career', 'higher_ed_exec_ed']).sort()).toEqual(['higher_ed', 'higher_ed_career', 'higher_ed_exec_ed'])
+  })
+  it('keeps alumni out of the Higher ed master', () => {
+    expect(withMasterKeys(['higher_ed_alumni'])).toEqual(['higher_ed_alumni'])
+  })
+  it('does not suggest Candidates from a job-seeker type', () => {
+    expect(suggestListKeys({ roles: ['JOB_SEEKER'], pipelineKeys: ['job_seekers', 'candidate_membership'] })).toEqual(['monthly_update'])
   })
 })

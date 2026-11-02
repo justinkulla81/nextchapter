@@ -1,7 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeListEmail } from './rules'
-import { suggestionsFor, suppress } from './lists'
+import { suggestionsFor, suppress, registeredMemberEmails } from './lists'
+import { withMasterKeys } from './suggest'
 
 /**
  * Subscribes CRM people to the mailing lists that fit their type.
@@ -10,6 +11,8 @@ import { suggestionsFor, suppress } from './lists'
  * already on, was unsubscribed from, complained about or bounced off a list,
  * and never adds anyone with a suppression (including Do not email).
  * The Newsletter (monthly_update) and Investor updates are never auto-filled: they stay opt-in / by hand.
+ * Candidates is filled from registered members (syncRegisteredCandidates), not from a CRM type.
+ * A sub-list's master (Employers, Higher ed) is added with it.
  * Addresses Hunter calls invalid, undeliverable or risky are not added. Each run first cleans up (see pruneLists).
  */
 export interface AutoAssignResult {
@@ -24,7 +27,7 @@ export interface AutoAssignResult {
 
 const CHUNK = 400
 /** Never filled from a contact type. */
-const MANUAL_ONLY = new Set(['monthly_update', 'investors'])
+const MANUAL_ONLY = new Set(['monthly_update', 'investors', 'candidates'])
 /** Hunter verdicts that keep an address off the auto-filled lists. */
 const HELD_BACK = new Set(['invalid', 'undeliverable', 'risky'])
 const AUTO_NOTE = 'Auto-assigned from their type in the CRM'
@@ -60,7 +63,7 @@ export async function autoAssignLists(opts: { personIds?: string[]; dryRun?: boo
 
     const rows: { id: string; listId: string; email: string; personId: string; status: 'ACTIVE'; addedVia: 'IMPORT'; consentNote: string }[] = []
     for (const { p, email } of withEmail) {
-      const keys = (suggested.get(p.id) ?? []).filter((k) => !MANUAL_ONLY.has(k) && listId.has(k))
+      const keys = withMasterKeys(suggested.get(p.id) ?? []).filter((k) => !MANUAL_ONLY.has(k) && listId.has(k))
       if (keys.length === 0) { result.unassigned.push({ id: p.id, name: p.fullName ?? '', email, roles: p.roles }); continue }
       if (blocked.has(email)) continue
       if (p.emailVerifiedStatus && HELD_BACK.has(p.emailVerifiedStatus)) { result.held++; continue }
@@ -105,6 +108,7 @@ export async function pruneLists(opts: { dryRun?: boolean } = {}): Promise<Prune
     select: { id: true, listId: true, email: true, personId: true, addedVia: true, consentNote: true, person: { select: { deletedAt: true, email: true, emails: true, emailVerifiedStatus: true } } },
   })
   const wrongTypeIds: string[] = [], deletedIds: string[] = [], staleIds: string[] = [], invalidEmails = new Set<string>()
+  const registered = await registeredMemberEmails()
   const personIds = [...new Set(members.map((m) => m.personId!))]
   const suggested = new Map<string, string[]>()
   for (let i = 0; i < personIds.length; i += 500) {
@@ -117,7 +121,11 @@ export async function pruneLists(opts: { dryRun?: boolean } = {}): Promise<Prune
     if (mine.length && !mine.includes(m.email)) { staleIds.push(m.id); continue }
     if (m.email === normalizeListEmail(p.email ?? '') && (p.emailVerifiedStatus === 'invalid' || p.emailVerifiedStatus === 'undeliverable')) { invalidEmails.add(m.email); continue }
     const key = keyOf.get(m.listId)
-    if (m.addedVia === 'IMPORT' && m.consentNote === AUTO_NOTE && key && key !== 'monthly_update' && !(suggested.get(m.personId!) ?? []).includes(key)) wrongTypeIds.push(m.id)
+    if (m.addedVia === 'IMPORT' && m.consentNote === AUTO_NOTE && key && key !== 'monthly_update') {
+      // Candidates is registered members only; every other list follows the person's type.
+      const fits = key === 'candidates' ? registered.has(m.email) : withMasterKeys(suggested.get(m.personId!) ?? []).includes(key)
+      if (!fits) wrongTypeIds.push(m.id)
+    }
   }
   result.wrongType = wrongTypeIds.length
   result.deletedPerson = deletedIds.length

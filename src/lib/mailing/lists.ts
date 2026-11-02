@@ -1,6 +1,7 @@
 import 'server-only'
 import type { MailingAddedVia, MailingMemberStatus, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { canAddToList, ADD_BLOCKED_MESSAGE, normalizeListEmail, type SuppressionReason } from './rules'
 import { suggestListKeys } from './suggest'
 
@@ -228,6 +229,53 @@ export async function syncWebsiteSignups(): Promise<number> {
         addedVia: 'WEBSITE_SIGNUP', consentNote: `Signed up on the site (${s.source ?? 'unknown page'})`,
         addedAt: s.createdAt, statusAt: s.unsubscribedAt,
       },
+    }).catch(() => {})
+    added++
+  }
+  return added
+}
+
+/**
+ * Addresses of registered members: a confirmed, non-anonymous sign-in account. Demo accounts and
+ * our own team addresses are not members. Read from Supabase auth, since a candidate profile's own
+ * email can be the one extracted from a résumé before the person finished registering.
+ */
+export async function registeredMemberEmails(): Promise<Set<string>> {
+  const admin = createAdminClient()
+  const out = new Set<string>()
+  for (let page = 1; page <= 5; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+    if (error) throw error
+    for (const u of data.users) {
+      const email = normalizeListEmail(u.email)
+      if (!email || !u.email_confirmed_at || u.is_anonymous || u.user_metadata?.is_demo) continue
+      if (email.endsWith('@launchyournextchapter.com')) continue
+      out.add(email)
+    }
+    if (data.users.length < 1000) break
+  }
+  return out
+}
+
+/**
+ * Keeps the Candidates list equal to registered members. Adds members who are not on it; the
+ * never-re-add rule still holds, so someone who unsubscribed or was taken off by hand stays off.
+ */
+export async function syncRegisteredCandidates(): Promise<number> {
+  const list = await prisma.mailingList.findUnique({ where: { key: 'candidates' } })
+  if (!list) return 0
+  const emails = [...(await registeredMemberEmails())]
+  const [existing, suppressed] = await Promise.all([
+    prisma.mailingListMember.findMany({ where: { listId: list.id, email: { in: emails } }, select: { email: true } }),
+    prisma.mailingSuppression.findMany({ where: { email: { in: emails } }, select: { email: true } }),
+  ])
+  const have = new Set(existing.map((m) => m.email))
+  const blocked = new Set(suppressed.map((s) => s.email))
+  let added = 0
+  for (const email of emails) {
+    if (have.has(email) || blocked.has(email)) continue
+    await prisma.mailingListMember.create({
+      data: { listId: list.id, email, personId: await personIdForEmail(email), status: 'ACTIVE', addedVia: 'WEBSITE_SIGNUP', consentNote: 'Registered member' },
     }).catch(() => {})
     added++
   }
