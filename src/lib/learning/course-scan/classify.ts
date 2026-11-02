@@ -40,6 +40,9 @@ const AI_PATTERN = /\b(ai|a\.i\.|gen ?ai|generative|gemini|claude|copilot|chatgp
 const BEGINNER_PATTERN = /\b(intro\w*|essentials?|fundamentals?|basics?|beginners?|getting started|first steps|101|for everyone|foundations?)\b/i
 const ADVANCED_PATTERN = /\b(advanced|architect\w*|professional certificate|expert|production|enterprise-scale|fine-?tuning|mlops|evaluation)\b/i
 
+/** Whether a course's own words are about AI. */
+export const looksAiRelated = (text: string) => AI_PATTERN.test(text)
+
 export function classifyCourse(c: FoundCourse): CourseGuess {
   const text = `${c.title} ${c.description}`
   const functions = FUNCTION_RULES.filter((r) => r.pattern.test(c.title) || r.pattern.test(c.description.slice(0, 300))).map((r) => r.fn)
