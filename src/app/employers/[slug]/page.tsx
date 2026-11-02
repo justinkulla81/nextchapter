@@ -1,3 +1,4 @@
+import { CompanyOutlookSection } from '@/components/seo/CompanyOutlookSection'
 import { hubsFor } from '@/lib/places/hubs'
 import { testedTitle } from '@/lib/seo/title-test-state'
 import { employerTitleB } from '@/lib/seo/title-tests'
@@ -201,6 +202,16 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
           )}
         </section>
       )}
+
+      <CompanyOutlookSection
+        name={e.name}
+        companyId={e.id}
+        industry={e.industry}
+        hiring={p ? { openNow: p.openNow, opened90d: p.opened90d } : null}
+        layoffs12={layoffs?.total ?? 0}
+        fundraises12={secEvents.filter((x) => x.kind === 'FUNDRAISE').length}
+        hubs={hubs}
+      />
 
       {ins && <EmployerInsights name={e.name} industry={e.industry} ins={ins} text={text} />}
 
