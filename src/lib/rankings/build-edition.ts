@@ -24,7 +24,9 @@ export interface Spec {
 
 const NATIONAL = { kind: 'national' as const, id: 'us', name: 'United States', phrase: 'the United States' }
 
-function specFor(measure: MeasureId, scope: Spec['scope']): Spec {
+type PlaceMeasure = keyof typeof CITY_MEASURES | 'growth' | 'infogrowth'
+
+function specFor(measure: PlaceMeasure, scope: Spec['scope']): Spec {
   const m = measure === 'growth' || measure === 'infogrowth' ? COUNTY_MEASURES[measure] : CITY_MEASURES[measure]
   if (scope.kind === 'national') return { slug: m.base.slug, measure, scope, title: m.base.title, family: m.family, group: 'places' }
   const s = m.scoped(scope.kind === 'region' ? scope.phrase : scope.name)
@@ -34,9 +36,9 @@ function specFor(measure: MeasureId, scope: Spec['scope']): Spec {
 
 /** Wave 1: nine national lists, four per region, two per big state. `topStates` are the states with the most openings. */
 export function wave1Specs(topStates: string[]): Spec[] {
-  const out: Spec[] = (['junior', 'ai', 'paycost', 'remote', 'swe', 'largest', 'transparent', 'growth', 'infogrowth'] as MeasureId[]).map((m) => specFor(m, NATIONAL))
-  for (const r of REGIONS) for (const m of ['junior', 'ai', 'paycost', 'growth'] as MeasureId[]) out.push(specFor(m, { kind: 'region', id: r.id, name: r.name, phrase: r.phrase }))
-  for (const code of topStates.slice(0, 10)) for (const m of ['junior', 'paycost'] as MeasureId[]) out.push(specFor(m, { kind: 'state', id: stateSlug(code), name: stateName(code), phrase: stateName(code) }))
+  const out: Spec[] = (['junior', 'ai', 'paycost', 'remote', 'swe', 'largest', 'transparent', 'growth', 'infogrowth'] as PlaceMeasure[]).map((m) => specFor(m, NATIONAL))
+  for (const r of REGIONS) for (const m of ['junior', 'ai', 'paycost', 'growth'] as PlaceMeasure[]) out.push(specFor(m, { kind: 'region', id: r.id, name: r.name, phrase: r.phrase }))
+  for (const code of topStates.slice(0, 10)) for (const m of ['junior', 'paycost'] as PlaceMeasure[]) out.push(specFor(m, { kind: 'state', id: stateSlug(code), name: stateName(code), phrase: stateName(code) }))
   return out
 }
 
@@ -47,7 +49,7 @@ export function wave2PlaceSpecs(): Spec[] {
   const out: Spec[] = [specFor('midcareer', NATIONAL_SCOPE), specFor('leadership', NATIONAL_SCOPE)]
   for (const r of REGIONS) {
     const scope = { kind: 'region' as const, id: r.id, name: r.name, phrase: r.phrase }
-    for (const m of ['swe', 'midcareer', 'leadership'] as MeasureId[]) out.push(specFor(m, scope))
+    for (const m of ['swe', 'midcareer', 'leadership'] as PlaceMeasure[]) out.push(specFor(m, scope))
   }
   return out
 }
