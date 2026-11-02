@@ -10,9 +10,11 @@ describe('layoff news fast lane', () => {
   it('reads a window wider than its hourly cadence', () => {
     expect(FAST_WINDOW_HOURS).toBeGreaterThan(1)
   })
-  it('is scheduled hourly, off the minutes the full check and IndexNow use', () => {
-    const fast = cronSchedules().find((c) => c.job === 'layoff-news-fast')
-    expect(fast?.schedule).toBe('50 * * * *')
-    expect(fast?.maxGapMinutes).toBe(180)
+  it('shares the layoff-news cron, which runs hourly, and the project stays within the 100 crons Vercel allows', () => {
+    const all = cronSchedules()
+    const news = all.find((c) => c.job === 'layoff-news')
+    expect(news?.schedule).toBe('20 * * * *')
+    expect(news?.maxGapMinutes).toBe(180)
+    expect(all.length).toBeLessThanOrEqual(100)
   })
 })

@@ -293,12 +293,8 @@
       "schedule": "*/10 * * * *"
     },
     {
-      "path": "/api/cron/layoff-news-fast",
-      "schedule": "50 * * * *"
-    },
-    {
       "path": "/api/cron/layoff-news",
-      "schedule": "20 */3 * * *"
+      "schedule": "20 * * * *"
     },
     {
       "path": "/api/cron/news-discovery",
