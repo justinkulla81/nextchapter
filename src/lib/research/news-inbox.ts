@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { getMessageContent, listMessagesByQuery } from '@/lib/google/gmail'
+import { getMessageContent, listMessagesForSearch } from '@/lib/google/gmail'
 import { fetchArticle } from './fetch-article'
 import { routeNewsItem } from './route-news'
 import { unwrapFeedLink } from '@/lib/news/discover'
@@ -52,7 +52,7 @@ export async function sweepNewsInbox(accessToken: string): Promise<NewsInboxResu
   if (!process.env.ANTHROPIC_API_KEY) return result
 
   const senders = newsInboxSenders().join(' OR ')
-  const listed = await listMessagesByQuery(accessToken, `to:${NEWS_ADDRESS} from:(${senders}) newer_than:7d`, MAX_EMAILS)
+  const listed = await listMessagesForSearch(accessToken, `to:${NEWS_ADDRESS} from:(${senders}) newer_than:7d`, MAX_EMAILS)
   const ids = listed.map((m) => `news-inbox:${m.id}`)
   const done = new Set(
     (await prisma.newsletterMessage.findMany({ where: { messageId: { in: ids } }, select: { messageId: true } })).map((m) => m.messageId)

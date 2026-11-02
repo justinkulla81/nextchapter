@@ -45,7 +45,7 @@ export async function listNewsletterMessages(accessToken: string, senderQuery: s
 }
 
 /** Messages matching a Gmail search, newest first, read or not; the caller remembers which it has handled. */
-export async function listMessagesByQuery(accessToken: string, query: string, maxResults = 10): Promise<GmailMessageSummary[]> {
+export async function listMessagesForSearch(accessToken: string, query: string, maxResults = 10): Promise<GmailMessageSummary[]> {
   const params = new URLSearchParams({ q: query, maxResults: String(maxResults) })
   const response = await fetch(`${GMAIL_API_BASE}/messages?${params.toString()}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
