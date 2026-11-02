@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react'
 import { posthog } from '@/lib/posthog/client'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { addLink, runNewsDiscoveryNow, updateNewsItem } from '@/app/support/admin/(portal)/digest/actions'
+import { addLink, checkNewsInboxNow, runNewsDiscoveryNow, updateNewsItem } from '@/app/support/admin/(portal)/digest/actions'
 import { NEWS_TAGS } from '@/lib/news/tags'
 import { COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
 
@@ -237,6 +237,24 @@ export function FindArticlesForm({ topics }: { topics: string[] }) {
         <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Show the topics</summary>
         <p className="mt-1 text-muted-foreground">{topics.join(' · ')}</p>
       </details>
+      {state?.message && <p role="status" className="mt-2 text-sm text-primary">{state.message}</p>}
+    </form>
+  )
+}
+
+export function CheckNewsInboxForm() {
+  const [state, formAction] = useActionState(checkNewsInboxNow, undefined)
+  return (
+    <form action={formAction} className="rounded-lg border border-border p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium">Sent to news@</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Articles you email to news@launchyournextchapter.com are read every morning, judged, and filed below with where they go. Check now to read what is waiting.
+          </p>
+        </div>
+        <SubmitButton variant="outline" pendingLabel="Reading…" savedLabel="Done">Check news@ now</SubmitButton>
+      </div>
       {state?.message && <p role="status" className="mt-2 text-sm text-primary">{state.message}</p>}
     </form>
   )
