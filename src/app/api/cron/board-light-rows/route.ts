@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { withCronRun } from '@/lib/cron/run'
 import { reconcileBoardLightRows } from '@/lib/jobs/board-light-rows'
 
-export const maxDuration = 300
+export const maxDuration = 800
 
 // Nightly check on the board's narrow copy of the job table (BoardLightRow,
 // board-light-rows.ts). Triggers keep it in step on every write, so this

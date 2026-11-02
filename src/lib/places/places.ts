@@ -241,7 +241,7 @@ const getJobCounts = cache(async (state: string | null): Promise<Map<string, Map
 const getStateJobTotal = cache(async (state: string): Promise<number> => (await getJobAggregate()).get(state)?.total ?? 0)
 
 export interface PlaceCenter { id: string; name: string; kind: string | null; city: string | null; phone: string | null; hours: string | null; detailsUrl: string | null; boardId: string | null; countyFips: string | null; state: string }
-export interface PlaceCollege { id: string; name: string; city: string | null; sector: number | null; size: number | null; website: string | null; countyFips: string | null; state: string }
+export interface PlaceCollege { id: string; name: string; city: string | null; sector: number | null; size: number | null; website: string | null; countyFips: string | null; state: string; href: string | null }
 
 const loadCenters = cache(async (state: string | null): Promise<PlaceCenter[]> => {
   const rows = await prisma.americanJobCenter.findMany({
@@ -258,7 +258,15 @@ const loadColleges = cache(async (state: string | null): Promise<PlaceCollege[]>
     select: { id: true, name: true, city: true, sector: true, size: true, website: true, countyFips: true, state: true },
     orderBy: [{ size: { sort: 'desc', nulls: 'last' } }, { name: 'asc' }],
   })
-  return rows
+  // The college's own page; the listing module imports this one, so it loads lazily.
+  let slugs = new Map<string, string>()
+  if (state) {
+    const { getStateCollegeListings } = await import('@/lib/seo/college-pages')
+    slugs = new Map((await getStateCollegeListings(state)).map((l) => [l.unitid, l.slug]))
+  }
+  const { collegePath } = await import('@/lib/seo/college-bar')
+  const { stateSlug } = await import('@/lib/seo/states')
+  return rows.map((r) => ({ ...r, href: state && slugs.has(r.id) ? collegePath(stateSlug(state), slugs.get(r.id)!) : null }))
 })
 
 // ---------------------------------------------------------------------------------------------
@@ -290,6 +298,13 @@ export async function getCountiesWithRecentNotices(): Promise<Set<string>> {
     out.add(`${n.state}|${countyKey(n.place)}`)
   }
   return out
+}
+
+/** A notice's county and city: the filing's own place text, plus the city on the site address when the filing names only a county. */
+export function noticeAreasOf(n: Pick<PublicNotice, 'place' | 'city'>, cityKeys: Set<string>): { county: string | null; city: string | null } {
+  const a = noticeAreas(n.place, cityKeys)
+  if (!a.city && n.city && cityKeys.has(placeKey(n.city))) return { ...a, city: n.city }
+  return a
 }
 
 export interface LayoffStats { notices: number; workers: number; employers: number }
@@ -332,7 +347,7 @@ function buildCityEntries(
   const c24 = cutoff24()
   for (const n of notices) {
     if (n.noticeDate.getTime() < c24) continue
-    const city = noticeAreas(n.place, keySet).city
+    const city = noticeAreasOf(n, keySet).city
     if (!city) continue
     const k = canon(placeKey(city))
     if (!byKey.has(k)) continue
@@ -528,7 +543,7 @@ export async function getCountyPage(state: string, slug: string): Promise<County
   const stateKeys = new Set(places.map((p) => p.key))
   const mine = notices.filter((n) => {
     if (n.state !== state) return false
-    const a = noticeAreas(n.place, stateKeys)
+    const a = noticeAreasOf(n, stateKeys)
     return (!!a.county && countyKey(a.county) === cKey) || (!!a.city && cityKeys.has(placeKey(a.city)))
   })
   const stateJobs = jobs.get(state) ?? new Map<string, number>()
@@ -578,7 +593,7 @@ export async function getCityPage(state: string, slug: string): Promise<CityPage
   const stateKeys = new Set(places.map((p) => p.key))
   const mine = notices.filter((n) => {
     if (n.state !== state) return false
-    const a = noticeAreas(n.place, stateKeys)
+    const a = noticeAreasOf(n, stateKeys)
     return !!a.city && placeKey(a.city) === place.key
   })
   const county = place.county ? counties.find((c) => c.name === place.county) ?? null : null

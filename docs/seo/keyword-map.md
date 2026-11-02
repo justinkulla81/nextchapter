@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-193 clusters, 1122 phrases.
+212 clusters, 1282 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -141,7 +141,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/resume-job-match` | page | resume vs job description | Compare my resume to a job description and see missing keywords | resume job description match; compare resume to job description; resume keyword checker; resume scanner; ats resume scanner; resume keywords for a job; match resume to job description; resume job match score |
 | `/tools/warn-notice-generator` | page | WARN notice template | Draft the WARN notices for a layoff or plant closing | WARN notice generator; WARN Act notice letter; WARN notice sample; WARN notice requirements; WARN notice to employees template; mass layoff notice letter; layoff notice template |
 | `/resources/warn-act/:state` | family | {state} mini-WARN law | A state’s own WARN Act or layoff notice law | {state} layoff notice law; {state} WARN notice requirements; {state} plant closing law; {state} WARN Act statute |
-| `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; what is COBRA; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
+| `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is COBRA; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
 | `/events` | page | job fairs near me | Job fairs and business events near me | career fairs near me; hiring events near me; small business workshops near me; startup events near me |
 | `/events/:state` | family | {state} job fairs | Job fairs and business events in one state | {state} career fairs; {state} hiring events; {state} small business workshops; {state} startup events |
 | `/places` | page | local job markets | Job market in my area | jobs near me; job market by state and county; local unemployment rate; job openings by county; largest employers near me |
@@ -169,8 +169,27 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/topics/acquisition-layoffs` | page | layoffs after an acquisition | Judge the risk of layoffs after my company is acquired | will i be laid off after an acquisition; company acquired what happens to my job; layoffs after a merger; merger layoffs; acquisition layoffs timeline; what to ask if your company is acquired; worried about layoffs after acquisition |
 | `/topics/should-i-take-the-buyout` | page | should i take the buyout | Decide whether to accept a voluntary buyout offer | voluntary buyout; voluntary separation package; voluntary separation program; buyout offer from employer; voluntary severance; deferred resignation; is a buyout worth it |
 | `/topics/fired-vs-laid-off` | page | fired vs laid off | Understand the difference between being fired and laid off | difference between fired and laid off; laid off vs fired; terminated vs laid off; laid off or fired unemployment; fired vs let go; can i collect unemployment if i was fired |
+| `/topics/reduction-in-force` | page | reduction in force | Understand a reduction in force and what to do after a RIF letter | what is a RIF; what is a reduction in force; reduction in force meaning; RIF vs layoff; RIF letter; RIF notice what to do; RIF severance pay; RIF and unemployment; how are employees chosen for a RIF; RIF selection criteria; RIF over 40; can i be rehired after a RIF |
+| `/topics/federal-rif` | page | federal RIF | Know your rights in a federal reduction in force | federal reduction in force; federal RIF rights; federal RIF notice; federal RIF severance; federal RIF appeal; MSPB RIF appeal; federal employee unemployment UCFE; RIF bump and retreat rights; CTAP and ICTAP; federal employees laid off; federal RIF retirement |
+| `/topics/unemployment-denied-appeal` | page | unemployment denied | Appeal a denied unemployment claim or an overpayment | unemployment appeal; how to appeal unemployment; unemployment appeal hearing; unemployment overpayment; unemployment overpayment waiver; unemployment claim denied; why was my unemployment denied; unemployment denied what to do |
+| `/topics/unemployment-after-quitting-or-firing` | page | unemployment after quitting | Collect unemployment after quitting or being fired | can i collect unemployment if i quit; unemployment after being fired; unemployment if you quit; good cause to quit unemployment; fired for misconduct unemployment; unemployment forced resignation; unemployment after resigning; unemployment misconduct |
+| `/topics/unemployment-taxes-1099g` | page | is unemployment taxable | Understand tax on unemployment benefits and the 1099-G | unemployment taxes; 1099-G unemployment; form 1099-G; unemployment tax withholding; withhold taxes from unemployment; do you pay taxes on unemployment; is unemployment income taxable; how much tax is taken out of unemployment |
+| `/topics/unemployment-extension` | page | unemployment extension | Know what happens when unemployment runs out | extended unemployment benefits; extended benefits; what happens when unemployment runs out; unemployment benefits ran out; unemployment exhausted; unemployment benefits exhausted; is there an unemployment extension |
+| `/topics/unemployment-payment-timing` | page | how long until first unemployment payment | Know when the first unemployment payment arrives and why it is late | how long does it take to get unemployment; when will i get my first unemployment check; unemployment payment delayed; unemployment pending; unemployment claim pending; what does pending mean unemployment; unemployment payment late |
+| `/topics/unemployment-self-employed` | page | unemployment for self-employed | Find out whether self-employed people and gig workers can claim unemployment | self employed unemployment; unemployment for contractors; unemployment for gig workers; 1099 unemployment; unemployment for independent contractors; can freelancers get unemployment; unemployment for freelancers |
 | `/topics/how-to-lay-off-employees` | page | how to lay off employees | Employer plans a layoff | layoff checklist for employers; layoff communication plan; layoff process; how to conduct a layoff; layoff meeting script |
-| `/topics/cover-letter-tips` | page | cover letter tips | Write a cover letter | cover letter for experienced professionals; cover letter after layoff; cover letter for career change; how long should a cover letter be; do I need a cover letter |
+| `/topics/cover-letter-tips` | page | cover letter tips | Write a cover letter | cover letter for experienced professionals; cover letter after layoff; how long should a cover letter be; do I need a cover letter |
+| `/topics/resume-template` | page | resume template | Find a simple resume template or layout | resume templates; free resume template; resume template for experienced professionals; professional resume template; simple resume template; resume layout; resume sections; what to include on a resume |
+| `/topics/resume-format` | page | resume format | Choose a resume format | chronological resume; functional resume; combination resume; chronological vs functional resume; which resume format is best; resume format for experienced professionals; how to format a resume; resume font and margins; resume font size; resume margins |
+| `/topics/resume-objective` | page | resume objective | Decide whether to use a resume objective | resume objective examples; resume objective vs summary; resume summary vs objective; do i need a resume objective; career objective for resume; resume objective for career change |
+| `/topics/resume-skills` | page | resume skills | Decide which skills to put on a resume | skills to put on a resume; skills section on resume; how to list skills on a resume; hard skills for resume; soft skills for resume; technical skills on resume; how many skills on a resume |
+| `/topics/resume-length` | page | how long should a resume be | Decide how long a resume should be | resume length; one page resume; two page resume; one page or two page resume; is a two page resume ok; how many pages should a resume be; how far back should a resume go |
+| `/topics/resume-career-change` | page | resume for career change | Write a resume when changing careers | career change resume; resume for a career pivot; how to write a resume when changing careers; transferable skills on a resume; career change resume summary |
+| `/topics/federal-resume` | page | federal resume format | Write a federal resume for USAJOBS | federal resume; usajobs resume; how to write a federal resume; usajobs resume builder; federal resume length; federal resume requirements |
+| `/topics/cover-letter-examples` | page | cover letter example | Read cover letter examples | cover letter examples; cover letter sample; cover letter samples; good cover letter examples; professional cover letter example |
+| `/topics/cover-letter-template` | page | cover letter template | Use a cover letter template | cover letter format; cover letter structure; cover letter outline; how to write a cover letter; cover letter sections; professional cover letter template; simple cover letter template; email cover letter |
+| `/topics/how-to-start-a-cover-letter` | page | how to start a cover letter | Start a cover letter | cover letter opening; cover letter opening lines; cover letter first paragraph; cover letter introduction; how to begin a cover letter; cover letter opening sentence; how to end a cover letter; cover letter closing |
+| `/topics/cover-letter-career-change` | page | cover letter for career change | Write a cover letter when changing careers | career change cover letter; cover letter career change example; cover letter when changing careers; cover letter for a different industry; cover letter with no experience in the field |
 | `/topics/executive-recruiters` | page | executive recruiters | Work with executive recruiters and search firms | executive search firms; retained search firms; headhunters; how to work with an executive recruiter; how to get on a recruiter’s radar; contingent vs retained recruiters; find an executive recruiter; executive search |
 | `/topics/reverse-recruiter` | page | reverse recruiter | Have someone represent me to employers | reverse recruiting; reverse recruiting services; candidate marketing; job search representation; someone to find jobs for me; recruiter that works for the candidate |
 | `/topics/resume-review` | page | free resume review | Get my resume reviewed | resume review; resume feedback; review my resume; is my resume good; resume critique; ats resume checker |
@@ -941,6 +960,46 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Fired vs Laid Off: The Difference and Why It Matters
 - Description: How a layoff differs from a firing, what each means for unemployment, severance and COBRA, what the paperwork should say and how to explain either in an interview.
 
+### `/topics/reduction-in-force`
+
+- Title: Reduction in Force (RIF): Meaning, Rights and Next Steps
+- Description: What a reduction in force is, how it differs from a layoff, what a RIF letter should say, and the severance, WARN and unemployment steps to take in the first week.
+
+### `/topics/federal-rif`
+
+- Title: Federal RIF: Rights, Notice, Severance and How to Appeal
+- Description: What a federal reduction in force means: 60-day notice, retention order, severance pay, unemployment (UCFE), MSPB appeal and priority for other federal jobs.
+
+### `/topics/unemployment-denied-appeal`
+
+- Title: Unemployment Denied: How to Appeal and What to Do Now
+- Description: Unemployment denied? The appeal deadline, why claims are denied, what happens at a hearing, and what to do about an overpayment notice, step by step.
+
+### `/topics/unemployment-after-quitting-or-firing`
+
+- Title: Unemployment After Quitting or Being Fired: What Counts
+- Description: Can you collect unemployment after quitting or being fired? What counts as misconduct and good cause, what to do if forced to resign, and how to file.
+
+### `/topics/unemployment-taxes-1099g`
+
+- Title: Is Unemployment Taxable? 1099-G, Withholding and State Tax
+- Description: Unemployment is taxable income. How the 1099-G works, how to withhold 10%, which states exempt benefits, and what to do about a wrong or unexpected form.
+
+### `/topics/unemployment-extension`
+
+- Title: Unemployment Extension: What to Do When Benefits Run Out
+- Description: How many weeks unemployment lasts, when Extended Benefits switch on, whether a federal extension exists and what to line up before your last payment.
+
+### `/topics/unemployment-payment-timing`
+
+- Title: How Long Until Your First Unemployment Payment?
+- Description: Most first unemployment payments arrive in two to three weeks. Why a claim is pending or late, what to check, and what to do while you wait.
+
+### `/topics/unemployment-self-employed`
+
+- Title: Unemployment for Self-Employed, Contractors and Gig Workers
+- Description: Can self-employed people, 1099 contractors and gig workers get unemployment? Who is covered, when W-2 wages count and what to use instead.
+
 ### `/topics/how-to-lay-off-employees`
 
 - Title: How to Lay Off Employees: A Checklist for Employers
@@ -950,6 +1009,61 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Cover Letter Tips for Experienced Professionals
 - Description: A good cover letter is short: why this role, two results that match it and what you will do first. When to write one and how to explain a change or a layoff.
+
+### `/topics/resume-template`
+
+- Title: Resume Template: A Simple Layout That Gets Read
+- Description: A simple one-column resume template for experienced professionals: the sections, how to write each bullet, and what to avoid so screening software can read it.
+
+### `/topics/resume-format`
+
+- Title: Resume Format: Chronological, Functional or Combination
+- Description: Which resume format to use: why reverse-chronological is the default, when a combination format fits a career change, and the font, size and margins to use.
+
+### `/topics/resume-objective`
+
+- Title: Resume Objective: When to Use One and What to Write Instead
+- Description: Should you put an objective on your resume? When an objective helps, how it differs from a summary, with examples for career changers and new graduates.
+
+### `/topics/resume-skills`
+
+- Title: Resume Skills: What to List and How to List It
+- Description: Which skills to put on a resume, how many, how to group them and match them to the job posting, and how to show a skill with a result instead of a list.
+
+### `/topics/resume-length`
+
+- Title: How Long Should a Resume Be? One Page or Two
+- Description: One page or two? A simple rule by years of experience, what to cut, how far back to go, and why you should not shrink the type to make a resume fit.
+
+### `/topics/resume-career-change`
+
+- Title: Resume for a Career Change: How to Write It
+- Description: How to write a resume for a career change: name the target role, lead with transferable results, use a combination format and fill the gap with proof.
+
+### `/topics/federal-resume`
+
+- Title: Federal Resume Format: How to Write One for USAJOBS
+- Description: What a federal resume must include (hours, salary, supervisor, detailed duties), how long it runs, and how to match a USAJOBS announcement.
+
+### `/topics/cover-letter-examples`
+
+- Title: Cover Letter Examples You Can Adapt (Three Full Letters)
+- Description: Three full cover letter examples, for an experienced hire, a career changer and a return to work, with what they share and how to adapt them to your own results.
+
+### `/topics/cover-letter-template`
+
+- Title: Cover Letter Template: Structure, Format and What to Write
+- Description: A cover letter template with the outline, a fill-in version, the right length and format, and the mistakes that get a letter ignored.
+
+### `/topics/how-to-start-a-cover-letter`
+
+- Title: How to Start a Cover Letter: Opening Lines That Work
+- Description: Four ways to open a cover letter that earn a second read, what to avoid, and how to end it with a plain ask to talk.
+
+### `/topics/cover-letter-career-change`
+
+- Title: Cover Letter for a Career Change: Structure and Example
+- Description: How to write a cover letter for a career change: explain the move in one line, show a result that transfers, say how you prepared, with a full example.
 
 ### `/topics/executive-recruiters`
 

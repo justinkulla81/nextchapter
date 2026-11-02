@@ -1620,7 +1620,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/glossary',
     kind: 'page',
     primary: 'layoff and job search glossary',
-    secondary: ['what is a WARN notice', 'what is a reduction in force', 'what is COBRA', 'what is a retained search', 'what is garden leave', 'what is an applicant tracking system', 'what is a dislocated worker', 'what is an american job center', 'what is a release agreement', 'what is fractional work', 'what are transferable skills', 'what is total compensation', 'what is a non-compete'],
+    secondary: ['what is a WARN notice', 'what is COBRA', 'what is a retained search', 'what is garden leave', 'what is an applicant tracking system', 'what is a dislocated worker', 'what is an american job center', 'what is a release agreement', 'what is fractional work', 'what are transferable skills', 'what is total compensation', 'what is a non-compete'],
     seo: {
       title: 'Layoff and Job Search Glossary: Plain Definitions',
       description: 'Plain definitions of WARN notice, reduction in force, severance, COBRA, outplacement, executive recruiter, reverse recruiter, ATS and more layoff terms.',
@@ -1925,6 +1925,110 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'reduction-in-force',
+    intent: 'Understand a reduction in force and what to do after a RIF letter',
+    owner: '/topics/reduction-in-force',
+    kind: 'page',
+    primary: 'reduction in force',
+    secondary: ['what is a RIF', 'what is a reduction in force', 'reduction in force meaning', 'RIF vs layoff', 'RIF letter', 'RIF notice what to do', 'RIF severance pay', 'RIF and unemployment', 'how are employees chosen for a RIF', 'RIF selection criteria', 'RIF over 40', 'can i be rehired after a RIF'],
+    seo: {
+      title: 'Reduction in Force (RIF): Meaning, Rights and Next Steps',
+      description:
+        'What a reduction in force is, how it differs from a layoff, what a RIF letter should say, and the severance, WARN and unemployment steps to take in the first week.',
+    },
+  },
+  {
+    id: 'federal-rif',
+    intent: 'Know your rights in a federal reduction in force',
+    owner: '/topics/federal-rif',
+    kind: 'page',
+    primary: 'federal RIF',
+    secondary: ['federal reduction in force', 'federal RIF rights', 'federal RIF notice', 'federal RIF severance', 'federal RIF appeal', 'MSPB RIF appeal', 'federal employee unemployment UCFE', 'RIF bump and retreat rights', 'CTAP and ICTAP', 'federal employees laid off', 'federal RIF retirement'],
+    seo: {
+      title: 'Federal RIF: Rights, Notice, Severance and How to Appeal',
+      description:
+        'What a federal reduction in force means: 60-day notice, retention order, severance pay, unemployment (UCFE), MSPB appeal and priority for other federal jobs.',
+    },
+  },
+  {
+    id: 'unemployment-denied',
+    intent: 'Appeal a denied unemployment claim or an overpayment',
+    owner: '/topics/unemployment-denied-appeal',
+    kind: 'page',
+    primary: 'unemployment denied',
+    secondary: ['unemployment appeal', 'how to appeal unemployment', 'unemployment appeal hearing', 'unemployment overpayment', 'unemployment overpayment waiver', 'unemployment claim denied', 'why was my unemployment denied', 'unemployment denied what to do'],
+    seo: {
+      title: 'Unemployment Denied: How to Appeal and What to Do Now',
+      description:
+        'Unemployment denied? The appeal deadline, why claims are denied, what happens at a hearing, and what to do about an overpayment notice, step by step.',
+    },
+  },
+  {
+    id: 'unemployment-quit-fired',
+    intent: 'Collect unemployment after quitting or being fired',
+    owner: '/topics/unemployment-after-quitting-or-firing',
+    kind: 'page',
+    primary: 'unemployment after quitting',
+    secondary: ['can i collect unemployment if i quit', 'unemployment after being fired', 'unemployment if you quit', 'good cause to quit unemployment', 'fired for misconduct unemployment', 'unemployment forced resignation', 'unemployment after resigning', 'unemployment misconduct'],
+    seo: {
+      title: 'Unemployment After Quitting or Being Fired: What Counts',
+      description:
+        'Can you collect unemployment after quitting or being fired? What counts as misconduct and good cause, what to do if forced to resign, and how to file.',
+    },
+  },
+  {
+    id: 'unemployment-taxes',
+    intent: 'Understand tax on unemployment benefits and the 1099-G',
+    owner: '/topics/unemployment-taxes-1099g',
+    kind: 'page',
+    primary: 'is unemployment taxable',
+    secondary: ['unemployment taxes', '1099-G unemployment', 'form 1099-G', 'unemployment tax withholding', 'withhold taxes from unemployment', 'do you pay taxes on unemployment', 'is unemployment income taxable', 'how much tax is taken out of unemployment'],
+    seo: {
+      title: 'Is Unemployment Taxable? 1099-G, Withholding and State Tax',
+      description:
+        'Unemployment is taxable income. How the 1099-G works, how to withhold 10%, which states exempt benefits, and what to do about a wrong or unexpected form.',
+    },
+  },
+  {
+    id: 'unemployment-extension',
+    intent: 'Know what happens when unemployment runs out',
+    owner: '/topics/unemployment-extension',
+    kind: 'page',
+    primary: 'unemployment extension',
+    secondary: ['extended unemployment benefits', 'extended benefits', 'what happens when unemployment runs out', 'unemployment benefits ran out', 'unemployment exhausted', 'unemployment benefits exhausted', 'is there an unemployment extension'],
+    seo: {
+      title: 'Unemployment Extension: What to Do When Benefits Run Out',
+      description:
+        'How many weeks unemployment lasts, when Extended Benefits switch on, whether a federal extension exists and what to line up before your last payment.',
+    },
+  },
+  {
+    id: 'unemployment-payment-timing',
+    intent: 'Know when the first unemployment payment arrives and why it is late',
+    owner: '/topics/unemployment-payment-timing',
+    kind: 'page',
+    primary: 'how long until first unemployment payment',
+    secondary: ['how long does it take to get unemployment', 'when will i get my first unemployment check', 'unemployment payment delayed', 'unemployment pending', 'unemployment claim pending', 'what does pending mean unemployment', 'unemployment payment late'],
+    seo: {
+      title: 'How Long Until Your First Unemployment Payment?',
+      description:
+        'Most first unemployment payments arrive in two to three weeks. Why a claim is pending or late, what to check, and what to do while you wait.',
+    },
+  },
+  {
+    id: 'unemployment-self-employed',
+    intent: 'Find out whether self-employed people and gig workers can claim unemployment',
+    owner: '/topics/unemployment-self-employed',
+    kind: 'page',
+    primary: 'unemployment for self-employed',
+    secondary: ['self employed unemployment', 'unemployment for contractors', 'unemployment for gig workers', '1099 unemployment', 'unemployment for independent contractors', 'can freelancers get unemployment', 'unemployment for freelancers'],
+    seo: {
+      title: 'Unemployment for Self-Employed, Contractors and Gig Workers',
+      description:
+        'Can self-employed people, 1099 contractors and gig workers get unemployment? Who is covered, when W-2 wages count and what to use instead.',
+    },
+  },
+  {
     id: 'how-to-lay-off',
     intent: 'Employer plans a layoff',
     owner: '/topics/how-to-lay-off-employees',
@@ -1942,10 +2046,153 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/topics/cover-letter-tips',
     kind: 'page',
     primary: 'cover letter tips',
-    secondary: ['cover letter for experienced professionals', 'cover letter after layoff', 'cover letter for career change', 'how long should a cover letter be', 'do I need a cover letter'],
+    secondary: ['cover letter for experienced professionals', 'cover letter after layoff', 'how long should a cover letter be', 'do I need a cover letter'],
     seo: {
       title: 'Cover Letter Tips for Experienced Professionals',
       description: 'A good cover letter is short: why this role, two results that match it and what you will do first. When to write one and how to explain a change or a layoff.',
+    },
+  },
+  {
+    id: 'resume-template',
+    intent: 'Find a simple resume template or layout',
+    owner: '/topics/resume-template',
+    kind: 'page',
+    primary: 'resume template',
+    secondary: ['resume templates', 'free resume template', 'resume template for experienced professionals', 'professional resume template', 'simple resume template', 'resume layout', 'resume sections', 'what to include on a resume'],
+    seo: {
+      title: 'Resume Template: A Simple Layout That Gets Read',
+      description:
+        'A simple one-column resume template for experienced professionals: the sections, how to write each bullet, and what to avoid so screening software can read it.',
+    },
+  },
+  {
+    id: 'resume-format',
+    intent: 'Choose a resume format',
+    owner: '/topics/resume-format',
+    kind: 'page',
+    primary: 'resume format',
+    secondary: ['chronological resume', 'functional resume', 'combination resume', 'chronological vs functional resume', 'which resume format is best', 'resume format for experienced professionals', 'how to format a resume', 'resume font and margins', 'resume font size', 'resume margins'],
+    seo: {
+      title: 'Resume Format: Chronological, Functional or Combination',
+      description:
+        'Which resume format to use: why reverse-chronological is the default, when a combination format fits a career change, and the font, size and margins to use.',
+    },
+  },
+  {
+    id: 'resume-objective',
+    intent: 'Decide whether to use a resume objective',
+    owner: '/topics/resume-objective',
+    kind: 'page',
+    primary: 'resume objective',
+    secondary: ['resume objective examples', 'resume objective vs summary', 'resume summary vs objective', 'do i need a resume objective', 'career objective for resume', 'resume objective for career change'],
+    seo: {
+      title: 'Resume Objective: When to Use One and What to Write Instead',
+      description:
+        'Should you put an objective on your resume? When an objective helps, how it differs from a summary, with examples for career changers and new graduates.',
+    },
+  },
+  {
+    id: 'resume-skills',
+    intent: 'Decide which skills to put on a resume',
+    owner: '/topics/resume-skills',
+    kind: 'page',
+    primary: 'resume skills',
+    secondary: ['skills to put on a resume', 'skills section on resume', 'how to list skills on a resume', 'hard skills for resume', 'soft skills for resume', 'technical skills on resume', 'how many skills on a resume'],
+    seo: {
+      title: 'Resume Skills: What to List and How to List It',
+      description:
+        'Which skills to put on a resume, how many, how to group them and match them to the job posting, and how to show a skill with a result instead of a list.',
+    },
+  },
+  {
+    id: 'resume-length',
+    intent: 'Decide how long a resume should be',
+    owner: '/topics/resume-length',
+    kind: 'page',
+    primary: 'how long should a resume be',
+    secondary: ['resume length', 'one page resume', 'two page resume', 'one page or two page resume', 'is a two page resume ok', 'how many pages should a resume be', 'how far back should a resume go'],
+    seo: {
+      title: 'How Long Should a Resume Be? One Page or Two',
+      description:
+        'One page or two? A simple rule by years of experience, what to cut, how far back to go, and why you should not shrink the type to make a resume fit.',
+    },
+  },
+  {
+    id: 'resume-career-change',
+    intent: 'Write a resume when changing careers',
+    owner: '/topics/resume-career-change',
+    kind: 'page',
+    primary: 'resume for career change',
+    secondary: ['career change resume', 'resume for a career pivot', 'how to write a resume when changing careers', 'transferable skills on a resume', 'career change resume summary'],
+    seo: {
+      title: 'Resume for a Career Change: How to Write It',
+      description:
+        'How to write a resume for a career change: name the target role, lead with transferable results, use a combination format and fill the gap with proof.',
+    },
+  },
+  {
+    id: 'federal-resume',
+    intent: 'Write a federal resume for USAJOBS',
+    owner: '/topics/federal-resume',
+    kind: 'page',
+    primary: 'federal resume format',
+    secondary: ['federal resume', 'usajobs resume', 'how to write a federal resume', 'usajobs resume builder', 'federal resume length', 'federal resume requirements'],
+    seo: {
+      title: 'Federal Resume Format: How to Write One for USAJOBS',
+      description:
+        'What a federal resume must include (hours, salary, supervisor, detailed duties), how long it runs, and how to match a USAJOBS announcement.',
+    },
+  },
+  {
+    id: 'cover-letter-examples',
+    intent: 'Read cover letter examples',
+    owner: '/topics/cover-letter-examples',
+    kind: 'page',
+    primary: 'cover letter example',
+    secondary: ['cover letter examples', 'cover letter sample', 'cover letter samples', 'good cover letter examples', 'professional cover letter example'],
+    seo: {
+      title: 'Cover Letter Examples You Can Adapt (Three Full Letters)',
+      description:
+        'Three full cover letter examples, for an experienced hire, a career changer and a return to work, with what they share and how to adapt them to your own results.',
+    },
+  },
+  {
+    id: 'cover-letter-template',
+    intent: 'Use a cover letter template',
+    owner: '/topics/cover-letter-template',
+    kind: 'page',
+    primary: 'cover letter template',
+    secondary: ['cover letter format', 'cover letter structure', 'cover letter outline', 'how to write a cover letter', 'cover letter sections', 'professional cover letter template', 'simple cover letter template', 'email cover letter'],
+    seo: {
+      title: 'Cover Letter Template: Structure, Format and What to Write',
+      description:
+        'A cover letter template with the outline, a fill-in version, the right length and format, and the mistakes that get a letter ignored.',
+    },
+  },
+  {
+    id: 'cover-letter-start',
+    intent: 'Start a cover letter',
+    owner: '/topics/how-to-start-a-cover-letter',
+    kind: 'page',
+    primary: 'how to start a cover letter',
+    secondary: ['cover letter opening', 'cover letter opening lines', 'cover letter first paragraph', 'cover letter introduction', 'how to begin a cover letter', 'cover letter opening sentence', 'how to end a cover letter', 'cover letter closing'],
+    seo: {
+      title: 'How to Start a Cover Letter: Opening Lines That Work',
+      description:
+        'Four ways to open a cover letter that earn a second read, what to avoid, and how to end it with a plain ask to talk.',
+    },
+  },
+  {
+    id: 'cover-letter-career-change',
+    intent: 'Write a cover letter when changing careers',
+    owner: '/topics/cover-letter-career-change',
+    kind: 'page',
+    primary: 'cover letter for career change',
+    secondary: ['career change cover letter', 'cover letter career change example', 'cover letter when changing careers', 'cover letter for a different industry', 'cover letter with no experience in the field'],
+    seo: {
+      title: 'Cover Letter for a Career Change: Structure and Example',
+      description:
+        'How to write a cover letter for a career change: explain the move in one line, show a result that transfers, say how you prepared, with a full example.',
     },
   },
   {
@@ -2453,7 +2700,26 @@ export const ANCHORS: Record<string, string> = {
   '/topics/acquisition-layoffs': 'Layoffs after an acquisition',
   '/topics/should-i-take-the-buyout': 'Should I take the buyout?',
   '/topics/fired-vs-laid-off': 'Fired vs laid off',
+  '/topics/reduction-in-force': 'Reduction in force (RIF)',
+  '/topics/federal-rif': 'Federal RIF rights and appeal',
+  '/topics/unemployment-denied-appeal': 'Unemployment denied: how to appeal',
+  '/topics/unemployment-after-quitting-or-firing': 'Unemployment after quitting or being fired',
+  '/topics/unemployment-taxes-1099g': 'Is unemployment taxable?',
+  '/topics/unemployment-extension': 'Unemployment extension',
+  '/topics/unemployment-payment-timing': 'When your first unemployment payment arrives',
+  '/topics/unemployment-self-employed': 'Unemployment for the self-employed',
   '/topics/cover-letter-tips': 'Cover letter tips',
+  '/topics/resume-template': 'Resume template',
+  '/topics/resume-format': 'Resume format',
+  '/topics/resume-objective': 'Resume objective',
+  '/topics/resume-skills': 'Resume skills',
+  '/topics/resume-length': 'How long a resume should be',
+  '/topics/resume-career-change': 'Resume for a career change',
+  '/topics/federal-resume': 'Federal resume format',
+  '/topics/cover-letter-examples': 'Cover letter examples',
+  '/topics/cover-letter-template': 'Cover letter template',
+  '/topics/how-to-start-a-cover-letter': 'How to start a cover letter',
+  '/topics/cover-letter-career-change': 'Cover letter for a career change',
   '/topics/severance': 'Severance package: what it is and how to negotiate',
   '/topics/job-search-strategy': 'Job search strategy',
   '/topics/resume-tips': 'Resume tips for experienced professionals',
@@ -2536,6 +2802,17 @@ export const RELATED: Record<string, string[]> = {
   '/tools/severance-calculator': ['/topics/severance', '/unemployment-benefits', '/resources/cobra-aca', '/tools/cobra-vs-aca-calculator', '/resources/72-hours'],
   '/tools/cobra-vs-aca-calculator': ['/resources/cobra-aca', '/tools/layoff-deadlines', '/unemployment-benefits', '/tools/severance-calculator'],
   '/topics/job-search-strategy': ['/places', '/resources/unemployed', '/why-stuck', '/resources/network-activation', '/topics/resume-tips', '/jobs', '/coaching'],
+  '/topics/resume-template': ['/topics/resume-format', '/topics/resume-skills', '/topics/resume-tips', '/topics/resume-examples', '/tools/resume-check'],
+  '/topics/resume-format': ['/topics/resume-template', '/topics/resume-career-change', '/topics/resume-gap', '/topics/resume-length', '/tools/resume-check'],
+  '/topics/resume-objective': ['/topics/resume-tips', '/topics/resume-career-change', '/topics/resume-examples', '/topics/resume-template', '/tools/resume-check'],
+  '/topics/resume-skills': ['/tools/resume-job-match', '/topics/resume-template', '/topics/resume-career-change', '/topics/resume-ats-ai-screening', '/ai-skills'],
+  '/topics/resume-length': ['/topics/resume-template', '/topics/federal-resume', '/topics/resume-format', '/topics/resume-tips', '/tools/resume-check'],
+  '/topics/resume-career-change': ['/topics/cover-letter-career-change', '/topics/career-pivot', '/start/career-change', '/topics/resume-skills', '/topics/resume-format'],
+  '/topics/federal-resume': ['/topics/federal-rif', '/topics/resume-length', '/topics/resume-template', '/tools/resume-job-match', '/jobs'],
+  '/topics/cover-letter-examples': ['/topics/cover-letter-template', '/topics/how-to-start-a-cover-letter', '/topics/cover-letter-career-change', '/topics/cover-letter-tips', '/topics/resume-tips'],
+  '/topics/cover-letter-template': ['/topics/cover-letter-examples', '/topics/how-to-start-a-cover-letter', '/topics/cover-letter-tips', '/topics/ai-cover-letters', '/topics/resume-tips'],
+  '/topics/how-to-start-a-cover-letter': ['/topics/cover-letter-template', '/topics/cover-letter-examples', '/topics/cover-letter-tips', '/topics/ai-cover-letters', '/topics/resume-tips'],
+  '/topics/cover-letter-career-change': ['/topics/resume-career-change', '/topics/career-pivot', '/topics/cover-letter-examples', '/topics/cover-letter-template', '/topics/explain-a-layoff'],
   '/topics/resume-tips': ['/topics/resume-review', '/resources/gatekeeper', '/resources/narrative-workshop', '/dossier', '/submit-resume', '/topics/job-search-strategy'],
   '/topics/career-pivot': ['/start/career-change', '/topics/career-exploration', '/funding', '/resources/narrative-workshop', '/coaching'],
   '/topics/career-exploration': ['/topics/career-pivot', '/start/career-change', '/ai-skills', '/funding', '/coaching'],
@@ -2544,6 +2821,14 @@ export const RELATED: Record<string, string[]> = {
   '/topics/acquisition-layoffs': ['/tools/layoff-runway', '/topics/severance', '/topics/what-to-say-when-laid-off', '/resources/pre-exit', '/layoffs', '/coaching'],
   '/topics/should-i-take-the-buyout': ['/tools/severance-calculator', '/tools/layoff-runway', '/topics/severance', '/resources/cobra-aca', '/unemployment-benefits', '/coaching'],
   '/topics/fired-vs-laid-off': ['/unemployment-benefits', '/topics/explain-a-layoff', '/topics/severance', '/resources/cobra-aca', '/glossary', '/coaching'],
+  '/topics/reduction-in-force': ['/topics/federal-rif', '/resources/warn-act', '/topics/severance', '/unemployment-benefits', '/tools/layoff-deadlines', '/topics/explain-a-layoff', '/coaching'],
+  '/topics/federal-rif': ['/topics/reduction-in-force', '/unemployment-benefits', '/tools/layoff-deadlines', '/resources/cobra-aca', '/funding', '/coaching'],
+  '/topics/unemployment-denied-appeal': ['/unemployment-benefits', '/topics/unemployment-after-quitting-or-firing', '/topics/unemployment-payment-timing', '/tools/layoff-runway', '/funding'],
+  '/topics/unemployment-after-quitting-or-firing': ['/topics/unemployment-denied-appeal', '/topics/fired-vs-laid-off', '/unemployment-benefits', '/start/resigned', '/tools/unemployment-estimator'],
+  '/topics/unemployment-taxes-1099g': ['/tools/unemployment-estimator', '/resources/severance-pay', '/unemployment-benefits', '/tools/layoff-runway'],
+  '/topics/unemployment-extension': ['/unemployment-benefits', '/topics/american-job-centers', '/funding', '/topics/benefits-after-layoff', '/resources/bridge-income'],
+  '/topics/unemployment-payment-timing': ['/topics/unemployment-denied-appeal', '/unemployment-benefits', '/tools/layoff-runway', '/topics/benefits-after-layoff', '/tools/unemployment-estimator'],
+  '/topics/unemployment-self-employed': ['/resources/bridge-income', '/topics/freelance-after-layoff', '/funding', '/unemployment-benefits', '/tools/layoff-runway'],
   '/topics/reverse-recruiter': ['/topics/executive-recruiters', '/coaching', '/submit-resume', '/scam-watch', '/dossier'],
   '/topics/what-is-a-job-transition-platform': ['/topics/job-transition-platforms-for-laid-off-professionals', '/start/laid-off', '/topics/what-is-outplacement', '/coaching', '/glossary'],
   '/topics/job-transition-platforms-for-laid-off-professionals': ['/topics/what-is-outplacement', '/unemployment-benefits', '/workforce-boards', '/topics/severance', '/start/laid-off'],
