@@ -74,6 +74,10 @@ const nextConfig: NextConfig = {
         ['/authors', '/about'],
         ['/places/:state/city', '/places/:state'],
         ['/places/:state/county', '/places/:state'],
+        ['/ai-courses/level', '/ai-courses'],
+        ['/ai-courses/for', '/ai-courses'],
+        ['/ai-courses/from', '/ai-courses'],
+        ['/ai-courses/course', '/ai-courses'],
       ].map(([source, destination]) => ({ source, destination, permanent: false })),
       // Addresses crawlers and first-time visitors guess on any company site (the alert emails of 2026-10-28 were all
       // these, in one minute). Each goes to the nearest real page.
@@ -260,6 +264,9 @@ const nextConfig: NextConfig = {
       ...["/jobs/title", "/salaries", "/tools/pay-check"].map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=21600, stale-while-revalidate=86400" }] })),
       // Rendered per request, not at build; the CDN keeps each page for an hour.
       { source: "/sitemap.xml", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
+      // The public AI course catalog is rendered per request (one small Course query) and kept by the CDN for an hour.
+      { source: "/ai-courses/:path*", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
+      { source: "/ai-courses", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       { source: "/top-employers", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       { source: "/images/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/marketing/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },

@@ -1,3 +1,5 @@
+import { getPublicCatalog } from '@/lib/learning/public-catalog'
+import { CATALOG_FUNCTIONS, LEVELS, coursePath, freePath, functionLevelPageIndexable, functionLevelPath, functionPageIndexable, functionPath, levelPath, sponsorPageIndexable, sponsorSlug } from '@/lib/learning/public-catalog-shared'
 import { FILING_GUIDE_UPDATED } from '@/lib/data/state-ui-appeals'
 import { meetsCompanyLayoffBar, meetsStateBoardBar } from '@/lib/seo/page-bars'
 import { CAREER_ROLES } from '@/lib/careers/roles'
@@ -189,6 +191,28 @@ async function loadNonprofitPages(entry: (path: string, updated: string, freq: F
   }
 }
 
+// The public AI course catalog (/ai-courses): the hub, level, free and function pages always; function-by-level, provider and
+// course pages only when they clear the same bar the page uses for indexing. A database failure leaves them out.
+async function loadCoursePages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
+  const day = new Date().toISOString().slice(0, 10)
+  try {
+    const catalog = await getPublicCatalog()
+    const sponsors = [...new Set(catalog.map((c) => sponsorSlug(c.sponsor)))].filter((s) => sponsorPageIndexable(catalog, s))
+    return [
+      entry('/ai-courses', day, 'weekly', 0.8),
+      entry(freePath(), day, 'weekly', 0.6),
+      ...LEVELS.map((l) => entry(levelPath(l), day, 'weekly', 0.7)),
+      ...CATALOG_FUNCTIONS.filter((f) => functionPageIndexable(catalog, f.name)).map((f) => entry(functionPath(f), day, 'weekly', 0.7)),
+      ...CATALOG_FUNCTIONS.flatMap((f) => LEVELS.filter((l) => functionLevelPageIndexable(catalog, f.name, l.level)).map((l) => entry(functionLevelPath(f, l), day, 'weekly', 0.6))),
+      ...sponsors.map((s) => entry(`/ai-courses/from/${s}`, day, 'weekly', 0.5)),
+      ...catalog.map((c) => entry(coursePath(c), day, 'monthly', 0.4)),
+    ]
+  } catch (error) {
+    console.error('sitemap: AI course pages left out', error instanceof Error ? error.message : error)
+    return []
+  }
+}
+
 // Industry, function, conference and association pages. A database failure leaves the conference and association
 // rows out rather than failing the sitemap; the industry and function pages are fixed lists.
 const TOPICS_UPDATED = '2026-10-25'
@@ -258,7 +282,7 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
   })
 
-  const [stateAndWorkforcePages, topicPages, nonprofitPages] = await Promise.all([loadSeoStatePages(entry), loadTopicPages(entry), loadNonprofitPages(entry)])
+  const [stateAndWorkforcePages, topicPages, nonprofitPages, coursePages] = await Promise.all([loadSeoStatePages(entry), loadTopicPages(entry), loadNonprofitPages(entry), loadCoursePages(entry)])
   const seoStatePages = [...stateAndWorkforcePages, nonprofitPages]
 
   return [
@@ -344,6 +368,7 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Industry, function, conference and association pages.
     ...topicPages,
+    ...coursePages,
 
     // Author pages.
     ...Object.keys(AUTHORS).map((slug) => entry(`/authors/${slug}`, latestOf([newestGuide, newestInsight, ...(newestReport ? [newestReport] : [])]), 'monthly', 0.4)),
