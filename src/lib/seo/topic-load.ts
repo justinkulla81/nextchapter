@@ -1,3 +1,6 @@
+import { getIndustryJolts } from '@/lib/market/bls-industry-jolts'
+import { JOLTS_CODE_BY_BUCKET } from '@/lib/market/industry-jolts-data'
+import { industryOutlook, joltsFacts } from '@/lib/seo/industry-outlook'
 import 'server-only'
 import { cache } from 'react'
 import { getIndustryTrends } from '@/lib/market/bls-industry-trends'
@@ -26,25 +29,29 @@ async function organizersWithPages(confs: ConfList): Promise<string[]> {
 export const loadIndustry = cache(async (slug: string) => {
   const industry = industryBySlug(slug)
   if (!industry) return null
-  const [jobs, stats, trends, confs, notices] = await Promise.all([
+  const [jobs, stats, trends, jolts, confs, notices] = await Promise.all([
     industry.rule ? getTopicJobs({ rule: industry.rule }).catch(() => EMPTY_JOBS) : Promise.resolve(EMPTY_JOBS),
     industry.rule ? getJobStats({ rule: industry.rule }) : Promise.resolve(null),
     getIndustryTrends(),
+    getIndustryJolts(),
     conferencesForIndustry(industry.name, 60).catch(() => EMPTY_CONFS),
     getIndustryNotices(industry.name),
   ])
   const orgs = await organizersWithPages(confs)
   const trend = trends[industry.name]
+  const sector = JOLTS_CODE_BY_BUCKET[industry.name]
+  const outlook = industryOutlook(trend, jolts[industry.name], sector?.label)
   const facts: Fact[] = [
     ...jobFacts(jobs.total, stats),
     ...[trendFact(trend, industry.name)].filter((x): x is Fact => !!x),
+    ...joltsFacts(jolts[industry.name], sector?.label),
     ...layoffFacts(notices, industry.name),
     ...conferenceFacts(confs.summary, industry.name),
   ]
   const links = jobs.functions.length + jobs.employers.length + Math.min(3, confs.rows.length) + orgs.length
   const assessment: Assessment = assess(facts.length, links)
   const intro = openingParagraph({ name: industry.name, kind: 'industry', blurb: industry.blurb, total: jobs.total, stats, trend, notices: notices.length, confs: confs.total, upcomingConfs: confs.upcoming })
-  return { industry, jobs, stats, trend, confs, notices, orgs, facts, assessment, intro }
+  return { industry, jobs, stats, trend, outlook, confs, notices, orgs, facts, assessment, intro }
 })
 
 export const loadFunction = cache(async (slug: string) => {

@@ -1,8 +1,9 @@
 import { fitDescription } from '@/lib/seo/templates'
 import { FeedLine } from '@/components/seo/FeedLine'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, Section, TopicShell, functionChip } from '@/components/topics/blocks'
+import { FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, Section, TopicShell, functionChip, LINK } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, INDUSTRIES } from '@/lib/seo/topics'
@@ -31,7 +32,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
   const { slug } = await params
   const d = await loadIndustry(slug)
   if (!d) notFound()
-  const { industry, jobs, stats, confs, orgs, facts, intro } = d
+  const { industry, jobs, stats, outlook, confs, orgs, facts, intro } = d
   const path = `/industries/${slug}`
   return (
     <TopicShell
@@ -54,6 +55,13 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           </div>
         )}
       </Section>
+      {outlook.label !== 'Not enough data' && (
+        <Section id="outlook" title={`${industry.name} outlook: ${outlook.label}`} note="Built from public Bureau of Labor Statistics numbers, not from our own postings. It describes the industry nationally, not any one employer.">
+          <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+            {outlook.evidence.map((x) => <li key={x}>{x}</li>)}
+          </ul>
+        </Section>
+      )}
       {industry.rule && (
         <Section id="jobs" title={`Open ${industry.name} jobs`} note="Verified against the employer’s own career site within the last week.">
           <JobList jobs={jobs.jobs} total={jobs.total} source={`industry:${slug}`} />
@@ -69,6 +77,14 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           <Chips kind="industry_to_employer" event="topic_link_clicked" items={jobs.employers.map((e) => ({ href: `/employers/${e.slug}`, label: e.name, detail: `${e.count.toLocaleString()} open` }))} />
         </Section>
       )}
+      <Section id="learn" title={`Learn and get funded for ${industry.name.toLowerCase()}`} note="Free to use. We point to the official page for each programme.">
+        <ul className="list-disc space-y-1 pl-5 text-sm">
+          {stats && stats.aiSkillPct > 0 && <li>{stats.aiSkillPct}% of these openings ask for AI skills. <Link href="/ai-skills" className={LINK}>See which AI skills each function needs</Link>.</li>}
+          {stats && stats.skills.length > 0 && <li>The skills named most often: {stats.skills.slice(0, 5).map((x) => x.name).join(', ')}.</li>}
+          <li><Link href="/funding" className={LINK}>Grants and funding for job seekers</Link>, ranked for your state and situation.</li>
+          <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits</Link> by state, if you are between jobs.</li>
+        </ul>
+      </Section>
       <Section id="conferences" title={`${industry.name} conferences`} note="Dates, costs, calls for speakers and who runs each one.">
         <ConferenceList rows={confs.rows} total={confs.total} upcoming={confs.upcoming} source={`industry:${slug}`} />
       </Section>
