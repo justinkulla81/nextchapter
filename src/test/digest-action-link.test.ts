@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
-import { signDigestAction, verifyDigestAction } from '@/lib/crm/digest-action-link'
+import { signDigestAction, signDigestTask, verifyDigestAction } from '@/lib/crm/digest-action-link'
 
 const due = new Date('2026-10-20T12:00:00Z')
 
@@ -14,6 +14,11 @@ describe('digest action links', () => {
   it('round-trips a signed link', () => {
     const token = signDigestAction('person1', 'pause', due)!
     expect(verifyDigestAction(token)).toEqual({ personId: 'person1', action: 'pause', due: '2026-10-20' })
+  })
+
+  it('round-trips an X link and a task link', () => {
+    expect(verifyDigestAction(signDigestAction('person1', 'x', due)!)).toMatchObject({ personId: 'person1', action: 'x' })
+    expect(verifyDigestAction(signDigestTask('task1')!)).toMatchObject({ personId: 'task1', action: 'task' })
   })
 
   it('rejects a tampered action', () => {
