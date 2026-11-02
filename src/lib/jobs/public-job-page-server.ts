@@ -66,7 +66,7 @@ export const PUBLIC_JOB_LIST_SELECT = listSelect
 export async function withDescriptionStubs<T extends { id: string }>(rows: T[]): Promise<(T & { description: string | null })[]> {
   if (!rows.length) return []
   const stubs = await prisma.$queryRaw<{ id: string; d: string | null }[]>(
-    Prisma.sql`SELECT id, left(description, ${PUBLIC_JOB_MIN_DESCRIPTION}) AS d FROM "ExclusiveJobPosting" WHERE id IN (${Prisma.join(rows.map((r) => r.id))})`
+    Prisma.sql`SELECT id, left(description, ${PUBLIC_JOB_MIN_DESCRIPTION}::int) AS d FROM "ExclusiveJobPosting" WHERE id IN (${Prisma.join(rows.map((r) => r.id))})`
   )
   const byId = new Map(stubs.map((x) => [x.id, x.d]))
   return rows.map((r) => ({ ...r, description: byId.get(r.id) ?? null }))
