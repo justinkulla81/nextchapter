@@ -7,6 +7,7 @@ import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { SaveJourneyStep } from '@/components/jobs/SaveJourneyStep'
 import { JobFitCard } from '@/components/jobs/JobFitCard'
+import { OPEN_APPLY_GATE_EVENT } from '@/components/jobs/ReadFullPostingLink'
 
 // The Apply button on a public job page plus the one-field "save this job" box under it.
 // Control: Apply opens the employer's page in a new tab; this page stays open behind it and the
@@ -38,6 +39,16 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
   const employerLinkRef = useRef<HTMLAnchorElement>(null)
   const [state, action, pending] = useActionState<ApplySaveState, FormData>(saveAppliedJob, undefined)
   const emailRef = useRef<HTMLInputElement>(null)
+
+  // The "Read the full posting" link lower on the page opens the same prompt.
+  useEffect(() => {
+    const open = () => {
+      posthog.capture('apply_gate_shown', { jobId, company, variant, via: 'read_more' })
+      setGateOpen(true)
+    }
+    window.addEventListener(OPEN_APPLY_GATE_EVENT, open)
+    return () => window.removeEventListener(OPEN_APPLY_GATE_EVENT, open)
+  }, [jobId, company, variant])
 
   useEffect(() => {
     if (!gateOpen) return

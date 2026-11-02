@@ -9,6 +9,7 @@ import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
 import { TrainingProvidedLine } from '@/components/jobs/TrainingProvidedLine'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ApplyAndSave } from '@/components/jobs/ApplyAndSave'
+import { ReadFullPostingLink } from '@/components/jobs/ReadFullPostingLink'
 import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import { lifecycleEmailsOn } from '@/lib/leads/lifecycle/config'
 import { StructuredData } from '@/components/StructuredData'
@@ -188,15 +189,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             {excerpt && (
               <p className="mt-4 text-sm text-muted-foreground">
                 This is the start of the posting.{' '}
-                <TrackedLink
-                  href={job.url}
-                  rel="nofollow"
-                  event="public_job_apply_clicked"
-                  properties={{ jobId: job.id, company: job.companyName, placement: 'read_more' }}
-                  className="font-semibold text-brand underline underline-offset-4"
-                >
-                  Read the full posting on the employer&apos;s site
-                </TrackedLink>
+                <ReadFullPostingLink href={job.url} jobId={job.id} company={job.companyName} />
               </p>
             )}
           </article>
