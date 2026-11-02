@@ -26,7 +26,7 @@ export function LevelFinder({ source, defaultFunction = '' }: { source: string; 
 
   const answer = (id: string, yes: boolean) => {
     const next = { ...answers, [id]: yes }
-    setAnswers(next)
+    setAnswers((prev) => ({ ...prev, [id]: yes }))
     posthog.capture('ai_level_quiz_answered', { source, question: id, answer: yes })
     if (LEVEL_QUESTIONS.every((q) => next[q.id] !== undefined)) {
       posthog.capture('ai_level_quiz_completed', { source, level: levelFromAnswers(next), function: fn || null })

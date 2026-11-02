@@ -101,3 +101,12 @@ describe('seo', () => {
     expect(text).not.toContain('displaced')
   })
 })
+
+import { looksAiRelated } from '@/lib/learning/course-scan/classify'
+describe('AI-only catalog filter', () => {
+  it('tells an AI course from a contract law course', () => {
+    expect(looksAiRelated('Draft NDA Documents with Gemini')).toBe(true)
+    expect(looksAiRelated('Contract Law Specialization A course on the fundamentals of contract law')).toBe(false)
+    expect(looksAiRelated('Certified Public Accountant exam prep')).toBe(false)
+  })
+})
