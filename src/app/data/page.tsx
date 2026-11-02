@@ -6,9 +6,9 @@ import { PublicSiteFooter, PublicSiteHeader } from '@/components/marketing/Publi
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { SITE_URL } from '@/lib/seo/facts'
 import { breadcrumbJsonLd, organizationRef } from '@/lib/seo/jsonld'
-import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
+import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { LAYOFF_COLUMNS, LAYOFF_DATA_CITATION, LAYOFF_DATA_LICENSE, LAYOFF_DATA_LICENSE_URL, getLayoffRows } from '@/lib/data/layoff-export'
-import { noticeDay } from '@/lib/warn/layoff-pages'
+import { hasLayoffStatePage, noticeDay } from '@/lib/warn/layoff-pages'
 import { getLayoffCounts } from '@/lib/warn/layoff-counts'
 import { LayoffNumbersNote } from '@/components/layoffs/LayoffNumbersNote'
 
@@ -24,6 +24,8 @@ export default async function DataPage() {
   const newest = rows[0]?.notice_date
   const oldest = rows[rows.length - 1]?.notice_date
   const states = [...new Set(rows.map((r) => r.state))].sort((a, b) => stateName(a).localeCompare(stateName(b)))
+  // A chart page exists only for a state with notices in the last 12 months (the same bar as its layoff page).
+  const chartStates = new Set((await Promise.all(states.map(async (s) => ((await hasLayoffStatePage(s).catch(() => false)) ? s : null)))).filter((s): s is string => !!s))
   const dataset = {
     '@context': 'https://schema.org',
     '@type': 'Dataset',
@@ -80,7 +82,10 @@ export default async function DataPage() {
               {states.map((s) => (
                 <li key={s} className="flex justify-between gap-2 rounded-lg border border-border bg-white px-3 py-2">
                   <span>{stateName(s)}</span>
-                  <TrackedLink href={`/data/layoffs.csv?state=${s}`} event="data_download_clicked" properties={{ format: 'csv', scope: s }} className={LINK}>CSV</TrackedLink>
+                  <span className="flex gap-3">
+                    {chartStates.has(s) && <Link href={`/data/layoffs/${stateSlug(s)}`} className={LINK}>Chart</Link>}
+                    <TrackedLink href={`/data/layoffs.csv?state=${s}`} event="data_download_clicked" properties={{ format: 'csv', scope: s }} className={LINK}>CSV</TrackedLink>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -89,6 +94,7 @@ export default async function DataPage() {
           <section aria-labelledby="more" className="mt-10">
             <h2 id="more" className="text-2xl font-bold tracking-tight text-navy">Put it on your site</h2>
             <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm">
+              <li><Link href="/data/layoffs/us" className={LINK}>Layoffs by month chart</Link>, for the nation or any state, with copy-paste embed code.</li>
               <li><Link href="/data/embed" className={LINK}>Embeddable widgets</Link>: layoff notices, open jobs and unemployment benefits for any state or industry, free, with a link back.</li>
               <li><Link href="/feeds/layoffs" className={LINK}>RSS feed of new layoff notices</Link>, or one state at <code className="rounded bg-white px-1.5 py-0.5">/feeds/layoffs/&lt;state&gt;</code>.</li>
               <li><Link href="/layoffs/this-week" className={LINK}>Layoffs this week</Link>, updated every day.</li>

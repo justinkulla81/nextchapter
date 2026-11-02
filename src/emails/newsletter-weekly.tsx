@@ -1,3 +1,4 @@
+import type { LayoffWeekBrief } from '@/lib/newsletter/layoff-week'
 import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface NewsletterWeeklyEmailProps {
@@ -8,6 +9,9 @@ interface NewsletterWeeklyEmailProps {
   newsUrl: string
   signupUrl: string
   unsubscribeUrl: string
+  /** The last seven days of WARN layoff notices, when there were enough to be worth a block. */
+  layoffs?: LayoffWeekBrief | null
+  layoffsUrl?: string
 }
 
 /**
@@ -16,7 +20,7 @@ interface NewsletterWeeklyEmailProps {
  * personal market numbers that need a profile to compute.
  */
 export default function NewsletterWeeklyEmail({
-  introCopy, articleTitle, articleUrl, articleSummary, newsUrl, signupUrl, unsubscribeUrl,
+  introCopy, articleTitle, articleUrl, articleSummary, newsUrl, signupUrl, unsubscribeUrl, layoffs, layoffsUrl,
 }: NewsletterWeeklyEmailProps) {
   const intro = introCopy || "Here's this week's read on the job market."
   return (
@@ -38,6 +42,26 @@ export default function NewsletterWeeklyEmail({
           <strong>Worth a read:</strong> <a href={articleUrl}>{articleTitle}</a>
           {articleSummary && ` — ${articleSummary}`}
         </Lead>
+        {layoffs && layoffsUrl && (
+          <>
+            <Lead>
+              <strong>Layoffs this week:</strong> {layoffs.notices.toLocaleString('en-US')} WARN notices in {layoffs.states.toLocaleString('en-US')} {layoffs.states === 1 ? 'state' : 'states'}
+              {layoffs.workers > 0 ? `, naming ${layoffs.workers.toLocaleString('en-US')} workers` : ''}. The largest:
+            </Lead>
+            <ul style={{ textAlign: 'left', margin: '0 0 16px', paddingLeft: 20 }}>
+              {layoffs.top.map((e) => (
+                <li key={e.name}>
+                  {e.name}
+                  {e.state ? `, ${e.state}` : ''}
+                  {e.workers > 0 ? `: ${e.workers.toLocaleString('en-US')} workers` : ''}
+                </li>
+              ))}
+            </ul>
+            <Lead>
+              <a href={layoffsUrl}>Every notice from the past week</a>. Know someone affected? Forward them this email: the page lists what to do and by when.
+            </Lead>
+          </>
+        )}
         <Lead>
           More articles, videos and posts are on the <a href={newsUrl}>News page</a>.
         </Lead>
