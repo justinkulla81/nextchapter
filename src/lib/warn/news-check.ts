@@ -28,6 +28,15 @@ export const QUERIES = [
   'tech layoffs', 'healthcare layoffs', 'bank layoffs', 'retail layoffs', 'startup layoffs',
   'media entertainment layoffs', 'manufacturing layoffs', 'grocery layoffs',
 ]
+/**
+ * The fast lane (runLayoffNewsCheck({ fast: true })): a few broad queries on Google News limited to the last few hours, hourly. The
+ * full run reads the whole week, where a small company's story is crowded out by the week's biggest and surfaced a median 11 hours
+ * after it was published (October 2026); a window of hours has nothing to crowd it. Google only: Bing's recent-hours filter returned
+ * stories nine hours old. A few requests, not the full set, so the hourly cadence does not lean on a shared host.
+ */
+export const FAST_QUERIES = ['layoffs', 'lays off employees', 'to cut jobs', 'announces layoffs', 'workforce reduction', 'job cuts announced', 'reduction in force', 'confirms layoffs']
+/** Hours back the fast lane reads: wider than its hourly cadence, so a late run or a late-indexed story is still caught. */
+export const FAST_WINDOW_HOURS = 3
 /** Searches in flight at once. */
 const SEARCH_CONCURRENCY = 4
 /** No new search starts after this, so the filings, SEC check, sweep and boards keep their time. */
@@ -137,19 +146,20 @@ async function trackJobBoard(company: string): Promise<void> {
   }
 }
 
-export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
+export async function runLayoffNewsCheck(opts: { fast?: boolean } = {}): Promise<NewsCheckResult> {
   const result: NewsCheckResult = { headlines: 0, mentions: 0, added: [], covered: 0, waiting: 0, lookups: 0, contacts: 0 }
 
   // 1. Search, a few at a time under a time budget, then read the headlines
   // and keep the ones that name a layoff.
   const searched: { q: string; articles: DiscoveredArticle[] }[] = []
   const started = Date.now()
-  for (let i = 0; i < QUERIES.length; i += SEARCH_CONCURRENCY) {
+  const queries = opts.fast ? FAST_QUERIES : QUERIES
+  for (let i = 0; i < queries.length; i += SEARCH_CONCURRENCY) {
     if (Date.now() - started > SEARCH_BUDGET_MS) break
-    const chunk = QUERIES.slice(i, i + SEARCH_CONCURRENCY)
+    const chunk = queries.slice(i, i + SEARCH_CONCURRENCY)
     const settled = await Promise.all(chunk.map(async (q) => {
       try {
-        return { q, articles: await searchBoth(q) }
+        return { q, articles: opts.fast ? await searchGoogleNews(q, { hours: FAST_WINDOW_HOURS }) : await searchBoth(q) }
       } catch (e) {
         console.error('Layoff news search failed for', q, e)
         return { q, articles: [] as DiscoveredArticle[] }
@@ -157,8 +167,8 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
     }))
     searched.push(...settled)
   }
-  // Companies by name, so one the generic searches bury is still read.
-  const orgs = await prisma.crmOrganization.findMany({
+  // Companies by name, so one the generic searches bury is still read. The fast lane skips this: it reads only the last hours.
+  const orgs = opts.fast ? [] : await prisma.crmOrganization.findMany({
     where: { orgTypes: { hasSome: ['EMPLOYER', 'OUTPLACEMENT_LEAD'] } },
     select: { name: true, canonicalNameNormalized: true },
     orderBy: { id: 'asc' },

@@ -18,11 +18,25 @@ export const EMPLOYER_MIN_OPEN_ROLES = 3
  * only when it has data of its own: 3+ open roles, or 1-2 open roles plus a real hiring history (3+ roles opened in the
  * last 12 months) and a known industry. Thinner pages render with noindex and stay out of the sitemap until they qualify.
  */
-export function isEmployerIndexable(p: { openNow: number; opened12mo: number } | null, industry: string | null, hasLayoffNotice = false): boolean {
+export interface EmployerExtras {
+  /** A WARN layoff notice in the last two years. */
+  layoffNotice?: boolean
+  /** An SEC filing event (funding, 8-K item) in the last two years: the page carries a dated timeline. */
+  secEvent?: boolean
+  /** A high-confidence headquarters on record. */
+  hqConfirmed?: boolean
+}
+
+export function isEmployerIndexable(p: { openNow: number; opened12mo: number } | null, industry: string | null, extras: EmployerExtras | boolean = {}): boolean {
+  const x: EmployerExtras = typeof extras === 'boolean' ? { layoffNotice: extras } : extras
   // A company with a layoff notice in the last two years has a page of its own substance (the notice, the local picture, the news), whatever it is hiring.
-  if (hasLayoffNotice) return true
+  if (x.layoffNotice) return true
+  // A filing in the last two years gives the page a dated timeline of its own (funding, material events).
+  if (x.secEvent) return true
   if (!p) return false
-  return p.openNow >= EMPLOYER_MIN_OPEN_ROLES || (p.openNow >= 1 && p.opened12mo >= 3 && !!industry)
+  if (p.openNow >= EMPLOYER_MIN_OPEN_ROLES || (p.openNow >= 1 && p.opened12mo >= 3 && !!industry)) return true
+  // A confirmed headquarters, a known industry and a live role: jobs, where it is based and how it compares with its industry.
+  return !!x.hqConfirmed && !!industry && p.openNow >= 1
 }
 
 /** The public path of an employer page. */
@@ -98,6 +112,10 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
 
   const p = company.hiringProfile
   const hasLayoffNotice = (await prisma.warnNotice.count({ where: { companyId: company.id, dismissedAt: null, OR: [{ noticeDate: { gte: new Date(Date.now() - 2 * 365 * 86_400_000) } }, { noticeDate: null, fetchedAt: { gte: new Date(Date.now() - 2 * 365 * 86_400_000) } }] } }).catch(() => 0)) > 0
+  const [secEvents, hq] = await Promise.all([
+    prisma.companyEvent.count({ where: { companyId: company.id, eventDate: { gte: new Date(Date.now() - 2 * 365 * 86_400_000) } } }).catch(() => 0),
+    prisma.companyHq.findUnique({ where: { companyId: company.id }, select: { confidence: true } }).catch(() => null),
+  ])
   const openNow = p?.openNow ?? 0
   const crm = company.crmOrganizations[0]
   return {
@@ -119,20 +137,24 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
     jobs,
     pay,
     claimSlug: crm ? orgSlug(crm.canonicalNameNormalized) : null,
-    indexable: isEmployerIndexable(p, company.industry ?? p?.industry ?? null, hasLayoffNotice),
+    indexable: isEmployerIndexable(p, company.industry ?? p?.industry ?? null, { layoffNotice: hasLayoffNotice, secEvent: secEvents > 0, hqConfirmed: hq?.confidence === 'high' }),
   }
 })
 
 export const EMPLOYER_SITEMAP_SHARD_SIZE = 10_000
 
 /** A layoff notice (filing or announcement) tied to the company in the last two years. */
+const HAS_SEC_EVENT = `EXISTS (SELECT 1 FROM "CompanyEvent" e WHERE e."companyId" = c.id AND e."eventDate" >= now() - interval '2 years')`
+const HQ_CONFIRMED_WITH_ROLE = `(p."openNow" >= 1 AND COALESCE(c.industry, p.industry) IS NOT NULL AND EXISTS (SELECT 1 FROM "CompanyHq" h WHERE h."companyId" = c.id AND h.confidence = 'high'))`
 const HAS_LAYOFF_NOTICE = `EXISTS (SELECT 1 FROM "WarnNotice" w WHERE w."companyId" = c.id AND w."dismissedAt" IS NULL AND COALESCE(w."noticeDate", w."fetchedAt") >= now() - interval '2 years')`
 
 /** The condition behind the employer sitemap: the same rule as `indexable`, in SQL. */
 const ELIGIBLE = `FROM "Company" c LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
   WHERE p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}
      OR (p."openNow" >= 1 AND p."opened12mo" >= 3 AND COALESCE(c.industry, p.industry) IS NOT NULL)
-     OR ${HAS_LAYOFF_NOTICE}`
+     OR ${HAS_LAYOFF_NOTICE}
+     OR ${HAS_SEC_EVENT}
+     OR ${HQ_CONFIRMED_WITH_ROLE}`
 
 export async function countEmployerPages(): Promise<number> {
   const [row] = await prisma.$queryRawUnsafe<{ n: number }[]>(`SELECT count(*)::int AS n ${ELIGIBLE}`)
@@ -152,7 +174,7 @@ export async function isCompanyOfferedToSearch(companyId: string): Promise<boole
     `SELECT 1 AS ok FROM "Company" c LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
      WHERE c.id = $1 AND (p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}
        OR (p."openNow" >= 1 AND p."opened12mo" >= 3 AND COALESCE(c.industry, p.industry) IS NOT NULL)
-       OR ${HAS_LAYOFF_NOTICE}) LIMIT 1`,
+       OR ${HAS_LAYOFF_NOTICE} OR ${HAS_SEC_EVENT} OR ${HQ_CONFIRMED_WITH_ROLE}) LIMIT 1`,
     companyId,
   )
   return rows.length > 0

@@ -45,10 +45,6 @@
       "schedule": "15 13 * * *"
     },
     {
-      "path": "/api/cron/win-back",
-      "schedule": "0 15 * * 3"
-    },
-    {
       "path": "/api/cron/job-search-daily",
       "schedule": "0 12 * * *"
     },
@@ -294,7 +290,7 @@
     },
     {
       "path": "/api/cron/layoff-news",
-      "schedule": "20 */3 * * *"
+      "schedule": "20 * * * *"
     },
     {
       "path": "/api/cron/news-discovery",
