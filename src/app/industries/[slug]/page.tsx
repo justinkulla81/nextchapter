@@ -1,6 +1,7 @@
 import { fitDescription } from '@/lib/seo/templates'
 import { FeedLine } from '@/components/seo/FeedLine'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, Section, TopicShell, functionChip, LINK } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
@@ -78,10 +79,10 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       )}
       <Section id="learn" title={`Learn and get funded for ${industry.name.toLowerCase()}`} note="Free to use. We point to the official page for each programme.">
         <ul className="list-disc space-y-1 pl-5 text-sm">
-          {stats && stats.aiSkillPct > 0 && <li>{stats.aiSkillPct}% of these openings ask for AI skills. <a href="/ai-skills" className={LINK}>See which AI skills each function needs</a>.</li>}
+          {stats && stats.aiSkillPct > 0 && <li>{stats.aiSkillPct}% of these openings ask for AI skills. <Link href="/ai-skills" className={LINK}>See which AI skills each function needs</Link>.</li>}
           {stats && stats.skills.length > 0 && <li>The skills named most often: {stats.skills.slice(0, 5).map((x) => x.name).join(', ')}.</li>}
-          <li><a href="/funding" className={LINK}>Grants and funding for job seekers</a>, ranked for your state and situation.</li>
-          <li><a href="/unemployment-benefits" className={LINK}>Unemployment benefits</a> by state, if you are between jobs.</li>
+          <li><Link href="/funding" className={LINK}>Grants and funding for job seekers</Link>, ranked for your state and situation.</li>
+          <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits</Link> by state, if you are between jobs.</li>
         </ul>
       </Section>
       <Section id="conferences" title={`${industry.name} conferences`} note="Dates, costs, calls for speakers and who runs each one.">
