@@ -1,0 +1,922 @@
+[
+ {
+  "id": "plant-and-animal-genome-conference",
+  "name": "Plant and Animal Genome Conference (PAG)",
+  "organizer": "International Plant & Animal Genome Conference",
+  "url": "https://www.intlpag.org/PAG/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-08",
+  "endDate": "2027-01-12",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [
+   "Engineering",
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Plant, animal and agricultural genomics researchers, bioinformaticians and genomics vendors in one San Diego room.",
+  "access": "PAID",
+  "costLow": 1190,
+  "costHigh": 1790,
+  "costNote": "Early rates through Oct 31, 2026: $1,190 non-profit, $1,790 industry (as read from the PAG 34 site); rates rise after. Exhibitors extra.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.intlpag.org/PAG/abstracts/poster-abstracts",
+  "speakingDeadline": "2026-11-06",
+  "speakingNote": "Poster abstracts (500 words max) from paid registrants; notices Dec 1.",
+  "cheaperWays": "Travel grants with complimentary registration (several deadlines in Oct 2026); first-time attendee mentor program.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Genomics and bioinformatics"
+  ],
+  "roles": [
+   "bioinformatician",
+   "genomics product lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "biology-of-genomes",
+  "name": "Biology of Genomes (Cold Spring Harbor)",
+  "organizer": "Cold Spring Harbor Laboratory",
+  "url": "https://meetings.cshl.edu/omics-meetings",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-11",
+  "endDate": "2027-05-15",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Cold Spring Harbor",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [
+   "Engineering",
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Computational and experimental genomics researchers presenting new data at a small, abstract-driven CSHL meeting.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not shown on the meetings list; registration is required before an abstract is considered.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://meetings.cshl.edu/abstractsub/abstractsub.aspx",
+  "speakingDeadline": "2027-02-19",
+  "speakingNote": "Abstracts due Feb 19, 2027; submitters must register first.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Genomics and bioinformatics"
+  ],
+  "roles": [
+   "bioinformatician",
+   "genomics product lead"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "cshl-genome-informatics",
+  "name": "Genome Informatics (Cold Spring Harbor)",
+  "organizer": "Cold Spring Harbor Laboratory",
+  "url": "https://meetings.cshl.edu/omics-meetings",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-11-03",
+  "endDate": "2027-11-06",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Cold Spring Harbor",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [
+   "Engineering",
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "The bioinformatics community's methods meeting: computational biologists, tool builders and genomics data leads.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not shown on the meetings list; registration is required before an abstract is considered.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://meetings.cshl.edu/abstractsub/abstractsub.aspx",
+  "speakingDeadline": "2027-08-13",
+  "speakingNote": "Abstracts due Aug 13, 2027; submitters must register first.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Genomics and bioinformatics"
+  ],
+  "roles": [
+   "bioinformatician",
+   "genomics product lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "cshl-biological-data-science",
+  "name": "Biological Data Science (Cold Spring Harbor)",
+  "organizer": "Cold Spring Harbor Laboratory",
+  "url": "https://meetings.cshl.edu/omics-meetings",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-04",
+  "endDate": "2026-11-07",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Cold Spring Harbor",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [
+   "Engineering",
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Data scientists and bioinformaticians applying machine learning and large-scale data analysis to biology.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not shown on the meetings list; registration is required before an abstract is considered.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://meetings.cshl.edu/abstractsub/abstractsub.aspx",
+  "speakingDeadline": "2026-10-01",
+  "speakingNote": "Abstract deadline Oct 1, 2026 has passed.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Genomics and bioinformatics"
+  ],
+  "roles": [
+   "bioinformatician",
+   "genomics product lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "promat",
+  "name": "ProMat",
+  "organizer": "MHI",
+  "url": "https://www.promatshow.com/register.aspx",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-21",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce",
+   "Transportation & Logistics",
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Supply chain, warehouse and fulfillment leaders from retailers and manufacturers, with keynotes and an industry report from MHI.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration is free (press and approval-to-attend routes also listed); 200+ education sessions.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free registration; Student Day and Women in Supply Chain programming.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Loss prevention and retail supply chain"
+  ],
+  "roles": [
+   "retail supply chain planner"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "gs1-connect",
+  "name": "GS1 Connect",
+  "organizer": "GS1 US",
+  "url": "https://www.connect.gs1us.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-26",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce",
+   "Consumer Packaged Goods",
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations",
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Retail and brand supply chain, product-data and traceability leaders, with trading partner roundtables hosted by retailers.",
+  "access": "PAID",
+  "costLow": 1722,
+  "costHigh": 2025,
+  "costNote": "Full pass $2,025; $1,722 with the 15% discount through Dec 31 (the page also shows a 10% banner to Mar 31).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Group discounts ($75 off at 3+, $100 off at 8+); 50% off for GS1 US Industry Initiative members; email for government and academia rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Loss prevention and retail supply chain"
+  ],
+  "roles": [
+   "retail supply chain planner"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "world-game-protection-conference",
+  "name": "World Game Protection Conference (WGPC)",
+  "organizer": "World Game Protection Conference",
+  "url": "https://www.worldgameprotection.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-02",
+  "endDate": "2027-03-04",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Casino surveillance, security and compliance staff and regulators sharing game-protection practice.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Open to casino employees and casino regulatory agencies; fees not published, contact the organizer. Expo-only tickets exist.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": "https://www.worldgameprotection.com/faq/",
+  "speakingDeadline": null,
+  "speakingNote": "Vendors with a best practice or study can contact the organizer; no sales pitches.",
+  "cheaperWays": "Expo-only ticket for floor access.",
+  "applyUrl": "https://www.worldgameprotection.com/faq/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "casino executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "ice-barcelona",
+  "name": "ICE Barcelona",
+  "organizer": "Clarion Gaming / World Gaming Business",
+  "url": "https://www.icegaming.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-18",
+  "endDate": "2027-01-20",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Barcelona",
+  "state": null,
+  "country": "ES",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The global gaming industry's flagship: casino and online operators, suppliers and regulators.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices in EUR ex VAT: ICE Conference EUR850 early bird (EUR1,050 full) to Nov 27; MeetMe pass EUR249 early bird; free Expo Pass for operators, regulators and institutions.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free Expo Pass for operators, regulators and institutions; early-bird pricing to Nov 27.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "casino executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "wwa-symposium-trade-show",
+  "name": "WWA Symposium & Trade Show",
+  "organizer": "World Waterpark Association",
+  "url": "https://www.waterparks.org/web/web/WWA_Show.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Water park and attractions operators, managers and suppliers; the 2026 edition was Oct 6-9 in Las Vegas.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and prices not yet posted on the WWA site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Emerging Leaders membership and free virtual member meet-ups listed.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "attractions operator"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "amusement-expo-international",
+  "name": "Amusement Expo International",
+  "organizer": "AAMA and AMOA",
+  "url": "https://www.amusementexpo.org/2027/public/Content.aspx?ID=1160&sortMenu=103000",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-18",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Arcade, family entertainment center and amusement operators plus suppliers, with two days of education.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration coming soon; industry professionals only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Billiard and bowling expos included with registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "attractions operator"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "acs-fall-meeting",
+  "name": "ACS Fall Meeting",
+  "organizer": "American Chemical Society",
+  "url": "https://www.acs.org/events/acs-meetings/future-meetings.html",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-08-22",
+  "endDate": "2027-08-26",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial",
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest chemistry meeting: process, polymer and materials chemists from industry and academia, plus an expo and career fair.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 fees not posted. For reference, ACS Fall 2026 in-person: members $249-$349, students $125-$199, nonmembers $849-$1,049 full registration.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.acs.org/events/acs-meetings/future-meetings.html",
+  "speakingDeadline": null,
+  "speakingNote": "Presenters must register; abstract window not found for 2027.",
+  "cheaperWays": "Student, retired and unemployed-member rates (2026 structure).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Chemicals, plastics and materials"
+  ],
+  "roles": [
+   "process chemist",
+   "materials engineer"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "ampp-annual-conference-expo",
+  "name": "AMPP Annual Conference + Expo",
+  "organizer": "AMPP",
+  "url": "https://ace.ampp.org/home",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-11",
+  "endDate": "2027-04-15",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Columbus",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial",
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Engineering",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Corrosion, coatings and protective-materials engineers and asset owners; the main coatings and materials-performance gathering.",
+  "access": "PAID",
+  "costLow": 1075,
+  "costHigh": 1625,
+  "costNote": "Full conference $1,075-$1,275 members, $1,425-$1,625 non-members; exhibit hall only $175; $99 membership needed for member rate.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free with student membership; exhibit-hall-only $175; one- and two-day passes.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Chemicals, plastics and materials"
+  ],
+  "roles": [
+   "materials engineer",
+   "process chemist"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "polyurethanes-technical-conference",
+  "name": "Polyurethanes Technical Conference",
+  "organizer": "American Chemistry Council, Center for the Polyurethanes Industry",
+  "url": "https://www.americanchemistry.com/industry-groups/center-for-the-polyurethanes-industry-cpi/polyurethanes-technical-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-04",
+  "endDate": "2027-10-06",
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Polyurethane chemists, materials and plastics engineers and suppliers presenting technical papers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens spring 2027; save-the-date only on the ACC page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Chemicals, plastics and materials"
+  ],
+  "roles": [
+   "process chemist",
+   "plastics engineer",
+   "materials engineer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "ndia-special-operations-symposium",
+  "name": "NDIA Special Operations Symposium",
+  "organizer": "National Defense Industrial Association",
+  "url": "https://www.ndia.org/events/2027/2/2/37th-special-ops-symposium",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-02",
+  "endDate": "2027-02-03",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [
+   "Operations",
+   "Sales"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Special operations program offices and the contractors that capture and manage their programs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 fees not found; 2026 edition ran government civilian $265 to academia early $790. NDIA pages conflict on dates, confirm with NDIA.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Government civilian rate.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Defense and government contracting"
+  ],
+  "roles": [
+   "capture manager",
+   "defense program manager",
+   "contracts manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "aoc-international-symposium-convention",
+  "name": "AOC International Symposium & Convention",
+  "organizer": "Association of Old Crows",
+  "url": "https://crows.org/events/annual-convention-symposium/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-08",
+  "endDate": "2026-12-10",
+  "datesConfirmed": false,
+  "typicalMonth": "December",
+  "city": "National Harbor",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [
+   "Operations",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "About 2,500 electronic-warfare and spectrum professionals from military, government and industry.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration prices not found. AOC page shows end year as 2027, likely a typo; confirm.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Defense and government contracting"
+  ],
+  "roles": [
+   "defense program manager",
+   "capture manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "reagan-national-defense-forum",
+  "name": "Reagan National Defense Forum",
+  "organizer": "Reagan Institute",
+  "url": "https://www.reaganfoundation.org/events/2026-reagan-national-defense-forum",
+  "kind": "SUMMIT",
+  "format": "HYBRID",
+  "startDate": "2026-12-04",
+  "endDate": "2026-12-05",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Simi Valley",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense",
+   "Government & Public Sector"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Pentagon, Congress and defense-industry leaders gather for one weekend of policy and industry talk.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "In-person access is not described on the site ('more information coming soon'); a virtual registration link is offered; no price listed.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Participants are announced by the Reagan Institute.",
+  "cheaperWays": "Virtual attendance link; National Defense Fellowship sends students.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Defense and government contracting"
+  ],
+  "roles": [
+   "defense program manager",
+   "capture manager"
+  ],
+  "journeys": [
+   "NEXT_ACT",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "lead-on-a-clean-economy",
+  "name": "LEAD on a Clean Economy",
+  "organizer": "Ceres",
+  "url": "https://www.ceres.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-17",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Legal"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Corporate sustainability and public-affairs leaders and investors meet members of Congress and agencies.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not found. Ceres Policy Network members get a free ticket.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free ticket for Ceres Policy Network members.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Sustainability, ESG and climate"
+  ],
+  "roles": [
+   "sustainability director",
+   "climate risk lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "sf-climate-week",
+  "name": "SF Climate Week",
+  "organizer": "Climatebase",
+  "url": "https://www.sfclimateweek.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-17",
+  "endDate": "2027-04-25",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities",
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Hundreds of climate-company, investor and sustainability events across the Bay Area in one week.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Participating is free; some individual events charge. Calendar goes live January 2027.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://explore.sfclimateweek.org/getinvolved",
+  "speakingDeadline": null,
+  "speakingNote": "Anyone can host an event; see Get Involved.",
+  "cheaperWays": "Free to participate; volunteering listed on the site.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Sustainability, ESG and climate"
+  ],
+  "roles": [
+   "sustainability director",
+   "ESG analyst"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE",
+   "LAID_OFF"
+  ]
+ }
+]
