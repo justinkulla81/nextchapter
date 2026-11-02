@@ -8,6 +8,8 @@ import { costLabel, whenLabel, whereLabel } from '@/lib/events/format'
 import { SPEAKING_LABEL, type Speaking } from '@/lib/events/types'
 import { conferencePath, functionPath, industryPath } from '@/lib/seo/topics'
 import type { Conf, TopicJob } from '@/lib/seo/topic-data'
+import { PageCaptureTop, PageCaptureOwner } from '@/components/capture/PageCapture'
+import type { PageCaptureConfig } from '@/lib/capture/page-capture'
 
 export const LINK = 'text-brand underline underline-offset-4'
 export const H2 = 'text-2xl font-bold tracking-tight text-navy'
@@ -17,12 +19,14 @@ const clip = (t: string, n: number) => (t.length > n ? `${t.slice(0, n).replace(
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 
 /** Page frame shared by every topic page: header, breadcrumb, h1, intro, footer. */
-export function TopicShell({ trail, title, intro, children, jsonLd }: {
+export function TopicShell({ trail, title, intro, children, jsonLd, capture }: {
   trail: { name: string; path: string }[]
   title: string
   intro: string
   children: React.ReactNode
   jsonLd?: Record<string, unknown>[]
+  /** Adds the journey question and email save under the intro and the owner inquiry at the bottom (components/capture). */
+  capture?: PageCaptureConfig
 }) {
   return (
     <div className="flex flex-1 flex-col">
@@ -42,7 +46,9 @@ export function TopicShell({ trail, title, intro, children, jsonLd }: {
           </nav>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{title}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">{intro}</p>
+          {capture && <PageCaptureTop capture={capture} />}
           {children}
+          {capture && <PageCaptureOwner capture={capture} />}
         </div>
       </main>
       <PublicSiteFooter page="seo" />

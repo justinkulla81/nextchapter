@@ -8,12 +8,14 @@ import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { stateBrandFromSlug, statePhrase } from '@/lib/branding/state-colors'
 import { stateName } from '@/lib/seo/states'
+import { PageCaptureTop, PageCaptureOwner } from '@/components/capture/PageCapture'
+import type { PageCaptureConfig } from '@/lib/capture/page-capture'
 
 export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export const LINK = 'text-brand underline underline-offset-4'
 
 /** The frame for the programmatic public pages (workforce, higher education by state, rapid response, tools). */
-export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain' }: {
+export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture }: {
   trail: { name: string; path: string }[]
   h1: string
   lede: ReactNode
@@ -23,6 +25,8 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   stateSlug?: string
   /** 'audience': the shared look for workforce, higher-education and recruiter pages (tinted heading panel, colored stat cards). */
   look?: 'plain' | 'audience'
+  /** Adds the journey question and email save under the intro and the owner inquiry at the bottom (components/capture). */
+  capture?: PageCaptureConfig
 }) {
   const st = stateBrandFromSlug(stateSlug)
   const page = (
@@ -54,7 +58,9 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
               properties={{ kind: 'STATE', state: st.code }}
             />
           )}
+          {capture && <PageCaptureTop capture={capture} />}
           {children}
+          {capture && <PageCaptureOwner capture={capture} />}
         </div>
       </main>
       <PublicSiteFooter page="seo" />
