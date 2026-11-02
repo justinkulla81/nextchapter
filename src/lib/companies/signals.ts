@@ -63,19 +63,30 @@ function withLongTimeout<T>(run: (tx: Prisma.TransactionClient) => Promise<T>): 
 async function openPostingsAsOfGrouped(asOf: Date): Promise<Map<string, PostingRow[]>> {
   // Descriptions are stored whole now; only the first 1,000 characters (what this was
   // tuned on) are read, clipped in SQL, so the three full-board reads stay small.
-  const rows = await withLongTimeout((tx) => tx.$queryRaw<PostingRow[]>`
-    SELECT "companyName", "title", "level", left("description", 1000) AS "description", "createdAt"
-    FROM public."ExclusiveJobPosting"
-    WHERE "institutionScopeId" IS NULL AND "createdAt" <= ${asOf}
-      AND ("archivedAt" IS NULL OR "archivedAt" > ${asOf})`)
-
+  // One query for the whole board returned ~530,000 rows of text in a single result, past the
+  // largest string Prisma can pass back ("Failed to convert rust `String` into napi `string`"),
+  // so it is read in pages by id and grouped as it goes.
   const grouped = new Map<string, PostingRow[]>()
-  for (const row of rows) {
-    const key = normalizeOrgName(row.companyName)
-    if (!key) continue
-    const list = grouped.get(key)
-    if (list) list.push(row)
-    else grouped.set(key, [row])
+  const PAGE = 20_000
+  let lastId = ''
+  for (;;) {
+    const rows = await withLongTimeout((tx) => tx.$queryRaw<(PostingRow & { id: string })[]>`
+      SELECT "id", "companyName", "title", "level", left("description", 1000) AS "description", "createdAt"
+      FROM public."ExclusiveJobPosting"
+      WHERE "institutionScopeId" IS NULL AND "createdAt" <= ${asOf}
+        AND ("archivedAt" IS NULL OR "archivedAt" > ${asOf})
+        AND "id" > ${lastId}
+      ORDER BY "id"
+      LIMIT ${PAGE}`)
+    for (const { id: _id, ...row } of rows) {
+      const key = normalizeOrgName(row.companyName)
+      if (!key) continue
+      const list = grouped.get(key)
+      if (list) list.push(row)
+      else grouped.set(key, [row])
+    }
+    if (rows.length < PAGE) break
+    lastId = rows[rows.length - 1].id
   }
   return grouped
 }

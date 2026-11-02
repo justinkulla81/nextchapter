@@ -59,6 +59,8 @@ export interface PublicNotice {
   slug: string
   /** City or county, whichever the filing gives. */
   place: string | null
+  /** The site's city from its address, even when the filing names a county (California, Texas, New York). */
+  city: string | null
   workers: number | null
   /**
    * When the notice was filed. A state that publishes only the effective date (Pennsylvania) gets that date minus the 60 days WARN
@@ -107,6 +109,7 @@ async function loadPublicNotices(): Promise<PublicNotice[]> {
       slug: employerSlug(r.employer, company),
       // Florida writes the site address into the employer field instead.
       place: county ? `${county} County` : cityFromAddress(r.address, r.state) ?? cityFromAddress(r.employer, r.state),
+      city: cityFromAddress(r.address, r.state),
       workers: r.employees,
       noticeDate: r.noticeDate ?? new Date(Math.min(r.effectiveDate!.getTime() - 60 * DAY_MS, now)),
       noticeDateKnown: r.noticeDate !== null,

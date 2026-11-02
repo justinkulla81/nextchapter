@@ -1,5 +1,5 @@
 {
- "builtAt": "2026-10-25T20:20:48.112Z",
+ "builtAt": "2026-11-02T14:42:06.978Z",
  "rows": [
   {
    "id": "aaae-annual-conference",
@@ -1807,6 +1807,60 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
+   "id": "acs-fall-meeting",
+   "name": "ACS Fall Meeting",
+   "organizer": "American Chemical Society",
+   "url": "https://www.acs.org/events/acs-meetings/future-meetings.html",
+   "kind": "CONFERENCE",
+   "format": "HYBRID",
+   "startDate": "2027-08-22",
+   "endDate": "2027-08-26",
+   "datesConfirmed": true,
+   "typicalMonth": "August",
+   "city": "San Diego",
+   "state": "CA",
+   "country": "US",
+   "industries": [
+    "Manufacturing & Industrial",
+    "Pharmaceuticals & Biotech"
+   ],
+   "functions": [
+    "Engineering"
+   ],
+   "segments": [
+    "Chemicals, plastics and materials"
+   ],
+   "roles": [
+    "process chemist",
+    "materials engineer"
+   ],
+   "journeys": [
+    "GROWING",
+    "EXPLORING_MOVE",
+    "STUDENT_NEW_GRAD"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 1,
+   "whyAttend": "The largest chemistry meeting: process, polymer and materials chemists from industry and academia, plus an expo and career fair.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 fees not posted. For reference, ACS Fall 2026 in-person: members $249-$349, students $125-$199, nonmembers $849-$1,049 full registration.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.acs.org/events/acs-meetings/future-meetings.html",
+   "speakingDeadline": null,
+   "speakingNote": "Presenters must register; abstract window not found for 2027.",
+   "cheaperWays": "Student, retired and unemployed-member rates (2026 structure).",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
    "source": "official domain search",
    "adminNote": null
   },
@@ -7638,7 +7692,10 @@
    "industries": [
     "Accounting & Audit"
    ],
-   "functions": [],
+   "functions": [
+    "Finance",
+    "Legal"
+   ],
    "segments": [
     "Tax"
    ],
@@ -7646,7 +7703,9 @@
     "state and local tax specialist",
     "tax director"
    ],
-   "journeys": [],
+   "journeys": [
+    "PROMOTION"
+   ],
    "programFormats": [],
    "seniorities": [
     "MID",
@@ -8851,7 +8910,9 @@
     "crypto product lead"
    ],
    "journeys": [
-    "ENTREPRENEUR"
+    "ENTREPRENEUR",
+    "EXPLORING_MOVE",
+    "CAREER_CHANGE"
    ],
    "programFormats": [],
    "seniorities": [],
@@ -8993,7 +9054,8 @@
     "Technology & Software"
    ],
    "functions": [
-    "Data & Analytics"
+    "Data & Analytics",
+    "Engineering"
    ],
    "segments": [
     "Data engineering and analytics"
@@ -11878,6 +11940,55 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
+   "id": "ice-barcelona",
+   "name": "ICE Barcelona",
+   "organizer": "Clarion Gaming / World Gaming Business",
+   "url": "https://www.icegaming.com/",
+   "kind": "TRADE_SHOW",
+   "format": "IN_PERSON",
+   "startDate": "2027-01-18",
+   "endDate": "2027-01-20",
+   "datesConfirmed": true,
+   "typicalMonth": "January",
+   "city": "Barcelona",
+   "state": null,
+   "country": "ES",
+   "industries": [
+    "Hospitality, Travel & Food Service"
+   ],
+   "functions": [],
+   "segments": [
+    "Cruise, gaming and attractions"
+   ],
+   "roles": [
+    "casino executive"
+   ],
+   "journeys": [
+    "GROWING",
+    "PROMOTION"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 1,
+   "whyAttend": "The global gaming industry's flagship: casino and online operators, suppliers and regulators.",
+   "access": "MIXED",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Prices in EUR ex VAT: ICE Conference EUR850 early bird (EUR1,050 full) to Nov 27; MeetMe pass EUR249 early bird; free Expo Pass for operators, regulators and institutions.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Free Expo Pass for operators, regulators and institutions; early-bird pricing to Nov 27.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
    "source": "official domain search",
    "adminNote": null
   },
@@ -15721,16 +15832,22 @@
    "state": "WA",
    "country": "US",
    "industries": [
-    "Legal Services"
+    "Legal Services",
+    "Government & Public Sector"
    ],
-   "functions": [],
+   "functions": [
+    "Operations",
+    "Administration"
+   ],
    "segments": [
     "Courts and public interest law"
    ],
    "roles": [
     "judge and court administrator"
    ],
-   "journeys": [],
+   "journeys": [
+    "PROMOTION"
+   ],
    "programFormats": [],
    "seniorities": [],
    "importance": 1,
@@ -19313,6 +19430,59 @@
    "adminNote": null
   },
   {
+   "id": "plant-and-animal-genome-conference",
+   "name": "Plant and Animal Genome Conference (PAG)",
+   "organizer": "International Plant & Animal Genome Conference",
+   "url": "https://www.intlpag.org/PAG/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-01-08",
+   "endDate": "2027-01-12",
+   "datesConfirmed": true,
+   "typicalMonth": "January",
+   "city": "San Diego",
+   "state": "CA",
+   "country": "US",
+   "industries": [
+    "Pharmaceuticals & Biotech"
+   ],
+   "functions": [
+    "Engineering",
+    "Data & Analytics"
+   ],
+   "segments": [
+    "Genomics and bioinformatics"
+   ],
+   "roles": [
+    "bioinformatician",
+    "genomics product lead"
+   ],
+   "journeys": [
+    "GROWING",
+    "EXPLORING_MOVE"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 1,
+   "whyAttend": "Plant, animal and agricultural genomics researchers, bioinformaticians and genomics vendors in one San Diego room.",
+   "access": "PAID",
+   "costLow": 1190,
+   "costHigh": 1790,
+   "costNote": "Early rates through Oct 31, 2026: $1,190 non-profit, $1,790 industry (as read from the PAG 34 site); rates rise after. Exhibitors extra.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.intlpag.org/PAG/abstracts/poster-abstracts",
+   "speakingDeadline": "2026-11-06",
+   "speakingNote": "Poster abstracts (500 words max) from paid registrants; notices Dec 1.",
+   "cheaperWays": "Travel grants with complimentary registration (several deadlines in Oct 2026); first-time attendee mentor program.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "pmi-global-summit",
    "name": "PMI Global Summit",
    "organizer": "Project Management Institute",
@@ -19575,7 +19745,8 @@
    "country": "US",
    "industries": [
     "Manufacturing & Industrial",
-    "Transportation & Logistics"
+    "Transportation & Logistics",
+    "Retail & E-commerce"
    ],
    "functions": [
     "Operations",
@@ -19584,18 +19755,21 @@
    "segments": [
     "Advanced manufacturing and automation",
     "Warehousing and fulfillment",
-    "Supply chain planning and visibility"
+    "Supply chain planning and visibility",
+    "Loss prevention and retail supply chain"
    ],
    "roles": [
     "automation engineer",
     "plant manager",
     "warehouse operations manager",
     "fulfillment director",
-    "logistics technologist"
+    "logistics technologist",
+    "retail supply chain planner"
    ],
    "journeys": [
     "GROWING",
-    "CAREER_CHANGE"
+    "CAREER_CHANGE",
+    "EXPLORING_MOVE"
    ],
    "programFormats": [],
    "seniorities": [],
@@ -20631,7 +20805,7 @@
   {
    "id": "scte-techexpo",
    "name": "SCTE TechExpo",
-   "organizer": "SCTE",
+   "organizer": "SCTE (a CableLabs subsidiary)",
    "url": "https://techexpo.scte.org/",
    "kind": "TRADE_SHOW",
    "format": "IN_PERSON",
@@ -20645,16 +20819,23 @@
    "industries": [
     "Telecommunications"
    ],
-   "functions": [],
+   "functions": [
+    "Engineering",
+    "Operations"
+   ],
    "segments": [
     "Broadband and fiber"
    ],
    "roles": [
     "fiber network engineer",
     "network operations lead",
-    "broadband executive"
+    "broadband executive",
+    "rf engineer",
+    "network planner"
    ],
-   "journeys": [],
+   "journeys": [
+    "GROWING"
+   ],
    "programFormats": [
     "KEYNOTE",
     "PANEL",
@@ -20664,7 +20845,7 @@
    ],
    "seniorities": [],
    "importance": 1,
-   "whyAttend": "Cable and broadband engineers and operators; 2026 edition is current, 2027 interest list open.",
+   "whyAttend": "Broadband and wireless engineers from cable operators and their vendors.",
    "access": "PAID",
    "costLow": 179,
    "costHigh": 1399,
@@ -20672,7 +20853,7 @@
    "speaking": "LIKELY",
    "speakingUrl": null,
    "speakingDeadline": null,
-   "speakingNote": "2026 call existed; 2027 not announced.",
+   "speakingNote": null,
    "cheaperWays": "Expo-only pass $179-$219; CableLabs members get a complimentary Full Access pass.",
    "applyUrl": null,
    "applyDeadline": null,
@@ -22465,7 +22646,10 @@
    "industries": [
     "Accounting & Audit"
    ],
-   "functions": [],
+   "functions": [
+    "Finance",
+    "Legal"
+   ],
    "segments": [
     "Tax"
    ],
@@ -22474,7 +22658,9 @@
     "international tax advisor",
     "state and local tax specialist"
    ],
-   "journeys": [],
+   "journeys": [
+    "PROMOTION"
+   ],
    "programFormats": [],
    "seniorities": [
     "SENIOR",
@@ -25751,6 +25937,57 @@
    "adminNote": null
   },
   {
+   "id": "aba-tax-may-meeting",
+   "name": "ABA Section of Taxation May Tax Meeting",
+   "organizer": "American Bar Association Section of Taxation",
+   "url": "https://www.americanbar.org/groups/taxation/events/upcoming-meetings/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-05-20",
+   "endDate": "2027-05-22",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "industries": [
+    "Accounting & Audit",
+    "Legal Services"
+   ],
+   "functions": [
+    "Legal",
+    "Finance"
+   ],
+   "segments": [],
+   "roles": [
+    "tax director",
+    "international tax advisor"
+   ],
+   "journeys": [
+    "PROMOTION"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 2,
+   "whyAttend": "Tax lawyers, Treasury and IRS officials and advisors shaping federal tax policy.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not captured; dates subject to change per ABA.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "aba-techshow",
    "name": "ABA TECHSHOW",
    "organizer": "American Bar Association",
@@ -26217,7 +26454,10 @@
     "Accounting & Audit",
     "Financial Services & Banking"
    ],
-   "functions": [],
+   "functions": [
+    "Legal",
+    "Operations"
+   ],
    "segments": [
     "Forensic and fraud examination",
     "Compliance, AML and risk"
@@ -26226,9 +26466,13 @@
     "forensic accountant",
     "fraud examiner",
     "aml analyst",
-    "compliance officer"
+    "compliance officer",
+    "digital asset compliance"
    ],
-   "journeys": [],
+   "journeys": [
+    "PROMOTION",
+    "EXPLORING_MOVE"
+   ],
    "programFormats": [],
    "seniorities": [],
    "importance": 2,
@@ -26614,7 +26858,10 @@
    "industries": [
     "Healthcare & Hospital Systems"
    ],
-   "functions": [],
+   "functions": [
+    "Operations",
+    "Executive Leadership"
+   ],
    "segments": [
     "Long-term care and senior living"
    ],
@@ -26633,7 +26880,7 @@
    ],
    "seniorities": [],
    "importance": 2,
-   "whyAttend": "Licensed nursing home and post-acute administrators and aging-services leaders in the one association built for LTC administrators.",
+   "whyAttend": "Licensed nursing home and assisted living administrators; the profession's own college.",
    "access": "PAID",
    "costLow": null,
    "costHigh": null,
@@ -26641,7 +26888,7 @@
    "speaking": "LIKELY",
    "speakingUrl": "https://www.achca.org/speaking-opportunities",
    "speakingDeadline": null,
-   "speakingNote": null,
+   "speakingNote": "Speaking Opportunities page exists; deadline not captured.",
    "cheaperWays": "Member discount on registration (achca.org/join-achca).",
    "applyUrl": null,
    "applyDeadline": null,
@@ -29097,6 +29344,56 @@
    "adminNote": null
   },
   {
+   "id": "airflow-summit",
+   "name": "Airflow Summit",
+   "organizer": "SG Software Guru (Apache Airflow community)",
+   "url": "https://airflowsummit.org",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": "Austin",
+   "state": "TX",
+   "country": "US",
+   "industries": [
+    "Technology & Software"
+   ],
+   "functions": [
+    "Data & Analytics",
+    "Engineering"
+   ],
+   "segments": [],
+   "roles": [
+    "data engineer",
+    "analytics engineer"
+   ],
+   "journeys": [
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 2,
+   "whyAttend": "Data engineers and platform teams who run Apache Airflow pipelines.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2026 in-person edition was Aug 31-Sep 2 in Austin; a free online Reconnect runs Nov 4-5, 2026. 2027 dates not posted.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official site",
+   "adminNote": null
+  },
+  {
    "id": "aises-national-conference",
    "name": "AISES National Conference",
    "organizer": "American Indian Science and Engineering Society",
@@ -30023,6 +30320,59 @@
    "adminNote": null
   },
   {
+   "id": "ampp-annual-conference-expo",
+   "name": "AMPP Annual Conference + Expo",
+   "organizer": "AMPP",
+   "url": "https://ace.ampp.org/home",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-04-11",
+   "endDate": "2027-04-15",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Columbus",
+   "state": "OH",
+   "country": "US",
+   "industries": [
+    "Manufacturing & Industrial",
+    "Energy & Utilities"
+   ],
+   "functions": [
+    "Engineering",
+    "Operations"
+   ],
+   "segments": [
+    "Chemicals, plastics and materials"
+   ],
+   "roles": [
+    "materials engineer",
+    "process chemist"
+   ],
+   "journeys": [
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 2,
+   "whyAttend": "Corrosion, coatings and protective-materials engineers and asset owners; the main coatings and materials-performance gathering.",
+   "access": "PAID",
+   "costLow": 1075,
+   "costHigh": 1625,
+   "costNote": "Full conference $1,075-$1,275 members, $1,425-$1,625 non-members; exhibit hall only $175; $99 membership needed for member rate.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Free with student membership; exhibit-hall-only $175; one- and two-day passes.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "amt-mfg-meeting",
    "name": "AMT The MFG Meeting",
    "organizer": "AMT",
@@ -30338,6 +30688,58 @@
    "adminNote": null
   },
   {
+   "id": "aoc-international-symposium-convention",
+   "name": "AOC International Symposium & Convention",
+   "organizer": "Association of Old Crows",
+   "url": "https://crows.org/events/annual-convention-symposium/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2026-12-08",
+   "endDate": "2026-12-10",
+   "datesConfirmed": false,
+   "typicalMonth": "December",
+   "city": "National Harbor",
+   "state": "MD",
+   "country": "US",
+   "industries": [
+    "Aerospace & Defense"
+   ],
+   "functions": [
+    "Operations",
+    "Engineering"
+   ],
+   "segments": [
+    "Defense and government contracting"
+   ],
+   "roles": [
+    "defense program manager",
+    "capture manager"
+   ],
+   "journeys": [
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 2,
+   "whyAttend": "About 2,500 electronic-warfare and spectrum professionals from military, government and industry.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration prices not found. AOC page shows end year as 2027, likely a typo; confirm.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "aohc-american-occupational-health-conference",
    "name": "AOHC (American Occupational Health Conference)",
    "organizer": "American College of Occupational and Environmental Medicine",
@@ -30626,6 +31028,55 @@
    "published": true,
    "checkedAt": "2026-10-23",
    "source": "official domain search",
+   "adminNote": null
+  },
+  {
+   "id": "appam-fall-research-conference",
+   "name": "APPAM Fall Research Conference",
+   "organizer": "Association for Public Policy Analysis and Management",
+   "url": "https://www.appam.org/fall-conference/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2026-11-05",
+   "endDate": "2026-11-07",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Boston",
+   "state": "MA",
+   "country": "US",
+   "industries": [
+    "Government & Public Sector",
+    "Education & EdTech"
+   ],
+   "functions": [
+    "Data & Analytics"
+   ],
+   "segments": [
+    "Education policy and school districts"
+   ],
+   "roles": [
+    "education policy analyst"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 2,
+   "whyAttend": "About 1,500 policy researchers and practitioners across 250+ sessions, with education a core policy area.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Fees not on the page read; advance registration deadline passed Sept 15, onsite hours listed.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official site",
    "adminNote": null
   },
   {
@@ -33642,6 +34093,61 @@
    "adminNote": null
   },
   {
+   "id": "biology-of-genomes",
+   "name": "Biology of Genomes (Cold Spring Harbor)",
+   "organizer": "Cold Spring Harbor Laboratory",
+   "url": "https://meetings.cshl.edu/omics-meetings",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-05-11",
+   "endDate": "2027-05-15",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Cold Spring Harbor",
+   "state": "NY",
+   "country": "US",
+   "industries": [
+    "Pharmaceuticals & Biotech"
+   ],
+   "functions": [
+    "Engineering",
+    "Data & Analytics"
+   ],
+   "segments": [
+    "Genomics and bioinformatics"
+   ],
+   "roles": [
+    "bioinformatician",
+    "genomics product lead"
+   ],
+   "journeys": [
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR"
+   ],
+   "importance": 2,
+   "whyAttend": "Computational and experimental genomics researchers presenting new data at a small, abstract-driven CSHL meeting.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Fees not shown on the meetings list; registration is required before an abstract is considered.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://meetings.cshl.edu/abstractsub/abstractsub.aspx",
+   "speakingDeadline": "2027-02-19",
+   "speakingNote": "Abstracts due Feb 19, 2027; submitters must register first.",
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "biotech-week-boston",
    "name": "Biotech Week Boston (incl. BioProcess International)",
    "organizer": "Informa Connect",
@@ -35734,7 +36240,10 @@
    "industries": [
     "Telecommunications"
    ],
-   "functions": [],
+   "functions": [
+    "Executive Leadership",
+    "Operations"
+   ],
    "segments": [
     "Wireless and 5G",
     "Telecom operations and policy"
@@ -35742,7 +36251,8 @@
    "roles": [
     "wireless product manager",
     "telecom regulatory counsel",
-    "network planner"
+    "network planner",
+    "rf engineer"
    ],
    "journeys": [
     "GROWING",
@@ -42587,6 +43097,59 @@
    "adminNote": null
   },
   {
+   "id": "great-place-to-work-for-all-summit",
+   "name": "For All Summit (Great Place To Work)",
+   "organizer": "Great Place To Work",
+   "url": "https://www.forallsummit.com/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-05-18",
+   "endDate": "2027-05-20",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Atlanta",
+   "state": "GA",
+   "country": "US",
+   "industries": [
+    "Staffing & Human Capital"
+   ],
+   "functions": [
+    "Human Resources"
+   ],
+   "segments": [
+    "Learning, culture and DEI"
+   ],
+   "roles": [
+    "employee experience lead",
+    "dei leader"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 2,
+   "whyAttend": "Workplace culture leaders, executives of 500-2,500 person firms and ERG leaders.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Tier 1 pricing ends Oct 31 and saves $700; prices not shown.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official site",
+   "adminNote": null
+  },
+  {
    "id": "forbes-under-30-summit",
    "name": "Forbes Under 30 Summit",
    "organizer": "Forbes",
@@ -44011,6 +44574,63 @@
    "adminNote": null
   },
   {
+   "id": "cshl-genome-informatics",
+   "name": "Genome Informatics (Cold Spring Harbor)",
+   "organizer": "Cold Spring Harbor Laboratory",
+   "url": "https://meetings.cshl.edu/omics-meetings",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-11-03",
+   "endDate": "2027-11-06",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Cold Spring Harbor",
+   "state": "NY",
+   "country": "US",
+   "industries": [
+    "Pharmaceuticals & Biotech"
+   ],
+   "functions": [
+    "Engineering",
+    "Data & Analytics"
+   ],
+   "segments": [
+    "Genomics and bioinformatics"
+   ],
+   "roles": [
+    "bioinformatician",
+    "genomics product lead"
+   ],
+   "journeys": [
+    "GROWING",
+    "CAREER_CHANGE"
+   ],
+   "programFormats": [],
+   "seniorities": [
+    "EARLY",
+    "MID",
+    "SENIOR"
+   ],
+   "importance": 2,
+   "whyAttend": "The bioinformatics community's methods meeting: computational biologists, tool builders and genomics data leads.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Fees not shown on the meetings list; registration is required before an abstract is considered.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://meetings.cshl.edu/abstractsub/abstractsub.aspx",
+   "speakingDeadline": "2027-08-13",
+   "speakingNote": "Abstracts due Aug 13, 2027; submitters must register first.",
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "georgetown-advanced-ediscovery-institute",
    "name": "Georgetown Law Advanced eDiscovery Institute",
    "organizer": "Georgetown Law",
@@ -44865,6 +45485,59 @@
    "published": true,
    "checkedAt": "2026-10-23",
    "source": "official site",
+   "adminNote": null
+  },
+  {
+   "id": "gs1-connect",
+   "name": "GS1 Connect",
+   "organizer": "GS1 US",
+   "url": "https://www.connect.gs1us.org/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-05-24",
+   "endDate": "2027-05-26",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Denver",
+   "state": "CO",
+   "country": "US",
+   "industries": [
+    "Retail & E-commerce",
+    "Consumer Packaged Goods",
+    "Transportation & Logistics"
+   ],
+   "functions": [
+    "Operations",
+    "Data & Analytics"
+   ],
+   "segments": [
+    "Loss prevention and retail supply chain"
+   ],
+   "roles": [
+    "retail supply chain planner"
+   ],
+   "journeys": [
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 2,
+   "whyAttend": "Retail and brand supply chain, product-data and traceability leaders, with trading partner roundtables hosted by retailers.",
+   "access": "PAID",
+   "costLow": 1722,
+   "costHigh": 2025,
+   "costNote": "Full pass $2,025; $1,722 with the 15% discount through Dec 31 (the page also shows a 10% banner to Mar 31).",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Group discounts ($75 off at 3+, $100 off at 8+); 50% off for GS1 US Industry Initiative members; email for government and academia rates.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
    "adminNote": null
   },
   {
@@ -46950,6 +47623,54 @@
    "adminNote": null
   },
   {
+   "id": "ida-dyslexiacon",
+   "name": "IDA Annual Conference (DyslexiaCon)",
+   "organizer": "International Dyslexia Association",
+   "url": "https://www.dyslexiacon.org/IDAAnnualConference/IDAAnnualConference/Home.aspx",
+   "kind": "CONFERENCE",
+   "format": "HYBRID",
+   "startDate": "2026-11-12",
+   "endDate": "2026-11-14",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Las Vegas",
+   "state": "NV",
+   "country": "US",
+   "industries": [
+    "Education & EdTech"
+   ],
+   "functions": [],
+   "segments": [
+    "K-12 teachers"
+   ],
+   "roles": [
+    "elementary teacher",
+    "special education teacher",
+    "english language arts teacher"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 2,
+   "whyAttend": "Teachers, clinicians and researchers focused on dyslexia and structured literacy; on-demand access after the event.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Prices not read. Registration extended to Nov 6, 2026 per one page (Oct 30 on another). Joining or renewing IDA gives $100 off.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "IDA member $100 discount.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "iddba-show",
    "name": "IDDBA Show",
    "organizer": "International Dairy Deli Bakery Association",
@@ -48754,7 +49475,9 @@
    "industries": [
     "Accounting & Audit"
    ],
-   "functions": [],
+   "functions": [
+    "Finance"
+   ],
    "segments": [
     "Tax"
    ],
@@ -48762,7 +49485,9 @@
     "state and local tax specialist",
     "tax director"
    ],
-   "journeys": [],
+   "journeys": [
+    "GROWING"
+   ],
    "programFormats": [],
    "seniorities": [],
    "importance": 2,
@@ -49131,6 +49856,57 @@
    "published": true,
    "checkedAt": "2026-10-23",
    "source": "official site",
+   "adminNote": null
+  },
+  {
+   "id": "ispamerica",
+   "name": "ISPAMERICA",
+   "organizer": "Wireless Internet Service Providers Association",
+   "url": "https://www.wispa.org/events/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-03-01",
+   "endDate": "2027-03-04",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Cherokee",
+   "state": "NC",
+   "country": "US",
+   "industries": [
+    "Telecommunications"
+   ],
+   "functions": [
+    "Engineering",
+    "Operations"
+   ],
+   "segments": [],
+   "roles": [
+    "rf engineer",
+    "network planner"
+   ],
+   "journeys": [
+    "ENTREPRENEUR",
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 2,
+   "whyAttend": "Fixed wireless ISP operators and engineers; training, technology demos and vendors.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not captured. Formerly WISPAMERICA; Harrah's Cherokee Resort.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
    "adminNote": null
   },
   {
@@ -49869,6 +50645,53 @@
    "adminNote": null
   },
   {
+   "id": "ldacon",
+   "name": "LDACON (LDA International Conference)",
+   "organizer": "Learning Disabilities Association of America",
+   "url": "https://ldacon.org/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-02-17",
+   "endDate": "2027-02-19",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Las Vegas",
+   "state": "NV",
+   "country": "US",
+   "industries": [
+    "Education & EdTech"
+   ],
+   "functions": [],
+   "segments": [
+    "K-12 teachers"
+   ],
+   "roles": [
+    "special education teacher",
+    "elementary teacher"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 2,
+   "whyAttend": "Special educators, school psychologists and specialists plus families and clinicians in the learning disabilities field.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Early-bird pricing through Nov 15, 2026; prices not shown on the page. Pre-conference Feb 16.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Early-bird pricing.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official site",
+   "adminNote": null
+  },
+  {
    "id": "ldi-show",
    "name": "LDI",
    "organizer": "Live Design",
@@ -49912,6 +50735,63 @@
    "published": true,
    "checkedAt": "2026-10-23",
    "source": "official site",
+   "adminNote": null
+  },
+  {
+   "id": "lead-on-a-clean-economy",
+   "name": "LEAD on a Clean Economy",
+   "organizer": "Ceres",
+   "url": "https://www.ceres.org/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-03-15",
+   "endDate": "2027-03-17",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "industries": [
+    "Energy & Utilities"
+   ],
+   "functions": [
+    "Executive Leadership",
+    "Legal"
+   ],
+   "segments": [
+    "Sustainability, ESG and climate"
+   ],
+   "roles": [
+    "sustainability director",
+    "climate risk lead"
+   ],
+   "journeys": [
+    "GROWING",
+    "PROMOTION"
+   ],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 2,
+   "whyAttend": "Corporate sustainability and public-affairs leaders and investors meet members of Congress and agencies.",
+   "access": "MIXED",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Price not found. Ceres Policy Network members get a free ticket.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Free ticket for Ceres Policy Network members.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
    "adminNote": null
   },
   {
@@ -50729,15 +51609,21 @@
    "industries": [
     "Legal Services"
    ],
-   "functions": [],
+   "functions": [
+    "Legal",
+    "Operations"
+   ],
    "segments": [
     "Courts and public interest law",
     "Legal operations and technology"
    ],
    "roles": [
-    "legal aid attorney"
+    "legal aid attorney",
+    "public defender"
    ],
-   "journeys": [],
+   "journeys": [
+    "GROWING"
+   ],
    "programFormats": [],
    "seniorities": [],
    "importance": 2,
@@ -56913,6 +57799,54 @@
    "adminNote": null
   },
   {
+   "id": "nclc-consumer-rights-litigation-conference",
+   "name": "NCLC Consumer Rights Litigation Conference and Class Action Symposium",
+   "organizer": "National Consumer Law Center",
+   "url": "https://www.nclc.org/annual-conferences/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-10-21",
+   "endDate": "2027-10-24",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": "San Diego",
+   "state": "CA",
+   "country": "US",
+   "industries": [
+    "Legal Services"
+   ],
+   "functions": [
+    "Legal"
+   ],
+   "segments": [],
+   "roles": [
+    "legal aid attorney"
+   ],
+   "journeys": [
+    "PROMOTION"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 2,
+   "whyAttend": "About 900 consumer and legal aid attorneys and advocates; a legal services track is often subsidized.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration prices not posted yet. 2027 Spring Training May 5-8 in Baltimore.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "2026 edition offered a free intensive for legal services attorneys.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official site",
+   "adminNote": null
+  },
+  {
    "id": "nclm-cityvision",
    "name": "NCLM CityVision",
    "organizer": "North Carolina League of Municipalities",
@@ -57864,6 +58798,59 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official site",
+   "adminNote": null
+  },
+  {
+   "id": "nic-spring-conference",
+   "name": "NIC Spring Conference",
+   "organizer": "National Investment Center for Seniors Housing & Care",
+   "url": "https://www.nic.org/events/2027-nic-spring-conference/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-03-15",
+   "endDate": "2027-03-17",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Dallas",
+   "state": "TX",
+   "country": "US",
+   "industries": [
+    "Healthcare & Hospital Systems",
+    "Construction & Real Estate"
+   ],
+   "functions": [
+    "Executive Leadership",
+    "Finance"
+   ],
+   "segments": [],
+   "roles": [
+    "senior living executive"
+   ],
+   "journeys": [
+    "PROMOTION"
+   ],
+   "programFormats": [],
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 2,
+   "whyAttend": "Senior living owners, operators, lenders and investors.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Prices not listed; the page offers a waitlist.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
    "source": "official site",
    "adminNote": null
   },
@@ -62983,6 +63970,58 @@
    "adminNote": null
   },
   {
+   "id": "qualtrics-xm-summit",
+   "name": "Qualtrics XM Summit",
+   "organizer": "Qualtrics",
+   "url": "https://www.qualtrics.com/xmsummit/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-04-19",
+   "endDate": "2027-04-21",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Las Vegas",
+   "state": "NV",
+   "country": "US",
+   "industries": [
+    "Staffing & Human Capital"
+   ],
+   "functions": [
+    "Human Resources"
+   ],
+   "segments": [
+    "Learning, culture and DEI"
+   ],
+   "roles": [
+    "employee experience lead"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 2,
+   "whyAttend": "Experience management leaders, including employee experience teams; formerly X4.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Prices not stated on the FAQ page.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "quantminds-international",
    "name": "QuantMinds International",
    "organizer": "Informa Connect",
@@ -63475,6 +64514,62 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
+   "id": "reagan-national-defense-forum",
+   "name": "Reagan National Defense Forum",
+   "organizer": "Reagan Institute",
+   "url": "https://www.reaganfoundation.org/events/2026-reagan-national-defense-forum",
+   "kind": "SUMMIT",
+   "format": "HYBRID",
+   "startDate": "2026-12-04",
+   "endDate": "2026-12-05",
+   "datesConfirmed": true,
+   "typicalMonth": "December",
+   "city": "Simi Valley",
+   "state": "CA",
+   "country": "US",
+   "industries": [
+    "Aerospace & Defense",
+    "Government & Public Sector"
+   ],
+   "functions": [
+    "Executive Leadership"
+   ],
+   "segments": [
+    "Defense and government contracting"
+   ],
+   "roles": [
+    "defense program manager",
+    "capture manager"
+   ],
+   "journeys": [
+    "NEXT_ACT",
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 2,
+   "whyAttend": "Pentagon, Congress and defense-industry leaders gather for one weekend of policy and industry talk.",
+   "access": "MIXED",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "In-person access is not described on the site ('more information coming soon'); a virtual registration link is offered; no price listed.",
+   "speaking": "BY_INVITE",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": "Participants are announced by the Reagan Institute.",
+   "cheaperWays": "Virtual attendance link; National Defense Fellowship sends students.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
    "source": "official domain search",
    "adminNote": null
   },
@@ -65558,6 +66653,59 @@
    "adminNote": null
   },
   {
+   "id": "seat-conference",
+   "name": "SEAT (Sports & Entertainment Alliance in Technology)",
+   "organizer": "SEAT",
+   "url": "https://seatconference.com/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-07-19",
+   "endDate": "2027-07-21",
+   "datesConfirmed": true,
+   "typicalMonth": "July",
+   "city": "St. Paul",
+   "state": "MN",
+   "country": "US",
+   "industries": [
+    "Media & Entertainment"
+   ],
+   "functions": [
+    "Operations"
+   ],
+   "segments": [
+    "Sports business"
+   ],
+   "roles": [
+    "team operations leader",
+    "sports marketing executive"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 2,
+   "whyAttend": "Venue, ticketing, data, digital and CX leaders from pro teams, leagues and arenas.",
+   "access": "MIXED",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Membership includes one complimentary main-conference registration; registration is through INTIX. Price not published on pages read.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Membership includes a free registration.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "fei-usc-sec-financial-reporting",
    "name": "SEC and Financial Reporting Conference (FEI/USC)",
    "organizer": "Financial Executives International and USC Leventhal",
@@ -67486,6 +68634,59 @@
    "published": true,
    "checkedAt": "2026-10-23",
    "source": "official site",
+   "adminNote": null
+  },
+  {
+   "id": "solana-breakpoint",
+   "name": "Solana Breakpoint",
+   "organizer": "Solana Foundation",
+   "url": "https://solana.com/breakpoint",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2026-11-15",
+   "endDate": "2026-11-17",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "London",
+   "state": null,
+   "country": "GB",
+   "industries": [
+    "Financial Services & Banking",
+    "Technology & Software"
+   ],
+   "functions": [
+    "Engineering",
+    "Product"
+   ],
+   "segments": [],
+   "roles": [
+    "blockchain engineer",
+    "crypto product lead"
+   ],
+   "journeys": [
+    "EXPLORING_MOVE",
+    "CAREER_CHANGE",
+    "STUDENT_NEW_GRAD"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 2,
+   "whyAttend": "Global flagship of the Solana ecosystem: protocol and smart-contract engineers, crypto product leads and founders.",
+   "access": "PAID",
+   "costLow": 100,
+   "costHigh": 800,
+   "costNote": "General admission $550 rising to $800 late-bird; developer $250 and student $100 by application. Outside North America; flagship of the ecosystem.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": "Speaker applications closed for this edition.",
+   "cheaperWays": "Developer and student tickets by application.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
    "adminNote": null
   },
   {
@@ -75001,7 +76202,10 @@
     "Accounting & Audit",
     "Financial Services & Banking"
    ],
-   "functions": [],
+   "functions": [
+    "Legal",
+    "Operations"
+   ],
    "segments": [
     "Forensic and fraud examination",
     "Compliance, AML and risk"
@@ -75010,7 +76214,8 @@
     "forensic accountant",
     "fraud examiner",
     "aml analyst",
-    "compliance officer"
+    "compliance officer",
+    "digital asset compliance"
    ],
    "journeys": [],
    "programFormats": [],
@@ -76351,6 +77556,54 @@
    "adminNote": null
   },
   {
+   "id": "aiim-global-summit",
+   "name": "AI+IM Global Summit (AIIM)",
+   "organizer": "AIIM",
+   "url": "https://www.aiim.org/aiim-global-summit-2027",
+   "kind": "SUMMIT",
+   "format": "IN_PERSON",
+   "startDate": "2027-04-19",
+   "endDate": "2027-04-21",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Houston",
+   "state": "TX",
+   "country": "US",
+   "industries": [
+    "Government & Public Sector"
+   ],
+   "functions": [
+    "Operations"
+   ],
+   "segments": [
+    "Election administration and public records"
+   ],
+   "roles": [
+    "records manager"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 3,
+   "whyAttend": "Information management leaders, about 400 people from 200+ organizations.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Early bird saves $535 (deadline printed as Nov 30). Discounts for members, government employees, students, nonprofits; amounts not listed.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Government employee, student, nonprofit and member discounts.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official site",
+   "adminNote": null
+  },
+  {
    "id": "aicc-fall",
    "name": "AICC Fall Meeting",
    "organizer": "AICC The Independent Packaging Association",
@@ -77299,6 +78552,56 @@
    "published": true,
    "checkedAt": "2026-10-23",
    "source": "official site",
+   "adminNote": null
+  },
+  {
+   "id": "amusement-expo-international",
+   "name": "Amusement Expo International",
+   "organizer": "AAMA and AMOA",
+   "url": "https://www.amusementexpo.org/2027/public/Content.aspx?ID=1160&sortMenu=103000",
+   "kind": "TRADE_SHOW",
+   "format": "IN_PERSON",
+   "startDate": "2027-03-15",
+   "endDate": "2027-03-18",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Las Vegas",
+   "state": "NV",
+   "country": "US",
+   "industries": [
+    "Hospitality, Travel & Food Service"
+   ],
+   "functions": [
+    "Operations"
+   ],
+   "segments": [
+    "Cruise, gaming and attractions"
+   ],
+   "roles": [
+    "attractions operator"
+   ],
+   "journeys": [
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 3,
+   "whyAttend": "Arcade, family entertainment center and amusement operators plus suppliers, with two days of education.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration coming soon; industry professionals only.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Billiard and bowling expos included with registration.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
    "adminNote": null
   },
   {
@@ -79615,6 +80918,63 @@
    "adminNote": null
   },
   {
+   "id": "cshl-biological-data-science",
+   "name": "Biological Data Science (Cold Spring Harbor)",
+   "organizer": "Cold Spring Harbor Laboratory",
+   "url": "https://meetings.cshl.edu/omics-meetings",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2026-11-04",
+   "endDate": "2026-11-07",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Cold Spring Harbor",
+   "state": "NY",
+   "country": "US",
+   "industries": [
+    "Pharmaceuticals & Biotech"
+   ],
+   "functions": [
+    "Engineering",
+    "Data & Analytics"
+   ],
+   "segments": [
+    "Genomics and bioinformatics"
+   ],
+   "roles": [
+    "bioinformatician",
+    "genomics product lead"
+   ],
+   "journeys": [
+    "GROWING",
+    "CAREER_CHANGE"
+   ],
+   "programFormats": [],
+   "seniorities": [
+    "EARLY",
+    "MID",
+    "SENIOR"
+   ],
+   "importance": 3,
+   "whyAttend": "Data scientists and bioinformaticians applying machine learning and large-scale data analysis to biology.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Fees not shown on the meetings list; registration is required before an abstract is considered.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://meetings.cshl.edu/abstractsub/abstractsub.aspx",
+   "speakingDeadline": "2026-10-01",
+   "speakingNote": "Abstract deadline Oct 1, 2026 has passed.",
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "bisnow-carolinas-data-center-conference-expo",
    "name": "Bisnow Carolinas Data Center Conference & Expo",
    "organizer": "Bisnow",
@@ -79866,6 +81226,60 @@
    "published": true,
    "checkedAt": "2026-10-23",
    "source": "official domain search",
+   "adminNote": null
+  },
+  {
+   "id": "blue-yonder-icon",
+   "name": "Blue Yonder ICON",
+   "organizer": "Blue Yonder",
+   "url": "https://blueyonder.com/icon",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-05-17",
+   "endDate": "2027-05-19",
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": "Denver",
+   "state": "CO",
+   "country": "US",
+   "industries": [
+    "Transportation & Logistics"
+   ],
+   "functions": [
+    "Operations"
+   ],
+   "segments": [
+    "Supply chain planning and visibility"
+   ],
+   "roles": [
+    "supply chain director",
+    "demand planner",
+    "logistics technologist"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 3,
+   "whyAttend": "Planners and supply chain leaders from Blue Yonder's customer base trade planning and execution practices.",
+   "access": "PAID",
+   "costLow": 1599,
+   "costHigh": 2350,
+   "costNote": "Only group rates published (3-9 people $1,699-$2,350 per pass, 10+ $1,599-$2,250); individual rate not listed. Page shows both May 17-19 and May 17-20.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": "Site states proposals are due January 15, 2027; not confirmed as a public call.",
+   "cheaperWays": "Group discounts for teams of 3 or more.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official site",
    "adminNote": null
   },
   {
@@ -80701,6 +82115,53 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official site",
+   "adminNote": null
+  },
+  {
+   "id": "cf-house",
+   "name": "CF House (Capital Factory)",
+   "organizer": "Capital Factory",
+   "url": "https://house.capitalfactory.com/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-03-15",
+   "endDate": "2027-03-21",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Austin",
+   "state": "TX",
+   "country": "US",
+   "industries": [],
+   "functions": [],
+   "segments": [
+    "Starting a business"
+   ],
+   "roles": [
+    "first-time founder",
+    "startup operator"
+   ],
+   "journeys": [
+    "ENTREPRENEUR"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 3,
+   "whyAttend": "Founders, investors, academics and government leaders at STATION Austin across seven days.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pre-register form; the page does not say if it is free, paid or approval-based.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
    "source": "official site",
    "adminNote": null
   },
@@ -81802,6 +83263,56 @@
    "adminNote": null
   },
   {
+   "id": "cosa-annual-meeting",
+   "name": "CoSA Annual Meeting",
+   "organizer": "Council of State Archivists",
+   "url": "https://statearchivists.org/annual-meeting/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": "Columbia",
+   "state": "SC",
+   "country": "US",
+   "industries": [
+    "Government & Public Sector"
+   ],
+   "functions": [],
+   "segments": [
+    "Election administration and public records"
+   ],
+   "roles": [
+    "records manager"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 3,
+   "whyAttend": "State archivists and records managers; 2026 sessions cover email retention and records management.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2026 meeting was Sept 23-25 in Columbia, SC; 2027 not announced.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "cosmoprof-north-america-miami",
    "name": "Cosmoprof North America Miami",
    "organizer": "Informa Markets / BolognaFiere",
@@ -82757,6 +84268,59 @@
    "adminNote": null
   },
   {
+   "id": "project44-decision44",
+   "name": "decision44 (project44)",
+   "organizer": "project44",
+   "url": "https://www.project44.com/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-03-31",
+   "endDate": "2027-04-01",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Chicago",
+   "state": "IL",
+   "country": "US",
+   "industries": [
+    "Transportation & Logistics"
+   ],
+   "functions": [
+    "Operations"
+   ],
+   "segments": [
+    "Supply chain planning and visibility"
+   ],
+   "roles": [
+    "supply chain director",
+    "logistics technologist"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 3,
+   "whyAttend": "Shippers, logistics providers and visibility-platform users compare how they run supply chain execution and decisions.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Price not published on the homepage; a second edition is listed for Amsterdam April 7-8, 2027.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "demofest",
    "name": "DEMOFEST",
    "organizer": "Consensus",
@@ -83654,6 +85218,59 @@
    "adminNote": null
   },
   {
+   "id": "seramount-emerge",
+   "name": "EmERGe (Seramount)",
+   "organizer": "Seramount",
+   "url": "https://seramount.com/events-conferences/conferences/",
+   "kind": "CONFERENCE",
+   "format": "HYBRID",
+   "startDate": "2027-05-11",
+   "endDate": "2027-05-12",
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": "Jersey City",
+   "state": "NJ",
+   "country": "US",
+   "industries": [
+    "Staffing & Human Capital"
+   ],
+   "functions": [
+    "Human Resources"
+   ],
+   "segments": [
+    "Learning, culture and DEI"
+   ],
+   "roles": [
+    "dei leader",
+    "employee experience lead"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 3,
+   "whyAttend": "ERG leaders, executive sponsors, inclusion and HR professionals.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Homepage says May 11-12; 2027 speaker sheet says April. Prices not found.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://seramount.com/wp-content/uploads/2026/04/Seramount-Call-for-Speakers-Tip-Sheet-2027.pdf",
+   "speakingDeadline": null,
+   "speakingNote": "2027 call-for-speakers tip sheet published.",
+   "cheaperWays": "Virtual option.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "emerging-franchisor-conference",
    "name": "Emerging Franchisor Conference",
    "organizer": "International Franchise Association",
@@ -84091,6 +85708,56 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official site",
+   "adminNote": null
+  },
+  {
+   "id": "election-verification-network-conference",
+   "name": "EVN Annual Conference",
+   "organizer": "Election Verification Network",
+   "url": "https://electionverification.org/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "March",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "industries": [
+    "Government & Public Sector"
+   ],
+   "functions": [],
+   "segments": [
+    "Election administration and public records"
+   ],
+   "roles": [
+    "election official"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 3,
+   "whyAttend": "Election officials, auditors and researchers on election security and verification.",
+   "access": "INVITE",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Invitation only; no fee stated. 2026 edition was March 18-20.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": "https://electionverification.org/contact-us/",
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
    "source": "official site",
    "adminNote": null
   },
@@ -84730,6 +86397,54 @@
    "published": true,
    "checkedAt": "2026-10-23",
    "source": "official site",
+   "adminNote": null
+  },
+  {
+   "id": "fhca-annual-conference",
+   "name": "FHCA Annual Conference & Trade Show",
+   "organizer": "Florida Health Care Association",
+   "url": "https://www.fhca.org/calendar",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "July",
+   "city": "Orlando",
+   "state": "FL",
+   "country": "US",
+   "industries": [
+    "Healthcare & Hospital Systems"
+   ],
+   "functions": [
+    "Operations"
+   ],
+   "segments": [],
+   "roles": [
+    "nursing home administrator"
+   ],
+   "journeys": [
+    "PROMOTION"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 3,
+   "whyAttend": "1,000+ Florida long-term care leaders, administrators and nurse executives plus 300+ exhibitors.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2026 edition ran through July 30 in Orlando; 2027 dates not posted. Nurse Leadership Program June 2-4, 2027 (call for presentations closes Nov 9, 2026).",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
    "adminNote": null
   },
   {
@@ -86515,6 +88230,58 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official site",
+   "adminNote": null
+  },
+  {
+   "id": "global-sports-business-summit",
+   "name": "Global Sports Business Summit",
+   "organizer": "SMU Sport Management and the Dallas Sports Commission",
+   "url": "https://dallassports.org/gsbs",
+   "kind": "SUMMIT",
+   "format": "IN_PERSON",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": null,
+   "city": "Dallas",
+   "state": "TX",
+   "country": "US",
+   "industries": [
+    "Media & Entertainment"
+   ],
+   "functions": [],
+   "segments": [
+    "Sports business"
+   ],
+   "roles": [
+    "sports marketing executive",
+    "team operations leader",
+    "athletic director"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 3,
+   "whyAttend": "Sports industry leaders, innovators and emerging talent in Dallas; second edition held, next planned for 2027.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Dates, venue and prices not listed.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": false,
+   "published": false,
+   "checkedAt": null,
    "source": "official site",
    "adminNote": null
   },
@@ -88866,6 +90633,59 @@
    "adminNote": null
   },
   {
+   "id": "intix-conference",
+   "name": "INTIX Annual Conference & Exhibition",
+   "organizer": "International Ticketing Association",
+   "url": "https://intix.org/events/160972",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "January",
+   "city": "New Orleans",
+   "state": "LA",
+   "country": "US",
+   "industries": [
+    "Media & Entertainment"
+   ],
+   "functions": [
+    "Operations"
+   ],
+   "segments": [
+    "Sports business"
+   ],
+   "roles": [
+    "team operations leader",
+    "sports marketing executive"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 3,
+   "whyAttend": "Ticketing and box office leaders from teams, venues, arts and live events.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 edition is in New Orleans; dates and prices not published on the page read. Past editions were in late January.",
+   "speaking": "LIKELY",
+   "speakingUrl": "https://intix.org/events/160972",
+   "speakingDeadline": null,
+   "speakingNote": "Page links to a Become a Speaker form.",
+   "cheaperWays": "Professional Development Grants are mentioned.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": false,
+   "published": false,
+   "checkedAt": null,
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "iot-tech-expo-na",
    "name": "IoT Tech Expo North America",
    "organizer": "TechEx",
@@ -90659,6 +92479,60 @@
    "adminNote": null
   },
   {
+   "id": "manhattan-momentum",
+   "name": "Manhattan Momentum",
+   "organizer": "Manhattan Associates",
+   "url": "https://www.manh.com/lp/momentum-conference/2027-information",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-05-18",
+   "endDate": "2027-05-20",
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": "Orlando",
+   "state": "FL",
+   "country": "US",
+   "industries": [
+    "Transportation & Logistics",
+    "Retail & E-commerce"
+   ],
+   "functions": [
+    "Operations"
+   ],
+   "segments": [
+    "Supply chain planning and visibility"
+   ],
+   "roles": [
+    "supply chain director",
+    "logistics technologist"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 3,
+   "whyAttend": "Warehouse, transportation and retail supply chain practitioners using Manhattan's platforms share how they plan and fulfill.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration fees not yet published; Manhattan's own pages give May 18-20 and May 17-19.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "manufacturing-live-new-york",
    "name": "Manufacturing LIVE: The New York Summit",
    "organizer": "BizClik Media",
@@ -91016,6 +92890,53 @@
    "published": false,
    "checkedAt": null,
    "source": "official domain search",
+   "adminNote": null
+  },
+  {
+   "id": "matcap-annual",
+   "name": "MatCap Annual",
+   "organizer": "MatCap",
+   "url": "https://matcap.vc/annual",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-02-05",
+   "endDate": "2027-02-05",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Tempe",
+   "state": "AZ",
+   "country": "US",
+   "industries": [],
+   "functions": [],
+   "segments": [
+    "Starting a business"
+   ],
+   "roles": [
+    "first-time founder",
+    "solo founder"
+   ],
+   "journeys": [
+    "ENTREPRENEUR"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 3,
+   "whyAttend": "200 seats of investors, operators and selected early founders.",
+   "access": "APPLY",
+   "costLow": 60,
+   "costHigh": 300,
+   "costNote": "Founder ticket $60 (selective); general admission $300; tiers rise as they sell. Portfolio founders free.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Founder ticket is far cheaper than general admission.",
+   "applyUrl": "https://matcap.vc/annual",
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official site",
    "adminNote": null
   },
   {
@@ -93471,6 +95392,57 @@
    "adminNote": null
   },
   {
+   "id": "nafepa-conference",
+   "name": "NAFEPA National Conference",
+   "organizer": "National Association of Federal Education Program Administrators",
+   "url": "https://nafepa.org/professional-development/our-conference/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "March",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "industries": [
+    "Education & EdTech",
+    "Government & Public Sector"
+   ],
+   "functions": [],
+   "segments": [
+    "Education policy and school districts"
+   ],
+   "roles": [
+    "district administrator",
+    "education policy analyst"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR"
+   ],
+   "importance": 3,
+   "whyAttend": "District and state staff who run federal education programs.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Members get $100 off. 2027 dates not found; 2026 ran March 16-18.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://nafepa.org/",
+   "speakingDeadline": null,
+   "speakingNote": "2027 call for proposals listed on the site.",
+   "cheaperWays": "Member $100 registration discount.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "nagc-convention",
    "name": "NAGC Annual Convention",
    "organizer": "National Association for Gifted Children",
@@ -95071,6 +97043,55 @@
    "adminNote": null
   },
   {
+   "id": "ncsm-annual-conference",
+   "name": "NCSM Annual Conference (Leadership in Mathematics Education)",
+   "organizer": "NCSM",
+   "url": "https://mathedleadership.org/conference",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-10-25",
+   "endDate": "2027-10-27",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": "Orlando",
+   "state": "FL",
+   "country": "US",
+   "industries": [
+    "Education & EdTech"
+   ],
+   "functions": [],
+   "segments": [
+    "K-12 teachers"
+   ],
+   "roles": [
+    "math teacher"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR"
+   ],
+   "importance": 3,
+   "whyAttend": "Math coaches, department chairs and district math specialists; 1,400+ attendees expected for 2026.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 registration not yet published.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "nctm-spring-conferences",
    "name": "NCTM Spring Conferences (Louisville and Seattle)",
    "organizer": "National Council of Teachers of Mathematics",
@@ -95114,6 +97135,59 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
+   "id": "ndia-special-operations-symposium",
+   "name": "NDIA Special Operations Symposium",
+   "organizer": "National Defense Industrial Association",
+   "url": "https://www.ndia.org/events/2027/2/2/37th-special-ops-symposium",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-02-02",
+   "endDate": "2027-02-03",
+   "datesConfirmed": false,
+   "typicalMonth": "February",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "industries": [
+    "Aerospace & Defense"
+   ],
+   "functions": [
+    "Operations",
+    "Sales"
+   ],
+   "segments": [
+    "Defense and government contracting"
+   ],
+   "roles": [
+    "capture manager",
+    "defense program manager",
+    "contracts manager"
+   ],
+   "journeys": [
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 3,
+   "whyAttend": "Special operations program offices and the contractors that capture and manage their programs.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 fees not found; 2026 edition ran government civilian $265 to academia early $790. NDIA pages conflict on dates, confirm with NDIA.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Government civilian rate.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
    "source": "official domain search",
    "adminNote": null
   },
@@ -96433,6 +98507,58 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
+   "id": "nspra-national-seminar",
+   "name": "NSPRA National Seminar",
+   "organizer": "National School Public Relations Association",
+   "url": "https://www.nspra.org/national-seminar",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-07-11",
+   "endDate": "2027-07-14",
+   "datesConfirmed": true,
+   "typicalMonth": "July",
+   "city": "Indianapolis",
+   "state": "IN",
+   "country": "US",
+   "industries": [
+    "Education & EdTech"
+   ],
+   "functions": [
+    "Marketing"
+   ],
+   "segments": [
+    "Education policy and school districts"
+   ],
+   "roles": [
+    "district administrator"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 3,
+   "whyAttend": "School district communications leaders and superintendents' cabinet staff.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 registration not yet open.",
+   "speaking": "LIKELY",
+   "speakingUrl": "https://www.nspra.org/National-Seminar/Presenting-at-the-Seminar",
+   "speakingDeadline": null,
+   "speakingNote": "A presenting page exists; terms not read.",
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
    "source": "official domain search",
    "adminNote": null
   },
@@ -99177,6 +101303,58 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
+   "id": "polyurethanes-technical-conference",
+   "name": "Polyurethanes Technical Conference",
+   "organizer": "American Chemistry Council, Center for the Polyurethanes Industry",
+   "url": "https://www.americanchemistry.com/industry-groups/center-for-the-polyurethanes-industry-cpi/polyurethanes-technical-conference",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-10-04",
+   "endDate": "2027-10-06",
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "San Antonio",
+   "state": "TX",
+   "country": "US",
+   "industries": [
+    "Manufacturing & Industrial"
+   ],
+   "functions": [
+    "Engineering"
+   ],
+   "segments": [
+    "Chemicals, plastics and materials"
+   ],
+   "roles": [
+    "process chemist",
+    "plastics engineer",
+    "materials engineer"
+   ],
+   "journeys": [
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 3,
+   "whyAttend": "Polyurethane chemists, materials and plastics engineers and suppliers presenting technical papers.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration opens spring 2027; save-the-date only on the ACC page.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
    "source": "official domain search",
    "adminNote": null
   },
@@ -101990,6 +104168,54 @@
    "adminNote": null
   },
   {
+   "id": "san-diego-startup-week",
+   "name": "San Diego Startup Week",
+   "organizer": "Startup San Diego",
+   "url": "https://startupsd.org/event/san-diego-startup-week-2026/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2026-11-02",
+   "endDate": "2026-11-06",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "San Diego",
+   "state": "CA",
+   "country": "US",
+   "industries": [],
+   "functions": [],
+   "segments": [
+    "Starting a business"
+   ],
+   "roles": [
+    "first-time founder",
+    "startup operator"
+   ],
+   "journeys": [
+    "ENTREPRENEUR",
+    "LAID_OFF"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 3,
+   "whyAttend": "5,000+ founders, builders, investors and operators over five days.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Tickets via Eventship; 2026 prices not found on the official domain.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Sponsored tickets for people facing financial hardship or professional displacement.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "san-diego-wireless-summit",
    "name": "San Diego Wireless Summit",
    "organizer": "UC San Diego Center for Wireless Communications",
@@ -102481,6 +104707,57 @@
    "adminNote": null
   },
   {
+   "id": "senior-living-innovation-forum",
+   "name": "Senior Living Innovation Forum (SLIF Spring)",
+   "organizer": "Senior Living Innovation Forum",
+   "url": "https://seniorlivinginnovationforum.com/",
+   "kind": "SUMMIT",
+   "format": "IN_PERSON",
+   "startDate": "2027-06-06",
+   "endDate": "2027-06-08",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Pasadena",
+   "state": "CA",
+   "country": "US",
+   "industries": [
+    "Healthcare & Hospital Systems"
+   ],
+   "functions": [
+    "Executive Leadership"
+   ],
+   "segments": [],
+   "roles": [
+    "senior living executive"
+   ],
+   "journeys": [
+    "PROMOTION"
+   ],
+   "programFormats": [],
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 3,
+   "whyAttend": "Invite-only retreat of CXOs from top senior living providers.",
+   "access": "INVITE",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "No public ticket; qualified senior housing executives attend complimentary, including two nights lodging and meals.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "applyUrl": "https://seniorlivinginnovationforum.com/spring/",
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "ser-annual-meeting-society-for-epidemiologic-research",
    "name": "SER Annual Meeting (Society for Epidemiologic Research)",
    "organizer": "Society for Epidemiologic Research",
@@ -102531,6 +104808,58 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
+   "id": "sf-climate-week",
+   "name": "SF Climate Week",
+   "organizer": "Climatebase",
+   "url": "https://www.sfclimateweek.org/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-04-17",
+   "endDate": "2027-04-25",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "San Francisco",
+   "state": "CA",
+   "country": "US",
+   "industries": [
+    "Energy & Utilities",
+    "Technology & Software"
+   ],
+   "functions": [],
+   "segments": [
+    "Sustainability, ESG and climate"
+   ],
+   "roles": [
+    "sustainability director",
+    "esg analyst"
+   ],
+   "journeys": [
+    "CAREER_CHANGE",
+    "EXPLORING_MOVE",
+    "LAID_OFF"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 3,
+   "whyAttend": "Hundreds of climate-company, investor and sustainability events across the Bay Area in one week.",
+   "access": "MIXED",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Participating is free; some individual events charge. Calendar goes live January 2027.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://explore.sfclimateweek.org/getinvolved",
+   "speakingDeadline": null,
+   "speakingNote": "Anyone can host an event; see Get Involved.",
+   "cheaperWays": "Free to participate; volunteering listed on the site.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
    "source": "official domain search",
    "adminNote": null
   },
@@ -103685,6 +106014,58 @@
    "adminNote": null
   },
   {
+   "id": "sports-licensing-summit",
+   "name": "Sports Licensing Summit",
+   "organizer": "Licensing International",
+   "url": "https://licensinginternational.org/events/sports-licensing-summit-2027/",
+   "kind": "SUMMIT",
+   "format": "IN_PERSON",
+   "startDate": "2027-02-24",
+   "endDate": "2027-02-24",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "industries": [
+    "Media & Entertainment"
+   ],
+   "functions": [
+    "Marketing"
+   ],
+   "segments": [
+    "Sports business"
+   ],
+   "roles": [
+    "sports marketing executive"
+   ],
+   "journeys": [],
+   "programFormats": [],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "importance": 3,
+   "whyAttend": "Leagues, teams, brands and retailers meet on sports licensing, women's sports and NIL.",
+   "access": "PAID",
+   "costLow": 200,
+   "costHigh": 325,
+   "costNote": "Early bird to Jan 8, 2027: member $200, non-member $275; standard member $250, non-member $325.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": "A speaker form is linked from the site; no public call described.",
+   "cheaperWays": "Member rates; early-bird pricing.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official site",
+   "adminNote": null
+  },
+  {
    "id": "sreb-making-schools-work",
    "name": "SREB Making Schools Work Conference",
    "organizer": "Southern Regional Education Board",
@@ -104481,7 +106862,9 @@
    "industries": [
     "Technology & Software"
    ],
-   "functions": [],
+   "functions": [
+    "Data & Analytics"
+   ],
    "segments": [
     "Data engineering and analytics"
    ],
@@ -104490,7 +106873,9 @@
     "data scientist",
     "analytics engineer"
    ],
-   "journeys": [],
+   "journeys": [
+    "GROWING"
+   ],
    "programFormats": [],
    "seniorities": [],
    "importance": 3,
@@ -107668,6 +110053,56 @@
    "adminNote": null
   },
   {
+   "id": "world-game-protection-conference",
+   "name": "World Game Protection Conference (WGPC)",
+   "organizer": "World Game Protection Conference",
+   "url": "https://www.worldgameprotection.com/",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": "2027-03-02",
+   "endDate": "2027-03-04",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Las Vegas",
+   "state": "NV",
+   "country": "US",
+   "industries": [
+    "Hospitality, Travel & Food Service"
+   ],
+   "functions": [
+    "Operations"
+   ],
+   "segments": [
+    "Cruise, gaming and attractions"
+   ],
+   "roles": [
+    "casino executive"
+   ],
+   "journeys": [
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 3,
+   "whyAttend": "Casino surveillance, security and compliance staff and regulators sharing game-protection practice.",
+   "access": "APPLY",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Open to casino employees and casino regulatory agencies; fees not published, contact the organizer. Expo-only tickets exist.",
+   "speaking": "BY_INVITE",
+   "speakingUrl": "https://www.worldgameprotection.com/faq/",
+   "speakingDeadline": null,
+   "speakingNote": "Vendors with a best practice or study can contact the organizer; no sales pitches.",
+   "cheaperWays": "Expo-only ticket for floor access.",
+   "applyUrl": "https://www.worldgameprotection.com/faq/",
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
    "id": "world-procurement-congress",
    "name": "World Procurement Congress",
    "organizer": "Procurement Leaders",
@@ -107962,6 +110397,56 @@
    "verified": true,
    "published": true,
    "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "adminNote": null
+  },
+  {
+   "id": "wwa-symposium-trade-show",
+   "name": "WWA Symposium & Trade Show",
+   "organizer": "World Waterpark Association",
+   "url": "https://www.waterparks.org/web/web/WWA_Show.aspx",
+   "kind": "CONFERENCE",
+   "format": "IN_PERSON",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "industries": [
+    "Hospitality, Travel & Food Service"
+   ],
+   "functions": [
+    "Operations"
+   ],
+   "segments": [
+    "Cruise, gaming and attractions"
+   ],
+   "roles": [
+    "attractions operator"
+   ],
+   "journeys": [
+    "GROWING"
+   ],
+   "programFormats": [],
+   "seniorities": [],
+   "importance": 3,
+   "whyAttend": "Water park and attractions operators, managers and suppliers; the 2026 edition was Oct 6-9 in Las Vegas.",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 dates and prices not yet posted on the WWA site.",
+   "speaking": "LIKELY",
+   "speakingUrl": null,
+   "speakingDeadline": null,
+   "speakingNote": null,
+   "cheaperWays": "Emerging Leaders membership and free virtual member meet-ups listed.",
+   "applyUrl": null,
+   "applyDeadline": null,
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-11-02",
    "source": "official domain search",
    "adminNote": null
   },
