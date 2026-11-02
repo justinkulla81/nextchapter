@@ -91,9 +91,10 @@ export function parseGoogleFeed(xml: string): DiscoveredArticle[] {
 }
 
 /** One query's articles from the past week on Google News, a second source beside Bing. */
-export async function searchGoogleNews(query: string, opts: { days?: number } = {}): Promise<DiscoveredArticle[]> {
+export async function searchGoogleNews(query: string, opts: { days?: number; hours?: number } = {}): Promise<DiscoveredArticle[]> {
   const url = new URL('https://news.google.com/rss/search')
-  url.searchParams.set('q', `${query} when:${opts.days ?? 7}d`)
+  // `hours` narrows to stories from the last few hours, so a small story is not crowded out by the week's biggest.
+  url.searchParams.set('q', `${query} when:${opts.hours ? `${opts.hours}h` : `${opts.days ?? 7}d`}`)
   url.searchParams.set('hl', 'en-US')
   url.searchParams.set('gl', 'US')
   url.searchParams.set('ceid', 'US:en')
