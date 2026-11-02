@@ -2,6 +2,7 @@ import { placeCountySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { redirectToCounty } from '@/lib/places/resolve'
 import { SeoPage, LINK, ActionBand } from '@/components/seo/SeoPage'
 import { CollegeTable, EconomySection, EmployerList, HeadquarteredList, LayoffsSection, PlaceLinks, WorkforceSection } from '@/components/places/PlaceSections'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
@@ -52,7 +53,10 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
 export default async function CountyPlacePage({ params }: { params: Promise<{ state: string; county: string }> }) {
   const { state, county } = await params
   const s = await load(state, county)
-  if (!s) notFound()
+  if (!s) {
+    await redirectToCounty(state, county)
+    notFound()
+  }
   const { code, name, d } = s
   const c = d.county
   const linkPlace = await getPlaceLinker(code)
