@@ -125,6 +125,7 @@ describe('jobs MCP server', () => {
     for (const t of tools) {
       expect(t.description, t.name).toMatch(/Call this when/)
       expect((t as { title?: string }).title, t.name).toBeTruthy()
+      expect((t as { annotations?: { title?: string; readOnlyHint?: boolean } }).annotations, t.name).toMatchObject({ title: (t as { title?: string }).title, readOnlyHint: true })
     }
   })
 })
