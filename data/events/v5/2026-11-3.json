@@ -1,0 +1,1073 @@
+[
+ {
+  "id": "blue-yonder-icon",
+  "name": "Blue Yonder ICON",
+  "organizer": "Blue Yonder",
+  "url": "https://blueyonder.com/icon",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-19",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Planners and supply chain leaders from Blue Yonder's customer base trade planning and execution practices.",
+  "access": "PAID",
+  "costLow": 1599,
+  "costHigh": 2350,
+  "costNote": "Only group rates published (3-9 people $1,699-$2,350 per pass, 10+ $1,599-$2,250); individual rate not listed. Page shows both May 17-19 and May 17-20.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": "2027-01-15",
+  "speakingNote": "Site states proposals are due January 15, 2027; not confirmed as a public call.",
+  "cheaperWays": "Group discounts for teams of 3 or more.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": [
+   "Supply chain planning and visibility"
+  ],
+  "roles": [
+   "supply chain director",
+   "demand planner",
+   "logistics technologist"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "project44-decision44",
+  "name": "decision44 (project44)",
+  "organizer": "project44",
+  "url": "https://www.project44.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-31",
+  "endDate": "2027-04-01",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Shippers, logistics providers and visibility-platform users compare how they run supply chain execution and decisions.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not published on the homepage; a second edition is listed for Amsterdam April 7-8, 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Supply chain planning and visibility"
+  ],
+  "roles": [
+   "supply chain director",
+   "logistics technologist"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "manhattan-momentum",
+  "name": "Manhattan Momentum",
+  "organizer": "Manhattan Associates",
+  "url": "https://www.manh.com/lp/momentum-conference/2027-information",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-18",
+  "endDate": "2027-05-20",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics",
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Warehouse, transportation and retail supply chain practitioners using Manhattan's platforms share how they plan and fulfill.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fees not yet published; Manhattan's own pages give May 18-20 and May 17-19.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Supply chain planning and visibility"
+  ],
+  "roles": [
+   "supply chain director",
+   "logistics technologist"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sports-licensing-summit",
+  "name": "Sports Licensing Summit",
+  "organizer": "Licensing International",
+  "url": "https://licensinginternational.org/events/sports-licensing-summit-2027/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-24",
+  "endDate": "2027-02-24",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Leagues, teams, brands and retailers meet on sports licensing, women's sports and NIL.",
+  "access": "PAID",
+  "costLow": 200,
+  "costHigh": 325,
+  "costNote": "Early bird to Jan 8, 2027: member $200, non-member $275; standard member $250, non-member $325.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "A speaker form is linked from the site; no public call described.",
+  "cheaperWays": "Member rates; early-bird pricing.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "sports marketing executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "seat-conference",
+  "name": "SEAT (Sports & Entertainment Alliance in Technology)",
+  "organizer": "SEAT",
+  "url": "https://seatconference.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-19",
+  "endDate": "2027-07-21",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "St. Paul",
+  "state": "MN",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Venue, ticketing, data, digital and CX leaders from pro teams, leagues and arenas.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Membership includes one complimentary main-conference registration; registration is through INTIX. Price not published on pages read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Membership includes a free registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "team operations leader",
+   "sports marketing executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "intix-conference",
+  "name": "INTIX Annual Conference & Exhibition",
+  "organizer": "International Ticketing Association",
+  "url": "https://intix.org/events/160972",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "January",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Ticketing and box office leaders from teams, venues, arts and live events.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition is in New Orleans; dates and prices not published on the page read. Past editions were in late January.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://intix.org/events/160972",
+  "speakingDeadline": null,
+  "speakingNote": "Page links to a Become a Speaker form.",
+  "cheaperWays": "Professional Development Grants are mentioned.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "team operations leader",
+   "sports marketing executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "global-sports-business-summit",
+  "name": "Global Sports Business Summit",
+  "organizer": "SMU Sport Management and the Dallas Sports Commission",
+  "url": "https://dallassports.org/gsbs",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Sports industry leaders, innovators and emerging talent in Dallas; second edition held, next planned for 2027.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates, venue and prices not listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "sports marketing executive",
+   "team operations leader",
+   "athletic director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ldacon",
+  "name": "LDACON (LDA International Conference)",
+  "organizer": "Learning Disabilities Association of America",
+  "url": "https://ldacon.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-17",
+  "endDate": "2027-02-19",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Special educators, school psychologists and specialists plus families and clinicians in the learning disabilities field.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early-bird pricing through Nov 15, 2026; prices not shown on the page. Pre-conference Feb 16.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Early-bird pricing.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": [
+   "K-12 teachers"
+  ],
+  "roles": [
+   "special education teacher",
+   "elementary teacher"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ida-dyslexiacon",
+  "name": "IDA Annual Conference (DyslexiaCon)",
+  "organizer": "International Dyslexia Association",
+  "url": "https://www.dyslexiacon.org/IDAAnnualConference/IDAAnnualConference/Home.aspx",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-11-12",
+  "endDate": "2026-11-14",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Teachers, clinicians and researchers focused on dyslexia and structured literacy; on-demand access after the event.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not read. Registration extended to Nov 6, 2026 per one page (Oct 30 on another). Joining or renewing IDA gives $100 off.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "IDA member $100 discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "K-12 teachers"
+  ],
+  "roles": [
+   "elementary teacher",
+   "special education teacher",
+   "english language arts teacher"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ncsm-annual-conference",
+  "name": "NCSM Annual Conference (Leadership in Mathematics Education)",
+  "organizer": "NCSM",
+  "url": "https://mathedleadership.org/conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-25",
+  "endDate": "2027-10-27",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Math coaches, department chairs and district math specialists; 1,400+ attendees expected for 2026.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 registration not yet published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "K-12 teachers"
+  ],
+  "roles": [
+   "math teacher"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nspra-national-seminar",
+  "name": "NSPRA National Seminar",
+  "organizer": "National School Public Relations Association",
+  "url": "https://www.nspra.org/national-seminar",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-11",
+  "endDate": "2027-07-14",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Indianapolis",
+  "state": "IN",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "School district communications leaders and superintendents' cabinet staff.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 registration not yet open.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://www.nspra.org/National-Seminar/Presenting-at-the-Seminar",
+  "speakingDeadline": null,
+  "speakingNote": "A presenting page exists; terms not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Education policy and school districts"
+  ],
+  "roles": [
+   "district administrator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "appam-fall-research-conference",
+  "name": "APPAM Fall Research Conference",
+  "organizer": "Association for Public Policy Analysis and Management",
+  "url": "https://www.appam.org/fall-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-05",
+  "endDate": "2026-11-07",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector",
+   "Education & EdTech"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "About 1,500 policy researchers and practitioners across 250+ sessions, with education a core policy area.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not on the page read; advance registration deadline passed Sept 15, onsite hours listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": [
+   "Education policy and school districts"
+  ],
+  "roles": [
+   "education policy analyst"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nafepa-conference",
+  "name": "NAFEPA National Conference",
+  "organizer": "National Association of Federal Education Program Administrators",
+  "url": "https://nafepa.org/professional-development/our-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Education & EdTech",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "District and state staff who run federal education programs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Members get $100 off. 2027 dates not found; 2026 ran March 16-18.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://nafepa.org/",
+  "speakingDeadline": null,
+  "speakingNote": "2027 call for proposals listed on the site.",
+  "cheaperWays": "Member $100 registration discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Education policy and school districts"
+  ],
+  "roles": [
+   "district administrator",
+   "education policy analyst"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "election-verification-network-conference",
+  "name": "EVN Annual Conference",
+  "organizer": "Election Verification Network",
+  "url": "https://electionverification.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Election officials, auditors and researchers on election security and verification.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Invitation only; no fee stated. 2026 edition was March 18-20.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://electionverification.org/contact-us/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": [
+   "Election administration and public records"
+  ],
+  "roles": [
+   "election official"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "cosa-annual-meeting",
+  "name": "CoSA Annual Meeting",
+  "organizer": "Council of State Archivists",
+  "url": "https://statearchivists.org/annual-meeting/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Columbia",
+  "state": "SC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "State archivists and records managers; 2026 sessions cover email retention and records management.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 meeting was Sept 23-25 in Columbia, SC; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Election administration and public records"
+  ],
+  "roles": [
+   "records manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aiim-global-summit",
+  "name": "AI+IM Global Summit (AIIM)",
+  "organizer": "AIIM",
+  "url": "https://www.aiim.org/aiim-global-summit-2027",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-21",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Information management leaders, about 400 people from 200+ organizations.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early bird saves $535 (deadline printed as Nov 30). Discounts for members, government employees, students, nonprofits; amounts not listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Government employee, student, nonprofit and member discounts.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": [
+   "Election administration and public records"
+  ],
+  "roles": [
+   "records manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "san-diego-startup-week",
+  "name": "San Diego Startup Week",
+  "organizer": "Startup San Diego",
+  "url": "https://startupsd.org/event/san-diego-startup-week-2026/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-02",
+  "endDate": "2026-11-06",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "5,000+ founders, builders, investors and operators over five days.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Tickets via Eventship; 2026 prices not found on the official domain.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Sponsored tickets for people facing financial hardship or professional displacement.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Starting a business"
+  ],
+  "roles": [
+   "first-time founder",
+   "startup operator"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "LAID_OFF"
+  ]
+ },
+ {
+  "id": "cf-house",
+  "name": "CF House (Capital Factory)",
+  "organizer": "Capital Factory",
+  "url": "https://house.capitalfactory.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-21",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Founders, investors, academics and government leaders at STATION Austin across seven days.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pre-register form; the page does not say if it is free, paid or approval-based.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": [
+   "Starting a business"
+  ],
+  "roles": [
+   "first-time founder",
+   "startup operator"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "matcap-annual",
+  "name": "MatCap Annual",
+  "organizer": "MatCap",
+  "url": "https://matcap.vc/annual",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-05",
+  "endDate": "2027-02-05",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Tempe",
+  "state": "AZ",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "200 seats of investors, operators and selected early founders.",
+  "access": "APPLY",
+  "costLow": 60,
+  "costHigh": 300,
+  "costNote": "Founder ticket $60 (selective); general admission $300; tiers rise as they sell. Portfolio founders free.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Founder ticket is far cheaper than general admission.",
+  "applyUrl": "https://matcap.vc/annual",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": [
+   "Starting a business"
+  ],
+  "roles": [
+   "first-time founder",
+   "solo founder"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "great-place-to-work-for-all-summit",
+  "name": "For All Summit (Great Place To Work)",
+  "organizer": "Great Place To Work",
+  "url": "https://www.forallsummit.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-18",
+  "endDate": "2027-05-20",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Workplace culture leaders, executives of 500-2,500 person firms and ERG leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Tier 1 pricing ends Oct 31 and saves $700; prices not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official site",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "employee experience lead",
+   "dei leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "qualtrics-xm-summit",
+  "name": "Qualtrics XM Summit",
+  "organizer": "Qualtrics",
+  "url": "https://www.qualtrics.com/xmsummit/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-21",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Experience management leaders, including employee experience teams; formerly X4.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not stated on the FAQ page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "employee experience lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "seramount-emerge",
+  "name": "EmERGe (Seramount)",
+  "organizer": "Seramount",
+  "url": "https://seramount.com/events-conferences/conferences/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-05-11",
+  "endDate": "2027-05-12",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Jersey City",
+  "state": "NJ",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "ERG leaders, executive sponsors, inclusion and HR professionals.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Homepage says May 11-12; 2027 speaker sheet says April. Prices not found.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://seramount.com/wp-content/uploads/2026/04/Seramount-Call-for-Speakers-Tip-Sheet-2027.pdf",
+  "speakingDeadline": null,
+  "speakingNote": "2027 call-for-speakers tip sheet published.",
+  "cheaperWays": "Virtual option.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-11-02",
+  "source": "official domain search",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "dei leader",
+   "employee experience lead"
+  ],
+  "journeys": []
+ }
+]
