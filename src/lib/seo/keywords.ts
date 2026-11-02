@@ -1594,6 +1594,27 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'templates',
+    intent: 'Email and letter templates for a layoff and a job search',
+    owner: '/templates',
+    kind: 'page',
+    primary: 'job search email templates',
+    secondary: ['layoff email templates', 'job search templates', 'free email templates for job seekers'],
+    seo: {
+      title: 'Job Search and Layoff Email Templates, Free',
+      description: 'Free fill-in email, letter and LinkedIn post templates for a layoff and a job search: references, thank-you notes, severance and salary negotiation.',
+      h1: 'Job search and layoff email templates',
+    },
+  },
+  {
+    id: 'template-pages',
+    intent: 'One email or letter template',
+    owner: '/templates/:slug',
+    kind: 'family',
+    primary: 'email template for job seekers',
+    secondary: [],
+  },
+  {
     id: 'warn-notice-generator',
     intent: 'Draft the WARN notices for a layoff or plant closing',
     owner: '/tools/warn-notice-generator',
