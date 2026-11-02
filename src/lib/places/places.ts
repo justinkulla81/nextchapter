@@ -3,7 +3,7 @@ import { cache } from 'react'
 import { Prisma } from '@prisma/client'
 import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { heavy, memoTtl, retryOnPoolTimeout } from '@/lib/db/heavy'
+import { heavy, memoTtl, retryOnPoolTimeout, sharedLoad } from '@/lib/db/heavy'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 
 // County and city lists change rarely; kept on the instance so a crawl does not query them for every page (it once exhausted the connection pool).
@@ -112,10 +112,10 @@ function toCounties(rows: Prisma.GeoAreaGetPayload<{ select: typeof COUNTY_SELEC
 }
 
 /** Every county in a state, alphabetical, with a slug unique within the state. */
-export const getStateCounties = memoTtl(PLACES_TTL, (state: string) => state, (state: string) => retryOnPoolTimeout(async (): Promise<County[]> => {
+export const getStateCounties = memoTtl(PLACES_TTL, (state: string) => state, (state: string) => sharedLoad(`state-counties:${state}`, PLACES_TTL / 1000, () => retryOnPoolTimeout(async (): Promise<County[]> => {
   const rows = await prisma.geoArea.findMany({ where: { level: 'COUNTY', state }, select: COUNTY_SELECT, orderBy: { name: 'asc' } })
   return toCounties(rows)
-}))
+})))
 
 /** Every county in every state, in one query (the sitemap: 51 queries at once would exhaust the connection pool). */
 export async function getAllCounties(): Promise<Map<string, County[]>> {
@@ -166,7 +166,7 @@ export interface CityPlace {
 }
 
 /** Census places in a state (not county subdivisions), one per name key — the biggest wins a shared name. */
-export const getStateCityPlaces = memoTtl(PLACES_TTL, (state: string) => state, (state: string) => retryOnPoolTimeout(async (): Promise<CityPlace[]> => {
+export const getStateCityPlaces = memoTtl(PLACES_TTL, (state: string) => state, (state: string) => sharedLoad(`state-city-places:${state}`, PLACES_TTL / 1000, () => retryOnPoolTimeout(async (): Promise<CityPlace[]> => {
   const rows = await prisma.geoPlace.findMany({
     where: { state, NOT: { name: { endsWith: 'CCD' } } },
     select: { id: true, state: true, name: true, nameKey: true, population: true, county: true, lat: true, lon: true },
@@ -187,7 +187,7 @@ export const getStateCityPlaces = memoTtl(PLACES_TTL, (state: string) => state, 
     out.push({ id: r.id, state: r.state, name, slug, key: r.nameKey, population: r.population, county: r.county, lat: r.lat, lon: r.lon })
   }
   return out
-}))
+})))
 
 // ---------------------------------------------------------------------------------------------
 // Jobs, job centers, colleges

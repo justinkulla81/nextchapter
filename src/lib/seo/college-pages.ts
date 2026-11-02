@@ -1,7 +1,7 @@
 import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { heavy, memoTtl, retryOnPoolTimeout } from '@/lib/db/heavy'
+import { heavy, memoTtl, retryOnPoolTimeout, sharedLoad } from '@/lib/db/heavy'
 import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
 import { boardCountyKeys } from '@/lib/workforce/board-area'
 import { countyKey } from '@/lib/workforce/places'
@@ -117,9 +117,9 @@ export async function crmOrgForCollege(c: { name: string; crmOrgId: string | nul
 }
 
 /** Every college-to-CRM link, read once an hour per instance: it is the same for every state, and the state listings below each re-read all of it. */
-const collegeLinks = memoTtl(6 * 3600_000, () => 'all', () => retryOnPoolTimeout(async () =>
+const collegeLinks = memoTtl(6 * 3600_000, () => 'all', () => sharedLoad('college-links', 6 * 3600, () => retryOnPoolTimeout(async () =>
   // Until prisma/manual/2026-10-25-college-org-link.sql is applied the table is missing: fall back to name matching.
-  prisma.collegeOrgLink.findMany({ where: { crmOrgId: { not: null } }, select: { unitid: true, crmOrgId: true } }).catch(() => [])))
+  prisma.collegeOrgLink.findMany({ where: { crmOrgId: { not: null } }, select: { unitid: true, crmOrgId: true } }).catch(() => []))))
 
 /** All colleges in a state, one per IPEDS id (the Scorecard table first, the ranked table fills the rest). */
 export const getStateCollegeListings = memoTtl(3600_000, (state: string) => state, (state: string): Promise<CollegeListing[]> => retryOnPoolTimeout(async () => {
