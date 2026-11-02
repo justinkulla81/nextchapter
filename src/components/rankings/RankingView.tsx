@@ -156,6 +156,8 @@ export function RankingView({ e, index, latest }: { e: RankingEdition; index: Ra
       <section aria-labelledby="cite" className="mt-12">
         <h2 id="cite" className={H2}>Cite this ranking</h2>
         <p className={`${CARD} mt-3 max-w-3xl p-4 text-sm text-foreground`}>NextChapter, “{e.title},” {label} edition. {url}</p>
+        <p className="mt-3 text-sm text-muted-foreground">Link to it: <code className="rounded bg-muted px-1.5 py-0.5 text-xs text-foreground">{`<a href="${SITE_URL}${path}">${e.title} (NextChapter, ${label})</a>`}</code></p>
+        <p className="mt-3 text-sm">Download the data: <a href={`${path}/latest.csv`} className={LINK}>CSV</a> · <a href={`${path}/latest.json`} className={LINK}>JSON</a>. Free to use with a link back.</p>
       </section>
 
       <div className="mt-12"><NewsletterSignup source="rankings" /></div>
