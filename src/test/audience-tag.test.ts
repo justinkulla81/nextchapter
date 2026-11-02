@@ -122,9 +122,13 @@ describe('every email template carries an audience tag', () => {
   for (const file of readdirSync(dir).filter((f) => f.endsWith('.tsx') && !EXEMPT.has(f))) {
     it(file, () => {
       const src = readFileSync(join(dir, file), 'utf8')
-      expect(src, `${file} must render <AudienceTag audience="…" />`).toMatch(/AudienceTag/)
+      // CardEmail (src/lib/email/card-layout.tsx) renders the tag from its audience prop.
+      expect(src, `${file} must render <AudienceTag audience="…" /> or <CardEmail audience="…">`).toMatch(/AudienceTag|<CardEmail[^>]*audience=/s)
     })
   }
+  it('the card layout renders the tag', () => {
+    expect(readFileSync(join(process.cwd(), 'src', 'lib', 'email', 'card-layout.tsx'), 'utf8')).toMatch(/<AudienceTag audience=\{audience\}/)
+  })
   it('intake emails go through the layout, which tags them', () => {
     expect(readFileSync(join(dir, 'intake-emails.tsx'), 'utf8')).not.toMatch(/<div style/)
     expect(readFileSync(join(dir, 'intake-email-layout.tsx'), 'utf8')).toMatch(/AudienceTag/)
