@@ -2313,7 +2313,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/topics/resignation-letter',
     kind: 'page',
     primary: 'resignation letter',
-    secondary: ['resignation letter template', 'how to write a resignation letter', 'two weeks notice letter', 'resignation email', 'short resignation letter', 'resignation letter example', 'how to resign from a job'],
+    secondary: ['how to write a resignation letter', 'two weeks notice letter', 'resignation email', 'short resignation letter', 'resignation letter example', 'how to resign from a job'],
     seo: {
       title: 'Resignation Letter: A Template and What to Say',
       description:
