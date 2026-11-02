@@ -15,7 +15,7 @@ export async function noteLeadConversion(candidateId: string, email: string | nu
   const person = await prisma.crmPerson.findFirst({ where: { deletedAt: null, OR: [{ email: address }, { emails: { has: address } }] }, select: { id: true, emailSource: true } })
   if (!person) return
 
-  const [signups, sent] = await Promise.all([
+  const [signups, sent, pickedRow] = await Promise.all([
     prisma.crmActivity.findMany({
       where: { personId: person.id, type: 'NOTE', sourceRef: { startsWith: 'lead:' } },
       orderBy: { occurredAt: 'asc' },
@@ -26,11 +26,12 @@ export async function noteLeadConversion(candidateId: string, email: string | nu
       orderBy: { occurredAt: 'asc' },
       select: { sourceRef: true, outreachTracking: { select: { links: { select: { clickCount: true } } } } },
     }),
+    prisma.crmActivity.findFirst({ where: { personId: person.id, type: 'NOTE', sourceRef: `lead-journey:${address}` }, select: { body: true } }),
   ])
   if (signups.length === 0) return // never a website lead
 
   const first = signups[0]
-  const journey = signups.map((s) => /Journey: (.+)/.exec(s.body ?? '')?.[1]).find(Boolean)
+  const journey = /Journey: (\S+)/.exec(pickedRow?.body ?? '')?.[1] ?? signups.map((s) => /Journey: (.+)/.exec(s.body ?? '')?.[1]).find(Boolean)
   const clicked = sent.some((a) => a.outreachTracking?.links.some((l) => l.clickCount > 0))
   const steps = sent.map((a) => a.sourceRef!.split(':')[1])
   const days = Math.max(0, Math.round((Date.now() - first.occurredAt.getTime()) / DAY_MS))
