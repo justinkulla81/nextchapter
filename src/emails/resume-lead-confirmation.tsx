@@ -22,7 +22,7 @@ export default function ResumeLeadConfirmationEmail({ fullName }: ResumeLeadConf
         <Lead>
           In the meantime, a free Market Reality Assessment, plus a personalized action plan, is the fastest way to strengthen your search on your own.
         </Lead>
-        <Button href="https://launchyournextchapter.com/onboarding/desire">Get your free assessment</Button>
+        <Button campaign="resume_confirmation" href="https://launchyournextchapter.com/onboarding/desire">Get your free assessment</Button>
       </Card>
     </CardEmail>
   )

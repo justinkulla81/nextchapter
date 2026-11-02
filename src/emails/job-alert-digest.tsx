@@ -51,7 +51,7 @@ export default function JobAlertDigestEmail({ searchLabel, jobs, startUrl, start
         <Lead>
           These are in the order posted, with no ranking. Add your résumé and the same jobs come back ranked for you, with a fit score and the reason. Free, about five minutes.
         </Lead>
-        <Button href={startUrl}>{startLabel}</Button>
+        <Button campaign="job_alert_digest" href={startUrl}>{startLabel}</Button>
       </Card>
     </CardEmail>
   )

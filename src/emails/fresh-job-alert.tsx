@@ -58,7 +58,7 @@ export default function FreshJobAlertEmail({ firstName, jobs, boardUrl, unsubscr
             </p>
           ))}
         </div>
-        <Button href={boardUrl}>See them and apply</Button>
+        <Button campaign="fresh_job_alert" href={boardUrl}>See them and apply</Button>
       </Card>
     </CardEmail>
   )

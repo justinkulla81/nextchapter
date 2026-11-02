@@ -37,7 +37,7 @@ export default function GradeCalibratedUpEmail({
         <Lead>
           This is a real read on what&apos;s actually happening in your search, not a fixed score — it&apos;ll keep updating as we see more.
         </Lead>
-        <Button href={marketRealityReportUrl}>See your full Market Reality Report</Button>
+        <Button campaign="grade_calibrated_up" href={marketRealityReportUrl}>See your full Market Reality Report</Button>
       </Card>
     </CardEmail>
   )

@@ -69,7 +69,7 @@ export default function NewsletterWeeklyEmail({
           Searching for a job yourself? NextChapter is free for candidates: a Market Reality Assessment, a resume tested against the systems
           that read it, and a plan for the week.
         </Lead>
-        <Button href={signupUrl}>Get your Market Reality Assessment</Button>
+        <Button campaign="newsletter_weekly" href={signupUrl}>Get your Market Reality Assessment</Button>
       </Card>
     </CardEmail>
   )

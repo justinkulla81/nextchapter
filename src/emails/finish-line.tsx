@@ -57,7 +57,7 @@ export default function FinishLineEmail({
             ))}
           </ul>
         </div>
-        <Button href={dashboardUrl ?? `${appUrl}/dashboard`}>Open my dashboard</Button>
+        <Button campaign="finish_line" href={dashboardUrl ?? `${appUrl}/dashboard`}>Open my dashboard</Button>
       </Card>
       {checkIn && (
         <>

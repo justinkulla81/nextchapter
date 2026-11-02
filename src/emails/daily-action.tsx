@@ -92,7 +92,7 @@ export default function DailyActionEmail({
         <Lead>Check your dashboard for today&apos;s plan.</Lead>
       )}
 
-        <Button href={`${appUrl}/dashboard`}>{isReset && resetTask ? 'Start this now' : 'Open my dashboard'}</Button>
+        <Button campaign="daily_action" href={`${appUrl}/dashboard`}>{isReset && resetTask ? 'Start this now' : 'Open my dashboard'}</Button>
       </Card>
 
       {weeklyRecap && (
