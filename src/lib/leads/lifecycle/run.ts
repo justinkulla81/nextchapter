@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getPublicJob } from '@/lib/jobs/public-job-page-server'
 import { LEAD_LIST_KEY, MIN_NUDGE_GAP_MS, NUDGE_DAYS, WELCOME_WINDOW_MS, lifecycleEmailsOn, waitlistVariant, type LeadStep, type LeadVariant } from './config'
 import { fileLeadInCrm, isInternalAddress } from './file-lead'
+import { pickedJourneys } from './journey'
 import { lifecycleRef, sendLifecycleEmail } from './send'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -22,6 +23,8 @@ interface Lead {
   capturedAt: Date
   /** When an earlier system already sent the welcome, so the reminders count from then. None do today. */
   welcomeSentAt: Date | null
+  /** The journey (persona slug) already on the address's row, e.g. chosen after confirming a job alert. */
+  journey?: string | null
 }
 
 const clean = (email: string) => email.trim().toLowerCase()
@@ -31,12 +34,12 @@ async function gatherLeads(now: Date): Promise<{ leads: Lead[]; unsubscribed: Se
   const [saved, alerts, newsletter, waitlist, unsubHome, unsubNews] = await Promise.all([
     prisma.homepageLead.findMany({
       where: { kind: 'apply_save', createdAt: { gte: since }, unsubscribedAt: null },
-      select: { email: true, searchQ: true, followup: true, createdAt: true },
+      select: { email: true, searchQ: true, followup: true, createdAt: true, journeySlug: true },
     }),
     // An alert counts from the click that confirmed it: before that they have not said yes.
     prisma.homepageLead.findMany({
       where: { kind: 'job_alert', confirmedAt: { gte: since }, unsubscribedAt: null },
-      select: { email: true, searchQ: true, searchLoc: true, confirmedAt: true },
+      select: { email: true, searchQ: true, searchLoc: true, confirmedAt: true, journeySlug: true },
     }),
     prisma.newsletterSubscriber.findMany({ where: { createdAt: { gte: since }, unsubscribedAt: null }, select: { email: true, createdAt: true } }),
     prisma.waitlistSignup.findMany({ where: { createdAt: { gte: since } }, select: { audience: true, payload: true, createdAt: true } }),
@@ -57,12 +60,12 @@ async function gatherLeads(now: Date): Promise<{ leads: Lead[]; unsubscribed: Se
   for (const s of saved) {
     // Went on to the employer (Apply click, or the prompt before it) versus only saving the job.
     const applied = s.followup === 'apply_click' || s.followup === 'apply_gate'
-    leads.push({ email: clean(s.email), name: null, variant: applied ? 'applied_job' : 'saved_job', channel: applied ? 'Applied job' : 'Saved job', detail: jobLabel.get(s.searchQ) ?? null, capturedAt: s.createdAt, welcomeSentAt: null })
+    leads.push({ email: clean(s.email), name: null, variant: applied ? 'applied_job' : 'saved_job', channel: applied ? 'Applied job' : 'Saved job', detail: jobLabel.get(s.searchQ) ?? null, capturedAt: s.createdAt, welcomeSentAt: null, journey: s.journeySlug || null })
   }
   for (const a of alerts) {
     if (!a.confirmedAt) continue
     const detail = [a.searchQ, a.searchLoc && `in ${a.searchLoc}`].filter(Boolean).join(' ') || null
-    leads.push({ email: clean(a.email), name: null, variant: 'job_alert', channel: 'Job alert', detail, capturedAt: a.confirmedAt, welcomeSentAt: null })
+    leads.push({ email: clean(a.email), name: null, variant: 'job_alert', channel: 'Job alert', detail, capturedAt: a.confirmedAt, welcomeSentAt: null, journey: a.journeySlug || null })
   }
   for (const n of newsletter) {
     leads.push({ email: clean(n.email), name: null, variant: 'newsletter', channel: 'Newsletter', detail: null, capturedAt: n.createdAt, welcomeSentAt: null })
@@ -158,6 +161,7 @@ export async function runLeadLifecycle(now = new Date()): Promise<LifecycleSumma
     prisma.mailingListMember.findMany({ where: { email: { in: emails }, list: { key: LEAD_LIST_KEY } }, select: { email: true, status: true } }),
     prisma.crmActivity.findMany({ where: { type: 'EMAIL', sourceRef: { in: stepRefs } }, select: { sourceRef: true, occurredAt: true } }),
   ])
+  const picked = await pickedJourneys(emails)
   const registeredEmails = new Set(persons.filter((p) => p.candidateId).map((p) => p.email!))
   const stopList = new Set(suppressed.map((s) => s.email))
   const offList = new Set(members.filter((m) => m.status !== 'ACTIVE').map((m) => m.email))
@@ -197,7 +201,7 @@ export async function runLeadLifecycle(now = new Date()): Promise<LifecycleSumma
       email,
       variant: lead.variant,
       step,
-      context: { firstName: lead.name?.split(' ')[0] ?? null, detail: lead.detail },
+      context: { firstName: lead.name?.split(' ')[0] ?? null, detail: lead.detail, journey: picked.get(email) ?? lead.journey ?? null },
       personId,
     })
     if (ok) summary.steps[step]++

@@ -7,6 +7,7 @@ import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
 import { makeUnsubscribeToken } from '@/lib/mailing/unsubscribe-token'
 import LeadLifecycleEmail from '@/emails/lead-lifecycle'
 import type { LeadStep, LeadVariant } from './config'
+import { journeyButtons } from './journey'
 import { leadEmailContent, leadEmailText, type LeadEmailContext } from './content'
 
 const appUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
@@ -14,7 +15,9 @@ const FROM = 'NextChapter <support@launchyournextchapter.com>'
 
 export const lifecycleRef = (step: LeadStep, email: string) => `lifecycle:${step}:${email.toLowerCase()}`
 
-function profileUrl(variant: LeadVariant, step: LeadStep): string {
+function profileUrl(variant: LeadVariant, step: LeadStep, journey?: string | null): string {
+  // Someone who picked a journey lands on its page, whose button carries the situation into sign-up.
+  if (journey) return `${appUrl()}/start/${journey}?from=lead_email&utm_source=lead_email&utm_campaign=${variant}_${step}`
   return `${appUrl()}/onboarding/desire?from=lead_${variant}&utm_source=lead_email&utm_campaign=${variant}_${step}`
 }
 
@@ -40,10 +43,11 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
   const email = input.email.trim().toLowerCase()
   if (isUndeliverableAddress(email)) return false
 
-  const content = leadEmailContent(input.variant, input.step, input.context)
+  const choices = input.context.journey || input.variant === 'waitlist_b2b' ? [] : journeyButtons(email, input.step, input.context.detail)
+  const content = leadEmailContent(input.variant, input.step, { ...input.context, choices })
   const settings = await getMailingSettings()
   const unsubscribeUrl = `${appUrl()}/updates/unsubscribe/${makeUnsubscribeToken(email, null)}`
-  const directCta = profileUrl(input.variant, input.step)
+  const directCta = profileUrl(input.variant, input.step, input.context.journey)
 
   let ctaUrl: string | null = content.ctaLabel ? directCta : null
   let pixelUrl: string | undefined
@@ -95,6 +99,6 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
     return false
   }
 
-  if (!input.test) captureServerEvent(email, 'lead_email_sent', { variant: input.variant, step: input.step })
+  if (!input.test) captureServerEvent(email, 'lead_email_sent', { variant: input.variant, step: input.step, journey: input.context.journey ?? null, journey_choices_shown: !!content.choices?.length })
   return true
 }

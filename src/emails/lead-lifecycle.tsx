@@ -31,6 +31,17 @@ const button: React.CSSProperties = {
   textDecoration: 'none',
   fontWeight: 600,
 }
+const choiceButton: React.CSSProperties = {
+  display: 'block',
+  marginTop: '8px',
+  padding: '11px 16px',
+  border: '1px solid #cbd5e1',
+  borderRadius: '999px',
+  textAlign: 'center',
+  textDecoration: 'none',
+  fontWeight: 600,
+  color: '#0b2545',
+}
 const footer: React.CSSProperties = { marginTop: '32px', ...emailStyles.muted }
 
 // The follow-up to a public signup (see src/lib/leads/lifecycle). One message,
@@ -52,7 +63,24 @@ export default function LeadLifecycleEmail({ content, ctaUrl, unsubscribeUrl, po
           ))}
         </ul>
       )}
-      {content.ctaLabel && ctaUrl && (
+      {content.choices && content.choices.length > 0 && (
+        <>
+          <p>
+            <strong>{content.choicesPrompt}</strong>
+          </p>
+          {content.choices.map((o) => (
+            <a key={o.label} href={o.url} style={choiceButton}>
+              {o.label}
+            </a>
+          ))}
+          {content.ctaLabel && ctaUrl && (
+            <p style={{ marginTop: '16px' }}>
+              <a href={ctaUrl}>{content.ctaLabel}</a>
+            </p>
+          )}
+        </>
+      )}
+      {!content.choices?.length && content.ctaLabel && ctaUrl && (
         <a href={ctaUrl} style={button}>
           {content.ctaLabel} →
         </a>

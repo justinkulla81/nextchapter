@@ -1,3 +1,5 @@
+import { getPersona } from '@/lib/constants/personas'
+import { planFor } from '@/lib/leads/first-week-plans'
 import { NUDGE_DAYS, type LeadStep, type LeadVariant } from './config'
 
 export interface LeadEmailContent {
@@ -6,6 +8,9 @@ export interface LeadEmailContent {
   paragraphs: string[]
   benefits: string[]
   ctaLabel: string | null
+  /** The one-tap "which sounds most like you" buttons, when we do not know their journey yet. The profile button becomes a plain link beneath. */
+  choicesPrompt?: string
+  choices?: { label: string; url: string }[]
   /** The line above the unsubscribe link: says what else we will and will not send. */
   footerNote: string
 }
@@ -14,6 +19,10 @@ export interface LeadEmailContext {
   firstName: string | null
   /** The job title and company for a saved job, the search for an alert, the audience for a waitlist. */
   detail: string | null
+  /** The persona slug they picked in an earlier email, when they did. */
+  journey?: string | null
+  /** The journey buttons to show when `journey` is unknown. */
+  choices?: { label: string; url: string }[]
 }
 
 const BENEFITS = [
@@ -26,8 +35,40 @@ const FREE = 'It is free and takes about five minutes.'
 
 const hello = (c: LeadEmailContext) => (c.firstName ? `Hi ${c.firstName},` : 'Hi,')
 
-// Plain and direct: what they did, what a profile does for them, one button.
+/**
+ * Plain and direct: what they did, then one question (which situation is closest) until we know, then what a profile does for
+ * them. Once they have answered, the reminder is their first-week plan instead of the generic pitch.
+ */
 export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEmailContext): LeadEmailContent {
+  const base = baseContent(variant, step, c)
+  if (variant === 'waitlist_b2b' || !base.ctaLabel) return base
+  const followUp = variant === 'applied_job' && step === 'nudge1'
+  const persona = c.journey ? getPersona(c.journey) : null
+
+  if (persona && step === 'nudge1' && !followUp) {
+    const plan = planFor(persona.slug)
+    return {
+      ...base,
+      subject: `Your first week: ${persona.label.toLowerCase()}`,
+      headline: 'Your first-week plan',
+      paragraphs: [hello(c), plan.intro, 'Three steps for this week:'],
+      benefits: plan.steps,
+      ctaLabel: 'Save this plan: create my free profile',
+    }
+  }
+  if (!persona && c.choices?.length && (step === 'welcome' || (step === 'nudge1' && !followUp))) {
+    return {
+      ...base,
+      benefits: [],
+      choicesPrompt: 'Which sounds most like you? One tap and we tailor what we send. No résumé needed.',
+      choices: c.choices,
+      ctaLabel: 'Or skip ahead: create my free profile',
+    }
+  }
+  return base
+}
+
+function baseContent(variant: LeadVariant, step: LeadStep, c: LeadEmailContext): LeadEmailContent {
   const remindersLeft = (n: number) => (n === 2 ? 'two short reminders' : 'one short reminder')
 
   if (variant === 'waitlist_b2b') {
@@ -177,6 +218,7 @@ export function leadEmailText(content: LeadEmailContent, ctaUrl: string | null):
     content.headline,
     '',
     ...content.paragraphs,
+    ...(content.choices?.length ? ['', content.choicesPrompt ?? '', ...content.choices.map((o) => `- ${o.label}: ${o.url}`)] : []),
     ...(content.benefits.length ? ['', ...content.benefits.map((b) => `- ${b}`)] : []),
     ...(content.ctaLabel && ctaUrl ? ['', `${content.ctaLabel}: ${ctaUrl}`] : []),
     '',
