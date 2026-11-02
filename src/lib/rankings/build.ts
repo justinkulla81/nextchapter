@@ -4,11 +4,11 @@ import { costsFor } from '@/lib/market/area-costs'
 import { getStateCities, getStateCityPlaces, getStateCounties, placeUrl } from '@/lib/places/places'
 import { placeKey } from '@/lib/workforce/places'
 import { stateSlug } from '@/lib/seo/states'
-import { rankCities, rankCounties, wave1Specs } from '@/lib/rankings/build-edition'
+import { FAMILIES, functionSpecs, rankCities, rankCounties, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, type Spec } from '@/lib/rankings/build-edition'
 import { STATE_FIPS } from '@/lib/rankings/regions'
-import { loadCityStats, loadCountyStats } from '@/lib/rankings/scan'
-import { previousEdition, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
-import type { CityStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
+import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadSkillStats } from '@/lib/rankings/scan'
+import { previousEdition, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
+import type { BuildGroup, CityStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/measures'
 
 const titleCase = (s: string) => s.replace(/\b[a-z]/g, (c) => c.toUpperCase())
@@ -43,46 +43,120 @@ export function costOf(c: CityStat, name: string): Cost | null {
   return state?.rpp && state.name !== 'United States' ? { rpp: state.rpp, basis: 'state' } : null
 }
 
-export async function buildRankings(now = new Date()): Promise<{ edition: string; built: number; skipped: string[]; cities: number; counties: number }> {
-  const edition = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`
-  const builtAt = now.toISOString()
-  const [citiesRaw, countiesRaw] = await Promise.all([loadCityStats(), loadCountyStats()])
-  // A city is keyed the way the place pages key it ("st. louis" and "st louis" are one place); if two spellings both qualify, the bigger sample stands.
+export interface BuildResult { group: BuildGroup; edition: string; built: number; skipped: string[]; cities?: number; counties?: number }
+
+/**
+ * Keys a city the way the place pages key it. A posting's city ("st. louis", "foster city") is matched to a place by its own
+ * spelling, then by the normalised one ("st louis"), so "Foster City" keeps its name and link; if two spellings both qualify, the
+ * bigger sample stands.
+ */
+function keyCities(raw: CityStat[], has: (key: string) => boolean): CityStat[] {
   const keyed = new Map<string, CityStat>()
-  for (const c of citiesRaw) {
-    const city = placeKey(c.city) || c.city
+  for (const c of raw) {
+    const city = [c.city, placeKey(c.city)].find((x) => x && has(`${c.st}|${x}`)) ?? c.city
     const k = `${c.st}|${city}`
     if (!keyed.has(k) || (keyed.get(k) as CityStat).n < c.n) keyed.set(k, { ...c, city })
   }
-  const cities = [...keyed.values()]
-  const states = [...new Set(cities.map((c) => c.st))]
-  const [info, hrefs] = await Promise.all([placeInfo(states), countyHrefs([...new Set(countiesRaw.map((c) => c.st))])])
-  const counties: CountyStat[] = countiesRaw.map((c) => ({ ...c, href: hrefs.get(c.fips) ?? c.href }))
-  const infoOf = (c: CityStat): PlaceInfo => info.get(`${c.st}|${c.city}`) ?? { name: titleCase(c.city), href: null }
-  const ctx = { costOf: (c: CityStat) => costOf(c, infoOf(c).name) }
+  return [...keyed.values()]
+}
 
-  const byState = new Map<string, number>()
-  for (const c of cities) byState.set(c.st, (byState.get(c.st) ?? 0) + c.n)
-  const topStates = [...byState].sort((a, b) => b[1] - a[1]).map(([st]) => st)
-
-  const earlier = new Map((await readRankingIndex()).map((e) => [e.slug, e.editions]))
-  const entries: RankingIndexEntry[] = []
-  const placeRanks: PlaceRanks = {}
-  const skipped: string[] = []
+/**
+ * Builds one group's lists for this month and stores them. The groups run as separate monthly jobs so that each stays inside the
+ * time limit: "places" (cities and counties), "functions" (job-family city lists) and "skills" (AI skills, tools, certifications).
+ */
+export async function buildRankings(group: BuildGroup = 'places', now = new Date()): Promise<BuildResult> {
+  const edition = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`
+  const builtAt = now.toISOString()
   const prevEd = previousEdition(edition)
-  for (const spec of wave1Specs(topStates)) {
-    const prev = await readRanking(spec.slug, prevEd).catch(() => null)
-    const prevRanks = prev ? new Map(prev.rows.map((r) => [r.key, r.rank])) : null
-    const ed: RankingEdition | null = spec.measure === 'growth' || spec.measure === 'infogrowth'
-      ? rankCounties(spec, counties, edition, builtAt, prevRanks)
-      : rankCities(spec, cities, infoOf, ctx, edition, builtAt, prevRanks)
-    if (!ed) { skipped.push(spec.slug); continue }
-    await writeRanking(ed)
-    for (const r of ed.rows.slice(0, 25)) (placeRanks[r.key] ??= []).push({ slug: ed.slug, title: ed.title, rank: r.rank, valueLabel: r.valueLabel, places: ed.rows.length })
-    entries.push({ slug: ed.slug, edition, title: ed.title, family: ed.family, measure: ed.measure, scopeKind: ed.scope.kind, scopeId: ed.scope.id, scopeName: ed.scope.name, topName: ed.rows[0].name, topValueLabel: ed.rows[0].valueLabel, places: ed.rows.length, editions: [...new Set([edition, ...(earlier.get(ed.slug) ?? [])])].sort().reverse() })
+  const built: { ed: RankingEdition; spec: Spec }[] = []
+  const skipped: string[] = []
+  let specs: Spec[] = []
+  let cityCount: number | undefined
+  let countyCount: number | undefined
+  const prevRanksOf = async (slug: string) => {
+    const prev = await readRanking(slug, prevEd).catch(() => null)
+    return prev ? new Map(prev.rows.map((r) => [r.key, r.rank])) : null
   }
-  for (const k of Object.keys(placeRanks)) placeRanks[k].sort((a, b) => a.rank - b.rank)
-  await writeRankingIndex(entries)
-  await writePlaceRanks(placeRanks)
-  return { edition, built: entries.length, skipped, cities: cities.length, counties: counties.length }
+
+  if (group === 'skills') {
+    specs = skillSpecs()
+    const { stats, totals } = await loadSkillStats()
+    for (const spec of specs) {
+      const ed = rankSkills(spec, stats, totals, edition, builtAt, await prevRanksOf(spec.slug))
+      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+    }
+  } else {
+    const [citiesRaw, extra] = await Promise.all([
+      loadCityStats(),
+      group === 'functions' ? loadFunctionCityRows(FAMILIES.map((f) => f.fn)) : loadCountyStats(),
+    ])
+    const info = await placeInfo([...new Set(citiesRaw.map((c) => c.st))])
+    const cities = keyCities(citiesRaw, (k) => info.has(k))
+    cityCount = cities.length
+    const infoOf = (c: CityStat): PlaceInfo => info.get(`${c.st}|${c.city}`) ?? { name: titleCase(c.city), href: null }
+    const ctx = { costOf: (c: CityStat) => costOf(c, infoOf(c).name) }
+    const byState = new Map<string, number>()
+    for (const c of cities) byState.set(c.st, (byState.get(c.st) ?? 0) + c.n)
+    const topStates = [...byState].sort((a, b) => b[1] - a[1]).map(([st]) => st)
+
+    if (group === 'functions') {
+      specs = functionSpecs()
+      const base = new Map(cities.map((c) => [`${c.st}|${c.city}`, c]))
+      const rows = extra as Awaited<ReturnType<typeof loadFunctionCityRows>>
+      for (const spec of specs) {
+        // One family's openings by city, carrying the city's concentration and employers; the family's counts replace the city's.
+        const slice: CityStat[] = []
+        for (const r of rows) {
+          if (r.fn !== spec.fn) continue
+          const b = base.get(`${r.st}|${placeKey(r.city) || r.city}`)
+          if (!b) continue
+          slice.push({ ...b, n: r.n, paid: r.paid, payMed: r.payMed, cityN: b.n, entry: 0, ai: 0, remote: 0, eng: 0, engPaid: 0, engPay: null, mid: 0, exec: 0 })
+        }
+        const ed = rankCities(spec, slice, infoOf, ctx, edition, builtAt, await prevRanksOf(spec.slug))
+        ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+      }
+    } else {
+      const hrefs = await countyHrefs([...new Set((extra as CountyStat[]).map((c) => c.st))])
+      const counties: CountyStat[] = (extra as CountyStat[]).map((c) => ({ ...c, href: hrefs.get(c.fips) ?? c.href }))
+      countyCount = counties.length
+      specs = [...wave1Specs(topStates), ...wave2PlaceSpecs()]
+      for (const spec of specs) {
+        const prev = await prevRanksOf(spec.slug)
+        const ed = spec.measure === 'growth' || spec.measure === 'infogrowth'
+          ? rankCounties(spec, counties, edition, builtAt, prev)
+          : rankCities(spec, cities, infoOf, ctx, edition, builtAt, prev)
+        ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+      }
+    }
+  }
+
+  // Store the editions, then merge this group's entries into the index and its places into the place-rank figure.
+  const entries: RankingIndexEntry[] = []
+  const earlier = new Map((await readRankingIndex()).map((e) => [e.slug, e.editions]))
+  const placeRanks: PlaceRanks = {}
+  for (const { ed } of built) {
+    await writeRanking(ed)
+    entries.push({
+      slug: ed.slug, edition, title: ed.title, family: ed.family, measure: ed.measure, scopeKind: ed.scope.kind, scopeId: ed.scope.id, scopeName: ed.scope.name,
+      topName: ed.rows[0].name, topValueLabel: ed.rows[0].valueLabel, places: ed.rows.length, group,
+      editions: [...new Set([edition, ...(earlier.get(ed.slug) ?? [])])].sort().reverse(),
+    })
+    if (ed.placeNoun === 'cities' || ed.placeNoun === 'counties') {
+      for (const r of ed.rows.slice(0, 25)) (placeRanks[r.key] ??= []).push({ slug: ed.slug, title: ed.title, rank: r.rank, valueLabel: r.valueLabel, places: ed.rows.length })
+    }
+  }
+  const mine = new Set(specs.map((x) => x.slug))
+  const index = (await readRankingIndex()).filter((e) => !mine.has(e.slug) && (e.group ?? 'places') !== group)
+  await writeRankingIndex([...index, ...entries])
+  if (group !== 'skills') {
+    const merged: PlaceRanks = {}
+    for (const [k, list] of Object.entries(await readPlaceRanksRaw())) {
+      const keep = list.filter((x) => !mine.has(x.slug))
+      if (keep.length) merged[k] = keep
+    }
+    for (const [k, list] of Object.entries(placeRanks)) merged[k] = [...(merged[k] ?? []), ...list]
+    for (const k of Object.keys(merged)) merged[k].sort((a, b) => a.rank - b.rank)
+    await writePlaceRanks(merged)
+  }
+  return { group, edition, built: entries.length, skipped, cities: cityCount, counties: countyCount }
 }

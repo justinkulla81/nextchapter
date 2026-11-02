@@ -7,7 +7,7 @@ import { COUNTY_SECTORS } from '@/lib/workforce/county-context'
 import { slugify } from '@/lib/seo/workforce-pages'
 import { stateName, stateSlug as stateSlugOf } from '@/lib/seo/states'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
-import type { CityStat, CountyStat } from '@/lib/rankings/types'
+import type { CityStat, CountyStat, FnTotal, SkillStat } from '@/lib/rankings/types'
 
 // The two reads behind the rankings. Both are whole-board work, so they run only in the monthly job (/api/cron/rankings)
 // and never on a page view.
@@ -24,7 +24,7 @@ async function longRead<T>(run: (tx: Prisma.TransactionClient) => Promise<T>): P
   }, { timeout: 620_000, maxWait: 30_000 })
 }
 
-interface CityRow { st: string; city: string; n: number; entry: number; ai: number; remote: number; paid: number; pay_med: number | null; eng: number; eng_paid: number; eng_pay: number | null }
+interface CityRow { st: string; city: string; n: number; entry: number; ai: number; remote: number; paid: number; pay_med: number | null; eng: number; eng_paid: number; eng_pay: number | null; mid: number; exec: number }
 
 /** Open professional roles by city: the counts every city measure is built from, and each city's top three employers. */
 export async function loadCityStats(): Promise<CityStat[]> {
@@ -38,6 +38,8 @@ export async function loadCityStats(): Promise<CityStat[]> {
       count(*) FILTER (WHERE ${PAID})::int AS paid,
       (percentile_cont(0.5) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${PAID}))::float AS pay_med,
       count(*) FILTER (WHERE "targetFunction" = 'Engineering')::int AS eng,
+      count(*) FILTER (WHERE level IN ('MID_IC', 'SENIOR_IC', 'MANAGER'))::int AS mid,
+      count(*) FILTER (WHERE level IN ('DIRECTOR', 'SR_MANAGER', 'VP', 'C_SUITE', 'HEAD'))::int AS exec,
       count(*) FILTER (WHERE "targetFunction" = 'Engineering' AND ${PAID})::int AS eng_paid,
       (percentile_cont(0.5) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE "targetFunction" = 'Engineering' AND ${PAID}))::float AS eng_pay
     FROM "ExclusiveJobPosting" ${WHERE}
@@ -67,7 +69,7 @@ export async function loadCityStats(): Promise<CityStat[]> {
   return rows.filter((r) => !notACity(r)).map((r) => {
     const employers = topOf(`${r.st}|${r.city}`)
     return {
-      st: r.st, city: r.city, n: r.n, entry: r.entry, ai: r.ai, remote: r.remote, paid: r.paid, payMed: r.pay_med, eng: r.eng, engPaid: r.eng_paid, engPay: r.eng_pay,
+      st: r.st, city: r.city, n: r.n, entry: r.entry, ai: r.ai, remote: r.remote, paid: r.paid, payMed: r.pay_med, eng: r.eng, engPaid: r.eng_paid, engPay: r.eng_pay, mid: r.mid, exec: r.exec,
       employers: employers.slice(0, 3).map((x) => x.name), topShare: (employers[0]?.n ?? 0) / r.n,
     }
   })
@@ -98,4 +100,63 @@ export async function loadCountyStats(): Promise<CountyStat[]> {
     })
   }
   return out
+}
+
+const LIVE = Prisma.sql`WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}`
+const MID_PAY = Prisma.sql`("salaryMin" + "salaryMax") / 2.0`
+
+/** Openings and median posted pay by city for each of the given job families: one pass, cities and families with enough roles only. */
+export async function loadFunctionCityRows(fns: string[]): Promise<{ st: string; city: string; fn: string; n: number; paid: number; payMed: number | null }[]> {
+  const rows = await longRead((tx) => tx.$queryRaw<{ st: string; city: string; fn: string; n: number; paid: number; pay_med: number | null }[]>`
+    SELECT "locationState" AS st, lower("locationCity") AS city, "targetFunction" AS fn, count(*)::int AS n,
+      count(*) FILTER (WHERE ${PAID})::int AS paid,
+      (percentile_cont(0.5) WITHIN GROUP (ORDER BY ${MID_PAY}) FILTER (WHERE ${PAID}))::float AS pay_med
+    FROM "ExclusiveJobPosting" ${WHERE} AND "targetFunction" = ANY(${fns})
+    GROUP BY 1, 2, 3
+    HAVING count(*) >= 15`)
+  return rows.map((r) => ({ st: r.st, city: r.city, fn: r.fn, n: r.n, paid: r.paid, payMed: r.pay_med }))
+}
+
+type Col = 'aiSkillItems' | 'aiToolsNamed' | 'aiCertsNamed'
+const KIND: Record<Col, 'skill' | 'tool' | 'cert'> = { aiSkillItems: 'skill', aiToolsNamed: 'tool', aiCertsNamed: 'cert' }
+
+async function namedBy(col: Col): Promise<SkillStat[]> {
+  const column = Prisma.raw(`"${col}"`)
+  const rows = await longRead((tx) => tx.$queryRaw<{ fn: string | null; g: number; k: string; n: number; paid: number; pay: number | null }[]>`
+    SELECT "targetFunction" AS fn, GROUPING("targetFunction")::int AS g, k, count(*)::int AS n,
+      count(*) FILTER (WHERE ${PAID})::int AS paid,
+      (percentile_cont(0.5) WITHIN GROUP (ORDER BY ${MID_PAY}) FILTER (WHERE ${PAID}))::float AS pay
+    FROM "ExclusiveJobPosting", unnest(${column}) AS k ${LIVE}
+    GROUP BY GROUPING SETS (("targetFunction", k), (k))`)
+  // Tool and certification names come in several spellings ("ChatGPT", "chatgpt"): count them together under the commonest.
+  const merged = new Map<string, { fn: string; key: string; n: number; paid: number; payNum: number; names: Map<string, number> }>()
+  for (const r of rows) {
+    const fn = r.g === 1 ? '*' : r.fn
+    if (!fn) continue
+    const id = `${fn}|${KIND[col] === 'skill' ? r.k : r.k.toLowerCase().trim()}`
+    const cur = merged.get(id) ?? { fn, key: r.k, n: 0, paid: 0, payNum: 0, names: new Map<string, number>() }
+    cur.n += r.n
+    cur.paid += r.paid
+    cur.payNum += (r.pay ?? 0) * r.paid
+    cur.names.set(r.k, (cur.names.get(r.k) ?? 0) + r.n)
+    merged.set(id, cur)
+  }
+  return [...merged.values()].map((m) => ({
+    fn: m.fn, kind: KIND[col], key: KIND[col] === 'skill' ? m.key : [...m.names].sort((a, b) => b[1] - a[1])[0][0],
+    n: m.n, paid: m.paid, payMed: m.paid > 0 ? m.payNum / m.paid : null,
+  }))
+}
+
+/** AI skills, tools and certifications named in postings, by job family and overall, with the openings in each family. */
+export async function loadSkillStats(): Promise<{ stats: SkillStat[]; totals: FnTotal[] }> {
+  const [skills, tools, certs, totalRows] = await Promise.all([
+    namedBy('aiSkillItems'), namedBy('aiToolsNamed'), namedBy('aiCertsNamed'),
+    longRead((tx) => tx.$queryRaw<{ fn: string | null; g: number; n: number; paid: number; pay: number | null }[]>`
+      SELECT "targetFunction" AS fn, GROUPING("targetFunction")::int AS g, count(*)::int AS n, count(*) FILTER (WHERE ${PAID})::int AS paid,
+        (percentile_cont(0.5) WITHIN GROUP (ORDER BY ${MID_PAY}) FILTER (WHERE ${PAID}))::float AS pay
+      FROM "ExclusiveJobPosting" ${LIVE}
+      GROUP BY GROUPING SETS (("targetFunction"), ())`),
+  ])
+  const totals: FnTotal[] = totalRows.flatMap((r) => (r.g === 1 ? [{ fn: '*', n: r.n, paid: r.paid, payMed: r.pay }] : r.fn ? [{ fn: r.fn, n: r.n, paid: r.paid, payMed: r.pay }] : []))
+  return { stats: [...skills, ...tools, ...certs], totals }
 }
