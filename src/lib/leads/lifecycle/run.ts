@@ -180,6 +180,9 @@ export async function runLeadLifecycle(now = new Date()): Promise<LifecycleSumma
       continue
     }
 
+    // Someone who stopped at the no-Gmail step may still be mid-signup: wait a day before the first email.
+    if (lead.detail === 'onboarding_no_gmail' && now.getTime() - lead.capturedAt.getTime() < DAY_MS) continue
+
     const at = (s: LeadStep) => sentAt.get(lifecycleRef(s, email)) ?? null
     const step = nextLifecycleStep({
       now,
