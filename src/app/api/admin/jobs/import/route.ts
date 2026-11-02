@@ -26,6 +26,7 @@ import { isInternshipJob } from '@/lib/jobs/work-type'
 import { DIRECT_MAX_AGE_DAYS, FRESH_DAYS_DEFAULT, FRESH_DAYS_SENIOR, seniorWindowLevels } from '@/lib/jobs/job-status'
 import { levelsInGroup, SENIORITY_GROUPS } from '@/lib/jobs/job-seniority'
 import { stampVerified } from '@/lib/jobs/liveness-store'
+import { archiveInBatches } from '@/lib/jobs/archive-in-batches'
 
 const levelsInAnyGroup = () => SENIORITY_GROUPS.flatMap((g) => levelsInGroup(g.key))
 
@@ -363,9 +364,9 @@ async function closeOpeningsSafely() {
 // past its freshness window (director and above 60 days, others 30, from the posted
 // date or else the import date; a direct employer listing only past the 365-day
 // backstop) → 'aged_out', since the crawl's export drops it even if it is still up;
-// otherwise the employer stopped listing it → 'removed'. One statement, the same rows
-// the old updateMany archived.
-async function archiveStale(startedAt: Date, now: Date): Promise<number> {
+// otherwise the employer stopped listing it → 'removed'. The same rows the old
+// updateMany archived, one batch at a time (see archive-in-batches.ts).
+async function archiveStaleBatch(startedAt: Date, now: Date, limit: number): Promise<number> {
   const senior = seniorWindowLevels(levelsInAnyGroup())
   return prisma.$executeRaw`
     UPDATE "ExclusiveJobPosting"
@@ -373,8 +374,12 @@ async function archiveStale(startedAt: Date, now: Date): Promise<number> {
         "closeReason" = CASE
           WHEN COALESCE("postedAt", "createdAt") < ${now}::timestamp - make_interval(days => CASE WHEN "directListing" THEN ${DIRECT_MAX_AGE_DAYS}::int WHEN "level" = ANY(${senior}::text[]) THEN ${FRESH_DAYS_SENIOR}::int ELSE ${FRESH_DAYS_DEFAULT}::int END)
           THEN 'aged_out' ELSE 'removed' END
-    WHERE "addedBy" = 'ncrawl' AND "archivedAt" IS NULL
-      AND ("lastConfirmedAt" IS NULL OR "lastConfirmedAt" < ${startedAt})
+    WHERE "id" IN (
+      SELECT "id" FROM "ExclusiveJobPosting"
+      WHERE "addedBy" = 'ncrawl' AND "archivedAt" IS NULL
+        AND ("lastConfirmedAt" IS NULL OR "lastConfirmedAt" < ${startedAt})
+      LIMIT ${limit}
+    )
   `
 }
 
@@ -395,7 +400,10 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
     )
   }
   if (dryRun) return NextResponse.json({ dryRun: true, wouldArchive, live })
-  const archivedCount = await archiveStale(startedAt, new Date())
+  const now = new Date()
+  const { archived: archivedCount, done } = await archiveInBatches((limit) => archiveStaleBatch(startedAt, now, limit))
+  // Out of time with rows left: the caller finalizes again with the same startedAt and this picks up where it stopped.
+  if (!done) return NextResponse.json({ archived: archivedCount, live: live - archivedCount, done: false })
   await closeOpeningsSafely()
   // The board's narrow copy of this table is kept in step by triggers; after a
   // full sync, check it (and repair any drift) once the response is sent.
@@ -404,7 +412,7 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
       .then((r) => console.log('jobs import: board light rows reconciled', r))
       .catch((error) => console.error('jobs import: board light rows reconcile failed', error))
   )
-  return NextResponse.json({ archived: archivedCount, live: live - archivedCount })
+  return NextResponse.json({ archived: archivedCount, live: live - archivedCount, done: true })
 }
 
 export async function POST(request: NextRequest) {
