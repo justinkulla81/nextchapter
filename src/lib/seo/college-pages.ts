@@ -97,18 +97,19 @@ const outcomes = (c: CollegeFacts) => [c.completionRate, c.earnings6, c.earnings
 /** Every CRM university, keyed the way college names are matched, for the claim slug. */
 // Kept on the instance for a day: it is the same for every college page, a crawl once exhausted the connection pool re-reading it, and
 // at an hour every instance still re-read all of it twenty-four times a day.
-const universityOrgs = memoTtl(24 * 3600_000, () => 'all', () => retryOnPoolTimeout(async () => {
-  const rows = await prisma.crmOrganization.findMany({
+const universityOrgs = memoTtl(24 * 3600_000, () => 'all', async () => {
+  // The rows are shared across instances (the Maps below are built per instance): a cold instance no longer re-reads every university.
+  const rows = await sharedLoad('university-orgs', 24 * 3600, () => retryOnPoolTimeout(() => prisma.crmOrganization.findMany({
     where: { orgTypes: { has: 'UNIVERSITY' } },
     select: { id: true, name: true, canonicalNameNormalized: true },
-  })
+  })))
   const byId = new Map(rows.map((r) => [r.id, r]))
   const keyCount = new Map<string, number>()
   for (const r of rows) { const k = strictOrgKey(r.name, normalizeOrgName); keyCount.set(k, (keyCount.get(k) ?? 0) + 1) }
   const byKey = new Map<string, (typeof rows)[number]>()
   for (const r of rows) { const k = strictOrgKey(r.name, normalizeOrgName); if (keyCount.get(k) === 1) byKey.set(k, r) }
   return { byId, byKey }
-}))
+})
 
 /** The CRM organization behind a college: the one it is linked to, else the only university with the same name. */
 export async function crmOrgForCollege(c: { name: string; crmOrgId: string | null }) {

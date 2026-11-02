@@ -1,6 +1,7 @@
 import 'server-only'
+import { createHash } from 'node:crypto'
 import { cache } from 'react'
-import { heavy, memoTtl } from '@/lib/db/heavy'
+import { heavy, memoTtl, sharedLoad } from '@/lib/db/heavy'
 import { readSnapshot } from '@/lib/seo/topic-snapshot'
 import { unstable_cache } from 'next/cache'
 import { Prisma } from '@prisma/client'
@@ -231,7 +232,11 @@ export function sortConferences<T extends Pick<Conf, 'datesConfirmed' | 'startDa
 
 export interface ConfList { total: number; upcoming: number; rows: Conf[]; summary: ConfSummary }
 
-async function listConferences(where: Prisma.ConferenceEventWhereInput, take = 60): Promise<ConfList> {
+// Up to 600 whole conference rows per call, and a crawl asks for many lists: kept six hours across instances, keyed by the filter.
+const listConferences = (where: Prisma.ConferenceEventWhereInput, take = 60): Promise<ConfList> =>
+  sharedLoad(`conf-list:${createHash('sha1').update(JSON.stringify([where, take])).digest('hex')}`, 6 * 3600, () => loadConferences(where, take))
+
+async function loadConferences(where: Prisma.ConferenceEventWhereInput, take: number): Promise<ConfList> {
   const all = (await prisma.conferenceEvent.findMany({ where: { published: true, ...where }, orderBy: [{ importance: 'asc' }, { name: 'asc' }], take: 600 })) as unknown as Conf[]
   const sorted = sortConferences(all)
   const now = new Date()
