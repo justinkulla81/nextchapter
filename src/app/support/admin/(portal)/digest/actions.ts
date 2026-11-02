@@ -13,8 +13,8 @@ import { embedsItself, safeImageUrl } from '@/lib/news/kind'
 import { cleanNewsTags } from '@/lib/news/tags'
 import { newsSlug } from '@/lib/news/slug'
 import { runNewsDiscovery } from '@/lib/news/discover'
-import { getValidAccessToken } from '@/lib/google/connection'
-import { NEWS_ADDRESS, sweepNewsInbox } from '@/lib/research/news-inbox'
+import { getAllGoogleConnections } from '@/lib/google/connection'
+import { NEWS_ADDRESS, sweepNewsInboxAllMailboxes } from '@/lib/research/news-inbox'
 
 export async function markResearchItemStatus(id: string, status: 'reviewed' | 'actioned' | 'dismissed') {
   const admin = await requireAdmin()
@@ -293,11 +293,10 @@ export async function runNewsDiscoveryNow(_prev: NewsFormState | undefined): Pro
  */
 export async function checkNewsInboxNow(_prev: NewsFormState | undefined): Promise<NewsFormState> {
   const admin = await requireAdmin()
-  const token = await getValidAccessToken().catch(() => null)
-  if (!token) return { message: 'The company Gmail is not connected, so nothing could be read.' }
+  if ((await getAllGoogleConnections()).length === 0) return { message: 'The company Gmail is not connected, so nothing could be read.' }
   let result
   try {
-    result = await sweepNewsInbox(token)
+    result = await sweepNewsInboxAllMailboxes()
   } catch (error) {
     console.error('News inbox check failed:', error)
     return { message: `Could not read ${NEWS_ADDRESS}. Try again in a minute.` }
