@@ -9,7 +9,8 @@ import { cleanNewsTags } from '@/lib/news/tags'
 import { extractNewsLinks, noteBeforeFirstLink } from './news-inbox-text'
 
 export const NEWS_ADDRESS = 'news@launchyournextchapter.com'
-const DEFAULT_SENDERS = ['justin.kulla@gmail.com', 'justin@launchyournextchapter.com', 'jkulla@launchyournextchapter.com']
+// Gmail ignores dots, so the same mailbox shows up as justin.kulla@ or justinkulla@ depending on how it was typed.
+const DEFAULT_SENDERS = ['justin.kulla@gmail.com', 'justinkulla@gmail.com', 'justin@launchyournextchapter.com', 'jkulla@launchyournextchapter.com']
 
 /** Each run reads at most this many emails and this many articles per email: the ceiling on what the AI step can cost. */
 const MAX_EMAILS = 10
