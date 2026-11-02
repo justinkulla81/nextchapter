@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-214 clusters, 1287 phrases.
+227 clusters, 1376 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -192,6 +192,19 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/topics/cover-letter-template` | page | cover letter template | Use a cover letter template | cover letter format; cover letter structure; cover letter outline; how to write a cover letter; cover letter sections; professional cover letter template; simple cover letter template; email cover letter |
 | `/topics/how-to-start-a-cover-letter` | page | how to start a cover letter | Start a cover letter | cover letter opening; cover letter opening lines; cover letter first paragraph; cover letter introduction; how to begin a cover letter; cover letter opening sentence; how to end a cover letter; cover letter closing |
 | `/topics/cover-letter-career-change` | page | cover letter for career change | Write a cover letter when changing careers | career change cover letter; cover letter career change example; cover letter when changing careers; cover letter for a different industry; cover letter with no experience in the field |
+| `/topics/how-to-find-a-job` | page | how to find a job | Find a job | how to find a job fast; how to find a job quickly; how to get a job; how to get hired; where to start looking for a job; how to start a job search; how to find a job in 30 days |
+| `/topics/best-job-sites` | page | best job sites | Choose where to look for jobs | job search sites; best job search websites; job boards for professionals; best job sites for professionals; best job boards; job search engines; best job sites 2026 |
+| `/topics/how-to-apply-for-a-job` | page | how to apply for a job | Apply for a job | how to apply for jobs online; job application process; how to fill out a job application; how many jobs should i apply to; how many applications a day; how to apply for a job online |
+| `/topics/how-to-ask-for-a-job-referral` | page | how to ask for a job referral | Ask for a job referral | employee referral; how to get a referral at a company; ask for a referral email; how to get referred for a job; job referral bonus |
+| `/topics/how-to-email-a-recruiter` | page | how to email a recruiter | Write to a recruiter | cold email a recruiter; how to message a recruiter on linkedin; how to reach out to a recruiter; email to recruiter example; how to contact a recruiter |
+| `/topics/salary-expectations` | page | salary expectations | Answer the salary expectations question | how to answer salary expectations; what are your salary expectations; salary expectations in a cover letter; desired salary on a job application; what is your salary requirement; how to answer what salary are you looking for |
+| `/topics/follow-up-after-applying` | page | how to follow up on a job application | Follow up on an application | follow up after applying; job application follow up email; when to follow up on a job application; how long to wait after applying for a job |
+| `/topics/resignation-letter` | page | resignation letter | Write a resignation letter | resignation letter template; how to write a resignation letter; two weeks notice letter; resignation email; short resignation letter; resignation letter example; how to resign from a job |
+| `/topics/how-to-quit-a-job` | page | how to quit a job | Quit a job well | how to quit professionally; how to quit your job; how to tell your boss you are quitting; how to leave a job on good terms; how much notice to give when quitting; exit interview |
+| `/topics/should-i-quit-my-job` | page | should i quit my job | Decide whether to quit | signs it is time to quit; is it time to leave my job; should i quit without another job; should i stay or leave my job; how to decide to quit your job |
+| `/topics/should-i-accept-a-counteroffer` | page | should i accept a counteroffer | Decide on a counteroffer | accepting a counteroffer; counteroffer from current employer; how to respond to a counteroffer; counteroffer when quitting; is it a mistake to accept a counteroffer |
+| `/topics/i-hate-my-job` | page | i hate my job | Cope with hating a job | hate my job; i hate my boss; i hate my job but cant quit; dread going to work; unhappy at work; how to stop hating your job; sunday scaries |
+| `/topics/career-change-at-40` | page | career change at 40 | Change careers in midlife | career change at 30; career change at 50; is it too late to change careers; changing careers in your 40s; starting over at 40; how to change careers at 40 with no experience |
 | `/topics/executive-recruiters` | page | executive recruiters | Work with executive recruiters and search firms | executive search firms; retained search firms; headhunters; how to work with an executive recruiter; how to get on a recruiter’s radar; contingent vs retained recruiters; find an executive recruiter; executive search |
 | `/topics/reverse-recruiter` | page | reverse recruiter | Have someone represent me to employers | reverse recruiting; reverse recruiting services; candidate marketing; job search representation; someone to find jobs for me; recruiter that works for the candidate |
 | `/topics/resume-review` | page | free resume review | Get my resume reviewed | resume review; resume feedback; review my resume; is my resume good; resume critique; ats resume checker |
@@ -1072,6 +1085,71 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Cover Letter for a Career Change: Structure and Example
 - Description: How to write a cover letter for a career change: explain the move in one line, show a result that transfers, say how you prepared, with a full example.
+
+### `/topics/how-to-find-a-job`
+
+- Title: How to Find a Job: A Plan for the Next 30 Days
+- Description: How to find a job: pick your target roles, get your resume and profile ready, and apply and network every week. A week-by-week plan for the first 30 days.
+
+### `/topics/best-job-sites`
+
+- Title: Best Job Sites for Experienced Professionals
+- Description: Where to look for professional jobs: employer career sites, the big boards, LinkedIn, niche boards and recruiters, and how to avoid fake postings.
+
+### `/topics/how-to-apply-for-a-job`
+
+- Title: How to Apply for a Job: The Steps That Get You Read
+- Description: How to apply for a job: find the posting on the employer site, tailor your resume, apply through the official page and follow up with a person.
+
+### `/topics/how-to-ask-for-a-job-referral`
+
+- Title: How to Ask for a Job Referral (and Get One)
+- Description: How to ask for a job referral: ask for a conversation first, then for the referral, and make it easy with your resume, the posting link and a short summary.
+
+### `/topics/how-to-email-a-recruiter`
+
+- Title: How to Email a Recruiter: A Short Note That Gets a Reply
+- Description: How to email a recruiter: what to include, a template under 120 words, a shorter LinkedIn version, and when to follow up once.
+
+### `/topics/salary-expectations`
+
+- Title: Salary Expectations: How to Answer Without Underselling
+- Description: How to answer a salary expectations question: research a range, what to say in a conversation, on a form and in a cover letter, and what to say about pay history.
+
+### `/topics/follow-up-after-applying`
+
+- Title: How to Follow Up on a Job Application
+- Description: When and how to follow up on a job application: the timing, who to write to, a short email template, and what to do if you never hear back.
+
+### `/topics/resignation-letter`
+
+- Title: Resignation Letter: A Template and What to Say
+- Description: A short resignation letter template, what to include and leave out, how much notice to give and how to deliver it to your manager and HR.
+
+### `/topics/how-to-quit-a-job`
+
+- Title: How to Quit a Job Professionally
+- Description: How to quit a job well: settle the next step first, tell your manager in person, give notice, hand over your work and handle pay, benefits and the exit interview.
+
+### `/topics/should-i-quit-my-job`
+
+- Title: Should I Quit My Job? A Way to Decide
+- Description: Should you quit your job? Signs it may be time, questions to ask yourself, whether to leave with or without another job, and how to set a date to decide.
+
+### `/topics/should-i-accept-a-counteroffer`
+
+- Title: Should I Accept a Counteroffer From My Employer?
+- Description: When a counteroffer is worth taking and when it is not: why people are tempted, the risks, a four-question test and how to respond.
+
+### `/topics/i-hate-my-job`
+
+- Title: I Hate My Job: What to Do About It
+- Description: If you hate your job: name the problem, try one fix, save a runway and plan the exit while you stay. Includes what to do about a boss you cannot stand.
+
+### `/topics/career-change-at-40`
+
+- Title: Career Change at 40: How to Do It and What to Expect
+- Description: How to change careers at 40 or 50: why your experience helps, a step-by-step plan, how to handle age bias and how to plan the money.
 
 ### `/topics/executive-recruiters`
 
