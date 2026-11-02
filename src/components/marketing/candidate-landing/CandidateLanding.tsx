@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { LAYOFF_CLOCKS, LONG_SEARCH_FIGURE, type LandingContent } from '@/lib/marketing/candidate-landing'
+import { FOUNDER_LINE } from '@/lib/marketing/founder-line'
 import { LandingCta } from './LandingCta'
 import { LandingTracker } from './LandingTracker'
 import { StatePicker } from './StatePicker'
@@ -105,6 +106,7 @@ export function CandidateLanding({ c }: { c: LandingContent }) {
         <section aria-label="Start" className="mx-auto max-w-3xl px-6 pb-16 text-center">
           <LandingCta label={c.cta} persona={c.persona} page={c.page} variant={c.variant} placement="footer" />
           <p className="mt-3 text-sm text-muted-foreground">{c.ctaNote}</p>
+          <p className="mx-auto mt-10 max-w-xl text-sm text-muted-foreground">{FOUNDER_LINE}</p>
         </section>
       </main>
 

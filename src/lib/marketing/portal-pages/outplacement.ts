@@ -39,6 +39,7 @@ export const OUTPLACEMENT: PortalPageDef = {
       'Each person leaving gets a seat, job search tools and a Dossier that stays theirs. HR sees counts, never individuals. Legal gets a compliance record for each seat. Add everyone from one list.',
     primary: { label: 'Get the vendor scorecard', href: '#free' },
     secondary: { label: 'Start a pilot', href: '#talk' },
+    founderLine: true,
     primaryNote: 'The scorecard is the eight questions to ask every outplacement vendor, with a sheet to compare the answers. Use it on us too.',
     loginHref: PORTALS.outplacement.loginHref,
     parent: { href: '/employers', label: 'For employers' },
