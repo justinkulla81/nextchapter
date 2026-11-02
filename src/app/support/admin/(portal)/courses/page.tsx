@@ -2,7 +2,10 @@ import type { Course, CourseCategory } from '@prisma/client'
 import { ChevronDown } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import { createCourse, updateCourse, toggleCourseActive, deleteCourse } from './actions'
+import { createCourse, updateCourse, toggleCourseActive, deleteCourse, addFoundCourse, dismissFoundCourse, postFoundCourseToX } from './actions'
+import { loadScanState, type Candidate } from '@/lib/learning/course-scan/run'
+import { linkedinCoursePost, xCoursePost } from '@/lib/learning/course-scan/posts'
+import { CHANNELS } from '@/lib/social/channels'
 import { CourseForm } from '@/components/admin/CourseForm'
 import { ConfirmForm } from '@/components/admin/ConfirmForm'
 import { COURSE_SKILL_LEVELS, COURSE_SKILL_LEVEL_LABELS } from '@/lib/constants/course-skill-level'
@@ -97,9 +100,65 @@ function CourseCard({ course }: { course: Course }) {
   )
 }
 
+function FoundCourses({ items, xReady }: { items: Candidate[]; xReady: boolean }) {
+  const waiting = items.filter((c) => !c.addedAt)
+  const added = items.filter((c) => c.addedAt)
+  if (items.length === 0) return null
+  return (
+    <div className="space-y-4">
+      <h2 className="text-base font-semibold tracking-tight">New courses found by the weekly scan ({waiting.length})</h2>
+      <p className="text-sm text-muted-foreground">
+        Found at Google, Anthropic, DeepLearning.AI and Microsoft. The function and level are a first guess from the title; check them, then add. Nothing is in the
+        catalog or posted until you act. Adding one drafts the X and LinkedIn posts below.
+      </p>
+      {waiting.map((c) => (
+        <Card key={c.url}>
+          <CardContent className="space-y-2 pt-6">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{c.sponsor}</p>
+            <a href={c.url} target="_blank" rel="noopener noreferrer" className="font-medium underline underline-offset-4">{c.title}</a>
+            <p className="text-sm text-muted-foreground">
+              {c.functions.length ? c.functions.join(', ') : 'Any function'} · {COURSE_SKILL_LEVEL_LABELS[c.skillLevel]} · {c.free ? 'Free' : 'Check cost'} · {c.source}
+            </p>
+            {c.description && <p className="text-sm">{c.description}</p>}
+            <div className="flex gap-2">
+              <form action={addFoundCourse.bind(null, c.url)}><SubmitButton size="sm">Add to catalog</SubmitButton></form>
+              <form action={dismissFoundCourse.bind(null, c.url)}><SubmitButton variant="ghost" size="sm">Dismiss</SubmitButton></form>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+      {added.length > 0 && <h3 className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Added: posts to publish</h3>}
+      {added.map((c) => (
+        <Card key={c.url}>
+          <CardContent className="space-y-3 pt-6">
+            <p className="font-medium">{c.title}</p>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">X</p>
+              <p className="text-sm whitespace-pre-wrap">{xCoursePost(c)}</p>
+              {c.xPostedAt ? (
+                <p className="text-xs text-muted-foreground">Posted to X {new Date(c.xPostedAt).toLocaleDateString('en-US')}</p>
+              ) : xReady ? (
+                <form action={postFoundCourseToX.bind(null, c.url)} className="mt-1"><SubmitButton size="sm">Post to X</SubmitButton></form>
+              ) : (
+                <p className="text-xs text-muted-foreground">X posting is off (needs the X keys and X_POSTING_ENABLED=1); copy the text instead.</p>
+              )}
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">LinkedIn (copy and post; there is no LinkedIn posting connection yet)</p>
+              <p className="text-sm whitespace-pre-wrap">{linkedinCoursePost(c)}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
 export default async function CoursesAdminPage() {
   await requireAdmin()
 
+  const found = (await loadScanState().catch(() => null))?.pending ?? []
+  const xReady = !!CHANNELS.find((ch) => ch.id === 'x')?.ready()
   const courses = await prisma.course.findMany({
     orderBy: [{ category: 'asc' }, { skillLevel: 'asc' }, { sortOrder: 'asc' }, { createdAt: 'asc' }],
   })
@@ -115,6 +174,8 @@ export default async function CoursesAdminPage() {
           Skills, and Public Speaking use their own targeting fields instead (set them per course via Edit).
         </p>
       </div>
+
+      <FoundCourses items={found} xReady={xReady} />
 
       <CourseForm action={createCourse} />
 

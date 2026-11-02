@@ -72,6 +72,21 @@ export interface AlertInput {
   costs?: Partial<CostFields>
   /** The industry and local job picture, as label/value rows. */
   picture?: { rows: [string, string][] }
+  /** Every page that reported the layoff: the filing, each news story. */
+  sources?: AlertSource[]
+}
+
+export interface AlertSource { label: string; url: string }
+
+/** The notice's own link first, then the rest, one entry per address. Only http(s) links are kept. */
+export function mergeSources(primary: AlertSource | null, rest: AlertSource[] = []): AlertSource[] {
+  const seen = new Set<string>()
+  return [...(primary ? [primary] : []), ...rest].filter((s) => {
+    const key = s.url.trim().replace(/\/$/, '')
+    if (!/^https?:\/\//i.test(key) || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 export function shouldAlert(a: Pick<AlertInput, 'employees' | 'inCrm'>): boolean {
@@ -159,8 +174,13 @@ export function alertBody(a: AlertInput, links: { source: string | null; org: st
     a.place ? esc(a.place) : '',
   ].filter(Boolean).join(' · ')
 
+  const sources = mergeSources(links.source ? { label: KIND_LABEL[a.kind], url: links.source } : null, a.sources)
+  const sourceList = sources.length
+    ? `<p style="margin:0 0 4px;color:${MUTED};font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">${sources.length === 1 ? 'Source' : `Sources (${sources.length})`}</p>
+<ul style="margin:0 0 14px;padding-left:18px;font-size:13px">${sources.map((x) => `<li style="margin:0 0 3px"><a href="${esc(x.url)}" style="color:${ACCENT}">${esc(x.label)}</a></li>`).join('')}</ul>`
+    : ''
+
   const buttons = [
-    links.source ? `<a href="${esc(links.source)}" style="display:inline-block;padding:7px 14px;border:1px solid ${LINE};border-radius:6px;color:${INK};text-decoration:none;font-size:13px;margin:0 6px 6px 0">Source</a>` : '',
     links.org ? `<a href="${esc(links.org)}" style="display:inline-block;padding:7px 14px;background:${ACCENT};border-radius:6px;color:#fff;text-decoration:none;font-size:13px;margin:0 6px 6px 0">Open in CRM</a>` : '',
     `<a href="${esc(links.notices)}" style="display:inline-block;padding:7px 14px;border:1px solid ${LINE};border-radius:6px;color:${INK};text-decoration:none;font-size:13px;margin:0 6px 6px 0">All layoff notices</a>`,
   ].join('')
@@ -183,6 +203,7 @@ ${a.groups.map(groupHtml).join('')}`
 <h1 style="font:600 26px/1.2 Georgia,'Times New Roman',serif;margin:4px 0 4px">${esc(a.employer)}</h1>
 <p style="margin:0 0 14px;color:${MUTED}">${sizeLine}</p>
 <table role="presentation" cellpadding="3" style="border-collapse:collapse;margin:0 0 12px">${facts.map(([k, v]) => `<tr><td style="color:${MUTED};padding-right:14px">${k}</td><td>${v}</td></tr>`).join('')}</table>
+${sourceList}
 <div>${buttons}</div>
 ${picture}
 ${who}

@@ -143,6 +143,16 @@ export const titleJobsSeo = (name: string, jobs: number) => ({
   description: fitDescription(`${jobs.toLocaleString('en-US')} open ${name.toLowerCase()} jobs from employers’ own career sites, checked within the last week: pay where listed, top employers and states.`, 160),
 })
 
+/** /jobs/title/[slug]/[place]: the owner of "<title> jobs in <city or state>". */
+export const titlePlaceJobsSeo = (name: string, place: string, jobs: number, median: number | null) => ({
+  title: pick(`${name} Jobs in ${place}: ${jobs.toLocaleString('en-US')} Open Roles`, `${name} Jobs in ${place}: ${jobs.toLocaleString('en-US')} Open`, `${name} Jobs in ${place}`),
+  h1: `${name} jobs in ${place}: ${jobs.toLocaleString('en-US')} open roles`,
+  description: fitDescription(
+    `${jobs.toLocaleString('en-US')} open ${name.toLowerCase()} jobs in ${place} from employers’ own career sites, checked within the last week.${median ? ` Median listed pay is about $${Math.round(median / 1000)}k a year.` : ''} Top employers and nearby places.`,
+    160,
+  ),
+})
+
 /** /jobs/type/[type]: remote, hybrid, contract, part-time and interim professional jobs. */
 export const jobTypeSeo = (name: string, noun: string, jobs: number) => ({
   title: fit(`${name} Professional Jobs: ${jobs.toLocaleString('en-US')} Open Roles`, 60),
