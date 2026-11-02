@@ -56,6 +56,18 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
       ctaLabel: 'Save this plan: create my free profile',
     }
   }
+  // The second reminder asks for something different from the first: not a plan to save but a look at where they stand,
+  // starting with a few questions (the résumé is optional), in the words of the situation they picked or the job they saved.
+  if (step === 'nudge2' && variant !== 'applied_job') {
+    const stand = 'Your free Market Reality Assessment shows how the market reads you, what people in your role are paid, and a weekly plan matched to how soon you want to move. Start with a few questions; add your résumé now or later.'
+    if (persona) {
+      return { ...base, subject: 'What the market sees when it reads you', headline: 'Before an employer does', paragraphs: [hello(c), persona.hook, stand, 'This is our last note.'], benefits: [], ctaLabel: 'See where I stand', footerNote: 'This is the last reminder.' }
+    }
+    if (variant === 'saved_job' && c.detail) {
+      return { ...base, subject: `How well do you fit ${c.detail}?`, headline: 'How well do you fit?', paragraphs: [hello(c), `You saved ${c.detail}. A free profile shows how well you fit it, what is missing, and which similar jobs fit you better.`, 'Start with a few questions; add your résumé now or later. This is our last note.'], benefits: [], ctaLabel: 'Show me my fit', footerNote: 'This is the last reminder.' }
+    }
+    return { ...base, subject: 'Where do you stand? Find out in five minutes', headline: 'Where do you stand?', paragraphs: [hello(c), stand, 'This is our last note.'], benefits: [], ctaLabel: 'See where I stand', footerNote: 'This is the last reminder.' }
+  }
   if (!persona && c.choices?.length && (step === 'welcome' || (step === 'nudge1' && !followUp))) {
     return {
       ...base,
