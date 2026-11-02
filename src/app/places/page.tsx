@@ -4,6 +4,7 @@ import { SeoPage } from '@/components/seo/SeoPage'
 import { PlaceLinks } from '@/components/places/PlaceSections'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { getStateIndex, placeUrl } from '@/lib/places/places'
+import { majorCityLinks } from '@/lib/places/major-cities'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 
 export const revalidate = 86400
@@ -26,6 +27,7 @@ export default async function PlacesIndexPage() {
     >
       <PlaceLinks id="states" title="Choose a state"
         links={ALL_STATE_CODES.filter((c) => have.has(c)).map((c) => ({ href: placeUrl.state(stateSlug(c)), label: stateName(c), note: index.length ? `${index.find((s) => s.code === c)?.counties ?? 0} counties` : undefined }))} />
+      <PlaceLinks id="major-cities" title="Major cities" intro="The largest metros, one click away." links={majorCityLinks} />
       <div className="mt-10">
         <NewsletterSignup source="places" />
       </div>
