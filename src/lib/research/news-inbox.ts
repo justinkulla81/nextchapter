@@ -18,6 +18,8 @@ const MAX_EMAILS = 10
 const MAX_LINKS_PER_EMAIL = 5
 /** An email with no link but this much text is the article itself, pasted in. */
 const PASTED_ARTICLE_MIN_CHARS = 400
+/** An email with this many links is a newsletter, not a story: picking five of them at random would file tracking links and sign-up buttons. */
+const NEWSLETTER_MIN_LINKS = 8
 /** The sweep shares a cron bundle with other jobs: stop starting new emails after this long; unrecorded ones are retried next run. */
 const TIME_BUDGET_MS = 75_000
 
@@ -28,6 +30,7 @@ export interface NewsInboxResult {
   forWebsite: number
   forWeekly: number
   published: number
+  newsletters: number
   political: number
   notRelevant: number
   failed: number
@@ -52,7 +55,7 @@ export function newsInboxSenders(): string[] {
  * once (NewsletterMessage); a failure leaves it unrecorded so the next run retries.
  */
 export async function sweepNewsInbox(accessToken: string): Promise<NewsInboxResult> {
-  const result: NewsInboxResult = { emails: 0, articles: 0, forReport: 0, forWebsite: 0, forWeekly: 0, published: 0, political: 0, notRelevant: 0, failed: 0 }
+  const result: NewsInboxResult = { emails: 0, articles: 0, forReport: 0, forWebsite: 0, forWeekly: 0, published: 0, newsletters: 0, political: 0, notRelevant: 0, failed: 0 }
   if (!process.env.ANTHROPIC_API_KEY) return result
 
   const senders = newsInboxSenders().join(' OR ')
@@ -70,7 +73,24 @@ export async function sweepNewsInbox(accessToken: string): Promise<NewsInboxResu
     try {
       const { body } = await getMessageContent(accessToken, message.id, 30_000)
       const text = body ?? ''
-      const links = extractNewsLinks(text, unwrapFeedLink).slice(0, MAX_LINKS_PER_EMAIL)
+      const allLinks = extractNewsLinks(text, unwrapFeedLink)
+      if (allLinks.length >= NEWSLETTER_MIN_LINKS) {
+        const url = `gmail-message:${message.id}`
+        if (!(await prisma.researchLibraryItem.findFirst({ where: { url }, select: { id: true } }))) {
+          await prisma.researchLibraryItem.create({
+            data: {
+              url, ingestionSource: 'inbox', discoveryTopic: 'Sent to news@', status: 'new', digestAudiences: [],
+              title: `Newsletter sent to news@ (${allLinks.length} links)`, needsReview: true,
+              suggestedAction: 'Sent to news@, but it is a newsletter with many stories. Send the individual stories you want used, one email each.',
+            },
+          })
+          result.newsletters++
+        }
+        await prisma.newsletterMessage.createMany({ data: [{ messageId: key, events: 0 }], skipDuplicates: true })
+        result.emails++
+        continue
+      }
+      const links = allLinks.slice(0, MAX_LINKS_PER_EMAIL)
       const note = noteBeforeFirstLink(text)
       const sources = links.length
         ? links.map((url) => ({ url, pasted: null as string | null }))
