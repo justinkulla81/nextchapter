@@ -203,11 +203,12 @@ export default async function AdminVisitorActivityPage({
       select: { createdAt: true },
     }),
     prisma.homepageVisitEvent.findMany({
-      where: { eventType: 'LINK_CLICK', createdAt: { gte: since(CHART_WINDOW_DAYS) }, href: { not: null } },
+      where: { eventType: 'LINK_CLICK', createdAt: { gte: since(CHART_WINDOW_DAYS) }, href: { not: null }, path: { startsWith: '/jobs/' } },
       select: { createdAt: true, userAgent: true, href: true, path: true },
     }),
     prisma.nativeJobApplication.findMany({ where: { createdAt: { gte: since(CHART_WINDOW_DAYS) } }, select: { createdAt: true } }),
   ])
+  // Only clicks tied to a job page: clicks recorded before path tracking (to Oct 27) had no page, so they cannot be told from footer or news links.
   const humanApplyClicks = applyClickRows.filter(
     (e) => classifyUserAgent(e.userAgent) === 'human' && isApplyClick('LINK_CLICK', e.href, e.path)
   )
@@ -568,7 +569,7 @@ export default async function AdminVisitorActivityPage({
         <div className="rounded-lg border border-border p-4">
           <h2 className="text-sm font-medium text-foreground">Job applications per day</h2>
           <p className="mb-3 text-xs text-muted-foreground">
-            Last {CHART_WINDOW_DAYS} days (Eastern time). Apply clicks are humans leaving a job page for the employer&apos;s own site; applied in NextChapter are applications sent through the platform.
+            Last {CHART_WINDOW_DAYS} days (Eastern time). Apply clicks are humans leaving a job page for the employer&apos;s own site, counted from Oct 27 when the site began recording which page a click came from; applied in NextChapter are applications sent through the platform.
           </p>
           <VisitorsPerDayChart series={applicationSeries} emptyMessage="No job applications in this window yet." />
         </div>
