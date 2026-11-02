@@ -16,7 +16,6 @@ const ROLE_LISTS: Partial<Record<CrmPersonRole, string>> = {
   LEARNING_DEV_HEAD: 'employers_learning',
   ADVISOR: 'advisors',
   CONNECTOR: 'advisors',
-  JOB_SEEKER: 'candidates',
   BD_PARTNER: 'bd_partners',
   GTM_PARTNER: 'bd_partners',
   STRATEGIC: 'bd_partners',
@@ -32,8 +31,6 @@ const ROLE_LISTS: Partial<Record<CrmPersonRole, string>> = {
 
 const PIPELINE_LISTS: Record<string, string> = {
   grants: 'funders',
-  job_seekers: 'candidates',
-  candidate_membership: 'candidates',
   outplacement: 'employers_hr',
   bd_partnerships: 'bd_partners',
   workforce_boards: 'workforce',
@@ -57,6 +54,26 @@ export const LIST_GROUPS: { label: string; keys: string[] }[] = [
   { label: 'All employers', keys: ['employers_hr', 'employers_hiring', 'employers_learning'] },
   { label: 'All higher ed', keys: ['higher_ed_alumni', 'higher_ed_career', 'higher_ed_development', 'higher_ed_exec_ed'] },
 ]
+
+/**
+ * A master list holds everyone on any of its sub-lists, so one send reaches the whole group once.
+ * Alumni stays out of the Higher ed master: alumni offices are not emailed.
+ */
+const MASTER_OF: Record<string, string> = {
+  employers_hr: 'employers',
+  employers_hiring: 'employers',
+  employers_learning: 'employers',
+  higher_ed_career: 'higher_ed',
+  higher_ed_development: 'higher_ed',
+  higher_ed_exec_ed: 'higher_ed',
+}
+
+/** The suggested keys plus the master list of any sub-list among them. Used by the daily auto-assign and clean-up, not by the "Add to a mailing list?" card. */
+export function withMasterKeys(keys: string[]): string[] {
+  const all = new Set(keys)
+  for (const k of keys) if (MASTER_OF[k]) all.add(MASTER_OF[k])
+  return [...all]
+}
 
 export function suggestListKeys(input: {
   roles: CrmPersonRole[]
