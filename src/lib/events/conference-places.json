@@ -29,6 +29,36 @@
   "k": "kings-county",
   "kn": "Kings County"
  },
+ "aaa-financial-accounting-and-reporting-section-midyear-meeting": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
+ "aaa-global-connect": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "aaa-international-accounting-section-midyear-meeting": {
+  "c": "norfolk",
+  "cn": "Norfolk",
+  "k": "norfolk-city",
+  "kn": "Norfolk city"
+ },
+ "aaa-joint-midyear-meeting-of-the-ais-and-set-sections": {
+  "c": "newark",
+  "cn": "Newark",
+  "k": "essex-county",
+  "kn": "Essex County"
+ },
+ "aaa-management-accounting-section-midyear-meeting": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
+ },
  "aaace-annual-conference": {
   "c": "new-orleans",
   "cn": "New Orleans",
@@ -64,6 +94,18 @@
   "cn": "Washington",
   "k": "district-of-columbia",
   "kn": "District of Columbia"
+ },
+ "aaas-annual-meeting": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
+ "aabb-annual-meeting": {
+  "c": "anaheim",
+  "cn": "Anaheim",
+  "k": "orange-county",
+  "kn": "Orange County"
  },
  "aacc-annual-convention": {
   "c": "indianapolis",
@@ -101,6 +143,12 @@
   "k": "king-county",
   "kn": "King County"
  },
+ "aad-annual-meeting": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
  "aadgp-annual-conference": {
   "c": "denver",
   "cn": "Denver",
@@ -125,11 +173,23 @@
   "k": "prince-georges-county",
   "kn": "Prince George's County"
  },
+ "aahhe-annual-conference": {
+  "c": "sacramento",
+  "cn": "Sacramento",
+  "k": "sacramento-county",
+  "kn": "Sacramento County"
+ },
  "aahoacon": {
   "c": "anaheim",
   "cn": "Anaheim",
   "k": "orange-county",
   "kn": "Orange County"
+ },
+ "aahpm-and-hpna-annual-assembly": {
+  "c": "pittsburgh",
+  "cn": "Pittsburgh",
+  "k": "allegheny-county",
+  "kn": "Allegheny County"
  },
  "aaj-annual-convention": {
   "c": "washington",
@@ -167,11 +227,35 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "aamd-education-conference-and-trade-show": {
+  "c": "denver",
+  "cn": "Denver",
+  "k": "denver-county",
+  "kn": "Denver County"
+ },
  "aami-exchange": {
   "c": "fort-lauderdale",
   "cn": "Fort Lauderdale",
   "k": "broward-county",
   "kn": "Broward County"
+ },
+ "aan-annual-meeting": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
+ },
+ "aanp-national-conference": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
+ },
+ "aao-hnsf-annual-meeting-and-oto-expo": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
  },
  "aaos-annual-meeting": {
   "c": "las-vegas",
@@ -209,6 +293,18 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "aapm-and-r-annual-assembly": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "aapm-annual-meeting-and-exhibition": {
+  "c": "columbus",
+  "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
+ },
  "aappr-annual-conference": {
   "c": "louisville",
   "cn": "Louisville",
@@ -233,6 +329,12 @@
   "k": "chatham-county",
   "kn": "Chatham County"
  },
+ "aashe-conference-and-expo": {
+  "c": "portland",
+  "cn": "Portland",
+  "k": "multnomah-county",
+  "kn": "Multnomah County"
+ },
  "aashto-annual-meeting": {
   "c": "louisville",
   "cn": "Louisville",
@@ -244,6 +346,12 @@
   "cn": "Portland",
   "k": "multnomah-county",
   "kn": "Multnomah County"
+ },
+ "aaslh-annual-meeting": {
+  "c": "madison",
+  "cn": "Madison",
+  "k": "dane-county",
+  "kn": "Dane County"
  },
  "aba-agricultural-bankers-conference": {
   "c": "minneapolis",
@@ -353,6 +461,18 @@
   "k": "cook-county",
   "kn": "Cook County"
  },
+ "acc-scientific-session-acc-27-with-wcc": {
+  "c": "houston",
+  "cn": "Houston",
+  "k": "harris-county",
+  "kn": "Harris County"
+ },
+ "accelerate-conference-innovate-mississippi": {
+  "c": "flowood",
+  "cn": "Flowood",
+  "k": "rankin-county",
+  "kn": "Rankin County"
+ },
  "accp-global-conference": {
   "c": "new-york",
   "cn": "New York",
@@ -383,6 +503,12 @@
   "k": "maricopa-county",
   "kn": "Maricopa County"
  },
+ "acep-scientific-assembly": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
  "acf-national-convention": {
   "c": "orlando",
   "cn": "Orlando",
@@ -394,6 +520,18 @@
   "cn": "Philadelphia",
   "k": "philadelphia-county",
   "kn": "Philadelphia County"
+ },
+ "acfe-women-s-summit": {
+  "c": "austin",
+  "cn": "Austin",
+  "k": "travis-county",
+  "kn": "Travis County"
+ },
+ "acg-asa-private-equity-two-step-conference": {
+  "c": "san-antonio",
+  "cn": "San Antonio",
+  "k": "bexar-county",
+  "kn": "Bexar County"
  },
  "acg-dealmax": {
   "c": "las-vegas",
@@ -449,6 +587,12 @@
   "k": "franklin-county",
   "kn": "Franklin County"
  },
+ "acm-sigmod-pods-conference": {
+  "c": "huntington-beach",
+  "cn": "Huntington Beach",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "acma-national-conference": {
   "c": "las-vegas",
   "cn": "Las Vegas",
@@ -473,11 +617,23 @@
   "k": "kings-county",
   "kn": "Kings County"
  },
+ "acquia-engage": {
+  "c": "denver",
+  "cn": "Denver",
+  "k": "denver-county",
+  "kn": "Denver County"
+ },
  "acquire-or-be-acquired": {
   "c": "phoenix",
   "cn": "Phoenix",
   "k": "maricopa-county",
   "kn": "Maricopa County"
+ },
+ "acr-convergence": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
  },
  "acrl-conference": {
   "c": "portland",
@@ -486,6 +642,12 @@
   "kn": "Multnomah County"
  },
  "acrp-meeting-and-expo": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
+ },
+ "acs-clinical-congress": {
   "c": "san-diego",
   "cn": "San Diego",
   "k": "san-diego-county",
@@ -502,6 +664,12 @@
   "cn": "New Orleans",
   "k": "orleans-parish",
   "kn": "Orleans Parish"
+ },
+ "acsa-annual-meeting": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
  },
  "act-expo": {
   "c": "las-vegas",
@@ -544,6 +712,12 @@
   "cn": "Tempe",
   "k": "maricopa-county",
   "kn": "Maricopa County"
+ },
+ "acua-auditcon": {
+  "c": "portland",
+  "cn": "Portland",
+  "k": "multnomah-county",
+  "kn": "Multnomah County"
  },
  "acuho-i-campus-home-live": {
   "c": "louisville",
@@ -635,11 +809,29 @@
   "k": "chatham-county",
   "kn": "Chatham County"
  },
+ "aec-ai-summit": {
+  "c": "austin",
+  "cn": "Austin",
+  "k": "travis-county",
+  "kn": "Travis County"
+ },
  "aect-international-convention": {
   "c": "chicago",
   "cn": "Chicago",
   "k": "cook-county",
   "kn": "Cook County"
+ },
+ "aee-east-energy-conference-and-expo": {
+  "c": "providence",
+  "cn": "Providence",
+  "k": "providence-county",
+  "kn": "Providence County"
+ },
+ "aefp-annual-conference": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
  },
  "aema-annual-meeting": {
   "c": "sparks",
@@ -670,6 +862,12 @@
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "afcpe-symposium": {
+  "c": "bethesda",
+  "cn": "Bethesda",
+  "k": "montgomery-county",
+  "kn": "Montgomery County"
  },
  "affiliate-summit-east": {
   "c": "new-york",
@@ -737,6 +935,12 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "agbt-general-meeting": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "agc-construction-safety-health-conference": {
   "c": "san-diego",
   "cn": "San Diego",
@@ -761,17 +965,41 @@
   "k": "denver-county",
   "kn": "Denver County"
  },
+ "agent-conference": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
  "agentforce-world-tour-new-york": {
   "c": "new-york",
   "cn": "New York",
   "k": "kings-county",
   "kn": "Kings County"
  },
+ "agentic-ai-summit": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
  "agile-conference": {
   "c": "national-harbor",
   "cn": "National Harbor",
   "k": "prince-georges-county",
   "kn": "Prince George's County"
+ },
+ "agntcon-mcpcon-north-america": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
+ "ags-annual-scientific-meeting": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
  },
  "aha-annual-meeting": {
   "c": "new-orleans",
@@ -790,6 +1018,12 @@
   "cn": "Chicago",
   "k": "cook-county",
   "kn": "Cook County"
+ },
+ "ahia-annual-conference": {
+  "c": "baltimore",
+  "cn": "Baltimore",
+  "k": "baltimore-city",
+  "kn": "Baltimore city"
  },
  "ahima-convention": {
   "c": "phoenix",
@@ -821,6 +1055,12 @@
   "k": "baltimore-city",
   "kn": "Baltimore city"
  },
+ "ai-coding-summit": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
  "ai-con-usa": {
   "c": "seattle",
   "cn": "Seattle",
@@ -833,11 +1073,23 @@
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "ai-dev-deeplearning-ai": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
  "ai-devworld": {
   "c": "santa-clara",
   "cn": "Santa Clara",
   "k": "santa-clara-county",
   "kn": "Santa Clara County"
+ },
+ "ai-drug-discovery-and-development-summit": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
  },
  "ai-engineer-code-summit": {
   "c": "san-francisco",
@@ -851,6 +1103,30 @@
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "ai-for-public-good-conference": {
+  "c": "chapel-hill",
+  "cn": "Chapel Hill",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "ai-in-edu-summit": {
+  "c": "waltham",
+  "cn": "Waltham",
+  "k": "middlesex-county",
+  "kn": "Middlesex County"
+ },
+ "ai-in-energy-summit": {
+  "c": "houston",
+  "cn": "Houston",
+  "k": "harris-county",
+  "kn": "Harris County"
+ },
+ "ai-in-healthcare-and-pharma-summit": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
  "ai-infra-summit": {
   "c": "san-jose",
   "cn": "San Jose",
@@ -862,6 +1138,18 @@
   "cn": "Miami",
   "k": "miami-dade-county",
   "kn": "Miami-Dade County"
+ },
+ "ai-risk-summit": {
+  "c": "half-moon-bay",
+  "cn": "Half Moon Bay",
+  "k": "san-mateo-county",
+  "kn": "San Mateo County"
+ },
+ "ai-summit-north-america": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
  },
  "ai4": {
   "c": "las-vegas",
@@ -977,6 +1265,12 @@
   "k": "harris-county",
   "kn": "Harris County"
  },
+ "aiim-ai-im-global-summit": {
+  "c": "houston",
+  "cn": "Houston",
+  "k": "harris-county",
+  "kn": "Harris County"
+ },
  "aila-annual-conference": {
   "c": "national-harbor",
   "cn": "National Harbor",
@@ -1037,11 +1331,77 @@
   "k": "milwaukee-county",
   "kn": "Milwaukee County"
  },
+ "alabama-federal-and-state-tax-institute": {
+  "c": "birmingham",
+  "cn": "Birmingham",
+  "k": "jefferson-county",
+  "kn": "Jefferson County"
+ },
+ "alabama-league-of-municipalities-convention-and-expo": {
+  "c": "mobile",
+  "cn": "Mobile",
+  "k": "mobile-county",
+  "kn": "Mobile County"
+ },
+ "alaska-bar-convention": {
+  "c": "anchorage",
+  "cn": "Anchorage",
+  "k": "anchorage-municipality",
+  "kn": "Anchorage Municipality"
+ },
+ "alaska-municipal-league-annual-local-government-conference": {
+  "c": "anchorage",
+  "cn": "Anchorage",
+  "k": "anchorage-municipality",
+  "kn": "Anchorage Municipality"
+ },
+ "alaska-resources-conference": {
+  "c": "anchorage",
+  "cn": "Anchorage",
+  "k": "anchorage-municipality",
+  "kn": "Anchorage Municipality"
+ },
+ "alaska-young-professionals-summit": {
+  "c": "anchorage",
+  "cn": "Anchorage",
+  "k": "anchorage-municipality",
+  "kn": "Anchorage Municipality"
+ },
+ "alkami-co-lab": {
+  "c": "arlington",
+  "cn": "Arlington",
+  "k": "tarrant-county",
+  "kn": "Tarrant County"
+ },
+ "all-things-open": {
+  "c": "raleigh",
+  "cn": "Raleigh",
+  "k": "wake-county",
+  "kn": "Wake County"
+ },
+ "alliance-conference": {
+  "c": "san-antonio",
+  "cn": "San Antonio",
+  "k": "bexar-county",
+  "kn": "Bexar County"
+ },
+ "alsb-annual-conference": {
+  "c": "denver",
+  "cn": "Denver",
+  "k": "denver-county",
+  "kn": "Denver County"
+ },
  "alta-one": {
   "c": "austin",
   "cn": "Austin",
   "k": "travis-county",
   "kn": "Travis County"
+ },
+ "alteryx-inspire": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
  },
  "ama-international-collegiate-conference": {
   "c": "new-orleans",
@@ -1109,6 +1469,18 @@
   "k": "los-angeles-county",
   "kn": "Los Angeles County"
  },
+ "american-finance-association-annual-meeting": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
+ },
+ "american-judges-association-midyear-conference": {
+  "c": "cincinnati",
+  "cn": "Cincinnati",
+  "k": "hamilton-county",
+  "kn": "Hamilton County"
+ },
  "american-supply-chain-summit": {
   "c": "dallas",
   "cn": "Dallas",
@@ -1174,6 +1546,18 @@
   "cn": "Seattle",
   "k": "king-county",
   "kn": "King County"
+ },
+ "ampp-annual-conference-expo": {
+  "c": "columbus",
+  "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
+ },
+ "ampp-annual-conference-expo-tak8": {
+  "c": "columbus",
+  "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
  },
  "amta-awwa-membrane-technology-conference": {
   "c": "denver",
@@ -1241,11 +1625,23 @@
   "k": "los-angeles-county",
   "kn": "Los Angeles County"
  },
+ "anaplan-connect": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
+ },
  "ancc-magnet-pathway-conference": {
   "c": "orlando",
   "cn": "Orlando",
   "k": "orange-county",
   "kn": "Orange County"
+ },
+ "anesthesiology-annual-meeting": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
  },
  "angel-capital-association-summit": {
   "c": "dallas",
@@ -1265,11 +1661,23 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "ans-student-conference": {
+  "c": "berkeley",
+  "cn": "Berkeley",
+  "k": "alameda-county",
+  "kn": "Alameda County"
+ },
  "ans-winter-conference": {
   "c": "phoenix",
   "cn": "Phoenix",
   "k": "maricopa-county",
   "kn": "Maricopa County"
+ },
+ "aoc-international-symposium-and-convention": {
+  "c": "national-harbor",
+  "cn": "National Harbor",
+  "k": "prince-georges-county",
+  "kn": "Prince George's County"
  },
  "aohc-american-occupational-health-conference": {
   "c": "austin",
@@ -1295,17 +1703,35 @@
   "k": "philadelphia-county",
   "kn": "Philadelphia County"
  },
+ "apa-annual-meeting": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
  "apa-convention": {
   "c": "san-francisco",
   "cn": "San Francisco",
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "apa-illinois-state-planning-conference": {
+  "c": "champaign",
+  "cn": "Champaign",
+  "k": "champaign-county",
+  "kn": "Champaign County"
+ },
  "apa-national-planning-conference": {
   "c": "houston",
   "cn": "Houston",
   "k": "harris-county",
   "kn": "Harris County"
+ },
+ "apa-new-mexico-annual-state-planning-conference": {
+  "c": "santa-fe",
+  "cn": "Santa Fe",
+  "k": "santa-fe-county",
+  "kn": "Santa Fe County"
  },
  "apap-nyc": {
   "c": "new-york",
@@ -1325,11 +1751,23 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "apex-expo": {
+  "c": "anaheim",
+  "cn": "Anaheim",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "apha-annual-meeting": {
   "c": "charlotte",
   "cn": "Charlotte",
   "k": "mecklenburg-county",
   "kn": "Mecklenburg County"
+ },
+ "aphl-annual-conference": {
+  "c": "anaheim",
+  "cn": "Anaheim",
+  "k": "orange-county",
+  "kn": "Orange County"
  },
  "apic-annual-conference": {
   "c": "los-angeles",
@@ -1367,6 +1805,48 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "appa-winter-training-institute": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
+ },
+ "appam-fall-research-conference": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
+ "appian-world": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
+ },
+ "applied-ai-conference-applied-ai-mn": {
+  "c": "st-paul",
+  "cn": "St. Paul",
+  "k": "ramsey-county",
+  "kn": "Ramsey County"
+ },
+ "appraisal-institute-annual-conference": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
+ },
+ "aps-global-physics-summit": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
+ },
+ "apsa-annual-meeting-and-exhibition": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
+ },
  "apta-legislative-conference": {
   "c": "washington",
   "cn": "Washington",
@@ -1396,6 +1876,12 @@
   "cn": "Orlando",
   "k": "orange-county",
   "kn": "Orange County"
+ },
+ "arcpa-annual-accounting-and-auditing-conference": {
+  "c": "little-rock",
+  "cn": "Little Rock",
+  "k": "pulaski-county",
+  "kn": "Pulaski County"
  },
  "area-development-spring-consultants-forum": {
   "c": "louisville",
@@ -1444,6 +1930,30 @@
   "cn": "Cleveland",
   "k": "cuyahoga-county",
   "kn": "Cuyahoga County"
+ },
+ "arizona-governors-celebration-of-innovation": {
+  "c": "phoenix",
+  "cn": "Phoenix",
+  "k": "maricopa-county",
+  "kn": "Maricopa County"
+ },
+ "arkansas-bar-association-annual-meeting": {
+  "c": "hot-springs",
+  "cn": "Hot Springs",
+  "k": "garland-county",
+  "kn": "Garland County"
+ },
+ "arkansas-medical-society-annual-meeting": {
+  "c": "hot-springs",
+  "cn": "Hot Springs",
+  "k": "garland-county",
+  "kn": "Garland County"
+ },
+ "arkansas-shrm-hr-conference-and-expo": {
+  "c": "hot-springs",
+  "cn": "Hot Springs",
+  "k": "garland-county",
+  "kn": "Garland County"
  },
  "arma-infocon": {
   "c": "savannah",
@@ -1511,6 +2021,12 @@
   "k": "osceola-county",
   "kn": "Osceola County"
  },
+ "asbmb-annual-meeting": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
  "asbo-annual-conference": {
   "c": "phoenix",
   "cn": "Phoenix",
@@ -1534,6 +2050,12 @@
   "cn": "Philadelphia",
   "k": "philadelphia-county",
   "kn": "Philadelphia County"
+ },
+ "ascpa-converge-conference": {
+  "c": "scottsdale",
+  "cn": "Scottsdale",
+  "k": "maricopa-county",
+  "kn": "Maricopa County"
  },
  "asd-market-week": {
   "c": "las-vegas",
@@ -1565,11 +2087,29 @@
   "k": "philadelphia-county",
   "kn": "Philadelphia County"
  },
+ "ash-annual-meeting-and-exposition": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
+ },
+ "asha-convention": {
+  "c": "indianapolis",
+  "cn": "Indianapolis",
+  "k": "marion-county",
+  "kn": "Marion County"
+ },
  "ashhra-annual-conference": {
   "c": "san-antonio",
   "cn": "San Antonio",
   "k": "bexar-county",
   "kn": "Bexar County"
+ },
+ "ashp-midyear": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
  },
  "ashp-midyear-clinical-meeting": {
   "c": "orlando",
@@ -1583,17 +2123,35 @@
   "k": "king-county",
   "kn": "King County"
  },
+ "ashrae-winter-conference": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
  "ashrm-annual-conference": {
   "c": "columbus",
   "cn": "Columbus",
   "k": "franklin-county",
   "kn": "Franklin County"
  },
+ "asla-conference-on-landscape-architecture": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
  "aslrra-annual-conference": {
   "c": "new-orleans",
   "cn": "New Orleans",
   "k": "orleans-parish",
   "kn": "Orleans Parish"
+ },
+ "asnt-annual-conference": {
+  "c": "albuquerque",
+  "cn": "Albuquerque",
+  "k": "bernalillo-county",
+  "kn": "Bernalillo County"
  },
  "aspa-annual-conference": {
   "c": "new-orleans",
@@ -1606,6 +2164,12 @@
   "cn": "Aspen",
   "k": "pitkin-county",
   "kn": "Pitkin County"
+ },
+ "aspen-security-forum": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
  },
  "asq-lean-six-sigma-conference": {
   "c": "louisville",
@@ -1642,6 +2206,12 @@
   "cn": "Washington",
   "k": "district-of-columbia",
   "kn": "District of Columbia"
+ },
+ "assp-region-iii-student-leadership-conference": {
+  "c": "fort-worth",
+  "cn": "Fort Worth",
+  "k": "tarrant-county",
+  "kn": "Tarrant County"
  },
  "assp-safety-conference": {
   "c": "new-orleans",
@@ -1691,11 +2261,23 @@
   "k": "fairfax-county",
   "kn": "Fairfax County"
  },
+ "atarc-public-sector-zero-trust-summit": {
+  "c": "reston",
+  "cn": "Reston",
+  "k": "fairfax-county",
+  "kn": "Fairfax County"
+ },
  "atd-international-conference": {
   "c": "boston",
   "cn": "Boston",
   "k": "suffolk-county",
   "kn": "Suffolk County"
+ },
+ "atlanta-tech-week": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
  },
  "atlassian-team": {
   "c": "san-francisco",
@@ -1708,6 +2290,18 @@
   "cn": "Spokane",
   "k": "spokane-county",
   "kn": "Spokane County"
+ },
+ "ats-international-conference": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
+ },
+ "aua-annual-meeting": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
  },
  "auditboard-audit-and-beyond": {
   "c": "san-diego",
@@ -1722,6 +2316,12 @@
   "kn": "District of Columbia"
  },
  "austin-film-festival-writers-conference": {
+  "c": "austin",
+  "cn": "Austin",
+  "k": "travis-county",
+  "kn": "Travis County"
+ },
+ "austin-tech-week": {
   "c": "austin",
   "cn": "Austin",
   "k": "travis-county",
@@ -1781,6 +2381,18 @@
   "k": "hennepin-county",
   "kn": "Hennepin County"
  },
+ "avs-international-symposium": {
+  "c": "pittsburgh",
+  "cn": "Pittsburgh",
+  "k": "allegheny-county",
+  "kn": "Allegheny County"
+ },
+ "awhe-annual-conference": {
+  "c": "tucson",
+  "cn": "Tucson",
+  "k": "pima-county",
+  "kn": "Pima County"
+ },
  "awma-ace": {
   "c": "long-beach",
   "cn": "Long Beach",
@@ -1829,11 +2441,35 @@
   "k": "san-diego-county",
   "kn": "San Diego County"
  },
+ "bala-balachandran-accounting-conference": {
+  "c": "evanston",
+  "cn": "Evanston",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
+ "bank-c-suite-summit": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
+ "banking-transformation-summit-usa": {
+  "c": "charlotte",
+  "cn": "Charlotte",
+  "k": "mecklenburg-county",
+  "kn": "Mecklenburg County"
+ },
  "bbcon": {
   "c": "columbus",
   "cn": "Columbus",
   "k": "franklin-county",
   "kn": "Franklin County"
+ },
+ "bdpacon-national-bdpa-conference-and-career-fair": {
+  "c": "indianapolis",
+  "cn": "Indianapolis",
+  "k": "marion-county",
+  "kn": "Marion County"
  },
  "beautymatter-future50-summit": {
   "c": "new-york",
@@ -1877,6 +2513,18 @@
   "k": "san-diego-county",
   "kn": "San Diego County"
  },
+ "beltwide-cotton-conferences": {
+  "c": "fort-worth",
+  "cn": "Fort Worth",
+  "k": "tarrant-county",
+  "kn": "Tarrant County"
+ },
+ "berkeley-stanford-advanced-patent-law-institute": {
+  "c": "palo-alto",
+  "cn": "Palo Alto",
+  "k": "santa-clara-county",
+  "kn": "Santa Clara County"
+ },
  "beta-alpha-psi-annual-meeting": {
   "c": "baltimore",
   "cn": "Baltimore",
@@ -1913,6 +2561,12 @@
   "k": "cook-county",
   "kn": "Cook County"
  },
+ "bicsi-winter-conference-and-exhibition": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "big-i-fall-leadership": {
   "c": "milwaukee",
   "cn": "Milwaukee",
@@ -1924,6 +2578,12 @@
   "cn": "Washington",
   "k": "district-of-columbia",
   "kn": "District of Columbia"
+ },
+ "big-i-louisiana-annual-convention": {
+  "c": "miramar-beach",
+  "cn": "Miramar Beach",
+  "k": "walton-county",
+  "kn": "Walton County"
  },
  "big-i-winter-meeting": {
   "c": "rancho-mirage",
@@ -1960,6 +2620,18 @@
   "cn": "Boston",
   "k": "suffolk-county",
   "kn": "Suffolk County"
+ },
+ "biocom-global-life-science-partnering-investor-conference": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
+ },
+ "biophysical-society-annual-meeting": {
+  "c": "philadelphia",
+  "cn": "Philadelphia",
+  "k": "philadelphia-county",
+  "kn": "Philadelphia County"
  },
  "bioprocessing-summit": {
   "c": "boston",
@@ -2045,11 +2717,23 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "board-professionals-conference": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
+ },
  "boma-winter-business-meeting": {
   "c": "austin",
   "cn": "Austin",
   "k": "travis-county",
   "kn": "Travis County"
+ },
+ "booth-annual-healthcare-conference": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
  },
  "booth-kellogg-eta-conference": {
   "c": "chicago",
@@ -2063,6 +2747,12 @@
   "k": "suffolk-county",
   "kn": "Suffolk County"
  },
+ "boxworks": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
  "brainstorm-ai-sf": {
   "c": "san-francisco",
   "cn": "San Francisco",
@@ -2074,6 +2764,12 @@
   "cn": "West Palm Beach",
   "k": "palm-beach-county",
   "kn": "Palm Beach County"
+ },
+ "braze-forge": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
  },
  "breakbulk-americas": {
   "c": "houston",
@@ -2117,6 +2813,12 @@
   "k": "denver-county",
   "kn": "Denver County"
  },
+ "building-innovation-conference": {
+  "c": "mclean",
+  "cn": "McLean",
+  "k": "fairfax-county",
+  "kn": "Fairfax County"
+ },
  "builtworlds-construction-tech-conference": {
   "c": "chicago",
   "cn": "Chicago",
@@ -2129,11 +2831,23 @@
   "k": "suffolk-county",
   "kn": "Suffolk County"
  },
+ "bullhorn-engage-1r0l": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
  "business-group-on-health-annual-conference": {
   "c": "washington",
   "cn": "Washington",
   "k": "district-of-columbia",
   "kn": "District of Columbia"
+ },
+ "business-of-healthcare-conference": {
+  "c": "evanston",
+  "cn": "Evanston",
+  "k": "cook-county",
+  "kn": "Cook County"
  },
  "business-transformation-world-summit": {
   "c": "orlando",
@@ -2153,6 +2867,12 @@
   "k": "miami-dade-county",
   "kn": "Miami-Dade County"
  },
+ "cabe-capss-convention": {
+  "c": "groton",
+  "cn": "Groton",
+  "k": "southeastern-connecticut-planning-region",
+  "kn": "Southeastern Connecticut Planning Region"
+ },
  "cadca-national-leadership-forum": {
   "c": "national-harbor",
   "cn": "National Harbor",
@@ -2164,6 +2884,18 @@
   "cn": "Pittsburgh",
   "k": "allegheny-county",
   "kn": "Allegheny County"
+ },
+ "cair-conference": {
+  "c": "torrance",
+  "cn": "Torrance",
+  "k": "los-angeles-county",
+  "kn": "Los Angeles County"
+ },
+ "cal-hacks": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
  },
  "calcpa-elevate-womens-leadership-forum": {
   "c": "sunnyvale",
@@ -2249,6 +2981,12 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "casbo-con": {
+  "c": "sacramento",
+  "cn": "Sacramento",
+  "k": "sacramento-county",
+  "kn": "Sacramento County"
+ },
  "case-district-i-ii": {
   "c": "baltimore",
   "cn": "Baltimore",
@@ -2303,6 +3041,12 @@
   "k": "riverside-county",
   "kn": "Riverside County"
  },
+ "ccao-ceao-winter-conference": {
+  "c": "columbus",
+  "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
+ },
  "cccse-nisod-conference": {
   "c": "austin",
   "cn": "Austin",
@@ -2320,6 +3064,24 @@
   "cn": "Detroit",
   "k": "wayne-county",
   "kn": "Wayne County"
+ },
+ "cclc-annual-convention": {
+  "c": "riverside",
+  "cn": "Riverside",
+  "k": "riverside-county",
+  "kn": "Riverside County"
+ },
+ "cclc-annual-trustees-conference": {
+  "c": "monterey",
+  "cn": "Monterey",
+  "k": "monterey-county",
+  "kn": "Monterey County"
+ },
+ "ccpro-conference": {
+  "c": "monterey",
+  "cn": "Monterey",
+  "k": "monterey-county",
+  "kn": "Monterey County"
  },
  "ccsso-national-conference-on-student-assessment": {
   "c": "san-diego",
@@ -2344,6 +3106,18 @@
   "cn": "Anaheim",
   "k": "orange-county",
   "kn": "Orange County"
+ },
+ "cda-presents": {
+  "c": "anaheim",
+  "cn": "Anaheim",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "cdao-dallas": {
+  "c": "dallas",
+  "cn": "Dallas",
+  "k": "dallas-county",
+  "kn": "Dallas County"
  },
  "cdao-fed-ready-summit": {
   "c": "washington",
@@ -2411,6 +3185,12 @@
   "k": "los-angeles-county",
   "kn": "Los Angeles County"
  },
+ "chai-leadership-summit": {
+  "c": "dana-point",
+  "cn": "Dana Point",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "chainalysis-links": {
   "c": "new-york",
   "cn": "New York",
@@ -2441,6 +3221,12 @@
   "k": "allegheny-county",
   "kn": "Allegheny County"
  },
+ "chicago-booth-family-office-summit": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
  "chicago-midwinter-meeting": {
   "c": "chicago",
   "cn": "Chicago",
@@ -2464,6 +3250,18 @@
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "cica-international-conference": {
+  "c": "scottsdale",
+  "cn": "Scottsdale",
+  "k": "maricopa-county",
+  "kn": "Maricopa County"
+ },
+ "cio-and-property-tech-forum-san-francisco": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
  },
  "cisco-live-us": {
   "c": "las-vegas",
@@ -2489,6 +3287,12 @@
   "k": "kings-county",
   "kn": "Kings County"
  },
+ "clinton-global-initiative-annual-meeting": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
  "cliocon": {
   "c": "boston",
   "cn": "Boston",
@@ -2506,6 +3310,12 @@
   "cn": "Las Vegas",
   "k": "clark-county",
   "kn": "Clark County"
+ },
+ "cloudera-evolve": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
  },
  "cmmc-accelerate": {
   "c": "reston",
@@ -2561,11 +3371,23 @@
   "k": "santa-clara-county",
   "kn": "Santa Clara County"
  },
+ "coe-summit": {
+  "c": "columbus",
+  "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
+ },
  "collision-industry-conference": {
   "c": "las-vegas",
   "cn": "Las Vegas",
   "k": "clark-county",
   "kn": "Clark County"
+ },
+ "colorado-startup-week": {
+  "c": "denver",
+  "cn": "Denver",
+  "k": "denver-county",
+  "kn": "Denver County"
  },
  "commercenext-growth-show": {
   "c": "new-york",
@@ -2584,6 +3406,12 @@
   "cn": "New Orleans",
   "k": "orleans-parish",
   "kn": "Orleans Parish"
+ },
+ "community-banking-research-conference": {
+  "c": "st-louis",
+  "cn": "St. Louis",
+  "k": "st-louis-city",
+  "kn": "St. Louis city"
  },
  "compact27-campus-compact": {
   "c": "los-angeles",
@@ -2675,6 +3503,18 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "connecticut-hospital-association-annual-meeting": {
+  "c": "bristol",
+  "cn": "Bristol",
+  "k": "naugatuck-valley-planning-region",
+  "kn": "Naugatuck Valley Planning Region"
+ },
+ "connecticut-legal-conference": {
+  "c": "hartford",
+  "cn": "Hartford",
+  "k": "capitol-planning-region",
+  "kn": "Capitol Planning Region"
+ },
  "consensus-miami": {
   "c": "miami-beach",
   "cn": "Miami Beach",
@@ -2704,6 +3544,12 @@
   "cn": "Seattle",
   "k": "king-county",
   "kn": "King County"
+ },
+ "core-tech": {
+  "c": "san-jose",
+  "cn": "San Jose",
+  "k": "santa-clara-county",
+  "kn": "Santa Clara County"
  },
  "corenet-global-na-summit": {
   "c": "chicago",
@@ -2747,6 +3593,12 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "cossba-national-conference": {
+  "c": "dallas",
+  "cn": "Dallas",
+  "k": "dallas-county",
+  "kn": "Dallas County"
+ },
  "cost-annual-meeting": {
   "c": "san-diego",
   "cn": "San Diego",
@@ -2764,6 +3616,12 @@
   "cn": "Los Angeles",
   "k": "los-angeles-county",
   "kn": "Los Angeles County"
+ },
+ "cpg-summit": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
  },
  "cphi-americas": {
   "c": "miami-beach",
@@ -2788,6 +3646,30 @@
   "cn": "Miami Beach",
   "k": "miami-dade-county",
   "kn": "Miami-Dade County"
+ },
+ "crf-forum-and-expo": {
+  "c": "tucson",
+  "cn": "Tucson",
+  "k": "pima-county",
+  "kn": "Pima County"
+ },
+ "critical-access-hospital-conference": {
+  "c": "omaha",
+  "cn": "Omaha",
+  "k": "douglas-county",
+  "kn": "Douglas County"
+ },
+ "critical-care-congress": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
+ },
+ "crossroads": {
+  "c": "cambridge",
+  "cn": "Cambridge",
+  "k": "middlesex-county",
+  "kn": "Middlesex County"
  },
  "crowdstrike-fal-con": {
   "c": "las-vegas",
@@ -2831,6 +3713,12 @@
   "k": "kings-county",
   "kn": "Kings County"
  },
+ "cultivate": {
+  "c": "napa",
+  "cn": "Napa",
+  "k": "napa-county",
+  "kn": "Napa County"
+ },
  "customer-success-summit-denver": {
   "c": "denver",
   "cn": "Denver",
@@ -2854,6 +3742,12 @@
   "cn": "Denver",
   "k": "denver-county",
   "kn": "Denver County"
+ },
+ "cvpr-computer-vision-and-pattern-recognition": {
+  "c": "seattle",
+  "cn": "Seattle",
+  "k": "king-county",
+  "kn": "King County"
  },
  "cwa-meeting-of-the-minds": {
   "c": "monterey",
@@ -2884,6 +3778,12 @@
   "cn": "Houston",
   "k": "harris-county",
   "kn": "Harris County"
+ },
+ "cxunifiers": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
  },
  "d2l-fusion": {
   "c": "denver",
@@ -3005,6 +3905,12 @@
   "k": "miami-dade-county",
   "kn": "Miami-Dade County"
  },
+ "detroit-auto-show": {
+  "c": "detroit",
+  "cn": "Detroit",
+  "k": "wayne-county",
+  "kn": "Wayne County"
+ },
  "developerweek": {
   "c": "santa-clara",
   "cn": "Santa Clara",
@@ -3029,6 +3935,12 @@
   "k": "san-diego-county",
   "kn": "San Diego County"
  },
+ "dia-global-pharmacovigilance-and-risk-management-strategies-conference": {
+  "c": "baltimore",
+  "cn": "Baltimore",
+  "k": "baltimore-city",
+  "kn": "Baltimore city"
+ },
  "dia-masc-forum": {
   "c": "phoenix",
   "cn": "Phoenix",
@@ -3040,6 +3952,12 @@
   "cn": "Las Vegas",
   "k": "clark-county",
   "kn": "Clark County"
+ },
+ "dig-south-tech-summit": {
+  "c": "charleston",
+  "cn": "Charleston",
+  "k": "charleston-county",
+  "kn": "Charleston County"
  },
  "digiday-programmatic-marketing-summit-may": {
   "c": "orlando",
@@ -3071,6 +3989,12 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "director-executive-summit": {
+  "c": "austin",
+  "cn": "Austin",
+  "k": "travis-county",
+  "kn": "Travis County"
+ },
  "disability-in-global-conference": {
   "c": "denver",
   "cn": "Denver",
@@ -3088,6 +4012,18 @@
   "cn": "Atlanta",
   "k": "fulton-county",
   "kn": "Fulton County"
+ },
+ "diversity-and-procurement-summit": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
+ "djangocon-us": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
  },
  "dmec-annual-conference": {
   "c": "denver",
@@ -3113,6 +4049,12 @@
   "k": "suffolk-county",
   "kn": "Suffolk County"
  },
+ "docusign-momentum": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
  "dpe-summit": {
   "c": "san-francisco",
   "cn": "San Francisco",
@@ -3131,17 +4073,35 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "dri-conference": {
+  "c": "arlington",
+  "cn": "Arlington",
+  "k": "tarrant-county",
+  "kn": "Tarrant County"
+ },
  "drug-discovery-chemistry": {
   "c": "san-diego",
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
  },
+ "dsi-annual-conference": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
  "dtech": {
   "c": "atlanta",
   "cn": "Atlanta",
   "k": "fulton-county",
   "kn": "Fulton County"
+ },
+ "dynatrace-perform": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
  },
  "eaa-airventure-oshkosh": {
   "c": "oshkosh",
@@ -3161,11 +4121,35 @@
   "k": "dallas-county",
   "kn": "Dallas County"
  },
+ "eastern-economic-association-annual-meetings": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
  "eco-ag-conference": {
   "c": "iowa",
   "cn": "Iowa",
   "k": "jackson-county",
   "kn": "Jackson County"
+ },
+ "economic-outlook-and-risk-management-conference": {
+  "c": "manhattan",
+  "cn": "Manhattan",
+  "k": "riley-county",
+  "kn": "Riley County"
+ },
+ "economic-outlook-conference-university-of-michigan-rsqe": {
+  "c": "ann-arbor",
+  "cn": "Ann Arbor",
+  "k": "washtenaw-county",
+  "kn": "Washtenaw County"
+ },
+ "economic-outlook-symposium-chicago-fed": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
  },
  "ecrm-sessions": {
   "c": "dallas",
@@ -3184,6 +4168,12 @@
   "cn": "New York",
   "k": "kings-county",
   "kn": "Kings County"
+ },
+ "educating-leaders": {
+  "c": "philadelphia",
+  "cn": "Philadelphia",
+  "k": "philadelphia-county",
+  "kn": "Philadelphia County"
  },
  "educause-annual-conference": {
   "c": "orlando",
@@ -3209,11 +4199,23 @@
   "k": "dallas-county",
   "kn": "Dallas County"
  },
+ "elastic-on-tour-san-francisco": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
  "elevate-px": {
   "c": "baltimore",
   "cn": "Baltimore",
   "k": "baltimore-city",
   "kn": "Baltimore city"
+ },
+ "elfa-annual-convention": {
+  "c": "palm-desert",
+  "cn": "Palm Desert",
+  "k": "riverside-county",
+  "kn": "Riverside County"
  },
  "ellucian-live": {
   "c": "new-orleans",
@@ -3233,11 +4235,35 @@
   "k": "los-angeles-county",
   "kn": "Los Angeles County"
  },
+ "emerge-americas": {
+  "c": "miami-beach",
+  "cn": "Miami Beach",
+  "k": "miami-dade-county",
+  "kn": "Miami-Dade County"
+ },
  "employing-us-vets-conference": {
   "c": "new-york",
   "cn": "New York",
   "k": "kings-county",
   "kn": "Kings County"
+ },
+ "energy-innovation-conference": {
+  "c": "los-angeles",
+  "cn": "Los Angeles",
+  "k": "los-angeles-county",
+  "kn": "Los Angeles County"
+ },
+ "energy-projects-conference-and-expo-epc-show": {
+  "c": "houston",
+  "cn": "Houston",
+  "k": "harris-county",
+  "kn": "Harris County"
+ },
+ "energy-solutions-mountain-west": {
+  "c": "denver",
+  "cn": "Denver",
+  "k": "denver-county",
+  "kn": "Denver County"
  },
  "energy-thought-summit": {
   "c": "austin",
@@ -3262,6 +4288,12 @@
   "cn": "Portland",
   "k": "multnomah-county",
   "kn": "Multnomah County"
+ },
+ "entomology-annual-meeting": {
+  "c": "columbus",
+  "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
  },
  "entreleadership-summit": {
   "c": "san-diego",
@@ -3292,6 +4324,12 @@
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "espa-annual-conference": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
  },
  "esri-user-conference": {
   "c": "san-diego",
@@ -3377,11 +4415,23 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "excellence-in-ai-and-insurance": {
+  "c": "fort-lauderdale",
+  "cn": "Fort Lauderdale",
+  "k": "broward-county",
+  "kn": "Broward County"
+ },
  "exchange-etf-conference": {
   "c": "las-vegas",
   "cn": "Las Vegas",
   "k": "clark-county",
   "kn": "Clark County"
+ },
+ "executive-business-forum": {
+  "c": "mandeville",
+  "cn": "Mandeville",
+  "k": "st-tammany-parish",
+  "kn": "St. Tammany Parish"
  },
  "exhibitorlive": {
   "c": "denver",
@@ -3473,6 +4523,12 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "fdic-bank-research-conference": {
+  "c": "arlington",
+  "cn": "Arlington",
+  "k": "arlington-county",
+  "kn": "Arlington County"
+ },
  "fdic-international": {
   "c": "indianapolis",
   "cn": "Indianapolis",
@@ -3490,6 +4546,18 @@
   "cn": "Washington",
   "k": "district-of-columbia",
   "kn": "District of Columbia"
+ },
+ "federal-ai-forum": {
+  "c": "reston",
+  "cn": "Reston",
+  "k": "fairfax-county",
+  "kn": "Fairfax County"
+ },
+ "federal-reserve-stress-testing-research-conference": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
  },
  "fedtalks": {
   "c": "washington",
@@ -3563,6 +4631,12 @@
   "k": "santa-clara-county",
   "kn": "Santa Clara County"
  },
+ "financial-markets-group-fall-conference": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
  "finovate-spring": {
   "c": "san-diego",
   "cn": "San Diego",
@@ -3580,6 +4654,24 @@
   "cn": "Washington",
   "k": "district-of-columbia",
   "kn": "District of Columbia"
+ },
+ "finseca-forum-400-annual-meeting": {
+  "c": "phoenix",
+  "cn": "Phoenix",
+  "k": "maricopa-county",
+  "kn": "Maricopa County"
+ },
+ "fintech-americas-miami": {
+  "c": "miami-beach",
+  "cn": "Miami Beach",
+  "k": "miami-dade-county",
+  "kn": "Miami-Dade County"
+ },
+ "fintech-and-financial-institutions-research-conference": {
+  "c": "philadelphia",
+  "cn": "Philadelphia",
+  "k": "philadelphia-county",
+  "kn": "Philadelphia County"
  },
  "fintech-meetup": {
   "c": "las-vegas",
@@ -3604,6 +4696,48 @@
   "cn": "National Harbor",
   "k": "prince-georges-county",
   "kn": "Prince George's County"
+ },
+ "florida-bar-annual-convention": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "florida-bar-paralegal-conference": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "florida-funders-venture-summit": {
+  "c": "tampa",
+  "cn": "Tampa",
+  "k": "hillsborough-county",
+  "kn": "Hillsborough County"
+ },
+ "florida-hospital-association-annual-meeting": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "florida-innovation-conference-bioflorida": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "florida-realtors-convention-trade-expo": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "florida-venture-capital-conference": {
+  "c": "miami",
+  "cn": "Miami",
+  "k": "miami-dade-county",
+  "kn": "Miami-Dade County"
  },
  "florida-water-resources-conference": {
   "c": "orlando",
@@ -3671,11 +4805,23 @@
   "k": "dallas-county",
   "kn": "Dallas County"
  },
+ "food-production-solutions-show": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
  "food-safety-summit": {
   "c": "rosemont",
   "cn": "Rosemont",
   "k": "cook-county",
   "kn": "Cook County"
+ },
+ "food-shippers-of-america-conference": {
+  "c": "palm-desert",
+  "cn": "Palm Desert",
+  "k": "riverside-county",
+  "kn": "Riverside County"
  },
  "forbes-under-30-summit": {
   "c": "scottsdale",
@@ -3684,6 +4830,12 @@
   "kn": "Maricopa County"
  },
  "fordham-ip-conference": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
+ "fordham-ip-law-policy-conference": {
   "c": "new-york",
   "cn": "New York",
   "k": "kings-county",
@@ -3736,6 +4888,12 @@
   "cn": "Dallas",
   "k": "dallas-county",
   "kn": "Dallas County"
+ },
+ "fpa-of-the-triangle-annual-symposium": {
+  "c": "raleigh",
+  "cn": "Raleigh",
+  "k": "wake-county",
+  "kn": "Wake County"
  },
  "fpa-summit": {
   "c": "national-harbor",
@@ -3809,11 +4967,35 @@
   "k": "tarrant-county",
   "kn": "Tarrant County"
  },
+ "fund-finance-east": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
+ "future-advisors-conference": {
+  "c": "gainesville",
+  "cn": "Gainesville",
+  "k": "alachua-county",
+  "kn": "Alachua County"
+ },
  "future-food-tech-san-francisco": {
   "c": "san-francisco",
   "cn": "San Francisco",
   "k": "san-francisco-county",
   "kn": "San Francisco County"
+ },
+ "future-of-florida-forum": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "future-of-health-summit": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
  },
  "future-of-protein-production-chicago": {
   "c": "chicago",
@@ -3983,6 +5165,18 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "georgia-bankers-association-annual-meeting": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
+ },
+ "georgia-technology-summit": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
+ },
  "gfoa-annual-conference": {
   "c": "new-orleans",
   "cn": "New Orleans",
@@ -4013,11 +5207,23 @@
   "k": "fulton-county",
   "kn": "Fulton County"
  },
+ "global-ai-summit": {
+  "c": "waltham",
+  "cn": "Waltham",
+  "k": "middlesex-county",
+  "kn": "Middlesex County"
+ },
  "global-chief-of-staff-dialogue": {
   "c": "washington",
   "cn": "Washington",
   "k": "district-of-columbia",
   "kn": "District of Columbia"
+ },
+ "global-fund-finance-symposium": {
+  "c": "miami-beach",
+  "cn": "Miami Beach",
+  "k": "miami-dade-county",
+  "kn": "Miami-Dade County"
  },
  "global-gaming-expo-g2e": {
   "c": "las-vegas",
@@ -4041,6 +5247,12 @@
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "gma-annual-convention": {
+  "c": "savannah",
+  "cn": "Savannah",
+  "k": "chatham-county",
+  "kn": "Chatham County"
+ },
  "gong-celebrate": {
   "c": "las-vegas",
   "cn": "Las Vegas",
@@ -4059,6 +5271,18 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "gophercon": {
+  "c": "seattle",
+  "cn": "Seattle",
+  "k": "king-county",
+  "kn": "King County"
+ },
+ "govai-coalition-summit": {
+  "c": "san-jose",
+  "cn": "San Jose",
+  "k": "santa-clara-county",
+  "kn": "Santa Clara County"
+ },
  "govdatax": {
   "c": "washington",
   "cn": "Washington",
@@ -4070,6 +5294,12 @@
   "cn": "Washington",
   "k": "district-of-columbia",
   "kn": "District of Columbia"
+ },
+ "govramp-cyber-summit": {
+  "c": "san-antonio",
+  "cn": "San Antonio",
+  "k": "bexar-county",
+  "kn": "Bexar County"
  },
  "gpa-midstream-convention": {
   "c": "arlington",
@@ -4083,11 +5313,29 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "granite-state-hr-conference": {
+  "c": "concord",
+  "cn": "Concord",
+  "k": "merrimack-county",
+  "kn": "Merrimack County"
+ },
  "grantsummit": {
   "c": "san-antonio",
   "cn": "San Antonio",
   "k": "bexar-county",
   "kn": "Bexar County"
+ },
+ "great-lakes-dental-summit": {
+  "c": "grand-rapids",
+  "cn": "Grand Rapids",
+  "k": "kent-county",
+  "kn": "Kent County"
+ },
+ "greater-houston-partnership-annual-meeting": {
+  "c": "houston",
+  "cn": "Houston",
+  "k": "harris-county",
+  "kn": "Harris County"
  },
  "greater-new-york-dental-meeting": {
   "c": "new-york",
@@ -4143,6 +5391,12 @@
   "k": "clark-county",
   "kn": "Clark County"
  },
+ "haas-healthcare-conference": {
+  "c": "berkeley",
+  "cn": "Berkeley",
+  "k": "alameda-county",
+  "kn": "Alameda County"
+ },
  "hackaday-supercon": {
   "c": "pasadena",
   "cn": "Pasadena",
@@ -4154,6 +5408,12 @@
   "cn": "Chula Vista",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "hanys-annual-conference": {
+  "c": "saratoga-springs",
+  "cn": "Saratoga Springs",
+  "k": "saratoga-county",
+  "kn": "Saratoga County"
  },
  "harvard-women-on-boards": {
   "c": "boston",
@@ -4190,6 +5450,12 @@
   "cn": "Boston",
   "k": "suffolk-county",
   "kn": "Suffolk County"
+ },
+ "hcam-annual-convention-and-expo": {
+  "c": "grand-rapids",
+  "cn": "Grand Rapids",
+  "k": "kent-county",
+  "kn": "Kent County"
  },
  "hci-spark-hr": {
   "c": "clearwater",
@@ -4256,6 +5522,12 @@
   "cn": "San Francisco",
   "k": "san-francisco-county",
   "kn": "San Francisco County"
+ },
+ "heavy-duty-aftermarket-week": {
+  "c": "grapevine",
+  "cn": "Grapevine",
+  "k": "tarrant-county",
+  "kn": "Tarrant County"
  },
  "heckerling-institute": {
   "c": "orlando",
@@ -4371,6 +5643,18 @@
   "k": "riverside-county",
   "kn": "Riverside County"
  },
+ "hps-annual-meeting": {
+  "c": "tacoma",
+  "cn": "Tacoma",
+  "k": "pierce-county",
+  "kn": "Pierce County"
+ },
+ "hr-florida-conference-and-expo": {
+  "c": "kissimmee",
+  "cn": "Kissimmee",
+  "k": "osceola-county",
+  "kn": "Osceola County"
+ },
  "hr-in-hospitality": {
   "c": "las-vegas",
   "cn": "Las Vegas",
@@ -4395,6 +5679,12 @@
   "k": "philadelphia-county",
   "kn": "Philadelphia County"
  },
+ "hrwest": {
+  "c": "south-san-francisco",
+  "cn": "South San Francisco",
+  "k": "san-mateo-county",
+  "kn": "San Mateo County"
+ },
  "hsmai-commercial-strategy-conference": {
   "c": "orlando",
   "cn": "Orlando",
@@ -4413,6 +5703,18 @@
   "k": "fulton-county",
   "kn": "Fulton County"
  },
+ "humanoids-summit-silicon-valley": {
+  "c": "san-mateo",
+  "cn": "San Mateo",
+  "k": "san-mateo-county",
+  "kn": "San Mateo County"
+ },
+ "humanx": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
+ },
  "hydrogen-americas-summit": {
   "c": "houston",
   "cn": "Houston",
@@ -4425,11 +5727,23 @@
   "k": "harris-county",
   "kn": "Harris County"
  },
+ "i4cp-next-practices-now-conference": {
+  "c": "scottsdale",
+  "cn": "Scottsdale",
+  "k": "maricopa-county",
+  "kn": "Maricopa County"
+ },
  "iaa-compliance-conference": {
   "c": "washington",
   "cn": "Washington",
   "k": "district-of-columbia",
   "kn": "District of Columbia"
+ },
+ "iaao-annual-conference": {
+  "c": "charlotte",
+  "cn": "Charlotte",
+  "k": "mecklenburg-county",
+  "kn": "Mecklenburg County"
  },
  "iaap-summit": {
   "c": "dallas",
@@ -4467,6 +5781,12 @@
   "k": "kings-county",
   "kn": "Kings County"
  },
+ "iaba-annual-meeting": {
+  "c": "charlotte",
+  "cn": "Charlotte",
+  "k": "mecklenburg-county",
+  "kn": "Mecklenburg County"
+ },
  "iacp-annual-conference": {
   "c": "orlando",
   "cn": "Orlando",
@@ -4503,6 +5823,12 @@
   "k": "santa-fe-county",
   "kn": "Santa Fe County"
  },
+ "iamphenom": {
+  "c": "philadelphia",
+  "cn": "Philadelphia",
+  "k": "philadelphia-county",
+  "kn": "Philadelphia County"
+ },
  "iapp-global-summit": {
   "c": "washington",
   "cn": "Washington",
@@ -4514,6 +5840,12 @@
   "cn": "Orlando",
   "k": "orange-county",
   "kn": "Orange County"
+ },
+ "iasb-boardcon-iowa": {
+  "c": "des-moines",
+  "cn": "Des Moines",
+  "k": "polk-county",
+  "kn": "Polk County"
  },
  "iasb-iasa-iasbo-joint-annual-conference": {
   "c": "chicago",
@@ -4544,6 +5876,12 @@
   "cn": "Scottsdale",
   "k": "maricopa-county",
   "kn": "Maricopa County"
+ },
+ "ibm-think": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
  },
  "icamp-cultivated-meat-alt-protein-summit": {
   "c": "davis",
@@ -4580,6 +5918,12 @@
   "cn": "Las Vegas",
   "k": "clark-county",
   "kn": "Clark County"
+ },
+ "idaho-library-association-annual-conference": {
+  "c": "meridian",
+  "cn": "Meridian",
+  "k": "ada-county",
+  "kn": "Ada County"
  },
  "iddba-show": {
   "c": "atlanta",
@@ -4731,6 +6075,30 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "ilf-annual-conference": {
+  "c": "indianapolis",
+  "cn": "Indianapolis",
+  "k": "marion-county",
+  "kn": "Marion County"
+ },
+ "illinois-association-of-school-boards-joint-annual-conference": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
+ "illinois-rural-health-association-annual-educational-conference": {
+  "c": "champaign",
+  "cn": "Champaign",
+  "k": "champaign-county",
+  "kn": "Champaign County"
+ },
+ "illinois-shrm-state-conference": {
+  "c": "tinley-park",
+  "cn": "Tinley Park",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
  "ilpa-summit-new-york": {
   "c": "new-york",
   "cn": "New York",
@@ -4742,6 +6110,12 @@
   "cn": "Cleveland",
   "k": "cuyahoga-county",
   "kn": "Cuyahoga County"
+ },
+ "imat": {
+  "c": "columbus",
+  "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
  },
  "imex-america": {
   "c": "las-vegas",
@@ -4755,11 +6129,29 @@
   "k": "charleston-county",
   "kn": "Charleston County"
  },
+ "imsh": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
+ },
  "imts": {
   "c": "chicago",
   "cn": "Chicago",
   "k": "cook-county",
   "kn": "Cook County"
+ },
+ "ina-annual-conference": {
+  "c": "ames",
+  "cn": "Ames",
+  "k": "story-county",
+  "kn": "Story County"
+ },
+ "ina-annual-convention": {
+  "c": "des-moines",
+  "cn": "Des Moines",
+  "k": "polk-county",
+  "kn": "Polk County"
  },
  "inbia-icbi": {
   "c": "dallas",
@@ -4791,6 +6183,18 @@
   "k": "clark-county",
   "kn": "Clark County"
  },
+ "indiana-safety-health-conference": {
+  "c": "indianapolis",
+  "cn": "Indianapolis",
+  "k": "marion-county",
+  "kn": "Marion County"
+ },
+ "infocomm": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "informs-analytics-plus": {
   "c": "washington",
   "cn": "Washington",
@@ -4821,17 +6225,35 @@
   "k": "san-diego-county",
   "kn": "San Diego County"
  },
+ "innovations-in-regulatory-science-summit": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
  "insights-association-crc": {
   "c": "chicago",
   "cn": "Chicago",
   "k": "cook-county",
   "kn": "Cook County"
  },
+ "inspire-league-of-credit-unions-and-affiliates": {
+  "c": "savannah",
+  "cn": "Savannah",
+  "k": "chatham-county",
+  "kn": "Chatham County"
+ },
  "instructurecon": {
   "c": "cleveland",
   "cn": "Cleveland",
   "k": "cuyahoga-county",
   "kn": "Cuyahoga County"
+ },
+ "insurcon": {
+  "c": "san-antonio",
+  "cn": "San Antonio",
+  "k": "bexar-county",
+  "kn": "Bexar County"
  },
  "insurexpo-north-carolina": {
   "c": "winston-salem",
@@ -4857,6 +6279,12 @@
   "k": "san-diego-county",
   "kn": "San Diego County"
  },
+ "intapp-amplify": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
  "intelligence-and-national-security-summit": {
   "c": "bethesda",
   "cn": "Bethesda",
@@ -4881,6 +6309,10 @@
   "k": "kings-county",
   "kn": "Kings County"
  },
+ "international-maintenance-conference": {
+  "c": "marco-island",
+  "cn": "Marco Island"
+ },
  "international-mass-timber-conference": {
   "c": "portland",
   "cn": "Portland",
@@ -4898,6 +6330,12 @@
   "cn": "New York",
   "k": "kings-county",
   "kn": "Kings County"
+ },
+ "interrupt-the-agent-conference": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
  },
  "intersolar-esna": {
   "c": "san-diego",
@@ -4928,6 +6366,42 @@
   "cn": "San Jose",
   "k": "santa-clara-county",
   "kn": "Santa Clara County"
+ },
+ "iowa-angel-investor-summit": {
+  "c": "des-moines",
+  "cn": "Des Moines",
+  "k": "polk-county",
+  "kn": "Polk County"
+ },
+ "iowa-hospital-association-annual-meeting": {
+  "c": "des-moines",
+  "cn": "Des Moines",
+  "k": "polk-county",
+  "kn": "Polk County"
+ },
+ "iowa-league-of-cities-annual-conference-and-exhibit": {
+  "c": "dubuque",
+  "cn": "Dubuque",
+  "k": "dubuque-county",
+  "kn": "Dubuque County"
+ },
+ "iowa-pharmacy-association-annual-meeting": {
+  "c": "des-moines",
+  "cn": "Des Moines",
+  "k": "polk-county",
+  "kn": "Polk County"
+ },
+ "iowa-realtors-convention": {
+  "c": "des-moines",
+  "cn": "Des Moines",
+  "k": "polk-county",
+  "kn": "Polk County"
+ },
+ "iowa-state-bar-association-annual-meeting": {
+  "c": "altoona",
+  "cn": "Altoona",
+  "k": "polk-county",
+  "kn": "Polk County"
  },
  "ipbc-global": {
   "c": "dallas",
@@ -4989,17 +6463,35 @@
   "k": "hillsborough-county",
   "kn": "Hillsborough County"
  },
+ "isa-sign-expo": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
+ },
  "isaca-north-america": {
   "c": "chicago",
   "cn": "Chicago",
   "k": "cook-county",
   "kn": "Cook County"
  },
+ "isc-west": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
+ },
  "isc2-security-congress": {
   "c": "denver",
   "cn": "Denver",
   "k": "denver-county",
   "kn": "Denver County"
+ },
+ "isca-annual-conference": {
+  "c": "normal",
+  "cn": "Normal",
+  "k": "mclean-county",
+  "kn": "McLean County"
  },
  "iscebs-employee-benefits-symposium": {
   "c": "san-diego",
@@ -5012,6 +6504,12 @@
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "iscpa-fall-cpe-conference": {
+  "c": "cedar-rapids",
+  "cn": "Cedar Rapids",
+  "k": "linn-county",
+  "kn": "Linn County"
  },
  "ism-world": {
   "c": "national-harbor",
@@ -5049,6 +6547,12 @@
   "k": "suffolk-county",
   "kn": "Suffolk County"
  },
+ "it-nation-connect": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "itc-vegas": {
   "c": "las-vegas",
   "cn": "Las Vegas",
@@ -5060,6 +6564,12 @@
   "cn": "Atlanta",
   "k": "fulton-county",
   "kn": "Fulton County"
+ },
+ "jack-henry-connect": {
+  "c": "denver",
+  "cn": "Denver",
+  "k": "denver-county",
+  "kn": "Denver County"
  },
  "jefferies-global-healthcare-conference": {
   "c": "new-york",
@@ -5097,11 +6607,119 @@
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "k12-six-national-cybersecurity-conference": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
+ },
+ "kab-annual-convention": {
+  "c": "manhattan",
+  "cn": "Manhattan",
+  "k": "riley-county",
+  "kn": "Riley County"
+ },
+ "kansas-bar-association-annual-meeting": {
+  "c": "manhattan",
+  "cn": "Manhattan",
+  "k": "riley-county",
+  "kn": "Riley County"
+ },
+ "kansas-conference-on-oral-health": {
+  "c": "overland-park",
+  "cn": "Overland Park",
+  "k": "johnson-county",
+  "kn": "Johnson County"
+ },
+ "kansas-hospital-association-annual-convention-and-trade-show": {
+  "c": "overland-park",
+  "cn": "Overland Park",
+  "k": "johnson-county",
+  "kn": "Johnson County"
+ },
+ "kansas-shrm-annual-conference": {
+  "c": "manhattan",
+  "cn": "Manhattan",
+  "k": "riley-county",
+  "kn": "Riley County"
+ },
+ "kb4-con": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "kba-annual-convention": {
+  "c": "covington",
+  "cn": "Covington",
+  "k": "kenton-county",
+  "kn": "Kenton County"
+ },
+ "kba-trust-conference": {
+  "c": "lawrence",
+  "cn": "Lawrence",
+  "k": "cloud-county",
+  "kn": "Cloud County"
+ },
  "kdd": {
   "c": "san-jose",
   "cn": "San Jose",
   "k": "santa-clara-county",
   "kn": "Santa Clara County"
+ },
+ "kea-delegate-assembly": {
+  "c": "louisville",
+  "cn": "Louisville",
+  "k": "jefferson-county",
+  "kn": "Jefferson County"
+ },
+ "kentucky-healthcare-innovation-summit": {
+  "c": "louisville",
+  "cn": "Louisville",
+  "k": "jefferson-county",
+  "kn": "Jefferson County"
+ },
+ "kernochan-center-annual-symposium": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
+ "kidney-week": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
+ },
+ "klc-conference-expo": {
+  "c": "covington",
+  "cn": "Covington",
+  "k": "kenton-county",
+  "kn": "Kenton County"
+ },
+ "kma-annual-meeting": {
+  "c": "louisville",
+  "cn": "Louisville",
+  "k": "jefferson-county",
+  "kn": "Jefferson County"
+ },
+ "ksba-annual-conference": {
+  "c": "louisville",
+  "cn": "Louisville",
+  "k": "jefferson-county",
+  "kn": "Jefferson County"
+ },
+ "kvh-women-in-business-summit": {
+  "c": "greenville",
+  "cn": "Greenville",
+  "k": "greenville-county",
+  "kn": "Greenville County"
+ },
+ "kyacac-oacac-super-conference": {
+  "c": "cincinnati",
+  "cn": "Cincinnati",
+  "k": "hamilton-county",
+  "kn": "Hamilton County"
  },
  "kyribalive": {
   "c": "las-vegas",
@@ -5115,11 +6733,23 @@
   "k": "jefferson-county",
   "kn": "Jefferson County"
  },
+ "lashrm-conference-and-exhibition": {
+  "c": "lafayette",
+  "cn": "Lafayette",
+  "k": "lafayette-parish",
+  "kn": "Lafayette Parish"
+ },
  "lavacon": {
   "c": "charlotte",
   "cn": "Charlotte",
   "k": "mecklenburg-county",
   "kn": "Mecklenburg County"
+ },
+ "lavender-law-conference-and-career-fair": {
+  "c": "philadelphia",
+  "cn": "Philadelphia",
+  "k": "philadelphia-county",
+  "kn": "Philadelphia County"
  },
  "lcda-board-leaders-convening": {
   "c": "orlando",
@@ -5151,6 +6781,12 @@
   "k": "cook-county",
   "kn": "Cook County"
  },
+ "leading-tribal-nations-executive-education-program": {
+  "c": "cambridge",
+  "cn": "Cambridge",
+  "k": "middlesex-county",
+  "kn": "Middlesex County"
+ },
  "leadingage-annual-meeting": {
   "c": "philadelphia",
   "cn": "Philadelphia",
@@ -5174,6 +6810,12 @@
   "cn": "Atlanta",
   "k": "fulton-county",
   "kn": "Fulton County"
+ },
+ "league-of-nebraska-municipalities-annual-conference": {
+  "c": "lincoln",
+  "cn": "Lincoln",
+  "k": "lancaster-county",
+  "kn": "Lancaster County"
  },
  "lean-summit": {
   "c": "los-angeles",
@@ -5205,11 +6847,29 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "lex-summit": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
+ },
  "liebert-cassidy-whitmore-annual-employment-law-conference": {
   "c": "san-diego",
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "life-sciences-accounting-and-reporting-congress": {
+  "c": "philadelphia",
+  "cn": "Philadelphia",
+  "k": "philadelphia-county",
+  "kn": "Philadelphia County"
+ },
+ "light-intelligent-building-north-america": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
  },
  "lilly-conference-oxford": {
   "c": "oxford",
@@ -5240,6 +6900,12 @@
   "cn": "New York",
   "k": "kings-county",
   "kn": "Kings County"
+ },
+ "louisiana-it-symposium": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
  },
  "loupe-americas": {
   "c": "rosemont",
@@ -5295,6 +6961,12 @@
   "k": "tulsa-county",
   "kn": "Tulsa County"
  },
+ "made-in-connecticut-manufacturing-summit": {
+  "c": "hartford",
+  "cn": "Hartford",
+  "k": "capitol-planning-region",
+  "kn": "Capitol Planning Region"
+ },
  "magi-clinical-research-conference": {
   "c": "chicago",
   "cn": "Chicago",
@@ -5318,6 +6990,24 @@
   "cn": "Detroit",
   "k": "wayne-county",
   "kn": "Wayne County"
+ },
+ "maine-municipal-association-convention": {
+  "c": "augusta",
+  "cn": "Augusta",
+  "k": "kennebec-county",
+  "kn": "Kennebec County"
+ },
+ "maine-primary-care-association-annual-conference": {
+  "c": "rockport",
+  "cn": "Rockport",
+  "k": "knox-county",
+  "kn": "Knox County"
+ },
+ "managing-partner-forum-leadership-conference": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
  },
  "manifest": {
   "c": "las-vegas",
@@ -5349,11 +7039,23 @@
   "k": "anchorage-municipality",
   "kn": "Anchorage Municipality"
  },
+ "marine-money-week": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
  "marketingprofs-b2b-forum": {
   "c": "boston",
   "cn": "Boston",
   "k": "suffolk-county",
   "kn": "Suffolk County"
+ },
+ "mars-winter-meeting": {
+  "c": "schaumburg",
+  "cn": "Schaumburg",
+  "k": "cook-county",
+  "kn": "Cook County"
  },
  "mass-timber-conference": {
   "c": "portland",
@@ -5368,6 +7070,12 @@
   "kn": "Clark County"
  },
  "massachusetts-conference-for-women": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
+ "massbio-state-of-possible": {
   "c": "boston",
   "cn": "Boston",
   "k": "suffolk-county",
@@ -5403,6 +7111,12 @@
   "k": "travis-county",
   "kn": "Travis County"
  },
+ "md-and-m-east": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
  "md-and-m-midwest": {
   "c": "minneapolis",
   "cn": "Minneapolis",
@@ -5433,6 +7147,12 @@
   "k": "cook-county",
   "kn": "Cook County"
  },
+ "medallia-experience": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
+ },
  "medevice-silicon-valley": {
   "c": "santa-clara",
   "cn": "Santa Clara",
@@ -5451,7 +7171,15 @@
   "k": "san-diego-county",
   "kn": "San Diego County"
  },
+ "medidata-next": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
  "meditech-live": {
+  "c": "foxborough",
+  "cn": "Foxborough",
   "k": "norfolk-county",
   "kn": "Norfolk County"
  },
@@ -5491,6 +7219,18 @@
   "k": "king-county",
   "kn": "King County"
  },
+ "mha-annual-meeting-ma": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
+ "mhacks": {
+  "c": "ann-arbor",
+  "cn": "Ann Arbor",
+  "k": "washtenaw-county",
+  "kn": "Washtenaw County"
+ },
  "mhpa-annual-conference": {
   "c": "minneapolis",
   "cn": "Minneapolis",
@@ -5520,6 +7260,24 @@
   "cn": "Louisville",
   "k": "jefferson-county",
   "kn": "Jefferson County"
+ },
+ "midwest-finance-association-annual-meeting": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
+ "midwest-leadership-summit": {
+  "c": "overland-park",
+  "cn": "Overland Park",
+  "k": "johnson-county",
+  "kn": "Johnson County"
+ },
+ "midwestern-psychological-association-annual-meeting": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
  },
  "military-influencer-conference": {
   "c": "tampa",
@@ -5563,11 +7321,45 @@
   "k": "el-paso-county",
   "kn": "El Paso County"
  },
+ "minnesota-council-of-nonprofits-annual-conference": {
+  "c": "st-paul",
+  "cn": "St. Paul",
+  "k": "ramsey-county",
+  "kn": "Ramsey County"
+ },
  "mirren-live": {
   "c": "new-york",
   "cn": "New York",
   "k": "kings-county",
   "kn": "Kings County"
+ },
+ "mississippi-municipal-league-mid-winter-legislative-conference": {
+  "c": "jackson",
+  "cn": "Jackson",
+  "k": "hinds-county",
+  "kn": "Hinds County"
+ },
+ "missouri-bar-annual-meeting": {
+  "c": "st-louis",
+  "cn": "St. Louis",
+  "k": "st-louis-city",
+  "kn": "St. Louis city"
+ },
+ "missouri-chamber-women-in-leadership-conference": {
+  "c": "branson",
+  "cn": "Branson",
+  "k": "taney-county",
+  "kn": "Taney County"
+ },
+ "missouri-library-association-annual-conference": {
+  "c": "springfield",
+  "cn": "Springfield",
+  "k": "greene-county",
+  "kn": "Greene County"
+ },
+ "missouri-shrm-annual-conference": {
+  "c": "osage-beach",
+  "cn": "Osage Beach"
  },
  "mit-eta-summit": {
   "c": "cambridge",
@@ -5581,11 +7373,23 @@
   "k": "middlesex-county",
   "kn": "Middlesex County"
  },
+ "mit-sloan-healthcare-and-bioinnovations-conference": {
+  "c": "cambridge",
+  "cn": "Cambridge",
+  "k": "middlesex-county",
+  "kn": "Middlesex County"
+ },
  "mit-sloan-sports-analytics-conference": {
   "c": "boston",
   "cn": "Boston",
   "k": "suffolk-county",
   "kn": "Suffolk County"
+ },
+ "mitratech-interact": {
+  "c": "phoenix",
+  "cn": "Phoenix",
+  "k": "maricopa-county",
+  "kn": "Maricopa County"
  },
  "mla-annual-convention": {
   "c": "los-angeles",
@@ -5599,6 +7403,12 @@
   "k": "denver-county",
   "kn": "Denver County"
  },
+ "mla-dla-annual-conference": {
+  "c": "cambridge",
+  "cn": "Cambridge",
+  "k": "dorchester-county",
+  "kn": "Dorchester County"
+ },
  "mlc-rethink": {
   "c": "scottsdale",
   "cn": "Scottsdale",
@@ -5611,11 +7421,35 @@
   "k": "travis-county",
   "kn": "Travis County"
  },
+ "mlsys-conference-on-machine-learning-and-systems": {
+  "c": "bellevue",
+  "cn": "Bellevue",
+  "k": "king-county",
+  "kn": "King County"
+ },
  "mma-cmo-ceo-summit": {
   "c": "santa-barbara",
   "cn": "Santa Barbara",
   "k": "santa-barbara-county",
   "kn": "Santa Barbara County"
+ },
+ "mma-connect-351": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
+ "mncpa-tax-conference": {
+  "c": "minneapolis",
+  "cn": "Minneapolis",
+  "k": "hennepin-county",
+  "kn": "Hennepin County"
+ },
+ "mnshrm-state-conference": {
+  "c": "duluth",
+  "cn": "Duluth",
+  "k": "st-louis-county",
+  "kn": "St. Louis County"
  },
  "mo-summit": {
   "c": "asheville",
@@ -5641,6 +7475,18 @@
   "k": "clark-county",
   "kn": "Clark County"
  },
+ "montana-healthcare-conference": {
+  "c": "billings",
+  "cn": "Billings",
+  "k": "yellowstone-county",
+  "kn": "Yellowstone County"
+ },
+ "montana-it-strategic-planning-conference": {
+  "c": "helena",
+  "cn": "Helena",
+  "k": "lewis-and-clark-county",
+  "kn": "Lewis and Clark County"
+ },
  "montessori-event": {
   "c": "chicago",
   "cn": "Chicago",
@@ -5664,6 +7510,12 @@
   "cn": "Miami",
   "k": "miami-dade-county",
   "kn": "Miami-Dade County"
+ },
+ "mpa-annual-convention-and-exposition": {
+  "c": "lansing",
+  "cn": "Lansing",
+  "k": "ingham-county",
+  "kn": "Ingham County"
  },
  "mpi-world-education-congress": {
   "c": "las-vegas",
@@ -5695,11 +7547,33 @@
   "k": "suffolk-county",
   "kn": "Suffolk County"
  },
+ "ms-al-engineering-society-meeting": {
+  "c": "gulf-shores",
+  "cn": "Gulf Shores",
+  "k": "baldwin-county",
+  "kn": "Baldwin County"
+ },
  "ms-and-t": {
   "c": "pittsburgh",
   "cn": "Pittsburgh",
   "k": "allegheny-county",
   "kn": "Allegheny County"
+ },
+ "msba-legal-summit": {
+  "c": "ocean",
+  "cn": "Ocean"
+ },
+ "mscpa-annual-convention": {
+  "c": "destin",
+  "cn": "Destin",
+  "k": "okaloosa-county",
+  "kn": "Okaloosa County"
+ },
+ "msma-annual-convention": {
+  "c": "chesterfield",
+  "cn": "Chesterfield",
+  "k": "st-louis-county",
+  "kn": "St. Louis County"
  },
  "mtc-annual-meeting": {
   "c": "portland",
@@ -5773,6 +7647,12 @@
   "k": "clark-county",
   "kn": "Clark County"
  },
+ "nabe-policy-conference": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
+ },
  "nabip-capitol-conference": {
   "c": "washington",
   "cn": "Washington",
@@ -5802,6 +7682,12 @@
   "cn": "Norfolk",
   "k": "norfolk-city",
   "kn": "Norfolk city"
+ },
+ "nacas-leadership-summit": {
+  "c": "cape-coral",
+  "cn": "Cape Coral",
+  "k": "lee-county",
+  "kn": "Lee County"
  },
  "naccho-preparedness-summit": {
   "c": "atlanta",
@@ -5874,6 +7760,12 @@
   "cn": "Fort Worth",
   "k": "tarrant-county",
   "kn": "Tarrant County"
+ },
+ "nacua-annual-conference": {
+  "c": "denver",
+  "cn": "Denver",
+  "k": "denver-county",
+  "kn": "Denver County"
  },
  "nacubo-annual-meeting": {
   "c": "new-orleans",
@@ -5958,6 +7850,18 @@
   "cn": "Jacksonville",
   "k": "duval-county",
   "kn": "Duval County"
+ },
+ "nafsa-annual-conference-and-expo": {
+  "c": "los-angeles",
+  "cn": "Los Angeles",
+  "k": "los-angeles-county",
+  "kn": "Los Angeles County"
+ },
+ "nagap-gem-summit": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
  },
  "nagara-annual-conference": {
   "c": "denver",
@@ -6097,6 +8001,12 @@
   "k": "st-louis-city",
   "kn": "St. Louis city"
  },
+ "nalsc-annual-conference": {
+  "c": "los-angeles",
+  "cn": "Los Angeles",
+  "k": "los-angeles-county",
+  "kn": "Los Angeles County"
+ },
  "namb-national-conference": {
   "c": "las-vegas",
   "cn": "Las Vegas",
@@ -6114,6 +8024,12 @@
   "cn": "Anaheim",
   "k": "orange-county",
   "kn": "Orange County"
+ },
+ "namss-educational-conference-and-exhibition": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
  },
  "nanog": {
   "c": "boston",
@@ -6138,6 +8054,12 @@
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "naphsis-annual-meeting": {
+  "c": "anchorage",
+  "cn": "Anchorage",
+  "k": "anchorage-municipality",
+  "kn": "Anchorage Municipality"
  },
  "nar-legislative-meetings": {
   "c": "washington",
@@ -6187,6 +8109,12 @@
   "k": "hennepin-county",
   "kn": "Hennepin County"
  },
+ "nasbp-annual-meeting-and-expo": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
+ },
  "nascc-steel-conference": {
   "c": "denver",
   "cn": "Denver",
@@ -6199,7 +8127,19 @@
   "k": "san-diego-county",
   "kn": "San Diego County"
  },
+ "nascus-state-system-summit": {
+  "c": "seattle",
+  "cn": "Seattle",
+  "k": "king-county",
+  "kn": "King County"
+ },
  "nased-conference": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
+ },
+ "naseo-energy-policy-outlook-conference": {
   "c": "washington",
   "cn": "Washington",
   "k": "district-of-columbia",
@@ -6247,6 +8187,12 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "nasra-annual-conference": {
+  "c": "portland",
+  "cn": "Portland",
+  "k": "multnomah-county",
+  "kn": "Multnomah County"
+ },
  "nass-annual-meeting": {
   "c": "boston",
   "cn": "Boston",
@@ -6264,6 +8210,24 @@
   "cn": "Tampa",
   "k": "hillsborough-county",
   "kn": "Hillsborough County"
+ },
+ "nastad-annual-meeting": {
+  "c": "arlington",
+  "cn": "Arlington",
+  "k": "arlington-county",
+  "kn": "Arlington County"
+ },
+ "nasuca-annual-meeting": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
+ },
+ "nasw-montana-annual-conference": {
+  "c": "helena",
+  "cn": "Helena",
+  "k": "lewis-and-clark-county",
+  "kn": "Lewis and Clark County"
  },
  "nasw-national-conference": {
   "c": "portland",
@@ -6421,6 +8385,12 @@
   "k": "st-louis-city",
   "kn": "St. Louis city"
  },
+ "nawl-annual-meeting": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
  "nbaa-bace": {
   "c": "las-vegas",
   "cn": "Las Vegas",
@@ -6451,6 +8421,12 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "ncba-management-forum": {
+  "c": "asheville",
+  "cn": "Asheville",
+  "k": "buncombe-county",
+  "kn": "Buncombe County"
+ },
  "ncci-annual-insights-symposium": {
   "c": "orlando",
   "cn": "Orlando",
@@ -6469,6 +8445,12 @@
   "k": "marion-county",
   "kn": "Marion County"
  },
+ "nclm-cityvision": {
+  "c": "winston-salem",
+  "cn": "Winston-Salem",
+  "k": "forsyth-county",
+  "kn": "Forsyth County"
+ },
  "ncma-nexus": {
   "c": "san-antonio",
   "cn": "San Antonio",
@@ -6481,11 +8463,23 @@
   "k": "arapahoe-county",
   "kn": "Arapahoe County"
  },
+ "ncmpr-national-conference": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
  "ncpa-annual-convention": {
   "c": "san-antonio",
   "cn": "San Antonio",
   "k": "bexar-county",
   "kn": "Bexar County"
+ },
+ "ncpers-annual-conference-and-exhibition": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
  },
  "ncpn-connect": {
   "c": "san-antonio",
@@ -6504,6 +8498,12 @@
   "cn": "Washington",
   "k": "district-of-columbia",
   "kn": "District of Columbia"
+ },
+ "ncsba-annual-conference": {
+  "c": "greensboro",
+  "cn": "Greensboro",
+  "k": "guilford-county",
+  "kn": "Guilford County"
  },
  "ncsc-court-technology-conference": {
   "c": "fort-lauderdale",
@@ -6559,6 +8559,48 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "ncura-annual-meeting": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
+ "nd-shrm-state-conference": {
+  "c": "bismarck",
+  "cn": "Bismarck",
+  "k": "burleigh-county",
+  "kn": "Burleigh County"
+ },
+ "nda-annual-session": {
+  "c": "la-vista",
+  "cn": "La Vista",
+  "k": "sarpy-county",
+  "kn": "Sarpy County"
+ },
+ "ndaa-homicide-conference": {
+  "c": "fort-lauderdale",
+  "cn": "Fort Lauderdale",
+  "k": "broward-county",
+  "kn": "Broward County"
+ },
+ "ndaa-leadership-academy": {
+  "c": "scottsdale",
+  "cn": "Scottsdale",
+  "k": "maricopa-county",
+  "kn": "Maricopa County"
+ },
+ "ndaa-prosecutor-advocacy-conference": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
+ },
+ "ndma-annual-meeting": {
+  "c": "grand-forks",
+  "cn": "Grand Forks",
+  "k": "grand-forks-county",
+  "kn": "Grand Forks County"
+ },
  "nea-representative-assembly": {
   "c": "indianapolis",
   "cn": "Indianapolis",
@@ -6570,6 +8612,24 @@
   "cn": "Albany",
   "k": "albany-county",
   "kn": "Albany County"
+ },
+ "nebraska-annual-planning-conference": {
+  "c": "kearney",
+  "cn": "Kearney",
+  "k": "buffalo-county",
+  "kn": "Buffalo County"
+ },
+ "nebraska-hospital-association-annual-convention-and-trade-show": {
+  "c": "la-vista",
+  "cn": "La Vista",
+  "k": "sarpy-county",
+  "kn": "Sarpy County"
+ },
+ "nebraska-state-bar-association-annual-meeting": {
+  "c": "la-vista",
+  "cn": "La Vista",
+  "k": "sarpy-county",
+  "kn": "Sarpy County"
  },
  "neighborworks-training-institute": {
   "c": "chicago",
@@ -6595,6 +8655,48 @@
   "k": "cook-county",
   "kn": "Cook County"
  },
+ "nerha-fall-conference": {
+  "c": "concord",
+  "cn": "Concord",
+  "k": "merrimack-county",
+  "kn": "Merrimack County"
+ },
+ "nescpa-annual-fall-conference": {
+  "c": "lincoln",
+  "cn": "Lincoln",
+  "k": "lancaster-county",
+  "kn": "Lancaster County"
+ },
+ "netdocuments-inspire": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "new-england-practice-management-conference": {
+  "c": "mashantucket",
+  "cn": "Mashantucket",
+  "k": "southeastern-connecticut-planning-region",
+  "kn": "Southeastern Connecticut Planning Region"
+ },
+ "new-jersey-hospital-association-annual-meeting": {
+  "c": "princeton",
+  "cn": "Princeton",
+  "k": "mercer-county",
+  "kn": "Mercer County"
+ },
+ "new-mexico-hospital-association-annual-meeting": {
+  "c": "albuquerque",
+  "cn": "Albuquerque",
+  "k": "bernalillo-county",
+  "kn": "Bernalillo County"
+ },
+ "new-orleans-entrepreneur-week": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
+ },
  "newtopia-now": {
   "c": "rosemont",
   "cn": "Rosemont",
@@ -6612,6 +8714,12 @@
   "cn": "Washington",
   "k": "district-of-columbia",
   "kn": "District of Columbia"
+ },
+ "nfma-annual-conference": {
+  "c": "detroit",
+  "cn": "Detroit",
+  "k": "wayne-county",
+  "kn": "Wayne County"
  },
  "nfmt-baltimore": {
   "c": "baltimore",
@@ -6636,6 +8744,12 @@
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "nhma-annual-conference-and-exhibition": {
+  "c": "manchester",
+  "cn": "Manchester",
+  "k": "hillsborough-county",
+  "kn": "Hillsborough County"
  },
  "nhra-annual-meeting": {
   "c": "palm-beach",
@@ -6691,17 +8805,41 @@
   "k": "maricopa-county",
   "kn": "Maricopa County"
  },
+ "nmca-annual-conference": {
+  "c": "albuquerque",
+  "cn": "Albuquerque",
+  "k": "bernalillo-county",
+  "kn": "Bernalillo County"
+ },
  "nmhc-annual-meeting": {
   "c": "las-vegas",
   "cn": "Las Vegas",
   "k": "clark-county",
   "kn": "Clark County"
  },
+ "nmhear-conference": {
+  "c": "albuquerque",
+  "cn": "Albuquerque",
+  "k": "bernalillo-county",
+  "kn": "Bernalillo County"
+ },
+ "nmla-annual-conference": {
+  "c": "las-cruces",
+  "cn": "Las Cruces",
+  "k": "do-a-ana-county",
+  "kn": "Doña Ana County"
+ },
  "nmls-annual-conference": {
   "c": "san-diego",
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "nmsba-annual-convention": {
+  "c": "albuquerque",
+  "cn": "Albuquerque",
+  "k": "bernalillo-county",
+  "kn": "Bernalillo County"
  },
  "nmsdc-annual-conference": {
   "c": "los-angeles",
@@ -6733,6 +8871,12 @@
   "k": "duval-county",
   "kn": "Duval County"
  },
+ "noma-conference": {
+  "c": "aventura",
+  "cn": "Aventura",
+  "k": "miami-dade-county",
+  "kn": "Miami-Dade County"
+ },
  "nonprofit-technology-conference": {
   "c": "portland",
   "cn": "Portland",
@@ -6756,6 +8900,12 @@
   "cn": "Omaha",
   "k": "douglas-county",
   "kn": "Douglas County"
+ },
+ "north-dakota-hospital-association-annual-convention": {
+  "c": "fargo",
+  "cn": "Fargo",
+  "k": "cass-county",
+  "kn": "Cass County"
  },
  "nosh-live": {
   "c": "marina-del-rey",
@@ -6907,17 +9057,41 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "nsgc-annual-conference": {
+  "c": "baltimore",
+  "cn": "Baltimore",
+  "k": "baltimore-city",
+  "kn": "Baltimore city"
+ },
  "nsna-annual-convention": {
   "c": "orlando",
   "cn": "Orlando",
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "nspecon": {
+  "c": "reno",
+  "cn": "Reno",
+  "k": "washoe-county",
+  "kn": "Washoe County"
+ },
+ "nspra-national-seminar": {
+  "c": "indianapolis",
+  "cn": "Indianapolis",
+  "k": "marion-county",
+  "kn": "Marion County"
+ },
  "nsta-national-conference": {
   "c": "indianapolis",
   "cn": "Indianapolis",
   "k": "marion-county",
   "kn": "Marion County"
+ },
+ "nta-annual-conference-on-taxation": {
+  "c": "pittsburgh",
+  "cn": "Pittsburgh",
+  "k": "allegheny-county",
+  "kn": "Allegheny County"
  },
  "nta-travel-exchange": {
   "c": "tulsa",
@@ -6973,6 +9147,12 @@
   "k": "orleans-parish",
   "kn": "Orleans Parish"
  },
+ "nutanix-next": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
+ },
  "nvidia-gtc": {
   "c": "san-jose",
   "cn": "San Jose",
@@ -6990,6 +9170,18 @@
   "cn": "New Paltz",
   "k": "ulster-county",
   "kn": "Ulster County"
+ },
+ "nysba-annual-conference": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
+ "nysba-annual-meeting": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
  },
  "nyssba-annual-convention": {
   "c": "buffalo",
@@ -7009,17 +9201,65 @@
   "k": "kings-county",
   "kn": "Kings County"
  },
+ "o4u-business-conference": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
+ "oab-annual-convention": {
+  "c": "tulsa",
+  "cn": "Tulsa",
+  "k": "tulsa-county",
+  "kn": "Tulsa County"
+ },
+ "oapa-annual-conference": {
+  "c": "cleveland",
+  "cn": "Cleveland",
+  "k": "cuyahoga-county",
+  "kn": "Cuyahoga County"
+ },
+ "obesityweek": {
+  "c": "national-harbor",
+  "cn": "National Harbor",
+  "k": "prince-georges-county",
+  "kn": "Prince George's County"
+ },
  "oceantic-ipf": {
   "c": "newport",
   "cn": "Newport",
   "k": "newport-county",
   "kn": "Newport County"
  },
+ "ocma-annual-conference": {
+  "c": "columbus",
+  "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
+ },
  "ocp-global-summit": {
   "c": "san-francisco",
   "cn": "San Francisco",
   "k": "san-francisco-county",
   "kn": "San Francisco County"
+ },
+ "oda-annual-meeting-and-conference": {
+  "c": "tulsa",
+  "cn": "Tulsa",
+  "k": "tulsa-county",
+  "kn": "Tulsa County"
+ },
+ "oda-annual-session": {
+  "c": "columbus",
+  "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
+ },
+ "odsc-ai-nyc-ai-for-work-summit": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
  },
  "odsc-ai-west": {
   "c": "burlingame",
@@ -7045,11 +9285,29 @@
   "k": "harris-county",
   "kn": "Harris County"
  },
+ "oha-annual-membership-meeting": {
+  "c": "columbus",
+  "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
+ },
+ "ohca-annual-convention-and-expo": {
+  "c": "columbus",
+  "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
+ },
  "oklahoma-arts-conference": {
   "c": "enid",
   "cn": "Enid",
   "k": "garfield-county",
   "kn": "Garfield County"
+ },
+ "oktane": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
  },
  "olc-accelerate": {
   "c": "orlando",
@@ -7117,6 +9375,12 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "oregon-business-plan-leadership-summit": {
+  "c": "portland",
+  "cn": "Portland",
+  "k": "multnomah-county",
+  "kn": "Multnomah County"
+ },
  "organic-produce-summit": {
   "c": "monterey",
   "cn": "Monterey",
@@ -7132,6 +9396,12 @@
  "osba-capital-conference": {
   "c": "columbus",
   "cn": "Columbus",
+  "k": "franklin-county",
+  "kn": "Franklin County"
+ },
+ "osma-annual-meeting": {
+  "c": "westerville",
+  "cn": "Westerville",
   "k": "franklin-county",
   "kn": "Franklin County"
  },
@@ -7165,11 +9435,33 @@
   "k": "maricopa-county",
   "kn": "Maricopa County"
  },
+ "owasp-global-appsec-usa": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
  "p2pi-instore-ignite": {
   "c": "chicago",
   "cn": "Chicago",
   "k": "cook-county",
   "kn": "Cook County"
+ },
+ "pa-digital-summit": {
+  "c": "harrisburg",
+  "cn": "Harrisburg",
+  "k": "dauphin-county",
+  "kn": "Dauphin County"
+ },
+ "paa-annual-meeting": {
+  "c": "seattle",
+  "cn": "Seattle",
+  "k": "king-county",
+  "kn": "King County"
+ },
+ "paav-annual-winter-cme-conference": {
+  "c": "stowe",
+  "cn": "Stowe"
  },
  "pac-advocacy-conference": {
   "c": "new-orleans",
@@ -7261,6 +9553,12 @@
   "k": "king-county",
   "kn": "King County"
  },
+ "paycor-connect": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "payroll-congress": {
   "c": "san-antonio",
   "cn": "San Antonio",
@@ -7315,11 +9613,23 @@
   "k": "wake-county",
   "kn": "Wake County"
  },
+ "pdc-summit-health-facility-planning-design-and-construction": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
+ },
  "peak-grantmaking-annual-convening": {
   "c": "atlanta",
   "cn": "Atlanta",
   "k": "fulton-county",
   "kn": "Fulton County"
+ },
+ "peak-the-colorado-accounting-and-finance-summit": {
+  "c": "lakewood",
+  "cn": "Lakewood",
+  "k": "jefferson-county",
+  "kn": "Jefferson County"
  },
  "pegaworld": {
   "c": "las-vegas",
@@ -7367,6 +9677,18 @@
   "k": "kings-county",
   "kn": "Kings County"
  },
+ "philadelphia-official-cybersecurity-summit": {
+  "c": "philadelphia",
+  "cn": "Philadelphia",
+  "k": "philadelphia-county",
+  "kn": "Philadelphia County"
+ },
+ "philly-tech-week": {
+  "c": "philadelphia",
+  "cn": "Philadelphia",
+  "k": "philadelphia-county",
+  "kn": "Philadelphia County"
+ },
  "phocuswright-conference": {
   "c": "fort-lauderdale",
   "cn": "Fort Lauderdale",
@@ -7378,6 +9700,12 @@
   "cn": "Alexandria",
   "k": "alexandria-city",
   "kn": "Alexandria city"
+ },
+ "pihra-california-employment-law-update-san-diego": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
  },
  "pink-itsm-conference": {
   "c": "las-vegas",
@@ -7396,6 +9724,12 @@
   "cn": "San Francisco",
   "k": "san-francisco-county",
   "kn": "San Francisco County"
+ },
+ "plant-biology": {
+  "c": "albuquerque",
+  "cn": "Albuquerque",
+  "k": "bernalillo-county",
+  "kn": "Bernalillo County"
  },
  "plastics-recycling-conference": {
   "c": "national-harbor",
@@ -7475,6 +9809,12 @@
   "k": "multnomah-county",
   "kn": "Multnomah County"
  },
+ "poc-defense-r-and-d-summit": {
+  "c": "mclean",
+  "cn": "McLean",
+  "k": "fairfax-county",
+  "kn": "Fairfax County"
+ },
  "poc-healthcare-summit": {
   "c": "mclean",
   "cn": "McLean",
@@ -7511,6 +9851,12 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "pointclickcare-summit": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "points-of-light-conference": {
   "c": "long-beach",
   "cn": "Long Beach",
@@ -7523,11 +9869,29 @@
   "k": "riverside-county",
   "kn": "Riverside County"
  },
+ "poms-annual-conference": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "ponl-annual-nursing-leadership-conference": {
+  "c": "harrisburg",
+  "cn": "Harrisburg",
+  "k": "dauphin-county",
+  "kn": "Dauphin County"
+ },
  "posit-conf": {
   "c": "houston",
   "cn": "Houston",
   "k": "harris-county",
   "kn": "Harris County"
+ },
+ "ppa-annual-convention": {
+  "c": "pittsburgh",
+  "cn": "Pittsburgh",
+  "k": "allegheny-county",
+  "kn": "Allegheny County"
  },
  "pqa-annual-meeting": {
   "c": "indianapolis",
@@ -7558,6 +9922,12 @@
   "cn": "Chicago",
   "k": "cook-county",
   "kn": "Cook County"
+ },
+ "prima-annual-conference": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
  },
  "printing-united-expo": {
   "c": "las-vegas",
@@ -7709,6 +10079,12 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "projectsummit-businessanalystworld": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "proliteracy-conference": {
   "c": "glendale",
   "cn": "Glendale",
@@ -7751,11 +10127,23 @@
   "k": "arlington-county",
   "kn": "Arlington County"
  },
+ "pssny-annual-convention": {
+  "c": "saratoga-springs",
+  "cn": "Saratoga Springs",
+  "k": "saratoga-county",
+  "kn": "Saratoga County"
+ },
  "ptda-industry-summit": {
   "c": "orlando",
   "cn": "Orlando",
   "k": "orange-county",
   "kn": "Orange County"
+ },
+ "public-choice-society-annual-meeting": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
  },
  "public-health-law-conference": {
   "c": "detroit",
@@ -7763,11 +10151,29 @@
   "k": "wayne-county",
   "kn": "Wayne County"
  },
+ "purc-annual-conference": {
+  "c": "gainesville",
+  "cn": "Gainesville",
+  "k": "alachua-county",
+  "kn": "Alachua County"
+ },
  "pycon-us": {
   "c": "long-beach",
   "cn": "Long Beach",
   "k": "los-angeles-county",
   "kn": "Los Angeles County"
+ },
+ "pytorch-conference": {
+  "c": "san-jose",
+  "cn": "San Jose",
+  "k": "santa-clara-county",
+  "kn": "Santa Clara County"
+ },
+ "qcon-ai-boston": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
  },
  "qcon-san-francisco": {
   "c": "san-francisco",
@@ -7781,11 +10187,23 @@
   "k": "osceola-county",
   "kn": "Osceola County"
  },
+ "qrca-annual-conference": {
+  "c": "palm-springs",
+  "cn": "Palm Springs",
+  "k": "riverside-county",
+  "kn": "Riverside County"
+ },
  "quality-matters-qm-connect": {
   "c": "jacksonville",
   "cn": "Jacksonville",
   "k": "duval-county",
   "kn": "Duval County"
+ },
+ "qualtrics-x4": {
+  "c": "seattle",
+  "cn": "Seattle",
+  "k": "king-county",
+  "kn": "King County"
  },
  "quirks-event-chicago": {
   "c": "chicago",
@@ -7847,6 +10265,12 @@
   "k": "hennepin-county",
   "kn": "Hennepin County"
  },
+ "ray-summit": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
  "rca-conference-culinology-expo": {
   "c": "dallas",
   "cn": "Dallas",
@@ -7883,6 +10307,12 @@
   "k": "dallas-county",
   "kn": "Dallas County"
  },
+ "real-estate-cfo-and-coo-west": {
+  "c": "dana-point",
+  "cn": "Dana Point",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "realize-live-americas": {
   "c": "detroit",
   "cn": "Detroit",
@@ -7901,11 +10331,23 @@
   "k": "cook-county",
   "kn": "Cook County"
  },
+ "regional-and-community-bankers-conference": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
  "reitweek": {
   "c": "new-york",
   "cn": "New York",
   "k": "kings-county",
   "kn": "Kings County"
+ },
+ "reitwise-educational-conference": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
  },
  "reitworld": {
   "c": "hollywood",
@@ -7948,6 +10390,12 @@
   "cn": "Chicago",
   "k": "cook-county",
   "kn": "Cook County"
+ },
+ "retailing-innovation-summit": {
+  "c": "college-station",
+  "cn": "College Station",
+  "k": "brazos-county",
+  "kn": "Brazos County"
  },
  "rethink-hr-tech-usa": {
   "c": "chicago",
@@ -8002,6 +10450,12 @@
   "cn": "Las Vegas",
   "k": "clark-county",
   "kn": "Clark County"
+ },
+ "rhode-island-bar-association-annual-meeting": {
+  "c": "providence",
+  "cn": "Providence",
+  "k": "providence-county",
+  "kn": "Providence County"
  },
  "rice-business-plan-competition": {
   "c": "houston",
@@ -8069,11 +10523,29 @@
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "rockwell-automation-fair": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
+ "rocky-mountain-corporate-growth-conference-dealsource": {
+  "c": "denver",
+  "cn": "Denver",
+  "k": "denver-county",
+  "kn": "Denver County"
+ },
  "rocky-mountain-eta-conference": {
   "c": "boulder",
   "cn": "Boulder",
   "k": "boulder-county",
   "kn": "Boulder County"
+ },
+ "rocky-mountain-legal-writing-conference": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
  },
  "rsa-conference": {
   "c": "san-francisco",
@@ -8092,6 +10564,12 @@
   "cn": "New Orleans",
   "k": "orleans-parish",
   "kn": "Orleans Parish"
+ },
+ "rvatech-women-in-technology-conference": {
+  "c": "richmond",
+  "cn": "Richmond",
+  "k": "richmond-city",
+  "kn": "Richmond city"
  },
  "saa-annual-meeting": {
   "c": "chicago",
@@ -8117,11 +10595,23 @@
   "k": "los-angeles-county",
   "kn": "Los Angeles County"
  },
+ "sacrao-annual-meeting": {
+  "c": "jackson",
+  "cn": "Jackson",
+  "k": "hinds-county",
+  "kn": "Hinds County"
+ },
  "sacscoc-annual-meeting": {
   "c": "houston",
   "cn": "Houston",
   "k": "harris-county",
   "kn": "Harris County"
+ },
+ "sacubo-annual-convention": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
  },
  "sae-wcx": {
   "c": "novi",
@@ -8129,11 +10619,29 @@
   "k": "oakland-county",
   "kn": "Oakland County"
  },
+ "safe-deliveries-roadmap-fall-conference": {
+  "c": "seatac",
+  "cn": "SeaTac",
+  "k": "king-county",
+  "kn": "King County"
+ },
+ "safe-summit": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
+ },
  "sage-future": {
   "c": "chicago",
   "cn": "Chicago",
   "k": "cook-county",
   "kn": "Cook County"
+ },
+ "sailpoint-navigate": {
+  "c": "austin",
+  "cn": "Austin",
+  "k": "travis-county",
+  "kn": "Travis County"
  },
  "sair-annual-conference": {
   "c": "little-rock",
@@ -8170,6 +10678,12 @@
   "cn": "Orlando",
   "k": "orange-county",
   "kn": "Orange County"
+ },
+ "sans-ai-cybersecurity-summit": {
+  "c": "denver",
+  "cn": "Denver",
+  "k": "denver-county",
+  "kn": "Denver County"
  },
  "sans-cyber-defense-initiative": {
   "c": "washington",
@@ -8219,11 +10733,35 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "sawtooth-research-conference": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
+ },
  "sbc-summit-americas": {
   "c": "fort-lauderdale",
   "cn": "Fort Lauderdale",
   "k": "broward-county",
   "kn": "Broward County"
+ },
+ "sc-bar-convention": {
+  "c": "greenville",
+  "cn": "Greenville",
+  "k": "greenville-county",
+  "kn": "Greenville County"
+ },
+ "sc-cpa-fall-fest-accounting-conference": {
+  "c": "columbia",
+  "cn": "Columbia",
+  "k": "richland-county",
+  "kn": "Richland County"
+ },
+ "scale-expo": {
+  "c": "cambridge",
+  "cn": "Cambridge",
+  "k": "middlesex-county",
+  "kn": "Middlesex County"
  },
  "scale-southern-california-linux-expo": {
   "c": "pasadena",
@@ -8261,6 +10799,18 @@
   "k": "suffolk-county",
   "kn": "Suffolk County"
  },
+ "scipy-conference": {
+  "c": "minneapolis",
+  "cn": "Minneapolis",
+  "k": "hennepin-county",
+  "kn": "Hennepin County"
+ },
+ "scma-annual-meeting": {
+  "c": "charleston",
+  "cn": "Charleston",
+  "k": "charleston-county",
+  "kn": "Charleston County"
+ },
  "scope-summit": {
   "c": "orlando",
   "cn": "Orlando",
@@ -8279,6 +10829,12 @@
   "k": "maricopa-county",
   "kn": "Maricopa County"
  },
+ "scsba-annual-convention": {
+  "c": "myrtle-beach",
+  "cn": "Myrtle Beach",
+  "k": "horry-county",
+  "kn": "Horry County"
+ },
  "scte-techexpo": {
   "c": "atlanta",
   "cn": "Atlanta",
@@ -8290,6 +10846,18 @@
   "cn": "Raleigh",
   "k": "wake-county",
   "kn": "Wake County"
+ },
+ "sdaho-annual-convention": {
+  "c": "sioux-falls",
+  "cn": "Sioux Falls",
+  "k": "minnehaha-county",
+  "kn": "Minnehaha County"
+ },
+ "sdsma-annual-leadership-conference": {
+  "c": "sioux-falls",
+  "cn": "Sioux Falls",
+  "k": "minnehaha-county",
+  "kn": "Minnehaha County"
  },
  "sea-air-space": {
   "c": "national-harbor",
@@ -8321,11 +10889,23 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "securities-regulation-institute": {
+  "c": "coronado",
+  "cn": "Coronado",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
+ },
  "sedc-americansouth-site-selection-summit": {
   "c": "atlanta",
   "cn": "Atlanta",
   "k": "fulton-county",
   "kn": "Fulton County"
+ },
+ "selectusa-investment-summit": {
+  "c": "national-harbor",
+  "cn": "National Harbor",
+  "k": "prince-georges-county",
+  "kn": "Prince George's County"
  },
  "sema-show": {
   "c": "las-vegas",
@@ -8363,11 +10943,47 @@
   "k": "clark-county",
   "kn": "Clark County"
  },
+ "servicetitan-pantheon": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "sfnet-annual-convention": {
+  "c": "phoenix",
+  "cn": "Phoenix",
+  "k": "maricopa-county",
+  "kn": "Maricopa County"
+ },
+ "sfpe-annual-conference-and-expo": {
+  "c": "minneapolis",
+  "cn": "Minneapolis",
+  "k": "hennepin-county",
+  "kn": "Hennepin County"
+ },
+ "sfvegas": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
+ },
+ "sgo-annual-meeting-on-gynecologic-cancer": {
+  "c": "phoenix",
+  "cn": "Phoenix",
+  "k": "maricopa-county",
+  "kn": "Maricopa County"
+ },
  "shape-america-national-convention": {
   "c": "charlotte",
   "cn": "Charlotte",
   "k": "mecklenburg-county",
   "kn": "Mecklenburg County"
+ },
+ "sheeo-higher-education-policy-conference": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
  },
  "shift-ux": {
   "c": "new-york",
@@ -8380,6 +10996,12 @@
   "cn": "Atlanta",
   "k": "fulton-county",
   "kn": "Fulton County"
+ },
+ "shm-converge": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
  },
  "shoptalk-spring": {
   "c": "las-vegas",
@@ -8399,11 +11021,35 @@
   "k": "cook-county",
   "kn": "Cook County"
  },
+ "shrm-indiana-conference": {
+  "c": "indianapolis",
+  "cn": "Indianapolis",
+  "k": "marion-county",
+  "kn": "Marion County"
+ },
  "shrm-leap-employment-law": {
   "c": "las-vegas",
   "cn": "Las Vegas",
   "k": "clark-county",
   "kn": "Clark County"
+ },
+ "shrm-south-dakota-state-conference": {
+  "c": "sioux-falls",
+  "cn": "Sioux Falls",
+  "k": "minnehaha-county",
+  "kn": "Minnehaha County"
+ },
+ "shrm-virginia-and-dc-annual-conference": {
+  "c": "virginia-beach",
+  "cn": "Virginia Beach",
+  "k": "virginia-beach-city",
+  "kn": "Virginia Beach city"
+ },
+ "shrm-washington-state-annual-conference": {
+  "c": "bellevue",
+  "cn": "Bellevue",
+  "k": "king-county",
+  "kn": "King County"
  },
  "shsmd-connections": {
   "c": "phoenix",
@@ -8465,6 +11111,12 @@
   "k": "sacramento-county",
   "kn": "Sacramento County"
  },
+ "siggraph": {
+  "c": "anaheim",
+  "cn": "Anaheim",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "sim-national-conference": {
   "c": "huntington-beach",
   "cn": "Huntington Beach",
@@ -8482,6 +11134,18 @@
   "cn": "New York",
   "k": "kings-county",
   "kn": "Kings County"
+ },
+ "sitc-annual-meeting": {
+  "c": "phoenix",
+  "cn": "Phoenix",
+  "k": "maricopa-county",
+  "kn": "Maricopa County"
+ },
+ "sjdm-annual-meeting": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
  },
  "skift-global-forum": {
   "c": "new-york",
@@ -8507,6 +11171,12 @@
   "k": "suffolk-county",
   "kn": "Suffolk County"
  },
+ "smartsheet-engage": {
+  "c": "seattle",
+  "cn": "Seattle",
+  "k": "king-county",
+  "kn": "King County"
+ },
  "smbash": {
   "c": "irving",
   "cn": "Irving",
@@ -8518,6 +11188,12 @@
   "cn": "Huntsville",
   "k": "madison-county",
   "kn": "Madison County"
+ },
+ "smps-southern-regional-conference-src": {
+  "c": "fort-worth",
+  "cn": "Fort Worth",
+  "k": "tarrant-county",
+  "kn": "Tarrant County"
  },
  "smpte-media-technology-summit": {
   "c": "pasadena",
@@ -8548,6 +11224,12 @@
   "cn": "Charlotte",
   "k": "mecklenburg-county",
   "kn": "Mecklenburg County"
+ },
+ "snmmi-annual-meeting": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
  },
  "snowflake-summit": {
   "c": "san-francisco",
@@ -8621,6 +11303,12 @@
   "k": "san-diego-county",
   "kn": "San Diego County"
  },
+ "society-for-neuroscience-annual-meeting-neuroscience": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
+ },
  "society-for-range-management-annual-meeting": {
   "c": "wichita",
   "cn": "Wichita",
@@ -8644,6 +11332,42 @@
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "south-carolina-bar-convention": {
+  "c": "greenville",
+  "cn": "Greenville",
+  "k": "greenville-county",
+  "kn": "Greenville County"
+ },
+ "south-carolina-hospital-association-annual-meeting": {
+  "c": "columbia",
+  "cn": "Columbia",
+  "k": "richland-county",
+  "kn": "Richland County"
+ },
+ "south-dakota-cpa-annual-tax-institute": {
+  "c": "sioux-falls",
+  "cn": "Sioux Falls",
+  "k": "minnehaha-county",
+  "kn": "Minnehaha County"
+ },
+ "southern-economic-association-annual-meeting": {
+  "c": "houston",
+  "cn": "Houston",
+  "k": "harris-county",
+  "kn": "Harris County"
+ },
+ "southern-finance-association-annual-meeting": {
+  "c": "palm-springs",
+  "cn": "Palm Springs",
+  "k": "riverside-county",
+  "kn": "Riverside County"
+ },
+ "southwest-veterinary-symposium": {
+  "c": "dallas",
+  "cn": "Dallas",
+  "k": "dallas-county",
+  "kn": "Dallas County"
  },
  "space-symposium": {
   "c": "colorado-springs",
@@ -8687,6 +11411,18 @@
   "k": "harris-county",
   "kn": "Harris County"
  },
+ "spie-photonics-west": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
+ "splunk-conf": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
  "sport-marketing-association-conference": {
   "c": "baltimore",
   "cn": "Baltimore",
@@ -8699,7 +11435,19 @@
   "k": "orleans-parish",
   "kn": "Orleans Parish"
  },
+ "sra-annual-meeting": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
+ },
  "srecon-americas": {
+  "c": "seattle",
+  "cn": "Seattle",
+  "k": "king-county",
+  "kn": "King County"
+ },
+ "ssa-annual-meeting": {
   "c": "seattle",
   "cn": "Seattle",
   "k": "king-county",
@@ -8724,6 +11472,12 @@
   "kn": "San Francisco County"
  },
  "stanford-ai-education-summit": {
+  "c": "stanford",
+  "cn": "Stanford",
+  "k": "santa-clara-county",
+  "kn": "Santa Clara County"
+ },
+ "stanford-gsb-investor-summit": {
   "c": "stanford",
   "cn": "Stanford",
   "k": "santa-clara-county",
@@ -8759,6 +11513,12 @@
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "state-bar-of-texas-annual-meeting": {
+  "c": "fort-worth",
+  "cn": "Fort Worth",
+  "k": "tarrant-county",
+  "kn": "Tarrant County"
+ },
  "state-hit-connect-summit": {
   "c": "national-harbor",
   "cn": "National Harbor",
@@ -8770,6 +11530,30 @@
   "cn": "Stanford",
   "k": "santa-clara-county",
   "kn": "Santa Clara County"
+ },
+ "stern-techcon": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
+ },
+ "stripe-sessions": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
+ "stronger-to-serve": {
+  "c": "anaheim",
+  "cn": "Anaheim",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "suiteworld": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
  },
  "summer-fancy-food-show": {
   "c": "new-york",
@@ -8807,6 +11591,18 @@
   "k": "kings-county",
   "kn": "Kings County"
  },
+ "superzoo": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
+ },
+ "supply-chain-management-conference": {
+  "c": "urbana",
+  "cn": "Urbana",
+  "k": "champaign-county",
+  "kn": "Champaign County"
+ },
  "supplyside-global": {
   "c": "las-vegas",
   "cn": "Las Vegas",
@@ -8824,6 +11620,12 @@
   "cn": "New York",
   "k": "kings-county",
   "kn": "Kings County"
+ },
+ "sustainable-brands": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
  },
  "sustainable-fleet-technology-conference-expo": {
   "c": "durham",
@@ -8879,6 +11681,12 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "tacrao-annual-conference": {
+  "c": "houston",
+  "cn": "Houston",
+  "k": "harris-county",
+  "kn": "Harris County"
+ },
  "talent-acquisition-week": {
   "c": "san-diego",
   "cn": "San Diego",
@@ -8896,6 +11704,24 @@
   "cn": "San Antonio",
   "k": "bexar-county",
   "kn": "Bexar County"
+ },
+ "tatech-north-america": {
+  "c": "philadelphia",
+  "cn": "Philadelphia",
+  "k": "philadelphia-county",
+  "kn": "Philadelphia County"
+ },
+ "tax-practitioner-institute": {
+  "c": "missoula",
+  "cn": "Missoula",
+  "k": "missoula-county",
+  "kn": "Missoula County"
+ },
+ "tccta-annual-convention": {
+  "c": "austin",
+  "cn": "Austin",
+  "k": "travis-county",
+  "kn": "Travis County"
  },
  "tcea-convention": {
   "c": "san-antonio",
@@ -8932,6 +11758,12 @@
   "cn": "Atlanta",
   "k": "fulton-county",
   "kn": "Fulton County"
+ },
+ "tech-in-gov-america": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
  },
  "techcrunch-disrupt": {
   "c": "san-francisco",
@@ -9005,6 +11837,12 @@
   "k": "travis-county",
   "kn": "Travis County"
  },
+ "texas-covered-conference-expo": {
+  "c": "austin",
+  "cn": "Austin",
+  "k": "travis-county",
+  "kn": "Travis County"
+ },
  "texas-eta-conference": {
   "c": "houston",
   "cn": "Houston",
@@ -9023,11 +11861,35 @@
   "k": "bexar-county",
   "kn": "Bexar County"
  },
+ "texas-nonprofit-summit": {
+  "c": "austin",
+  "cn": "Austin",
+  "k": "travis-county",
+  "kn": "Travis County"
+ },
+ "texas-tribune-festival": {
+  "c": "austin",
+  "cn": "Austin",
+  "k": "travis-county",
+  "kn": "Travis County"
+ },
  "texas-workforce-conference": {
   "c": "dallas",
   "cn": "Dallas",
   "k": "dallas-county",
   "kn": "Dallas County"
+ },
+ "texmed": {
+  "c": "houston",
+  "cn": "Houston",
+  "k": "harris-county",
+  "kn": "Harris County"
+ },
+ "texpo-treasury-and-financial-conference": {
+  "c": "austin",
+  "cn": "Austin",
+  "k": "travis-county",
+  "kn": "Travis County"
  },
  "the-ai-summit-new-york": {
   "c": "new-york",
@@ -9046,6 +11908,12 @@
   "cn": "Brooklyn",
   "k": "kings-county",
   "kn": "Kings County"
+ },
+ "the-inspired-home-show": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
  },
  "the-lead-summit": {
   "c": "new-york",
@@ -9071,11 +11939,23 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "the-nama-show": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
+ },
  "the-one-show": {
   "c": "new-york",
   "cn": "New York",
   "k": "kings-county",
   "kn": "Kings County"
+ },
+ "the-ppai-expo": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
  },
  "the-quality-show": {
   "c": "rosemont",
@@ -9101,6 +11981,12 @@
   "k": "bexar-county",
   "kn": "Bexar County"
  },
+ "tma-annual-conference": {
+  "c": "houston",
+  "cn": "Houston",
+  "k": "harris-county",
+  "kn": "Harris County"
+ },
  "tmc-annual-meeting": {
   "c": "orlando",
   "cn": "Orlando",
@@ -9124,6 +12010,12 @@
   "cn": "Anaheim",
   "k": "orange-county",
   "kn": "Orange County"
+ },
+ "tourism-summit-and-international-marketplace": {
+  "c": "mashantucket",
+  "cn": "Mashantucket",
+  "k": "southeastern-connecticut-planning-region",
+  "kn": "Southeastern Connecticut Planning Region"
  },
  "tpm-conference": {
   "c": "long-beach",
@@ -9155,6 +12047,12 @@
   "k": "wake-county",
   "kn": "Wake County"
  },
+ "transatlantic-forum-on-geoeconomics": {
+  "c": "miami",
+  "cn": "Miami",
+  "k": "miami-dade-county",
+  "kn": "Miami-Dade County"
+ },
  "transform-las-vegas": {
   "c": "las-vegas",
   "cn": "Las Vegas",
@@ -9167,17 +12065,35 @@
   "k": "district-of-columbia",
   "kn": "District of Columbia"
  },
+ "treehacks": {
+  "c": "stanford",
+  "cn": "Stanford",
+  "k": "santa-clara-county",
+  "kn": "Santa Clara County"
+ },
  "trellis-impact": {
   "c": "san-francisco",
   "cn": "San Francisco",
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "trends-and-strategies-conference": {
+  "c": "orlando",
+  "cn": "Orlando",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
  "tribeca-festival": {
   "c": "new-york",
   "cn": "New York",
   "k": "kings-county",
   "kn": "Kings County"
+ },
+ "trimble-dimensions": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
  },
  "truckload-annual-convention": {
   "c": "las-vegas",
@@ -9190,6 +12106,12 @@
   "cn": "Las Vegas",
   "k": "clark-county",
   "kn": "Clark County"
+ },
+ "tscpa-technology-conference": {
+  "c": "brentwood",
+  "cn": "Brentwood",
+  "k": "williamson-county",
+  "kn": "Williamson County"
  },
  "tsia-world": {
   "c": "las-vegas",
@@ -9215,11 +12137,23 @@
   "k": "orleans-parish",
   "kn": "Orleans Parish"
  },
+ "twilio-signal": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
  "twitchcon-san-diego": {
   "c": "san-diego",
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "txcpa-houston-facts": {
+  "c": "houston",
+  "cn": "Houston",
+  "k": "harris-county",
+  "kn": "Harris County"
  },
  "txedcon": {
   "c": "houston",
@@ -9257,6 +12191,18 @@
   "k": "alachua-county",
   "kn": "Alachua County"
  },
+ "uic-finance-conference": {
+  "c": "chicago",
+  "cn": "Chicago",
+  "k": "cook-county",
+  "kn": "Cook County"
+ },
+ "uipath-fusion": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
+ },
  "ukg-aspire": {
   "c": "las-vegas",
   "cn": "Las Vegas",
@@ -9275,11 +12221,29 @@
   "k": "king-county",
   "kn": "King County"
  },
+ "un-prompted": {
+  "c": "san-francisco",
+  "cn": "San Francisco",
+  "k": "san-francisco-county",
+  "kn": "San Francisco County"
+ },
  "unbound-hubspot": {
   "c": "boston",
   "cn": "Boston",
   "k": "suffolk-county",
   "kn": "Suffolk County"
+ },
+ "unc-cleantech-summit": {
+  "c": "chapel-hill",
+  "cn": "Chapel Hill",
+  "k": "orange-county",
+  "kn": "Orange County"
+ },
+ "unified-wine-and-grape-symposium": {
+  "c": "sacramento",
+  "cn": "Sacramento",
+  "k": "sacramento-county",
+  "kn": "Sacramento County"
  },
  "unleash-america": {
   "c": "miami",
@@ -9323,6 +12287,24 @@
   "k": "chatham-county",
   "kn": "Chatham County"
  },
+ "usasbe-2027": {
+  "c": "louisville",
+  "cn": "Louisville",
+  "k": "jefferson-county",
+  "kn": "Jefferson County"
+ },
+ "usc-gould-intellectual-property-institute": {
+  "c": "los-angeles",
+  "cn": "Los Angeles",
+  "k": "los-angeles-county",
+  "kn": "Los Angeles County"
+ },
+ "usc-gould-tax-institute": {
+  "c": "los-angeles",
+  "cn": "Los Angeles",
+  "k": "los-angeles-county",
+  "kn": "Los Angeles County"
+ },
  "usda-agricultural-outlook-forum": {
   "c": "arlington",
   "cn": "Arlington",
@@ -9341,11 +12323,29 @@
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "ut-energy-week": {
+  "c": "austin",
+  "cn": "Austin",
+  "k": "travis-county",
+  "kn": "Travis County"
+ },
  "utah-conference-community-engagement": {
   "c": "logan",
   "cn": "Logan",
   "k": "cache-county",
   "kn": "Cache County"
+ },
+ "utah-shrm-work-elevated": {
+  "c": "provo",
+  "cn": "Provo",
+  "k": "utah-county",
+  "kn": "Utah County"
+ },
+ "uwebc-executive-summit": {
+  "c": "madison",
+  "cn": "Madison",
+  "k": "dane-county",
+  "kn": "Dane County"
  },
  "uxdx-usa": {
   "c": "san-francisco",
@@ -9353,11 +12353,39 @@
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "vascular-annual-meeting-vam": {
+  "c": "san-diego",
+  "cn": "San Diego",
+  "k": "san-diego-county",
+  "kn": "San Diego County"
+ },
+ "veeva-commercial-summit": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
+ "venture-atlanta": {
+  "c": "atlanta",
+  "cn": "Atlanta",
+  "k": "fulton-county",
+  "kn": "Fulton County"
+ },
  "verisk-insurance-conference": {
   "c": "orlando",
   "cn": "Orlando",
   "k": "orange-county",
   "kn": "Orange County"
+ },
+ "vermont-library-conference": {
+  "c": "burlington",
+  "cn": "Burlington",
+  "k": "chittenden-county",
+  "kn": "Chittenden County"
+ },
+ "vermont-statewide-housing-conference": {
+  "k": "chittenden-county",
+  "kn": "Chittenden County"
  },
  "vertafore-accelerate": {
   "c": "san-antonio",
@@ -9389,6 +12417,12 @@
   "k": "riverside-county",
   "kn": "Riverside County"
  },
+ "vfs-annual-forum-and-technology-display": {
+  "c": "phoenix",
+  "cn": "Phoenix",
+  "k": "maricopa-county",
+  "kn": "Maricopa County"
+ },
  "vhma-annual-meeting": {
   "c": "orlando",
   "cn": "Orlando",
@@ -9419,6 +12453,12 @@
   "k": "clark-county",
   "kn": "Clark County"
  },
+ "vmware-explore": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
+ },
  "vmx": {
   "c": "orlando",
   "cn": "Orlando",
@@ -9430,6 +12470,18 @@
   "cn": "Indianapolis",
   "k": "marion-county",
   "kn": "Marion County"
+ },
+ "wam-winter-workshop": {
+  "c": "cheyenne",
+  "cn": "Cheyenne",
+  "k": "laramie-county",
+  "kn": "Laramie County"
+ },
+ "wasb-state-education-convention": {
+  "c": "milwaukee",
+  "cn": "Milwaukee",
+  "k": "milwaukee-county",
+  "kn": "Milwaukee County"
  },
  "water-week-and-national-water-fly-in": {
   "c": "washington",
@@ -9461,6 +12513,12 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "wcri-issues-and-research-conference": {
+  "c": "boston",
+  "cn": "Boston",
+  "k": "suffolk-county",
+  "kn": "Suffolk County"
+ },
  "wealth-management-edge": {
   "c": "boca-raton",
   "cn": "Boca Raton",
@@ -9491,11 +12549,29 @@
   "k": "cook-county",
   "kn": "Cook County"
  },
+ "west-virginia-state-bar-annual-meeting": {
+  "c": "charleston",
+  "cn": "Charleston",
+  "k": "kanawha-county",
+  "kn": "Kanawha County"
+ },
  "westec": {
   "c": "long-beach",
   "cn": "Long Beach",
   "k": "los-angeles-county",
   "kn": "Los Angeles County"
+ },
+ "western-conference-on-tax-exempt-organizations": {
+  "c": "los-angeles",
+  "cn": "Los Angeles",
+  "k": "los-angeles-county",
+  "kn": "Los Angeles County"
+ },
+ "western-finance-association-annual-meeting": {
+  "c": "indian-wells",
+  "cn": "Indian Wells",
+  "k": "riverside-county",
+  "kn": "Riverside County"
  },
  "western-indian-gaming-conference": {
   "c": "temecula",
@@ -9526,6 +12602,12 @@
   "cn": "Philadelphia",
   "k": "philadelphia-county",
   "kn": "Philadelphia County"
+ },
+ "wharton-women-in-investing-conference": {
+  "c": "new-york",
+  "cn": "New York",
+  "k": "kings-county",
+  "kn": "Kings County"
  },
  "wicys-conference": {
   "c": "denver",
@@ -9575,6 +12657,18 @@
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "wisconsin-library-association-annual-conference": {
+  "c": "middleton",
+  "cn": "Middleton",
+  "k": "dane-county",
+  "kn": "Dane County"
+ },
+ "wisconsin-rural-health-conference": {
+  "c": "wisconsin-dells",
+  "cn": "Wisconsin Dells",
+  "k": "columbia-county",
+  "kn": "Columbia County"
+ },
  "wispapalooza": {
   "c": "las-vegas",
   "cn": "Las Vegas",
@@ -9586,6 +12680,12 @@
   "cn": "Dallas",
   "k": "dallas-county",
   "kn": "Dallas County"
+ },
+ "wna-convention": {
+  "c": "madison",
+  "cn": "Madison",
+  "k": "dane-county",
+  "kn": "Dane County"
  },
  "women-in-agribusiness-summit": {
   "c": "minneapolis",
@@ -9605,13 +12705,27 @@
   "k": "orange-county",
   "kn": "Orange County"
  },
+ "women-in-technology-career-and-job-fair": {
+  "c": "reston",
+  "cn": "Reston",
+  "k": "fairfax-county",
+  "kn": "Fairfax County"
+ },
  "women-of-power-summit": {
   "c": "las-vegas",
   "cn": "Las Vegas",
   "k": "clark-county",
   "kn": "Clark County"
  },
+ "women-tech-council-innovation-summit": {
+  "c": "lehi",
+  "cn": "Lehi",
+  "k": "utah-county",
+  "kn": "Utah County"
+ },
  "womens-venture-capital-summit": {
+  "c": "half-moon-bay",
+  "cn": "Half Moon Bay",
   "k": "san-mateo-county",
   "kn": "San Mateo County"
  },
@@ -9632,6 +12746,12 @@
   "cn": "San Diego",
   "k": "san-diego-county",
   "kn": "San Diego County"
+ },
+ "workforce-impact-summit": {
+  "c": "washington",
+  "cn": "Washington",
+  "k": "district-of-columbia",
+  "kn": "District of Columbia"
  },
  "workiva-amplify": {
   "c": "las-vegas",
@@ -9657,7 +12777,19 @@
   "k": "san-francisco-county",
   "kn": "San Francisco County"
  },
+ "world-of-coffee-new-orleans": {
+  "c": "new-orleans",
+  "cn": "New Orleans",
+  "k": "orleans-parish",
+  "kn": "Orleans Parish"
+ },
  "world-of-concrete": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
+ },
+ "world-of-workato": {
   "c": "las-vegas",
   "cn": "Las Vegas",
   "k": "clark-county",
@@ -9681,6 +12813,12 @@
   "k": "multnomah-county",
   "kn": "Multnomah County"
  },
+ "wsae-annual-summit": {
+  "c": "pewaukee",
+  "cn": "Pewaukee",
+  "k": "waukesha-county",
+  "kn": "Waukesha County"
+ },
  "wsia-annual-marketplace": {
   "c": "san-diego",
   "cn": "San Diego",
@@ -9699,6 +12837,12 @@
   "k": "clark-county",
   "kn": "Clark County"
  },
+ "wvml-annual-conference": {
+  "c": "charleston",
+  "cn": "Charleston",
+  "k": "kanawha-county",
+  "kn": "Kanawha County"
+ },
  "wwd-apparel-retail-ceo-summit": {
   "c": "new-york",
   "cn": "New York",
@@ -9710,6 +12854,18 @@
   "cn": "Jackson",
   "k": "teton-county",
   "kn": "Teton County"
+ },
+ "wyoming-library-association-annual-conference": {
+  "c": "cheyenne",
+  "cn": "Cheyenne",
+  "k": "laramie-county",
+  "kn": "Laramie County"
+ },
+ "wyoming-primary-care-symposium": {
+  "c": "casper",
+  "cn": "Casper",
+  "k": "natrona-county",
+  "kn": "Natrona County"
  },
  "xponential": {
   "c": "miami-beach",
@@ -9723,6 +12879,12 @@
   "k": "king-county",
   "kn": "King County"
  },
+ "yale-higher-education-leadership-summit": {
+  "c": "new-haven",
+  "cn": "New Haven",
+  "k": "south-central-connecticut-planning-region",
+  "kn": "South Central Connecticut Planning Region"
+ },
  "yankee-dental-congress": {
   "c": "boston",
   "cn": "Boston",
@@ -9734,6 +12896,12 @@
   "cn": "Seattle",
   "k": "king-county",
   "kn": "King County"
+ },
+ "zenith-live": {
+  "c": "las-vegas",
+  "cn": "Las Vegas",
+  "k": "clark-county",
+  "kn": "Clark County"
  },
  "zero-to-three-learn-conference": {
   "c": "portland",
