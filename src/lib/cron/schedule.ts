@@ -46,16 +46,23 @@ export function maxGapMinutes(expr: string): number {
  * ledger row, so the watchdog and Job health judge it by name on the bundle's schedule.
  */
 export const CRON_BUNDLES: Readonly<Record<string, readonly string[]>> = {
-  'bundle-membership': ['membership-lapse-check', 'membership-dossier-refresh', 'membership-market-check', 'membership-network-nudge', 'activity-streaks', 'benefits-network-expire-listings'],
+  'bundle-membership': ['demo-expiry', 'membership-lapse-check', 'membership-dossier-refresh', 'membership-market-check', 'membership-network-nudge', 'activity-streaks', 'benefits-network-expire-listings'],
   'bundle-daily-1300': ['week1-kickoff', 'candidate-email-dispatch', 'talent-intake', 'social-posts'],
-  'bundle-search-pings': ['google-indexing-jobs', 'indexnow-seo-pages', 'bing-url-submit'],
-  'bundle-company-light': ['company-outcomes', 'company-events'],
-  'bundle-tuesday-digests': ['market-digest-recruiters', 'market-digest-employers'],
-  'bundle-daily-1500': ['deadline-reminders', 'census-comms'],
   'bundle-daily-1030': ['meeting-prep-send', 'mailing-autoassign', 'content-drafts', 'ats-job-board-feed'],
-  'bundle-daily-1200': ['job-search-daily', 'help-feedback-digest', 'research-inbox-sweep'],
-  'bundle-monday-1100': ['senior-brief', 'outplacement-agent'],
-  'bundle-daily-1400': ['registration-reminders', 'interim-role-reverify'],
+  'bundle-daily-1200': ['help-feedback-digest', 'research-inbox-sweep', 'job-search-daily'],
+  'bundle-search-pings': ['bing-url-submit', 'indexnow-seo-pages', 'google-indexing-jobs', 'indexnow-org-pages', 'indexnow-jobs'],
+  'bundle-company-light': ['company-events', 'company-outcomes'],
+  'bundle-tuesday-digests': ['market-digest-recruiters', 'market-digest-employers', 'weekly-read', 'market-digest-coaches', 'upgrade-offer'],
+  'bundle-wednesday': ['nudge-recruiter-network-unlock', 'win-back'],
+  'bundle-monday': ['senior-brief', 'outplacement-agent', 'course-scan', 'higher-ed-weekly', 'market-reality-snapshot', 'auto-assign-sprint', 'conference-recheck', 'population-snapshot'],
+  'bundle-sunday': ['partner-scores', 'workforce-boards'],
+  'bundle-afternoon': ['lead-nurture', 'layoff-alerts', 'job-alerts', 'deadline-reminders', 'census-comms', 'notify-recruiters-new-candidates', 'backchannel-match', 'registration-reminders', 'interim-role-reverify'],
+  'bundle-hourly-light': ['indexnow-layoffs', 'social-filings', 'mailing-verify', 'topic-snapshots'],
+  'bundle-every-5': ['lead-lifecycle', 'mailing-send'],
+  'bundle-data-light': ['ceo-speaking', 'higher-ed-nightly', 'catalog-seeds', 'landed-to-managing', 'events-refresh', 'funding-opportunities', 'expire-job-postings', 'likely-openings'],
+  'bundle-market-data': ['pivot-market', 'market-size', 'company-hiring-index'],
+  'bundle-contracts': ['competitor-awards', 'board-bids', 'federal-contracts'],
+  'bundle-late-morning': ['mailing-drafts', 'staff-agents', 'news-discovery', 'seo-title-tests'],
 }
 
 /**
