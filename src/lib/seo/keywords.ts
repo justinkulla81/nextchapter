@@ -2067,10 +2067,153 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/topics/cover-letter-tips',
     kind: 'page',
     primary: 'cover letter tips',
-    secondary: ['cover letter for experienced professionals', 'cover letter after layoff', 'cover letter for career change', 'how long should a cover letter be', 'do I need a cover letter'],
+    secondary: ['cover letter for experienced professionals', 'cover letter after layoff', 'how long should a cover letter be', 'do I need a cover letter'],
     seo: {
       title: 'Cover Letter Tips for Experienced Professionals',
       description: 'A good cover letter is short: why this role, two results that match it and what you will do first. When to write one and how to explain a change or a layoff.',
+    },
+  },
+  {
+    id: 'resume-template',
+    intent: 'Find a simple resume template or layout',
+    owner: '/topics/resume-template',
+    kind: 'page',
+    primary: 'resume template',
+    secondary: ['resume templates', 'free resume template', 'resume template for experienced professionals', 'professional resume template', 'simple resume template', 'resume layout', 'resume sections', 'what to include on a resume'],
+    seo: {
+      title: 'Resume Template: A Simple Layout That Gets Read',
+      description:
+        'A simple one-column resume template for experienced professionals: the sections, how to write each bullet, and what to avoid so screening software can read it.',
+    },
+  },
+  {
+    id: 'resume-format',
+    intent: 'Choose a resume format',
+    owner: '/topics/resume-format',
+    kind: 'page',
+    primary: 'resume format',
+    secondary: ['chronological resume', 'functional resume', 'combination resume', 'chronological vs functional resume', 'which resume format is best', 'resume format for experienced professionals', 'how to format a resume', 'resume font and margins', 'resume font size', 'resume margins'],
+    seo: {
+      title: 'Resume Format: Chronological, Functional or Combination',
+      description:
+        'Which resume format to use: why reverse-chronological is the default, when a combination format fits a career change, and the font, size and margins to use.',
+    },
+  },
+  {
+    id: 'resume-objective',
+    intent: 'Decide whether to use a resume objective',
+    owner: '/topics/resume-objective',
+    kind: 'page',
+    primary: 'resume objective',
+    secondary: ['resume objective examples', 'resume objective vs summary', 'resume summary vs objective', 'do i need a resume objective', 'career objective for resume', 'resume objective for career change'],
+    seo: {
+      title: 'Resume Objective: When to Use One and What to Write Instead',
+      description:
+        'Should you put an objective on your resume? When an objective helps, how it differs from a summary, with examples for career changers and new graduates.',
+    },
+  },
+  {
+    id: 'resume-skills',
+    intent: 'Decide which skills to put on a resume',
+    owner: '/topics/resume-skills',
+    kind: 'page',
+    primary: 'resume skills',
+    secondary: ['skills to put on a resume', 'skills section on resume', 'how to list skills on a resume', 'hard skills for resume', 'soft skills for resume', 'technical skills on resume', 'how many skills on a resume'],
+    seo: {
+      title: 'Resume Skills: What to List and How to List It',
+      description:
+        'Which skills to put on a resume, how many, how to group them and match them to the job posting, and how to show a skill with a result instead of a list.',
+    },
+  },
+  {
+    id: 'resume-length',
+    intent: 'Decide how long a resume should be',
+    owner: '/topics/resume-length',
+    kind: 'page',
+    primary: 'how long should a resume be',
+    secondary: ['resume length', 'one page resume', 'two page resume', 'one page or two page resume', 'is a two page resume ok', 'how many pages should a resume be', 'how far back should a resume go'],
+    seo: {
+      title: 'How Long Should a Resume Be? One Page or Two',
+      description:
+        'One page or two? A simple rule by years of experience, what to cut, how far back to go, and why you should not shrink the type to make a resume fit.',
+    },
+  },
+  {
+    id: 'resume-career-change',
+    intent: 'Write a resume when changing careers',
+    owner: '/topics/resume-career-change',
+    kind: 'page',
+    primary: 'resume for career change',
+    secondary: ['career change resume', 'resume for a career pivot', 'how to write a resume when changing careers', 'transferable skills on a resume', 'career change resume summary'],
+    seo: {
+      title: 'Resume for a Career Change: How to Write It',
+      description:
+        'How to write a resume for a career change: name the target role, lead with transferable results, use a combination format and fill the gap with proof.',
+    },
+  },
+  {
+    id: 'federal-resume',
+    intent: 'Write a federal resume for USAJOBS',
+    owner: '/topics/federal-resume',
+    kind: 'page',
+    primary: 'federal resume format',
+    secondary: ['federal resume', 'usajobs resume', 'how to write a federal resume', 'usajobs resume builder', 'federal resume length', 'federal resume requirements'],
+    seo: {
+      title: 'Federal Resume Format: How to Write One for USAJOBS',
+      description:
+        'What a federal resume must include (hours, salary, supervisor, detailed duties), how long it runs, and how to match a USAJOBS announcement.',
+    },
+  },
+  {
+    id: 'cover-letter-examples',
+    intent: 'Read cover letter examples',
+    owner: '/topics/cover-letter-examples',
+    kind: 'page',
+    primary: 'cover letter example',
+    secondary: ['cover letter examples', 'cover letter sample', 'cover letter samples', 'good cover letter examples', 'professional cover letter example'],
+    seo: {
+      title: 'Cover Letter Examples You Can Adapt (Three Full Letters)',
+      description:
+        'Three full cover letter examples, for an experienced hire, a career changer and a return to work, with what they share and how to adapt them to your own results.',
+    },
+  },
+  {
+    id: 'cover-letter-template',
+    intent: 'Use a cover letter template',
+    owner: '/topics/cover-letter-template',
+    kind: 'page',
+    primary: 'cover letter template',
+    secondary: ['cover letter format', 'cover letter structure', 'cover letter outline', 'how to write a cover letter', 'cover letter sections', 'professional cover letter template', 'simple cover letter template', 'email cover letter'],
+    seo: {
+      title: 'Cover Letter Template: Structure, Format and What to Write',
+      description:
+        'A cover letter template with the outline, a fill-in version, the right length and format, and the mistakes that get a letter ignored.',
+    },
+  },
+  {
+    id: 'cover-letter-start',
+    intent: 'Start a cover letter',
+    owner: '/topics/how-to-start-a-cover-letter',
+    kind: 'page',
+    primary: 'how to start a cover letter',
+    secondary: ['cover letter opening', 'cover letter opening lines', 'cover letter first paragraph', 'cover letter introduction', 'how to begin a cover letter', 'cover letter opening sentence', 'how to end a cover letter', 'cover letter closing'],
+    seo: {
+      title: 'How to Start a Cover Letter: Opening Lines That Work',
+      description:
+        'Four ways to open a cover letter that earn a second read, what to avoid, and how to end it with a plain ask to talk.',
+    },
+  },
+  {
+    id: 'cover-letter-career-change',
+    intent: 'Write a cover letter when changing careers',
+    owner: '/topics/cover-letter-career-change',
+    kind: 'page',
+    primary: 'cover letter for career change',
+    secondary: ['career change cover letter', 'cover letter career change example', 'cover letter when changing careers', 'cover letter for a different industry', 'cover letter with no experience in the field'],
+    seo: {
+      title: 'Cover Letter for a Career Change: Structure and Example',
+      description:
+        'How to write a cover letter for a career change: explain the move in one line, show a result that transfers, say how you prepared, with a full example.',
     },
   },
   {
@@ -2587,6 +2730,17 @@ export const ANCHORS: Record<string, string> = {
   '/topics/unemployment-payment-timing': 'When your first unemployment payment arrives',
   '/topics/unemployment-self-employed': 'Unemployment for the self-employed',
   '/topics/cover-letter-tips': 'Cover letter tips',
+  '/topics/resume-template': 'Resume template',
+  '/topics/resume-format': 'Resume format',
+  '/topics/resume-objective': 'Resume objective',
+  '/topics/resume-skills': 'Resume skills',
+  '/topics/resume-length': 'How long a resume should be',
+  '/topics/resume-career-change': 'Resume for a career change',
+  '/topics/federal-resume': 'Federal resume format',
+  '/topics/cover-letter-examples': 'Cover letter examples',
+  '/topics/cover-letter-template': 'Cover letter template',
+  '/topics/how-to-start-a-cover-letter': 'How to start a cover letter',
+  '/topics/cover-letter-career-change': 'Cover letter for a career change',
   '/topics/severance': 'Severance package: what it is and how to negotiate',
   '/topics/job-search-strategy': 'Job search strategy',
   '/topics/resume-tips': 'Resume tips for experienced professionals',
@@ -2669,6 +2823,17 @@ export const RELATED: Record<string, string[]> = {
   '/tools/severance-calculator': ['/topics/severance', '/unemployment-benefits', '/resources/cobra-aca', '/tools/cobra-vs-aca-calculator', '/resources/72-hours'],
   '/tools/cobra-vs-aca-calculator': ['/resources/cobra-aca', '/tools/layoff-deadlines', '/unemployment-benefits', '/tools/severance-calculator'],
   '/topics/job-search-strategy': ['/places', '/resources/unemployed', '/why-stuck', '/resources/network-activation', '/topics/resume-tips', '/jobs', '/coaching'],
+  '/topics/resume-template': ['/topics/resume-format', '/topics/resume-skills', '/topics/resume-tips', '/topics/resume-examples', '/tools/resume-check'],
+  '/topics/resume-format': ['/topics/resume-template', '/topics/resume-career-change', '/topics/resume-gap', '/topics/resume-length', '/tools/resume-check'],
+  '/topics/resume-objective': ['/topics/resume-tips', '/topics/resume-career-change', '/topics/resume-examples', '/topics/resume-template', '/tools/resume-check'],
+  '/topics/resume-skills': ['/tools/resume-job-match', '/topics/resume-template', '/topics/resume-career-change', '/topics/resume-ats-ai-screening', '/ai-skills'],
+  '/topics/resume-length': ['/topics/resume-template', '/topics/federal-resume', '/topics/resume-format', '/topics/resume-tips', '/tools/resume-check'],
+  '/topics/resume-career-change': ['/topics/cover-letter-career-change', '/topics/career-pivot', '/start/career-change', '/topics/resume-skills', '/topics/resume-format'],
+  '/topics/federal-resume': ['/topics/federal-rif', '/topics/resume-length', '/topics/resume-template', '/tools/resume-job-match', '/jobs'],
+  '/topics/cover-letter-examples': ['/topics/cover-letter-template', '/topics/how-to-start-a-cover-letter', '/topics/cover-letter-career-change', '/topics/cover-letter-tips', '/topics/resume-tips'],
+  '/topics/cover-letter-template': ['/topics/cover-letter-examples', '/topics/how-to-start-a-cover-letter', '/topics/cover-letter-tips', '/topics/ai-cover-letters', '/topics/resume-tips'],
+  '/topics/how-to-start-a-cover-letter': ['/topics/cover-letter-template', '/topics/cover-letter-examples', '/topics/cover-letter-tips', '/topics/ai-cover-letters', '/topics/resume-tips'],
+  '/topics/cover-letter-career-change': ['/topics/resume-career-change', '/topics/career-pivot', '/topics/cover-letter-examples', '/topics/cover-letter-template', '/topics/explain-a-layoff'],
   '/topics/resume-tips': ['/topics/resume-review', '/resources/gatekeeper', '/resources/narrative-workshop', '/dossier', '/submit-resume', '/topics/job-search-strategy'],
   '/topics/career-pivot': ['/start/career-change', '/topics/career-exploration', '/funding', '/resources/narrative-workshop', '/coaching'],
   '/topics/career-exploration': ['/topics/career-pivot', '/start/career-change', '/ai-skills', '/funding', '/coaching'],

@@ -14,6 +14,8 @@ const T = {
   resume: { label: 'Free résumé check: score your résumé in a minute', href: '/tools/resume-check' },
   scams: { label: 'Scam watch: fake postings and recruiter scams we are tracking', href: '/scam-watch' },
   places: { label: 'Local job markets: openings and layoffs by place', href: '/places' },
+  match: { label: 'Résumé vs job description: see what your résumé is missing', href: '/tools/resume-job-match' },
+  bullets: { label: 'Résumé bullet rewriter: turn duties into results', href: '/tools/resume-bullet-rewriter' },
 } satisfies Record<string, TopicTool>
 
 export const TOPIC_TOOLS: Record<string, TopicTool[]> = {
@@ -45,4 +47,15 @@ export const TOPIC_TOOLS: Record<string, TopicTool[]> = {
   'negotiate-a-job-offer': [T.pay, T.salary],
   'relocating-for-a-job': [T.places, T.salary],
   'fake-job-postings': [T.scams],
+  'resume-template': [T.resume, T.bullets],
+  'resume-format': [T.resume],
+  'resume-objective': [T.resume, T.bullets],
+  'resume-skills': [T.match, T.resume],
+  'resume-length': [T.resume],
+  'resume-career-change': [T.match, T.bullets],
+  'federal-resume': [T.match, T.resume],
+  'cover-letter-examples': [T.match],
+  'cover-letter-template': [T.match],
+  'how-to-start-a-cover-letter': [T.match],
+  'cover-letter-career-change': [T.match, T.resume],
 }
