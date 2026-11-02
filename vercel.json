@@ -49,6 +49,10 @@
       "schedule": "50 3,15 * * *"
     },
     {
+      "path": "/api/cron/rankings",
+      "schedule": "20 6 2 * *"
+    },
+    {
       "path": "/api/cron/page-warmup",
       "schedule": "40 8 * * *"
     },

@@ -16,7 +16,7 @@ const SOURCES = new Set([
   'employment-report', 'employment-report-popup', 'employment-report-pdf',
   'site-footer',
   // Hub pages of the public salary and local job market sections.
-  'salaries', 'places',
+  'salaries', 'places', 'rankings',
   // The AI-skill pay premium explainer.
   'ai-pay-premium',
 ])
