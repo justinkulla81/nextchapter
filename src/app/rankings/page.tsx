@@ -16,12 +16,13 @@ export const metadata: Metadata = {
   ...canonical('/rankings'),
 }
 
-const FAMILY_ORDER = ['Entry-level', 'AI', 'Pay', 'Work style', 'Markets', 'Growth']
+const FAMILY_ORDER = ['Entry-level', 'Levels', 'AI', 'AI skills', 'Pay', 'Work style', 'Job families', 'Markets', 'Growth']
 
 export default async function RankingsHub() {
   const index = await readRankingIndex()
   const newest = index.map((x) => x.edition).sort().reverse()[0]
-  const national = index.filter((x) => x.scopeKind === 'national')
+  const LIST_FAMILIES = ['Job families', 'AI skills']
+  const national = index.filter((x) => x.scopeKind === 'national' && !LIST_FAMILIES.includes(x.family))
   const families = FAMILY_ORDER.filter((f) => index.some((x) => x.family === f))
   return (
     <SeoPage
@@ -46,11 +47,11 @@ export default async function RankingsHub() {
         </section>
       )}
       {families.map((f) => {
-        const regional = index.filter((x) => x.family === f && x.scopeKind !== 'national')
+        const regional = index.filter((x) => x.family === f && (LIST_FAMILIES.includes(f) || x.scopeKind !== 'national'))
         if (!regional.length) return null
         return (
           <section key={f} aria-labelledby={`f-${f}`} className="mt-12">
-            <h2 id={`f-${f}`} className={H2}>{f}: by region and state</h2>
+            <h2 id={`f-${f}`} className={H2}>{f === 'Job families' || f === 'AI skills' ? f : `${f}: by region and state`}</h2>
             <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
               {regional.map((x) => <li key={x.slug}><Link href={`/rankings/${x.slug}`} className={LINK}>{x.title}</Link></li>)}
             </ul>

@@ -13,6 +13,11 @@ export interface CityStat {
   eng: number
   engPaid: number
   engPay: number | null
+  /** Mid-career (mid-level, senior and manager) and director-and-above openings. */
+  mid: number
+  exec: number
+  /** For a job-family slice only: the city's openings across every family. */
+  cityN?: number
   /** Up to three employers with the most open roles here. */
   employers: string[]
   /** The biggest employer's share of the city's openings (0 to 1). */
@@ -53,7 +58,12 @@ export interface RankRow {
   n: number
 }
 
-export type MeasureId = 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent' | 'growth' | 'infogrowth'
+export type MeasureId =
+  | 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent' | 'growth' | 'infogrowth'
+  | 'midcareer' | 'leadership' | 'fnopen' | 'fnpay' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay'
+
+/** Which stored build a list belongs to: the three builds run as separate monthly jobs so each stays inside the time limit. */
+export type BuildGroup = 'places' | 'functions' | 'skills'
 
 export interface RankingEdition {
   slug: string
@@ -67,7 +77,7 @@ export interface RankingEdition {
   /** What a place needs to be ranked, in the measure's own unit ("openings" or "jobs"). */
   minN: number
   unit: 'openings' | 'jobs'
-  placeNoun: 'cities' | 'counties'
+  placeNoun: 'cities' | 'counties' | 'skills' | 'tools' | 'certifications'
   baseline: { label: string; valueLabel: string } | null
   lead: string
   keyFacts: string[]
@@ -91,6 +101,7 @@ export interface RankingIndexEntry {
   topName: string
   topValueLabel: string
   places: number
+  group?: BuildGroup
   /** Every edition built so far, newest first. */
   editions: string[]
 }
@@ -98,3 +109,8 @@ export interface RankingIndexEntry {
 /** Where a place ranks: one entry per list it is in the top 25 of, for the rank line on its page. */
 export interface PlaceRank { slug: string; title: string; rank: number; valueLabel: string; places: number }
 export type PlaceRanks = Record<string, PlaceRank[]>
+
+/** One AI skill, tool or certification named in postings, in one job family (fn "*" is every family). */
+export interface SkillStat { fn: string; kind: 'skill' | 'tool' | 'cert'; key: string; n: number; paid: number; payMed: number | null }
+/** Openings in a job family (fn "*" is every family), with their median posted pay. */
+export interface FnTotal { fn: string; n: number; paid: number; payMed: number | null }

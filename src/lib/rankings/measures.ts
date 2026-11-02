@@ -17,7 +17,7 @@ export interface Cost { rpp: number; basis: 'metro' | 'state' }
 export interface CityCtx { costOf: (c: CityStat) => Cost | null }
 
 export interface CityMeasure {
-  id: Exclude<MeasureId, 'growth' | 'infogrowth'>
+  id: Exclude<MeasureId, 'growth' | 'infogrowth' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay'>
   kind: 'city'
   family: string
   /** Openings a city needs, by scope, in the unit the measure counts. */
@@ -45,7 +45,8 @@ const payOf = (c: CityStat) => (c.payMed != null && c.paid >= 8 ? usdK(c.payMed)
 const sum = (xs: CityStat[], f: (c: CityStat) => number) => xs.reduce((s, c) => s + f(c), 0)
 const share = (num: number, den: number) => (den > 0 ? num / den : 0)
 
-export const CITY_MEASURES: Record<CityMeasure['id'], CityMeasure> = {
+type BaseId = 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent'
+const BASE: Record<BaseId, CityMeasure> = {
   junior: {
     id: 'junior', kind: 'city', family: 'Entry-level', unit: 'openings',
     min: { national: 200, region: 100, state: 100 },
@@ -184,6 +185,68 @@ export const CITY_MEASURES: Record<CityMeasure['id'], CityMeasure> = {
   },
 }
 
+// Level lists and job-family lists are built from the same city counts.
+const share2 = (a: number, b: number) => (b > 0 ? a / b : 0)
+const MID: CityMeasure = {
+  id: 'midcareer', kind: 'city', family: 'Levels', unit: 'openings',
+  min: { national: 200, region: 100, state: 100 },
+  qualifies: (c, min) => c.n >= min && diverse(c),
+  value: (c) => share2(c.mid, c.n),
+  valueLabel: pct0,
+  sample: (c) => c.n,
+  stats: (c) => [{ label: 'Mid-career openings', value: nf(c.mid) }, { label: 'All openings', value: nf(c.n) }, { label: 'Median posted pay', value: payOf(c) }],
+  baseline: (all) => ({ label: 'all cities in our data', valueLabel: pct0(share2(sum(all, (c) => c.mid), sum(all, (c) => c.n))) }),
+  lead: (name, v, scope, b) => `${name} leads ${scope} for mid-career professionals: ${v} of its professional openings are mid-level, senior or manager roles${b ? `, against ${b} across all cities in our data` : ''}.`,
+  method: [
+    'A city\'s score is the share of its open professional roles at mid-level, senior individual-contributor or manager level, read from the full posting text.',
+    'Only roles verified on the employer\'s own career site in the last week are counted. Internships are left out.',
+  ],
+  base: { title: 'Best cities for mid-career professionals', slug: 'best-cities-for-mid-career-jobs' },
+  scoped: (p) => ({ title: `Best cities for mid-career professionals in ${p}`, slug: (id) => `best-cities-for-mid-career-jobs-in-${id}` }),
+}
+const LEAD: CityMeasure = {
+  id: 'leadership', kind: 'city', family: 'Levels', unit: 'openings',
+  min: { national: 200, region: 100, state: 100 },
+  qualifies: (c, min) => c.n >= min && diverse(c),
+  value: (c) => share2(c.exec, c.n),
+  valueLabel: pct0,
+  sample: (c) => c.n,
+  stats: (c) => [{ label: 'Director and above', value: nf(c.exec) }, { label: 'All openings', value: nf(c.n) }, { label: 'Median posted pay', value: payOf(c) }],
+  baseline: (all) => ({ label: 'all cities in our data', valueLabel: pct0(share2(sum(all, (c) => c.exec), sum(all, (c) => c.n))) }),
+  lead: (name, v, scope, b) => `${name} leads ${scope} for director and executive jobs: ${v} of its professional openings are director level or above${b ? `, against ${b} across all cities in our data` : ''}.`,
+  method: [
+    'A city\'s score is the share of its open professional roles at director, senior manager, vice president, head-of or C-suite level, read from the full posting text.',
+    'Only roles verified on the employer\'s own career site in the last week are counted.',
+  ],
+  base: { title: 'Best cities for director and executive jobs', slug: 'best-cities-for-director-and-executive-jobs' },
+  scoped: (p) => ({ title: `Best cities for director and executive jobs in ${p}`, slug: (id) => `best-cities-for-director-and-executive-jobs-in-${id}` }),
+}
+/** Openings in one job family by city. The spec supplies the title and slug; stats carry the family's counts in `n`, and `cityN` is the whole city. */
+const FNOPEN: CityMeasure = {
+  ...BASE.largest, id: 'fnopen', family: 'Job families',
+  qualifies: (c, min) => c.n >= min && diverse(c),
+  stats: (c) => [{ label: 'Share of the city\'s openings', value: pct0(share2(c.n, c.cityN ?? c.n)) }, { label: 'Median posted pay', value: payOf(c) }, { label: 'All openings in the city', value: nf(c.cityN ?? c.n) }],
+  baseline: () => null,
+  lead: (name, v, scope) => `${name} has the most openings in this job family in ${scope}: ${v}.`,
+  method: [
+    'A city is ranked on the number of its open professional roles in this job family, as classed from the posting title and text. Median pay uses only listings that post a salary, shown where at least 8 do.',
+    'Only roles verified on the employer\'s own career site in the last week are counted.',
+  ],
+  min: { national: 50, region: 30, state: 30 },
+}
+const FNPAY: CityMeasure = {
+  ...BASE.paycost, id: 'fnpay', family: 'Job families',
+  qualifies: (c, min, ctx) => c.n >= min && diverse(c) && c.paid >= 20 && c.payMed != null && ctx.costOf(c) != null,
+  lead: (name, v, scope) => `${name} leads ${scope} for pay after the cost of living in this job family: its median posted salary buys what ${v} buys at average US prices.`,
+  method: [
+    'The score is the median posted annual salary (the midpoint of each posted range) for this job family in a city, divided by its local price level, with the United States at 100.',
+    'Price levels are the Bureau of Economic Analysis regional price parities for the city\'s metro area, or its state where no metro figure exists. Only cities with at least 20 listings in the family that post a salary are ranked.',
+  ],
+  min: { national: 30, region: 30, state: 30 },
+}
+
+export const CITY_MEASURES: Record<CityMeasure['id'], CityMeasure> = { ...BASE, midcareer: MID, leadership: LEAD, fnopen: FNOPEN, fnpay: FNPAY }
+
 export interface CountyMeasure {
   id: 'growth' | 'infogrowth'
   kind: 'county'
@@ -248,7 +311,10 @@ export const COUNTY_MEASURES: Record<CountyMeasure['id'], CountyMeasure> = {
   },
 }
 
+const POSTINGS = ['NextChapter job data: open professional roles on employer career sites, verified in the last week']
 export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
+  midcareer: POSTINGS, leadership: POSTINGS, fnopen: POSTINGS, aiskills: POSTINGS, aitools: POSTINGS, aicerts: POSTINGS, skillpay: POSTINGS,
+  fnpay: ['NextChapter job data: posted annual salary ranges', 'Bureau of Economic Analysis regional price parities 2024 (metro areas and states)'],
   junior: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
   ai: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
   remote: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],

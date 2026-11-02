@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { rankCities, rankCounties, wave1Specs, MIN_RANKED, editionLabel } from '@/lib/rankings/build-edition'
+import { rankCities, rankCounties, rankSkills, wave1Specs, wave2PlaceSpecs, functionSpecs, skillSpecs, MIN_RANKED, editionLabel } from '@/lib/rankings/build-edition'
 import { CITY_MEASURES } from '@/lib/rankings/measures'
-import type { CityStat, CountyStat } from '@/lib/rankings/types'
+import type { CityStat, CountyStat, FnTotal, SkillStat } from '@/lib/rankings/types'
 
 const city = (st: string, name: string, n: number, entry: number, extra: Partial<CityStat> = {}): CityStat => ({
-  st, city: name, n, entry, ai: 0, remote: 0, paid: 0, payMed: null, eng: 0, engPaid: 0, engPay: null, employers: [], topShare: 0.1, ...extra,
+  st, city: name, n, entry, ai: 0, remote: 0, paid: 0, payMed: null, eng: 0, engPaid: 0, engPay: null, employers: [], topShare: 0.1, mid: 0, exec: 0, ...extra,
 })
 const info = (c: CityStat) => ({ name: c.city[0].toUpperCase() + c.city.slice(1), href: `/places/x/city/${c.city}` })
 const ctx = { costOf: () => ({ rpp: 100, basis: 'metro' as const }) }
@@ -69,6 +69,41 @@ describe('ranking engine', () => {
   })
   it('formats edition labels and defines every measure', () => {
     expect(editionLabel('2026-11')).toBe('November 2026')
-    expect(Object.keys(CITY_MEASURES)).toHaveLength(7)
+    expect(Object.keys(CITY_MEASURES)).toHaveLength(11)
+  })
+
+  it('builds the wave 2 sets with unique addresses', () => {
+    const places = wave2PlaceSpecs()
+    expect(places).toHaveLength(2 + 10 * 3)
+    const fns = functionSpecs()
+    expect(fns.filter((s) => s.measure === 'fnopen')).toHaveLength(12)
+    expect(fns.filter((s) => s.measure === 'fnpay')).toHaveLength(13)
+    const skills = skillSpecs()
+    expect(skills.filter((s) => s.measure === 'aiskills')).toHaveLength(13)
+    expect(skills.some((s) => s.measure === 'aicerts')).toBe(false)
+    const all = [...wave1Specs(['TX']), ...places, ...fns, ...skills]
+    expect(new Set(all.map((s) => s.slug)).size).toBe(all.length)
+    expect(all.every((s) => ['places', 'functions', 'skills'].includes(s.group))).toBe(true)
+  })
+  it('ranks a job family\'s cities with the family counts and city total', () => {
+    const op = functionSpecs().find((s) => s.slug === 'best-cities-for-operations-jobs')!
+    const stats = Array.from({ length: 10 }, (_, i) => city('TX', `fc${i}`, 100 + i * 10, 0, { cityN: 1000, paid: 12, payMed: 90_000 }))
+    const e = rankCities(op, stats, info, ctx, '2026-11', 'x', null)!
+    expect(e.rows[0].name).toBe('Fc9')
+    expect(e.rows[0].stats[0]).toEqual({ label: 'Share of the city\'s openings', value: '19%' })
+  })
+  it('ranks AI skills by their share of a family\'s openings, and needs enough openings', () => {
+    const spec = skillSpecs().find((s) => s.slug === 'most-requested-ai-skills')!
+    const totals: FnTotal[] = [{ fn: '*', n: 10_000, paid: 3000, payMed: 120_000 }]
+    const stats: SkillStat[] = Array.from({ length: 8 }, (_, i) => ({ fn: '*', kind: 'skill' as const, key: `x${i}`, n: 100 + i * 50, paid: 40, payMed: 130_000 + i * 1000 }))
+    const e = rankSkills(spec, stats, totals, '2026-11', 'x', null)!
+    expect(e.rows[0].name).toBe('x7')
+    expect(e.rows[0].valueLabel).toBe('4.5%')
+    expect(e.placeNoun).toBe('skills')
+    expect(rankSkills(spec, stats, [{ fn: '*', n: 100, paid: 0, payMed: null }], '2026-11', 'x', null)).toBeNull()
+    const pay = skillSpecs().find((s) => s.measure === 'skillpay')!
+    const p = rankSkills(pay, stats, totals, '2026-11', 'x', null)!
+    expect(p.rows[0].name).toBe('x7')
+    expect(p.rows[0].stats[2].value).toBe('+14%')
   })
 })

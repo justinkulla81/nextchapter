@@ -19,6 +19,7 @@ export const previousEdition = (edition: string) => {
 
 export const isEdition = (s: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(s)
 
+export const readPlaceRanksRaw = async (): Promise<PlaceRanks> => (await readBoardFigure<PlaceRanks>('ranking-places')) ?? {}
 export const writePlaceRanks = (ranks: PlaceRanks) => writeBoardFigure('ranking-places', ranks)
 const loadPlaceRanks = memoTtl(10 * 60_000, () => 'all', async (): Promise<PlaceRanks> => (await readBoardFigure<PlaceRanks>('ranking-places')) ?? {})
 /** The lists a city (key "ST|placekey") or a county (FIPS) is in the top 25 of, best rank first. */
