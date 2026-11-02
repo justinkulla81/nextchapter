@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { TEMPLATES, TEMPLATE_LINK_PATHS, TEMPLATE_LINK_SLUGS, fillTemplate, slotsIn, templateBySlug } from '@/lib/templates/library'
 import { KEYWORD_CLUSTERS } from '@/lib/seo/keywords'
+import { layoffsAnnouncedTitle } from '@/lib/seo/templates'
 
 const norm = (s: string) => s.toLowerCase().replace(/[“”"’']/g, '').replace(/\s+/g, ' ').trim()
 
@@ -62,5 +63,22 @@ describe('template library', () => {
     expect(empty).toContain('[their first name]')
     expect(empty).toContain('The conversation made me more interested')
     expect(fillTemplate(t.body, t.fields, { name: 'Taylor' })).toContain('Hi Taylor,')
+  })
+})
+
+describe('layoffsAnnouncedTitle', () => {
+  const lead = (over: Partial<{ kind: 'buyout' | 'layoff'; date: Date; workers: number | null }> = {}) => ({ kind: 'layoff' as const, date: new Date('2026-10-28T00:00:00Z'), workers: null, ...over })
+  it('leads with the job count when the report gives one', () => {
+    expect(layoffsAnnouncedTitle('Omnicom', lead({ workers: 15000 }))).toBe('Omnicom Layoffs 2026: 15,000 Jobs Cut')
+  })
+  it('says when it was reported when there is no count', () => {
+    expect(layoffsAnnouncedTitle('Marriott', lead())).toBe('Marriott Layoffs October 2026: What Was Reported')
+    expect(layoffsAnnouncedTitle('Acme', lead({ kind: 'buyout' }))).toBe('Acme Buyouts October 2026: What Was Reported')
+  })
+  it('never counts a buyout as jobs cut, and shortens a long name to fit', () => {
+    expect(layoffsAnnouncedTitle('Acme', lead({ kind: 'buyout', workers: 900 }))).not.toMatch(/Jobs Cut/)
+    const long = layoffsAnnouncedTitle('International Business Machines Corporation', lead())
+    expect(long.length).toBeLessThanOrEqual(60)
+    expect(long).toContain('Layoffs')
   })
 })

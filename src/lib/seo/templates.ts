@@ -48,6 +48,27 @@ export const layoffsCompanySeo = (company: string, facts?: { year: number; worke
   h1: `${company} layoffs: WARN notices and dates`,
 })
 
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+/**
+ * /layoffs/company/[slug] when the page leads with a reported or announced layoff or buyout (no WARN filing): the job count when the
+ * report gives one, else the month and year of the report. People search "<company> layoffs october 2026" (Search Console, 2026-10:
+ * "marriott layoffs october 2026" ranked 7.9 against 10.4 for "marriott layoffs"), and the old "What Was Announced" said nothing about when.
+ * "Reported" is the honest word: many of these are one publisher's report that the company has not confirmed.
+ */
+export const layoffsAnnouncedTitle = (company: string, lead: { kind: 'buyout' | 'layoff'; date: Date; workers: number | null }): string => {
+  const year = lead.date.getUTCFullYear()
+  const month = MONTH_NAMES[lead.date.getUTCMonth()]
+  const what = lead.kind === 'buyout' ? 'Buyouts' : 'Layoffs'
+  return pick(
+    ...(lead.kind === 'layoff' && lead.workers ? [`${company} Layoffs ${year}: ${lead.workers.toLocaleString('en-US')} Jobs Cut`] : []),
+    `${company} ${what} ${month} ${year}: What Was Reported`,
+    `${company} ${what} ${month} ${year}`,
+    `${company} ${what} ${year}: What Was Reported`,
+    `${company} ${what} ${year}`,
+  )
+}
+
 /** /network/company/[slug]: workers laid off from the company, kept off the "<company> layoffs" phrase /layoffs/company owns. */
 export const networkCompanySeo = (company: string) => ({
   title: pick(`${company} Laid-Off Workers: Jobs and Benefits`, `${company} Laid-Off Workers: Jobs, Benefits, Retraining`, `${company} Laid-Off Workers`),
