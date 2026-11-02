@@ -1004,7 +1004,7 @@ Title is shown before the site suffix " | NextChapter".
 ### `/topics/unemployment-taxes-1099g`
 
 - Title: Is Unemployment Taxable? 1099-G, Withholding and State Tax
-- Description: Unemployment is taxable income. How the 1099-G works, how to withhold 10%, which states exempt benefits, and what to do about a wrong or unexpected form.
+- Description: Unemployment is taxable income. How the 1099-G works, how to have tax withheld, which states exempt benefits, and what to do about a wrong or unexpected form.
 
 ### `/topics/unemployment-extension`
 
