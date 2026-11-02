@@ -9,7 +9,7 @@ import { TrafficRangeProvider, VisitorsRangeSummary, type RangeTotals, type Traf
 import { AverageBarChart } from '@/components/admin/AverageBarChart'
 import { VisitorsPerDayChart } from '@/components/admin/VisitorsPerDayChart'
 import { loadCapturedEmailsForDays } from '@/lib/leads/captured-emails'
-import { capturedPerDay } from '@/lib/admin/captured-per-day'
+import { capturedPerDay, countsPerDay } from '@/lib/admin/captured-per-day'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { isDatacenterIp } from '@/lib/http/datacenter-ip'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
@@ -193,18 +193,34 @@ export default async function AdminVisitorActivityPage({
     '30d': { pageViews: perDaySeries(chartEvents, current, 30, false), uniqueVisitors: perDaySeries(chartEvents, current, 30, true) },
     all: { pageViews: perDaySeries(chartEvents, current, allTimeDays, false), uniqueVisitors: perDaySeries(chartEvents, current, allTimeDays, true) },
   }
+  const toDaysRows = (rows: { key: string; count: number }[]) => rows.map((d) => ({ dateKey: d.key, count: d.count }))
   // Emails captured per day: every form on the public site plus new registrations.
-  const [captured, registrationRows] = await Promise.all([
+  // Seeded sample profiles and profiles with no email are not captures (332 were bulk-created on Oct 15).
+  const [captured, registrationRows, applyClickRows, nativeApplicationRows] = await Promise.all([
     loadCapturedEmailsForDays(CHART_WINDOW_DAYS),
-    prisma.candidateProfile.findMany({ where: { createdAt: { gte: since(CHART_WINDOW_DAYS) } }, select: { createdAt: true } }),
+    prisma.candidateProfile.findMany({
+      where: { createdAt: { gte: since(CHART_WINDOW_DAYS) }, isSampleData: false, email: { not: null } },
+      select: { createdAt: true },
+    }),
+    prisma.homepageVisitEvent.findMany({
+      where: { eventType: 'LINK_CLICK', createdAt: { gte: since(CHART_WINDOW_DAYS) }, href: { not: null } },
+      select: { createdAt: true, userAgent: true, href: true, path: true },
+    }),
+    prisma.nativeJobApplication.findMany({ where: { createdAt: { gte: since(CHART_WINDOW_DAYS) } }, select: { createdAt: true } }),
   ])
+  const humanApplyClicks = applyClickRows.filter(
+    (e) => classifyUserAgent(e.userAgent) === 'human' && isApplyClick('LINK_CLICK', e.href, e.path)
+  )
+  const applicationSeries = [
+    { label: 'Apply clicks (human)', days: toDaysRows(countsPerDay(humanApplyClicks.map((e) => e.createdAt), current, CHART_WINDOW_DAYS)), color: 'var(--color-success)' },
+    { label: 'Applied in NextChapter', days: toDaysRows(countsPerDay(nativeApplicationRows.map((r) => r.createdAt), current, CHART_WINDOW_DAYS)), color: 'var(--color-navy)' },
+  ]
   const capturedDays = capturedPerDay(captured, registrationRows.map((r) => r.createdAt), current, CHART_WINDOW_DAYS)
-  const toDays = (rows: { key: string; count: number }[]) => rows.map((d) => ({ dateKey: d.key, count: d.count }))
   const capturedSeries = [
-    { label: 'All captured', days: toDays(capturedDays.total), color: 'var(--color-navy)' },
-    { label: 'Registrations', days: toDays(capturedDays.registrations), color: 'var(--color-success)' },
-    { label: 'Newsletter signups', days: toDays(capturedDays.newsletter), color: 'var(--color-brand)' },
-    { label: 'Saved jobs', days: toDays(capturedDays.savedJobs), color: 'var(--color-warning)' },
+    { label: 'All captured', days: toDaysRows(capturedDays.total), color: 'var(--color-navy)' },
+    { label: 'Registrations', days: toDaysRows(capturedDays.registrations), color: 'var(--color-success)' },
+    { label: 'Newsletter signups', days: toDaysRows(capturedDays.newsletter), color: 'var(--color-brand)' },
+    { label: 'Saved jobs', days: toDaysRows(capturedDays.savedJobs), color: 'var(--color-warning)' },
   ]
   const colors = { views: 'var(--color-brand)', visitors: 'var(--color-warning)' }
   const weekdaySeries = [
@@ -538,15 +554,24 @@ export default async function AdminVisitorActivityPage({
       </div>
       </TrafficRangeProvider>
 
-      <div className="rounded-lg border border-border p-4">
-        <h2 className="text-sm font-medium text-foreground">Emails captured per day</h2>
-        <p className="mb-3 text-xs text-muted-foreground">
-          Last {CHART_WINDOW_DAYS} days (Eastern time). All captured is every form on the site (journey picker, job alerts, saved jobs, newsletter, contact, guides, résumé, waitlists) plus new registrations.{' '}
-          <Link href="/support/admin/captured-emails" className="text-primary underline underline-offset-4">
-            See the list
-          </Link>
-        </p>
-        <VisitorsPerDayChart series={capturedSeries} emptyMessage="No emails captured in this window yet." />
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-lg border border-border p-4">
+          <h2 className="text-sm font-medium text-foreground">Emails captured per day</h2>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Last {CHART_WINDOW_DAYS} days (Eastern time). All captured is every form on the site (journey picker, job alerts, saved jobs, newsletter, contact, guides, résumé, waitlists) plus new registrations with an email. Seeded sample profiles are left out.{' '}
+            <Link href="/support/admin/captured-emails" className="text-primary underline underline-offset-4">
+              See the list
+            </Link>
+          </p>
+          <VisitorsPerDayChart series={capturedSeries} emptyMessage="No emails captured in this window yet." />
+        </div>
+        <div className="rounded-lg border border-border p-4">
+          <h2 className="text-sm font-medium text-foreground">Job applications per day</h2>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Last {CHART_WINDOW_DAYS} days (Eastern time). Apply clicks are humans leaving a job page for the employer&apos;s own site; applied in NextChapter are applications sent through the platform.
+          </p>
+          <VisitorsPerDayChart series={applicationSeries} emptyMessage="No job applications in this window yet." />
+        </div>
       </div>
 
       <div className="rounded-lg border border-border p-4">
