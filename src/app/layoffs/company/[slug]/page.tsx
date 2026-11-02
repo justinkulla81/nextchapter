@@ -1,5 +1,5 @@
 import { meetsCompanyLayoffBar } from '@/lib/seo/page-bars'
-import { layoffsCompanySeo } from '@/lib/seo/templates'
+import { layoffsAnnouncedTitle, layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FeedLine } from '@/components/seo/FeedLine'
@@ -83,13 +83,6 @@ function guidePlaces(c: CompanySummary): Record<string, string | null> {
   return out
 }
 
-/** "Omnicom Layoffs 2026: 15,000 Jobs Cut" when the announcement gives a number, else the year and the plain wording. */
-function announcedTitle(name: string, lead: { kind: 'buyout' | 'layoff'; date: Date; workers: number | null }): string {
-  const year = lead.date.getUTCFullYear()
-  if (lead.kind === 'buyout') return `${name} Buyouts ${year}: What Was Announced`
-  return lead.workers ? `${name} Layoffs ${year}: ${lead.workers.toLocaleString('en-US')} Jobs Cut` : `${name} Layoffs ${year}: What Was Announced`
-}
-
 const KIND_LABEL = { buyout: 'Voluntary buyout offer', layoff: 'Reported layoff' } as const
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -107,7 +100,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // (src/lib/seo/page-bars.ts), stays reachable but out of search results.
   const stale = !meetsCompanyLayoffBar(c) && !recent
   return {
-    title: titleMeta(recent && lead ? announcedTitle(c.name, lead) : layoffsCompanySeo(c.name, c.notices.length ? { year: c.latest.getUTCFullYear(), workers, notices: c.notices.length } : undefined).title),
+    title: titleMeta(recent && lead ? layoffsAnnouncedTitle(c.name, lead) : layoffsCompanySeo(c.name, c.notices.length ? { year: c.latest.getUTCFullYear(), workers, notices: c.notices.length } : undefined).title),
     description,
     ...canonical(`/layoffs/company/${slug}`),
     ...(stale ? { robots: { index: false, follow: true } } : {}),
