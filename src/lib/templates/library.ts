@@ -15,7 +15,7 @@ export interface TemplateField {
 
 export interface TemplateFaq { q: string; a: string }
 
-export type TemplateCategory = 'Layoff' | 'Job search' | 'Interviews' | 'Offers'
+export type TemplateCategory = 'Layoff' | 'Job search' | 'Interviews' | 'Offers' | 'Employers'
 
 export interface Template {
   slug: string
@@ -626,9 +626,388 @@ Sincerely,
     ],
     related: ['accept-job-offer-email', 'layoff-goodbye-email-to-coworkers', 'reference-request-email'],
   },
+  {
+    slug: 'layoff-announcement-email-to-employees',
+    category: 'Employers',
+    name: 'Layoff announcement email to employees',
+    primary: 'layoff announcement email to employees',
+    secondary: ['layoff email template for employers', 'how to announce layoffs to employees', 'layoff communication template', 'announcing a reduction in force email'],
+    title: 'Layoff Announcement Email to Employees: Template',
+    description: 'A clear, humane layoff announcement email for employers: what is happening, who is affected, what happens next and where to get help. Free template.',
+    h1: 'Layoff announcement email to employees',
+    lede: 'The announcement should say what is happening in the first two sentences, then tell each person what happens next. Vague emails travel faster than the facts.',
+    fields: [
+      { id: 'sender', label: 'Your name and title', placeholder: 'Dana Whitfield, CEO' },
+      { id: 'company', label: 'Company', placeholder: 'Northwind' },
+      { id: 'count', label: 'Roles affected', placeholder: '42 roles, about 8% of the company' },
+      { id: 'reason', label: 'Reason, in plain words', placeholder: 'we are reducing costs after two quarters of lower demand' },
+      { id: 'when', label: 'When affected people hear', placeholder: 'today, in individual conversations by 3 p.m.' },
+      { id: 'support', label: 'Support offered', placeholder: 'severance, extended health coverage and outplacement support', fallback: 'severance, health coverage information and job search support' },
+      { id: 'contact', label: 'Who to ask', placeholder: 'people@northwind.com' },
+    ],
+    subject: 'An important update about our company',
+    body: `Team,
+
+Today I have difficult news. {{reason}}, and as a result we are eliminating {{count}}.
+
+People whose roles are affected will hear {{when}}. If you have not heard from your manager or HR by then, your role is not affected.
+
+We are offering affected colleagues {{support}}. These decisions were about roles and business needs, not about the quality of anyone’s work, and I am sorry for the impact on people who have given so much to {{company}}.
+
+I know this raises questions. Managers will be available today, and you can write to {{contact}} at any time. I will hold an all-hands tomorrow to answer what I can.
+
+{{sender}}`,
+    tips: [
+      'Tell people who is affected before you tell everyone else. Nobody should learn their job is gone from a company email.',
+      'Say plainly that affected people have already been told, and how the rest will know they are safe. It stops a day of fear.',
+      'Give the reason honestly and briefly. Avoid “rightsizing” and similar words; people read them as evasion.',
+      'Check notice rules before you send. A plant closing or mass layoff may require 60 days’ written notice under the federal WARN Act, and some states ask for more.',
+      'Prepare managers with a script and an FAQ first. The conversation matters more than the email.',
+    ],
+    faq: [
+      { q: 'What should a layoff announcement email include?', a: 'What is happening, how many roles, the reason, when affected people will be told, what support is offered, and where to ask questions. Keep it under 250 words.' },
+      { q: 'Should the announcement come before or after the individual conversations?', a: 'After, or at the same time. Affected people should hear it from their manager first, never from a company-wide email.' },
+      { q: 'Does an employer have to give notice before a layoff?', a: 'Often, yes. The federal WARN Act requires 60 days’ written notice of a plant closing or mass layoff at covered employers, and some states add their own rules. Check before you decide the date.' },
+      { q: 'Should we offer outplacement?', a: 'It is common, and it helps people land faster and protects your employer brand with those who stay. Many employers offer it for 60 to 90 days.' },
+    ],
+    related: ['layoff-letter-to-employee', 'layoff-goodbye-email-to-coworkers', 'severance-negotiation-email'],
+  },
+  {
+    slug: 'layoff-letter-to-employee',
+    category: 'Employers',
+    name: 'Layoff letter to an employee',
+    primary: 'layoff letter template',
+    secondary: ['layoff notice letter to employee', 'sample layoff letter', 'position elimination letter', 'employee layoff letter example'],
+    title: 'Layoff Letter Template for Employers (Free)',
+    description: 'A plain, complete layoff letter to give an employee: effective date, reason, final pay, benefits, severance and who to contact. Fill in the blanks and copy.',
+    h1: 'Layoff letter template',
+    lede: 'The letter confirms what was said in the conversation: the date, what the person is owed, what happens to benefits and who to call. A lawyer should read your final version.',
+    fields: [
+      { id: 'employee', label: 'Employee’s name', placeholder: 'Jordan Rivera' },
+      { id: 'company', label: 'Company', placeholder: 'Northwind' },
+      { id: 'role', label: 'Their role', placeholder: 'senior analyst' },
+      { id: 'last', label: 'Last day of work', placeholder: 'December 6' },
+      { id: 'pay', label: 'Final pay and accrued time off', placeholder: 'your final paycheck and accrued vacation, paid on December 6' },
+      { id: 'severance', label: 'Severance, if any', placeholder: 'eight weeks of base pay, described in the attached agreement', fallback: 'no severance pay' },
+      { id: 'benefits', label: 'Benefits information', placeholder: 'Your health coverage ends December 31, and a separate notice explains COBRA continuation coverage', fallback: 'A separate notice explains your health coverage and COBRA continuation coverage' },
+      { id: 'contact', label: 'HR contact', placeholder: 'Dana Whitfield, people@northwind.com, 555-0100' },
+      { id: 'sender', label: 'Signed by', placeholder: 'Dana Whitfield, VP People' },
+    ],
+    body: `Dear {{employee}},
+
+This letter confirms our conversation today. Your position as {{role}} at {{company}} is being eliminated as part of a reduction in force. Your last day of work will be {{last}}.
+
+Final pay: you will receive {{pay}}.
+Severance: {{severance}}.
+Benefits: {{benefits}}.
+
+Please return company property, including your laptop and badge, by your last day. You may keep copies of your pay records and benefits documents.
+
+If you have questions about any of this, please contact {{contact}}. We are grateful for your work and sorry that it has come to this. We will provide a neutral reference on request.
+
+Sincerely,
+{{sender}}`,
+    tips: [
+      'Give the letter after the conversation, not instead of it. Read it again to be sure it matches what was said.',
+      'State final pay and the pay date. Many states set when final wages and accrued vacation are due; check your state before you promise a date.',
+      'Include the unemployment information your state requires. Many states require a notice or a link on separation.',
+      'If you offer severance in exchange for a release, use a lawyer’s agreement. Workers over 40 have review periods (21 days, or 45 in a group layoff, plus 7 to revoke).',
+      'Check WARN rules first. A mass layoff may need 60 days’ written notice, and the notices have their own required contents.',
+    ],
+    faq: [
+      { q: 'Is a layoff letter required?', a: 'Not by federal law for an individual layoff, but many states require written notice of separation or unemployment information, and a letter protects both sides. Check your state.' },
+      { q: 'What should a layoff letter say?', a: 'The position, the last day, final pay, severance if any, what happens to health and other benefits, how to return property and who to contact. Keep the reasons short and factual.' },
+      { q: 'Should the letter mention performance?', a: 'No. If the layoff is a reduction in force, say the role was eliminated. Mixing in performance confuses the reason and invites disputes.' },
+      { q: 'Do we need a lawyer to review it?', a: 'For anything beyond a plain letter, yes, especially with severance, a release or a group layoff. This template is a starting draft, not legal advice.' },
+    ],
+    related: ['layoff-announcement-email-to-employees', 'severance-negotiation-email', 'hr-questions-after-layoff-email'],
+  },
+  {
+    slug: 'unemployment-appeal-letter',
+    category: 'Layoff',
+    name: 'Unemployment appeal letter',
+    primary: 'unemployment appeal letter',
+    secondary: ['how to appeal unemployment denial', 'unemployment denial appeal letter sample', 'appeal letter for unemployment benefits', 'unemployment appeal template'],
+    title: 'Unemployment Appeal Letter: Free Template',
+    description: 'If your unemployment claim was denied, write a clear appeal letter that states the facts and what you want. Free fill-in template; check your deadline.',
+    h1: 'Unemployment appeal letter template',
+    lede: 'A denial is often wrong or based on missing facts. Appeal quickly: the deadline is short and it is printed on your denial notice.',
+    fields: [
+      { id: 'you', label: 'Your name', placeholder: 'Jordan Rivera' },
+      { id: 'claim', label: 'Claim or case number', placeholder: 'on your determination notice' },
+      { id: 'agency', label: 'Agency name', placeholder: 'Ohio Department of Job and Family Services' },
+      { id: 'date', label: 'Date of the denial notice', placeholder: 'November 3, 2026' },
+      { id: 'employer', label: 'Last employer', placeholder: 'Northwind' },
+      { id: 'facts', label: 'What actually happened', placeholder: 'My position was eliminated in a layoff on October 18; I did not quit and was not fired for cause', long: true },
+      { id: 'want', label: 'What you are asking for', placeholder: 'that the determination be reversed and benefits paid from October 21', fallback: 'that the determination be reversed and my benefits be paid' },
+    ],
+    body: `{{you}}
+Claim number: {{claim}}
+
+To {{agency}}:
+
+I am appealing the determination dated {{date}} on my unemployment claim. I disagree with the decision for these reasons.
+
+I worked for {{employer}}. {{facts}}.
+
+I am asking {{want}}. I will attend any hearing and can provide documents, including my separation letter, pay records and messages from my employer.
+
+Thank you for your review.
+
+{{you}}`,
+    tips: [
+      'Find the appeal deadline on the denial notice. In many states it is short (often 10 to 30 days), and missing it can end your claim.',
+      'Keep claiming weekly benefits while you appeal. In most states you must continue to certify to be paid if you win.',
+      'Stick to facts, dates and documents. Avoid arguing about the employer’s character.',
+      'Gather the separation letter, pay stubs, emails and the names of any witnesses before the hearing.',
+      'Many states have free help for appeals: legal aid or the agency’s own hearing office. Ask when you file.',
+    ],
+    faq: [
+      { q: 'How long do I have to appeal an unemployment denial?', a: 'It depends on the state, and the date is printed on your determination notice. It is often between 10 and 30 days, so file as soon as you can.' },
+      { q: 'Do I have to keep filing weekly claims while I appeal?', a: 'In most states, yes. Keep certifying each week so you can be paid for those weeks if the appeal succeeds.' },
+      { q: 'Do I need a lawyer to appeal?', a: 'No. Many people appeal on their own. Legal aid offices often help with unemployment hearings for free.' },
+      { q: 'What happens after I file?', a: 'Most states schedule a hearing, often by phone, where you and your employer can each explain and show documents. A decision follows in writing.' },
+    ],
+    related: ['hr-questions-after-layoff-email', 'severance-negotiation-email', 'networking-email-after-layoff'],
+  },
+  {
+    slug: 'hr-questions-after-layoff-email',
+    category: 'Layoff',
+    name: 'Email to HR with questions after a layoff',
+    primary: 'questions to ask hr after layoff',
+    secondary: ['email to hr after being laid off', 'what to ask hr when laid off', 'layoff paperwork request email', 'request final pay and benefits information'],
+    title: 'Questions to Ask HR After a Layoff: Email Template',
+    description: 'Send HR one email that gets everything in writing after a layoff: final pay, benefits end date, COBRA, severance, references and unemployment papers.',
+    h1: 'Email to HR with questions after a layoff',
+    lede: 'Layoff meetings are a blur. One clear email gets the answers in writing, and you can use them later for unemployment, COBRA and your severance decision.',
+    fields: [
+      { id: 'you', label: 'Your name', placeholder: 'Jordan Rivera' },
+      { id: 'hr', label: 'HR contact’s first name', placeholder: 'Dana' },
+      { id: 'last', label: 'Your last day', placeholder: 'December 6' },
+      { id: 'extra', label: 'Anything else you need to know', placeholder: 'whether my stock options vest before my last day', fallback: 'whether any bonus or equity vests before my last day' },
+    ],
+    subject: 'Questions about my separation',
+    body: `Hi {{hr}},
+
+Thank you for meeting with me. So that I have everything in writing, could you confirm the following?
+
+1. My last day ({{last}}) and the date I will be paid for it.
+2. How much accrued vacation or paid time off I will be paid, and when.
+3. The date my health, dental and vision coverage ends, and how and when I receive the COBRA election notice.
+4. The severance offered, how it is paid, and how long I have to review and sign the agreement.
+5. What happens to my 401(k), and any retirement or savings plan, and whom to contact.
+6. Whether you will provide a separation letter for my unemployment claim.
+7. Who will give a reference for me, and what the company will confirm.
+8. {{extra}}.
+
+Thank you for your help.
+
+{{you}}`,
+    tips: [
+      'Ask for answers in writing even if you got them in the meeting. Verbal answers are hard to prove later.',
+      'Request a separation letter or the state’s unemployment form; most states ask for the last day and the reason.',
+      'Do not sign the severance agreement the day you receive it. Take the time the agreement gives you, and have it reviewed if it waives claims.',
+      'COBRA has a short election window (60 days) once you receive the notice. Put the dates in your calendar.',
+      'Save every email and take screenshots of your pay stubs and benefits pages before your access ends.',
+    ],
+    faq: [
+      { q: 'What should I ask HR after being laid off?', a: 'Final pay and accrued time off, when benefits end, COBRA details, severance terms and the time to review them, the retirement plan, an unemployment letter, and the reference policy.' },
+      { q: 'Should I email HR or ask in person?', a: 'Email. A written question gets a written answer, and you can forward it to your lawyer or the unemployment office.' },
+      { q: 'How long do I have to decide on COBRA?', a: 'Usually 60 days from the date of the election notice or the loss of coverage, whichever is later. Use the COBRA vs ACA calculator on this site to compare options.' },
+    ],
+    related: ['severance-negotiation-email', 'unemployment-appeal-letter', 'reference-request-email'],
+  },
+  {
+    slug: 'informational-interview-request-email',
+    category: 'Job search',
+    name: 'Informational interview request email',
+    primary: 'informational interview request email',
+    secondary: ['request an informational interview by email', 'informational interview email template', 'coffee chat request message', 'asking for a career advice call'],
+    title: 'Informational Interview Request Email: Template',
+    description: 'Ask someone for a 15-minute informational interview with a short email that is specific, flattering and easy to say yes to. Fill in and send.',
+    h1: 'Informational interview request email',
+    lede: 'People are more generous than you expect when the ask is small and specific. Ask for 15 minutes and one question you cannot answer by yourself.',
+    fields: [
+      { id: 'you', label: 'Your name', placeholder: 'Jordan Rivera' },
+      { id: 'name', label: 'Their first name', placeholder: 'Priya' },
+      { id: 'hook', label: 'Why you picked them', placeholder: 'I read your piece on supply chain resilience and saw you moved from consulting into operations' },
+      { id: 'goal', label: 'What you are exploring', placeholder: 'a move from consulting into operations leadership' },
+      { id: 'question', label: 'One question you want to ask', placeholder: 'what you would do differently in your first year in the role' },
+    ],
+    subject: '15 minutes of advice?',
+    body: `Hi {{name}},
+
+{{hook}}, and I wanted to reach out. I am exploring {{goal}}.
+
+Would you be open to a 15-minute call in the next couple of weeks? The one thing I most want to ask is {{question}}.
+
+If you are too busy, I understand completely, and I would be grateful for a pointer to someone else to ask.
+
+Thank you,
+{{you}}`,
+    tips: [
+      'Be specific about why you chose them. Generic flattery gets ignored.',
+      'Ask for 15 minutes and keep to it. Offer a few time slots and a call or a video chat, whichever is easier for them.',
+      'Come with three questions and follow up with a thank-you the same day.',
+      'Ask at the end who else you should talk to. That one question builds a network.',
+    ],
+    faq: [
+      { q: 'What is an informational interview?', a: 'A short conversation with someone in a role or company you are curious about, to learn about the work, not to ask for a job. It builds your network and your sense of the market.' },
+      { q: 'Will people really say yes?', a: 'Many do, especially when the request is short, specific and flexible. Expect a reply from roughly one in three. Follow up once after a week.' },
+      { q: 'Should I ask for a job in the call?', a: 'No. Ask for advice and for names. If there is an opening, the person will usually tell you.' },
+    ],
+    related: ['networking-email-after-layoff', 'recruiter-outreach-email', 'thank-you-to-reference-email'],
+  },
+  {
+    slug: 'linkedin-headline-examples',
+    category: 'Job search',
+    name: 'LinkedIn headline generator',
+    primary: 'linkedin headline for job seekers',
+    secondary: ['linkedin headline examples', 'best linkedin headline when laid off', 'linkedin headline template', 'how to write a linkedin headline'],
+    title: 'LinkedIn Headline for Job Seekers: Examples',
+    description: 'Write a LinkedIn headline recruiters search for: your target role, your strongest skills and one proof. Free fill-in builder with examples to copy.',
+    h1: 'LinkedIn headline for job seekers',
+    lede: 'Your headline is what recruiters see in search results. Lead with the role you want, add two skills they search, and end with a proof.',
+    fields: [
+      { id: 'role', label: 'Role you want', placeholder: 'Senior Operations Manager' },
+      { id: 'skills', label: 'Two skills recruiters search for', placeholder: 'Supply Chain | Process Improvement' },
+      { id: 'proof', label: 'One proof', placeholder: 'Cut delivery times 18% across four regions' },
+    ],
+    body: `{{role}} | {{skills}} | {{proof}}`,
+    tips: [
+      'Use the title you want next, not the one you just left. Recruiters search for the title they are hiring.',
+      'Include two or three keywords from postings you want. Use the résumé vs job description tool on this site to find them.',
+      'Add a result with a number. It stands out in a list of identical headlines.',
+      'Avoid “seeking opportunities” and “open to work” in the headline; use LinkedIn’s own Open to Work setting for that.',
+      'You have 220 characters. Put the most important words first, because search results cut them off.',
+    ],
+    faq: [
+      { q: 'What is a good LinkedIn headline when you are laid off?', a: 'The role you want, two skills and one proof, for example “Senior Operations Manager | Supply Chain | Process Improvement | Cut delivery times 18%.” It should read like a job title, not a status.' },
+      { q: 'Should my headline say I was laid off?', a: 'No. Put it in your post or your About section if you want. The headline should sell what you do next.' },
+      { q: 'How long can a headline be?', a: 'Up to 220 characters. Only the first 60 or so show in search, so put the target role first.' },
+    ],
+    related: ['linkedin-about-section', 'laid-off-linkedin-post', 'linkedin-recommendation-request'],
+  },
+  {
+    slug: 'linkedin-about-section',
+    category: 'Job search',
+    name: 'LinkedIn About section template',
+    primary: 'linkedin about section template',
+    secondary: ['linkedin summary examples', 'how to write a linkedin about section', 'linkedin about me for job seekers', 'linkedin summary template'],
+    title: 'LinkedIn About Section Template and Examples',
+    description: 'Write a LinkedIn About section that says who you help, what you have done and how to reach you. Free fill-in template for job seekers.',
+    h1: 'LinkedIn About section template',
+    lede: 'The About section is where a recruiter decides whether to message you. Say what you do, prove it in two results, and tell them what you want next.',
+    fields: [
+      { id: 'role', label: 'What you do', placeholder: 'an operations leader' },
+      { id: 'years', label: 'Years of experience', placeholder: '12' },
+      { id: 'for', label: 'Who you help or what you build', placeholder: 'logistics companies that want faster, cheaper delivery' },
+      { id: 'proof1', label: 'First result', placeholder: 'Cut delivery times 18% across four regions' },
+      { id: 'proof2', label: 'Second result', placeholder: 'Led a $4M supply chain redesign that saved $1.2M a year' },
+      { id: 'next', label: 'What you want next', placeholder: 'an operations leadership role at a growing logistics company' },
+      { id: 'contact', label: 'How to reach you', placeholder: 'jordan.rivera@gmail.com' },
+    ],
+    body: `For {{years}} years I have worked as {{role}}, helping {{for}}.
+
+What I have done:
+• {{proof1}}.
+• {{proof2}}.
+
+I am now looking for {{next}}. If you are hiring, or know someone who is, I would love to talk: {{contact}}.`,
+    tips: [
+      'Write in the first person. It reads like a person, not a résumé.',
+      'Put the best result first; only the first three lines show before “see more.”',
+      'Use real numbers. They make the results believable and searchable.',
+      'End with the exact next step you want, and an email so people do not need to message through LinkedIn.',
+      'Keep it under 1,500 characters, and update it as soon as you land.',
+    ],
+    faq: [
+      { q: 'How long should a LinkedIn About section be?', a: 'Between 600 and 1,500 characters. The first three lines are what shows without a click.' },
+      { q: 'Should I write in first or third person?', a: 'First person. It is warmer and easier to read.' },
+      { q: 'Should I mention that I was laid off?', a: 'Not required. State what you want next. If you do mention a layoff, one factual line is enough.' },
+    ],
+    related: ['linkedin-headline-examples', 'laid-off-linkedin-post', 'recruiter-outreach-email'],
+  },
+  {
+    slug: 'request-more-time-for-job-offer-email',
+    category: 'Offers',
+    name: 'Ask for more time to decide on a job offer',
+    primary: 'ask for more time to decide on job offer',
+    secondary: ['request extension on job offer', 'need more time to consider job offer email', 'how to ask for time to think about an offer', 'job offer deadline extension email'],
+    title: 'Ask for More Time on a Job Offer: Email Template',
+    description: 'Ask an employer for more time to decide on a job offer with a polite email that keeps the offer warm. Free fill-in template to copy and send.',
+    h1: 'Email to ask for more time on a job offer',
+    lede: 'Asking for a few days is normal and employers expect it. Say you are excited, give a date, and say what you need.',
+    fields: [
+      { id: 'you', label: 'Your name', placeholder: 'Jordan Rivera' },
+      { id: 'name', label: 'Their first name', placeholder: 'Alex' },
+      { id: 'role', label: 'Role', placeholder: 'senior analyst' },
+      { id: 'date', label: 'Date you will answer', placeholder: 'Friday, November 14' },
+      { id: 'need', label: 'What you need before deciding', placeholder: 'to speak with my family and finish a final-round interview elsewhere', fallback: 'to finish a decision I am making with my family' },
+    ],
+    subject: 'Thank you for the offer',
+    body: `Hi {{name}},
+
+Thank you for the offer for the {{role}} role. I am very excited about it and about the team.
+
+I would like a little more time to decide, because I need {{need}}. Could I give you my answer by {{date}}?
+
+If you need a decision sooner, please tell me and I will do my best.
+
+Thank you again,
+{{you}}`,
+    tips: [
+      'Ask as soon as you get the offer, not on the deadline day.',
+      'Give a date, not “a few days.” A specific date feels responsible and easy to approve.',
+      'Be honest if you are waiting on another offer; you do not need to name the company.',
+      'If you are waiting on another employer, ask them for a decision date. A real offer in hand speeds things up.',
+    ],
+    faq: [
+      { q: 'Is it okay to ask for more time on a job offer?', a: 'Yes. Most employers allow three to five business days, and a longer wait is possible if you ask kindly.' },
+      { q: 'How much time can I ask for?', a: 'A week is common. More than a week for a non-senior role is unusual; explain why.' },
+      { q: 'Can the employer withdraw the offer?', a: 'It is possible but unusual. Being polite and giving a date keeps the risk low.' },
+    ],
+    related: ['salary-negotiation-email', 'accept-job-offer-email', 'decline-job-offer-email'],
+  },
+  {
+    slug: 'thank-you-to-reference-email',
+    category: 'Job search',
+    name: 'Thank-you email to a reference',
+    primary: 'thank you email to a reference',
+    secondary: ['thank you note to a reference', 'thank a reference after job offer', 'how to thank someone who gave you a reference', 'reference thank you message'],
+    title: 'Thank You Email to a Reference: Free Template',
+    description: 'Thank the person who gave you a reference with a short note that tells them how it turned out. Fill in the blanks, copy and send it today.',
+    h1: 'Thank-you email to a reference',
+    lede: 'References are a favor with no payoff for them. A short note with the outcome is what they remember, and what keeps them on your side next time.',
+    fields: [
+      { id: 'you', label: 'Your name', placeholder: 'Jordan Rivera' },
+      { id: 'name', label: 'Their first name', placeholder: 'Marcus' },
+      { id: 'company', label: 'Company', placeholder: 'Contoso' },
+      { id: 'outcome', label: 'How it turned out', placeholder: 'I got the offer and I start on December 2', fallback: 'it went well' },
+    ],
+    subject: 'Thank you',
+    body: `Hi {{name}},
+
+I wanted to thank you for being a reference for me with {{company}}. {{outcome}}, and I know your support helped.
+
+I would be glad to return the favor, on a reference or an introduction. Please keep in touch.
+
+With thanks,
+{{you}}`,
+    tips: [
+      'Send it within a day of the outcome. Good news or not, they want to know.',
+      'Mention one specific thing if you know what they said. It shows you value it.',
+      'Offer to be a reference for them in return and keep the relationship active with a note every few months.',
+    ],
+    faq: [
+      { q: 'Should I thank a reference even if I did not get the job?', a: 'Yes. They gave you their time, and a thank-you keeps them willing to help again.' },
+      { q: 'Is an email enough or should I send a gift?', a: 'A sincere email is enough. If you want to add something, a coffee or a LinkedIn recommendation is plenty.' },
+    ],
+    related: ['reference-request-email', 'linkedin-recommendation-request', 'accept-job-offer-email'],
+  },
 ]
 
-export const TEMPLATE_CATEGORIES: TemplateCategory[] = ['Layoff', 'Job search', 'Interviews', 'Offers']
+export const TEMPLATE_CATEGORIES: TemplateCategory[] = ['Layoff', 'Job search', 'Interviews', 'Offers', 'Employers']
 
 export function templateBySlug(slug: string): Template | undefined {
   return TEMPLATES.find((t) => t.slug === slug)

@@ -15,7 +15,7 @@ export default function TemplatesPage() {
     >
       {TEMPLATE_CATEGORIES.map((c) => (
         <section key={c} aria-labelledby={`cat-${c}`} className="mt-10">
-          <h2 id={`cat-${c}`} className={H2}>{c === 'Layoff' ? 'After a layoff' : c === 'Job search' ? 'Your job search' : c === 'Interviews' ? 'Interviews' : 'Offers and moving on'}</h2>
+          <h2 id={`cat-${c}`} className={H2}>{c === 'Layoff' ? 'After a layoff' : c === 'Job search' ? 'Your job search' : c === 'Interviews' ? 'Interviews' : c === 'Employers' ? 'For employers and managers' : 'Offers and moving on'}</h2>
           <ul className="mt-4 grid max-w-4xl gap-4 sm:grid-cols-2">
             {TEMPLATES.filter((t) => t.category === c).map((t) => (
               <li key={t.slug} className="rounded-xl border border-border bg-white p-4">
