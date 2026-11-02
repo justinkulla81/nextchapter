@@ -168,7 +168,7 @@ function audienceForEdition(edition: EditionForSend): EmailAudience {
   const keys = new Set(edition.lists.map((l) => l.list.key))
   if (keys.size !== 1) return 'general'
   const [key] = [...keys]
-  if (key === 'candidates') return 'candidate'
+  if (key === 'candidates' || key === 'candidate_updates') return 'candidate'
   if (key === 'coaches') return 'coach'
   if (key === 'recruiters') return 'recruiter'
   if (key === 'employers') return 'employer'
