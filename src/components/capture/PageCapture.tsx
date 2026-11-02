@@ -13,7 +13,7 @@ export function PageCaptureTop({ capture }: { capture: PageCaptureConfig }) {
   const source = captureSource(capture)
   const copy = saveCopy(capture)
   return (
-    <section aria-label={`Get started: ${capture.label}`} className="mt-8 rounded-2xl border border-border bg-white p-5 sm:p-6">
+    <section aria-label={`Get started: ${capture.label}`} className="mt-8 rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-mint p-5 sm:p-6">
       <JourneyPicker source={source} compact />
       {capture.save && (
         <div className="mx-auto mt-6 max-w-xl border-t border-border pt-5">
