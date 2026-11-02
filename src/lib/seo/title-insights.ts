@@ -3,7 +3,8 @@ import { getJobStats, type JobStats } from '@/lib/seo/topic-data'
 import { CRAWLER_FUNCTION_LABEL } from '@/lib/jobs/job-functions'
 import { functionByName, functionPath } from '@/lib/seo/topics'
 import { roleForTitle, roleByKey, SOURCES, TIME_LABEL, type PivotEdge } from '@/lib/pivots/pivot-map'
-import { outlookForRole, outlookLine, ROLE_SOC, OUTLOOK_SOURCE, type OccupationOutlook } from '@/lib/pivots/occupation-outlook'
+import { projectionFor, projectionLine, type OccupationProjection } from '@/lib/market/occupation-projections'
+import { socForTitle } from '@/lib/seo/title-soc'
 import { loadExposureForSoc } from '@/lib/skills/ai-exposure-server'
 import { exposureSentence, type OccupationExposure } from '@/lib/skills/ai-exposure'
 import { AI_SKILL_ITEMS } from '@/lib/skills/ai-skills'
@@ -17,7 +18,9 @@ export interface TitleInsights {
   fnLabel: string | null
   fnPath: string | null
   stats: JobStats | null
-  outlook: { line: string; median: number | null; openings: number | null; source: string; data: OccupationOutlook } | null
+  /** The BLS occupation the outlook and AI figures describe (title-soc.ts), named on the page so the stand-in is visible. */
+  occupation: { title: string; soc6: string } | null
+  outlook: { line: string; data: OccupationProjection } | null
   exposure: (OccupationExposure & { sentence: string }) | null
   pivots: TitlePivot[]
   /** The skills the check compares a résumé against: the function's most-named skills, up to 10. */
@@ -41,12 +44,12 @@ export async function loadTitleInsights(title: string, fnCode: string | null | u
   const fnLabel = fnCode ? (functionByName(fnCode) ? fnCode : CRAWLER_FUNCTION_LABEL[fnCode] ?? null) : null
   const fn = functionByName(fnLabel)
   const roleKey = roleForTitle(title)
-  const soc = roleKey ? ROLE_SOC[roleKey] : undefined
+  const soc = socForTitle(title)
   const [stats, exp] = await Promise.all([
     fnLabel ? getJobStats({ fn: fnLabel }).catch(() => null) : Promise.resolve(null),
     loadExposureForSoc(soc).catch(() => null),
   ])
-  const o = roleKey ? outlookForRole(roleKey) : null
+  const o = projectionFor(soc)
   const edges = roleKey ? SOURCES.get(roleKey)?.edges ?? [] : []
   const order = { close: 0, adjacent: 1, stretch: 2 } as const
   const pivots = [...edges]
@@ -60,7 +63,8 @@ export async function loadTitleInsights(title: string, fnCode: string | null | u
     fnLabel,
     fnPath: fn ? functionPath(fn.name) : null,
     stats,
-    outlook: o ? { line: outlookLine(o), median: o.medianWage, openings: o.annualOpenings, source: OUTLOOK_SOURCE, data: o } : null,
+    occupation: o ? { title: o.title, soc6: o.soc6 } : null,
+    outlook: o ? { line: projectionLine(o), data: o } : null,
     exposure: exp ? { ...exp, sentence: exposureSentence(exp) } : null,
     pivots,
     skills: (stats?.skills ?? []).slice(0, 10).map((s) => s.name),

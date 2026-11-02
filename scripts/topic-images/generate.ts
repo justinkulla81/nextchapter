@@ -34,6 +34,25 @@ const FN_SCENE: Record<string, string> = {
   Academic: 'a professor lecturing in a university hall',
 }
 
+// Place pages: six regions for states, and three settings with three variants each for counties and cities.
+const PLACE_SCENE: Record<string, string> = {
+  'region-northeast': 'a New England town with a white church steeple, brick mill buildings, fall foliage and a harbor, plus a small city skyline in the distance',
+  'region-southeast': 'a Southern city street with live oaks, porches, a river and a mix of old brick and new offices at golden hour',
+  'region-midwest': 'Midwest farmland and a mid-size city with grain elevators, a downtown with a clock tower, and a lake',
+  'region-southwest': 'desert mesas, saguaro cacti and a modern city with adobe-style buildings and a big sky at sunset',
+  'region-mountain': 'snow-capped mountains over a mountain town and a small city, pine trees, a river valley',
+  'region-pacific': 'a Pacific coast city with palms or evergreens, a bay, a bridge, mountains and the ocean',
+  'city-1': 'a big city downtown with tall office towers, a busy street, a train and people commuting to work in the morning light',
+  'city-2': 'a big city waterfront with skyscrapers, a harbor, parks and people walking and cycling',
+  'city-3': 'a big city at dusk with lit towers, a plaza with people, trees and a stadium in the distance',
+  'town-1': 'a mid-size city main street with brick storefronts, a courthouse, a hospital and a university building, people on the sidewalk',
+  'town-2': 'a mid-size city with a river, a riverfront park, mid-rise offices, factories turned lofts and people at a farmers market',
+  'town-3': 'a mid-size city with a historic downtown, a college campus, a community health center and tree-lined streets',
+  'rural-1': 'a small town with a main street, a diner, a feed store, a water tower and farmland beyond, friendly neighbors chatting',
+  'rural-2': 'a small county seat with a courthouse square, a library, a school and rolling hills and fields',
+  'rural-3': 'a small rural community with a church, a general store, a community college sign and open countryside at golden hour',
+}
+
 const SCENE: Record<string, string> = {
   'Venture Capital & Private Equity': 'a small team around a table reviewing growth charts and a startup pitch, city skyline behind',
   'Financial Services & Banking': 'a bright bank branch and advisors meeting clients, a city street outside',
@@ -67,7 +86,8 @@ const SCENE: Record<string, string> = {
 async function make(name: string, kindWord = 'industry', scene = SCENE[name] ?? name): Promise<Buffer> {
   const key = process.env.GEMINI_API_KEY
   if (!key) throw new Error('GEMINI_API_KEY is not set')
-  const prompt = `Warm editorial illustration for a career website header about the ${name} ${kindWord}: ${scene}. Friendly modern flat illustration with soft shapes, a rich but harmonious palette of teal, coral, sunny yellow and deep navy on a light background. Diverse people of different ages, including experienced mid-career professionals. No text, no letters, no logos. Wide cinematic composition with the main subject on the right and open space on the left.`
+  const subject = kindWord === 'place' ? `a place: ${scene}` : `the ${name} ${kindWord}: ${scene}`
+  const prompt = `Warm editorial illustration for a career website header about ${subject}. Friendly modern flat illustration with soft shapes, a rich but harmonious palette of teal, coral, sunny yellow and deep navy on a light background. Diverse people of different ages, including experienced mid-career professionals, going about their working day. No text, no letters, no logos. Wide cinematic composition with the main subject on the right and open space on the left.`
   const res = await fetch(URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-goog-api-key': key },
@@ -82,6 +102,17 @@ async function make(name: string, kindWord = 'industry', scene = SCENE[name] ?? 
 
 async function main() {
   const only = new Set(process.argv.slice(2))
+  for (const [key, scene] of Object.entries(PLACE_SCENE)) {
+    if (only.size && !only.has(`place-${key}`)) continue
+    const file = path.join(OUT, `place-${key}.webp`)
+    if (fs.existsSync(file)) continue
+    try {
+      fs.writeFileSync(file, await make(key, 'place', scene))
+      console.log('ok', key)
+    } catch (e) {
+      console.log('FAIL', key, e instanceof Error ? e.message : e)
+    }
+  }
   for (const f of JOB_FUNCTIONS) {
     if (only.size && !only.has(`fn-${f.slug}`)) continue
     const file = path.join(OUT, `function-${f.slug}.webp`)

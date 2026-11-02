@@ -8,6 +8,7 @@ import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { stateBrandFromSlug, statePhrase } from '@/lib/branding/state-colors'
 import { stateName } from '@/lib/seo/states'
+import Image from 'next/image'
 import { PageCaptureTop, PageCaptureOwner } from '@/components/capture/PageCapture'
 import type { PageCaptureConfig } from '@/lib/capture/page-capture'
 
@@ -15,7 +16,7 @@ export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export const LINK = 'text-brand underline underline-offset-4'
 
 /** The frame for the programmatic public pages (workforce, higher education by state, rapid response, tools). */
-export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture }: {
+export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero }: {
   trail: { name: string; path: string }[]
   h1: string
   lede: ReactNode
@@ -24,9 +25,11 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   /** A state page's slug ("new-york"): the page takes the state's flag colors and opens with the free-assessment offer. */
   stateSlug?: string
   /** 'audience': the shared look for workforce, higher-education and recruiter pages (tinted heading panel, colored stat cards). */
-  look?: 'plain' | 'audience'
+  look?: 'plain' | 'audience' | 'scene'
   /** Adds the journey question and email save under the intro and the owner inquiry at the bottom (components/capture). */
   capture?: PageCaptureConfig
+  /** 'scene': the heading sits on a tinted panel beside this picture (public/images/topics), sections are tinted panels and stat cards carry a colored edge. */
+  hero?: string
 }) {
   const st = stateBrandFromSlug(stateSlug)
   const page = (
@@ -36,7 +39,8 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
       <PublicSiteHeader />
       <main className="flex-1 bg-off-white py-12" data-look={look}>
         <div className="mx-auto max-w-6xl px-6">
-          <div className={look === 'audience' ? 'rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun p-6 sm:p-10' : undefined}>
+          <div className={look === 'audience' ? 'rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun p-6 sm:p-10' : look === 'scene' && hero ? 'overflow-hidden rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun md:grid md:grid-cols-[1.15fr_1fr]' : undefined}>
+          <div className={look === 'scene' && hero ? 'p-6 sm:p-10' : undefined}>
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             {trail.map((t, i) => (
               <span key={t.path}>
@@ -47,6 +51,12 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
           </nav>
           <h1 className={`mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl ${look === 'audience' ? 'font-display [text-wrap:balance]' : ''}`}>{h1}</h1>
           <div className="mt-4 max-w-3xl text-lg text-muted-foreground">{lede}</div>
+          </div>
+          {look === 'scene' && hero && (
+            <div className="relative aspect-[16/7] md:aspect-auto md:min-h-[260px]">
+              <Image src={hero} alt="" fill priority sizes="(min-width: 768px) 45vw, 100vw" className="object-cover object-right" />
+            </div>
+          )}
           </div>
           {st && (
             <OrgCandidateBand

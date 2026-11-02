@@ -22,3 +22,9 @@ Not covered: pages on their own frames (`/layoffs/company/<slug>`, `/layoffs/<st
 - Job-title pages (`lib/seo/title-insights.ts`) add a market block (open jobs, median pay, BLS outlook and AI exposure when the title maps to an occupation, function-level skills and AI share from the stored topic snapshot) and career pivots from the pivot map. Layoff counts are by industry only; a title has no layoff count.
 - Header pictures live in `public/images/topics`, made once by `scripts/topic-images/generate.ts` (about 4 cents each, 48 images). `src/test/topic-images.test.ts` fails when an industry or function has no picture.
 - `components/topics/blocks.tsx` gives each section its own tint and the cards a colored top edge, so every page on `TopicShell` is less monochrome.
+
+## Title outlook figures and place pictures
+
+- `lib/seo/title-soc.ts` is a hand-written allowlist from job title (level words removed) to one 6-digit SOC occupation. A title gets an outlook, BLS median pay, openings and AI-use figure only where it is listed; the page names the BLS category it used. The general matcher in `lib/careers/title-match.ts` is not used for public figures (it returns near misses such as "account executive" -> advertising managers). To add a title, add it under its SOC in `BY_SOC`; `src/test/title-soc.test.ts` checks every code exists in the BLS table and no title sits under two occupations.
+- `lib/market/occupation-projections.json` holds the BLS Employment Projections for all occupations. Rebuild yearly with `scripts/pivots/import-occupation-projections.ts <occupation.xlsx>` (download from https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx with a descriptive User-Agent first).
+- Place pages use `SeoPage look="scene"` with a header picture from `lib/places/place-image.ts`: six regional scenes for states, three settings x three variants for counties and cities. The scene look (tinted section panels, colored stat edges) is in `globals.css`.
