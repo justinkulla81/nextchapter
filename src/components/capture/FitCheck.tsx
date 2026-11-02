@@ -94,7 +94,7 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
           {state?.sent ? (
             <div role="status" className="text-sm text-navy">
               <p className="text-lg font-bold">Thanks. We have it.</p>
-              <p className="mt-2">{state.hasFile ? `We sent a confirmation to ${state.email}.` : `We will write to ${state.email}.`} For the full picture, with how recruiters read your whole background and every open job ranked for you:</p>
+              <p className="mt-2">{state.hasFile ? `We sent a confirmation to ${state.email}.` : `We saved your email and state.`} For the full picture, with how recruiters read your whole background and every open job ranked for you:</p>
               <Link
                 href={MARKET_REALITY_START_HREF}
                 onClick={() => posthog.capture('fit_market_reality_clicked', { source })}
