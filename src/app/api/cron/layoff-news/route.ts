@@ -10,7 +10,16 @@ import { runLayoffIndexNow } from '@/lib/syndication/indexnow-layoffs'
 export const maxDuration = 300
 
 /**
- * The layoff news check on its own, every three hours.
+ * The layoff news check on its own, run hourly. Every third hour (UTC hours divisible by 3, the old schedule) is the full check below;
+ * the hours between are the fast lane: only the last few hours of Google News, a handful of broad queries
+ * (runLayoffNewsCheck({ fast: true })). The full check reads the whole week and picked a layoff up a median of 11 hours after it was
+ * published (207 layoffs, October 2026); the fast lane catches it within the hour it is indexed. One cron entry, not two: the
+ * project is at Vercel's limit of 100. A manual run (admin Job health) is always the full check. Same rules in both: a second
+ * publisher or a trusted outlet, nothing already on file, mentions keyed by URL, so a layoff is never added twice.
+ * Fast lane, only when a layoff was added: held alert retry, the suggested LinkedIn post, then page refresh and IndexNow, so the
+ * page is up and announced the same hour. The primary-contact sweep stays with the full check.
+ *
+ * The full check, every three hours.
  *
  * It used to run only inside the daily warn-sync, so a story published after
  * 07:00 UTC waited up to a day to be read, and a layoff needing two publishers
@@ -23,7 +32,9 @@ export const maxDuration = 300
  * The primary-contact sweep follows so a layoff added here gets its CHRO and
  * primary contact the same day, not at the next 07:00 run.
  */
-export const GET = withCronRun('layoff-news', async (_request: NextRequest) => {
+export const GET = withCronRun('layoff-news', async (request: NextRequest) => {
+  const fast = request.nextUrl.searchParams.get('trigger') !== 'manual' && new Date().getUTCHours() % 3 !== 0
+  if (fast) return runFastLane()
   let news: Awaited<ReturnType<typeof runLayoffNewsCheck>> | { error: string }
   try {
     news = await runLayoffNewsCheck()
@@ -64,3 +75,27 @@ export const GET = withCronRun('layoff-news', async (_request: NextRequest) => {
   }
   return NextResponse.json({ news, primary, held, linkedin, indexnow })
 })
+
+async function runFastLane(): Promise<NextResponse> {
+  let news: Awaited<ReturnType<typeof runLayoffNewsCheck>> | { error: string }
+  try {
+    news = await runLayoffNewsCheck({ fast: true })
+    captureServerEvent('cron', 'layoff_news_check_run', {
+      mentions: news.mentions, added: news.added.length, covered: news.covered, lookups: news.lookups, contacts: news.contacts, source: 'layoff-news-fast',
+    })
+  } catch (e) {
+    news = { error: e instanceof Error ? e.message : String(e) }
+  }
+  if (!('added' in news) || news.added.length === 0) return NextResponse.json({ lane: 'fast', news })
+  const followUp = async <T,>(run: () => Promise<T>): Promise<T | { error: string }> => {
+    try {
+      return await run()
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : String(e) }
+    }
+  }
+  const held = await followUp(retryHeldLayoffAlerts)
+  const linkedin = await followUp(runLinkedInDraftSweep)
+  const indexnow = await followUp(runLayoffIndexNow)
+  return NextResponse.json({ lane: 'fast', news, held, linkedin, indexnow })
+}
