@@ -47,6 +47,10 @@ Owner request: far more high-intent phrases, aimed at the moment a person decide
 
 Build order is intent times urgency times how well we can answer it from sourced facts. Every page ends on the Market Reality Assessment. Pages that touch law, benefits or pay cite the agency (DOL, OPM, EEOC, the state UI agency), state the "as of" date, and say they are not legal advice. Professional and white-collar roles only (no hourly or "hiring now" phrases).
 
+### Status (2026-11-02)
+
+Built and live: A (`/topics/reduction-in-force`, `/topics/federal-rif`), B (six unemployment pages under `/topics/unemployment-*`), the résumé forms (`/topics/resume-template`, `-format`, `-objective`, `-skills`, `-length`, `-career-change`, `/topics/federal-resume`) and the cover letter forms (`/topics/cover-letter-examples`, `-template`, `/topics/how-to-start-a-cover-letter`, `/topics/cover-letter-career-change`). Next: job search how-to (backlog v3 II), then C, D and E below. Not built: the title-based families (`[title] resume example`, title × city jobs, salary by state), pending a cost decision and Search Console ranking.
+
 ### Tier 1: build first
 
 **A. RIF (reduction in force), employee side.** Today "reduction in force" appears only in the glossary and the employer WARN checker; nobody searching as an affected employee lands on a page written for them.
@@ -61,7 +65,7 @@ Build order is intent times urgency times how well we can answer it from sourced
 - Money: "is unemployment taxable", "1099-G unemployment", "unemployment tax withholding", "unemployment and health insurance".
 - Owners: national topic pages (`/topics/unemployment-denied-appeal`, `/topics/unemployment-after-quitting-or-firing`, `/topics/unemployment-taxes-1099g`, `/topics/unemployment-extension`, `/topics/unemployment-payment-timing`, `/topics/unemployment-self-employed`), each linking to the right `/unemployment-benefits/<state>` page. State detail stays on the state pages so there is no second per-state family.
 
-**C. "I hate my job" and the decision to leave.** The map has `/start/thinking-about-a-move` and `/start/resigned` but none of the words people actually type.
+**C. "I hate my job" and the decision to leave.** The map has `/start/thinking-about-a-move`, `/start/resigned` and `/topics/problems-at-work` (which already owns "difficult boss", "bad boss", "micromanager", "toxic workplace" and "burnout at work"), but none of the exact words people type: "I hate my job", "I hate my boss", "should I quit". Do not re-claim the phrases `problems-at-work` owns; link to it.
 - Boss and workplace: "I hate my boss", "bad boss what to do", "toxic boss", "toxic work environment", "micromanager boss", "bullying at work", "my manager is undermining me", "coworker taking credit for my work", "how to deal with a boss you hate".
 - Job: "I hate my job", "I hate my job but cant quit", "dread going to work", "Sunday scaries", "burned out at work", "burnout or wrong job", "bored at work", "no growth at my job", "feel stuck in my career", "quiet quitting", "return to office mandate quit".
 - Decision: "should I quit my job", "should I quit without another job", "signs it is time to quit", "how to leave a toxic job", "how to resign professionally", "how to quit and what to say", "can I quit and collect unemployment" (links to B).
