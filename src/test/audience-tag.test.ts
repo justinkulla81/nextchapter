@@ -123,7 +123,7 @@ describe('every email template carries an audience tag', () => {
     it(file, () => {
       const src = readFileSync(join(dir, file), 'utf8')
       // CardEmail (src/lib/email/card-layout.tsx) renders the tag from its audience prop.
-      expect(src, `${file} must render <AudienceTag audience="…" /> or <CardEmail audience="…">`).toMatch(/AudienceTag|<CardEmail[^>]*audience=/s)
+      expect(src, `${file} must render <AudienceTag audience="…" /> or <CardEmail audience="…">`).toMatch(/AudienceTag|<CardEmail[\s\S]*?audience=/)
     })
   }
   it('the card layout renders the tag', () => {

@@ -1,42 +1,10 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface CompleteRegistrationReminderEmailProps {
   firstName: string | null
   gradeDescription: string
   magicLink: string
   unsubscribeUrl: string
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  backgroundColor: '#2e7d5b',
-  color: '#ffffff',
-  textDecoration: 'none',
-  padding: '12px 20px',
-  borderRadius: '8px',
-  marginTop: '16px',
-  ...emailStyles.cta,
-}
-
-const footer: React.CSSProperties = {
-  marginTop: '32px',
-  ...emailStyles.muted,
 }
 
 export default function CompleteRegistrationReminderEmail({
@@ -46,28 +14,30 @@ export default function CompleteRegistrationReminderEmail({
   unsubscribeUrl,
 }: CompleteRegistrationReminderEmailProps) {
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p>Hi {firstName || 'there'},</p>
-      <p>
-        You built your NextChapter profile and got an honest read on where you stand: {gradeDescription}.
-      </p>
-      <p>
-        But you never finished creating your account, so your full report (strengths, gaps, and an
-        action plan) is still locked.
-      </p>
-      <p>Click below to pick up exactly where you left off — no password needed.</p>
-      <a href={magicLink} style={button}>
-        Finish creating my account
-      </a>
-      <p style={footer}>
-        Didn&apos;t mean to start this? You can{' '}
-        <a href={unsubscribeUrl} style={{ color: '#4a5568' }}>
-          stop these reminders
-        </a>{' '}
-        at any time.
-      </p>
-      <AudienceTag audience="candidate" />
-    </div>
+    <CardEmail
+      audience="candidate"
+      preheader="Your full report is still locked. Finish creating your account."
+      footer={
+        <>
+          Didn&apos;t mean to start this? You can{' '}
+          <a href={unsubscribeUrl} style={{ color: MUTED }}>
+            stop these reminders
+          </a>{' '}
+          at any time.
+        </>
+      }
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>
+          Hi {firstName || 'there'}, you built your NextChapter profile and got an honest read on where you stand: {gradeDescription}.
+        </Headline>
+        <Lead>
+          But you never finished creating your account, so your full report (strengths, gaps, and an action plan) is still locked.
+        </Lead>
+        <Lead>Click below to pick up exactly where you left off — no password needed.</Lead>
+        <Button href={magicLink}>Finish creating my account</Button>
+      </Card>
+    </CardEmail>
   )
 }

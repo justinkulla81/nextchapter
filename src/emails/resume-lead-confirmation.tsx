@@ -1,49 +1,29 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface ResumeLeadConfirmationEmailProps {
   fullName: string
 }
 
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const footer: React.CSSProperties = {
-  marginTop: '32px',
-  ...emailStyles.muted,
-}
-
 export default function ResumeLeadConfirmationEmail({ fullName }: ResumeLeadConfirmationEmailProps) {
   const firstName = fullName.split(' ')[0] || 'there'
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p>Hi {firstName},</p>
-      <p>Got your resume — thanks for sending it over.</p>
-      <p>
-        We review submissions and pass strong matches along to recruiters in our network. There&apos;s
-        no guaranteed timeline and not every submission gets forwarded, but if a recruiter wants to
-        follow up, they&apos;ll reach out at this email address directly.
-      </p>
-      <p>
-        In the meantime, a free Market Reality Assessment, plus a personalized
-        action plan, is the fastest way to strengthen your search on your own —{' '}
-        <a href="https://launchyournextchapter.com/onboarding/desire">get yours here</a>.
-      </p>
-      <p style={footer}>We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.</p>
-      <AudienceTag audience="candidate" />
-    </div>
+    <CardEmail
+      preheader="Got your resume — thanks for sending it over."
+      audience="candidate"
+      footer={<span style={{ color: MUTED }}>We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.</span>}
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>Hi {firstName}, got your resume — thanks for sending it over</Headline>
+        <Lead>
+          We review submissions and pass strong matches along to recruiters in our network. There&apos;s no guaranteed timeline and not every
+          submission gets forwarded, but if a recruiter wants to follow up, they&apos;ll reach out at this email address directly.
+        </Lead>
+        <Lead>
+          In the meantime, a free Market Reality Assessment, plus a personalized action plan, is the fastest way to strengthen your search on your own.
+        </Lead>
+        <Button href="https://launchyournextchapter.com/onboarding/desire">Get your free assessment</Button>
+      </Card>
+    </CardEmail>
   )
 }

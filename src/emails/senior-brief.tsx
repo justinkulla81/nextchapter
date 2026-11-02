@@ -1,4 +1,4 @@
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 import type { ItemKind } from '@/lib/senior-brief/rules'
 
 interface SeniorBriefEmailProps {
@@ -14,10 +14,6 @@ interface SeniorBriefEmailProps {
   testDraft?: { subject: string; body: string; toEmail: string; memberId: string } | null
 }
 
-const FONT = '"Google Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif'
-const INK = '#202124'
-const MUTED = '#5f6368'
-
 export function seniorBriefHeadline(kind: ItemKind, contactName: string, companyName: string | null): string {
   if (kind === 'recruiter_follow_up') return `A follow-up to ${contactName} is ready`
   return companyName ? `A note to ${contactName} at ${companyName} is ready` : `A note to ${contactName} is ready`
@@ -31,49 +27,42 @@ export function seniorBriefReason(kind: ItemKind, contactName: string, companyNa
 // One item, one button. Plain table layout and inline styles, like the other member emails.
 export default function SeniorBriefEmail({ firstName, itemKind, contactName, companyName, openUrl, unsubscribeUrl, notForMeUrl, testDraft }: SeniorBriefEmailProps) {
   return (
-    <div style={{ backgroundColor: '#f1f3f4', padding: '24px 12px', fontFamily: FONT, color: INK }}>
-      <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} style={{ maxWidth: '560px', margin: '0 auto' }}>
-        <tbody>
-          <tr>
-            <td style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '28px 32px 32px' }}>
-              {testDraft ? (
-                <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#b3261e' }}>Test send to you only. Nothing was written to the member&apos;s Gmail. Draft for member {testDraft.memberId}.</p>
-              ) : null}
-              <p style={{ margin: '0 0 20px', fontSize: '15px', color: MUTED }}>{firstName ? `Good morning, ${firstName}.` : 'Good morning.'}</p>
-              <h1 style={{ margin: '0 0 12px', fontSize: '24px', lineHeight: '1.3', fontWeight: 700 }}>{seniorBriefHeadline(itemKind, contactName, companyName)}</h1>
-              <p style={{ margin: '0 0 24px', fontSize: '16px', lineHeight: '1.6' }}>
-                {seniorBriefReason(itemKind, contactName, companyName)} We wrote the message from what you have saved. Open it and it is ready to send from your own Gmail. Nothing is sent until you press send.
-              </p>
-              <a href={openUrl} style={{ display: 'inline-block', padding: '14px 28px', backgroundColor: '#2e7d5b', color: '#ffffff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}>
-                Open your message
-              </a>
-              {testDraft ? (
-                <div style={{ marginTop: '28px', padding: '16px', backgroundColor: '#f8f9fa', borderRadius: '8px', fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
-                  <strong>To:</strong> {testDraft.toEmail}
-                  {'\n'}
-                  <strong>Subject:</strong> {testDraft.subject}
-                  {'\n\n'}
-                  {testDraft.body}
-                </div>
-              ) : null}
-            </td>
-          </tr>
-          <tr>
-            <td style={{ padding: '20px 12px 0', textAlign: 'center', fontSize: '13px', lineHeight: '1.6', color: MUTED }}>
-              {unsubscribeUrl && notForMeUrl ? (
-                <>
-                  <a href={notForMeUrl} style={{ color: MUTED }}>Not for me: pause for 90 days</a>
-                  {' · '}
-                  <a href={unsubscribeUrl} style={{ color: MUTED }}>Stop this email</a>
-                </>
-              ) : (
-                <span>Unsubscribe links are switched off in test sends.</span>
-              )}
-              <AudienceTag audience="candidate" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <CardEmail
+      audience="candidate"
+      preheader={seniorBriefHeadline(itemKind, contactName, companyName)}
+      footer={
+        unsubscribeUrl && notForMeUrl ? (
+          <>
+            <a href={notForMeUrl} style={{ color: MUTED }}>Not for me: pause for 90 days</a>
+            {' · '}
+            <a href={unsubscribeUrl} style={{ color: MUTED }}>Stop this email</a>
+          </>
+        ) : (
+          <span>Unsubscribe links are switched off in test sends.</span>
+        )
+      }
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        {testDraft ? (
+          <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#b3261e' }}>Test send to you only. Nothing was written to the member&apos;s Gmail. Draft for member {testDraft.memberId}.</p>
+        ) : null}
+        <p style={{ margin: '0 0 16px', fontSize: '15px', color: MUTED }}>{firstName ? `Good morning, ${firstName}.` : 'Good morning.'}</p>
+        <Headline>{seniorBriefHeadline(itemKind, contactName, companyName)}</Headline>
+        <Lead>
+          {seniorBriefReason(itemKind, contactName, companyName)} We wrote the message from what you have saved. Open it and it is ready to send from your own Gmail. Nothing is sent until you press send.
+        </Lead>
+        <Button href={openUrl}>Open your message</Button>
+        {testDraft ? (
+          <div style={{ marginTop: '28px', padding: '16px', backgroundColor: '#f8f9fa', borderRadius: '8px', fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+            <strong>To:</strong> {testDraft.toEmail}
+            {'\n'}
+            <strong>Subject:</strong> {testDraft.subject}
+            {'\n\n'}
+            {testDraft.body}
+          </div>
+        ) : null}
+      </Card>
+    </CardEmail>
   )
 }

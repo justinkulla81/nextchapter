@@ -1,5 +1,4 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, Headline, INK, Lead, MUTED, Wordmark, BRAND } from '@/lib/email/card-layout'
 
 interface Props {
   firstName: string | null
@@ -16,41 +15,43 @@ interface Props {
   buttons?: { label: string; href: string }[]
 }
 
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px', margin: '0 auto', padding: '32px 24px', color: '#0a0a0a', ...emailStyles.body, fontSize: '15px',
-}
-const button: React.CSSProperties = {
-  display: 'inline-block', backgroundColor: '#2e7d5b', color: '#ffffff', textDecoration: 'none', padding: '12px 20px', borderRadius: '8px', marginTop: '16px', ...emailStyles.cta,
-}
-
 export default function ConferenceHeadsUpEmail({ firstName, headline, eventName, when, where, cost, steps, eventUrl, planUrl, unsubscribeUrl, buttons }: Props) {
   return (
-    <div style={container}>
-      <p style={{ fontSize: '20px', fontWeight: 700, color: '#0b2545' }}>NextChapter</p>
-      <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>{headline}</p>
-      <p>
-        {firstName ? `Hi ${firstName}, ` : ''}
-        <a href={eventUrl} style={{ color: '#0b2545' }}>{eventName}</a> is {when}{where ? ` in ${where}` : ''}. {/[.!?]$/.test(cost) ? cost : `${cost}.`}
-      </p>
-      <ol style={{ paddingLeft: '20px' }}>
-        {steps.map((s) => (
-          <li key={s} style={{ marginBottom: '6px' }}>{s}</li>
-        ))}
-      </ol>
-      {buttons?.length ? (
-        <p>
-          {buttons.map((b) => (
-            <a key={b.label} href={b.href} style={{ ...button, marginRight: '8px' }}>{b.label}</a>
-          ))}
-        </p>
-      ) : (
-        <a href={planUrl} style={button}>See your plan and message drafts →</a>
-      )}
-      <p style={{ marginTop: '32px', ...emailStyles.muted }}>
-        <a href={unsubscribeUrl} style={{ color: '#4a5568' }}>Turn off these reminders</a>
-      </p>
-      <AudienceTag audience="candidate" />
-    </div>
+    <CardEmail
+      preheader={headline}
+      audience="candidate"
+      footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Turn off these reminders</a>}
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>{headline}</Headline>
+        <Lead>
+          {firstName ? `Hi ${firstName}, ` : ''}
+          <a href={eventUrl} style={{ color: BRAND }}>{eventName}</a> is {when}{where ? ` in ${where}` : ''}. {/[.!?]$/.test(cost) ? cost : `${cost}.`}
+        </Lead>
+        <div style={{ textAlign: 'left', margin: '0 0 28px', fontSize: '16px', lineHeight: '1.6', color: INK }}>
+          <ol style={{ margin: 0, paddingLeft: '22px' }}>
+            {steps.map((s) => (
+              <li key={s} style={{ marginBottom: '6px' }}>{s}</li>
+            ))}
+          </ol>
+        </div>
+        {buttons?.length ? (
+          <p style={{ margin: 0 }}>
+            {buttons.map((b) => (
+              <a
+                key={b.label}
+                href={b.href}
+                style={{ display: 'inline-block', margin: '0 4px 8px', padding: '14px 28px', backgroundColor: '#2e7d5b', color: '#ffffff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}
+              >
+                {b.label}
+              </a>
+            ))}
+          </p>
+        ) : (
+          <Button href={planUrl}>See your plan and message drafts</Button>
+        )}
+      </Card>
+    </CardEmail>
   )
 }

@@ -1,7 +1,7 @@
-import { emailStyles } from '@/lib/email/email-styles'
+import type { CSSProperties } from 'react'
 import EngagementBlock from '@/emails/engagement-block'
 import type { EngagementLead } from '@/lib/journey/engagement'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, GREEN, Headline, INK, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface SearchCheckInEmailProps {
   engagement?: EngagementLead | null
@@ -15,40 +15,18 @@ interface SearchCheckInEmailProps {
   unsubscribeUrl: string
 }
 
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-  fontSize: '15px',
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const buttonBase: React.CSSProperties = {
-  display: 'block',
-  textAlign: 'center',
+// Quieter outlined pills for the secondary answers.
+const outlined: CSSProperties = {
+  display: 'inline-block',
+  padding: '12px 26px',
+  border: '1.5px solid #dadce0',
+  color: INK,
+  borderRadius: '999px',
   textDecoration: 'none',
-  padding: '12px 20px',
-  borderRadius: '8px',
-  marginTop: '10px',
-  ...emailStyles.cta,
+  fontWeight: 600,
+  fontSize: '16px',
 }
-
-const primaryButton: React.CSSProperties = { ...buttonBase, backgroundColor: '#1d4e89', color: '#ffffff' }
-const neutralButton: React.CSSProperties = { ...buttonBase, backgroundColor: '#e2e8f0', color: '#0a0a0a' }
-const successButton: React.CSSProperties = { ...buttonBase, backgroundColor: '#2e7d5b', color: '#ffffff' }
-
-const footer: React.CSSProperties = {
-  marginTop: '32px',
-  ...emailStyles.muted,
-}
+const outlinedGreen: CSSProperties = { ...outlined, borderColor: GREEN, color: GREEN }
 
 // Saturday's check-in — a single question with three answers, each its own
 // no-login link (/api/checkin/[token]) so answering takes one click, not a
@@ -66,38 +44,43 @@ export default function SearchCheckInEmail({
   unsubscribeUrl,
 }: SearchCheckInEmailProps) {
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
-        Has anything changed{firstName ? `, ${firstName}` : ''}?
-      </p>
-      <p>
-        One click tells us where you are, and your plan and our emails follow it right away. Something else changed, like a
-        layoff or a new job? Update your situation in NextChapter.
-      </p>
-      {introCopy && <p>{introCopy}</p>}
-
-      <EngagementBlock lead={engagement} appUrl={appUrl} />
-
-      <a href={stillSearchingUrl} style={primaryButton}>
-        Nothing yet
-      </a>
-      <a href={managingMyCareerUrl} style={neutralButton}>
-        Not looking right now: managing my career
-      </a>
-      <a href={gotAnOfferUrl} style={successButton}>
-        Got an offer! 🎉
-      </a>
-
-      <p style={footer}>
-        <a href={unsubscribeUrl} style={{ color: '#4a5568' }}>
+    <CardEmail
+      preheader="One click tells us where you are."
+      audience="candidate"
+      footer={
+        <a href={unsubscribeUrl} style={{ color: MUTED }}>
           Turn off these weekly nudges
         </a>
-      </p>
+      }
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>Has anything changed{firstName ? `, ${firstName}` : ''}?</Headline>
+        <Lead>
+          One click tells us where you are, and your plan and our emails follow it right away. Something else changed, like a
+          layoff or a new job? Update your situation in NextChapter.
+        </Lead>
+        {introCopy && <Lead>{introCopy}</Lead>}
+        <div style={{ textAlign: 'left', margin: '0 0 28px' }}>
+          <EngagementBlock lead={engagement} appUrl={appUrl} />
+        </div>
+        <Button href={stillSearchingUrl}>Nothing yet</Button>
+        <div style={{ height: '12px', lineHeight: '12px', fontSize: '12px' }}>&nbsp;</div>
+        <a href={managingMyCareerUrl} style={outlined}>
+          Not looking right now: managing my career
+        </a>
+        <div style={{ height: '12px', lineHeight: '12px', fontSize: '12px' }}>&nbsp;</div>
+        <a href={gotAnOfferUrl} style={outlinedGreen}>
+          Got an offer! 🎉
+        </a>
+      </Card>
       {/* Best-effort open signal — many mail clients block remote images by
           default, so this undercounts opens rather than overcounting. */}
-      <img src={pixelUrl} width={1} height={1} alt="" style={{ display: 'none' }} />
-      <AudienceTag audience="candidate" />
-    </div>
+      <tr>
+        <td style={{ height: 0, lineHeight: 0, fontSize: 0 }}>
+          <img src={pixelUrl} width={1} height={1} alt="" style={{ display: 'none' }} />
+        </td>
+      </tr>
+    </CardEmail>
   )
 }

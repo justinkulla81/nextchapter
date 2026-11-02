@@ -1,5 +1,4 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, Headline, Hero, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface MarketDigestCandidateEmailProps {
   firstName: string | null
@@ -13,37 +12,6 @@ interface MarketDigestCandidateEmailProps {
   aiMarketText?: string | null
   dashboardUrl: string
   unsubscribeUrl: string
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  marginTop: '16px',
-  padding: '12px 20px',
-  backgroundColor: '#2e7d5b',
-  color: '#ffffff',
-  borderRadius: '999px',
-  textDecoration: 'none',
-  fontWeight: 600,
-}
-
-const footer: React.CSSProperties = {
-  marginTop: '32px',
-  ...emailStyles.muted,
 }
 
 export default function MarketDigestCandidateEmail({
@@ -60,44 +28,50 @@ export default function MarketDigestCandidateEmail({
   unsubscribeUrl,
 }: MarketDigestCandidateEmailProps) {
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p>Hi {firstName || 'there'},</p>
-      <p>{introCopy || "Here's this week's market update for your target role."}</p>
-      {adzunaIdealCount !== null && (
-        <p>
-          <strong>{adzunaIdealCount.toLocaleString()}</strong>{' '}
-          open roles match your target title, industry, and location — the closest read we have on
-          what&apos;s realistically open to you right now.
-        </p>
-      )}
-      {adzunaCount !== null && (
-        <p>
-          {adzunaIdealCount !== null ? 'A broader search on just your target title turns up ' : ''}
-          <strong>{adzunaCount.toLocaleString()}</strong>{' '}
-          open roles matching your target title{adzunaIdealCount !== null ? ' across any industry or location' : ' — a rough read on how active the market is right now'}.
-        </p>
-      )}
-      {blsYoyChangePct !== null && (
-        <p>
-          Employment in this field is {blsYoyChangePct >= 0 ? 'up' : 'down'}{' '}
-          <strong>{Math.abs(blsYoyChangePct).toFixed(1)}%</strong> year over year.
-        </p>
-      )}
-      {aiMarketText && <p>{aiMarketText}</p>}
-      {nuggetTitle && nuggetUrl && (
-        <p>
-          <strong>Worth a read:</strong> <a href={nuggetUrl}>{nuggetTitle}</a>
-          {nuggetSummary && ` — ${nuggetSummary}`}
-        </p>
-      )}
-      <a href={dashboardUrl} style={button}>
-        Go to your dashboard →
-      </a>
-      <p style={footer}>
-        <a href={unsubscribeUrl}>Unsubscribe from the Weekly Market Digest</a>
-      </p>
-      <AudienceTag audience="candidate" />
-    </div>
+    <CardEmail
+      preheader="Here's this week's market update for your target role."
+      audience="candidate"
+      footer={
+        <a href={unsubscribeUrl} style={{ color: MUTED }}>
+          Unsubscribe from the Weekly Market Digest
+        </a>
+      }
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>Hi {firstName || 'there'}, here&apos;s this week&apos;s market update for your target role.</Headline>
+        {adzunaIdealCount !== null && (
+          <Hero
+            value={adzunaIdealCount.toLocaleString()}
+            caption="open roles match your target title, industry, and location"
+          />
+        )}
+        {introCopy && <Lead>{introCopy}</Lead>}
+        {adzunaIdealCount !== null && (
+          <Lead>The closest read we have on what&apos;s realistically open to you right now.</Lead>
+        )}
+        {adzunaCount !== null && (
+          <Lead>
+            {adzunaIdealCount !== null ? 'A broader search on just your target title turns up ' : ''}
+            <strong>{adzunaCount.toLocaleString()}</strong>{' '}
+            open roles matching your target title{adzunaIdealCount !== null ? ' across any industry or location' : ' — a rough read on how active the market is right now'}.
+          </Lead>
+        )}
+        {blsYoyChangePct !== null && (
+          <Lead>
+            Employment in this field is {blsYoyChangePct >= 0 ? 'up' : 'down'}{' '}
+            <strong>{Math.abs(blsYoyChangePct).toFixed(1)}%</strong> year over year.
+          </Lead>
+        )}
+        {aiMarketText && <Lead>{aiMarketText}</Lead>}
+        {nuggetTitle && nuggetUrl && (
+          <Lead>
+            <strong>Worth a read:</strong> <a href={nuggetUrl}>{nuggetTitle}</a>
+            {nuggetSummary && ` — ${nuggetSummary}`}
+          </Lead>
+        )}
+        <Button href={dashboardUrl}>Go to your dashboard</Button>
+      </Card>
+    </CardEmail>
   )
 }

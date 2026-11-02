@@ -1,5 +1,4 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, CardGap, Headline, INK, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface WeeklyRecap {
   pointsEarned: number
@@ -21,79 +20,19 @@ interface MidweekCheckinEmailProps {
   unsubscribeUrl: string
 }
 
-const container: React.CSSProperties = {
-  fontFamily: 'Georgia, "Times New Roman", serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-}
-
-const logo: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const bulletList: React.CSSProperties = {
-  paddingLeft: '20px',
-  marginTop: '16px',
-}
-
-const bulletItem: React.CSSProperties = {
-  marginTop: '8px',
-}
-
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  backgroundColor: '#2e7d5b',
-  color: '#ffffff',
-  textDecoration: 'none',
-  padding: '12px 20px',
-  borderRadius: '8px',
-  marginTop: '24px',
-  ...emailStyles.cta,
-}
-
 const taskBox: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  margin: '16px 0',
+  margin: '0 0 28px',
   padding: '16px 18px',
-  borderRadius: '8px',
-  backgroundColor: '#f4f6f4',
-  borderLeft: '4px solid #2e7d5b',
+  borderRadius: '16px',
+  backgroundColor: '#e8f0f8',
+  fontSize: '17px',
+  lineHeight: '1.5',
   fontWeight: 600,
+  color: INK,
 }
 
-const footer: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  marginTop: '32px',
-  ...emailStyles.muted,
-}
-
-const recapBox: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  marginTop: '28px',
-  padding: '16px 18px',
-  borderRadius: '8px',
-  backgroundColor: '#f4f6f4',
-}
-
-const recapTitle: React.CSSProperties = {
-  fontWeight: 700,
-  color: '#0b2545',
-  margin: 0,
-}
-
-const recapList: React.CSSProperties = {
-  paddingLeft: '18px',
-  margin: '8px 0 0',
-  fontSize: '14px',
-  color: '#4a5568',
-}
+const bulletList: React.CSSProperties = { margin: '0 0 28px', paddingLeft: '20px', fontSize: '17px', lineHeight: '1.6', color: INK }
+const recapList: React.CSSProperties = { margin: '8px 0 0', paddingLeft: '18px', fontSize: '15px', lineHeight: '1.6', color: MUTED }
 
 export default function MidweekCheckinEmail({
   firstName,
@@ -109,72 +48,80 @@ export default function MidweekCheckinEmail({
   unsubscribeUrl,
 }: MidweekCheckinEmailProps) {
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p>Hi {firstName || 'there'} — {victoriaName} here. Midweek check-in:</p>
+    <CardEmail
+      preheader={gap ? `${gap.pointsToGo} points to go to lock in an A this week.` : 'Your midweek check-in.'}
+      audience="candidate"
+      footer={
+        <>
+          Don&apos;t want daily emails?{' '}
+          <a href={unsubscribeUrl} style={{ color: MUTED }}>
+            Turn them off
+          </a>
+          .
+        </>
+      }
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>Hi {firstName || 'there'} — {victoriaName} here. Midweek check-in:</Headline>
 
-      {introCopy && <p>{introCopy}</p>}
+        {introCopy && <Lead>{introCopy}</Lead>}
 
       {isReset ? (
         <>
-          <p>
+          <Lead>
             I noticed you haven&apos;t checked in for a few days. A job search is hard, and it only
             works with steady effort — but you don&apos;t have to do it alone. We&apos;re here to help.
             You just need to get started.
-          </p>
-          <p>
-            {resetTask ? 'Today, just do this:' : 'Today, pick one small thing and do it.'}
-          </p>
-          {resetTask && <p style={taskBox}>{resetTask}</p>}
-          <p>
-            Five minutes, then you&apos;re back in motion. I&apos;ll be here. — {victoriaName}
-          </p>
+          </Lead>
+          <Lead>{resetTask ? 'Today, just do this:' : 'Today, pick one small thing and do it.'}</Lead>
+          {resetTask && (
+            <div style={{ textAlign: 'left' }}>
+              <p style={taskBox}>{resetTask}</p>
+            </div>
+          )}
+          <Lead>Five minutes, then you&apos;re back in motion. I&apos;ll be here. — {victoriaName}</Lead>
         </>
       ) : bullets ? (
-        <ul style={bulletList}>
-          {bullets.map((bullet, i) => (
-            <li key={i} style={bulletItem}>
-              {bullet}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Check your dashboard for today&apos;s plan.</p>
-      )}
-
-      <a href={dashboardUrl ?? `${appUrl}/dashboard`} style={button}>
-        {isReset && resetTask ? 'Start this now' : 'Open my dashboard'}
-      </a>
-
-      {gap && (
-        <p style={{ marginTop: '20px', fontWeight: 600 }}>
-          You&apos;re at {gap.weeklyPoints} of {gap.weeklyPointsTarget} points — {gap.pointsToGo} to go to lock in an A this week.
-        </p>
-      )}
-
-      {weeklyRecap && (
-        <div style={recapBox}>
-          <p style={recapTitle}>
-            {gap
-              ? 'Done so far this week:'
-              : `This week so far: ${weeklyRecap.pointsEarned} of ${weeklyRecap.pointsTarget} points — nice work.`}
-          </p>
-          <ul style={recapList}>
-            {weeklyRecap.completedTexts.map((text, i) => (
-              <li key={i}>{text}</li>
+        <div style={{ textAlign: 'left' }}>
+          <ul style={bulletList}>
+            {bullets.map((bullet, i) => (
+              <li key={i} style={{ marginTop: '8px' }}>
+                {bullet}
+              </li>
             ))}
           </ul>
         </div>
+      ) : (
+        <Lead>Check your dashboard for today&apos;s plan.</Lead>
       )}
 
-      <p style={footer}>
-        Don&apos;t want daily emails?{' '}
-        <a href={unsubscribeUrl} style={{ color: '#4a5568' }}>
-          Turn them off
-        </a>
-        .
-      </p>
-      <AudienceTag audience="candidate" />
-    </div>
+        <Button href={dashboardUrl ?? `${appUrl}/dashboard`}>{isReset && resetTask ? 'Start this now' : 'Open my dashboard'}</Button>
+
+        {gap && (
+          <p style={{ margin: '24px 0 0', fontSize: '16px', fontWeight: 600, color: INK }}>
+            You&apos;re at {gap.weeklyPoints} of {gap.weeklyPointsTarget} points — {gap.pointsToGo} to go to lock in an A this week.
+          </p>
+        )}
+      </Card>
+
+      {weeklyRecap && (
+        <>
+          <CardGap />
+          <Card>
+            <p style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: INK }}>
+              {gap
+                ? 'Done so far this week:'
+                : `This week so far: ${weeklyRecap.pointsEarned} of ${weeklyRecap.pointsTarget} points — nice work.`}
+            </p>
+            <ul style={recapList}>
+              {weeklyRecap.completedTexts.map((text, i) => (
+                <li key={i}>{text}</li>
+              ))}
+            </ul>
+          </Card>
+        </>
+      )}
+    </CardEmail>
   )
 }

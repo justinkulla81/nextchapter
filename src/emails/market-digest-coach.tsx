@@ -1,5 +1,5 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Fragment } from 'react'
+import { Button, Card, CardEmail, CardGap, Headline, INK, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 /** One role, as the client's own board card says it (job-card.ts): verdict, meta line, why line. */
 export interface CoachDigestJob {
@@ -56,37 +56,18 @@ const NAVY = '#0b2545'
 const GREEN = '#2e7d5b'
 const RED = '#b42318'
 
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '600px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-}
-
-const card: React.CSSProperties = {
-  border: '1px solid #e2e8f0',
-  borderRadius: '8px',
-  padding: '16px 20px',
-  marginTop: '16px',
-}
-
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  marginTop: '24px',
-  padding: '12px 20px',
-  backgroundColor: GREEN,
-  color: '#ffffff',
-  borderRadius: '999px',
-  textDecoration: 'none',
-  fontWeight: 600,
-}
+const muted: React.CSSProperties = { fontSize: '14px', lineHeight: '1.5', color: MUTED }
 
 const label: React.CSSProperties = {
-  ...emailStyles.sectionLabel,
-  margin: '12px 0 4px',
+  margin: '16px 0 4px',
+  fontSize: '12px',
+  fontWeight: 700,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  color: MUTED,
 }
+
+const listStyle: React.CSSProperties = { margin: 0, paddingLeft: '18px', fontSize: '16px', lineHeight: '1.5', color: INK }
 
 const trendArrow = { up: '↑', down: '↓', flat: '→' } as const
 
@@ -113,13 +94,13 @@ function ClientCard({ c }: { c: CoachDigestClient }) {
   const quiet = c.applications === 0 && c.interviews === 0 && c.outreach === 0
   const delta = c.pointsThisWeek - c.pointsLastWeek
   return (
-    <div style={card}>
-      <p style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: NAVY }}>
+    <div style={{ textAlign: 'left' }}>
+      <p style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: NAVY }}>
         <a href={c.fullViewUrl} style={{ color: NAVY, textDecoration: 'none' }}>
           {c.name}
         </a>
       </p>
-      <p style={{ ...emailStyles.muted, margin: '2px 0 0' }}>
+      <p style={{ ...muted, margin: '2px 0 0' }}>
         {[
           c.weekNumber ? `Week ${c.weekNumber}` : null,
           c.grade ? `Grade ${c.grade}${c.trend ? ` ${trendArrow[c.trend]}` : ''}` : null,
@@ -132,7 +113,7 @@ function ClientCard({ c }: { c: CoachDigestClient }) {
       {c.attention.length > 0 && (
         <>
           <p style={{ ...label, color: RED }}>Needs a conversation</p>
-          <ul style={{ margin: 0, paddingLeft: '18px' }}>
+          <ul style={listStyle}>
             {c.attention.map((a) => (
               <li key={a}>{a}</li>
             ))}
@@ -143,7 +124,7 @@ function ClientCard({ c }: { c: CoachDigestClient }) {
       {c.goodNews.length > 0 && (
         <>
           <p style={{ ...label, color: GREEN }}>Good news</p>
-          <ul style={{ margin: 0, paddingLeft: '18px' }}>
+          <ul style={listStyle}>
             {c.goodNews.map((g) => (
               <li key={g}>{g}</li>
             ))}
@@ -152,19 +133,19 @@ function ClientCard({ c }: { c: CoachDigestClient }) {
       )}
 
       <p style={label}>Their last 7 days</p>
-      <p style={{ margin: 0 }}>
+      <p style={{ margin: 0, fontSize: '16px', color: INK }}>
         {quiet ? `Nothing logged${c.daysSinceActive !== null ? ` — last active ${c.daysSinceActive} day${c.daysSinceActive === 1 ? '' : 's'} ago` : ''}.` : activityLine(c)}
       </p>
-      <p style={{ ...emailStyles.muted, margin: '2px 0 0' }}>
+      <p style={{ ...muted, margin: '2px 0 0' }}>
         {c.pointsThisWeek} points this week
         {c.pointsLastWeek > 0 || c.pointsThisWeek > 0 ? ` (${delta >= 0 ? '+' : ''}${delta} vs last week)` : ''}
       </p>
 
       <p style={label}>New roles that fit {c.firstName}</p>
       {c.newJobs.length === 0 ? (
-        <p style={{ ...emailStyles.muted, margin: 0 }}>No new roles that fit this week.</p>
+        <p style={{ ...muted, margin: 0 }}>No new roles that fit this week.</p>
       ) : (
-        <ul style={{ margin: 0, paddingLeft: '18px' }}>
+        <ul style={listStyle}>
           {c.newJobs.map((j) => (
             <li key={j.url} style={{ marginBottom: '6px' }}>
               <span style={{ color: NAVY, fontWeight: 600 }}>{j.verdict}: </span>
@@ -172,11 +153,11 @@ function ClientCard({ c }: { c: CoachDigestClient }) {
                 {j.title}
               </a>
               <br />
-              <span style={emailStyles.muted}>{[j.company, j.meta].filter(Boolean).join(' · ')}</span>
+              <span style={muted}>{[j.company, j.meta].filter(Boolean).join(' · ')}</span>
               {j.why && (
                 <>
                   <br />
-                  <span style={emailStyles.muted}>{j.why.replace(/^Fits you:/, `Fits ${c.firstName}:`)}</span>
+                  <span style={muted}>{j.why.replace(/^Fits you:/, `Fits ${c.firstName}:`)}</span>
                 </>
               )}
             </li>
@@ -200,72 +181,93 @@ export default function MarketDigestCoachEmail({
   unsubscribeUrl,
 }: MarketDigestCoachEmailProps) {
   const s = coachDigestSummary(clients)
+  const hasExtras = notSharedNames.length > 0 || unavailableNames.length > 0 || roleLines.length > 0 || (nuggetTitle && nuggetUrl)
   return (
-    <div style={container}>
-      <p style={{ fontSize: '20px', fontWeight: 700, color: NAVY, margin: 0 }}>NextChapter</p>
-      <p>Hi {fullName.split(' ')[0]},</p>
-      {clients.length > 0 ? (
-        <p>
-          Your week at a glance:{' '}
-          <strong>
-            {s.needAttention} {s.needAttention === 1 ? 'client needs' : 'clients need'} a conversation
-          </strong>
-          , {s.applications} application{s.applications === 1 ? '' : 's'} and {s.interviews} interview
-          {s.interviews === 1 ? '' : 's'} across your caseload, and{' '}
-          <strong>
-            {s.newRoles} new role{s.newRoles === 1 ? '' : 's'} that fit
-          </strong>
-          , worth sending.
-        </p>
-      ) : (
-        <p>None of your clients have shared their profile with you yet, so there&apos;s no client detail to show this week.</p>
-      )}
+    <CardEmail
+      preheader="Your week at a glance across your caseload."
+      audience="coach"
+      footer={
+        <a href={unsubscribeUrl} style={{ color: MUTED }}>
+          Unsubscribe from the Weekly Market Digest
+        </a>
+      }
+    >
+      <Card center pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>Your week at a glance</Headline>
+        {clients.length > 0 ? (
+          <Lead>
+            Hi {fullName.split(' ')[0]}.{' '}
+            <strong>
+              {s.needAttention} {s.needAttention === 1 ? 'client needs' : 'clients need'} a conversation
+            </strong>
+            , {s.applications} application{s.applications === 1 ? '' : 's'} and {s.interviews} interview
+            {s.interviews === 1 ? '' : 's'} across your caseload, and{' '}
+            <strong>
+              {s.newRoles} new role{s.newRoles === 1 ? '' : 's'} that fit
+            </strong>
+            , worth sending.
+          </Lead>
+        ) : (
+          <Lead>
+            Hi {fullName.split(' ')[0]}. None of your clients have shared their profile with you yet, so there&apos;s no client detail to show this
+            week.
+          </Lead>
+        )}
+        <Button href={caseloadUrl}>Open your caseload</Button>
+      </Card>
 
       {clients.map((c) => (
-        <ClientCard key={c.fullViewUrl} c={c} />
+        <Fragment key={c.fullViewUrl}>
+          <CardGap />
+          <Card>
+            <ClientCard c={c} />
+          </Card>
+        </Fragment>
       ))}
 
-      {notSharedNames.length > 0 && (
-        <p style={{ ...emailStyles.muted, marginTop: '16px' }}>
-          Not shared with you yet, so no detail: {notSharedNames.join(', ')}. Ask them to turn on coach access in their
-          privacy settings.
-        </p>
-      )}
-
-      {unavailableNames.length > 0 && (
-        <p style={{ ...emailStyles.muted, marginTop: '16px' }}>
-          Couldn&apos;t load this week&apos;s detail for: {unavailableNames.join(', ')}. It will be back next week.
-        </p>
-      )}
-
-      {roleLines.length > 0 && (
+      {hasExtras && (
         <>
-          <p style={{ ...label, marginTop: '28px' }}>Market, across your clients&apos; target roles</p>
-          <ul style={{ margin: 0, paddingLeft: '18px' }}>
-            {roleLines.map((r) => (
-              <li key={r.roleType}>
-                {r.roleType}
-                {r.adzunaCount !== null && ` — ${r.adzunaCount.toLocaleString()} open roles`}
-              </li>
-            ))}
-          </ul>
+          <CardGap />
+          <Card>
+            <div style={{ textAlign: 'left' }}>
+              {notSharedNames.length > 0 && (
+                <p style={{ ...muted, margin: '0 0 12px' }}>
+                  Not shared with you yet, so no detail: {notSharedNames.join(', ')}. Ask them to turn on coach access in their
+                  privacy settings.
+                </p>
+              )}
+
+              {unavailableNames.length > 0 && (
+                <p style={{ ...muted, margin: '0 0 12px' }}>
+                  Couldn&apos;t load this week&apos;s detail for: {unavailableNames.join(', ')}. It will be back next week.
+                </p>
+              )}
+
+              {roleLines.length > 0 && (
+                <>
+                  <p style={{ ...label, marginTop: 0 }}>Market, across your clients&apos; target roles</p>
+                  <ul style={listStyle}>
+                    {roleLines.map((r) => (
+                      <li key={r.roleType}>
+                        {r.roleType}
+                        {r.adzunaCount !== null && ` — ${r.adzunaCount.toLocaleString()} open roles`}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+
+              {nuggetTitle && nuggetUrl && (
+                <p style={{ margin: '16px 0 0', fontSize: '16px', lineHeight: '1.6', color: INK }}>
+                  <strong>What&apos;s working:</strong> <a href={nuggetUrl} style={{ color: NAVY }}>{nuggetTitle}</a>
+                  {nuggetSummary && ` — ${nuggetSummary}`}
+                </p>
+              )}
+            </div>
+          </Card>
         </>
       )}
-
-      {nuggetTitle && nuggetUrl && (
-        <p>
-          <strong>What&apos;s working:</strong> <a href={nuggetUrl}>{nuggetTitle}</a>
-          {nuggetSummary && ` — ${nuggetSummary}`}
-        </p>
-      )}
-
-      <a href={caseloadUrl} style={button}>
-        Open your caseload →
-      </a>
-      <p style={{ marginTop: '32px', ...emailStyles.muted }}>
-        <a href={unsubscribeUrl}>Unsubscribe from the Weekly Market Digest</a>
-      </p>
-      <AudienceTag audience="coach" />
-    </div>
+    </CardEmail>
   )
 }

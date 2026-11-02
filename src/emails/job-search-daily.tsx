@@ -1,5 +1,5 @@
 import type { JobSearchDailyContent, DailyItem, ScoreStatus } from '@/lib/job-search-daily/build'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Button, Card, CardEmail, CardGap, Headline, INK, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface JobSearchDailyEmailProps {
   content: JobSearchDailyContent
@@ -9,35 +9,14 @@ interface JobSearchDailyEmailProps {
   unsubscribeUrl: string
 }
 
-// Layout borrowed from the best daily-digest emails: wordmark above a white
-// card, a one-line greeting, bold-first bullets, and one colored button as
-// the only pop of color. Short enough to read on a phone before coffee.
+// Card layout shared with the other NextChapter emails. Each part of the day
+// (today, follow-ups, new jobs) gets its own white card; one green button.
 
-const sans = '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif'
-const ink = '#0b2545'
-const muted = '#5a6472'
-const accent = '#2e7d5b' // the action button only
-
-const page: React.CSSProperties = {
-  backgroundColor: '#f3f4f6',
-  padding: '24px 12px',
-  fontFamily: sans,
-  color: '#111827',
-  fontSize: '15px',
-  lineHeight: '1.5',
-}
-
-const wordmark: React.CSSProperties = {
-  textAlign: 'center',
-  margin: '0 0 16px',
-  fontSize: '22px',
-  fontWeight: 800,
-  color: ink,
-  letterSpacing: '-0.02em',
-}
+const ink = INK
+const muted = MUTED
 
 const wordmarkSub: React.CSSProperties = {
-  display: 'block',
+  margin: '-20px 0 24px',
   fontSize: '12px',
   fontWeight: 600,
   letterSpacing: '0.08em',
@@ -45,29 +24,16 @@ const wordmarkSub: React.CSSProperties = {
   color: muted,
 }
 
-const card: React.CSSProperties = {
-  maxWidth: '640px',
-  margin: '0 auto',
-  backgroundColor: '#ffffff',
-  borderRadius: '16px',
-  padding: '24px',
-}
+const sub: React.CSSProperties = { color: muted, margin: '0 0 20px', fontSize: '16px' }
 
-const hello: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 600,
-  margin: 0,
-  color: ink,
-}
-const sub: React.CSSProperties = { color: muted, margin: '4px 0 0' }
-
+const block: React.CSSProperties = { margin: '0 0 22px', fontSize: '16px', lineHeight: '1.5', color: INK }
 const label: React.CSSProperties = {
   fontSize: '12px',
-  fontWeight: 600,
+  fontWeight: 700,
   letterSpacing: '0.06em',
   textTransform: 'uppercase',
   color: muted,
-  margin: '24px 0 4px',
+  margin: '0 0 6px',
 }
 const list: React.CSSProperties = { margin: 0, paddingLeft: '20px' }
 const li: React.CSSProperties = { margin: '4px 0' }
@@ -83,18 +49,6 @@ const more: React.CSSProperties = {
   margin: '4px 0 0 20px',
 }
 
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  backgroundColor: accent,
-  color: '#ffffff',
-  textDecoration: 'none',
-  padding: '12px 24px',
-  borderRadius: '999px',
-  fontWeight: 700,
-  fontSize: '16px',
-  marginTop: '24px',
-}
-
 const quoteStyle: React.CSSProperties = {
   margin: '24px 0 0',
   paddingTop: '16px',
@@ -102,13 +56,6 @@ const quoteStyle: React.CSSProperties = {
   color: muted,
   fontStyle: 'italic',
   fontSize: '14px',
-}
-
-const footer: React.CSSProperties = {
-  textAlign: 'center',
-  color: muted,
-  fontSize: '12px',
-  margin: '16px 0 0',
 }
 
 const STATUS: Record<ScoreStatus, { text: string; color: string }> = {
@@ -152,7 +99,7 @@ function Bullet({ item }: { item: DailyItem }) {
 function Section({ title, items, footerNote }: { title: string; items: DailyItem[]; footerNote?: React.ReactNode }) {
   if (items.length === 0) return null
   return (
-    <>
+    <div style={block}>
       <p style={label}>{title}</p>
       <ul style={list}>
         {items.map((item) => (
@@ -160,7 +107,7 @@ function Section({ title, items, footerNote }: { title: string; items: DailyItem
         ))}
       </ul>
       {footerNote}
-    </>
+    </div>
   )
 }
 
@@ -177,15 +124,25 @@ export default function JobSearchDailyEmail({
   const newForYou = [...jobs.items, ...companyMoves, ...(article ? [article] : [])]
   const followUpsUrl = `${appUrl}/dashboard/network/follow-ups?src=job_search_daily`
 
-  return (
-    <div style={page}>
-      <p style={wordmark}>
-        NextChapter
-        <span style={wordmarkSub}>{masthead}</span>
-      </p>
+  const hasToday =
+    priorities.length > 0 || !!fromProfile || content.whatChanged.length > 0 || !!content.checkIn || todos.length > 0
+  const hasFollowUps = applications.length > 0 || networking.length > 0
+  const hasJobs = jobs.fresh.length > 0 || content.likelyOpenings.length > 0 || newForYou.length > 0 || !!unlock
 
-      <div style={card}>
-        <p style={hello}>Good morning, {content.firstName || 'there'}</p>
+  return (
+    <CardEmail
+      preheader={`Your ${weekday} plan${score ? `: Weekly Search Score ${score.earned}/${score.target}` : ''}.`}
+      audience="candidate"
+      footer={
+        <a href={unsubscribeUrl} style={{ color: muted }}>
+          Turn off this email
+        </a>
+      }
+    >
+      <Card pad="28px 32px 12px">
+        <Wordmark />
+        <p style={wordmarkSub}>{masthead}</p>
+        <Headline>Good morning, {content.firstName || 'there'}</Headline>
         <p style={sub}>
           Here&apos;s your {weekday}
           {content.dayNumber ? ` · Day ${content.dayNumber}` : ''}
@@ -193,7 +150,7 @@ export default function JobSearchDailyEmail({
         </p>
 
         {score && (
-          <div style={{ marginTop: '16px' }}>
+          <div style={{ ...block, backgroundColor: '#e8f0f8', borderRadius: '20px', padding: '20px 24px' }}>
             <p style={{ margin: 0 }}>
               Weekly Search Score {score.earned}/{score.target}{' '}
               <span style={{ color: STATUS[score.status].color, fontWeight: 600 }}>{STATUS[score.status].text}</span>
@@ -201,7 +158,7 @@ export default function JobSearchDailyEmail({
             <div
               style={{
                 height: '8px',
-                backgroundColor: '#eceef1',
+                backgroundColor: '#ffffff',
                 borderRadius: '4px',
                 marginTop: '8px',
               }}
@@ -217,147 +174,159 @@ export default function JobSearchDailyEmail({
             </div>
           </div>
         )}
+      </Card>
 
-        {priorities.length > 0 && (
-          <>
-            <p style={label}>Top {priorities.length} today</p>
-            <ul style={list}>
-              {priorities.map((p) => (
-                <li key={p.key} style={li}>
-                  <strong>{p.lead}</strong>{' '}
-                  <a href={p.href} style={itemLink}>
-                    {p.text}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
+      {hasToday && (
+        <>
+          <CardGap />
+          <Card pad="28px 32px 6px">
+            {priorities.length > 0 && (
+              <div style={block}>
+                <p style={label}>Top {priorities.length} today</p>
+                <ul style={list}>
+                  {priorities.map((p) => (
+                    <li key={p.key} style={li}>
+                      <strong>{p.lead}</strong>{' '}
+                      <a href={p.href} style={itemLink}>
+                        {p.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-        {fromProfile && (
-          <>
-            <p style={label}>From your profile</p>
-            <p style={li}>
-              <strong>{fromProfile.title}.</strong>{' '}
-              {fromProfile.href ? (
-                <a href={fromProfile.href} style={itemLink}>
-                  {fromProfile.detail}
-                </a>
-              ) : (
-                fromProfile.detail
-              )}
-            </p>
-          </>
-        )}
-
-        {content.whatChanged.length > 0 && (
-          <>
-            <p style={label}>What changed for you</p>
-            <ul style={list}>
-              {content.whatChanged.map((line) => (
-                <li key={line} style={li}>
-                  {line}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-
-        {content.checkIn && (
-          <>
-            <p style={label}>Weekly check-in</p>
-            <p style={li}>Applied or reached out anywhere this week? Tap:</p>
-            {content.checkIn.rows.map((row) => (
-              <p key={row.kind} style={li}>
-                <strong>{row.label}:</strong>{' '}
-                {row.taps.map((t, i) => (
-                  <span key={t.label}>
-                    {i > 0 && <span style={tail}> · </span>}
-                    <a href={t.href} style={itemLink}>
-                      {t.label}
+            {fromProfile && (
+              <div style={block}>
+                <p style={label}>From your profile</p>
+                <p style={li}>
+                  <strong>{fromProfile.title}.</strong>{' '}
+                  {fromProfile.href ? (
+                    <a href={fromProfile.href} style={itemLink}>
+                      {fromProfile.detail}
                     </a>
-                  </span>
+                  ) : (
+                    fromProfile.detail
+                  )}
+                </p>
+              </div>
+            )}
+
+            {content.whatChanged.length > 0 && (
+              <div style={block}>
+                <p style={label}>What changed for you</p>
+                <ul style={list}>
+                  {content.whatChanged.map((line) => (
+                    <li key={line} style={li}>
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {content.checkIn && (
+              <div style={block}>
+                <p style={label}>Weekly check-in</p>
+                <p style={li}>Applied or reached out anywhere this week? Tap:</p>
+                {content.checkIn.rows.map((row) => (
+                  <p key={row.kind} style={li}>
+                    <strong>{row.label}:</strong>{' '}
+                    {row.taps.map((t, i) => (
+                      <span key={t.label}>
+                        {i > 0 && <span style={tail}> · </span>}
+                        <a href={t.href} style={itemLink}>
+                          {t.label}
+                        </a>
+                      </span>
+                    ))}
+                  </p>
                 ))}
-              </p>
-            ))}
-            <p style={more}>Counts toward Candidate+. Tapping again won&apos;t count twice.</p>
-          </>
-        )}
+                <p style={more}>Counts toward Candidate+. Tapping again won&apos;t count twice.</p>
+              </div>
+            )}
 
-        {todos.length > 0 && (
-          <>
-            <p style={label}>{priorities.length > 0 ? 'Also to do' : 'To do today'}</p>
-            <ul style={list}>
-              {todos.map((t, i) => (
-                <li key={i} style={li}>
-                  {t.text}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
+            {todos.length > 0 && (
+              <div style={block}>
+                <p style={label}>{priorities.length > 0 ? 'Also to do' : 'To do today'}</p>
+                <ul style={list}>
+                  {todos.map((t, i) => (
+                    <li key={i} style={li}>
+                      {t.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Card>
+        </>
+      )}
 
-        <Section
-          title="Follow up on applications"
-          items={applications}
-          footerNote={
-            (content.applicationsMoreCount > 0 || content.staleApplicationCount > 0) && (
-              <p style={more}>
-                <a href={`${appUrl}/dashboard/find-my-job?src=job_search_daily`} style={{ color: muted }}>
-                  {[
-                    content.applicationsMoreCount > 0 ? 'See all' : null,
-                    content.staleApplicationCount > 0 ? 'Mark older applications closed to keep your list clean' : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </a>
-              </p>
-            )
-          }
-        />
+      {hasFollowUps && (
+        <>
+          <CardGap />
+          <Card pad="28px 32px 6px">
+            <Section
+              title="Follow up on applications"
+              items={applications}
+              footerNote={
+                (content.applicationsMoreCount > 0 || content.staleApplicationCount > 0) && (
+                  <p style={more}>
+                    <a href={`${appUrl}/dashboard/find-my-job?src=job_search_daily`} style={{ color: muted }}>
+                      {[
+                        content.applicationsMoreCount > 0 ? 'See all' : null,
+                        content.staleApplicationCount > 0 ? 'Mark older applications closed to keep your list clean' : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </a>
+                  </p>
+                )
+              }
+            />
 
-        <Section
-          title="Follow up with people"
-          items={networking}
-          footerNote={
-            content.networkingMoreCount > 0 && (
-              <p style={more}>
-                <a href={followUpsUrl} style={{ color: muted }}>
-                  See everyone
-                </a>
-              </p>
-            )
-          }
-        />
+            <Section
+              title="Follow up with people"
+              items={networking}
+              footerNote={
+                content.networkingMoreCount > 0 && (
+                  <p style={more}>
+                    <a href={followUpsUrl} style={{ color: muted }}>
+                      See everyone
+                    </a>
+                  </p>
+                )
+              }
+            />
+          </Card>
+        </>
+      )}
 
-        <Section title="Posted in the last 72 hours — apply first" items={jobs.fresh} />
+      {hasJobs && (
+        <>
+          <CardGap />
+          <Card pad="28px 32px 6px">
+            <Section title="Posted in the last 72 hours — apply first" items={jobs.fresh} />
 
-        <Section title="Likely openings — not posted yet" items={content.likelyOpenings} />
+            <Section title="Likely openings — not posted yet" items={content.likelyOpenings} />
 
-        <Section
-          title="New for you"
-          items={newForYou}
-        />
+            <Section title="New for you" items={newForYou} />
 
-        {unlock && <Section title="Unlock next" items={[{ ...unlock, detail: null }]} />}
+            {unlock && <Section title="Unlock next" items={[{ ...unlock, detail: null }]} />}
+          </Card>
+        </>
+      )}
 
-        <a href={action.href} style={button}>
-          {action.label} →
-        </a>
+      <CardGap />
+      <Card center pad="28px 32px 32px">
+        <Button href={action.href}>{action.label}</Button>
 
         {quote && (
-          <p style={quoteStyle}>
+          <p style={{ ...quoteStyle, textAlign: 'left' }}>
             &ldquo;{quote.text}&rdquo; <span style={{ fontStyle: 'normal' }}>— {quote.author}</span>
           </p>
         )}
-      </div>
-
-      <p style={footer}>
-        <a href={unsubscribeUrl} style={{ color: muted }}>
-          Turn off this email
-        </a>
-      </p>
-      <AudienceTag audience="candidate" />
-    </div>
+      </Card>
+    </CardEmail>
   )
 }
