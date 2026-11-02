@@ -5,6 +5,9 @@ import type { CourseCategory, CourseSkillLevel } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { loadScanState, saveScanState } from '@/lib/learning/course-scan/run'
+import { xCoursePost } from '@/lib/learning/course-scan/posts'
+import { CHANNELS } from '@/lib/social/channels'
 
 export type FormState = { error?: string } | undefined
 
@@ -103,4 +106,49 @@ export async function deleteCourse(courseId: string) {
   await prisma.course.delete({ where: { id: courseId } })
   revalidatePath('/support/admin/courses')
   revalidatePath('/dashboard/learning')
+}
+
+// The weekly scan's queue (src/lib/learning/course-scan/run.ts): a found course is added to the catalog, or dismissed, by a person.
+export async function addFoundCourse(url: string) {
+  const admin = await requireAdmin()
+  const state = await loadScanState()
+  const c = state.pending.find((p) => p.url === url && !p.addedAt)
+  if (!c) return
+  const exists = await prisma.course.findFirst({ where: { url: c.url }, select: { id: true } })
+  if (!exists) {
+    await prisma.course.create({
+      data: {
+        category: c.category, title: c.title, sponsor: c.sponsor, description: c.description || c.title, url: c.url,
+        provider: c.provider, free: c.free, skillLevel: c.skillLevel, keywords: c.category === 'FUNCTION_TRAINING' ? c.keywords : [],
+      },
+    })
+  }
+  c.addedAt = new Date().toISOString()
+  await saveScanState(state)
+  captureServerEvent(admin?.email ?? 'admin', 'course_scan_added', { url: c.url, category: c.category, skillLevel: c.skillLevel, source: c.source })
+  revalidatePath('/support/admin/courses')
+  revalidatePath('/dashboard/learning')
+}
+
+export async function dismissFoundCourse(url: string) {
+  const admin = await requireAdmin()
+  const state = await loadScanState()
+  state.pending = state.pending.filter((p) => p.url !== url)
+  if (!state.dismissed.includes(url)) state.dismissed.push(url)
+  await saveScanState(state)
+  captureServerEvent(admin?.email ?? 'admin', 'course_scan_dismissed', { url })
+  revalidatePath('/support/admin/courses')
+}
+
+export async function postFoundCourseToX(url: string) {
+  const admin = await requireAdmin()
+  const state = await loadScanState()
+  const c = state.pending.find((p) => p.url === url && p.addedAt && !p.xPostedAt)
+  const x = CHANNELS.find((ch) => ch.id === 'x')
+  if (!c || !x?.ready()) return
+  await x.post(xCoursePost(c), `course:${c.url}:x`)
+  c.xPostedAt = new Date().toISOString()
+  await saveScanState(state)
+  captureServerEvent(admin?.email ?? 'admin', 'course_scan_posted_x', { url: c.url })
+  revalidatePath('/support/admin/courses')
 }

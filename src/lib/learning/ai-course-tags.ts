@@ -98,6 +98,16 @@ export const AI_COURSE_TAGS: Record<string, { title: string; items: string[] }> 
   'https://developer.nvidia.com/blog/even-easier-introduction-cuda/': { title: 'An Even Easier Introduction to CUDA', items: ['b_gpu'] },
   'https://learn.microsoft.com/en-us/training/modules/use-copilot-power-automate/': { title: 'Use Copilot in Power Automate', items: ['a_automation_tools', 'a_agentic_automation'] },
   'https://learn.microsoft.com/en-us/training/paths/automate-tasks-workflows-copilot-studio/': { title: 'Automate Tasks and Workflows in Microsoft Copilot Studio', items: ['a_agentic_automation'] },
+  // Google Skills role courses for finance and legal (announced 2026-10-30).
+  'https://www.skills.google/course_templates/1912': { title: 'Elevate Financial Advisor Insights with Gemini', items: ['a_tool_use', 'a_assistants'] },
+  'https://www.skills.google/course_templates/1947': { title: 'Use Gemini for Financial Portfolio Resilience', items: ['a_tool_use', 'a_ai_analytics'] },
+  'https://www.skills.google/course_templates/1944': { title: 'Accelerate Bond Issuance in Gemini', items: ['a_tool_use', 'a_enterprise_ai'] },
+  'https://www.skills.google/course_templates/1948': { title: 'Uncover Credit Market Opportunities with Gemini', items: ['a_tool_use', 'a_ai_analytics'] },
+  'https://www.skills.google/course_templates/1915': { title: 'Use Gemini for Legal Regulatory Horizon Scanning', items: ['a_tool_use', 'a_ai_analytics'] },
+  'https://www.skills.google/course_templates/1946': { title: 'Use Gemini for Legal Data and DSAR Responses', items: ['a_tool_use', 'a_enterprise_ai'] },
+  'https://www.skills.google/course_templates/1945': { title: 'Contract Review and Playbook Creation with Gemini', items: ['a_tool_use', 'a_assistants'] },
+  'https://www.skills.google/course_templates/1907': { title: 'Use Gemini to Redact Legal Documents', items: ['a_tool_use', 'a_assistants'] },
+  'https://www.skills.google/course_templates/1949': { title: 'Draft NDA Documents with Gemini', items: ['a_tool_use', 'a_prompt'] },
 }
 
 export interface AiLearningPath {
@@ -404,6 +414,114 @@ export const AI_LEARNING_PATHS: AiLearningPath[] = [
     free: true,
     category: 'AI_TRAINING',
     skillLevel: 'INTERMEDIATE',
+  },
+  {
+    title: 'Elevate Financial Advisor Insights with Gemini',
+    sponsor: 'Google Cloud',
+    description:
+      'Short video course: use Gemini to pull client-relevant insight out of research and account material before an advisor conversation. Free; the level is ours, Google does not state one.',
+    url: 'https://www.skills.google/course_templates/1912',
+    provider: 'googleSkills',
+    free: true,
+    category: 'FUNCTION_TRAINING',
+    skillLevel: 'BEGINNER',
+    keywords: ['finance', 'accounting', 'wealth', 'advis'],
+  },
+  {
+    title: 'Use Gemini for Financial Portfolio Resilience',
+    sponsor: 'Google Cloud',
+    description:
+      'Short video course: stress-test a portfolio and read concentration and scenario risk with Gemini. Free; the level is ours, Google does not state one.',
+    url: 'https://www.skills.google/course_templates/1947',
+    provider: 'googleSkills',
+    free: true,
+    category: 'FUNCTION_TRAINING',
+    skillLevel: 'INTERMEDIATE',
+    keywords: ['finance', 'accounting', 'investment', 'portfolio'],
+  },
+  {
+    title: 'Accelerate Bond Issuance in Gemini',
+    sponsor: 'Google Cloud',
+    description:
+      'Short video course: speed up the document-heavy steps of a bond issuance with Gemini. Free; the level is ours, Google does not state one.',
+    url: 'https://www.skills.google/course_templates/1944',
+    provider: 'googleSkills',
+    free: true,
+    category: 'FUNCTION_TRAINING',
+    skillLevel: 'INTERMEDIATE',
+    keywords: ['finance', 'treasury', 'capital markets'],
+  },
+  {
+    title: 'Uncover Credit Market Opportunities with Gemini',
+    sponsor: 'Google Cloud',
+    description:
+      'Short video course: screen credit markets and surface opportunities with Gemini. Free; the level is ours, Google does not state one.',
+    url: 'https://www.skills.google/course_templates/1948',
+    provider: 'googleSkills',
+    free: true,
+    category: 'FUNCTION_TRAINING',
+    skillLevel: 'INTERMEDIATE',
+    keywords: ['finance', 'credit', 'investment'],
+  },
+  {
+    title: 'Use Gemini for Legal Regulatory Horizon Scanning',
+    sponsor: 'Google Cloud',
+    description:
+      'Short video course: track incoming regulation and summarize what it means for your organization with Gemini. Free; the level is ours, Google does not state one.',
+    url: 'https://www.skills.google/course_templates/1915',
+    provider: 'googleSkills',
+    free: true,
+    category: 'FUNCTION_TRAINING',
+    skillLevel: 'INTERMEDIATE',
+    keywords: ['legal', 'compliance', 'counsel'],
+  },
+  {
+    title: 'Use Gemini for Legal Data and DSAR Responses',
+    sponsor: 'Google Cloud',
+    description:
+      'Short video course: find and organize the records behind a data subject access request with Gemini. Free; the level is ours, Google does not state one.',
+    url: 'https://www.skills.google/course_templates/1946',
+    provider: 'googleSkills',
+    free: true,
+    category: 'FUNCTION_TRAINING',
+    skillLevel: 'INTERMEDIATE',
+    keywords: ['legal', 'compliance', 'privacy'],
+  },
+  {
+    title: 'Contract Review and Playbook Creation with Gemini',
+    sponsor: 'Google Cloud',
+    description:
+      'Short video course: review contracts against a playbook, and build the playbook, with Gemini. Free; the level is ours, Google does not state one.',
+    url: 'https://www.skills.google/course_templates/1945',
+    provider: 'googleSkills',
+    free: true,
+    category: 'FUNCTION_TRAINING',
+    skillLevel: 'INTERMEDIATE',
+    keywords: ['legal', 'contract', 'counsel'],
+  },
+  {
+    title: 'Use Gemini to Redact Legal Documents',
+    sponsor: 'Google Cloud',
+    description:
+      'Short video course: find and mark sensitive text for redaction with Gemini. Free; the level is ours, Google does not state one.',
+    url: 'https://www.skills.google/course_templates/1907',
+    provider: 'googleSkills',
+    free: true,
+    category: 'FUNCTION_TRAINING',
+    skillLevel: 'BEGINNER',
+    keywords: ['legal', 'paralegal', 'compliance'],
+  },
+  {
+    title: 'Draft NDA Documents with Gemini',
+    sponsor: 'Google Cloud',
+    description:
+      'Short video course: draft a first-pass NDA with Gemini, then check it the way a lawyer would. Free; the level is ours, Google does not state one.',
+    url: 'https://www.skills.google/course_templates/1949',
+    provider: 'googleSkills',
+    free: true,
+    category: 'FUNCTION_TRAINING',
+    skillLevel: 'BEGINNER',
+    keywords: ['legal', 'counsel', 'contract'],
   },
 ]
 
