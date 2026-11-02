@@ -8,6 +8,7 @@ import { ActionBand, AudienceSection, AudienceShell, Disclosure, actionButton } 
 import { StructuredData } from '@/components/StructuredData'
 import { PORTAL_PLAN_LABELS, plansAcrossPortals, plansForPortal, type Plan, type PortalKey } from '@/lib/marketing/plans'
 import { portalJsonLd, type PortalJsonLdInput } from '@/lib/marketing/portal-seo'
+import { FOUNDER_LINE } from '@/lib/marketing/founder-line'
 
 // The one template for every partner page: higher education, workforce, hiring, employees, outplacement,
 // recruiters, coaches, nonprofits and the employer overview. Owner brief 2026-10-24:
@@ -63,6 +64,10 @@ export interface PortalPageContent {
   headline: string
   subhead: string
   primary: { label: string; href: string }
+  /** A lighter second step shown beside the primary action. */
+  secondary?: { label: string; href: string }
+  /** Show the owner-approved founder line under the final action (the paid-search landing pages). */
+  founderLine?: boolean
   primaryNote?: string
   loginHref?: string
   parent?: { href: string; label: string }
@@ -162,6 +167,7 @@ export function PortalMarketingPage({ content: c, look = 'plain' }: { content: P
         headline={c.headline}
         subhead={c.subhead}
         primary={c.primary}
+        secondary={c.secondary}
         primaryNote={c.primaryNote}
         loginHref={c.loginHref}
         footerLinks={[{ href: '/pricing', label: 'Plans' }, ...(c.footerLinks ?? [])]}
@@ -288,6 +294,7 @@ export function PortalMarketingPage({ content: c, look = 'plain' }: { content: P
             )}
           </div>
         </ActionBand>
+        {c.founderLine && <p className="mx-auto w-full max-w-4xl px-6 pb-10 text-sm text-muted-foreground">{FOUNDER_LINE}</p>}
       </AudienceShell>
     </>
   )
