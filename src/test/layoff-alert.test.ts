@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { alertBody, alertSubject, groupSummary, layoffTypeLabel, shouldAlert, sizeLabel, type AlertInput } from '@/lib/warn/layoff-alert-rules'
+import { alertBody, alertSubject, mergeSources, groupSummary, layoffTypeLabel, shouldAlert, sizeLabel, type AlertInput } from '@/lib/warn/layoff-alert-rules'
 import { readPercent } from '@/lib/warn/news-headline'
 
 const base: AlertInput = {
@@ -34,6 +34,25 @@ describe('the email', () => {
     expect(html).toContain('3 people, 1 warm')
     expect(html).toContain('A&lt;b&gt;&amp;Co')
     expect(html).not.toContain('<b>&Co')
+  })
+})
+
+describe('source links', () => {
+  const links = { source: null, org: null, notices: 'https://x.test/n' }
+  it('lists every source once, filing first, and drops non-web links', () => {
+    const sources = mergeSources({ label: 'WARN filing', url: 'https://wa.gov/a' }, [
+      { label: 'Reuters: Meta cuts', url: 'https://reuters.com/x' },
+      { label: 'dupe', url: 'https://wa.gov/a/' },
+      { label: 'bad', url: 'javascript:alert(1)' },
+    ])
+    expect(sources.map((x) => x.url)).toEqual(['https://wa.gov/a', 'https://reuters.com/x'])
+    const html = alertBody({ ...base, sources }, links)
+    expect(html).toContain('Sources (2)')
+    expect(html).toContain('href="https://reuters.com/x"')
+    expect(html).not.toContain('javascript:')
+  })
+  it('shows no sources block when there are none', () => {
+    expect(alertBody(base, links)).not.toContain('<ul')
   })
 })
 

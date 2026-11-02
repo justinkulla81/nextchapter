@@ -8,6 +8,7 @@ import { ALERT_HOLD_HOURS, alertBody, alertReadiness, alertSubject, shouldAlert,
 import { enrichLayoffHr } from './layoff-hr-enrich'
 import { layoffPeople } from './layoff-alert-people'
 import { withComposeLinks } from './layoff-alert-drafts'
+import { loadAlertSources } from './layoff-alert-sources'
 import { draftContext } from './layoff-alert-links'
 import { inferHq } from './layoff-hq-state'
 import { buildLocalPicture, classifyLayoffIndustry } from './layoff-context'
@@ -112,6 +113,7 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     }
     input.costs = notice ?? undefined
     input.picture = { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) }
+    input.sources = await loadAlertSources(l.noticeId, l.sourceUrl, l.kind === 'warn' ? 'WARN filing' : l.kind === 'sec' ? 'SEC 8-K filing' : 'Notice')
 
     // Only email once the alert is populated; otherwise hold it and look again on the next run.
     const readiness = alertReadiness(groups, state)
@@ -134,7 +136,7 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
       to: ALERT_TO,
       subject: alertSubject(input),
       html: withAudienceHtml('admin', alertBody(input, {
-        source: l.sourceUrl,
+        source: null,
         org: org ? `${SITE}/support/admin/crm/organizations/${org.id}` : null,
         notices: `${SITE}/support/admin/crm/warn`,
       })),
