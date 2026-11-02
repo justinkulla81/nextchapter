@@ -7,6 +7,8 @@ import { QUESTION_TOPICS } from './explainers-questions'
 import { QUESTION_TOPICS_2 } from './explainers-questions-2'
 import { CLAIM_TOPICS } from './explainers-claims'
 import { RESUME_TOPICS } from './explainers-resume'
+import { JOB_SEARCH_TOPICS } from './explainers-jobsearch'
+import { JOB_CHANGE_TOPICS } from './explainers-jobchange'
 
 export interface TopicSection {
   h2: string
@@ -871,6 +873,8 @@ export const TOPICS: TopicContent[] = [
   ...QUESTION_TOPICS_2,
   ...CLAIM_TOPICS,
   ...RESUME_TOPICS,
+  ...JOB_SEARCH_TOPICS,
+  ...JOB_CHANGE_TOPICS,
   {
     slug: 'what-is-a-job-transition-platform',
     h1: 'What is a job transition platform?',

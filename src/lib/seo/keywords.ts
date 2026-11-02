@@ -2217,6 +2217,175 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'how-to-find-a-job',
+    intent: 'Find a job',
+    owner: '/topics/how-to-find-a-job',
+    kind: 'page',
+    primary: 'how to find a job',
+    secondary: ['how to find a job fast', 'how to find a job quickly', 'how to get a job', 'how to get hired', 'where to start looking for a job', 'how to start a job search', 'how to find a job in 30 days'],
+    seo: {
+      title: 'How to Find a Job: A Plan for the Next 30 Days',
+      description:
+        'How to find a job: pick your target roles, get your resume and profile ready, and apply and network every week. A week-by-week plan for the first 30 days.',
+    },
+  },
+  {
+    id: 'best-job-sites',
+    intent: 'Choose where to look for jobs',
+    owner: '/topics/best-job-sites',
+    kind: 'page',
+    primary: 'best job sites',
+    secondary: ['job search sites', 'best job search websites', 'job boards for professionals', 'best job sites for professionals', 'best job boards', 'job search engines', 'best job sites 2026'],
+    seo: {
+      title: 'Best Job Sites for Experienced Professionals',
+      description:
+        'Where to look for professional jobs: employer career sites, the big boards, LinkedIn, niche boards and recruiters, and how to avoid fake postings.',
+    },
+  },
+  {
+    id: 'how-to-apply',
+    intent: 'Apply for a job',
+    owner: '/topics/how-to-apply-for-a-job',
+    kind: 'page',
+    primary: 'how to apply for a job',
+    secondary: ['how to apply for jobs online', 'job application process', 'how to fill out a job application', 'how many jobs should i apply to', 'how many applications a day', 'how to apply for a job online'],
+    seo: {
+      title: 'How to Apply for a Job: The Steps That Get You Read',
+      description:
+        'How to apply for a job: find the posting on the employer site, tailor your resume, apply through the official page and follow up with a person.',
+    },
+  },
+  {
+    id: 'job-referral',
+    intent: 'Ask for a job referral',
+    owner: '/topics/how-to-ask-for-a-job-referral',
+    kind: 'page',
+    primary: 'how to ask for a job referral',
+    secondary: ['employee referral', 'how to get a referral at a company', 'ask for a referral email', 'how to get referred for a job', 'job referral bonus'],
+    seo: {
+      title: 'How to Ask for a Job Referral (and Get One)',
+      description:
+        'How to ask for a job referral: ask for a conversation first, then for the referral, and make it easy with your resume, the posting link and a short summary.',
+    },
+  },
+  {
+    id: 'email-recruiter',
+    intent: 'Write to a recruiter',
+    owner: '/topics/how-to-email-a-recruiter',
+    kind: 'page',
+    primary: 'how to email a recruiter',
+    secondary: ['cold email a recruiter', 'how to message a recruiter on linkedin', 'how to reach out to a recruiter', 'email to recruiter example', 'how to contact a recruiter'],
+    seo: {
+      title: 'How to Email a Recruiter: A Short Note That Gets a Reply',
+      description:
+        'How to email a recruiter: what to include, a template under 120 words, a shorter LinkedIn version, and when to follow up once.',
+    },
+  },
+  {
+    id: 'salary-expectations',
+    intent: 'Answer the salary expectations question',
+    owner: '/topics/salary-expectations',
+    kind: 'page',
+    primary: 'salary expectations',
+    secondary: ['how to answer salary expectations', 'what are your salary expectations', 'salary expectations in a cover letter', 'desired salary on a job application', 'what is your salary requirement', 'how to answer what salary are you looking for'],
+    seo: {
+      title: 'Salary Expectations: How to Answer Without Underselling',
+      description:
+        'How to answer a salary expectations question: research a range, what to say in a conversation, on a form and in a cover letter, and what to say about pay history.',
+    },
+  },
+  {
+    id: 'follow-up-applying',
+    intent: 'Follow up on an application',
+    owner: '/topics/follow-up-after-applying',
+    kind: 'page',
+    primary: 'how to follow up on a job application',
+    secondary: ['follow up after applying', 'job application follow up email', 'when to follow up on a job application', 'how long to wait after applying for a job'],
+    seo: {
+      title: 'How to Follow Up on a Job Application',
+      description:
+        'When and how to follow up on a job application: the timing, who to write to, a short email template, and what to do if you never hear back.',
+    },
+  },
+  {
+    id: 'resignation-letter',
+    intent: 'Write a resignation letter',
+    owner: '/topics/resignation-letter',
+    kind: 'page',
+    primary: 'resignation letter',
+    secondary: ['resignation letter template', 'how to write a resignation letter', 'two weeks notice letter', 'resignation email', 'short resignation letter', 'resignation letter example', 'how to resign from a job'],
+    seo: {
+      title: 'Resignation Letter: A Template and What to Say',
+      description:
+        'A short resignation letter template, what to include and leave out, how much notice to give and how to deliver it to your manager and HR.',
+    },
+  },
+  {
+    id: 'how-to-quit',
+    intent: 'Quit a job well',
+    owner: '/topics/how-to-quit-a-job',
+    kind: 'page',
+    primary: 'how to quit a job',
+    secondary: ['how to quit professionally', 'how to quit your job', 'how to tell your boss you are quitting', 'how to leave a job on good terms', 'how much notice to give when quitting', 'exit interview'],
+    seo: {
+      title: 'How to Quit a Job Professionally',
+      description:
+        'How to quit a job well: settle the next step first, tell your manager in person, give notice, hand over your work and handle pay, benefits and the exit interview.',
+    },
+  },
+  {
+    id: 'should-i-quit',
+    intent: 'Decide whether to quit',
+    owner: '/topics/should-i-quit-my-job',
+    kind: 'page',
+    primary: 'should i quit my job',
+    secondary: ['signs it is time to quit', 'is it time to leave my job', 'should i quit without another job', 'should i stay or leave my job', 'how to decide to quit your job'],
+    seo: {
+      title: 'Should I Quit My Job? A Way to Decide',
+      description:
+        'Should you quit your job? Signs it may be time, questions to ask yourself, whether to leave with or without another job, and how to set a date to decide.',
+    },
+  },
+  {
+    id: 'counteroffer',
+    intent: 'Decide on a counteroffer',
+    owner: '/topics/should-i-accept-a-counteroffer',
+    kind: 'page',
+    primary: 'should i accept a counteroffer',
+    secondary: ['accepting a counteroffer', 'counteroffer from current employer', 'how to respond to a counteroffer', 'counteroffer when quitting', 'is it a mistake to accept a counteroffer'],
+    seo: {
+      title: 'Should I Accept a Counteroffer From My Employer?',
+      description:
+        'When a counteroffer is worth taking and when it is not: why people are tempted, the risks, a four-question test and how to respond.',
+    },
+  },
+  {
+    id: 'hate-my-job',
+    intent: 'Cope with hating a job',
+    owner: '/topics/i-hate-my-job',
+    kind: 'page',
+    primary: 'i hate my job',
+    secondary: ['hate my job', 'i hate my boss', 'i hate my job but cant quit', 'dread going to work', 'unhappy at work', 'how to stop hating your job', 'sunday scaries'],
+    seo: {
+      title: 'I Hate My Job: What to Do About It',
+      description:
+        'If you hate your job: name the problem, try one fix, save a runway and plan the exit while you stay. Includes what to do about a boss you cannot stand.',
+    },
+  },
+  {
+    id: 'career-change-40',
+    intent: 'Change careers in midlife',
+    owner: '/topics/career-change-at-40',
+    kind: 'page',
+    primary: 'career change at 40',
+    secondary: ['career change at 30', 'career change at 50', 'is it too late to change careers', 'changing careers in your 40s', 'starting over at 40', 'how to change careers at 40 with no experience'],
+    seo: {
+      title: 'Career Change at 40: How to Do It and What to Expect',
+      description:
+        'How to change careers at 40 or 50: why your experience helps, a step-by-step plan, how to handle age bias and how to plan the money.',
+    },
+  },
+  {
     id: 'executive-recruiters',
     intent: 'Work with executive recruiters and search firms',
     owner: '/topics/executive-recruiters',
@@ -2730,6 +2899,19 @@ export const ANCHORS: Record<string, string> = {
   '/topics/unemployment-payment-timing': 'When your first unemployment payment arrives',
   '/topics/unemployment-self-employed': 'Unemployment for the self-employed',
   '/topics/cover-letter-tips': 'Cover letter tips',
+  '/topics/how-to-find-a-job': 'How to find a job',
+  '/topics/best-job-sites': 'Best job sites',
+  '/topics/how-to-apply-for-a-job': 'How to apply for a job',
+  '/topics/how-to-ask-for-a-job-referral': 'How to ask for a job referral',
+  '/topics/how-to-email-a-recruiter': 'How to email a recruiter',
+  '/topics/salary-expectations': 'Salary expectations',
+  '/topics/follow-up-after-applying': 'How to follow up on a job application',
+  '/topics/resignation-letter': 'Resignation letter',
+  '/topics/how-to-quit-a-job': 'How to quit a job',
+  '/topics/should-i-quit-my-job': 'Should I quit my job?',
+  '/topics/should-i-accept-a-counteroffer': 'Should I accept a counteroffer?',
+  '/topics/i-hate-my-job': 'I hate my job',
+  '/topics/career-change-at-40': 'Career change at 40',
   '/topics/resume-template': 'Resume template',
   '/topics/resume-format': 'Resume format',
   '/topics/resume-objective': 'Resume objective',
@@ -2834,6 +3016,19 @@ export const RELATED: Record<string, string[]> = {
   '/topics/cover-letter-template': ['/topics/cover-letter-examples', '/topics/how-to-start-a-cover-letter', '/topics/cover-letter-tips', '/topics/ai-cover-letters', '/topics/resume-tips'],
   '/topics/how-to-start-a-cover-letter': ['/topics/cover-letter-template', '/topics/cover-letter-examples', '/topics/cover-letter-tips', '/topics/ai-cover-letters', '/topics/resume-tips'],
   '/topics/cover-letter-career-change': ['/topics/resume-career-change', '/topics/career-pivot', '/topics/cover-letter-examples', '/topics/cover-letter-template', '/topics/explain-a-layoff'],
+  '/topics/how-to-find-a-job': ['/topics/job-search-strategy', '/topics/best-job-sites', '/topics/how-to-apply-for-a-job', '/resources/network-activation', '/why-stuck', '/jobs'],
+  '/topics/best-job-sites': ['/jobs', '/topics/how-to-find-a-job', '/topics/fake-job-postings', '/scam-watch', '/topics/executive-recruiters'],
+  '/topics/how-to-apply-for-a-job': ['/tools/resume-job-match', '/topics/cover-letter-template', '/topics/how-to-email-a-recruiter', '/topics/follow-up-after-applying', '/resources/gatekeeper'],
+  '/topics/how-to-ask-for-a-job-referral': ['/resources/network-scripts', '/resources/network-activation', '/topics/informational-interviews', '/topics/how-to-apply-for-a-job'],
+  '/topics/how-to-email-a-recruiter': ['/topics/executive-recruiters', '/topics/follow-up-after-applying', '/resources/network-scripts', '/tools/resume-check', '/topics/resume-tips'],
+  '/topics/salary-expectations': ['/topics/negotiate-a-job-offer', '/topics/is-this-salary-fair', '/tools/pay-check', '/salaries', '/resources/offer-letter'],
+  '/topics/follow-up-after-applying': ['/topics/how-to-apply-for-a-job', '/resources/post-interview', '/topics/job-search-tracker', '/why-stuck', '/topics/how-to-email-a-recruiter'],
+  '/topics/resignation-letter': ['/topics/how-to-quit-a-job', '/topics/should-i-accept-a-counteroffer', '/start/resigned', '/topics/unemployment-after-quitting-or-firing', '/jobs'],
+  '/topics/how-to-quit-a-job': ['/topics/resignation-letter', '/topics/should-i-accept-a-counteroffer', '/topics/should-i-quit-my-job', '/tools/layoff-runway', '/start/resigned'],
+  '/topics/should-i-quit-my-job': ['/topics/i-hate-my-job', '/topics/problems-at-work', '/topics/job-search-while-employed', '/start/thinking-about-a-move', '/tools/layoff-runway'],
+  '/topics/should-i-accept-a-counteroffer': ['/topics/how-to-quit-a-job', '/topics/negotiate-a-job-offer', '/resources/offer-letter', '/topics/resignation-letter', '/tools/pay-check'],
+  '/topics/i-hate-my-job': ['/topics/problems-at-work', '/topics/should-i-quit-my-job', '/topics/job-search-while-employed', '/topics/how-to-find-a-job', '/start/thinking-about-a-move'],
+  '/topics/career-change-at-40': ['/topics/career-pivot', '/topics/resume-career-change', '/topics/cover-letter-career-change', '/topics/laid-off-over-40', '/start/career-change', '/funding'],
   '/topics/resume-tips': ['/topics/resume-review', '/resources/gatekeeper', '/resources/narrative-workshop', '/dossier', '/submit-resume', '/topics/job-search-strategy'],
   '/topics/career-pivot': ['/start/career-change', '/topics/career-exploration', '/funding', '/resources/narrative-workshop', '/coaching'],
   '/topics/career-exploration': ['/topics/career-pivot', '/start/career-change', '/ai-skills', '/funding', '/coaching'],
