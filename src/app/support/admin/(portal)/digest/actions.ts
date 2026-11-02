@@ -306,7 +306,13 @@ export async function checkNewsInboxNow(_prev: NewsFormState | undefined): Promi
   revalidateNews()
   revalidatePath('/support/admin/digest')
   if (result.emails === 0) return { message: `No new email at ${NEWS_ADDRESS} since the last check.` }
-  const where = [`${result.forReport} for the report`, `${result.forWebsite} for website News (waiting for you to publish)`, `${result.forWeekly} for the weekly email`, `${result.notRelevant} not used`]
+  const where = [
+    `${result.forReport} for the report`,
+    `${result.forWebsite} for website News (${result.published} published automatically, ${result.forWebsite - result.published} waiting for you)`,
+    `${result.forWeekly} for the weekly email`,
+    `${result.political} kept out as political`,
+    `${result.notRelevant} not used`,
+  ]
   return {
     message: `Read ${result.emails} ${result.emails === 1 ? 'email' : 'emails'}, filed ${result.articles} ${result.articles === 1 ? 'article' : 'articles'}: ${where.join(', ')}.${result.failed ? ` ${result.failed} could not be processed.` : ''} They are in the table below.`,
   }

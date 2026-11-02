@@ -14,6 +14,9 @@ const NEWS_TAG_KEYS = NEWS_TAGS.map((t) => t.key) as [string, ...string[]]
 
 const routingSchema = z.object({
   relevant: z.boolean(),
+  /** True for anything centred on politicians, parties, campaigns, elections or partisan argument. */
+  political: z.boolean(),
+  tone: z.enum(['positive', 'neutral', 'negative']),
   /** One sentence for Justin: why it goes where it goes, or why it goes nowhere. */
   reason: z.string(),
   summary: z.string(),
@@ -37,6 +40,10 @@ Decide three things independently:
 - report: useful evidence for the monthly White Collar Employment Report, which covers white-collar hiring, openings, unemployment and long searches, layoffs and restructuring, AI's effect on jobs, skills, and public programs. Needs a concrete fact, number or development worth citing, not an opinion piece.
 - website: worth a card on the public News page, which is for job seekers: the job market, searching for a job, layoffs, AI and careers. Newsworthy and credible, and something a job seeker would plausibly want to read.
 - weekly: worth including in the weekly news email, and for which readers. audiences is the subset of CANDIDATE (job seekers), COACH (career coaches), RECRUITER (recruiters and search firms), EMPLOYER (hiring companies, HR, people leaders) that would genuinely care; use as few as fit. Empty when weekly is false.
+
+Stay out of politics as much as possible. political is true when the story is about, or framed around, a politician, party, campaign, election, partisan fight or political commentary (a named office-holder or candidate, a bill's political battle, an opinion column taking a side). When political is true, set website and weekly to false. A neutral, factual report of a rule or program that directly changes jobs or benefits, from an official or established news source and without a political figure's framing, is not political.
+
+tone is the story's effect on a job seeker: "positive" (hiring, growth, wins, new programs, success stories, good news about the market), "neutral" (data, explainers, how-to), or "negative" (layoffs, cuts, weak data). Negative stories are fine and useful; tone only records it.
 
 relevant is true if any of the three is true. If it is false, set all three to false, audiences to [], and explain why in reason.
 
