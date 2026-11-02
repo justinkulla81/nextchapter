@@ -14,7 +14,7 @@ import {
   resolveDigestRecipientName,
 } from '@/lib/admin/digest-composer'
 import { NewsAdminPanel } from '@/components/admin/NewsAdminPanel'
-import { AddLinkForm, FindArticlesForm } from '@/components/admin/NewsAdminForms'
+import { AddLinkForm, CheckNewsInboxForm, FindArticlesForm } from '@/components/admin/NewsAdminForms'
 import { DISCOVERY_TOPIC_LABELS } from '@/lib/news/discovery-topics'
 import { markResearchItemStatus, removeFromDigestQueue, flagProductPositioning, disconnectGoogleInbox, addExistingItemToNews } from './actions'
 
@@ -343,6 +343,7 @@ export default async function AdminDigestPage({
       <NewsAdminPanel />
 
       <FindArticlesForm topics={DISCOVERY_TOPIC_LABELS} />
+      <CheckNewsInboxForm />
 
       {contradicting.length > 0 && (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">

@@ -13,6 +13,8 @@ import { embedsItself, safeImageUrl } from '@/lib/news/kind'
 import { cleanNewsTags } from '@/lib/news/tags'
 import { newsSlug } from '@/lib/news/slug'
 import { runNewsDiscovery } from '@/lib/news/discover'
+import { getValidAccessToken } from '@/lib/google/connection'
+import { NEWS_ADDRESS, sweepNewsInbox } from '@/lib/research/news-inbox'
 
 export async function markResearchItemStatus(id: string, status: 'reviewed' | 'actioned' | 'dismissed') {
   const admin = await requireAdmin()
@@ -281,5 +283,31 @@ export async function runNewsDiscoveryNow(_prev: NewsFormState | undefined): Pro
     message: (result.created > 0
       ? `Found ${result.created} new ${result.created === 1 ? 'article' : 'articles'} — they are in the table below.`
       : 'Nothing new since the last search.') + failed,
+  }
+}
+
+/**
+ * What was sent to news@, read now instead of at tomorrow's sweep. Only that
+ * pass runs: the full research-inbox sweep emails people (PR alerts), so it is
+ * schedule-only; this one files rows and sends nothing.
+ */
+export async function checkNewsInboxNow(_prev: NewsFormState | undefined): Promise<NewsFormState> {
+  const admin = await requireAdmin()
+  const token = await getValidAccessToken().catch(() => null)
+  if (!token) return { message: 'The company Gmail is not connected, so nothing could be read.' }
+  let result
+  try {
+    result = await sweepNewsInbox(token)
+  } catch (error) {
+    console.error('News inbox check failed:', error)
+    return { message: `Could not read ${NEWS_ADDRESS}. Try again in a minute.` }
+  }
+  captureServerEvent(admin?.email ?? 'admin', 'news_inbox_sweep_run', { trigger: 'manual', ...result })
+  revalidateNews()
+  revalidatePath('/support/admin/digest')
+  if (result.emails === 0) return { message: `No new email at ${NEWS_ADDRESS} since the last check.` }
+  const where = [`${result.forReport} for the report`, `${result.forWebsite} for website News (waiting for you to publish)`, `${result.forWeekly} for the weekly email`, `${result.notRelevant} not used`]
+  return {
+    message: `Read ${result.emails} ${result.emails === 1 ? 'email' : 'emails'}, filed ${result.articles} ${result.articles === 1 ? 'article' : 'articles'}: ${where.join(', ')}.${result.failed ? ` ${result.failed} could not be processed.` : ''} They are in the table below.`,
   }
 }
