@@ -95,8 +95,9 @@ const asMajors = (v: unknown): CollegeFacts['topMajors'] =>
 const outcomes = (c: CollegeFacts) => [c.completionRate, c.earnings6, c.earnings10, c.netPrice, c.employedShare10].filter((x) => x != null).length
 
 /** Every CRM university, keyed the way college names are matched, for the claim slug. */
-// Kept on the instance for an hour: it is the same for every college page, and a crawl once exhausted the connection pool re-reading it.
-const universityOrgs = memoTtl(3600_000, () => 'all', () => retryOnPoolTimeout(async () => {
+// Kept on the instance for a day: it is the same for every college page, a crawl once exhausted the connection pool re-reading it, and
+// at an hour every instance still re-read all of it twenty-four times a day.
+const universityOrgs = memoTtl(24 * 3600_000, () => 'all', () => retryOnPoolTimeout(async () => {
   const rows = await prisma.crmOrganization.findMany({
     where: { orgTypes: { has: 'UNIVERSITY' } },
     select: { id: true, name: true, canonicalNameNormalized: true },
@@ -116,7 +117,7 @@ export async function crmOrgForCollege(c: { name: string; crmOrgId: string | nul
 }
 
 /** Every college-to-CRM link, read once an hour per instance: it is the same for every state, and the state listings below each re-read all of it. */
-const collegeLinks = memoTtl(3600_000, () => 'all', () => retryOnPoolTimeout(async () =>
+const collegeLinks = memoTtl(6 * 3600_000, () => 'all', () => retryOnPoolTimeout(async () =>
   // Until prisma/manual/2026-10-25-college-org-link.sql is applied the table is missing: fall back to name matching.
   prisma.collegeOrgLink.findMany({ where: { crmOrgId: { not: null } }, select: { unitid: true, crmOrgId: true } }).catch(() => [])))
 

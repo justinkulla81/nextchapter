@@ -32,12 +32,24 @@ export async function loadCompanyIndex(): Promise<CompanyIndex> {
   return prisma.company.findMany({ select: { id: true, name: true } })
 }
 
+// Callers that match one employer at a time (announcements, news checks, the admin form) passed no index, so each match re-read the
+// whole company table. They share one copy for ten minutes instead; a company created here is added to it at once.
+let sharedIndex: { at: number; index: Promise<CompanyIndex> } | null = null
+function sharedCompanyIndex(): Promise<CompanyIndex> {
+  if (!sharedIndex || Date.now() - sharedIndex.at > 10 * 60_000) {
+    const index = loadCompanyIndex()
+    sharedIndex = { at: Date.now(), index }
+    index.catch(() => { if (sharedIndex?.index === index) sharedIndex = null })
+  }
+  return sharedIndex.index
+}
+
 export async function matchOrCreateCompanyForEmployer(rawEmployer: string, index?: CompanyIndex): Promise<WarnCompanyMatchResult> {
   const employer = fixAllCapsCompanyName(rawEmployer.trim())
   const strictKey = strictOrgKey(employer, normalizeOrgName)
   if (!strictKey) return { companyId: null, status: 'UNMATCHED', candidates: null }
 
-  const companies = index ?? (await loadCompanyIndex())
+  const companies = index ?? (await sharedCompanyIndex())
 
   const strictMatch = companies.find((c) => strictOrgKey(c.name, normalizeOrgName) === strictKey)
   if (strictMatch) return { companyId: strictMatch.id, status: 'MATCHED', candidates: null }
@@ -67,6 +79,6 @@ export async function matchOrCreateCompanyForEmployer(rawEmployer: string, index
     select: { id: true, name: true },
   })
   // So the next notice from the same employer in this import finds it.
-  if (index && !index.some((c) => c.id === created.id)) index.push({ id: created.id, name: created.name })
+  if (!companies.some((c) => c.id === created.id)) companies.push({ id: created.id, name: created.name })
   return { companyId: created.id, status: 'MATCHED', candidates: created_from_review }
 }

@@ -7,7 +7,8 @@ import { heavy, memoTtl, retryOnPoolTimeout } from '@/lib/db/heavy'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 
 // County and city lists change rarely; kept on the instance so a crawl does not query them for every page (it once exhausted the connection pool).
-const PLACES_TTL = 6 * 3600_000
+// A day: Census places do not change between yearly refreshes, and every instance re-read each state's list (~1,500 rows) four times a day.
+const PLACES_TTL = 24 * 3600_000
 import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
 import { boardCountyKeys } from '@/lib/workforce/board-area'
 import { areaPlaces, countyKey, placeKey } from '@/lib/workforce/places'
