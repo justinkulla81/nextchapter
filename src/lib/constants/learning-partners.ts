@@ -50,6 +50,11 @@ export const LEARNING_PROVIDERS: Record<string, LearningProvider> = {
     designation: 'INCLUDED_FOR_QUALITY',
     designationNote: 'Free vendor training, no revenue relationship.',
   },
+  googleSkills: {
+    name: 'Google Skills',
+    designation: 'INCLUDED_FOR_QUALITY',
+    designationNote: 'Free vendor training, no revenue relationship.',
+  },
   hubspotAcademy: {
     name: 'HubSpot Academy',
     designation: 'INCLUDED_FOR_QUALITY',

@@ -12,6 +12,9 @@ import { getAcceptedTopics } from '@/lib/coach/accepted-topics'
 import { coachTopicReason, coursesForTopics } from '@/lib/coach/accepted-topics-match'
 import type { LearningResource } from '@/lib/constants/learning-partners'
 
+const LEVEL_RANK: Record<CourseSkillLevel, number> = { BEGINNER: 0, INTERMEDIATE: 1, ADVANCED: 2 }
+const levelDistance = (a: CourseSkillLevel, b: CourseSkillLevel) => Math.abs(LEVEL_RANK[a] - LEVEL_RANK[b])
+
 export interface LearningPlanItem extends LearningResource {
   rationale: string | null
   completionCount: number
@@ -398,9 +401,10 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
   const normalizedContentFunctions = contentFunctions.map((f) => f.toLowerCase())
   const relevantFunctionTraining =
     normalizedContentFunctions.length > 0
-      ? functionTrainingCourses.filter((c) =>
-          c.keywords.some((k) => normalizedContentFunctions.some((ncf) => ncf.includes(k.toLowerCase())))
-        )
+      ? functionTrainingCourses
+          .filter((c) => c.keywords.some((k) => normalizedContentFunctions.some((ncf) => ncf.includes(k.toLowerCase()))))
+          // Stable sort: the course nearest the member's AI level first, so a beginner sees the starter course before the harder ones.
+          .sort((a, b) => levelDistance(a.skillLevel, aiTrainingTier) - levelDistance(b.skillLevel, aiTrainingTier))
       : []
   const functionTraining = withRationale(
     relevantFunctionTraining.map(toLearningResource),
