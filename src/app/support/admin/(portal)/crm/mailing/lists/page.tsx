@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { getMailingSettings } from '@/lib/mailing/lists'
+import { listHealth } from '@/lib/mailing/health'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CADENCES } from '@/lib/mailing/cadence'
 import { saveList, saveSettings, setListActive } from '../actions'
@@ -12,11 +13,13 @@ const input = 'h-8 w-full rounded border border-input bg-transparent px-2 text-s
 
 export default async function MailingListsPage() {
   await requireAdmin()
-  const [lists, settings, counts] = await Promise.all([
+  const [lists, settings, counts, health] = await Promise.all([
     prisma.mailingList.findMany({ orderBy: [{ isActive: 'desc' }, { sortOrder: 'asc' }] }),
     getMailingSettings(),
     prisma.mailingListMember.groupBy({ by: ['listId', 'status'], _count: true }),
+    listHealth(),
   ])
+  const healthRows = lists.filter((l) => l.isActive).map((l) => ({ list: l, h: health.get(l.id) })).filter((r) => r.h && r.h.subscribed + r.h.unsubscribed + r.h.bouncedOrComplained + r.h.removed > 0)
   const countFor = (listId: string, status: string) => counts.find((c) => c.listId === listId && c.status === status)?._count ?? 0
 
   return (
@@ -69,6 +72,47 @@ export default async function MailingListsPage() {
         <p className="text-xs text-muted-foreground">
           Archiving a list hides it everywhere but keeps who was on it and everything sent to it. A list with a cadence gets a
           prefilled draft each period and an email asking you to approve it; nothing sends until you do.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <SectionTitle>List health</SectionTitle>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2 font-medium">List</th>
+                <th className="px-3 py-2 text-right font-medium">Subscribed</th>
+                <th className="px-3 py-2 text-right font-medium">Deliverable</th>
+                <th className="px-3 py-2 text-right font-medium">Risky</th>
+                <th className="px-3 py-2 text-right font-medium">Invalid</th>
+                <th className="px-3 py-2 text-right font-medium">Not yet checked</th>
+                <th className="px-3 py-2 text-right font-medium">Unsubscribed</th>
+                <th className="px-3 py-2 text-right font-medium">Bounced or complained</th>
+                <th className="px-3 py-2 text-right font-medium">Removed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {healthRows.map(({ list, h }) => (
+                <tr key={list.id} className="border-t border-border">
+                  <td className="px-3 py-1.5 font-medium"><Link href={`/support/admin/crm/mailing/lists/${list.id}`} className="hover:underline">{list.name}</Link></td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">{h!.subscribed.toLocaleString()}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">{h!.deliverable.toLocaleString()}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">{h!.risky.toLocaleString()}</td>
+                  <td className={`px-3 py-1.5 text-right tabular-nums ${h!.invalid > 0 ? 'font-medium text-red-700 dark:text-red-400' : ''}`}>{h!.invalid.toLocaleString()}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">{h!.unchecked.toLocaleString()}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">{h!.unsubscribed.toLocaleString()}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">{h!.bouncedOrComplained.toLocaleString()}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">{h!.removed.toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Hunter checks 100 never-checked addresses an hour, P0 first. Invalid addresses are suppressed on every list by the next daily clean-up, so a few can show
+          here for up to a day. Risky means Hunter could not confirm the address (a domain that accepts all mail, a webmail address, or no answer): they stay on the list
+          but are not added automatically. Removed is anyone taken off by hand or by the clean-up; they are never re-added on their own.
         </p>
       </section>
 
