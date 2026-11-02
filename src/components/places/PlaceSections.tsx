@@ -114,7 +114,7 @@ export function CollegeTable({ id, title, colleges, showCity = true, more }: { i
           <tbody>
             {colleges.map((c) => (
               <tr key={c.id} className="border-b border-border last:border-0">
-                <th scope="row" className="p-3 font-medium text-navy">{c.name}</th>
+                <th scope="row" className="p-3 font-medium text-navy">{c.href ? <Link href={c.href} className={LINK}>{c.name}</Link> : c.name}</th>
                 {showCity && <td className="p-3">{c.city ?? ''}</td>}
                 <td className="p-3">{c.sector ? COLLEGE_SECTORS[c.sector] : ''}</td>
                 <td className="p-3">{c.size ? COLLEGE_SIZES[c.size] : ''}</td>
