@@ -6,6 +6,7 @@ import { HomeTryIt } from '@/components/home/HomeTryIt'
 import { JourneyPicker } from '@/components/home/JourneyPicker'
 import { HomeLearnMore } from '@/components/home/HomeLearnMore'
 import { HomeFunding } from '@/components/home/HomeFunding'
+import { HomeRankings } from '@/components/home/HomeRankings'
 import { AiJobsStat } from '@/components/marketing/AiJobsStat'
 import { AiExposureSection } from '@/components/marketing/AiExposureSection'
 import { Suspense, type ReactNode } from 'react'
@@ -136,6 +137,8 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
       </Suspense>
 
       <HomeFunding />
+
+      <HomeRankings />
 
       <HomeLearnMore />
 

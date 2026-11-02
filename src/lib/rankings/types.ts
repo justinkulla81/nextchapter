@@ -94,3 +94,7 @@ export interface RankingIndexEntry {
   /** Every edition built so far, newest first. */
   editions: string[]
 }
+
+/** Where a place ranks: one entry per list it is in the top 25 of, for the rank line on its page. */
+export interface PlaceRank { slug: string; title: string; rank: number; valueLabel: string; places: number }
+export type PlaceRanks = Record<string, PlaceRank[]>

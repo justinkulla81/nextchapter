@@ -14,6 +14,7 @@ import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
 import { getCityPage, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
 import { PlaceSignals } from '@/components/places/PlaceSignals'
+import { PlaceRanks } from '@/components/rankings/PlaceRanks'
 import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 604800 // 7 days: slow-changing page, one of the larger ISR write sources
@@ -90,6 +91,7 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
       <ConferenceSection id="conferences" title={`Conferences in ${p.name}`} intro={`Industry conferences and trade shows held in ${p.name}.`}
         source={`place:city:${code}:${p.slug}`} load={() => conferencesAtPlace('city', code, p.slug, 12)} more={{ href: '/conferences', label: 'All conferences' }} />
 
+      <PlaceRanks placeKey={`${code}|${p.key}`} scope={p.name} />
       <PlaceSignals scope={p.name} outlookScope={d.county?.name} fips={d.county ? [d.county.fips] : []} boardIds={d.boards.map((b) => b.id)} workforceHref="#workforce" />
 
       <WorkforceSection id="workforce" state={name} stateSlugValue={state} boards={d.boards} centers={d.centers} scope={p.name} />
