@@ -6,6 +6,7 @@ import { summarizePay, type PayGroup } from '@/lib/companies/pay-ranges'
 import { PUBLIC_JOB_SELECT, getConfirmedGhostIdsForPage } from '@/lib/seo/employer-jobs'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
 import { canonicalFromEmployerSlug, employerSlug, idSuffixFromSlug } from '@/lib/seo/employer-slug'
+import { higherEdSql, isHigherEdName } from '@/lib/seo/higher-ed'
 
 // Public employer pages (/employers/<slug>): what an employer is hiring for, what it pays, from our own tables
 // (the nightly company hiring index and the live board). Layoff records are deliberately not shown. Public
@@ -25,10 +26,13 @@ export interface EmployerExtras {
   secEvent?: boolean
   /** A high-confidence headquarters on record. */
   hqConfirmed?: boolean
+  /** A college or university: it has its own pages under /higher-education, so no employer page is offered. */
+  higherEd?: boolean
 }
 
 export function isEmployerIndexable(p: { openNow: number; opened12mo: number } | null, industry: string | null, extras: EmployerExtras | boolean = {}): boolean {
   const x: EmployerExtras = typeof extras === 'boolean' ? { layoffNotice: extras } : extras
+  if (x.higherEd) return false
   // A company with a layoff notice in the last two years has a page of its own substance (the notice, the local picture, the news), whatever it is hiring.
   if (x.layoffNotice) return true
   // A filing in the last two years gives the page a dated timeline of its own (funding, material events).
@@ -52,6 +56,8 @@ export interface EmployerPage {
   industry: string | null
   sizeBand: string | null
   hqMetro: string | null
+  /** Headquarters from the company HQ table: city and state, high or medium confidence only. */
+  hq: { city: string | null; state: string | null } | null
   profile: {
     openNow: number; opened90d: number; opened12mo: number; totalSeen: number
     states: string[]; remoteShare: number | null; siteType: string
@@ -114,7 +120,7 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
   const hasLayoffNotice = (await prisma.warnNotice.count({ where: { companyId: company.id, dismissedAt: null, OR: [{ noticeDate: { gte: new Date(Date.now() - 2 * 365 * 86_400_000) } }, { noticeDate: null, fetchedAt: { gte: new Date(Date.now() - 2 * 365 * 86_400_000) } }] } }).catch(() => 0)) > 0
   const [secEvents, hq] = await Promise.all([
     prisma.companyEvent.count({ where: { companyId: company.id, eventDate: { gte: new Date(Date.now() - 2 * 365 * 86_400_000) } } }).catch(() => 0),
-    prisma.companyHq.findUnique({ where: { companyId: company.id }, select: { confidence: true } }).catch(() => null),
+    prisma.companyHq.findUnique({ where: { companyId: company.id }, select: { confidence: true, city: true, state: true } }).catch(() => null),
   ])
   const openNow = p?.openNow ?? 0
   const crm = company.crmOrganizations[0]
@@ -126,6 +132,7 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
     industry: company.industry ?? p?.industry ?? null,
     sizeBand: company.sizeBand,
     hqMetro: company.hqMetro,
+    hq: hq && (hq.confidence === 'high' || hq.confidence === 'medium') && (hq.city || hq.state) ? { city: hq.city, state: hq.state } : null,
     profile: p
       ? {
           openNow, opened90d: p.opened90d, opened12mo: p.opened12mo, totalSeen: p.totalSeen, states: p.states, remoteShare: p.remoteShare, siteType: p.siteType,
@@ -137,7 +144,7 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
     jobs,
     pay,
     claimSlug: crm ? orgSlug(crm.canonicalNameNormalized) : null,
-    indexable: isEmployerIndexable(p, company.industry ?? p?.industry ?? null, { layoffNotice: hasLayoffNotice, secEvent: secEvents > 0, hqConfirmed: hq?.confidence === 'high' }),
+    indexable: isEmployerIndexable(p, company.industry ?? p?.industry ?? null, { layoffNotice: hasLayoffNotice, secEvent: secEvents > 0, hqConfirmed: hq?.confidence === 'high', higherEd: isHigherEdName(company.name) }),
   }
 })
 
@@ -150,11 +157,12 @@ const HAS_LAYOFF_NOTICE = `EXISTS (SELECT 1 FROM "WarnNotice" w WHERE w."company
 
 /** The condition behind the employer sitemap: the same rule as `indexable`, in SQL. */
 const ELIGIBLE = `FROM "Company" c LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
-  WHERE p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}
+  WHERE (p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}
      OR (p."openNow" >= 1 AND p."opened12mo" >= 3 AND COALESCE(c.industry, p.industry) IS NOT NULL)
      OR ${HAS_LAYOFF_NOTICE}
      OR ${HAS_SEC_EVENT}
-     OR ${HQ_CONFIRMED_WITH_ROLE}`
+     OR ${HQ_CONFIRMED_WITH_ROLE})
+     AND NOT ${higherEdSql('c.name')}`
 
 export async function countEmployerPages(): Promise<number> {
   const [row] = await prisma.$queryRawUnsafe<{ n: number }[]>(`SELECT count(*)::int AS n ${ELIGIBLE}`)
@@ -174,7 +182,7 @@ export async function isCompanyOfferedToSearch(companyId: string): Promise<boole
     `SELECT 1 AS ok FROM "Company" c LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
      WHERE c.id = $1 AND (p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}
        OR (p."openNow" >= 1 AND p."opened12mo" >= 3 AND COALESCE(c.industry, p.industry) IS NOT NULL)
-       OR ${HAS_LAYOFF_NOTICE} OR ${HAS_SEC_EVENT} OR ${HQ_CONFIRMED_WITH_ROLE}) LIMIT 1`,
+       OR ${HAS_LAYOFF_NOTICE} OR ${HAS_SEC_EVENT} OR ${HQ_CONFIRMED_WITH_ROLE}) AND NOT ${higherEdSql('c.name')} LIMIT 1`,
     companyId,
   )
   return rows.length > 0

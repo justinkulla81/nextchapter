@@ -1,3 +1,4 @@
+import { hubsFor } from '@/lib/places/hubs'
 import { testedTitle } from '@/lib/seo/title-test-state'
 import { employerTitleB } from '@/lib/seo/title-tests'
 import { LocalEventSection } from '@/components/events/LocalEventSection'
@@ -92,7 +93,9 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   const path = `/employers/${slug}`
   const ins = await getEmployerInsights(e.id, e.industry, { postedPayShare: e.profile?.postedPayShare ?? null, remoteShare: e.profile?.remoteShare ?? null }).catch(() => null)
   const text = ins ? insightText(e.name, ins, e.industry) : { glance: [], faq: [] }
-  const hq = [e.hqMetro, e.industry].filter(Boolean).join(' · ')
+  const hqPlace = e.hq ? [e.hq.city, e.hq.state].filter(Boolean).join(', ') : e.hqMetro
+  const hq = [hqPlace ? `Headquartered in ${hqPlace}` : null, e.industry].filter(Boolean).join(' · ')
+  const hubs = p && p.topLocations.length ? await hubsFor(p.topLocations).catch(() => []) : []
   const industryBucket = bucketFromIndustryText(e.industry)
   const seenAt = await conferencesForEmployer(e.name)
   const layoffs = await noticesForEmployer(e.name).catch(() => null)
@@ -130,7 +133,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
       '@id': `${SITE_URL}${path}#org`,
       name: e.name,
       ...(e.website ? { url: e.website, sameAs: [e.website] } : {}),
-      ...(e.hqMetro ? { address: { '@type': 'PostalAddress', addressLocality: e.hqMetro } } : {}),
+      ...(e.hq ? { address: { '@type': 'PostalAddress', ...(e.hq.city ? { addressLocality: e.hq.city } : {}), ...(e.hq.state ? { addressRegion: e.hq.state } : {}) } } : e.hqMetro ? { address: { '@type': 'PostalAddress', addressLocality: e.hqMetro } } : {}),
       ...(e.industry ? { knowsAbout: e.industry } : {}),
     },
     {
@@ -186,6 +189,14 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
           {p.topLocations.length > 0 && (
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
               <span className="font-medium text-foreground">Where:</span> {p.topLocations.slice(0, 8).map((l) => `${l.location} (${n0(l.count)})`).join(', ')}.
+            </p>
+          )}
+          {hubs.length > 0 && (
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">Main hubs:</span>{' '}
+              {hubs.map((h, i) => (
+                <span key={h.label}>{i > 0 && ', '}{h.href ? <a href={h.href} className="underline underline-offset-2">{h.label}</a> : h.label} ({n0(h.count)})</span>
+              ))}. Open a city for its job market, layoffs and training.
             </p>
           )}
         </section>
