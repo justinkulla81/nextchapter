@@ -104,7 +104,7 @@ export const CLAIM_TOPICS: TopicContent[] = [
       {
         h2: 'Who stays: the retention order',
         paragraphs: [
-          'Employees in a competitive level are ranked first by tenure group (career employees ahead of career-conditional or probationary ones), then by veterans’ preference, then by length of federal service, adjusted for performance ratings. The lowest-ranked employee is released first.',
+          'Employees in a competitive level are ranked by four factors, in this order: tenure (the type of appointment), veterans’ preference, total creditable federal service, and performance ratings, which add retention credit. The lowest-ranked employee is released first. OPM revised its tenure-group wording in a rule that took effect in September 2026, so check your notice for how your group is named.',
           'Higher-ranked employees displaced from their own position can have rights to take another position: “bumping” a lower-ranked employee in a position they qualify for, or “retreating” to a position they held before. Ask HR which options you have, and by when.',
         ],
       },
@@ -112,8 +112,8 @@ export const CLAIM_TOPICS: TopicContent[] = [
         h2: 'Severance, retirement and health coverage',
         bullets: [
           'Severance pay: employees separated by a RIF who are not eligible for an immediate annuity generally get one week of basic pay for each of the first 10 years of service and two weeks for each year beyond 10, plus an age adjustment of 2.5% for each full three months over age 40, capped at 52 weeks. OPM’s severance pay fact sheet has the details.',
-          'Retirement: if you are involuntarily separated and are at least 50 with 20 years of service, or any age with 25 years, you may qualify for an immediate pension under discontinued service retirement. Ask your HR retirement specialist for an estimate before your last day.',
-          'Health coverage: Federal Employees Health Benefits coverage continues for 31 days after separation at no cost to you. After that you can choose Temporary Continuation of Coverage for up to 18 months, paying the full premium, or compare marketplace plans.',
+          'Retirement: if you are involuntarily separated and are at least 50 with 20 years of service, or any age with 25 years (and at least 5 years of civilian service), you may qualify for an immediate pension under discontinued service retirement. Ask your HR retirement specialist for an estimate before your last day.',
+          'Health coverage: Federal Employees Health Benefits coverage continues for 31 days after separation at no cost to you. After that you can choose Temporary Continuation of Coverage for up to 18 months, paying the full premium plus a 2% administrative charge, or compare marketplace plans. You generally have 60 days to elect it.',
           'Thrift Savings Plan: your account stays with the plan unless you choose to move it.',
         ],
         links: [
@@ -124,7 +124,7 @@ export const CLAIM_TOPICS: TopicContent[] = [
       {
         h2: 'Unemployment for federal employees',
         paragraphs: [
-          'Federal employees file for Unemployment Compensation for Federal Employees (UCFE) through the state unemployment agency, the same office as everyone else. The state uses Standard Form 8 (the notice of unemployment insurance rights that your agency gives you) and your separation personnel action (Standard Form 50) to confirm your federal pay.',
+          'Federal employees file for Unemployment Compensation for Federal Employees (UCFE) through the state unemployment agency, generally in the state of your last official duty station (listed on your SF-50). The state uses Standard Form 8 (the notice of unemployment insurance rights that your agency gives you) and your separation personnel action (Standard Form 50) to confirm your federal pay.',
           'Benefit amounts and weeks follow the state’s rules, so use our state page to see them. Severance can affect when benefits begin, so file the week you are separated and report the severance when asked.',
         ],
         links: [{ label: 'Unemployment benefits by state', href: '/unemployment-benefits' }],
@@ -132,8 +132,8 @@ export const CLAIM_TOPICS: TopicContent[] = [
       {
         h2: 'Appeals and priority for other federal jobs',
         bullets: [
-          'You can appeal a RIF action to the Merit Systems Protection Board, generally within 30 days of the effective date. If your union contract covers RIFs, it may offer a grievance route instead; you generally choose one or the other, so check before you file.',
-          'Priority programs: the Career Transition Assistance Plan (CTAP) and Interagency CTAP (ICTAP) give displaced employees priority consideration for vacancies they are well qualified for, in your agency and in others. The Reemployment Priority List (RPL) does the same for jobs in the agency that separated you. Register for each as soon as you are eligible. The eligibility periods are limited.',
+          'You can appeal a RIF action to the Merit Systems Protection Board, generally within 30 days of the effective date. If a union contract covers your position and does not exclude RIFs, you generally must use its grievance procedure instead, unless you allege discrimination. Check which applies before you file.',
+          'Priority programs: the Career Transition Assistance Plan (CTAP) and Interagency CTAP (ICTAP) give displaced employees priority consideration for vacancies they are well qualified for, in your agency and in others. The Reemployment Priority List (RPL) does the same for jobs in the agency that separated you, in the same commuting area. ICTAP generally lasts one year from separation, and RPL registration generally must be made within 30 days of separation. Register for each as soon as you are eligible, and check OPM’s career transition guide for your dates.',
           'Update your résumé in the federal format, keep your SF-50s and your last three performance ratings, and start searching before your last day.',
         ],
         links: [
@@ -146,8 +146,8 @@ export const CLAIM_TOPICS: TopicContent[] = [
       { q: 'How much notice does a federal RIF require?', a: 'Generally at least 60 days’ written notice before the effective date. OPM can approve a shorter period, but not less than 30 days, in unforeseeable circumstances.' },
       { q: 'How is federal RIF severance calculated?', a: 'Basic severance is one week of basic pay for each of the first 10 years of service and two weeks for each year after that, with an age adjustment of 2.5% for each full three months over 40, up to 52 weeks. Employees eligible for an immediate annuity do not get it.' },
       { q: 'Can federal employees collect unemployment after a RIF?', a: 'Yes. Federal employees file for UCFE through the state unemployment agency and the state’s benefit rules apply. Bring the SF-8 from your agency and your SF-50.' },
-      { q: 'How long do I have to appeal a federal RIF?', a: 'Generally 30 days from the effective date of the action, to the Merit Systems Protection Board. If a union contract covers your position, check whether the grievance route is available instead.' },
-      { q: 'Do I keep my health insurance after a federal RIF?', a: 'FEHB coverage continues for 31 days after separation at no cost to you. After that you can pay the full premium under Temporary Continuation of Coverage for up to 18 months, or buy a marketplace plan.' },
+      { q: 'How long do I have to appeal a federal RIF?', a: 'Generally 30 days from the effective date of the action, to the Merit Systems Protection Board. If a union contract covers your position and does not exclude RIFs, you generally must use its grievance procedure instead.' },
+      { q: 'Do I keep my health insurance after a federal RIF?', a: 'FEHB coverage continues for 31 days after separation at no cost to you. After that you can pay the full premium plus a 2% charge under Temporary Continuation of Coverage for up to 18 months, or buy a marketplace plan.' },
     ],
     cta: { title: 'Plan the next 30 days', body: 'The dates that matter after a layoff: coverage, claim filing, appeal and COBRA, in one list.', label: 'Open the deadline list', href: '/tools/layoff-deadlines' },
     updated: UPDATED,
@@ -277,7 +277,7 @@ export const CLAIM_TOPICS: TopicContent[] = [
   {
     slug: 'unemployment-taxes-1099g',
     h1: 'Is unemployment taxable? How the 1099-G and withholding work',
-    lede: 'Yes: unemployment benefits are taxable income on your federal return, and many states tax them too. Your state reports what it paid you on Form 1099-G, which it must send by the end of January. You can have 10% withheld from each payment, or pay estimated tax yourself, so that you do not owe a bill in April.',
+    lede: 'Yes: unemployment benefits are taxable income on your federal return, and many states tax them too. Your state reports what it paid you on Form 1099-G, which it must send by the end of January. You can ask the state to withhold federal tax from each payment, using Form W-4V, or pay estimated tax yourself, so that you do not owe a bill in April.',
     sections: [
       {
         h2: 'Federal tax',
@@ -289,13 +289,13 @@ export const CLAIM_TOPICS: TopicContent[] = [
       {
         h2: 'State tax',
         paragraphs: [
-          'Whether your state taxes the benefits depends on the state. States with no income tax do not. A few states that have an income tax exempt unemployment benefits, including California, New Jersey and Pennsylvania. Most others follow the federal rule and include them. Check your state’s tax agency for the current rule.',
+          'Whether your state taxes the benefits depends on the state. States with no income tax do not. A few states that have an income tax exempt unemployment benefits, including California, New Jersey, Oregon, Pennsylvania and Virginia. Most others follow the federal rule and include them. Check your state’s tax agency for the current rule.',
         ],
       },
       {
         h2: 'Withholding',
         bullets: [
-          'You can ask the state to withhold 10% of each payment for federal tax. Choose it when you file, or in your account afterward. The state may also offer a state tax withholding option.',
+          'You can ask the state to withhold federal income tax from each payment by filing Form W-4V, the IRS voluntary withholding request, where you choose the percentage from the options on the form. Many states offer it in your online account. The state may also offer a state tax withholding option.',
           'If you do not withhold, you can make quarterly estimated tax payments to the IRS and your state. Without either, you may owe the whole amount at filing, and a penalty for underpayment.',
           'Severance is taxed separately as wages. Employers generally withhold 22% federally from it, and more if the payment is over $1 million.',
         ],
@@ -319,11 +319,11 @@ export const CLAIM_TOPICS: TopicContent[] = [
       },
     ],
     faq: [
-      { q: 'Is unemployment income taxable?', a: 'Yes, on your federal return. Many states tax it too, though states without an income tax and a few with one, such as California, New Jersey and Pennsylvania, do not.' },
-      { q: 'How do I have taxes withheld from unemployment?', a: 'Ask the state when you file or in your online account to withhold 10% for federal tax. Without it, make estimated payments or you may owe at filing.' },
+      { q: 'Is unemployment income taxable?', a: 'Yes, on your federal return. Many states tax it too, though states without an income tax and a few with one, such as California, New Jersey, Oregon, Pennsylvania and Virginia, do not.' },
+      { q: 'How do I have taxes withheld from unemployment?', a: 'Ask the state to withhold federal tax with Form W-4V, choosing a percentage from the options on the form. Without withholding, make quarterly estimated payments or you may owe at filing.' },
       { q: 'When do I get my 1099-G for unemployment?', a: 'States mail it by January 31 for the previous year. Most post it in your online account first.' },
       { q: 'I got a 1099-G for unemployment I never received. What do I do?', a: 'Report it to the state right away. It may be identity fraud, and the state can correct the form. Do not report income you did not receive.' },
-      { q: 'Is severance taxed differently from unemployment?', a: 'Yes. Severance is wages, with payroll taxes and typically 22% federal withholding. Unemployment has no payroll tax and 10% optional withholding.' },
+      { q: 'Is severance taxed differently from unemployment?', a: 'Yes. Severance is wages, with payroll taxes and typically 22% federal withholding. Unemployment has no payroll tax, and federal withholding is optional.' },
     ],
     cta: { title: 'Estimate what you could get', body: 'About how much unemployment pays in your state, before tax.', label: 'Open the estimator', href: '/tools/unemployment-estimator' },
     updated: UPDATED,

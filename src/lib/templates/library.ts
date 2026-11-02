@@ -302,7 +302,7 @@ Thank you,
     category: 'Job search',
     name: 'Email to a recruiter',
     primary: 'email to a recruiter template',
-    secondary: ['reaching out to recruiters', 'cold email to recruiter', 'recruiter outreach message'],
+    secondary: ['email to a recruiter example', 'reaching out to recruiters', 'cold email to recruiter', 'recruiter outreach message'],
     title: 'Email to a Recruiter: Template That Gets Replies',
     description: 'A short email to a recruiter that says who you are, what you want and why you fit, so they can place you quickly. Fill in the blanks and send.',
     h1: 'Email to a recruiter template',
@@ -387,7 +387,7 @@ Best,
     category: 'Interviews',
     name: 'Follow-up email when you have not heard back',
     primary: 'follow up email after no response',
-    secondary: ['follow up after interview no response', 'checking in on application status', 'interview follow up email example'],
+    secondary: ['follow up after interview no response', 'follow up email when no reply after interview', 'checking in on application status', 'interview follow up email example'],
     title: 'Follow-Up Email After No Response: Template',
     description: 'A short, polite follow-up for when an employer has not replied after an interview or application. Fill in the blanks, copy and send it today.',
     h1: 'Follow-up email after no response',
@@ -590,7 +590,7 @@ Best,
     category: 'Offers',
     name: 'Resignation letter',
     primary: 'resignation email sample',
-    secondary: ['simple resignation letter', 'fill in resignation letter'],
+    secondary: ['simple resignation letter', 'resignation letter with last day', 'resignation letter after accepting new job', 'short resignation email'],
     title: 'Resignation Letter Template: Two Weeks’ Notice',
     description: 'A short, professional resignation letter with your last day and an offer to help with the handover. Fill in the blanks, copy and send it.',
     h1: 'Resignation letter template',
@@ -1005,6 +1005,246 @@ With thanks,
     ],
     related: ['reference-request-email', 'linkedin-recommendation-request', 'accept-job-offer-email'],
   },
+  {
+    slug: 'how-to-tell-an-employee-they-are-being-laid-off',
+    category: 'Employers',
+    name: 'Script to tell an employee they are being laid off',
+    primary: 'how to tell an employee they are being laid off',
+    secondary: ['layoff conversation script for managers', 'what to say when laying off an employee', 'script for a layoff meeting with an employee', 'manager script for layoff conversation'],
+    title: 'Layoff Conversation Script for Managers (Free)',
+    description: 'What to say, in order, when you tell an employee they are being laid off: a short, direct script with the next steps and what not to say. Free template.',
+    h1: 'Script: how to tell an employee they are being laid off',
+    lede: 'Keep it under ten minutes. Say it in the first sentence, do not apologize your way around it, and finish with exactly what happens next.',
+    fields: [
+      { id: 'name', label: 'Employee’s first name', placeholder: 'Jordan' },
+      { id: 'reason', label: 'Reason, in one plain sentence', placeholder: 'the company is reducing its workforce and your role is one of those being eliminated' },
+      { id: 'last', label: 'Last day', placeholder: 'December 6' },
+      { id: 'pay', label: 'What they will receive', placeholder: 'your final pay, accrued vacation and eight weeks of severance' },
+      { id: 'hr', label: 'HR contact', placeholder: 'Dana in HR, who is here to go through the details' },
+      { id: 'support', label: 'Support offered', placeholder: 'outplacement support and a neutral reference', fallback: 'help with your job search' },
+    ],
+    body: `Open (first 30 seconds)
+"{{name}}, thank you for meeting. I have difficult news: {{reason}}. Your last day will be {{last}}."
+
+Pause. Let them react. Do not fill the silence.
+
+If they ask why me
+"The decision was about the role and the needs of the business, not your performance. I can tell you it was not an easy decision."
+
+What happens now
+"You will receive {{pay}}. {{hr}}. We are also providing {{support}}."
+
+Close
+"I am sorry. You have done good work here, and I will gladly be a reference. Is there anything you need from me right now?"
+
+Do not say: "I know how you feel", "everything happens for a reason", or anything about who else was affected.`,
+    tips: [
+      'Say the news in the first sentence. People remember the first thirty seconds and nothing after it.',
+      'Hold the meeting in person or on video, early in the week and early in the day, with HR present. Never on a Friday afternoon.',
+      'Do not argue, negotiate or debate the decision. If they push, repeat the sentence calmly and offer HR.',
+      'Have the letter, the benefits information and the equipment return plan ready before you start.',
+      'Do not mention performance, age, leave or any protected trait. State the business reason only, as your lawyer agrees.',
+    ],
+    faq: [
+      { q: 'How long should a layoff meeting last?', a: 'Ten minutes or fewer. The news, the reason in a sentence, what the person will receive and the next steps. Anything longer drifts into debate.' },
+      { q: 'Should HR be in the room?', a: 'Yes. HR covers the details and is a second witness. The manager delivers the news; HR handles the paperwork.' },
+      { q: 'What if the employee becomes upset?', a: 'Pause, offer a moment, and say you understand. Do not touch, argue or try to fix it. Offer to continue later with HR.' },
+      { q: 'Should I send the layoff letter at the same time?', a: 'Give it at the meeting so the facts are in writing. The layoff letter template on this site covers the contents.' },
+    ],
+    related: ['layoff-letter-to-employee', 'layoff-announcement-email-to-employees', 'layoff-reference-letter'],
+  },
+  {
+    slug: 'email-to-team-after-layoffs',
+    category: 'Employers',
+    name: 'Email to the remaining team after layoffs',
+    primary: 'email to team after layoffs',
+    secondary: ['message to remaining employees after layoffs', 'layoff survivors email', 'how to talk to your team after a layoff', 'manager message after layoffs'],
+    title: 'Email to Your Team After Layoffs: Free Template',
+    description: 'A manager’s email to the people who stay after layoffs: what changed, what has not, who covers what and where to ask. Fill in the blanks and send.',
+    h1: 'Email to the remaining team after layoffs',
+    lede: 'The people who stay are anxious and watching. Say what happened, what changes for them this week, and when you will speak next.',
+    fields: [
+      { id: 'sender', label: 'Your name', placeholder: 'Marcus' },
+      { id: 'who', label: 'Who left', placeholder: 'three of our colleagues on the analytics team' },
+      { id: 'change', label: 'What changes for the team', placeholder: 'Priya will take over reporting and I will own the vendor work for now' },
+      { id: 'unchanged', label: 'What does not change', placeholder: 'our Q4 goals and our team meeting on Mondays' },
+      { id: 'next', label: 'When you will speak next', placeholder: 'tomorrow at 10 a.m.' },
+    ],
+    subject: 'Where we are as a team',
+    body: `Team,
+
+I know today was hard. {{who}} were let go, and I am sorry for them and for all of us who worked with them.
+
+This week: {{change}}. What does not change: {{unchanged}}.
+
+I do not have every answer yet, and I will tell you when I do. We will talk as a team {{next}}, and my door is open before then.
+
+Thank you for how you have handled today.
+
+{{sender}}`,
+    tips: [
+      'Send it the same day. A silence after layoffs is filled with rumors.',
+      'Be honest about what you do not know. “I do not know yet” is better than a guess you must take back.',
+      'Say specifically who covers what. Unclear ownership is the first problem after a layoff.',
+      'Meet one on one with your closest people within 48 hours. They are also deciding whether to stay.',
+      'Never promise there will be no more layoffs unless you are certain.',
+    ],
+    faq: [
+      { q: 'What do you say to employees after a layoff?', a: 'Acknowledge what happened, say who covers what, name what does not change, admit what you do not know and say when you will speak again.' },
+      { q: 'Should I promise no more layoffs?', a: 'Only if you are certain. A promise you must break destroys trust faster than an honest “I do not know.”' },
+      { q: 'How soon should a manager send it?', a: 'The same day. The longer people wait, the more the rumors do the talking.' },
+    ],
+    related: ['layoff-announcement-email-to-employees', 'layoff-all-hands-talking-points', 'layoff-goodbye-email-to-coworkers'],
+  },
+  {
+    slug: 'layoff-all-hands-talking-points',
+    category: 'Employers',
+    name: 'All-hands talking points after layoffs',
+    primary: 'layoff all hands talking points',
+    secondary: ['layoff all hands meeting script', 'how to run an all hands after layoffs', 'layoff talking points for leaders', 'company meeting after layoffs'],
+    title: 'Layoff All-Hands Talking Points (Free Template)',
+    description: 'Talking points for an all-hands meeting after layoffs: the news, the reason, who is affected, what is next and how to answer hard questions. Free template.',
+    h1: 'All-hands talking points after layoffs',
+    lede: 'A leader who says the hard thing plainly earns trust. Use these points as the shape of your remarks and write the words in your own voice.',
+    fields: [
+      { id: 'company', label: 'Company', placeholder: 'Northwind' },
+      { id: 'reason', label: 'Why it happened', placeholder: 'demand fell for two quarters and our costs did not' },
+      { id: 'count', label: 'Scale', placeholder: '42 roles, about 8% of the company' },
+      { id: 'support', label: 'Support for those leaving', placeholder: 'severance, health coverage and outplacement' },
+      { id: 'plan', label: 'What happens next', placeholder: 'we will focus on three priorities and share a plan by Friday' },
+    ],
+    body: `1. Say it plainly
+Today we reduced our workforce at {{company}} by {{count}}. I want to be direct about why.
+
+2. The reason
+{{reason}}. This was a decision about the business, not about the people.
+
+3. Those leaving
+We are providing {{support}}. I am grateful for what they did here.
+
+4. What it means for you
+Your role is not affected. Your manager will go through how work changes this week.
+
+5. What happens next
+{{plan}}.
+
+6. Questions
+I will answer what I can. If I do not know, I will say so and find out.
+
+Avoid: euphemisms ("rightsizing"), blame, promises about the future you cannot keep, and comparing yourself to others who had it worse.`,
+    tips: [
+      'Hold it the same day, after affected people have been told. The company should not learn it from the all-hands.',
+      'Keep your prepared remarks under ten minutes and leave the rest for questions.',
+      'Write the five hardest questions and the answers in advance: will there be more layoffs, why me or why not me, and how are leaders affected.',
+      'Say what leaders are giving up, if they are. People watch for it.',
+      'Record nothing that you would not want in a news story. All-hands remarks leak.',
+    ],
+    faq: [
+      { q: 'What should leaders say at an all-hands after layoffs?', a: 'What happened, the honest reason, how many people, what is offered to those leaving, what it means for those who stay and what happens next.' },
+      { q: 'How long should the all-hands be?', a: 'Remarks of ten minutes, then questions for twenty. A short meeting with real answers beats a long one with slides.' },
+      { q: 'Should the all-hands be before or after individual notices?', a: 'After. Affected people must hear it in person before the whole company does.' },
+    ],
+    related: ['email-to-team-after-layoffs', 'layoff-announcement-email-to-employees', 'how-to-tell-an-employee-they-are-being-laid-off'],
+  },
+  {
+    slug: 'layoff-faq-for-employees',
+    category: 'Employers',
+    name: 'Layoff FAQ for employees',
+    primary: 'layoff faq for employees',
+    secondary: ['layoff frequently asked questions template', 'employee layoff faq document', 'questions employees ask after layoffs', 'layoff q and a for employees'],
+    title: 'Layoff FAQ for Employees: Free Template',
+    description: 'Hand affected employees a one-page layoff FAQ: last day, pay, benefits, COBRA, unemployment, references and who to ask. Fill in the blanks and print.',
+    h1: 'Layoff FAQ for employees',
+    lede: 'People remember almost nothing of the layoff meeting. A clear one-page FAQ they can take home answers the questions they will have at midnight.',
+    fields: [
+      { id: 'company', label: 'Company', placeholder: 'Northwind' },
+      { id: 'last', label: 'Last day', placeholder: 'December 6' },
+      { id: 'paydate', label: 'Final pay date', placeholder: 'December 6' },
+      { id: 'pto', label: 'Accrued time off policy', placeholder: 'accrued, unused vacation is paid in your final paycheck' },
+      { id: 'health', label: 'Health coverage end date', placeholder: 'December 31' },
+      { id: 'severance', label: 'Severance summary', placeholder: 'eight weeks of base pay, paid on the regular schedule', fallback: 'none was offered' },
+      { id: 'contact', label: 'HR contact', placeholder: 'people@northwind.com, 555-0100' },
+    ],
+    body: `{{company}} layoff: frequently asked questions
+
+When is my last day?
+{{last}}.
+
+When will I be paid?
+Your final paycheck will be issued on {{paydate}}. {{pto}}.
+
+What happens to my health coverage?
+It ends {{health}}. You will receive a separate notice explaining COBRA continuation coverage and how long you have to elect it.
+
+Is severance offered?
+Severance: {{severance}}. If an agreement is attached, please read it carefully and take the time it gives you to review it.
+
+Can I file for unemployment?
+Yes. Apply with your state agency as soon as you can; benefits are paid from the date you apply, not the date you were laid off. We will provide a separation letter on request.
+
+Will I get a reference?
+We will confirm your dates and title, and managers who know your work may give a reference.
+
+What do I need to return?
+Company laptop, phone, badge and anything else on loan, by your last day.
+
+Who do I ask?
+{{contact}}.`,
+    tips: [
+      'Fill every line before the meeting. Blank answers create more anxiety than the layoff itself.',
+      'Have a lawyer or your benefits vendor check the COBRA and final pay lines against your state’s rules.',
+      'Keep the language plain. People read it on a phone, often at night.',
+      'If your state requires a specific unemployment notice, attach it; many do.',
+    ],
+    faq: [
+      { q: 'What should be in a layoff FAQ?', a: 'Last day, final pay and time off, health coverage and COBRA, severance, unemployment, references, equipment return and a contact person.' },
+      { q: 'When should we give it out?', a: 'At the layoff meeting, with the layoff letter. Send a copy by email the same day so it is easy to find.' },
+      { q: 'Do we have to include unemployment information?', a: 'Many states require employers to give a notice or a link about unemployment at separation. Check your state’s labor department.' },
+    ],
+    related: ['layoff-letter-to-employee', 'hr-questions-after-layoff-email', 'how-to-tell-an-employee-they-are-being-laid-off'],
+  },
+  {
+    slug: 'layoff-reference-letter',
+    category: 'Employers',
+    name: 'Reference letter for a laid-off employee',
+    primary: 'reference letter for laid off employee',
+    secondary: ['recommendation letter after layoff', 'letter of recommendation laid off employee', 'neutral reference letter template', 'reference for employee laid off'],
+    title: 'Reference Letter for a Laid-Off Employee: Template',
+    description: 'A short, positive reference letter an employer can give a laid-off employee, saying the role ended for business reasons. Fill in the blanks and sign.',
+    h1: 'Reference letter for a laid-off employee',
+    lede: 'A good letter says the role ended for business reasons and what the person did well. It costs you a paragraph and helps them land.',
+    fields: [
+      { id: 'employee', label: 'Employee’s name', placeholder: 'Jordan Rivera' },
+      { id: 'role', label: 'Their role', placeholder: 'senior analyst' },
+      { id: 'dates', label: 'Dates of employment', placeholder: 'March 2019 to December 2026' },
+      { id: 'strengths', label: 'Two or three real strengths', placeholder: 'rigor with numbers, calm under deadline and the ability to explain results to non-experts', long: true },
+      { id: 'company', label: 'Company', placeholder: 'Northwind' },
+      { id: 'signer', label: 'Your name and title', placeholder: 'Marcus Chen, Director of Finance' },
+      { id: 'contact', label: 'Your email or phone', placeholder: 'marcus.chen@northwind.com' },
+    ],
+    body: `To whom it may concern,
+
+{{employee}} worked at {{company}} as {{role}} from {{dates}}. Their position was eliminated as part of a company-wide reduction in force. It was a business decision and not a reflection of their performance.
+
+In my time as their manager, I valued {{strengths}}. I would gladly work with {{employee}} again.
+
+I am happy to speak with any employer who is considering {{employee}}. You can reach me at {{contact}}.
+
+Sincerely,
+{{signer}}`,
+    tips: [
+      'Offer it at the layoff meeting. It is the single most useful thing a manager can give a laid-off employee.',
+      'Say the role was eliminated for business reasons, in the first paragraph. It tells every reader this is not a performance story.',
+      'Keep every statement true and specific. A vague glowing letter reads as a form letter.',
+      'Check your company’s reference policy first. Some employers confirm only dates and title; ask HR before you promise more.',
+    ],
+    faq: [
+      { q: 'Should employers give a reference to laid-off employees?', a: 'When the layoff was not about performance and your policy allows it, yes. It is a low-cost kindness that helps people land and protects your employer brand.' },
+      { q: 'What if our policy is to confirm only dates and title?', a: 'Follow it, and say so plainly. You can still give a personal reference from a named manager if the policy permits one.' },
+      { q: 'What should a reference letter say about a layoff?', a: 'That the position was eliminated for business reasons and not performance, followed by two or three honest strengths.' },
+    ],
+    related: ['reference-request-email', 'layoff-letter-to-employee', 'how-to-tell-an-employee-they-are-being-laid-off'],
+  },
 ]
 
 export const TEMPLATE_CATEGORIES: TemplateCategory[] = ['Layoff', 'Job search', 'Interviews', 'Offers', 'Employers']
@@ -1028,3 +1268,49 @@ export function fillTemplate(text: string, fields: TemplateField[], values: Reco
 export function slotsIn(t: Template): string[] {
   return [...new Set([...(t.subject ?? '').matchAll(/\{\{(\w+)\}\}/g), ...t.body.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]))]
 }
+
+// Guide, topic and start pages that should point readers at a template. RelatedLinks shows these as "Free templates", and
+// each template page links back to its guides. Every path must be an owner in the keyword map (templates-library.test.ts).
+const LINK_FROM: Record<string, string[]> = {
+  'laid-off-linkedin-post': ['/start/laid-off', '/topics/what-to-say-when-laid-off', '/resources/72-hours'],
+  'layoff-goodbye-email-to-coworkers': ['/resources/72-hours', '/topics/what-to-say-when-laid-off'],
+  'severance-negotiation-email': ['/topics/severance', '/topics/should-i-take-the-buyout'],
+  'reference-request-email': ['/resources/network-scripts', '/resources/ask-for-help'],
+  'linkedin-recommendation-request': ['/resources/network-activation'],
+  'networking-email-after-layoff': ['/resources/network-activation', '/resources/network-scripts', '/start/laid-off', '/topics/how-to-ask-for-a-job-referral'],
+  'recruiter-outreach-email': ['/topics/how-to-email-a-recruiter', '/topics/executive-recruiters'],
+  'thank-you-email-after-interview': ['/resources/post-interview', '/resources/interview-prep'],
+  'interview-follow-up-no-response': ['/topics/follow-up-after-applying', '/resources/post-interview'],
+  'salary-negotiation-email': ['/resources/offer-letter', '/topics/negotiate-a-job-offer', '/topics/salary-expectations'],
+  'accept-job-offer-email': ['/resources/offer-letter'],
+  'decline-job-offer-email': ['/resources/offer-letter', '/topics/should-i-accept-a-counteroffer'],
+  'request-more-time-for-job-offer-email': ['/resources/offer-letter', '/topics/negotiate-a-job-offer'],
+  'withdraw-application-email': ['/topics/follow-up-after-applying'],
+  'resignation-letter': ['/topics/resignation-letter', '/topics/how-to-quit-a-job'],
+  'layoff-announcement-email-to-employees': ['/topics/how-to-lay-off-employees', '/topics/reduction-in-force'],
+  'layoff-letter-to-employee': ['/topics/how-to-lay-off-employees', '/topics/reduction-in-force'],
+  'how-to-tell-an-employee-they-are-being-laid-off': ['/topics/how-to-lay-off-employees'],
+  'email-to-team-after-layoffs': ['/topics/how-to-lay-off-employees'],
+  'layoff-all-hands-talking-points': ['/topics/how-to-lay-off-employees'],
+  'layoff-faq-for-employees': ['/topics/how-to-lay-off-employees', '/topics/reduction-in-force'],
+  'layoff-reference-letter': ['/topics/how-to-lay-off-employees'],
+  'unemployment-appeal-letter': ['/topics/unemployment-denied-appeal'],
+  'hr-questions-after-layoff-email': ['/resources/72-hours', '/topics/severance'],
+  'informational-interview-request-email': ['/topics/informational-interviews'],
+  'linkedin-headline-examples': ['/topics/resume-tips', '/topics/job-search-strategy'],
+  'linkedin-about-section': ['/topics/resume-tips', '/topics/job-search-strategy'],
+  'thank-you-to-reference-email': ['/resources/network-scripts'],
+}
+
+/** Templates a guide or topic page should link to. */
+export function templatesFor(path: string): Template[] {
+  return TEMPLATES.filter((t) => (LINK_FROM[t.slug] ?? []).includes(path))
+}
+
+/** The owner pages a template links back to. */
+export function guidesFor(slug: string): string[] {
+  return LINK_FROM[slug] ?? []
+}
+
+export const TEMPLATE_LINK_PATHS = Object.values(LINK_FROM).flat()
+export const TEMPLATE_LINK_SLUGS = Object.keys(LINK_FROM)

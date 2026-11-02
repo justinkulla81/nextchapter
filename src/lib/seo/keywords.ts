@@ -2007,7 +2007,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     seo: {
       title: 'Is Unemployment Taxable? 1099-G, Withholding and State Tax',
       description:
-        'Unemployment is taxable income. How the 1099-G works, how to withhold 10%, which states exempt benefits, and what to do about a wrong or unexpected form.',
+        'Unemployment is taxable income. How the 1099-G works, how to have tax withheld, which states exempt benefits, and what to do about a wrong or unexpected form.',
     },
   },
   {
