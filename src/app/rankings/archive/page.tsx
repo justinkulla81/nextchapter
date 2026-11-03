@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { MONTH_TINTS } from '@/components/rankings/tones'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { archiveMonths } from '@/lib/rankings/awards'
+import { RANKINGS_HERO } from '@/lib/rankings/art'
 import { editionLabel } from '@/lib/rankings/build-edition'
 import { readRankingIndex } from '@/lib/rankings/store'
 import { canonical } from '@/lib/seo/canonical'
@@ -24,6 +25,9 @@ export default async function RankingsArchive() {
   return (
     <SeoPage
       look="scene"
+      calm
+      hero={RANKINGS_HERO}
+      capture={{ kind: 'ranking', slug: 'archive', label: 'professional', save: { q: '', loc: '' } }}
       trail={[{ name: 'Rankings', path: '/rankings' }, { name: 'Archive', path: '/rankings/archive' }]}
       h1="Job market rankings archive"
       lede={<>Every month&apos;s edition of every ranking stays online at its own address. Pick a month to see all of its lists, or open a ranking and use its month-by-month links.</>}
