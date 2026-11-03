@@ -16,7 +16,7 @@ import { getLargestRecentEmployers, getStateSummaries } from '@/lib/warn/layoff-
 import { getNationalLaborData } from '@/lib/market/bls-national'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 
-export const revalidate = 86400
+export const revalidate = 3600
 
 
 const base = pageMetadata('/layoffs')
