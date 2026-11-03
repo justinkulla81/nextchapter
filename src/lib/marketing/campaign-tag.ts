@@ -33,6 +33,10 @@ export const LANDING_PAGES = [
   { path: '/workforce-boards', label: 'Workforce boards' },
   { path: '/outplacement', label: 'Outplacement' },
   { path: '/higher-education', label: 'Higher education' },
+  { path: '/for-colleges/alumni-engagement', label: 'Higher ed: alumni engagement' },
+  { path: '/for-colleges/alumni-outcomes', label: 'Higher ed: alumni outcomes' },
+  { path: '/for-colleges/alumni-giving', label: 'Higher ed: alumni giving' },
+  { path: '/for-colleges/alumni-career-services', label: 'Higher ed: alumni career services' },
   { path: '/for-organizations', label: 'For organizations' },
 ] as const
 

@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-228 clusters, 1382 phrases.
+232 clusters, 1402 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -233,6 +233,10 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/submit-search` | page | send us a search | Hand NextChapter an open search | submit a search to recruiters; confidential search; screened shortlist of candidates; candidate shortlist for recruiters |
 | `/coaches` | page | software for career coaches | Coach wants client software | coaching client workspace; career coach tools; coach client management; pre-session brief; coaching session notes |
 | `/higher-education` | page | alumni career services for colleges | College buys alumni career support | alumni career services; student career services; college career services platform; alumni relations; career services workspace |
+| `/for-colleges/alumni-engagement` | page | alumni engagement platform | College alumni office looks for an engagement platform | alumni engagement software; alumni engagement strategies; engage college alumni; alumni relations platform |
+| `/for-colleges/alumni-outcomes` | page | alumni outcomes data | College wants to know where alumni work | where do our alumni work; alumni employment data; track alumni careers; alumni career outcomes |
+| `/for-colleges/alumni-giving` | page | alumni giving signals | College development office looks for alumni giving signals | alumni fundraising; major gift prospect signals; matching gift prospects; alumni giving rate |
+| `/for-colleges/alumni-career-services` | page | lifelong alumni career services | College wants lifelong career help for alumni | career services for alumni; alumni career coaching; alumni mentoring program; alumni job search help |
 | `/higher-education/:state` | family | {state} college career services | Colleges in one state | {state} colleges alumni support; {state} colleges career services; {state} university alumni career help |
 | `/government-workforce` | page | workforce board software | Workforce agency buys job seeker support | workforce development software; job seeker services; WIOA career services; economic development job seekers; chamber of commerce workforce |
 | `/for-rapid-response` | page | layoff response for workforce boards | Rapid Response team or workforce board looks for layoff response support | rapid response team software; dislocated worker services software; laid-off worker sign-up page |
@@ -1285,6 +1289,26 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Alumni and Student Career Services for Colleges
 - Description: Claim your institution’s page with a work email at your domain. A free workspace gives career services and alumni relations a page, services and basic counts.
+
+### `/for-colleges/alumni-engagement`
+
+- Title: Alumni Engagement Platform for Colleges
+- Description: Give alumni career tools, mentors and job-search circles under your college’s name, and see who is active as counts. Claim your page with a work email.
+
+### `/for-colleges/alumni-outcomes`
+
+- Title: Alumni Outcomes and Career Data for Colleges
+- Description: Alumni share a new job or promotion in a short check-in. You see who is working, between jobs or helped by your college, as counts with small groups held back.
+
+### `/for-colleges/alumni-giving`
+
+- Title: Alumni Giving Signals for College Development
+- Description: Development sees a signal when an alum reports a VP-level role or a new employer, and never asks someone who is out of work. Plus a donor-funded coaching fund.
+
+### `/for-colleges/alumni-career-services`
+
+- Title: Lifelong Career Services for College Alumni
+- Description: Offer alumni the career help students get: your services listed, a caseload showing who needs a conversation, alumni mentors and job-search circles.
 
 ### `/government-workforce`
 

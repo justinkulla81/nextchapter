@@ -24,6 +24,9 @@ const caseload = shot('higher-education-career-caseload', {
   why: 'People who need a conversation are listed at the top, with the next step beside each name, so the hour goes to them.',
 })
 
+/** The three workspace screens, shared with the ad landing pages in for-colleges.ts. */
+export const HIGHER_ED_SHOTS = { admin, alumni, caseload }
+
 export const HIGHER_EDUCATION: PortalPageDef = {
   seo: {
     ...pageSeo('/higher-education'),
