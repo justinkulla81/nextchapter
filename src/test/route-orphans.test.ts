@@ -23,7 +23,7 @@ function orphans(dir = ROOT, url = ''): string[] {
 
 // Not public pages: API endpoints, token links sent in emails, signed-in areas, embeds and per-workspace routes.
 const NOT_PUBLIC = [/^\/api\//, /^\/(support|dashboard|employer|i|recruiters|talent|embed|noexperience)\//, /\/\[[^/]+\]/]
-const TOKEN_LINKS = new Set(['/benefits-network-verify', '/claim', '/claim-reference', '/credentials', '/in', '/in/claim', '/p', '/prepared', '/ref', '/reports/files', '/scorecard', '/share', '/start', '/supporter', '/updates/unsubscribe'])
+const TOKEN_LINKS = new Set(['/benefits-network-verify', '/claim', '/claim-reference', '/credentials', '/in', '/in/claim', '/p', '/prepared', '/ref', '/reports/files', '/scorecard', '/share', '/start', '/supporter', '/updates/unsubscribe', '/layoffs/stories/verify', '/layoffs/stories/withdraw'])
 
 async function redirectSources(): Promise<Set<string>> {
   const config = (await import('../../next.config')).default

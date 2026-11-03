@@ -259,6 +259,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/reported-messages`, label: 'Reported conversations', badge: badgeFor('reportedMessages') },
         { href: `${A}/community-moderation`, label: 'Community moderation', badge: badgeFor('communityModeration') },
         { href: `${A}/employer-statements`, label: 'Employer statements' },
+        { href: `${A}/layoff-stories`, label: 'Layoff stories' },
       ],
     },
     {
