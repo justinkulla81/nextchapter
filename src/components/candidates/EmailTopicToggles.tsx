@@ -5,7 +5,7 @@ import { updateEmailTopics } from '@/app/dashboard/privacy/actions'
 import { EMAIL_TOPICS, type EmailTopicField } from '@/lib/constants/notifications'
 import { cn } from '@/lib/utils'
 
-export function EmailTopicToggles({ optedOut }: { optedOut: Record<EmailTopicField, boolean> }) {
+export function EmailTopicToggles({ optedOut, intro = 'Untick anything you do not want. The setting above sets how many; this sets which.' }: { optedOut: Record<EmailTopicField, boolean>; intro?: string }) {
   const [state, formAction, pending] = useActionState(updateEmailTopics, undefined)
 
   // The redesign: the same checkboxes as a plain list at body size, with one save action.
@@ -13,7 +13,7 @@ export function EmailTopicToggles({ optedOut }: { optedOut: Record<EmailTopicFie
     <form action={formAction} className={cn('space-y-4', pending && 'cursor-progress [&_*]:cursor-progress')}>
       <div>
         <h3 className="text-base font-semibold text-ink">Which emails you get</h3>
-        <p className="text-sm text-muted-foreground">Untick anything you do not want. The setting above sets how many; this sets which.</p>
+        <p className="text-sm text-muted-foreground">{intro}</p>
       </div>
       <ul className="space-y-3">
         {EMAIL_TOPICS.map((topic) => (

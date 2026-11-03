@@ -32,7 +32,7 @@ import { approvedStories, storyNumbersFor } from '@/lib/layoff-stories/store'
 import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } from '@/lib/warn/company-announcements'
 import { getEmployerBrand } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
-import { CompanyInterestFlag } from '@/components/company/CompanyInterestFlag'
+import { AffectedPrompt } from '@/components/layoffs/landing/AffectedPrompt'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { ClaimHint } from '@/components/seo/ClaimHint'
 import { LandingHero } from '@/components/layoffs/landing/LandingHero'
@@ -198,7 +198,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
 
           <YourState label={c.name} />
           <div className="mt-4 space-y-12">
-            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} action={<CompanyInterestFlag company={c.name} slug={slug} page="layoffs" />} />
+            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
             <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} buyoutRule={buyoutRule} />
             <SearchTimeFacts />
             <PeerEmployers company={c.name} near={peers.near} similar={peers.similar} metro={peers.homeState ? stateName(peers.homeState) : null} />
@@ -270,12 +270,12 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           />
 
           <section aria-labelledby="affected" className="mt-12 rounded-xl border border-border bg-white p-6">
-            <h2 id="affected" className="text-xl font-semibold tracking-tight text-navy">What to do if you’re affected</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              A free account turns this page into a plan: your benefits and deadlines, severance and COBRA numbers, and jobs matched to your background.
+            <h2 id="affected" className="text-xl font-semibold tracking-tight text-navy">Turn this into your plan</h2>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              This page is the same for everyone. Your free plan is built on your own situation: the deadlines that apply to you, what severance and COBRA will cost or pay, and jobs matched to your background.
             </p>
-            <TrackedLink href="/onboarding/desire" event="layoff_company_account_cta_clicked" properties={{ company: slug, hasNotices, announced: !!ann }} className="mt-3 inline-block rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white hover:opacity-90">
-              Join free
+            <TrackedLink href="/onboarding/desire" event="layoff_company_account_cta_clicked" properties={{ company: slug, hasNotices, announced: !!ann }} className="mt-3 inline-block rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
+              Build my free plan
             </TrackedLink>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               {hasNotices && isNetworkCompany(c) && (

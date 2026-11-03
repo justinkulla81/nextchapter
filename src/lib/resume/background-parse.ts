@@ -7,6 +7,7 @@ import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fie
 import { runPostUploadAnalysis } from '@/lib/resume/post-upload-analysis'
 import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { flagIfDuplicateAccount } from '@/lib/onboarding/duplicate-check'
 import { readParseState, updateParse, clearParse } from '@/lib/resume/parse-state'
 
 const NO_CONTACT_REASON =
@@ -118,6 +119,10 @@ export async function runResumeParse(profileId: string, attempt: string): Promis
           captureServerEvent(profileId, 'resume_parse_rejected', { reason: 'no_contact_info', durationMs: Date.now() - started })
           return
         }
+        // The email on the résumé may already belong to a registered account (the member confirmed in another browser
+        // and started over). Flag it now, before the admin email or the rest of onboarding, so /onboarding shows
+        // "You already have an account" rather than building a second profile.
+        await flagIfDuplicateAccount(profileId, now.email, 'resume')
       }
       // Done for the member: from here the résumé counts everywhere and the progress screen hands over.
       await prisma.resume.update({ where: { id: rowId }, data: { looksLikeResume: true, notAResumeReason: null } })

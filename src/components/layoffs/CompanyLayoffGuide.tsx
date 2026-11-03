@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { GuideDisclosure } from '@/components/layoffs/GuideDisclosure'
 import { guideDay, type Guide } from '@/lib/warn/layoff-guide'
 import type { FilingFact, GuideProgram } from '@/lib/warn/layoff-guide-programs'
 
@@ -19,16 +20,15 @@ export function CompanyLayoffGuide({ name, slug, guide, states, filing, programs
   const buyout = guide.kind === 'buyout'
   const track = (target: string) => ({ company: slug, target })
   return (
-    <section aria-labelledby="guide" className="mt-12">
-      <h2 id="guide" className="text-2xl font-bold tracking-tight text-navy">
-        {buyout ? `If you were offered the ${name} buyout: what to ask and when` : `If you were affected by the ${name} layoffs: what to ask and when`}
-      </h2>
-      <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-        {buyout
+    <section aria-labelledby="guide">
+      <GuideDisclosure
+        company={slug}
+        heading={buyout ? `If you were offered the ${name} buyout: what to ask and when` : `If you were affected by the ${name} layoffs: what to ask and when`}
+        intro={buyout
           ? 'A buyout is an offer you can answer, not a decision made for you. These are the questions to put in writing before you do.'
           : 'This page can say what was filed and announced. It cannot say who is affected, so confirm your own last day and terms with the employer.'}
-      </p>
-      <nav aria-label="In this guide" className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      >
+      <nav aria-label="In this guide" className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
         {[['#guide-ask', 'Questions to ask'], ['#guide-scripts', 'What to say'], ['#guide-filing', 'File for benefits'], ['#guide-before', 'Before your last day'], ['#guide-agreements', 'Agreements'], ['#guide-programs', 'Programs near you']].map(([href, label]) => (
           <a key={href} href={href} className={LINK}>{label}</a>
         ))}
@@ -181,6 +181,7 @@ export function CompanyLayoffGuide({ name, slug, guide, states, filing, programs
           ))}
         </ul>
       </div>
+      </GuideDisclosure>
     </section>
   )
 }

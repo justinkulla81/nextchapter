@@ -50,6 +50,7 @@ import { CoachClients, CoachBrief, CoachSessionLog } from './marketing-coach'
 import { RecruiterPacket, RecruiterSearch, RecruiterPipeline } from './marketing-recruiter'
 
 import { AdvisoryBoardsNone, AdvisoryBoardsAdvisory } from './advisory-boards-live'
+import { FollowingCompanies, FollowingEvents, FollowingEmails } from './following'
 import { BeFoundQuiet, BeFoundPublic, SeniorMenuCompare } from './be-found-live'
 
 const CoachMatchShortlistLive = () => <CoachMatchLive step="shortlist" />
@@ -190,6 +191,9 @@ export const MOCKUPS: Mockup[] = [
   { path: 'learn/buy-a-business/find', place: 'Learn', title: 'Buy a business: find businesses (sample data)', replaces: 'new: the 12th journey', Component: BuyFindLive },
   { path: 'learn/buy-a-business/financing', place: 'Learn', title: 'Buy a business: pay for it (sample data)', replaces: 'new: the 12th journey', Component: BuyFinancingLive },
   { path: 'learn/buy-a-business/training', place: 'Learn', title: 'Buy a business: learn (sample data)', replaces: 'new: the 12th journey', Component: BuyTrainingLive },
+  { path: 'jobs/following/companies', place: 'Jobs', title: 'What you follow: companies (sample data)', replaces: '/dashboard/company-tracker', Component: FollowingCompanies },
+  { path: 'jobs/following/events', place: 'Jobs', title: 'What you follow: events (sample data)', replaces: 'new; reads ConferenceInterest', Component: FollowingEvents },
+  { path: 'jobs/following/emails', place: 'Jobs', title: 'What you follow: email updates (sample data)', replaces: 'new', Component: FollowingEmails },
   { path: 'learn/learn/skills', place: 'Learn', title: 'Skills and courses', replaces: '/dashboard/learning', Component: LearnSkills },
   { path: 'learn/learn/videos', place: 'Learn', title: 'Videos and webinars', replaces: '/dashboard/webinars', Component: LearnVideos },
   { path: 'account/profile', place: 'Account', title: 'Profile', replaces: '/dashboard/profile, complete-profile', Component: ProfileMock },

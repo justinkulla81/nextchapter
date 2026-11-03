@@ -12,11 +12,14 @@ import { cn } from '@/lib/utils'
 // Where the flag sends a person once the company is saved: the start of registration (same door as a saved job or search).
 export const COMPANY_INTEREST_ACCOUNT_HREF = '/onboarding/desire?from=company_interest'
 
+// The quiet version is a text link, so it never competes with the page's primary action.
+const QUIET_BUTTON = 'h-auto bg-transparent p-0 text-sm font-medium text-brand underline underline-offset-4 shadow-none hover:bg-transparent hover:opacity-80'
+
 /**
  * "I'm interested in <company>" on every company page. One button opens an email field (required); saving stores the
  * company against the email and the one next step is creating the free account, which then follows the company.
  */
-export function CompanyInterestFlag({ company, slug, page }: { company: string; slug: string; page: 'employer' | 'layoffs' | 'network' }) {
+export function CompanyInterestFlag({ company, slug, page, quiet = false }: { company: string; slug: string; page: 'employer' | 'layoffs' | 'network'; quiet?: boolean }) {
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState<CompanyInterestState, FormData>(flagCompanyInterest, undefined)
   const properties = { companyName: company, slug, page }
@@ -34,7 +37,7 @@ export function CompanyInterestFlag({ company, slug, page }: { company: string; 
 
   if (member?.signedIn) {
     return (
-      <div className={cn('rounded-2xl border border-border bg-white p-4 text-navy', memberPending && 'cursor-wait')}>
+      <div className={cn(quiet ? 'text-navy' : 'rounded-2xl border border-border bg-white p-4 text-navy', memberPending && 'cursor-wait')}>
         {member.following ? (
           <p role="status" className="text-sm font-semibold">You follow {company}. It is on your list of followed companies.</p>
         ) : (
@@ -51,9 +54,9 @@ export function CompanyInterestFlag({ company, slug, page }: { company: string; 
                   else setMemberError(r.error)
                 })
               }}
-              className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95"
+              className={quiet ? QUIET_BUTTON : 'h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95'}
             >
-              {memberPending ? 'Saving…' : `I'm interested in ${company}`}
+              {memberPending ? 'Saving…' : quiet ? `Just watching? Follow ${company}` : `I'm interested in ${company}`}
             </Button>
             {memberError && <p role="alert" className="mt-2 text-sm text-destructive">{memberError}</p>}
           </>
@@ -89,9 +92,9 @@ export function CompanyInterestFlag({ company, slug, page }: { company: string; 
           posthog.capture('company_interest_opened', properties)
           setOpen(true)
         }}
-        className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95"
+        className={quiet ? QUIET_BUTTON : 'h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95'}
       >
-        I&apos;m interested in {company}
+        {quiet ? `Just watching? Follow ${company}` : <>I&apos;m interested in {company}</>}
       </Button>
     )
   }
