@@ -70,13 +70,13 @@ export async function layoffFeed(o: LayoffFeedOpts): Promise<FeedDoc> {
     const sName = stateName(n.state)
     const { facts } = noticeContext(n, all)
     const bucket = bucketById.get(n.id) ?? null
-    const lead = `${n.employer}${n.division ? ` (${n.division} division)` : ''} filed a WARN layoff notice${n.place ? ` for ${n.place}, ${sName}` : ` in ${sName}`}${n.workers ? `, naming ${num(n.workers)} workers` : ''}${n.noticeDateKnown ? ` on ${noticeDay(n.noticeDate)}` : ` (layoffs effective ${n.effectiveDate ? noticeDay(n.effectiveDate) : 'date not given'})`}${n.type ? ` (${n.type})` : ''}.`
+    const lead = `${n.employer} filed a WARN layoff notice${n.place ? ` for ${n.place}, ${sName}` : ` in ${sName}`}${n.workers ? `, naming ${num(n.workers)} workers` : ''}${n.noticeDateKnown ? ` on ${noticeDay(n.noticeDate)}` : ` (layoffs effective ${n.effectiveDate ? noticeDay(n.effectiveDate) : 'date not given'})`}${n.type ? ` (${n.type})` : ''}.`
     const help = `If you are affected: ${sName} unemployment benefits ${SITE_URL}/unemployment-benefits/${stateSlug(n.state)}${n.board ? `; local help from ${n.board.name}` : ''}.`
     const record = n.sourceUrl ? `State record: ${n.sourceUrl}` : ''
     const description = [lead, ...facts, help, record].filter(Boolean).join(' ')
     const html = `<p>${xmlEscape(lead)}</p>${facts.length ? `<ul>${facts.map((f) => `<li>${xmlEscape(f)}</li>`).join('')}</ul>` : ''}<p>If you are affected: <a href="${xmlEscape(feedLink(`/unemployment-benefits/${stateSlug(n.state)}`, o.campaign))}">${xmlEscape(sName)} unemployment benefits</a>${n.board ? `; local help from ${n.board.website ? `<a href="${xmlEscape(n.board.website)}">${xmlEscape(n.board.name)}</a>` : xmlEscape(n.board.name)}` : ''}.</p><p>${n.sourceUrl ? `<a href="${xmlEscape(n.sourceUrl)}">State record</a> · ` : ''}<a href="${xmlEscape(feedLink(`/layoffs/company/${n.slug}`, o.campaign))}">All notices from ${xmlEscape(n.employer)}</a></p>`
     return {
-      title: `${n.employer}${n.division ? ` (${n.division})` : ''}: ${n.workers ? `${num(n.workers)} workers, ` : ''}${sName}`,
+      title: `${n.employer}: ${n.workers ? `${num(n.workers)} workers, ` : ''}${sName}`,
       link: feedLink(`/layoffs/company/${n.slug}`, o.campaign),
       guid: `nextchapter-warn-${n.id}`,
       date: n.fetchedAt,
@@ -86,17 +86,17 @@ export async function layoffFeed(o: LayoffFeedOpts): Promise<FeedDoc> {
       image: `${SITE_URL}/layoffs/${stateSlug(n.state)}/opengraph-image`,
     }
   })
-  // The all-states feed also carries the employer announcements and press-reported cuts (Microsoft, TikTok and the like). Each is
-  // published when it is filed (rssPublishedAt); an admin can take one back in CRM > WARN. Filtered feeds (a state,
+  // The all-states feed also carries the employer announcements and press-reported cuts (Microsoft, TikTok and the like) that
+  // an admin has chosen to publish in CRM > WARN (rssPublishedAt). Nothing is added automatically. Filtered feeds (a state,
   // large notices, an industry) are about filings, so they stay WARN-only.
   if (!o.state && !o.minWorkers && !o.bucket) {
     const announcements = await getAnnouncements().catch(() => new Map<string, CompanyAnnouncements>())
     for (const a of announcements.values()) {
       if (!hasRecentAnnouncement(a)) continue
       for (const it of a.items.filter((x) => x.rssPublishedAt && x.date.getTime() >= cutoff)) {
-        const lead = `${a.name}${it.division ? ` (${it.division} division)` : ''}: ${it.summary} (${noticeDay(it.date)}). This is an announcement or press report, not a WARN filing.`
+        const lead = `${a.name}: ${it.summary} (${noticeDay(it.date)}). This is an announcement or press report, not a WARN filing.`
         items.push({
-          title: `${a.name}${it.division ? ` (${it.division})` : ''}: ${it.summary}`,
+          title: `${a.name}: ${it.summary}`,
           link: feedLink(`/layoffs/company/${a.slug}`, o.campaign),
           guid: `nextchapter-announcement-${it.id}`,
           date: it.rssPublishedAt!,

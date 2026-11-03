@@ -48,14 +48,6 @@ export function WarnAddManualForm({ companyNames }: { companyNames: string[] }) 
           ))}
         </datalist>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-          Division (if named)
-          <input
-            name="division"
-            placeholder="e.g. Xbox"
-            className="h-9 w-40 rounded-md border border-input bg-transparent px-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           Speculated jobs affected
           <input
             name="employees"

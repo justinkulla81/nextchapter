@@ -22,7 +22,7 @@ export async function layoffAlertView(noticeId: string): Promise<{ employer: str
   const n = await prisma.warnNotice.findUnique({
     where: { id: noticeId },
     select: {
-      id: true, employer: true, division: true, normalizedEmployer: true, employees: true, source: true, sourceUrl: true, state: true, county: true, address: true, workforceBoardId: true,
+      id: true, employer: true, normalizedEmployer: true, employees: true, source: true, sourceUrl: true, state: true, county: true, address: true, workforceBoardId: true,
       promotedOrgId: true, companyId: true, industry: true, costLowUsd: true, costHighUsd: true, costNote: true, outplacementProvider: true, outplacementNote: true,
     },
   })
@@ -57,7 +57,7 @@ export async function layoffAlertView(noticeId: string): Promise<{ employer: str
   const groups = related?.groups.map((g) => (PARTNER[g.key] ? { ...g, pitch: talkingPoints(picture, PARTNER[g.key]) ?? undefined } : g)) ?? []
   const kind: LayoffKind = n.source === 'WARN_FILING' ? 'warn' : /sec\.gov/i.test(n.sourceUrl ?? '') ? 'sec' : 'news'
   const input: AlertInput = {
-    employer: n.employer, division: n.division, employees: n.employees, percent: null, kind, confirmed: n.source === 'WARN_FILING' || kind === 'sec',
+    employer: n.employer, employees: n.employees, percent: null, kind, confirmed: n.source === 'WARN_FILING' || kind === 'sec',
     inCrm: !!org, people: people.length, warm, contactsFound: 0,
     costs: n,
     sources: await loadAlertSources(n.id, n.sourceUrl, kind === 'warn' ? 'WARN filing' : kind === 'sec' ? 'SEC 8-K filing' : 'Notice'),

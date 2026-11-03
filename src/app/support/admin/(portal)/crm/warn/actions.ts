@@ -9,9 +9,7 @@ import { promoteWarnNoticeById, syncAllWarnStates } from '@/lib/warn/sync'
 import { matchOrCreateCompanyForEmployer } from '@/lib/warn/company-match'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { syncChroContactToCrm } from '@/lib/crm/chro-sync'
-import { readDivision } from '@/lib/warn/division'
 import { pingLayoffFeeds } from '@/lib/syndication/indexnow-layoffs'
-import { publishLayoffsNow } from '@/lib/syndication/layoff-publish-now'
 
 const BASE = '/support/admin/crm/warn'
 
@@ -58,7 +56,6 @@ export async function addManualLayoffNotice(formData: FormData): Promise<{ messa
   const companyName = String(formData.get('companyName') ?? '').trim()
   const employeesRaw = String(formData.get('employees') ?? '').trim()
   const articleUrl = String(formData.get('articleUrl') ?? '').trim()
-  const division = String(formData.get('division') ?? '').trim().slice(0, 60) || readDivision(companyName)
   const noticeDateRaw = String(formData.get('noticeDate') ?? '').trim()
 
   if (!companyName) return { error: 'Company name is required.' }
@@ -73,8 +70,6 @@ export async function addManualLayoffNotice(formData: FormData): Promise<{ messa
     data: {
       employer: companyName,
       normalizedEmployer: normalizeOrgName(companyName),
-      division,
-      rssPublishedAt: new Date(),
       source: 'MANUAL_ANNOUNCEMENT',
       noticeDate,
       employees: Number.isFinite(employees) ? employees : null,
@@ -87,7 +82,6 @@ export async function addManualLayoffNotice(formData: FormData): Promise<{ messa
 
   captureServerEvent(admin.email ?? 'admin', 'warn_manual_notice_added', { companyName, employees, matchStatus: match.status })
   revalidatePath(BASE)
-  await publishLayoffsNow()
   return {
     message:
       match.status === 'AMBIGUOUS'
@@ -196,8 +190,8 @@ export async function setLayoffCosts(formData: FormData): Promise<void> {
 }
 
 /**
- * Publishes (or takes back) one layoff announcement in the all-states layoff RSS feed. New announcements are published when
- * they are filed; this takes one back (or puts it back). Only MANUAL_ANNOUNCEMENT rows can be published; WARN filings are in the feed already.
+ * Publishes (or takes back) one layoff announcement in the all-states layoff RSS feed. Announcements are never added
+ * automatically: the admin chooses. Only MANUAL_ANNOUNCEMENT rows can be published; WARN filings are in the feed already.
  */
 export async function setAnnouncementRss(formData: FormData): Promise<void> {
   const admin = await requireAdmin()
@@ -213,5 +207,4 @@ export async function setAnnouncementRss(formData: FormData): Promise<void> {
   revalidatePath(BASE)
   revalidatePath('/feeds/layoffs')
   if (publish) await pingLayoffFeeds()
-  else await publishLayoffsNow()
 }

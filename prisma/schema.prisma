@@ -12190,8 +12190,6 @@ model WarnNotice {
   effectiveDate DateTime?
   employees     Int?
   layoffType    String?
-  /// The division of the employer the layoff is in, when the filing or the coverage names one ("Xbox", "Defense"). Read by src/lib/warn/division.ts.
-  division      String?
   county        String?
   address       String?
   /// NAICS sector text as published — this is what makes it filterable to
