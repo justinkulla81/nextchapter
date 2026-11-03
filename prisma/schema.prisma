@@ -18040,3 +18040,14 @@ model SavedJobClosureNotice {
   @@unique([candidateId, jobId])
   @@index([createdAt])
 }
+
+/// A search firm's brand color, read from its own website (src/lib/firms/brand-color.ts). Keyed by the firm's organization
+/// id, no relation. color is null when the site gave none: the firm's page keeps NextChapter's navy.
+/// prisma/manual/firm-brand-color.sql
+model FirmBrandColor {
+  orgId     String   @id
+  color     String?
+  /// theme-color | manifest | icon | none
+  source    String
+  checkedAt DateTime @default(now())
+}
