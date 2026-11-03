@@ -10,6 +10,7 @@ import { stateBrandFromSlug, statePhrase } from '@/lib/branding/state-colors'
 import { stateName } from '@/lib/seo/states'
 import Image from 'next/image'
 import { PageCaptureTop, PageCaptureOwner } from '@/components/capture/PageCapture'
+import { PullCtaTop, pullContext, withPullCtas } from '@/components/capture/PullCta'
 import type { PageCaptureConfig } from '@/lib/capture/page-capture'
 
 export const H2 = 'text-2xl font-bold tracking-tight text-navy'
@@ -34,6 +35,8 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   calm?: boolean
 }) {
   const st = stateBrandFromSlug(stateSlug)
+  const pull = pullContext(trail)
+  const { body, bottom } = withPullCtas(children, pull, { hasCapture: !!capture, isOwnBand: () => false })
   const page = (
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd(trail)} />
@@ -70,9 +73,10 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
               properties={{ kind: 'STATE', state: st.code }}
             />
           )}
-          {capture && <PageCaptureTop capture={capture} />}
-          {children}
+          {capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} />}
+          {body}
           {capture && <PageCaptureOwner capture={capture} />}
+          {bottom}
         </div>
       </main>
       <PublicSiteFooter page="seo" />

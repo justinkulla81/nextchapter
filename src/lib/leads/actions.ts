@@ -52,7 +52,7 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
   const followup = FOLLOWUPS.has(followupRaw) ? followupRaw : ''
   // Which page the form was on. Only the homepage, a /network page, an employer's layoff guide or the save step on /jobs may be named; anything else is 'home'.
   const sourceRaw = text(formData, 'source', 100)
-  const source = /^(network:[a-z0-9:-]{1,90}|layoffs:guide:[a-z0-9-]{1,80}|employer:[a-z0-9-]{1,80}|jobs:(job|search)|page:(state|county|city|industry|title|company|college|ranking):[a-z0-9-]{1,70})$/.test(sourceRaw) ? sourceRaw : 'home'
+  const source = /^(network:[a-z0-9:-]{1,90}|layoffs:guide:[a-z0-9-]{1,80}|employer:[a-z0-9-]{1,80}|jobs:(job|search)|page:(state|county|city|industry|title|company|college|ranking|topic):[a-z0-9-]{1,70})$/.test(sourceRaw) ? sourceRaw : 'home'
   const variantRaw = text(formData, 'variant', 20)
   const answers = {
     pageVariant: PAGE_VARIANTS.has(variantRaw) ? variantRaw : '',

@@ -10,7 +10,9 @@ import { SPEAKING_LABEL, type Speaking } from '@/lib/events/types'
 import { conferencePath, functionPath, industryPath } from '@/lib/seo/topics'
 import type { Conf, TopicJob } from '@/lib/seo/topic-data'
 import { PageCaptureTop, PageCaptureOwner } from '@/components/capture/PageCapture'
+import { PullCtaTop, pullContext, withPullCtas } from '@/components/capture/PullCta'
 import type { PageCaptureConfig } from '@/lib/capture/page-capture'
+import { FACT_LINKS, type Fact } from '@/lib/seo/topic-quality'
 
 export const LINK = 'text-brand underline underline-offset-4'
 
@@ -41,6 +43,8 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture, her
   /** A picture for the header (public/images/topics). Without one the header is plain text. */
   hero?: string
 }) {
+  const pull = pullContext(trail)
+  const { body, bottom } = withPullCtas(children, pull, { hasCapture: !!capture, isOwnBand: (el) => el.type === JoinBand })
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd(trail)} />
@@ -68,9 +72,10 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture, her
               </div>
             )}
           </div>
-          {capture && <PageCaptureTop capture={capture} />}
-          {children}
+          {capture ? <PageCaptureTop capture={capture} /> : <PullCtaTop {...pull} />}
+          {body}
           {capture && <PageCaptureOwner capture={capture} />}
+          {bottom}
         </div>
       </main>
       <PublicSiteFooter page="seo" />
@@ -169,7 +174,7 @@ export const industryChip = (name: string, count?: number) => ({ href: industryP
 export const functionChip = (name: string, count?: number) => ({ href: functionPath(name), label: name, detail: count != null ? count.toLocaleString() : undefined })
 
 /** Sourced facts: every number says where it comes from and for what period. */
-export function FactGrid({ facts }: { facts: { key: string; label: string; value: string; source: string; period?: string }[] }) {
+export function FactGrid({ facts }: { facts: Fact[] }) {
   if (facts.length === 0) return null
   return (
     <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -178,6 +183,9 @@ export function FactGrid({ facts }: { facts: { key: string; label: string; value
           <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{f.label}</dt>
           <dd className="mt-1 text-base font-semibold text-navy">{f.value}</dd>
           <p className="mt-1 text-xs text-muted-foreground">Source: {f.source}{f.period ? `, ${f.period}` : ''}.</p>
+          {(f.href ?? FACT_LINKS[f.key]) && (
+            <TrackedLink href={(f.href ?? FACT_LINKS[f.key])!} event="stat_link_clicked" properties={{ fact: f.key }} className="mt-2 inline-block text-xs font-medium text-brand underline underline-offset-4">See the detail →</TrackedLink>
+          )}
         </div>
       ))}
     </dl>
