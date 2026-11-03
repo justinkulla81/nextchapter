@@ -96,7 +96,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/resources/gatekeeper` | page | getting past ATS screens and recruiters | Get past recruiters and resume screening | applicant tracking system; ATS resume; resume screening; how recruiters screen resumes; get an interview; getting past the gatekeeper |
 | `/topics/resume-tips` | page | resume tips for experienced professionals | Write or fix a resume | resume help; resume after layoff; executive resume; resume writing; resume summary; how to write a resume |
 | `/dossier` | page | executive dossier | Proof of work beyond a resume | professional portfolio; proof of work; verified references; career portfolio; resume alternative; candidate evidence |
-| `/membership` | page | membership between jobs | Keep a profile current between jobs | keep your dossier current; alumni membership; career maintenance |
+| `/membership` | page | alumni plan between jobs | Keep a profile current between jobs | keep your dossier current; alumni plan; career maintenance |
 | `/resources/interview-prep` | page | interview prep | Prepare for interviews | how to prepare for an interview; behavioral interview; phone screen; final round interview; executive interview |
 | `/resources/post-interview` | page | follow up after an interview | What to do after an interview | thank you email after interview; interview thank you note; waiting to hear back; second interview follow up |
 | `/resources/offer-letter` | page | how to negotiate a job offer | Read and negotiate an offer | salary negotiation; offer letter; total compensation; negotiation script; job offer red flags; counteroffer |
@@ -638,8 +638,8 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/membership`
 
-- Title: Membership: Keep Your Dossier Current Between Jobs
-- Description: Your Dossier stays alive after you land. Membership keeps your evidence current so you are ready the next time you search.
+- Title: Alumni plan: Keep Your Dossier Current Between Jobs
+- Description: Your Dossier stays alive after you land. The Alumni plan keeps your evidence current so you are ready the next time you search.
 
 ### `/resources/interview-prep`
 
