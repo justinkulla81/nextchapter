@@ -1,4 +1,5 @@
 import { CompanyOutlookSection } from '@/components/seo/CompanyOutlookSection'
+import { YourState } from '@/components/capture/YourState'
 import { hubsFor } from '@/lib/places/hubs'
 import { testedTitle } from '@/lib/seo/title-test-state'
 import { employerTitleB } from '@/lib/seo/title-tests'
@@ -165,6 +166,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
       jsonLd={ld}
       lede={<>{hq && <span className="block text-sm">{hq}</span>}{(industryBucket || topFunction) && <span className="block text-sm">Explore: {industryBucket && <a href={industryPath(industryBucket)} className="underline underline-offset-2">{industryBucket}</a>}{industryBucket && topFunction && ' · '}{topFunction && <a href={functionPath(topFunction.name)} className="underline underline-offset-2">{topFunction.name} jobs</a>}</span>}{description(e)}<ClaimHint who={`Work at ${e.name}?`} href={e.claimSlug ? `/prepared/${e.claimSlug}` : '/for-organizations'} event="seo_claim_clicked" properties={{ page: 'employer', audience: 'employer', companyId: e.id, slug: e.slug, openRoles: p?.openNow ?? 0 }} /></>}
     >
+      <YourState label={e.name} />
       <OrgCandidateBand
         orgName={e.name}
         branded={!!brand}

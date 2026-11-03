@@ -1,4 +1,5 @@
 import { placeCountySeo } from '@/lib/seo/templates'
+import { YourState } from '@/components/capture/YourState'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -80,6 +81,7 @@ export default async function CountyPlacePage({ params }: { params: Promise<{ st
       </>}
       jsonLd={[placeJsonLd({ type: 'AdministrativeArea', name: `${c.name}, ${name}`, path, population: c.population, containedIn: { name, path: placeUrl.state(state), type: 'State' } })]}
     >
+      <YourState label="jobs" current={code} />
       <EconomySection id="economy" title={`${c.name} economy`} labor={c} scope={c.name} />
       <PlaceRanks placeKey={c.fips} scope={c.name} />
       <PlaceSignals scope={c.name} fips={[c.fips]} boardIds={d.boards.map((b) => b.id)} workforceHref="#workforce" />

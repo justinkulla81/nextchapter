@@ -1,4 +1,5 @@
 import { placeCitySeo } from '@/lib/seo/templates'
+import { YourState } from '@/components/capture/YourState'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -77,6 +78,7 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
       </>}
       jsonLd={[placeJsonLd({ type: 'City', name: `${p.name}, ${name}`, path, population: p.population, lat: p.lat, lon: p.lon, containedIn: { name, path: placeUrl.state(state), type: 'State' } })]}
     >
+      <YourState label="jobs" current={code} />
       <JobList id="jobs" title={`Jobs in ${p.name}`} jobs={d.jobs}
         searchHref={`/jobs?loc=${encodeURIComponent(`${p.name}, ${code}`)}`} searchLabel={`Search all jobs in ${p.name}`}
         event="place_jobs_search_clicked" properties={{ level: 'city', state: code, city: p.slug }} />
