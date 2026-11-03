@@ -19,10 +19,18 @@ interface Rule {
   title?: RegExp
   /** Clearance and similar requirement tags. */
   tags?: RegExp
+  /** The crawler's sector read ('nonprofit', 'academia', 'government'). */
+  sectors?: string[]
 }
+
+export type SegmentGroup = 'Built in America' | 'Technology and communications' | 'Energy and resources' | 'Transportation and travel' | 'Health and life sciences' | 'Finance and property' | 'Consumer' | 'Media and sports' | 'Education and nonprofit'
+
+/** The order the groups appear in on the hub. */
+export const SEGMENT_GROUPS: SegmentGroup[] = ['Built in America', 'Technology and communications', 'Energy and resources', 'Transportation and travel', 'Health and life sciences', 'Finance and property', 'Consumer', 'Media and sports', 'Education and nonprofit']
 
 export interface SegmentDef {
   slug: string
+  group: SegmentGroup
   name: string
   /** How a heading reads: "Open {label} jobs". */
   label: string
@@ -34,7 +42,10 @@ export interface SegmentDef {
   query: string
 }
 
-const names = (list: string[]) => new Set(list.map((n) => normalizeOrgName(n)))
+/** The key one employer is counted under: SEC-style names carry a state ending ("Rivian Automotive, Inc. / DE") that is not part of the name. */
+export const companyKey = (name: string) => normalizeOrgName(name.replace(/\s*\/\s*[A-Za-z]{2,3}\s*$/, ''))
+
+const names = (list: string[]) => new Set(list.map((n) => companyKey(n)))
 
 // Employers post under longer forms of the same name ("Marriott International", "Hilton Worldwide"). These endings, and only
 // these, are dropped before a name is compared; any other ending ("Targeted Genomics") is a different employer.
@@ -51,6 +62,7 @@ export const MIN_SEGMENT_JOBS = 30
 export const SEGMENTS: SegmentDef[] = [
   {
     slug: 'data-centers',
+    group: 'Technology and communications',
     name: 'Data centers',
     label: 'data center',
     blurb: 'The operators, builders and power teams behind the buildings that run the internet and AI.',
@@ -64,6 +76,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'defense',
+    group: 'Built in America',
     name: 'Defense and aerospace',
     label: 'defense and aerospace',
     blurb: 'Prime contractors, new defense technology companies and the cleared roles that support them.',
@@ -76,6 +89,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'healthcare',
+    group: 'Health and life sciences',
     name: 'Healthcare',
     label: 'healthcare',
     blurb: 'Hospital systems, health plans and the leadership, clinical and administrative professionals inside them.',
@@ -84,6 +98,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'financial-services',
+    group: 'Finance and property',
     name: 'Financial services',
     label: 'financial services',
     blurb: 'Banks, lenders, insurers, payments, wealth and asset managers.',
@@ -92,6 +107,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'real-estate',
+    group: 'Finance and property',
     name: 'Real estate',
     label: 'real estate',
     blurb: 'Brokerages, developers, property managers and the investors behind them.',
@@ -104,6 +120,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'construction',
+    group: 'Built in America',
     name: 'Construction',
     label: 'construction',
     blurb: 'Contractors, homebuilders and the project, estimating and field leadership that deliver buildings and infrastructure.',
@@ -117,6 +134,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'retail',
+    group: 'Consumer',
     name: 'Retail',
     label: 'retail',
     blurb: 'Store chains, marketplaces and direct-to-consumer brands: merchandising, operations, finance and corporate roles.',
@@ -128,6 +146,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'consumer-packaged-goods',
+    group: 'Consumer',
     name: 'Consumer packaged goods',
     label: 'consumer packaged goods',
     blurb: 'Food, beverage, beauty and household brands: brand, supply chain, sales and finance careers.',
@@ -139,6 +158,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'restaurants',
+    group: 'Consumer',
     name: 'Restaurants',
     label: 'restaurant',
     blurb: 'Restaurant companies and the operations, culinary, franchise and corporate teams that run them.',
@@ -151,6 +171,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'tourism-hospitality',
+    group: 'Transportation and travel',
     name: 'Tourism and hospitality',
     label: 'tourism and hospitality',
     blurb: 'Hotels, resorts, cruise lines, theme parks and travel companies: operations, revenue, sales and guest experience.',
@@ -164,6 +185,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'casino-gaming',
+    group: 'Consumer',
     name: 'Casino and gaming',
     label: 'casino and gaming',
     blurb: 'Casino operators, sportsbooks and gaming suppliers: operations, compliance, analytics and executive roles. Video game studios are not included.',
@@ -177,6 +199,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'sports',
+    group: 'Media and sports',
     name: 'Sports',
     label: 'sports',
     blurb: 'Leagues, teams, venues and sports media and betting: sponsorship, operations, analytics and front-office roles.',
@@ -190,6 +213,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'tv',
+    group: 'Media and sports',
     name: 'TV and streaming',
     label: 'TV and streaming',
     blurb: 'Broadcasters, cable networks and streaming services: programming, advertising sales, production, technology and finance.',
@@ -203,6 +227,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'movies',
+    group: 'Media and sports',
     name: 'Movies and film',
     label: 'film and movie',
     blurb: 'Studios, producers, visual effects houses and theater chains: production, finance, distribution, marketing and technology.',
@@ -216,6 +241,7 @@ export const SEGMENTS: SegmentDef[] = [
   },
   {
     slug: 'music',
+    group: 'Media and sports',
     name: 'Music',
     label: 'music',
     blurb: 'Labels, publishers, streaming, live music and instrument makers: licensing, A&R, marketing, royalties and technology.',
@@ -226,6 +252,235 @@ export const SEGMENTS: SegmentDef[] = [
       { title: /\b(music (licensing|supervisor|publishing|marketing|business|operations)|a&r|royalt(y|ies) (analyst|manager|accountant)|artist (relations|development))\b/i },
     ],
   },
+  {
+    slug: 'us-manufacturing',
+    group: 'Built in America',
+    name: 'US manufacturing',
+    label: 'manufacturing',
+    blurb: 'Plant, operations, engineering, quality and supply chain leadership at American manufacturers, from heavy industry to consumer goods.',
+    query: 'manufacturing',
+    rules: [
+      { codes: ['industrial'] },
+      { title: /\b(plant (manager|director|controller)|manufacturing (engineer|engineering|manager|director|supervisor|operations|leader)|production (manager|supervisor|planner)|industrial engineer|continuous improvement (manager|engineer)|lean (manufacturing|six sigma)|process engineer|quality (engineer|manager|assurance manager)|operations manager.*(plant|manufacturing))\b/i },
+    ],
+    exclude: { title: /\b(software|sales|recruiter|accountant)\b/i, company: /\b(construct\w*|contracting|contractors?|infrastructure|ies holdings|mastec|emcor|quanta)\b/i },
+  },
+  {
+    slug: 'automotive-ev',
+    group: 'Built in America',
+    name: 'Automotive and EV',
+    label: 'automotive and EV',
+    blurb: 'Vehicle makers, suppliers, battery and charging companies, and the engineers and operators building the next generation of vehicles.',
+    query: 'automotive',
+    rules: [
+      { employers: ['Ford Motor', 'General Motors', 'GM', 'Stellantis', 'Tesla', 'Rivian', 'Lucid Motors', 'Toyota Motor North America', 'Toyota', 'Honda', 'American Honda Motor', 'Nissan North America', 'Hyundai Motor America', 'Kia America', 'BMW', 'BMW Manufacturing', 'Mercedes-Benz', 'Volkswagen Group of America', 'Volvo Cars', 'Paccar', 'Cummins', 'Lear', 'Magna', 'BorgWarner', 'Aptiv', 'Dana', 'Visteon', 'Goodyear', 'Bridgestone Americas', 'Michelin', 'American Axle', 'Gentex', 'Adient', 'Autoliv', 'Continental Automotive', 'Bosch', 'Denso', 'ZF', 'Harley-Davidson', 'Polaris', 'Allison Transmission', 'Navistar', 'Daimler Truck North America', 'Oshkosh', 'ChargePoint', 'Blink Charging', 'EVgo', 'QuantumScape', 'Solid Power', 'Panasonic Energy', 'LG Energy Solution', 'SK On', 'Ultium Cells', 'Samsung SDI', 'Enovix', 'Nikola', 'Waymo', 'Aurora Innovation', 'Zoox', 'Mobileye', 'Luminar', 'Applied Intuition', 'Mazda', 'Subaru of America', 'Mitsubishi Motors', 'Genuine Parts', 'Borg Warner'] },
+      { company: /\b(automotive|motors?|motor company|vehicles?|auto parts|battery|batteries|ev charging)\b/i },
+      { title: /\b(automotive|powertrain|vehicle (engineer|integration|software|dynamics)|battery (engineer|cell|pack|systems|manufacturing)|ev (charging|infrastructure)|adas|autonomous vehicle)\b/i },
+    ],
+    exclude: { company: /\b(motor ?sports|autozone|insurance)\b/i },
+  },
+  {
+    slug: 'ai',
+    group: 'Technology and communications',
+    name: 'AI',
+    label: 'AI',
+    blurb: 'Companies building AI and the machine learning, research, product and applied roles inside them.',
+    query: 'machine learning',
+    rules: [
+      { employers: ['OpenAI', 'Anthropic', 'Scale AI', 'Databricks', 'Cohere', 'Hugging Face', 'Perplexity', 'xAI', 'Mistral AI', 'Character.AI', 'C3.ai', 'DataRobot', 'SambaNova', 'Cerebras', 'Groq', 'Glean', 'Harvey', 'Runway', 'Midjourney', 'Stability AI', 'Together AI', 'Anyscale', 'Weights & Biases', 'Pinecone', 'Writer', 'Anysphere', 'Cognition', 'Sierra', 'Decagon', 'Figure AI', 'Applied Intuition', 'Adept AI', 'Inflection AI', 'Replit', 'ElevenLabs', 'Snorkel AI', 'Hippocratic AI', 'Abridge', 'Tempus AI', 'Palantir'] },
+      { title: /\b(machine learning|ml (engineer|scientist|researcher)|mlops|ai (engineer|researcher|scientist|product|solutions|safety|research|infrastructure)|applied (scientist|ai)|research scientist|data scientist|deep learning|computer vision|natural language|nlp|llm|generative ai|prompt engineer|ai\/ml)\b/i },
+    ],
+  },
+  {
+    slug: 'semiconductors',
+    group: 'Built in America',
+    name: 'Semiconductors',
+    label: 'semiconductor',
+    blurb: 'Chip makers, equipment suppliers and designers: the fab, process, design and supply chain roles behind American chip manufacturing.',
+    query: 'semiconductor',
+    rules: [
+      { employers: ['Intel', 'Micron Technology', 'GlobalFoundries', 'TSMC Arizona', 'Texas Instruments', 'Analog Devices', 'Microchip Technology', 'onsemi', 'Wolfspeed', 'SkyWater Technology', 'Applied Materials', 'Lam Research', 'KLA', 'Amkor Technology', 'Qualcomm', 'Advanced Micro Devices', 'AMD', 'NVIDIA', 'Broadcom', 'Marvell Technology', 'Samsung Austin Semiconductor', 'Entegris', 'MKS Instruments', 'Coherent', 'ASML', 'Tokyo Electron', 'Teradyne', 'Cirrus Logic', 'Skyworks Solutions', 'Qorvo', 'Diodes', 'Vishay', 'Monolithic Power Systems', 'Lattice Semiconductor', 'Synopsys', 'Cadence Design Systems', 'Rambus', 'SiTime', 'Allegro MicroSystems', 'Navitas Semiconductor', 'Ampere Computing', 'Cerebras', 'Applied Materials', 'Axcelis', 'Onto Innovation', 'FormFactor', 'Photronics', 'Ultra Clean Holdings', 'Ichor'] },
+      { company: /\b(semiconductors?|microelectronics|photonics|wafers?)\b/i },
+      { title: /\b(semiconductor|wafer|fab (engineer|technician|manager|operations)|lithography|plasma etch|chip (design|manufacturing)|asic|vlsi|rtl design|physical design|process integration)\b/i },
+    ],
+  },
+  {
+    slug: 'shipbuilding',
+    group: 'Built in America',
+    name: 'Shipbuilding and maritime',
+    label: 'shipbuilding and maritime',
+    blurb: 'Shipyards, naval suppliers and maritime operators: naval architecture, marine engineering, program management and production leadership.',
+    query: 'shipbuilding',
+    rules: [
+      { employers: ['Huntington Ingalls Industries', 'Newport News Shipbuilding', 'Ingalls Shipbuilding', 'General Dynamics Electric Boat', 'Electric Boat', 'Bath Iron Works', 'NASSCO', 'Austal USA', 'Fincantieri Marinette Marine', 'Philly Shipyard', 'Bollinger Shipyards', 'Eastern Shipbuilding Group', 'Vigor', 'Gulf Island Fabrication', 'BAE Systems Ship Repair', 'Conrad Industries', 'Edison Chouest Offshore', 'Crowley', 'Matson', 'Maersk Line Limited', 'Saronic', 'Seacor', 'Kirby Corporation', 'Foss Maritime', 'Great Lakes Dredge & Dock'] },
+      { company: /\b(shipbuild\w*|shipyards?|maritime|naval)\b/i },
+      { title: /\b(naval architect|marine engineer|shipfitter|shipyard|shipbuilding|marine surveyor|ship (design|repair)|submarine)\b/i },
+    ],
+  },
+  {
+    slug: 'steel-aluminum',
+    group: 'Built in America',
+    name: 'Steel, aluminum and metals',
+    label: 'steel, aluminum and metals',
+    blurb: 'Steelmakers, aluminum producers and metals processors: plant, metallurgy, engineering, operations and commercial roles.',
+    query: 'steel',
+    rules: [
+      { employers: ['Nucor', 'Cleveland-Cliffs', 'United States Steel', 'U.S. Steel', 'Steel Dynamics', 'Commercial Metals', 'Alcoa', 'Century Aluminum', 'Novelis', 'Arconic', 'Kaiser Aluminum', 'Constellium', 'ATI', 'Carpenter Technology', 'Reliance Steel & Aluminum', 'Reliance', 'Olympic Steel', 'Worthington Steel', 'Worthington Enterprises', 'Ryerson', 'Gerdau', 'Metallus', 'TimkenSteel', 'Haynes International', 'Materion', 'Mueller Industries', 'Insteel Industries', 'Zekelman Industries', 'Atkore', 'Allegheny Technologies', 'Howmet Aerospace', 'Hydro', 'Steel Technologies', 'Berlin Metals'] },
+      { company: /\b(steel|aluminum|aluminium|alloys?|foundry|metals)\b/i },
+      { title: /\b(metallurg\w*|foundry|rolling mill|smelter|steel ?(plant|mill|making)|aluminum (smelter|rolling))\b/i },
+    ],
+    exclude: { company: /\b(precious metals|metals trading|bullion)\b/i },
+  },
+  {
+    slug: 'transportation-logistics',
+    group: 'Transportation and travel',
+    name: 'Transportation and logistics',
+    label: 'transportation and logistics',
+    blurb: 'Freight, parcel, rail, trucking, warehousing and supply chain companies: operations, planning, network and commercial leadership.',
+    query: 'logistics',
+    rules: [
+      { codes: ['logistics'] },
+      { employers: ['UPS', 'FedEx', 'XPO', 'J.B. Hunt', 'Knight-Swift', 'Schneider National', 'Old Dominion Freight Line', 'Union Pacific', 'CSX', 'Norfolk Southern', 'BNSF Railway', 'Amtrak', 'Ryder System', 'C.H. Robinson', 'Expeditors', 'GXO Logistics', 'Uber Freight', 'Flexport', 'Werner Enterprises', 'Landstar', 'Saia', 'ArcBest', 'Hub Group', 'Forward Air', 'RXO', 'DHL Supply Chain', 'DHL', 'Penske Logistics', 'Estes Express', 'TFI International', 'Matson', 'Kirby Corporation', 'Port of Los Angeles', 'Amazon Logistics'] },
+    ],
+  },
+  {
+    slug: 'airlines-aviation',
+    group: 'Transportation and travel',
+    name: 'Airlines and aviation',
+    label: 'airline and aviation',
+    blurb: 'Airlines, airports, business aviation and the engineering, maintenance, operations and revenue teams that keep aircraft flying.',
+    query: 'aviation',
+    rules: [
+      { employers: ['Delta Air Lines', 'United Airlines', 'American Airlines', 'Southwest Airlines', 'JetBlue', 'Alaska Air Group', 'Alaska Airlines', 'Spirit Airlines', 'Frontier Airlines', 'Hawaiian Airlines', 'SkyWest', 'Allegiant', 'Atlas Air', 'Joby Aviation', 'Archer Aviation', 'Wheels Up', 'NetJets', 'FlightSafety International', 'Textron Aviation', 'Gulfstream Aerospace', 'Cirrus Aircraft', 'Embraer', 'Honda Aircraft', 'Signature Aviation', 'Republic Airways', 'Mesa Air Group', 'Endeavor Air', 'PSA Airlines', 'Piedmont Airlines', 'Air Wisconsin'] },
+      { company: /\b(airlines?|airways|aviation|airports?)\b/i },
+      { title: /\b(pilot|flight (operations|dispatch|attendant)|aircraft (maintenance|mechanic)|airport (operations|manager|director)|air traffic|aviation (safety|manager))\b/i },
+    ],
+    exclude: { company: /\b(insurance|staffing)\b/i },
+  },
+  {
+    slug: 'oil-and-gas',
+    group: 'Energy and resources',
+    name: 'Oil and gas',
+    label: 'oil and gas',
+    blurb: 'Producers, refiners, midstream operators and oilfield services: engineering, geoscience, operations, trading and commercial roles.',
+    query: 'oil and gas',
+    rules: [
+      { employers: ['ExxonMobil', 'Exxon Mobil', 'Chevron', 'ConocoPhillips', 'Occidental Petroleum', 'Occidental', 'EOG Resources', 'Pioneer Natural Resources', 'Devon Energy', 'Marathon Petroleum', 'Valero Energy', 'Phillips 66', 'Halliburton', 'SLB', 'Schlumberger', 'Baker Hughes', 'Hess', 'Diamondback Energy', 'Coterra Energy', 'Kinder Morgan', 'Williams Companies', 'Enterprise Products Partners', 'Energy Transfer', 'Cheniere Energy', 'Targa Resources', 'ONEOK', 'NOV', 'Weatherford International', 'Expand Energy', 'Chesapeake Energy', 'APA Corporation', 'Murphy Oil', 'Ovintiv', 'Continental Resources', 'Antero Resources', 'EQT', 'Range Resources', 'Patterson-UTI', 'Helmerich & Payne', 'Transocean', 'Cactus', 'HF Sinclair', 'PBF Energy', 'Delek US', 'Plains All American', 'Western Midstream', 'DCP Midstream', 'Venture Global', 'NextDecade', 'Liberty Energy', 'ChampionX', 'TechnipFMC', 'Noble Corporation', 'Nabors Industries'] },
+      { codes: ['energy'], company: /\b(oil|gas|petroleum|midstream|pipeline|drilling|lng|refining)\b/i },
+      { title: /\b(petroleum|reservoir|drilling|wellsite|geoscientist|refinery|pipeline (engineer|integrity)|upstream|midstream|oil and gas)\b/i },
+    ],
+  },
+  {
+    slug: 'utilities',
+    group: 'Energy and resources',
+    name: 'Utilities and power',
+    label: 'utility and power',
+    blurb: 'Electric, gas and water utilities and power producers: grid, generation, engineering, regulatory and customer operations.',
+    query: 'utility',
+    rules: [
+      { employers: ['NextEra Energy', 'Florida Power & Light', 'Duke Energy', 'Southern Company', 'Georgia Power', 'Dominion Energy', 'American Electric Power', 'Exelon', 'Xcel Energy', 'Sempra', 'San Diego Gas & Electric', 'Edison International', 'Southern California Edison', 'PG&E', 'Pacific Gas and Electric', 'Entergy', 'FirstEnergy', 'PSEG', 'Public Service Enterprise Group', 'WEC Energy Group', 'Consolidated Edison', 'Con Edison', 'DTE Energy', 'Eversource', 'Ameren', 'CMS Energy', 'PPL', 'CenterPoint Energy', 'Evergy', 'AES', 'Avangrid', 'National Grid', 'Pinnacle West', 'Arizona Public Service', 'Portland General Electric', 'Puget Sound Energy', 'NRG Energy', 'Vistra', 'Constellation Energy', 'Tennessee Valley Authority', 'Oncor', 'ERCOT', 'PJM Interconnection', 'MISO', 'American Water', 'Essential Utilities', 'Atmos Energy', 'NiSource', 'Alliant Energy', 'OGE Energy', 'IDACORP', 'Black Hills', 'NorthWestern Energy', 'Avista', 'Southwest Gas', 'Spire', 'ONE Gas'] },
+      { codes: ['energy'], company: /\b(electric|power (company|co|authority|cooperative)|utilit(y|ies)|water (company|works|authority)|gas (company|utility)|energy cooperative)\b/i },
+      { title: /\b(substation|transmission (planner|engineer)|distribution (engineer|operations)|lineworker|power systems?|protection engineer|power grid|grid (operations|modernization|planning))\b/i },
+    ],
+  },
+  {
+    slug: 'clean-energy',
+    group: 'Energy and resources',
+    name: 'Clean energy and nuclear',
+    label: 'clean energy and nuclear',
+    blurb: 'Solar, wind, storage, hydrogen, geothermal, nuclear and fusion: the fastest-growing parts of the energy economy.',
+    query: 'clean energy',
+    rules: [
+      { employers: ['NextEra Energy Resources', 'First Solar', 'Enphase Energy', 'SolarEdge', 'Sunrun', 'Sunnova', 'Fluence Energy', 'Stem', 'Plug Power', 'Bloom Energy', 'GE Vernova', 'Vestas', 'Orsted', 'Invenergy', 'Brookfield Renewable', 'Oklo', 'NuScale Power', 'TerraPower', 'X-energy', 'Centrus Energy', 'BWX Technologies', 'Westinghouse Electric', 'Holtec International', 'Kairos Power', 'Commonwealth Fusion Systems', 'TAE Technologies', 'Helion', 'Form Energy', 'ESS Tech', 'Ormat Technologies', 'Array Technologies', 'Nextracker', 'Shoals Technologies', 'Canadian Solar', 'Lightsource bp', 'Pattern Energy', 'Ørsted', 'Recurrent Energy', 'Tesla Energy', 'Redwood Materials', 'Fervo Energy', 'Sila', 'Group14'] },
+      { company: /\b(solar|wind|renewables?|nuclear|geothermal|hydrogen|fusion|energy storage|clean energy)\b/i },
+      { title: /\b(solar|wind turbine|nuclear|reactor|geothermal|hydrogen|battery storage|energy storage|renewable)\b/i },
+    ],
+  },
+  {
+    slug: 'telecom',
+    group: 'Technology and communications',
+    name: 'Telecom',
+    label: 'telecom',
+    blurb: 'Wireless, broadband, cable, satellite and tower companies: network, engineering, product, operations and enterprise sales roles.',
+    query: 'telecom',
+    rules: [
+      { codes: ['telecom'] },
+      { employers: ['AT&T', 'Verizon', 'T-Mobile', 'Comcast', 'Charter Communications', 'Spectrum', 'Lumen Technologies', 'Frontier Communications', 'Cox Communications', 'Altice USA', 'Dish Network', 'EchoStar', 'Crown Castle', 'American Tower', 'SBA Communications', 'Ciena', 'Nokia', 'Ericsson', 'Viasat', 'Iridium', 'Globalstar', 'Zayo', 'Windstream', 'Consolidated Communications', 'Telephone and Data Systems', 'US Cellular', 'Cable One', 'Optimum', 'Starlink', 'AST SpaceMobile', 'Lumen'] },
+      { title: /\b(telecommunications?|wireless (network|carrier)|5g (network|core|ran))\b/i },
+    ],
+  },
+  {
+    slug: 'natural-resources',
+    group: 'Energy and resources',
+    name: 'Mining and natural resources',
+    label: 'mining and natural resources',
+    blurb: 'Mining, minerals, timber and agriculture: geology, engineering, operations, environmental and commercial roles in the industries that supply American industry.',
+    query: 'mining',
+    rules: [
+      { employers: ['Freeport-McMoRan', 'Newmont', 'Southern Copper', 'Peabody Energy', 'Arch Resources', 'CONSOL Energy', 'Core Natural Resources', 'Alliance Resource Partners', 'Albemarle', 'Arcadium Lithium', 'MP Materials', 'Lithium Americas', 'Piedmont Lithium', 'Compass Minerals', 'Mosaic', 'Nutrien', 'CF Industries', 'Weyerhaeuser', 'Rayonier', 'PotlatchDeltic', 'Hecla Mining', 'Coeur Mining', 'Royal Gold', 'Martin Marietta', 'Vulcan Materials', 'United States Lime & Minerals', 'Intrepid Potash', 'Energy Fuels', 'Ur-Energy', 'Uranium Energy', 'Cargill', 'Archer Daniels Midland', 'Bunge', 'Corteva', 'Deere'] },
+      { company: /\b(mining|minerals?|lithium|copper|coal|timber|forestry|uranium|aggregates|potash)\b/i },
+      { title: /\b(mining|mine (manager|engineer|planner|superintendent)|geologist|geotechnical|metallurgist|mineral|forestry|hydrologist)\b/i },
+    ],
+  },
+  {
+    slug: 'nonprofits',
+    group: 'Education and nonprofit',
+    name: 'Nonprofits',
+    label: 'nonprofit',
+    blurb: 'Charities, foundations, associations and mission-driven organizations: fundraising, programs, operations, finance and leadership roles.',
+    query: 'nonprofit',
+    rules: [{ codes: ['nonprofit'] }, { sectors: ['nonprofit'] }],
+    exclude: { company: /\b(construct\w*|contracting|contractors?|infrastructure)\b/i },
+  },
+  {
+    slug: 'education',
+    group: 'Education and nonprofit',
+    name: 'Education',
+    label: 'education',
+    blurb: 'Universities, colleges, school systems and education companies: faculty-adjacent, administration, advancement, technology and operations roles.',
+    query: 'education',
+    rules: [{ codes: ['education'] }, { sectors: ['academia'] }],
+    exclude: { company: /\b(construct\w*|contracting|contractors?|infrastructure)\b/i },
+  },
+  {
+    slug: 'space',
+    group: 'Built in America',
+    name: 'Space',
+    label: 'space',
+    blurb: 'Launch, satellite and space systems companies: propulsion, avionics, mission operations, manufacturing and program roles.',
+    query: 'space',
+    rules: [
+      { employers: ['SpaceX', 'Blue Origin', 'Rocket Lab', 'Relativity Space', 'Firefly Aerospace', 'Sierra Space', 'Axiom Space', 'Intuitive Machines', 'Planet Labs', 'Maxar Technologies', 'BlackSky', 'Spire Global', 'Virgin Galactic', 'United Launch Alliance', 'Redwire', 'Voyager Technologies', 'Impulse Space', 'Stoke Space', 'Varda Space Industries', 'Vast', 'True Anomaly', 'Astranis', 'Capella Space', 'Terran Orbital', 'York Space Systems', 'Ursa Major', 'Muon Space', 'Skybox', 'Astrobotic', 'NASA'] },
+      { company: /\b(space|orbital|satellites?)\b/i },
+      { title: /\b(spacecraft|satellite|launch vehicle|orbital|propulsion engineer|space systems|gnc engineer|mission operations)\b/i },
+    ],
+    exclude: { company: /\b(workspace|self storage|space planning|parking)\b/i },
+  },
+  {
+    slug: 'robotics-automation',
+    group: 'Technology and communications',
+    name: 'Robotics and automation',
+    label: 'robotics and automation',
+    blurb: 'Robot makers, warehouse automation and industrial controls: mechatronics, controls, software, field and operations roles.',
+    query: 'robotics',
+    rules: [
+      { employers: ['Boston Dynamics', 'Figure AI', 'Agility Robotics', 'Apptronik', 'Symbotic', 'Locus Robotics', 'Berkshire Grey', 'FANUC America', 'ABB Robotics', 'KUKA', 'Rockwell Automation', 'Teradyne Robotics', 'iRobot', 'Intuitive Surgical', 'Path Robotics', 'Machina Labs', 'Formic', 'Dexterity', 'Covariant', 'Amazon Robotics', 'Nuro', 'Skydio', 'AutoStore', 'Zebra Technologies', 'Fetch Robotics', 'Vecna Robotics', 'Ready Robotics', 'Seegrid', 'Mujin', 'Plus One Robotics', 'RightHand Robotics', 'Carbon Robotics'] },
+      { company: /\b(robotics?|robots?|mechatronics)\b/i },
+      { title: /\b(robotics?|robot|mechatronics|automation engineer|controls engineer|plc programmer)\b/i },
+    ],
+  },
+  {
+    slug: 'biotech-pharma',
+    group: 'Health and life sciences',
+    name: 'Biotech and pharma',
+    label: 'biotech and pharma',
+    blurb: 'Drug makers, biotechs and life sciences companies: research, clinical, manufacturing, quality, regulatory and commercial roles.',
+    query: 'biotech',
+    rules: [
+      { codes: ['life_sciences'] },
+      { title: /\b(biomanufacturing|gmp|pharmaceutical (manufacturing|operations)|bioprocess|cell therapy|clinical (operations|development))\b/i },
+    ],
+  },
 ]
 
 export const segmentBySlug = (slug: string): SegmentDef | null => SEGMENTS.find((s) => s.slug === slug) ?? null
@@ -234,17 +489,18 @@ interface Compiled { def: SegmentDef; rules: (Rule & { employerSet?: Set<string>
 const COMPILED: Compiled[] = SEGMENTS.map((def) => ({ def, rules: def.rules.map((r) => ({ ...r, employerSet: r.employers ? names(r.employers) : undefined })) }))
 
 // A search firm's or staffing agency's posting is not the employer's own, so it is in no segment: the lists are of employers.
-const FIRM = /\b(staffing|recruit(ing|ers?|ment)|executive search|search (firm|group|partners|associates)|talent (acquisition|partners|solutions)|management search)\b/i
+const FIRM = /\b(staffing|recruit(ing|ers?|ment)|executive search|search (firm|group|partners|associates)|talent (acquisition|partners|solutions)|management search)\b|gecko hospitality|source one hospitality|food management search|jrg partners|park avenue group|^confidential$/i
 
 /** The segments one posting belongs to (usually none, at most a few). */
-export function segmentsOf(row: Pick<BoardRow, 'title' | 'company' | 'industry' | 'reqTags'> & { postingType?: string | null; sourceCategory?: string | null }): string[] {
+export function segmentsOf(row: Pick<BoardRow, 'title' | 'company' | 'industry' | 'reqTags'> & { postingType?: string | null; sourceCategory?: string | null; sector?: string | null }): string[] {
   if (row.postingType === 'recruiter_search' || row.sourceCategory === 'search_firm' || FIRM.test(row.company)) return []
-  const norm = normalizeOrgName(row.company)
+  const norm = companyKey(row.company)
   const out: string[] = []
   for (const { def, rules } of COMPILED) {
     if (def.exclude?.title?.test(row.title) || def.exclude?.company?.test(row.company)) continue
     const hit = rules.some((r) => {
       if (r.codes && !(row.industry && r.codes.includes(row.industry))) return false
+      if (r.sectors && !(row.sector && r.sectors.includes(row.sector))) return false
       if (r.employerSet && !employerIn(r.employerSet, norm)) return false
       if (r.company && !r.company.test(row.company)) return false
       if (r.title && !r.title.test(row.title)) return false
@@ -254,4 +510,28 @@ export function segmentsOf(row: Pick<BoardRow, 'title' | 'company' | 'industry' 
     if (hit) out.push(def.slug)
   }
   return out
+}
+
+/** The industry bucket a layoff notice carries (src/lib/seo/topics.ts) to the segments where people from that industry can look next. */
+export const SEGMENTS_BY_BUCKET: Record<string, string[]> = {
+  'Healthcare & Hospital Systems': ['healthcare'],
+  'Financial Services & Banking': ['financial-services'],
+  'Insurance': ['financial-services'],
+  'Pharmaceuticals & Biotech': ['biotech-pharma'],
+  'Medical Devices': ['biotech-pharma'],
+  'Retail & E-commerce': ['retail'],
+  'Consumer Packaged Goods': ['consumer-packaged-goods'],
+  'Hospitality, Travel & Food Service': ['tourism-hospitality', 'restaurants', 'casino-gaming'],
+  'Manufacturing & Industrial': ['us-manufacturing', 'steel-aluminum', 'robotics-automation'],
+  'Automotive & Mobility': ['automotive-ev'],
+  'Aerospace & Defense': ['defense', 'space', 'airlines-aviation'],
+  'Energy & Utilities': ['oil-and-gas', 'utilities', 'clean-energy'],
+  'Construction & Real Estate': ['construction', 'real-estate'],
+  'Transportation & Logistics': ['transportation-logistics', 'airlines-aviation'],
+  'Media & Entertainment': ['tv', 'movies', 'music', 'sports'],
+  'Telecommunications': ['telecom'],
+  'Technology & Software': ['ai', 'data-centers', 'semiconductors', 'robotics-automation'],
+  'Education & EdTech': ['education'],
+  'Nonprofit & Social Impact': ['nonprofits'],
+  'Agriculture & Food Production': ['natural-resources'],
 }

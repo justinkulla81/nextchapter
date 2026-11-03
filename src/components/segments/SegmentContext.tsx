@@ -3,9 +3,8 @@ import { H2 } from '@/components/seo/SeoPage'
 import { awardTier } from '@/lib/rankings/awards'
 import { editionLabel } from '@/lib/rankings/build-edition'
 import { CUTS, cutPath, segmentPath } from '@/lib/segments/cuts'
-import { segmentBySlug } from '@/lib/segments/defs'
+import { companyKey, segmentBySlug } from '@/lib/segments/defs'
 import { getSegmentAwards, readSegmentIndex } from '@/lib/segments/store'
-import { normalizeOrgName } from '@/lib/text/org-name-match'
 
 const TIER = {
   podium: 'bg-tint-sun text-tint-sun-ink',
@@ -20,7 +19,7 @@ const SHOWN_MONTHS = 3
  * list; the lists link back to the employer's page. Renders nothing when the employer is in no list or a read fails.
  */
 export async function SegmentContext({ employerName, surface = 'employer' }: { employerName: string; surface?: string }) {
-  const key = `emp:${normalizeOrgName(employerName)}`
+  const key = `emp:${companyKey(employerName)}`
   const [awards, index] = await Promise.all([getSegmentAwards([key]).catch(() => []), readSegmentIndex().catch(() => [])])
   const latest = new Map(index.map((x) => [x.slug, x.editions[0]]))
   const months = new Map<string, { slug: string; cut: string; rank: number; valueLabel: string; places: number; edition: string }[]>()

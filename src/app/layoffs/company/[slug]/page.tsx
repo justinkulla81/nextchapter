@@ -21,6 +21,7 @@ import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getRecentNotices } from '@/lib/seo/topic-data'
 import { industryPath } from '@/lib/seo/topics'
+import { liveSegmentsForBucket } from '@/lib/segments/page-data'
 import { getCompanies, getNewsMentions, type CompanySummary, mergedSlug, noticeDay, resolveCompanySlug, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
 import { titleMeta } from '@/lib/seo/title'
 import { LAYOFF_TOOL_LINKS, stateHelpLinks, type CrossLink } from '@/lib/seo/layoff-links'
@@ -123,6 +124,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const recentAnn = hasRecentAnnouncement(ann) ? ann : undefined
   const hasNotices = c.notices.length > 0
   const bucket = (await getRecentNotices().catch(() => [])).find((n) => n.slug === slug && n.bucket)?.bucket ?? null
+  const segmentsHiring = bucket ? await liveSegmentsForBucket(bucket).catch(() => []) : []
   const [mentions, statements] = await Promise.all([getNewsMentions(c), approvedStatementMap(slug, c.name)])
   const stateHelp = await Promise.all(c.states.slice(0, 3).map((code) => stateHelpLinks(code)))
   const helpLinks: CrossLink[] = [...new Map(stateHelp.flat().map((l) => [l.href, l])).values()]
@@ -277,6 +279,9 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
               {bucket && (
                 <li><Link href={industryPath(bucket)} className={LINK}>{bucket}: open jobs, conferences and other recent layoffs</Link></li>
               )}
+              {segmentsHiring.map((x) => (
+                <li key={x.slug}><Link href={`/jobs/industry/${x.slug}`} className={LINK}>{x.name}: {x.total.toLocaleString('en-US')} open jobs, the employers hiring most and what they pay</Link></li>
+              ))}
               <li><Link href="/start/laid-off" className={LINK}>Start here: a plan for the weeks after a layoff</Link></li>
               {LAYOFF_TOOL_LINKS.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}
               {helpLinks.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}

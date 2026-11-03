@@ -13,7 +13,7 @@ const WHERE = Prisma.sql`WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQ
 interface Raw {
   id: string; title: string; company: string; companyId: string | null; st: string | null; city: string | null; level: string | null
   payMin: number | null; payMax: number | null; payPeriod: string | null; currency: string | null
-  postedAt: Date | null; createdAt: Date; industry: string | null; reqTags: string | null; postingType: string | null; sourceCategory: string | null; skills: string[]; noExp: string | null; soc: string | null
+  postedAt: Date | null; createdAt: Date; industry: string | null; reqTags: string | null; postingType: string | null; sourceCategory: string | null; skills: string[]; noExp: string | null; soc: string | null; socCode: string | null; sector: string | null
 }
 
 async function page(after: string): Promise<Raw[]> {
@@ -22,7 +22,7 @@ async function page(after: string): Promise<Raw[]> {
     return tx.$queryRaw<Raw[]>`
       SELECT id, title, "companyName" AS company, "companyId", "locationState" AS st, "locationCity" AS city, level,
         "salaryMin" AS "payMin", "salaryMax" AS "payMax", "payPeriod", "salaryCurrency" AS currency, "postedAt", "createdAt",
-        industry, "requirementTags" AS "reqTags", "postingType", "sourceCategory", skills, "noExperiencePhrase" AS "noExp", "socTitle" AS soc
+        industry, "requirementTags" AS "reqTags", "postingType", "sourceCategory", skills, "noExperiencePhrase" AS "noExp", "socTitle" AS soc, "socCode", "employerSector" AS sector
       FROM "ExclusiveJobPosting" ${WHERE} AND id > ${after}
       ORDER BY id LIMIT ${PAGE}`
   }, { timeout: 320_000, maxWait: 30_000 })
@@ -39,7 +39,7 @@ export async function scanBoard(visit: (rows: BoardRow[]) => void): Promise<numb
       id: r.id, title: r.title, company: r.company, companyId: r.companyId, st: r.st, city: r.city, level: r.level,
       payMin: r.payMin, payMax: r.payMax, payPeriod: r.payPeriod, currency: r.currency,
       postedAt: r.postedAt ? r.postedAt.toISOString() : null, createdAt: r.createdAt.toISOString(),
-      industry: r.industry, reqTags: r.reqTags, postingType: r.postingType, sourceCategory: r.sourceCategory, skills: r.skills ?? [], noExperience: !!r.noExp, soc: r.soc,
+      industry: r.industry, reqTags: r.reqTags, postingType: r.postingType, sourceCategory: r.sourceCategory, skills: r.skills ?? [], noExperience: !!r.noExp, soc: r.soc, socCode: r.socCode, sector: r.sector,
     })))
     total += raw.length
     after = raw[raw.length - 1].id

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { exposureFor } from '@/lib/skills/ai-exposure'
 import { buildEdition, isPaid, median, prevFrom, publishedCuts, BARS } from '@/lib/segments/aggregate'
 import { changeClause, cutSentence, CUTS } from '@/lib/segments/cuts'
 import { SEGMENTS, segmentBySlug, segmentsOf } from '@/lib/segments/defs'
@@ -7,7 +8,7 @@ import type { BoardRow } from '@/lib/segments/types'
 const row = (o: Partial<BoardRow> & { company: string }): BoardRow => ({
   id: Math.random().toString(36).slice(2), title: 'Program Manager', companyId: null, st: 'VA', city: 'Arlington', level: 'MID_IC',
   payMin: null, payMax: null, payPeriod: null, currency: 'USD', postedAt: null, createdAt: '2026-11-01T00:00:00Z',
-  industry: null, reqTags: null, postingType: null, sourceCategory: null, skills: [], noExperience: false, soc: null, ...o,
+  industry: null, reqTags: null, postingType: null, sourceCategory: null, socCode: null, sector: null, skills: [], noExperience: false, soc: null, ...o,
 })
 const of = (company: string, title = 'Program Manager', industry: string | null = null, reqTags: string | null = null) => segmentsOf({ company, title, industry, reqTags })
 
@@ -120,6 +121,72 @@ describe('copy', () => {
     const e = buildEdition('defense', '2026-11', rows, null, new Date('2026-11-10T00:00:00Z'))
     expect(cutSentence(def, 'top-employers', e)).toContain('Boeing')
     expect(cutSentence(def, 'entry-level', e)).toContain('entry-level')
-    for (const c of CUTS) expect(c.title(def)).toMatch(/defense and aerospace/)
+    for (const c of CUTS) expect(c.title(def)).toMatch(/defense and aerospace/i)
+  })
+})
+
+describe('wave 2 segments', () => {
+  const seg = (company: string, title = 'Analyst', industry: string | null = null, sector: string | null = null) => segmentsOf({ company, title, industry, reqTags: null, sector })
+  it('has a group for every segment and 33 in all', () => {
+    expect(SEGMENTS).toHaveLength(33)
+    for (const s of SEGMENTS) expect(s.group).toBeTruthy()
+  })
+  it('places employers in the growth and energy segments', () => {
+    expect(seg('Nucor Corporation')).toContain('steel-aluminum')
+    expect(seg('Oklo Inc.')).toContain('clean-energy')
+    expect(seg('Micron Technology, Inc.')).toContain('semiconductors')
+    expect(seg('Bath Iron Works')).toContain('shipbuilding')
+    expect(seg('Duke Energy Corporation')).toContain('utilities')
+    expect(seg('Chevron U.S.A. Inc.')).toContain('oil-and-gas')
+    expect(seg('Delta Air Lines')).toContain('airlines-aviation')
+    expect(seg('OpenAI')).toContain('ai')
+    expect(seg('Acme Corp', 'Machine Learning Engineer')).toContain('ai')
+  })
+  it('reads sectors and keeps look-alikes out', () => {
+    expect(seg('Some Charity', 'Program Director', null, 'nonprofit')).toContain('nonprofits')
+    expect(seg('State University', 'Registrar', null, 'academia')).toContain('education')
+    expect(seg('Acme Corp', 'Program Director', null, null)).not.toContain('nonprofits')
+    expect(seg('Human Resources Partners')).not.toContain('natural-resources')
+    expect(seg('Automation Anywhere', 'Account Executive')).not.toContain('robotics-automation')
+    expect(seg('Palo Alto Networks', 'Engineer')).not.toContain('telecom')
+    expect(seg('Workspace Rentals')).not.toContain('space')
+  })
+})
+
+describe('least AI use list', () => {
+  const exposure = new Map([['15-1252', { title: 'Software Developers', score: 0.42 }], ['47-2111', { title: 'Electricians', score: 0 }], ['11-9021', { title: 'Construction Managers', score: 0.02 }]])
+  const now = new Date('2026-11-10T00:00:00Z')
+  const rows = [
+    ...Array.from({ length: 6 }, () => row({ company: 'A', soc: 'Electricians', socCode: '47-2111.00' })),
+    ...Array.from({ length: 7 }, () => row({ company: 'B', soc: 'Construction Managers', socCode: '11-9021.00' })),
+    ...Array.from({ length: 9 }, () => row({ company: 'C', soc: 'Software Developers', socCode: '15-1252.00' })),
+    ...Array.from({ length: 3 }, () => row({ company: 'D', soc: 'Welders', socCode: '51-4121.00' })),
+  ]
+  it('orders roles by least observed use, and only lists measured roles with enough jobs', () => {
+    const e = buildEdition('x', '2026-11', rows, null, now, exposure)
+    const list = e.cuts['lowest-ai-exposure']!
+    expect(list.map((r) => r.name)).toEqual(['Electricians', 'Construction Managers', 'Software Developers'])
+    expect(list[0].valueLabel).toBe('0% of tasks')
+    expect(list[1].valueLabel).toBe('2% of tasks')
+  })
+  it('publishes nothing without exposure data', () => {
+    expect(buildEdition('x', '2026-11', rows, null, now).cuts['lowest-ai-exposure']).toBeUndefined()
+    expect(exposureFor('47-2111.00', exposure)?.band).toBe('little')
+  })
+})
+
+describe('employer name forms', () => {
+  it('counts SEC-style names with a state ending as the same employer', () => {
+    const rows = [...Array.from({ length: 4 }, () => row({ company: 'Rivian Automotive, Inc. / DE' })), ...Array.from({ length: 3 }, () => row({ company: 'Rivian Automotive' }))]
+    const top = buildEdition('automotive-ev', '2026-11', rows, null, new Date('2026-11-10T00:00:00Z')).cuts['top-employers']!
+    expect(top).toHaveLength(1)
+    expect(top[0].value).toBe(7)
+  })
+  it('keeps contractors out of manufacturing and food makers out of mining', () => {
+    expect(segmentsOf({ company: 'MasTec', title: 'Operations Manager', industry: 'industrial', reqTags: null })).not.toContain('us-manufacturing')
+    expect(segmentsOf({ company: 'Ametek', title: 'Operations Manager', industry: 'industrial', reqTags: null })).toContain('us-manufacturing')
+    expect(segmentsOf({ company: 'Flowers Foods', title: 'Analyst', industry: 'agriculture', reqTags: null })).not.toContain('natural-resources')
+    expect(segmentsOf({ company: 'Code Metal', title: 'Engineer', industry: null, reqTags: null })).not.toContain('steel-aluminum')
+    expect(segmentsOf({ company: 'Sikorsky Aircraft', title: 'Engineer', industry: null, reqTags: null })).not.toContain('airlines-aviation')
   })
 })

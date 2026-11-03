@@ -11,7 +11,7 @@ import type { BoardRow } from '@/lib/segments/types'
 
 const row = (company: string, st = 'VA'): BoardRow => ({
   id: company + st + Math.random(), title: 'Engineer', company, companyId: null, st, city: 'Arlington', level: 'MID_IC', payMin: 100_000, payMax: 120_000, payPeriod: 'year',
-  currency: 'USD', postedAt: '2026-11-09T00:00:00Z', createdAt: '2026-11-09T00:00:00Z', industry: null, reqTags: null, postingType: null, sourceCategory: null, skills: ['Python'], noExperience: false, soc: 'Engineers',
+  currency: 'USD', postedAt: '2026-11-09T00:00:00Z', createdAt: '2026-11-09T00:00:00Z', industry: null, reqTags: null, postingType: null, sourceCategory: null, socCode: null, sector: null, skills: ['Python'], noExperience: false, soc: 'Engineers',
 })
 
 describe('segment tables', () => {
