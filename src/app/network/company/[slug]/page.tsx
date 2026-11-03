@@ -138,13 +138,12 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
               {aboutCount(inState.total)} professional jobs are open in {stateLabel}
               {atEmployer.total > 0 && <>, including {aboutCount(atEmployer.total)} at {c.name}</>}. Put in your email and we send a plan built for a layoff: benefits and deadlines first, then jobs matched to your background.
             </p>
+            <div className="mt-5 max-w-2xl"><CompanyInterestFlag company={c.name} slug={slug} page="network" /></div>
             <EmployerEmailCapture slug={slug} employer={c.name} />
             <p className="mt-4 text-sm opacity-90">
               <Link href={`/layoffs/company/${slug}`} className="underline underline-offset-4">All {c.name} layoff notices, dates and sources</Link>
             </p>
           </div>
-
-          <div className="mt-6"><CompanyInterestFlag company={c.name} slug={slug} page="network" /></div>
 
           <section aria-labelledby="jobs" className="mt-10">
             <h2 id="jobs" className={H2}>Jobs open now</h2>

@@ -9,13 +9,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createTalentFirm } from './actions'
 
-const SOURCE_LABEL = { PAGE: 'Inbound page', NOT_FIT_LINK: '"Not a fit now" link', FORWARD: 'Forwarded email' } as const
+const SOURCE_LABEL = { PAGE: 'Inbound page', NOT_FIT_LINK: '"Not a fit now" link', FORWARD: 'Forwarded email', MEMBER_INTEREST: 'Expressed interest on NextChapter' } as const
 
 const FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'mine', label: 'Assigned to me' },
   { key: 'general', label: 'General hopper' },
-  { key: 'fit', label: 'Fit' },
+  { key: 'fit', label: 'Strong fit' },
   { key: 'niche', label: 'In your niche' },
   { key: 'outside', label: 'Outside focus' },
 ] as const
@@ -73,7 +73,7 @@ export default async function TalentHopperPage({ searchParams }: { searchParams:
               ? { tag: 'OUTSIDE' }
               : {}
 
-  const [connections, draftCount, recruiters] = await Promise.all([
+  const [connections, draftCount, recruiters, heldInterests] = await Promise.all([
     prisma.intakeConnection.findMany({
       where: { AND: [visible, filter] },
       include: {
@@ -86,6 +86,8 @@ export default async function TalentHopperPage({ searchParams }: { searchParams:
     }),
     prisma.intakeReply.count({ where: { status: 'DRAFT', connection: visible } }),
     prisma.recruiter.findMany({ where: { recruiterFirmId: ctx.firm.id, firmRole: { not: null } }, select: { id: true, fullName: true } }),
+    // Members who expressed interest before the firm joined and have not sent their résumé. A count only: who they are stays with them until they choose.
+    prisma.recruiterInterest.count({ where: { status: 'HELD', firmOrg: { recruiterFirmId: ctx.firm.id } } }),
   ])
   const nameOf = new Map(recruiters.map((r) => [r.id, r.fullName]))
   const showGeneral = canAssign(ctx)
@@ -115,6 +117,13 @@ export default async function TalentHopperPage({ searchParams }: { searchParams:
             Finish <Link href="/recruiters/talent/setup" className="underline">setup</Link> now; your Inbound pages
             and forwarding addresses go live once verification is done, usually within one business day.
           </p>
+        </div>
+      )}
+
+      {heldInterests > 0 && (
+        <div className="rounded-lg border border-border p-4 text-sm">
+          <p className="font-medium">{heldInterests} {heldInterests === 1 ? 'member has' : 'members have'} expressed interest in {ctx.firm.name}</p>
+          <p className="text-muted-foreground">Each one chooses whether to send their résumé. They appear below when they do. You can also <Link href="/recruiters/pool" className="underline">find members who fit your focus</Link> and ask for an introduction.</p>
         </div>
       )}
 

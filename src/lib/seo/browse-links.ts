@@ -5,6 +5,7 @@ export const BROWSE_LINKS: { label: string; href: string }[] = [
   { label: 'Jobs by title', href: '/jobs/title' },
   { label: 'Jobs by industry: who is hiring', href: '/jobs/industry' },
   { label: 'Salaries by title', href: '/salaries' },
+  { label: 'Leadership roles: CEO, CFO, CRO, CMO, VP, Director', href: '/roles' },
   { label: 'Employers hiring', href: '/employers' },
   { label: 'Local job markets', href: '/places' },
   { label: 'Layoff tracker', href: '/layoffs' },

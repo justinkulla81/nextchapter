@@ -14,6 +14,7 @@ import { getTitleDetail, getTitlePlaceIndex, hasSalaryPage } from '@/lib/seo/job
 import { usd } from '@/lib/seo/job-title-rules'
 import { titleJobsSeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
+import { RoleGuideLink } from '@/components/roles/RoleGuideLink'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -128,6 +129,7 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
           <Chips kind="title_to_title" event="topic_link_clicked" items={d.related.map((t) => ({ href: `/jobs/title/${t.slug}`, label: t.name, detail: t.jobs.toLocaleString('en-US') }))} />
         </Section>
       )}
+      <RoleGuideLink title={stat.name} />
       <JoinBand source={`title:${slug}`} what={`how the market reads your background for ${stat.name.toLowerCase()} roles`} />
     </TopicShell>
   )

@@ -32,7 +32,7 @@ export const PUBLIC = Prisma.sql`status = 'approved' AND "archivedAt" IS NULL AN
 
 // A title with the "- Team", ", Team" and "(Remote)" tails cut off, lower-cased. Seniority words stay: a senior engineer
 // and an engineer are different salary pages.
-const BASE = Prisma.sql`lower(btrim(regexp_replace(regexp_replace(regexp_replace(title, '[[:space:]]+[-–—|][[:space:]]+.*$', ''), '[[:space:]]*[,(:/].*$', ''), '[[:space:]]+', ' ', 'g')))`
+export const BASE = Prisma.sql`lower(btrim(regexp_replace(regexp_replace(regexp_replace(title, '[[:space:]]+[-–—|][[:space:]]+.*$', ''), '[[:space:]]*[,(:/].*$', ''), '[[:space:]]+', ' ', 'g')))`
 
 // Annualized midpoint of the stated pay, or null when the listing does not state a usable annual figure.
 // The pay columns are 32-bit ints and a junk listing can state 10,000,000 an hour, so the arithmetic is done in bigint: a
@@ -77,10 +77,10 @@ export const jobTypeBySlug = (slug: string) => JOB_TYPES.find((t) => t.slug === 
 
 export interface JobTypeDetail { type: JobType; total: number; jobs: TitleJob[]; titles: TitleStat[]; states: { code: string; name: string; slug: string; jobs: number }[]; medianPay: number | null; payCount: number }
 
-const round = (n: number | null) => (n == null ? null : Math.round(n / 500) * 500)
+export const round = (n: number | null) => (n == null ? null : Math.round(n / 500) * 500)
 
 /** Linear-interpolated percentile of a sorted list, the same as SQL percentile_cont. */
-function percentile(sorted: number[], q: number): number | null {
+export function percentile(sorted: number[], q: number): number | null {
   if (sorted.length === 0) return null
   const pos = (sorted.length - 1) * q
   const lo = Math.floor(pos)
@@ -231,7 +231,7 @@ export async function newestJobs(ids: string[], limit: number): Promise<TitleJob
     .map((r) => ({ id: r.id, title: r.title, company: r.companyName, location: r.location, postedAt: (r.postedAt ?? r.createdAt).toISOString(), pay: payText(r.salaryMin, r.salaryMax, r.payPeriod) }))
 }
 
-function median(xs: number[]): number | null {
+export function median(xs: number[]): number | null {
   return percentile([...xs].sort((a, b) => a - b), 0.5)
 }
 
