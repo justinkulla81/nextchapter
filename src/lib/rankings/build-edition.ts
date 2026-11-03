@@ -191,7 +191,7 @@ interface Def {
   method: string[]
   noun: RankingEdition['placeNoun']
   unit: string
-  sampleUnit: 'openings' | 'jobs'
+  sampleUnit: 'openings' | 'jobs' | 'students'
   extraMethod?: string[]
   /** Lowest value ranks first. */
   asc?: boolean
