@@ -15,7 +15,7 @@ export const BROWSE_LINKS: { label: string; href: string }[] = [
   { label: 'American Job Centers', href: '/job-centers' },
   { label: 'Economic development', href: '/economic-development' },
   { label: 'Colleges and universities', href: '/higher-education' },
-  { label: 'Nonprofits', href: '/nonprofits' },
+  { label: 'Non-profits', href: '/nonprofits' },
   { label: 'Search firms', href: '/search-firms' },
   { label: 'Conferences', href: '/conferences' },
   { label: 'Free tools', href: '/tools' },

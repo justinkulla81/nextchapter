@@ -33,12 +33,12 @@ export const NONPROFITS: PortalPageDef = {
   content: {
     analyticsKey: 'nonprofits',
     path: '/nonprofits',
-    eyebrow: 'Nonprofits and community organizations',
+    eyebrow: 'Non-profits and community organizations',
     headline: 'Serve the job seekers in your community from a workspace of your own',
     subhead:
       'Claim your organization’s page with a work email at your domain, and a free workspace is created for you: your own page, your services, up to 50 active members and basic counts.',
     primary: { label: 'Claim your page', href: '#claim' },
-    primaryNote: 'Nonprofits and community organizations. Research partners can start a conversation at the bottom of the page.',
+    primaryNote: 'Non-profits and community organizations. Research partners can start a conversation at the bottom of the page.',
     loginHref: PORTALS.workforce.loginHref,
     proof: {
       kind: 'sample',
@@ -109,12 +109,12 @@ export const NONPROFITS: PortalPageDef = {
     jsonLd: {
       serviceName: 'Workspace for non-profits and community organizations',
       serviceType: 'Community organization workspace',
-      audienceType: 'Nonprofits, community organizations and research partners',
+      audienceType: 'Non-profits, community organizations and research partners',
       description:
         'A workspace for non-profits and community organizations: your own page, your services, active members and basic counts, with research partnerships set up one at a time.',
       trail: [
         { name: 'For organizations', path: '/for-organizations' },
-        { name: 'Nonprofits and community organizations', path: '/nonprofits' },
+        { name: 'Non-profits and community organizations', path: '/nonprofits' },
       ],
     },
   },

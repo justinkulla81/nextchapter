@@ -153,7 +153,7 @@ export const CATEGORIES = [
   { key: 'fractional_gig', label: 'Fractional & gig' },
   { key: 'community', label: 'Support communities' },
   { key: 'workforce_gov', label: 'Vendors to workforce agencies' },
-  { key: 'nonprofit_providers', label: 'Nonprofit & faith-based providers' },
+  { key: 'nonprofit_providers', label: 'Non-profit & faith-based providers' },
   { key: 'failed', label: 'Failed or distressed' },
 ] as const
 export const categoryLabel = (key: string | null | undefined) => CATEGORIES.find((c) => c.key === key)?.label ?? null
