@@ -13,7 +13,7 @@ import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { PREMIUM_METHOD, aiPremiumForFunction, signedPct, type FunctionAiPremium } from '@/lib/pay/ai-premium'
 import { MIN_LIKE_N, MIN_PER_SIDE } from '@/lib/skills/ai-market'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 const PATH = '/resources/ai-skills-pay-premium'
 const TITLE = 'Do AI skills increase pay? What U.S. job postings advertise'

@@ -5,7 +5,7 @@ import { aiPremiumCsv } from '@/lib/pay/ai-premium'
 // The aggregate table behind /resources/ai-skills-pay-premium, as a CSV for anyone to cite or chart. One row per function with
 // 30+ paid postings on each side; no posting, employer or person is in it. Built from the newest snapshot (held on the server
 // instance for 30 minutes), so it adds no query per download.
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 export async function GET() {
   const live = await loadAiMarket()

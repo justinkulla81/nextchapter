@@ -5,7 +5,7 @@ import { Section, TopicShell } from '@/components/topics/blocks'
 import { JOB_FUNCTIONS } from '@/lib/seo/topics'
 import { getCatalogIndex } from '@/lib/seo/topic-data'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 export const metadata: Metadata = pageMetadata('/functions')
 

@@ -66,7 +66,7 @@ describe('content drafts', () => {
   it('words AI exposure as observed use, never a forecast', () => {
     const [high, low] = [cards()[2], cards()[3]]
     expect(high.big).toBe('42%')
-    expect(high.headline).toContain('already used for 42% of the tasks in software developers work')
+    expect(high.headline).toContain('Among software developers, AI is already used for 42% of the tasks')
     expect(low.headline).toContain('Little AI use is seen so far')
     for (const c of [high, low]) expect(JSON.stringify(c)).not.toMatch(/\b(risk|safe|will be replaced|replace)\b/i)
   })

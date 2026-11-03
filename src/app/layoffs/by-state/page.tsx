@@ -14,7 +14,7 @@ import { LAYOFF_DATA_CITATION, LAYOFF_DATA_LICENSE } from '@/lib/data/layoff-exp
 // WARN notices by state: one table of what each state's own record shows, with the unit defined, the as-of date, a file to download and
 // a citation line. Built to be linked and quoted.
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 export const metadata: Metadata = pageMetadata('/layoffs/by-state')
 

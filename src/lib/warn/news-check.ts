@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { searchTopic, searchGoogleNews, type DiscoveredArticle } from '@/lib/news/discover'
 import { matchOrCreateCompanyForEmployer } from './company-match'
+import { looksLikeEmployer } from './tracker-merge'
 import { readLayoffHeadline, readPercent, publisherKey, sameEmployer } from './news-headline'
 import { alertNewLayoff } from './layoff-alert'
 import { layoffTypeLabel } from './layoff-alert-rules'
@@ -258,8 +259,14 @@ export async function runLayoffNewsCheck(opts: { fast?: boolean } = {}): Promise
     for (const n of counts) tally.set(n, (tally.get(n) ?? 0) + 1)
     const employees = [...tally.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0]?.[0] ?? null
     // The name as most headlines wrote it.
+    // Headlines sometimes yield a description instead of a name ("N.J. bank", "San Francisco HQ"). Only a name that reads as an
+    // employer is filed; a story with none stays open, so a later headline that names the company can still file it.
     const names = new Map<string, number>()
-    for (const m of mentions) names.set(m.company, (names.get(m.company) ?? 0) + 1)
+    for (const m of mentions) if (looksLikeEmployer(m.company)) names.set(m.company, (names.get(m.company) ?? 0) + 1)
+    if (names.size === 0) {
+      result.waiting++
+      continue
+    }
     const company = [...names.entries()].sort((a, b) => b[1] - a[1])[0][0]
 
     // The share of staff, from the first headline that gives one.

@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { INDUSTRIES, JOB_FUNCTIONS } from '@/lib/seo/topics'
 import { getAssociations, sortConferences, type Conf } from '@/lib/seo/topic-data'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 const base = pageMetadata('/conferences')
 export const metadata: Metadata = { ...base, alternates: { ...base.alternates, types: { 'application/rss+xml': '/feeds/conferences' } } }

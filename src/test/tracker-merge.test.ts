@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { agreedHeadcount, mergeReported, reportedKind, type LooseNotice } from '@/lib/warn/tracker-merge'
 
 let n = 0
-const notice = (o: Partial<LooseNotice> & { employer: string; noticeDate: string }): LooseNotice => ({
+const notice = (o: Omit<Partial<LooseNotice>, 'noticeDate'> & { employer: string; noticeDate: string }): LooseNotice => ({
   id: `n${++n}`,
   normalizedEmployer: o.employer.toLowerCase().replace(/[^a-z0-9 ]/g, ''),
   companyId: null, employees: null, effectiveDate: null, layoffType: null, sourceUrl: null, publishers: [], country: null, industry: null,

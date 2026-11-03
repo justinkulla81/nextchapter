@@ -72,14 +72,14 @@ export function aiJobCard(x: AiJobInput): Card {
   const lower = x.title.toLowerCase()
   const points = [
     band === 'little'
-      ? `Little AI use is seen so far in ${lower} work: ${pct} of its tasks`
-      : `AI is already used for ${pct} of the tasks in ${lower} work, measured from real usage`,
+      ? `Little AI use is seen so far among ${lower}: ${pct} of their tasks`
+      : `Among ${lower}, AI is already used for ${pct} of the tasks, measured from real usage`,
     ...(x.medianWage ? [`The median pay is ${usd(x.medianWage)} a year`] : []),
     ...(x.growthPct != null ? [`Employment is projected to ${x.growthPct >= 0 ? 'grow' : 'fall'} ${Math.abs(Math.round(x.growthPct * 10) / 10)}% over the projection period`] : []),
   ].slice(0, 3)
   return {
     kind: 'ai-job', subject: x.soc6,
-    headline: band === 'little' ? `Little AI use is seen so far in ${lower} work` : `AI is already used for ${pct} of the tasks in ${lower} work`,
+    headline: band === 'little' ? `Little AI use is seen so far among ${lower}` : `Among ${lower}, AI is already used for ${pct} of the tasks`,
     big: pct, bigLabel: 'of tasks already see AI use',
     points,
     action: RETRAINING_LINE[retrainingNeed({ soc6: x.soc6, title: x.title, score: x.score, band })],

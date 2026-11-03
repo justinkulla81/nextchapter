@@ -14,7 +14,7 @@ import { loadAiJobsIndex } from '@/lib/ai-index/load'
 import { INDEX_CSV_PATH, INDEX_LICENSE, INDEX_LICENSE_URL, INDEX_NAME, INDEX_PATH, MIN_OPENINGS_RANKED, indexCitation, indexJsonLd, type OccupationRow } from '@/lib/ai-index/build'
 import { formatContentDate } from '@/components/seo/AuthorByline'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const metadata: Metadata = pageMetadata(INDEX_PATH)
 
 const LINK = 'text-brand underline underline-offset-4'

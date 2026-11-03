@@ -12,7 +12,7 @@ import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { loadAiShareTrend } from '@/lib/skills/ai-market-trend-server'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 const TITLE = 'AI skills in job postings: how common, and what they pay'
 const DESCRIPTION =

@@ -1,6 +1,6 @@
 import { readRanking, readRankingIndex } from '@/lib/rankings/store'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 const cell = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`
 
