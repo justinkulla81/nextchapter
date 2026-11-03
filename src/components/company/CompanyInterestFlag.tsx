@@ -68,14 +68,14 @@ export function CompanyInterestFlag({ company, slug, page }: { company: string; 
         <p role="status" className="text-sm font-semibold">
           Saved: {company}{state.email ? <> is on file for <span className="font-medium">{state.email}</span></> : ''}.
         </p>
-        <p className="mt-1 text-sm text-muted-foreground">Create your free account with the same email and {company} is on your followed companies, with its openings and what we know about it.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Join free with the same email and {company} is on your followed companies, with its openings and what we know about it.</p>
         <TrackedLink
           href={COMPANY_INTEREST_ACCOUNT_HREF}
           event="company_interest_create_account_clicked"
           properties={properties}
           className={cn(buttonVariants({ size: 'lg' }), 'mt-3 h-12 w-full rounded-full bg-action text-action-foreground hover:brightness-95 sm:w-auto sm:px-6')}
         >
-          Create my free account
+          Join free
         </TrackedLink>
       </div>
     )

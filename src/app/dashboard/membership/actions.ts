@@ -34,7 +34,7 @@ export async function subscribeToMembership(billingPeriod: 'MONTHLY' | 'ANNUAL')
   if (!isAlum) return { error: 'Membership becomes available once you\'re a NextChapter alum.' }
 
   const existing = await prisma.membershipSubscription.findUnique({ where: { candidateId: ctx.profile.id } })
-  if (existing) return { error: 'You already have a Membership record.' }
+  if (existing) return { error: 'You already have an Alumni plan record.' }
 
   const planKey = billingPeriod === 'ANNUAL' ? 'membership_annual' : 'membership_monthly'
   const plan = await getCurrentPlan(planKey)
@@ -65,8 +65,8 @@ export async function reactivateMembership(): Promise<FormState> {
   if (!ctx) return { error: 'You need to be logged in to do this.' }
 
   const subscription = await prisma.membershipSubscription.findUnique({ where: { candidateId: ctx.profile.id } })
-  if (!subscription) return { error: 'No Membership record to reactivate.' }
-  if (subscription.status !== 'LAPSED') return { error: 'Your Membership isn\'t lapsed.' }
+  if (!subscription) return { error: 'No Alumni plan record to reactivate.' }
+  if (subscription.status !== 'LAPSED') return { error: 'Your Alumni plan isn\'t lapsed.' }
 
   const currentPeriodEnd = new Date()
   if (subscription.planKey === 'membership_annual') currentPeriodEnd.setFullYear(currentPeriodEnd.getFullYear() + 1)

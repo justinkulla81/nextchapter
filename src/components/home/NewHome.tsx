@@ -96,7 +96,7 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
             <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
           </TrackedLink>
         </div>
-        <p className="mt-3 text-sm text-muted-foreground">Free for candidates, always. Takes about five minutes.</p>
+        <p className="mt-3 text-sm text-muted-foreground">Free to join. Free for Members, always. Takes about five minutes.</p>
         {picker && (
           <p className="mt-2 text-sm">
             <TrackedLink href="/jobs" event="homepage_cta_clicked" properties={{ cta: 'hero_search_jobs', variant }} className="text-muted-foreground underline underline-offset-4">
@@ -185,7 +185,7 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
               </Link>
             ))}
           </nav>
-          <p className="mt-4 text-xs text-white/60">© {new Date().getFullYear()} NextChapter. Candidates are never charged.</p>
+          <p className="mt-4 text-xs text-white/60">© {new Date().getFullYear()} NextChapter. Free to join, always.</p>
         </div>
       </footer>
     </div>

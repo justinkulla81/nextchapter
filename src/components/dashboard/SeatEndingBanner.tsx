@@ -29,7 +29,7 @@ export async function SeatEndingBanner({ candidateId }: { candidateId: string })
       </p>
       <p className="text-muted-foreground">{copy.next}</p>
       <Link href="/dashboard/membership" className="text-primary underline underline-offset-4">
-        See membership options
+        See Alumni plan options
       </Link>
     </section>
   )

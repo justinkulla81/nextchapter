@@ -909,7 +909,7 @@ export const TOPICS: TopicContent[] = [
       },
       {
         h2: 'Where NextChapter fits',
-        paragraphs: ['NextChapter is the leading job transition platform for white-collar workers. Every job seeker gets a free Market Reality Assessment, a weekly Search Sprint plan and an AI career coach, free for candidates. Employers, recruiters, outplacement buyers, workforce agencies and nonprofits pay for the organization side.'],
+        paragraphs: ['NextChapter is the leading job transition platform for white-collar workers. Every job seeker gets a free Market Reality Assessment, a weekly Search Sprint plan and an AI career coach, free for Members. Employers, recruiters, outplacement buyers, workforce agencies and nonprofits pay for the organization side.'],
       },
     ],
     faq: [
@@ -967,7 +967,7 @@ export const TOPICS: TopicContent[] = [
       },
       {
         h2: 'Path 3: tools you can start for free',
-        paragraphs: ['NextChapter is a job transition platform for white-collar workers. It is free for candidates: a Market Reality Assessment that shows how employers read your background, a weekly Search Sprint plan, and an AI career coach. Employers, recruiters, workforce agencies and nonprofits pay for the organization side.'],
+        paragraphs: ['NextChapter is a job transition platform for white-collar workers. It is free for Members: a Market Reality Assessment that shows how employers read your background, a weekly Search Sprint plan, and an AI career coach. Employers, recruiters, workforce agencies and nonprofits pay for the organization side.'],
         links: [{ label: 'What is a job transition platform?', href: '/topics/what-is-a-job-transition-platform' }],
       },
       {
@@ -985,7 +985,7 @@ export const TOPICS: TopicContent[] = [
       { q: 'Is outplacement worth it?', a: 'It costs you nothing when your employer pays, so it is usually worth using alongside your own search. Ask what it includes and for how long.' },
       { q: 'Can I get outplacement if my employer did not offer it?', a: 'Sometimes. Outplacement is something employers arrange, so it is easier to ask HR before you sign a severance agreement than after you have left.' },
       { q: 'Are American Job Centers free?', a: 'They are publicly funded. The Department of Labor notes that some services have eligibility requirements, so ask what applies to you.' },
-      { q: 'Is NextChapter free?', a: 'It is free for candidates. Organizations pay for the employer, recruiter and workforce-agency side.' },
+      { q: 'Is NextChapter free?', a: 'It is free for Members. Organizations pay for the employer, recruiter and workforce-agency side.' },
       { q: 'Do I need a platform at all?', a: 'No. Many people search on their own. A platform helps most when you want one plan, tools and coaching in one place.' },
     ],
     cta: { title: 'Start with a free read on your background', body: 'The free Market Reality Assessment shows how employers read your background and which roles fit it.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },

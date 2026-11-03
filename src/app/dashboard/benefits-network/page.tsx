@@ -56,13 +56,13 @@ export default async function BenefitsNetworkPage({ searchParams }: { searchPara
     <div className="space-y-8">
       <PageHeader
         title="Higher education benefits network"
-        intro="Discounts and programs for NextChapter members, brought in by alumni who know the university, program or certification body. The institution carries the quality, and the alum who sourced it is credited."
+        intro="Discounts and programs for NextChapter Members, brought in by alumni who know the university, program or certification body. The institution carries the quality, and the alum who sourced it is credited."
         action={isAlum ? <ActionLink variant="primary" href="/dashboard/benefits-network/propose" event="benefits_network_propose_clicked" props={{ source: 'benefits_network_header' }}>Propose an offer</ActionLink> : undefined}
       />
       {!isMember && (
         <p className="text-base text-ink">
           Browsing is open to everyone. Redeeming an offer needs an active{' '}
-          <Link href="/dashboard/membership" className="font-medium text-brand underline underline-offset-4">membership</Link>.
+          <Link href="/dashboard/membership" className="font-medium text-brand underline underline-offset-4">Alumni plan</Link>.
         </p>
       )}
       <BenefitsNetworkFilterBar current={filters as Record<string, string | undefined>} />

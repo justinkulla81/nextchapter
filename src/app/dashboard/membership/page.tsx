@@ -115,19 +115,19 @@ export default async function MembershipPage() {
 
   // The redesign: the same two blocks without the bordered cards, the capitals status word and the small grey labels.
   const becomeMemberBlockRedesign = isAlum && !subscription ? (
-    <Section id="become-member" title="Become a member">
-      <MembershipSignupButtons monthlyLabel="Join monthly" annualLabel="Join annually" />
+    <Section id="become-member" title="Join the Alumni plan">
+      <MembershipSignupButtons monthlyLabel="Join the Alumni plan monthly" annualLabel="Join the Alumni plan annually" />
       <ul className="list-disc space-y-1 pl-5 text-base text-ink">
         {(monthlyPlan?.features as string[] | undefined)?.map((f) => <li key={f}>{f}</li>) ?? null}
       </ul>
-      <p className="text-sm text-muted-foreground">No payment is collected yet. This creates your membership record.</p>
+      <p className="text-sm text-muted-foreground">No payment is collected yet. This creates your Alumni plan record.</p>
     </Section>
   ) : null
 
   const subscriptionBlockRedesign = subscription ? (
-    <Section id="your-membership" title="Your membership">
+    <Section id="your-membership" title="Your Alumni plan">
       <p className="max-w-xl text-base text-ink">
-        {isActive ? 'Your membership is active.' : isLapsed ? 'Your membership has lapsed, so these perks are paused until you reactivate it.' : `Your membership is ${subscription.status.toLowerCase()}.`}
+        {isActive ? 'Your Alumni plan is active.' : isLapsed ? 'Your Alumni plan has lapsed, so these perks are paused until you reactivate it.' : `Your Alumni plan is ${subscription.status.toLowerCase()}.`}
         {subscription.freeUntil && ` It is free through ${formatDate(subscription.freeUntil)} because you were placed through a Premium outplacement seat.`}
       </p>
       {isLapsed && <MembershipReactivateButton />}
@@ -162,12 +162,12 @@ export default async function MembershipPage() {
             </form>
           ))}
         </div>
-        {!isActive && <p className="text-sm text-muted-foreground">Priority booking is available while your membership is active.</p>}
+        {!isActive && <p className="text-sm text-muted-foreground">Priority booking is available while your Alumni plan is active.</p>}
       </div>
       <p className="max-w-xl text-base text-ink">
         Board and advisory listings are unlocked on{' '}
         <Link href="/dashboard/find-my-job?types=part_time,contract,advisory#launch-phase-4" className="font-medium text-brand underline underline-offset-4">Find interim work</Link>{' '}
-        while your membership is active. Benefits network offers are redeemable from the{' '}
+        while your Alumni plan is active. Benefits network offers are redeemable from the{' '}
         <Link href="/dashboard/benefits-network" className="font-medium text-brand underline underline-offset-4">catalog</Link>.
       </p>
     </Section>
@@ -249,9 +249,9 @@ export default async function MembershipPage() {
         <div className="space-y-1">
           <h2 className="font-display text-lg font-semibold text-ink">Higher Education</h2>
           <p className="text-sm text-ink">
-            Once you land your next role, you join NextChapter Higher Education, free for life. Your dossier stays live, you remain an insider, and you can give references and refer others. You may also qualify for a{' '}
+            Once you land your next role, you stay a free NextChapter Member and join NextChapter Higher Education. Your dossier stays live, you remain an insider, and you can give references and refer others. You may also qualify for a{' '}
             <Link href="/dashboard/got-hired" className="font-medium text-brand underline underline-offset-4">$500 offer bonus</Link>.
-            {!isAlum && ' Higher Education and membership both open once you have landed.'}
+            {!isAlum && ' Higher Education and the Alumni plan both open once you have landed.'}
           </p>
           {isAlum && <p className="text-sm font-medium text-success">You are a NextChapter alum.</p>}
         </div>

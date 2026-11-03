@@ -12,7 +12,7 @@ export function MembershipReactivateButton() {
   return (
     <div className="space-y-1">
       <form action={formAction}>
-        <SubmitButton pendingLabel="Reactivating…">Reactivate my Membership</SubmitButton>
+        <SubmitButton pendingLabel="Reactivating…">Reactivate my Alumni plan</SubmitButton>
       </form>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       {state?.success && <p className="text-sm text-success">{state.success}</p>}

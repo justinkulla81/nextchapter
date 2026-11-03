@@ -19,7 +19,7 @@ const NOT_INCLUDED = [
 const STEPS = [
   { title: 'Upload your résumé', body: 'We read it so you don’t retype your history.' },
   { title: 'Answer a few questions', body: 'What you want, where, and what you won’t do.' },
-  { title: 'Create your free account', body: 'Then this same search comes back ranked for you, with a reason on each job.' },
+  { title: 'Join free as a Member', body: 'Then this same search comes back ranked for you, with a reason on each job.' },
 ]
 
 export function PersonalizePanel({
