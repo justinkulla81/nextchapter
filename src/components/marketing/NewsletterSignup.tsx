@@ -68,7 +68,7 @@ export function NewsletterSignup({
             />
             <button
               type="submit" disabled={pending}
-              className={`inline-flex h-11 shrink-0 items-center justify-center rounded-lg bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95 ${pending ? 'cursor-wait opacity-70' : ''}`}
+              className={`inline-flex h-11 shrink-0 items-center justify-center rounded-lg bg-navy px-5 text-sm font-semibold text-white hover:bg-navy/90 ${pending ? 'cursor-wait opacity-70' : ''}`}
             >
               {pending ? 'Signing up…' : 'Get it monthly'}
             </button>
@@ -100,7 +100,7 @@ export function NewsletterSignup({
             />
             <button
               type="submit" disabled={pending}
-              className={`inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-action px-4 text-sm font-semibold text-action-foreground hover:brightness-95 ${pending ? 'cursor-wait opacity-70' : ''}`}
+              className={`inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-white px-4 text-sm font-semibold text-navy hover:bg-white/90 ${pending ? 'cursor-wait opacity-70' : ''}`}
             >
               {pending ? 'Subscribing…' : 'Subscribe'}
             </button>
@@ -134,7 +134,7 @@ export function NewsletterSignup({
             />
             <button
               type="submit" disabled={pending}
-              className={`inline-flex h-11 shrink-0 items-center justify-center rounded-lg bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95 ${pending ? 'cursor-wait opacity-70' : ''}`}
+              className={`inline-flex h-11 shrink-0 items-center justify-center rounded-lg bg-navy px-5 text-sm font-semibold text-white hover:bg-navy/90 ${pending ? 'cursor-wait opacity-70' : ''}`}
             >
               {pending ? 'Signing up…' : copy.cta}
             </button>

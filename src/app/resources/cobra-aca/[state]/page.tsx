@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat } from '@/components/seo/SeoPage'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { DeadlineEmailBox } from '@/components/cobra-aca/DeadlineEmailBox'
-import { LaidOffStart } from '@/components/cobra-aca/LaidOffStart'
 import { compare, creditAtCliff, fplAmount, medicaidFplAmount } from '@/lib/cobra-aca/calc'
 import { COBRA, MARKETPLACE, MEDICAID, NATIONAL_BENCHMARK, RULES_AS_OF } from '@/lib/cobra-aca/rules'
 import { FPL_REGION, MARKETPLACE_LABEL, NON_EXPANSION_STATES, STATE_FACTS, benchmarkChangePct, benchmarkRank, diffFromNational, stateMeetsBar } from '@/lib/cobra-aca/states'
@@ -212,7 +211,6 @@ export default async function CobraAcaStatePage({ params }: { params: Params }) 
           >
             Open the calculator for {name}
           </Link>
-          <LaidOffStart placement="state_page" label="Or get your free Market Reality Assessment" />
         </div>
       </section>
 
