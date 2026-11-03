@@ -8,6 +8,7 @@ import { checkFit, checkFitItems, fitWords, type FitResult } from '@/lib/capture
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { posthog } from '@/lib/posthog/client'
 import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
+import { rememberState, useVisitorState } from '@/lib/capture/visitor-state'
 import { cn } from '@/lib/utils'
 
 const FIELD = 'h-11 w-full rounded-lg border border-border bg-white px-3 text-base'
@@ -22,6 +23,10 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
   const [fit, setFit] = useState<FitResult | null>(null)
   const [aiFit, setAiFit] = useState<FitResult | null>(null)
   const [state, action, pending] = useActionState<FitLeadState, FormData>(submitFitLead, undefined)
+  const visitor = useVisitorState()
+  // The select starts from the state the visitor chose before or where they appear to be; once they pick one it stays theirs.
+  const [picked, setPicked] = useState<string | null>(null)
+  const stateCode = picked ?? visitor.state ?? ''
 
   function run() {
     const f = checkFit(resume, skills)
@@ -104,7 +109,7 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
               </Link>
             </div>
           ) : (
-            <form action={action} noValidate onSubmit={() => posthog.capture('fit_lead_submitted_client', { source, ran: !!fit, fitPct: fit?.pct ?? null })} className={cn('space-y-3', pending && 'cursor-wait')}>
+            <form action={action} noValidate onSubmit={() => { if (stateCode) rememberState(stateCode); posthog.capture('fit_lead_submitted_client', { source, ran: !!fit, fitPct: fit?.pct ?? null }) }} className={cn('space-y-3', pending && 'cursor-wait')}>
               <h3 className="text-lg font-bold text-navy">Make it yours</h3>
               <p className="text-sm text-navy/80">Tell us your state and where to reach you. Attach your résumé if you want a real read on it.</p>
               <input type="hidden" name="source" value={source} />
@@ -116,7 +121,7 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
               </div>
               <div>
                 <label htmlFor="fit-state" className="text-sm font-semibold text-navy">Your state</label>
-                <select id="fit-state" name="state" defaultValue="" className={cn(FIELD, 'mt-1')}>
+                <select id="fit-state" name="state" value={stateCode} onChange={(e) => setPicked(e.target.value)} className={cn(FIELD, 'mt-1')}>
                   <option value="" disabled>Choose a state</option>
                   {ALL_STATE_CODES.map((c) => <option key={c} value={c}>{stateName(c)}</option>)}
                 </select>

@@ -53,11 +53,11 @@
       "schedule": "20 6 2 * *"
     },
     {
-      "path": "/api/cron/rankings?group=functions",
+      "path": "/api/cron/rankings?run=b",
       "schedule": "40 6 2 * *"
     },
     {
-      "path": "/api/cron/rankings?group=skills",
+      "path": "/api/cron/rankings?run=c",
       "schedule": "0 7 2 * *"
     },
     {

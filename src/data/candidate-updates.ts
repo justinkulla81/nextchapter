@@ -22,6 +22,18 @@ export interface CandidateUpdate {
 export const CANDIDATE_UPDATES: CandidateUpdate[] = [
   {
     date: '2026-11-02',
+    title: 'See how your résumé fares for a job title or industry',
+    summary: 'Every job-title and industry page now has a skills check: paste your résumé and see which of the skills employers name you already cover, which you are missing, and which AI skills are worth having. It runs in your browser.',
+    href: 'https://launchyournextchapter.com/jobs/title/software-engineer',
+  },
+  {
+    date: '2026-11-02',
+    title: 'Job outlook, pay and AI use on job-title pages',
+    summary: 'Pages for many job titles now show the government\'s 10-year employment outlook, national median pay, openings per year and how much AI is already used in the work, plus the jobs people move into from that role.',
+    href: 'https://launchyournextchapter.com/jobs/title/account-executive',
+  },
+  {
+    date: '2026-11-02',
     title: 'Tell us your situation in one tap, and get a first-week plan for it',
     summary: 'The emails we send after you save a job, turn on alerts or join the list now ask which situation is closest to yours (laid off, thinking about a move, changing careers). Tap one and the next email is a three-step first-week plan for that situation, with no résumé needed to start.',
   },
