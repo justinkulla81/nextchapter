@@ -10,6 +10,7 @@ import { NEWS_KINDS } from '@/lib/news/kind'
 import { newsTagLabel } from '@/lib/news/tags'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
 
 export const revalidate = 300
 
@@ -108,7 +109,7 @@ export default async function NewsItemPage({ params }: { params: Promise<{ slug:
             <TrackedLink
               href={item.url} event="news_item_clicked"
               properties={{ itemId: item.id, kind: item.kind, source: item.source, placement: 'item_page' }}
-              className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
+              className={SECONDARY_ACTION}
             >
               {linkOutLabel(item.kind, item.source)} →
             </TrackedLink>

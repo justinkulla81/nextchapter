@@ -13,6 +13,7 @@ import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { PREMIUM_METHOD, aiPremiumForFunction, signedPct, type FunctionAiPremium } from '@/lib/pay/ai-premium'
 import { MIN_LIKE_N, MIN_PER_SIDE } from '@/lib/skills/ai-market'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
+import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -205,7 +206,7 @@ export default async function AiSkillsPayPremiumPage() {
               href="/tools/pay-check"
               event="ai_pay_cta_clicked"
               properties={{ page: 'ai_pay_explainer', cta: 'pay_check' }}
-              className="inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
+              className={SECONDARY_ACTION}
             >
               Check my pay
             </TrackedLink>

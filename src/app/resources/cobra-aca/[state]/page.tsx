@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat } from '@/components/seo/SeoPage'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { DeadlineEmailBox } from '@/components/cobra-aca/DeadlineEmailBox'
-import { LaidOffStart } from '@/components/cobra-aca/LaidOffStart'
 import { compare, creditAtCliff, fplAmount, medicaidFplAmount } from '@/lib/cobra-aca/calc'
 import { COBRA, MARKETPLACE, MEDICAID, NATIONAL_BENCHMARK, RULES_AS_OF } from '@/lib/cobra-aca/rules'
 import { FPL_REGION, MARKETPLACE_LABEL, NON_EXPANSION_STATES, STATE_FACTS, benchmarkChangePct, benchmarkRank, diffFromNational, stateMeetsBar } from '@/lib/cobra-aca/states'
@@ -15,6 +14,7 @@ import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { ALL_STATE_CODES, stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
 import { fitDescription } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
+import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
 
 // One page per state and DC: is a Marketplace plan cheaper than COBRA there? Only sourced facts (src/lib/cobra-aca/states.ts):
 // Medicaid expansion, marketplace type and KFF benchmark premiums, plus worked examples from the IRS table. The page is kept lean
@@ -207,11 +207,10 @@ export default async function CobraAcaStatePage({ params }: { params: Params }) 
         <div className="mt-4 flex flex-wrap items-center gap-4">
           <Link
             href={`/tools/cobra-vs-aca-calculator?state=${code}`}
-            className="inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
+            className={SECONDARY_ACTION}
           >
             Open the calculator for {name}
           </Link>
-          <LaidOffStart placement="state_page" label="Or get your free Market Reality Assessment" />
         </div>
       </section>
 
