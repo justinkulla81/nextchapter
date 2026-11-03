@@ -15,6 +15,8 @@ describe('company page landing helpers', () => {
     expect(landingHeadline('buyout', 'Microsoft', null)).toBe('Microsoft is offering buyouts. Here is how to decide, and what to do either way.')
     expect(landingHeadline('layoff', 'Microsoft', 277)).toBe('Microsoft filed layoffs for 277 workers. Here is what to do this week.')
     expect(landingHeadline('layoff', 'Microsoft', null, false)).toBe('Microsoft layoffs have been reported. Here is what to do this week.')
+    expect(landingHeadline('layoff', 'TIAA', 20, true, 3)).toBe("TIAA's latest layoff notice names 20 workers. Here is what to do this week.")
+    expect(landingHeadline('layoff', 'TIAA', 20, true, 1)).toBe('TIAA filed layoffs for 20 workers. Here is what to do this week.')
     expect(landingHeadline('neither', 'Costco', null)).toBe('Thinking about your next move from Costco? Start by seeing what is out there.')
   })
 

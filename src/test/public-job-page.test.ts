@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, isIndexableJob, isPublicJob, isStaleVerified, jobPostingJsonLd, missingRequiredJobFields, payLabel, plausiblePay, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
+import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, cleanCompanyText, isIndexableJob, isPublicJob, isStaleVerified, jobPostingJsonLd, missingRequiredJobFields, payLabel, plausiblePay, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
 
 const NOW = Date.parse('2026-10-22T12:00:00Z')
 const DAY = 86_400_000
@@ -181,5 +181,16 @@ describe('missingRequiredJobFields', () => {
   it('flags a validThrough that is not after datePosted', () => {
     const ld = { ...jobPostingJsonLd(job()), validThrough: new Date(NOW - 30 * DAY).toISOString() }
     expect(missingRequiredJobFields(ld)).toEqual(['validThrough(after datePosted)'])
+  })
+})
+
+describe('cleanCompanyText', () => {
+  it('removes stray markup left by a feed', () => {
+    expect(cleanCompanyText('ShipMonk</em')).toBe('ShipMonk')
+    expect(cleanCompanyText('Acme <b>Corp</b>')).toBe('Acme Corp')
+  })
+  it('leaves an ordinary name alone', () => {
+    expect(cleanCompanyText('Johnson & Johnson')).toBe('Johnson & Johnson')
+    expect(cleanCompanyText('  Luminis   Health ')).toBe('Luminis Health')
   })
 })

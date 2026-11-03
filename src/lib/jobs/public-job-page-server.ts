@@ -10,6 +10,7 @@ import {
   PUBLIC_JOB_SITEMAP_SHARDS,
   PUBLIC_JOB_SOURCES,
   PUBLIC_JOB_VERIFIED_DAYS,
+  cleanCompanyText,
   isPublicJob,
   type PublicJobRow,
 } from '@/lib/jobs/public-job-page'
@@ -80,7 +81,7 @@ export async function getPublicJob(id: string): Promise<PublicJobRow | null> {
     retryOnPoolTimeout(() => getConfirmedGhostIds()),
   ])
   if (!job || !isPublicJob(job, Date.now(), ghosts.has(job.id))) return null
-  return job
+  return { ...job, companyName: cleanCompanyText(job.companyName) }
 }
 
 // The allowlist's fixed rules — IDENTICAL to the WHERE of the partial index
