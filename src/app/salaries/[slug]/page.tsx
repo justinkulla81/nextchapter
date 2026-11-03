@@ -9,6 +9,7 @@ import { usd } from '@/lib/seo/job-title-rules'
 import { salarySeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
 import { ShareBar } from '@/components/marketing/ShareBar'
+import { RoleGuideLink } from '@/components/roles/RoleGuideLink'
 import { AiPremiumSection } from '@/components/salaries/AiPremiumSection'
 import { RankingContext } from '@/components/rankings/RankingContext'
 import { TitlePayLink } from '@/components/pay-data/PayDataLinks'
@@ -93,6 +94,7 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
           {faq.map((f) => <div key={f.q}><dt className="font-medium text-navy">{f.q}</dt><dd className="mt-1 text-muted-foreground">{f.a}</dd></div>)}
         </dl>
       </Section>
+      <RoleGuideLink title={stat.name} />
       <JoinBand source={`salary:${slug}`} what={`what you are worth as a ${stat.name.toLowerCase()}`} />
     </TopicShell>
   )

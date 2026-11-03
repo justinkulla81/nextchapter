@@ -7,6 +7,7 @@ import { loadJobAggregate } from '@/lib/places/places'
 import { buildTitleFigures } from '@/lib/seo/job-titles'
 import { placeIndex } from '@/lib/seo/job-title-places'
 import { buildEntryFigures } from '@/lib/entry-roles/live'
+import { buildRoleFigures } from '@/lib/seo/role-figures'
 
 // The whole-board scans (10-65 s each over ~650k live postings), run one at a time instead of on public pages:
 // top employers, the workforce page counts, the jobs-by-AI-exposure split, the place job counts and the job-title
@@ -33,6 +34,13 @@ async function refreshEntryRoleFigures() {
   await writeBoardFigure('entry-role-places-index', index)
 }
 
+/** One scan feeds the role index and one row per role page (/roles/<role>). */
+async function refreshRoleFigures() {
+  const { index, parts } = await buildRoleFigures()
+  await writeBoardFigure('role-index', index)
+  await replaceBoardFigures('role:', index.map((r) => [`role:${r.slug}`, parts.get(r.slug)] as [BoardFigureKey, unknown]))
+}
+
 const STEPS: readonly (readonly [string, () => Promise<void>])[] = [
   ['employer-rankings', single('employer-rankings', buildEmployerRankings)],
   ['function-rankings', single('function-rankings', buildFunctionRankings)],
@@ -41,6 +49,7 @@ const STEPS: readonly (readonly [string, () => Promise<void>])[] = [
   ['places-job-aggregate', single('places-job-aggregate', loadJobAggregate)],
   ['job-titles', refreshTitleFigures],
   ['entry-roles', refreshEntryRoleFigures],
+  ['roles', refreshRoleFigures],
 ]
 
 export async function refreshBoardFigures(): Promise<{ done: Record<string, number>; failed: string[] }> {
