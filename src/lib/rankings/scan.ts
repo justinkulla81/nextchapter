@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
 import { loadCountyContext } from '@/lib/workforce/county-context-data'
-import { COUNTY_SECTORS } from '@/lib/workforce/county-context'
+import { COUNTY_SECTORS, areaContext } from '@/lib/workforce/county-context'
 import { slugify } from '@/lib/seo/workforce-pages'
 import { stateName, stateSlug as stateSlugOf } from '@/lib/seo/states'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
@@ -77,10 +77,12 @@ export async function loadCityStats(): Promise<CityStat[]> {
 
 /** Private-sector jobs (BLS QCEW 2022 to 2025) and population (Census 2020 to 2025) for every county that reports both years. */
 export async function loadCountyStats(): Promise<CountyStat[]> {
-  const [{ context }, areas] = await Promise.all([
+  const [{ context }, areas, labor] = await Promise.all([
     loadCountyContext(),
-    prisma.geoArea.findMany({ select: { id: true, state: true, name: true, population: true } }),
+    prisma.geoArea.findMany({ select: { id: true, state: true, name: true, population: true, whiteCollarShare: true, medianHouseholdIncome: true } }),
+    prisma.countyLabor.findMany({ select: { fips: true, laborForce: true, rate: true, rateYearAgo: true } }),
   ])
+  const laborOf = new Map(labor.map((l) => [l.fips, l]))
   const infoIdx = context.sectors.indexOf('51')
   if (infoIdx < 0 || !COUNTY_SECTORS.some((s) => s.code === '51')) throw new Error('county context has no Information sector')
   // A county slug is unique within its state: the name, or the name and FIPS when two share it.
@@ -92,11 +94,15 @@ export async function loadCountyStats(): Promise<CountyStat[]> {
     if (!c?.t || c.t[0] < 0 || c.t[1] < 0) continue
     const slug = (names.get(`${a.state}|${slugify(a.name)}`) ?? 0) > 1 ? `${slugify(a.name)}-${a.id}` : slugify(a.name)
     const then = c.e[2 * infoIdx]
+    const ex = areaContext(context, [a.id]).exposed
     const now = c.e[2 * infoIdx + 1]
     out.push({
       fips: a.id, st: a.state, name: a.name, href: `/places/${stateSlugOf(a.state)}/county/${slug}`, population: a.population,
       populationChangePct: c.p && c.p[0] > 0 ? ((c.p[1] - c.p[0]) / c.p[0]) * 100 : null,
       jobsThen: c.t[0], jobsNow: c.t[1], infoThen: then >= 0 ? then : 0, infoNow: now >= 0 ? now : 0,
+      rate: laborOf.get(a.id)?.rate ?? null, rateYearAgo: laborOf.get(a.id)?.rateYearAgo ?? null, laborForce: laborOf.get(a.id)?.laborForce ?? null,
+      whiteCollarShare: a.whiteCollarShare, medianIncome: a.medianHouseholdIncome,
+      exposedShare: ex ? ex.share / 100 : null, exposedTop: ex?.top[0] ? `${ex.top[0].label} (${Math.round(ex.top[0].share)}% of jobs)` : null,
     })
   }
   return out

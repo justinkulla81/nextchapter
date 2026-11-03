@@ -5,7 +5,7 @@ import { CITY_MEASURES, CONCENTRATION_NOTE, COUNTY_MEASURES, MEASURE_SOURCES, nf
 import { REGIONS, regionById } from '@/lib/rankings/regions'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { AI_SKILL_ITEMS } from '@/lib/skills/ai-skills'
-import type { BuildGroup, CityStat, CountyStat, FnTotal, MeasureId, PlaceInfo, RankRow, RankingEdition, SkillStat } from '@/lib/rankings/types'
+import type { BuildGroup, CityStat, CollegeStat, CountyStat, FnTotal, MeasureId, PlaceInfo, RankRow, RankingEdition, SkillStat } from '@/lib/rankings/types'
 
 export const MIN_RANKED = 8
 export const MAX_ROWS = 100
@@ -20,14 +20,16 @@ export interface Spec {
   /** A job family the list is about ("Operations"), for the job-family and skills lists. */
   fn?: string
   minRanked?: number
+  /** One extra sentence for the method box ('Only cities with a college are ranked'). */
+  note?: string
 }
 
 const NATIONAL = { kind: 'national' as const, id: 'us', name: 'United States', phrase: 'the United States' }
 
-type PlaceMeasure = keyof typeof CITY_MEASURES | 'growth' | 'infogrowth'
+type PlaceMeasure = keyof typeof CITY_MEASURES | keyof typeof COUNTY_MEASURES
 
 function specFor(measure: PlaceMeasure, scope: Spec['scope']): Spec {
-  const m = measure === 'growth' || measure === 'infogrowth' ? COUNTY_MEASURES[measure] : CITY_MEASURES[measure]
+  const m = measure in COUNTY_MEASURES ? COUNTY_MEASURES[measure as keyof typeof COUNTY_MEASURES] : CITY_MEASURES[measure as keyof typeof CITY_MEASURES]
   if (scope.kind === 'national') return { slug: m.base.slug, measure, scope, title: m.base.title, family: m.family, group: 'places' }
   const s = m.scoped(scope.kind === 'region' ? scope.phrase : scope.name)
   const part = (scope.kind === 'region' ? scope.phrase : scope.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -94,6 +96,33 @@ export function skillSpecs(): Spec[] {
   return out
 }
 
+/** Wave 3, workforce and research: four county lists, nationally and for each region. Places and economies only; no employer is named. */
+export function workforceSpecs(): Spec[] {
+  const out: Spec[] = []
+  for (const m of ['lowunemp', 'unempdrop', 'whitecollar', 'aiexposed'] as PlaceMeasure[]) {
+    out.push({ ...specFor(m, NATIONAL_SCOPE), group: 'workforce' })
+    for (const r of REGIONS) out.push({ ...specFor(m, { kind: 'region', id: r.id, name: r.name, phrase: r.phrase }), group: 'workforce' })
+  }
+  return out.map((s) => ({ ...s, family: s.family }))
+}
+
+const COLLEGE_NOTE = 'Earnings are the median earnings of students who received federal financial aid, ten years after they first enrolled, as published in the Department of Education College Scorecard. They describe past students, not a promise for future ones.'
+
+/** Wave 3, higher education: earnings outcomes for four-year and two-year colleges, by region and by state, and college towns for junior jobs. */
+export function collegeSpecs(states: string[]): Spec[] {
+  const out: Spec[] = []
+  const base = (slug: string, title: string, scope: Spec['scope'], level?: string): Spec => ({ slug, measure: 'collegepay', scope, title, family: 'Higher education', group: 'college', fn: level })
+  out.push(base('colleges-with-the-highest-earnings', 'Colleges with the highest earnings 10 years after enrolling', NATIONAL_SCOPE))
+  out.push(base('four-year-colleges-with-the-highest-earnings', 'Four-year colleges with the highest earnings 10 years after enrolling', NATIONAL_SCOPE, '4-year'))
+  out.push(base('two-year-colleges-with-the-highest-earnings', 'Community and two-year colleges with the highest earnings 10 years after enrolling', NATIONAL_SCOPE, '2-year'))
+  for (const r of REGIONS) out.push(base(`colleges-with-the-highest-earnings-in-${r.phrase.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`, `Colleges with the highest earnings 10 years after enrolling in ${r.phrase}`, { kind: 'region', id: r.id, name: r.name, phrase: r.phrase }))
+  for (const code of states) out.push(base(`colleges-with-the-highest-earnings-in-${stateSlug(code)}`, `Colleges with the highest earnings 10 years after enrolling in ${stateName(code)}`, { kind: 'state', id: stateSlug(code), name: stateName(code), phrase: stateName(code) }))
+  const town = 'Only cities that have a college or university in the Department of Education directory are ranked.'
+  out.push({ slug: 'best-college-towns-for-junior-jobs', measure: 'junior', scope: NATIONAL_SCOPE, title: 'Best college towns for entry-level and junior jobs', family: 'Higher education', group: 'college', note: town })
+  for (const r of REGIONS) out.push({ slug: `best-college-towns-for-junior-jobs-in-${r.phrase.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`, measure: 'junior', scope: { kind: 'region', id: r.id, name: r.name, phrase: r.phrase }, title: `Best college towns for junior jobs in ${r.phrase}`, family: 'Higher education', group: 'college', note: town })
+  return out
+}
+
 /** The states a scope covers, or null for the whole country. */
 function statesOf(scope: Spec['scope']): Set<string> | null {
   if (scope.kind === 'national') return null
@@ -120,6 +149,17 @@ function toRows(ranked: Ranked[], prev: Map<string, number> | null): RankRow[] {
 }
 
 const byValue = (a: Ranked, b: Ranked) => b.value - a.value || b.n - a.n || a.name.localeCompare(b.name)
+const byValueAsc = (a: Ranked, b: Ranked) => a.value - b.value || b.n - a.n || a.name.localeCompare(b.name)
+
+/** The bar length of each ranked row, 0 to 1, longest for the leader whichever way the list is ordered. */
+function bars(ranked: Ranked[], asc: boolean): number[] {
+  const vals = ranked.map((r) => r.value)
+  const anyNeg = vals.some((v) => v < 0)
+  const maxAbs = Math.max(...vals.map(Math.abs), 1e-9)
+  const positive = vals.filter((v) => v > 0)
+  const minPos = positive.length ? Math.min(...positive) : 1
+  return vals.map((v) => (anyNeg ? Math.abs(v) / maxAbs : asc ? (v > 0 ? minPos / v : 1) : v / maxAbs))
+}
 
 function commentary(spec: Spec, rows: RankRow[], unit: string, noun: string, minN: number): string[] {
   const out: string[] = []
@@ -151,13 +191,18 @@ interface Def {
   method: string[]
   noun: RankingEdition['placeNoun']
   unit: string
-  sampleUnit: 'openings' | 'jobs'
+  sampleUnit: 'openings' | 'jobs' | 'students'
   extraMethod?: string[]
+  /** Lowest value ranks first. */
+  asc?: boolean
 }
 
 export function editionFor(spec: Spec, ranked: Ranked[], baseline: { label: string; valueLabel: string } | null, edition: string, builtAt: string, prev: Map<string, number> | null, d: Def): RankingEdition | null {
   if (ranked.length < d.minRanked) return null
-  const rows = toRows(ranked.sort(byValue), prev)
+  const sorted = ranked.sort(d.asc ? byValueAsc : byValue)
+  const rows = toRows(sorted, prev)
+  const barOf = bars(sorted.slice(0, MAX_ROWS), !!d.asc)
+  rows.forEach((r, i) => { r.bar = barOf[i] })
   const scopeLabel = spec.scope.phrase
   const first = rows[0]
   const lead = d.lead(first.name, first.valueLabel, scopeLabel, baseline?.valueLabel ?? null)
@@ -196,13 +241,13 @@ export function rankCities(spec: Spec, stats: CityStat[], info: (c: CityStat) =>
     return { key: `${c.st}|${c.city}`, name: place.name, sub: c.st, href: place.href, value: v, valueLabel: m.valueLabel(v), stats: m.stats(c, ctx), employers: c.employers, n: m.sample(c) }
   })
   return editionFor(spec, ranked, m.baseline(inScope, ctx), edition, builtAt, prev, {
-    minN: min, minRanked: spec.minRanked ?? MIN_RANKED, lead: m.lead, method: m.method, extraMethod: [CONCENTRATION_NOTE], noun: 'cities',
+    minN: min, minRanked: spec.minRanked ?? MIN_RANKED, lead: m.lead, method: m.method, extraMethod: [CONCENTRATION_NOTE, ...(spec.note ? [spec.note] : [])], noun: 'cities',
     unit: spec.measure === 'swe' ? 'engineering openings' : spec.measure === 'paycost' || spec.measure === 'fnpay' ? 'openings with pay posted' : 'openings', sampleUnit: 'openings',
   })
 }
 
 export function rankCounties(spec: Spec, stats: CountyStat[], edition: string, builtAt: string, prev: Map<string, number> | null): RankingEdition | null {
-  const m = COUNTY_MEASURES[spec.measure as 'growth' | 'infogrowth']
+  const m = COUNTY_MEASURES[spec.measure as keyof typeof COUNTY_MEASURES]
   const states = statesOf(spec.scope)
   const inScope = states ? stats.filter((c) => states.has(c.st)) : stats
   const min = m.min[spec.scope.kind]
@@ -211,7 +256,7 @@ export function rankCounties(spec: Spec, stats: CountyStat[], edition: string, b
     return { key: c.fips, name: c.name, sub: c.st, href: c.href, value: v, valueLabel: m.valueLabel(v), stats: m.stats(c), employers: [], n: m.sample(c) }
   })
   return editionFor(spec, ranked, m.baseline(inScope), edition, builtAt, prev, {
-    minN: min, minRanked: spec.minRanked ?? MIN_RANKED, lead: m.lead, method: m.method, noun: 'counties', unit: 'jobs', sampleUnit: 'jobs',
+    minN: min, minRanked: spec.minRanked ?? MIN_RANKED, lead: m.lead, method: m.method, noun: 'counties', unit: spec.measure === 'lowunemp' || spec.measure === 'unempdrop' || spec.measure === 'whitecollar' ? 'people in the labor force' : 'jobs', sampleUnit: 'jobs', asc: m.order === 'asc',
   })
 }
 
@@ -256,5 +301,30 @@ export function rankSkills(spec: Spec, stats: SkillStat[], totals: FnTotal[], ed
     method: pay
       ? ['A skill\'s score is the median posted annual salary of the open professional roles whose posting names it, read by our AI-skill tagger from the full posting text across 24 AI skills in three groups.', `Only skills named in at least ${MIN} openings that post a salary are ranked. A higher median means those roles pay more, not that the skill causes the pay.`]
       : [`A ${word}\'s score is the share of ${spec.fn ? `${fnLabel} ` : ''}open professional roles whose posting names it, read by our AI-skill tagger from the full posting text${kind === 'skill' ? ' across 24 AI skills in three groups: using AI in your work, leading AI, and building AI systems' : ''}.`, `Only ${noun} named in at least ${MIN} openings are ranked.`],
+  })
+}
+
+const control = (c: CollegeStat) => c.control ?? 'College'
+
+/** Ranks colleges on the median earnings of their former students ten years after enrolling. `spec.fn` is "4-year" or "2-year" to limit the level. */
+export function rankColleges(spec: Spec, colleges: CollegeStat[], edition: string, builtAt: string, prev: Map<string, number> | null): RankingEdition | null {
+  const states = statesOf(spec.scope)
+  const MIN_ENROLLED = spec.scope.kind === 'national' ? 1000 : 500
+  const inScope = colleges.filter((c) => (!states || states.has(c.st)) && (!spec.fn || c.level === spec.fn) && c.enrollment >= MIN_ENROLLED)
+  const ranked: Ranked[] = inScope.map((c) => ({
+    key: `college:${c.unitid}`, name: c.name, sub: c.st, href: c.href, value: c.earnings10, valueLabel: usdK(c.earnings10), n: c.enrollment, employers: [],
+    stats: [
+      { label: 'Completion rate', value: c.completionRate != null ? `${Math.round(c.completionRate * 100)}%` : 'Not available' },
+      { label: 'Net price a year', value: c.netPrice != null ? `$${nf(c.netPrice)}` : 'Not available' },
+      { label: control(c), value: `${nf(c.enrollment)} students` },
+    ],
+  }))
+  const all = inScope.map((c) => c.earnings10)
+  const baseline = all.length ? { label: 'the typical college in this list', valueLabel: usdK(all.reduce((s, x) => s + x, 0) / all.length) } : null
+  const levelWord = spec.fn === '4-year' ? 'four-year colleges' : spec.fn === '2-year' ? 'community and two-year colleges' : 'colleges'
+  return editionFor(spec, ranked, baseline, edition, builtAt, prev, {
+    minN: MIN_ENROLLED, minRanked: spec.minRanked ?? MIN_RANKED, noun: 'colleges', unit: 'students enrolled', sampleUnit: 'students',
+    lead: (name, v, scope, b) => `${name} leads ${scope} among ${levelWord} for earnings: its former students earn a median of ${v} ten years after enrolling${b ? `, against ${b} for the typical college in this list` : ''}.`,
+    method: [COLLEGE_NOTE, `Only ${levelWord} with at least ${nf(MIN_ENROLLED)} students and published earnings are ranked. A college's earnings reflect who enrolls and what they study as much as what the college teaches.`],
   })
 }

@@ -17,7 +17,7 @@ export interface Cost { rpp: number; basis: 'metro' | 'state' }
 export interface CityCtx { costOf: (c: CityStat) => Cost | null }
 
 export interface CityMeasure {
-  id: Exclude<MeasureId, 'growth' | 'infogrowth' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay'>
+  id: Exclude<MeasureId, 'growth' | 'infogrowth' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay' | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed' | 'collegepay'>
   kind: 'city'
   family: string
   /** Openings a city needs, by scope, in the unit the measure counts. */
@@ -248,7 +248,9 @@ const FNPAY: CityMeasure = {
 export const CITY_MEASURES: Record<CityMeasure['id'], CityMeasure> = { ...BASE, midcareer: MID, leadership: LEAD, fnopen: FNOPEN, fnpay: FNPAY }
 
 export interface CountyMeasure {
-  id: 'growth' | 'infogrowth'
+  id: 'growth' | 'infogrowth' | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed'
+  /** 'asc' ranks the lowest value first (lowest unemployment); the default is highest first. */
+  order?: 'asc' | 'desc'
   kind: 'county'
   family: string
   min: Record<Scope, number>
@@ -268,7 +270,7 @@ export interface CountyMeasure {
 const popOf = (c: CountyStat) => (c.populationChangePct != null ? signedPct(c.populationChangePct / 100) : 'Not available')
 const sumC = (xs: CountyStat[], f: (c: CountyStat) => number) => xs.reduce((s, c) => s + f(c), 0)
 
-export const COUNTY_MEASURES: Record<CountyMeasure['id'], CountyMeasure> = {
+const COUNTY_BASE: Record<'growth' | 'infogrowth', CountyMeasure> = {
   growth: {
     id: 'growth', kind: 'county', family: 'Growth', unit: 'jobs',
     min: { national: 20_000, region: 20_000, state: 20_000 },
@@ -311,8 +313,88 @@ export const COUNTY_MEASURES: Record<CountyMeasure['id'], CountyMeasure> = {
   },
 }
 
+const ECON_MIN: Record<Scope, number> = { national: 20_000, region: 20_000, state: 20_000 }
+const rateText = (r: number) => `${r.toFixed(1)}%`
+const pts = (d: number) => `${d > 0 ? '+' : d < 0 ? '−' : ''}${Math.abs(d).toFixed(1)} points`
+const mean = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : 0)
+
+const LOWUNEMP: CountyMeasure = {
+  id: 'lowunemp', kind: 'county', order: 'asc', family: 'Workforce', unit: 'jobs', min: ECON_MIN,
+  qualifies: (c, min) => (c.laborForce ?? 0) >= min && c.rate != null && c.rate > 0,
+  value: (c) => c.rate as number,
+  valueLabel: rateText,
+  sample: (c) => c.laborForce ?? 0,
+  stats: (c) => [
+    { label: 'A year ago', value: c.rateYearAgo != null ? rateText(c.rateYearAgo) : 'Not available' },
+    { label: 'People in the labor force', value: nf(c.laborForce ?? 0) },
+    { label: 'Population', value: c.population != null ? nf(c.population) : 'Not available' },
+  ],
+  baseline: (all) => { const r = all.filter((c) => c.rate != null && (c.laborForce ?? 0) >= 20_000).map((c) => c.rate as number); return r.length ? { label: 'the typical large county', valueLabel: rateText(mean(r)) } : null },
+  lead: (name, v, scope, b) => `${name} has the lowest unemployment rate in ${scope} among large counties: ${v}${b ? `, against ${b} for the typical large county` : ''}.`,
+  method: [
+    'A county\'s score is its unemployment rate, from the Bureau of Labor Statistics Local Area Unemployment Statistics, not seasonally adjusted. The lowest rate ranks first.',
+    'Only counties with at least 20,000 people in the labor force are ranked, so small counties do not swing the list. Local rates are estimates and move from month to month.',
+  ],
+  base: { title: 'Counties with the lowest unemployment', slug: 'counties-with-the-lowest-unemployment' },
+  scoped: (p) => ({ title: `Counties with the lowest unemployment in ${p}`, slug: (id) => `counties-with-the-lowest-unemployment-in-${id}` }),
+}
+const UNEMPDROP: CountyMeasure = {
+  id: 'unempdrop', kind: 'county', order: 'asc', family: 'Workforce', unit: 'jobs', min: ECON_MIN,
+  qualifies: (c, min) => (c.laborForce ?? 0) >= min && c.rate != null && c.rateYearAgo != null && c.rate - c.rateYearAgo < 0,
+  value: (c) => (c.rate as number) - (c.rateYearAgo as number),
+  valueLabel: pts,
+  sample: (c) => c.laborForce ?? 0,
+  stats: (c) => [{ label: 'Unemployment now', value: rateText(c.rate as number) }, { label: 'A year ago', value: rateText(c.rateYearAgo as number) }, { label: 'People in the labor force', value: nf(c.laborForce ?? 0) }],
+  baseline: (all) => { const d = all.filter((c) => c.rate != null && c.rateYearAgo != null && (c.laborForce ?? 0) >= 20_000).map((c) => (c.rate as number) - (c.rateYearAgo as number)); return d.length ? { label: 'the typical large county', valueLabel: pts(mean(d)) } : null },
+  lead: (name, v, scope, b) => `${name} saw the biggest improvement in ${scope}: its unemployment rate changed ${v} over the year${b ? `, against ${b} for the typical large county` : ''}.`,
+  method: [
+    'A county\'s score is the change in its unemployment rate over twelve months, from the Bureau of Labor Statistics Local Area Unemployment Statistics, not seasonally adjusted. The biggest fall ranks first.',
+    'Only counties with at least 20,000 people in the labor force whose rate fell are ranked. Month-to-month local estimates can be revised, so small differences are not meaningful.',
+  ],
+  base: { title: 'Counties where unemployment fell the most', slug: 'counties-where-unemployment-fell-the-most' },
+  scoped: (p) => ({ title: `Counties where unemployment fell the most in ${p}`, slug: (id) => `counties-where-unemployment-fell-the-most-in-${id}` }),
+}
+const WHITECOLLAR: CountyMeasure = {
+  id: 'whitecollar', kind: 'county', family: 'Research', unit: 'jobs', min: ECON_MIN,
+  qualifies: (c, min) => (c.laborForce ?? 0) >= min && c.whiteCollarShare != null,
+  value: (c) => c.whiteCollarShare as number,
+  valueLabel: (v) => `${Math.round(v * 100)}%`,
+  sample: (c) => c.laborForce ?? 0,
+  stats: (c) => [{ label: 'Median household income', value: c.medianIncome != null ? `$${nf(c.medianIncome)}` : 'Not available' }, { label: 'People in the labor force', value: nf(c.laborForce ?? 0) }, { label: 'Unemployment', value: c.rate != null ? rateText(c.rate) : 'Not available' }],
+  baseline: (all) => { const r = all.filter((c) => c.whiteCollarShare != null && (c.laborForce ?? 0) >= 20_000).map((c) => c.whiteCollarShare as number); return r.length ? { label: 'the typical large county', valueLabel: `${Math.round(mean(r) * 100)}%` } : null },
+  lead: (name, v, scope, b) => `${name} has the highest share of white-collar workers in ${scope}: ${v} of its workers are in management, business, financial or professional occupations${b ? `, against ${b} in the typical large county` : ''}.`,
+  method: [
+    'A county\'s score is the share of its employed residents in management, business, financial and professional occupations, from the Census Bureau American Community Survey 5-year estimates.',
+    'Only counties with at least 20,000 people in the labor force are ranked. The figure describes where residents work by occupation, not where their employers are.',
+  ],
+  base: { title: 'Counties with the highest share of white-collar workers', slug: 'counties-with-the-most-white-collar-workers' },
+  scoped: (p) => ({ title: `Counties with the highest share of white-collar workers in ${p}`, slug: (id) => `counties-with-the-most-white-collar-workers-in-${id}` }),
+}
+const AIEXPOSED: CountyMeasure = {
+  id: 'aiexposed', kind: 'county', family: 'Research', unit: 'jobs', min: ECON_MIN,
+  qualifies: (c, min) => c.jobsThen >= min && c.exposedShare != null,
+  value: (c) => c.exposedShare as number,
+  valueLabel: (v) => `${Math.round(v * 100)}%`,
+  sample: (c) => c.jobsNow,
+  stats: (c) => [{ label: 'Private-sector jobs, 2025', value: nf(c.jobsNow) }, { label: 'Largest exposed sector', value: c.exposedTop ?? 'Not available' }, { label: 'Job growth since 2022', value: c.jobsThen > 0 ? signedPct((c.jobsNow - c.jobsThen) / c.jobsThen) : 'Not available' }],
+  baseline: (all) => { const r = all.filter((c) => c.exposedShare != null && c.jobsThen >= 20_000).map((c) => c.exposedShare as number); return r.length ? { label: 'all large counties', valueLabel: `${Math.round(mean(r) * 100)}%` } : null },
+  lead: (name, v, scope, b) => `${name} has the largest share of jobs in AI-exposed sectors in ${scope}: ${v} of its private-sector jobs${b ? `, against ${b} in the typical large county` : ''}.`,
+  method: [
+    'A county\'s score is the share of its private-sector jobs in the sectors where much of the work is information handling that AI can already do in part: Information, Finance and insurance, Professional and technical services, Management of companies, and Administrative and staffing services. Jobs come from BLS Quarterly Census of Employment and Wages, 2025.',
+    'Exposure describes the mix of a local economy, not a forecast of lost jobs. Only counties with at least 20,000 private-sector jobs in 2022 are ranked.',
+  ],
+  base: { title: 'Counties with the most jobs in AI-exposed sectors', slug: 'counties-with-the-most-ai-exposed-jobs' },
+  scoped: (p) => ({ title: `Counties with the most jobs in AI-exposed sectors in ${p}`, slug: (id) => `counties-with-the-most-ai-exposed-jobs-in-${id}` }),
+}
+export const COUNTY_MEASURES: Record<CountyMeasure['id'], CountyMeasure> = { ...COUNTY_BASE, lowunemp: LOWUNEMP, unempdrop: UNEMPDROP, whitecollar: WHITECOLLAR, aiexposed: AIEXPOSED }
+
 const POSTINGS = ['NextChapter job data: open professional roles on employer career sites, verified in the last week']
 export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
+  lowunemp: ['Bureau of Labor Statistics, Local Area Unemployment Statistics (not seasonally adjusted)'],
+  unempdrop: ['Bureau of Labor Statistics, Local Area Unemployment Statistics (not seasonally adjusted)'],
+  whitecollar: ['Census Bureau, American Community Survey 5-year estimates (occupation by county)'],
+  aiexposed: ['Bureau of Labor Statistics, Quarterly Census of Employment and Wages, 2025 (private-sector jobs by sector)'],
+  collegepay: ['U.S. Department of Education, College Scorecard (median earnings, completion, net price), as held in our college tables'],
   midcareer: POSTINGS, leadership: POSTINGS, fnopen: POSTINGS, aiskills: POSTINGS, aitools: POSTINGS, aicerts: POSTINGS, skillpay: POSTINGS,
   fnpay: ['NextChapter job data: posted annual salary ranges', 'Bureau of Economic Analysis regional price parities 2024 (metro areas and states)'],
   junior: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
