@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { FeedLine } from '@/components/seo/FeedLine'
 import { permanentRedirect, redirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
-import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { CompanyLayoffGuide } from '@/components/layoffs/CompanyLayoffGuide'
 import { buildLayoffGuide } from '@/lib/warn/layoff-guide'
 import { filingFacts, guidePrograms } from '@/lib/warn/layoff-guide-programs'
@@ -310,10 +309,6 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <div className="mt-4">
               <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
             </div>
-            {/* Right under the notices, where someone who came for this employer is reading: the offer to hear about the next one. */}
-            <div className="mt-6">
-              <LayoffAlertForm employer={slug} employerName={c.name} source="layoffs:company" />
-            </div>
             <StatementForm
               slug={slug}
               companyName={c.name}
@@ -370,11 +365,6 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             workers and dates the employer reported; it does not say why. See the{' '}
             <Link href="/layoffs" className={LINK}>layoff tracker</Link> for how notices are collected and what they cover.
           </p>}
-          {!hasNotices && (
-            <div className="mt-10">
-              <LayoffAlertForm employer={slug} employerName={c.name} source="layoffs:company" />
-            </div>
-          )}
           <p className="mt-12 text-center text-sm text-muted-foreground">
             Want to browse openings on your own? <Link href="/jobs" className={LINK}>Go to the job board →</Link>
           </p>

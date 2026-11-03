@@ -1,16 +1,19 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useId } from 'react'
 import { Button } from '@/components/ui/button'
 import { saveLayoffAlert, type LayoffAlertState } from '@/lib/leads/layoff-alert-actions'
 import { posthog } from '@/lib/posthog/client'
 import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
 import { cn } from '@/lib/utils'
 
-// "Email me when there is a new notice" at the foot of the layoff pages. One employer, one state, or the whole
-// tracker. While the layoff emails are off the confirmation says so plainly; once on it asks for the confirm click.
-export function LayoffAlertForm({ employer, employerName, state, stateLabel, source }: { employer?: string; employerName?: string; state?: string; stateLabel?: string; source: string }) {
+// "Email me when there is a new notice" on the layoff pages. One employer, one state, or the whole tracker. While the
+// layoff emails are off the confirmation says so plainly; once on it asks for the confirm click.
+// `inline` drops the card and the second line, for a spot inside another card (the company page's hero, for people who are
+// only watching). Ids come from useId so two forms on one page never share one.
+export function LayoffAlertForm({ employer, employerName, state, stateLabel, source, inline = false }: { employer?: string; employerName?: string; state?: string; stateLabel?: string; source: string; inline?: boolean }) {
   const [formState, action, pending] = useActionState<LayoffAlertState, FormData>(saveLayoffAlert, undefined)
+  const uid = useId()
   const picker = !employer && !state
   const what = employerName ?? stateLabel ?? 'the state you pick'
 
@@ -30,16 +33,22 @@ export function LayoffAlertForm({ employer, employerName, state, stateLabel, sou
     <form
       action={action}
       noValidate
-      className={cn('max-w-xl rounded-2xl border border-border bg-white p-5', pending && 'cursor-wait')}
+      className={cn(inline ? 'max-w-xl' : 'max-w-xl rounded-2xl border border-border bg-white p-5', pending && 'cursor-wait')}
       onSubmit={() => posthog.capture('layoff_alert_signup_submitted_client', { employer, state, source })}
     >
-      <p className="text-base font-semibold text-navy">Get an email when a new notice is filed for {what}</p>
-      <p className="mt-1 text-sm text-muted-foreground">One email a day at most, only when there is something new. No account needed.</p>
+      {inline ? (
+        <p className="text-sm font-semibold text-navy">Just watching? Get an email if {what} files another layoff notice. No account needed.</p>
+      ) : (
+        <>
+          <p className="text-base font-semibold text-navy">Get an email when a new notice is filed for {what}</p>
+          <p className="mt-1 text-sm text-muted-foreground">One email a day at most, only when there is something new. No account needed.</p>
+        </>
+      )}
       <input type="hidden" name="employer" value={employer ?? ''} />
       {picker ? (
         <div className="mt-3">
-          <label className="sr-only" htmlFor="layoff-state">State</label>
-          <select id="layoff-state" name="state" defaultValue="" className="h-11 w-full rounded-lg border border-border bg-white px-3 text-base sm:w-64">
+          <label className="sr-only" htmlFor={`${uid}-state`}>State</label>
+          <select id={`${uid}-state`} name="state" defaultValue="" className="h-11 w-full rounded-lg border border-border bg-white px-3 text-base sm:w-64">
             <option value="" disabled>
               Choose a state
             </option>
@@ -55,13 +64,13 @@ export function LayoffAlertForm({ employer, employerName, state, stateLabel, sou
       )}
       <input type="hidden" name="source" value={source} />
       <div className="hidden" aria-hidden>
-        <label htmlFor="layoff-website">Website</label>
-        <input id="layoff-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+        <label htmlFor={`${uid}-website`}>Website</label>
+        <input id={`${uid}-website`} name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-        <label className="sr-only" htmlFor="layoff-email">Email address</label>
+        <label className="sr-only" htmlFor={`${uid}-email`}>Email address</label>
         <input
-          id="layoff-email"
+          id={`${uid}-email`}
           name="email"
           type="email"
           inputMode="email"
@@ -69,9 +78,10 @@ export function LayoffAlertForm({ employer, employerName, state, stateLabel, sou
           defaultValue={formState?.email}
           placeholder="you@example.com"
           aria-invalid={formState?.error ? true : undefined}
-          className="h-11 shrink-0 sm:flex-1 rounded-lg border border-border bg-white px-3 text-base"
+          className="h-11 w-full min-w-0 shrink-0 sm:w-auto sm:flex-1 rounded-lg border border-border bg-white px-3 text-base"
         />
-        <Button type="submit" disabled={pending} className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
+        {/* Inline it sits next to the card's primary button, so it takes the outline look: one accent button per view. */}
+        <Button type="submit" disabled={pending} className={cn('h-11 rounded-full px-5', inline ? 'border border-navy bg-white text-navy hover:bg-off-white' : 'bg-action text-action-foreground hover:brightness-95')}>
           {pending ? 'Saving…' : 'Email me'}
         </Button>
       </div>

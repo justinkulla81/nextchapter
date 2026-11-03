@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LandingHero } from '@/components/layoffs/landing/LandingHero'
+import { AffectedPrompt } from '@/components/layoffs/landing/AffectedPrompt'
 import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
 import { SearchTimeFacts } from '@/components/layoffs/landing/SearchTimeFacts'
 import { PeerEmployers } from '@/components/layoffs/landing/PeerEmployers'
@@ -32,7 +33,7 @@ function Page({ variant, name, slug, workers, context, near, similar, metro, not
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link><span aria-hidden> › </span><span className="text-foreground">{name}</span>
           </nav>
-          <LandingHero variant={variant} name={name} slug={slug} latestWorkers={workers} context={context} />
+          <LandingHero variant={variant} name={name} slug={slug} latestWorkers={workers} context={context} action={<AffectedPrompt variant={variant} name={name} slug={slug} />} />
           <SituationFlow variant={variant} company={name} slug={slug} state="WA" action={previewLead} searchSchools={previewSchools} />
           <SearchTimeFacts />
           <PeerEmployers company={name} near={near} similar={similar} metro={metro} />

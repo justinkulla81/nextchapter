@@ -19,7 +19,7 @@ export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = t
   noticeCount?: number
   /** One sourced line under the headline (what was announced or filed), already worded. */
   context: React.ReactNode
-  /** A control shown under the headline, above the fold (the "I'm interested" button). */
+  /** A control shown under the headline and its line of facts, above the fold (the "Were you affected?" card). */
   action?: React.ReactNode
 }) {
   const photo = pickPagePhoto(slug)
@@ -27,13 +27,15 @@ export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = t
   const showVicHeadshot = photo.who !== 'vic'
   return (
     <section aria-labelledby="landing-h1" className="grid gap-6 rounded-3xl bg-gradient-to-br from-navy to-brand p-6 text-white sm:p-10 lg:grid-cols-[1.5fr_1fr] lg:items-center">
-      <div>
+      {/* min-w-0: a grid item is as wide as its widest content by default, and the email field would push past the edge on a phone. */}
+      <div className="min-w-0">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">Independent page. Not from or affiliated with {name}.</p>
         <h1 id="landing-h1" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight [text-wrap:balance] sm:text-4xl">
           {landingHeadline(variant, name, latestWorkers, hasNotices, noticeCount)}
         </h1>
-        {action && <div className="mt-5 max-w-xl">{action}</div>}
+        {/* The facts first (how many, when, where): that is what the search asked. Then the action. */}
         <p className="mt-4 max-w-xl text-base opacity-90">{context}</p>
+        {action && <div className="mt-5 max-w-xl">{action}</div>}
       </div>
       <div className="overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/20">
         <Image src={photo.src} alt={photo.alt} width={800} height={800} priority className="aspect-[4/3] w-full object-cover" />
