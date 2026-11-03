@@ -30,6 +30,7 @@ import { approvedStatementMap } from '@/lib/employer-statements/store'
 import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } from '@/lib/warn/company-announcements'
 import { getEmployerBrand } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
+import { CompanyInterestFlag } from '@/components/company/CompanyInterestFlag'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { ClaimHint } from '@/components/seo/ClaimHint'
 import { LandingHero } from '@/components/layoffs/landing/LandingHero'
@@ -219,6 +220,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             </section>
           )}
 
+          <div className="mt-8"><CompanyInterestFlag company={c.name} slug={slug} page="layoffs" /></div>
           <OrgCandidateBand
             orgName={c.name}
             branded={!!brand}

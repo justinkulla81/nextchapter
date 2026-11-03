@@ -6,6 +6,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { JourneyPicker } from '@/components/home/JourneyPicker'
+import { CompanyInterestFlag } from '@/components/company/CompanyInterestFlag'
 import { EmployerEmailCapture } from '@/components/network/EmployerEmailCapture'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { getEmployerBrand } from '@/lib/branding/store'
@@ -142,6 +143,8 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
               <Link href={`/layoffs/company/${slug}`} className="underline underline-offset-4">All {c.name} layoff notices, dates and sources</Link>
             </p>
           </div>
+
+          <div className="mt-6"><CompanyInterestFlag company={c.name} slug={slug} page="network" /></div>
 
           <section aria-labelledby="jobs" className="mt-10">
             <h2 id="jobs" className={H2}>Jobs open now</h2>

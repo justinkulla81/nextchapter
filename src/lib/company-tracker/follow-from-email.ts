@@ -37,11 +37,11 @@ export async function followFromConfirmedLead(lead: { email: string; kind: strin
   }
 }
 
-/** Registration finished with a verified email: every employer-page signup made with it becomes a follow. Returns how many. */
+/** Registration finished with a verified email: every employer-page signup and every "I'm interested" flag made with it becomes a follow. Returns how many. */
 export async function claimEmployerFollows(candidateId: string, email: string | null): Promise<number> {
   if (!email) return 0
   const leads = await prisma.homepageLead.findMany({
-    where: { email: email.toLowerCase(), kind: 'job_alert', source: EMPLOYER_SOURCE, unsubscribedAt: null },
+    where: { email: email.toLowerCase(), unsubscribedAt: null, OR: [{ kind: 'job_alert', source: EMPLOYER_SOURCE }, { kind: 'company_interest' }] },
     select: { searchQ: true },
     orderBy: { createdAt: 'asc' },
     take: 25,
