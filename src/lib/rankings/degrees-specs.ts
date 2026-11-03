@@ -215,7 +215,7 @@ export function rankOccupations(spec: Spec, socs: SocStat[], edition: string, bu
   if (!group) return null
   const open = mode === 'open'
   const pay = mode === 'pay'
-  const min = open ? 100 : pay ? 100 : 200
+  const min = gid === 'master' || gid === 'doctoral' ? 30 : open ? 100 : pay ? 100 : 200
   const asc = mode === 'slow'
   const pool = socs.filter((s) => {
     const o = OCCUPATIONS[s.soc]
@@ -279,8 +279,8 @@ export function rankDegreeCities(
   const states = statesOfScope(spec)
   const byShare = spec.measure === 'dg_cityshare'
   const nat = spec.scope.kind === 'national'
-  const minBelow = byShare ? 20 : nat ? 60 : 30
-  const minCoded = byShare ? (nat ? 200 : 100) : 100
+  const minBelow = byShare ? (nat ? 20 : 12) : nat ? 60 : 15
+  const minCoded = byShare ? (nat ? 200 : 80) : nat ? 100 : 60
   const ranked: Ranked[] = []
   for (const r of rows) {
     if (states && !states.has(r.st)) continue
