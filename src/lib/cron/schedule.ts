@@ -55,7 +55,7 @@ export const CRON_BUNDLES: Readonly<Record<string, readonly string[]>> = {
   'bundle-tuesday-digests': ['market-digest-recruiters', 'market-digest-employers', 'weekly-read', 'market-digest-coaches', 'upgrade-offer'],
   'bundle-wednesday': ['nudge-recruiter-network-unlock', 'win-back'],
   'bundle-monday': ['senior-brief', 'outplacement-agent', 'course-scan', 'higher-ed-weekly', 'market-reality-snapshot', 'auto-assign-sprint', 'conference-recheck', 'population-snapshot'],
-  'bundle-sunday': ['partner-scores', 'workforce-boards'],
+  'bundle-sunday': ['partner-scores', 'workforce-boards', 'job-segments'],
   'bundle-afternoon': ['lead-nurture', 'layoff-alerts', 'job-alerts', 'deadline-reminders', 'census-comms', 'notify-recruiters-new-candidates', 'backchannel-match', 'registration-reminders', 'interim-role-reverify'],
   'bundle-hourly-light': ['indexnow-layoffs', 'social-filings', 'mailing-verify', 'topic-snapshots'],
   'bundle-every-5': ['lead-lifecycle', 'mailing-send'],
@@ -90,7 +90,7 @@ export const RERUN_SAFE_JOBS: ReadonlySet<string> = new Set([
   'funding-opportunities', 'content-drafts', 'catalog-seeds', 'federal-contracts', 'board-bids', 'competitor-awards', 'news-discovery', 'likely-openings',
   'workforce-boards', 'workforce-board-intel', 'refresh-youtube-content',
   'expire-job-postings', 'benefits-network-expire-listings', 'population-snapshot',
-  'partner-scores', 'activity-streaks', 'board-light-rows', 'job-feed-direct', 'job-feed-jooble', 'indexnow-jobs', 'indexnow-seo-pages', 'indexnow-layoffs', 'google-indexing-jobs', 'bing-url-submit', 'pivot-market', 'market-size', 'ai-market', 'board-figures', 'rankings', 'page-warmup',
+  'partner-scores', 'activity-streaks', 'board-light-rows', 'job-feed-direct', 'job-feed-jooble', 'indexnow-jobs', 'indexnow-seo-pages', 'indexnow-layoffs', 'google-indexing-jobs', 'bing-url-submit', 'pivot-market', 'market-size', 'ai-market', 'board-figures', 'rankings', 'job-segments', 'page-warmup',
   // Asks the AI assistants a fixed list of questions. It costs money, but the run stops at the monthly cap (src/lib/ai-visibility/run.ts), so a second click cannot overspend.
   'ai-citation-check',
 ])
