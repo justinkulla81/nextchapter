@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { LayoffTable } from './LayoffTable'
 import { StructuredData } from '@/components/StructuredData'
 import type { LayoffTrackerData } from '@/lib/warn/public-tracker'
 import { monthLabel, type NationalLaborData } from '@/lib/market/bls-national'
@@ -119,58 +119,12 @@ export function LayoffTracker({ data, national, headingLevel = 'h2' }: { data: L
         </div>
       </div>
 
-      <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-white">
-        <table className="w-full min-w-[40rem] text-left text-sm">
-          <caption className="sr-only">The most recent layoff notices, newest first</caption>
-          <thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
-            <tr>
-              <th scope="col" className="px-4 py-3 font-medium">Date</th>
-              <th scope="col" className="px-4 py-3 font-medium">Employer</th>
-              <th scope="col" className="px-4 py-3 font-medium">State</th>
-              <th scope="col" className="px-4 py-3 text-right font-medium">Workers</th>
-              <th scope="col" className="px-4 py-3 font-medium">Takes effect</th>
-              <th scope="col" className="px-4 py-3 font-medium">Source</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {data.rows.map((r) => (
-              <tr key={r.key}>
-                <td className="px-4 py-3 whitespace-nowrap tabular-nums text-muted-foreground">{r.noticeDate}</td>
-                <th scope="row" className="px-4 py-3 font-medium text-navy">
-                  {r.companySlug ? <Link href={`/layoffs/company/${r.companySlug}`} className="hover:text-brand hover:underline">{r.employer}</Link> : r.employer}
-                  {r.alsoReported && (
-                    <span className="ml-2 rounded-full bg-off-white px-2 py-0.5 align-middle text-xs font-normal text-muted-foreground">Also reported</span>
-                  )}
-                  {r.unconfirmed && (
-                    <span className="ml-2 rounded-full bg-off-white px-2 py-0.5 align-middle text-xs font-normal text-muted-foreground">1 source</span>
-                  )}
-                  {(r.type || r.sites > 1) && (
-                    <span className="block text-xs font-normal text-muted-foreground">
-                      {[r.type, r.sites > 1 ? `${r.sites} sites` : null].filter(Boolean).join(' · ')}
-                    </span>
-                  )}
-                </th>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {r.state || '—'}
-                  {r.county &&<span className="block text-xs text-muted-foreground">{r.county}</span>}
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums">{r.workers != null ? r.workers.toLocaleString() : '—'}</td>
-                <td className="px-4 py-3 whitespace-nowrap tabular-nums text-muted-foreground">{r.effectiveDate ?? '—'}</td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {r.sourceUrl
-                    ? <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{r.sourceLabel}</a>
-                    : r.sourceLabel}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <LayoffTable rows={data.rows} />
 
       <div className="mt-4 max-w-3xl space-y-2 text-sm text-muted-foreground">
         <p>
-          Showing the {data.rows.length} most recent of {data.total.notices.toLocaleString()} layoffs from {data.total.states} states
-          since {data.total.since}.{data.updatedLabel && ` Last updated ${data.updatedLabel}.`}
+          The table lists the {data.rows.length.toLocaleString()} most recent layoffs, including reported ones outside the U.S. The totals above count
+          {' '}{data.total.notices.toLocaleString()} U.S. layoffs from {data.total.states} states since {data.total.since}.{data.updatedLabel && ` Last updated ${data.updatedLabel}.`}
         </p>
         <p>
           What this covers: notices a state has published online, marked “State record”, and layoffs reported by{' '}
