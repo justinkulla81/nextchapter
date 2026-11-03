@@ -6,8 +6,7 @@ const findFirst = vi.fn()
 const updateMany = vi.fn()
 const findMany = vi.fn()
 const del = vi.fn()
-const crmFindFirst = vi.fn()
-const crmUpdate = vi.fn()
+const moveCrm = vi.fn()
 const grantDeleteMany = vi.fn()
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -17,10 +16,10 @@ vi.mock('@/lib/prisma', () => ({
       findMany: (a: unknown) => findMany(a),
       delete: (a: unknown) => del(a),
     },
-    crmPerson: { findFirst: (a: unknown) => crmFindFirst(a), update: (a: unknown) => crmUpdate(a) },
     roleGrant: { deleteMany: (a: unknown) => grantDeleteMany(a) },
   },
 }))
+vi.mock('@/lib/crm/move-candidate-link', () => ({ moveCrmPersonToCandidate: (...a: unknown[]) => moveCrm(...a) }))
 const getUserById = vi.fn()
 const deleteUser = vi.fn()
 vi.mock('@/lib/supabase/admin', () => ({
@@ -37,8 +36,7 @@ beforeEach(() => {
   capture.mockReset()
   findMany.mockReset()
   del.mockReset()
-  crmFindFirst.mockReset()
-  crmUpdate.mockReset()
+  moveCrm.mockReset()
   grantDeleteMany.mockReset()
   getUserById.mockReset()
   deleteUser.mockReset()
@@ -97,22 +95,12 @@ describe('removeUnregisteredDuplicates', () => {
   it('removes an anonymous leftover, its role grant and its auth user, moving its CRM person to the registered profile', async () => {
     findMany.mockResolvedValueOnce([{ id: 'stale', userId: 'anon-user' }])
     getUserById.mockResolvedValueOnce({ data: { user: { is_anonymous: true } }, error: null })
-    crmFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 'lead' })
     expect(await removeUnregisteredDuplicates('real', 'a@example.com')).toBe(1)
-    expect(crmUpdate).toHaveBeenCalledWith({ where: { id: 'lead' }, data: { candidateId: 'real' } })
+    expect(moveCrm).toHaveBeenCalledWith('stale', 'real')
     expect(del).toHaveBeenCalledWith({ where: { id: 'stale' } })
     expect(grantDeleteMany).toHaveBeenCalledWith({ where: { userId: 'anon-user' } })
     expect(deleteUser).toHaveBeenCalledWith('anon-user')
     expect(capture).toHaveBeenCalledWith('real', 'duplicate_profile_removed', { removedCandidateId: 'stale', email: 'a@example.com' })
-  })
-
-  it('keeps the registered profile\'s own CRM person and does not move another onto it', async () => {
-    findMany.mockResolvedValueOnce([{ id: 'stale', userId: 'anon-user' }])
-    getUserById.mockResolvedValueOnce({ data: { user: { is_anonymous: true } }, error: null })
-    crmFindFirst.mockResolvedValueOnce({ id: 'already' })
-    await removeUnregisteredDuplicates('real', 'a@example.com')
-    expect(crmUpdate).not.toHaveBeenCalled()
-    expect(del).toHaveBeenCalledWith({ where: { id: 'stale' } })
   })
 
   it('never removes a profile whose login is a real account, not an anonymous session', async () => {
@@ -135,7 +123,6 @@ describe('removeUnregisteredDuplicates', () => {
     getUserById
       .mockResolvedValueOnce({ data: { user: { is_anonymous: true } }, error: null })
       .mockResolvedValueOnce({ data: { user: null }, error: { message: 'User not found' } })
-    crmFindFirst.mockResolvedValue(null)
     del.mockRejectedValueOnce(new Error('restricted by CandidateInteraction')).mockResolvedValueOnce({})
     vi.spyOn(console, 'error').mockImplementation(() => {})
     expect(await removeUnregisteredDuplicates('real', 'a@example.com')).toBe(1)

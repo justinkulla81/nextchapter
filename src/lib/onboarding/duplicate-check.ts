@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { moveCrmPersonToCandidate } from '@/lib/crm/move-candidate-link'
 
 export interface ExistingAccountMatch {
   id: string
@@ -66,11 +67,7 @@ export async function removeUnregisteredDuplicates(registeredProfileId: string, 
       if (error && !/not.?found/i.test(error.message)) continue
       if (data?.user && !data.user.is_anonymous) continue
 
-      const alreadyLinked = await prisma.crmPerson.findFirst({ where: { candidateId: registeredProfileId }, select: { id: true } })
-      if (!alreadyLinked) {
-        const lead = await prisma.crmPerson.findFirst({ where: { candidateId: leftover.id, deletedAt: null }, select: { id: true } })
-        if (lead) await prisma.crmPerson.update({ where: { id: lead.id }, data: { candidateId: registeredProfileId } })
-      }
+      await moveCrmPersonToCandidate(leftover.id, registeredProfileId)
 
       await prisma.candidateProfile.delete({ where: { id: leftover.id } })
       await prisma.roleGrant.deleteMany({ where: { userId: leftover.userId } })
