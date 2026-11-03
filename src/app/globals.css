@@ -322,6 +322,8 @@
 }
 /* The layoff landing hero carries its own panel and company colors; the tint wraps nothing there. */
 [data-look='scene'] section[aria-labelledby='landing-h1'] { background: none !important; padding: 0 !important; margin-top: 0 !important; border-radius: 0 !important; }
+/* Calm scene (SeoPage calm): one white panel per section, one marker colour. The picture and the podium carry the colour. */
+[data-look='scene'][data-calm] section[aria-labelledby]:not([aria-labelledby='candidate-offer']):nth-of-type(n) { background-color: white; border: 1px solid var(--color-border); --scene-bar: var(--color-light-blue); }
 [data-look='scene'] .seo-stat { border-top: 4px solid var(--color-light-blue); }
 [data-look='scene'] .seo-stat:nth-child(4n + 2) { border-top-color: var(--color-orange); }
 [data-look='scene'] .seo-stat:nth-child(4n + 3) { border-top-color: var(--color-success); }

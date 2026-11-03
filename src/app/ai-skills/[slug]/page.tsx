@@ -41,6 +41,8 @@ export default async function SkillPageRoute({ params }: { params: Promise<{ slu
     <TopicShell
       trail={[{ name: 'AI skills', path: '/ai-skills' }, { name: row.name, path }]}
       title={`${row.name}: how often jobs ask for it, and what it pays`}
+      hero="/images/topics/function-data-and-analytics.webp"
+      capture={{ kind: 'ranking', slug: `skill-${slug}`.slice(0, 70), label: kind === 'tool' ? row.name : 'AI-skill', save: { q: kind === 'tool' ? row.name : 'AI', loc: '' } }}
       intro={`${row.name} is the #${row.rank} ${noun(kind)} named in open professional roles, in ${row.valueLabel} of them as of ${label}. ${row.stats.map((s) => `${s.label}: ${s.value}`).join('. ')}.`}
       jsonLd={[{ '@context': 'https://schema.org', '@type': 'WebPage', name: `${row.name} in job postings`, url: `${SITE_URL}${path}`, about: row.name, dateModified: list.builtAt.slice(0, 10) }]}
     >

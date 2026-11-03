@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { toneOf } from '@/components/rankings/tones'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { archiveMonths, editionHref } from '@/lib/rankings/awards'
+import { RANKINGS_HERO } from '@/lib/rankings/art'
 import { editionLabel } from '@/lib/rankings/build-edition'
 import { isEdition, readRanking, readRankingIndex } from '@/lib/rankings/store'
 import { canonical } from '@/lib/seo/canonical'
@@ -55,6 +56,9 @@ export default async function RankingsMonth({ params }: { params: Promise<{ edit
   return (
     <SeoPage
       look="scene"
+      calm
+      hero={RANKINGS_HERO}
+      capture={{ kind: 'ranking', slug: `archive-${edition}`, label: 'professional', save: { q: '', loc: '' } }}
       trail={[{ name: 'Rankings', path: '/rankings' }, { name: 'Archive', path: '/rankings/archive' }, { name: label, path: `/rankings/archive/${edition}` }]}
       h1={`Job market rankings, ${label}`}
       lede={<>All {d.rows.length} rankings for {label}, with the leader of each as it stood that month.</>}

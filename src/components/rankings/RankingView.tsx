@@ -6,6 +6,8 @@ import { MONTH_TINTS } from '@/components/rankings/tones'
 import { editionLabel } from '@/lib/rankings/build-edition'
 import { editionHref, familyOfRanking, skillSlug } from '@/lib/rankings/awards'
 import { MEASURE_GUIDE } from '@/lib/rankings/guides'
+import { rankingImage } from '@/lib/rankings/art'
+import { rankingCapture } from '@/lib/rankings/capture'
 import { employerLinks } from '@/lib/rankings/employer-links'
 import { SITE_URL } from '@/lib/seo/facts'
 import { getTitleIndex, hasSalaryPage } from '@/lib/seo/job-titles'
@@ -124,9 +126,9 @@ function Movers({ rows }: { rows: RankRow[] }) {
     )
   return (
     <div className="mt-4 grid gap-3 md:grid-cols-3">
-      {col('Climbed the most', up, 'bg-white', (r) => `▲ ${r.change} to #${r.rank}`)}
-      {col('Slipped the most', down, 'bg-white', (r) => `▼ ${Math.abs(r.change as number)} to #${r.rank}`)}
-      {col('New in the top 25', fresh, 'bg-white', (r) => `#${r.rank}`)}
+      {col('Climbed the most', up, 'bg-off-white', (r) => `▲ ${r.change} to #${r.rank}`)}
+      {col('Slipped the most', down, 'bg-off-white', (r) => `▼ ${Math.abs(r.change as number)} to #${r.rank}`)}
+      {col('New in the top 25', fresh, 'bg-off-white', (r) => `#${r.rank}`)}
     </div>
   )
 }
@@ -207,6 +209,9 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
   return (
     <SeoPage
       look="scene"
+      calm
+      hero={entry ? rankingImage(entry) : undefined}
+      capture={entry ? rankingCapture(entry) : undefined}
       trail={[{ name: 'Rankings', path: '/rankings' }, { name: e.title, path }]}
       h1={e.h1}
       jsonLd={ld}
@@ -231,8 +236,8 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         <section aria-labelledby="guide">
           <h2 id="guide" className={H2}>Why this ranking matters</h2>
           <div className="mt-3 grid max-w-4xl gap-4 text-sm text-foreground sm:grid-cols-2">
-            <div className="rounded-xl bg-white p-4"><h3 className="font-semibold text-navy">What it shows</h3><p className="mt-1">{MEASURE_GUIDE[e.measure].why}</p></div>
-            <div className="rounded-xl bg-white p-4"><h3 className="font-semibold text-navy">How to use it</h3><p className="mt-1">{MEASURE_GUIDE[e.measure].use}</p></div>
+            <div className="rounded-xl bg-off-white p-4"><h3 className="font-semibold text-navy">What it shows</h3><p className="mt-1">{MEASURE_GUIDE[e.measure].why}</p></div>
+            <div className="rounded-xl bg-off-white p-4"><h3 className="font-semibold text-navy">How to use it</h3><p className="mt-1">{MEASURE_GUIDE[e.measure].use}</p></div>
           </div>
         </section>
       )}
