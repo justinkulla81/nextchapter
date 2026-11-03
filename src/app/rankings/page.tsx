@@ -20,12 +20,12 @@ export const metadata: Metadata = {
   openGraph: { title: 'Job market rankings: best cities by job type, pay and growth', description: 'Monthly rankings of cities and counties for junior jobs, AI skills, remote work, pay after cost of living and job growth.', url: `${SITE_URL}/rankings`, type: 'website' },
 }
 
-const FAMILY_ORDER = ['Entry-level', 'Levels', 'AI', 'AI skills', 'Pay', 'Work style', 'Job families', 'Industries', 'Industry markets', 'AI and jobs', 'Function profiles', 'Industry profiles', 'Support', 'Hiring and layoffs', 'Conferences', 'Work arrangements', 'Markets', 'Growth', 'Best overall', 'Workforce', 'Research', 'Higher education']
+const FAMILY_ORDER = ['Entry-level', 'Levels', 'AI', 'AI skills', 'Pay', 'Work style', 'Job families', 'Industries', 'Industry markets', 'AI and jobs', 'Function profiles', 'Industry profiles', 'Support', 'Hiring and layoffs', 'Conferences', 'Work arrangements', 'Markets', 'Growth', 'Best overall', 'Workforce', 'Research', 'Higher education', 'Degrees']
 
 export default async function RankingsHub() {
   const index = await readRankingIndex()
   const newest = index.map((x) => x.edition).sort().reverse()[0]
-  const LIST_FAMILIES = ['Job families', 'AI skills', 'Industry markets', 'Function profiles', 'Industry profiles', 'Support', 'Hiring and layoffs', 'Conferences', 'Work arrangements', 'Workforce', 'Research', 'Higher education']
+  const LIST_FAMILIES = ['Job families', 'AI skills', 'Industry markets', 'Function profiles', 'Industry profiles', 'Support', 'Hiring and layoffs', 'Conferences', 'Work arrangements', 'Workforce', 'Research', 'Higher education', 'Degrees']
   const national = index.filter((x) => x.scopeKind === 'national' && !LIST_FAMILIES.includes(x.family))
   const months = archiveMonths(index)
   const families = FAMILY_ORDER.filter((f) => index.some((x) => x.family === f))
