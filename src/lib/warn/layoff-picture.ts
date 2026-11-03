@@ -44,7 +44,7 @@ const BUCKET_TO_KEY: Record<string, string> = {
   'Agriculture & Food Production': 'agriculture', 'Manufacturing & Industrial': 'industrial', 'Automotive & Mobility': 'industrial',
   'Aerospace & Defense': 'aerospace_defense', 'Energy & Utilities': 'energy', 'Construction & Real Estate': 'real_estate',
   'Transportation & Logistics': 'logistics', 'Media & Entertainment': 'media', 'Advertising, Marketing & PR': 'media',
-  'Education & EdTech': 'education', 'Government & Public Sector': 'government', 'Nonprofit & Social Impact': 'nonprofit',
+  'Education & EdTech': 'education', 'Government & Public Sector': 'government', 'Non-profit & Social Impact': 'nonprofit',
 }
 export const jobBoardIndustryFor = (bucket: string | null | undefined): string | null => (bucket ? BUCKET_TO_KEY[bucket] ?? null : null)
 
