@@ -15,7 +15,7 @@ import { posthog } from '@/lib/posthog/client'
 export function NextStepBox({ audience, slug, extras }: { audience: 'seeker' | 'org'; slug: string; extras?: ReactNode }) {
   const [open, setOpen] = useState(false)
   const org = audience === 'org'
-  const href = org ? '/for-organizations' : `${MARKET_REALITY_START_HREF}&from=top_${slug}`
+  const href = org ? '/for-organizations#contact' : `${MARKET_REALITY_START_HREF}&from=top_${slug}`
   return (
     <section id="get-started" aria-label="Next step" className="mt-8 scroll-mt-6 rounded-3xl bg-navy p-5 text-white sm:p-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
@@ -34,7 +34,7 @@ export function NextStepBox({ audience, slug, extras }: { audience: 'seeker' | '
           gtagEvent="pull_cta_clicked"
           className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95"
         >
-          {org ? 'See how it works' : <AssessmentCtaLabel>Get my Market Reality Assessment</AssessmentCtaLabel>}
+          {org ? 'Talk to us' : <AssessmentCtaLabel>Get my Market Reality Assessment</AssessmentCtaLabel>}
         </TrackedLink>
       </div>
       {extras && (
