@@ -15,7 +15,7 @@ import { isUndeliverableAddress } from '@/lib/email/resend-client'
 export type OwnerInquiryState = { error?: string; sent?: boolean; email?: string } | undefined
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const SOURCE = /^page:(state|county|city|industry|title|company|college|ranking):[a-z0-9-]{1,70}$/
+const SOURCE = /^page:(state|county|city|industry|title|company|college|ranking|topic):[a-z0-9-]{1,70}$/
 const GENERIC_ERROR = 'Something went wrong. Try again in a minute.'
 
 const text = (formData: FormData, k: string, max: number) => ((formData.get(k) as string | null) ?? '').trim().slice(0, max)

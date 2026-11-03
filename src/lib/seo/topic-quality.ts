@@ -9,6 +9,17 @@ export interface Fact {
   value: string
   source: string
   period?: string
+  /** Where a reader goes to see more behind this number. Left out, the card falls back to FACT_LINKS by key. */
+  href?: string
+}
+
+/** The page that goes deeper on each kind of figure, so every stat card is a way onward. */
+export const FACT_LINKS: Record<string, string> = {
+  open: '/jobs', pay: '/salaries', wage: '/salaries', salary: '/salaries', entry: '/jobs', noexp: '/noexperience',
+  'ai-skill': '/ai-skills', 'ai-skills-pay': '/ai-skills', remote: '/jobs/type/remote', exposure: '/tools/ai-job-check', aei: '/tools/ai-job-check',
+  'emp-change': '/rankings', 'long-search': '/still-searching', ces: '/rankings', warn: '/layoffs', 'warn-states': '/layoffs/by-state', 'warn-latest': '/layoffs/this-week',
+  confs: '/conferences', 'confs-next': '/conferences', 'confs-cost': '/conferences', 'confs-cfp': '/conferences', where: '/events', free: '/conferences',
+  employers: '/top-employers', employer: '/top-employers',
 }
 
 export const QUALITY_BAR = { facts: 5, links: 3 } as const
