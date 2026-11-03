@@ -1,10 +1,12 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useState, useTransition } from 'react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { flagCompanyInterest, type CompanyInterestState } from '@/lib/leads/company-interest-actions'
 import { posthog } from '@/lib/posthog/client'
+import { getFollowState } from '@/lib/company-tracker/follow-state-action'
+import { setCompanyWatched } from '@/app/dashboard/find-my-job/my-jobs-actions'
 import { cn } from '@/lib/utils'
 
 // Where the flag sends a person once the company is saved: the start of registration (same door as a saved job or search).
@@ -18,6 +20,47 @@ export function CompanyInterestFlag({ company, slug, page }: { company: string; 
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState<CompanyInterestState, FormData>(flagCompanyInterest, undefined)
   const properties = { companyName: company, slug, page }
+  // The pages are cached for everyone. A signed-in member already has an email and an account, so for them the flag is one click that follows the company.
+  const [member, setMember] = useState<{ signedIn: boolean; following: boolean } | null>(null)
+  const [memberError, setMemberError] = useState<string | null>(null)
+  const [memberPending, startMember] = useTransition()
+  useEffect(() => {
+    let live = true
+    getFollowState(company).then((s) => live && setMember(s))
+    return () => {
+      live = false
+    }
+  }, [company])
+
+  if (member?.signedIn) {
+    return (
+      <div className={cn('rounded-2xl border border-border bg-white p-4 text-navy', memberPending && 'cursor-wait')}>
+        {member.following ? (
+          <p role="status" className="text-sm font-semibold">You follow {company}. It is on your list of followed companies.</p>
+        ) : (
+          <>
+            <Button
+              type="button"
+              disabled={memberPending}
+              onClick={() => {
+                setMemberError(null)
+                posthog.capture('company_interest_member_clicked', properties)
+                startMember(async () => {
+                  const r = await setCompanyWatched(company, true)
+                  if (r.ok) setMember({ signedIn: true, following: true })
+                  else setMemberError(r.error)
+                })
+              }}
+              className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95"
+            >
+              {memberPending ? 'Saving…' : `I'm interested in ${company}`}
+            </Button>
+            {memberError && <p role="alert" className="mt-2 text-sm text-destructive">{memberError}</p>}
+          </>
+        )}
+      </div>
+    )
+  }
 
   if (state?.saved) {
     return (
@@ -82,7 +125,7 @@ export function CompanyInterestFlag({ company, slug, page }: { company: string; 
           defaultValue={state?.email}
           placeholder="you@example.com"
           aria-invalid={state?.error ? true : undefined}
-          className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-base text-navy"
+          className="h-11 w-full rounded-lg border border-border bg-white px-3 text-base text-navy sm:flex-1"
         />
         <Button type="submit" disabled={pending} className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
           {pending ? 'Saving…' : `Save ${company}`}
