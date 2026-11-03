@@ -1,5 +1,6 @@
 import { JourneyPicker } from '@/components/home/JourneyPicker'
 import { SaveSearchForm } from '@/components/home/SaveSearchForm'
+import { CollapsibleCapture } from '@/components/capture/CollapsibleCapture'
 import { OwnerInquiry } from '@/components/capture/OwnerInquiry'
 import { captureSource, ownerOffer, saveCopy, saveSource, type PageCaptureConfig } from '@/lib/capture/page-capture'
 
@@ -12,14 +13,21 @@ import { captureSource, ownerOffer, saveCopy, saveSource, type PageCaptureConfig
 export function PageCaptureTop({ capture }: { capture: PageCaptureConfig }) {
   const source = captureSource(capture)
   const copy = saveCopy(capture)
-  return (
-    <section aria-label={`Get started: ${capture.label}`} className="mt-8 rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-mint p-5 sm:p-6">
+  const body = (
+    <>
       <JourneyPicker source={source} compact />
       {capture.save && (
         <div className="mx-auto mt-6 max-w-xl border-t border-border pt-5">
           <SaveSearchForm q={capture.save.q} loc={capture.save.loc} remote={false} source={saveSource(capture.kind)} heading={copy.heading} blurb={copy.blurb} cta={copy.cta} />
         </div>
       )}
+    </>
+  )
+  // Ranking pages lead with the lists: the question is a one-line strip that opens on a click.
+  if (capture.kind === 'ranking') return <CollapsibleCapture label={capture.label} source={source}>{body}</CollapsibleCapture>
+  return (
+    <section aria-label={`Get started: ${capture.label}`} className="mt-8 rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-mint p-5 sm:p-6">
+      {body}
     </section>
   )
 }
