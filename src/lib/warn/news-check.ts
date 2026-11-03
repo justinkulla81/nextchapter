@@ -228,6 +228,11 @@ async function newsCheck(opts: { fast?: boolean }): Promise<NewsCheckResult> {
     const first = mentions[0]
     const when = first.publishedAt ?? first.createdAt
 
+    // The headcount most of the reports agree on, if any give one.
+    const counts = mentions.map((m) => m.employees).filter((n): n is number => n != null)
+    const tally = new Map<number, number>()
+    for (const n of counts) tally.set(n, (tally.get(n) ?? 0) + 1)
+    const employees = [...tally.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0]?.[0] ?? null
 
     const near = recent.filter((n) => sameEmployer(n.normalizedEmployer, key)
       && n.noticeDate && Math.abs(n.noticeDate.getTime() - when.getTime()) <= COVERED_DAYS * 86_400_000)
