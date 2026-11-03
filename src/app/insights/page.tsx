@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
 import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
+import { PullTop, PullBottom } from '@/components/capture/PullCta'
 
 export const metadata: Metadata = pageMetadata('/insights')
 
@@ -40,6 +41,7 @@ export default function InsightsIndexPage() {
         <p className="mt-3 max-w-xl text-lg text-muted-foreground">
           Questions to ask, and plain answers about how NextChapter works.
         </p>
+        <PullTop name="Outplacement insights" path="/insights" audience="org" />
 
         <div className="mt-10 space-y-4">
           {ARTICLES.map((a) => (
@@ -63,6 +65,7 @@ export default function InsightsIndexPage() {
             Compare providers
           </Link>
         </div>
+        <PullBottom name="Outplacement insights" path="/insights" audience="org" />
       </main>
     </div>
   )

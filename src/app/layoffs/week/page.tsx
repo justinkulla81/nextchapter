@@ -6,6 +6,7 @@ import { weekLabel } from '@/lib/layoffs/weeks'
 import { getWeeks } from '@/lib/layoffs/weekly'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { PullTop } from '@/components/capture/PullCta'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const metadata: Metadata = pageMetadata('/layoffs/week')
@@ -24,6 +25,7 @@ export default async function WeeklyLayoffsIndex() {
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             Every week of WARN layoff notices from the last two years: how many, how many workers, which states and employers. This week is on <Link href="/layoffs/this-week" className={LINK}>layoffs this week</Link>.
           </p>
+          <PullTop name="Layoffs by week" path="/layoffs/week" />
           <ul className="mt-8 divide-y divide-border rounded-xl border border-border bg-white">
             {weeks.map((w) => (
               <li key={w.id}>

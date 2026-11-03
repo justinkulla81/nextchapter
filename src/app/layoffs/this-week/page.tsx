@@ -8,6 +8,7 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { breadcrumbJsonLd, organizationRef } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getPublicNotices, noticeDay } from '@/lib/warn/layoff-pages'
+import { PullTop } from '@/components/capture/PullCta'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -73,6 +74,7 @@ export default async function LayoffsThisWeek() {
               ? 'No new WARN notices were filed in the last seven days.'
               : `Employers filed ${thisWeek.length.toLocaleString('en-US')} layoff notices in the last seven days${workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before had ${lastWeek.length.toLocaleString('en-US')}${lastWorkers ? ` naming ${lastWorkers.toLocaleString('en-US')} workers` : ''}${diff !== 0 ? `, so notices are ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')}` : ''}.`}
           </p>
+          <PullTop name="Layoffs this week" path="/layoffs/this-week" />
           <p className="mt-2 text-sm text-muted-foreground">Counted by the date on each filing. A state may publish a notice days after it was filed, so recent weeks can grow.</p>
 
           {states.length > 0 && (

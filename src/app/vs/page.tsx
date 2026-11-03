@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
 import { COMPETITOR_COMPARISONS } from '@/lib/marketing/competitor-comparisons'
+import { PullTop, PullBottom } from '@/components/capture/PullCta'
 
 export const metadata: Metadata = pageMetadata('/vs')
 
@@ -42,6 +43,7 @@ export default function ComparisonIndexPage() {
           What NextChapter does, next to the questions to ask each provider. We describe what we can show
           about our own product and make no claims about theirs.
         </p>
+        <PullTop name="Comparisons" path="/vs" audience="org" />
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
           {COMPETITOR_COMPARISONS.map((c) => (
@@ -68,6 +70,7 @@ export default function ComparisonIndexPage() {
             NextChapter for employers
           </Link>
         </div>
+        <PullBottom name="Comparisons" path="/vs" audience="org" />
       </main>
     </div>
   )

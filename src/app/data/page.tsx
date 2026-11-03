@@ -11,6 +11,7 @@ import { LAYOFF_COLUMNS, LAYOFF_DATA_CITATION, LAYOFF_DATA_LICENSE, LAYOFF_DATA_
 import { hasLayoffStatePage, noticeDay } from '@/lib/warn/layoff-pages'
 import { getLayoffCounts } from '@/lib/warn/layoff-counts'
 import { LayoffNumbersNote } from '@/components/layoffs/LayoffNumbersNote'
+import { PullTop } from '@/components/capture/PullCta'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -55,6 +56,7 @@ export default async function DataPage() {
           <p className="mt-4 text-lg text-muted-foreground">
             {rows.length.toLocaleString('en-US')} WARN Act filings{oldest && newest ? `, ${noticeDay(new Date(oldest))} to ${noticeDay(new Date(newest))}` : ''}, one row per filing, collected from state labor departments and linked to each state’s own record.
           </p>
+          <PullTop name="Layoff data" path="/data" />
 
           <LayoffNumbersNote counts={counts} className="mt-8 rounded-xl border border-border bg-white p-6" />
 

@@ -25,6 +25,7 @@ import { journeyChoices } from '@/lib/leads/infer-journey'
 import { severanceByState } from '@/lib/severance/state-groups'
 import { FILING_GUIDE_UPDATED } from '@/lib/data/state-ui-appeals'
 import { StateFilingGuide, appealSentence, READY_LIST } from '@/components/benefits/StateFilingGuide'
+import { PullTop } from '@/components/capture/PullCta'
 
 // Facts are static; the daily refresh keeps the link to this state's layoff
 // page and its list of workforce boards current.
@@ -177,6 +178,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
         </nav>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{unemploymentStateSeo(name).h1}</h1>
         <p className="mt-4 text-lg leading-relaxed text-foreground">{lead(name, ui)}</p>
+        <PullTop name={`Unemployment benefits in ${name}`} path={`/unemployment-benefits/${state}`} />
         <AuthorByline updated={FILING_GUIDE_UPDATED} />
         <p className="mt-1 text-sm text-muted-foreground">Last verified {formatContentDate(UI_LAST_VERIFIED)} against official sources.</p>
 

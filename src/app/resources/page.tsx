@@ -6,6 +6,7 @@ import type { Metadata } from 'next'
 import { Card, CardContent } from '@/components/ui/card'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
+import { PullTop } from '@/components/capture/PullCta'
 
 export const metadata: Metadata = pageMetadata('/resources')
 
@@ -21,6 +22,7 @@ export default function ResourcesIndexPage() {
           Guides for every stage of a job search — from your first 72 hours to your first 90 days in
           a new role.
         </p>
+        <PullTop name="Resources" path="/resources" />
 
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {GUIDE_LANDING_CONTENT.map((content) => (

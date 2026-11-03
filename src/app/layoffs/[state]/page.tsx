@@ -18,6 +18,7 @@ import { TWELVE_MONTHS_MS, getPublicNotices, noticeDay } from '@/lib/warn/layoff
 import { getPlaceLinker, getStateCounties, placeUrl } from '@/lib/places/places'
 import { titleMeta } from '@/lib/seo/title'
 import { LAYOFF_TOOL_LINKS, stateHelpLinks } from '@/lib/seo/layoff-links'
+import { PullTop } from '@/components/capture/PullCta'
 
 export const revalidate = 86400
 
@@ -88,6 +89,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
             Employers filed {d.recent.length.toLocaleString()} layoff notices in {d.name} in the last 12 months
             {workers > 0 ? <>, naming {workers.toLocaleString()} workers</> : ''}. The most recent was filed {noticeDay(latest)}.
           </p>
+          <PullTop name={`Layoffs in ${d.name}`} path={`/layoffs/${state}`} />
           {st && (
             <OrgCandidateBand
               orgName={d.name}

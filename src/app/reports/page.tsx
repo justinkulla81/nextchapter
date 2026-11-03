@@ -9,6 +9,7 @@ import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { SITE_URL, reportsNewestFirst, latestReport, reportPath } from '@/lib/reports'
 import { wcIndexSummary, monthLabel } from '@/lib/reports-wc-index'
 import { LONGER_SEARCH_BODY, LONGER_SEARCH_FIGURES, LONGER_SEARCH_HEADLINE } from '@/lib/marketing/longer-search-message'
+import { PullTop } from '@/components/capture/PullCta'
 
 const URL = `${SITE_URL}/reports`
 
@@ -52,6 +53,7 @@ export default function ReportsHubPage() {
           searches take, how often AI is actually cited, and what public programs are adding. Every figure comes from public data, with the methods and
           data files published.
         </p>
+        <PullTop name="Reports" path="/reports" />
 
         {/* Primary cards: the Index and the latest edition */}
         <div className="mt-10 grid gap-5 sm:grid-cols-2">
