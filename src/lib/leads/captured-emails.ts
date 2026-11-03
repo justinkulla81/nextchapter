@@ -26,6 +26,7 @@ const KIND_LABEL: Record<string, string> = {
   job_alert: 'Job alert',
   apply_save: 'Saved job',
   company_interest: 'Company interest',
+  recruiter_interest: 'Recruiter interest',
   deadline_reminders: 'Deadline reminders',
   pay_check: 'Pay check',
   resume_check: 'Résumé check',
