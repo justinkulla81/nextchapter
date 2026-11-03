@@ -109,7 +109,7 @@ export default async function DataPage() {
           <p className="mt-10 text-xs text-muted-foreground">All {ALL_STATE_CODES.length} jurisdictions are tracked; states with no notice in the period have no file.</p>
         </div>
       </main>
-      <PublicSiteFooter page="seo" />
+      <PublicSiteFooter page="seo" cta={false} />
     </div>
   )
 }

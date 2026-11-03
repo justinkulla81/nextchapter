@@ -137,7 +137,7 @@ export default async function LayoffsThisWeek() {
           </section>
         </div>
       </main>
-      <PublicSiteFooter page="layoffs" />
+      <PublicSiteFooter page="layoffs" cta={false} />
     </div>
   )
 }

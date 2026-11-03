@@ -80,7 +80,7 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
           {bottom}
         </div>
       </main>
-      <PublicSiteFooter page="seo" />
+      <PublicSiteFooter page="seo" cta={false} />
     </div>
   )
   return st ? <OrgBrandScope brand={st.brand}>{page}</OrgBrandScope> : page

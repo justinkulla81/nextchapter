@@ -163,7 +163,7 @@ export default function ReportsHubPage() {
         </p>
       </section>
 
-      <PublicSiteFooter page="reports" />
+      <PublicSiteFooter page="reports" cta={false} />
     </div>
   )
 }

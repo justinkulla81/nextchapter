@@ -193,7 +193,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
           </div>
         </div>
       </main>
-      <PublicSiteFooter page="layoffs" />
+      <PublicSiteFooter page="layoffs" cta={false} />
     </div>
     </OrgBrandScope>
   )

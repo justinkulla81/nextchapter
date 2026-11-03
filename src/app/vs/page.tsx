@@ -5,7 +5,7 @@ import { ChevronRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
 import { COMPETITOR_COMPARISONS } from '@/lib/marketing/competitor-comparisons'
-import { PullTop, PullBottom } from '@/components/capture/PullCta'
+import { PullTop } from '@/components/capture/PullCta'
 
 export const metadata: Metadata = pageMetadata('/vs')
 
@@ -70,7 +70,6 @@ export default function ComparisonIndexPage() {
             NextChapter for employers
           </Link>
         </div>
-        <PullBottom name="Comparisons" path="/vs" audience="org" />
       </main>
     </div>
   )

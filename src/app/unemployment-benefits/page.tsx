@@ -127,7 +127,7 @@ export default function UnemploymentBenefitsHub() {
           <Link href="/layoffs" className={LINK}>layoff tracker</Link> for WARN notices in your state.
         </p>
       </main>
-      <PublicSiteFooter page="benefits" />
+      <PublicSiteFooter page="benefits" cta={false} />
     </div>
   )
 }

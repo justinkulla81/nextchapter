@@ -160,7 +160,7 @@ export default async function LayoffsHubPage() {
           </div>
         </div>
       </main>
-      <PublicSiteFooter page="layoffs" />
+      <PublicSiteFooter page="layoffs" cta={false} />
     </div>
   )
 }
