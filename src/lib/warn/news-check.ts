@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { searchTopic, searchGoogleNews, type DiscoveredArticle } from '@/lib/news/discover'
 import { matchOrCreateCompanyForEmployer } from './company-match'
+import { firstDivision } from './division'
 import { looksLikeEmployer } from './tracker-merge'
 import { readLayoffHeadline, readPercent, publisherKey, sameEmployer } from './news-headline'
 import { alertNewLayoff } from './layoff-alert'
@@ -283,6 +284,8 @@ export async function runLayoffNewsCheck(opts: { fast?: boolean } = {}): Promise
         } : {}),
         employer: company,
         normalizedEmployer: key,
+        division: firstDivision(mentions.map((m) => m.headline)),
+        rssPublishedAt: new Date(),
         source: 'MANUAL_ANNOUNCEMENT',
         noticeDate: new Date(Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate())),
         employees,

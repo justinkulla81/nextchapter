@@ -136,8 +136,9 @@ export function LayoffTracker({ data, national, headingLevel = 'h2' }: { data: L
           a floor rather than a count of every layoff. The WARN Act generally applies to employers with 100 or more workers.
         </p>
         <p>
-          “Also reported” marks a filing that layoffs.fyi or the press reported too, or a layoff two or more publishers
-          reported. “1 source” marks a reported layoff that only one publisher has reported so far.
+          The Sources column lists up to three places that reported each layoff: the state record, then the news outlets that
+          covered it. “1 source” marks a reported layoff that only one publisher has reported so far. Click an employer to see
+          what to do if you were affected.
         </p>
         <p>
           Free to cite with a link to <span className="font-medium text-foreground">launchyournextchapter.com/layoffs</span>.

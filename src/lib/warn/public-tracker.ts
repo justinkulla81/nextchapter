@@ -31,6 +31,12 @@ export interface TrackerRow {
   companySlug: string | null
   /** Employee groups the press coverage names ("Engineers", "Sales"); empty when none is named, and always for a state filing. */
   roles: string[]
+  /** The division of the employer the layoff is in, when the filing or the coverage names one. */
+  division: string | null
+  /** Where it was reported, up to three: the state record and the outlets that covered it. */
+  sources: { label: string; url: string | null }[]
+  /** The page a visitor lands on from the employer's name: where people say they were affected, or the company page. */
+  href: string | null
 }
 
 export interface LayoffTrackerData {
@@ -88,6 +94,56 @@ function reportedLabel(url: string | null, publisher: string | null = null): str
 }
 
 const DAY_MS = 86_400_000
+const MAX_SOURCES = 3
+
+/**
+ * A state filing's row lists the state record first, then the outlets that covered the same employer within 45 days of the
+ * notice, one per outlet, up to three in all.
+ */
+async function addPressSources(state: (TrackerRow & { nkey?: string; noticeAt?: Date })[], shown: TrackerRow[]): Promise<void> {
+  const byKey = new Map(state.map((r) => [r.key, r]))
+  const rows = shown.filter((r) => r.origin === 'state' && byKey.get(r.key)?.nkey)
+  if (!rows.length) return
+  const keys = [...new Set(rows.map((r) => byKey.get(r.key)!.nkey!))]
+  const mentions = await prisma.layoffNewsMention.findMany({
+    where: { companyKey: { in: keys }, publishedAt: { not: null, gte: new Date(Date.now() - 400 * DAY_MS) } },
+    select: { companyKey: true, publisher: true, url: true, publishedAt: true },
+    orderBy: { publishedAt: 'desc' },
+  })
+  for (const r of rows) {
+    const src = byKey.get(r.key)!
+    const at = src.noticeAt!.getTime()
+    const seen = new Set<string>()
+    for (const m of mentions) {
+      if (r.sources.length >= MAX_SOURCES) break
+      if (m.companyKey !== src.nkey || !m.publishedAt || Math.abs(m.publishedAt.getTime() - at) > 45 * DAY_MS) continue
+      const named = reportedLabel(m.url, m.publisher).replace(/\s+on\s+msn$/i, '')
+      const label = /^(www\.)?news\.google\.com$/i.test(named) ? 'Google News' : named
+      if (seen.has(label.toLowerCase())) continue
+      seen.add(label.toLowerCase())
+      r.sources.push({ label, url: /^https:\/\//.test(m.url) ? m.url : null })
+    }
+  }
+}
+
+/**
+ * Where a click on the employer's name goes: the page for people who were affected (the network page, which exists for an employer
+ * with enough workers named) and that page links on to the company's full layoff page. An employer with fewer workers, or a
+ * reported layoff, goes straight to the company's layoff page when it has one.
+ */
+async function addLinks(rows: TrackerRow[]): Promise<void> {
+  const [{ getCompanies }, { isNetworkCompany }, { getAnnouncements }] = await Promise.all([
+    import('./layoff-pages'), import('@/lib/network/eligibility'), import('./company-announcements'),
+  ])
+  const [companies, announcements] = await Promise.all([getCompanies(), getAnnouncements().catch(() => new Map())])
+  for (const r of rows) {
+    const slug = r.companySlug ?? (r.origin === 'reported' ? employerSlug(r.employer, null) : null)
+    if (!slug) continue
+    const c = companies.get(slug)
+    if (c) r.href = isNetworkCompany(c) ? `/network/company/${slug}` : `/layoffs/company/${slug}`
+    else if (announcements.has(slug)) r.href = `/layoffs/company/${slug}`
+  }
+}
 
 /**
  * Layoffs reported with no U.S. state, from the last 45 days, merged across outlets (one line per layoff, the headcount most
@@ -99,7 +155,7 @@ async function looseReportedRows(): Promise<MergedLayoff[]> {
   const [notices, filings] = await Promise.all([
     prisma.warnNotice.findMany({
       where: { dismissedAt: null, state: null, source: 'MANUAL_ANNOUNCEMENT', noticeDate: { gte: since, lte: now } },
-      select: { id: true, employer: true, normalizedEmployer: true, companyId: true, employees: true, noticeDate: true, effectiveDate: true, layoffType: true, sourceUrl: true, country: true, company: { select: { industry: true } } },
+      select: { id: true, employer: true, normalizedEmployer: true, companyId: true, employees: true, noticeDate: true, effectiveDate: true, layoffType: true, sourceUrl: true, country: true, division: true, company: { select: { industry: true } } },
       take: 3000,
     }),
     prisma.warnNotice.findMany({
@@ -110,17 +166,19 @@ async function looseReportedRows(): Promise<MergedLayoff[]> {
   if (notices.length === 0) return []
   const mentions = await prisma.layoffNewsMention.findMany({
     where: { noticeId: { in: notices.map((n) => n.id) } },
-    select: { noticeId: true, publisher: true, headline: true },
+    select: { noticeId: true, publisher: true, headline: true, url: true },
   })
   const publishers = new Map<string, string[]>()
   const headlines = new Map<string, string[]>()
+  const stories = new Map<string, { publisher: string | null; url: string }[]>()
   for (const m of mentions) {
     if (!m.noticeId) continue
+    stories.set(m.noticeId, [...(stories.get(m.noticeId) ?? []), { publisher: m.publisher, url: m.url }])
     if (m.publisher) publishers.set(m.noticeId, [...(publishers.get(m.noticeId) ?? []), m.publisher])
     headlines.set(m.noticeId, [...(headlines.get(m.noticeId) ?? []), m.headline])
   }
 
-  const loose: LooseNotice[] = notices.flatMap(({ company, ...n }) => n.noticeDate ? [{ ...n, noticeDate: n.noticeDate, publishers: publishers.get(n.id) ?? [], headlines: headlines.get(n.id) ?? [], industry: company?.industry ?? null }] : [])
+  const loose: LooseNotice[] = notices.flatMap(({ company, ...n }) => n.noticeDate ? [{ ...n, noticeDate: n.noticeDate, publishers: publishers.get(n.id) ?? [], headlines: headlines.get(n.id) ?? [], mentions: stories.get(n.id) ?? [], industry: company?.industry ?? null }] : [])
   return mergeReported(loose).filter((m) => !filings.some((f) =>
     f.noticeDate && Math.abs(f.noticeDate.getTime() - m.noticeDate.getTime()) <= MERGE_WINDOW_DAYS * DAY_MS && sameEmployer(f.normalizedEmployer, m.normalizedEmployer)))
 }
@@ -149,7 +207,7 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
       state: string | null; employer: string; company: string | null; county: string | null
       workers: number | null; sites: number; notice_date: Date; effective_date: Date | null
       type: string | null; source_url: string | null; key: string; reported: boolean; also_reported: boolean
-      company_industry: string | null; raw_industry: string | null; country: string | null
+      company_industry: string | null; raw_industry: string | null; country: string | null; division: string | null; nkey: string
     }[]>`
       WITH base AS (
         SELECT w.*,
@@ -203,6 +261,8 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
              MIN(c.industry) AS company_industry,
              MIN(k.industry) AS raw_industry,
              MIN(k.country) AS country,
+             MIN(k.division) AS division,
+             MIN(k."normalizedEmployer") AS nkey,
              CASE WHEN COUNT(DISTINCT k.county) = 1 THEN MIN(k.county) END AS county,
              SUM(k.employees)::int AS workers,
              COUNT(*)::int AS sites,
@@ -323,7 +383,12 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         industry: r.company_industry ?? normalizeIndustryBucket(r.raw_industry ?? ''),
         companySlug: r.reported ? null : employerSlug(r.employer, r.company) || null,
         roles: [],
-      } satisfies TrackerRow,
+        division: r.division,
+        sources: [{ label: 'State record', url: r.source_url && /^https:\/\//.test(r.source_url) ? r.source_url : null }],
+        href: null,
+        nkey: r.nkey,
+        noticeAt: r.notice_date,
+      } satisfies TrackerRow & { nkey: string; noticeAt: Date },
     }))
     const looseRows = loose.map((m) => ({
       at: m.noticeDate,
@@ -347,9 +412,17 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         industry: m.industry,
         companySlug: null,
         roles: m.roles,
+        division: m.division,
+        sources: m.links.length ? m.links : [{ label: reportedLabel(m.sourceUrl, m.publisher), url: m.sourceUrl && /^https:\/\//.test(m.sourceUrl) ? m.sourceUrl : null }],
+        href: null,
       } satisfies TrackerRow,
     }))
-    const merged = [...stateRows, ...looseRows].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, limit).map((x) => x.row)
+    const merged: TrackerRow[] = [...stateRows, ...looseRows].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, limit).map((x) => {
+      const { nkey: _k, noticeAt: _a, ...row } = x.row as TrackerRow & { nkey?: string; noticeAt?: Date }
+      return row
+    })
+    await addPressSources(stateRows.map((x) => x.row), merged).catch((e) => console.error('Press sources for the tracker could not be loaded', e))
+    await addLinks(merged).catch((e) => console.error('Tracker links could not be built', e))
 
     return {
       rows: merged,
