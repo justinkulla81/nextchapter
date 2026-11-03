@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { submitFitLead, type FitLeadState } from '@/lib/leads/fit-lead'
@@ -8,6 +8,7 @@ import { checkFit, checkFitItems, fitWords, type FitResult } from '@/lib/capture
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { posthog } from '@/lib/posthog/client'
 import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
+import { rememberState, useVisitorState } from '@/lib/capture/visitor-state'
 import { cn } from '@/lib/utils'
 
 const FIELD = 'h-11 w-full rounded-lg border border-border bg-white px-3 text-base'
@@ -22,6 +23,11 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
   const [fit, setFit] = useState<FitResult | null>(null)
   const [aiFit, setAiFit] = useState<FitResult | null>(null)
   const [state, action, pending] = useActionState<FitLeadState, FormData>(submitFitLead, undefined)
+  const visitor = useVisitorState()
+  const [stateCode, setStateCode] = useState('')
+  // Start from the state the visitor chose before or where they appear to be; they can change it and nothing depends on it.
+  useEffect(() => { if (visitor.state) setStateCode((cur) => cur || visitor.state!) }, [visitor.state])
+  useEffect(() => { if (state?.sent && stateCode) rememberState(stateCode) }, [state?.sent, stateCode])
 
   function run() {
     const f = checkFit(resume, skills)
@@ -116,7 +122,7 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
               </div>
               <div>
                 <label htmlFor="fit-state" className="text-sm font-semibold text-navy">Your state</label>
-                <select id="fit-state" name="state" defaultValue="" className={cn(FIELD, 'mt-1')}>
+                <select id="fit-state" name="state" value={stateCode} onChange={(e) => setStateCode(e.target.value)} className={cn(FIELD, 'mt-1')}>
                   <option value="" disabled>Choose a state</option>
                   {ALL_STATE_CODES.map((c) => <option key={c} value={c}>{stateName(c)}</option>)}
                 </select>
