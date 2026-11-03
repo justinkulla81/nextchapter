@@ -72,7 +72,7 @@ export function SaveSearchForm({
           defaultValue={state?.email}
           placeholder="you@example.com"
           aria-invalid={state?.error ? true : undefined}
-          className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-base"
+          className="h-11 shrink-0 rounded-lg border border-border bg-white px-3 text-base sm:flex-1"
         />
         <Button type="submit" disabled={pending} className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
           {pending ? 'Saving…' : cta}

@@ -99,7 +99,7 @@ export function LayoffDeadlines({ journeyChoices }: { journeyChoices: { slug: st
               </div>
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                 <label className="sr-only" htmlFor="ld-email">Email address</label>
-                <input id="ld-email" name="email" type="email" inputMode="email" autoComplete="email" defaultValue={signup.email} placeholder="you@example.com" className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-base" />
+                <input id="ld-email" name="email" type="email" inputMode="email" autoComplete="email" defaultValue={signup.email} placeholder="you@example.com" className="h-11 shrink-0 sm:flex-1 rounded-lg border border-border bg-white px-3 text-base" />
                 <Button type="submit" disabled={signing} className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
                   {signing ? 'Saving…' : 'Remind me'}
                 </Button>
