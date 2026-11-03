@@ -5,12 +5,12 @@ import { matchOrCreateCompanyForEmployer } from './company-match'
 import { firstDivision } from './division'
 import { looksLikeEmployer } from './tracker-merge'
 import { readLayoffHeadline, readPercent, publisherKey, sameEmployer } from './news-headline'
-import { alertNewLayoff } from './layoff-alert'
+import { alertNewLayoff, withAlertRun } from './layoff-alert'
 import { layoffTypeLabel } from './layoff-alert-rules'
 import { findLayoffContacts } from './layoff-contacts-run'
 import { getOrCreateCompany } from '@/lib/companies/company-lookup'
 import { discoverAtsBoards } from '@/lib/market/ats-discovery'
-import { singleSourceQualifies } from './news-trust'
+import { isTrustedPublisher, newsOutgrowsFiling, singleSourceQualifies } from './news-trust'
 
 /**
  * The searches are Bing News RSS: free, no key. What they cost is cron time,
@@ -148,7 +148,9 @@ async function trackJobBoard(company: string): Promise<void> {
   }
 }
 
-export async function runLayoffNewsCheck(opts: { fast?: boolean } = {}): Promise<NewsCheckResult> {
+export const runLayoffNewsCheck = (opts: { fast?: boolean } = {}) => withAlertRun(() => newsCheck(opts))
+
+async function newsCheck(opts: { fast?: boolean }): Promise<NewsCheckResult> {
   const result: NewsCheckResult = { headlines: 0, mentions: 0, added: [], covered: 0, waiting: 0, lookups: 0, contacts: 0 }
 
   // 1. Search, a few at a time under a time budget, then read the headlines
@@ -218,7 +220,7 @@ export async function runLayoffNewsCheck(opts: { fast?: boolean } = {}): Promise
 
   const recent = await prisma.warnNotice.findMany({
     where: { dismissedAt: null, noticeDate: { gte: new Date(Date.now() - (COVERED_DAYS + WINDOW_DAYS) * 86_400_000) } },
-    select: { id: true, normalizedEmployer: true, noticeDate: true, employees: true, promotedOrgId: true },
+    select: { id: true, normalizedEmployer: true, noticeDate: true, employees: true, promotedOrgId: true, source: true },
   })
 
   for (const [key, mentions] of byCompany) {
@@ -226,8 +228,16 @@ export async function runLayoffNewsCheck(opts: { fast?: boolean } = {}): Promise
     const first = mentions[0]
     const when = first.publishedAt ?? first.createdAt
 
-    const covering = recent.find((n) => sameEmployer(n.normalizedEmployer, key)
+
+    const near = recent.filter((n) => sameEmployer(n.normalizedEmployer, key)
       && n.noticeDate && Math.abs(n.noticeDate.getTime() - when.getTime()) <= COVERED_DAYS * 86_400_000)
+    let covering = near.find((n) => n.source === 'MANUAL_ANNOUNCEMENT') ?? near[0]
+    // A state filing covers one site or division. Reports of a company-wide cut many times its size, from two outlets or a
+    // trusted one, are a layoff of their own: they get their own entry (and the feed), not a link to the small filing.
+    if (covering && covering.source !== 'MANUAL_ANNOUNCEMENT' && (publishers.size >= 2 || isTrustedPublisher(first.publisher))
+      && newsOutgrowsFiling(covering.employees, employees, mentions.map((m) => m.headline))) {
+      covering = undefined
+    }
     if (covering) {
       result.covered++
       // Two publishers, like an added layoff: the story is real and the
@@ -254,11 +264,6 @@ export async function runLayoffNewsCheck(opts: { fast?: boolean } = {}): Promise
       }
     }
 
-    // The headcount most of the reports agree on, if any give one.
-    const counts = mentions.map((m) => m.employees).filter((n): n is number => n != null)
-    const tally = new Map<number, number>()
-    for (const n of counts) tally.set(n, (tally.get(n) ?? 0) + 1)
-    const employees = [...tally.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0]?.[0] ?? null
     // The name as most headlines wrote it.
     // Headlines sometimes yield a description instead of a name ("N.J. bank", "San Francisco HQ"). Only a name that reads as an
     // employer is filed; a story with none stays open, so a later headline that names the company can still file it.

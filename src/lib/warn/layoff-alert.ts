@@ -4,7 +4,10 @@ import { createResend } from '@/lib/email/resend-client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { contactStrength } from '@/lib/crm/contact-strength'
 import { withAudienceHtml } from '@/lib/email/audience-tag'
-import { ALERT_HOLD_HOURS, alertBody, alertReadiness, alertSubject, noticeKind, shouldAlert, type AlertInput, type LayoffKind } from './layoff-alert-rules'
+import {
+  ALERT_HOLD_HOURS, MAX_FULL_ALERTS_PER_RUN, alertBody, alertReadiness, alertSubject, digestBody, digestSubject, noticeKind, officialBody, officialSubject, shouldAlert,
+  type AlertInput, type DigestItem, type LayoffKind, type OfficialItem,
+} from './layoff-alert-rules'
 import { enrichLayoffHr } from './layoff-hr-enrich'
 import { layoffPeople } from './layoff-alert-people'
 import { withComposeLinks } from './layoff-alert-drafts'
@@ -19,9 +22,76 @@ const ALERT_TO = 'justin@launchyournextchapter.com'
 const SITE = 'https://launchyournextchapter.com'
 /** A company we already alerted on this recently is not alerted on again. */
 const REPEAT_DAYS = 7
-/** A newly added state source can file many 250+ notices at once; past this a run stops mailing. */
-const MAX_ALERTS_PER_RUN = 10
-let sentThisRun = 0
+
+/**
+ * One cron run: the first MAX_FULL_ALERTS_PER_RUN alerts go out in full; the rest, and every "now official" note, leave
+ * together in one email when the run ends. Outside a run (an admin filing one layoff by hand) there is no cap and no queue.
+ * Runs nest, so a run that calls another still flushes once.
+ */
+interface AlertRun { full: number; queue: (DigestItem & { noticeId: string })[]; official: OfficialItem[] }
+let run: AlertRun | null = null
+let runDepth = 0
+
+export async function withAlertRun<T>(fn: () => Promise<T>): Promise<T> {
+  if (runDepth++ === 0) run = { full: 0, queue: [], official: [] }
+  try {
+    return await fn()
+  } finally {
+    if (--runDepth === 0) await flushAlertRun()
+  }
+}
+
+async function flushAlertRun(): Promise<void> {
+  const r = run
+  run = null
+  if (!r || !process.env.RESEND_API_KEY) return
+  const resend = createResend(process.env.RESEND_API_KEY, 'admin')
+  const notices = `${SITE}/support/admin/crm/warn`
+  if (r.queue.length) {
+    const items = [...r.queue].sort((a, b) => (b.employees ?? 0) - (a.employees ?? 0))
+    try {
+      const { error } = await resend.emails.send({
+        from: 'NextChapter <support@launchyournextchapter.com>', to: ALERT_TO,
+        subject: digestSubject(items), html: withAudienceHtml('admin', digestBody(items, { notices })),
+      })
+      if (error) console.error('Layoff digest not sent:', error) // the notices stay held, so the hourly retry still sends them
+      else {
+        await prisma.warnNotice.updateMany({ where: { id: { in: items.map((i) => i.noticeId) } }, data: { alertSentAt: new Date() } }).catch(() => {})
+        captureServerEvent('cron', 'layoff_alert_digest_sent', { layoffs: items.length, employers: items.slice(0, 10).map((i) => i.employer) })
+      }
+    } catch (e) {
+      console.error('Layoff digest failed:', e)
+    }
+  }
+  if (r.official.length) {
+    try {
+      const { error } = await resend.emails.send({
+        from: 'NextChapter <support@launchyournextchapter.com>', to: ALERT_TO,
+        subject: officialSubject(r.official), html: withAudienceHtml('admin', officialBody(r.official, { notices })),
+      })
+      if (error) console.error('Layoff official note not sent:', error)
+      else captureServerEvent('cron', 'layoff_now_official_sent', { layoffs: r.official.length, employers: r.official.slice(0, 10).map((i) => i.employer), kinds: r.official.map((i) => i.kind) })
+    } catch (e) {
+      console.error('Layoff official note failed:', e)
+    }
+  }
+}
+
+/** Tells Justin a layoff he already heard about from the news now has a filing. Queued inside a run, sent at once outside one. */
+export async function announceOfficial(item: OfficialItem): Promise<void> {
+  if (run) { run.official.push(item); return }
+  if (!process.env.RESEND_API_KEY) return
+  await createResend(process.env.RESEND_API_KEY, 'admin').emails.send({
+    from: 'NextChapter <support@launchyournextchapter.com>', to: ALERT_TO,
+    subject: officialSubject([item]), html: withAudienceHtml('admin', officialBody([item], { notices: `${SITE}/support/admin/crm/warn` })),
+  }).catch((e) => console.error('Layoff official note failed:', e))
+}
+
+/** Only a sibling that was actually emailed counts: one that was held or skipped must not silence a later, larger notice. */
+const emailedSibling = (normalizedEmployer: string, noticeId: string) =>
+  prisma.warnNotice.count({
+    where: { normalizedEmployer, id: { not: noticeId }, alertSentAt: { not: null }, fetchedAt: { gte: new Date(Date.now() - REPEAT_DAYS * 86_400_000) } },
+  })
 
 export interface NewLayoff {
   noticeId: string
@@ -45,8 +115,6 @@ export interface NewLayoff {
 export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } = {}): Promise<boolean> {
   try {
     if (!process.env.RESEND_API_KEY) return false
-    if (sentThisRun >= MAX_ALERTS_PER_RUN) { await markHeld(l.noticeId); return false } // a later run sends it
-
     const org = await prisma.crmOrganization.findUnique({
       where: { canonicalNameNormalized: l.normalizedEmployer },
       select: { id: true },
@@ -71,6 +139,16 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
         costLowUsd: true, costHighUsd: true, costNote: true, outplacementProvider: true, outplacementNote: true },
     }).catch(() => null)
     if (notice?.alertSentAt || notice?.alertGaveUpAt) return false
+    // Past the run's cap: no contact search, no drafts. It goes in the digest at the end of the run, and stays held until then in case that email fails.
+    if (run && run.full >= MAX_FULL_ALERTS_PER_RUN) {
+      if (await emailedSibling(l.normalizedEmployer, l.noticeId) > 0) return false
+      await markHeld(l.noticeId)
+      run.queue.push({
+        noticeId: l.noticeId, employer: l.employer, employees: l.employees, percent: l.percent, kind: l.kind, confirmed: l.confirmed,
+        inCrm: !!org, people: people.length, warm, orgUrl: org ? `${SITE}/support/admin/crm/organizations/${org.id}` : null,
+      })
+      return false
+    }
     input.division = notice?.division ?? null
     // Find the people to call now, so the email is not empty: one Hunter search for a company with no head of HR on file.
     // The Hunter search is spent once, on the first attempt; a retry only re-reads what the CRM has gained since.
@@ -116,13 +194,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
     input.picture = { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) }
     input.sources = await loadAlertSources(l.noticeId, l.sourceUrl, l.kind === 'warn' ? 'WARN filing' : l.kind === 'sec' ? 'SEC 8-K filing' : 'Notice')
 
-    // Only a sibling that was actually emailed counts: one that was held or skipped must not silence a later, larger notice.
-    const sibling = await prisma.warnNotice.count({
-      where: {
-        normalizedEmployer: l.normalizedEmployer, id: { not: l.noticeId }, alertSentAt: { not: null },
-        fetchedAt: { gte: new Date(Date.now() - REPEAT_DAYS * 86_400_000) },
-      },
-    })
+    const sibling = await emailedSibling(l.normalizedEmployer, l.noticeId)
     if (sibling > 0) {
       // A held notice that a sibling already covered is finished; closing it keeps the hourly retry list short.
       if (notice?.alertHeldAt) await prisma.warnNotice.update({ where: { id: l.noticeId }, data: { alertGaveUpAt: new Date() } }).catch(() => {})
@@ -155,7 +227,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
       console.error('Layoff alert not sent for', l.employer, error)
       return false
     }
-    sentThisRun++
+    if (run) run.full++
     await prisma.warnNotice.update({ where: { id: l.noticeId }, data: { alertSentAt: new Date() } }).catch(() => {})
     captureServerEvent('cron', 'layoff_alert_sent', {
       employer: l.employer, kind: l.kind, employees: l.employees, percent: l.percent,
@@ -179,7 +251,9 @@ async function markHeld(noticeId: string): Promise<void> {
  * Sends the ones now populated; once the hold (ALERT_HOLD_HOURS) runs out, sends
  * the alert anyway with the missing pieces listed at the top.
  */
-export async function retryHeldLayoffAlerts(now = new Date()): Promise<{ retried: number; sent: number; sentThin: number }> {
+export const retryHeldLayoffAlerts = (now = new Date()) => withAlertRun(() => retryHeld(now))
+
+async function retryHeld(now: Date): Promise<{ retried: number; sent: number; sentThin: number }> {
   const out = { retried: 0, sent: 0, sentThin: 0 }
   const held = await prisma.warnNotice.findMany({
     where: { alertHeldAt: { not: null }, alertSentAt: null, alertGaveUpAt: null, dismissedAt: null },

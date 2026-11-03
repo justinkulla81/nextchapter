@@ -31,3 +31,17 @@ export function isTrustedPublisher(publisher: string | null | undefined): boolea
 export function singleSourceQualifies(publisher: string | null | undefined, employerInCrm: boolean): boolean {
   return employerInCrm || isTrustedPublisher(publisher)
 }
+
+const THOUSANDS = /\b(?:several |many |tens of )?thousands? (?:of )?(?:jobs|employees|workers|staff|roles|positions|people)\b|\b(?:lay(?:s|ing)? off|cuts?|cutting|layoffs? (?:of|affecting|hitting)) (?:several |many )?thousands\b/i
+
+/**
+ * A state filing covers one site or one division; a company-wide announcement can be far larger. When the story
+ * reports at least 1,000 jobs and five times the filing (or says "thousands" and the filing is under 1,000), it is
+ * a different event, not a second report of the filing: it gets its own entry. Headcount-less stories qualify
+ * only on the words, and a filing of 1,000+ jobs is assumed to be the same layoff.
+ */
+export function newsOutgrowsFiling(filingEmployees: number | null, newsEmployees: number | null, headlines: string[]): boolean {
+  if (newsEmployees != null) return newsEmployees >= 1000 && newsEmployees >= (filingEmployees ?? 0) * 5
+  if ((filingEmployees ?? 0) >= 1000) return false
+  return headlines.some((h) => THOUSANDS.test(h))
+}
