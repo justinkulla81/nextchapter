@@ -1,5 +1,5 @@
 import { TrackedLink } from '@/components/marketing/TrackedLink'
-import { CompanyInterestFlag } from '@/components/company/CompanyInterestFlag'
+import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { LandingVariant } from '@/lib/layoffs/landing'
@@ -18,8 +18,11 @@ const YES: Record<LandingVariant, string> = {
 
 /**
  * The hero action on a company layoff page. Most people here were affected, so the question comes first and the one primary
- * button takes them to "Where do you stand?" just below. A link goes to the company's general page, and following the company
- * is the quiet option for people who are only watching.
+ * button takes them to "Where do you stand?" just below. A link goes to the company's general page.
+ *
+ * Most searchers of "<company> layoffs" were not laid off (PostHog, Oct 2026: 66 of 82 search visitors left after one page, 4
+ * answered the question). For them the second option is an email when the company files again: one field, no account. It replaced
+ * the "Just watching? Follow <company>" link, which needed an account (following stays on the company's /employers page).
  */
 export function AffectedPrompt({ variant, name, slug }: { variant: LandingVariant; name: string; slug: string }) {
   const properties = { company: slug, variant }
@@ -45,7 +48,7 @@ export function AffectedPrompt({ variant, name, slug }: { variant: LandingVarian
         </TrackedLink>
       </div>
       <div className="mt-3 border-t border-border pt-3">
-        <CompanyInterestFlag company={name} slug={slug} page="layoffs" quiet />
+        <LayoffAlertForm employer={slug} employerName={name} source="layoffs:company:hero" inline />
       </div>
     </div>
   )
