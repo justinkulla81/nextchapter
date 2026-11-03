@@ -19,6 +19,8 @@ const SOURCES = new Set([
   'salaries', 'places', 'rankings',
   // The AI-skill pay premium explainer.
   'ai-pay-premium',
+  // The pay data pages (/resources/pay-data).
+  'pay-data',
 ])
 const MAX_PER_HOUR_PER_IP = 5
 

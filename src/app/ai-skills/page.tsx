@@ -166,6 +166,14 @@ export default async function AiSkillsPage() {
           </section>
         )}
 
+        <section className="mt-12" aria-labelledby="all-skills-pay">
+          <h2 id="all-skills-pay" className="text-xl font-bold tracking-tight text-navy">Other skills and pay</h2>
+          <p className="mt-3 max-w-3xl text-base leading-relaxed text-navy">
+            AI is one skill among many. <Link href="/resources/pay-data/skills" className="text-brand underline underline-offset-4">Skills that pay more</Link> ranks every skill with enough postings by the pay of the jobs that list it and by the gap against similar jobs, and the{' '}
+            <Link href="/resources/pay-data" className="text-brand underline underline-offset-4">pay data</Link> cuts advertised pay by industry, function and employer size.
+          </p>
+        </section>
+
         <section className="mt-12" aria-labelledby="what-counts">
           <h2 id="what-counts" className="text-xl font-bold tracking-tight text-navy">
             What counts as an AI skill

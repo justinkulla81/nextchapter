@@ -56,6 +56,9 @@ export default async function DataPage() {
           <p className="mt-4 text-lg text-muted-foreground">
             {rows.length.toLocaleString('en-US')} WARN Act filings{oldest && newest ? `, ${noticeDay(new Date(oldest))} to ${noticeDay(new Date(newest))}` : ''}, one row per filing, collected from state labor departments and linked to each state’s own record.
           </p>
+          <p className="mt-3 text-base text-navy">
+            Also free to download: <Link href="/resources/pay-data" className={LINK}>pay data</Link> by industry, function, employer size and skill (<a href="/resources/pay-data/data.csv" className={LINK}>CSV</a>), the <Link href="/resources/pay-data/skills" className={LINK}>skills and pay table</Link> (<a href="/resources/pay-data/skills.csv" className={LINK}>CSV</a>) and the <Link href="/data/ai-jobs-index" className={LINK}>AI Jobs Index</Link>.
+          </p>
           <PullTop name="Layoff data" path="/data" />
 
           <LayoffNumbersNote counts={counts} className="mt-8 rounded-xl border border-border bg-white p-6" />

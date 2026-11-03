@@ -3,6 +3,7 @@ import { FeedLine } from '@/components/seo/FeedLine'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { IndustryPaySection } from '@/components/pay-data/PayDataLinks'
 import { FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, Section, TopicShell, functionChip, LINK } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
@@ -64,6 +65,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           </div>
         )}
       </Section>
+      <IndustryPaySection bucket={industry.name} />
       {outlook.label !== 'Not enough data' && (
         <Section id="outlook" title={`${industry.name} outlook: ${outlook.label}`} note="Built from public Bureau of Labor Statistics numbers, not from our own postings. It describes the industry nationally, not any one employer.">
           <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">

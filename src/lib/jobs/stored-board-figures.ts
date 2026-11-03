@@ -23,6 +23,8 @@ export type BoardFigureKey =
   | `segment-awards:${number}`
   | 'job-title-places-index'
   | `job-title-place:${string}`
+  | 'pay-data'
+  | `pay-data-snapshot:${string}`
 
 export async function readBoardFigure<T>(key: BoardFigureKey): Promise<T | null> {
   const row = await prisma.boardFigure.findUnique({ where: { key }, select: { payload: true } })

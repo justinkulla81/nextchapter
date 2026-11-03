@@ -8,6 +8,7 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, JOB_FUNCTIONS } from '@/lib/seo/topics'
 import { loadFunction } from '@/lib/seo/topic-load'
 import { RankingContext } from '@/components/rankings/RankingContext'
+import { FunctionPaySection } from '@/components/pay-data/PayDataLinks'
 import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
@@ -56,6 +57,7 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
           </div>
         )}
       </Section>
+      <FunctionPaySection label={fn.name} />
       <Section id="jobs" title={`Open ${fn.name} jobs`} note="Verified against the employer’s own career site within the last week.">
         <JobList jobs={jobs.jobs} total={jobs.total} source={`function:${slug}`} />
       </Section>
