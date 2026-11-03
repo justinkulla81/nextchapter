@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { rankCities, rankCounties, rankSkills, wave1Specs, wave2PlaceSpecs, functionSpecs, skillSpecs, MIN_RANKED, editionLabel } from '@/lib/rankings/build-edition'
+import { rankCities, rankColleges, rankCounties, rankSkills, wave1Specs, wave2PlaceSpecs, functionSpecs, skillSpecs, workforceSpecs, collegeSpecs, MIN_RANKED, editionLabel } from '@/lib/rankings/build-edition'
 import { CITY_MEASURES } from '@/lib/rankings/measures'
-import type { CityStat, CountyStat, FnTotal, SkillStat } from '@/lib/rankings/types'
+import type { CityStat, CollegeStat, CountyStat, FnTotal, SkillStat } from '@/lib/rankings/types'
 
 const city = (st: string, name: string, n: number, entry: number, extra: Partial<CityStat> = {}): CityStat => ({
   st, city: name, n, entry, ai: 0, remote: 0, paid: 0, payMed: null, eng: 0, engPaid: 0, engPay: null, employers: [], topShare: 0.1, mid: 0, exec: 0, ...extra,
@@ -105,5 +105,44 @@ describe('ranking engine', () => {
     const p = rankSkills(pay, stats, totals, '2026-11', 'x', null)!
     expect(p.rows[0].name).toBe('x7')
     expect(p.rows[0].stats[2].value).toBe('+14%')
+  })
+
+  it('ranks counties lowest unemployment first, with the leader\'s bar longest', () => {
+    const spec = workforceSpecs().find((x) => x.slug === 'counties-with-the-lowest-unemployment')!
+    const counties: CountyStat[] = Array.from({ length: 10 }, (_, i) => ({ fips: `0200${i}`, st: 'TX', name: `County ${i}`, href: null, population: 300_000, populationChangePct: 1, jobsThen: 90_000, jobsNow: 95_000, infoThen: 0, infoNow: 0, rate: 2 + i * 0.3, rateYearAgo: 3 + i * 0.3, laborForce: 100_000 + i }))
+    const e = rankCounties(spec, counties, '2026-11', 'x', null)!
+    expect(e.rows[0].name).toBe('County 0')
+    expect(e.rows[0].valueLabel).toBe('2.0%')
+    expect(e.rows[0].bar).toBe(1)
+    expect(e.rows[9].bar!).toBeLessThan(e.rows[0].bar!)
+    expect(e.lead).toContain('lowest unemployment')
+  })
+  it('ranks biggest unemployment drops and ignores counties where it rose', () => {
+    const spec = workforceSpecs().find((x) => x.slug === 'counties-where-unemployment-fell-the-most')!
+    const counties: CountyStat[] = Array.from({ length: 12 }, (_, i) => ({ fips: `0300${i}`, st: 'TX', name: `County ${i}`, href: null, population: 300_000, populationChangePct: 1, jobsThen: 90_000, jobsNow: 95_000, infoThen: 0, infoNow: 0, rate: 4, rateYearAgo: i === 11 ? 3 : 4 + (i + 1) * 0.1, laborForce: 50_000 }))
+    const e = rankCounties(spec, counties, '2026-11', 'x', null)!
+    expect(e.rows.some((r) => r.name === 'County 11')).toBe(false)
+    expect(e.rows[0].name).toBe('County 10')
+    expect(e.rows[0].valueLabel).toBe('−1.1 points')
+  })
+  it('builds the wave 3 sets: 44 county lists and the college lists', () => {
+    expect(workforceSpecs()).toHaveLength(44)
+    const c = collegeSpecs(['CA', 'TX'])
+    expect(c.filter((x) => x.measure === 'collegepay')).toHaveLength(3 + 10 + 2)
+    expect(c.filter((x) => x.measure === 'junior')).toHaveLength(11)
+    const all = [...wave1Specs(['TX']), ...wave2PlaceSpecs(), ...functionSpecs(), ...skillSpecs(), ...workforceSpecs(), ...c]
+    expect(new Set(all.map((x) => x.slug)).size).toBe(all.length)
+  })
+  it('ranks colleges on earnings, applies the level and enrolment bars', () => {
+    const spec = collegeSpecs([]).find((x) => x.slug === 'four-year-colleges-with-the-highest-earnings')!
+    const colleges: CollegeStat[] = Array.from({ length: 10 }, (_, i) => ({ unitid: `u${i}`, name: `College ${i}`, st: 'MA', href: `/higher-education/massachusetts/c${i}`, control: 'Private nonprofit', level: i === 9 ? '2-year' : '4-year', enrollment: 1000 + i * 100, earnings10: 60_000 + i * 5_000, completionRate: 0.8, netPrice: 20_000 }))
+    colleges.push({ unitid: 'tiny', name: 'Tiny College', st: 'MA', href: null, control: null, level: '4-year', enrollment: 200, earnings10: 150_000, completionRate: null, netPrice: null })
+    expect(rankColleges(spec, colleges.slice(0, 5), '2026-11', 'x', null)).toBeNull()
+    const more = colleges.slice(0, 9).concat(Array.from({ length: 3 }, (_, i) => ({ ...colleges[0], unitid: `x${i}`, name: `Extra ${i}`, earnings10: 90_000 + i })))
+    const ok = rankColleges(spec, more, '2026-11', 'x', null)!
+    expect(ok.rows.some((r) => r.name === 'Tiny College')).toBe(false)
+    expect(ok.rows.every((r) => r.n >= 1000)).toBe(true)
+    expect(ok.placeNoun).toBe('colleges')
+    expect(ok.rows[0].valueLabel).toMatch(/^\$\d+k$/)
   })
 })

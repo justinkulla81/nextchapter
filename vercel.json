@@ -61,6 +61,14 @@
       "schedule": "0 7 2 * *"
     },
     {
+      "path": "/api/cron/rankings?group=workforce",
+      "schedule": "20 7 2 * *"
+    },
+    {
+      "path": "/api/cron/rankings?group=college",
+      "schedule": "40 7 2 * *"
+    },
+    {
       "path": "/api/cron/page-warmup",
       "schedule": "40 8 * * *"
     },
