@@ -20,6 +20,7 @@ import {
   tally,
   type AppliedJob,
 } from '@/lib/admin/applied-jobs-breakdown'
+import { censusRegion } from '@/lib/applications/skill-snapshot'
 
 export const maxDuration = 30
 export const dynamic = 'force-dynamic'
@@ -148,6 +149,7 @@ export default async function AdminAppliedJobsPage({ searchParams }: { searchPar
     { header: 'Applies', className: 'px-3 py-2 tabular-nums', render: (j) => (j.people === j.clicks ? j.clicks : `${j.clicks} (${j.people} people)`) },
     { header: 'Function', render: (j) => j.function ?? '—' },
     { header: 'Level', render: (j) => levelLabel(j.level) },
+    { header: 'Region', render: (j) => censusRegion(j.state) ?? '—' },
     { header: 'State', render: (j) => j.state ?? '—' },
     { header: 'Industry', render: (j) => industryLabel(j.industry) ?? '—' },
     { header: 'Pay', className: 'px-3 py-2 tabular-nums', render: payText },
@@ -197,6 +199,7 @@ export default async function AdminAppliedJobsPage({ searchParams }: { searchPar
       <div className="grid gap-4 md:grid-cols-2">
         <BreakdownBars title="Function" buckets={tally(jobs, (j) => j.function)} />
         <BreakdownBars title="Seniority" buckets={tally(jobs, (j) => levelLabel(j.level))} />
+        <BreakdownBars title="Region" hint="US Census region of the job's state" buckets={tally(jobs, (j) => censusRegion(j.state))} />
         <BreakdownBars title="Where (state)" buckets={tally(jobs, (j) => j.state)} />
         <BreakdownBars title="Industry" buckets={tally(jobs, (j) => industryLabel(j.industry))} />
         <BreakdownBars title="Pay" hint="Middle of the posted range" buckets={tally(jobs, (j) => payBand(j.salaryMin, j.salaryMax), PAY_ORDER)} />
