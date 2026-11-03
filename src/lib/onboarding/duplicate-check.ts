@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export interface ExistingAccountMatch {
   id: string
@@ -34,6 +35,54 @@ export async function findExistingRegisteredAccount(
     },
     select: { id: true, passwordSetAt: true },
   })
+}
+
+// Runs when a profile has just completed registration. Removes the leftovers of the same person's earlier or parallel
+// onboarding attempts: other profiles with this email that never registered, never set a password, and belong to an
+// anonymous Supabase session (the abandoned run, or a second browser that started over). Anything that is not
+// provably that shape is left alone, and a failure on one profile never stops the rest or the registration itself.
+//
+// A CRM person linked to a leftover (a lead filed under the same email) is moved onto the registered profile first,
+// otherwise deleting the leftover would clear the link (CrmPerson.candidateId is SET NULL).
+export async function removeUnregisteredDuplicates(registeredProfileId: string, email: string): Promise<number> {
+  const leftovers = await prisma.candidateProfile.findMany({
+    where: {
+      id: { not: registeredProfileId },
+      registrationCompletedAt: null,
+      passwordSetAt: null,
+      email: { equals: email, mode: 'insensitive' },
+    },
+    select: { id: true, userId: true },
+  })
+  if (leftovers.length === 0) return 0
+
+  const admin = createAdminClient()
+  let removed = 0
+  for (const leftover of leftovers) {
+    try {
+      // Only an anonymous session (or one whose auth user is already gone) is a leftover. An account with an email
+      // or identity is a real login and stays.
+      const { data, error } = await admin.auth.admin.getUserById(leftover.userId)
+      if (error && !/not.?found/i.test(error.message)) continue
+      if (data?.user && !data.user.is_anonymous) continue
+
+      const alreadyLinked = await prisma.crmPerson.findFirst({ where: { candidateId: registeredProfileId }, select: { id: true } })
+      if (!alreadyLinked) {
+        const lead = await prisma.crmPerson.findFirst({ where: { candidateId: leftover.id, deletedAt: null }, select: { id: true } })
+        if (lead) await prisma.crmPerson.update({ where: { id: lead.id }, data: { candidateId: registeredProfileId } })
+      }
+
+      await prisma.candidateProfile.delete({ where: { id: leftover.id } })
+      await prisma.roleGrant.deleteMany({ where: { userId: leftover.userId } })
+      if (data?.user) await admin.auth.admin.deleteUser(leftover.userId).catch(() => null)
+      removed += 1
+      captureServerEvent(registeredProfileId, 'duplicate_profile_removed', { removedCandidateId: leftover.id, email })
+    } catch (error) {
+      // A profile that still has records which block deletion (for example CRM interactions) is kept for a human.
+      console.error('Failed to remove a leftover duplicate profile:', error)
+    }
+  }
+  return removed
 }
 
 // Non-destructive version of the check, for the moment an email first lands on
