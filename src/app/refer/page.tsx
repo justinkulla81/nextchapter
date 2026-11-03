@@ -19,7 +19,7 @@ export default function ReferPage() {
           {pageH1('/refer', 'Someone you care about is going through this.')}
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          Give them a head start. NextChapter is free for candidates — always. Send them a direct
+          Give them a head start. NextChapter is free for Members — always. Send them a direct
           link and let them start whenever they&apos;re ready.
         </p>
         <div className="mt-8">

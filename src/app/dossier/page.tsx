@@ -34,7 +34,7 @@ export default function DossierPage() {
 
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/desire" />}>
-            Start free
+            Join free
           </Button>
         </div>
       </main>

@@ -66,7 +66,7 @@ export default function ScamWatchPage() {
                 Get free scam watch
               </TrackedLink>
             </div>
-            <p className="mt-3 text-sm text-muted-foreground">Free for candidates. Needs a connected Gmail account.</p>
+            <p className="mt-3 text-sm text-muted-foreground">Free for Members. Needs a connected Gmail account.</p>
           </div>
         </section>
 

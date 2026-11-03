@@ -20,7 +20,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: "Then what's the catch?",
         answer:
-          "No catch. NextChapter is free for candidates. You're the reason the platform exists, not the product being sold, and we don't sell your attention or your data.",
+          "No catch. NextChapter is free for Members. You're the reason the platform exists, not the product being sold, and we don't sell your attention or your data.",
       },
       {
         question: 'Who is NextChapter for?',
@@ -124,7 +124,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       },
       {
         question: 'Is it still free if I get hired through NextChapter?',
-        answer: 'Yes. Candidates are never charged at any stage.',
+        answer: 'Yes. Joining as a NextChapter Member is free, always.',
       },
     ],
   },

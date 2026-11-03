@@ -275,7 +275,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
               A free account turns this page into a plan: your benefits and deadlines, severance and COBRA numbers, and jobs matched to your background.
             </p>
             <TrackedLink href="/onboarding/desire" event="layoff_company_account_cta_clicked" properties={{ company: slug, hasNotices, announced: !!ann }} className="mt-3 inline-block rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white hover:opacity-90">
-              Create a free account
+              Join free
             </TrackedLink>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               {hasNotices && isNetworkCompany(c) && (

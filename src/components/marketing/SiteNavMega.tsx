@@ -139,7 +139,7 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
               ? <>Get your <span className="hidden xl:inline">Market Reality </span>Assessment</>
               : ctaVariant === 'hire_score'
                 ? <><span className="hidden xl:inline">Get your </span>Hireability Score</>
-                : NAV_CTA_LABEL.resume_score}
+                : NAV_CTA_LABEL[ctaVariant]}
           </Button>
           <button
             type="button"

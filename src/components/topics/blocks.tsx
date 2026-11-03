@@ -164,7 +164,7 @@ export function JoinBand({ source, what }: { source: string; what: string }) {
         NextChapter is the leading job transition platform. A free account gives you a plain-language read on {what}, matched jobs and a weekly action plan.
       </p>
       <TrackedLink href={PERSONALIZE_HREF} event="topic_cta_clicked" properties={{ source }} className="mt-4 inline-flex items-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95">
-        Start free
+        Join free
       </TrackedLink>
     </section>
   )

@@ -20,7 +20,7 @@ const STEPS = [
 
 const FAQ = [
   { q: 'Why do I have to join to see the list?', a: 'Because the list is yours. Which programs apply depends on your state, the states you would move to, your work and your situation. Without those answers we would only be showing you everything, and most of it would not apply.' },
-  { q: 'Is it free?', a: 'Yes. Candidates are never charged.' },
+  { q: 'Is it free?', a: 'Yes. Joining as a NextChapter Member is free, always.' },
   { q: 'Do you apply for me, or guarantee I qualify?', a: 'No. We rank programs and send you to each program’s official page, where its own rules decide. Amounts and deadlines change, so confirm there.' },
   { q: 'How do you know these programs are real and open?', a: 'Each program in the list was checked against its official page. Programs that are closed, that pay employers rather than people, or that are written for a group you are not in are left out of your list.' },
   { q: 'Is my information shared?', a: 'What you tell us for matching is private to you. It is not shown to employers, recruiters, schools or coaches.' },
@@ -60,7 +60,7 @@ export default function FundingPage() {
               Join free and see what you qualify for
             </TrackedLink>
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">Free for candidates, always. Takes about five minutes.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Free to join. Free for Members, always. Takes about five minutes.</p>
         </section>
 
         <section className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="What is in the list">

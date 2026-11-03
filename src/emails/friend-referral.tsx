@@ -18,7 +18,7 @@ export default function FriendReferralEmail({ referrerEmail }: FriendReferralEma
           They wanted to pass along NextChapter — a platform for people between chapters of their career. It gives you an honest read on where
           you stand and a real weekly plan, not just another job board.
         </Lead>
-        <Lead>It&apos;s free for candidates, always.</Lead>
+        <Lead>It&apos;s free to join and free for Members, always.</Lead>
         <Button href="https://launchyournextchapter.com">Take a look</Button>
       </Card>
     </CardEmail>

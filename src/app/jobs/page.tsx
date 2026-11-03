@@ -47,7 +47,7 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
   const searched = query.q !== '' || query.loc !== '' || query.remote
   // Only typed searches count toward the limit, so crawlers can always read the bare page.
   if (searched && !(await allowByIp('public-jobs', 60, HOUR_MS))) {
-    problem = 'You have searched a lot this hour. Create a free account to keep searching.'
+    problem = 'You have searched a lot this hour. Join free to keep searching.'
   } else {
     try {
       result = await searchPublicBoardCached(query)
@@ -93,7 +93,7 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
                     properties={{ placement: 'rate_limit' }}
                     className="mt-3 inline-block font-semibold text-brand underline underline-offset-4"
                   >
-                    Create a free account
+                    Join free
                   </TrackedLink>
                 )}
               </div>

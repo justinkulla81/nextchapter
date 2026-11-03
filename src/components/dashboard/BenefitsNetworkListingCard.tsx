@@ -62,9 +62,9 @@ export function BenefitsNetworkListingCard({
         ) : (
           <>
             <a href="/dashboard/membership" className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted">
-              Become a member to redeem
+              Join the Alumni plan to redeem
             </a>
-            <p className="text-sm text-muted-foreground">Redeeming an offer needs an active membership.</p>
+            <p className="text-sm text-muted-foreground">Redeeming an offer needs an active Alumni plan.</p>
           </>
         )}
       </div>

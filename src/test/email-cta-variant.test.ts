@@ -8,9 +8,9 @@ describe('email CTA variant', () => {
     expect(emailCtaVariant(' Pat@Example.com ')).toBe(emailCtaVariant('pat@example.com'))
   })
 
-  it('spreads addresses across all three arms', () => {
-    const counts = { control: 0, hire_score: 0, resume_score: 0 }
-    for (let i = 0; i < 3000; i++) counts[emailCtaVariant(`person${i}@example.com`)]++
+  it('spreads addresses across all four arms', () => {
+    const counts = { control: 0, hire_score: 0, resume_score: 0, join_free: 0 }
+    for (let i = 0; i < 4000; i++) counts[emailCtaVariant(`person${i}@example.com`)]++
     for (const n of Object.values(counts)) expect(n).toBeGreaterThan(800)
   })
 
@@ -19,6 +19,7 @@ describe('email CTA variant', () => {
     expect(emailCtaLabel('control', 'Get your free assessment')).toBe('Get your free assessment')
     expect(emailCtaLabel('hire_score', 'x')).toBe(NAV_CTA_LABEL.hire_score)
     expect(emailCtaLabel('resume_score', 'x')).toBe('Score My Resume')
+    expect(emailCtaLabel('join_free', 'x')).toBe('Join free')
   })
 
   it('tags links with a campaign so the arm can ride along', () => {
