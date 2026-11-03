@@ -10,6 +10,7 @@ import { stateName } from '@/lib/seo/states'
 import { getSearchFirmBySlug, type SearchFirmPage } from '@/lib/seo/search-firm-pages'
 import { FIRM_KIND_LABEL, levelLabel, specialties } from '@/lib/seo/search-firm-bar'
 import { titleMeta } from '@/lib/seo/title'
+import { ExpressInterestButton } from '@/components/search-firms/ExpressInterestButton'
 
 // One page per search firm, recruiting firm, staffing company or outplacement firm with searches of its own to show:
 // the roles it is recruiting for now (only ones with a public job page), what it specializes in, where, and how long its
@@ -96,6 +97,16 @@ export default async function SearchFirmPublicPage({ params }: { params: Promise
       jsonLd={ld}
       lede={<><span className="block text-sm">{[FIRM_KIND_LABEL[f.kind], f.hq].filter(Boolean).join(' · ')}</span>{description(f)}</>}
     >
+      <section aria-labelledby="interest" className="mt-8">
+        <h2 id="interest" className="sr-only">Express interest in {f.name}</h2>
+        <ExpressInterestButton orgId={f.orgId} firmName={f.name} source="search_firm_page" primary />
+        <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
+          {f.inboundSlug
+            ? <>Add your résumé and build your package. You choose when it goes to {f.name}. Or <Link href={`/in/${f.inboundSlug}`} className={LINK}>send your résumé to {f.name} directly</Link>.</>
+            : <>{f.name} has not joined NextChapter yet. Your résumé is not sent to {f.name}. If it joins, we ask you before sharing anything.</>}
+        </p>
+      </section>
+
       {s.publicRoles > 0 && (
         <section aria-labelledby="searches" className="mt-10">
           <h2 id="searches" className={H2}>What it is recruiting for</h2>
@@ -105,7 +116,7 @@ export default async function SearchFirmPublicPage({ params }: { params: Promise
             <Stat value={n0(s.entryLevel)} label="entry-level or no-experience roles" />
             <Stat value={n0(s.aiSkill)} label="roles that name AI skills" />
           </ul>
-          {sp.length > 0 && <p className="mt-4 max-w-3xl text-sm text-muted-foreground"><span className="font-medium text-foreground">Specialties, from its live searches:</span> {sp.join(', ')}.</p>}
+          {sp.length > 0 && <p className="mt-4 max-w-3xl text-sm text-muted-foreground"><span className="font-medium text-foreground">What it recruits for, from its live searches:</span> {sp.join(', ')}.</p>}
           {s.levels.length > 0 && <p className="mt-2 max-w-3xl text-sm text-muted-foreground"><span className="font-medium text-foreground">By level:</span> {s.levels.map((l) => `${l.label.toLowerCase()} (${n0(l.count)})`).join(', ')}.</p>}
           {s.states.length > 0 && <p className="mt-2 max-w-3xl text-sm text-muted-foreground"><span className="font-medium text-foreground">Where:</span> {s.states.map((x) => `${stateLabel(x.state)} (${n0(x.count)})`).join(', ')}{s.remote > 0 && <>; {n0(s.remote)} remote</>}.</p>}
           {s.medianPay && <p className="mt-2 max-w-3xl text-sm text-muted-foreground"><span className="font-medium text-foreground">Posted pay:</span> the median posted range is {k(s.medianPay[0])}–{k(s.medianPay[1])} across {n0(s.withPay)} searches that state one.</p>}

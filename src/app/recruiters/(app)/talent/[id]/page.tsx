@@ -8,7 +8,7 @@ import { TagBadge } from '@/components/recruiter/talent/TalentSubnav'
 import { AssignControl, OpenResumeButton, TagButtons } from '@/components/recruiter/talent/TalentForms'
 import { assignConnection, getIntakeResumeUrl, overrideTag } from '../actions'
 
-const SOURCE_LABEL = { PAGE: 'Inbound page', NOT_FIT_LINK: '"Not a fit now" link', FORWARD: 'Forwarded email' } as const
+const SOURCE_LABEL = { PAGE: 'Inbound page', NOT_FIT_LINK: '"Not a fit now" link', FORWARD: 'Forwarded email', MEMBER_INTEREST: 'Expressed interest on NextChapter' } as const
 const REPLY_LABEL = { DRAFT: 'Waiting for your OK', APPROVED: 'Approved', SENT: 'Sent', CANCELLED: 'Cancelled' } as const
 
 export default async function TalentConnectionPage({ params }: { params: Promise<{ id: string }> }) {

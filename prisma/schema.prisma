@@ -1646,6 +1646,7 @@ model CandidateProfile {
   interimMarketplaceSignups      InterimMarketplaceSignup[]
   partnerClickThroughs           PartnerClickThrough[]
   companyWatchlist               CompanyWatchlistEntry[]
+  recruiterInterests             RecruiterInterest[]
   emailConnection                EmailConnection?
   trackedEmailActivities         TrackedEmailActivity[]
   scamAlerts                     ScamAlert[]
@@ -8857,6 +8858,7 @@ enum IntakeSearchStatus {
 
 enum IntakeSource {
   PAGE
+  MEMBER_INTEREST
   NOT_FIT_LINK
   FORWARD
 }
@@ -10565,6 +10567,7 @@ model CrmOrganization {
   partnerProfile      CrmPartnerProfile?
   researchProfile     CrmResearchProfile?
   searchFirms         SearchFirm[]
+  recruiterInterests  RecruiterInterest[]
 
   // How this organisation came to be (or not be) linked to a directory Company:
   // 'AUTO' (exact normalised-name match), 'ADMIN' (confirmed on the review page),
@@ -17924,4 +17927,32 @@ model SeoTitleTest {
   lastCheckedAt DateTime?
   /// The last read: impressions, clicks, click rate and average position per arm, and the verdict.
   result        Json?
+}
+
+enum RecruiterInterestStatus {
+  HELD
+  SHARED
+  WITHDRAWN
+}
+
+/// A member's interest in a search firm, kept against the firm's CRM organization so it exists before the firm joins.
+/// HELD: nothing has gone to the firm. SHARED: the member chose to send their résumé (an IntakeConnection now exists).
+/// prisma/manual/recruiter-interest.sql
+model RecruiterInterest {
+  id          String                  @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  /// The firm's organization id. The column keeps the name crmOrgId; the field is firmOrgId so member-facing code
+  /// never spells a CRM model (src/test/company-wall.test.ts).
+  firmOrgId   String                  @map("crmOrgId")
+  firmOrg     CrmOrganization         @relation(fields: [firmOrgId], references: [id], onDelete: Cascade)
+  /// search_firm_page | directory | recommendation | firm_page
+  source      String
+  status      RecruiterInterestStatus @default(HELD)
+  sharedAt    DateTime?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  @@unique([candidateId, firmOrgId], map: "RecruiterInterest_candidateId_crmOrgId_key")
+  @@index([firmOrgId, status], map: "RecruiterInterest_crmOrgId_status_idx")
 }

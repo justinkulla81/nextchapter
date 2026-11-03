@@ -13,7 +13,9 @@ import { claimSlug } from '@/lib/org-claims/urls'
 import {
   SEARCH_FIRM_MIN_PUBLIC_ROLES,
   firmKind,
+  industryLabel,
   isSearchFirmIndexable,
+  seniorityBand,
   isUsableFirmSlug,
   summarizeSearches,
   yearlyRange,
@@ -47,6 +49,8 @@ export interface SearchFirmPage {
   roles: SearchFirmRole[]
   lastChecked: Date | null
   indexable: boolean
+  /** The firm has claimed its page and an admin verified it: its own inbound page at /in/<inboundSlug> is live. */
+  inboundSlug: string | null
 }
 
 function toRow(r: Prisma.ExclusiveJobPostingGetPayload<{ select: typeof SELECT }>): SearchRow {
@@ -69,6 +73,7 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
       id: true, name: true, website: true, hqCity: true, hqRegion: true, orgTypes: true, companyId: true,
       company: { select: { industry: true } },
       searchFirms: { select: { name: true, segment: true, teamPageUrl: true, website: true }, take: 1 },
+      recruiterFirm: { select: { status: true, slug: true } },
     },
   })
   if (!org) return null
@@ -108,6 +113,7 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
     })),
     lastChecked: live.reduce<Date | null>((m, r) => (r.lastVerifiedAt && (!m || r.lastVerifiedAt > m) ? r.lastVerifiedAt : m), null),
     indexable: isSearchFirmIndexable(summary.publicRoles),
+    inboundSlug: org.recruiterFirm?.status === 'VERIFIED' ? (org.recruiterFirm.slug ?? null) : null,
   }
 })
 
@@ -121,6 +127,10 @@ export interface FirmListing {
   publicRoles: number
   topFunction: string | null
   states: string[]
+  /** What its live searches say it recruits for. All empty means "General": the data names no specialty. */
+  industries: string[]
+  functions: string[]
+  seniorities: string[]
   lastVerifiedAt: Date
 }
 
@@ -133,6 +143,8 @@ interface HitRow {
   types: string[]
   fn: string | null
   state: string | null
+  industry: string | null
+  level: string | null
   verified: Date
   jobId: string
 }
@@ -154,19 +166,19 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
     -- Postings that name a search firm as their source, read once (the allowlist's partial index narrows it), then matched to
     -- firms by name. Joining firm by firm made the planner re-scan the board for every firm.
     sf AS (
-      SELECT "ExclusiveJobPosting".id AS jid, "sourceName" AS sname, "targetFunction" AS fn, "locationState" AS state, "lastVerifiedAt" AS verified
+      SELECT "ExclusiveJobPosting".id AS jid, "sourceName" AS sname, "targetFunction" AS fn, "locationState" AS state, "industry" AS industry, "level"::text AS level, "lastVerifiedAt" AS verified
       FROM "ExclusiveJobPosting"
       WHERE "sourceCategory" = 'search_firm' AND ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}
     ),
     hits AS (
-      SELECT fm.oid, "ExclusiveJobPosting".id AS jid, "targetFunction" AS fn, "locationState" AS state, "lastVerifiedAt" AS verified
+      SELECT fm.oid, "ExclusiveJobPosting".id AS jid, "targetFunction" AS fn, "locationState" AS state, "industry" AS industry, "level"::text AS level, "lastVerifiedAt" AS verified
       FROM firms fm JOIN "ExclusiveJobPosting" ON "ExclusiveJobPosting"."companyId" = fm.cid
       WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}
       UNION
-      SELECT fm.oid, sf.jid, sf.fn, sf.state, sf.verified
+      SELECT fm.oid, sf.jid, sf.fn, sf.state, sf.industry, sf.level, sf.verified
       FROM firms fm JOIN sf ON sf.sname = fm.fname OR sf.sname = fm.fname2
     )
-    SELECT fm.oid, fm.canon, fm.fname AS name, fm.segment, COALESCE(fm.staffing, false) AS staffing, fm.types, h.fn, h.state, h.verified, h.jid AS "jobId"
+    SELECT fm.oid, fm.canon, fm.fname AS name, fm.segment, COALESCE(fm.staffing, false) AS staffing, fm.types, h.fn, h.state, h.industry, h.level, h.verified, h.jid AS "jobId"
     FROM hits h JOIN firms fm ON fm.oid = h.oid`
   const by = new Map<string, HitRow[]>()
   for (const h of hits) (by.get(h.oid) ?? by.set(h.oid, []).get(h.oid)!).push(h)
@@ -187,6 +199,9 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
       publicRoles,
       topFunction: count((r) => r.fn, 1)[0] ?? null,
       states: count((r) => r.state, 5),
+      industries: count((r) => industryLabel(r.industry), 3),
+      functions: count((r) => r.fn, 3),
+      seniorities: count((r) => seniorityBand(r.level), 3),
       lastVerifiedAt: rows.reduce((m, r) => (r.verified > m ? r.verified : m), rows[0].verified),
     })
   }
@@ -196,7 +211,7 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
 /** The cache stores JSON, so the date comes back as an ISO string. */
 export type CachedFirmListing = Omit<FirmListing, 'lastVerifiedAt'> & { lastVerifiedAt: string }
 
-const FIRMS_KEY = 'firms:v2'
+const FIRMS_KEY = 'firms:v3'
 const FIRMS_MAX_AGE_MS = 24 * 3600_000
 const toCached = async (): Promise<CachedFirmListing[]> => (await loadFirmListings()).map((f) => ({ ...f, lastVerifiedAt: f.lastVerifiedAt.toISOString() }))
 
@@ -224,3 +239,39 @@ export async function searchFirmsInShard(shard: number): Promise<{ slug: string;
 }
 
 export { SEARCH_FIRM_MIN_PUBLIC_ROLES }
+
+/** A firm with no industry and no function in its searches is "General": it is listed, but never ahead of a specialist. */
+export const isGeneralFirm = (f: Pick<FirmListing, 'industries' | 'functions'>): boolean => f.industries.length === 0 && f.functions.length === 0
+
+// ── Helpers for a member's interest in a firm (src/lib/recruiter-interest) ─────────────────────
+// They live here so the member-facing code never reads a CRM table itself: this file is the one reviewed reader, and
+// what leaves it is a firm's public name, page address and whether it has joined. Nothing about a CRM person or note.
+
+export interface FirmBrief { orgId: string; name: string; slug: string | null; joined: boolean }
+
+export async function getFirmBriefs(orgIds: string[]): Promise<Map<string, FirmBrief>> {
+  if (orgIds.length === 0) return new Map()
+  const rows = await prisma.crmOrganization.findMany({
+    where: { id: { in: orgIds } },
+    select: { id: true, name: true, canonicalNameNormalized: true, recruiterFirm: { select: { status: true } } },
+  })
+  return new Map(rows.map((r) => {
+    const slug = claimSlug(r.canonicalNameNormalized ?? '')
+    return [r.id, { orgId: r.id, name: r.name, slug: isUsableFirmSlug(slug) ? slug : null, joined: r.recruiterFirm?.status === 'VERIFIED' }]
+  }))
+}
+
+/** The firm's name when the id is a real organization, else null. */
+export async function firmNameOf(orgId: string): Promise<string | null> {
+  return (await prisma.crmOrganization.findUnique({ where: { id: orgId }, select: { name: true } }))?.name ?? null
+}
+
+/** The joined, verified firm behind an organization (the workspace that can receive a résumé), or null. */
+export async function verifiedRecruiterFirmForOrg(orgId: string) {
+  const org = await prisma.crmOrganization.findUnique({ where: { id: orgId }, select: { recruiterFirm: true } })
+  return org?.recruiterFirm?.status === 'VERIFIED' ? org.recruiterFirm : null
+}
+
+export async function recruiterFirmIdForOrg(orgId: string): Promise<string | null> {
+  return (await prisma.crmOrganization.findUnique({ where: { id: orgId }, select: { recruiterFirmId: true } }))?.recruiterFirmId ?? null
+}
