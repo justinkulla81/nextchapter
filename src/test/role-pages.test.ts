@@ -47,6 +47,9 @@ describe('title matching: C-suite', () => {
   it('does not read the acronym where it means something else', () => {
     expect(is('chief-revenue-officer', 'Senior Manager, CRO Oversight')).toBe(false)
     expect(is('chief-revenue-officer', 'Clinical CRO Vendor Lead')).toBe(false)
+    expect(is('chief-revenue-officer', 'Chief Risk Officer (CRO)')).toBe(false)
+    expect(is('chief-revenue-officer', 'Head of Sales Enablement')).toBe(false)
+    expect(is('chief-revenue-officer', 'Production Technician III-CRO')).toBe(false)
     expect(is('chief-marketing-officer', 'CMO - Hospital System')).toBe(false)
     expect(is('chief-marketing-officer', 'Chief Medical Officer')).toBe(false)
     expect(is('chief-customer-officer', 'CCO, Compliance')).toBe(false)
