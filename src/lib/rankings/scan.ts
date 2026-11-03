@@ -7,7 +7,8 @@ import { COUNTY_SECTORS, areaContext } from '@/lib/workforce/county-context'
 import { slugify } from '@/lib/seo/workforce-pages'
 import { stateName, stateSlug as stateSlugOf } from '@/lib/seo/states'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
-import type { CityStat, CountyStat, FnTotal, SkillStat } from '@/lib/rankings/types'
+import { industryByName, bucketFromIndustryText } from '@/lib/seo/topics'
+import type { CityStat, CountyStat, FnTotal, IndustryStat, SkillStat } from '@/lib/rankings/types'
 
 // The two reads behind the rankings. Both are whole-board work, so they run only in the monthly job (/api/cron/rankings)
 // and never on a page view.
@@ -165,4 +166,26 @@ export async function loadSkillStats(): Promise<{ stats: SkillStat[]; totals: Fn
   ])
   const totals: FnTotal[] = totalRows.flatMap((r) => (r.g === 1 ? [{ fn: '*', n: r.n, paid: r.paid, payMed: r.pay }] : r.fn ? [{ fn: r.fn, n: r.n, paid: r.paid, payMed: r.pay }] : []))
   return { stats: [...skills, ...tools, ...certs], totals }
+}
+
+/** Openings by industry bucket: the counts the industry lists rank on. A posting's industry text is read into the same buckets the industry pages use. */
+export async function loadIndustryStats(): Promise<IndustryStat[]> {
+  const rows = await longRead((tx) => tx.$queryRaw<{ ind: string; n: number; entry: number; ai: number; paid: number; pay: number | null }[]>`
+    SELECT industry AS ind, count(*)::int AS n,
+      count(*) FILTER (WHERE level IN ('ENTRY_IC', 'EARLY_IC'))::int AS entry,
+      count(*) FILTER (WHERE cardinality("aiSkillGroups") > 0)::int AS ai,
+      count(*) FILTER (WHERE ${PAID})::int AS paid,
+      (percentile_cont(0.5) WITHIN GROUP (ORDER BY ${MID_PAY}) FILTER (WHERE ${PAID}))::float AS pay
+    FROM "ExclusiveJobPosting" ${LIVE} AND industry IS NOT NULL
+    GROUP BY 1`)
+  // Several raw spellings fall in one bucket: add the counts, and weight the medians by the openings that post pay.
+  const merged = new Map<string, IndustryStat & { payNum: number }>()
+  for (const r of rows) {
+    const bucket = industryByName(bucketFromIndustryText(r.ind))
+    if (!bucket) continue
+    const cur = merged.get(bucket.name) ?? { name: bucket.name, n: 0, entry: 0, ai: 0, paid: 0, payMed: null, payNum: 0 }
+    cur.n += r.n; cur.entry += r.entry; cur.ai += r.ai; cur.paid += r.paid; cur.payNum += (r.pay ?? 0) * r.paid
+    merged.set(bucket.name, cur)
+  }
+  return [...merged.values()].map(({ payNum, ...m }) => ({ ...m, payMed: m.paid > 0 ? payNum / m.paid : null }))
 }

@@ -74,6 +74,7 @@ export type MeasureId =
   | 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent' | 'growth' | 'infogrowth'
   | 'midcareer' | 'leadership' | 'fnopen' | 'fnpay' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay'
   | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed' | 'collegepay'
+  | 'indjunior' | 'indai' | 'indpay'
 
 /** Which stored build a list belongs to: the three builds run as separate monthly jobs so each stays inside the time limit. */
 export type BuildGroup = 'places' | 'functions' | 'skills' | 'workforce' | 'college'
@@ -90,7 +91,7 @@ export interface RankingEdition {
   /** What a place needs to be ranked, in the measure's own unit ("openings" or "jobs"). */
   minN: number
   unit: 'openings' | 'jobs' | 'students'
-  placeNoun: 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'colleges'
+  placeNoun: 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'colleges' | 'industries'
   baseline: { label: string; valueLabel: string } | null
   lead: string
   keyFacts: string[]
@@ -122,6 +123,9 @@ export interface RankingIndexEntry {
 /** Where a place ranks: one entry per list it is in the top 25 of, for the rank line on its page. */
 export interface PlaceRank { slug: string; title: string; rank: number; valueLabel: string; places: number }
 export type PlaceRanks = Record<string, PlaceRank[]>
+
+/** Openings in one industry bucket, with the counts the industry lists rank on. */
+export interface IndustryStat { name: string; n: number; entry: number; ai: number; paid: number; payMed: number | null }
 
 /** One AI skill, tool or certification named in postings, in one job family (fn "*" is every family). */
 export interface SkillStat { fn: string; kind: 'skill' | 'tool' | 'cert'; key: string; n: number; paid: number; payMed: number | null }

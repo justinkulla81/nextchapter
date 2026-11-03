@@ -6,10 +6,11 @@ import { placeKey } from '@/lib/workforce/places'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { getStateCollegeListings } from '@/lib/seo/college-pages'
 import { collegePath } from '@/lib/seo/college-bar'
-import { FAMILIES, collegeSpecs, functionSpecs, rankCities, rankColleges, rankCounties, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, workforceSpecs, type Spec } from '@/lib/rankings/build-edition'
+import { FAMILIES, collegeSpecs, functionSpecs, industrySpecs, rankCities, rankColleges, rankCounties, rankIndustries, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, workforceSpecs, type Spec } from '@/lib/rankings/build-edition'
 import { STATE_FIPS } from '@/lib/rankings/regions'
-import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadSkillStats } from '@/lib/rankings/scan'
-import { previousEdition, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
+import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
+import { awardEntries } from '@/lib/rankings/awards'
+import { addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
 import type { BuildGroup, CityStat, CollegeStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/measures'
 
@@ -105,6 +106,14 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
       const ed = rankSkills(spec, stats, totals, edition, builtAt, await prevRanksOf(spec.slug))
       ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
     }
+    // The industry lists build in this group too: one more pass over the board, no city work.
+    const industries = industrySpecs()
+    specs = [...specs, ...industries]
+    const industryStats = await loadIndustryStats()
+    for (const spec of industries) {
+      const ed = rankIndustries(spec, industryStats, edition, builtAt, await prevRanksOf(spec.slug))
+      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+    }
   } else if (group === 'workforce') {
     const raw = await loadCountyStats()
     const hrefs = await countyHrefs([...new Set(raw.map((c) => c.st))])
@@ -195,6 +204,10 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
   const mine = new Set(specs.map((x) => x.slug))
   const index = (await readRankingIndex()).filter((e) => !mine.has(e.slug) && (e.group ?? 'places') !== group)
   await writeRankingIndex([...index, ...entries])
+  // Every month's placings are kept (awards.ts). The first build after they shipped rebuilds them from the stored editions, so
+  // the months already published are included; after that each build adds its own.
+  if (await awardBookExists()) await addToAwardBook(built.flatMap(({ ed }) => awardEntries(ed)))
+  else await rebuildAwardBook()
   if (group !== 'skills') {
     const merged: PlaceRanks = {}
     for (const [k, list] of Object.entries(await readPlaceRanksRaw())) {

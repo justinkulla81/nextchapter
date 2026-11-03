@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { Chips, FactGrid, JobList, JoinBand, LINK, RankList, Section, TopicShell } from '@/components/topics/blocks'
 import { FitCheck } from '@/components/capture/FitCheck'
+import { RankingContext } from '@/components/rankings/RankingContext'
 import { YourState } from '@/components/capture/YourState'
 import { captureSource } from '@/lib/capture/page-capture'
 import { functionImage } from '@/lib/seo/topic-images'
@@ -104,6 +105,7 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
           </p>
         </Section>
       )}
+      <RankingContext surface="title" fn={stat.fn} />
       {d.states.length > 0 && (
         <Section id="states" title={`Where ${stat.name.toLowerCase()} jobs are`}>
           <Chips kind="title_to_state" event="topic_link_clicked" items={d.states.map((s) => ({ href: `/places/${s.slug}`, label: s.name, detail: s.jobs.toLocaleString('en-US') }))} />

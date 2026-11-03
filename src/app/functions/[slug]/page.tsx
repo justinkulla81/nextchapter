@@ -7,6 +7,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, JOB_FUNCTIONS } from '@/lib/seo/topics'
 import { loadFunction } from '@/lib/seo/topic-load'
+import { RankingContext } from '@/components/rankings/RankingContext'
 import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
@@ -67,6 +68,7 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
           <Chips kind="function_to_employer" event="topic_link_clicked" items={jobs.employers.map((e) => ({ href: `/employers/${e.slug}`, label: e.name, detail: `${e.count.toLocaleString()} open` }))} />
         </Section>
       )}
+      <RankingContext surface="function" fn={fn.name} />
       <p className="mt-4 text-sm"><Link href={`/top-employers/${slug}`} className={LINK}>Ranked: the employers hiring the most {fn.name.toLowerCase()} jobs</Link></p>
       <Section id="conferences" title={`${fn.name} conferences`} note="Conferences tagged for this function, plus events with no function tag whose attendee roles point here.">
         <ConferenceList rows={confs.rows} total={confs.total} upcoming={confs.upcoming} source={`function:${slug}`} />

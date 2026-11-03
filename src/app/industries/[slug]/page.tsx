@@ -14,6 +14,7 @@ import { FitCheck } from '@/components/capture/FitCheck'
 import { YourState } from '@/components/capture/YourState'
 import { captureSource } from '@/lib/capture/page-capture'
 import { AI_SKILL_ITEMS } from '@/lib/skills/ai-skills'
+import { RankingContext } from '@/components/rankings/RankingContext'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const dynamicParams = true
@@ -70,6 +71,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           </ul>
         </Section>
       )}
+      <RankingContext surface="industry" places={[{ name: industry.name, keys: [`industry:${industry.name}`] }]} />
       {industry.rule && (
         <Section id="jobs" title={`Open ${industry.name} jobs`} note="Verified against the employer’s own career site within the last week.">
           <JobList jobs={jobs.jobs} total={jobs.total} source={`industry:${slug}`} />

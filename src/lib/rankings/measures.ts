@@ -17,7 +17,7 @@ export interface Cost { rpp: number; basis: 'metro' | 'state' }
 export interface CityCtx { costOf: (c: CityStat) => Cost | null }
 
 export interface CityMeasure {
-  id: Exclude<MeasureId, 'growth' | 'infogrowth' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay' | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed' | 'collegepay'>
+  id: Exclude<MeasureId, 'growth' | 'infogrowth' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay' | 'indjunior' | 'indai' | 'indpay' | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed' | 'collegepay'>
   kind: 'city'
   family: string
   /** Openings a city needs, by scope, in the unit the measure counts. */
@@ -395,7 +395,8 @@ export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
   whitecollar: ['Census Bureau, American Community Survey 5-year estimates (occupation by county)'],
   aiexposed: ['Bureau of Labor Statistics, Quarterly Census of Employment and Wages, 2025 (private-sector jobs by sector)'],
   collegepay: ['U.S. Department of Education, College Scorecard (median earnings, completion, net price), as held in our college tables'],
-  midcareer: POSTINGS, leadership: POSTINGS, fnopen: POSTINGS, aiskills: POSTINGS, aitools: POSTINGS, aicerts: POSTINGS, skillpay: POSTINGS,
+  indjunior: POSTINGS, indai: POSTINGS, midcareer: POSTINGS, leadership: POSTINGS, fnopen: POSTINGS, aiskills: POSTINGS, aitools: POSTINGS, aicerts: POSTINGS, skillpay: POSTINGS,
+  indpay: ['NextChapter job data: posted annual salary ranges'],
   fnpay: ['NextChapter job data: posted annual salary ranges', 'Bureau of Economic Analysis regional price parities 2024 (metro areas and states)'],
   junior: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
   ai: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
