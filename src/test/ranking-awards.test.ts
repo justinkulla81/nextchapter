@@ -99,18 +99,16 @@ describe('archive and place keys', () => {
   })
 })
 
-describe('industry lists', () => {
-  it('ranks industries on entry-level share, AI share and pay', async () => {
+describe('industry pay list', () => {
+  it('ranks industries on median posted pay and needs enough pay data', async () => {
     const { industrySpecs, rankIndustries } = await import('@/lib/rankings/build-edition')
-    const stats = Array.from({ length: 8 }, (_, i) => ({ name: i === 0 ? 'Technology & Software' : `Industry ${i}`, n: 200 + i, entry: 20 + i * 10, ai: 100 - i * 5, paid: 60, payMed: 90_000 + i * 1000 }))
-    const [junior, ai, pay] = industrySpecs()
-    const j = rankIndustries(junior, stats, '2026-11', 'x', null)!
-    expect(j.rows[0].name).toBe('Industry 7')
-    expect(rankIndustries(ai, stats, '2026-11', 'x', null)!.rows[0].name).toBe('Technology & Software')
-    const p = rankIndustries(pay, stats, '2026-11', 'x', null)!
+    const stats = Array.from({ length: 8 }, (_, i) => ({ name: i === 0 ? 'Technology & Software' : `Industry ${i}`, n: 200 + i, paid: 60, payMed: 90_000 + i * 1000 }))
+    const specs = industrySpecs()
+    expect(specs.map((s) => s.slug)).toEqual(['industries-with-the-highest-posted-pay'])
+    const p = rankIndustries(specs[0], stats, '2026-11', 'x', null)!
+    expect(p.rows[0].name).toBe('Industry 7')
     expect(p.rows[0].valueLabel).toBe('$97k')
     expect(awardEntries(p)[0][0]).toBe('industry:Industry 7')
-    expect(rankIndustries(junior, stats.slice(0, 3), '2026-11', 'x', null)).toBeNull()
-    expect(new Set(industrySpecs().map((s) => s.slug)).size).toBe(3)
+    expect(rankIndustries(specs[0], stats.map((x) => ({ ...x, paid: 10 })), '2026-11', 'x', null)).toBeNull()
   })
 })

@@ -78,7 +78,7 @@ export type MeasureId =
   | 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent' | 'growth' | 'infogrowth'
   | 'midcareer' | 'leadership' | 'fnopen' | 'fnpay' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay'
   | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed' | 'collegepay'
-  | 'indjunior' | 'indai' | 'indpay'
+  | 'indpay'
   | 'icopen' | 'icpay' | 'cgrad' | 'cmid' | 'cremote' | 'cai' | 'perunemp' | 'claidoff' | 'coverall'
 
 /** The measures a single city is ranked on by one value. Composite lists score a whole pool at once and are not in this set. */
@@ -132,8 +132,8 @@ export interface RankingIndexEntry {
 export interface PlaceRank { slug: string; title: string; rank: number; valueLabel: string; places: number }
 export type PlaceRanks = Record<string, PlaceRank[]>
 
-/** Openings in one industry bucket, with the counts the industry lists rank on. */
-export interface IndustryStat { name: string; n: number; entry: number; ai: number; paid: number; payMed: number | null }
+/** Openings in one industry bucket and their posted pay, for the industry pay list. */
+export interface IndustryStat { name: string; n: number; paid: number; payMed: number | null }
 
 /** One AI skill, tool or certification named in postings, in one job family (fn "*" is every family). */
 export interface SkillStat { fn: string; kind: 'skill' | 'tool' | 'cert'; key: string; n: number; paid: number; payMed: number | null }

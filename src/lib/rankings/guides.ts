@@ -131,14 +131,6 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     why: 'Median earnings ten years after enrolling show what former students of a college go on to earn, as the Department of Education publishes it.',
     use: 'Compare colleges within the same level and field, and read earnings next to completion rate and net price. Earnings reflect who enrolls and what they study as much as the college.',
   },
-  indjunior: {
-    why: 'Industries differ in how much of their hiring is at entry level. This list ranks industries by the share of their openings aimed at entry or early-career people.',
-    use: 'If you are starting out, look at the top industries for roles that fit your degree or skills, then follow the employers on the industry page.',
-  },
-  indai: {
-    why: 'AI skills show up in postings at very different rates by industry. The share tells you where AI is already an expected part of the job.',
-    use: 'If you work in or want to move into a top industry, treat the AI skills on the skills lists as part of your next résumé update.',
-  },
   indpay: {
     why: 'Median posted pay differs widely between industries for the same kind of professional role.',
     use: 'Use it when you are choosing between industries, or deciding whether to take your skills to another one. Pay reflects the roles each industry posts, so compare within your job family too.',
