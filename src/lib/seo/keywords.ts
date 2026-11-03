@@ -917,6 +917,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'ai-retraining',
     intent: 'Job seekers looking for AI retraining',
     owner: '/ai-retraining',
     kind: 'page',

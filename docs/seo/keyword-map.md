@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-232 clusters, 1402 phrases.
+233 clusters, 1408 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -86,6 +86,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/ai-skills` | page | AI skills in job postings | AI skills in demand and what they pay | AI jobs; AI skills by function; in-demand AI skills; which jobs need AI skills; AI-proof careers; careers that use AI skills; AI jobs pay |
 | `/resources/ai-skills-pay-premium` | page | AI skills salary premium | Do AI skills increase pay (explainer with a citable table) | do AI skills increase salary; AI skills salary increase; AI skills non tech jobs salary; how much do AI skills pay; AI pay premium by function; AI skills pay marketing |
 | `/ai-training` | page | AI training for workforce programs | Organizations buying AI upskilling | AI upskilling; AI reskilling; AI courses for laid off workers; AI training for colleges; AI training for employers; AI skills gap |
+| `/ai-retraining` | page | best AI retraining programs | Job seekers looking for AI retraining | AI retraining; AI reskilling programs; online AI courses for career changers; in person AI training; AI upskilling for professionals |
 | `/jobs` | page | job search | Find open jobs | find jobs; job board; white collar jobs; professional jobs; executive jobs; senior level jobs; remote professional jobs; jobs with salary; manager jobs; director jobs |
 | `/jobs/:id` | family | {job title} jobs at {company} | One specific opening | {job title} {city}; {company} {job title} salary; {job title} remote |
 | `/employers/:slug` | family | {company} jobs | Jobs and pay at one employer | {company} salaries; {company} open roles; {company} hiring; {company} careers openings |
@@ -584,6 +585,11 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: AI Training for Employees, Colleges and Workforce Boards
 - Description: AI training programs for employees and the people you serve: we measure the AI-skill gap and build short courses for budgets that already pay for training.
+
+### `/ai-retraining`
+
+- Title: Best AI Retraining Programs, Online and In Person
+- Description: The AI courses we rate highest, the college and public programs we have checked, and a place to register your interest by function and industry.
 
 ### `/jobs`
 
