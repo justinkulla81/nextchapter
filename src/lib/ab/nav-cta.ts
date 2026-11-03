@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
 // Nav button label test (started 2026-11-03): "Get your Market Reality Assessment" vs
 // "Get your Hireability Score". Assignment is a 50/50 coin flip in the browser, kept in
@@ -30,10 +30,10 @@ export function readOrAssignNavCtaVariant(): NavCtaVariant {
   }
 }
 
-// null until the browser has read or assigned the visitor's variant (server render and first
-// paint), so callers can show the control label but hold exposure events until it is known.
+const subscribe = () => () => {}
+
+// null on the server and during hydration (callers show the control label and hold exposure
+// events); the visitor's variant once the browser has read or assigned it.
 export function useNavCtaVariant(): NavCtaVariant | null {
-  const [variant, setVariant] = useState<NavCtaVariant | null>(null)
-  useEffect(() => setVariant(readOrAssignNavCtaVariant()), [])
-  return variant
+  return useSyncExternalStore(subscribe, readOrAssignNavCtaVariant, () => null)
 }
