@@ -250,7 +250,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/workforce-boards` | page | workforce development boards | Find a local workforce board or job center | american job centers; local workforce board near me; workforce board directory; workforce investment board; job center near me; one-stop career center |
 | `/workforce-boards/:state` | family | {state} workforce development boards | Workforce boards in one state | {state} american job centers; {state} workforce boards; {state} job centers near me |
 | `/workforce-boards/:state/:board` | family | {board} workforce board | One workforce board | {board} american job center; {board} counties served; {board} contact |
-| `/nonprofits` | page | workspace for nonprofits serving job seekers | Nonprofit buys job seeker support | nonprofit job seeker services; community organization workforce; job readiness program software |
+| `/nonprofits` | page | workspace for non-profits serving job seekers | Non-profit buys job seeker support | nonprofit job seeker services; community organization workforce; job readiness program software |
 | `/for-organizations` | page | NextChapter for organizations | Pick the organization portal | organization portals; portals for colleges employers recruiters coaches |
 
 ## Titles and descriptions
@@ -1369,8 +1369,8 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/nonprofits`
 
-- Title: Workspace for Nonprofits Serving Job Seekers
-- Description: Claim your organization’s page with a work email at your domain. A free workspace gives your nonprofit its own page, services and basic counts.
+- Title: Workspace for Non-profits Serving Job Seekers
+- Description: Claim your organization’s page with a work email at your domain. A free workspace gives your non-profit its own page, services and basic counts.
 
 ### `/for-organizations`
 
