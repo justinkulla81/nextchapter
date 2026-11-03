@@ -29,6 +29,8 @@ import { conferencesForEmployer } from '@/lib/events/conference-employers'
 import { prisma } from '@/lib/prisma'
 import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 import { EmployerFollowBox } from '@/components/seo/EmployerFollowBox'
+import { industryImageByName, functionImage } from '@/lib/seo/topic-images'
+import { settingImage } from '@/lib/places/place-image'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 import { titleMeta } from '@/lib/seo/title'
 import { AreaNotices } from '@/components/seo/AreaNotices'
@@ -155,6 +157,8 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   return (
     <OrgBrandScope brand={brand?.pair}>
     <SeoPage
+      look="scene"
+      hero={industryImageByName(industryBucket) ?? functionImage(topFunction?.name) ?? settingImage(100_000, e.slug, 'city')}
       capture={{ kind: 'company', slug: e.slug, label: e.name }}
       trail={[{ name: 'Employers', path: '/employers' }, { name: e.name, path }]}
       h1={employerSeo(e.name, null).h1}

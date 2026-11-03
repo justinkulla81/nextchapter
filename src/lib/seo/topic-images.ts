@@ -8,3 +8,7 @@ export const functionImage = (name: string | null | undefined): string | undefin
   const f = JOB_FUNCTIONS.find((x) => x.name === name)
   return f ? `/images/topics/function-${f.slug}.webp` : undefined
 }
+export const industryImageByName = (name: string | null | undefined): string | undefined => {
+  const i = INDUSTRIES.find((x) => x.name === name)
+  return i ? `/images/topics/industry-${i.slug}.webp` : undefined
+}

@@ -17,7 +17,10 @@ describe('title to occupation allowlist', () => {
     expect(socForTitle('Account Executive')).toBe('41-3091')
     expect(socForTitle('Business Development Manager')).toBeNull()
     expect(socForTitle('Product Manager')).toBeNull()
-    expect(socForTitle('Chief Nursing Officer')).toBeNull()
+    expect(socForTitle('Chief Compliance Officer')).toBeNull()
+    expect(socForTitle('Data Engineer')).toBeNull()
+    expect(socForTitle('Chief Financial Officer')).toBe('11-3031')
+    expect(socForTitle('Front End Engineer')).toBe('15-1254')
   })
   it('words the outlook without promising anything about a person', () => {
     expect(projectionLine(projectionFor('15-1252')!)).toMatch(/^Projected to grow 10% from 2025 to 2035/)
