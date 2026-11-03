@@ -84,6 +84,20 @@ export default async function LayoffsHubPage() {
             </ul>
           </section>
 
+          {/* Searchers use many words for the same event; this names them on the page the tracker owns (keywords.ts,
+              layoffs-hub) and sends the "what is it" questions to the guides that own them. */}
+          <section aria-labelledby="other-names" className="mt-12">
+            <h2 id="other-names" className="text-xl font-semibold tracking-tight text-navy">Layoffs, job cuts, downsizing and RIFs: one tracker</h2>
+            <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
+              Employers and news reports use many names for the same thing: layoffs, job cuts, downsizing, a reduction in force
+              (RIF), workforce reductions, restructuring, or mass firings. This tracker counts them all the same way, from the
+              WARN notices employers file with the states and the layoffs companies announce. Being let go in a RIF is not the
+              same as being fired for cause, and the difference matters for unemployment: see{' '}
+              <Link href="/topics/fired-vs-laid-off" className={LINK}>fired vs laid off</Link> and{' '}
+              <Link href="/topics/reduction-in-force" className={LINK}>what a reduction in force means</Link>.
+            </p>
+          </section>
+
           <section aria-labelledby="by-state" className="mt-16">
             <h2 id="by-state" className="text-2xl font-bold tracking-tight text-navy">WARN notices by state</h2>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">

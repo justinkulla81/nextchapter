@@ -660,10 +660,20 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs',
     kind: 'page',
     primary: 'layoff tracker',
-    secondary: ['layoffs', 'recent layoffs', 'layoffs today', 'companies laying off', 'layoff list', 'mass layoffs', 'WARN notices', 'WARN notice list', 'WARN Act layoffs', 'who is laying off'],
+    // The same event goes by many names in search: job cuts, downsizing, a reduction in force (RIF), mass firings. The
+    // tracker owns the "which companies are doing it" form of each; what a RIF is, or fired vs laid off, stays with the
+    // guides (/topics/reduction-in-force, /topics/fired-vs-laid-off), which the hub links to.
+    secondary: [
+      'layoffs', 'recent layoffs', 'layoffs today', 'companies laying off', 'layoff list', 'mass layoffs', 'WARN notices', 'WARN notice list', 'WARN Act layoffs', 'who is laying off',
+      'layoffs tracker', 'job cuts', 'recent job cuts', 'job cuts today', 'companies cutting jobs', 'who is cutting jobs', 'job cuts tracker',
+      'downsizing', 'companies downsizing', 'corporate downsizing', 'downsizing tracker',
+      'reductions in force', 'companies with reductions in force', 'RIF tracker', 'recent RIFs', 'companies doing RIFs',
+      'workforce reductions', 'workforce reduction', 'staff cuts', 'headcount reductions', 'job losses', 'restructuring layoffs',
+      'mass firings', 'companies firing employees', 'who is firing',
+    ],
     seo: {
-      title: 'Layoff Tracker: Recent Layoffs and WARN Notices by State',
-      description: 'Recent layoffs from WARN Act notices filed with state labor departments, collected daily: totals, the latest filings, and a page for every state and employer.',
+      title: 'Layoff Tracker: Layoffs, Job Cuts and WARN Notices by State',
+      description: 'Recent layoffs, job cuts, downsizing and reductions in force (RIFs) from WARN notices filed with the states, updated daily, with a page for each state and employer.',
     },
   },
   {
@@ -672,7 +682,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/2026',
     kind: 'page',
     primary: 'layoffs 2026',
-    secondary: ['layoffs in 2026', '2026 layoffs', 'layoff statistics 2026', 'layoffs by month 2026', 'companies laying off 2026', 'biggest layoffs 2026', 'layoff list 2026', 'how many layoffs in 2026'],
+    secondary: ['layoffs in 2026', '2026 layoffs', 'layoff statistics 2026', 'layoffs by month 2026', 'companies laying off 2026', 'biggest layoffs 2026', 'layoff list 2026', 'how many layoffs in 2026', 'job cuts 2026', '2026 job cuts', 'downsizing 2026', 'companies downsizing 2026', 'reductions in force 2026', 'RIFs 2026', 'mass layoffs 2026', 'workforce reductions 2026'],
     seo: {
       title: 'Layoffs 2026: Every WARN Notice by Month, State and Company',
       description: 'Layoffs in 2026 from WARN notices filed with state labor departments: totals by month, state, industry and company, a free CSV, and a line to cite.',
@@ -685,7 +695,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/2026/:month',
     kind: 'family',
     primary: '{month} 2026 layoffs',
-    secondary: ['layoffs in {month} 2026', '{month} 2026 layoff notices', '{month} 2026 WARN notices'],
+    secondary: ['layoffs in {month} 2026', '{month} 2026 layoff notices', '{month} 2026 WARN notices', '{month} 2026 job cuts', 'job cuts in {month} 2026'],
   },
   {
     id: 'layoffs-this-week',
@@ -693,7 +703,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/this-week',
     kind: 'page',
     primary: 'layoffs this week',
-    secondary: ['layoffs this week 2026', 'recent layoff notices', 'new WARN notices this week', 'latest layoff announcements'],
+    secondary: ['layoffs this week 2026', 'recent layoff notices', 'new WARN notices this week', 'latest layoff announcements', 'job cuts this week', 'companies laying off this week', 'downsizing this week'],
     seo: {
       title: 'Layoffs This Week: New WARN Notices by State',
       description: 'Layoff notices filed in the last seven days: how many workers, which states and employers, with the state record for each. Updated every day.',
@@ -779,7 +789,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/:state',
     kind: 'family',
     primary: '{state} layoffs',
-    secondary: ['{state} WARN notices', '{state} layoff list', 'recent layoffs in {state}', '{state} companies laying off'],
+    secondary: ['{state} WARN notices', '{state} layoff list', 'recent layoffs in {state}', '{state} companies laying off', '{state} job cuts', '{state} downsizing', '{state} reduction in force', '{state} mass layoffs', '{state} companies cutting jobs'],
   },
   {
     id: 'layoffs-company',
@@ -787,7 +797,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/company/:slug',
     kind: 'family',
     primary: '{company} layoffs',
-    secondary: ['{company} WARN notice', '{company} layoff dates', '{company} layoff 2026'],
+    secondary: ['{company} WARN notice', '{company} layoff dates', '{company} layoff 2026', '{company} job cuts', '{company} downsizing', '{company} reduction in force', '{company} RIF', '{company} cutting jobs', '{company} firing employees'],
   },
   {
     id: 'network-company',
@@ -3096,7 +3106,7 @@ export const ANCHORS: Record<string, string> = {
   '/coaching': 'Career coach: free AI coach and human executive coach',
   '/submit-resume': 'Submit your resume to recruiters',
   '/unemployment-benefits': 'Unemployment benefits by state',
-  '/layoffs': 'Layoff tracker: recent layoffs and WARN notices',
+  '/layoffs': 'Layoff tracker: layoffs, job cuts and RIFs',
   '/jobs': 'Job search: live professional jobs',
   '/funding': 'Funding for laid-off workers',
   '/dossier': 'Executive Dossier',
@@ -3201,8 +3211,8 @@ export const RELATED: Record<string, string[]> = {
   '/topics/what-to-say-when-laid-off': ['/topics/severance', '/tools/layoff-deadlines', '/topics/explain-a-layoff', '/resources/72-hours', '/unemployment-benefits', '/coaching'],
   '/topics/acquisition-layoffs': ['/tools/layoff-runway', '/topics/severance', '/topics/what-to-say-when-laid-off', '/resources/pre-exit', '/layoffs', '/coaching'],
   '/topics/should-i-take-the-buyout': ['/tools/severance-calculator', '/tools/layoff-runway', '/topics/severance', '/resources/cobra-aca', '/unemployment-benefits', '/coaching'],
-  '/topics/fired-vs-laid-off': ['/unemployment-benefits', '/topics/explain-a-layoff', '/topics/severance', '/resources/cobra-aca', '/glossary', '/coaching'],
-  '/topics/reduction-in-force': ['/topics/federal-rif', '/resources/warn-act', '/topics/severance', '/unemployment-benefits', '/tools/layoff-deadlines', '/topics/explain-a-layoff', '/coaching'],
+  '/topics/fired-vs-laid-off': ['/layoffs', '/unemployment-benefits', '/topics/explain-a-layoff', '/topics/severance', '/resources/cobra-aca', '/glossary', '/coaching'],
+  '/topics/reduction-in-force': ['/layoffs', '/topics/federal-rif', '/resources/warn-act', '/topics/severance', '/unemployment-benefits', '/tools/layoff-deadlines', '/topics/explain-a-layoff', '/coaching'],
   '/topics/federal-rif': ['/topics/reduction-in-force', '/unemployment-benefits', '/tools/layoff-deadlines', '/resources/cobra-aca', '/funding', '/coaching'],
   '/topics/unemployment-denied-appeal': ['/unemployment-benefits', '/topics/unemployment-after-quitting-or-firing', '/topics/unemployment-payment-timing', '/tools/layoff-runway', '/funding'],
   '/topics/unemployment-after-quitting-or-firing': ['/topics/unemployment-denied-appeal', '/topics/fired-vs-laid-off', '/unemployment-benefits', '/start/resigned', '/tools/unemployment-estimator'],

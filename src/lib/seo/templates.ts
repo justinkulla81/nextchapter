@@ -28,7 +28,7 @@ export const unemploymentStateSeo = (state: string) => ({
 
 /** /layoffs/[state] */
 export const layoffsStateSeo = (state: string) => ({
-  title: pick(`${state} Layoffs: WARN Notices and Layoff List`, `${state} Layoffs: WARN Notices`),
+  title: pick(`${state} Layoffs and Job Cuts: WARN Notice List`, `${state} Layoffs: WARN Notices and Layoff List`, `${state} Layoffs: WARN Notices`),
   h1: `${state} layoffs: WARN notices and recent layoff list`,
 })
 
