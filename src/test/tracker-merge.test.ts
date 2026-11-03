@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { agreedHeadcount, mergeReported, type LooseNotice } from '@/lib/warn/tracker-merge'
+import { agreedHeadcount, mergeReported, reportedKind, type LooseNotice } from '@/lib/warn/tracker-merge'
 
 let n = 0
 const notice = (o: Partial<LooseNotice> & { employer: string; noticeDate: string }): LooseNotice => ({
@@ -54,7 +54,12 @@ describe('mergeReported', () => {
     ])).toHaveLength(2)
   })
 
-  it('counts each Google News link as its own source', () => {
+  it('does not count a notice\'s own link on top of a named publisher', () => {
+    const [m] = mergeReported([notice({ employer: 'Hershey', noticeDate: '2026-10-30', publishers: ['Reuters'], sourceUrl: 'https://news.google.com/rss/articles/a' })])
+    expect(m.sources).toBe(1)
+  })
+
+  it('counts each Google News link as its own source when no publisher is named', () => {
     const [m] = mergeReported([
       notice({ employer: 'Hershey', noticeDate: '2026-10-30', sourceUrl: 'https://news.google.com/rss/articles/a' }),
       notice({ employer: 'Hershey', noticeDate: '2026-10-30', sourceUrl: 'https://news.google.com/rss/articles/b' }),
@@ -73,5 +78,14 @@ describe('mergeReported', () => {
     }
     // A real name that ends in a common word is kept.
     expect(mergeReported([notice({ employer: 'Fifth Third Bank', noticeDate: '2026-10-30' })])).toHaveLength(1)
+  })
+})
+
+describe('reportedKind', () => {
+  it('keeps the share of staff and an SEC filing type, not the news job\'s wording', () => {
+    expect(reportedKind('Reported by 1 publisher (Mashable) — unconfirmed · 50% of staff')).toBe('50% of staff')
+    expect(reportedKind('Reported by 2 publishers')).toBeNull()
+    expect(reportedKind('SEC 8-K Item 2.05 (restructuring filing) · 12% of staff')).toBe('SEC 8-K Item 2.05 (restructuring filing) · 12% of staff')
+    expect(reportedKind(null)).toBeNull()
   })
 })
