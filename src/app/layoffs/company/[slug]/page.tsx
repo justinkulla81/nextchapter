@@ -102,7 +102,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const lead = recent && ann ? ann.items[0] : null
   const description = lead && !c.notices.length
     ? `${c.name}: ${lead.summary} (${noticeDay(lead.date)}). What was announced, the source, and what to do if you are affected: benefits, severance, COBRA and local help.`
-    : `${lead ? `${lead.summary} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'} filed by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest filed ${noticeDay(c.latest)}. Dates, locations and the state record for each.`
+    : `${lead ? `${lead.summary} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} WARN ${c.notices.length === 1 ? 'notice' : 'notices'} of layoffs and job cuts filed by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest filed ${noticeDay(c.latest)}. Dates, locations and the state record for each.`
   // A page whose newest notice is over two years old, or that is too small to be worth a search result
   // (src/lib/seo/page-bars.ts), stays reachable but out of search results.
   const stale = !meetsCompanyLayoffBar(c) && !recent
