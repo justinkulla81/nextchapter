@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export interface ExistingAccountMatch {
   id: string
@@ -12,6 +13,15 @@ export interface ExistingAccountMatch {
 // email confirmation link is even sent) and authoritatively
 // (syncRegistrationCompletion, the one place registrationCompletedAt itself
 // gets stamped, which every registration path funnels through).
+//
+// "Registered" is registrationCompletedAt OR passwordSetAt. registrationCompletedAt
+// is only stamped on the next authenticated request after the confirmation link
+// is clicked, so a member who confirmed in one browser and started onboarding
+// again in another (a fresh anonymous session) was invisible to this check until
+// they signed in (2026-11-03, Chris Bates: two profiles ten minutes apart).
+// passwordSetAt is written only after the member has confirmed the link and set
+// a password (or linked Google), so it can't be set by someone who merely typed
+// an email.
 export async function findExistingRegisteredAccount(
   email: string,
   excludeProfileId: string
@@ -19,11 +29,34 @@ export async function findExistingRegisteredAccount(
   return prisma.candidateProfile.findFirst({
     where: {
       id: { not: excludeProfileId },
-      registrationCompletedAt: { not: null },
+      OR: [{ registrationCompletedAt: { not: null } }, { passwordSetAt: { not: null } }],
       email: { equals: email, mode: 'insensitive' },
     },
     select: { id: true, passwordSetAt: true },
   })
+}
+
+// Non-destructive version of the check, for the moment an email first lands on
+// an unregistered profile (résumé read, the create-account email fallback). If
+// a registered account already owns it, mark this profile blocked so
+// /onboarding sends the visitor to the "You already have an account" screen
+// instead of letting them redo the flow and become a second profile. It never
+// deletes, so it is safe to call while background work is still writing to the
+// profile. A profile that is itself registered is never flagged.
+export async function flagIfDuplicateAccount(
+  profileId: string,
+  email: string,
+  source: string
+): Promise<ExistingAccountMatch | null> {
+  const existing = await findExistingRegisteredAccount(email, profileId)
+  if (!existing) return null
+
+  const flagged = await prisma.candidateProfile.updateMany({
+    where: { id: profileId, registrationCompletedAt: null, duplicateEmailBlockedAt: null },
+    data: { duplicateEmailBlockedAt: new Date() },
+  })
+  if (flagged.count > 0) captureServerEvent(profileId, 'duplicate_account_blocked', { email, source, existingCandidateId: existing.id })
+  return existing
 }
 
 // Runs the same check and, if it finds a match, DELETES the calling profile
