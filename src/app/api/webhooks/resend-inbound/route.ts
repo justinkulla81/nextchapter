@@ -8,6 +8,9 @@ import { helpRequestIdFromLocal } from '@/lib/help/inbound-address'
 import { addEmailedHelpReply } from '@/lib/help/inbound'
 import { notifyHelpReplyUnreadable } from '@/lib/help/notify'
 import { ingestIntake, intakeFileType, processIntakeResume } from '@/lib/recruiter/intake/pipeline'
+import { isAdminEmail } from '@/lib/admin/is-admin-email'
+import { isLayoffsAddress } from '@/lib/warn/layoff-inbox-rules'
+import { fileEmailedLayoff } from '@/lib/warn/layoff-inbox'
 
 // Also receives replies to Help & feedback emails (help-<id>@): see lib/help/inbound.
 // NextChapter Talent forwarding addresses (spec F3): Resend inbound on
@@ -82,6 +85,35 @@ export async function POST(request: Request) {
         data: { status, firmId: extra.firmId ?? null, recruiterId: extra.recruiterId ?? null },
       })
       .catch(() => {})
+
+  // layoffs@: an admin emails a layoff story and it is filed in the layoff tracker (lib/warn/layoff-inbox).
+  const layoffsTarget = recipients.map(splitAddress).find((a) => a && isLayoffsAddress(a.local, a.domain, INTAKE_FORWARD_DOMAIN))
+  if (layoffsTarget) {
+    const sender = splitAddress(data.from)
+    const senderEmail = sender ? `${sender.local}@${sender.domain}` : null
+    // Anyone can write to this address; only the team's own senders are filed. No reply to anyone else.
+    if (!senderEmail || !isAdminEmail(senderEmail)) {
+      await log('layoffs_sender_not_allowed')
+      return NextResponse.json({ ok: true })
+    }
+    after(async () => {
+      try {
+        const reader = process.env.RESEND_RECEIVING_API_KEY ? new Resend(process.env.RESEND_RECEIVING_API_KEY) : resend
+        const received = await reader.emails.receiving.get(data.email_id)
+        if (received.error || !received.data) {
+          console.error('Layoffs inbox: could not read the received email:', received.error)
+          await log('layoffs_fetch_failed')
+          return
+        }
+        const body = received.data.text ?? (received.data.html ? received.data.html.replace(/<[^>]+>/g, ' ') : '')
+        await log(await fileEmailedLayoff({ providerEmailId: data.email_id, senderEmail, subject: data.subject ?? null, body: `${body}\n${received.data.html ?? ''}` }))
+      } catch (error) {
+        console.error('Layoffs inbox failed:', error)
+        await log('error')
+      }
+    })
+    return NextResponse.json({ ok: true })
+  }
 
   // A person answered one of our Help & feedback emails: file it in their conversation.
   const helpRequestId = target ? helpRequestIdFromLocal(target.local) : null
