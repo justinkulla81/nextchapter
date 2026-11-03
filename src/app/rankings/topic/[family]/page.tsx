@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { toneOf } from '@/components/rankings/tones'
 import { RANKINGS_HERO } from '@/lib/rankings/art'
@@ -38,7 +38,7 @@ const KIND_HEAD = { national: 'Nationwide', region: 'By region', state: 'By stat
 export default async function RankingTopic({ params }: { params: Promise<{ family: string }> }) {
   const { family: slug } = await params
   const d = await load(slug)
-  if (!d) notFound()
+  if (!d) redirect('/rankings') // an unknown topic goes to the hub, like unknown slugs elsewhere
   const tone = toneOf(d.family)
   const groups = KIND_ORDER.map((k) => ({ k, rows: d.rows.filter((x) => x.scopeKind === k) })).filter((g) => g.rows.length)
   const newest = d.rows.map((x) => x.edition).sort().reverse()[0]
