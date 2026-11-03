@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   return {
-    title: `${d.name} non-profits: chambers, economic development and workforce organizations`,
+    title: `${d.name} non-profits: chambers, economic development, workforce and job training organizations`,
     description: `${d.orgs.length} larger ${d.name} non-profits from IRS records, the ${d.name} labor market, grants open to non-profits, and local workforce boards.`,
     ...canonical(`/nonprofits/${state}`),
   }
@@ -44,7 +44,7 @@ export default async function NonprofitStatePage({ params }: { params: Promise<{
     <SeoPage
       stateSlug={state}
       trail={[{ name: 'Nonprofits', path: '/nonprofits' }, { name: d.name, path: `/nonprofits/${state}` }]}
-      h1={`${d.name} non-profits: chambers, economic development and workforce organizations`}
+      h1={`${d.name} non-profits: chambers, economic development, workforce and job training organizations`}
       lede={<>{d.orgs.length} {d.name} non-profits with $1 million or more in annual revenue, from IRS records, and what is happening in the {d.name} job market around them. Staff can claim an organization’s page and set up a free workspace.</>}
     >
       <section aria-labelledby="stats" className="mt-10">

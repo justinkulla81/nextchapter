@@ -4,10 +4,11 @@ import { Action, Panel, PortalFrame, Pill, Quiet, SAMPLE_BRANDS, Table, Tile, Ti
 // Sample-data previews of the college and workforce portal screens, for the public pages
 // /higher-education and /government-workforce. They follow the real screens in src/components/higher-ed
 // (screens.tsx, screens-hub.tsx): same workspaces, same tiles, same rule of holding back groups under 10.
-// Riverside College and Tri-County Workforce Board are made up. Rendered by scripts/marketing/render-screenshots.mjs.
+// Riverside College, Tri-County Workforce Board and Harborview Family Services are made up. Rendered by scripts/marketing/render-screenshots.mjs.
 
 const COLLEGE_NAV = ['Admin', 'Alumni Relations', 'Career Services', 'Development', 'Exec Ed']
 const WORKFORCE_NAV = ['Admin', 'Program', 'Your company']
+const NONPROFIT_NAV = ['Admin', 'Program']
 
 const SERVICES: [string, boolean][] = [
   ['Career coaching', true],
@@ -26,20 +27,30 @@ const WF_SERVICES: [string, boolean][] = [
   ['Veterans services', false],
 ]
 
-function AdminOverview({ kind }: { kind: 'college' | 'workforce' }) {
+const NP_SERVICES: [string, boolean][] = [
+  ['Job readiness classes', true],
+  ['Résumé help', true],
+  ['Career coaching', true],
+  ['Financial counseling', true],
+  ['Childcare referrals', false],
+  ['Emergency assistance', false],
+]
+
+function AdminOverview({ kind }: { kind: 'college' | 'workforce' | 'nonprofit' }) {
   const college = kind === 'college'
-  const services = college ? SERVICES : WF_SERVICES
+  const nonprofit = kind === 'nonprofit'
+  const services = college ? SERVICES : nonprofit ? NP_SERVICES : WF_SERVICES
   return (
     <PortalFrame
       type={college ? 'higher_ed' : 'workforce'}
-      use={college ? 'Career services' : 'Workforce boards'}
-      brand={college ? SAMPLE_BRANDS.higher_ed : SAMPLE_BRANDS.workforce}
-      nav={college ? COLLEGE_NAV : WORKFORCE_NAV}
+      use={college ? 'Career services' : nonprofit ? 'Nonprofits' : 'Workforce boards'}
+      brand={college ? SAMPLE_BRANDS.higher_ed : nonprofit ? SAMPLE_BRANDS.nonprofit : SAMPLE_BRANDS.workforce}
+      nav={college ? COLLEGE_NAV : nonprofit ? NONPROFIT_NAV : WORKFORCE_NAV}
       active="Admin"
       trail={`Admin › Overview`}
     >
       <Title intro={college ? 'Your free workspace. Everything here is counted from your own members.' : 'Your free workspace. Everything here is counted from the people you serve.'} action={<Action>Invite {college ? 'alumni' : 'participants'}</Action>}>
-        {college ? 'Riverside College' : 'Tri-County Workforce Board'}
+        {college ? 'Riverside College' : nonprofit ? 'Harborview Family Services' : 'Tri-County Workforce Board'}
       </Title>
       <div className="grid grid-cols-4 gap-4">
         <Tile label="Active members" value="38 of 50" note="Free workspace limit" />
@@ -79,6 +90,7 @@ function AdminOverview({ kind }: { kind: 'college' | 'workforce' }) {
 }
 
 export const OrgAdminCollege = () => <AdminOverview kind="college" />
+export const OrgAdminNonprofit = () => <AdminOverview kind="nonprofit" />
 export const OrgAdminWorkforce = () => <AdminOverview kind="workforce" />
 
 export function HigherEdAlumni() {

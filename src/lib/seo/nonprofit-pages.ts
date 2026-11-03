@@ -25,6 +25,7 @@ export const NONPROFIT_KINDS: Record<string, { label: string; plural: string }> 
   CHAMBER: { label: 'chamber of commerce or business association', plural: 'Chambers of commerce and business associations' },
   ECON_DEV: { label: 'economic development organization', plural: 'Economic development organizations' },
   WORKFORCE: { label: 'workforce development organization', plural: 'Workforce development organizations' },
+  JOB_TRAINING: { label: 'job training and employment non-profit', plural: 'Job training and employment non-profits' },
 }
 
 export const NTEE_GROUPS: Record<string, string> = {
