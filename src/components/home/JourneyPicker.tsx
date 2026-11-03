@@ -192,10 +192,25 @@ export function JourneyPicker({ source = 'home', compact = false, situations, va
             <p className="mt-1 text-base text-ink">{planPreview.steps[0]}</p>
             <p className="mt-3 text-sm text-muted-foreground">We’ll email you the other {planPreview.steps.length - 1}.</p>
           </div>
+          <div className="mx-auto mt-5 max-w-md rounded-2xl bg-navy p-5 text-center text-white">
+            <p className="text-lg font-semibold">See where you stand in the market today</p>
+            <p className="mt-1 text-sm text-white/85">Your Market Reality Assessment: a plain-language read on your odds, jobs matched to you and a weekly plan. Free. No résumé needed.</p>
+            <Link
+              href={MARKET_REALITY_START_HREF}
+              onClick={() => {
+                rememberSituation(situation)
+                posthog.capture('journey_picker_skip_to_assessment_clicked', { situation, source, variant, placement: 'primary' })
+              }}
+              className="mt-4 inline-flex h-14 w-full items-center justify-center rounded-full bg-action px-6 text-lg font-semibold text-action-foreground hover:brightness-95"
+            >
+              Get my Market Reality Assessment
+            </Link>
+          </div>
+          <p className="mt-5 text-center text-sm text-muted-foreground">Not ready? Get just the first-week plan by email.</p>
           <form
             action={action}
             noValidate
-            className="mx-auto mt-5 flex max-w-md flex-col gap-3 sm:flex-row"
+            className="mx-auto mt-2 flex max-w-md flex-col gap-3 sm:flex-row"
             onSubmit={() => posthog.capture('journey_picker_submitted', { situation, followup, source, variant })}
           >
             <input type="hidden" name="situation" value={situation ?? ''} />
@@ -217,23 +232,11 @@ export function JourneyPicker({ source = 'home', compact = false, situations, va
               aria-invalid={state?.error ? true : undefined}
               className="h-12 flex-1 rounded-lg border border-border bg-white px-4 text-base"
             />
-            <Button type="submit" size="lg" disabled={pending} className="h-12 rounded-full bg-action px-6 text-action-foreground hover:brightness-95">
+            <Button type="submit" size="lg" variant="outline" disabled={pending} className="h-12 rounded-full px-6">
               {pending ? 'Sending…' : 'Email me the rest'}
             </Button>
           </form>
           <p className="mt-2 text-center text-sm text-muted-foreground">One plan, and nothing else unless you ask.</p>
-          <p className="mt-1 text-center text-sm">
-            <Link
-              href={MARKET_REALITY_START_HREF}
-              onClick={() => {
-                rememberSituation(situation)
-                posthog.capture('journey_picker_skip_to_assessment_clicked', { situation, source, variant })
-              }}
-              className="text-muted-foreground underline underline-offset-4"
-            >
-              Skip the email: start my Market Reality Assessment
-            </Link>
-          </p>
           {state?.error && (
             <p role="alert" className="mt-3 text-center text-sm text-destructive">
               {state.error}
