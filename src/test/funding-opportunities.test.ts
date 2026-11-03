@@ -124,7 +124,7 @@ describe('audience', () => {
   it('carries the tag into the CRM note', () => {
     const grant = toLead(notice(), NOW)
     expect(grant.trigger.headline).toMatch(/^\[For customers to win\]/)
-    expect(grant.why).toMatch(/Workforce boards, states and nonprofits can apply/)
+    expect(grant.why).toMatch(/Workforce boards, states and non-profits can apply/)
     const rfp = toLead(notice({ source: 'sam.gov', kind: 'RFP' }), NOW)
     expect(rfp.trigger.headline).toMatch(/^\[For us to bid\]/)
   })
