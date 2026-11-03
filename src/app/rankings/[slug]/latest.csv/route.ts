@@ -11,7 +11,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   const e = entry ? await readRanking(slug, entry.edition) : null
   if (!e) return new Response('Not found', { status: 404 })
   const statLabels = e.rows[0]?.stats.map((s) => s.label) ?? []
-  const head = ['rank', ({ counties: 'county', states: 'state', skills: 'skill', tools: 'tool', certifications: 'certification', colleges: 'college', industries: 'industry', 'job families': 'job family', degrees: 'field or level', occupations: 'occupation' } as Record<string, string>)[e.placeNoun] ?? 'city', 'state', 'score', 'sample', ...statLabels, 'edition']
+  const head = ['rank', ({ counties: 'county', states: 'state', skills: 'skill', tools: 'tool', certifications: 'certification', colleges: 'college', industries: 'industry', 'job families': 'job family', degrees: 'field or level', occupations: 'occupation', employers: 'employer' } as Record<string, string>)[e.placeNoun] ?? 'city', 'state', 'score', 'sample', ...statLabels, 'edition']
   const lines = [head.map(cell).join(','), ...e.rows.map((r) => [r.rank, r.name, r.sub, r.valueLabel, r.n, ...r.stats.map((s) => s.value), e.edition].map(cell).join(','))]
   return new Response(lines.join('\n') + '\n', { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="${slug}-${e.edition}.csv"`, 'Cache-Control': 'public, max-age=3600' } })
 }

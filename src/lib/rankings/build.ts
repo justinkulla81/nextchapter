@@ -17,6 +17,8 @@ import { rankSupport, supportSpecs } from '@/lib/rankings/wave6-specs'
 import { loadAjcByCounty, loadConferenceEvents, loadFlexStats, loadStateFacts } from '@/lib/rankings/wave6-scan'
 import { loadEntityStats, loadProfileCityRows, loadSocGroups } from '@/lib/rankings/wave5-scan'
 import { degreeSpecs, rankDegrees } from '@/lib/rankings/degrees-specs'
+import { employerSpecs, rankEmployers } from '@/lib/rankings/employers-specs'
+import { employerHrefs, loadEmployerGrowth, loadEmployerStats } from '@/lib/rankings/employers-scan'
 import { loadDegreeCityRows, loadDegreeEntities, loadGroupStats, loadSocStats } from '@/lib/rankings/degrees-scan'
 import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
 import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
@@ -197,6 +199,15 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     specs = supportSpecs()
     for (const spec of specs) {
       const ed = rankSupport(spec, data, edition, builtAt, await prevRanksOf(spec.slug))
+      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+    }
+    // The employer hiring lists build in this group too: one more pass over the board, no city work.
+    const [employers, growth] = await Promise.all([loadEmployerStats(), loadEmployerGrowth()])
+    const href = await employerHrefs([...employers.sort((a, b) => b.n - a.n).slice(0, 1500).map((e) => e.name), ...growth.map((g) => g.name)])
+    const employerLists = employerSpecs()
+    specs = [...specs, ...employerLists]
+    for (const spec of employerLists) {
+      const ed = rankEmployers(spec, { employers, growth, href }, edition, builtAt, await prevRanksOf(spec.slug))
       ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
     }
   } else if (group === 'workforce') {

@@ -276,7 +276,7 @@ export function editionFor(spec: Spec, ranked: Ranked[], baseline: { label: stri
     `${rows.length} ${d.noun} ranked${d.noun === 'cities' || d.noun === 'counties' ? ` in ${scopeLabel}` : ` across ${scopeLabel}`}`,
     `Data as of ${label}`,
   ]
-  const placeWord = d.noun === 'states' ? 'state' : d.noun === 'degrees' ? 'degree field or education level' : d.noun === 'occupations' ? 'occupation' : d.noun === 'job families' ? 'job family' : d.noun === 'industries' ? 'industry' : d.noun === 'cities' ? 'city' : d.noun === 'counties' ? 'county' : d.noun === 'skills' ? 'skill' : d.noun === 'tools' ? 'tool' : 'certification'
+  const placeWord = d.noun === 'states' ? 'state' : d.noun === 'degrees' ? 'degree field or education level' : d.noun === 'occupations' ? 'occupation' : d.noun === 'job families' ? 'job family' : d.noun === 'employers' ? 'employer' : d.noun === 'industries' ? 'industry' : d.noun === 'cities' ? 'city' : d.noun === 'counties' ? 'county' : d.noun === 'skills' ? 'skill' : d.noun === 'tools' ? 'tool' : 'certification'
   return {
     slug: spec.slug, edition, title: spec.title, h1: spec.title, measure: spec.measure, family: spec.family,
     scope: { kind: spec.scope.kind, id: spec.scope.id, name: spec.scope.name },
