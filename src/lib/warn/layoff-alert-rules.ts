@@ -268,3 +268,81 @@ export function alertReadiness(groups: ContactGroup[], state: string | null): { 
   if (publicFilled < 2) missing.push(`public-sector contacts (${publicFilled} of 4 groups; need two)`)
   return { ready: missing.length === 0, missing }
 }
+
+
+/** A run emails this many full alerts (contacts, drafted notes); the rest of its layoffs go out together in one digest. */
+export const MAX_FULL_ALERTS_PER_RUN = 3
+
+/** One layoff in a digest: enough to decide which to open, with a link to its CRM page for the rest. */
+export interface DigestItem {
+  employer: string
+  employees: number | null
+  percent: number | null
+  kind: LayoffKind
+  confirmed: boolean
+  inCrm: boolean
+  people: number
+  warm: number
+  orgUrl: string | null
+}
+
+export function digestSubject(items: Pick<DigestItem, 'employer'>[]): string {
+  const names = items.slice(0, 3).map((i) => i.employer).join(', ')
+  const rest = items.length - 3
+  return `${items.length} more layoff ${items.length === 1 ? 'alert' : 'alerts'}: ${names}${rest > 0 ? ` and ${rest} more` : ''}`
+}
+
+export function digestBody(items: DigestItem[], links: { notices: string }): string {
+  const rows = items.map((i) => {
+    const source = KIND_LABEL[i.kind] + (i.confirmed ? '' : ' (unconfirmed)')
+    const crm = i.inCrm ? (i.people ? `${i.people} ${i.people === 1 ? 'person' : 'people'}${i.warm ? `, ${i.warm} warm` : ', none warm'}` : 'organization only') : 'not in CRM'
+    return `<tr><td style="padding:6px 12px 6px 0;border-top:1px solid ${LINE}">${link(i.orgUrl, i.employer, 'font-weight:600')}</td><td style="padding:6px 12px 6px 0;border-top:1px solid ${LINE};white-space:nowrap">${esc(sizeLabel(i.employees, i.percent))}</td><td style="padding:6px 12px 6px 0;border-top:1px solid ${LINE}">${esc(source)}</td><td style="padding:6px 0;border-top:1px solid ${LINE}">${esc(crm)}</td></tr>`
+  }).join('')
+  return `<div style="max-width:640px;margin:0 auto;font:14px/1.5 ${FONT};color:${INK}">
+<p style="margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:${ACCENT};font-weight:600">Layoff alerts, one email</p>
+<h1 style="font:600 24px/1.2 Georgia,'Times New Roman',serif;margin:4px 0 8px">${items.length} more ${items.length === 1 ? 'layoff' : 'layoffs'}</h1>
+<p style="margin:0 0 14px;color:${MUTED}">A run sends the first ${MAX_FULL_ALERTS_PER_RUN} in full and lists the rest here. Each CRM page has who to contact; the 7 AM run settles the primary contact.</p>
+<table role="presentation" cellpadding="0" style="border-collapse:collapse;width:100%;font-size:13px">${rows}</table>
+<p style="margin:16px 0 0"><a href="${esc(links.notices)}" style="display:inline-block;padding:7px 14px;border:1px solid ${LINE};border-radius:6px;color:${INK};text-decoration:none;font-size:13px">All layoff notices</a></p>
+</div>`
+}
+
+/** A news-reported layoff that an official filing (state WARN notice or SEC 8-K) has now confirmed. */
+export interface OfficialItem {
+  employer: string
+  kind: 'warn' | 'sec'
+  state: string | null
+  /** Jobs the filing names, when it names a number; a state notice covers one site, so this can be below the reported total. */
+  filingEmployees: number | null
+  reportedEmployees: number | null
+  effectiveOn: string | null
+  sourceUrl: string | null
+  orgUrl: string | null
+}
+
+export const officialLabel = (kind: 'warn' | 'sec') => (kind === 'sec' ? 'SEC 8-K filing' : 'state WARN filing')
+
+export function officialSubject(items: Pick<OfficialItem, 'employer' | 'kind'>[]): string {
+  if (items.length === 1) return `Now official: ${items[0].employer} — ${officialLabel(items[0].kind)}`
+  return `Now official: ${items.length} layoffs confirmed by filings — ${items.slice(0, 3).map((i) => i.employer).join(', ')}${items.length > 3 ? ` and ${items.length - 3} more` : ''}`
+}
+
+export function officialBody(items: OfficialItem[], links: { notices: string }): string {
+  const cards = items.map((i) => {
+    const jobs = i.filingEmployees != null ? `${i.filingEmployees.toLocaleString('en-US')} jobs in the filing` : 'no job count in the filing'
+    const reported = i.reportedEmployees != null && i.reportedEmployees !== i.filingEmployees ? ` · reported total ${i.reportedEmployees.toLocaleString('en-US')}` : ''
+    const bits = [esc(officialLabel(i.kind)), i.state ? esc(i.state) : '', esc(jobs) + reported, i.effectiveOn ? `effective ${esc(i.effectiveOn)}` : ''].filter(Boolean).join(' · ')
+    return `<div style="margin:0 0 14px;padding:12px 14px;border:1px solid ${LINE};border-radius:8px;background:${PAPER}">
+<p style="margin:0;font:600 17px/1.3 Georgia,'Times New Roman',serif">${link(i.orgUrl, i.employer)}</p>
+<p style="margin:2px 0 0;color:${MUTED};font-size:13px">${bits}</p>
+${i.sourceUrl ? `<p style="margin:6px 0 0;font-size:13px">${link(i.sourceUrl, 'Open the filing')}</p>` : ''}
+</div>`
+  }).join('')
+  return `<div style="max-width:640px;margin:0 auto;font:14px/1.5 ${FONT};color:${INK}">
+<p style="margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:${ACCENT};font-weight:600">Now official</p>
+<h1 style="font:600 24px/1.2 Georgia,'Times New Roman',serif;margin:4px 0 8px">${items.length === 1 ? 'A reported layoff is confirmed' : `${items.length} reported layoffs are confirmed`}</h1>
+<p style="margin:0 0 14px;color:${MUTED}">We already had ${items.length === 1 ? 'this one' : 'these'} from news reports. The filing is now on the same record, which is marked confirmed.</p>
+${cards}
+<p style="margin:0"><a href="${esc(links.notices)}" style="display:inline-block;padding:7px 14px;border:1px solid ${LINE};border-radius:6px;color:${INK};text-decoration:none;font-size:13px">All layoff notices</a></p>
+</div>`
+}

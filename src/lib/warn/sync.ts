@@ -1,5 +1,6 @@
 import 'server-only'
-import { alertNewLayoff } from './layoff-alert'
+import { alertNewLayoff, withAlertRun } from './layoff-alert'
+import { confirmNewsRecord } from './layoff-official'
 import { readDivision } from './division'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
@@ -52,7 +53,9 @@ const MAX_AGE_DAYS = 540
  * means the promotion rule can be changed later without re-fetching, and a bad
  * rule cannot quietly fill the pipeline with restaurant closures.
  */
-export async function syncWarnState(stateCode: string, promote = true): Promise<WarnSyncResult> {
+export const syncWarnState = (stateCode: string, promote = true): Promise<WarnSyncResult> => withAlertRun(() => syncWarnStateRun(stateCode, promote))
+
+async function syncWarnStateRun(stateCode: string, promote = true): Promise<WarnSyncResult> {
   const source = WARN_SOURCES.find((s) => s.state === stateCode)
   if (!source) return { state: stateCode, fetched: 0, created: 0, promoted: 0, skippedSector: 0, skippedSmall: 0, skippedOld: 0, needsReview: 0, error: 'no_source' }
 
@@ -259,6 +262,13 @@ async function stageNotice(row: WarnRow, sourceUrl: string, companies?: CompanyI
     if (!known.has(key)) known.set(key, new Set())
     known.get(key)!.add(row.employees)
   }
+  // A layoff we already hold from news gets this filing on the same record, and Justin hears it is official. A layoffs.fyi row is a report, not a filing.
+  if (row.state && row.noticeDate && !/layoffs\.fyi/i.test(sourceUrl)) {
+    await confirmNewsRecord({
+      kind: 'warn', employer: clean(row.employer) ?? row.employer, normalizedEmployer: row.normalizedEmployer, state: row.state,
+      county: clean(row.county), noticeDate: row.noticeDate, effectiveDate: row.effectiveDate ?? null, employees: row.employees, sourceUrl,
+    })
+  }
   // A state filing is official, so it is confirmed. Alerts only on 250+ jobs or
   // an employer already in the CRM, and never throws.
   await alertNewLayoff({
@@ -380,7 +390,9 @@ const SYNC_BUDGET_MS = 240_000
  * run long, it is a different state that waits each time, and the one cut
  * short says so.
  */
-export async function syncAllWarnStates(promote = true): Promise<WarnSyncResult[]> {
+export const syncAllWarnStates = (promote = true): Promise<WarnSyncResult[]> => withAlertRun(() => syncAllWarnStatesRun(promote))
+
+async function syncAllWarnStatesRun(promote = true): Promise<WarnSyncResult[]> {
   const started = Date.now()
   const lastRuns = await prisma.warnSyncRun.groupBy({
     by: ['state'], where: { finishedAt: { not: null }, error: null }, _max: { startedAt: true },
@@ -487,7 +499,9 @@ export async function recordLayoffsRun(totals: {
  * because these states either build their list client-side or refuse scripted
  * requests outright.
  */
-export async function importRenderedState(state: string, html: string): Promise<WarnSyncResult> {
+export const importRenderedState = (state: string, html: string): Promise<WarnSyncResult> => withAlertRun(() => importRenderedStateRun(state, html))
+
+async function importRenderedStateRun(state: string, html: string): Promise<WarnSyncResult> {
   const spec = TABLE_SPECS.find((s) => s.state === state)
   const result: WarnSyncResult = {
     state, fetched: 0, created: 0, promoted: 0,
@@ -537,7 +551,9 @@ export async function importRenderedState(state: string, html: string): Promise<
  * SCRAPED_STATES): the same staging, duplicate checks and age limit as every
  * other state. None of these publishes a sector, so all wait for review.
  */
-export async function importScrapedState(state: string, notices: ScrapedNotice[]): Promise<WarnSyncResult> {
+export const importScrapedState = (state: string, notices: ScrapedNotice[]): Promise<WarnSyncResult> => withAlertRun(() => importScrapedStateRun(state, notices))
+
+async function importScrapedStateRun(state: string, notices: ScrapedNotice[]): Promise<WarnSyncResult> {
   const url = SCRAPED_STATES[state]
   const result: WarnSyncResult = {
     state, fetched: 0, created: 0, promoted: 0,
@@ -573,7 +589,9 @@ export async function importScrapedState(state: string, notices: ScrapedNotice[]
   }
 }
 
-export async function importFileState(state: string, file: Buffer, fileUrl: string): Promise<WarnSyncResult> {
+export const importFileState = (state: string, file: Buffer, fileUrl: string): Promise<WarnSyncResult> => withAlertRun(() => importFileStateRun(state, file, fileUrl))
+
+async function importFileStateRun(state: string, file: Buffer, fileUrl: string): Promise<WarnSyncResult> {
   const spec = FILE_STATES[state]
   const result: WarnSyncResult = {
     state, fetched: 0, created: 0, promoted: 0,
