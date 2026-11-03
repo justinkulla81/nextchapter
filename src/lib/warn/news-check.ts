@@ -236,7 +236,7 @@ async function newsCheck(opts: { fast?: boolean }): Promise<NewsCheckResult> {
 
     const near = recent.filter((n) => sameEmployer(n.normalizedEmployer, key)
       && n.noticeDate && Math.abs(n.noticeDate.getTime() - when.getTime()) <= COVERED_DAYS * 86_400_000)
-    let covering = near.find((n) => n.source === 'MANUAL_ANNOUNCEMENT') ?? near[0]
+    let covering: (typeof near)[number] | undefined = near.find((n) => n.source === 'MANUAL_ANNOUNCEMENT') ?? near[0]
     // A state filing covers one site or division. Reports of a company-wide cut many times its size, from two outlets or a
     // trusted one, are a layoff of their own: they get their own entry (and the feed), not a link to the small filing.
     if (covering && covering.source !== 'MANUAL_ANNOUNCEMENT' && (publishers.size >= 2 || isTrustedPublisher(first.publisher))
