@@ -173,12 +173,31 @@ async function upsertOpeningChunk(rows: OpeningRow[]): Promise<number> {
 }
 
 /** Openings whose board listing has been archived are closed on the archive date, with its reason (job-status.ts). */
-export async function closeArchivedOpenings(): Promise<number> {
-  return prisma.$executeRawUnsafe(`
-    UPDATE "CompanyJobOpening" o
-    SET "closedAt" = p."archivedAt", "closeReason" = p."closeReason", "updatedAt" = now()
-    FROM "ExclusiveJobPosting" p
-    WHERE p.url = o.url AND p."archivedAt" IS NOT NULL AND o."closedAt" IS NULL
-      AND o."lastSeenAt" <= p."archivedAt"
+export async function closeArchivedOpenings(opts: { budgetMs?: number } = {}): Promise<number> {
+  const deadline = Date.now() + (opts.budgetMs ?? 90_000)
+  // The ids come from one read-only join; the writes then go CLOSE_PAGE ids per
+  // statement. A mass archive (255k postings on 2026-11-02) rewritten in a single
+  // UPDATE outran the statement timeout and failed the nightly hiring index. Rows
+  // left when the budget ends stay open and are picked up by the next call.
+  const rows = await prisma.$queryRawUnsafe<{ id: string }[]>(`
+    SELECT o.id FROM "CompanyJobOpening" o
+    JOIN "ExclusiveJobPosting" p ON p.url = o.url
+    WHERE p."archivedAt" IS NOT NULL AND o."closedAt" IS NULL AND o."lastSeenAt" <= p."archivedAt"
   `)
+  let closed = 0
+  for (let i = 0; i < rows.length && Date.now() < deadline; i += CLOSE_PAGE) {
+    closed += await prisma.$executeRawUnsafe(
+      `
+      UPDATE "CompanyJobOpening" o
+      SET "closedAt" = p."archivedAt", "closeReason" = p."closeReason", "updatedAt" = now()
+      FROM "ExclusiveJobPosting" p
+      WHERE o.id = ANY($1::text[]) AND p.url = o.url AND p."archivedAt" IS NOT NULL AND o."closedAt" IS NULL
+        AND o."lastSeenAt" <= p."archivedAt"
+      `,
+      rows.slice(i, i + CLOSE_PAGE).map((r) => r.id)
+    )
+  }
+  return closed
 }
+
+const CLOSE_PAGE = 5_000
