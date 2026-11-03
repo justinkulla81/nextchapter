@@ -54,6 +54,7 @@ const JUMP_LABEL: Record<Noun, (name: string) => string> = {
   cities: (n) => `Jobs and employers in ${n}`,
   counties: (n) => `${n} job market`,
   industries: (n) => `${n} jobs, employers and outlook`,
+  'job families': (n) => `${n} jobs and employers`,
   colleges: (n) => `${n}: programs, pay and open jobs nearby`,
   skills: (n) => `${n}: ranks by month and open jobs`,
   tools: (n) => `${n}: ranks by month and open jobs`,
@@ -248,7 +249,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         <div className={`${CARD} mt-4 overflow-x-auto`}>
           <table className="w-full min-w-[32rem] text-left text-sm">
             <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', colleges: 'College' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
+              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', 'job families': 'Job family', colleges: 'College' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {e.rows.map((r) => (

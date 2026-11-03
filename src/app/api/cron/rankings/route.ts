@@ -8,11 +8,11 @@ export const maxDuration = 800
 
 // Builds this month's edition of the rankings (src/lib/rankings) and stores it. The five groups of lists are packed into three
 // scheduled runs so each stays inside the time limit and the project stays inside its cron count:
-//   ?run=a (default): places, then workforce      ?run=b: functions, then skills      ?run=c: college, then industry
+//   ?run=a (default): places, then workforce      ?run=b: functions, then skills      ?run=c: college, industry, then profile
 // ?group=<name> builds one group on its own (for a manual rerun): places, functions, skills, workforce or college.
 // Rerun-safe: a second run in the same month overwrites that month's rows.
-const GROUPS: BuildGroup[] = ['places', 'functions', 'skills', 'workforce', 'college', 'industry']
-const RUNS: Record<string, BuildGroup[]> = { a: ['places', 'workforce'], b: ['functions', 'skills'], c: ['college', 'industry'] }
+const GROUPS: BuildGroup[] = ['places', 'functions', 'skills', 'workforce', 'college', 'industry', 'profile']
+const RUNS: Record<string, BuildGroup[]> = { a: ['places', 'workforce'], b: ['functions', 'skills'], c: ['college', 'industry', 'profile'] }
 
 export const GET = withCronRun('rankings', async (request: NextRequest) => {
   const param = request.nextUrl.searchParams.get('group')

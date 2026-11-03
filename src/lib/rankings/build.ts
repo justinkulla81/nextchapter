@@ -12,6 +12,9 @@ import { getStateCollegeListings } from '@/lib/seo/college-pages'
 import { collegePath } from '@/lib/seo/college-bar'
 import { FAMILIES, INDUSTRIES, collegeSpecs, compositeSpecs, functionSpecs, industryCitySpecs, industrySpecs, rankCities, rankCityComposite, rankColleges, rankCountyComposite, rankCounties, rankIndustries, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, workforceSpecs, type Spec } from '@/lib/rankings/build-edition'
 import { STATE_FIPS } from '@/lib/rankings/regions'
+import { profileSpecs, rankProfile } from '@/lib/rankings/wave5-specs'
+import { loadEntityStats, loadProfileCityRows, loadSocGroups } from '@/lib/rankings/wave5-scan'
+import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
 import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
 import { awardEntries } from '@/lib/rankings/awards'
 import { addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
@@ -153,6 +156,19 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
         slice.push({ ...b, n: r.n, paid: r.paid, payMed: r.payMed, cityN: b.n, entry: 0, ai: 0, remote: 0, eng: 0, engPaid: 0, engPay: null, mid: 0, exec: 0 })
       }
       const ed = rankCities(spec, slice, infoOf, ctx, edition, builtAt, await prevRanksOf(spec.slug))
+      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+    }
+  } else if (group === 'profile') {
+    const [citiesRaw, entities, cityRows, socGroups, premiums] = await Promise.all([loadCityStats(), loadEntityStats(), loadProfileCityRows(), loadSocGroups(), loadAiPayPremium().catch(() => [])])
+    const info = await placeInfo([...new Set(citiesRaw.map((c) => c.st))])
+    const cities = keyCities(citiesRaw, (k) => info.has(k))
+    cityCount = cities.length
+    const infoOf = (c: CityStat): PlaceInfo => info.get(`${c.st}|${c.city}`) ?? { name: titleCase(c.city), href: null }
+    const baseMap = new Map(cities.map((c) => [`${c.st}|${c.city}`, c]))
+    const data = { entities, cityRows, socGroups, premiums, base: (r: { st: string; city: string }) => baseMap.get(`${r.st}|${placeKey(r.city) || r.city}`) ?? baseMap.get(`${r.st}|${r.city}`), info: infoOf }
+    specs = profileSpecs()
+    for (const spec of specs) {
+      const ed = rankProfile(spec, data, edition, builtAt, await prevRanksOf(spec.slug))
       ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
     }
   } else if (group === 'workforce') {

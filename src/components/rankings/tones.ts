@@ -11,6 +11,9 @@ export const FAMILY_TONE: Record<string, { card: string; label: string }> = {
   Markets: { card: 'bg-tint-sky', label: 'text-navy' },
   Industries: { card: 'bg-tint-plum', label: 'text-tint-plum-ink' },
   'Industry markets': { card: 'bg-tint-plum', label: 'text-tint-plum-ink' },
+  'AI and jobs': { card: 'bg-tint-sky', label: 'text-navy' },
+  'Function profiles': { card: 'bg-tint-mint', label: 'text-tint-mint-ink' },
+  'Industry profiles': { card: 'bg-tint-plum', label: 'text-tint-plum-ink' },
   'Best overall': { card: 'bg-tint-sun', label: 'text-tint-sun-ink' },
   Growth: { card: 'bg-tint-sun', label: 'text-tint-sun-ink' },
 }
