@@ -127,6 +127,62 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     why: 'Employers advertise higher pay for roles that name AI skills in some job families than in others. The premium, adjusted for level, shows where AI skills are rewarded most in posted pay.',
     use: 'If you are in a family near the top, adding an AI skill is most likely to show up in the pay you can ask for. The gap shows advertised pay, not that AI skills cause it.',
   },
+  sx_ui: {
+    why: 'Unemployment insurance pays very different amounts from state to state. The maximum weekly benefit shows how much help a person with a strong earnings history can receive.',
+    use: 'If you are between jobs, check your own state\'s figure and the weeks it lasts on the state page. Most people receive less than the maximum, so use it to plan, not to promise yourself an amount.',
+  },
+  sx_weeks: {
+    why: 'How long benefits last also differs by state, and in some states it shortens when unemployment is low. The maximum number of weeks shows how much time the program can give you.',
+    use: 'Use it to plan how long you can search before income stops, and start your claim and your search the same week.',
+  },
+  sx_programs: {
+    why: 'States offer different amounts of help beyond unemployment insurance: retraining, tuition, relocation and cost relief. A count of open programs shows where there is more to look through.',
+    use: 'Treat the count as a prompt to search your state\'s programs, not a promise of a grant. Our catalog is built by research and is not every program.',
+  },
+  sx_training: {
+    why: 'Retraining is one of the most useful kinds of help for someone changing fields. The number of open state retraining and tuition programs shows where more options exist.',
+    use: 'If you want to retrain, look at your state\'s programs and your local American Job Center, which can often connect you to funded training.',
+  },
+  sx_relocate: {
+    why: 'Some states and communities offer incentives to attract workers, such as relocation grants and remote-worker programs. The count shows where such programs are most common in our catalog.',
+    use: 'If you could move, check the program\'s rules, which often depend on your job, income and how long you stay.',
+  },
+  sx_ajc: {
+    why: 'American Job Centers are the public places to get help with a search, training and benefits. The number per unemployed person shows where help is closest to the people who need it.',
+    use: 'Find your nearest center on your state or county page. A state with few centers per person may have more help online or by phone.',
+  },
+  sx_hire: {
+    why: 'Layoff notices and openings pull in opposite directions. Where openings are plentiful for the workers named in notices, people who lose a job have more places to land.',
+    use: 'Use it to compare states, not to count your own odds. The figures cover notices of 50 or more workers and the professional roles on career sites we track.',
+  },
+  sx_need: {
+    why: 'Where layoff notices are large against the professional openings in our data, workforce boards, job centers and training providers have the most to do.',
+    use: 'If you are in a state near the top, use your job center and rapid-response services early, and read the layoff pages for the programs that apply.',
+  },
+  kx_ajc: {
+    why: 'Counties differ in how many American Job Centers serve them for the people unemployed there. The figure shows where help is closest to the people who need it.',
+    use: 'Check the county page for the center nearest you and what it offers. A county with none may be served by a neighbour.',
+  },
+  cf_all: {
+    why: 'Business conferences gather employers, recruiters and peers in a few cities. Counting them shows where the most professional events are held.',
+    use: 'If you are job searching or building a network, the top cities show where events concentrate. Many conferences have local or virtual options and discounted tickets for job seekers.',
+  },
+  cf_ind: {
+    why: 'Each industry holds its events in a few cities. Counting an industry\'s conferences by city shows where its people and employers meet.',
+    use: 'If you work in this industry, the top cities show where to go for events. Check the dates and whether a job-seeker rate or volunteer role is offered.',
+  },
+  cf_fn: {
+    why: 'Each job family has its own conferences, held in different cities. Counting them shows where the people in your field gather.',
+    use: 'Use it to choose which events to attend and where. Attending as a speaker or volunteer is often cheaper and gets you in front of employers.',
+  },
+  ef_flex: {
+    why: 'Fractional and interim roles are part-time or temporary leadership and specialist work. The share of openings shows which fields and industries use them most.',
+    use: 'If you want independent work between jobs or as a career, start with the fields near the top and read how employers describe the engagement.',
+  },
+  ef_contract: {
+    why: 'Contract roles are fixed-term engagements. The share of openings that are contract shows where employers most often hire this way.',
+    use: 'If you want contract work, look at the fields near the top. If you want a permanent role, treat contract postings as a way in, and ask whether they convert.',
+  },
   icopen: {
     why: 'Each industry hires in a different set of cities. Counting an industry\'s open roles by city shows where its demand is deepest, which is where its employers, recruiters and professional events are concentrated.',
     use: 'If you work in this industry, look at the top cities for the employers to follow and the networks to join. A large market also means more competition, so read it with the pay list for the same industry.',

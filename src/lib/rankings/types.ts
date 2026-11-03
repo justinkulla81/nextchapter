@@ -81,12 +81,13 @@ export type MeasureId =
   | 'indpay'
   | 'icopen' | 'icpay' | 'cgrad' | 'cmid' | 'cremote' | 'cai' | 'perunemp' | 'claidoff' | 'coverall'
   | 'pf_entry' | 'pf_ai' | 'pf_remote' | 'pf_hybrid' | 'pf_mgmt' | 'pf_lowmgmt' | 'pf_eq' | 'pf_noexp' | 'pf_entryai' | 'pf_training' | 'aj_exposed' | 'aj_least' | 'aj_pay'
+  | 'sx_ui' | 'sx_weeks' | 'sx_programs' | 'sx_training' | 'sx_relocate' | 'sx_ajc' | 'sx_hire' | 'sx_need' | 'kx_ajc' | 'cf_all' | 'cf_ind' | 'cf_fn' | 'ef_flex' | 'ef_contract'
 
 /** The measures a single city is ranked on by one value. Composite lists score a whole pool at once and are not in this set. */
 export type CityMeasureId = 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent' | 'midcareer' | 'leadership' | 'fnopen' | 'fnpay' | 'icopen' | 'icpay'
 
 /** Which stored build a list belongs to: the three builds run as separate monthly jobs so each stays inside the time limit. */
-export type BuildGroup = 'places' | 'functions' | 'skills' | 'workforce' | 'college' | 'industry' | 'profile'
+export type BuildGroup = 'places' | 'functions' | 'skills' | 'workforce' | 'college' | 'industry' | 'profile' | 'support'
 
 export interface RankingEdition {
   slug: string
@@ -100,7 +101,7 @@ export interface RankingEdition {
   /** What a place needs to be ranked, in the measure's own unit ("openings" or "jobs"). */
   minN: number
   unit: 'openings' | 'jobs' | 'students'
-  placeNoun: 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'colleges' | 'industries' | 'job families'
+  placeNoun: 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'colleges' | 'industries' | 'job families' | 'states'
   baseline: { label: string; valueLabel: string } | null
   lead: string
   keyFacts: string[]

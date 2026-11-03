@@ -13,6 +13,8 @@ import { collegePath } from '@/lib/seo/college-bar'
 import { FAMILIES, INDUSTRIES, collegeSpecs, compositeSpecs, functionSpecs, industryCitySpecs, industrySpecs, rankCities, rankCityComposite, rankColleges, rankCountyComposite, rankCounties, rankIndustries, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, workforceSpecs, type Spec } from '@/lib/rankings/build-edition'
 import { STATE_FIPS } from '@/lib/rankings/regions'
 import { profileSpecs, rankProfile } from '@/lib/rankings/wave5-specs'
+import { rankSupport, supportSpecs } from '@/lib/rankings/wave6-specs'
+import { loadAjcByCounty, loadConferenceEvents, loadFlexStats, loadStateFacts } from '@/lib/rankings/wave6-scan'
 import { loadEntityStats, loadProfileCityRows, loadSocGroups } from '@/lib/rankings/wave5-scan'
 import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
 import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
@@ -169,6 +171,22 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     specs = profileSpecs()
     for (const spec of specs) {
       const ed = rankProfile(spec, data, edition, builtAt, await prevRanksOf(spec.slug))
+      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+    }
+  } else if (group === 'support') {
+    const [rawCounties, ajc, states, events, flex] = await Promise.all([loadCountyStats(), loadAjcByCounty(), loadStateFacts(), loadConferenceEvents(), loadFlexStats()])
+    const hrefs = await countyHrefs([...new Set(rawCounties.map((c) => c.st))])
+    const counties: CountyStat[] = rawCounties.map((c) => ({ ...c, href: hrefs.get(c.fips) ?? c.href, ajc: ajc.get(c.fips) ?? 0 }))
+    countyCount = counties.length
+    const info = await placeInfo([...new Set(events.map((e) => e.st))])
+    const place = (st: string, city: string) => {
+      const k = [placeKey(city), city.toLowerCase()].find((x) => info.has(`${st}|${x}`)) ?? placeKey(city)
+      return { key: `${st}|${k}`, info: info.get(`${st}|${k}`) ?? { name: titleCase(city), href: null } }
+    }
+    const data = { states, counties, events, flex, place }
+    specs = supportSpecs()
+    for (const spec of specs) {
+      const ed = rankSupport(spec, data, edition, builtAt, await prevRanksOf(spec.slug))
       ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
     }
   } else if (group === 'workforce') {

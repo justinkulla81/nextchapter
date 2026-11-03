@@ -233,15 +233,17 @@ function commentary(spec: Spec, rows: RankRow[], unit: string, noun: string, min
   }
   const ns = top.map((r) => r.n).sort((a, b) => a - b)
   const median = ns.length ? ns[Math.floor(ns.length / 2)] : 0
-  const small = top.filter((r) => r.n < median * 0.5).sort((a, b) => a.n - b.n)[0]
+  // Lists of public facts (state benefits, conference counts) have no sample size: nothing to say about one.
+  const sampled = ns.length > 0 && ns[ns.length - 1] > 0
+  const small = sampled ? top.filter((r) => r.n < median * 0.5).sort((a, b) => a.n - b.n)[0] : undefined
   if (small) out.push(`${small.name} reaches #${small.rank} on a sample of ${nf(small.n)} ${unit}, a smaller market than most of the top ten, so its rank can move more from month to month.`)
-  const big = [...top].sort((a, b) => b.n - a.n)[0]
+  const big = sampled ? [...top].sort((a, b) => b.n - a.n)[0] : undefined
   if (big && big !== small && top.length >= 5) out.push(`${big.name} is the largest market in the top ten, with ${nf(big.n)} ${unit} behind its figure.`)
   const climbers = rows.filter((r) => r.change != null && r.change >= 3).sort((a, b) => (b.change as number) - (a.change as number))
   if (climbers[0]) out.push(`Biggest climber: ${climbers[0].name} moved up ${climbers[0].change} places to #${climbers[0].rank} since last month.`)
   const fresh = rows.filter((r, i) => i < 10 && r.change === null && rows.some((x) => x.change !== null))
   if (fresh[0]) out.push(`New in the top ten: ${fresh[0].name} (#${fresh[0].rank}).`)
-  out.push(`${noun[0].toUpperCase()}${noun.slice(1)} with fewer than ${nf(minN)} ${unit} are not ranked, and small differences between neighbouring ranks are not meaningful.`)
+  out.push(minN > 0 ? `${noun[0].toUpperCase()}${noun.slice(1)} with fewer than ${nf(minN)} ${unit} are not ranked, and small differences between neighbouring ranks are not meaningful.` : 'Small differences between neighbouring ranks are not meaningful.')
   return out
 }
 
@@ -274,7 +276,7 @@ export function editionFor(spec: Spec, ranked: Ranked[], baseline: { label: stri
     `${rows.length} ${d.noun} ranked${d.noun === 'cities' || d.noun === 'counties' ? ` in ${scopeLabel}` : ` across ${scopeLabel}`}`,
     `Data as of ${label}`,
   ]
-  const placeWord = d.noun === 'job families' ? 'job family' : d.noun === 'industries' ? 'industry' : d.noun === 'cities' ? 'city' : d.noun === 'counties' ? 'county' : d.noun === 'skills' ? 'skill' : d.noun === 'tools' ? 'tool' : 'certification'
+  const placeWord = d.noun === 'states' ? 'state' : d.noun === 'job families' ? 'job family' : d.noun === 'industries' ? 'industry' : d.noun === 'cities' ? 'city' : d.noun === 'counties' ? 'county' : d.noun === 'skills' ? 'skill' : d.noun === 'tools' ? 'tool' : 'certification'
   return {
     slug: spec.slug, edition, title: spec.title, h1: spec.title, measure: spec.measure, family: spec.family,
     scope: { kind: spec.scope.kind, id: spec.scope.id, name: spec.scope.name },
