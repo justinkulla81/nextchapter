@@ -3,6 +3,8 @@ import { ASSESSMENT_DIMENSIONS } from '@/lib/constants/onboarding'
 import { EmployerReferenceForm } from './EmployerReferenceForm'
 import { NOINDEX } from '@/lib/seo/canonical'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   ...NOINDEX,
   title: 'Give a Reference',
