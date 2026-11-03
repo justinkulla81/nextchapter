@@ -204,3 +204,23 @@ describe('hiring momentum', () => {
     expect(list[0].sub).toBe('6 → 12 open')
   })
 })
+
+describe('live-data fixes', () => {
+  const seg = (company: string, title = 'Engineer', industry: string | null = null) => segmentsOf({ company, title, industry, reqTags: null })
+  it('keeps engineering consultancies out of manufacturing and power, and puts them in construction', () => {
+    expect(seg('Sargent & Lundy', 'Process Engineer', 'industrial')).not.toContain('us-manufacturing')
+    expect(seg('Sargent & Lundy', 'Substation Engineer')).not.toContain('utilities')
+    expect(seg('Sargent & Lundy')).toContain('construction')
+    expect(seg('Terracon Consultants', 'Geotechnical Engineer')).not.toContain('natural-resources')
+  })
+  it('keeps retailers, utilities and hardware makers out of the wrong lists', () => {
+    expect(seg("O'Reilly Auto Parts")).not.toContain('automotive-ev')
+    expect(seg('Ulta Beauty', 'Analyst', 'consumer')).not.toContain('consumer-packaged-goods')
+    expect(seg('Pacific Gas & Electric', 'Analyst', 'energy')).not.toContain('oil-and-gas')
+    expect(seg('Corsair Gaming')).not.toContain('casino-gaming')
+    expect(seg("Love's Travel Stops")).not.toContain('tourism-hospitality')
+    expect(seg('Carvana', 'Studio Operations Manager')).not.toContain('movies')
+    expect(seg('Naval Air Systems Command')).not.toContain('shipbuilding')
+    expect(seg('Alloy', 'Engineer')).not.toContain('steel-aluminum')
+  })
+})
