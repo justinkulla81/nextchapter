@@ -8,6 +8,10 @@ export const metadata = {
   title: 'Give a Reference',
 }
 
+// Reads the database per request, never at build: `next build` runs seven workers
+// against the database and a connection-limit error here failed a production deploy.
+export const dynamic = 'force-dynamic'
+
 // Same BARS-anchor fetch pattern as /ref/[token]/page.tsx — one shared
 // instrument, this is just a second entry point into it.
 export default async function GiveAReferenceSubmitPage() {
