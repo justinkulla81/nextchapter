@@ -88,7 +88,7 @@ export default async function AiSkillsPage() {
     <div className="flex flex-1 flex-col bg-white">
       <StructuredData data={jsonLd} />
       <PublicSiteHeader />
-      <main className="mx-auto w-full max-w-3xl px-6 py-14">
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Market data · as of {asOf}</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy text-balance sm:text-4xl">{TITLE}</h1>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">

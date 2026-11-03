@@ -180,7 +180,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
         <StructuredData data={{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }} />
       )}
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12" data-look="scene">
+      <main className="flex-1 bg-off-white py-8" data-look="scene">
         <div className="mx-auto max-w-6xl px-6">
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link>

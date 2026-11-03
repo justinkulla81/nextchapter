@@ -71,7 +71,7 @@ export default async function NewsItemPage({ params }: { params: Promise<{ slug:
       }} />
       <StructuredData data={breadcrumbJsonLd([{ name: 'News', path: '/news' }, { name: title, path: `/news/${slug}` }])} />
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <article className="mx-auto max-w-2xl px-6">
           <Link href="/news" className="text-sm text-muted-foreground hover:text-foreground">← All news</Link>
 

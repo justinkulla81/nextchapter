@@ -77,7 +77,7 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
         <SiteNav />
       </header>
 
-      <section className="mx-auto max-w-3xl px-6 pt-10 pb-16 text-center" aria-labelledby="home-hero-heading">
+      <section className="mx-auto max-w-3xl px-6 pt-8 pb-10 text-center" aria-labelledby="home-hero-heading">
         <h1 id="home-hero-heading" className="font-display text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-6xl">
           {picker ? 'Find out why your job search is stalling, and what to fix first.' : 'Get hired faster, with a coach that knows your whole search.'}
         </h1>
@@ -114,7 +114,7 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
 
       {!picker && <HomeTryIt />}
 
-      <section className="mx-auto max-w-3xl px-6 py-12 text-center" aria-label="How it works, in a video">
+      <section className="mx-auto max-w-3xl px-6 py-8 text-center" aria-label="How it works, in a video">
         <div className="mx-auto aspect-video w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-ink shadow-lg">
           <video
             controls
@@ -145,7 +145,7 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
 
       <HomeLearnMore />
 
-      <section className="bg-white pb-16" aria-label="For organizations">
+      <section className="bg-white pb-10" aria-label="For organizations">
         <p className="mx-auto max-w-3xl px-6 text-center text-base text-muted-foreground">
           Not job hunting? NextChapter is also for{' '}
           {AUDIENCES.map((a, i) => (
@@ -163,7 +163,7 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
       </section>
 
       <footer className="bg-ink text-white">
-        <div className="mx-auto max-w-4xl px-6 py-16 text-center">
+        <div className="mx-auto max-w-4xl px-6 py-10 text-center">
           <h2 className="font-display text-3xl font-semibold tracking-tight text-balance">Ready to start your next chapter?</h2>
           <div className="mt-6">
             <TrackedLink href={MARKET_REALITY_START_HREF} event="homepage_cta_clicked" properties={{ cta: 'footer_assessment', variant }} className={action}>

@@ -9,6 +9,9 @@ import { cn } from '@/lib/utils'
 // page (with the "not personalized" directions) and nothing is fetched on the homepage.
 // Used on the homepage and again at the top of the results page to refine a search.
 
+// The selected filter is navy, so the yellow stays on the one primary action (Search jobs).
+const SELECTED = 'bg-navy text-white hover:bg-navy hover:brightness-110'
+
 export function JobSearchForm({
   source,
   initialQ = '',
@@ -72,10 +75,10 @@ export function JobSearchForm({
         </Button>
       </div>
       <div className="mt-3 flex items-center justify-center gap-2" role="group" aria-label="Work location">
-        <Button type="button" size="sm" variant={remote ? 'outline' : 'default'} aria-pressed={!remote} onClick={() => setRemote(false)}>
+        <Button type="button" size="sm" variant={remote ? 'outline' : 'default'} className={cn(!remote && SELECTED)} aria-pressed={!remote} onClick={() => setRemote(false)}>
           Any location type
         </Button>
-        <Button type="button" size="sm" variant={remote ? 'default' : 'outline'} aria-pressed={remote} onClick={() => setRemote(true)}>
+        <Button type="button" size="sm" variant={remote ? 'default' : 'outline'} className={cn(remote && SELECTED)} aria-pressed={remote} onClick={() => setRemote(true)}>
           Remote only
         </Button>
       </div>
