@@ -11,6 +11,7 @@ import { loadIndustry } from '@/lib/seo/topic-load'
 import { titleMeta } from '@/lib/seo/title'
 import { industryImage } from '@/lib/seo/topic-images'
 import { FitCheck } from '@/components/capture/FitCheck'
+import { YourState } from '@/components/capture/YourState'
 import { captureSource } from '@/lib/capture/page-capture'
 import { AI_SKILL_ITEMS } from '@/lib/skills/ai-skills'
 
@@ -52,6 +53,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
         },
       ]}
     >
+      <YourState label={industry.name} />
       <Section id="snapshot" title={`${industry.name} market snapshot`} note="Every figure names its source and period. Estimates are labeled as estimates.">
         <FactGrid facts={facts} />
         {stats && (

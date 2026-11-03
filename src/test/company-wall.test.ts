@@ -188,6 +188,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/leads/nurture/run.ts': 'cron only (lead-nurture): finds leads by their own signup tables, checks CRM registration and send history to decide the next email; returns counts and subjects, never a CRM record or an address',
     'src/lib/leads/nurture/send.ts': 'cron only (lead-nurture): logs each follow-up as a CRM email activity with open and click tracking; reads nothing back to a candidate',
     'src/lib/leads/job-alerts.ts': 'daily job-alerts cron: finds the CRM person for an unconfirmed alert signup and logs one confirmation-reminder email on them (a write, guarded so it is sent once); reads nothing back to a candidate',
+    'src/lib/leads/captured-emails.ts': 'admin-only (the captured-emails page and the daily digest): reads every capture table, read-only, nothing reaches a member',
     'src/lib/leads/lead-status.ts': 'admin-only (the captured-emails page behind requireAdmin): shows whether each captured address is in the CRM, was emailed, opened, clicked or registered',
     'src/components/admin/CollegeReviewSection.tsx': 'admin Review List: colleges whose CRM match needs a person to decide',
     'src/lib/seo/college-pages.ts': 'public college pages: reads only the CRM organization name to build the /prepared claim slug; returns the slug, nothing else',
