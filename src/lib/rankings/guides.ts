@@ -223,6 +223,34 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     why: "Some cities hire for a bigger share of occupations that need no four-year degree. The share shows where a job seeker without a bachelor's has the largest part of the market to aim at.",
     use: 'Use it to compare cities for a search without a four-year degree, and read it beside the count so you do not chase a small market with a high share.',
   },
+  em_all: {
+    why: 'Some employers are hiring in large numbers right now and others are hiring a handful of people. The count of open roles shows who is doing the most hiring, and where a search is most likely to reach a real opening.',
+    use: 'Check the employers near the top that match your field, then read their open roles. A large count also means more competition and more roles you are not a fit for, so read it with the lists for your level and job family.',
+  },
+  em_junior: {
+    why: 'Entry-level and early-career hiring is spread unevenly. A few employers open many junior roles at once, often as a regular intake.',
+    use: 'If you are early in your career, start with the employers near the top and watch their openings. Many repeat the same intake each year.',
+  },
+  em_mid: {
+    why: 'Mid-level roles are where most people spend the middle of their career, and a few employers open far more of them than others.',
+    use: 'Use it to find the employers that hire at your level, then look at the job family lists to narrow to your field.',
+  },
+  em_senior: {
+    why: 'Senior and principal individual contributor roles show where employers are adding experienced specialists without adding management.',
+    use: 'If you want to stay a specialist, these are the employers with the most roles at that level. Read the posting for scope, since senior means different things in different companies.',
+  },
+  em_lead: {
+    why: 'Manager, director and executive openings show which employers are building out their leadership.',
+    use: 'If you lead people, compare the employers near the top, and read the open roles for the size of the team and the reporting line.',
+  },
+  em_fn: {
+    why: 'Each job family has its own set of employers that hire most. A marketer and an engineer should not be looking at the same list.',
+    use: 'Pick your job family and follow the employers at the top. Read it beside the level lists to find the ones hiring at your stage.',
+  },
+  em_growth: {
+    why: 'An employer whose open roles are rising fast is adding to its team, not only replacing people. The change against its own starting point shows who is accelerating.',
+    use: 'Look at the employers near the top that fit your field. Growth is measured against the employer\'s own base, so a smaller employer can rank high, and a sharp rise can reflect one large project.',
+  },
   ef_contract: {
     why: 'Contract roles are fixed-term engagements. The share of openings that are contract shows where employers most often hire this way.',
     use: 'If you want contract work, look at the fields near the top. If you want a permanent role, treat contract postings as a way in, and ask whether they convert.',
