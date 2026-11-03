@@ -3,13 +3,15 @@ import { lookupAreaCode } from '@/lib/market/metro-areas'
 import { costsFor } from '@/lib/market/area-costs'
 import { getStateCities, getStateCityPlaces, getStateCounties, placeUrl } from '@/lib/places/places'
 import { placeKey } from '@/lib/workforce/places'
-import { stateSlug } from '@/lib/seo/states'
-import { FAMILIES, functionSpecs, industrySpecs, rankCities, rankCounties, rankIndustries, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, type Spec } from '@/lib/rankings/build-edition'
+import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
+import { getStateCollegeListings } from '@/lib/seo/college-pages'
+import { collegePath } from '@/lib/seo/college-bar'
+import { FAMILIES, collegeSpecs, functionSpecs, industrySpecs, rankCities, rankColleges, rankCounties, rankIndustries, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, workforceSpecs, type Spec } from '@/lib/rankings/build-edition'
 import { STATE_FIPS } from '@/lib/rankings/regions'
 import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
 import { awardEntries } from '@/lib/rankings/awards'
 import { addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
-import type { BuildGroup, CityStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
+import type { BuildGroup, CityStat, CollegeStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/measures'
 
 const titleCase = (s: string) => s.replace(/\b[a-z]/g, (c) => c.toUpperCase())
@@ -42,6 +44,24 @@ export function costOf(c: CityStat, name: string): Cost | null {
   const fips = STATE_FIPS[c.st]
   const state = fips ? costsFor({ stateFips: fips }) : null
   return state?.rpp && state.name !== 'United States' ? { rpp: state.rpp, basis: 'state' } : null
+}
+
+/** Every college with published earnings and its page address, and the set of cities (state|placekey) that have a college. */
+async function loadColleges(): Promise<{ colleges: CollegeStat[]; collegeCities: Set<string> }> {
+  const colleges: CollegeStat[] = []
+  const collegeCities = new Set<string>()
+  for (const st of ALL_STATE_CODES) {
+    const list = await getStateCollegeListings(st).catch(() => [])
+    for (const c of list) {
+      if (c.city) collegeCities.add(`${st}|${placeKey(c.city)}`)
+      if (c.earnings10 == null || !c.enrollment) continue
+      colleges.push({
+        unitid: c.unitid, name: c.name, st, href: collegePath(stateSlug(st), c.slug), control: c.control, level: c.level,
+        enrollment: c.enrollment, earnings10: c.earnings10, completionRate: c.completionRate, netPrice: c.netPrice,
+      })
+    }
+  }
+  return { colleges, collegeCities }
 }
 
 export interface BuildResult { group: BuildGroup; edition: string; built: number; skipped: string[]; cities?: number; counties?: number }
@@ -92,6 +112,33 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     const industryStats = await loadIndustryStats()
     for (const spec of industries) {
       const ed = rankIndustries(spec, industryStats, edition, builtAt, await prevRanksOf(spec.slug))
+      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+    }
+  } else if (group === 'workforce') {
+    const raw = await loadCountyStats()
+    const hrefs = await countyHrefs([...new Set(raw.map((c) => c.st))])
+    const counties: CountyStat[] = raw.map((c) => ({ ...c, href: hrefs.get(c.fips) ?? c.href }))
+    countyCount = counties.length
+    specs = workforceSpecs()
+    for (const spec of specs) {
+      const ed = rankCounties(spec, counties, edition, builtAt, await prevRanksOf(spec.slug))
+      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+    }
+  } else if (group === 'college') {
+    const [citiesRaw, { colleges, collegeCities }] = await Promise.all([loadCityStats(), loadColleges()])
+    const info = await placeInfo([...new Set(citiesRaw.map((c) => c.st))])
+    const cities = keyCities(citiesRaw, (k) => info.has(k))
+    cityCount = cities.length
+    const infoOf = (c: CityStat): PlaceInfo => info.get(`${c.st}|${c.city}`) ?? { name: titleCase(c.city), href: null }
+    const perState = new Map<string, number>()
+    for (const c of colleges) if (c.enrollment >= 500) perState.set(c.st, (perState.get(c.st) ?? 0) + 1)
+    specs = collegeSpecs([...perState].filter(([, n]) => n >= 8).map(([st]) => st).sort())
+    const towns = cities.filter((c) => collegeCities.has(`${c.st}|${c.city}`))
+    for (const spec of specs) {
+      const prev = await prevRanksOf(spec.slug)
+      const ed = spec.measure === 'collegepay'
+        ? rankColleges(spec, colleges, edition, builtAt, prev)
+        : rankCities(spec, towns, infoOf, { costOf: () => null }, edition, builtAt, prev)
       ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
     }
   } else {

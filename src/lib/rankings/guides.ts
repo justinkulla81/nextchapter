@@ -75,6 +75,26 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     why: 'Roles that name some AI skills post higher pay than roles that do not. This list ranks skills by the median pay of the roles that name them.',
     use: 'A higher median means those roles pay more, not that the skill causes the pay. Use it to see where AI skills sit in senior, well-paid roles, then check the roles you want.',
   },
+  lowunemp: {
+    why: 'The unemployment rate shows how much slack a county\'s labor market has. A low rate means employers are competing for the people who are available.',
+    use: 'If you are looking for work, a low-rate county is a sign that employers there are hiring. Check the county page for its largest employers and recent layoffs.',
+  },
+  unempdrop: {
+    why: 'A county where unemployment is falling fastest is a labor market that is improving, whatever its starting point.',
+    use: 'Look at these counties when you want a market moving in the right direction. Compare with the lowest-unemployment list to see where improvement and a tight market overlap.',
+  },
+  whitecollar: {
+    why: 'The share of working people in management, business, financial and professional occupations shows where the economy is built around professional work.',
+    use: 'If your work is professional, counties near the top have more peers, more employers who hire for it, and more local networks.',
+  },
+  aiexposed: {
+    why: 'Some local economies rely on sectors whose tasks AI can do in principle. The share of private-sector jobs in those sectors shows how exposed a county\'s job base is.',
+    use: 'Use it as a prompt to look at which skills your own work depends on. Exposure describes tasks AI could do, not jobs that will disappear.',
+  },
+  collegepay: {
+    why: 'Median earnings ten years after enrolling show what former students of a college go on to earn, as the Department of Education publishes it.',
+    use: 'Compare colleges within the same level and field, and read earnings next to completion rate and net price. Earnings reflect who enrolls and what they study as much as the college.',
+  },
   indjunior: {
     why: 'Industries differ in how much of their hiring is at entry level. This list ranks industries by the share of their openings aimed at entry or early-career people.',
     use: 'If you are starting out, look at the top industries for roles that fit your degree or skills, then follow the employers on the industry page.',

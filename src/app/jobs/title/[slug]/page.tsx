@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 import { Chips, FactGrid, JobList, JoinBand, LINK, RankList, Section, TopicShell } from '@/components/topics/blocks'
 import { FitCheck } from '@/components/capture/FitCheck'
 import { RankingContext } from '@/components/rankings/RankingContext'
+import { YourState } from '@/components/capture/YourState'
 import { captureSource } from '@/lib/capture/page-capture'
 import { functionImage } from '@/lib/seo/topic-images'
 import { loadTitleInsights } from '@/lib/seo/title-insights'
@@ -56,6 +57,7 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
         },
       ]}
     >
+      <YourState label={stat.name} counts={Object.fromEntries(d.states.map((x) => [x.code, x.jobs]))} />
       <Section id="market" title={`The market for ${stat.name.toLowerCase()} work`} note={`Every figure names its source. Skills and AI-skill shares describe the whole ${ins.fnLabel ?? 'function'} function this title sits in.${ins.occupation ? ` Outlook, pay and AI-use figures are for the government category “${ins.occupation.title}”, the closest occupation to this title.` : ''}`}>
         <FactGrid
           facts={[

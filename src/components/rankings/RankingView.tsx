@@ -35,13 +35,14 @@ function PlaceName({ row, noun, className }: { row: RankRow; noun: Noun; classNa
 function TopChart({ rows, noun }: { rows: RankRow[]; noun: Noun }) {
   const top = rows.slice(0, 10)
   const max = Math.max(...top.map((r) => Math.abs(r.value)), 1e-9)
+  const barOf = (r: RankRow) => r.bar ?? Math.abs(r.value) / max
   return (
     <ol className={`${CARD} space-y-2 p-5`} aria-label="Top ten at a glance">
       {top.map((r) => (
         <li key={r.key} className="grid grid-cols-[1.5rem_minmax(0,9rem)_1fr_auto] items-center gap-3 text-sm sm:grid-cols-[1.5rem_12rem_1fr_auto]">
           <span className="tabular-nums text-muted-foreground">{r.rank}</span>
           <span className="truncate font-medium text-navy"><PlaceName row={r} noun={noun} className="hover:underline" /> <span className="font-normal text-muted-foreground">{r.sub}</span></span>
-          <span className="h-3 rounded-full bg-muted" aria-hidden><span className="block h-3 rounded-full bg-brand" style={{ width: `${Math.max(3, (Math.abs(r.value) / max) * 100)}%` }} /></span>
+          <span className="h-3 rounded-full bg-muted" aria-hidden><span className="block h-3 rounded-full bg-brand" style={{ width: `${Math.max(3, barOf(r) * 100)}%` }} /></span>
           <span className="tabular-nums font-semibold text-navy">{r.valueLabel}</span>
         </li>
       ))}
@@ -53,6 +54,7 @@ const JUMP_LABEL: Record<Noun, (name: string) => string> = {
   cities: (n) => `Jobs and employers in ${n}`,
   counties: (n) => `${n} job market`,
   industries: (n) => `${n} jobs, employers and outlook`,
+  colleges: (n) => `${n}: programs, pay and open jobs nearby`,
   skills: (n) => `${n}: ranks by month and open jobs`,
   tools: (n) => `${n}: ranks by month and open jobs`,
   certifications: (n) => `Open jobs naming ${n}`,
@@ -183,7 +185,7 @@ function MonthByMonth({ e, entry }: { e: RankingEdition; entry: RankingIndexEntr
 export async function RankingView({ e, index, latest }: { e: RankingEdition; index: RankingIndexEntry[]; latest: boolean }) {
   const path = `/rankings/${e.slug}`
   const label = editionLabel(e.edition)
-  const unit = e.measure === 'swe' ? 'engineering openings' : e.measure === 'paycost' ? 'openings with pay posted' : e.unit
+  const unit = e.measure === 'swe' ? 'engineering openings' : e.measure === 'paycost' ? 'openings with pay posted' : e.measure === 'collegepay' ? 'students enrolled' : e.measure === 'lowunemp' || e.measure === 'unempdrop' || e.measure === 'whitecollar' ? 'people in the labor force' : e.unit
   const entry = index.find((x) => x.slug === e.slug)
   const sameScope = index.filter((x) => x.slug !== e.slug && x.scopeKind === e.scope.kind && x.scopeId === e.scope.id).slice(0, 6)
   const sameMeasure = index.filter((x) => x.slug !== e.slug && x.measure === e.measure && x.scopeKind !== e.scope.kind).slice(0, 6)
@@ -244,7 +246,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         <div className={`${CARD} mt-4 overflow-x-auto`}>
           <table className="w-full min-w-[32rem] text-left text-sm">
             <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
+              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', colleges: 'College' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {e.rows.map((r) => (

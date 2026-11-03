@@ -36,6 +36,16 @@ export interface CountyStat {
   jobsNow: number
   infoThen: number
   infoNow: number
+  /** Unemployment (BLS LAUS, not seasonally adjusted): the rate now and a year ago, in percent, and the labor force. */
+  rate?: number | null
+  rateYearAgo?: number | null
+  laborForce?: number | null
+  /** Share of workers in white-collar occupations (Census ACS), 0 to 1, and the county's median household income. */
+  whiteCollarShare?: number | null
+  medianIncome?: number | null
+  /** Share of private jobs in AI-exposed sectors, 0 to 1, and the biggest such sector. */
+  exposedShare?: number | null
+  exposedTop?: string | null
 }
 
 export interface PlaceInfo { name: string; href: string | null }
@@ -56,15 +66,18 @@ export interface RankRow {
   change: number | null
   /** The size of the sample behind the figure (openings for a city, jobs for a county). */
   n: number
+  /** Bar length for the chart, 0 to 1, so lists ranked lowest-first still show the leader with the longest bar. */
+  bar?: number
 }
 
 export type MeasureId =
   | 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent' | 'growth' | 'infogrowth'
   | 'midcareer' | 'leadership' | 'fnopen' | 'fnpay' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay'
+  | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed' | 'collegepay'
   | 'indjunior' | 'indai' | 'indpay'
 
 /** Which stored build a list belongs to: the three builds run as separate monthly jobs so each stays inside the time limit. */
-export type BuildGroup = 'places' | 'functions' | 'skills'
+export type BuildGroup = 'places' | 'functions' | 'skills' | 'workforce' | 'college'
 
 export interface RankingEdition {
   slug: string
@@ -77,8 +90,8 @@ export interface RankingEdition {
   builtAt: string
   /** What a place needs to be ranked, in the measure's own unit ("openings" or "jobs"). */
   minN: number
-  unit: 'openings' | 'jobs'
-  placeNoun: 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'industries'
+  unit: 'openings' | 'jobs' | 'students'
+  placeNoun: 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'colleges' | 'industries'
   baseline: { label: string; valueLabel: string } | null
   lead: string
   keyFacts: string[]
@@ -118,3 +131,17 @@ export interface IndustryStat { name: string; n: number; entry: number; ai: numb
 export interface SkillStat { fn: string; kind: 'skill' | 'tool' | 'cert'; key: string; n: number; paid: number; payMed: number | null }
 /** Openings in a job family (fn "*" is every family), with their median posted pay. */
 export interface FnTotal { fn: string; n: number; paid: number; payMed: number | null }
+
+/** One college's published outcomes (College Scorecard, via our college tables). */
+export interface CollegeStat {
+  unitid: string
+  name: string
+  st: string
+  href: string | null
+  control: string | null
+  level: string | null
+  enrollment: number
+  earnings10: number
+  completionRate: number | null
+  netPrice: number | null
+}
