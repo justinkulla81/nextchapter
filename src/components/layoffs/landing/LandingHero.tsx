@@ -8,7 +8,7 @@ const VIC_NOTE: Record<LandingVariant, string> = {
 }
 
 /** The top of a company page: a plain headline, one sourced line of context, a rotating photo and Vic's note. */
-export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = true, context }: {
+export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = true, context, action }: {
   variant: LandingVariant
   name: string
   slug: string
@@ -17,6 +17,8 @@ export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = t
   hasNotices?: boolean
   /** One sourced line under the headline (what was announced or filed), already worded. */
   context: React.ReactNode
+  /** A control shown under the context line, above the fold (the "I'm interested" button). */
+  action?: React.ReactNode
 }) {
   const photo = pickPagePhoto(slug)
   // Never the same face twice on a page: Vic's small headshot shows only when the big picture is someone else.
@@ -29,6 +31,7 @@ export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = t
           {landingHeadline(variant, name, latestWorkers, hasNotices)}
         </h1>
         <p className="mt-4 max-w-xl text-base opacity-90">{context}</p>
+        {action && <div className="mt-5 max-w-xl">{action}</div>}
       </div>
       <div className="overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/20">
         <Image src={photo.src} alt={photo.alt} width={800} height={800} priority className="aspect-[4/3] w-full object-cover" />
