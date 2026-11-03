@@ -10,6 +10,7 @@ import { posthog } from '@/lib/posthog/client'
 import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
 import { rememberState, useVisitorState } from '@/lib/capture/visitor-state'
 import { cn } from '@/lib/utils'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 const FIELD = 'h-11 w-full rounded-lg border border-border bg-white px-3 text-base'
 
@@ -112,7 +113,7 @@ export function FitCheck({ label, source, skills, aiSkills, items }: {
                 onClick={() => posthog.capture('fit_market_reality_clicked', { source })}
                 className="mt-4 inline-flex h-11 items-center rounded-full bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95"
               >
-                Get my free assessment
+                <AssessmentCtaLabel>Get my free assessment</AssessmentCtaLabel>
               </Link>
             </div>
           ) : (

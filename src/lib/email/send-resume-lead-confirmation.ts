@@ -1,6 +1,7 @@
 import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import ResumeLeadConfirmationEmail from '@/emails/resume-lead-confirmation'
+import { emailCtaVariant } from '@/lib/ab/email-cta'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 
 export async function sendResumeLeadConfirmationEmail(
@@ -19,7 +20,7 @@ export async function sendResumeLeadConfirmationEmail(
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: email,
       subject: neutralizeEmailSubject('We got your resume', confidentialSearchMode),
-      react: ResumeLeadConfirmationEmail({ fullName }),
+      react: ResumeLeadConfirmationEmail({ fullName, ctaVariant: emailCtaVariant(email) }),
     })
 
     if (error) {

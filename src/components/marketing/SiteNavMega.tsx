@@ -137,7 +137,9 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
             {/* Below xl the control drops "Market Reality" (and the score label drops "Get your") so the button fits beside the nav links. */}
             {ctaVariant === 'control'
               ? <>Get your <span className="hidden xl:inline">Market Reality </span>Assessment</>
-              : <><span className="hidden xl:inline">Get your </span>Hireability Score</>}
+              : ctaVariant === 'hire_score'
+                ? <><span className="hidden xl:inline">Get your </span>Hireability Score</>
+                : NAV_CTA_LABEL.resume_score}
           </Button>
           <button
             type="button"

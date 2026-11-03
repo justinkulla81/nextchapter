@@ -1,6 +1,7 @@
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { peopleWord } from '@/lib/affiliations/public-count-rules'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 /**
  * The offer to a job seeker on a workforce board's page: a free Market Reality Assessment. When the board's colors are known the band is
@@ -37,7 +38,7 @@ export function OrgCandidateBand({ orgName, branded, peopleCount, properties, he
         properties={{ ...properties, branded }}
         className={`mt-5 inline-block rounded-full px-6 py-2.5 text-sm font-semibold ${branded ? 'bg-[var(--org-cta)] text-[var(--org-cta-ink)] hover:opacity-90' : 'bg-orange text-navy hover:bg-orange/90'}`}
       >
-        Get your free assessment
+        <AssessmentCtaLabel>Get your free assessment</AssessmentCtaLabel>
       </TrackedLink>
     </section>
   )

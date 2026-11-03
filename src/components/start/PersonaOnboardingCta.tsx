@@ -5,6 +5,7 @@ import { usePostHog } from '@/lib/posthog/client'
 import { Button } from '@/components/ui/button'
 import { SITUATION_SESSION_KEY, type SituationKey } from '@/lib/constants/onboarding'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 export function PersonaOnboardingCta({
   persona,
@@ -35,7 +36,7 @@ export function PersonaOnboardingCta({
         />
       }
     >
-      {label}
+      <AssessmentCtaLabel>{label}</AssessmentCtaLabel>
     </Button>
   )
 }

@@ -5,6 +5,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { COMPANY_ADDRESS, COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 /**
  * The public site's top navigation — the homepage uses this same component,
@@ -47,7 +48,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
             properties={{ cta: 'footer_get_grade', page }}
             className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
           >
-            {page === 'seo' ? 'Get your Market Reality Assessment' : 'Yes, build my plan'}
+            {page === 'seo' ? <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel> : 'Yes, build my plan'}
           </TrackedLink>
           <TrackedLink
             href="/contact"

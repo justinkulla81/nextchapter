@@ -5,6 +5,7 @@ import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
 import { getPersona } from '@/lib/constants/personas'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { posthog } from '@/lib/posthog/client'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 /**
  * The Market Reality button on the layoff pages. It stores the situation first (the same hand-off as the journey picker and the /start
@@ -36,7 +37,7 @@ export function PlanStart({
       }}
       className="inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
     >
-      {label}
+      <AssessmentCtaLabel>{label}</AssessmentCtaLabel>
     </Link>
   )
 }
