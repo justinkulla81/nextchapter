@@ -69,7 +69,7 @@ export function LayoffAlertForm({ employer, employerName, state, stateLabel, sou
           defaultValue={formState?.email}
           placeholder="you@example.com"
           aria-invalid={formState?.error ? true : undefined}
-          className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-base"
+          className="h-11 shrink-0 sm:flex-1 rounded-lg border border-border bg-white px-3 text-base"
         />
         <Button type="submit" disabled={pending} className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
           {pending ? 'Saving…' : 'Email me'}

@@ -24,12 +24,15 @@ import { industryPath } from '@/lib/seo/topics'
 import { liveSegmentsForBucket } from '@/lib/segments/page-data'
 import { getCompanies, getNewsMentions, type CompanySummary, mergedSlug, noticeDay, resolveCompanySlug, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
 import { titleMeta } from '@/lib/seo/title'
-import { LAYOFF_TOOL_LINKS, stateHelpLinks, type CrossLink } from '@/lib/seo/layoff-links'
+import { LAYOFF_TOOL_LINKS, noticePlaceLinks, stateHelpLinks, type CrossLink } from '@/lib/seo/layoff-links'
 import { StatementForm } from '@/components/employers/StatementForm'
 import { approvedStatementMap } from '@/lib/employer-statements/store'
+import { CompanyStoriesSection } from '@/components/layoff-stories/CompanyStoriesSection'
+import { approvedStories, storyNumbersFor } from '@/lib/layoff-stories/store'
 import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } from '@/lib/warn/company-announcements'
 import { getEmployerBrand } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
+import { CompanyInterestFlag } from '@/components/company/CompanyInterestFlag'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { ClaimHint } from '@/components/seo/ClaimHint'
 import { LandingHero } from '@/components/layoffs/landing/LandingHero'
@@ -125,8 +128,9 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const hasNotices = c.notices.length > 0
   const bucket = (await getRecentNotices().catch(() => [])).find((n) => n.slug === slug && n.bucket)?.bucket ?? null
   const segmentsHiring = bucket ? await liveSegmentsForBucket(bucket).catch(() => []) : []
-  const [mentions, statements] = await Promise.all([getNewsMentions(c), approvedStatementMap(slug, c.name)])
+  const [mentions, statements, storyNumbers, stories] = await Promise.all([getNewsMentions(c), approvedStatementMap(slug, c.name), storyNumbersFor(slug), approvedStories(slug)])
   const stateHelp = await Promise.all(c.states.slice(0, 3).map((code) => stateHelpLinks(code)))
+  const placeLinks = await noticePlaceLinks(c.notices)
   const helpLinks: CrossLink[] = [...new Map(stateHelp.flat().map((l) => [l.href, l])).values()]
   const workers = c.notices.reduce((s, n) => s + (n.workers ?? 0), 0)
   const unknownCounts = c.notices.some((n) => n.workers == null)
@@ -194,10 +198,11 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
 
           <YourState label={c.name} />
           <div className="mt-4 space-y-12">
-            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} />
+            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} action={<CompanyInterestFlag company={c.name} slug={slug} page="layoffs" />} />
             <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} buyoutRule={buyoutRule} />
             <SearchTimeFacts />
             <PeerEmployers company={c.name} near={peers.near} similar={peers.similar} metro={peers.homeState ? stateName(peers.homeState) : null} />
+            <CompanyStoriesSection name={c.name} slug={slug} numbers={storyNumbers} stories={stories} />
           </div>
 
           {hasNotices && (
@@ -282,6 +287,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
               {segmentsHiring.map((x) => (
                 <li key={x.slug}><Link href={`/jobs/industry/${x.slug}`} className={LINK}>{x.name}: {x.total.toLocaleString('en-US')} open jobs, the employers hiring most and what they pay</Link></li>
               ))}
+              {placeLinks.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}
               <li><Link href="/start/laid-off" className={LINK}>Start here: a plan for the weeks after a layoff</Link></li>
               {LAYOFF_TOOL_LINKS.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}
               {helpLinks.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}

@@ -45,7 +45,7 @@ describe('claimEmployerFollows', () => {
   it('follows each live employer-page signup made with the email', async () => {
     prismaMock.homepageLead.findMany.mockResolvedValue([{ searchQ: 'intel corporation' }, { searchQ: 'acme' }])
     expect(await claimEmployerFollows('c1', 'A@B.com')).toBe(2)
-    expect(prismaMock.homepageLead.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ email: 'a@b.com', source: 'page:employer', unsubscribedAt: null }) }))
+    expect(prismaMock.homepageLead.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ email: 'a@b.com', unsubscribedAt: null, OR: expect.arrayContaining([{ kind: 'company_interest' }]) }) }))
   })
   it('does not count one that is already followed', async () => {
     prismaMock.homepageLead.findMany.mockResolvedValue([{ searchQ: 'acme' }])

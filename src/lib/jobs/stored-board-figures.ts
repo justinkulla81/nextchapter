@@ -24,6 +24,12 @@ export type BoardFigureKey =
   | 'job-title-places-index'
   | `job-title-place:${string}`
   | 'pay-data'
+  | 'entry-role-stats'
+  | `entry-role:${string}`
+  | 'entry-role-places-index'
+  | `entry-role-place:${string}`
+  | 'role-index'
+  | `role:${string}`
   | `pay-data-snapshot:${string}`
 
 export async function readBoardFigure<T>(key: BoardFigureKey): Promise<T | null> {

@@ -1,4 +1,6 @@
 import type { LayoffWeekBrief } from '@/lib/newsletter/layoff-week'
+import { emailCtaLabel } from '@/lib/ab/email-cta'
+import type { NavCtaVariant } from '@/lib/ab/nav-cta'
 import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface NewsletterWeeklyEmailProps {
@@ -12,6 +14,8 @@ interface NewsletterWeeklyEmailProps {
   /** The last seven days of WARN layoff notices, when there were enough to be worth a block. */
   layoffs?: LayoffWeekBrief | null
   layoffsUrl?: string
+  /** The recipient's arm of the assessment button label test. */
+  ctaVariant?: NavCtaVariant
 }
 
 /**
@@ -20,7 +24,7 @@ interface NewsletterWeeklyEmailProps {
  * personal market numbers that need a profile to compute.
  */
 export default function NewsletterWeeklyEmail({
-  introCopy, articleTitle, articleUrl, articleSummary, newsUrl, signupUrl, unsubscribeUrl, layoffs, layoffsUrl,
+  introCopy, articleTitle, articleUrl, articleSummary, newsUrl, signupUrl, unsubscribeUrl, layoffs, layoffsUrl, ctaVariant,
 }: NewsletterWeeklyEmailProps) {
   const intro = introCopy || "Here's this week's read on the job market."
   return (
@@ -69,7 +73,7 @@ export default function NewsletterWeeklyEmail({
           Searching for a job yourself? NextChapter is free for candidates: a Market Reality Assessment, a resume tested against the systems
           that read it, and a plan for the week.
         </Lead>
-        <Button campaign="newsletter_weekly" href={signupUrl}>Get your Market Reality Assessment</Button>
+        <Button campaign="newsletter_weekly" href={signupUrl} ctaVariant={ctaVariant}>{emailCtaLabel(ctaVariant, 'Get your Market Reality Assessment')}</Button>
       </Card>
     </CardEmail>
   )

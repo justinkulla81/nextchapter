@@ -21,6 +21,12 @@ export interface CandidateUpdate {
 
 export const CANDIDATE_UPDATES: CandidateUpdate[] = [
   {
+    date: '2026-11-03',
+    title: 'Tell us what happened in your layoff, and see what others reported',
+    summary: 'Share your notice, severance and how you were told in two minutes. It is private by default, and your email is never shown. Once five people have answered, each company\'s layoff page shows what they reported.',
+    href: 'https://launchyournextchapter.com/layoffs/stories/new',
+  },
+  {
     date: '2026-11-02',
     title: 'See how your résumé fares for a job title or industry',
     summary: 'Every job-title and industry page now has a skills check: paste your résumé and see which of the skills employers name you already cover, which you are missing, and which AI skills are worth having. It runs in your browser.',

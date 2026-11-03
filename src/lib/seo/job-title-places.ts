@@ -117,7 +117,7 @@ function median(xs: number[]): number | null {
 }
 
 /** Every (title, place) pair that meets the bar, with the figures its page needs. */
-export function computeTitlePlaces(titles: PlaceTitle[]): TitlePlace[] {
+export function computeTitlePlaces(titles: PlaceTitle[], bars: { city: number; state: number; employers: number } = { ...PLACE_MIN_JOBS, employers: PLACE_MIN_EMPLOYERS }): TitlePlace[] {
   const out: TitlePlace[] = []
   for (const t of titles) {
     const groups = new Map<string, { kind: PlaceKind; state: string; city: string | null; rows: PlaceRow[] }>()
@@ -134,11 +134,11 @@ export function computeTitlePlaces(titles: PlaceTitle[]): TitlePlace[] {
       if (c) add(placeKey('city', r.state, c), 'city', r.state, c, r)
     }
     for (const [key, g] of groups) {
-      if (g.rows.length < PLACE_MIN_JOBS[g.kind]) continue
+      if (g.rows.length < bars[g.kind]) continue
       const pay = g.rows.flatMap((r) => (r.pay == null ? [] : [r.pay]))
       const byEmployer = new Map<string, number>()
       for (const r of g.rows) byEmployer.set(r.company, (byEmployer.get(r.company) ?? 0) + 1)
-      if (byEmployer.size < PLACE_MIN_EMPLOYERS) continue
+      if (byEmployer.size < bars.employers) continue
       out.push({
         titleSlug: t.slug,
         kind: g.kind,

@@ -11,6 +11,7 @@ import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { PullTop } from '@/components/capture/PullCta'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 export const metadata: Metadata = pageMetadata('/how-it-works')
 
@@ -164,7 +165,7 @@ export default function HowItWorksPage() {
 
         <div className="mt-16 text-center">
           <Button nativeButton={false} size="lg" variant="cta" render={<Link href={MARKET_REALITY_START_HREF} />}>
-            Get your Market Reality Assessment
+            <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
           </Button>
         </div>
 

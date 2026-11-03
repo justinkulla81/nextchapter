@@ -1,10 +1,12 @@
 import { fitDescription, layoffsStateSeo } from '@/lib/seo/templates'
+import { LinkIndex } from '@/components/seo/LinkIndex'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { stateBrand, statePhrase } from '@/lib/branding/state-colors'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { IndustryLayoffLinks } from '@/components/layoffs/IndustryLayoffLinks'
 import { FeedLine } from '@/components/seo/FeedLine'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
@@ -145,18 +147,15 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
             </div>
           </section>
 
+          <IndustryLayoffLinks notices={d.recent} heading={`${d.name} layoffs by industry`} />
+
           <section aria-labelledby="local" className="mt-12">
             <h2 id="local" className={H2}>{d.name} layoffs by county and city</h2>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
               Each county and city page shows its layoff notices next to local unemployment, open jobs, the largest employers, colleges,
               the workforce board and job centers.
             </p>
-            <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
-              {placesWithPages.map(({ place, href }) => (
-                <li key={place}><Link href={href} className={LINK}>{place}</Link></li>
-              ))}
-              <li><Link href={placeUrl.state(state)} className={LINK}>All {d.name} counties and cities ({counties.length} counties)</Link></li>
-            </ul>
+            <LinkIndex label={`${d.name} counties and cities`} items={[...placesWithPages.map(({ place, href }) => ({ href, label: place })), { href: placeUrl.state(state), label: `All ${d.name} counties and cities`, note: `${counties.length} counties` }]} />
           </section>
 
           <section aria-labelledby="boards" className="mt-12">

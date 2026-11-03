@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { LinkIndex } from '@/components/seo/LinkIndex'
 import Link from 'next/link'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { AuthorByline } from '@/components/seo/AuthorByline'
@@ -221,13 +222,7 @@ export default function CobraAcaPage() {
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
           The average second-lowest-cost silver plan for a 40-year-old costs ${NATIONAL_BENCHMARK[2026]} a month across the country in 2026 and ranges from ${Math.min(...Object.values(STATE_FACTS).map((f) => f.benchmark[2026]))} to ${Math.max(...Object.values(STATE_FACTS).map((f) => f.benchmark[2026]))} by state. Pick yours for its Medicaid status, marketplace and average premium.
         </p>
-        <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          {ALL_STATE_CODES.filter((c) => STATE_FACTS[c]).map((c) => (
-            <li key={c}>
-              <Link href={`/resources/cobra-aca/${stateSlug(c)}`} className={LINK}>{stateName(c)}</Link>
-            </li>
-          ))}
-        </ul>
+        <LinkIndex label="States" visible={60} items={ALL_STATE_CODES.filter((c) => STATE_FACTS[c]).map((c) => ({ href: `/resources/cobra-aca/${stateSlug(c)}`, label: stateName(c) }))} />
       </section>
 
       <section aria-labelledby="faq" className="mt-12">

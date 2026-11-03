@@ -1,4 +1,5 @@
 import { LocalEventSection } from '@/components/events/LocalEventSection'
+import { LinkIndex } from '@/components/seo/LinkIndex'
 import { LinkToUs } from '@/components/seo/LinkToUs'
 import { ClaimHint } from '@/components/seo/ClaimHint'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
@@ -156,9 +157,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
       {area.counties.length > 0 && (
         <section aria-labelledby="counties" className="mt-12">
           <h2 id="counties" className={H2}>{area.counties.length === 1 ? 'County served' : 'Counties served'}</h2>
-          <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
-            {area.counties.map((c) => <li key={c.fips}><Link href={placeUrl.county(ss, c.slug)} className={LINK}>{c.name}</Link></li>)}
-          </ul>
+          <LinkIndex label="Counties served" items={area.counties.map((c) => ({ href: placeUrl.county(ss, c.slug), label: c.name }))} />
         </section>
       )}
 

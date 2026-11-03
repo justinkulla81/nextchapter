@@ -17956,3 +17956,56 @@ model RecruiterInterest {
   @@unique([candidateId, firmOrgId], map: "RecruiterInterest_candidateId_crmOrgId_key")
   @@index([firmOrgId, status], map: "RecruiterInterest_crmOrgId_status_idx")
 }
+
+/// A layoff story a person tells about a company's layoff (/layoffs/stories). The structured answers feed the company page numbers once the
+/// email is confirmed; the story text is shown only when visibility is ANONYMOUS or NAMED, a person approved it, and LAYOFF_STORIES_PUBLISH is on.
+/// Name and email live in LayoffStoryIdentity, apart from the answers. Applied by hand: prisma/manual/2026-11-03-layoff-story.sql.
+model LayoffStory {
+  id                String    @id @default(cuid())
+  /// The layoff-page slug (getCompanies()). Null = the person's company is not listed; companyName is what they typed.
+  companySlug       String?
+  companyName       String
+  /// Month they were told, "YYYY-MM".
+  toldMonth         String
+  fn                String
+  title             String
+  level             String
+  tenure            String    @default("")
+  foundOut          String    @default("")
+  noticeGiven       String    @default("")
+  warnNotice        String    @default("")
+  severance         String    @default("")
+  signedRelease     String    @default("")
+  whereNow          String    @default("")
+  /// Comma-separated help picks (leads, severance_review, benefits, coach, peers).
+  helpWanted        String    @default("")
+  body              String    @default("") @db.Text
+  /// PRIVATE | ANONYMOUS | NAMED
+  visibility        String    @default("PRIVATE")
+  /// UNVERIFIED (no email given) | PENDING_EMAIL | COUNTED (private, confirmed) | PENDING_REVIEW | APPROVED | REJECTED | WITHDRAWN
+  status            String    @default("PENDING_EMAIL")
+  tokenHash         String?   @unique
+  tokenExpiresAt    DateTime?
+  withdrawTokenHash String    @unique
+  emailVerifiedAt   DateTime?
+  reviewedAt        DateTime?
+  reviewNote        String?
+  withdrawnAt       DateTime?
+  ipHash            String?
+  /// Where the form was opened from: company page, hub, email.
+  source            String    @default("")
+  createdAt         DateTime  @default(now())
+
+  @@index([companySlug, status])
+  @@index([status, createdAt])
+}
+
+/// Who told a layoff story. Kept apart from LayoffStory so the answers can be counted and read without it. Deleted when the story is withdrawn.
+model LayoffStoryIdentity {
+  storyId   String   @id
+  email     String
+  name      String?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}

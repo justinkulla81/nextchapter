@@ -78,6 +78,7 @@ function offerKeyForLead(kind: string, source: string): string | null {
     return 'jobSearch'
   }
   if (kind === 'apply_save') return 'jobSave'
+  if (kind === 'company_interest') return 'companyInterest'
   if (kind === 'layoff_alert' && /^(layoff_risk_check|warn_act)/.test(source)) return 'layoffGuide'
   if (kind === 'layoff_alert' || kind === 'layoff_employer') return 'layoffAlert'
   if (kind === 'deadline_reminders') return source.startsWith('cobra_vs_aca') ? 'cobra' : source.startsWith('unemployment') ? 'unemployment' : source.startsWith('severance') ? 'severance' : 'tools'
@@ -189,7 +190,7 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
     marketRealityClicks, rHome, rJobs, rJobPage, rLayoffs, rResume, rGuides, rTools, rNews, rNetwork,
     cJourney, cJobAlert, cApplySave, cLayoff, cDeadline, cResume, cGuide, cNews, cNetwork,
     rEmployer, rTitle, rPlace, cAlertEmployer, cAlertTitle, cAlertPlace, memberEvents,
-    rLayoffGuide, cLayoffGuide,
+    rLayoffGuide, cLayoffGuide, rCompany, cCompanyInterest,
     rCobra, cCobra, rUnemployment, cUnemployment, rSeverance, cSeverance,
   ] = await Promise.all([
     countRaw(Prisma.sql`
@@ -226,6 +227,8 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
       GROUP BY 1, 2`),
     reachedByPath(since, '^/(tools/layoff-risk-check|resources/warn-act|layoffs/by-state)'),
     lead({ kind: 'layoff_alert', OR: [{ source: { startsWith: 'layoff_risk_check' } }, { source: { startsWith: 'warn_act' } }] }),
+    reachedByPath(since, '^/(employers|layoffs/company|network/company)/[^/]+$'),
+    lead({ kind: 'company_interest' }),
     reachedByPath(since, '^/(resources/cobra-aca|tools/cobra-vs-aca-calculator)'),
     lead({ kind: 'deadline_reminders', source: { startsWith: 'cobra_vs_aca' } }),
     reachedByPath(since, '^/unemployment-benefits'),
@@ -256,6 +259,7 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
     { key: 'alertTitle', label: 'Job-title and salary page alerts', where: '/jobs/title/* and /salaries/*', reached: rTitle, captured: cAlertTitle, capturedMeans: 'emails', becameMembers: mem('alertTitle') },
     { key: 'alertPlace', label: 'City page job alerts', where: '/places/*/city/*', reached: rPlace, captured: cAlertPlace, capturedMeans: 'emails', becameMembers: mem('alertPlace') },
     { key: 'layoffGuide', label: 'Layoff risk check, WARN Act guide and state index', where: '/tools/layoff-risk-check, /resources/warn-act, /layoffs/by-state', reached: rLayoffGuide, captured: cLayoffGuide, capturedMeans: 'emails (new-notice alerts asked for on the risk check and the WARN guide)', becameMembers: mem('layoffGuide') },
+    { key: 'companyInterest', label: 'Company pages: "I\'m interested"', where: '/employers/*, /layoffs/company/*, /network/company/*', reached: rCompany, captured: cCompanyInterest, capturedMeans: 'emails (a company flagged, then sent to registration)', becameMembers: mem('companyInterest') },
     { key: 'network', label: 'Network company pages', where: '/network/company/*', reached: rNetwork, captured: cNetwork, capturedMeans: 'emails', becameMembers: mem('network') },
   ]
 }

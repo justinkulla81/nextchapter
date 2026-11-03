@@ -11,6 +11,7 @@ import { AiJobsStat } from '@/components/marketing/AiJobsStat'
 import { AiExposureSection } from '@/components/marketing/AiExposureSection'
 import { Suspense, type ReactNode } from 'react'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 // The redesigned homepage (docs/candidate-redesign.md page contract): one headline, one
 // primary action, three sections (hero, jobs, what you get), then a row for everyone who
@@ -92,7 +93,7 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
         )}
         <div className="mt-8">
           <TrackedLink href={MARKET_REALITY_START_HREF} event="homepage_cta_clicked" properties={{ cta: 'hero_assessment', variant }} className={action}>
-            Get your Market Reality Assessment
+            <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
           </TrackedLink>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">Free for candidates, always. Takes about five minutes.</p>
@@ -164,7 +165,7 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
           <h2 className="font-display text-3xl font-semibold tracking-tight text-balance">Ready to start your next chapter?</h2>
           <div className="mt-6">
             <TrackedLink href={MARKET_REALITY_START_HREF} event="homepage_cta_clicked" properties={{ cta: 'footer_assessment', variant }} className={action}>
-              Get your Market Reality Assessment
+              <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
             </TrackedLink>
           </div>
           {fresh}

@@ -11,6 +11,7 @@ import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
 import { submitJourneyLead, type JourneyState } from '@/lib/leads/actions'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 // "Where are you in your search?" Three short steps and no résumé: pick your situation, say how
 // long it has been going on, and get a first-week plan by email. The same situations as the
@@ -76,7 +77,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations, va
           }}
           className="mt-5 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
         >
-          {state.capped ? 'Get your Market Reality Assessment' : 'Or start now: get your Market Reality Assessment'}
+          <AssessmentCtaLabel>{state.capped ? 'Get your Market Reality Assessment' : 'Or start now: get your Market Reality Assessment'}</AssessmentCtaLabel>
         </Link>
       </div>
     )
@@ -192,10 +193,25 @@ export function JourneyPicker({ source = 'home', compact = false, situations, va
             <p className="mt-1 text-base text-ink">{planPreview.steps[0]}</p>
             <p className="mt-3 text-sm text-muted-foreground">We’ll email you the other {planPreview.steps.length - 1}.</p>
           </div>
+          <div className="mx-auto mt-5 max-w-md rounded-2xl bg-navy p-5 text-center text-white">
+            <p className="text-lg font-semibold">See where you stand in the market today</p>
+            <p className="mt-1 text-sm text-white/85">Your Market Reality Assessment: a plain-language read on your odds, jobs matched to you and a weekly plan. Free. No résumé needed.</p>
+            <Link
+              href={MARKET_REALITY_START_HREF}
+              onClick={() => {
+                rememberSituation(situation)
+                posthog.capture('journey_picker_skip_to_assessment_clicked', { situation, source, variant, placement: 'primary' })
+              }}
+              className="mt-4 inline-flex min-h-14 w-full items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95 sm:text-lg"
+            >
+              Get my Market Reality Assessment
+            </Link>
+          </div>
+          <p className="mt-5 text-center text-sm text-muted-foreground">Not ready? Get just the first-week plan by email.</p>
           <form
             action={action}
             noValidate
-            className="mx-auto mt-5 flex max-w-md flex-col gap-3 sm:flex-row"
+            className="mx-auto mt-2 flex max-w-md flex-col gap-3 sm:flex-row"
             onSubmit={() => posthog.capture('journey_picker_submitted', { situation, followup, source, variant })}
           >
             <input type="hidden" name="situation" value={situation ?? ''} />
@@ -215,25 +231,13 @@ export function JourneyPicker({ source = 'home', compact = false, situations, va
               defaultValue={state?.email}
               placeholder="you@example.com"
               aria-invalid={state?.error ? true : undefined}
-              className="h-12 flex-1 rounded-lg border border-border bg-white px-4 text-base"
+              className="h-12 shrink-0 rounded-lg border border-border bg-white px-4 text-base sm:flex-1"
             />
-            <Button type="submit" size="lg" disabled={pending} className="h-12 rounded-full bg-action px-6 text-action-foreground hover:brightness-95">
+            <Button type="submit" size="lg" variant="outline" disabled={pending} className="h-12 rounded-full px-6">
               {pending ? 'Sending…' : 'Email me the rest'}
             </Button>
           </form>
           <p className="mt-2 text-center text-sm text-muted-foreground">One plan, and nothing else unless you ask.</p>
-          <p className="mt-1 text-center text-sm">
-            <Link
-              href={MARKET_REALITY_START_HREF}
-              onClick={() => {
-                rememberSituation(situation)
-                posthog.capture('journey_picker_skip_to_assessment_clicked', { situation, source, variant })
-              }}
-              className="text-muted-foreground underline underline-offset-4"
-            >
-              Skip the email: start my Market Reality Assessment
-            </Link>
-          </p>
           {state?.error && (
             <p role="alert" className="mt-3 text-center text-sm text-destructive">
               {state.error}

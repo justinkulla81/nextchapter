@@ -23,7 +23,7 @@ import { computeTitlePlaces, parsePlace, PLACE_MIN_SHOWN, type PlaceIndexRow, ty
 // on an instance and shared by every request that arrives meanwhile. A scan per page, as this first did, took minutes under
 // crawl load and hit the database's statement timeout.
 
-const PUBLIC = Prisma.sql`status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL AND disclosure = 'OPEN' AND distribution = 'OPEN'
+export const PUBLIC = Prisma.sql`status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL AND disclosure = 'OPEN' AND distribution = 'OPEN'
   AND "institutionScopeId" IS NULL AND "orgScopeId" IS NULL AND "lastVerifiedAt" > now() - interval '7 days'
   AND source IN ('ats_feed', 'admin', 'employer', 'recruiter')
   AND ("employmentType" IS NULL OR "employmentType" NOT IN ('internship', 'co_op', 'coop'))
@@ -32,12 +32,12 @@ const PUBLIC = Prisma.sql`status = 'approved' AND "archivedAt" IS NULL AND "clos
 
 // A title with the "- Team", ", Team" and "(Remote)" tails cut off, lower-cased. Seniority words stay: a senior engineer
 // and an engineer are different salary pages.
-const BASE = Prisma.sql`lower(btrim(regexp_replace(regexp_replace(regexp_replace(title, '[[:space:]]+[-–—|][[:space:]]+.*$', ''), '[[:space:]]*[,(:/].*$', ''), '[[:space:]]+', ' ', 'g')))`
+export const BASE = Prisma.sql`lower(btrim(regexp_replace(regexp_replace(regexp_replace(title, '[[:space:]]+[-–—|][[:space:]]+.*$', ''), '[[:space:]]*[,(:/].*$', ''), '[[:space:]]+', ' ', 'g')))`
 
 // Annualized midpoint of the stated pay, or null when the listing does not state a usable annual figure.
 // The pay columns are 32-bit ints and a junk listing can state 10,000,000 an hour, so the arithmetic is done in bigint: a
 // plain int x 2,080 overflows and failed the whole scan ("integer out of range").
-const PAY = Prisma.sql`CASE
+export const PAY = Prisma.sql`CASE
   WHEN "salaryMin" IS NULL THEN NULL
   WHEN "payPeriod" = 'year' AND "salaryMin" BETWEEN 25000 AND 1500000 AND COALESCE("salaryMax", "salaryMin")::bigint BETWEEN "salaryMin"::bigint AND "salaryMin"::bigint * 3 THEN ("salaryMin"::bigint + COALESCE("salaryMax", "salaryMin")::bigint) / 2.0
   WHEN "payPeriod" = 'hour' AND "salaryMin"::bigint * 2080 BETWEEN 25000 AND 400000 AND COALESCE("salaryMax", "salaryMin")::bigint BETWEEN "salaryMin"::bigint AND "salaryMin"::bigint * 3 THEN ("salaryMin"::bigint + COALESCE("salaryMax", "salaryMin")::bigint) / 2.0 * 2080
@@ -77,10 +77,10 @@ export const jobTypeBySlug = (slug: string) => JOB_TYPES.find((t) => t.slug === 
 
 export interface JobTypeDetail { type: JobType; total: number; jobs: TitleJob[]; titles: TitleStat[]; states: { code: string; name: string; slug: string; jobs: number }[]; medianPay: number | null; payCount: number }
 
-const round = (n: number | null) => (n == null ? null : Math.round(n / 500) * 500)
+export const round = (n: number | null) => (n == null ? null : Math.round(n / 500) * 500)
 
 /** Linear-interpolated percentile of a sorted list, the same as SQL percentile_cont. */
-function percentile(sorted: number[], q: number): number | null {
+export function percentile(sorted: number[], q: number): number | null {
   if (sorted.length === 0) return null
   const pos = (sorted.length - 1) * q
   const lo = Math.floor(pos)
@@ -215,7 +215,7 @@ function payText(min: number | null, max: number | null, period: string | null):
 }
 
 /** The newest listings, re-checked against the full public-page rule so every one listed has a page. */
-async function newestJobs(ids: string[], limit: number): Promise<TitleJob[]> {
+export async function newestJobs(ids: string[], limit: number): Promise<TitleJob[]> {
   const [wide, ghosts] = await Promise.all([
     prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids } }, select: PUBLIC_JOB_SELECT }),
     getConfirmedGhostIds(),
@@ -231,7 +231,7 @@ async function newestJobs(ids: string[], limit: number): Promise<TitleJob[]> {
     .map((r) => ({ id: r.id, title: r.title, company: r.companyName, location: r.location, postedAt: (r.postedAt ?? r.createdAt).toISOString(), pay: payText(r.salaryMin, r.salaryMax, r.payPeriod) }))
 }
 
-function median(xs: number[]): number | null {
+export function median(xs: number[]): number | null {
   return percentile([...xs].sort((a, b) => a - b), 0.5)
 }
 

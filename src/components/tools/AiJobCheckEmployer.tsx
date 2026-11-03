@@ -61,7 +61,7 @@ export function AiJobCheckEmployer({ soc6 }: { soc6: string }) {
           maxLength={80}
           autoComplete="off"
           placeholder="Your employer’s name"
-          className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-base"
+          className="h-11 shrink-0 sm:flex-1 rounded-lg border border-border bg-white px-3 text-base"
         />
         <Button type="submit" disabled={busy} className="h-11 rounded-full bg-action px-6 text-action-foreground hover:brightness-95">
           {busy ? 'Looking…' : 'Check my employer'}

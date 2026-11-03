@@ -3,6 +3,7 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { archiveMonths } from '@/lib/rankings/awards'
 import { skillPageSlugs } from '@/lib/rankings/skill-pages'
 import { readRankingIndex } from '@/lib/rankings/store'
+import { topicSlug } from '@/lib/rankings/topics'
 
 // /rankings/sitemap.xml: the hub, the archive and each month in it, each ranking's own address, and each older edition at its dated address. The newest
 // edition's dated address is not listed: it redirects to the ranking's own address.
@@ -15,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     urls.push({ url: `${SITE_URL}/rankings/${x.slug}`, lastModified: `${x.edition}-01`, changeFrequency: 'monthly', priority: x.scopeKind === 'national' ? 0.8 : 0.6 })
     for (const ed of x.editions.slice(1)) urls.push({ url: `${SITE_URL}/rankings/${x.slug}/${ed}`, lastModified: `${ed}-01`, changeFrequency: 'never', priority: 0.4 })
   }
+  for (const f of new Set(index.map((x) => x.family))) urls.push({ url: `${SITE_URL}/rankings/topic/${topicSlug(f)}`, changeFrequency: 'monthly', priority: 0.6 })
   const months = archiveMonths(index)
   if (months.length) {
     urls.push({ url: `${SITE_URL}/rankings/archive`, lastModified: `${months[0]}-01`, changeFrequency: 'monthly', priority: 0.5 })

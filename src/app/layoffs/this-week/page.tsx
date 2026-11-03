@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { IndustryLayoffLinks } from '@/components/layoffs/IndustryLayoffLinks'
 import { PublicSiteFooter, PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -92,6 +93,8 @@ export default async function LayoffsThisWeek() {
               </ul>
             </section>
           )}
+
+          <IndustryLayoffLinks notices={thisWeek} heading="By industry" />
 
           {biggest.length > 0 && (
             <section aria-labelledby="biggest" className="mt-10">

@@ -67,7 +67,7 @@ function RiskAlertBox({ employer }: { employer: EmployerFacts | null }) {
       )}
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <label className="sr-only" htmlFor="risk-email">Email address</label>
-        <input id="risk-email" name="email" type="email" inputMode="email" autoComplete="email" defaultValue={state?.email} placeholder="you@example.com" aria-invalid={state?.error ? true : undefined} className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-base" />
+        <input id="risk-email" name="email" type="email" inputMode="email" autoComplete="email" defaultValue={state?.email} placeholder="you@example.com" aria-invalid={state?.error ? true : undefined} className="h-11 shrink-0 sm:flex-1 rounded-lg border border-border bg-white px-3 text-base" />
         <Button type="submit" disabled={pending} className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
           {pending ? 'Saving…' : 'Email me'}
         </Button>

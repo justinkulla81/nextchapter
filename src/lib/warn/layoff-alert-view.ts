@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { alertBody, type AlertInput, type LayoffKind } from './layoff-alert-rules'
+import { alertBody, noticeKind, type AlertInput, type LayoffKind } from './layoff-alert-rules'
 import { layoffPeople } from './layoff-alert-people'
 import { withComposeLinks } from './layoff-alert-drafts'
 import { loadAlertSources } from './layoff-alert-sources'
@@ -55,9 +55,9 @@ export async function layoffAlertView(noticeId: string): Promise<{ employer: str
   const picture = await buildLocalPicture({ employer: n.employer, employees: n.employees, state, county: n.county, industryKey: industry?.key ?? null })
   const related = await layoffPeople(orgId, { state, county: n.county, city, address: n.address, workforceBoardId: n.workforceBoardId, industryKey: industry?.key ?? null }).catch(() => null)
   const groups = related?.groups.map((g) => (PARTNER[g.key] ? { ...g, pitch: talkingPoints(picture, PARTNER[g.key]) ?? undefined } : g)) ?? []
-  const kind: LayoffKind = n.source === 'WARN_FILING' ? 'warn' : /sec\.gov/i.test(n.sourceUrl ?? '') ? 'sec' : 'news'
+  const kind: LayoffKind = noticeKind(n)
   const input: AlertInput = {
-    employer: n.employer, division: n.division, employees: n.employees, percent: null, kind, confirmed: n.source === 'WARN_FILING' || kind === 'sec',
+    employer: n.employer, division: n.division, employees: n.employees, percent: null, kind, confirmed: kind !== 'news' && (n.source === 'WARN_FILING' || kind === 'sec'),
     inCrm: !!org, people: people.length, warm, contactsFound: 0,
     costs: n,
     sources: await loadAlertSources(n.id, n.sourceUrl, kind === 'warn' ? 'WARN filing' : kind === 'sec' ? 'SEC 8-K filing' : 'Notice'),

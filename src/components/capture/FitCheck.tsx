@@ -10,6 +10,7 @@ import { posthog } from '@/lib/posthog/client'
 import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
 import { rememberState, useVisitorState } from '@/lib/capture/visitor-state'
 import { cn } from '@/lib/utils'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 const FIELD = 'h-11 w-full rounded-lg border border-border bg-white px-3 text-base'
 
@@ -18,7 +19,14 @@ const FIELD = 'h-11 w-full rounded-lg border border-border bg-white px-3 text-ba
  * (runs in the browser, nothing is sent). Right: tell us your state and email, optionally attach the résumé, and we file it
  * (components/capture/FitCheck -> lib/leads/fit-lead). The skills are the ones the page's openings name most often.
  */
-export function FitCheck({ label, source, skills, aiSkills }: { label: string; source: string; skills: string[]; aiSkills: { label: string; words: string[] }[] }) {
+export function FitCheck({ label, source, skills, aiSkills, items }: {
+  label: string
+  source: string
+  skills: string[]
+  aiSkills: { label: string; words: string[] }[]
+  /** The skills with the wording a résumé uses for each. When given, the page's skills come from the role (not from openings) and this is what the résumé is checked against. */
+  items?: { label: string; words: string[] }[]
+}) {
   const [resume, setResume] = useState('')
   const [fit, setFit] = useState<FitResult | null>(null)
   const [aiFit, setAiFit] = useState<FitResult | null>(null)
@@ -29,17 +37,17 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
   const stateCode = picked ?? visitor.state ?? ''
 
   function run() {
-    const f = checkFit(resume, skills)
+    const f = items ? checkFitItems(resume, items) : checkFit(resume, skills)
     setFit(f)
     setAiFit(aiSkills.length ? checkFitItems(resume, aiSkills) : null)
-    posthog.capture('fit_check_run', { source, skills: skills.length, coveredCount: f.covered.length, fitPct: f.pct, resumeChars: resume.length })
+    posthog.capture('fit_check_run', { source, skills: items ? items.length : skills.length, basis: items ? 'role' : 'openings', coveredCount: f.covered.length, fitPct: f.pct, resumeChars: resume.length })
   }
 
   return (
     <section aria-labelledby="fit-heading" className="mt-8 overflow-hidden rounded-3xl border border-border bg-white">
       <div className="bg-gradient-to-r from-brand to-light-blue px-6 py-5 text-white sm:px-8">
         <h2 id="fit-heading" className="text-2xl font-bold tracking-tight">How would your résumé fare for {label.toLowerCase()}?</h2>
-        <p className="mt-1 max-w-2xl text-sm text-white/90">Paste it to see which skills these openings ask for and which your résumé leaves out. It runs here in your browser, so nothing you paste is sent.</p>
+        <p className="mt-1 max-w-2xl text-sm text-white/90">Paste it to see {items ? 'which skills this job uses' : 'which skills these openings ask for'} and which your résumé leaves out. It runs here in your browser, so nothing you paste is sent.</p>
       </div>
       <div className="grid gap-0 md:grid-cols-2">
         <div className="bg-tint-sky p-6 sm:p-8">
@@ -62,7 +70,7 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
             <div role="status" className="mt-5">
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-bold tabular-nums text-navy">{fit.pct}%</span>
-                <span className="text-sm text-muted-foreground">of the top skills named in {label.toLowerCase()} openings</span>
+                <span className="text-sm text-muted-foreground">{items ? `of the skills the ${label.toLowerCase()} job uses` : `of the top skills named in ${label.toLowerCase()} openings`}</span>
               </div>
               <div className="mt-2 h-3 overflow-hidden rounded-full bg-white" aria-hidden>
                 <div className={cn('h-full rounded-full', fit.pct >= 70 ? 'bg-success' : fit.pct >= 40 ? 'bg-warning' : 'bg-orange')} style={{ width: `${Math.max(fit.pct, 4)}%` }} />
@@ -105,7 +113,7 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
                 onClick={() => posthog.capture('fit_market_reality_clicked', { source })}
                 className="mt-4 inline-flex h-11 items-center rounded-full bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95"
               >
-                Get my free assessment
+                <AssessmentCtaLabel>Get my free assessment</AssessmentCtaLabel>
               </Link>
             </div>
           ) : (

@@ -1,3 +1,5 @@
+import { emailCtaLabel } from '@/lib/ab/email-cta'
+import type { NavCtaVariant } from '@/lib/ab/nav-cta'
 import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface JourneyPlanEmailProps {
@@ -8,10 +10,12 @@ interface JourneyPlanEmailProps {
   unsubscribeUrl: string
   /** The school they picked on a company page and asked to be listed with (its page on this site, when it has one). */
   school?: { name: string; url: string | null }
+  /** The recipient's arm of the assessment button label test. */
+  ctaVariant?: NavCtaVariant
 }
 
 /** The one-time first-week plan for someone who told us where they are on the homepage. */
-export default function JourneyPlanEmail({ situationLabel, intro, steps, startUrl, unsubscribeUrl, school }: JourneyPlanEmailProps) {
+export default function JourneyPlanEmail({ situationLabel, intro, steps, startUrl, unsubscribeUrl, school, ctaVariant }: JourneyPlanEmailProps) {
   return (
     <CardEmail
       preheader={intro}
@@ -45,7 +49,7 @@ export default function JourneyPlanEmail({ situationLabel, intro, steps, startUr
           </Lead>
         )}
         <Lead>The last step takes about five minutes and is free. It gives you a plan for the weeks after this one.</Lead>
-        <Button campaign="journey_plan" href={startUrl}>Get your Market Reality Assessment</Button>
+        <Button campaign="journey_plan" href={startUrl} ctaVariant={ctaVariant}>{emailCtaLabel(ctaVariant, 'Get your Market Reality Assessment')}</Button>
       </Card>
     </CardEmail>
   )

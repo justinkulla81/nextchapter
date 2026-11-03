@@ -4,7 +4,8 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { readDivision } from './division'
 import { pageText } from '@/lib/workforce/college-pages'
 import { fetchItem205, readLayoffFiling, sameEmployer, SEC_USER_AGENT } from './sec-8k'
-import { alertNewLayoff } from './layoff-alert'
+import { alertNewLayoff, withAlertRun } from './layoff-alert'
+import { confirmNewsRecord, findNewsRecord } from './layoff-official'
 import { readFilingCosts } from './layoff-cost'
 
 /** Filing documents read per run; each is one fetch, and Item 2.05 is a handful a day. */
@@ -19,7 +20,9 @@ export interface Sec8kResult { filings: number; added: { company: string; employ
  * on file covers. It lands as an announcement, labelled with its source, and
  * the contact and primary-contact steps pick it up from there.
  */
-export async function runSec8kCheck(): Promise<Sec8kResult> {
+export const runSec8kCheck = () => withAlertRun(sec8kCheck)
+
+async function sec8kCheck(): Promise<Sec8kResult> {
   const result: Sec8kResult = { filings: 0, added: [], covered: 0, notLayoff: 0 }
   let filings
   try {
@@ -41,7 +44,9 @@ export async function runSec8kCheck(): Promise<Sec8kResult> {
     const when = new Date(`${f.fileDate}T00:00:00Z`)
     const covering = recent.find((n) => sameEmployer(n.normalizedEmployer, key)
       && n.noticeDate && Math.abs(n.noticeDate.getTime() - when.getTime()) <= COVERED_DAYS * 86_400_000)
-    if (covering) { result.covered++; continue }
+    // A news-reported layoff the filing now confirms is read like a new one, then goes on the same record (below).
+    const newsRecord = covering ? await findNewsRecord({ normalizedEmployer: key, noticeDate: when }) : null
+    if (covering && !newsRecord) { result.covered++; continue }
     if (read >= MAX_DOCS) break
     read++
 
@@ -50,6 +55,12 @@ export async function runSec8kCheck(): Promise<Sec8kResult> {
     const text = pageText((await res.text()).slice(0, 400_000))
     const { isLayoff, employees, percent } = readLayoffFiling(text)
     if (!isLayoff) { result.notLayoff++; continue }
+    if (newsRecord) {
+      await confirmNewsRecord({ kind: 'sec', employer: f.company, normalizedEmployer: key, state: f.state ?? null, noticeDate: when, employees, sourceUrl: f.url })
+      recent.push({ normalizedEmployer: key, noticeDate: when, sourceUrl: f.url })
+      result.covered++
+      continue
+    }
 
     const notice = await prisma.warnNotice.create({
       data: {
