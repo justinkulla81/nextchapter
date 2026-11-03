@@ -25,7 +25,7 @@ const AUDIENCES = [
   { label: 'Recruiters', href: '/recruiters' },
   { label: 'Coaches', href: '/coaches' },
   { label: 'Colleges', href: '/higher-education' },
-  { label: 'Nonprofits', href: '/nonprofits' },
+  { label: 'Non-profits', href: '/nonprofits' },
   { label: 'Government and workforce', href: '/government-workforce' },
 ]
 
