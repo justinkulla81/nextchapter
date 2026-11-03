@@ -179,6 +179,50 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     why: 'Fractional and interim roles are part-time or temporary leadership and specialist work. The share of openings shows which fields and industries use them most.',
     use: 'If you want independent work between jobs or as a career, start with the fields near the top and read how employers describe the engagement.',
   },
+  dg_field: {
+    why: 'A degree is a route into a group of jobs, and fields differ a lot in how many openings they lead to. Counting open jobs by field of study shows where the demand for each kind of degree sits.',
+    use: 'If you are choosing a major or a direction for a career change, read the top and bottom together with the pay and growth lists. Fewer openings can still be a good field if few people compete for them.',
+  },
+  dg_fieldpay: {
+    why: 'Pay differs by field long before it differs by employer. The median advertised salary by field shows which kinds of degree lead to the best-paid roles on offer today.',
+    use: 'Use it to compare fields, not to promise a salary. Pay depends on level, city and employer, so check the openings and growth lists for the same field.',
+  },
+  dg_fieldgrow: {
+    why: "Employment in some fields is projected to grow quickly and in others to barely move. The Bureau of Labor Statistics' ten-year projection, weighted by the size of each occupation, shows which fields are expected to add jobs.",
+    use: "A projection is a national forecast, not a guarantee for your city. Pair it with the open-jobs list for the same field to see whether today's hiring agrees.",
+  },
+  dg_level: {
+    why: 'Jobs ask for different amounts of schooling. Counting open jobs by the typical education of their occupation shows how much of the market is open at each level, from no credential to a doctorate.',
+    use: "If you do not have a four-year degree, look at the associate, certificate and high school levels and the occupation lists beneath them. If you do, the bachelor's and master's levels show how crowded your end of the market is.",
+  },
+  dg_levelpay: {
+    why: 'More schooling usually goes with higher pay, but the gap is not the same at every step. The median advertised salary at each level shows what the extra schooling is worth in current openings.',
+    use: 'Use it to weigh a degree or certificate against its cost and time. Compare the pay of a level with the occupations beneath it, because some well-paid jobs sit at a level below the one you would expect.',
+  },
+  dg_occ: {
+    why: 'Behind every education level is a list of specific jobs. Ranking occupations by open jobs shows which ones the employers we track are hiring for most at a given level of schooling.',
+    use: 'If you are planning a move into a new occupation, start with the ones near the top: more openings means more employers to approach. Check the pay and growth beside each before you commit.',
+  },
+  dg_occpay: {
+    why: 'Some occupations pay well without a four-year degree, and some that need one pay little. Ranking occupations by median advertised pay at one education level shows where the money is for that route.',
+    use: 'Use it to find well-paid roles you can reach with the schooling you have or plan to get. Posted pay is a range an employer advertises, so treat it as a guide.',
+  },
+  dg_occgrow: {
+    why: "Occupations differ in whether they are expected to add or lose jobs over the next decade. Ranking them by the Bureau of Labor Statistics' projection shows which routes are widening and which are narrowing.",
+    use: 'If you are choosing between occupations that need the same schooling, growth is a reason to prefer one. A shrinking occupation can still have openings today, so read it with the open-jobs list.',
+  },
+  dg_share: {
+    why: 'Some job families and industries hire almost entirely for four-year-degree occupations, and others have many roles open to people without one. The share shows which is which.',
+    use: 'If you do not have a four-year degree, the lower end shows where more of the openings are within reach. If you do, the upper end shows where your degree is most often the way in.',
+  },
+  dg_city: {
+    why: 'A four-year degree is not the only way into a professional job. Counting the openings in occupations that typically need less shows which cities have the most of them.',
+    use: 'If you do not have a four-year degree, the top cities show where the most such roles are. Big markets lead in the count, so read it with the share list.',
+  },
+  dg_cityshare: {
+    why: "Some cities hire for a bigger share of occupations that need no four-year degree. The share shows where a job seeker without a bachelor's has the largest part of the market to aim at.",
+    use: 'Use it to compare cities for a search without a four-year degree, and read it beside the count so you do not chase a small market with a high share.',
+  },
   ef_contract: {
     why: 'Contract roles are fixed-term engagements. The share of openings that are contract shows where employers most often hire this way.',
     use: 'If you want contract work, look at the fields near the top. If you want a permanent role, treat contract postings as a way in, and ask whether they convert.',

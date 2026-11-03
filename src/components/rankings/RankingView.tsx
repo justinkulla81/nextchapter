@@ -62,6 +62,8 @@ const JUMP_LABEL: Record<Noun, (name: string) => string> = {
   skills: (n) => `${n}: ranks by month and open jobs`,
   tools: (n) => `${n}: ranks by month and open jobs`,
   certifications: (n) => `Open jobs naming ${n}`,
+  degrees: (n) => `${n}: open jobs and pay`,
+  occupations: (n) => `${n}: open jobs and pay`,
 }
 
 function RowCard({ row, unit, noun, slug, edition, links }: { row: RankRow; unit: string; noun: Noun; slug: string; edition: string; links: Map<string, string> }) {
@@ -255,7 +257,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         <div className={`${CARD} mt-4 overflow-x-auto`}>
           <table className="w-full min-w-[32rem] text-left text-sm">
             <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', 'job families': 'Job family', states: 'State', colleges: 'College' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
+              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', 'job families': 'Job family', states: 'State', colleges: 'College', degrees: 'Field or level', occupations: 'Occupation' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {e.rows.map((r) => (

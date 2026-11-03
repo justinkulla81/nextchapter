@@ -16,6 +16,8 @@ import { profileSpecs, rankProfile } from '@/lib/rankings/wave5-specs'
 import { rankSupport, supportSpecs } from '@/lib/rankings/wave6-specs'
 import { loadAjcByCounty, loadConferenceEvents, loadFlexStats, loadStateFacts } from '@/lib/rankings/wave6-scan'
 import { loadEntityStats, loadProfileCityRows, loadSocGroups } from '@/lib/rankings/wave5-scan'
+import { degreeSpecs, rankDegrees } from '@/lib/rankings/degrees-specs'
+import { loadDegreeCityRows, loadDegreeEntities, loadGroupStats, loadSocStats } from '@/lib/rankings/degrees-scan'
 import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
 import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
 import { awardEntries } from '@/lib/rankings/awards'
@@ -161,7 +163,7 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
       ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
     }
   } else if (group === 'profile') {
-    const [citiesRaw, entities, cityRows, socGroups, premiums] = await Promise.all([loadCityStats(), loadEntityStats(), loadProfileCityRows(), loadSocGroups(), loadAiPayPremium().catch(() => [])])
+    const [citiesRaw, entities, cityRows, socGroups, premiums, socs, groups, degreeEntities, degreeCityRows] = await Promise.all([loadCityStats(), loadEntityStats(), loadProfileCityRows(), loadSocGroups(), loadAiPayPremium().catch(() => []), loadSocStats(), loadGroupStats(), loadDegreeEntities(), loadDegreeCityRows()])
     const info = await placeInfo([...new Set(citiesRaw.map((c) => c.st))])
     const cities = keyCities(citiesRaw, (k) => info.has(k))
     cityCount = cities.length
@@ -171,6 +173,14 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     specs = profileSpecs()
     for (const spec of specs) {
       const ed = rankProfile(spec, data, edition, builtAt, await prevRanksOf(spec.slug))
+      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+    }
+    // The degree lists build in this group too: their reads join postings to the BLS occupation table.
+    const degreeData = { socs, groups, entities: degreeEntities, cityRows: degreeCityRows, base: data.base, info: infoOf }
+    const degrees = degreeSpecs()
+    specs = [...specs, ...degrees]
+    for (const spec of degrees) {
+      const ed = rankDegrees(spec, degreeData, edition, builtAt, await prevRanksOf(spec.slug))
       ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
     }
   } else if (group === 'support') {

@@ -426,6 +426,8 @@ const PERUNEMP: CountyMeasure = {
 export const COUNTY_MEASURES: Record<CountyMeasure['id'], CountyMeasure> = { ...COUNTY_BASE, lowunemp: LOWUNEMP, unempdrop: UNEMPDROP, whitecollar: WHITECOLLAR, aiexposed: AIEXPOSED, perunemp: PERUNEMP }
 
 const POSTINGS = ['NextChapter job data: open professional roles on employer career sites, verified in the last week']
+const DEGREE_SOURCES = ['NextChapter job data: open professional roles, matched to standard occupation (SOC) codes', 'Bureau of Labor Statistics, Employment Projections 2025-35: typical entry-level education and projected employment change by occupation']
+
 export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
   lowunemp: ['Bureau of Labor Statistics, Local Area Unemployment Statistics (not seasonally adjusted)'],
   unempdrop: ['Bureau of Labor Statistics, Local Area Unemployment Statistics (not seasonally adjusted)'],
@@ -457,6 +459,8 @@ export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
   cf_ind: ['NextChapter events catalog: U.S. business, professional and trade conferences'],
   cf_fn: ['NextChapter events catalog: U.S. business, professional and trade conferences'],
   ef_flex: POSTINGS, ef_contract: POSTINGS,
+  dg_field: DEGREE_SOURCES, dg_fieldpay: DEGREE_SOURCES, dg_fieldgrow: DEGREE_SOURCES, dg_level: DEGREE_SOURCES, dg_levelpay: DEGREE_SOURCES, dg_occ: DEGREE_SOURCES,
+  dg_occpay: DEGREE_SOURCES, dg_occgrow: DEGREE_SOURCES, dg_share: DEGREE_SOURCES, dg_city: DEGREE_SOURCES, dg_cityshare: DEGREE_SOURCES,
   collegepay: ['U.S. Department of Education, College Scorecard (median earnings, completion, net price), as held in our college tables'],
   midcareer: POSTINGS, leadership: POSTINGS, fnopen: POSTINGS, aiskills: POSTINGS, aitools: POSTINGS, aicerts: POSTINGS, skillpay: POSTINGS,
   indpay: ['NextChapter job data: posted annual salary ranges'],
