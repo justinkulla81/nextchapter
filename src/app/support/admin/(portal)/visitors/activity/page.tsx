@@ -18,6 +18,7 @@ import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
 import { buildEmailIpAnchors, extractEmailLinkId, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, resolveEmailRecipients, type EmailRecipient } from '@/lib/marketing/email-attribution'
+import { classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
 import { allTimeDayCount, byHourOfDay, byWeekday, perDaySeries, perHourSeries } from '@/lib/admin/visitor-time-buckets'
 
 export const maxDuration = 30
@@ -64,20 +65,13 @@ interface Row {
   views: number
   clicks: number
   applyClicks: number
-  pageType: 'Job posting' | 'Site page'
+  pageType: VisitPageType
   isApplyClick: boolean
 }
 
 const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com').replace(/\/$/, '')
 const OWN_HOST = new URL(SITE_URL).hostname.replace(/^www\./, '')
 const SOCIAL_HOST = /(^|\.)(linkedin|facebook|twitter|x|instagram|youtube|tiktok)\.com$/i
-
-// A single job's page (/jobs/<id>) is a "Job posting"; everything else — homepage, /jobs search, layoff, place and
-// audience pages — is a "Site page".
-function classifyPageType(path: string | null): Row['pageType'] {
-  const pathname = (path ?? '').replace(/^https?:\/\/[^/]+/i, '').split(/[?#]/)[0]
-  return /^\/jobs\/[^/]+/.test(pathname) ? 'Job posting' : 'Site page'
-}
 
 function absoluteUrl(value: string): string {
   if (/^https?:\/\//i.test(value)) return value
@@ -395,7 +389,7 @@ export default async function AdminVisitorActivityPage({
     views: e.ip ? (totalsByIp.get(e.ip)?.views ?? 0) : 0,
     clicks: e.ip ? (totalsByIp.get(e.ip)?.clicks ?? 0) : 0,
     applyClicks: e.ip ? (totalsByIp.get(e.ip)?.applyClicks ?? 0) : 0,
-    pageType: classifyPageType(e.path),
+    pageType: classifyVisitPage(e.path),
     isApplyClick: isApplyClick(e.eventType, e.href, e.path),
   }))
 
@@ -504,7 +498,7 @@ export default async function AdminVisitorActivityPage({
     },
     {
       header: 'Type',
-      render: (r) => <span className={r.pageType === 'Job posting' ? '' : 'text-muted-foreground'}>{r.pageType}</span>,
+      render: (r) => <span className={`whitespace-nowrap ${isMutedVisitPageType(r.pageType) ? 'text-muted-foreground' : ''}`}>{r.pageType}</span>,
     },
     {
       header: 'Page or click',
