@@ -8,13 +8,15 @@ const VIC_NOTE: Record<LandingVariant, string> = {
 }
 
 /** The top of a company page: a plain headline, one sourced line of context, a rotating photo and Vic's note. */
-export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = true, context, action }: {
+export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = true, noticeCount = 1, context, action }: {
   variant: LandingVariant
   name: string
   slug: string
   latestWorkers: number | null
   /** False for a page built only from announcements and press reports (nothing filed with a state). */
   hasNotices?: boolean
+  /** WARN notices on the page; above 1, the headline names the newest notice's headcount as such. */
+  noticeCount?: number
   /** One sourced line under the headline (what was announced or filed), already worded. */
   context: React.ReactNode
   /** A control shown under the headline, above the fold (the "I'm interested" button). */
@@ -28,7 +30,7 @@ export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = t
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">Independent page. Not from or affiliated with {name}.</p>
         <h1 id="landing-h1" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight [text-wrap:balance] sm:text-4xl">
-          {landingHeadline(variant, name, latestWorkers, hasNotices)}
+          {landingHeadline(variant, name, latestWorkers, hasNotices, noticeCount)}
         </h1>
         {action && <div className="mt-5 max-w-xl">{action}</div>}
         <p className="mt-4 max-w-xl text-base opacity-90">{context}</p>
