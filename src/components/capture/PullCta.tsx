@@ -15,8 +15,28 @@ const ORG_ROOTS = new Set(['workforce-boards', 'economic-development', 'rapid-re
 
 const slugOf = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'page'
 
-/** A topic name inside a sentence: lower-cased, but acronyms (AI, HR, WARN) keep their capitals. */
-export const midSentence = (topic: string) => topic.split(' ').map((w) => (/[A-Z].*[A-Z]/.test(w) ? w : w.toLowerCase())).join(' ')
+/**
+ * What the visitor is offered, in plain words. The button starts the onboarding questions, so the copy says what they get
+ * and what the first step is, never "see how <page name> reads for you" (a page name is not always a subject: "Rankings").
+ * `root` is the first path segment; a few data pages get a line that fits what they show.
+ */
+export interface PullCopy { ask: string; line: string; button: string; later: string }
+const DEFAULT_COPY: PullCopy = {
+  ask: 'Want this for your own job search?',
+  line: 'Answer a few questions about where you are and what you want next. You get open jobs that fit you, a read on your market and a weekly plan. Free; a résumé is optional.',
+  button: 'Find my jobs',
+  later: 'Not yet',
+}
+const ROOT_COPY: Record<string, Partial<PullCopy>> = {
+  rankings: {
+    ask: 'Which of these places is best for you?',
+    line: 'Rankings show where the market is strong. Your answer depends on your field, your level and where you would live. Tell us those and we show the open jobs that fit. Free; a résumé is optional.',
+    button: 'Find jobs that fit me',
+  },
+  salaries: { ask: 'What would you be paid?', line: 'Tell us your field, level and location and we show posted pay for the open jobs that fit you. Free; a résumé is optional.', button: 'See pay for my jobs' },
+  layoffs: { ask: 'Affected by a layoff?', line: 'Answer a few questions and we show the open jobs that fit you and what to do in your first weeks. Free; a résumé is optional.', button: 'Find my next job' },
+}
+export const pullCopy = (root?: string): PullCopy => ({ ...DEFAULT_COPY, ...(root ? ROOT_COPY[root] : undefined) })
 
 export function pullContext(trail: { name: string; path: string }[]) {
   const last = trail[trail.length - 1]
@@ -25,13 +45,14 @@ export function pullContext(trail: { name: string; path: string }[]) {
   return {
     topic: last?.name ?? 'your search',
     slug,
+    root,
     audience: (ORG_ROOTS.has(root) ? 'org' : 'seeker') as PullAudience,
   }
 }
 
 export const registerHref = (slug: string, spot: 'top' | 'mid' | 'bottom') => `/onboarding/desire?from=${spot}_${slug}`
 
-export function PullCtaTop({ topic, slug, audience }: { topic: string; slug: string; audience: PullAudience }) {
+export function PullCtaTop({ slug, audience, root }: { topic: string; slug: string; audience: PullAudience; root?: string }) {
   if (audience === 'org') {
     return (
       <section aria-label="For organizations" className="mt-8 flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-tint-plum via-white to-tint-sky p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
@@ -46,35 +67,37 @@ export function PullCtaTop({ topic, slug, audience }: { topic: string; slug: str
       </section>
     )
   }
+  const c = pullCopy(root)
   return (
-    <section aria-label="Is this what you want?" className="mt-8 flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-mint p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+    <section aria-label="Next step" className="mt-8 flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-mint p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
       <div className="max-w-2xl">
-        <h2 className="text-lg font-semibold tracking-tight text-navy">Is this what you&apos;re looking for?</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Answer a few questions and we&apos;ll show how {midSentence(topic)} fits your background: matched jobs, a plain-language market read and a weekly plan. Free. No résumé needed.</p>
+        <h2 className="text-lg font-semibold tracking-tight text-navy">{c.ask}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{c.line}</p>
       </div>
       <div className="flex flex-wrap gap-3">
-        <TrackedLink href={registerHref(slug, 'top')} event="pull_cta_clicked" properties={{ spot: 'top', audience, slug }} gtagEvent="pull_cta_clicked" className="inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">Yes, build my plan</TrackedLink>
-        <a href="#get-started" className="inline-flex h-12 items-center rounded-full border border-border bg-white px-5 text-sm font-medium text-navy hover:border-brand">Not sure yet</a>
+        <TrackedLink href={registerHref(slug, 'top')} event="pull_cta_clicked" properties={{ spot: 'top', audience, slug }} gtagEvent="pull_cta_clicked" className="inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">{c.button}</TrackedLink>
+        <a href="#get-started" className="inline-flex h-12 items-center rounded-full border border-border bg-white px-5 text-sm font-medium text-navy hover:border-brand">{c.later}</a>
       </div>
     </section>
   )
 }
 
 /** A slim strip for the middle of a long page: one sentence, one button. */
-export function PullCtaMid({ topic, slug, audience }: { topic: string; slug: string; audience: PullAudience }) {
+export function PullCtaMid({ slug, audience, root }: { topic: string; slug: string; audience: PullAudience; root?: string }) {
   const org = audience === 'org'
+  const c = pullCopy(root)
   return (
     <aside aria-label="Next step" className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm font-medium text-navy">{org ? 'Want your organization on pages like this one?' : `Seen enough? See how ${midSentence(topic)} reads for your background.`}</p>
+      <p className="text-sm font-medium text-navy">{org ? 'Want your organization on pages like this one?' : c.ask}</p>
       <TrackedLink href={org ? '/for-organizations' : registerHref(slug, 'mid')} event="pull_cta_clicked" properties={{ spot: 'mid', audience, slug }} gtagEvent="pull_cta_clicked" className="inline-flex h-10 shrink-0 items-center rounded-full bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95">
-        {org ? 'See how it works' : 'Show me, free'}
+        {org ? 'See how it works' : c.button}
       </TrackedLink>
     </aside>
   )
 }
 
 /** The closing band: register in one click, or leave an email without an account. */
-export function PullCtaBottom({ topic, slug, audience, picker = true }: { topic: string; slug: string; audience: PullAudience; picker?: boolean }) {
+export function PullCtaBottom({ topic, slug, audience, root, picker = true }: { topic: string; slug: string; audience: PullAudience; root?: string; picker?: boolean }) {
   const source = `page:topic:${slug}`.slice(0, 80)
   if (audience === 'org') {
     return (
@@ -90,11 +113,12 @@ export function PullCtaBottom({ topic, slug, audience, picker = true }: { topic:
       </div>
     )
   }
+  const c = pullCopy(root)
   return (
     <section id="get-started" aria-label="Get started" className="mt-8 scroll-mt-6 rounded-3xl bg-gradient-to-br from-brand to-light-blue p-6 text-white sm:p-8">
-      <h2 className="text-xl font-semibold tracking-tight">Do you want this for your own search?</h2>
-      <p className="mt-2 max-w-2xl text-sm text-white/90">A free account turns this page into your plan: a plain-language read on {midSentence(topic)}, jobs matched to you and a weekly action plan.</p>
-      <TrackedLink href={registerHref(slug, 'bottom')} event="pull_cta_clicked" properties={{ spot: 'bottom', audience, slug }} gtagEvent="pull_cta_clicked" className="mt-4 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">Yes, start free</TrackedLink>
+      <h2 className="text-xl font-semibold tracking-tight">{c.ask}</h2>
+      <p className="mt-2 max-w-2xl text-sm text-white/90">{c.line}</p>
+      <TrackedLink href={registerHref(slug, 'bottom')} event="pull_cta_clicked" properties={{ spot: 'bottom', audience, slug }} gtagEvent="pull_cta_clicked" className="mt-4 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">{c.button}</TrackedLink>
       {picker && (
         <div className="mt-6 rounded-2xl bg-white p-4 text-foreground sm:p-5">
           <p className="mx-auto max-w-xl text-center text-sm font-semibold text-navy">Not ready for an account? Get a first-week plan by email.</p>
@@ -109,7 +133,7 @@ export function PullCtaBottom({ topic, slug, audience, picker = true }: { topic:
  * Puts the page's children together with the pull CTAs: the strip lands halfway down a long page, and any closing band the page
  * wrote itself (`isOwnBand`) is replaced by the shared one so a page never ends with two asks. Returns the body and the bottom.
  */
-export function withPullCtas(children: ReactNode, ctx: { topic: string; slug: string; audience: PullAudience }, opts: { hasCapture: boolean; isOwnBand: (el: ReactElement) => boolean }) {
+export function withPullCtas(children: ReactNode, ctx: { topic: string; slug: string; audience: PullAudience; root?: string }, opts: { hasCapture: boolean; isOwnBand: (el: ReactElement) => boolean }) {
   const all = Children.toArray(children)
   const body = all.filter((c) => !(typeof c === 'object' && 'type' in c && opts.isOwnBand(c as ReactElement)))
   const at = Math.ceil(body.length / 2)
