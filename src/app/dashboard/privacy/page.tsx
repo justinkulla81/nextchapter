@@ -83,7 +83,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
   const gmailState = stateOf(emailConn, emailConn?.connectedEmail ?? null)
   const calendarState = stateOf(calendarConn, calendarAccount)
   const connectError = params.gmailError ? CONNECT_ERROR[params.gmailError] ?? CONNECT_ERROR.exchange_failed : null
-  const SOURCE_LABEL = { PAGE: 'You sent your resume', NOT_FIT_LINK: 'You sent your resume', FORWARD: 'Your resume was forwarded' } as const
+  const SOURCE_LABEL = { PAGE: 'You sent your resume', NOT_FIT_LINK: 'You sent your resume', FORWARD: 'Your resume was forwarded', MEMBER_INTEREST: 'You chose to send your resume' } as const
 
   // Account and privacy in the redesign (docs/redesign-old-card-audit-network-account.md): who can see your search and
   // what we read come first, each control says what is true now and what changing it does. Every other control is

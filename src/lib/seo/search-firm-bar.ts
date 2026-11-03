@@ -77,6 +77,27 @@ export const INDUSTRY_LABEL: Record<string, string> = {
   real_estate: 'Real estate', logistics: 'Logistics', media: 'Media', telecom: 'Telecommunications', education: 'Education',
   nonprofit: 'Nonprofit', government: 'Government', aerospace_defense: 'Aerospace and defense', agriculture: 'Agriculture',
 }
+/** The four seniority bands members and the directory filter on. A firm's bands come from the levels of its live searches. */
+export const SENIORITY_BANDS = ['C-suite', 'VP and director', 'Manager', 'Individual contributor'] as const
+export type SeniorityBand = (typeof SENIORITY_BANDS)[number]
+const BAND_OF: Record<string, SeniorityBand> = {
+  C_SUITE: 'C-suite', EVP_SVP: 'C-suite',
+  VP: 'VP and director', DIRECTOR: 'VP and director', HEAD: 'VP and director', PARTNER: 'VP and director', CHIEF_OF_STAFF: 'VP and director',
+  MANAGER: 'Manager', SR_MANAGER: 'Manager',
+  ENTRY_IC: 'Individual contributor', EARLY_IC: 'Individual contributor', MID_IC: 'Individual contributor', SENIOR_IC: 'Individual contributor', PRINCIPAL: 'Individual contributor',
+}
+export const seniorityBand = (level: string | null | undefined): SeniorityBand | null => (level ? (BAND_OF[level] ?? null) : null)
+
+/** The member's own highest level ("IC", "Manager", "Director", "VP", "C-Suite") as a band. */
+export function seniorityBandOfMember(highest: string | null | undefined): SeniorityBand | null {
+  const v = (highest ?? '').toLowerCase()
+  if (!v) return null
+  if (v.includes('c-suite') || v.includes('c suite') || v === 'ceo') return 'C-suite'
+  if (v.includes('vp') || v.includes('director') || v.includes('head')) return 'VP and director'
+  if (v.includes('manager')) return 'Manager'
+  return 'Individual contributor'
+}
+
 export const industryLabel = (code: string | null): string | null => (code ? (INDUSTRY_LABEL[code] ?? null) : null)
 
 const rank = <T extends string>(values: (T | null | undefined)[], take: number): { value: T; count: number }[] => {
