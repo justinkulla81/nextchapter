@@ -1641,6 +1641,7 @@ model CandidateProfile {
   candidateJobBoardSubmissions   ExclusiveJobPosting[]
   pivotIdeas                     PivotIdea[]
   pivotPreference                PivotPreference?
+  suggestionDismissals           CompanySuggestionDismissal[]
   marketResponseLogs             MarketResponseLog[]
   profileShares                  ProfileShare[]
   interimMarketplaceSignups      InterimMarketplaceSignup[]
@@ -14688,6 +14689,17 @@ model DurationBenchmark {
 
   @@unique([bucket, group, sourceTitle])
   @@index([bucket, group])
+}
+
+// "Not for me" on a suggested company (What you follow page). prisma/manual/company-suggestion-dismissal.sql.
+model CompanySuggestionDismissal {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  companyId   String
+  createdAt   DateTime         @default(now())
+
+  @@unique([candidateId, companyId])
 }
 
 // Market-based pivot paths (src/lib/pivots). One row per member, created the

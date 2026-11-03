@@ -116,9 +116,9 @@ export function FollowingEvents() {
 
 export function FollowingEmails() {
   const rows: [string, string, string][] = [
-    ['Layoff alerts', 'When a company you follow has layoffs or a WARN notice.', 'On'],
-    ['New openings', 'A short list when followed companies post roles that fit you.', 'On'],
-    ['Weekly plan', 'Your week, every Monday.', 'On'],
+    ['Monday plan and connection alerts', 'Your plan for the week, "a way in" at companies you applied to, and a note if you have been away.', 'On'],
+    ['Weekly market update', 'Tuesday: hiring and market conditions for your target role.', 'On'],
+    ['Job Search Daily', 'New roles that fit you and follow-ups that are due, when there is something worth sending.', 'On'],
   ]
   return (
     <PreviewShell place="jobs" entry="following" part="emails">

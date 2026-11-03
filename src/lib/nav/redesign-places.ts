@@ -39,7 +39,8 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       tab('Résumé', '/dashboard/resume', { alsoMatches: ['/dashboard/linkedin', '/dashboard/portfolio'] }),
       tab('Apply helper', '/dashboard/apply-helper'),
       tab('Why hire me', '/dashboard/strengths', { alsoMatches: ['/dashboard/track-record', '/dashboard/how-i-perform'] }),
-      tab('Companies', '/dashboard/companies', { menuKeys: ['companies'], alsoMatches: ['/dashboard/company-tracker'] }),
+      tab('Companies', '/dashboard/companies', { menuKeys: ['companies'] }),
+      tab('What you follow', '/dashboard/following', { alsoMatches: ['/dashboard/company-tracker'] }),
       // The one market report (owner, 2026-10-18). The job-market widening page and Market Intelligence stay reachable from it.
       tab('Your market report', '/dashboard/market-reality', { alsoMatches: ['/dashboard/market', '/dashboard/market-intelligence'] }),
       tab('Know your worth', '/dashboard/pay'),
@@ -57,7 +58,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       { label: 'Find a job', hrefs: ['/dashboard/find-my-job', '/dashboard/alumni-jobs', '/dashboard/internal-roles'] },
       { label: 'Early career plan', hrefs: ['/dashboard/early-career'] },
       { label: 'Get ready to apply', hrefs: ['/dashboard/resume', '/dashboard/strengths', '/dashboard/apply-helper'] },
-      { label: 'Companies', hrefs: ['/dashboard/companies'] },
+      { label: 'Companies', hrefs: ['/dashboard/companies', '/dashboard/following'] },
       { label: 'Market and pay', hrefs: ['/dashboard/market-reality', '/dashboard/pay', '/dashboard/local-market', '/dashboard/compare-places'] },
       { label: 'Interviews and reviews', hrefs: ['/dashboard/interview-prep', '/dashboard/review-prep'] },
       { label: 'Offers and raises', hrefs: ['/dashboard/got-hired', '/dashboard/in-work'] },
