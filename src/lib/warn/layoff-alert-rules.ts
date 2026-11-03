@@ -74,6 +74,8 @@ export interface AlertInput {
   picture?: { rows: [string, string][] }
   /** Every page that reported the layoff: the filing, each news story. */
   sources?: AlertSource[]
+  /** What the alert could not fill in before it was sent (no state, no HR email); shown at the top so a thin email is not mistaken for a finished one. */
+  gaps?: string[]
 }
 
 export interface AlertSource { label: string; url: string }
@@ -174,6 +176,10 @@ export function alertBody(a: AlertInput, links: { source: string | null; org: st
     a.place ? esc(a.place) : '',
   ].filter(Boolean).join(' · ')
 
+  const gapNote = a.gaps?.length
+    ? `<p style="margin:0 0 14px;padding:10px 12px;background:#FFF0D6;border-radius:8px;color:#7A4A00;font-size:13px"><strong>Sent before it was fully researched.</strong> Missing: ${a.gaps.map(esc).join('; ')}.</p>`
+    : ''
+
   const sources = mergeSources(links.source ? { label: KIND_LABEL[a.kind], url: links.source } : null, a.sources)
   const sourceList = sources.length
     ? `<p style="margin:0 0 4px;color:${MUTED};font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">${sources.length === 1 ? 'Source' : `Sources (${sources.length})`}</p>
@@ -202,6 +208,7 @@ ${a.groups.map(groupHtml).join('')}`
 <p style="margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:${ACCENT};font-weight:600">Layoff alert</p>
 <h1 style="font:600 26px/1.2 Georgia,'Times New Roman',serif;margin:4px 0 4px">${esc(a.employer)}</h1>
 <p style="margin:0 0 14px;color:${MUTED}">${sizeLine}</p>
+${gapNote}
 <table role="presentation" cellpadding="3" style="border-collapse:collapse;margin:0 0 12px">${facts.map(([k, v]) => `<tr><td style="color:${MUTED};padding-right:14px">${k}</td><td>${v}</td></tr>`).join('')}</table>
 ${sourceList}
 <div>${buttons}</div>

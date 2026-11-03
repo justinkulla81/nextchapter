@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { alertReadiness, type ContactCard, type ContactGroup } from './layoff-alert-rules'
+import { alertBody, alertReadiness, type ContactCard, type ContactGroup } from './layoff-alert-rules'
 
 const card = (o: Partial<ContactCard> = {}): ContactCard => ({ name: 'A B', title: null, org: null, email: null, phone: null, strength: null, href: null, ...o })
 const group = (key: string, cards: ContactCard[]): ContactGroup => ({ key, label: key, why: '', cards, emptyHint: '' })
@@ -26,5 +26,18 @@ describe('alertReadiness', () => {
   })
   it('needs two public groups, not one', () => {
     expect(alertReadiness([full[0], full[1]], 'FL').ready).toBe(false)
+  })
+})
+
+describe('alertBody gaps', () => {
+  const base = { employer: 'Schaeffler', employees: 3460, percent: null, kind: 'news' as const, confirmed: true, inCrm: false, people: 0, warm: 0, contactsFound: 0 }
+  const links = { source: null, org: null, notices: 'https://x.test/n' }
+  it('says what was missing when the alert went out thin', () => {
+    const html = alertBody({ ...base, gaps: ['where the layoff is (no state known)'] }, links)
+    expect(html).toContain('Sent before it was fully researched')
+    expect(html).toContain('no state known')
+  })
+  it('adds nothing when the alert is complete', () => {
+    expect(alertBody(base, links)).not.toContain('fully researched')
   })
 })

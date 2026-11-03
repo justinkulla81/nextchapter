@@ -115,17 +115,14 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     input.picture = { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) }
     input.sources = await loadAlertSources(l.noticeId, l.sourceUrl, l.kind === 'warn' ? 'WARN filing' : l.kind === 'sec' ? 'SEC 8-K filing' : 'Notice')
 
-    // Only email once the alert is populated; otherwise hold it and look again on the next run.
+    // Never hold an alert for missing pieces: send it now and list what is missing at the top of the email.
     const readiness = alertReadiness(groups, state)
-    if (!readiness.ready) {
-      await markHeld(l.noticeId)
-      captureServerEvent('cron', 'layoff_alert_held', { employer: l.employer, employees: l.employees, missing: readiness.missing, state, industry: industry?.label ?? null })
-      return false
-    }
+    if (!readiness.ready) input.gaps = readiness.missing
 
+    // Only a sibling that was actually emailed counts: one that was held or skipped must not silence a later, larger notice.
     const sibling = await prisma.warnNotice.count({
       where: {
-        normalizedEmployer: l.normalizedEmployer, id: { not: l.noticeId },
+        normalizedEmployer: l.normalizedEmployer, id: { not: l.noticeId }, alertSentAt: { not: null },
         fetchedAt: { gte: new Date(Date.now() - REPEAT_DAYS * 86_400_000) },
       },
     })
@@ -149,7 +146,7 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     await prisma.warnNotice.update({ where: { id: l.noticeId }, data: { alertSentAt: new Date() } }).catch(() => {})
     captureServerEvent('cron', 'layoff_alert_sent', {
       employer: l.employer, kind: l.kind, employees: l.employees, percent: l.percent,
-      inCrm: !!org, warm, confirmed: l.confirmed,
+      inCrm: !!org, warm, confirmed: l.confirmed, gaps: input.gaps ?? [],
     })
     return true
   } catch (e) {
