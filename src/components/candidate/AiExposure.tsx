@@ -44,7 +44,7 @@ const SEGMENTS: { band: ExposureBand; className: string }[] = [
 ]
 
 /** The jobs we see, split by how much AI use is observed in their occupation, with how much of the market that covers. */
-export function JobsByExposure({ split, label, credit = true }: { split: JobsByExposure; label: string; credit?: boolean }) {
+export function JobsByExposure({ split, label, credit = true, compact = false }: { split: JobsByExposure; label: string; credit?: boolean; compact?: boolean }) {
   if (!split.measured) return null
   const pct = (n: number) => `${Math.round(n * 100)}%`
   return (
@@ -63,7 +63,9 @@ export function JobsByExposure({ split, label, credit = true }: { split: JobsByE
         ))}
       </ul>
       <p className="text-sm text-muted-foreground">
-        Of the {split.measured.toLocaleString('en-US')} openings we could place in an occupation ({pct(split.coverage)} of all openings we see). Openings we could not place are not counted.
+        {compact
+          ? `Of the ${split.measured.toLocaleString('en-US')} openings we could place in an occupation.`
+          : `Of the ${split.measured.toLocaleString('en-US')} openings we could place in an occupation (${pct(split.coverage)} of all openings we see). Openings we could not place are not counted.`}
       </p>
       {credit && <ExposureCredit />}
     </div>

@@ -115,13 +115,15 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
       {!picker && <HomeTryIt />}
 
       <section className="mx-auto max-w-3xl px-6 py-12 text-center" aria-label="How it works, in a video">
-        <div className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-border bg-white shadow-lg">
+        <div className="mx-auto aspect-video w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-ink shadow-lg">
           <video
             controls
             // "none": "metadata" still pulled ~360 KB on load, delaying the hero text (LCP) on
-            // mobile. The video loads when played.
+            // mobile. The video loads when played, so the poster is what shows until then. The
+            // 16:9 frame matches the file (1920x1080); the square photo is cropped to it around her face.
             preload="none"
-            className="w-full"
+            poster="/marketing/vic-conference-room.webp"
+            className="size-full object-cover object-[center_35%]"
             src="https://uvoulytrsrxasqzutlmq.supabase.co/storage/v1/object/public/site-media/homepage-explainer.mp4"
           >
             Your browser doesn&apos;t support embedded video.
