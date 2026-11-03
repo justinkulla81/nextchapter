@@ -78,6 +78,8 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       tab('Coaching', '/dashboard/my-coaching', { paid: 'coaching', alsoMatches: ['/dashboard/book-session', '/dashboard/coach', '/dashboard/coaching-match', '/dashboard/coaching-form', '/dashboard/coach-dossier'] }),
       tab('Be found', '/dashboard/network/be-found', { menuKeys: ['beFound'] }),
       tab('Advisory and boards', '/dashboard/network/advisory-boards', { menuKeys: ['advisory'] }),
+      // Free: the firms the member picked and the package they send (not behind the paid recruiter access), so the Recruiters entry opens here.
+      tab('Recruiter package', '/dashboard/recruiter-package'),
       tab('Recruiters', '/dashboard/recruiter-requests', { menuKeys: ['recruiter'], paid: 'recruiters', alsoMatches: [PREMIUM_HREF] }),
       tab('What recruiters see', '/dashboard/recruiter-report'),
     ],
@@ -88,7 +90,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       { label: 'References and supporters', hrefs: ['/dashboard/references', '/dashboard/supporters'] },
       { label: 'Coaching', hrefs: ['/dashboard/my-coaching'] },
       { label: 'Be found', hrefs: ['/dashboard/network/be-found', '/dashboard/network/advisory-boards'] },
-      { label: 'Recruiters', hrefs: ['/dashboard/recruiter-requests', '/dashboard/recruiter-report'] },
+      { label: 'Recruiters', hrefs: ['/dashboard/recruiter-package', '/dashboard/recruiter-requests', '/dashboard/recruiter-report'] },
     ],
   },
   {
