@@ -1,7 +1,7 @@
 import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { LINK, FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
@@ -31,7 +31,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function FunctionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const d = await loadFunction(slug)
-  if (!d) notFound()
+  // An unknown function (a typed or bookmarked address like /functions/general) goes to the hub, not a 404.
+  if (!d) redirect('/functions')
   const { fn, jobs, stats, confs, orgs, facts, intro } = d
   const path = `/functions/${slug}`
   return (
