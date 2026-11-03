@@ -218,7 +218,7 @@ export default function WhiteCollarIndexPage() {
       />
       <PublicSiteHeader current="reports" />
 
-      <main className="mx-auto w-full max-w-4xl px-6 py-14">
+      <main className="mx-auto w-full max-w-4xl px-6 py-8">
         <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
           <Link href="/reports" className="hover:text-foreground">White Collar Employment Report</Link>
           <span aria-hidden> › </span>

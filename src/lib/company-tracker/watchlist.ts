@@ -2,6 +2,7 @@ import 'server-only'
 import { notInternshipWhere } from '@/lib/internships/exclude'
 import { isInternshipJob } from '@/lib/jobs/work-type'
 import { prisma } from '@/lib/prisma'
+import { notifyOwnerOfFollow } from '@/lib/notify/follow-alert-server'
 import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import type { PageContentView } from '@/lib/dashboard/page-content'
 import { getLikelyOpeningsForCompanies, type CompanyLikelyOpening } from '@/lib/likely-openings/for-companies'
@@ -243,6 +244,8 @@ export async function addCompanyToWatchlist(
   await prisma.companyWatchlistEntry.create({
     data: { candidateId, companyName: trimmed, companyNameNormalized: normalized },
   })
+  // The one place a company is followed (the Company Tracker, My jobs, an employer-page email signup): tell the owner.
+  notifyOwnerOfFollow('company', candidateId, trimmed, null)
   return {}
 }
 

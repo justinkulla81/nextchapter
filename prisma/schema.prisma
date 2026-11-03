@@ -1648,6 +1648,7 @@ model CandidateProfile {
   partnerClickThroughs           PartnerClickThrough[]
   companyWatchlist               CompanyWatchlistEntry[]
   recruiterInterests             RecruiterInterest[]
+  savedJobClosureNotices         SavedJobClosureNotice[]
   emailConnection                EmailConnection?
   trackedEmailActivities         TrackedEmailActivity[]
   scamAlerts                     ScamAlert[]
@@ -18020,4 +18021,22 @@ model LayoffStoryIdentity {
   createdAt DateTime @default(now())
 
   @@index([email])
+}
+
+/// A job a member saved that was taken down (closed, aged out or expired), noted once so the daily cron tells the owner and the member once.
+/// prisma/manual/saved-job-closure-notice.sql
+model SavedJobClosureNotice {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  /// ExclusiveJobPosting.id (no relation: the posting stays when archived, and an import may remove rows).
+  jobId           String
+  closeReason     String
+  closedAt        DateTime
+  /// When the member's email about it went out. Null: not sent (opted out, no account yet, or the email switch is off).
+  memberEmailedAt DateTime?
+  createdAt       DateTime         @default(now())
+
+  @@unique([candidateId, jobId])
+  @@index([createdAt])
 }

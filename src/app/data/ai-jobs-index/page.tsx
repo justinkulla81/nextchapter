@@ -61,7 +61,7 @@ export default async function AiJobsIndexPage() {
       {index && <StructuredData data={indexJsonLd(index, SITE_URL, organizationRef())} />}
       <StructuredData data={breadcrumbJsonLd([{ name: 'Data', path: '/data' }, { name: INDEX_NAME, path: INDEX_PATH }])} />
       <PublicSiteHeader />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-4xl px-6">
           <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             {index ? `${index.edition} edition · data as of ${formatContentDate(index.asOf)}` : 'Monthly index'}

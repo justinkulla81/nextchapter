@@ -83,7 +83,7 @@ export default async function AiSkillsPayPremiumPage() {
         <StructuredData key={i} data={d} />
       ))}
       <PublicSiteHeader />
-      <main className="mx-auto w-full max-w-4xl px-6 py-14">
+      <main className="mx-auto w-full max-w-4xl px-6 py-8">
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Market data{asOfIso ? ` · as of ${formatContentDate(asOfIso)}` : ''}</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy text-balance sm:text-4xl">{TITLE}</h1>
         <AuthorByline updated={asOfIso ?? '2026-10-27'} className="mt-3" />

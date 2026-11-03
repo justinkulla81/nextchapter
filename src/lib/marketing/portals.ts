@@ -41,7 +41,7 @@ export const PORTALS: Record<PortalKey, PortalInfo> = {
     key: 'workforce',
     name: 'Workforce and economic development',
     route: '/government-workforce',
-    who: 'Workforce boards, economic development organizations and chambers. Nonprofits and community organizations can use it too.',
+    who: 'Workforce boards, economic development organizations and chambers. Non-profits and community organizations can use it too.',
     gets: [
       'A program workspace for the job seekers in your region.',
       'Member companies, layoff sign-up pages and seats you can give out.',

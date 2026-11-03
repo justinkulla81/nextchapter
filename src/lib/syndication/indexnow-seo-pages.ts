@@ -22,7 +22,7 @@ import type { PayData } from '@/lib/pay-data/types'
 import { ENTRY_CATEGORIES, ENTRY_ROLES } from '@/lib/entry-roles/roles'
 import { chunk, INDEXNOW_BATCH, INDEXNOW_ENDPOINT, INDEXNOW_NEW_PER_RUN, indexNowBody } from '@/lib/syndication/syndication'
 
-// Daily IndexNow for the pages the job and organization crons do not cover: employer pages, nonprofit pages, the
+// Daily IndexNow for the pages the job and organization crons do not cover: employer pages, non-profit pages, the
 // workforce, rapid-response and higher-education state pages, the monthly rankings, the pay data pages and the layoff pages. It sends a page the first time it
 // qualifies, and (for the layoff pages) again when a newer notice is filed. Same key, endpoint and state bucket as
 // indexnow-org-pages. A rejected batch stops the run; the rest goes next time.
@@ -31,7 +31,7 @@ const STATE_PATH = 'indexnow/seo-pages.json.gz'
 interface State { v: 1; pages: Record<string, string> }
 interface Page { path: string; lastModified: string }
 
-// A page that is announced once and not again unless its stamp changes. Employer, nonprofit and directory pages change
+// A page that is announced once and not again unless its stamp changes. Employer, non-profit and directory pages change
 // often but not in ways worth a resubmission, so they carry a fixed stamp.
 const ONCE = '1'
 const day = (d: Date) => d.toISOString().slice(0, 10)
@@ -106,7 +106,7 @@ async function currentPages(): Promise<Page[]> {
     for (const b of shown) out.push({ path: `/workforce-boards/${slug}/${slugs.get(b.id)}`, lastModified: ONCE })
   }
 
-  // Nonprofit pages and their state pages.
+  // Non-profit pages and their state pages.
   const nonprofits = await heavy(() => nonprofitsForSitemap())
   const nonprofitStates = new Set<string>()
   for (const n of nonprofits) {

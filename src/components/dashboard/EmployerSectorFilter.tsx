@@ -9,7 +9,7 @@ import { EMPLOYER_SECTORS, EMPLOYER_SECTOR_HINT, EMPLOYER_SECTOR_LABEL, sectorsP
 import { saveEmployerSectors } from '@/app/dashboard/search-strategy/sector-actions'
 
 /**
- * Private / Government / Nonprofit / Academia: four on/off buttons, all on by
+ * Private / Government / Non-profit / Academia: four on/off buttons, all on by
  * default. A change is saved as the member's preference (so job emails follow it
  * too) and written to the `sectors` URL parameter (so a reload or shared link keeps
  * it). On the board it re-renders the list; on Search strategy it just saves.

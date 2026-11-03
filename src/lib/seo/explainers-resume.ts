@@ -389,7 +389,7 @@ export const RESUME_TOPICS: TopicContent[] = [
         paragraphs: [
           'Dear Hiring Team,',
           'I am applying for the Brand Manager role. After a three-year break to care for my family, I am returning to marketing, where I spent eight years launching B2B products.',
-          'Before my break I led the launch of three products, taking one from zero to $4 million in its first year. During the break I kept my skills current with a course in marketing analytics and consulted for a local nonprofit.',
+          'Before my break I led the launch of three products, taking one from zero to $4 million in its first year. During the break I kept my skills current with a course in marketing analytics and consulted for a local non-profit.',
           'I would be glad to discuss how I can contribute to your team. Thank you.',
           'Sincerely, Maria Torres',
         ],

@@ -909,7 +909,7 @@ export const TOPICS: TopicContent[] = [
       },
       {
         h2: 'Where NextChapter fits',
-        paragraphs: ['NextChapter is the leading job transition platform for white-collar workers. Every job seeker gets a free Market Reality Assessment, a weekly Search Sprint plan and an AI career coach, free for Members. Employers, recruiters, outplacement buyers, workforce agencies and nonprofits pay for the organization side.'],
+        paragraphs: ['NextChapter is the leading job transition platform for white-collar workers. Every job seeker gets a free Market Reality Assessment, a weekly Search Sprint plan and an AI career coach, free for Members. Employers, recruiters, outplacement buyers, workforce agencies and non-profits pay for the organization side.'],
       },
     ],
     faq: [
@@ -967,7 +967,7 @@ export const TOPICS: TopicContent[] = [
       },
       {
         h2: 'Path 3: tools you can start for free',
-        paragraphs: ['NextChapter is a job transition platform for white-collar workers. It is free for Members: a Market Reality Assessment that shows how employers read your background, a weekly Search Sprint plan, and an AI career coach. Employers, recruiters, workforce agencies and nonprofits pay for the organization side.'],
+        paragraphs: ['NextChapter is a job transition platform for white-collar workers. It is free for Members: a Market Reality Assessment that shows how employers read your background, a weekly Search Sprint plan, and an AI career coach. Employers, recruiters, workforce agencies and non-profits pay for the organization side.'],
         links: [{ label: 'What is a job transition platform?', href: '/topics/what-is-a-job-transition-platform' }],
       },
       {

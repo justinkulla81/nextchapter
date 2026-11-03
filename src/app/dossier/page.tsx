@@ -45,7 +45,7 @@ export default function DossierPage() {
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-3xl px-6 py-16">
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <div className="grid gap-8 sm:grid-cols-2">
           <div>
             <p className="font-semibold text-navy">What it contains</p>

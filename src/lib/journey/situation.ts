@@ -111,7 +111,7 @@ export function situationPlanItems(journey: JourneyType | null, details: unknown
   const hours = num('hoursAvailable')
   if (hours !== null && hours <= 3) out.push({ text: `You have about ${hours} hours a week: do only the first two steps this week and leave the rest` })
   if (journey === 'NEXT_ACT') {
-    if (d.boardExperience === 'NONE') out.push({ text: 'Join one nonprofit committee or advisory group to build board experience' })
+    if (d.boardExperience === 'NONE') out.push({ text: 'Join one non-profit committee or advisory group to build board experience' })
     if (d.boardExperience === 'ADVISORY') out.push({ text: 'Ask an organization you advised to introduce you to its board' })
     if (d.boardExperience === 'BOARD') out.push({ text: 'Ask a board chair you served with for a reference you can use with new boards', actionType: 'REFERENCE_REQUESTED' })
     if (typeof d.boardSectors === 'string' && d.boardSectors.trim()) out.push({ text: `List 10 boards in ${d.boardSectors.trim()} that you would serve`, actionType: 'WATCHLIST_ADD' })

@@ -50,14 +50,13 @@ import { getEmailReminders } from '@/lib/network/reminders'
 import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCard'
 import { PreConnectDailyMessage } from '@/components/dashboard/PreConnectDailyMessage'
 import { isGoogleConnectOn } from '@/lib/google/connect-switch'
-import { getHardGateStatus, isSearchStrategyGateComplete } from '@/lib/dashboard/access-gate'
+import { isSearchStrategyGateComplete } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { firstWeekStep } from '@/lib/onboarding/first-week'
 import { HomeModule } from '@/components/dashboard/home/HomeModule'
 import { HomeModuleSkeleton } from '@/components/dashboard/home/HomeModuleSkeleton'
 import { timed } from '@/lib/perf/timed'
 import { JobsModule } from '@/components/dashboard/home/JobsModule'
-import { UnlocksSection } from '@/components/dashboard/home/UnlocksSection'
 import { LearnModule } from '@/components/dashboard/home/LearnModule'
 import { getLearningPaths } from '@/lib/journey/learning-paths-data'
 import { nextStep } from '@/lib/journey/learning-paths'
@@ -71,6 +70,8 @@ import { getUnviewedCoachUpdate } from '@/lib/coach/session-notes-service'
 import { withBlockerStep } from '@/lib/personalization/blocker-step'
 import { HomeNote } from '@/components/candidate/HomeNote'
 import { JourneyCard } from '@/components/candidate/JourneyCard'
+import { NeedsYou } from '@/components/candidate/NeedsYou'
+import { HomeFold } from '@/components/candidate/HomeFold'
 import { JourneyPaths } from '@/components/candidate/JourneyPaths'
 import { focusOptions, homePathsRow } from '@/lib/journey/paths'
 import { workingNowOf } from '@/lib/journey/intensity'
@@ -186,10 +187,6 @@ async function HomeApplyPrompts({ candidateId }: { candidateId: string }) {
       }))}
     />
   )
-}
-
-function HomeUnlocksSection({ profile }: { profile: HomeProfile }) {
-  return <UnlocksSection profile={profile} />
 }
 
 async function HomeLearnSection({ candidateId }: { candidateId: string }) {
@@ -409,11 +406,6 @@ export default async function DashboardPage() {
   const inferredIndustries = inferIndustriesFromWorkHistory(workHistoryByRecency)
   const searchStrategyChecklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries, searching: !journeyNow || getJourney(journeyNow).searching, employed: !!journeyNow && getJourney(journeyNow).employed })
 
-  // #931/#932 Search Plan — only shown once the candidate has cleared the
-  // dashboard-wide hard gate (see access-gate.ts), which now checks only
-  // Search Strategy completion.
-  const hardGateStatus = getHardGateStatus(profile)
-
   const showGotHiredCTA = weekNumber >= 2 && existingBountyClaimCount === 0
 
   // The Get Started gate — same signal SuccessSprintCard's own Get Started
@@ -438,7 +430,6 @@ export default async function DashboardPage() {
   // The redesigned Home (docs/candidate-redesign.md): a greeting, your journey, one note, your week, and
   // the modules you act from. Replaces the stage chip, the daily message box, the first-week card, the
   // engagement card and the recruiter goal card, which are now the one note or live on other pages.
-  const jobCounts = await timed('home', 'jobCounts', profile.id, getHomeJobCounts(profile.id))
   // Paths next to the main focus: one row and the focus switch in the journey card. Fail-soft: no row if the lookup fails.
   const pathKinds = await getParallelPaths(profile.id).catch(() => null)
   const pathSignals = { main: journeyNow, journeyDetails: profile.journeyDetails, kinds: pathKinds, workingNow: workingNowOf(profile.journeyDetails), interimInterest: profile.interimConsultingInterest }
@@ -470,7 +461,7 @@ export default async function DashboardPage() {
   const plain = simpleNote(note, { firstName, firstWeek, motivations: profile.motivations, coachFirstName: coachUpdate?.coachFirstName })
   const toneSet = profile.coachingStylePreference !== null
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {user && !user.email_confirmed_at && user.email && <EmailConfirmationBanner email={user.email} />}
       <PendingEmployerReferenceBanner candidateEmail={user?.email ?? null} />
       <Suspense fallback={null}>
@@ -478,32 +469,14 @@ export default async function DashboardPage() {
       </Suspense>
 
       <header className="space-y-1.5">
-        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Hello, {firstName}</p>
+        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+          Hello, {firstName}
+          {searching ? ` · Week ${weekNumber} of your search` : ''}
+        </p>
         <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink text-balance sm:text-4xl">
           {journeyNow ? getJourney(journeyNow).goal : <>NextChapter&apos;s goal is to get you a job. Let&apos;s go!</>}
         </h1>
       </header>
-
-      <OutplacementProgramCard candidateId={profile.id} />
-      <StaffProgramCard candidateId={profile.id} />
-
-      <JourneyCard
-        journey={journeyNow ? getJourney(journeyNow).label : 'Your journey'}
-        since={searching ? `Week ${weekNumber} of your search` : stageNow ? getStage(stageNow).label : ''}
-        facts={searching ? [{ label: 'Saved jobs', value: String(jobCounts.saved) }, { label: 'Applications', value: String(jobCounts.applied) }, { label: 'Interviews', value: String(jobCounts.interviews) }] : []}
-        changes={[
-          'Your plan and weekly target follow your journey and where you are in it',
-          ...(toneSet ? ['Notes come in the tone you chose'] : []),
-        ]}
-        changeHref="/dashboard/privacy"
-        paths={pathsRow ? <JourneyPaths row={pathsRow} options={focusOptions(pathSignals)} main={journeyNow ?? ''} /> : undefined}
-        market={
-          <Suspense fallback={null}>
-            <MarketLine member={profile} surface="home" />
-          </Suspense>
-        }
-        tune={toneSet && profile.changePacePreference ? undefined : { text: 'Two answers tune your week: how hard to push, and how fast to move.', action: 'Answer two questions', href: '/dashboard/search-strategy' }}
-      />
 
       {plain ? (
         <HomeNote kind={note} {...plain} />
@@ -525,56 +498,35 @@ export default async function DashboardPage() {
         </>
       )}
 
-      {engagementFor(profile).dailyApplicationPrompts && (
-        <Suspense fallback={null}>
-          <HomeApplyPrompts candidateId={profile.id} />
-        </Suspense>
-      )}
-
-      <Suspense fallback={null}>
-        <FundingHomeCard profile={profile} />
-      </Suspense>
-
-      {newCheer && (
-        <section role="status" className="space-y-1 rounded-xl border border-success/40 bg-success/5 p-6">
-          <p className="text-xs font-semibold tracking-wide text-success uppercase">A cheer for you</p>
-          <p className="text-base">{newCheer.message}</p>
-          <p className="text-sm text-muted-foreground">
-            From {newCheer.supporter.name}.{' '}
-            <Link href="/dashboard/supporters" className="font-medium text-brand underline underline-offset-4">
-              See your supporters
-            </Link>
-          </p>
-        </section>
-      )}
-      {audience && (
-        <Suspense fallback={null}>
-          <EarlyCareerHomeModule audience={audience} profile={profile} />
-        </Suspense>
-      )}
-      <EmployerInterestSection candidateId={profile.id} />
-      <PortfolioAccessRequestSection candidateId={profile.id} />
-      <ReconnectBanner candidateId={profile.id} returnTo="/dashboard" variant="link" />
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-6 lg:col-span-2">
-          <Suspense fallback={<WeeklyFocusSkeleton />}>
-            <HomeWeeklyPlan
-              profile={profile}
-              weekNumber={weekNumber}
-              weekStartDate={weekStartDate}
-              bothConnectedUnlocked={bothConnectedUnlocked}
-              hasEmailConnection={!!emailConnection}
-              hasCalendarConnection={!!calendarConnection}
-              linkedInConnected={linkedInConnected}
-              searchStrategyChecklist={searchStrategyChecklist}
-              completedReferencesCount={completedReferencesCount}
-              latestResumeIssueCount={latestResumeIssueCount}
-              journeyNow={journeyNow}
-              blockers={profile.blockers}
-            />
+      <NeedsYou>
+        <OutplacementProgramCard candidateId={profile.id} />
+        <StaffProgramCard candidateId={profile.id} />
+        {engagementFor(profile).dailyApplicationPrompts && (
+          <Suspense fallback={null}>
+            <HomeApplyPrompts candidateId={profile.id} />
           </Suspense>
-        </div>
+        )}
+        <Suspense fallback={null}>
+          <FundingHomeCard profile={profile} />
+        </Suspense>
+        {newCheer && (
+          <section role="status" className="space-y-1 rounded-xl border border-success/40 bg-success/5 p-6">
+            <p className="text-xs font-semibold tracking-wide text-success uppercase">A cheer for you</p>
+            <p className="text-base">{newCheer.message}</p>
+            <p className="text-sm text-muted-foreground">
+              From {newCheer.supporter.name}.{' '}
+              <Link href="/dashboard/supporters" className="font-medium text-brand underline underline-offset-4">
+                See your supporters
+              </Link>
+            </p>
+          </section>
+        )}
+        <EmployerInterestSection candidateId={profile.id} />
+        <PortfolioAccessRequestSection candidateId={profile.id} />
+        <ReconnectBanner candidateId={profile.id} returnTo="/dashboard" variant="link" />
+      </NeedsYou>
+
+      <div className="grid gap-6 lg:grid-cols-3">
         <Suspense fallback={<HomeModuleSkeleton title="Jobs" rows={3} />}>
           <HomeJobsSection profile={profile} />
         </Suspense>
@@ -584,14 +536,52 @@ export default async function DashboardPage() {
         <Suspense fallback={<HomeModuleSkeleton title="Learn" />}>
           <HomeLearnSection candidateId={profile.id} />
         </Suspense>
-        {(hardGateStatus === 'unlocked' || hardGateStatus === 'exempt') && (
-          <div className="lg:col-span-2">
-            <Suspense fallback={<HomeModuleSkeleton title="Unlocks" rows={3} />}>
-              <HomeUnlocksSection profile={profile} />
-            </Suspense>
-          </div>
-        )}
       </div>
+
+      {audience && (
+        <Suspense fallback={null}>
+          <EarlyCareerHomeModule audience={audience} profile={profile} />
+        </Suspense>
+      )}
+
+      <HomeFold title="This week’s plan" event="home_plan_toggled">
+        <Suspense fallback={<WeeklyFocusSkeleton />}>
+          <HomeWeeklyPlan
+            profile={profile}
+            weekNumber={weekNumber}
+            weekStartDate={weekStartDate}
+            bothConnectedUnlocked={bothConnectedUnlocked}
+            hasEmailConnection={!!emailConnection}
+            hasCalendarConnection={!!calendarConnection}
+            linkedInConnected={linkedInConnected}
+            searchStrategyChecklist={searchStrategyChecklist}
+            completedReferencesCount={completedReferencesCount}
+            latestResumeIssueCount={latestResumeIssueCount}
+            journeyNow={journeyNow}
+            blockers={profile.blockers}
+          />
+        </Suspense>
+      </HomeFold>
+
+      <HomeFold title="Your journey" event="home_journey_toggled">
+        <JourneyCard
+          journey={journeyNow ? getJourney(journeyNow).label : 'Your journey'}
+          since={searching ? `Week ${weekNumber} of your search` : stageNow ? getStage(stageNow).label : ''}
+          facts={[]}
+          changes={[
+            'Your plan and weekly target follow your journey and where you are in it',
+            ...(toneSet ? ['Notes come in the tone you chose'] : []),
+          ]}
+          changeHref="/dashboard/privacy"
+          paths={pathsRow ? <JourneyPaths row={pathsRow} options={focusOptions(pathSignals)} main={journeyNow ?? ''} /> : undefined}
+          market={
+            <Suspense fallback={null}>
+              <MarketLine member={profile} surface="home" />
+            </Suspense>
+          }
+          tune={toneSet && profile.changePacePreference ? undefined : { text: 'Two answers tune your week: how hard to push, and how fast to move.', action: 'Answer two questions', href: '/dashboard/search-strategy' }}
+        />
+      </HomeFold>
 
       <Suspense fallback={null}>
         <SessionImpactSection candidateId={profile.id} />

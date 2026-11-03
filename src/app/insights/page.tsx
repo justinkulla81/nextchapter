@@ -36,7 +36,7 @@ export default function InsightsIndexPage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl px-6 py-16">
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">Outplacement insights</h1>
         <p className="mt-3 max-w-xl text-lg text-muted-foreground">
           Questions to ask, and plain answers about how NextChapter works.

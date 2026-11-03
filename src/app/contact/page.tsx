@@ -51,7 +51,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             <div>
               <h2 className="font-semibold text-navy">Organizations</h2>
               <p className="mt-1 text-muted-foreground">
-                Outplacement firms, workforce boards, nonprofits and employers: choose “I represent an organization” and we’ll set up a walkthrough.
+                Outplacement firms, workforce boards, non-profits and employers: choose “I represent an organization” and we’ll set up a walkthrough.
               </p>
             </div>
             <div>

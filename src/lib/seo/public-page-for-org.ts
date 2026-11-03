@@ -9,7 +9,7 @@ import { getStateBoards } from '@/lib/seo/workforce-pages'
 import { NONPROFIT_MIN_REVENUE, nonprofitSlug } from '@/lib/seo/nonprofit-pages'
 
 // The public page a CRM organization has on launchyournextchapter.com, for the link under its name on the CRM
-// record: the workforce board page, the college's state page, the nonprofit page or the state's economic
+// record: the workforce board page, the college's state page, the non-profit page or the state's economic
 // development page (employer and claim pages are in src/lib/crm/public-page.ts). Null when the organization has none. Admin-only: nothing here is shown
 // to candidates.
 
@@ -38,7 +38,7 @@ export async function publicPageForOrg(org: OrgRef): Promise<PublicPageLink | nu
     const np = await prisma.geoOrgLead.findFirst({ where: { crmOrganizationId: org.id }, select: { ein: true, name: true, state: true, revenue: true } })
     if (np && np.state in STATE_NAMES) {
       const big = (np.revenue ?? 0) >= NONPROFIT_MIN_REVENUE
-      return big ? link(`/nonprofits/${stateSlug(np.state)}/${nonprofitSlug(np.name, np.ein)}`, 'Nonprofit page') : link(`/nonprofits/${stateSlug(np.state)}`, 'Nonprofit state listing')
+      return big ? link(`/nonprofits/${stateSlug(np.state)}/${nonprofitSlug(np.name, np.ein)}`, 'Non-profit page') : link(`/nonprofits/${stateSlug(np.state)}`, 'Non-profit state listing')
     }
   }
 

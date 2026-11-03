@@ -17,7 +17,6 @@ import { getStateSummaries } from '@/lib/warn/layoff-pages'
 import { jobCentersUrl, stateBoardsUrl } from '@/lib/workforce/directory'
 import { titleMeta } from '@/lib/seo/title'
 import { DeadlineEmailBox } from '@/components/cobra-aca/DeadlineEmailBox'
-import { LaidOffStart } from '@/components/cobra-aca/LaidOffStart'
 import { SeveranceVerdict } from '@/components/severance/SeveranceVerdict'
 import { FirstSixtyDays } from '@/components/severance/FirstSixtyDays'
 import { getPersona } from '@/lib/constants/personas'
@@ -170,7 +169,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
         />
       )}
       <PublicSiteHeader />
-      <main className="mx-auto w-full max-w-3xl px-6 py-14">
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
           <Link href="/unemployment-benefits" className="hover:text-foreground">Unemployment benefits</Link>
           <span aria-hidden> › </span>
@@ -194,11 +193,6 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
             </TrackedLink>
           </p>
         )}
-
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <LaidOffStart placement="unemployment_state_top" eventPrefix="unemployment" label="Get my layoff plan" />
-          <span className="text-sm text-muted-foreground">Free to join. Free for Members, always. About 5 minutes.</span>
-        </div>
 
         <SeveranceVerdict row={severanceRow} agency={agency} />
 
@@ -281,9 +275,6 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
               eventPrefix="unemployment"
               blurb={`One email as each date comes up over the next two months: filing, the severance agreement review, health coverage. Then nothing. No account needed.`}
             />
-          </div>
-          <div className="mt-4">
-            <LaidOffStart placement="unemployment_state" eventPrefix="unemployment" />
           </div>
         </section>
 

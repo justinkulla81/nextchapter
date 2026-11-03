@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 export const SAMPLE_BRANDS = {
   higher_ed: { name: 'Riverside College', logoUrl: null, accent: '#d9b84a' },
   workforce: { name: 'Tri-County Workforce Board', logoUrl: null, accent: '#7fb7e0' },
+  nonprofit: { name: 'Harborview Family Services', logoUrl: null, accent: '#5fa8a0' },
   employer: { name: 'Northwind Foods', logoUrl: null, accent: '#f4a259' },
   recruiter: { name: 'Hartley Search', logoUrl: null, accent: '#e07a5f' },
 } satisfies Record<string, PartnerBrand>

@@ -82,7 +82,7 @@ const SCENE: Record<string, string> = {
   'Advertising, Marketing & PR': 'a creative team with mood boards, a megaphone motif and campaign layouts',
   'Education & EdTech': 'a teacher with students and a tablet in a bright classroom',
   'Government & Public Sector': 'a capitol building with civil servants and a community meeting',
-  'Nonprofit & Social Impact': 'volunteers and staff working together at a community event',
+  'Non-profit & Social Impact': 'volunteers and staff working together at a community event',
   'Staffing & Human Capital': 'a recruiter greeting a candidate in a modern office, a handshake',
 }
 

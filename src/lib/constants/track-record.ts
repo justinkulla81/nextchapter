@@ -134,7 +134,7 @@ export const INDUSTRY_SECTOR_OPTIONS = [
   { value: 'MEDIA', label: 'Media' },
   { value: 'EDUCATION', label: 'Education' },
   { value: 'GOVERNMENT', label: 'Government' },
-  { value: 'NONPROFIT', label: 'Nonprofit' },
+  { value: 'NONPROFIT', label: 'Non-profit' },
   { value: 'ENERGY', label: 'Energy' },
   { value: 'OTHER', label: 'Other' },
 ] as const
