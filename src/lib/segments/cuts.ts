@@ -4,6 +4,7 @@
 import type { SegmentDef } from '@/lib/segments/defs'
 import type { CutId, SegmentEdition, SegmentRow } from '@/lib/segments/types'
 import { count, usdK } from '@/lib/segments/aggregate'
+import { editionLabel } from '@/lib/rankings/build-edition'
 
 export interface CutDef {
   id: CutId
@@ -18,6 +19,7 @@ export interface CutDef {
 
 export const CUTS: CutDef[] = [
   { id: 'top-employers', short: 'Most openings', valueHead: 'Open jobs', nounHead: 'Employer', title: (d) => `Employers with the most open ${d.label} jobs` },
+  { id: 'momentum', short: 'Hiring momentum', valueHead: 'More openings', nounHead: 'Employer', title: (d) => `Employers adding the most ${d.label} openings` },
   { id: 'top-roles', short: 'Most in demand', valueHead: 'Open jobs', nounHead: 'Role', title: (d) => `Most in-demand ${d.label} roles` },
   { id: 'highest-paying-roles', short: 'Highest-paying roles', valueHead: 'Median pay', nounHead: 'Role', title: (d) => `Highest-paying ${d.label} roles` },
   { id: 'highest-paying-employers', short: 'Highest-paying employers', valueHead: 'Median pay', nounHead: 'Employer', title: (d) => `Highest-paying ${d.label} employers` },
@@ -45,6 +47,8 @@ export function cutSentence(d: SegmentDef, cut: CutId, e: SegmentEdition): strin
       const share = pct(rows.slice(0, 10).reduce((n, r) => n + r.value, 0), e.total)
       return `${list(top)} lead the ${d.label} employers on our board. The ten with the most openings post ${share}% of the ${count(e.total)} open ${d.label} jobs.`
     }
+    case 'momentum':
+      return `${list(top)} added the most open ${d.label} jobs since ${e.prev ? editionLabel(e.prev.edition) : 'last month'}, among employers counted in both months.`
     case 'top-roles':
       return `${list(top)} are the roles ${d.label} employers have the most openings for, out of ${count(e.total)} open jobs.`
     case 'highest-paying-roles':
