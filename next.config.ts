@@ -57,6 +57,8 @@ const nextConfig: NextConfig = {
         destination: `/${kind}/:state`,
         permanent: false,
       })),
+      // /jobs/entry-level/category is only the folder of category pages, so it goes to the entry-level hub.
+      { source: '/jobs/entry-level/category', destination: '/jobs/entry-level', permanent: false },
       // /feeds is the feeds directory page; /feeds/industries is only a folder of feeds, so it goes there.
       { source: '/feeds/industries', destination: '/feeds', permanent: false },
       // /rankings/topic/[family] is one topic's page; the folder itself has no page.
@@ -267,7 +269,7 @@ const nextConfig: NextConfig = {
       // Next answers a per-request page with "private, no-store", which ignores a Cache-Control set here, so these pages were
       // never cached (checked live 2026-10-27: x-vercel-cache MISS every time). Vercel-CDN-Cache-Control is read by Vercel's CDN
       // alone and is not overridden; the browser still gets no-store.
-      ...["/jobs/title", "/salaries", "/tools/pay-check"].map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=21600, stale-while-revalidate=86400" }] })),
+      ...["/jobs/title", "/jobs/entry-level", "/salaries", "/tools/pay-check"].map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=21600, stale-while-revalidate=86400" }] })),
       // Rendered per request, not at build; the CDN keeps each page for an hour.
       { source: "/sitemap.xml", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       // The public AI course catalog is rendered per request (one small Course query) and kept by the CDN for an hour.

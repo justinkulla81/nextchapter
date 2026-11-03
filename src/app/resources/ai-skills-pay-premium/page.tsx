@@ -12,6 +12,7 @@ import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { PREMIUM_METHOD, aiPremiumForFunction, signedPct, type FunctionAiPremium } from '@/lib/pay/ai-premium'
 import { MIN_LIKE_N, MIN_PER_SIDE } from '@/lib/skills/ai-market'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -214,7 +215,7 @@ export default async function AiSkillsPayPremiumPage() {
               properties={{ page: 'ai_pay_explainer', cta: 'market_reality' }}
               className="inline-flex h-12 items-center rounded-full border border-border bg-white px-6 text-base font-semibold text-navy hover:bg-muted"
             >
-              Get your Market Reality Assessment
+              <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
             </TrackedLink>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">

@@ -4,7 +4,7 @@ import { createResend } from '@/lib/email/resend-client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { contactStrength } from '@/lib/crm/contact-strength'
 import { withAudienceHtml } from '@/lib/email/audience-tag'
-import { ALERT_HOLD_HOURS, alertBody, alertReadiness, alertSubject, shouldAlert, type AlertInput, type LayoffKind } from './layoff-alert-rules'
+import { ALERT_HOLD_HOURS, alertBody, alertReadiness, alertSubject, noticeKind, shouldAlert, type AlertInput, type LayoffKind } from './layoff-alert-rules'
 import { enrichLayoffHr } from './layoff-hr-enrich'
 import { layoffPeople } from './layoff-alert-people'
 import { withComposeLinks } from './layoff-alert-drafts'
@@ -188,7 +188,7 @@ export async function retryHeldLayoffAlerts(now = new Date()): Promise<{ retried
   })
   for (const n of held) {
     const sendThin = now.getTime() - (n.alertHeldAt?.getTime() ?? now.getTime()) >= ALERT_HOLD_HOURS * 3_600_000
-    const kind: LayoffKind = n.source === 'WARN_FILING' ? 'warn' : /^SEC 8-K/i.test(n.layoffType ?? '') ? 'sec' : 'news'
+    const kind: LayoffKind = noticeKind(n)
     const percent = n.layoffType?.match(/(\d{1,3}(?:\.\d+)?)% of staff/)?.[1]
     out.retried++
     const sent = await alertNewLayoff({

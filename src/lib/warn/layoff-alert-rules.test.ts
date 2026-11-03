@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { alertBody, alertReadiness, type ContactCard, type ContactGroup } from './layoff-alert-rules'
+import { alertBody, alertReadiness, noticeKind, type ContactCard, type ContactGroup } from './layoff-alert-rules'
 
 const card = (o: Partial<ContactCard> = {}): ContactCard => ({ name: 'A B', title: null, org: null, email: null, phone: null, strength: null, href: null, ...o })
 const group = (key: string, cards: ContactCard[]): ContactGroup => ({ key, label: key, why: '', cards, emptyHint: '' })
@@ -39,5 +39,16 @@ describe('alertBody gaps', () => {
   })
   it('adds nothing when the alert is complete', () => {
     expect(alertBody(base, links)).not.toContain('fully researched')
+  })
+})
+
+describe('noticeKind', () => {
+  it('treats a layoffs.fyi row as news even though it is stored as a WARN filing', () => {
+    expect(noticeKind({ source: 'WARN_FILING', sourceUrl: 'https://layoffs.fyi/' })).toBe('news')
+  })
+  it('keeps a state filing as warn, an 8-K as sec, and a press report as news', () => {
+    expect(noticeKind({ source: 'WARN_FILING', sourceUrl: 'https://edd.ca.gov/x.pdf' })).toBe('warn')
+    expect(noticeKind({ source: 'MANUAL_ANNOUNCEMENT', sourceUrl: 'https://www.sec.gov/a' })).toBe('sec')
+    expect(noticeKind({ source: 'MANUAL_ANNOUNCEMENT', sourceUrl: 'https://ollie.ai/farewell/' })).toBe('news')
   })
 })

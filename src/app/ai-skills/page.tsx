@@ -11,6 +11,7 @@ import { AiExposureSection } from '@/components/marketing/AiExposureSection'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { loadAiShareTrend } from '@/lib/skills/ai-market-trend-server'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -302,7 +303,7 @@ export default async function AiSkillsPage() {
               properties={{ cta: 'candidate_assessment' }}
               className="inline-flex items-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
             >
-              Get your Market Reality Assessment
+              <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
             </TrackedLink>
             <TrackedLink
               href="/ai-training"

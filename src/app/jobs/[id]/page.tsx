@@ -17,6 +17,8 @@ import { PayVsMarket } from '@/components/jobs/PayVsMarket'
 import { JobAiExposure } from '@/components/jobs/JobAiExposure'
 import { EmployerLayoffLine } from '@/components/jobs/EmployerLayoffLine'
 import { JobFitCard } from '@/components/jobs/JobFitCard'
+import { RecruiterAsk } from '@/components/jobs/RecruiterAsk'
+import { showRecruiterAsk } from '@/lib/jobs/recruiter-ask'
 import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
 import { buttonVariants } from '@/components/ui/button'
 import { isExcerpt } from '@/lib/jobs/posting-text'
@@ -89,7 +91,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   const remote = isRemoteJob(job)
   // Where the job sits on the industry and function pages. A failed read just leaves the links out.
   const tags = await prisma.exclusiveJobPosting
-    .findUnique({ where: { id: job.id }, select: { industry: true, targetFunction: true, socCode: true, company: { select: { id: true, canonicalNameNormalized: true } } } })
+    .findUnique({ where: { id: job.id }, select: { industry: true, targetFunction: true, socCode: true, level: true, company: { select: { id: true, canonicalNameNormalized: true, sizeBand: true } } } })
     .catch(() => null)
   // The employer's own page lists every open role it has; link to it when that page is offered to search engines.
   const employerHref =
@@ -100,6 +102,9 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   const fn = functionByName(tags?.targetFunction)
   // The employer's own colors, read from its website (src/lib/branding): a thin strip and the company name only; the buttons stay ours.
   const brand = await getEmployerBrand(job.companyName)
+  // Director and up at a big company, VP and up at a small one: ask whether they want recruiters in this space (src/lib/jobs/recruiter-ask.ts).
+  const recruiterSpace = fn?.name ?? industry ?? baseTitle(job.title)
+  const askRecruiters = showRecruiterAsk({ title: job.title, description: job.description, companyName: job.companyName, level: tags?.level }, tags?.company?.sizeBand)
 
   return (
     <OrgBrandScope brand={brand?.pair}>
@@ -140,6 +145,8 @@ export default async function PublicJobPage({ params }: { params: Params }) {
                 Start here: a plan for the first weeks
               </TrackedLink>
             </p>
+
+            {askRecruiters && <RecruiterAsk jobId={job.id} company={job.companyName} space={recruiterSpace} />}
 
             {employerHref && (
               <p className="mt-6 text-sm">

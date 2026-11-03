@@ -2,6 +2,7 @@ import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import NewsletterWeeklyEmail from '@/emails/newsletter-weekly'
+import { emailCtaVariant } from '@/lib/ab/email-cta'
 import { getPublicNotices } from '@/lib/warn/layoff-pages'
 import { buildLayoffWeekBrief } from './layoff-week'
 
@@ -58,6 +59,7 @@ export async function sendWeeklyNewsletter(
           articleSummary: article.summary,
           newsUrl: `${appUrl}/news`,
           signupUrl: `${appUrl}/onboarding/desire`,
+          ctaVariant: emailCtaVariant(s.email),
           unsubscribeUrl: `${appUrl}/api/unsubscribe/newsletter/${s.unsubscribeToken}`,
           layoffs,
           layoffsUrl: `${appUrl}/layoffs/this-week`,

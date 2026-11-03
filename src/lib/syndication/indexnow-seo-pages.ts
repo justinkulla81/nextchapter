@@ -19,6 +19,7 @@ import { readRankingIndex } from '@/lib/rankings/store'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { functionPayPath, industryPayPath, skillPath } from '@/lib/pay-data/slugs'
 import type { PayData } from '@/lib/pay-data/types'
+import { ENTRY_CATEGORIES, ENTRY_ROLES } from '@/lib/entry-roles/roles'
 import { chunk, INDEXNOW_BATCH, INDEXNOW_ENDPOINT, INDEXNOW_NEW_PER_RUN, indexNowBody } from '@/lib/syndication/syndication'
 
 // Daily IndexNow for the pages the job and organization crons do not cover: employer pages, nonprofit pages, the
@@ -76,6 +77,15 @@ async function currentPages(): Promise<Page[]> {
     }
   } catch (e) {
     console.error('indexnow-seo-pages: pay data left out', e)
+  }
+
+  // The entry-level role pages (/jobs/entry-level): the role text is curated and the counts move daily, so the hub, categories and
+  // roles are announced once a month (the month is the stamp). The role-by-place pages are left to the sitemap.
+  {
+    const month = new Date().toISOString().slice(0, 7)
+    out.push({ path: '/jobs/entry-level', lastModified: month })
+    for (const c of ENTRY_CATEGORIES) out.push({ path: `/jobs/entry-level/category/${c.slug}`, lastModified: month })
+    for (const r of ENTRY_ROLES) out.push({ path: `/jobs/entry-level/${r.slug}`, lastModified: month })
   }
 
   // Workforce board, rapid-response and higher-education state pages, from one read of the boards and the college states.

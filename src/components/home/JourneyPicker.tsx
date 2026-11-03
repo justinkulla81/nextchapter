@@ -11,6 +11,7 @@ import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
 import { submitJourneyLead, type JourneyState } from '@/lib/leads/actions'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 // "Where are you in your search?" Three short steps and no résumé: pick your situation, say how
 // long it has been going on, and get a first-week plan by email. The same situations as the
@@ -76,7 +77,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations, va
           }}
           className="mt-5 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
         >
-          {state.capped ? 'Get your Market Reality Assessment' : 'Or start now: get your Market Reality Assessment'}
+          <AssessmentCtaLabel>{state.capped ? 'Get your Market Reality Assessment' : 'Or start now: get your Market Reality Assessment'}</AssessmentCtaLabel>
         </Link>
       </div>
     )
@@ -201,7 +202,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations, va
                 rememberSituation(situation)
                 posthog.capture('journey_picker_skip_to_assessment_clicked', { situation, source, variant, placement: 'primary' })
               }}
-              className="mt-4 inline-flex h-14 w-full items-center justify-center rounded-full bg-action px-6 text-lg font-semibold text-action-foreground hover:brightness-95"
+              className="mt-4 inline-flex min-h-14 w-full items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95 sm:text-lg"
             >
               Get my Market Reality Assessment
             </Link>
@@ -230,7 +231,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations, va
               defaultValue={state?.email}
               placeholder="you@example.com"
               aria-invalid={state?.error ? true : undefined}
-              className="h-12 flex-1 rounded-lg border border-border bg-white px-4 text-base"
+              className="h-12 shrink-0 rounded-lg border border-border bg-white px-4 text-base sm:flex-1"
             />
             <Button type="submit" size="lg" variant="outline" disabled={pending} className="h-12 rounded-full px-6">
               {pending ? 'Sending…' : 'Email me the rest'}

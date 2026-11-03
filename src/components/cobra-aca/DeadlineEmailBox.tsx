@@ -98,7 +98,7 @@ export function DeadlineEmailBox({
       )}
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <label className="sr-only" htmlFor={`deadline-email-${source}`}>Email address</label>
-        <input id={`deadline-email-${source}`} name="email" type="email" inputMode="email" autoComplete="email" defaultValue={signup.email} placeholder="you@example.com" className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-base" />
+        <input id={`deadline-email-${source}`} name="email" type="email" inputMode="email" autoComplete="email" defaultValue={signup.email} placeholder="you@example.com" className="h-11 shrink-0 sm:flex-1 rounded-lg border border-border bg-white px-3 text-base" />
         <Button type="submit" disabled={pending} className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
           {pending ? 'Saving…' : 'Email me my deadlines'}
         </Button>
