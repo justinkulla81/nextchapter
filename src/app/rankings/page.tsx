@@ -19,12 +19,12 @@ export const metadata: Metadata = {
   openGraph: { title: 'Job market rankings: best cities by job type, pay and growth', description: 'Monthly rankings of cities and counties for junior jobs, AI skills, remote work, pay after cost of living and job growth.', url: `${SITE_URL}/rankings`, type: 'website' },
 }
 
-const FAMILY_ORDER = ['Entry-level', 'Levels', 'AI', 'AI skills', 'Pay', 'Work style', 'Job families', 'Industries', 'Markets', 'Growth', 'Workforce', 'Research', 'Higher education']
+const FAMILY_ORDER = ['Entry-level', 'Levels', 'AI', 'AI skills', 'Pay', 'Work style', 'Job families', 'Industries', 'Industry markets', 'Markets', 'Growth', 'Best overall', 'Workforce', 'Research', 'Higher education']
 
 export default async function RankingsHub() {
   const index = await readRankingIndex()
   const newest = index.map((x) => x.edition).sort().reverse()[0]
-  const LIST_FAMILIES = ['Job families', 'AI skills', 'Workforce', 'Research', 'Higher education']
+  const LIST_FAMILIES = ['Job families', 'AI skills', 'Industry markets', 'Workforce', 'Research', 'Higher education']
   const national = index.filter((x) => x.scopeKind === 'national' && !LIST_FAMILIES.includes(x.family))
   const months = archiveMonths(index)
   const families = FAMILY_ORDER.filter((f) => index.some((x) => x.family === f))

@@ -3,12 +3,16 @@ import { lookupAreaCode } from '@/lib/market/metro-areas'
 import { costsFor } from '@/lib/market/area-costs'
 import { getStateCities, getStateCityPlaces, getStateCounties, placeUrl } from '@/lib/places/places'
 import { placeKey } from '@/lib/workforce/places'
+import { loadCountyContext } from '@/lib/workforce/county-context-data'
+import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
+import type { JobAggregate } from '@/lib/places/places'
+import { prisma } from '@/lib/prisma'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { getStateCollegeListings } from '@/lib/seo/college-pages'
 import { collegePath } from '@/lib/seo/college-bar'
-import { FAMILIES, collegeSpecs, functionSpecs, industrySpecs, rankCities, rankColleges, rankCounties, rankIndustries, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, workforceSpecs, type Spec } from '@/lib/rankings/build-edition'
+import { FAMILIES, INDUSTRIES, collegeSpecs, compositeSpecs, functionSpecs, industryCitySpecs, industrySpecs, rankCities, rankCityComposite, rankColleges, rankCountyComposite, rankCounties, rankIndustries, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, workforceSpecs, type Spec } from '@/lib/rankings/build-edition'
 import { STATE_FIPS } from '@/lib/rankings/regions'
-import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
+import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
 import { awardEntries } from '@/lib/rankings/awards'
 import { addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
 import type { BuildGroup, CityStat, CollegeStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
@@ -64,6 +68,22 @@ async function loadColleges(): Promise<{ colleges: CollegeStat[]; collegeCities:
   return { colleges, collegeCities }
 }
 
+/** Adds our openings, the unemployed and the American Job Centers to each county, for the openings-per-unemployed and all-round lists. */
+async function withCountyJobs(counties: CountyStat[]): Promise<CountyStat[]> {
+  const [agg, { placeCounty }, centers] = await Promise.all([
+    readBoardFigure<JobAggregate>('places-job-aggregate'),
+    loadCountyContext(),
+    prisma.americanJobCenter.groupBy({ by: ['countyFips'], _count: { _all: true } }),
+  ])
+  const openings = new Map<string, number>()
+  for (const [st, , cities] of agg ?? []) for (const [key, n] of cities) {
+    const fips = placeCounty[`${st}|${key}`]
+    if (fips) openings.set(fips, (openings.get(fips) ?? 0) + n)
+  }
+  const ajc = new Map(centers.flatMap((c) => (c.countyFips ? [[c.countyFips, c._count._all] as const] : [])))
+  return counties.map((c) => ({ ...c, openings: openings.get(c.fips) ?? 0, ajc: ajc.get(c.fips) ?? 0 }))
+}
+
 export interface BuildResult { group: BuildGroup; edition: string; built: number; skipped: string[]; cities?: number; counties?: number }
 
 /**
@@ -112,6 +132,27 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     const industryStats = await loadIndustryStats()
     for (const spec of industries) {
       const ed = rankIndustries(spec, industryStats, edition, builtAt, await prevRanksOf(spec.slug))
+      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+    }
+  } else if (group === 'industry') {
+    const codes = INDUSTRIES.map((i) => i.code)
+    const [citiesRaw, indRows] = await Promise.all([loadCityStats(), loadIndustryCityRows(codes)])
+    const info = await placeInfo([...new Set(citiesRaw.map((c) => c.st))])
+    const cities = keyCities(citiesRaw, (k) => info.has(k))
+    cityCount = cities.length
+    const infoOf = (c: CityStat): PlaceInfo => info.get(`${c.st}|${c.city}`) ?? { name: titleCase(c.city), href: null }
+    const ctx = { costOf: (c: CityStat) => costOf(c, infoOf(c).name) }
+    const base = new Map(cities.map((c) => [`${c.st}|${c.city}`, c]))
+    specs = industryCitySpecs()
+    for (const spec of specs) {
+      const slice: CityStat[] = []
+      for (const r of indRows) {
+        if (r.industry !== spec.fn) continue
+        const b = base.get(`${r.st}|${placeKey(r.city) || r.city}`) ?? base.get(`${r.st}|${r.city}`)
+        if (!b) continue
+        slice.push({ ...b, n: r.n, paid: r.paid, payMed: r.payMed, cityN: b.n, entry: 0, ai: 0, remote: 0, eng: 0, engPaid: 0, engPay: null, mid: 0, exec: 0 })
+      }
+      const ed = rankCities(spec, slice, infoOf, ctx, edition, builtAt, await prevRanksOf(spec.slug))
       ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
     }
   } else if (group === 'workforce') {
@@ -175,11 +216,15 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
       const hrefs = await countyHrefs([...new Set((extra as CountyStat[]).map((c) => c.st))])
       const counties: CountyStat[] = (extra as CountyStat[]).map((c) => ({ ...c, href: hrefs.get(c.fips) ?? c.href }))
       countyCount = counties.length
-      specs = [...wave1Specs(topStates), ...wave2PlaceSpecs()]
+      const countiesJobs = await withCountyJobs(counties)
+      specs = [...wave1Specs(topStates), ...wave2PlaceSpecs(), ...compositeSpecs()]
       for (const spec of specs) {
         const prev = await prevRanksOf(spec.slug)
-        const ed = spec.measure === 'growth' || spec.measure === 'infogrowth'
-          ? rankCounties(spec, counties, edition, builtAt, prev)
+        const m = spec.measure
+        const ed = m === 'cgrad' || m === 'cmid' || m === 'cremote' || m === 'cai' ? rankCityComposite(spec, cities, infoOf, ctx, edition, builtAt, prev)
+          : m === 'coverall' || m === 'claidoff' ? rankCountyComposite(spec, countiesJobs, edition, builtAt, prev)
+          : m === 'perunemp' ? rankCounties(spec, countiesJobs, edition, builtAt, prev)
+          : m === 'growth' || m === 'infogrowth' ? rankCounties(spec, counties, edition, builtAt, prev)
           : rankCities(spec, cities, infoOf, ctx, edition, builtAt, prev)
         ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
       }

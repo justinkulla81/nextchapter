@@ -227,13 +227,15 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         <Movers rows={e.rows} />
       </section>
 
-      <section aria-labelledby="guide">
-        <h2 id="guide" className={H2}>Why this ranking matters</h2>
-        <div className="mt-3 grid max-w-4xl gap-4 text-sm text-foreground sm:grid-cols-2">
-          <div className="rounded-xl bg-white p-4"><h3 className="font-semibold text-navy">What it shows</h3><p className="mt-1">{MEASURE_GUIDE[e.measure].why}</p></div>
-          <div className="rounded-xl bg-white p-4"><h3 className="font-semibold text-navy">How to use it</h3><p className="mt-1">{MEASURE_GUIDE[e.measure].use}</p></div>
-        </div>
-      </section>
+      {MEASURE_GUIDE[e.measure] && (
+        <section aria-labelledby="guide">
+          <h2 id="guide" className={H2}>Why this ranking matters</h2>
+          <div className="mt-3 grid max-w-4xl gap-4 text-sm text-foreground sm:grid-cols-2">
+            <div className="rounded-xl bg-white p-4"><h3 className="font-semibold text-navy">What it shows</h3><p className="mt-1">{MEASURE_GUIDE[e.measure].why}</p></div>
+            <div className="rounded-xl bg-white p-4"><h3 className="font-semibold text-navy">How to use it</h3><p className="mt-1">{MEASURE_GUIDE[e.measure].use}</p></div>
+          </div>
+        </section>
+      )}
 
       <section aria-labelledby="top">
         <h2 id="top" className={H2}>The top 25</h2>
