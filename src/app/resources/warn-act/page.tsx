@@ -8,6 +8,7 @@ import { SourceRefs, WarnSources } from '@/components/layoffs/WarnSources'
 import { FEDERAL_WARN, STATE_WARN_LAWS, WARN_GUIDE_AS_OF } from '@/lib/warn-guide/rules'
 import { pageMetadata } from '@/lib/seo/keywords'
 import { stateSlug } from '@/lib/seo/states'
+import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
 
 // The WARN Act explained in plain language, every rule traced to its source (src/lib/warn-guide/rules.ts). It answers "what is a WARN
 // notice", "WARN Act 60 days" and "do I get severance or pay" searches, and it is the page the company and state layoff pages link to.
@@ -91,7 +92,7 @@ export default function WarnActPage() {
           <li>If the employer skips notice it owes back pay and benefits for up to 60 days. A court will not stop the layoff.<SourceRefs keys={FEDERAL_WARN.remedy.sources} /></li>
         </ul>
         <div className="mt-6 flex flex-wrap items-center gap-4">
-          <Link href="/layoffs" className="inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">
+          <Link href="/layoffs" className={SECONDARY_ACTION}>
             See who has filed a notice
           </Link>
           <span className="text-sm text-muted-foreground">Free, every state we can read, with each state’s own record linked.</span>
