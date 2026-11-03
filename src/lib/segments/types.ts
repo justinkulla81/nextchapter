@@ -24,12 +24,16 @@ export interface BoardRow {
   skills: string[]
   noExperience: boolean
   soc: string | null
+  /** O*NET-SOC code the crawler matched the title to, for the AI-use measure. */
+  socCode: string | null
+  /** 'nonprofit' | 'academia' | 'government' from the crawler's sector read; null reads as private. */
+  sector: string | null
 }
 
 export type CutId =
   | 'top-employers' | 'top-roles' | 'top-states' | 'top-cities'
   | 'highest-paying-roles' | 'highest-paying-employers' | 'top-skills'
-  | 'newest' | 'entry-level'
+  | 'newest' | 'entry-level' | 'lowest-ai-exposure'
 
 export interface SegmentRow {
   rank: number

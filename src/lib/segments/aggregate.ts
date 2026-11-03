@@ -1,7 +1,8 @@
 // Turns one segment's open postings into a stored edition: the lists, the headline figures and the changes since last month.
 // Pure, so the rules are unit-tested (src/test/segments.test.ts). The scan that feeds it is scan.ts.
 
-import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { companyKey } from '@/lib/segments/defs'
+import { exposureFor, soc6Of, type ExposureMap } from '@/lib/skills/ai-exposure'
 import type { BoardRow, CutId, SegmentEdition, SegmentJob, SegmentRow } from '@/lib/segments/types'
 
 export const LIST_SIZE = 25
@@ -59,10 +60,11 @@ function topState(rows: BoardRow[]): string {
 
 /** Ranks entries by a value, highest first (ties by name), and shapes them into rows with the change since the last edition. */
 function rank(
-  entries: { key: string; name: string; sub: string; value: number; valueLabel: string; stats: { label: string; value: string }[] }[],
+  entries: { key: string; name: string; sub: string; value: number; valueLabel: string; stats: { label: string; value: string }[]; /** Lowest first, when the list is ordered by something other than its value. */ order?: number }[],
   prevRanks: Map<string, number> | null,
 ): SegmentRow[] {
-  const top = entries.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name)).slice(0, LIST_SIZE)
+  const sorted = entries.sort((a, b) => (a.order != null && b.order != null && a.order !== b.order ? a.order - b.order : 0) || b.value - a.value || a.name.localeCompare(b.name))
+  const top = sorted.slice(0, LIST_SIZE).map(({ order: _order, ...e }) => e)
   const max = top[0]?.value || 1
   return top.map((e, i) => {
     const before = prevRanks?.get(e.key)
@@ -82,13 +84,13 @@ export function prevFrom(e: SegmentEdition | null): PrevEdition | null {
   return { edition: e.edition, total: e.total, payMed: e.payMed, ranks }
 }
 
-export function buildEdition(slug: string, edition: string, rows: BoardRow[], prev: PrevEdition | null, now: Date): SegmentEdition {
+export function buildEdition(slug: string, edition: string, rows: BoardRow[], prev: PrevEdition | null, now: Date, exposure?: ExposureMap): SegmentEdition {
   const paidRows = rows.filter(isPaid)
   const cuts: SegmentEdition['cuts'] = {}
   const put = (cut: CutId, list: SegmentRow[]) => { if (list.length) cuts[cut] = list }
 
   // Employers: one count for every spelling of a name.
-  const employers = groupBy(rows, (r) => normalizeOrgName(r.company) || r.company.toLowerCase(), (r) => r.company)
+  const employers = groupBy(rows, (r) => companyKey(r.company) || r.company.toLowerCase(), (r) => r.company)
   const employerEntries = employers.filter((g) => g.rows.length >= BARS.employer).map((g) => {
     const pm = paidCount(g.rows) >= BARS.payEmployer ? payMedOf(g.rows) : null
     return { key: g.key, name: commonest(g), sub: topState(g.rows), value: g.rows.length, valueLabel: `${count(g.rows.length)} open`, stats: pm ? [{ label: 'Median pay', value: usdK(pm) }] : [] }
@@ -106,7 +108,7 @@ export function buildEdition(slug: string, edition: string, rows: BoardRow[], pr
   const roles = groupBy(rows, (r) => r.soc, (r) => r.soc ?? '')
   put('top-roles', rank(roles.filter((g) => g.rows.length >= BARS.role).map((g) => {
     const pm = paidCount(g.rows) >= BARS.payRole ? payMedOf(g.rows) : null
-    return { key: g.key, name: g.key, sub: `${count(new Set(g.rows.map((r) => normalizeOrgName(r.company))).size)} employers`, value: g.rows.length, valueLabel: `${count(g.rows.length)} open`, stats: pm ? [{ label: 'Median pay', value: usdK(pm) }] : [] }
+    return { key: g.key, name: g.key, sub: `${count(new Set(g.rows.map((r) => companyKey(r.company))).size)} employers`, value: g.rows.length, valueLabel: `${count(g.rows.length)} open`, stats: pm ? [{ label: 'Median pay', value: usdK(pm) }] : [] }
   }), prev?.ranks['top-roles'] ?? null))
   if (paidRows.length >= BARS.segmentPaid) {
     put('highest-paying-roles', rank(roles.filter((g) => paidCount(g.rows) >= BARS.payRole).map((g) => {
@@ -125,12 +127,23 @@ export function buildEdition(slug: string, edition: string, rows: BoardRow[], pr
   put('top-cities', rank(cities.filter((g) => {
     if (g.rows.length < BARS.city) return false
     const byEmployer = new Map<string, number>()
-    for (const r of g.rows) { const k = normalizeOrgName(r.company); byEmployer.set(k, (byEmployer.get(k) ?? 0) + 1) }
+    for (const r of g.rows) { const k = companyKey(r.company); byEmployer.set(k, (byEmployer.get(k) ?? 0) + 1) }
     return Math.max(...byEmployer.values()) / g.rows.length < MAX_TOP_SHARE
   }).map((g) => {
     const [st, city] = g.key.split('|')
     return { key: g.key, name: `${titleCase(city)}, ${st}`, sub: '', value: g.rows.length, valueLabel: `${count(g.rows.length)} open`, stats: [] }
   }), prev?.ranks['top-cities'] ?? null))
+
+  // Roles with the least AI use observed at work (Anthropic Economic Index, by occupation), among roles with open jobs here.
+  if (exposure?.size) {
+    const measured = rows.filter((r) => r.socCode && exposureFor(r.socCode, exposure))
+    const occupations = groupBy(measured, (r) => soc6Of(r.socCode!), (r) => r.soc ?? exposure.get(soc6Of(r.socCode!))!.title)
+    put('lowest-ai-exposure', rank(occupations.filter((g) => g.rows.length >= BARS.role).map((g) => {
+      const score = exposure.get(g.key)!.score
+      const pm = paidCount(g.rows) >= BARS.payRole ? payMedOf(g.rows) : null
+      return { key: g.key, name: commonest(g), sub: `${count(g.rows.length)} open`, value: g.rows.length, order: score, valueLabel: `${Math.round(score * 100)}% of tasks`, stats: pm ? [{ label: 'Median pay', value: usdK(pm) }] : [] }
+    }), prev?.ranks['lowest-ai-exposure'] ?? null))
+  }
 
   // Skills named in the postings' own text.
   const skillCount = new Map<string, { name: string; n: number }>()
@@ -149,7 +162,7 @@ export function buildEdition(slug: string, edition: string, rows: BoardRow[], pr
   const when = (r: BoardRow) => new Date(r.postedAt ?? r.createdAt).getTime()
   const newest = rows.filter((r) => when(r) >= cutoff).sort((a, b) => when(b) - when(a)).slice(0, LIST_SIZE).map(asJob)
   const entryRows = rows.filter((r) => (r.level && ENTRY_LEVELS.has(r.level)) || r.noExperience)
-  const entryByEmployer = groupBy(entryRows, (r) => normalizeOrgName(r.company) || r.company.toLowerCase(), (r) => r.company)
+  const entryByEmployer = groupBy(entryRows, (r) => companyKey(r.company) || r.company.toLowerCase(), (r) => r.company)
   put('entry-level', rank(entryByEmployer.filter((g) => g.rows.length >= BARS.employer).map((g) => ({
     key: g.key, name: commonest(g), sub: topState(g.rows), value: g.rows.length, valueLabel: `${count(g.rows.length)} entry-level`, stats: [],
   })), prev?.ranks['entry-level'] ?? null))

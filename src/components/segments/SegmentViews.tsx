@@ -8,6 +8,7 @@ import { employerHrefs, type SegmentPageData } from '@/lib/segments/page-data'
 import { MIN_SEGMENT_JOBS, type SegmentDef } from '@/lib/segments/defs'
 import { SITE_URL } from '@/lib/seo/facts'
 import { editionLabel } from '@/lib/rankings/build-edition'
+import { AI_EXPOSURE_SOURCE, EXPOSURE_WHY } from '@/lib/skills/ai-exposure'
 import type { CutId, SegmentIndexEntry } from '@/lib/segments/types'
 
 const EMPLOYER_CUTS = new Set<CutId>(['top-employers', 'highest-paying-employers', 'entry-level'])
@@ -18,6 +19,23 @@ function Stat({ label, value }: { label: string; value: string }) {
       <p className="text-2xl font-bold tabular-nums text-navy">{value}</p>
       <p className="text-sm text-muted-foreground">{label}</p>
     </div>
+  )
+}
+
+const LAID_OFF_LINKS = [
+  { href: '/start/laid-off', label: 'A plan for the weeks after a layoff' },
+  { href: '/unemployment-benefits', label: 'Unemployment benefits and how to file, by state' },
+  { href: '/tools/severance-calculator', label: 'Severance calculator' },
+  { href: '/layoffs', label: 'Layoff tracker: who is cutting and where' },
+]
+
+/** The hand-off from a segment to the pages for someone who has just lost a job in it. */
+function LaidOffStart({ def }: { def: SegmentDef }) {
+  return (
+    <Section id="laid-off" title={`Laid off in ${def.label}? Start here`} tone={3}>
+      <Chips kind="segment_laid_off" event="segment_list_clicked" items={LAID_OFF_LINKS.map((l) => ({ href: l.href, label: l.label }))} />
+      <p className="mt-3 text-sm text-muted-foreground">Then look at the employers above that are hiring now.</p>
+    </Section>
   )
 }
 
@@ -99,6 +117,8 @@ export async function SegmentHubView({ data, index }: { data: SegmentPageData; i
         </Section>
       )}
 
+      <LaidOffStart def={def} />
+
       {entry.editions.length > 1 && (
         <Section id="months" title="Earlier months" tone={2}>
           <Chips kind="segment_month" event="segment_list_clicked" items={entry.editions.map((ed, i) => ({ href: i === 0 ? segmentPath(def.slug) : `${segmentPath(def.slug)}/${ed}`, label: editionLabel(ed) }))} />
@@ -152,6 +172,9 @@ export async function SegmentCutView({ data, cut, index }: { data: SegmentPageDa
           )}
         </>
       )}
+      {cut === 'lowest-ai-exposure' && (
+        <p className="mt-4 max-w-3xl text-xs text-muted-foreground">{EXPOSURE_WHY} Source: <a href={AI_EXPOSURE_SOURCE.url} className={LINK} rel="noopener">{AI_EXPOSURE_SOURCE.name}</a>, {AI_EXPOSURE_SOURCE.released}. Only roles with at least five open jobs here are listed.</p>
+      )}
       <p className="mt-6 text-sm"><Link href={allHref} className={LINK}>Search all {def.label} jobs</Link> · <Link href={segmentPath(def.slug)} className={LINK}>Back to {def.name.toLowerCase()} jobs</Link></p>
       <Section id="lists" title={`More ${def.label} lists`} tone={0}>
         <Chips kind="segment_to_cut" event="segment_list_clicked" items={CUTS.filter((x) => x.id !== cut && publishedCuts(e).includes(x.id)).map((x) => ({ href: cutPath(def.slug, x.id), label: x.short }))} />
@@ -177,6 +200,7 @@ export function SegmentSoonView({ def, found, index }: { def: SegmentDef; found:
         <p className="text-sm text-muted-foreground">{AMERICA_NOTE}</p>
         <p className="mt-3 text-sm"><Link href={allHref} className={LINK}>Search all {def.label} jobs</Link></p>
       </Section>
+      <LaidOffStart def={def} />
       <OtherSegments current={def.slug} index={index.filter((x) => !x.soon)} />
       <JoinBand source={`segment:${def.slug}:soon`} what={`how the market reads your background for ${def.label} roles`} />
     </TopicShell>

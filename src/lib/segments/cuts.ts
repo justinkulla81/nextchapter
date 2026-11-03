@@ -21,6 +21,7 @@ export const CUTS: CutDef[] = [
   { id: 'top-roles', short: 'Most in demand', valueHead: 'Open jobs', nounHead: 'Role', title: (d) => `Most in-demand ${d.label} roles` },
   { id: 'highest-paying-roles', short: 'Highest-paying roles', valueHead: 'Median pay', nounHead: 'Role', title: (d) => `Highest-paying ${d.label} roles` },
   { id: 'highest-paying-employers', short: 'Highest-paying employers', valueHead: 'Median pay', nounHead: 'Employer', title: (d) => `Highest-paying ${d.label} employers` },
+  { id: 'lowest-ai-exposure', short: 'Least AI use observed', valueHead: 'AI use in tasks', nounHead: 'Role', title: (d) => `${d.label[0].toUpperCase()}${d.label.slice(1)} roles with the least observed AI use` },
   { id: 'top-skills', short: 'Skills in demand', valueHead: 'Share of jobs', nounHead: 'Skill', title: (d) => `Skills employers ask for in ${d.label} jobs` },
   { id: 'top-states', short: 'Top states', valueHead: 'Open jobs', nounHead: 'State', title: (d) => `States with the most ${d.label} jobs` },
   { id: 'top-cities', short: 'Top cities', valueHead: 'Open jobs', nounHead: 'City', title: (d) => `Cities with the most ${d.label} jobs` },
@@ -50,6 +51,8 @@ export function cutSentence(d: SegmentDef, cut: CutId, e: SegmentEdition): strin
       return `Among ${d.label} jobs that state yearly pay, ${list(top)} pay the most at the median${e.payMed ? `, against ${usdK(e.payMed)} for the segment as a whole` : ''}.`
     case 'highest-paying-employers':
       return `${list(top)} post the highest median pay among ${d.label} employers that state pay on at least a few of their jobs.`
+    case 'lowest-ai-exposure':
+      return `Among ${d.label} roles with open jobs, ${list(top)} show the least AI use at work so far. This measures use observed now, not a forecast of job loss, and a low number means no use seen yet.`
     case 'top-skills':
       return `${list(top)} are the skills most often named in ${d.label} job postings, read from each posting's own text.`
     case 'top-states':

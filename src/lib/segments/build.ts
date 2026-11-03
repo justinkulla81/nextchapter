@@ -1,6 +1,7 @@
 import 'server-only'
 import { buildEdition, prevFrom, publishedCuts } from '@/lib/segments/aggregate'
 import { MIN_SEGMENT_JOBS, SEGMENTS, segmentsOf } from '@/lib/segments/defs'
+import { loadExposureMap } from '@/lib/skills/ai-exposure-server'
 import { scanBoard } from '@/lib/segments/scan'
 import { addToSegmentAwards, readPreviousSegment, readSegmentIndex, writeSegment, writeSegmentIndex } from '@/lib/segments/store'
 import type { Award } from '@/lib/rankings/awards'
@@ -24,6 +25,7 @@ export async function buildSegments(now = new Date()): Promise<SegmentBuildResul
   const scanned = await scanBoard((rows) => {
     for (const r of rows) for (const slug of segmentsOf(r)) bySlug.get(slug)!.push(r)
   })
+  const exposure = await loadExposureMap()
   const built: SegmentBuildResult['built'] = []
   const skipped: SegmentBuildResult['skipped'] = []
   const awards: [string, Award][] = []
@@ -38,7 +40,7 @@ export async function buildSegments(now = new Date()): Promise<SegmentBuildResul
       continue
     }
     const prev = prevFrom(await readPreviousSegment(def.slug, edition).catch(() => null))
-    const e = buildEdition(def.slug, edition, rows, prev, now)
+    const e = buildEdition(def.slug, edition, rows, prev, now, exposure)
     await writeSegment(e)
     const cuts = publishedCuts(e)
     index.set(def.slug, {

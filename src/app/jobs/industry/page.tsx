@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Section, TopicShell } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
-import { SEGMENTS } from '@/lib/segments/defs'
+import { SEGMENTS, SEGMENT_GROUPS } from '@/lib/segments/defs'
 import { segmentPath, AMERICA_NOTE } from '@/lib/segments/cuts'
 import { readSegmentIndex } from '@/lib/segments/store'
 import { count, usdK } from '@/lib/segments/aggregate'
@@ -26,26 +26,34 @@ export default async function SegmentsHub() {
       intro={`Pick an industry to see the employers with the most openings, the highest-paying roles, the skills they ask for and the newest jobs. ${AMERICA_NOTE}`}
       capture={{ kind: 'industry', slug: 'jobs-by-industry', label: 'your industry', save: { q: '', loc: '' } }}
     >
-      <Section id="all" title="Choose an industry" note="Lists are rebuilt weekly and kept by month.">
-        {live.length === 0 ? (
+      {live.length === 0 ? (
+        <Section id="all" title="Choose an industry" note="Lists are rebuilt weekly and kept by month.">
           <p className="text-sm text-muted-foreground">These lists are being built. <Link href="/jobs" className="text-brand underline underline-offset-4">Search all jobs</Link> in the meantime.</p>
-        ) : (
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {live.map((s) => {
-              const x = index.get(s.slug)!
-              return (
-                <li key={s.slug}>
-                  <Link href={segmentPath(s.slug)} className="block h-full rounded-xl border border-border bg-white p-4 hover:border-brand">
-                    <span className="font-semibold text-navy">{s.name}</span>
-                    <span className="mt-1 block text-sm text-muted-foreground">{s.blurb}</span>
-                    <span className="mt-2 block text-sm tabular-nums text-navy">{count(x.total)} open jobs{x.payMed ? ` · median pay ${usdK(x.payMed)}` : ''}</span>
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </Section>
+        </Section>
+      ) : (
+        SEGMENT_GROUPS.map((g, i) => {
+          const items = live.filter((s) => s.group === g)
+          if (!items.length) return null
+          return (
+            <Section key={g} id={g.toLowerCase().replace(/[^a-z]+/g, '-')} title={g} note={i === 0 ? 'Lists are rebuilt weekly and kept by month.' : undefined} tone={i}>
+              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {items.map((s) => {
+                  const x = index.get(s.slug)!
+                  return (
+                    <li key={s.slug}>
+                      <Link href={segmentPath(s.slug)} className="block h-full rounded-xl border border-border bg-white p-4 hover:border-brand">
+                        <span className="font-semibold text-navy">{s.name}</span>
+                        <span className="mt-1 block text-sm text-muted-foreground">{s.blurb}</span>
+                        <span className="mt-2 block text-sm tabular-nums text-navy">{count(x.total)} open jobs{x.payMed ? ` · median pay ${usdK(x.payMed)}` : ''}</span>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </Section>
+          )
+        })
+      )}
       {soon.length > 0 && (
         <Section id="soon" title="Coming soon" note="Not enough verified openings yet to rank honestly. We check every week and publish a list once there are enough." tone={1}>
           <ul className="flex flex-wrap gap-2">
