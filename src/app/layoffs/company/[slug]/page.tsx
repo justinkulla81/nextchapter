@@ -27,6 +27,8 @@ import { titleMeta } from '@/lib/seo/title'
 import { LAYOFF_TOOL_LINKS, stateHelpLinks, type CrossLink } from '@/lib/seo/layoff-links'
 import { StatementForm } from '@/components/employers/StatementForm'
 import { approvedStatementMap } from '@/lib/employer-statements/store'
+import { CompanyStoriesSection } from '@/components/layoff-stories/CompanyStoriesSection'
+import { approvedStories, storyNumbersFor } from '@/lib/layoff-stories/store'
 import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } from '@/lib/warn/company-announcements'
 import { getEmployerBrand } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
@@ -125,7 +127,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const hasNotices = c.notices.length > 0
   const bucket = (await getRecentNotices().catch(() => [])).find((n) => n.slug === slug && n.bucket)?.bucket ?? null
   const segmentsHiring = bucket ? await liveSegmentsForBucket(bucket).catch(() => []) : []
-  const [mentions, statements] = await Promise.all([getNewsMentions(c), approvedStatementMap(slug, c.name)])
+  const [mentions, statements, storyNumbers, stories] = await Promise.all([getNewsMentions(c), approvedStatementMap(slug, c.name), storyNumbersFor(slug), approvedStories(slug)])
   const stateHelp = await Promise.all(c.states.slice(0, 3).map((code) => stateHelpLinks(code)))
   const helpLinks: CrossLink[] = [...new Map(stateHelp.flat().map((l) => [l.href, l])).values()]
   const workers = c.notices.reduce((s, n) => s + (n.workers ?? 0), 0)
@@ -198,6 +200,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} buyoutRule={buyoutRule} />
             <SearchTimeFacts />
             <PeerEmployers company={c.name} near={peers.near} similar={peers.similar} metro={peers.homeState ? stateName(peers.homeState) : null} />
+            <CompanyStoriesSection name={c.name} slug={slug} numbers={storyNumbers} stories={stories} />
           </div>
 
           {hasNotices && (
