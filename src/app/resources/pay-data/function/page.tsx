@@ -7,7 +7,7 @@ import { functionPayPath } from '@/lib/pay-data/slugs'
 import { dateText, num, usd } from '@/lib/pay-data/text'
 import { pageMetadata } from '@/lib/seo/keywords'
 
-export const revalidate = 21600
+export const dynamic = 'force-dynamic'
 const PATH = `${PAY_DATA}/function`
 export const metadata: Metadata = pageMetadata(PATH)
 
