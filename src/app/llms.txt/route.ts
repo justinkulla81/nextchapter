@@ -14,12 +14,12 @@ export function GET() {
   const report = latestReport()
   const body = `# ${FACTS.name}
 
-> ${FACTS.summary} Free for candidates, always.
+> ${FACTS.summary} Free to join. Free for Members, always.
 
 ## For job seekers
 
 - [Home](${u('/')}): overview of the Market Reality Assessment, the weekly Search Sprint system, and how the platform works end to end.
-- [FAQ](${u('/faq')}): plans (free for candidates), privacy, how the Market Reality Assessment works, and how employer matching works.
+- [FAQ](${u('/faq')}): plans (free for Members), privacy, how the Market Reality Assessment works, and how employer matching works.
 - [Entry-level jobs by role](${u('/jobs/entry-level')}): a page for each starting white-collar role (sales development representative, business development representative, account executive, customer success, accounting, HR, IT help desk, data analyst and ~90 more): what the job is, a typical day, the skills, openings counted from employers' own career sites (including how many say no experience is required), pay where listed, a résumé skills check and where the job leads, plus role-by-city pages. Plain-text list of every role: ${u('/jobs/entry-level/llms.txt')}.
 - [AI job check](${u('/tools/ai-job-check')}): type a job title to see how much of the work AI already does (Anthropic Economic Index), related jobs that pay more or are less exposed, and skills to build. A page for each occupation.
 - [AI job check prompts](${u('/tools/ai-job-check/prompts')}): twelve copy-and-paste prompts for an AI assistant that point it at the numbers on NextChapter pages and ask it to cite them.

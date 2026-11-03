@@ -37,7 +37,7 @@ const TABS = [
   {
     id: 'free',
     label: 'Free, always',
-    title: 'Free for candidates, permanently.',
+    title: 'Free to join. Free for Members, permanently.',
     items: [
       { title: 'What is free', body: 'The Market Reality Report, Resume Studio, your networking and application tracker, the skills assessment, community and company pages.' },
       { title: 'Who it is for', body: 'Employers, recruiters, colleges and coaches have their own tools. Candidates are never charged.' },

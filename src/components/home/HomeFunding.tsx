@@ -68,7 +68,7 @@ export function HomeFunding() {
             Join free and see what you qualify for
           </TrackedLink>
           <p className="mt-3 text-sm text-muted-foreground">
-            Free for candidates, always.{' '}
+            Free to join. Free for Members, always.{' '}
             <Link href="/funding" className="font-medium text-brand underline underline-offset-4">
               See what is inside
             </Link>

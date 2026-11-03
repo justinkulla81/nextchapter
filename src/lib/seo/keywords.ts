@@ -1039,11 +1039,11 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     intent: 'Keep a profile current between jobs',
     owner: '/membership',
     kind: 'page',
-    primary: 'membership between jobs',
-    secondary: ['keep your dossier current', 'alumni membership', 'career maintenance'],
+    primary: 'alumni plan between jobs',
+    secondary: ['keep your dossier current', 'alumni plan', 'career maintenance'],
     seo: {
-      title: 'Membership: Keep Your Dossier Current Between Jobs',
-      description: 'Your Dossier stays alive after you land. Membership keeps your evidence current so you are ready the next time you search.',
+      title: 'Alumni plan: Keep Your Dossier Current Between Jobs',
+      description: 'Your Dossier stays alive after you land. The Alumni plan keeps your evidence current so you are ready the next time you search.',
     },
   },
   {

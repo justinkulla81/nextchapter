@@ -36,7 +36,7 @@ export const GET = withCronRun('membership-market-check', async () => {
           subject: 'Your quarterly market check is ready',
           heading: 'Your quarterly market check is in',
           bodyLines: [
-            `Hi ${subscription.candidate.firstName ?? 'there'} — your NextChapter Membership includes a quarterly check on job-market conditions and comp benchmarking for your target role.`,
+            `Hi ${subscription.candidate.firstName ?? 'there'} — your NextChapter Alumni plan includes a quarterly check on job-market conditions and comp benchmarking for your target role.`,
           ],
           ctaLabel: 'View your results',
           ctaUrl: `${appUrl()}/dashboard/membership`,

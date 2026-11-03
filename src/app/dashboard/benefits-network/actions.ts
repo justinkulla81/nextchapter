@@ -34,7 +34,7 @@ export async function redeemListing(_prevState: FormState, formData: FormData): 
   if (!listingId) return { error: 'Missing listing.' }
 
   const isMember = await isActiveMember(ctx.profile.id)
-  if (!isMember) return { error: 'Redeeming Benefits Network offers is a Membership perk — become a Member first.' }
+  if (!isMember) return { error: 'Redeeming Benefits Network offers is an Alumni plan perk. Join the Alumni plan first.' }
 
   const listing = await prisma.benefitsNetworkListing.findUnique({ where: { id: listingId } })
   if (!listing || listing.status !== 'LISTED' || listing.expiresAt < new Date()) {

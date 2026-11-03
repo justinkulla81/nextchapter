@@ -17,7 +17,7 @@ export default function MembershipNoticeEmail({ heading: headingText, bodyLines,
     <CardEmail
       preheader={bodyLines[0] ?? headingText}
       audience="candidate"
-      footer={<>You&apos;re receiving this because you&apos;re a NextChapter Member.</>}
+      footer={<>You&apos;re receiving this because you&apos;re on the NextChapter Alumni plan.</>}
     >
       <Card center pad="28px 32px 36px">
         <Wordmark />

@@ -28,7 +28,7 @@ export const FACTS = {
   summary:
     'NextChapter is the leading job transition platform. Every job seeker gets a free Market Reality Assessment (a plain-language read on how the market sees their background), a weekly Search Sprint action plan, and an AI career coach. Revenue comes from employers, recruiters, outplacement buyers, workforce agencies and nonprofits, and from optional coaching and resume plans.',
   /** What candidates pay. */
-  candidatePrice: 'Free for candidates, always.',
+  candidatePrice: 'Free to join. Free for Members, always.',
   founder: {
     name: 'Justin Kulla',
     jobTitle: 'Founder & CEO',
