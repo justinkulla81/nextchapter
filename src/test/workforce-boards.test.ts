@@ -18,6 +18,8 @@ describe('placeKey / countyKey', () => {
     expect(countyKey('Harris County')).toBe('harris')
     expect(countyKey('St. Tammany Parish')).toBe('sttammany')
     expect(countyKey(' Palo Pinto ')).toBe('palopinto')
+    expect(countyKey('Jackson (East)')).toBe('jackson')
+    expect(countyKey('Jackson County (West)')).toBe('jackson')
     expect(countyKey('DeKalb County')).toBe(countyKey('De Kalb'))
     expect(countyKey('Doña Ana County')).toBe(countyKey('Dona Ana'))
     expect(countyKey('Miami-Dade County')).toBe(countyKey('Dade'))
