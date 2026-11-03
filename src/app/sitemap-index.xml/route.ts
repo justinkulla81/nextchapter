@@ -26,6 +26,7 @@ async function listMaps(): Promise<string[]> {
     `${SITE_URL}/sitemap.xml`,
     `${SITE_URL}/places/sitemap.xml`,
     `${SITE_URL}/rankings/sitemap.xml`,
+    `${SITE_URL}/jobs/industry/sitemap.xml`,
     `${SITE_URL}/layoffs/sitemap.xml`,
     `${SITE_URL}/events/sitemap.xml`,
     `${SITE_URL}/higher-education/sitemap.xml`,

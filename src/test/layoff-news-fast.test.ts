@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { FAST_QUERIES, FAST_WINDOW_HOURS, QUERIES } from '@/lib/warn/news-check'
 import { cronSchedules } from '@/lib/cron/schedule'
@@ -15,6 +17,9 @@ describe('layoff news fast lane', () => {
     const news = all.find((c) => c.job === 'layoff-news')
     expect(news?.schedule).toBe('20 * * * *')
     expect(news?.maxGapMinutes).toBe(180)
-    expect(all.length).toBeLessThanOrEqual(100)
+    // Vercel's limit is on the cron entries in vercel.json; bundled jobs share an entry, so count those (not the jobs inside them).
+    const entries = (JSON.parse(readFileSync(join(process.cwd(), 'vercel.json'), 'utf8')) as { crons: unknown[] }).crons.length
+    expect(entries).toBeLessThanOrEqual(100)
+    expect(all.length).toBeGreaterThanOrEqual(entries)
   })
 })

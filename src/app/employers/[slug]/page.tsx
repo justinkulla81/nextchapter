@@ -1,5 +1,6 @@
 import { CompanyOutlookSection } from '@/components/seo/CompanyOutlookSection'
 import { RankingContext } from '@/components/rankings/RankingContext'
+import { SegmentContext } from '@/components/segments/SegmentContext'
 import { placeFromLocation } from '@/lib/rankings/place-keys'
 import { YourState } from '@/components/capture/YourState'
 import { hubsFor } from '@/lib/places/hubs'
@@ -227,6 +228,8 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         places={(p?.topLocations ?? []).map((l) => placeFromLocation(l.location)).filter((x): x is { name: string; keys: string[] } => !!x)}
         fn={p?.topFunctions[0]?.function}
       />
+
+      <SegmentContext employerName={e.name} />
 
       {ins && <EmployerInsights name={e.name} industry={e.industry} ins={ins} text={text} />}
 
