@@ -75,4 +75,6 @@ export interface SegmentIndexEntry {
   editions: string[]
   /** Which cuts have enough data to publish in the newest edition. */
   cuts: CutId[]
+  /** True while the segment has too few jobs to publish lists: its page says so and asks people to check back. */
+  soon?: boolean
 }

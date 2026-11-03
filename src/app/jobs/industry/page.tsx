@@ -17,7 +17,8 @@ export const metadata: Metadata = {
 
 export default async function SegmentsHub() {
   const index = new Map((await readSegmentIndex().catch(() => [])).map((x) => [x.slug, x]))
-  const built = SEGMENTS.filter((s) => index.has(s.slug))
+  const live = SEGMENTS.filter((s) => index.get(s.slug)?.editions.length)
+  const soon = SEGMENTS.filter((s) => !index.get(s.slug)?.editions.length)
   return (
     <TopicShell
       trail={[{ name: 'Jobs', path: '/jobs' }, { name: 'Jobs by industry', path: '/jobs/industry' }]}
@@ -26,11 +27,11 @@ export default async function SegmentsHub() {
       capture={{ kind: 'industry', slug: 'jobs-by-industry', label: 'your industry', save: { q: '', loc: '' } }}
     >
       <Section id="all" title="Choose an industry" note="Lists are rebuilt weekly and kept by month.">
-        {built.length === 0 ? (
+        {live.length === 0 ? (
           <p className="text-sm text-muted-foreground">These lists are being built. <Link href="/jobs" className="text-brand underline underline-offset-4">Search all jobs</Link> in the meantime.</p>
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {built.map((s) => {
+            {live.map((s) => {
               const x = index.get(s.slug)!
               return (
                 <li key={s.slug}>
@@ -45,6 +46,15 @@ export default async function SegmentsHub() {
           </ul>
         )}
       </Section>
+      {soon.length > 0 && (
+        <Section id="soon" title="Coming soon" note="Not enough verified openings yet to rank honestly. We check every week and publish a list once there are enough." tone={1}>
+          <ul className="flex flex-wrap gap-2">
+            {soon.map((s) => (
+              <li key={s.slug}><Link href={segmentPath(s.slug)} className="inline-flex rounded-full border border-border bg-white px-3 py-1.5 text-sm text-navy hover:border-brand">{s.name}</Link></li>
+            ))}
+          </ul>
+        </Section>
+      )}
     </TopicShell>
   )
 }

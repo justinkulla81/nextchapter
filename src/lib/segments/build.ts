@@ -31,7 +31,12 @@ export async function buildSegments(now = new Date()): Promise<SegmentBuildResul
   const index = new Map(old.map((x) => [x.slug, x]))
   for (const def of SEGMENTS) {
     const rows = bySlug.get(def.slug)!
-    if (rows.length < MIN_SEGMENT_JOBS) { skipped.push({ slug: def.slug, total: rows.length }); continue }
+    if (rows.length < MIN_SEGMENT_JOBS) {
+      skipped.push({ slug: def.slug, total: rows.length })
+      // A segment that was never published is marked "coming soon" with its count so far; one that has been published keeps its last edition.
+      if (!index.get(def.slug)?.editions.length) index.set(def.slug, { slug: def.slug, name: def.name, total: rows.length, payMed: null, cuts: [], editions: [], soon: true })
+      continue
+    }
     const prev = prevFrom(await readPreviousSegment(def.slug, edition).catch(() => null))
     const e = buildEdition(def.slug, edition, rows, prev, now)
     await writeSegment(e)

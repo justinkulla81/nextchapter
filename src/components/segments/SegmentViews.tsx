@@ -5,6 +5,7 @@ import { SEGMENTS } from '@/lib/segments/defs'
 import { AMERICA_NOTE, CUTS, changeClause, cutById, cutPath, cutSentence, methodNotes, segmentPath } from '@/lib/segments/cuts'
 import { count, publishedCuts, usdK } from '@/lib/segments/aggregate'
 import { employerHrefs, type SegmentPageData } from '@/lib/segments/page-data'
+import { MIN_SEGMENT_JOBS, type SegmentDef } from '@/lib/segments/defs'
 import { SITE_URL } from '@/lib/seo/facts'
 import { editionLabel } from '@/lib/rankings/build-edition'
 import type { CutId, SegmentIndexEntry } from '@/lib/segments/types'
@@ -157,6 +158,27 @@ export async function SegmentCutView({ data, cut, index }: { data: SegmentPageDa
       </Section>
       <OtherSegments current={def.slug} index={index} />
       <JoinBand source={`segment:${def.slug}:${cut}`} what={`how the market reads your background for ${def.label} roles`} />
+    </TopicShell>
+  )
+}
+
+/** A segment with too few jobs to publish honest lists: says so, keeps the email save and the employer inquiry, and points to what is live. */
+export function SegmentSoonView({ def, found, index }: { def: SegmentDef; found: number; index: SegmentIndexEntry[] }) {
+  const path = segmentPath(def.slug)
+  const allHref = `/jobs?q=${encodeURIComponent(def.query)}`
+  return (
+    <TopicShell
+      trail={[{ name: 'Jobs', path: '/jobs' }, { name: 'Jobs by industry', path: '/jobs/industry' }, { name: def.name, path }]}
+      title={`${def.name} jobs: lists coming soon`}
+      intro={`${def.blurb} We publish a list only when there are enough verified openings to rank honestly, at least ${MIN_SEGMENT_JOBS}. ${found > 0 ? `We have ${count(found)} so far.` : 'We have not found enough yet.'} We check every week, so check back next month, or leave your email and we will tell you when ${def.label} jobs are posted.`}
+      capture={{ kind: 'industry', slug: def.slug, label: def.name, save: { q: def.query, loc: '' } }}
+    >
+      <Section id="now" title={`Looking for ${def.label} jobs now?`} tone={0}>
+        <p className="text-sm text-muted-foreground">{AMERICA_NOTE}</p>
+        <p className="mt-3 text-sm"><Link href={allHref} className={LINK}>Search all {def.label} jobs</Link></p>
+      </Section>
+      <OtherSegments current={def.slug} index={index.filter((x) => !x.soon)} />
+      <JoinBand source={`segment:${def.slug}:soon`} what={`how the market reads your background for ${def.label} roles`} />
     </TopicShell>
   )
 }

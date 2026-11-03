@@ -20,6 +20,14 @@ export const loadSegmentPage = cache(async (slug: string, edition?: string): Pro
   return e ? { def, entry, e, newest: want === entry.editions[0] } : null
 })
 
+/** A known segment that has no published edition yet ("coming soon"), with the number of jobs found so far. */
+export const loadSoonSegment = cache(async (slug: string): Promise<{ def: SegmentDef; found: number } | null> => {
+  const def = segmentBySlug(slug)
+  if (!def) return null
+  const entry = (await readSegmentIndex().catch(() => [])).find((x) => x.slug === slug)
+  return entry?.editions.length ? null : { def, found: entry?.total ?? 0 }
+})
+
 /** Employer pages for the employers in these rows (those with a page offered to search engines), by row key. */
 export async function employerHrefs(rows: SegmentRow[]): Promise<Map<string, string>> {
   const byName = await employerLinks(rows.map((r) => r.name))
