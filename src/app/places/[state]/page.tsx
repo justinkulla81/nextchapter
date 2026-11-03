@@ -1,4 +1,5 @@
 import { placeStateSeo } from '@/lib/seo/templates'
+import { YourState } from '@/components/capture/YourState'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import { redirectFromBareSlug } from '@/lib/places/resolve'
 import type { Metadata } from 'next'
@@ -74,6 +75,7 @@ export default async function StatePlacePage({ params }: { params: Promise<{ sta
       </>}
       jsonLd={[placeJsonLd({ type: 'State', name, path: placeUrl.state(state), population: d.area?.population })]}
     >
+      <YourState label="jobs" current={code} />
       {d.area && <EconomySection id="economy" title={`${name} economy`} labor={d.area} scope={name} />}
       <PlaceSignals scope={name} fips={d.counties.map((c) => c.fips)} boardIds={d.boards.map((b) => b.id)} workforceHref="#workforce" />
 
