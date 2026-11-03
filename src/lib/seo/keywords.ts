@@ -2916,11 +2916,11 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     intent: 'Nonprofit buys job seeker support',
     owner: '/nonprofits',
     kind: 'page',
-    primary: 'workspace for nonprofits serving job seekers',
+    primary: 'workspace for non-profits serving job seekers',
     secondary: ['nonprofit job seeker services', 'community organization workforce', 'job readiness program software'],
     seo: {
-      title: 'Workspace for Nonprofits Serving Job Seekers',
-      description: 'Claim your organization’s page with a work email at your domain. A free workspace gives your nonprofit its own page, services and basic counts.',
+      title: 'Workspace for Non-profits Serving Job Seekers',
+      description: 'Claim your organization’s page with a work email at your domain. A free workspace gives your non-profit its own page, services and basic counts.',
     },
   },
   {

@@ -98,10 +98,10 @@ const TOPICS: Topic[] = [
     title: 'Budgeting through a search',
     body: [
       'A job search of unknown length is easier to plan for once you know your real monthly "runway" number: essential expenses divided by savings plus expected unemployment benefits.',
-      'Before making any big financial decision — early retirement withdrawals, COBRA vs. marketplace, borrowing — a free session with a nonprofit credit counselor can help you see the real tradeoffs. This is general information, not personalized financial advice.',
+      'Before making any big financial decision — early retirement withdrawals, COBRA vs. marketplace, borrowing — a free session with a non-profit credit counselor can help you see the real tradeoffs. This is general information, not personalized financial advice.',
     ],
     links: [
-      { name: 'Find a nonprofit credit counselor (NFCC)', url: 'https://www.nfcc.org/' },
+      { name: 'Find a non-profit credit counselor (NFCC)', url: 'https://www.nfcc.org/' },
     ],
     relatedLink: { label: 'Bridging income between roles? See Interim Work →', href: '/dashboard/find-my-job?types=part_time,contract,advisory#independent-work' },
   },

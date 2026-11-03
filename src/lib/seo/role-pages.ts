@@ -211,7 +211,7 @@ const CHIEFS: Chief[] = [
   {
     slug: 'executive-director', name: 'Executive Director (ED)', short: 'Executive Director', spelled: 'Executive Director', acronym: 'ED', fn: 'Executive Leadership', ladder: 'executive',
     variants: ['Executive Director', 'ED', 'Executive Director and CEO', 'President and Executive Director'], aliases: ['ed', 'executive-director-nonprofit'],
-    owns: 'A nonprofit, association or agency: its mission, budget, staff, fundraising and the board it answers to. At some banks and firms “Executive Director” is a senior rank instead.',
+    owns: 'A non-profit, association or agency: its mission, budget, staff, fundraising and the board it answers to. At some banks and firms “Executive Director” is a senior rank instead.',
     sits: 'Reports to the board of directors.',
     names: 'executive director',
     // "Executive Director, Client Services" is a rank inside a company, not the head of an organization.

@@ -28,8 +28,8 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   return {
-    title: `${d.name} nonprofits: chambers, economic development and workforce organizations`,
-    description: `${d.orgs.length} larger ${d.name} nonprofits from IRS records, the ${d.name} labor market, grants open to nonprofits, and local workforce boards.`,
+    title: `${d.name} non-profits: chambers, economic development and workforce organizations`,
+    description: `${d.orgs.length} larger ${d.name} non-profits from IRS records, the ${d.name} labor market, grants open to non-profits, and local workforce boards.`,
     ...canonical(`/nonprofits/${state}`),
   }
 }
@@ -44,11 +44,11 @@ export default async function NonprofitStatePage({ params }: { params: Promise<{
     <SeoPage
       stateSlug={state}
       trail={[{ name: 'Nonprofits', path: '/nonprofits' }, { name: d.name, path: `/nonprofits/${state}` }]}
-      h1={`${d.name} nonprofits: chambers, economic development and workforce organizations`}
-      lede={<>{d.orgs.length} {d.name} nonprofits with $1 million or more in annual revenue, from IRS records, and what is happening in the {d.name} job market around them. Staff can claim an organization’s page and set up a free workspace.</>}
+      h1={`${d.name} non-profits: chambers, economic development and workforce organizations`}
+      lede={<>{d.orgs.length} {d.name} non-profits with $1 million or more in annual revenue, from IRS records, and what is happening in the {d.name} job market around them. Staff can claim an organization’s page and set up a free workspace.</>}
     >
       <section aria-labelledby="stats" className="mt-10">
-        <h2 id="stats" className={H2}>What matters to {d.name} nonprofits right now</h2>
+        <h2 id="stats" className={H2}>What matters to {d.name} non-profits right now</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {d.labor && <Stat value={rateText(d.labor)} label={`unemployment, ${periodLabel(d.labor.period)}`} note="BLS, counties summed" />}
           <Stat value={d.funding.length.toLocaleString()} label="open grants for nonprofits" note="Grants.gov and SAM.gov" />
@@ -61,7 +61,7 @@ export default async function NonprofitStatePage({ params }: { params: Promise<{
 
       {d.funding.length > 0 && (
         <section aria-labelledby="funding" className="mt-12">
-          <h2 id="funding" className={H2}>Grants open to {d.name} nonprofits</h2>
+          <h2 id="funding" className={H2}>Grants open to {d.name} non-profits</h2>
           <ul className="mt-4 divide-y divide-border rounded-xl border border-border bg-white text-sm">
             {d.funding.map((f) => (
               <li key={f.id} className="p-4">
@@ -98,9 +98,9 @@ export default async function NonprofitStatePage({ params }: { params: Promise<{
       ))}
 
       <ActionBand
-        title={`Run a ${d.name} nonprofit?`}
+        title={`Run a ${d.name} non-profit?`}
         body="Claim your organization’s page and set up a free workspace. Use a work email at your organization’s domain."
-        label="See how a nonprofit claims its page"
+        label="See how a non-profit claims its page"
         href="/nonprofits#claim"
         event="seo_claim_clicked"
         properties={{ page: 'nonprofit_state', audience: 'nonprofit', state: d.code }}

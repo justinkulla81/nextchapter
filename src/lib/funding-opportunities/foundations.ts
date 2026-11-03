@@ -32,7 +32,7 @@ export type AccessRoute = 'INVITATION_ONLY' | 'OPEN_CALLS' | 'OPEN' | 'UNKNOWN'
  * How NextChapter could realistically reach this money.
  *  DIRECT                 NextChapter would be the grantee.
  *  VIA_COLLEGE_OR_BOARD   inside a college, university or workforce-board grantee.
- *  VIA_NONPROFIT_PARTNER  inside a nonprofit or intermediary grantee.
+ *  VIA_NONPROFIT_PARTNER  inside a non-profit or intermediary grantee.
  *  NOT_ACCESSIBLE         no realistic route found.
  * On a TO VERIFY entry the path is provisional.
  */
@@ -74,7 +74,7 @@ export const FOUNDATIONS: Foundation[] = [
     forProfit: 'NOT_STATED',
     access: 'INVITATION_ONLY',
     accessPath: 'VIA_COLLEGE_OR_BOARD',
-    route: 'No direct route today. Watch for an open RFP, or be named by a college or nonprofit partner it already funds.',
+    route: 'No direct route today. Watch for an open RFP, or be named by a college or non-profit partner it already funds.',
     sourceUrl: 'https://www.luminafoundation.org/grants/',
     dateChecked: CHECKED,
     status: 'VERIFIED',
@@ -86,7 +86,7 @@ export const FOUNDATIONS: Foundation[] = [
     program: 'Catalytic grantmaking: Beyond Completion Challenge, Intermediary Learning Collaborative, Innovation in Career Services',
     whatItFunds: 'Education-to-employment pathways, career services, employer and college partnerships.',
     whoCanApply:
-      'Its grantmaking page says: "We provide grants to nonprofit organizations, postsecondary education providers, and workforce and skills-based educators." The page does not say whether for-profits qualify or whether applications are open or invited; individual initiative pages may.',
+      'Its grantmaking page says: "We provide grants to non-profit organizations, postsecondary education providers, and workforce and skills-based educators." The page does not say whether for-profits qualify or whether applications are open or invited; individual initiative pages may.',
     forProfit: 'NOT_STATED',
     access: 'UNKNOWN',
     accessPath: 'VIA_COLLEGE_OR_BOARD',
@@ -122,7 +122,7 @@ export const FOUNDATIONS: Foundation[] = [
     forProfit: 'EXCLUDED',
     access: 'INVITATION_ONLY',
     accessPath: 'VIA_NONPROFIT_PARTNER',
-    route: 'Not directly. Only through a nonprofit or college grantee that includes NextChapter as a vendor.',
+    route: 'Not directly. Only through a non-profit or college grantee that includes NextChapter as a vendor.',
     sourceUrl: 'https://walmart.org/how-we-give/grant-eligibility',
     dateChecked: CHECKED,
     status: 'VERIFIED',
@@ -138,7 +138,7 @@ export const FOUNDATIONS: Foundation[] = [
     forProfit: 'EXCLUDED',
     access: 'INVITATION_ONLY',
     accessPath: 'VIA_NONPROFIT_PARTNER',
-    route: 'Not directly. A 501(c)(3) partner (a workforce nonprofit or college foundation) would hold the grant.',
+    route: 'Not directly. A 501(c)(3) partner (a workforce non-profit or college foundation) would hold the grant.',
     sourceUrl: 'https://www.siegelendowment.org/what-we-fund/',
     dateChecked: CHECKED,
     status: 'VERIFIED',
@@ -149,7 +149,7 @@ export const FOUNDATIONS: Foundation[] = [
     name: 'OpenAI Foundation',
     program: 'Economic Futures program: initial $250 million for grants, partnerships and direct work (announced May 27, 2026). Separate: People-First AI Fund.',
     whatItFunds:
-      'Three areas: measurement and forecasting of AI economic effects; "supporting the transition" (job search support, help translating experience into new roles, pilots at meaningful scale); long-term economic security. Its People-First AI Fund funds community nonprofits and is not a workforce program.',
+      'Three areas: measurement and forecasting of AI economic effects; "supporting the transition" (job search support, help translating experience into new roles, pilots at meaningful scale); long-term economic security. Its People-First AI Fund funds community non-profits and is not a workforce program.',
     whoCanApply:
       'The Economic Futures announcement says the $250M "will support external organizations through grants, open calls, and institutional partnerships." It does not say whether for-profits qualify and gives no application process; first initiatives were to be announced later in 2026 and none appeared on the foundation news page on 2026-10-13. The 2026 People-First AI Fund (closed July 15, 2026) required "U.S.-Based 501(c)(3) Organization" status and a $500,000 to $10 million budget, so it excludes for-profits.',
     grantSize: 'Economic Futures: not stated. People-First AI Fund: $50 million across 163 organizations in 2026.',
@@ -184,14 +184,14 @@ export const FOUNDATIONS: Foundation[] = [
     name: 'Google.org',
     program: 'AI Opportunity Fund (U.S. workforce, $75 million committed in 2024); Generative AI Accelerator (open call, 2025 cohort selected)',
     whatItFunds:
-      'AI skills training delivered by "best-in-class workforce development and education organizations." The final $10 million went to intermediaries (Project Evident, Tech:NYC Foundation, community foundations) that give AI adoption help to nonprofits at no cost.',
+      'AI skills training delivered by "best-in-class workforce development and education organizations." The final $10 million went to intermediaries (Project Evident, Tech:NYC Foundation, community foundations) that give AI adoption help to non-profits at no cost.',
     whoCanApply:
-      'The google.org, publicpolicy.google and blog.google pages read name recipient types and grantees but state no eligibility rules or application process for the U.S. fund. The 2025 Generative AI Accelerator open call is closed and its page does not state for-profit eligibility. European and Asia-Pacific open calls (secondary) named nonprofits, social enterprises, unions and municipalities.',
+      'The google.org, publicpolicy.google and blog.google pages read name recipient types and grantees but state no eligibility rules or application process for the U.S. fund. The 2025 Generative AI Accelerator open call is closed and its page does not state for-profit eligibility. European and Asia-Pacific open calls (secondary) named non-profits, social enterprises, unions and municipalities.',
     grantSize: 'Fund total $75 million; per-grant size not stated on the pages read.',
     forProfit: 'NOT_STATED',
     access: 'UNKNOWN',
     accessPath: 'VIA_NONPROFIT_PARTNER',
-    route: 'Provisional: through a workforce or education nonprofit that already holds a grant, or through the intermediaries. No public U.S. application route found.',
+    route: 'Provisional: through a workforce or education non-profit that already holds a grant, or through the intermediaries. No public U.S. application route found.',
     sourceUrl: 'https://publicpolicy.google/article/AI-opportunity-fund/',
     dateChecked: CHECKED,
     status: 'TO VERIFY',
@@ -222,7 +222,7 @@ export const FOUNDATIONS: Foundation[] = [
     whatItFunds:
       'Economic mobility for children and families through direct services and systems change; the grantee list shows workforce training and AI-education grants (for example aiEDU, $1,000,000, 2026 to 2027).',
     whoCanApply:
-      'Its grants page says "we cannot accept unsolicited grant applications." The pages read do not state eligible organization types or mention for-profits. The grantee list shows multi-year grants, mostly to nonprofits.',
+      'Its grants page says "we cannot accept unsolicited grant applications." The pages read do not state eligible organization types or mention for-profits. The grantee list shows multi-year grants, mostly to non-profits.',
     grantSize: 'Examples on its grantee list: $750,000 to $20,200,000 over multiple years.',
     forProfit: 'NOT_STATED',
     access: 'INVITATION_ONLY',
@@ -238,13 +238,13 @@ export const FOUNDATIONS: Foundation[] = [
     name: 'JPMorganChase (Careers and Skills)',
     program: 'Careers and Skills impact page (includes New Skills Ready Network for youth career pathways). Third-party listings call the area "Jobs and Skills".',
     whatItFunds:
-      'Career-connected education, skills training and policy work. Examples read: nonprofit workforce grants in Chicago, Miami and Alabama (2024 to 2026 press releases).',
+      'Career-connected education, skills training and policy work. Examples read: non-profit workforce grants in Chicago, Miami and Alabama (2024 to 2026 press releases).',
     whoCanApply:
-      'No page on jpmorganchase.com that was read states who can apply or how. Its press releases show grants to named nonprofits. Secondary listings say proposals are by invitation only and from tax-exempt nonprofits.',
+      'No page on jpmorganchase.com that was read states who can apply or how. Its press releases show grants to named non-profits. Secondary listings say proposals are by invitation only and from tax-exempt non-profits.',
     forProfit: 'UNKNOWN',
     access: 'INVITATION_ONLY',
     accessPath: 'VIA_NONPROFIT_PARTNER',
-    route: 'Provisional: through a nonprofit or workforce-board partner that holds a grant.',
+    route: 'Provisional: through a non-profit or workforce-board partner that holds a grant.',
     sourceUrl: 'https://www.jpmorganchase.com/impact/careers-and-skills',
     dateChecked: CHECKED,
     status: 'TO VERIFY',

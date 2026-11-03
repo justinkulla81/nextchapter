@@ -47,7 +47,7 @@ const PILLARS = [
   { kicker: 'AI job search', title: 'AI agents run the search', body: 'They find matching roles, track every application, response and rejection, and tell you what to do next.' },
   { kicker: 'Career exploration', title: 'Know which jobs you can get', body: 'The Market Reality Assessment shows how employers read your background and which roles and titles fit.' },
   { kicker: 'Education & retraining', title: 'Train only where it pays off', body: 'Career pathways that show the skills and credentials employers are hiring for, and nothing extra.' },
-  { kicker: 'Workforce development', title: 'Move people into jobs at scale', body: 'Outplacement firms, workforce boards, nonprofits and employers manage cohorts and report placement results.' },
+  { kicker: 'Workforce development', title: 'Move people into jobs at scale', body: 'Outplacement firms, workforce boards, non-profits and employers manage cohorts and report placement results.' },
 ]
 
 const CANDIDATES = [

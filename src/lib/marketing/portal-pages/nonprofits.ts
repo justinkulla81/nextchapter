@@ -3,7 +3,7 @@ import { PORTALS } from '@/lib/marketing/portals'
 import { shot } from '@/lib/marketing/screenshots'
 import type { PortalPageDef } from './types'
 
-// /nonprofits: nonprofits, community organizations and research partners. Nonprofit and community organizations get the
+// /nonprofits: non-profits, community organizations and research partners. Non-profit and community organizations get the
 // same free workspace as workforce organizations (src/lib/plans/provision.ts maps NONPROFIT and FOUNDATION to a
 // community organization), so the plans are the workforce plans and the claim works the same way. Research and funding
 // partnerships are set up one at a time: no dataset, access terms or outcome is promised here.
@@ -73,7 +73,7 @@ export const NONPROFITS: PortalPageDef = {
     faq: [
       {
         q: 'Who can claim a page?',
-        a: 'A staff member of a nonprofit or community organization with a work email at the organization’s domain. We send a one-time link to that address to confirm it. If we do not know your domain yet, our team follows up on the claim.',
+        a: 'A staff member of a non-profit or community organization with a work email at the organization’s domain. We send a one-time link to that address to confirm it. If we do not know your domain yet, our team follows up on the claim.',
       },
       {
         q: 'What does the free workspace include?',
@@ -106,11 +106,11 @@ export const NONPROFITS: PortalPageDef = {
       { href: '/ai-training', label: 'AI training for career services' },
     ],
     jsonLd: {
-      serviceName: 'Workspace for nonprofits and community organizations',
+      serviceName: 'Workspace for non-profits and community organizations',
       serviceType: 'Community organization workspace',
       audienceType: 'Nonprofits, community organizations and research partners',
       description:
-        'A workspace for nonprofits and community organizations: your own page, your services, active members and basic counts, with research partnerships set up one at a time.',
+        'A workspace for non-profits and community organizations: your own page, your services, active members and basic counts, with research partnerships set up one at a time.',
       trail: [
         { name: 'For organizations', path: '/for-organizations' },
         { name: 'Nonprofits and community organizations', path: '/nonprofits' },

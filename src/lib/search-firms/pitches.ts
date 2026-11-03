@@ -56,7 +56,7 @@ Founder, NextChapter`,
     subject: 'Leaders for {firmName} searches, screened and free',
     body: `Hi {firstName},
 
-NextChapter is the leading job transition platform for experienced professionals who were laid off. Our members include finance, operations, HR, technology and advancement leaders, and many want mission-driven work at a nonprofit, college or university.
+NextChapter is the leading job transition platform for experienced professionals who were laid off. Our members include finance, operations, HR, technology and advancement leaders, and many want mission-driven work at a non-profit, college or university.
 
 Send us an open or confidential search, such as {searchExample}. Within days we return a screened shortlist of members at the right level. AI reads each profile against your position description, and a person on our team reviews every name. When a search is confidential, members never see the institution.
 

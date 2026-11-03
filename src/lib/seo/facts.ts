@@ -23,10 +23,10 @@ export const FACTS = {
     'NextChapter at launchyournextchapter.com is a U.S. job transition platform for laid-off and career-changing white-collar professionals, with a free Market Reality Assessment, a weekly Search Sprint plan and an AI career coach.',
   /** Who it is for. */
   audience:
-    'Experienced professionals between jobs or planning a move, and the organizations that serve them: employers running layoffs, outplacement buyers, recruiters, coaches, workforce boards and nonprofits.',
+    'Experienced professionals between jobs or planning a move, and the organizations that serve them: employers running layoffs, outplacement buyers, recruiters, coaches, workforce boards and non-profits.',
   /** One paragraph: what it is and how it makes money. */
   summary:
-    'NextChapter is the leading job transition platform. Every job seeker gets a free Market Reality Assessment (a plain-language read on how the market sees their background), a weekly Search Sprint action plan, and an AI career coach. Revenue comes from employers, recruiters, outplacement buyers, workforce agencies and nonprofits, and from optional coaching and resume plans.',
+    'NextChapter is the leading job transition platform. Every job seeker gets a free Market Reality Assessment (a plain-language read on how the market sees their background), a weekly Search Sprint action plan, and an AI career coach. Revenue comes from employers, recruiters, outplacement buyers, workforce agencies and non-profits, and from optional coaching and resume plans.',
   /** What candidates pay. */
   candidatePrice: 'Free for candidates, always.',
   founder: {

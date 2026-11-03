@@ -296,7 +296,7 @@ export const LEARNING_PATHS: Record<JourneyType, { title: string; steps: string[
   FRACTIONAL: { title: 'Fill your open days', steps: ['Tell alumni what you offer and your open days', 'Ask for introductions to companies needing fractional help', 'Mentor alumni earlier in their careers'] },
   ENTREPRENEUR: { title: 'Build on the side', steps: ['Find alumni who started something', 'A short program in the skill you are missing', 'Customers and advisors from the alumni network'] },
   BUY_BUSINESS: { title: 'Own a business', steps: ['Talk to alumni who bought or run a business', 'A short program on valuation and small-business finance', 'Introductions to lenders, brokers and advisors from the alumni network'] },
-  NEXT_ACT: { title: 'Your next act', steps: ['A board-readiness or nonprofit governance program', 'Board seats and fractional roles from alumni', 'Mentor alumni earlier in their careers'] },
+  NEXT_ACT: { title: 'Your next act', steps: ['A board-readiness or non-profit governance program', 'Board seats and fractional roles from alumni', 'Mentor alumni earlier in their careers'] },
 }
 
 // ── Mentoring cohorts ────────────────────────────────────────────────────────
