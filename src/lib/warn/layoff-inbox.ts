@@ -2,6 +2,7 @@ import 'server-only'
 import Anthropic from '@anthropic-ai/sdk'
 import { prisma } from '@/lib/prisma'
 import { createResend } from '@/lib/email/resend-client'
+import { readDivision } from './division'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { matchOrCreateCompanyForEmployer } from './company-match'
@@ -41,6 +42,8 @@ async function file(l: EmailedLayoff): Promise<{ outcome: 'filed' | 'already-fil
       } : {}),
       employer: l.company,
       normalizedEmployer: key,
+      division: readDivision(l.company),
+      rssPublishedAt: new Date(),
       source: 'MANUAL_ANNOUNCEMENT',
       state: l.state,
       noticeDate: when,

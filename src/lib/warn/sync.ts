@@ -1,5 +1,6 @@
 import 'server-only'
 import { alertNewLayoff } from './layoff-alert'
+import { readDivision } from './division'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { strictOrgKey } from '@/lib/crm/normalize'
@@ -248,6 +249,7 @@ async function stageNotice(row: WarnRow, sourceUrl: string, companies?: CompanyI
       noticeDate: row.noticeDate, effectiveDate: row.effectiveDate, employees: row.employees,
       layoffType: clean(row.layoffType), county: clean(row.county), address: clean(row.address),
       industry: clean(row.industry), sourceUrl,
+      division: readDivision(row.employer),
       companyId: match.companyId,
       companyMatchStatus: match.status,
       ...(match.candidates ? { companyMatchCandidates: match.candidates } : {}),
@@ -313,7 +315,7 @@ async function promoteNotice(row: WarnRow, sourceUrl: string, orgs?: OrgIndex): 
     create: {
       orgId: org.id, headcountAffected: row.employees,
       announcedAt: row.noticeDate, sourceUrl,
-      outreachAngle: `WARN filing${row.effectiveDate ? `, effective ${row.effectiveDate.toISOString().slice(0, 10)}` : ''}${row.layoffType ? ` — ${row.layoffType}` : ''}`,
+      outreachAngle: `WARN filing${notice.division ? ` (${notice.division} division)` : ''}${row.effectiveDate ? `, effective ${row.effectiveDate.toISOString().slice(0, 10)}` : ''}${row.layoffType ? ` — ${row.layoffType}` : ''}`,
     },
     update: {
       headcountAffected: row.employees ?? undefined,
@@ -344,10 +346,10 @@ async function promoteNotice(row: WarnRow, sourceUrl: string, orgs?: OrgIndex): 
       await prisma.crmOpportunity.create({
         data: {
           pipelineId: pipeline.id, stageId: pipeline.stages[0].id, orgId: org.id,
-          title: `${row.employer} — ${row.employees ?? '?'} roles`,
+          title: `${row.employer}${notice.division ? ` (${notice.division})` : ''} — ${row.employees ?? '?'} roles`,
           leadQuality: (row.employees ?? 0) >= 200 ? 'A' : 'B',
           eligibility: 'NOT_APPLICABLE',
-          nextStep: `WARN filed ${row.noticeDate?.toISOString().slice(0, 10) ?? 'recently'}${row.county ? ` in ${row.county}` : ''}. Find the CHRO or VP People.`,
+          nextStep: `WARN filed ${row.noticeDate?.toISOString().slice(0, 10) ?? 'recently'}${notice.division ? `, ${notice.division} division` : ''}${row.county ? ` in ${row.county}` : ''}. Find the CHRO or VP People.`,
         },
       })
     }

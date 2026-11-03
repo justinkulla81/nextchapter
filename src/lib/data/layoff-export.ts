@@ -9,11 +9,12 @@ export const LAYOFF_DATA_LICENSE = 'CC BY 4.0'
 export const LAYOFF_DATA_LICENSE_URL = 'https://creativecommons.org/licenses/by/4.0/'
 export const LAYOFF_DATA_CITATION = 'NextChapter layoff tracker, WARN Act notices collected from state labor departments. launchyournextchapter.com/layoffs'
 
-export const LAYOFF_COLUMNS = ['state', 'employer', 'notice_date', 'effective_date', 'workers', 'layoff_type', 'place', 'source_url', 'nextchapter_url'] as const
+export const LAYOFF_COLUMNS = ['state', 'employer', 'division', 'notice_date', 'effective_date', 'workers', 'layoff_type', 'place', 'source_url', 'nextchapter_url'] as const
 
 export interface LayoffRow {
   state: string
   employer: string
+  division: string | null
   notice_date: string | null
   effective_date: string | null
   workers: number | null
@@ -29,6 +30,7 @@ export function toRow(n: PublicNotice): LayoffRow {
   return {
     state: n.state,
     employer: n.employer,
+    division: n.division,
     notice_date: n.noticeDateKnown ? day(n.noticeDate) : null,
     effective_date: n.effectiveDate ? day(n.effectiveDate) : null,
     workers: n.workers,

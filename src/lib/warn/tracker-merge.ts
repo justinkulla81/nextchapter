@@ -25,6 +25,9 @@ export interface LooseNotice {
   industry: string | null
   /** Headlines of the news mentions linked to this notice. */
   headlines?: string[]
+  /** The story links of the news mentions linked to this notice, with the outlet that ran each. */
+  mentions?: { publisher: string | null; url: string }[]
+  division?: string | null
 }
 
 export interface MergedLayoff {
@@ -44,7 +47,12 @@ export interface MergedLayoff {
   publisher: string | null
   /** Employee groups the headlines name; empty when none. */
   roles: string[]
+  division: string | null
+  /** Up to three distinct outlets that reported it, with a link to each story. */
+  links: { label: string; url: string }[]
 }
+
+export const MAX_SOURCE_LINKS = 3
 
 export const MERGE_WINDOW_DAYS = 45
 const DAY_MS = 86_400_000
@@ -73,6 +81,23 @@ function sourcesOf(rows: LooseNotice[]): number {
     if (host) links.add(isRedirector(r.sourceUrl) ? `link:${r.sourceUrl}` : host)
   }
   return links.size
+}
+
+/** One link per outlet, up to three: a story from each distinct publisher, falling back to the notices' own links. */
+function sourceLinks(rows: LooseNotice[]): { label: string; url: string }[] {
+  const out: { label: string; url: string }[] = []
+  const seen = new Set<string>()
+  const add = (label: string | null, url: string | null) => {
+    if (!url || !/^https:\/\//.test(url) || out.length >= MAX_SOURCE_LINKS) return
+    const name = (label ?? hostOf(url) ?? '').trim().replace(/\s+on\s+msn$/i, '')
+    const key = name.toLowerCase().replace(/^www\./, '')
+    if (!name || seen.has(key)) return
+    seen.add(key)
+    out.push({ label: name, url })
+  }
+  for (const r of rows) for (const m of r.mentions ?? []) add(m.publisher, m.url)
+  for (const r of rows) add(isRedirector(r.sourceUrl) ? null : hostOf(r.sourceUrl), r.sourceUrl)
+  return out
 }
 
 /** The headcount most reports give; on a tie the smaller, so the tracker never overstates. Null when none gave one. */
@@ -129,6 +154,8 @@ export function mergeReported(notices: LooseNotice[]): MergedLayoff[] {
       industry: rows.find((r) => r.industry)?.industry ?? null,
       publisher: rows.flatMap((r) => r.publishers).find((p) => p.trim())?.trim().replace(/\s+on\s+msn$/i, '') ?? null,
       roles: affectedRoles(rows.flatMap((r) => r.headlines ?? [])),
+      division: rows.find((r) => r.division)?.division ?? null,
+      links: sourceLinks(rows),
     }
   })
 }

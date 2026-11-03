@@ -67,10 +67,11 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     // Everyone tied to this layoff, by role. A failure here sends the shorter email, not none.
     const notice = await prisma.warnNotice.findUnique({
       where: { id: l.noticeId },
-      select: { state: true, county: true, address: true, workforceBoardId: true, promotedOrgId: true, companyId: true, industry: true, alertSentAt: true, alertHeldAt: true, alertGaveUpAt: true,
+      select: { division: true, state: true, county: true, address: true, workforceBoardId: true, promotedOrgId: true, companyId: true, industry: true, alertSentAt: true, alertHeldAt: true, alertGaveUpAt: true,
         costLowUsd: true, costHighUsd: true, costNote: true, outplacementProvider: true, outplacementNote: true },
     }).catch(() => null)
     if (notice?.alertSentAt || notice?.alertGaveUpAt) return false
+    input.division = notice?.division ?? null
     // Find the people to call now, so the email is not empty: one Hunter search for a company with no head of HR on file.
     // The Hunter search is spent once, on the first attempt; a retry only re-reads what the CRM has gained since.
     const firstAttempt = !notice?.alertHeldAt

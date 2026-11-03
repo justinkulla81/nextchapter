@@ -55,6 +55,8 @@ export interface ContactGroup {
 
 export interface AlertInput {
   employer: string
+  /** The division of the employer the layoff is in, when the filing or coverage names one. */
+  division?: string | null
   employees: number | null
   percent: number | null
   kind: LayoffKind
@@ -97,7 +99,7 @@ export const sizeLabel = (employees: number | null, percent: number | null): str
   employees ? `${employees.toLocaleString('en-US')} jobs` : percent ? `${percent}% of staff` : 'size unknown'
 
 export function alertSubject(a: AlertInput): string {
-  return `Layoff alert: ${a.employer} (${sizeLabel(a.employees, a.percent)})${a.inCrm ? ' — in your CRM' : ''}${a.confirmed ? '' : ' — unconfirmed'}`
+  return `Layoff alert: ${a.employer}${a.division ? ` — ${a.division} division` : ''} (${sizeLabel(a.employees, a.percent)})${a.inCrm ? ' — in your CRM' : ''}${a.confirmed ? '' : ' — unconfirmed'}`
 }
 
 const KIND_LABEL: Record<LayoffKind, string> = {
@@ -157,6 +159,7 @@ export function groupSummary(groups: ContactGroup[]): { people: number; withEmai
 
 export function alertBody(a: AlertInput, links: { source: string | null; org: string | null; notices: string }): string {
   const facts: [string, string][] = [
+    ...(a.division ? [['Division', esc(a.division)] as [string, string]] : []),
     ['Source', esc(KIND_LABEL[a.kind]) + (a.confirmed ? '' : ' — one outlet so far, unconfirmed')],
   ]
   if (a.inCrm) {
@@ -200,7 +203,7 @@ ${a.groups.map(groupHtml).join('')}`
 
   return `<div style="max-width:640px;margin:0 auto;font:14px/1.5 ${FONT};color:${INK}">
 <p style="margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:${ACCENT};font-weight:600">Layoff alert</p>
-<h1 style="font:600 26px/1.2 Georgia,'Times New Roman',serif;margin:4px 0 4px">${esc(a.employer)}</h1>
+<h1 style="font:600 26px/1.2 Georgia,'Times New Roman',serif;margin:4px 0 4px">${esc(a.employer)}${a.division ? ` <span style="font-size:18px;color:${MUTED}">· ${esc(a.division)} division</span>` : ''}</h1>
 <p style="margin:0 0 14px;color:${MUTED}">${sizeLine}</p>
 <table role="presentation" cellpadding="3" style="border-collapse:collapse;margin:0 0 12px">${facts.map(([k, v]) => `<tr><td style="color:${MUTED};padding-right:14px">${k}</td><td>${v}</td></tr>`).join('')}</table>
 ${sourceList}

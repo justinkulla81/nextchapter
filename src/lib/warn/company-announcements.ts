@@ -18,6 +18,7 @@ export interface CompanyAnnouncement {
   /** The tracker's own one-line description, e.g. "Voluntary buyout offered to about 60,000 employees". */
   summary: string
   workers: number | null
+  division: string | null
   sourceUrl: string | null
   /** When an admin published it to the layoff RSS feed (CRM > WARN); null = not in the feed. */
   rssPublishedAt: Date | null
@@ -43,7 +44,7 @@ async function load(): Promise<Map<string, CompanyAnnouncements>> {
       // A bare NOT(contains) drops rows whose sourceUrl is NULL, and a company announcement may have no link.
       OR: [{ sourceUrl: null }, { NOT: { sourceUrl: { contains: 'layoffs.fyi', mode: 'insensitive' } } }],
     },
-    select: { id: true, employer: true, employees: true, noticeDate: true, layoffType: true, sourceUrl: true, rssPublishedAt: true, companyMatchStatus: true, company: { select: { name: true } } },
+    select: { id: true, employer: true, employees: true, division: true, noticeDate: true, layoffType: true, sourceUrl: true, rssPublishedAt: true, companyMatchStatus: true, company: { select: { name: true } } },
     orderBy: { noticeDate: 'desc' },
   })
   const by = new Map<string, CompanyAnnouncements>()
@@ -60,6 +61,7 @@ async function load(): Promise<Map<string, CompanyAnnouncements>> {
       kind: announcementKind(summary),
       summary,
       workers: r.employees,
+      division: r.division,
       sourceUrl: r.sourceUrl && /^https:\/\//.test(r.sourceUrl) ? r.sourceUrl : null,
       rssPublishedAt: r.rssPublishedAt,
     })
@@ -69,7 +71,9 @@ async function load(): Promise<Map<string, CompanyAnnouncements>> {
   return by
 }
 
-const shared = memoTtl(5 * 60_000, () => 'all', () => heavy(load))
+let announcementsVersion = 0
+export const forgetAnnouncements = () => { announcementsVersion++ }
+const shared = memoTtl(5 * 60_000, () => `all:${announcementsVersion}`, () => heavy(load))
 
 /** Every employer with a published announcement, keyed by layoff-page slug. */
 export const getAnnouncements = cache(() => shared())
