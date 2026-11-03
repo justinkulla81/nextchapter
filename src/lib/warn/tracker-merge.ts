@@ -1,5 +1,6 @@
 import { plausibleEmployer } from '@/lib/linkedin/layoff-post-rules'
 import { sameEmployer } from './news-headline'
+import { affectedRoles } from './affected-roles'
 
 // Reported layoffs that name no U.S. state (a news story, an SEC filing) for the public tracker. Pure.
 //
@@ -22,6 +23,8 @@ export interface LooseNotice {
   country: string | null
   /** The matched company's industry, when known. */
   industry: string | null
+  /** Headlines of the news mentions linked to this notice. */
+  headlines?: string[]
 }
 
 export interface MergedLayoff {
@@ -37,6 +40,10 @@ export interface MergedLayoff {
   sources: number
   country: string | null
   industry: string | null
+  /** A publisher that reported it, for the source label when the link is a redirector. */
+  publisher: string | null
+  /** Employee groups the headlines name; empty when none. */
+  roles: string[]
 }
 
 export const MERGE_WINDOW_DAYS = 45
@@ -120,6 +127,8 @@ export function mergeReported(notices: LooseNotice[]): MergedLayoff[] {
       sources: sourcesOf(rows),
       country: rows.find((r) => r.country)?.country ?? null,
       industry: rows.find((r) => r.industry)?.industry ?? null,
+      publisher: rows.flatMap((r) => r.publishers).find((p) => p.trim())?.trim().replace(/\s+on\s+msn$/i, '') ?? null,
+      roles: affectedRoles(rows.flatMap((r) => r.headlines ?? [])),
     }
   })
 }

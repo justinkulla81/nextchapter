@@ -141,12 +141,14 @@ export function LayoffTable({ rows }: { rows: TrackerRow[] }) {
       </p>
 
       <div className="mt-3 overflow-x-auto rounded-xl border border-border bg-white">
-        <table className="w-full min-w-[40rem] text-left text-sm">
+        <table className="w-full min-w-[56rem] text-left text-sm">
           <caption className="sr-only">The most recent layoff notices, newest first</caption>
           <thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
             <tr>
               <th scope="col" className="px-4 py-3 font-medium">Date</th>
               <th scope="col" className="px-4 py-3 font-medium">Employer</th>
+              <th scope="col" className="px-4 py-3 font-medium">Industry</th>
+              <th scope="col" className="px-4 py-3 font-medium">Employees affected</th>
               <th scope="col" className="px-4 py-3 font-medium">Place</th>
               <th scope="col" className="px-4 py-3 text-right font-medium">Workers</th>
               <th scope="col" className="px-4 py-3 font-medium">Takes effect</th>
@@ -165,12 +167,14 @@ export function LayoffTable({ rows }: { rows: TrackerRow[] }) {
                   {r.unconfirmed && (
                     <span className="ml-2 rounded-full bg-off-white px-2 py-0.5 align-middle text-xs font-normal text-muted-foreground">1 source</span>
                   )}
-                  {(r.type || r.sites > 1 || r.industry) && (
+                  {(r.type || r.sites > 1) && (
                     <span className="block text-xs font-normal text-muted-foreground">
-                      {[r.type, r.sites > 1 ? `${r.sites} sites` : null, r.industry].filter(Boolean).join(' · ')}
+                      {[r.type, r.sites > 1 ? `${r.sites} sites` : null].filter(Boolean).join(' · ')}
                     </span>
                   )}
                 </th>
+                <td className="px-4 py-3">{r.industry ?? '—'}</td>
+                <td className="px-4 py-3">{r.roles.length ? r.roles.join(', ') : '—'}</td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   {r.state || (r.country ? countryName(r.country) : '—')}
                   {r.county && <span className="block text-xs text-muted-foreground">{r.county}</span>}
@@ -186,7 +190,7 @@ export function LayoffTable({ rows }: { rows: TrackerRow[] }) {
             ))}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                   No layoffs match these filters.{' '}
                   <button type="button" onClick={clear} className="text-primary underline underline-offset-4">Clear filters</button>
                 </td>
