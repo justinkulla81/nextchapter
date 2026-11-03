@@ -3,6 +3,7 @@
 // them are found only through the sitemap, which is slow. Add a new page family's hub here.
 export const BROWSE_LINKS: { label: string; href: string }[] = [
   { label: 'Jobs by title', href: '/jobs/title' },
+  { label: 'Jobs by industry: who is hiring', href: '/jobs/industry' },
   { label: 'Salaries by title', href: '/salaries' },
   { label: 'Employers hiring', href: '/employers' },
   { label: 'Local job markets', href: '/places' },
