@@ -31,8 +31,15 @@ const jsonLd = organizationJsonLd({
   founder: personJsonLd(),
   knowsAbout: [
     'AI job search', 'Career transitions', 'Career exploration', 'Career pathways',
-    'Education technology', 'Retraining', 'Workforce development', 'AI and job loss',
-    'Long-term unemployment', 'Age-related unemployment', 'Parental and family leave',
+    'Education technology', 'EdTech', 'Workforce technology', 'Retraining', 'Reskilling', 'Upskilling',
+    'AI skills', 'AI upskilling', 'AI literacy', 'AI skills training', 'Skills gap analysis',
+    'Skills-based hiring', 'Skills taxonomy', 'Personalized curriculum', 'Personalized learning paths',
+    'Adaptive learning', 'Workforce development', 'WIOA', 'Workforce boards',
+    'Rapid response', 'Dislocated workers', 'Outplacement', 'Staffing and recruiting technology', 'Talent marketplace',
+    'Career services', 'Lifelong learning', 'Learning and development', 'Employee retention',
+    'Credentials and certificates', 'Apprenticeships and earn-and-learn', 'Labor market data',
+    'AI and job loss', 'AI displacement', 'Future of work', 'Long-term unemployment',
+    'Age-related unemployment', 'Parental and family leave',
   ],
 })
 
@@ -145,6 +152,20 @@ export default function AboutPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Education technology positioning */}
+        <section>
+          <div className="mx-auto max-w-6xl px-6 pt-16">
+            <p className={EYEBROW}>Education technology</p>
+            <h2 className={H2}>Workforce technology for retraining, reskilling and upskilling</h2>
+            <p className="mt-4 max-w-3xl text-base leading-relaxed text-foreground/85">
+              NextChapter is an education technology and workforce technology company. Its AI platform handles retraining, reskilling and upskilling: it
+              compares each person’s skills with the roles employers are hiring for, finds the gaps, and recommends a personalized curriculum of AI skills
+              courses and credentials to close them. Workforce boards running WIOA programs, outplacement and staffing firms, training providers and
+              employers use NextChapter for workforce development, career transition and placement, with outcome reporting for funders and leadership.
+            </p>
           </div>
         </section>
 
