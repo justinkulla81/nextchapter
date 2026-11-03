@@ -46,6 +46,10 @@ export interface CountyStat {
   /** Share of private jobs in AI-exposed sectors, 0 to 1, and the biggest such sector. */
   exposedShare?: number | null
   exposedTop?: string | null
+  /** Our open professional roles in the county, the unemployed people there, and its American Job Centers. */
+  openings?: number | null
+  unemployed?: number | null
+  ajc?: number | null
 }
 
 export interface PlaceInfo { name: string; href: string | null }
@@ -75,9 +79,13 @@ export type MeasureId =
   | 'midcareer' | 'leadership' | 'fnopen' | 'fnpay' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay'
   | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed' | 'collegepay'
   | 'indjunior' | 'indai' | 'indpay'
+  | 'icopen' | 'icpay' | 'cgrad' | 'cmid' | 'cremote' | 'cai' | 'perunemp' | 'claidoff' | 'coverall'
+
+/** The measures a single city is ranked on by one value. Composite lists score a whole pool at once and are not in this set. */
+export type CityMeasureId = 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent' | 'midcareer' | 'leadership' | 'fnopen' | 'fnpay' | 'icopen' | 'icpay'
 
 /** Which stored build a list belongs to: the three builds run as separate monthly jobs so each stays inside the time limit. */
-export type BuildGroup = 'places' | 'functions' | 'skills' | 'workforce' | 'college'
+export type BuildGroup = 'places' | 'functions' | 'skills' | 'workforce' | 'college' | 'industry'
 
 export interface RankingEdition {
   slug: string
@@ -145,3 +153,6 @@ export interface CollegeStat {
   completionRate: number | null
   netPrice: number | null
 }
+
+/** Openings and median posted pay in one industry in one city. */
+export interface IndustryCityRow { st: string; city: string; industry: string; n: number; paid: number; payMed: number | null }

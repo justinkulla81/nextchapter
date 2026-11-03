@@ -1,11 +1,12 @@
 // Turns counts into a ranked, annotated edition: the rows, the lead sentence, the commentary built from the numbers, the
 // FAQ and the method. Pure: no database, no clock beyond the dates passed in.
 
-import { CITY_MEASURES, CONCENTRATION_NOTE, COUNTY_MEASURES, MEASURE_SOURCES, nf, pct1, usdK, type CityCtx, type Scope } from '@/lib/rankings/measures'
+import { CITY_MEASURES, CONCENTRATION_NOTE, COUNTY_MEASURES, MAX_EMPLOYER_SHARE as MAX_SHARE, MEASURE_SOURCES, nf, pct1, usdK, type CityCtx, type Scope } from '@/lib/rankings/measures'
 import { REGIONS, regionById } from '@/lib/rankings/regions'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { industryByName, industryPath } from '@/lib/seo/topics'
 import { AI_SKILL_ITEMS } from '@/lib/skills/ai-skills'
+import { COUNTY_COMPOSITES, CITY_COMPOSITES, countyEligible, describeWeights, scorePool, type Comp } from '@/lib/rankings/composites'
 import type { BuildGroup, CityStat, CollegeStat, CountyStat, FnTotal, IndustryStat, MeasureId, PlaceInfo, RankRow, RankingEdition, SkillStat } from '@/lib/rankings/types'
 
 export const MIN_RANKED = 8
@@ -135,6 +136,58 @@ export function collegeSpecs(states: string[]): Spec[] {
   return out
 }
 
+/** The industries the crawler assigns to an employer, with the words and address used for them. */
+export const INDUSTRIES: { code: string; phrase: string; slug: string }[] = [
+  { code: 'technology', phrase: 'technology', slug: 'technology' },
+  { code: 'healthcare', phrase: 'healthcare', slug: 'healthcare' },
+  { code: 'financial_services', phrase: 'financial services', slug: 'financial-services' },
+  { code: 'professional_services', phrase: 'professional services', slug: 'professional-services' },
+  { code: 'industrial', phrase: 'manufacturing and industrial', slug: 'manufacturing-and-industrial' },
+  { code: 'consumer', phrase: 'consumer and retail', slug: 'consumer-and-retail' },
+  { code: 'life_sciences', phrase: 'life sciences and biotech', slug: 'life-sciences-and-biotech' },
+  { code: 'aerospace_defense', phrase: 'aerospace and defense', slug: 'aerospace-and-defense' },
+  { code: 'education', phrase: 'education', slug: 'education' },
+  { code: 'government', phrase: 'government', slug: 'government' },
+  { code: 'energy', phrase: 'energy and utilities', slug: 'energy-and-utilities' },
+  { code: 'media', phrase: 'media and entertainment', slug: 'media-and-entertainment' },
+  { code: 'nonprofit', phrase: 'nonprofit', slug: 'nonprofit' },
+  { code: 'logistics', phrase: 'logistics and transportation', slug: 'logistics-and-transportation' },
+  { code: 'real_estate', phrase: 'construction and real estate', slug: 'construction-and-real-estate' },
+  { code: 'telecom', phrase: 'telecommunications', slug: 'telecommunications' },
+  { code: 'agriculture', phrase: 'agriculture and food', slug: 'agriculture-and-food' },
+]
+
+/** Wave 4, industries: each industry's best cities for openings and for pay. (The lists that rank the industries themselves are industrySpecs.) */
+export function industryCitySpecs(): Spec[] {
+  const out: Spec[] = []
+  for (const i of INDUSTRIES) {
+    out.push({ slug: `best-cities-for-${i.slug}-jobs`, measure: 'icopen', scope: NATIONAL_SCOPE, title: `Best cities for ${i.phrase} jobs`, family: 'Industry markets', group: 'industry', fn: i.code })
+    out.push({ slug: `best-cities-for-${i.slug}-pay-vs-cost-of-living`, measure: 'icpay', scope: NATIONAL_SCOPE, title: `Best cities for ${i.phrase} pay after cost of living`, family: 'Industry markets', group: 'industry', fn: i.code })
+  }
+  return out
+}
+
+/** Wave 4, all-round: four audience lists for cities, and three county lists, nationally and for each region. Built with the place lists. */
+export function compositeSpecs(): Spec[] {
+  const out: Spec[] = []
+  const scopes = [NATIONAL_SCOPE, ...REGIONS.map((r) => ({ kind: 'region' as const, id: r.id, name: r.name, phrase: r.phrase }))]
+  const slugPart = (sc: Spec['scope']) => (sc.kind === 'national' ? '' : (sc.phrase).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))
+  for (const m of ['cgrad', 'cmid', 'cremote', 'cai'] as const) {
+    for (const sc of scopes) {
+      const t = sc.kind === 'national' ? CITY_COMPOSITES[m].base : CITY_COMPOSITES[m].scoped(sc.phrase)
+      out.push({ slug: sc.kind === 'national' ? CITY_COMPOSITES[m].base.slug : (t as ReturnType<typeof CITY_COMPOSITES.cgrad.scoped>).slug(slugPart(sc)), measure: m, scope: sc, title: t.title, family: 'Best overall', group: 'places' })
+    }
+  }
+  for (const m of ['coverall', 'claidoff'] as const) {
+    for (const sc of scopes) {
+      const t = sc.kind === 'national' ? COUNTY_COMPOSITES[m].base : COUNTY_COMPOSITES[m].scoped(sc.phrase)
+      out.push({ slug: sc.kind === 'national' ? COUNTY_COMPOSITES[m].base.slug : (t as ReturnType<typeof COUNTY_COMPOSITES.coverall.scoped>).slug(slugPart(sc)), measure: m, scope: sc, title: t.title, family: 'Best overall', group: 'places' })
+    }
+  }
+  for (const sc of scopes) out.push({ ...specFor('perunemp', sc), group: 'places' })
+  return out
+}
+
 /** The states a scope covers, or null for the whole country. */
 function statesOf(scope: Spec['scope']): Set<string> | null {
   if (scope.kind === 'national') return null
@@ -254,7 +307,7 @@ export function rankCities(spec: Spec, stats: CityStat[], info: (c: CityStat) =>
   })
   return editionFor(spec, ranked, m.baseline(inScope, ctx), edition, builtAt, prev, {
     minN: min, minRanked: spec.minRanked ?? MIN_RANKED, lead: m.lead, method: m.method, extraMethod: [CONCENTRATION_NOTE, ...(spec.note ? [spec.note] : [])], noun: 'cities',
-    unit: spec.measure === 'swe' ? 'engineering openings' : spec.measure === 'paycost' || spec.measure === 'fnpay' ? 'openings with pay posted' : 'openings', sampleUnit: 'openings',
+    unit: spec.measure === 'swe' ? 'engineering openings' : spec.measure === 'paycost' || spec.measure === 'fnpay' || spec.measure === 'icpay' ? 'openings with pay posted' : 'openings', sampleUnit: 'openings',
   })
 }
 
@@ -268,7 +321,7 @@ export function rankCounties(spec: Spec, stats: CountyStat[], edition: string, b
     return { key: c.fips, name: c.name, sub: c.st, href: c.href, value: v, valueLabel: m.valueLabel(v), stats: m.stats(c), employers: [], n: m.sample(c) }
   })
   return editionFor(spec, ranked, m.baseline(inScope), edition, builtAt, prev, {
-    minN: min, minRanked: spec.minRanked ?? MIN_RANKED, lead: m.lead, method: m.method, noun: 'counties', unit: spec.measure === 'lowunemp' || spec.measure === 'unempdrop' || spec.measure === 'whitecollar' ? 'people in the labor force' : 'jobs', sampleUnit: 'jobs', asc: m.order === 'asc',
+    minN: min, minRanked: spec.minRanked ?? MIN_RANKED, lead: m.lead, method: m.method, noun: 'counties', unit: spec.measure === 'lowunemp' || spec.measure === 'unempdrop' || spec.measure === 'whitecollar' ? 'people in the labor force' : spec.measure === 'perunemp' ? 'openings' : 'jobs', sampleUnit: spec.measure === 'perunemp' ? 'openings' : 'jobs', asc: m.order === 'asc',
   })
 }
 
@@ -362,5 +415,54 @@ export function rankColleges(spec: Spec, colleges: CollegeStat[], edition: strin
     minN: MIN_ENROLLED, minRanked: spec.minRanked ?? MIN_RANKED, noun: 'colleges', unit: 'students enrolled', sampleUnit: 'students',
     lead: (name, v, scope, b) => `${name} leads ${scope} among ${levelWord} for earnings: its former students earn a median of ${v} ten years after enrolling${b ? `, against ${b} for the typical college in this list` : ''}.`,
     method: [COLLEGE_NOTE, `Only ${levelWord} with at least ${nf(MIN_ENROLLED)} students and published earnings are ranked. A college's earnings reflect who enrolls and what they study as much as what the college teaches.`],
+  })
+}
+
+const cityKey = (c: CityStat) => `${c.st}|${c.city}`
+
+/** Ranks cities on an all-round score for one audience. */
+export function rankCityComposite(spec: Spec, stats: CityStat[], info: (c: CityStat) => PlaceInfo, ctx: CityCtx, edition: string, builtAt: string, prev: Map<string, number> | null): RankingEdition | null {
+  const def = CITY_COMPOSITES[spec.measure as keyof typeof CITY_COMPOSITES]
+  if (!def) return null
+  const states = statesOf(spec.scope)
+  const min = spec.scope.kind === 'national' ? 200 : 100
+  const comps = def.comps(ctx.costOf)
+  const pool = stats.filter((c) => (!states || states.has(c.st)) && c.n >= min && c.topShare <= MAX_SHARE)
+  const scored = scorePool(pool, comps)
+  const ranked: Ranked[] = scored.map(({ item: c, score }) => ({
+    key: cityKey(c), name: info(c).name, sub: c.st, href: info(c).href, value: score, valueLabel: `${Math.round(score)} / 100`, n: c.n, employers: c.employers,
+    stats: comps.slice(0, 3).map((k) => ({ label: k.label, value: k.show(c) })),
+  }))
+  return editionFor(spec, ranked, null, edition, builtAt, prev, {
+    minN: min, minRanked: spec.minRanked ?? MIN_RANKED, noun: 'cities', unit: 'openings', sampleUnit: 'openings',
+    lead: (name, v, scope) => `${name} is the best all-round city for ${def.audience} in ${scope}, with a score of ${v}.`,
+    method: [
+      `A city\'s score is the weighted average of its percentile rank on each measure among the ranked cities (100 is first, 0 is last): ${describeWeights(comps as Comp<unknown>[])}.`,
+      'A score of 100 would mean first on every measure and 50 is the middle of the pack. The measures and weights are fixed in advance and shown here; they are a judgment about what matters to this reader, so use the single-measure rankings when one thing matters most.',
+      'Only cities with enough openings and pay data are ranked.',
+    ],
+    extraMethod: [CONCENTRATION_NOTE],
+  })
+}
+
+/** Ranks counties on an all-round score for one audience. */
+export function rankCountyComposite(spec: Spec, counties: CountyStat[], edition: string, builtAt: string, prev: Map<string, number> | null): RankingEdition | null {
+  const def = COUNTY_COMPOSITES[spec.measure as keyof typeof COUNTY_COMPOSITES]
+  if (!def) return null
+  const states = statesOf(spec.scope)
+  const pool = counties.filter((c) => (!states || states.has(c.st)) && countyEligible(c))
+  const scored = scorePool(pool, def.comps)
+  const ranked: Ranked[] = scored.map(({ item: c, score }) => ({
+    key: c.fips, name: c.name, sub: c.st, href: c.href, value: score, valueLabel: `${Math.round(score)} / 100`, n: c.openings ?? 0, employers: [],
+    stats: def.comps.slice(0, 3).map((k) => ({ label: k.label, value: k.show(c) })),
+  }))
+  return editionFor(spec, ranked, null, edition, builtAt, prev, {
+    minN: 100, minRanked: spec.minRanked ?? MIN_RANKED, noun: 'counties', unit: 'openings', sampleUnit: 'openings',
+    lead: (name, v, scope) => `${name} is the best all-round county for ${def.audience} in ${scope}, with a score of ${v}.`,
+    method: [
+      `A county\'s score is the weighted average of its percentile rank on each measure among the ranked counties (100 is first, 0 is last): ${describeWeights(def.comps as Comp<unknown>[])}.`,
+      'Openings are our professional roles placed in the county of the city their posting names; unemployment is BLS Local Area Unemployment Statistics, not seasonally adjusted; jobs and sectors are BLS Quarterly Census of Employment and Wages; population is Census; American Job Centers are from CareerOneStop. The measures and weights are fixed in advance and shown here.',
+      'Only counties with at least 20,000 people in the labor force, 100 openings, 500 unemployed people and 50,000 residents are ranked.',
+    ],
   })
 }

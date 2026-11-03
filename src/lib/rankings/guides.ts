@@ -75,6 +75,42 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     why: 'Roles that name some AI skills post higher pay than roles that do not. This list ranks skills by the median pay of the roles that name them.',
     use: 'A higher median means those roles pay more, not that the skill causes the pay. Use it to see where AI skills sit in senior, well-paid roles, then check the roles you want.',
   },
+  icopen: {
+    why: 'Each industry hires in a different set of cities. Counting an industry\'s open roles by city shows where its demand is deepest, which is where its employers, recruiters and professional events are concentrated.',
+    use: 'If you work in this industry, look at the top cities for the employers to follow and the networks to join. A large market also means more competition, so read it with the pay list for the same industry.',
+  },
+  icpay: {
+    why: 'Pay in an industry varies by city as much as the cost of living does. Adjusting posted pay for local prices shows where the same industry\'s salary goes furthest.',
+    use: 'Use it to compare offers in the same industry across cities. A city with a lower headline salary can leave you ahead once prices are counted.',
+  },
+  cgrad: {
+    why: 'New graduates need a place with many entry-level roles, pay that covers the cost of living and employers that state their pay. This list weighs those together and shows the weights, so it ranks the all-round picture rather than one number.',
+    use: 'Start with the top ten and read each city\'s numbers against what you value most. If one thing matters most to you, such as pay, switch to the single-measure list for it.',
+  },
+  cmid: {
+    why: 'Mid-career professionals look for depth of experienced roles, pay that holds up after the cost of living and room to move up. This list weighs those together, with published weights.',
+    use: 'Use it to shortlist places for a move or a search, then check the employers hiring in your function. The weights are a judgment, so use the single-measure lists when one factor decides it.',
+  },
+  cremote: {
+    why: 'Remote work is attached to a city by the employer\'s base. This list weighs how many openings are remote, how many there are and what the pay is worth locally, to show which cities hire remotely in volume.',
+    use: 'If you want a remote role, the top cities show where the employers are. You can live elsewhere and still apply to them as a remote candidate.',
+  },
+  cai: {
+    why: 'Careers that use AI cluster in a few places. This list weighs the share and number of openings that ask for AI skills and the pay they offer, to show where AI work is concentrated.',
+    use: 'If you are building AI skills, the top cities show where the employers and the roles are. The gap between your city and the top is a guide to what to add to your résumé.',
+  },
+  perunemp: {
+    why: 'Counties differ in how many professional openings there are for each person looking for work. The ratio is one way to compare how much hiring is happening in a place against how many people need it.',
+    use: 'Use it to compare places, not to count your own odds. Our openings cover professional roles on the career sites we track, and the unemployed include people in every kind of work.',
+  },
+  coverall: {
+    why: 'A good job market is more than one number. This list weighs openings per unemployed person, the unemployment rate, job growth and population growth, with the weights shown.',
+    use: 'Use it to shortlist counties to research. Open the county page for the employers, colleges and job centers behind the score.',
+  },
+  claidoff: {
+    why: 'For someone who has lost a job, the useful counties have openings for people looking, job centers to help and unemployment that is falling. This list weighs those with published weights.',
+    use: 'If you are between jobs, use it to find nearby counties with more going on, and read each county page for its American Job Centers and workforce board.',
+  },
   lowunemp: {
     why: 'The unemployment rate shows how much slack a county\'s labor market has. A low rate means employers are competing for the people who are available.',
     use: 'If you are looking for work, a low-rate county is a sign that employers there are hiring. Check the county page for its largest employers and recent layoffs.',

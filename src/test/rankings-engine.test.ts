@@ -69,7 +69,7 @@ describe('ranking engine', () => {
   })
   it('formats edition labels and defines every measure', () => {
     expect(editionLabel('2026-11')).toBe('November 2026')
-    expect(Object.keys(CITY_MEASURES)).toHaveLength(11)
+    expect(Object.keys(CITY_MEASURES)).toHaveLength(13)
   })
 
   it('builds the wave 2 sets with unique addresses', () => {
