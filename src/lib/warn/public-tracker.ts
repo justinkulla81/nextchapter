@@ -29,6 +29,8 @@ export interface TrackerRow {
   industry: string | null
   /** /layoffs/company/<slug>, for state filings only. */
   companySlug: string | null
+  /** Employee groups the press coverage names ("Engineers", "Sales"); empty when none is named, and always for a state filing. */
+  roles: string[]
 }
 
 export interface LayoffTrackerData {
@@ -73,12 +75,13 @@ export function readableType(type: string | null): string | null {
   return t && t.length > 3 && /[a-z]/.test(t) ? t : null
 }
 
-/** "layoffs.fyi" for the tracker, the site's name for a press report. */
-function reportedLabel(url: string | null): string {
-  if (!url) return 'Reported'
+/** "layoffs.fyi" for the tracker, the site's name for a press report; a Google News link is labelled with the publisher when one is known. */
+function reportedLabel(url: string | null, publisher: string | null = null): string {
+  if (!url) return publisher ?? 'Reported'
   try {
     const host = new URL(url).hostname.replace(/^www\./, '')
-    return host === 'layoffs.fyi' ? 'layoffs.fyi' : host
+    if (host === 'news.google.com') return publisher ?? 'Google News'
+    return host
   } catch {
     return 'Reported'
   }
@@ -107,12 +110,17 @@ async function looseReportedRows(): Promise<MergedLayoff[]> {
   if (notices.length === 0) return []
   const mentions = await prisma.layoffNewsMention.findMany({
     where: { noticeId: { in: notices.map((n) => n.id) } },
-    select: { noticeId: true, publisher: true },
+    select: { noticeId: true, publisher: true, headline: true },
   })
   const publishers = new Map<string, string[]>()
-  for (const m of mentions) if (m.noticeId && m.publisher) publishers.set(m.noticeId, [...(publishers.get(m.noticeId) ?? []), m.publisher])
+  const headlines = new Map<string, string[]>()
+  for (const m of mentions) {
+    if (!m.noticeId) continue
+    if (m.publisher) publishers.set(m.noticeId, [...(publishers.get(m.noticeId) ?? []), m.publisher])
+    headlines.set(m.noticeId, [...(headlines.get(m.noticeId) ?? []), m.headline])
+  }
 
-  const loose: LooseNotice[] = notices.flatMap(({ company, ...n }) => n.noticeDate ? [{ ...n, noticeDate: n.noticeDate, publishers: publishers.get(n.id) ?? [], industry: company?.industry ?? null }] : [])
+  const loose: LooseNotice[] = notices.flatMap(({ company, ...n }) => n.noticeDate ? [{ ...n, noticeDate: n.noticeDate, publishers: publishers.get(n.id) ?? [], headlines: headlines.get(n.id) ?? [], industry: company?.industry ?? null }] : [])
   return mergeReported(loose).filter((m) => !filings.some((f) =>
     f.noticeDate && Math.abs(f.noticeDate.getTime() - m.noticeDate.getTime()) <= MERGE_WINDOW_DAYS * DAY_MS && sameEmployer(f.normalizedEmployer, m.normalizedEmployer)))
 }
@@ -314,6 +322,7 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         country: r.state ? 'US' : r.country,
         industry: r.company_industry ?? normalizeIndustryBucket(r.raw_industry ?? ''),
         companySlug: r.reported ? null : employerSlug(r.employer, r.company) || null,
+        roles: [],
       } satisfies TrackerRow,
     }))
     const looseRows = loose.map((m) => ({
@@ -328,14 +337,16 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         noticeDate: day(m.noticeDate),
         effectiveDate: m.effectiveDate ? day(m.effectiveDate) : null,
         type: reportedKind(m.layoffType),
-        sourceUrl: m.sourceUrl && /^https:\/\//.test(m.sourceUrl) && !/news\.google\.com/.test(m.sourceUrl) ? m.sourceUrl : null,
+        // A Google News link still opens the story; it is kept when no direct link exists (mergeReported prefers a direct one).
+        sourceUrl: m.sourceUrl && /^https:\/\//.test(m.sourceUrl) ? m.sourceUrl : null,
         origin: 'reported' as const,
-        sourceLabel: reportedLabel(m.sourceUrl),
+        sourceLabel: reportedLabel(m.sourceUrl, m.publisher),
         alsoReported: m.sources >= 2,
         unconfirmed: m.sources < 2,
         country: m.country,
         industry: m.industry,
         companySlug: null,
+        roles: m.roles,
       } satisfies TrackerRow,
     }))
     const merged = [...stateRows, ...looseRows].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, limit).map((x) => x.row)
