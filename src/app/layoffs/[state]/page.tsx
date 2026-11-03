@@ -6,6 +6,7 @@ import { stateBrand, statePhrase } from '@/lib/branding/state-colors'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { IndustryLayoffLinks } from '@/components/layoffs/IndustryLayoffLinks'
 import { FeedLine } from '@/components/seo/FeedLine'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
@@ -145,6 +146,8 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
               <NoticeTable notices={d.recent} caption={`WARN notices filed in ${d.name}, newest first`} linkEmployer page="state" placeHref={linkPlace} />
             </div>
           </section>
+
+          <IndustryLayoffLinks notices={d.recent} heading={`${d.name} layoffs by industry`} />
 
           <section aria-labelledby="local" className="mt-12">
             <h2 id="local" className={H2}>{d.name} layoffs by county and city</h2>

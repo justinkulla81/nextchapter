@@ -24,7 +24,7 @@ import { industryPath } from '@/lib/seo/topics'
 import { liveSegmentsForBucket } from '@/lib/segments/page-data'
 import { getCompanies, getNewsMentions, type CompanySummary, mergedSlug, noticeDay, resolveCompanySlug, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
 import { titleMeta } from '@/lib/seo/title'
-import { LAYOFF_TOOL_LINKS, stateHelpLinks, type CrossLink } from '@/lib/seo/layoff-links'
+import { LAYOFF_TOOL_LINKS, noticePlaceLinks, stateHelpLinks, type CrossLink } from '@/lib/seo/layoff-links'
 import { StatementForm } from '@/components/employers/StatementForm'
 import { approvedStatementMap } from '@/lib/employer-statements/store'
 import { CompanyStoriesSection } from '@/components/layoff-stories/CompanyStoriesSection'
@@ -130,6 +130,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const segmentsHiring = bucket ? await liveSegmentsForBucket(bucket).catch(() => []) : []
   const [mentions, statements, storyNumbers, stories] = await Promise.all([getNewsMentions(c), approvedStatementMap(slug, c.name), storyNumbersFor(slug), approvedStories(slug)])
   const stateHelp = await Promise.all(c.states.slice(0, 3).map((code) => stateHelpLinks(code)))
+  const placeLinks = await noticePlaceLinks(c.notices)
   const helpLinks: CrossLink[] = [...new Map(stateHelp.flat().map((l) => [l.href, l])).values()]
   const workers = c.notices.reduce((s, n) => s + (n.workers ?? 0), 0)
   const unknownCounts = c.notices.some((n) => n.workers == null)
@@ -286,6 +287,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
               {segmentsHiring.map((x) => (
                 <li key={x.slug}><Link href={`/jobs/industry/${x.slug}`} className={LINK}>{x.name}: {x.total.toLocaleString('en-US')} open jobs, the employers hiring most and what they pay</Link></li>
               ))}
+              {placeLinks.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}
               <li><Link href="/start/laid-off" className={LINK}>Start here: a plan for the weeks after a layoff</Link></li>
               {LAYOFF_TOOL_LINKS.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}
               {helpLinks.map((l) => <li key={l.href}><Link href={l.href} className={LINK}>{l.label}</Link></li>)}

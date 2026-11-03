@@ -9,6 +9,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, INDUSTRIES } from '@/lib/seo/topics'
 import { loadIndustry } from '@/lib/seo/topic-load'
+import { stateCountsForIndustry } from '@/lib/seo/layoff-industry-links'
 import { titleMeta } from '@/lib/seo/title'
 import { industryImage } from '@/lib/seo/topic-images'
 import { FitCheck } from '@/components/capture/FitCheck'
@@ -41,6 +42,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
   if (!d) notFound()
   const { industry, jobs, stats, outlook, confs, orgs, facts, intro } = d
   const path = `/industries/${slug}`
+  const layoffStates = await stateCountsForIndustry(industry.name).catch(() => [])
   return (
     <TopicShell
       trail={[{ name: 'Industries', path: '/industries' }, { name: industry.name, path }]}
@@ -111,6 +113,11 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       {orgs.length > 0 && (
         <Section id="associations" title="Industry associations and organizers">
           <Chips kind="industry_to_association" event="topic_link_clicked" items={orgs.map((o) => ({ href: associationPath(o), label: o }))} />
+        </Section>
+      )}
+      {layoffStates.length > 0 && (
+        <Section id="layoff-states" title={`${industry.name} layoffs by state`} note="WARN notices filed in the last 12 months.">
+          <Chips kind="industry_to_state_layoffs" event="topic_link_clicked" items={layoffStates.map((x) => ({ href: x.href, label: `${x.name} (${x.notices})` }))} />
         </Section>
       )}
       <Section id="feed" title={`${industry.name} layoff notices by feed`}>
