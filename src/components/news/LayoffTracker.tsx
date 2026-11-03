@@ -1,4 +1,5 @@
 import { LayoffTable } from './LayoffTable'
+import type { ReactNode } from 'react'
 import { StructuredData } from '@/components/StructuredData'
 import type { LayoffTrackerData } from '@/lib/warn/public-tracker'
 import { monthLabel, type NationalLaborData } from '@/lib/market/bls-national'
@@ -79,7 +80,7 @@ function NationalPicture({ national, trackedWorkers, year, headingLevel }: { nat
   )
 }
 
-export function LayoffTracker({ data, national, headingLevel = 'h2' }: { data: LayoffTrackerData; national?: NationalLaborData | null; headingLevel?: 'h1' | 'h2' }) {
+export function LayoffTracker({ data, national, headingLevel = 'h2', afterStats }: { data: LayoffTrackerData; national?: NationalLaborData | null; headingLevel?: 'h1' | 'h2'; afterStats?: ReactNode }) {
   const Heading = headingLevel
   const stat = (value: string, label: string) => (
     <div className="rounded-xl border border-border bg-white p-5">
@@ -118,6 +119,8 @@ export function LayoffTracker({ data, national, headingLevel = 'h2' }: { data: L
           </p>
         </div>
       </div>
+
+      {afterStats}
 
       <LayoffTable rows={data.rows} />
 

@@ -643,7 +643,7 @@ export async function promoteNoticesForKnownOrgs(budgetMs = 120_000): Promise<{ 
   const orgs = await prisma.crmOrganization.findMany({ select: { id: true, name: true, orgTypes: true, goals: true } })
   // An organization whose name carries a bracketed note ("Polaris (formerly
   // Polaris Project)") is matched on its whole name only. The loose key drops
-  // the bracket, and attached a Polaris Inc. layoff to a nonprofit.
+  // the bracket, and attached a Polaris Inc. layoff to a non-profit.
   const known = new Set(
     orgs.filter((o) => !o.name.includes('(')).map((o) => strictOrgKey(o.name, normalizeOrgName)).filter(Boolean)
   )

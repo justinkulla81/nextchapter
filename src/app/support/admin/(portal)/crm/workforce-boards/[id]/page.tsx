@@ -359,7 +359,7 @@ export default async function WorkforceBoardPage({
           Colleges, chief executives and main lines from the Department of Education&apos;s IPEDS directory. Department
           contacts (career services, alumni relations, development, executive and continuing education) are read from each
           college&apos;s own website and kept only when the name and email appear on the page linked; where a site names no
-          leader, the office&apos;s general line is shown. Public and nonprofit colleges in areas with layoffs are covered.
+          leader, the office&apos;s general line is shown. Public and non-profit colleges in areas with layoffs are covered.
         </p>
         {colleges.length === 0 ? (
           <Empty>No degree-granting colleges are listed in this board&apos;s counties.</Empty>

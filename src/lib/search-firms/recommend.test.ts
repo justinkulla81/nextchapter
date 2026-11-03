@@ -36,10 +36,10 @@ describe('recommendFirms', () => {
     expect(r[0].why).toMatch(/recent searche?s? in Finance/)
   })
 
-  it('matches nonprofit and higher-ed members to specialist firms', () => {
+  it('matches non-profit and higher-ed members to specialist firms', () => {
     const r = recommendFirms({ functions: [], industries: ['Higher Education'], level: 'Director' }, firms)
     expect(r[0].name).toBe('Campus Partners')
-    expect(r[0].why).toMatch(/nonprofit and higher education/)
+    expect(r[0].why).toMatch(/non-profit and higher education/)
   })
 
   it('returns nothing when nothing fits', () => {

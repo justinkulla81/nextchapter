@@ -435,7 +435,7 @@ export const SEGMENTS: SegmentDef[] = [
   {
     slug: 'nonprofits',
     group: 'Education and nonprofit',
-    name: 'Nonprofits',
+    name: 'Non-profits',
     label: 'nonprofit',
     blurb: 'Charities, foundations, associations and mission-driven organizations: fundraising, programs, operations, finance and leadership roles.',
     query: 'nonprofit',
@@ -542,6 +542,6 @@ export const SEGMENTS_BY_BUCKET: Record<string, string[]> = {
   'Telecommunications': ['telecom'],
   'Technology & Software': ['ai', 'data-centers', 'semiconductors', 'robotics-automation'],
   'Education & EdTech': ['education'],
-  'Nonprofit & Social Impact': ['nonprofits'],
+  'Non-profit & Social Impact': ['nonprofits'],
   'Agriculture & Food Production': ['natural-resources'],
 }

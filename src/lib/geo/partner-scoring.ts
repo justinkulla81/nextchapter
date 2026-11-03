@@ -1,7 +1,7 @@
 /**
  * Internal fit scoring (0-100) for the bodies we sell to or through:
  * WIOA boards, American Job Centers, EDA districts, state agencies,
- * local EDOs and economic-development / workforce nonprofits.
+ * local EDOs and economic-development / workforce non-profits.
  *
  * One scale for all of them so they sort together, built from parts that each
  * answer a plain question and each carry a note saying why. Every number comes
@@ -37,7 +37,7 @@ function finish(parts: ScorePart[]): FitScore {
   return { total, coverage, parts }
 }
 
-// ── Partners (boards, job centers, districts, agencies, EDOs, nonprofits) ───
+// ── Partners (boards, job centers, districts, agencies, EDOs, non-profits) ───
 
 export interface AreaSignal {
   whiteCollarShare?: number | null
@@ -57,7 +57,7 @@ export interface PartnerInput {
   /** AJC only: comprehensive / affiliate / specialized, and whether a business-services contact is listed. */
   ajcType?: string | null
   hasBusinessRep?: boolean
-  /** Nonprofits only. */
+  /** Non-profits only. */
   revenue?: number | null
   name?: string
   /** The strongest contact we have there: hot / warm (a lot) or any (a little). Counts outside the 100. */
@@ -74,8 +74,8 @@ const KIND_MISSION: Record<PartnerKind, { v: number; why: string }> = {
   EDD: { v: 0.6, why: 'Regional planner; reaches employers and local government, not workers directly' },
   STATE_AGENCY: { v: 0.7, why: 'Runs state business-retention and layoff-response programs' },
   LOCAL_EDO: { v: 0.55, why: 'Knows the area\'s employers; layoff response is secondary to recruitment' },
-  NONPROFIT_ECON: { v: 0.5, why: 'Economic-development nonprofit; mission varies' },
-  NONPROFIT_WORKFORCE: { v: 0.6, why: 'Workforce nonprofit; often youth or low-income focused' },
+  NONPROFIT_ECON: { v: 0.5, why: 'Economic-development non-profit; mission varies' },
+  NONPROFIT_WORKFORCE: { v: 0.6, why: 'Workforce non-profit; often youth or low-income focused' },
   CHAMBER: { v: 0.45, why: 'Member employers, little direct worker service' },
 }
 const LOW_FIT_NAME = /\b(youth|teen|veteran|disab|blind|deaf|homeless|ex-?offender|reentry|refugee|immigrant|farm|migrant|apprentice|trades?|construction|culinary)\b/i

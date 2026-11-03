@@ -3,12 +3,12 @@ import { PORTALS } from '@/lib/marketing/portals'
 import { shot } from '@/lib/marketing/screenshots'
 import type { PortalPageDef } from './types'
 
-// /nonprofits: nonprofits, community organizations and research partners. Nonprofit and community organizations get the
+// /nonprofits: non-profits, community organizations and research partners. Non-profit and community organizations get the
 // same free workspace as workforce organizations (src/lib/plans/provision.ts maps NONPROFIT and FOUNDATION to a
 // community organization), so the plans are the workforce plans and the claim works the same way. Research and funding
 // partnerships are set up one at a time: no dataset, access terms or outcome is promised here.
 
-const admin = shot('workforce-admin-overview', {
+const admin = shot('nonprofit-admin-overview', {
   title: 'Admin overview',
   alt: 'An organization admin overview showing active members out of 50, staff, the services the organization lists, and basic counts with small groups held back.',
   why: 'It shows the member limit, the staff and the services you list, so an administrator sees what the workspace holds before anything else.',
@@ -33,17 +33,17 @@ export const NONPROFITS: PortalPageDef = {
   content: {
     analyticsKey: 'nonprofits',
     path: '/nonprofits',
-    eyebrow: 'Nonprofits and community organizations',
+    eyebrow: 'Non-profits and community organizations',
     headline: 'Serve the job seekers in your community from a workspace of your own',
     subhead:
       'Claim your organization’s page with a work email at your domain, and a free workspace is created for you: your own page, your services, up to 50 active members and basic counts.',
     primary: { label: 'Claim your page', href: '#claim' },
-    primaryNote: 'Nonprofits and community organizations. Research partners can start a conversation at the bottom of the page.',
+    primaryNote: 'Non-profits and community organizations. Research partners can start a conversation at the bottom of the page.',
     loginHref: PORTALS.workforce.loginHref,
     proof: {
       kind: 'sample',
       heading: 'What your administrator sees',
-      intro: 'This is the free workspace as an administrator opens it. The sample shows a workforce board, and Tri-County Workforce Board is invented.',
+      intro: 'This is the free workspace as an administrator opens it. The sample shows a family services non-profit, and Harborview Family Services is invented.',
     },
     visuals: [admin, dashboard, layoffs],
     steps: [
@@ -62,8 +62,9 @@ export const NONPROFITS: PortalPageDef = {
     ],
     claim: {
       title: 'How to claim your page',
+      directory: { path: 'nonprofits', noun: 'non-profit' },
       paragraphs: [
-        'Your organization’s page is at https://launchyournextchapter.com/prepared/ followed by its name in lowercase with hyphens between the words, for example https://launchyournextchapter.com/prepared/riverside-food-bank. Open it and fill in your name, title and work email.',
+        'Your organization’s page is at https://launchyournextchapter.com/prepared/ followed by its name in lowercase with hyphens between the words, for example https://launchyournextchapter.com/prepared/harborview-family-services. Open it and fill in your name, title and work email.',
         'Use a work email at your organization’s domain. Personal email addresses are not accepted. When we do not yet know your organization’s domain, our team follows up on the claim.',
         'If the address does not open, or your organization’s name has punctuation in it, use the form at the bottom of this page and we will follow up.',
       ],
@@ -73,7 +74,7 @@ export const NONPROFITS: PortalPageDef = {
     faq: [
       {
         q: 'Who can claim a page?',
-        a: 'A staff member of a nonprofit or community organization with a work email at the organization’s domain. We send a one-time link to that address to confirm it. If we do not know your domain yet, our team follows up on the claim.',
+        a: 'A staff member of a non-profit or community organization with a work email at the organization’s domain. We send a one-time link to that address to confirm it. If we do not know your domain yet, our team follows up on the claim.',
       },
       {
         q: 'What does the free workspace include?',
@@ -106,14 +107,14 @@ export const NONPROFITS: PortalPageDef = {
       { href: '/ai-training', label: 'AI training for career services' },
     ],
     jsonLd: {
-      serviceName: 'Workspace for nonprofits and community organizations',
+      serviceName: 'Workspace for non-profits and community organizations',
       serviceType: 'Community organization workspace',
-      audienceType: 'Nonprofits, community organizations and research partners',
+      audienceType: 'Non-profits, community organizations and research partners',
       description:
-        'A workspace for nonprofits and community organizations: your own page, your services, active members and basic counts, with research partnerships set up one at a time.',
+        'A workspace for non-profits and community organizations: your own page, your services, active members and basic counts, with research partnerships set up one at a time.',
       trail: [
         { name: 'For organizations', path: '/for-organizations' },
-        { name: 'Nonprofits and community organizations', path: '/nonprofits' },
+        { name: 'Non-profits and community organizations', path: '/nonprofits' },
       ],
     },
   },

@@ -9,7 +9,7 @@ import { ingestIntake, intakeFileType, processIntakeResume, sendSubmissionConfir
 import { allowByIp, HOUR_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
 import { validateUpload } from '@/lib/uploads/validate-upload'
 
-export type InboundFormState = { error?: string; sent?: boolean; firstName?: string } | undefined
+export type InboundFormState = { error?: string; sent?: boolean; firstName?: string; needsContact?: boolean } | undefined
 
 const MAX_SUBMISSIONS_PER_DAY = 3
 
@@ -27,9 +27,9 @@ export async function submitInbound(_prev: InboundFormState, formData: FormData)
   const consentScopes = formData.getAll('consent').map(String)
   const file = formData.get('file') as File | null
 
-  if (!fullName) return { error: 'Enter your name.' }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Enter a valid email address.' }
-  if (!file || file.size === 0) return { error: 'Attach your resume.' }
+  // The name and email are read from the résumé; they are only asked for when it has none.
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Enter a valid email address.', needsContact: true }
+  if (!file || file.size === 0) return { error: 'Attach your résumé.' }
   if (file.size > INTAKE_MAX_FILE_BYTES) return { error: 'That file is over 10 MB. Please upload a smaller PDF or Word file.' }
   if (!intakeFileType(file.name)) return { error: 'Please upload a PDF or Word (.docx) file.' }
   // The extension is just a name; check the bytes before they reach the parser.
@@ -67,7 +67,10 @@ export async function submitInbound(_prev: InboundFormState, formData: FormData)
     consentScopes,
     ip,
   })
-  if (!result.ok) return { error: result.message }
+  if (!result.ok) {
+    if (result.reason === 'no_email') return { error: 'We could not find an email address on your résumé. Add your name and email below, then send it again.', needsContact: true }
+    return { error: result.message }
+  }
 
   // Parse/tag/route (one Haiku call) and the confirmation email run after
   // the response so the candidate isn't kept waiting.

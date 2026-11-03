@@ -40,7 +40,7 @@ import { prisma } from '@/lib/prisma'
 import { cachedSitemap } from '@/lib/seo/sitemap-cache'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
-// Rendered per request, not at build: it reads the layoff, workforce, conference and nonprofit tables, which timed out the
+// Rendered per request, not at build: it reads the layoff, workforce, conference and non-profit tables, which timed out the
 // 2026-10-27 build. The CDN keeps it for an hour (next.config.ts headers).
 export const dynamic = 'force-dynamic'
 
@@ -152,7 +152,7 @@ function sectionFailed(section: string, error: unknown) {
 }
 
 // Two queries for every state (all boards, and which states have colleges), not one pair per state: this loader
-// ran fifty-odd concurrent reads beside the topic and nonprofit loaders and, failing quietly, dropped every
+// ran fifty-odd concurrent reads beside the topic and non-profit loaders and, failing quietly, dropped every
 // workforce, rapid-response and higher-education page from the sitemap.
 async function loadSeoStatePages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
   try {
@@ -187,7 +187,7 @@ async function loadSeoStatePages(entry: (path: string, updated: string, freq: Fr
   }
 }
 
-// Nonprofit pages (IRS records, $1 million or more in revenue) and economic development pages by state.
+// Non-profit pages (IRS records, $1 million or more in revenue) and economic development pages by state.
 async function loadNonprofitPages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
   try {
     const [counts, orgs, edo] = await Promise.all([

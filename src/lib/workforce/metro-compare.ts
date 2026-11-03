@@ -68,7 +68,7 @@ export function metroUnemployment(counties: string[], rows: Map<string, LaborRow
 
 /**
  * The QCEW sectors a member's industry bucket works in (src/lib/constants/industry-buckets.ts).
- * Listed, not inferred. Government and nonprofit are not private-sector jobs, so
+ * Listed, not inferred. Government and non-profit are not private-sector jobs, so
  * QCEW cannot speak for them: they are absent here and the page says so.
  */
 const BUCKET_SECTORS: Record<string, string[]> = {

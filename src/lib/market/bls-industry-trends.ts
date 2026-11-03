@@ -11,7 +11,7 @@ import { unstable_cache } from 'next/cache'
  * so any "postings are up" trend would measure our crawler, not the economy.
  *
  * BLS publishes industries as broad sectors, so several of our finer industry
- * buckets share a series. A bucket with no sensible sector (Other, Nonprofit)
+ * buckets share a series. A bucket with no sensible sector (Other, Non-profit)
  * is simply absent — callers treat that as "no trend", never as flat.
  */
 export const CES_SERIES_BY_BUCKET: Record<string, string> = {

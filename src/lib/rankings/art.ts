@@ -16,7 +16,7 @@ const INDUSTRY_PICTURE: Record<string, string> = {
   'professional-services': 'professional-services-and-consulting', 'manufacturing-and-industrial': 'manufacturing-and-industrial',
   'consumer-and-retail': 'retail-and-e-commerce', 'life-sciences-and-biotech': 'pharmaceuticals-and-biotech', 'aerospace-and-defense': 'aerospace-and-defense',
   education: 'education-and-edtech', government: 'government-and-public-sector', 'energy-and-utilities': 'energy-and-utilities',
-  'media-and-entertainment': 'media-and-entertainment', nonprofit: 'nonprofit-and-social-impact', 'logistics-and-transportation': 'transportation-and-logistics',
+  'media-and-entertainment': 'media-and-entertainment', nonprofit: 'non-profit-and-social-impact', 'logistics-and-transportation': 'transportation-and-logistics',
   'construction-and-real-estate': 'construction-and-real-estate', telecommunications: 'telecommunications', 'agriculture-and-food': 'agriculture-and-food-production',
 }
 const REGION_PICTURE = new Set(['northeast', 'southeast', 'midwest', 'southwest', 'mountain', 'pacific'])

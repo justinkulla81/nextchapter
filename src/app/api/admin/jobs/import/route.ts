@@ -121,7 +121,7 @@ interface ImportJobInput {
   // The crawler's function code (engineering, data_ai, …; ncrawl taxonomy + function_fallback),
   // stored as its display label in targetFunction (job-functions.ts). Optional like the fields above.
   function?: string | null
-  // private | government | nonprofit | academia (ncrawl/sector.py). Optional.
+  // private | government | non-profit | academia (ncrawl/sector.py). Optional.
   employerSector?: string | null
   // Hard requirements read from the full posting (ncrawl/requirements.py): a list of
   // { flag, …, evidence }. Optional; an empty list clears what the row held.

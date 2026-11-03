@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { allowByIp, HOUR_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
 import { firmNameOf, recruiterFirmIdForOrg } from '@/lib/seo/search-firm-pages'
+import { notifyOwnerOfFollow } from '@/lib/notify/follow-alert-server'
 import { shareInterestWithFirm } from '@/lib/recruiter-interest/server'
 import { disconnectIntakeConnection } from '@/lib/recruiter/intake/consent'
 
@@ -40,6 +41,8 @@ export async function expressInterest(orgId: string, source: InterestSource): Pr
     create: { candidateId: profile.id, firmOrgId: orgId, source },
     update: existing?.status === 'WITHDRAWN' ? { status: 'HELD', source, sharedAt: null } : {},
   })
+  // Tell the owner only when this press is new: a first interest, or one the member had withdrawn.
+  if (!existing || existing.status === 'WITHDRAWN') notifyOwnerOfFollow('recruiter', profile.id, orgName, source)
   const hasResume = profile.resumeStepComplete || (await prisma.resume.count({ where: { candidateId: profile.id, looksLikeResume: { not: false } } })) > 0
   const total = await prisma.recruiterInterest.count({ where: { candidateId: profile.id, status: { not: 'WITHDRAWN' } } })
   captureServerEvent(profile.id, 'recruiter_interest_expressed', { firmOrgId: orgId, source, hasResume, interestCount: total, registered: !!profile.registrationCompletedAt })

@@ -27,7 +27,7 @@ export interface EntryMarket {
   /** Top 10 by entry-level jobs. */
   byFunction: EntryMarketRow[]
   byIndustry: EntryMarketRow[]
-  /** private / government / nonprofit / academia. */
+  /** private / government / non-profit / academia. */
   bySector: EntryMarketRow[]
 }
 
