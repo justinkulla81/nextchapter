@@ -916,6 +916,18 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
       description: 'AI training programs for employees and the people you serve: we measure the AI-skill gap and build short courses for budgets that already pay for training.',
     },
   },
+  {
+    id: 'ai-retraining',
+    intent: 'Job seekers looking for AI retraining',
+    owner: '/ai-retraining',
+    kind: 'page',
+    primary: 'best AI retraining programs',
+    secondary: ['AI retraining', 'AI reskilling programs', 'online AI courses for career changers', 'in person AI training', 'AI upskilling for professionals'],
+    seo: {
+      title: 'Best AI Retraining Programs, Online and In Person',
+      description: 'The AI courses we rate highest, the college and public programs we have checked, and a place to register your interest by function and industry.',
+    },
+  },
 
   // ---- Job search ------------------------------------------------------------------------------------------------
   {
