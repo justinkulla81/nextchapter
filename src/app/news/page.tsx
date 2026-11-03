@@ -12,6 +12,7 @@ import { LayoffTracker } from '@/components/news/LayoffTracker'
 import { getNationalLaborData } from '@/lib/market/bls-national'
 import { StructuredData } from '@/components/StructuredData'
 import { FreshLinks } from '@/components/marketing/FreshLinks'
+import { PullTop } from '@/components/capture/PullCta'
 
 const SITE = 'https://launchyournextchapter.com'
 
@@ -58,6 +59,7 @@ export default async function NewsPage() {
             and the{' '}
             <a href="/reports/white-collar-index" className="text-primary underline underline-offset-4">White-Collar Long-Search Index</a>.
           </p>
+          <PullTop name="News" path="/news" />
           <div className="mt-8 max-w-xl rounded-2xl border border-border bg-white p-6">
             <NewsletterSignup source="news" />
           </div>

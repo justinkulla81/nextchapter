@@ -15,6 +15,7 @@ import { LayoffNumbersNote } from '@/components/layoffs/LayoffNumbersNote'
 import { getLargestRecentEmployers, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { getNationalLaborData } from '@/lib/market/bls-national'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
+import { PullTop } from '@/components/capture/PullCta'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -65,6 +66,7 @@ export default async function LayoffsHubPage() {
               <p className="mt-3 text-muted-foreground">The tracker could not be loaded right now. Please try again shortly.</p>
             </>
           )}
+          <PullTop name="Layoff tracker" path="/layoffs" />
 
  <LayoffNumbersNote counts={counts} />
           <CiteThisData path="/layoffs" asOf={counts?.asOf} source="layoffs-hub" />

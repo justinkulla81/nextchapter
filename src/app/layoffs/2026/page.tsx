@@ -16,6 +16,7 @@ import { industryPath } from '@/lib/seo/topics'
 import { noticeCountsByBucket } from '@/lib/seo/topic-data'
 import { getLayoffCounts } from '@/lib/warn/layoff-counts'
 import { noticeDay } from '@/lib/warn/layoff-pages'
+import { PullTop } from '@/components/capture/PullCta'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -59,6 +60,7 @@ export default async function Layoffs2026Page() {
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             Employers have filed {n(notices.length)} WARN layoff notices dated {LAYOFF_YEAR}{workers ? `, naming ${n(workers)} workers` : ''}, across {states.length} states. Collected daily from state labor departments, with the state’s own record linked on every row.
           </p>
+          <PullTop name="Layoffs in 2026" path="/layoffs/2026" />
           {counts && (
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
               Including reported layoffs with a U.S. state, counted once per employer, state and date, the <Link href="/layoffs" className={LINK}>layoff tracker</Link> shows {n(counts.layoffsYear.layoffs)} layoffs and {n(counts.layoffsYear.workers)} workers in {counts.layoffsYear.year}.

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
+import { PullTop } from '@/components/capture/PullCta'
 
 export const metadata: Metadata = pageMetadata('/how-it-works')
 
@@ -79,6 +80,7 @@ export default function HowItWorksPage() {
             each one building proof the last one didn&apos;t have. NextChapter is a free job
             transition platform, start to finish.
           </p>
+          <PullTop name="How it works" path="/how-it-works" />
         </div>
 
         <div className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">

@@ -36,9 +36,9 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
         <SiteFooterColumns tone="dark" />
       </div>
       <div className="mx-auto max-w-4xl px-6 py-16 text-center">
-        <h2 className="text-3xl font-bold tracking-tight">Ready to start your next chapter?</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{page === 'seo' ? 'Ready to start your next chapter?' : 'Do you want this for your own search?'}</h2>
         <p className="mx-auto mt-4 max-w-xl text-light-blue">
-          Candidates are never charged. Organizations, let’s talk.
+          {page === 'seo' ? 'Candidates are never charged. Organizations, let’s talk.' : 'Answer a few questions and get a plain-language read on your market, matched jobs and a weekly plan. Free for candidates, no résumé needed. Organizations, let’s talk.'}
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <TrackedLink
@@ -47,7 +47,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
             properties={{ cta: 'footer_get_grade', page }}
             className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
           >
-            Get your Market Reality Assessment
+            {page === 'seo' ? 'Get your Market Reality Assessment' : 'Yes, build my plan'}
           </TrackedLink>
           <TrackedLink
             href="/contact"

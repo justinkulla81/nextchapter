@@ -115,3 +115,19 @@ export function withPullCtas(children: ReactNode, ctx: { topic: string; slug: st
   const bottom = opts.hasCapture && ctx.audience === 'org' ? null : <PullCtaBottom {...ctx} picker={!opts.hasCapture} />
   return { body: withMid, bottom }
 }
+
+/** For pages that are not on a shared frame: drop in under the intro (`<PullTop name="Layoff tracker" path="/layoffs" />`). */
+export function PullTop({ name, path, audience }: { name: string; path: string; audience?: PullAudience }) {
+  const c = pullContext([{ name, path }])
+  return <PullCtaTop {...c} audience={audience ?? c.audience} />
+}
+
+export function PullMid({ name, path, audience }: { name: string; path: string; audience?: PullAudience }) {
+  const c = pullContext([{ name, path }])
+  return <PullCtaMid {...c} audience={audience ?? c.audience} />
+}
+
+export function PullBottom({ name, path, audience }: { name: string; path: string; audience?: PullAudience }) {
+  const c = pullContext([{ name, path }])
+  return <PullCtaBottom {...c} audience={audience ?? c.audience} />
+}
