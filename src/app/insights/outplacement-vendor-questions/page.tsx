@@ -52,7 +52,7 @@ export default function OutplacementVendorQuestionsArticlePage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl px-6 py-16">
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           The questions to ask an outplacement vendor
         </h1>

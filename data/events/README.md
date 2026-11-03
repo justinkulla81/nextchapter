@@ -52,7 +52,7 @@ Write ONE JSON file (array of rows) to `data/events/<your-slice>.json`. Row shap
 ## Exact names
 
 Functions: Operations, Marketing, Finance, Sales, Engineering, Product, Design, Human Resources, Administration, Legal, Customer Success, Data & Analytics, Executive Leadership.
-Industries: Venture Capital & Private Equity; Financial Services & Banking; Insurance; Accounting & Audit; Legal Services; Professional Services & Consulting; Technology & Software; Telecommunications; Healthcare & Hospital Systems; Pharmaceuticals & Biotech; Medical Devices; Retail & E-commerce; Consumer Packaged Goods; Hospitality, Travel & Food Service; Agriculture & Food Production; Manufacturing & Industrial; Automotive & Mobility; Aerospace & Defense; Energy & Utilities; Construction & Real Estate; Transportation & Logistics; Media & Entertainment; Advertising, Marketing & PR; Education & EdTech; Government & Public Sector; Nonprofit & Social Impact; Staffing & Human Capital.
+Industries: Venture Capital & Private Equity; Financial Services & Banking; Insurance; Accounting & Audit; Legal Services; Professional Services & Consulting; Technology & Software; Telecommunications; Healthcare & Hospital Systems; Pharmaceuticals & Biotech; Medical Devices; Retail & E-commerce; Consumer Packaged Goods; Hospitality, Travel & Food Service; Agriculture & Food Production; Manufacturing & Industrial; Automotive & Mobility; Aerospace & Defense; Energy & Utilities; Construction & Real Estate; Transportation & Logistics; Media & Entertainment; Advertising, Marketing & PR; Education & EdTech; Government & Public Sector; Non-profit & Social Impact; Staffing & Human Capital.
 
 ## Rules
 

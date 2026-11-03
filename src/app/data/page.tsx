@@ -50,7 +50,7 @@ export default async function DataPage() {
       <StructuredData data={dataset} />
       <StructuredData data={breadcrumbJsonLd([{ name: 'Data', path: '/data' }])} />
       <PublicSiteHeader />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-4xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/data', 'Layoff data: download the WARN record')}</h1>
           <p className="mt-4 text-lg text-muted-foreground">

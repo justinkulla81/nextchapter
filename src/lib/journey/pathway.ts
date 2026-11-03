@@ -242,7 +242,7 @@ const SMALLER_CHANGES: Record<PivotReason, Alternative[]> = {
   creative: [{ label: 'Stay in your function and move to a more creative industry or company', why: 'Your own function is needed in media, design and brand-led companies, and you keep your level and pay.' }],
   pay: [{ label: 'Stay in your function and move to a higher-paying industry or company', why: 'A move of employer or industry often raises pay faster than starting a new function at the bottom.' }],
   flexibility: [{ label: 'Go fractional or consult in your own function', why: 'Many senior people get control of their time this way in months, not years.' }],
-  meaning: [{ label: 'Take your function to a nonprofit or mission-led organization', why: 'The mission changes immediately and your experience is valued.' }],
+  meaning: [{ label: 'Take your function to a non-profit or mission-led organization', why: 'The mission changes immediately and your experience is valued.' }],
   less_stress: [{ label: 'Take your function to a smaller or less regulated company', why: 'Pressure often comes from the employer and the industry, not the function.' }],
   escape: [{ label: 'Change employer or industry before you change function', why: 'If it is the boss, the culture or the company that is wrong, a new function will not fix it, and a new employer will, much faster.' }],
   curious: [{ label: 'Have three informational conversations first', why: 'It costs nothing, and tells you whether to go further.' }],

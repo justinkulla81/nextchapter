@@ -74,7 +74,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
 
       <section aria-labelledby="leads" className="space-y-2">
         <SectionTitle id="leads" tone="action">Leads in this area</SectionTitle>
-        {a.orgLeads.length === 0 ? <p className="text-sm text-muted-foreground">No economic development groups, chambers or workforce nonprofits found.</p> : (
+        {a.orgLeads.length === 0 ? <p className="text-sm text-muted-foreground">No economic development groups, chambers or workforce non-profits found.</p> : (
           <ul className="divide-y divide-border rounded-lg border border-border text-sm">
             {a.orgLeads.map((l) => (
               <li key={l.id} className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2">

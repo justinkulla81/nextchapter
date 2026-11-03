@@ -12,7 +12,7 @@ import { portalJsonLd, type PortalJsonLdInput } from '@/lib/marketing/portal-seo
 import { FOUNDER_LINE } from '@/lib/marketing/founder-line'
 
 // The one template for every partner page: higher education, workforce, hiring, employees, outplacement,
-// recruiters, coaches, nonprofits and the employer overview. Owner brief 2026-10-24:
+// recruiters, coaches, non-profits and the employer overview. Owner brief 2026-10-24:
 //   hero (one value-proposition headline, one primary action) -> proof (live data where it exists, otherwise a
 //   labeled "Sample data" visual) -> three visuals -> how it works in three steps -> packages (from
 //   src/lib/marketing/plans.ts, free first, never an amount) -> short FAQ -> final action.

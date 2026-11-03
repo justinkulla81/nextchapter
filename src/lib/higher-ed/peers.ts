@@ -1,6 +1,6 @@
 // Peer benchmark: how a college compares with similar colleges on the public
 // federal numbers (College Scorecard and IPEDS, stored in CollegeProfile).
-// Peers are the same control (private nonprofit, public) with enrollment
+// Peers are the same control (private non-profit, public) with enrollment
 // within half to double; same state first, the whole country if the state
 // has fewer than 8. Public data only, never member data.
 

@@ -9,7 +9,7 @@ import { getStateBoards } from '@/lib/seo/workforce-pages'
 import { NONPROFIT_MIN_REVENUE, nonprofitSlug } from '@/lib/seo/nonprofit-pages'
 
 // The public page a CRM organization has on launchyournextchapter.com, for the link under its name on the CRM
-// record: the workforce board page, the college's state page, the nonprofit page or the state's economic
+// record: the workforce board page, the college's state page, the non-profit page or the state's economic
 // development page (employer and claim pages are in src/lib/crm/public-page.ts). Null when the organization has none. Admin-only: nothing here is shown
 // to candidates.
 

@@ -88,7 +88,7 @@ export const KIND_LABELS: Record<string, string> = {
   ECON_DEV: 'Economic development',
   CHAMBER: 'Chamber of commerce',
   WORKFORCE: 'Workforce nonprofit',
-  JOB_TRAINING: 'Job training nonprofit',
+  JOB_TRAINING: 'Job training non-profit',
 }
 
 export const money = (n: number | null | undefined) =>

@@ -170,7 +170,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
         />
       )}
       <PublicSiteHeader />
-      <main className="mx-auto w-full max-w-3xl px-6 py-14">
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
           <Link href="/unemployment-benefits" className="hover:text-foreground">Unemployment benefits</Link>
           <span aria-hidden> › </span>

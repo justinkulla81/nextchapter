@@ -17,8 +17,8 @@ export function visibleBoards<B extends { state: string; statewide: boolean }>(b
 }
 
 export const COLLEGE_SECTORS: Record<number, string> = {
-  1: 'Public 4-year', 2: 'Private nonprofit 4-year', 3: 'For-profit 4-year',
-  4: 'Public 2-year', 5: 'Private nonprofit 2-year', 6: 'For-profit 2-year',
+  1: 'Public 4-year', 2: 'Private non-profit 4-year', 3: 'For-profit 4-year',
+  4: 'Public 2-year', 5: 'Private non-profit 2-year', 6: 'For-profit 2-year',
 }
 export const COLLEGE_SIZES: Record<number, string> = {
   1: 'Under 1,000', 2: '1,000–4,999', 3: '5,000–9,999', 4: '10,000–19,999', 5: '20,000+',

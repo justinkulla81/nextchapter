@@ -11,8 +11,8 @@ const TYPE_LABEL: Record<string, string> = {
   GOVERNMENT: 'Government', FOUNDATION: 'Foundation', NONPROFIT: 'Nonprofit', MEDIA: 'Media', ACCELERATOR: 'Accelerator', VENDOR: 'Vendor', OTHER: 'Other',
 }
 const SECTOR: Record<number, string> = {
-  1: 'Public four-year', 2: 'Private nonprofit four-year', 3: 'For-profit four-year', 4: 'Community college',
-  5: 'Private nonprofit two-year', 6: 'For-profit two-year',
+  1: 'Public four-year', 2: 'Private non-profit four-year', 3: 'For-profit four-year', 4: 'Community college',
+  5: 'Private non-profit two-year', 6: 'For-profit two-year',
 }
 const BAND_BAR = { HIGH: 'bg-red-500', MEDIUM: 'bg-amber-500', LOW: 'bg-green-600' } as const
 const BAND_TEXT = { HIGH: 'text-red-700', MEDIUM: 'text-amber-700', LOW: 'text-green-700' } as const

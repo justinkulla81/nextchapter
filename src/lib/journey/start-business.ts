@@ -352,7 +352,7 @@ export const START_HELP: readonly HelpItem[] = [
     group: 'funding',
     name: 'SBA microloans',
     href: 'https://www.sba.gov/funding-programs/loans/microloans',
-    summary: 'Small loans for starting or growing a business, through nonprofit lenders who also give training.',
+    summary: 'Small loans for starting or growing a business, through non-profit lenders who also give training.',
     stages: ['build', 'launch', 'grow'],
   },
   {

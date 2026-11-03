@@ -102,6 +102,7 @@ export const PUBLIC_NAV: PublicNavMenu[] = [
           { label: 'Hiring and posting jobs', href: '/talent' },
           { label: 'Outplacement', href: '/outplacement' },
           { label: 'Retention and learning', href: '/employees' },
+          { label: 'Recruiters', href: '/recruiters' },
         ],
       },
       {
@@ -112,7 +113,7 @@ export const PUBLIC_NAV: PublicNavMenu[] = [
           { label: 'Rapid response teams', href: '/for-rapid-response' },
           { label: 'American Job Centers', href: '/job-centers' },
           { label: 'Economic development', href: '/economic-development' },
-          { label: 'Nonprofits', href: '/nonprofits' },
+          { label: 'Non-profits', href: '/nonprofits' },
           { label: 'Coaches', href: '/coaches' },
         ],
       },

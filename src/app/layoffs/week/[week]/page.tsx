@@ -75,7 +75,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
       <StructuredData data={{ '@context': 'https://schema.org', '@type': 'Article', headline: `Layoffs, ${label}: ${notices.length} WARN notices`, datePublished: published, dateModified: modified, author: organizationRef(), publisher: organizationRef(), mainEntityOfPage: `${SITE_URL}/layoffs/week/${week}` }} />
       <StructuredData data={breadcrumbJsonLd(trail)} />
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-5xl px-6">
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link><span aria-hidden> › </span>

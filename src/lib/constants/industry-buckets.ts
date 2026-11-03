@@ -38,7 +38,7 @@ const INDUSTRY_BUCKETS: { bucket: string; keywords: string[] }[] = [
   { bucket: 'Advertising, Marketing & PR', keywords: ['advertising', 'marketing agency', 'public relations', 'pr agency', 'ad agency'] },
   { bucket: 'Education & EdTech', keywords: ['education', 'edtech', 'higher education', 'university', 'k-12', 'school district'] },
   { bucket: 'Government & Public Sector', keywords: ['government', 'public sector', 'federal agency', 'municipal', 'state agency'] },
-  { bucket: 'Nonprofit & Social Impact', keywords: ['nonprofit', 'non-profit', 'ngo', 'social impact', 'philanthropy'] },
+  { bucket: 'Non-profit & Social Impact', keywords: ['nonprofit', 'non-profit', 'ngo', 'social impact', 'philanthropy'] },
   { bucket: 'Staffing & Human Capital', keywords: ['staffing', 'human capital', 'recruiting firm', 'talent agency'] },
   { bucket: 'Other', keywords: ['other industry', 'various industries'] },
 ]

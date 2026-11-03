@@ -542,6 +542,6 @@ export const SEGMENTS_BY_BUCKET: Record<string, string[]> = {
   'Telecommunications': ['telecom'],
   'Technology & Software': ['ai', 'data-centers', 'semiconductors', 'robotics-automation'],
   'Education & EdTech': ['education'],
-  'Nonprofit & Social Impact': ['nonprofits'],
+  'Non-profit & Social Impact': ['nonprofits'],
   'Agriculture & Food Production': ['natural-resources'],
 }
