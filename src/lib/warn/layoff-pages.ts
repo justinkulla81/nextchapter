@@ -73,6 +73,8 @@ export interface PublicNotice {
   fetchedAt: Date
   effectiveDate: Date | null
   type: string | null
+  /** The division of the employer the layoff is in, when the filing names one. */
+  division: string | null
   sourceUrl: string | null
   board: { id: string; name: string; website: string | null; zip: string | null } | null
 }
@@ -89,7 +91,7 @@ async function loadPublicNotices(): Promise<PublicNotice[]> {
     },
     select: {
       id: true, state: true, employer: true, county: true, address: true, employees: true,
-      noticeDate: true, fetchedAt: true, effectiveDate: true, layoffType: true, sourceUrl: true, workforceBoardId: true,
+      noticeDate: true, fetchedAt: true, effectiveDate: true, layoffType: true, division: true, sourceUrl: true, workforceBoardId: true,
       companyMatchStatus: true, company: { select: { name: true } },
     },
   })
@@ -116,6 +118,7 @@ async function loadPublicNotices(): Promise<PublicNotice[]> {
       fetchedAt: r.fetchedAt,
       effectiveDate: r.effectiveDate,
       type: readableType(r.layoffType),
+      division: r.division,
       sourceUrl: r.sourceUrl && /^https:\/\//.test(r.sourceUrl) ? r.sourceUrl : null,
       board: r.workforceBoardId ? boardById.get(r.workforceBoardId) ?? null : null,
     }
@@ -125,7 +128,10 @@ async function loadPublicNotices(): Promise<PublicNotice[]> {
 
 // One load per instance per hour, shared by every page that needs the record; the per-request cache sits on top. Every load reads the whole
 // filing table and its company names, and each server instance made its own: every five minutes that was most of the database's outbound data.
-const sharedNotices = memoTtl(60 * 60_000, () => 'all', () => heavy(() => sharedLoad('public-notices', 3600, loadPublicNotices)))
+/** Bumped by forgetLayoffCaches so the next read on this instance loads again instead of waiting out the hour. */
+let noticesVersion = 0
+export const forgetLayoffNotices = () => { noticesVersion++ }
+const sharedNotices = memoTtl(60 * 60_000, () => `all:${noticesVersion}`, () => heavy(() => sharedLoad('public-notices', 3600, loadPublicNotices)))
 export const getPublicNotices = cache(() => sharedNotices())
 
 export interface StateSummary {

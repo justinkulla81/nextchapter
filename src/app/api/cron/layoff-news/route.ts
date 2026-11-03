@@ -6,7 +6,7 @@ import { withCronRun } from '@/lib/cron/run'
 import { runLinkedInDraftSweep } from '@/lib/linkedin/layoff-post-sweep'
 import { fillLayoffCountries } from '@/lib/warn/layoff-country'
 import { retryHeldLayoffAlerts } from '@/lib/warn/layoff-alert'
-import { runLayoffIndexNow } from '@/lib/syndication/indexnow-layoffs'
+import { publishLayoffsNow } from '@/lib/syndication/layoff-publish-now'
 
 export const maxDuration = 300
 
@@ -73,13 +73,9 @@ export const GET = withCronRun('layoff-news', async (request: NextRequest) => {
     linkedin = { error: e instanceof Error ? e.message : String(e) }
   }
   // A layoff added above gets its page announced to IndexNow and the feed hubs now, not at the next hourly run.
-  let indexnow: Awaited<ReturnType<typeof runLayoffIndexNow>> | { error: string } | { skipped: true } = { skipped: true }
+  let indexnow: string | { skipped: true } = { skipped: true }
   if ('added' in news && news.added.length > 0) {
-    try {
-      indexnow = await runLayoffIndexNow()
-    } catch (e) {
-      indexnow = { error: e instanceof Error ? e.message : String(e) }
-    }
+    indexnow = await publishLayoffsNow()
   }
   return NextResponse.json({ news, primary, held, countries, linkedin, indexnow })
 })
@@ -104,6 +100,6 @@ async function runFastLane(): Promise<NextResponse> {
   }
   const held = await followUp(retryHeldLayoffAlerts)
   const linkedin = await followUp(runLinkedInDraftSweep)
-  const indexnow = await followUp(runLayoffIndexNow)
+  const indexnow = await publishLayoffsNow()
   return NextResponse.json({ lane: 'fast', news, held, linkedin, indexnow })
 }

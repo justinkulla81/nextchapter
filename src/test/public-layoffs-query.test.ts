@@ -10,7 +10,7 @@ const NOW = Date.parse('2026-10-30T12:00:00Z')
 const day = 86_400_000
 const n = (slug: string, employer: string, state: string, workers: number | null, daysAgo: number): PublicNotice => ({
   id: `${slug}-${daysAgo}`, state, employer, slug, place: null, city: null, workers, noticeDate: new Date(NOW - daysAgo * day), noticeDateKnown: true,
-  fetchedAt: new Date(NOW), effectiveDate: null, type: 'Layoff', sourceUrl: 'https://example.gov/x', board: null,
+  fetchedAt: new Date(NOW), effectiveDate: null, type: 'Layoff', division: null, sourceUrl: 'https://example.gov/x', board: null,
 })
 const all = [n('comcast', 'Comcast', 'WA', 159, 1), n('comcast', 'Comcast', 'PA', 40, 20), n('walt-disney-parks-and-resorts-us', 'Walt Disney Parks & Resorts US, Inc.', 'CA', 159, 3), n('old-co', 'Old Co', 'TX', 500, 200)]
 
