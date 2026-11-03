@@ -17,7 +17,7 @@ export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = t
   hasNotices?: boolean
   /** One sourced line under the headline (what was announced or filed), already worded. */
   context: React.ReactNode
-  /** A control shown under the context line, above the fold (the "I'm interested" button). */
+  /** A control shown under the headline, above the fold (the "I'm interested" button). */
   action?: React.ReactNode
 }) {
   const photo = pickPagePhoto(slug)
@@ -30,8 +30,8 @@ export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = t
         <h1 id="landing-h1" className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight [text-wrap:balance] sm:text-4xl">
           {landingHeadline(variant, name, latestWorkers, hasNotices)}
         </h1>
-        <p className="mt-4 max-w-xl text-base opacity-90">{context}</p>
         {action && <div className="mt-5 max-w-xl">{action}</div>}
+        <p className="mt-4 max-w-xl text-base opacity-90">{context}</p>
       </div>
       <div className="overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/20">
         <Image src={photo.src} alt={photo.alt} width={800} height={800} priority className="aspect-[4/3] w-full object-cover" />
