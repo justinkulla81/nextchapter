@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { prisma } from '@/lib/prisma'
 import type { CandidateProfile } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
+import { findExistingRegisteredAccount, removeUnregisteredDuplicates } from '@/lib/onboarding/duplicate-check'
 import { findIdentityMatchesForCandidate } from '@/lib/onboarding/identity-match'
 import { findCrmInviteMatches, inferLeadSource } from '@/lib/candidates/lead-source'
 import { applyReferralCookie } from '@/lib/candidates/referral'
@@ -91,6 +91,9 @@ export async function syncRegistrationCompletion(
   // Exact email matches link automatically; weaker ones are flagged for admin review.
   // Failure here must never block registration itself finishing.
   if (confirmedEmail) {
+    // Earlier or parallel onboarding attempts for this email that never registered are now redundant. Behind the
+    // response, and best effort: it must never hold up or break registration.
+    after(() => removeUnregisteredDuplicates(updated.id, confirmedEmail).catch((error) => console.error('Failed to remove duplicate profiles:', error)))
     const fullName = [updated.firstName, updated.lastName].filter(Boolean).join(' ').trim() || null
     after(() =>
       findIdentityMatchesForCandidate(updated.id, confirmedEmail, fullName).catch((error) =>
