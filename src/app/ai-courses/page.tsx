@@ -54,6 +54,7 @@ export default async function AiCoursesHub() {
           items={CATALOG_FUNCTIONS.map((f) => ({ href: functionPath(f), label: f.name, detail: String(coursesForFunction(catalog, f.name).length) }))}
         />
         <p className="mt-4 text-sm"><Link href={freePath()} className="text-brand underline underline-offset-4">Only the {free} free courses</Link></p>
+        <p className="mt-2 text-sm"><Link href="/ai-retraining" className="text-brand underline underline-offset-4">Best AI retraining programs, and register your interest</Link></p>
       </Section>
 
       <Section id="all" title="Every course, beginner first">

@@ -45,8 +45,8 @@ const startOfDay = () => {
 export async function sentToday(): Promise<number> {
   const since = startOfDay()
   const [confirms, alerts] = await Promise.all([
-    prisma.homepageLead.count({ where: { kind: { in: ['job_alert', 'layoff_alert', 'pay_check', 'resume_check', 'deadline_reminders', 'course_path'] }, confirmSentAt: { gte: since } } }),
-    prisma.homepageLead.count({ where: { kind: { in: ['job_alert', 'layoff_alert', 'pay_check', 'resume_check', 'deadline_reminders', 'course_path'] }, lastAlertAt: { gte: since } } }),
+    prisma.homepageLead.count({ where: { kind: { in: ['job_alert', 'layoff_alert', 'pay_check', 'resume_check', 'deadline_reminders', 'course_path', 'ai_retraining'] }, confirmSentAt: { gte: since } } }),
+    prisma.homepageLead.count({ where: { kind: { in: ['job_alert', 'layoff_alert', 'pay_check', 'resume_check', 'deadline_reminders', 'course_path', 'ai_retraining'] }, lastAlertAt: { gte: since } } }),
   ])
   return confirms + alerts
 }
@@ -59,7 +59,7 @@ export interface ConfirmableLead {
 }
 
 /** Sends the one-time confirmation email. `what` is the phrase after "You asked for". Returns whether it went out. */
-export async function sendAlertConfirmation(lead: ConfirmableLead, opts: { what: string; subject: string; enabled: boolean; variant?: 'course_path'; reminder?: boolean }): Promise<boolean> {
+export async function sendAlertConfirmation(lead: ConfirmableLead, opts: { what: string; subject: string; enabled: boolean; variant?: 'course_path' | 'ai_retraining'; reminder?: boolean }): Promise<boolean> {
   if (!opts.enabled || !process.env.RESEND_API_KEY || isUndeliverableAddress(lead.email)) return false
   if ((await sentToday()) >= jobAlertDailyCap()) return false
   try {

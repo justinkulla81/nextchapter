@@ -4,7 +4,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { inferJourney } from '@/lib/leads/infer-journey'
 import { followFromConfirmedLead } from '@/lib/company-tracker/follow-from-email'
 
-const KINDS = new Set(['job_alert', 'layoff_alert', 'deadline_reminders', 'course_path'])
+const KINDS = new Set(['job_alert', 'layoff_alert', 'deadline_reminders', 'course_path', 'ai_retraining'])
 
 /** The confirm link in the first alert email (job search or layoff watch). Turns alerts on, guesses the journey, then shows the next step. */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ token: string }> }) {
@@ -23,6 +23,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
       to = new URL(`/ai-courses/for/${encodeURIComponent(lead.searchQ)}/${encodeURIComponent(lead.situation.toLowerCase())}?confirmed=1`, request.url)
       return NextResponse.redirect(to)
+    }
+    // AI retraining interest: confirming returns to the page, and no journey is guessed from a function name.
+    if (lead?.kind === 'ai_retraining') {
+      if (!lead.confirmedAt) {
+        await prisma.homepageLead.update({ where: { id: lead.id }, data: { confirmedAt: new Date(), unsubscribedAt: null } })
+        captureServerEvent(lead.email, 'alert_confirmed', { kind: lead.kind })
+      }
+      return NextResponse.redirect(new URL('/ai-retraining?confirmed=1', request.url))
     }
     if (lead && KINDS.has(lead.kind) && !lead.confirmedAt) {
       // An answer the same email gave in the journey picker beats a guess from the search words.

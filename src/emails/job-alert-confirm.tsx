@@ -6,7 +6,7 @@ interface JobAlertConfirmEmailProps {
   confirmUrl: string
   unsubscribeUrl: string
   /** A course path (/ai-courses) reads differently from an alert: one link, nothing recurring is promised. */
-  variant?: 'course_path'
+  variant?: 'course_path' | 'ai_retraining'
   /** The one follow-up to a confirmation that was never clicked. */
   reminder?: boolean
 }
@@ -21,7 +21,13 @@ export default function JobAlertConfirmEmail({ what, confirmUrl, unsubscribeUrl,
     >
       <Card center pad="28px 32px 36px">
         <Wordmark />
-        {variant === 'course_path' ? (
+        {variant === 'ai_retraining' ? (
+          <>
+            <Headline>Confirm your interest in AI retraining</Headline>
+            <Lead>You asked about {what}. One click confirms it is you.</Lead>
+            <Button href={confirmUrl}>Yes, that is me</Button>
+          </>
+        ) : variant === 'course_path' ? (
           <>
             <Headline>Your AI course path</Headline>
             <Lead>You asked for {what}. One click opens it.</Lead>
@@ -36,7 +42,7 @@ export default function JobAlertConfirmEmail({ what, confirmUrl, unsubscribeUrl,
             <Button href={confirmUrl}>Yes, send me the alerts</Button>
           </>
         )}
-        <Small>{reminder ? 'This is the only reminder. If you do not want alerts, ignore this email and nothing will be sent.' : 'If you did not ask for this, ignore this email and nothing will be sent.'}</Small>
+        <Small>{variant === 'ai_retraining' ? 'If you did not ask for this, ignore this email and nothing will be sent.' : reminder ? 'This is the only reminder. If you do not want alerts, ignore this email and nothing will be sent.' : 'If you did not ask for this, ignore this email and nothing will be sent.'}</Small>
       </Card>
     </CardEmail>
   )
