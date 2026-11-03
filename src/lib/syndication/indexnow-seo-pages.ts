@@ -15,10 +15,11 @@ import { getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-announcements'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 import { eventStateCounts, EVENTS_STATE_MIN } from '@/lib/local-events/queries'
+import { readRankingIndex } from '@/lib/rankings/store'
 import { chunk, INDEXNOW_BATCH, INDEXNOW_ENDPOINT, INDEXNOW_NEW_PER_RUN, indexNowBody } from '@/lib/syndication/syndication'
 
 // Daily IndexNow for the pages the job and organization crons do not cover: employer pages, nonprofit pages, the
-// workforce, rapid-response and higher-education state pages, and the layoff pages. It sends a page the first time it
+// workforce, rapid-response and higher-education state pages, the monthly rankings and the layoff pages. It sends a page the first time it
 // qualifies, and (for the layoff pages) again when a newer notice is filed. Same key, endpoint and state bucket as
 // indexnow-org-pages. A rejected batch stops the run; the rest goes next time.
 
@@ -45,6 +46,17 @@ async function currentPages(): Promise<Page[]> {
     for (const [code, n] of Object.entries(await eventStateCounts())) if (n >= EVENTS_STATE_MIN) out.push({ path: `/events/${stateSlug(code)}`, lastModified: week })
   } catch (e) {
     console.error('indexnow-seo-pages: events pages left out', e)
+  }
+
+  // The monthly rankings: the hub and each ranking's own address, sent again when a new month's edition replaces the last
+  // (the edition is the stamp), so a ranking is announced once a month and not on every run.
+  try {
+    const index = await readRankingIndex()
+    const newest = index.map((x) => x.edition).sort().reverse()[0]
+    if (newest) out.push({ path: '/rankings', lastModified: newest })
+    for (const x of index) out.push({ path: `/rankings/${x.slug}`, lastModified: x.edition })
+  } catch (e) {
+    console.error('indexnow-seo-pages: rankings left out', e)
   }
 
   // Workforce board, rapid-response and higher-education state pages, from one read of the boards and the college states.
