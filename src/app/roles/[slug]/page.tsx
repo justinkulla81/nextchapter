@@ -69,13 +69,13 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
   const faq: { q: string; a: string }[] = [
     { q: `What does a ${lower} do?`, a: `${role.owns} ${role.sits}` },
     ...(hasAcronymMeaning ? [{ q: `What does ${role.acronym} stand for?`, a: `${role.acronym} stands for ${role.spelled}. The same job is also written ${role.variants.filter((v) => v !== role.acronym && v !== role.spelled).slice(0, 4).join(', ')}.` }] : [{ q: `What else is a ${lower} called?`, a: `The same job is also written ${role.variants.filter((v) => v !== role.short).slice(0, 8).join(', ')}.` }]),
-    { q: `How many ${lower} jobs are open?`, a: `${stat.jobs.toLocaleString('en-US')} verified open ${role.spelled.toLowerCase()} jobs, each checked against the employer’s own career site within the last week.` },
-    ...(paid ? [{ q: `How much does a ${lower} make?`, a: `Among ${stat.payCount.toLocaleString('en-US')} open ${role.spelled.toLowerCase()} listings that state pay, the median is ${usd(stat.median!)} a year, and half of listings fall between ${usd(stat.p25!)} and ${usd(stat.p75!)}. This is pay the employer advertises for the job, not total compensation such as bonus or equity.` }] : []),
-    ...(topState ? [{ q: `Where are ${lower} jobs?`, a: `${d.states.slice(0, 4).map((s) => `${s.name} (${s.jobs.toLocaleString('en-US')})`).join(', ')} have the most open ${role.spelled.toLowerCase()} listings.${remoteShare != null ? ` About ${pct(remoteShare)} of listings that state a work arrangement are remote.` : ''}` }] : []),
+    { q: `How many ${lower} jobs are open?`, a: `${stat.jobs.toLocaleString('en-US')} verified open ${role.spelled} jobs, each checked against the employer’s own career site within the last week.` },
+    ...(paid ? [{ q: `How much does a ${lower} make?`, a: `Among ${stat.payCount.toLocaleString('en-US')} open ${role.spelled} listings that state pay, the median is ${usd(stat.median!)} a year, and half of listings fall between ${usd(stat.p25!)} and ${usd(stat.p75!)}. This is pay the employer advertises for the job, not total compensation such as bonus or equity.` }] : []),
+    ...(topState ? [{ q: `Where are ${lower} jobs?`, a: `${d.states.slice(0, 4).map((s) => `${s.name} (${s.jobs.toLocaleString('en-US')})`).join(', ')} have the most open ${role.spelled} listings.${remoteShare != null ? ` About ${pct(remoteShare)} of listings that state a work arrangement are remote.` : ''}` }] : []),
     ...(byPay[0] ? [{ q: `Which state pays a ${lower} the most?`, a: `Of the states with enough listings that state pay, ${byPay[0].name} has the highest median at ${usd(byPay[0].median!)}.` }] : []),
     ...(topIndustry ? [{ q: `Which industries hire for ${lower} roles?`, a: `${d.industries.slice(0, 4).map((i) => `${i.name} (${pct(i.share)})`).join(', ')}, as a share of listings whose employer has a known industry.` }] : []),
-    ...(topSkills.length >= 3 ? [{ q: `What skills do ${lower} jobs ask for?`, a: `The skills named most often in open ${role.spelled.toLowerCase()} listings are ${topSkills.join(', ')}.` }] : []),
-    ...(d.ai ? [{ q: `Do ${lower} jobs ask for AI skills?`, a: `${d.ai.sharePct}% of ${d.ai.sample.toLocaleString('en-US')} open ${role.spelled.toLowerCase()} listings read in full name a specific AI skill.${d.ai.items[0] ? ` The most common is ${d.ai.items[0].label}.` : ''}` }] : []),
+    ...(topSkills.length >= 3 ? [{ q: `What skills do ${lower} jobs ask for?`, a: `The skills named most often in open ${role.spelled} listings are ${topSkills.join(', ')}.` }] : []),
+    ...(d.ai ? [{ q: `Do ${lower} jobs ask for AI skills?`, a: `${d.ai.sharePct}% of ${d.ai.sample.toLocaleString('en-US')} open ${role.spelled} listings read in full name a specific AI skill.${d.ai.items[0] ? ` The most common is ${d.ai.items[0].label}.` : ''}` }] : []),
   ]
 
   return (
@@ -84,7 +84,7 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
       title={seo.h1}
       hero={functionImage(role.fn)}
       capture={{ kind: 'title', slug, label: role.short, save: { q: role.spelled, loc: '' } }}
-      intro={`${stat.jobs.toLocaleString('en-US')} open ${role.spelled.toLowerCase()} jobs${role.acronym && role.level === 'c-suite' ? ` (${role.acronym})` : ''}, taken from employers’ own career sites and checked to still be open. Also listed as ${role.variants.filter((v) => v !== role.short && v !== role.spelled).slice(0, 5).join(', ')}.${paid ? ` Listings that state pay show a median of ${usd(stat.median!)} a year.` : ''}`}
+      intro={`${stat.jobs.toLocaleString('en-US')} open ${role.spelled} jobs${role.acronym && role.level === 'c-suite' ? ` (${role.acronym})` : ''}, taken from employers’ own career sites and checked to still be open. Also listed as ${role.variants.filter((v) => v !== role.short && v !== role.spelled).slice(0, 5).join(', ')}.${paid ? ` Listings that state pay show a median of ${usd(stat.median!)} a year.` : ''}`}
       jsonLd={[
         {
           '@context': 'https://schema.org', '@type': 'CollectionPage', name: seo.h1, url: `${SITE_URL}${path}`,
@@ -98,10 +98,10 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
         { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
       ]}
     >
-      <Section id="market" title={`The market for ${role.spelled.toLowerCase()} work`} note="Every figure is counted from verified open listings. Pay is what the employer advertises for the job.">
+      <Section id="market" title={`The market for ${role.spelled} work`} note="Every figure is counted from verified open listings. Pay is what the employer advertises for the job.">
         <FactGrid
           facts={[
-            { key: 'open', label: `Verified open ${role.spelled.toLowerCase()} jobs`, value: stat.jobs.toLocaleString('en-US'), source: 'NextChapter, checked against employer career sites', period: 'last 7 days' },
+            { key: 'open', label: `Verified open ${role.spelled} jobs`, value: stat.jobs.toLocaleString('en-US'), source: 'NextChapter, checked against employer career sites', period: 'last 7 days' },
             ...(paid ? [{ key: 'pay', label: 'Median pay in listings that state it', value: usd(stat.median!), source: 'NextChapter verified openings' }] : []),
             ...(topState ? [{ key: 'state', label: 'State with the most openings', value: `${topState.name} (${topState.jobs.toLocaleString('en-US')})`, source: 'NextChapter verified openings' }] : []),
             ...(topIndustry ? [{ key: 'industry', label: 'Industry hiring the most', value: `${topIndustry.name} (${pct(topIndustry.share)})`, source: 'NextChapter verified openings' }] : []),
@@ -121,9 +121,9 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
         <p className="mt-3 max-w-3xl text-xs text-muted-foreground">Listings under any of these titles are counted on this page. Assistant, associate, manager and staff titles are not.</p>
       </Section>
 
-      <Section id="jobs" title={`Open ${role.spelled.toLowerCase()} jobs`} note="Verified against the employer’s own career site within the last week.">
+      <Section id="jobs" title={`Open ${role.spelled} jobs`} note="Verified against the employer’s own career site within the last week.">
         <JobList jobs={d.jobs} total={stat.jobs} source={`role:${slug}`} />
-        <p className="mt-3 text-sm"><Link href={`/jobs?q=${encodeURIComponent(role.spelled)}`} className={LINK}>Search all {role.spelled.toLowerCase()} jobs</Link></p>
+        <p className="mt-3 text-sm"><Link href={`/jobs?q=${encodeURIComponent(role.spelled)}`} className={LINK}>Search all {role.spelled} jobs</Link></p>
       </Section>
 
       {paid && (
@@ -161,7 +161,7 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
       )}
 
       {(d.skills.length > 0 || fnStats) && (
-        <Section id="skills" title={`Skills ${lower} jobs ask for`} note={`${d.skills.length > 0 ? `Named in the listings themselves, as a share of ${figure.skillSample.toLocaleString('en-US')} ${role.spelled.toLowerCase()} listings that name skills. ` : ''}Leadership listings name fewer skills than individual-contributor ones, so this is a signal, not a checklist.`}>
+        <Section id="skills" title={`Skills ${lower} jobs ask for`} note={`${d.skills.length > 0 ? `Named in the listings themselves, as a share of ${figure.skillSample.toLocaleString('en-US')} ${role.spelled} listings that name skills. ` : ''}Leadership listings name fewer skills than individual-contributor ones, so this is a signal, not a checklist.`}>
           <div className="grid gap-3 sm:grid-cols-2">
             {d.skills.length > 0 && <RankList tone={2} title={`Most named in ${lower} listings`} items={d.skills.slice(0, 10).map((s) => ({ label: s.name, detail: pct(s.share) }))} />}
             {fnStats && fnStats.skills.length > 0 && (
@@ -175,10 +175,10 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
         <Section id="ai-demand" title={`AI skills for ${lower} jobs`} note="Specific AI skills named in the full posting text, such as prompt engineering, AI governance or an AI tool. A general mention of AI does not count.">
           {d.ai && (
             <p className="max-w-3xl text-base text-navy">
-              {d.ai.sharePct}% of {d.ai.sample.toLocaleString('en-US')} open {role.spelled.toLowerCase()} listings ask for a specific AI skill{fnStats ? `, against ${fnStats.aiSkillPct}% of all ${role.fn} openings` : ''}.
+              {d.ai.sharePct}% of {d.ai.sample.toLocaleString('en-US')} open {role.spelled} listings ask for a specific AI skill{fnStats ? `, against ${fnStats.aiSkillPct}% of all ${role.fn} openings` : ''}.
             </p>
           )}
-          {!d.ai && fnStats && <p className="max-w-3xl text-base text-navy">{fnStats.aiSkillPct}% of {role.fn} openings ask for a specific AI skill. There are too few {role.spelled.toLowerCase()} listings read in full to give a figure for this role alone.</p>}
+          {!d.ai && fnStats && <p className="max-w-3xl text-base text-navy">{fnStats.aiSkillPct}% of {role.fn} openings ask for a specific AI skill. There are too few {role.spelled} listings read in full to give a figure for this role alone.</p>}
           {d.ai && d.ai.items.length > 0 && (
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <RankList tone={3} title="AI skills named most often" items={d.ai.items.map((i) => ({ label: i.label, detail: pct(i.share) }))} />
@@ -227,7 +227,7 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
         </dl>
       </Section>
 
-      <JoinBand source={`role:${slug}`} what={`how the market reads your background for ${role.spelled.toLowerCase()} roles`} />
+      <JoinBand source={`role:${slug}`} what={`how the market reads your background for ${role.spelled} roles`} />
     </TopicShell>
   )
 }

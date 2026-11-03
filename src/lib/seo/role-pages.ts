@@ -116,8 +116,8 @@ const CHIEFS: Chief[] = [
     aliases: ['cro', 'head-of-sales', 'head-of-revenue', 'chief-sales-officer', 'chief-commercial-officer', 'head-of-sales-and-revenue'],
     owns: 'The revenue number: sales, and often marketing, customer success and partnerships behind it. Owns the forecast and the plan to hit it.',
     sits: 'Usually reports to the CEO. At smaller companies the same job is titled Head of Sales.',
-    names: 'chief revenue officer|chief sales officer|chief commercial officer|head of sales|head of revenue|head of commercial', acronyms: 'cro',
-    acronymGuard: /\b(?:clinical|contract research|research organization|oversight|vendor|cmc|trial|monitor\w*|production|laboratory|lab|pharma\w*|biotech|assay|study|studies)\b/,
+    names: 'chief revenue officer|chief sales officer|chief commercial officer|head of sales(?! enablement| operations| ops| training| engineering| support| development)|head of revenue(?! operations| cycle)|head of commercial(?! operations)', acronyms: 'cro',
+    acronymGuard: /\b(?:clinical|contract research|research organization|oversight|vendor|cmc|trial|monitor\w*|production|laboratory|lab|pharma\w*|biotech|assay|study|studies|risk|chief risk)\b/,
   },
   {
     slug: 'chief-marketing-officer', name: 'Chief Marketing Officer (CMO)', short: 'CMO', spelled: 'Chief Marketing Officer', acronym: 'CMO', fn: 'Marketing', ladder: 'marketing',
