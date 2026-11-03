@@ -1,17 +1,30 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { withCronRun } from '@/lib/cron/run'
-import { buildRankings } from '@/lib/rankings/build'
+import { buildRankings, type BuildResult } from '@/lib/rankings/build'
 import type { BuildGroup } from '@/lib/rankings/types'
 
 export const maxDuration = 800
 
-// Builds this month's edition of one group of rankings (src/lib/rankings) and stores it: ?group=places (the default: city and
-// county lists), functions (job-family city lists), skills (AI skills and tools), workforce (county unemployment, white-collar and AI-exposure lists) or college (college earnings and college towns). The groups are separate jobs so
-// each stays inside the time limit. Rerun-safe: a second run in the same month overwrites that month's rows.
+// Builds this month's edition of the rankings (src/lib/rankings) and stores it. The five groups of lists are packed into three
+// scheduled runs so each stays inside the time limit and the project stays inside its cron count:
+//   ?run=a (default): places, then workforce      ?run=b: functions, then skills      ?run=c: college
+// ?group=<name> builds one group on its own (for a manual rerun): places, functions, skills, workforce or college.
+// Rerun-safe: a second run in the same month overwrites that month's rows.
 const GROUPS: BuildGroup[] = ['places', 'functions', 'skills', 'workforce', 'college']
+const RUNS: Record<string, BuildGroup[]> = { a: ['places', 'workforce'], b: ['functions', 'skills'], c: ['college'] }
 
 export const GET = withCronRun('rankings', async (request: NextRequest) => {
   const asked = request.nextUrl.searchParams.get('group') as BuildGroup | null
-  const group = asked && GROUPS.includes(asked) ? asked : 'places'
-  return NextResponse.json(await buildRankings(group))
+  const groups = asked && GROUPS.includes(asked) ? [asked] : RUNS[request.nextUrl.searchParams.get('run') ?? 'a'] ?? RUNS.a
+  const results: BuildResult[] = []
+  const failed: string[] = []
+  for (const g of groups) {
+    try {
+      results.push(await buildRankings(g))
+    } catch (e) {
+      console.error('rankings: group failed', g, e)
+      failed.push(g)
+    }
+  }
+  return NextResponse.json({ results, failed }, { status: failed.length ? 500 : 200 })
 })

@@ -128,6 +128,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/search-firms/report.ts': 'admin-only: imported by the CRM search-firms pages',
     'src/lib/search-firms/sync.ts': 'admin-only: imported by the CRM search-firms pages',
     'src/lib/pitch/request.ts': 'admin-only: imported by the CRM pitch builder pages',
+    'src/lib/leads/captured-emails.ts': 'admin only: imported by the captured-emails admin page, its admin API routes and the visitor activity admin page; read-only',
     'src/lib/mailing/editions.ts': 'admin mailing',
     'src/lib/mailing/lists.ts': 'admin mailing',
     'src/lib/mailing/autoassign.ts': 'admin mailing: daily cron and backfill that subscribe CRM people to lists by type',
