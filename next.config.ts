@@ -57,6 +57,9 @@ const nextConfig: NextConfig = {
         destination: `/${kind}/:state`,
         permanent: false,
       })),
+      // /skills/by and /skills/by/<dimension> are only folders of the skills lists, so they go to the skills hub.
+      { source: '/skills/by', destination: '/skills', permanent: false },
+      { source: '/skills/by/:dim', destination: '/skills', permanent: false },
       // /jobs/entry-level/category is only the folder of category pages, so it goes to the entry-level hub.
       { source: '/jobs/entry-level/category', destination: '/jobs/entry-level', permanent: false },
       // /feeds is the feeds directory page; /feeds/industries is only a folder of feeds, so it goes there.
@@ -276,6 +279,8 @@ const nextConfig: NextConfig = {
       { source: "/ai-courses/:path*", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       { source: "/ai-courses", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       { source: "/top-employers", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
+      // Pay data pages are rendered per request (a heavy scan; a build-time prerender ran out of database connections on 2026-11-03) and kept by the CDN for six hours.
+      ...["/resources/pay-data", "/resources/pay-data/:path*"].map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=21600, stale-while-revalidate=86400" }] })),
       { source: "/images/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/marketing/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/guides/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },

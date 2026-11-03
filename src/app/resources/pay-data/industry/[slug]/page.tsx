@@ -8,7 +8,7 @@ import { usd } from '@/lib/pay-data/text'
 import { canonical } from '@/lib/seo/canonical'
 import { titleMeta } from '@/lib/seo/title'
 
-export const revalidate = 21600
+export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 export function generateStaticParams() {
   return []

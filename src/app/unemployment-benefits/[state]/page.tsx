@@ -25,6 +25,7 @@ import { severanceByState } from '@/lib/severance/state-groups'
 import { FILING_GUIDE_UPDATED } from '@/lib/data/state-ui-appeals'
 import { StateFilingGuide, appealSentence, READY_LIST } from '@/components/benefits/StateFilingGuide'
 import { PullTop } from '@/components/capture/PullCta'
+import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
 
 // Facts are static; the daily refresh keeps the link to this state's layoff
 // page and its list of workforce boards current.
@@ -187,7 +188,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
               href={ui.fileUrl.value}
               event="benefits_file_claim_clicked"
               properties={{ state: code }}
-              className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
+              className={SECONDARY_ACTION}
             >
               File a claim with {agency} →
             </TrackedLink>

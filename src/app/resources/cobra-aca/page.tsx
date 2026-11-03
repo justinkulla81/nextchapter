@@ -15,6 +15,7 @@ import { journeyChoices } from '@/lib/leads/infer-journey'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
 
 // The COBRA vs ACA explainer. It replaces the thin, email-gated guide page at the same address (the gated PDF is kept as an optional
 // extra at the bottom), so the impressions that address already has carry over. Rules and figures: src/lib/cobra-aca/rules.ts;
@@ -82,7 +83,7 @@ export default function CobraAcaPage() {
           <li>Do not wait on the deadlines. You have {COBRA.electionDays} days to elect COBRA and {MARKETPLACE.specialEnrollmentDays} days after coverage ends to join a Marketplace plan. The two windows run at the same time.</li>
         </ul>
         <div className="mt-6 flex flex-wrap items-center gap-4">
-          <Link href="/tools/cobra-vs-aca-calculator" className="inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">
+          <Link href="/tools/cobra-vs-aca-calculator" className={SECONDARY_ACTION}>
             Compare my own numbers
           </Link>
           <span className="text-sm text-muted-foreground">Free, no account, nothing saved.</span>

@@ -8,7 +8,7 @@ import { functionPayPath, industryPayPath, skillPath } from '@/lib/pay-data/slug
 import { dateText, num, rangeText, signedPct, skillName, usd } from '@/lib/pay-data/text'
 import { pageMetadata } from '@/lib/seo/keywords'
 
-export const revalidate = 21600
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = pageMetadata(PAY_DATA)
 
 export default async function PayDataPage() {

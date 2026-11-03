@@ -69,7 +69,9 @@ async function load(slug: string) {
 
 /** The employer's WARN record and its announcements; an employer with only announcements gets a page with no notices. */
 async function loadPage(slug: string): Promise<{ c: CompanySummary; ann: CompanyAnnouncements | undefined } | null> {
-  const announcements = await getAnnouncements().catch(() => new Map<string, CompanyAnnouncements>())
+  // A failed lookup must not look like "no announcements": for an employer with no WARN filing that becomes the redirect below,
+  // and the redirect is cached for a day (see the page's own note). An error is not cached, so the next visit retries.
+  const announcements = await getAnnouncements()
   const ann = announcements.get(slug)
   const c = await load(slug)
   if (c) return { c, ann }
