@@ -1,6 +1,6 @@
 import { getLayoffRows, parseStateParam, toCsv } from '@/lib/data/layoff-export'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 // The layoff record as a spreadsheet: every WARN filing of the last 24 months, or one state with ?state=TX.
 export async function GET(request: Request) {

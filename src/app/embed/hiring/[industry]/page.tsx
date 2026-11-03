@@ -4,7 +4,7 @@ import { EmbedCard, embedRow } from '@/components/embed/EmbedCard'
 import { industryBySlug } from '@/lib/seo/topics'
 import { getTopicJobs } from '@/lib/seo/topic-data'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const metadata: Metadata = { robots: { index: false, follow: true } }
 
 // Embeddable widget: newest verified open jobs in one industry, read from the stored snapshot (no scan of the job board).

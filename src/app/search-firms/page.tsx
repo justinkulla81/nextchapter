@@ -6,7 +6,7 @@ import { stateName } from '@/lib/seo/states'
 import { getFirmListings } from '@/lib/seo/search-firm-pages'
 import { FIRM_KIND_LABEL, FIRM_KIND_PLURAL, isFirmKind, type FirmKind } from '@/lib/seo/search-firm-bar'
 
-export const revalidate = 21600
+export const revalidate = 86400 // 24 hours: was 6 hours; every regeneration is a billed ISR write
 export const metadata: Metadata = {
   title: 'Search firms and recruiters hiring now',
   description: 'Executive search firms, recruiting firms and staffing companies with open searches right now: roles, levels, places and posted pay, from our own job board.',

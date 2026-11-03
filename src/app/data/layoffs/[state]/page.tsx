@@ -13,7 +13,7 @@ import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { titleMeta } from '@/lib/seo/title'
 import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const dynamicParams = true
 export function generateStaticParams() {
   return []

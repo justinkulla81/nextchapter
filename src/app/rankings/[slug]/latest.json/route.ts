@@ -1,6 +1,6 @@
 import { readRanking, readRankingIndex } from '@/lib/rankings/store'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 // The newest edition of a ranking as JSON: the rows with every figure, the method and the sources. Free to use with a link back.
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {

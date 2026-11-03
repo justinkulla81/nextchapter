@@ -12,7 +12,7 @@ import { hasLayoffStatePage, noticeDay } from '@/lib/warn/layoff-pages'
 import { getLayoffCounts } from '@/lib/warn/layoff-counts'
 import { LayoffNumbersNote } from '@/components/layoffs/LayoffNumbersNote'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 const DESCRIPTION = 'Download the layoff record: every WARN Act notice filed with US state labor departments in the last 24 months, as CSV or JSON, free to reuse with a link back.'
 export const metadata: Metadata = pageMetadata('/data')

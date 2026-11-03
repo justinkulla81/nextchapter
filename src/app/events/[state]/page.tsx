@@ -9,7 +9,7 @@ import { titleMeta } from '@/lib/seo/title'
 import { EVENTS_STATE_MIN, localEvents, type LocalEventRow } from '@/lib/local-events/queries'
 import { eventJsonLd } from '@/lib/local-events/jsonld'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 const GROUPS: { id: string; title: string; intro: string; kinds: string[] }[] = [
   { id: 'jobs', title: 'Job fairs and hiring events', intro: 'Career fairs and employer hiring events.', kinds: ['JOB_FAIR', 'HIRING_EVENT'] },

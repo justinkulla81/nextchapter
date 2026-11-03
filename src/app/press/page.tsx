@@ -16,7 +16,7 @@ import { getLayoffCounts } from '@/lib/warn/layoff-counts'
 import { LAYOFF_DATA_LICENSE } from '@/lib/data/layoff-export'
 import { LTU_JAN_AUG, PRESS_CONTACT_EMAIL, PRESS_CORRECTIONS, PRESS_PAGE_REVIEWED, SINGLE_MONTH_CAUTION, citationText } from '@/lib/press/figures'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 const PATH = '/press'
 export const metadata: Metadata = pageMetadata(PATH)

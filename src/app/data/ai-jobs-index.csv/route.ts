@@ -4,7 +4,7 @@ import { indexCsv } from '@/lib/ai-index/build'
 
 // The table behind /data/ai-jobs-index: one row per measured occupation, aggregates only. Built from the stored exposure table,
 // the stored board figure and the newest AI market snapshot, so a download adds no scan.
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 export async function GET() {
   const index = await loadAiJobsIndex()

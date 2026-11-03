@@ -8,7 +8,7 @@ import { LOOKS_LIKE_ASSOCIATION } from '@/lib/seo/topics'
 import { loadAssociation } from '@/lib/seo/topic-load'
 import { titleMeta } from '@/lib/seo/title'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const dynamicParams = true
 export function generateStaticParams() {
   return []

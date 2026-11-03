@@ -4,7 +4,7 @@ import { getPublicNotices, noticeDay } from '@/lib/warn/layoff-pages'
 export const alt = 'Employer layoff notices'
 export const size = OG_SIZE
 export const contentType = 'image/png'
-export const revalidate = 21600
+export const revalidate = 86400 // 24 hours: was 6 hours; every regeneration is a billed ISR write
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params

@@ -5,7 +5,7 @@ import { MonthBars } from '@/components/layoffs/MonthBars'
 import { LAYOFF_YEAR, getMonths, getYearNotices } from '@/lib/layoffs/monthly'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const metadata: Metadata = { robots: { index: false, follow: true } }
 
 // Embeddable widget: WARN layoffs by month for the year, nationally (`us`) or for one state. /data/embed has the snippet.
