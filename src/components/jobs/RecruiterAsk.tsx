@@ -43,7 +43,7 @@ export function RecruiterAsk({ jobId, company, space }: { jobId: string; company
           properties={properties}
           className={cn(buttonVariants({ size: 'lg' }), 'mt-3 h-12 w-full rounded-full bg-action text-action-foreground hover:brightness-95 sm:w-auto sm:px-6')}
         >
-          Create my free account
+          Join free
         </TrackedLink>
       </section>
     )

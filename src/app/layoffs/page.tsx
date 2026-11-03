@@ -57,7 +57,7 @@ export default async function LayoffsHubPage() {
         }}
       />
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-6xl px-6">
           {tracker ? (
             <LayoffTracker data={tracker} national={national} headingLevel="h1" />

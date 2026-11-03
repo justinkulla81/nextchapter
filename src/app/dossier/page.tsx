@@ -34,7 +34,7 @@ export default function DossierPage() {
 
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/desire" />}>
-            Start free
+            Join free
           </Button>
         </div>
       </main>
@@ -45,7 +45,7 @@ export default function DossierPage() {
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-3xl px-6 py-16">
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <div className="grid gap-8 sm:grid-cols-2">
           <div>
             <p className="font-semibold text-navy">What it contains</p>

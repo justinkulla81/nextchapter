@@ -43,10 +43,10 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
       <StructuredData data={breadcrumbJsonLd(trail)} />
       {jsonLd?.map((d, i) => <StructuredData key={i} data={d} />)}
       <PublicSiteHeader />
-      <main className="flex-1 bg-off-white py-12" data-look={look} data-calm={calm ? '' : undefined}>
+      <main className="flex-1 bg-off-white py-8" data-look={look} data-calm={calm ? '' : undefined}>
         <div className="mx-auto max-w-6xl px-6">
-          <div className={look === 'audience' ? 'rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun p-6 sm:p-10' : look === 'scene' && hero ? 'overflow-hidden rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun md:grid md:grid-cols-[1.15fr_1fr]' : undefined}>
-          <div className={look === 'scene' && hero ? 'p-6 sm:p-10' : undefined}>
+          <div className={look === 'audience' ? 'rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun p-5 sm:p-7' : look === 'scene' && hero ? 'overflow-hidden rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun md:grid md:grid-cols-[1.15fr_1fr]' : undefined}>
+          <div className={look === 'scene' && hero ? 'p-5 sm:p-7' : undefined}>
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             {trail.map((t, i) => (
               <span key={t.path}>
@@ -74,8 +74,8 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
               properties={{ kind: 'STATE', state: st.code }}
             />
           )}
-          {capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} />}
           {body}
+          {capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} />}
           {capture && <PageCaptureOwner capture={capture} />}
           {bottom}
         </div>

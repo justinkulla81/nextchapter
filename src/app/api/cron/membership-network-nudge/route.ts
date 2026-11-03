@@ -34,7 +34,7 @@ export const GET = withCronRun('membership-network-nudge', async () => {
         subject: 'A quick nudge to keep your network warm',
         heading: 'Stay a name people remember',
         bodyLines: [
-          `Hi ${subscription.candidate.firstName ?? 'there'} — as a NextChapter Member, staying visible to your network pays off long after your search ends. Take five minutes to check in with a contact or two.`,
+          `Hi ${subscription.candidate.firstName ?? 'there'} — on the NextChapter Alumni plan, staying visible to your network pays off long after your search ends. Take five minutes to check in with a contact or two.`,
         ],
         ctaLabel: 'Go to Network with Contacts',
         ctaUrl: `${appUrl()}/dashboard/network`,

@@ -24,7 +24,7 @@ const VIA: Record<string, string> = {
   coach_code: 'your coach',
   coach: 'your coach',
   admin: 'NextChapter',
-  membership: 'your membership',
+  membership: 'your Alumni plan',
 }
 
 export default async function MyCoachingPage() {

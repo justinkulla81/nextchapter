@@ -62,7 +62,7 @@ export function AudienceShell({ page, parent, eyebrow, headline, subhead, primar
 
       <main>
         <div className={look === 'audience' ? 'mx-auto mt-8 mb-6 max-w-5xl px-6' : undefined}>
-        <section className={look === 'audience' ? 'rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun px-6 pt-12 pb-12 text-center' : 'mx-auto max-w-3xl px-6 pt-14 pb-12 text-center'} aria-labelledby="audience-heading">
+        <section className={look === 'audience' ? 'rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun px-6 pt-8 pb-8 text-center' : 'mx-auto max-w-3xl px-6 pt-8 pb-8 text-center'} aria-labelledby="audience-heading">
           <p className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">{eyebrow}</p>
           <h1 id="audience-heading" className="mt-3 font-display text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">
             {headline}
@@ -117,7 +117,7 @@ export function AudienceShell({ page, parent, eyebrow, headline, subhead, primar
 /** A bounded content section: a serif heading, then its content. Three of these at most per page. */
 export function AudienceSection({ id, title, children, className }: { id?: string; title: string; children: ReactNode; className?: string }) {
   return (
-    <section id={id} className={cn('mx-auto w-full max-w-4xl scroll-mt-6 px-6 pb-14', className)} aria-label={title}>
+    <section id={id} className={cn('mx-auto w-full max-w-4xl scroll-mt-6 px-6 pb-10', className)} aria-label={title}>
       <h2 className="font-display text-2xl font-semibold text-ink">{title}</h2>
       <div className="mt-5">{children}</div>
     </section>
@@ -140,7 +140,7 @@ export function Disclosure({ id, title, children, defaultOpen = false }: { id?: 
 /** The closing band, and the only dark block on the page: where the action lands. */
 export function ActionBand({ id, title, intro, children }: { id: string; title: string; intro?: string; children: ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-6 bg-ink py-14 text-white" aria-label={title}>
+    <section id={id} className="scroll-mt-6 bg-ink py-10 text-white" aria-label={title}>
       <div className="mx-auto max-w-2xl px-6">
         <h2 className="font-display text-2xl font-semibold">{title}</h2>
         {intro && <p className="mt-2 mb-6 text-white/80">{intro}</p>}

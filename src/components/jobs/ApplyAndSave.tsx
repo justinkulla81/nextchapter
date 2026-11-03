@@ -251,7 +251,7 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
                 ? 'We email you this job now and a reminder in 3 days to follow up. Optional.'
                 : emailOn
                   ? 'We email you the job so you can find it again. Then create a free account to see your fit.'
-                  : 'Save it with your email, then create a free account to see your fit.'}
+                  : 'Save it with your email, then join free to see your fit.'}
             </p>
             <input type="hidden" name="jobId" value={jobId} />
             <input type="hidden" name="trigger" value={trigger} />

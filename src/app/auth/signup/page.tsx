@@ -9,8 +9,8 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Build your profile — it&apos;s free</CardTitle>
-          <CardDescription>Candidates are never charged, ever.</CardDescription>
+          <CardTitle>Join NextChapter free as a Member</CardTitle>
+          <CardDescription>Free to join, always.</CardDescription>
         </CardHeader>
         <CardContent>
           <SignupForm />

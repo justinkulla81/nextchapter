@@ -181,7 +181,7 @@ export default function AboutPage() {
                   {CANDIDATES.map((c) => <li key={c}>{c}</li>)}
                 </ul>
                 <p className="mt-4 text-sm text-muted-foreground">
-                  Candidates are never charged.{' '}
+                  Joining is free, always.{' '}
                   <Link href="/how-it-works" className="font-medium text-brand underline underline-offset-4">How it works</Link>
                 </p>
               </div>

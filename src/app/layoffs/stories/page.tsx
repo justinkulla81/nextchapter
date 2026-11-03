@@ -14,7 +14,7 @@ export default async function StoriesHubPage() {
   return (
     <div className="flex flex-1 flex-col">
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-6xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy">Layoff stories</h1>
           <p className="mt-3 max-w-xl text-muted-foreground">What people got for notice and severance, and how they were told, in their own answers. Private by default.</p>

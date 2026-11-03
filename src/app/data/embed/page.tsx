@@ -16,7 +16,7 @@ export default function EmbedPage() {
   return (
     <div className="flex flex-1 flex-col">
       <PublicSiteHeader />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-5xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/data/embed', 'Embeddable widgets')}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">

@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react'
 import { NAV_CTA_LABEL, useNavCtaVariant } from '@/lib/ab/nav-cta'
 
 /**
- * Button text for any link into the Market Reality Assessment, part of the same three-way label
+ * Button text for any link into the Market Reality Assessment, part of the same four-way label
  * test as the nav button (see lib/ab/nav-cta.ts): visitors in an arm see that arm's label on every
  * assessment button. Only copy that names the assessment is tested; other button copy ("Join free
  * and see what you qualify for") passes through untouched. Server render and first paint are the

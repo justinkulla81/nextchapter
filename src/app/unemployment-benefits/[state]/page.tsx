@@ -170,7 +170,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
         />
       )}
       <PublicSiteHeader />
-      <main className="mx-auto w-full max-w-3xl px-6 py-14">
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
           <Link href="/unemployment-benefits" className="hover:text-foreground">Unemployment benefits</Link>
           <span aria-hidden> › </span>
@@ -197,7 +197,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <LaidOffStart placement="unemployment_state_top" eventPrefix="unemployment" label="Get my layoff plan" />
-          <span className="text-sm text-muted-foreground">Free for candidates, always. About 5 minutes.</span>
+          <span className="text-sm text-muted-foreground">Free to join. Free for Members, always. About 5 minutes.</span>
         </div>
 
         <SeveranceVerdict row={severanceRow} agency={agency} />
