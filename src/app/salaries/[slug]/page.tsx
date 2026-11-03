@@ -10,6 +10,7 @@ import { salarySeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
 import { ShareBar } from '@/components/marketing/ShareBar'
 import { AiPremiumSection } from '@/components/salaries/AiPremiumSection'
+import { RankingContext } from '@/components/rankings/RankingContext'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -76,6 +77,7 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
         <JobList jobs={d.jobs} total={stat.jobs} source={`salary:${slug}`} allHref={`/jobs/title/${slug}`} />
         <p className="mt-3 text-sm"><Link href={`/jobs/title/${slug}`} className={LINK}>All {stat.jobs.toLocaleString('en-US')} {stat.name.toLowerCase()} jobs</Link></p>
       </Section>
+      <RankingContext surface="salary" fn={stat.fn} />
       <div className="mt-8">
         <ShareBar url={`${SITE_URL}/salaries/${slug}`} title={`${stat.name} salary: what the jobs pay`} placement="salary_page" label="Send this to a friend" />
       </div>

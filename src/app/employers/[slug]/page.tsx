@@ -1,4 +1,6 @@
 import { CompanyOutlookSection } from '@/components/seo/CompanyOutlookSection'
+import { RankingContext } from '@/components/rankings/RankingContext'
+import { placeFromLocation } from '@/lib/rankings/place-keys'
 import { hubsFor } from '@/lib/places/hubs'
 import { testedTitle } from '@/lib/seo/title-test-state'
 import { employerTitleB } from '@/lib/seo/title-tests'
@@ -216,6 +218,12 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         layoffs12={layoffs?.total ?? 0}
         fundraises12={secEvents.filter((x) => x.kind === 'FUNDRAISE').length}
         hubs={hubs}
+      />
+
+      <RankingContext
+        surface="employer"
+        places={(p?.topLocations ?? []).map((l) => placeFromLocation(l.location)).filter((x): x is { name: string; keys: string[] } => !!x)}
+        fn={p?.topFunctions[0]?.function}
       />
 
       {ins && <EmployerInsights name={e.name} industry={e.industry} ins={ins} text={text} />}

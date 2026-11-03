@@ -189,6 +189,13 @@ export async function isCompanyOfferedToSearch(companyId: string): Promise<boole
   return rows.length > 0
 }
 
+/** Which of these companies have a page offered to search engines (the sitemap rule), one query for the lot. */
+export async function offeredCompanyIds(ids: string[]): Promise<Set<string>> {
+  if (!ids.length) return new Set()
+  const rows = await prisma.$queryRawUnsafe<{ id: string }[]>(`SELECT c.id ${ELIGIBLE} AND c.id = ANY($1::text[])`, ids)
+  return new Set(rows.map((r) => r.id))
+}
+
 /** Ids of every company that has a public employer page (the sitemap rule), for lists that link to them. */
 export async function employerPageCompanyIds(): Promise<Set<string>> {
   const rows = await prisma.$queryRawUnsafe<{ id: string }[]>(`SELECT c.id ${ELIGIBLE}`)

@@ -7,7 +7,8 @@ import { stateSlug } from '@/lib/seo/states'
 import { FAMILIES, functionSpecs, rankCities, rankCounties, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, type Spec } from '@/lib/rankings/build-edition'
 import { STATE_FIPS } from '@/lib/rankings/regions'
 import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadSkillStats } from '@/lib/rankings/scan'
-import { previousEdition, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
+import { awardEntries } from '@/lib/rankings/awards'
+import { addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
 import type { BuildGroup, CityStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/measures'
 
@@ -148,6 +149,10 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
   const mine = new Set(specs.map((x) => x.slug))
   const index = (await readRankingIndex()).filter((e) => !mine.has(e.slug) && (e.group ?? 'places') !== group)
   await writeRankingIndex([...index, ...entries])
+  // Every month's placings are kept (awards.ts). The first build after they shipped rebuilds them from the stored editions, so
+  // the months already published are included; after that each build adds its own.
+  if (await awardBookExists()) await addToAwardBook(built.flatMap(({ ed }) => awardEntries(ed)))
+  else await rebuildAwardBook()
   if (group !== 'skills') {
     const merged: PlaceRanks = {}
     for (const [k, list] of Object.entries(await readPlaceRanksRaw())) {

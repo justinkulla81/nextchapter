@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Chips, JoinBand, Section, TopicShell } from '@/components/topics/blocks'
 import { EmployerRankTable } from '@/components/topics/EmployerRankTable'
+import { RankingContext } from '@/components/rankings/RankingContext'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { functionBySlug, JOB_FUNCTIONS } from '@/lib/seo/topics'
@@ -47,6 +48,7 @@ export default async function TopEmployersFunctionPage({ params }: { params: Pro
       <Section id="hiring" title={`Employers with the most open ${fn.name.toLowerCase()} jobs`} note="Ranked by open jobs in this function. Entry-level counts jobs at entry or early-career level; AI counts jobs asking for a specific AI skill.">
         <EmployerRankTable rows={ranking?.employers ?? []} cols={['open', 'entry', 'aiSkill']} list={`function:${slug}`} />
       </Section>
+      <RankingContext surface="top_employers" fn={fn.name} />
       <Section id="more" title="Other functions">
         <Chips kind="top_employers_function_to_function" event="topic_link_clicked" items={JOB_FUNCTIONS.filter((f) => f.slug !== slug).map((f) => ({ href: `/top-employers/${f.slug}`, label: f.name }))} />
       </Section>

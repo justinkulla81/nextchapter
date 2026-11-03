@@ -29,6 +29,8 @@ import { prisma } from '@/lib/prisma'
 import { getTitleIndex } from '@/lib/seo/job-titles'
 import { baseTitle, titleSlug } from '@/lib/seo/job-title-rules'
 import { BrowseTheSite } from '@/components/marketing/BrowseTheSite'
+import { RankingContext } from '@/components/rankings/RankingContext'
+import { cityAwardKeys } from '@/lib/rankings/place-keys'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 import { cn } from '@/lib/utils'
@@ -172,6 +174,12 @@ export default async function PublicJobPage({ params }: { params: Params }) {
                 {fn && <Link href={functionPath(fn.name)} className="underline underline-offset-4">{fn.name} jobs</Link>}
               </p>
             )}
+
+            <RankingContext
+              surface="job"
+              places={job.locationCity && job.locationState ? [{ name: `${job.locationCity}, ${job.locationState}`, keys: cityAwardKeys(job.locationCity, job.locationState) }] : []}
+              fn={tags?.targetFunction}
+            />
 
             <PayVsMarket jobId={job.id} title={job.title} salaryMin={job.salaryMin} salaryMax={job.salaryMax} payPeriod={job.payPeriod} />
 
