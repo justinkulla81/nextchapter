@@ -63,11 +63,11 @@ export const EXPOSURE_WHY =
 export function exposureSentence(e: OccupationExposure): string {
   switch (e.band) {
     case 'high':
-      return `AI is already used for a large share of the tasks in ${e.title.toLowerCase()} work.`
+      return `Among ${e.title.toLowerCase()}, AI is already used for a large share of the tasks.`
     case 'some':
-      return `AI is already used for some of the tasks in ${e.title.toLowerCase()} work.`
+      return `Among ${e.title.toLowerCase()}, AI is already used for some of the tasks.`
     default:
-      return `AI use for ${e.title.toLowerCase()} work is little observed so far.`
+      return `AI use among ${e.title.toLowerCase()} is little observed so far.`
   }
 }
 

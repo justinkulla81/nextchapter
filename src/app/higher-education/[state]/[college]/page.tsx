@@ -20,6 +20,7 @@ import { AreaNotices } from '@/components/seo/AreaNotices'
 import { noticesForCollege } from '@/lib/seo/org-notices'
 import { areaName, getCollegePage, type CollegePageData } from '@/lib/seo/college-pages'
 import { functionByName, functionPath } from '@/lib/seo/topics'
+import { campusImage } from '@/lib/places/place-image'
 
 // One page per college: IPEDS and College Scorecard facts, the job market in its county, the workforce board and
 // American Job Centers that serve it, and peer colleges. Built on first visit, refreshed daily. A college below the
@@ -129,7 +130,8 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
   return (
     <OrgBrandScope brand={brand?.pair}>
     <SeoPage
-      look="audience"
+      look="scene"
+      hero={campusImage(c.canonicalSlug)}
       capture={{ kind: 'college', slug: c.canonicalSlug, label: c.name, save: { q: '', loc: c.city ? `${c.city}, ${code}` : code } }}
       trail={[{ name: 'Higher education', path: '/higher-education' }, { name: st, path: `/higher-education/${state}` }, { name: c.name, path }]}
       h1={`${c.name}: programs, outcomes and local jobs`}

@@ -234,7 +234,7 @@ export const QUESTION_RULES: Rule[] = [
     return {
       rule: 'ai_exposure',
       text: 'Which parts of your work do you want to be known for, in the next role?',
-      reason: `AI is already used for a large share of the tasks in ${x.title.toLowerCase()} work (${x.sourceName}). It gives ${name} a way to talk about what stays human.`,
+      reason: `Among ${x.title.toLowerCase()}, AI is already used for a large share of the tasks (${x.sourceName}). It gives ${name} a way to talk about what stays human.`,
     }
   },
 ]

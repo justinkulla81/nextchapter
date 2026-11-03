@@ -15,6 +15,7 @@ import { stateFromSlug, stateSlug } from '@/lib/seo/states'
 import { isCollegeTerritory, territoryFromSlug } from '@/lib/seo/college-bar'
 import { getStateLabor, periodLabel, rateText } from '@/lib/seo/workforce-pages'
 import { titleMeta } from '@/lib/seo/title'
+import { campusImage } from '@/lib/places/place-image'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -50,7 +51,8 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
 
   return (
     <SeoPage
-      look="audience"
+      look="scene"
+      hero={campusImage(state)}
       stateSlug={state}
       trail={[{ name: 'Higher education', path: '/higher-education' }, { name: d.name, path: `/higher-education/${state}` }]}
       h1={higherEdStateSeo(d.name).h1}

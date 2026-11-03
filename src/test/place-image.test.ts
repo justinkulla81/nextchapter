@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { ALL_STATE_CODES } from '@/lib/seo/states'
-import { PLACE_IMAGE_FILES, settingImage, stateImage } from '@/lib/places/place-image'
+import { PLACE_IMAGE_FILES, campusImage, settingImage, stateImage } from '@/lib/places/place-image'
 
 describe('place header pictures', () => {
   it('every picture a place can show exists', () => {
@@ -17,5 +17,6 @@ describe('place header pictures', () => {
     expect(settingImage(null, 'oh-tiny', 'city')).toMatch(/place-rural-[123]/)
     expect(settingImage(120_000, 'oh-akron', 'city')).toBe(settingImage(120_000, 'oh-akron', 'city'))
     expect(PLACE_IMAGE_FILES).toContain(settingImage(80_000, 'x', 'county'))
+    expect(PLACE_IMAGE_FILES).toContain(campusImage('ohio-state-university'))
   })
 })

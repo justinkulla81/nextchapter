@@ -269,7 +269,7 @@ describe('background behind Show more', () => {
     const view = buildPrep(
       base({
         market: {
-          exposure: { title: 'Financial Analysts', score: 0.31, band: 'high', sentence: 'AI is already used for a large share of the tasks in financial analysts work.', why: 'Share of this job’s tasks.', sourceName: 'Anthropic Economic Index' },
+          exposure: { title: 'Financial Analysts', score: 0.31, band: 'high', sentence: 'Among financial analysts, AI is already used for a large share of the tasks.', why: 'Share of this job’s tasks.', sourceName: 'Anthropic Economic Index' },
           pay: null,
           cycleLine: 'In the last two downturns, employment in this work held up better than jobs overall in both.',
         },

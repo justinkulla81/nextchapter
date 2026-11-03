@@ -15,7 +15,7 @@ const REGION_OF = new Map(Object.entries(REGIONS).flatMap(([r, codes]) => codes.
 
 export const PLACE_IMAGE_FILES = [
   ...Object.keys(REGIONS).map((r) => `place-region-${r}`),
-  ...['city', 'town', 'rural'].flatMap((s) => [1, 2, 3].map((n) => `place-${s}-${n}`)),
+  ...['city', 'town', 'rural', 'campus'].flatMap((s) => [1, 2, 3].map((n) => `place-${s}-${n}`)),
 ].map((f) => `/images/topics/${f}.webp`)
 
 const url = (f: string) => `/images/topics/${f}.webp`
@@ -35,3 +35,6 @@ export function settingImage(population: number | null | undefined, slug: string
   const n = (hash(`${kind}:${slug}`) % 3) + 1
   return url(`place-${setting}-${n}`)
 }
+
+/** A college's campus picture, one of three picked from its slug so it always shows the same one. */
+export const campusImage = (slug: string): string => url(`place-campus-${(hash(`college:${slug}`) % 3) + 1}`)
