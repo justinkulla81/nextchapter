@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { linkFacets, oauth1Header } from '@/lib/social/clients'
-import { MIN_DAILY_NOTICES, MIN_NOTICES, dailyLayoffPost, reportPost, weekKey, weeklyLayoffPost, type DayNotice, type WeekNotice } from '@/lib/social/posts'
+import { MIN_DAILY_NOTICES, MIN_NOTICES, MIN_RANKINGS_POSTED, dailyLayoffPost, rankingsPost, reportPost, weekKey, weeklyLayoffPost, type DayNotice, type WeekNotice } from '@/lib/social/posts'
 
 const now = new Date('2026-10-26T13:00:00Z')
 const day = 86_400_000
@@ -117,5 +117,27 @@ describe('X filing rules', () => {
     const { FILING_RULES, MAX_PER_CHANNEL_PER_DAY } = await import('@/lib/social/filings')
     expect(FILING_RULES.x).toEqual({ minWorkers: 250, perDay: 3 })
     expect(FILING_RULES.x!.perDay).toBeLessThan(MAX_PER_CHANNEL_PER_DAY)
+  })
+})
+
+describe('rankingsPost', () => {
+  const nov = new Date('2026-11-04T13:00:00Z')
+  const list = (slug: string, measure: string, extra: Record<string, unknown> = {}) => ({ slug, measure, scopeKind: 'national', title: slug, edition: '2026-11', topName: 'Austin', topValueLabel: '12.0%', editions: ['2026-11'], ...extra })
+  const many = Array.from({ length: MIN_RANKINGS_POSTED }, (_, i) => list(`l${i}`, 'x', { scopeKind: 'region' }))
+
+  it('waits for the month to have enough lists', () => {
+    expect(rankingsPost([list('a', 'junior')], nov, 'u=1')).toBeNull()
+  })
+  it('announces the month once, with the leaders of three national lists and the archive link', () => {
+    const post = rankingsPost([...many, list('best-cities-for-junior-jobs', 'junior'), list('x-ai', 'ai', { topName: 'Seattle' }), list('x-pay', 'paycost', { topName: 'Dallas' })], nov, 'utm_source=x')!
+    expect(post.key).toBe('rankings-2026-11')
+    expect(post.text).toContain('November 2026: 53 lists')
+    expect(post.text).toContain('#1 for Entry-level jobs: Austin (12.0%)')
+    expect(post.text).toContain('#1 for AI skills asked for: Seattle')
+    expect(post.text).toContain('https://launchyournextchapter.com/rankings/archive/2026-11?utm_source=x')
+    expect(post.text.length).toBeLessThanOrEqual(280)
+  })
+  it('never announces an older month', () => {
+    expect(rankingsPost(many, new Date('2026-12-02T13:00:00Z'), 'u=1')).toBeNull()
   })
 })
