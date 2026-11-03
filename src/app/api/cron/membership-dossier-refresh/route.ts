@@ -43,7 +43,7 @@ export const GET = withCronRun('membership-dossier-refresh', async () => {
           subject: 'Your annual Dossier refresh is ready',
           heading: 'Your Dossier just got a refresh',
           bodyLines: [
-            `Hi ${subscription.candidate.firstName ?? 'there'} — as a NextChapter Member, your Executive Dossier gets an annual refresh. The next time you open it, everything regenerates with your latest activity.`,
+            `Hi ${subscription.candidate.firstName ?? 'there'} — on the NextChapter Alumni plan, your Executive Dossier gets an annual refresh. The next time you open it, everything regenerates with your latest activity.`,
           ],
           ctaLabel: 'View your Dossier',
           ctaUrl: `${appUrl()}/dashboard/recruiter-report`,

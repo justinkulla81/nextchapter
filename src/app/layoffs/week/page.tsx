@@ -19,7 +19,7 @@ export default async function WeeklyLayoffsIndex() {
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: 'Weekly layoffs', path: '/layoffs/week' }])} />
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-4xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/layoffs/week', 'Layoffs by week: WARN notices')}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
@@ -39,7 +39,7 @@ export default async function WeeklyLayoffsIndex() {
           <p className="mt-8 text-sm text-muted-foreground">Data for every week is in the <Link href="/data" className={LINK}>downloadable record</Link>.</p>
         </div>
       </main>
-      <PublicSiteFooter page="layoffs" />
+      <PublicSiteFooter page="layoffs" cta={false} />
     </div>
   )
 }

@@ -64,7 +64,7 @@ export default async function LayoffsThisWeek() {
       <StructuredData data={ld} />
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: 'This week', path: '/layoffs/this-week' }])} />
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-5xl px-6">
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link><span aria-hidden> › </span><span className="text-foreground">This week</span>
@@ -137,7 +137,7 @@ export default async function LayoffsThisWeek() {
           </section>
         </div>
       </main>
-      <PublicSiteFooter page="layoffs" />
+      <PublicSiteFooter page="layoffs" cta={false} />
     </div>
   )
 }

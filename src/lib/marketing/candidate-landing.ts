@@ -3,7 +3,7 @@
 //                     A leads with the plan, B leads with the money. Everything below the opening is identical.
 //   /still-searching  out of work for months. Not part of the test: a different person with a different question.
 // Every claim here is already on the site (the state unemployment pages, the Market Reality Assessment, the benefits
-// catalog), so nothing is promised that the product does not do. Free for candidates is the site's standing line.
+// catalog), so nothing is promised that the product does not do. Free for Members is the site's standing line.
 
 export type LandingPageKey = 'after_a_layoff' | 'still_searching'
 
@@ -30,7 +30,7 @@ export interface LandingContent {
 }
 
 const NO_RESUME = 'No résumé. No account to start.'
-const FREE_NOTE = 'Free for candidates, always. About 5 minutes.'
+const FREE_NOTE = 'Free to join. Free for Members, always. About 5 minutes.'
 
 const AFTER_LAYOFF_TILES: LandingTile[] = [
   { title: 'This week', body: 'File for unemployment in your state, and know what to ask about severance and health coverage.' },
@@ -39,7 +39,7 @@ const AFTER_LAYOFF_TILES: LandingTile[] = [
 ]
 
 const AFTER_LAYOFF_FAQ: LandingContent['faq'] = [
-  { q: 'Is it free?', a: 'Yes. NextChapter is free for candidates, always.' },
+  { q: 'Is it free?', a: 'Yes. NextChapter is free for Members, always.' },
   { q: 'Do I need a résumé?', a: 'No. You can start without a résumé and without an account.' },
   { q: 'Where do the program amounts come from?', a: 'Each program links to its official page and says when we last checked it against that page.' },
 ]
@@ -86,7 +86,7 @@ export const STILL_SEARCHING: LandingContent = {
       a: 'The usual causes are a résumé that does not match the roles, too few conversations with people at the employers, and applying without a referral. Fix one at a time.',
     },
     { q: 'Do I need a résumé?', a: 'No. You can start without a résumé and without an account.' },
-    { q: 'Is it free?', a: 'Yes. NextChapter is free for candidates, always.' },
+    { q: 'Is it free?', a: 'Yes. NextChapter is free for Members, always.' },
   ],
   extras: 'long_search',
 }
@@ -112,10 +112,10 @@ export const LONG_SEARCH_FIGURE = {
 export const LANDING_SEO: Record<LandingPageKey, { title: string; description: string }> = {
   after_a_layoff: {
     title: 'Laid off? What to do this week and the money you may be owed',
-    description: 'A plan for unemployment, severance, health coverage and your job search, plus the benefit and aid programs you may qualify for. Free for candidates.',
+    description: 'A plan for unemployment, severance, health coverage and your job search, plus the benefit and aid programs you may qualify for. Free for Members.',
   },
   still_searching: {
     title: 'No interviews after months of applying? What is holding your search back',
-    description: 'A five-minute assessment shows how hard your search is, which parts you control and what to fix first. Free for candidates, no résumé needed.',
+    description: 'A five-minute assessment shows how hard your search is, which parts you control and what to fix first. Free for Members, no résumé needed.',
   },
 }

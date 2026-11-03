@@ -7,7 +7,7 @@ export const metadata = pageMetadata('/membership')
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  name: 'Higher Education & Membership — NextChapter',
+  name: 'Higher Education & Alumni plan — NextChapter',
 }
 
 const BEATS = [
@@ -30,11 +30,11 @@ export default function MembershipPage() {
       <AudienceShell
         page="membership"
         parent={{ href: '/', label: 'NextChapter' }}
-        eyebrow="Higher Education and membership"
+        eyebrow="Higher Education and the Alumni plan"
         headline="Never start from zero again."
         subhead="You just did the hardest professional thing there is. Keep the evidence current so the next time takes weeks, not months."
         primary={{ label: 'Join', href: '/dashboard/membership' }}
-        primaryNote="Free for life once you land. Membership adds the extras below."
+        primaryNote="Your NextChapter Member account stays free. The Alumni plan adds the extras below."
         footerLinks={[
           { href: '/pricing', label: 'Plans' },
           { href: '/dossier', label: 'About the Dossier' },
@@ -55,13 +55,13 @@ export default function MembershipPage() {
           <Disclosure title="A real example from the catalog">
             <p className="text-sm text-muted-foreground">Your target roles ask for FP&amp;A depth.</p>
             <p className="mt-1 text-base font-medium">
-              Kellogg exec-ed is offering members the Corporate Finance certificate through November, sourced by Priya R.
+              Kellogg exec-ed is offering Alumni plan members the Corporate Finance certificate through November, sourced by Priya R.
             </p>
           </Disclosure>
           <Disclosure title="What is included">
             <p className="text-sm text-muted-foreground">
-              NextChapter Higher Education is free for life once you land. Landed candidates also qualify for a $500 offer bonus.
-              Membership adds the market check, benefits network and board listings. Free for 12 months to anyone placed through a Premium outplacement seat.
+              Your NextChapter Member account is free, before and after you land. Landed candidates also qualify for a $500 offer bonus.
+              The Alumni plan adds the market check, benefits network and board listings. Free for 12 months to anyone placed through a Premium outplacement seat.
             </p>
           </Disclosure>
         </AudienceSection>

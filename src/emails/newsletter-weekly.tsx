@@ -70,7 +70,7 @@ export default function NewsletterWeeklyEmail({
           More articles, videos and posts are on the <a href={newsUrl}>News page</a>.
         </Lead>
         <Lead>
-          Searching for a job yourself? NextChapter is free for candidates: a Market Reality Assessment, a resume tested against the systems
+          Searching for a job yourself? NextChapter is free for Members: a Market Reality Assessment, a resume tested against the systems
           that read it, and a plan for the week.
         </Lead>
         <Button campaign="newsletter_weekly" href={signupUrl} ctaVariant={ctaVariant}>{emailCtaLabel(ctaVariant, 'Get your Market Reality Assessment')}</Button>

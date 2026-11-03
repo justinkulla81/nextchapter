@@ -47,7 +47,7 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
   const searched = query.q !== '' || query.loc !== '' || query.remote
   // Only typed searches count toward the limit, so crawlers can always read the bare page.
   if (searched && !(await allowByIp('public-jobs', 60, HOUR_MS))) {
-    problem = 'You have searched a lot this hour. Create a free account to keep searching.'
+    problem = 'You have searched a lot this hour. Join free to keep searching.'
   } else {
     try {
       result = await searchPublicBoardCached(query)
@@ -78,11 +78,10 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
           <JobSearchForm source="results" initialQ={query.q} initialLoc={query.loc} initialRemote={query.remote} />
         </div>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_21rem]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_21rem]">
           <PersonalizePanel properties={{ placement: 'panel', q: query.q, loc: query.loc, remote: query.remote }} />
 
           <div className="space-y-4">
-            {!problem && <SaveSearchForm q={query.q} loc={query.loc} remote={query.remote} />}
             {problem ? (
               <div className="rounded-2xl border border-border bg-white p-6 text-sm">
                 <p>{problem}</p>
@@ -93,7 +92,7 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
                     properties={{ placement: 'rate_limit' }}
                     className="mt-3 inline-block font-semibold text-brand underline underline-offset-4"
                   >
-                    Create a free account
+                    Join free
                   </TrackedLink>
                 )}
               </div>
@@ -107,7 +106,7 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
             ) : (
               <>
                 <p className="mb-3 text-sm text-muted-foreground">
-                  About {result!.total.toLocaleString()} US openings{searched ? ' match' : ' right now'}. Showing the {jobs.length} newest, not ranked for you.
+                  About {result!.total.toLocaleString()} US openings{searched ? ' match' : ' right now'}. Showing the {jobs.length} newest.
                 </p>
                 <ul className="space-y-3">
                   {jobs.map((job) => {
@@ -132,13 +131,13 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
                           </div>
                           {job.postedAt && <span className="shrink-0 text-xs text-muted-foreground">{formatRelativeTime(new Date(job.postedAt))}</span>}
                         </div>
-                        <p className="mt-2 text-xs text-muted-foreground">Fit for you: not scored. Personalize to see it.</p>
                       </li>
                     )
                   })}
                 </ul>
               </>
             )}
+            {!problem && <SaveSearchForm q={query.q} loc={query.loc} remote={query.remote} />}
           </div>
         </div>
       </main>

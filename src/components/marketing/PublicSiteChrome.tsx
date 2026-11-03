@@ -25,7 +25,7 @@ export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 
 }
 
 /** The homepage's closing band and footer links, with About and Contact. */
-export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' | 'careers' | 'ai-skills' | 'ai-training' | 'funding' | 'seo' }) {
+export function PublicSiteFooter({ page, cta = true }: { cta?: boolean; page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' | 'careers' | 'ai-skills' | 'ai-training' | 'funding' | 'seo' }) {
   return (
     <footer className="bg-navy text-white">
       <div className="border-b border-white/10">
@@ -36,10 +36,11 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
       <div className="pt-12">
         <SiteFooterColumns tone="dark" />
       </div>
-      <div className="mx-auto max-w-4xl px-6 py-16 text-center">
+      <div className={`mx-auto max-w-4xl px-6 text-center ${cta ? 'py-16' : 'py-10'}`}>
+        {cta && (<>
         <h2 className="text-3xl font-bold tracking-tight">{page === 'seo' ? 'Ready to start your next chapter?' : 'Do you want this for your own search?'}</h2>
         <p className="mx-auto mt-4 max-w-xl text-light-blue">
-          {page === 'seo' ? 'Candidates are never charged. Organizations, let’s talk.' : 'Answer a few questions and get a plain-language read on your market, matched jobs and a weekly plan. Free for candidates, no résumé needed. Organizations, let’s talk.'}
+          {page === 'seo' ? 'Free to join, always. Organizations, let’s talk.' : 'Answer a few questions and get a plain-language read on your market, matched jobs and a weekly plan. Free for Members, no résumé needed. Organizations, let’s talk.'}
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <TrackedLink
@@ -59,7 +60,8 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
             Contact us
           </TrackedLink>
         </div>
-        <p className="mt-10 text-sm text-light-blue">
+        </>)}
+        <p className={`${cta ? 'mt-10 ' : ''}text-sm text-light-blue`}>
           © {new Date().getFullYear()} NextChapter
           {' · '}<Link href="/about" className="underline underline-offset-4">About</Link>
           {' · '}<Link href="/contact" className="underline underline-offset-4">Contact</Link>

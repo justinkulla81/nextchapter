@@ -72,7 +72,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
       <StructuredData data={articleJsonLd({ headline: `${name} ${LAYOFF_YEAR} layoffs: ${n(notices.length)} WARN notices`, path, dateModified: modified, type: 'Article' })} />
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: `Layoffs ${LAYOFF_YEAR}`, path: '/layoffs/2026' }, { name: name, path }])} />
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-5xl px-6">
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link><span aria-hidden> › </span>

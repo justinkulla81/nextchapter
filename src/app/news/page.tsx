@@ -93,7 +93,7 @@ export default async function NewsPage() {
           )}
         </div>
       </main>
-      <PublicSiteFooter page="news" />
+      <PublicSiteFooter page="news" cta={false} />
     </div>
   )
 }

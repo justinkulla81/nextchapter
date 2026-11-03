@@ -34,11 +34,11 @@ export default function PlansPage() {
       <StructuredData data={breadcrumbJsonLd([{ name: 'Plans and pricing', path: '/pricing' }])} />
       <PublicSiteHeader />
 
-      <main className="mx-auto w-full max-w-4xl px-6 py-16">
+      <main className="mx-auto w-full max-w-4xl px-6 py-8">
         <div className="text-center">
           <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">{pageH1('/pricing', 'Plans')}</h1>
           <p className="mx-auto mt-3 max-w-xl text-lg text-muted-foreground">
-            NextChapter is free for candidates. Here is what each plan includes, for every kind of organization.
+            NextChapter is free for Members. Here is what each plan includes, for every kind of organization.
           </p>
         </div>
 

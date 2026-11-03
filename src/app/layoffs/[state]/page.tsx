@@ -79,7 +79,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: d.name, path: `/layoffs/${state}` }])} />
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-6xl px-6">
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link>
@@ -193,7 +193,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
           </div>
         </div>
       </main>
-      <PublicSiteFooter page="layoffs" />
+      <PublicSiteFooter page="layoffs" cta={false} />
     </div>
     </OrgBrandScope>
   )

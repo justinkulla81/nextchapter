@@ -46,7 +46,7 @@ export default function ReportsHubPage() {
       <StructuredData data={jsonLd} />
       <PublicSiteHeader current="reports" />
 
-      <main className="mx-auto w-full max-w-4xl px-6 py-14">
+      <main className="mx-auto w-full max-w-4xl px-6 py-8">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">NextChapter White Collar Employment Report</h1>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">
           An independent, monthly read on the U.S. white-collar labor market — hiring and job changes, how long
@@ -163,7 +163,7 @@ export default function ReportsHubPage() {
         </p>
       </section>
 
-      <PublicSiteFooter page="reports" />
+      <PublicSiteFooter page="reports" cta={false} />
     </div>
   )
 }

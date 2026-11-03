@@ -50,7 +50,7 @@ export default async function Layoffs2026Page() {
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: `Layoffs ${LAYOFF_YEAR}`, path: '/layoffs/2026' }])} />
       <StructuredData data={{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }} />
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-5xl px-6">
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link><span aria-hidden> › </span><span className="text-foreground">Layoffs {LAYOFF_YEAR}</span>
@@ -182,7 +182,7 @@ export default async function Layoffs2026Page() {
           <div className="mt-10"><LayoffAlertForm source="layoffs:2026" /></div>
         </div>
       </main>
-      <PublicSiteFooter page="layoffs" />
+      <PublicSiteFooter page="layoffs" cta={false} />
     </div>
   )
 }

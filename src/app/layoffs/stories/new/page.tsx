@@ -16,7 +16,7 @@ export default async function NewStoryPage({ searchParams }: { searchParams: Pro
   return (
     <div className="flex flex-1 flex-col">
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-6xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy">{c ? `What happened at ${c.name}?` : 'What happened when you were laid off?'}</h1>
           <p className="mt-3 max-w-xl text-muted-foreground">Two minutes. Private by default. Your answers help the next person laid off see what to expect: notice, severance, and how it was handled.</p>
