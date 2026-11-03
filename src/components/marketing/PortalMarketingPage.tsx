@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { ContactForm } from '@/components/marketing/ContactForm'
 import { B2bAssetBox } from '@/components/marketing/B2bAssetBox'
 import type { B2bAssetKey } from '@/lib/marketing/b2b-assets'
+import { ClaimDirectoryFinder } from '@/components/marketing/ClaimDirectoryFinder'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ActionBand, AudienceSection, AudienceShell, Disclosure, actionButton } from '@/components/organizations/AudienceShell'
 import { StructuredData } from '@/components/StructuredData'
@@ -45,6 +46,8 @@ export interface PortalClaim {
   title: string
   /** Plain paragraphs: how a staff member claims the organization's page. Full URLs are written out in the text. */
   paragraphs: string[]
+  /** The state directory of this kind of organization, so staff can find their page: /<path>/<state> (path has no leading slash). */
+  directory?: { path: string; noun: string }
 }
 
 export interface PortalFinalCta {
@@ -223,6 +226,9 @@ export function PortalMarketingPage({ content: c, look = 'plain' }: { content: P
                 <p key={p}>{p}</p>
               ))}
             </div>
+            {c.claim.directory && (
+              <ClaimDirectoryFinder path={c.claim.directory.path} noun={c.claim.directory.noun} page={c.analyticsKey} />
+            )}
           </AudienceSection>
         )}
 
