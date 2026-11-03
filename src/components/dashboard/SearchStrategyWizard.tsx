@@ -99,6 +99,11 @@ export function SearchStrategyWizard({
   // changes. Next only re-saves a page that has something new to save, so a
   // member paging through finished pages does not re-run their save actions.
   const touchedRef = useRef(false)
+  // How many saves started by Next are still to finish. While above zero, each
+  // finished save counts down and the wizard moves on after the last one, even
+  // if the page is not fully answered; its own forms say what is missing where
+  // they can (see data-flags-missing), and the rest accept partial answers.
+  const savesBeforeMovingOnRef = useRef(0)
 
   useIsomorphicLayoutEffect(() => {
     if (restoredRef.current) return
@@ -177,27 +182,31 @@ export function SearchStrategyWizard({
 
   useEffect(() => {
     touchedRef.current = false
+    savesBeforeMovingOnRef.current = 0
   }, [openPage])
 
-  // "Next" saves the page first. Each form's own save-then-advance moves to the
-  // next page once everything on it is complete; if a required answer is missing
-  // the form flags it and the member stays on the page, with their answers kept.
-  // A finished page nobody touched just moves on.
+  // "Next" saves what was entered on the page, then moves on. A page nobody
+  // touched just moves on, so paging through finished (or skipped) pages does not
+  // re-run their save actions. The exception is a page whose form lists its
+  // unanswered questions (data-flags-missing): Next on an unfinished one submits
+  // it so those show, and the member stays until they are answered.
   function nextOrSave() {
     if (openPage === null) return
     const forms = pageContentRef.current?.querySelectorAll('form')
     const pageComplete = pages[openPage].items.every((item) => item.complete)
-    const needsSave = !!forms && forms.length > 0 && (!pageComplete || touchedRef.current)
+    const flagsMissing = !!forms && Array.from(forms).some((f) => f.hasAttribute('data-flags-missing'))
+    const needsSave = !!forms && forms.length > 0 && (touchedRef.current || (!pageComplete && flagsMissing))
     posthog.capture('search_strategy_next_clicked', {
       candidateId,
       pageKey: pages[openPage].key,
       saved: needsSave,
       pageComplete,
     })
-    if (!needsSave) {
+    if (!needsSave || !forms) {
       setOpenPage(Math.min(pages.length - 1, openPage + 1))
       return
     }
+    savesBeforeMovingOnRef.current = forms.length
     forms.forEach((form) => form.requestSubmit())
   }
 
@@ -222,6 +231,11 @@ export function SearchStrategyWizard({
   // complete — see useAdvanceSearchStrategyPageOnSave's own comment.
   function advance() {
     if (openPage === null) return
+    if (savesBeforeMovingOnRef.current > 0) {
+      savesBeforeMovingOnRef.current -= 1
+      if (savesBeforeMovingOnRef.current === 0) setOpenPage(openPage < pages.length - 1 ? openPage + 1 : null)
+      return
+    }
     const pageComplete = pages[openPage].items.every((item) => item.complete)
     if (!pageComplete) return
     setOpenPage(openPage < pages.length - 1 ? openPage + 1 : null)
@@ -309,9 +323,11 @@ export function SearchStrategyWizard({
         ref={pageContentRef}
         onClickCapture={() => {
           touchedRef.current = true
+          savesBeforeMovingOnRef.current = 0
         }}
         onInputCapture={() => {
           touchedRef.current = true
+          savesBeforeMovingOnRef.current = 0
         }}
       >
         <SearchStrategyPageContext.Provider value={{ advance }}>{children[openPage]}</SearchStrategyPageContext.Provider>
