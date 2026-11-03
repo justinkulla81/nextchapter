@@ -22,7 +22,7 @@ export function CollapsibleCapture({ label, source, children }: { label: string;
         className="flex w-full items-center justify-between gap-3 text-left"
       >
         <span className="text-base font-semibold text-navy">
-          Where are you right now? <span className="font-normal text-muted-foreground">Get a first-week plan by email. No résumé, no account.</span>
+          Where are you right now? <span className="hidden font-normal text-muted-foreground sm:inline">Get a first-week plan by email. No résumé, no account.</span>
         </span>
         <span className="shrink-0 rounded-full border border-border bg-white px-4 py-1.5 text-sm font-medium text-navy">{open ? 'Close' : 'Answer'}</span>
       </button>
