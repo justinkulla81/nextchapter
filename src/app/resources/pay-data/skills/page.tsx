@@ -9,7 +9,7 @@ import { skillPath } from '@/lib/pay-data/slugs'
 import { dateText, num, signedPct, skillName, usd } from '@/lib/pay-data/text'
 import { pageMetadata } from '@/lib/seo/keywords'
 
-export const revalidate = 21600
+export const dynamic = 'force-dynamic'
 const PATH = `${PAY_DATA}/skills`
 export const metadata: Metadata = pageMetadata(PATH)
 

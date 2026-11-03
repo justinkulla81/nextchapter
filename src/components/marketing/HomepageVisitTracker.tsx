@@ -15,7 +15,11 @@ function track(eventType: 'PAGE_VIEW' | 'LINK_CLICK', payload: { path?: string; 
   fetch(url, { method: 'POST', body, headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(() => {})
 }
 
+// A partner portal's sign-in pages are public (no portal tracker runs there), so they're logged here too.
+const PORTAL_SIGN_IN_PAGE = /^\/(?:recruiters|talent|employer|support\/coach|noexperience\/employers|eqoveriq\/contributors)\/(?:login|signup|forgot-password)(?:\/|$)/
+
 function isPublicMarketingPath(pathname: string): boolean {
+  if (PORTAL_SIGN_IN_PAGE.test(pathname)) return true
   return !PROTECTED_APP_PATH_PREFIXES.some((prefix) => pathStartsWith(pathname, prefix))
 }
 

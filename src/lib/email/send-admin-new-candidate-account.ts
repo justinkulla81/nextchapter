@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getAccountActivityAdminEmail } from '@/lib/admin/auth'
 import { CURRENT_JOB_STATUS_LABELS } from '@/lib/constants/onboarding'
 import AdminNewCandidateAccountEmail from '@/emails/admin-new-candidate-account'
+import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 
 async function sendAdminNewCandidateAccountEmail(
   adminEmail: string,
@@ -74,10 +75,17 @@ export async function maybeNotifyAdminOfNewCandidate(candidateId: string): Promi
       currentJobStatus: true,
       signupIp: true,
       adminNewCandidateEmailSentAt: true,
+      registrationCompletedAt: true,
+      duplicateEmailBlockedAt: true,
     },
   })
   if (!profile || profile.adminNewCandidateEmailSentAt) return
   if (!profile.firstName || !profile.lastName || !profile.email) return
+
+  // A second profile for someone who already has an account is not a new candidate: no email, and it stays unclaimed
+  // so nothing is sent if the block is later cleared by mistake. (Two "New candidate: Chris Bates" emails, 2026-11-03.)
+  if (profile.duplicateEmailBlockedAt) return
+  if (!profile.registrationCompletedAt && (await findExistingRegisteredAccount(profile.email, candidateId))) return
 
   const mostRecentJob = await prisma.workHistoryEntry.findFirst({
     where: { candidateId },
