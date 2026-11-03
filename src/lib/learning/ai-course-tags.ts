@@ -569,7 +569,7 @@ export const AI_LEARNING_PATHS: AiLearningPath[] = [
     provider: 'coursera',
     free: false,
     category: 'FUNCTION_TRAINING',
-    skillLevel: 'INTERMEDIATE',
+    skillLevel: 'BEGINNER',
     keywords: ['human resources', 'talent', 'recruit'],
   },
   {
@@ -593,7 +593,7 @@ export const AI_LEARNING_PATHS: AiLearningPath[] = [
     provider: 'coursera',
     free: false,
     category: 'FUNCTION_TRAINING',
-    skillLevel: 'INTERMEDIATE',
+    skillLevel: 'BEGINNER',
     keywords: ['product'],
   },
   {
@@ -713,7 +713,7 @@ export const AI_LEARNING_PATHS: AiLearningPath[] = [
     provider: 'coursera',
     free: false,
     category: 'FUNCTION_TRAINING',
-    skillLevel: 'INTERMEDIATE',
+    skillLevel: 'BEGINNER',
     keywords: ['customer success', 'customer support'],
   },
   {
@@ -797,7 +797,7 @@ export const AI_LEARNING_PATHS: AiLearningPath[] = [
     provider: 'coursera',
     free: false,
     category: 'FUNCTION_TRAINING',
-    skillLevel: 'INTERMEDIATE',
+    skillLevel: 'BEGINNER',
     keywords: ['design'],
   },
   {
@@ -821,7 +821,7 @@ export const AI_LEARNING_PATHS: AiLearningPath[] = [
     provider: 'coursera',
     free: false,
     category: 'FUNCTION_TRAINING',
-    skillLevel: 'ADVANCED',
+    skillLevel: 'INTERMEDIATE',
     keywords: ['data & analytics'],
   },
   {
