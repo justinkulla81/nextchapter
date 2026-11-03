@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Chips, Section, TopicShell, JoinBand } from '@/components/topics/blocks'
+import { PayCutsSection } from '@/components/pay-data/PayDataLinks'
 import { EmployerRankTable } from '@/components/topics/EmployerRankTable'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
@@ -52,6 +53,7 @@ export default async function TopEmployersPage() {
           <Chips kind="top_employers_to_function" event="topic_link_clicked" items={fns.map((f) => ({ href: `/top-employers/${JOB_FUNCTIONS.find((j) => j.name === f.function)!.slug}`, label: f.function, detail: f.open.toLocaleString() }))} />
         </Section>
       )}
+      <PayCutsSection title="What employers pay, by size and hiring volume" note="Advertised pay by employer headcount and by how many jobs an employer has open, with the job mix matched." />
       <JoinBand source="top-employers" what="your background" />
     </TopicShell>
   )

@@ -52,6 +52,7 @@ export function GET() {
 
 - [AI courses by level and profession](${u('/ai-courses')}): free and paid AI courses and certifications for finance, legal, HR, marketing, sales and more, sorted beginner to advanced, with a short level finder.
 - [AI skills in job postings](${u('/ai-skills')}): which functions ask for AI skills, the advertised pay premium raw and like for like, and independent research by seniority. Updated weekly.
+- [Pay data](${u('/resources/pay-data')}): advertised pay on live U.S. professional postings by industry, function, level, employer size and hiring volume, and the skills linked to higher pay, with the raw and like-for-like gap (function, level and industry matched), sample sizes and the method. A page for each industry, function and skill; downloads at ${u('/resources/pay-data/data.csv')} and ${u('/resources/pay-data/skills.csv')}. Rebuilt daily.
 - [AI training](${u('/ai-training')}): for colleges, workforce boards and employers, a measured AI-skill gap and the short courses that close it.
 - [NextChapter White Collar Employment Report](${u('/reports')}): a monthly, independent read on the U.S. white-collar labor market — layoffs, long-term unemployment, AI attribution and the safety net, with methods and data files published.
 - [White-Collar Long-Search Index](${u('/reports/white-collar-index')}): monthly long-term unemployment among U.S. managers and professionals, 2019 = 100, from Census CPS microdata; history downloadable as CSV.

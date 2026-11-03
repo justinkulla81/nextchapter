@@ -89,14 +89,16 @@ function sourceLinks(rows: LooseNotice[]): { label: string; url: string }[] {
   const seen = new Set<string>()
   const add = (label: string | null, url: string | null) => {
     if (!url || !/^https:\/\//.test(url) || out.length >= MAX_SOURCE_LINKS) return
-    const name = (label ?? hostOf(url) ?? '').trim().replace(/\s+on\s+msn$/i, '')
+    const raw = (label ?? (isRedirector(url) ? 'Google News' : hostOf(url)) ?? '').trim().replace(/\s+on\s+msn$/i, '')
+    const name = /^(www\.)?news\.google\.com$/i.test(raw) ? 'Google News' : raw
     const key = name.toLowerCase().replace(/^www\./, '')
     if (!name || seen.has(key)) return
     seen.add(key)
     out.push({ label: name, url })
   }
   for (const r of rows) for (const m of r.mentions ?? []) add(m.publisher, m.url)
-  for (const r of rows) add(isRedirector(r.sourceUrl) ? null : hostOf(r.sourceUrl), r.sourceUrl)
+  for (const r of rows) add(isRedirector(r.sourceUrl) ? 'Google News' : hostOf(r.sourceUrl), r.sourceUrl)
+  for (const r of rows) for (const m of r.mentions ?? []) if (hostOf(m.url) === 'news.google.com') add('Google News', m.url)
   return out
 }
 

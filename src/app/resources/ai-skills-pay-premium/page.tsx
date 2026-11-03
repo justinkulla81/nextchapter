@@ -175,6 +175,15 @@ export default async function AiSkillsPayPremiumPage() {
           </p>
         </section>
 
+        <section className="mt-10" aria-labelledby="all-skills">
+          <h2 id="all-skills" className="text-xl font-bold tracking-tight text-navy">Beyond AI: every skill, and pay by industry and employer size</h2>
+          <p className={`mt-3 ${BODY}`}>
+            The same method, applied to every skill listed on enough postings, is on <Link href="/resources/pay-data/skills" className="text-brand underline underline-offset-4">skills that pay more</Link>. Pay by{' '}
+            <Link href="/resources/pay-data/industry" className="text-brand underline underline-offset-4">industry</Link>, <Link href="/resources/pay-data/function" className="text-brand underline underline-offset-4">function</Link> and{' '}
+            <Link href="/resources/pay-data/size" className="text-brand underline underline-offset-4">employer size</Link> is in the <Link href="/resources/pay-data" className="text-brand underline underline-offset-4">pay data</Link>.
+          </p>
+        </section>
+
         <section className="mt-10 rounded-xl border border-border bg-off-white p-5" aria-labelledby="cite">
           <h2 id="cite" className="text-lg font-bold tracking-tight text-navy">Cite this</h2>
           <p className="mt-2 text-sm text-muted-foreground">Free to quote and chart with credit. The table above, as a CSV of aggregates only (no posting, employer or person):</p>

@@ -1,5 +1,7 @@
 import { CompanyOutlookSection } from '@/components/seo/CompanyOutlookSection'
 import { RankingContext } from '@/components/rankings/RankingContext'
+import { BestCompanyNote } from '@/components/rankings/BestCompanyNote'
+import { parentOf } from '@/lib/rankings/employers-specs'
 import { SegmentContext } from '@/components/segments/SegmentContext'
 import { placeFromLocation } from '@/lib/rankings/place-keys'
 import { YourState } from '@/components/capture/YourState'
@@ -223,9 +225,11 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         hubs={hubs}
       />
 
+      <BestCompanyNote name={e.name} />
+
       <RankingContext
         surface="employer"
-        places={(p?.topLocations ?? []).map((l) => placeFromLocation(l.location)).filter((x): x is { name: string; keys: string[] } => !!x)}
+        places={[{ name: e.name, keys: [...new Set([parentOf(e.name).toLowerCase(), e.name.toLowerCase()])] }, ...(p?.topLocations ?? []).map((l) => placeFromLocation(l.location)).filter((x): x is { name: string; keys: string[] } => !!x)]}
         fn={p?.topFunctions[0]?.function}
       />
 

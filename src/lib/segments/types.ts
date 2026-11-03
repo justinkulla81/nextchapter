@@ -33,7 +33,7 @@ export interface BoardRow {
 export type CutId =
   | 'top-employers' | 'top-roles' | 'top-states' | 'top-cities'
   | 'highest-paying-roles' | 'highest-paying-employers' | 'top-skills'
-  | 'newest' | 'entry-level' | 'lowest-ai-exposure'
+  | 'newest' | 'entry-level' | 'lowest-ai-exposure' | 'momentum'
 
 export interface SegmentRow {
   rank: number
@@ -66,6 +66,8 @@ export interface SegmentEdition {
   employers: number
   prev: { edition: string; total: number; payMed: number | null } | null
   cuts: Partial<Record<CutId, SegmentRow[]>>
+  /** Open jobs at the 100 employers with the most, kept so next month can say who added the most. */
+  counts?: { key: string; name: string; n: number }[]
   newest: SegmentJob[]
   entry: { total: number; jobs: SegmentJob[] }
 }

@@ -117,7 +117,8 @@ async function addPressSources(state: (TrackerRow & { nkey?: string; noticeAt?: 
     for (const m of mentions) {
       if (r.sources.length >= MAX_SOURCES) break
       if (m.companyKey !== src.nkey || !m.publishedAt || Math.abs(m.publishedAt.getTime() - at) > 45 * DAY_MS) continue
-      const label = reportedLabel(m.url, m.publisher).replace(/\s+on\s+msn$/i, '')
+      const named = reportedLabel(m.url, m.publisher).replace(/\s+on\s+msn$/i, '')
+      const label = /^(www\.)?news\.google\.com$/i.test(named) ? 'Google News' : named
       if (seen.has(label.toLowerCase())) continue
       seen.add(label.toLowerCase())
       r.sources.push({ label, url: /^https:\/\//.test(m.url) ? m.url : null })

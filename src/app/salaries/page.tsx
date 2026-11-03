@@ -4,6 +4,7 @@ import { getTitleIndex, hasSalaryPage } from '@/lib/seo/job-titles'
 import { usd } from '@/lib/seo/job-title-rules'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
+import { PayCutsSection } from '@/components/pay-data/PayDataLinks'
 
 // Not prerendered: the title scan reads the whole board, and a build runs it in up to seven workers at once, which timed out
 // the 2026-10-27 deploys. The CDN keeps each rendered page for six hours (next.config.ts headers).
@@ -25,6 +26,7 @@ export default async function SalariesPage() {
       <Section id="all" title="All titles, A to Z" note={`${byName.length.toLocaleString('en-US')} titles with enough listings that state pay.`}>
         <Chips kind="salaries_hub_all" event="topic_link_clicked" items={byName.map((t) => ({ href: `/salaries/${t.slug}`, label: t.name }))} />
       </Section>
+      <PayCutsSection />
       <div className="mt-10">
         <NewsletterSignup source="salaries" />
       </div>

@@ -428,6 +428,9 @@ export const COUNTY_MEASURES: Record<CountyMeasure['id'], CountyMeasure> = { ...
 const POSTINGS = ['NextChapter job data: open professional roles on employer career sites, verified in the last week']
 const DEGREE_SOURCES = ['NextChapter job data: open professional roles, matched to standard occupation (SOC) codes', 'Bureau of Labor Statistics, Employment Projections 2025-35: typical entry-level education and projected employment change by occupation']
 
+const BEST_SOURCES = ['Fortune and Great Place To Work, 100 Best Companies to Work For, 2026', 'NextChapter job data: open professional roles on employer career sites, verified in the last 14 days']
+const EMPLOYER_SOURCES = ['NextChapter job data: open professional roles on employer career sites, verified in the last 14 days', 'NextChapter weekly company signals (open roles by company), for the growth list']
+
 export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
   lowunemp: ['Bureau of Labor Statistics, Local Area Unemployment Statistics (not seasonally adjusted)'],
   unempdrop: ['Bureau of Labor Statistics, Local Area Unemployment Statistics (not seasonally adjusted)'],
@@ -461,6 +464,8 @@ export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
   ef_flex: POSTINGS, ef_contract: POSTINGS,
   dg_field: DEGREE_SOURCES, dg_fieldpay: DEGREE_SOURCES, dg_fieldgrow: DEGREE_SOURCES, dg_level: DEGREE_SOURCES, dg_levelpay: DEGREE_SOURCES, dg_occ: DEGREE_SOURCES,
   dg_occpay: DEGREE_SOURCES, dg_occgrow: DEGREE_SOURCES, dg_share: DEGREE_SOURCES, dg_city: DEGREE_SOURCES, dg_cityshare: DEGREE_SOURCES,
+  em_all: EMPLOYER_SOURCES, em_junior: EMPLOYER_SOURCES, em_mid: EMPLOYER_SOURCES, em_senior: EMPLOYER_SOURCES, em_lead: EMPLOYER_SOURCES, em_fn: EMPLOYER_SOURCES, em_growth: EMPLOYER_SOURCES,
+  em_best: BEST_SOURCES, em_bestjr: BEST_SOURCES,
   collegepay: ['U.S. Department of Education, College Scorecard (median earnings, completion, net price), as held in our college tables'],
   midcareer: POSTINGS, leadership: POSTINGS, fnopen: POSTINGS, aiskills: POSTINGS, aitools: POSTINGS, aicerts: POSTINGS, skillpay: POSTINGS,
   indpay: ['NextChapter job data: posted annual salary ranges'],

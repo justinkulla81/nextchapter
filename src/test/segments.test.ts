@@ -190,3 +190,37 @@ describe('employer name forms', () => {
     expect(segmentsOf({ company: 'Sikorsky Aircraft', title: 'Engineer', industry: null, reqTags: null })).not.toContain('airlines-aviation')
   })
 })
+
+describe('hiring momentum', () => {
+  const now = new Date('2026-12-10T00:00:00Z')
+  const mk = (a: number, b: number, c: number) => [...Array.from({ length: a }, () => row({ company: 'Alpha' })), ...Array.from({ length: b }, () => row({ company: 'Beta' })), ...Array.from({ length: c }, () => row({ company: 'Gamma' }))]
+  it('has no list until there is an earlier month, then lists gainers only', () => {
+    expect(buildEdition('x', '2026-11', mk(9, 6, 6), null, now).cuts.momentum).toBeUndefined()
+    const nov = buildEdition('x', '2026-11', mk(9, 6, 6), null, now)
+    expect(nov.counts?.length).toBe(3)
+    const dec = buildEdition('x', '2026-12', mk(8, 12, 7), prevFrom(nov), now)
+    const list = dec.cuts.momentum!
+    expect(list.map((r) => [r.name, r.valueLabel])).toEqual([['Beta', '+6'], ['Gamma', '+1']])
+    expect(list[0].sub).toBe('6 → 12 open')
+  })
+})
+
+describe('live-data fixes', () => {
+  const seg = (company: string, title = 'Engineer', industry: string | null = null) => segmentsOf({ company, title, industry, reqTags: null })
+  it('keeps engineering consultancies out of manufacturing and power, and puts them in construction', () => {
+    expect(seg('Sargent & Lundy', 'Process Engineer', 'industrial')).not.toContain('us-manufacturing')
+    expect(seg('Sargent & Lundy', 'Substation Engineer')).not.toContain('utilities')
+    expect(seg('Sargent & Lundy')).toContain('construction')
+    expect(seg('Terracon Consultants', 'Geotechnical Engineer')).not.toContain('natural-resources')
+  })
+  it('keeps retailers, utilities and hardware makers out of the wrong lists', () => {
+    expect(seg("O'Reilly Auto Parts")).not.toContain('automotive-ev')
+    expect(seg('Ulta Beauty', 'Analyst', 'consumer')).not.toContain('consumer-packaged-goods')
+    expect(seg('Pacific Gas & Electric', 'Analyst', 'energy')).not.toContain('oil-and-gas')
+    expect(seg('Corsair Gaming')).not.toContain('casino-gaming')
+    expect(seg("Love's Travel Stops")).not.toContain('tourism-hospitality')
+    expect(seg('Carvana', 'Studio Operations Manager')).not.toContain('movies')
+    expect(seg('Naval Air Systems Command')).not.toContain('shipbuilding')
+    expect(seg('Alloy', 'Engineer')).not.toContain('steel-aluminum')
+  })
+})

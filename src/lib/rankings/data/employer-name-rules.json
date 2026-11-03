@@ -1,0 +1,99 @@
+{
+ "note": "Parent brands (first match wins) and names that are not employers. Edit here; employers-specs.ts reads this file.",
+ "parents": [
+  {
+   "match": "^(amazon|prime video|aws\\b|audible|twitch|whole foods|zoox)",
+   "parent": "Amazon"
+  },
+  {
+   "match": "^(google|youtube|alphabet|waymo|deepmind)",
+   "parent": "Alphabet"
+  },
+  {
+   "match": "^(rtx|raytheon|collins aerospace|pratt (&|and) whitney)",
+   "parent": "RTX"
+  },
+  {
+   "match": "^anduril",
+   "parent": "Anduril"
+  },
+  {
+   "match": "^oracle",
+   "parent": "Oracle"
+  },
+  {
+   "match": "^(microsoft|linkedin|github|swiftkey)",
+   "parent": "Microsoft"
+  },
+  {
+   "match": "^(albertsons|safeway|vons\\b|jewel-osco)",
+   "parent": "Albertsons"
+  },
+  {
+   "match": "^(jpmorgan|jp morgan|jpmc\\b)",
+   "parent": "JPMorgan Chase"
+  },
+  {
+   "match": "^capital one",
+   "parent": "Capital One"
+  },
+  {
+   "match": "^northrop",
+   "parent": "Northrop Grumman"
+  },
+  {
+   "match": "^(lockheed|sikorsky)",
+   "parent": "Lockheed Martin"
+  },
+  {
+   "match": "^caci\\b",
+   "parent": "CACI"
+  },
+  {
+   "match": "^l3 ?harris",
+   "parent": "L3Harris"
+  },
+  {
+   "match": "^spacex",
+   "parent": "SpaceX"
+  },
+  {
+   "match": "^(omnicom|interpublic)",
+   "parent": "Omnicom"
+  },
+  {
+   "match": "^(arthur j\\.? gallagher|gallagher)",
+   "parent": "Gallagher"
+  },
+  {
+   "match": "^deloitte",
+   "parent": "Deloitte"
+  },
+  {
+   "match": "^(pwc|pricewaterhouse)",
+   "parent": "PwC"
+  },
+  {
+   "match": "^kpmg",
+   "parent": "KPMG"
+  },
+  {
+   "match": "^(ey\\b|ernst (&|and) young)",
+   "parent": "EY"
+  },
+  {
+   "match": "^maximus",
+   "parent": "Maximus"
+  },
+  {
+   "match": "^cisco\\b",
+   "parent": "Cisco"
+  },
+  {
+   "match": "^hilton\\b",
+   "parent": "Hilton"
+  }
+ ],
+ "notEmployerNames": "remote|confidential|confidential company|clients blackbox|various|n/a|gpac|yo ai labs|actalent|michael page|jobot|lhh|teksystems|aston carter|robert half|randstad|adecco|kforce|insight global|apex systems|cybercoders|hays|manpower|kelly services|spherion|volt|aligned talent|orion ?placement|heidrick|korn ferry|spencer stuart|russell reynolds|hire velocity",
+ "notEmployerWords": "staffing|recruiting|recruitment|recruiters|talent acquisition|executive search|placement"
+}

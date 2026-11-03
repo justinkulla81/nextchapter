@@ -23,6 +23,13 @@ export interface CustomerUpdate {
 
 export const CUSTOMER_UPDATES: CustomerUpdate[] = [
   {
+    date: '2026-11-03',
+    audiences: ['employer', 'recruiter', 'coach', 'institution'],
+    title: 'See what jobs pay by industry, role, employer size and skill, and which skills go with higher pay',
+    summary: 'New free pay data from live U.S. professional postings that state pay: the median and middle half for every industry and function, pay by employer size and hiring volume, and each skill\'s gap against similar jobs. Every figure shows its sample, and the tables download as CSV.',
+    href: 'https://launchyournextchapter.com/resources/pay-data',
+  },
+  {
     date: '2026-10-27',
     audiences: ['employer', 'institution'],
     title: 'Your public page now shows layoff notices and company news from SEC filings',

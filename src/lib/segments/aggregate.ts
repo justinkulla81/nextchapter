@@ -7,7 +7,7 @@ import type { BoardRow, CutId, SegmentEdition, SegmentJob, SegmentRow } from '@/
 
 export const LIST_SIZE = 25
 /** What a list needs before it is published, in postings behind each figure. */
-export const BARS = { employer: 3, role: 5, state: 5, city: 10, payRole: 8, payEmployer: 4, segmentPaid: 30, skill: 8 } as const
+export const BARS = { employer: 3, role: 5, state: 5, city: 10, payRole: 8, payEmployer: 4, segmentPaid: 30, skill: 8, momentumNow: 5 } as const
 /** A city where one employer posts this share of the segment's openings is not ranked. */
 const MAX_TOP_SHARE = 0.5
 const NEW_DAYS = 7
@@ -74,14 +74,16 @@ function rank(
 
 const asJob = (r: BoardRow): SegmentJob => ({ id: r.id, title: r.title, company: r.company, location: where(r), pay: payText(r), postedAt: r.postedAt ?? r.createdAt })
 
-export interface PrevEdition { edition: string; total: number; payMed: number | null; ranks: Partial<Record<CutId, Map<string, number>>> }
+export const COUNTS_KEPT = 100
+
+export interface PrevEdition { edition: string; total: number; payMed: number | null; ranks: Partial<Record<CutId, Map<string, number>>>; counts: Map<string, number> }
 
 /** The previous edition's ranks per cut, from its stored rows, for the "up/down since last month" figures. */
 export function prevFrom(e: SegmentEdition | null): PrevEdition | null {
   if (!e) return null
   const ranks: PrevEdition['ranks'] = {}
   for (const [cut, rows] of Object.entries(e.cuts) as [CutId, SegmentRow[]][]) ranks[cut] = new Map(rows.map((r) => [r.key, r.rank]))
-  return { edition: e.edition, total: e.total, payMed: e.payMed, ranks }
+  return { edition: e.edition, total: e.total, payMed: e.payMed, ranks, counts: new Map((e.counts ?? []).map((c) => [c.key, c.n])) }
 }
 
 export function buildEdition(slug: string, edition: string, rows: BoardRow[], prev: PrevEdition | null, now: Date, exposure?: ExposureMap): SegmentEdition {
@@ -96,6 +98,17 @@ export function buildEdition(slug: string, edition: string, rows: BoardRow[], pr
     return { key: g.key, name: commonest(g), sub: topState(g.rows), value: g.rows.length, valueLabel: `${count(g.rows.length)} open`, stats: pm ? [{ label: 'Median pay', value: usdK(pm) }] : [] }
   })
   put('top-employers', rank(employerEntries, prev?.ranks['top-employers'] ?? null))
+  // Momentum: employers that added the most openings since last month, among those counted in both months. Gainers only.
+  const counts = employers.map((g) => ({ key: g.key, name: commonest(g), n: g.rows.length })).sort((a, b) => b.n - a.n).slice(0, COUNTS_KEPT)
+  if (prev?.counts.size) {
+    const gainers = counts.flatMap((c) => {
+      const before = prev.counts.get(c.key)
+      return before != null && before >= BARS.employer && c.n >= BARS.momentumNow && c.n > before
+        ? [{ key: c.key, name: c.name, sub: `${count(before)} → ${count(c.n)} open`, value: c.n - before, valueLabel: `+${count(c.n - before)}`, stats: [] }]
+        : []
+    })
+    put('momentum', rank(gainers, prev.ranks['momentum'] ?? null))
+  }
   if (paidRows.length >= BARS.segmentPaid) {
     const payEntries = employers.filter((g) => paidCount(g.rows) >= BARS.payEmployer).map((g) => {
       const pm = payMedOf(g.rows)!
@@ -172,7 +185,7 @@ export function buildEdition(slug: string, edition: string, rows: BoardRow[], pr
     total: rows.length, paid: paidRows.length, payMed: paidRows.length >= BARS.segmentPaid ? payMedOf(rows) : null,
     employers: employers.length,
     prev: prev ? { edition: prev.edition, total: prev.total, payMed: prev.payMed } : null,
-    cuts, newest,
+    cuts, counts, newest,
     entry: { total: entryRows.length, jobs: entryRows.sort((a, b) => when(b) - when(a)).slice(0, LIST_SIZE).map(asJob) },
   }
 }
