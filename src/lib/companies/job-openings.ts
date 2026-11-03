@@ -173,12 +173,26 @@ async function upsertOpeningChunk(rows: OpeningRow[]): Promise<number> {
 }
 
 /** Openings whose board listing has been archived are closed on the archive date, with its reason (job-status.ts). */
-export async function closeArchivedOpenings(): Promise<number> {
-  return prisma.$executeRawUnsafe(`
-    UPDATE "CompanyJobOpening" o
-    SET "closedAt" = p."archivedAt", "closeReason" = p."closeReason", "updatedAt" = now()
-    FROM "ExclusiveJobPosting" p
-    WHERE p.url = o.url AND p."archivedAt" IS NOT NULL AND o."closedAt" IS NULL
-      AND o."lastSeenAt" <= p."archivedAt"
-  `)
+export async function closeArchivedOpenings(opts: { deadline?: number } = {}): Promise<number> {
+  // BATCH rows per statement: a backlog of archived listings (a mass archive) closed in
+  // one UPDATE outruns the 2-minute statement timeout. Rerun-safe; leftovers wait.
+  const BATCH = 5000
+  let total = 0
+  for (;;) {
+    const n = await prisma.$executeRawUnsafe(`
+      UPDATE "CompanyJobOpening" o
+      SET "closedAt" = p."archivedAt", "closeReason" = p."closeReason", "updatedAt" = now()
+      FROM "ExclusiveJobPosting" p
+      WHERE p.url = o.url AND p."archivedAt" IS NOT NULL
+        AND o.id IN (
+          SELECT o2.id FROM "CompanyJobOpening" o2
+          JOIN "ExclusiveJobPosting" p2 ON p2.url = o2.url
+          WHERE p2."archivedAt" IS NOT NULL AND o2."closedAt" IS NULL AND o2."lastSeenAt" <= p2."archivedAt"
+          LIMIT ${BATCH}
+        )
+        AND o."closedAt" IS NULL AND o."lastSeenAt" <= p."archivedAt"
+    `)
+    total += n
+    if (n < BATCH || (opts.deadline && Date.now() > opts.deadline)) return total
+  }
 }
