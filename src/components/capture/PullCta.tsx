@@ -15,6 +15,9 @@ const ORG_ROOTS = new Set(['workforce-boards', 'economic-development', 'rapid-re
 
 const slugOf = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'page'
 
+/** A topic name inside a sentence: lower-cased, but acronyms (AI, HR, WARN) keep their capitals. */
+export const midSentence = (topic: string) => topic.split(' ').map((w) => (/[A-Z].*[A-Z]/.test(w) ? w : w.toLowerCase())).join(' ')
+
 export function pullContext(trail: { name: string; path: string }[]) {
   const last = trail[trail.length - 1]
   const root = (trail[0]?.path ?? '').split('/').filter(Boolean)[0] ?? ''
@@ -47,7 +50,7 @@ export function PullCtaTop({ topic, slug, audience }: { topic: string; slug: str
     <section aria-label="Is this what you want?" className="mt-8 flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-mint p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
       <div className="max-w-2xl">
         <h2 className="text-lg font-semibold tracking-tight text-navy">Is this what you&apos;re looking for?</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Answer a few questions and we&apos;ll show how {topic.toLowerCase()} fits your background: matched jobs, a plain-language market read and a weekly plan. Free. No résumé needed.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Answer a few questions and we&apos;ll show how {midSentence(topic)} fits your background: matched jobs, a plain-language market read and a weekly plan. Free. No résumé needed.</p>
       </div>
       <div className="flex flex-wrap gap-3">
         <TrackedLink href={registerHref(slug, 'top')} event="pull_cta_clicked" properties={{ spot: 'top', audience, slug }} gtagEvent="pull_cta_clicked" className="inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">Yes, build my plan</TrackedLink>
@@ -62,7 +65,7 @@ export function PullCtaMid({ topic, slug, audience }: { topic: string; slug: str
   const org = audience === 'org'
   return (
     <aside aria-label="Next step" className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm font-medium text-navy">{org ? 'Want your organization on pages like this one?' : `Seen enough? See how ${topic.toLowerCase()} reads for your background.`}</p>
+      <p className="text-sm font-medium text-navy">{org ? 'Want your organization on pages like this one?' : `Seen enough? See how ${midSentence(topic)} reads for your background.`}</p>
       <TrackedLink href={org ? '/for-organizations' : registerHref(slug, 'mid')} event="pull_cta_clicked" properties={{ spot: 'mid', audience, slug }} gtagEvent="pull_cta_clicked" className="inline-flex h-10 shrink-0 items-center rounded-full bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95">
         {org ? 'See how it works' : 'Show me, free'}
       </TrackedLink>
@@ -90,7 +93,7 @@ export function PullCtaBottom({ topic, slug, audience, picker = true }: { topic:
   return (
     <section id="get-started" aria-label="Get started" className="mt-8 scroll-mt-6 rounded-3xl bg-gradient-to-br from-brand to-light-blue p-6 text-white sm:p-8">
       <h2 className="text-xl font-semibold tracking-tight">Do you want this for your own search?</h2>
-      <p className="mt-2 max-w-2xl text-sm text-white/90">A free account turns this page into your plan: a plain-language read on {topic.toLowerCase()}, jobs matched to you and a weekly action plan.</p>
+      <p className="mt-2 max-w-2xl text-sm text-white/90">A free account turns this page into your plan: a plain-language read on {midSentence(topic)}, jobs matched to you and a weekly action plan.</p>
       <TrackedLink href={registerHref(slug, 'bottom')} event="pull_cta_clicked" properties={{ spot: 'bottom', audience, slug }} gtagEvent="pull_cta_clicked" className="mt-4 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">Yes, start free</TrackedLink>
       {picker && (
         <div className="mt-6 rounded-2xl bg-white p-4 text-foreground sm:p-5">
