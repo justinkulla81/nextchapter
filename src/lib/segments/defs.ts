@@ -59,6 +59,10 @@ export function employerIn(set: Set<string>, normalized: string): boolean {
 
 export const MIN_SEGMENT_JOBS = 30
 
+// Design and engineering consultancies post engineer roles in every industry they serve: they belong in construction, not in the
+// manufacturing, power or mining lists their clients' work shows up in.
+const ENGINEERING_FIRMS = /\b(sargent (&|and) lundy|black (&|and) veatch|burns (&|and) mcdonnell|dewberry|hdr|kimley-horn|stantec|wsp|arcadis|tetra tech|hntb|gannett fleming|langan|terracon|kleinfelder|mott macdonald|trinzic|michels|consultants?|engineers)\b/i
+
 export const SEGMENTS: SegmentDef[] = [
   {
     slug: 'data-centers',
@@ -127,7 +131,7 @@ export const SEGMENTS: SegmentDef[] = [
     query: 'construction',
     rules: [
       { codes: ['real_estate'], company: /\b(construct\w*|builders?|contracting|contractors?|homes|engineering and construction)\b/i },
-      { employers: ['Turner Construction', 'Bechtel', 'Fluor', 'Kiewit', 'Skanska', 'Jacobs', 'AECOM', 'DPR Construction', 'Whiting-Turner', 'Clark Construction', 'Hensel Phelps', 'Sundt', 'McCarthy Building Companies', 'Mortenson', 'Webcor', 'Toll Brothers', 'Lennar', 'D.R. Horton', 'PulteGroup', 'NVR', 'KB Home', 'Meritage Homes', 'Granite Construction', 'Tutor Perini', 'Balfour Beatty', 'Gilbane', 'Holder Construction', 'Brasfield & Gorrie', 'Swinerton', 'JE Dunn', 'Sterling Infrastructure', 'Quanta Services', 'MasTec', 'EMCOR', 'Comfort Systems USA', 'Dycom', 'Primoris'] },
+      { employers: ['Turner Construction', 'Bechtel', 'Fluor', 'Kiewit', 'Skanska', 'Jacobs', 'AECOM', 'DPR Construction', 'Whiting-Turner', 'Clark Construction', 'Hensel Phelps', 'Sundt', 'McCarthy Building Companies', 'Mortenson', 'Webcor', 'Toll Brothers', 'Lennar', 'D.R. Horton', 'PulteGroup', 'NVR', 'KB Home', 'Meritage Homes', 'Granite Construction', 'Tutor Perini', 'Balfour Beatty', 'Gilbane', 'Holder Construction', 'Brasfield & Gorrie', 'Swinerton', 'JE Dunn', 'Sterling Infrastructure', 'Sargent & Lundy', 'Black & Veatch', 'Burns & McDonnell', 'Dewberry', 'HDR', 'Kimley-Horn', 'Stantec', 'WSP', 'Arcadis', 'Tetra Tech', 'HNTB', 'Gannett Fleming', 'Langan', 'Terracon', 'Kleinfelder', 'Quanta Services', 'MasTec', 'EMCOR', 'Comfort Systems USA', 'Dycom', 'Primoris'] },
       { title: /\b(construction (manager|project manager|superintendent|engineer|executive|director|estimator)|superintendent|estimator|preconstruction|general superintendent|site superintendent|project superintendent)\b/i },
     ],
     exclude: { title: /\b(software|sales|recruiter|accountant)\b/i },
@@ -155,6 +159,7 @@ export const SEGMENTS: SegmentDef[] = [
       { codes: ['consumer'], company: /\b(foods?|brands?|beverages?|consumer products|cosmetics?|beauty|household|packaged|snacks?|brewing|distilling)\b/i },
       { employers: ['Procter & Gamble', 'Unilever', 'Colgate-Palmolive', 'Kimberly-Clark', 'General Mills', 'Kellanova', 'Kellogg', 'PepsiCo', 'Coca-Cola', 'Mondelez', 'Hershey', 'Mars', 'Campbell\'s', 'Conagra Brands', 'Kraft Heinz', 'Tyson Foods', 'Hormel Foods', 'Clorox', 'Church & Dwight', 'Estee Lauder', 'L\'Oreal', 'J.M. Smucker', 'Keurig Dr Pepper', 'Molson Coors', 'Constellation Brands', 'Anheuser-Busch', 'Newell Brands', 'Reckitt', 'Edgewell', 'Spectrum Brands', 'Post Holdings', 'Lamb Weston', 'McCormick', 'Hain Celestial', 'Monster Beverage', 'Kenvue', 'Haleon', 'Nestle', 'Danone', 'Henkel', 'Coty', 'Revlon', 'Energizer'] },
     ],
+    exclude: { company: /\b(ulta|us foods|performance food|sysco)\b/i },
   },
   {
     slug: 'restaurants',
@@ -178,10 +183,10 @@ export const SEGMENTS: SegmentDef[] = [
     query: 'hospitality',
     rules: [
       { company: /\b(hotels?|resorts?|hospitality|inns?|lodging|cruises?|cruise line|vacations?|travel)\b/i },
-      { employers: ['Marriott', 'Hilton', 'Hyatt', 'IHG Hotels & Resorts', 'Wyndham', 'Choice Hotels', 'Airbnb', 'Expedia', 'Booking Holdings', 'Tripadvisor', 'Carnival', 'Royal Caribbean', 'Norwegian Cruise Line', 'Vail Resorts', 'Six Flags', 'Cedar Fair', 'SeaWorld', 'Disney Parks', 'Universal Parks & Resorts', 'Host Hotels & Resorts', 'Park Hotels & Resorts', 'Sonder', 'Vacasa', 'Four Seasons', 'Omni Hotels & Resorts', 'Loews Hotels', 'Aimbridge Hospitality', 'Highgate', 'Kimpton', 'Great Wolf Resorts', 'Viking', 'Lindblad Expeditions', 'Hertz', 'Avis Budget Group'] },
+      { employers: ['Marriott', 'Hilton', 'Hyatt', 'IHG Hotels & Resorts', 'Wyndham', 'Choice Hotels', 'Airbnb', 'Expedia', 'Booking Holdings', 'Tripadvisor', 'Carnival', 'Royal Caribbean', 'Norwegian Cruise Line', 'Vail Resorts', 'Six Flags', 'Cedar Fair', 'SeaWorld', 'Disney Parks', 'Universal Parks & Resorts', 'Host Hotels & Resorts', 'Park Hotels & Resorts', 'Sonder', 'Vacasa', 'Four Seasons', 'Omni Hotels & Resorts', 'Loews Hotels', 'Aimbridge Hospitality', 'Highgate', 'Kimpton', 'Great Wolf Resorts', 'Viking', 'Lindblad Expeditions'] },
       { title: /\b(hotel (general )?manager|director of (revenue management|rooms|sales and marketing)|revenue manager.*hotel|resort manager|guest experience (manager|director)|destination marketing)\b/i },
     ],
-    exclude: { company: /\b(casinos?|gaming|nurses?|nursing|staffing|healthcare|health)\b/i },
+    exclude: { company: /\b(casinos?|gaming|nurses?|nursing|staffing|healthcare|health|travel stops?|hertz|avis)\b/i },
   },
   {
     slug: 'casino-gaming',
@@ -195,7 +200,7 @@ export const SEGMENTS: SegmentDef[] = [
       { employers: ['MGM Resorts', 'Caesars Entertainment', 'Wynn Resorts', 'Las Vegas Sands', 'Penn Entertainment', 'Boyd Gaming', 'DraftKings', 'FanDuel', 'Flutter Entertainment', 'Bally\'s', 'Light & Wonder', 'Scientific Games', 'IGT', 'International Game Technology', 'Aristocrat', 'Everi', 'Churchill Downs', 'Red Rock Resorts', 'Station Casinos', 'Golden Entertainment', 'Hard Rock', 'Seminole Hard Rock', 'Mohegan', 'Foxwoods', 'Rush Street Interactive', 'BetMGM', 'Fanatics Betting and Gaming', 'Genting', 'Resorts World', 'Sycuan', 'Pechanga', 'Wind Creek', 'Choctaw', 'Seneca Gaming', 'Mohegan Gaming & Entertainment', 'Full House Resorts', 'Monarch Casino', 'Century Casinos', 'Accel Entertainment', 'Sportradar', 'Genius Sports'] },
       { title: /\b(casino (manager|operations|host|marketing)|table games|slot operations|sportsbook|gaming (compliance|operations|manager|licensing)|surveillance (manager|director)|player development)\b/i },
     ],
-    exclude: { company: /\b(video games?|game studio|games inc|esports)\b/i },
+    exclude: { company: /\b(video games?|game studio|games inc|esports|corsair|razer|logitech|turtle beach|steelseries)\b/i },
   },
   {
     slug: 'sports',
@@ -205,7 +210,7 @@ export const SEGMENTS: SegmentDef[] = [
     blurb: 'Leagues, teams, venues and sports media and betting: sponsorship, operations, analytics and front-office roles.',
     query: 'sports',
     rules: [
-      { company: /\b(sports|football club|baseball club|hockey club|basketball|athletics department|arena|stadium)\b/i },
+      { company: /\b(sports|football club|baseball club|hockey club|basketball|athletics department)\b/i },
       { employers: ['NFL', 'NBA', 'MLB', 'Major League Baseball', 'NHL', 'MLS', 'Major League Soccer', 'WNBA', 'NCAA', 'UFC', 'TKO Group', 'WWE', 'NASCAR', 'PGA Tour', 'PGA of America', 'LPGA', 'USTA', 'FIFA', 'Fanatics', 'Formula 1', 'Madison Square Garden Sports', 'Madison Square Garden Entertainment', 'Endeavor', 'IMG', 'Learfield', 'Legends', 'Oak View Group', 'Topgolf', 'Topgolf Callaway Brands', 'Atlanta Braves', 'Dallas Cowboys', 'Los Angeles Lakers', 'US Olympic & Paralympic Committee', 'Team USA', 'Genius Sports', 'Sportradar', 'Hudl', 'Stats Perform', 'On Location'] },
       { title: /\b(sports (marketing|sponsorship|partnerships?|analytics|operations|performance|business)|director of (athletics|player (personnel|development))|scouting|team operations)\b/i },
     ],
@@ -235,9 +240,9 @@ export const SEGMENTS: SegmentDef[] = [
     rules: [
       { company: /\b(pictures|film|films|cinemas?|theatres?|theaters?|animation)\b/i },
       { employers: ['Walt Disney Studios', 'Warner Bros.', 'Universal Pictures', 'Paramount Pictures', 'Sony Pictures', 'Sony Pictures Entertainment', 'Lionsgate', 'A24', 'Legendary Entertainment', 'IMAX', 'AMC Theatres', 'Cinemark', 'Regal Cinemas', 'Pixar', 'DreamWorks Animation', 'Lucasfilm', 'Skydance', 'MGM Studios', 'Amazon MGM Studios', 'Fandango', 'Industrial Light & Magic', 'Weta FX', 'DNEG', 'Framestore', 'Technicolor', 'Illumination', 'Blumhouse', 'Marvel', 'Marvel Studios', 'Netflix Studios', 'Apple Studios', 'Atlas Entertainment', 'Village Roadshow', 'Fathom Entertainment', 'Alamo Drafthouse', 'Studio Movie Grill', 'Marcus Theatres', 'Harkins Theatres', 'Cineplex'] },
-      { title: /\b(post[- ]production|visual effects|vfx|film (production|distribution|finance)|production accountant|line producer|studio (operations|finance))\b/i },
+      { title: /\b(post[- ]production|visual effects|vfx|film (production|distribution|finance)|production accountant|line producer)\b/i },
     ],
-    exclude: { company: /\b(studio (apartments|lofts)|film (coating|packaging|extrusion))\b/i, title: /\bfilm(ed)? (coating|packaging)|plastic film\b/i },
+    exclude: { company: /\b(studio (apartments|lofts)|film (coating|packaging|extrusion)|carvana|children'?s theat\w*)\b/i, title: /\bfilm(ed)? (coating|packaging)|plastic film\b/i },
   },
   {
     slug: 'music',
@@ -263,7 +268,7 @@ export const SEGMENTS: SegmentDef[] = [
       { codes: ['industrial'] },
       { title: /\b(plant (manager|director|controller)|manufacturing (engineer|engineering|manager|director|supervisor|operations|leader)|production (manager|supervisor|planner)|industrial engineer|continuous improvement (manager|engineer)|lean (manufacturing|six sigma)|process engineer|quality (engineer|manager|assurance manager)|operations manager.*(plant|manufacturing))\b/i },
     ],
-    exclude: { title: /\b(software|sales|recruiter|accountant)\b/i, company: /\b(construct\w*|contracting|contractors?|infrastructure|ies holdings|mastec|emcor|quanta)\b/i },
+    exclude: { title: /\b(software|sales|recruiter|accountant)\b/i, company: new RegExp(`${/\b(construct\w*|contracting|contractors?|infrastructure|ies holdings|mastec|emcor|quanta|tutor perini|haskell|kiewit|bechtel|geo group|clean harbors|grainger|siteone)\b/.source}|${ENGINEERING_FIRMS.source}`, 'i') },
   },
   {
     slug: 'automotive-ev',
@@ -273,11 +278,11 @@ export const SEGMENTS: SegmentDef[] = [
     blurb: 'Vehicle makers, suppliers, battery and charging companies, and the engineers and operators building the next generation of vehicles.',
     query: 'automotive',
     rules: [
-      { employers: ['Ford Motor', 'General Motors', 'GM', 'Stellantis', 'Tesla', 'Rivian', 'Lucid Motors', 'Toyota Motor North America', 'Toyota', 'Honda', 'American Honda Motor', 'Nissan North America', 'Hyundai Motor America', 'Kia America', 'BMW', 'BMW Manufacturing', 'Mercedes-Benz', 'Volkswagen Group of America', 'Volvo Cars', 'Paccar', 'Cummins', 'Lear', 'Magna', 'BorgWarner', 'Aptiv', 'Dana', 'Visteon', 'Goodyear', 'Bridgestone Americas', 'Michelin', 'American Axle', 'Gentex', 'Adient', 'Autoliv', 'Continental Automotive', 'Bosch', 'Denso', 'ZF', 'Harley-Davidson', 'Polaris', 'Allison Transmission', 'Navistar', 'Daimler Truck North America', 'Oshkosh', 'ChargePoint', 'Blink Charging', 'EVgo', 'QuantumScape', 'Solid Power', 'Panasonic Energy', 'LG Energy Solution', 'SK On', 'Ultium Cells', 'Samsung SDI', 'Enovix', 'Nikola', 'Waymo', 'Aurora Innovation', 'Zoox', 'Mobileye', 'Luminar', 'Applied Intuition', 'Mazda', 'Subaru of America', 'Mitsubishi Motors', 'Genuine Parts', 'Borg Warner'] },
+      { employers: ['Ford Motor', 'General Motors', 'GM', 'Stellantis', 'Tesla', 'Rivian', 'Lucid Motors', 'Toyota Motor North America', 'Toyota', 'Honda', 'American Honda Motor', 'Nissan North America', 'Hyundai Motor America', 'Kia America', 'BMW', 'BMW Manufacturing', 'Mercedes-Benz', 'Volkswagen Group of America', 'Volvo Cars', 'Paccar', 'Cummins', 'Lear', 'Magna', 'BorgWarner', 'Aptiv', 'Dana', 'Visteon', 'Goodyear', 'Bridgestone Americas', 'Michelin', 'American Axle', 'Gentex', 'Adient', 'Autoliv', 'Continental Automotive', 'Bosch', 'Denso', 'ZF', 'Harley-Davidson', 'Polaris', 'Allison Transmission', 'Navistar', 'Daimler Truck North America', 'Oshkosh', 'ChargePoint', 'Blink Charging', 'EVgo', 'QuantumScape', 'Solid Power', 'Panasonic Energy', 'LG Energy Solution', 'SK On', 'Ultium Cells', 'Samsung SDI', 'Enovix', 'Nikola', 'Waymo', 'Aurora Innovation', 'Zoox', 'Mobileye', 'Luminar', 'Applied Intuition', 'Mazda', 'Subaru of America', 'Mitsubishi Motors', 'Borg Warner'] },
       { company: /\b(automotive|motors?|motor company|vehicles?|auto parts|battery|batteries|ev charging)\b/i },
       { title: /\b(automotive|powertrain|vehicle (engineer|integration|software|dynamics)|battery (engineer|cell|pack|systems|manufacturing)|ev (charging|infrastructure)|adas|autonomous vehicle)\b/i },
     ],
-    exclude: { company: /\b(motor ?sports|autozone|insurance)\b/i },
+    exclude: { company: /\b(motor ?sports|autozone|insurance|o'?reilly|advance auto|carmax|carvana|pep boys|napa)\b/i },
   },
   {
     slug: 'ai',
@@ -316,6 +321,7 @@ export const SEGMENTS: SegmentDef[] = [
       { company: /\b(shipbuild\w*|shipyards?|maritime|naval)\b/i },
       { title: /\b(naval architect|marine engineer|shipfitter|shipyard|shipbuilding|marine surveyor|ship (design|repair)|submarine)\b/i },
     ],
+    exclude: { company: /\b(naval air|academy|university|college)\b/i },
   },
   {
     slug: 'steel-aluminum',
@@ -329,7 +335,7 @@ export const SEGMENTS: SegmentDef[] = [
       { company: /\b(steel|aluminum|aluminium|alloys?|foundry|metals)\b/i },
       { title: /\b(metallurg\w*|foundry|rolling mill|smelter|steel ?(plant|mill|making)|aluminum (smelter|rolling))\b/i },
     ],
-    exclude: { company: /\b(precious metals|metals trading|bullion)\b/i },
+    exclude: { company: /\b(precious metals|metals trading|bullion)\b|^alloy$/i },
   },
   {
     slug: 'transportation-logistics',
@@ -369,6 +375,7 @@ export const SEGMENTS: SegmentDef[] = [
       { codes: ['energy'], company: /\b(oil|gas|petroleum|midstream|pipeline|drilling|lng|refining)\b/i },
       { title: /\b(petroleum|reservoir|drilling|wellsite|geoscientist|refinery|pipeline (engineer|integrity)|upstream|midstream|oil and gas)\b/i },
     ],
+    exclude: { company: /\b(gas (and|&) electric|electric)\b/i },
   },
   {
     slug: 'utilities',
@@ -382,6 +389,7 @@ export const SEGMENTS: SegmentDef[] = [
       { codes: ['energy'], company: /\b(electric|power (company|co|authority|cooperative)|utilit(y|ies)|water (company|works|authority)|gas (company|utility)|energy cooperative)\b/i },
       { title: /\b(substation|transmission (planner|engineer)|distribution (engineer|operations)|lineworker|power systems?|protection engineer|power grid|grid (operations|modernization|planning))\b/i },
     ],
+    exclude: { company: new RegExp(`westinghouse|${ENGINEERING_FIRMS.source}`, 'i') },
   },
   {
     slug: 'clean-energy',
@@ -395,6 +403,7 @@ export const SEGMENTS: SegmentDef[] = [
       { company: /\b(solar|wind|renewables?|nuclear|geothermal|hydrogen|fusion|energy storage|clean energy)\b/i },
       { title: /\b(solar|wind turbine|nuclear|reactor|geothermal|hydrogen|battery storage|energy storage|renewable)\b/i },
     ],
+    exclude: { company: ENGINEERING_FIRMS },
   },
   {
     slug: 'telecom',
@@ -421,6 +430,7 @@ export const SEGMENTS: SegmentDef[] = [
       { company: /\b(mining|minerals?|lithium|copper|coal|timber|forestry|uranium|aggregates|potash)\b/i },
       { title: /\b(mining|mine (manager|engineer|planner|superintendent)|geologist|geotechnical|metallurgist|mineral|forestry|hydrologist)\b/i },
     ],
+    exclude: { company: ENGINEERING_FIRMS },
   },
   {
     slug: 'nonprofits',
