@@ -5,7 +5,7 @@ let n = 0
 const notice = (o: Partial<LooseNotice> & { employer: string; noticeDate: string }): LooseNotice => ({
   id: `n${++n}`,
   normalizedEmployer: o.employer.toLowerCase().replace(/[^a-z0-9 ]/g, ''),
-  companyId: null, employees: null, effectiveDate: null, layoffType: null, sourceUrl: null, publishers: [],
+  companyId: null, employees: null, effectiveDate: null, layoffType: null, sourceUrl: null, publishers: [], country: null, industry: null,
   ...o,
   noticeDate: new Date(`${o.noticeDate}T00:00:00Z`),
 })
@@ -78,6 +78,16 @@ describe('mergeReported', () => {
     }
     // A real name that ends in a common word is kept.
     expect(mergeReported([notice({ employer: 'Fifth Third Bank', noticeDate: '2026-10-30' })])).toHaveLength(1)
+  })
+})
+
+describe('country and industry', () => {
+  it('keeps the first country and industry any report gave', () => {
+    const [m] = mergeReported([
+      notice({ employer: 'KPMG', noticeDate: '2026-11-01' }),
+      notice({ employer: 'KPMG', noticeDate: '2026-11-01', country: 'AU', industry: 'Accounting & Audit' }),
+    ])
+    expect(m).toMatchObject({ country: 'AU', industry: 'Accounting & Audit' })
   })
 })
 

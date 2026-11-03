@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { employerSlug } from './layoff-pages'
 import { MERGE_WINDOW_DAYS, mergeReported, reportedKind, type LooseNotice, type MergedLayoff } from './tracker-merge'
 import { sameEmployer } from './news-headline'
+import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 
 export interface TrackerRow {
   key: string
@@ -22,6 +23,10 @@ export interface TrackerRow {
   alsoReported: boolean
   /** A reported layoff with a single source so far; a second publisher or a filing confirms it. */
   unconfirmed: boolean
+  /** ISO country of the layoff: US for any state filing; for a reported layoff the country its story places it in, else null. */
+  country: string | null
+  /** One of the app's industry groups (Company.industry, or a state filing's industry text mapped to one); null when unknown. */
+  industry: string | null
   /** /layoffs/company/<slug>, for state filings only. */
   companySlug: string | null
 }
@@ -91,7 +96,7 @@ async function looseReportedRows(): Promise<MergedLayoff[]> {
   const [notices, filings] = await Promise.all([
     prisma.warnNotice.findMany({
       where: { dismissedAt: null, state: null, source: 'MANUAL_ANNOUNCEMENT', noticeDate: { gte: since, lte: now } },
-      select: { id: true, employer: true, normalizedEmployer: true, companyId: true, employees: true, noticeDate: true, effectiveDate: true, layoffType: true, sourceUrl: true },
+      select: { id: true, employer: true, normalizedEmployer: true, companyId: true, employees: true, noticeDate: true, effectiveDate: true, layoffType: true, sourceUrl: true, country: true, company: { select: { industry: true } } },
       take: 3000,
     }),
     prisma.warnNotice.findMany({
@@ -107,7 +112,7 @@ async function looseReportedRows(): Promise<MergedLayoff[]> {
   const publishers = new Map<string, string[]>()
   for (const m of mentions) if (m.noticeId && m.publisher) publishers.set(m.noticeId, [...(publishers.get(m.noticeId) ?? []), m.publisher])
 
-  const loose: LooseNotice[] = notices.flatMap((n) => n.noticeDate ? [{ ...n, noticeDate: n.noticeDate, publishers: publishers.get(n.id) ?? [] }] : [])
+  const loose: LooseNotice[] = notices.flatMap(({ company, ...n }) => n.noticeDate ? [{ ...n, noticeDate: n.noticeDate, publishers: publishers.get(n.id) ?? [], industry: company?.industry ?? null }] : [])
   return mergeReported(loose).filter((m) => !filings.some((f) =>
     f.noticeDate && Math.abs(f.noticeDate.getTime() - m.noticeDate.getTime()) <= MERGE_WINDOW_DAYS * DAY_MS && sameEmployer(f.normalizedEmployer, m.normalizedEmployer)))
 }
@@ -136,6 +141,7 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
       state: string | null; employer: string; company: string | null; county: string | null
       workers: number | null; sites: number; notice_date: Date; effective_date: Date | null
       type: string | null; source_url: string | null; key: string; reported: boolean; also_reported: boolean
+      company_industry: string | null; raw_industry: string | null; country: string | null
     }[]>`
       WITH base AS (
         SELECT w.*,
@@ -186,6 +192,9 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
       SELECT k.state,
              MIN(k.employer) AS employer,
              MIN(c.name) FILTER (WHERE k."companyMatchStatus" = 'MATCHED') AS company,
+             MIN(c.industry) AS company_industry,
+             MIN(k.industry) AS raw_industry,
+             MIN(k.country) AS country,
              CASE WHEN COUNT(DISTINCT k.county) = 1 THEN MIN(k.county) END AS county,
              SUM(k.employees)::int AS workers,
              COUNT(*)::int AS sites,
@@ -302,6 +311,8 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         sourceLabel: r.reported ? reportedLabel(r.source_url) : 'State record',
         alsoReported: !!r.also_reported,
         unconfirmed: false,
+        country: r.state ? 'US' : r.country,
+        industry: r.company_industry ?? normalizeIndustryBucket(r.raw_industry ?? ''),
         companySlug: r.reported ? null : employerSlug(r.employer, r.company) || null,
       } satisfies TrackerRow,
     }))
@@ -322,6 +333,8 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         sourceLabel: reportedLabel(m.sourceUrl),
         alsoReported: m.sources >= 2,
         unconfirmed: m.sources < 2,
+        country: m.country,
+        industry: m.industry,
         companySlug: null,
       } satisfies TrackerRow,
     }))

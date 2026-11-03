@@ -4,6 +4,7 @@ import { runLayoffPrimarySweep } from '@/lib/warn/layoff-primary-run'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
 import { runLinkedInDraftSweep } from '@/lib/linkedin/layoff-post-sweep'
+import { fillLayoffCountries } from '@/lib/warn/layoff-country'
 import { retryHeldLayoffAlerts } from '@/lib/warn/layoff-alert'
 import { runLayoffIndexNow } from '@/lib/syndication/indexnow-layoffs'
 
@@ -57,6 +58,13 @@ export const GET = withCronRun('layoff-news', async (request: NextRequest) => {
   } catch (e) {
     held = { error: e instanceof Error ? e.message : String(e) }
   }
+  // Which country each reported layoff is in, a batch per run, so the public tracker can filter by country.
+  let countries: Awaited<ReturnType<typeof fillLayoffCountries>> | { error: string }
+  try {
+    countries = await fillLayoffCountries()
+  } catch (e) {
+    countries = { error: e instanceof Error ? e.message : String(e) }
+  }
   // Suggested LinkedIn posts for the credible layoffs just filed (no model call; see the sweep).
   let linkedin: Awaited<ReturnType<typeof runLinkedInDraftSweep>> | { error: string }
   try {
@@ -73,7 +81,7 @@ export const GET = withCronRun('layoff-news', async (request: NextRequest) => {
       indexnow = { error: e instanceof Error ? e.message : String(e) }
     }
   }
-  return NextResponse.json({ news, primary, held, linkedin, indexnow })
+  return NextResponse.json({ news, primary, held, countries, linkedin, indexnow })
 })
 
 async function runFastLane(): Promise<NextResponse> {

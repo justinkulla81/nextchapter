@@ -26,7 +26,7 @@ const LINK = 'text-brand underline underline-offset-4'
 
 export default async function LayoffsHubPage() {
   const [tracker, national, states, employers, counts] = await Promise.all([
-    getLayoffTracker(60),
+    getLayoffTracker(400),
     getNationalLaborData(),
     getStateSummaries().catch(() => []),
     getLargestRecentEmployers(60).catch(() => []),
