@@ -60,7 +60,7 @@ const RULES: Record<string, { blurb: string; rule: JobRule | null }> = {
   'Advertising, Marketing & PR': { blurb: 'Agencies and brands: advertising, marketing, public relations and communications.', rule: { company: 'advertising|marketing agency|creative agency|public relations|\\mpr (firm|agency)\\M|media agency|communications group|\\mwpp\\M|omnicom|publicis|interpublic' } },
   'Education & EdTech': { blurb: 'Universities, colleges, school systems and education technology.', rule: { codes: ['education'] } },
   'Government & Public Sector': { blurb: 'Federal, state and local government agencies.', rule: { codes: ['government'] } },
-  'Nonprofit & Social Impact': { blurb: 'Nonprofits, foundations and mission-driven organizations.', rule: { codes: ['nonprofit'] } },
+  'Nonprofit & Social Impact': { blurb: 'Non-profits, foundations and mission-driven organizations.', rule: { codes: ['nonprofit'] } },
   'Staffing & Human Capital': { blurb: 'Staffing, executive search and workforce firms.', rule: { codes: ['professional_services'], company: 'staffing|recruit|talent|\\msearch\\M|workforce' } },
 }
 
@@ -208,9 +208,9 @@ const FUNCTION_BLURB: Record<string, string> = {
   Clinical: 'Clinical leadership and practice roles.',
   Investment: 'Investing, portfolio management and capital markets.',
   Security: 'Cybersecurity, information security and physical security.',
-  Programs: 'Program and project management and nonprofit program delivery.',
+  Programs: 'Program and project management and non-profit program delivery.',
   Strategy: 'Corporate strategy, corporate development and business planning.',
-  'Fundraising & development': 'Fundraising, grants and development for nonprofits and institutions.',
+  'Fundraising & development': 'Fundraising, grants and development for non-profits and institutions.',
   Research: 'Research scientists, analysts and research leadership.',
   Academic: 'Faculty and academic leadership.',
 }

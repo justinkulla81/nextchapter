@@ -31,7 +31,7 @@ export const INDUSTRY_NAME: Record<string, string> = {
   technology: 'technology', industrial: 'manufacturing and industrial', financial_services: 'financial services', healthcare: 'healthcare',
   consumer: 'consumer, retail and hospitality', aerospace_defense: 'aerospace and defense', professional_services: 'professional services',
   education: 'education', life_sciences: 'life sciences', government: 'government', energy: 'energy and utilities', logistics: 'transportation and logistics',
-  media: 'media and entertainment', nonprofit: 'nonprofit', real_estate: 'construction and real estate', agriculture: 'agriculture', telecom: 'telecommunications',
+  media: 'media and entertainment', nonprofit: 'non-profit', real_estate: 'construction and real estate', agriculture: 'agriculture', telecom: 'telecommunications',
 }
 
 /** The job board's industry key for one of the CRM's industry labels, or null when there is no fair match. */
