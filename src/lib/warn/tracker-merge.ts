@@ -43,15 +43,23 @@ const hostOf = (url: string | null): string | null => {
 /** Google News links hide the publisher: the host says nothing, so each such link counts as its own source. */
 const isRedirector = (url: string | null) => hostOf(url) === 'news.google.com'
 
+/**
+ * Distinct publishers across the reports. A notice's own link is counted only when no publisher is named anywhere: it is
+ * usually the same outlet as a named publisher, and counting both would make every story look confirmed.
+ */
 function sourcesOf(rows: LooseNotice[]): number {
-  const seen = new Set<string>()
+  const publishers = new Set<string>()
   for (const r of rows) {
     // "Reuters on MSN" is Reuters, syndicated; it is not a second publisher.
-    for (const p of r.publishers) if (p.trim()) seen.add(p.trim().toLowerCase().replace(/\s+on\s+msn$/, '').replace(/^www\./, ''))
-    const host = hostOf(r.sourceUrl)
-    if (host) seen.add(isRedirector(r.sourceUrl) ? `link:${r.sourceUrl}` : host)
+    for (const p of r.publishers) if (p.trim()) publishers.add(p.trim().toLowerCase().replace(/\s+on\s+msn$/, '').replace(/^www\./, ''))
   }
-  return seen.size
+  if (publishers.size > 0) return publishers.size
+  const links = new Set<string>()
+  for (const r of rows) {
+    const host = hostOf(r.sourceUrl)
+    if (host) links.add(isRedirector(r.sourceUrl) ? `link:${r.sourceUrl}` : host)
+  }
+  return links.size
 }
 
 /** The headcount most reports give; on a tie the smaller, so the tracker never overstates. Null when none gave one. */
@@ -106,4 +114,16 @@ export function mergeReported(notices: LooseNotice[]): MergedLayoff[] {
       sources: sourcesOf(rows),
     }
   })
+}
+
+/**
+ * The kind line for a reported layoff. The news job's own wording ("Reported by 1 publisher — unconfirmed") is about how it
+ * found the story, not about the layoff, and the page shows the source count itself; what is kept is the share of staff
+ * and an SEC filing's type.
+ */
+export function reportedKind(layoffType: string | null): string | null {
+  if (!layoffType) return null
+  if (/^SEC 8-K/i.test(layoffType)) return layoffType.trim()
+  const percent = layoffType.match(/(\d{1,3})% of staff/)?.[1]
+  return percent ? `${percent}% of staff` : null
 }

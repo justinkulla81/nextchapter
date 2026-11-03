@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { employerSlug } from './layoff-pages'
-import { MERGE_WINDOW_DAYS, mergeReported, type LooseNotice, type MergedLayoff } from './tracker-merge'
+import { MERGE_WINDOW_DAYS, mergeReported, reportedKind, type LooseNotice, type MergedLayoff } from './tracker-merge'
 import { sameEmployer } from './news-headline'
 
 export interface TrackerRow {
@@ -316,7 +316,7 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         sites: 1,
         noticeDate: day(m.noticeDate),
         effectiveDate: m.effectiveDate ? day(m.effectiveDate) : null,
-        type: /layoffs\.fyi/i.test(m.sourceUrl ?? '') ? null : readableType(m.layoffType?.replace(/^Reported by[^·—-]*[·—-]?\s*/i, '') ?? null),
+        type: reportedKind(m.layoffType),
         sourceUrl: m.sourceUrl && /^https:\/\//.test(m.sourceUrl) && !/news\.google\.com/.test(m.sourceUrl) ? m.sourceUrl : null,
         origin: 'reported' as const,
         sourceLabel: reportedLabel(m.sourceUrl),
