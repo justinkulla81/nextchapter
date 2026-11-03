@@ -36,7 +36,7 @@ export default function SecurityPage() {
       <StructuredData data={jsonLd} />
       <PublicSiteHeader />
 
-      <main className="mx-auto w-full max-w-3xl px-6 py-16">
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <p className="text-sm font-semibold tracking-wide text-brand uppercase">Security &amp; Privacy</p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           How we handle data, plainly stated.

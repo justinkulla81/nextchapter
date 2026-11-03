@@ -49,7 +49,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ slug: s
       <StructuredData data={breadcrumbJsonLd([{ name: author.name, path: authorPath(author) }])} />
       <PublicSiteHeader />
 
-      <main className="mx-auto w-full max-w-3xl px-6 py-16">
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
           {author.image && (
             <Image

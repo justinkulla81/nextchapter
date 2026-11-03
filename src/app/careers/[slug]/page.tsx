@@ -52,7 +52,7 @@ export default async function CareerRolePage({ params }: { params: Promise<{ slu
       {jobPosting && <StructuredData data={jobPosting} />}
       <PublicSiteHeader current="careers" />
 
-      <main className="mx-auto w-full max-w-3xl px-6 py-14">
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <Link href="/careers" className="text-sm font-medium text-muted-foreground underline underline-offset-4 hover:text-navy">
           All roles
         </Link>
