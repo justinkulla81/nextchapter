@@ -23,7 +23,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   MARKETPLACE_ANY_FUNCTION: 'Marketplace — any function',
   EXPERT_NETWORK: 'Expert network',
   BOARD_ADVISORY: 'Board & advisory',
-  NONPROFIT_BOARD: 'Nonprofit board',
+  NONPROFIT_BOARD: 'Non-profit board',
 }
 
 const DESIGNATION_LABELS: Record<string, string> = {

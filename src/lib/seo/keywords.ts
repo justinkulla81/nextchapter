@@ -2913,7 +2913,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
   },
   {
     id: 'nonprofits-hub',
-    intent: 'Nonprofit buys job seeker support',
+    intent: 'Non-profit buys job seeker support',
     owner: '/nonprofits',
     kind: 'page',
     primary: 'workspace for non-profits serving job seekers',

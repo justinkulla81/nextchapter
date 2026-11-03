@@ -43,7 +43,7 @@ export default async function NonprofitPage({ params }: { params: Promise<{ stat
 
   return (
     <SeoPage
-      trail={[{ name: 'Nonprofits', path: '/nonprofits' }, { name, path: `/nonprofits/${state}` }, { name: o.name, path }]}
+      trail={[{ name: 'Non-profits', path: '/nonprofits' }, { name, path: `/nonprofits/${state}` }, { name: o.name, path }]}
       h1={o.name}
       lede={<>A {NONPROFIT_KINDS[o.kind]?.label ?? 'nonprofit'}{o.city ? ` in ${o.city}, ${name}` : ` in ${name}`}{o.nteeGroup ? `, classified under ${o.nteeGroup.toLowerCase()}` : ''}.</>}
     >

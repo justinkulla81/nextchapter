@@ -125,7 +125,7 @@ export async function scoreAllPartners(apply: boolean): Promise<ScoreSummary> {
     area: l.geoAreaId && byId.get(l.geoAreaId) ? combine([byId.get(l.geoAreaId)!]) : combine(stateArea.get(l.state) ? [stateArea.get(l.state)!] : []),
     hasName: !!l.contactName, hasEmail: !!l.contactEmail, hasPhone: !!l.contactPhone, hasWebsite: !!l.website, revenue: l.revenue, name: l.name,
     contact: contactFor(l.name, l.website) }) }))
-  await writeScores(apply, 'GeoOrgLead', 'id', ns); summary['Nonprofit leads'] = summarize(ns)
+  await writeScores(apply, 'GeoOrgLead', 'id', ns); summary['Non-profit leads'] = summarize(ns)
 
   return summary
 }

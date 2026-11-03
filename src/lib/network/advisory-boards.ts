@@ -90,7 +90,7 @@ export function advisoryPlan(details: unknown): AdvisoryPlan {
     next: experience ? NEXT[experience] : UNKNOWN_NEXT,
     lanes: [
       { key: 'startup', title: 'Startup advisory', body: 'Founders want an experienced operator for an hour a month. It is usually paid in a small amount of equity that vests over time, written up in a short advisor agreement.' },
-      { key: 'nonprofit', title: 'Nonprofit boards', body: 'The most open door. Organizations need people with your skills, and many are looking now. Start with one you already support, then a matching program.' },
+      { key: 'nonprofit', title: 'Non-profit boards', body: 'The most open door. Organizations need people with your skills, and many are looking now. Start with one you already support, then a matching program.' },
       { key: 'corporate', title: 'Corporate boards', body: 'The hardest door and mostly a long game. Seats go to people known by directors and search firms, which is why being found and your recruiter relationships come first.' },
       { key: 'fractional', title: 'Fractional and interim work', body: 'Paid, hands-on work for a few organizations at once. It often leads to advisory seats, and it covers income while you build the rest.' },
     ],

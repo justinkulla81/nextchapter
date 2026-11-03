@@ -38,7 +38,7 @@ export async function publicPageForOrg(org: OrgRef): Promise<PublicPageLink | nu
     const np = await prisma.geoOrgLead.findFirst({ where: { crmOrganizationId: org.id }, select: { ein: true, name: true, state: true, revenue: true } })
     if (np && np.state in STATE_NAMES) {
       const big = (np.revenue ?? 0) >= NONPROFIT_MIN_REVENUE
-      return big ? link(`/nonprofits/${stateSlug(np.state)}/${nonprofitSlug(np.name, np.ein)}`, 'Nonprofit page') : link(`/nonprofits/${stateSlug(np.state)}`, 'Nonprofit state listing')
+      return big ? link(`/nonprofits/${stateSlug(np.state)}/${nonprofitSlug(np.name, np.ein)}`, 'Non-profit page') : link(`/nonprofits/${stateSlug(np.state)}`, 'Non-profit state listing')
     }
   }
 

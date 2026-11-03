@@ -435,7 +435,7 @@ export const SEGMENTS: SegmentDef[] = [
   {
     slug: 'nonprofits',
     group: 'Education and nonprofit',
-    name: 'Nonprofits',
+    name: 'Non-profits',
     label: 'nonprofit',
     blurb: 'Charities, foundations, associations and mission-driven organizations: fundraising, programs, operations, finance and leadership roles.',
     query: 'nonprofit',

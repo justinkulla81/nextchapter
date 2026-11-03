@@ -43,7 +43,7 @@ export default async function NonprofitStatePage({ params }: { params: Promise<{
   return (
     <SeoPage
       stateSlug={state}
-      trail={[{ name: 'Nonprofits', path: '/nonprofits' }, { name: d.name, path: `/nonprofits/${state}` }]}
+      trail={[{ name: 'Non-profits', path: '/nonprofits' }, { name: d.name, path: `/nonprofits/${state}` }]}
       h1={`${d.name} non-profits: chambers, economic development and workforce organizations`}
       lede={<>{d.orgs.length} {d.name} non-profits with $1 million or more in annual revenue, from IRS records, and what is happening in the {d.name} job market around them. Staff can claim an organization’s page and set up a free workspace.</>}
     >

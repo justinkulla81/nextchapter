@@ -8,7 +8,7 @@ import { resolveOrgPlace, type PlaceBasis } from '@/lib/crm/org-place'
 const TYPE_LABEL: Record<string, string> = {
   VC_FUND: 'VC fund', ANGEL_SYNDICATE: 'Angel syndicate', FUNDER_GRANT: 'Funder', EMPLOYER: 'Employer', OUTPLACEMENT_LEAD: 'Outplacement lead',
   OUTPLACEMENT_FIRM: 'Outplacement firm', SEARCH_FIRM: 'Search firm', COACHING_FIRM: 'Coaching firm', UNIVERSITY: 'Higher ed', THINK_TANK: 'Think tank',
-  GOVERNMENT: 'Government', FOUNDATION: 'Foundation', NONPROFIT: 'Nonprofit', MEDIA: 'Media', ACCELERATOR: 'Accelerator', VENDOR: 'Vendor', OTHER: 'Other',
+  GOVERNMENT: 'Government', FOUNDATION: 'Foundation', NONPROFIT: 'Non-profit', MEDIA: 'Media', ACCELERATOR: 'Accelerator', VENDOR: 'Vendor', OTHER: 'Other',
 }
 const SECTOR: Record<number, string> = {
   1: 'Public four-year', 2: 'Private non-profit four-year', 3: 'For-profit four-year', 4: 'Community college',
