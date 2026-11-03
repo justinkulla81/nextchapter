@@ -49,7 +49,7 @@ export function JobSearchForm({
           onChange={(e) => setQ(e.target.value)}
           maxLength={100}
           placeholder="Job title or company"
-          className="h-12 flex-1 rounded-lg border border-border bg-white px-4 text-base"
+          className="h-12 shrink-0 sm:flex-1 rounded-lg border border-border bg-white px-4 text-base"
         />
         <label className="sr-only" htmlFor={`job-loc-${source}`}>City or state</label>
         <input

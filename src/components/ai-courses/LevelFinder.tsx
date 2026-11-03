@@ -101,7 +101,7 @@ export function LevelFinder({ source, defaultFunction = '' }: { source: string; 
               <p className="text-sm font-medium text-navy">Or get it by email</p>
               <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                 <label className="sr-only" htmlFor={`cp-email-${source}`}>Email address</label>
-                <input id={`cp-email-${source}`} name="email" type="email" inputMode="email" autoComplete="email" defaultValue={signup?.email} placeholder="you@example.com" className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-base" />
+                <input id={`cp-email-${source}`} name="email" type="email" inputMode="email" autoComplete="email" defaultValue={signup?.email} placeholder="you@example.com" className="h-11 shrink-0 sm:flex-1 rounded-lg border border-border bg-white px-3 text-base" />
                 <Button type="submit" variant="outline" disabled={pending || !fnInfo} className="h-11 rounded-full px-5">
                   {pending ? 'Saving…' : 'Email me my course path'}
                 </Button>
