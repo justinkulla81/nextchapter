@@ -71,6 +71,8 @@ export function countyKey(raw: string): string {
     .toLowerCase()
     // Kentucky writes "Jefferson County - Louisville": the county, a dash, the city. The city part is not part of the county's name.
     .replace(/\s+-\s+.*$/, '')
+    // CareerOneStop writes a board that serves part of a county as "Jackson (East)": the county is Jackson.
+    .replace(/\s*\((?:north|south|east|west|northeast|northwest|southeast|southwest|central|eastern|western|northern|southern)\)$/, '')
     .replace(/\s+(county|parish|borough|census area|city and borough|municipality)$/, '')
     .replace(/\bsaint\b/g, 'st')
     .replace(/\bst\.\s*/g, 'st ')
