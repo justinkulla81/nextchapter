@@ -17,6 +17,7 @@ import { getLargestRecentEmployers, getStateSummaries } from '@/lib/warn/layoff-
 import { getNationalLaborData } from '@/lib/market/bls-national'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { PullTop } from '@/components/capture/PullCta'
+import { LatestLayoffLinks } from '@/components/marketing/FreshLinks'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -71,6 +72,10 @@ export default async function LayoffsHubPage() {
 
  <LayoffNumbersNote counts={counts} />
           <CiteThisData path="/layoffs" asOf={counts?.asOf} source="layoffs-hub" />
+
+          <section aria-label="Latest layoff announcements" className="mt-12">
+            <LatestLayoffLinks limit={40} placement="layoffs_hub" tone="light" />
+          </section>
 
           <section aria-labelledby="use-data" className="mt-12 rounded-xl border border-border bg-white p-6">
             <h2 id="use-data" className="text-xl font-semibold tracking-tight text-navy">Use the layoff data</h2>

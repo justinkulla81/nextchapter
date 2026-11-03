@@ -22,7 +22,7 @@ export interface FreshLink {
 const LAYOFF_LINKS = 10
 const JOB_LINKS = 8
 
-export async function getFreshLayoffLinks(): Promise<FreshLink[]> {
+export async function getFreshLayoffLinks(limit: number = LAYOFF_LINKS): Promise<FreshLink[]> {
   const [notices, announcements] = await Promise.all([getRecentNotices().catch(() => []), getAnnouncements().catch(() => new Map())])
   const byDate = new Map<string, { slug: string; name: string; at: number; workers: number | null }>()
   for (const n of notices) {
@@ -40,7 +40,7 @@ export async function getFreshLayoffLinks(): Promise<FreshLink[]> {
   return [...byDate.values()]
     .filter((x) => x.slug && x.name)
     .sort((a, b) => b.at - a.at || (b.workers ?? 0) - (a.workers ?? 0))
-    .slice(0, LAYOFF_LINKS)
+    .slice(0, limit)
     .map((x) => ({ label: `${x.name} layoffs`, href: `/layoffs/company/${x.slug}`, kind: 'layoff' as const, key: x.slug }))
 }
 
