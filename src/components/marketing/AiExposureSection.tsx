@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 import { JobsByExposure } from '@/components/candidate/AiExposure'
 import { loadExposureMap, loadJobsByExposure } from '@/lib/skills/ai-exposure-server'
 import type { JobsByExposure as Split } from '@/lib/skills/ai-exposure'
@@ -77,7 +78,7 @@ export function AiExposureSectionView({ page, cta, split, occupations }: AiExpos
         {cta && (
           <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
             <TrackedLink href="/onboarding/desire" event={cta.event} properties={cta.properties} className={cta.className}>
-              Get your Market Reality Assessment
+              <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
             </TrackedLink>
             <Link href="/ai-skills" className="text-sm text-brand underline underline-offset-4">
               See which jobs ask for AI skills
