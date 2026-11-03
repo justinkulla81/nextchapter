@@ -23,6 +23,8 @@ const MAX_PER_HOUR_PER_IP = 5
 const SOURCES = new Set([
   'why-stuck', 'about', 'recruiters', 'organizations',
   'employers', 'talent', 'outplacement', 'employees', 'higher-education', 'government-workforce', 'nonprofits', 'coaches',
+  // The paid-search lead pages at /lp/<offer> (src/lib/marketing/lead-landing.ts).
+  'lp-outplacement', 'lp-workforce', 'lp-higher-ed',
 ])
 
 export async function submitContactForm(_prev: ContactFormState, formData: FormData): Promise<ContactFormState> {
