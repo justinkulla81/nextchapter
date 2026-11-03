@@ -263,7 +263,7 @@ async function stageNotice(row: WarnRow, sourceUrl: string, companies?: CompanyI
   // an employer already in the CRM, and never throws.
   await alertNewLayoff({
     noticeId: created.id, employer: clean(row.employer) ?? row.employer, normalizedEmployer: row.normalizedEmployer,
-    employees: row.employees, percent: null, kind: 'warn', confirmed: true, sourceUrl,
+    employees: row.employees, percent: null, ...(sourceUrl === LAYOFFS_FYI_URL ? { kind: 'news' as const, confirmed: false } : { kind: 'warn' as const, confirmed: true }), sourceUrl,
   })
   return true
 }

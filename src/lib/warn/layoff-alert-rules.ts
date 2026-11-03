@@ -93,6 +93,16 @@ export function mergeSources(primary: AlertSource | null, rest: AlertSource[] = 
   })
 }
 
+/**
+ * What kind of record a notice is. layoffs.fyi rows are stored as WARN_FILING but are press reports, not state filings,
+ * so a layoffs.fyi link makes it 'news' (and unconfirmed) whatever the source column says.
+ */
+export function noticeKind(n: { source: string; sourceUrl: string | null; layoffType?: string | null }): LayoffKind {
+  if (/layoffs\.fyi/i.test(n.sourceUrl ?? '')) return 'news'
+  if (n.source === 'WARN_FILING') return 'warn'
+  return /sec\.gov/i.test(n.sourceUrl ?? '') || /^SEC 8-K/i.test(n.layoffType ?? '') ? 'sec' : 'news'
+}
+
 export function shouldAlert(a: Pick<AlertInput, 'employees' | 'inCrm'>): boolean {
   return (a.employees ?? 0) >= ALERT_MIN_EMPLOYEES || a.inCrm
 }
