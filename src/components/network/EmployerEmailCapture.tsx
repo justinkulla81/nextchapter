@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import Link from 'next/link'
 import { submitJourneyLead, type JourneyState } from '@/lib/leads/actions'
+import { flagCompanyInterest } from '@/lib/leads/company-interest-actions'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
 import { posthog } from '@/lib/posthog/client'
@@ -24,7 +25,19 @@ const BUTTON = 'h-12 rounded-full bg-[var(--org-cta,#ffffff)] px-6 text-base fon
  */
 export function EmployerEmailCapture({ slug, employer }: { slug: string; employer: string }) {
   const source = `network:company:${slug}`
-  const [first, submitEmail, sending] = useActionState<JourneyState, FormData>(submitJourneyLead, undefined)
+  // One email box on this page: the same email also files the employer as the person's interest, so registering later follows it.
+  const [first, submitEmail, sending] = useActionState<JourneyState, FormData>(async (prev, formData) => {
+    const result = await submitJourneyLead(prev, formData)
+    if (result?.done && !result.error) {
+      const interest = new FormData()
+      interest.set('email', String(formData.get('email') ?? ''))
+      interest.set('company', employer)
+      interest.set('slug', slug)
+      interest.set('page', 'network')
+      await flagCompanyInterest(undefined, interest).catch(() => undefined)
+    }
+    return result
+  }, undefined)
   const [second, submitFollowup, saving] = useActionState<JourneyState, FormData>(submitJourneyLead, undefined)
   const email = first?.email ?? ''
 
