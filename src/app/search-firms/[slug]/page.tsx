@@ -99,7 +99,7 @@ export default async function SearchFirmPublicPage({ params }: { params: Promise
     >
       <section aria-labelledby="interest" className="mt-8">
         <h2 id="interest" className="sr-only">Express interest in {f.name}</h2>
-        <ExpressInterestButton orgId={f.orgId} firmName={f.name} source="search_firm_page" primary />
+        <ExpressInterestButton orgId={f.orgId} firmName={f.name} source="search_firm_page" primary accent={f.accent} />
         <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
           {f.inboundSlug
             ? <>Add your résumé and build your package. You choose when it goes to {f.name}. Or <Link href={`/in/${f.inboundSlug}`} className={LINK}>send your résumé to {f.name} directly</Link>.</>
