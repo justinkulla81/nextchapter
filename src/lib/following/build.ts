@@ -122,3 +122,43 @@ export function pickSuggestions(ranked: RankedCompany[], followedNames: Iterable
   }
   return out
 }
+
+// ── Groups: the communities a member belongs to (past employers, schools, field and place) ──
+
+export type GroupSectionKey = 'employers' | 'schools' | 'together' | 'field'
+
+export interface GroupRow {
+  communityId: string
+  label: string
+  /** Why the member is in it, in words. */
+  why: string
+  /** Alumni networks can be rejoined; the others cannot, so leaving says so. */
+  canRejoin: boolean
+}
+
+export const GROUP_SECTIONS: { key: GroupSectionKey; title: string }[] = [
+  { key: 'employers', title: 'Past employers' },
+  { key: 'schools', title: 'Schools' },
+  { key: 'together', title: 'People laid off with you' },
+  { key: 'field', title: 'Your field and place' },
+]
+
+const SECTION_OF: Record<string, GroupSectionKey> = { FORMER_EMPLOYER: 'employers', SCHOOL: 'schools', EX_COMPANY: 'together', FUNCTION: 'field', INDUSTRY: 'field', CITY: 'field' }
+
+export function groupMemberships(
+  memberships: { joinedVia: 'AUTO' | 'MANUAL'; community: { id: string; type: string; value: string; label: string } }[]
+): { key: GroupSectionKey; title: string; rows: GroupRow[] }[] {
+  const out = GROUP_SECTIONS.map((s) => ({ ...s, rows: [] as GroupRow[] }))
+  for (const m of memberships) {
+    const section = out.find((s) => s.key === SECTION_OF[m.community.type])
+    if (!section) continue
+    const alumni = m.community.type === 'SCHOOL' || m.community.type === 'FORMER_EMPLOYER'
+    section.rows.push({
+      communityId: m.community.id,
+      label: m.community.label,
+      why: alumni ? 'You joined this alumni network.' : m.joinedVia === 'AUTO' ? `Added because your profile says ${m.community.value}.` : 'You joined this group.',
+      canRejoin: alumni,
+    })
+  }
+  return out.filter((s) => s.rows.length > 0)
+}

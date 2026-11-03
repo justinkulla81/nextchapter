@@ -69,3 +69,16 @@ describe('pickSuggestions', () => {
   })
   it('stops at the limit', () => expect(pickSuggestions(list, [], new Set(), 1)).toHaveLength(1))
 })
+
+import { groupMemberships } from '@/lib/following/build'
+
+describe('groupMemberships', () => {
+  const m = (type: string, label: string, joinedVia: 'AUTO' | 'MANUAL', value = label.toLowerCase()) => ({ joinedVia, community: { id: `c-${label}`, type, value, label } })
+  it('sorts groups into sections and says why the member is in each', () => {
+    const s = groupMemberships([m('INDUSTRY', 'Aerospace', 'AUTO'), m('FORMER_EMPLOYER', 'Boeing alumni', 'MANUAL'), m('SCHOOL', 'Ohio State alumni', 'MANUAL')])
+    expect(s.map((x) => x.key)).toEqual(['employers', 'schools', 'field'])
+    expect(s[0].rows[0]).toMatchObject({ canRejoin: true, why: 'You joined this alumni network.' })
+    expect(s[2].rows[0]).toMatchObject({ canRejoin: false, why: 'Added because your profile says aerospace.' })
+  })
+  it('leaves out empty sections', () => expect(groupMemberships([])).toEqual([]))
+})

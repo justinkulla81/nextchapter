@@ -20,28 +20,33 @@ import { FollowCompanyForm } from '@/components/following/FollowCompanyForm'
 import { SuggestionActions } from '@/components/following/SuggestionActions'
 import { UnfollowButton } from '@/components/following/UnfollowButton'
 import { setStatusAction } from '@/app/dashboard/conferences/actions'
+import { groupMemberships } from '@/lib/following/build'
+import { getAlumniNetworkOptions } from '@/lib/community/alumni-networks'
+import { LeaveGroupButton } from '@/components/following/LeaveGroupButton'
+import { JoinNetworkButton } from '@/components/following/JoinNetworkButton'
 import { EMAIL_TOPICS, type EmailTopicField } from '@/lib/constants/notifications'
 
 export const metadata: Metadata = { title: 'What you follow' }
 
-type Tab = 'companies' | 'events' | 'emails'
-const TABS: { key: Tab; label: string }[] = [{ key: 'companies', label: 'Companies' }, { key: 'events', label: 'Events' }, { key: 'emails', label: 'Email updates' }]
+type Tab = 'companies' | 'events' | 'groups' | 'emails'
+const TABS: { key: Tab; label: string }[] = [{ key: 'companies', label: 'Companies' }, { key: 'events', label: 'Events' }, { key: 'groups', label: 'Groups' }, { key: 'emails', label: 'Email updates' }]
 const SORTS: { key: FollowSort; label: string }[] = [{ key: 'attention', label: 'Needs attention first' }, { key: 'newest', label: 'Newest follow' }, { key: 'az', label: 'A to Z' }]
 const GROUP_TITLE: Record<FollowGroup, string> = { attention: 'Needs your attention', hiring: 'Hiring in your field', quiet: 'Quiet for now' }
 
-const parseTab = (v: string | undefined): Tab => (v === 'events' || v === 'emails' ? v : 'companies')
+const parseTab = (v: string | undefined): Tab => (v === 'events' || v === 'groups' || v === 'emails' ? v : 'companies')
 
 export default async function FollowingPage({ searchParams }: { searchParams: Promise<{ tab?: string; sort?: string }> }) {
   const params = await searchParams
   const tab = parseTab(params.tab)
   const sort = parseSort(params.sort)
   const profile = await getDashboardProfile()
-  const [companyCount, eventCount] = await Promise.all([
+  const [companyCount, eventCount, groupCount] = await Promise.all([
     prisma.companyWatchlistEntry.count({ where: { candidateId: profile.id } }),
     prisma.userConference.count({ where: { candidateId: profile.id } }).catch(() => 0),
+    prisma.communityMembership.count({ where: { candidateId: profile.id, leftAt: null } }).catch(() => 0),
   ])
-  after(() => captureServerEvent(profile.id, 'following_viewed', { tab, sort, companies: companyCount, events: eventCount }))
-  const counts: Record<Tab, number | null> = { companies: companyCount, events: eventCount, emails: null }
+  after(() => captureServerEvent(profile.id, 'following_viewed', { tab, sort, companies: companyCount, events: eventCount, groups: groupCount }))
+  const counts: Record<Tab, number | null> = { companies: companyCount, events: eventCount, groups: groupCount, emails: null }
 
   return (
     <div className="space-y-6">
@@ -61,6 +66,7 @@ export default async function FollowingPage({ searchParams }: { searchParams: Pr
       </nav>
       {tab === 'companies' && <CompaniesTab candidateId={profile.id} sort={sort} />}
       {tab === 'events' && <EventsTab candidateId={profile.id} />}
+      {tab === 'groups' && <GroupsTab candidateId={profile.id} />}
       {tab === 'emails' && <EmailsTab candidateId={profile.id} />}
     </div>
   )
@@ -211,6 +217,63 @@ async function EmailsTab({ candidateId }: { candidateId: string }) {
     <div className="space-y-4">
       <EmailTopicToggles optedOut={optedOut} intro="Untick anything you do not want." />
       <p className="text-sm text-muted-foreground">How many emails you get overall is set under Account and privacy.</p>
+    </div>
+  )
+}
+
+async function GroupsTab({ candidateId }: { candidateId: string }) {
+  const [memberships, options] = await Promise.all([
+    prisma.communityMembership.findMany({ where: { candidateId, leftAt: null }, include: { community: true }, orderBy: { joinedAt: 'asc' } }),
+    getAlumniNetworkOptions(candidateId).catch(() => []),
+  ])
+  const sections = groupMemberships(memberships)
+  const joinable = options.filter((o) => !o.joined)
+  return (
+    <div className="space-y-6">
+      {sections.length === 0 ? (
+        <EmptyCard
+          title="You are not in any groups yet"
+          why="Groups put you with people from the same field, city, school or past employer. Fill in your profile and we add the ones that fit."
+          action={<SecondaryButton href="/dashboard/profile">Fill in your profile</SecondaryButton>}
+        />
+      ) : (
+        sections.map((s) => (
+          <section key={s.key} aria-label={s.title} className="space-y-2">
+            <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">{s.title}</h2>
+            <ul className="divide-y divide-border rounded-2xl border border-border">
+              {s.rows.map((r) => (
+                <li key={r.communityId} className="flex flex-wrap items-center justify-between gap-4 p-4">
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="text-base font-semibold text-ink">{r.label}</p>
+                    <p className="text-sm text-muted-foreground">{r.why}</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <SecondaryButton href="/dashboard/community">Open the community</SecondaryButton>
+                    <LeaveGroupButton communityId={r.communityId} label={r.label} canRejoin={r.canRejoin} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      )}
+      {joinable.length > 0 && (
+        <section aria-label="Alumni networks you can join" className="space-y-2">
+          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Alumni networks you can join</h2>
+          <ul className="divide-y divide-border rounded-2xl border border-border">
+            {joinable.map((o) => (
+              <li key={`${o.kind}-${o.refId}`} className="flex flex-wrap items-center justify-between gap-4 p-4">
+                <div className="min-w-0 space-y-0.5">
+                  <p className="text-base font-semibold text-ink">{o.name}</p>
+                  <p className="text-sm text-ink"><span className="font-semibold">Why:</span> {o.kind === 'SCHOOL' ? 'It is on your education history.' : 'It is a past employer on your résumé.'}</p>
+                  <p className="text-sm text-muted-foreground">{o.memberCount.toLocaleString('en-US')} members here.</p>
+                </div>
+                <JoinNetworkButton kind={o.kind} refId={o.refId} name={o.name} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }
