@@ -190,6 +190,21 @@ export async function loadCapturedEmails(since: Date): Promise<CapturedEmail[]> 
     })
   }
 
+  // A pick in a welcome or reminder email is saved as a CRM note (src/lib/leads/lifecycle/journey.ts), the only place it lives
+  // for newsletter and waitlist addresses, which have no row of their own to hold it.
+  const unknown = [...new Set(rows.filter((r) => !r.journey).map((r) => r.email))]
+  if (unknown.length > 0) {
+    const notes = await prisma.crmActivity
+      .findMany({ where: { type: 'NOTE', sourceRef: { in: unknown.map((e) => `lead-journey:${e}`) } }, select: { sourceRef: true, body: true } })
+      .catch(() => [])
+    const picked = new Map<string, string>()
+    for (const n of notes) {
+      const slug = /Journey: (\S+)/.exec(n.body ?? '')?.[1]
+      if (slug && n.sourceRef) picked.set(n.sourceRef.slice('lead-journey:'.length), slug)
+    }
+    for (const r of rows) if (!r.journey) r.journey = picked.get(r.email)
+  }
+
   return rows.sort((a, b) => b.capturedAt.getTime() - a.capturedAt.getTime())
 }
 
