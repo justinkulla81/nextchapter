@@ -78,7 +78,7 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture, her
           {bottom}
         </div>
       </main>
-      <PublicSiteFooter page="seo" />
+      <PublicSiteFooter page="seo" cta={false} />
     </div>
   )
 }

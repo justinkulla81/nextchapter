@@ -39,7 +39,7 @@ export default async function WeeklyLayoffsIndex() {
           <p className="mt-8 text-sm text-muted-foreground">Data for every week is in the <Link href="/data" className={LINK}>downloadable record</Link>.</p>
         </div>
       </main>
-      <PublicSiteFooter page="layoffs" />
+      <PublicSiteFooter page="layoffs" cta={false} />
     </div>
   )
 }

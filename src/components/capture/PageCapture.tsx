@@ -1,6 +1,6 @@
 import { JourneyPicker } from '@/components/home/JourneyPicker'
 import { SaveSearchForm } from '@/components/home/SaveSearchForm'
-import { CollapsibleCapture } from '@/components/capture/CollapsibleCapture'
+import { NextStepBox } from '@/components/capture/NextStepBox'
 import { OwnerInquiry } from '@/components/capture/OwnerInquiry'
 import { captureSource, ownerOffer, saveCopy, saveSource, type PageCaptureConfig } from '@/lib/capture/page-capture'
 
@@ -23,13 +23,7 @@ export function PageCaptureTop({ capture }: { capture: PageCaptureConfig }) {
       )}
     </>
   )
-  // Ranking pages lead with the lists: the question is a one-line strip that opens on a click.
-  if (capture.kind === 'ranking') return <CollapsibleCapture label={capture.label} source={source}>{body}</CollapsibleCapture>
-  return (
-    <section aria-label={`Get started: ${capture.label}`} className="mt-8 rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-mint p-5 sm:p-6">
-      {body}
-    </section>
-  )
+  return <NextStepBox audience="seeker" slug={capture.slug} extras={body} />
 }
 
 export function PageCaptureOwner({ capture }: { capture: PageCaptureConfig }) {

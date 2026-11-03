@@ -5,7 +5,7 @@ import { ChevronRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
 import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
-import { PullTop, PullBottom } from '@/components/capture/PullCta'
+import { PullTop } from '@/components/capture/PullCta'
 
 export const metadata: Metadata = pageMetadata('/insights')
 
@@ -65,7 +65,6 @@ export default function InsightsIndexPage() {
             Compare providers
           </Link>
         </div>
-        <PullBottom name="Outplacement insights" path="/insights" audience="org" />
       </main>
     </div>
   )

@@ -312,7 +312,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
           decision on your claim is what counts. See our <Link href="/editorial-standards" className="underline underline-offset-2">editorial standards</Link>.
         </p>
       </main>
-      <PublicSiteFooter page="benefits" />
+      <PublicSiteFooter page="benefits" cta={false} />
     </div>
   )
 }

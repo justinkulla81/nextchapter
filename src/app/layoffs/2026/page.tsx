@@ -182,7 +182,7 @@ export default async function Layoffs2026Page() {
           <div className="mt-10"><LayoffAlertForm source="layoffs:2026" /></div>
         </div>
       </main>
-      <PublicSiteFooter page="layoffs" />
+      <PublicSiteFooter page="layoffs" cta={false} />
     </div>
   )
 }
