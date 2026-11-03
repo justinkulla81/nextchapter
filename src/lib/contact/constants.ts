@@ -19,5 +19,7 @@ export const CONTACT_AUDIENCE_SHORT: Record<ContactAudience, string> = {
 export const CONTACT_EMAIL = 'contact@launchyournextchapter.com'
 export const SUPPORT_EMAIL = 'support@launchyournextchapter.com'
 export const CAREERS_EMAIL = 'careers@launchyournextchapter.com'
+export const COMPANY_ADDRESS_LINES = ['2248 Broadway #1838', 'New York, NY 10024'] as const
+export const COMPANY_ADDRESS = COMPANY_ADDRESS_LINES.join(', ')
 export const COMPANY_LINKEDIN_URL = 'https://www.linkedin.com/company/launchyournextchapter/'
 export const FOUNDER_LINKEDIN_URL = 'https://www.linkedin.com/in/justinkulla/'

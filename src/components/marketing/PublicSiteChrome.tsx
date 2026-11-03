@@ -3,7 +3,7 @@ import { SiteFooterColumns } from './SiteFooterColumns'
 import Link from 'next/link'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
-import { COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
+import { COMPANY_ADDRESS, COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 
 /**
@@ -82,6 +82,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
             LinkedIn
           </TrackedLink>
         </p>
+        <p className="mt-3 text-sm text-light-blue">NextChapter · {COMPANY_ADDRESS}</p>
       </div>
     </footer>
   )
