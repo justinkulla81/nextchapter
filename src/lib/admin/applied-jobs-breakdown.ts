@@ -46,6 +46,11 @@ const LEVEL_LABELS: Record<string, string> = {
   OTHER: 'Other',
 }
 
+/** Seniority labels from least to most senior, for the chart. */
+export const LEVEL_ORDER = [
+  'ENTRY_IC', 'EARLY_IC', 'MID_IC', 'SENIOR_IC', 'PRINCIPAL', 'MANAGER', 'SR_MANAGER', 'DIRECTOR', 'HEAD', 'VP', 'EVP_SVP', 'C_SUITE',
+].map((k) => LEVEL_LABELS[k])
+
 const NOT_SET = 'Not classified'
 
 function titleCase(value: string): string {
