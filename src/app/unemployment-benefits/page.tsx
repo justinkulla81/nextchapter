@@ -9,7 +9,6 @@ import { STATE_UI, UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { latestReport, reportPath } from '@/lib/reports'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { DeadlineEmailBox } from '@/components/cobra-aca/DeadlineEmailBox'
-import { LaidOffStart } from '@/components/cobra-aca/LaidOffStart'
 import { getPersona } from '@/lib/constants/personas'
 import { journeyChoices } from '@/lib/leads/infer-journey'
 import { TREATMENT_LABEL, TREATMENT_SENTENCE, TREATMENT_VERB } from '@/lib/severance/calc'
@@ -110,9 +109,6 @@ export default function UnemploymentBenefitsHub() {
               eventPrefix="unemployment"
               blurb="One email as each date comes up over the next two months: filing, the severance agreement review, health coverage. Then nothing. No account needed."
             />
-          </div>
-          <div className="mt-4">
-            <LaidOffStart placement="unemployment_hub" eventPrefix="unemployment" />
           </div>
         </section>
 

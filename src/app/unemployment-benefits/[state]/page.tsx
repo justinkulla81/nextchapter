@@ -17,7 +17,6 @@ import { getStateSummaries } from '@/lib/warn/layoff-pages'
 import { jobCentersUrl, stateBoardsUrl } from '@/lib/workforce/directory'
 import { titleMeta } from '@/lib/seo/title'
 import { DeadlineEmailBox } from '@/components/cobra-aca/DeadlineEmailBox'
-import { LaidOffStart } from '@/components/cobra-aca/LaidOffStart'
 import { SeveranceVerdict } from '@/components/severance/SeveranceVerdict'
 import { FirstSixtyDays } from '@/components/severance/FirstSixtyDays'
 import { getPersona } from '@/lib/constants/personas'
@@ -195,11 +194,6 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
           </p>
         )}
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <LaidOffStart placement="unemployment_state_top" eventPrefix="unemployment" label="Get my layoff plan" />
-          <span className="text-sm text-muted-foreground">Free to join. Free for Members, always. About 5 minutes.</span>
-        </div>
-
         <SeveranceVerdict row={severanceRow} agency={agency} />
 
         <section aria-labelledby="facts" className="mt-10">
@@ -281,9 +275,6 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
               eventPrefix="unemployment"
               blurb={`One email as each date comes up over the next two months: filing, the severance agreement review, health coverage. Then nothing. No account needed.`}
             />
-          </div>
-          <div className="mt-4">
-            <LaidOffStart placement="unemployment_state" eventPrefix="unemployment" />
           </div>
         </section>
 
