@@ -134,7 +134,8 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
             variant="cta"
             className="hidden sm:inline-flex"
           >
-            {NAV_CTA_LABEL[ctaVariant]}
+            {/* Below xl the control drops "Market Reality" so the button fits next to the menu icon. */}
+            {ctaVariant === 'control' ? <>Get your <span className="hidden xl:inline">Market Reality </span>Assessment</> : NAV_CTA_LABEL[ctaVariant]}
           </Button>
           <button
             type="button"
