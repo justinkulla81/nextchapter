@@ -25,40 +25,35 @@ export interface EmployerStat {
 /** One employer's open roles now and twelve weeks ago, from the weekly company signals. */
 export interface EmployerGrowth { name: string; open: number; delta12: number; sizeBand: string | null }
 
-/** The parent brand an employer name belongs to. Explicit list: a name that matches none keeps its own name. */
-const PARENTS: [RegExp, string][] = [
-  [/^(amazon|prime video|aws\b|audible|twitch|whole foods|zoox)/i, 'Amazon'],
-  [/^(google|youtube|alphabet|waymo|deepmind)/i, 'Alphabet'],
-  [/^(rtx|raytheon|collins aerospace|pratt (&|and) whitney)/i, 'RTX'],
-  [/^anduril/i, 'Anduril'],
-  [/^oracle/i, 'Oracle'],
-  [/^(microsoft|linkedin|github|swiftkey)/i, 'Microsoft'],
-  [/^(albertsons|safeway|vons\b|jewel-osco)/i, 'Albertsons'],
-  [/^(jpmorgan|jp morgan|jpmc\b)/i, 'JPMorgan Chase'],
-  [/^capital one/i, 'Capital One'],
-  [/^northrop/i, 'Northrop Grumman'],
-  [/^(lockheed|sikorsky)/i, 'Lockheed Martin'],
-  [/^caci\b/i, 'CACI'],
-  [/^l3 ?harris/i, 'L3Harris'],
-  [/^spacex/i, 'SpaceX'],
-  [/^(omnicom|interpublic)/i, 'Omnicom'],
-  [/^(arthur j\.? gallagher|gallagher)/i, 'Gallagher'],
-  [/^deloitte/i, 'Deloitte'],
-  [/^(pwc|pricewaterhouse)/i, 'PwC'],
-  [/^kpmg/i, 'KPMG'],
-  [/^maximus/i, 'Maximus'],
-]
+import rules from '@/lib/rankings/data/employer-name-rules.json'
+import fortune from '@/lib/rankings/data/fortune-100-best-2026.json'
+import { normalizeOrgName } from '@/lib/text/org-name-match'
 
+const PARENTS: [RegExp, string][] = rules.parents.map((r) => [new RegExp(r.match, 'i'), r.parent])
+const NOT_AN_EMPLOYER = new RegExp(`^(${rules.notEmployerNames})\\b|\\b(${rules.notEmployerWords})\\b`, 'i')
+
+/** The parent brand an employer name belongs to. Explicit list in data/employer-name-rules.json: a name that matches none keeps its own name. */
 export function parentOf(name: string): string {
   const n = name.trim()
   for (const [re, parent] of PARENTS) if (re.test(n)) return parent
-  return n.replace(/,?\s+(llc|inc|corp|corporation|co|company|ltd)\.?$/i, '').trim()
+  return n.replace(/(?<!&),?\s+(llc|inc|corp|corporation|co|company|ltd)\.?$/i, '').trim()
 }
 
-/** Names that are not employers: placeholders, and staffing, recruiting and search firms that post for other companies. */
-const NOT_AN_EMPLOYER = /^(remote|confidential|confidential company|clients blackbox|various|n\/a|gpac|yo ai labs|actalent|michael page|jobot|lhh|teksystems|aston carter|robert half|randstad|adecco|kforce|insight global|apex systems|cybercoders|hays|manpower|kelly (services|services)?|spherion|volt|aligned talent|orion ?placement|heidrick|korn ferry|spencer stuart|russell reynolds|hire velocity)\b|\b(staffing|recruiting|recruitment|recruiters|talent acquisition|executive search|placement)\b/i
-
+/** Names that are not employers: placeholders, and staffing, recruiting and search firms that post for other companies (data/employer-name-rules.json). */
 export const isEmployer = (name: string) => !!name.trim() && !NOT_AN_EMPLOYER.test(name.trim())
+
+// ---- Fortune's 100 Best Companies to Work For, 2026 ---------------------------------------------------------------
+
+export const BEST_COMPANIES = { title: fortune.title, publisher: fortune.publisher, source: fortune.source, published: fortune.published }
+const BEST_BY_NAME = new Map<string, number>()
+for (const c of fortune.companies as { rank: number; name: string; aliases?: string[] }[]) {
+  for (const n of [c.name, ...(c.aliases ?? [])]) BEST_BY_NAME.set(normalizeOrgName(parentOf(n)), c.rank)
+}
+
+/** The company's rank on Fortune's 2026 list, or null. Matches on the full normalised name only, so an uncertain name is left off rather than guessed. */
+export function bestCompanyRank(name: string): number | null {
+  return BEST_BY_NAME.get(normalizeOrgName(parentOf(name))) ?? null
+}
 
 /** Adds up rows that share a parent brand and drops names that are not employers. */
 export function combineEmployers(rows: EmployerStat[]): EmployerStat[] {
@@ -105,6 +100,8 @@ export function employerSpecs(): Spec[] {
   const spec = (slug: string, measure: MeasureId, title: string, fn?: string): Spec => ({ slug, measure, scope: NATIONAL, title, family: FAMILY, group: 'support', fn, minRanked: 6 })
   return [
     ...LEVELS.map((m) => spec(m.slug, m.id, m.title)),
+    spec('best-companies-to-work-for-that-are-hiring-now', 'em_best', 'Fortune 100 Best Companies to Work For that are hiring now'),
+    spec('best-companies-to-work-for-hiring-entry-level-and-junior', 'em_bestjr', 'Fortune 100 Best Companies to Work For hiring entry-level and junior roles'),
     ...FAMILIES.map((f) => spec(`employers-with-the-most-${f.slug}-jobs`, 'em_fn', `Employers with the most ${f.phrase} jobs`, f.fn)),
     spec('employers-growing-their-hiring-fastest', 'em_growth', 'Employers growing their hiring fastest'),
   ]
@@ -133,6 +130,7 @@ export interface EmployerData {
 
 export function rankEmployers(spec: Spec, data: EmployerData, edition: string, builtAt: string, prev: Map<string, number> | null): RankingEdition | null {
   if (spec.measure === 'em_growth') return rankGrowth(spec, data, edition, builtAt, prev)
+  if (spec.measure === 'em_best' || spec.measure === 'em_bestjr') return rankBest(spec, data, edition, builtAt, prev)
   const fnName = spec.measure === 'em_fn' ? spec.fn : undefined
   const family = fnName ? FAMILIES.find((f) => f.fn === fnName) : undefined
   const m: Measure | undefined = fnName && family
@@ -174,6 +172,32 @@ function rankGrowth(spec: Spec, data: EmployerData, edition: string, builtAt: st
       'An employer\'s score is the change in its open roles over the last 12 weeks as a share of the roles it had open 12 weeks ago, from our weekly company signals.',
       'It measures growth against the employer\'s own starting point, not against its headcount, because we do not yet hold company size for most employers. An employer needs at least 40 open roles now and 20 twelve weeks ago to be ranked, so a very small team adding a few roles does not top the list. Company size is shown where we have it.',
       SCOPE_NOTE,
+    ],
+  })
+}
+
+/** Fortune's 100 Best Companies to Work For (2026) that are hiring now, ranked on their open roles. A list of two sources: the published ranking and our board. */
+function rankBest(spec: Spec, data: EmployerData, edition: string, builtAt: string, prev: Map<string, number> | null): RankingEdition | null {
+  const junior = spec.measure === 'em_bestjr'
+  const min = junior ? 3 : 10
+  const ranked: Ranked[] = []
+  for (const e of data.employers) {
+    const rank = bestCompanyRank(e.name)
+    const v = junior ? e.junior : e.n
+    if (rank == null || v < min) continue
+    ranked.push({
+      key: e.name.toLowerCase(), name: e.name, sub: '', href: data.href(e.name), value: v, valueLabel: `${nf(v)} ${junior ? 'entry-level and junior roles' : 'open roles'}`, n: v, employers: [],
+      stats: [{ label: 'Fortune 100 Best rank, 2026', value: `#${rank}` }, ...statsOf(e)],
+    })
+  }
+  return editionFor(spec, ranked, null, edition, builtAt, prev, {
+    minN: min, minRanked: 4, noun: 'employers', unit: 'openings', sampleUnit: 'openings',
+    lead: (name, v) => `${name} has the most ${junior ? 'entry-level and junior roles' : 'open roles'} of the Fortune 100 Best Companies to Work For: ${v}.`,
+    method: [
+      `The employers are the companies on ${BEST_COMPANIES.title}, published by ${BEST_COMPANIES.publisher} on ${BEST_COMPANIES.published} (${BEST_COMPANIES.source}). Each is ranked on its number of ${junior ? 'entry-level and junior' : 'open'} roles in our data. Its Fortune rank is shown beside it.`,
+      'A company is matched to the Fortune list only on its full name, so a company whose name we could not match with certainty is left off. A company with fewer open roles than the bar is not ranked, and many companies on the Fortune list do not post on the career sites we track.',
+      SCOPE_NOTE,
+      COMBINE_NOTE,
     ],
   })
 }

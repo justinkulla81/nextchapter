@@ -104,6 +104,7 @@ const FAMILY_SLUG_PATTERNS = (slug: string) => [
   `best-cities-for-${slug}-pay-vs-cost-of-living`,
   `ai-skills-most-requested-in-${slug}-jobs`,
   `ai-tools-named-in-${slug}-jobs`,
+  `employers-with-the-most-${slug}-jobs`,
 ]
 
 /** The job family (as postings name it, "Data & Analytics") a list is about, or null. */
@@ -115,7 +116,7 @@ export function familyOfRanking(entry: Pick<RankingIndexEntry, 'slug' | 'measure
 
 /** The lists about one job family, city lists first. */
 export function familyLists(index: RankingIndexEntry[], fn: string): RankingIndexEntry[] {
-  const order: Record<string, number> = { swe: 0, fnopen: 0, fnpay: 1, aiskills: 2, aitools: 3, aicerts: 4 }
+  const order: Record<string, number> = { swe: 0, fnopen: 0, fnpay: 1, aiskills: 2, aitools: 3, aicerts: 4, em_fn: 5 }
   return index.filter((x) => familyOfRanking(x) === fn).sort((a, b) => (order[a.measure] ?? 9) - (order[b.measure] ?? 9))
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { combineEmployers, employerSpecs, isEmployer, parentOf, rankEmployers, type EmployerStat } from '@/lib/rankings/employers-specs'
+import { bestCompanyRank, combineEmployers, employerSpecs, isEmployer, parentOf, rankEmployers, type EmployerStat } from '@/lib/rankings/employers-specs'
 import { collegeSpecs, compositeSpecs, functionSpecs, industryCitySpecs, industrySpecs, skillSpecs, wave1Specs, wave2PlaceSpecs, workforceSpecs } from '@/lib/rankings/build-edition'
 import { profileSpecs } from '@/lib/rankings/wave5-specs'
 import { supportSpecs } from '@/lib/rankings/wave6-specs'
@@ -11,7 +11,7 @@ describe('employer hiring lists', () => {
   it('has unique addresses next to every other list', () => {
     const all = [...wave1Specs(['TX']), ...wave2PlaceSpecs(), ...functionSpecs(), ...skillSpecs(), ...industrySpecs(), ...workforceSpecs(), ...collegeSpecs([]), ...industryCitySpecs(), ...compositeSpecs(), ...profileSpecs(), ...supportSpecs(), ...employerSpecs()]
     expect(new Set(all.map((s) => s.slug)).size).toBe(all.length)
-    expect(employerSpecs()).toHaveLength(5 + 13 + 1)
+    expect(employerSpecs()).toHaveLength(5 + 2 + 13 + 1)
   })
 
   it('combines parent brands and drops placeholders and staffing firms', () => {
@@ -20,6 +20,9 @@ describe('employer hiring lists', () => {
     expect(parentOf('YouTube')).toBe('Alphabet')
     expect(parentOf('Arthur J. Gallagher')).toBe('Gallagher')
     expect(parentOf('Acme Widgets, Inc.')).toBe('Acme Widgets')
+    expect(parentOf('Bain & Company')).toBe('Bain & Company')
+    expect(parentOf('Cisco Systems')).toBe('Cisco')
+    expect(parentOf('Hilton Worldwide Holdings')).toBe('Hilton')
     expect(isEmployer('Confidential')).toBe(false)
     expect(isEmployer('Remote')).toBe(false)
     expect(isEmployer('Creative Financial Staffing')).toBe(false)
@@ -71,5 +74,23 @@ describe('employer hiring lists', () => {
     expect(names).not.toContain('Staffing Plus Staffing')
     expect(e.rows.find((r) => r.name === 'Figma')!.stats.some((s) => s.label === 'Company size')).toBe(true)
     expect(e.method.join(' ')).toContain('not against its headcount')
+  })
+
+  it('matches Fortune\'s 100 Best on the full name only and ranks those that are hiring', () => {
+    expect(bestCompanyRank('Wegmans')).toBe(5)
+    expect(bestCompanyRank('Wegmans Food Markets, Inc.')).toBe(5)
+    expect(bestCompanyRank('PwC')).toBe(35)
+    expect(bestCompanyRank('Deloitte')).toBe(24)
+    expect(bestCompanyRank('Hilton Worldwide Holdings')).toBe(2)
+    expect(bestCompanyRank('Dow Jones')).toBeNull()
+    expect(bestCompanyRank('Target Hospitality')).toBeNull()
+    const names = ['Wegmans', 'Hilton', 'Cisco', 'Deloitte', 'Nvidia', 'Not Listed Co']
+    const list = names.map((n, i) => emp(n, 200 - i * 10))
+    const spec = employerSpecs().find((s) => s.measure === 'em_best')!
+    const e = rankEmployers(spec, data(list), '2026-11', 'x', null)!
+    expect(e.rows.map((r) => r.name)).not.toContain('Not Listed Co')
+    expect(e.rows[0].name).toBe('Wegmans')
+    expect(e.rows[0].stats[0]).toEqual({ label: 'Fortune 100 Best rank, 2026', value: '#5' })
+    expect(e.method.join(' ')).toContain('greatplacetowork.com')
   })
 })
