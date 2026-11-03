@@ -247,6 +247,14 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     why: 'Each job family has its own set of employers that hire most. A marketer and an engineer should not be looking at the same list.',
     use: 'Pick your job family and follow the employers at the top. Read it beside the level lists to find the ones hiring at your stage.',
   },
+  em_best: {
+    why: 'A well-reviewed workplace only helps you if it has roles open. This puts the employers on Fortune\'s 100 Best Companies to Work For list against their current openings on our board.',
+    use: 'Start with the employers near the top that match your field and read their open roles. Many companies on the Fortune list do not post on the career sites we track, so an absent name does not mean it is not hiring.',
+  },
+  em_bestjr: {
+    why: 'Early-career roles at well-reviewed workplaces are the hardest to find. This lists the Fortune 100 Best Companies to Work For with entry-level and junior roles open now.',
+    use: 'If you are early in your career, check these employers first and set an alert for the ones you want. Roles at these companies draw many applicants, so apply early.',
+  },
   em_growth: {
     why: 'An employer whose open roles are rising fast is adding to its team, not only replacing people. The change against its own starting point shows who is accelerating.',
     use: 'Look at the employers near the top that fit your field. Growth is measured against the employer\'s own base, so a smaller employer can rank high, and a sharp rise can reflect one large project.',
