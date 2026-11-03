@@ -33,7 +33,7 @@ export default async function StoriesHubPage() {
           )}
         </div>
       </main>
-      <PublicSiteFooter />
+      <PublicSiteFooter page="layoffs" />
     </div>
   )
 }

@@ -23,7 +23,7 @@ export default async function NewStoryPage({ searchParams }: { searchParams: Pro
           <div className="mt-8"><StoryForm prefill={prefill} source={sp.source?.slice(0, 40) || 'direct'} publishOpen={publishOpen()} years={years} /></div>
         </div>
       </main>
-      <PublicSiteFooter />
+      <PublicSiteFooter page="layoffs" />
     </div>
   )
 }
