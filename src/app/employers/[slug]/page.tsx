@@ -170,10 +170,9 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
       trail={[{ name: 'Employers', path: '/employers' }, { name: e.name, path }]}
       h1={employerSeo(e.name, null).h1}
       jsonLd={ld}
-      lede={<>{hq && <span className="block text-sm">{hq}</span>}{(industryBucket || topFunction) && <span className="block text-sm">Explore: {industryBucket && <a href={industryPath(industryBucket)} className="underline underline-offset-2">{industryBucket}</a>}{industryBucket && topFunction && ' · '}{topFunction && <a href={functionPath(topFunction.name)} className="underline underline-offset-2">{topFunction.name} jobs</a>}</span>}{description(e)}<ClaimHint who={`Work at ${e.name}?`} href={e.claimSlug ? `/prepared/${e.claimSlug}` : '/for-organizations'} event="seo_claim_clicked" properties={{ page: 'employer', audience: 'employer', companyId: e.id, slug: e.slug, openRoles: p?.openNow ?? 0 }} /></>}
+      lede={<>{hq && <span className="block text-sm">{hq}</span>}{(industryBucket || topFunction) && <span className="block text-sm">Explore: {industryBucket && <a href={industryPath(industryBucket)} className="underline underline-offset-2">{industryBucket}</a>}{industryBucket && topFunction && ' · '}{topFunction && <a href={functionPath(topFunction.name)} className="underline underline-offset-2">{topFunction.name} jobs</a>}</span>}{description(e)}<div className="mt-4"><CompanyInterestFlag company={e.name} slug={e.slug} page="employer" /></div><ClaimHint who={`Work at ${e.name}?`} href={e.claimSlug ? `/prepared/${e.claimSlug}` : '/for-organizations'} event="seo_claim_clicked" properties={{ page: 'employer', audience: 'employer', companyId: e.id, slug: e.slug, openRoles: p?.openNow ?? 0 }} /></>}
     >
       <YourState label={e.name} />
-      <div className="mt-8"><CompanyInterestFlag company={e.name} slug={e.slug} page="employer" /></div>
       <OrgCandidateBand
         orgName={e.name}
         branded={!!brand}
