@@ -1,55 +1,17 @@
-import { BrowseTheSite } from './BrowseTheSite'
+import { SiteNavMega } from './SiteNavMega'
+import { SiteFooterColumns } from './SiteFooterColumns'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Logo } from '@/components/Logo'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 
-const NAV_LINK = 'hidden text-sm font-medium text-muted-foreground hover:text-foreground'
-
 /**
  * The public site's top navigation — the homepage uses this same component,
- * so every public page shows identical links.
+ * so every public page shows identical links. The menus are in src/lib/nav/public-nav.ts.
  */
-export function SiteNav({ current }: { current?: 'about' | 'news' | 'reports' }) {
-  return (
-    <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-      <Link href="/" aria-label="NextChapter home">
-        <Logo className="text-3xl" />
-      </Link>
-      <nav className="flex items-center gap-6" aria-label="Main">
-        <Link href="/why-stuck" className={`${NAV_LINK} lg:inline-block`}>
-          Why you&apos;re stuck
-        </Link>
-        <Link href="/how-it-works" className={`${NAV_LINK} sm:inline-block`}>
-          How it works
-        </Link>
-        <Link href="/funding" className={`${NAV_LINK} lg:inline-block`}>
-          Funding
-        </Link>
-        <Link href="/coaches" className={`${NAV_LINK} lg:inline-block`}>
-          For coaches
-        </Link>
-        <Link href="/news" aria-current={current === 'news' ? 'page' : undefined} className={`${NAV_LINK} lg:inline-block`}>
-          News
-        </Link>
-        <Link href="/about" aria-current={current === 'about' ? 'page' : undefined} className={`${NAV_LINK} lg:inline-block`}>
-          About
-        </Link>
-        <TrackedLink href="/careers" event="careers_link_clicked" properties={{ placement: 'nav' }} className={`${NAV_LINK} lg:inline-block`}>
-          Careers
-        </TrackedLink>
-        <Link href="/for-organizations" className="hidden text-sm font-semibold text-brand hover:text-navy sm:inline-block">
-          For organizations →
-        </Link>
-        <Button nativeButton={false} size="default" variant="outline" render={<Link href="/auth/login" />}>
-          Log in
-        </Button>
-      </nav>
-    </div>
-  )
+export function SiteNav(_props: { current?: 'about' | 'news' | 'reports' } = {}) {
+  return <SiteNavMega />
 }
 
 /** The homepage's header, for public pages that stand on their own (About, Contact). */
@@ -71,7 +33,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
         </div>
       </div>
       <div className="pt-12">
-        <BrowseTheSite tone="dark" />
+        <SiteFooterColumns tone="dark" />
       </div>
       <div className="mx-auto max-w-4xl px-6 py-16 text-center">
         <h2 className="text-3xl font-bold tracking-tight">Ready to start your next chapter?</h2>
