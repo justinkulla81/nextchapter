@@ -5,6 +5,7 @@ import { pageText } from '@/lib/workforce/college-pages'
 import { matchOrCreateCompanyForEmployer } from './company-match'
 import { sameEmployer, SEC_USER_AGENT } from './sec-8k'
 import { alertNewLayoff } from './layoff-alert'
+import { readDivision } from './division'
 import { findLayoffContacts } from './layoff-contacts-run'
 import { readFilingCosts } from './layoff-cost'
 
@@ -19,6 +20,8 @@ export interface AnnouncedLayoff {
   /** YYYY-MM-DD */
   noticeDate: string
   sourceUrl: string
+  /** The division the layoff is in, when the story names one; read from the company name when not given. */
+  division?: string | null
   kind: 'sec' | 'news'
   /** An 8-K or a second outlet confirms it; a single outlet does not. */
   confirmed: boolean
@@ -71,6 +74,8 @@ export async function announceLayoff(l: AnnouncedLayoff): Promise<AnnounceResult
       } : {}),
       employer: l.company,
       normalizedEmployer: key,
+      division: l.division ?? readDivision(l.company),
+      rssPublishedAt: new Date(),
       source: 'MANUAL_ANNOUNCEMENT',
       state: l.state ?? null,
       noticeDate: when,

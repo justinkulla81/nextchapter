@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 import { announceLayoff, type AnnouncedLayoff } from '@/lib/warn/layoff-announce'
+import { publishLayoffsNow } from '@/lib/syndication/layoff-publish-now'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export const maxDuration = 120
@@ -47,5 +48,6 @@ export async function POST(request: NextRequest) {
     results.push({ company: layoff.company, ...r })
     captureServerEvent('layoff-watch', 'layoff_announcement_filed', { company: layoff.company, kind: layoff.kind, filed: r.filed })
   }
-  return NextResponse.json({ results })
+  const published = results.some((r) => 'filed' in r && r.filed) ? await publishLayoffsNow() : null
+  return NextResponse.json({ results, published })
 }

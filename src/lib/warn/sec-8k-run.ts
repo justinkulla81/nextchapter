@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { readDivision } from './division'
 import { pageText } from '@/lib/workforce/college-pages'
 import { fetchItem205, readLayoffFiling, sameEmployer, SEC_USER_AGENT } from './sec-8k'
 import { alertNewLayoff } from './layoff-alert'
@@ -52,7 +53,7 @@ export async function runSec8kCheck(): Promise<Sec8kResult> {
 
     const notice = await prisma.warnNotice.create({
       data: {
-        employer: f.company, normalizedEmployer: key, source: 'MANUAL_ANNOUNCEMENT', state: f.state,
+        employer: f.company, normalizedEmployer: key, division: readDivision(f.company), rssPublishedAt: new Date(), source: 'MANUAL_ANNOUNCEMENT', state: f.state,
         noticeDate: when, employees, sourceUrl: f.url, ...readFilingCosts(text),
         layoffType: `SEC 8-K Item 2.05 (restructuring filing)${percent ? ` · ${percent}% of staff` : ''}`,
       },
