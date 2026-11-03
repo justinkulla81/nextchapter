@@ -121,7 +121,7 @@ export async function scoreAllPartners(apply: boolean): Promise<ScoreSummary> {
 
   // nonprofit leads
   const leads = await prisma.$queryRaw<{ id: string; kind: string; name: string; state: string; geoAreaId: string | null; revenue: number | null; website: string | null; contactName: string | null; contactEmail: string | null; contactPhone: string | null }[]>`select id, kind, name, state, "geoAreaId", revenue, website, "contactName", "contactEmail", "contactPhone" from "GeoOrgLead" where "dismissedAt" is null`
-  const ns = leads.map((l) => ({ id: l.id, s: scorePartner({ kind: l.kind === 'WORKFORCE' ? 'NONPROFIT_WORKFORCE' : l.kind === 'CHAMBER' ? 'CHAMBER' : 'NONPROFIT_ECON',
+  const ns = leads.map((l) => ({ id: l.id, s: scorePartner({ kind: l.kind === 'WORKFORCE' || l.kind === 'JOB_TRAINING' ? 'NONPROFIT_WORKFORCE' : l.kind === 'CHAMBER' ? 'CHAMBER' : 'NONPROFIT_ECON',
     area: l.geoAreaId && byId.get(l.geoAreaId) ? combine([byId.get(l.geoAreaId)!]) : combine(stateArea.get(l.state) ? [stateArea.get(l.state)!] : []),
     hasName: !!l.contactName, hasEmail: !!l.contactEmail, hasPhone: !!l.contactPhone, hasWebsite: !!l.website, revenue: l.revenue, name: l.name,
     contact: contactFor(l.name, l.website) }) }))
