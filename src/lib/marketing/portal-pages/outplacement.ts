@@ -24,6 +24,8 @@ const compliance = shot('outplacement-compliance', {
   why: 'Legal gets a record for each seat showing the outplacement benefit was made available, and it holds no job search, assessment or engagement detail.',
 })
 
+export const OUTPLACEMENT_SHOTS = [reporting, roster, compliance]
+
 export const OUTPLACEMENT: PortalPageDef = {
   seo: {
     ...pageSeo('/outplacement'),
