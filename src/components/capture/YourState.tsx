@@ -11,12 +11,12 @@ import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
  * to be) with a link to that state's page and, where the page knows it, this topic's open-job count there. It renders nothing until a
  * state is known, so the page is the same for everyone without it.
  */
-export function YourState({ label, counts }: { label: string; counts?: Record<string, number> }) {
+export function YourState({ label, counts, current }: { label: string; counts?: Record<string, number>; /** The state this page is already about: the strip hides when the visitor is in it. */ current?: string }) {
   const visitor = useVisitorState()
   const [picked, setPicked] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
   const code = picked ?? visitor.state
-  if (!code) return null
+  if (!code || (current && code === current && !editing)) return null
   const jobs = counts?.[code]
   return (
     <div role="status" className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl bg-tint-mint px-5 py-3 text-sm text-navy">

@@ -1,4 +1,5 @@
 import { meetsCompanyLayoffBar } from '@/lib/seo/page-bars'
+import { YourState } from '@/components/capture/YourState'
 import { layoffsAnnouncedTitle, layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -189,6 +190,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             properties={{ page: 'layoff', audience: 'employer_hr', slug, hasNotices }}
           />
 
+          <YourState label={c.name} />
           <div className="mt-4 space-y-12">
             <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} />
             <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} buyoutRule={buyoutRule} />
