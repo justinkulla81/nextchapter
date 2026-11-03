@@ -71,6 +71,8 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
   if (!persona && c.choices?.length && (step === 'welcome' || (step === 'nudge1' && !followUp))) {
     return {
       ...base,
+      // The question is the action: keep the greeting and what they did, drop the profile pitch until they answer.
+      paragraphs: base.paragraphs.slice(0, 2),
       benefits: [],
       choicesPrompt: 'Which sounds most like you? One tap and we tailor what we send. No résumé needed.',
       choices: c.choices,

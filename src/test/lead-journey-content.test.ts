@@ -15,6 +15,7 @@ describe('lifecycle email journey question', () => {
     expect(c.choices).toEqual(choices)
     expect(c.choicesPrompt).toMatch(/Which sounds most like you/)
     expect(c.benefits).toEqual([])
+    expect(c.paragraphs).toHaveLength(2)
     expect(c.ctaLabel).toMatch(/skip ahead/i)
     expect(leadEmailText(c, 'https://x.test/p')).toContain('- Laid off: https://x.test/api/lead-journey/t?p=laid-off&step=welcome')
   })
