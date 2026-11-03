@@ -12195,6 +12195,11 @@ model WarnNotice {
   /// NAICS sector text as published — this is what makes it filterable to
   /// the industries our candidates actually work in.
   industry      String?
+  /// Country the job cuts are in, ISO 3166-1 alpha-2 ("US", "GB"). Null for a state filing (its state says it: always US) and for
+  /// a reported layoff whose country is not stated or spans several. countryCheckedAt is set once it has been looked up, found or
+  /// not, so it is asked once.
+  country          String?
+  countryCheckedAt DateTime?
 
   /// The public record it was sourced from — a state WARN filing URL, or the
   /// news article link for a MANUAL_ANNOUNCEMENT.

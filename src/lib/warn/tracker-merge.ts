@@ -18,6 +18,10 @@ export interface LooseNotice {
   sourceUrl: string | null
   /** Publishers named in the news mentions linked to this notice. */
   publishers: string[]
+  /** ISO country of the job cuts, when known. */
+  country: string | null
+  /** The matched company's industry, when known. */
+  industry: string | null
 }
 
 export interface MergedLayoff {
@@ -31,6 +35,8 @@ export interface MergedLayoff {
   sourceUrl: string | null
   /** Distinct sources that reported it. One is unconfirmed. */
   sources: number
+  country: string | null
+  industry: string | null
 }
 
 export const MERGE_WINDOW_DAYS = 45
@@ -112,6 +118,8 @@ export function mergeReported(notices: LooseNotice[]): MergedLayoff[] {
       layoffType: chosen.layoffType,
       sourceUrl: link,
       sources: sourcesOf(rows),
+      country: rows.find((r) => r.country)?.country ?? null,
+      industry: rows.find((r) => r.industry)?.industry ?? null,
     }
   })
 }
