@@ -11,6 +11,7 @@
 import 'dotenv/config'
 import { readFileSync } from 'fs'
 import path from 'path'
+import { randomUUID } from 'crypto'
 import { PrismaClient } from '@prisma/client'
 import { normalizeOrgName } from '../../src/lib/text/org-name-match'
 import { cityFromAddress, placeKey } from '../../src/lib/workforce/places'
@@ -153,7 +154,7 @@ async function main() {
   // so hand edits (website, dismissed, promoted to the CRM) are never overwritten.
   const existing = new Set((await prisma.geoOrgLead.findMany({ select: { ein: true } })).map((l) => l.ein))
   const row = (o: Org) => ({
-    ein: o.ein, name: o.name, kind: o.kind, street: o.street || null, city: o.city || null, state: o.state, zip: o.zip || null,
+    id: randomUUID(), ein: o.ein, name: o.name, kind: o.kind, street: o.street || null, city: o.city || null, state: o.state, zip: o.zip || null,
     geoAreaId: o.county && have.has(o.county) ? o.county : null, revenue: o.revenue, assets: o.assets, ntee: o.ntee, subsection: o.subsection, taxPeriod: o.taxPeriod,
   })
   const fresh = orgsOk.filter((o) => !existing.has(o.ein))
@@ -162,7 +163,7 @@ async function main() {
     console.log(`inserted ${Math.min(i + 1000, fresh.length)}/${fresh.length}`)
   }
   if (process.argv.includes('--refresh')) {
-    for (const o of orgsOk.filter((x) => existing.has(x.ein))) { const { ein: _e, ...data } = row(o); await prisma.geoOrgLead.update({ where: { ein: o.ein }, data }) }
+    for (const o of orgsOk.filter((x) => existing.has(x.ein))) { const { ein: _e, id: _i, ...data } = row(o); await prisma.geoOrgLead.update({ where: { ein: o.ein }, data }) }
   }
   console.log(`done: ${orgsOk.length} org leads on file (${fresh.length} new)`)
 }

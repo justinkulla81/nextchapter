@@ -9,6 +9,7 @@ import { formatAdminDateTime } from '@/lib/admin/format-date'
 import {
   AI_EXPOSURE_ORDER,
   EXPERIENCE_ORDER,
+  LEVEL_ORDER,
   PAY_ORDER,
   aiExposureBucket,
   aiMentionBucket,
@@ -99,7 +100,7 @@ export default async function AdminAppliedJobsPage({ searchParams }: { searchPar
       JOIN "ExclusiveJobPosting" e ON e."url" = v."href"
       WHERE ${applyFilter} AND ${botFilter} AND ${sinceFilter}
       GROUP BY e."id"
-      ORDER BY clicks DESC, "lastAt" DESC`),
+      ORDER BY clicks ASC, "lastAt" DESC`),
     // Every outside, non-social click on a job page, matched or not, so the gap is visible.
     prisma.$queryRaw<{ n: bigint }[]>(Prisma.sql`
       SELECT count(*) AS n
@@ -197,14 +198,14 @@ export default async function AdminAppliedJobsPage({ searchParams }: { searchPar
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <BreakdownBars title="Function" buckets={tally(jobs, (j) => j.function)} />
-        <BreakdownBars title="Seniority" buckets={tally(jobs, (j) => levelLabel(j.level))} />
-        <BreakdownBars title="Region" hint="US Census region of the job's state" buckets={tally(jobs, (j) => censusRegion(j.state))} />
-        <BreakdownBars title="Where (state)" buckets={tally(jobs, (j) => j.state)} />
-        <BreakdownBars title="Industry" buckets={tally(jobs, (j) => industryLabel(j.industry))} />
+        <BreakdownBars title="Function" ascending buckets={tally(jobs, (j) => j.function)} />
+        <BreakdownBars title="Seniority" hint="Least to most senior" limit={20} buckets={tally(jobs, (j) => levelLabel(j.level), LEVEL_ORDER)} />
+        <BreakdownBars title="Region" hint="US Census region of the job's state" ascending buckets={tally(jobs, (j) => censusRegion(j.state))} />
+        <BreakdownBars title="Where (state)" ascending buckets={tally(jobs, (j) => j.state)} />
+        <BreakdownBars title="Industry" ascending buckets={tally(jobs, (j) => industryLabel(j.industry))} />
         <BreakdownBars title="Pay" hint="Middle of the posted range" buckets={tally(jobs, (j) => payBand(j.salaryMin, j.salaryMax), PAY_ORDER)} />
         <BreakdownBars title="Experience asked for" hint="Years the posting requires, or no experience needed" buckets={tally(jobs, experienceBucket, EXPERIENCE_ORDER)} />
-        <BreakdownBars title="AI in the posting" buckets={tally(jobs, aiMentionBucket)} />
+        <BreakdownBars title="AI in the posting" ascending buckets={tally(jobs, aiMentionBucket)} />
         <BreakdownBars title="How exposed the role is to AI" buckets={tally(jobs, aiExposureBucket, AI_EXPOSURE_ORDER)} />
       </div>
 
