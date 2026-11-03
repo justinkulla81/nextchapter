@@ -478,7 +478,7 @@ export async function rebuildHiringIndex(opts: { since: Date | null; now?: Date;
 
   const linked = await timed('link', () => linkUnlinkedPostings(1000))
   const synced = await timed('sync', () => syncBoardOpenings(5000))
-  const closed = await timed('close', () => closeArchivedOpenings())
+  const closed = await timed('close', () => closeArchivedOpenings({ deadline: started + 90_000 }))
   const bench = shard === 0 ? await timed('benchmarks', () => rebuildPayBenchmarks()) : null
   const since = opts.since ?? new Date(0)
   const market = await timed('market', async () =>
