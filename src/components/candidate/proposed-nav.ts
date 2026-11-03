@@ -25,6 +25,7 @@ export const PROPOSED_NAV: NavPlace[] = [
       { key: 'apply', label: 'Get ready to apply', parts: [{ key: 'resume', label: 'Résumé' }, { key: 'whyhire', label: 'Why hire me' }] },
       { key: 'mine', label: 'My jobs' },
       { key: 'companies', label: 'Companies' },
+      { key: 'following', label: 'What you follow', parts: [{ key: 'companies', label: 'Companies' }, { key: 'events', label: 'Events' }, { key: 'emails', label: 'Email updates' }] },
       { key: 'market', label: 'Market and pay', parts: [{ key: 'market', label: 'Your market' }, { key: 'pay', label: 'Know your worth' }, { key: 'local', label: 'Local market' }] },
       { key: 'interviews', label: 'Interviews' },
       { key: 'offers', label: 'Offers' },
