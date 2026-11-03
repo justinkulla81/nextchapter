@@ -12,7 +12,7 @@ import { WARN_SOURCES } from '@/lib/warn-guide/rules'
 // A layoff risk check that shows its work: five signs, each a fact this site can check, with the threshold written out. It does not
 // predict. The rules live in src/lib/layoff-risk/rules.ts and are tested; the page explains them in the same words.
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 export const metadata: Metadata = pageMetadata('/tools/layoff-risk-check')
 

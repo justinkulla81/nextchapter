@@ -2,7 +2,7 @@ import { rssResponse, rssXml, type FeedItem } from '@/lib/feeds/rss'
 import { SITE_URL } from '@/lib/seo/facts'
 import { getCatalogIndex } from '@/lib/seo/topic-data'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 

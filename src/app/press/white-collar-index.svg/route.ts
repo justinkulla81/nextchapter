@@ -5,7 +5,7 @@ import { SITE_URL } from '@/lib/reports'
 
 // The White-Collar Long-Search Index as an image anyone may embed with an <img> tag (no iframe, no script). The credit line and
 // the source address are drawn into the picture. Built from the published CSV, so it can never disagree with the data file.
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 export async function GET() {
   const svg = indexChartSvg(readWcIndex(), {

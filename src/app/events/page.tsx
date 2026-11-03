@@ -7,7 +7,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { EVENTS_STATE_MIN, eventStateCounts, localEvents } from '@/lib/local-events/queries'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 export const metadata: Metadata = {
   title: 'Job Fairs and Business Events Near You, by State',

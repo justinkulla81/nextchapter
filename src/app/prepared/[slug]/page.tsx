@@ -16,7 +16,7 @@ import { orgKitContext } from '@/lib/org-claims/org-kit-data'
 
 // Unlisted: built from public data for one organization, not for search engines (yet).
 export const metadata: Metadata = { robots: { index: false, follow: false }, title: { absolute: 'Prepared for you | NextChapter' } }
-export const revalidate = 21600
+export const revalidate = 86400 // 24 hours: was 6 hours; every regeneration is a billed ISR write
 
 const n0 = (n: number) => n.toLocaleString('en-US')
 const STATE_NAME: Record<string, string> = { KY: 'Kentucky', PA: 'Pennsylvania' }

@@ -11,7 +11,7 @@ import { PORTAL_LIST } from '@/lib/marketing/portals'
 import { hubJsonLd, portalMetadata } from '@/lib/marketing/portal-seo'
 
 // The AI-jobs stat block reads the daily snapshot; refresh the page hourly.
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 export const metadata: Metadata = portalMetadata(HUB_SEO)
 

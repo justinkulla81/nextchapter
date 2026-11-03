@@ -14,7 +14,7 @@ import { FitCheck } from '@/components/capture/FitCheck'
 import { captureSource } from '@/lib/capture/page-capture'
 import { AI_SKILL_ITEMS } from '@/lib/skills/ai-skills'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const dynamicParams = true
 export function generateStaticParams() {
   return []

@@ -17,7 +17,7 @@ import { noticeCountsByBucket } from '@/lib/seo/topic-data'
 import { getLayoffCounts } from '@/lib/warn/layoff-counts'
 import { noticeDay } from '@/lib/warn/layoff-pages'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 export const metadata: Metadata = pageMetadata('/layoffs/2026')
 

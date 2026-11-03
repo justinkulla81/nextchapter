@@ -9,7 +9,7 @@ import { breadcrumbJsonLd, organizationRef } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getPublicNotices, noticeDay } from '@/lib/warn/layoff-pages'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 const WEEK = 7 * 86_400_000
 /** Under this many notices the week is too quiet to be a page of its own: it stays visible but is not offered to search engines. */

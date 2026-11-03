@@ -7,7 +7,7 @@ import { canonical } from '@/lib/seo/canonical'
 // Version A of the test in src/lib/after-layoff-ab.ts. The proxy sends a person assigned to B to /ab/after-layoff-b
 // instead, at this same address. A paid-search page: kept out of the index so it does not compete with the state and
 // persona pages that already rank for these searches.
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 export const metadata: Metadata = {
   ...LANDING_SEO.after_a_layoff,

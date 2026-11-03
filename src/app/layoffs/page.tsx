@@ -16,7 +16,7 @@ import { getLargestRecentEmployers, getStateSummaries } from '@/lib/warn/layoff-
 import { getNationalLaborData } from '@/lib/market/bls-national'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 
 const base = pageMetadata('/layoffs')

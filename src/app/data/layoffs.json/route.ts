@@ -1,6 +1,6 @@
 import { LAYOFF_DATA_CITATION, LAYOFF_DATA_LICENSE, LAYOFF_DATA_LICENSE_URL, getLayoffRows, parseStateParam } from '@/lib/data/layoff-export'
 
-export const revalidate = 3600
+export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
 // Same record as layoffs.csv, as JSON, with the license and the citation to use.
 export async function GET(request: Request) {
