@@ -28,48 +28,21 @@ export type AiExposureSectionProps = {
 /** The section body, separate from the data loading so it renders in tests with any data. */
 export function AiExposureSectionView({ page, cta, split, occupations }: AiExposureSectionProps & { split: Split | null; occupations: number }) {
   const id = `ai-exposure-${page}`
-  const points = [
-    {
-      title: 'Every opening shows how much AI use is observed in its occupation.',
-      why: `Because it comes from real usage data, ${occupations > 0 ? `measured for ${occupations.toLocaleString('en-US')} occupations` : 'measured by occupation'}, not from opinion.`,
-    },
-    {
-      title: 'Career pivots show the change in pay and the AI exposure side by side.',
-      why: 'Because a move that pays more can sit in work where AI is used a lot, and you should see both before you choose.',
-    },
-    {
-      title: 'Learning starts with the course that matches your role’s exposure and what postings ask for.',
-      why: 'Because the skills worth building depend on how much AI is already used in your work and what employers list.',
-    },
-  ]
   return (
     <section className="bg-white pb-12" aria-labelledby={id}>
       <div className="mx-auto max-w-3xl px-6">
         <h2 id={id} className="font-display text-2xl font-semibold tracking-tight text-balance text-ink sm:text-3xl">
           See where AI is already changing the jobs you are looking at
         </h2>
-        <p className="mt-3 text-base text-muted-foreground">
-          We match AI exposure to the openings on our board and show it next to pay, career pivots and learning.
+        <p className="mt-3 max-w-2xl text-base text-muted-foreground">
+          Exposure is the share of a job’s tasks that AI is already used for at work, from real usage{occupations > 0 ? ` across ${occupations.toLocaleString('en-US')} occupations` : ''}. It is not a forecast, and a low number means no use seen yet.
         </p>
-        <ul className="mt-6 space-y-5">
-          {points.map((p) => (
-            <li key={p.title}>
-              <p className="text-base font-semibold text-ink">{p.title}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                <span className="font-semibold text-ink">Why:</span> {p.why}
-              </p>
-            </li>
-          ))}
-        </ul>
         {split && (
-          <div className="mt-8">
+          <div className="mt-6">
             <p className="mb-2 text-sm font-semibold text-ink">The openings we see, by AI exposure</p>
-            <JobsByExposure split={split} label="Openings by AI exposure" />
+            <JobsByExposure split={split} label="Openings by AI exposure" compact />
           </div>
         )}
-        <p className="mt-6 text-sm text-muted-foreground">
-          <span className="font-semibold text-ink">What exposure means:</span> the share of a job’s tasks that AI is already used for at work, measured from real usage today. It is not a forecast, and a low number means no use seen yet.
-        </p>
         {!split && (
           <p className="mt-3 text-xs text-muted-foreground">
             Source: <a href="https://www.anthropic.com/research/labor-market-impacts" className="underline underline-offset-4">Anthropic Economic Index</a>, March 2026.

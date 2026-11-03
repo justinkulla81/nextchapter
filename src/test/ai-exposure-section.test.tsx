@@ -21,15 +21,13 @@ async function render(data: { split: typeof split | null; occupations: number },
 const FORBIDDEN = /\b(safe|safer|risk|risky|replace|replaced|replaces|only|first|no other|unlike)\b/i
 
 describe('AI exposure public section', () => {
-  it('states the three points, the meaning, coverage and the credit', async () => {
+  it('states the meaning, the split, coverage and the credit', async () => {
     const html = await render({ split, occupations: 756 })
     expect(html).toContain('See where AI is already changing the jobs you are looking at')
-    expect(html).toContain('Every opening shows how much AI use is observed in its occupation')
-    expect(html).toContain('pay and the AI exposure side by side')
-    expect(html).toContain('matches your role’s exposure and what postings ask for')
     expect(html).toContain('It is not a forecast')
     expect(html).toContain('a low number means no use seen yet')
     expect(html).toContain('756 occupations')
+    expect(html).not.toContain('Why:')
     expect(html).toContain('openings we could place in an occupation')
     expect(html).toContain('Anthropic Economic Index')
     expect(html).toContain('https://www.anthropic.com/research/labor-market-impacts')
@@ -50,7 +48,7 @@ describe('AI exposure public section', () => {
     const html = await render({ split: null, occupations: 0 }, false)
     expect(html).not.toContain('openings we could place')
     expect(html).toContain('Anthropic Economic Index')
-    expect(html).toContain('What exposure means')
+    expect(html).toContain('It is not a forecast')
     expect(html).not.toContain('Get your Market Reality Assessment')
   })
 })
