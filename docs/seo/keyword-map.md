@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-233 clusters, 1408 phrases.
+239 clusters, 1439 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -159,6 +159,12 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/conferences/:slug` | family | {conference} dates and cost | One conference | {conference} speakers; {conference} call for speakers; {conference} registration |
 | `/associations` | page | industry associations | Industry associations and organizers | professional associations; conference organizers; event organizers |
 | `/associations/:slug` | family | {association} conferences | One association | {association} events; {association} speaking opportunities |
+| `/resources/pay-data` | page | pay data | Pay data across industries, roles, employer sizes and skills | salary data; professional salary data; advertised pay data; pay data by industry; pay statistics |
+| `/resources/pay-data/industry` | page | salary by industry | What each industry pays | average salary by industry; highest paying industries; pay by industry; industry salary comparison |
+| `/resources/pay-data/function` | page | salary by function | What each kind of role pays | pay by function; salary by role; average salary by function; highest paying functions |
+| `/resources/pay-data/size` | page | salary by company size | Whether bigger employers pay more | do bigger companies pay more; pay by company size; large vs small company pay; startup vs big company salary |
+| `/resources/pay-data/hiring` | page | pay and hiring growth | Whether employers that hire more pay more | do companies that are hiring pay more; salary by hiring volume; hiring growth and pay |
+| `/resources/pay-data/skills` | page | skills that pay more | Which skills go with higher pay | highest paying skills; most valuable skills; skills salary; skills and salary; which skills increase salary |
 | `/salaries` | page | salary by job title | What does a job pay | average salary by job title; professional salaries; how much do jobs pay; job salary lookup; pay by profession |
 | `/salaries/:slug` | family | {title} salary | What one job title pays | {title} average salary; {title} pay range; how much does a {title} make; {title} salary by state; {title} median pay |
 | `/jobs/title` | page | jobs by title | Browse open jobs by title | job titles; open jobs by job title; job openings by profession |
@@ -938,6 +944,36 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Industry Associations and Conference Organizers
 - Description: Industry associations and event organizers that run two or more conferences in the NextChapter catalog, with their dates, costs and calls for speakers.
 - H1: Industry associations and conference organizers
+
+### `/resources/pay-data`
+
+- Title: Pay Data: Salaries by Industry, Role, Size and Skill
+- Description: Advertised pay on live U.S. professional job postings by industry, function, level, employer size and skill, with like-for-like gaps, sample sizes and a CSV.
+
+### `/resources/pay-data/industry`
+
+- Title: Salary by Industry: What Each Pays, Matched on Role
+- Description: Advertised pay in every industry from live U.S. professional postings: median, middle half and the gap with function and level matched. Sample sizes and a CSV.
+
+### `/resources/pay-data/function`
+
+- Title: Salary by Function: Pay for Each Kind of Role
+- Description: Advertised pay for each function, from Product and Engineering to Operations and Administration, on live U.S. postings, with pay by level, sample sizes and a CSV.
+
+### `/resources/pay-data/size`
+
+- Title: Salary by Company Size: Do Bigger Employers Pay More?
+- Description: Advertised pay by employer headcount, 1 to 10 employees up to 100,000+, with the gap once function, level and industry are matched. Sizes partly estimated.
+
+### `/resources/pay-data/hiring`
+
+- Title: Pay and Hiring: Salary by How Much an Employer Hires
+- Description: Advertised pay by how many jobs an employer has open, with the gap once function, level and industry are matched. Hiring growth is added as monthly data builds up.
+
+### `/resources/pay-data/skills`
+
+- Title: Skills That Pay More: Salary Gap by Skill
+- Description: Which skills go with higher advertised pay: median pay by skill and the gap against similar jobs with function, level and industry matched. Samples and CSV.
 
 ### `/salaries`
 
