@@ -74,9 +74,9 @@ export default function ForOrganizationsPage() {
             ))}
           </ul>
           <p className="mt-6 text-sm text-muted-foreground">
-            Nonprofits and community organizations can also claim a page. See{' '}
+            Non-profits and community organizations can also claim a page. See{' '}
             <Link href="/nonprofits" className="font-semibold text-brand underline underline-offset-4">
-              nonprofits and community organizations
+              non-profits and community organizations
             </Link>
             .
           </p>

@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 
 const JOBS = [
   { t: 'Chief Financial Officer', c: 'Arsenault', loc: 'New York, NY', pay: '$280–340K', v: 'Good fit', r: 'You have led finance at a company this size.', m: 'Posted 34 hours ago · Likely fewer applicants' },
-  { t: 'Executive Director', c: 'Byrdcliffe', loc: 'Remote', pay: '$210–250K', v: 'Strong fit', r: 'Your nonprofit board work matches what they ask for.', m: 'Posted today · Likely fewer applicants' },
+  { t: 'Executive Director', c: 'Byrdcliffe', loc: 'Remote', pay: '$210–250K', v: 'Strong fit', r: 'Your non-profit board work matches what they ask for.', m: 'Posted today · Likely fewer applicants' },
   { t: 'Chief Operating Officer', c: 'Intercontinental Exchange', loc: 'New York, NY', pay: '$320–400K', v: 'Worth a look', r: 'You have run operations, but not at this size yet.', m: 'Posted 3 days ago' },
   { t: 'President', c: 'Lemaitre Vascular', loc: 'Burlington, MA', pay: '$300–380K', v: 'Good fit', r: 'You have led a P&L in a regulated industry.', m: 'Posted 5 days ago' },
   { t: 'VP Operations', c: 'Harbor Health', loc: 'Hybrid, Boston', pay: '$230–270K', v: 'Good fit', r: 'Same function and level, one industry over.', m: 'Posted 6 days ago' },

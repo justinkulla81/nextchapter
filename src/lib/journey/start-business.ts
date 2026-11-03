@@ -112,7 +112,7 @@ export const START_FIELDS: readonly StartField[] = [
     label: 'What kind of business is it?',
     why: 'The right advisors, programs and funding differ: a software company and a local shop do not look for the same help.',
     kind: 'choice',
-    options: opts(['product', 'Product or online store'], ['services', 'Services or consulting'], ['local', 'Local shop or storefront'], ['tech', 'Software or technology'], ['social', 'Nonprofit or social venture']),
+    options: opts(['product', 'Product or online store'], ['services', 'Services or consulting'], ['local', 'Local shop or storefront'], ['tech', 'Software or technology'], ['social', 'Non-profit or social venture']),
   },
   {
     key: 'team',
@@ -352,7 +352,7 @@ export const START_HELP: readonly HelpItem[] = [
     group: 'funding',
     name: 'SBA microloans',
     href: 'https://www.sba.gov/funding-programs/loans/microloans',
-    summary: 'Small loans for starting or growing a business, through nonprofit lenders who also give training.',
+    summary: 'Small loans for starting or growing a business, through non-profit lenders who also give training.',
     stages: ['build', 'launch', 'grow'],
   },
   {

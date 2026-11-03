@@ -22,7 +22,7 @@ export type FirmKind = 'retained' | 'contingent' | 'nonprofit_higher_ed' | 'staf
 export const FIRM_KIND_LABEL: Record<FirmKind, string> = {
   retained: 'Retained search firm',
   contingent: 'Contingent recruiting firm',
-  nonprofit_higher_ed: 'Nonprofit and higher-ed search firm',
+  nonprofit_higher_ed: 'Non-profit and higher-ed search firm',
   staffing: 'Staffing company',
   outplacement: 'Outplacement firm',
   search: 'Search firm',
@@ -31,7 +31,7 @@ export const FIRM_KIND_LABEL: Record<FirmKind, string> = {
 export const FIRM_KIND_PLURAL: Record<FirmKind, string> = {
   retained: 'Retained search firms',
   contingent: 'Contingent recruiting firms',
-  nonprofit_higher_ed: 'Nonprofit and higher-ed search firms',
+  nonprofit_higher_ed: 'Non-profit and higher-ed search firms',
   staffing: 'Staffing companies',
   outplacement: 'Outplacement firms',
   search: 'Search firms',
@@ -75,7 +75,7 @@ export const INDUSTRY_LABEL: Record<string, string> = {
   technology: 'Technology', financial_services: 'Financial services', healthcare: 'Healthcare', life_sciences: 'Life sciences',
   professional_services: 'Professional services', industrial: 'Industrial and manufacturing', consumer: 'Consumer', energy: 'Energy',
   real_estate: 'Real estate', logistics: 'Logistics', media: 'Media', telecom: 'Telecommunications', education: 'Education',
-  nonprofit: 'Nonprofit', government: 'Government', aerospace_defense: 'Aerospace and defense', agriculture: 'Agriculture',
+  nonprofit: 'Non-profit', government: 'Government', aerospace_defense: 'Aerospace and defense', agriculture: 'Agriculture',
 }
 /** The four seniority bands members and the directory filter on. A firm's bands come from the levels of its live searches. */
 export const SENIORITY_BANDS = ['C-suite', 'VP and director', 'Manager', 'Individual contributor'] as const

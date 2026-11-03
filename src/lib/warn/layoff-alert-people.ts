@@ -198,7 +198,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
       }
     })
 
-  // Chambers, economic development and workforce nonprofits in the layoff's county (the geography lead list).
+  // Chambers, economic development and workforce non-profits in the layoff's county (the geography lead list).
   const county =place.county?.replace(/\s+county$/i, '').trim() || null
   const geo = state && county
     ? await prisma.geoOrgLead.findMany({

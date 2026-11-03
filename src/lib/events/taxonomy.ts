@@ -37,7 +37,7 @@ export const TAXONOMY: Record<string, Record<string, string[]>> = {
     'Internal audit and risk': ['internal auditor', 'chief audit executive', 'SOX lead'],
     'Forensic and fraud examination': ['forensic accountant', 'fraud examiner'],
     'Controllership and finance operations': ['controller', 'accounting manager', 'finance systems lead'],
-    'Governmental and nonprofit accounting': ['government accountant', 'nonprofit finance director'],
+    'Governmental and non-profit accounting': ['government accountant', 'nonprofit finance director'],
   },
   'Legal Services': {
     'Litigation and trial': ['trial attorney', 'litigation paralegal', 'e-discovery specialist'],
@@ -257,14 +257,14 @@ export const TAXONOMY: Record<string, Record<string, string[]>> = {
     'Workforce development boards': ['workforce board director', 'career center manager'],
     'Election administration and public records': ['election official', 'records manager'],
   },
-  'Nonprofit & Social Impact': {
+  'Non-profit & Social Impact': {
     'Fundraising and development': ['fundraiser', 'major gifts officer', 'development director'],
     'Grantmaking and foundations': ['program officer', 'foundation executive'],
     'Nonprofit leadership and boards': ['executive director', 'nonprofit board member'],
     'Associations and membership organizations': ['association executive', 'membership director', 'association meetings manager'],
     'Social work and human services': ['social worker', 'case manager', 'human services director'],
-    'Faith-based and religious organizations': ['church administrator', 'faith-based nonprofit leader'],
-    'Environmental and conservation': ['conservation director', 'environmental nonprofit leader'],
+    'Faith-based and religious organizations': ['church administrator', 'faith-based non-profit leader'],
+    'Environmental and conservation': ['conservation director', 'environmental non-profit leader'],
     'Arts, culture and museums': ['museum director', 'arts administrator'],
     'Volunteer management and community engagement': ['volunteer manager', 'community engagement lead'],
     'Social enterprise and impact investing': ['impact investor', 'social entrepreneur'],

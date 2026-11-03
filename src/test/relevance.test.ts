@@ -46,8 +46,8 @@ describe('relevant = every criterion; widening = concentric rings', () => {
     ])
   })
   it('similar industries are hand-listed both ways', () => {
-    expect(industryRelation(new Set(['Education & EdTech']), 'Nonprofit & Social Impact')).toBe('similar')
-    expect(industryRelation(new Set(['Nonprofit & Social Impact']), 'Education & EdTech')).toBe('similar')
+    expect(industryRelation(new Set(['Education & EdTech']), 'Non-profit & Social Impact')).toBe('similar')
+    expect(industryRelation(new Set(['Non-profit & Social Impact']), 'Education & EdTech')).toBe('similar')
     expect(industryRelation(new Set(['Education & EdTech']), 'Insurance')).toBe('other')
     expect(industryRelation(new Set(), 'Insurance')).toBe('own')
   })

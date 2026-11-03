@@ -8,7 +8,7 @@ export const maxDuration = 300
 /**
  * Weekly, after the workforce-board sync and college re-rank: recomputes the
  * 0-100 fit score for every WIOA board, job center, EDA district, state agency,
- * local EDO and nonprofit lead. Contacts and warmth in the CRM move during the
+ * local EDO and non-profit lead. Contacts and warmth in the CRM move during the
  * week, and so do layoffs, so a stored score goes stale. ?dry=1 computes only.
  */
 export const GET = withCronRun('partner-scores', async (request: NextRequest) => {

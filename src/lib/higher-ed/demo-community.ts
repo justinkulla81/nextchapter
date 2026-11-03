@@ -51,7 +51,7 @@ export async function seedCommunity(
     data: [
       { opportunityId: created[0].id, memberId: o(4), note: 'I built the same thing for a regional carrier last year.', ...S },
       { opportunityId: created[0].id, memberId: o(5), note: 'Power BI certified; free evenings and weekends.', ...S },
-      { opportunityId: created[1].id, memberId: featured, note: 'I chaired the audit committee at my last nonprofit.', status: 'CONNECTED', ...S },
+      { opportunityId: created[1].id, memberId: featured, note: 'I chaired the audit committee at my last non-profit.', status: 'CONNECTED', ...S },
       { opportunityId: created[2].id, memberId: o(6), ...S },
     ],
   })

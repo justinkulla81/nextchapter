@@ -36,13 +36,13 @@ const INDUSTRY_AFFINITY: Record<string, string[]> = {
   Engineering: ['Technology & Software', 'Aerospace & Defense', 'Automotive & Mobility', 'Energy & Utilities', 'Medical Devices'],
   Product: ['Technology & Software', 'Financial Services & Banking', 'Healthcare & Hospital Systems', 'Education & EdTech', 'Retail & E-commerce'],
   Design: ['Technology & Software', 'Media & Entertainment', 'Retail & E-commerce', 'Advertising, Marketing & PR', 'Education & EdTech'],
-  'Human Resources': ['Staffing & Human Capital', 'Healthcare & Hospital Systems', 'Technology & Software', 'Education & EdTech', 'Nonprofit & Social Impact'],
-  Administration: ['Healthcare & Hospital Systems', 'Education & EdTech', 'Professional Services & Consulting', 'Nonprofit & Social Impact', 'Government & Public Sector'],
+  'Human Resources': ['Staffing & Human Capital', 'Healthcare & Hospital Systems', 'Technology & Software', 'Education & EdTech', 'Non-profit & Social Impact'],
+  Administration: ['Healthcare & Hospital Systems', 'Education & EdTech', 'Professional Services & Consulting', 'Non-profit & Social Impact', 'Government & Public Sector'],
   Legal: ['Professional Services & Consulting', 'Financial Services & Banking', 'Technology & Software', 'Healthcare & Hospital Systems', 'Government & Public Sector'],
   'Customer Success': ['Technology & Software', 'Telecommunications', 'Financial Services & Banking', 'Retail & E-commerce', 'Healthcare & Hospital Systems'],
   'Data & Analytics': ['Technology & Software', 'Financial Services & Banking', 'Healthcare & Hospital Systems', 'Retail & E-commerce', 'Insurance'],
 }
-const DEFAULT_AFFINITY = ['Technology & Software', 'Professional Services & Consulting', 'Healthcare & Hospital Systems', 'Education & EdTech', 'Nonprofit & Social Impact']
+const DEFAULT_AFFINITY = ['Technology & Software', 'Professional Services & Consulting', 'Healthcare & Hospital Systems', 'Education & EdTech', 'Non-profit & Social Impact']
 
 const TIER_SCORE: Record<PivotTier, number> = { SAME: -10, ADJACENT: 4, BRIDGE: 2, REBUILD: 0, LICENSED: -3, LEVEL_GATED: -10 }
 const TIER_WORDS: Record<PivotTier, string> = {

@@ -61,7 +61,7 @@ const BOARD: Parameters<typeof boardEntry>[0][] = [
     fitBucket: 'strong',
     why: { fits: ['your level', 'nonprofit board work'], gap: null },
     competition: { level: 'medium', reasons: ['Posted 5h ago'] },
-    match: match({ skills: ['strong', ['Your nonprofit board work matches what they ask for.']], goals: ['strong', ['Remote, as you prefer.']] }),
+    match: match({ skills: ['strong', ['Your non-profit board work matches what they ask for.']], goals: ['strong', ['Remote, as you prefer.']] }),
     explainGapsEnabled: false,
     watched: false,
     candidatePlus: true,

@@ -65,6 +65,7 @@ export const HIGHER_EDUCATION: PortalPageDef = {
     ],
     claim: {
       title: 'How to claim your page',
+      directory: { path: 'higher-education', noun: 'college or university' },
       paragraphs: [
         'Your institution’s page is at https://launchyournextchapter.com/prepared/ followed by its name in lowercase with hyphens between the words, for example https://launchyournextchapter.com/prepared/riverside-college. Open it and fill in your name, title and work email.',
         'Use a work email at your institution’s domain. Personal email addresses are not accepted. When we do not yet know your institution’s domain, our team follows up on the claim.',

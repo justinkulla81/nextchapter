@@ -43,7 +43,7 @@ import { StartPlanLive, StartHelpLive, GraduationLive, ReaskLive, OtherPathsScho
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
-import { OrgAdminCollege, OrgAdminWorkforce, HigherEdAlumni, HigherEdCareer, WorkforceHubDashboard, WorkforceHubLayoffs } from './marketing-org'
+import { OrgAdminCollege, OrgAdminNonprofit, OrgAdminWorkforce, HigherEdAlumni, HigherEdCareer, WorkforceHubDashboard, WorkforceHubLayoffs } from './marketing-org'
 import { HiringDashboard, HiringEvidenceBrief, HiringRoles, EmployeesLearning, EmployeesRetention, EmployeesEnroll, OutplacementReporting, OutplacementRoster, OutplacementCompliance } from './marketing-employer'
 import { CoachClients, CoachBrief, CoachSessionLog } from './marketing-coach'
 import { RecruiterPacket, RecruiterSearch, RecruiterPipeline } from './marketing-recruiter'
@@ -78,6 +78,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'marketing/higher-education-alumni-workspace', place: 'Partner pages', title: 'Higher education: alumni relations workspace (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: HigherEdAlumni },
   { path: 'marketing/higher-education-career-caseload', place: 'Partner pages', title: 'Higher education: career services caseload (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: HigherEdCareer },
   { path: 'marketing/workforce-admin-overview', place: 'Partner pages', title: 'Workforce: admin overview of the free workspace (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: OrgAdminWorkforce },
+  { path: 'marketing/nonprofit-admin-overview', place: 'Partner pages', title: 'Nonprofit: admin overview of the free workspace (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: OrgAdminNonprofit },
   { path: 'marketing/workforce-hub-dashboard', place: 'Partner pages', title: 'Workforce: program dashboard (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: WorkforceHubDashboard },
   { path: 'marketing/workforce-hub-layoffs', place: 'Partner pages', title: 'Workforce: layoffs with seats (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: WorkforceHubLayoffs },
   { path: 'marketing/hiring-dashboard', place: 'Partner pages', title: 'Hiring: dashboard (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: HiringDashboard },

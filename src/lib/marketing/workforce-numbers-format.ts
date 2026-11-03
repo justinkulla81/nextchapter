@@ -67,7 +67,7 @@ export interface WorkforceTileGroup {
 
 const ok = (n: number | null | undefined): n is number => typeof n === 'number' && Number.isFinite(n) && n > 0
 
-/** "13,800+ government, 18,300+ nonprofit." — parts with no count are left out; nothing left, no sentence. */
+/** "13,800+ government, 18,300+ non-profit." — parts with no count are left out; nothing left, no sentence. */
 function parts(list: [number, string][]): string | undefined {
   const shown = list.filter(([n]) => ok(n)).map(([n, label]) => `${floorCount(n)} ${label}`)
   return shown.length ? `${shown.join(', ')}.` : undefined
@@ -107,10 +107,10 @@ export function buildWorkforceTiles(raw: WorkforceRaw): WorkforceTileGroup[] {
         ...tile(ok(j.government + j.nonprofit + j.academia), {
           key: 'public_mission',
           value: floorCount(j.government + j.nonprofit + j.academia),
-          label: 'government, nonprofit and higher education jobs',
+          label: 'government, non-profit and higher education jobs',
           detail: parts([
             [j.government, 'government'],
-            [j.nonprofit, 'nonprofit'],
+            [j.nonprofit, 'non-profit'],
             [j.academia, 'colleges and universities'],
           ]),
         }),

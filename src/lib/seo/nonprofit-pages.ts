@@ -6,15 +6,15 @@ import { orgSlug } from '@/lib/crm/org-slug'
 import { opportunitiesForKinds, type StoredOpportunity } from '@/lib/funding-opportunities/store'
 import { readable } from '@/lib/seo/employer-slug'
 
-// Public nonprofit pages (/nonprofits/<state>/<org>): the IRS public record for the organization (name, city,
-// type, revenue, filing year), the labor market and layoff picture where it works, grants open to nonprofits in
+// Public non-profit pages (/nonprofits/<state>/<org>): the IRS public record for the organization (name, city,
+// type, revenue, filing year), the labor market and layoff picture where it works, grants open to non-profits in
 // its state, and its local workforce boards. Only IRS-published figures: no contact names, emails or phones.
 
-/** Annual revenue a nonprofit needs before its page is offered to search engines. */
+/** Annual revenue a non-profit needs before its page is offered to search engines. */
 export const NONPROFIT_MIN_REVENUE = 1_000_000
 
 /**
- * Whether the individual nonprofit pages are offered to search engines. Off since 2026-10-26: the audit
+ * Whether the individual non-profit pages are offered to search engines. Off since 2026-10-26: the audit
  * (scripts/seo/page-quality.py) found none of 30 sampled pages reached the bar (about 190 words, mostly the same
  * IRS figures). They still render and link to each other (noindex, follow) and stay out of the sitemap. Switch this on
  * only when the pages carry content of their own.
@@ -25,6 +25,7 @@ export const NONPROFIT_KINDS: Record<string, { label: string; plural: string }> 
   CHAMBER: { label: 'chamber of commerce or business association', plural: 'Chambers of commerce and business associations' },
   ECON_DEV: { label: 'economic development organization', plural: 'Economic development organizations' },
   WORKFORCE: { label: 'workforce development organization', plural: 'Workforce development organizations' },
+  JOB_TRAINING: { label: 'job training and employment non-profit', plural: 'Job training and employment non-profits' },
 }
 
 export const NTEE_GROUPS: Record<string, string> = {
@@ -104,7 +105,7 @@ export async function nonprofitsForSitemap(): Promise<{ state: string; slug: str
   return rows.map((r) => ({ state: r.state, slug: nonprofitSlug(r.name, r.ein) }))
 }
 
-/** Grants open to nonprofits in a state, soonest closing first. A failed read is "none", never an error page. */
+/** Grants open to non-profits in a state, soonest closing first. A failed read is "none", never an error page. */
 export const getNonprofitFunding = memoTtl(5 * 60_000, (state: string) => state, async (state: string): Promise<StoredOpportunity[]> => {
   try {
     const all = await opportunitiesForKinds(['NONPROFIT'], { state, limit: 40 })

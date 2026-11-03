@@ -242,6 +242,9 @@ WORK_RE = re.compile(r'WORKFORCE|JOB TRAINING|EMPLOYMENT TRAINING|CAREER (CENTER
 WORK_EXCL = re.compile(r'TRUST|APPRENTICE|JOINT|TRAINING FUND|LOCAL \d|UNION|FOUNDATION FOR POPS|HOPE INITIATIVE|WORKFORCE (INVESTMENT|DEVELOPMENT) (BOARD|AREA|COUNCIL)|WORKFORCE BOARD|JOBSOHIO|CHAMBER|CHURCH|MINISTR|VETERAN HOME|HOUSING|HOSPITAL|SCHOLARSHIP|CHAMBER OF COMMERCE')
 
 
+JOB_EXCL = re.compile(r'LABOR|UNION|PENSION|BENEFIT|SCHOLARSHIP|CHURCH|MINISTR|HOSPITAL|HOUSING')
+
+
 def classify(name, ntee, sub):
     n = name.upper()
     t = (ntee or '').upper()
@@ -251,6 +254,10 @@ def classify(name, ntee, sub):
         return 'ECON_DEV'
     if (t[:3] in ('J20', 'J21', 'J22') or WORK_RE.search(n)) and not WORK_EXCL.search(n):
         return 'WORKFORCE'
+    # Other job training nonprofits (NTEE J30 vocational training, J32 vocational rehabilitation, J33 employment, e.g. Goodwill):
+    # 501(c)(3) only. J40 unions, J01-J12 support groups and J99 are left out.
+    if t[:3] in ('J30', 'J32', 'J33') and sub == '03' and not WORK_EXCL.search(n) and not JOB_EXCL.search(n):
+        return 'JOB_TRAINING'
     return None
 
 

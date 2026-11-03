@@ -151,7 +151,7 @@ export interface FundingNotice {
 
 /**
  * Who can win it. A grant is awarded to states, workforce boards, colleges and
- * nonprofits — our customers and partners — so we file it as one for them to
+ * non-profits — our customers and partners — so we file it as one for them to
  * win and a reason to call them. A solicitation or RFI is ours to bid on.
  */
 export type Audience = 'CUSTOMERS' | 'US'
@@ -264,6 +264,6 @@ export function toLead(n: FundingNotice, now: Date): P0Lead {
       ? { fullName: n.contact.fullName, title: n.contact.title, linkedinUrl: null, email: n.contact.email, role: 'GRANTS', quote: null, phone: n.contact.phone }
       : null,
     p0: false,
-    why: `${KIND_LABEL[n.kind]} on ${n.source === 'grants.gov' ? 'Grants.gov' : 'SAM.gov'} in our subject area${deadline ? `, closes ${deadline.toISOString().slice(0, 10)}` : ''}. ${audienceOf(n.kind) === 'CUSTOMERS' ? 'Workforce boards, states and nonprofits can apply: a reason to call them, not a bid for us.' : 'A contract we could bid on.'}`,
+    why: `${KIND_LABEL[n.kind]} on ${n.source === 'grants.gov' ? 'Grants.gov' : 'SAM.gov'} in our subject area${deadline ? `, closes ${deadline.toISOString().slice(0, 10)}` : ''}. ${audienceOf(n.kind) === 'CUSTOMERS' ? 'Workforce boards, states and non-profits can apply: a reason to call them, not a bid for us.' : 'A contract we could bid on.'}`,
   }
 }

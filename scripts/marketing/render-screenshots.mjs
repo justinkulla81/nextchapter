@@ -40,6 +40,7 @@ export const SHOTS = {
   'higher-education-alumni-workspace': 'marketing/higher-education-alumni-workspace',
   'higher-education-career-caseload': 'marketing/higher-education-career-caseload',
   'workforce-admin-overview': 'marketing/workforce-admin-overview',
+  'nonprofit-admin-overview': 'marketing/nonprofit-admin-overview',
   'workforce-hub-dashboard': 'marketing/workforce-hub-dashboard',
   'workforce-hub-layoffs': 'marketing/workforce-hub-layoffs',
   'hiring-dashboard': 'marketing/hiring-dashboard',

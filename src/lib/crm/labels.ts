@@ -49,7 +49,7 @@ export const ORG_TYPE_LABELS: Record<CrmOrgType, string> = {
   THINK_TANK: 'Think tank',
   GOVERNMENT: 'Government',
   FOUNDATION: 'Foundation',
-  NONPROFIT: 'Nonprofit',
+  NONPROFIT: 'Non-profit',
   MEDIA: 'Media',
   ACCELERATOR: 'Accelerator',
   VENDOR: 'Vendor / partner',
@@ -76,7 +76,7 @@ export const ELIGIBILITY_LABELS: Record<CrmEligibility, string> = {
   FOR_PROFIT_ELIGIBLE: 'For-profit eligible',
   PARTNER_OR_RESEARCH: 'Via partner only',
   UNKNOWN: 'Unknown',
-  NONPROFIT_ONLY: 'Nonprofit only',
+  NONPROFIT_ONLY: 'Non-profit only',
   NOT_APPLICABLE: 'Not applicable',
 }
 

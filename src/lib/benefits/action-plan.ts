@@ -28,7 +28,7 @@ const ITEM_LIBRARY: Record<string, BenefitsActionItem> = {
   },
   talk_credit_counselor: {
     id: 'talk_credit_counselor',
-    text: 'Talk to a free nonprofit credit counselor (NFCC) before making any big financial decision — they can walk through the real tradeoffs with you, no cost, no sales pitch.',
+    text: 'Talk to a free non-profit credit counselor (NFCC) before making any big financial decision — they can walk through the real tradeoffs with you, no cost, no sales pitch.',
   },
   review_401k: {
     id: 'review_401k',
@@ -40,7 +40,7 @@ const ITEM_LIBRARY: Record<string, BenefitsActionItem> = {
   },
   other_conversation: {
     id: 'other_conversation',
-    text: 'Start with the general resources on this page, and consider a free nonprofit credit counselor (NFCC) session — most less-common financial pressures benefit from a real conversation more than generic advice.',
+    text: 'Start with the general resources on this page, and consider a free non-profit credit counselor (NFCC) session — most less-common financial pressures benefit from a real conversation more than generic advice.',
   },
 }
 
