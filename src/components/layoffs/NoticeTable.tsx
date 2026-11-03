@@ -62,7 +62,6 @@ export function NoticeTable({
                 ) : (
                   n.employer
                 )}
-                {n.division && <span className="block text-xs font-normal text-muted-foreground">{n.division} division</span>}
                 {n.noticeDateKnown && n.effectiveDate && (
                   <span className="block text-xs font-normal text-muted-foreground">Takes effect {noticeDay(n.effectiveDate)}</span>
                 )}

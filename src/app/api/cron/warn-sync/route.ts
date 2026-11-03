@@ -6,7 +6,6 @@ import { runLayoffPrimarySweep } from '@/lib/warn/layoff-primary-run'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { matchNoticesToBoards } from '@/lib/workforce/match'
 import { withCronRun } from '@/lib/cron/run'
-import { publishLayoffsNow } from '@/lib/syndication/layoff-publish-now'
 
 export const maxDuration = 300
 
@@ -73,9 +72,5 @@ export const GET = withCronRun('warn-sync', async (request: NextRequest) => {
   } catch (e) {
     boards = { error: e instanceof Error ? e.message : String(e) }
   }
-  // Every layoff filed above reaches the feed, the pages and IndexNow now, not at the next hourly run.
-  const filed = (Array.isArray(results) ? results.reduce((n, r) => n + r.created, 0) : 0)
-    + ('added' in sec ? sec.added.length : 0) + ('added' in news ? news.added.length : 0)
-  const published = filed > 0 ? await publishLayoffsNow() : null
-  return NextResponse.json({ results, known, sec, news, primary, boards, published })
+  return NextResponse.json({ results, known, sec, news, primary, boards })
 })
