@@ -180,3 +180,17 @@ export const jobTypeSeo = (name: string, noun: string, jobs: number) => ({
   h1: `${name} professional jobs: ${jobs.toLocaleString('en-US')} open roles`,
   description: fitDescription(`${jobs.toLocaleString('en-US')} open ${noun} jobs for experienced professionals from employers’ own career sites, checked within the last week. Top titles, states and pay where listed.`, 160),
 })
+
+/** /roles/[slug]: the owner of "<role> jobs", "<role> salary" and the acronym ("cro jobs"). The name carries the acronym or the spelled-out form so both are in the title. */
+export const roleSeo = (r: { name: string; short: string; spelled: string; variants: string[] }, jobs: number, median: number | null) => {
+  const n = jobs.toLocaleString('en-US')
+  const also = r.variants.filter((v) => v !== r.short && v !== r.spelled && !r.name.includes(v)).slice(0, 4).join(', ')
+  return {
+    title: pick(`${r.name} Jobs, Salary & Skills: ${n} Open Roles`, `${r.name} Jobs & Salary: ${n} Open Roles`, `${r.name} Jobs and Salary`, `${r.short} Jobs and Salary`, `${r.short} Jobs`),
+    h1: r.name.includes(r.spelled) ? `${r.name} jobs: ${n} open roles, pay, industries and skills` : `${r.short} (${r.spelled}) jobs: ${n} open roles, pay, industries and skills`,
+    description: fitDescription(
+      `${n} open ${r.spelled} jobs${also ? ` (also ${also})` : ''} from employers’ own career sites, checked within the last week.${median ? ` Listed pay runs around $${Math.round(median / 1000)}k.` : ''} Best industries, states, skills and AI skills.`,
+      160,
+    ),
+  }
+}
