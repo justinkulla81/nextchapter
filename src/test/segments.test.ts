@@ -190,3 +190,17 @@ describe('employer name forms', () => {
     expect(segmentsOf({ company: 'Sikorsky Aircraft', title: 'Engineer', industry: null, reqTags: null })).not.toContain('airlines-aviation')
   })
 })
+
+describe('hiring momentum', () => {
+  const now = new Date('2026-12-10T00:00:00Z')
+  const mk = (a: number, b: number, c: number) => [...Array.from({ length: a }, () => row({ company: 'Alpha' })), ...Array.from({ length: b }, () => row({ company: 'Beta' })), ...Array.from({ length: c }, () => row({ company: 'Gamma' }))]
+  it('has no list until there is an earlier month, then lists gainers only', () => {
+    expect(buildEdition('x', '2026-11', mk(9, 6, 6), null, now).cuts.momentum).toBeUndefined()
+    const nov = buildEdition('x', '2026-11', mk(9, 6, 6), null, now)
+    expect(nov.counts?.length).toBe(3)
+    const dec = buildEdition('x', '2026-12', mk(8, 12, 7), prevFrom(nov), now)
+    const list = dec.cuts.momentum!
+    expect(list.map((r) => [r.name, r.valueLabel])).toEqual([['Beta', '+6'], ['Gamma', '+1']])
+    expect(list[0].sub).toBe('6 → 12 open')
+  })
+})

@@ -11,7 +11,7 @@ import { editionLabel } from '@/lib/rankings/build-edition'
 import { AI_EXPOSURE_SOURCE, EXPOSURE_WHY } from '@/lib/skills/ai-exposure'
 import type { CutId, SegmentIndexEntry } from '@/lib/segments/types'
 
-const EMPLOYER_CUTS = new Set<CutId>(['top-employers', 'highest-paying-employers', 'entry-level'])
+const EMPLOYER_CUTS = new Set<CutId>(['top-employers', 'highest-paying-employers', 'entry-level', 'momentum'])
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -88,6 +88,13 @@ export async function SegmentHubView({ data, index }: { data: SegmentPageData; i
         <Section id="employers" title={`Employers with the most open ${def.label} jobs`} note={cutSentence(def, 'top-employers', e)}>
           <SegmentTable rows={e.cuts['top-employers']!} limit={10} valueHead="Open jobs" nounHead="Employer" hrefs={hrefs} segment={def.slug} cut="top-employers" />
           {newest && <p className="mt-3 text-sm"><Link href={cutPath(def.slug, 'top-employers')} className={LINK}>See the full top 25</Link></p>}
+        </Section>
+      )}
+
+      {(e.cuts.momentum?.length ?? 0) > 0 && (
+        <Section id="momentum" title={`Employers adding the most ${def.label} openings`} note={cutSentence(def, 'momentum', e)} tone={2}>
+          <SegmentTable rows={e.cuts.momentum!} limit={8} valueHead="More openings" nounHead="Employer" hrefs={await employerHrefs(e.cuts.momentum!.slice(0, 8))} segment={def.slug} cut="momentum" />
+          {newest && <p className="mt-3 text-sm"><Link href={cutPath(def.slug, 'momentum')} className={LINK}>See all hiring momentum</Link></p>}
         </Section>
       )}
 
