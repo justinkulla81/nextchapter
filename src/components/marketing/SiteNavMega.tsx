@@ -61,6 +61,7 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
       live = false
     }
   }, [])
+  const signedIn = !!session?.signedIn
   const accountHref = session?.signedIn ? '/dashboard' : '/auth/login'
   const accountLabel = session?.signedIn ? (session.firstName ? `Hi, ${session.firstName}` : 'My account') : 'Log in'
   // Exposure: once per tab session, so click rate has a denominator per variant.
@@ -142,16 +143,20 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
           </Link>
           <Button
             nativeButton={false}
-            render={<Link href={MARKET_REALITY_START_HREF} onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment', cta_variant: ctaVariant })} />}
+            render={signedIn
+              ? <Link href="/dashboard" onClick={() => track('site_nav_cta_clicked', { cta: 'go_to_dashboard' })} />
+              : <Link href={MARKET_REALITY_START_HREF} onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment', cta_variant: ctaVariant })} />}
             variant="cta"
             className="hidden sm:inline-flex"
           >
             {/* Below xl the control drops "Market Reality" (and the score label drops "Get your") so the button fits beside the nav links. */}
-            {ctaVariant === 'control'
-              ? <>Get your <span className="hidden xl:inline">Market Reality </span>Assessment</>
-              : ctaVariant === 'hire_score'
-                ? <><span className="hidden xl:inline">Get your </span>Hireability Score</>
-                : NAV_CTA_LABEL[ctaVariant]}
+            {signedIn
+              ? 'Go to dashboard'
+              : ctaVariant === 'control'
+                ? <>Get your <span className="hidden xl:inline">Market Reality </span>Assessment</>
+                : ctaVariant === 'hire_score'
+                  ? <><span className="hidden xl:inline">Get your </span>Hireability Score</>
+                  : NAV_CTA_LABEL[ctaVariant]}
           </Button>
           <button
             type="button"
@@ -174,8 +179,15 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
             </button>
           </div>
           <div className="space-y-2 px-4 pb-10">
-            <Button nativeButton={false} render={<Link href={MARKET_REALITY_START_HREF} onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment', device: 'phone', cta_variant: ctaVariant })} />} variant="cta" className="h-11 w-full">
-              {NAV_CTA_LABEL[ctaVariant]}
+            <Button
+              nativeButton={false}
+              render={signedIn
+                ? <Link href="/dashboard" onClick={() => track('site_nav_cta_clicked', { cta: 'go_to_dashboard', device: 'phone' })} />
+                : <Link href={MARKET_REALITY_START_HREF} onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment', device: 'phone', cta_variant: ctaVariant })} />}
+              variant="cta"
+              className="h-11 w-full"
+            >
+              {signedIn ? 'Go to dashboard' : NAV_CTA_LABEL[ctaVariant]}
             </Button>
             {PUBLIC_NAV.map((m) => (
               <details key={m.key} className="group border-b border-border py-1">
