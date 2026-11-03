@@ -1,8 +1,10 @@
 import type { Bucket } from '@/lib/admin/applied-jobs-breakdown'
 
-// A ranked list with a bar behind each count. The numbers are text, so the bar is decoration only.
-export function BreakdownBars({ title, hint, buckets, limit = 8 }: { title: string; hint?: string; buckets: Bucket[]; limit?: number }) {
-  const shown = buckets.slice(0, limit)
+// A list (least to most when `ascending`, else in the order given) with a bar behind each count. The numbers are text, so the bar is decoration only.
+export function BreakdownBars({ title, hint, buckets, limit = 8, ascending = false }: { title: string; hint?: string; buckets: Bucket[]; limit?: number; ascending?: boolean }) {
+  // Buckets arrive biggest first, so the cut keeps the biggest groups; ascending then shows them least to most.
+  const top = buckets.slice(0, limit)
+  const shown = ascending ? [...top].reverse() : top
   const rest = buckets.slice(limit).reduce((sum, b) => sum + b.applies, 0)
   const total = buckets.reduce((sum, b) => sum + b.applies, 0)
   const max = Math.max(1, ...shown.map((b) => b.applies))

@@ -33,6 +33,11 @@ export const CANDIDATE_UPDATES: CandidateUpdate[] = [
     href: 'https://launchyournextchapter.com/jobs/title/account-executive',
   },
   {
+    date: '2026-11-02',
+    title: 'Tell us your situation in one tap, and get a first-week plan for it',
+    summary: 'The emails we send after you save a job, turn on alerts or join the list now ask which situation is closest to yours (laid off, thinking about a move, changing careers). Tap one and the next email is a three-step first-week plan for that situation, with no résumé needed to start.',
+  },
+  {
     date: '2026-10-30',
     title: 'Check your résumé against a job description',
     summary: 'Paste a job post and your résumé and see which keywords you are missing. It runs in your browser, so nothing you paste is sent to us.',

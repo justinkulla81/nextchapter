@@ -110,6 +110,7 @@ export function NegotiationCompensationForm({
     <form
       action={formAction}
       onSubmit={blockSaveIfIncomplete}
+      data-flags-missing
       className={cn('space-y-8', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
       <p className="text-sm text-muted-foreground">

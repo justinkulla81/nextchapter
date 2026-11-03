@@ -45,6 +45,7 @@ def env(name):
 
 
 def get(url, data=None, headers=None, timeout=90, retries=3):
+    import subprocess
     for i in range(retries):
         try:
             req = urllib.request.Request(url, data=data, headers={'User-Agent': UA, **(headers or {})})
@@ -52,6 +53,16 @@ def get(url, data=None, headers=None, timeout=90, retries=3):
                 return r.read()
         except Exception as e:
             if i == retries - 1:
+                # Some hosts reject Python's TLS handshake on this machine; curl works.
+                cmd = ['curl', '-sSL', '--max-time', str(timeout), '-A', UA]
+                for k, v in (headers or {}).items():
+                    cmd += ['-H', f'{k}: {v}']
+                if data is not None:
+                    cmd += ['--data-binary', '@-']
+                cmd.append(url)
+                out = subprocess.run(cmd, input=data, capture_output=True, timeout=timeout + 10)
+                if out.returncode == 0 and out.stdout:
+                    return out.stdout
                 raise
             time.sleep(2 * (i + 1))
 
