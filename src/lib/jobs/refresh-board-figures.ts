@@ -6,6 +6,7 @@ import { buildExposureRows } from '@/lib/skills/ai-exposure-server'
 import { loadJobAggregate } from '@/lib/places/places'
 import { buildTitleFigures } from '@/lib/seo/job-titles'
 import { placeIndex } from '@/lib/seo/job-title-places'
+import { buildEntryFigures } from '@/lib/entry-roles/live'
 
 // The whole-board scans (10-65 s each over ~650k live postings), run one at a time instead of on public pages:
 // top employers, the workforce page counts, the jobs-by-AI-exposure split, the place job counts and the job-title
@@ -23,6 +24,15 @@ async function refreshTitleFigures() {
   await writeBoardFigure('job-title-places-index', placeIndex(places))
 }
 
+/** The entry-level role pages: a stats list, one row per role and one per (role, place) page. */
+async function refreshEntryRoleFigures() {
+  const { details, places, index } = await buildEntryFigures()
+  await writeBoardFigure('entry-role-stats', details.map(({ jobIds: _ids, states: _s, topEmployers: _e, ...stat }) => stat))
+  await replaceBoardFigures('entry-role:', details.map((d) => [`entry-role:${d.slug}`, d] as [BoardFigureKey, unknown]))
+  await replaceBoardFigures('entry-role-place:', places.map((p) => [`entry-role-place:${p.titleSlug}:${p.key}`, p] as [BoardFigureKey, unknown]))
+  await writeBoardFigure('entry-role-places-index', index)
+}
+
 const STEPS: readonly (readonly [string, () => Promise<void>])[] = [
   ['employer-rankings', single('employer-rankings', buildEmployerRankings)],
   ['function-rankings', single('function-rankings', buildFunctionRankings)],
@@ -30,6 +40,7 @@ const STEPS: readonly (readonly [string, () => Promise<void>])[] = [
   ['exposure-rows', single('exposure-rows', buildExposureRows)],
   ['places-job-aggregate', single('places-job-aggregate', loadJobAggregate)],
   ['job-titles', refreshTitleFigures],
+  ['entry-roles', refreshEntryRoleFigures],
 ]
 
 export async function refreshBoardFigures(): Promise<{ done: Record<string, number>; failed: string[] }> {

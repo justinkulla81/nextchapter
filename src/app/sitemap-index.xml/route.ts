@@ -31,6 +31,7 @@ async function listMaps(): Promise<string[]> {
     `${SITE_URL}/events/sitemap.xml`,
     `${SITE_URL}/higher-education/sitemap.xml`,
     `${SITE_URL}/salaries/sitemap.xml`,
+    `${SITE_URL}/jobs/entry-level/sitemap.xml`,
     `${SITE_URL}/resources/pay-data/sitemap.xml`,
     ...Array.from({ length: PUBLIC_JOB_SITEMAP_SHARDS }, (_, i) => `${SITE_URL}/jobs/sitemap/${i}.xml`),
     ...Array.from({ length: employerShards }, (_, i) => `${SITE_URL}/employers/sitemap/${i}.xml`),
