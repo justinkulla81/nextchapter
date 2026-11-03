@@ -59,6 +59,8 @@ const nextConfig: NextConfig = {
       })),
       // /feeds is the feeds directory page; /feeds/industries is only a folder of feeds, so it goes there.
       { source: '/feeds/industries', destination: '/feeds', permanent: false },
+      // /for-colleges is only a folder of ad landing pages; its parent address goes to the higher education page.
+      { source: '/for-colleges', destination: '/higher-education', permanent: false },
       // Comparison pages live under /tools/ai-job-check/compare/[pair]; the folder itself has no page.
       { source: '/tools/ai-job-check/compare', destination: '/tools/ai-job-check', permanent: false },
       // Nothing lives at /search; people and search engines' site-search boxes expect it to run a job search (/jobs?q=).
