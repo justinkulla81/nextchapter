@@ -881,6 +881,18 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'skills-in-demand',
+    intent: 'Skills employers ask for most, by industry, function, state and seniority',
+    owner: '/skills',
+    kind: 'page',
+    primary: 'most in-demand job skills',
+    secondary: ['top skills employers want', 'skills in demand by industry', 'skills in demand by state', 'skills for entry-level jobs', 'rising job skills', 'skills AI cannot replace'],
+    seo: {
+      title: 'Most In-Demand Job Skills by Industry, Function and State',
+      description: 'The skills named in the most open jobs, by industry, function, state and seniority, which are rising, and where AI is already used in the work.',
+    },
+  },
+  {
     id: 'ai-skills',
     intent: 'AI skills in demand and what they pay',
     owner: '/ai-skills',
@@ -3089,6 +3101,7 @@ export const ANCHORS: Record<string, string> = {
   '/funding': 'Funding for laid-off workers',
   '/dossier': 'Executive Dossier',
   '/why-stuck': 'Why your job search isn’t working',
+  '/skills': 'Most in-demand job skills',
   '/ai-skills': 'AI skills in job postings',
   '/resources/ai-skills-pay-premium': 'AI skills salary premium',
   '/resources/pay-data': 'Pay data by industry, role, size and skill',

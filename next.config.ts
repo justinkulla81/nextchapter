@@ -57,6 +57,9 @@ const nextConfig: NextConfig = {
         destination: `/${kind}/:state`,
         permanent: false,
       })),
+      // /skills/by and /skills/by/<dimension> are only folders of the skills lists, so they go to the skills hub.
+      { source: '/skills/by', destination: '/skills', permanent: false },
+      { source: '/skills/by/:dim', destination: '/skills', permanent: false },
       // /jobs/entry-level/category is only the folder of category pages, so it goes to the entry-level hub.
       { source: '/jobs/entry-level/category', destination: '/jobs/entry-level', permanent: false },
       // /feeds is the feeds directory page; /feeds/industries is only a folder of feeds, so it goes there.

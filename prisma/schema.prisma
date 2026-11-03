@@ -1879,6 +1879,7 @@ model CandidateProfile {
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
+  skillWatches SkillWatch[]
 }
 
 // One row per real login "sitting" — recordCandidateLoginIfDue (called from
@@ -17006,6 +17007,32 @@ model AiMarketSnapshot {
   data       Json
 
   @@index([computedAt])
+}
+
+// Daily snapshot of the skills live postings ask for, by industry, function, state and level (cron
+// /api/cron/skills-market, src/lib/skills/market-server.ts). Readers take the newest.
+// prisma/manual/2026-11-03-skills-market.sql.
+model SkillMarketSnapshot {
+  id         String   @id @default(cuid())
+  computedAt DateTime @default(now())
+  data       Json
+
+  @@index([computedAt])
+}
+
+// A skill a member watches ("Watch skill" on /skills/[slug]). Counts of new postings asking for it are
+// computed from the newest snapshot; nothing is sent to the member's Google account.
+model SkillWatch {
+  id           String           @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  skillSlug    String
+  skillName    String
+  createdAt    DateTime         @default(now())
+  lastViewedAt DateTime         @default(now())
+
+  @@unique([candidateId, skillSlug])
+  @@index([skillSlug])
 }
 
 // Whole-board figures that need a pass over ~650k live postings (10-17 s each): the top-employers rankings, the
