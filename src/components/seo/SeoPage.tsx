@@ -16,7 +16,7 @@ export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export const LINK = 'text-brand underline underline-offset-4'
 
 /** The frame for the programmatic public pages (workforce, higher education by state, rapid response, tools). */
-export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero }: {
+export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm }: {
   trail: { name: string; path: string }[]
   h1: string
   lede: ReactNode
@@ -30,6 +30,8 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   capture?: PageCaptureConfig
   /** 'scene': the heading sits on a tinted panel beside this picture (public/images/topics), sections are tinted panels and stat cards carry a colored edge. */
   hero?: string
+  /** With look 'scene': every section is one quiet white panel instead of four alternating tints (the ranking pages, where the picture carries the colour). */
+  calm?: boolean
 }) {
   const st = stateBrandFromSlug(stateSlug)
   const page = (
@@ -37,7 +39,7 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
       <StructuredData data={breadcrumbJsonLd(trail)} />
       {jsonLd?.map((d, i) => <StructuredData key={i} data={d} />)}
       <PublicSiteHeader />
-      <main className="flex-1 bg-off-white py-12" data-look={look}>
+      <main className="flex-1 bg-off-white py-12" data-look={look} data-calm={calm ? '' : undefined}>
         <div className="mx-auto max-w-6xl px-6">
           <div className={look === 'audience' ? 'rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun p-6 sm:p-10' : look === 'scene' && hero ? 'overflow-hidden rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun md:grid md:grid-cols-[1.15fr_1fr]' : undefined}>
           <div className={look === 'scene' && hero ? 'p-6 sm:p-10' : undefined}>

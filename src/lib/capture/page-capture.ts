@@ -2,7 +2,7 @@
 // The three parts: the journey question (a person), the email save (a person), and the owner inquiry (an organization
 // that runs, hires in or is listed on the page).
 
-export type CaptureKind = 'state' | 'county' | 'city' | 'industry' | 'title' | 'company' | 'college'
+export type CaptureKind = 'state' | 'county' | 'city' | 'industry' | 'title' | 'company' | 'college' | 'ranking'
 
 export interface PageCaptureConfig {
   kind: CaptureKind
@@ -20,7 +20,7 @@ export function captureSource(c: Pick<PageCaptureConfig, 'kind' | 'slug'>): stri
 }
 
 /** The `source` a saved search stores (page:<kind>, no slug; the search itself says which page). */
-export const SAVE_SOURCE_KINDS = ['employer', 'title', 'salary', 'place', 'industry', 'college', 'company'] as const
+export const SAVE_SOURCE_KINDS = ['employer', 'title', 'salary', 'place', 'industry', 'college', 'company', 'ranking'] as const
 export function saveSource(kind: CaptureKind): string {
   if (kind === 'state' || kind === 'county' || kind === 'city') return 'page:place'
   return `page:${kind}`
@@ -69,6 +69,13 @@ export function ownerOffer(c: PageCaptureConfig): OwnerOffer {
         href: '/for-organizations',
         hrefLabel: 'See how organizations use it',
       }
+    case 'ranking':
+      return {
+        who: 'Run a workforce board, job center or economic development office, or hire in the places and industries on this list?',
+        what: 'Leave your work email. We\'ll send how organizations use NextChapter to reach job seekers.',
+        href: '/for-organizations',
+        hrefLabel: 'See how organizations use it',
+      }
     case 'college':
       return {
         who: `Work in career services or alumni relations at ${c.label}?`,
@@ -90,6 +97,8 @@ export function saveCopy(c: PageCaptureConfig): { heading: string; blurb: string
       return { heading: `Follow ${c.label}`, blurb: `We’ll email you when ${c.label} posts a role. No account needed.`, cta: 'Follow by email' }
     case 'college':
       return { heading: `Follow ${c.label}`, blurb: `We’ll email you new jobs for ${c.label} students and alumni. No account needed.`, cta: 'Follow by email' }
+    case 'ranking':
+      return { heading: `Get new ${c.label} jobs by email`, blurb: 'We’ll email you when new matches are posted. No account needed.', cta: 'Email me new jobs' }
     default:
       return { heading: `Follow ${c.label}`, blurb: `We’ll email you when new jobs are posted in ${c.label}. No account needed.`, cta: 'Follow by email' }
   }

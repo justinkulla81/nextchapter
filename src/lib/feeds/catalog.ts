@@ -30,6 +30,7 @@ export function feedGroups(): FeedGroup[] {
       id: 'other', title: 'Reports, news and conferences', blurb: 'The monthly employment report, our news picks, and conferences with dates, costs and calls for speakers.',
       feeds: [
         { key: 'news', title: 'Monthly employment report and news', blurb: 'Each month\'s White Collar Employment Report, plus the articles we pick on the job market.', path: '/news/feed.xml', page: '/reports' },
+        { key: 'rankings', title: 'Job market rankings', blurb: 'Each month\'s rankings of cities, counties, job families, industries and AI skills: the national lists and a roundup for the month.', path: '/feeds/rankings', page: '/rankings' },
         { key: 'conferences', title: 'Conferences and trade shows', blurb: 'Upcoming events, newest updates first.', path: '/feeds/conferences', page: '/conferences' },
       ],
     },

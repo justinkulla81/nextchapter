@@ -133,3 +133,30 @@ export function reportPost(r: ReportForPost | null, now: Date, utm: string): Soc
   while (title.length > 20 && build(title).length > budget) title = title.slice(0, -2).trimEnd()
   return { key: `report-${r.slug}`, text: build(title === r.title ? `${title}.` : `${title}…`) }
 }
+
+/** A month's rankings need at least this many lists before they are announced. */
+export const MIN_RANKINGS_POSTED = 50
+
+export interface RankingForPost { slug: string; measure: string; scopeKind: string; title: string; edition: string; topName: string; topValueLabel: string; editions: string[] }
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+/**
+ * The monthly rankings roundup: this month's edition, with the leader of three national lists (entry-level jobs, AI skills in
+ * postings, pay after the cost of living). Aggregate findings only, no employer names. Null until the month has enough lists, and
+ * only for the current month, so turning posting on never announces an old edition.
+ */
+export function rankingsPost(index: RankingForPost[], now: Date, utm: string): SocialPost | null {
+  const edition = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`
+  const lists = index.filter((x) => x.editions.includes(edition))
+  if (lists.length < MIN_RANKINGS_POSTED) return null
+  const pick = (measure: string) => lists.find((x) => x.measure === measure && x.scopeKind === 'national' && x.edition === edition)
+  const lines = [
+    ['Entry-level jobs', pick('junior')],
+    ['AI skills asked for', pick('ai')],
+    ['Pay after cost of living', pick('paycost')],
+  ].flatMap(([label, x]) => (x ? [`${label}: ${(x as RankingForPost).topName} (${(x as RankingForPost).topValueLabel})`] : []))
+  const link = `${SITE_URL}/rankings/archive/${edition}?${utm}`
+  const text = `NextChapter job market rankings, ${MONTH_NAMES[now.getUTCMonth()]} ${now.getUTCFullYear()}: ${n(lists.length)} lists.${lines.length ? ` #1 for ${lines.join('. #1 for ')}.` : ''} All of them: ${link}`
+  return { key: `rankings-${edition}`, text }
+}

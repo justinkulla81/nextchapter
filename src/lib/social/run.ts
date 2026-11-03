@@ -3,7 +3,8 @@ import { getPublicNotices } from '@/lib/warn/layoff-pages'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 import { CHANNELS, type ChannelId } from '@/lib/social/channels'
 import { latestReport } from '@/lib/reports'
-import { dailyLayoffPost, reportPost, weeklyLayoffPost, type SocialPost } from '@/lib/social/posts'
+import { readRankingIndex } from '@/lib/rankings/store'
+import { dailyLayoffPost, rankingsPost, reportPost, weeklyLayoffPost, type SocialPost } from '@/lib/social/posts'
 
 const STATE_PATH = 'social/posted.json.gz'
 
@@ -22,7 +23,7 @@ const on = (name: string) => process.env[name] === '1'
 
 /**
  * Posts aggregate data findings to Bluesky and X: a daily roundup of the new notices, the weekly roundup on Mondays, and each
- * new report edition once. Nothing is sent unless SOCIAL_POSTING_ENABLED=1 (a dry run otherwise,
+ * new report edition once, and the month's rankings roundup once. Nothing is sent unless SOCIAL_POSTING_ENABLED=1 (a dry run otherwise,
  * so the route can be called to preview); X also needs X_POSTING_ENABLED=1 because X bills API usage. A post is sent to
  * a channel at most once (state kept in the syndication-state bucket), and one channel failing never blocks the other.
  */
@@ -33,12 +34,14 @@ export async function runSocialPosts(now = new Date()): Promise<SocialRunResult>
   const candidates: { post: SocialPost; channels: ChannelId[] }[] = []
   const monday = now.getUTCDay() === 1
   const report = latestReport()
+  const rankings = await readRankingIndex().catch(() => [])
   for (const c of CHANNELS) {
     const utm = (campaign: string) => `utm_source=${c.id}&utm_medium=social&utm_campaign=${campaign}`
     const posts = [
       dailyLayoffPost(all, now, utm('daily-layoffs')),
       monday ? weeklyLayoffPost(dated, now, utm('weekly-layoffs')) : null,
       reportPost(report, now, utm('report')),
+      rankingsPost(rankings, now, utm('rankings')),
     ]
     for (const post of posts) if (post) candidates.push({ post, channels: [c.id] })
   }

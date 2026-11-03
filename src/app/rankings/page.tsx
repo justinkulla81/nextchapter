@@ -4,6 +4,7 @@ import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { MONTH_TINTS, toneOf } from '@/components/rankings/tones'
 import { archiveMonths } from '@/lib/rankings/awards'
+import { RANKINGS_HERO } from '@/lib/rankings/art'
 import { editionLabel } from '@/lib/rankings/build-edition'
 import { readRankingIndex } from '@/lib/rankings/store'
 import { canonical } from '@/lib/seo/canonical'
@@ -15,7 +16,7 @@ export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a 
 export const metadata: Metadata = {
   title: titleMeta('Job market rankings: best cities by job type, pay and growth'),
   description: 'Monthly rankings of the best cities and counties for junior jobs, AI skills, remote work, software jobs, pay after cost of living and job growth, with the data and method behind each.',
-  ...canonical('/rankings'),
+  alternates: { canonical: '/rankings', types: { 'application/rss+xml': [{ url: '/feeds/rankings', title: 'NextChapter job market rankings' }] } },
   openGraph: { title: 'Job market rankings: best cities by job type, pay and growth', description: 'Monthly rankings of cities and counties for junior jobs, AI skills, remote work, pay after cost of living and job growth.', url: `${SITE_URL}/rankings`, type: 'website' },
 }
 
@@ -31,6 +32,9 @@ export default async function RankingsHub() {
   return (
     <SeoPage
       look="scene"
+      calm
+      hero={RANKINGS_HERO}
+      capture={{ kind: 'ranking', slug: 'rankings', label: 'professional', save: { q: '', loc: '' } }}
       trail={[{ name: 'Rankings', path: '/rankings' }]}
       h1="Job market rankings"
       lede={<>Which cities and counties lead for junior jobs, AI skills, remote work, pay after the cost of living and job growth. Rebuilt every month{newest ? ` (latest: ${editionLabel(newest)})` : ''} from open jobs we verify on employer career sites and from public Bureau of Labor Statistics and Census data. Every ranking shows its data, its method and its sources.</>}
