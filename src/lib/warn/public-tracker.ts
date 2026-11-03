@@ -1,6 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { employerSlug } from './layoff-pages'
+import { MERGE_WINDOW_DAYS, mergeReported, type LooseNotice, type MergedLayoff } from './tracker-merge'
+import { sameEmployer } from './news-headline'
 
 export interface TrackerRow {
   key: string
@@ -18,6 +20,8 @@ export interface TrackerRow {
   sourceLabel: string
   /** A state filing that the press or layoffs.fyi also reported — two sources agree. */
   alsoReported: boolean
+  /** A reported layoff with a single source so far; a second publisher or a filing confirms it. */
+  unconfirmed: boolean
   /** /layoffs/company/<slug>, for state filings only. */
   companySlug: string | null
 }
@@ -73,6 +77,39 @@ function reportedLabel(url: string | null): string {
   } catch {
     return 'Reported'
   }
+}
+
+const DAY_MS = 86_400_000
+
+/**
+ * Layoffs reported with no U.S. state, from the last 45 days, merged across outlets (one line per layoff, the headcount most
+ * reports agree on) and with any that a state filing already covers left out, as for reported layoffs that name a state.
+ */
+async function looseReportedRows(): Promise<MergedLayoff[]> {
+  const now = new Date()
+  const since = new Date(now.getTime() - MERGE_WINDOW_DAYS * DAY_MS)
+  const [notices, filings] = await Promise.all([
+    prisma.warnNotice.findMany({
+      where: { dismissedAt: null, state: null, source: 'MANUAL_ANNOUNCEMENT', noticeDate: { gte: since, lte: now } },
+      select: { id: true, employer: true, normalizedEmployer: true, companyId: true, employees: true, noticeDate: true, effectiveDate: true, layoffType: true, sourceUrl: true },
+      take: 3000,
+    }),
+    prisma.warnNotice.findMany({
+      where: { dismissedAt: null, source: 'WARN_FILING', state: { not: null }, noticeDate: { gte: new Date(since.getTime() - MERGE_WINDOW_DAYS * DAY_MS), lte: new Date(now.getTime() + MERGE_WINDOW_DAYS * DAY_MS) } },
+      select: { normalizedEmployer: true, noticeDate: true },
+    }),
+  ])
+  if (notices.length === 0) return []
+  const mentions = await prisma.layoffNewsMention.findMany({
+    where: { noticeId: { in: notices.map((n) => n.id) } },
+    select: { noticeId: true, publisher: true },
+  })
+  const publishers = new Map<string, string[]>()
+  for (const m of mentions) if (m.noticeId && m.publisher) publishers.set(m.noticeId, [...(publishers.get(m.noticeId) ?? []), m.publisher])
+
+  const loose: LooseNotice[] = notices.flatMap((n) => n.noticeDate ? [{ ...n, noticeDate: n.noticeDate, publishers: publishers.get(n.id) ?? [] }] : [])
+  return mergeReported(loose).filter((m) => !filings.some((f) =>
+    f.noticeDate && Math.abs(f.noticeDate.getTime() - m.noticeDate.getTime()) <= MERGE_WINDOW_DAYS * DAY_MS && sameEmployer(f.normalizedEmployer, m.normalizedEmployer)))
 }
 
 /**
@@ -240,8 +277,13 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
       FROM grouped`
 
     if (!stats || rows.length === 0) return null
-    return {
-      rows: rows.map((r) => ({
+
+    // Layoffs reported with no U.S. state (most news stories, some SEC filings). They are listed, merged across outlets, but
+    // not counted in the totals: see getLayoffCounts and the note under the table.
+    const loose = limit > 1 ? await looseReportedRows().catch((e) => { console.error('Reported layoffs could not be loaded', e); return [] }) : []
+    const stateRows = rows.map((r) => ({
+      at: r.notice_date,
+      row: {
         key: r.key,
         // Several sites under one name: the bracketed address of whichever
         // row sorted first would describe only one of them.
@@ -259,8 +301,34 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         origin: r.reported ? 'reported' as const : 'state' as const,
         sourceLabel: r.reported ? reportedLabel(r.source_url) : 'State record',
         alsoReported: !!r.also_reported,
+        unconfirmed: false,
         companySlug: r.reported ? null : employerSlug(r.employer, r.company) || null,
-      })),
+      } satisfies TrackerRow,
+    }))
+    const looseRows = loose.map((m) => ({
+      at: m.noticeDate,
+      row: {
+        key: m.key,
+        employer: m.employer,
+        state: '',
+        county: null,
+        workers: m.employees,
+        sites: 1,
+        noticeDate: day(m.noticeDate),
+        effectiveDate: m.effectiveDate ? day(m.effectiveDate) : null,
+        type: /layoffs\.fyi/i.test(m.sourceUrl ?? '') ? null : readableType(m.layoffType?.replace(/^Reported by[^·—-]*[·—-]?\s*/i, '') ?? null),
+        sourceUrl: m.sourceUrl && /^https:\/\//.test(m.sourceUrl) && !/news\.google\.com/.test(m.sourceUrl) ? m.sourceUrl : null,
+        origin: 'reported' as const,
+        sourceLabel: reportedLabel(m.sourceUrl),
+        alsoReported: m.sources >= 2,
+        unconfirmed: m.sources < 2,
+        companySlug: null,
+      } satisfies TrackerRow,
+    }))
+    const merged = [...stateRows, ...looseRows].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, limit).map((x) => x.row)
+
+    return {
+      rows: merged,
       year: { year: yearStart.getUTCFullYear(), layoffs: stats.ny, workers: stats.wy ?? 0, states: stats.sy },
       last30: { notices: stats.n30, workers: stats.w30 ?? 0, states: stats.s30 },
       total: { notices: stats.n, states: stats.s, since: stats.since ? stats.since.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: TZ }) : '' },

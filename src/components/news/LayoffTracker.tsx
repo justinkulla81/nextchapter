@@ -141,6 +141,9 @@ export function LayoffTracker({ data, national, headingLevel = 'h2' }: { data: L
                   {r.alsoReported && (
                     <span className="ml-2 rounded-full bg-off-white px-2 py-0.5 align-middle text-xs font-normal text-muted-foreground">Also reported</span>
                   )}
+                  {r.unconfirmed && (
+                    <span className="ml-2 rounded-full bg-off-white px-2 py-0.5 align-middle text-xs font-normal text-muted-foreground">1 source</span>
+                  )}
                   {(r.type || r.sites > 1) && (
                     <span className="block text-xs font-normal text-muted-foreground">
                       {[r.type, r.sites > 1 ? `${r.sites} sites` : null].filter(Boolean).join(' · ')}
@@ -148,8 +151,8 @@ export function LayoffTracker({ data, national, headingLevel = 'h2' }: { data: L
                   )}
                 </th>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  {r.state}
-                  {r.county && <span className="block text-xs text-muted-foreground">{r.county}</span>}
+                  {r.state || '—'}
+                  {r.county &&<span className="block text-xs text-muted-foreground">{r.county}</span>}
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums">{r.workers != null ? r.workers.toLocaleString() : '—'}</td>
                 <td className="px-4 py-3 whitespace-nowrap tabular-nums text-muted-foreground">{r.effectiveDate ?? '—'}</td>
@@ -172,13 +175,15 @@ export function LayoffTracker({ data, national, headingLevel = 'h2' }: { data: L
         <p>
           What this covers: notices a state has published online, marked “State record”, and layoffs reported by{' '}
           <a href="https://layoffs.fyi" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">layoffs.fyi</a>{' '}
-          or in the press, marked with their source, where the same employer has no state filing within 45 days. Not every
+          or in the press, marked with their source, where the same employer has no state filing within 45 days. A reported
+          layoff that names no U.S. state shows “—” for the state and is listed but not counted in the totals above. Several
+          reports of one layoff are shown once, with the number of workers most of them agree on. Not every
           state publishes its notices, some publish weeks late, and some leave out the number of workers, so the totals are
           a floor rather than a count of every layoff. The WARN Act generally applies to employers with 100 or more workers.
         </p>
         <p>
-          “Also reported” marks a filing that layoffs.fyi or the press reported too. Reported layoffs without a filing are
-          added only once two different publishers have reported them.
+          “Also reported” marks a filing that layoffs.fyi or the press reported too, or a layoff two or more publishers
+          reported. “1 source” marks a reported layoff that only one publisher has reported so far.
         </p>
         <p>
           Free to cite with a link to <span className="font-medium text-foreground">launchyournextchapter.com/layoffs</span>.
