@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { posthog } from '@/lib/posthog/client'
 import { PUBLIC_NAV, type PublicNavMenu } from '@/lib/nav/public-nav'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
+import { NAV_CTA_LABEL, useNavCtaVariant } from '@/lib/ab/nav-cta'
 
 const TOP = 'inline-flex items-center gap-1 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground'
 
@@ -48,6 +49,17 @@ function Panel({ menu, onPick }: { menu: PublicNavMenu; onPick: (href: string) =
 export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
   const [openKey, setOpenKey] = useState<PublicNavMenu['key'] | null>(null)
   const [phoneOpen, setPhoneOpen] = useState(false)
+  const assigned = useNavCtaVariant()
+  const ctaVariant = assigned ?? 'control'
+  // Exposure: once per tab session, so click rate has a denominator per variant.
+  useEffect(() => {
+    if (!assigned) return
+    try {
+      if (window.sessionStorage.getItem('nc_nav_cta_seen')) return
+      window.sessionStorage.setItem('nc_nav_cta_seen', '1')
+    } catch {}
+    track('site_nav_cta_shown', { cta_variant: assigned })
+  }, [assigned])
   const barRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -118,11 +130,11 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
           </Link>
           <Button
             nativeButton={false}
-            render={<Link href={MARKET_REALITY_START_HREF} onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment' })} />}
+            render={<Link href={MARKET_REALITY_START_HREF} onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment', cta_variant: ctaVariant })} />}
             variant="cta"
             className="hidden sm:inline-flex"
           >
-            Get your <span className="hidden xl:inline">Market Reality&nbsp;</span>Assessment
+            {NAV_CTA_LABEL[ctaVariant]}
           </Button>
           <button
             type="button"
@@ -145,8 +157,8 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
             </button>
           </div>
           <div className="space-y-2 px-4 pb-10">
-            <Button nativeButton={false} render={<Link href={MARKET_REALITY_START_HREF} onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment', device: 'phone' })} />} variant="cta" className="h-11 w-full">
-              Get your Market Reality Assessment
+            <Button nativeButton={false} render={<Link href={MARKET_REALITY_START_HREF} onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment', device: 'phone', cta_variant: ctaVariant })} />} variant="cta" className="h-11 w-full">
+              {NAV_CTA_LABEL[ctaVariant]}
             </Button>
             {PUBLIC_NAV.map((m) => (
               <details key={m.key} className="group border-b border-border py-1">
