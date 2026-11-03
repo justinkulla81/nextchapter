@@ -7,6 +7,7 @@ import { archiveMonths } from '@/lib/rankings/awards'
 import { RANKINGS_HERO } from '@/lib/rankings/art'
 import { editionLabel } from '@/lib/rankings/build-edition'
 import { readRankingIndex } from '@/lib/rankings/store'
+import { TOPIC_BLURB, topicSlug } from '@/lib/rankings/topics'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { titleMeta } from '@/lib/seo/title'
@@ -55,18 +56,26 @@ export default async function RankingsHub() {
           </ul>
         </section>
       )}
-      {families.map((f) => {
-        const regional = index.filter((x) => x.family === f && (LIST_FAMILIES.includes(f) || x.scopeKind !== 'national'))
-        if (!regional.length) return null
-        return (
-          <section key={f} aria-labelledby={`f-${f}`}>
-            <h2 id={`f-${f}`} className={H2}>{LIST_FAMILIES.includes(f) ? f : `${f}: by region and state`}</h2>
-            <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
-              {regional.map((x) => <li key={x.slug}><Link href={`/rankings/${x.slug}`} className={LINK}>{x.title}</Link></li>)}
-            </ul>
-          </section>
-        )
-      })}
+      <section aria-labelledby="topics">
+        <h2 id="topics" className={H2}>Browse by topic</h2>
+        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Each topic lists its rankings by region and state, with the city in first place for each.</p>
+        <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {families.map((f) => {
+            const n = index.filter((x) => x.family === f).length
+            if (!n) return null
+            const tone = toneOf(f)
+            return (
+              <li key={f}>
+                <Link href={`/rankings/topic/${topicSlug(f)}`} className={`block h-full rounded-xl p-5 hover:shadow-sm ${tone.card}`}>
+                  <span className={`text-xs font-medium uppercase tracking-wide ${tone.label}`}>{n} {n === 1 ? 'ranking' : 'rankings'}</span>
+                  <span className="mt-1 block text-base font-semibold text-navy">{f}</span>
+                  {TOPIC_BLURB[f] && <span className="mt-1 block text-sm text-foreground">{TOPIC_BLURB[f]}</span>}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
       {months.length > 0 && (
         <section aria-labelledby="archive">
           <h2 id="archive" className={H2}>Past months</h2>

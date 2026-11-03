@@ -61,6 +61,8 @@ const nextConfig: NextConfig = {
       { source: '/jobs/entry-level/category', destination: '/jobs/entry-level', permanent: false },
       // /feeds is the feeds directory page; /feeds/industries is only a folder of feeds, so it goes there.
       { source: '/feeds/industries', destination: '/feeds', permanent: false },
+      // /rankings/topic/[family] is one topic's page; the folder itself has no page.
+      { source: '/rankings/topic', destination: '/rankings', permanent: false },
       // /for-colleges is only a folder of ad landing pages; its parent address goes to the higher education page.
       { source: '/for-colleges', destination: '/higher-education', permanent: false },
       // Comparison pages live under /tools/ai-job-check/compare/[pair]; the folder itself has no page.
