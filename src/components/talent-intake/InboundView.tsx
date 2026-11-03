@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { firmTheme } from '@/lib/recruiter/brand'
+import { firmTheme, isHexColor } from '@/lib/recruiter/brand'
 import { InboundForm } from './InboundForm'
 
 export interface InboundViewFirm {
@@ -16,7 +16,25 @@ export interface InboundViewRecruiter { fullName: string; profilePictureUrl: str
 // The Inbound page as the member sees it. Pure presentation, so dev-preview can show it with sample data.
 export function InboundView({ firm, recruiter, recruiterSlug, notFit }: { firm: InboundViewFirm; recruiter: InboundViewRecruiter | null; recruiterSlug: string | null; notFit: boolean }) {
   const who = recruiter ? `${recruiter.fullName} at ${firm.name}` : firm.name
-  const t = firmTheme(firm)
+  const t0 = firmTheme(firm)
+  // A firm that has not set its brand gets NextChapter's own look (navy, light background, Source Serif headings, Inter text),
+  // not the generic brand defaults. Each setting it has made replaces the matching default. Text is always Inter; only the
+  // headings take the firm's font, so the page uses two typefaces at most.
+  const hasAccent = !!firm.accentColor && isHexColor(firm.accentColor)
+  const hasTone = !!firm.brandTone
+  const hasFont = !!firm.brandFont
+  const branded = hasAccent || hasTone
+  const t = {
+    accent: hasAccent ? t0.accent : '#0b2545',
+    onAccent: hasAccent ? t0.onAccent : '#ffffff',
+    bg: hasTone ? t0.bg : '#f7f9fa',
+    paper: hasTone ? t0.paper : '#ffffff',
+    line: hasTone ? t0.line : '#dfe3ea',
+    ink: branded ? t0.ink : '#0b2545',
+    muted: branded ? t0.muted : '#5a6779',
+  }
+  const headingFont = hasFont ? { fontFamily: t0.fontStack } : undefined
+  const headingClass = hasFont ? '' : ' font-display'
   const heading = notFit ? `Thanks for your interest in ${firm.name}` : `Send your résumé to ${firm.name}`
   const intro = notFit
     ? 'There is no role that fits right now. Send your résumé so we can keep you in mind.'
@@ -25,7 +43,7 @@ export function InboundView({ firm, recruiter, recruiterSlug, notFit }: { firm: 
       : 'Your résumé goes to the recruiter whose focus fits yours.'
 
   return (
-    <div className="min-h-screen" style={{ background: t.bg, color: t.ink, fontFamily: t.fontStack }}>
+    <div className="min-h-screen" style={{ background: t.bg, color: t.ink }}>
       <header className="px-6 py-5" style={{ background: t.accent, color: t.onAccent }}>
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-4">
           {firm.logoUrl ? (
@@ -33,7 +51,7 @@ export function InboundView({ firm, recruiter, recruiterSlug, notFit }: { firm: 
               <Image src={firm.logoUrl} alt={`${firm.name} logo`} width={160} height={40} className="h-8 w-auto object-contain" unoptimized />
             </span>
           ) : (
-            <span className="text-2xl uppercase" style={{ letterSpacing: '.04em' }}>{firm.name}</span>
+            <span className={`text-2xl uppercase${headingClass}`} style={{ letterSpacing: '.04em', ...headingFont }}>{firm.name}</span>
           )}
           <span className="text-sm" style={{ opacity: 0.9 }}>Powered by <b>NextChapter</b></span>
         </div>
@@ -48,7 +66,7 @@ export function InboundView({ firm, recruiter, recruiterSlug, notFit }: { firm: 
           {recruiter?.profilePictureUrl && (
             <Image src={recruiter.profilePictureUrl} alt="" width={56} height={56} className="size-14 rounded-full object-cover" unoptimized />
           )}
-          <h1 className="text-4xl leading-tight sm:text-5xl" style={{ textWrap: 'balance' }}>{heading}</h1>
+          <h1 className={`text-4xl leading-tight sm:text-5xl${headingClass}`} style={{ textWrap: 'balance', ...headingFont }}>{heading}</h1>
           <p className="max-w-xl text-lg" style={{ color: t.muted }}>{intro}</p>
           {recruiter?.intakeBio && <p className="max-w-xl whitespace-pre-line text-sm" style={{ color: t.muted }}>{recruiter.intakeBio}</p>}
         </div>
