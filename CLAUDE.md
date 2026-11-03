@@ -113,7 +113,9 @@ For each layoff in a message:
    `/api/admin/crm/layoff-announcements`, which needs `NC_ATS_API_KEY`; without the key, insert the row yourself with the company
    matched or created), then promote it into the CRM (`promoteWarnNoticeById` does what the admin page does). The layoff-news cron
    fills the country, the workforce board and the alert email; the jobs report and the public tracker read the row as it stands.
-5. Reply with what you found: new or already there, what changed, and anything you could not settle.
+5. Publish it: set `rssPublishedAt = now()` on the notice so it is in the public layoff RSS feed (`/feeds/layoffs`). The owner
+   approved publishing emailed layoffs automatically (2026-11-03); layoffs the app files by itself still wait for an admin's click.
+6. Reply with what you found: new or already there, what changed, and anything you could not settle.
 
 Names that are descriptions ("N.J. bank", "San Francisco HQ") are not employers: find the real company from the story.
 
