@@ -46,7 +46,7 @@ export interface PortalClaim {
   title: string
   /** Plain paragraphs: how a staff member claims the organization's page. Full URLs are written out in the text. */
   paragraphs: string[]
-  /** The state directory of this kind of organization, so staff can find their page: /<path>/<state>. */
+  /** The state directory of this kind of organization, so staff can find their page: /<path>/<state> (path has no leading slash). */
   directory?: { path: string; noun: string }
 }
 

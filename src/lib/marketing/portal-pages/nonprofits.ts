@@ -62,7 +62,7 @@ export const NONPROFITS: PortalPageDef = {
     ],
     claim: {
       title: 'How to claim your page',
-      directory: { path: '/nonprofits', noun: 'nonprofit' },
+      directory: { path: 'nonprofits', noun: 'nonprofit' },
       paragraphs: [
         'Your organization’s page is at https://launchyournextchapter.com/prepared/ followed by its name in lowercase with hyphens between the words, for example https://launchyournextchapter.com/prepared/harborview-family-services. Open it and fill in your name, title and work email.',
         'Use a work email at your organization’s domain. Personal email addresses are not accepted. When we do not yet know your organization’s domain, our team follows up on the claim.',
