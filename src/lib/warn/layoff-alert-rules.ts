@@ -237,8 +237,8 @@ export function orderGroups<T extends { cards: { email: string | null; guessed?:
 }
 
 
-/** An alert still short of contacts after this long is dropped, not emailed. */
-export const ALERT_HOLD_HOURS = 72
+/** An alert short of contacts waits this long (retried hourly), then is emailed anyway with the gaps listed; it is never dropped. */
+export const ALERT_HOLD_HOURS = 6
 
 const EMPLOYER_GROUPS = ['head_hr', 'hr_team']
 const PUBLIC_GROUPS = ['rapid_response', 'workforce_board', 'job_centers', 'economic_development']

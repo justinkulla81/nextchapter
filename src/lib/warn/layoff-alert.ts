@@ -42,7 +42,7 @@ export interface NewLayoff {
  * a week (a multi-site WARN filing) does not alert again. Never throws: an
  * alert that fails must not stop a layoff from being filed.
  */
-export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
+export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } = {}): Promise<boolean> {
   try {
     if (!process.env.RESEND_API_KEY) return false
     if (sentThisRun >= MAX_ALERTS_PER_RUN) { await markHeld(l.noticeId); return false } // a later run sends it
@@ -116,10 +116,6 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     input.picture = { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) }
     input.sources = await loadAlertSources(l.noticeId, l.sourceUrl, l.kind === 'warn' ? 'WARN filing' : l.kind === 'sec' ? 'SEC 8-K filing' : 'Notice')
 
-    // Never hold an alert for missing pieces: send it now and list what is missing at the top of the email.
-    const readiness = alertReadiness(groups, state)
-    if (!readiness.ready) input.gaps = readiness.missing
-
     // Only a sibling that was actually emailed counts: one that was held or skipped must not silence a later, larger notice.
     const sibling = await prisma.warnNotice.count({
       where: {
@@ -127,7 +123,23 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
         fetchedAt: { gte: new Date(Date.now() - REPEAT_DAYS * 86_400_000) },
       },
     })
-    if (sibling > 0) return false
+    if (sibling > 0) {
+      // A held notice that a sibling already covered is finished; closing it keeps the hourly retry list short.
+      if (notice?.alertHeldAt) await prisma.warnNotice.update({ where: { id: l.noticeId }, data: { alertGaveUpAt: new Date() } }).catch(() => {})
+      return false
+    }
+
+    // Try to have every contact before sending: hold a short while and retry hourly as the lookups fill in.
+    // Once the hold runs out, send what we have and list what is missing at the top of the email; never drop it.
+    const readiness = alertReadiness(groups, state)
+    if (!readiness.ready) {
+      if (!opts.sendThin) {
+        await markHeld(l.noticeId)
+        captureServerEvent('cron', 'layoff_alert_held', { noticeId: l.noticeId, employer: l.employer, employees: l.employees, missing: readiness.missing })
+        return false
+      }
+      input.gaps = readiness.missing
+    }
 
     const { error } = await createResend(process.env.RESEND_API_KEY, 'admin').emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
@@ -164,23 +176,18 @@ async function markHeld(noticeId: string): Promise<void> {
 /**
  * Looks again at every held alert: the CRM may have gained the HR contact or the
  * place since, from the contact lookups, the primary-contact sweep, or by hand.
- * Sends the ones now populated; after 72 hours still short, drops the alert
- * without emailing (the 7 AM digest still lists the layoff).
+ * Sends the ones now populated; once the hold (ALERT_HOLD_HOURS) runs out, sends
+ * the alert anyway with the missing pieces listed at the top.
  */
-export async function retryHeldLayoffAlerts(now = new Date()): Promise<{ retried: number; sent: number; gaveUp: number }> {
-  const out = { retried: 0, sent: 0, gaveUp: 0 }
+export async function retryHeldLayoffAlerts(now = new Date()): Promise<{ retried: number; sent: number; sentThin: number }> {
+  const out = { retried: 0, sent: 0, sentThin: 0 }
   const held = await prisma.warnNotice.findMany({
     where: { alertHeldAt: { not: null }, alertSentAt: null, alertGaveUpAt: null, dismissedAt: null },
     orderBy: { alertHeldAt: 'asc' },
     take: 20,
   })
   for (const n of held) {
-    if (now.getTime() - (n.alertHeldAt?.getTime() ?? now.getTime()) > ALERT_HOLD_HOURS * 3_600_000) {
-      await prisma.warnNotice.update({ where: { id: n.id }, data: { alertGaveUpAt: now } })
-      captureServerEvent('cron', 'layoff_alert_gave_up', { employer: n.employer, employees: n.employees })
-      out.gaveUp++
-      continue
-    }
+    const sendThin = now.getTime() - (n.alertHeldAt?.getTime() ?? now.getTime()) >= ALERT_HOLD_HOURS * 3_600_000
     const kind: LayoffKind = n.source === 'WARN_FILING' ? 'warn' : /^SEC 8-K/i.test(n.layoffType ?? '') ? 'sec' : 'news'
     const percent = n.layoffType?.match(/(\d{1,3}(?:\.\d+)?)% of staff/)?.[1]
     out.retried++
@@ -188,8 +195,8 @@ export async function retryHeldLayoffAlerts(now = new Date()): Promise<{ retried
       noticeId: n.id, employer: n.employer, normalizedEmployer: n.normalizedEmployer, employees: n.employees,
       percent: percent ? parseFloat(percent) : null, kind, confirmed: kind !== 'news' || !/unconfirmed/i.test(n.layoffType ?? ''),
       sourceUrl: n.sourceUrl,
-    })
-    if (sent) out.sent++
+    }, { sendThin })
+    if (sent) { out.sent++; if (sendThin) out.sentThin++ }
   }
   return out
 }
