@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { IndustryLayoffLinks } from '@/components/layoffs/IndustryLayoffLinks'
 import { notFound } from 'next/navigation'
 import { PublicSiteFooter, PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
@@ -116,6 +117,8 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
               </ul>
             </section>
           )}
+
+          <IndustryLayoffLinks notices={notices} heading="By industry" />
 
           {sorted.length > 0 && (
             <section aria-labelledby="all" className="mt-10">

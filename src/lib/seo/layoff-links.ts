@@ -3,6 +3,7 @@ import { getStateCollegeListings } from '@/lib/seo/college-pages'
 import { getStateBoards } from '@/lib/seo/workforce-pages'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
+import { getPlaceLinker } from '@/lib/places/places'
 
 /**
  * Links from the layoff tracker to the state pages around it (rapid response, workforce boards, job centers, economic development
@@ -52,4 +53,23 @@ export async function layoffAndRapidLinks(code: string): Promise<CrossLink[]> {
   if (layoffs) out.push(layoffs)
   if (boards.length) out.push({ label: `${stateName(code)} rapid response`, href: `/rapid-response/${stateSlug(code)}` })
   return out
+}
+
+/**
+ * The county and city pages for where an employer filed notices, most notices first, each only when the place page exists
+ * (getPlaceLinker returns null otherwise). The links go to place pages, which carry no employer names (Justin's 2026-10-25 rule).
+ */
+export async function noticePlaceLinks(notices: { state: string; place: string | null }[], limit = 6): Promise<CrossLink[]> {
+  const states = [...new Set(notices.map((n) => n.state))].slice(0, 3)
+  const linkers = new Map(await Promise.all(states.map(async (s) => [s, await getPlaceLinker(s).catch(() => () => null)] as const)))
+  const counts = new Map<string, CrossLink & { n: number }>()
+  for (const n of notices) {
+    if (!n.place || !states.includes(n.state)) continue
+    const href = linkers.get(n.state)?.(n.place)
+    if (!href) continue
+    const e = counts.get(href) ?? { label: `${n.place}, ${stateName(n.state)}: local jobs, job centers and layoffs`, href, n: 0 }
+    e.n++
+    counts.set(href, e)
+  }
+  return [...counts.values()].sort((a, b) => b.n - a.n).slice(0, limit).map(({ label, href }) => ({ label, href }))
 }

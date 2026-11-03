@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { IndustryLayoffLinks } from '@/components/layoffs/IndustryLayoffLinks'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { PublicSiteFooter, PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
@@ -103,6 +104,8 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
               </ul>
             </section>
           )}
+          <IndustryLayoffLinks notices={notices} heading="By industry" />
+
           {biggest.length > 0 && (
             <section aria-labelledby="biggest" className="mt-10">
               <h2 id="biggest" className="text-2xl font-bold tracking-tight text-navy">Largest notices</h2>
