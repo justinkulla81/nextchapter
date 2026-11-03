@@ -24,9 +24,8 @@ export function bucketOf(key: string): number {
   return h % AWARD_BUCKETS
 }
 
-/** The awards one edition hands out: its top 25 cities or counties. Skills, tools and certifications have no pages to put them on. */
-export function awardEntries(ed: Pick<RankingEdition, 'slug' | 'edition' | 'placeNoun' | 'rows'>): [string, Award][] {
-  if (ed.placeNoun !== 'cities' && ed.placeNoun !== 'counties') return []
+/** The awards one edition hands out: its top 25 cities, counties, industries, AI skills, tools or certifications. */
+export function awardEntries(ed: Pick<RankingEdition, 'slug' | 'edition' | 'rows'>): [string, Award][] {
   return ed.rows.slice(0, AWARD_TOP).map((r) => [r.key, { slug: ed.slug, edition: ed.edition, rank: r.rank, valueLabel: r.valueLabel, places: ed.rows.length }])
 }
 
@@ -122,6 +121,9 @@ export function familyLists(index: RankingIndexEntry[], fn: string): RankingInde
 
 /** The family slug used in list addresses ("data-and-analytics"), for a family name. */
 export const familySlug = (fn: string) => FAMILIES.find((f) => f.fn === fn)?.slug ?? null
+
+/** The address part of a skill or tool's own page (/ai-skills/<slug>). */
+export const skillSlug = (name: string) => name.toLowerCase().replace(/&/g, ' and ').replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
 // ---- Archive ----
 

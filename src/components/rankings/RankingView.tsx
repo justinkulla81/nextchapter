@@ -4,7 +4,8 @@ import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { MONTH_TINTS } from '@/components/rankings/tones'
 import { editionLabel } from '@/lib/rankings/build-edition'
-import { editionHref, familyOfRanking } from '@/lib/rankings/awards'
+import { editionHref, familyOfRanking, skillSlug } from '@/lib/rankings/awards'
+import { MEASURE_GUIDE } from '@/lib/rankings/guides'
 import { employerLinks } from '@/lib/rankings/employer-links'
 import { SITE_URL } from '@/lib/seo/facts'
 import { getTitleIndex, hasSalaryPage } from '@/lib/seo/job-titles'
@@ -23,7 +24,7 @@ type Noun = RankingEdition['placeNoun']
 const isSkillNoun = (n: Noun) => n === 'skills' || n === 'tools' || n === 'certifications'
 
 /** Where a row's name leads: its place page, or for a skill, tool or certification, the open jobs that name it. */
-const linkOf = (row: RankRow, noun: Noun) => row.href ?? (isSkillNoun(noun) ? `/jobs?q=${encodeURIComponent(row.name)}` : null)
+const linkOf = (row: RankRow, noun: Noun) => row.href ?? (noun === 'skills' || noun === 'tools' ? `/ai-skills/${skillSlug(row.name)}` : isSkillNoun(noun) ? `/jobs?q=${encodeURIComponent(row.name)}` : null)
 
 function PlaceName({ row, noun, className }: { row: RankRow; noun: Noun; className?: string }) {
   const href = linkOf(row, noun)
@@ -51,8 +52,9 @@ function TopChart({ rows, noun }: { rows: RankRow[]; noun: Noun }) {
 const JUMP_LABEL: Record<Noun, (name: string) => string> = {
   cities: (n) => `Jobs and employers in ${n}`,
   counties: (n) => `${n} job market`,
-  skills: (n) => `Open jobs naming ${n}`,
-  tools: (n) => `Open jobs naming ${n}`,
+  industries: (n) => `${n} jobs, employers and outlook`,
+  skills: (n) => `${n}: ranks by month and open jobs`,
+  tools: (n) => `${n}: ranks by month and open jobs`,
   certifications: (n) => `Open jobs naming ${n}`,
 }
 
@@ -223,6 +225,14 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         <Movers rows={e.rows} />
       </section>
 
+      <section aria-labelledby="guide">
+        <h2 id="guide" className={H2}>Why this ranking matters</h2>
+        <div className="mt-3 grid max-w-4xl gap-4 text-sm text-foreground sm:grid-cols-2">
+          <div className="rounded-xl bg-white p-4"><h3 className="font-semibold text-navy">What it shows</h3><p className="mt-1">{MEASURE_GUIDE[e.measure].why}</p></div>
+          <div className="rounded-xl bg-white p-4"><h3 className="font-semibold text-navy">How to use it</h3><p className="mt-1">{MEASURE_GUIDE[e.measure].use}</p></div>
+        </div>
+      </section>
+
       <section aria-labelledby="top">
         <h2 id="top" className={H2}>The top 25</h2>
         <ol className="mt-4 space-y-3">{e.rows.slice(0, 25).map((r) => <RowCard key={r.key} row={r} unit={unit} noun={e.placeNoun} slug={e.slug} edition={e.edition} links={employers} />)}</ol>
@@ -234,7 +244,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         <div className={`${CARD} mt-4 overflow-x-auto`}>
           <table className="w-full min-w-[32rem] text-left text-sm">
             <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
+              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {e.rows.map((r) => (

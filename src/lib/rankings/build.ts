@@ -4,9 +4,9 @@ import { costsFor } from '@/lib/market/area-costs'
 import { getStateCities, getStateCityPlaces, getStateCounties, placeUrl } from '@/lib/places/places'
 import { placeKey } from '@/lib/workforce/places'
 import { stateSlug } from '@/lib/seo/states'
-import { FAMILIES, functionSpecs, rankCities, rankCounties, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, type Spec } from '@/lib/rankings/build-edition'
+import { FAMILIES, functionSpecs, industrySpecs, rankCities, rankCounties, rankIndustries, rankSkills, skillSpecs, wave1Specs, wave2PlaceSpecs, type Spec } from '@/lib/rankings/build-edition'
 import { STATE_FIPS } from '@/lib/rankings/regions'
-import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadSkillStats } from '@/lib/rankings/scan'
+import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
 import { awardEntries } from '@/lib/rankings/awards'
 import { addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
 import type { BuildGroup, CityStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
@@ -84,6 +84,14 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     const { stats, totals } = await loadSkillStats()
     for (const spec of specs) {
       const ed = rankSkills(spec, stats, totals, edition, builtAt, await prevRanksOf(spec.slug))
+      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+    }
+    // The industry lists build in this group too: one more pass over the board, no city work.
+    const industries = industrySpecs()
+    specs = [...specs, ...industries]
+    const industryStats = await loadIndustryStats()
+    for (const spec of industries) {
+      const ed = rankIndustries(spec, industryStats, edition, builtAt, await prevRanksOf(spec.slug))
       ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
     }
   } else {

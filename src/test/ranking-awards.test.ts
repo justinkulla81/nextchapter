@@ -10,11 +10,11 @@ const entry = (slug: string, edition: string, extra: Partial<RankingIndexEntry> 
 })
 
 describe('awards', () => {
-  it('gives awards to the top 25 cities and counties, not to skills', () => {
+  it('gives awards to the top 25 of every kind of list', () => {
     const keys = Array.from({ length: 40 }, (_, i) => `TX|c${i}`)
     expect(awardEntries(ed('a', '2026-10', keys))).toHaveLength(25)
     expect(awardEntries(ed('a', '2026-10', keys, 'counties'))).toHaveLength(25)
-    expect(awardEntries(ed('a', '2026-10', keys, 'skills'))).toEqual([])
+    expect(awardEntries(ed('a', '2026-10', keys, 'skills'))).toHaveLength(25)
     const first = awardEntries(ed('a', '2026-10', keys))[0]
     expect(first[0]).toBe('TX|c0')
     expect(first[1]).toMatchObject({ slug: 'a', edition: '2026-10', rank: 1, places: 40 })
@@ -96,5 +96,21 @@ describe('archive and place keys', () => {
     expect(cityAwardKeys('Austin', 'TX')).toEqual(['TX|austin'])
     expect(placeFromLocation('Austin, TX')).toEqual({ name: 'Austin, TX', keys: ['TX|austin'] })
     expect(placeFromLocation('Remote')).toBeNull()
+  })
+})
+
+describe('industry lists', () => {
+  it('ranks industries on entry-level share, AI share and pay', async () => {
+    const { industrySpecs, rankIndustries } = await import('@/lib/rankings/build-edition')
+    const stats = Array.from({ length: 8 }, (_, i) => ({ name: i === 0 ? 'Technology & Software' : `Industry ${i}`, n: 200 + i, entry: 20 + i * 10, ai: 100 - i * 5, paid: 60, payMed: 90_000 + i * 1000 }))
+    const [junior, ai, pay] = industrySpecs()
+    const j = rankIndustries(junior, stats, '2026-11', 'x', null)!
+    expect(j.rows[0].name).toBe('Industry 7')
+    expect(rankIndustries(ai, stats, '2026-11', 'x', null)!.rows[0].name).toBe('Technology & Software')
+    const p = rankIndustries(pay, stats, '2026-11', 'x', null)!
+    expect(p.rows[0].valueLabel).toBe('$97k')
+    expect(awardEntries(p)[0][0]).toBe('industry:Industry 7')
+    expect(rankIndustries(junior, stats.slice(0, 3), '2026-11', 'x', null)).toBeNull()
+    expect(new Set(industrySpecs().map((s) => s.slug)).size).toBe(3)
   })
 })
