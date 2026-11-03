@@ -32,7 +32,7 @@ import { approvedStories, storyNumbersFor } from '@/lib/layoff-stories/store'
 import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } from '@/lib/warn/company-announcements'
 import { getEmployerBrand } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
-import { CompanyInterestFlag } from '@/components/company/CompanyInterestFlag'
+import { AffectedPrompt } from '@/components/layoffs/landing/AffectedPrompt'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { ClaimHint } from '@/components/seo/ClaimHint'
 import { LandingHero } from '@/components/layoffs/landing/LandingHero'
@@ -198,7 +198,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
 
           <YourState label={c.name} />
           <div className="mt-4 space-y-12">
-            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} action={<CompanyInterestFlag company={c.name} slug={slug} page="layoffs" />} />
+            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
             <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} buyoutRule={buyoutRule} />
             <SearchTimeFacts />
             <PeerEmployers company={c.name} near={peers.near} similar={peers.similar} metro={peers.homeState ? stateName(peers.homeState) : null} />
