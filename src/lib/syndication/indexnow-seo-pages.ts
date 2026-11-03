@@ -16,10 +16,13 @@ import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-anno
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 import { eventStateCounts, EVENTS_STATE_MIN } from '@/lib/local-events/queries'
 import { readRankingIndex } from '@/lib/rankings/store'
+import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
+import { functionPayPath, industryPayPath, skillPath } from '@/lib/pay-data/slugs'
+import type { PayData } from '@/lib/pay-data/types'
 import { chunk, INDEXNOW_BATCH, INDEXNOW_ENDPOINT, INDEXNOW_NEW_PER_RUN, indexNowBody } from '@/lib/syndication/syndication'
 
 // Daily IndexNow for the pages the job and organization crons do not cover: employer pages, nonprofit pages, the
-// workforce, rapid-response and higher-education state pages, the monthly rankings and the layoff pages. It sends a page the first time it
+// workforce, rapid-response and higher-education state pages, the monthly rankings, the pay data pages and the layoff pages. It sends a page the first time it
 // qualifies, and (for the layoff pages) again when a newer notice is filed. Same key, endpoint and state bucket as
 // indexnow-org-pages. A rejected batch stops the run; the rest goes next time.
 
@@ -57,6 +60,22 @@ async function currentPages(): Promise<Page[]> {
     for (const x of index) out.push({ path: `/rankings/${x.slug}`, lastModified: x.edition })
   } catch (e) {
     console.error('indexnow-seo-pages: rankings left out', e)
+  }
+
+  // The pay data pages (/resources/pay-data): the figures are rebuilt daily but move slowly, so each page is announced once a month
+  // (the month of the figures is the stamp). Only groups and skills that passed the publish bars have a page.
+  try {
+    const pay = await readBoardFigure<PayData>('pay-data')
+    if (pay) {
+      const month = pay.computedAt.slice(0, 7)
+      const paths = [
+        '/resources/pay-data', ...['industry', 'function', 'size', 'hiring', 'skills'].map((c) => `/resources/pay-data/${c}`),
+        ...pay.byIndustry.map((g) => industryPayPath(g.key)), ...pay.byFunction.map((g) => functionPayPath(g.label)), ...pay.skills.map(skillPath),
+      ]
+      for (const path of paths) out.push({ path, lastModified: month })
+    }
+  } catch (e) {
+    console.error('indexnow-seo-pages: pay data left out', e)
   }
 
   // Workforce board, rapid-response and higher-education state pages, from one read of the boards and the college states.
