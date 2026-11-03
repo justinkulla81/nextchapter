@@ -36,7 +36,7 @@ export const HOLD: Record<string, string> = {
   'Smith Inc.': 'Smith Inc. and Smith.ai are different companies.',
   'You.com': 'You.com and "Y.o.u." may be different.',
   'Visit Us': 'Visit Us and Visit.org may be different.',
-  'Polaris (formerly Polaris Project)': 'Polaris Project (anti-trafficking nonprofit) and Polaris Inc. (vehicles) are different.',
+  'Polaris (formerly Polaris Project)': 'Polaris Project (anti-trafficking non-profit) and Polaris Inc. (vehicles) are different.',
 }
 export const SPACING = 'Differ only by where the spaces are, and the name is generic enough that they could be two companies.'
 for (const n of [

@@ -41,7 +41,7 @@ function workAuthorizationLeg(workAuthorization: string | null): MarketLeg {
       score: 35,
       drivers: [
         'Roles that require visa sponsorship narrow your options — most employers don\'t sponsor.',
-        'This isn\'t about your background — it\'s about which employers can legally hire you. Sponsoring and cap-exempt employers (many universities, nonprofits, and larger companies) are the path, and we can help you target them.',
+        'This isn\'t about your background — it\'s about which employers can legally hire you. Sponsoring and cap-exempt employers (many universities, non-profits, and larger companies) are the path, and we can help you target them.',
       ],
     }
   }

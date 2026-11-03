@@ -7,7 +7,7 @@ import { contactStrength, strongerContact, type ContactStrength } from '@/lib/cr
 
 /**
  * Computes the 0-100 fit score (partner-scoring.ts) for every WIOA board, job
- * center, EDA district, state agency, local EDO and nonprofit lead, and writes it
+ * center, EDA district, state agency, local EDO and non-profit lead, and writes it
  * with its reasons. Contacts in the CRM are matched by organization name and by
  * the domain people write from. Run weekly by /api/cron/partner-scores.
  */
@@ -52,7 +52,7 @@ const domainOf = (url: string | null): string | null => {
   try { return new URL(/^https?:/i.test(url) ? url : `https://${url}`).hostname.toLowerCase().replace(/^(www\d?|home|web)\./, '') } catch { return null }
 }
 
-/** Scores every board, job center, EDA district, state agency, local EDO and nonprofit lead; writes when apply is true. */
+/** Scores every board, job center, EDA district, state agency, local EDO and non-profit lead; writes when apply is true. */
 export async function scoreAllPartners(apply: boolean): Promise<ScoreSummary> {
   const summary: ScoreSummary = {}
   // Contacts in the CRM: by organization name, and by the address a person writes from.
@@ -119,7 +119,7 @@ export async function scoreAllPartners(apply: boolean): Promise<ScoreSummary> {
     hasName: !!o.contactName, hasEmail: !!o.email, hasPhone: !!o.phone, hasWebsite: !!o.website, contact: contactFor(o.name, o.website) }) }))
   await writeScores(apply, 'LocalPartnerOrg', 'id', ls); summary['EDDs / agencies / EDOs'] = summarize(ls)
 
-  // nonprofit leads
+  // non-profit leads
   const leads = await prisma.$queryRaw<{ id: string; kind: string; name: string; state: string; geoAreaId: string | null; revenue: number | null; website: string | null; contactName: string | null; contactEmail: string | null; contactPhone: string | null }[]>`select id, kind, name, state, "geoAreaId", revenue, website, "contactName", "contactEmail", "contactPhone" from "GeoOrgLead" where "dismissedAt" is null`
   const ns = leads.map((l) => ({ id: l.id, s: scorePartner({ kind: l.kind === 'WORKFORCE' ? 'NONPROFIT_WORKFORCE' : l.kind === 'CHAMBER' ? 'CHAMBER' : 'NONPROFIT_ECON',
     area: l.geoAreaId && byId.get(l.geoAreaId) ? combine([byId.get(l.geoAreaId)!]) : combine(stateArea.get(l.state) ? [stateArea.get(l.state)!] : []),

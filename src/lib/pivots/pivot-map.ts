@@ -1011,7 +1011,7 @@ const SOURCE_LIST: PivotSource[] = [
   {
     role: 'social_work',
     edges: [
-      { to: 'nonprofit_programs', brings: ['Case management', 'Community resources', 'Running programs'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Program and leadership roles at nonprofits build directly on casework, with less burnout.' },
+      { to: 'nonprofit_programs', brings: ['Case management', 'Community resources', 'Running programs'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Program and leadership roles at non-profits build directly on casework, with less burnout.' },
       { to: 'public_sector', brings: ['Public programs and benefits', 'Policy in practice', 'Documentation'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Government agencies hire social workers into program and policy roles that shape the services you delivered.' },
       { to: 'people_operations', brings: ['Supporting people through hard times', 'Confidentiality', 'Benefits and resources'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Employee relations, benefits and wellbeing roles use counseling skills inside companies.' },
       { to: 'education_admin', brings: ['Student support', 'Crisis response', 'Family work'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Schools and colleges hire social workers into student services and support roles.' },
@@ -1101,18 +1101,18 @@ const SOURCE_LIST: PivotSource[] = [
     role: 'nonprofit_programs',
     edges: [
       { to: 'csr', brings: ['Program design', 'Community partnerships', 'Impact reporting'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Corporate social responsibility teams run a company’s giving and community programs, usually with better pay.' },
-      { to: 'public_sector', brings: ['Program management', 'Grants and compliance', 'Serving the public'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Government programs fund and run much of the same work nonprofits do, with more stability.' },
-      { to: 'fundraising', brings: ['Telling the mission story', 'Donor relationships', 'Grant writing'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Development roles are in demand at every nonprofit, and program leaders make credible fundraisers.' },
-      { to: 'education_admin', brings: ['Student and family programs', 'Outreach', 'Case management'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Schools and universities hire nonprofit program people into student services and outreach.' },
+      { to: 'public_sector', brings: ['Program management', 'Grants and compliance', 'Serving the public'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Government programs fund and run much of the same work non-profits do, with more stability.' },
+      { to: 'fundraising', brings: ['Telling the mission story', 'Donor relationships', 'Grant writing'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Development roles are in demand at every non-profit, and program leaders make credible fundraisers.' },
+      { to: 'education_admin', brings: ['Student and family programs', 'Outreach', 'Case management'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Schools and universities hire non-profit program people into student services and outreach.' },
       { to: 'program_management', brings: ['Running programs on a budget', 'Partners and stakeholders', 'Reporting'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Corporate program management uses the same skills: coordinate people and money to an outcome.' },
       { to: 'community_management', brings: ['Building community', 'Events', 'Partnerships'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'Community roles at companies reward people who know how to bring a group together.' },
-      { to: 'social_work', brings: ['Case work', 'Community resources', 'Program delivery'], time: 'longer', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Many nonprofit staff add a social work license to move into counseling and clinical roles.' },
+      { to: 'social_work', brings: ['Case work', 'Community resources', 'Program delivery'], time: 'longer', path: 'KEEP_SENIORITY', fit: 'stretch', why: 'Many non-profit staff add a social work license to move into counseling and clinical roles.' },
     ],
   },
   {
     role: 'education_admin',
     edges: [
-      { to: 'nonprofit_programs', brings: ['Student and family programs', 'Advising', 'Outreach'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Education nonprofits and youth programs need people who know students and schools.' },
+      { to: 'nonprofit_programs', brings: ['Student and family programs', 'Advising', 'Outreach'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Education non-profits and youth programs need people who know students and schools.' },
       { to: 'public_sector', brings: ['Education policy in practice', 'Compliance', 'Program management'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'State and local education agencies hire people who have run school and student programs.' },
       { to: 'talent_acquisition', brings: ['Admissions is recruiting', 'Interviewing', 'Pipeline management'], time: 'months', path: 'KEEP_SENIORITY', fit: 'close', why: 'Admissions is recruiting with students; companies hire admissions people into talent acquisition.' },
       { to: 'people_operations', brings: ['Student services processes', 'Policy and compliance', 'Helping people through systems'], time: 'months', path: 'KEEP_SENIORITY', fit: 'adjacent', why: 'People operations is student services for employees.' },

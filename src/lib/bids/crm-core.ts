@@ -5,14 +5,14 @@ export type BidEligibility = 'DIRECT' | 'VIA_PARTNER' | 'UNKNOWN'
 
 /**
  * Can NextChapter bid on the NEXT award like this one? A federal contract is full and open unless the notice sets it
- * aside (small business and similar), so a for-profit can bid; a federal grant normally goes to nonprofits, states,
+ * aside (small business and similar), so a for-profit can bid; a federal grant normally goes to non-profits, states,
  * colleges and boards, so we would go in through a partner. Neither says anything about the notice that will actually
  * be posted: that is read when it appears.
  */
 export function awardEligibility(kind: 'CONTRACT' | 'GRANT'): { eligibility: BidEligibility; note: string } {
   return kind === 'CONTRACT'
     ? { eligibility: 'DIRECT', note: 'Contract: open to for-profit bidders unless the next notice sets it aside (small business and similar). Check the notice.' }
-    : { eligibility: 'VIA_PARTNER', note: 'Grant: normally for nonprofits, states, colleges and boards, so we would apply through a partner.' }
+    : { eligibility: 'VIA_PARTNER', note: 'Grant: normally for non-profits, states, colleges and boards, so we would apply through a partner.' }
 }
 
 /** A board's own page rarely states size or who may apply on the listing line. Say so instead of guessing. */

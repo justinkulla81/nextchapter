@@ -269,7 +269,7 @@ const STAGE_LABEL: Record<Stage, string> = {
   startup: 'a startup',
   growth: 'a growth-stage company',
   enterprise: 'a large established company',
-  'non-profit': 'a nonprofit',
+  'non-profit': 'a non-profit',
   government: 'a public-sector employer',
 }
 

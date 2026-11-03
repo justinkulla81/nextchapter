@@ -9,7 +9,7 @@ import { hiddenFromShown, parseSectors } from '@/lib/jobs/employer-sector'
 export type SaveSectorsResult = { ok: true } | { ok: false; error: string }
 
 /**
- * Saves which employer sectors the member wants to see (government, nonprofit,
+ * Saves which employer sectors the member wants to see (government, non-profit,
  * academia, private). The board and every job email leave the others out
  * (board-shortlist.ts reads hiddenEmployerSectors). The PostHog event
  * (employer_sector_filter_changed) is fired by the control that called this.

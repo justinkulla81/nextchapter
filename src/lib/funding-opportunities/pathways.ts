@@ -32,7 +32,7 @@ export const PATHWAY_NOTE: Record<FundingPathway, string> = {
   DISLOCATED_WORKER:
     'Dislocated worker money goes to state agencies and workforce boards. Texas pattern: colleges and boards win it, and NextChapter is the professional-track reemployment provider inside it as a subrecipient or vendor, serving the managers and professionals the formula programs rarely reach.',
   AI_WORKFORCE:
-    'AI workforce money goes to states, boards, colleges and nonprofits. Texas pattern: they win it, and NextChapter is the professional-track provider inside it, covering the white-collar reskilling and job search the grant names.',
+    'AI workforce money goes to states, boards, colleges and non-profits. Texas pattern: they win it, and NextChapter is the professional-track provider inside it, covering the white-collar reskilling and job search the grant names.',
 }
 
 /** The note for a VIA_PARTNER notice: who can apply, then what that means for us. */

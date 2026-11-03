@@ -1,5 +1,5 @@
 // Which BLS JOLTS industry stands closest to each of our industry buckets. A bucket with no sensible sector (Other,
-// Nonprofit, Agriculture, which JOLTS leaves out) is absent: the page shows nothing rather than a stand-in.
+// Non-profit, Agriculture, which JOLTS leaves out) is absent: the page shows nothing rather than a stand-in.
 
 export interface JoltsReading { value: number; yearAgo: number; asOf: string }
 export interface JoltsMeasures { openings?: JoltsReading; hires?: JoltsReading; layoffs?: JoltsReading }

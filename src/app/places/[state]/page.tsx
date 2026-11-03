@@ -91,7 +91,7 @@ export default async function StatePlacePage({ params }: { params: Promise<{ sta
       <section aria-labelledby="highered" className="mt-12">
         <h2 id="highered" className={H2}>Higher education in {name}</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-3">
-          <Stat value={d.collegeCount.toLocaleString()} label="public and private nonprofit colleges" note="Source: IPEDS, U.S. Department of Education" />
+          <Stat value={d.collegeCount.toLocaleString()} label="public and private non-profit colleges" note="Source: IPEDS, U.S. Department of Education" />
           {d.area && d.area.higherEdEnrollmentEst > 0 && <Stat value={`about ${d.area.higherEdEnrollmentEst.toLocaleString()}`} label="students enrolled" note="Estimated from size bands" />}
         </ul>
       </section>

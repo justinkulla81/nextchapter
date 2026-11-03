@@ -2,7 +2,7 @@
  * Can NextChapter pursue this, and how?
  *
  *   DIRECT       open to a for-profit / small business, or unrestricted.
- *   VIA_PARTNER  only a state, local government, college or nonprofit may apply
+ *   VIA_PARTNER  only a state, local government, college or non-profit may apply
  *                — our customers and partners — and NextChapter can be backed
  *                in as the vendor or subrecipient that delivers the funded work.
  *   NOT_ELIGIBLE no route in at all (individuals, tribes only, set-asides we

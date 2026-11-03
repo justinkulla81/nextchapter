@@ -68,7 +68,7 @@ export default async function EconomicDevelopmentLeadsPage({ searchParams }: { s
         <div>
           <h1 className="text-2xl font-semibold">Economic development leads</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Economic development groups, chambers of commerce and workforce nonprofits (not WIOA boards), each tied to its county. Size is the group&apos;s annual revenue from its latest IRS filing. City and county government offices are not in this list.
+            Economic development groups, chambers of commerce and workforce non-profits (not WIOA boards), each tied to its county. Size is the group&apos;s annual revenue from its latest IRS filing. City and county government offices are not in this list.
           </p>
         </div>
         <Link href="/support/admin/crm/geographies" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">Geographies</Link>

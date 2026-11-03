@@ -401,7 +401,7 @@ const SPEC: Record<CustomerType, Spec> = {
     off: ['a-board', 'a-datacenters'],
   },
 
-  // ───────────────────────────── Workforce nonprofits ─────────────────────────
+  // ───────────────────────────── Workforce non-profits ─────────────────────────
   WORKFORCE_NONPROFIT: {
     buyer: 'Executive director; director of programs',
     angle: 'Add AI-supported coaching and a white-collar track to existing programs without hiring.',
