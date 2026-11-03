@@ -75,6 +75,58 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     why: 'Roles that name some AI skills post higher pay than roles that do not. This list ranks skills by the median pay of the roles that name them.',
     use: 'A higher median means those roles pay more, not that the skill causes the pay. Use it to see where AI skills sit in senior, well-paid roles, then check the roles you want.',
   },
+  pf_entry: {
+    why: 'Some job families and industries hire far more people at the start of their careers than others. The share of openings pitched at entry level shows where a first role is most available.',
+    use: 'If you are early in your career, look at the top of the list for the families and industries to target, and read the same measure by city to see where they hire.',
+  },
+  pf_ai: {
+    why: 'AI skills have moved from a specialist requirement to a line in many postings, but unevenly. The share of openings that ask for them shows which kinds of work have changed most.',
+    use: 'Compare your own job family with the top of the list. A gap is a reason to add one AI skill to your résumé before you apply, not a reason to change careers.',
+  },
+  pf_remote: {
+    why: 'Remote work is not spread evenly. The share of openings that are remote shows which kinds of work employers are most willing to hire from anywhere.',
+    use: 'If you want to work remotely, start your search in the families and industries near the top, and use the city lists to see where those employers are based.',
+  },
+  pf_hybrid: {
+    why: 'Many employers settled on hybrid work, some days on site and some remote. The share of hybrid openings shows where that arrangement is most common.',
+    use: 'If you want some flexibility without going fully remote, hybrid roles are the target. Check how close you live to the employers hiring in your field.',
+  },
+  pf_mgmt: {
+    why: 'Some kinds of work are mostly individual contributors and others are full of management roles. The share of manager-and-above openings shows where a move into management has the most openings.',
+    use: 'If you want to manage people, look at the top for the families and industries with the most management roles. Titles differ between employers, so read the posting for what the role manages.',
+  },
+  pf_lowmgmt: {
+    why: 'Not everyone wants to manage people. Where few openings are management roles, most of the work and the career ladder stay on the individual-contributor side.',
+    use: 'If you want to grow without managing people, look at the families and industries with the lowest management share, and ask employers about a senior individual-contributor track.',
+  },
+  pf_eq: {
+    why: 'Some roles lean on emotional intelligence: reading people, listening and working through conflict. The share of postings that stress it shows where those skills are called out most.',
+    use: 'If these skills are your strength, the top of the list is where to look. Put concrete examples of them in your résumé and interviews.',
+  },
+  pf_noexp: {
+    why: 'Some employers say plainly that no experience is needed, or that they will train people. The share of such openings shows where it is easiest to get started without a track record.',
+    use: 'If you are starting out or changing fields, apply to postings that say it. The city lists show where they are most common.',
+  },
+  pf_entryai: {
+    why: 'Entry-level roles used to ask for little technical background. When they ask for AI skills, the starting line has moved. This list shows where that has happened most.',
+    use: 'If you are applying for first roles, learn the tools named in the postings you want and show a small project that uses them.',
+  },
+  pf_training: {
+    why: 'Employers that provide training lower the bar to get started and to move up. The share of postings that say training is provided shows where that is most common.',
+    use: 'If you are changing fields or early in your career, prefer employers that say they train. Ask what the training covers and how long it lasts.',
+  },
+  aj_exposed: {
+    why: 'Some kinds of work contain more tasks that AI can already speed up. This list ranks job groups by observed exposure, from the Anthropic Economic Index, which counts tasks that AI could speed up and that show work-related use.',
+    use: 'Exposure is coverage of tasks, not a forecast of lost jobs. If your group ranks high, learn the AI tools in your field so you are the person who uses them well.',
+  },
+  aj_least: {
+    why: 'Other kinds of work contain few tasks that AI is used for today. This list ranks job groups from the lowest observed exposure, so it shows where day-to-day work is least touched so far.',
+    use: 'Low exposure today is not a promise for the future. Use it as one input alongside demand and pay when you choose a field.',
+  },
+  aj_pay: {
+    why: 'Employers advertise higher pay for roles that name AI skills in some job families than in others. The premium, adjusted for level, shows where AI skills are rewarded most in posted pay.',
+    use: 'If you are in a family near the top, adding an AI skill is most likely to show up in the pay you can ask for. The gap shows advertised pay, not that AI skills cause it.',
+  },
   icopen: {
     why: 'Each industry hires in a different set of cities. Counting an industry\'s open roles by city shows where its demand is deepest, which is where its employers, recruiters and professional events are concentrated.',
     use: 'If you work in this industry, look at the top cities for the employers to follow and the networks to join. A large market also means more competition, so read it with the pay list for the same industry.',
