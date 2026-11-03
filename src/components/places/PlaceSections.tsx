@@ -1,4 +1,5 @@
 import { StateFilingLink } from '@/components/benefits/StateFilingGuide'
+import { LinkIndex } from '@/components/seo/LinkIndex'
 import Link from 'next/link'
 import { H2, LINK, Stat } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -172,14 +173,7 @@ export function PlaceLinks({ id, title, intro, links }: { id: string; title: str
     <section aria-labelledby={id} className="mt-12">
       <h2 id={id} className={H2}>{title}</h2>
       {intro && <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{intro}</p>}
-      <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
-        {links.map((l) => (
-          <li key={l.href}>
-            <Link href={l.href} className={LINK}>{l.label}</Link>
-            {l.note && <span className="ml-2 text-xs text-muted-foreground">{l.note}</span>}
-          </li>
-        ))}
-      </ul>
+      <LinkIndex label={title} items={links} />
     </section>
   )
 }

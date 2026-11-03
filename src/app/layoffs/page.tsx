@@ -1,4 +1,5 @@
 import { pageMetadata } from '@/lib/seo/keywords'
+import { LinkIndex } from '@/components/seo/LinkIndex'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
@@ -138,11 +139,7 @@ export default async function LayoffsHubPage() {
               Every state, county and city page puts its layoff notices next to local unemployment, open jobs, the employers
               hiring most, colleges and the nearest job centers.
             </p>
-            <ul className="mt-6 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-              {ALL_STATE_CODES.map((c) => (
-                <li key={c}><Link href={`/places/${stateSlug(c)}`} className={LINK}>{stateName(c)}</Link></li>
-              ))}
-            </ul>
+            <LinkIndex label="States" visible={60} items={ALL_STATE_CODES.map((c) => ({ href: `/places/${stateSlug(c)}`, label: stateName(c) }))} />
             <p className="mt-4 text-sm"><Link href="/places" className={LINK}>All local job markets</Link></p>
           </section>
 
