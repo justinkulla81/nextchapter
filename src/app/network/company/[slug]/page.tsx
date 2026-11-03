@@ -6,7 +6,6 @@ import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { JourneyPicker } from '@/components/home/JourneyPicker'
-import { CompanyInterestFlag } from '@/components/company/CompanyInterestFlag'
 import { EmployerEmailCapture } from '@/components/network/EmployerEmailCapture'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { getEmployerBrand } from '@/lib/branding/store'
@@ -138,7 +137,6 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
               {aboutCount(inState.total)} professional jobs are open in {stateLabel}
               {atEmployer.total > 0 && <>, including {aboutCount(atEmployer.total)} at {c.name}</>}. Put in your email and we send a plan built for a layoff: benefits and deadlines first, then jobs matched to your background.
             </p>
-            <div className="mt-5 max-w-2xl"><CompanyInterestFlag company={c.name} slug={slug} page="network" /></div>
             <EmployerEmailCapture slug={slug} employer={c.name} />
             <p className="mt-4 text-sm opacity-90">
               <Link href={`/layoffs/company/${slug}`} className="underline underline-offset-4">All {c.name} layoff notices, dates and sources</Link>
