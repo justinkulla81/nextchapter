@@ -57,6 +57,7 @@ const JUMP_LABEL: Record<Noun, (name: string) => string> = {
   counties: (n) => `${n} job market`,
   industries: (n) => `${n} jobs, employers and outlook`,
   'job families': (n) => `${n} jobs and employers`,
+  states: (n) => `${n} jobs and workforce help`,
   colleges: (n) => `${n}: programs, pay and open jobs nearby`,
   skills: (n) => `${n}: ranks by month and open jobs`,
   tools: (n) => `${n}: ranks by month and open jobs`,
@@ -97,7 +98,7 @@ function RowCard({ row, unit, noun, slug, edition, links }: { row: RankRow; unit
               })}
             </p>
           )}
-          <p className="mt-1 text-xs text-muted-foreground">Based on {row.n.toLocaleString('en-US')} {unit}.</p>
+          {row.n > 0 && <p className="mt-1 text-xs text-muted-foreground">Based on {row.n.toLocaleString('en-US')} {unit}.</p>}
           {href && (
             <p className="mt-2 text-sm">
               <TrackedLink href={href} event="ranking_row_link_clicked" properties={{ slug, edition, rank: row.rank, kind: noun }} className={LINK}>{JUMP_LABEL[noun](row.name)}</TrackedLink>
@@ -254,7 +255,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         <div className={`${CARD} mt-4 overflow-x-auto`}>
           <table className="w-full min-w-[32rem] text-left text-sm">
             <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', 'job families': 'Job family', colleges: 'College' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
+              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', 'job families': 'Job family', states: 'State', colleges: 'College' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {e.rows.map((r) => (
@@ -262,7 +263,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
                   <td className="px-4 py-2 tabular-nums">{r.rank}</td>
                   <td className="px-4 py-2"><PlaceName row={r} noun={e.placeNoun} /> <span className="text-muted-foreground">{r.sub}</span></td>
                   <td className="px-4 py-2 text-right font-medium tabular-nums">{r.valueLabel}</td>
-                  <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">{r.n.toLocaleString('en-US')}</td>
+                  <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">{r.n > 0 ? r.n.toLocaleString('en-US') : '–'}</td>
                 </tr>
               ))}
             </tbody>

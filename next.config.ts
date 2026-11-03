@@ -76,6 +76,7 @@ const nextConfig: NextConfig = {
         ['/authors', '/about'],
         ['/places/:state/city', '/places/:state'],
         ['/places/:state/county', '/places/:state'],
+        ['/lp', '/for-organizations'],
         ['/ai-courses/level', '/ai-courses'],
         ['/ai-courses/for', '/ai-courses'],
         ['/ai-courses/from', '/ai-courses'],
