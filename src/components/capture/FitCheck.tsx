@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
+import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { submitFitLead, type FitLeadState } from '@/lib/leads/fit-lead'
@@ -24,10 +24,9 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
   const [aiFit, setAiFit] = useState<FitResult | null>(null)
   const [state, action, pending] = useActionState<FitLeadState, FormData>(submitFitLead, undefined)
   const visitor = useVisitorState()
-  const [stateCode, setStateCode] = useState('')
-  // Start from the state the visitor chose before or where they appear to be; they can change it and nothing depends on it.
-  useEffect(() => { if (visitor.state) setStateCode((cur) => cur || visitor.state!) }, [visitor.state])
-  useEffect(() => { if (state?.sent && stateCode) rememberState(stateCode) }, [state?.sent, stateCode])
+  // The select starts from the state the visitor chose before or where they appear to be; once they pick one it stays theirs.
+  const [picked, setPicked] = useState<string | null>(null)
+  const stateCode = picked ?? visitor.state ?? ''
 
   function run() {
     const f = checkFit(resume, skills)
@@ -110,7 +109,7 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
               </Link>
             </div>
           ) : (
-            <form action={action} noValidate onSubmit={() => posthog.capture('fit_lead_submitted_client', { source, ran: !!fit, fitPct: fit?.pct ?? null })} className={cn('space-y-3', pending && 'cursor-wait')}>
+            <form action={action} noValidate onSubmit={() => { if (stateCode) rememberState(stateCode); posthog.capture('fit_lead_submitted_client', { source, ran: !!fit, fitPct: fit?.pct ?? null }) }} className={cn('space-y-3', pending && 'cursor-wait')}>
               <h3 className="text-lg font-bold text-navy">Make it yours</h3>
               <p className="text-sm text-navy/80">Tell us your state and where to reach you. Attach your résumé if you want a real read on it.</p>
               <input type="hidden" name="source" value={source} />
@@ -122,7 +121,7 @@ export function FitCheck({ label, source, skills, aiSkills }: { label: string; s
               </div>
               <div>
                 <label htmlFor="fit-state" className="text-sm font-semibold text-navy">Your state</label>
-                <select id="fit-state" name="state" value={stateCode} onChange={(e) => setStateCode(e.target.value)} className={cn(FIELD, 'mt-1')}>
+                <select id="fit-state" name="state" value={stateCode} onChange={(e) => setPicked(e.target.value)} className={cn(FIELD, 'mt-1')}>
                   <option value="" disabled>Choose a state</option>
                   {ALL_STATE_CODES.map((c) => <option key={c} value={c}>{stateName(c)}</option>)}
                 </select>
