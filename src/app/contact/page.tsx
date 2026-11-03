@@ -6,7 +6,7 @@ import type { ContactAudience } from '@prisma/client'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { ContactForm } from '@/components/marketing/ContactForm'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
-import { COMPANY_LINKEDIN_URL, CONTACT_EMAIL, SUPPORT_EMAIL } from '@/lib/contact/constants'
+import { COMPANY_ADDRESS_LINES, COMPANY_LINKEDIN_URL, CONTACT_EMAIL, SUPPORT_EMAIL } from '@/lib/contact/constants'
 
 export const metadata: Metadata = pageMetadata('/contact')
 
@@ -38,6 +38,15 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             <div>
               <h2 className="font-semibold text-navy">Help with your account</h2>
               <p className="mt-1 select-all font-medium text-foreground">{SUPPORT_EMAIL}</p>
+            </div>
+            <div>
+              <h2 className="font-semibold text-navy">Mailing address</h2>
+              <address className="mt-1 not-italic font-medium text-foreground">
+                NextChapter
+                {COMPANY_ADDRESS_LINES.map((line) => (
+                  <span key={line} className="block">{line}</span>
+                ))}
+              </address>
             </div>
             <div>
               <h2 className="font-semibold text-navy">Organizations</h2>
