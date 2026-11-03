@@ -168,12 +168,10 @@ export async function loadSkillStats(): Promise<{ stats: SkillStat[]; totals: Fn
   return { stats: [...skills, ...tools, ...certs], totals }
 }
 
-/** Openings by industry bucket: the counts the industry lists rank on. A posting's industry text is read into the same buckets the industry pages use. */
+/** Openings and posted pay by industry bucket, for the industry pay list. A posting's industry text is read into the same buckets the industry pages use. */
 export async function loadIndustryStats(): Promise<IndustryStat[]> {
-  const rows = await longRead((tx) => tx.$queryRaw<{ ind: string; n: number; entry: number; ai: number; paid: number; pay: number | null }[]>`
+  const rows = await longRead((tx) => tx.$queryRaw<{ ind: string; n: number; paid: number; pay: number | null }[]>`
     SELECT industry AS ind, count(*)::int AS n,
-      count(*) FILTER (WHERE level IN ('ENTRY_IC', 'EARLY_IC'))::int AS entry,
-      count(*) FILTER (WHERE cardinality("aiSkillGroups") > 0)::int AS ai,
       count(*) FILTER (WHERE ${PAID})::int AS paid,
       (percentile_cont(0.5) WITHIN GROUP (ORDER BY ${MID_PAY}) FILTER (WHERE ${PAID}))::float AS pay
     FROM "ExclusiveJobPosting" ${LIVE} AND industry IS NOT NULL
@@ -183,8 +181,8 @@ export async function loadIndustryStats(): Promise<IndustryStat[]> {
   for (const r of rows) {
     const bucket = industryByName(bucketFromIndustryText(r.ind))
     if (!bucket) continue
-    const cur = merged.get(bucket.name) ?? { name: bucket.name, n: 0, entry: 0, ai: 0, paid: 0, payMed: null, payNum: 0 }
-    cur.n += r.n; cur.entry += r.entry; cur.ai += r.ai; cur.paid += r.paid; cur.payNum += (r.pay ?? 0) * r.paid
+    const cur = merged.get(bucket.name) ?? { name: bucket.name, n: 0, paid: 0, payMed: null, payNum: 0 }
+    cur.n += r.n; cur.paid += r.paid; cur.payNum += (r.pay ?? 0) * r.paid
     merged.set(bucket.name, cur)
   }
   return [...merged.values()].map(({ payNum, ...m }) => ({ ...m, payMed: m.paid > 0 ? payNum / m.paid : null }))

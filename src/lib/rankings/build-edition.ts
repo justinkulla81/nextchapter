@@ -98,15 +98,11 @@ export function skillSpecs(): Spec[] {
   return out
 }
 
-/** Industry lists: which industries hire the most entry-level people, ask for AI skills most, and post the highest pay. They build with the skills group. */
+/** The industry pay list: industries ranked on median posted pay. (Entry-level, AI-skill and remote lists by industry are the industry group's.) It builds with the skills group. */
 export function industrySpecs(): Spec[] {
   const scope = { kind: 'national' as const, id: 'us', name: 'United States', phrase: 'all industries' }
   const spec = (slug: string, measure: MeasureId, title: string): Spec => ({ slug, measure, scope, title, family: 'Industries', group: 'skills', minRanked: 6 })
-  return [
-    spec('best-industries-for-entry-level-jobs', 'indjunior', 'Best industries for entry-level jobs'),
-    spec('industries-asking-for-ai-skills', 'indai', 'Industries that ask for AI skills most'),
-    spec('industries-with-the-highest-posted-pay', 'indpay', 'Industries with the highest posted pay'),
-  ]
+  return [spec('industries-with-the-highest-posted-pay', 'indpay', 'Industries with the highest posted pay')]
 }
 
 /** Wave 3, workforce and research: four county lists, nationally and for each region. Places and economies only; no employer is named. */
@@ -369,27 +365,25 @@ export function rankSkills(spec: Spec, stats: SkillStat[], totals: FnTotal[], ed
   })
 }
 
-/** Ranks industries on the share of their openings at entry level, the share that ask for AI skills, or median posted pay. */
+/** Ranks industries on median posted pay. */
 export function rankIndustries(spec: Spec, stats: IndustryStat[], edition: string, builtAt: string, prev: Map<string, number> | null): RankingEdition | null {
-  const pay = spec.measure === 'indpay'
-  const min = pay ? 30 : 100
-  const ranked: Ranked[] = stats.filter((r) => (pay ? r.paid >= min && r.payMed != null : r.n >= min)).map((r) => {
-    const value = pay ? (r.payMed as number) : (spec.measure === 'indjunior' ? r.entry : r.ai) / r.n
+  const min = 30
+  const ranked: Ranked[] = stats.filter((r) => r.paid >= min && r.payMed != null).map((r) => {
+    const value = r.payMed as number
     return {
       key: `industry:${r.name}`, name: r.name, sub: '', href: industryByName(r.name) ? industryPath(r.name) : null, value,
-      valueLabel: pay ? usdK(value) : pct1(value), n: pay ? r.paid : r.n, employers: [],
+      valueLabel: usdK(value), n: r.paid, employers: [],
       stats: [
         { label: 'Open roles', value: nf(r.n) },
-        { label: spec.measure === 'indjunior' ? 'Entry and early-career roles' : 'Roles asking for AI skills', value: nf(spec.measure === 'indai' ? r.ai : r.entry) },
-        { label: 'Median posted pay', value: r.payMed != null && r.paid >= 20 ? usdK(r.payMed) : 'Not enough pay data' },
+        { label: 'Openings with pay posted', value: nf(r.paid) },
+        { label: 'Median posted pay', value: usdK(value) },
       ],
     }
   })
-  const what = spec.measure === 'indjunior' ? 'share of openings at entry or early-career level' : spec.measure === 'indai' ? 'share of openings that name an AI skill' : 'median posted annual salary'
   return editionFor(spec, ranked, null, edition, builtAt, prev, {
-    minN: min, minRanked: spec.minRanked ?? MIN_RANKED, noun: 'industries', unit: pay ? 'openings with pay posted' : 'openings', sampleUnit: 'openings',
-    lead: (name, v) => pay ? `${name} has the highest median posted pay of any industry: ${v} a year across its openings that state a salary.` : spec.measure === 'indjunior' ? `${name} leads the industries for entry-level hiring: ${v} of its open professional roles are entry or early-career.` : `${name} asks for AI skills most: ${v} of its open professional roles name at least one.`,
-    method: [`An industry's score is its ${what}, among open professional roles on employer career sites, verified in the last week. A posting's industry is read into the same groups the industry pages use.`, `Only industries with at least ${min} ${pay ? 'openings that post a salary' : 'openings'} are ranked.`],
+    minN: min, minRanked: spec.minRanked ?? MIN_RANKED, noun: 'industries', unit: 'openings with pay posted', sampleUnit: 'openings',
+    lead: (name, v) => `${name} has the highest median posted pay of any industry: ${v} a year across its openings that state a salary.`,
+    method: ["An industry's score is the median posted annual salary of its open professional roles on employer career sites, verified in the last week. A posting's industry is read into the same groups the industry pages use.", `Only industries with at least ${min} openings that post a salary are ranked.`],
   })
 }
 

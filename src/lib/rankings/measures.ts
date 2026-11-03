@@ -441,7 +441,7 @@ export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
   claidoff: ['NextChapter job data: open professional roles by county', 'Bureau of Labor Statistics, Local Area Unemployment Statistics and Quarterly Census of Employment and Wages', 'CareerOneStop American Job Center directory'],
   coverall: ['NextChapter job data: open professional roles by county', 'Bureau of Labor Statistics, Local Area Unemployment Statistics and Quarterly Census of Employment and Wages', 'Census Bureau population estimates'],
   collegepay: ['U.S. Department of Education, College Scorecard (median earnings, completion, net price), as held in our college tables'],
-  indjunior: POSTINGS, indai: POSTINGS, midcareer: POSTINGS, leadership: POSTINGS, fnopen: POSTINGS, aiskills: POSTINGS, aitools: POSTINGS, aicerts: POSTINGS, skillpay: POSTINGS,
+  midcareer: POSTINGS, leadership: POSTINGS, fnopen: POSTINGS, aiskills: POSTINGS, aitools: POSTINGS, aicerts: POSTINGS, skillpay: POSTINGS,
   indpay: ['NextChapter job data: posted annual salary ranges'],
   fnpay: ['NextChapter job data: posted annual salary ranges', 'Bureau of Economic Analysis regional price parities 2024 (metro areas and states)'],
   junior: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
