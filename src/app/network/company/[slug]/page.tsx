@@ -121,7 +121,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
       <StructuredData data={faqLd} />
       <NetworkViewTracker type="company" slug={slug} state={state} jobsInState={inState.total} jobsAtEmployer={atEmployer.total} />
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-6xl px-6">
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link>

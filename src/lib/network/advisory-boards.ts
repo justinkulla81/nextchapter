@@ -29,8 +29,8 @@ export interface AdvisorySource {
 
 /** Checked 2026-10-25. BoardSource refuses automated requests (HTTP 403) but is a public site, so it stays. */
 export const ADVISORY_SOURCES: readonly AdvisorySource[] = [
-  { name: 'BoardSource: board posting and matching programs', about: 'A directory of programs that match volunteers and professionals with nonprofits looking for board members.', href: 'https://boardsource.org/initiatives/board-recruitment/board-posting-matching/' },
-  { name: 'Taproot Foundation', about: 'Connects professionals with nonprofits for pro bono work and board service.', href: 'https://taprootfoundation.org/' },
+  { name: 'BoardSource: board posting and matching programs', about: 'A directory of programs that match volunteers and professionals with non-profits looking for board members.', href: 'https://boardsource.org/initiatives/board-recruitment/board-posting-matching/' },
+  { name: 'Taproot Foundation', about: 'Connects professionals with non-profits for pro bono work and board service.', href: 'https://taprootfoundation.org/' },
   { name: 'BoardProspects', about: 'A board-candidate network for corporate boards. Executives join with a recommendation from an experienced director in their network.', href: 'https://www.boardprospects.com/' },
   { name: 'Founder Institute: the FAST advisor agreement', about: 'A free one-page advisor agreement for startups, with equity set by how much the advisor does and the company\'s stage.', href: 'https://fi.co/fast' },
 ]
@@ -58,7 +58,7 @@ export interface AdvisoryPlan {
 const NEXT: Record<BoardExperience, AdvisoryStep> = {
   NONE: {
     key: 'first_seat',
-    title: 'Join one nonprofit committee or advisory group',
+    title: 'Join one non-profit committee or advisory group',
     body: 'A committee seat is how people get their first board seat: you show up, you are useful, and the board sees it. Ask one organization you already support.',
   },
   ADVISORY: {
@@ -90,7 +90,7 @@ export function advisoryPlan(details: unknown): AdvisoryPlan {
     next: experience ? NEXT[experience] : UNKNOWN_NEXT,
     lanes: [
       { key: 'startup', title: 'Startup advisory', body: 'Founders want an experienced operator for an hour a month. It is usually paid in a small amount of equity that vests over time, written up in a short advisor agreement.' },
-      { key: 'nonprofit', title: 'Nonprofit boards', body: 'The most open door. Organizations need people with your skills, and many are looking now. Start with one you already support, then a matching program.' },
+      { key: 'nonprofit', title: 'Non-profit boards', body: 'The most open door. Organizations need people with your skills, and many are looking now. Start with one you already support, then a matching program.' },
       { key: 'corporate', title: 'Corporate boards', body: 'The hardest door and mostly a long game. Seats go to people known by directors and search firms, which is why being found and your recruiter relationships come first.' },
       { key: 'fractional', title: 'Fractional and interim work', body: 'Paid, hands-on work for a few organizations at once. It often leads to advisory seats, and it covers income while you build the rest.' },
     ],

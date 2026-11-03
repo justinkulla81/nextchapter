@@ -57,17 +57,17 @@ export default async function LayoffsHubPage() {
         }}
       />
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-6xl px-6">
           {tracker ? (
-            <LayoffTracker data={tracker} national={national} headingLevel="h1" />
+            <LayoffTracker data={tracker} national={national} headingLevel="h1" afterStats={<PullTop name="Layoff tracker" path="/layoffs" />} />
           ) : (
             <>
               <h1 className="text-3xl font-bold tracking-tight text-navy">Layoff tracker</h1>
               <p className="mt-3 text-muted-foreground">The tracker could not be loaded right now. Please try again shortly.</p>
+              <PullTop name="Layoff tracker" path="/layoffs" />
             </>
           )}
-          <PullTop name="Layoff tracker" path="/layoffs" />
 
  <LayoffNumbersNote counts={counts} />
           <CiteThisData path="/layoffs" asOf={counts?.asOf} source="layoffs-hub" />

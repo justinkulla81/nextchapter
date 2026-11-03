@@ -25,7 +25,7 @@ export const HUB_COPY = {
   contactIntro: 'Tell us what you are trying to do and which portal you think fits. The data behind the platform is in the monthly White Collar Employment Report.',
   contactForm: { audience: 'ORGANIZATION' as const, source: 'organizations', heading: 'Send us a message' },
   extraLinks: [
-    { href: '/nonprofits', label: 'Nonprofits and community organizations' },
+    { href: '/nonprofits', label: 'Non-profits and community organizations' },
     { href: '/employers', label: 'Employers: all three sections' },
     { href: '/pricing', label: 'Plans' },
   ],

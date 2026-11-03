@@ -117,7 +117,7 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
         properties={{ page: 'higher_ed_state', audience: 'higher_ed', state: d.code }}
       />
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">Sources:</span> college directory from IPEDS (U.S. Department of Education), 2-year and 4-year public, private nonprofit and for-profit institutions;
+        <span className="font-medium text-foreground">Sources:</span> college directory from IPEDS (U.S. Department of Education), 2-year and 4-year public, private non-profit and for-profit institutions;
         unemployment from the Bureau of Labor Statistics.{!isCollegeTerritory(d.code) && <> <Link href={`/unemployment-benefits/${stateSlug(d.code)}`} className={LINK}>{d.name} unemployment benefits</Link>.</>}
       </p>
           {layoffLinks.length > 0 && (

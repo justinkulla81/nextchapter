@@ -6,7 +6,7 @@ export const CATEGORY_LABELS: Record<BenefitCategory, string> = {
   STATE_TRAINING: 'State retraining and tuition',
   FEDERAL: 'Federal programs',
   COURSES: 'Free courses and certificates',
-  PRIVATE: 'Private, nonprofit and AI funds',
+  PRIVATE: 'Private, non-profit and AI funds',
   SEGMENT: 'By profession, group and employer',
   PAID: 'Paid to learn, return or retrain',
   TAX: 'Tax credits and deductions',

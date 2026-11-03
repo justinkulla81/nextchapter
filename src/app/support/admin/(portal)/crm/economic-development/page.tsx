@@ -68,7 +68,7 @@ export default async function EconomicDevelopmentLeadsPage({ searchParams }: { s
         <div>
           <h1 className="text-2xl font-semibold">Economic development leads</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Economic development groups, chambers of commerce and workforce nonprofits (not WIOA boards), each tied to its county. Size is the group&apos;s annual revenue from its latest IRS filing. City and county government offices are not in this list.
+            Economic development groups, chambers of commerce and workforce non-profits (not WIOA boards), each tied to its county. Size is the group&apos;s annual revenue from its latest IRS filing. City and county government offices are not in this list.
           </p>
         </div>
         <Link href="/support/admin/crm/geographies" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">Geographies</Link>
@@ -131,7 +131,7 @@ export default async function EconomicDevelopmentLeadsPage({ searchParams }: { s
                   <td className="px-3 py-2 tabular-nums">{money(l.geoArea?.medianHouseholdIncome)}</td>
                   <td className="px-3 py-2 tabular-nums">{l.geoArea?.layoffs12mo ? num(l.geoArea.layoffs12mo) : '–'}</td>
                   <td className="px-3 py-2">
-                    <Link href={`/support/admin/crm/pitch?lead=${l.id}&type=${l.kind === 'CHAMBER' ? 'CHAMBER' : l.kind === 'WORKFORCE' ? 'WORKFORCE_NONPROFIT' : 'ECON_DEV'}&go=1`} className="mr-2 text-xs text-brand hover:underline">Build pitch</Link>
+                    <Link href={`/support/admin/crm/pitch?lead=${l.id}&type=${l.kind === 'CHAMBER' ? 'CHAMBER' : l.kind === 'WORKFORCE' || l.kind === 'JOB_TRAINING' ? 'WORKFORCE_NONPROFIT' : 'ECON_DEV'}&go=1`} className="mr-2 text-xs text-brand hover:underline">Build pitch</Link>
                     {!l.crmOrganizationId && !l.dismissedAt && (
                       <div className="flex gap-2">
                         <form action={addLeadToCrm}><input type="hidden" name="id" value={l.id} /><button className="rounded-md bg-brand px-2.5 py-1 text-xs font-medium text-white hover:opacity-90">Add to CRM</button></form>

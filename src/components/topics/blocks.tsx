@@ -50,10 +50,10 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture, her
       <StructuredData data={breadcrumbJsonLd(trail)} />
       {jsonLd?.map((d, i) => <StructuredData key={i} data={d} />)}
       <PublicSiteHeader />
-      <main className="flex-1 bg-off-white py-12">
+      <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-6xl px-6">
           <div className={hero ? 'overflow-hidden rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun md:grid md:grid-cols-[1.15fr_1fr]' : undefined}>
-            <div className={hero ? 'p-6 sm:p-10' : undefined}>
+            <div className={hero ? 'p-5 sm:p-7' : undefined}>
               <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
                 <Link href="/" className="hover:text-foreground">Home</Link>
                 {trail.map((t, i) => (
@@ -72,8 +72,8 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture, her
               </div>
             )}
           </div>
-          {capture ? <PageCaptureTop capture={capture} /> : <PullCtaTop {...pull} />}
           {body}
+          {capture ? <PageCaptureTop capture={capture} /> : <PullCtaTop {...pull} />}
           {capture && <PageCaptureOwner capture={capture} />}
           {bottom}
         </div>

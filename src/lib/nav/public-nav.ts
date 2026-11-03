@@ -99,9 +99,10 @@ export const PUBLIC_NAV: PublicNavMenu[] = [
       {
         heading: 'Employers',
         links: [
+          { label: 'Hiring and posting jobs', href: '/talent' },
           { label: 'Outplacement', href: '/outplacement' },
           { label: 'Retention and learning', href: '/employees' },
-          { label: 'Rapid response teams', href: '/for-rapid-response' },
+          { label: 'Recruiters', href: '/recruiters' },
         ],
       },
       {
@@ -109,9 +110,10 @@ export const PUBLIC_NAV: PublicNavMenu[] = [
         links: [
           { label: 'Colleges and universities', href: '/higher-education' },
           { label: 'Workforce boards', href: '/workforce-boards' },
+          { label: 'Rapid response teams', href: '/for-rapid-response' },
           { label: 'American Job Centers', href: '/job-centers' },
           { label: 'Economic development', href: '/economic-development' },
-          { label: 'Nonprofits', href: '/nonprofits' },
+          { label: 'Non-profits', href: '/nonprofits' },
           { label: 'Coaches', href: '/coaches' },
         ],
       },

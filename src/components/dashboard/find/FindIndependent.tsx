@@ -165,7 +165,7 @@ export function FindIndependent({
                         <p className="text-sm text-muted-foreground">
                           {boardReady
                             ? 'Based on your level and years of experience, formal board and advisory positions are a realistic option worth pursuing.'
-                            : 'Formal corporate board seats usually fit later in a career. Nonprofit board and advisory roles are a strong, realistic start and a real credential-builder.'}
+                            : 'Formal corporate board seats usually fit later in a career. Non-profit board and advisory roles are a strong, realistic start and a real credential-builder.'}
                         </p>
                         {!isMember ? (
                           <p className="text-sm text-ink">

@@ -135,7 +135,7 @@ export function deriveLearningPaths(input: PathInput): LearningPath[] {
     const id = 'board-readiness'
     paths.push({
       id, goalKind: 'BOARD', goal: 'Join a board or advisory group', source: 'expressed', because: 'You said you are open to board and advisory work.', title: 'Get board-ready',
-      steps: [step(id, 1, 'Write a one-page board bio: your expertise, sectors and what you would add', 'build'), step(id, 2, 'Join one nonprofit committee or advisory group to build experience', 'build'), step(id, 3, 'Ask two board members for an introduction to a nominating committee', 'talk')],
+      steps: [step(id, 1, 'Write a one-page board bio: your expertise, sectors and what you would add', 'build'), step(id, 2, 'Join one non-profit committee or advisory group to build experience', 'build'), step(id, 3, 'Ask two board members for an introduction to a nominating committee', 'talk')],
     })
   }
   return paths.slice(0, 5)

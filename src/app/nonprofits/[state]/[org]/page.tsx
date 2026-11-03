@@ -10,7 +10,7 @@ import { NONPROFIT_KINDS, getNonprofit, getNonprofitFunding, money } from '@/lib
 import { getStateBoards, getStateLabor, periodLabel, rateText } from '@/lib/seo/workforce-pages'
 import { STATE_FIGURES, STATE_FIGURES_EDITION } from '@/lib/report-state-figures'
 
-// One page per nonprofit with $1 million or more in revenue, from its IRS record, set in its state's job market.
+// One page per non-profit with $1 million or more in revenue, from its IRS record, set in its state's job market.
 // A smaller organization's page renders but is kept out of search results and the sitemap.
 export const revalidate = 86400
 export const dynamicParams = true
@@ -43,7 +43,7 @@ export default async function NonprofitPage({ params }: { params: Promise<{ stat
 
   return (
     <SeoPage
-      trail={[{ name: 'Nonprofits', path: '/nonprofits' }, { name, path: `/nonprofits/${state}` }, { name: o.name, path }]}
+      trail={[{ name: 'Non-profits', path: '/nonprofits' }, { name, path: `/nonprofits/${state}` }, { name: o.name, path }]}
       h1={o.name}
       lede={<>A {NONPROFIT_KINDS[o.kind]?.label ?? 'nonprofit'}{o.city ? ` in ${o.city}, ${name}` : ` in ${name}`}{o.nteeGroup ? `, classified under ${o.nteeGroup.toLowerCase()}` : ''}.</>}
     >
@@ -71,7 +71,7 @@ export default async function NonprofitPage({ params }: { params: Promise<{ stat
 
       {funding.length > 0 && (
         <section aria-labelledby="funding" className="mt-12">
-          <h2 id="funding" className={H2}>Grants open to {name} nonprofits</h2>
+          <h2 id="funding" className={H2}>Grants open to {name} non-profits</h2>
           <ul className="mt-4 divide-y divide-border rounded-xl border border-border bg-white text-sm">
             {funding.slice(0, 5).map((f) => (
               <li key={f.id} className="p-4">
@@ -80,7 +80,7 @@ export default async function NonprofitPage({ params }: { params: Promise<{ stat
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-sm"><Link href={`/nonprofits/${state}`} className={LINK}>More {name} nonprofits and grants</Link></p>
+          <p className="mt-2 text-sm"><Link href={`/nonprofits/${state}`} className={LINK}>More {name} non-profits and grants</Link></p>
         </section>
       )}
 

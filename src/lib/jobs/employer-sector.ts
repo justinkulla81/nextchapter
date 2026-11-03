@@ -1,5 +1,5 @@
 // Employer sector: who the employer is — a private company, a government
-// (federal, state, local), a nonprofit, or an academic institution (universities,
+// (federal, state, local), a non-profit, or an academic institution (universities,
 // colleges, schools). The crawler derives it from explicit signals only
 // (ncrawl/sector.py: USAJOBS and state/local government sources, IRS NTEE / 990
 // filers, IPEDS institutions and school boards); everything else is private.
@@ -12,13 +12,13 @@ export type EmployerSector = (typeof EMPLOYER_SECTORS)[number]
 export const EMPLOYER_SECTOR_LABEL: Record<EmployerSector, string> = {
   private: 'Private',
   government: 'Government',
-  nonprofit: 'Nonprofit',
+  nonprofit: 'Non-profit',
   academia: 'Academia',
 }
 export const EMPLOYER_SECTOR_HINT: Record<EmployerSector, string> = {
   private: 'Companies',
   government: 'Federal, state and local government',
-  nonprofit: 'Nonprofits and charities',
+  nonprofit: 'Non-profits and charities',
   academia: 'Universities, colleges and schools',
 }
 
