@@ -15,6 +15,7 @@ import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { titleMeta } from '@/lib/seo/title'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 // One page per occupation: the exposure number, the tasks, better-paid or less-exposed related jobs, the skills to build.
 // Built on first visit and cached a day (the same pattern as /jobs/title/[slug]); no AI model is called, so a page costs nothing
@@ -82,7 +83,7 @@ export default async function AiJobCheckResultPage({ params }: { params: Promise
             properties={{ soc6, band: e.band, cta: 'assessment', placement: 'top' }}
             className="mt-5 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
           >
-            Get my free assessment
+            <AssessmentCtaLabel>Get my free assessment</AssessmentCtaLabel>
           </TrackedLink>
           <p className="mt-3">
             <AiJobCheckShare soc6={soc6} title={e.title} path={path} />

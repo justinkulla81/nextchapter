@@ -12,6 +12,7 @@ import Image from 'next/image'
 import { PageCaptureTop, PageCaptureOwner } from '@/components/capture/PageCapture'
 import { PullCtaTop, pullContext, withPullCtas } from '@/components/capture/PullCta'
 import type { PageCaptureConfig } from '@/lib/capture/page-capture'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export const LINK = 'text-brand underline underline-offset-4'
@@ -104,7 +105,7 @@ export function ActionBand({ title, body, label, href, event, properties }: {
       <h2 className="text-xl font-semibold tracking-tight text-navy">{title}</h2>
       <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{body}</p>
       <TrackedLink href={href} event={event} properties={properties} className="mt-4 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">
-        {label}
+        <AssessmentCtaLabel>{label}</AssessmentCtaLabel>
       </TrackedLink>
     </section>
   )

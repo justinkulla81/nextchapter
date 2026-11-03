@@ -11,6 +11,7 @@ import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
 import { submitJourneyLead, type JourneyState } from '@/lib/leads/actions'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 // "Where are you in your search?" Three short steps and no résumé: pick your situation, say how
 // long it has been going on, and get a first-week plan by email. The same situations as the
@@ -76,7 +77,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations, va
           }}
           className="mt-5 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
         >
-          {state.capped ? 'Get your Market Reality Assessment' : 'Or start now: get your Market Reality Assessment'}
+          <AssessmentCtaLabel>{state.capped ? 'Get your Market Reality Assessment' : 'Or start now: get your Market Reality Assessment'}</AssessmentCtaLabel>
         </Link>
       </div>
     )

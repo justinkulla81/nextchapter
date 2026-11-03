@@ -12,10 +12,10 @@ function stubStorage(initial: Record<string, string> = {}, broken = false) {
 describe('nav CTA variant', () => {
   beforeEach(() => vi.unstubAllGlobals())
 
-  it('assigns one of the two variants and keeps it', () => {
+  it('assigns one of the three variants and keeps it', () => {
     stubStorage()
     const first = readOrAssignNavCtaVariant()
-    expect(['control', 'hire_score']).toContain(first)
+    expect(['control', 'hire_score', 'resume_score']).toContain(first)
     for (let i = 0; i < 20; i++) expect(readOrAssignNavCtaVariant()).toBe(first)
   })
 
@@ -24,13 +24,21 @@ describe('nav CTA variant', () => {
     expect(readOrAssignNavCtaVariant()).toBe('hire_score')
   })
 
+  it('respects the resume variant and ignores unknown stored values', () => {
+    stubStorage({ nc_nav_cta_variant: 'resume_score' })
+    expect(readOrAssignNavCtaVariant()).toBe('resume_score')
+    stubStorage({ nc_nav_cta_variant: 'bogus' })
+    expect(['control', 'hire_score', 'resume_score']).toContain(readOrAssignNavCtaVariant())
+  })
+
   it('falls back to control when storage is blocked', () => {
     stubStorage({}, true)
     expect(readOrAssignNavCtaVariant()).toBe('control')
   })
 
-  it('labels are the two agreed strings', () => {
+  it('labels are the three agreed strings', () => {
     expect(NAV_CTA_LABEL.control).toBe('Get your Market Reality Assessment')
     expect(NAV_CTA_LABEL.hire_score).toBe('Get your Hireability Score')
+    expect(NAV_CTA_LABEL.resume_score).toBe('Score My Resume')
   })
 })

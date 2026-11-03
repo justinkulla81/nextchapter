@@ -109,9 +109,12 @@ export function Small({ children }: { children: ReactNode }) {
 }
 
 /** The green pill button. A link to our own site gets email UTM tags so the visit shows as Email in PostHog; `campaign` names the email. */
-export function Button({ href, children, campaign = 'unlabeled' }: { href: string; children: ReactNode; campaign?: string }) {
+export function Button({ href, children, campaign = 'unlabeled', ctaVariant }: { href: string; children: ReactNode; campaign?: string; ctaVariant?: string }) {
+  let link = withEmailUtm(href, campaign)
+  // The assessment label test: tag the link with the arm so a visit shows which label brought it.
+  if (ctaVariant && link !== href) link = `${link}&utm_content=cta_${ctaVariant}`
   return (
-    <a href={withEmailUtm(href, campaign)} style={{ display: 'inline-block', padding: '14px 28px', backgroundColor: GREEN, color: '#ffffff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}>
+    <a href={link} style={{ display: 'inline-block', padding: '14px 28px', backgroundColor: GREEN, color: '#ffffff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}>
       {children}
     </a>
   )

@@ -1,10 +1,14 @@
+import { emailCtaLabel } from '@/lib/ab/email-cta'
+import type { NavCtaVariant } from '@/lib/ab/nav-cta'
 import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
 
 interface ResumeLeadConfirmationEmailProps {
   fullName: string
+  /** The recipient's arm of the assessment button label test. */
+  ctaVariant?: NavCtaVariant
 }
 
-export default function ResumeLeadConfirmationEmail({ fullName }: ResumeLeadConfirmationEmailProps) {
+export default function ResumeLeadConfirmationEmail({ fullName, ctaVariant }: ResumeLeadConfirmationEmailProps) {
   const firstName = fullName.split(' ')[0] || 'there'
   return (
     <CardEmail
@@ -22,7 +26,7 @@ export default function ResumeLeadConfirmationEmail({ fullName }: ResumeLeadConf
         <Lead>
           In the meantime, a free Market Reality Assessment, plus a personalized action plan, is the fastest way to strengthen your search on your own.
         </Lead>
-        <Button campaign="resume_confirmation" href="https://launchyournextchapter.com/onboarding/desire">Get your free assessment</Button>
+        <Button campaign="resume_confirmation" href="https://launchyournextchapter.com/onboarding/desire" ctaVariant={ctaVariant}>{emailCtaLabel(ctaVariant, 'Get your free assessment')}</Button>
       </Card>
     </CardEmail>
   )

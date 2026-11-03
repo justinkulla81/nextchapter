@@ -9,6 +9,7 @@ import { PERSONAS } from '@/lib/constants/personas'
 import { planFor } from '@/lib/leads/first-week-plans'
 import { cleanPublicQuery } from '@/lib/jobs/public-board'
 import JourneyPlanEmail from '@/emails/journey-plan'
+import { emailCtaVariant } from '@/lib/ab/email-cta'
 import { sendJobAlertConfirmation } from '@/lib/leads/job-alerts'
 import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 import { schoolPagePath } from '@/lib/layoffs/school-page'
@@ -122,6 +123,7 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
             steps: plan.steps,
             startUrl: `${APP_URL()}/start/${persona.slug}`,
             unsubscribeUrl,
+            ctaVariant: emailCtaVariant(email),
             school: answers.joinCommunity && answers.schoolName ? { name: answers.schoolName, url: (await schoolPagePath(answers.schoolUnitid).then((p) => (p ? `${APP_URL()}${p}` : null))) } : undefined,
           }),
           headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>` },

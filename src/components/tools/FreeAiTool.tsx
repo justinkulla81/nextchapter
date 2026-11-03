@@ -8,6 +8,7 @@ import { ANSWER_MAX_CHARS, BULLETS_MAX_CHARS, INTERVIEW_QUESTIONS } from '@/lib/
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
+import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 const INPUT = 'mt-1 w-full rounded-lg border border-border bg-white p-3 text-base'
 
@@ -28,7 +29,7 @@ function NextStep({ tool }: { tool: string }) {
       <h2 className="text-lg font-semibold tracking-tight text-navy">See how the market reads you</h2>
       <p className="mt-1 text-sm text-muted-foreground">A free Market Reality Assessment ranks every open job for your background.</p>
       <TrackedLink href={MARKET_REALITY_START_HREF} event="free_ai_tool_cta_clicked" properties={{ tool }} className="mt-3 inline-flex h-11 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">
-        Get my free assessment
+        <AssessmentCtaLabel>Get my free assessment</AssessmentCtaLabel>
       </TrackedLink>
     </div>
   )
