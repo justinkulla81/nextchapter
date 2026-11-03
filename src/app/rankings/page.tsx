@@ -16,12 +16,12 @@ export const metadata: Metadata = {
   ...canonical('/rankings'),
 }
 
-const FAMILY_ORDER = ['Entry-level', 'Levels', 'AI', 'AI skills', 'Pay', 'Work style', 'Job families', 'Markets', 'Growth', 'Workforce', 'Research', 'Higher education']
+const FAMILY_ORDER = ['Entry-level', 'Levels', 'AI', 'AI skills', 'Pay', 'Work style', 'Job families', 'Markets', 'Growth', 'Industries', 'Best overall', 'Workforce', 'Research', 'Higher education']
 
 export default async function RankingsHub() {
   const index = await readRankingIndex()
   const newest = index.map((x) => x.edition).sort().reverse()[0]
-  const LIST_FAMILIES = ['Job families', 'AI skills', 'Workforce', 'Research', 'Higher education']
+  const LIST_FAMILIES = ['Job families', 'AI skills', 'Industries', 'Workforce', 'Research', 'Higher education']
   const national = index.filter((x) => x.scopeKind === 'national' && !LIST_FAMILIES.includes(x.family))
   const families = FAMILY_ORDER.filter((f) => index.some((x) => x.family === f))
   return (

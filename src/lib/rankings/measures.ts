@@ -1,7 +1,7 @@
 // What each list ranks and how: the value, how it is shown, the three supporting numbers on each row and the plain-words
 // method. Pure, so every rule is unit-tested without a database.
 
-import type { CityStat, CountyStat, MeasureId } from '@/lib/rankings/types'
+import type { CityMeasureId, CityStat, CountyStat, MeasureId } from '@/lib/rankings/types'
 
 export const nf = (n: number) => Math.round(n).toLocaleString('en-US')
 export const pct0 = (x: number) => `${Math.round(x * 100)}%`
@@ -17,7 +17,7 @@ export interface Cost { rpp: number; basis: 'metro' | 'state' }
 export interface CityCtx { costOf: (c: CityStat) => Cost | null }
 
 export interface CityMeasure {
-  id: Exclude<MeasureId, 'growth' | 'infogrowth' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay' | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed' | 'collegepay'>
+  id: CityMeasureId
   kind: 'city'
   family: string
   /** Openings a city needs, by scope, in the unit the measure counts. */
@@ -245,10 +245,26 @@ const FNPAY: CityMeasure = {
   min: { national: 30, region: 30, state: 30 },
 }
 
-export const CITY_MEASURES: Record<CityMeasure['id'], CityMeasure> = { ...BASE, midcareer: MID, leadership: LEAD, fnopen: FNOPEN, fnpay: FNPAY }
+const INDOPEN: CityMeasure = {
+  ...FNOPEN, id: 'indopen',
+  lead: (name, v, scope) => `${name} has the most openings in this industry in ${scope}: ${v}.`,
+  method: [
+    'A city is ranked on the number of its open professional roles at employers in this industry, as classed by the crawler from the employer. Median pay uses only listings that post a salary, shown where at least 8 do.',
+    'Only roles verified on the employer\'s own career site in the last week are counted.',
+  ],
+}
+const INDPAY: CityMeasure = {
+  ...FNPAY, id: 'indpay',
+  lead: (name, v, scope) => `${name} leads ${scope} for pay after the cost of living in this industry: its median posted salary buys what ${v} buys at average US prices.`,
+  method: [
+    'The score is the median posted annual salary (the midpoint of each posted range) for roles at employers in this industry in a city, divided by its local price level, with the United States at 100.',
+    'Price levels are the Bureau of Economic Analysis regional price parities for the city\'s metro area, or its state where no metro figure exists. Only cities with at least 20 listings in the industry that post a salary are ranked.',
+  ],
+}
+export const CITY_MEASURES: Record<CityMeasureId, CityMeasure> = { ...BASE, midcareer: MID, leadership: LEAD, fnopen: FNOPEN, fnpay: FNPAY, indopen: INDOPEN, indpay: INDPAY }
 
 export interface CountyMeasure {
-  id: 'growth' | 'infogrowth' | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed'
+  id: 'growth' | 'infogrowth' | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed' | 'perunemp'
   /** 'asc' ranks the lowest value first (lowest unemployment); the default is highest first. */
   order?: 'asc' | 'desc'
   kind: 'county'
@@ -386,7 +402,28 @@ const AIEXPOSED: CountyMeasure = {
   base: { title: 'Counties with the most jobs in AI-exposed sectors', slug: 'counties-with-the-most-ai-exposed-jobs' },
   scoped: (p) => ({ title: `Counties with the most jobs in AI-exposed sectors in ${p}`, slug: (id) => `counties-with-the-most-ai-exposed-jobs-in-${id}` }),
 }
-export const COUNTY_MEASURES: Record<CountyMeasure['id'], CountyMeasure> = { ...COUNTY_BASE, lowunemp: LOWUNEMP, unempdrop: UNEMPDROP, whitecollar: WHITECOLLAR, aiexposed: AIEXPOSED }
+const PERUNEMP: CountyMeasure = {
+  id: 'perunemp', kind: 'county', family: 'Workforce', unit: 'jobs', min: { national: 100, region: 100, state: 100 },
+  qualifies: (c, min) => (c.openings ?? 0) >= min && (c.unemployed ?? 0) >= 500 && (c.laborForce ?? 0) >= 20_000,
+  value: (c) => ((c.openings as number) / (c.unemployed as number)) * 100,
+  valueLabel: (v) => `${v.toFixed(0)} per 100`,
+  sample: (c) => c.openings ?? 0,
+  stats: (c) => [{ label: 'Professional openings', value: nf(c.openings ?? 0) }, { label: 'People unemployed', value: nf(c.unemployed ?? 0) }, { label: 'Unemployment rate', value: c.rate != null ? rateText(c.rate) : 'Not available' }],
+  baseline: (all) => {
+    const rows = all.filter((c) => (c.openings ?? 0) >= 100 && (c.unemployed ?? 0) >= 500 && (c.laborForce ?? 0) >= 20_000)
+    const o = rows.reduce((s, c) => s + (c.openings as number), 0)
+    const u = rows.reduce((s, c) => s + (c.unemployed as number), 0)
+    return u > 0 ? { label: 'all ranked counties', valueLabel: `${((o / u) * 100).toFixed(0)} per 100` } : null
+  },
+  lead: (name, v, scope, b) => `${name} has the most professional job openings per unemployed person in ${scope}: ${v} unemployed people${b ? `, against ${b} across all ranked counties` : ''}.`,
+  method: [
+    'A county\'s score is the number of open professional roles in our data, per 100 people unemployed there (BLS Local Area Unemployment Statistics, not seasonally adjusted). Roles are placed in the county of the city their posting names; remote and statewide roles are left out.',
+    'Our job data covers professional roles on the career sites of employers we track, and the unemployed include people in every kind of work, so the figure compares places with one another; it is not a count of the jobs an unemployed person could take. Only counties with at least 100 openings and 500 unemployed people are ranked.',
+  ],
+  base: { title: 'Counties with the most job openings per unemployed person', slug: 'counties-with-the-most-openings-per-unemployed-person' },
+  scoped: (p) => ({ title: `Counties with the most job openings per unemployed person in ${p}`, slug: (id) => `counties-with-the-most-openings-per-unemployed-person-in-${id}` }),
+}
+export const COUNTY_MEASURES: Record<CountyMeasure['id'], CountyMeasure> = { ...COUNTY_BASE, lowunemp: LOWUNEMP, unempdrop: UNEMPDROP, whitecollar: WHITECOLLAR, aiexposed: AIEXPOSED, perunemp: PERUNEMP }
 
 const POSTINGS = ['NextChapter job data: open professional roles on employer career sites, verified in the last week']
 export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
@@ -394,6 +431,19 @@ export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
   unempdrop: ['Bureau of Labor Statistics, Local Area Unemployment Statistics (not seasonally adjusted)'],
   whitecollar: ['Census Bureau, American Community Survey 5-year estimates (occupation by county)'],
   aiexposed: ['Bureau of Labor Statistics, Quarterly Census of Employment and Wages, 2025 (private-sector jobs by sector)'],
+  perunemp: ['NextChapter job data: open professional roles by county', 'Bureau of Labor Statistics, Local Area Unemployment Statistics (not seasonally adjusted)'],
+  indopen: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
+  indpay: ['NextChapter job data: posted annual salary ranges', 'Bureau of Economic Analysis regional price parities 2024 (metro areas and states)'],
+  indentry: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
+  indai: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
+  indremote: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
+  indpaid: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
+  cgrad: ['NextChapter job data: open professional roles and posted pay', 'Bureau of Economic Analysis regional price parities 2024'],
+  cmid: ['NextChapter job data: open professional roles and posted pay', 'Bureau of Economic Analysis regional price parities 2024'],
+  cremote: ['NextChapter job data: open professional roles and posted pay', 'Bureau of Economic Analysis regional price parities 2024'],
+  cai: ['NextChapter job data: open professional roles and posted pay', 'Bureau of Economic Analysis regional price parities 2024'],
+  claidoff: ['NextChapter job data: open professional roles by county', 'Bureau of Labor Statistics, Local Area Unemployment Statistics and Quarterly Census of Employment and Wages', 'CareerOneStop American Job Center directory'],
+  coverall: ['NextChapter job data: open professional roles by county', 'Bureau of Labor Statistics, Local Area Unemployment Statistics and Quarterly Census of Employment and Wages', 'Census Bureau population estimates'],
   collegepay: ['U.S. Department of Education, College Scorecard (median earnings, completion, net price), as held in our college tables'],
   midcareer: POSTINGS, leadership: POSTINGS, fnopen: POSTINGS, aiskills: POSTINGS, aitools: POSTINGS, aicerts: POSTINGS, skillpay: POSTINGS,
   fnpay: ['NextChapter job data: posted annual salary ranges', 'Bureau of Economic Analysis regional price parities 2024 (metro areas and states)'],

@@ -7,7 +7,7 @@ import { COUNTY_SECTORS, areaContext } from '@/lib/workforce/county-context'
 import { slugify } from '@/lib/seo/workforce-pages'
 import { stateName, stateSlug as stateSlugOf } from '@/lib/seo/states'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
-import type { CityStat, CountyStat, FnTotal, SkillStat } from '@/lib/rankings/types'
+import type { CityStat, CountyStat, FnTotal, IndustryCityRow, IndustryTotal, SkillStat } from '@/lib/rankings/types'
 
 // The two reads behind the rankings. Both are whole-board work, so they run only in the monthly job (/api/cron/rankings)
 // and never on a page view.
@@ -80,7 +80,7 @@ export async function loadCountyStats(): Promise<CountyStat[]> {
   const [{ context }, areas, labor] = await Promise.all([
     loadCountyContext(),
     prisma.geoArea.findMany({ select: { id: true, state: true, name: true, population: true, whiteCollarShare: true, medianHouseholdIncome: true } }),
-    prisma.countyLabor.findMany({ select: { fips: true, laborForce: true, rate: true, rateYearAgo: true } }),
+    prisma.countyLabor.findMany({ select: { fips: true, laborForce: true, unemployed: true, rate: true, rateYearAgo: true } }),
   ])
   const laborOf = new Map(labor.map((l) => [l.fips, l]))
   const infoIdx = context.sectors.indexOf('51')
@@ -100,7 +100,7 @@ export async function loadCountyStats(): Promise<CountyStat[]> {
       fips: a.id, st: a.state, name: a.name, href: `/places/${stateSlugOf(a.state)}/county/${slug}`, population: a.population,
       populationChangePct: c.p && c.p[0] > 0 ? ((c.p[1] - c.p[0]) / c.p[0]) * 100 : null,
       jobsThen: c.t[0], jobsNow: c.t[1], infoThen: then >= 0 ? then : 0, infoNow: now >= 0 ? now : 0,
-      rate: laborOf.get(a.id)?.rate ?? null, rateYearAgo: laborOf.get(a.id)?.rateYearAgo ?? null, laborForce: laborOf.get(a.id)?.laborForce ?? null,
+      unemployed: laborOf.get(a.id)?.unemployed ?? null, rate: laborOf.get(a.id)?.rate ?? null, rateYearAgo: laborOf.get(a.id)?.rateYearAgo ?? null, laborForce: laborOf.get(a.id)?.laborForce ?? null,
       whiteCollarShare: a.whiteCollarShare, medianIncome: a.medianHouseholdIncome,
       exposedShare: ex ? ex.share / 100 : null, exposedTop: ex?.top[0] ? `${ex.top[0].label} (${Math.round(ex.top[0].share)}% of jobs)` : null,
     })
@@ -165,4 +165,30 @@ export async function loadSkillStats(): Promise<{ stats: SkillStat[]; totals: Fn
   ])
   const totals: FnTotal[] = totalRows.flatMap((r) => (r.g === 1 ? [{ fn: '*', n: r.n, paid: r.paid, payMed: r.pay }] : r.fn ? [{ fn: r.fn, n: r.n, paid: r.paid, payMed: r.pay }] : []))
   return { stats: [...skills, ...tools, ...certs], totals }
+}
+
+/** Openings and median posted pay by city for each industry the crawler assigns: cities and industries with enough roles only. */
+export async function loadIndustryCityRows(codes: string[]): Promise<IndustryCityRow[]> {
+  const rows = await longRead((tx) => tx.$queryRaw<{ st: string; city: string; industry: string; n: number; paid: number; pay_med: number | null }[]>`
+    SELECT "locationState" AS st, lower("locationCity") AS city, industry, count(*)::int AS n,
+      count(*) FILTER (WHERE ${PAID})::int AS paid,
+      (percentile_cont(0.5) WITHIN GROUP (ORDER BY ${MID_PAY}) FILTER (WHERE ${PAID}))::float AS pay_med
+    FROM "ExclusiveJobPosting" ${WHERE} AND industry = ANY(${codes})
+    GROUP BY 1, 2, 3
+    HAVING count(*) >= 15`)
+  return rows.map((r) => ({ st: r.st, city: r.city, industry: r.industry, n: r.n, paid: r.paid, payMed: r.pay_med }))
+}
+
+/** Open roles in each industry across the whole board, with the counts the industry lists rank on. */
+export async function loadIndustryTotals(): Promise<IndustryTotal[]> {
+  const rows = await longRead((tx) => tx.$queryRaw<{ industry: string; n: number; entry: number; ai: number; remote: number; paid: number; pay_med: number | null }[]>`
+    SELECT industry, count(*)::int AS n,
+      count(*) FILTER (WHERE level IN ('ENTRY_IC', 'EARLY_IC'))::int AS entry,
+      count(*) FILTER (WHERE cardinality("aiSkillGroups") > 0)::int AS ai,
+      count(*) FILTER (WHERE "workArrangement" = 'remote')::int AS remote,
+      count(*) FILTER (WHERE ${PAID})::int AS paid,
+      (percentile_cont(0.5) WITHIN GROUP (ORDER BY ${MID_PAY}) FILTER (WHERE ${PAID}))::float AS pay_med
+    FROM "ExclusiveJobPosting" ${LIVE} AND industry IS NOT NULL
+    GROUP BY 1`)
+  return rows.map((r) => ({ industry: r.industry, n: r.n, entry: r.entry, ai: r.ai, remote: r.remote, paid: r.paid, payMed: r.pay_med }))
 }

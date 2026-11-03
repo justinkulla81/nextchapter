@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { percentiles, scorePool } from '@/lib/rankings/composites'
+import { industrySpecs, compositeSpecs, rankCityComposite, rankCountyComposite, rankIndustries } from '@/lib/rankings/build-edition'
+import type { IndustryTotal } from '@/lib/rankings/types'
 import { rankCities, rankColleges, rankCounties, rankSkills, wave1Specs, wave2PlaceSpecs, functionSpecs, skillSpecs, workforceSpecs, collegeSpecs, MIN_RANKED, editionLabel } from '@/lib/rankings/build-edition'
 import { CITY_MEASURES } from '@/lib/rankings/measures'
 import type { CityStat, CollegeStat, CountyStat, FnTotal, SkillStat } from '@/lib/rankings/types'
@@ -69,7 +72,7 @@ describe('ranking engine', () => {
   })
   it('formats edition labels and defines every measure', () => {
     expect(editionLabel('2026-11')).toBe('November 2026')
-    expect(Object.keys(CITY_MEASURES)).toHaveLength(11)
+    expect(Object.keys(CITY_MEASURES)).toHaveLength(13)
   })
 
   it('builds the wave 2 sets with unique addresses', () => {
@@ -144,5 +147,51 @@ describe('ranking engine', () => {
     expect(ok.rows.every((r) => r.n >= 1000)).toBe(true)
     expect(ok.placeNoun).toBe('colleges')
     expect(ok.rows[0].valueLabel).toMatch(/^\$\d+k$/)
+  })
+
+  it('turns values into percentiles, splitting ties', () => {
+    expect(percentiles([10, 20, 30])).toEqual([0, 50, 100])
+    expect(percentiles([5, 5, 5])).toEqual([50, 50, 50])
+    expect(percentiles([1])).toEqual([50])
+  })
+  it('scores a pool by weighted percentiles and drops items missing a component', () => {
+    const comps = [
+      { label: 'A', weight: 70, value: (x: { a: number | null; b: number }) => x.a, show: () => '' },
+      { label: 'B', weight: 30, value: (x: { a: number | null; b: number }) => x.b, show: () => '', higherIsBetter: false },
+    ]
+    const out = scorePool([{ a: 1, b: 9 }, { a: 2, b: 5 }, { a: 3, b: 1 }, { a: null, b: 0 }], comps)
+    expect(out).toHaveLength(3)
+    expect(out.map((o) => Math.round(o.score))).toEqual([0, 50, 100])
+  })
+  it('ranks all-round city lists and states the weights', () => {
+    const spec = compositeSpecs().find((x) => x.slug === 'best-all-round-cities-for-new-graduates')!
+    const stats = Array.from({ length: 12 }, (_, i) => city('TX', `cc${i}`, 300, 30 + i * 10, { paid: 80, payMed: 80_000 + i * 1000 }))
+    const e = rankCityComposite(spec, stats, info, ctx, '2026-11', 'x', null)!
+    expect(e.rows[0].name).toBe('Cc11')
+    expect(e.rows[0].valueLabel).toBe('93 / 100')
+    expect(e.method.join(' ')).toContain('entry-level share of openings 40%')
+    expect(e.lead).toContain('new graduates')
+  })
+  it('ranks all-round counties only when they are big enough', () => {
+    const spec = compositeSpecs().find((x) => x.slug === 'best-county-job-markets')!
+    const mk = (i: number, openings: number): CountyStat => ({ fips: `0400${i}`, st: 'TX', name: `C${i}`, href: null, population: 200_000, populationChangePct: i, jobsThen: 50_000, jobsNow: 50_000 + i * 500, infoThen: 0, infoNow: 0, rate: 5 - i * 0.2, rateYearAgo: 5, laborForce: 80_000, unemployed: 4_000, openings, ajc: 1 })
+    const counties = [...Array.from({ length: 10 }, (_, i) => mk(i, 500 + i * 50)), mk(11, 20)]
+    const e = rankCountyComposite(spec, counties, '2026-11', 'x', null)!
+    expect(e.rows.some((r) => r.name === 'C11')).toBe(false)
+    expect(e.rows[0].name).toBe('C9')
+  })
+  it('builds the wave 4 sets with unique addresses', () => {
+    expect(industrySpecs()).toHaveLength(17 * 2 + 4)
+    expect(compositeSpecs()).toHaveLength(4 * 11 + 2 * 11 + 11)
+    const all = [...wave1Specs(['TX']), ...wave2PlaceSpecs(), ...functionSpecs(), ...skillSpecs(), ...workforceSpecs(), ...collegeSpecs([]), ...industrySpecs(), ...compositeSpecs()]
+    expect(new Set(all.map((x) => x.slug)).size).toBe(all.length)
+  })
+  it('ranks industries on a share of their openings', () => {
+    const spec = industrySpecs().find((x) => x.measure === 'indai')!
+    const totals: IndustryTotal[] = ['technology', 'healthcare', 'financial_services', 'consumer', 'industrial', 'education', 'government', 'energy', 'media'].map((industry, i) => ({ industry, n: 5000 + i * 100, entry: 100, ai: 100 + i * 100, remote: 50, paid: 2000, payMed: 120_000 }))
+    const e = rankIndustries(spec, totals, '2026-11', 'x', null)!
+    expect(e.rows[0].name).toContain('Media')
+    expect(e.placeNoun).toBe('industries')
+    expect(e.rows[0].href).toContain('/industries/')
   })
 })

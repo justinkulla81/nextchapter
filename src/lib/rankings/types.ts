@@ -46,6 +46,10 @@ export interface CountyStat {
   /** Share of private jobs in AI-exposed sectors, 0 to 1, and the biggest such sector. */
   exposedShare?: number | null
   exposedTop?: string | null
+  /** Our open professional roles in the county, the unemployed people there, and its American Job Centers. */
+  openings?: number | null
+  unemployed?: number | null
+  ajc?: number | null
 }
 
 export interface PlaceInfo { name: string; href: string | null }
@@ -74,9 +78,14 @@ export type MeasureId =
   | 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent' | 'growth' | 'infogrowth'
   | 'midcareer' | 'leadership' | 'fnopen' | 'fnpay' | 'aiskills' | 'aitools' | 'aicerts' | 'skillpay'
   | 'lowunemp' | 'unempdrop' | 'whitecollar' | 'aiexposed' | 'collegepay'
+  | 'indopen' | 'indpay' | 'indentry' | 'indai' | 'indremote' | 'indpaid'
+  | 'cgrad' | 'cmid' | 'cremote' | 'cai' | 'perunemp' | 'claidoff' | 'coverall'
+
+/** The measures a single city is ranked on by one value. Composite lists score a whole pool at once and are not in this set. */
+export type CityMeasureId = 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent' | 'midcareer' | 'leadership' | 'fnopen' | 'fnpay' | 'indopen' | 'indpay'
 
 /** Which stored build a list belongs to: the three builds run as separate monthly jobs so each stays inside the time limit. */
-export type BuildGroup = 'places' | 'functions' | 'skills' | 'workforce' | 'college'
+export type BuildGroup = 'places' | 'functions' | 'skills' | 'workforce' | 'college' | 'industry'
 
 export interface RankingEdition {
   slug: string
@@ -90,7 +99,7 @@ export interface RankingEdition {
   /** What a place needs to be ranked, in the measure's own unit ("openings" or "jobs"). */
   minN: number
   unit: 'openings' | 'jobs' | 'students'
-  placeNoun: 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'colleges'
+  placeNoun: 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'colleges' | 'industries'
   baseline: { label: string; valueLabel: string } | null
   lead: string
   keyFacts: string[]
@@ -141,3 +150,8 @@ export interface CollegeStat {
   completionRate: number | null
   netPrice: number | null
 }
+
+/** Open roles in one industry across the board, with the shares the industry lists rank on. */
+export interface IndustryTotal { industry: string; n: number; entry: number; ai: number; remote: number; paid: number; payMed: number | null }
+/** Openings and median posted pay in one industry in one city. */
+export interface IndustryCityRow { st: string; city: string; industry: string; n: number; paid: number; payMed: number | null }
