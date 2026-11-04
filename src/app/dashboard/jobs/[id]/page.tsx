@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { after } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { CandidatePlusExtraLine } from '@/components/jobs/CandidatePlusExtraLine'
@@ -69,12 +71,18 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       return null
     }) : null
     if (view) {
+      // Opened from a public job page (src/lib/jobs/portal-job-redirect.ts): one line says what saving does for the member.
+      const fromPublic = src === 'public_page'
+      if (fromPublic) {
+        after(() => captureServerEvent(profile.id, 'job_carried_in', { source: 'public_page', jobId: posting.id, company: posting.companyName, title: posting.title, tracked: !!tracked }))
+      }
       return (
         <div className="mx-auto max-w-3xl space-y-4">
-          <p className="text-sm">
-            <Link href="/dashboard/find-my-job" className="text-muted-foreground underline underline-offset-4">
+          <p className="text-sm text-muted-foreground">
+            <Link href="/dashboard/find-my-job" className="underline underline-offset-4">
               Back to jobs
             </Link>
+            {fromPublic && ' · Save this job and we use it to tune the jobs we rank for you.'}
           </p>
           <FindJobDetail {...view} standalone />
         </div>
