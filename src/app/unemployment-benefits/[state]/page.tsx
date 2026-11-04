@@ -22,6 +22,7 @@ import { FirstSixtyDays } from '@/components/severance/FirstSixtyDays'
 import { getPersona } from '@/lib/constants/personas'
 import { journeyChoices } from '@/lib/leads/infer-journey'
 import { severanceByState } from '@/lib/severance/state-groups'
+import { TREATMENT_PHRASE, TREATMENT_SENTENCE } from '@/lib/severance/calc'
 import { FILING_GUIDE_UPDATED } from '@/lib/data/state-ui-appeals'
 import { StateFilingGuide, appealSentence, READY_LIST } from '@/components/benefits/StateFilingGuide'
 import { PullTop } from '@/components/capture/PullCta'
@@ -67,11 +68,26 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const code = stateFromSlug(state)
   if (!code) return {}
   const name = stateName(code)
+  const ui = STATE_UI[code]
+  const weeks = ui.maxWeeks.value
+  const max = ui.maxWeeklyBenefit.value
+  const severance = severanceSentence(name, code)
+  // The amount and the severance rule are the two things the search is after; when either is missing the page's own lead is the description.
+  const description =
+    weeks != null && max != null && severance
+      ? fitDescription(`${name} unemployment pays up to ${usd(max)} a week for up to ${weeks} weeks. ${severance} Sources and how to file.`)
+      : fitDescription(lead(name, ui))
   return {
     title: titleMeta(unemploymentStateSeo(name).title),
-    description: fitDescription(lead(name, STATE_UI[code])),
+    description,
     ...canonical(`/unemployment-benefits/${state}`),
   }
+}
+
+/** "Severance reduces your weekly benefit in Texas." — null when the state's rule could not be confirmed (the page then says to ask the agency). */
+function severanceSentence(name: string, code: string): string | null {
+  const row = severanceByState().find((r) => r.code === code)
+  return row?.treatment ? `Severance ${TREATMENT_PHRASE[row.treatment]} in ${name}.` : null
 }
 
 const LINK = 'text-brand underline underline-offset-4'
@@ -140,7 +156,12 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
     faq.push({ q: `How many weeks of unemployment can you get in ${name}?`, a: `Up to ${ui.maxWeeks.value} weeks${ui.durationNote ? ` (${ui.durationNote})` : ''}.` })
   if (ui.waitingWeek.value != null)
     faq.push({ q: `Does ${name} have a waiting week for unemployment?`, a: ui.waitingWeek.value ? 'Yes. The first eligible week is an unpaid waiting week.' : 'No. There is no unpaid waiting week.' })
-  if (ui.severance.value) faq.push({ q: `Does severance affect unemployment in ${name}?`, a: ui.severance.value })
+  if (ui.severance.value) {
+    const rule = severanceRow.treatment ? `${TREATMENT_SENTENCE[severanceRow.treatment]} ${name}’s rule: ${ui.severance.value}` : ui.severance.value
+    faq.push({ q: `Can I collect unemployment and severance at the same time in ${name}?`, a: rule })
+    faq.push({ q: `Should I file for unemployment before I sign a severance agreement in ${name}?`, a: `File as soon as you are out of work, even if you received or expect severance, and report it when asked. Most states pay only from the week you file, and ${agency} decides how severance counts. Ask ${agency} before you sign.` })
+  }
+  if (ui.payInLieuOfNotice.value) faq.push({ q: `Does pay in lieu of notice affect unemployment in ${name}?`, a: ui.payInLieuOfNotice.value })
   if (ui.fileUrl.value) faq.push({ q: `How do I file for unemployment in ${name}?`, a: `File an initial claim with ${agency} at ${ui.fileUrl.value}. File the first week you are out of work, then request payment every week or every two weeks on the schedule the agency gives you.` })
   faq.push({ q: `What do I need to file for unemployment in ${name}?`, a: `${READY_LIST.slice(0, 4).join('; ')}.` })
   const appealText = appealSentence(code, name)
@@ -177,7 +198,10 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
           <span className="text-foreground">{name}</span>
         </nav>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{unemploymentStateSeo(name).h1}</h1>
-        <p className="mt-4 text-lg leading-relaxed text-foreground">{lead(name, ui)}</p>
+        <p className="mt-4 text-lg leading-relaxed text-foreground">
+          {lead(name, ui)}
+          {severanceSentence(name, code) && ` ${severanceSentence(name, code)}`}
+        </p>
         <PullTop name={`Unemployment benefits in ${name}`} path={`/unemployment-benefits/${state}`} />
         <AuthorByline updated={FILING_GUIDE_UPDATED} />
         <p className="mt-1 text-sm text-muted-foreground">Last verified {formatContentDate(UI_LAST_VERIFIED)} against official sources.</p>
