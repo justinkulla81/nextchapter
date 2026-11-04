@@ -18,7 +18,10 @@ import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
 import { buildEmailIpAnchors, extractEmailLinkId, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, resolveEmailRecipients, type EmailRecipient } from '@/lib/marketing/email-attribution'
-import { classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
+import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
+import { segmentRangeSeries, type SegmentCountRow } from '@/lib/admin/visitor-segment-series'
+import { sourceSegment, type SourceSegment } from '@/lib/admin/visitor-source-segment'
+import { VisitorsSegmentChart, type SegmentChartLine } from '@/components/admin/VisitorsSegmentChart'
 import { allTimeDayCountFromFirstDay, byHourOfDayFromCounts, byWeekdayFromCounts, perDaySeriesFromCounts, perHourSeriesFromCounts } from '@/lib/admin/visitor-time-buckets'
 
 export const maxDuration = 30
@@ -199,6 +202,60 @@ export default async function AdminVisitorActivityPage({
     '30d': { pageViews: perDaySeriesFromCounts(dayViews, current, 30), uniqueVisitors: perDaySeriesFromCounts(dayVisitors, current, 30) },
     all: { pageViews: perDaySeriesFromCounts(dayViews, current, allTimeDays), uniqueVisitors: perDaySeriesFromCounts(dayVisitors, current, allTimeDays) },
   }
+
+  // Portal use and outside-source traffic, split into segments. Grouped by (bucket, page or source, IP) in the database;
+  // the segment of each group is decided in code with the same classifiers the visit log uses.
+  const portalSections = [...CANDIDATE_PORTAL_SECTIONS, ...B2B_PORTAL_SECTIONS].map((s) => s.replace(/^\//, ''))
+  const portalPath = Prisma.sql`"path" ~* ${`^/(${portalSections.join('|')})(/|\\?|#|$)`}`
+  const sourcePath = Prisma.sql`("path" ~ '[?&]utm_source=' OR "path" ~ '[?&]nc_e=' OR "referrer" IS NOT NULL)`
+  type PortalRow = { key: string; path: string; ip: string | null; views: bigint }
+  type SourceRow = { key: string; utm: string | null; host: string | null; tagged: boolean; ip: string | null; views: bigint }
+  const portalQuery = (bucket: Prisma.Sql, from: Date) =>
+    prisma.$queryRaw<PortalRow[]>(Prisma.sql`
+      SELECT ${bucket} AS "key", split_part("path", '?', 1) AS "path", "ip", count(*) AS "views"
+      FROM "HomepageVisitEvent"
+      WHERE ${humanPageView} AND ${portalPath} AND "createdAt" >= ${from}
+      GROUP BY 1, 2, 3`)
+  const sourceQuery = (bucket: Prisma.Sql, from: Date) =>
+    prisma.$queryRaw<SourceRow[]>(Prisma.sql`
+      SELECT ${bucket} AS "key",
+        substring("path" from '[?&]utm_source=([^&#]*)') AS "utm",
+        substring("referrer" from '^https?://([^/?#]+)') AS "host",
+        ("path" ~ '[?&]nc_e=') AS "tagged",
+        "ip", count(*) AS "views"
+      FROM "HomepageVisitEvent"
+      WHERE ${humanPageView} AND ${sourcePath} AND "createdAt" >= ${from}
+      GROUP BY 1, 2, 3, 4, 5`)
+  const epoch = new Date(0)
+  const [portalDayRows, portalHourRows, sourceDayRows, sourceHourRows] = await Promise.all([
+    portalQuery(etDay, epoch),
+    portalQuery(etHour, since(2)),
+    sourceQuery(etDay, epoch),
+    sourceQuery(etHour, since(2)),
+  ])
+  const toSegmentRows = <R extends { key: string; ip: string | null; views: bigint }>(rows: R[], keep: (r: R) => boolean): SegmentCountRow[] =>
+    rows.filter(keep).map((r) => ({ key: r.key, ip: r.ip, views: Number(r.views) }))
+  const portalKinds = { Candidates: 'Candidate portal', 'B2B users': 'B2B portal' } as const
+  const portalLines: SegmentChartLine[] = Object.entries(portalKinds).flatMap(([name, pageType], i) => {
+    const keep = (r: PortalRow) => classifyVisitPage(r.path) === pageType
+    const s = segmentRangeSeries(toSegmentRows(portalDayRows, keep), toSegmentRows(portalHourRows, keep), current, allTimeDays)
+    const color = i === 0 ? 'var(--color-brand)' : 'var(--color-navy)'
+    return [
+      { label: `${name}: page views`, color, data: s.views },
+      { label: `${name}: unique visitors`, color, dashed: true, data: s.visitors },
+    ]
+  })
+  const sourceNames: SourceSegment[] = ['Social media', 'LinkedIn', 'Email']
+  const sourceColors: Record<SourceSegment, string> = { 'Social media': 'var(--color-brand)', LinkedIn: 'var(--color-navy)', Email: 'var(--color-success)' }
+  const sourceLines: SegmentChartLine[] = sourceNames.flatMap((name) => {
+    const keep = (r: SourceRow) => sourceSegment(r.utm, r.host, r.tagged) === name
+    const s = segmentRangeSeries(toSegmentRows(sourceDayRows, keep), toSegmentRows(sourceHourRows, keep), current, allTimeDays)
+    return [
+      { label: `${name}: page views`, color: sourceColors[name], data: s.views },
+      { label: `${name}: unique visitors`, color: sourceColors[name], dashed: true, data: s.visitors },
+    ]
+  })
+
   const toDaysRows = (rows: { key: string; count: number }[]) => rows.map((d) => ({ dateKey: d.key, count: d.count }))
   // Emails captured per day: every form on the public site plus new registrations.
   // Seeded sample profiles and profiles with no email are not captures (332 were bulk-created on Oct 15).
@@ -562,6 +619,22 @@ export default async function AdminVisitorActivityPage({
       <div className="rounded-lg border border-border p-4">
         <h2 className="mb-3 text-sm font-medium text-foreground">Human page views &amp; unique visitors</h2>
         <VisitorsTrafficChart data={trafficData} allTimeTruncated={false} />
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <h2 className="text-sm font-medium text-foreground">Portal use: candidates and B2B</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Logged-in portal pages only. Candidates are the candidate dashboard, membership, alumni plan and check-in pages; B2B users are the employer, recruiter, coach, college and workforce-board portals. Sign-in and sign-up pages are left out.
+        </p>
+        <VisitorsSegmentChart chart="portal_use" lines={portalLines} emptyMessage="No portal use in this window yet." />
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <h2 className="text-sm font-medium text-foreground">Social media, LinkedIn and email visits</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Visits that arrived from a social network (LinkedIn counted on its own line, not in Social media), or from an email: a tracked link in an email we sent, a utm_source of email, or a web mail referrer. Mail apps that hide the referrer on an untagged link show as Direct and are not counted here.
+        </p>
+        <VisitorsSegmentChart chart="social_linkedin_email" lines={sourceLines} emptyMessage="No visits from these sources in this window yet." />
       </div>
       </TrafficRangeProvider>
 
