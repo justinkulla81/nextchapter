@@ -40,7 +40,7 @@ export async function runSocialPosts(now = new Date()): Promise<SocialRunResult>
     const posts = [
       dailyLayoffPost(all, now, utm('daily-layoffs')),
       monday ? weeklyLayoffPost(dated, now, utm('weekly-layoffs')) : null,
-      reportPost(report, now, utm('report')),
+      reportPost(report, now, utm('report'), c.id === 'x'),
       rankingsPost(rankings, now, utm('rankings')),
     ]
     for (const post of posts) if (post) candidates.push({ post, channels: [c.id] })

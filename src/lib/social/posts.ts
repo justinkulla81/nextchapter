@@ -51,6 +51,14 @@ export function weeklyLayoffPost(notices: WeekNotice[], now: Date, utm: string):
   return { key: `layoffs-week-${weekKey(now)}`, text }
 }
 
+/**
+ * The most characters a post may have. X counts any link as 23 characters, so its text may be 280 - 23 + the link's length.
+ * Every other channel counts the whole link, and Bluesky is the tightest at 300.
+ */
+export function textBudget(link: string, shortLinks: boolean): number {
+  return shortLinks ? 280 - 23 + link.length : 300
+}
+
 export interface FilingForPost {
   employer: string
   state: string | null
@@ -67,16 +75,17 @@ const day = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'n
  * reports and buyouts are never posted this way until a second source confirms them. Under 280 characters with the link
  * counted as 23, and no claim beyond what the filing says.
  */
-export function filingPostText(f: FilingForPost, utm: string): string {
+export function filingPostText(f: FilingForPost, utm: string, shortLinks = true): string {
   const where = f.state ? ` in ${stateName(f.state)}` : ''
   const workers = f.workers ? `, naming ${n(f.workers)} workers` : ''
   const link = `${SITE_URL}${f.path}?${utm}`
   const tail = ` What was filed and what to do if you are affected: ${link}`
   const head = (name: string) => `${name} filed a WARN layoff notice${where} on ${day(f.date)}${workers}.`
-  const budget = 280 - 23 + link.length // the link costs 23 characters on X whatever its length
+  const budget = textBudget(link, shortLinks)
+  const fit = (name: string) => head(name === f.employer ? name : `${name}…`) + tail
   let name = f.employer
-  while (name.length > 12 && (head(name) + tail).length > budget) name = name.slice(0, -2).trimEnd()
-  return head(name === f.employer ? name : `${name}…`) + tail
+  while (name.length > 12 && fit(name).length > budget) name = name.slice(0, -2).trimEnd()
+  return fit(name)
 }
 
 /** Fewer new notices than this in a day is not worth a post. */
@@ -122,14 +131,14 @@ export interface ReportForPost {
   publishedAt: string
 }
 
-export function reportPost(r: ReportForPost | null, now: Date, utm: string): SocialPost | null {
+export function reportPost(r: ReportForPost | null, now: Date, utm: string, shortLinks = true): SocialPost | null {
   if (!r) return null
   const at = new Date(`${r.publishedAt}T12:00:00Z`).getTime()
   if (at > now.getTime() || now.getTime() - at > REPORT_POST_WINDOW_DAYS * DAY_MS_) return null
   const link = `${SITE_URL}/reports/${r.slug}?${utm}`
   let title = r.title
   const build = (t: string) => `New: the NextChapter White Collar Employment Report, ${r.month}. ${t} Free to read: ${link}`
-  const budget = 280 - 23 + link.length
+  const budget = textBudget(link, shortLinks)
   while (title.length > 20 && build(title).length > budget) title = title.slice(0, -2).trimEnd()
   return { key: `report-${r.slug}`, text: build(title === r.title ? `${title}.` : `${title}…`) }
 }
@@ -159,4 +168,102 @@ export function rankingsPost(index: RankingForPost[], now: Date, utm: string): S
   const link = `${SITE_URL}/rankings/archive/${edition}?${utm}`
   const text = `NextChapter job market rankings, ${MONTH_NAMES[now.getUTCMonth()]} ${now.getUTCFullYear()}: ${n(lists.length)} lists.${lines.length ? ` #1 for ${lines.join('. #1 for ')}.` : ''} All of them: ${link}`
   return { key: `rankings-${edition}`, text }
+}
+
+export interface AnnouncementBasis {
+  /** `sec`: an 8-K filing. `confirmed`: two or more outlets. `unconfirmed`: one outlet, which is never posted. */
+  basis: 'sec' | 'confirmed' | 'unconfirmed'
+  /** Share of staff, when the story gave one. Not a headcount. */
+  percent: number | null
+}
+
+/** Reads how a layoff announcement was sourced from the `layoffType` that `announceLayoff` writes. */
+export function announcementBasis(layoffType: string | null): AnnouncementBasis {
+  const percent = /(\d+(?:\.\d+)?)% of staff/.exec(layoffType ?? '')?.[1]
+  return {
+    basis: /^SEC 8-K/.test(layoffType ?? '') ? 'sec' : /^Reported by 2\+ publishers/.test(layoffType ?? '') ? 'confirmed' : 'unconfirmed',
+    percent: percent ? Number(percent) : null,
+  }
+}
+
+export interface AnnouncementForPost {
+  employer: string
+  state: string | null
+  workers: number | null
+  percent: number | null
+  basis: 'sec' | 'confirmed'
+  /** /layoffs/company/<slug> */
+  path: string
+}
+
+/**
+ * A layoff the company announced (an SEC filing, or two or more outlets), as opposed to a WARN filing. It says who reported it
+ * and nothing more, and a share of staff is never turned into a headcount. Single-outlet stories are not posted.
+ */
+export function announcementPostText(f: AnnouncementForPost, utm: string, shortLinks = true): string {
+  const where = f.state ? ` in ${stateName(f.state)}` : ''
+  const scale = f.workers ? `${n(f.workers)} workers${f.percent ? ` (${f.percent}% of staff)` : ''}` : f.percent ? `${f.percent}% of staff` : ''
+  const link = `${SITE_URL}${f.path}?${utm}`
+  const tail = ` What was reported and what to do if you are affected: ${link}`
+  const head = (name: string) =>
+    `${name} announced layoffs${where}${scale ? `, affecting ${scale}` : ''}, ${f.basis === 'sec' ? 'according to an SEC filing' : 'according to multiple news reports'}.`
+  const budget = textBudget(link, shortLinks)
+  const fit = (name: string) => head(name === f.employer ? name : `${name}…`) + tail
+  let name = f.employer
+  while (name.length > 12 && fit(name).length > budget) name = name.slice(0, -2).trimEnd()
+  return fit(name)
+}
+
+export interface MonthPoint { year: number; month: number }
+
+export interface JobsReportData {
+  /** The month the report covers. */
+  month: MonthPoint
+  prevMonth: MonthPoint
+  /** Change in total nonfarm payroll jobs from the month before, in people. */
+  payrollChange: number
+  /** Unemployment rate, percent, one decimal. */
+  rate: number
+  prevRate: number
+}
+
+export interface JoltsData {
+  month: MonthPoint
+  prevMonth: MonthPoint
+  /** Job openings and layoffs and discharges, in people. */
+  openings: number
+  layoffs: number
+  prevLayoffs: number
+}
+
+const monthName = (m: MonthPoint) => MONTH_NAMES[m.month - 1]
+const monthKey = (m: MonthPoint) => `${m.year}-${String(m.month).padStart(2, '0')}`
+const million = (people: number) => `${(people / 1_000_000).toFixed(1)} million`
+
+/**
+ * The BLS Employment Situation, posted once per month it covers. Always labeled all workers and all industries, since it is the
+ * all-jobs frame and never the white-collar one. Only numbers BLS published.
+ */
+export function jobsReportPost(d: JobsReportData, utm: string, shortLinks = true): SocialPost {
+  const link = `${SITE_URL}/layoffs?${utm}`
+  const jobs = d.payrollChange === 0 ? 'employers added no net jobs' : `employers ${d.payrollChange > 0 ? 'added' : 'cut'} ${n(Math.abs(d.payrollChange))} jobs`
+  const rate = d.rate === d.prevRate ? `unchanged at ${d.rate.toFixed(1)}%` : `${d.rate.toFixed(1)}%, ${d.rate > d.prevRate ? 'up' : 'down'} from ${d.prevRate.toFixed(1)}% in ${monthName(d.prevMonth)}`
+  const text = `BLS jobs report for ${monthName(d.month)} ${d.month.year}: ${jobs}. The unemployment rate was ${rate}. All workers, all industries. Layoff notices set against this data: ${link}`
+  if (text.length > textBudget(link, shortLinks)) {
+    return { key: `bls-jobs-${monthKey(d.month)}`, text: `BLS jobs report, ${monthName(d.month)}: ${jobs}. Unemployment rate ${rate}. All industries. ${link}` }
+  }
+  return { key: `bls-jobs-${monthKey(d.month)}`, text }
+}
+
+/** The BLS JOLTS release (job openings and layoffs), posted once per month it covers. All industries, labeled as such. */
+export function joltsPost(d: JoltsData, utm: string, shortLinks = true): SocialPost {
+  const link = `${SITE_URL}/layoffs?${utm}`
+  const now = million(d.layoffs)
+  const before = million(d.prevLayoffs)
+  const move = now === before ? `unchanged from ${monthName(d.prevMonth)}` : `${d.layoffs > d.prevLayoffs ? 'up' : 'down'} from ${before} in ${monthName(d.prevMonth)}`
+  const text = `BLS JOLTS for ${monthName(d.month)} ${d.month.year}: ${million(d.openings)} job openings and ${now} layoffs and discharges, ${move}. All industries. Compared with WARN layoff notices: ${link}`
+  if (text.length > textBudget(link, shortLinks)) {
+    return { key: `bls-jolts-${monthKey(d.month)}`, text: `BLS JOLTS, ${monthName(d.month)}: ${million(d.openings)} openings, ${now} layoffs (${move}). All industries. ${link}` }
+  }
+  return { key: `bls-jolts-${monthKey(d.month)}`, text }
 }
