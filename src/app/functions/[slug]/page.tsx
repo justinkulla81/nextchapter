@@ -2,7 +2,8 @@ import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { LINK, FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
+import { LINK, FactGrid, RankList, Chips, ConferenceList, JobList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
+import { NetworkBand } from '@/components/community/NetworkBand'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, JOB_FUNCTIONS } from '@/lib/seo/topics'
@@ -42,6 +43,7 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
       trail={[{ name: 'Functions', path: '/functions' }, { name: fn.name, path }]}
       title={`${fn.name} jobs and conferences`}
       intro={intro}
+      afterIntro={<NetworkBand networkKey={`function:${slug}`} kind="function" name={fn.name} spelled={fn.name} />}
       capture={{ kind: 'function', slug, label: fn.name, save: { q: scopeQ('function', fn.name), loc: '' } }}
       jsonLd={[
         {
@@ -86,7 +88,6 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
       <Section id="more" title="Other functions">
         <Chips kind="function_to_function" event="topic_link_clicked" items={JOB_FUNCTIONS.filter((f) => f.slug !== slug).map((f) => ({ href: `/functions/${f.slug}`, label: f.name }))} />
       </Section>
-      <JoinBand source={`function:${slug}`} what={`your ${fn.name.toLowerCase()} background`} />
     </TopicShell>
   )
 }

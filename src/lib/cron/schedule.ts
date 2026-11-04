@@ -52,7 +52,7 @@ export const CRON_BUNDLES: Readonly<Record<string, readonly string[]>> = {
   'bundle-daily-1200': ['help-feedback-digest', 'research-inbox-sweep', 'job-search-daily', 'saved-job-closures'],
   'bundle-search-pings': ['bing-url-submit', 'indexnow-seo-pages', 'google-indexing-jobs', 'indexnow-org-pages', 'indexnow-jobs'],
   'bundle-company-light': ['company-events', 'company-outcomes'],
-  'bundle-tuesday-digests': ['market-digest-recruiters', 'market-digest-employers', 'weekly-read', 'market-digest-coaches', 'upgrade-offer', 'role-network-digest'],
+  'bundle-tuesday-digests': ['market-digest-recruiters', 'market-digest-employers', 'weekly-read', 'market-digest-coaches', 'upgrade-offer', 'network-digest'],
   'bundle-wednesday': ['nudge-recruiter-network-unlock', 'win-back'],
   'bundle-monday': ['senior-brief', 'outplacement-agent', 'course-scan', 'higher-ed-weekly', 'market-reality-snapshot', 'auto-assign-sprint', 'conference-recheck', 'population-snapshot'],
   'bundle-sunday': ['partner-scores', 'workforce-boards', 'job-segments'],

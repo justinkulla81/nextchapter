@@ -8,11 +8,14 @@ import { buildEmailClickUrl } from '@/lib/email/click-link'
 import { canParticipateInCommunity } from '@/lib/community/access'
 import { resolveCommunityIdentity } from '@/lib/community/identity'
 import { getRoleIndex } from '@/lib/seo/role-figures'
-import { ROLE_MIN_PAY, roleForAddress } from '@/lib/seo/role-pages'
+import { ROLE_MIN_PAY } from '@/lib/seo/role-pages'
+import { getJobStats } from '@/lib/seo/topic-data'
+import { industryBySlug } from '@/lib/seo/topics'
+import { networkInfoForCommunity, type NetworkInfo } from '@/lib/community/peer-networks'
 import { usd } from '@/lib/seo/job-title-rules'
 import { SITE_URL } from '@/lib/seo/facts'
 import { captureServerEvent } from '@/lib/posthog/server'
-import RoleNetworkDigestEmail, { type RoleNetworkDigestPost } from '@/emails/role-network-digest'
+import NetworkDigestEmail, { type NetworkDigestPost } from '@/emails/network-digest'
 
 const DAY = 86_400_000
 /** The job is weekly; a membership sent within this window is not sent again, so a re-run only reaches who was missed. */
@@ -26,18 +29,40 @@ const excerpt = (text: string) => {
   return t.length > 200 ? `${t.slice(0, 197).trimEnd()}…` : t
 }
 
+const pagePath = (info: NetworkInfo) => (info.kind === 'role' ? `/roles/${info.key.slice(5)}` : info.kind === 'function' ? `/functions/${info.key.slice(9)}` : `/industries/${info.key.slice(9)}`)
+
+/** Open jobs and median pay for the network's role, function or industry, from the figures the pages already store. Null when there are none. */
+async function figuresFor(info: NetworkInfo, roleIndex: Awaited<ReturnType<typeof getRoleIndex>>): Promise<{ openJobs: number | null; medianPay: string | null }> {
+  if (info.kind === 'role') {
+    const stat = roleIndex.find((s) => s.slug === info.value) ?? null
+    return { openJobs: stat?.jobs ?? null, medianPay: stat?.median != null && stat.payCount >= ROLE_MIN_PAY ? usd(stat.median) : null }
+  }
+  const stats =
+    info.kind === 'function'
+      ? await getJobStats({ fn: info.value }).catch(() => null)
+      : await (async () => {
+          const rule = industryBySlug(info.key.slice(9))?.rule
+          return rule ? getJobStats({ rule }).catch(() => null) : null
+        })()
+  if (!stats) return { openJobs: null, medianPay: null }
+  return { openJobs: stats.sample, medianPay: stats.p50 != null && stats.paid >= ROLE_MIN_PAY ? usd(stats.p50) : null }
+}
+
 /**
- * The weekly email for members of a role network ("CRO network"): the role's verified open jobs and pay, and what other
- * members posted that week. Posts are shown only to a member who can themselves take part in Community (the same gate
+ * The weekly email for members of a role, function or industry network ("CRO network", "Sales network"): the verified
+ * open jobs and pay for it, and what other members posted that week. Only members who clicked "Join the ... network"
+ * are sent to (joinedVia MANUAL): function and industry communities also hold everyone whose profile says so, and
+ * those members never asked for an email. Posts are shown only to a member who can themselves take part in Community (the same gate
  * as the feed), so the email never opens a room the member has not unlocked. Members in Confidential Search Mode are
  * neither sent to nor quoted. Respects the Weekly Market Digest unsubscribe and the MINIMAL notification tier.
  */
-export async function runRoleNetworkDigest(now = new Date()) {
+export async function runNetworkDigest(now = new Date()) {
   if (!process.env.RESEND_API_KEY) return { enabled: false as const }
   const memberships = await prisma.communityMembership.findMany({
     where: {
       leftAt: null,
-      community: { type: 'ROLE' },
+      joinedVia: 'MANUAL',
+      community: { type: { in: ['ROLE', 'FUNCTION', 'INDUSTRY'] } },
       OR: [{ lastDigestAt: null }, { lastDigestAt: { lt: new Date(now.getTime() - ALREADY_SENT_WINDOW_MS) } }],
       candidate: {
         confidentialSearchMode: false,
@@ -50,7 +75,7 @@ export async function runRoleNetworkDigest(now = new Date()) {
     },
     select: {
       id: true,
-      community: { select: { id: true, value: true } },
+      community: { select: { id: true, type: true, value: true } },
       candidate: { select: { id: true, userId: true, firstName: true, privacyTier: true, confidentialSearchMode: true } },
     },
   })
@@ -61,7 +86,7 @@ export async function runRoleNetworkDigest(now = new Date()) {
   const [index, appUrl] = [await getRoleIndex().catch(() => []), process.env.NEXT_PUBLIC_APP_URL || SITE_URL]
   const resend = createResend(process.env.RESEND_API_KEY)
   const admin = createAdminClient()
-  const postsByCommunity = new Map<string, RoleNetworkDigestPost[]>()
+  const postsByCommunity = new Map<string, NetworkDigestPost[]>()
   const postsFor = async (communityId: string) => {
     const cached = postsByCommunity.get(communityId)
     if (cached) return cached
@@ -91,16 +116,15 @@ export async function runRoleNetworkDigest(now = new Date()) {
       continue
     }
     try {
-      const slug = m.community.value
-      const role = roleForAddress(slug)
-      if (!role) {
+      const info = networkInfoForCommunity(m.community.type, m.community.value)
+      if (!info) {
         stats.skipped += 1
         continue
       }
-      const stat = index.find((s) => s.slug === role.slug) ?? null
+      const figures = await figuresFor(info, index)
       const canSeePosts = await canParticipateInCommunity(m.candidate.id, m.candidate.privacyTier, m.candidate.confidentialSearchMode)
       const posts = canSeePosts ? await postsFor(m.community.id) : []
-      const openJobs = stat?.jobs ?? null
+      const openJobs = figures.openJobs
       // Nothing real to say this week: no jobs figure and no posts.
       if (openJobs === null && posts.length === 0) {
         stats.skipped += 1
@@ -125,15 +149,16 @@ export async function runRoleNetworkDigest(now = new Date()) {
         from: 'NextChapter <support@launchyournextchapter.com>',
         replyTo: 'support@launchyournextchapter.com',
         to: email,
-        subject: `This week in the ${role.short} network`,
-        react: createElement(RoleNetworkDigestEmail, {
+        subject: `This week in the ${info.name} network`,
+        react: createElement(NetworkDigestEmail, {
           firstName: m.candidate.firstName,
-          short: role.short,
-          spelled: role.spelled,
+          name: info.name,
+          scope: info.spelled,
           openJobs,
-          medianPay: stat?.median != null && stat.payCount >= ROLE_MIN_PAY ? usd(stat.median) : null,
+          medianPay: figures.medianPay,
           posts,
-          rolePageUrl: buildEmailClickUrl(appUrl, m.candidate.id, 'MARKET_UPDATE', `${appUrl}/roles/${role.slug}`),
+          pageUrl: buildEmailClickUrl(appUrl, m.candidate.id, 'MARKET_UPDATE', `${appUrl}${pagePath(info)}`),
+          pageLabel: `See the ${info.name} page`,
           networkUrl: buildEmailClickUrl(appUrl, m.candidate.id, 'MARKET_UPDATE', `${appUrl}/dashboard/community`),
           unsubscribeUrl: audienceUnsubscribeUrl(appUrl, 'candidate', m.candidate.id),
         }),
@@ -146,12 +171,12 @@ export async function runRoleNetworkDigest(now = new Date()) {
         continue
       }
       stats.sent += 1
-      captureServerEvent(m.candidate.id, 'role_network_digest_sent', { roleSlug: role.slug, communityId: m.community.id, postCount: posts.length, openJobs })
+      captureServerEvent(m.candidate.id, 'network_digest_sent', { networkKind: info.kind, networkKey: info.key, communityId: m.community.id, postCount: posts.length, openJobs })
     } catch (e) {
       console.error('Role network digest failed for membership', m.id, e)
       stats.failed += 1
     }
   }
-  captureServerEvent('cron', 'role_network_digest_run', stats)
+  captureServerEvent('cron', 'network_digest_run', stats)
   return { enabled: true as const, ...stats }
 }

@@ -31,12 +31,14 @@ export async function syncAutoJoinedCommunities(candidateId: string) {
     }),
     prisma.communityMembership.findMany({
       where: { candidateId },
-      select: { community: { select: { type: true } } },
+      select: { joinedVia: true, community: { select: { type: true } } },
     }),
   ])
   if (!profile) return
 
-  const existingTypes = new Set(memberships.map((m) => m.community.type))
+  // Only auto-join rows count: a function or industry network the member joined by clicking on a page must not stop their
+  // own function and industry from being joined (and leaving an auto-joined community stays permanent, as that row remains).
+  const existingTypes = new Set(memberships.filter((m) => m.joinedVia === 'AUTO').map((m) => m.community.type))
 
   const dimensions: AutoJoinDimension[] = []
   if (profile.currentCity && !existingTypes.has('CITY')) {
@@ -65,8 +67,12 @@ export async function syncAutoJoinedCommunities(candidateId: string) {
         create: { type: dim.type, value: dim.value, label: dim.label, layoffCohortId: dim.layoffCohortId },
         update: {},
       })
-      await prisma.communityMembership.create({
-        data: { communityId: community.id, candidateId, joinedVia: 'AUTO' },
+      // An upsert that changes nothing when the row exists: the member may already hold this very community from a click on a
+      // page (or have left it), and that row, not a second one, is what stands.
+      await prisma.communityMembership.upsert({
+        where: { communityId_candidateId: { communityId: community.id, candidateId } },
+        create: { communityId: community.id, candidateId, joinedVia: 'AUTO' },
+        update: {},
       })
     })
   )
@@ -122,8 +128,23 @@ export async function leaveCommunity(candidateId: string, communityId: string) {
 export function communityPostWhere(community: { type: CommunityType; value: string; communityId?: string } | null) {
   if (!community) return {}
   if (community.type === 'CITY') return { postCity: community.value }
-  if (community.type === 'FUNCTION') return { postFunction: community.value }
-  if (community.type === 'INDUSTRY') return { postIndustry: community.value }
+  // Function and industry communities are filled two ways: profile auto-joins (posts tagged with the same text) and members
+  // who clicked "Join the ... network" on the page (posts of the network's members). The feed is both. `AND` rather than `OR`
+  // so it cannot be overwritten by the moderation filter the page spreads after it.
+  if (community.type === 'FUNCTION' || community.type === 'INDUSTRY') {
+    const tagged = community.type === 'FUNCTION' ? { postFunction: community.value } : { postIndustry: community.value }
+    if (!community.communityId) return tagged
+    return {
+      AND: [
+        {
+          OR: [
+            tagged,
+            { candidate: { communityMemberships: { some: { communityId: community.communityId, leftAt: null } }, confidentialSearchMode: false } },
+          ],
+        },
+      ],
+    }
+  }
   // Alumni and role networks have no tag on a post; they are the posts of the network's
   // members. Fails CLOSED: without the community's id the filter matches nothing,
   // never "everyone".
