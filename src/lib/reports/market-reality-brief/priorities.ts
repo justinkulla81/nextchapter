@@ -157,7 +157,7 @@ export function buildPriorities(s: PrioritySignals): PriorityAction[] {
       area: 'Skills',
       title: `Add ${g.term} to your profile, or build it`,
       rationale: `${g.employers} of ${g.of} employers with jobs that fit you ask for it, and it is not on your profile. If you have it, add it; if not, one course closes the gap.`,
-      href: '/dashboard/learning#ai-skills-for-your-search',
+      href: '/dashboard/learning?all=1&tab=courses#ai-skills-for-your-search',
       cta: 'See the course',
       weight: 50 + Math.min(20, Math.round((g.employers / Math.max(1, g.of)) * 20)),
     })

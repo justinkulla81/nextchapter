@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-240 clusters, 1495 phrases.
+240 clusters, 1496 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -139,7 +139,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/resources/warn-act` | page | WARN Act rights | A worker asks what a WARN notice means and what an employer owes | WARN notice meaning; what is the WARN Act; WARN Act severance; WARN Act pay; WARN Act exceptions; WARN Act for employees; state WARN laws |
 | `/layoffs/by-state` | page | WARN notices by state | Find every state’s WARN layoff notices in one place | WARN notice list by state; layoffs by state 2026; state WARN notice database; WARN notices by state 2026 |
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
-| `/tools/resume-check` | page | free resume check | Score my resume with a free tool | resume checker; resume score; check my resume; free resume score; resume analyzer |
+| `/tools/resume-check` | page | free resume check | Score my resume with a free tool | ats checker; resume checker; resume score; check my resume; free resume score; resume analyzer |
 | `/tools/resume-job-match` | page | resume vs job description | Compare my resume to a job description and see missing keywords | resume job description match; compare resume to job description; resume keyword checker; resume scanner; ats resume scanner; resume keywords for a job; match resume to job description; resume job match score |
 | `/templates` | page | job search email templates | Email and letter templates for a layoff and a job search | layoff email templates; job search templates; free email templates for job seekers |
 | `/templates/:slug` | family | email template for job seekers | One email or letter template |  |
@@ -887,9 +887,9 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/tools/resume-check`
 
-- Title: Free Resume Check: Score Your Resume Out of 100
-- Description: Paste your resume to get a free score out of 100 and see how many fixes it needs. Rule-based, no AI, and we do not save your resume.
-- H1: Free resume check: score your resume in a minute
+- Title: Free ATS Resume Checker: Score Your Resume Out of 100
+- Description: Paste your resume for a free score out of 100 and a check of the headings, dates and layout ATS software trips on. Rule-based, no AI, and not saved.
+- H1: Free ATS resume checker: score your resume in a minute
 
 ### `/tools/resume-job-match`
 

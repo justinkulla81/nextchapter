@@ -112,7 +112,7 @@ export function buildLaunchpad(i: LaunchpadInput): LaunchStep[] {
 
   // Weeks 2 to 4: build, then apply once the search tools are on.
   if (i.topAiGap) {
-    add({ key: 'ai_gap', phase: 'weeks_2_4', title: `Close one skill gap: ${i.topAiGap}`, because: 'Employers with jobs that fit you ask for it and it is not on your profile.', tool: tool('learning'), href: '/dashboard/learning#ai-skills-for-your-search', minutes: null, area: 'Skills', done: false })
+    add({ key: 'ai_gap', phase: 'weeks_2_4', title: `Close one skill gap: ${i.topAiGap}`, because: 'Employers with jobs that fit you ask for it and it is not on your profile.', tool: tool('learning'), href: '/dashboard/learning?all=1&tab=courses#ai-skills-for-your-search', minutes: null, area: 'Skills', done: false })
   }
   if (i.weekly) {
     add({

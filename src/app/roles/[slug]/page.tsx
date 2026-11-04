@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { notFound, permanentRedirect, redirect } from 'next/navigation'
 import { Chips, FactGrid, JobList, LINK, RankList, Section, TopicShell } from '@/components/topics/blocks'
 import { FitCheck } from '@/components/capture/FitCheck'
-import { RoleNetworkBand } from '@/components/community/RoleNetworkBand'
+import { NetworkBand } from '@/components/community/NetworkBand'
 import { AiPremiumSection } from '@/components/salaries/AiPremiumSection'
 import { captureSource } from '@/lib/capture/page-capture'
 import { canonical } from '@/lib/seo/canonical'
@@ -84,7 +84,7 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
       trail={[{ name: 'Roles', path: '/roles' }, { name: role.short, path }]}
       title={seo.h1}
       hero={functionImage(role.fn)}
-      afterIntro={<RoleNetworkBand slug={slug} short={role.short} spelled={role.spelled} />}
+      afterIntro={<NetworkBand networkKey={`role:${role.slug}`} kind="role" name={role.short} spelled={role.spelled} />}
       capture={{ kind: 'title', slug, label: role.short, save: { q: role.spelled, loc: '' } }}
       intro={`${stat.jobs.toLocaleString('en-US')} open ${role.spelled} jobs${role.acronym && role.level === 'c-suite' ? ` (${role.acronym})` : ''}, taken from employers’ own career sites and checked to still be open. Also listed as ${role.variants.filter((v) => v !== role.short && v !== role.spelled).slice(0, 5).join(', ')}.${paid ? ` Listings that state pay show a median of ${usd(stat.median!)} a year.` : ''}`}
       jsonLd={[

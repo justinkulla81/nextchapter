@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import { HomeToday, ProgressBuilt, ProgressTimeline } from './home'
 import { HomeTodayShort, HomeTodayShortQuiet } from './home-short'
 import { NetworkShort, NetworkTracker } from './network-short'
+import { LearnShort, LearnLibrary } from './learn-short'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
@@ -39,7 +40,7 @@ import { FundingLive } from './funding-live'
 import { ApplyHelperLive } from './apply-helper-live'
 import { ComparePlacesJobless, ComparePlacesEmployed, ComparePlacesLife, ComparePlacesEmpty, ComparePlacesNoCity } from './compare-places-live'
 import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
-import { RoleNetworkSignedOut, RoleNetworkCanJoin, RoleNetworkJoined, RoleNetworkConfidential, RoleNetworkError } from './role-network'
+import { RoleNetworkSignedOut, RoleNetworkCanJoin, RoleNetworkJoined, RoleNetworkConfidential, RoleNetworkError, FunctionNetworkSignedOut, FunctionNetworkJoined, IndustryNetworkSignedOut, IndustryNetworkJoined } from './peer-network'
 import { PublicLookWorkforce, PublicLookHigherEd, PublicLookRecruiter } from './public-look'
 import { CompanyLandingBuyout, CompanyLandingLayout, CompanyLandingNeither } from './company-landing'
 import { StartPlanLive, StartHelpLive, GraduationLive, ReaskLive, OtherPathsSchoolLive } from './start-grad-live'
@@ -198,6 +199,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/following/companies', place: 'Jobs', title: 'What you follow: companies (sample data)', replaces: '/dashboard/company-tracker', Component: FollowingCompanies },
   { path: 'jobs/following/events', place: 'Jobs', title: 'What you follow: events (sample data)', replaces: 'new; reads ConferenceInterest', Component: FollowingEvents },
   { path: 'jobs/following/emails', place: 'Jobs', title: 'What you follow: email updates (sample data)', replaces: 'new', Component: FollowingEmails },
+  { path: 'learn/learn/skills-short', place: 'Learn', title: 'Skills and courses, shortened: Start the course above the fold (sample data)', replaces: 'the header intro, the always-open AI box (now behind Why this first), and the tune strip above the heading (now one line below)', Component: LearnShort },
+  { path: 'learn/learn/library-tabs', place: 'Learn', title: 'Every course, tool and guide: four tabs (sample data)', replaces: '/dashboard/learning?all=1, about 17 stacked blocks; conditional prompts go to a Needs you strip', Component: LearnLibrary },
   { path: 'learn/learn/skills', place: 'Learn', title: 'Skills and courses', replaces: '/dashboard/learning', Component: LearnSkills },
   { path: 'learn/learn/videos', place: 'Learn', title: 'Videos and webinars', replaces: '/dashboard/webinars', Component: LearnVideos },
   { path: 'account/profile', place: 'Account', title: 'Profile', replaces: '/dashboard/profile, complete-profile', Component: ProfileMock },
@@ -274,6 +277,10 @@ export const MOCKUPS: Mockup[] = [
   { path: 'public/role-network/joined', place: 'Public site', title: 'Role page: already in the CRO network', replaces: 'the generic band at the end of a role page', Component: RoleNetworkJoined },
   { path: 'public/role-network/confidential', place: 'Public site', title: 'Role page: Confidential Search Mode member', replaces: 'the generic band at the end of a role page', Component: RoleNetworkConfidential },
   { path: 'public/role-network/error', place: 'Public site', title: 'Role page: join failed', replaces: 'the generic band at the end of a role page', Component: RoleNetworkError },
+  { path: 'public/function-network/signed-out', place: 'Public site', title: 'Function page top: join the Sales network (visitor)', replaces: 'the closing band on a function page, which the page frame already dropped; the capture box stays as the closing ask', Component: FunctionNetworkSignedOut },
+  { path: 'public/function-network/joined', place: 'Public site', title: 'Function page top: already in the Sales network', replaces: 'the closing band on a function page', Component: FunctionNetworkJoined },
+  { path: 'public/industry-network/signed-out', place: 'Public site', title: 'Industry page top: join the Health care network (visitor)', replaces: 'the closing band on an industry page, which the page frame already dropped; the capture box stays as the closing ask', Component: IndustryNetworkSignedOut },
+  { path: 'public/industry-network/joined', place: 'Public site', title: 'Industry page top: already in the Health care network', replaces: 'the closing band on an industry page', Component: IndustryNetworkJoined },
   { path: 'public/nav', place: 'Public site', title: 'Public header (4 menus) and footer columns', replaces: 'the nine-link top bar in PublicSiteChrome.tsx and the Browse NextChapter text wall', Component: PublicNavPreview },
   { path: 'portals/headers', place: 'Portals', title: 'Portal top bars: employer, higher education, workforce, recruiter, coach', replaces: 'the one navy top bar on every non-candidate portal (PartnerTopBar)', Component: PortalHeaders },
   { path: 'admin/board-bids-live', place: 'Admin', title: 'CRM funding: workforce board bids (live rows)', replaces: 'new', Component: BoardBidsLive as unknown as ComponentType },

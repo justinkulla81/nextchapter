@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ENTRY_CATEGORIES, ENTRY_ROLES, entryRole, rolesForTitle, similarRoles } from '@/lib/entry-roles/roles'
+import { ENTRY_CATEGORIES, ENTRY_ROLES, ROLE_HEAD_WORDS, entryRole, rolesForTitle, similarRoles } from '@/lib/entry-roles/roles'
 import { renderedTitle } from '@/lib/seo/title'
 import { experienceAnswer, roleFaqs, rolePlaceSeo, roleSeo, skillItems } from '@/lib/entry-roles/text'
 
@@ -50,6 +50,16 @@ describe('matching an opening to a role', () => {
 
   it.each(['Senior Account Executive', 'Director of Customer Service', 'Marketing Manager', 'Lead Software Engineer', 'VP of Sales', 'Principal Account Manager'])('%s is above entry level', (title) => {
     expect(rolesForTitle(title)).toEqual([])
+  })
+})
+
+describe('the database prefilter', () => {
+  it('lets every role phrase through, so the exact match in code sees every real title', () => {
+    const re = new RegExp(`(^|[^a-z0-9])(${ROLE_HEAD_WORDS.join('|')})([^a-z0-9]|$)`, 'i')
+    for (const r of ENTRY_ROLES) for (const m of r.match) expect(re.test(m), `${r.slug}: ${m}`).toBe(true)
+  })
+  it('stays a short list', () => {
+    expect(ROLE_HEAD_WORDS.length).toBeLessThan(200)
   })
 })
 
