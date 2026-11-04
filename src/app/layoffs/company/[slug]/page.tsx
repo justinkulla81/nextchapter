@@ -38,7 +38,7 @@ import { LandingHero } from '@/components/layoffs/landing/LandingHero'
 import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
 import { SearchTimeFacts } from '@/components/layoffs/landing/SearchTimeFacts'
 import { PeerEmployers } from '@/components/layoffs/landing/PeerEmployers'
-import { landingVariant, SEARCH_TIME_FACTS } from '@/lib/layoffs/landing'
+import { landingVariant, layoffFactLine, reportLine } from '@/lib/layoffs/landing'
 import { searchSchools } from '@/lib/layoffs/landing-actions'
 import { getPeerEmployers } from '@/lib/layoffs/peers'
 import { BUYOUT_UNEMPLOYMENT_CHECKED, buyoutRuleFor } from '@/lib/warn/buyout-unemployment'
@@ -193,19 +193,12 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const rule = buyoutRuleFor(c.states[0])
   const buyoutRule = rule && c.states[0] ? { ...rule, stateName: stateName(c.states[0]), checked: BUYOUT_UNEMPLOYMENT_CHECKED } : null
   const peers = await getPeerEmployers(c.name, hasNotices ? primaryState(c.notices) : null)
-  const searchFact = `People still out of work in ${SEARCH_TIME_FACTS.asOf.split(' ')[0]} had been looking for ${Math.round(SEARCH_TIME_FACTS.averageWeeksAll)} weeks on average, so a week spent now is a week saved later.`
-  const noticeSentence = (
-    <>
-      {c.name} has filed {c.notices.length.toLocaleString()} WARN {c.notices.length === 1 ? 'notice' : 'notices'} with{' '}
-      {c.states.length === 1 ? `the ${stateName(c.states[0])} labor department` : `labor departments in ${c.states.length} states`}
-      {workers > 0 && <>, naming {workers.toLocaleString()} workers{unknownCounts ? ' where a count was given' : ''}</>}. The most recent was filed {noticeDay(c.latest)}.
-    </>
-  )
+  const places = c.states.length > 3 ? `${c.states.length} states` : c.states.map(stateName).join(', ')
   const heroContext =
-    variant === 'buyout' && latestAnn ? <>Reported {noticeDay(latestAnn.date)}: {latestAnn.summary}. {searchFact}</>
-    : hasNotices ? <>{noticeSentence} {searchFact}</>
-    : latestAnn ? <>Reported {noticeDay(latestAnn.date)}: {latestAnn.summary}. {c.name} has not filed a WARN notice that we have on record. {searchFact}</>
-    : <>{searchFact}</>
+    variant === 'buyout' && latestAnn ? <>{reportLine(noticeDay(latestAnn.date), latestAnn.summary)}</>
+    : hasNotices ? <>{layoffFactLine({ name: c.name, filings: c.notices.length, workers, exact: !unknownCounts, places, latest: noticeDay(c.latest) })}</>
+    : latestAnn ? <>{reportLine(noticeDay(latestAnn.date), latestAnn.summary)}</>
+    : null
   const faq = hasNotices
     ? [
         { q: `Is ${c.name} laying off employees?`, a: `${c.name} has filed ${c.notices.length.toLocaleString()} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'}. The latest was filed ${noticeDay(c.latest)}.` },
@@ -224,7 +217,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
         <StructuredData data={{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }} />
       )}
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-8" data-look="scene">
+      <main className="flex-1 bg-off-white py-8" data-look="scene" data-calm>
         <div className="mx-auto max-w-6xl px-6">
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link>
@@ -242,7 +235,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
 
           <YourState label={c.name} />
           <div className="mt-4 space-y-12">
-            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} noticeCount={c.notices.length} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
+            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : (latestAnn?.workers ?? null)} hasNotices={hasNotices} noticeCount={c.notices.length} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
             <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} buyoutRule={buyoutRule} />
             <SearchTimeFacts />
             <PeerEmployers company={c.name} near={peers.near} similar={peers.similar} metro={peers.homeState ? stateName(peers.homeState) : null} />

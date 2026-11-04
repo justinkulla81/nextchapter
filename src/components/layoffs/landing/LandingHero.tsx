@@ -15,10 +15,10 @@ export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = t
   latestWorkers: number | null
   /** False for a page built only from announcements and press reports (nothing filed with a state). */
   hasNotices?: boolean
-  /** WARN notices on the page; above 1, the headline names the newest notice's headcount as such. */
+  /** Layoff notices on the page; above 1, the headline names the newest notice's headcount as such. */
   noticeCount?: number
   /** One sourced line under the headline (what was announced or filed), already worded. */
-  context: React.ReactNode
+  context?: React.ReactNode
   /** A control shown under the headline and its line of facts, above the fold (the "Were you affected?" card). */
   action?: React.ReactNode
 }) {
@@ -34,7 +34,7 @@ export function LandingHero({ variant, name, slug, latestWorkers, hasNotices = t
           {landingHeadline(variant, name, latestWorkers, hasNotices, noticeCount)}
         </h1>
         {/* The facts first (how many, when, where): that is what the search asked. Then the action. */}
-        <p className="mt-4 max-w-xl text-base opacity-90">{context}</p>
+        {context && <p className="mt-4 max-w-xl text-base opacity-90">{context}</p>}
         {action && <div className="mt-5 max-w-xl">{action}</div>}
       </div>
       <div className="overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/20">
