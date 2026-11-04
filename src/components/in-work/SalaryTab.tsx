@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { ShowMore } from '@/components/candidate/ShowMore'
 import { Input } from '@/components/ui/input'
 import { posthog } from '@/lib/posthog/client'
 import { loadMarketRange, type MarketRangeResult } from '@/app/dashboard/in-work/actions'
@@ -184,6 +185,7 @@ export function SalaryTab() {
         </div>
       </Section>
 
+      <ShowMore page="in_work_raise_more" label="Who, when and how to ask, and practice with feedback">
       <Section title="Who, when and how" intro="Pick your situation for a plan you can follow.">
         <ChoiceButtons
           value={situation}
@@ -243,6 +245,7 @@ export function SalaryTab() {
           Open Find a Full-time Job
         </Link>
       </Section>
+      </ShowMore>
     </div>
   )
 }
