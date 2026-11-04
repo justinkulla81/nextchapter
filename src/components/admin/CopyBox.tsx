@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button'
 import { posthog } from '@/lib/posthog/client'
 
 /** A block of text with a button that copies it, and says so when it has. */
-export function CopyBox({ label, text, kind }: { label: string; text: string; kind: string }) {
+export function CopyBox({ label, text, kind, event, props }: { label: string; text: string; kind: string; event?: string; props?: Record<string, unknown> }) {
   const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
   async function copy() {
     try {
       await navigator.clipboard.writeText(text)
       setState('copied')
-      posthog.capture('roundup_draft_copied', { kind })
+      posthog.capture(event ?? 'roundup_draft_copied', { kind, ...props })
     } catch {
       setState('failed')
     }
