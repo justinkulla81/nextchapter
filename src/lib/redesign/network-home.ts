@@ -15,6 +15,8 @@ export interface NetworkHomeInput {
   outreachTarget: number
   priorityStarred: number
   priorityTarget: number
+  /** The member holds or aims for a leadership role with a page: their role feed replaces the generic community list. */
+  roleFeed?: { name: string; href: string } | null
 }
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
@@ -49,10 +51,10 @@ export function buildCircles(i: NetworkHomeInput): CircleData[] {
     {
       key: 'industry',
       name: 'Industry and function',
-      status: i.communities > 0 ? `${plural(i.communities, 'community', 'communities')} joined.` : 'Not joined yet.',
-      gap: i.communities === 0 ? 'Communities for your field are open to you.' : undefined,
-      state: i.communities > 0 ? 'active' : 'empty',
-      action: { label: i.communities > 0 ? 'Open your communities' : 'Join a community', href: '/dashboard/community' },
+      status: i.roleFeed ? `Your ${i.roleFeed.name} feed: recruiters, news and events for your role.` : i.communities > 0 ? `${plural(i.communities, 'community', 'communities')} joined.` : 'Not joined yet.',
+      gap: i.communities === 0 && !i.roleFeed ? 'Communities for your field are open to you.' : undefined,
+      state: i.communities > 0 || i.roleFeed ? 'active' : 'empty',
+      action: i.roleFeed ? { label: `Open your ${i.roleFeed.name} feed`, href: i.roleFeed.href } : { label: i.communities > 0 ? 'Open your communities' : 'Join a community', href: '/dashboard/community' },
     },
     {
       key: 'recruiters',

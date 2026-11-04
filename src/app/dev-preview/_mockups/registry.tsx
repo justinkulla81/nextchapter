@@ -46,6 +46,7 @@ import { FundingLive } from './funding-live'
 import { ApplyHelperLive } from './apply-helper-live'
 import { ComparePlacesJobless, ComparePlacesEmployed, ComparePlacesLife, ComparePlacesEmpty, ComparePlacesNoCity } from './compare-places-live'
 import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
+import { RoleFeed, RoleFeedQuiet } from './role-feed'
 import { RoleNetworkAsk, FunctionNetworkAsk, IndustryNetworkAsk } from './peer-network'
 import { PublicLookWorkforce, PublicLookHigherEd, PublicLookRecruiter } from './public-look'
 import { CompanyLandingBuyout, CompanyLandingLayout, CompanyLandingNeither } from './company-landing'
@@ -292,6 +293,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/partner-move-ask', place: 'Network', title: 'Your move plan: asking for your last salary, in context, with a skip', replaces: 'new', Component: PartnerMovingAsk },
   { path: 'network/circles/partner-move-worth', place: 'Network', title: 'Your move plan: each salary in what it buys at home', replaces: 'new', Component: PartnerMovingWorth },
   { path: 'network/circles/partner-move', place: 'Network', title: 'Your move plan: places side by side, with what it costs to live there', replaces: 'new', Component: PartnerMoving },
+  { path: 'network/role-feed', place: 'Network', title: 'Your CRO feed: this week, recruiters, and more for CROs (sample data)', replaces: 'the community lists on Industry and function, for a member whose title is a leadership role', Component: RoleFeed },
+  { path: 'network/role-feed-quiet', place: 'Network', title: 'Your CRO feed: a quiet week (sample data)', replaces: 'same page, when nothing changed this week', Component: RoleFeedQuiet },
   { path: 'public/role-network', place: 'Public site', title: 'Role page: the one ask is joining the CRO network', replaces: 'the Market Reality Assessment box at the bottom of a role page', Component: RoleNetworkAsk },
   { path: 'public/function-network', place: 'Public site', title: 'Function page: the one ask is joining the Sales network', replaces: 'the Market Reality Assessment box at the bottom of a function page', Component: FunctionNetworkAsk },
   { path: 'public/industry-network', place: 'Public site', title: 'Industry page: the one ask is joining the Health care network', replaces: 'the Market Reality Assessment box at the bottom of an industry page', Component: IndustryNetworkAsk },
