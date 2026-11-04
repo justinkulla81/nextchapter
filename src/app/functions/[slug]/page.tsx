@@ -3,7 +3,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { LINK, FactGrid, RankList, Chips, ConferenceList, JobList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
-import { NetworkBand } from '@/components/community/NetworkBand'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, JOB_FUNCTIONS } from '@/lib/seo/topics'
@@ -43,7 +42,7 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
       trail={[{ name: 'Functions', path: '/functions' }, { name: fn.name, path }]}
       title={`${fn.name} jobs and conferences`}
       intro={intro}
-      afterIntro={<NetworkBand networkKey={`function:${slug}`} kind="function" name={fn.name} spelled={fn.name} />}
+      network={{ key: `function:${slug}`, kind: 'function', name: fn.name, spelled: fn.name }}
       capture={{ kind: 'function', slug, label: fn.name, save: { q: scopeQ('function', fn.name), loc: '' } }}
       jsonLd={[
         {

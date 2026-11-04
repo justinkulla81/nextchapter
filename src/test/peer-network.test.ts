@@ -50,7 +50,9 @@ describe('peer networks', () => {
   it('says the role in the role block and the field in the others', () => {
     expect(networkCopy('role', 'CRO', 'Chief Revenue Officer').headline).toBe('Are you a CRO? Join your peers.')
     expect(networkCopy('function', 'Sales', 'Sales').headline).toBe('Work in Sales? Join your peers.')
-    expect(networkCopy('industry', 'Health care', 'Health care').bullets).toHaveLength(3)
+    expect(networkCopy('industry', 'Health care', 'Health care').sentence).toContain('same industry')
+    expect(networkCopy('function', 'Sales', 'Sales').sentence).toContain('same function')
+    expect(networkCopy('role', 'CRO', 'Chief Revenue Officer').sentence).toContain('Chief Revenue Officer roles')
   })
 })
 

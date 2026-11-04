@@ -41,7 +41,7 @@ import { FundingLive } from './funding-live'
 import { ApplyHelperLive } from './apply-helper-live'
 import { ComparePlacesJobless, ComparePlacesEmployed, ComparePlacesLife, ComparePlacesEmpty, ComparePlacesNoCity } from './compare-places-live'
 import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
-import { RoleNetworkSignedOut, RoleNetworkError, FunctionNetworkSignedOut, IndustryNetworkSignedOut } from './peer-network'
+import { RoleNetworkAsk, FunctionNetworkAsk, IndustryNetworkAsk } from './peer-network'
 import { PublicLookWorkforce, PublicLookHigherEd, PublicLookRecruiter } from './public-look'
 import { CompanyLandingBuyout, CompanyLandingLayout, CompanyLandingNeither } from './company-landing'
 import { StartPlanLive, StartHelpLive, GraduationLive, ReaskLive, OtherPathsSchoolLive } from './start-grad-live'
@@ -275,10 +275,9 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/partner-move-ask', place: 'Network', title: 'Your move plan: asking for your last salary, in context, with a skip', replaces: 'new', Component: PartnerMovingAsk },
   { path: 'network/circles/partner-move-worth', place: 'Network', title: 'Your move plan: each salary in what it buys at home', replaces: 'new', Component: PartnerMovingWorth },
   { path: 'network/circles/partner-move', place: 'Network', title: 'Your move plan: places side by side, with what it costs to live there', replaces: 'new', Component: PartnerMoving },
-  { path: 'public/role-network/signed-out', place: 'Public site', title: 'Role page top: join the CRO network', replaces: 'the generic band at the end of a role page, which is dropped; the capture box stays as the closing ask', Component: RoleNetworkSignedOut },
-  { path: 'public/role-network/error', place: 'Public site', title: 'Role page: join failed', replaces: 'the generic band at the end of a role page', Component: RoleNetworkError },
-  { path: 'public/function-network/signed-out', place: 'Public site', title: 'Function page top: join the Sales network (visitor)', replaces: 'the closing band on a function page, which the page frame already dropped; the capture box stays as the closing ask', Component: FunctionNetworkSignedOut },
-  { path: 'public/industry-network/signed-out', place: 'Public site', title: 'Industry page top: join the Health care network (visitor)', replaces: 'the closing band on an industry page, which the page frame already dropped; the capture box stays as the closing ask', Component: IndustryNetworkSignedOut },
+  { path: 'public/role-network', place: 'Public site', title: 'Role page: the one ask is joining the CRO network', replaces: 'the Market Reality Assessment box at the bottom of a role page', Component: RoleNetworkAsk },
+  { path: 'public/function-network', place: 'Public site', title: 'Function page: the one ask is joining the Sales network', replaces: 'the Market Reality Assessment box at the bottom of a function page', Component: FunctionNetworkAsk },
+  { path: 'public/industry-network', place: 'Public site', title: 'Industry page: the one ask is joining the Health care network', replaces: 'the Market Reality Assessment box at the bottom of an industry page', Component: IndustryNetworkAsk },
   { path: 'public/nav', place: 'Public site', title: 'Public header (4 menus) and footer columns', replaces: 'the nine-link top bar in PublicSiteChrome.tsx and the Browse NextChapter text wall', Component: PublicNavPreview },
   { path: 'portals/headers', place: 'Portals', title: 'Portal top bars: employer, higher education, workforce, recruiter, coach', replaces: 'the one navy top bar on every non-candidate portal (PartnerTopBar)', Component: PortalHeaders },
   { path: 'admin/board-bids-live', place: 'Admin', title: 'CRM funding: workforce board bids (live rows)', replaces: 'new', Component: BoardBidsLive as unknown as ComponentType },
