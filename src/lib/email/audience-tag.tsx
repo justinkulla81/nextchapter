@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react'
  * small line at the very bottom, so a forward, a screenshot or a spot-check in
  * an inbox shows at a glance which product surface produced it.
  *
- *   candidate     – job seekers and members (and prospects invited by anyone)
+ *   candidate     – members (labelled Member) and prospects invited by anyone
  *   coach         – coaches
  *   recruiter     – recruiters and recruiting firms
  *   employer      – employers, hiring managers, references and companies
@@ -25,7 +25,7 @@ export type EmailAudience =
   | 'general'
 
 const LABEL: Record<EmailAudience, string> = {
-  candidate: 'Candidate',
+  candidate: 'Member',
   coach: 'Coach',
   recruiter: 'Recruiter',
   employer: 'Employer',
@@ -54,13 +54,17 @@ export function AudienceTag({ audience }: { audience: EmailAudience }) {
 }
 
 /** Matches the line AudienceTag renders, in HTML or plain text. */
-const MARKER = /NextChapter · (Candidate|Coach|Recruiter|Employer|Organization|Supporter|Internal|Update)\b/i
+// Candidate stays in the list: emails sent before the label became Member still carry it.
+const MARKER = /NextChapter · (Member|Candidate|Coach|Recruiter|Employer|Organization|Supporter|Internal|Update)\b/i
 
 export function hasAudienceTag(content: string): boolean {
   return MARKER.test(content)
 }
 
-const KEY_BY_LABEL = Object.fromEntries(Object.entries(LABEL).map(([k, v]) => [v.toLowerCase(), k])) as Record<string, EmailAudience>
+const KEY_BY_LABEL = {
+  ...(Object.fromEntries(Object.entries(LABEL).map(([k, v]) => [v.toLowerCase(), k])) as Record<string, EmailAudience>),
+  candidate: 'candidate', // the label used before Member
+} as Record<string, EmailAudience>
 
 /** The audience a string email was tagged with, or null when it has no tag. */
 export function audienceFromContent(content: string): EmailAudience | null {
