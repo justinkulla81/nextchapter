@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/seo/facts'
-import { PUBLIC_JOB_SITEMAP_SHARDS } from '@/lib/jobs/public-job-page'
+import { PUBLIC_JOB_SITEMAP_SHARDS, liveJobSitemapShards } from '@/lib/jobs/public-job-page'
 import { publicJobsInShard } from '@/lib/jobs/public-job-page-server'
 import { cachedSitemap } from '@/lib/seo/sitemap-cache'
 
@@ -26,5 +26,8 @@ const build = cachedSitemap('jobs-sitemap-v3', async (shard: number): Promise<Me
 })
 
 export default async function sitemap(props: { id: Promise<string> }): Promise<MetadataRoute.Sitemap> {
-  return build(Number(await props.id))
+  const shard = Number(await props.id)
+  // A file that is not live answers with no URLs, so a crawler that still has it submitted reads an empty list (src/lib/jobs/public-job-page.ts, liveJobSitemapShards).
+  if (shard >= liveJobSitemapShards()) return []
+  return build(shard)
 }
