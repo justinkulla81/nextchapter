@@ -1,5 +1,5 @@
 import { TrackedLink } from '@/components/marketing/TrackedLink'
-import { PRIORITY_RANKINGS, PRIORITY_TOOLS } from '@/lib/seo/priority-links'
+import { PRIORITY_RANKINGS, PRIORITY_REPORTS, PRIORITY_TOOLS } from '@/lib/seo/priority-links'
 import { getFreshJobLinks, getFreshLayoffLinks, getRisingSearchLinks, type FreshLink } from '@/lib/seo/fresh-links'
 
 // Newest layoff pages and job pages as a plain link list. `tone` matches the surface it sits on: 'dark' for the home footer,
@@ -29,12 +29,12 @@ const asLinks = (items: { href: string; label: string }[], kind: FreshLink['kind
 
 export async function FreshLinks({ tone, placement }: { tone: 'dark' | 'light'; placement: string }) {
   const [layoffs, jobs, rising] = await Promise.all([getFreshLayoffLinks(), getFreshJobLinks(), getRisingSearchLinks(8)])
-  if (layoffs.length === 0 && jobs.length === 0 && rising.length === 0) return null
   return (
     <div className={tone === 'dark' ? 'mt-12 space-y-6 text-left' : 'space-y-6'}>
       <LinkList title="Latest layoffs" links={layoffs} placement={placement} tone={tone} />
       <LinkList title="Newest jobs" links={jobs} placement={placement} tone={tone} />
       <LinkList title="Searched for lately" links={rising} placement={placement} tone={tone} />
+      <LinkList title="Reports and data" links={asLinks(PRIORITY_REPORTS, 'report')} placement={placement} tone={tone} />
       <LinkList title="Free tools" links={asLinks(PRIORITY_TOOLS, 'tool')} placement={placement} tone={tone} />
       <LinkList title="Rankings" links={asLinks(PRIORITY_RANKINGS, 'ranking')} placement={placement} tone={tone} />
     </div>
