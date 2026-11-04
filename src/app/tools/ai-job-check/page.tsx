@@ -60,7 +60,7 @@ export default function AiJobCheckPage() {
         </p>
       </section>
 
-      <ActionBand title="Turn the number into a plan" body="A free Market Reality Assessment shows how recruiters read your background, then ranks every open job for you." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'ai_job_check' }} />
+      <ActionBand title="Does that number worry you?" body="See how recruiters read your background and which open jobs fit you best. Free." label="Show me jobs that fit me" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'ai_job_check' }} />
     </SeoPage>
   )
 }

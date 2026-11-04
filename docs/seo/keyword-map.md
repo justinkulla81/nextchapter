@@ -515,7 +515,7 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Layoffs This Week: New WARN Notices by State
 - Description: Layoff notices filed in the last seven days: how many workers, which states and employers, with the state record for each. Updated every day.
-- H1: Layoffs this week: new WARN notices
+- H1: Layoffs this week: who is losing their jobs
 
 ### `/layoffs/week`
 

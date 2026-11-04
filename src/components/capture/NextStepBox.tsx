@@ -8,6 +8,7 @@ import { posthog } from '@/lib/posthog/client'
 import { NetworkJoinButton } from '@/components/community/NetworkJoinButton'
 import { networkCopy, type NetworkAsk } from '@/lib/community/network-copy'
 import { cn } from '@/lib/utils'
+import { DEFAULT_COPY, type PullCopy } from '@/lib/capture/pull-copy'
 
 /**
  * The one call to action on a public page: a navy box, one sentence, one yellow button. It replaces the banner, the mid-page strip,
@@ -17,7 +18,7 @@ import { cn } from '@/lib/utils'
  * On a role, function or industry page the ask is the page's own network instead ("Are you a CRO? Join the CRO network"): same
  * box, same one button, so the page still makes one ask. The email and journey options behind "Not ready?" stay.
  */
-export function NextStepBox({ audience, slug, extras, network }: { audience: 'seeker' | 'org'; slug: string; extras?: ReactNode; network?: NetworkAsk }) {
+export function NextStepBox({ audience, slug, extras, network, copy = DEFAULT_COPY }: { audience: 'seeker' | 'org'; slug: string; extras?: ReactNode; network?: NetworkAsk; /** The pain and the payoff for this page (src/lib/capture/pull-copy.ts). */ copy?: PullCopy }) {
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const org = audience === 'org'
@@ -27,13 +28,13 @@ export function NextStepBox({ audience, slug, extras, network }: { audience: 'se
     <section id="get-started" aria-label="Next step" className={cn('mt-8 scroll-mt-6 rounded-3xl bg-navy p-5 text-white sm:p-7', busy && 'cursor-wait')}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
         <div className="max-w-2xl">
-          <h2 className="text-xl font-semibold tracking-tight">{net ? net.headline : org ? 'Do you run this, hire for it or serve these people?' : 'See where you stand in the market today'}</h2>
+          <h2 className="text-xl font-semibold tracking-tight">{net ? net.headline : org ? 'Do you run this, hire for it or serve these people?' : copy.headline}</h2>
           <p className="mt-1 text-sm text-white/85">
             {net
               ? net.sentence
               : org
                 ? 'Reach experienced job seekers where they already look, with your own page and your own numbers. A short call shows how.'
-                : 'Your Market Reality Assessment: a plain-language read on your odds, jobs matched to you and a weekly plan. Free. No résumé needed.'}
+                : copy.sentence}
           </p>
         </div>
         {net && network ? (
@@ -42,11 +43,11 @@ export function NextStepBox({ audience, slug, extras, network }: { audience: 'se
           <TrackedLink
             href={href}
             event="pull_cta_clicked"
-            properties={{ spot: 'top', audience, slug }}
+            properties={{ spot: 'top', audience, slug, copy: copy.button ?? 'assessment' }}
             gtagEvent="pull_cta_clicked"
             className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95"
           >
-            {org ? 'Talk to us' : <AssessmentCtaLabel>Get my Market Reality Assessment</AssessmentCtaLabel>}
+            {org ? 'Talk to us' : copy.button ?? <AssessmentCtaLabel>Get my Market Reality Assessment</AssessmentCtaLabel>}
           </TrackedLink>
         )}
       </div>
@@ -62,7 +63,7 @@ export function NextStepBox({ audience, slug, extras, network }: { audience: 'se
             }}
             className="min-h-10 text-sm text-white/85 underline underline-offset-4 hover:text-white"
           >
-            {open ? 'Close' : 'Not ready? Get a first-week plan by email instead.'}
+            {open ? 'Close' : 'Not ready? Email me a first-week plan instead.'}
           </button>
           {open && (
             <div id="next-step-extras" className="mt-3 rounded-2xl bg-white p-4 text-foreground sm:p-5">

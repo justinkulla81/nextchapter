@@ -38,7 +38,7 @@ export default function Page() {
           More: <Link href="/tools/pay-check" className={LINK}>pay check: is your salary in line</Link>, <Link href="/salaries" className={LINK}>salaries by job title</Link> and <Link href="/tools/severance-calculator" className={LINK}>severance calculator</Link>.
         </p>
       </section>
-      <ActionBand title="Know what the market pays your title" body="A free Market Reality Assessment and a weekly plan that starts with the deadlines." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'salary_converter' }} />
+      <ActionBand title="Not sure what your title pays?" body="See how the market reads your background and which jobs fit. Free." label="Show me what I am worth" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'salary_converter' }} />
     </SeoPage>
   )
 }

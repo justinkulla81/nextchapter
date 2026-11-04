@@ -12,12 +12,12 @@ export interface NetworkCopy {
 export function networkCopy(kind: NetworkKind, name: string, spelled: string): NetworkCopy {
   if (kind === 'role') {
     return {
-      headline: `Are you a ${name}? Join your peers.`,
+      headline: `Job hunting as a ${name}? Do not do it alone.`,
       sentence: `The ${name} network is for people in ${spelled} roles who are thinking about their next step: a weekly email with the ${spelled} openings and what they pay, what other members post, and a peer group in the same role.`,
     }
   }
   return {
-    headline: `Work in ${name}? Join your peers.`,
+    headline: `Job hunting in ${name}? Do not do it alone.`,
     sentence: `The ${name} network is for people working in ${name} who are thinking about their next step: a weekly email with the ${name} openings and what they pay, what other members post, and a peer group in the same ${kind === 'industry' ? 'industry' : 'function'}.`,
   }
 }

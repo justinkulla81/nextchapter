@@ -12,6 +12,7 @@ import { submitJourneyLead, type JourneyState } from '@/lib/leads/actions'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
+import { DEFAULT_COPY, LAID_OFF_COPY } from '@/lib/capture/pull-copy'
 
 // "Where are you in your search?" Three short steps and no résumé: pick your situation, say how
 // long it has been going on, and get a first-week plan by email. The same situations as the
@@ -194,8 +195,8 @@ export function JourneyPicker({ source = 'home', compact = false, situations, va
             <p className="mt-3 text-sm text-muted-foreground">We’ll email you the other {planPreview.steps.length - 1}.</p>
           </div>
           <div className="mx-auto mt-5 max-w-md rounded-2xl bg-navy p-5 text-center text-white">
-            <p className="text-lg font-semibold">See where you stand in the market today</p>
-            <p className="mt-1 text-sm text-white/85">Your Market Reality Assessment: a plain-language read on your odds, jobs matched to you and a weekly plan. Free. No résumé needed.</p>
+            <p className="text-lg font-semibold">{persona?.slug === 'laid-off' ? LAID_OFF_COPY.headline : DEFAULT_COPY.headline}</p>
+            <p className="mt-1 text-sm text-white/85">{persona?.slug === 'laid-off' ? LAID_OFF_COPY.sentence : DEFAULT_COPY.sentence}</p>
             <Link
               href={MARKET_REALITY_START_HREF}
               onClick={() => {
@@ -204,10 +205,10 @@ export function JourneyPicker({ source = 'home', compact = false, situations, va
               }}
               className="mt-4 inline-flex min-h-14 w-full items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95 sm:text-lg"
             >
-              Get my Market Reality Assessment
+              {persona?.slug === 'laid-off' ? LAID_OFF_COPY.button : <AssessmentCtaLabel>Get my Market Reality Assessment</AssessmentCtaLabel>}
             </Link>
           </div>
-          <p className="mt-5 text-center text-sm text-muted-foreground">Not ready? Get just the first-week plan by email.</p>
+          <p className="mt-5 text-center text-sm text-muted-foreground">Not ready? Email me just the first-week plan.</p>
           <form
             action={action}
             noValidate
