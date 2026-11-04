@@ -1,6 +1,6 @@
-import { timedWithin } from '@/lib/perf/timed'
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { timedWithin } from '@/lib/perf/timed'
 import { buildLayoffTimeline } from '@/lib/companies/layoff-timeline'
 import { buildLayoffYear } from '@/lib/companies/layoff-year'
 import { LAYOFF_WINDOW_MONTHS } from '@/lib/crm/layoff-signals'
@@ -18,9 +18,12 @@ const DAY_MS = 24 * 60 * 60 * 1000
 let trackingStartCache: { at: number; value: Date | null } | null = null
 async function boardTrackingStart(): Promise<Date | null> {
   if (trackingStartCache && Date.now() - trackingStartCache.at < 60 * 60 * 1000) return trackingStartCache.value
-  const row = await prisma.exclusiveJobPosting.aggregate({ _min: { createdAt: true } })
-  trackingStartCache = { at: Date.now(), value: row._min.createdAt }
-  return row._min.createdAt
+  // The oldest posting, read as one row off the createdAt index. Prisma's aggregate _min wraps the table in a subquery
+  // that scans all of it (over 30 s on 1.2 M rows), which took every organization page down.
+  const row = await prisma.exclusiveJobPosting.findFirst({ orderBy: { createdAt: 'asc' }, select: { createdAt: true } })
+  const value = row?.createdAt ?? null
+  trackingStartCache = { at: Date.now(), value }
+  return value
 }
 
 const fullName = (c: { firstName: string | null; lastName: string | null }) =>

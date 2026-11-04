@@ -32,9 +32,12 @@ export interface CompanyIntelPanels {
 let trackingStartCache: { at: number; value: Date | null } | null = null
 async function boardTrackingStart(): Promise<Date | null> {
   if (trackingStartCache && Date.now() - trackingStartCache.at < 60 * 60 * 1000) return trackingStartCache.value
-  const row = await prisma.exclusiveJobPosting.aggregate({ _min: { createdAt: true } })
-  trackingStartCache = { at: Date.now(), value: row._min.createdAt }
-  return row._min.createdAt
+  // The oldest posting, read as one row off the createdAt index. Prisma's aggregate _min wraps the table in a subquery
+  // that scans all of it (over 30 s on 1.2 M rows), which took every organization page down.
+  const row = await prisma.exclusiveJobPosting.findFirst({ orderBy: { createdAt: 'asc' }, select: { createdAt: true } })
+  const value = row?.createdAt ?? null
+  trackingStartCache = { at: Date.now(), value }
+  return value
 }
 
 const TWO_YEARS_MS = 2 * 365 * 24 * 60 * 60 * 1000
