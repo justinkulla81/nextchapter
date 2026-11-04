@@ -115,7 +115,7 @@ const SURFACED = {
   surfacedAt: hoursAgo(20), reaction: null,
 } as unknown as SurfacedJob
 
-function entries(): FindEntry[] {
+export function entries(): FindEntry[] {
   return [
     // A member changing careers (signalLift): welcome tags lead (posting-signals.ts).
     ...BOARD.map((b) => boardEntry({ ...b, signalLift: true })),

@@ -9,6 +9,7 @@ import { CommunityShort } from './community-short'
 import { PremiumShort, PersonalShort } from './leftovers-short'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
+import { FindFromPublicSearch } from './jobs-from-public'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
 import { FindUnpostedLive, FindUnpostedEmptyLive, FindUnpostedErrorLive, FindIndependentLive, FindIndependentNewLive, FindIndependentOfferLive, FindResourcesLive, FindResourcesOptedInLive } from './jobs-find-parts-live'
 import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, CompanyProfile, MarketYours, MarketPay, MarketLocal, MarketPivot, Interviews, Offers } from './jobs-more'
@@ -152,6 +153,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/find/independent', place: 'Jobs', title: 'Find a job: independent work', replaces: 'Independent work toolkit on /dashboard/find-my-job', Component: FindIndependent },
   { path: 'jobs/find/resources', place: 'Jobs', title: 'Find a job: resources', replaces: 'Job boards, résumé book, guides on /dashboard/find-my-job', Component: FindResources },
   { path: 'jobs/mine', place: 'Jobs', title: 'My jobs', replaces: '/dashboard/find-my-job?tab=my_jobs', Component: MyJobs },
+  { path: 'jobs/find/from-public', place: 'Jobs', title: 'Find a job, arriving from a public search: same search box, results at once, each ranked for you (sample data)', replaces: 'the plain "Find a job" headline when a public search is carried in (the real page already lists the jobs before the tune strip and filters)', Component: FindFromPublicSearch },
   { path: 'jobs/find/jobs-live', place: 'Jobs', title: 'Find a job: the built list and detail (sample data)', replaces: 'the code that ships, fed sample data', Component: FindJobsLive },
   { path: 'jobs/find/unposted-live', place: 'Jobs', title: 'Find a job: not posted yet, built (sample data)', replaces: 'the code that ships, fed sample data', Component: FindUnpostedLive },
   { path: 'jobs/find/unposted-empty-live', place: 'Jobs', title: 'Find a job: not posted yet, nothing yet (sample data)', replaces: 'the code that ships, fed sample data', Component: FindUnpostedEmptyLive },

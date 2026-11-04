@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   const workers = d.recent.reduce((s, n) => s + (n.workers ?? 0), 0)
-  const description = `${d.recent.length} layoff and job-cut notices (WARN filings) in ${d.name} in the last 12 months${workers > 0 ? `, naming ${workers.toLocaleString()} workers` : ''}: employers, dates, locations and the state record for each.`
+  const description = `${d.recent.length} layoff and job-cut notices filed with the state in ${d.name} in the last 12 months${workers > 0 ? `, naming ${workers.toLocaleString()} workers` : ''}: employers, dates, locations and the state record for each.`
   return {
     title: titleMeta(layoffsStateSeo(d.name).title),
     description: fitDescription(description, 165),
@@ -143,7 +143,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
           <section aria-labelledby="notices" className="mt-12">
             <h2 id="notices" className={H2}>Notices in the last 12 months</h2>
             <div className="mt-4">
-              <NoticeTable notices={d.recent} caption={`WARN notices filed in ${d.name}, newest first`} linkEmployer page="state" placeHref={linkPlace} />
+              <NoticeTable notices={d.recent} caption={`Layoff notices filed in ${d.name}, newest first`} linkEmployer page="state" placeHref={linkPlace} />
             </div>
           </section>
 
@@ -182,7 +182,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
 
           <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
             <span className="font-medium text-foreground">Coverage:</span> {d.all.length.toLocaleString()} {d.name} notices on file,
-            filed {noticeDay(earliest)} to {noticeDay(latest)}, collected daily from the state’s published WARN record
+            filed {noticeDay(earliest)} to {noticeDay(latest)}, collected daily from the state’s published layoff record
             {sources.length > 0 && <> ({sources.slice(0, 2).map((u, i) => <span key={u}>{i > 0 && ', '}<a href={u} className="underline underline-offset-2" target="_blank" rel="noopener noreferrer">{new URL(u).hostname}</a></span>)})</>}.
             A state may publish late or leave out worker counts, so this is a floor rather than a count of every layoff. The
             WARN Act generally applies to employers with 100 or more workers. See the{' '}

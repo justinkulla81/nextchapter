@@ -40,8 +40,8 @@ export async function generateMetadata({ params }: { params: Promise<{ week: str
   if (!d || d.redirect) return { title: 'Week not found', robots: { index: false, follow: true } }
   const workers = sum(d.notices)
   return {
-    title: titleMeta(`Layoffs week of ${d.monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}: ${d.notices.length} WARN notices`),
-    description: `${d.notices.length} WARN layoff notices were filed ${weekLabel(d.monday)}${workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}. See the states, the largest employers and the state record for each.`,
+    title: titleMeta(`Layoffs week of ${d.monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}: ${d.notices.length} layoff notices`),
+    description: `${d.notices.length} layoff notices were filed ${weekLabel(d.monday)}${workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}. See the states, the largest employers and the state record for each.`,
     robots: { index: d.notices.length >= WEEK_MIN_NOTICES, follow: true },
     alternates: { canonical: `/layoffs/week/${week}` },
   }
@@ -72,7 +72,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
   const trail = [{ name: 'Layoff tracker', path: '/layoffs' }, { name: 'Weekly layoffs', path: '/layoffs/week' }, { name: label, path: `/layoffs/week/${week}` }]
   return (
     <div className="flex flex-1 flex-col">
-      <StructuredData data={{ '@context': 'https://schema.org', '@type': 'Article', headline: `Layoffs, ${label}: ${notices.length} WARN notices`, datePublished: published, dateModified: modified, author: organizationRef(), publisher: organizationRef(), mainEntityOfPage: `${SITE_URL}/layoffs/week/${week}` }} />
+      <StructuredData data={{ '@context': 'https://schema.org', '@type': 'Article', headline: `Layoffs, ${label}: ${notices.length} layoff notices`, datePublished: published, dateModified: modified, author: organizationRef(), publisher: organizationRef(), mainEntityOfPage: `${SITE_URL}/layoffs/week/${week}` }} />
       <StructuredData data={breadcrumbJsonLd(trail)} />
       <PublicSiteHeader current="news" />
       <main className="flex-1 bg-off-white py-8">
@@ -84,8 +84,8 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">Layoffs, week of {label}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             {notices.length === 0
-              ? 'No WARN notices carry a filing date in that week.'
-              : `Employers filed ${notices.length.toLocaleString('en-US')} WARN layoff notices dated that week${workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before had ${prev.length.toLocaleString('en-US')}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')}` : ''}.`}
+              ? 'No layoff notices carry a filing date in that week.'
+              : `Employers filed ${notices.length.toLocaleString('en-US')} layoff notices dated that week${workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before had ${prev.length.toLocaleString('en-US')}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')}` : ''}.`}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">Counted by the date on each filing; a state can publish a notice later, so a week’s count can grow.</p>
 

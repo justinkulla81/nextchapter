@@ -52,7 +52,7 @@ export default async function LayoffsThisWeek() {
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: `Layoffs this week: ${thisWeek.length} WARN notices${workers ? `, ${workers.toLocaleString('en-US')} workers` : ''}`,
+    headline: `Layoffs this week: ${thisWeek.length} layoff notices${workers ? `, ${workers.toLocaleString('en-US')} workers` : ''}`,
     datePublished: today,
     dateModified: today,
     author: organizationRef(),
@@ -76,7 +76,7 @@ export default async function LayoffsThisWeek() {
               : `${workers ? `${workers.toLocaleString('en-US')} people` : `People at ${thisWeek.length.toLocaleString('en-US')} companies`} found out in the last seven days that they are losing their jobs. Companies sent ${thisWeek.length.toLocaleString('en-US')} layoff notices to ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before it was ${lastWeek.length.toLocaleString('en-US')} notices${lastWorkers ? ` and ${lastWorkers.toLocaleString('en-US')} people` : ''}${diff !== 0 ? `, so layoffs are ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')} notices` : ''}.`}
           </p>
           <PullTop name="Layoffs this week" path="/layoffs/this-week" />
-          <p className="mt-2 text-sm text-muted-foreground">Companies must warn their state before a big layoff (these are called WARN notices). Each notice is counted on the day the company sent it. A state can post it days later, so recent weeks can grow.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Companies must warn their state before a big layoff. Each notice is counted on the day the company sent it. A state can post it days later, so recent weeks can grow.</p>
 
           {states.length > 0 && (
             <section aria-labelledby="states" className="mt-10">

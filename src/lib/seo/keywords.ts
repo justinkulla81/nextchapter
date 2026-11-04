@@ -672,8 +672,8 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
       'mass firings', 'companies firing employees', 'who is firing',
     ],
     seo: {
-      title: 'Layoff Tracker: Layoffs, Job Cuts and WARN Notices by State',
-      description: 'Recent layoffs, job cuts, downsizing and reductions in force (RIFs) from WARN notices filed with the states, updated daily, with a page for each state and employer.',
+      title: 'Layoff Tracker: Layoffs and Job Cuts by State',
+      description: 'Recent layoffs and job cuts from layoff notices filed with the states (under the federal WARN Act), updated daily, with a page for each state and employer.',
     },
   },
   {
@@ -684,9 +684,9 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     primary: 'layoffs 2026',
     secondary: ['layoffs in 2026', '2026 layoffs', 'layoff statistics 2026', 'layoffs by month 2026', 'companies laying off 2026', 'biggest layoffs 2026', 'layoff list 2026', 'how many layoffs in 2026', 'job cuts 2026', '2026 job cuts', 'downsizing 2026', 'companies downsizing 2026', 'reductions in force 2026', 'RIFs 2026', 'mass layoffs 2026', 'workforce reductions 2026'],
     seo: {
-      title: 'Layoffs 2026: Every WARN Notice by Month, State and Company',
-      description: 'Layoffs in 2026 from WARN notices filed with state labor departments: totals by month, state, industry and company, a free CSV, and a line to cite.',
-      h1: 'Layoffs 2026: every WARN notice, month by month',
+      title: 'Layoffs 2026: Every Layoff Notice by Month and State',
+      description: 'Layoffs in 2026 from layoff notices filed with state labor departments: totals by month, state, industry and company, a free CSV, and a line to cite.',
+      h1: 'Layoffs 2026: every layoff notice, month by month',
     },
   },
   {
@@ -705,7 +705,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     primary: 'layoffs this week',
     secondary: ['layoffs this week 2026', 'recent layoff notices', 'new WARN notices this week', 'latest layoff announcements', 'job cuts this week', 'companies laying off this week', 'downsizing this week'],
     seo: {
-      title: 'Layoffs This Week: New WARN Notices by State',
+      title: 'Layoffs This Week: New Layoff Notices by State',
       description: 'Layoff notices filed in the last seven days: how many workers, which states and employers, with the state record for each. Updated every day.',
       h1: 'Layoffs this week: who is losing their jobs',
     },
@@ -718,9 +718,9 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     primary: 'layoffs by week',
     secondary: ['weekly layoffs', 'weekly layoff report', 'layoffs last week', 'WARN notices by week'],
     seo: {
-      title: 'Layoffs by Week: WARN Notices, Week by Week',
-      description: 'Every week of WARN layoff notices from the last two years: how many notices and workers, which states and employers, with the state record for each.',
-      h1: 'Layoffs by week: WARN notices',
+      title: 'Layoffs by Week: Layoff Notices, Week by Week',
+      description: 'Every week of layoff notices from the last two years: how many notices and workers, which states and employers, with the state record for each.',
+      h1: 'Layoffs by week: layoff notices',
     },
   },
   {
@@ -753,7 +753,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     secondary: ['WARN notices rss', 'layoff alerts by state rss', 'layoff news feed', 'WARN notice feed'],
     seo: {
       title: 'Layoff Notice RSS Feeds by State and Industry',
-      description: 'Free RSS and JSON feeds of new WARN layoff notices by state, industry and size, each with the state record, how it compares, and help for affected workers.',
+      description: 'Free RSS and JSON feeds of new layoff notices by state, industry and size, each with the state record, how it compares, and help for affected workers.',
       h1: 'Layoff and conference feeds',
     },
   },
@@ -765,9 +765,9 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     primary: 'layoff data download',
     secondary: ['WARN notices csv', 'WARN notice data', 'layoff data by state', 'layoffs dataset'],
     seo: {
-      title: 'Layoff Data Download: WARN Notices as CSV and JSON',
-      description: 'Download every WARN Act layoff notice of the last 24 months as CSV or JSON, by state or all states, free to reuse with a link back.',
-      h1: 'Layoff data: download the WARN record',
+      title: 'Layoff Data Download: Layoff Notices as CSV and JSON',
+      description: 'Download every layoff notice of the last 24 months as CSV or JSON, by state or all states, free to reuse with a link back.',
+      h1: 'Layoff data: download the state record',
     },
   },
   {
@@ -1653,9 +1653,9 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     primary: 'WARN notices by state',
     secondary: ['WARN notice list by state', 'layoffs by state 2026', 'state WARN notice database', 'WARN notices by state 2026'],
     seo: {
-      title: 'WARN Notices by State: Layoffs Filed in the Last 12 Months',
-      description: 'Every state’s WARN layoff notices in one table: notices and workers named in the last 12 months, the latest filing and the state’s own record. Free to download.',
-      h1: 'WARN notices by state: what each state’s record shows',
+      title: 'Layoffs by State: Notices Filed in the Last 12 Months',
+      description: 'Every state’s layoff notices in one table: notices and workers named in the last 12 months, the latest filing and the state’s own record. Free to download.',
+      h1: 'Layoff notices by state: what each state’s record shows',
     },
   },
   {

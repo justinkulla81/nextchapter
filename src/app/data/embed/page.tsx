@@ -26,7 +26,7 @@ export default function EmbedPage() {
             <EmbedBuilder states={states} industries={industries} jobs={jobs} />
           </div>
           <p className="mt-8 max-w-3xl text-sm text-muted-foreground">
-            Sources: layoff notices are WARN filings with state labor departments; jobs are verified open on the employer’s own career site within the last week; benefits come from each state agency’s published rules, checked against the agency’s own pages.
+            Sources: layoff notices are filings with state labor departments; jobs are verified open on the employer’s own career site within the last week; benefits come from each state agency’s published rules, checked against the agency’s own pages.
           </p>
         </div>
       </main>

@@ -28,12 +28,12 @@ export default async function WarnNoticesByStatePage() {
 
   return (
     <SeoPage
-      trail={[{ name: 'Layoff tracker', path: '/layoffs' }, { name: 'WARN notices by state', path: '/layoffs/by-state' }]}
-      h1="WARN notices by state: what each state’s record shows"
+      trail={[{ name: 'Layoff tracker', path: '/layoffs' }, { name: 'Layoff notices by state', path: '/layoffs/by-state' }]}
+      h1="Layoff notices by state: what each state’s record shows"
       lede={
         <>
           <p>
-            Employers that must give notice of a plant closing or mass layoff file a WARN notice with the state, and each state publishes what it receives. In the last 12 months we have read{' '}
+            Employers that must give notice of a plant closing or mass layoff file a layoff notice with the state (under the federal WARN Act), and each state publishes what it receives. In the last 12 months we have read{' '}
             {notices.toLocaleString('en-US')} notices from {rows.length} states, naming {workers.toLocaleString('en-US')} workers. Open a state for every notice with its source, or download the data.
           </p>
           <AuthorByline updated={new Date().toISOString().slice(0, 10)} className="mt-4" />
@@ -44,11 +44,11 @@ export default async function WarnNoticesByStatePage() {
         <h2 id="table" className={H2}>Notices filed in the last 12 months</h2>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
           One row per state with at least one notice. Notices are filings, one row each as the state published them. Workers named is the number the notices give, a floor, because some states leave it out.
-          Where a state has its own WARN law the row says so, and the <Link href="/resources/warn-act" className={LINK}>WARN Act guide</Link> explains it with sources.
+          Where a state has its own notice law the row says so, and the <Link href="/resources/warn-act" className={LINK}>WARN Act guide</Link> explains it with sources.
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-sm">
-            <caption className="sr-only">WARN notices filed in the last 12 months, by state</caption>
+            <caption className="sr-only">Layoff notices filed in the last 12 months, by state</caption>
             <thead>
               <tr className="text-left text-xs text-muted-foreground">
                 <th scope="col" className="border-b border-border py-2 pr-3 font-medium">State</th>
@@ -65,7 +65,7 @@ export default async function WarnNoticesByStatePage() {
                   <tr key={s.state} className="align-top">
                     <th scope="row" className="border-b border-border py-2.5 pr-3 text-left font-medium text-navy">
                       <Link href={`/layoffs/${stateSlug(s.state)}`} className={LINK}>{stateName(s.state)}</Link>
-                      {law && <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">own WARN law</span>}
+                      {law && <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">own notice law</span>}
                     </th>
                     <td className="border-b border-border py-2.5 pr-3 text-right tabular-nums">{s.recent.toLocaleString('en-US')}</td>
                     <td className="border-b border-border py-2.5 pr-3 text-right tabular-nums">{s.recentWorkers > 0 ? s.recentWorkers.toLocaleString('en-US') : '–'}</td>

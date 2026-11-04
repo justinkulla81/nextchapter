@@ -70,7 +70,7 @@ export async function layoffFeed(o: LayoffFeedOpts): Promise<FeedDoc> {
     const sName = stateName(n.state)
     const { facts } = noticeContext(n, all)
     const bucket = bucketById.get(n.id) ?? null
-    const lead = `${n.employer}${n.division ? ` (${n.division} division)` : ''} filed a WARN layoff notice${n.place ? ` for ${n.place}, ${sName}` : ` in ${sName}`}${n.workers ? `, naming ${num(n.workers)} workers` : ''}${n.noticeDateKnown ? ` on ${noticeDay(n.noticeDate)}` : ` (layoffs effective ${n.effectiveDate ? noticeDay(n.effectiveDate) : 'date not given'})`}${n.type ? ` (${n.type})` : ''}.`
+    const lead = `${n.employer}${n.division ? ` (${n.division} division)` : ''} filed a layoff notice${n.place ? ` for ${n.place}, ${sName}` : ` in ${sName}`}${n.workers ? `, naming ${num(n.workers)} workers` : ''}${n.noticeDateKnown ? ` on ${noticeDay(n.noticeDate)}` : ` (layoffs effective ${n.effectiveDate ? noticeDay(n.effectiveDate) : 'date not given'})`}${n.type ? ` (${n.type})` : ''}.`
     const help = `If you are affected: ${sName} unemployment benefits ${SITE_URL}/unemployment-benefits/${stateSlug(n.state)}${n.board ? `; local help from ${n.board.name}` : ''}.`
     const record = n.sourceUrl ? `State record: ${n.sourceUrl}` : ''
     const description = [lead, ...facts, help, record].filter(Boolean).join(' ')
@@ -94,7 +94,7 @@ export async function layoffFeed(o: LayoffFeedOpts): Promise<FeedDoc> {
     for (const a of announcements.values()) {
       if (!hasRecentAnnouncement(a)) continue
       for (const it of a.items.filter((x) => x.rssPublishedAt && x.date.getTime() >= cutoff)) {
-        const lead = `${a.name}${it.division ? ` (${it.division} division)` : ''}: ${it.summary} (${noticeDay(it.date)}). This is an announcement or press report, not a WARN filing.`
+        const lead = `${a.name}${it.division ? ` (${it.division} division)` : ''}: ${it.summary} (${noticeDay(it.date)}). This is an announcement or press report, not a state filing.`
         items.push({
           title: `${a.name}${it.division ? ` (${it.division})` : ''}: ${it.summary}`,
           link: feedLink(`/layoffs/company/${a.slug}`, o.campaign),
@@ -152,7 +152,7 @@ export async function weeklyLayoffFeed(): Promise<FeedDoc> {
     const top = [...data.notices].sort((a, b) => (b.workers ?? 0) - (a.workers ?? 0)).filter((n) => n.workers).slice(0, 5)
     const states = new Set(data.notices.map((n) => n.state)).size
     const label = weekLabel(w.monday)
-    const lead = `${num(w.count)} WARN layoff notice${w.count === 1 ? '' : 's'} in ${states} state${states === 1 ? '' : 's'}${w.workers ? `, naming ${num(w.workers)} workers` : ''}, filed in the week of ${label}.`
+    const lead = `${num(w.count)} layoff notice${w.count === 1 ? '' : 's'} in ${states} state${states === 1 ? '' : 's'}${w.workers ? `, naming ${num(w.workers)} workers` : ''}, filed in the week of ${label}.`
     const biggest = top.length ? `Largest: ${top.map((n) => `${n.employer} (${stateName(n.state)}, ${num(n.workers!)})`).join('; ')}.` : ''
     items.push({
       title: `Layoffs, week of ${label}: ${num(w.count)} notices${w.workers ? `, ${num(w.workers)} workers` : ''}`,
@@ -185,7 +185,7 @@ export async function dailyLayoffFeed(): Promise<FeedDoc> {
     const states = new Set(notices.map((n) => n.state)).size
     const top = [...notices].filter((n) => n.workers).sort((a, b) => b.workers! - a.workers!).slice(0, 5)
     const label = noticeDay(day)
-    const lead = `${num(notices.length)} WARN layoff notice${notices.length === 1 ? '' : 's'} dated ${label}, in ${states} state${states === 1 ? '' : 's'}${workers ? `, naming ${num(workers)} workers` : ''}.`
+    const lead = `${num(notices.length)} layoff notice${notices.length === 1 ? '' : 's'} dated ${label}, in ${states} state${states === 1 ? '' : 's'}${workers ? `, naming ${num(workers)} workers` : ''}.`
     const biggest = top.length ? `Largest: ${top.map((n) => `${n.employer} (${stateName(n.state)}, ${num(n.workers!)})`).join('; ')}.` : ''
     items.push({
       title: `Layoffs on ${label}: ${num(notices.length)} notices${workers ? `, ${num(workers)} workers` : ''}`,

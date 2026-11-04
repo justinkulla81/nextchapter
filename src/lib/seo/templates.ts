@@ -30,8 +30,8 @@ export const unemploymentStateSeo = (state: string) => ({
 
 /** /layoffs/[state] */
 export const layoffsStateSeo = (state: string) => ({
-  title: pick(`${state} Layoffs and Job Cuts: WARN Notice List`, `${state} Layoffs: WARN Notices and Layoff List`, `${state} Layoffs: WARN Notices`),
-  h1: `${state} layoffs: WARN notices and recent layoff list`,
+  title: pick(`${state} Layoffs and Job Cuts: Layoff Notice List`, `${state} Layoffs: Layoff Notices and List`, `${state} Layoffs: Layoff Notices`),
+  h1: `${state} layoffs: layoff notices and recent layoff list`,
 })
 
 /** /layoffs/company/[slug]: the owner of "<company> layoffs". */
@@ -42,12 +42,12 @@ export const layoffsCompanySeo = (company: string, facts?: { year: number; worke
     ...(facts
       ? [
           ...(facts.workers > 0 ? [`${company} Layoffs ${facts.year}: ${facts.workers.toLocaleString('en-US')} Workers, ${facts.notices} ${facts.notices === 1 ? 'Notice' : 'Notices'}`] : []),
-          `${company} Layoffs ${facts.year}: WARN Notices and Dates`,
+          `${company} Layoffs ${facts.year}: Notices and Dates`,
           `${company} Layoffs ${facts.year}`,
         ]
       : []),
-    `${company} Layoffs: WARN Notices and Dates`, `${company} Layoffs and WARN Notices`, `${company} Layoffs`),
-  h1: `${company} layoffs: WARN notices and dates`,
+    `${company} Layoffs: Notices and Dates`, `${company} Layoffs and Layoff Notices`, `${company} Layoffs`),
+  h1: `${company} layoffs: layoff notices and dates`,
 })
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
