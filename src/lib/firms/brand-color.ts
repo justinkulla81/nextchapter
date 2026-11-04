@@ -3,7 +3,7 @@
 // The color is used only as the accent on the firm's page (its "Express interest" button), so it must read as a button
 // on a white page: dark enough for white text, never pure black, white or grey.
 
-export type BrandColorSource = 'theme-color' | 'manifest' | 'icon' | 'none'
+export type BrandColorSource = 'theme-color' | 'manifest' | 'icon' | 'logo' | 'none'
 
 const hex2 = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0')
 
