@@ -35,14 +35,50 @@ import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { aggregatorKind } from '@/lib/jobs/liveness'
 import { archiveDeadPostings, closeOpeningsQuietly } from '@/lib/jobs/liveness-store'
 import { candidatePlusRequiredMessage } from '@/lib/jobs/candidate-plus-extras'
+import { markPostingWorking, POSTING_WORK_WINDOW_MS, runPostingWork } from '@/lib/jobs/posting-background'
 
 export type FormState = { error?: string } | undefined
+
+/** Fetches the posting (unless the member pasted its text) and runs the fit analysis. Used by every action that adds or retries a posting. */
+async function fetchAndAnalyze(jobPostingId: string, candidateId: string, url: string | null, pastedText: string | undefined) {
+  if (pastedText) {
+    await prisma.jobPosting.update({
+      where: { id: jobPostingId },
+      data: { fetchStatus: 'success', fetchError: null, extractedText: pastedText.slice(0, 8000) },
+    })
+    await analyzeJobFit(jobPostingId, candidateId)
+    return
+  }
+  if (!url) return
+  const result = await fetchJobPosting(url)
+  await prisma.jobPosting.update({
+    where: { id: jobPostingId },
+    data: { fetchStatus: result.status, fetchError: result.error, extractedText: result.text },
+  })
+  if (result.status === 'success') await analyzeJobFit(jobPostingId, candidateId)
+}
 
 // Polled client-side by EmailSyncWatcher — the Gmail sync that populates the
 // Application Tracker is backgrounded via after() (see find-my-job/page.tsx)
 // so a just-applied email never shows up on the page load that triggered its
 // own sync. This is how the client learns the background sync actually
 // finished so it knows to refresh.
+/** Which of these postings still have AI work running after the response (polled by PostingWorkWatcher). */
+export async function getWorkingPostingIds(ids: string[]): Promise<string[]> {
+  if (ids.length === 0 || ids.length > 100) return []
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return []
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const rows = await prisma.jobPosting.findMany({
+    where: { id: { in: ids }, candidateId: profile.id, backgroundWorkAt: { gt: new Date(Date.now() - POSTING_WORK_WINDOW_MS) } },
+    select: { id: true },
+  })
+  return rows.map((r) => r.id)
+}
+
 export async function getEmailSyncLastSyncAt(): Promise<string | null> {
   const supabase = await createClient()
   const {
@@ -100,24 +136,10 @@ export async function submitJobUrl(_prevState: FormState, formData: FormData): P
   // once, watch it fail, then submit again.
   const pastedText = (formData.get('text') as string | null)?.trim()
 
-  if (pastedText) {
-    await prisma.jobPosting.update({
-      where: { id: jobPosting.id },
-      data: { fetchStatus: 'success', fetchError: null, extractedText: pastedText.slice(0, 8000) },
-    })
-    await analyzeJobFit(jobPosting.id, profile.id)
-  } else {
-    const result = await fetchJobPosting(url)
-
-    await prisma.jobPosting.update({
-      where: { id: jobPosting.id },
-      data: { fetchStatus: result.status, fetchError: result.error, extractedText: result.text },
-    })
-
-    if (result.status === 'success') {
-      await analyzeJobFit(jobPosting.id, profile.id)
-    }
-  }
+  // The fetch and the AI fit analysis take 10-40 seconds, so they run after the response; the page shows "Working…" and
+  // refreshes itself when they finish (PostingWorkWatcher).
+  await markPostingWorking(jobPosting.id)
+  after(() => runPostingWork(jobPosting.id, profile.id, 'fit_analysis', () => fetchAndAnalyze(jobPosting.id, profile.id, url, pastedText)))
 
   revalidatePath('/dashboard/find-my-job')
 }
@@ -184,32 +206,21 @@ export async function addInterviewJob(_prevState: FormState, formData: FormData)
 
   const pastedText = (formData.get('text') as string | null)?.trim()
 
-  if (pastedText) {
-    await prisma.jobPosting.update({
-      where: { id: jobPosting.id },
-      data: { fetchStatus: 'success', fetchError: null, extractedText: pastedText.slice(0, 8000) },
-    })
-    await analyzeJobFit(jobPosting.id, profile.id)
-  } else {
-    const result = await fetchJobPosting(url)
-
-    await prisma.jobPosting.update({
-      where: { id: jobPosting.id },
-      data: { fetchStatus: result.status, fetchError: result.error, extractedText: result.text },
-    })
-
-    if (result.status === 'success') {
-      await analyzeJobFit(jobPosting.id, profile.id)
-    }
-  }
-
   await applyInterviewLandedRewrite(profile.id)
   await applyInterviewPatternConfirmedRewrite(profile.id)
-  await generateInterviewPrep(jobPosting.id, profile.id)
 
   captureServerEvent(profile.id, 'interview_landed', { jobId: jobPosting.id, source: 'interview_tracking_quick_add' })
-  // Link to the board posting for admin application fit (title / company come from analyzeJobFit above).
-  after(() => linkApplicationToBoard(jobPosting.id))
+
+  // The fetch, the fit analysis and the interview prep are AI calls (10-40 seconds each), so they run after the response.
+  // Linking to the board posting comes last: it needs the title and company the analysis finds.
+  await markPostingWorking(jobPosting.id)
+  after(() =>
+    runPostingWork(jobPosting.id, profile.id, 'fit_analysis', async () => {
+      await fetchAndAnalyze(jobPosting.id, profile.id, url, pastedText)
+      await generateInterviewPrep(jobPosting.id, profile.id)
+      await linkApplicationToBoard(jobPosting.id)
+    })
+  )
 
   revalidatePath('/dashboard/find-my-job')
 }
@@ -238,16 +249,9 @@ export async function retryJobFetch(jobPostingId: string) {
   })
   if (!jobPosting || !jobPosting.url) return
 
-  const result = await fetchJobPosting(jobPosting.url)
-
-  await prisma.jobPosting.update({
-    where: { id: jobPostingId },
-    data: { fetchStatus: result.status, fetchError: result.error, extractedText: result.text },
-  })
-
-  if (result.status === 'success') {
-    await analyzeJobFit(jobPostingId, profile.id)
-  }
+  const url = jobPosting.url
+  await markPostingWorking(jobPostingId)
+  after(() => runPostingWork(jobPostingId, profile.id, 'fit_analysis', () => fetchAndAnalyze(jobPostingId, profile.id, url, undefined)))
 
   revalidatePath('/dashboard/find-my-job')
 }
@@ -271,12 +275,8 @@ export async function submitJobPostingText(jobPostingId: string, formData: FormD
   })
   if (!jobPosting) return
 
-  await prisma.jobPosting.update({
-    where: { id: jobPostingId },
-    data: { fetchStatus: 'success', fetchError: null, extractedText: text.slice(0, 8000) },
-  })
-
-  await analyzeJobFit(jobPostingId, profile.id)
+  await markPostingWorking(jobPostingId)
+  after(() => runPostingWork(jobPostingId, profile.id, 'fit_analysis', () => fetchAndAnalyze(jobPostingId, profile.id, null, text)))
 
   revalidatePath('/dashboard/find-my-job')
 }
@@ -352,7 +352,8 @@ export async function generateCoverLetterAction(jobPostingId: string) {
   })
   if (!jobPosting) return
 
-  await generateCoverLetter(jobPostingId, profile.id)
+  await markPostingWorking(jobPostingId)
+  after(() => runPostingWork(jobPostingId, profile.id, 'cover_letter', () => generateCoverLetter(jobPostingId, profile.id)))
 
   revalidatePath('/dashboard/find-my-job')
 }
@@ -376,7 +377,9 @@ export async function markInterviewLanded(jobPostingId: string) {
   })
   await applyInterviewLandedRewrite(profile.id)
   await applyInterviewPatternConfirmedRewrite(profile.id)
-  await generateInterviewPrep(jobPostingId, profile.id)
+
+  await markPostingWorking(jobPostingId)
+  after(() => runPostingWork(jobPostingId, profile.id, 'interview_prep', () => generateInterviewPrep(jobPostingId, profile.id)))
 
   captureServerEvent(profile.id, 'interview_landed', { jobId: jobPostingId })
 
@@ -818,20 +821,28 @@ export async function createCoverLetterFromSurfacedJob(
     data: { candidateId: profile.id, url: surfacedJob.url, fetchStatus: 'pending' },
   })
 
-  const result = await fetchJobPosting(surfacedJob.url)
-  const usedFallbackDescription = result.status !== 'success' && !!surfacedJob.description
-  const text = result.status === 'success' ? result.text : surfacedJob.description
-  const fetchStatus = result.status === 'success' || usedFallbackDescription ? 'success' : result.status
+  // Fetching the page, the fit analysis and the cover letter take 20-60 seconds together, so they run after the response.
+  const surfacedUrl = surfacedJob.url
+  const surfacedDescription = surfacedJob.description
+  await markPostingWorking(jobPosting.id)
+  after(() =>
+    runPostingWork(jobPosting.id, profile.id, 'fit_analysis', async () => {
+      const result = await fetchJobPosting(surfacedUrl)
+      const usedFallbackDescription = result.status !== 'success' && !!surfacedDescription
+      const text = result.status === 'success' ? result.text : surfacedDescription
+      const fetchStatus = result.status === 'success' || usedFallbackDescription ? 'success' : result.status
 
-  await prisma.jobPosting.update({
-    where: { id: jobPosting.id },
-    data: { fetchStatus, fetchError: usedFallbackDescription ? null : result.error, extractedText: text },
-  })
+      await prisma.jobPosting.update({
+        where: { id: jobPosting.id },
+        data: { fetchStatus, fetchError: usedFallbackDescription ? null : result.error, extractedText: text },
+      })
 
-  if (text) {
-    await analyzeJobFit(jobPosting.id, profile.id)
-    await generateCoverLetter(jobPosting.id, profile.id)
-  }
+      if (text) {
+        await analyzeJobFit(jobPosting.id, profile.id)
+        await generateCoverLetter(jobPosting.id, profile.id)
+      }
+    })
+  )
 
   await prisma.surfacedJob.delete({ where: { id: surfacedJobId } })
 
