@@ -12,6 +12,7 @@ export function portalJobPath(pathname: string, hasSession: boolean, search = ''
   if (pathname === '/jobs' || pathname === '/jobs/') {
     const from = new URLSearchParams(search)
     const to = new URLSearchParams()
+    to.set('from', 'public')
     for (const k of SEARCH_KEYS) {
       const v = from.get(k)
       if (v) to.set(k, v.slice(0, 200))

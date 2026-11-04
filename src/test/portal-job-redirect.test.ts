@@ -12,8 +12,8 @@ describe('portalJobPath', () => {
     expect(portalJobPath(`/jobs/${ID}`, false)).toBeNull()
   })
   it('sends a member from the public job search to the portal search, keeping the search', () => {
-    expect(portalJobPath('/jobs', true, '?q=controller&loc=Austin%2C+TX&remote=1&utm=x')).toBe('/dashboard/find-my-job?q=controller&loc=Austin%2C+TX&remote=1')
-    expect(portalJobPath('/jobs', true)).toBe('/dashboard/find-my-job')
+    expect(portalJobPath('/jobs', true, '?q=controller&loc=Austin%2C+TX&remote=1&utm=x')).toBe('/dashboard/find-my-job?from=public&q=controller&loc=Austin%2C+TX&remote=1')
+    expect(portalJobPath('/jobs', true)).toBe('/dashboard/find-my-job?from=public')
     expect(portalJobPath('/jobs', false, '?q=controller')).toBeNull()
   })
   it('leaves the other /jobs pages alone', () => {
