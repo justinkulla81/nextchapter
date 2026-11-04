@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react'
 
 export type TrafficRange = 'day' | '7d' | '30d' | 'all'
 
@@ -27,33 +27,52 @@ type Ranges = Record<string, TrafficRange>
 
 const Ctx = createContext<{ rangeFor: (chart: string) => TrafficRange; setRangeFor: (chart: string, r: TrafficRange) => void } | null>(null)
 
-// Holds one time range per chart, so each chart moves on its own. The choices are remembered in this browser
-// and restored after a refresh (read after mount, so the server and first client render still match).
-export function TrafficRangeProvider({ children }: { children: ReactNode }) {
-  const [ranges, setRanges] = useState<Ranges>({})
+const listeners = new Set<() => void>()
+function subscribe(cb: () => void) {
+  listeners.add(cb)
+  window.addEventListener('storage', cb)
+  return () => {
+    listeners.delete(cb)
+    window.removeEventListener('storage', cb)
+  }
+}
+function readRaw(): string {
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+// Used when storage is blocked, so a choice still changes on screen for this visit.
+let memoryRaw = ''
 
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}') as Record<string, string>
-      const clean: Ranges = {}
-      for (const [chart, r] of Object.entries(saved)) if (VALID.includes(r as TrafficRange)) clean[chart] = r as TrafficRange
-      setRanges(clean)
-    } catch {
-      // Storage blocked or unreadable: every chart starts at 30 days.
+function parseRanges(raw: string): Ranges {
+  const clean: Ranges = {}
+  try {
+    for (const [chart, r] of Object.entries(JSON.parse(raw || '{}') as Record<string, string>)) {
+      if (VALID.includes(r as TrafficRange)) clean[chart] = r as TrafficRange
     }
-  }, [])
+  } catch {
+    // Unreadable: every chart starts at 30 days.
+  }
+  return clean
+}
+
+// Holds one time range per chart, so each chart moves on its own. The choices are remembered in this browser
+// and restored after a refresh. The server render and first client render use 30 days, then the saved choice applies.
+export function TrafficRangeProvider({ children }: { children: ReactNode }) {
+  const raw = useSyncExternalStore(subscribe, () => readRaw() || memoryRaw, () => '')
+  const ranges = useMemo(() => parseRanges(raw), [raw])
 
   const rangeFor = (chart: string): TrafficRange => ranges[chart] ?? '30d'
   const setRangeFor = (chart: string, r: TrafficRange) => {
-    setRanges((prev) => {
-      const next = { ...prev, [chart]: r }
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-      } catch {
-        // Not remembered, still changes on screen.
-      }
-      return next
-    })
+    memoryRaw = JSON.stringify({ ...parseRanges(readRaw() || memoryRaw), [chart]: r })
+    try {
+      window.localStorage.setItem(STORAGE_KEY, memoryRaw)
+    } catch {
+      // Not remembered across refresh, still changes on screen.
+    }
+    listeners.forEach((l) => l())
   }
   return <Ctx.Provider value={{ rangeFor, setRangeFor }}>{children}</Ctx.Provider>
 }
