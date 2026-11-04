@@ -81,7 +81,7 @@ export default async function UniversityAlumniPage({
       </Link>
 
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">{ownEntry.schoolName}</h1>
+        <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">{ownEntry.schoolName}</h1>
         <p className="text-muted-foreground">
           {alumni.length} fellow NextChapter member{alumni.length === 1 ? '' : 's'} from {ownEntry.schoolName}.
         </p>

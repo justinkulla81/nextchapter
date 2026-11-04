@@ -31,7 +31,7 @@ export default async function ScholarshipPage() {
         <Link href="/dashboard/plans" className="text-sm text-muted-foreground hover:text-foreground">
           ← Back to Plans
         </Link>
-        <h1 className="mt-2 font-heading text-2xl font-semibold text-foreground">Scholarship application</h1>
+        <h1 className="mt-2 font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Scholarship application</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           If you want Coaching Premium and can&apos;t take it on right now, tell us what&apos;s going on and
           we&apos;ll see what we can do. This isn&apos;t about proving anything — a person reads every
