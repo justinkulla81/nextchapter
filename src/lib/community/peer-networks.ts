@@ -56,25 +56,6 @@ export function networkInfo(key: string): NetworkInfo | null {
   return null
 }
 
-export type NetworkStatus = 'joined' | 'can_join' | 'confidential' | 'signed_out'
-
-export async function networkStatus(candidateId: string | null, key: string): Promise<NetworkStatus> {
-  if (!candidateId) return 'signed_out'
-  const info = networkInfo(key)
-  if (!info) return 'can_join'
-  const [profile, membership] = await Promise.all([
-    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { confidentialSearchMode: true } }),
-    // MANUAL only: a profile auto-join into the same function or industry community is not a click on this page.
-    prisma.communityMembership.findFirst({
-      where: { candidateId, leftAt: null, joinedVia: 'MANUAL', community: { type: info.type, value: info.value } },
-      select: { id: true },
-    }),
-  ])
-  if (membership) return 'joined'
-  if (profile?.confidentialSearchMode) return 'confidential'
-  return 'can_join'
-}
-
 export async function joinNetwork(
   candidateId: string,
   key: string
