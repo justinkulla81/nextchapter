@@ -1,7 +1,6 @@
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { AffectedYes } from '@/components/layoffs/landing/AffectedYes'
 import type { LandingVariant } from '@/lib/layoffs/landing'
 
 const QUESTION: Record<LandingVariant, (name: string) => string> = {
@@ -18,7 +17,7 @@ const YES: Record<LandingVariant, string> = {
 
 /**
  * The hero action on a company layoff page. Most people here were affected, so the question comes first and the one primary
- * button takes them to "Where do you stand?" just below. A link goes to the company's general page.
+ * button takes them to the questions just below with the first one already answered. A link goes to the company's general page.
  *
  * Most searchers of "<company> layoffs" were not laid off (PostHog, Oct 2026: 66 of 82 search visitors left after one page, 4
  * answered the question). For them the second option is an email when the company files again: one field, no account. It replaced
@@ -30,14 +29,7 @@ export function AffectedPrompt({ variant, name, slug }: { variant: LandingVarian
     <div className="rounded-2xl bg-white p-5 text-navy">
       <p className="text-lg font-semibold">{QUESTION[variant](name)}</p>
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <TrackedLink
-          href="#where-you-stand"
-          event="layoff_affected_clicked"
-          properties={properties}
-          className={cn(buttonVariants({ size: 'lg' }), 'h-12 rounded-full bg-action px-6 text-action-foreground hover:brightness-95')}
-        >
-          {YES[variant]}
-        </TrackedLink>
+        <AffectedYes label={YES[variant]} preselect={variant !== 'neither'} properties={properties} />
         <TrackedLink
           href={`/employers/${slug}`}
           event="layoff_company_page_clicked"
