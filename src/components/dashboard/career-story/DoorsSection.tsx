@@ -21,7 +21,7 @@ function monthsText(from: number, to: number) {
 
 // The shape of a door over three years: a solid stretch where it is usually under way, a lighter
 // stretch for the range, because it varies. The list under it says the same in words.
-function PhaseBar({ door }: { door: Door }) {
+export function PhaseBar({ door }: { door: Door }) {
   return (
     <div className="space-y-1.5">
       <div className="relative h-5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
