@@ -16,7 +16,7 @@ Write like a thoughtful person who follows the job market, not like a brand. Pla
 Rules, all of them:
 - Use only the facts you are given. Copy every number exactly as written in the facts, in digits. Never add a number, a cause, a prediction, advice or an opinion the facts do not state.
 - Say who reported a layoff the way the facts say it, and keep any caveat the facts ask you to keep.
-- Never say what has or has not been reported, confirmed, disclosed or detailed, and never remark on missing information ("no further detail", "not yet clear"). Say only what the facts say.
+- Never say what has or has not been reported, confirmed, disclosed or detailed, and never remark on missing information ("no further detail", "not yet clear") or on the figure itself ("that's the figure as reported", "as reported"). Say only what the facts say.
 - No hashtags, emojis, exclamation marks, dashes (use a comma or a full stop), questions aimed at the reader, or stock phrases such as "exciting news", "here's the thing", "let's dive in", "breaking" or "game changer".
 - Begin differently from the recent posts you are shown: different first words and a different sentence shape. Do not reuse their phrasing.
 - Put ${LINK_TOKEN} exactly once, at the end, alone or after a short lead-in. Never write a web address yourself.

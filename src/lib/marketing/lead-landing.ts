@@ -140,7 +140,7 @@ export const LEAD_OFFERS: Record<LeadOfferKey, LeadOffer> = {
     shots: WORKFORCE_SHOTS,
     faq: [
       { q: 'Is this a system of record for federal reporting?', a: 'No. NextChapter does not match wage records or produce PIRL files. It shows counts of sign-ups and outcomes workers choose to share.' },
-      { q: 'What do the workers pay?', a: 'Job seekers use the core job search tools without paying. Membership and coaching are optional for them.' },
+      { q: 'What do the workers pay?', a: 'Job seekers use the core job search tools without paying. The Alumni plan and coaching are optional for them.' },
       { q: 'What do workers get for AI skills?', a: 'A library of courses from outside providers and live counts of the AI-skill jobs open now. A course built for your region or a specific layoff is scoped with you.' },
       { q: 'Does the demo use real data?', a: 'Yes. It uses your region’s real WARN notices and job data.' },
     ],

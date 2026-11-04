@@ -91,7 +91,7 @@ export const WORKFORCE: PortalPageDef = {
       },
       {
         q: 'What do the people we serve pay?',
-        a: 'Job seekers use the core job search tools without paying. Membership and coaching are optional for them.',
+        a: 'Job seekers use the core job search tools without paying. The Alumni plan and coaching are optional for them.',
       },
     ],
     asset: 'workforce-demo',

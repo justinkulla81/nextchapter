@@ -14,13 +14,13 @@ export function continuityCopy(kind: ProgramKind): Continuity {
     return {
       stays: [...common, 'Your career story, goals and learning paths', 'Your pay research and the case you built for your next review', 'Your plan and where you are on it'],
       ends: ['Coaching sessions your employer provided', 'The recruiter network, if your program included it'],
-      next: 'Nothing changes about your plan on that day. If you want coaching or the recruiter network to continue, membership picks it up.',
+      next: 'Nothing changes about your plan on that day. If you want coaching or the recruiter network to continue, the Alumni plan picks it up.',
     }
   }
   return {
     stays: [...common, 'Your search plan and the jobs you are tracking', 'Your contacts and your notes'],
     ends: ['Coaching sessions your employer provided', 'The recruiter network, if your program included it'],
-    next: 'Your search carries on as it is. If you want coaching or the recruiter network to continue, membership picks it up.',
+    next: 'Your search carries on as it is. If you want coaching or the recruiter network to continue, the Alumni plan picks it up.',
   }
 }
 

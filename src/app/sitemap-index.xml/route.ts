@@ -1,6 +1,6 @@
 import { unstable_cache } from 'next/cache'
 import { SITE_URL } from '@/lib/seo/facts'
-import { PUBLIC_JOB_SITEMAP_SHARDS } from '@/lib/jobs/public-job-page'
+import { liveJobSitemapShards } from '@/lib/jobs/public-job-page'
 import { EMPLOYER_SITEMAP_SHARD_SIZE, countEmployerPages } from '@/lib/seo/employer-pages'
 import { ORG_SITEMAP_SHARD_SIZE } from '@/lib/seo/org-page-rules'
 import { cachedIndexableOrgPages } from '@/lib/seo/org-pages'
@@ -14,6 +14,9 @@ import { SEARCH_FIRM_SITEMAP_SHARD_SIZE, countSearchFirmPages } from '@/lib/seo/
 // one URL to submit in Search Console; robots.txt points at it too.
 // Rebuilt hourly: the number of employer files follows the number of employers that pass the page bar.
 export const dynamic = 'force-dynamic'
+
+// Read once per deployment: changing JOB_SITEMAP_SHARDS_LIVE takes a redeploy, and the cache key below carries the value so an old list is never served.
+const JOB_FILES_LIVE = liveJobSitemapShards()
 
 async function listMaps(): Promise<string[]> {
   const employers = await countEmployerPages().catch(() => 0)
@@ -33,7 +36,7 @@ async function listMaps(): Promise<string[]> {
     `${SITE_URL}/salaries/sitemap.xml`,
     `${SITE_URL}/jobs/entry-level/sitemap.xml`,
     `${SITE_URL}/resources/pay-data/sitemap.xml`,
-    ...Array.from({ length: PUBLIC_JOB_SITEMAP_SHARDS }, (_, i) => `${SITE_URL}/jobs/sitemap/${i}.xml`),
+    ...Array.from({ length: JOB_FILES_LIVE }, (_, i) => `${SITE_URL}/jobs/sitemap/${i}.xml`),
     ...Array.from({ length: employerShards }, (_, i) => `${SITE_URL}/employers/sitemap/${i}.xml`),
     ...Array.from({ length: centerShards }, (_, i) => `${SITE_URL}/job-centers/sitemap/${i}.xml`),
     ...Array.from({ length: econShards }, (_, i) => `${SITE_URL}/economic-development/sitemap/${i}.xml`),
@@ -42,7 +45,7 @@ async function listMaps(): Promise<string[]> {
 }
 
 // The shard counts come from the database; they are kept for an hour so a crawler asking for the index does not run them each time.
-const cachedMaps = unstable_cache(listMaps, ['sitemap-index-v1'], { revalidate: 3600 })
+const cachedMaps = unstable_cache(listMaps, ['sitemap-index-v2', `jobs-${JOB_FILES_LIVE}`], { revalidate: 3600 })
 
 export async function GET() {
   const maps = await cachedMaps()

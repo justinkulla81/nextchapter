@@ -45,7 +45,7 @@ export async function activateAlumStatus(candidateId: string, source: AlumActiva
   if (existingSubscription) return // Already offered/subscribed once -- self-serve signup is the candidate's own choice from here.
 
   const premiumPlacement = await wasPlacedThroughPremiumOutplacement(candidateId)
-  if (!premiumPlacement) return // Membership stays an offer the candidate accepts themselves -- see /dashboard/membership.
+  if (!premiumPlacement) return // Membership stays an offer the candidate accepts themselves -- see /dashboard/alumni-plan.
 
   const plan = await getCurrentPlan('membership_monthly')
   const freeUntil = new Date()

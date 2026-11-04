@@ -18,6 +18,18 @@ const CONCURRENCY = 4
 // Stop starting new candidates here so the run finishes cleanly (and records
 // its result) instead of being killed at the limit.
 const DEADLINE_MS = 240_000
+// One candidate that hangs (an outside call that never answers) must not hold a worker until the function is killed
+// (it did on 2026-11-04). Past this the candidate counts as failed and the worker moves on; the send claim makes a
+// re-run safe.
+const PER_CANDIDATE_MS = 45_000
+
+function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>
+  const limit = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`timed out after ${ms}ms`)), ms)
+  })
+  return Promise.race([work, limit]).finally(() => clearTimeout(timer))
+}
 
 // Job Search Daily — every day at 12:00 UTC (8am ET), an hour ahead of the
 // weekday-rotation email from candidate-email-dispatch. To keep a member to
@@ -77,6 +89,29 @@ export const GET = withCronRun('job-search-daily', async () => {
   let skippedForTime = 0
   let next = 0
 
+  const processCandidate = async (candidate: (typeof queue)[number]) => {
+    if (await hasAlreadySentToday(candidate.id, 'JOB_SEARCH_DAILY')) return
+    const state = engagement.get(candidate.id) ?? 'active'
+    if (state === 'dormant') {
+      skippedNotUrgent++
+      return
+    }
+    const lowTouch = candidate.notificationTier === 'ESSENTIALS' || state === 'cooling'
+    if (lowTouch) {
+      const lastWeek = await prisma.jobSearchDailySend.findFirst({
+        where: { candidateId: candidate.id, sentAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
+        select: { id: true },
+      })
+      if (lastWeek) {
+        skippedNotUrgent++
+        return
+      }
+    }
+    const result = await sendJobSearchDaily(candidate.id, { onlyIfUrgent: lowTouch || rotationToday })
+    if (result.sent) sent++
+    else if (result.reason === 'nothing new') skippedNothingNew++
+    else if (result.reason === 'not urgent') skippedNotUrgent++
+  }
   // Workers pull the next candidate until none are left or the deadline
   // passes. Candidates not reached are counted, never silently lost.
   const worker = async () => {
@@ -87,27 +122,7 @@ export const GET = withCronRun('job-search-daily', async () => {
         continue
       }
       try {
-        if (await hasAlreadySentToday(candidate.id, 'JOB_SEARCH_DAILY')) continue
-        const state = engagement.get(candidate.id) ?? 'active'
-        if (state === 'dormant') {
-          skippedNotUrgent++
-          continue
-        }
-        const lowTouch = candidate.notificationTier === 'ESSENTIALS' || state === 'cooling'
-        if (lowTouch) {
-          const lastWeek = await prisma.jobSearchDailySend.findFirst({
-            where: { candidateId: candidate.id, sentAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
-            select: { id: true },
-          })
-          if (lastWeek) {
-            skippedNotUrgent++
-            continue
-          }
-        }
-        const result = await sendJobSearchDaily(candidate.id, { onlyIfUrgent: lowTouch || rotationToday })
-        if (result.sent) sent++
-        else if (result.reason === 'nothing new') skippedNothingNew++
-        else if (result.reason === 'not urgent') skippedNotUrgent++
+        await withTimeout(processCandidate(candidate), PER_CANDIDATE_MS)
       } catch (error) {
         failed++
         console.error('Job Search Daily failed for candidate', candidate.id, error)

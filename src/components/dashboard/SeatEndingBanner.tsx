@@ -28,7 +28,7 @@ export async function SeatEndingBanner({ candidateId }: { candidateId: string })
         <strong className="font-medium text-foreground">What ends:</strong> {copy.ends.join('; ').toLowerCase()}.
       </p>
       <p className="text-muted-foreground">{copy.next}</p>
-      <Link href="/dashboard/membership" className="text-primary underline underline-offset-4">
+      <Link href="/dashboard/alumni-plan" className="text-primary underline underline-offset-4">
         See Alumni plan options
       </Link>
     </section>

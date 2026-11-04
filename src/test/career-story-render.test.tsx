@@ -35,7 +35,7 @@ function story(over: Partial<CareerStory> = {}, withHistory = true): CareerStory
 describe('Your career story page', () => {
   it('renders the timeline, list, doors, pause tool and honest peers state', () => {
     const html = renderToStaticMarkup(<CareerStoryView story={story()} from="Finance" />)
-    for (const text of ['Your career story', 'Only you can see this', 'Hide years', 'Today', 'Controller', 'Doors you could open', 'What if you took a pause?', 'People like you', 'not enough members']) {
+    for (const text of ['Your career story', 'Only you can see this', 'Hide years', 'Today', 'Controller', 'Where this could go', 'Plan a pause, and people like you', 'What if you took a pause?', 'People like you', 'not enough members']) {
       expect(html.toLowerCase(), text).toContain(text.toLowerCase().replace('not enough', 'enough'))
     }
     expect(html).toContain('2016')
@@ -65,5 +65,22 @@ describe('Your career story page', () => {
     expect(html).toContain('About ')
     expect(html).toContain('looking at Operations')
     expect(html).toContain('not a prediction')
+  })
+  it('keeps the phase detail behind a disclosure and shows the first step', () => {
+    const html = renderToStaticMarkup(<CareerStoryView story={story()} from="Finance" />)
+    expect(html).toContain('First step:')
+    expect(html).toContain('How long it usually takes')
+    // every door's phase bar sits inside its own <details>
+    expect((html.match(/<details/g) ?? []).length).toBeGreaterThanOrEqual((html.match(/How long it usually takes/g) ?? []).length)
+  })
+  it('makes Add a chapter the one primary action when there is a story', () => {
+    const html = renderToStaticMarkup(<CareerStoryView story={story()} from="Finance" />)
+    expect(html).toMatch(/bg-action[^>]*>[\s\S]*?Add a chapter/)
+  })
+  it('shows only the empty card and a way to add a chapter when there is no history', () => {
+    const html = renderToStaticMarkup(<CareerStoryView story={story({}, false)} from={null} />)
+    expect(html).not.toContain('Where this could go')
+    expect(html).not.toContain('What if you took a pause?')
+    expect(html).toContain('Open my profile')
   })
 })
