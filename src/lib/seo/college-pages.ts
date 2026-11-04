@@ -179,7 +179,14 @@ export const getStateCollegeListings = memoTtl(3600_000, (state: string) => stat
 
 const citySpellings = (name: string, key: string) => [...new Set([key, name.toLowerCase(), name.toLowerCase().replace(/\bsaint\b/g, 'st').replace(/\bst\.\s*/g, 'st ')])]
 
-async function localMarket(state: string, county: County, majors: CollegeFacts['topMajors']): Promise<LocalMarket | null> {
+interface CountyJobRows {
+  tot: { n: number; entry: number; noexp: number; ai: number } | undefined
+  fns: { f: string; n: number }[]
+  emps: { name: string; n: number; cn: string | null; cid: string | null; linkable: boolean | null }[]
+}
+
+/** The three scans behind a county's job figures. They depend only on the state and county, not on any one college. */
+async function loadCountyJobRows(state: string, county: County): Promise<CountyJobRows | null> {
   const places = (await getStateCityPlaces(state)).filter((p) => p.county === county.name)
   const spellings = [...new Set(places.flatMap((p) => citySpellings(p.name, p.key)))]
   if (spellings.length === 0) return null
@@ -202,6 +209,18 @@ async function localMarket(state: string, county: County, majors: CollegeFacts['
       LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
       ORDER BY g.n DESC, g.name`,
   ]))
+  return { tot, fns, emps }
+}
+
+// Every college page in a county ran those three scans again (about 75,000 calls each), and an instance remembered nothing between
+// pages. The county's rows are shared across instances for six hours, so a county is read from the board once however many colleges it has.
+const countyJobRows = memoTtl(10 * 60_000, (state: string, county: County) => `${state}|${county.name}`, (state: string, county: County) =>
+  sharedLoad(`college-county-jobs:${state}|${county.name}`, 6 * 60 * 60, () => loadCountyJobRows(state, county)))
+
+async function localMarket(state: string, county: County, majors: CollegeFacts['topMajors']): Promise<LocalMarket | null> {
+  const rows = await countyJobRows(state, county)
+  if (!rows) return null
+  const { tot, fns, emps } = rows
   const byFunction = new Map(fns.map((r) => [r.f, r.n]))
   const match = functionsForMajors(majors)
   return {
