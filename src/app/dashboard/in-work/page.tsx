@@ -3,11 +3,9 @@ import type { Metadata } from 'next'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { loadWorkspace } from '@/lib/in-work/workspace-data'
-import { InWorkWorkspace, type InWorkTab } from '@/components/in-work/InWorkWorkspace'
+import { InWorkWorkspace, parseInWorkTab, type InWorkTab } from '@/components/in-work/InWorkWorkspace'
 
 export const metadata: Metadata = { title: 'In-work workspace' }
-
-const TABS: InWorkTab[] = ['overview', 'impact', 'prep', 'salary', 'promotion', 'feedback', 'outcome']
 
 function first(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v
@@ -40,7 +38,7 @@ export default async function InWorkPage({
   }
 
   const tabParam = first(sp.tab)
-  const initialTab: InWorkTab = TABS.includes(tabParam as InWorkTab) ? (tabParam as InWorkTab) : 'overview'
+  const initialTab: InWorkTab = parseInWorkTab(tabParam)
 
   // The review-cycle emails link here with src=inwork_email.
   if (first(sp.src) === 'inwork_email') {
