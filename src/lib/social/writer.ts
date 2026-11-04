@@ -41,7 +41,7 @@ const positiveInt = (v: string | undefined, fallback: number) => {
 }
 
 /** One call, counted per UTC day in ApiUsageCounter. Fails closed: a counter problem means the plain template, never an open tap. */
-async function reserveCall(): Promise<boolean> {
+export async function reserveWriterCall(): Promise<boolean> {
   try {
     const period = new Date().toISOString().slice(0, 10)
     const row = await prisma.apiUsageCounter.upsert({
@@ -68,7 +68,7 @@ export async function writePost(fact: Fact, recent: string[], channel: string): 
   if (!process.env.ANTHROPIC_API_KEY) return { by: 'template', body: null, reason: 'no api key' }
   let rejected: string | null = null
   for (let attempt = 1; attempt <= 2; attempt++) {
-    if (!(await reserveCall())) return { by: 'template', body: null, reason: 'daily cap' }
+    if (!(await reserveWriterCall())) return { by: 'template', body: null, reason: 'daily cap' }
     try {
       const res = await getAnthropicClient().messages.create({
         model: MODEL,

@@ -71,7 +71,7 @@ export default async function MyCoachingPage() {
       {state === 'message' && <p className="text-sm text-muted-foreground">Your coach has not added a booking link yet. Message them to set a time.</p>}
     </div>
   ) : c.on ? (
-    <EmptyCard title="No coach yet" why={`A coach who has worked with people like you keeps your plan moving. ${sessions ?? ''}`.trim()} />
+    <EmptyCard title="No coach yet" why={sessions ?? 'Coaching is part of your plan.'} />
   ) : (
     <EmptyCard title="Coaching is not part of your plan yet" why="Plans with coaching give you one-on-one time with someone who knows your field." />
   )

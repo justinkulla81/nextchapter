@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
-import { auditCsv, runIndexAudit } from '@/lib/google/index-audit'
+import { auditCsv, auditDiagnostics, runIndexAudit } from '@/lib/google/index-audit'
 import { captureServerEvent } from '@/lib/posthog/server'
 
-// About 300 inspections at five a time, plus the sitemap fetches.
+// A run stops at 200 seconds and returns what it has (src/lib/google/index-audit.ts), well inside this limit.
 export const maxDuration = 300
 
 export async function GET(req: NextRequest) {
   const admin = await requireAdmin()
+  // ?check=1: what a run would use, as JSON in a few seconds, with nothing inspected. Shows which stage is slow if a run does not finish.
+  if (req.nextUrl.searchParams.get('check')) {
+    const info = await auditDiagnostics(req.nextUrl.searchParams.get('group') || undefined)
+    return NextResponse.json(info, { status: 'error' in info ? 502 : 200, headers: { 'Cache-Control': 'no-store' } })
+  }
   const per = Math.min(40, Math.max(5, Number(req.nextUrl.searchParams.get('per')) || 10))
   const group = req.nextUrl.searchParams.get('group') || undefined
   const result = await runIndexAudit(per, { onlyGroup: group })
