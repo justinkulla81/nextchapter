@@ -298,6 +298,8 @@ describe('filler about what is or is not reported', () => {
       `Circle is cutting 5% of its staff, according to multiple news reports. No further breakdown has been reported. ${LINK_TOKEN}`,
       `Circle cuts 5% of staff per multiple news reports, and no additional detail is available. ${LINK_TOKEN}`,
       `Circle is cutting 5% of staff, multiple news reports say. The scale is not yet clear. ${LINK_TOKEN}`,
+      `Circle is cutting 5% of its staff, multiple news reports say. That's the figure as reported. ${LINK_TOKEN}`,
+      `Multiple news reports say Circle is cutting 5% of its staff, as reported. ${LINK_TOKEN}`,
     ]) expect(checkDraft(bad, lay).ok).toBe(false)
     expect(checkDraft(`Circle is cutting 5% of its staff, according to multiple news reports. ${LINK_TOKEN}`, lay)).toEqual({ ok: true })
   })
