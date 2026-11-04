@@ -118,7 +118,7 @@ export function FitCheck({ label, source, skills, aiSkills, items }: {
             </div>
           ) : (
             <form action={action} noValidate onSubmit={() => { if (stateCode) rememberState(stateCode); posthog.capture('fit_lead_submitted_client', { source, ran: !!fit, fitPct: fit?.pct ?? null }) }} className={cn('space-y-3', pending && 'cursor-wait')}>
-              <h3 className="text-lg font-bold text-navy">Make it yours</h3>
+              <h3 className="text-lg font-bold text-navy">Want a real read on your résumé?</h3>
               <p className="text-sm text-navy/80">Tell us your state and where to reach you. Attach your résumé if you want a real read on it.</p>
               <input type="hidden" name="source" value={source} />
               <input type="hidden" name="label" value={label} />
@@ -144,7 +144,7 @@ export function FitCheck({ label, source, skills, aiSkills, items }: {
               </div>
               {state?.error && <p role="alert" className="text-sm text-destructive">{state.error}</p>}
               <Button type="submit" disabled={pending} className="h-11 w-full rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
-                {pending ? 'Saving…' : 'Save my details'}
+                {pending ? 'Sending…' : 'Send me my résumé read'}
               </Button>
             </form>
           )}

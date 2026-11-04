@@ -27,13 +27,21 @@ Copy lives in `src/lib/capture/pull-copy.ts` (the navy `NextStepBox` on every pu
   to add them as arms or end the test.
 - Hashtags are on the roundup posts only. `src/lib/social/validate.ts` still rejects hashtags in model-written posts; change that rule if the owner wants them there too.
 
-## Not yet rewritten (next pass, in order of traffic)
+## Done in the second pass (2026-11-04)
 
-1. Home page (`NewHome.tsx`, `HomeTryIt.tsx`): two buttons that still say "Get your Market Reality Assessment".
-2. Site header button and mega menu (`SiteNavMega.tsx`), the footer band (`PublicSiteChrome.tsx`: "Ready to start your next chapter?").
-3. Save-search and follow boxes (`saveCopy` in `src/lib/capture/page-capture.ts`): "Follow by email" has no pain. Proposed: "Tired of checking job boards?" / "Email me new matches".
-4. `FitCheck.tsx` (industry and title pages): résumé gap check. Proposed: "Does your résumé say what this job asks for?"
-5. Layoff company pages (`LandingHero`, `Q1` answers in `src/lib/layoffs/landing.ts`): the answers are good; the button reads "Email me my first-week plan", which is fine.
-6. `LaidOffStart`, `LayoffRiskCheck`, `PersonaOnboardingCta`, `OrgCandidateBand`, `AiExposureSection`, `FreeAiTool`: all say "Get your free Market Reality Assessment".
-7. Emails (`journey-plan`, `layoff-alert-digest`, `deadline-reminder`, `intake-emails`) and the lifecycle content: subject lines and buttons.
-8. Organization asks (`OwnerInquiry`, `/for-organizations`): pain for an employer ("Did a layoff leave you with people to place?") needs the owner's wording.
+| Where | After |
+|---|---|
+| Home footer and shared site footer band | "Still guessing why nobody calls back?" / "Still guessing what to do next?" (buttons stay on the tested label) |
+| Follow-by-email boxes on topic pages (`saveCopy`) | "Tired of checking job boards every day?" / "Email me new jobs"; company, college and place pages have their own pain line |
+| Résumé check (`FitCheck`) | "Want a real read on your résumé?" / "Send me my résumé read" |
+| Layoff risk check result, COBRA vs ACA pages | "Get my job-safety plan", "Get my laid-off game plan" |
+| Workforce board candidate band | "Not sure you match what employers here are hiring for?" / "Show me jobs near me" |
+| AI exposure section, free AI tools | "Start my AI-proof plan"; "Sending applications and hearing nothing?" / "Show me jobs that fit me" |
+| Layoff alert and deadline emails | Buttons "Get my laid-off game plan", "Get my deadlines and first week" |
+
+## Left as they are, on purpose
+
+- Site header button, home hero button, picker "Or start now" button, the journey-plan email button: these are the four-arm label test.
+- Lifecycle email subjects: already questions about the reader's pain ("Heard back about your application?").
+- Layoff company page answers (`Q1`): already pain-first.
+- Organization asks (`OwnerInquiry`, `/for-organizations`, outplacement bands): an employer's pain needs the owner's wording and must not promise anything the company is not required to provide.

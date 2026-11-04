@@ -24,11 +24,12 @@ describe('page capture config', () => {
       expect(saveCopy(c).cta.length).toBeGreaterThan(0)
     }
   })
-  it('says "Follow" on every page that has a follow box', () => {
+  it('names the pain and the payoff on every page that has a follow box', () => {
     for (const kind of ['title', 'industry', 'function', 'company', 'state', 'ranking'] as CaptureKind[]) {
       const c = saveCopy({ kind, slug: 'x', label: 'Thing' })
-      expect(c.heading).toMatch(/^Follow/)
-      expect(c.cta).toBe('Follow by email')
+      expect(c.heading.length).toBeGreaterThan(0)
+      expect(c.follow.length).toBeGreaterThan(0)
+      expect(c.cta).toBe('Email me new jobs')
     }
   })
 })

@@ -26,10 +26,10 @@ function Honeypot() {
 function NextStep({ tool }: { tool: string }) {
   return (
     <div className="rounded-xl border border-border bg-white p-5">
-      <h2 className="text-lg font-semibold tracking-tight text-navy">See how the market reads you</h2>
-      <p className="mt-1 text-sm text-muted-foreground">A free Market Reality Assessment ranks every open job for your background.</p>
+      <h2 className="text-lg font-semibold tracking-tight text-navy">Sending applications and hearing nothing?</h2>
+      <p className="mt-1 text-sm text-muted-foreground">See how recruiters read your background and get every open job ranked for you. Free.</p>
       <TrackedLink href={MARKET_REALITY_START_HREF} event="free_ai_tool_cta_clicked" properties={{ tool }} className="mt-3 inline-flex h-11 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">
-        <AssessmentCtaLabel>Get my free assessment</AssessmentCtaLabel>
+        <AssessmentCtaLabel>Show me jobs that fit me</AssessmentCtaLabel>
       </TrackedLink>
     </div>
   )

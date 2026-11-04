@@ -51,7 +51,7 @@ export function AiExposureSectionView({ page, cta, split, occupations }: AiExpos
         {cta && (
           <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
             <TrackedLink href="/onboarding/desire" event={cta.event} properties={cta.properties} className={cta.className}>
-              <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
+              <AssessmentCtaLabel>Start my AI-proof plan</AssessmentCtaLabel>
             </TrackedLink>
             <Link href="/ai-skills" className="text-sm text-brand underline underline-offset-4">
               See which jobs ask for AI skills
