@@ -1,4 +1,5 @@
 import { cronBundle } from '@/lib/cron/bundle'
+import { GET as layoff_roundup } from '../layoff-roundup/route'
 import { GET as senior_brief } from '../senior-brief/route'
 import { GET as outplacement_agent } from '../outplacement-agent/route'
 import { GET as course_scan } from '../course-scan/route'
@@ -12,6 +13,7 @@ import { GET as population_snapshot } from '../population-snapshot/route'
 export const maxDuration = 800
 
 export const GET = cronBundle({
+  'layoff-roundup': layoff_roundup,
   'senior-brief': senior_brief,
   'outplacement-agent': outplacement_agent,
   'course-scan': course_scan,
