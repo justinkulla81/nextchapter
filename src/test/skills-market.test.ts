@@ -88,3 +88,40 @@ describe('skillGap', () => {
     expect(g.missing.map((s) => s.name)).toEqual(['Python'])
   })
 })
+
+import { assembleJobs, payPremium } from '@/lib/skills/market'
+
+describe('pay premium', () => {
+  const base = { n: 50_000, median: 100_000 }
+  it('compares the skill median with the baseline', () => {
+    const up = payPremium({ pay: { n: 400, median: 120_000 } }, base)
+    expect(up?.pct).toBeCloseTo(0.2)
+    expect(up).toMatchObject({ median: 120_000, baseline: 100_000, n: 400 })
+    expect(payPremium({ pay: { n: 400, median: 90_000 } }, base)?.pct).toBeCloseTo(-0.1)
+  })
+  it('says nothing when too few postings state a yearly range, or there is no baseline', () => {
+    expect(payPremium({ pay: { n: 10, median: 120_000 } }, base)).toBeNull()
+    expect(payPremium({ pay: null }, base)).toBeNull()
+    expect(payPremium({}, base)).toBeNull()
+    expect(payPremium({ pay: { n: 400, median: 120_000 } }, null)).toBeNull()
+    expect(payPremium({ pay: { n: 400, median: 120_000 } }, { n: 100, median: 100_000 })).toBeNull()
+  })
+})
+
+describe('top jobs for a skill', () => {
+  const titles: Record<string, string> = { a: 'Software Developers', b: 'Data Scientists', c: 'Software Developers', d: 'Analysts' }
+  it('ranks by postings, names each once, and drops occupations with no name', () => {
+    const jobs = assembleJobs(
+      [{ soc: 'a', n: 900, payN: 200, median: 130_000.4 }, { soc: 'c', n: 700, payN: 100, median: 120_000 }, { soc: 'x', n: 650, payN: 50, median: 1 }, { soc: 'b', n: 500, payN: 10, median: 150_000 }, { soc: 'd', n: 400, payN: 90, median: 80_000 }],
+      (s) => titles[s] ?? null,
+    )
+    expect(jobs.map((j) => j.title)).toEqual(['Software Developers', 'Data Scientists', 'Analysts'])
+    expect(jobs[0].median).toBe(130_000)
+  })
+  it('gives no pay figure when under the minimum number of postings state one', () => {
+    expect(assembleJobs([{ soc: 'b', n: 500, payN: 10, median: 150_000 }], (s) => titles[s] ?? null)[0].median).toBeNull()
+  })
+  it('stops at the limit', () => {
+    expect(assembleJobs([{ soc: 'a', n: 3, payN: 0, median: null }, { soc: 'b', n: 2, payN: 0, median: null }], (s) => titles[s] ?? null, 1)).toHaveLength(1)
+  })
+})

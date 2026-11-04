@@ -42,6 +42,27 @@ export interface SkillRow {
   aiPair: number
   /** Postings naming the skill, by dimension value key (only values with at least MIN_CELL). */
   by: Record<SkillDimension, Record<string, number>>
+  /** Posted yearly pay of the postings that name it (midpoint of the range). Absent before the first snapshot that carries pay, and when too few state a yearly range. */
+  pay?: SkillPay | null
+  /** The jobs (occupations) that name it most, with their posted pay. Absent before the first snapshot that carries them. */
+  jobs?: SkillJob[]
+}
+
+export interface SkillPay {
+  /** Postings with a yearly range. */
+  n: number
+  /** Median of the midpoints, in dollars a year. */
+  median: number
+}
+
+export interface SkillJob {
+  soc: string
+  title: string
+  /** Live postings for this occupation that name the skill. */
+  n: number
+  /** Of those, how many state a yearly range, and their median midpoint (null under MIN_PAY_POSTINGS). */
+  payN: number
+  median: number | null
 }
 
 export interface SkillMarket {
@@ -57,12 +78,16 @@ export interface SkillMarket {
   /** Display label per dimension value key. */
   labels: Record<SkillDimension, Record<string, string>>
   skills: SkillRow[]
+  /** Every live posting that names a skill and states a yearly range: what a skill's pay is compared with. */
+  payBaseline?: SkillPay | null
 }
 
 export const MIN_CELL = 25
 /** A skill needs this many postings before it is ranked anywhere. */
 export const MIN_SKILL_POSTINGS = 300
 export const MIN_EXPOSURE_POSTINGS = 200
+/** A pay figure needs this many postings that state a yearly range, for a skill or for one of its jobs. */
+export const MIN_PAY_POSTINGS = 30
 
 const ACRONYMS = new Set([
   'sql', 'aws', 'gcp', 'sap', 'erp', 'crm', 'etl', 'sox', 'gaap', 'ifrs', 'seo', 'sem', 'hris', 'pmp', 'gdpr', 'hipaa',
@@ -197,3 +222,28 @@ export function skillGap(m: SkillMarket, memberTerms: string[], scope?: { dim: S
 /** The one plain sentence under an exposure figure. */
 export const SKILL_EXPOSURE_WHY =
   'Mean AI use observed in the occupations of the jobs that ask for this skill (Anthropic Economic Index). It describes the work, not a forecast of job loss, and a low number means no use seen yet.'
+
+/**
+ * How the posted pay of jobs that name a skill compares with the posted pay of all jobs that name any skill. This is a
+ * comparison of postings, not a promise: skills cluster in particular kinds of job, so part of any gap is the job, not the skill.
+ */
+export function payPremium(s: Pick<SkillRow, 'pay'>, baseline: SkillPay | null | undefined): { pct: number; median: number; baseline: number; n: number } | null {
+  if (!s.pay || s.pay.n < MIN_PAY_POSTINGS || !baseline || baseline.n < MIN_PAY_POSTINGS * 10 || baseline.median <= 0) return null
+  return { pct: s.pay.median / baseline.median - 1, median: s.pay.median, baseline: baseline.median, n: s.pay.n }
+}
+
+export interface JobCell { soc: string; n: number; payN: number; median: number | null }
+
+/** The jobs that name a skill most: the occupations with the most postings, named, one per title, with a pay figure only when enough postings state one. */
+export function assembleJobs(cells: JobCell[], titleOf: (soc: string) => string | null, limit = 6): SkillJob[] {
+  const seen = new Set<string>()
+  const out: SkillJob[] = []
+  for (const c of [...cells].sort((a, b) => b.n - a.n)) {
+    const title = titleOf(c.soc)
+    if (!title || seen.has(title)) continue
+    seen.add(title)
+    out.push({ soc: c.soc, title, n: c.n, payN: c.payN, median: c.median !== null && c.payN >= MIN_PAY_POSTINGS ? Math.round(c.median) : null })
+    if (out.length >= limit) break
+  }
+  return out
+}

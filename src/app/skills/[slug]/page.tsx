@@ -10,7 +10,9 @@ import { fitDescription } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
 import { BAND_LABEL, bandOf } from '@/lib/skills/ai-exposure'
 import { loadSkillsMarket } from '@/lib/skills/market-server'
-import { DIMENSIONS, findSkill, fmtPct, hotSkills, pct, placesForSkill, SKILL_EXPOSURE_WHY, topSkills } from '@/lib/skills/market'
+import { DIMENSIONS, findSkill, fmtPct, hotSkills, pct, payPremium, placesForSkill, SKILL_EXPOSURE_WHY, topSkills } from '@/lib/skills/market'
+import { coursesForSkill, programsForJobs } from '@/lib/skills/learn-server'
+import { TrackedLink } from '@/components/marketing/TrackedLink'
 
 export const revalidate = 21600
 export const dynamicParams = true
@@ -43,6 +45,12 @@ export default async function SkillPage({ params }: { params: Promise<{ slug: st
   const hot = hotSkills(m, 200).find((x) => x.slug === slug)
   const band = s.exposure !== null && s.exposureN >= 200 ? bandOf(s.exposure) : null
   const aiShare = pct(s.aiPair, s.n)
+  // Pay and the jobs that name the skill come from the daily snapshot (absent in a snapshot made before they were added: the sections are left out).
+  const premium = payPremium(s, m.payBaseline)
+  const jobs = s.jobs ?? []
+  const [courses, programs] = await Promise.all([coursesForSkill(s.name).catch(() => []), programsForJobs(jobs.map((j) => j.soc)).catch(() => [])])
+  const usd = (n: number) => `$${Math.round(n / 1000).toLocaleString('en-US')}k`
+  const dollars = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`
 
   const facts: [string, string][] = [
     ['Open jobs that name it', s.n.toLocaleString('en-US')],
@@ -80,6 +88,33 @@ export default async function SkillPage({ params }: { params: Promise<{ slug: st
         <p className="mt-2 text-xs text-muted-foreground">Watching a skill adds it to your member home, so you see new jobs that ask for it. Nothing is sent to your email.</p>
       </Section>
 
+      {premium && (
+        <Section
+          id="pay"
+          title={`What ${s.name} jobs pay`}
+          note="Posted pay ranges only, and most jobs do not state one. Skills cluster in particular kinds of job, so part of any gap is the job and not the skill. This compares postings; it does not say that learning a skill raises your pay."
+        >
+          <p className="max-w-3xl text-sm">
+            The median posted yearly pay (the middle of each range) is <strong className="text-navy">{usd(premium.median)}</strong> across {premium.n.toLocaleString('en-US')} jobs that name {s.name} and state a range. For all jobs that name a skill it is {usd(premium.baseline)}, so {s.name} jobs post {fmtPct(Math.abs(premium.pct) * 100)} {premium.pct >= 0 ? 'more' : 'less'}.
+          </p>
+        </Section>
+      )}
+
+      {jobs.length > 0 && (
+        <Section id="jobs" title={`Jobs that name ${s.name} most`} note="Live postings counted by occupation, with the median posted yearly pay where at least 30 of them state one.">
+          <ul className="grid max-w-3xl gap-2">
+            {jobs.map((j) => (
+              <li key={j.soc} className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl bg-white p-3 text-sm">
+                <span className="font-medium text-navy">{j.title}</span>
+                <span className="text-muted-foreground">
+                  {j.n.toLocaleString('en-US')} jobs{j.median !== null ? ` · median ${usd(j.median)}` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+
       <Section id="where" title={`Where ${s.name} is asked for`} note="Biggest first. The percentage is the share of that group's jobs that name the skill.">
         <div className="grid gap-6 md:grid-cols-2">
           {DIMENSIONS.map((d) => {
@@ -96,6 +131,50 @@ export default async function SkillPage({ params }: { params: Promise<{ slug: st
           })}
         </div>
       </Section>
+
+      {(courses.length > 0 || programs.length > 0) && (
+        <Section id="learn" title={`Learn ${s.name}`} note="Courses on our list that name the skill, and state-approved training that prepares for the jobs above. Our state training list covers Texas only for now.">
+          {courses.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-navy">Courses</h3>
+              <ul className="mt-2 grid max-w-3xl gap-2">
+                {courses.map((c) => (
+                  <li key={c.id} className="rounded-xl bg-white p-3 text-sm">
+                    <TrackedLink href={c.url} event="skill_course_clicked" properties={{ skillSlug: s.slug, courseId: c.id, provider: c.provider }} className={`font-medium ${LINK}`} rel="nofollow noopener">
+                      {c.title}
+                    </TrackedLink>
+                    <span className="block text-xs text-muted-foreground">{[c.sponsor, c.level, c.free ? 'Free' : null].filter(Boolean).join(' · ')}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {programs.length > 0 && (
+            <div className={courses.length > 0 ? 'mt-6' : ''}>
+              <h3 className="text-sm font-semibold text-navy">State-approved training programs</h3>
+              <ul className="mt-2 grid max-w-3xl gap-2">
+                {programs.map((p) => (
+                  <li key={p.id} className="rounded-xl bg-white p-3 text-sm">
+                    {p.url && p.url.startsWith('http') ? (
+                      <TrackedLink href={p.url} event="skill_program_clicked" properties={{ skillSlug: s.slug, programId: p.id, state: p.state }} className={`font-medium ${LINK}`} rel="nofollow noopener">
+                        {p.program}
+                      </TrackedLink>
+                    ) : (
+                      <span className="font-medium text-navy">{p.program}</span>
+                    )}
+                    <span className="block text-xs text-muted-foreground">
+                      {[p.provider, p.state, p.credential, p.costUsd !== null ? dollars(p.costUsd) : null, p.weeks ? `${p.weeks} weeks` : null].filter(Boolean).join(' · ')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Looking at a degree? <Link href="/higher-education" className={LINK}>See what colleges on NextChapter offer</Link>.
+              </p>
+            </div>
+          )}
+        </Section>
+      )}
 
       <Section id="ai" title={`${s.name} and AI`} note={SKILL_EXPOSURE_WHY}>
         {band && s.exposure !== null ? (
