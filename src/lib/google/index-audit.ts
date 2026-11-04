@@ -39,25 +39,27 @@ function sample<T>(items: T[], n: number): T[] {
   return copy.slice(0, n)
 }
 
-async function sitemapUrls(): Promise<Map<string, string[]>> {
+async function sitemapUrls(only?: string): Promise<Map<string, string[]>> {
   const index = await (await fetch(`${SITE_URL}/sitemap-index.xml`, { cache: 'no-store' })).text()
   const byGroup = new Map<string, string[]>()
   for (const loc of locs(index)) byGroup.set(sitemapGroup(loc), [...(byGroup.get(sitemapGroup(loc)) ?? []), loc])
-  const urls = new Map<string, string[]>()
-  for (const [group, maps] of byGroup) {
-    // Two shards at most: a job sitemap alone is tens of thousands of URLs.
-    const found: string[] = []
-    for (const map of sample(maps, 2)) {
-      try {
-        const xml = await (await fetch(map, { cache: 'no-store' })).text()
-        found.push(...locs(xml))
-      } catch {
-        // a sitemap that will not load simply contributes nothing
-      }
-    }
-    urls.set(group, found)
-  }
-  return urls
+  // All groups and both shards of each at once: read one after another, 26 sitemap fetches alone used most of the time budget.
+  const entries = await Promise.all(
+    [...byGroup].filter(([group]) => !only || group === only).map(async ([group, maps]) => {
+      // Two shards at most: a job sitemap alone is tens of thousands of URLs.
+      const lists = await Promise.all(
+        sample(maps, 2).map(async (map) => {
+          try {
+            return locs(await (await fetch(map, { cache: 'no-store' })).text())
+          } catch {
+            return [] // a sitemap that will not load simply contributes nothing
+          }
+        }),
+      )
+      return [group, lists.flat()] as const
+    }),
+  )
+  return new Map(entries)
 }
 
 async function inspect(token: string, siteUrl: string, url: string): Promise<Omit<AuditRow, 'group' | 'url'>> {
@@ -65,6 +67,7 @@ async function inspect(token: string, siteUrl: string, url: string): Promise<Omi
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ inspectionUrl: url, siteUrl }),
+    signal: AbortSignal.timeout(20_000), // a stalled call must not hold the whole run past its deadline
   })
   if (!res.ok) {
     const text = (await res.text()).slice(0, 160)
@@ -82,7 +85,24 @@ async function inspect(token: string, siteUrl: string, url: string): Promise<Omi
   }
 }
 
-export async function runIndexAudit(perGroup: number): Promise<AuditRow[] | { error: string }> {
+export interface AuditRun {
+  rows: AuditRow[]
+  /** True when the time budget ran out before every sampled URL was checked. */
+  partial: boolean
+  requested: number
+}
+
+/** Inspections in flight at once: 8 stays inside Google's 600-per-minute limit at about one second each. */
+const CONCURRENCY = 8
+
+/**
+ * Samples `perGroup` URLs from each sitemap group (or only `onlyGroup`) and inspects them. Stops at `deadlineMs` after the start and
+ * returns what it has with `partial: true`, so a slow run still ends in a file instead of a 504 (Vercel stops the function at
+ * maxDuration). URLs are taken round-robin across groups, so a partial result still covers every group.
+ */
+export async function runIndexAudit(perGroup: number, opts: { deadlineMs?: number; onlyGroup?: string } = {}): Promise<AuditRun | { error: string }> {
+  const started = Date.now()
+  const deadline = started + (opts.deadlineMs ?? 240_000)
   const connections = await getAllGoogleConnections()
   for (const connection of connections) {
     try {
@@ -91,16 +111,15 @@ export async function runIndexAudit(perGroup: number): Promise<AuditRow[] | { er
       if (!sitesRes.ok) continue
       const siteUrl = pickSite(((await sitesRes.json()) as { siteEntry?: { siteUrl: string; permissionLevel: string }[] }).siteEntry ?? [])
       if (!siteUrl) continue
+      const groups = [...(await sitemapUrls(opts.onlyGroup))].map(([group, urls]) => sample(urls, perGroup).map((url) => ({ group, url })))
       const picks: { group: string; url: string }[] = []
-      for (const [group, urls] of await sitemapUrls()) for (const url of sample(urls, perGroup)) picks.push({ group, url })
+      for (let i = 0; i < perGroup; i++) for (const g of groups) if (g[i]) picks.push(g[i])
       const rows: AuditRow[] = []
-      // Five at a time: well inside Google's 600-per-minute limit.
-      for (let i = 0; i < picks.length; i += 5) {
-        const batch = picks.slice(i, i + 5)
-        const done = await Promise.all(batch.map(async (p) => ({ ...p, ...(await inspect(token, siteUrl, p.url)) })))
+      for (let i = 0; i < picks.length && Date.now() < deadline; i += CONCURRENCY) {
+        const done = await Promise.all(picks.slice(i, i + CONCURRENCY).map(async (p) => ({ ...p, ...(await inspect(token, siteUrl, p.url)) })))
         rows.push(...done)
       }
-      return rows
+      return { rows, partial: rows.length < picks.length, requested: picks.length }
     } catch (err) {
       return { error: err instanceof Error ? err.message : 'Unknown error' }
     }
