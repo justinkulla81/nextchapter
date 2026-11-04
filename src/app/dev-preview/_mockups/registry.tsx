@@ -5,6 +5,7 @@ import { NetworkShort, NetworkTracker } from './network-short'
 import { LearnShort, LearnLibrary } from './learn-short'
 import { JobsShort, JobsMine } from './jobs-short'
 import { MarketIntelFull, MarketIntelLocked } from './market-intel'
+import { CommunityShort } from './community-short'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
@@ -266,6 +267,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/know-empty-live', place: 'Network', title: 'People you know: no contacts yet (sample data)', replaces: 'the code that ships, fed sample data', Component: ContactsEmptyLive },
   { path: 'network/circles/know-filters-live', place: 'Network', title: 'People you know: filters on (sample data)', replaces: 'the code that ships, fed sample data', Component: ContactsFiltersLive },
   { path: 'network/circles/know-detail-live', place: 'Network', title: 'A contact: write to them (sample data)', replaces: 'the code that ships, fed sample data', Component: ContactDetailLive },
+  { path: 'network/circles/industry-short', place: 'Network', title: 'Industry and function, shortened: feed first, one filter, composer on a button (sample data)', replaces: 'the always-open composer above the feed, the page intro, the banners above the feed (now Needs you), the group strip and chips at the bottom (now one dropdown above the feed), and the Groups to join, Send encouragement and leaderboard blocks (proposed to move to Alumni and groups, the close circle and Effort and results)', Component: CommunityShort },
   { path: 'network/circles/industry-live', place: 'Network', title: 'Industry and function: the built feed (sample data)', replaces: 'the code that ships, fed sample data', Component: CommunityLive },
   { path: 'network/messages-live', place: 'Network', title: 'Messages: the built threads (sample data)', replaces: 'the code that ships, fed sample data', Component: MessagesLive },
   { path: 'network/circles/close-match-live', place: 'Network', title: 'Coach matching: preferences (sample data)', replaces: 'the code that ships, fed sample data', Component: CoachMatchLive },
