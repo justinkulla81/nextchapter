@@ -153,7 +153,7 @@ function post(o: Record<string, unknown> & { id: string; candidateId: string; de
   } as unknown as PostRowPost
 }
 
-const STREAM: UnifiedStreamItem[] = [
+export const STREAM: UnifiedStreamItem[] = [
   {
     kind: 'post', occurredAt: daysAgo(0.2),
     post: post({ id: 'p1', candidateId: 'u1', candidate: identity('u1', 'Maya', 'Patel'), postType: 'JOB', title: 'Finance director, Harbor Health', description: 'My old team is hiring a finance director. Happy to introduce anyone who has run a close at a company this size.', externalUrl: 'https://example.com/job', postCity: 'Boston', postFunction: 'Finance', postIndustry: 'Healthcare', _count: { reactions: 4 } }),
