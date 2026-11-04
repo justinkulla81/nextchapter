@@ -976,6 +976,7 @@ export default async function JobFitPage({
     ai?: string
     open?: string
     entry?: string
+    from?: string
   }>
 }) {
   const baseProfile = await getDashboardData()
@@ -987,6 +988,19 @@ export default async function JobFitPage({
   const part = parseFindPart(allParams.part)
   const { seniority, view, types, tab: tabParam, great, pivot, fn, sectors, blockers, cleared } = allParams
   const boardSearch = parseBoardSearchParams(allParams)
+  // Arrived from a public job search (src/lib/jobs/portal-job-redirect.ts): the member's own words lead the page.
+  const fromPublic = allParams.from === 'public'
+  if (fromPublic) {
+    after(() =>
+      captureServerEvent(baseProfile.id, 'search_carried_in', {
+        source: 'public_search',
+        q: boardSearch.q,
+        loc: boardSearch.loc,
+        remote: boardSearch.remote,
+        hasSearch: isSearchActive(boardSearch),
+      })
+    )
+  }
   // Other board filters that are on (search analytics, and the no-results suggestions).
   const filtersActive = [
     seniority && 'seniority',
@@ -1005,7 +1019,7 @@ export default async function JobFitPage({
   // `job` (the open job in the two-pane list) belongs to the list alone: links built from the other parameters
   // start without it, so a new filter or search never reopens an old job.
   const urlParams = Object.fromEntries(
-    Object.entries(allParams).filter((e): e is [string, string] => typeof e[1] === 'string' && e[0] !== 'job')
+    Object.entries(allParams).filter((e): e is [string, string] => typeof e[1] === 'string' && e[0] !== 'job' && e[0] !== 'from')
   )
   const greatFilters = parseGreatParam(great)
   // Function, employer sector and hard-requirement filters (job-functions.ts,
@@ -1052,7 +1066,10 @@ export default async function JobFitPage({
           }
         />
       ) : (
-        <PageHeader title={FIND_PART_HEADER[part].title} />
+        <PageHeader
+          title={fromPublic && part === 'jobs' && isSearchActive(boardSearch) ? `Jobs ${boardSearchSummary(boardSearch)}`.trim() : FIND_PART_HEADER[part].title}
+          intro={fromPublic && part === 'jobs' ? 'Ranked for you. Each one says why it fits, and saving it builds your search plan.' : undefined}
+        />
       )}
 
       {tab === 'my_jobs' && <SavedSearchesStrip email={profile.email} />}
