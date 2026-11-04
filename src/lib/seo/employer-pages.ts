@@ -150,6 +150,12 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
 })
 
 export const EMPLOYER_SITEMAP_SHARD_SIZE = 10_000
+/**
+ * Whether the employer pages (/employers/<name>) are offered to Google in the sitemap index. Off since 2026-11-04 so Google's small crawl
+ * allowance goes to the lists, tools and layoff pages first. Only what we announce changes: the pages stay up and indexable, and the ones Google
+ * already has stay in its index. Set to true to bring the files back (they are listed in src/app/sitemap-index.xml/route.ts).
+ */
+export const EMPLOYER_PAGES_IN_SITEMAP = false
 
 /** A layoff notice (filing or announcement) tied to the company in the last two years. */
 const HAS_SEC_EVENT = `EXISTS (SELECT 1 FROM "CompanyEvent" e WHERE e."companyId" = c.id AND e."eventDate" >= now() - interval '2 years')`
