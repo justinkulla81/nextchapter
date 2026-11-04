@@ -5,6 +5,7 @@ import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { OnboardingStepper } from '@/components/onboarding/OnboardingStepper'
 import { Logo } from '@/components/Logo'
 import { flowOfProfile } from '@/lib/onboarding/flag'
+import { PendingNetworkJoin } from '@/components/community/PendingNetworkJoin'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -44,6 +45,7 @@ export default async function OnboardingLayout({ children }: { children: React.R
 
   return (
     <div className="flex min-h-screen flex-col">
+      <PendingNetworkJoin />
       <header className="border-b border-border">
         <div className="mx-auto max-w-2xl px-6 pt-4">
           <Logo className="text-2xl" />

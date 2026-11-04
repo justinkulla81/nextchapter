@@ -162,10 +162,13 @@ export async function publicJobsInShard(shard: number): Promise<{ id: string; la
  * view of it. `offered` says whether it is also one we ask search engines to take; a job that is public but not offered must
  * never be reported to a search engine as gone.
  */
-export async function publicJobIdsInShard(shard: number): Promise<{ id: string; createdAt: Date; postedAt: Date | null; offered: boolean }[]> {
+export async function publicJobIdsInShard(shard: number): Promise<{ id: string; createdAt: Date; postedAt: Date | null; offered: boolean; value: number }[]> {
   if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
-  return prisma.$queryRaw<{ id: string; createdAt: Date; postedAt: Date | null; offered: boolean }[]>`
-    SELECT id, "createdAt", "postedAt", ${PUBLIC_JOB_OFFERED_SQL} AS offered FROM "ExclusiveJobPosting"
+  // value: stated pay and an employer-system listing, the part of googleJobPriority that comes from the row (src/lib/syndication/syndication.ts).
+  return prisma.$queryRaw<{ id: string; createdAt: Date; postedAt: Date | null; offered: boolean; value: number }[]>`
+    SELECT id, "createdAt", "postedAt", ${PUBLIC_JOB_OFFERED_SQL} AS offered,
+      (CASE WHEN "salaryMin" IS NOT NULL AND "payPeriod" = 'year' THEN 3 WHEN "salaryMin" IS NOT NULL AND "payPeriod" = 'hour' THEN 1 ELSE 0 END
+        + CASE WHEN "directListing" THEN 2 ELSE 0 END)::int AS value FROM "ExclusiveJobPosting"
     WHERE ${PUBLIC_JOB_STATIC_SQL}
       AND (hashtext(id) & 15) = ${shard}::int
       AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}

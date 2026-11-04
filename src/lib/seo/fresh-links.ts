@@ -4,6 +4,8 @@ import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-anno
 import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { heavy } from '@/lib/db/heavy'
+import { loadSearchPerformance } from '@/lib/google/search-performance'
+import { risingPages } from '@/lib/seo/rising-pages'
 import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION } from '@/lib/jobs/public-job-page'
 import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_OFFERED_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
 
@@ -15,7 +17,7 @@ import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_OFFERED_SQL, PUBLIC_JOB_STATIC_SQL } fr
 export interface FreshLink {
   label: string
   href: string
-  kind: 'layoff' | 'job'
+  kind: 'layoff' | 'job' | 'search'
   key: string
 }
 
@@ -72,6 +74,26 @@ export async function getFreshJobLinks(): Promise<FreshLink[]> {
   try {
     const rows = await newestOfferedJobs()
     return rows.map((j) => ({ label: `${j.title}, ${j.companyName}`, href: `/jobs/${j.id}`, kind: 'job' as const, key: j.id }))
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Pages Google shows at positions 8 to 20 for a real search, linked with that search as the link text. Reads the Search Console
+ * window cached for an hour (src/lib/google/search-performance.ts). Any failure, or no Google connection, returns an empty list and
+ * the section does not render.
+ */
+export async function getRisingSearchLinks(limit = 8, prefixes?: readonly string[]): Promise<FreshLink[]> {
+  try {
+    const perf = await loadSearchPerformance(28)
+    if (perf.status !== 'ok') return []
+    return risingPages(perf.rows, { limit, prefixes }).map((p) => ({
+      label: p.query.charAt(0).toUpperCase() + p.query.slice(1),
+      href: p.path,
+      kind: 'search' as const,
+      key: p.path,
+    }))
   } catch {
     return []
   }
