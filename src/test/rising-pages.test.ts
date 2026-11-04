@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { risingPages } from '@/lib/seo/rising-pages'
+import { risingPages, usableQuery } from '@/lib/seo/rising-pages'
 
 const row = (page: string, query: string, impressions: number, position: number) => ({ page: `https://launchyournextchapter.com${page}`, query, clicks: 0, impressions, position })
 
@@ -36,5 +36,22 @@ describe('risingPages', () => {
   it('limits to the prefixes asked for and the count', () => {
     const rows = [row('/layoffs/company/a', 'a layoffs', 50, 12), row('/jobs/title/b', 'b jobs', 60, 12), row('/layoffs/company/c', 'c layoffs', 40, 12)]
     expect(risingPages(rows, { limit: 1, prefixes: ['/layoffs/company/'] }).map((p) => p.path)).toEqual(['/layoffs/company/a'])
+  })
+})
+
+describe('usableQuery', () => {
+  it('accepts plain searches', () => {
+    expect(usableQuery('marriott layoffs')).toBe(true)
+    expect(usableQuery('sagepub careers')).toBe(true)
+  })
+  it('rejects operators, legitimacy questions and other sites', () => {
+    for (const q of ['jobot site:linkedin.com/company', 'is roylo partners legit', 'acme scam', 'acme glassdoor reviews', 'ab', 'x'.repeat(61)]) expect(usableQuery(q)).toBe(false)
+  })
+  it('falls back to the next search when the top one is not usable', () => {
+    const rows = [
+      { page: 'https://launchyournextchapter.com/employers/jobot', query: 'jobot site:linkedin.com/company', clicks: 0, impressions: 30, position: 9 },
+      { page: 'https://launchyournextchapter.com/employers/jobot', query: 'jobot jobs', clicks: 0, impressions: 12, position: 9 },
+    ]
+    expect(risingPages(rows, { limit: 5 })[0]?.query).toBe('jobot jobs')
   })
 })

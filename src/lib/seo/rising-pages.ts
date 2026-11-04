@@ -23,6 +23,10 @@ export interface RisingOptions {
   limit: number
 }
 
+/** A search worth showing as link text: plain words, not a search operator, a question about whether a company is real, or a pointer to another site. */
+const NOT_LINK_TEXT = /[:/@"]|\b(legit|scam|reddit|glassdoor|indeed|linkedin|login|log in|sign in|reviews?|complaints?|phone number|address)\b/i
+export const usableQuery = (q: string): boolean => q.length >= 3 && q.length <= 60 && !NOT_LINK_TEXT.test(q)
+
 function pathOf(page: string): string | null {
   try {
     return new URL(page).pathname.replace(/\/+$/, '')
@@ -46,7 +50,7 @@ export function risingPages(rows: PerfRow[], opts: RisingOptions): RisingPage[] 
     const e = by.get(path) ?? { impressions: 0, weighted: 0, top: { query: '', impressions: -1 } }
     e.impressions += r.impressions
     e.weighted += r.position * r.impressions
-    if (r.query && r.query.length <= 60 && r.impressions > e.top.impressions) e.top = { query: r.query, impressions: r.impressions }
+    if (usableQuery(r.query) && r.impressions > e.top.impressions) e.top = { query: r.query, impressions: r.impressions }
     by.set(path, e)
   }
   const out: RisingPage[] = []
