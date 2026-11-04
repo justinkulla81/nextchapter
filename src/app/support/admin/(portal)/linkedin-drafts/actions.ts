@@ -5,8 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getAdminLinkedIn } from '@/lib/linkedin/admin-connection'
-import { commentAsPage, postUrl, publishPagePost } from '@/lib/linkedin/page-posting'
-import { renderDraftSlides } from '@/lib/linkedin/draft-slides'
+import { postUrl } from '@/lib/linkedin/page-posting'
+import { publishDraftAsPage } from '@/lib/linkedin/draft-publish'
 import { createDraft } from '@/lib/linkedin/layoff-post-sweep'
 import { assignSlots, credibilityOf } from '@/lib/linkedin/layoff-post-rules'
 import { MAX_EMPLOYEES, MIN_EMPLOYEES } from '@/lib/linkedin/layoff-post-rules'
@@ -54,32 +54,14 @@ export async function postDraftToLinkedIn(id: string): Promise<{ message: string
   // Posts come from NextChapter, never from a person's profile, and are public.
   if (!conn.organizationUrn) return { message: 'LinkedIn is connected as you, but posts must come from the NextChapter page. Connect the NextChapter page first.' }
 
-  const claimed = await prisma.linkedInPostDraft.updateMany({ where: { id, status: 'DRAFT' }, data: { status: 'POSTED', postedAt: new Date() } })
-  if (claimed.count === 0) return { message: 'This draft was already posted or skipped.' }
-  const draft = await prisma.linkedInPostDraft.findUniqueOrThrow({ where: { id }, select: { body: true, firstComment: true, angle: true, credibility: true } })
-
-  let postUrn: string
-  try {
-    const rendered = await renderDraftSlides(id)
-    postUrn = await publishPagePost({ token: conn.accessToken, orgUrn: conn.organizationUrn, text: draft.body, images: rendered?.pngs, altText: `NextChapter: ${rendered?.employer ?? 'layoff'} layoff` })
-  } catch (e) {
-    await prisma.linkedInPostDraft.update({ where: { id }, data: { status: 'DRAFT', postedAt: null } })
-    console.error('LinkedIn post failed for draft', id, e)
-    captureServerEvent(admin.email ?? 'admin', 'linkedin_draft_post_failed', { draftId: id, error: e instanceof Error ? e.message.slice(0, 200) : 'unknown' })
-    return { message: `LinkedIn did not accept the post, so nothing was posted. ${e instanceof Error ? e.message.slice(0, 160) : ''}` }
+  const r = await publishDraftAsPage(id, { accessToken: conn.accessToken, organizationUrn: conn.organizationUrn })
+  if (!r.ok && r.reason === 'already-claimed') return { message: 'This draft was already posted or skipped.' }
+  if (!r.ok) {
+    captureServerEvent(admin.email ?? 'admin', 'linkedin_draft_post_failed', { draftId: id, error: r.error ?? 'unknown' })
+    return { message: `LinkedIn did not accept the post, so nothing was posted. ${(r.error ?? '').slice(0, 160)}` }
   }
-
-  await prisma.linkedInPostDraft.update({ where: { id }, data: { postUrn } })
-  let commented = true
-  if (draft.firstComment.trim()) {
-    try {
-      await commentAsPage(conn.accessToken, conn.organizationUrn, postUrn, draft.firstComment)
-    } catch (e) {
-      commented = false
-      console.error('LinkedIn first comment failed for draft', id, e)
-    }
-  }
-  captureServerEvent(admin.email ?? 'admin', 'linkedin_draft_auto_posted', { draftId: id, angle: draft.angle, credibility: draft.credibility, as: 'page', commented })
+  const { postUrn, commented } = r
+  captureServerEvent(admin.email ?? 'admin', 'linkedin_draft_auto_posted', { draftId: id, angle: r.angle, credibility: r.credibility, as: 'page', commented })
   revalidatePath(BASE)
   return {
     message: commented ? 'Posted, with the link in the first comment.' : 'Posted, but the first comment failed. Paste the link as a comment yourself.',
