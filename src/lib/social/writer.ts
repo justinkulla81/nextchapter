@@ -6,7 +6,8 @@ import type { Fact } from '@/lib/social/facts'
 import { checkDraft, LINK_TOKEN } from '@/lib/social/validate'
 
 const MODEL = process.env.SOCIAL_WRITER_MODEL ?? 'claude-sonnet-5'
-const DEFAULT_DAILY_CALLS = 120
+/** Two channels, each post drafted separately, up to two tries each. */
+const DEFAULT_DAILY_CALLS = 250
 
 const SYSTEM = `You write one short post for NextChapter's account on Bluesky. NextChapter publishes free employment data: layoffs, hiring, skills and pay.
 
@@ -25,6 +26,11 @@ const TONE: Record<Fact['topic'], string> = {
   ranking: 'A list finding. Curious and useful, a little conversational.',
   'ai-pay': 'A pay finding about AI skills. Careful: it compares advertised pay, so keep the caveat short but present.',
   skill: 'A hiring finding about a skill. Curious and useful, a little conversational.',
+}
+
+const CHANNEL_VOICE: Record<string, string> = {
+  bluesky: 'This one is for Bluesky: conversational, with room to explain, two or three sentences.',
+  x: 'This one is for X: tighter and punchier, one or two short sentences, lead with the most striking figure.',
 }
 
 const positiveInt = (v: string | undefined, fallback: number) => {
@@ -51,11 +57,12 @@ async function reserveCall(): Promise<boolean> {
 export type Draft = { by: 'claude'; body: string } | { by: 'template'; body: null; reason: string }
 
 /**
- * Writes the post for one fact in a person's voice. `recent` is the last posts from the account, so this one opens differently.
+ * Writes the post for one fact in a person's voice, for one channel (each channel gets its own draft, so the same layoff reads
+ * differently on Bluesky and X). `recent` is the last posts on that channel, so this one opens differently.
  * A draft that breaks a rule (a number that is not in the facts, too long, no link) is sent back once with the reason; if the second
  * draft fails too, or the writer is off or over its daily cap, the caller uses the fact's plain template. Never throws.
  */
-export async function writePost(fact: Fact, recent: string[]): Promise<Draft> {
+export async function writePost(fact: Fact, recent: string[], channel: string): Promise<Draft> {
   if (!process.env.ANTHROPIC_API_KEY) return { by: 'template', body: null, reason: 'no api key' }
   let rejected: string | null = null
   for (let attempt = 1; attempt <= 2; attempt++) {
@@ -69,7 +76,7 @@ export async function writePost(fact: Fact, recent: string[]): Promise<Draft> {
           {
             role: 'user',
             content:
-              `${TONE[fact.topic]}\n\nFacts:\n${fact.lines.map((l) => `- ${l}`).join('\n')}\n\n` +
+              `${TONE[fact.topic]}${CHANNEL_VOICE[channel] ? ` ${CHANNEL_VOICE[channel]}` : ''}\n\nFacts:\n${fact.lines.map((l) => `- ${l}`).join('\n')}\n\n` +
               (recent.length ? `Recent posts from this account (do not echo their opening or phrasing):\n${recent.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\n` : '') +
               (rejected ? `Your last draft was rejected: ${rejected}. Write a new one that fixes it.\n\n` : '') +
               'Write the post now.',

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { aiPayFacts, factLink, rankingFacts, skillFacts, topicOrder, type Fact } from '@/lib/social/facts'
-import { BASELINE_STORIES_PER_DAY, GAP_MINUTES, gapPassed, inWindow, nextKind, storyDue, streamDay } from '@/lib/social/pace'
+import { aiPayFacts, factLink, rankingFacts, skillFacts, stableShuffle, topicOrder, type Fact } from '@/lib/social/facts'
+import { BASELINE_STORIES_PER_DAY, baselineStories, GAP_MINUTES, gapMinutes, gapPassed, inWindow, nextKind, storyDue, streamDay, tickSlot } from '@/lib/social/pace'
 import { checkDraft, LINK_TOKEN } from '@/lib/social/validate'
 import type { SkillMarket } from '@/lib/skills/market'
 import type { RankingIndexEntry } from '@/lib/rankings/types'
@@ -139,5 +139,39 @@ describe('pacing', () => {
     expect(storyDue(at('2026-11-10T16:00:00Z'), 1)).toBe(false)
     expect(storyDue(at('2026-11-10T17:30:00Z'), 1)).toBe(true)
     expect(storyDue(at('2026-11-11T01:30:00Z'), BASELINE_STORIES_PER_DAY)).toBe(false)
+  })
+})
+
+describe('per-channel streams', () => {
+  it('starts each channel on a different topic, then rotates by what it posted last', () => {
+    expect(topicOrder([], 0)).toEqual(['ranking', 'skill', 'ai-pay'])
+    expect(topicOrder([], 1)).toEqual(['skill', 'ai-pay', 'ranking'])
+    expect(topicOrder([], 7)).toEqual(topicOrder([], 1))
+    expect(topicOrder(['skill'], 1)[0]).not.toBe('skill')
+  })
+  it('picks different filler for different channels from one pool, and the same for the same channel and day', () => {
+    const pool = Array.from({ length: 30 }, (_, i) => ({ key: `k${i}` }))
+    const a = stableShuffle(pool, 'x:2026-11-10').map((p) => p.key)
+    expect(a).toEqual(stableShuffle(pool, 'x:2026-11-10').map((p) => p.key))
+    expect(a).not.toEqual(stableShuffle(pool, 'bluesky:2026-11-10').map((p) => p.key))
+    expect([...a].sort()).toEqual(pool.map((p) => p.key).sort())
+  })
+  it('keeps X to a longer gap and one story a day, and takes turns on the ticks', () => {
+    expect(gapMinutes('x')).toBe(30)
+    expect(gapMinutes('bluesky')).toBe(GAP_MINUTES)
+    expect(baselineStories('x')).toBe(1)
+    expect(baselineStories('bluesky')).toBe(BASELINE_STORIES_PER_DAY)
+    const t = (m: number) => at(`2026-11-10T15:${String(m).padStart(2, '0')}:00Z`)
+    for (const m of [0, 5, 10, 15, 20, 25]) expect(tickSlot(t(m), 0)).not.toBe(tickSlot(t(m), 7))
+  })
+  it('lets a longer gap hold a channel back', () => {
+    const now = at('2026-11-10T15:00:00Z')
+    const ago = (min: number) => new Date(now.getTime() - min * 60_000).toISOString()
+    expect(gapPassed(now, ago(25), 30)).toBe(false)
+    expect(gapPassed(now, ago(30), 30)).toBe(true)
+  })
+  it('gives X fewer baseline stories', () => {
+    expect(storyDue(at('2026-11-10T12:05:00Z'), 0, 1)).toBe(true)
+    expect(storyDue(at('2026-11-10T20:00:00Z'), 1, 1)).toBe(false)
   })
 })

@@ -146,7 +146,23 @@ export function skillFacts(m: SkillMarket | null): Fact[] {
 
 const STORY_TOPICS: Topic[] = ['ranking', 'skill', 'ai-pay']
 
-/** Topics in the order to try them: the one posted longest ago (or never) first, so the feed never runs one subject twice in a row. */
-export function topicOrder(lastTopics: Topic[]): Topic[] {
-  return [...STORY_TOPICS].sort((a, b) => lastTopics.lastIndexOf(a) - lastTopics.lastIndexOf(b))
+/**
+ * Topics in the order to try them: the one posted longest ago (or never) first, so the feed never runs one subject twice in a row.
+ * `shift` rotates the starting order, so each channel opens on a different topic.
+ */
+export function topicOrder(lastTopics: Topic[], shift = 0): Topic[] {
+  const start = ((shift % STORY_TOPICS.length) + STORY_TOPICS.length) % STORY_TOPICS.length
+  const rotated = [...STORY_TOPICS.slice(start), ...STORY_TOPICS.slice(0, start)]
+  return rotated.sort((a, b) => lastTopics.lastIndexOf(a) - lastTopics.lastIndexOf(b))
+}
+
+const hash = (s: string): number => {
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619)
+  return h >>> 0
+}
+
+/** A repeatable shuffle: the same seed and items give the same order, a different seed gives a different one. Used so channels pick different filler from one pool. */
+export function stableShuffle<T extends { key: string }>(items: T[], seed: string): T[] {
+  return [...items].sort((a, b) => hash(`${seed}:${a.key}`) - hash(`${seed}:${b.key}`))
 }
