@@ -101,7 +101,11 @@ export interface PublicJobRow {
 }
 
 /** True when the page has the posting's own text, enough to stand on its own in search (see PUBLIC_JOB_MIN_INDEX_DESCRIPTION). */
-export function isIndexableJob(job: Pick<PublicJobRow, 'description'>): boolean {
+export function isIndexableJob(job: Pick<PublicJobRow, 'description' | 'directListing'>): boolean {
+  // Owner decision, 2026-11-04: search engines get only jobs listed on the employer's own career system (directListing).
+  // A job whose apply link is an aggregator's (Jooble and the like) keeps its page for members but is noindex, left out of
+  // the sitemap and told to Google/Bing as removed. Same rule as PUBLIC_JOB_SEARCH_SQL in public-job-page-server.ts.
+  if (!job.directListing) return false
   return new TextEncoder().encode(job.description ?? '').length >= PUBLIC_JOB_MIN_INDEX_DESCRIPTION
 }
 
