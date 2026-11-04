@@ -1,4 +1,5 @@
 import 'server-only'
+import { createHash } from 'node:crypto'
 import { cache } from 'react'
 import { Prisma } from '@prisma/client'
 import { unstable_cache } from 'next/cache'
@@ -456,7 +457,10 @@ async function loadLargeEmployersHeadquartered(state: string, cityKeyNames: stri
 }
 
 const key = (...parts: (string | number | string[] | null)[]) => parts.map((p) => (Array.isArray(p) ? p.join(',') : String(p))).join('|')
-const sharedTop = memoTtl(10 * 60_000, (a: string, b: string[] | null, c: number) => key(a, b, c), (a: string, b: string[] | null, c: number) => heavy(() => loadTopHiringEmployers(a, b, c)))
+// A city's top employers are a scan of the board per place, and an instance only remembers them for ten minutes, so every cold instance
+// re-ran the same query (about 90,000 calls). The data cache shares one result across instances for six hours, the same as a state's list.
+const sharedTop = memoTtl(10 * 60_000, (a: string, b: string[] | null, c: number) => key(a, b, c), (a: string, b: string[] | null, c: number) =>
+  sharedLoad(`places-top-hiring:${createHash('sha1').update(key(a, b, c)).digest('hex')}`, 6 * 60 * 60, () => heavy(() => loadTopHiringEmployers(a, b, c))))
 const sharedJobs = memoTtl(10 * 60_000, (a: string, b: string[], c: number) => key(a, b, c), (a: string, b: string[], c: number) => heavy(() => loadRecentJobs(a, b, c)))
 const sharedHq = memoTtl(10 * 60_000, (a: string, b: string[] | null, c: number) => key(a, b, c), (a: string, b: string[] | null, c: number) => heavy(() => loadLargeEmployersHeadquartered(a, b, c)))
 // A state's own lists are one scan of the board each, so they are shared across instances in the data cache for six hours.

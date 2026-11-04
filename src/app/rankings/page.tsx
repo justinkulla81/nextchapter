@@ -34,6 +34,7 @@ export default async function RankingsHub() {
     <SeoPage
       look="scene"
       calm
+      boxFirst
       hero={RANKINGS_HERO}
       capture={{ kind: 'ranking', slug: 'rankings', label: 'professional', save: { q: '', loc: '' } }}
       trail={[{ name: 'Rankings', path: '/rankings' }]}

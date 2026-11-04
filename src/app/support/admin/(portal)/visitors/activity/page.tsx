@@ -19,13 +19,11 @@ import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
 import { buildEmailIpAnchors, extractEmailLinkId, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, resolveEmailRecipients, type EmailRecipient } from '@/lib/marketing/email-attribution'
 import { classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
-import { allTimeDayCount, byHourOfDay, byWeekday, perDaySeries, perHourSeries } from '@/lib/admin/visitor-time-buckets'
+import { allTimeDayCountFromFirstDay, byHourOfDayFromCounts, byWeekdayFromCounts, perDaySeriesFromCounts, perHourSeriesFromCounts } from '@/lib/admin/visitor-time-buckets'
 
 export const maxDuration = 30
 
 const CHART_WINDOW_DAYS = 30
-// All time reads every event, newest first, up to this many. Past it the oldest are dropped and the chart says so.
-const ALL_TIME_EVENT_CAP = 200_000
 const DAY_MS = 24 * 60 * 60 * 1000
 
 // Module-level, not inline in the component: react-hooks/purity flags Date.now().
@@ -137,13 +135,18 @@ export default async function AdminVisitorActivityPage({
           { NOT: BOT_SIGNATURES.map((s) => ({ userAgent: { contains: s, mode: 'insensitive' as const } })) },
         ],
       }
+  const etDay = Prisma.sql`to_char(("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/New_York', 'YYYY-MM-DD')`
+  const etHour = Prisma.sql`to_char(("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/New_York', 'YYYY-MM-DD HH24')`
 
   const current = now()
   const botPatterns = BOT_SIGNATURES.map((sig) => `%${sig}%`)
   const botFilter = showBots ? Prisma.sql`TRUE` : Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${botPatterns})))`
   const since = (days: number) => new Date(current.getTime() - days * DAY_MS)
 
-  const [events, total, chartEvents, totalsRows] = await Promise.all([
+  // Human page views only (a known user agent that is not a bot), the series the charts have always drawn.
+  const humanPageView = Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns}))`
+  type BucketRow = { key: string; views: bigint; visitors: bigint }
+  const [events, dayRows, hourRows, totalsRows] = await Promise.all([
     prisma.homepageVisitEvent.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -151,12 +154,13 @@ export default async function AdminVisitorActivityPage({
       take: params.take,
       include: { candidate: { select: { id: true, firstName: true, lastName: true, email: true } } },
     }),
-    prisma.homepageVisitEvent.count({ where }),
-    prisma.homepageVisitEvent.findMany({
-      orderBy: { createdAt: 'desc' },
-      select: { createdAt: true, userAgent: true, ip: true, eventType: true },
-      take: ALL_TIME_EVENT_CAP,
-    }),
+    // The charts read counts grouped by Eastern day and hour in the database, not every raw event.
+    prisma.$queryRaw<BucketRow[]>(Prisma.sql`
+      SELECT ${etDay} AS "key", count(*) AS "views", count(DISTINCT "ip") AS "visitors"
+      FROM "HomepageVisitEvent" WHERE ${humanPageView} GROUP BY 1`),
+    prisma.$queryRaw<BucketRow[]>(Prisma.sql`
+      SELECT ${etHour} AS "key", count(*) AS "views", count(DISTINCT "ip") AS "visitors"
+      FROM "HomepageVisitEvent" WHERE ${humanPageView} AND "createdAt" >= ${since(CHART_WINDOW_DAYS + 2)} GROUP BY 1`),
     // The count under the title, for each range the chart offers: events and distinct visitors, same bot rule as the log.
     prisma.$queryRaw<{ e1: bigint; v1: bigint; e7: bigint; v7: bigint; e30: bigint; v30: bigint; eall: bigint; vall: bigint }[]>(Prisma.sql`
       SELECT
@@ -179,13 +183,21 @@ export default async function AdminVisitorActivityPage({
     '30d': { events: Number(t?.e30 ?? 0), visitors: Number(t?.v30 ?? 0) },
     all: { events: Number(t?.eall ?? 0), visitors: Number(t?.vall ?? 0) },
   }
-  const allTimeDays = allTimeDayCount(chartEvents, current)
+  // Same count the log is paginated by (the bot rule is the same SQL filter).
+  const total = totals.all.events
+  const toCounts = (rows: BucketRow[], field: 'views' | 'visitors') => new Map(rows.map((r) => [r.key, Number(r[field])] as const))
+  const dayViews = toCounts(dayRows, 'views')
+  const dayVisitors = toCounts(dayRows, 'visitors')
+  const hourViews = toCounts(hourRows, 'views')
+  const hourVisitors = toCounts(hourRows, 'visitors')
+  const firstDayKey = dayRows.reduce<string | null>((min, r) => (min === null || r.key < min ? r.key : min), null)
+  const allTimeDays = allTimeDayCountFromFirstDay(firstDayKey, current)
 
   const trafficData = {
-    day: { pageViews: perHourSeries(chartEvents, current, 24, false), uniqueVisitors: perHourSeries(chartEvents, current, 24, true) },
-    '7d': { pageViews: perDaySeries(chartEvents, current, 7, false), uniqueVisitors: perDaySeries(chartEvents, current, 7, true) },
-    '30d': { pageViews: perDaySeries(chartEvents, current, 30, false), uniqueVisitors: perDaySeries(chartEvents, current, 30, true) },
-    all: { pageViews: perDaySeries(chartEvents, current, allTimeDays, false), uniqueVisitors: perDaySeries(chartEvents, current, allTimeDays, true) },
+    day: { pageViews: perHourSeriesFromCounts(hourViews, current, 24), uniqueVisitors: perHourSeriesFromCounts(hourVisitors, current, 24) },
+    '7d': { pageViews: perDaySeriesFromCounts(dayViews, current, 7), uniqueVisitors: perDaySeriesFromCounts(dayVisitors, current, 7) },
+    '30d': { pageViews: perDaySeriesFromCounts(dayViews, current, 30), uniqueVisitors: perDaySeriesFromCounts(dayVisitors, current, 30) },
+    all: { pageViews: perDaySeriesFromCounts(dayViews, current, allTimeDays), uniqueVisitors: perDaySeriesFromCounts(dayVisitors, current, allTimeDays) },
   }
   const toDaysRows = (rows: { key: string; count: number }[]) => rows.map((d) => ({ dateKey: d.key, count: d.count }))
   // Emails captured per day: every form on the public site plus new registrations.
@@ -219,12 +231,12 @@ export default async function AdminVisitorActivityPage({
   ]
   const colors = { views: 'var(--color-brand)', visitors: 'var(--color-warning)' }
   const weekdaySeries = [
-    { label: 'Human page views', color: colors.views, buckets: byWeekday(chartEvents, current, CHART_WINDOW_DAYS, false) },
-    { label: 'Unique visitors', color: colors.visitors, buckets: byWeekday(chartEvents, current, CHART_WINDOW_DAYS, true) },
+    { label: 'Human page views', color: colors.views, buckets: byWeekdayFromCounts(dayViews, current, CHART_WINDOW_DAYS) },
+    { label: 'Unique visitors', color: colors.visitors, buckets: byWeekdayFromCounts(dayVisitors, current, CHART_WINDOW_DAYS) },
   ]
   const hourSeries = (dayType: 'weekday' | 'weekend') => [
-    { label: 'Human page views', color: colors.views, buckets: byHourOfDay(chartEvents, current, CHART_WINDOW_DAYS, false, dayType) },
-    { label: 'Unique visitors', color: colors.visitors, buckets: byHourOfDay(chartEvents, current, CHART_WINDOW_DAYS, true, dayType) },
+    { label: 'Human page views', color: colors.views, buckets: byHourOfDayFromCounts(hourViews, current, CHART_WINDOW_DAYS, dayType) },
+    { label: 'Unique visitors', color: colors.visitors, buckets: byHourOfDayFromCounts(hourVisitors, current, CHART_WINDOW_DAYS, dayType) },
   ]
 
   // One lookup per unique IP on this page, not per row — same convention as
@@ -286,20 +298,24 @@ export default async function AdminVisitorActivityPage({
   // anonymous visit carries.
   const totalsByIp = new Map<string, { views: number; clicks: number; applyClicks: number }>()
   if (uniqueIps.length > 0) {
-    const [ipEvents] = await Promise.all([
-      prisma.$queryRaw<{ ip: string; eventType: string; href: string | null; path: string | null }[]>(Prisma.sql`
-        SELECT "ip", "eventType"::text AS "eventType", "href", "path"
+    // Counts grouped in the database; only the clicks that leave the site are read row by row (to tell Apply clicks apart).
+    const [countRows, clickRows] = await Promise.all([
+      prisma.$queryRaw<{ ip: string; views: bigint; clicks: bigint }[]>(Prisma.sql`
+        SELECT "ip",
+          count(*) FILTER (WHERE "eventType"::text = 'PAGE_VIEW') AS "views",
+          count(*) FILTER (WHERE "eventType"::text <> 'PAGE_VIEW') AS "clicks"
         FROM "HomepageVisitEvent"
-        WHERE "ip" = ANY(${uniqueIps}) AND ${botFilter}`),
+        WHERE "ip" = ANY(${uniqueIps}) AND ${botFilter}
+        GROUP BY "ip"`),
+      prisma.$queryRaw<{ ip: string; href: string | null; path: string | null }[]>(Prisma.sql`
+        SELECT "ip", "href", "path"
+        FROM "HomepageVisitEvent"
+        WHERE "ip" = ANY(${uniqueIps}) AND "eventType"::text = 'LINK_CLICK' AND "href" ~* '^https?://' AND ${botFilter}`),
     ])
-    for (const ev of ipEvents) {
-      const t = totalsByIp.get(ev.ip) ?? { views: 0, clicks: 0, applyClicks: 0 }
-      if (ev.eventType === 'PAGE_VIEW') t.views += 1
-      else {
-        t.clicks += 1
-        if (isApplyClick(ev.eventType, ev.href, ev.path)) t.applyClicks += 1
-      }
-      totalsByIp.set(ev.ip, t)
+    for (const r of countRows) totalsByIp.set(r.ip, { views: Number(r.views), clicks: Number(r.clicks), applyClicks: 0 })
+    for (const ev of clickRows) {
+      const t = totalsByIp.get(ev.ip)
+      if (t && isApplyClick('LINK_CLICK', ev.href, ev.path)) t.applyClicks += 1
     }
   }
 
@@ -545,7 +561,7 @@ export default async function AdminVisitorActivityPage({
 
       <div className="rounded-lg border border-border p-4">
         <h2 className="mb-3 text-sm font-medium text-foreground">Human page views &amp; unique visitors</h2>
-        <VisitorsTrafficChart data={trafficData} allTimeTruncated={chartEvents.length >= ALL_TIME_EVENT_CAP} />
+        <VisitorsTrafficChart data={trafficData} allTimeTruncated={false} />
       </div>
       </TrafficRangeProvider>
 

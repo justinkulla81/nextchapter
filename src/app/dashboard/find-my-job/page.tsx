@@ -137,7 +137,7 @@ import { memberWorkType, defaultWorkTypes, parseWorkTypesParam, pathWorkTypes, r
 import { loadMyJobs, trackKey, type MyJobsView } from '@/lib/jobs/my-jobs-data'
 import { loadExpertNetworks, type ExpertNetworkCard } from '@/lib/jobs/expert-networks'
 import { WorkTypeToggle } from '@/components/dashboard/one-board/WorkTypeToggle'
-import { BoardTabs, type BoardTab } from '@/components/dashboard/one-board/BoardTabs'
+import { type BoardTab } from '@/components/dashboard/one-board/BoardTabs'
 import { ExpertNetworkRow } from '@/components/dashboard/one-board/ExpertNetworkRow'
 import { earlyCareerAudience, featureVisible } from '@/lib/early-career/audience'
 import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
@@ -151,6 +151,8 @@ import { loadSalaryContext } from '@/lib/market/salary-context'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { MyJobsRedesign } from '@/components/dashboard/find/MyJobsRedesign'
 import { AddJobAction } from '@/components/dashboard/find/AddJobAction'
+import { NeedsYou } from '@/components/candidate/NeedsYou'
+import { HomeFold } from '@/components/candidate/HomeFold'
 import { FindParts, parseFindPart, type FindPart } from '@/components/dashboard/FindParts'
 import { FIND_PART_HEADER } from '@/lib/jobs/find-part-copy'
 import { FindUnpostedSection } from '@/components/dashboard/find/FindUnpostedSection'
@@ -1036,7 +1038,6 @@ export default async function JobFitPage({
       {tab === 'my_jobs' ? (
         <PageHeader
           title="My jobs"
-          intro="Every job you have saved or applied to, with the next step for each."
           action={
             <AddJobAction
               atCap={profile.jobPostings.filter((j) => j.source === 'MANUAL' && j.interviewLandedAt === null && j.offerReceivedAt === null).length >= MAX_ACTIVE_FIT_CHECK_SLOTS}
@@ -1044,13 +1045,12 @@ export default async function JobFitPage({
           }
         />
       ) : (
-        <PageHeader title={FIND_PART_HEADER[part].title} intro={FIND_PART_HEADER[part].intro} />
+        <PageHeader title={FIND_PART_HEADER[part].title} />
       )}
 
       {tab === 'my_jobs' && <SavedSearchesStrip email={profile.email} />}
       <MyTabAnchors onMyJobs={tab === 'my_jobs'} />
-      <BoardTabs current={tab} myJobsCount={trackedCount + applicationCount} />
-      {tab === 'board' && <FindParts current={part} independent={featureVisible('interim_launch_plan', earlyCareerAudience(profile))} urlParams={urlParams} />}
+      <FindParts current={tab === 'my_jobs' ? null : part} independent={featureVisible('interim_launch_plan', earlyCareerAudience(profile))} urlParams={urlParams} myJobs={{ count: trackedCount + applicationCount, current: tab === 'my_jobs' }} />
 
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
 
@@ -1506,21 +1506,23 @@ async function FindMyJobBody({
     OFFER: 'Offers',
   }
 
-  return (
-    <>
+  const prompts = (
+    <NeedsYou>
       <ReconnectBanner candidateId={profile.id} returnTo="/dashboard/find-my-job" />
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} returnTo="/dashboard/find-my-job" />
+    </NeedsYou>
+  )
+
+  return (
+    <>
+      {/* The reconnect and Google prompts wait in one collapsed strip; on the jobs part it sits under the search and scope switch. */}
+      {!(onBoard && show('jobs')) && prompts}
 
       {!onBoard && <MyJobsRedesign view={myJobs} />}
 
       {onBoard && show('jobs') && (
         <div id="apply-new-jobs" className="scroll-mt-4 space-y-6">
           <BoardSearchBar />
-          {board.breadth.classifier && (
-            <Suspense fallback={null}>
-              <TuneStripSection profile={profile} />
-            </Suspense>
-          )}
           {pivotFilter && (
             <PivotBoardBanner
               target={pivotFilter.target}
@@ -1529,17 +1531,45 @@ async function FindMyJobBody({
               clearHref={boardHrefWithout(urlParams, ['pivot'], { pathname: '/dashboard/find-my-job', hash: 'job-recommendations' })}
             />
           )}
-          <div className="space-y-3">
-            <ScopeToggle surface="find_my_job" current={scopeCtx.scope} />
-            {scopeCtx.message && (
-              <PivotMessageCard
-                message={scopeCtx.message}
-                counts={{ functions: scopeCtx.outside.functions.length, industries: scopeCtx.outside.industries.length, places: scopeCtx.outside.places.length }}
+          <ScopeToggle surface="find_my_job" current={scopeCtx.scope} />
+          {prompts}
+          <div id="job-recommendations" className="scroll-mt-4">
+            <Suspense fallback={<JobRecommendationsSkeleton />}>
+              <JobRecommendationsSection
+                profile={boardProfile}
+                pivotFilter={pivotFilter}
+                candidatePlus={isCandidatePlus}
+                board={board}
+                contacts={contacts}
+                seniorityGroup={seniorityGroup}
+                boardView={boardView}
+                workTypes={workTypes}
+                parallelPaths={parallelPaths}
+                greatFilters={greatFilters}
+                boardFilters={boardFilters}
+                scopeCtx={scopeCtx}
+                myJobs={myJobs}
+                expertNetworks={expertNetworks}
+                search={searchView}
+                urlParams={urlParams}
+                aiView={appliedAiView}
+                openFilter={appliedOpenFilter}
+                entryFilter={appliedEntryFilter}
               />
-            )}
-            {scopeCtx.question && <ExploreQuestionCard question={scopeCtx.question} />}
-            <ExploredOptionsList options={scopeCtx.options} />
+            </Suspense>
           </div>
+          {(scopeCtx.message || scopeCtx.question || scopeCtx.options.length > 0) && (
+            <HomeFold title="Where we are looking" event="jobs_scope_fold_toggled">
+              {scopeCtx.message && (
+                <PivotMessageCard
+                  message={scopeCtx.message}
+                  counts={{ functions: scopeCtx.outside.functions.length, industries: scopeCtx.outside.industries.length, places: scopeCtx.outside.places.length }}
+                />
+              )}
+              {scopeCtx.question && <ExploreQuestionCard question={scopeCtx.question} />}
+              <ExploredOptionsList options={scopeCtx.options} />
+            </HomeFold>
+          )}
           <details className="rounded-lg border border-border px-3 py-2">
             <summary className="cursor-pointer text-sm font-medium text-ink">Filters and views</summary>
             <div className="mt-3 space-y-3">
@@ -1580,31 +1610,11 @@ async function FindMyJobBody({
               )}
             </div>
           </details>
-          <div id="job-recommendations" className="scroll-mt-4">
-            <Suspense fallback={<JobRecommendationsSkeleton />}>
-              <JobRecommendationsSection
-                profile={boardProfile}
-                pivotFilter={pivotFilter}
-                candidatePlus={isCandidatePlus}
-                board={board}
-                contacts={contacts}
-                seniorityGroup={seniorityGroup}
-                boardView={boardView}
-                workTypes={workTypes}
-                parallelPaths={parallelPaths}
-                greatFilters={greatFilters}
-                boardFilters={boardFilters}
-                scopeCtx={scopeCtx}
-                myJobs={myJobs}
-                expertNetworks={expertNetworks}
-                search={searchView}
-                urlParams={urlParams}
-                aiView={appliedAiView}
-                openFilter={appliedOpenFilter}
-                entryFilter={appliedEntryFilter}
-              />
+          {board.breadth.classifier && (
+            <Suspense fallback={null}>
+              <TuneStripSection profile={profile} />
             </Suspense>
-          </div>
+          )}
           {(board.dismiss.rules && (board.dismiss.rules.preferences.length > 0 || passedOnJobs.length > 0)) || !pivotFilter ? (
             <ShowMore event="find_more_options_opened" properties={{ part: 'jobs' }} label="Jobs you passed on and other ways to search">
               {board.dismiss.rules && (board.dismiss.rules.preferences.length > 0 || passedOnJobs.length > 0) && (

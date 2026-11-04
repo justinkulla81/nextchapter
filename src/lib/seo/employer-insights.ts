@@ -2,6 +2,7 @@ import 'server-only'
 import { unstable_cache } from 'next/cache'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { memoTtl, sharedLoad } from '@/lib/db/heavy'
 import { LIVE_PUBLIC_SQL } from '@/lib/seo/employer-rankings'
 import { employerSlug } from '@/lib/seo/employer-slug'
 
@@ -178,20 +179,32 @@ async function loadBenchmarks(): Promise<IndustryBenchmark[]> {
 }
 const cachedBenchmarks = unstable_cache(loadBenchmarks, ['employer-industry-benchmarks-v2'], { revalidate: 86_400 })
 
+interface Peer { id: string; name: string; canonical: string; open: number }
+
+/** Every employer in an industry with at least three open roles. Read once per industry and shared, not once per employer page. */
+async function loadPeers(industry: string): Promise<Peer[]> {
+  return prisma.$queryRaw<Peer[]>(Prisma.sql`
+    SELECT c.id, c.name, c."canonicalNameNormalized" AS canonical, p."openNow" AS open
+    FROM "CompanyHiringProfile" p JOIN "Company" c ON c.id = p."companyId"
+    WHERE COALESCE(c.industry, p.industry) = ${industry} AND p."openNow" >= 3`)
+}
+
+// The rank and the six similar employers were a query per employer page (about 257,000 calls, each reading both company tables), but
+// they only depend on the industry's list. That list is shared across instances for six hours and each page works out its own rank from it.
+const peersFor = memoTtl(10 * 60_000, (industry: string) => industry, (industry: string) =>
+  sharedLoad(`employer-peers:${industry}`, 6 * 60 * 60, () => loadPeers(industry)))
+
 async function rankAndSimilar(companyId: string, industry: string, open: number): Promise<{ rank: EmployerInsights['rank']; similar: SimilarEmployer[] }> {
-  const [row] = await prisma.$queryRaw<
-    { ahead: number; total: number; similar: { id: string; name: string; canonical: string; open: number }[] }[]
-  >(Prisma.sql`WITH peers AS (
-      SELECT c.id, c.name, c."canonicalNameNormalized" AS canonical, p."openNow" AS open
-      FROM "CompanyHiringProfile" p JOIN "Company" c ON c.id = p."companyId"
-      WHERE COALESCE(c.industry, p.industry) = ${industry} AND p."openNow" >= 3
-    )
-    SELECT (SELECT count(*) FROM peers WHERE open > ${open})::int AS ahead,
-      (SELECT count(*) FROM peers)::int AS total,
-      (SELECT COALESCE(json_agg(t), '[]'::json) FROM (SELECT id, name, canonical, open FROM peers WHERE id <> ${companyId} ORDER BY abs(open - ${open}), name LIMIT 6) t) AS similar`)
+  const peers = await peersFor(industry)
+  const ahead = peers.filter((p) => p.open > open).length
+  const similar = peers
+    .filter((p) => p.id !== companyId)
+    // Ties on distance go by name in the database's own (en_US) order, as the query's ORDER BY did.
+    .sort((x, y) => Math.abs(x.open - open) - Math.abs(y.open - open) || x.name.localeCompare(y.name, 'en-US'))
+    .slice(0, 6)
   return {
-    rank: row && row.total > 0 && open >= 3 ? { position: row.ahead + 1, of: row.total } : null,
-    similar: (row?.similar ?? []).map((s) => ({ name: s.name, slug: employerSlug(s.canonical, s.id), open: s.open })),
+    rank: peers.length > 0 && open >= 3 ? { position: ahead + 1, of: peers.length } : null,
+    similar: similar.map((s) => ({ name: s.name, slug: employerSlug(s.canonical, s.id), open: s.open })),
   }
 }
 
