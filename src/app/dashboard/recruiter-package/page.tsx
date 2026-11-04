@@ -98,6 +98,7 @@ export default async function RecruiterPackagePage() {
             ['Skills assessment', '20 minutes. Shows what you can do in a form recruiters can compare.', '/dashboard/skills-assessment', 'Start skills assessment'],
             ['References', 'Name three people. NextChapter collects the references for you.', '/dashboard/references', 'Ask for references'],
             ['Résumé', 'We check it for missing results and unclear dates.', '/dashboard/resume', 'Fix my résumé'],
+            ['Community', 'Talk with members in your industry and function.', '/dashboard/community', 'Open the community'],
           ].map(([t, why, href, label]) => (
             <li key={t} className="flex flex-wrap items-center justify-between gap-3 py-4">
               <div className="max-w-xl"><p className="text-base font-semibold text-ink">{t}</p><p className="text-sm text-muted-foreground">{why}</p></div>
