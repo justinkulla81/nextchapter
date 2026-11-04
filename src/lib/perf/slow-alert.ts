@@ -44,7 +44,7 @@ async function recentRows(): Promise<SlowRow[]> {
            properties->>'timedOut' AS timed_out, properties->>'ms' AS ms, properties->>'waitedMs' AS waited
     FROM "AnalyticsEvent"
     WHERE event IN ('page_query_stalled', 'page_load_slow', 'page_load_stalled')
-      AND "createdAt" > now() - make_interval(mins => ${ALERT_WINDOW_MINUTES})`
+      AND "createdAt" > now() - make_interval(mins => ${ALERT_WINDOW_MINUTES}::int)`
   return rows.map((r) => ({
     event: r.event, who: r.who, route: r.route, label: r.label, path: r.path,
     timedOut: r.timed_out === 'true',
