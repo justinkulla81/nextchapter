@@ -43,6 +43,18 @@ export const PUBLIC_JOB_VALID_DAYS = PUBLIC_JOB_VERIFIED_DAYS
 /** Job sitemap files (src/app/jobs/sitemap.ts), by (hashtext(id) & 15). */
 export const PUBLIC_JOB_SITEMAP_SHARDS = 16
 
+/**
+ * How many of the job sitemap files, counted from 0, are offered to search engines. JOB_SITEMAP_SHARDS_LIVE of 0 pauses job discovery
+ * through sitemaps (the files answer with no URLs and the sitemap index leaves them out) so Google's small crawl allowance goes to the
+ * other pages; 4 offers files 0 to 3, and so on up to all 16. Unset means all. It changes only what we announce: job pages stay up,
+ * and jobs Google already has are not removed.
+ */
+export function liveJobSitemapShards(env: Record<string, string | undefined> = process.env): number {
+  const raw = (env.JOB_SITEMAP_SHARDS_LIVE ?? '').trim()
+  if (!/^\d+$/.test(raw)) return PUBLIC_JOB_SITEMAP_SHARDS
+  return Math.min(PUBLIC_JOB_SITEMAP_SHARDS, Number(raw))
+}
+
 const INTERNSHIP_TYPES = new Set(['internship', 'co_op', 'coop'])
 // Same words as the SQL rule: \m(intern|interns|internships?|student trainee)\M
 const INTERN_TITLE = /\b(intern|interns|internships?|student trainee)\b/i

@@ -2,6 +2,7 @@ import 'server-only'
 import {
   blueskyConfigured, discordConfigured, facebookConfigured, mastodonConfigured, postBluesky, postDiscord, postFacebook, postMastodon,
   postSlack, postTelegram, postThreads, postX, slackConfigured, telegramConfigured, threadsConfigured, xConfigured,
+  type LinkCard,
 } from '@/lib/social/clients'
 
 export type ChannelId = 'bluesky' | 'x' | 'mastodon' | 'telegram' | 'discord' | 'slack' | 'threads' | 'facebook'
@@ -10,7 +11,7 @@ export interface Channel {
   id: ChannelId
   /** Keys are present, and for X the billing switch is on. */
   ready: () => boolean
-  post: (text: string, key: string) => Promise<string>
+  post: (text: string, key: string, card?: LinkCard) => Promise<string>
   /** Gets each qualifying WARN filing automatically. X is billed per post ($0.20 with a link), so it gets only the largest, under its own daily cap (see FILING_RULES in filings.ts). */
   autoFilings: boolean
 }
@@ -18,7 +19,7 @@ export interface Channel {
 const on = (name: string) => process.env[name] === '1'
 
 export const CHANNELS: Channel[] = [
-  { id: 'bluesky', ready: blueskyConfigured, post: (t) => postBluesky(t), autoFilings: true },
+  { id: 'bluesky', ready: blueskyConfigured, post: (t, _k, card) => postBluesky(t, card), autoFilings: true },
   { id: 'mastodon', ready: mastodonConfigured, post: (t, k) => postMastodon(t, k), autoFilings: true },
   { id: 'telegram', ready: telegramConfigured, post: (t) => postTelegram(t), autoFilings: true },
   { id: 'discord', ready: discordConfigured, post: (t) => postDiscord(t), autoFilings: true },
