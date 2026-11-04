@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
+import { GroupedLinkIndex } from '@/components/seo/LinkIndex'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
-import Link from 'next/link'
-import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
+import { SeoPage, H2 } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { getStateOrgList } from '@/lib/seo/org-pages'
 import { orgPagePath } from '@/lib/seo/org-page-rules'
@@ -36,14 +36,7 @@ export default async function Page({ params }: { params: Promise<{ state: string
     >
       <section aria-labelledby="list" className="mt-10">
         <h2 id="list" className={H2}>All in {d.name}</h2>
-        <div className="mt-4 columns-1 gap-8 text-sm sm:columns-2 lg:columns-3">
-          {[...byCity.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([city, rows]) => (
-            <div key={city} className="mb-4 break-inside-avoid">
-              <p className="font-medium text-navy">{city}</p>
-              <ul className="mt-1 space-y-1">{rows.map((r) => <li key={r.id}><Link href={orgPagePath('ECON_DEV', stateSlug(d.code), r.slug)} className={LINK}>{r.name}</Link></li>)}</ul>
-            </div>
-          ))}
-        </div>
+        <GroupedLinkIndex label="All in {d.name}" groups={[...byCity.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([city, rows]) => ({ heading: city, items: rows.map((r) => ({ href: orgPagePath('ECON_DEV', stateSlug(d.code), r.slug), label: r.name })) }))} />
       </section>
     </SeoPage>
   )
