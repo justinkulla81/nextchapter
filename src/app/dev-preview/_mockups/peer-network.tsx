@@ -1,6 +1,6 @@
 'use client'
 
-import { NetworkBandView, type NetworkBandStatus } from '@/components/community/NetworkBand'
+import { NetworkBandView } from '@/components/community/NetworkBand'
 import type { NetworkKind } from '@/lib/community/network-copy'
 
 // The top of a role, function or industry page: heading and intro, then the network block as the page's one ask, then the
@@ -32,14 +32,14 @@ const PAGES: Record<NetworkKind, { crumb: string; h1: string; intro: string; nam
   },
 }
 
-function Frame({ kind, status, error }: { kind: NetworkKind; status: NetworkBandStatus; error?: string }) {
+function Frame({ kind, error }: { kind: NetworkKind; error?: string }) {
   const p = PAGES[kind]
   return (
     <main className="mx-auto max-w-6xl bg-off-white px-6 py-8">
       <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">{p.crumb}</nav>
       <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{p.h1}</h1>
       <p className="mt-4 max-w-3xl text-lg text-muted-foreground">{p.intro}</p>
-      <NetworkBandView status={status} kind={kind} name={p.name} spelled={p.spelled} error={error ?? null} onJoin={() => {}} />
+      <NetworkBandView kind={kind} name={p.name} spelled={p.spelled} error={error ?? null} onJoin={() => {}} />
       <section className="mt-8 rounded-xl border border-border bg-white p-5">
         <h2 className="text-2xl font-bold tracking-tight text-navy">{p.section}</h2>
         <p className="mt-2 text-sm text-muted-foreground">…the first section, unchanged…</p>
@@ -48,12 +48,7 @@ function Frame({ kind, status, error }: { kind: NetworkKind; status: NetworkBand
   )
 }
 
-export const RoleNetworkSignedOut = () => <Frame kind="role" status="signed_out" />
-export const RoleNetworkCanJoin = () => <Frame kind="role" status="can_join" />
-export const RoleNetworkJoined = () => <Frame kind="role" status="joined" />
-export const RoleNetworkConfidential = () => <Frame kind="role" status="confidential" />
-export const RoleNetworkError = () => <Frame kind="role" status="can_join" error="Something went wrong on our end. Your click was not lost: try again in a moment." />
-export const FunctionNetworkSignedOut = () => <Frame kind="function" status="signed_out" />
-export const FunctionNetworkJoined = () => <Frame kind="function" status="joined" />
-export const IndustryNetworkSignedOut = () => <Frame kind="industry" status="signed_out" />
-export const IndustryNetworkJoined = () => <Frame kind="industry" status="joined" />
+export const RoleNetworkSignedOut = () => <Frame kind="role" />
+export const RoleNetworkError = () => <Frame kind="role" error="Something went wrong on our end. Your click was not lost: try again in a moment." />
+export const FunctionNetworkSignedOut = () => <Frame kind="function" />
+export const IndustryNetworkSignedOut = () => <Frame kind="industry" />

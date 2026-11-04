@@ -164,7 +164,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="theme-candidate theme-redesign min-h-screen">
       <IdentifyUser candidateId={profile.id} email={profile.email} />
       <DashboardActivityTracker />
-      <PendingNetworkJoin />
+      <PendingNetworkJoin className="lg:ml-72" />
       {/* "Retuning your search": shown after any save that changes matching, on whatever page it lands. */}
       <RetuneHost />
       <HashScrollFix />

@@ -6,6 +6,7 @@ vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 import { communityPostWhere } from '@/lib/community/communities'
 import { networkInfo, networkInfoForCommunity } from '@/lib/community/peer-networks'
 import { networkCopy } from '@/lib/community/network-copy'
+import { networkCookieDomain } from '@/lib/community/network-cookie'
 
 describe('peer networks', () => {
   it('resolves a role by acronym and by canonical slug to the same network', () => {
@@ -76,5 +77,19 @@ describe('network feeds', () => {
 
   it('does not use the OR key a caller spreads the moderation filter into', () => {
     expect(Object.keys(communityPostWhere({ type: 'FUNCTION', value: 'Sales', communityId: 'c2' }))).toEqual(['AND'])
+  })
+})
+
+describe('the pending-join cookie', () => {
+  it('is shared between the public site and the member app, which are different hosts', () => {
+    expect(networkCookieDomain('launchyournextchapter.com')).toBe('.launchyournextchapter.com')
+    expect(networkCookieDomain('www.launchyournextchapter.com')).toBe('.launchyournextchapter.com')
+    expect(networkCookieDomain('candidate.launchyournextchapter.com')).toBe('.launchyournextchapter.com')
+  })
+
+  it('stays host-only anywhere else', () => {
+    expect(networkCookieDomain('localhost:3000')).toBeUndefined()
+    expect(networkCookieDomain('evil-launchyournextchapter.com')).toBeUndefined()
+    expect(networkCookieDomain(null)).toBeUndefined()
   })
 })
