@@ -90,6 +90,12 @@ export const PUBLIC_NAV: PublicNavMenu[] = [
           { label: 'Scam watch', href: '/scam-watch' },
         ],
       },
+      {
+        heading: 'While you’re working',
+        links: [
+          { label: 'Journeys', href: '/journeys', hint: 'Your rights, benefits, pay and side income' },
+        ],
+      },
     ],
   },
   {
