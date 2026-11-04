@@ -41,6 +41,11 @@ export function WatchSkillButton({ slug, name, source }: { slug: string; name: s
       >
         {pending ? 'Saving…' : watching ? 'Watching' : 'Watch this skill'}
       </button>
+      {watching && !pending && (
+        <p className="mt-2 text-sm">
+          <Link href="/dashboard/following?tab=skills" className="font-medium text-brand underline underline-offset-4">See the skills you watch</Link>
+        </p>
+      )}
       {error && (
         <p role="alert" className="mt-2 text-sm text-red-700">
           {error.text}{' '}

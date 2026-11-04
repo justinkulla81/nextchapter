@@ -134,3 +134,33 @@ export function FollowingEmails() {
     </PreviewShell>
   )
 }
+
+// Sample data only. The real tab reads SkillWatch and the newest skills-market snapshot (live postings, and how many were posted in the last 30 days).
+export function FollowingSkills() {
+  const rows: { name: string; fresh: number; n: number }[] = [
+    { name: 'SQL', fresh: 212, n: 1480 },
+    { name: 'Financial modeling', fresh: 96, n: 640 },
+    { name: 'Power BI', fresh: 0, n: 38 },
+  ]
+  return (
+    <PreviewShell place="jobs" entry="following" part="skills">
+      <PageHeader title="What you follow" intro="Companies, skills, events and emails in one place, with the ones that need you on top." />
+      <ul className="divide-y divide-border rounded-2xl border border-border">
+        {rows.map((r) => (
+          <li key={r.name} className="flex flex-wrap items-center justify-between gap-4 p-4">
+            <div className="min-w-0 space-y-0.5">
+              <p className="text-base font-semibold text-ink">{r.name} <Chip tone={r.fresh > 0 ? 'good' : 'muted'}>{r.fresh > 0 ? `${r.fresh} posted this month` : 'Quiet this month'}</Chip></p>
+              <p className="text-sm text-ink">You watch it, so we count the postings that name it.</p>
+              <p className="text-sm text-muted-foreground">{r.n.toLocaleString('en-US')} live postings name {r.name}.</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <SecondaryButton>{r.n > 0 ? `See ${r.name} jobs` : 'See the skill'}</SecondaryButton>
+              <TextLink>Stop watching</TextLink>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className="text-sm text-muted-foreground">Watch a skill from its page. Counts come from jobs live on NextChapter and refresh daily. Stopping keeps nothing.</p>
+    </PreviewShell>
+  )
+}
