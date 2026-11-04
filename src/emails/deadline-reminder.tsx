@@ -36,7 +36,7 @@ export default function DeadlineReminderEmail({ title, body, context, stateUrl, 
         )}
         <div style={{ height: '28px', lineHeight: '28px', fontSize: '28px' }}>&nbsp;</div>
         <Lead>Want a short plan for the rest of the week, and jobs ranked for you? It is free and takes about five minutes to start.</Lead>
-        <Button campaign="deadline_reminder" href={startUrl}>See the first-week plan</Button>
+        <Button campaign="deadline_reminder" href={startUrl}>Get my deadlines and first week</Button>
       </Card>
     </CardEmail>
   )

@@ -93,22 +93,24 @@ export function ownerOffer(c: PageCaptureConfig): OwnerOffer {
   }
 }
 
-/** The email save box copy. */
-export function saveCopy(c: PageCaptureConfig): { heading: string; blurb: string; cta: string } {
+/** The email save box copy: the pain (checking boards by hand), the payoff (new matches in the inbox). `follow` names what is followed, for the signed-in one-button box. */
+export function saveCopy(c: PageCaptureConfig): { heading: string; follow: string; blurb: string; cta: string } {
+  const heading = 'Tired of checking job boards every day?'
+  const cta = 'Email me new jobs'
   switch (c.kind) {
     case 'title':
-      return { heading: `Follow ${c.label.toLowerCase()} jobs`, blurb: 'We’ll email you when new matches are posted. No account needed.', cta: 'Follow by email' }
+      return { heading, follow: `${c.label.toLowerCase()} jobs`, blurb: `We email you new ${c.label.toLowerCase()} jobs when they are posted. No account needed.`, cta }
     case 'function':
-      return { heading: `Follow ${c.label.toLowerCase()} jobs`, blurb: `We’ll email you new ${c.label.toLowerCase()} openings. No account needed.`, cta: 'Follow by email' }
+      return { heading, follow: `${c.label.toLowerCase()} jobs`, blurb: `We email you new ${c.label.toLowerCase()} openings. No account needed.`, cta }
     case 'industry':
-      return { heading: `Follow ${c.label.toLowerCase()}`, blurb: `We’ll email you new ${c.label.toLowerCase()} openings. No account needed.`, cta: 'Follow by email' }
+      return { heading, follow: c.label.toLowerCase(), blurb: `We email you new ${c.label.toLowerCase()} openings. No account needed.`, cta }
     case 'company':
-      return { heading: `Follow ${c.label}`, blurb: `We’ll email you when ${c.label} posts a role. No account needed.`, cta: 'Follow by email' }
+      return { heading: `Want to know when ${c.label} is hiring?`, follow: c.label, blurb: `We email you when ${c.label} posts a role. No account needed.`, cta }
     case 'college':
-      return { heading: `Follow ${c.label}`, blurb: `We’ll email you new jobs for ${c.label} students and alumni. No account needed.`, cta: 'Follow by email' }
+      return { heading: `Looking for work after ${c.label}?`, follow: c.label, blurb: `We email you new jobs for ${c.label} students and alumni. No account needed.`, cta }
     case 'ranking':
-      return { heading: `Follow new ${c.label} jobs`, blurb: 'We’ll email you when new matches are posted. No account needed.', cta: 'Follow by email' }
+      return { heading, follow: `new ${c.label} jobs`, blurb: 'We email you when new matches are posted. No account needed.', cta }
     default:
-      return { heading: `Follow ${c.label}`, blurb: `We’ll email you when new jobs are posted in ${c.label}. No account needed.`, cta: 'Follow by email' }
+      return { heading: `Missing the jobs in ${c.label}?`, follow: c.label, blurb: `We email you when new jobs are posted in ${c.label}. No account needed.`, cta }
   }
 }

@@ -32,7 +32,7 @@ describe('AI exposure public section', () => {
     expect(html).toContain('Anthropic Economic Index')
     expect(html).toContain('https://www.anthropic.com/research/labor-market-impacts')
     expect(html).toContain('March 2026')
-    expect(html).toContain('Get your Market Reality Assessment')
+    expect(html).toContain('Start my AI-proof plan')
   })
 
   it('uses no forbidden word and makes no only or first claim', async () => {
@@ -49,6 +49,6 @@ describe('AI exposure public section', () => {
     expect(html).not.toContain('openings we could place')
     expect(html).toContain('Anthropic Economic Index')
     expect(html).toContain('It is not a forecast')
-    expect(html).not.toContain('Get your Market Reality Assessment')
+    expect(html).not.toContain('Start my AI-proof plan')
   })
 })

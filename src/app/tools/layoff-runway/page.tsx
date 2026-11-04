@@ -40,7 +40,7 @@ export default function Page() {
           More: <Link href="/tools/unemployment-estimator" className={LINK}>unemployment benefit estimator</Link>, <Link href="/tools/severance-calculator" className={LINK}>severance calculator</Link>, <Link href="/resources/bridge-income" className={LINK}>bridge income while you search</Link> and <Link href="/resources/cobra-aca" className={LINK}>health coverage after a layoff</Link>.
         </p>
       </section>
-      <ActionBand title="Plan the weeks after a layoff" body="A free Market Reality Assessment and a weekly plan that starts with the deadlines." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'layoff_runway' }} />
+      <ActionBand title="Running out of runway?" body="Get a free plan that starts with the deadlines that cost people money." label="Get my laid-off game plan" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'layoff_runway' }} />
     </SeoPage>
   )
 }

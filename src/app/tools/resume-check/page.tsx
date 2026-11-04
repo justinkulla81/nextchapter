@@ -46,7 +46,7 @@ export default function ResumeCheckPage() {
           More: <Link href="/topics/resume-review" className={LINK}>how to review a résumé yourself</Link>, <Link href="/topics/resume-tips" className={LINK}>résumé tips for experienced professionals</Link> and <Link href="/tools" className={LINK}>all tools</Link>.
         </p>
       </section>
-      <ActionBand title="See how the market reads your résumé" body="A free Market Reality Assessment shows how recruiters read your background, then ranks every open job for you." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'resume_check' }} />
+      <ActionBand title="Is your résumé getting ignored?" body="See how recruiters read your background, then get every open job ranked for you. Free." label="Show me how I read" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'resume_check' }} />
     </SeoPage>
   )
 }

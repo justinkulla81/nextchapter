@@ -48,7 +48,7 @@ export default function ResumeJobMatchPage() {
           More: <Link href="/tools/resume-check" className={LINK}>free résumé check</Link>, <Link href="/topics/resume-tips" className={LINK}>résumé tips</Link>, <Link href="/tools/resume-bullet-rewriter" className={LINK}>résumé bullet rewriter</Link> and <Link href="/tools" className={LINK}>all free tools</Link>.
         </p>
       </section>
-      <ActionBand title="See how the market reads your résumé" body="A free Market Reality Assessment shows how recruiters read your background, then ranks every open job for you." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'resume_job_match' }} />
+      <ActionBand title="Is your résumé getting ignored?" body="See how recruiters read your background, then get every open job ranked for you. Free." label="Show me how I read" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'resume_job_match' }} />
     </SeoPage>
   )
 }

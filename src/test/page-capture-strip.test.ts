@@ -14,7 +14,7 @@ const render = async (kind: 'ranking' | 'industry') => {
 describe('page capture top', () => {
   it.each(['ranking', 'industry'] as const)('renders one box with the assessment button and the email closed (%s)', async (kind) => {
     const html = await render(kind)
-    expect(html).toContain('See where you stand in the market today')
+    expect(html).toContain('Applying and hearing nothing back?')
     expect(html).toContain('Get my Market Reality Assessment')
     expect(html).toContain('goal=market-reality')
     expect(html).toContain('aria-expanded="false"')

@@ -38,7 +38,7 @@ export function PublicSiteFooter({ page, cta = true }: { cta?: boolean; page: 'a
       </div>
       <div className={`mx-auto max-w-4xl px-6 text-center ${cta ? 'py-16' : 'py-10'}`}>
         {cta && (<>
-        <h2 className="text-3xl font-bold tracking-tight">{page === 'seo' ? 'Ready to start your next chapter?' : 'Do you want this for your own search?'}</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{page === 'seo' ? 'Still guessing what to do next?' : 'Is your own search stuck?'}</h2>
         <p className="mx-auto mt-4 max-w-xl text-light-blue">
           {page === 'seo' ? 'Free to join, always. Organizations, let’s talk.' : 'Answer a few questions and get a plain-language read on your market, matched jobs and a weekly plan. Free for Members, no résumé needed. Organizations, let’s talk.'}
         </p>

@@ -49,7 +49,7 @@ export default function Page() {
           More: <Link href="/resources/pre-exit" className={LINK}>how to prepare for a layoff</Link>, <Link href="/tools/layoff-runway" className={LINK}>layoff runway calculator</Link>, <Link href="/resources/cobra-aca" className={LINK}>health coverage after a layoff</Link> and <Link href="/tools/layoff-risk-check" className={LINK}>layoff risk check</Link>.
         </p>
       </section>
-      <ActionBand title="Get a plan for your next move" body="A free Market Reality Assessment and a weekly plan, whether you move now or just want options open." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'job_loss_readiness' }} />
+      <ActionBand title="Not sure your job is safe?" body="Get a free plan for your next move, whether you move now or just want options open." label="Get my next-move plan" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'job_loss_readiness' }} />
     </SeoPage>
   )
 }
