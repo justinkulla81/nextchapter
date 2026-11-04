@@ -93,8 +93,8 @@ export function LayoffTracker({ data, national, headingLevel = 'h2', afterStats 
       <StructuredData data={{
         '@context': 'https://schema.org',
         '@type': 'Dataset',
-        name: 'NextChapter Layoff Tracker: WARN notices by state',
-        description: `Layoff and plant-closing notices filed under the WARN Act with US state labor departments, collected daily from each state's public record, with layoffs reported elsewhere where no filing exists. ${data.total.notices.toLocaleString()} layoffs from ${data.total.states} states since ${data.total.since}.`,
+        name: 'NextChapter Layoff Tracker: layoff notices by state',
+        description: `Layoff and plant-closing notices filed with US state labor departments (under the federal WARN Act), collected daily from each state's public record, with layoffs reported elsewhere where no filing exists. ${data.total.notices.toLocaleString()} layoffs from ${data.total.states} states since ${data.total.since}.`,
         url: `${SITE}/layoffs`,
         creator: { '@type': 'Organization', name: 'NextChapter', url: SITE },
         isAccessibleForFree: true,

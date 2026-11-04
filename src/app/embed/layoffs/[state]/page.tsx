@@ -16,9 +16,9 @@ export default async function EmbedLayoffs({ params }: { params: Promise<{ state
   const all = await recentStateNotices(code)
   const workers = all.reduce((s, n) => s + (n.workers ?? 0), 0)
   return (
-    <EmbedCard title={`${stateName(code)} layoffs`} href={`/layoffs/${state}`} linkLabel={`All ${stateName(code)} layoff notices`} note="Source: WARN notices filed with the state labor department.">
+    <EmbedCard title={`${stateName(code)} layoffs`} href={`/layoffs/${state}`} linkLabel={`All ${stateName(code)} layoff notices`} note="Source: layoff notices filed with the state labor department.">
       {all.length === 0 ? (
-        <p style={{ margin: 0 }}>No WARN notices filed in {stateName(code)} in the last 12 months.</p>
+        <p style={{ margin: 0 }}>No layoff notices filed in {stateName(code)} in the last 12 months.</p>
       ) : (
         <>
           <p style={{ margin: '0 0 8px' }}>{all.length.toLocaleString('en-US')} notices in the last 12 months{workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}. Latest:</p>

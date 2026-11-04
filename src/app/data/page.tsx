@@ -15,7 +15,7 @@ import { PullTop } from '@/components/capture/PullCta'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
-const DESCRIPTION = 'Download the layoff record: every WARN Act notice filed with US state labor departments in the last 24 months, as CSV or JSON, free to reuse with a link back.'
+const DESCRIPTION = 'Download the layoff record: every layoff notice filed with US state labor departments in the last 24 months, as CSV or JSON, free to reuse with a link back.'
 export const metadata: Metadata = pageMetadata('/data')
 
 const LINK = 'text-brand underline underline-offset-4'
@@ -30,7 +30,7 @@ export default async function DataPage() {
   const dataset = {
     '@context': 'https://schema.org',
     '@type': 'Dataset',
-    name: 'NextChapter layoff tracker: WARN Act notices by US state',
+    name: 'NextChapter layoff tracker: layoff notices by US state',
     description: DESCRIPTION,
     url: `${SITE_URL}/data`,
     license: LAYOFF_DATA_LICENSE_URL,

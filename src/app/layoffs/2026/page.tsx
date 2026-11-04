@@ -36,7 +36,7 @@ export default async function Layoffs2026Page() {
   const newest = notices[0]?.noticeDate
   const asOf = counts?.asOf ?? (newest ? noticeDay(newest) : null)
   const modified = (newest ?? new Date()).toISOString().slice(0, 10)
-  const headline = `Layoffs ${LAYOFF_YEAR}: ${n(notices.length)} WARN notices so far`
+  const headline = `Layoffs ${LAYOFF_YEAR}: ${n(notices.length)} layoff notices so far`
   const faq = [
     { q: `How many layoffs have there been in ${LAYOFF_YEAR}?`, a: `Employers have filed ${n(notices.length)} layoff notices dated ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} workers` : ''}, across ${states.length} states${asOf ? `, as of ${asOf}` : ''}.${counts ? ` Counted once per employer, state and date, including reported layoffs with a U.S. state, the tracker shows ${n(counts.layoffsYear.layoffs)} layoffs and ${n(counts.layoffsYear.workers)} workers in ${counts.layoffsYear.year}.` : ''}` },
     ...(states[0] ? [{ q: `Which state has the most layoffs in ${LAYOFF_YEAR}?`, a: `${stateName(states[0].state)} has the most workers named in ${LAYOFF_YEAR} layoff notices, ${n(states[0].workers)} across ${n(states[0].notices)} notices.` }] : []),
