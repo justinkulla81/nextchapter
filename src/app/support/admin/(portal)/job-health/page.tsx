@@ -1,7 +1,7 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { loadJobStatuses } from '@/lib/cron/watchdog'
 import { UNHEALTHY, type JobHealth } from '@/lib/cron/health'
-import { RERUN_SAFE_JOBS } from '@/lib/cron/schedule'
+import { RANKINGS_GROUPS, RERUN_SAFE_JOBS } from '@/lib/cron/schedule'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { runJobNow } from './actions'
 import { pct, readJobSearchHealth } from '@/lib/syndication/job-search-health'
@@ -142,6 +142,12 @@ export default async function JobHealthPage() {
                     {RERUN_SAFE_JOBS.has(s.job) ? (
                       <form action={runJobNow}>
                         <input type="hidden" name="job" value={s.job} />
+                        {s.job === 'rankings' ? (
+                          <select name="group" defaultValue="" aria-label="Rankings group to run" className="mr-2 rounded-md border px-2 py-1 text-sm">
+                            <option value="">Default: places, workforce, support</option>
+                            {RANKINGS_GROUPS.map((g) => <option key={g} value={g}>{g} only</option>)}
+                          </select>
+                        ) : null}
                         <SubmitButton size="sm" variant="outline" pendingLabel="Running…" savedLabel="Finished" aria-label={`Run ${s.job} now`}>
                           Run now
                         </SubmitButton>
