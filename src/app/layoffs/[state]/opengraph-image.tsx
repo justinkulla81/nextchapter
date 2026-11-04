@@ -16,8 +16,8 @@ export default async function Image({ params }: { params: Promise<{ state: strin
   return ogCard({
     eyebrow: 'NextChapter · Layoff tracker',
     headline: `${code ? stateName(code) : 'State'} layoffs`,
-    big: rows.length ? `${rows.length.toLocaleString('en-US')} WARN notices` : undefined,
-    sub: workers ? `${workers.toLocaleString('en-US')} workers named in the last 12 months` : 'WARN notices from the state labor department',
+    big: rows.length ? `${rows.length.toLocaleString('en-US')} layoff notices` : undefined,
+    sub: workers ? `${workers.toLocaleString('en-US')} workers named in the last 12 months` : 'Layoff notices from the state labor department',
     footer: 'launchyournextchapter.com/layoffs',
   })
 }

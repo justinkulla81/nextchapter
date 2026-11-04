@@ -52,9 +52,9 @@ export default async function DataPage() {
       <PublicSiteHeader />
       <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-4xl px-6">
-          <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/data', 'Layoff data: download the WARN record')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/data', 'Layoff data: download the layoff record')}</h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            {rows.length.toLocaleString('en-US')} WARN Act filings{oldest && newest ? `, ${noticeDay(new Date(oldest))} to ${noticeDay(new Date(newest))}` : ''}, one row per filing, collected from state labor departments and linked to each state’s own record.
+            {rows.length.toLocaleString('en-US')} layoff notices filed under the federal WARN Act{oldest && newest ? `, ${noticeDay(new Date(oldest))} to ${noticeDay(new Date(newest))}` : ''}, one row per filing, collected from state labor departments and linked to each state’s own record.
           </p>
           <p className="mt-3 text-base text-navy">
             Also free to download: <Link href="/resources/pay-data" className={LINK}>pay data</Link> by industry, function, employer size and skill (<a href="/resources/pay-data/data.csv" className={LINK}>CSV</a>), the <Link href="/resources/pay-data/skills" className={LINK}>skills and pay table</Link> (<a href="/resources/pay-data/skills.csv" className={LINK}>CSV</a>) and the <Link href="/data/ai-jobs-index" className={LINK}>AI Jobs Index</Link>.

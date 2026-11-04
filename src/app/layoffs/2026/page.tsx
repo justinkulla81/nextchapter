@@ -38,10 +38,10 @@ export default async function Layoffs2026Page() {
   const modified = (newest ?? new Date()).toISOString().slice(0, 10)
   const headline = `Layoffs ${LAYOFF_YEAR}: ${n(notices.length)} WARN notices so far`
   const faq = [
-    { q: `How many layoffs have there been in ${LAYOFF_YEAR}?`, a: `Employers have filed ${n(notices.length)} WARN layoff notices dated ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} workers` : ''}, across ${states.length} states${asOf ? `, as of ${asOf}` : ''}.${counts ? ` Counted once per employer, state and date, including reported layoffs with a U.S. state, the tracker shows ${n(counts.layoffsYear.layoffs)} layoffs and ${n(counts.layoffsYear.workers)} workers in ${counts.layoffsYear.year}.` : ''}` },
-    ...(states[0] ? [{ q: `Which state has the most layoffs in ${LAYOFF_YEAR}?`, a: `${stateName(states[0].state)} has the most workers named in ${LAYOFF_YEAR} WARN notices, ${n(states[0].workers)} across ${n(states[0].notices)} notices.` }] : []),
-    ...(employers[0] && employers[0].workers > 0 ? [{ q: `Which company has announced the biggest layoff in ${LAYOFF_YEAR}?`, a: `${employers[0].name} has the most workers named in ${LAYOFF_YEAR} WARN notices: ${n(employers[0].workers)} across ${n(employers[0].notices)} ${employers[0].notices === 1 ? 'notice' : 'notices'}.` }] : []),
-    { q: 'What counts as a layoff here?', a: 'A WARN Act notice an employer filed with a state labor department. A notice gives the number of workers and dates the employer reported; it does not say why. Layoffs that are announced but never filed are tracked separately on the layoff tracker.' },
+    { q: `How many layoffs have there been in ${LAYOFF_YEAR}?`, a: `Employers have filed ${n(notices.length)} layoff notices dated ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} workers` : ''}, across ${states.length} states${asOf ? `, as of ${asOf}` : ''}.${counts ? ` Counted once per employer, state and date, including reported layoffs with a U.S. state, the tracker shows ${n(counts.layoffsYear.layoffs)} layoffs and ${n(counts.layoffsYear.workers)} workers in ${counts.layoffsYear.year}.` : ''}` },
+    ...(states[0] ? [{ q: `Which state has the most layoffs in ${LAYOFF_YEAR}?`, a: `${stateName(states[0].state)} has the most workers named in ${LAYOFF_YEAR} layoff notices, ${n(states[0].workers)} across ${n(states[0].notices)} notices.` }] : []),
+    ...(employers[0] && employers[0].workers > 0 ? [{ q: `Which company has announced the biggest layoff in ${LAYOFF_YEAR}?`, a: `${employers[0].name} has the most workers named in ${LAYOFF_YEAR} layoff notices: ${n(employers[0].workers)} across ${n(employers[0].notices)} ${employers[0].notices === 1 ? 'notice' : 'notices'}.` }] : []),
+    { q: 'What counts as a layoff here?', a: 'A layoff notice an employer filed with a state labor department. A notice gives the number of workers and dates the employer reported; it does not say why. Layoffs that are announced but never filed are tracked separately on the layoff tracker.' },
   ]
 
   return (
@@ -56,9 +56,9 @@ export default async function Layoffs2026Page() {
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link><span aria-hidden> › </span><span className="text-foreground">Layoffs {LAYOFF_YEAR}</span>
             {asOf && <span className="ml-3">Updated {asOf}</span>}
           </nav>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/layoffs/2026', `Layoffs ${LAYOFF_YEAR}: every WARN notice, month by month`)}</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/layoffs/2026', `Layoffs ${LAYOFF_YEAR}: every layoff notice, month by month`)}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
-            Employers have filed {n(notices.length)} WARN layoff notices dated {LAYOFF_YEAR}{workers ? `, naming ${n(workers)} workers` : ''}, across {states.length} states. Collected daily from state labor departments, with the state’s own record linked on every row.
+            Employers have filed {n(notices.length)} layoff notices dated {LAYOFF_YEAR}{workers ? `, naming ${n(workers)} workers` : ''}, across {states.length} states. Collected daily from state labor departments, with the state’s own record linked on every row.
           </p>
           <PullTop name="Layoffs in 2026" path="/layoffs/2026" />
           {counts && (
@@ -76,11 +76,11 @@ export default async function Layoffs2026Page() {
             <h2 id="months" className={H2}>Layoffs by month, {LAYOFF_YEAR}</h2>
             <div className="mt-4 rounded-xl border border-border bg-white p-4">
               <MonthBars months={months} label={`Layoffs by month, ${LAYOFF_YEAR}`} />
-              <p className="mt-2 text-xs text-muted-foreground">Workers named in WARN notices, by notice date. <Link href="/data/embed" className={LINK}>Put this chart on your site</Link>, for the whole country or any state.</p>
+              <p className="mt-2 text-xs text-muted-foreground">Workers named in layoff notices, by notice date. <Link href="/data/embed" className={LINK}>Put this chart on your site</Link>, for the whole country or any state.</p>
             </div>
             <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-white">
               <table className="w-full text-sm">
-                <caption className="sr-only">WARN layoff notices by month, {LAYOFF_YEAR}</caption>
+                <caption className="sr-only">Layoff notices by month, {LAYOFF_YEAR}</caption>
                 <thead>
                   <tr className="text-left text-xs text-muted-foreground">
                     <th scope="col" className="px-4 py-2 font-normal">Month</th>
@@ -174,7 +174,7 @@ export default async function Layoffs2026Page() {
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               <li><Link href="/layoffs/this-week" className={LINK}>Layoffs this week</Link></li>
               <li><Link href="/layoffs/week" className={LINK}>Layoffs by week</Link></li>
-              <li><Link href="/data" className={LINK}>Download the WARN record</Link> as CSV or JSON</li>
+              <li><Link href="/data" className={LINK}>Download the layoff record</Link> as CSV or JSON</li>
               <li><FeedLine feed="/feeds/layoffs" label="Get new layoff notices by RSS" /></li>
               <li><Link href="/start/laid-off" className={LINK}>Laid off? Start here</Link></li>
             </ul>

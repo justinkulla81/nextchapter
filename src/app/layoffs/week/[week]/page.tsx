@@ -84,8 +84,8 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">Layoffs, week of {label}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             {notices.length === 0
-              ? 'No WARN notices carry a filing date in that week.'
-              : `Employers filed ${notices.length.toLocaleString('en-US')} WARN layoff notices dated that week${workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before had ${prev.length.toLocaleString('en-US')}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')}` : ''}.`}
+              ? 'No layoff notices carry a filing date in that week.'
+              : `Employers filed ${notices.length.toLocaleString('en-US')} layoff notices dated that week${workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before had ${prev.length.toLocaleString('en-US')}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')}` : ''}.`}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">Counted by the date on each filing; a state can publish a notice later, so a week’s count can grow.</p>
 

@@ -104,7 +104,7 @@ export function LayoffTracker({ data, national, headingLevel = 'h2', afterStats 
 
       <Heading id="layoff-tracker-heading" className="text-3xl font-bold tracking-tight text-navy">Layoff tracker</Heading>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Layoff notices employers have filed with state labor departments under the WARN Act, collected each day from the
+        Layoff notices employers have filed with state labor departments, collected each day from the
         states&apos; own public records, plus layoffs reported elsewhere where no state filing covers them.
       </p>
 
