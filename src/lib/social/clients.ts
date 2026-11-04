@@ -86,7 +86,8 @@ export async function buildLinkEmbed(base: string, jwt: string, url: string, car
     const page = await fetch(url, { headers: { 'user-agent': 'NextChapterBot/1.0 (+https://launchyournextchapter.com)' }, signal: AbortSignal.timeout(10_000) })
     if (!page.ok) return undefined
     const html = await page.text()
-    const image = parseOgImage(html, url)
+    // A page with no share image of its own (the /layoffs hub) still gets the site's default one, never a bare card.
+    const image = parseOgImage(html, url) ?? `https://${SITE_HOST}/opengraph-image`
     const og = parseOgText(html)
     let thumb: unknown
     if (image) {
