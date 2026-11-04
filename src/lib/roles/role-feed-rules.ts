@@ -50,7 +50,7 @@ export function feedHeadline(
   if (!turnover || turnover.items.length === 0) {
     return { kind: 'none', title: `${openJobs.toLocaleString('en-US')} ${role.short} jobs are open now.`, why: 'Each was checked against the employer’s own career site within the last week.', action: jobs }
   }
-  const week = turnover.items.filter((i) => now.getTime() - i.date.getTime() <= 7 * DAY)
+  const week = filedThisWeek(turnover.items, now)
   if (week.length > 0) {
     const companies = [...new Set(week.map((i) => i.company))]
     return {
@@ -63,4 +63,9 @@ export function feedHeadline(
   const last = turnover.items[0]
   const days = Math.max(1, Math.round((now.getTime() - last.date.getTime()) / DAY))
   return { kind: 'quiet', title: `No ${turnover.label} seats changed hands this week.`, why: `We check SEC filings daily. The last change was ${days} days ago, at ${last.company}.`, action: jobs }
+}
+
+/** The filings from the last seven days, newest first as given. */
+export function filedThisWeek<T extends { date: Date }>(items: T[], now = new Date()): T[] {
+  return items.filter((i) => now.getTime() - i.date.getTime() <= 7 * DAY)
 }

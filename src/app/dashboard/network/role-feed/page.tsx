@@ -5,7 +5,7 @@ import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getRoleResources } from '@/lib/roles/resources'
-import { becauseLine, feedHeadline, pickFeedRole } from '@/lib/roles/role-feed-rules'
+import { becauseLine, feedHeadline, filedThisWeek, pickFeedRole } from '@/lib/roles/role-feed-rules'
 import { getRoleIndex } from '@/lib/seo/role-figures'
 import { conferencePath } from '@/lib/seo/topics'
 import { costLabel, whenLabel } from '@/lib/events/format'
@@ -40,8 +40,7 @@ export default async function RoleFeedPage({ searchParams }: { searchParams: Pro
   const openJobs = index.find((s) => s.slug === role.slug)?.jobs ?? 0
   const headline = feedHeadline(role, r.turnover, openJobs)
   const name = role.short
-  const weekAgo = Date.now() - 7 * 86_400_000
-  const fresh = (r.turnover?.items ?? []).filter((t) => t.date.getTime() >= weekAgo)
+  const fresh = filedThisWeek(r.turnover?.items ?? [])
   const upcoming = (r.conferences?.rows ?? []).slice(0, fresh.length > 0 ? 1 : 2)
   const firms = r.firms.slice(0, 3)
 
