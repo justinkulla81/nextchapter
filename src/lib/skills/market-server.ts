@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { JOB_INDUSTRY_KEY_BUCKET } from '@/lib/profile/industry-reading'
 import { US_STATES } from '@/lib/constants/us-states'
 import { skillSlug } from '@/lib/rankings/awards'
-import { LEVEL_LABEL, MIN_CELL, MIN_SKILL_POSTINGS, skillLabel, type SkillDimension, type SkillMarket, type SkillRow } from './market'
+import { LEVEL_LABEL, MIN_CELL, MIN_PAY_POSTINGS, MIN_SKILL_POSTINGS, assembleJobs, skillLabel, type JobCell, type SkillDimension, type SkillMarket, type SkillRow } from './market'
 
 // The skills market recomputed from the live board (cron /api/cron/skills-market, daily after the crawler import).
 // Same live population as the AI market (ai-market-live.ts). Readers take the newest snapshot, so no page scans the board.
@@ -19,6 +19,8 @@ const LEVEL = `CASE p."level"
 const STATE = `CASE WHEN length(p."locationState") = 2 THEN lower(p."locationState") END`
 const INDUSTRY = `NULLIF(lower(btrim(p."industry")), '')`
 const FRESH = `COALESCE(p."postedAt", p."createdAt") > now() - interval '30 days'`
+// The midpoint of a posted yearly range, when it is a believable one (the same bounds as yearlyRange in seo/search-firm-bar.ts).
+const MID = `CASE WHEN p."payPeriod" = 'year' AND p."salaryMin" >= 20000 AND p."salaryMax" >= p."salaryMin" AND p."salaryMax" < 2000000 THEN (p."salaryMin" + p."salaryMax") / 2.0 END`
 
 interface CellRow {
   term: string | null
@@ -129,8 +131,48 @@ export async function computeSkillsMarket(now = new Date()): Promise<SkillMarket
     }
   }
 
+  // Pay and the jobs that name each skill, from the postings themselves. One statement each, so none runs long enough to meet a
+  // statement timeout. A failure here leaves these two out of the snapshot (the pages hide the sections); it never loses the rest.
+  let payBaseline: SkillMarket['payBaseline'] = null
+  try {
+    const [base] = await prisma.$queryRawUnsafe<{ n: number; median: number | null }[]>(`SELECT count(*)::int AS n, percentile_cont(0.5) WITHIN GROUP (ORDER BY ${MID})::float8 AS median
+      FROM "ExclusiveJobPosting" p WHERE ${LIVE} AND cardinality(p."skills") > 0 AND ${MID} IS NOT NULL`)
+    if (base?.median) payBaseline = { n: base.n, median: Math.round(base.median) }
+    const pay = await prisma.$queryRawUnsafe<{ term: string; n: number; median: number }[]>(`WITH b AS (
+        SELECT t.term, ${MID} AS mid FROM "ExclusiveJobPosting" p
+        CROSS JOIN LATERAL (SELECT DISTINCT lower(btrim(x)) AS term FROM unnest(p."skills") AS x) t
+        WHERE ${LIVE} AND cardinality(p."skills") > 0 AND ${MID} IS NOT NULL)
+      SELECT term, count(*)::int AS n, percentile_cont(0.5) WITHIN GROUP (ORDER BY mid)::float8 AS median
+      FROM b WHERE term <> '' GROUP BY term HAVING count(*) >= ${MIN_PAY_POSTINGS}`)
+    for (const r of pay) {
+      const s = bySkill.get(r.term)
+      if (s) s.pay = { n: r.n, median: Math.round(r.median) }
+    }
+
+    const jobCells = await prisma.$queryRawUnsafe<(JobCell & { term: string })[]>(`WITH b AS (
+        SELECT t.term, p."socCode" AS soc, ${MID} AS mid FROM "ExclusiveJobPosting" p
+        CROSS JOIN LATERAL (SELECT DISTINCT lower(btrim(x)) AS term FROM unnest(p."skills") AS x) t
+        WHERE ${LIVE} AND cardinality(p."skills") > 0 AND p."socCode" IS NOT NULL)
+      SELECT term, soc, count(*)::int AS n, count(mid)::int AS "payN",
+        percentile_cont(0.5) WITHIN GROUP (ORDER BY mid) FILTER (WHERE mid IS NOT NULL)::float8 AS median
+      FROM b WHERE term <> '' GROUP BY term, soc HAVING count(*) >= ${MIN_CELL}`)
+    const occupations = await prisma.occupation.findMany({ select: { socCode: true, title: true } })
+    const exact = new Map(occupations.map((o) => [o.socCode, o.title]))
+    const byPrefix = new Map<string, string>()
+    for (const o of occupations) if (!byPrefix.has(o.socCode.slice(0, 7))) byPrefix.set(o.socCode.slice(0, 7), o.title)
+    const titleOf = (soc: string) => exact.get(soc) ?? byPrefix.get(soc.slice(0, 7)) ?? null
+    const byTerm = new Map<string, JobCell[]>()
+    for (const c of jobCells) (byTerm.get(c.term) ?? byTerm.set(c.term, []).get(c.term)!).push(c)
+    for (const [term, cellsOfTerm] of byTerm) {
+      const s = bySkill.get(term)
+      if (s) s.jobs = assembleJobs(cellsOfTerm, titleOf)
+    }
+  } catch (error) {
+    console.error('Skills market: pay and jobs left out of this snapshot', error)
+  }
+
   const skills = [...bySkill.values()].filter((s) => s.n >= MIN_SKILL_POSTINGS).sort((a, b) => b.n - a.n)
-  return { asOf: now.toISOString(), live, withSkills, fresh, totals, labels, skills }
+  return { asOf: now.toISOString(), live, withSkills, fresh, totals, labels, skills, payBaseline }
 }
 
 /** Compute and store a snapshot; keeps the last 30. */

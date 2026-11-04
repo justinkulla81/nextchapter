@@ -57,6 +57,13 @@ const nextConfig: NextConfig = {
         destination: `/${kind}/:state`,
         permanent: false,
       })),
+      // The industry "Nonprofit & Social Impact" became "Non-profit & Social Impact" (2026-11-03, #887), which changed its slug. Anything
+      // that linked, indexed or embedded the old address keeps working: a permanent redirect for each place the slug is used.
+      ...['/industries', '/feeds/industries', '/embed/hiring'].map((base) => ({
+        source: `${base}/nonprofit-and-social-impact/:path*`,
+        destination: `${base}/non-profit-and-social-impact/:path*`,
+        permanent: true,
+      })),
       // /skills/by and /skills/by/<dimension> are only folders of the skills lists, so they go to the skills hub.
       { source: '/skills/by', destination: '/skills', permanent: false },
       { source: '/skills/by/:dim', destination: '/skills', permanent: false },
