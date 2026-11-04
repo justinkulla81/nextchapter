@@ -11,6 +11,24 @@ export const WINDOW_START_HOUR = 12
 export const WINDOW_HOURS = 14
 export const GAP_MINUTES = 20
 export const BASELINE_STORIES_PER_DAY = 3
+/** X is billed per post, so it posts less often, with one story a day. */
+const GAP_BY_CHANNEL: Record<string, number> = { x: 30 }
+const STORIES_BY_CHANNEL: Record<string, number> = { x: 1 }
+
+export const gapMinutes = (channel: string): number => GAP_BY_CHANNEL[channel] ?? GAP_MINUTES
+export const baselineStories = (channel: string): number => STORIES_BY_CHANNEL[channel] ?? BASELINE_STORIES_PER_DAY
+
+/**
+ * Channels take turns on the five-minute ticks (even and odd slots), so two channels never post in the same minute. `index` is the
+ * channel's place in the channel list.
+ */
+export const tickSlot = (now: Date, index: number): boolean => Math.floor(now.getUTCMinutes() / 5) % 2 === index % 2
+
+/**
+ * The weekly press post goes out on Tuesday at 14:00 UTC (9am Eastern in winter, 10am in summer): mid-week, mid-morning is when
+ * reporters and researchers are reading. True for the hour, and the stream keeps a record of the week it has posted.
+ */
+export const isPressSlot = (now: Date): boolean => now.getUTCDay() === 2 && now.getUTCHours() === 14
 
 export type Kind = 'layoff' | 'story'
 
@@ -31,12 +49,12 @@ function windowFraction(now: Date): number {
 }
 
 /** A baseline story is due when fewer have gone out today than the share of the window that has passed calls for. */
-export function storyDue(now: Date, storiesToday: number): boolean {
-  return storiesToday < Math.ceil(windowFraction(now) * BASELINE_STORIES_PER_DAY)
+export function storyDue(now: Date, storiesToday: number, perDay = BASELINE_STORIES_PER_DAY): boolean {
+  return storiesToday < Math.ceil(windowFraction(now) * perDay)
 }
 
-export function gapPassed(now: Date, lastAt: string | null): boolean {
-  return !lastAt || now.getTime() - Date.parse(lastAt) >= GAP_MINUTES * 60_000
+export function gapPassed(now: Date, lastAt: string | null, gap = GAP_MINUTES): boolean {
+  return !lastAt || now.getTime() - Date.parse(lastAt) >= gap * 60_000
 }
 
 /**

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { aiPayFacts, factLink, rankingFacts, skillFacts, topicOrder, type Fact } from '@/lib/social/facts'
-import { BASELINE_STORIES_PER_DAY, GAP_MINUTES, gapPassed, inWindow, nextKind, storyDue, streamDay } from '@/lib/social/pace'
+import { aiPayFacts, factLink, rankingFacts, skillFacts, stableShuffle, topicOrder, type Fact } from '@/lib/social/facts'
+import { BASELINE_STORIES_PER_DAY, baselineStories, GAP_MINUTES, gapMinutes, gapPassed, inWindow, nextKind, storyDue, streamDay, tickSlot } from '@/lib/social/pace'
 import { checkDraft, LINK_TOKEN } from '@/lib/social/validate'
 import type { SkillMarket } from '@/lib/skills/market'
 import type { RankingIndexEntry } from '@/lib/rankings/types'
@@ -101,9 +101,9 @@ describe('skill facts', () => {
 
 describe('topicOrder', () => {
   it('tries the topic posted longest ago first, never-posted before any', () => {
-    expect(topicOrder([])).toEqual(['ranking', 'skill', 'ai-pay'])
-    expect(topicOrder(['ranking', 'skill'])).toEqual(['ai-pay', 'ranking', 'skill'])
-    expect(topicOrder(['skill', 'ai-pay', 'ranking'])).toEqual(['skill', 'ai-pay', 'ranking'])
+    expect(topicOrder([])).toEqual(['ranking', 'skill', 'ai-pay', 'help'])
+    expect(topicOrder(['ranking', 'skill'])).toEqual(['ai-pay', 'help', 'ranking', 'skill'])
+    expect(topicOrder(['skill', 'ai-pay', 'help', 'ranking'])).toEqual(['skill', 'ai-pay', 'help', 'ranking'])
   })
 })
 
@@ -139,5 +139,114 @@ describe('pacing', () => {
     expect(storyDue(at('2026-11-10T16:00:00Z'), 1)).toBe(false)
     expect(storyDue(at('2026-11-10T17:30:00Z'), 1)).toBe(true)
     expect(storyDue(at('2026-11-11T01:30:00Z'), BASELINE_STORIES_PER_DAY)).toBe(false)
+  })
+})
+
+describe('per-channel streams', () => {
+  it('starts each channel on a different topic, then rotates by what it posted last', () => {
+    expect(topicOrder([], 0)).toEqual(['ranking', 'skill', 'ai-pay', 'help'])
+    expect(topicOrder([], 1)).toEqual(['skill', 'ai-pay', 'help', 'ranking'])
+    expect(topicOrder([], 5)).toEqual(topicOrder([], 1))
+    expect(topicOrder(['skill'], 1)[0]).not.toBe('skill')
+  })
+  it('picks different filler for different channels from one pool, and the same for the same channel and day', () => {
+    const pool = Array.from({ length: 30 }, (_, i) => ({ key: `k${i}` }))
+    const a = stableShuffle(pool, 'x:2026-11-10').map((p) => p.key)
+    expect(a).toEqual(stableShuffle(pool, 'x:2026-11-10').map((p) => p.key))
+    expect(a).not.toEqual(stableShuffle(pool, 'bluesky:2026-11-10').map((p) => p.key))
+    expect([...a].sort()).toEqual(pool.map((p) => p.key).sort())
+  })
+  it('keeps X to a longer gap and one story a day, and takes turns on the ticks', () => {
+    expect(gapMinutes('x')).toBe(30)
+    expect(gapMinutes('bluesky')).toBe(GAP_MINUTES)
+    expect(baselineStories('x')).toBe(1)
+    expect(baselineStories('bluesky')).toBe(BASELINE_STORIES_PER_DAY)
+    const t = (m: number) => at(`2026-11-10T15:${String(m).padStart(2, '0')}:00Z`)
+    for (const m of [0, 5, 10, 15, 20, 25]) expect(tickSlot(t(m), 0)).not.toBe(tickSlot(t(m), 7))
+  })
+  it('lets a longer gap hold a channel back', () => {
+    const now = at('2026-11-10T15:00:00Z')
+    const ago = (min: number) => new Date(now.getTime() - min * 60_000).toISOString()
+    expect(gapPassed(now, ago(25), 30)).toBe(false)
+    expect(gapPassed(now, ago(30), 30)).toBe(true)
+  })
+  it('gives X fewer baseline stories', () => {
+    expect(storyDue(at('2026-11-10T12:05:00Z'), 0, 1)).toBe(true)
+    expect(storyDue(at('2026-11-10T20:00:00Z'), 1, 1)).toBe(false)
+  })
+})
+
+describe('help facts', () => {
+  const now = at('2026-11-10T15:00:00Z')
+  it('gives states that have data a post with the state benefit figures, big states first, linking the benefits page', async () => {
+    const { helpFacts } = await import('@/lib/social/facts')
+    const facts = helpFacts(now)
+    expect(facts.length).toBeGreaterThan(30)
+    expect(facts[0].state).toBe('CA')
+    const tx = facts.find((f) => f.state === 'TX')!
+    expect(tx.key).toBe('story-help-TX-2026-11')
+    expect(tx.path).toBe('/unemployment-benefits/texas')
+    expect(tx.lines[0]).toBe('State: Texas')
+    expect(tx.lines.some((l) => l.startsWith('Maximum weekly unemployment benefit: $'))).toBe(true)
+    expect(tx.lines.at(-1)).toContain('the state decides')
+  })
+  it('has a template that fits Bluesky for every state', async () => {
+    const { helpFacts } = await import('@/lib/social/facts')
+    for (const f of helpFacts(now)) expect(f.fallback(factLink(f, 'facebook'), false).length).toBeLessThanOrEqual(300)
+  })
+})
+
+describe('press weekly fact', () => {
+  it('carries the index, the year change and its source, and links /press', async () => {
+    const { pressWeeklyFact } = await import('@/lib/social/facts')
+    const f = pressWeeklyFact({ latest: { month: '2026-08', index: 161.6, ltuShare: 33.44 }, yearAgo: { index: 128.2 } }, '2026-W45')
+    expect(f.key).toBe('press-weekly-2026-W45')
+    expect(f.path).toBe('/press')
+    expect(f.lines[0]).toContain('162')
+    expect(f.lines).toContain('Up 33 points from a year ago')
+    expect(f.lines.join(' ')).toContain('33.4%')
+    expect(f.lines.join(' ')).toContain('Census Bureau Current Population Survey')
+    expect(f.fallback(factLink(f, 'facebook'), false).length).toBeLessThanOrEqual(300)
+  })
+  it('is on Tuesday at 14:00 UTC only', async () => {
+    const { isPressSlot } = await import('@/lib/social/pace')
+    expect(isPressSlot(at('2026-11-10T14:10:00Z'))).toBe(true)
+    expect(isPressSlot(at('2026-11-10T15:10:00Z'))).toBe(false)
+    expect(isPressSlot(at('2026-11-11T14:10:00Z'))).toBe(false)
+  })
+})
+
+describe('tags', () => {
+  const registry = { dol: { name: 'Labor', bluesky: 'dol.gov', x: 'USDOL' }, solo: { name: 'Bluesky only', bluesky: 'solo.org' } }
+  const link = 'https://launchyournextchapter.com/press?utm_source=bluesky&utm_medium=social&utm_campaign=press-weekly'
+  it('tags only the handles the registry holds for that channel, never an unknown key', async () => {
+    const { tagsFor } = await import('@/lib/social/tags')
+    expect(tagsFor(['dol', 'solo', 'nobody'], 'bluesky', registry)).toEqual(['@dol.gov', '@solo.org'])
+    expect(tagsFor(['dol', 'solo'], 'x', registry)).toEqual(['@USDOL'])
+    expect(tagsFor(['dol'], 'mastodon', registry)).toEqual([])
+    expect(tagsFor(undefined, 'bluesky', registry)).toEqual([])
+  })
+  it('adds cc and the handles when the post still fits, and leaves the post untagged when it would not', async () => {
+    const { withTags } = await import('@/lib/social/tags')
+    const short = `Index is 162. ${link}`
+    expect(withTags(short, { cites: ['dol'] }, 'bluesky', link, registry)).toBe(`${short}\n\ncc @dol.gov`)
+    const long = `${'x'.repeat(280)} ${link}`.slice(0, 295)
+    expect(withTags(long, { cites: ['dol'] }, 'bluesky', link, registry)).toBe(long)
+    expect(withTags(short, {}, 'bluesky', link, registry)).toBe(short)
+  })
+  it('lists only handles that were checked: every seeded Bluesky handle is a domain handle', async () => {
+    const { HANDLES } = await import('@/lib/social/tags')
+    for (const h of Object.values(HANDLES)) if (h.bluesky) expect(h.bluesky).toMatch(/^[a-z0-9-]+(\.[a-z0-9-]+)+$/)
+  })
+})
+
+describe('mention facets', () => {
+  it('makes a mention carry the account id, with byte offsets that survive multi-byte text', async () => {
+    const { mentionFacets } = await import('@/lib/social/clients')
+    const text = 'Café data, cc @dol.gov and @nope.example'
+    const facets = await mentionFacets(text, async (h) => (h === 'dol.gov' ? 'did:plc:abc' : null))
+    expect(facets).toHaveLength(1)
+    expect(facets[0].features[0]).toEqual({ $type: 'app.bsky.richtext.facet#mention', did: 'did:plc:abc' })
+    expect(Buffer.from(text).subarray(facets[0].index.byteStart, facets[0].index.byteEnd).toString()).toBe('@dol.gov')
   })
 })
