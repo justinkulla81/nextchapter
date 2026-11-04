@@ -33,8 +33,18 @@ export function ErrorView({
   const digest = error.digest
 
   useEffect(() => {
-    posthog.capture('page_error_shown', { path: pathname, digest: digest ?? null, errorName: error.name, canFile })
-  }, [pathname, digest, error.name, canFile])
+    // Outside the member dashboard (admin pages, public pages) the message and the top of the stack are recorded too, so a failure with
+    // no error reference can be diagnosed from the event alone (2026-11-04: admin CRM organization pages, errorName "Error" and nothing else).
+    // Not on the dashboard, where a message could carry a member's own data.
+    posthog.capture('page_error_shown', {
+      path: pathname,
+      digest: digest ?? null,
+      errorName: error.name,
+      canFile,
+      message: canFile ? null : (error.message ?? '').slice(0, 300),
+      stackTop: canFile ? null : (error.stack ?? '').split('\n').slice(0, 6).join('\n').slice(0, 800),
+    })
+  }, [pathname, digest, error.name, error.message, error.stack, canFile])
 
   async function tellUs() {
     setStatus('sending')
