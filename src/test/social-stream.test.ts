@@ -330,6 +330,6 @@ describe('Bluesky link cards', () => {
     expect(c.title).toBe('BMW Brilliance is cutting 1,800 jobs, according to multiple news reports')
     expect(c.description).toBe('What was reported, and what to do if you are affected.')
     expect(cardFor({ campaign: 'unknown', lines: ['Skill: SQL'] }, 'https://x.test').title).toBe('Skill: SQL')
-    expect(cardFor({ campaign: 'x', lines: [] }, `${'word '.repeat(60)}ends.`).title.length).toBeLessThanOrEqual(110)
+    expect(cardFor({ campaign: 'x', lines: [] }, `${'word '.repeat(60)}ends.`).title?.length ?? Infinity).toBeLessThanOrEqual(110)
   })
 })
