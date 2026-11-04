@@ -17,6 +17,7 @@ import {
   type RiskResult,
   type SizeBand,
 } from '@/lib/layoff-risk/rules'
+import { JoinFreeAfterSave } from '@/components/capture/JoinFreeAfterSave'
 
 const FIELD = 'mt-1 h-11 w-full rounded-lg border border-border bg-white px-3 text-base'
 const SIGNAL_STYLE = {
@@ -30,13 +31,14 @@ function RiskAlertBox({ employer }: { employer: EmployerFacts | null }) {
   const [state, action, pending] = useActionState<LayoffAlertState, FormData>(saveLayoffAlert, undefined)
   if (state?.saved) {
     return (
-      <p role="status" className="rounded-xl border border-success/30 bg-success/5 px-4 py-3 text-sm">
+      <div role="status" className="rounded-xl border border-success/30 bg-success/5 px-4 py-3 text-sm">
         {state.confirmEmailed ? (
           <>Check your inbox{state.email ? <> at <span className="font-medium">{state.email}</span></> : ''} and click the link to start.</>
         ) : (
           <>Saved{state.email ? <> for <span className="font-medium">{state.email}</span></> : ''}. Layoff emails are turning on soon, and this will be first in line.</>
         )}
-      </p>
+        <JoinFreeAfterSave from="layoff_risk_alert" properties={{ employer: employer?.slug ?? null }} />
+      </div>
     )
   }
   return (

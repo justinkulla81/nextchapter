@@ -54,6 +54,8 @@ export interface SearchFirmPage {
   inboundSlug: string | null
   /** The firm's accent color for its page: the color it set when it claimed the page, else the one read from its website. Null: NextChapter's navy. */
   accent: string | null
+  /** What the firm's own site says about it (its meta description), or null. Shown with a link to the site. */
+  about: string | null
 }
 
 function toRow(r: Prisma.ExclusiveJobPostingGetPayload<{ select: typeof SELECT }>): SearchRow {
@@ -84,7 +86,7 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
   const staffing = org.company?.industry === STAFFING_INDUSTRY
   if (!isSearchFirmOrg({ orgTypes: org.orgTypes, hasSearchFirm: !!firm, companyIndustry: org.company?.industry ?? null })) return null
 
-  const brand = await prisma.firmBrandColor.findUnique({ where: { orgId: org.id }, select: { color: true } }).catch(() => null)
+  const brand = await prisma.firmBrandColor.findUnique({ where: { orgId: org.id }, select: { color: true, about: true } }).catch(() => null)
   const own = org.recruiterFirm?.accentColor
   const accent = own && isHexColor(own) ? own : (brand?.color ?? null)
 
@@ -122,6 +124,7 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
     indexable: isSearchFirmIndexable(summary.publicRoles),
     inboundSlug: org.recruiterFirm?.status === 'VERIFIED' ? (org.recruiterFirm.slug ?? null) : null,
     accent,
+    about: brand?.about ?? null,
   }
 })
 

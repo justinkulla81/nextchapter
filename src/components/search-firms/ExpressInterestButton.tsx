@@ -16,6 +16,7 @@ export function ExpressInterestButton({
   primary = false,
   accent = null,
   className,
+  onDone,
 }: {
   orgId: string
   firmName: string
@@ -25,6 +26,8 @@ export function ExpressInterestButton({
   /** The firm's accent color for the primary button; null keeps NextChapter's navy. */
   accent?: string | null
   className?: string
+  /** Called after a successful press that stays on the page, so the page can show where the member now stands. */
+  onDone?: () => void
 }) {
   const router = useRouter()
   const [interested, setInterested] = useState(initiallyInterested)
@@ -38,6 +41,7 @@ export function ExpressInterestButton({
       if (!r.ok) return setError(r.error)
       setInterested(r.interested)
       if (r.next) router.push(r.next)
+      else onDone?.()
     })
 
   const base = 'inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-wait'
