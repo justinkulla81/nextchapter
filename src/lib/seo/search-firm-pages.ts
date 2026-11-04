@@ -1,3 +1,7 @@
+import { getOrgBrand } from '@/lib/branding/store'
+import { fallbackPair } from '@/lib/branding/fallback'
+import { buildPair, type BrandPair } from '@/lib/branding/scan'
+import { tint } from '@/lib/branding/colors'
 import 'server-only'
 import { cache } from 'react'
 import { memoTtl } from '@/lib/db/heavy'
@@ -54,6 +58,8 @@ export interface SearchFirmPage {
   inboundSlug: string | null
   /** The firm's accent color for its page: the color it set when it claimed the page, else the one read from its website. Null: NextChapter's navy. */
   accent: string | null
+  /** The firm's two page colors: stored for the firm (set by hand or read from its site), else made from its accent, else one NextChapter picks so no firm page is without color. */
+  brand: BrandPair
   /** What the firm's own site says about it (its meta description), or null. Shown with a link to the site. */
   about: string | null
 }
@@ -86,9 +92,13 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
   const staffing = org.company?.industry === STAFFING_INDUSTRY
   if (!isSearchFirmOrg({ orgTypes: org.orgTypes, hasSearchFirm: !!firm, companyIndustry: org.company?.industry ?? null })) return null
 
-  const brand = await prisma.firmBrandColor.findUnique({ where: { orgId: org.id }, select: { color: true, about: true } }).catch(() => null)
+  const [brand, storedBrand] = await Promise.all([
+    prisma.firmBrandColor.findUnique({ where: { orgId: org.id }, select: { color: true, about: true } }).catch(() => null),
+    getOrgBrand('SEARCH_FIRM', org.id),
+  ])
   const own = org.recruiterFirm?.accentColor
   const accent = own && isHexColor(own) ? own : (brand?.color ?? null)
+  const pair: BrandPair = own && isHexColor(own) ? buildPair(own, tint(own, 0.55), true) : (storedBrand?.pair ?? (accent ? buildPair(accent, tint(accent, 0.55), true) : fallbackPair(org.id)))
 
   const names = [...new Set([org.name, firm?.name].filter((n): n is string => !!n))]
   const or: Prisma.ExclusiveJobPostingWhereInput[] = [{ sourceCategory: 'search_firm', sourceName: { in: names } }]
@@ -123,7 +133,8 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
     lastChecked: live.reduce<Date | null>((m, r) => (r.lastVerifiedAt && (!m || r.lastVerifiedAt > m) ? r.lastVerifiedAt : m), null),
     indexable: isSearchFirmIndexable(summary.publicRoles),
     inboundSlug: org.recruiterFirm?.status === 'VERIFIED' ? (org.recruiterFirm.slug ?? null) : null,
-    accent,
+    accent: pair.primary,
+    brand: pair,
     about: brand?.about ?? null,
   }
 })

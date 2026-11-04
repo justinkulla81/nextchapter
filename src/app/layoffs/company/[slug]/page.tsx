@@ -30,6 +30,8 @@ import { CompanyStoriesSection } from '@/components/layoff-stories/CompanyStorie
 import { approvedStories, storyNumbersFor } from '@/lib/layoff-stories/store'
 import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } from '@/lib/warn/company-announcements'
 import { getEmployerBrand } from '@/lib/branding/store'
+import { brandOrFallback } from '@/lib/branding/fallback'
+import { employerBrandKey } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { AffectedPrompt } from '@/components/layoffs/landing/AffectedPrompt'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
@@ -180,7 +182,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const oldestNotice = c.notices.reduce((m, n) => (n.noticeDate < m ? n.noticeDate : m), c.latest)
   const largest = c.notices.reduce<(typeof c.notices)[number] | null>((m, n) => ((n.workers ?? 0) > (m?.workers ?? 0) ? n : m), null)
   // The employer's own colors, read from its website (src/lib/branding), when we have them.
-  const brand = await getEmployerBrand(c.name)
+  const brand = brandOrFallback(await getEmployerBrand(c.name), employerBrandKey(c.name))
   // Dated markup for search and AI answer engines: when the page's facts last changed, and the plain answers to what people ask.
   const modified = (ann && ann.latest > c.latest ? ann.latest : c.latest).toISOString().slice(0, 10)
   const path = `/layoffs/company/${slug}`

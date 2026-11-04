@@ -11,7 +11,6 @@ import { getSearchFirmBySlug, type SearchFirmPage } from '@/lib/seo/search-firm-
 import { FIRM_KIND_LABEL, levelLabel, specialties } from '@/lib/seo/search-firm-bar'
 import { titleMeta } from '@/lib/seo/title'
 import { FirmInterestPanel } from '@/components/search-firms/FirmInterestPanel'
-import { readableOn } from '@/lib/recruiter/brand'
 
 // One page per search firm, recruiting firm, staffing company or outplacement firm with searches of its own to show:
 // the roles it is recruiting for now (only ones with a public job page), what it specializes in, where, and how long its
@@ -96,7 +95,7 @@ export default async function SearchFirmPublicPage({ params }: { params: Promise
       trail={[{ name: 'Search firms', path: '/search-firms' }, { name: f.name, path }]}
       h1={`${f.name}: open searches and specialties`}
       jsonLd={ld}
-      brand={f.accent ? { color: f.accent, ink: readableOn(f.accent) } : undefined}
+      brand={{ color: f.brand.primary, ink: f.brand.primaryInk, stripe: f.brand.secondary }}
       lede={
         <>
           <span className="block text-sm opacity-90">{[FIRM_KIND_LABEL[f.kind], f.hq].filter(Boolean).join(' · ')}</span>
@@ -112,7 +111,7 @@ export default async function SearchFirmPublicPage({ params }: { params: Promise
         </>
       }
     >
-      <FirmInterestPanel orgId={f.orgId} firmName={f.name} accent={f.accent} inboundSlug={f.inboundSlug} />
+      <FirmInterestPanel orgId={f.orgId} firmName={f.name} accent={f.brand.primary} accent2={f.brand.secondary} inboundSlug={f.inboundSlug} />
 
       {s.publicRoles > 0 && (
         <section aria-labelledby="searches" className="mt-10">
