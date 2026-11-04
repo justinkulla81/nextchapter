@@ -1,10 +1,11 @@
 import { fitDescription } from '@/lib/seo/templates'
+import { NetworkBand } from '@/components/community/NetworkBand'
 import { FeedLine } from '@/components/seo/FeedLine'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { IndustryPaySection } from '@/components/pay-data/PayDataLinks'
-import { FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, Section, TopicShell, functionChip, LINK } from '@/components/topics/blocks'
+import { FactGrid, RankList, Chips, ConferenceList, JobList, Section, TopicShell, functionChip, LINK } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, INDUSTRIES } from '@/lib/seo/topics'
@@ -50,6 +51,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       hero={industryImage(slug)}
       capture={{ kind: 'industry', slug, label: industry.name, save: { q: industry.name, loc: '' } }}
       intro={intro}
+      afterIntro={<NetworkBand networkKey={`industry:${slug}`} kind="industry" name={industry.name} spelled={industry.name} />}
       jsonLd={[
         {
           '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${industry.name}: jobs, conferences and layoffs`, url: `${SITE_URL}${path}`,
@@ -126,7 +128,6 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       <Section id="more" title="Other industries">
         <Chips kind="industry_to_industry" event="topic_link_clicked" items={INDUSTRIES.filter((i) => i.slug !== slug).map((i) => ({ href: `/industries/${i.slug}`, label: i.name }))} />
       </Section>
-      <JoinBand source={`industry:${slug}`} what={`your background in ${industry.name.toLowerCase()}`} />
     </TopicShell>
   )
 }
