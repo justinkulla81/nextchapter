@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
-import { PlanStart } from '@/components/layoffs/PlanStart'
 import { SourceRefs, WarnSources } from '@/components/layoffs/WarnSources'
 import { FEDERAL_WARN, STATE_WARN_LAWS, WARN_GUIDE_AS_OF } from '@/lib/warn-guide/rules'
 import { pageMetadata } from '@/lib/seo/keywords'
@@ -202,7 +201,6 @@ export default function WarnActPage() {
           <li><Link href="/tools/warn-act-checker" className={LINK}>WARN Act checker</Link>, for employers: is 60 days’ notice of a layoff likely required?</li>
           <li><Link href="/tools/warn-notice-generator" className={LINK}>WARN notice generator</Link>, for employers: draft the notices and see the deadline</li>
         </ul>
-        <div className="mt-5"><PlanStart situationSlug="laid-off" placement="warn_act_explainer" label="Get your free Market Reality Assessment" /></div>
       </section>
 
       <section aria-labelledby="faq" className="mt-12">

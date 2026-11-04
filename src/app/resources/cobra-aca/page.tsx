@@ -5,7 +5,6 @@ import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { GuideEmailGate } from '@/components/guides/GuideEmailGate'
 import { DeadlineEmailBox } from '@/components/cobra-aca/DeadlineEmailBox'
-import { LaidOffStart } from '@/components/cobra-aca/LaidOffStart'
 import { SourcesList } from '@/components/cobra-aca/SourcesList'
 import { fplAmount, medicaidFplAmount, money } from '@/lib/cobra-aca/calc'
 import { COBRA, FPL, MARKETPLACE, MEDICAID, NATIONAL_BENCHMARK, PTC, RULES_AS_OF } from '@/lib/cobra-aca/rules'
@@ -244,9 +243,6 @@ export default function CobraAcaPage() {
           A free Market Reality Assessment shows how the market reads your résumé and gives you a weekly plan that starts with the dates that matter. Also useful right now:{' '}
           <Link href="/unemployment-benefits" className={LINK}>unemployment benefits by state</Link>, <Link href="/tools/severance-calculator" className={LINK}>the severance calculator</Link> and <Link href="/tools/layoff-deadlines" className={LINK}>layoff deadlines</Link>.
         </p>
-        <div className="mt-4">
-          <LaidOffStart placement="explainer" />
-        </div>
       </section>
 
       <section aria-labelledby="pdf" className="mt-12 max-w-2xl">

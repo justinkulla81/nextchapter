@@ -61,7 +61,7 @@ export function GuideEmailGate({ slug, guideTitle }: { slug: string; guideTitle:
           </Label>
           <Input id="email" name="email" type="email" placeholder="you@email.com" required aria-invalid={!!state?.error} />
         </div>
-        <Button type="submit" disabled={pending} variant="success">
+        <Button type="submit" disabled={pending} className="bg-navy text-white hover:bg-navy/90">
           {pending ? 'Sending…' : 'Unlock the full guide →'}
         </Button>
       </form>

@@ -81,7 +81,7 @@ export function LayoffAlertForm({ employer, employerName, state, stateLabel, sou
           className="h-11 w-full min-w-0 shrink-0 sm:w-auto sm:flex-1 rounded-lg border border-border bg-white px-3 text-base"
         />
         {/* Inline it sits next to the card's primary button, so it takes the outline look: one accent button per view. */}
-        <Button type="submit" disabled={pending} className={cn('h-11 rounded-full px-5', inline ? 'border border-navy bg-white text-navy hover:bg-off-white' : 'bg-action text-action-foreground hover:brightness-95')}>
+        <Button type="submit" disabled={pending} className={cn('h-11 rounded-full px-5', inline ? 'border border-navy bg-white text-navy hover:bg-off-white' : 'bg-navy text-white hover:bg-navy/90')}>
           {pending ? 'Saving…' : 'Email me'}
         </Button>
       </div>
