@@ -3,7 +3,7 @@ import { revalidateTag } from 'next/cache'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { pageClicks } from '@/lib/google/page-clicks'
-import { armFor, decide, EMPTY_ARM, TITLE_TESTS, WARMUP_DAYS, type ArmStats } from './title-tests'
+import { armFor, countsFor, decide, EMPTY_ARM, TITLE_TESTS, WARMUP_DAYS, type ArmStats } from './title-tests'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 // Search Console data trails by about two days.
@@ -46,6 +46,7 @@ export async function runTitleTests(now: Date = new Date()): Promise<TitleTestRu
     }
     const arms: Record<'A' | 'B', ArmStats> = { A: { ...EMPTY_ARM }, B: { ...EMPTY_ARM } }
     for (const row of data.rows) {
+      if (!countsFor(def, row.path)) continue
       const arm = arms[armFor(row.path)]
       arm.impressions += row.impressions
       arm.clicks += row.clicks
