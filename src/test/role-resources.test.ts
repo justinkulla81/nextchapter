@@ -18,11 +18,11 @@ describe('turnoverScope', () => {
 
 describe('firmsForRole', () => {
   const firms = [
-    { slug: 'a', name: 'A', functions: ['Sales'], seniorities: ['C-suite'], publicRoles: 5 },
-    { slug: 'b', name: 'B', functions: ['Sales'], seniorities: ['Manager'], publicRoles: 50 },
-    { slug: 'c', name: 'C', functions: ['Finance'], seniorities: ['C-suite'], publicRoles: 40 },
-    { slug: 'd', name: 'D', functions: ['Sales', 'Finance'], seniorities: ['C-suite', 'VP and director'], publicRoles: 9 },
-    { slug: 'g', name: 'General', functions: [], seniorities: [], publicRoles: 99 },
+    { orgId: 'oa', slug: 'a', name: 'A', functions: ['Sales'], seniorities: ['C-suite'], publicRoles: 5 },
+    { orgId: 'ob', slug: 'b', name: 'B', functions: ['Sales'], seniorities: ['Manager'], publicRoles: 50 },
+    { orgId: 'oc', slug: 'c', name: 'C', functions: ['Finance'], seniorities: ['C-suite'], publicRoles: 40 },
+    { orgId: 'od', slug: 'd', name: 'D', functions: ['Sales', 'Finance'], seniorities: ['C-suite', 'VP and director'], publicRoles: 9 },
+    { orgId: 'og', slug: 'g', name: 'General', functions: [], seniorities: [], publicRoles: 99 },
   ]
   it('keeps specialists in the function at the role’s level, biggest first', () => {
     expect(firmsForRole(role('chief-revenue-officer'), firms).map((f) => f.slug)).toEqual(['d', 'a'])
@@ -43,5 +43,39 @@ describe('rolesForMember', () => {
   })
   it('does not count staff around the leader', () => {
     expect(rolesForMember(['Sales Analyst'])).toEqual([])
+  })
+})
+
+import { feedHeadline, memberRoleFeed, pickFeedRole } from '@/lib/roles/role-feed-rules'
+
+describe('role feed rules', () => {
+  const now = new Date('2026-11-04T12:00:00Z')
+  const cro = roleBySlug('chief-revenue-officer')!
+  const turnover = (days: number[]) => ({ label: 'CRO', items: days.map((d, i) => ({ company: `Co${i}`, date: new Date(now.getTime() - d * 86_400_000) })) })
+
+  it('leads with a change filed inside the week', () => {
+    const h = feedHeadline(cro, turnover([2, 5, 30]), 412, now)
+    expect(h.kind).toBe('changed')
+    expect(h.title).toBe('2 CRO seats changed hands this week.')
+    expect(h.action.label).toBe('See jobs at these companies')
+  })
+  it('says so on a quiet week and dates the last change', () => {
+    const h = feedHeadline(cro, turnover([19]), 412, now)
+    expect(h.kind).toBe('quiet')
+    expect(h.why).toContain('19 days ago, at Co0')
+    expect(h.action.label).toBe('See 412 open CRO jobs')
+  })
+  it('leads with open jobs when the role has no SEC seat', () => {
+    expect(feedHeadline(cro, null, 7, now).kind).toBe('none')
+  })
+  it('gives no feed in Confidential Search Mode or without a role', () => {
+    expect(memberRoleFeed({ resumeLatestJobTitle: 'Chief Revenue Officer', targetRoleType: null, confidentialSearchMode: true })).toBeNull()
+    expect(memberRoleFeed({ resumeLatestJobTitle: 'Line Cook', targetRoleType: null })).toBeNull()
+    expect(memberRoleFeed({ resumeLatestJobTitle: 'Chief Revenue Officer', targetRoleType: null })?.href).toBe('/dashboard/network/role-feed?role=chief-revenue-officer')
+  })
+  it('shows only a role the member holds or aims for', () => {
+    const p = { resumeLatestJobTitle: 'VP of Sales', targetRoleType: 'Chief Revenue Officer' }
+    expect(pickFeedRole('chief-revenue-officer', p)?.slug).toBe('chief-revenue-officer')
+    expect(pickFeedRole('chief-financial-officer', p)?.slug).toBe('vp-of-sales')
   })
 })

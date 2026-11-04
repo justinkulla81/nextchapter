@@ -51,6 +51,7 @@ export function turnoverScope(role: RoleDef): TurnoverScope | null {
 export const firmBandForRole = (role: RoleDef): 'C-suite' | 'VP and director' => (role.level === 'c-suite' ? 'C-suite' : 'VP and director')
 
 export interface FirmLike {
+  orgId: string
   slug: string
   name: string
   functions: string[]

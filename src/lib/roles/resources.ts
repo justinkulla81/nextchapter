@@ -13,7 +13,7 @@ import { mediaForFunction, type MediaItem } from './media'
 // function, the officer changes filed for it, and the media its people follow. Each part fails soft: a part that cannot be
 // read is left off the page rather than failing it.
 
-export interface RoleFirm { slug: string; name: string; publicRoles: number }
+export interface RoleFirm { orgId: string; slug: string; name: string; publicRoles: number }
 export interface RoleTurnover {
   label: string
   ownSeat: boolean
@@ -66,7 +66,7 @@ export async function getRoleResources(role: RoleDef): Promise<RoleResources> {
   const fn = catalogFunctionByName(role.fn)
   const forFn = (catalog ?? []).filter((c) => c.functions.includes(role.fn))
   return {
-    firms: firmsForRole(role, firms ?? []).map((f) => ({ slug: f.slug, name: f.name, publicRoles: f.publicRoles })),
+    firms: firmsForRole(role, firms ?? []).map((f) => ({ orgId: f.orgId, slug: f.slug, name: f.name, publicRoles: f.publicRoles })),
     conferences: conferences && conferences.rows.length > 0 ? conferences : null,
     courses: { fnPath: fn ? aiCoursesFunctionPath(fn) : null, rows: forFn.slice(0, 6), total: forFn.length },
     turnover,

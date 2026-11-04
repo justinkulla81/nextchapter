@@ -30,6 +30,7 @@ import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { getNeedsFollowUpList, parseAddress } from '@/lib/network/needs-follow-up'
 import { attachMoments, buildCircles, buildMoments, networkHeadline } from '@/lib/redesign/network-home'
+import { memberRoleFeed } from '@/lib/roles/role-feed-rules'
 import { NetworkOverview } from '@/components/network/NetworkOverview'
 import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
 import { getWeeklyOutreachPlan } from '@/lib/network/weekly-outreach'
@@ -672,6 +673,7 @@ export default async function NetworkPage({
       outreachTarget: DOSSIER_UNLOCK_OUTREACH_TARGET,
       priorityStarred: starredCount,
       priorityTarget: PRIORITY_CONTACT_TARGET_COUNT,
+      roleFeed: memberRoleFeed(profile),
     }
     const top = plan[0]
     const next = top
