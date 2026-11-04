@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  assignSlots, looksNonUs, speculative, slidesFor, credibilityOf, audienceFit, employerKey, farOffTimeline, plausibleEmployer, rankScore, sameEvent, MAX_EMPLOYEES, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK,
+  assignSlots, looksNonUs, speculative, slidesFor, credibilityOf, audienceFit, employerKey, farOffTimeline, plausibleEmployer, rankScore, sameEvent, MAX_EMPLOYEES, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK, dueForAutoPost,
   type DraftFacts, type GateNotice,
 } from './layoff-post-rules'
 
@@ -240,5 +240,25 @@ describe('newer angles', () => {
     const t = draftText('company-offer', facts, 'a').body
     expect(t).toContain('Pfizer')
     expect(t).toMatch(/never names/)
+  })
+})
+
+describe('dueForAutoPost', () => {
+  const draft = (o: Partial<Parameters<typeof dueForAutoPost>[0]> = {}) => ({ status: 'DRAFT', credibility: 'warn-filing', scheduledFor: new Date('2026-10-20T14:15:00Z'), postUrn: null, ...o })
+  it('posts a due draft from an official record', () => {
+    expect(dueForAutoPost(draft(), now)).toBe(true)
+    expect(dueForAutoPost(draft({ credibility: 'sec-filing' }), now)).toBe(true)
+  })
+  it('leaves news-sourced drafts for a person', () => {
+    expect(dueForAutoPost(draft({ credibility: 'two-publishers' }), now)).toBe(false)
+    expect(dueForAutoPost(draft({ credibility: 'trusted-outlet' }), now)).toBe(false)
+  })
+  it('waits for the slot and skips a stale one', () => {
+    expect(dueForAutoPost(draft({ scheduledFor: new Date('2026-10-20T16:00:00Z') }), now)).toBe(false)
+    expect(dueForAutoPost(draft({ scheduledFor: new Date('2026-10-19T14:00:00Z') }), now)).toBe(false)
+  })
+  it('never re-posts a draft that was posted or skipped', () => {
+    expect(dueForAutoPost(draft({ status: 'POSTED' }), now)).toBe(false)
+    expect(dueForAutoPost(draft({ postUrn: 'urn:li:share:1' }), now)).toBe(false)
   })
 })

@@ -6,7 +6,7 @@ import type { ContactAudience } from '@prisma/client'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { ContactForm } from '@/components/marketing/ContactForm'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
-import { COMPANY_ADDRESS_LINES, COMPANY_LINKEDIN_URL, CONTACT_EMAIL, SUPPORT_EMAIL } from '@/lib/contact/constants'
+import { COMPANY_ADDRESS_LINES, COMPANY_LINKEDIN_URL, COMPANY_X_URL, CONTACT_EMAIL, SUPPORT_EMAIL } from '@/lib/contact/constants'
 
 export const metadata: Metadata = pageMetadata('/contact')
 
@@ -64,6 +64,9 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
               <h2 className="font-semibold text-navy">Follow us</h2>
               <TrackedLink href={COMPANY_LINKEDIN_URL} event="company_linkedin_clicked" properties={{ page: 'contact', placement: 'sidebar' }} className="mt-1 inline-block font-medium text-brand underline underline-offset-4">
                 NextChapter on LinkedIn
+              </TrackedLink>
+              <TrackedLink href={COMPANY_X_URL} event="company_social_clicked" properties={{ network: 'x', page: 'contact', placement: 'sidebar' }} ariaLabel="NextChapter on X" className="mt-1 block font-medium text-brand underline underline-offset-4">
+                NextChapter on X
               </TrackedLink>
             </div>
           </aside>

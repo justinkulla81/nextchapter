@@ -7,7 +7,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { AboutContactForm } from '@/components/marketing/SearchQuestionForm'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
-import { COMPANY_LINKEDIN_URL, FOUNDER_LINKEDIN_URL } from '@/lib/contact/constants'
+import { COMPANY_LINKEDIN_URL, COMPANY_X_URL, FOUNDER_LINKEDIN_URL } from '@/lib/contact/constants'
 import { FACTS } from '@/lib/seo/facts'
 import { organizationJsonLd, personJsonLd } from '@/lib/seo/jsonld'
 import { fitDescription } from '@/lib/seo/templates'
@@ -272,6 +272,15 @@ export default function AboutPage() {
                   className="inline-flex items-center gap-2 rounded-lg border border-light-gray px-4 py-2 text-sm font-semibold text-navy hover:bg-off-white"
                 >
                   <LinkedInIcon /> NextChapter on LinkedIn
+                </TrackedLink>
+                <TrackedLink
+                  href={COMPANY_X_URL}
+                  event="company_social_clicked"
+                  properties={{ network: 'x', page: 'about', placement: 'follow' }}
+                  ariaLabel="NextChapter on X"
+                  className="inline-flex items-center rounded-lg border border-light-gray px-4 py-2 text-sm font-semibold text-navy hover:bg-off-white"
+                >
+                  NextChapter on X
                 </TrackedLink>
                 <TrackedLink
                   href="/contact"

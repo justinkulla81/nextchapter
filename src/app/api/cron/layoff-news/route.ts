@@ -4,11 +4,21 @@ import { runLayoffPrimarySweep } from '@/lib/warn/layoff-primary-run'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
 import { runLinkedInDraftSweep } from '@/lib/linkedin/layoff-post-sweep'
+import { runScheduledLinkedInPosting, type ScheduledPostResult } from '@/lib/linkedin/scheduled-posting'
 import { fillLayoffCountries } from '@/lib/warn/layoff-country'
 import { retryHeldLayoffAlerts } from '@/lib/warn/layoff-alert'
 import { publishLayoffsNow } from '@/lib/syndication/layoff-publish-now'
 
 export const maxDuration = 300
+
+/** Posts the next due LinkedIn draft (off unless LINKEDIN_AUTOPOST=on). Runs every hour in both lanes: the posting slots are on the clock, not on the news. */
+async function postDueLinkedIn(): Promise<ScheduledPostResult | { error: string }> {
+  try {
+    return await runScheduledLinkedInPosting()
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
 
 /**
  * The layoff news check on its own, run hourly. Every third hour (UTC hours divisible by 3, the old schedule) is the full check below;
@@ -36,6 +46,7 @@ export const maxDuration = 300
 export const GET = withCronRun('layoff-news', async (request: NextRequest) => {
   const fast = request.nextUrl.searchParams.get('trigger') !== 'manual' && new Date().getUTCHours() % 3 !== 0
   if (fast) return runFastLane()
+  const linkedinPost = await postDueLinkedIn()
   let news: Awaited<ReturnType<typeof runLayoffNewsCheck>> | { error: string }
   try {
     news = await runLayoffNewsCheck()
@@ -77,10 +88,11 @@ export const GET = withCronRun('layoff-news', async (request: NextRequest) => {
   if ('added' in news && news.added.length > 0) {
     indexnow = await publishLayoffsNow()
   }
-  return NextResponse.json({ news, primary, held, countries, linkedin, indexnow })
+  return NextResponse.json({ news, primary, held, countries, linkedin, linkedinPost, indexnow })
 })
 
 async function runFastLane(): Promise<NextResponse> {
+  const linkedinPost = await postDueLinkedIn()
   let news: Awaited<ReturnType<typeof runLayoffNewsCheck>> | { error: string }
   try {
     news = await runLayoffNewsCheck({ fast: true })
@@ -90,7 +102,7 @@ async function runFastLane(): Promise<NextResponse> {
   } catch (e) {
     news = { error: e instanceof Error ? e.message : String(e) }
   }
-  if (!('added' in news) || news.added.length === 0) return NextResponse.json({ lane: 'fast', news })
+  if (!('added' in news) || news.added.length === 0) return NextResponse.json({ lane: 'fast', news, linkedinPost })
   const followUp = async <T,>(run: () => Promise<T>): Promise<T | { error: string }> => {
     try {
       return await run()
@@ -101,5 +113,5 @@ async function runFastLane(): Promise<NextResponse> {
   const held = await followUp(retryHeldLayoffAlerts)
   const linkedin = await followUp(runLinkedInDraftSweep)
   const indexnow = await publishLayoffsNow()
-  return NextResponse.json({ lane: 'fast', news, held, linkedin, indexnow })
+  return NextResponse.json({ lane: 'fast', news, held, linkedin, linkedinPost, indexnow })
 }

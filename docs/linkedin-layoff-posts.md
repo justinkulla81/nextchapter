@@ -12,8 +12,16 @@ How suggested LinkedIn posts about layoffs are made, and the rules for rewriting
    biggest first.
 3. Each draft gets a template post, a first comment holding the tracked link, an image card, tag
    suggestions, and a staggered weekday slot (8:15, 12:10, 17:20 ET; at most one a day).
-4. The queue is https://launchyournextchapter.com/support/admin/linkedin-drafts. Posting is by hand:
-   copy the post, download the image, paste the link as the first comment, mark as posted.
+4. The queue is https://launchyournextchapter.com/support/admin/linkedin-drafts. An admin can post a draft with one
+   click (as the NextChapter page, with the link as the first comment), or copy it and post by hand.
+5. Scheduled posting (`runScheduledLinkedInPosting` in `src/lib/linkedin/scheduled-posting.ts`) runs from the hourly
+   layoff-news cron (the project is at Vercel's cron limit), so a draft due at 8:15 ET goes out at 8:20. It is off unless
+   `LINKEDIN_AUTOPOST=on`. Rules: one post per run and none within six hours of another post; only drafts from a state
+   WARN filing or an SEC filing (news-sourced drafts wait for a person); a draft more than 24 hours past its slot is left
+   alone; a failure puts the draft back and the next run retries until it goes stale. It needs a live page connection
+   (connect at https://launchyournextchapter.com/api/admin/linkedin/start). LinkedIn issues no refresh token, so the
+   connection lapses after about 60 days and must be reconnected; the cron sends `linkedin_connection_expiring` to PostHog
+   in the last seven days and `linkedin_autopost_not_connected` when there is none.
 
 ## Rewrite rules (the morning task)
 

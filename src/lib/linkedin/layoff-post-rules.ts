@@ -506,3 +506,22 @@ export const LAYOUTS: { bg: string; accent: string; ink: string; align: 'left' |
   { bg: '#0B7A75', accent: '#FFFFFF', ink: '#FFFFFF', align: 'center' },
   { bg: '#FFFFFF', accent: '#C2410C', ink: '#14213D', align: 'center' },
 ]
+
+// ---- Posting without a click ----
+
+/** Only layoffs from an official record go out unattended; a news-sourced one waits for a person (a public post is not taken back). */
+export const AUTOPOST_CREDIBILITY: readonly string[] = ['warn-filing', 'sec-filing']
+/** A draft more than this long past its slot is stale (the news has moved on) and is left for a person. */
+export const AUTOPOST_MAX_LATE_MS = 24 * 3_600_000
+/** No unattended post within this long of another post, however it was posted. */
+export const AUTOPOST_MIN_GAP_MS = 6 * 3_600_000
+
+export interface AutoPostDraft { status: string; credibility: string; scheduledFor: Date; postUrn: string | null }
+
+/** True when a draft is due, fresh enough, and from an official record. Pure. */
+export function dueForAutoPost(d: AutoPostDraft, now = new Date()): boolean {
+  if (d.status !== 'DRAFT' || d.postUrn) return false
+  if (!AUTOPOST_CREDIBILITY.includes(d.credibility)) return false
+  const late = now.getTime() - d.scheduledFor.getTime()
+  return late >= 0 && late <= AUTOPOST_MAX_LATE_MS
+}
