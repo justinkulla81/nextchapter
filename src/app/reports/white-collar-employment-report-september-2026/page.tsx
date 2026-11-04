@@ -240,7 +240,7 @@ export default function WhiteCollarEmploymentReportSeptember2026() {
 
       {/* Client enhancements: Logo in the cover, newsletter in the in-content
           slot, the PDF email gate, and the scroll/time pop-up. */}
-      <ReportEnhancements pdfHref={PDF_HREF} pdfFilename={PDF_FILENAME} popupPlacement="report-edition" />
+      <ReportEnhancements pdfHref={PDF_HREF} pdfFilename={PDF_FILENAME} />
       <Script src="/reports/report-charts.js" strategy="afterInteractive" />
     </div>
   )
