@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Chips, JoinBand, LINK, Section, TopicShell } from '@/components/topics/blocks'
 import { WatchSkillButton } from '@/components/skills/WatchSkillButton'
+import { ClaimSkills } from '@/components/skills/ClaimSkills'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { fitDescription } from '@/lib/seo/templates'
@@ -66,6 +67,10 @@ export default async function SkillPage({ params }: { params: Promise<{ slug: st
             </div>
           ))}
         </dl>
+        <div className="mt-5">
+          <ClaimSkills skills={[{ slug: s.slug, name: s.name }]} source="skill_page" layout="buttons" />
+          <p className="mt-2 text-xs text-muted-foreground">Add it to your profile. We use it to match you to jobs and to plan what to learn next.</p>
+        </div>
         <div className="mt-5 flex flex-wrap items-center gap-4">
           <WatchSkillButton slug={s.slug} name={s.name} source="skill_page" />
           <Link href={`/jobs?q=${encodeURIComponent(s.name)}`} className={`text-sm ${LINK}`}>

@@ -74,6 +74,7 @@ function publicWhere(query: PublicBoardQuery, industryIds?: string[]): Prisma.Bo
   if (scope?.kind === 'company') and.push({ companyName: { equals: scope.value, mode: 'insensitive' } })
   else if (scope?.kind === 'title') and.push({ title: { contains: scope.value, mode: 'insensitive' } })
   else if (scope?.kind === 'industry') and.push({ id: { in: industryIds ?? [] } })
+  else if (scope?.kind === 'function') and.push({ targetFunction: { equals: scope.value, mode: 'insensitive' } })
   for (const word of scope ? [] : query.q.split(' ').filter(Boolean).slice(0, MAX_WORDS)) {
     and.push({
       OR: [

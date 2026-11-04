@@ -76,7 +76,7 @@ export async function saveAppliedJob(_prev: ApplySaveState, formData: FormData):
       const industry = wanted.includes('industry')
         ? bucketFromIndustryText((await prisma.exclusiveJobPosting.findUnique({ where: { id: job.id }, select: { industry: true } }).catch(() => null))?.industry)
         : null
-      const values: Record<AlertScopeKind, string | null> = { company: job.companyName, title: baseTitle(job.title) || null, industry }
+      const values: Record<AlertScopeKind, string | null> = { company: job.companyName, title: baseTitle(job.title) || null, industry, function: null }
       let confirmFor: { id: string; unsubscribeToken: string; searchQ: string } | null = null
       for (const kind of wanted) {
         const value = values[kind]
