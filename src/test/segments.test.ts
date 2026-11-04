@@ -127,8 +127,8 @@ describe('copy', () => {
 
 describe('wave 2 segments', () => {
   const seg = (company: string, title = 'Analyst', industry: string | null = null, sector: string | null = null) => segmentsOf({ company, title, industry, reqTags: null, sector })
-  it('has a group for every segment and 33 in all', () => {
-    expect(SEGMENTS).toHaveLength(33)
+  it('has a group for every segment and 35 in all', () => {
+    expect(SEGMENTS).toHaveLength(35)
     for (const s of SEGMENTS) expect(s.group).toBeTruthy()
   })
   it('places employers in the growth and energy segments', () => {
@@ -150,6 +150,32 @@ describe('wave 2 segments', () => {
     expect(seg('Automation Anywhere', 'Account Executive')).not.toContain('robotics-automation')
     expect(seg('Palo Alto Networks', 'Engineer')).not.toContain('telecom')
     expect(seg('Workspace Rentals')).not.toContain('space')
+  })
+})
+
+describe('foundation and museum segments', () => {
+  const seg = (company: string, sector: string | null = null) => segmentsOf({ company, title: 'Program Officer', industry: null, reqTags: null, sector })
+  it('puts nonprofit foundations in the foundation list', () => {
+    expect(seg('The Kresge Foundation', 'nonprofit')).toContain('foundation')
+    expect(seg('Andrew W. Mellon Foundation', 'nonprofit')).toContain('foundation')
+    expect(seg('University Of California San Francisco Foundation', 'nonprofit')).toContain('foundation')
+  })
+  it('keeps look-alikes and drug-maker patient programs out of it', () => {
+    expect(seg('Foundation Risk Partners', null)).not.toContain('foundation')
+    expect(seg('Foundation Building Materials', 'private')).not.toContain('foundation')
+    expect(seg('Novartis Patient Assistance Foundation', 'nonprofit')).not.toContain('foundation')
+  })
+  it('puts museums, zoos, aquariums and science centers in the museum list', () => {
+    expect(seg('Smithsonian Institution Museum Conservation Institute')).toContain('museum')
+    expect(seg('Children\'s Museum of Houston')).toContain('museum')
+    expect(seg('Monterey Bay Aquarium')).toContain('museum')
+    expect(seg('Saint Louis Zoo')).toContain('museum')
+    expect(seg('California Science Center')).toContain('museum')
+  })
+  it('keeps shops and near-matches out of it', () => {
+    expect(seg('Aquarium Supply Co')).not.toContain('museum')
+    expect(seg('Zoom Video Communications')).not.toContain('museum')
+    expect(seg('Gallery Furniture')).not.toContain('museum')
   })
 })
 

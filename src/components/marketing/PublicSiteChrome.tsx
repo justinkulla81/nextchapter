@@ -3,7 +3,7 @@ import { SiteFooterColumns } from './SiteFooterColumns'
 import Link from 'next/link'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
-import { COMPANY_ADDRESS, COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
+import { COMPANY_ADDRESS, COMPANY_BLUESKY_URL, COMPANY_LINKEDIN_URL, COMPANY_X_URL } from '@/lib/contact/constants'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
@@ -83,6 +83,14 @@ export function PublicSiteFooter({ page, cta = true }: { cta?: boolean; page: 'a
           {' · '}
           <TrackedLink href={COMPANY_LINKEDIN_URL} event="company_linkedin_clicked" properties={{ page, placement: 'footer' }} className="underline underline-offset-4">
             LinkedIn
+          </TrackedLink>
+          {' · '}
+          <TrackedLink href={COMPANY_BLUESKY_URL} event="company_social_clicked" properties={{ network: 'bluesky', page, placement: 'footer' }} ariaLabel="NextChapter on Bluesky" className="underline underline-offset-4">
+            Bluesky
+          </TrackedLink>
+          {' · '}
+          <TrackedLink href={COMPANY_X_URL} event="company_social_clicked" properties={{ network: 'x', page, placement: 'footer' }} ariaLabel="NextChapter on X" className="underline underline-offset-4">
+            X
           </TrackedLink>
         </p>
         <p className="mt-3 text-sm text-light-blue">NextChapter · {COMPANY_ADDRESS}</p>
