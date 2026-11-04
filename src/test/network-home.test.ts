@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildCircles, buildMoments, type NetworkHomeInput } from '@/lib/redesign/network-home'
+import { attachMoments, buildCircles, buildMoments, type NetworkHomeInput } from '@/lib/redesign/network-home'
 
 const base: NetworkHomeInput = { supporters: 0, hasCoach: false, contacts: 0, followUpsDue: 0, alumniGroups: [], communities: 0, candidatePlus: false, outreachSent: 0, outreachTarget: 10, priorityStarred: 0, priorityTarget: 5 }
 const get = (i: NetworkHomeInput, key: string) => buildCircles(i).find((c) => c.key === key)!
@@ -42,5 +42,20 @@ describe('buildMoments', () => {
     const m = buildMoments({ ...base, outreachSent: 14 })[0]
     expect(m.progress).toBe('10 of 10 messages')
     expect(m.pct).toBe(100)
+  })
+})
+
+describe('attachMoments', () => {
+  const i: NetworkHomeInput = { ...base, contacts: 20, outreachSent: 4, outreachTarget: 10, priorityStarred: 2, priorityTarget: 5 }
+  it('puts outreach and priority progress on People you know as bars', () => {
+    const know = attachMoments(buildCircles(i), buildMoments(i)).find((c) => c.key === 'know')!
+    expect(know.bars?.map((b) => b.label)).toEqual(['4 of 10 messages', '2 of 5 starred'])
+  })
+  it('drops the coach moment, since the close circle already says it', () => {
+    const circles = attachMoments(buildCircles(i), buildMoments(i))
+    expect(circles.find((c) => c.key === 'close')!.bars).toBeUndefined()
+  })
+  it('leaves circles without moments untouched', () => {
+    expect(attachMoments(buildCircles(i), []).every((c) => c.bars === undefined)).toBe(true)
   })
 })

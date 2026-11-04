@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import { HomeToday, ProgressBuilt, ProgressTimeline } from './home'
 import { HomeTodayShort, HomeTodayShortQuiet } from './home-short'
+import { NetworkShort, NetworkTracker } from './network-short'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
@@ -129,6 +130,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'home/paths/none', place: 'Home', title: 'Your journey: no active paths (unchanged)', replaces: 'nothing', Component: HomePathsNone },
   { path: 'home/progress/built', place: 'Home', title: 'Effort and results: what you’ve built', replaces: '/dashboard/stats (badges and leaderboards removed)', Component: ProgressBuilt },
   { path: 'home/progress/timeline', place: 'Home', title: 'Effort and results: your search timeline', replaces: 'new', Component: ProgressTimeline },
+  { path: 'network/circles/overview-short', place: 'Network', title: 'Your network, shortened: one next move, one list of five circles (sample data)', replaces: 'the ring diagram, the separate Moments section (now a bar on the circle it belongs to), and the tune strip above the heading (now one line below)', Component: NetworkShort },
+  { path: 'network/circles/know-tabs', place: 'Network', title: 'People you know: Who to contact, Tracking, Plan (sample data)', replaces: '/dashboard/network?view=all, about 17 stacked blocks; priority, follow-up, backchannel, alumni and recruiter cards become one list', Component: NetworkTracker },
   { path: 'network/circles/overview', place: 'Network', title: 'Your network: all circles', replaces: '/dashboard/network', Component: NetworkOverviewMock },
   { path: 'network/circles/close', place: 'Network', title: 'Close circle', replaces: '/dashboard/supporters, /dashboard/my-coaching', Component: CloseCircle },
   { path: 'jobs/find/jobs', place: 'Jobs', title: 'Find a job: list and detail', replaces: '/dashboard/find-my-job, /dashboard/jobs/ID', Component: FindJobs },

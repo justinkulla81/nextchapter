@@ -35,12 +35,6 @@ export function NetworkOverviewMock() {
           sendLabel: 'Send it',
           href: '#',
         }}
-        moments={[
-          { key: 'intro', title: 'Your first warm introduction', payoff: 'Someone you know introduces you to a person who can hire.', progress: 'One more conversation', pct: 80 },
-          { key: 'fifty', title: 'Your 50th conversation', payoff: 'A real network, built on purpose.', progress: '38 of 50', pct: 76 },
-          { key: 'recruiters', title: 'Recruiters find you', payoff: 'Candidate+ puts you in front of recruiters and hiring managers.', progress: '2 of 5 steps', pct: 40 },
-          { key: 'coach', title: 'A coach joins your corner', payoff: 'A plan review and weekly accountability.', progress: 'No coach yet', pct: 0 },
-        ]}
       />
     </PreviewShell>
   )

@@ -29,7 +29,7 @@ import { MarkBackchannelViewedOnMount } from '@/components/dashboard/MarkBackcha
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { getNeedsFollowUpList, parseAddress } from '@/lib/network/needs-follow-up'
-import { buildCircles, buildMoments, networkHeadline } from '@/lib/redesign/network-home'
+import { attachMoments, buildCircles, buildMoments, networkHeadline } from '@/lib/redesign/network-home'
 import { NetworkOverview } from '@/components/network/NetworkOverview'
 import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
 import { getWeeklyOutreachPlan } from '@/lib/network/weekly-outreach'
@@ -95,6 +95,7 @@ type NetworkSearchParams = {
   calendarConnected?: string
   calendarError?: string
   view?: string
+  tab?: string
 }
 
 const OUTREACH_CHANNEL_LABEL: Record<OutreachChannel, string> = {
@@ -691,14 +692,22 @@ export default async function NetworkPage({
       nextMoveContactId: top?.contactId ?? null,
     })
     return (
-      <div className="space-y-8">
-        <Suspense fallback={null}>
-          <TuneStripSection profile={profile} title="Warmer introductions: tune who you reach" />
-        </Suspense>
-        <NetworkOverview circles={buildCircles(input)} headline={networkHeadline(input)} next={next} moments={buildMoments(input)} />
-        <Link href="/dashboard/network?view=all" className="inline-block text-sm font-medium text-brand underline underline-offset-4">
-          See your outreach tracker and stats
-        </Link>
+      <div className="space-y-6">
+        <NetworkOverview
+          circles={attachMoments(buildCircles(input), buildMoments(input))}
+          headline={networkHeadline(input)}
+          next={next}
+          after={
+            <>
+              <Suspense fallback={null}>
+                <TuneStripSection profile={profile} title="Warmer introductions: tune who you reach" />
+              </Suspense>
+              <Link href="/dashboard/network?view=all" className="inline-block text-sm font-medium text-brand underline underline-offset-4">
+                People you know: who to contact, tracking and your plan
+              </Link>
+            </>
+          }
+        />
       </div>
     )
   }
@@ -707,7 +716,7 @@ export default async function NetworkPage({
     return (
       <div className="space-y-6">
         <div className="space-y-3">
-          <h1 className="text-2xl font-semibold tracking-tight">Network with My Contacts</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">People you know</h1>
           <PageHeaderBoxes pageKey="network" candidateId={profile.id} />
         </div>
         <div className="rounded-lg border border-border p-4 text-sm">
@@ -728,90 +737,107 @@ export default async function NetworkPage({
     )
   }
 
+  // People you know: the old long page, split by purpose into three tabs (docs/candidate-redesign.md, page contract 7).
+  // Only the open tab loads its cards. Returning from Google connect lands on Tracking, where the result shows.
+  const TABS = [
+    { key: 'contact', label: 'Who to contact' },
+    { key: 'tracking', label: 'Tracking' },
+    { key: 'plan', label: 'Plan' },
+  ] as const
+  const tab = TABS.find((t) => t.key === params.tab)?.key ?? (isOAuthReturn ? 'tracking' : 'contact')
+  after(() => captureServerEvent(profile.id, 'network_tab_viewed', { tab, contacts: contactCount, followUpsDue: needsFollowUp.length, priorityContacts: priorityContacts.length }))
+
   return (
-    <div className="space-y-8">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Network with My Contacts</h1>
-        <PageHeaderBoxes
-          pageKey="network"
-          candidateId={profile.id}
-          dailyMessageOverride={
-            <OutreachPlanCard
-              concerns={profile.networkingConcerns}
-              connectPreferences={profile.networkConnectPreferences}
-              comfortLevel={profile.networkComfortLevel}
-              dismissedAlready={Boolean(profile.outreachPlanDismissedAt)}
-            />
-          }
-          lifetimeProgress={{
-            CONTACT_PRIORITIZED: { current: starredCount, target: PRIORITY_CONTACT_TARGET_COUNT },
-          }}
-        />
-      </div>
+    <div className="space-y-6">
+      <header className="space-y-1.5">
+        <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink text-balance">People you know</h1>
+        <p className="max-w-xl text-base text-muted-foreground">
+          {contactCount.toLocaleString()} {contactCount === 1 ? 'contact' : 'contacts'}
+          {needsFollowUp.length > 0 ? `. ${needsFollowUp.length} ${needsFollowUp.length === 1 ? 'is' : 'are'} due a follow-up.` : '.'}
+        </p>
+      </header>
 
-      <Suspense fallback={null}>
-        <SearchMixNudge candidateId={profile.id} />
-      </Suspense>
+      <nav aria-label="People you know" className="flex flex-wrap gap-2">
+        {TABS.map((t) => (
+          <Link
+            key={t.key}
+            href={`/dashboard/network?view=all&tab=${t.key}`}
+            aria-current={tab === t.key ? 'page' : undefined}
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium ${tab === t.key ? 'border-ink bg-ink text-white' : 'border-border text-muted-foreground hover:bg-muted'}`}
+          >
+            {t.label}
+          </Link>
+        ))}
+      </nav>
 
-      <Suspense fallback={null}>
-        <SegmentGuidance candidateId={profile.id} />
-      </Suspense>
+      {tab === 'contact' && (
+        <div className="space-y-6">
+          <div className="flex flex-wrap gap-3">
+            <Link href="/dashboard/network/this-week" className="inline-flex h-11 items-center rounded-full bg-action px-6 text-sm font-semibold text-action-foreground hover:brightness-95">
+              See this week&apos;s outreach
+            </Link>
+            <Link href="/dashboard/network/contacts?buildList=1#import" className="inline-flex h-11 items-center rounded-full border border-ink px-6 text-sm font-semibold text-ink hover:bg-muted">
+              Add to your contacts ({contactCount.toLocaleString()})
+            </Link>
+          </div>
+          <MarkBackchannelViewedOnMount />
+          <PriorityContactsCard contacts={priorityContacts} />
+          <NeedsFollowUpCard items={needsFollowUp} />
+          <BackchannelMatchesCard matches={backchannelMatches} />
+          <AlumniNetworkCarousel groups={alumniGroups} />
+          <Suspense fallback={null}>
+            <RecruitersForYouCard candidateId={profile.id} />
+          </Suspense>
+        </div>
+      )}
 
-      <Suspense fallback={<AutomaticTrackingSkeleton />}>
-        <NetworkingStatsCard profile={profile} outreachLogs={outreachLogs} />
-      </Suspense>
+      {tab === 'tracking' && (
+        <div className="space-y-6">
+          <ReconnectBanner candidateId={profile.id} returnTo="/dashboard/network?view=all&tab=tracking" />
+          {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
+          {/* §4.6 hard block leaves no EmailConnection row behind, so AutomaticTrackingSection below (which only
+              renders once a connection exists) would never show this — surfaced here, next to the connect prompt. */}
+          {params.gmailError === 'corporate_domain_blocked' && <ErrorBanner code={params.gmailError} kind="gmail" />}
+          <Suspense fallback={<AutomaticTrackingSkeleton />}>
+            <NetworkingStatsCard profile={profile} outreachLogs={outreachLogs} />
+          </Suspense>
+          <Suspense fallback={<AutomaticTrackingSkeleton />}>
+            <TotalOutreachCard profile={profile} outreachLogs={outreachLogs} outreachMix={outreachMix} />
+          </Suspense>
+          {linkedInImportedCount === 0 && <LinkedInImportPrompt contactCount={contactCount} />}
+          <GoogleConnectPrompt candidateId={profile.id} email={profile.email} returnTo="/dashboard/network?view=all&tab=tracking" />
+          <Suspense fallback={<AutomaticTrackingSkeleton />}>
+            <AutomaticTrackingSection profile={profile} outreachLogs={outreachLogs} params={params} />
+          </Suspense>
+        </div>
+      )}
 
-      {linkedInImportedCount === 0 && <LinkedInImportPrompt contactCount={contactCount} />}
-
-      <Link
-        href="/dashboard/network/this-week"
-        className={`inline-flex h-10 w-fit items-center justify-center rounded-md px-5 text-sm font-medium ${
-          linkedInImportedCount === 0 ? 'border border-input text-foreground hover:bg-muted' : 'bg-brand text-white hover:bg-brand/90'
-        }`}
-      >
-        See this week&apos;s outreach
-      </Link>
-
-      <Link
-        href="/dashboard/network/contacts?buildList=1#import"
-        className="inline-flex h-10 w-fit items-center justify-center rounded-md border border-input px-5 text-sm font-medium text-foreground hover:bg-muted"
-      >
-        Go to / Add to Networking List ({contactCount.toLocaleString()})
-      </Link>
-
-      <MarkBackchannelViewedOnMount />
-      <ReconnectBanner candidateId={profile.id} returnTo="/dashboard/network" />
-
-      <PriorityContactsCard contacts={priorityContacts} />
-
-      <NeedsFollowUpCard items={needsFollowUp} />
-
-      <BackchannelMatchesCard matches={backchannelMatches} />
-
-      <AlumniNetworkCarousel groups={alumniGroups} />
-
-      <Suspense fallback={null}>
-        <RecruitersForYouCard candidateId={profile.id} />
-      </Suspense>
-
-      {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
-      {/* §4.6 hard block leaves no EmailConnection row behind, so
-          AutomaticTrackingSection below (which only renders once a
-          connection exists) would never show this — surfaced here instead,
-          next to the connect prompt itself, where it's actually reachable. */}
-      {params.gmailError === 'corporate_domain_blocked' && <ErrorBanner code={params.gmailError} kind="gmail" />}
-
-      <GoogleConnectPrompt candidateId={profile.id} email={profile.email} returnTo="/dashboard/network" />
-
-      <GuideCallout pageSlot="network" currentJobStatus={profile.currentJobStatus} />
-
-      <Suspense fallback={<AutomaticTrackingSkeleton />}>
-        <TotalOutreachCard profile={profile} outreachLogs={outreachLogs} outreachMix={outreachMix} />
-      </Suspense>
-
-      <Suspense fallback={<AutomaticTrackingSkeleton />}>
-        <AutomaticTrackingSection profile={profile} outreachLogs={outreachLogs} params={params} />
-      </Suspense>
+      {tab === 'plan' && (
+        <div className="space-y-6">
+          <PageHeaderBoxes
+            pageKey="network"
+            candidateId={profile.id}
+            dailyMessageOverride={
+              <OutreachPlanCard
+                concerns={profile.networkingConcerns}
+                connectPreferences={profile.networkConnectPreferences}
+                comfortLevel={profile.networkComfortLevel}
+                dismissedAlready={Boolean(profile.outreachPlanDismissedAt)}
+              />
+            }
+            lifetimeProgress={{
+              CONTACT_PRIORITIZED: { current: starredCount, target: PRIORITY_CONTACT_TARGET_COUNT },
+            }}
+          />
+          <Suspense fallback={null}>
+            <SearchMixNudge candidateId={profile.id} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <SegmentGuidance candidateId={profile.id} />
+          </Suspense>
+          <GuideCallout pageSlot="network" currentJobStatus={profile.currentJobStatus} />
+        </div>
+      )}
     </div>
   )
 }

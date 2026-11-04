@@ -87,3 +87,15 @@ export function networkHeadline(i: NetworkHomeInput): string {
     ? 'Build it one conversation at a time. Start with the people you already know.'
     : 'Build it one conversation at a time. Each step you take opens something new.'
 }
+
+/**
+ * Moments are progress bars on the circle they belong to, not a section of their own. Outreach and starred priority
+ * people are about People you know. The coach moment is dropped: the close circle already says "No coach yet" and why a coach helps.
+ */
+const MOMENT_CIRCLE: Record<string, string> = { outreach: 'know', priority: 'know' }
+export function attachMoments(circles: CircleData[], moments: Moment[]): CircleData[] {
+  return circles.map((c) => {
+    const bars = moments.filter((m) => MOMENT_CIRCLE[m.key] === c.key).map((m) => ({ label: m.progress, pct: m.pct, why: m.payoff }))
+    return bars.length > 0 ? { ...c, bars } : c
+  })
+}
