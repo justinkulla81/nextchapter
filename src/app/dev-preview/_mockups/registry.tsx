@@ -21,7 +21,7 @@ import { TuneQuestion, TuneDone, DeepDiveIntro, ReceiptHome, ReceiptNetwork } fr
 import { TrackRecordRound, TrackRecordIntro, TrackRecordDone, HowIPerformRound, HowIPerformDone } from './rounds'
 import { CandidatePlusUnlock, WeeklyEmail, OnboardingSituation, FirstWeek, EmptyJobs, EmptyNetwork, EmptyEffort, OnboardingMoney, AccountMoney } from './moments'
 import { MoneyRunway, MoneyDeadlines, MoneyEntrepreneur } from './money'
-import { CareerStoryReal } from './career-story'
+import { CareerStoryShortMock, CareerStoryShortEmpty } from './career-story'
 import { SearchStrategySimple } from './strategy'
 import { CareerHighPointPreview } from './career-high-point'
 import { StrategyNegotiationLive, StrategyNegotiationEmptyLive } from './strategy-negotiation-live'
@@ -214,7 +214,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'account/profile', place: 'Account', title: 'Profile', replaces: '/dashboard/profile, complete-profile', Component: ProfileMock },
   { path: 'jobs/apply/resume', place: 'Jobs', title: 'Résumé', replaces: '/dashboard/resume, resume/studio, resume/walkthrough', Component: ResumeMock },
   { path: 'jobs/apply/whyhire', place: 'Jobs', title: 'Why hire me', replaces: '/dashboard/strengths, track-record', Component: WhyHireMe },
-  { path: 'learn/path/story', place: 'Learn', title: 'Career story', replaces: '/dashboard/my-career (the real page, sample data)', Component: CareerStoryReal },
+  { path: 'learn/path/story-short', place: 'Learn', title: 'Career story: the story and one action, where it could go, one fold (the built page, sample data)', replaces: '/dashboard/my-career: the outline Add a chapter button, the privacy badge, the phase bar and list shown together on every door, the always-open pause calculator and People like you (now one fold), and the doors, pause and peers cards under an empty story', Component: CareerStoryShortMock },
+  { path: 'learn/path/story-short-empty', place: 'Learn', title: 'Career story, shortened: no history yet (sample data)', replaces: 'the empty card plus the doors, pause and peers cards below it', Component: CareerStoryShortEmpty },
   { path: 'learn/know', place: 'Learn', title: 'How I work', replaces: '/dashboard/skills-assessments, how-i-perform', Component: HowIWork },
   { path: 'account/visibility', place: 'Account', title: 'What recruiters see', replaces: '/dashboard/recruiter-report, privacy', Component: WhatRecruitersSee },
   { path: 'account/documents', place: 'Account', title: 'Documents', replaces: '/dashboard/documents', Component: DocumentsMock },
