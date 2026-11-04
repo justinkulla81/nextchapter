@@ -102,8 +102,8 @@ export function LearningResourceCard({
       {item.completionCount > 0 && (
         <p className="text-xs text-muted-foreground">
           {item.completionCount === 1
-            ? '1 NextChapter candidate has completed this'
-            : `${item.completionCount} NextChapter candidates have completed this`}
+            ? '1 NextChapter Member has completed this'
+            : `${item.completionCount} NextChapter Members have completed this`}
         </p>
       )}
 

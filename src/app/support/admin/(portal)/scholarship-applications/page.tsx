@@ -29,7 +29,7 @@ export default async function ScholarshipApplicationsAdminPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Scholarship Applications</h1>
         <p className="mt-1 text-muted-foreground">
-          Review candidate applications for reduced or free access to a membership plan. Every application
+          Review candidate applications for reduced or free access to the Alumni plan. Every application
           requires a human decision — nothing here approves automatically.
         </p>
       </div>

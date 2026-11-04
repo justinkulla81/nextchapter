@@ -649,7 +649,7 @@ async function CommunityTab({
       {confidentialSearchMode && <ConfidentialModeIndicator redesign />}
 
       {/* The auto-join notice and notes from other members wait in one collapsed strip; the feed comes first. */}
-      <NeedsYou>
+      <NeedsYou page="community">
         <CommunityAutoJoinBanner notices={pendingAutoJoinNotices} />
         {unreadNotes.map((note) => (
           <div key={note.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-muted/60 p-5">

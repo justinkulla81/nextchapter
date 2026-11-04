@@ -40,7 +40,7 @@ const TABS = [
     title: 'Free to join. Free for Members, permanently.',
     items: [
       { title: 'What is free', body: 'The Market Reality Report, Resume Studio, your networking and application tracker, the skills assessment, community and company pages.' },
-      { title: 'Who it is for', body: 'Employers, recruiters, colleges and coaches have their own tools. Candidates are never charged.' },
+      { title: 'Who it is for', body: 'Employers, recruiters, colleges and coaches have their own tools. Joining is free, always.' },
     ],
     why: 'Someone who just lost a job needs a plan, not a paywall.',
     link: { href: '/pricing', label: 'See plans for organizations' },

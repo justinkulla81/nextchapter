@@ -191,6 +191,8 @@ export interface ReconcileResult {
  * how many rows had to be written — the drift, 0 while the triggers work.
  * Also the initial fill. Run nightly and after each import finalize.
  */
+const RECONCILE_PAUSE_MS = 250
+
 export async function reconcileBoardLightRows(): Promise<ReconcileResult> {
   const started = Date.now()
   let lo = ''
@@ -208,6 +210,9 @@ export async function reconcileBoardLightRows(): Promise<ReconcileResult> {
     deleted += r?.deleted ?? 0
     if (hi === null) break
     lo = hi
+    // A pause between pages: the night this ran flat out for 12 minutes (2026-11-04, 09:40 to 09:52 UTC) the members' pages stalled for
+    // the same minutes. About 60 pages, so this adds about 15 s to the run.
+    await new Promise((resolve) => setTimeout(resolve, RECONCILE_PAUSE_MS))
   }
   return { pages, upserted, deleted, ms: Date.now() - started }
 }

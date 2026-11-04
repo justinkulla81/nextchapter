@@ -6,7 +6,7 @@
 export type NextChapterMembership = 'CANDIDATE' | 'COACH' | 'RECRUITER' | 'HIRING_MANAGER'
 
 export const MEMBERSHIP_LABEL: Record<NextChapterMembership, string> = {
-  CANDIDATE: 'Candidate',
+  CANDIDATE: 'Member',
   COACH: 'Coach',
   RECRUITER: 'Recruiter',
   HIRING_MANAGER: 'Hiring Manager',

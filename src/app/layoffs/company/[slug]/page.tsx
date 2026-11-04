@@ -38,11 +38,14 @@ import { LandingHero } from '@/components/layoffs/landing/LandingHero'
 import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
 import { SearchTimeFacts } from '@/components/layoffs/landing/SearchTimeFacts'
 import { PeerEmployers } from '@/components/layoffs/landing/PeerEmployers'
-import { landingVariant, SEARCH_TIME_FACTS } from '@/lib/layoffs/landing'
+import { landingVariant, layoffFactLine, reportLine } from '@/lib/layoffs/landing'
 import { searchSchools } from '@/lib/layoffs/landing-actions'
 import { getPeerEmployers } from '@/lib/layoffs/peers'
 import { BUYOUT_UNEMPLOYMENT_CHECKED, buyoutRuleFor } from '@/lib/warn/buyout-unemployment'
 import { submitJourneyLead } from '@/lib/leads/actions'
+import { STATE_UI } from '@/lib/data/state-ui'
+import { TREATMENT_PHRASE } from '@/lib/severance/calc'
+import { severanceByState } from '@/lib/severance/state-groups'
 
 // Pages are built on first visit and refreshed daily; there are over a
 // thousand employers, too many to prerender on every deploy.
@@ -91,6 +94,41 @@ function guidePlaces(c: CompanySummary): Record<string, string | null> {
 
 const KIND_LABEL = { buyout: 'Voluntary buyout offer', layoff: 'Reported layoff' } as const
 
+const FAQ_STATES = 3
+
+/**
+ * What people ask after a layoff: does severance affect unemployment, and how much does unemployment pay. Both answers come from the
+ * sourced state data (src/lib/data/state-ui.ts) for the states the employer filed in, never from anything about the employer's own
+ * package, which a WARN notice does not state.
+ */
+function severanceFaq(name: string, states: string[]): { q: string; a: string }[] {
+  if (states.length === 0) return []
+  const shown = states.slice(0, FAQ_STATES)
+  const more = states.length - shown.length
+  const treatments = new Map(severanceByState().map((r) => [r.code, r.treatment]))
+  const rules = shown.map((code) => {
+    const t = treatments.get(code)
+    return t ? `${stateName(code)}: severance ${TREATMENT_PHRASE[t]}.` : `${stateName(code)}: sources disagree, so ask the state agency.`
+  })
+  const amounts = shown.flatMap((code) => {
+    // A filing state with no row in the table (a territory) simply has no amount line.
+    const ui = (STATE_UI as Record<string, (typeof STATE_UI)[keyof typeof STATE_UI] | undefined>)[code]
+    const max = ui?.maxWeeklyBenefit.value
+    const weeks = ui?.maxWeeks.value
+    return max != null && weeks != null ? [`${stateName(code)} pays up to $${max.toLocaleString('en-US')} a week for up to ${weeks} weeks`] : []
+  })
+  const tail = more > 0 ? ` ${more} other ${more === 1 ? 'state is' : 'states are'} on the notices; each state’s unemployment page has its own rule.` : ''
+  return [
+    {
+      q: `Does severance affect unemployment after the ${name} layoffs?`,
+      a: `${rules.join(' ')}${tail} Whether ${name} offers severance, and how much, is set by the company and each worker’s agreement; the WARN notices do not state it. File as soon as you are out of work and report severance when asked: the state decides how it counts.`,
+    },
+    ...(amounts.length > 0
+      ? [{ q: `How much unemployment can ${name} workers get?`, a: `${amounts.join('; ')}. File in the state where you worked.` }]
+      : []),
+  ]
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const page = await loadPage(slug)
@@ -101,7 +139,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const lead = recent && ann ? ann.items[0] : null
   const description = lead && !c.notices.length
     ? `${c.name}: ${lead.summary} (${noticeDay(lead.date)}). What was announced, the source, and what to do if you are affected: benefits, severance, COBRA and local help.`
-    : `${lead ? `${lead.summary} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} WARN ${c.notices.length === 1 ? 'notice' : 'notices'} of layoffs and job cuts filed by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest filed ${noticeDay(c.latest)}. Dates, locations and the state record for each.`
+    : `${lead ? `${lead.summary} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} WARN ${c.notices.length === 1 ? 'notice' : 'notices'} of layoffs and job cuts filed by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest filed ${noticeDay(c.latest)}. Dates, locations, and each state's severance and unemployment rules.`
   // A page whose newest notice is over two years old, or that is too small to be worth a search result
   // (src/lib/seo/page-bars.ts), stays reachable but out of search results.
   const stale = !meetsCompanyLayoffBar(c) && !recent
@@ -155,24 +193,18 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const rule = buyoutRuleFor(c.states[0])
   const buyoutRule = rule && c.states[0] ? { ...rule, stateName: stateName(c.states[0]), checked: BUYOUT_UNEMPLOYMENT_CHECKED } : null
   const peers = await getPeerEmployers(c.name, hasNotices ? primaryState(c.notices) : null)
-  const searchFact = `People still out of work in ${SEARCH_TIME_FACTS.asOf.split(' ')[0]} had been looking for ${Math.round(SEARCH_TIME_FACTS.averageWeeksAll)} weeks on average, so a week spent now is a week saved later.`
-  const noticeSentence = (
-    <>
-      {c.name} has filed {c.notices.length.toLocaleString()} WARN {c.notices.length === 1 ? 'notice' : 'notices'} with{' '}
-      {c.states.length === 1 ? `the ${stateName(c.states[0])} labor department` : `labor departments in ${c.states.length} states`}
-      {workers > 0 && <>, naming {workers.toLocaleString()} workers{unknownCounts ? ' where a count was given' : ''}</>}. The most recent was filed {noticeDay(c.latest)}.
-    </>
-  )
+  const places = c.states.length > 3 ? `${c.states.length} states` : c.states.map(stateName).join(', ')
   const heroContext =
-    variant === 'buyout' && latestAnn ? <>Reported {noticeDay(latestAnn.date)}: {latestAnn.summary}. {searchFact}</>
-    : hasNotices ? <>{noticeSentence} {searchFact}</>
-    : latestAnn ? <>Reported {noticeDay(latestAnn.date)}: {latestAnn.summary}. {c.name} has not filed a WARN notice that we have on record. {searchFact}</>
-    : <>{searchFact}</>
+    variant === 'buyout' && latestAnn ? <>{reportLine(noticeDay(latestAnn.date), latestAnn.summary)}</>
+    : hasNotices ? <>{layoffFactLine({ name: c.name, filings: c.notices.length, workers, exact: !unknownCounts, places, latest: noticeDay(c.latest) })}</>
+    : latestAnn ? <>{reportLine(noticeDay(latestAnn.date), latestAnn.summary)}</>
+    : null
   const faq = hasNotices
     ? [
         { q: `Is ${c.name} laying off employees?`, a: `${c.name} has filed ${c.notices.length.toLocaleString()} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'}. The latest was filed ${noticeDay(c.latest)}.` },
         { q: `How many ${c.name} workers are affected?`, a: workers > 0 ? `The notices on record name ${workers.toLocaleString()} workers${unknownCounts ? ', counting only the notices that gave a number' : ''}.` : 'The notices on record do not state a worker count.' },
         { q: `Where are the ${c.name} layoffs?`, a: `${c.name} filed in ${c.states.map(stateName).join(', ')}.` },
+        ...severanceFaq(c.name, c.states),
       ]
     : []
 
@@ -185,7 +217,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
         <StructuredData data={{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }} />
       )}
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-8" data-look="scene">
+      <main className="flex-1 bg-off-white py-8" data-look="scene" data-calm>
         <div className="mx-auto max-w-6xl px-6">
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link>
@@ -203,7 +235,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
 
           <YourState label={c.name} />
           <div className="mt-4 space-y-12">
-            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} noticeCount={c.notices.length} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
+            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : (latestAnn?.workers ?? null)} hasNotices={hasNotices} noticeCount={c.notices.length} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
             <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} buyoutRule={buyoutRule} />
             <SearchTimeFacts />
             <PeerEmployers company={c.name} near={peers.near} similar={peers.similar} metro={peers.homeState ? stateName(peers.homeState) : null} />

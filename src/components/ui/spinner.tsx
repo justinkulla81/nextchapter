@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { LoadingWatch } from '@/components/perf/LoadingWatch'
 
 // NextChapter's branded loading indicator — a tile that flips from "N" to
 // "C", so an async wait reads as "this product is working," not a generic
@@ -68,6 +69,7 @@ export function PageLoadingState({ label = 'Loading…' }: { label?: string }) {
     <div className="flex min-h-[80vh] flex-col items-center justify-center gap-3">
       <Spinner size={48} />
       <p className="text-sm text-muted-foreground">{label}</p>
+      <LoadingWatch />
     </div>
   )
 }

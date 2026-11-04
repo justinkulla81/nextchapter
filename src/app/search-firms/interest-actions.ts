@@ -18,9 +18,9 @@ export type InterestResult = { ok: true; interested: boolean; next: string | nul
 const SOURCES: InterestSource[] = ['search_firm_page', 'directory', 'recommendation', 'package']
 
 /**
- * One button. The member is interested in a firm. With no résumé on file the answer sends them straight to add one (the
- * onboarding résumé step for a new visitor, the résumé page for a member). Nothing reaches the firm: the interest is
- * held until the member chooses to share it.
+ * One button. The member is interested in a firm. A registered member goes to their recruiter package, where the next
+ * steps are (add the résumé first when there is none); a new visitor with no résumé goes to the onboarding résumé step.
+ * Nothing reaches the firm: the interest is held until the member chooses to share it.
  */
 export async function expressInterest(orgId: string, source: InterestSource): Promise<InterestResult> {
   if (!SOURCES.includes(source)) return { ok: false, error: 'Something went wrong. Please try again.' }
@@ -45,9 +45,11 @@ export async function expressInterest(orgId: string, source: InterestSource): Pr
   if (!existing || existing.status === 'WITHDRAWN') notifyOwnerOfFollow('recruiter', profile.id, orgName, source)
   const hasResume = profile.resumeStepComplete || (await prisma.resume.count({ where: { candidateId: profile.id, looksLikeResume: { not: false } } })) > 0
   const total = await prisma.recruiterInterest.count({ where: { candidateId: profile.id, status: { not: 'WITHDRAWN' } } })
-  captureServerEvent(profile.id, 'recruiter_interest_expressed', { firmOrgId: orgId, source, hasResume, interestCount: total, registered: !!profile.registrationCompletedAt })
+  // A registered member lands on their recruiter package: the firms they picked and the steps that make it stronger
+  // (add or fix the résumé, assessment, references). A visitor still in onboarding with no résumé goes on to that step.
+  const next = profile.registrationCompletedAt ? '/dashboard/recruiter-package' : hasResume ? null : '/onboarding/resume'
+  captureServerEvent(profile.id, 'recruiter_interest_expressed', { firmOrgId: orgId, source, hasResume, interestCount: total, registered: !!profile.registrationCompletedAt, next })
   revalidatePath('/dashboard/recruiter-package')
-  const next = hasResume ? null : profile.registrationCompletedAt ? '/dashboard/resume' : '/onboarding/resume'
   return { ok: true, interested: true, next }
 }
 

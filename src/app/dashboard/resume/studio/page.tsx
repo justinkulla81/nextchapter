@@ -24,7 +24,7 @@ export default async function ResumeStudioPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Resume studio</h1>
+        <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Resume studio</h1>
         <p className="text-muted-foreground">
           Write and tailor your resume here, then download it as a PDF or Word file. Keep a draft for each kind of role you are going after. The layouts are built to be read by
           applicant tracking systems.
