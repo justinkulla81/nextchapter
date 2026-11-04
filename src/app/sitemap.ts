@@ -1,3 +1,4 @@
+import { EMPLOYEE_JOURNEYS } from '@/lib/journeys/employee-journeys'
 import { getPublicCatalog } from '@/lib/learning/public-catalog'
 import { CATALOG_FUNCTIONS, LEVELS, coursePath, freePath, functionLevelPageIndexable, functionLevelPath, functionPageIndexable, functionPath, levelPath, sponsorPageIndexable, sponsorSlug } from '@/lib/learning/public-catalog-shared'
 import { FILING_GUIDE_UPDATED } from '@/lib/data/state-ui-appeals'
@@ -323,6 +324,10 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     // Topic explainers: severance, resumes, job search strategy, career pivot, career exploration, recruiters.
     entry('/topics', EXPLAINERS_UPDATED, 'monthly', 0.6),
     ...TOPICS.map((t) => entry(`/topics/${t.slug}`, t.updated, 'monthly', 0.7)),
+
+    // Employee journeys: rights, benefits, pay and side income.
+    entry('/journeys', EMPLOYEE_JOURNEYS[0].updated, 'weekly', 0.7),
+    ...EMPLOYEE_JOURNEYS.map((j) => entry(`/journeys/${j.slug}`, j.updated, 'daily', 0.7)),
 
     // Guides.
     entry('/resources', newestGuide, 'monthly', 0.5),

@@ -10,6 +10,7 @@ import { stateBrandFromSlug, statePhrase } from '@/lib/branding/state-colors'
 import { stateName } from '@/lib/seo/states'
 import Image from 'next/image'
 import { PageCaptureTop, PageCaptureOwner } from '@/components/capture/PageCapture'
+import type { JourneyAsk } from '@/components/capture/NextStepBox'
 import { PullCtaTop, pullContext, withPullCtas } from '@/components/capture/PullCta'
 import type { PageCaptureConfig } from '@/lib/capture/page-capture'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
@@ -18,7 +19,7 @@ export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export const LINK = 'text-brand underline underline-offset-4'
 
 /** The frame for the programmatic public pages (workforce, higher education by state, rapid response, tools). */
-export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm, boxFirst, brand }: {
+export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm, boxFirst, brand, ask }: {
   trail: { name: string; path: string }[]
   h1: string
   lede: ReactNode
@@ -38,6 +39,8 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   boxFirst?: boolean
   /** The page's organization colors the heading panel: its color as the background and the readable text color on it (a firm's page). */
   brand?: { color: string; ink: string }
+  /** A journey page words the next-step box itself and hands the visitor's situation to onboarding. */
+  ask?: JourneyAsk
 }) {
   const st = stateBrandFromSlug(stateSlug)
   const pull = pullContext(trail)
@@ -78,9 +81,9 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
               properties={{ kind: 'STATE', state: st.code }}
             />
           )}
-          {boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} />)}
+          {boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} ask={ask} />)}
           {body}
-          {!boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} />)}
+          {!boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} ask={ask} />)}
           {capture && <PageCaptureOwner capture={capture} />}
           {bottom}
         </div>

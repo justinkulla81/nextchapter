@@ -58,7 +58,7 @@ const PORTFOLIO_STEPS: [string, NextStep][] = [
   ['hasLearningBadge', { label: 'Add a credential', href: '/dashboard/learning', why: 'A course or certification shows you keep growing.' }],
   ['hasCoverLetter', { label: 'Apply to a job', href: '/dashboard/find-my-job', why: 'A cover letter is written for you with each application.' }],
   ['hasMarketRealityReport', { label: 'See your market report', href: '/dashboard/market-reality', why: 'It shows where your search stands and what to do next.' }],
-  ['hasMarketRealitySnapshot', { label: 'See your weekly progress', href: '/dashboard/stats#market-reality', why: 'Weekly snapshots show the trend behind your search.' }],
+  ['hasMarketRealitySnapshot', { label: 'See your weekly progress', href: '/dashboard/stats?view=all&tab=week#market-reality', why: 'Weekly snapshots show the trend behind your search.' }],
 ]
 
 export function nextPortfolioStep(assets: { key: string; done: boolean }[]): NextStep | null {

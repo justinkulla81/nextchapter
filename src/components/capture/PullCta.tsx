@@ -1,7 +1,7 @@
 import type { ReactNode, ReactElement } from 'react'
 import { Children } from 'react'
 import { JourneyPicker } from '@/components/home/JourneyPicker'
-import { NextStepBox } from '@/components/capture/NextStepBox'
+import { NextStepBox, type JourneyAsk } from '@/components/capture/NextStepBox'
 
 // The pull-style way in on every public page: one navy box under the heading (NextStepBox). Pages never pass copy; the frames
 // (TopicShell, SeoPage) derive everything from the page path, so a new page gets it by using the frame. There is deliberately
@@ -26,9 +26,9 @@ export function pullContext(trail: { name: string; path: string }[]) {
 }
 
 /** The one box. People who are not ready open the first-week-plan email in place. */
-export function PullCtaTop({ slug, audience }: { topic?: string; slug: string; audience: PullAudience }) {
+export function PullCtaTop({ slug, audience, ask }: { topic?: string; slug: string; audience: PullAudience; ask?: JourneyAsk }) {
   const source = `page:topic:${slug}`.slice(0, 80)
-  return <NextStepBox audience={audience} slug={slug} extras={audience === 'seeker' ? <JourneyPicker source={source} compact /> : undefined} />
+  return <NextStepBox audience={audience} slug={slug} ask={ask} extras={audience === 'seeker' ? <JourneyPicker source={source} compact /> : undefined} />
 }
 
 /**

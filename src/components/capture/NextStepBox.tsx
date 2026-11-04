@@ -8,6 +8,10 @@ import { posthog } from '@/lib/posthog/client'
 import { NetworkJoinButton } from '@/components/community/NetworkJoinButton'
 import { networkCopy, type NetworkAsk } from '@/lib/community/network-copy'
 import { cn } from '@/lib/utils'
+import { SITUATION_SESSION_KEY, type SituationKey } from '@/lib/constants/onboarding'
+
+/** A page that knows who the visitor is (a journey page) words the box itself and hands their situation to onboarding. */
+export interface JourneyAsk { headline: string; sentence: string; situation: SituationKey; journey: string }
 
 /**
  * The one call to action on a public page: a navy box, one sentence, one yellow button. It replaces the banner, the mid-page strip,
@@ -17,19 +21,21 @@ import { cn } from '@/lib/utils'
  * On a role, function or industry page the ask is the page's own network instead ("Are you a CRO? Join the CRO network"): same
  * box, same one button, so the page still makes one ask. The email and journey options behind "Not ready?" stay.
  */
-export function NextStepBox({ audience, slug, extras, network }: { audience: 'seeker' | 'org'; slug: string; extras?: ReactNode; network?: NetworkAsk }) {
+export function NextStepBox({ audience, slug, extras, network, ask }: { audience: 'seeker' | 'org'; slug: string; extras?: ReactNode; network?: NetworkAsk; ask?: JourneyAsk }) {
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const org = audience === 'org'
-  const net = network && !org ? networkCopy(network.kind, network.name, network.spelled) : null
+  const net = !ask && network && !org ? networkCopy(network.kind, network.name, network.spelled) : null
   const href = org ? '/for-organizations#contact' : `${MARKET_REALITY_START_HREF}&from=top_${slug}`
   return (
     <section id="get-started" aria-label="Next step" className={cn('mt-8 scroll-mt-6 rounded-3xl bg-navy p-5 text-white sm:p-7', busy && 'cursor-wait')}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
         <div className="max-w-2xl">
-          <h2 className="text-xl font-semibold tracking-tight">{net ? net.headline : org ? 'Do you run this, hire for it or serve these people?' : 'See where you stand in the market today'}</h2>
+          <h2 className="text-xl font-semibold tracking-tight">{ask && !org ? ask.headline : net ? net.headline : org ? 'Do you run this, hire for it or serve these people?' : 'See where you stand in the market today'}</h2>
           <p className="mt-1 text-sm text-white/85">
-            {net
+            {ask && !org
+              ? ask.sentence
+              : net
               ? net.sentence
               : org
                 ? 'Reach experienced job seekers where they already look, with your own page and your own numbers. A short call shows how.'
@@ -42,7 +48,10 @@ export function NextStepBox({ audience, slug, extras, network }: { audience: 'se
           <TrackedLink
             href={href}
             event="pull_cta_clicked"
-            properties={{ spot: 'top', audience, slug }}
+            properties={{ spot: 'top', audience, slug, ...(ask && !org ? { journey: ask.journey, situation: ask.situation } : {}) }}
+            onNavigate={ask && !org ? () => {
+              sessionStorage.setItem(SITUATION_SESSION_KEY, ask.situation)
+            } : undefined}
             gtagEvent="pull_cta_clicked"
             className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95"
           >

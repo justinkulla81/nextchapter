@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-240 clusters, 1496 phrases.
+245 clusters, 1519 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -122,6 +122,11 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/start/happy-with-fractional-work` | page | fractional work | Fractional and consulting work | fractional executive; interim executive; portfolio career; independent consulting; keep a consulting practice full |
 | `/start/building-something` | page | starting something while you keep your job | Start something on the side | side business; startup while keeping your job; start a company; leave a job to start a company |
 | `/topics` | page | job search and career change topics | Browse job search and career topics | career topics; layoff topics; job search questions |
+| `/journeys` | page | white-collar employee journeys | Browse white-collar journeys: rights, benefits, pay and side income | employee rights and benefits; pay and cost of living; journeys for professionals |
+| `/journeys/your-rights-at-work` | page | non-disparagement agreement | Know your rights at work and on the way out | non disparagement clause; severance agreement terms; noncompete agreement employee; employee rights layoff |
+| `/journeys/white-collar-benefits` | page | white collar employee benefits | Understand white-collar benefits and what they are worth | 401k match; employee benefits changes; parental leave benefits; remote work benefits |
+| `/journeys/pay-and-cost-of-living` | page | wage growth vs inflation | See whether pay is keeping up with the cost of living | wage growth; cost of living raise; salary vs inflation |
+| `/journeys/side-hustles` | page | side hustles for professionals | Build income on the side while you keep your job | side hustle ideas for professionals; consulting on the side; second income; moonlighting |
 | `/tools` | page | free job search and layoff tools | Free calculators and lookups for job seekers | free job search tools online; layoff tools; job loss calculator; free career tools |
 | `/tools/severance-calculator` | page | severance calculator | Work out a severance figure | severance pay calculator; how much severance should I get; severance by years of service; severance weeks per year; severance estimate; severance calculator after taxes; severance pay tax calculator; net severance pay |
 | `/tools/salary-converter` | page | salary converter | Convert hourly pay to a yearly salary | hourly to salary calculator; hourly to yearly; salary to hourly; annual salary to hourly wage; hourly rate to annual salary |
@@ -788,6 +793,36 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Job Search, Career Change and Layoff Topics
 - Description: Plain answers on severance, resumes, job search strategy, career pivots, career exploration, executive recruiters and reverse recruiters.
 - H1: Job search, career change and layoff topics
+
+### `/journeys`
+
+- Title: White-Collar Journeys: Rights, Benefits, Pay, Side Income
+- Description: Your rights at work, benefits, pay against the cost of living and side income for professionals: the latest news, the numbers and where you stand.
+- H1: White-collar journeys: rights, benefits, pay and side income
+
+### `/journeys/your-rights-at-work`
+
+- Title: Non-Disparagement and Exit Terms: Your Rights at Work
+- Description: Non-disparagement, NDAs, noncompetes and severance terms: the latest news on how employers use them and what you can negotiate before you sign.
+- H1: Your rights at work, and what you sign on the way out
+
+### `/journeys/white-collar-benefits`
+
+- Title: White-Collar Employee Benefits: News and What They Are Worth
+- Description: Retirement match, health coverage, leave and flexibility are part of your pay. See what employers are adding and cutting, and compare your whole package.
+- H1: White-collar benefits: what employers give, and what they are taking back
+
+### `/journeys/pay-and-cost-of-living`
+
+- Title: Wage Growth vs Cost of Living: Is Your Raise Keeping Up?
+- Description: Latest Bureau of Labor Statistics wage growth against inflation, the stories behind it and how to find out what your role pays on the market.
+- H1: Pay against the cost of living: is your raise keeping up?
+
+### `/journeys/side-hustles`
+
+- Title: Side Hustles for Professionals: News, Rules and Next Steps
+- Description: Consulting, fractional and freelance work for salaried professionals: what is working, what your employer allows and what your skills are worth.
+- H1: Side hustles for white-collar workers: income you control
 
 ### `/tools`
 
