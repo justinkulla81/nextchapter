@@ -52,7 +52,7 @@ export default async function LayoffsThisWeek() {
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: `Layoffs this week: ${thisWeek.length} WARN notices${workers ? `, ${workers.toLocaleString('en-US')} workers` : ''}`,
+    headline: `Layoffs this week: ${thisWeek.length} layoff notices${workers ? `, ${workers.toLocaleString('en-US')} workers` : ''}`,
     datePublished: today,
     dateModified: today,
     author: organizationRef(),

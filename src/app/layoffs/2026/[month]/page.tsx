@@ -42,8 +42,8 @@ export async function generateMetadata({ params }: { params: Promise<{ month: st
   const workers = d.notices.reduce((s, x) => s + (x.workers ?? 0), 0)
   const name = monthName(d.i)
   return {
-    title: titleMeta(`${name} ${LAYOFF_YEAR} Layoffs: ${n(d.notices.length)} WARN Notices${workers ? `, ${n(workers)} Workers` : ''}`),
-    description: `${n(d.notices.length)} WARN layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} workers` : ''}. The largest employers, the states, and the state record for each filing.`,
+    title: titleMeta(`${name} ${LAYOFF_YEAR} Layoffs: ${n(d.notices.length)} Layoff Notices${workers ? `, ${n(workers)} Workers` : ''}`),
+    description: `${n(d.notices.length)} layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} workers` : ''}. The largest employers, the states, and the state record for each filing.`,
     robots: { index: d.notices.length >= MONTH_MIN_NOTICES, follow: true },
     alternates: { canonical: `/layoffs/2026/${month}` },
   }
@@ -69,7 +69,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
 
   return (
     <div className="flex flex-1 flex-col">
-      <StructuredData data={articleJsonLd({ headline: `${name} ${LAYOFF_YEAR} layoffs: ${n(notices.length)} WARN notices`, path, dateModified: modified, type: 'Article' })} />
+      <StructuredData data={articleJsonLd({ headline: `${name} ${LAYOFF_YEAR} layoffs: ${n(notices.length)} layoff notices`, path, dateModified: modified, type: 'Article' })} />
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: `Layoffs ${LAYOFF_YEAR}`, path: '/layoffs/2026' }, { name: name, path }])} />
       <PublicSiteHeader current="news" />
       <main className="flex-1 bg-off-white py-8">

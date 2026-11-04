@@ -507,26 +507,26 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/layoffs`
 
-- Title: Layoff Tracker: Layoffs, Job Cuts and WARN Notices by State
-- Description: Recent layoffs, job cuts, downsizing and reductions in force (RIFs) from WARN notices filed with the states, updated daily, with a page for each state and employer.
+- Title: Layoff Tracker: Layoffs and Job Cuts by State
+- Description: Recent layoffs and job cuts from layoff notices filed with the states (under the federal WARN Act), updated daily, with a page for each state and employer.
 
 ### `/layoffs/2026`
 
-- Title: Layoffs 2026: Every WARN Notice by Month, State and Company
-- Description: Layoffs in 2026 from WARN notices filed with state labor departments: totals by month, state, industry and company, a free CSV, and a line to cite.
-- H1: Layoffs 2026: every WARN notice, month by month
+- Title: Layoffs 2026: Every Layoff Notice by Month and State
+- Description: Layoffs in 2026 from layoff notices filed with state labor departments: totals by month, state, industry and company, a free CSV, and a line to cite.
+- H1: Layoffs 2026: every layoff notice, month by month
 
 ### `/layoffs/this-week`
 
-- Title: Layoffs This Week: New WARN Notices by State
+- Title: Layoffs This Week: New Layoff Notices by State
 - Description: Layoff notices filed in the last seven days: how many workers, which states and employers, with the state record for each. Updated every day.
 - H1: Layoffs this week: who is losing their jobs
 
 ### `/layoffs/week`
 
-- Title: Layoffs by Week: WARN Notices, Week by Week
-- Description: Every week of WARN layoff notices from the last two years: how many notices and workers, which states and employers, with the state record for each.
-- H1: Layoffs by week: WARN notices
+- Title: Layoffs by Week: Layoff Notices, Week by Week
+- Description: Every week of layoff notices from the last two years: how many notices and workers, which states and employers, with the state record for each.
+- H1: Layoffs by week: layoff notices
 
 ### `/press`
 
@@ -537,14 +537,14 @@ Title is shown before the site suffix " | NextChapter".
 ### `/feeds`
 
 - Title: Layoff Notice RSS Feeds by State and Industry
-- Description: Free RSS and JSON feeds of new WARN layoff notices by state, industry and size, each with the state record, how it compares, and help for affected workers.
+- Description: Free RSS and JSON feeds of new layoff notices by state, industry and size, each with the state record, how it compares, and help for affected workers.
 - H1: Layoff and conference feeds
 
 ### `/data`
 
-- Title: Layoff Data Download: WARN Notices as CSV and JSON
-- Description: Download every WARN Act layoff notice of the last 24 months as CSV or JSON, by state or all states, free to reuse with a link back.
-- H1: Layoff data: download the WARN record
+- Title: Layoff Data Download: Layoff Notices as CSV and JSON
+- Description: Download every layoff notice of the last 24 months as CSV or JSON, by state or all states, free to reuse with a link back.
+- H1: Layoff data: download the state record
 
 ### `/data/embed`
 
@@ -910,9 +910,9 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/layoffs/by-state`
 
-- Title: WARN Notices by State: Layoffs Filed in the Last 12 Months
-- Description: Every state’s WARN layoff notices in one table: notices and workers named in the last 12 months, the latest filing and the state’s own record. Free to download.
-- H1: WARN notices by state: what each state’s record shows
+- Title: Layoffs by State: Notices Filed in the Last 12 Months
+- Description: Every state’s layoff notices in one table: notices and workers named in the last 12 months, the latest filing and the state’s own record. Free to download.
+- H1: Layoff notices by state: what each state’s record shows
 
 ### `/tools/pay-check`
 

@@ -117,7 +117,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
         </Section>
       )}
       {layoffStates.length > 0 && (
-        <Section id="layoff-states" title={`${industry.name} layoffs by state`} note="WARN notices filed in the last 12 months.">
+        <Section id="layoff-states" title={`${industry.name} layoffs by state`} note="Layoff notices filed in the last 12 months.">
           <Chips kind="industry_to_state_layoffs" event="topic_link_clicked" items={layoffStates.map((x) => ({ href: x.href, label: `${x.name} (${x.notices})` }))} />
         </Section>
       )}

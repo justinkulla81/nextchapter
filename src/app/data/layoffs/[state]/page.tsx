@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   if (!d) return { title: 'Layoff data not found', robots: { index: false, follow: true } }
   return {
     title: titleMeta(`${d.where} Layoffs by Month, ${LAYOFF_YEAR}: Chart and Embed Code`),
-    description: `${n(d.notices.length)} WARN layoff notices in ${d.where} so far in ${LAYOFF_YEAR}${d.workers ? `, naming ${n(d.workers)} workers` : ''}. A live chart you can embed on your site for free, the copy-paste code, and how to cite the data.`,
+    description: `${n(d.notices.length)} layoff notices in ${d.where} so far in ${LAYOFF_YEAR}${d.workers ? `, naming ${n(d.workers)} workers` : ''}. A live chart you can embed on your site for free, the copy-paste code, and how to cite the data.`,
     alternates: { canonical: `/data/layoffs/${state}` },
   }
 }
@@ -67,7 +67,7 @@ export default async function LayoffDataPage({ params }: { params: Promise<{ sta
         <div className="mx-auto max-w-4xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{where} layoffs by month, {LAYOFF_YEAR}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
-            {n(notices.length)} WARN layoff notices so far in {LAYOFF_YEAR}{workers ? `, naming ${n(workers)} workers` : ''}, from {code ? `the ${where} labor department` : 'state labor departments'}. The chart below is free to put on your own site and stays current on its own.
+            {n(notices.length)} layoff notices so far in {LAYOFF_YEAR}{workers ? `, naming ${n(workers)} workers` : ''}, from {code ? `the ${where} labor department` : 'state labor departments'}. The chart below is free to put on your own site and stays current on its own.
           </p>
 
           <section className="mt-8 rounded-xl border border-border bg-white p-6">
@@ -89,7 +89,7 @@ export default async function LayoffDataPage({ params }: { params: Promise<{ sta
               {code && (
                 <div>
                   <p className="text-sm font-medium text-navy">Latest notices</p>
-                  <CopyEmbed widget="layoffs" target={state} snippet={snippet('layoffs', state, 420, `${where} layoffs: WARN notices`, trackerPath)} />
+                  <CopyEmbed widget="layoffs" target={state} snippet={snippet('layoffs', state, 420, `${where} layoffs: layoff notices`, trackerPath)} />
                 </div>
               )}
             </div>

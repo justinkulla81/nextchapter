@@ -45,8 +45,8 @@ export default async function LayoffsHubPage() {
         data={{
           '@context': 'https://schema.org',
           '@type': 'Dataset',
-          name: 'U.S. layoff notices (WARN Act filings) by employer and state',
-          description: 'Layoff notices that employers filed with state labor departments under the WARN Act, with the employer, place, workers named, filing date and a link to each state record.',
+          name: 'U.S. layoff notices filed with the states, by employer and state',
+          description: 'Layoff notices that employers filed with state labor departments (under the federal WARN Act), with the employer, place, workers named, filing date and a link to each state record.',
           url: `${SITE_URL}/layoffs`,
           license: LAYOFF_DATA_LICENSE_URL,
           isAccessibleForFree: true,
