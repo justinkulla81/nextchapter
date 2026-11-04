@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { employerSlug } from '@/lib/warn/layoff-pages'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 import { CHANNELS, type ChannelId } from '@/lib/social/channels'
-import { announcementBasis, announcementPostText, filingPostText, isClosure } from '@/lib/social/posts'
+import { announcementBasis, announcementPostText, filingPostText, isClosure, splitFilingEmployer } from '@/lib/social/posts'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 const STATE_PATH = 'social/filings-posted.json.gz'
@@ -79,7 +79,8 @@ export async function runFilingPosts(now = new Date()): Promise<FilingRunResult>
     if (n.kind === 'filing' && n.companyId && announcedCompanies.has(n.companyId)) continue
     if (n.kind === 'announcement' && isClosure(n.layoffType)) continue
     // A filing's employer field can carry an address ("GEICO 3535 W Pipkin Road LAKELAND, FL"); the matched company name is clean.
-    const name = matchedName ?? n.employer
+    const site = splitFilingEmployer(n.employer)
+    const name = matchedName ?? site.name
     // One outlet is not enough to post a layoff; an SEC filing or two outlets is.
     const sourcing = announcementBasis(n.layoffType)
     if (n.kind === 'announcement' && sourcing.basis === 'unconfirmed') continue
@@ -95,7 +96,7 @@ export async function runFilingPosts(now = new Date()): Promise<FilingRunResult>
       const shortLinks = c.id === 'x'
       const text = n.kind === 'announcement' && sourcing.basis !== 'unconfirmed'
         ? announcementPostText({ employer: name, state: n.state, workers: n.employees, percent: sourcing.percent, basis: sourcing.basis, path }, utm, shortLinks)
-        : filingPostText({ employer: name, state: n.state, workers: n.employees, date: n.noticeDate, path }, utm, shortLinks)
+        : filingPostText({ employer: name, state: n.state, city: site.city, workers: n.employees, date: n.noticeDate, path }, utm, shortLinks)
       row.text = text
       if (dryRun) { row.results.push({ channel: c.id, status: 'would-send' }); continue }
       try {
