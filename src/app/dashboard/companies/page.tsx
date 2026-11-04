@@ -70,7 +70,7 @@ export default async function CompaniesIndexPage({ searchParams }: { searchParam
     <Suspense
       fallback={
         <div className="space-y-6">
-          <PageHeader title="Companies" intro="Companies worth a look, with the reason for each." />
+          <PageHeader title="Companies" />
           <SectionSkeleton label="Loading companies…" lines={6} />
         </div>
       }
