@@ -267,7 +267,9 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       `media-src 'self' blob: ${supabase}`,
-      `connect-src 'self' ${supabase} ${supabaseWs} https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://*.g.doubleclick.net https://www.google.com https://px.ads.linkedin.com https://snap.licdn.com`,
+      // analytics.google.com is listed bare as well as with the wildcard: a CSP wildcard (*.analytics.google.com) does not match the
+      // bare host, which is where Google Analytics sends its page views and events (blocked from 2026-10-15 until this was added).
+      `connect-src 'self' ${supabase} ${supabaseWs} https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://*.g.doubleclick.net https://www.google.com https://px.ads.linkedin.com https://snap.licdn.com`,
       "frame-src 'self' https:",
       "worker-src 'self' blob:",
       "object-src 'none'",
