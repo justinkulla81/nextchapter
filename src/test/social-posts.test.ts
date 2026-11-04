@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { linkFacets, oauth1Header } from '@/lib/social/clients'
-import { isClosure, announcementBasis, announcementPostText, filingPostText, jobsReportPost, joltsPost, MIN_DAILY_NOTICES, MIN_NOTICES, MIN_RANKINGS_POSTED, dailyLayoffPost, rankingsPost, reportPost, weekKey, weeklyLayoffPost, type DayNotice, type WeekNotice } from '@/lib/social/posts'
+import { splitFilingEmployer, isClosure, announcementBasis, announcementPostText, filingPostText, jobsReportPost, joltsPost, MIN_DAILY_NOTICES, MIN_NOTICES, MIN_RANKINGS_POSTED, dailyLayoffPost, rankingsPost, reportPost, weekKey, weeklyLayoffPost, type DayNotice, type WeekNotice } from '@/lib/social/posts'
 
 const now = new Date('2026-10-26T13:00:00Z')
 const day = 86_400_000
@@ -211,5 +211,21 @@ describe('isClosure', () => {
     expect(isClosure('Company shutdown announced Oct 30, effective Nov 6 · reported by 2+ publishers')).toBe(true)
     expect(isClosure('Reported by 3 publishers · 19% of staff')).toBe(false)
     expect(isClosure(null)).toBe(false)
+  })
+})
+
+describe('splitFilingEmployer', () => {
+  it('turns a street address into a city, the way a person would say it', () => {
+    expect(splitFilingEmployer('GEICO 3535 W Pipkin Road LAKELAND, FL, 33811')).toEqual({ name: 'GEICO', city: 'Lakeland' })
+    expect(splitFilingEmployer('Acme Corp 100 Main Street Salt Lake City, UT 84101')).toEqual({ name: 'Acme Corp', city: 'Salt Lake City' })
+  })
+  it('leaves any other employer untouched', () => {
+    expect(splitFilingEmployer('Squarespace')).toEqual({ name: 'Squarespace', city: null })
+    expect(splitFilingEmployer('3M Company')).toEqual({ name: '3M Company', city: null })
+  })
+  it('says the site in a filing post, with no street or zip', () => {
+    const t = filingPostText({ employer: 'Geico', state: 'FL', city: 'Lakeland', workers: 114, date: new Date('2026-11-02T12:00:00Z'), path: '/layoffs/company/geico' }, 'u=1', false)
+    expect(t).toContain('Geico filed a WARN layoff notice for its Lakeland, Florida site on Nov 2, naming 114 workers.')
+    expect(t).not.toMatch(/Pipkin|33811/)
   })
 })

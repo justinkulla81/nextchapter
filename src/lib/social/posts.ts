@@ -59,9 +59,26 @@ export function textBudget(link: string, shortLinks: boolean): number {
   return shortLinks ? 280 - 23 + link.length : 300
 }
 
+const STREET_WORDS = 'Road|Rd|Street|St|Avenue|Ave|Boulevard|Blvd|Drive|Dr|Lane|Ln|Way|Parkway|Pkwy|Highway|Hwy|Court|Ct|Place|Pl|Circle|Cir|Trail|Pike|Loop'
+const FILED_ADDRESS = new RegExp(`^(.+?)\\s+\\d{1,6}\\s+(?:[A-Za-z0-9.'#-]+\\s+){0,5}?(?:${STREET_WORDS})\\.?\\s+([A-Za-z .'-]+?),\\s*([A-Z]{2}),?\\s*\\d{5}(?:-\\d{4})?\\s*$`, 'i')
+
+const titleCase = (v: string) => v.toLowerCase().replace(/(^|[\s'-])([a-z])/g, (_, a: string, b: string) => a + b.toUpperCase())
+
+/**
+ * A WARN filing's employer field can carry the site's street address ("GEICO 3535 W Pipkin Road LAKELAND, FL, 33811"). A person
+ * would say "Geico, Lakeland", not read out the street and zip, so this splits the name from the city. Anything that does not look
+ * like name + street + city + state + zip is returned untouched.
+ */
+export function splitFilingEmployer(employer: string): { name: string; city: string | null } {
+  const m = FILED_ADDRESS.exec(employer.trim())
+  return m ? { name: m[1].trim(), city: titleCase(m[2].trim()) } : { name: employer, city: null }
+}
+
 export interface FilingForPost {
   employer: string
   state: string | null
+  /** The site's city, when the filing gave one. Said as "its Lakeland, Florida site". */
+  city?: string | null
   workers: number | null
   date: Date
   /** /layoffs/company/<slug> */
@@ -76,7 +93,7 @@ const day = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'n
  * counted as 23, and no claim beyond what the filing says.
  */
 export function filingPostText(f: FilingForPost, utm: string, shortLinks = true): string {
-  const where = f.state ? ` in ${stateName(f.state)}` : ''
+  const where = f.city && f.state ? ` for its ${f.city}, ${stateName(f.state)} site` : f.state ? ` in ${stateName(f.state)}` : ''
   const workers = f.workers ? `, naming ${n(f.workers)} workers` : ''
   const link = `${SITE_URL}${f.path}?${utm}`
   const tail = ` What was filed and what to do if you are affected: ${link}`
