@@ -2,16 +2,41 @@ import { absoluteWebUrl } from '@/lib/http/external-url'
 import type { Metadata } from 'next'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import Link from 'next/link'
+import { ShowAllGroup } from '@/components/seo/ShowAllGroup'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
-import { NONPROFIT_KINDS, getNonprofitFunding, getStateNonprofits, money } from '@/lib/seo/nonprofit-pages'
+import { NONPROFIT_KINDS, getNonprofitFunding, getStateNonprofits, money, type NonprofitPage } from '@/lib/seo/nonprofit-pages'
 import { getStateBoards, getStateLabor, periodLabel, rateText } from '@/lib/seo/workforce-pages'
 
 export const revalidate = 86400
 export const dynamicParams = true
 export function generateStaticParams() {
   return []
+}
+
+const GROUP_CAP = 40
+
+function OrgTable({ orgs, state, caption }: { orgs: NonprofitPage[]; state: string; caption: string }) {
+  return (
+    <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-white">
+      <table className="w-full min-w-[34rem] text-left text-sm">
+        <caption className="sr-only">{caption}</caption>
+        <thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
+          <tr><th scope="col" className="p-3">Organization</th><th scope="col" className="p-3">City</th><th scope="col" className="p-3">Annual revenue</th></tr>
+        </thead>
+        <tbody>
+          {orgs.map((o) => (
+            <tr key={o.ein} className="border-b border-border last:border-0">
+              <td className="p-3"><Link href={`/nonprofits/${state}/${o.slug}`} className={LINK}>{o.name}</Link></td>
+              <td className="p-3">{o.city ?? ''}</td>
+              <td className="p-3 tabular-nums">{o.revenue ? money(o.revenue) : ''}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 }
 
 async function load(slug: string) {
@@ -76,24 +101,15 @@ export default async function NonprofitStatePage({ params }: { params: Promise<{
       {byKind.map((g) => (
         <section key={g.k} aria-labelledby={`k-${g.k}`} className="mt-12">
           <h2 id={`k-${g.k}`} className={H2}>{NONPROFIT_KINDS[g.k].plural}</h2>
-          <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-white">
-            <table className="w-full min-w-[34rem] text-left text-sm">
-              <caption className="sr-only">{NONPROFIT_KINDS[g.k].plural} in {d.name}, largest first</caption>
-              <thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
-                <tr><th scope="col" className="p-3">Organization</th><th scope="col" className="p-3">City</th><th scope="col" className="p-3">Annual revenue</th></tr>
-              </thead>
-              <tbody>
-                {g.orgs.slice(0, 40).map((o) => (
-                  <tr key={o.ein} className="border-b border-border last:border-0">
-                    <td className="p-3"><Link href={`/nonprofits/${state}/${o.slug}`} className={LINK}>{o.name}</Link></td>
-                    <td className="p-3">{o.city ?? ''}</td>
-                    <td className="p-3 tabular-nums">{o.revenue ? money(o.revenue) : ''}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {g.orgs.length > 40 && <p className="mt-2 text-xs text-muted-foreground">Largest 40 of {g.orgs.length}.</p>}
+          <OrgTable orgs={g.orgs.slice(0, GROUP_CAP)} state={state} caption={`${NONPROFIT_KINDS[g.k].plural} in ${d.name}, largest first`} />
+          {g.orgs.length > GROUP_CAP && (
+            <>
+              <p className="mt-2 text-xs text-muted-foreground">Largest {GROUP_CAP} of {g.orgs.length}.</p>
+              <ShowAllGroup label={`Show all ${g.orgs.length}`} event="nonprofit_group_expanded" properties={{ state: d.code, kind: g.k, total: g.orgs.length }}>
+                <OrgTable orgs={g.orgs.slice(GROUP_CAP)} state={state} caption={`The other ${g.orgs.length - GROUP_CAP} ${NONPROFIT_KINDS[g.k].plural.toLowerCase()} in ${d.name}, largest first`} />
+              </ShowAllGroup>
+            </>
+          )}
         </section>
       ))}
 
