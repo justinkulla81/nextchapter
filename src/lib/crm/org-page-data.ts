@@ -38,10 +38,11 @@ export async function loadOrgDemandData(org: OrgRef) {
   const byName = { equals: org.name, mode: 'insensitive' as const }
   const synthetic = org.canonicalNameNormalized.startsWith('-')
 
-  const postingOr = [
-    ...(org.companyId ? [{ companyId: org.companyId }] : []),
-    { companyName: byName },
-  ]
+  // A linked org matches on companyId, which is indexed. Adding a case-insensitive
+  // companyName match to the OR defeats the index and scans the whole postings
+  // table (over 60s for Canva, so the page failed to load). The name match is only
+  // for an org with no Company link.
+  const postingOr = org.companyId ? [{ companyId: org.companyId }] : [{ companyName: byName }]
   const noticeOr = [
     { normalizedEmployer: org.canonicalNameNormalized },
     ...(org.companyId ? [{ companyId: org.companyId }] : []),
