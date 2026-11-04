@@ -11,7 +11,7 @@ const T = {
   runway: { label: 'Layoff runway: how long your money will last', href: '/tools/layoff-runway' },
   pay: { label: 'Pay check: is your salary in line?', href: '/tools/pay-check' },
   salary: { label: 'Salary converter: hourly to yearly and back', href: '/tools/salary-converter' },
-  resume: { label: 'Free résumé check: score your résumé in a minute', href: '/tools/resume-check' },
+  resume: { label: 'Free ATS résumé checker: score your résumé in a minute', href: '/tools/resume-check' },
   scams: { label: 'Scam watch: fake postings and recruiter scams we are tracking', href: '/scam-watch' },
   places: { label: 'Local job markets: openings and layoffs by place', href: '/places' },
   match: { label: 'Résumé vs job description: see what your résumé is missing', href: '/tools/resume-job-match' },
