@@ -11,7 +11,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { functionPath } from '@/lib/seo/topics'
 import { titleMeta } from '@/lib/seo/title'
 
-export const revalidate = 21600
+export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 export function generateStaticParams() {
   return []

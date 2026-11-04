@@ -10,6 +10,7 @@ import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import { STAFFING_INDUSTRY, isSearchFirmOrg } from '@/lib/seo/search-firm-link'
 import { resolveClaimableOrg } from '@/lib/org-claims/org'
 import { claimSlug } from '@/lib/org-claims/urls'
+import { isHexColor } from '@/lib/recruiter/brand'
 import {
   SEARCH_FIRM_MIN_PUBLIC_ROLES,
   firmKind,
@@ -51,6 +52,8 @@ export interface SearchFirmPage {
   indexable: boolean
   /** The firm has claimed its page and an admin verified it: its own inbound page at /in/<inboundSlug> is live. */
   inboundSlug: string | null
+  /** The firm's accent color for its page: the color it set when it claimed the page, else the one read from its website. Null: NextChapter's navy. */
+  accent: string | null
 }
 
 function toRow(r: Prisma.ExclusiveJobPostingGetPayload<{ select: typeof SELECT }>): SearchRow {
@@ -73,13 +76,17 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
       id: true, name: true, website: true, hqCity: true, hqRegion: true, orgTypes: true, companyId: true,
       company: { select: { industry: true } },
       searchFirms: { select: { name: true, segment: true, teamPageUrl: true, website: true }, take: 1 },
-      recruiterFirm: { select: { status: true, slug: true } },
+      recruiterFirm: { select: { status: true, slug: true, accentColor: true } },
     },
   })
   if (!org) return null
   const firm = org.searchFirms[0] ?? null
   const staffing = org.company?.industry === STAFFING_INDUSTRY
   if (!isSearchFirmOrg({ orgTypes: org.orgTypes, hasSearchFirm: !!firm, companyIndustry: org.company?.industry ?? null })) return null
+
+  const brand = await prisma.firmBrandColor.findUnique({ where: { orgId: org.id }, select: { color: true } }).catch(() => null)
+  const own = org.recruiterFirm?.accentColor
+  const accent = own && isHexColor(own) ? own : (brand?.color ?? null)
 
   const names = [...new Set([org.name, firm?.name].filter((n): n is string => !!n))]
   const or: Prisma.ExclusiveJobPostingWhereInput[] = [{ sourceCategory: 'search_firm', sourceName: { in: names } }]
@@ -114,6 +121,7 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
     lastChecked: live.reduce<Date | null>((m, r) => (r.lastVerifiedAt && (!m || r.lastVerifiedAt > m) ? r.lastVerifiedAt : m), null),
     indexable: isSearchFirmIndexable(summary.publicRoles),
     inboundSlug: org.recruiterFirm?.status === 'VERIFIED' ? (org.recruiterFirm.slug ?? null) : null,
+    accent,
   }
 })
 

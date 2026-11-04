@@ -260,7 +260,7 @@ export const TAXONOMY: Record<string, Record<string, string[]>> = {
   'Non-profit & Social Impact': {
     'Fundraising and development': ['fundraiser', 'major gifts officer', 'development director'],
     'Grantmaking and foundations': ['program officer', 'foundation executive'],
-    'Nonprofit leadership and boards': ['executive director', 'nonprofit board member'],
+    'Non-profit leadership and boards': ['executive director', 'nonprofit board member'],
     'Associations and membership organizations': ['association executive', 'membership director', 'association meetings manager'],
     'Social work and human services': ['social worker', 'case manager', 'human services director'],
     'Faith-based and religious organizations': ['church administrator', 'faith-based non-profit leader'],

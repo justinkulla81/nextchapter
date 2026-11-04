@@ -20,6 +20,7 @@ import { OPPORTUNITY_LABEL } from '@/lib/conferences/constants'
 import { effectiveFunctions } from '@/lib/seo/function-inference'
 import { costLabel, hasUpcomingDates, whenLabel, whereLabel } from '@/lib/events/format'
 import { titleMeta } from '@/lib/seo/title'
+import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
 
 export const revalidate = 86400 // was hourly: one of the larger ISR write sources
 export const dynamicParams = true
@@ -152,7 +153,7 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
       </dl>
       {c.url && c.linkStatus !== 'BROKEN' && (
         <p className="mt-5">
-          <TrackedLink href={c.url} event="conference_site_clicked" properties={{ conferenceId: c.id, source: 'conference_page' }} className="inline-flex items-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95">
+          <TrackedLink href={c.url} event="conference_site_clicked" properties={{ conferenceId: c.id, source: 'conference_page' }} className={SECONDARY_ACTION}>
             Official site and registration
           </TrackedLink>
         </p>

@@ -49,10 +49,10 @@ export const CRON_BUNDLES: Readonly<Record<string, readonly string[]>> = {
   'bundle-membership': ['demo-expiry', 'membership-lapse-check', 'membership-dossier-refresh', 'membership-market-check', 'membership-network-nudge', 'activity-streaks', 'benefits-network-expire-listings'],
   'bundle-daily-1300': ['week1-kickoff', 'candidate-email-dispatch', 'talent-intake', 'social-posts'],
   'bundle-daily-1030': ['meeting-prep-send', 'mailing-autoassign', 'content-drafts', 'ats-job-board-feed'],
-  'bundle-daily-1200': ['help-feedback-digest', 'research-inbox-sweep', 'job-search-daily'],
+  'bundle-daily-1200': ['help-feedback-digest', 'research-inbox-sweep', 'job-search-daily', 'saved-job-closures'],
   'bundle-search-pings': ['bing-url-submit', 'indexnow-seo-pages', 'google-indexing-jobs', 'indexnow-org-pages', 'indexnow-jobs'],
   'bundle-company-light': ['company-events', 'company-outcomes'],
-  'bundle-tuesday-digests': ['market-digest-recruiters', 'market-digest-employers', 'weekly-read', 'market-digest-coaches', 'upgrade-offer'],
+  'bundle-tuesday-digests': ['market-digest-recruiters', 'market-digest-employers', 'weekly-read', 'market-digest-coaches', 'upgrade-offer', 'role-network-digest'],
   'bundle-wednesday': ['nudge-recruiter-network-unlock', 'win-back'],
   'bundle-monday': ['senior-brief', 'outplacement-agent', 'course-scan', 'higher-ed-weekly', 'market-reality-snapshot', 'auto-assign-sprint', 'conference-recheck', 'population-snapshot'],
   'bundle-sunday': ['partner-scores', 'workforce-boards', 'job-segments'],
@@ -90,7 +90,7 @@ export const RERUN_SAFE_JOBS: ReadonlySet<string> = new Set([
   'funding-opportunities', 'content-drafts', 'catalog-seeds', 'federal-contracts', 'board-bids', 'competitor-awards', 'news-discovery', 'likely-openings',
   'workforce-boards', 'workforce-board-intel', 'refresh-youtube-content',
   'expire-job-postings', 'benefits-network-expire-listings', 'population-snapshot',
-  'partner-scores', 'activity-streaks', 'board-light-rows', 'job-feed-direct', 'job-feed-jooble', 'indexnow-jobs', 'indexnow-seo-pages', 'indexnow-layoffs', 'google-indexing-jobs', 'bing-url-submit', 'pivot-market', 'market-size', 'pay-data', 'ai-market', 'board-figures', 'rankings', 'job-segments', 'page-warmup',
+  'partner-scores', 'activity-streaks', 'board-light-rows', 'job-feed-direct', 'job-feed-jooble', 'indexnow-jobs', 'indexnow-seo-pages', 'indexnow-layoffs', 'google-indexing-jobs', 'bing-url-submit', 'pivot-market', 'market-size', 'pay-data', 'ai-market', 'skills-market', 'board-figures', 'rankings', 'job-segments', 'page-warmup',
   // Asks the AI assistants a fixed list of questions. It costs money, but the run stops at the monthly cap (src/lib/ai-visibility/run.ts), so a second click cannot overspend.
   'ai-citation-check',
 ])

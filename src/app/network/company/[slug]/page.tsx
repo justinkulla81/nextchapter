@@ -20,6 +20,7 @@ import { networkCompanySeo } from '@/lib/seo/templates'
 import { aboutCount, networkTitle, totalWorkers } from '@/lib/network/eligibility'
 import { approvedStatementMap } from '@/lib/employer-statements/store'
 import { titleMeta } from '@/lib/seo/title'
+import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
 
 // One page per employer with a recent, sizeable WARN filing: what was filed, where the jobs are, which
 // benefits and retraining apply, and a two-tap way in. Built on first visit, refreshed daily. An employer
@@ -178,7 +179,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
                 href={jobsHref}
                 event="network_cta_clicked"
                 properties={{ type: 'company', slug, button: 'see_all_jobs' }}
-                className="inline-flex h-11 items-center rounded-full bg-action px-6 text-sm font-semibold text-action-foreground hover:brightness-95"
+                className={SECONDARY_ACTION}
               >
                 See all {aboutCount(inState.total)} jobs in {stateLabel}
               </TrackedLink>

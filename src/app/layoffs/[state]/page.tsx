@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   const workers = d.recent.reduce((s, n) => s + (n.workers ?? 0), 0)
-  const description = `${d.recent.length} WARN layoff notices filed in ${d.name} in the last 12 months${workers > 0 ? `, naming ${workers.toLocaleString()} workers` : ''}: dates, employers, locations and the state record for each, plus local job centers.`
+  const description = `${d.recent.length} layoff and job-cut notices (WARN filings) in ${d.name} in the last 12 months${workers > 0 ? `, naming ${workers.toLocaleString()} workers` : ''}: employers, dates, locations and the state record for each.`
   return {
     title: titleMeta(layoffsStateSeo(d.name).title),
     description: fitDescription(description, 165),

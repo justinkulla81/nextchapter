@@ -2,7 +2,7 @@
 // The three parts: the journey question (a person), the email save (a person), and the owner inquiry (an organization
 // that runs, hires in or is listed on the page).
 
-export type CaptureKind = 'state' | 'county' | 'city' | 'industry' | 'title' | 'company' | 'college' | 'ranking'
+export type CaptureKind = 'state' | 'county' | 'city' | 'industry' | 'function' | 'title' | 'company' | 'college' | 'ranking'
 
 export interface PageCaptureConfig {
   kind: CaptureKind
@@ -20,7 +20,7 @@ export function captureSource(c: Pick<PageCaptureConfig, 'kind' | 'slug'>): stri
 }
 
 /** The `source` a saved search stores (page:<kind>, no slug; the search itself says which page). */
-export const SAVE_SOURCE_KINDS = ['employer', 'title', 'salary', 'place', 'industry', 'college', 'company', 'ranking'] as const
+export const SAVE_SOURCE_KINDS = ['employer', 'title', 'salary', 'place', 'industry', 'function', 'college', 'company', 'ranking'] as const
 export function saveSource(kind: CaptureKind): string {
   if (kind === 'state' || kind === 'county' || kind === 'city') return 'page:place'
   return `page:${kind}`
@@ -51,6 +51,13 @@ export function ownerOffer(c: PageCaptureConfig): OwnerOffer {
     case 'industry':
       return {
         who: `Hire in ${c.label.toLowerCase()} or run an association for it?`,
+        what: `Leave your work email. We'll send how to reach experienced ${c.label.toLowerCase()} professionals on NextChapter.`,
+        href: '/employers',
+        hrefLabel: 'See employer options',
+      }
+    case 'function':
+      return {
+        who: `Hire in ${c.label.toLowerCase()}?`,
         what: `Leave your work email. We'll send how to reach experienced ${c.label.toLowerCase()} professionals on NextChapter.`,
         href: '/employers',
         hrefLabel: 'See employer options',
@@ -90,7 +97,9 @@ export function ownerOffer(c: PageCaptureConfig): OwnerOffer {
 export function saveCopy(c: PageCaptureConfig): { heading: string; blurb: string; cta: string } {
   switch (c.kind) {
     case 'title':
-      return { heading: `Get new ${c.label.toLowerCase()} jobs by email`, blurb: 'We’ll email you when new matches are posted. No account needed.', cta: 'Email me new jobs' }
+      return { heading: `Follow ${c.label.toLowerCase()} jobs`, blurb: 'We’ll email you when new matches are posted. No account needed.', cta: 'Follow by email' }
+    case 'function':
+      return { heading: `Follow ${c.label.toLowerCase()} jobs`, blurb: `We’ll email you new ${c.label.toLowerCase()} openings. No account needed.`, cta: 'Follow by email' }
     case 'industry':
       return { heading: `Follow ${c.label.toLowerCase()}`, blurb: `We’ll email you new ${c.label.toLowerCase()} openings. No account needed.`, cta: 'Follow by email' }
     case 'company':
@@ -98,7 +107,7 @@ export function saveCopy(c: PageCaptureConfig): { heading: string; blurb: string
     case 'college':
       return { heading: `Follow ${c.label}`, blurb: `We’ll email you new jobs for ${c.label} students and alumni. No account needed.`, cta: 'Follow by email' }
     case 'ranking':
-      return { heading: `Get new ${c.label} jobs by email`, blurb: 'We’ll email you when new matches are posted. No account needed.', cta: 'Email me new jobs' }
+      return { heading: `Follow new ${c.label} jobs`, blurb: 'We’ll email you when new matches are posted. No account needed.', cta: 'Follow by email' }
     default:
       return { heading: `Follow ${c.label}`, blurb: `We’ll email you when new jobs are posted in ${c.label}. No account needed.`, cta: 'Follow by email' }
   }

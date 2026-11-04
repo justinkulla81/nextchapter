@@ -57,6 +57,9 @@ const nextConfig: NextConfig = {
         destination: `/${kind}/:state`,
         permanent: false,
       })),
+      // /skills/by and /skills/by/<dimension> are only folders of the skills lists, so they go to the skills hub.
+      { source: '/skills/by', destination: '/skills', permanent: false },
+      { source: '/skills/by/:dim', destination: '/skills', permanent: false },
       // /jobs/entry-level/category is only the folder of category pages, so it goes to the entry-level hub.
       { source: '/jobs/entry-level/category', destination: '/jobs/entry-level', permanent: false },
       // /feeds is the feeds directory page; /feeds/industries is only a folder of feeds, so it goes there.
@@ -135,9 +138,30 @@ const nextConfig: NextConfig = {
         ['/schedule', '/conferences'],
         ['/tickets', '/conferences'],
         ['/register-now', '/conferences'],
-        ['/layoff', '/layoffs'],
         ['/data/layoffs', '/data'],
       ].map(([source, destination]) => ({ source, destination, permanent: true })),
+      // Other names for layoffs. People type and link these (job cuts, downsizing, a reduction in force or RIF, mass
+      // firings, WARN notices); each lands on the layoff tracker, and a deeper address keeps its place
+      // (/job-cuts/texas -> /layoffs/texas, /downsizing/company/acme -> /layoffs/company/acme). Permanent, so search
+      // engines credit /layoffs. The "what is a RIF" and "fired vs laid off" questions have their own guides, linked from it.
+      ...[
+        'layoff', 'layoff-tracker', 'layoffs-tracker', 'layoff-list', 'laid-off', 'laidoff',
+        'job-cuts', 'jobcuts', 'job-cut', 'job-losses', 'staff-cuts', 'headcount-reductions',
+        'downsizing', 'downsizings', 'corporate-downsizing',
+        'reduction-in-force', 'reductions-in-force', 'rif', 'rifs', 'rif-tracker',
+        'workforce-reduction', 'workforce-reductions', 'restructuring', 'restructurings',
+        'fired', 'firings', 'mass-firings', 'mass-layoffs', 'terminations',
+        'warn', 'warn-notice', 'warn-notices', 'warn-act-notices',
+      ].flatMap((alias) => [
+        { source: `/${alias}`, destination: '/layoffs', permanent: true },
+        { source: `/${alias}/:path+`, destination: '/layoffs/:path+', permanent: true },
+      ]),
+      // The year page by its other names (/job-cuts-2026, /layoffs-2026 -> /layoffs/2026). Add the next year when its page exists.
+      ...['layoffs', 'layoff', 'job-cuts', 'downsizing', 'rifs', 'mass-layoffs'].map((alias) => ({
+        source: `/${alias}-2026`,
+        destination: '/layoffs/2026',
+        permanent: true,
+      })),
       // redirect-non-candidate.ts sends contest employers here after sign-in; the address has no page of its own.
       { source: '/noexperience/employers', destination: '/noexperience/employers/contests', permanent: false },
       // Retired 2026-10-23: the website shows plans, not prices.
@@ -276,6 +300,8 @@ const nextConfig: NextConfig = {
       { source: "/ai-courses/:path*", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       { source: "/ai-courses", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       { source: "/top-employers", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
+      // Pay data pages are rendered per request (a heavy scan; a build-time prerender ran out of database connections on 2026-11-03) and kept by the CDN for six hours.
+      ...["/resources/pay-data", "/resources/pay-data/:path*"].map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=21600, stale-while-revalidate=86400" }] })),
       { source: "/images/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/marketing/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/guides/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },

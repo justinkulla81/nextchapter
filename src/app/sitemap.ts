@@ -93,6 +93,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/tools/resume-job-match', updated: '2026-10-30', freq: 'monthly', priority: 0.8 },
   { path: '/funding', updated: '2026-10-23', freq: 'monthly', priority: 0.8 },
   { path: '/pricing', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
+  { path: '/skills', updated: '2026-11-03', freq: 'daily', priority: 0.7 },
   { path: '/ai-skills', updated: '2026-10-20', freq: 'weekly', priority: 0.7 },
   { path: '/resources/ai-skills-pay-premium', updated: '2026-10-27', freq: 'weekly', priority: 0.7 },
   { path: '/ai-training', updated: '2026-10-20', freq: 'monthly', priority: 0.6 },

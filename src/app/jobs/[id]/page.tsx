@@ -36,6 +36,9 @@ import { cityAwardKeys } from '@/lib/rankings/place-keys'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 import { cn } from '@/lib/utils'
+import { ClaimSkills } from '@/components/skills/ClaimSkills'
+import { loadSkillsMarket } from '@/lib/skills/market-server'
+import { skillsForPosting } from '@/lib/skills/for-job'
 
 // A public, indexable page for one live job, with Google for Jobs structured data.
 // Which jobs get one: the allowlist in src/lib/jobs/public-job-page.ts. Every other id —
@@ -91,7 +94,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   const remote = isRemoteJob(job)
   // Where the job sits on the industry and function pages. A failed read just leaves the links out.
   const tags = await prisma.exclusiveJobPosting
-    .findUnique({ where: { id: job.id }, select: { industry: true, targetFunction: true, socCode: true, level: true, company: { select: { id: true, canonicalNameNormalized: true, sizeBand: true } } } })
+    .findUnique({ where: { id: job.id }, select: { industry: true, targetFunction: true, socCode: true, level: true, skills: true, company: { select: { id: true, canonicalNameNormalized: true, sizeBand: true } } } })
     .catch(() => null)
   // The employer's own page lists every open role it has; link to it when that page is offered to search engines.
   const employerHref =
@@ -100,6 +103,8 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   const titleStat = (await getTitleIndex().catch(() => [])).find((t) => t.slug === titleSlug(baseTitle(job.title)))
   const industry = bucketFromIndustryText(tags?.industry)
   const fn = functionByName(tags?.targetFunction)
+  // The skills this posting names that have a skills page, most asked for first. A failed read just leaves the section out.
+  const jobSkills = skillsForPosting(tags?.skills ?? [], await loadSkillsMarket().catch(() => null))
   // The employer's own colors, read from its website (src/lib/branding): a thin strip and the company name only; the buttons stay ours.
   const brand = await getEmployerBrand(job.companyName)
   // Director and up at a big company, VP and up at a small one: ask whether they want recruiters in this space (src/lib/jobs/recruiter-ask.ts).
@@ -192,6 +197,14 @@ export default async function PublicJobPage({ params }: { params: Params }) {
 
             <JobAiExposure jobId={job.id} socCode={tags?.socCode} />
             <EmployerLayoffLine jobId={job.id} company={job.companyName} />
+
+            {jobSkills.length > 0 && (
+              <section aria-labelledby="job-skills" className="mt-10">
+                <h2 id="job-skills" className="font-display text-xl font-semibold">Skills this job asks for</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Say which you have and which you want to build. We use it to match you to jobs like this one.</p>
+                <div className="mt-3"><ClaimSkills skills={jobSkills} source="job_page" /></div>
+              </section>
+            )}
 
             <h2 className="mt-10 font-display text-xl font-semibold">About the job</h2>
             <div className="mt-3 space-y-4 text-[15px] leading-relaxed">

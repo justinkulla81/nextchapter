@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { FeedLine } from '@/components/seo/FeedLine'
 import { permanentRedirect, redirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
-import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { CompanyLayoffGuide } from '@/components/layoffs/CompanyLayoffGuide'
 import { buildLayoffGuide } from '@/lib/warn/layoff-guide'
 import { filingFacts, guidePrograms } from '@/lib/warn/layoff-guide-programs'
@@ -69,7 +68,9 @@ async function load(slug: string) {
 
 /** The employer's WARN record and its announcements; an employer with only announcements gets a page with no notices. */
 async function loadPage(slug: string): Promise<{ c: CompanySummary; ann: CompanyAnnouncements | undefined } | null> {
-  const announcements = await getAnnouncements().catch(() => new Map<string, CompanyAnnouncements>())
+  // A failed lookup must not look like "no announcements": for an employer with no WARN filing that becomes the redirect below,
+  // and the redirect is cached for a day (see the page's own note). An error is not cached, so the next visit retries.
+  const announcements = await getAnnouncements()
   const ann = announcements.get(slug)
   const c = await load(slug)
   if (c) return { c, ann }
@@ -100,7 +101,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const lead = recent && ann ? ann.items[0] : null
   const description = lead && !c.notices.length
     ? `${c.name}: ${lead.summary} (${noticeDay(lead.date)}). What was announced, the source, and what to do if you are affected: benefits, severance, COBRA and local help.`
-    : `${lead ? `${lead.summary} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'} filed by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest filed ${noticeDay(c.latest)}. Dates, locations and the state record for each.`
+    : `${lead ? `${lead.summary} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} WARN ${c.notices.length === 1 ? 'notice' : 'notices'} of layoffs and job cuts filed by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest filed ${noticeDay(c.latest)}. Dates, locations and the state record for each.`
   // A page whose newest notice is over two years old, or that is too small to be worth a search result
   // (src/lib/seo/page-bars.ts), stays reachable but out of search results.
   const stale = !meetsCompanyLayoffBar(c) && !recent
@@ -198,7 +199,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
 
           <YourState label={c.name} />
           <div className="mt-4 space-y-12">
-            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
+            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : null} hasNotices={hasNotices} noticeCount={c.notices.length} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
             <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} buyoutRule={buyoutRule} />
             <SearchTimeFacts />
             <PeerEmployers company={c.name} near={peers.near} similar={peers.similar} metro={peers.homeState ? stateName(peers.homeState) : null} />
@@ -308,10 +309,6 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <div className="mt-4">
               <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
             </div>
-            {/* Right under the notices, where someone who came for this employer is reading: the offer to hear about the next one. */}
-            <div className="mt-6">
-              <LayoffAlertForm employer={slug} employerName={c.name} source="layoffs:company" />
-            </div>
             <StatementForm
               slug={slug}
               companyName={c.name}
@@ -368,11 +365,6 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             workers and dates the employer reported; it does not say why. See the{' '}
             <Link href="/layoffs" className={LINK}>layoff tracker</Link> for how notices are collected and what they cover.
           </p>}
-          {!hasNotices && (
-            <div className="mt-10">
-              <LayoffAlertForm employer={slug} employerName={c.name} source="layoffs:company" />
-            </div>
-          )}
           <p className="mt-12 text-center text-sm text-muted-foreground">
             Want to browse openings on your own? <Link href="/jobs" className={LINK}>Go to the job board →</Link>
           </p>

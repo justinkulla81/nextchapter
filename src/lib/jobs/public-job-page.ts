@@ -286,3 +286,12 @@ export function jobPostingJsonLd(job: PublicJobRow): Record<string, unknown> {
 
   return data
 }
+
+
+/**
+ * A company name with any stray markup removed. One feed delivered "ShipMonk</em" for 32 live jobs (2026-11-03), and the name goes
+ * into the page title, the heading and the JobPosting data Google reads. The stored name is left as it is; the page cleans it.
+ */
+export function cleanCompanyText(name: string): string {
+  return name.replace(/<\/?[a-z][^>]*>?/gi, '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
+}

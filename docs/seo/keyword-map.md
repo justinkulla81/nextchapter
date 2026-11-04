@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-239 clusters, 1439 phrases.
+240 clusters, 1495 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -63,18 +63,18 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/funding` | page | funding for laid-off workers | Money to relocate, retrain or study after a job loss | relocation assistance; retraining grants; training grants for laid off workers; tuition assistance after layoff; displaced worker programs; free courses for job seekers; wioa training funds; reskilling funding |
 | `/unemployment-benefits` | page | unemployment benefits by state | Unemployment insurance rules across states | unemployment benefits; unemployment insurance; how to file for unemployment; apply for unemployment; unemployment eligibility; weekly unemployment benefit amount; maximum unemployment benefit by state; how long does unemployment last; unemployment waiting week; does severance affect unemployment |
 | `/unemployment-benefits/:state` | family | {state} unemployment benefits | Unemployment benefits in one state | {state} unemployment; file for unemployment in {state}; {state} weekly unemployment benefit; {state} unemployment eligibility; {state} unemployment weeks; does severance affect unemployment in {state}; can i collect unemployment if i get severance in {state}; {state} severance and unemployment |
-| `/layoffs` | page | layoff tracker | Which companies are laying off, and where | layoffs; recent layoffs; layoffs today; companies laying off; layoff list; mass layoffs; WARN notices; WARN notice list; WARN Act layoffs; who is laying off |
-| `/layoffs/2026` | page | layoffs 2026 | How many layoffs there have been this year, by month, state and company | layoffs in 2026; 2026 layoffs; layoff statistics 2026; layoffs by month 2026; companies laying off 2026; biggest layoffs 2026; layoff list 2026; how many layoffs in 2026 |
-| `/layoffs/2026/:month` | family | {month} 2026 layoffs | Layoffs in one month of 2026 | layoffs in {month} 2026; {month} 2026 layoff notices; {month} 2026 WARN notices |
-| `/layoffs/this-week` | page | layoffs this week | Layoff notices filed in the last seven days | layoffs this week 2026; recent layoff notices; new WARN notices this week; latest layoff announcements |
+| `/layoffs` | page | layoff tracker | Which companies are laying off, and where | layoffs; recent layoffs; layoffs today; companies laying off; layoff list; mass layoffs; WARN notices; WARN notice list; WARN Act layoffs; who is laying off; layoffs tracker; job cuts; recent job cuts; job cuts today; companies cutting jobs; who is cutting jobs; job cuts tracker; downsizing; companies downsizing; corporate downsizing; downsizing tracker; reductions in force; companies with reductions in force; RIF tracker; recent RIFs; companies doing RIFs; workforce reductions; workforce reduction; staff cuts; headcount reductions; job losses; restructuring layoffs; mass firings; companies firing employees; who is firing |
+| `/layoffs/2026` | page | layoffs 2026 | How many layoffs there have been this year, by month, state and company | layoffs in 2026; 2026 layoffs; layoff statistics 2026; layoffs by month 2026; companies laying off 2026; biggest layoffs 2026; layoff list 2026; how many layoffs in 2026; job cuts 2026; 2026 job cuts; downsizing 2026; companies downsizing 2026; reductions in force 2026; RIFs 2026; mass layoffs 2026; workforce reductions 2026 |
+| `/layoffs/2026/:month` | family | {month} 2026 layoffs | Layoffs in one month of 2026 | layoffs in {month} 2026; {month} 2026 layoff notices; {month} 2026 WARN notices; {month} 2026 job cuts; job cuts in {month} 2026 |
+| `/layoffs/this-week` | page | layoffs this week | Layoff notices filed in the last seven days | layoffs this week 2026; recent layoff notices; new WARN notices this week; latest layoff announcements; job cuts this week; companies laying off this week; downsizing this week |
 | `/layoffs/week` | page | layoffs by week | Layoff notices week by week | weekly layoffs; weekly layoff report; layoffs last week; WARN notices by week |
 | `/layoffs/week/:week` | family | layoffs week of {date} | Layoffs in one calendar week | layoffs {week}; WARN notices week of {date} |
 | `/press` | page | white-collar unemployment data to cite | Cite and download our labor-market data | white-collar long-search index; long-term unemployment white-collar data; how to cite layoff data |
 | `/feeds` | page | layoff notices rss feed | Subscribe to layoff notices by RSS | WARN notices rss; layoff alerts by state rss; layoff news feed; WARN notice feed |
 | `/data` | page | layoff data download | Download layoff data | WARN notices csv; WARN notice data; layoff data by state; layoffs dataset |
 | `/data/embed` | page | layoff widget for website | Embed layoff, jobs and benefits widgets | embed layoff tracker; layoffs chart for website; unemployment benefits widget; jobs widget by industry; AI exposure widget for a job |
-| `/layoffs/:state` | family | {state} layoffs | Layoffs in one state | {state} WARN notices; {state} layoff list; recent layoffs in {state}; {state} companies laying off |
-| `/layoffs/company/:slug` | family | {company} layoffs | Layoffs at one employer | {company} WARN notice; {company} layoff dates; {company} layoff 2026 |
+| `/layoffs/:state` | family | {state} layoffs | Layoffs in one state | {state} WARN notices; {state} layoff list; recent layoffs in {state}; {state} companies laying off; {state} job cuts; {state} downsizing; {state} reduction in force; {state} mass layoffs; {state} companies cutting jobs |
+| `/layoffs/company/:slug` | family | {company} layoffs | Layoffs at one employer | {company} WARN notice; {company} layoff dates; {company} layoff 2026; {company} job cuts; {company} downsizing; {company} reduction in force; {company} RIF; {company} cutting jobs; {company} firing employees |
 | `/network/company/:slug` | family | {company} laid-off workers | What happens to workers laid off from one employer | former {company} employees; {company} laid off employees jobs; {company} severance and benefits; {company} alumni |
 | `/tools/warn-act-checker` | page | WARN Act checker | Employer asks whether WARN notice is required | WARN Act; WARN Act requirements; WARN Act 60 day notice; WARN Act calculator; mass layoff notice; reduction in force notice; plant closing notice; do I need to give WARN notice |
 | `/rapid-response` | page | rapid response layoff services | Employer planning a layoff looks for state support | rapid response; rapid response team; layoff aversion; layoff support for employers; plan a layoff; state rapid response coordinator |
@@ -83,6 +83,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/reports` | page | white collar employment report | White-collar job market data | white collar jobs report; white collar job market; job market report; professional jobs report; hiring trends; job market 2026; unemployment rate for professionals |
 | `/reports/white-collar-index` | page | how long a job search takes | How long does a job search take | average job search length; how long to find a job; long search index; time to hire white collar |
 | `/reports/early-warning` | page | young graduates unemployment | Are graduates and entry-level workers being hit | recent graduate unemployment rate; entry level jobs and AI; AI layoffs; early warning labor indicators; AI job cuts by country |
+| `/skills` | page | most in-demand job skills | Skills employers ask for most, by industry, function, state and seniority | top skills employers want; skills in demand by industry; skills in demand by state; skills for entry-level jobs; rising job skills; skills AI cannot replace |
 | `/ai-skills` | page | AI skills in job postings | AI skills in demand and what they pay | AI jobs; AI skills by function; in-demand AI skills; which jobs need AI skills; AI-proof careers; careers that use AI skills; AI jobs pay |
 | `/resources/ai-skills-pay-premium` | page | AI skills salary premium | Do AI skills increase pay (explainer with a citable table) | do AI skills increase salary; AI skills salary increase; AI skills non tech jobs salary; how much do AI skills pay; AI pay premium by function; AI skills pay marketing |
 | `/ai-training` | page | AI training for workforce programs | Organizations buying AI upskilling | AI upskilling; AI reskilling; AI courses for laid off workers; AI training for colleges; AI training for employers; AI skills gap |
@@ -501,8 +502,8 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/layoffs`
 
-- Title: Layoff Tracker: Recent Layoffs and WARN Notices by State
-- Description: Recent layoffs from WARN Act notices filed with state labor departments, collected daily: totals, the latest filings, and a page for every state and employer.
+- Title: Layoff Tracker: Layoffs, Job Cuts and WARN Notices by State
+- Description: Recent layoffs, job cuts, downsizing and reductions in force (RIFs) from WARN notices filed with the states, updated daily, with a page for each state and employer.
 
 ### `/layoffs/2026`
 
@@ -576,6 +577,11 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Young Graduates and AI: Early-Warning Labor Indicators
 - Description: Are young graduates the canary? Unemployment for recent graduates, entry-level hiring and AI-attributed job cuts by country, tracked against earlier downturns.
+
+### `/skills`
+
+- Title: Most In-Demand Job Skills by Industry, Function and State
+- Description: The skills named in the most open jobs, by industry, function, state and seniority, which are rising, and where AI is already used in the work.
 
 ### `/ai-skills`
 

@@ -10,6 +10,7 @@ import { titleMeta } from '@/lib/seo/title'
 import { getPublicCatalog } from '@/lib/learning/public-catalog'
 import { catalogFunctionByName, coursePath, functionLevelPath, functionPath, levelInfo, levelPath, relatedCourses } from '@/lib/learning/public-catalog-shared'
 import { courseJsonLd } from '@/lib/learning/public-catalog-seo'
+import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,7 +51,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             rel="nofollow"
             event="course_outbound_clicked"
             properties={{ source, course: c.slug, level: c.level, provider: c.provider, free: c.free }}
-            className="inline-flex h-11 items-center rounded-full bg-action px-6 text-sm font-semibold text-action-foreground hover:brightness-95"
+            className={SECONDARY_ACTION}
           >
             Take it on {p.name}
           </TrackedLink>

@@ -34,3 +34,12 @@ export async function FreshLinks({ tone, placement }: { tone: 'dark' | 'light'; 
     </div>
   )
 }
+
+/**
+ * The newest layoff pages as a plain link list for the layoff hub. The hub's tracker table is drawn in the browser, so without
+ * this list the newest announcements (employers with no WARN filing) have no link a crawler can follow from /layoffs.
+ */
+export async function LatestLayoffLinks({ limit, placement, tone }: { limit: number; placement: string; tone: 'dark' | 'light' }) {
+  const layoffs = await getFreshLayoffLinks(limit)
+  return <LinkList title="Latest layoffs" links={layoffs} placement={placement} tone={tone} />
+}
