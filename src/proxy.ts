@@ -100,10 +100,10 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const portalHost = portalHostFor(host)
   if (portalHost && portalHostOn(portalHost)) return routePortalHost(request, portalHost, pathname)
   if (!portalHost && !orgKindForHost(host) && host !== ADMIN_HOST) {
-    // Main site: a signed-in member on a public job page goes to the same job in the portal (src/lib/jobs/portal-job-redirect.ts).
+    // Main site: a signed-in member on a public job page or the public job search goes to the same thing in the portal (src/lib/jobs/portal-job-redirect.ts).
     if (request.method === 'GET' || request.method === 'HEAD') {
       const hasSession = request.cookies.getAll().some((c) => c.name.startsWith('sb-') && c.name.includes('auth-token'))
-      const inPortal = portalJobPath(pathname, hasSession)
+      const inPortal = portalJobPath(pathname, hasSession, request.nextUrl.search)
       if (inPortal) return NextResponse.redirect(new URL(inPortal, request.url), 307)
     }
     // Main site: a portal that has its own host now lives there.
