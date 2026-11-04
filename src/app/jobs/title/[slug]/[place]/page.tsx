@@ -9,6 +9,7 @@ import { parsePlace } from '@/lib/seo/job-title-places'
 import { usd } from '@/lib/seo/job-title-rules'
 import { stateSlug } from '@/lib/seo/states'
 import { titlePlaceJobsSeo } from '@/lib/seo/templates'
+import { titleLabel } from '@/lib/seo/title-aliases'
 import { titleMeta } from '@/lib/seo/title'
 import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug, place } = await params
   const d = await getTitlePlaceDetail(slug, place)
   if (!d) return { title: 'Jobs not found', robots: { index: false, follow: true } }
-  const seo = titlePlaceJobsSeo(d.stat.name, d.place.name, d.place.jobs, d.place.median)
+  const seo = titlePlaceJobsSeo(titleLabel(d.stat.name, slug), d.place.name, d.place.jobs, d.place.median)
   return { title: titleMeta(seo.title), description: seo.description, ...canonical(`/jobs/title/${slug}/${place}`) }
 }
 
@@ -36,7 +37,7 @@ export default async function TitlePlaceJobsPage({ params }: { params: Promise<{
   if (!d) redirect(`/jobs/title/${slug}`)
   const { stat, place: p, jobs } = d
   const path = `/jobs/title/${slug}/${place}`
-  const seo = titlePlaceJobsSeo(stat.name, p.name, p.jobs, p.median)
+  const seo = titlePlaceJobsSeo(titleLabel(stat.name, slug), p.name, p.jobs, p.median)
   const lower = stat.name.toLowerCase()
   return (
     <TopicShell

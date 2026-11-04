@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { notFound, permanentRedirect, redirect } from 'next/navigation'
 import { Chips, FactGrid, JobList, JoinBand, LINK, RankList, Section, TopicShell } from '@/components/topics/blocks'
 import { FitCheck } from '@/components/capture/FitCheck'
 import { RankingContext } from '@/components/rankings/RankingContext'
@@ -14,6 +14,7 @@ import { getTitleDetail, getTitlePlaceIndex, hasSalaryPage } from '@/lib/seo/job
 import { usd } from '@/lib/seo/job-title-rules'
 import { titleJobsSeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
+import { slugForAbbreviation, titleLabel } from '@/lib/seo/title-aliases'
 import { RoleGuideLink } from '@/components/roles/RoleGuideLink'
 
 export const revalidate = 86400
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const d = await getTitleDetail(slug)
   if (!d) return { title: 'Jobs not found', robots: { index: false, follow: true } }
-  const seo = titleJobsSeo(d.stat.name, d.stat.jobs)
+  const seo = titleJobsSeo(titleLabel(d.stat.name, slug), d.stat.jobs)
   return { title: titleMeta(seo.title), description: seo.description, ...canonical(`/jobs/title/${slug}`) }
 }
 
@@ -36,13 +37,16 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
   if (!d) {
     // A title with too few open jobs has no page; send the visitor to a search for it instead of a 404.
     if (!/^[a-z0-9-]{3,80}$/.test(slug)) notFound()
+    // An abbreviation (cfo, coo) goes to the hub for the spelled-out title.
+    const full = slugForAbbreviation(slug)
+    if (full) permanentRedirect(`/jobs/title/${full}`)
     redirect(`/jobs?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`)
   }
   const { stat } = d
   const path = `/jobs/title/${slug}`
   // The cities and states with a page of their own for this title (job-title-places.ts), biggest first.
   const places = (await getTitlePlaceIndex()).filter((r) => r[0] === slug).sort((x, y) => y[3] - x[3]).slice(0, 16)
-  const seo = titleJobsSeo(stat.name, stat.jobs)
+  const seo = titleJobsSeo(titleLabel(stat.name, slug), stat.jobs)
   const ins = await loadTitleInsights(stat.name, stat.fn)
   return (
     <TopicShell
