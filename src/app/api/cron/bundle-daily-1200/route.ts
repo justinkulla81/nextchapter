@@ -11,7 +11,8 @@ export const maxDuration = 800
 export const GET = cronBundle({
   'help-feedback-digest': help_feedback_digest,
   'research-inbox-sweep': research_inbox_sweep,
-  'job-search-daily': job_search_daily,
   'saved-job-closures': saved_job_closures,
   'firm-joined-notices': firm_joined_notices,
+  // Last: it can use the whole bundle's time (it timed out on 2026-11-04 and the jobs after it never ran).
+  'job-search-daily': job_search_daily,
 })
