@@ -1,11 +1,38 @@
 const SITE = 'https://launchyournextchapter.com'
 import { employerSlug } from './layoff-pages'
 
-/** The LinkedIn message for a layoff, with the public page's link, ready to copy. */
-export function linkedinLayoffPost(s: { url: string; employer: string; employees: number | null; state: string | null }): string {
+/** Wording that rotates so the several posts a day do not read the same. Each list is picked from independently, by a hash of the seed. */
+const HELP = [
+  'If you or someone you know is affected, NextChapter wants to help them get back to work fast.',
+  'NextChapter has lots of great jobs. If you or someone you know is affected, we want to help them find the next one.',
+  'If you or someone you know is affected, NextChapter can help them find new skills and get back to work.',
+  'If this hits close to home, NextChapter is here to help you or someone you know get back to work fast.',
+  'NextChapter helps people find great jobs and build new skills after a layoff. If you or someone you know is affected, we’re here.',
+]
+const START = [
+  'It’s free, start your #nextchapter here:',
+  'It’s free to start your #nextchapter here:',
+  'Free to use. Start your #nextchapter here:',
+]
+const TAG = [
+  'Being laid off is really tough, so tag someone we can help with their job transition.',
+  'Know someone affected? Tag them so we can help with their job transition.',
+  'Layoffs are hard. Tag someone we can help with their next step.',
+  'Tag a friend or former colleague who could use help with their job transition.',
+]
+
+const pick = <T,>(list: T[], seed: string, salt: number): T => {
+  let h = salt
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0
+  return list[h % list.length]
+}
+
+/** The LinkedIn message for a layoff, with the public page's link, ready to copy. The seed (the notice id) keeps one layoff's wording stable and varies it between layoffs. */
+export function linkedinLayoffPost(s: { url: string; employer: string; employees: number | null; state: string | null; seed?: string }): string {
   const cuts = s.employees ? `${s.employees.toLocaleString('en-US')} jobs` : 'jobs'
   const where = s.state ? ` in ${s.state}` : ''
-  return `${s.employer} is cutting ${cuts}${where}. If you or someone you know is affected, NextChapter wants to help them get back in business fast.\n\nIt's free, start your #nextchapter here: ${s.url}\n\n${s.employer}`
+  const seed = s.seed ?? s.employer
+  return `${s.employer} is cutting ${cuts}${where}. ${pick(HELP, seed, 1)}\n\n${pick(START, seed, 2)} ${s.url}\n\n${pick(TAG, seed, 3)}\n\n${s.employer}`
 }
 
 /** The subject line for the direct message. */
@@ -30,6 +57,6 @@ export function noticeShare(n: { noticeId: string; employer: string; companyName
   const employer = n.companyName ?? n.employer
   return {
     noticePage: `${SITE}/support/admin/crm/warn/${n.noticeId}`,
-    linkedin: linkedinLayoffPost({ url: `${SITE}/layoffs/company/${employerSlug(n.employer, n.companyName ?? null)}`, employer, employees: n.employees, state: n.state }),
+    linkedin: linkedinLayoffPost({ url: `${SITE}/layoffs/company/${employerSlug(n.employer, n.companyName ?? null)}`, employer, employees: n.employees, state: n.state, seed: n.noticeId }),
   }
 }

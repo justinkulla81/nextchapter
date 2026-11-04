@@ -26,7 +26,7 @@ export default async function LayoffNoticePage({ params }: { params: Promise<{ i
           <h2 className="text-base font-semibold text-navy">Public page to share</h2>
           <a href={view.share.url} target="_blank" rel="noreferrer" className="mt-1 block break-all text-sm text-brand underline underline-offset-4">{view.share.url}</a>
         </section>
-        <CopyBox label="LinkedIn message" text={linkedinLayoffPost(view.share)} kind="linkedin_layoff_message" event="layoff_share_message_copied" props={{ noticeId: id, url: view.share.url }} />
+        <CopyBox label="LinkedIn message" text={linkedinLayoffPost({ ...view.share, seed: id })} kind="linkedin_layoff_message" event="layoff_share_message_copied" props={{ noticeId: id, url: view.share.url }} />
         <CopyBox label="Subject line for the message" text={linkedinCandidateSubject(view.share.employer)} kind="linkedin_candidate_subject" event="layoff_share_message_copied" props={{ noticeId: id, url: view.share.url }} />
         <CopyBox label="Message to someone laid off" text={linkedinCandidateNote(view.share)} kind="linkedin_candidate_note" event="layoff_share_message_copied" props={{ noticeId: id, url: view.share.url }} />
       </div>
