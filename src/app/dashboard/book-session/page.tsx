@@ -18,7 +18,7 @@ export default async function BookSessionPage() {
 
   const header = (
     <div className="space-y-3">
-      <h1 className="text-2xl font-semibold tracking-tight">Book a coaching session</h1>
+      <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Book a coaching session</h1>
     </div>
   )
 
