@@ -36,6 +36,8 @@ export interface LiveJob {
   at: number
   /** Whether we ask search engines to take it (stated pay, entry-level or no experience). Only these are announced as new; a live job that is not offered is never announced as gone. Missing means yes. */
   offered?: boolean
+  /** Pay and listing points from the job's own fields (see googleJobPriority); missing counts as 0. */
+  value?: number
 }
 
 /**
@@ -86,11 +88,27 @@ export function googleIndexingQuota(env: Record<string, string | undefined> = pr
   return Number.isInteger(n) && n > 0 ? n : GOOGLE_INDEXING_DEFAULT_QUOTA
 }
 
-/** Closed jobs first (URL_DELETED), then the newest public jobs Google hasn't been sent (URL_UPDATED), within `quota`. */
-export function planGoogle(live: LiveJob[], sent: ReadonlySet<string>, quota: number): { deleted: string[]; updated: string[] } {
+const DAY_MS = 86_400_000
+
+/**
+ * How much a job is worth one of the 200 Google Indexing API requests a day. Google for Jobs shows pay and favors fresh postings,
+ * so: stated yearly pay 3, stated hourly pay 1, on the employer's own career system 2 (both in `value`), and posted in the last 3
+ * days 3 or the last 14 days 1. Ties go to the newest.
+ */
+export function googleJobPriority(j: LiveJob, now: number): number {
+  const age = now - j.at
+  return (j.value ?? 0) + (age <= 3 * DAY_MS ? 3 : age <= 14 * DAY_MS ? 1 : 0)
+}
+
+/** Closed jobs first (URL_DELETED), then the not-yet-sent offered jobs worth the most (URL_UPDATED), within `quota`. */
+export function planGoogle(live: LiveJob[], sent: ReadonlySet<string>, quota: number, now: number = Date.now()): { deleted: string[]; updated: string[] } {
   const { removed } = planChanges(live, sent, 0)
   const deleted = removed.slice(0, quota)
-  const updated = planChanges(live, sent, quota - deleted.length).added
+  const updated = live
+    .filter((j) => !sent.has(j.id) && j.offered !== false)
+    .sort((a, b) => googleJobPriority(b, now) - googleJobPriority(a, now) || b.at - a.at || (a.id < b.id ? -1 : 1))
+    .slice(0, Math.max(0, quota - deleted.length))
+    .map((j) => j.id)
   return { deleted, updated }
 }
 

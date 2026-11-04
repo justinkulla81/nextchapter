@@ -1,5 +1,5 @@
 import { TrackedLink } from '@/components/marketing/TrackedLink'
-import { getFreshJobLinks, getFreshLayoffLinks, type FreshLink } from '@/lib/seo/fresh-links'
+import { getFreshJobLinks, getFreshLayoffLinks, getRisingSearchLinks, type FreshLink } from '@/lib/seo/fresh-links'
 
 // Newest layoff pages and job pages as a plain link list. `tone` matches the surface it sits on: 'dark' for the home footer,
 // 'light' for /news. Renders nothing when there is nothing to list.
@@ -25,12 +25,13 @@ function LinkList({ title, links, placement, tone }: { title: string; links: Fre
 }
 
 export async function FreshLinks({ tone, placement }: { tone: 'dark' | 'light'; placement: string }) {
-  const [layoffs, jobs] = await Promise.all([getFreshLayoffLinks(), getFreshJobLinks()])
-  if (layoffs.length === 0 && jobs.length === 0) return null
+  const [layoffs, jobs, rising] = await Promise.all([getFreshLayoffLinks(), getFreshJobLinks(), getRisingSearchLinks(8)])
+  if (layoffs.length === 0 && jobs.length === 0 && rising.length === 0) return null
   return (
     <div className={tone === 'dark' ? 'mt-12 space-y-6 text-left' : 'space-y-6'}>
       <LinkList title="Latest layoffs" links={layoffs} placement={placement} tone={tone} />
       <LinkList title="Newest jobs" links={jobs} placement={placement} tone={tone} />
+      <LinkList title="Searched for lately" links={rising} placement={placement} tone={tone} />
     </div>
   )
 }
@@ -42,4 +43,10 @@ export async function FreshLinks({ tone, placement }: { tone: 'dark' | 'light'; 
 export async function LatestLayoffLinks({ limit, placement, tone }: { limit: number; placement: string; tone: 'dark' | 'light' }) {
   const layoffs = await getFreshLayoffLinks(limit)
   return <LinkList title="Latest layoffs" links={layoffs} placement={placement} tone={tone} />
+}
+
+/** Pages that already show on the edge of page one, linked with the search as the text. For the layoff hub. */
+export async function RisingSearchLinks({ limit, placement, tone, prefixes }: { limit: number; placement: string; tone: 'dark' | 'light'; prefixes?: readonly string[] }) {
+  const links = await getRisingSearchLinks(limit, prefixes)
+  return <LinkList title="Searched for lately" links={links} placement={placement} tone={tone} />
 }
