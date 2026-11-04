@@ -57,7 +57,7 @@ const PUBLIC_FILES = [
 
 // Extended scope: signed-in screens, emails and pitch defaults that quoted our own prices.
 const EXTENDED_FILES = [
-  'src/app/dashboard/membership/page.tsx',
+  'src/app/dashboard/alumni-plan/page.tsx',
   'src/app/dashboard/premium/page.tsx',
   'src/app/dashboard/plans/scholarship/page.tsx',
   'src/emails/upgrade-offer.tsx',

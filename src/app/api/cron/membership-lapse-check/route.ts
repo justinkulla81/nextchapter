@@ -9,7 +9,7 @@ import { withCronRun } from '@/lib/cron/run'
 // this is the flip side: an ACTIVE MembershipSubscription whose
 // currentPeriodEnd (and freeUntil, if set) have both passed with no renewal
 // becomes LAPSED, and the `member` RoleGrant is revoked. reactivateMembership
-// (src/app/dashboard/membership/actions.ts) is the only path back to ACTIVE.
+// (src/app/dashboard/alumni-plan/actions.ts) is the only path back to ACTIVE.
 export const GET = withCronRun('membership-lapse-check', async () => {
   const now = new Date()
   const overdue = await prisma.membershipSubscription.findMany({

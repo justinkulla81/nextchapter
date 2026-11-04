@@ -26,7 +26,7 @@ const CRM_USE = /\b(crmOrganization|crmPerson|crmActivity|crmAffiliation)\b|from
 // CRM data back, and nothing it returns reaches a candidate page.
 const CANDIDATE_TO_CRM_SYNC = new Set([
   'src/app/dashboard/resume/actions.ts',
-  'src/app/dashboard/membership/actions.ts',
+  'src/app/dashboard/alumni-plan/actions.ts',
 ])
 
 describe('candidates never see CRM', () => {

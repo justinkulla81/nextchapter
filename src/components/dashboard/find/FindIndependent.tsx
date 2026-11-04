@@ -170,7 +170,7 @@ export function FindIndependent({
                         {!isMember ? (
                           <p className="text-sm text-ink">
                             {boardListings.length} listing{boardListings.length === 1 ? '' : 's'} ready to view once you are on the{' '}
-                            <Link href="/dashboard/membership" className="font-medium text-brand underline underline-offset-4">Alumni plan</Link>.
+                            <Link href="/dashboard/alumni-plan" className="font-medium text-brand underline underline-offset-4">Alumni plan</Link>.
                           </p>
                         ) : (
                           <>

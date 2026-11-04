@@ -83,7 +83,7 @@ export default function OutplacementAccountAfterContractArticlePage() {
             When an employer-sponsored seat ends, the person keeps their account, free, for as long as they
             want it, along with their profile, résumé, documents, search plan, contacts and notes. What the
             employer paid for stops: the coaching sessions and the recruiter network, if the program included
-            it. Your search carries on as it is, and membership can pick up coaching or the recruiter network
+            it. Your search carries on as it is, and the Alumni plan can pick up coaching or the recruiter network
             if you want them. The employer&apos;s program reporting, described on{' '}
             <Link href="/outplacement" className="text-primary underline underline-offset-4">
               the employers page

@@ -67,6 +67,8 @@ const nextConfig: NextConfig = {
       // /membership became /alumni-plan (2026-11-04, the paid tier is the Alumni plan). Permanent, so links, search results and emails
       // that still carry the old address keep working.
       { source: '/membership', destination: '/alumni-plan', permanent: true },
+      // The signed-in page followed: /dashboard/membership became /dashboard/alumni-plan (2026-11-04). Permanent, because emails already sent link to the old address.
+      { source: '/dashboard/membership', destination: '/dashboard/alumni-plan', permanent: true },
       // /skills/by and /skills/by/<dimension> are only folders of the skills lists, so they go to the skills hub.
       { source: '/skills/by', destination: '/skills', permanent: false },
       { source: '/skills/by/:dim', destination: '/skills', permanent: false },

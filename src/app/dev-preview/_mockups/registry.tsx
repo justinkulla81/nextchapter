@@ -224,7 +224,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'learn/know', place: 'Learn', title: 'How I work', replaces: '/dashboard/skills-assessments, how-i-perform', Component: HowIWork },
   { path: 'account/visibility', place: 'Account', title: 'What recruiters see', replaces: '/dashboard/recruiter-report, privacy', Component: WhatRecruitersSee },
   { path: 'account/documents', place: 'Account', title: 'Documents', replaces: '/dashboard/documents', Component: DocumentsMock },
-  { path: 'account/membership', place: 'Account', title: 'Membership', replaces: '/dashboard/membership', Component: MembershipMock },
+  { path: 'account/membership', place: 'Account', title: 'Alumni plan', replaces: '/dashboard/alumni-plan', Component: MembershipMock },
   { path: 'help/talk', place: 'Help', title: 'Talk to someone', replaces: '/dashboard/support', Component: HelpTalk },
   { path: 'help/work', place: 'Help', title: 'A hard situation at work (the real screens, sample answers)', replaces: 'new: for people considering leaving', Component: WorkHelpMock },
   { path: 'help/scams', place: 'Help', title: 'Scam watch', replaces: '/dashboard/scam-watch', Component: HelpScams },

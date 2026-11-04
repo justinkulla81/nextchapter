@@ -50,7 +50,7 @@ export const PORTAL_PLAN_LABELS: Record<PortalKey, PortalPlanLabel> = {
 }
 
 export const FAMILY_LABELS: Record<PlanFamily, { title: string; blurb: string }> = {
-  individual: { title: 'Individual', blurb: 'For a candidate. Free to start, with optional membership and coaching.' },
+  individual: { title: 'Individual', blurb: 'For a Member. Free to join, with the optional Alumni plan and coaching.' },
   organization: { title: 'Organizations and professionals', blurb: 'For colleges, workforce organizations, recruiters and coaches.' },
   corporate: { title: 'Corporate', blurb: 'For employers, by stage of the employee lifecycle.' },
 }
@@ -78,8 +78,8 @@ export const PLANS: Plan[] = [
   {
     family: 'individual',
     planKey: 'membership',
-    name: 'Membership',
-    audience: 'Candidates who have landed and want to stay ready',
+    name: 'Alumni plan',
+    audience: 'Members who have landed and want to stay ready',
     includes: [
       'Annual Dossier refresh',
       'Quarterly comp-benchmarked market check',
