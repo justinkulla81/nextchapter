@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { LinkIndex } from '@/components/seo/LinkIndex'
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteFooter, PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
@@ -51,14 +52,7 @@ export default function FeedsPage() {
                   ))}
                 </ul>
               ) : (
-                <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
-                  {g.feeds.map((f) => (
-                    <li key={f.key} className="flex items-center justify-between gap-2">
-                      <a href={f.path} className={LINK}>{f.title.replace(/ layoff notices$/, '')}</a>
-                      <Link href={f.page} className="text-xs text-muted-foreground underline underline-offset-2">page</Link>
-                    </li>
-                  ))}
-                </ul>
+                <LinkIndex label={g.title} visible={12} items={g.feeds.map((f) => ({ href: f.path, label: f.title.replace(/ layoff notices$/, ''), extra: { href: f.page, label: 'page' } }))} />
               )}
             </section>
           ))}

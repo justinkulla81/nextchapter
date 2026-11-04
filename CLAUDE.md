@@ -37,6 +37,13 @@ top-level folder under `src/app`. `src/test/app-top-level.test.ts` fails CI on
 folder, update that file in the same change and run `npx vitest run
 src/test/app-top-level.test.ts` before pushing.
 
+## One registration ask per public page
+
+A public page makes one registration ask: the navy `NextStepBox` (`src/components/capture/NextStepBox.tsx`), which the page
+frames (`SeoPage`, `TopicShell`) and `PullTop` render for you. Do not add a second "Get my plan / Get my Market Reality
+Assessment" button, a mid-page strip or a closing band to a page, and pass `cta={false}` to `PublicSiteFooter` on a page that
+already carries the box. A page's own content links (file a claim, download the data) are not asks. Owner decision, 2026-11-03.
+
 ## Candidate site redesign
 
 Every page under `src/app/dashboard` follows `docs/candidate-redesign.md`: the
