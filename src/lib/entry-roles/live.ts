@@ -6,7 +6,7 @@ import { PAY, PUBLIC, newestJobs, type TitleJob } from '@/lib/seo/job-titles'
 import { computeTitlePlaces, parsePlace, PLACE_MIN_SHOWN, placeIndex, type PlaceIndexRow, type TitlePlace } from '@/lib/seo/job-title-places'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { STATE_NAMES } from '@/lib/workforce/places'
-import { ANY_ROLE_REGEX_PG, ENTRY_PLACE_BARS, ENTRY_ROLES, rolesForTitle } from '@/lib/entry-roles/roles'
+import { ENTRY_PLACE_BARS, ENTRY_ROLES, ROLE_HEAD_REGEX_PG, rolesForTitle } from '@/lib/entry-roles/roles'
 
 // Live openings for the entry-level role pages. One pass over the open board reads only the rows whose title names one of the
 // roles (a regex over every role's title phrases), keeps the entry-level ones (level entry or early, no level stated, or the posting
@@ -16,14 +16,23 @@ import { ANY_ROLE_REGEX_PG, ENTRY_PLACE_BARS, ENTRY_ROLES, rolesForTitle } from 
 interface Row { id: string; title: string; state: string | null; city: string | null; company: string; posted: Date; pay: number | null; noexp: boolean; training: boolean }
 
 async function scanRows(): Promise<Row[]> {
-  const rows = await prisma.$queryRaw<(Omit<Row, 'posted' | 'pay'> & { posted: Date; pay: number | null })[]>`
-    SELECT id, title, "locationState" AS state, "locationCity" AS city, "companyName" AS company, COALESCE("postedAt", "createdAt") AS posted, ${PAY}::float8 AS pay,
-      ('no_experience_ok' = ANY("postingSignals")) AS noexp, ('training_provided' = ANY("postingSignals")) AS training
-    FROM "ExclusiveJobPosting"
+  // Stage 1: ids and titles of open entry-level-or-unleveled postings whose title has a role's head word (a short regex), cheap enough
+  // for the database's 2-minute statement limit. Stage 2 (below) reads the details of the titles that really match a role.
+  const candidates = await prisma.$queryRaw<{ id: string; title: string }[]>`
+    SELECT id, title FROM "ExclusiveJobPosting"
     WHERE ${PUBLIC}
-      AND title ~* ${ANY_ROLE_REGEX_PG}
+      AND title ~* ${ROLE_HEAD_REGEX_PG}
       AND (level IS NULL OR level IN ('ENTRY_IC', 'EARLY_IC') OR 'no_experience_ok' = ANY("postingSignals"))`
-  return rows.map((r) => ({ ...r, posted: new Date(r.posted), pay: r.pay == null ? null : Number(r.pay) }))
+  const ids = candidates.filter((c) => rolesForTitle(c.title).length > 0).map((c) => c.id)
+  const rows: Row[] = []
+  for (let i = 0; i < ids.length; i += 4000) {
+    const part = await prisma.$queryRaw<(Omit<Row, 'posted' | 'pay'> & { posted: Date; pay: number | null })[]>`
+      SELECT id, title, "locationState" AS state, "locationCity" AS city, "companyName" AS company, COALESCE("postedAt", "createdAt") AS posted, ${PAY}::float8 AS pay,
+        ('no_experience_ok' = ANY("postingSignals")) AS noexp, ('training_provided' = ANY("postingSignals")) AS training
+      FROM "ExclusiveJobPosting" WHERE id = ANY(${ids.slice(i, i + 4000)}::text[])`
+    rows.push(...part.map((r) => ({ ...r, posted: new Date(r.posted), pay: r.pay == null ? null : Number(r.pay) })))
+  }
+  return rows
 }
 
 export interface EntryRoleStat {

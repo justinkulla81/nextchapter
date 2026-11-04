@@ -183,8 +183,21 @@ const phraseSource = (p: string) => esc(p).replace(/\s+/g, '[\\s-]+')
 
 const compiled = ENTRY_ROLES.map((r) => ({ slug: r.slug, re: new RegExp(`(?:^|[^a-z0-9])(?:${r.match.map(phraseSource).join('|')})(?:[^a-z0-9]|$)`, 'i') }))
 
-/** One Postgres regex that any role's phrases match, so the scan reads only candidate rows. */
-export const ANY_ROLE_REGEX_PG = `(^|[^a-z0-9])(${ENTRY_ROLES.flatMap((r) => r.match.map(phraseSource)).join('|').replace(/\[\\s-\]\+/g, '[[:space:]-]+')})([^a-z0-9]|$)`
+/**
+ * The last word of every role phrase (the one before it when a phrase ends in a level number), so the database can pick candidate
+ * titles with a short word list. One regex over every full phrase (567 alternatives) timed out the board-figures step against the
+ * 2-minute statement limit on 2026-11-04; the exact match is done here in code, on the candidates only.
+ */
+export const ROLE_HEAD_WORDS: string[] = [...new Set(
+  ENTRY_ROLES.flatMap((r) => r.match.map((m) => {
+    const words = m.split(/\s+/)
+    const last = words[words.length - 1]
+    return /^(i|ii|iii|iv|\d+)$/.test(last) && words.length > 1 ? words[words.length - 2] : last
+  })),
+)].filter((w) => /^[a-z&]{2,}$/.test(w)).sort()
+
+/** The candidate filter as a Postgres regex: a title with one of the head words as a whole word. */
+export const ROLE_HEAD_REGEX_PG = `(^|[^a-z0-9])(${ROLE_HEAD_WORDS.join('|')})([^a-z0-9]|$)`
 
 /**
  * The roles a title belongs to (usually one; "Business Development Representative" fits only BDR but a title can name two).
