@@ -29,7 +29,7 @@ export function weekKey(d: Date): string {
 }
 
 /**
- * The Monday post: last seven days of WARN layoff notices as totals, never employer names (employer-specific posts go
+ * The Monday post: last seven days of layoff notices (state WARN notices) as totals, never employer names (employer-specific posts go
  * through the human-approved queue). Null when the week was too quiet.
  */
 export function weeklyLayoffPost(notices: WeekNotice[], now: Date, utm: string): SocialPost | null {
@@ -43,11 +43,11 @@ export function weeklyLayoffPost(notices: WeekNotice[], now: Date, utm: string):
   for (const x of thisWeek) byState.set(x.state, (byState.get(x.state) ?? 0) + (x.workers ?? 0))
   const top = [...byState].sort((a, b) => b[1] - a[1]).slice(0, 3).filter(([, w]) => w > 0).map(([s]) => stateName(s))
   const diff = thisWeek.length - lastWeek.length
-  const trend = lastWeek.length ? ` That is ${diff === 0 ? 'the same as' : `${n(Math.abs(diff))} ${diff > 0 ? 'more' : 'fewer'} than`} the week before.` : ''
+  const trend = lastWeek.length ? ` (${diff === 0 ? 'same as' : `${n(Math.abs(diff))} ${diff > 0 ? 'more' : 'fewer'} than`} last week)` : ''
   const text =
-    `Layoff notices filed in the last 7 days: ${n(thisWeek.length)} WARN notices${workers ? ` naming ${n(workers)} workers` : ''}.${trend}` +
-    (top.length ? ` Most workers: ${top.join(', ')}.` : '') +
-    ` Free data, every notice: ${SITE_URL}/layoffs/this-week?${utm}`
+    `${workers ? `${n(workers)} people` : `${n(thisWeek.length)} companies`} found out this week they are losing their jobs: ${n(thisWeek.length)} layoff notices${trend}.` +
+    (top.length ? ` Hit hardest: ${top.join(', ')}.` : '') +
+    ` Just laid off? Start here: ${SITE_URL}/layoffs/this-week?${utm} #layoffs #laidoff #jobsearch`
   return { key: `layoffs-week-${weekKey(now)}`, text }
 }
 
@@ -131,9 +131,9 @@ export function dailyLayoffPost(notices: DayNotice[], now: Date, utm: string): S
   for (const x of today) byState.set(x.state, (byState.get(x.state) ?? 0) + (x.workers ?? 0))
   const top = [...byState].sort((a, b) => b[1] - a[1]).slice(0, 3).filter(([, w]) => w > 0).map(([s]) => stateName(s))
   const text =
-    `New layoff notices in the last 24 hours: ${n(today.length)} WARN notices in ${n(states)} ${states === 1 ? 'state' : 'states'}${workers ? `, naming ${n(workers)} workers` : ''}.` +
-    (top.length ? ` Most workers: ${top.join(', ')}.` : '') +
-    ` Every notice, with the state record: ${SITE_URL}/layoffs/this-week?${utm}`
+    `${workers ? `${n(workers)} more people` : `${n(today.length)} more layoff notices`} found out they are losing their jobs in the last 24 hours, in ${n(states)} ${states === 1 ? 'state' : 'states'}.` +
+    (top.length ? ` Hit hardest: ${top.join(', ')}.` : '') +
+    ` Just laid off? Start here: ${SITE_URL}/layoffs/this-week?${utm} #layoffs #jobsearch`
   return { key: `layoffs-day-${dayKey(now)}`, text }
 }
 

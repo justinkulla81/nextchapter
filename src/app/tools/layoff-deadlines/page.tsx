@@ -43,7 +43,7 @@ export default function LayoffDeadlinesPage() {
           More: <Link href="/unemployment-benefits" className={LINK}>unemployment benefits by state</Link>, <Link href="/resources/cobra-aca" className={LINK}>COBRA and marketplace health coverage</Link>, <Link href="/resources/72-hours" className={LINK}>the first 72 hours after a layoff</Link> and <Link href="/tools/severance-calculator" className={LINK}>the severance calculator</Link>.
         </p>
       </section>
-      <ActionBand title="Plan the weeks after a layoff" body="A free Market Reality Assessment and a weekly plan that starts with the deadlines." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'layoff_deadlines' }} />
+      <ActionBand title="Missing a deadline can cost you money." body="Get a free plan that starts with the dates that matter, then your job search." label="Get my laid-off game plan" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'layoff_deadlines' }} />
     </SeoPage>
   )
 }

@@ -15,16 +15,16 @@ describe('weeklyLayoffPost', () => {
     const rows = [...Array.from({ length: 12 }, () => notice(2, 'TX', 50)), ...Array.from({ length: 4 }, () => notice(3, 'CA', 200)), ...Array.from({ length: 5 }, () => notice(10))]
     const post = weeklyLayoffPost(rows, now, 'utm_source=x')!
     expect(post.key).toBe('layoffs-week-2026-W44')
-    expect(post.text).toContain('16 WARN notices naming 1,400 workers')
-    expect(post.text).toContain('11 more than the week before')
-    expect(post.text).toContain('Most workers: California, Texas')
+    expect(post.text).toContain('1,400 people found out this week they are losing their jobs: 16 layoff notices')
+    expect(post.text).toContain('11 more than last week')
+    expect(post.text).toContain('Hit hardest: California, Texas')
     expect(post.text).toContain('https://launchyournextchapter.com/layoffs/this-week?utm_source=x')
     expect(post.text.length).toBeLessThanOrEqual(280)
   })
 
   it('ignores notices older than seven days and future-dated ones', () => {
     const rows = [...Array.from({ length: 10 }, () => notice(1)), notice(8), notice(-2)]
-    expect(weeklyLayoffPost(rows, now, 'u=1')!.text).toContain('10 WARN notices')
+    expect(weeklyLayoffPost(rows, now, 'u=1')!.text).toContain('10 layoff notices')
   })
 })
 
@@ -85,8 +85,8 @@ describe('dailyLayoffPost', () => {
     const rows = [fresh(2, 'TX', 50), fresh(3, 'TX', 70), fresh(5, 'CA', 200), fresh(30, 'NY', 999)]
     const post = dailyLayoffPost(rows, now, 'utm_source=bluesky')!
     expect(post.key).toBe('layoffs-day-2026-10-26')
-    expect(post.text).toContain('3 WARN notices in 2 states, naming 320 workers')
-    expect(post.text).toContain('Most workers: California, Texas')
+    expect(post.text).toContain('320 more people found out they are losing their jobs in the last 24 hours, in 2 states')
+    expect(post.text).toContain('Hit hardest: California, Texas')
     expect(post.text).not.toContain('New York')
     expect(post.text).toContain('/layoffs/this-week?utm_source=bluesky')
     expect(post.text.length).toBeLessThanOrEqual(280)

@@ -5,6 +5,9 @@ import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { audienceUnsubscribeUrl } from '@/lib/email/signed-links'
 import { buildEmailClickUrl } from '@/lib/email/click-link'
+import { autoJoinRoleNetworks } from '@/lib/community/communities'
+import { getRoleResources } from '@/lib/roles/resources'
+import { roleBySlug } from '@/lib/seo/role-pages'
 import { canParticipateInCommunity } from '@/lib/community/access'
 import { resolveCommunityIdentity } from '@/lib/community/identity'
 import { getRoleIndex } from '@/lib/seo/role-figures'
@@ -50,20 +53,28 @@ async function figuresFor(info: NetworkInfo, roleIndex: Awaited<ReturnType<typeo
 
 /**
  * The weekly email for members of a role, function or industry network ("CRO network", "Sales network"): the verified
- * open jobs and pay for it, and what other members posted that week. Only members who clicked "Join the ... network"
- * are sent to (joinedVia MANUAL): function and industry communities also hold everyone whose profile says so, and
- * those members never asked for an email. Posts are shown only to a member who can themselves take part in Community (the same gate
+ * open jobs and pay for it, and what other members posted that week. A role network also lists what is new around the role:
+ * recruiters, conferences, training and officer changes. Sent to members who clicked "Join the ... network" (joinedVia MANUAL)
+ * and, for a ROLE network only, to members joined automatically from their title (owner decision 2026-11-04; the unsubscribe
+ * link is in every email). Function and industry communities also hold everyone whose profile says so, and those members
+ * never asked for an email. Posts are shown only to a member who can themselves take part in Community (the same gate
  * as the feed), so the email never opens a room the member has not unlocked. Members in Confidential Search Mode are
  * neither sent to nor quoted. Respects the Weekly Market Digest unsubscribe and the MINIMAL notification tier.
  */
 export async function runNetworkDigest(now = new Date()) {
   if (!process.env.RESEND_API_KEY) return { enabled: false as const }
+  const autoJoined = await autoJoinRoleNetworks(Date.now() + 60_000).catch((e) => {
+    console.error('Role network auto-join failed', e)
+    return 0
+  })
   const memberships = await prisma.communityMembership.findMany({
     where: {
       leftAt: null,
-      joinedVia: 'MANUAL',
+      // A click joins any network; a role network is also joined automatically from the member's title (autoJoinRoleNetworks).
+      // Function and industry auto-joins never got an email and still do not.
+      OR: [{ joinedVia: 'MANUAL' }, { joinedVia: 'AUTO', community: { type: 'ROLE' } }],
       community: { type: { in: ['ROLE', 'FUNCTION', 'INDUSTRY'] } },
-      OR: [{ lastDigestAt: null }, { lastDigestAt: { lt: new Date(now.getTime() - ALREADY_SENT_WINDOW_MS) } }],
+      AND: [{ OR: [{ lastDigestAt: null }, { lastDigestAt: { lt: new Date(now.getTime() - ALREADY_SENT_WINDOW_MS) } }] }],
       candidate: {
         confidentialSearchMode: false,
         marketDigestOptedOut: false,
@@ -75,12 +86,13 @@ export async function runNetworkDigest(now = new Date()) {
     },
     select: {
       id: true,
+      joinedVia: true,
       community: { select: { id: true, type: true, value: true } },
       candidate: { select: { id: true, userId: true, firstName: true, privacyTier: true, confidentialSearchMode: true } },
     },
   })
 
-  const stats = { checked: memberships.length, sent: 0, skipped: 0, failed: 0, skippedForTime: 0 }
+  const stats = { autoJoined, checked: memberships.length, sent: 0, skipped: 0, failed: 0, skippedForTime: 0 }
   if (memberships.length === 0) return { enabled: true as const, ...stats }
 
   const [index, appUrl] = [await getRoleIndex().catch(() => []), process.env.NEXT_PUBLIC_APP_URL || SITE_URL]
@@ -109,6 +121,26 @@ export async function runNetworkDigest(now = new Date()) {
     return posts
   }
 
+  const highlightsByRole = new Map<string, string[]>()
+  const highlightsFor = async (info: NetworkInfo): Promise<string[]> => {
+    if (info.kind !== 'role') return []
+    const cached = highlightsByRole.get(info.value)
+    if (cached) return cached
+    const role = roleBySlug(info.value)
+    const out: string[] = []
+    if (role) {
+      const r = await getRoleResources(role).catch(() => null)
+      if (r) {
+        if (r.turnover) out.push(`${r.turnover.items.length} ${r.turnover.ownSeat ? info.name : r.turnover.label} change${r.turnover.items.length === 1 ? '' : 's'} filed with the SEC in the last 120 days`)
+        if (r.conferences && r.conferences.upcoming > 0) out.push(`${r.conferences.upcoming} conference${r.conferences.upcoming === 1 ? '' : 's'} with dates announced for ${role.fn}`)
+        if (r.firms.length > 0) out.push(`${r.firms.length} recruiting firms with live ${role.fn} searches at your level`)
+        if (r.courses.total > 0) out.push(`${r.courses.total} ${role.fn} courses, with cost shown`)
+      }
+    }
+    highlightsByRole.set(info.value, out)
+    return out
+  }
+
   const startedAt = Date.now()
   for (const m of memberships) {
     if (Date.now() - startedAt > DEADLINE_MS) {
@@ -125,8 +157,9 @@ export async function runNetworkDigest(now = new Date()) {
       const canSeePosts = await canParticipateInCommunity(m.candidate.id, m.candidate.privacyTier, m.candidate.confidentialSearchMode)
       const posts = canSeePosts ? await postsFor(m.community.id) : []
       const openJobs = figures.openJobs
-      // Nothing real to say this week: no jobs figure and no posts.
-      if (openJobs === null && posts.length === 0) {
+      const highlights = await highlightsFor(info)
+      // Nothing real to say this week: no jobs figure, no posts and nothing new around the role.
+      if (openJobs === null && posts.length === 0 && highlights.length === 0) {
         stats.skipped += 1
         continue
       }
@@ -157,6 +190,8 @@ export async function runNetworkDigest(now = new Date()) {
           openJobs,
           medianPay: figures.medianPay,
           posts,
+          highlights,
+          because: m.joinedVia === 'AUTO' ? `your profile says you work as, or aim for, ${info.spelled}` : `you joined the ${info.name} network`,
           pageUrl: buildEmailClickUrl(appUrl, m.candidate.id, 'MARKET_UPDATE', `${appUrl}${pagePath(info)}`),
           pageLabel: `See the ${info.name} page`,
           networkUrl: buildEmailClickUrl(appUrl, m.candidate.id, 'MARKET_UPDATE', `${appUrl}/dashboard/community`),
@@ -171,7 +206,7 @@ export async function runNetworkDigest(now = new Date()) {
         continue
       }
       stats.sent += 1
-      captureServerEvent(m.candidate.id, 'network_digest_sent', { networkKind: info.kind, networkKey: info.key, communityId: m.community.id, postCount: posts.length, openJobs })
+      captureServerEvent(m.candidate.id, 'network_digest_sent', { networkKind: info.kind, networkKey: info.key, communityId: m.community.id, postCount: posts.length, openJobs, highlightCount: highlights.length, joinedVia: m.joinedVia })
     } catch (e) {
       console.error('Role network digest failed for membership', m.id, e)
       stats.failed += 1

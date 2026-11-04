@@ -22,7 +22,7 @@ describe('dueRoundup', () => {
     expect(f.plain).toBe(true)
     expect(f.topic).toBe('roundup')
     const text = f.fallback('https://launchyournextchapter.com/layoffs/this-week?utm_source=bluesky&utm_medium=social&utm_campaign=daily-layoffs', false)
-    expect(text).toContain('3 WARN notices in 2 states')
+    expect(text).toContain('350 more people found out they are losing their jobs in the last 24 hours, in 2 states')
     expect(text).toContain('utm_source=bluesky')
   })
 

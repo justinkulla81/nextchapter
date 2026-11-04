@@ -267,7 +267,7 @@ export function LayoffRiskCheck({ industries, asOf }: { industries: IndustryTren
             <div className="rounded-2xl border border-border bg-white p-5">
               <h3 className="text-lg font-semibold text-navy">Start your plan before you need it</h3>
               <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Whatever the level, the same preparation helps: know what the market pays for your work, what you would do in the first week, and who to call. A free account turns it into a plan.</p>
-              <div className="mt-4"><PlanStart situationSlug="thinking-about-a-move" placement="risk_check_result" label="Get your free Market Reality Assessment" eventPrefix="layoff_risk" /></div>
+              <div className="mt-4"><PlanStart situationSlug="thinking-about-a-move" placement="risk_check_result" label="Get my job-safety plan" eventPrefix="layoff_risk" /></div>
             </div>
 
             <RiskAlertBox employer={employer} />

@@ -707,7 +707,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     seo: {
       title: 'Layoffs This Week: New WARN Notices by State',
       description: 'Layoff notices filed in the last seven days: how many workers, which states and employers, with the state record for each. Updated every day.',
-      h1: 'Layoffs this week: new WARN notices',
+      h1: 'Layoffs this week: who is losing their jobs',
     },
   },
   {

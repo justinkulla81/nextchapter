@@ -72,7 +72,11 @@ export function withCronRun(job: string, handler: Handler) {
         response = await handler(request)
       }
       if (response.ok) await finish('OK')
-      else await finish('FAILED', `Responded ${response.status}`)
+      else {
+        // The response body usually says what failed (a job that reports its failed steps); keep the start of it in the ledger.
+        const detail = await response.clone().text().then((t) => t.slice(0, 600)).catch(() => '')
+        await finish('FAILED', detail ? `Responded ${response.status}: ${detail}` : `Responded ${response.status}`)
+      }
       return response
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)

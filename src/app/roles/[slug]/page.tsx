@@ -17,6 +17,8 @@ import { functionImage } from '@/lib/seo/topic-images'
 import { getJobStats } from '@/lib/seo/topic-data'
 import { hasSalaryPage } from '@/lib/seo/job-titles'
 import { AI_SKILL_ITEMS } from '@/lib/skills/ai-skills'
+import { RoleResourceSections } from '@/components/roles/RoleResources'
+import { getRoleResources } from '@/lib/roles/resources'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -51,7 +53,7 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
   const seo = roleSeo(role, stat.jobs, stat.median)
   const lower = role.short
   const paid = stat.median != null && stat.p25 != null && stat.p75 != null && stat.payCount >= ROLE_MIN_PAY
-  const [fnStats, index] = await Promise.all([getJobStats({ fn: role.fn }).catch(() => null), getRoleIndex()])
+  const [fnStats, index, resources] = await Promise.all([getJobStats({ fn: role.fn }).catch(() => null), getRoleIndex(), getRoleResources(role)])
   const fnTopic = functionByName(role.fn)
   const ladder = ladderOf(role).flatMap((r) => {
     const s = index.find((x) => x.slug === r.slug)
@@ -221,6 +223,8 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
           </ul>
         </Section>
       )}
+
+      <RoleResourceSections role={role} r={resources} slug={slug} />
 
       <Section id="faq" title={`${role.short} questions`}>
         <dl className="max-w-3xl space-y-4 text-sm">

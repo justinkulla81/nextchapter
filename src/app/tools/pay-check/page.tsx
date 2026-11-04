@@ -48,7 +48,7 @@ export default async function PayCheckPage() {
           More: <Link href="/salaries" className={LINK}>salary by job title</Link>, <Link href="/tools/severance-calculator" className={LINK}>severance calculator</Link> and <Link href="/tools" className={LINK}>all tools</Link>.
         </p>
       </section>
-      <ActionBand title="See jobs ranked for you" body="A free Market Reality Assessment shows how the market reads your résumé, then ranks every open job for you." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'pay_check' }} />
+      <ActionBand title="Not sure you are paid fairly?" body="See which open jobs fit you and what they pay. Free." label="Show me jobs that fit me" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'pay_check' }} />
     </SeoPage>
   )
 }
