@@ -125,7 +125,7 @@ export function buildHiringCase(i: HiringCaseInput): HiringReason[] {
   // 7. AI
   {
     const a = i.ai
-    const base = { key: 'ai', reason: 'Use AI in their work', tool: 'Learn New Skills', href: '/dashboard/learning#ai-skills-for-your-search', minutes: null }
+    const base = { key: 'ai', reason: 'Use AI in their work', tool: 'Learn New Skills', href: '/dashboard/learning?all=1&tab=courses#ai-skills-for-your-search', minutes: null }
     if (!a) add({ ...base, status: 'unknown', seen: 'Not enough matching jobs yet to read what employers ask for.', next: 'Finish your Search Strategy so we can match jobs.', tool: 'My Search Strategy', href: '/dashboard/search-strategy', minutes: 10 })
     else if (a.employersAsking > 0 && !a.haveAny) add({ ...base, status: 'missing', seen: `${a.employersAsking} of ${a.of} employers with jobs that fit you ask for AI skills. None is on your profile.`, next: 'If you use AI, add it to your skills with one example. If not, take the course tagged for the biggest gap.' })
     else if (a.haveAny) add({ ...base, status: 'in_place', seen: 'AI skills are on your profile.', next: 'Bring one concrete example with an outcome to interviews.' })

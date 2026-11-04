@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import { HomeToday, ProgressBuilt, ProgressTimeline } from './home'
 import { HomeTodayShort, HomeTodayShortQuiet } from './home-short'
 import { NetworkShort, NetworkTracker } from './network-short'
+import { LearnShort, LearnLibrary } from './learn-short'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
@@ -198,6 +199,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/following/companies', place: 'Jobs', title: 'What you follow: companies (sample data)', replaces: '/dashboard/company-tracker', Component: FollowingCompanies },
   { path: 'jobs/following/events', place: 'Jobs', title: 'What you follow: events (sample data)', replaces: 'new; reads ConferenceInterest', Component: FollowingEvents },
   { path: 'jobs/following/emails', place: 'Jobs', title: 'What you follow: email updates (sample data)', replaces: 'new', Component: FollowingEmails },
+  { path: 'learn/learn/skills-short', place: 'Learn', title: 'Skills and courses, shortened: Start the course above the fold (sample data)', replaces: 'the header intro, the always-open AI box (now behind Why this first), and the tune strip above the heading (now one line below)', Component: LearnShort },
+  { path: 'learn/learn/library-tabs', place: 'Learn', title: 'Every course, tool and guide: four tabs (sample data)', replaces: '/dashboard/learning?all=1, about 17 stacked blocks; conditional prompts go to a Needs you strip', Component: LearnLibrary },
   { path: 'learn/learn/skills', place: 'Learn', title: 'Skills and courses', replaces: '/dashboard/learning', Component: LearnSkills },
   { path: 'learn/learn/videos', place: 'Learn', title: 'Videos and webinars', replaces: '/dashboard/webinars', Component: LearnVideos },
   { path: 'account/profile', place: 'Account', title: 'Profile', replaces: '/dashboard/profile, complete-profile', Component: ProfileMock },

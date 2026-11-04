@@ -4,6 +4,8 @@ import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { LearningPathsCard } from '@/components/dashboard/pathway/LearningPathsCard'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import { after } from 'next/server'
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { buildLearningPlan } from '@/lib/learning/build-learning-plan'
@@ -49,9 +51,11 @@ import { aiPayNoteFor } from '@/components/dashboard/learning/AiPaysMoreNote'
 import { aiPaySentence, aiShareSentence, aiTrainingWhy, learnWhyFirst } from '@/lib/redesign/learn-exposure-why'
 import { AiExposureShown } from '@/components/dashboard/learning/AiExposureShown'
 import { LearnHome } from '@/components/dashboard/LearnHome'
+import { NeedsYou } from '@/components/candidate/NeedsYou'
+import { PageHeader } from '@/components/candidate/PageHeader'
 import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
 
-export const metadata: Metadata = { title: 'Learn New Skills' }
+export const metadata: Metadata = { title: 'Skills and courses' }
 
 // Modest by design — a plain count-by-type line, not a full trends
 // breakdown like ApplicationTrendsContent on the Find a Job page.
@@ -92,10 +96,11 @@ function renderSection(section: LearningPlanSection, completedTitles: Set<string
   )
 }
 
-export default async function LearningPage({ searchParams }: { searchParams: Promise<{ all?: string }> }) {
+export default async function LearningPage({ searchParams }: { searchParams: Promise<{ all?: string; tab?: string }> }) {
   const profile = await getDashboardProfile()
   // The curated page by default; ?all=1 is the full library.
-  const curated = (await searchParams).all !== '1'
+  const sp = await searchParams
+  const curated = sp.all !== '1'
   const weekStart = getMondayOfWeek(new Date())
   const learningPaths = await getLearningPaths(profile.id)
   const [plan, badges, courseActivity, learningEvents, assessmentResponseCount, platformRows, gmailConnection] = await Promise.all([
@@ -168,12 +173,22 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
       retrainingNeed: need,
     })
     return (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <AiExposureShown soc6={exposure?.soc6 ?? null} band={exposure?.band ?? null} need={need} />
-        <Suspense fallback={null}>
-          <TuneStripSection profile={profile} title="Closer to hired: tune your path" />
-        </Suspense>
-        <LearnHome featured={picks.featured} more={picks.more} enrolledTitles={enrolledTitles} completedCount={badges.length} allHref="/dashboard/learning?all=1" why={why} aiExposureBand={exposure?.band ?? null} />
+        <LearnHome
+          featured={picks.featured}
+          more={picks.more}
+          enrolledTitles={enrolledTitles}
+          completedCount={badges.length}
+          allHref="/dashboard/learning?all=1"
+          why={why}
+          aiExposureBand={exposure?.band ?? null}
+          after={
+            <Suspense fallback={null}>
+              <TuneStripSection profile={profile} title="Closer to hired: tune your path" />
+            </Suspense>
+          }
+        />
       </div>
     )
   }
@@ -190,113 +205,144 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
   const libNeed = retrainingNeed(libExposure)
   const libFallback = aiMarketLine(profile.primaryFunction, libLive)?.text ?? 'How much AI matters depends on your function. The list above shows the AI skills your best-fit jobs ask for.'
 
+  // Every course, tool and guide: the old long page split by purpose into four tabs (docs/candidate-redesign.md, page contract 7).
+  // Only the open tab renders its blocks. The conditional prompts (company courses, skills inventory, guides) wait in one strip.
+  const TABS = [
+    { key: 'courses', label: 'Courses' },
+    { key: 'interview', label: 'Interview skills' },
+    { key: 'progress', label: 'Your progress' },
+    { key: 'pay', label: 'Pay and degrees' },
+  ] as const
+  const tab = TABS.find((t) => t.key === sp.tab)?.key ?? 'courses'
+  after(() => captureServerEvent(profile.id, 'learning_tab_viewed', { tab, badges: badges.length, assessmentLocked }))
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <AiExposureShown soc6={libExposure?.soc6 ?? null} band={libExposure?.band ?? null} need={libNeed} />
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Learn New Skills</h1>
+      <PageHeader title="Every course, tool and guide" />
+
+      <NeedsYou>
         <CompanyCoursesCallout candidateId={profile.id} />
         {assessmentLocked && <SkillsInventoryGateCard candidateId={profile.id} />}
-        <PageHeaderBoxes
-          pageKey="learning"
-          candidateId={profile.id}
-          dailyMessageOverride={<AssessmentLinkCard hasTakenAssessment={hasTakenAssessment} />}
-        />
-        {learningEvents.length > 0 && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            {learningEventsThisWeek.length > 0 ? (
-              <>
-                {learningEventsThisWeek.length} learning session{learningEventsThisWeek.length === 1 ? '' : 's'} on
-                your calendar this week{learningMinutesThisWeek > 0 && ` (${formatMinutes(learningMinutesThisWeek)})`}
-                . {learningEvents.length} total detected.
-              </>
-            ) : (
-              <>{learningEvents.length} learning session{learningEvents.length === 1 ? '' : 's'} detected from your calendar so far.</>
-            )}
-          </p>
-        )}
-      </div>
+        <GuideCallout currentJobStatus={profile.currentJobStatus} title="Guides for your situation" />
+      </NeedsYou>
 
-      <LearningPathsCard paths={learningPaths.paths} progress={learningPaths.progress} />
+      <nav aria-label="Learn" className="flex flex-wrap gap-2">
+        {TABS.map((t) => (
+          <Link
+            key={t.key}
+            href={`/dashboard/learning?all=1&tab=${t.key}`}
+            aria-current={tab === t.key ? 'page' : undefined}
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium ${tab === t.key ? 'border-ink bg-ink text-white' : 'border-border text-muted-foreground hover:bg-muted'}`}
+          >
+            {t.label}
+          </Link>
+        ))}
+      </nav>
 
-      {badges.length > 0 && (
-        <TierSummaryCard
-          title="New Skills"
-          count={badges.length}
-          unitLabel="badge"
-          tier={badgeCountToTier(badges.length)}
-          buildingAt={3}
-          highAt={5}
-          unlockedContent={<BadgeBreakdownContent badges={badges} />}
-          mixTitle="A well-rounded mix"
-          mixItems={[
-            { label: 'Structured learning (a course or certification)', done: badgeMix.hasStructuredLearning },
-            { label: 'Applied practice (an AI project)', done: badgeMix.hasAppliedPractice },
-            { label: 'Public credibility (a talk or published piece)', done: badgeMix.hasPublicCredibility },
-          ]}
-        />
-      )}
+      {tab === 'courses' && (
+        <div className="space-y-6">
+          <LearningPathsCard paths={learningPaths.paths} progress={learningPaths.progress} />
 
-      <PlatformActivityPanel kind="LEARNING" rows={platformRows} gmailConnected={!!gmailConnection} />
+          <Suspense fallback={null}>
+            <AiSkillGapSection candidateId={profile.id} completedTitles={completedTitles} enrolledTitles={enrolledTitles} fn={profile.targetFunction ?? profile.primaryFunction} />
+          </Suspense>
 
-      <Suspense fallback={null}>
-        <AiSkillGapSection candidateId={profile.id} completedTitles={completedTitles} enrolledTitles={enrolledTitles} fn={profile.targetFunction ?? profile.primaryFunction} />
-      </Suspense>
-
-      <LearningSection
-        title="AI Training"
-        description={aiTrainingWhy(libExposure, libFallback)}
-      >
-        <AiTrainingTiers
-          defaultTier={plan.aiTrainingTier}
-          coursesByLevel={plan.aiTrainingCoursesByLevel}
-          completedTitles={completedTitles}
-          enrolledTitles={enrolledTitles}
-        />
-      </LearningSection>
-
-      {isPivotingProfile({ ...profile, journey: effectiveJourney(profile) }) && (
-        <OccupationTrendsCard currentFunction={profile.primaryFunction} targetFunction={profile.targetFunction} fromExposure={libExposure} />
-      )}
-
-      <PayChangeCard />
-
-      <GradDegreeGuardrailCard />
-
-      <LockedPreview locked={assessmentLocked}>
-        <div className="space-y-8">
-          <LearningSection title="Tools">
-            <ToolsForRoleSection
-              role={plan.contentFunction}
-              tools={plan.aiTools}
-              functionTraining={plan.functionTraining}
+          <LearningSection title="AI Training" description={aiTrainingWhy(libExposure, libFallback)}>
+            <AiTrainingTiers
+              defaultTier={plan.aiTrainingTier}
+              coursesByLevel={plan.aiTrainingCoursesByLevel}
               completedTitles={completedTitles}
               enrolledTitles={enrolledTitles}
             />
           </LearningSection>
 
+          <LockedPreview locked={assessmentLocked}>
+            <div className="space-y-8">
+              <LearningSection title="Tools">
+                <ToolsForRoleSection
+                  role={plan.contentFunction}
+                  tools={plan.aiTools}
+                  functionTraining={plan.functionTraining}
+                  completedTitles={completedTitles}
+                  enrolledTitles={enrolledTitles}
+                />
+              </LearningSection>
+
+              {plan.sections
+                .filter((s) => s.id !== 'speaking-leadership')
+                .map((s) => renderSection(s, completedTitles, enrolledTitles))}
+            </div>
+          </LockedPreview>
+
           {plan.sections
-            .filter((s) => s.id !== 'speaking-leadership')
+            .filter((s) => s.id === 'speaking-leadership')
             .map((s) => renderSection(s, completedTitles, enrolledTitles))}
-        </div>
-      </LockedPreview>
-
-      <LearningSection title="Interview Skills">
-        <InterviewSkillsSection data={plan.interviewSkills} />
-      </LearningSection>
-
-      {plan.sections
-        .filter((s) => s.id === 'speaking-leadership')
-        .map((s) => renderSection(s, completedTitles, enrolledTitles))}
-
-      {badges.length > 0 && (
-        <div className="pt-2">
-          <h3 className="text-sm font-medium text-muted-foreground">What you&apos;ve completed</h3>
-          <LearningBadgeList badges={badges} />
         </div>
       )}
 
-      <GuideCallout currentJobStatus={profile.currentJobStatus} title="Guides for your situation" />
+      {tab === 'interview' && (
+        <LearningSection title="Interview Skills">
+          <InterviewSkillsSection data={plan.interviewSkills} />
+        </LearningSection>
+      )}
+
+      {tab === 'progress' && (
+        <div className="space-y-6">
+          <PageHeaderBoxes
+            pageKey="learning"
+            candidateId={profile.id}
+            dailyMessageOverride={<AssessmentLinkCard hasTakenAssessment={hasTakenAssessment} />}
+          />
+          {learningEvents.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {learningEventsThisWeek.length > 0 ? (
+                <>
+                  {learningEventsThisWeek.length} learning session{learningEventsThisWeek.length === 1 ? '' : 's'} on
+                  your calendar this week{learningMinutesThisWeek > 0 && ` (${formatMinutes(learningMinutesThisWeek)})`}
+                  . {learningEvents.length} total detected.
+                </>
+              ) : (
+                <>{learningEvents.length} learning session{learningEvents.length === 1 ? '' : 's'} detected from your calendar so far.</>
+              )}
+            </p>
+          )}
+          {badges.length > 0 && (
+            <TierSummaryCard
+              title="New Skills"
+              count={badges.length}
+              unitLabel="badge"
+              tier={badgeCountToTier(badges.length)}
+              buildingAt={3}
+              highAt={5}
+              unlockedContent={<BadgeBreakdownContent badges={badges} />}
+              mixTitle="A well-rounded mix"
+              mixItems={[
+                { label: 'Structured learning (a course or certification)', done: badgeMix.hasStructuredLearning },
+                { label: 'Applied practice (an AI project)', done: badgeMix.hasAppliedPractice },
+                { label: 'Public credibility (a talk or published piece)', done: badgeMix.hasPublicCredibility },
+              ]}
+            />
+          )}
+          <PlatformActivityPanel kind="LEARNING" rows={platformRows} gmailConnected={!!gmailConnection} />
+          {badges.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">What you&apos;ve completed</h3>
+              <LearningBadgeList badges={badges} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === 'pay' && (
+        <div className="space-y-6">
+          {isPivotingProfile({ ...profile, journey: effectiveJourney(profile) }) && (
+            <OccupationTrendsCard currentFunction={profile.primaryFunction} targetFunction={profile.targetFunction} fromExposure={libExposure} />
+          )}
+          <PayChangeCard />
+          <GradDegreeGuardrailCard />
+        </div>
+      )}
     </div>
   )
 }

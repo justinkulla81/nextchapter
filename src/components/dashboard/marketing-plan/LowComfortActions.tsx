@@ -70,7 +70,7 @@ export function LowComfortActions() {
       <p className="text-sm text-muted-foreground">
         Want to get more comfortable being visible?{' '}
         <Link
-          href="/dashboard/learning#speaking-leadership"
+          href="/dashboard/learning?all=1&tab=courses#speaking-leadership"
           className="font-medium text-primary underline underline-offset-4"
         >
           Toastmasters and public speaking courses →
