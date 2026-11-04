@@ -10,6 +10,7 @@ import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import JobSavedEmail from '@/emails/job-saved'
 import { cookies } from 'next/headers'
 import { addToSavedJobsCookie, SAVED_JOBS_COOKIE, SAVED_JOBS_MAX_AGE_SECONDS } from '@/lib/leads/claim-saved-jobs'
+import { isMemberEmail, jobPath } from '@/lib/leads/member-job-link'
 import { notifyNewLead } from '@/lib/leads/notify-new-lead'
 import { lifecycleEmailsOn } from '@/lib/leads/lifecycle/config'
 import { scopeQ, type AlertScopeKind } from '@/lib/leads/alert-scope'
@@ -114,7 +115,7 @@ export async function saveAppliedJob(_prev: ApplySaveState, formData: FormData):
             react: JobSavedEmail({
               title: job.title,
               company: job.companyName,
-              jobUrl: `${APP_URL()}/jobs/${job.id}`,
+              jobUrl: `${APP_URL()}${jobPath(job.id, await isMemberEmail(email), 'saved_link')}`,
               fitUrl: `${APP_URL()}/onboarding/desire?from=saved_job`,
               unsubscribeUrl,
             }),
