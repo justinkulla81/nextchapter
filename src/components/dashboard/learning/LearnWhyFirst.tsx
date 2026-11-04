@@ -6,7 +6,6 @@ import type { LearnWhy } from '@/lib/redesign/learn-exposure-why'
 export function LearnWhyFirst({ why }: { why: LearnWhy }) {
   return (
     <div className="space-y-2 rounded-xl bg-muted/70 p-4">
-      <h3 className="text-sm font-semibold text-ink">Why this first: AI at work in your role</h3>
       <p className="text-base text-ink">{why.lead}</p>
       {why.facts.map((f) => (
         <p key={f} className="text-base text-ink">{f}</p>

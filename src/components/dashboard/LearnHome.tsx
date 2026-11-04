@@ -15,23 +15,35 @@ const SECONDARY = 'inline-flex h-10 items-center rounded-full border border-bord
 
 // Learn in the redesign: one course up front with the reason, a few more behind it, and what you have finished.
 // The full library (AI training tiers, tools, interview skills, guides) is one link away.
-export function LearnHome({ featured, more, enrolledTitles, completedCount, allHref, why, aiExposureBand }: { featured: LearningPlanItem | null; more: LearningPlanItem[]; enrolledTitles: Set<string>; completedCount: number; allHref: string; why?: LearnWhy | null; aiExposureBand?: string | null }) {
+export function LearnHome({ featured, more, enrolledTitles, completedCount, allHref, why, aiExposureBand, after }: { after?: React.ReactNode; featured: LearningPlanItem | null; more: LearningPlanItem[]; enrolledTitles: Set<string>; completedCount: number; allHref: string; why?: LearnWhy | null; aiExposureBand?: string | null }) {
   return (
     <>
-      <PageHeader title="Skills and courses" intro="The few courses that would do the most for your search. Each one says why." />
+      <PageHeader title="Skills and courses" />
 
       {featured ? (
-        <section aria-labelledby="featured" className="space-y-4 rounded-2xl border border-border p-7">
+        <section aria-labelledby="featured" className="space-y-3 rounded-2xl border border-border p-5">
           <Chip tone="warm">{enrolledTitles.has(featured.title) ? 'Finish this one' : featured.rationale ? 'Biggest gap' : 'Good next step'}</Chip>
           <h2 id="featured" className="font-display text-2xl font-semibold text-ink">{featured.title}</h2>
           <p className="max-w-2xl text-base text-ink">
             <span className="font-semibold">Why:</span> {featured.rationale ?? featured.description}
           </p>
-          {why && <LearnWhyFirst why={why} />}
           <p className="text-sm text-muted-foreground">{meta(featured)}</p>
-          <CourseLink href={featured.url} partnerName={providerName(featured)} title={featured.title} slot="featured" hasReason={!!featured.rationale} aiExposureBand={aiExposureBand} className={PRIMARY}>
-            {enrolledTitles.has(featured.title) ? 'Keep going' : 'Start the course'}
-          </CourseLink>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <CourseLink href={featured.url} partnerName={providerName(featured)} title={featured.title} slot="featured" hasReason={!!featured.rationale} aiExposureBand={aiExposureBand} className={PRIMARY}>
+              {enrolledTitles.has(featured.title) ? 'Keep going' : 'Start the course'}
+            </CourseLink>
+            {why && (
+              <details className="group min-w-0 text-sm">
+                <summary className="cursor-pointer list-none font-medium text-brand underline underline-offset-4 marker:content-none">
+                  <span className="group-open:hidden">Why this first: AI at work in your role</span>
+                  <span className="hidden group-open:inline">Hide why this first</span>
+                </summary>
+                <div className="mt-3">
+                  <LearnWhyFirst why={why} />
+                </div>
+              </details>
+            )}
+          </div>
         </section>
       ) : (
         <section className="space-y-2 rounded-2xl border border-border p-7">
@@ -65,6 +77,7 @@ export function LearnHome({ featured, more, enrolledTitles, completedCount, allH
         )}
         <Link href={allHref} className="inline-block text-sm font-medium text-brand underline underline-offset-4">See every course, tool and guide</Link>
       </div>
+      {after}
     </>
   )
 }
