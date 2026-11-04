@@ -2,7 +2,8 @@ import { absoluteWebUrl } from '@/lib/http/external-url'
 import 'server-only'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
-import { heavy, memoTtl } from '@/lib/db/heavy'
+import { createHash } from 'node:crypto'
+import { heavy, memoTtl, sharedLoad } from '@/lib/db/heavy'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -352,7 +353,11 @@ async function loadAreaHiring(state: string, area: Area): Promise<{ employers: H
   }
 }
 
-const sharedAreaHiring = memoTtl(10 * 60_000, (state: string, area: Area) => `${state}|${area.statewide}|${area.places.map((p) => p.key).join(',')}`, (state: string, area: Area) => heavy(() => loadAreaHiring(state, area)))
+const sharedAreaHiring = memoTtl(10 * 60_000, (state: string, area: Area) => `${state}|${area.statewide}|${area.places.map((p) => p.key).join(',')}`, (state: string, area: Area) => {
+  const id = `${state}|${area.statewide}|${area.places.map((p) => p.key).join(',')}`
+  // Shared across instances for an hour (an instance alone remembers it for ten minutes, so each cold one re-ran the same two scans).
+  return sharedLoad(`org-area-hiring:${createHash('sha1').update(id).digest('hex')}`, 60 * 60, () => heavy(() => loadAreaHiring(state, area)))
+})
 export const areaHiring = (state: string, area: Area) => sharedAreaHiring(state, area)
 
 /** The slug of the CRM organization's claim page, when the organization is linked to one. Fail-soft until the link table exists. */
