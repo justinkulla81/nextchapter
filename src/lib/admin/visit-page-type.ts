@@ -40,10 +40,10 @@ const B2B_PUBLIC_EXACT = new Set(['/employers', '/employees', '/pricing', '/coac
 // portal's own host (recruiter., coach., employer., a college or workforce host).
 const B2B_LOGIN_PAGE =
   /^\/(?:(?:recruiters|talent|employer|support\/coach|noexperience\/employers|eqoveriq\/contributors)\/(?:login|signup|forgot-password|invite|seats|start|access|google)|login|signup|forgot-password)(?:\/|$)/
-const B2B_PORTAL_SECTIONS = ['/recruiters', '/talent', '/employer', '/support/coach', '/noexperience/employers', '/eqoveriq/contributors', '/hiring', '/growth', '/learning']
+export const B2B_PORTAL_SECTIONS = ['/recruiters', '/talent', '/employer', '/support/coach', '/noexperience/employers', '/eqoveriq/contributors', '/hiring', '/growth', '/learning']
 
 const CANDIDATE_LOGIN_SECTIONS = ['/auth', '/claim-reference']
-const CANDIDATE_PORTAL_SECTIONS = ['/dashboard', '/alumni-plan', '/membership', '/checkin', '/in']
+export const CANDIDATE_PORTAL_SECTIONS = ['/dashboard', '/alumni-plan', '/membership', '/checkin', '/in']
 
 const under = (path: string, section: string) => path === section || path.startsWith(`${section}/`)
 
