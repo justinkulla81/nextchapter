@@ -63,9 +63,6 @@ export default async function CompanyCoursesPage() {
           }))}
         />
       )}
-      <p className="text-sm text-muted-foreground">
-        Courses matched to your target role are in your skills plan.
-      </p>
     </div>
   )
 }
