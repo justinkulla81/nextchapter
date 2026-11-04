@@ -8,6 +8,9 @@ export function linkedinLayoffPost(s: { url: string; employer: string; employees
   return `${s.employer} is cutting ${cuts}${where}. If you or someone you know is affected, NextChapter wants to help them get back in business fast.\n\nIt's free, start your #nextchapter here: ${s.url}\n\n${s.employer}`
 }
 
+/** The subject line for the direct message. */
+export const linkedinCandidateSubject = (employer: string) => `Your NextChapter after ${employer}`
+
 /** The direct message to someone just laid off, from the founder. "Hi [first name]" is filled in by hand when it is sent. */
 export function linkedinCandidateNote(s: { url: string; employer: string }): string {
   return `Hi [first name],
