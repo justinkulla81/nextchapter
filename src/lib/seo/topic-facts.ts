@@ -65,7 +65,7 @@ export function layoffFacts(notices: TopicNotice[], scope: string): Fact[] {
   for (const n of notices) states.set(n.state, (states.get(n.state) ?? 0) + 1)
   const top = [...states].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([s, c]) => `${s} (${c})`).join(', ')
   const f: Fact[] = [
-    { key: 'warn', label: `WARN layoff notices, ${scope}`, value: `${n0(notices.length)} notices${workers ? ` naming ${n0(workers)} workers` : ''}`, source: 'State WARN filings collected by NextChapter', period: 'last 12 months' },
+    { key: 'warn', label: `Layoff notices, ${scope}`, value: `${n0(notices.length)} notices${workers ? ` naming ${n0(workers)} workers` : ''}`, source: 'State WARN filings collected by NextChapter', period: 'last 12 months' },
     { key: 'warn-states', label: 'States with the most notices', value: top, source: 'State WARN filings collected by NextChapter', period: 'last 12 months' },
     { key: 'warn-latest', label: 'Most recent notice', value: shortDay(notices[0].noticeDate), source: 'State WARN filings collected by NextChapter' },
   ]
@@ -91,7 +91,7 @@ export function openingParagraph(opts: { name: string; kind: 'industry' | 'funct
     parts.push(`${name} has about ${n0(total)} verified open jobs on NextChapter right now${pay}.${entry}`)
   }
   if (trend) parts.push(`Payroll employment in the closest BLS sector is ${trend.yoyPct >= 0 ? 'up' : 'down'} ${Math.abs(trend.yoyPct)}% over the past year (${monthYear(`${trend.asOf}-01`)}).`)
-  if (notices > 0) parts.push(`${n0(notices)} WARN layoff notices were filed in the last 12 months.`)
+  if (notices > 0) parts.push(`${n0(notices)} layoff notices were filed in the last 12 months.`)
   if (confs > 0) parts.push(`${n0(confs)} conferences are tagged to it${upcomingConfs ? `, ${n0(upcomingConfs)} with dates announced` : ''}.`)
   return parts.join(' ')
 }

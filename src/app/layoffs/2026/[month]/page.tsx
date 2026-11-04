@@ -78,11 +78,11 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link><span aria-hidden> › </span>
             <Link href="/layoffs/2026" className="hover:text-foreground">Layoffs {LAYOFF_YEAR}</Link><span aria-hidden> › </span><span className="text-foreground">{name}</span>
           </nav>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{name} {LAYOFF_YEAR} layoffs: {n(notices.length)} WARN notices</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{name} {LAYOFF_YEAR} layoffs: {n(notices.length)} layoff notices</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             {notices.length === 0
-              ? `No WARN notices carry a filing date in ${name} ${LAYOFF_YEAR}.`
-              : `Employers filed ${n(notices.length)} WARN layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} workers` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}.${prevSlug ? ` ${monthName(i - 1)} had ${n(prev.length)}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${n(Math.abs(diff))}` : ''}.` : ''}`}
+              ? `No layoff notices carry a filing date in ${name} ${LAYOFF_YEAR}.`
+              : `Employers filed ${n(notices.length)} layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} workers` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}.${prevSlug ? ` ${monthName(i - 1)} had ${n(prev.length)}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${n(Math.abs(diff))}` : ''}.` : ''}`}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             {partial ? `${name} is not over, so this count will grow. ` : ''}Counted by the date on each filing; a state can publish a notice later, so a month’s count can grow.

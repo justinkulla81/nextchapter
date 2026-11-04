@@ -79,7 +79,7 @@ describe('feeds', () => {
     const item = all.items.find((i) => i.guid === 'nextchapter-announcement-a1')
     expect(item?.title).toBe('TikTok: Reported layoffs across trust and safety')
     expect(item?.link).toContain('/layoffs/company/tiktok')
-    expect(item?.description).toContain('not a WARN filing')
+    expect(item?.description).toContain('not a state filing')
     // Only what an admin published: the unpublished announcement stays out of the feed.
     expect(all.items.some((i) => i.guid === 'nextchapter-announcement-a2')).toBe(false)
     const large = await layoffFeed({ minWorkers: 100, title: 't', description: 'd', selfPath: '/feeds/x', pagePath: '/layoffs', campaign: 'x' })
