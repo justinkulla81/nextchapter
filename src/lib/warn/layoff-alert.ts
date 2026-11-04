@@ -1,3 +1,5 @@
+import { linkedinLayoffPost } from './layoff-share'
+import { employerSlug } from './layoff-pages'
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { createResend } from '@/lib/email/resend-client'
@@ -159,7 +161,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
     // rarely names a place, so look in this order: the filing, the headlines, the CRM record, then the company's
     // SEC filings (headquarters) and the states it has filed WARN notices in.
     const headlines = (await prisma.layoffNewsMention.findMany({ where: { noticeId: l.noticeId }, select: { headline: true } }).catch(() => [])).map((m) => m.headline)
-    const company = notice?.companyId ? await prisma.company.findUnique({ where: { id: notice.companyId }, select: { industry: true } }).catch(() => null) : null
+    const company = notice?.companyId ? await prisma.company.findUnique({ where: { id: notice.companyId }, select: { industry: true, name: true } }).catch(() => null) : null
     let state = notice?.state ?? null
     let city: string | null = null
     let placeNote: string | null = null
@@ -221,6 +223,8 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
         source: null,
         org: org ? `${SITE}/support/admin/crm/organizations/${org.id}` : null,
         notices: `${SITE}/support/admin/crm/warn`,
+        noticePage: `${SITE}/support/admin/crm/warn/${l.noticeId}`,
+        linkedin: linkedinLayoffPost({ url: `${SITE}/layoffs/company/${employerSlug(l.employer, company?.name ?? null)}`, employer: company?.name ?? l.employer, employees: l.employees, state }),
       })),
     })
     if (error) {

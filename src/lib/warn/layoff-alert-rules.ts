@@ -169,7 +169,7 @@ export function groupSummary(groups: ContactGroup[]): { people: number; withEmai
   }
 }
 
-export function alertBody(a: AlertInput, links: { source: string | null; org: string | null; notices: string }): string {
+export function alertBody(a: AlertInput, links: { source: string | null; org: string | null; notices: string; noticePage?: string | null; linkedin?: string | null }): string {
   const facts: [string, string][] = [
     ...(a.division ? [['Division', esc(a.division)] as [string, string]] : []),
     ['Source', esc(KIND_LABEL[a.kind]) + (a.confirmed ? '' : ' — one outlet so far, unconfirmed')],
@@ -201,8 +201,14 @@ export function alertBody(a: AlertInput, links: { source: string | null; org: st
 
   const buttons = [
     links.org ? `<a href="${esc(links.org)}" style="display:inline-block;padding:7px 14px;background:${ACCENT};border-radius:6px;color:#fff;text-decoration:none;font-size:13px;margin:0 6px 6px 0">Open in CRM</a>` : '',
+    links.noticePage ? `<a href="${esc(links.noticePage)}" style="display:inline-block;padding:7px 14px;border:1px solid ${LINE};border-radius:6px;color:${INK};text-decoration:none;font-size:13px;margin:0 6px 6px 0">Notice page</a>` : '',
     `<a href="${esc(links.notices)}" style="display:inline-block;padding:7px 14px;border:1px solid ${LINE};border-radius:6px;color:${INK};text-decoration:none;font-size:13px;margin:0 6px 6px 0">All layoff notices</a>`,
   ].join('')
+
+  const linkedinBlock = links.linkedin
+    ? `<p style="margin:10px 0 4px;color:${MUTED};font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">LinkedIn message</p>
+<div style="margin:0 0 14px;padding:10px 12px;border:1px solid ${LINE};border-radius:8px;font-size:13px;white-space:pre-wrap">${esc(links.linkedin)}</div>`
+    : ''
 
   const picture = a.picture?.rows.length
     ? `<h2 style="font:600 18px/1.3 Georgia,'Times New Roman',serif;margin:22px 0 6px">Local picture</h2>
@@ -225,6 +231,7 @@ ${gapNote}
 <table role="presentation" cellpadding="3" style="border-collapse:collapse;margin:0 0 12px">${facts.map(([k, v]) => `<tr><td style="color:${MUTED};padding-right:14px">${k}</td><td>${v}</td></tr>`).join('')}</table>
 ${sourceList}
 <div>${buttons}</div>
+${linkedinBlock}
 ${picture}
 ${who}
 <p style="color:${MUTED};font-size:13px;margin-top:18px">Primary contact is settled in the 7 AM run, warm lead first.</p>
