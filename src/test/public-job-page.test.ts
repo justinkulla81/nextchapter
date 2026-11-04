@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, cleanCompanyText, isIndexableJob, isPublicJob, isStaleVerified, jobPostingJsonLd, missingRequiredJobFields, payLabel, plausiblePay, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
+import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, cleanCompanyText, isIndexableJob, liveJobSitemapShards, isPublicJob, isStaleVerified, jobPostingJsonLd, missingRequiredJobFields, payLabel, plausiblePay, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
 
 const NOW = Date.parse('2026-10-22T12:00:00Z')
 const DAY = 86_400_000
@@ -192,5 +192,20 @@ describe('cleanCompanyText', () => {
   it('leaves an ordinary name alone', () => {
     expect(cleanCompanyText('Johnson & Johnson')).toBe('Johnson & Johnson')
     expect(cleanCompanyText('  Luminis   Health ')).toBe('Luminis Health')
+  })
+})
+
+describe('liveJobSitemapShards', () => {
+  it('offers every file unless told otherwise', () => {
+    expect(liveJobSitemapShards({})).toBe(16)
+    expect(liveJobSitemapShards({ JOB_SITEMAP_SHARDS_LIVE: '' })).toBe(16)
+    expect(liveJobSitemapShards({ JOB_SITEMAP_SHARDS_LIVE: 'abc' })).toBe(16)
+    expect(liveJobSitemapShards({ JOB_SITEMAP_SHARDS_LIVE: '-2' })).toBe(16)
+  })
+  it('pauses at 0 and phases in by file count, never above 16', () => {
+    expect(liveJobSitemapShards({ JOB_SITEMAP_SHARDS_LIVE: '0' })).toBe(0)
+    expect(liveJobSitemapShards({ JOB_SITEMAP_SHARDS_LIVE: '4' })).toBe(4)
+    expect(liveJobSitemapShards({ JOB_SITEMAP_SHARDS_LIVE: ' 6 ' })).toBe(6)
+    expect(liveJobSitemapShards({ JOB_SITEMAP_SHARDS_LIVE: '99' })).toBe(16)
   })
 })

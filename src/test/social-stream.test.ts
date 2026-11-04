@@ -62,7 +62,7 @@ describe('ranking facts', () => {
     const f = rankingFacts([entry('a', { scopeKind: 'state', places: 200 }), entry('b'), entry('old', { edition: '2026-08', editions: ['2026-08'] }), entry('c', { group: 'college' }), entry('d', { editions: ['2026-12', '2026-11'] })], now)
     expect(f.map((x) => x.key)).toEqual(['story-ranking-b-2026-11', 'story-ranking-a-2026-11'])
     expect(f[0].path).toBe('/rankings/b')
-    expect(f[0].lines).toContain('Number one: Austin (12.0%)')
+    expect(f[0].lines).toContain('Ranked first of 80 places: Austin (12.0%)')
   })
   it('has a template that fits Bluesky even with a long title', () => {
     const f = rankingFacts([entry('x', { title: 'The best mid-size cities in the whole country for entry-level jobs that pay above the local cost of living' })], now)[0]
@@ -288,5 +288,48 @@ describe('layoff tags', () => {
     const facts = helpFacts(new Date('2026-11-10T15:00:00Z'))
     expect(facts.find((f) => f.state === 'TN')!.cites).toEqual(['agency:TN'])
     expect(facts.find((f) => f.state === 'TX')!.cites).toEqual([])
+  })
+})
+
+describe('filler about what is or is not reported', () => {
+  const lay: Fact = { key: 'k', topic: 'layoff', lines: ['Employer: Circle', 'Share of staff: 5% (a share of staff, not a headcount)', 'Source: multiple news reports'], path: '/layoffs/company/circle', campaign: 'layoff-announcement', fallback: (l) => `Circle ${l}` }
+  it('rejects claims about missing information that the facts never made', () => {
+    for (const bad of [
+      `Circle is cutting 5% of its staff, according to multiple news reports. No further breakdown has been reported. ${LINK_TOKEN}`,
+      `Circle cuts 5% of staff per multiple news reports, and no additional detail is available. ${LINK_TOKEN}`,
+      `Circle is cutting 5% of staff, multiple news reports say. The scale is not yet clear. ${LINK_TOKEN}`,
+      `Circle is cutting 5% of its staff, multiple news reports say. That's the figure as reported. ${LINK_TOKEN}`,
+      `Multiple news reports say Circle is cutting 5% of its staff, as reported. ${LINK_TOKEN}`,
+    ]) expect(checkDraft(bad, lay).ok).toBe(false)
+    expect(checkDraft(`Circle is cutting 5% of its staff, according to multiple news reports. ${LINK_TOKEN}`, lay)).toEqual({ ok: true })
+  })
+})
+
+describe('Bluesky link cards', () => {
+  it('reads the share image and text out of a page, as absolute addresses', async () => {
+    const { parseOgImage, parseOgText } = await import('@/lib/social/clients')
+    const html = '<head><meta property="og:title" content="A &amp; B"/><meta property="og:description" content="Plain"/><meta property="og:image" content="/layoffs/x/opengraph-image?abc&amp;d=1"/></head>'
+    expect(parseOgImage(html, 'https://launchyournextchapter.com/layoffs/x?utm_source=bluesky')).toBe('https://launchyournextchapter.com/layoffs/x/opengraph-image?abc&d=1')
+    expect(parseOgText(html)).toEqual({ title: 'A & B', description: 'Plain' })
+    expect(parseOgImage('<head></head>', 'https://launchyournextchapter.com/')).toBeNull()
+  })
+  it('only builds a card for our own site, so it never fetches an address from other text', async () => {
+    const { buildLinkEmbed } = await import('@/lib/social/clients')
+    const calls: string[] = []
+    const real = globalThis.fetch
+    globalThis.fetch = (async (u: string) => { calls.push(String(u)); throw new Error('no network in tests') }) as typeof fetch
+    try {
+      expect(await buildLinkEmbed('https://bsky.social', 'jwt', 'https://evil.example.com/page')).toBeUndefined()
+      expect(calls).toEqual([])
+      expect(await buildLinkEmbed('https://bsky.social', 'jwt', 'https://launchyournextchapter.com/layoffs')).toBeUndefined() // a failure is not an error
+    } finally { globalThis.fetch = real }
+  })
+  it('titles the card with the post, not the page, and describes what the page holds', async () => {
+    const { cardFor } = await import('@/lib/social/cards')
+    const c = cardFor({ campaign: 'layoff-announcement', lines: ['Employer: BMW Brilliance'] }, 'BMW Brilliance is cutting 1,800 jobs, according to multiple news reports. What was reported: https://launchyournextchapter.com/layoffs/company/bmw?utm_source=bluesky')
+    expect(c.title).toBe('BMW Brilliance is cutting 1,800 jobs, according to multiple news reports')
+    expect(c.description).toBe('What was reported, and what to do if you are affected.')
+    expect(cardFor({ campaign: 'unknown', lines: ['Skill: SQL'] }, 'https://x.test').title).toBe('Skill: SQL')
+    expect(cardFor({ campaign: 'x', lines: [] }, `${'word '.repeat(60)}ends.`).title.length).toBeLessThanOrEqual(110)
   })
 })

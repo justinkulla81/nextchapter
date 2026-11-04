@@ -13,7 +13,7 @@ import { STATE_AGENCIES } from '@/lib/social/tag-handles'
  * writer is off. Nothing here talks; the writer (writer.ts) turns the lines into a post and the checker (validate.ts) rejects a draft
  * that adds a number.
  */
-export type Topic = 'layoff' | 'ranking' | 'ai-pay' | 'skill' | 'help' | 'press'
+export type Topic = 'layoff' | 'ranking' | 'ai-pay' | 'skill' | 'help' | 'press' | 'roundup'
 
 export interface Fact {
   /** Stable id, so a fact is posted once per edition and channel. */
@@ -28,6 +28,8 @@ export interface Fact {
   cites?: string[]
   /** U.S. state the fact is about, so a help post can follow a layoff in the same state. */
   state?: string
+  /** Post the fallback text as it is, with no model: for roundups whose text is only totals from our own data. */
+  plain?: boolean
   /** The plain post for when the writer is off, over its cap, or its draft fails the check. */
   fallback: (link: string, shortLinks: boolean) => string
 }
@@ -74,8 +76,8 @@ export function rankingFacts(index: RankingIndexEntry[], now: Date): Fact[] {
         `List: ${x.title}`,
         `Covers: ${x.scopeKind === 'national' ? 'the United States' : x.scopeName}`,
         `Edition: ${editionLabel(x.edition)}`,
-        `Number one: ${x.topName} (${x.topValueLabel})`,
-        `Places ranked: ${n(x.places)}`,
+        `Ranked first of ${n(x.places)} places: ${x.topName} (${x.topValueLabel})`,
+        'Say only that it ranked first; do not say how it compares with the other places beyond that',
       ],
       path: `/rankings/${x.slug}`,
       campaign: 'ranking-story',

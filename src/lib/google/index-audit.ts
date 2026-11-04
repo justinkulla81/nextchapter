@@ -39,8 +39,11 @@ function sample<T>(items: T[], n: number): T[] {
   return copy.slice(0, n)
 }
 
+/** A sitemap that has not answered in this long contributes nothing: one slow file must not hold the whole run. */
+const SITEMAP_TIMEOUT_MS = 25_000
+
 async function sitemapUrls(only?: string): Promise<Map<string, string[]>> {
-  const index = await (await fetch(`${SITE_URL}/sitemap-index.xml`, { cache: 'no-store' })).text()
+  const index = await (await fetch(`${SITE_URL}/sitemap-index.xml`, { cache: 'no-store', signal: AbortSignal.timeout(SITEMAP_TIMEOUT_MS) })).text()
   const byGroup = new Map<string, string[]>()
   for (const loc of locs(index)) byGroup.set(sitemapGroup(loc), [...(byGroup.get(sitemapGroup(loc)) ?? []), loc])
   // All groups and both shards of each at once: read one after another, 26 sitemap fetches alone used most of the time budget.
@@ -50,7 +53,7 @@ async function sitemapUrls(only?: string): Promise<Map<string, string[]>> {
       const lists = await Promise.all(
         sample(maps, 2).map(async (map) => {
           try {
-            return locs(await (await fetch(map, { cache: 'no-store' })).text())
+            return locs(await (await fetch(map, { cache: 'no-store', signal: AbortSignal.timeout(SITEMAP_TIMEOUT_MS) })).text())
           } catch {
             return [] // a sitemap that will not load simply contributes nothing
           }
@@ -102,12 +105,12 @@ const CONCURRENCY = 8
  */
 export async function runIndexAudit(perGroup: number, opts: { deadlineMs?: number; onlyGroup?: string } = {}): Promise<AuditRun | { error: string }> {
   const started = Date.now()
-  const deadline = started + (opts.deadlineMs ?? 240_000)
+  const deadline = started + (opts.deadlineMs ?? 200_000)
   const connections = await getAllGoogleConnections()
   for (const connection of connections) {
     try {
       const token = await getValidAccessTokenFor(connection)
-      const sitesRes = await fetch('https://www.googleapis.com/webmasters/v3/sites', { headers: { Authorization: `Bearer ${token}` } })
+      const sitesRes = await fetch('https://www.googleapis.com/webmasters/v3/sites', { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15_000) })
       if (!sitesRes.ok) continue
       const siteUrl = pickSite(((await sitesRes.json()) as { siteEntry?: { siteUrl: string; permissionLevel: string }[] }).siteEntry ?? [])
       if (!siteUrl) continue
@@ -131,4 +134,36 @@ export function auditCsv(rows: AuditRow[]): string {
   const cell = (v: string) => `"${v.replace(/"/g, '""')}"`
   const head = 'group,url,verdict,coverage,last_crawl,google_canonical,user_canonical,robots,fetch_state'
   return [head, ...rows.map((r) => [r.group, r.url, r.verdict, r.coverage, r.lastCrawl, r.googleCanonical, r.userCanonical, r.robots, r.fetchState].map(cell).join(','))].join('\n')
+}
+
+export interface AuditDiagnostics {
+  connections: number
+  siteUrl: string | null
+  groups: { group: string; urls: number }[]
+  /** How long each stage took, in milliseconds. */
+  ms: { connection: number; sitemaps: number }
+}
+
+/**
+ * What an audit run would use, without inspecting anything: the Google connection, the property, and the URLs found in each sitemap
+ * group. It answers in seconds, so a stuck stage shows up here instead of as a spinning page.
+ */
+export async function auditDiagnostics(onlyGroup?: string): Promise<AuditDiagnostics | { error: string }> {
+  const t0 = Date.now()
+  try {
+    const connections = await getAllGoogleConnections()
+    for (const connection of connections) {
+      const token = await getValidAccessTokenFor(connection)
+      const sitesRes = await fetch('https://www.googleapis.com/webmasters/v3/sites', { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15_000) })
+      if (!sitesRes.ok) continue
+      const siteUrl = pickSite(((await sitesRes.json()) as { siteEntry?: { siteUrl: string; permissionLevel: string }[] }).siteEntry ?? [])
+      if (!siteUrl) continue
+      const t1 = Date.now()
+      const groups = [...(await sitemapUrls(onlyGroup))].map(([group, urls]) => ({ group, urls: urls.length }))
+      return { connections: connections.length, siteUrl, groups, ms: { connection: t1 - t0, sitemaps: Date.now() - t1 } }
+    }
+    return { error: `No connected Google account can see the property (${connections.length} connections tried, ${Date.now() - t0} ms).` }
+  } catch (err) {
+    return { error: `${err instanceof Error ? err.message : 'Unknown error'} (${Date.now() - t0} ms)` }
+  }
 }

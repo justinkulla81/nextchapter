@@ -16,6 +16,7 @@ Write like a thoughtful person who follows the job market, not like a brand. Pla
 Rules, all of them:
 - Use only the facts you are given. Copy every number exactly as written in the facts, in digits. Never add a number, a cause, a prediction, advice or an opinion the facts do not state.
 - Say who reported a layoff the way the facts say it, and keep any caveat the facts ask you to keep.
+- Never say what has or has not been reported, confirmed, disclosed or detailed, and never remark on missing information ("no further detail", "not yet clear") or on the figure itself ("that's the figure as reported", "as reported"). Say only what the facts say.
 - No hashtags, emojis, exclamation marks, dashes (use a comma or a full stop), questions aimed at the reader, or stock phrases such as "exciting news", "here's the thing", "let's dive in", "breaking" or "game changer".
 - Begin differently from the recent posts you are shown: different first words and a different sentence shape. Do not reuse their phrasing.
 - Put ${LINK_TOKEN} exactly once, at the end, alone or after a short lead-in. Never write a web address yourself.
@@ -28,6 +29,7 @@ const TONE: Record<Fact['topic'], string> = {
   skill: 'A hiring finding about a skill. Curious and useful, a little conversational.',
   help: 'Practical help for someone who just lost a job. Warm and plain, no cheer, no promises. Say what the state pays and who decides, then point to the page.',
   press: 'A research finding that reporters and economists may quote. Neutral and precise, no hype, name the source in plain words and keep every figure exactly as given.',
+  roundup: 'A summary of totals. Plain and factual.',
 }
 
 const CHANNEL_VOICE: Record<string, string> = {
