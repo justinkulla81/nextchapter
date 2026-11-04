@@ -121,7 +121,7 @@ function severanceFaq(name: string, states: string[]): { q: string; a: string }[
   return [
     {
       q: `Does severance affect unemployment after the ${name} layoffs?`,
-      a: `${rules.join(' ')}${tail} Whether ${name} offers severance, and how much, is set by the company and each worker’s agreement; the WARN notices do not state it. File as soon as you are out of work and report severance when asked: the state decides how it counts.`,
+      a: `${rules.join(' ')}${tail} Whether ${name} offers severance, and how much, is set by the company and each worker’s agreement; the state layoff filings do not say. File as soon as you are out of work and report severance when asked: the state decides how it counts.`,
     },
     ...(amounts.length > 0
       ? [{ q: `How much unemployment can ${name} workers get?`, a: `${amounts.join('; ')}. File in the state where you worked.` }]
@@ -139,7 +139,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const lead = recent && ann ? ann.items[0] : null
   const description = lead && !c.notices.length
     ? `${c.name}: ${lead.summary} (${noticeDay(lead.date)}). What was announced, the source, and what to do if you are affected: benefits, severance, COBRA and local help.`
-    : `${lead ? `${lead.summary} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} WARN ${c.notices.length === 1 ? 'notice' : 'notices'} of layoffs and job cuts filed by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest filed ${noticeDay(c.latest)}. Dates, locations, and each state's severance and unemployment rules.`
+    : `${lead ? `${lead.summary} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} ${c.notices.length === 1 ? 'layoff' : 'layoffs'} reported by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest reported ${noticeDay(c.latest)}. Dates, locations, and each state's severance and unemployment rules.`
   // A page whose newest notice is over two years old, or that is too small to be worth a search result
   // (src/lib/seo/page-bars.ts), stays reachable but out of search results.
   const stale = !meetsCompanyLayoffBar(c) && !recent
@@ -201,8 +201,8 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
     : null
   const faq = hasNotices
     ? [
-        { q: `Is ${c.name} laying off employees?`, a: `${c.name} has filed ${c.notices.length.toLocaleString()} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'}. The latest was filed ${noticeDay(c.latest)}.` },
-        { q: `How many ${c.name} workers are affected?`, a: workers > 0 ? `The notices on record name ${workers.toLocaleString()} workers${unknownCounts ? ', counting only the notices that gave a number' : ''}.` : 'The notices on record do not state a worker count.' },
+        { q: `Is ${c.name} laying off employees?`, a: `${c.name} has reported ${c.notices.length.toLocaleString()} ${c.notices.length === 1 ? 'layoff' : 'layoffs'} to the state. The latest was reported ${noticeDay(c.latest)}.` },
+        { q: `How many ${c.name} workers are affected?`, a: workers > 0 ? `The layoffs on record name ${workers.toLocaleString()} workers${unknownCounts ? ', counting only the ones that gave a number' : ''}.` : 'The layoffs on record do not state a worker count.' },
         { q: `Where are the ${c.name} layoffs?`, a: `${c.name} filed in ${c.states.map(stateName).join(', ')}.` },
         ...severanceFaq(c.name, c.states),
       ]
@@ -246,7 +246,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <section aria-labelledby="glance" className="mt-12 rounded-xl border border-border bg-white p-6">
               <h2 id="glance" className="text-xl font-semibold tracking-tight text-navy">{c.name} layoffs at a glance</h2>
               <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">WARN notices filed</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{c.notices.length.toLocaleString('en-US')}</dd></div>
+                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Layoffs reported</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{c.notices.length.toLocaleString('en-US')}</dd></div>
                 <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Workers named</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{workers > 0 ? workers.toLocaleString('en-US') : 'Not stated'}</dd></div>
                 <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">First and latest filing</dt><dd className="mt-1 font-semibold text-navy">{noticeDay(oldestNotice)}{oldestNotice.getTime() !== c.latest.getTime() ? ` to ${noticeDay(c.latest)}` : ''}</dd></div>
                 <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Largest notice</dt><dd className="mt-1 font-semibold text-navy">{largest?.workers ? `${largest.workers.toLocaleString('en-US')} workers, ${stateName(largest.state)}` : 'Not stated'}</dd></div>
@@ -274,8 +274,8 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <section aria-labelledby="announced" className="mt-10">
               <h2 id="announced" className={H2}>Announced and reported</h2>
               <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-                Company announcements and press reports, kept apart from WARN filings. A buyout is an offer, not a layoff: it counts no one as laid off,
-                and how many accept is not known until the company says. These do not change the notice and worker counts below.
+                Company announcements and press reports, kept apart from layoffs reported to the state. A buyout is an offer, not a layoff: it counts no one as laid off,
+                and how many accept is not known until the company says. These do not change the layoff and worker counts below.
               </p>
               <ul className="mt-4 space-y-3">
                 {ann.items.map((a) => (
@@ -343,7 +343,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           {hasNotices && <section aria-labelledby="notices" className="mt-10">
             <h2 id="notices" className={H2}>Notices</h2>
             <div className="mt-4">
-              <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
+              <NoticeTable notices={c.notices} caption={`Layoffs reported by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
             </div>
             <StatementForm
               slug={slug}
@@ -375,7 +375,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <h2 id="boards" className={H2}>Local workforce boards</h2>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
               The public workforce boards for each location in these notices. Their American Job Centers offer free help with
-              job search, training and filing for benefits, and some run rapid-response services for workers in a WARN layoff.
+              job search, training and filing for benefits, and some run rapid-response services for workers in a layoff.
             </p>
             <div className="mt-4"><BoardList notices={c.notices} page="company" /></div>
           </section>}
@@ -397,7 +397,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           {hasNotices && <CiteThisData path={path} asOf={noticeDay(new Date(`${modified}T12:00:00Z`))} source="layoffs-company" csvHref={c.states.length === 1 ? `/data/layoffs.csv?state=${c.states[0]}` : '/data/layoffs.csv'} />}
 
           {hasNotices && <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
-            These are the notices {c.name} filed under the WARN Act, as published by each state. A notice gives the number of
+            These are the layoffs {c.name} reported to the states, as each state publishes them. A report gives the number of
             workers and dates the employer reported; it does not say why. See the{' '}
             <Link href="/layoffs" className={LINK}>layoff tracker</Link> for how notices are collected and what they cover.
           </p>}
