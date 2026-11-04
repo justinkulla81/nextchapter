@@ -12,6 +12,7 @@ import { weekKey } from '@/lib/social/posts'
 import { withTags } from '@/lib/social/tags'
 import { wcIndexSummary } from '@/lib/reports-wc-index'
 import { enqueueLinkedInStory } from '@/lib/linkedin/story-drafts'
+import { cardFor } from '@/lib/social/cards'
 import { dueRoundup } from '@/lib/social/roundups'
 import { LINK_TOKEN } from '@/lib/social/validate'
 import { writePost } from '@/lib/social/writer'
@@ -151,7 +152,7 @@ async function runChannel(c: Channel, index: number, now: Date, shared: Shared):
   const eventKind = kind === 'layoff' ? 'layoff' : 'data_story'
   let result: ChannelResult
   try {
-    const ref = await c.post(text, `${fact.key}:${c.id}`)
+    const ref = await c.post(text, `${fact.key}:${c.id}`, cardFor(fact, text))
     if (kind === 'layoff') { ledger.sent[`${(layoff as LayoffItem).id}:${c.id}`] = now.toISOString(); await writeLedger(ledger) }
     else state.sent[fact.key] = now.toISOString()
     state.lastKind = kind

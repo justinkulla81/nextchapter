@@ -52,8 +52,62 @@ export async function mentionFacets(text: string, resolve: (handle: string) => P
   return out
 }
 
+export interface LinkCard { title?: string; description?: string }
+
+const SITE_HOST = 'launchyournextchapter.com'
+/** Bluesky refuses an image blob over 1,000,000 bytes. */
+const MAX_THUMB_BYTES = 950_000
+
+/** The og:image of a page's HTML, as an absolute address; null when there is none. */
+export function parseOgImage(html: string, pageUrl: string): string | null {
+  const tag = /<meta\b[^>]*(?:property|name)=["'](?:og:image|twitter:image)["'][^>]*>/i.exec(html)?.[0]
+  const content = tag ? /content=["']([^"']+)["']/i.exec(tag)?.[1] : null
+  if (!content) return null
+  try { return new URL(content.replace(/&amp;/g, '&'), pageUrl).toString() } catch { return null }
+}
+
+/** The page's own og:title and og:description, used when the caller gives no card text. */
+export function parseOgText(html: string): { title: string | null; description: string | null } {
+  const pick = (prop: string) => {
+    const tag = new RegExp(`<meta\\b[^>]*property=["']${prop}["'][^>]*>`, 'i').exec(html)?.[0]
+    return tag ? (/content=["']([^"']*)["']/i.exec(tag)?.[1] ?? null)?.replace(/&amp;/g, '&').replace(/&quot;/g, '"') ?? null : null
+  }
+  return { title: pick('og:title'), description: pick('og:description') }
+}
+
+/**
+ * The link card for a Bluesky post: the linked page's share image uploaded as the thumbnail, with a title and description that say what
+ * this post is about (the page's own are the same for many pages). Only for our own site, so the server never fetches an address from
+ * text it did not write. Returns undefined, and the post goes out without a card, when anything about the card fails.
+ */
+export async function buildLinkEmbed(base: string, jwt: string, url: string, card?: LinkCard): Promise<Record<string, unknown> | undefined> {
+  try {
+    if (new URL(url).hostname.replace(/^www\./, '') !== SITE_HOST) return undefined
+    const page = await fetch(url, { headers: { 'user-agent': 'NextChapterBot/1.0 (+https://launchyournextchapter.com)' }, signal: AbortSignal.timeout(10_000) })
+    if (!page.ok) return undefined
+    const html = await page.text()
+    const image = parseOgImage(html, url)
+    const og = parseOgText(html)
+    let thumb: unknown
+    if (image) {
+      const img = await fetch(image, { signal: AbortSignal.timeout(10_000) })
+      const type = img.headers.get('content-type') ?? ''
+      if (img.ok && type.startsWith('image/')) {
+        const bytes = Buffer.from(await img.arrayBuffer())
+        if (bytes.length <= MAX_THUMB_BYTES) {
+          const up = await fetch(`${base}/xrpc/com.atproto.repo.uploadBlob`, { method: 'POST', headers: { 'content-type': type.split(';')[0], authorization: `Bearer ${jwt}` }, body: bytes, signal: AbortSignal.timeout(TIMEOUT_MS) })
+          if (up.ok) thumb = ((await up.json()) as { blob?: unknown }).blob
+        }
+      }
+    }
+    return { $type: 'app.bsky.embed.external', external: { uri: url, title: (card?.title ?? og.title ?? 'NextChapter').slice(0, 300), description: (card?.description ?? og.description ?? '').slice(0, 1000), ...(thumb ? { thumb } : {}) } }
+  } catch {
+    return undefined
+  }
+}
+
 /** Posts to Bluesky (free AT Protocol API; an app password, never the account password). Returns the post's at:// URI. */
-export async function postBluesky(text: string): Promise<string> {
+export async function postBluesky(text: string, card?: LinkCard): Promise<string> {
   const base = process.env.BLUESKY_SERVICE ?? 'https://bsky.social'
   const session = await fetch(`${base}/xrpc/com.atproto.server.createSession`, {
     method: 'POST',
@@ -63,13 +117,15 @@ export async function postBluesky(text: string): Promise<string> {
   })
   if (!session.ok) throw new Error(`bluesky session: ${session.status}`)
   const { accessJwt, did } = (await session.json()) as { accessJwt: string; did: string }
+  const url = /https?:\/\/\S+/.exec(text)?.[0]
+  const embed = url ? await buildLinkEmbed(base, accessJwt, url, card) : undefined
   const res = await fetch(`${base}/xrpc/com.atproto.repo.createRecord`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${accessJwt}` },
     body: JSON.stringify({
       repo: did,
       collection: 'app.bsky.feed.post',
-      record: { $type: 'app.bsky.feed.post', text, facets: [...linkFacets(text), ...(await mentionFacets(text))], createdAt: new Date().toISOString(), langs: ['en'] },
+      record: { $type: 'app.bsky.feed.post', text, facets: [...linkFacets(text), ...(await mentionFacets(text))], ...(embed ? { embed } : {}), createdAt: new Date().toISOString(), langs: ['en'] },
     }),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   })
