@@ -9,6 +9,7 @@ import { CATALOG_FUNCTIONS } from '@/lib/learning/public-catalog-shared'
 import { FORMATS, type RetrainFormat } from '@/lib/learning/ai-retraining'
 import { INDUSTRIES } from '@/lib/seo/topics'
 import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
+import { JoinFreeAfterSave } from '@/components/capture/JoinFreeAfterSave'
 
 const FIELD = 'mt-1 h-11 w-full rounded-lg border border-border bg-white px-3 text-base'
 
@@ -37,6 +38,7 @@ export function InterestForm({ source, confirmed }: { source: string; confirmed?
             ? <>Check your inbox{state.email ? <> at <span className="font-medium text-foreground">{state.email}</span></> : ''} and click the link to confirm.</>
             : <>Saved{state.email ? <> for <span className="font-medium text-foreground">{state.email}</span></> : ''}. Confirmation emails are turning on soon.</>}
         </p>
+        <JoinFreeAfterSave from="ai_retraining_interest" properties={{ source }} />
       </section>
     )
   }
