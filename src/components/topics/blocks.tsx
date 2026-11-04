@@ -32,7 +32,7 @@ const clip = (t: string, n: number) => (t.length > n ? `${t.slice(0, n).replace(
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 
 /** Page frame shared by every topic page: header, breadcrumb, h1, intro, footer. */
-export function TopicShell({ trail, title, intro, children, jsonLd, capture, hero }: {
+export function TopicShell({ trail, title, intro, children, jsonLd, capture, hero, afterIntro }: {
   trail: { name: string; path: string }[]
   title: string
   intro: string
@@ -42,6 +42,8 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture, her
   capture?: PageCaptureConfig
   /** A picture for the header (public/images/topics). Without one the header is plain text. */
   hero?: string
+  /** One block placed right under the heading and intro, before the first section (the page's own primary ask). */
+  afterIntro?: React.ReactNode
 }) {
   const pull = pullContext(trail)
   const { body, bottom } = withPullCtas(children, pull, { hasCapture: !!capture, isOwnBand: (el) => el.type === JoinBand })
@@ -72,6 +74,7 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture, her
               </div>
             )}
           </div>
+          {afterIntro}
           {body}
           {capture ? <PageCaptureTop capture={capture} /> : <PullCtaTop {...pull} />}
           {capture && <PageCaptureOwner capture={capture} />}

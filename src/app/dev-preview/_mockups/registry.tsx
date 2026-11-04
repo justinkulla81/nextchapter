@@ -266,7 +266,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/partner-move-ask', place: 'Network', title: 'Your move plan: asking for your last salary, in context, with a skip', replaces: 'new', Component: PartnerMovingAsk },
   { path: 'network/circles/partner-move-worth', place: 'Network', title: 'Your move plan: each salary in what it buys at home', replaces: 'new', Component: PartnerMovingWorth },
   { path: 'network/circles/partner-move', place: 'Network', title: 'Your move plan: places side by side, with what it costs to live there', replaces: 'new', Component: PartnerMoving },
-  { path: 'public/role-network/signed-out', place: 'Public site', title: 'Role page: join the CRO network (visitor)', replaces: 'the generic "See how the market reads your background" band at the end of a role page', Component: RoleNetworkSignedOut },
+  { path: 'public/role-network/signed-out', place: 'Public site', title: 'Role page top: join the CRO network (visitor)', replaces: 'the generic band at the end of a role page, which is dropped; the capture box stays as the closing ask', Component: RoleNetworkSignedOut },
   { path: 'public/role-network/can-join', place: 'Public site', title: 'Role page: join the CRO network (signed in)', replaces: 'the generic band at the end of a role page', Component: RoleNetworkCanJoin },
   { path: 'public/role-network/joined', place: 'Public site', title: 'Role page: already in the CRO network', replaces: 'the generic band at the end of a role page', Component: RoleNetworkJoined },
   { path: 'public/role-network/confidential', place: 'Public site', title: 'Role page: Confidential Search Mode member', replaces: 'the generic band at the end of a role page', Component: RoleNetworkConfidential },
