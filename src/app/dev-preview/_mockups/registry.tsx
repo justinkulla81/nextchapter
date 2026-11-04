@@ -22,6 +22,7 @@ import { TrackRecordRound, TrackRecordIntro, TrackRecordDone, HowIPerformRound, 
 import { CandidatePlusUnlock, WeeklyEmail, OnboardingSituation, FirstWeek, EmptyJobs, EmptyNetwork, EmptyEffort, OnboardingMoney, AccountMoney } from './moments'
 import { MoneyRunway, MoneyDeadlines, MoneyEntrepreneur } from './money'
 import { CareerStoryShortMock, CareerStoryShortEmpty } from './career-story'
+import { PeopleNew, PeopleFull, MoveWithPlaces, MoveEmpty } from './people-move-short'
 import { SearchStrategySimple } from './strategy'
 import { CareerHighPointPreview } from './career-high-point'
 import { StrategyNegotiationLive, StrategyNegotiationEmptyLive } from './strategy-negotiation-live'
@@ -214,12 +215,16 @@ export const MOCKUPS: Mockup[] = [
   { path: 'account/profile', place: 'Account', title: 'Profile', replaces: '/dashboard/profile, complete-profile', Component: ProfileMock },
   { path: 'jobs/apply/resume', place: 'Jobs', title: 'Résumé', replaces: '/dashboard/resume, resume/studio, resume/walkthrough', Component: ResumeMock },
   { path: 'jobs/apply/whyhire', place: 'Jobs', title: 'Why hire me', replaces: '/dashboard/strengths, track-record', Component: WhyHireMe },
+  { path: 'network/circles/people-new', place: 'Network', title: 'Your people, nobody yet: one Invite someone with a supporter / partner choice (sample data)', replaces: '/dashboard/supporters: two open invite forms stacked (Invite your partner, then Invite someone), the intro, and the weekly-note promise written twice', Component: PeopleNew },
+  { path: 'network/circles/people-full', place: 'Network', title: 'Your people, with supporters, a partner and cheers: Invite someone is one button (sample data)', replaces: '/dashboard/supporters: the invite form at the bottom below the lists', Component: PeopleFull },
+  { path: 'network/circles/move-places', place: 'Network', title: 'Your move plan: places as rows, Add a place on a button (sample data)', replaces: '/dashboard/move-plan: the always-open add form, and the 8-line place cards', Component: MoveWithPlaces },
+  { path: 'network/circles/move-empty', place: 'Network', title: 'Your move plan, no places yet (sample data)', replaces: '/dashboard/move-plan with no places: the form is open', Component: MoveEmpty },
   { path: 'learn/path/story-short', place: 'Learn', title: 'Career story: the story and one action, where it could go, one fold (the built page, sample data)', replaces: '/dashboard/my-career: the outline Add a chapter button, the privacy badge, the phase bar and list shown together on every door, the always-open pause calculator and People like you (now one fold), and the doors, pause and peers cards under an empty story', Component: CareerStoryShortMock },
   { path: 'learn/path/story-short-empty', place: 'Learn', title: 'Career story, shortened: no history yet (sample data)', replaces: 'the empty card plus the doors, pause and peers cards below it', Component: CareerStoryShortEmpty },
   { path: 'learn/know', place: 'Learn', title: 'How I work', replaces: '/dashboard/skills-assessments, how-i-perform', Component: HowIWork },
   { path: 'account/visibility', place: 'Account', title: 'What recruiters see', replaces: '/dashboard/recruiter-report, privacy', Component: WhatRecruitersSee },
   { path: 'account/documents', place: 'Account', title: 'Documents', replaces: '/dashboard/documents', Component: DocumentsMock },
-  { path: 'account/membership', place: 'Account', title: 'Membership', replaces: '/dashboard/membership', Component: MembershipMock },
+  { path: 'account/membership', place: 'Account', title: 'Alumni plan', replaces: '/dashboard/alumni-plan', Component: MembershipMock },
   { path: 'help/talk', place: 'Help', title: 'Talk to someone', replaces: '/dashboard/support', Component: HelpTalk },
   { path: 'help/work', place: 'Help', title: 'A hard situation at work (the real screens, sample answers)', replaces: 'new: for people considering leaving', Component: WorkHelpMock },
   { path: 'help/scams', place: 'Help', title: 'Scam watch', replaces: '/dashboard/scam-watch', Component: HelpScams },

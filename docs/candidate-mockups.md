@@ -38,7 +38,7 @@ Each row is one proposed screen and the live pages it absorbs. The Personalize p
 | Learn | How I work (`/dev-preview/learn/know`) | /dashboard/skills-assessments, how-i-perform |
 | Account | What recruiters see (`/dev-preview/account/visibility`) | /dashboard/recruiter-report, privacy |
 | Account | Documents (`/dev-preview/account/documents`) | /dashboard/documents |
-| Account | Membership (`/dev-preview/account/membership`) | /dashboard/membership |
+| Account | Membership (`/dev-preview/account/membership`) | /dashboard/alumni-plan |
 | Help | Talk to someone (`/dev-preview/help/talk`) | /dashboard/support |
 | Help | Scam watch (`/dev-preview/help/scams`) | /dashboard/scam-watch |
 | Help | Questions and feedback (`/dev-preview/help/questions`) | /dashboard/help |

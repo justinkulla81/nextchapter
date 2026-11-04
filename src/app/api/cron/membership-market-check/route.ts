@@ -39,7 +39,7 @@ export const GET = withCronRun('membership-market-check', async () => {
             `Hi ${subscription.candidate.firstName ?? 'there'} — your NextChapter Alumni plan includes a quarterly check on job-market conditions and comp benchmarking for your target role.`,
           ],
           ctaLabel: 'View your results',
-          ctaUrl: `${appUrl()}/dashboard/membership`,
+          ctaUrl: `${appUrl()}/dashboard/alumni-plan`,
         })
       }
       captureServerEvent(subscription.candidateId, 'membership_market_check_completed', {})

@@ -137,14 +137,14 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       tab('Privacy', '/dashboard/privacy'),
       tab('Documents', '/dashboard/documents'),
       tab('Money help', '/dashboard/money-help'),
-      tab('Membership', '/dashboard/membership'),
+      tab('Alumni plan', '/dashboard/alumni-plan'),
     ],
     groups: [
       { label: 'Profile', hrefs: ['/dashboard/profile'] },
       { label: 'Privacy', hrefs: ['/dashboard/privacy'] },
       { label: 'Documents', hrefs: ['/dashboard/documents'] },
       { label: 'Money help', hrefs: ['/dashboard/money-help'] },
-      { label: 'Membership', hrefs: ['/dashboard/membership'] },
+      { label: 'Alumni plan', hrefs: ['/dashboard/alumni-plan'] },
     ],
   },
   {

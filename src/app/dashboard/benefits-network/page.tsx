@@ -62,7 +62,7 @@ export default async function BenefitsNetworkPage({ searchParams }: { searchPara
       {!isMember && (
         <p className="text-base text-ink">
           Browsing is open to everyone. Redeeming an offer needs an active{' '}
-          <Link href="/dashboard/membership" className="font-medium text-brand underline underline-offset-4">Alumni plan</Link>.
+          <Link href="/dashboard/alumni-plan" className="font-medium text-brand underline underline-offset-4">Alumni plan</Link>.
         </p>
       )}
       <BenefitsNetworkFilterBar current={filters as Record<string, string | undefined>} />

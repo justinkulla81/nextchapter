@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { usePostHog } from '@/lib/posthog/client'
 import { PERSONALIZE_HREF } from '@/components/home/PersonalizePanel'
 import { startNetworkJoinAction } from '@/lib/community/network-actions'
@@ -15,7 +14,6 @@ import type { NetworkKind } from '@/lib/community/network-copy'
  */
 export function NetworkJoinButton({ networkKey, kind, name, onBusy }: { networkKey: string; kind: NetworkKind; name: string; onBusy?: (busy: boolean) => void }) {
   const posthog = usePostHog()
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -33,7 +31,10 @@ export function NetworkJoinButton({ networkKey, kind, name, onBusy }: { networkK
         onBusy?.(false)
         return setError(result.error)
       }
-      router.push(PERSONALIZE_HREF)
+      // A full navigation, not router.push: the sign-in page is on a different host (the member app), so the router's
+      // in-app fetch of it is blocked by the page's content security policy and logged as an error before it falls back
+      // to this same navigation. The proxy sends the path to the member host.
+      window.location.assign(PERSONALIZE_HREF)
     })
   }
 

@@ -7,7 +7,7 @@ const all = REDESIGN_PLACES.flatMap((p) => p.tabs)
 describe('redesigned menu', () => {
   it('keeps the personalization pages in the menu', () => {
     const redesign = new Set(all.map((t) => t.href))
-    for (const href of ['/dashboard/strengths', '/dashboard/profile', '/dashboard/skills-assessments', '/dashboard/search-strategy', '/dashboard/recruiter-report', '/dashboard/documents', '/dashboard/membership', '/dashboard/my-career']) {
+    for (const href of ['/dashboard/strengths', '/dashboard/profile', '/dashboard/skills-assessments', '/dashboard/search-strategy', '/dashboard/recruiter-report', '/dashboard/documents', '/dashboard/alumni-plan', '/dashboard/my-career']) {
       expect(redesign.has(href), href).toBe(true)
     }
   })
