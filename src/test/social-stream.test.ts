@@ -302,3 +302,32 @@ describe('filler about what is or is not reported', () => {
     expect(checkDraft(`Circle is cutting 5% of its staff, according to multiple news reports. ${LINK_TOKEN}`, lay)).toEqual({ ok: true })
   })
 })
+
+describe('Bluesky link cards', () => {
+  it('reads the share image and text out of a page, as absolute addresses', async () => {
+    const { parseOgImage, parseOgText } = await import('@/lib/social/clients')
+    const html = '<head><meta property="og:title" content="A &amp; B"/><meta property="og:description" content="Plain"/><meta property="og:image" content="/layoffs/x/opengraph-image?abc&amp;d=1"/></head>'
+    expect(parseOgImage(html, 'https://launchyournextchapter.com/layoffs/x?utm_source=bluesky')).toBe('https://launchyournextchapter.com/layoffs/x/opengraph-image?abc&d=1')
+    expect(parseOgText(html)).toEqual({ title: 'A & B', description: 'Plain' })
+    expect(parseOgImage('<head></head>', 'https://launchyournextchapter.com/')).toBeNull()
+  })
+  it('only builds a card for our own site, so it never fetches an address from other text', async () => {
+    const { buildLinkEmbed } = await import('@/lib/social/clients')
+    const calls: string[] = []
+    const real = globalThis.fetch
+    globalThis.fetch = (async (u: string) => { calls.push(String(u)); throw new Error('no network in tests') }) as typeof fetch
+    try {
+      expect(await buildLinkEmbed('https://bsky.social', 'jwt', 'https://evil.example.com/page')).toBeUndefined()
+      expect(calls).toEqual([])
+      expect(await buildLinkEmbed('https://bsky.social', 'jwt', 'https://launchyournextchapter.com/layoffs')).toBeUndefined() // a failure is not an error
+    } finally { globalThis.fetch = real }
+  })
+  it('titles the card with the post, not the page, and describes what the page holds', async () => {
+    const { cardFor } = await import('@/lib/social/cards')
+    const c = cardFor({ campaign: 'layoff-announcement', lines: ['Employer: BMW Brilliance'] }, 'BMW Brilliance is cutting 1,800 jobs, according to multiple news reports. What was reported: https://launchyournextchapter.com/layoffs/company/bmw?utm_source=bluesky')
+    expect(c.title).toBe('BMW Brilliance is cutting 1,800 jobs, according to multiple news reports')
+    expect(c.description).toBe('What was reported, and what to do if you are affected.')
+    expect(cardFor({ campaign: 'unknown', lines: ['Skill: SQL'] }, 'https://x.test').title).toBe('Skill: SQL')
+    expect(cardFor({ campaign: 'x', lines: [] }, `${'word '.repeat(60)}ends.`).title.length).toBeLessThanOrEqual(110)
+  })
+})

@@ -105,9 +105,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // A page whose newest notice is over two years old, or that is too small to be worth a search result
   // (src/lib/seo/page-bars.ts), stays reachable but out of search results.
   const stale = !meetsCompanyLayoffBar(c) && !recent
+  const titleText = recent && lead ? layoffsAnnouncedTitle(c.name, lead) : layoffsCompanySeo(c.name, c.notices.length ? { year: c.latest.getUTCFullYear(), workers, notices: c.notices.length } : undefined).title
   return {
-    title: titleMeta(recent && lead ? layoffsAnnouncedTitle(c.name, lead) : layoffsCompanySeo(c.name, c.notices.length ? { year: c.latest.getUTCFullYear(), workers, notices: c.notices.length } : undefined).title),
+    title: titleMeta(titleText),
     description,
+    // Without these the share card's caption on X, LinkedIn and Bluesky was the site-wide default for every employer.
+    openGraph: { type: 'article', siteName: 'NextChapter', locale: 'en_US', title: titleText, description, url: `https://launchyournextchapter.com/layoffs/company/${slug}` },
+    twitter: { card: 'summary_large_image', title: titleText, description },
     ...canonical(`/layoffs/company/${slug}`),
     ...(stale ? { robots: { index: false, follow: true } } : {}),
   }
