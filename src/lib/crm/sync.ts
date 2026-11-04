@@ -1,4 +1,5 @@
 import 'server-only'
+import { suggestFeedbackFromNotes } from '@/lib/crm/meeting-feedback-service'
 import { applyEmailPriorityBumps } from '@/lib/crm/priority-bump'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -854,6 +855,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     let notesAttached = 0
     let todosCreated = 0
     let remindersCreated = 0
+    let feedbackSuggested = 0
     // Accounts whose grant can't read Docs, and notes reads that failed for a
     // reason worth retrying: both are recorded on the run (see `problems`).
     const needsDocsAccess = new Set<string>()
@@ -952,6 +954,11 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
           })
           todosCreated += made.created
           remindersCreated += made.reminders
+          // Product feedback in the notes becomes suggestions the owner approves (Vision > Feedback).
+          feedbackSuggested += await suggestFeedbackFromNotes({
+            notes, eventId: ev.id, eventTitle: ev.summary ?? 'Meeting', meetingAt: ev.start, notesUrl: ev.notesDoc.url,
+            personId, personName: person?.fullName ?? 'them',
+          })
         }
         if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
         touched.add(personId)
@@ -972,7 +979,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     if (notesNeedReconnect) result.notesNeedReconnect = true
     if (notesAttached > 0 || notesFailed > 0 || notesNeedReconnect) {
       captureServerEvent('system', 'crm_meeting_notes_synced', {
-        notesAttached, notesFailed, todosCreated, remindersCreated, needsReconnect: notesNeedReconnect, eventsScanned: result.scanned, source: runSource,
+        notesAttached, notesFailed, todosCreated, remindersCreated, feedbackSuggested, needsReconnect: notesNeedReconnect, eventsScanned: result.scanned, source: runSource,
       })
     }
     // Anything reconnecting fixes is recorded on the run, so the sync-health
