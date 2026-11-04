@@ -26,6 +26,13 @@ export const DISCOVERY_TOPICS = [
   // The way back in
   { key: 'family_leave_returnships', label: 'Family leave returnships', query: 'returnship family leave caregivers' },
   { key: 'maternity_leave_returnships', label: 'Maternity leave returnships', query: 'returnship maternity leave return to work' },
+  // The employee side of white-collar work: what employers ask of people, what they give, what pay buys, and income on the side.
+  // Each feeds a journey page (src/lib/journeys/employee-journeys.ts); the story can be good or bad news for the employee.
+  { key: 'non_disparagement', label: 'Non-disparagement and exit terms', query: '"non-disparagement" severance employees OR "NDA" employees' },
+  { key: 'noncompetes_rights', label: 'Noncompetes and employee rights', query: 'noncompete OR "return to office" employee rights white-collar' },
+  { key: 'white_collar_benefits', label: 'White-collar benefits', query: 'employee benefits 401(k) match OR parental leave OR "health insurance" employers 2026' },
+  { key: 'wage_growth_costs', label: 'Wage growth and cost of living', query: 'wage growth inflation cost of living salaries workers' },
+  { key: 'side_hustles', label: 'Side hustles and second jobs', query: 'side hustle OR moonlighting OR "second job" professionals' },
   // Stay or go
   { key: 'feeling_stuck', label: 'Feeling stuck in your job', query: 'feeling stuck in your job career' },
   { key: 'thinking_about_quitting', label: 'Thinking about quitting', query: 'thinking about quitting your job' },
