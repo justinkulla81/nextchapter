@@ -54,21 +54,65 @@ export interface FirmLike {
   orgId: string
   slug: string
   name: string
-  functions: string[]
-  seniorities: string[]
-  publicRoles: number
+  /** Searches by `<function>|<band>`; absent on a listing stored before the field existed, which then lists no firm. */
+  fnLevel?: Record<string, number>
 }
 
+/** Live searches a firm needs in the role's function at its level before it is called a specialist for it. */
+export const MIN_FIRM_ROLE_SEARCHES = 2
+
+/** A firm's live searches in the role's own function and level. */
+export const firmSearchesForRole = (role: RoleDef, f: Pick<FirmLike, 'fnLevel'>): number => f.fnLevel?.[`${role.fn}|${firmBandForRole(role)}`] ?? 0
+
 /**
- * Firms whose live searches are in the role's function at the role's level. A firm with no clear specialty ("General": all
- * of functions and industries empty) never counts, so the list names specialists only.
+ * Firms with at least MIN_FIRM_ROLE_SEARCHES live searches in the role's function at the role's level, most first. A firm with
+ * hundreds of searches elsewhere (a hospitality staffing firm with one sales director search) does not make the list.
  */
-export function firmsForRole<T extends FirmLike>(role: RoleDef, firms: T[], limit = 8): T[] {
-  const band = firmBandForRole(role)
+export function firmsForRole<T extends FirmLike>(role: RoleDef, firms: T[], limit = 8): (T & { searches: number })[] {
   return firms
-    .filter((f) => f.functions.includes(role.fn) && f.seniorities.includes(band))
-    .sort((a, b) => b.publicRoles - a.publicRoles || a.name.localeCompare(b.name))
+    .map((f) => ({ ...f, searches: firmSearchesForRole(role, f) }))
+    .filter((f) => f.searches >= MIN_FIRM_ROLE_SEARCHES)
+    .sort((a, b) => b.searches - a.searches || a.name.localeCompare(b.name))
     .slice(0, limit)
+}
+
+export interface ConfLike {
+  name: string
+  kind: string
+  datesConfirmed: boolean
+  startDate: Date | null
+  seniorities: string[]
+  roles: string[]
+  importance: number
+}
+
+/** The level label a conference row uses for a role. */
+export const conferenceSeniorityForRole = (role: RoleDef): 'EXECUTIVE' | 'SENIOR' => (role.level === 'c-suite' ? 'EXECUTIVE' : 'SENIOR')
+
+/**
+ * The conferences worth listing for a role: ones that have not started, built for the role's level (or for every level), the
+ * ones that name the role first, then flagships, then the soonest. An event with no confirmed dates comes after the dated ones.
+ * An event already under way, or one for other levels only, is left out.
+ */
+export function conferencesForRole<T extends ConfLike>(role: RoleDef, rows: T[], now = new Date(), limit = 6): T[] {
+  const level = conferenceSeniorityForRole(role)
+  const names = role.variants.map((v) => v.toLowerCase())
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  const named = (c: ConfLike) => c.roles.some((r) => names.some((n) => r.toLowerCase().includes(n)))
+  return rows
+    .filter((c) => (c.seniorities.length === 0 || c.seniorities.includes(level)) && (!c.datesConfirmed || !c.startDate || c.startDate.getTime() > today))
+    .map((c) => ({ c, dated: c.datesConfirmed && !!c.startDate, named: named(c), tailored: c.seniorities.includes(level), trade: c.kind === 'TRADE_SHOW' }))
+    .sort((a, b) =>
+      Number(b.dated) - Number(a.dated) ||
+      Number(b.named) - Number(a.named) ||
+      Number(b.tailored) - Number(a.tailored) ||
+      Number(a.trade) - Number(b.trade) ||
+      a.c.importance - b.c.importance ||
+      (a.c.startDate?.getTime() ?? 0) - (b.c.startDate?.getTime() ?? 0) ||
+      a.c.name.localeCompare(b.c.name),
+    )
+    .slice(0, limit)
+    .map((x) => x.c)
 }
 
 /**

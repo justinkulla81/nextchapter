@@ -142,6 +142,8 @@ export interface FirmListing {
   industries: string[]
   functions: string[]
   seniorities: string[]
+  /** Live public searches by function and level, keyed `<function>|<band>` ("Sales|C-suite"). A role page ranks firms on its own cell. */
+  fnLevel: Record<string, number>
   lastVerifiedAt: Date
 }
 
@@ -164,6 +166,16 @@ interface HitRow {
  * Every firm with at least SEARCH_FIRM_MIN_PUBLIC_ROLES public searches — the same rule as the page's `indexable`, in SQL.
  * One pass over the firms' postings (the allowlist from public-job-page-server.ts), grouped here. Cached for 6 hours.
  */
+/** Searches per `<function>|<band>`, only where both are known. */
+function fnLevelCounts(rows: { fn: string | null; level: string | null }[]): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const r of rows) {
+    const band = seniorityBand(r.level)
+    if (r.fn && band) out[`${r.fn}|${band}`] = (out[`${r.fn}|${band}`] ?? 0) + 1
+  }
+  return out
+}
+
 export async function loadFirmListings(): Promise<FirmListing[]> {
   const hits = await prisma.$queryRaw<HitRow[]>`
     WITH firms AS (
@@ -213,6 +225,7 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
       industries: count((r) => industryLabel(r.industry), 3),
       functions: count((r) => r.fn, 3),
       seniorities: count((r) => seniorityBand(r.level), 3),
+      fnLevel: fnLevelCounts(rows),
       lastVerifiedAt: rows.reduce((m, r) => (r.verified > m ? r.verified : m), rows[0].verified),
     })
   }
@@ -222,7 +235,7 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
 /** The cache stores JSON, so the date comes back as an ISO string. */
 export type CachedFirmListing = Omit<FirmListing, 'lastVerifiedAt'> & { lastVerifiedAt: string }
 
-const FIRMS_KEY = 'firms:v3'
+const FIRMS_KEY = 'firms:v4'
 const FIRMS_MAX_AGE_MS = 24 * 3600_000
 const toCached = async (): Promise<CachedFirmListing[]> => (await loadFirmListings()).map((f) => ({ ...f, lastVerifiedAt: f.lastVerifiedAt.toISOString() }))
 
