@@ -94,3 +94,6 @@ export const RERUN_SAFE_JOBS: ReadonlySet<string> = new Set([
   // Asks the AI assistants a fixed list of questions. It costs money, but the run stops at the monthly cap (src/lib/ai-visibility/run.ts), so a second click cannot overspend.
   'ai-citation-check',
 ])
+
+/** The rankings job builds three packs of lists by default; the admin "Run now" can rebuild one group on its own (src/app/api/cron/rankings). */
+export const RANKINGS_GROUPS = ['places', 'functions', 'skills', 'workforce', 'college', 'industry', 'profile', 'support'] as const
