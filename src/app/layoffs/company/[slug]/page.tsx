@@ -110,13 +110,22 @@ function severanceFaq(name: string, states: string[]): { q: string; a: string }[
     const t = treatments.get(code)
     return t ? `${stateName(code)}: severance ${TREATMENT_PHRASE[t]}.` : `${stateName(code)}: sources disagree, so ask the state agency.`
   })
+  // A state with a weekly maximum but no fixed number of weeks (Georgia's depends on the state unemployment rate) still gets its
+  // amount; a state with no weekly maximum on record (or no row, a territory) is named at the end so its absence is not read as "no benefit".
+  const withoutAmount: string[] = []
   const amounts = shown.flatMap((code) => {
-    // A filing state with no row in the table (a territory) simply has no amount line.
     const ui = (STATE_UI as Record<string, (typeof STATE_UI)[keyof typeof STATE_UI] | undefined>)[code]
     const max = ui?.maxWeeklyBenefit.value
     const weeks = ui?.maxWeeks.value
-    return max != null && weeks != null ? [`${stateName(code)} pays up to $${max.toLocaleString('en-US')} a week for up to ${weeks} weeks`] : []
+    if (max == null) {
+      withoutAmount.push(stateName(code))
+      return []
+    }
+    const amount = `${stateName(code)} pays up to $${max.toLocaleString('en-US')} a week`
+    if (weeks != null) return [`${amount} for up to ${weeks} weeks`]
+    return [ui?.durationVaries.value ? `${amount}, for a number of weeks that depends on the state unemployment rate` : `${amount}; ask the state agency how many weeks`]
   })
+  const missing = withoutAmount.length > 0 ? ` For ${withoutAmount.join(' and ')}, ask the state agency for the weekly amount.` : ''
   const tail = more > 0 ? ` ${more} other ${more === 1 ? 'state is' : 'states are'} on the notices; each state’s unemployment page has its own rule.` : ''
   return [
     {
@@ -124,7 +133,7 @@ function severanceFaq(name: string, states: string[]): { q: string; a: string }[
       a: `${rules.join(' ')}${tail} Whether ${name} offers severance, and how much, is set by the company and each worker’s agreement; the WARN notices do not state it. File as soon as you are out of work and report severance when asked: the state decides how it counts.`,
     },
     ...(amounts.length > 0
-      ? [{ q: `How much unemployment can ${name} workers get?`, a: `${amounts.join('; ')}. File in the state where you worked.` }]
+      ? [{ q: `How much unemployment can ${name} workers get?`, a: `${amounts.join('; ')}.${missing} File in the state where you worked.` }]
       : []),
   ]
 }
