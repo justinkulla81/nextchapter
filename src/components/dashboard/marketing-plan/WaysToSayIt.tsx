@@ -123,7 +123,7 @@ export function WaysToSayIt({
             {group.items.map((item) => (
               <Card key={item.key}>
                 <CardHeader>
-                  <CardTitle className="text-sm font-medium text-muted-foreground">{item.label}</CardTitle>
+                  <CardTitle className="font-display text-lg font-semibold text-ink">{item.label}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="whitespace-pre-line text-sm text-foreground">{adaptations[item.key]}</p>

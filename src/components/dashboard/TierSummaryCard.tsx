@@ -53,7 +53,7 @@ export function TierSummaryCard({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+          <CardTitle className="font-display text-lg font-semibold text-ink">{title}</CardTitle>
           <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', CONFIDENCE_STYLE[tier])}>
             {count} {plural}
           </span>

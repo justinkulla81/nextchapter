@@ -75,7 +75,7 @@ export async function WeeklyFocusCard({
           <div className="flex items-center gap-3">
             <VictoriaAvatar size={36} />
             <div className="min-w-0 flex-1">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="font-display text-lg font-semibold text-ink">
                 Victoria&apos;s Advice for Your Weekly Search Strategy
               </CardTitle>
               <p className="text-xs text-muted-foreground">
@@ -160,7 +160,7 @@ export function WeeklyFocusSkeleton() {
       <CardHeader>
         <div className="flex items-center gap-3">
           <VictoriaAvatar size={36} />
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardTitle className="font-display text-lg font-semibold text-ink">
             Victoria&apos;s Advice for Your Weekly Search Strategy
           </CardTitle>
         </div>

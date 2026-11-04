@@ -195,7 +195,7 @@ function SearchStrategyGuidanceSkeleton() {
       <CardHeader>
         <div className="flex items-center gap-3">
           <VictoriaAvatar size={36} />
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardTitle className="font-display text-lg font-semibold text-ink">
             Strategy Guidance from Victoria
           </CardTitle>
         </div>
@@ -391,7 +391,7 @@ export default async function SearchStrategyPage() {
     <SCard key="target-role">
       <SHeader>
         <div className="flex items-center gap-2">
-          <STitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</STitle>
+          <STitle className="font-display text-lg font-semibold text-ink">Your Target Role &amp; Company</STitle>
           {targetRoleComplete && (
             <span className="text-success" aria-hidden>
               ✓
@@ -431,7 +431,7 @@ export default async function SearchStrategyPage() {
     <SCard key="blockers-motivations">
       <SHeader>
         <div className="flex items-center gap-2">
-          <STitle className="text-sm font-medium text-muted-foreground">Blockers and Motivations</STitle>
+          <STitle className="font-display text-lg font-semibold text-ink">Blockers and Motivations</STitle>
           {blockersMotivationsComplete && (
             <span className="text-success" aria-hidden>
               ✓
@@ -453,7 +453,7 @@ export default async function SearchStrategyPage() {
       ? [
           <SCard key="culture">
             <SHeader>
-              <STitle className="text-sm font-medium text-muted-foreground">Culture &amp; Working Environment</STitle>
+              <STitle className="font-display text-lg font-semibold text-ink">Culture &amp; Working Environment</STitle>
             </SHeader>
             <SContent>
               <p className="mb-4 text-sm text-muted-foreground">
@@ -467,7 +467,7 @@ export default async function SearchStrategyPage() {
       : []),
     <SCard key="marketing-networking">
       <SHeader>
-        <STitle className="text-sm font-medium text-muted-foreground">Your Marketing &amp; Networking Plan</STitle>
+        <STitle className="font-display text-lg font-semibold text-ink">Your Marketing &amp; Networking Plan</STitle>
       </SHeader>
       <SContent>
         <p className="mb-4 text-sm text-muted-foreground">
@@ -481,7 +481,7 @@ export default async function SearchStrategyPage() {
 
     <SCard key="negotiation-compensation">
       <SHeader>
-        <STitle className="text-sm font-medium text-muted-foreground">
+        <STitle className="font-display text-lg font-semibold text-ink">
           Negotiation, Interview &amp; Compensation Readiness
         </STitle>
       </SHeader>
@@ -501,7 +501,7 @@ export default async function SearchStrategyPage() {
 
     <SCard key="other-ways">
       <SHeader>
-        <STitle className="text-sm font-medium text-muted-foreground">Other Ways to Strengthen Your Search</STitle>
+        <STitle className="font-display text-lg font-semibold text-ink">Other Ways to Strengthen Your Search</STitle>
       </SHeader>
       <SContent>
         <OtherSearchStrengthenersForm
@@ -523,7 +523,7 @@ export default async function SearchStrategyPage() {
       ? [
           <SCard key="career">
             <SHeader>
-              <STitle className="text-sm font-medium text-muted-foreground">What You Want From Your Career</STitle>
+              <STitle className="font-display text-lg font-semibold text-ink">What You Want From Your Career</STitle>
             </SHeader>
             <SContent>
               <p className="mb-4 text-sm text-muted-foreground">

@@ -65,7 +65,7 @@ export function PriorityContactsCard({ contacts }: { contacts: PriorityContactIt
           <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
             <Star className="size-3.5 fill-orange" aria-hidden />
           </span>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardTitle className="font-display text-lg font-semibold text-ink">
             Priority contacts · {visibleContacts.length} starred
           </CardTitle>
         </div>
