@@ -12,7 +12,7 @@ export async function runJobNow(formData: FormData) {
   const job = String(formData.get('job') ?? '')
   if (!RERUN_SAFE_JOBS.has(job)) return
   const group = String(formData.get('group') ?? '')
-  const extra = job === 'rankings' && (RANKINGS_GROUPS as readonly string[]).includes(group) ? { group } : {}
+  const extra: Record<string, string> = job === 'rankings' && (RANKINGS_GROUPS as readonly string[]).includes(group) ? { group } : {}
   const result = await invokeCron(job, 'manual', undefined, extra)
   captureServerEvent('cron', 'job_run_now_clicked', {
     job, group: extra.group ?? null, ok: result.ok, status: result.status,
