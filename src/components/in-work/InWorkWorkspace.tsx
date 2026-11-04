@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { posthog } from '@/lib/posthog/client'
@@ -18,20 +18,42 @@ import { PromotionTab } from './PromotionTab'
 import { FeedbackTab } from './FeedbackTab'
 import { OutcomeTab } from './OutcomeTab'
 
-export type InWorkTab = 'overview' | 'impact' | 'prep' | 'salary' | 'promotion' | 'feedback' | 'outcome'
+export type InWorkTab = 'overview' | 'impact' | 'prep' | 'raise' | 'feedback'
+
+// The workspace used to have seven tabs. Salary and Promotion are now one tab (Raise and promotion), and Feedback and Review outcome
+// are one tab (Feedback and outcome). Review-cycle emails and links still say the old names, so those keep working.
+const TAB_KEYS: InWorkTab[] = ['overview', 'impact', 'prep', 'raise', 'feedback']
+const LEGACY_TAB: Record<string, InWorkTab> = { salary: 'raise', promotion: 'raise', outcome: 'feedback' }
+export function parseInWorkTab(v: string | null | undefined): InWorkTab {
+  if (!v) return 'overview'
+  return TAB_KEYS.includes(v as InWorkTab) ? (v as InWorkTab) : (LEGACY_TAB[v] ?? 'overview')
+}
 
 const TAB_LABELS: { key: InWorkTab; label: string }[] = [
   { key: 'overview', label: 'Overview' },
   { key: 'impact', label: 'Impact log' },
   { key: 'prep', label: 'Review prep' },
-  { key: 'salary', label: 'Salary and raise' },
-  { key: 'promotion', label: 'Promotion and scope' },
-  { key: 'feedback', label: 'Feedback' },
-  { key: 'outcome', label: 'Review outcome' },
+  { key: 'raise', label: 'Raise and promotion' },
+  { key: 'feedback', label: 'Feedback and outcome' },
 ]
 
 export function InWorkWorkspace({ data, initialTab }: { data: WorkspaceData; initialTab: InWorkTab }) {
   const [tab, setTab] = useState<InWorkTab>(initialTab)
+
+  // The tab is in the address, so the back button moves between tabs and a link can open one.
+  function select(next: InWorkTab) {
+    if (next === tab) return
+    posthog.capture('in_work_tab_changed', { from: tab, tab: next })
+    setTab(next)
+    const url = new URL(window.location.href)
+    url.searchParams.set('tab', next)
+    window.history.pushState(null, '', url)
+  }
+  useEffect(() => {
+    const onPop = () => setTab(parseInWorkTab(new URL(window.location.href).searchParams.get('tab')))
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   return (
     <div className="flex flex-col gap-8 pb-12">
@@ -43,7 +65,7 @@ export function InWorkWorkspace({ data, initialTab }: { data: WorkspaceData; ini
             type="button"
             onClick={() => {
               posthog.capture('in_work_log_win_clicked', { fromTab: tab, winCount: data.wins.length })
-              setTab('impact')
+              select('impact')
             }}
             className="inline-flex h-11 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95"
           >
@@ -70,7 +92,7 @@ export function InWorkWorkspace({ data, initialTab }: { data: WorkspaceData; ini
             type="button"
             role="tab"
             aria-selected={tab === t.key}
-            onClick={() => setTab(t.key)}
+            onClick={() => select(t.key)}
             className={cn(
               'rounded-full border px-4 py-1.5 text-sm font-medium',
               tab === t.key ? 'border-ink bg-ink text-white' : 'border-border text-muted-foreground hover:text-ink',
@@ -81,13 +103,23 @@ export function InWorkWorkspace({ data, initialTab }: { data: WorkspaceData; ini
         ))}
       </div>
 
-      {tab === 'overview' && <Overview data={data} go={setTab} />}
+      {tab === 'overview' && <Overview data={data} go={select} />}
       {tab === 'impact' && <ImpactLogTab data={data} />}
       {tab === 'prep' && <ReviewPrepTab data={data} />}
-      {tab === 'salary' && <SalaryTab />}
-      {tab === 'promotion' && <PromotionTab data={data} />}
-      {tab === 'feedback' && <FeedbackTab data={data} />}
-      {tab === 'outcome' && <OutcomeTab data={data} />}
+      {tab === 'raise' && (
+        <div className="space-y-8">
+          <SalaryTab />
+          <ShowMore page="in_work_promotion" label="Promotion and scope">
+            <PromotionTab data={data} />
+          </ShowMore>
+        </div>
+      )}
+      {tab === 'feedback' && (
+        <div className="space-y-8">
+          <FeedbackTab data={data} />
+          <OutcomeTab data={data} />
+        </div>
+      )}
     </div>
   )
 }
@@ -117,9 +149,6 @@ function Overview({ data, go }: { data: WorkspaceData; go: (t: InWorkTab) => voi
         )}
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => go('prep')}>Start review prep</Button>
-          <Button variant="outline" onClick={() => go('impact')}>
-            Log a win
-          </Button>
         </div>
       </Section>
 
@@ -127,11 +156,11 @@ function Overview({ data, go }: { data: WorkspaceData; go: (t: InWorkTab) => voi
         <ul className="grid gap-2 text-base sm:grid-cols-2">
           <Stat label="Wins logged" value={String(data.wins.length)} onClick={() => go('impact')} />
           <Stat label="Feedback actions open" value={String(openActions)} onClick={() => go('feedback')} />
-          <Stat label="Review follow-ups open" value={String(openFollowUps)} onClick={() => go('outcome')} />
+          <Stat label="Review follow-ups open" value={String(openFollowUps)} onClick={() => go('feedback')} />
           <Stat
             label="Promotion gaps still open"
             value={data.plan ? String(data.plan.gapItems.filter((g) => !g.done).length) : 'Not started'}
-            onClick={() => go('promotion')}
+            onClick={() => go('raise')}
           />
         </ul>
         {data.carry.recap && <p className="max-w-2xl text-base text-muted-foreground">{data.carry.recap}</p>}
