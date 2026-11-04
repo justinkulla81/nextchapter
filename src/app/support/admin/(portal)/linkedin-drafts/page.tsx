@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { LinkedInDraftCard } from '@/components/admin/LinkedInDraftCard'
+import { LinkedInStoryCard } from '@/components/admin/LinkedInStoryCard'
 import { LinkedInConnectionBar } from '@/components/admin/LinkedInConnectionBar'
 import { LinkedInOtherLayoffs } from '@/components/admin/LinkedInOtherLayoffs'
 import { listDraftableLayoffs } from '@/lib/linkedin/layoff-post-sweep'
@@ -15,6 +16,10 @@ const WHY: Record<DraftFacts['credibility'], string> = {
   unconfirmed: 'One source so far',
 }
 
+const STORY_TOPIC: Record<string, string> = {
+  ranking: 'List finding', skill: 'Hot skill', 'ai-pay': 'AI skills and pay', help: 'Help after a layoff: state benefits', press: 'Weekly press post',
+}
+
 const slot = (d: Date) =>
   d.toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' ET'
 
@@ -26,10 +31,11 @@ export default async function LinkedInDraftsPage({ searchParams }: { searchParam
   const admin = await requireAdmin()
   const { linkedin } = await searchParams
   const conn = admin.email ? await getAdminLinkedIn(admin.email) : null
-  const [other, drafts, posted] = await Promise.all([
+  const [other, drafts, posted, stories] = await Promise.all([
     listDraftableLayoffs(),
     prisma.linkedInPostDraft.findMany({ where: { status: 'DRAFT' }, orderBy: { scheduledFor: 'asc' } }),
     prisma.linkedInPostDraft.count({ where: { status: 'POSTED', postedAt: { gte: daysAgo(7) } } }),
+    prisma.linkedInStoryDraft.findMany({ where: { status: { in: ['DRAFT', 'APPROVED'] } }, orderBy: { scheduledFor: 'asc' } }),
   ])
   const now = nowMs()
 
@@ -49,6 +55,33 @@ export default async function LinkedInDraftsPage({ searchParams }: { searchParam
         expiresLabel={conn ? conn.expiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null}
         flash={linkedin ?? null}
       />
+      <section className="space-y-3" aria-labelledby="stories-heading">
+        <div>
+          <h2 id="stories-heading" className="text-lg font-semibold">Story posts: approve to post</h2>
+          <p className="max-w-3xl text-sm text-muted-foreground">
+            The LinkedIn version of each list, skill, pay finding, benefits and press post sent on Bluesky and X, written for LinkedIn&apos;s readers
+            from the same facts. Nothing posts until you approve it; an approved story posts as the NextChapter page at its slot.
+          </p>
+        </div>
+        {stories.length === 0 ? (
+          <p className="rounded-lg border border-border p-6 text-sm text-muted-foreground">No story posts waiting. One appears after each list, skill, pay, benefits or press post goes out on Bluesky or X.</p>
+        ) : (
+          stories.map((st) => {
+            const f = st.facts as unknown as { lines?: string[] }
+            return (
+              <LinkedInStoryCard
+                key={st.id}
+                d={{
+                  id: st.id, topicLabel: STORY_TOPIC[st.topic] ?? st.topic, approved: st.status === 'APPROVED', body: st.body,
+                  firstComment: st.firstComment, slotLabel: slot(st.scheduledFor), due: st.scheduledFor.getTime() <= now,
+                  factLines: f.lines ?? [], tags: (st.tags as unknown as { name: string; note: string }[]) ?? [], canPost: !!conn?.organizationUrn,
+                }}
+              />
+            )
+          })
+        )}
+      </section>
+      <h2 className="pt-2 text-lg font-semibold">Layoff posts</h2>
       {drafts.length === 0 ? (
         <p className="rounded-lg border border-border p-6 text-sm text-muted-foreground">
           No drafts waiting. A draft appears when a credible layoff of 100 jobs or more is filed.

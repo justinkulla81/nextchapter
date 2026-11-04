@@ -17112,6 +17112,40 @@ model LinkedInPostDraft {
   @@index([status, scheduledFor])
 }
 
+enum LinkedInStoryStatus {
+  DRAFT
+  APPROVED
+  POSTED
+  SKIPPED
+}
+
+/// A LinkedIn post for a non-layoff story the social stream sent (a list, a hot skill, an AI pay finding, state benefits help,
+/// the weekly press post). Written by Claude in LinkedIn's voice from one verified fact, approved with a click, then posted as
+/// the NextChapter page at its weekday slot. SQL: prisma/manual/2026-11-04-linkedin-story-drafts.sql.
+model LinkedInStoryDraft {
+  id           String              @id @default(cuid())
+  /// The stream fact's key, so one story is drafted once.
+  factKey      String              @unique
+  topic        String
+  status       LinkedInStoryStatus @default(DRAFT)
+  body         String
+  /// Posted as the first comment, where the link does not cost the post reach.
+  firstComment String
+  scheduledFor DateTime
+  /// The fact's lines, so a reviewer can check every number against where it came from.
+  facts        Json
+  /// Accounts to consider tagging when posting by hand: [{ name, note }].
+  tags         Json                @default("[]")
+  createdAt    DateTime            @default(now())
+  approvedAt   DateTime?
+  approvedBy   String?
+  postedAt     DateTime?
+  skippedAt    DateTime?
+  postUrn      String?
+
+  @@index([status, scheduledFor])
+}
+
 /// The admin's own LinkedIn connection, for posting queue drafts from the
 /// admin. One row per admin email; the access token is encrypted at rest and
 /// lasts about 60 days (LinkedIn issues no refresh token for this product), so

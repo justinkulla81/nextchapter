@@ -11,6 +11,7 @@ import { baselineStories, gapMinutes, gapPassed, inWindow, isPressSlot, nextKind
 import { weekKey } from '@/lib/social/posts'
 import { withTags } from '@/lib/social/tags'
 import { wcIndexSummary } from '@/lib/reports-wc-index'
+import { enqueueLinkedInStory } from '@/lib/linkedin/story-drafts'
 import { LINK_TOKEN } from '@/lib/social/validate'
 import { writePost } from '@/lib/social/writer'
 
@@ -153,6 +154,8 @@ async function runChannel(c: Channel, index: number, now: Date, shared: Shared):
     if (kind === 'story') { state.storiesToday++; state.topics = [...state.topics, fact.topic].slice(-9) }
     state.recent = [text.replace(/https?:\/\/\S+/, '').trim(), ...state.recent].slice(0, KEEP_RECENT)
     result = { ...base, status: 'sent', ref }
+    // The LinkedIn version of a story goes to the approval queue; layoffs have their own LinkedIn pipeline. Never blocks the post.
+    if (kind === 'story') await enqueueLinkedInStory(fact).catch(() => undefined)
     captureServerEvent('cron', 'social_post_sent', { channel: c.id, kind: eventKind, topic: fact.topic, factKey: fact.key, writer: draft.by, ref })
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e)
