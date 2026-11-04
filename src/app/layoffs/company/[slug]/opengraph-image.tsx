@@ -28,7 +28,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   if (rows.length && workers) {
     return ogPoster({
       seed: slug, kicker: 'Layoff tracker', big: n(workers), unit: workers === 1 ? 'worker named' : 'workers named', title: name,
-      detail: `${rows.length === 1 ? 'WARN notice' : `${n(rows.length)} WARN notices`}, latest filed ${noticeDay(rows[0].noticeDate)}`, people: workers,
+      detail: `${rows.length === 1 ? 'layoff notice' : `${n(rows.length)} layoff notices`}, latest filed ${noticeDay(rows[0].noticeDate)}`, people: workers,
     })
   }
   if (lead?.workers) {
@@ -39,7 +39,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     })
   }
   if (rows.length) {
-    return ogPoster({ seed: slug, kicker: 'Layoff tracker', big: n(rows.length), unit: rows.length === 1 ? 'WARN notice' : 'WARN notices', title: name, detail: `Latest filed ${noticeDay(rows[0].noticeDate)}` })
+    return ogPoster({ seed: slug, kicker: 'Layoff tracker', big: n(rows.length), unit: rows.length === 1 ? 'layoff notice' : 'layoff notices', title: name, detail: `Latest filed ${noticeDay(rows[0].noticeDate)}` })
   }
   return ogPoster({ seed: slug, kicker: 'Layoff tracker', big: lead?.kind === 'buyout' ? 'Buyouts' : 'Layoffs', unit: 'announced', title: name, detail: lead ? `Reported ${noticeDay(lead.date)}` : undefined })
 }
