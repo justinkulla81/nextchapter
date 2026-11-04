@@ -10,6 +10,8 @@ import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 export const metadata: Metadata = pageMetadata('/tools/resume-check')
 
 const FAQ = [
+  { q: 'What is an ATS résumé checker?', a: 'A tool that tests the structure and wording applicant tracking systems read, such as headings, dates, layout and plain text. This one is rule-based and cannot promise a pass, because every employer configures its system differently.' },
+  { q: 'What is a good résumé score?', a: '80 and above is strong, 65 to 79 is solid, 45 to 64 needs work, and under 45 needs a rework. The score reflects structure and wording, not whether your experience suits a role.' },
   { q: 'How does the résumé check work?', a: 'You paste your résumé as text. Fixed rules score it out of 100 on eleven things: contact details, length, standard headings, results with numbers, action verbs, duty phrases like “responsible for”, a summary, filler phrases, “I” at the start of lines, dates and layout.' },
   { q: 'Does it use AI?', a: 'No. The same text always gets the same score, and a check costs nothing to run.' },
   { q: 'Do you keep my résumé?', a: 'No. It is read once to score it and is not saved. If you leave an email, we keep the email and your score band, not the text.' },
@@ -25,8 +27,8 @@ export default function ResumeCheckPage() {
   return (
     <SeoPage
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Résumé check', path: '/tools/resume-check' }]}
-      h1={pageH1('/tools/resume-check', 'Free résumé check: score your résumé in a minute')}
-      lede="Paste your résumé to get a score out of 100 and see how many fixes it needs. Leave an email to see exactly what to change. No AI, no account."
+      h1={pageH1('/tools/resume-check', 'Free ATS résumé checker: score your résumé in a minute')}
+      lede="Paste your résumé to get a score out of 100 and see how many fixes it needs, including the headings, dates and layout applicant tracking systems commonly trip on. Leave an email to see exactly what to change. No AI, no account."
       jsonLd={[
         { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
         { '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Résumé check', applicationCategory: 'BusinessApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' } },

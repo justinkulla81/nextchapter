@@ -1607,11 +1607,11 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/tools/resume-check',
     kind: 'page',
     primary: 'free resume check',
-    secondary: ['resume checker', 'resume score', 'check my resume', 'free resume score', 'resume analyzer'],
+    secondary: ['ats checker', 'resume checker', 'resume score', 'check my resume', 'free resume score', 'resume analyzer'],
     seo: {
-      title: 'Free Resume Check: Score Your Resume Out of 100',
-      description: 'Paste your resume to get a free score out of 100 and see how many fixes it needs. Rule-based, no AI, and we do not save your resume.',
-      h1: 'Free resume check: score your resume in a minute',
+      title: 'Free ATS Resume Checker: Score Your Resume Out of 100',
+      description: 'Paste your resume for a free score out of 100 and a check of the headings, dates and layout ATS software trips on. Rule-based, no AI, and not saved.',
+      h1: 'Free ATS resume checker: score your resume in a minute',
     },
   },
   {
