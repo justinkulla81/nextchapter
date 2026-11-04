@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { armFor, decide, employerTitleB, jobTitleB, MAX_TEST_DAYS, pickTitle, type ArmStats } from '@/lib/seo/title-tests'
+import { armFor, countsFor, decide, employerTitleB, jobTitleB, MAX_TEST_DAYS, pickTitle, TITLE_TESTS, type ArmStats } from '@/lib/seo/title-tests'
 
 const arm = (impressions: number, clicks: number, position = 8): ArmStats => ({ impressions, clicks, positionSum: position * impressions })
 
@@ -22,6 +22,20 @@ describe('title test arms', () => {
     expect(jobTitleB('Data Analyst', 'Acme', null, null)).toBe('Data Analyst Job at Acme')
     expect(employerTitleB('Acme', 1200)).toBe('Jobs at Acme: 1,200 Open Roles, Pay and Hiring')
     expect(employerTitleB('Acme', 0)).toBe('Jobs at Acme')
+  })
+})
+
+describe('which pages count toward a test', () => {
+  const jobs = TITLE_TESTS.find((t) => t.key === 'jobs')!
+  const employers = TITLE_TESTS.find((t) => t.key === 'employers')!
+  it('counts job pages and not the hubs under /jobs/', () => {
+    expect(countsFor(jobs, '/jobs/cmvfubih200cujt09shw20ytv')).toBe(true)
+    for (const p of ['/jobs/title/data-analyst', '/jobs/industry/museum', '/jobs/type/contract', '/jobs/entry-level', '/jobs/alerts', '/jobs/title/data-analyst/chicago']) expect(countsFor(jobs, p)).toBe(false)
+  })
+  it('counts employer pages and not the pages inside them or other sections', () => {
+    expect(countsFor(employers, '/employers/sage')).toBe(true)
+    expect(countsFor(employers, '/employers/sage/jobs')).toBe(false)
+    expect(countsFor(employers, '/layoffs/company/sage')).toBe(false)
   })
 })
 

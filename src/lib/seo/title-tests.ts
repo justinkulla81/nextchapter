@@ -12,12 +12,21 @@ export interface TitleTestDef {
   key: string
   /** Pages of this type, as a path prefix on launchyournextchapter.com. */
   pathPrefix: string
+  /**
+   * Only paths this matches are counted. A prefix alone takes in pages that never show the alternate title (/jobs/ also holds the
+   * title, industry and type hubs), and their clicks would be split between the arms and dilute the result.
+   */
+  pathPattern?: RegExp
 }
 
 export const TITLE_TESTS: TitleTestDef[] = [
-  { key: 'jobs', pathPrefix: '/jobs/' },
-  { key: 'employers', pathPrefix: '/employers/' },
+  // /jobs/[id]: a job's id is 10 to 40 letters and digits (src/lib/jobs/public-job-page-server.ts); every hub under /jobs/ has a hyphen or is shorter.
+  { key: 'jobs', pathPrefix: '/jobs/', pathPattern: /^\/jobs\/[a-z0-9]{10,40}$/i },
+  { key: 'employers', pathPrefix: '/employers/', pathPattern: /^\/employers\/[^/]+$/ },
 ]
+
+/** Whether a page counts toward a test. */
+export const countsFor = (def: TitleTestDef, path: string): boolean => path.startsWith(def.pathPrefix) && (!def.pathPattern || def.pathPattern.test(path))
 
 export function armFor(path: string): TitleArm {
   return createHash('sha1').update(path).digest()[0] % 2 === 0 ? 'A' : 'B'
