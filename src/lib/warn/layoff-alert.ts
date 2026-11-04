@@ -1,5 +1,4 @@
-import { linkedinLayoffPost } from './layoff-share'
-import { employerSlug } from './layoff-pages'
+import { noticeShare } from './layoff-share'
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { createResend } from '@/lib/email/resend-client'
@@ -148,6 +147,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
       run.queue.push({
         noticeId: l.noticeId, employer: l.employer, employees: l.employees, percent: l.percent, kind: l.kind, confirmed: l.confirmed,
         inCrm: !!org, people: people.length, warm, orgUrl: org ? `${SITE}/support/admin/crm/organizations/${org.id}` : null,
+        ...noticeShare({ noticeId: l.noticeId, employer: l.employer, employees: l.employees, state: notice?.state ?? null }),
       })
       return false
     }
@@ -223,8 +223,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
         source: null,
         org: org ? `${SITE}/support/admin/crm/organizations/${org.id}` : null,
         notices: `${SITE}/support/admin/crm/warn`,
-        noticePage: `${SITE}/support/admin/crm/warn/${l.noticeId}`,
-        linkedin: linkedinLayoffPost({ url: `${SITE}/layoffs/company/${employerSlug(l.employer, company?.name ?? null)}`, employer: company?.name ?? l.employer, employees: l.employees, state }),
+        ...noticeShare({ noticeId: l.noticeId, employer: l.employer, companyName: company?.name ?? null, employees: l.employees, state }),
       })),
     })
     if (error) {
