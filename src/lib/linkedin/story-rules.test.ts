@@ -10,7 +10,7 @@ const GOOD = [
   '',
   'The median posted pay for roles that name it is $98k. Posted pay is what employers advertise, so it is a floor for the conversation and not a promise.',
   '',
-  'If you screen for it, what do you actually test? I would like to hear how you do it.',
+  'If you screen for it, what do you actually test?',
   '',
   '#Hiring #DataSkills #LaborMarket',
 ].join('\n')
@@ -34,6 +34,11 @@ describe('checkStory', () => {
     expect(checkStory(GOOD.replace('#Hiring #DataSkills #LaborMarket', '#Hiring #DataSkills'), LINES).ok).toBe(false)
     expect(checkStory(GOOD.replace('#Hiring #DataSkills #LaborMarket', '#Hiring #DataSkills #LaborMarket #More'), LINES).ok).toBe(false)
     expect(checkStory(GOOD.replace('That is', '#Hiring That is'), LINES).ok).toBe(false)
+  })
+  it('needs a closing question, and no brand hashtag or filler about what was or was not reported', () => {
+    expect(checkStory(GOOD.replace('what do you actually test?', 'tell us what you test.'), LINES).ok).toBe(false)
+    expect(checkStory(GOOD.replace('#LaborMarket', '#NextChapter'), LINES).ok).toBe(false)
+    expect(checkStory(GOOD.replace('That is', 'No further breakdown has been reported. That is'), LINES).ok).toBe(false)
   })
   it('rejects emojis, dashes and exclamation marks', () => {
     for (const bad of [GOOD.replace('That is', '🚀 That is'), GOOD.replace('right now.', 'right now — wow.'), GOOD.replace('right now.', 'right now!')]) {

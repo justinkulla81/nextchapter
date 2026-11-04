@@ -6,6 +6,8 @@
  * paragraphs and a closing question. The link goes in the first comment, never the post, so the post keeps its reach.
  */
 
+import { FILLER } from '@/lib/social/validate'
+
 export const MAX_STORY_CHARS = 1500
 export const MIN_STORY_CHARS = 350
 /** LinkedIn shows about this much before "see more", so the point has to land in it. */
@@ -29,12 +31,17 @@ export function checkStory(body: string, factLines: string[]): StoryCheck {
   if (/https?:\/\/|www\./i.test(text)) return { ok: false, reason: 'no web addresses: the link goes in the first comment' }
   if (/[—–]|\p{Extended_Pictographic}/u.test(text)) return { ok: false, reason: 'no emojis or dashes' }
   if (/!/.test(text)) return { ok: false, reason: 'no exclamation marks' }
+  if (FILLER.test(text)) return { ok: false, reason: 'do not say what has or has not been reported or detailed: say only what the facts say' }
+  if (/#next\s?chapter/i.test(text)) return { ok: false, reason: 'no brand hashtag: use three hashtags about the topic' }
   const last = lines[lines.length - 1].trim()
   const tags = text.match(/#[A-Za-z][A-Za-z0-9_]*/g) ?? []
   const lastTags = last.match(/#[A-Za-z][A-Za-z0-9_]*/g) ?? []
   if (tags.length !== 3 || lastTags.length !== 3 || last.replace(/#[A-Za-z][A-Za-z0-9_]*/g, '').trim() !== '') {
     return { ok: false, reason: 'the last line must be exactly three hashtags, and there must be no others' }
   }
+  // The closing line, just above the hashtags, is a question the reader can answer.
+  const closing = [...lines.slice(0, -1)].reverse().find((l) => l.trim() !== '')?.trim() ?? ''
+  if (!closing.endsWith('?')) return { ok: false, reason: 'the closing line before the hashtags must be a question ending in a question mark' }
   const allowed = new Set(numbers(factLines.join(' ')))
   const extra = numbers(text).filter((n) => !allowed.has(n))
   if (extra.length) return { ok: false, reason: `these numbers are not in the facts: ${[...new Set(extra)].join(', ')}` }
