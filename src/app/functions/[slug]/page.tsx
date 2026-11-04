@@ -10,6 +10,7 @@ import { loadFunction } from '@/lib/seo/topic-load'
 import { RankingContext } from '@/components/rankings/RankingContext'
 import { FunctionPaySection } from '@/components/pay-data/PayDataLinks'
 import { titleMeta } from '@/lib/seo/title'
+import { scopeQ } from '@/lib/leads/alert-scope'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const dynamicParams = true
@@ -41,6 +42,7 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
       trail={[{ name: 'Functions', path: '/functions' }, { name: fn.name, path }]}
       title={`${fn.name} jobs and conferences`}
       intro={intro}
+      capture={{ kind: 'function', slug, label: fn.name, save: { q: scopeQ('function', fn.name), loc: '' } }}
       jsonLd={[
         {
           '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${fn.name} jobs and conferences`, url: `${SITE_URL}${path}`,

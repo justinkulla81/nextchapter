@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { captureSource, ownerOffer, saveCopy, saveSource, type CaptureKind, type PageCaptureConfig } from '@/lib/capture/page-capture'
 
-const JOURNEY_SOURCE = /^page:(state|county|city|industry|title|company|college):[a-z0-9-]{1,70}$/
-const KINDS: CaptureKind[] = ['state', 'county', 'city', 'industry', 'title', 'company', 'college']
+const JOURNEY_SOURCE = /^page:(state|county|city|industry|function|title|company|college):[a-z0-9-]{1,70}$/
+const KINDS: CaptureKind[] = ['state', 'county', 'city', 'industry', 'function', 'title', 'company', 'college']
 
 describe('page capture config', () => {
   it('builds a source the journey and owner-inquiry allowlists accept, for every kind', () => {
@@ -14,7 +14,7 @@ describe('page capture config', () => {
     expect(captureSource({ kind: 'college', slug: 'x'.repeat(300) }).length).toBeLessThanOrEqual(100)
   })
   it('saves places under page:place and everything else under its own page type the alert action accepts', () => {
-    const accepted = /^page:(employer|title|salary|place|industry|college|company)$/
+    const accepted = /^page:(employer|title|salary|place|industry|function|college|company)$/
     for (const kind of KINDS) expect(saveSource(kind)).toMatch(accepted)
   })
   it('has owner and save copy for every kind', () => {
@@ -22,6 +22,13 @@ describe('page capture config', () => {
       const c: PageCaptureConfig = { kind, slug: 'x', label: 'Thing' }
       expect(ownerOffer(c).href.startsWith('/')).toBe(true)
       expect(saveCopy(c).cta.length).toBeGreaterThan(0)
+    }
+  })
+  it('says "Follow" on every page that has a follow box', () => {
+    for (const kind of ['title', 'industry', 'function', 'company', 'state', 'ranking'] as CaptureKind[]) {
+      const c = saveCopy({ kind, slug: 'x', label: 'Thing' })
+      expect(c.heading).toMatch(/^Follow/)
+      expect(c.cta).toBe('Follow by email')
     }
   })
 })

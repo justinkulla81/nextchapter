@@ -53,7 +53,7 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
   const followup = FOLLOWUPS.has(followupRaw) ? followupRaw : ''
   // Which page the form was on. Only the homepage, a /network page, an employer's layoff guide or the save step on /jobs may be named; anything else is 'home'.
   const sourceRaw = text(formData, 'source', 100)
-  const source = /^(network:[a-z0-9:-]{1,90}|layoffs:guide:[a-z0-9-]{1,80}|employer:[a-z0-9-]{1,80}|jobs:(job|search)|page:(state|county|city|industry|title|company|college|ranking|topic):[a-z0-9-]{1,70})$/.test(sourceRaw) ? sourceRaw : 'home'
+  const source = /^(network:[a-z0-9:-]{1,90}|layoffs:guide:[a-z0-9-]{1,80}|employer:[a-z0-9-]{1,80}|jobs:(job|search)|page:(state|county|city|industry|function|title|company|college|ranking|topic):[a-z0-9-]{1,70})$/.test(sourceRaw) ? sourceRaw : 'home'
   const variantRaw = text(formData, 'variant', 20)
   const answers = {
     pageVariant: PAGE_VARIANTS.has(variantRaw) ? variantRaw : '',
@@ -154,7 +154,7 @@ export async function saveJobSearchAlert(_prev: SavedSearchState, formData: Form
   if (!EMAIL.test(email)) return { error: 'Enter a valid email address.', email }
   const query = cleanPublicQuery({ q: text(formData, 'q', 100), loc: text(formData, 'loc', 100), remote: text(formData, 'remote', 5) })
   // Which page's box: the search results ('jobs') or an employer, job-title, salary or place page. Anything else is 'jobs'.
-  const alertSource = /^page:(employer|title|salary|place|industry|college|company|ranking)$/.test(text(formData, 'source', 30)) ? text(formData, 'source', 30) : 'jobs'
+  const alertSource = /^page:(employer|title|salary|place|industry|function|college|company|ranking)$/.test(text(formData, 'source', 30)) ? text(formData, 'source', 30) : 'jobs'
 
   if (!(await allowByIp('job-alert', 10, HOUR_MS)) || !(await allowByTarget('job-alert', email, 5, DAY_MS))) {
     return { error: 'Too many requests from this network. Try again later.', email }
