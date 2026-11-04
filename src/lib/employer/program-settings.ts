@@ -76,7 +76,7 @@ export const PROGRAM_FEATURES: ProgramFeature[] = [
   { key: 'retrainingStipend', area: L, label: 'Retraining stipend', what: 'Money you set aside for a course or certificate.', nextchapter: null, ownAllowed: true },
   { key: 'learningCommunity', area: M, label: 'Learning and job-search groups', what: 'Small peer groups that learn or search together, week by week.', nextchapter: nc('CORE', '/dashboard/community'), ownAllowed: true },
   { key: 'companyAlumni', area: M, label: 'Company alumni network', what: 'Stay in touch with former colleagues; hear about roles they know of.', nextchapter: nc('CORE', '/dashboard/community'), ownAllowed: true },
-  { key: 'alumniMembership', area: M, label: 'Free Alumni plan after they land', what: 'A year of the NextChapter Alumni plan once they report a new job.', nextchapter: nc('PREMIUM', '/dashboard/membership'), ownAllowed: false },
+  { key: 'alumniMembership', area: M, label: 'Free Alumni plan after they land', what: 'A year of the NextChapter Alumni plan once they report a new job.', nextchapter: nc('PREMIUM', '/dashboard/alumni-plan'), ownAllowed: false },
   { key: 'moneyBridge', area: W, label: 'Unemployment, COBRA and budget help', what: 'Filing for unemployment, health coverage choices, and a budget to bridge the gap.', nextchapter: nc('CORE', '/dashboard/benefits'), ownAllowed: false },
   { key: 'benefits', area: W, label: 'Severance and benefits questions', what: 'Your HR or benefits team for severance, final pay and benefits end dates.', nextchapter: null, ownAllowed: true },
   { key: 'healthCoverage', area: W, label: 'Extended health coverage', what: 'COBRA subsidy or months of continued coverage you provide.', nextchapter: null, ownAllowed: true },

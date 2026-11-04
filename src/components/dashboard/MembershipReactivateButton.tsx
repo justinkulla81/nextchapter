@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { reactivateMembership, type FormState } from '@/app/dashboard/membership/actions'
+import { reactivateMembership, type FormState } from '@/app/dashboard/alumni-plan/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 
 // §A2.4 "break-glass reactivation" -- the real, one-click flow, not a copy
