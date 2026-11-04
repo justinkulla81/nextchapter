@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { linkFacets, oauth1Header } from '@/lib/social/clients'
-import { announcementBasis, announcementPostText, filingPostText, jobsReportPost, joltsPost, MIN_DAILY_NOTICES, MIN_NOTICES, MIN_RANKINGS_POSTED, dailyLayoffPost, rankingsPost, reportPost, weekKey, weeklyLayoffPost, type DayNotice, type WeekNotice } from '@/lib/social/posts'
+import { isClosure, announcementBasis, announcementPostText, filingPostText, jobsReportPost, joltsPost, MIN_DAILY_NOTICES, MIN_NOTICES, MIN_RANKINGS_POSTED, dailyLayoffPost, rankingsPost, reportPost, weekKey, weeklyLayoffPost, type DayNotice, type WeekNotice } from '@/lib/social/posts'
 
 const now = new Date('2026-10-26T13:00:00Z')
 const day = 86_400_000
@@ -155,6 +155,11 @@ describe('announcementBasis', () => {
     expect(announcementBasis('SEC 8-K Item 2.05 (restructuring filing) · 19% of staff')).toEqual({ basis: 'sec', percent: 19 })
     expect(announcementBasis('Reported by 2+ publishers')).toEqual({ basis: 'confirmed', percent: null })
     expect(announcementBasis('Reported by 1 publisher — unconfirmed · 8% of staff').basis).toBe('unconfirmed')
+    expect(announcementBasis('Reported by 1 publisher (Reuters) — unconfirmed').basis).toBe('unconfirmed')
+    expect(announcementBasis('Reported by 2 publishers').basis).toBe('confirmed')
+    expect(announcementBasis('Reported by 4 publishers').basis).toBe('confirmed')
+    expect(announcementBasis('Reported by 3 publishers · 19% of staff')).toEqual({ basis: 'confirmed', percent: 19 })
+    expect(announcementBasis('Company shutdown announced Oct 30, effective Nov 6 · reported by 2+ publishers').basis).toBe('confirmed')
     expect(announcementBasis(null).basis).toBe('unconfirmed')
   })
 })
@@ -198,5 +203,13 @@ describe('BLS release posts', () => {
     expect(p.text).toContain('7.2 million job openings and 1.8 million layoffs and discharges, up from 1.7 million in August')
     expect(p.text).toContain('All industries')
     expect(p.text.length).toBeLessThanOrEqual(300)
+  })
+})
+
+describe('isClosure', () => {
+  it('flags shutdowns so they are not posted as layoffs', () => {
+    expect(isClosure('Company shutdown announced Oct 30, effective Nov 6 · reported by 2+ publishers')).toBe(true)
+    expect(isClosure('Reported by 3 publishers · 19% of staff')).toBe(false)
+    expect(isClosure(null)).toBe(false)
   })
 })

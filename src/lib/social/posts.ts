@@ -177,13 +177,24 @@ export interface AnnouncementBasis {
   percent: number | null
 }
 
-/** Reads how a layoff announcement was sourced from the `layoffType` that `announceLayoff` writes. */
+/**
+ * Reads how a layoff announcement was sourced from its `layoffType`. The text is written in several forms ("Reported by 2+
+ * publishers", "Reported by 3 publishers", "... · reported by 2+ publishers", "Reported by 1 publisher (Reuters) — unconfirmed"),
+ * so it reads the count of publishers, not one fixed phrase. Two or more publishers, or an SEC filing, counts as confirmed.
+ */
 export function announcementBasis(layoffType: string | null): AnnouncementBasis {
-  const percent = /(\d+(?:\.\d+)?)% of staff/.exec(layoffType ?? '')?.[1]
+  const text = layoffType ?? ''
+  const percent = /(\d+(?:\.\d+)?)% of staff/.exec(text)?.[1]
+  const publishers = Number(/reported by (\d+)\+? publishers?/i.exec(text)?.[1] ?? 0)
   return {
-    basis: /^SEC 8-K/.test(layoffType ?? '') ? 'sec' : /^Reported by 2\+ publishers/.test(layoffType ?? '') ? 'confirmed' : 'unconfirmed',
+    basis: /^SEC 8-K/.test(text) ? 'sec' : publishers >= 2 && !/unconfirmed/i.test(text) ? 'confirmed' : 'unconfirmed',
     percent: percent ? Number(percent) : null,
   }
+}
+
+/** A shutdown or closure is not "layoffs", so it is not posted by the automatic stream. */
+export function isClosure(layoffType: string | null): boolean {
+  return /shut(ting)?\s?down|closure|closing/i.test(layoffType ?? '')
 }
 
 export interface AnnouncementForPost {
