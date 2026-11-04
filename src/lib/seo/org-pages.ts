@@ -14,6 +14,7 @@ import { getStateBoards } from '@/lib/seo/workforce-pages'
 import { getStateCityPlaces, getStateCounties, type CityPlace, type County } from '@/lib/places/places'
 import { employerSlug } from '@/lib/seo/employer-slug'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
+import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { claimSlug } from '@/lib/org-claims/urls'
 import { uniqueClaimSlugs } from '@/lib/org-claims/org'
 import {
@@ -116,13 +117,25 @@ export interface StateData {
 const jobsFrom = Prisma.sql`FROM "ExclusiveJobPosting" WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}`
 const ENTRY = Prisma.sql`"level" IN ('ENTRY_IC', 'EARLY_IC')`
 
-async function loadStateData(state: string): Promise<StateData> {
-  const [centerRows, partnerRows, boardRows, places, counties, cityJobs, stateJobs, colleges, labor] = await Promise.all([
-    prisma.americanJobCenter.findMany({ where: { state }, orderBy: [{ city: 'asc' }, { name: 'asc' }] }),
-    prisma.localPartnerOrg.findMany({ where: { state }, orderBy: { name: 'asc' } }),
-    getStateBoards(state),
-    getStateCityPlaces(state),
-    getStateCounties(state),
+type JobStatRow = { open: number; entry: number; noexp: number; training: number; newest: Date | null }
+type CityJobRow = JobStatRow & { city: string }
+interface StateJobStats { cityJobs: CityJobRow[]; stateJobs: JobStatRow[] }
+
+/**
+ * The open-job counts for one state's pages. The board-figures cron stores them for every state from one pass over the board
+ * (buildOrgJobStats), so a page reads one row. Only when a state has no stored row yet (before the cron's first run) does it
+ * run the two live queries.
+ */
+async function loadStateJobStats(state: string): Promise<StateJobStats> {
+  const stored = await readBoardFigure<{ cityJobs: (Omit<CityJobRow, 'newest'> & { newest: string | null })[]; stateJob: (Omit<JobStatRow, 'newest'> & { newest: string | null }) | null }>(`org-job-stats:${state}`)
+  if (stored) {
+    const date = (v: string | null) => (v ? new Date(v) : null)
+    return {
+      cityJobs: stored.cityJobs.map((r) => ({ ...r, newest: date(r.newest) })),
+      stateJobs: stored.stateJob ? [{ ...stored.stateJob, newest: date(stored.stateJob.newest) }] : [],
+    }
+  }
+  const [cityJobs, stateJobs] = await Promise.all([
     prisma.$queryRaw<{ city: string; open: number; entry: number; noexp: number; training: number; newest: Date | null }[]>`
       SELECT lower("locationCity") AS city, count(*)::int AS open,
         count(*) FILTER (WHERE ${ENTRY})::int AS entry,
@@ -135,7 +148,45 @@ async function loadStateData(state: string): Promise<StateData> {
         count(*) FILTER (WHERE ${ENTRY} AND 'no_experience_ok' = ANY("postingSignals"))::int AS noexp,
         count(*) FILTER (WHERE ${ENTRY} AND 'training_provided' = ANY("postingSignals"))::int AS training,
         max("createdAt") AS newest
-      ${jobsFrom} AND "locationState" = ${state}`,
+      ${jobsFrom} AND "locationState" = ${state}`
+  ])
+  return { cityJobs, stateJobs }
+}
+
+/** One pass over the open board for every state's city and state counts. Run by the board-figures cron, never by a page. */
+export async function buildOrgJobStats(): Promise<Map<string, { cityJobs: CityJobRow[]; stateJob: JobStatRow | null }>> {
+  const rows = await prisma.$transaction(async (tx) => {
+    await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = '600s'`)
+    return tx.$queryRaw<(JobStatRow & { st: string; city: string | null; by_state: number })[]>`
+      SELECT "locationState" AS st, lower("locationCity") AS city, GROUPING(lower("locationCity"))::int AS by_state,
+        count(*)::int AS open,
+        count(*) FILTER (WHERE ${ENTRY})::int AS entry,
+        count(*) FILTER (WHERE ${ENTRY} AND 'no_experience_ok' = ANY("postingSignals"))::int AS noexp,
+        count(*) FILTER (WHERE ${ENTRY} AND 'training_provided' = ANY("postingSignals"))::int AS training,
+        max("createdAt") AS newest
+      ${jobsFrom} AND "locationState" IS NOT NULL
+      GROUP BY GROUPING SETS (("locationState", lower("locationCity")), ("locationState"))`
+  }, { timeout: 620_000, maxWait: 30_000 })
+  const out = new Map<string, { cityJobs: CityJobRow[]; stateJob: JobStatRow | null }>()
+  for (const code of ALL_STATE_CODES) out.set(code, { cityJobs: [], stateJob: null })
+  for (const r of rows) {
+    const entry = out.get(r.st)
+    if (!entry) continue
+    const stat = { open: r.open, entry: r.entry, noexp: r.noexp, training: r.training, newest: r.newest }
+    if (r.by_state === 1) entry.stateJob = stat
+    else if (r.city !== null) entry.cityJobs.push({ city: r.city, ...stat })
+  }
+  return out
+}
+
+async function loadStateData(state: string): Promise<StateData> {
+  const [centerRows, partnerRows, boardRows, places, counties, jobStats, colleges, labor] = await Promise.all([
+    prisma.americanJobCenter.findMany({ where: { state }, orderBy: [{ city: 'asc' }, { name: 'asc' }] }),
+    prisma.localPartnerOrg.findMany({ where: { state }, orderBy: { name: 'asc' } }),
+    getStateBoards(state),
+    getStateCityPlaces(state),
+    getStateCounties(state),
+    loadStateJobStats(state),
     prisma.localCollege.findMany({
       where: { state, sector: { in: [1, 2, 4, 5] } },
       select: { id: true, name: true, city: true, sector: true, size: true, website: true, countyFips: true },
@@ -145,6 +196,7 @@ async function loadStateData(state: string): Promise<StateData> {
   ])
 
   const cityStats = new Map<string, CityStat>()
+  const { cityJobs, stateJobs } = jobStats
   for (const r of cityJobs) {
     const k = placeKey(r.city)
     if (!k) continue
