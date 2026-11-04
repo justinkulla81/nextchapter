@@ -17,6 +17,7 @@ import { getLargestRecentEmployers, getStateSummaries } from '@/lib/warn/layoff-
 import { getNationalLaborData } from '@/lib/market/bls-national'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { PullTop } from '@/components/capture/PullCta'
+import { LatestLayoffLinks } from '@/components/marketing/FreshLinks'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -72,6 +73,10 @@ export default async function LayoffsHubPage() {
  <LayoffNumbersNote counts={counts} />
           <CiteThisData path="/layoffs" asOf={counts?.asOf} source="layoffs-hub" />
 
+          <section aria-label="Latest layoff announcements" className="mt-12">
+            <LatestLayoffLinks limit={40} placement="layoffs_hub" tone="light" />
+          </section>
+
           <section aria-labelledby="use-data" className="mt-12 rounded-xl border border-border bg-white p-6">
             <h2 id="use-data" className="text-xl font-semibold tracking-tight text-navy">Use the layoff data</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
@@ -82,6 +87,20 @@ export default async function LayoffsHubPage() {
               <li><Link href="/data" className={LINK}>Download the WARN record</Link> as CSV or JSON, free to reuse with a link back.</li>
               <li><Link href="/data/embed" className={LINK}>Embed layoff notices</Link> for any state on your site, or <Link href="/feeds/layoffs" className={LINK}>subscribe by RSS</Link>.</li>
             </ul>
+          </section>
+
+          {/* Searchers use many words for the same event; this names them on the page the tracker owns (keywords.ts,
+              layoffs-hub) and sends the "what is it" questions to the guides that own them. */}
+          <section aria-labelledby="other-names" className="mt-12">
+            <h2 id="other-names" className="text-xl font-semibold tracking-tight text-navy">Layoffs, job cuts, downsizing and RIFs: one tracker</h2>
+            <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
+              Employers and news reports use many names for the same thing: layoffs, job cuts, downsizing, a reduction in force
+              (RIF), workforce reductions, restructuring, or mass firings. This tracker counts them all the same way, from the
+              WARN notices employers file with the states and the layoffs companies announce. Being let go in a RIF is not the
+              same as being fired for cause, and the difference matters for unemployment: see{' '}
+              <Link href="/topics/fired-vs-laid-off" className={LINK}>fired vs laid off</Link> and{' '}
+              <Link href="/topics/reduction-in-force" className={LINK}>what a reduction in force means</Link>.
+            </p>
           </section>
 
           <section aria-labelledby="by-state" className="mt-16">

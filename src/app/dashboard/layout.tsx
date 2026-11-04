@@ -11,6 +11,7 @@ import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getPeerUnreadCount } from '@/lib/messaging/peer-threads'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
+import { PendingRoleJoin } from '@/components/community/PendingRoleJoin'
 import { DashboardActivityTracker } from '@/components/dashboard/DashboardActivityTracker'
 import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { HashScrollFix } from '@/components/dashboard/HashScrollFix'
@@ -163,6 +164,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="theme-candidate theme-redesign min-h-screen">
       <IdentifyUser candidateId={profile.id} email={profile.email} />
       <DashboardActivityTracker />
+      <PendingRoleJoin />
       {/* "Retuning your search": shown after any save that changes matching, on whatever page it lands. */}
       <RetuneHost />
       <HashScrollFix />

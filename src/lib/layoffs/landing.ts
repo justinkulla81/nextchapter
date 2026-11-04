@@ -84,10 +84,12 @@ export const Q3: Q3Answer[] = [
 ]
 
 /** Plain headlines: what happened and what the reader can do. No alarm, no vague lines. */
-export function landingHeadline(variant: LandingVariant, name: string, latestWorkers: number | null, hasNotices = true): string {
+/** `noticeCount` above 1: the number is the newest notice's, not the total, so the headline says so (a page with 3 notices naming 231 workers must not read "filed layoffs for 20 workers"). */
+export function landingHeadline(variant: LandingVariant, name: string, latestWorkers: number | null, hasNotices = true, noticeCount = 1): string {
   if (variant === 'buyout') return `${name} is offering buyouts. Here is how to decide, and what to do either way.`
   if (variant === 'layoff') {
     if (!hasNotices) return `${name} layoffs have been reported. Here is what to do this week.`
+    if (noticeCount > 1 && latestWorkers) return `${name}'s latest layoff notice names ${latestWorkers.toLocaleString('en-US')} workers. Here is what to do this week.`
     return `${name} filed layoffs${latestWorkers ? ` for ${latestWorkers.toLocaleString('en-US')} workers` : ''}. Here is what to do this week.`
   }
   return `Thinking about your next move from ${name}? Start by seeing what is out there.`

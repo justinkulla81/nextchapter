@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, permanentRedirect, redirect } from 'next/navigation'
-import { Chips, FactGrid, JobList, JoinBand, LINK, RankList, Section, TopicShell } from '@/components/topics/blocks'
+import { Chips, FactGrid, JobList, LINK, RankList, Section, TopicShell } from '@/components/topics/blocks'
 import { FitCheck } from '@/components/capture/FitCheck'
+import { RoleNetworkBand } from '@/components/community/RoleNetworkBand'
 import { AiPremiumSection } from '@/components/salaries/AiPremiumSection'
 import { captureSource } from '@/lib/capture/page-capture'
 import { canonical } from '@/lib/seo/canonical'
@@ -227,7 +228,7 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
         </dl>
       </Section>
 
-      <JoinBand source={`role:${slug}`} what={`how the market reads your background for ${role.spelled} roles`} />
+      <RoleNetworkBand slug={slug} short={role.short} spelled={role.spelled} />
     </TopicShell>
   )
 }
