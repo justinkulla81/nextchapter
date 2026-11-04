@@ -1059,7 +1059,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
   {
     id: 'membership',
     intent: 'Keep a profile current between jobs',
-    owner: '/membership',
+    owner: '/alumni-plan',
     kind: 'page',
     primary: 'alumni plan between jobs',
     secondary: ['keep your dossier current', 'alumni plan', 'career maintenance'],

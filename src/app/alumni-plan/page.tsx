@@ -2,7 +2,7 @@ import { pageMetadata } from '@/lib/seo/keywords'
 import { AudienceSection, AudienceShell, Disclosure } from '@/components/organizations/AudienceShell'
 import { StructuredData } from '@/components/StructuredData'
 
-export const metadata = pageMetadata('/membership')
+export const metadata = pageMetadata('/alumni-plan')
 
 const jsonLd = {
   '@context': 'https://schema.org',

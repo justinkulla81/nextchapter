@@ -64,6 +64,9 @@ const nextConfig: NextConfig = {
         destination: `${base}/non-profit-and-social-impact/:path*`,
         permanent: true,
       })),
+      // /membership became /alumni-plan (2026-11-04, the paid tier is the Alumni plan). Permanent, so links, search results and emails
+      // that still carry the old address keep working.
+      { source: '/membership', destination: '/alumni-plan', permanent: true },
       // /skills/by and /skills/by/<dimension> are only folders of the skills lists, so they go to the skills hub.
       { source: '/skills/by', destination: '/skills', permanent: false },
       { source: '/skills/by/:dim', destination: '/skills', permanent: false },

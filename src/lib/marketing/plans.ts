@@ -89,7 +89,7 @@ export const PLANS: Plan[] = [
       'Break-glass reactivation',
     ],
     addOns: [],
-    cta: { label: 'See membership', href: '/membership' },
+    cta: { label: 'See the Alumni plan', href: '/alumni-plan' },
   },
   {
     family: 'individual',

@@ -29,7 +29,7 @@ const PUBLIC_FILES = [
   'src/lib/marketing/portal-pages/higher-education.ts',
   'src/components/marketing/PortalMarketingPage.tsx',
   'src/app/outplacement/page.tsx',
-  'src/app/membership/page.tsx',
+  'src/app/alumni-plan/page.tsx',
   'src/app/vs/page.tsx',
   'src/app/vs/[competitor]/page.tsx',
   'src/app/insights/page.tsx',
