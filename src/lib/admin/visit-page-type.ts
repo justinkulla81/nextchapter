@@ -43,7 +43,7 @@ const B2B_LOGIN_PAGE =
 const B2B_PORTAL_SECTIONS = ['/recruiters', '/talent', '/employer', '/support/coach', '/noexperience/employers', '/eqoveriq/contributors', '/hiring', '/growth', '/learning']
 
 const CANDIDATE_LOGIN_SECTIONS = ['/auth', '/claim-reference']
-const CANDIDATE_PORTAL_SECTIONS = ['/dashboard', '/membership', '/checkin', '/in']
+const CANDIDATE_PORTAL_SECTIONS = ['/dashboard', '/alumni-plan', '/membership', '/checkin', '/in']
 
 const under = (path: string, section: string) => path === section || path.startsWith(`${section}/`)
 

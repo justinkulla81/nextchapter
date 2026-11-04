@@ -96,8 +96,8 @@ export default function OutplacementAccountAfterContractArticlePage() {
               /dossier
             </Link>{' '}
             and{' '}
-            <Link href="/membership" className="text-primary underline underline-offset-4">
-              /membership
+            <Link href="/alumni-plan" className="text-primary underline underline-offset-4">
+              /alumni-plan
             </Link>
             .
           </p>
