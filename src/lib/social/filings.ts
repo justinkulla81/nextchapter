@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { employerSlug } from '@/lib/warn/layoff-pages'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 import { CHANNELS, type ChannelId } from '@/lib/social/channels'
-import { announcementBasis, announcementPostText, filingPostText } from '@/lib/social/posts'
+import { announcementBasis, announcementPostText, filingPostText, isClosure } from '@/lib/social/posts'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 const STATE_PATH = 'social/filings-posted.json.gz'
@@ -45,7 +45,7 @@ export async function runFilingPosts(now = new Date()): Promise<FilingRunResult>
   const sinceDay = now.getTime() - DAY_MS
   const sentToday = (ch: ChannelId) => Object.entries(state.sent).filter(([k, at]) => k.endsWith(`:${ch}`) && new Date(at).getTime() > sinceDay).length
 
-  const select = { id: true, employer: true, employees: true, state: true, noticeDate: true, companyMatchStatus: true, layoffType: true, company: { select: { name: true } } } as const
+  const select = { id: true, companyId: true, employer: true, employees: true, state: true, noticeDate: true, companyMatchStatus: true, layoffType: true, company: { select: { name: true } } } as const
   const [filings, announced] = await Promise.all([
     prisma.warnNotice.findMany({
       where: {
@@ -67,11 +67,19 @@ export async function runFilingPosts(now = new Date()): Promise<FilingRunResult>
   ])
   const items = [...announced.map((x) => ({ ...x, kind: 'announcement' as const })), ...filings.map((x) => ({ ...x, kind: 'filing' as const }))]
 
+  // A company with an announcement in the window is not posted again from its WARN filing (Squarespace appeared as both).
+  const announcedCompanies = new Set(announced.flatMap((x) => (x.companyId ? [x.companyId] : [])))
+
   let posted = 0
   for (const n of items) {
     if (posted >= MAX_PER_RUN) break
-    const slug = employerSlug(n.employer, n.companyMatchStatus === 'MATCHED' ? n.company?.name ?? null : null)
+    const matchedName = n.companyMatchStatus === 'MATCHED' ? n.company?.name ?? null : null
+    const slug = employerSlug(n.employer, matchedName)
     if (!slug || !n.noticeDate) continue
+    if (n.kind === 'filing' && n.companyId && announcedCompanies.has(n.companyId)) continue
+    if (n.kind === 'announcement' && isClosure(n.layoffType)) continue
+    // A filing's employer field can carry an address ("GEICO 3535 W Pipkin Road LAKELAND, FL"); the matched company name is clean.
+    const name = matchedName ?? n.employer
     // One outlet is not enough to post a layoff; an SEC filing or two outlets is.
     const sourcing = announcementBasis(n.layoffType)
     if (n.kind === 'announcement' && sourcing.basis === 'unconfirmed') continue
@@ -86,8 +94,8 @@ export async function runFilingPosts(now = new Date()): Promise<FilingRunResult>
       const utm = `utm_source=${c.id}&utm_medium=social&utm_campaign=${n.kind === 'announcement' ? 'layoff-announcement' : 'warn-filing'}`
       const shortLinks = c.id === 'x'
       const text = n.kind === 'announcement' && sourcing.basis !== 'unconfirmed'
-        ? announcementPostText({ employer: n.employer, state: n.state, workers: n.employees, percent: sourcing.percent, basis: sourcing.basis, path }, utm, shortLinks)
-        : filingPostText({ employer: n.employer, state: n.state, workers: n.employees, date: n.noticeDate, path }, utm, shortLinks)
+        ? announcementPostText({ employer: name, state: n.state, workers: n.employees, percent: sourcing.percent, basis: sourcing.basis, path }, utm, shortLinks)
+        : filingPostText({ employer: name, state: n.state, workers: n.employees, date: n.noticeDate, path }, utm, shortLinks)
       row.text = text
       if (dryRun) { row.results.push({ channel: c.id, status: 'would-send' }); continue }
       try {
