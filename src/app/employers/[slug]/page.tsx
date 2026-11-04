@@ -220,6 +220,13 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         </section>
       )}
 
+      {/* Right under the hiring numbers: it was after the whole role list, near the bottom of a long page. */}
+      <section aria-label={`Get new ${e.name} openings by email`} className="mt-12">
+        <EmployerFollowBox name={e.name} slug={e.slug}>
+          <SaveSearchForm q={e.name} loc="" remote={false} source="page:employer" heading={`Get new ${e.name} openings by email`} blurb={`We’ll email you when ${e.name} posts a role. No account needed.`} cta="Email me new openings" />
+        </EmployerFollowBox>
+      </section>
+
       <CompanyOutlookSection
         name={e.name}
         companyId={e.id}
@@ -256,12 +263,6 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
           <p className="mt-3 text-sm"><Link href={`/jobs?q=${encodeURIComponent(e.name)}`} className={LINK}>Search all {e.name} jobs</Link></p>
         </section>
       )}
-
-      <section aria-label={`Get new ${e.name} openings by email`} className="mt-12">
-        <EmployerFollowBox name={e.name} slug={e.slug}>
-          <SaveSearchForm q={e.name} loc="" remote={false} source="page:employer" heading={`Get new ${e.name} openings by email`} blurb={`We’ll email you when ${e.name} posts a role. No account needed.`} cta="Email me new openings" />
-        </EmployerFollowBox>
-      </section>
 
       {(e.pay.length > 0 || (p && p.payLevel in PAY_LEVEL && p.payLevelSample >= 5)) && (
         <section aria-labelledby="pay" className="mt-12">

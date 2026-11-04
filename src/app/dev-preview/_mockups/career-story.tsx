@@ -9,9 +9,8 @@ import type { CareerStory } from '@/lib/career-story/load'
 const NOW = new Date('2026-10-17T12:00:00Z')
 const d = (s: string) => new Date(`${s}T12:00:00Z`)
 
-// The real career story page (built in the career story session), fed sample data. It is the same
-// component the live page uses, so the preview shows exactly what will ship.
-function sampleStory(): CareerStory {
+// The real career story page, fed sample data. It is the same component the live page uses, so the preview shows exactly what ships.
+export function sampleStory(): CareerStory {
   const events = deriveStory({
     work: [
       { id: 'a', roleTitle: 'Financial analyst', companyName: 'Retail Co', companyNameNormalized: 'retail co', startDate: d('2016-06-01'), endDate: d('2019-06-01'), isCurrent: false, engagementType: 'FULL_TIME', keyAchievement: null },
@@ -32,10 +31,18 @@ function sampleStory(): CareerStory {
   return { now: '2026-10-17', events, main: doors.main, more: doors.more, cushionMonths: 4.2, hideYears: false, peers: peerView(0, []), hasAnyHistory: true }
 }
 
-export function CareerStoryReal() {
+export function CareerStoryShortMock() {
   return (
     <PreviewShell place="learn" entry="path" part="story" wide>
       <CareerStoryView story={sampleStory()} from="Finance" />
+    </PreviewShell>
+  )
+}
+
+export function CareerStoryShortEmpty() {
+  return (
+    <PreviewShell place="learn" entry="path" part="story" wide>
+      <CareerStoryView story={{ ...sampleStory(), events: [], hasAnyHistory: false }} from="Finance" />
     </PreviewShell>
   )
 }

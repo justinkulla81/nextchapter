@@ -89,7 +89,7 @@ export const HIGHER_EDUCATION: PortalPageDef = {
       },
       {
         q: 'Do alumni and students pay?',
-        a: 'Members use the core job search tools without paying. Membership and coaching are optional for them.',
+        a: 'Members use the core job search tools without paying. The Alumni plan and coaching are optional for them.',
       },
       {
         q: 'What do we see about individual members?',

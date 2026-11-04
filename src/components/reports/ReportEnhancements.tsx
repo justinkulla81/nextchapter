@@ -6,7 +6,6 @@ import { usePostHog } from '@/lib/posthog/client'
 import { Logo } from '@/components/Logo'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { ReportPdfGateDialog } from './ReportPdfGateDialog'
-import { ReportNewsletterPopup } from './ReportNewsletterPopup'
 import { hasSubscribedCookie } from './use-subscribed'
 
 /**
@@ -17,16 +16,14 @@ import { hasSubscribedCookie } from './use-subscribed'
  *  - gate the "Download PDF" button behind an email (subscribers pass through;
  *    press/researchers use the ungated #pdf-direct link)
  *  - track downloads of the free, ungated brief (#brief-btn)
- *  - show the polite scroll/time pop-up
+ * (A scroll/time newsletter pop-up was removed 2026-11-04: shown 76 times in 30 days, dismissed 38, one sign-up.)
  */
 export function ReportEnhancements({
   pdfHref,
   pdfFilename,
-  popupPlacement,
 }: {
   pdfHref: string
   pdfFilename: string
-  popupPlacement: string
 }) {
   const posthog = usePostHog()
   const [targets, setTargets] = useState<{ wordmark: HTMLElement | null; slot: HTMLElement | null }>({
@@ -80,7 +77,6 @@ export function ReportEnhancements({
       {targets.wordmark && createPortal(<Logo />, targets.wordmark)}
       {targets.slot && createPortal(<NewsletterSignup variant="inline" source="employment-report" />, targets.slot)}
       <ReportPdfGateDialog open={pdfOpen} onOpenChange={setPdfOpen} pdfHref={pdfHref} filename={pdfFilename} />
-      <ReportNewsletterPopup placement={popupPlacement} />
     </>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { subscribeToMembership, type FormState } from '@/app/dashboard/membership/actions'
+import { subscribeToMembership, type FormState } from '@/app/dashboard/alumni-plan/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 
 export function MembershipSignupButtons({ monthlyLabel, annualLabel }: { monthlyLabel: string; annualLabel: string }) {

@@ -26,7 +26,7 @@ export async function sendUpgradeOffer(
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const copy = offerCopy(trigger, signals, candidate.firstName)
-  const ctaUrl = `${appUrl}/dashboard/membership?utm_source=email&utm_medium=upgrade_offer&utm_campaign=${trigger}`
+  const ctaUrl = `${appUrl}/dashboard/alumni-plan?utm_source=email&utm_medium=upgrade_offer&utm_campaign=${trigger}`
 
   const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({
     from: 'NextChapter <support@launchyournextchapter.com>',

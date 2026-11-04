@@ -20,7 +20,7 @@ const BEATS = [
 
 // Partners Master Build Script §C2.6/§C4.6 — membership "opens at placement,
 // not before... the only moment it converts." Phase 8 already built the
-// real signup/subscription flow at /dashboard/membership; this page is
+// real signup/subscription flow at /dashboard/alumni-plan; this page is
 // informational and links there rather than building a second, parallel
 // form.
 export default function MembershipPage() {
@@ -33,7 +33,7 @@ export default function MembershipPage() {
         eyebrow="Higher Education and the Alumni plan"
         headline="Never start from zero again."
         subhead="You just did the hardest professional thing there is. Keep the evidence current so the next time takes weeks, not months."
-        primary={{ label: 'Join', href: '/dashboard/membership' }}
+        primary={{ label: 'Join', href: '/dashboard/alumni-plan' }}
         primaryNote="Your NextChapter Member account stays free. The Alumni plan adds the extras below."
         footerLinks={[
           { href: '/pricing', label: 'Plans' },
