@@ -133,6 +133,9 @@ describe('isIndexableJob', () => {
     expect(isIndexableJob(job({ directListing: true, description: 'x'.repeat(PUBLIC_JOB_MIN_INDEX_DESCRIPTION - 1) }))).toBe(false)
     expect(isIndexableJob(job({ directListing: true, description: 'x'.repeat(PUBLIC_JOB_MIN_INDEX_DESCRIPTION) }))).toBe(true)
     expect(isIndexableJob(job({ directListing: true, description: 'x'.repeat(4000) }))).toBe(true)
+    // an employer's own site the crawler did not flag (jobs.apple.com) still counts as direct
+    expect(isIndexableJob(job({ directListing: false, sourceCategory: 'employer', description: 'x'.repeat(4000) }))).toBe(true)
+    expect(isIndexableJob(job({ directListing: false, sourceCategory: 'aggregator', description: 'x'.repeat(4000) }))).toBe(false)
   })
   it('keeps an aggregator-linked job (Jooble and the like) out of search however full its text', () => {
     expect(isIndexableJob(job({ directListing: false, description: 'x'.repeat(4000) }))).toBe(false)

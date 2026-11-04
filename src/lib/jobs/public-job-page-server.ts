@@ -44,6 +44,7 @@ export const PUBLIC_JOB_SELECT = {
   reopenCount: true,
   repostCount: true,
   directListing: true,
+  sourceCategory: true,
   salaryMin: true,
   salaryMax: true,
   salaryCurrency: true,
@@ -129,7 +130,7 @@ export const PUBLIC_JOB_OFFERED_SQL = Prisma.sql`(
  * Jobs linked through an aggregator such as Jooble keep their page for members but are noindex (isIndexableJob) and are
  * reported to Google and Bing as removed (owner decision, 2026-11-04).
  */
-export const PUBLIC_JOB_SEARCH_SQL = Prisma.sql`"directListing" IS TRUE`
+export const PUBLIC_JOB_SEARCH_SQL = Prisma.sql`("directListing" IS TRUE OR "sourceCategory" = 'employer')`
 
 /**
  * Feed jobs in shard `shard` (0–15): the public allowlist, listed on the employer's own career system (directListing),
