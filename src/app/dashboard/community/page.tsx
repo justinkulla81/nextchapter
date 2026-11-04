@@ -36,7 +36,6 @@ import { CommunityStreamItem } from '@/components/dashboard/CommunityStreamItem'
 import { CommunityChips } from '@/components/dashboard/CommunityChips'
 import { AlumniNetworkOptions } from '@/components/community/AlumniNetworkOptions'
 import { CommunityAutoJoinBanner } from '@/components/dashboard/CommunityAutoJoinBanner'
-import { CommunityGroupStrip } from '@/components/dashboard/CommunityGroupStrip'
 import { getCandidateGroups } from '@/lib/community/groups'
 import { hasQualifyingCommunityBadge } from '@/lib/community/access'
 import { SelfIntroForm } from '@/components/dashboard/SelfIntroForm'
@@ -51,10 +50,12 @@ import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector
 import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { CommunityLeaderboardModule } from '@/components/dashboard/CommunityLeaderboardModule'
 import { computeBoard } from '@/lib/leaderboard/queries'
+import { NeedsYou } from '@/components/candidate/NeedsYou'
+import { HomeFold } from '@/components/candidate/HomeFold'
+import { CommunityToolbar, type CommunityFilterOption } from '@/components/dashboard/CommunityToolbar'
 import { communityIntro } from '@/lib/redesign/network-pages'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
-import { ShowMore } from '@/components/candidate/ShowMore'
 import { NetworkParts } from '@/components/network/NetworkParts'
 import { SectionPills } from '@/components/candidate/SectionPills'
 import { Section } from '@/components/candidate/ui'
@@ -160,7 +161,7 @@ export default async function SupportNetworkPage({
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <PageHeader title={tab === 'messages' ? 'Messages' : 'Industry and function'} intro={communityIntro(tab)} />
+        <PageHeader title={tab === 'messages' ? 'Messages' : 'Industry and function'} intro={tab === 'messages' ? communityIntro(tab) : undefined} />
         {tab === 'community' && <NetworkParts current="industry" />}
       </div>
 
@@ -637,37 +638,40 @@ async function CommunityTab({
 
   const filterActive = Boolean(activeCommunity || searchParams.group)
   const filterName = activeCommunity?.label ?? groups.find((g) => `${g.dimension}:${g.value}` === searchParams.group)?.label ?? 'one group'
+  const filterOptions: CommunityFilterOption[] = [
+    { value: '', label: 'Everything' },
+    ...communities.map((c) => ({ value: `community:${c.communityId}`, label: c.label })),
+    ...groups.map((g) => ({ value: `group:${g.dimension}:${g.value}`, label: `${g.label} (${g.memberCount})` })),
+  ]
+  const currentFilter = activeCommunity ? `community:${activeCommunity.communityId}` : searchParams.group ? `group:${searchParams.group}` : ''
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {confidentialSearchMode && <ConfidentialModeIndicator redesign />}
-      <CommunityAutoJoinBanner notices={pendingAutoJoinNotices} />
 
-      {unreadNotes.length > 0 && (
-        <div className="space-y-3">
-          {unreadNotes.map((note) => (
-            <div key={note.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-muted/60 p-5">
-              <div className="max-w-xl space-y-1">
-                <p className="text-base text-ink">
-                  &ldquo;{note.message}&rdquo;
-                  {note.revealSender && note.fromCandidate.firstName && <span className="text-muted-foreground"> from {note.fromCandidate.firstName}</span>}
-                </p>
-                <p className="text-sm text-muted-foreground">Someone here sent you this.</p>
-              </div>
-              <form action={dismissEncouragementNote.bind(null, note.id)}>
-                <SubmitButton variant="outline" className="h-10 rounded-full px-5 text-sm">
-                  Dismiss
-                </SubmitButton>
-              </form>
+      {/* The auto-join notice and notes from other members wait in one collapsed strip; the feed comes first. */}
+      <NeedsYou>
+        <CommunityAutoJoinBanner notices={pendingAutoJoinNotices} />
+        {unreadNotes.map((note) => (
+          <div key={note.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-muted/60 p-5">
+            <div className="max-w-xl space-y-1">
+              <p className="text-base text-ink">
+                &ldquo;{note.message}&rdquo;
+                {note.revealSender && note.fromCandidate.firstName && <span className="text-muted-foreground"> from {note.fromCandidate.firstName}</span>}
+              </p>
+              <p className="text-sm text-muted-foreground">Someone here sent you this.</p>
             </div>
-          ))}
-        </div>
-      )}
+            <form action={dismissEncouragementNote.bind(null, note.id)}>
+              <SubmitButton variant="outline" className="h-10 rounded-full px-5 text-sm">
+                Dismiss
+              </SubmitButton>
+            </form>
+          </div>
+        ))}
+      </NeedsYou>
 
-      <Section id="post" title="Post to the community">
-        <CommunityPostForm />
-      </Section>
+      <CommunityToolbar options={filterOptions} current={currentFilter} hasFilter={filterActive} composer={<CommunityPostForm />} />
 
-      <Section id="feed" title="From your field">
+      <section id="feed" aria-label="From your field" className="space-y-3">
         {filterActive && (
           <p className="text-base text-ink">
             Showing posts from {filterName}.{' '}
@@ -685,15 +689,12 @@ async function CommunityTab({
             ))}
           </div>
         )}
-      </Section>
+      </section>
 
-      <ShowMore page="community" label="Filter by group, cohort, rankings and encouragement">
-        {(groups.length > 0 || communities.length > 0) && (
-          <Section id="filters" title="Filter by group">
-            <div className="space-y-5">
-              <CommunityGroupStrip groups={groups} otherParams={activeCommunity ? { community: activeCommunity.communityId } : {}} />
-              <CommunityChips communities={communities} activeCommunityId={activeCommunity?.communityId} />
-            </div>
+      <HomeFold title="Your communities, cohort and more" event="community_more_toggled">
+        {communities.length > 0 && (
+          <Section id="filters" title="Your communities">
+            <CommunityChips communities={communities} activeCommunityId={activeCommunity?.communityId} />
           </Section>
         )}
         {cohort && (
@@ -726,7 +727,7 @@ async function CommunityTab({
             </p>
           )}
         </Section>
-      </ShowMore>
+      </HomeFold>
     </div>
   )
 }
