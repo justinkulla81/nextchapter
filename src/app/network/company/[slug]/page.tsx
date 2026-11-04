@@ -8,7 +8,8 @@ import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { JourneyPicker } from '@/components/home/JourneyPicker'
 import { EmployerEmailCapture } from '@/components/network/EmployerEmailCapture'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
-import { getEmployerBrand } from '@/lib/branding/store'
+import { getEmployerBrand, employerBrandKey } from '@/lib/branding/store'
+import { brandOrFallback } from '@/lib/branding/fallback'
 import { NetworkViewTracker } from '@/components/network/NetworkViewTracker'
 import { canonical } from '@/lib/seo/canonical'
 import { DEFAULT_IMAGE, breadcrumbJsonLd, organizationRef, personRef } from '@/lib/seo/jsonld'
@@ -65,6 +66,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
 
   const { company: c, state, atEmployer, inState } = data
   const [statements, brand] = await Promise.all([approvedStatementMap(slug, c.name), getEmployerBrand(c.name).catch(() => null)])
+  const brandOrDefault = brandOrFallback(brand, employerBrandKey(c.name))
   const workers = totalWorkers(c)
   const stateLabel = stateName(state)
   const path = `/network/company/${slug}`
@@ -115,7 +117,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
   }
 
   return (
-    <OrgBrandScope brand={brand?.pair}>
+    <OrgBrandScope brand={brandOrDefault.pair}>
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: c.name, path }])} />
       <StructuredData data={pageLd} />

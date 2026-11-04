@@ -8,7 +8,7 @@ import { buildPair, type BrandPair, type ColorCandidate } from './scan'
 // Brand colors kept per organization (OrgBrand, SQL in prisma/manual/2026-10-27-org-brand.sql). Fail-soft: a missing table, a bad row or a
 // database error reads as "no brand", so the page renders in NextChapter's own look and nothing breaks.
 
-export type OrgBrandKind = 'WORKFORCE_BOARD' | 'JOB_CENTER' | 'ECON_DEV' | 'COLLEGE' | 'EMPLOYER' | 'STATE_AGENCY'
+export type OrgBrandKind = 'WORKFORCE_BOARD' | 'JOB_CENTER' | 'ECON_DEV' | 'COLLEGE' | 'EMPLOYER' | 'STATE_AGENCY' | 'SEARCH_FIRM'
 
 export interface OrgBrandRecord {
   kind: string

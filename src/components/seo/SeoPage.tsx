@@ -38,7 +38,7 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   /** Puts the next-step box under the heading instead of after the content: for hub pages so long that the box would be thousands of pixels down (the rankings hub). */
   boxFirst?: boolean
   /** The page's organization colors the heading panel: its color as the background and the readable text color on it (a firm's page). */
-  brand?: { color: string; ink: string }
+  brand?: { color: string; ink: string; stripe?: string }
   /** A journey page words the next-step box itself and hands the visitor's situation to onboarding. */
   ask?: JourneyAsk
 }) {
@@ -70,6 +70,7 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
               <Image src={hero} alt="" fill priority sizes="(min-width: 768px) 45vw, 100vw" className="object-cover object-right" />
             </div>
           )}
+          {brand?.stripe && <div aria-hidden className="-mx-5 -mb-5 mt-6 h-2 rounded-b-3xl sm:-mx-7 sm:-mb-7" style={{ backgroundColor: brand.stripe }} />}
           </div>
           {st && (
             <OrgCandidateBand
