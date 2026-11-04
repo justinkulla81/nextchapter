@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { layoffAlertView } from '@/lib/warn/layoff-alert-view'
 import { CopyBox } from '@/components/admin/CopyBox'
-import { linkedinLayoffPost } from '@/lib/warn/layoff-share'
+import { linkedinCandidateNote, linkedinLayoffPost } from '@/lib/warn/layoff-share'
 
 export const maxDuration = 30
 
@@ -27,6 +27,7 @@ export default async function LayoffNoticePage({ params }: { params: Promise<{ i
           <a href={view.share.url} target="_blank" rel="noreferrer" className="mt-1 block break-all text-sm text-brand underline underline-offset-4">{view.share.url}</a>
         </section>
         <CopyBox label="LinkedIn message" text={linkedinLayoffPost(view.share)} kind="linkedin_layoff_message" event="layoff_share_message_copied" props={{ noticeId: id, url: view.share.url }} />
+        <CopyBox label="Message to someone laid off" text={linkedinCandidateNote(view.share)} kind="linkedin_candidate_note" event="layoff_share_message_copied" props={{ noticeId: id, url: view.share.url }} />
       </div>
       <div className="max-w-3xl rounded-lg border border-border bg-white p-4 text-black" dangerouslySetInnerHTML={{ __html: view.html }} />
     </div>
