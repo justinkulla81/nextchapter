@@ -7,7 +7,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { allowByIp, HOUR_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
-import { firmNameOf, recruiterFirmIdForOrg } from '@/lib/seo/search-firm-pages'
+import { firmNameOf, getFirmBriefs, recruiterFirmIdForOrg } from '@/lib/seo/search-firm-pages'
 import { notifyOwnerOfFollow } from '@/lib/notify/follow-alert-server'
 import { shareInterestWithFirm } from '@/lib/recruiter-interest/server'
 import { disconnectIntakeConnection } from '@/lib/recruiter/intake/consent'
@@ -81,4 +81,33 @@ export async function shareWithFirm(orgId: string): Promise<{ ok: true } | { ok:
   const r = await shareInterestWithFirm(profile.id, orgId)
   revalidatePath('/dashboard/recruiter-package')
   return r
+}
+
+export type FirmInterestState =
+  | { signedIn: false }
+  | { signedIn: true; picked: false; hasResume: boolean }
+  | { signedIn: true; picked: true; status: 'HELD' | 'SHARED'; sharedAt: string | null; hasResume: boolean; joined: boolean }
+
+/**
+ * For the cached firm page: is the visitor a signed-in member, and where do they stand with this firm? Reads only, and
+ * never throws (a visitor, an anonymous onboarding session or a failed read all come back as "not signed in").
+ */
+export async function getFirmInterestState(orgId: string): Promise<FirmInterestState> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || user.is_anonymous) return { signedIn: false }
+    const profile = await prisma.candidateProfile.findUnique({ where: { userId: user.id }, select: { id: true, resumeStepComplete: true } })
+    if (!profile) return { signedIn: false }
+    const [interest, resumes] = await Promise.all([
+      prisma.recruiterInterest.findUnique({ where: { candidateId_firmOrgId: { candidateId: profile.id, firmOrgId: orgId } }, select: { status: true, sharedAt: true } }),
+      prisma.resume.count({ where: { candidateId: profile.id, looksLikeResume: { not: false } } }),
+    ])
+    const hasResume = profile.resumeStepComplete || resumes > 0
+    if (!interest || interest.status === 'WITHDRAWN') return { signedIn: true, picked: false, hasResume }
+    const joined = (await getFirmBriefs([orgId])).get(orgId)?.joined === true
+    return { signedIn: true, picked: true, status: interest.status, sharedAt: interest.sharedAt?.toISOString() ?? null, hasResume, joined }
+  } catch {
+    return { signedIn: false }
+  }
 }

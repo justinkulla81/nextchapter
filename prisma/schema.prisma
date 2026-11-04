@@ -18120,7 +18120,9 @@ model SavedJobClosureNotice {
 model FirmBrandColor {
   orgId     String   @id
   color     String?
-  /// theme-color | manifest | icon | none
+  /// theme-color | manifest | icon | logo | none
   source    String
+  /// What the firm's own site says about it (its meta description), shown on its page with a link to the site.
+  about     String?
   checkedAt DateTime @default(now())
 }
