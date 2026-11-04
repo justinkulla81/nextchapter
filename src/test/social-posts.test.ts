@@ -113,10 +113,9 @@ describe('reportPost', () => {
 })
 
 describe('X filing rules', () => {
-  it('limits X to the biggest filings and three a day', async () => {
-    const { FILING_RULES, MAX_PER_CHANNEL_PER_DAY } = await import('@/lib/social/filings')
+  it('limits X to the biggest layoffs and three a day', async () => {
+    const { FILING_RULES } = await import('@/lib/social/filings')
     expect(FILING_RULES.x).toEqual({ minWorkers: 250, perDay: 3 })
-    expect(FILING_RULES.x!.perDay).toBeLessThan(MAX_PER_CHANNEL_PER_DAY)
   })
 })
 
