@@ -14,6 +14,7 @@ import {
   indexNowBody,
   planChanges,
   planGoogle,
+  googleJobPriority,
 } from '@/lib/syndication/syndication'
 
 function job(over: Partial<PublicJobRow> = {}): PublicJobRow {
@@ -60,6 +61,28 @@ describe('planGoogle', () => {
     expect(googleIndexingEnabled({ GOOGLE_INDEXING_ENABLED: 'true' })).toBe(false)
     expect(googleIndexingEnabled({ GOOGLE_INDEXING_ENABLED: 'true', GOOGLE_INDEXING_SA_JSON: '{}' })).toBe(true)
     expect(googleIndexingQuota({})).toBe(200)
+  })
+})
+
+describe('planGoogle by value', () => {
+  const now = Date.parse('2026-11-04T00:00:00Z')
+  const day = 86_400_000
+  it('sends a paid employer-system job before a plain one that is a little newer', () => {
+    const live = [{ id: 'plain', at: now - 5 * day, value: 0 }, { id: 'paid', at: now - 20 * day, value: 5 }]
+    expect(planGoogle(live, new Set(), 1, now).updated).toEqual(['paid'])
+  })
+  it('lets a job posted in the last 3 days outrank an older one with the same value', () => {
+    const live = [{ id: 'old', at: now - 30 * day, value: 3 }, { id: 'fresh', at: now - 1 * day, value: 3 }]
+    expect(planGoogle(live, new Set(), 2, now).updated).toEqual(['fresh', 'old'])
+  })
+  it('scores recency and row value together', () => {
+    expect(googleJobPriority({ id: 'a', at: now - day, value: 5 }, now)).toBe(8)
+    expect(googleJobPriority({ id: 'b', at: now - 10 * day, value: 2 }, now)).toBe(3)
+    expect(googleJobPriority({ id: 'c', at: now - 60 * day }, now)).toBe(0)
+  })
+  it('still skips jobs that are not offered and jobs already sent', () => {
+    const live = [{ id: 'x', at: now, value: 5, offered: false }, { id: 'y', at: now, value: 5 }, { id: 'z', at: now - day, value: 1 }]
+    expect(planGoogle(live, new Set(['y']), 5, now).updated).toEqual(['z'])
   })
 })
 
