@@ -6,6 +6,7 @@ import { STATE_UI, UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { headlineChange, headlineIndex, monthLabel as indexMonthLabel } from '@/lib/reports-wc-index'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { textBudget } from '@/lib/social/posts'
+import { STATE_AGENCIES } from '@/lib/social/tag-handles'
 
 /**
  * A fact is one verified finding a post can be written from: the numbers, where to read more and a plain template for the day the
@@ -193,6 +194,7 @@ export function helpFacts(now: Date): Fact[] {
         ],
         path: `/unemployment-benefits/${stateSlug(code)}`,
         campaign: 'help-story',
+        cites: STATE_AGENCIES[code] ? [`agency:${code}`] : [],
         fallback: (link, short) =>
           fit(
             (t) =>
