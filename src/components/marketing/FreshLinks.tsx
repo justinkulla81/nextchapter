@@ -27,8 +27,9 @@ function LinkList({ title, links, placement, tone }: { title: string; links: Fre
 
 const asLinks = (items: { href: string; label: string }[], kind: FreshLink['kind']): FreshLink[] => items.map((i) => ({ label: i.label, href: i.href, kind, key: i.href }))
 
-export async function FreshLinks({ tone, placement }: { tone: 'dark' | 'light'; placement: string }) {
-  const [layoffs, jobs, rising] = await Promise.all([getFreshLayoffLinks(), getFreshJobLinks(), getRisingSearchLinks(8)])
+// `jobs={false}` leaves out the newest-jobs list and skips its query. The home page does (2026-11-04): jobs are out of the sitemap, so the busiest page does not link them.
+export async function FreshLinks({ tone, placement, jobs: showJobs = true }: { tone: 'dark' | 'light'; placement: string; jobs?: boolean }) {
+  const [layoffs, jobs, rising] = await Promise.all([getFreshLayoffLinks(), showJobs ? getFreshJobLinks() : Promise.resolve([]), getRisingSearchLinks(8)])
   return (
     <div className={tone === 'dark' ? 'mt-12 space-y-6 text-left' : 'space-y-6'}>
       <LinkList title="Latest layoffs" links={layoffs} placement={placement} tone={tone} />

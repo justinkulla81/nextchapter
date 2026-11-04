@@ -24,7 +24,7 @@ export default function Home() {
     <>
       <StructuredData data={jsonLd} />
       <StructuredData data={organizationJsonLd()} />
-      <NewHome fresh={<FreshLinks tone="dark" placement="home" />} />
+      <NewHome fresh={<FreshLinks tone="dark" placement="home" jobs={false} />} />
     </>
   )
 }
