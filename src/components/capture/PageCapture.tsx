@@ -2,6 +2,8 @@ import { JourneyPicker } from '@/components/home/JourneyPicker'
 import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 import { NextStepBox } from '@/components/capture/NextStepBox'
 import { OwnerInquiry } from '@/components/capture/OwnerInquiry'
+import { FollowTopicBox } from '@/components/capture/FollowTopicBox'
+import { isFollowable } from '@/lib/leads/topic-follow'
 import { captureSource, ownerOffer, saveCopy, saveSource, type PageCaptureConfig } from '@/lib/capture/page-capture'
 
 /**
@@ -18,7 +20,14 @@ export function PageCaptureTop({ capture }: { capture: PageCaptureConfig }) {
       <JourneyPicker source={source} compact />
       {capture.save && (
         <div className="mx-auto mt-6 max-w-xl border-t border-border pt-5">
-          <SaveSearchForm q={capture.save.q} loc={capture.save.loc} remote={false} source={saveSource(capture.kind)} heading={copy.heading} blurb={copy.blurb} cta={copy.cta} />
+          {isFollowable(capture.save.q, capture.save.loc) ? (
+            // A signed-in member gets one button (their account email is already verified); everyone else gets the email box.
+            <FollowTopicBox q={capture.save.q} loc={capture.save.loc} source={saveSource(capture.kind)} label={copy.heading.replace(/^Follow /, '')}>
+              <SaveSearchForm q={capture.save.q} loc={capture.save.loc} remote={false} source={saveSource(capture.kind)} heading={copy.heading} blurb={copy.blurb} cta={copy.cta} />
+            </FollowTopicBox>
+          ) : (
+            <SaveSearchForm q={capture.save.q} loc={capture.save.loc} remote={false} source={saveSource(capture.kind)} heading={copy.heading} blurb={copy.blurb} cta={copy.cta} />
+          )}
         </div>
       )}
     </>

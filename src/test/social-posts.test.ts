@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { linkFacets, oauth1Header } from '@/lib/social/clients'
-import { MIN_DAILY_NOTICES, MIN_NOTICES, MIN_RANKINGS_POSTED, dailyLayoffPost, rankingsPost, reportPost, weekKey, weeklyLayoffPost, type DayNotice, type WeekNotice } from '@/lib/social/posts'
+import { isClosure, announcementBasis, announcementPostText, filingPostText, jobsReportPost, joltsPost, MIN_DAILY_NOTICES, MIN_NOTICES, MIN_RANKINGS_POSTED, dailyLayoffPost, rankingsPost, reportPost, weekKey, weeklyLayoffPost, type DayNotice, type WeekNotice } from '@/lib/social/posts'
 
 const now = new Date('2026-10-26T13:00:00Z')
 const day = 86_400_000
@@ -139,5 +139,77 @@ describe('rankingsPost', () => {
   })
   it('never announces an older month', () => {
     expect(rankingsPost(many, new Date('2026-12-02T13:00:00Z'), 'u=1')).toBeNull()
+  })
+})
+
+describe('Bluesky length', () => {
+  const long = 'Acme Widgets Incorporated of North America and Affiliated Companies Holdings and Subsidiaries Group'
+  it('keeps a filing post under 300 characters with the whole link counted, and under 280 with X short links', () => {
+    const f = { employer: long, state: 'WA', workers: 1985, date: new Date('2026-05-13T12:00:00Z'), path: '/layoffs/company/acme-widgets' }
+    expect(filingPostText(f, 'utm_source=bluesky&utm_medium=social&utm_campaign=warn-filing', false).length).toBeLessThanOrEqual(300)
+  })
+})
+
+describe('announcementBasis', () => {
+  it('reads how the layoff was sourced and the share of staff', () => {
+    expect(announcementBasis('SEC 8-K Item 2.05 (restructuring filing) · 19% of staff')).toEqual({ basis: 'sec', percent: 19 })
+    expect(announcementBasis('Reported by 2+ publishers')).toEqual({ basis: 'confirmed', percent: null })
+    expect(announcementBasis('Reported by 1 publisher — unconfirmed · 8% of staff').basis).toBe('unconfirmed')
+    expect(announcementBasis('Reported by 1 publisher (Reuters) — unconfirmed').basis).toBe('unconfirmed')
+    expect(announcementBasis('Reported by 2 publishers').basis).toBe('confirmed')
+    expect(announcementBasis('Reported by 4 publishers').basis).toBe('confirmed')
+    expect(announcementBasis('Reported by 3 publishers · 19% of staff')).toEqual({ basis: 'confirmed', percent: 19 })
+    expect(announcementBasis('Company shutdown announced Oct 30, effective Nov 6 · reported by 2+ publishers').basis).toBe('confirmed')
+    expect(announcementBasis(null).basis).toBe('unconfirmed')
+  })
+})
+
+describe('announcementPostText', () => {
+  const base = { employer: 'Acme Corp', state: 'WA', workers: 1200, percent: 8, basis: 'sec' as const, path: '/layoffs/company/acme' }
+  it('says who reported it, and keeps a share of staff apart from the headcount', () => {
+    const t = announcementPostText(base, 'utm_source=bluesky', false)
+    expect(t).toContain('Acme Corp announced layoffs in Washington, affecting 1,200 workers (8% of staff), according to an SEC filing.')
+    expect(t).toContain('https://launchyournextchapter.com/layoffs/company/acme?utm_source=bluesky')
+  })
+  it('does not turn a percent into a headcount', () => {
+    const t = announcementPostText({ ...base, workers: null, percent: 19, basis: 'confirmed' }, 'u=1', false)
+    expect(t).toContain('affecting 19% of staff, according to multiple news reports')
+    expect(t).not.toMatch(/19 workers/)
+  })
+  it('fits Bluesky with a very long employer name', () => {
+    const t = announcementPostText({ ...base, employer: 'Acme Widgets Incorporated of North America and Affiliated Companies Holdings and Subsidiaries Group' }, 'utm_source=bluesky&utm_medium=social&utm_campaign=layoff-announcement', false)
+    expect(t.length).toBeLessThanOrEqual(300)
+  })
+})
+
+describe('BLS release posts', () => {
+  const jobs = { month: { year: 2026, month: 10 }, prevMonth: { year: 2026, month: 9 }, payrollChange: 119_000, rate: 4.4, prevRate: 4.3 }
+  it('posts the jobs report as all workers, all industries, keyed by month', () => {
+    const p = jobsReportPost(jobs, 'utm_source=bluesky', false)
+    expect(p.key).toBe('bls-jobs-2026-10')
+    expect(p.text).toContain('BLS jobs report for October 2026: employers added 119,000 jobs.')
+    expect(p.text).toContain('4.4%, up from 4.3% in September')
+    expect(p.text).toContain('All workers, all industries')
+    expect(p.text.length).toBeLessThanOrEqual(300)
+  })
+  it('says cut for a loss and unchanged for a flat rate', () => {
+    const p = jobsReportPost({ ...jobs, payrollChange: -20_000, rate: 4.3 }, 'u=1', false)
+    expect(p.text).toContain('employers cut 20,000 jobs')
+    expect(p.text).toContain('unchanged at 4.3%')
+  })
+  it('posts JOLTS openings and layoffs in millions, labeled all industries', () => {
+    const p = joltsPost({ month: { year: 2026, month: 9 }, prevMonth: { year: 2026, month: 8 }, openings: 7_227_000, layoffs: 1_800_000, prevLayoffs: 1_700_000 }, 'utm_source=bluesky', false)
+    expect(p.key).toBe('bls-jolts-2026-09')
+    expect(p.text).toContain('7.2 million job openings and 1.8 million layoffs and discharges, up from 1.7 million in August')
+    expect(p.text).toContain('All industries')
+    expect(p.text.length).toBeLessThanOrEqual(300)
+  })
+})
+
+describe('isClosure', () => {
+  it('flags shutdowns so they are not posted as layoffs', () => {
+    expect(isClosure('Company shutdown announced Oct 30, effective Nov 6 · reported by 2+ publishers')).toBe(true)
+    expect(isClosure('Reported by 3 publishers · 19% of staff')).toBe(false)
+    expect(isClosure(null)).toBe(false)
   })
 })
