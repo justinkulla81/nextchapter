@@ -69,7 +69,7 @@ export function CandidatePlusUnlockMoment({ numbers }: { numbers: UnlockNumbers 
     {
       done: numbers.searchFirms > 0,
       title: `${n(numbers.searchFirms)} search firm${numbers.searchFirms === 1 ? '' : 's'} matched to you`,
-      body: <Link href="/dashboard/network#recruiters-for-you" className="text-primary underline underline-offset-4">See the firms and who to write to</Link>,
+      body: <Link href="/dashboard/network?view=all&tab=contact#recruiters-for-you" className="text-primary underline underline-offset-4">See the firms and who to write to</Link>,
     },
   ]
 

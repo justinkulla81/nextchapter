@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import { HomeToday, ProgressBuilt, ProgressTimeline } from './home'
 import { HomeTodayShort, HomeTodayShortQuiet } from './home-short'
+import { NetworkShort, NetworkTracker } from './network-short'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
@@ -129,6 +130,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'home/paths/none', place: 'Home', title: 'Your journey: no active paths (unchanged)', replaces: 'nothing', Component: HomePathsNone },
   { path: 'home/progress/built', place: 'Home', title: 'Effort and results: what you’ve built', replaces: '/dashboard/stats (badges and leaderboards removed)', Component: ProgressBuilt },
   { path: 'home/progress/timeline', place: 'Home', title: 'Effort and results: your search timeline', replaces: 'new', Component: ProgressTimeline },
+  { path: 'network/circles/overview-short', place: 'Network', title: 'Your network, shortened: one next move, one list of five circles (sample data)', replaces: 'the ring diagram, the separate Moments section (now a bar on the circle it belongs to), and the tune strip above the heading (now one line below)', Component: NetworkShort },
+  { path: 'network/circles/know-tabs', place: 'Network', title: 'People you know: Who to contact, Tracking, Plan (sample data)', replaces: '/dashboard/network?view=all, about 17 stacked blocks; priority, follow-up, backchannel, alumni and recruiter cards become one list', Component: NetworkTracker },
   { path: 'network/circles/overview', place: 'Network', title: 'Your network: all circles', replaces: '/dashboard/network', Component: NetworkOverviewMock },
   { path: 'network/circles/close', place: 'Network', title: 'Close circle', replaces: '/dashboard/supporters, /dashboard/my-coaching', Component: CloseCircle },
   { path: 'jobs/find/jobs', place: 'Jobs', title: 'Find a job: list and detail', replaces: '/dashboard/find-my-job, /dashboard/jobs/ID', Component: FindJobs },
@@ -266,7 +269,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/partner-move-ask', place: 'Network', title: 'Your move plan: asking for your last salary, in context, with a skip', replaces: 'new', Component: PartnerMovingAsk },
   { path: 'network/circles/partner-move-worth', place: 'Network', title: 'Your move plan: each salary in what it buys at home', replaces: 'new', Component: PartnerMovingWorth },
   { path: 'network/circles/partner-move', place: 'Network', title: 'Your move plan: places side by side, with what it costs to live there', replaces: 'new', Component: PartnerMoving },
-  { path: 'public/role-network/signed-out', place: 'Public site', title: 'Role page: join the CRO network (visitor)', replaces: 'the generic "See how the market reads your background" band at the end of a role page', Component: RoleNetworkSignedOut },
+  { path: 'public/role-network/signed-out', place: 'Public site', title: 'Role page top: join the CRO network (visitor)', replaces: 'the generic band at the end of a role page, which is dropped; the capture box stays as the closing ask', Component: RoleNetworkSignedOut },
   { path: 'public/role-network/can-join', place: 'Public site', title: 'Role page: join the CRO network (signed in)', replaces: 'the generic band at the end of a role page', Component: RoleNetworkCanJoin },
   { path: 'public/role-network/joined', place: 'Public site', title: 'Role page: already in the CRO network', replaces: 'the generic band at the end of a role page', Component: RoleNetworkJoined },
   { path: 'public/role-network/confidential', place: 'Public site', title: 'Role page: Confidential Search Mode member', replaces: 'the generic band at the end of a role page', Component: RoleNetworkConfidential },

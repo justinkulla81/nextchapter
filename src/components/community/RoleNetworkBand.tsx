@@ -64,7 +64,7 @@ export function RoleNetworkBandView({
   onJoin: () => void
 }) {
   return (
-    <section className={cn('mt-8 rounded-3xl bg-gradient-to-br from-brand to-light-blue p-6 text-white sm:p-8', pending && 'cursor-wait')} aria-labelledby="role-network">
+    <section className={cn('mt-6 rounded-3xl bg-gradient-to-br from-brand to-light-blue p-6 text-white sm:p-8', pending && 'cursor-wait')} aria-labelledby="role-network">
       <h2 id="role-network" className="text-xl font-semibold tracking-tight">
         {status === 'joined' ? `You are in the ${short} network` : `Are you a ${short}? Join your peers.`}
       </h2>
@@ -85,8 +85,13 @@ export function RoleNetworkBandView({
       ) : (
         <>
           <p className="mt-2 max-w-2xl text-sm text-white/90">
-            The {short} network is for people in {spelled} roles who are thinking about their next step. Members get a weekly email with the {spelled} openings and pay, plus what other members are posting.
+            The {short} network is for people in {spelled} roles who are thinking about their next step. Members get:
           </p>
+          <ul className="mt-2 max-w-2xl list-disc space-y-1 pl-5 text-sm text-white/90">
+            <li>A weekly email with the {spelled} openings and what they pay</li>
+            <li>What other members in {spelled} roles are posting about their search</li>
+            <li>A peer group of people in the same role</li>
+          </ul>
           <button
             type="button"
             onClick={onJoin}
