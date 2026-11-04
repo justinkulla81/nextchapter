@@ -23,6 +23,7 @@ import { CandidatePlusUnlock, WeeklyEmail, OnboardingSituation, FirstWeek, Empty
 import { MoneyRunway, MoneyDeadlines, MoneyEntrepreneur } from './money'
 import { CareerStoryShortMock, CareerStoryShortEmpty } from './career-story'
 import { PeopleNew, PeopleFull, MoveWithPlaces, MoveEmpty } from './people-move-short'
+import { StatsTabsMock } from './stats-tabs'
 import { SearchStrategySimple } from './strategy'
 import { CareerHighPointPreview } from './career-high-point'
 import { StrategyNegotiationLive, StrategyNegotiationEmptyLive } from './strategy-negotiation-live'
@@ -138,6 +139,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'home/paths/open', place: 'Home', title: 'Your journey: paths and focus switch (sample data)', replaces: 'the “What this changes for you” list, for members with active paths', Component: HomePathsOpen },
   { path: 'home/paths/waiting', place: 'Home', title: 'Your journey: paths wait at 3 hours a week (sample data)', replaces: 'the “What this changes for you” list, for members with active paths', Component: HomePathsWaiting },
   { path: 'home/paths/none', place: 'Home', title: 'Your journey: no active paths (unchanged)', replaces: 'nothing', Component: HomePathsNone },
+  { path: 'home/progress/stats-tabs', place: 'Home', title: 'Your stats: four tabs by purpose (sample data)', replaces: '/dashboard/stats?view=all: one long page of cards with a Jump to section bar; now Progress, Leaderboards, This week and How you feel, each loading only its own data', Component: StatsTabsMock },
   { path: 'home/progress/built', place: 'Home', title: 'Effort and results: what you’ve built', replaces: '/dashboard/stats (badges and leaderboards removed)', Component: ProgressBuilt },
   { path: 'home/progress/timeline', place: 'Home', title: 'Effort and results: your search timeline', replaces: 'new', Component: ProgressTimeline },
   { path: 'network/circles/overview-short', place: 'Network', title: 'Your network, shortened: one next move, one list of five circles (sample data)', replaces: 'the ring diagram, the separate Moments section (now a bar on the circle it belongs to), and the tune strip above the heading (now one line below)', Component: NetworkShort },

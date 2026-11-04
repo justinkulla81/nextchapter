@@ -41,6 +41,9 @@ import { loadTraitSignals } from '@/lib/dossier/evidence-signals'
 import { engagementFor } from '@/lib/journey/senior-overlay'
 import { StatsRedesign } from '@/components/dashboard/StatsRedesign'
 import { SeeAllLink } from '@/components/candidate/SeeAllLink'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { after } from 'next/server'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export const metadata: Metadata = { title: 'My Stats & Reports' }
 
@@ -50,148 +53,80 @@ const VALID_BANDS: SeniorityBand[] = ['EARLY', 'MID', 'SENIOR', 'EXECUTIVE']
 type EngineKey = WeeklyEngine['key']
 const ENGINE_ORDER: EngineKey[] = ['effort', 'connecting', 'working', 'learning']
 
-const SECTIONS = [
-  { id: 'your-stats', label: 'Your Stats' },
-  { id: 'badges', label: 'Badges' },
-  { id: 'leaderboards', label: 'Leaderboards' },
-  { id: 'market-reality', label: 'Market Reality' },
-  { id: 'actions', label: "This week's effort & actions" },
-  { id: 'feeling', label: "How you've felt" },
-  { id: 'available-actions', label: 'All actions' },
+
+// "Your stats" (?view=all of Effort and results), split by purpose into four tabs. Only the open tab loads its data: the page used to
+// run every query for every section (all six leaderboards included) up front. Docs: docs/candidate-redesign.md, page contract 7.
+const TABS = [
+  { key: 'progress', label: 'Progress' },
+  { key: 'leaderboards', label: 'Leaderboards' },
+  { key: 'week', label: 'This week' },
+  { key: 'feel', label: 'How you feel' },
 ] as const
+type TabKey = (typeof TABS)[number]['key']
+type Profile = Awaited<ReturnType<typeof getDashboardProfile>>
 
 export default async function YourStatsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const profile = await getDashboardProfile()
-  const weekStartDate = getMondayOfWeek(new Date())
   const params = await searchParams
-  const bandParam = typeof params.band === 'string' ? params.band : null
-  const seniorityBand = bandParam && (VALID_BANDS as string[]).includes(bandParam) ? (bandParam as SeniorityBand) : undefined
-  const fnParam = typeof params.fn === 'string' ? params.fn : undefined
   // The redesign shows effort and results. The full page (badges, leaderboards, every action) stays at ?view=all.
   if (params.view !== 'all') return <StatsRedesign profile={profile} />
 
-  // Needed up front — computeWeeklyEngines takes it as a direct argument
-  // rather than looking it up itself (see dossier-competencies.ts).
-  const weekNumber = await getCandidateWeekNumber(profile.id, weekStartDate)
+  const tab: TabKey = TABS.find((t) => t.key === params.tab)?.key ?? 'progress'
+  const bandParam = typeof params.band === 'string' ? params.band : null
+  const seniorityBand = bandParam && (VALID_BANDS as string[]).includes(bandParam) ? (bandParam as SeniorityBand) : undefined
+  const fnParam = typeof params.fn === 'string' ? params.fn : undefined
+  const weekStartDate = getMondayOfWeek(new Date())
+  after(() => captureServerEvent(profile.id, 'stats_tab_viewed', { tab }))
 
-  const [
-    weeklyEngineData,
-    applicationsCount,
-    applicationsThisWeekCount,
-    referencesSentCount,
-    referencesCompletedCount,
-    currentSprint,
-    moodHistory,
-    weeklyBadges,
-    milestoneBadges,
-    leaderboardResults,
-    leaderboardPersonalBests,
-    leaderboardBadgeHistory,
-    ,
-    dossierCompleteness,
-    dossierStatus,
-    ladderTier,
-    moduleGates,
-    traitSignals,
-  ] = await Promise.all([
+  return (
+    <div className="space-y-6">
+      <SeeAllLink href="/dashboard/stats">Back to effort and results</SeeAllLink>
+      <PageHeader title="Your stats" />
+      <PageHeaderBoxes pageKey="stats" candidateId={profile.id} />
+      <nav aria-label="Your stats" className="flex flex-wrap gap-2">
+        {TABS.map((t) => (
+          <Link
+            key={t.key}
+            href={`/dashboard/stats?view=all&tab=${t.key}`}
+            aria-current={tab === t.key ? 'page' : undefined}
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium ${tab === t.key ? 'border-ink bg-ink text-white' : 'border-border text-muted-foreground hover:bg-muted'}`}
+          >
+            {t.label}
+          </Link>
+        ))}
+      </nav>
+      {tab === 'progress' && <ProgressTab profile={profile} weekStartDate={weekStartDate} />}
+      {tab === 'leaderboards' && <LeaderboardsTab profile={profile} seniorityBand={seniorityBand} fnParam={fnParam} />}
+      {tab === 'week' && <WeekTab profile={profile} weekStartDate={weekStartDate} />}
+      {tab === 'feel' && <FeelTab profile={profile} />}
+    </div>
+  )
+}
+
+// Streaks and counts, what your effort has built (the dossier and unlock ladder), and badges.
+async function ProgressTab({ profile, weekStartDate }: { profile: Profile; weekStartDate: Date }) {
+  const weekNumber = await getCandidateWeekNumber(profile.id, weekStartDate)
+  const [weeklyEngineData, applicationsCount, applicationsThisWeekCount, referencesSentCount, referencesCompletedCount, weeklyBadges, milestoneBadges, dossierCompleteness, dossierStatus, ladderTier, moduleGates, traitSignals] = await Promise.all([
     computeWeeklyEngines(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { gte: weekStartDate } } }),
     prisma.reference.count({ where: { candidateId: profile.id } }),
     prisma.reference.count({ where: { candidateId: profile.id, status: 'COMPLETED' } }),
-    getCurrentWeekSprintForRender(profile.id),
-    getMoodHistory(profile.id),
     computeWeeklyBadges(profile.id),
     computeMilestoneBadges(profile.id),
-    // PART FOUR §14/§15/§19 — all 6 boards, filtered by the seniority
-    // band/function this render is scoped to. `own` is populated for this
-    // candidate regardless of public opt-in (see computeBoard's doc
-    // comment) — §4.1/§15 promises confidential-mode/opted-out members a
-    // real private rank even though they never show up in `top10`.
-    computeAllBoards({ seniorityBand, function: fnParam }, profile.id),
-    // Write-through personal-best cache — real activity only, independent of
-    // public opt-in (§18/§20).
-    getAndUpdatePersonalBests(profile.id),
-    getLeaderboardBadgeHistory(profile.id),
-    // §17 — recompute this week's Top-3 placements and upsert any newly
-    // earned dated badges, same "fire on render, not a cron" pattern as
-    // computeWeeklyBadges above. Only meaningful (and only queried) for a
-    // publicly opted-in candidate — see computeAndRecordLeaderboardBadges's
-    // own doc comment on why a private/hypothetical rank never earns one.
-    // Doesn't depend on (and isn't depended on by) anything else in this
-    // batch — leaderboardBadgeHistory above is read from the same table
-    // this writes to, but a badge earned just now on this render was never
-    // going to show up in that already-in-flight read either way, whether
-    // this ran before, after, or alongside it.
-    profile.leaderboardOptIn ? computeAndRecordLeaderboardBadges(profile.id) : Promise.resolve(undefined),
-    // Unlock-ladder inputs: independent read-only lookups, so they run in the
-    // same batch instead of a second serial round trip.
     computeDossierCompleteness(profile.id),
     isDossierUnlocked(profile.id),
     getDossierLadderTier(profile.id),
     getModuleGateStatus(profile.id),
     loadTraitSignals(profile.id),
   ])
-
-  const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
-  const completedByEngine = new Map<EngineKey, CommittedAction[]>()
-  for (const action of committedActions) {
-    if (!action.completed || !action.actionType) continue
-    const engine = engineForActionType(action.actionType)
-    completedByEngine.set(engine, [...(completedByEngine.get(engine) ?? []), action])
-  }
-
-  const availableByEngine = new Map<EngineKey, { text: string; actionType?: string; points: number }[]>()
-  for (const task of CANONICAL_TASK_MENU) {
-    const engine = engineForActionType(task.actionType)
-    const points = estimateActionEffort(task).points
-    availableByEngine.set(engine, [
-      ...(availableByEngine.get(engine) ?? []),
-      { text: task.text, actionType: task.actionType, points },
-    ])
-  }
-
-  const completedActionsCount = committedActions.filter((a) => a.completed).length
-  const onTrackThisWeek = weeklyEngineData.weeklyPoints >= weeklyEngineData.weeklyPointsTarget
-
-  // Flag support resources only when things are trending down AND landing
-  // low right now — a dip from Fired up to Moving isn't the same signal as
-  // sliding into Stuck, and we don't want to nag over normal fluctuation.
-  const recentMoods = moodHistory.slice(-2)
-  const isMoodDecliningAndLow =
-    recentMoods.length === 2 &&
-    MOOD_SCORE[recentMoods[1].mood] < MOOD_SCORE[recentMoods[0].mood] &&
-    (recentMoods[1].mood === 'STUCK' || recentMoods[1].mood === 'GETTING_THERE')
-
   const earnedBadgesCount = weeklyBadges.filter((b) => b.earned).length + milestoneBadges.filter((b) => b.earned).length
   const totalBadgesCount = weeklyBadges.length + milestoneBadges.length
   const evidenceTraits = buildEvidenceTraits(traitSignals)
   const unlockLadder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus })
-
   return (
-    <div className="space-y-8">
-      <SeeAllLink href="/dashboard/stats">Back to effort and results</SeeAllLink>
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Your Stats</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Everything behind your dashboard summary, in one place: your streak and badges, your
-          Market Reality Assessment and what&apos;s driving it, this week&apos;s effort, how you&apos;ve
-          been feeling, and every action you&apos;ve done or could do.
-        </p>
-        <PageHeaderBoxes pageKey="stats" candidateId={profile.id} />
-        <ProgressUnlocks ladder={unlockLadder} requirements={dossierCompleteness.requirements} traits={evidenceTraits} />
-        <nav
-          aria-label="Jump to section"
-          className="flex flex-wrap gap-x-4 gap-y-1.5 rounded-lg border border-border bg-muted/30 px-4 py-3"
-        >
-          {SECTIONS.map((s) => (
-            <a key={s.id} href={`#${s.id}`} className="text-xs font-medium text-primary underline underline-offset-4">
-              {s.label}
-            </a>
-          ))}
-        </nav>
-      </div>
-
+    <div className="space-y-6">
+      <ProgressUnlocks ladder={unlockLadder} requirements={dossierCompleteness.requirements} traits={evidenceTraits} />
       <Card id="your-stats" className="scroll-mt-4">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">Your Stats</CardTitle>
@@ -206,7 +141,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
               value={`${weeklyEngineData.weeklyPoints} / ${weeklyEngineData.weeklyPointsTarget}`}
               label="points this week"
               accent={weeklyEngineData.weeklyPoints >= weeklyEngineData.weeklyPointsTarget ? 'success' : 'brand'}
-              href="#actions"
+              href="/dashboard/stats?view=all&tab=week#actions"
             />
           )}
           <StatTile icon={Award} value={`${earnedBadgesCount} / ${totalBadgesCount}`} label="badges earned" accent="success" href="#badges" />
@@ -242,6 +177,24 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
       </details>
       <MarkBadgesViewedOnMount earnedBadgesCount={earnedBadgesCount} />
 
+    </div>
+  )
+}
+
+// Where your effort stands among members like you. Only this tab computes the boards and records newly earned leaderboard badges.
+async function LeaderboardsTab({ profile, seniorityBand, fnParam }: { profile: Profile; seniorityBand: SeniorityBand | undefined; fnParam: string | undefined }) {
+  const [leaderboardResults, leaderboardPersonalBests, leaderboardBadgeHistory] = await Promise.all([
+    // All 6 boards, filtered by the seniority band/function this render is scoped to. `own` is populated for this candidate regardless of
+    // public opt-in, so confidential-mode and opted-out members still get a real private rank.
+    computeAllBoards({ seniorityBand, function: fnParam }, profile.id),
+    getAndUpdatePersonalBests(profile.id),
+    getLeaderboardBadgeHistory(profile.id),
+    // Recomputes this week's Top-3 placements and upserts newly earned dated badges: fire on render, not a cron. Only for a publicly
+    // opted-in candidate (a private rank never earns one).
+    profile.leaderboardOptIn ? computeAndRecordLeaderboardBadges(profile.id) : Promise.resolve(undefined),
+  ])
+  return (
+    <div className="space-y-6">
       <Card id="leaderboards" className="scroll-mt-4">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">Leaderboards</CardTitle>
@@ -297,17 +250,34 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         </CardContent>
       </Card>
 
-      <Card id="market-reality" className="scroll-mt-4">
-        <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
-          <p className="max-w-xl text-sm text-muted-foreground">
-            Your market report always shows where you stand today, with the facts behind it. Regenerate it after you make improvements.
-          </p>
-          <Link href="/dashboard/market-reality" className="text-sm font-medium text-primary underline underline-offset-4">
-            Open your market report
-          </Link>
-        </CardContent>
-      </Card>
+    </div>
+  )
+}
 
+// This week's effort and actions, every action you could do, and the link to your market report.
+async function WeekTab({ profile, weekStartDate }: { profile: Profile; weekStartDate: Date }) {
+  const weekNumber = await getCandidateWeekNumber(profile.id, weekStartDate)
+  const [weeklyEngineData, currentSprint] = await Promise.all([
+    computeWeeklyEngines(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
+    getCurrentWeekSprintForRender(profile.id),
+  ])
+  const committedActions = currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : []
+  const completedByEngine = new Map<EngineKey, CommittedAction[]>()
+  for (const action of committedActions) {
+    if (!action.completed || !action.actionType) continue
+    const engine = engineForActionType(action.actionType)
+    completedByEngine.set(engine, [...(completedByEngine.get(engine) ?? []), action])
+  }
+  const availableByEngine = new Map<EngineKey, { text: string; actionType?: string; points: number }[]>()
+  for (const task of CANONICAL_TASK_MENU) {
+    const engine = engineForActionType(task.actionType)
+    const points = estimateActionEffort(task).points
+    availableByEngine.set(engine, [...(availableByEngine.get(engine) ?? []), { text: task.text, actionType: task.actionType, points }])
+  }
+  const completedActionsCount = committedActions.filter((a) => a.completed).length
+  const onTrackThisWeek = weeklyEngineData.weeklyPoints >= weeklyEngineData.weeklyPointsTarget
+  return (
+    <div className="space-y-6">
       <Card id="actions" className="scroll-mt-4">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">This week&apos;s effort &amp; actions</CardTitle>
@@ -418,6 +388,74 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         </CardContent>
       </Card>
 
+      <details id="available-actions" className="scroll-mt-4 group rounded-lg border border-border">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+          <span>
+            See all actions you can do
+            <span className="ml-2 text-xs font-normal text-muted-foreground">
+              — every action across the app and where it lives, for browsing. Not required.
+            </span>
+          </span>
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+        </summary>
+        <div className="space-y-5 border-t border-border p-4">
+          {ENGINE_ORDER.map((engine) => {
+            const tasks = availableByEngine.get(engine)
+            if (!tasks || tasks.length === 0) return null
+            return (
+              <div key={engine} id={`available-${engine}`} className="scroll-mt-4">
+                <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+                  {WEEKLY_ENGINE_LABEL[engine]}
+                </h3>
+                <ul className="mt-2 space-y-1">
+                  {tasks.map((task, i) => {
+                    const href = task.actionType ? ACTION_TYPE_LINK[task.actionType]?.href : undefined
+                    return (
+                      <li key={i} className="flex items-center justify-between gap-3 text-sm">
+                        {href ? (
+                          <Link href={href} className="text-foreground hover:underline">
+                            {task.text}
+                          </Link>
+                        ) : (
+                          <span className="text-foreground">{task.text}</span>
+                        )}
+                        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{task.points} pts</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
+      </details>
+      <Card id="market-reality" className="scroll-mt-4">
+        <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
+          <p className="max-w-xl text-sm text-muted-foreground">
+            Your market report always shows where you stand today, with the facts behind it. Regenerate it after you make improvements.
+          </p>
+          <Link href="/dashboard/market-reality" className="text-sm font-medium text-primary underline underline-offset-4">
+            Open your market report
+          </Link>
+        </CardContent>
+      </Card>
+
+    </div>
+  )
+}
+
+// Your check-ins over time. Private: only you and your coach see this.
+async function FeelTab({ profile }: { profile: Profile }) {
+  const moodHistory = await getMoodHistory(profile.id)
+  // Flag support resources only when things are trending down AND landing low right now: a dip from Fired up to Moving isn't the same
+  // signal as sliding into Stuck, and we don't want to nag over normal fluctuation.
+  const recentMoods = moodHistory.slice(-2)
+  const isMoodDecliningAndLow =
+    recentMoods.length === 2 &&
+    MOOD_SCORE[recentMoods[1].mood] < MOOD_SCORE[recentMoods[0].mood] &&
+    (recentMoods[1].mood === 'STUCK' || recentMoods[1].mood === 'GETTING_THERE')
+  return (
+    <div className="space-y-6">
       <Card id="feeling" className="scroll-mt-4">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">How you&apos;ve been feeling</CardTitle>
@@ -460,47 +498,6 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         </CardContent>
       </Card>
 
-      <details id="available-actions" className="scroll-mt-4 group rounded-lg border border-border">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
-          <span>
-            See all actions you can do
-            <span className="ml-2 text-xs font-normal text-muted-foreground">
-              — every action across the app and where it lives, for browsing. Not required.
-            </span>
-          </span>
-          <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-        </summary>
-        <div className="space-y-5 border-t border-border p-4">
-          {ENGINE_ORDER.map((engine) => {
-            const tasks = availableByEngine.get(engine)
-            if (!tasks || tasks.length === 0) return null
-            return (
-              <div key={engine} id={`available-${engine}`} className="scroll-mt-4">
-                <h3 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                  {WEEKLY_ENGINE_LABEL[engine]}
-                </h3>
-                <ul className="mt-2 space-y-1">
-                  {tasks.map((task, i) => {
-                    const href = task.actionType ? ACTION_TYPE_LINK[task.actionType]?.href : undefined
-                    return (
-                      <li key={i} className="flex items-center justify-between gap-3 text-sm">
-                        {href ? (
-                          <Link href={href} className="text-foreground hover:underline">
-                            {task.text}
-                          </Link>
-                        ) : (
-                          <span className="text-foreground">{task.text}</span>
-                        )}
-                        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{task.points} pts</span>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            )
-          })}
-        </div>
-      </details>
     </div>
   )
 }
