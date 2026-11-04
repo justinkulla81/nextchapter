@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { withStatementTimeout } from '@/lib/db/statement-timeout'
+import { mustArriveWithin } from '@/lib/perf/timed'
 import { syncRegistrationCompletion } from '@/lib/onboarding/sync-registration'
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
@@ -49,14 +51,24 @@ export const getDashboardProfile = cache(async () => {
   // never silently get a stray CandidateProfile created for them.
   await redirectIfNotCandidate(user.id, user.email)
 
-  let profile = await prisma.candidateProfile.findUnique({
-    where: { userId: user.id },
-    include: {
-      coach: { select: { focus: true } },
-      linkedInConnection: { select: { disconnectedAt: true } },
-      _count: { select: { weeklySprints: true } },
-    },
-  })
+  // Every dashboard page waits on this read. It may take at most 10 s in the database and 12 s in all: past that the member
+  // sees the error screen (with "Tell us about this") instead of a spinner for two minutes (2026-11-04).
+  let profile = await mustArriveWithin(
+    'dashboard',
+    'profile',
+    user.id,
+    withStatementTimeout(
+      prisma.candidateProfile.findUnique({
+        where: { userId: user.id },
+        include: {
+          coach: { select: { focus: true } },
+          linkedInConnection: { select: { disconnectedAt: true } },
+          _count: { select: { weeklySprints: true } },
+        },
+      }),
+      10_000
+    )
+  )
 
   if (!profile || !profile.assessmentComplete) {
     redirect('/onboarding')

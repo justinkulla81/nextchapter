@@ -18,15 +18,15 @@
     },
     {
       "path": "/api/cron/board-light-rows",
-      "schedule": "40 9 * * *"
+      "schedule": "40 4 * * *"
     },
     {
       "path": "/api/cron/job-feed-direct",
-      "schedule": "15 12 * * *"
+      "schedule": "50 5 * * *"
     },
     {
       "path": "/api/cron/job-feed-jooble",
-      "schedule": "30 12 * * *"
+      "schedule": "10 6 * * *"
     },
     {
       "path": "/api/cron/refresh-youtube-content",
@@ -50,7 +50,7 @@
     },
     {
       "path": "/api/cron/board-figures",
-      "schedule": "50 3,15 * * *"
+      "schedule": "50 3,6 * * *"
     },
     {
       "path": "/api/cron/rankings",
