@@ -43,6 +43,8 @@ export interface ReportEdition {
   updatedAt?: string
   /** 1200×630 share image under /public. */
   ogImage: string
+  /** Organizations and researchers the edition cites, as keys of the social tag registry (src/lib/social/tags.ts). The announcement post tags those that have a verified handle. */
+  cites?: string[]
 }
 
 // Newest first is the job of helpers below; author order here is free.

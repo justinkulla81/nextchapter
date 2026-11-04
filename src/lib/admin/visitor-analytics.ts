@@ -68,7 +68,7 @@ export interface VisitorAnalytics {
 
 // Routes that belong to the lead-gen flow: the persona journeys, the resume and
 // search-firm submit forms, membership, sign-up, and the booking redirect.
-export const LEAD_GEN_PREFIXES = ['/start', '/submit-resume', '/submit-search', '/membership', '/auth/signup', '/book']
+export const LEAD_GEN_PREFIXES = ['/start', '/submit-resume', '/submit-search', '/alumni-plan', '/membership', '/auth/signup', '/book']
 
 const JOB_PAGE = /^\/jobs\/[^/?#]+/
 // A click is attributed to the page the same visitor last viewed, if that was

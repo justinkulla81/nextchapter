@@ -4,6 +4,7 @@ import { HomeTodayShort, HomeTodayShortQuiet } from './home-short'
 import { NetworkShort, NetworkTracker } from './network-short'
 import { LearnShort, LearnLibrary } from './learn-short'
 import { JobsShort, JobsMine } from './jobs-short'
+import { MarketIntelFull, MarketIntelLocked } from './market-intel'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
@@ -119,6 +120,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/find/scope-everything', place: 'Jobs', title: 'Find a job: search scope Everything, with the exploring question', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeEverythingQuestion },
   { path: 'jobs/find/jobs-short', place: 'Jobs', title: 'Find a job, shortened: search, scope, then the jobs (sample data)', replaces: 'the intro, the Job board / My jobs tab pair (merged into the parts row), the reconnect and Google prompts above the list (now Needs you), the pivot message, question and options (now Where we are looking), the market-size and market-line blocks (now one line), and the tune strip above the list (now one line below)', Component: JobsShort },
   { path: 'jobs/mine/jobs-short', place: 'Jobs', title: 'My jobs: one list with the next step, tracker folded (sample data)', replaces: 'the tracker stats, trends, efficiency and conversion cards shown open under the list', Component: JobsMine },
+  { path: 'jobs/market/intel', place: 'Jobs', title: 'Who is hiring and what it pays: one comp headline, company rows that say why (sample data)', replaces: '/dashboard/market-intelligence: the three icon cards, the 7-column table, the No data provider connected empty state, and the Insider network, Contact data and Board and advisory cards (now one line each in a fold)', Component: MarketIntelFull },
+  { path: 'jobs/market/intel-locked', place: 'Jobs', title: 'Who is hiring and what it pays: lower access level (sample data)', replaces: 'three dashed Locked feature boxes inside cards; now three one-line rows', Component: MarketIntelLocked },
   { path: 'jobs/find/scope-narrow', place: 'Jobs', title: 'Find a job: search scope Narrow (home only)', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeNarrow },
   { path: 'jobs/apply-helper', place: 'Jobs', title: 'Apply helper: install page', replaces: 'new (no install page today)', Component: ApplyHelperLive },
   { path: 'learn/funding-live', place: 'Learn', title: 'Funding you qualify for: the built page (sample data)', replaces: 'the code that ships, fed sample data', Component: FundingLive },

@@ -3624,6 +3624,10 @@ model JobPosting {
   coverLetterError       String?
   coverLetterGeneratedAt DateTime?
 
+  // Set while the fit analysis, interview prep or cover letter for this posting is running after the response (see
+  // lib/jobs/posting-background.ts). The page reads it as "working" only for a few minutes, so a run that died never sticks.
+  backgroundWorkAt DateTime?
+
   interviewCompleteAt DateTime? // candidate marks the interview as done — gates the thank-you note generator
   thankYouNote        String?   @db.Text
   thankYouError       String?

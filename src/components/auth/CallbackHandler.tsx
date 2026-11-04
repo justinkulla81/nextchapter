@@ -23,6 +23,7 @@ import { finishSectionBridge } from '@/app/auth/callback/actions'
 import { isEmployerSectionKey } from '@/lib/employer/sections'
 import { cookieOwnerForSection } from '@/lib/employer/section-links'
 import { readPendingSignupRoleCookie, clearPendingSignupRoleCookie } from '@/lib/auth/pending-signup-role'
+import { isVerifierMissing, signedInJustNow } from '@/lib/auth/callback-session'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
 
@@ -364,6 +365,13 @@ export function CallbackHandler() {
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         sessionError = error
+        // supabase-js already exchanged this code when the client started and used up the one-time verifier, so our own
+        // exchange reports "verifier not found" although the session exists (see lib/auth/callback-session.ts). Carry on when
+        // the session is the one this link just created; a link opened in another browser has none and stays an error.
+        if (error && isVerifierMissing(error)) {
+          const { data } = await supabase.auth.getSession()
+          if (signedInJustNow(data.session)) sessionError = null
+        }
       } else {
         const hashParams = new URLSearchParams(window.location.hash.slice(1))
         const accessToken = hashParams.get('access_token')

@@ -3,6 +3,8 @@ import { getPublicNotices } from '@/lib/warn/layoff-pages'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 import { CHANNELS, type ChannelId } from '@/lib/social/channels'
 import { latestReport } from '@/lib/reports'
+import { SITE_URL } from '@/lib/seo/facts'
+import { withTags } from '@/lib/social/tags'
 import { readRankingIndex } from '@/lib/rankings/store'
 import { dailyLayoffPost, rankingsPost, reportPost, weeklyLayoffPost, type SocialPost } from '@/lib/social/posts'
 
@@ -43,7 +45,13 @@ export async function runSocialPosts(now = new Date()): Promise<SocialRunResult>
       reportPost(report, now, utm('report'), c.id === 'x'),
       rankingsPost(rankings, now, utm('rankings')),
     ]
-    for (const post of posts) if (post) candidates.push({ post, channels: [c.id] })
+    for (const post of posts) {
+      if (!post) continue
+      // The report announcement tags the organizations the edition cites (verified handles only, added by code, never by the writer).
+      const link = `${SITE_URL}/reports/${report?.slug}?${utm('report')}`
+      const text = post.key.startsWith('report-') ? withTags(post.text, { cites: report?.cites }, c.id, link) : post.text
+      candidates.push({ post: { ...post, text }, channels: [c.id] })
+    }
   }
 
   const state = (await readJsonGz<PostedState>(STATE_BUCKET, STATE_PATH).catch(() => null)) ?? { v: 1 as const, sent: [] }

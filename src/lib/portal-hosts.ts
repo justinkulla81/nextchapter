@@ -55,7 +55,7 @@ export type HostConfig = {
 
 // The candidate app's own top-level paths (everything else on the main
 // site is public: marketing, reports, partner portals).
-export const CANDIDATE_PATHS = ['/dashboard', '/onboarding', '/membership', '/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/reset-password', '/auth/magic-link', '/in', '/claim-reference']
+export const CANDIDATE_PATHS = ['/dashboard', '/onboarding', '/alumni-plan', '/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/reset-password', '/auth/magic-link', '/in', '/claim-reference']
 
 export const HOSTS: Record<PortalHost, HostConfig> = {
   recruiter: { mounts: [{ at: '', path: '/recruiters', cookie: 'recruiter' }], home: '/recruiters/dashboard', mainExact: ['/recruiters'] },
