@@ -133,13 +133,13 @@ export default async function PressPage() {
                   <>
                     <p className="mt-1 text-3xl font-bold tabular-nums text-navy">{num(layoffs.layoffsYear.layoffs)} <span className="text-base font-normal text-muted-foreground">layoffs in {layoffs.layoffsYear.year} naming {num(layoffs.layoffsYear.workers)} workers</span></p>
                     <p className="mt-2 text-sm leading-relaxed text-ink">
-                      Counted once per employer, state and notice date, filed or reported with a U.S. state, as of {layoffs.asOf}. The download holds {num(layoffs.filings.count)} WARN filings naming {num(layoffs.filings.workers)} workers over the last 24 months (since {layoffs.filings.since}), one row per filing. {num(layoffs.notCounted.count)} announcements this year with no U.S. state ({num(layoffs.notCounted.workers)} workers) are not counted anywhere. The two counts use different units; <Link href="/layoffs" className={LINK}>How we count</Link> defines each. A state notice list is a floor, not a count of every layoff.
+                      Counted once per employer, state and notice date, filed or reported with a U.S. state, as of {layoffs.asOf}. The download holds {num(layoffs.filings.count)} layoff notices naming {num(layoffs.filings.workers)} workers over the last 24 months (since {layoffs.filings.since}), one row per filing. {num(layoffs.notCounted.count)} announcements this year with no U.S. state ({num(layoffs.notCounted.workers)} workers) are not counted anywhere. The two counts use different units; <Link href="/layoffs" className={LINK}>How we count</Link> defines each. A state notice list is a floor, not a count of every layoff.
                     </p>
                   </>
                 ) : (
                   <p className="mt-2 text-sm text-muted-foreground">The layoff counts are temporarily unavailable. The files below still work.</p>
                 )}
-                <Cite id="layoffs" text={citationText('NextChapter layoff tracker, WARN Act notices collected from state labor departments', layoffs ? `as of ${layoffs.asOf}` : 'current', `${SITE_URL}/layoffs`, '{DATE}', LAYOFF_DATA_LICENSE)} />
+                <Cite id="layoffs" text={citationText('NextChapter layoff tracker, layoff notices collected from state labor departments', layoffs ? `as of ${layoffs.asOf}` : 'current', `${SITE_URL}/layoffs`, '{DATE}', LAYOFF_DATA_LICENSE)} />
                 <p className="mt-3 text-sm">
                   <PressDownload href="/data/layoffs.csv" id="layoffs-csv">layoffs.csv</PressDownload>
                   {' · '}

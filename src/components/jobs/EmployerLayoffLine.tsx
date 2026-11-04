@@ -15,7 +15,7 @@ export async function EmployerLayoffLine({ jobId, company }: { jobId: string; co
   const workers = n.workers > 0 ? `, covering ${n.workers.toLocaleString('en-US')} workers` : ''
   return (
     <p className="mt-6 rounded-xl border border-border bg-white p-5 text-[15px] leading-relaxed">
-      <span className="font-medium">{company} has filed {filings} in the last twelve months{workers}</span>, most recently {dateFmt.format(latest)}. These are public WARN filings with state labor departments, and an open role can sit alongside them.{' '}
+      <span className="font-medium">{company} has filed {filings} in the last twelve months{workers}</span>, most recently {dateFmt.format(latest)}. These are public filings with state labor departments, and an open role can sit alongside them.{' '}
       <TrackedLink
         href={`/layoffs/company/${n.slug}`}
         event="job_page_employer_layoffs_clicked"

@@ -7,7 +7,7 @@ import { TWELVE_MONTHS_MS, TWENTY_FOUR_MONTHS_MS, getPublicNotices, type PublicN
 
 export const LAYOFF_DATA_LICENSE = 'CC BY 4.0'
 export const LAYOFF_DATA_LICENSE_URL = 'https://creativecommons.org/licenses/by/4.0/'
-export const LAYOFF_DATA_CITATION = 'NextChapter layoff tracker, WARN Act notices collected from state labor departments. launchyournextchapter.com/layoffs'
+export const LAYOFF_DATA_CITATION = 'NextChapter layoff tracker, layoff notices collected from state labor departments. launchyournextchapter.com/layoffs'
 
 export const LAYOFF_COLUMNS = ['state', 'employer', 'division', 'notice_date', 'effective_date', 'workers', 'layoff_type', 'place', 'source_url', 'nextchapter_url'] as const
 

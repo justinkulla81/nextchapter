@@ -43,7 +43,7 @@ export async function confirmNewsRecord(f: OfficialFiling): Promise<boolean> {
   try {
     const news = await findNewsRecord(f)
     if (!news) return false
-    const label = f.kind === 'sec' ? 'SEC 8-K filing' : 'state WARN filing'
+    const label = f.kind === 'sec' ? 'SEC 8-K filing' : 'state filing'
     await prisma.warnNotice.update({
       where: { id: news.id },
       data: {

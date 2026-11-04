@@ -11,7 +11,7 @@ export const LAYOFF_TERMS = [
     key: 'filing',
     term: 'Filing',
     definition:
-      'One row in a state labor department’s WARN list. A state may file one row per site, so one employer can have several filings on one day. /data counts filings.',
+      'One row in a state labor department’s list of layoff notices. A state may file one row per site, so one employer can have several filings on one day. /data counts filings.',
   },
   {
     key: 'layoff',
@@ -23,7 +23,7 @@ export const LAYOFF_TERMS = [
     key: 'reported',
     term: 'Reported layoff',
     definition:
-      'A layoff from the press, layoffs.fyi or an announcement that has a U.S. state and no state filing by the same employer within 45 days. It is labelled “reported” wherever it is listed and it is not a WARN notice.',
+      'A layoff from the press, layoffs.fyi or an announcement that has a U.S. state and no state filing by the same employer within 45 days. It is labelled “reported” wherever it is listed and it is not a state filing.',
   },
   {
     key: 'workers',
@@ -41,4 +41,4 @@ export const LAYOFF_TERMS = [
 
 /** The sentence a page puts under a headline number so a reader can tell which unit it is. */
 export const LAYOFF_UNIT_NOTE =
-  'Layoffs here means one employer, one state and one notice date, counted once, from state WARN filings plus reported layoffs with a U.S. state.'
+  'Layoffs here means one employer, one state and one notice date, counted once, from state layoff filings plus reported layoffs with a U.S. state.'
