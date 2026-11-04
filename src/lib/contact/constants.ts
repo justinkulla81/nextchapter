@@ -22,4 +22,6 @@ export const CAREERS_EMAIL = 'careers@launchyournextchapter.com'
 export const COMPANY_ADDRESS_LINES = ['2248 Broadway #1838', 'New York, NY 10024'] as const
 export const COMPANY_ADDRESS = COMPANY_ADDRESS_LINES.join(', ')
 export const COMPANY_LINKEDIN_URL = 'https://www.linkedin.com/company/launchyournextchapter/'
-export const FOUNDER_LINKEDIN_URL = 'https://www.linkedin.com/in/justinkulla/'
+export const COMPANY_BLUESKY_URL = 'https://bsky.app/profile/nextchapter81.bsky.social'
+export const COMPANY_X_URL = 'https://x.com/NextChapterJobs'
+export const FOUNDER_LINKEDIN_URL ='https://www.linkedin.com/in/justinkulla/'
