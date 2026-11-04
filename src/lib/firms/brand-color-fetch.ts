@@ -52,3 +52,23 @@ export async function findBrandColor(website: string): Promise<{ color: string |
   }
   return { color: null, source: 'none' }
 }
+
+/** The dominant saturated color of the logo a page shares (its og:image or twitter:image), or null. */
+export async function findLogoColor(page: string): Promise<string | null> {
+  const res = await get(page)
+  if (!res) return null
+  const html = (await res.text()).slice(0, 400_000)
+  const m = /<meta[^>]*(?:property|name)=["'](?:og|twitter):image["'][^>]*content=["']([^"']+)/i.exec(html) ?? /<meta[^>]*content=["']([^"']+)["'][^>]*(?:property|name)=["'](?:og|twitter):image["']/i.exec(html)
+  if (!m) return null
+  let src: string
+  try { src = new URL(m[1].replace(/&amp;/g, '&'), res.url).toString() } catch { return null }
+  const img = await get(src)
+  if (!img) return null
+  try {
+    const { data } = await sharp(Buffer.from(await img.arrayBuffer())).resize(64, 64, { fit: 'inside' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+    return usableAccent(dominantColor(data, 4))
+  } catch {
+    return null
+  }
+}
+

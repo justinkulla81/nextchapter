@@ -168,6 +168,8 @@ import { BoardSearchBar } from '@/components/dashboard/one-board/BoardSearchBar'
 import { PastJobsToggle } from '@/components/jobs/PastJobsToggle'
 import { PastJobsSection } from '@/components/jobs/PastJobsSection'
 import { BoardSearchTracker } from '@/components/dashboard/one-board/BoardSearchTracker'
+import { loadSkillsMarket } from '@/lib/skills/market-server'
+import { skillsForPosting } from '@/lib/skills/for-job'
 import { buildBoardSearch, warmSearchIndex, type BoardSearch } from '@/lib/jobs/board-search-index'
 import { boardHref, boardHrefWithout, BOARD_SEARCH_URL_PARAMS } from '@/lib/jobs/board-url'
 import {
@@ -667,6 +669,8 @@ async function JobRecommendationsSection({
     console.error('Skills fit unavailable:', error)
     return null
   })
+  // One shared snapshot of the skills market, so each job lists the skills it names that have a page (a failed read leaves them out).
+  const skillMarket = await loadSkillsMarket().catch(() => null)
   // Why each job is on the board (search-breadth.ts): "Your field", "Pivot: …", "Skills match: …".
   const reasons: Map<string, MatchReason> = board.breadth.classifier
     ? breadthReasonsFor(board.breadth.classifier, visibleBoardPostings, memberKeywords)
@@ -773,6 +777,7 @@ async function JobRecommendationsSection({
         contacts: contactsByPosting.get(posting.id),
         skillGap: gap,
         skillsFit: skillsFitFor?.(posting.title),
+        jobSkills: skillsForPosting(posting.skills ?? [], skillMarket),
         match,
         explainGapsEnabled: isExplainGapsEnabled(),
         insiders: insidersFor(posting),

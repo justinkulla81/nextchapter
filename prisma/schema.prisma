@@ -18000,6 +18000,8 @@ model RecruiterInterest {
   source      String
   status      RecruiterInterestStatus @default(HELD)
   sharedAt    DateTime?
+  /// When the member was emailed that the firm joined. Null: not yet (the firm has not joined, or the member is not eligible).
+  joinedNoticeAt DateTime?
   createdAt   DateTime                @default(now())
   updatedAt   DateTime                @updatedAt
 

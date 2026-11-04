@@ -13,6 +13,8 @@ import { getCulturePreferences, getCultureProfiles } from '@/lib/companies/cultu
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
 import { loadSkillsFit } from '@/lib/careers/skills-fit-server'
+import { loadSkillsMarket } from '@/lib/skills/market-server'
+import { skillsForPosting } from '@/lib/skills/for-job'
 import { loadJobContacts } from '@/lib/jobs/job-contacts'
 import { employerSignalsFor } from '@/lib/jobs/great-employers'
 import { loadJobBenefits, loadPayHighCompanies } from '@/lib/jobs/great-employers-data'
@@ -138,6 +140,7 @@ export async function loadJobPageView(profile: Profile, posting: ExclusiveJobPos
     contacts,
     skillGap: gap,
     skillsFit: skillsFitFor?.(posting.title) ?? undefined,
+    jobSkills: skillsForPosting(posting.skills ?? [], await soft(loadSkillsMarket(), 'skills market')),
     match,
     explainGapsEnabled: isExplainGapsEnabled(),
     insiders,

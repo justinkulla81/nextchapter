@@ -32,6 +32,8 @@ export interface FindEntry {
   detail: ReactNode
 }
 
+import type { JobSkill } from '@/lib/skills/for-job'
+
 export function boardEntry(a: {
   posting: ExclusiveJobPosting
   fitBucket: FitBucket
@@ -59,6 +61,8 @@ export function boardEntry(a: {
   aiMarket?: AiMarketData | null
   /** The member's last salary and home costs, loaded once for the page (salary-context.ts), never per row. */
   salary?: { ctx: SalaryContext; catalog: AreaCatalog } | null
+  /** The skills this posting names that have a skills page, loaded from one shared snapshot (skillsForPosting). */
+  jobSkills?: JobSkill[]
 }): FindEntry {
   const { posting } = a
   const exposure = a.exposureMap ? exposureFor(posting.socCode, a.exposureMap) : null
@@ -117,6 +121,7 @@ export function boardEntry(a: {
         exposure={exposure}
         ai={jobAiView(posting, a.aiMarket)}
         salary={a.salary ? jobSalaryView(posting, a.salary.ctx, a.salary.catalog) : null}
+        jobSkills={a.jobSkills}
       />
     ),
   }
