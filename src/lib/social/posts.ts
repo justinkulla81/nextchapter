@@ -274,11 +274,13 @@ const million = (people: number) => `${(people / 1_000_000).toFixed(1)} million`
  */
 export function jobsReportPost(d: JobsReportData, utm: string, shortLinks = true): SocialPost {
   const link = `${SITE_URL}/layoffs?${utm}`
-  const jobs = d.payrollChange === 0 ? 'employers added no net jobs' : `employers ${d.payrollChange > 0 ? 'added' : 'cut'} ${n(Math.abs(d.payrollChange))} jobs`
-  const rate = d.rate === d.prevRate ? `unchanged at ${d.rate.toFixed(1)}%` : `${d.rate.toFixed(1)}%, ${d.rate > d.prevRate ? 'up' : 'down'} from ${d.prevRate.toFixed(1)}% in ${monthName(d.prevMonth)}`
+  // Both figures, the way BLS states them, and no "up" or "down": a month-to-month move in a survey estimate is often within its margin
+  // of error, and BLS itself calls those "little changed".
+  const jobs = d.payrollChange === 0 ? 'payroll employment unchanged' : `payroll employment ${d.payrollChange > 0 ? '+' : '-'}${n(Math.abs(d.payrollChange))} jobs`
+  const rate = `${d.rate.toFixed(1)}% (${monthName(d.prevMonth)}: ${d.prevRate.toFixed(1)}%)`
   const text = `BLS jobs report for ${monthName(d.month)} ${d.month.year}: ${jobs}. The unemployment rate was ${rate}. All workers, all industries. Layoff notices set against this data: ${link}`
   if (text.length > textBudget(link, shortLinks)) {
-    return { key: `bls-jobs-${monthKey(d.month)}`, text: `BLS jobs report, ${monthName(d.month)}: ${jobs}. Unemployment rate ${rate}. All industries. ${link}` }
+    return { key: `bls-jobs-${monthKey(d.month)}`, text: `BLS jobs report, ${monthName(d.month)}: ${jobs}, unemployment rate ${rate}. All industries. ${link}` }
   }
   return { key: `bls-jobs-${monthKey(d.month)}`, text }
 }
@@ -287,11 +289,10 @@ export function jobsReportPost(d: JobsReportData, utm: string, shortLinks = true
 export function joltsPost(d: JoltsData, utm: string, shortLinks = true): SocialPost {
   const link = `${SITE_URL}/layoffs?${utm}`
   const now = million(d.layoffs)
-  const before = million(d.prevLayoffs)
-  const move = now === before ? `unchanged from ${monthName(d.prevMonth)}` : `${d.layoffs > d.prevLayoffs ? 'up' : 'down'} from ${before} in ${monthName(d.prevMonth)}`
-  const text = `BLS JOLTS for ${monthName(d.month)} ${d.month.year}: ${million(d.openings)} job openings and ${now} layoffs and discharges, ${move}. All industries. Compared with WARN layoff notices: ${link}`
+  const before = `${monthName(d.prevMonth)}: ${million(d.prevLayoffs)}`
+  const text = `BLS JOLTS for ${monthName(d.month)} ${d.month.year}: ${million(d.openings)} job openings and ${now} layoffs and discharges (${before}). All industries. Compared with WARN layoff notices: ${link}`
   if (text.length > textBudget(link, shortLinks)) {
-    return { key: `bls-jolts-${monthKey(d.month)}`, text: `BLS JOLTS, ${monthName(d.month)}: ${million(d.openings)} openings, ${now} layoffs (${move}). All industries. ${link}` }
+    return { key: `bls-jolts-${monthKey(d.month)}`, text: `BLS JOLTS, ${monthName(d.month)}: ${million(d.openings)} openings, ${now} layoffs (${before}). All industries. ${link}` }
   }
   return { key: `bls-jolts-${monthKey(d.month)}`, text }
 }
