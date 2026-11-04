@@ -6,7 +6,8 @@ import { ListRow, RowList } from '@/components/candidate/ListRow'
 import { InviteSupporterForm, RemoveSupporterButton } from '@/app/dashboard/supporters/SupporterForms'
 import { InvitePartnerForm, PartnerCard } from '@/app/dashboard/supporters/PartnerForms'
 import { AcceptInviteCard, AddPlaceForm, RemovePlaceButton } from '@/app/dashboard/move-plan/MovePlanForms'
-import { InviteShell, AddPlaceShell } from './people-move-client'
+import { InviteShell } from '@/app/dashboard/supporters/InviteShell'
+import { AddPlaceShell } from '@/app/dashboard/move-plan/AddPlaceShell'
 
 // Your people and Your move plan, shortened to the page contract (docs/candidate-redesign.md). Real forms and cards, sample data.
 // Your people: one "Invite someone" with a supporter / partner choice instead of two open forms; the weekly-note promise said once, with the
@@ -34,7 +35,7 @@ export function PeopleNew() {
       <PageHeader title="Your people" />
       <NetworkParts current="close" />
       <AcceptInviteCard linkId="demo" ownerName="Sam" />
-      <InviteShell startOpen canPartner supporterForm={<InviteSupporterForm />} partnerForm={<InvitePartnerForm />} />
+      <InviteShell startOpen canPartner supporters={0} supporterForm={<InviteSupporterForm />} partnerForm={<InvitePartnerForm />} />
       <p className="text-sm text-muted-foreground">A coach is part of your close circle too. <a href="#" className={more}>See coaching</a></p>
     </PreviewShell>
   )
@@ -45,7 +46,7 @@ export function PeopleFull() {
     <PreviewShell place="network" entry="circles" part="close">
       <PageHeader title="Your people" />
       <NetworkParts current="close" />
-      <InviteShell startOpen={false} canPartner={false} supporterForm={<InviteSupporterForm />} partnerForm={<InvitePartnerForm />} />
+      <InviteShell startOpen={false} canPartner={false} supporters={2} supporterForm={<InviteSupporterForm />} partnerForm={<InvitePartnerForm />} />
       <Cheers />
       <Section id="partner-title" title="Your partner">
         <PartnerCard role="owner" linkId="demo" name="Jordan" joined sharePlaces shareJobsPay={false} />
@@ -93,8 +94,9 @@ function PlaceRow({ p }: { p: (typeof PLACES)[number] }) {
 export function MoveWithPlaces() {
   return (
     <PreviewShell place="network" entry="circles" part="close">
-      <PageHeader title="Your move plan" intro="3 places, side by side. Costs are compared with Boston." action={<AddPlaceShell startOpen={false} form={<AddPlaceForm options={OPTIONS} />} />} />
+      <PageHeader title="Your move plan" intro="3 places, side by side. Costs are compared with Boston." />
       <NetworkParts current="close" />
+      <AddPlaceShell startOpen={false} places={3} form={<AddPlaceForm options={OPTIONS} />} />
       <section aria-label="Places you are comparing" className="space-y-2">
         <ul className="divide-y divide-border rounded-2xl border border-border bg-white">{PLACES.map((p) => <PlaceRow key={p.n} p={p} />)}</ul>
         <p className="text-xs text-muted-foreground">Costs: regional price parities, comparing each area with Boston. Pay is the BLS median for the occupation in that metro area, before taxes.</p>
@@ -109,7 +111,7 @@ export function MoveEmpty() {
     <PreviewShell place="network" entry="circles" part="close">
       <PageHeader title="Your move plan" intro="Add the places you are thinking about. We show what it costs to live there and what your pay would buy." />
       <NetworkParts current="close" />
-      <AddPlaceShell startOpen form={<AddPlaceForm options={OPTIONS} />} />
+      <AddPlaceShell startOpen places={0} form={<AddPlaceForm options={OPTIONS} />} />
     </PreviewShell>
   )
 }
