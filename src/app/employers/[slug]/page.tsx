@@ -19,13 +19,13 @@ import { ClaimHint } from '@/components/seo/ClaimHint'
 import { hiringPlaces, listOf } from '@/lib/seo/employer-locations'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
 import { searchSchools } from '@/lib/layoffs/landing-actions'
 import { submitJourneyLead } from '@/lib/leads/actions'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
-import { getEmployerBySlug, type EmployerPage } from '@/lib/seo/employer-pages'
+import { getEmployerBySlug, resolveEmployerSlug, type EmployerPage } from '@/lib/seo/employer-pages'
 import { SITE_URL } from '@/lib/seo/facts'
 import { getEmployerInsights } from '@/lib/seo/employer-insights'
 import { insightText } from '@/lib/seo/employer-insight-text'
@@ -98,7 +98,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function EmployerPublicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const e = await getEmployerBySlug(slug)
-  if (!e) notFound()
+  if (!e) {
+    // A shortened or older spelling goes to the employer it stands for, otherwise to the employer list.
+    const to = await resolveEmployerSlug(slug).catch(() => null)
+    redirect(to && to !== slug ? `/employers/${to}` : '/employers')
+  }
   const p = e.profile
   const path = `/employers/${slug}`
   const ins = await getEmployerInsights(e.id, e.industry, { postedPayShare: e.profile?.postedPayShare ?? null, remoteShare: e.profile?.remoteShare ?? null }).catch(() => null)

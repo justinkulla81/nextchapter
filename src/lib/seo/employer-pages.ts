@@ -206,3 +206,17 @@ export async function employerPageCompanyIds(): Promise<Set<string>> {
 export async function employerPageCanonicalRows(): Promise<{ id: string; canonical: string }[]> {
   return prisma.$queryRawUnsafe<{ id: string; canonical: string }[]>(`SELECT c.id, c."canonicalNameNormalized" AS canonical ${ELIGIBLE}`)
 }
+
+/**
+ * The page a slug that matches no employer should go to: the one employer whose name starts with these words
+ * ("tawa-inc-dba" for "Tawa, Inc. dba 99 Ranch Market"), or null when none or several do, so a guess never lands on the wrong one.
+ */
+export async function resolveEmployerSlug(slug: string): Promise<string | null> {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length < 3) return null
+  const rows = await prisma.company.findMany({
+    where: { canonicalNameNormalized: { startsWith: `${canonicalFromEmployerSlug(slug)} ` } },
+    select: { id: true, canonicalNameNormalized: true },
+    take: 2,
+  })
+  return rows.length === 1 ? employerSlug(rows[0].canonicalNameNormalized, rows[0].id) : null
+}
