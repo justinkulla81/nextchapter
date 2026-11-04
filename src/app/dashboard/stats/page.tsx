@@ -129,7 +129,7 @@ async function ProgressTab({ profile, weekStartDate }: { profile: Profile; weekS
       <ProgressUnlocks ladder={unlockLadder} requirements={dossierCompleteness.requirements} traits={evidenceTraits} />
       <Card id="your-stats" className="scroll-mt-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Your Stats</CardTitle>
+          <CardTitle className="font-display text-xl font-semibold text-ink">Your numbers</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {engagementFor(profile).streaks && <StatTile icon={Flame} value={`${profile.currentStreak}`} label="day streak" accent="warning" />}
@@ -197,7 +197,7 @@ async function LeaderboardsTab({ profile, seniorityBand, fnParam }: { profile: P
     <div className="space-y-6">
       <Card id="leaderboards" className="scroll-mt-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Leaderboards</CardTitle>
+          <CardTitle className="font-display text-xl font-semibold text-ink">Leaderboards</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
@@ -280,7 +280,7 @@ async function WeekTab({ profile, weekStartDate }: { profile: Profile; weekStart
     <div className="space-y-6">
       <Card id="actions" className="scroll-mt-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">This week&apos;s effort &amp; actions</CardTitle>
+          <CardTitle className="font-display text-xl font-semibold text-ink">This week&apos;s effort &amp; actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
           {committedActions.length === 0 ? (
@@ -458,7 +458,7 @@ async function FeelTab({ profile }: { profile: Profile }) {
     <div className="space-y-6">
       <Card id="feeling" className="scroll-mt-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">How you&apos;ve been feeling</CardTitle>
+          <CardTitle className="font-display text-xl font-semibold text-ink">How you&apos;ve been feeling</CardTitle>
         </CardHeader>
         <CardContent>
           <MotivationChart baseline={difficultyLevelToIntensityScore(profile.jobSearchDifficultyLevel)} history={moodHistory} />

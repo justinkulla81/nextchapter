@@ -39,6 +39,7 @@ import { parseCultureFit } from '@/lib/culture/culture-fit'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
 import { MoreDetails } from '@/components/dashboard/MoreDetails'
+import { NeedsYou } from '@/components/candidate/NeedsYou'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
 import { getCulturePreferences } from '@/lib/companies/culture-profile'
 import { CulturePreferencesForm } from '@/components/companies/CultureSurvey'
@@ -593,17 +594,8 @@ export default async function SearchStrategyPage() {
         </Suspense>
       )}
 
-      <MoreDetails summary="More about your search">
-      {hasAnsweredOnce && showApplicationMatch && (
-        <Suspense fallback={null}>
-          <StrategyUnlockCard candidateId={profile.id} />
-        </Suspense>
-      )}
-      {/* Market-based pivot suggestions (src/lib/pivots): prominent when pivoting or when the member's own work is contracting. */}
-      <Suspense fallback={null}>
-        <PivotPathsTeaser profile={profile} />
-      </Suspense>
-
+      {/* One-click confirms that sharpen the matches wait in one strip instead of sitting in the drawer. */}
+      <NeedsYou page="search_strategy">
       {/* Their industry text read as several industries (or none we know): one-click confirm (industry-reading.ts). */}
       {(() => {
         const text = [profile.industryContext, profile.secondaryIndustryContext].filter(Boolean).join(' / ')
@@ -617,6 +609,14 @@ export default async function SearchStrategyPage() {
         <AddCityPrompt surface="search_strategy" states={[...US_STATE_CODES].sort()} fallback="remote jobs and places you said you'd move to" />
       )}
 
+      </NeedsYou>
+
+      <MoreDetails summary="Your market">
+      {/* Market-based pivot suggestions (src/lib/pivots): prominent when pivoting or when the member's own work is contracting. */}
+      <Suspense fallback={null}>
+        <PivotPathsTeaser profile={profile} />
+      </Suspense>
+
       {/* How big the member's target market is, its trend, and next steps (market-size.ts). */}
       <Suspense fallback={null}>
         <MarketSizeSection member={profile} surface="search_strategy" />
@@ -628,23 +628,26 @@ export default async function SearchStrategyPage() {
         </Suspense>
       )}
 
+      </MoreDetails>
+
       {searchingJourney && (
-      <SCard id="culture-preferences" className="scroll-mt-4">
-        <SHeader>
-          <STitle className="text-sm font-medium text-muted-foreground">Culture you want</STitle>
-        </SHeader>
-        <SContent>
+      <MoreDetails summary="Culture you want">
+        <div id="culture-preferences" className="scroll-mt-4">
           <CulturePreferencesForm initial={culturePreferences} />
-        </SContent>
-      </SCard>
+        </div>
+      </MoreDetails>
       )}
 
+      {hasAnsweredOnce && showApplicationMatch && (
+      <MoreDetails summary="What this unlocks">
+        <Suspense fallback={null}>
+          <StrategyUnlockCard candidateId={profile.id} />
+        </Suspense>
+      </MoreDetails>
+      )}
       {searchingJourney && stage === 'QUIETLY_LOOKING' && (
-        <SCard>
-          <SHeader>
-            <STitle className="text-sm font-medium text-muted-foreground">While You&apos;re Still Employed</STitle>
-          </SHeader>
-          <SContent className="space-y-3 text-sm">
+        <MoreDetails summary="While you’re still employed">
+          <div className="space-y-3 text-sm">
             <div>
               <p className="font-medium text-foreground">Being a Good Leaver</p>
               <p className="mt-1 text-muted-foreground">
@@ -668,10 +671,9 @@ export default async function SearchStrategyPage() {
             >
               Read the full Before You Go guide →
             </Link>
-          </SContent>
-        </SCard>
+          </div>
+        </MoreDetails>
       )}
-      </MoreDetails>
     </div>
   )
 }

@@ -8,7 +8,7 @@ import { posthog } from '@/lib/posthog/client'
  * employer interest, portfolio requests, reconnect, cheers and the like each render themselves only when they apply, so
  * the strip counts what actually arrived and hides itself when nothing did. Collapsed by default; the count says how many.
  */
-export function NeedsYou({ children }: { children: ReactNode }) {
+export function NeedsYou({ page, children }: { page: string; children: ReactNode }) {
   const list = useRef<HTMLDivElement>(null)
   const [count, setCount] = useState(0)
   const [open, setOpen] = useState(false)
@@ -30,7 +30,7 @@ export function NeedsYou({ children }: { children: ReactNode }) {
         aria-expanded={open}
         aria-controls="needs-you-list"
         onClick={() => {
-          posthog.capture('home_needs_you_toggled', { open: !open, count })
+          posthog.capture('needs_you_toggled', { page, open: !open, count })
           setOpen(!open)
         }}
         className="flex min-h-12 w-full items-center justify-between gap-3 px-5 py-3 text-left text-base font-semibold text-ink"

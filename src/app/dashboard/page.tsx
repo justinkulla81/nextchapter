@@ -498,7 +498,7 @@ export default async function DashboardPage() {
         </>
       )}
 
-      <NeedsYou>
+      <NeedsYou page="home">
         <OutplacementProgramCard candidateId={profile.id} />
         <StaffProgramCard candidateId={profile.id} />
         {engagementFor(profile).dailyApplicationPrompts && (
