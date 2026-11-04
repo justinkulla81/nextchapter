@@ -47,7 +47,7 @@ export function maxGapMinutes(expr: string): number {
  */
 export const CRON_BUNDLES: Readonly<Record<string, readonly string[]>> = {
   'bundle-membership': ['demo-expiry', 'membership-lapse-check', 'membership-dossier-refresh', 'membership-market-check', 'membership-network-nudge', 'activity-streaks', 'benefits-network-expire-listings'],
-  'bundle-daily-1300': ['week1-kickoff', 'candidate-email-dispatch', 'talent-intake', 'social-posts'],
+  'bundle-daily-1300': ['week1-kickoff', 'candidate-email-dispatch', 'talent-intake'],
   'bundle-daily-1030': ['meeting-prep-send', 'mailing-autoassign', 'content-drafts', 'ats-job-board-feed'],
   'bundle-daily-1200': ['help-feedback-digest', 'research-inbox-sweep', 'job-search-daily', 'saved-job-closures', 'firm-joined-notices'],
   'bundle-search-pings': ['bing-url-submit', 'indexnow-seo-pages', 'google-indexing-jobs', 'indexnow-org-pages', 'indexnow-jobs'],

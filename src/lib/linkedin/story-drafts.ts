@@ -12,12 +12,12 @@ export type EnqueueResult = 'created' | 'exists' | 'skipped'
 
 /**
  * Makes a LinkedIn draft for a non-layoff story the social stream just sent. Layoffs have their own pipeline (the sweep in
- * layoff-post-sweep.ts), so they are not drafted here. One draft per fact (the fact's key is unique); written by Claude in LinkedIn's
+ * layoff-post-sweep.ts) and so do the roundups, so neither is drafted here. One draft per fact (the fact's key is unique); written by Claude in LinkedIn's
  * voice with the same number check; staged to the next weekday slot; and held for a click, never posted by itself.
  * Nothing is drafted while six are already waiting, so the queue never fills with stale posts. Never throws.
  */
 export async function enqueueLinkedInStory(fact: Fact, now = new Date()): Promise<EnqueueResult> {
-  if (fact.topic === 'layoff') return 'skipped'
+  if (fact.topic === 'layoff' || fact.topic === 'roundup') return 'skipped'
   try {
     if (await prisma.linkedInStoryDraft.findUnique({ where: { factKey: fact.key }, select: { id: true } })) return 'exists'
     const waiting = await prisma.linkedInStoryDraft.findMany({ where: { status: { in: ['DRAFT', 'APPROVED'] } }, select: { scheduledFor: true } })

@@ -12,6 +12,7 @@ import { weekKey } from '@/lib/social/posts'
 import { withTags } from '@/lib/social/tags'
 import { wcIndexSummary } from '@/lib/reports-wc-index'
 import { enqueueLinkedInStory } from '@/lib/linkedin/story-drafts'
+import { dueRoundup } from '@/lib/social/roundups'
 import { LINK_TOKEN } from '@/lib/social/validate'
 import { writePost } from '@/lib/social/writer'
 
@@ -74,6 +75,8 @@ async function storiesFor(topic: Topic, now: Date): Promise<Fact[]> {
 
 interface Shared {
   dryRun: boolean
+  /** What the old daily roundup job already posted (`<key>:<channel>`), so moving it into the stream never repeats a post. */
+  legacySent: Set<string>
   ledger: Ledger
   getQueue: () => Promise<LayoffItem[]>
 }
@@ -100,7 +103,10 @@ async function runChannel(c: Channel, index: number, now: Date, shared: Shared):
     return (c.id === 'x' ? [...queue].sort((a, b) => (b.workers ?? 0) - (a.workers ?? 0)) : queue)[0] ?? null
   }
   const perDay = baselineStories(c.id)
+  // A roundup (new notices today, last week, a new report, the month's rankings) goes out in the stream's turn for a story, when due.
+  const roundup = await dueRoundup(now, (k) => !!state.sent[k] || shared.legacySent.has(`${k}:${c.id}`)).catch(() => null)
   const loadStory = async (): Promise<Fact | null> => {
+    if (roundup) return roundup
     if (state.storiesToday >= perDay) return null
     // The post after a layoff is the help for the people in that state, when there is one: the reader who just saw the layoff gets the next step.
     if (state.lastKind === 'layoff' && state.lastLayoffState) {
@@ -125,7 +131,7 @@ async function runChannel(c: Channel, index: number, now: Date, shared: Shared):
   else if (state.lastKind === 'layoff') kind = 'story'
   else {
     layoff = await loadLayoff()
-    kind = nextKind({ lastKind: state.lastKind, layoffWaiting: !!layoff, storyIsDue: storyDue(now, state.storiesToday, perDay) })
+    kind = nextKind({ lastKind: state.lastKind, layoffWaiting: !!layoff, storyIsDue: !!roundup || storyDue(now, state.storiesToday, perDay) })
   }
   if (!kind) return { ...out, skipped: 'nothing-due' }
   if (kind === 'story') {
@@ -136,7 +142,7 @@ async function runChannel(c: Channel, index: number, now: Date, shared: Shared):
   const fact = kind === 'story' ? story : layoff?.fact ?? null
   if (!kind || !fact) return { ...out, skipped: 'nothing-to-post' }
 
-  const draft = dryRun ? ({ by: 'template', body: null, reason: 'preview' } as const) : await writePost(fact, state.recent, c.id)
+  const draft = dryRun || fact.plain ? ({ by: 'template', body: null, reason: dryRun ? 'preview' : 'plain' } as const) : await writePost(fact, state.recent, c.id)
   const link = factLink(fact, c.id)
   const text = withTags(draft.body ? draft.body.replace(LINK_TOKEN, link) : fact.fallback(link, c.id === 'x'), fact, c.id, link)
   const base = { ...out, kind, factKey: fact.key, topic: fact.topic, writer: dryRun ? ('preview' as const) : draft.by, text }
@@ -186,7 +192,8 @@ export async function runSocialStream(now = new Date()): Promise<StreamResult> {
   if (dryRun && now.getUTCMinutes() >= 5) return { dryRun, skipped: 'preview-hourly', channels: [] }
 
   let queue: Promise<LayoffItem[]> | null = null
-  const shared: Shared = { dryRun, ledger: await readLedger(), getQueue: () => (queue ??= loadLayoffQueue(now)) }
+  const legacy = await readJsonGz<{ sent?: string[] }>(STATE_BUCKET, 'social/posted.json.gz').catch(() => null)
+  const shared: Shared = { dryRun, legacySent: new Set(legacy?.sent ?? []), ledger: await readLedger(), getQueue: () => (queue ??= loadLayoffQueue(now)) }
   const channels: ChannelResult[] = []
   // One after the other: they share the layoff ledger, and one channel failing must not stop another.
   for (const c of ready) {
