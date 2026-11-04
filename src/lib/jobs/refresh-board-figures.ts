@@ -60,9 +60,10 @@ const STEPS: readonly (readonly [string, () => Promise<void>])[] = [
   ['org-job-stats', refreshOrgJobStats],
 ]
 
-export async function refreshBoardFigures(): Promise<{ done: Record<string, number>; failed: string[] }> {
+export async function refreshBoardFigures(): Promise<{ done: Record<string, number>; failed: string[]; errors: Record<string, string> }> {
   const done: Record<string, number> = {}
   const failed: string[] = []
+  const errors: Record<string, string> = {}
   for (const [name, run] of STEPS) {
     const started = Date.now()
     try {
@@ -71,7 +72,8 @@ export async function refreshBoardFigures(): Promise<{ done: Record<string, numb
     } catch (error) {
       console.error('board figure failed:', name, error)
       failed.push(name)
+      errors[name] = (error instanceof Error ? error.message : String(error)).slice(0, 200)
     }
   }
-  return { done, failed }
+  return { done, failed, errors }
 }
