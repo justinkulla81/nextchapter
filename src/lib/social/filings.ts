@@ -6,6 +6,7 @@ import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage
 import type { ChannelId } from '@/lib/social/channels'
 import type { Fact } from '@/lib/social/facts'
 import { announcementBasis, announcementPostText, filingPostText, isClosure, splitFilingEmployer } from '@/lib/social/posts'
+import { layoffCites } from '@/lib/social/tags'
 
 export const LEDGER_PATH = 'social/filings-posted.json.gz'
 const DAY_MS = 86_400_000
@@ -45,7 +46,7 @@ const n = (v: number) => v.toLocaleString('en-US')
  * posted again from its filing, and a shutdown is not "layoffs". The caller drops what each channel already has.
  */
 export async function loadLayoffQueue(now: Date): Promise<LayoffItem[]> {
-  const select = { id: true, companyId: true, employer: true, employees: true, state: true, noticeDate: true, companyMatchStatus: true, layoffType: true, company: { select: { name: true } } } as const
+  const select = { id: true, companyId: true, employer: true, employees: true, state: true, noticeDate: true, companyMatchStatus: true, layoffType: true, sourceUrl: true, company: { select: { name: true } } } as const
   const since = new Date(now.getTime() - FILING_MAX_AGE_DAYS * DAY_MS)
   const [filings, announced] = await Promise.all([
     prisma.warnNotice.findMany({
@@ -101,6 +102,7 @@ export async function loadLayoffQueue(now: Date): Promise<LayoffItem[]> {
         lines,
         path,
         campaign: row.kind === 'announcement' ? 'layoff-announcement' : 'warn-filing',
+        cites: layoffCites({ state: row.state, sourceUrl: row.sourceUrl, kind: row.kind }),
         fallback: (link, short) => {
           const utm = link.split('?')[1] ?? ''
           return row.kind === 'announcement' && sourcing.basis !== 'unconfirmed'
