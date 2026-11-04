@@ -45,7 +45,7 @@ export default async function MarketingPlanPage({
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Marketing Plan</h1>
+          <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">My Marketing Plan</h1>
           <p className="mt-1 text-muted-foreground">
             You&apos;re the product right now — this is where you plan how you get in front of
             people. Post ideas grounded in your actual background — pick one, get a draft, edit it

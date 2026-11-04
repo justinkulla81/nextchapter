@@ -6,6 +6,7 @@ import { LearnShort, LearnLibrary } from './learn-short'
 import { JobsShort, JobsMine } from './jobs-short'
 import { MarketIntelFull, MarketIntelLocked } from './market-intel'
 import { CommunityShort } from './community-short'
+import { PremiumShort, PersonalShort } from './leftovers-short'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
@@ -267,6 +268,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/know-empty-live', place: 'Network', title: 'People you know: no contacts yet (sample data)', replaces: 'the code that ships, fed sample data', Component: ContactsEmptyLive },
   { path: 'network/circles/know-filters-live', place: 'Network', title: 'People you know: filters on (sample data)', replaces: 'the code that ships, fed sample data', Component: ContactsFiltersLive },
   { path: 'network/circles/know-detail-live', place: 'Network', title: 'A contact: write to them (sample data)', replaces: 'the code that ships, fed sample data', Component: ContactDetailLive },
+  { path: 'account/membership/premium-short', place: 'Account', title: 'Premium waitlist: one headline, the form, three short lists (sample data)', replaces: '/dashboard/premium: the three icon cards, the separate waitlist card below them and the reassurance line (now in the header)', Component: PremiumShort },
+  { path: 'account/profile/personal-short', place: 'Account', title: 'My personal information: three groups instead of ten cards (sample data)', replaces: '/dashboard/profile/personal: ten stacked cards; now About you, Your background and Pay, open only while something in them is unconfirmed', Component: PersonalShort },
   { path: 'network/circles/industry-short', place: 'Network', title: 'Industry and function, shortened: feed first, one filter, composer on a button (sample data)', replaces: 'the always-open composer above the feed, the page intro, the banners above the feed (now Needs you), the group strip and chips at the bottom (now one dropdown above the feed), and the Groups to join, Send encouragement and leaderboard blocks (proposed to move to Alumni and groups, the close circle and Effort and results)', Component: CommunityShort },
   { path: 'network/circles/industry-live', place: 'Network', title: 'Industry and function: the built feed (sample data)', replaces: 'the code that ships, fed sample data', Component: CommunityLive },
   { path: 'network/messages-live', place: 'Network', title: 'Messages: the built threads (sample data)', replaces: 'the code that ships, fed sample data', Component: MessagesLive },

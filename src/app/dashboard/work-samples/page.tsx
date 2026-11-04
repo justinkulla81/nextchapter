@@ -44,7 +44,7 @@ export default async function WorkSamplesPage() {
     return (
       <div className="space-y-8">
         <div className="space-y-3">
-          <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
+          <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Work Samples</h1>
         </div>
         <WorkSampleTypeGateForm alreadyAwarded={!!profile.workSampleTypeBonusAt} />
         <Suspense fallback={null}>
@@ -60,7 +60,7 @@ export default async function WorkSamplesPage() {
     return (
       <div className="space-y-4">
         <div className="space-y-3">
-          <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
+          <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Work Samples</h1>
         </div>
         <WorkSampleTypeGateForm alreadyAwarded={!!profile.workSampleTypeBonusAt} />
         <Suspense fallback={null}>
@@ -82,7 +82,7 @@ export default async function WorkSamplesPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
+        <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Work Samples</h1>
         <p className="text-sm text-muted-foreground">
           AI work samples with a measured result: {aiWorkflowCount} of 3. Employers look for hands-on AI use in your own function, shown with a
           measured result — an automation with a before and after, an AI policy or use-case portfolio, or a RAG or agent project with an eval.

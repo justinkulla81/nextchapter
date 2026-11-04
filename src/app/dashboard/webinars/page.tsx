@@ -45,7 +45,7 @@ export default async function WebinarsPage() {
     )
   return (
     <div className="space-y-8">
-      <PageHeader title="Videos and webinars" intro="Short, practical, and picked for where you are in your search." />
+      <PageHeader title="Videos and webinars" />
 
       {nextWebinar ? (
         <WebinarFeature webinar={nextWebinar} isRegistered={registeredIds.has(nextWebinar.id)} />
