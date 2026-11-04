@@ -23,3 +23,19 @@ describe('title abbreviations', () => {
     expect(titlePlaceJobsSeo(titleLabel('Chief Operating Officer', 'chief-operating-officer'), 'Texas', 12, null).title).toContain('(COO)')
   })
 })
+
+import { employerSeo, openRolesLabel } from '@/lib/seo/templates'
+import { employerTitleB } from '@/lib/seo/title-tests'
+
+describe('open roles wording', () => {
+  it('uses the singular for one role', () => {
+    expect(openRolesLabel(1)).toBe('1 Open Role')
+    expect(openRolesLabel(12)).toBe('12 Open Roles')
+    expect(openRolesLabel(1234, true)).toBe('1,234 open roles')
+  })
+  it('does not write "1 Open Roles" in either employer title', () => {
+    expect(employerSeo('Credenza Health', 1).title).toBe('Credenza Health Careers, Jobs and Pay: 1 Open Role')
+    expect(employerTitleB('Credenza Health', 1)).toBe('Jobs at Credenza Health: 1 Open Role, Pay and Hiring')
+    expect(employerTitleB('Sage', 10)).toBe('Jobs at Sage: 10 Open Roles, Pay and Hiring')
+  })
+})
