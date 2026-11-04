@@ -88,11 +88,32 @@ export const Q3: Q3Answer[] = [
 export function landingHeadline(variant: LandingVariant, name: string, latestWorkers: number | null, hasNotices = true, noticeCount = 1): string {
   if (variant === 'buyout') return `${name} is offering buyouts. Here is how to decide, and what to do either way.`
   if (variant === 'layoff') {
-    if (!hasNotices) return `${name} layoffs have been reported. Here is what to do this week.`
+    if (!hasNotices) return latestWorkers ? `${name} is laying off about ${latestWorkers.toLocaleString('en-US')} people. Here is what to do this week.` : `${name} layoffs have been reported. Here is what to do this week.`
     if (noticeCount > 1 && latestWorkers) return `${name}'s latest layoff notice names ${latestWorkers.toLocaleString('en-US')} workers. Here is what to do this week.`
     return `${name} filed layoffs${latestWorkers ? ` for ${latestWorkers.toLocaleString('en-US')} workers` : ''}. Here is what to do this week.`
   }
   return `Thinking about your next move from ${name}? Start by seeing what is out there.`
+}
+
+/**
+ * The one line of facts under the headline, in the words people use: layoffs and the number, never "WARN". `workers` is the total named
+ * (or null); `exact` is false when some filings gave no count, so the number is a floor.
+ */
+export function layoffFactLine(o: { name: string; filings: number; workers: number; exact: boolean; places: string; latest: string }): string {
+  const n = o.workers.toLocaleString('en-US')
+  const how = o.filings === 1 ? 'a layoff' : `${o.filings.toLocaleString('en-US')} layoffs`
+  if (o.workers > 0) return `${o.name} has reported ${how}${o.places ? ` in ${o.places}` : ''}, ${o.exact ? '' : 'at least '}${n} ${o.workers === 1 ? 'person' : 'people'} in all. The latest was ${o.latest}.`
+  return `${o.name} has reported ${how}${o.places ? ` in ${o.places}` : ''}. The latest was ${o.latest}.`
+}
+
+/** A press-reported layoff in plain words: the tracker's "Reported by 3 publishers · 19% of staff" becomes "19% of staff, according to 3 news outlets". */
+export function reportLine(date: string, summary: string): string {
+  const parts = summary.split(/\s·\s/).map((x) => x.trim()).filter(Boolean)
+  const outlets = parts.find((x) => /^reported by \d+ publishers?$/i.test(x))
+  const n = outlets ? Number(outlets.match(/\d+/)![0]) : 0
+  const rest = parts.filter((x) => x !== outlets).join(', ')
+  const by = n ? `according to ${n === 1 ? 'a news outlet' : `${n} news outlets`}` : ''
+  return `Reported ${date}${rest ? `: ${rest}` : ''}${by ? `, ${by}` : ''}.`
 }
 
 /** Which version of the page a company gets: a recent buyout announcement wins, then any layoff or WARN notice, otherwise neither. */

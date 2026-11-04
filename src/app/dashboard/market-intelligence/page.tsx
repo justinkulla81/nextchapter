@@ -51,7 +51,7 @@ function LockRow({ feature, description }: { feature: MarketIntelFeature; descri
     <p className="flex flex-wrap items-center gap-2 rounded-2xl border border-dashed border-border px-5 py-4 text-base text-ink">
       <Lock className="size-4 text-muted-foreground" aria-hidden="true" />
       <span>{description}</span> <span className="text-sm text-muted-foreground">{label} only.</span>{' '}
-      <Link href="/dashboard/membership" className={LINK}>See what unlocks it</Link>
+      <Link href="/dashboard/alumni-plan" className={LINK}>See what unlocks it</Link>
     </p>
   )
 }

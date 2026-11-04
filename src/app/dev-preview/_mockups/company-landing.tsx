@@ -22,13 +22,13 @@ const NOTICES = [
 ]
 
 function Page({ variant, name, slug, workers, context, near, similar, metro, notices }: {
-  variant: LandingVariant; name: string; slug: string; workers: number | null; context: React.ReactNode
+  variant: LandingVariant; name: string; slug: string; workers: number | null; context?: React.ReactNode
   near: { name: string; href: string }[]; similar: { name: string; href: string }[]; metro: string | null; notices: boolean
 }) {
   return (
     <div className="flex flex-1 flex-col">
       <PublicSiteHeader current="news" />
-      <main className="flex-1 bg-off-white py-10">
+      <main className="flex-1 bg-off-white py-10" data-look="scene" data-calm>
         <div className="mx-auto max-w-6xl space-y-12 px-6">
           <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link><span aria-hidden> › </span><span className="text-foreground">{name}</span>
@@ -71,11 +71,11 @@ const MS_SIMILAR = ['Google', 'Apple', 'Salesforce', 'Oracle', 'Adobe'].map((n) 
 
 export function CompanyLandingBuyout() {
   return <Page variant="buyout" name="Microsoft" slug="microsoft" workers={277} metro="Seattle" near={MS_NEAR} similar={MS_SIMILAR} notices
-    context="Reported Oct 26, 2026: voluntary buyouts offered to about 60,000 employees (Business Insider, unconfirmed). People still out of work in September had been looking for 25 weeks on average, so a week spent now is a week saved later." />
+    context="Reported Oct 26, 2026: Voluntary buyout offered to about 60,000 employees, according to a news outlet." />
 }
 export function CompanyLandingLayout() {
   return <Page variant="layoff" name="Microsoft" slug="microsoft-layoff" workers={277} metro="Seattle" near={MS_NEAR} similar={MS_SIMILAR} notices
-    context="Microsoft has filed 7 WARN notices with the Washington labor department, naming 4,084 workers. The most recent was filed Sep 22, 2026." />
+    context="Microsoft has reported 7 layoffs in Washington, 4,084 people in all. The latest was Sep 22, 2026." />
 }
 export function CompanyLandingNeither() {
   return <Page variant="neither" name="Costco" slug="costco" workers={null} metro="Seattle" near={[{ name: 'Starbucks', href: '/jobs' }, { name: 'REI', href: '/jobs' }, { name: 'Nordstrom', href: '/jobs' }]} similar={[{ name: 'Target', href: '/jobs' }, { name: 'Walmart', href: '/jobs' }, { name: 'Kroger', href: '/jobs' }]} notices={false}

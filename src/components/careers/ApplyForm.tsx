@@ -97,7 +97,7 @@ function RegistrationOffer({ applicationId, claimToken, firstName }: { applicati
       <div>
         <p className="text-lg font-semibold text-navy">Thanks, {firstName}. We got your application.</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Do you want to register for NextChapter too? It is free for job seekers. We will use the resume you just sent, so you will not upload it again.
+          Do you want to join NextChapter too? It is free to join. We will use the resume you just sent, so you will not upload it again.
         </p>
       </div>
       {state?.error && <p role="alert" className="text-sm font-medium text-error">{state.error}</p>}

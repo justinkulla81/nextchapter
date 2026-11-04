@@ -6,7 +6,7 @@ import { AdminFilterBar } from '@/components/admin/AdminFilterBar'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { VisionFeedbackCandidate } from '@/components/admin/VisionFeedbackCandidate'
 import { EXCLUDE_SYSTEM_ACCOUNT } from '@/lib/admin/system-account-filter'
-import { createFeedback, linkFeedback, markFeedbackAddressed, archiveFeedback, reopenFeedback } from '../actions'
+import { createFeedback, approveFeedbackSuggestion, dismissFeedbackSuggestion, linkFeedback, markFeedbackAddressed, archiveFeedback, reopenFeedback } from '../actions'
 import { SOURCES, SOURCE_LABELS, FEEDBACK_STATUS_LABELS, formatDate } from '@/lib/vision/labels'
 
 export const maxDuration = 30
@@ -26,7 +26,7 @@ export default async function VisionFeedbackPage({
     ...(q ? { OR: [{ rawText: { contains: q, mode: 'insensitive' } }, { personLabel: { contains: q, mode: 'insensitive' } }] } : {}),
   }
 
-  const [feedback, items, testers, candidates, counts] = await Promise.all([
+  const [feedback, items, testers, candidates, counts, suggestions] = await Promise.all([
     prisma.productFeedback.findMany({
       where, orderBy: [{ status: 'asc' }, { receivedAt: 'desc' }], take: 200,
       include: {
@@ -51,6 +51,8 @@ export default async function VisionFeedbackPage({
       orderBy: { createdAt: 'desc' }, take: 1000,
     }),
     prisma.productFeedback.groupBy({ by: ['status'], _count: { _all: true } }),
+    // Fail-soft: the page must load even before the suggestions table exists.
+    prisma.productFeedbackSuggestion.findMany({ where: { status: 'PENDING' }, orderBy: { meetingAt: 'desc' }, take: 50 }).catch(() => []),
   ])
   const countBy = new Map(counts.map((c) => [c.status, c._count._all]))
   const candidateOptions = candidates
@@ -78,6 +80,39 @@ export default async function VisionFeedbackPage({
           since shipped and {owed.length === 1 ? 'has' : 'have'} not been told. A tester who hears back gives you
           more feedback; one who never does stops.
         </div>
+      )}
+
+      {suggestions.length > 0 && (
+        <section className="space-y-2 rounded-lg border border-orange/40 bg-orange/5 p-4">
+          <h2 className="text-sm font-semibold">Suggested from meetings ({suggestions.length})</h2>
+          <p className="text-xs text-muted-foreground">
+            Found in the Gemini notes of a call. Nothing is filed until you approve it; the quote is copied exactly from the notes.
+          </p>
+          <ul className="space-y-2">
+            {suggestions.map((s) => (
+              <li key={s.id} className="rounded-md border border-border bg-background p-3">
+                <p className="text-sm font-medium">{s.theme}</p>
+                <p className="mt-1 text-sm">“{s.rawText}”</p>
+                <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  {s.personId ? (
+                    <Link href={`/support/admin/crm/people/${s.personId}`} className="underline">{s.personLabel ?? 'Person'}</Link>
+                  ) : (s.personLabel ?? 'Unattributed')}
+                  <span>{SOURCE_LABELS[s.source]}</span>
+                  <span>{s.meetingTitle ?? 'Meeting'}, {formatDate(s.meetingAt)}</span>
+                  {s.notesUrl && <a href={s.notesUrl} target="_blank" rel="noreferrer" className="underline">Open the notes</a>}
+                  <span className="ml-auto flex gap-2">
+                    <form action={dismissFeedbackSuggestion.bind(null, s.id)}>
+                      <SubmitButton size="sm" variant="outline" pendingLabel="Dismissing…">Dismiss suggestion</SubmitButton>
+                    </form>
+                    <form action={approveFeedbackSuggestion.bind(null, s.id)}>
+                      <SubmitButton size="sm" pendingLabel="Filing…">File as feedback</SubmitButton>
+                    </form>
+                  </span>
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <form action={createFeedback} className="space-y-3 rounded-lg border border-border p-4">

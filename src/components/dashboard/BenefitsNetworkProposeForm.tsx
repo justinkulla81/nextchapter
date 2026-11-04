@@ -133,7 +133,7 @@ export function BenefitsNetworkProposeForm() {
         <Label htmlFor="skillGapTags">Skill tags (comma-separated, up to 8)</Label>
         <Input id="skillGapTags" name="skillGapTags" placeholder="e.g. Financial modeling, FP&A, Corporate finance" />
         <p className="text-xs text-muted-foreground">
-          Used to surface this offer to candidates whose Dossier names a matching skill gap.
+          Used to surface this offer to Members whose Dossier names a matching skill gap.
         </p>
       </div>
 

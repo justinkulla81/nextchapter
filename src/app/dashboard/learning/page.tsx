@@ -221,7 +221,7 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
       <AiExposureShown soc6={libExposure?.soc6 ?? null} band={libExposure?.band ?? null} need={libNeed} />
       <PageHeader title="Every course, tool and guide" />
 
-      <NeedsYou>
+      <NeedsYou page="learning">
         <CompanyCoursesCallout candidateId={profile.id} />
         {assessmentLocked && <SkillsInventoryGateCard candidateId={profile.id} />}
         <GuideCallout currentJobStatus={profile.currentJobStatus} title="Guides for your situation" />

@@ -11910,6 +11910,42 @@ model ProductItem {
   @@index([priority])
 }
 
+/// A feedback point found in a meeting's notes, waiting for the owner to approve it.
+///
+/// Nothing in here is evidence yet: approving copies the quote into ProductFeedback
+/// (which stays append-only); dismissing keeps the row so the same point is never
+/// suggested twice. personId and candidateId are plain ids, not relations, so a
+/// suggestion survives a person being merged or removed (merge-person repoints it).
+model ProductFeedbackSuggestion {
+  id           String                            @id @default(cuid())
+  /// `<calendar event>:<person>:<n>` — makes a re-read of the same notes add nothing.
+  sourceRef    String                            @unique
+  personId     String?
+  candidateId  String?
+  personLabel  String?
+  source       ProductFeedbackSource             @default(OTHER)
+  /// Short label for the point, written by the model.
+  theme        String
+  /// The line from the notes it came from, copied exactly.
+  rawText      String                            @db.Text
+  meetingTitle String?
+  meetingAt    DateTime
+  notesUrl     String?
+  status       ProductFeedbackSuggestionStatus   @default(PENDING)
+  feedbackId   String?
+  decidedAt    DateTime?
+  createdAt    DateTime                          @default(now())
+
+  @@index([status, meetingAt(sort: Desc)])
+  @@index([personId])
+}
+
+enum ProductFeedbackSuggestionStatus {
+  PENDING
+  APPROVED
+  DISMISSED
+}
+
 /// One thing one person said, verbatim.
 ///
 /// Append-only: never edited, never merged, because it is evidence.
@@ -18120,7 +18156,9 @@ model SavedJobClosureNotice {
 model FirmBrandColor {
   orgId     String   @id
   color     String?
-  /// theme-color | manifest | icon | none
+  /// theme-color | manifest | icon | logo | none
   source    String
+  /// What the firm's own site says about it (its meta description), shown on its page with a link to the site.
+  about     String?
   checkedAt DateTime @default(now())
 }

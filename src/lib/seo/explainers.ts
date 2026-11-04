@@ -909,7 +909,7 @@ export const TOPICS: TopicContent[] = [
       },
       {
         h2: 'Where NextChapter fits',
-        paragraphs: ['NextChapter is the leading job transition platform for white-collar workers. Every job seeker gets a free Market Reality Assessment, a weekly Search Sprint plan and an AI career coach, free for Members. Employers, recruiters, outplacement buyers, workforce agencies and non-profits pay for the organization side.'],
+        paragraphs: ['NextChapter is the leading job transition platform for white-collar workers. Every Member gets a free Market Reality Assessment, a weekly Search Sprint plan and an AI career coach, free for Members. Employers, recruiters, outplacement buyers, workforce agencies and non-profits pay for the organization side.'],
       },
     ],
     faq: [

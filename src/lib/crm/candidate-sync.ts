@@ -45,8 +45,14 @@ export async function syncCandidateToCrm(candidateId: string): Promise<Candidate
   if (!candidate || candidate.isSampleData || candidate.isSystemAccount) return null
 
   // Real email lives in Supabase auth, not on CandidateProfile itself.
-  const { data } = await createAdminClient().auth.admin.getUserById(candidate.userId)
-  const email = normalizeEmail(data.user?.email)
+  const { data, error: authError } = await createAdminClient().auth.admin.getUserById(candidate.userId)
+  // A failed lookup is not "no email": carrying on would file the candidate under their name alone, and
+  // that second record is how Andrew Cantle ended up twice (2026-11-01). Stop; the next sync retries.
+  if (authError || !data.user) {
+    console.error('Candidate CRM sync skipped: could not read the account email', authError)
+    return null
+  }
+  const email = normalizeEmail(data.user.email)
   const fullName = [candidate.firstName, candidate.lastName].filter(Boolean).join(' ').trim()
   if (!fullName && !email) return null
 
@@ -86,8 +92,11 @@ export async function syncCandidateToCrm(candidateId: string): Promise<Candidate
     })
     personCreated = true
   } else {
-    const patch: { candidateId?: string; roles?: { push: 'JOB_SEEKER' }; goals?: { push: 'MEMBERSHIP_UPGRADE' } } = {}
+    const patch: { candidateId?: string; email?: string; emails?: string[]; roles?: { push: 'JOB_SEEKER' }; goals?: { push: 'MEMBERSHIP_UPGRADE' } } = {}
     if (!person.candidateId) patch.candidateId = candidate.id
+    // A candidate's record always carries the email they signed up with.
+    if (email && !person.email) patch.email = email
+    if (email && !person.emails.includes(email)) patch.emails = [...person.emails, email]
     if (!person.roles.includes('JOB_SEEKER')) patch.roles = { push: 'JOB_SEEKER' }
     if (!person.goals.includes('MEMBERSHIP_UPGRADE')) patch.goals = { push: 'MEMBERSHIP_UPGRADE' }
     if (Object.keys(patch).length > 0) {

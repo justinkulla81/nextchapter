@@ -67,6 +67,8 @@ const nextConfig: NextConfig = {
       // /membership became /alumni-plan (2026-11-04, the paid tier is the Alumni plan). Permanent, so links, search results and emails
       // that still carry the old address keep working.
       { source: '/membership', destination: '/alumni-plan', permanent: true },
+      // The signed-in page followed: /dashboard/membership became /dashboard/alumni-plan (2026-11-04). Permanent, because emails already sent link to the old address.
+      { source: '/dashboard/membership', destination: '/dashboard/alumni-plan', permanent: true },
       // /skills/by and /skills/by/<dimension> are only folders of the skills lists, so they go to the skills hub.
       { source: '/skills/by', destination: '/skills', permanent: false },
       { source: '/skills/by/:dim', destination: '/skills', permanent: false },
@@ -265,7 +267,9 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       `media-src 'self' blob: ${supabase}`,
-      `connect-src 'self' ${supabase} ${supabaseWs} https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://*.g.doubleclick.net https://www.google.com https://px.ads.linkedin.com https://snap.licdn.com`,
+      // analytics.google.com is listed bare as well as with the wildcard: a CSP wildcard (*.analytics.google.com) does not match the
+      // bare host, which is where Google Analytics sends its page views and events (blocked from 2026-10-15 until this was added).
+      `connect-src 'self' ${supabase} ${supabaseWs} https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://*.g.doubleclick.net https://www.google.com https://px.ads.linkedin.com https://snap.licdn.com`,
       "frame-src 'self' https:",
       "worker-src 'self' blob:",
       "object-src 'none'",

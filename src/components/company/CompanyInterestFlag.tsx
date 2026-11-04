@@ -39,7 +39,17 @@ export function CompanyInterestFlag({ company, slug, page, quiet = false }: { co
     return (
       <div className={cn(quiet ? 'text-navy' : 'rounded-2xl border border-border bg-white p-4 text-navy', memberPending && 'cursor-wait')}>
         {member.following ? (
-          <p role="status" className="text-sm font-semibold">You follow {company}. It is on your list of followed companies.</p>
+          <>
+            <p role="status" className="text-sm font-semibold">You follow {company}. It is on your list of followed companies.</p>
+            <TrackedLink
+              href="/dashboard/following"
+              event="company_follow_next_clicked"
+              properties={{ ...properties, destination: 'following' }}
+              className="mt-2 inline-block text-sm font-medium text-brand underline underline-offset-4"
+            >
+              See the companies you follow
+            </TrackedLink>
+          </>
         ) : (
           <>
             <Button

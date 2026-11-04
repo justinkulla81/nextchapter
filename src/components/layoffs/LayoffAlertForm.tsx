@@ -6,6 +6,7 @@ import { saveLayoffAlert, type LayoffAlertState } from '@/lib/leads/layoff-alert
 import { posthog } from '@/lib/posthog/client'
 import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
 import { cn } from '@/lib/utils'
+import { JoinFreeAfterSave } from '@/components/capture/JoinFreeAfterSave'
 
 // "Email me when there is a new notice" on the layoff pages. One employer, one state, or the whole tracker. While the
 // layoff emails are off the confirmation says so plainly; once on it asks for the confirm click.
@@ -19,13 +20,14 @@ export function LayoffAlertForm({ employer, employerName, state, stateLabel, sou
 
   if (formState?.saved) {
     return (
-      <p role="status" className="rounded-2xl border border-success/30 bg-success/5 px-4 py-3 text-sm">
+      <div role="status" className="rounded-2xl border border-success/30 bg-success/5 px-4 py-3 text-sm">
         {formState.confirmEmailed ? (
           <>Check your inbox{formState.email ? <> at <span className="font-medium">{formState.email}</span></> : ''} and click the link to start. If it is not there in a few minutes, check spam.</>
         ) : (
           <>Saved{formState.email ? <> for <span className="font-medium">{formState.email}</span></> : ''}. Layoff emails are turning on soon, and this will be first in line.</>
         )}
-      </p>
+        <JoinFreeAfterSave from="layoff_alert" properties={{ employer, state, source }} />
+      </div>
     )
   }
 

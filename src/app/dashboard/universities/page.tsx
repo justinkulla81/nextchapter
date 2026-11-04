@@ -44,7 +44,7 @@ export default async function UniversitiesIndexPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Universities</h1>
+        <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Universities</h1>
         <p className="text-muted-foreground">Fellow NextChapter members from your own school(s).</p>
       </div>
 

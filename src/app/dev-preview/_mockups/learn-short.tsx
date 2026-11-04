@@ -71,7 +71,7 @@ export function LearnLibrary() {
     <PreviewShell place="learn" entry="learn" part="skills">
       <PageHeader title="Every course, tool and guide" />
 
-      <NeedsYou>
+      <NeedsYou page="preview">
         <p className="rounded-xl bg-white p-4 text-base">Your company covers courses. <a href="#" className={more}>See which ones</a></p>
         <p className="rounded-xl bg-white p-4 text-base">Finish your skills inventory to unlock tools for your role. <a href="#" className={more}>Start the inventory</a></p>
       </NeedsYou>

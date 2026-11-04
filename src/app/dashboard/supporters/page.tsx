@@ -4,7 +4,7 @@ import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { MAX_SUPPORTERS } from '@/lib/supporters/supporters'
 import { InviteSupporterForm, RemoveSupporterButton } from './SupporterForms'
-import { supportersIntro } from '@/lib/redesign/network-pages'
+import { InviteShell } from './InviteShell'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { Section } from '@/components/candidate/ui'
@@ -20,7 +20,8 @@ export const metadata: Metadata = { title: 'My supporters' }
 
 // Someone to keep you going. They get one short weekly note about your effort
 // (never names, companies or messages) and can send you a cheer.
-export default async function SupportersPage() {
+export default async function SupportersPage({ searchParams }: { searchParams: Promise<{ invite?: string }> }) {
+  const params = await searchParams
   const profile = await getDashboardProfile()
   const user = await getVerifiedSessionUser()
   const [partnership, partnerInvite] = await Promise.all([loadPartnership(profile.id), user?.email_confirmed_at ? pendingInviteFor(user.email) : Promise.resolve(null)])
@@ -35,22 +36,12 @@ export default async function SupportersPage() {
   ])
   after(() => prisma.supporterCheer.updateMany({ where: { seenAt: null, supporter: { candidateId: profile.id } }, data: { seenAt: new Date() } }))
 
-  // The redesign (docs/candidate-redesign.md): one headline, one primary action (invite), who is in your corner.
+  // The redesign (docs/candidate-redesign.md): one headline, one primary action (Invite someone, a supporter or a partner), then who is in your corner.
   const canInvite = !profile.confidentialSearchMode && supporters.length < MAX_SUPPORTERS
   captureServerEvent(profile.id, 'supporters_viewed', { supporters: supporters.length, cheers: cheers.length, canInvite })
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Your people"
-        intro={supportersIntro(supporters.length)}
-        action={
-          canInvite ? (
-            <TrackedAction variant="primary" href="#invite" event="supporter_invite_started" properties={{ source: 'supporters_primary', supporters: supporters.length }}>
-              Invite someone
-            </TrackedAction>
-          ) : undefined
-        }
-      />
+      <PageHeader title="Your people" />
       <NetworkParts current="close" />
       {profile.confidentialSearchMode && (
         <p className="text-base text-ink">
@@ -62,25 +53,16 @@ export default async function SupportersPage() {
         </p>
       )}
       {partnerInvite && partnership?.role !== 'partner' && !partnership && <AcceptInviteCard linkId={partnerInvite.id} ownerName={partnerInvite.ownerFirstName ?? 'Your partner'} />}
-      <div id="partner" className="scroll-mt-4">
-        {partnership ? (
-          <Section id="partner-title" title="Your partner">
-            <PartnerCard
-              role={partnership.role}
-              linkId={partnership.link.id}
-              name={partnership.role === 'owner' ? partnership.link.partnerName : partnership.ownerFirstName ?? 'Your partner'}
-              joined={partnership.link.joined}
-              sharePlaces={partnership.link.sharePlaces}
-              shareJobsPay={partnership.link.shareJobsPay}
-            />
-          </Section>
-        ) : canInvite ? (
-          <Section id="partner-title" title="Invite your partner">
-            <p className="max-w-xl text-sm text-muted-foreground">Search together, especially if you may move. Your partner gets their own free account and their own search, and sees the places you are comparing. Your applications, contacts, notes and messages stay private.</p>
-            <InvitePartnerForm />
-          </Section>
-        ) : null}
-      </div>
+      {canInvite && (
+        <InviteShell
+          startOpen={(supporters.length === 0 && cheers.length === 0 && !partnership) || params.invite === 'partner'}
+          canPartner={!partnership}
+          initialKind={params.invite === 'partner' ? 'partner' : 'supporter'}
+          supporters={supporters.length}
+          supporterForm={<InviteSupporterForm />}
+          partnerForm={<InvitePartnerForm />}
+        />
+      )}
       {cheers.length > 0 && (
         <Section id="cheers" title="Cheers for you">
           <RowList label="Cheers for you">
@@ -95,6 +77,20 @@ export default async function SupportersPage() {
           </RowList>
         </Section>
       )}
+      {partnership && (
+        <div id="partner" className="scroll-mt-4">
+          <Section id="partner-title" title="Your partner">
+            <PartnerCard
+              role={partnership.role}
+              linkId={partnership.link.id}
+              name={partnership.role === 'owner' ? partnership.link.partnerName : partnership.ownerFirstName ?? 'Your partner'}
+              joined={partnership.link.joined}
+              sharePlaces={partnership.link.sharePlaces}
+              shareJobsPay={partnership.link.shareJobsPay}
+            />
+          </Section>
+        </div>
+      )}
       {supporters.length > 0 && (
         <Section id="who" title="In your corner">
           <RowList label="Your supporters">
@@ -103,16 +99,6 @@ export default async function SupportersPage() {
             ))}
           </RowList>
         </Section>
-      )}
-      {canInvite && (
-        <div id="invite" className="scroll-mt-4">
-          <Section id="invite-title" title="Invite someone">
-            <p className="max-w-xl text-sm text-muted-foreground">
-              They get one short note a week about your effort, in numbers only, and can send you a cheer. They never see names, companies or messages, and you can remove them any time.
-            </p>
-            <InviteSupporterForm />
-          </Section>
-        </div>
       )}
       <p className="text-sm text-muted-foreground">
         A coach is part of your close circle too.{' '}

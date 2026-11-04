@@ -1384,6 +1384,76 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
 
+  {
+    id: 'journeys-hub',
+    intent: 'Browse white-collar journeys: rights, benefits, pay and side income',
+    owner: '/journeys',
+    kind: 'page',
+    primary: 'white-collar employee journeys',
+    secondary: ['employee rights and benefits', 'pay and cost of living', 'journeys for professionals'],
+    seo: {
+      title: 'White-Collar Journeys: Rights, Benefits, Pay, Side Income',
+      description: 'Your rights at work, benefits, pay against the cost of living and side income for professionals: the latest news, the numbers and where you stand.',
+      h1: 'White-collar journeys: rights, benefits, pay and side income',
+    },
+  },
+
+  {
+    id: 'journey-rights',
+    intent: 'Know your rights at work and on the way out',
+    owner: '/journeys/your-rights-at-work',
+    kind: 'page',
+    primary: 'non-disparagement agreement',
+    secondary: ['non disparagement clause', 'severance agreement terms', 'noncompete agreement employee', 'employee rights layoff'],
+    seo: {
+      title: 'Non-Disparagement and Exit Terms: Your Rights at Work',
+      description: 'Non-disparagement, NDAs, noncompetes and severance terms: the latest news on how employers use them and what you can negotiate before you sign.',
+      h1: 'Your rights at work, and what you sign on the way out',
+    },
+  },
+
+  {
+    id: 'journey-benefits',
+    intent: 'Understand white-collar benefits and what they are worth',
+    owner: '/journeys/white-collar-benefits',
+    kind: 'page',
+    primary: 'white collar employee benefits',
+    secondary: ['401k match', 'employee benefits changes', 'parental leave benefits', 'remote work benefits'],
+    seo: {
+      title: 'White-Collar Employee Benefits: News and What They Are Worth',
+      description: 'Retirement match, health coverage, leave and flexibility are part of your pay. See what employers are adding and cutting, and compare your whole package.',
+      h1: 'White-collar benefits: what employers give, and what they are taking back',
+    },
+  },
+
+  {
+    id: 'journey-pay',
+    intent: 'See whether pay is keeping up with the cost of living',
+    owner: '/journeys/pay-and-cost-of-living',
+    kind: 'page',
+    primary: 'wage growth vs inflation',
+    secondary: ['wage growth', 'cost of living raise', 'salary vs inflation'],
+    seo: {
+      title: 'Wage Growth vs Cost of Living: Is Your Raise Keeping Up?',
+      description: 'Latest Bureau of Labor Statistics wage growth against inflation, the stories behind it and how to find out what your role pays on the market.',
+      h1: 'Pay against the cost of living: is your raise keeping up?',
+    },
+  },
+
+  {
+    id: 'journey-side',
+    intent: 'Build income on the side while you keep your job',
+    owner: '/journeys/side-hustles',
+    kind: 'page',
+    primary: 'side hustles for professionals',
+    secondary: ['side hustle ideas for professionals', 'consulting on the side', 'second income', 'moonlighting'],
+    seo: {
+      title: 'Side Hustles for Professionals: News, Rules and Next Steps',
+      description: 'Consulting, fractional and freelance work for salaried professionals: what is working, what your employer allows and what your skills are worth.',
+      h1: 'Side hustles for white-collar workers: income you control',
+    },
+  },
+
   // ---- Free tools and definitions --------------------------------------------------------------------------------
   {
     id: 'tools-hub',

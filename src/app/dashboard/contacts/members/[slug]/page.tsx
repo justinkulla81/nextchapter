@@ -76,7 +76,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
         <div className="flex items-center gap-3">
           {showPhoto && <AvatarDisplay name={displayName} url={candidate.profilePictureUrl} size={56} />}
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-foreground">{displayName}</h1>
+            <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">{displayName}</h1>
             {location && (
               <p className="flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="size-3.5" aria-hidden />

@@ -1,6 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
+import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -214,25 +215,66 @@ export async function submitCrucibleDatasetTask(sessionId: string, analysisText:
   return next ? { advanced: true, tier: next } : { advanced: false, tier: session.datasetTier }
 }
 
-// Read the Results — a fourth activity, single scenario (no difficulty
-// ladder yet). AI-graded like prompt/dataset, but there's nothing to
-// advance past, so this always finalizes in one submission.
-export async function submitCrucibleResultsTask(sessionId: string, analysisText: string): Promise<void> {
-  const session = await requireSession(sessionId)
+// Grades the Read the Results answer and stores the score. The first writer wins: only a row whose score is still empty,
+// and whose submission is still this text, is written, so a slow older run can never overwrite a newer answer.
+async function gradeResultsSubmission(session: { id: string; ip: string | null; candidateId: string | null }, analysisText: string): Promise<boolean> {
+  const started = Date.now()
   const allowed = await checkCrucibleAiRateLimit(session.ip)
   const grade = allowed ? await gradeCrucibleResultsTask(analysisText) : AI_GRADE_UNAVAILABLE
+  const written = await prisma.crucibleSession.updateMany({
+    where: { id: session.id, resultsScore: null, resultsSubmission: analysisText },
+    data: {
+      resultsScore: grade.score,
+      resultsFeedback: grade.feedback,
+      aiGradeCallCount: allowed ? { increment: 1 } : undefined,
+    },
+  })
+  if (written.count > 0) {
+    captureServerEvent(session.candidateId ?? session.id, 'crucible_results_task', {
+      score: grade.score,
+      rateLimited: !allowed,
+      durationMs: Date.now() - started,
+    })
+  }
+  return written.count > 0
+}
+
+// Read the Results — a fourth activity, single scenario (no difficulty
+// ladder yet). AI-graded like prompt/dataset, but there's nothing to
+// advance past, so this always finalizes in one submission. Because nothing
+// the candidate sees next depends on the grade, it is graded after the
+// response; the feedback only appears on the final result screen, and
+// submitCrucibleAiTools waits for the grade before it scores (see there).
+export async function submitCrucibleResultsTask(sessionId: string, analysisText: string): Promise<void> {
+  const session = await requireSession(sessionId)
 
   await prisma.crucibleSession.update({
     where: { id: session.id },
     data: {
       resultsSubmission: analysisText,
-      resultsScore: grade.score,
-      resultsFeedback: grade.feedback,
+      resultsScore: null,
+      resultsFeedback: null,
       state: 'FLUENCY_TASK',
-      aiGradeCallCount: allowed ? { increment: 1 } : undefined,
     },
   })
-  captureServerEvent(session.candidateId ?? session.id, 'crucible_results_task', { score: grade.score, rateLimited: !allowed })
+  after(() => gradeResultsSubmission(session, analysisText).catch((error) => console.error('crucible results grading failed:', session.id, error)))
+}
+
+// The final score reads the Results grade, so it must exist before scoring. It was started when the answer was submitted
+// and is normally done long before the candidate finishes the next two activities; this waits a short while for it and
+// otherwise grades it here, so a missing grade can never turn into a silent zero.
+async function ensureResultsGraded(sessionId: string) {
+  let session = await requireSession(sessionId)
+  if (!session.resultsSubmission || session.resultsScore !== null) return session
+  for (let i = 0; i < 10 && session.resultsScore === null; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+    session = await requireSession(sessionId)
+  }
+  if (session.resultsScore === null && session.resultsSubmission) {
+    await gradeResultsSubmission(session, session.resultsSubmission).catch((error) => console.error('crucible results grading failed:', session.id, error))
+    session = await requireSession(sessionId)
+  }
+  return session
 }
 
 // AI-fluency activity — the one activity in this flow that actually sends
@@ -289,7 +331,7 @@ export type CrucibleResultSummary = {
 // selections/verdict stored back in submitCrucibleChallenge, at whichever
 // tier the candidate finalized on.
 export async function submitCrucibleAiTools(sessionId: string, tools: string[], bestMove: string): Promise<CrucibleResultSummary> {
-  const session = await requireSession(sessionId)
+  const session = await ensureResultsGraded(sessionId)
   if (!session.variant) throw new Error('Session has no variant.')
 
   const aiTools = { tools, bestMove }

@@ -2853,7 +2853,7 @@ export const STATE_UI: Record<string, StateUI> = {
       "asOf": "2026-10-04",
       "note": "Trigger Notice No. 2026-38, effective October 4, 2026: status 'E' (ended); Total Number 'ON': 0."
     },
-    "notes": "TWC's amounts table's latest row is effective October 5, 2025; TX typically resets amounts in October, so re-check for an October 2026 update. Waiting week is paid after the claimant has been paid 2x WBA and meets further conditions."
+    "notes": "Amounts ($76 minimum, $619 maximum) are the row effective October 4, 2026; the previous row, effective October 5, 2025, was $75 and $605 (DOL Significant Provisions, July 2026). Claims filed before October 4, 2026 keep the old range. As of 2026-11-04 the October 2026 row was confirmed only through secondary sites citing TWC: TWC's page blocks automated requests, so read the table in a browser to confirm. TX resets amounts each October. Waiting week is paid after the claimant has been paid 2x WBA and meets further conditions."
   },
   "UT": {
     "code": "UT",

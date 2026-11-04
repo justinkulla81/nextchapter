@@ -3,6 +3,20 @@ import { prisma } from '@/lib/prisma'
 import { refreshTouchFields } from '@/lib/crm/sync'
 
 /**
+ * Which of the absorbed person's opportunities are throwaway duplicates: ones in a pipeline where the
+ * survivor already has an opportunity, with nothing logged on them (no activities, to-dos or deadlines).
+ * The usual case is the empty membership opportunity candidate sync makes for every record it files, so
+ * a person who exists twice has two. Anything with history is kept and moves to the survivor instead.
+ */
+export function emptyDuplicateOpportunityIds(
+  source: { id: string; pipelineId: string; history: number }[],
+  targetPipelineIds: readonly string[],
+): string[] {
+  const has = new Set(targetPipelineIds)
+  return source.filter((o) => has.has(o.pipelineId) && o.history === 0).map((o) => o.id)
+}
+
+/**
  * Merges one person record into another and soft-deletes the source.
  *
  * Several relations carry a unique constraint that includes personId
@@ -45,10 +59,28 @@ export async function mergePersonRecords(sourceId: string, targetId: string): Pr
       WHERE "personId" = ${sourceId} AND right("sourceRef", ${from.length}::int) = ${from}`
     await tx.crmActivity.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
     await tx.crmTask.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+
+    // Opportunities follow the person. Left on the absorbed record they would sit on someone who no longer
+    // shows up anywhere. An empty duplicate of one the survivor already has is dropped (see above); every
+    // other one moves, so nothing with history is lost.
+    const sourceOpps = await tx.crmOpportunity.findMany({
+      where: { primaryPersonId: sourceId },
+      select: { id: true, pipelineId: true, _count: { select: { activities: true, tasks: true, deadlines: true } } },
+    })
+    if (sourceOpps.length > 0) {
+      const targetOpps = await tx.crmOpportunity.findMany({ where: { primaryPersonId: targetId }, select: { pipelineId: true } })
+      const drop = emptyDuplicateOpportunityIds(
+        sourceOpps.map((o) => ({ id: o.id, pipelineId: o.pipelineId, history: o._count.activities + o._count.tasks + o._count.deadlines })),
+        targetOpps.map((o) => o.pipelineId),
+      )
+      if (drop.length > 0) await tx.crmOpportunity.deleteMany({ where: { id: { in: drop } } })
+      await tx.crmOpportunity.updateMany({ where: { primaryPersonId: sourceId }, data: { primaryPersonId: targetId } })
+    }
     await tx.crmSourceRecord.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
     await tx.crmMandate.updateMany({ where: { recruiterId: sourceId }, data: { recruiterId: targetId } })
     await tx.crmResearchItem.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
     await tx.productFeedback.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
+    await tx.productFeedbackSuggestion.updateMany({ where: { personId: sourceId }, data: { personId: targetId } })
 
     const targetAuthorItems = await tx.crmResearchAuthor.findMany({ where: { personId: targetId }, select: { itemId: true } })
     for (const r of targetAuthorItems) {

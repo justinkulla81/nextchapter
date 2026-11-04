@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { landingHeadline, landingVariant, pickPagePhoto, PAGE_PHOTOS, Q1 } from '@/lib/layoffs/landing'
+import { landingHeadline, landingVariant, layoffFactLine, pickPagePhoto, PAGE_PHOTOS, Q1, reportLine } from '@/lib/layoffs/landing'
 import { PERSONAS } from '@/lib/constants/personas'
 
 describe('company page landing helpers', () => {
@@ -17,6 +17,7 @@ describe('company page landing helpers', () => {
     expect(landingHeadline('layoff', 'Microsoft', null, false)).toBe('Microsoft layoffs have been reported. Here is what to do this week.')
     expect(landingHeadline('layoff', 'TIAA', 20, true, 3)).toBe("TIAA's latest layoff notice names 20 workers. Here is what to do this week.")
     expect(landingHeadline('layoff', 'TIAA', 20, true, 1)).toBe('TIAA filed layoffs for 20 workers. Here is what to do this week.')
+    expect(landingHeadline('layoff', 'Squarespace', 1000, false)).toBe('Squarespace is laying off about 1,000 people. Here is what to do this week.')
     expect(landingHeadline('neither', 'Costco', null)).toBe('Thinking about your next move from Costco? Start by seeing what is out there.')
   })
 
@@ -40,5 +41,15 @@ describe('company page landing helpers', () => {
   it('maps every answer to a real journey', () => {
     const slugs = new Set(PERSONAS.map((p) => p.slug))
     for (const answers of Object.values(Q1)) for (const a of answers) expect(slugs.has(a.persona)).toBe(true)
+  })
+
+  it('words the facts the way people say them: layoffs and the number, never WARN', () => {
+    expect(reportLine('Nov 1, 2026', 'Reported by 3 publishers · 19% of staff')).toBe('Reported Nov 1, 2026: 19% of staff, according to 3 news outlets.')
+    expect(reportLine('Nov 1, 2026', 'Reported by 1 publisher')).toBe('Reported Nov 1, 2026, according to a news outlet.')
+    expect(reportLine('Oct 26, 2026', 'Voluntary buyout offered to about 60,000 employees')).toBe('Reported Oct 26, 2026: Voluntary buyout offered to about 60,000 employees.')
+    const line = layoffFactLine({ name: 'Microsoft', filings: 7, workers: 4084, exact: true, places: 'Washington', latest: 'Sep 22, 2026' })
+    expect(line).toBe('Microsoft has reported 7 layoffs in Washington, 4,084 people in all. The latest was Sep 22, 2026.')
+    expect(line).not.toMatch(/warn/i)
+    expect(layoffFactLine({ name: 'TIAA', filings: 1, workers: 20, exact: false, places: '', latest: 'Oct 1, 2026' })).toBe('TIAA has reported a layoff, at least 20 people in all. The latest was Oct 1, 2026.')
   })
 })

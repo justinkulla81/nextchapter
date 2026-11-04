@@ -20,7 +20,7 @@ export default async function ResumeDraftPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Edit resume draft</h1>
+      <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Edit resume draft</h1>
       {parsed.ok ? (
         <ResumeEditor
           draftId={draft.id}

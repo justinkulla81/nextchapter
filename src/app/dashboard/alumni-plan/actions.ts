@@ -52,7 +52,7 @@ export async function subscribeToMembership(billingPeriod: 'MONTHLY' | 'ANNUAL')
   syncCandidateToCrm(ctx.profile.id).catch(() => {})
 
   captureServerEvent(ctx.profile.id, 'membership_subscribed', { planKey, priceCents: plan.priceCents })
-  revalidatePath('/dashboard/membership')
+  revalidatePath('/dashboard/alumni-plan')
   return { success: 'You\'re a Member — welcome.' }
 }
 
@@ -81,7 +81,7 @@ export async function reactivateMembership(): Promise<FormState> {
   syncCandidateToCrm(ctx.profile.id).catch(() => {})
 
   captureServerEvent(ctx.profile.id, 'membership_reactivated', { planKey: subscription.planKey })
-  revalidatePath('/dashboard/membership')
+  revalidatePath('/dashboard/alumni-plan')
   return { success: 'Membership reactivated — welcome back.' }
 }
 
@@ -98,5 +98,5 @@ export async function setPriorityCoachBookingPreference(enabled: boolean): Promi
   })
 
   captureServerEvent(ctx.profile.id, 'membership_priority_booking_toggled', { enabled })
-  revalidatePath('/dashboard/membership')
+  revalidatePath('/dashboard/alumni-plan')
 }
