@@ -3888,6 +3888,10 @@ enum CommunityType {
   // Confidential Search Mode, and only offered once a group has 5+ members.
   SCHOOL
   FORMER_EMPLOYER
+  // A named leadership role (CRO, CFO, VP of Sales...). value = the role's slug
+  // from src/lib/seo/role-pages.ts. Opt-in only, joined from the role's public
+  // page; never for a member in Confidential Search Mode. No size floor.
+  ROLE
 }
 
 enum CommunityJoinSource {
@@ -3929,6 +3933,8 @@ model CommunityMembership {
   joinedAt    DateTime            @default(now())
   notifiedAt  DateTime?
   leftAt      DateTime?
+  // Last weekly network digest sent for this membership (ROLE networks only).
+  lastDigestAt DateTime?
 
   @@unique([communityId, candidateId])
   @@index([candidateId, leftAt])

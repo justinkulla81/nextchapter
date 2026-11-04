@@ -124,10 +124,10 @@ export function communityPostWhere(community: { type: CommunityType; value: stri
   if (community.type === 'CITY') return { postCity: community.value }
   if (community.type === 'FUNCTION') return { postFunction: community.value }
   if (community.type === 'INDUSTRY') return { postIndustry: community.value }
-  // Alumni networks have no tag on a post; they are the posts of the network's
+  // Alumni and role networks have no tag on a post; they are the posts of the network's
   // members. Fails CLOSED: without the community's id the filter matches nothing,
   // never "everyone".
-  if (community.type === 'SCHOOL' || community.type === 'FORMER_EMPLOYER') {
+  if (community.type === 'SCHOOL' || community.type === 'FORMER_EMPLOYER' || community.type === 'ROLE') {
     if (!community.communityId) return { id: '__no_such_post__' }
     return {
       candidate: {
