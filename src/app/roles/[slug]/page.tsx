@@ -84,6 +84,7 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
       trail={[{ name: 'Roles', path: '/roles' }, { name: role.short, path }]}
       title={seo.h1}
       hero={functionImage(role.fn)}
+      afterIntro={<RoleNetworkBand slug={slug} short={role.short} spelled={role.spelled} />}
       capture={{ kind: 'title', slug, label: role.short, save: { q: role.spelled, loc: '' } }}
       intro={`${stat.jobs.toLocaleString('en-US')} open ${role.spelled} jobs${role.acronym && role.level === 'c-suite' ? ` (${role.acronym})` : ''}, taken from employers’ own career sites and checked to still be open. Also listed as ${role.variants.filter((v) => v !== role.short && v !== role.spelled).slice(0, 5).join(', ')}.${paid ? ` Listings that state pay show a median of ${usd(stat.median!)} a year.` : ''}`}
       jsonLd={[
@@ -228,7 +229,6 @@ export default async function RolePage({ params }: { params: Promise<{ slug: str
         </dl>
       </Section>
 
-      <RoleNetworkBand slug={slug} short={role.short} spelled={role.spelled} />
     </TopicShell>
   )
 }
