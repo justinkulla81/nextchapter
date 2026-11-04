@@ -73,7 +73,7 @@ function description(e: EmployerPage): string {
   const p = e.profile
   if (p && p.openNow > 0) {
     const fn = p.topFunctions[0]?.function
-    parts.push(`${e.name} has ${n0(p.openNow)} open professional roles${fn ? `, most in ${fn.toLowerCase()}` : ''}`)
+    parts.push(`${e.name} has ${n0(p.openNow)} open professional ${p.openNow === 1 ? 'role' : 'roles'}${fn ? `, most in ${fn.toLowerCase()}` : ''}`)
     if (p.opened90d > 0) parts.push(`${n0(p.opened90d)} opened in the last 90 days`)
   }
   if (parts.length === 0) return `${e.name}: open roles, posted pay and hiring history from its career site, updated daily.`
@@ -125,7 +125,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   if (p && p.openNow > 0) {
     faq.push({
       q: `Is ${e.name} hiring?`,
-      a: `${e.name} has ${n0(p.openNow)} open professional roles on its career site as of the last check. ${p.opened90d > 0 ? `${n0(p.opened90d)} opened in the last 90 days and ${n0(p.opened12mo)} in the last 12 months.` : ''}${p.topFunctions[0] ? ` The most common function is ${p.topFunctions[0].function.toLowerCase()}.` : ''}`.trim(),
+      a: `${e.name} has ${n0(p.openNow)} open professional ${p.openNow === 1 ? 'role' : 'roles'} on its career site as of the last check. ${p.opened90d > 0 ? `${n0(p.opened90d)} opened in the last 90 days and ${n0(p.opened12mo)} in the last 12 months.` : ''}${p.topFunctions[0] ? ` The most common function is ${p.topFunctions[0].function.toLowerCase()}.` : ''}`.trim(),
     })
   }
   if (!p || p.openNow === 0) {
@@ -192,7 +192,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         <section aria-labelledby="hiring" className="mt-10">
           <h2 id="hiring" className={H2}>Hiring now</h2>
           <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Stat value={n0(p.openNow)} label="open professional roles" />
+            <Stat value={n0(p.openNow)} label={p.openNow === 1 ? 'open professional role' : 'open professional roles'} />
             <Stat value={n0(p.opened90d)} label="opened in the last 90 days" note={`${n0(p.opened12mo)} in the last 12 months`} />
             {p.remoteShare != null && <Stat value={pct(p.remoteShare)} label="of roles are remote" />}
             {p.states.length > 0 && <Stat value={n0(p.states.length)} label={p.states.length === 1 ? 'state hiring' : 'states hiring'} note={p.states.slice(0, 6).map(stateLabel).join(', ')} />}

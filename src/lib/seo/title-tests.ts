@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { openRolesLabel } from '@/lib/seo/templates'
 
 // A/B tests of page-template titles. Search Console only reports click rate per page, so the test splits the pages of one type in two by
 // a hash of the path: arm A keeps the current title, arm B shows the alternate. The nightly job (title-test-run.ts) compares the two arms'
@@ -29,7 +30,7 @@ export function jobTitleB(title: string, company: string, place: string | null, 
 
 /** Arm B for /employers/[slug]: leads with "Jobs at", the shape of the search, and names what the page lists. */
 export function employerTitleB(company: string, openRoles: number | null): string {
-  return openRoles && openRoles > 0 ? `Jobs at ${company}: ${openRoles.toLocaleString('en-US')} Open Roles, Pay and Hiring` : `Jobs at ${company}`
+  return openRoles && openRoles > 0 ? `Jobs at ${company}: ${openRolesLabel(openRoles)}, Pay and Hiring` : `Jobs at ${company}`
 }
 
 export interface ArmStats {
