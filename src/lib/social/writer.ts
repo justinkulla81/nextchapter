@@ -26,6 +26,8 @@ const TONE: Record<Fact['topic'], string> = {
   ranking: 'A list finding. Curious and useful, a little conversational.',
   'ai-pay': 'A pay finding about AI skills. Careful: it compares advertised pay, so keep the caveat short but present.',
   skill: 'A hiring finding about a skill. Curious and useful, a little conversational.',
+  help: 'Practical help for someone who just lost a job. Warm and plain, no cheer, no promises. Say what the state pays and who decides, then point to the page.',
+  press: 'A research finding that reporters and economists may quote. Neutral and precise, no hype, name the source in plain words and keep every figure exactly as given.',
 }
 
 const CHANNEL_VOICE: Record<string, string> = {

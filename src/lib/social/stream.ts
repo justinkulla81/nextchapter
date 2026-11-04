@@ -5,9 +5,12 @@ import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
 import { readRankingIndex } from '@/lib/rankings/store'
 import { loadSkillsMarket } from '@/lib/skills/market-server'
 import { CHANNELS, type Channel, type ChannelId } from '@/lib/social/channels'
-import { aiPayFacts, factLink, rankingFacts, skillFacts, stableShuffle, topicOrder, type Fact, type Topic } from '@/lib/social/facts'
+import { aiPayFacts, factLink, helpFacts, pressWeeklyFact, rankingFacts, skillFacts, stableShuffle, topicOrder, type Fact, type Topic } from '@/lib/social/facts'
 import { FILING_RULES, loadLayoffQueue, readLedger, writeLedger, type Ledger, type LayoffItem } from '@/lib/social/filings'
-import { baselineStories, gapMinutes, gapPassed, inWindow, nextKind, storyDue, streamDay, tickSlot, type Kind } from '@/lib/social/pace'
+import { baselineStories, gapMinutes, gapPassed, inWindow, isPressSlot, nextKind, storyDue, streamDay, tickSlot, type Kind } from '@/lib/social/pace'
+import { weekKey } from '@/lib/social/posts'
+import { withTags } from '@/lib/social/tags'
+import { wcIndexSummary } from '@/lib/reports-wc-index'
 import { LINK_TOKEN } from '@/lib/social/validate'
 import { writePost } from '@/lib/social/writer'
 
@@ -28,6 +31,10 @@ interface ChannelState {
   sent: Record<string, string>
   /** The last posts, without their links, so the writer opens the next one differently. */
   recent: string[]
+  /** The ISO week whose press post this channel has sent. */
+  pressWeek?: string
+  /** The state of the last layoff posted, so the story after it can be the help for that state. */
+  lastLayoffState?: string | null
 }
 
 export interface ChannelResult {
@@ -60,6 +67,7 @@ async function storiesFor(topic: Topic, now: Date): Promise<Fact[]> {
   if (topic === 'ranking') return rankingFacts(await readRankingIndex().catch(() => []), now)
   if (topic === 'skill') return skillFacts(await loadSkillsMarket().catch(() => null))
   if (topic === 'ai-pay') return aiPayFacts(await loadAiPayPremium().catch(() => []), now)
+  if (topic === 'help') return helpFacts(now)
   return []
 }
 
@@ -93,6 +101,11 @@ async function runChannel(c: Channel, index: number, now: Date, shared: Shared):
   const perDay = baselineStories(c.id)
   const loadStory = async (): Promise<Fact | null> => {
     if (state.storiesToday >= perDay) return null
+    // The post after a layoff is the help for the people in that state, when there is one: the reader who just saw the layoff gets the next step.
+    if (state.lastKind === 'layoff' && state.lastLayoffState) {
+      const help = helpFacts(now).find((f) => f.state === state.lastLayoffState && !state.sent[f.key])
+      if (help) return help
+    }
     for (const topic of topicOrder(state.topics, index)) {
       const pool = (await storiesFor(topic, now)).filter((x) => !state.sent[x.key])
       const f = (index === 0 ? pool : stableShuffle(pool, `${c.id}:${streamDay(now)}`))[0]
@@ -104,14 +117,18 @@ async function runChannel(c: Channel, index: number, now: Date, shared: Shared):
   let layoff: LayoffItem | null = null
   let story: Fact | null = null
   let kind: Kind | null
-  if (state.lastKind === 'layoff') kind = 'story'
+  // The weekly press post takes its slot ahead of everything else, once a week per channel.
+  const week = isPressSlot(now) && state.pressWeek !== weekKey(now) ? weekKey(now) : null
+  const press: Fact | null = week ? (() => { try { return pressWeeklyFact(wcIndexSummary(), week) } catch { return null } })() : null
+  if (press) { kind = 'story'; story = press }
+  else if (state.lastKind === 'layoff') kind = 'story'
   else {
     layoff = await loadLayoff()
     kind = nextKind({ lastKind: state.lastKind, layoffWaiting: !!layoff, storyIsDue: storyDue(now, state.storiesToday, perDay) })
   }
   if (!kind) return { ...out, skipped: 'nothing-due' }
   if (kind === 'story') {
-    story = await loadStory()
+    story ??= await loadStory()
     // No story left to post (or this channel's story cap is reached): do not hold a waiting layoff back for it.
     if (!story) { layoff ??= await loadLayoff(); kind = layoff ? 'layoff' : null }
   }
@@ -120,7 +137,7 @@ async function runChannel(c: Channel, index: number, now: Date, shared: Shared):
 
   const draft = dryRun ? ({ by: 'template', body: null, reason: 'preview' } as const) : await writePost(fact, state.recent, c.id)
   const link = factLink(fact, c.id)
-  const text = draft.body ? draft.body.replace(LINK_TOKEN, link) : fact.fallback(link, c.id === 'x')
+  const text = withTags(draft.body ? draft.body.replace(LINK_TOKEN, link) : fact.fallback(link, c.id === 'x'), fact, c.id, link)
   const base = { ...out, kind, factKey: fact.key, topic: fact.topic, writer: dryRun ? ('preview' as const) : draft.by, text }
   if (dryRun) return { ...base, status: 'would-send' }
 
@@ -131,6 +148,8 @@ async function runChannel(c: Channel, index: number, now: Date, shared: Shared):
     if (kind === 'layoff') { ledger.sent[`${(layoff as LayoffItem).id}:${c.id}`] = now.toISOString(); await writeLedger(ledger) }
     else state.sent[fact.key] = now.toISOString()
     state.lastKind = kind
+    if (kind === 'layoff') state.lastLayoffState = (layoff as LayoffItem).state
+    if (fact.topic === 'press' && week) state.pressWeek = week
     if (kind === 'story') { state.storiesToday++; state.topics = [...state.topics, fact.topic].slice(-9) }
     state.recent = [text.replace(/https?:\/\/\S+/, '').trim(), ...state.recent].slice(0, KEEP_RECENT)
     result = { ...base, status: 'sent', ref }

@@ -24,6 +24,12 @@ export const baselineStories = (channel: string): number => STORIES_BY_CHANNEL[c
  */
 export const tickSlot = (now: Date, index: number): boolean => Math.floor(now.getUTCMinutes() / 5) % 2 === index % 2
 
+/**
+ * The weekly press post goes out on Tuesday at 14:00 UTC (9am Eastern in winter, 10am in summer): mid-week, mid-morning is when
+ * reporters and researchers are reading. True for the hour, and the stream keeps a record of the week it has posted.
+ */
+export const isPressSlot = (now: Date): boolean => now.getUTCDay() === 2 && now.getUTCHours() === 14
+
 export type Kind = 'layoff' | 'story'
 
 export function inWindow(now: Date): boolean {

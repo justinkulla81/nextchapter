@@ -21,6 +21,37 @@ export function linkFacets(text: string): { index: { byteStart: number; byteEnd:
   return [{ index: { byteStart, byteEnd: byteStart + Buffer.byteLength(m[0]) }, features: [{ $type: 'app.bsky.richtext.facet#link', uri: m[0] }] }]
 }
 
+export interface MentionFacet {
+  index: { byteStart: number; byteEnd: number }
+  features: { $type: 'app.bsky.richtext.facet#mention'; did: string }[]
+}
+
+/** The account id behind a Bluesky handle, or null when it does not resolve. */
+async function resolveBlueskyHandle(handle: string): Promise<string | null> {
+  try {
+    const res = await fetch(`https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(handle)}`, { signal: AbortSignal.timeout(10_000) })
+    return res.ok ? ((await res.json()) as { did?: string }).did ?? null : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Makes each @handle in `text` a real mention (Bluesky only links a mention that carries the account id). A handle that does not
+ * resolve stays plain text, so a bad handle never stops a post.
+ */
+export async function mentionFacets(text: string, resolve: (handle: string) => Promise<string | null> = resolveBlueskyHandle): Promise<MentionFacet[]> {
+  const out: MentionFacet[] = []
+  for (const m of text.matchAll(/(^|\s)@([a-z0-9][a-z0-9.-]*\.[a-z]{2,})/gi)) {
+    const handle = m[2]
+    const did = await resolve(handle)
+    if (!did) continue
+    const byteStart = Buffer.byteLength(text.slice(0, (m.index ?? 0) + m[1].length))
+    out.push({ index: { byteStart, byteEnd: byteStart + Buffer.byteLength(`@${handle}`) }, features: [{ $type: 'app.bsky.richtext.facet#mention', did }] })
+  }
+  return out
+}
+
 /** Posts to Bluesky (free AT Protocol API; an app password, never the account password). Returns the post's at:// URI. */
 export async function postBluesky(text: string): Promise<string> {
   const base = process.env.BLUESKY_SERVICE ?? 'https://bsky.social'
@@ -38,7 +69,7 @@ export async function postBluesky(text: string): Promise<string> {
     body: JSON.stringify({
       repo: did,
       collection: 'app.bsky.feed.post',
-      record: { $type: 'app.bsky.feed.post', text, facets: linkFacets(text), createdAt: new Date().toISOString(), langs: ['en'] },
+      record: { $type: 'app.bsky.feed.post', text, facets: [...linkFacets(text), ...(await mentionFacets(text))], createdAt: new Date().toISOString(), langs: ['en'] },
     }),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   })

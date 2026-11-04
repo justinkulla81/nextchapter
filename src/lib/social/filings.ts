@@ -11,7 +11,9 @@ export const LEDGER_PATH = 'social/filings-posted.json.gz'
 const DAY_MS = 86_400_000
 /** Layoffs are news: only those from the last few days are posted, so a long backlog never posts stale items. */
 export const FILING_MAX_AGE_DAYS = 3
-/** X bills each post, so it gets only the biggest layoffs and a small daily cap (3 a day is about $18 a month at $0.20 a post). Every other channel gets every layoff. */
+/** A WARN filing must name at least this many workers to be posted. A confirmed announcement with no headcount is still posted; one that gives a smaller number is not. */
+export const MIN_WORKERS = 100
+/** X bills each post, so it gets only the biggest layoffs and a small daily cap (3 a day is about $18 a month at $0.20 a post). */
 export const FILING_RULES: Partial<Record<ChannelId, { minWorkers: number; perDay: number }>> = { x: { minWorkers: 250, perDay: 3 } }
 
 export interface Ledger {
@@ -29,6 +31,8 @@ export interface LayoffItem {
   kind: 'filing' | 'announcement'
   employer: string
   workers: number | null
+  /** U.S. state of the layoff, when it has one: the next story can be the help for that state. */
+  state: string | null
   fact: Fact
 }
 
@@ -36,8 +40,8 @@ const day = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'n
 const n = (v: number) => v.toLocaleString('en-US')
 
 /**
- * Every layoff in the window, newest first: emailed announcements (an SEC filing or two or more outlets back them; a single-outlet
- * story stays in the admin queue), then WARN filings (state records). No minimum headcount. A company with an announcement is not
+ * Every layoff of at least MIN_WORKERS in the window, newest first: emailed announcements (an SEC filing or two or more outlets back
+ * them; a single-outlet story stays in the admin queue), then WARN filings (state records). A company with an announcement is not
  * posted again from its filing, and a shutdown is not "layoffs". The caller drops what each channel already has.
  */
 export async function loadLayoffQueue(now: Date): Promise<LayoffItem[]> {
@@ -45,13 +49,16 @@ export async function loadLayoffQueue(now: Date): Promise<LayoffItem[]> {
   const since = new Date(now.getTime() - FILING_MAX_AGE_DAYS * DAY_MS)
   const [filings, announced] = await Promise.all([
     prisma.warnNotice.findMany({
-      where: { source: { not: 'MANUAL_ANNOUNCEMENT' }, dismissedAt: null, noticeDate: { gte: since, lte: now } },
+      where: { source: { not: 'MANUAL_ANNOUNCEMENT' }, dismissedAt: null, employees: { gte: MIN_WORKERS }, noticeDate: { gte: since, lte: now } },
       orderBy: [{ noticeDate: 'desc' }, { employees: 'desc' }], take: 200, select,
     }),
     // Layoffs the owner emailed in are published to the layoff RSS feed (rssPublishedAt), so they are cleared for the channels too.
     // The age counts from publication, since the story's date can be a day or two earlier.
     prisma.warnNotice.findMany({
-      where: { source: 'MANUAL_ANNOUNCEMENT', dismissedAt: null, rssPublishedAt: { gte: since, lte: now } },
+      where: {
+        source: 'MANUAL_ANNOUNCEMENT', dismissedAt: null, rssPublishedAt: { gte: since, lte: now },
+        OR: [{ employees: null }, { employees: { gte: MIN_WORKERS } }],
+      },
       orderBy: { rssPublishedAt: 'desc' }, take: 50, select,
     }),
   ])
@@ -87,6 +94,7 @@ export async function loadLayoffQueue(now: Date): Promise<LayoffItem[]> {
       kind: row.kind,
       employer: name,
       workers: row.employees,
+      state: row.state,
       fact: {
         key: `layoff-${row.id}`,
         topic: 'layoff',
