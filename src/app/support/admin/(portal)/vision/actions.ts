@@ -231,6 +231,50 @@ export async function createFeedback(formData: FormData) {
 }
 
 /**
+ * Approves a feedback point found in a meeting's notes: the quote becomes real, append-only feedback,
+ * dated the day of the meeting. Only a pending suggestion can be approved, so a double click files it once.
+ */
+export async function approveFeedbackSuggestion(suggestionId: string) {
+  const admin = await requireAdmin()
+  const s = await prisma.productFeedbackSuggestion.findUnique({ where: { id: suggestionId } })
+  if (!s || s.status !== 'PENDING') return
+  const fb = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.productFeedbackSuggestion.updateMany({
+      where: { id: s.id, status: 'PENDING' }, data: { status: 'APPROVED', decidedAt: new Date() },
+    })
+    if (claimed.count === 0) return null
+    const created = await tx.productFeedback.create({
+      data: {
+        rawText: s.rawText, source: s.source, personId: s.personId, candidateId: s.candidateId,
+        personLabel: s.personLabel, channel: 'call', receivedAt: s.meetingAt,
+      },
+    })
+    await tx.productFeedbackSuggestion.update({ where: { id: s.id }, data: { feedbackId: created.id } })
+    return created
+  })
+  if (fb) {
+    captureServerEvent(admin.email ?? 'admin', 'product_feedback_suggestion_approved', {
+      suggestionId: s.id, feedbackId: fb.id, personId: s.personId, candidateId: s.candidateId, source: s.source,
+    })
+  }
+  revalidatePath(`${V}/feedback`)
+  revalidatePath(V)
+}
+
+/** Dismisses a suggestion. The row stays, so the same point is not suggested again. */
+export async function dismissFeedbackSuggestion(suggestionId: string) {
+  const admin = await requireAdmin()
+  const done = await prisma.productFeedbackSuggestion.updateMany({
+    where: { id: suggestionId, status: 'PENDING' }, data: { status: 'DISMISSED', decidedAt: new Date() },
+  })
+  if (done.count > 0) {
+    captureServerEvent(admin.email ?? 'admin', 'product_feedback_suggestion_dismissed', { suggestionId })
+  }
+  revalidatePath(`${V}/feedback`)
+  revalidatePath(V)
+}
+
+/**
  * Attaches (or detaches) the candidate who said it.
  *
  * Kept separate from the CRM person link because most people using the

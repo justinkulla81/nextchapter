@@ -10,10 +10,12 @@ import { absoluteWebUrl } from '@/lib/http/external-url'
  * open in a new tab.
  */
 export function TrackedLink({
-  href, event, properties, className, children, ariaLabel, rel, gtagEvent,
+  href, event, properties, className, children, ariaLabel, rel, gtagEvent, onNavigate,
 }: {
   /** Also send this event to Google Analytics 4, where the ad account imports it as a conversion. */
   gtagEvent?: string
+  /** Runs on click after the event is sent (hand a value to the next page). */
+  onNavigate?: () => void
   href: string
   event: string
   properties?: Record<string, unknown>
@@ -26,6 +28,7 @@ export function TrackedLink({
   const posthog = usePostHog()
   const onClick = () => {
     posthog?.capture(event, properties)
+    try { onNavigate?.() } catch { /* never break a click */ }
     try {
       if (gtagEvent && typeof window.gtag === 'function') window.gtag('event', gtagEvent, properties)
     } catch {

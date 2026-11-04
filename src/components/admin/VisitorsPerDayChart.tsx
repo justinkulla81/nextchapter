@@ -7,6 +7,7 @@ export interface ChartSeries {
   label: string
   days: DayCount[]
   color: string // a CSS custom property reference, e.g. 'var(--color-brand)'
+  dashed?: boolean // a dashed line marks the unique count next to a solid total of the same colour
 }
 
 const WIDTH = 640
@@ -99,7 +100,7 @@ export function VisitorsPerDayChart({
           const linePath = s.days.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xFor(i)} ${yFor(d.count)}`).join(' ')
           return (
             <g key={s.label}>
-              <path d={linePath} fill="none" stroke={s.color} strokeWidth={2} />
+              <path d={linePath} fill="none" stroke={s.color} strokeWidth={2} strokeDasharray={s.dashed ? '6 4' : undefined} />
               {s.days.map((d, i) => (
                 <circle key={d.dateKey} cx={xFor(i)} cy={yFor(d.count)} r={days.length > 90 ? 1.5 : 3} fill={s.color}>
                   <title>{`${labelFor(d.dateKey)} — ${s.label}: ${d.count}`}</title>
@@ -130,7 +131,11 @@ export function VisitorsPerDayChart({
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
           {series.map((s) => (
             <div key={s.label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+              {s.dashed ? (
+                <span className="inline-block w-4 border-t-2 border-dashed" style={{ borderColor: s.color }} />
+              ) : (
+                <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+              )}
               {s.label}
             </div>
           ))}

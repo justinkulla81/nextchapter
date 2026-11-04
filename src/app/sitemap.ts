@@ -1,3 +1,4 @@
+import { EMPLOYEE_JOURNEYS } from '@/lib/journeys/employee-journeys'
 import { getPublicCatalog } from '@/lib/learning/public-catalog'
 import { CATALOG_FUNCTIONS, LEVELS, coursePath, freePath, functionLevelPageIndexable, functionLevelPath, functionPageIndexable, functionPath, levelPath, sponsorPageIndexable, sponsorSlug } from '@/lib/learning/public-catalog-shared'
 import { FILING_GUIDE_UPDATED } from '@/lib/data/state-ui-appeals'
@@ -324,6 +325,10 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/topics', EXPLAINERS_UPDATED, 'monthly', 0.6),
     ...TOPICS.map((t) => entry(`/topics/${t.slug}`, t.updated, 'monthly', 0.7)),
 
+    // Employee journeys: rights, benefits, pay and side income.
+    entry('/journeys', EMPLOYEE_JOURNEYS[0].updated, 'weekly', 0.7),
+    ...EMPLOYEE_JOURNEYS.map((j) => entry(`/journeys/${j.slug}`, j.updated, 'daily', 0.7)),
+
     // Guides.
     entry('/resources', newestGuide, 'monthly', 0.5),
     ...GUIDE_LANDING_CONTENT.map((g) => entry(`/resources/${g.slug}`, g.lastUpdated, 'yearly', 0.6)),
@@ -398,10 +403,10 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
 // The finished list is kept in the data cache (six hours, a stale copy served while it refreshes), like the other database-backed
 // sitemaps. Without this every request to /sitemap.xml rebuilt it from the database (about 2 seconds, MISS on every call): the
 // CDN header in next.config.ts is not applied to a dynamic route on Vercel.
-// v3 is the list with the AI course pages. If it cannot be built complete (the database is at its limit), the last complete list under the
+// v4 is the list with the AI course pages and the /journeys pages (a new key so the six-hour cache does not hold back new URLs). If it cannot be built complete (the database is at its limit), the last complete list under the
 // older key is served instead, so crawlers never see a short one. A failed build throws and is never cached.
-const cachedMainSitemap = cachedSitemap('main-sitemap-v3', buildSitemap)
-const previousMainSitemap = cachedSitemap('main-sitemap-v1', buildSitemap)
+const cachedMainSitemap = cachedSitemap('main-sitemap-v4', buildSitemap)
+const previousMainSitemap = cachedSitemap('main-sitemap-v3', buildSitemap)
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {

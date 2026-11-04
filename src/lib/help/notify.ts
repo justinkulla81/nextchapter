@@ -2,6 +2,7 @@ import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import type { EmailAudience } from '@/lib/email/audience-tag'
 import { prisma } from '@/lib/prisma'
+import { candidateCrmUrl } from '@/lib/crm/candidate-link'
 import { PORTAL_LABEL } from '@/lib/help/constants'
 import { HELP_REPLY_PREFIX } from '@/lib/help/inbound-address'
 import { INTAKE_FORWARD_DOMAIN } from '@/lib/recruiter/intake/constants'
@@ -52,6 +53,9 @@ const candidateName = (c: { firstName: string | null; lastName: string | null } 
 
 const clip = (s: string, n = 140) => (s.length > n ? `${s.slice(0, n - 1)}…` : s)
 
+/** The ticket page in the Help inbox. */
+export const helpTicketUrl = (requestId: string) => `${ADMIN_URL}/support/admin/help/${requestId}`
+
 /** Every message in a conversation, oldest first, for quoting under the newest. */
 async function thread(requestId: string): Promise<ThreadMessage[]> {
   const rows = await prisma.helpMessage.findMany({ where: { requestId }, orderBy: { createdAt: 'asc' }, select: { fromAdmin: true, body: true, createdAt: true } })
@@ -60,11 +64,12 @@ async function thread(requestId: string): Promise<ThreadMessage[]> {
 
 /** The internal alert: who, where, the message, and one button into the Help inbox. */
 async function alertAdmin(r: {
-  id: string; subject: string; kind: 'HELP' | 'PROBLEM'; portal: string; flaggedCrisis: boolean; contextTitle: string | null; contextPath: string | null; createdAt: Date
+  id: string; subject: string; kind: 'HELP' | 'PROBLEM'; portal: string; flaggedCrisis: boolean; contextTitle: string | null; contextPath: string | null; createdAt: Date; candidateId?: string | null
 }, who: { name: string; email: string | null; org: string | null }, body: string, isFollowUp: boolean): Promise<void> {
   const kind = r.kind === 'PROBLEM' ? 'Problem' : 'Help request'
   const where = PORTAL_LABEL[r.portal] ?? r.portal
-  const link = `${ADMIN_URL}/support/admin/help/${r.id}`
+  const link = helpTicketUrl(r.id)
+  const crmLink = await candidateCrmUrl(r.candidateId ?? null)
   const history = (await thread(r.id)).slice(0, -1)
   const page = [r.contextTitle, r.contextPath].filter(Boolean).join(' · ')
   const flag = r.flaggedCrisis ? '[Check in] ' : ''
@@ -72,16 +77,18 @@ async function alertAdmin(r: {
   const html = emailDocument({
     preheader: clip(body, 110),
     label: 'Help inbox',
-    footer: `You are getting this because you run support. <a href="${link}" style="color:#1d4e89">Open the conversation</a>.`,
+    footer: `You are getting this because you run support. <a href="${link}" style="color:#1d4e89">Open the ticket</a>${crmLink ? ` · <a href="${crmLink}" style="color:#1d4e89">Open ${escapeHtml(who.name)} in the CRM</a>` : ''}.`,
     bodyHtml: `
       ${r.flaggedCrisis ? callout('<strong>Check in first.</strong> This message uses crisis language. They were shown the 988 Suicide &amp; Crisis Lifeline when sending.', 'alert') : ''}
       <p style="margin:0 0 16px;font-size:20px;font-weight:700;line-height:1.3">${escapeHtml(title)}</p>
       ${factsHtml([['From', who.name], ['Email', who.email], ['Portal', where + (who.org ? ` · ${who.org}` : '')], ['Type', isFollowUp ? 'Follow-up' : kind], ['Page', page || null], ['Sent', stamp(new Date())]])}
       <div style="margin:0 0 20px;padding:14px 16px;background:#f7f9fb;border-left:3px solid #f4a259;border-radius:4px">${textToHtml(body, 'margin:0 0 10px;font-size:15px;line-height:1.6;color:#0f1b2b')}</div>
-      ${buttonHtml('Reply in the Help inbox', link)}`,
+      ${buttonHtml('Open the ticket and reply', link)}
+      ${crmLink ? `<p style="margin:10px 0 0;font-size:14px"><a href="${crmLink}" style="color:#1d4e89;font-weight:600">Open ${escapeHtml(who.name)} in the CRM</a></p>` : ''}
+      <p style="margin:10px 0 0;font-size:12px;color:#55606e;word-break:break-all">Ticket: <a href="${link}" style="color:#55606e">${link}</a></p>`,
     history: conversationHistoryHtml(history, who.name),
   })
-  const text = `${title}\n\n${[['From', who.name], ['Email', who.email], ['Portal', where + (who.org ? ` · ${who.org}` : '')], ['Page', page || null]].filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join('\n')}\n\n${body}\n\nReply: ${link}${conversationHistoryText(history, who.name)}`
+  const text = `${title}\n\n${[['From', who.name], ['Email', who.email], ['Portal', where + (who.org ? ` · ${who.org}` : '')], ['Page', page || null]].filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join('\n')}\n\n${body}\n\nTicket (reply here): ${link}${crmLink ? `\nCRM record: ${crmLink}` : ''}${conversationHistoryText(history, who.name)}`
   await send({ to: ADMIN_TO, subject: `${flag}${where}: ${who.name} · ${r.subject}`, html, text, audience: 'admin', ref: r.id })
 }
 
@@ -107,7 +114,8 @@ export async function notifyAdminOfHelpReply(requestId: string, body: string, fr
   const c = r.candidateId ? await prisma.candidateProfile.findUnique({ where: { id: r.candidateId }, select: { firstName: true, lastName: true, email: true } }) : null
   const who = r.candidateId ? { name: candidateName(c), email: c?.email ?? null, org: null } : { name: r.requesterName || PORTAL_LABEL[r.portal] || 'Customer', email: r.requesterEmail, org: r.requesterOrg }
   if (!mismatch) return alertAdmin(r, who, body, true)
-  const link = `${ADMIN_URL}/support/admin/help/${r.id}`
+  const link = helpTicketUrl(r.id)
+  const crmLink = await candidateCrmUrl(r.candidateId)
   const html = emailDocument({
     preheader: `A reply from ${fromEmail} was not filed.`,
     label: 'Help inbox',
@@ -115,14 +123,15 @@ export async function notifyAdminOfHelpReply(requestId: string, body: string, fr
       ${callout(`<strong>Not added to the conversation.</strong> This reply came from <strong>${escapeHtml(fromEmail)}</strong>, not from ${escapeHtml(who.email ?? 'the person who wrote in')}. Read it, then reply in the Help inbox if it is theirs.`, 'alert')}
       <p style="margin:0 0 16px;font-size:18px;font-weight:700">${escapeHtml(r.subject)}</p>
       <div style="margin:0 0 20px;padding:14px 16px;background:#f7f9fb;border-left:3px solid #f4a259;border-radius:4px">${textToHtml(body)}</div>
-      ${buttonHtml('Open the conversation', link)}`,
+      ${buttonHtml('Open the ticket', link)}
+      ${crmLink ? `<p style="margin:10px 0 0;font-size:14px"><a href="${crmLink}" style="color:#1d4e89;font-weight:600">Open ${escapeHtml(who.name)} in the CRM</a></p>` : ''}`,
   })
-  await send({ to: ADMIN_TO, subject: `Reply not filed: ${r.subject}`, html, text: `Reply from ${fromEmail} was not added (expected ${who.email ?? 'unknown'}).\n\n${body}\n\n${link}`, audience: 'admin', ref: r.id })
+  await send({ to: ADMIN_TO, subject: `Reply not filed: ${r.subject}`, html, text: `Reply from ${fromEmail} was not added (expected ${who.email ?? 'unknown'}).\n\n${body}\n\nTicket: ${link}${crmLink ? `\nCRM record: ${crmLink}` : ''}`, audience: 'admin', ref: r.id })
 }
 
 /** A reply arrived but its body could not be read (receiving key missing): tell the admin so it is not lost. */
 export async function notifyHelpReplyUnreadable(requestId: string, fromEmail: string, subject: string | null): Promise<void> {
-  const link = `${ADMIN_URL}/support/admin/help/${requestId}`
+  const link = helpTicketUrl(requestId)
   const html = emailDocument({
     preheader: `A reply from ${fromEmail} could not be read.`,
     label: 'Help inbox',

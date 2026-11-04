@@ -11,7 +11,7 @@ import {
 // Server component: the card markup renders on the server and ships no
 // JavaScript. Only the click/play/filter behaviour lives in NewsFeedClient.
 
-type Placement = 'home' | 'news'
+type Placement = 'home' | 'news' | `journey-${string}`
 
 const KIND_LABEL = Object.fromEntries(NEWS_KINDS.map((k) => [k.key, k.label])) as Record<NewsKind, string>
 

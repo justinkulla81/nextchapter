@@ -1,6 +1,8 @@
 import 'server-only'
 import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
+import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { liveBoardWhere } from '@/lib/jobs/board-shortlist'
 import { FRESH_HOURS } from '@/lib/jobs/competition'
 
@@ -40,3 +42,29 @@ export const getFreshJobsPeek = cache(
     }
   }
 )
+
+const FRESH_COUNT_TTL_SECONDS = 300
+
+const functionsOf = (primaryFunction: string | null, secondaryFunction: string | null) =>
+  [...new Set([primaryFunction, secondaryFunction].map((f) => f?.trim()).filter((f): f is string => !!f))].sort()
+
+// The same number for everyone with the same function(s): one query per function per five minutes for the
+// whole site, not one per page view. It throws on failure (never caches a quiet 0), so the caller decides what
+// a miss looks like and the failure is recorded (lib/perf/timed.ts).
+const cachedFreshCount = unstable_cache(
+  async (functions: string[]): Promise<number> => {
+    if (functions.length === 0) return 0
+    const where = liveBoardWhere({
+      createdAt: { gte: new Date(Date.now() - FRESH_HOURS * 3_600_000) },
+      targetFunction: { in: functions },
+    })
+    const count = await withStatementTimeout(prisma.exclusiveJobPosting.count({ where, take: FRESH_PEEK_COUNT_CAP + 1 }))
+    return Math.min(count, FRESH_PEEK_COUNT_CAP)
+  },
+  ['fresh-jobs-count-v1'],
+  { revalidate: FRESH_COUNT_TTL_SECONDS }
+)
+
+/** The nav badge's count of new jobs in the member's function(s). Cached five minutes per function; throws if the database does not answer. */
+export const getFreshJobsCount = (primaryFunction: string | null, secondaryFunction: string | null): Promise<number> =>
+  cachedFreshCount(functionsOf(primaryFunction, secondaryFunction))

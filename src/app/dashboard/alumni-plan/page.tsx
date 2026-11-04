@@ -37,12 +37,12 @@ const TIER_COPY: Record<
 > = {
   dtc_free: {
     name: 'Free',
-    audience: 'For candidates who want the full free foundation before deciding if they want more support.',
+    audience: 'For Members who want the full free foundation before deciding if they want more support.',
     features: ['Market Reality Report', 'Resume Studio', 'Job matching', 'Community', 'Company pages'],
   },
   dtc_resume: {
     name: 'Resume',
-    audience: 'For candidates whose search is mostly dialed in but want a professional set of eyes on the resume itself.',
+    audience: 'For Members whose search is mostly dialed in but want a professional set of eyes on the resume itself.',
     features: [
       'Everything in Free',
       'One human resume review',
@@ -53,14 +53,14 @@ const TIER_COPY: Record<
   },
   dtc_coaching_plus: {
     name: 'Coaching Plus',
-    audience: 'For candidates who want a coach in their corner once a month while they run their own search.',
+    audience: 'For Members who want a coach in their corner once a month while they run their own search.',
     features: ['1 coaching session/month', 'Resume review included', 'Priority support'],
     recommended: true,
   },
   dtc_coaching_premium: {
     name: 'Coaching Premium',
     audience:
-      'For candidates who want a named coach actively driving the search alongside them — regular sessions, real interview reps, and support through the offer.',
+      'For Members who want a named coach actively driving the search alongside them — regular sessions, real interview reps, and support through the offer.',
     features: [
       '4 coaching sessions/month',
       'Mock interviews with recorded feedback',
@@ -71,7 +71,7 @@ const TIER_COPY: Record<
   dtc_executive: {
     name: 'Executive',
     audience:
-      'For candidates who want a personal executive recruiter working their network directly, on top of everything Coaching Premium includes.',
+      'For Members who want a personal executive recruiter working their network directly, on top of everything Coaching Premium includes.',
     features: [
       'Everything in Coaching Premium',
       'Named personal executive recruiter',

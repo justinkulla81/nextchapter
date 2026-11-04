@@ -89,7 +89,7 @@ export function CoachingSettingsForm({
           <Field label="Timezone (reserved)" name="matchWeightTimezone" defaultValue={existing.matchWeightTimezone} />
           <Field label="Style (reserved)" name="matchWeightStyle" defaultValue={existing.matchWeightStyle} />
           <Field
-            label="Membership priority boost"
+            label="Alumni plan priority boost"
             name="matchWeightMembershipPriorityBoost"
             defaultValue={existing.matchWeightMembershipPriorityBoost}
             hint="Applied only to active Members with priority booking on, scaled by coach capacity headroom"

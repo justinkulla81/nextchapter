@@ -38,7 +38,7 @@ export function AdminAccessPanel({ candidateId, grants }: { candidateId: string;
   return (
     <div className="space-y-3 text-sm" style={pending ? { cursor: 'wait' } : undefined}>
       {grants.length === 0 ? (
-        <p className="text-muted-foreground">No coaching or recruiter access given. Membership access isn’t listed here.</p>
+        <p className="text-muted-foreground">No coaching or recruiter access given. Alumni plan access isn’t listed here.</p>
       ) : (
         <ul className="divide-y divide-border rounded-md border border-border">
           {grants.map((g) => (

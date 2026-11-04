@@ -57,7 +57,7 @@ export default function EmployerReferenceInviteEmail({
       <p>
         {managerName} at {managerCompany} wanted to make sure you landed well — they left you a
         reference and an invitation to NextChapter, the leading job transition platform, which is free
-        for candidates and turns a job search into a structured, coached plan.
+        to join and turns a job search into a structured, coached plan.
       </p>
       <p>
         Nothing from their reference is used or shared anywhere until you&apos;ve seen it yourself and

@@ -1,7 +1,7 @@
 import { RetuneHost } from '@/components/dashboard/RetuneMoment'
 import { CandidatePlusUnlockLoader } from '@/components/dashboard/CandidatePlusUnlockLoader'
 import type { Metadata } from 'next'
-import { accessFor } from '@/lib/access/grants'
+import { accessFor, type Access } from '@/lib/access/grants'
 import { Suspense } from 'react'
 import { CollegeBar } from '@/components/higher-ed/CollegeBar'
 import { ProgramBar } from '@/components/dashboard/ProgramBar'
@@ -26,8 +26,8 @@ import { NpsPromptLoader } from '@/components/nps/NpsPromptLoader'
 import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectResultBanner'
 import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { isInWorkMember } from '@/lib/in-work/constants'
-import { getFreshJobsPeek } from '@/lib/jobs/fresh-jobs-peek'
-import { timed } from '@/lib/perf/timed'
+import { getFreshJobsCount } from '@/lib/jobs/fresh-jobs-peek'
+import { timedWithin } from '@/lib/perf/timed'
 import { NotificationBellLoader } from '@/components/notifications/NotificationBellLoader'
 import { RedesignNav } from '@/components/dashboard/RedesignNav'
 import { RedesignParts } from '@/components/dashboard/RedesignParts'
@@ -49,6 +49,12 @@ export const metadata: Metadata = {
 // 300 is the actual ceiling on this project's plan (Hobby + Fluid Compute).
 export const maxDuration = 300
 
+const NO_PAID_ACCESS: Access = {
+  member: false,
+  coaching: { on: false, sessionsLeft: null, endsAt: null, via: null, grantId: null },
+  recruiters: { on: false, endsAt: null, via: null },
+}
+
 // Every dashboard page.tsx calls getDashboardData() again for its own data
 // (now free — see that function's cache() wrap), but the 7 queries below are
 // ONLY for nav badge counts, nothing else on the page needs them. Isolated
@@ -65,15 +71,20 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     helpRepliesWaiting,
     freshJobsCount,
     documentRequestCount,
+    access,
     profile,
   ] = await Promise.all([
-    timed('layout', 'supportNetworkUnread', profileId, getSupportNetworkUnreadCountForBadge(profileId)),
-    timed('layout', 'candidateUnread', profileId, getCandidateUnreadCount(profileId)),
-    timed('layout', 'peerUnread', profileId, getPeerUnreadCount(profileId)),
-    timed('layout', 'needsFollowUp', profileId, getNeedsFollowUpList(profileId)),
-    timed('layout', 'helpReplies', profileId, getHelpRepliesWaiting(profileId)),
-    timed('layout', 'freshJobs', profileId, getFreshJobsCountForBadge()),
-    timed('layout', 'documentRequests', profileId, countOpenRequestsForCandidate(profileId)),
+    // Every badge has a 1.5 s deadline: past it the nav renders without that badge instead of making the page wait
+    // (2026-11-04: a stalled database held every dashboard page for two minutes). A miss is recorded as ok:false.
+    timedWithin('layout', 'supportNetworkUnread', profileId, getSupportNetworkUnreadCountForBadge(profileId), 0),
+    timedWithin('layout', 'candidateUnread', profileId, getCandidateUnreadCount(profileId), 0),
+    timedWithin('layout', 'peerUnread', profileId, getPeerUnreadCount(profileId), 0),
+    timedWithin('layout', 'needsFollowUp', profileId, getNeedsFollowUpList(profileId), []),
+    timedWithin('layout', 'helpReplies', profileId, getHelpRepliesWaiting(profileId), 0),
+    timedWithin('layout', 'freshJobs', profileId, getFreshJobsCountForBadge(), 0),
+    timedWithin('layout', 'documentRequests', profileId, countOpenRequestsForCandidate(profileId), 0),
+    // If access cannot be read in time the nav shows the unpaid view for this render; the pages themselves still gate by their own check.
+    timedWithin('layout', 'access', profileId, accessFor(profileId), NO_PAID_ACCESS),
     getDashboardProfile(),
   ])
   // One badge per place. Network adds up its three live signals: people to
@@ -81,7 +92,6 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
   const messagesUnreadCount = candidateMessagesUnreadCount + peerUnreadCount
   const needsFollowUpCount = needsFollowUpList.length
 
-  const access = await accessFor(profileId)
   return (
     <>
       <RedesignNav
@@ -101,11 +111,11 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
   )
 }
 
-// New jobs in the member's field from the last 72 hours: one small query (fresh-jobs-peek.ts),
-// never the whole board. The badge is decoration: any error reads as "nothing new".
+// New jobs in the member's field from the last 72 hours: one small query (fresh-jobs-peek.ts), cached five minutes
+// per function, never the whole board. The badge is decoration: a miss reads as "nothing new" (and is recorded).
 async function getFreshJobsCountForBadge(): Promise<number> {
   const profile = await getDashboardProfile()
-  return (await getFreshJobsPeek(profile.primaryFunction, profile.secondaryFunction)).count
+  return getFreshJobsCount(profile.primaryFunction, profile.secondaryFunction)
 }
 
 // getSupportNetworkUnreadCount needs a profile field beyond just the id
