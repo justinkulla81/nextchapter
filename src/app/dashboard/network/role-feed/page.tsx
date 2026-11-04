@@ -81,12 +81,12 @@ export default async function RoleFeedPage({ searchParams }: { searchParams: Pro
             {fresh.map((t) => (
               <ListRow
                 key={t.id}
-                title={`${t.company}: ${t.role} ${t.kind === 'left' ? 'leaving' : 'named'}`}
-                why={`Filed with the SEC on ${day(t.date)}.`}
-                fact="A seat that changes often means hiring around it."
+                title={t.company}
+                why={t.summary}
+                fact={`${t.source === 'sec' ? 'Filed with the SEC' : 'Reported'} on ${day(t.date)}.`}
                 actions={
                   <>
-                    <TrackedAction variant="text" external href={t.url} event="role_feed_action_clicked" properties={{ roleSlug: role.slug, action: 'filing', company: t.company }}>See the filing</TrackedAction>
+                    <TrackedAction variant="text" external href={t.url} event="role_feed_action_clicked" properties={{ roleSlug: role.slug, action: 'filing', company: t.company }}>{t.linkLabel}</TrackedAction>
                     <TrackedAction variant="text" href={`/jobs?q=${encodeURIComponent(t.company)}`} event="role_feed_action_clicked" properties={{ roleSlug: role.slug, action: 'company_jobs', company: t.company }}>See their open jobs</TrackedAction>
                   </>
                 }
@@ -115,7 +115,7 @@ export default async function RoleFeedPage({ searchParams }: { searchParams: Pro
               <ListRow
                 key={f.slug}
                 title={f.name}
-                why={`${f.publicRoles.toLocaleString('en-US')} live searches in ${role.fn} at your level.`}
+                why={`${f.searches.toLocaleString('en-US')} live ${f.searches === 1 ? 'search' : 'searches'} in ${role.fn} at your level.`}
                 fact="Counted from its own public job postings."
                 actions={
                   <>
