@@ -48,7 +48,7 @@ export function BountyClaimForm() {
           required
           minLength={20}
           rows={4}
-          placeholder="What helped you land this role? We may feature this (with your permission) to help other candidates."
+          placeholder="What helped you land this role? We may feature this (with your permission) to help other Members."
         />
       </div>
 

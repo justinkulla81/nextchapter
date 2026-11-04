@@ -31,6 +31,14 @@ describe('audience tag helpers', () => {
     expect(withAudienceText('candidate', text)).toBe(text)
   })
 
+  it('labels the candidate audience Member, and still reads the old Candidate tag', () => {
+    expect(audienceLabel('candidate')).toBe('Member')
+    expect(withAudienceText('candidate', 'x')).toContain('NextChapter · Member')
+    expect(audienceFromContent('NextChapter · Member')).toBe('candidate')
+    expect(audienceFromContent('NextChapter · Candidate')).toBe('candidate')
+    expect(hasAudienceTag('NextChapter · Candidate')).toBe(true)
+  })
+
   it('recognises its own marker and nothing else', () => {
     expect(hasAudienceTag('NextChapter · Employer')).toBe(true)
     expect(hasAudienceTag('Sent by NextChapter')).toBe(false)
