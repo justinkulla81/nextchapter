@@ -4,6 +4,7 @@ import { decryptToken } from '@/lib/security/token-crypto'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { AUTOPOST_CREDIBILITY, AUTOPOST_MAX_LATE_MS, AUTOPOST_MIN_GAP_MS, dueForAutoPost } from './layoff-post-rules'
 import { publishDraftAsPage } from './draft-publish'
+import { runDueStoryPosting } from './story-drafts'
 import { postUrl } from './page-posting'
 
 /** Warn this many days before the connection's token lapses (LinkedIn issues no refresh token, so it has to be reconnected). */
@@ -46,8 +47,14 @@ export async function runScheduledLinkedInPosting(now = new Date()): Promise<Sch
   const connectionDaysLeft = daysLeft <= EXPIRY_WARNING_DAYS ? daysLeft : undefined
   if (connectionDaysLeft !== undefined) captureServerEvent('cron', 'linkedin_connection_expiring', { daysLeft: connectionDaysLeft })
 
+  // When no layoff draft goes out this run, an approved story whose slot has come may (story-drafts.ts, with its own gap).
+  const orStory = async (otherwise: ScheduledPostResult): Promise<ScheduledPostResult> => {
+    const s = await runDueStoryPosting(conn, now)
+    return s.status === 'posted' ? { status: 'posted', postedDraftId: s.postedDraftId, url: s.url, connectionDaysLeft } : otherwise
+  }
+
   const recent = await prisma.linkedInPostDraft.findFirst({ where: { status: 'POSTED', postedAt: { gt: new Date(now.getTime() - AUTOPOST_MIN_GAP_MS) } }, select: { id: true } })
-  if (recent) return { status: 'too-soon', connectionDaysLeft }
+  if (recent) return orStory({ status: 'too-soon', connectionDaysLeft })
 
   const candidates = await prisma.linkedInPostDraft.findMany({
     where: {
@@ -60,7 +67,7 @@ export async function runScheduledLinkedInPosting(now = new Date()): Promise<Sch
     select: { id: true, status: true, credibility: true, scheduledFor: true, postUrn: true },
   })
   const due = candidates.find((d) => dueForAutoPost(d, now))
-  if (!due) return { status: 'nothing-due', connectionDaysLeft }
+  if (!due) return orStory({ status: 'nothing-due', connectionDaysLeft })
 
   const r = await publishDraftAsPage(due.id, conn)
   if (!r.ok) {
