@@ -47,7 +47,6 @@ export default async function InterviewPrepPage() {
     <div className="space-y-8">
       <PageHeader
         title="Interviews"
-        intro="Get ready for the next one, and practice the questions that decide offers."
         action={
           <ActionLink href="#practice" kind="primary" event="interview_prep_start_clicked" props={{ hasJobDescription: !!profile.activeJobDescription, hasStory: !!narrative?.coreStatement }}>
             Start practicing

@@ -1,6 +1,7 @@
 import type { ChannelId } from '@/lib/social/channels'
 import type { Fact } from '@/lib/social/facts'
 import { textBudget } from '@/lib/social/posts'
+import { layoffHandleRegistry } from '@/lib/social/tag-handles'
 
 /**
  * Who can be tagged, and under what handle on each channel. Tags are added by code from a fact's `cites`, never written by the model,
@@ -27,6 +28,27 @@ export const HANDLES: Record<string, Handles> = {
   revelio: { name: 'Revelio Labs', bluesky: 'reveliolabs.com' },
   nber: { name: 'National Bureau of Economic Research', bluesky: 'nber.org' },
   piie: { name: 'Peterson Institute for International Economics', bluesky: 'piie.com' },
+  // State agencies (`agency:<state>`) and news outlets (`outlet:<site>`) that layoff posts may tag: see tag-handles.ts.
+  ...layoffHandleRegistry(),
+}
+
+/** The site an outlet registry key is filed under: `www.` and any subdomain dropped down to a registered site. */
+function outletKey(sourceUrl: string | null, registry: Record<string, Handles>): string | null {
+  if (!sourceUrl) return null
+  let host: string
+  try { host = new URL(sourceUrl).hostname.toLowerCase().replace(/^www\./, '') } catch { return null }
+  return Object.keys(registry).find((k) => k.startsWith('outlet:') && (host === k.slice(7) || host.endsWith(`.${k.slice(7)}`))) ?? null
+}
+
+/**
+ * Who a layoff post tags: the state agency that runs unemployment and rapid response in the layoff's state, and, when a news story
+ * is the source, that outlet. Never the employer, and never more than two accounts. A WARN filing is the state's own record, so it
+ * tags the agency only; a state or outlet with no verified handle is skipped.
+ */
+export function layoffCites(l: { state: string | null; sourceUrl: string | null; kind: 'filing' | 'announcement' }, registry: Record<string, Handles> = HANDLES): string[] {
+  const agency = l.state && registry[`agency:${l.state}`] ? [`agency:${l.state}`] : []
+  const outlet = l.kind === 'announcement' ? outletKey(l.sourceUrl, registry) : null
+  return [...(outlet ? [outlet] : []), ...agency].slice(0, 2)
 }
 
 /** The handles to tag on a channel for the organizations a fact cites. Unknown keys and channels without a handle are skipped. */

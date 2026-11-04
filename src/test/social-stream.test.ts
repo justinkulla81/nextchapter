@@ -250,3 +250,43 @@ describe('mention facets', () => {
     expect(Buffer.from(text).subarray(facets[0].index.byteStart, facets[0].index.byteEnd).toString()).toBe('@dol.gov')
   })
 })
+
+describe('layoff tags', () => {
+  it('tags the state agency on a WARN filing and never the employer', async () => {
+    const { layoffCites, tagsFor } = await import('@/lib/social/tags')
+    const cites = layoffCites({ state: 'CA', sourceUrl: null, kind: 'filing' })
+    expect(cites).toEqual(['agency:CA'])
+    expect(tagsFor(cites, 'x')).toEqual(['@CA_EDD'])
+    expect(tagsFor(cites, 'bluesky')).toEqual([])
+  })
+  it('credits the outlet on a news-sourced layoff, then the agency, at most two', async () => {
+    const { layoffCites, tagsFor } = await import('@/lib/social/tags')
+    const cites = layoffCites({ state: 'GA', sourceUrl: 'https://www.reuters.com/business/x-cuts-jobs-2026-11-03/', kind: 'announcement' })
+    expect(cites).toEqual(['outlet:reuters.com', 'agency:GA'])
+    expect(tagsFor(cites, 'bluesky')).toEqual(['@reuters.com'])
+    expect(tagsFor(cites, 'x')).toEqual(['@GeorgiaDOL'])
+    expect(layoffCites({ state: 'GA', sourceUrl: 'https://www.wsj.com/a', kind: 'filing' })).toEqual(['agency:GA'])
+  })
+  it('skips a state or outlet with no verified handle, and a malformed or unknown source', async () => {
+    const { layoffCites } = await import('@/lib/social/tags')
+    expect(layoffCites({ state: 'PA', sourceUrl: null, kind: 'filing' })).toEqual([])
+    expect(layoffCites({ state: null, sourceUrl: 'https://smallblog.example.com/post', kind: 'announcement' })).toEqual([])
+    expect(layoffCites({ state: null, sourceUrl: 'not a url', kind: 'announcement' })).toEqual([])
+  })
+  it('matches an outlet by its site, including a subdomain', async () => {
+    const { layoffCites } = await import('@/lib/social/tags')
+    expect(layoffCites({ state: null, sourceUrl: 'https://markets.businessinsider.com/news/y', kind: 'announcement' })).toEqual(['outlet:businessinsider.com'])
+    expect(layoffCites({ state: null, sourceUrl: 'https://notbusinessinsider.com/y', kind: 'announcement' })).toEqual([])
+  })
+  it('never lists a state agency that is the Governor, the state account or a Spanish-language account', async () => {
+    const { STATE_AGENCIES } = await import('@/lib/social/tag-handles')
+    for (const s of ['PA', 'DE', 'NY']) expect(STATE_AGENCIES[s]).toBeUndefined()
+    for (const h of Object.values(STATE_AGENCIES)) expect(h.x).not.toMatch(/governor|delaware_gov|enespanol/i)
+  })
+  it('tags the state agency on a help post for that state', async () => {
+    const { helpFacts } = await import('@/lib/social/facts')
+    const facts = helpFacts(new Date('2026-11-10T15:00:00Z'))
+    expect(facts.find((f) => f.state === 'TN')!.cites).toEqual(['agency:TN'])
+    expect(facts.find((f) => f.state === 'TX')!.cites).toEqual([])
+  })
+})

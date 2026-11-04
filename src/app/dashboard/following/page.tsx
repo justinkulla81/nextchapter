@@ -50,7 +50,7 @@ export default async function FollowingPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="space-y-6">
-      <PageHeader title="What you follow" intro="Companies, events and emails in one place, with the ones that need you on top." />
+      <PageHeader title="What you follow" />
       <nav aria-label="What you follow" className="flex flex-wrap gap-2">
         {TABS.map((t) => (
           <TrackedLink
@@ -125,7 +125,8 @@ async function CompaniesTab({ candidateId, sort }: { candidateId: string; sort: 
       {rows.length === 0 ? (
         <EmptyCard
           title="You do not follow any companies yet"
-          why="Follow a company and we tell you here when it posts roles that fit you or files a layoff notice."
+          why={suggestions.length === 0 && profileThin ? 'Follow a company and we tell you here when it posts roles that fit you or files a layoff notice. Fill in your city, field and industry and we start suggesting companies too.' : 'Follow a company and we tell you here when it posts roles that fit you or files a layoff notice.'}
+          action={suggestions.length === 0 && profileThin ? <SecondaryButton href="/dashboard/improve">Improve your search</SecondaryButton> : undefined}
         />
       ) : (
         sections.map((s) =>
@@ -143,9 +144,9 @@ async function CompaniesTab({ candidateId, sort }: { candidateId: string; sort: 
         )
       )}
 
-      <section aria-label="Companies we think fit you" className="space-y-2">
-        <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">We think these fit you</h2>
-        {suggestions.length > 0 ? (
+      {suggestions.length > 0 ? (
+        <section aria-label="Companies we think fit you" className="space-y-2">
+          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">We think these fit you</h2>
           <ul className="divide-y divide-border rounded-2xl border border-border">
             {suggestions.map((s) => (
               <li key={s.companyId} className="flex flex-wrap items-center justify-between gap-4 p-4">
@@ -158,15 +159,15 @@ async function CompaniesTab({ candidateId, sort }: { candidateId: string; sort: 
               </li>
             ))}
           </ul>
-        ) : (
-          <EmptyCard
-            title="No suggestions yet"
-            why={profileThin ? 'We pick companies from your city, field and industry. Fill those in and we start suggesting.' : 'Nothing new fits you right now. We look again as hiring changes.'}
-            action={profileThin ? <SecondaryButton href="/dashboard/improve">Improve your search</SecondaryButton> : undefined}
-          />
-        )}
-      </section>
-      <p className="text-sm text-muted-foreground">Suggestions come from your résumé and the city, field and industries you chose.</p>
+        </section>
+      ) : (
+        // A member who already follows companies and has nothing new to suggest sees one line, not a second empty card.
+        rows.length > 0 && profileThin && (
+          <p className="text-sm text-muted-foreground">
+            We pick companies from your city, field and industry. <Link href="/dashboard/improve" className="font-medium text-brand underline underline-offset-4">Fill those in</Link> and we start suggesting.
+          </p>
+        )
+      )}
     </div>
   )
 }
