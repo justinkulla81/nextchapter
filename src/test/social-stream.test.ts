@@ -62,7 +62,7 @@ describe('ranking facts', () => {
     const f = rankingFacts([entry('a', { scopeKind: 'state', places: 200 }), entry('b'), entry('old', { edition: '2026-08', editions: ['2026-08'] }), entry('c', { group: 'college' }), entry('d', { editions: ['2026-12', '2026-11'] })], now)
     expect(f.map((x) => x.key)).toEqual(['story-ranking-b-2026-11', 'story-ranking-a-2026-11'])
     expect(f[0].path).toBe('/rankings/b')
-    expect(f[0].lines).toContain('Number one: Austin (12.0%)')
+    expect(f[0].lines).toContain('Ranked first of 80 places: Austin (12.0%)')
   })
   it('has a template that fits Bluesky even with a long title', () => {
     const f = rankingFacts([entry('x', { title: 'The best mid-size cities in the whole country for entry-level jobs that pay above the local cost of living' })], now)[0]
@@ -288,5 +288,17 @@ describe('layoff tags', () => {
     const facts = helpFacts(new Date('2026-11-10T15:00:00Z'))
     expect(facts.find((f) => f.state === 'TN')!.cites).toEqual(['agency:TN'])
     expect(facts.find((f) => f.state === 'TX')!.cites).toEqual([])
+  })
+})
+
+describe('filler about what is or is not reported', () => {
+  const lay: Fact = { key: 'k', topic: 'layoff', lines: ['Employer: Circle', 'Share of staff: 5% (a share of staff, not a headcount)', 'Source: multiple news reports'], path: '/layoffs/company/circle', campaign: 'layoff-announcement', fallback: (l) => `Circle ${l}` }
+  it('rejects claims about missing information that the facts never made', () => {
+    for (const bad of [
+      `Circle is cutting 5% of its staff, according to multiple news reports. No further breakdown has been reported. ${LINK_TOKEN}`,
+      `Circle cuts 5% of staff per multiple news reports, and no additional detail is available. ${LINK_TOKEN}`,
+      `Circle is cutting 5% of staff, multiple news reports say. The scale is not yet clear. ${LINK_TOKEN}`,
+    ]) expect(checkDraft(bad, lay).ok).toBe(false)
+    expect(checkDraft(`Circle is cutting 5% of its staff, according to multiple news reports. ${LINK_TOKEN}`, lay)).toEqual({ ok: true })
   })
 })
