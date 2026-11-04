@@ -26,6 +26,8 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
+import type { JobSkill } from '@/lib/skills/for-job'
+import { ClaimSkills } from '@/components/skills/ClaimSkills'
 import type { JobMatch } from '@/lib/jobs/job-match-types'
 import type { SkillsFit } from '@/lib/careers/skills-fit'
 import type { OccupationExposure } from '@/lib/skills/ai-exposure'
@@ -100,6 +102,8 @@ export interface FindJobDetailProps {
   contacts?: JobContacts
   skillGap?: JobSkillGap
   skillsFit?: SkillsFit
+  /** Skills this posting names that have a skills page, to claim from "More about this job". */
+  jobSkills?: JobSkill[]
   match?: JobMatch
   explainGapsEnabled?: boolean
   insiders?: { count: number; href: string }
@@ -123,6 +127,7 @@ export function FindJobDetail({
   contacts,
   skillGap,
   skillsFit,
+  jobSkills,
   match,
   explainGapsEnabled,
   insiders,
@@ -335,6 +340,12 @@ export function FindJobDetail({
               <span className="font-medium text-foreground">Applicants, our estimate: {COMPETITION_LABEL[competition.level]}</span>
               {competition.reasons.length > 0 && ` — ${competition.reasons.join(' · ')}`}. Not an applicant count.
             </p>
+          )}
+          {jobSkills && jobSkills.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-foreground">Skills this job asks for</p>
+              <div className="mt-2"><ClaimSkills skills={jobSkills} source="job_pane" /></div>
+            </div>
           )}
           {skillsFit && <SkillsFitLine fit={skillsFit} />}
           {!match && skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}
