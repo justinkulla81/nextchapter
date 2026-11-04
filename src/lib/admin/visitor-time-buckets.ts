@@ -79,24 +79,37 @@ function trailingKeys(now: Date, steps: number, stepMs: number, keyFor: (d: Date
   return keys
 }
 
-export function perDaySeries(events: TrafficEvent[], now: Date, days: number, unique: boolean): BucketCount[] {
-  const counts = countByKey(events, etDateKey, unique)
+// The same series built from counts the database already grouped (key = ET day "YYYY-MM-DD"
+// or ET hour "YYYY-MM-DD HH"), so the page never has to load every raw event.
+export function perDaySeriesFromCounts(counts: Map<string, number>, now: Date, days: number): BucketCount[] {
   return trailingKeys(now, days, DAY_MS, etDateKey).map((key) => ({ key, count: counts.get(key) ?? 0 }))
+}
+
+export function perHourSeriesFromCounts(counts: Map<string, number>, now: Date, hours: number): BucketCount[] {
+  return trailingKeys(now, hours, HOUR_MS, etHourKey).map((key) => ({ key, count: counts.get(key) ?? 0 }))
+}
+
+export function perDaySeries(events: TrafficEvent[], now: Date, days: number, unique: boolean): BucketCount[] {
+  return perDaySeriesFromCounts(countByKey(events, etDateKey, unique), now, days)
+}
+
+/** Days from the first human page view (an ET day key) to today (ET, inclusive), at least `min`. */
+export function allTimeDayCountFromFirstDay(firstDayKey: string | null, now: Date, min = 30): number {
+  if (!firstDayKey) return min
+  const first = Date.parse(`${firstDayKey}T12:00:00Z`)
+  const last = Date.parse(`${etDateKey(now)}T12:00:00Z`)
+  return Math.max(min, Math.round((last - first) / DAY_MS) + 1)
 }
 
 /** Days from the first human page view to today (ET, inclusive), at least `min`, so "all time" starts where the data does. */
 export function allTimeDayCount(events: TrafficEvent[], now: Date, min = 30): number {
   let earliest: Date | null = null
   for (const e of humanPageViews(events)) if (!earliest || e.createdAt < earliest) earliest = e.createdAt
-  if (!earliest) return min
-  const first = Date.parse(`${etDateKey(earliest)}T12:00:00Z`)
-  const last = Date.parse(`${etDateKey(now)}T12:00:00Z`)
-  return Math.max(min, Math.round((last - first) / DAY_MS) + 1)
+  return allTimeDayCountFromFirstDay(earliest ? etDateKey(earliest) : null, now, min)
 }
 
 export function perHourSeries(events: TrafficEvent[], now: Date, hours: number, unique: boolean): BucketCount[] {
-  const counts = countByKey(events, etHourKey, unique)
-  return trailingKeys(now, hours, HOUR_MS, etHourKey).map((key) => ({ key, count: counts.get(key) ?? 0 }))
+  return perHourSeriesFromCounts(countByKey(events, etHourKey, unique), now, hours)
 }
 
 export interface AverageBucket {
@@ -108,7 +121,10 @@ export interface AverageBucket {
 // window, so a Monday that occurs five times is not inflated against a
 // Sunday that occurs four.
 export function byWeekday(events: TrafficEvent[], now: Date, windowDays: number, unique: boolean): AverageBucket[] {
-  const dayCounts = countByKey(events, etDateKey, unique)
+  return byWeekdayFromCounts(countByKey(events, etDateKey, unique), now, windowDays)
+}
+
+export function byWeekdayFromCounts(dayCounts: Map<string, number>, now: Date, windowDays: number): AverageBucket[] {
   const totals = new Array<number>(7).fill(0)
   const occurrences = new Array<number>(7).fill(0)
   for (const dateKey of trailingKeys(now, windowDays, DAY_MS, etDateKey)) {
@@ -130,7 +146,17 @@ export function byHourOfDay(
 ): AverageBucket[] {
   const wantWeekend = dayType === 'weekend'
   const isWanted = (d: Date) => etWeekdayIndex(d) >= 5 === wantWeekend
-  const counts = countByKey(events.filter((e) => isWanted(e.createdAt)), etHourKey, unique)
+  return byHourOfDayFromCounts(countByKey(events.filter((e) => isWanted(e.createdAt)), etHourKey, unique), now, windowDays, dayType)
+}
+
+export function byHourOfDayFromCounts(
+  counts: Map<string, number>,
+  now: Date,
+  windowDays: number,
+  dayType: 'weekday' | 'weekend'
+): AverageBucket[] {
+  const wantWeekend = dayType === 'weekend'
+  const isWanted = (d: Date) => etWeekdayIndex(d) >= 5 === wantWeekend
   const dateKeys = trailingKeys(now, windowDays, DAY_MS, etDateKey).filter((k) =>
     isWanted(new Date(`${k}T12:00:00-05:00`))
   )
