@@ -443,6 +443,29 @@ export const SEGMENTS: SegmentDef[] = [
     exclude: { company: /\b(construct\w*|contracting|contractors?|infrastructure)\b/i },
   },
   {
+    slug: 'foundation',
+    group: 'Education and nonprofit',
+    name: 'Foundation',
+    label: 'foundation',
+    blurb: 'Grantmaking, community and hospital foundations: program, grants, fundraising, finance and operations roles.',
+    query: 'foundation',
+    // The sector condition keeps a company that merely has the word in its name (a risk consultancy, a building supplier) out.
+    // Patient assistance foundations are a drug maker's own program, staffed in bulk; they would be most of the list.
+    rules: [{ company: /\bfoundation\b/i, sectors: ['nonprofit'] }],
+    exclude: { company: /\bpatient assistance\b/i },
+  },
+  {
+    slug: 'museum',
+    group: 'Education and nonprofit',
+    name: 'Museum',
+    label: 'museum',
+    blurb: 'Museums, zoos, aquariums, science centers and botanical gardens: curatorial, education, fundraising, visitor and operations roles.',
+    query: 'museum',
+    // "Gallery" is left out: it names shops and agencies as often as museums.
+    rules: [{ company: /\b(museums?|zoos?|zoological|aquarium|botanical gardens?|science center|planetarium)\b/i }],
+    exclude: { company: /\b(supply|supplies|pets?)\b/i },
+  },
+  {
     slug: 'education',
     group: 'Education and nonprofit',
     name: 'Education',
@@ -542,6 +565,6 @@ export const SEGMENTS_BY_BUCKET: Record<string, string[]> = {
   'Telecommunications': ['telecom'],
   'Technology & Software': ['ai', 'data-centers', 'semiconductors', 'robotics-automation'],
   'Education & EdTech': ['education'],
-  'Non-profit & Social Impact': ['nonprofits'],
+  'Non-profit & Social Impact': ['nonprofits', 'foundation', 'museum'],
   'Agriculture & Food Production': ['natural-resources'],
 }
