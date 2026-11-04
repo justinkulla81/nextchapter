@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/seo/facts'
-import { EMPLOYER_SITEMAP_SHARD_SIZE, countEmployerPages, employersInShard } from '@/lib/seo/employer-pages'
+import { EMPLOYER_PAGES_IN_SITEMAP, EMPLOYER_SITEMAP_SHARD_SIZE, countEmployerPages, employersInShard } from '@/lib/seo/employer-pages'
 import { employerSlug } from '@/lib/seo/employer-slug'
 import { cachedSitemap } from '@/lib/seo/sitemap-cache'
 
@@ -9,7 +9,7 @@ import { cachedSitemap } from '@/lib/seo/sitemap-cache'
 export const dynamic = 'force-dynamic'
 
 export async function generateSitemaps() {
-  const n = await countEmployerPages().catch(() => 0)
+  const n = EMPLOYER_PAGES_IN_SITEMAP ? await countEmployerPages().catch(() => 0) : 0
   return Array.from({ length: Math.max(1, Math.ceil(n / EMPLOYER_SITEMAP_SHARD_SIZE)) }, (_, id) => ({ id }))
 }
 
@@ -25,6 +25,8 @@ const build = cachedSitemap('employers-sitemap-v1', async (shard: number): Promi
 
 export default async function sitemap(props: { id: Promise<string> }): Promise<MetadataRoute.Sitemap> {
   const shard = Number(await props.id)
+  // Paused (employer-pages.ts): a file a crawler still has submitted reads an empty list.
+  if (!EMPLOYER_PAGES_IN_SITEMAP) return []
   try {
     return await build(shard)
   } catch (error) {

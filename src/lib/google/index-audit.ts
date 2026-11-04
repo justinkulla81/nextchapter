@@ -19,7 +19,7 @@ export interface AuditRow {
   fetchState: string
 }
 
-// "/jobs/sitemap/3.xml" -> "jobs"; "/sitemap.xml" -> "main pages".
+// "/employers/sitemap/3.xml" -> "employers"; "/sitemap.xml" -> "main pages".
 export function sitemapGroup(loc: string): string {
   const path = new URL(loc).pathname
   if (path === '/sitemap.xml') return 'main pages'
