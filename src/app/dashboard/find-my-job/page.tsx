@@ -19,6 +19,8 @@ import { CompanyWatchlistForm } from '@/components/dashboard/CompanyWatchlistFor
 import { CompanyWatchlist } from '@/components/dashboard/CompanyWatchlistList'
 import { MarkWatchlistViewedOnMount } from '@/components/dashboard/MarkWatchlistViewedOnMount'
 import { EmailSyncWatcher } from '@/components/dashboard/EmailSyncWatcher'
+import { PostingWorkWatcher } from '@/components/dashboard/PostingWorkWatcher'
+import { isPostingWorking } from '@/lib/jobs/posting-background'
 import { EmailActivitySyncButton } from '@/components/dashboard/EmailActivityControls'
 import { JobDetailsEditor } from '@/components/dashboard/JobDetailsEditor'
 import { JobUrlForm } from '@/components/dashboard/JobUrlForm'
@@ -1747,6 +1749,7 @@ async function FindMyJobBody({
             <p className="px-1 text-sm font-medium text-muted-foreground">
               {jobPostings.length} application{jobPostings.length === 1 ? '' : 's'}
             </p>
+            <PostingWorkWatcher postingIds={jobPostings.filter((j) => isPostingWorking(j.backgroundWorkAt)).map((j) => j.id)} />
             <div className="divide-y divide-border rounded-md border border-border">
             <ShowMoreList pageSize={5}>
             {jobPostings.map((posting) => {
@@ -1889,7 +1892,7 @@ async function FindMyJobBody({
                             ? 'Interview'
                             : posting.appliedAt
                               ? 'Applied'
-                              : (STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus)}
+                              : (isPostingWorking(posting.backgroundWorkAt) ? 'Working…' : (STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus))}
                     </p>
                     {helperNames.length > 0 && (
                       <p className="mt-1 truncate text-xs text-muted-foreground">
@@ -1922,7 +1925,7 @@ async function FindMyJobBody({
                         {posting.url}
                       </a>
                       <p className="text-sm text-muted-foreground">
-                        {STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus}
+                        {isPostingWorking(posting.backgroundWorkAt) ? 'Working on the fit check, prep or letter. This page updates when it is done.' : (STATUS_LABELS[posting.fetchStatus] ?? posting.fetchStatus)}
                       </p>
                       {posting.companyName && openRoles > 0 && (
                         <p className="text-xs text-muted-foreground">
