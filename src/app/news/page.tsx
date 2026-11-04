@@ -12,6 +12,7 @@ import { LayoffTracker } from '@/components/news/LayoffTracker'
 import { getNationalLaborData } from '@/lib/market/bls-national'
 import { StructuredData } from '@/components/StructuredData'
 import { FreshLinks } from '@/components/marketing/FreshLinks'
+import { EMPLOYEE_JOURNEYS } from '@/lib/journeys/employee-journeys'
 import { PullTop } from '@/components/capture/PullCta'
 
 const SITE = 'https://launchyournextchapter.com'
@@ -60,6 +61,12 @@ export default async function NewsPage() {
             <a href="/reports/white-collar-index" className="text-primary underline underline-offset-4">White-Collar Long-Search Index</a>.
           </p>
           <PullTop name="News" path="/news" />
+          <p className="mt-6 text-sm text-muted-foreground">
+            Follow a theme:{' '}
+            {EMPLOYEE_JOURNEYS.map((j, i) => (
+              <span key={j.slug}>{i > 0 && ' · '}<Link href={`/journeys/${j.slug}`} className="text-primary underline underline-offset-4">{j.label}</Link></span>
+            ))}
+          </p>
           <div className="mt-8 max-w-xl rounded-2xl border border-border bg-white p-6">
             <NewsletterSignup source="news" />
           </div>

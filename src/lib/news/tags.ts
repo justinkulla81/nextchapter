@@ -14,6 +14,11 @@ export const NEWS_TAGS = [
   { key: 'challenges', label: 'Job search challenges' },
   { key: 'stories', label: 'Stories' },
   { key: 'motivation', label: 'Motivation' },
+  // The employee-side stories behind the journey pages (/journeys): good and bad for the person at the desk.
+  { key: 'worker_rights', label: 'Your rights at work' },
+  { key: 'benefits', label: 'Benefits' },
+  { key: 'pay_and_costs', label: 'Pay and cost of living' },
+  { key: 'side_income', label: 'Side income' },
 ] as const
 
 export type NewsTagKey = (typeof NEWS_TAGS)[number]['key']

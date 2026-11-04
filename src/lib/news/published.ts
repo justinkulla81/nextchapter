@@ -103,6 +103,21 @@ export async function getPublishedNews(limit: number): Promise<NewsItemView[]> {
   }
 }
 
+/** Published News filed under one tag, newest first: the story list on a journey page. */
+export async function getPublishedNewsByTag(tag: NewsTagKey, limit: number): Promise<NewsItemView[]> {
+  try {
+    const rows = await prisma.researchLibraryItem.findMany({
+      where: { newsPublishedAt: { not: null }, newsKind: { not: null }, newsTags: { has: tag } },
+      take: 200,
+      select: SELECT,
+    })
+    return rows.sort((a, b) => shownDate(b).getTime() - shownDate(a).getTime()).slice(0, limit).map(toView)
+  } catch (e) {
+    console.error('News for a journey could not be loaded', e)
+    return []
+  }
+}
+
 /** One published item by its page address, or null — also null when it has no take. */
 export async function getNewsItemBySlug(slug: string): Promise<NewsItemView | null> {
   try {
