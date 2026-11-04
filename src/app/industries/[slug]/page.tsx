@@ -1,5 +1,4 @@
 import { fitDescription } from '@/lib/seo/templates'
-import { NetworkBand } from '@/components/community/NetworkBand'
 import { FeedLine } from '@/components/seo/FeedLine'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -51,7 +50,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
       hero={industryImage(slug)}
       capture={{ kind: 'industry', slug, label: industry.name, save: { q: industry.name, loc: '' } }}
       intro={intro}
-      afterIntro={<NetworkBand networkKey={`industry:${slug}`} kind="industry" name={industry.name} spelled={industry.name} />}
+      network={{ key: `industry:${slug}`, kind: 'industry', name: industry.name, spelled: industry.name }}
       jsonLd={[
         {
           '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${industry.name}: jobs, conferences and layoffs`, url: `${SITE_URL}${path}`,

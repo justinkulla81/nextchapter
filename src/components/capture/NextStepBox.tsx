@@ -5,37 +5,50 @@ import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { posthog } from '@/lib/posthog/client'
+import { NetworkJoinButton } from '@/components/community/NetworkJoinButton'
+import { networkCopy, type NetworkAsk } from '@/lib/community/network-copy'
+import { cn } from '@/lib/utils'
 
 /**
  * The one call to action on a public page: a navy box, one sentence, one yellow button. It replaces the banner, the mid-page strip,
  * the closing band and the footer band that used to ask the same thing four times. People who are not ready open "Not ready?" in
  * place; `extras` (the first-week-plan email, the save-this-search box) lives behind it so the box stays one ask.
  * Seekers go to the Market Reality Assessment, the same button as the home page. Organizations go to /for-organizations.
+ * On a role, function or industry page the ask is the page's own network instead ("Are you a CRO? Join the CRO network"): same
+ * box, same one button, so the page still makes one ask. The email and journey options behind "Not ready?" stay.
  */
-export function NextStepBox({ audience, slug, extras }: { audience: 'seeker' | 'org'; slug: string; extras?: ReactNode }) {
+export function NextStepBox({ audience, slug, extras, network }: { audience: 'seeker' | 'org'; slug: string; extras?: ReactNode; network?: NetworkAsk }) {
   const [open, setOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
   const org = audience === 'org'
+  const net = network && !org ? networkCopy(network.kind, network.name, network.spelled) : null
   const href = org ? '/for-organizations#contact' : `${MARKET_REALITY_START_HREF}&from=top_${slug}`
   return (
-    <section id="get-started" aria-label="Next step" className="mt-8 scroll-mt-6 rounded-3xl bg-navy p-5 text-white sm:p-7">
+    <section id="get-started" aria-label="Next step" className={cn('mt-8 scroll-mt-6 rounded-3xl bg-navy p-5 text-white sm:p-7', busy && 'cursor-wait')}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
         <div className="max-w-2xl">
-          <h2 className="text-xl font-semibold tracking-tight">{org ? 'Do you run this, hire for it or serve these people?' : 'See where you stand in the market today'}</h2>
+          <h2 className="text-xl font-semibold tracking-tight">{net ? net.headline : org ? 'Do you run this, hire for it or serve these people?' : 'See where you stand in the market today'}</h2>
           <p className="mt-1 text-sm text-white/85">
-            {org
-              ? 'Reach experienced job seekers where they already look, with your own page and your own numbers. A short call shows how.'
-              : 'Your Market Reality Assessment: a plain-language read on your odds, jobs matched to you and a weekly plan. Free. No résumé needed.'}
+            {net
+              ? net.sentence
+              : org
+                ? 'Reach experienced job seekers where they already look, with your own page and your own numbers. A short call shows how.'
+                : 'Your Market Reality Assessment: a plain-language read on your odds, jobs matched to you and a weekly plan. Free. No résumé needed.'}
           </p>
         </div>
-        <TrackedLink
-          href={href}
-          event="pull_cta_clicked"
-          properties={{ spot: 'top', audience, slug }}
-          gtagEvent="pull_cta_clicked"
-          className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95"
-        >
-          {org ? 'Talk to us' : <AssessmentCtaLabel>Get my Market Reality Assessment</AssessmentCtaLabel>}
-        </TrackedLink>
+        {net && network ? (
+          <NetworkJoinButton networkKey={network.key} kind={network.kind} name={network.name} onBusy={setBusy} />
+        ) : (
+          <TrackedLink
+            href={href}
+            event="pull_cta_clicked"
+            properties={{ spot: 'top', audience, slug }}
+            gtagEvent="pull_cta_clicked"
+            className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95"
+          >
+            {org ? 'Talk to us' : <AssessmentCtaLabel>Get my Market Reality Assessment</AssessmentCtaLabel>}
+          </TrackedLink>
+        )}
       </div>
       {extras && (
         <div className="mt-4">

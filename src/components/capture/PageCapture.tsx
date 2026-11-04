@@ -4,6 +4,7 @@ import { NextStepBox } from '@/components/capture/NextStepBox'
 import { OwnerInquiry } from '@/components/capture/OwnerInquiry'
 import { FollowTopicBox } from '@/components/capture/FollowTopicBox'
 import { isFollowable } from '@/lib/leads/topic-follow'
+import type { NetworkAsk } from '@/lib/community/network-copy'
 import { captureSource, ownerOffer, saveCopy, saveSource, type PageCaptureConfig } from '@/lib/capture/page-capture'
 
 /**
@@ -12,7 +13,7 @@ import { captureSource, ownerOffer, saveCopy, saveSource, type PageCaptureConfig
  * email save/follow box. The bottom part (`PageCaptureOwner`) is for the organization behind the page. Both are rendered by the page
  * frames (SeoPage, TopicShell) from one config, so a page opts in with a single prop.
  */
-export function PageCaptureTop({ capture }: { capture: PageCaptureConfig }) {
+export function PageCaptureTop({ capture, network }: { capture: PageCaptureConfig; network?: NetworkAsk }) {
   const source = captureSource(capture)
   const copy = saveCopy(capture)
   const body = (
@@ -32,7 +33,7 @@ export function PageCaptureTop({ capture }: { capture: PageCaptureConfig }) {
       )}
     </>
   )
-  return <NextStepBox audience="seeker" slug={capture.slug} extras={body} />
+  return <NextStepBox audience="seeker" slug={capture.slug} extras={body} network={network} />
 }
 
 export function PageCaptureOwner({ capture }: { capture: PageCaptureConfig }) {
