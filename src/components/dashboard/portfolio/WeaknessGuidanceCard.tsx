@@ -41,7 +41,7 @@ export function WeaknessGuidanceCard({
   return (
     <Card className={cn(isPending && 'cursor-wait [&_*]:cursor-wait')}>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="font-display text-lg font-semibold text-ink">
           Things to be ready to explain
         </CardTitle>
       </CardHeader>

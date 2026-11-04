@@ -78,7 +78,7 @@ export function HardQuestionsSection({
           {(Object.keys(QUESTION_LABELS) as (keyof HardQuestionAnswers)[]).map((key) => (
             <Card key={key} className="bg-off-white">
               <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">{QUESTION_LABELS[key]}</CardTitle>
+                <CardTitle className="font-display text-lg font-semibold text-ink">{QUESTION_LABELS[key]}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="whitespace-pre-line text-sm text-foreground">{hardQuestions[key]}</p>

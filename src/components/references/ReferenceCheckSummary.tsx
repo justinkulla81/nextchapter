@@ -29,7 +29,7 @@ export function ReferenceCheckSummary({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Performance summary</CardTitle>
+          <CardTitle className="font-display text-lg font-semibold text-ink">Performance summary</CardTitle>
           <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', CONFIDENCE_STYLE[confidenceTier])}>
             {completedReferenceCount} response{completedReferenceCount === 1 ? '' : 's'}
           </span>
