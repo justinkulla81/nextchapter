@@ -1,118 +1,106 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { employerSlug } from '@/lib/warn/layoff-pages'
+import { stateName } from '@/lib/seo/states'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
-import { CHANNELS, type ChannelId } from '@/lib/social/channels'
+import type { ChannelId } from '@/lib/social/channels'
+import type { Fact } from '@/lib/social/facts'
 import { announcementBasis, announcementPostText, filingPostText, isClosure, splitFilingEmployer } from '@/lib/social/posts'
-import { captureServerEvent } from '@/lib/posthog/server'
 
-const STATE_PATH = 'social/filings-posted.json.gz'
+export const LEDGER_PATH = 'social/filings-posted.json.gz'
 const DAY_MS = 86_400_000
-/** Same bar as the manual X queue (src/lib/warn/publishing-queue.ts), but only filings from the last few days: this stream is for news, not backfill. */
-export const FILING_MIN_WORKERS = 100
+/** Layoffs are news: only those from the last few days are posted, so a long backlog never posts stale items. */
 export const FILING_MAX_AGE_DAYS = 3
-/** Per run and per channel per day, so a busy day or a first run never floods a channel. */
-export const MAX_PER_RUN = 3
-export const MAX_PER_CHANNEL_PER_DAY = 8
-/** X bills each post, so it gets only the biggest filings and a small daily cap (3 a day is about $18 a month at $0.20 a post). */
+/** X bills each post, so it gets only the biggest layoffs and a small daily cap (3 a day is about $18 a month at $0.20 a post). Every other channel gets every layoff. */
 export const FILING_RULES: Partial<Record<ChannelId, { minWorkers: number; perDay: number }>> = { x: { minWorkers: 250, perDay: 3 } }
 
-interface PostedState {
+export interface Ledger {
   v: 1
   /** `<notice id>:<channel>` -> ISO time sent. */
   sent: Record<string, string>
 }
 
-export interface FilingRunResult {
-  dryRun: boolean
-  channels: ChannelId[]
-  posts: { noticeId: string; kind: 'filing' | 'announcement'; employer: string; text: string; results: { channel: ChannelId; status: 'sent' | 'would-send' | 'failed'; ref?: string; error?: string }[] }[]
+export const readLedger = async (): Promise<Ledger> => (await readJsonGz<Ledger>(STATE_BUCKET, LEDGER_PATH).catch(() => null)) ?? { v: 1, sent: {} }
+export const writeLedger = (l: Ledger) => writeJsonGz(STATE_BUCKET, LEDGER_PATH, l)
+
+export interface LayoffItem {
+  /** WarnNotice id: the ledger key. */
+  id: string
+  kind: 'filing' | 'announcement'
+  employer: string
+  workers: number | null
+  fact: Fact
 }
 
+const day = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+const n = (v: number) => v.toLocaleString('en-US')
+
 /**
- * Posts each qualifying WARN filing to every free channel that is configured, biggest first, after any emailed layoff announcement
- * that an SEC filing or two outlets back (a single-outlet story stays in the admin queue). A dry run unless SOCIAL_POSTING_ENABLED=1. X gets
- * only filings of 250+ workers, three a day at most (FILING_RULES), because it is billed per post. Each notice goes to each channel once (state
- * is saved after every send), and one channel failing never blocks the others.
+ * Every layoff in the window, newest first: emailed announcements (an SEC filing or two or more outlets back them; a single-outlet
+ * story stays in the admin queue), then WARN filings (state records). No minimum headcount. A company with an announcement is not
+ * posted again from its filing, and a shutdown is not "layoffs". The caller drops what each channel already has.
  */
-export async function runFilingPosts(now = new Date()): Promise<FilingRunResult> {
-  const dryRun = process.env.SOCIAL_POSTING_ENABLED !== '1'
-  const channels = CHANNELS.filter((c) => c.autoFilings && c.ready())
-  const result: FilingRunResult = { dryRun, channels: channels.map((c) => c.id), posts: [] }
-  if (!channels.length) return result
-
-  const state = (await readJsonGz<PostedState>(STATE_BUCKET, STATE_PATH).catch(() => null)) ?? { v: 1 as const, sent: {} }
-  const sinceDay = now.getTime() - DAY_MS
-  const sentToday = (ch: ChannelId) => Object.entries(state.sent).filter(([k, at]) => k.endsWith(`:${ch}`) && new Date(at).getTime() > sinceDay).length
-
+export async function loadLayoffQueue(now: Date): Promise<LayoffItem[]> {
   const select = { id: true, companyId: true, employer: true, employees: true, state: true, noticeDate: true, companyMatchStatus: true, layoffType: true, company: { select: { name: true } } } as const
+  const since = new Date(now.getTime() - FILING_MAX_AGE_DAYS * DAY_MS)
   const [filings, announced] = await Promise.all([
     prisma.warnNotice.findMany({
-      where: {
-        source: { not: 'MANUAL_ANNOUNCEMENT' }, dismissedAt: null, employees: { gte: FILING_MIN_WORKERS },
-        noticeDate: { gte: new Date(now.getTime() - FILING_MAX_AGE_DAYS * DAY_MS), lte: now },
-      },
-      orderBy: { employees: 'desc' }, take: 40, select,
+      where: { source: { not: 'MANUAL_ANNOUNCEMENT' }, dismissedAt: null, noticeDate: { gte: since, lte: now } },
+      orderBy: [{ noticeDate: 'desc' }, { employees: 'desc' }], take: 200, select,
     }),
-    // Layoffs the owner emailed in: published to the layoff RSS feed (rssPublishedAt), so they are cleared for the channels too.
-    // Newest first, because they are news; the age is counted from publication, since the story's date can be a day or two earlier.
+    // Layoffs the owner emailed in are published to the layoff RSS feed (rssPublishedAt), so they are cleared for the channels too.
+    // The age counts from publication, since the story's date can be a day or two earlier.
     prisma.warnNotice.findMany({
-      where: {
-        source: 'MANUAL_ANNOUNCEMENT', dismissedAt: null,
-        rssPublishedAt: { gte: new Date(now.getTime() - FILING_MAX_AGE_DAYS * DAY_MS), lte: now },
-        OR: [{ employees: null }, { employees: { gte: FILING_MIN_WORKERS } }],
-      },
-      orderBy: { rssPublishedAt: 'desc' }, take: 20, select,
+      where: { source: 'MANUAL_ANNOUNCEMENT', dismissedAt: null, rssPublishedAt: { gte: since, lte: now } },
+      orderBy: { rssPublishedAt: 'desc' }, take: 50, select,
     }),
   ])
-  const items = [...announced.map((x) => ({ ...x, kind: 'announcement' as const })), ...filings.map((x) => ({ ...x, kind: 'filing' as const }))]
-
-  // A company with an announcement in the window is not posted again from its WARN filing (Squarespace appeared as both).
   const announcedCompanies = new Set(announced.flatMap((x) => (x.companyId ? [x.companyId] : [])))
+  const out: LayoffItem[] = []
 
-  let posted = 0
-  for (const n of items) {
-    if (posted >= MAX_PER_RUN) break
-    const matchedName = n.companyMatchStatus === 'MATCHED' ? n.company?.name ?? null : null
-    const slug = employerSlug(n.employer, matchedName)
-    if (!slug || !n.noticeDate) continue
-    if (n.kind === 'filing' && n.companyId && announcedCompanies.has(n.companyId)) continue
-    if (n.kind === 'announcement' && isClosure(n.layoffType)) continue
-    // A filing's employer field can carry an address ("GEICO 3535 W Pipkin Road LAKELAND, FL"); the matched company name is clean.
-    const site = splitFilingEmployer(n.employer)
+  for (const row of [...announced.map((x) => ({ ...x, kind: 'announcement' as const })), ...filings.map((x) => ({ ...x, kind: 'filing' as const }))]) {
+    const matchedName = row.companyMatchStatus === 'MATCHED' ? row.company?.name ?? null : null
+    const slug = employerSlug(row.employer, matchedName)
+    if (!slug || !row.noticeDate) continue
+    if (row.kind === 'filing' && row.companyId && announcedCompanies.has(row.companyId)) continue
+    const sourcing = announcementBasis(row.layoffType)
+    if (row.kind === 'announcement' && (isClosure(row.layoffType) || sourcing.basis === 'unconfirmed')) continue
+    // A filing's employer field can carry an address ("GEICO 3535 W Pipkin Road LAKELAND, FL"): say the city, with the matched company name.
+    const site = splitFilingEmployer(row.employer)
     const name = matchedName ?? site.name
-    // One outlet is not enough to post a layoff; an SEC filing or two outlets is.
-    const sourcing = announcementBasis(n.layoffType)
-    if (n.kind === 'announcement' && sourcing.basis === 'unconfirmed') continue
-    const due = channels.filter((c) => {
-      const rule = FILING_RULES[c.id]
-      return !state.sent[`${n.id}:${c.id}`] && (n.employees ?? 0) >= (rule?.minWorkers ?? 0) && sentToday(c.id) < (rule?.perDay ?? MAX_PER_CHANNEL_PER_DAY)
-    })
-    if (!due.length) continue
     const path = `/layoffs/company/${slug}`
-    const row: FilingRunResult['posts'][number] = { noticeId: n.id, kind: n.kind, employer: n.employer, text: '', results: [] }
-    for (const c of due) {
-      const utm = `utm_source=${c.id}&utm_medium=social&utm_campaign=${n.kind === 'announcement' ? 'layoff-announcement' : 'warn-filing'}`
-      const shortLinks = c.id === 'x'
-      const text = n.kind === 'announcement' && sourcing.basis !== 'unconfirmed'
-        ? announcementPostText({ employer: name, state: n.state, workers: n.employees, percent: sourcing.percent, basis: sourcing.basis, path }, utm, shortLinks)
-        : filingPostText({ employer: name, state: n.state, city: site.city, workers: n.employees, date: n.noticeDate, path }, utm, shortLinks)
-      row.text = text
-      if (dryRun) { row.results.push({ channel: c.id, status: 'would-send' }); continue }
-      try {
-        const ref = await c.post(text, `${n.id}:${c.id}`)
-        state.sent[`${n.id}:${c.id}`] = now.toISOString()
-        await writeJsonGz(STATE_BUCKET, STATE_PATH, state)
-        row.results.push({ channel: c.id, status: 'sent', ref })
-        captureServerEvent('cron', 'social_post_sent', { channel: c.id, kind: n.kind, noticeId: n.id, employer: n.employer, workers: n.employees, ref })
-      } catch (e) {
-        const error = e instanceof Error ? e.message : String(e)
-        row.results.push({ channel: c.id, status: 'failed', error })
-        captureServerEvent('cron', 'social_post_failed', { channel: c.id, kind: n.kind, noticeId: n.id, error })
-      }
-    }
-    result.posts.push(row)
-    posted++
+    const where = row.state ? stateName(row.state) : null
+    const date = row.noticeDate
+
+    const lines = [
+      `Employer: ${name}`,
+      ...(site.city && where ? [`Site: ${site.city}, ${where}`] : where ? [`State: ${where}`] : []),
+      ...(row.employees ? [row.kind === 'filing' ? `Workers named in the notice: ${n(row.employees)}` : `Workers affected, as reported: ${n(row.employees)}`] : []),
+      ...(sourcing.percent ? [`Share of staff: ${sourcing.percent}% (a share of staff, not a headcount)`] : []),
+      row.kind === 'filing'
+        ? `Source: a WARN layoff notice${where ? ` filed with ${where}` : ' filed with a state'} on ${day(date)}`
+        : `Source: ${sourcing.basis === 'sec' ? 'an SEC filing' : 'multiple news reports'}`,
+      'Say nothing about how many people lose jobs beyond the figures above',
+    ]
+    out.push({
+      id: row.id,
+      kind: row.kind,
+      employer: name,
+      workers: row.employees,
+      fact: {
+        key: `layoff-${row.id}`,
+        topic: 'layoff',
+        lines,
+        path,
+        campaign: row.kind === 'announcement' ? 'layoff-announcement' : 'warn-filing',
+        fallback: (link, short) => {
+          const utm = link.split('?')[1] ?? ''
+          return row.kind === 'announcement' && sourcing.basis !== 'unconfirmed'
+            ? announcementPostText({ employer: name, state: row.state, workers: row.employees, percent: sourcing.percent, basis: sourcing.basis, path }, utm, short)
+            : filingPostText({ employer: name, state: row.state, city: site.city, workers: row.employees, date, path }, utm, short)
+        },
+      },
+    })
   }
-  return result
+  return out
 }
