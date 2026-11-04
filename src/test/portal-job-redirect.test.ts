@@ -16,8 +16,15 @@ describe('portalJobPath', () => {
     expect(portalJobPath('/jobs', true)).toBe('/dashboard/find-my-job?from=public')
     expect(portalJobPath('/jobs', false, '?q=controller')).toBeNull()
   })
+  it('sends a member from a job-title page to the portal search for that title and place', () => {
+    expect(portalJobPath('/jobs/title/financial-analyst', true)).toBe('/dashboard/find-my-job?from=public&q=financial+analyst')
+    expect(portalJobPath('/jobs/title/financial-analyst/chicago-il', true)).toBe('/dashboard/find-my-job?from=public&q=financial+analyst&loc=Chicago%2C+IL')
+    expect(portalJobPath('/jobs/title/financial-analyst/texas', true)).toBe('/dashboard/find-my-job?from=public&q=financial+analyst&loc=Texas')
+    expect(portalJobPath('/jobs/title/financial-analyst/new-york', true)).toBe('/dashboard/find-my-job?from=public&q=financial+analyst&loc=New+York')
+    expect(portalJobPath('/jobs/title/financial-analyst', false)).toBeNull()
+  })
   it('leaves the other /jobs pages alone', () => {
-    for (const p of ['/jobs/alerts', '/jobs/title/accountant', '/jobs/entry-level', '/jobs/industry/finance', `/jobs/${ID}/apply`]) {
+    for (const p of ['/jobs/alerts', '/jobs/title', '/jobs/entry-level', '/jobs/type/remote', '/jobs/industry/finance', `/jobs/${ID}/apply`]) {
       expect(portalJobPath(p, true)).toBeNull()
     }
   })
