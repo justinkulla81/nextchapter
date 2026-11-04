@@ -91,7 +91,7 @@ export function DashboardNetworkCard({
           <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
             <Bell className="size-3.5" aria-hidden />
           </span>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Follow-ups &amp; Networking</CardTitle>
+          <CardTitle className="font-display text-lg font-semibold text-ink">Follow-ups &amp; Networking</CardTitle>
         </div>
         <p className="mt-0.5 text-xs text-muted-foreground">
           People and applications waiting on a reply, plus a priority contact worth reaching out to

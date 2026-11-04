@@ -45,7 +45,7 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
               <Bell className="size-3.5" aria-hidden />
             </span>
-            <CardTitle className="text-sm font-medium text-muted-foreground">You&apos;re all caught up</CardTitle>
+            <CardTitle className="font-display text-lg font-semibold text-ink">You&apos;re all caught up</CardTitle>
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Nobody&apos;s waiting on a thank-you, follow-up, or check-in right now — we&apos;ll flag it
@@ -81,7 +81,7 @@ export function NeedsFollowUpCard({ items }: { items: NeedsFollowUpItem[] }) {
           <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
             <Bell className="size-3.5" aria-hidden />
           </span>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardTitle className="font-display text-lg font-semibold text-ink">
             Needs a follow-up ({visibleItems.length})
           </CardTitle>
         </div>
