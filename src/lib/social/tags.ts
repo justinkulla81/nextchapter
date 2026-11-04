@@ -25,6 +25,8 @@ export const HANDLES: Record<string, Handles> = {
   'federal-reserve': { name: 'Federal Reserve', bluesky: 'federalreserve.gov' },
   anthropic: { name: 'Anthropic', bluesky: 'anthropic.com' },
   revelio: { name: 'Revelio Labs', bluesky: 'reveliolabs.com' },
+  nber: { name: 'National Bureau of Economic Research', bluesky: 'nber.org' },
+  piie: { name: 'Peterson Institute for International Economics', bluesky: 'piie.com' },
 }
 
 /** The handles to tag on a channel for the organizations a fact cites. Unknown keys and channels without a handle are skipped. */
