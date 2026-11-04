@@ -18,7 +18,7 @@ export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export const LINK = 'text-brand underline underline-offset-4'
 
 /** The frame for the programmatic public pages (workforce, higher education by state, rapid response, tools). */
-export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm }: {
+export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm, boxFirst }: {
   trail: { name: string; path: string }[]
   h1: string
   lede: ReactNode
@@ -34,6 +34,8 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   hero?: string
   /** With look 'scene': every section is one quiet white panel instead of four alternating tints (the ranking pages, where the picture carries the colour). */
   calm?: boolean
+  /** Puts the next-step box under the heading instead of after the content: for hub pages so long that the box would be thousands of pixels down (the rankings hub). */
+  boxFirst?: boolean
 }) {
   const st = stateBrandFromSlug(stateSlug)
   const pull = pullContext(trail)
@@ -74,8 +76,9 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
               properties={{ kind: 'STATE', state: st.code }}
             />
           )}
+          {boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} />)}
           {body}
-          {capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} />}
+          {!boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} />)}
           {capture && <PageCaptureOwner capture={capture} />}
           {bottom}
         </div>
