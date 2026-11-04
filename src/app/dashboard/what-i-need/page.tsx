@@ -32,7 +32,7 @@ export default async function WhatINeedPage() {
         >
           ← Skills & Behavioral Assessments
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">What I Need</h1>
+        <h1 className="mt-2 font-display text-3xl leading-tight font-semibold tracking-tight text-ink">What I Need</h1>
         <p className="mt-1 text-muted-foreground">
           The work values you&apos;re not willing to trade away, ranked. This feeds your Search
           Strategy and Coaching Notes — the more current it is, the better the guidance. Retake it
@@ -42,7 +42,7 @@ export default async function WhatINeedPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">What matters to you</CardTitle>
+          <CardTitle className="font-display text-xl font-semibold text-ink">What matters to you</CardTitle>
         </CardHeader>
         <CardContent>
           <WhatINeedForm initialRatings={initialRatings} initialDomainRank={initialDomainRank} />
