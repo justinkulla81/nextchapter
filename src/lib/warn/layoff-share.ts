@@ -53,10 +53,11 @@ Justin`
 }
 
 /** The admin notice page and the LinkedIn message for a layoff, for the alert emails. */
-export function noticeShare(n: { noticeId: string; employer: string; companyName?: string | null; employees: number | null; state: string | null }): { noticePage: string; linkedin: string } {
+export function noticeShare(n: { noticeId: string; employer: string; companyName?: string | null; employees: number | null; state: string | null }): { noticePage: string; linkedin: string; candidate: string } {
   const employer = n.companyName ?? n.employer
   return {
     noticePage: `${SITE}/support/admin/crm/warn/${n.noticeId}`,
     linkedin: linkedinLayoffPost({ url: `${SITE}/layoffs/company/${employerSlug(n.employer, n.companyName ?? null)}`, employer, employees: n.employees, state: n.state, seed: n.noticeId }),
+    candidate: `Subject: ${linkedinCandidateSubject(employer)}\n\n${linkedinCandidateNote({ url: `${SITE}/layoffs/company/${employerSlug(n.employer, n.companyName ?? null)}`, employer })}`,
   }
 }
