@@ -16,7 +16,7 @@ export function CommunityLeaderboardModule({ result }: { result: BoardResult }) 
           <Trophy className="size-4 text-brand" aria-hidden />
           This week&apos;s Action Score
         </p>
-        <Link href="/dashboard/stats#leaderboards" className="text-xs font-medium text-primary underline underline-offset-4">
+        <Link href="/dashboard/stats?view=all&tab=leaderboards#leaderboards" className="text-xs font-medium text-primary underline underline-offset-4">
           See all leaderboards
         </Link>
       </div>

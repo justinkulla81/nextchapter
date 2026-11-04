@@ -153,7 +153,7 @@ export default async function PortfolioPage() {
                         View full report
                       </ActionLink>
                     )}
-                    <ActionLink href="/dashboard/stats#market-reality" kind="text" event="portfolio_report_opened" props={{ report: 'weekly_history' }}>
+                    <ActionLink href="/dashboard/stats?view=all&tab=week#market-reality" kind="text" event="portfolio_report_opened" props={{ report: 'weekly_history' }}>
                       Weekly history
                     </ActionLink>
                   </>

@@ -6,9 +6,7 @@ import { BenefitsPressureForm } from '@/components/dashboard/BenefitsPressureFor
 import { BenefitsActionPlanCard } from '@/components/dashboard/BenefitsActionPlanCard'
 import { getBenefitsActionPlanItems } from '@/lib/benefits/action-plan'
 import { isBoardReady } from '@/lib/interim-work/board-readiness'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { sideIncomeOf } from '@/lib/journey/paths'
 import { RunwayCard, type RunwayStateFacts } from '@/components/dashboard/RunwayCard'
 import { STATE_UI } from '@/lib/data/state-ui'
@@ -139,6 +137,55 @@ const TOPICS: Topic[] = [
 // keeping WIOA/budgeting/retirement/severance as the standalone topic cards.
 const ACTION_PLAN_LINK_TOPICS = ['Unemployment insurance', 'Health insurance bridge']
 
+/**
+ * The general benefits guide: where to start, then a card per topic (unemployment, health coverage, funded training, budgeting,
+ * retirement and equity, severance), and the higher education benefits network. Shared by the "full benefits guide" fold and by
+ * ?view=all, which is where a member who turned money help off can read it without being asked about pay or savings.
+ */
+function BenefitsGuide({ actionPlanLinks, cardTopics, currentJobStatus }: { actionPlanLinks: ResourceLink[]; cardTopics: Topic[]; currentJobStatus: Parameters<typeof GuideCallout>[0]['currentJobStatus'] }) {
+  return (
+    <>
+      {actionPlanLinks.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-base font-semibold text-ink">Where to start</p>
+          {actionPlanLinks.map((link) => (
+            <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium text-brand underline underline-offset-4">
+              {link.name}
+            </a>
+          ))}
+        </div>
+      )}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {cardTopics.map((topic) => (
+          <section key={topic.title} className="space-y-3 rounded-2xl border border-border p-5">
+            <h2 className="font-display text-lg font-semibold text-ink">{topic.title}</h2>
+            {topic.body.map((paragraph, i) => (
+              <p key={i} className="text-sm text-muted-foreground">{paragraph}</p>
+            ))}
+            <div className="space-y-1">
+              {topic.links.map((link) => (
+                <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium text-brand underline underline-offset-4">
+                  {link.name}
+                </a>
+              ))}
+              {topic.relatedLink && (
+                <Link href={topic.relatedLink.href} className="block text-sm font-medium text-brand underline underline-offset-4">
+                  {topic.relatedLink.label}
+                </Link>
+              )}
+            </div>
+          </section>
+        ))}
+      </div>
+      <p className="text-sm text-ink">
+        Looking for discounts on programs and degrees?{' '}
+        <Link href="/dashboard/benefits-network" className="font-medium text-brand underline underline-offset-4">See the higher education benefits network</Link>.
+      </p>
+      <GuideCallout pageSlot="benefits" currentJobStatus={currentJobStatus} />
+    </>
+  )
+}
+
 export default async function BenefitsPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
   const [profile, params] = await Promise.all([getDashboardProfile(), searchParams])
   const gate = moneyGate(profile.moneyHelp)
@@ -183,6 +230,18 @@ export default async function BenefitsPage({ searchParams }: { searchParams: Pro
     (t) => t.links
   )
   const cardTopics = topics.filter((t) => !ACTION_PLAN_LINK_TOPICS.includes(t.title))
+
+  // ?view=all is the guide on its own (docs/candidate-redesign.md: a no to money help leaves the page quiet). It used to repeat the
+  // runway card and the pressure questions, which the member had declined; those live on the main page for members who turned money help on.
+  if (fullPage) {
+    return (
+      <div className="space-y-8">
+        <SeeAllLink href="/dashboard/benefits">Back to benefits and deadlines</SeeAllLink>
+        <PageHeader title="Benefits guide" intro="General information, not financial or legal advice. Program details vary by state. Only you see this page." />
+        <BenefitsGuide actionPlanLinks={actionPlanLinks} cardTopics={cardTopics} currentJobStatus={profile.currentJobStatus} />
+      </div>
+    )
+  }
   const actionItems = getBenefitsActionPlanItems(profile.benefitsPressures)
   const completedItemIds = new Set(profile.benefitsActionPlanCompletedItems)
 
@@ -202,188 +261,63 @@ export default async function BenefitsPage({ searchParams }: { searchParams: Pro
     : null
   const weeksSinceLastJob = weeksUnemployed(profile.lastJobEndedAt, new Date())
 
-  if (!fullPage) {
-    // Benefits and deadlines in the redesign: your next steps, your runway, and the full guide behind one fold.
-    const steps = summarizeSteps(actionItems, completedItemIds)
-    const fileUrl = runwayFacts?.fileUrl ?? null
-    return (
-      <div className="space-y-8">
-        <PageHeader
-          title="Benefits and deadlines"
-          intro="The paperwork that has a date on it, in the order it matters. Private to you."
-          action={
-            fileUrl ? (
-              <ActionLink variant="primary" href={fileUrl} external event="benefits_state_site_opened" props={{ state: runwayFacts?.stateCode ?? null, source: 'benefits_header' }}>
-                Open {runwayFacts?.agencyName ?? 'your state'}’s site
-              </ActionLink>
-            ) : steps.next ? (
-              <ActionLink href="#steps" variant="primary" event="benefits_next_step_clicked" props={{ step: steps.next.id }}>
-                See your next step
-              </ActionLink>
-            ) : undefined
-          }
-        />
-
-        <Section id="steps" title={profile.benefitsPressures.length === 0 ? 'What is weighing on you?' : 'Your next steps'}>
-          {profile.benefitsPressures.length === 0 ? (
-            <BenefitsPressureForm redesign />
-          ) : actionItems.length === 0 ? (
-            <p className="text-base text-ink">No steps are open. If something changes, tell us and we will update your list.</p>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                {steps.done} of {steps.total} done. We chose these from what you told us is weighing on you.{steps.next ? ` Next: ${stepHeadline(steps.next.text)}.` : ' You have finished them all.'}
-              </p>
-              <div className="space-y-2">
-                {actionItems.slice(0, 3).map((item) => (
-                  <BenefitsActionPlanCard redesign key={item.id} item={item} completed={completedItemIds.has(item.id)} />
-                ))}
-              </div>
-              {actionItems.length > 3 && (
-                <details className="text-sm">
-                  <summary className="cursor-pointer font-medium text-brand underline underline-offset-4">Show the other {actionItems.length - 3} {actionItems.length - 3 === 1 ? 'step' : 'steps'}</summary>
-                  <div className="mt-2 space-y-2">
-                    {actionItems.slice(3).map((item) => (
-                      <BenefitsActionPlanCard redesign key={item.id} item={item} completed={completedItemIds.has(item.id)} />
-                    ))}
-                  </div>
-                </details>
-              )}
-            </div>
-          )}
-        </Section>
-
-        <RunwayCard redesign facts={runwayFacts} weeksSinceLastJob={weeksSinceLastJob} sideIncome={sideIncomeOf(profile.journeyDetails)} />
-
-        <MoreDetails summary="Show more: the full benefits guide">
-          {actionPlanLinks.length > 0 && (
-            <div className="space-y-1">
-              <p className="text-base font-semibold text-ink">Where to start</p>
-              {actionPlanLinks.map((link) => (
-                <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium text-brand underline underline-offset-4">
-                  {link.name}
-                </a>
-              ))}
-            </div>
-          )}
-          <div className="grid gap-4 sm:grid-cols-2">
-            {cardTopics.map((topic) => (
-              <section key={topic.title} className="space-y-3 rounded-2xl border border-border p-5">
-                <h2 className="font-display text-lg font-semibold text-ink">{topic.title}</h2>
-                {topic.body.map((paragraph, i) => (
-                  <p key={i} className="text-sm text-muted-foreground">{paragraph}</p>
-                ))}
-                <div className="space-y-1">
-                  {topic.links.map((link) => (
-                    <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium text-brand underline underline-offset-4">
-                      {link.name}
-                    </a>
-                  ))}
-                  {topic.relatedLink && (
-                    <Link href={topic.relatedLink.href} className="block text-sm font-medium text-brand underline underline-offset-4">
-                      {topic.relatedLink.label}
-                    </Link>
-                  )}
-                </div>
-              </section>
-            ))}
-          </div>
-          <p className="text-sm text-ink">
-            Looking for discounts on programs and degrees?{' '}
-            <Link href="/dashboard/benefits-network" className="font-medium text-brand underline underline-offset-4">See the higher education benefits network</Link>.
-          </p>
-          <GuideCallout pageSlot="benefits" currentJobStatus={profile.currentJobStatus} />
-        </MoreDetails>
-
-        <p className="text-sm text-muted-foreground">General information, not financial or legal advice. Rules differ by state. Only you see this page. <Link href="/dashboard/money-help" className="font-medium text-brand underline underline-offset-4">Money help settings</Link></p>
-      </div>
-    )
-  }
-
+  // Benefits and deadlines in the redesign: your next steps, your runway, and the full guide behind one fold.
+  const steps = summarizeSteps(actionItems, completedItemIds)
+  const fileUrl = runwayFacts?.fileUrl ?? null
   return (
     <div className="space-y-8">
-      <SeeAllLink href="/dashboard/benefits">Back to benefits and deadlines</SeeAllLink>
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Benefits &amp; Financial Bridge</h1>
-        <p className="mt-1 text-muted-foreground">
-          Practical starting points for the money side of a job search — unemployment, health
-          coverage, funded training, and budgeting. General information, not personalized financial
-          or legal advice; program details vary by state.
-        </p>
-        <PageHeaderBoxes pageKey="benefits" candidateId={profile.id} />
-      </div>
+      <PageHeader
+        title="Benefits and deadlines"
+        intro="The paperwork that has a date on it, in the order it matters. Private to you."
+        action={
+          fileUrl ? (
+            <ActionLink variant="primary" href={fileUrl} external event="benefits_state_site_opened" props={{ state: runwayFacts?.stateCode ?? null, source: 'benefits_header' }}>
+              Open {runwayFacts?.agencyName ?? 'your state'}’s site
+            </ActionLink>
+          ) : steps.next ? (
+            <ActionLink href="#steps" variant="primary" event="benefits_next_step_clicked" props={{ step: steps.next.id }}>
+              See your next step
+            </ActionLink>
+          ) : undefined
+        }
+      />
 
-      <RunwayCard facts={runwayFacts} weeksSinceLastJob={weeksSinceLastJob} sideIncome={sideIncomeOf(profile.journeyDetails)} />
-
-      {profile.benefitsPressures.length === 0 ? (
-        <BenefitsPressureForm />
-      ) : (
-        <>
-          {actionItems.length > 0 && (
-            <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
-              <h2 className="text-sm font-medium text-muted-foreground">Your action plan</h2>
-              <div className="space-y-2">
-                {actionItems.map((item) => (
-                  <BenefitsActionPlanCard key={item.id} item={item} completed={completedItemIds.has(item.id)} />
-                ))}
-              </div>
-              <div className="space-y-1 border-t border-border pt-3">
-                {actionPlanLinks.map((link) => (
-                  <a
-                    key={link.url}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-sm text-primary underline underline-offset-4"
-                  >
-                    {link.name} →
-                  </a>
-                ))}
-              </div>
+      <Section id="steps" title={profile.benefitsPressures.length === 0 ? 'What is weighing on you?' : 'Your next steps'}>
+        {profile.benefitsPressures.length === 0 ? (
+          <BenefitsPressureForm redesign />
+        ) : actionItems.length === 0 ? (
+          <p className="text-base text-ink">No steps are open. If something changes, tell us and we will update your list.</p>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {steps.done} of {steps.total} done. We chose these from what you told us is weighing on you.{steps.next ? ` Next: ${stepHeadline(steps.next.text)}.` : ' You have finished them all.'}
+            </p>
+            <div className="space-y-2">
+              {actionItems.slice(0, 3).map((item) => (
+                <BenefitsActionPlanCard redesign key={item.id} item={item} completed={completedItemIds.has(item.id)} />
+              ))}
             </div>
-          )}
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {cardTopics.map((topic) => (
-              <Card key={topic.title}>
-                <CardHeader>
-                  <CardTitle className="text-base">{topic.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {topic.body.map((paragraph, i) => (
-                    <p key={i} className="text-sm text-muted-foreground">
-                      {paragraph}
-                    </p>
+            {actionItems.length > 3 && (
+              <details className="text-sm">
+                <summary className="cursor-pointer font-medium text-brand underline underline-offset-4">Show the other {actionItems.length - 3} {actionItems.length - 3 === 1 ? 'step' : 'steps'}</summary>
+                <div className="mt-2 space-y-2">
+                  {actionItems.slice(3).map((item) => (
+                    <BenefitsActionPlanCard redesign key={item.id} item={item} completed={completedItemIds.has(item.id)} />
                   ))}
-                  <div className="space-y-1 pt-1">
-                    {topic.links.map((link) => (
-                      <a
-                        key={link.url}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block text-sm text-primary underline underline-offset-4"
-                      >
-                        {link.name} →
-                      </a>
-                    ))}
-                    {topic.relatedLink && (
-                      <Link
-                        href={topic.relatedLink.href}
-                        className="block text-sm text-primary underline underline-offset-4"
-                      >
-                        {topic.relatedLink.label}
-                      </Link>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              </details>
+            )}
           </div>
-        </>
-      )}
+        )}
+      </Section>
 
-      <GuideCallout pageSlot="benefits" currentJobStatus={profile.currentJobStatus} />
+      <RunwayCard redesign facts={runwayFacts} weeksSinceLastJob={weeksSinceLastJob} sideIncome={sideIncomeOf(profile.journeyDetails)} />
+
+      <MoreDetails summary="Show more: the full benefits guide">
+        <BenefitsGuide actionPlanLinks={actionPlanLinks} cardTopics={cardTopics} currentJobStatus={profile.currentJobStatus} />
+      </MoreDetails>
+
+      <p className="text-sm text-muted-foreground">General information, not financial or legal advice. Rules differ by state. Only you see this page. <Link href="/dashboard/money-help" className="font-medium text-brand underline underline-offset-4">Money help settings</Link></p>
     </div>
   )
 }
