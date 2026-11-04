@@ -15,7 +15,7 @@ const JOBS = [
 
 const verdictTone = (v: string) => (v === 'Worth a look' ? 'text-muted-foreground' : 'text-success')
 
-function JobList() {
+export function JobList() {
   return (
     <ul className="divide-y divide-border rounded-2xl border border-border bg-white" aria-label="Jobs">
       {JOBS.map((j, i) => (
@@ -44,7 +44,7 @@ function Factor({ state, label, note }: { state: 'match' | 'gap' | 'unknown'; la
   )
 }
 
-function JobDetail() {
+export function JobDetail() {
   return (
     <article className="space-y-7 rounded-2xl border border-border bg-white p-7" aria-label="Chief Financial Officer at Arsenault">
       <header className="space-y-3">
