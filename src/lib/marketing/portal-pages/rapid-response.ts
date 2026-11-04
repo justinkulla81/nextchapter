@@ -67,7 +67,7 @@ export const RAPID_RESPONSE: PortalPageDef = {
       },
       {
         q: 'What do the workers pay?',
-        a: 'Job seekers use the core job search tools without paying. Membership and coaching are optional for them.',
+        a: 'Job seekers use the core job search tools without paying. The Alumni plan and coaching are optional for them.',
       },
     ],
     finalCta: {

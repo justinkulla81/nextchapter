@@ -94,7 +94,7 @@ Note: Personalize is no longer a place in the redesign: its pieces are the first
 | https://launchyournextchapter.com/dashboard/recruiter-report | What recruiters see | Menu: Personalize, For recruiters |
 | https://launchyournextchapter.com/dashboard/privacy | Privacy, your journey, recruiter opt-in, delete account | Only a link inside For recruiters, and many others |
 | https://launchyournextchapter.com/dashboard/documents | Documents your coach requests | Menu: Personalize, Documents |
-| https://launchyournextchapter.com/dashboard/membership | Membership and plans | Menu: Personalize, Membership |
+| https://launchyournextchapter.com/dashboard/alumni-plan | Alumni plan and plans | Menu: Personalize, Membership |
 
 ## Help
 
