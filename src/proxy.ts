@@ -8,6 +8,7 @@ import { CUSTOMER_SUBDOMAINS_ON, customerSlugForHost } from '@/lib/organizations
 import { pausedPrefixes } from '@/lib/paused-pages'
 import { HOME_AB_COOKIE, HOME_AB_MAX_AGE_SECONDS, HOME_AB_VARIANT_PATH, decideHomeVariant } from '@/lib/home-ab'
 import { AFTER_LAYOFF_AB_COOKIE, AFTER_LAYOFF_AB_MAX_AGE_SECONDS, AFTER_LAYOFF_PATH, AFTER_LAYOFF_VARIANT_PATH, decideAfterLayoffVariant } from '@/lib/after-layoff-ab'
+import { portalJobPath } from '@/lib/jobs/portal-job-redirect'
 import { SERVER_COOKIES_SECURE } from '@/lib/supabase/cookie-options'
 import { MAIN_SITE_SEGMENTS, ORG_SUBDOMAINS_ON, mainOrigin, orgKindForHost, orgOrigin } from '@/lib/org-hosts'
 
@@ -99,6 +100,12 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const portalHost = portalHostFor(host)
   if (portalHost && portalHostOn(portalHost)) return routePortalHost(request, portalHost, pathname)
   if (!portalHost && !orgKindForHost(host) && host !== ADMIN_HOST) {
+    // Main site: a signed-in member on a public job page goes to the same job in the portal (src/lib/jobs/portal-job-redirect.ts).
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const hasSession = request.cookies.getAll().some((c) => c.name.startsWith('sb-') && c.name.includes('auth-token'))
+      const inPortal = portalJobPath(pathname, hasSession)
+      if (inPortal) return NextResponse.redirect(new URL(inPortal, request.url), 307)
+    }
     // Main site: a portal that has its own host now lives there.
     const moved = hostForAppPath(pathname)
     if (moved) return NextResponse.redirect(`${portalOrigin(moved)}${publicPathFor(moved, pathname)}${request.nextUrl.search}`, 307)
