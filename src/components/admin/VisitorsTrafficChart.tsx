@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { VisitorsPerDayChart, type ChartSeries } from './VisitorsPerDayChart'
-import { useSharedTrafficRange, type TrafficRange } from './VisitorsActivityRange'
+import { SUMMARY_CHART, useSharedTrafficRange, type TrafficRange } from './VisitorsActivityRange'
 
 export type { TrafficRange }
 
@@ -39,12 +39,12 @@ function formatHour(key: string): string {
 }
 
 // Adjacent buttons switch the window. Every range is computed on the server, so switching is instant and does not
-// reload the page. Inside a TrafficRangeProvider the choice is shared with the count at the top of the page.
+// reload the page. Inside a TrafficRangeProvider the choice is remembered and shared with the count at the top of the page.
 export function VisitorsTrafficChart({ data, allTimeTruncated = false }: { data: Record<TrafficRange, RangeSeries>; allTimeTruncated?: boolean }) {
   const shared = useSharedTrafficRange()
   const [localRange, setLocalRange] = useState<TrafficRange>('30d')
-  const range = shared?.range ?? localRange
-  const setRange = shared?.setRange ?? setLocalRange
+  const range = shared ? shared.rangeFor(SUMMARY_CHART) : localRange
+  const setRange = (r: TrafficRange) => (shared ? shared.setRangeFor(SUMMARY_CHART, r) : setLocalRange(r))
   const current = RANGES.find((r) => r.value === range)!
   const series: ChartSeries[] = [
     { label: 'Human page views', days: data[range].pageViews.map((d) => ({ dateKey: d.key, count: d.count })), color: 'var(--color-brand)' },
@@ -53,7 +53,7 @@ export function VisitorsTrafficChart({ data, allTimeTruncated = false }: { data:
 
   function choose(next: TrafficRange) {
     if (next === range) return
-    posthog.capture('admin_visitors_chart_range_changed', { range: next, previous: range })
+    posthog.capture('admin_visitors_chart_range_changed', { range: next, previous: range, chart: 'traffic' })
     setRange(next)
   }
 

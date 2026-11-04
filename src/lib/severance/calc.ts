@@ -108,6 +108,14 @@ export const TREATMENT_LABEL: Record<Exclude<StateTreatment, null>, string> = {
   not_deductible: 'Not deducted',
 }
 
+/** Completes "Severance ...": for a lead sentence or a search-result description. */
+export const TREATMENT_PHRASE: Record<Exclude<StateTreatment, null>, string> = {
+  reduces: 'reduces your weekly benefit',
+  disqualifies: 'can make you ineligible for the weeks it covers',
+  depends: 'depends on how it is paid',
+  not_deductible: 'is not deducted from your benefit',
+}
+
 /** A state-count sentence fragment per treatment: "17 states reduce your benefit". */
 export const TREATMENT_VERB: Record<Exclude<StateTreatment, null>, string> = {
   not_deductible: 'do not deduct it',

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getSkillClaims, setSkillClaim } from '@/app/skills/claim-actions'
 import type { ClaimKind } from '@/lib/skills/claim'
 import { cn } from '@/lib/utils'
+import { TrackedLink } from '@/components/marketing/TrackedLink'
 
 export interface ClaimableSkill { slug: string; name: string }
 
@@ -16,6 +17,8 @@ export function ClaimSkills({ skills, source, layout = 'rows' }: { skills: Claim
   const [claims, setClaims] = useState<Record<string, ClaimKind>>({})
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
+  // The skill the member just claimed, so the next step shows under the control.
+  const [last, setLast] = useState<{ slug: string; name: string; kind: ClaimKind } | null>(null)
   const [, start] = useTransition()
   const key = skills.map((s) => s.slug).join(',')
 
@@ -35,6 +38,7 @@ export function ClaimSkills({ skills, source, layout = 'rows' }: { skills: Claim
       setBusy(null)
       if (!r.ok) return setError(r.error)
       setClaims((c) => { const n = { ...c }; if (r.claim) n[slug] = r.claim; else delete n[slug]; return n })
+      setLast(r.claim ? { slug, name: skills.find((x) => x.slug === slug)?.name ?? slug, kind: r.claim } : null)
       if (r.next) router.push(r.next)
     })
   }
@@ -74,6 +78,19 @@ export function ClaimSkills({ skills, source, layout = 'rows' }: { skills: Claim
             </li>
           ))}
         </ul>
+      )}
+      {last && claims[last.slug] === last.kind && (
+        <p role="status" className="mt-2 text-sm text-ink">
+          {last.kind === 'build' ? `${last.name} is on your list of skills to build. ` : `${last.name} is on your profile. `}
+          <TrackedLink
+            href={last.kind === 'build' ? '/dashboard/learning' : '/dashboard/improve'}
+            event="skill_claim_next_clicked"
+            properties={{ skillSlug: last.slug, kind: last.kind, source, destination: last.kind === 'build' ? 'learning' : 'improve' }}
+            className="font-medium text-brand underline underline-offset-4"
+          >
+            {last.kind === 'build' ? 'Find a course for it' : 'Improve your search'}
+          </TrackedLink>
+        </p>
       )}
       {error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}
     </div>

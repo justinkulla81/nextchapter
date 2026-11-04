@@ -621,6 +621,7 @@ export default async function AdminVisitorActivityPage({
         <VisitorsTrafficChart data={trafficData} allTimeTruncated={false} />
       </div>
 
+      <div className="grid gap-4 lg:grid-cols-2">
       <div className="rounded-lg border border-border p-4">
         <h2 className="text-sm font-medium text-foreground">Portal use: candidates and B2B</h2>
         <p className="mb-3 text-xs text-muted-foreground">
@@ -635,6 +636,7 @@ export default async function AdminVisitorActivityPage({
           Visits that arrived from a social network (LinkedIn counted on its own line, not in Social media), or from an email: a tracked link in an email we sent, a utm_source of email, or a web mail referrer. Mail apps that hide the referrer on an untagged link show as Direct and are not counted here.
         </p>
         <VisitorsSegmentChart chart="social_linkedin_email" lines={sourceLines} emptyMessage="No visits from these sources in this window yet." />
+      </div>
       </div>
       </TrafficRangeProvider>
 

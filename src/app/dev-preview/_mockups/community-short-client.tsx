@@ -25,7 +25,7 @@ export function CommunityShortClient({ feed, composer, banner }: { feed: ReactNo
       <PageHeader title="Industry and function" />
       <NetworkParts current="industry" />
 
-      <NeedsYou>
+      <NeedsYou page="preview">
         {banner}
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-muted/60 p-5">
           <p className="max-w-xl text-base text-ink">“You are doing the right things. Keep going.” <span className="text-muted-foreground">from Alex</span></p>

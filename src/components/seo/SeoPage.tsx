@@ -19,7 +19,7 @@ export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export const LINK = 'text-brand underline underline-offset-4'
 
 /** The frame for the programmatic public pages (workforce, higher education by state, rapid response, tools). */
-export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm, boxFirst, ask }: {
+export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm, boxFirst, brand, ask }: {
   trail: { name: string; path: string }[]
   h1: string
   lede: ReactNode
@@ -37,6 +37,8 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   calm?: boolean
   /** Puts the next-step box under the heading instead of after the content: for hub pages so long that the box would be thousands of pixels down (the rankings hub). */
   boxFirst?: boolean
+  /** The page's organization colors the heading panel: its color as the background and the readable text color on it (a firm's page). */
+  brand?: { color: string; ink: string }
   /** A journey page words the next-step box itself and hands the visitor's situation to onboarding. */
   ask?: JourneyAsk
 }) {
@@ -50,18 +52,18 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
       <PublicSiteHeader />
       <main className="flex-1 bg-off-white py-8" data-look={look} data-calm={calm ? '' : undefined}>
         <div className="mx-auto max-w-6xl px-6">
-          <div className={look === 'audience' ? 'rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun p-5 sm:p-7' : look === 'scene' && hero ? 'overflow-hidden rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun md:grid md:grid-cols-[1.15fr_1fr]' : undefined}>
+          <div style={brand ? { backgroundColor: brand.color, color: brand.ink } : undefined} className={brand ? 'rounded-3xl p-5 sm:p-7' : look === 'audience' ? 'rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun p-5 sm:p-7' : look === 'scene' && hero ? 'overflow-hidden rounded-3xl bg-gradient-to-br from-tint-sky via-white to-tint-sun md:grid md:grid-cols-[1.15fr_1fr]' : undefined}>
           <div className={look === 'scene' && hero ? 'p-5 sm:p-7' : undefined}>
-          <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
+          <nav aria-label="Breadcrumb" className={brand ? 'text-xs opacity-80' : 'text-xs text-muted-foreground'}>
             {trail.map((t, i) => (
               <span key={t.path}>
                 {i > 0 && <span aria-hidden> › </span>}
-                {i < trail.length - 1 ? <Link href={t.path} className="hover:text-foreground">{t.name}</Link> : <span className="text-foreground">{t.name}</span>}
+                {i < trail.length - 1 ? <Link href={t.path} className={brand ? 'underline underline-offset-2' : 'hover:text-foreground'}>{t.name}</Link> : <span className={brand ? undefined : 'text-foreground'}>{t.name}</span>}
               </span>
             ))}
           </nav>
-          <h1 className={`mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl ${look === 'audience' ? 'font-display [text-wrap:balance]' : ''}`}>{h1}</h1>
-          <div className="mt-4 max-w-3xl text-lg text-muted-foreground">{lede}</div>
+          <h1 className={`mt-3 text-3xl font-bold tracking-tight sm:text-4xl ${brand ? '' : 'text-navy'} ${look === 'audience' ? 'font-display [text-wrap:balance]' : ''}`}>{h1}</h1>
+          <div className={`mt-4 max-w-3xl text-lg ${brand ? '' : 'text-muted-foreground'}`}>{lede}</div>
           </div>
           {look === 'scene' && hero && (
             <div className="relative aspect-[16/7] md:aspect-auto md:min-h-[260px]">

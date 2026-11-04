@@ -1514,7 +1514,7 @@ async function FindMyJobBody({
   }
 
   const prompts = (
-    <NeedsYou>
+    <NeedsYou page="find_my_job">
       <ReconnectBanner candidateId={profile.id} returnTo="/dashboard/find-my-job" />
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} returnTo="/dashboard/find-my-job" />
     </NeedsYou>

@@ -22,8 +22,10 @@ function pick(...candidates: string[]): string {
 
 /** /unemployment-benefits/[state] */
 export const unemploymentStateSeo = (state: string) => ({
-  title: pick(`${state} Unemployment Benefits: Amount and How to File`, `${state} Unemployment Benefits and How to File`, `${state} Unemployment Benefits`),
-  h1: `${state} unemployment benefits: weekly amount, weeks and how to file`,
+  // Severance is in the title because "unemployment and severance in <state>" is a question this page answers with the state's own
+  // rule; "[state] unemployment benefits" itself stays the first words. "How to file" stays in the H1.
+  title: pick(`${state} Unemployment Benefits and Severance Pay Rules`, `${state} Unemployment Benefits and Severance`, `${state} Unemployment Benefits`),
+  h1: `${state} unemployment benefits and severance: amount, weeks and how to file`,
 })
 
 /** /layoffs/[state] */

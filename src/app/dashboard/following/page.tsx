@@ -19,6 +19,9 @@ import { StatusSelect } from '@/components/conferences/StatusSelect'
 import { FollowCompanyForm } from '@/components/following/FollowCompanyForm'
 import { SuggestionActions } from '@/components/following/SuggestionActions'
 import { UnfollowButton } from '@/components/following/UnfollowButton'
+import { UnwatchSkillButton } from '@/components/following/UnwatchSkillButton'
+import { loadSkillsMarket } from '@/lib/skills/market-server'
+import { findSkill } from '@/lib/skills/market'
 import { setStatusAction } from '@/app/dashboard/conferences/actions'
 import { groupMemberships } from '@/lib/following/build'
 import { getAlumniNetworkOptions } from '@/lib/community/alumni-networks'
@@ -28,25 +31,26 @@ import { EMAIL_TOPICS, type EmailTopicField } from '@/lib/constants/notification
 
 export const metadata: Metadata = { title: 'What you follow' }
 
-type Tab = 'companies' | 'events' | 'groups' | 'emails'
-const TABS: { key: Tab; label: string }[] = [{ key: 'companies', label: 'Companies' }, { key: 'events', label: 'Events' }, { key: 'groups', label: 'Groups' }, { key: 'emails', label: 'Email updates' }]
+type Tab = 'companies' | 'skills' | 'events' | 'groups' | 'emails'
+const TABS: { key: Tab; label: string }[] = [{ key: 'companies', label: 'Companies' }, { key: 'skills', label: 'Skills' }, { key: 'events', label: 'Events' }, { key: 'groups', label: 'Groups' }, { key: 'emails', label: 'Email updates' }]
 const SORTS: { key: FollowSort; label: string }[] = [{ key: 'attention', label: 'Needs attention first' }, { key: 'newest', label: 'Newest follow' }, { key: 'az', label: 'A to Z' }]
 const GROUP_TITLE: Record<FollowGroup, string> = { attention: 'Needs your attention', hiring: 'Hiring in your field', quiet: 'Quiet for now' }
 
-const parseTab = (v: string | undefined): Tab => (v === 'events' || v === 'groups' || v === 'emails' ? v : 'companies')
+const parseTab = (v: string | undefined): Tab => (v === 'skills' || v === 'events' || v === 'groups' || v === 'emails' ? v : 'companies')
 
 export default async function FollowingPage({ searchParams }: { searchParams: Promise<{ tab?: string; sort?: string }> }) {
   const params = await searchParams
   const tab = parseTab(params.tab)
   const sort = parseSort(params.sort)
   const profile = await getDashboardProfile()
-  const [companyCount, eventCount, groupCount] = await Promise.all([
+  const [companyCount, skillCount, eventCount, groupCount] = await Promise.all([
     prisma.companyWatchlistEntry.count({ where: { candidateId: profile.id } }),
+    prisma.skillWatch.count({ where: { candidateId: profile.id } }).catch(() => 0),
     prisma.userConference.count({ where: { candidateId: profile.id } }).catch(() => 0),
     prisma.communityMembership.count({ where: { candidateId: profile.id, leftAt: null } }).catch(() => 0),
   ])
-  after(() => captureServerEvent(profile.id, 'following_viewed', { tab, sort, companies: companyCount, events: eventCount, groups: groupCount }))
-  const counts: Record<Tab, number | null> = { companies: companyCount, events: eventCount, groups: groupCount, emails: null }
+  after(() => captureServerEvent(profile.id, 'following_viewed', { tab, sort, companies: companyCount, skills: skillCount, events: eventCount, groups: groupCount }))
+  const counts: Record<Tab, number | null> = { companies: companyCount, skills: skillCount, events: eventCount, groups: groupCount, emails: null }
 
   return (
     <div className="space-y-6">
@@ -65,6 +69,7 @@ export default async function FollowingPage({ searchParams }: { searchParams: Pr
         ))}
       </nav>
       {tab === 'companies' && <CompaniesTab candidateId={profile.id} sort={sort} />}
+      {tab === 'skills' && <SkillsTab candidateId={profile.id} />}
       {tab === 'events' && <EventsTab candidateId={profile.id} />}
       {tab === 'groups' && <GroupsTab candidateId={profile.id} />}
       {tab === 'emails' && <EmailsTab candidateId={profile.id} />}
@@ -168,6 +173,55 @@ async function CompaniesTab({ candidateId, sort }: { candidateId: string; sort: 
           </p>
         )
       )}
+    </div>
+  )
+}
+
+async function SkillsTab({ candidateId }: { candidateId: string }) {
+  const [watches, market] = await Promise.all([
+    prisma.skillWatch.findMany({ where: { candidateId }, orderBy: { createdAt: 'desc' }, select: { id: true, skillSlug: true, skillName: true } }).catch(() => []),
+    loadSkillsMarket().catch(() => null),
+  ])
+  if (watches.length === 0) {
+    return (
+      <EmptyCard
+        title="You do not watch any skills yet"
+        why="Watch a skill and we count the jobs that name it here, so you see which skills are in demand."
+        action={<SecondaryButton href="/skills">Browse skills</SecondaryButton>}
+      />
+    )
+  }
+  return (
+    <div className="space-y-4">
+      <ul className="divide-y divide-border rounded-2xl border border-border">
+        {watches.map((w) => {
+          const row = market ? findSkill(market, w.skillSlug) : null
+          return (
+            <li key={w.id} className="flex flex-wrap items-center justify-between gap-4 p-4">
+              <div className="min-w-0 space-y-0.5">
+                <p className="text-base font-semibold text-ink">
+                  {w.skillName}
+                  {row && <> <Chip tone={row.fresh > 0 ? 'good' : 'muted'}>{row.fresh > 0 ? `${row.fresh.toLocaleString('en-US')} posted this month` : 'Quiet this month'}</Chip></>}
+                </p>
+                <p className="text-sm text-ink">You watch it, so we count the postings that name it.</p>
+                <p className="text-sm text-muted-foreground">{row ? `${row.n.toLocaleString('en-US')} live postings name ${w.skillName}.` : 'We have no posting count for this skill right now.'}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <TrackedLink
+                  href={row && row.n > 0 ? `/jobs?q=${encodeURIComponent(w.skillName)}` : `/skills/${w.skillSlug}`}
+                  event="following_skill_opened"
+                  properties={{ skillSlug: w.skillSlug, postings: row?.n ?? null, fresh: row?.fresh ?? null }}
+                  className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted"
+                >
+                  {row && row.n > 0 ? `See ${w.skillName} jobs` : 'See the skill'}
+                </TrackedLink>
+                <UnwatchSkillButton slug={w.skillSlug} name={w.skillName} />
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+      <p className="text-sm text-muted-foreground">Watch a skill from its page. Counts come from jobs live on NextChapter and refresh daily. Stopping keeps nothing.</p>
     </div>
   )
 }

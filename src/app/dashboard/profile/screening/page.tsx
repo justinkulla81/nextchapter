@@ -31,7 +31,7 @@ export default async function ScreeningPage() {
         <Link href="/dashboard/profile" className="text-sm text-muted-foreground hover:text-foreground">
           ← My Profile
         </Link>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">Screening Questions</h1>
+        <h1 className="mt-3 font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Screening Questions</h1>
         <p className="mt-1 text-muted-foreground">
           Private to you. Nobody else sees these answers, not your coach, a recruiter, a college or an
           employer. We use them to sharpen your own weekly plan and warn you about roles you may not be
@@ -43,7 +43,7 @@ export default async function ScreeningPage() {
       <Card id="screening-questions" className="scroll-mt-4">
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="font-display text-xl font-semibold text-ink">
               Screening questions
             </CardTitle>
             {!profile.redFlagsBonusAt && (
@@ -78,7 +78,7 @@ export default async function ScreeningPage() {
 
       <Card id="demographics" className="scroll-mt-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardTitle className="font-display text-xl font-semibold text-ink">
             Optional demographic self identification
           </CardTitle>
         </CardHeader>
@@ -96,7 +96,7 @@ export default async function ScreeningPage() {
 
       <Card id="work-authorization" className="scroll-mt-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardTitle className="font-display text-xl font-semibold text-ink">
             Work authorization
           </CardTitle>
         </CardHeader>

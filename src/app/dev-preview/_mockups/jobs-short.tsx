@@ -37,7 +37,7 @@ export function JobsShort() {
 
       <ScopeToggle surface="find_my_job" current={scope} preview onPreview={setScope} />
 
-      <NeedsYou>
+      <NeedsYou page="preview">
         <p className="rounded-xl bg-white p-4 text-base">Your Gmail connection needs a fresh sign-in. <a href="#" className={more}>Reconnect Gmail</a></p>
         <p className="rounded-xl bg-white p-4 text-base">Connect Google so we can track replies to your applications. <a href="#" className={more}>Connect Google</a></p>
       </NeedsYou>

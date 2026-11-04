@@ -36,7 +36,7 @@ function formatHour(key: string): string {
 // same ones as the traffic chart above and move together with it (they share the page's range).
 export function VisitorsSegmentChart({ chart, lines, emptyMessage }: { chart: string; lines: SegmentChartLine[]; emptyMessage: string }) {
   const shared = useSharedTrafficRange()
-  const range = shared?.range ?? '30d'
+  const range = shared?.rangeFor(chart) ?? '30d'
   const current = RANGES.find((r) => r.value === range)!
   const series: ChartSeries[] = lines.map((l) => ({
     label: l.label,
@@ -48,7 +48,7 @@ export function VisitorsSegmentChart({ chart, lines, emptyMessage }: { chart: st
   function choose(next: TrafficRange) {
     if (!shared || next === range) return
     posthog.capture('admin_visitors_chart_range_changed', { range: next, previous: range, chart })
-    shared.setRange(next)
+    shared.setRangeFor(chart, next)
   }
 
   return (

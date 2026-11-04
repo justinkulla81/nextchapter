@@ -39,6 +39,12 @@ export function timed<T>(route: string, label: string, candidateId: string, work
 
 /** Default wait for a nav badge: past this the nav renders without it. */
 export const BADGE_DEADLINE_MS = 1_500
+/** How long an optional Home card (a prompt, a playbook, a coach offer) may wait for its data before it is left out. */
+export const CARD_DEADLINE_MS = 4_000
+/** How long data the page cannot honestly leave out (connections, job counts, weekly points) may take before the member gets the error screen. */
+export const ESSENTIAL_DEADLINE_MS = 15_000
+/** Database-side limit for those essential reads, so the abandoned query stops too. */
+export const ESSENTIAL_STATEMENT_MS = 8_000
 
 /**
  * `timed`, plus a deadline. When the read has not finished in `deadlineMs`, or it fails, the page gets
