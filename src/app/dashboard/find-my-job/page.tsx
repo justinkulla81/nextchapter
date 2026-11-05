@@ -72,7 +72,7 @@ import { COMPETITION_SORT_RANK, scoreCompetition } from '@/lib/jobs/competition'
 import { boardRank, matchesParallelPath } from '@/lib/jobs/parallel-path-fit'
 import { getParallelPaths } from '@/lib/job-reviews/data'
 import { loadJobContacts } from '@/lib/jobs/job-contacts'
-import { SENIORITY_GROUPS, classifyTitleRung, levelsInGroup, seniorityGroupOf, type SeniorityGroup } from '@/lib/jobs/job-seniority'
+import { classifyTitleRung, levelsInGroup, parseSeniorityParam, seniorityGroupOf, type SeniorityGroup } from '@/lib/jobs/job-seniority'
 import { ALL_STAGES_WINDOW, memberStageWindow } from '@/lib/jobs/career-stage'
 import { GoogleConnectPrompt } from '@/components/dashboard/GoogleConnectPrompt'
 import { ReconnectBanner } from '@/components/dashboard/ReconnectBanner'
@@ -379,9 +379,9 @@ function boardSearchSummary(p: BoardSearchParams): string {
 
 // The headline for a member who arrived from a public page (src/lib/jobs/portal-job-redirect.ts): what they were looking at,
 // in their words: "Entry-level jobs for “analyst” in Denver, CO", "Remote jobs", "Contract & 1099 jobs". Null = no search or filter came with them.
-function carriedInTitle(search: BoardSearchParams, seniority: string | null, workTypes: WorkType[] | null): string | null {
+function carriedInTitle(search: BoardSearchParams, seniority: readonly SeniorityGroup[], workTypes: WorkType[] | null): string | null {
   const kind =
-    seniority === 'ENTRY_LEVEL' ? 'Entry-level' : search.remote ? REMOTE_FILTER_LABEL[search.remote] : workTypes?.length === 1 && workTypes[0] !== 'full_time' ? WORK_TYPE_LABEL[workTypes[0]] : ''
+    seniority.includes('ENTRY_LEVEL') ? 'Entry-level' : search.remote ? REMOTE_FILTER_LABEL[search.remote] : workTypes?.length === 1 && workTypes[0] !== 'full_time' ? WORK_TYPE_LABEL[workTypes[0]] : ''
   const where = boardSearchSummary(search)
   if (!kind && !where) return null
   return `${kind ? `${kind} jobs` : 'Jobs'} ${where}`.trim()
@@ -455,7 +455,7 @@ async function JobRecommendationsSection({
   candidatePlus,
   board,
   contacts,
-  seniorityGroup,
+  seniorityGroups,
   boardView,
   workTypes,
   parallelPaths,
@@ -485,7 +485,7 @@ async function JobRecommendationsSection({
   search: BoardSearchView | null
   /** Every current URL parameter: in-board links change one and keep the rest (board-url.ts). */
   urlParams: Record<string, string>
-  seniorityGroup: SeniorityGroup | null
+  seniorityGroups: SeniorityGroup[]
   boardView: BoardView
   workTypes: WorkType[]
   parallelPaths: string[] | null
@@ -561,8 +561,11 @@ async function JobRecommendationsSection({
   ])
   const keepGreat = greatSets ? greatFilterPredicate(greatFilters, greatSets) : null
   const surfacedJobs = (
-    seniorityGroup
-      ? allSurfacedJobs.filter((j) => seniorityGroupOf(classifyTitleRung(j.title).rung) === seniorityGroup)
+    seniorityGroups.length > 0
+      ? allSurfacedJobs.filter((j) => {
+          const g = seniorityGroupOf(classifyTitleRung(j.title).rung)
+          return g !== null && seniorityGroups.includes(g)
+        })
       : allSurfacedJobs
   ).filter(
     (j) =>
@@ -1050,7 +1053,7 @@ export default async function JobFitPage({
   // and Broader keeps their saved or default breadth.
   const breadth: Breadth = scopeCtx.scope === 'narrow' ? 'narrow' : scopeCtx.scope === 'everything' ? 'wide' : boardBreadthFor(profile, allParams.breadth)
   const breadthMode: Breadth | 'off' = pivotFilter || urlParams.fn ? 'off' : breadth
-  const seniorityGroup = SENIORITY_GROUPS.find((g) => g.key === seniority)?.key ?? null
+  const seniorityGroups = parseSeniorityParam(seniority)
   const boardView: BoardView = view === 'fresh' || view === 'low_competition' ? view : 'all'
   // The URL wins (a shared link or a toggle just clicked); otherwise the member's
   // saved choice, otherwise what they told us in onboarding.
@@ -1077,7 +1080,7 @@ export default async function JobFitPage({
         />
       ) : (
         <PageHeader
-          title={fromPublic && part === 'jobs' ? carriedInTitle(boardSearch, seniorityGroup, parseWorkTypesParam(types)) ?? FIND_PART_HEADER[part].title : FIND_PART_HEADER[part].title}
+          title={fromPublic && part === 'jobs' ? carriedInTitle(boardSearch, seniorityGroups, parseWorkTypesParam(types)) ?? FIND_PART_HEADER[part].title : FIND_PART_HEADER[part].title}
           intro={fromPublic && part === 'jobs' ? 'Ranked for you. Each one says why it fits, and saving it builds your search plan.' : undefined}
         />
       )}
@@ -1091,7 +1094,7 @@ export default async function JobFitPage({
       <Suspense fallback={<FindMyJobBodySkeleton />}>
         <FindMyJobBody
           profile={profile}
-          seniorityGroup={seniorityGroup}
+          seniorityGroups={seniorityGroups}
           boardView={boardView}
           workTypes={workTypes}
           parallelPaths={parallelPaths}
@@ -1144,7 +1147,7 @@ function FindMyJobBodySkeleton() {
 // blocking on this every single visit.
 async function FindMyJobBody({
   profile,
-  seniorityGroup,
+  seniorityGroups,
   boardView,
   workTypes,
   parallelPaths,
@@ -1169,7 +1172,7 @@ async function FindMyJobBody({
   profile: Awaited<ReturnType<typeof getDashboardData>>
   /** One part of the board at a time (docs/candidate-redesign.md): jobs, not posted yet, independent work, resources. */
   part: FindPart
-  seniorityGroup: SeniorityGroup | null
+  seniorityGroups: SeniorityGroup[]
   boardView: BoardView
   workTypes: WorkType[]
   parallelPaths: string[] | null
@@ -1381,14 +1384,14 @@ async function FindMyJobBody({
     loadBoardShortlist({
       candidate: boardProfile,
       isCandidatePlus,
-      where: seniorityGroup ? { level: { in: levelsInGroup(seniorityGroup) } } : {},
+      where: seniorityGroups.length > 0 ? { level: { in: seniorityGroups.flatMap(levelsInGroup) } } : {},
       view: boardView,
       // The member's stage, one up and one down (career-stage.ts; a pivot path adds
       // one more down); a seniority-filter choice shows exactly that group instead.
       // The entry-level filters name the stage themselves, so every stage is in the window then.
-      stageWindow: seniorityGroup || appliedEntryFilter.length > 0 ? ALL_STAGES_WINDOW : memberStageWindow(boardProfile),
+      stageWindow: seniorityGroups.length > 0 || appliedEntryFilter.length > 0 ? ALL_STAGES_WINDOW : memberStageWindow(boardProfile),
       // One level beyond their own window is the last widening ring (relevance.ts) — not with an explicit seniority choice.
-      seniorityRing: !seniorityGroup && appliedEntryFilter.length === 0,
+      seniorityRing: seniorityGroups.length === 0 && appliedEntryFilter.length === 0,
       includeMidLevel: true,
       includeEarlyCareer: true,
       workTypes,
@@ -1575,7 +1578,7 @@ async function FindMyJobBody({
                 candidatePlus={isCandidatePlus}
                 board={board}
                 contacts={contacts}
-                seniorityGroup={seniorityGroup}
+                seniorityGroups={seniorityGroups}
                 boardView={boardView}
                 workTypes={workTypes}
                 parallelPaths={parallelPaths}

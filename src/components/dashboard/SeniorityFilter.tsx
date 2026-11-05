@@ -3,7 +3,7 @@
 import { useTransition } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
-import { SENIORITY_GROUPS } from '@/lib/jobs/job-seniority'
+import { ENTRY_AND_EARLY_PARAM, parseSeniorityParam, SENIORITY_GROUPS, seniorityParamValue } from '@/lib/jobs/job-seniority'
 import { cn } from '@/lib/utils'
 import { boardHref } from '@/lib/jobs/board-url'
 
@@ -20,13 +20,14 @@ export function SeniorityFilter({ surface }: { surface: string }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [pending, startTransition] = useTransition()
-  const current = searchParams.get('seniority') ?? ''
+  // One group or the entry-level plus early-career pair (what the public entry-level pages list); any other mix reads as no choice.
+  const current = seniorityParamValue(parseSeniorityParam(searchParams.get('seniority')))
 
   function onChange(value: string) {
     posthog.capture('job_seniority_filter_changed', {
       surface,
       seniority: value || 'ALL',
-      earlyCareer: value === 'ENTRY_LEVEL' || value === 'EARLY_CAREER',
+      earlyCareer: parseSeniorityParam(value).some((g) => g === 'ENTRY_LEVEL' || g === 'EARLY_CAREER'),
     })
     startTransition(() => router.replace(boardHref(searchParams, { seniority: value || null }, { pathname }), { scroll: false }))
   }
@@ -47,6 +48,7 @@ export function SeniorityFilter({ surface }: { surface: string }) {
             {g.label}
           </option>
         ))}
+        <option value={ENTRY_AND_EARLY_PARAM}>Entry level and early career</option>
       </select>
     </label>
   )

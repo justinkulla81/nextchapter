@@ -5,6 +5,8 @@ import { fitJobFromSearch } from '@/lib/jobs/fit-job-cookie'
 // Crawlers and signed-out visitors carry no session cookie, so the public pages (and their cache) are untouched.
 const PUBLIC_JOB_PATH = /^\/jobs\/(c[a-z0-9]{20,32})\/?$/
 const SEARCH_KEYS = ['q', 'loc', 'remote']
+// What the public entry-level pages list: early-career and entry-level together (job-seniority.ts ENTRY_AND_EARLY_PARAM; a test keeps them equal, so the proxy imports nothing).
+const ENTRY_AND_EARLY = 'EARLY_CAREER,ENTRY_LEVEL'
 const ENTRY_HUB = /^\/jobs\/entry-level(?:\/category\/[a-z0-9-]{2,60})?\/?$/
 const ENTRY_ROLE_PAGE = /^\/jobs\/entry-level\/([a-z0-9-]{3,80})(?:\/([a-z0-9-]{2,60}))?\/?$/
 const INDUSTRY_PAGE = /^\/jobs\/industry\/([a-z0-9-]{3,60})(?:\/[a-z0-9-]{1,40})?\/?$/
@@ -39,11 +41,11 @@ export function portalJobPath(pathname: string, hasSession: boolean, search = ''
   }
   const m = PUBLIC_JOB_PATH.exec(pathname)
   if (m) return `/dashboard/jobs/${m[1]}?src=public_page`
-  // Entry-level pages: the board's "Entry level (0-2 yrs)" group, with the role and place when the page has them.
-  if (ENTRY_HUB.test(pathname)) return `/dashboard/find-my-job?${new URLSearchParams({ from: 'public', seniority: 'ENTRY_LEVEL' }).toString()}`
+  // Entry-level pages: the board's early-career and entry-level groups (2-5 and 0-2 years), with the role and place when the page has them.
+  if (ENTRY_HUB.test(pathname)) return `/dashboard/find-my-job?${new URLSearchParams({ from: 'public', seniority: ENTRY_AND_EARLY }).toString()}`
   const er = ENTRY_ROLE_PAGE.exec(pathname)
   if (er) {
-    const to = new URLSearchParams({ from: 'public', seniority: 'ENTRY_LEVEL', q: words(er[1]) })
+    const to = new URLSearchParams({ from: 'public', seniority: ENTRY_AND_EARLY, q: words(er[1]) })
     if (er[2]) to.set('loc', placeSearch(er[2]))
     return `/dashboard/find-my-job?${to.toString()}`
   }
