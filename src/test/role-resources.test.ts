@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { roleBySlug } from '@/lib/seo/role-pages'
 import type { FirmLike } from '@/lib/roles/resources-rules'
-import { conferencesForRole, firmBandForRole, firmsForRole, rolesForMember, turnoverScope } from '@/lib/roles/resources-rules'
+import { conferencesForRole, firmBandForRole, firmsForRole, isAboutSeat, rolesForMember, safeHttpsUrl, turnoverScope } from '@/lib/roles/resources-rules'
 
 const role = (slug: string) => roleBySlug(slug)!
 
@@ -87,7 +87,7 @@ describe('rolesForMember', () => {
   })
 })
 
-import { feedHeadline, memberRoleFeed, pickFeedRole } from '@/lib/roles/role-feed-rules'
+import { feedHeadline, filedThisWeek, memberRoleFeed, pickFeedRole } from '@/lib/roles/role-feed-rules'
 
 describe('role feed rules', () => {
   const now = new Date('2026-11-04T12:00:00Z')
@@ -98,7 +98,7 @@ describe('role feed rules', () => {
     const h = feedHeadline(cro, turnover([2, 5, 30]), 412, now)
     expect(h.kind).toBe('changed')
     expect(h.title).toBe('2 CRO seats changed hands this week.')
-    expect(h.action.label).toBe('See jobs at these companies')
+    expect(h.action.label).toBe('See jobs at Co0')
   })
   it('says so on a quiet week and dates the last change', () => {
     const h = feedHeadline(cro, turnover([19]), 412, now)
@@ -118,5 +118,73 @@ describe('role feed rules', () => {
     const p = { resumeLatestJobTitle: 'VP of Sales', targetRoleType: 'Chief Revenue Officer' }
     expect(pickFeedRole('chief-revenue-officer', p)?.slug).toBe('chief-revenue-officer')
     expect(pickFeedRole('chief-financial-officer', p)?.slug).toBe('vp-of-sales')
+  })
+})
+
+describe('adjacent-level recruiters', () => {
+  const cro = roleBySlug('chief-revenue-officer')!
+  const vp = roleBySlug('vp-of-sales')!
+  const f = (slug: string, fnLevel: Record<string, number>, recruiter = true): FirmLike => ({ orgId: `o${slug}`, slug, name: slug.toUpperCase(), recruiter, fnLevel })
+  it('borrows from the level below when fewer than four firms qualify, and marks them', () => {
+    const r = firmsForRole(cro, [f('a', { 'Sales|C-suite': 5 }), f('b', { 'Sales|VP and director': 9 }), f('c', { 'Sales|VP and director': 3 }), f('d', { 'Sales|VP and director': 2 })])
+    expect(r.map((x) => [x.slug, x.searches, x.adjacent])).toEqual([['a', 5, false], ['b', 9, true], ['c', 3, true]])
+  })
+  it('does not borrow when four firms qualify at the role’s own level', () => {
+    const own = ['a', 'b', 'c', 'd'].map((n) => f(n, { 'Sales|C-suite': 3 }))
+    const r = firmsForRole(cro, [...own, f('e', { 'Sales|VP and director': 20 })])
+    expect(r.map((x) => x.slug)).toEqual(['a', 'b', 'c', 'd'])
+    expect(r.every((x) => !x.adjacent)).toBe(true)
+  })
+  it('never borrows for a VP page, and never from a non-recruiter', () => {
+    expect(firmsForRole(vp, [f('a', { 'Sales|C-suite': 9 })])).toEqual([])
+    expect(firmsForRole(cro, [f('x', { 'Sales|VP and director': 9 }, false)])).toEqual([])
+  })
+})
+
+describe('conferences on the day they start', () => {
+  const row = { name: 'Today', kind: 'CONFERENCE', functions: ['Sales'], datesConfirmed: true, startDate: new Date('2026-11-04T00:00:00Z'), seniorities: [], roles: [], importance: 2 }
+  it('keeps one starting today, drops one that started yesterday', () => {
+    const now = new Date('2026-11-04T15:00:00Z')
+    expect(conferencesForRole(roleBySlug('chief-revenue-officer')!, [row, { ...row, name: 'Yesterday', startDate: new Date('2026-11-03T00:00:00Z') }], now).map((c) => c.name)).toEqual(['Today'])
+  })
+})
+
+describe('turnover rows', () => {
+  it('drops a multi-officer sentence about an earlier title, keeps a single-seat one', () => {
+    expect(isAboutSeat('The new CEO, who previously served as Chief Strategy Officer and Chief Commercial Officer, was appointed.', ['CSO', 'CRO'])).toBe(false)
+    expect(isAboutSeat('Merlin appointed its Chief Revenue Officer as President, creating a vacancy in the Chief Revenue Officer role.', ['PRESIDENT', 'CRO'])).toBe(true)
+    expect(isAboutSeat('Its Chief Commercial Officer formerly led sales.', ['CRO'])).toBe(true)
+  })
+  it('shows a source link only when it is a plain https address', () => {
+    expect(safeHttpsUrl('https://www.sec.gov/Archives/x.htm')).toBe('https://www.sec.gov/Archives/x.htm')
+    for (const bad of ['javascript:alert(1)', 'http://example.com', 'data:text/html,x', '', null, undefined, 'https://a b']) expect(safeHttpsUrl(bad as string)).toBeNull()
+  })
+})
+
+describe('the feed week and an unknown job count', () => {
+  const cro = roleBySlug('chief-revenue-officer')!
+  it('counts calendar days: a filing from six days ago is in, seven is out, whatever the hour', () => {
+    const now = new Date('2026-11-04T23:30:00Z')
+    expect(filedThisWeek([{ date: new Date('2026-10-29T00:00:00Z') }], now)).toHaveLength(1)
+    expect(filedThisWeek([{ date: new Date('2026-10-28T00:00:00Z') }], now)).toHaveLength(0)
+    expect(filedThisWeek([{ date: new Date('2026-10-29T00:00:00Z') }], new Date('2026-11-04T00:10:00Z'))).toHaveLength(1)
+  })
+  it('does not claim zero jobs when the count is unknown', () => {
+    const h = feedHeadline(cro, null, null)
+    expect(h.title).not.toMatch(/\b0\b/)
+    expect(h.action.label).toBe('Search CRO jobs')
+    expect(feedHeadline(cro, null, 0).action.label).toBe('Search CRO jobs')
+  })
+  it('links to the first company by name, whatever the count', () => {
+    const now = new Date('2026-11-04T12:00:00Z')
+    const h = feedHeadline(cro, { label: 'CRO', items: [{ company: 'A Co', date: now }, { company: 'B Co', date: now }] }, 10, now)
+    expect(h.action.label).toBe('See jobs at A Co')
+    expect(h.action.href).toBe('/jobs?q=A%20Co')
+  })
+  it('does not offer the feed for a role the member has left', () => {
+    const p = { resumeLatestJobTitle: 'Chief Revenue Officer', targetRoleType: 'VP of Sales' }
+    expect(memberRoleFeed(p, new Set(['chief-revenue-officer']))?.href).toBe('/dashboard/network/role-feed?role=vp-of-sales')
+    expect(memberRoleFeed(p, new Set(['chief-revenue-officer', 'vp-of-sales']))).toBeNull()
+    expect(pickFeedRole('chief-revenue-officer', p, new Set(['chief-revenue-officer']))?.slug).toBe('vp-of-sales')
   })
 })

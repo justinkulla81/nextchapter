@@ -59,8 +59,14 @@ describe('peer networks', () => {
 describe('network feeds', () => {
   const members = (communityId: string) => ({ communityMemberships: { some: { communityId, leftAt: null } }, confidentialSearchMode: false })
 
-  it('shows a role feed as the posts of its members, never including Confidential Search Mode', () => {
-    expect(communityPostWhere({ type: 'ROLE', value: 'x', communityId: 'c1' })).toEqual({ candidate: members('c1') })
+  it('shows a role feed as the posts of members who clicked to join, never Confidential Search Mode and never a member joined automatically from their title', () => {
+    expect(communityPostWhere({ type: 'ROLE', value: 'x', communityId: 'c1' })).toEqual({
+      candidate: { communityMemberships: { some: { communityId: 'c1', leftAt: null, joinedVia: 'MANUAL' } }, confidentialSearchMode: false },
+    })
+  })
+
+  it('leaves an alumni network as the posts of all its members', () => {
+    expect(communityPostWhere({ type: 'SCHOOL', value: 'x', communityId: 'c1' })).toEqual({ candidate: members('c1') })
   })
 
   it('fails closed without a community id', () => {

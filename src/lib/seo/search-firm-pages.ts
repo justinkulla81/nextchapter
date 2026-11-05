@@ -15,6 +15,7 @@ import { STAFFING_INDUSTRY, isSearchFirmOrg } from '@/lib/seo/search-firm-link'
 import { resolveClaimableOrg } from '@/lib/org-claims/org'
 import { claimSlug } from '@/lib/org-claims/urls'
 import { isHexColor } from '@/lib/recruiter/brand'
+import { NOT_RECRUITER_SOURCES, isNotRecruiterSource } from '@/lib/search-firms/not-recruiters'
 import {
   SEARCH_FIRM_MIN_PUBLIC_ROLES,
   firmKind,
@@ -83,7 +84,8 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
     select: {
       id: true, name: true, website: true, hqCity: true, hqRegion: true, orgTypes: true, companyId: true,
       company: { select: { industry: true } },
-      searchFirms: { select: { name: true, segment: true, teamPageUrl: true, website: true }, take: 1 },
+      // Every crawled row on the organization: a firm merged from a duplicate has two, and the postings of each are matched on its own name.
+      searchFirms: { select: { name: true, segment: true, teamPageUrl: true, website: true, sourceKey: true }, orderBy: { liveSearchCount: 'desc' } },
       recruiterFirm: { select: { status: true, slug: true, accentColor: true } },
     },
   })
@@ -100,7 +102,7 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
   const accent = own && isHexColor(own) ? own : (brand?.color ?? null)
   const pair: BrandPair = own && isHexColor(own) ? buildPair(own, tint(own, 0.55), true) : (storedBrand?.pair ?? (accent ? buildPair(accent, tint(accent, 0.55), true) : fallbackPair(org.id)))
 
-  const names = [...new Set([org.name, firm?.name].filter((n): n is string => !!n))]
+  const names = [...new Set([org.name, ...org.searchFirms.map((f) => f.name)].filter((n): n is string => !!n))]
   const or: Prisma.ExclusiveJobPostingWhereInput[] = [{ sourceCategory: 'search_firm', sourceName: { in: names } }]
   if (org.companyId) or.push({ companyId: org.companyId })
   const [listed, ghosts] = await Promise.all([
@@ -131,7 +133,7 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
       pay: yearlyRange(r),
     })),
     lastChecked: live.reduce<Date | null>((m, r) => (r.lastVerifiedAt && (!m || r.lastVerifiedAt > m) ? r.lastVerifiedAt : m), null),
-    indexable: isSearchFirmIndexable(summary.publicRoles),
+    indexable: isSearchFirmIndexable(summary.publicRoles) && !org.searchFirms.some((f) => isNotRecruiterSource(f.sourceKey)),
     inboundSlug: org.recruiterFirm?.status === 'VERIFIED' ? (org.recruiterFirm.slug ?? null) : null,
     accent: pair.primary,
     brand: pair,
@@ -198,7 +200,8 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
       FROM "CrmOrganization" o
       LEFT JOIN "SearchFirm" f ON f."crmOrgId" = o.id
       LEFT JOIN "Company" c ON c.id = o."companyId"
-      WHERE o."orgTypes" && ARRAY['SEARCH_FIRM', 'OUTPLACEMENT_FIRM']::"CrmOrgType"[] OR f.id IS NOT NULL OR c.industry = ${STAFFING_INDUSTRY}
+      WHERE (o."orgTypes" && ARRAY['SEARCH_FIRM', 'OUTPLACEMENT_FIRM']::"CrmOrgType"[] OR f.id IS NOT NULL OR c.industry = ${STAFFING_INDUSTRY})
+        AND COALESCE(f."sourceKey" = ANY(${NOT_RECRUITER_SOURCES as string[]}::text[]), false) = false
     ),
     -- Postings that name a search firm as their source, read once (the allowlist's partial index narrows it), then matched to
     -- firms by name. Joining firm by firm made the planner re-scan the board for every firm.
@@ -217,8 +220,15 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
     )
     SELECT fm.oid, fm.canon, fm.fname AS name, fm.segment, COALESCE(fm.staffing, false) AS staffing, fm.recruiter, fm.types, h.fn, h.state, h.industry, h.level, h.verified, h.jid AS "jobId"
     FROM hits h JOIN firms fm ON fm.oid = h.oid`
+  // An organization with two crawled rows (a firm merged from a duplicate) joins every hit once per row: one posting counts once.
   const by = new Map<string, HitRow[]>()
-  for (const h of hits) (by.get(h.oid) ?? by.set(h.oid, []).get(h.oid)!).push(h)
+  const seen = new Set<string>()
+  for (const h of hits) {
+    const k = `${h.oid}|${h.jobId}`
+    if (seen.has(k)) continue
+    seen.add(k)
+    ;(by.get(h.oid) ?? by.set(h.oid, []).get(h.oid)!).push(h)
+  }
   const out: FirmListing[] = []
   for (const [orgId, rows] of by) {
     const publicRoles = rows.length
@@ -250,7 +260,7 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
 /** The cache stores JSON, so the date comes back as an ISO string. */
 export type CachedFirmListing = Omit<FirmListing, 'lastVerifiedAt'> & { lastVerifiedAt: string }
 
-const FIRMS_KEY = 'firms:v5'
+const FIRMS_KEY = 'firms:v6'
 const FIRMS_MAX_AGE_MS = 24 * 3600_000
 const toCached = async (): Promise<CachedFirmListing[]> => (await loadFirmListings()).map((f) => ({ ...f, lastVerifiedAt: f.lastVerifiedAt.toISOString() }))
 

@@ -3939,6 +3939,8 @@ model CommunityMembership {
   leftAt      DateTime?
   // Last weekly network digest sent for this membership (ROLE networks only).
   lastDigestAt DateTime?
+  // The member turned off the officer-change news in their role feed and digest (ROLE networks only).
+  turnoverMutedAt DateTime?
 
   @@unique([communityId, candidateId])
   @@index([candidateId, leftAt])

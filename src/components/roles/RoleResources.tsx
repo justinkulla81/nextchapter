@@ -20,12 +20,12 @@ export function RoleResourceSections({ role, r, slug }: { role: RoleDef; r: Role
   return (
     <>
       {r.firms.length > 0 && (
-        <Section id="recruiters" title={`Recruiters who place ${lower} roles`} note={`Search firms with at least two live public searches in ${role.fn} at this level, counted from their own job postings, not self-described.`}>
+        <Section id="recruiters" title={`Recruiters who place ${lower} roles`} note={`Search firms with live public searches in ${role.fn}, counted from their own job postings, not self-described. ${r.firms.some((f) => f.adjacent) ? 'Few firms have two searches at this level, so firms with three at the level below follow.' : 'Each has at least two at this level.'}`}>
           <ul className="grid gap-3 sm:grid-cols-2">
             {r.firms.map((f) => (
               <li key={f.slug} className={CARD}>
                 <TrackedLink href={`/search-firms/${f.slug}`} event="role_resource_clicked" properties={{ roleSlug: slug, resource: 'recruiter', to: f.slug }} className="font-semibold text-navy hover:underline">{f.name}</TrackedLink>
-                <p className="mt-1 text-sm text-muted-foreground">{f.searches.toLocaleString('en-US')} live public {f.searches === 1 ? 'search' : 'searches'} in {role.fn} at this level</p>
+                <p className="mt-1 text-sm text-muted-foreground">{f.searches.toLocaleString('en-US')} live public {f.searches === 1 ? 'search' : 'searches'} in {role.fn} {f.adjacent ? 'one level below' : 'at this level'}</p>
               </li>
             ))}
           </ul>
@@ -41,7 +41,7 @@ export function RoleResourceSections({ role, r, slug }: { role: RoleDef; r: Role
                 <p className="font-semibold text-navy">{t.company}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{t.summary}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{day(t.date)}</p>
-                <TrackedLink href={t.url} event="role_resource_clicked" rel="noopener nofollow" properties={{ roleSlug: slug, resource: 'turnover', to: t.company }} className={`${LINK} mt-1 inline-block text-sm`}>{t.linkLabel}</TrackedLink>
+                {t.url && <TrackedLink href={t.url} event="role_resource_clicked" rel="noopener nofollow" properties={{ roleSlug: slug, resource: 'turnover', to: t.company }} className={`${LINK} mt-1 inline-block text-sm`}>{t.linkLabel}</TrackedLink>}
               </li>
             ))}
           </ul>

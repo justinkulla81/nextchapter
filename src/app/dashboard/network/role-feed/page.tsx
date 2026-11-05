@@ -16,7 +16,8 @@ import { ListRow, RowList } from '@/components/candidate/ListRow'
 import { TrackedAction } from '@/components/candidate/TrackedAction'
 import { EmptyCard } from '@/components/candidate/EmptyCard'
 import { ExpressInterestButton } from '@/components/search-firms/ExpressInterestButton'
-import { leaveRoleFeedAction } from './actions'
+import { roleFeedState } from '@/lib/roles/feed-state'
+import { leaveRoleFeedAction, setTurnoverMutedAction } from './actions'
 
 export const metadata: Metadata = { title: 'Your role feed' }
 
@@ -28,19 +29,24 @@ const more = 'text-sm font-medium text-brand underline underline-offset-4'
 export default async function RoleFeedPage({ searchParams }: { searchParams: Promise<{ role?: string }> }) {
   const profile = await getDashboardProfile()
   const { role: asked } = await searchParams
-  const role = profile.confidentialSearchMode ? null : pickFeedRole(asked, profile)
+  const state = await roleFeedState(profile.id)
+  const role = profile.confidentialSearchMode ? null : pickFeedRole(asked, profile, state.left)
   if (!role) redirect('/dashboard/community')
+  const muted = state.muted.has(role.slug)
 
   const [r, index, interests] = await Promise.all([
     getRoleResources(role),
-    getRoleIndex().catch(() => []),
+    getRoleIndex().catch(() => null),
     prisma.recruiterInterest.findMany({ where: { candidateId: profile.id, status: { not: 'WITHDRAWN' } }, select: { firmOrgId: true } }),
   ])
   const interested = new Set(interests.map((i) => i.firmOrgId))
-  const openJobs = index.find((s) => s.slug === role.slug)?.jobs ?? 0
-  const headline = feedHeadline(role, r.turnover, openJobs)
+  // Null when the index could not be read, so the page does not claim "0 jobs are open".
+  const openJobs = index ? (index.find((s) => s.slug === role.slug)?.jobs ?? null) : null
+  const turnover = muted ? null : r.turnover
+  const headline = feedHeadline(role, turnover, openJobs)
   const name = role.short
-  const fresh = filedThisWeek(r.turnover?.items ?? [])
+  const fresh = filedThisWeek(turnover?.items ?? [])
+  const emailed = !profile.marketDigestOptedOut && profile.notificationTier !== 'MINIMAL'
   const upcoming = (r.conferences?.rows ?? []).slice(0, fresh.length > 0 ? 1 : 2)
   const firms = r.firms.slice(0, 3)
 
@@ -58,7 +64,7 @@ export default async function RoleFeedPage({ searchParams }: { searchParams: Pro
     <div className="space-y-8">
       <PageHeader
         title={`Your ${name} feed`}
-        intro={`You are in the ${name} network because ${becauseLine(role, profile)}. A short email comes each Monday.`}
+        intro={`You are in the ${name} network because ${becauseLine(role, profile)}.${emailed ? ' A short email comes each week.' : ''}`}
         action={
           <form action={leaveRoleFeedAction.bind(null, role.slug)}>
             <button type="submit" className={`${more} cursor-pointer`}>Unsubscribe</button>
@@ -69,9 +75,16 @@ export default async function RoleFeedPage({ searchParams }: { searchParams: Pro
       <section aria-labelledby="week" className="space-y-3 rounded-2xl border border-border bg-white p-5">
         <h2 id="week" className="font-display text-2xl leading-tight font-semibold text-ink text-balance">{headline.title}</h2>
         <p className="max-w-2xl text-base text-ink"><span className="font-semibold">Why:</span> {headline.why}</p>
-        <TrackedAction variant="primary" href={headline.action.href} event="role_feed_action_clicked" properties={{ roleSlug: role.slug, action: 'headline', headline: headline.kind }}>
-          {headline.action.label}
-        </TrackedAction>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <TrackedAction variant="primary" href={headline.action.href} event="role_feed_action_clicked" properties={{ roleSlug: role.slug, action: 'headline', headline: headline.kind }}>
+            {headline.action.label}
+          </TrackedAction>
+          {(r.turnover || muted) && (
+            <form action={setTurnoverMutedAction.bind(null, role.slug, !muted)}>
+              <button type="submit" className={`${more} cursor-pointer`}>{muted ? 'Turn turnover news back on' : 'Mute turnover news'}</button>
+            </form>
+          )}
+        </div>
       </section>
 
       {(fresh.length > 0 || upcoming.length > 0) && (
@@ -86,7 +99,7 @@ export default async function RoleFeedPage({ searchParams }: { searchParams: Pro
                 fact={`${t.source === 'sec' ? 'Filed with the SEC' : 'Reported'} on ${day(t.date)}.`}
                 actions={
                   <>
-                    <TrackedAction variant="text" external href={t.url} event="role_feed_action_clicked" properties={{ roleSlug: role.slug, action: 'filing', company: t.company }}>{t.linkLabel}</TrackedAction>
+                    {t.url && <TrackedAction variant="text" external href={t.url} event="role_feed_action_clicked" properties={{ roleSlug: role.slug, action: 'filing', company: t.company }}>{t.linkLabel}</TrackedAction>}
                     <TrackedAction variant="text" href={`/jobs?q=${encodeURIComponent(t.company)}`} event="role_feed_action_clicked" properties={{ roleSlug: role.slug, action: 'company_jobs', company: t.company }}>See their open jobs</TrackedAction>
                   </>
                 }
@@ -106,16 +119,16 @@ export default async function RoleFeedPage({ searchParams }: { searchParams: Pro
       )}
 
       <section aria-labelledby="recruiters" className="space-y-3">
-        <h2 id="recruiters" className="font-display text-xl font-semibold text-ink">Recruiters who place {name}s</h2>
+        <h2 id="recruiters" className="font-display text-xl font-semibold text-ink">Recruiters who place this role</h2>
         {firms.length === 0 ? (
           <EmptyCard title="No firm is searching at your level right now" why={`We count firms from their own public job postings in ${role.fn}. This list fills as firms post searches.`} />
         ) : (
-          <RowList label={`Recruiters who place ${name}s`}>
+          <RowList label="Recruiters who place this role">
             {firms.map((f) => (
               <ListRow
                 key={f.slug}
                 title={f.name}
-                why={`${f.searches.toLocaleString('en-US')} live ${f.searches === 1 ? 'search' : 'searches'} in ${role.fn} at your level.`}
+                why={`${f.searches.toLocaleString('en-US')} live ${f.searches === 1 ? 'search' : 'searches'} in ${role.fn} ${f.adjacent ? 'one level below yours' : 'at your level'}.`}
                 fact="Counted from its own public job postings."
                 actions={
                   <>
@@ -132,7 +145,7 @@ export default async function RoleFeedPage({ searchParams }: { searchParams: Pro
 
       {hasMore && (
         <details className="rounded-2xl bg-muted/50 px-5 py-3 text-sm text-ink">
-          <summary className="cursor-pointer font-semibold">More for {name}s</summary>
+          <summary className="cursor-pointer font-semibold">More for this role</summary>
           <ul className="mt-3 space-y-2">
             {r.media.length > 0 && (
               <li>

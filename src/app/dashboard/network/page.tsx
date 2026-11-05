@@ -31,6 +31,7 @@ import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { getNeedsFollowUpList, parseAddress } from '@/lib/network/needs-follow-up'
 import { attachMoments, buildCircles, buildMoments, networkHeadline } from '@/lib/redesign/network-home'
 import { memberRoleFeed } from '@/lib/roles/role-feed-rules'
+import { roleFeedState } from '@/lib/roles/feed-state'
 import { NetworkOverview } from '@/components/network/NetworkOverview'
 import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
 import { getWeeklyOutreachPlan } from '@/lib/network/weekly-outreach'
@@ -656,10 +657,11 @@ export default async function NetworkPage({
   // outreach tracker, Gmail and calendar connection results and the stats stay one link away (?view=all).
   const isOAuthReturn = Boolean(params.gmailConnected || params.gmailError || params.calendarConnected || params.calendarError)
   if (params.view !== 'all' && !isOAuthReturn) {
-    const [supporters, communities, plan] = await Promise.all([
+    const [supporters, communities, plan, feedState] = await Promise.all([
       prisma.searchSupporter.count({ where: { candidateId: profile.id, revokedAt: null } }),
       prisma.communityMembership.count({ where: { candidateId: profile.id, leftAt: null } }),
       getWeeklyOutreachPlan(profile.id),
+      roleFeedState(profile.id),
     ])
     const input = {
       supporters,
@@ -673,7 +675,7 @@ export default async function NetworkPage({
       outreachTarget: DOSSIER_UNLOCK_OUTREACH_TARGET,
       priorityStarred: starredCount,
       priorityTarget: PRIORITY_CONTACT_TARGET_COUNT,
-      roleFeed: memberRoleFeed(profile),
+      roleFeed: memberRoleFeed(profile, feedState.left),
     }
     const top = plan[0]
     const next = top

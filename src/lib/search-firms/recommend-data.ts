@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { NOT_RECRUITER_SOURCES } from './not-recruiters'
 import { recommendFirms, type FirmForRecommend, type RecommendedFirm } from './recommend'
 
 // The firm list changes weekly (ncrawl sync), so one in-process copy for an
@@ -10,6 +11,7 @@ const FIRM_CACHE_MS = 60 * 60 * 1000
 async function loadFirms(): Promise<FirmForRecommend[]> {
   if (firmCache && Date.now() - firmCache.at < FIRM_CACHE_MS) return firmCache.rows
   const rows = await prisma.searchFirm.findMany({
+    where: { sourceKey: { notIn: [...NOT_RECRUITER_SOURCES] } },
     select: {
       id: true,
       name: true,

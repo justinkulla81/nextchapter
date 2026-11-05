@@ -8,6 +8,7 @@ import { buildEmailClickUrl } from '@/lib/email/click-link'
 import { autoJoinRoleNetworks } from '@/lib/community/communities'
 import { getRoleResources } from '@/lib/roles/resources'
 import { roleBySlug } from '@/lib/seo/role-pages'
+import { rolesForMember } from '@/lib/roles/resources-rules'
 import { canParticipateInCommunity } from '@/lib/community/access'
 import { resolveCommunityIdentity } from '@/lib/community/identity'
 import { getRoleIndex } from '@/lib/seo/role-figures'
@@ -84,22 +85,25 @@ export async function runNetworkDigest(now = new Date()) {
         isSystemAccount: false,
       },
     },
+    // Never-sent first, then oldest-sent: the send loop stops at a deadline, so a fixed order would serve the same head of the list every week.
+    orderBy: [{ lastDigestAt: { sort: 'asc', nulls: 'first' } }, { id: 'asc' }],
     select: {
       id: true,
       joinedVia: true,
+      turnoverMutedAt: true,
       community: { select: { id: true, type: true, value: true } },
-      candidate: { select: { id: true, userId: true, firstName: true, privacyTier: true, confidentialSearchMode: true } },
+      candidate: { select: { id: true, userId: true, firstName: true, privacyTier: true, confidentialSearchMode: true, resumeLatestJobTitle: true, targetRoleType: true } },
     },
   })
 
-  const stats = { autoJoined, checked: memberships.length, sent: 0, skipped: 0, failed: 0, skippedForTime: 0 }
+  const stats = { autoJoined, checked: memberships.length, sent: 0, skipped: 0, failed: 0, skippedForTime: 0, staleRole: 0 }
   if (memberships.length === 0) return { enabled: true as const, ...stats }
 
   const [index, appUrl] = [await getRoleIndex().catch(() => []), process.env.NEXT_PUBLIC_APP_URL || SITE_URL]
   const resend = createResend(process.env.RESEND_API_KEY)
   const admin = createAdminClient()
   const postsByCommunity = new Map<string, NetworkDigestPost[]>()
-  const postsFor = async (communityId: string) => {
+  const postsFor = async (communityId: string, type: string) => {
     const cached = postsByCommunity.get(communityId)
     if (cached) return cached
     const rows = await prisma.communityPost.findMany({
@@ -109,7 +113,8 @@ export async function runNetworkDigest(now = new Date()) {
         createdAt: { gte: new Date(now.getTime() - POST_WINDOW_MS) },
         candidate: {
           confidentialSearchMode: false,
-          communityMemberships: { some: { communityId, leftAt: null } },
+          // In a role network only members who clicked to join are quoted; one joined from their title has not chosen to be seen.
+          communityMemberships: { some: { communityId, leftAt: null, ...(type === 'ROLE' ? { joinedVia: 'MANUAL' as const } : {}) } },
         },
       },
       select: { description: true, candidate: { select: { id: true, firstName: true, lastName: true, profilePictureUrl: true, confidentialSearchMode: true } } },
@@ -122,42 +127,57 @@ export async function runNetworkDigest(now = new Date()) {
   }
 
   const highlightsByRole = new Map<string, string[]>()
-  const highlightsFor = async (info: NetworkInfo): Promise<string[]> => {
+  const highlightsFor = async (info: NetworkInfo, muted: boolean): Promise<string[]> => {
     if (info.kind !== 'role') return []
-    const cached = highlightsByRole.get(info.value)
+    const key = `${info.value}|${muted ? 'muted' : 'all'}`
+    const cached = highlightsByRole.get(key)
     if (cached) return cached
     const role = roleBySlug(info.value)
     const out: string[] = []
     if (role) {
       const r = await getRoleResources(role).catch(() => null)
       if (r) {
-        if (r.turnover) out.push(`${r.turnover.items.length} ${r.turnover.ownSeat ? info.name : r.turnover.label} change${r.turnover.items.length === 1 ? '' : 's'} filed with the SEC in the last 120 days`)
+        if (r.turnover && !muted) out.push(`${r.turnover.total} ${r.turnover.ownSeat ? info.name : r.turnover.label} change${r.turnover.total === 1 ? '' : 's'} filed or reported in the last 120 days`)
         if (r.conferences && r.conferences.upcoming > 0) out.push(`${r.conferences.upcoming} conference${r.conferences.upcoming === 1 ? '' : 's'} with dates announced for ${role.fn}`)
         if (r.firms.length > 0) out.push(`${r.firms.length} recruiting firms with live ${role.fn} searches at your level`)
         if (r.courses.total > 0) out.push(`${r.courses.total} ${role.fn} courses, with cost shown`)
       }
     }
-    highlightsByRole.set(info.value, out)
+    highlightsByRole.set(key, out)
     return out
   }
 
   const startedAt = Date.now()
+  // A member with two role networks (the role held and the role aimed at) gets one email in a run, not two.
+  const emailedThisRun = new Set<string>()
   for (const m of memberships) {
     if (Date.now() - startedAt > DEADLINE_MS) {
       stats.skippedForTime += 1
       continue
     }
+    if (emailedThisRun.has(m.candidate.id)) {
+      stats.skipped += 1
+      continue
+    }
+    let claimedId: string | null = null
     try {
       const info = networkInfoForCommunity(m.community.type, m.community.value)
       if (!info) {
         stats.skipped += 1
         continue
       }
+      // A role network joined from the member's title is sent only while the title still says so: "your profile says you work as ..."
+      // must be true. Someone who has moved on keeps the row but is not emailed.
+      if (m.joinedVia === 'AUTO' && info.kind === 'role' && !rolesForMember([m.candidate.resumeLatestJobTitle, m.candidate.targetRoleType]).some((r) => r.slug === info.value)) {
+        stats.staleRole += 1
+        continue
+      }
       const figures = await figuresFor(info, index)
       const canSeePosts = await canParticipateInCommunity(m.candidate.id, m.candidate.privacyTier, m.candidate.confidentialSearchMode)
-      const posts = canSeePosts ? await postsFor(m.community.id) : []
-      const openJobs = figures.openJobs
-      const highlights = await highlightsFor(info)
+      const posts = canSeePosts ? await postsFor(m.community.id, m.community.type) : []
+      // No count to give is no line, not "0 verified open jobs".
+      const openJobs = figures.openJobs != null && figures.openJobs > 0 ? figures.openJobs : null
+      const highlights = await highlightsFor(info, !!m.turnoverMutedAt)
       // Nothing real to say this week: no jobs figure, no posts and nothing new around the role.
       if (openJobs === null && posts.length === 0 && highlights.length === 0) {
         stats.skipped += 1
@@ -170,14 +190,21 @@ export async function runNetworkDigest(now = new Date()) {
         continue
       }
       // Claim before sending, so a retry or a duplicate fire cannot send twice.
+      // The claim re-checks what the first read decided on, so a member who left or opted out since is not emailed.
       const claimed = await prisma.communityMembership.updateMany({
-        where: { id: m.id, OR: [{ lastDigestAt: null }, { lastDigestAt: { lt: new Date(now.getTime() - ALREADY_SENT_WINDOW_MS) } }] },
+        where: {
+          id: m.id,
+          leftAt: null,
+          candidate: { confidentialSearchMode: false, marketDigestOptedOut: false, notificationTier: { not: 'MINIMAL' }, deactivatedAt: null },
+          OR: [{ lastDigestAt: null }, { lastDigestAt: { lt: new Date(now.getTime() - ALREADY_SENT_WINDOW_MS) } }],
+        },
         data: { lastDigestAt: now },
       })
       if (claimed.count === 0) {
         stats.skipped += 1
         continue
       }
+      claimedId = m.id
       const { error } = await resend.emails.send({
         from: 'NextChapter <support@launchyournextchapter.com>',
         replyTo: 'support@launchyournextchapter.com',
@@ -206,8 +233,11 @@ export async function runNetworkDigest(now = new Date()) {
         continue
       }
       stats.sent += 1
+      emailedThisRun.add(m.candidate.id)
       captureServerEvent(m.candidate.id, 'network_digest_sent', { networkKind: info.kind, networkKey: info.key, communityId: m.community.id, postCount: posts.length, openJobs, highlightCount: highlights.length, joinedVia: m.joinedVia })
     } catch (e) {
+      // A send that threw (not one that returned an error) must not leave the claim set, or the member is dropped for the week.
+      if (claimedId) await prisma.communityMembership.update({ where: { id: claimedId }, data: { lastDigestAt: null } }).catch(() => {})
       console.error('Role network digest failed for membership', m.id, e)
       stats.failed += 1
     }
