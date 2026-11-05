@@ -2,7 +2,7 @@ import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { LinkIndex } from '@/components/seo/LinkIndex'
 import { LinkToUs } from '@/components/seo/LinkToUs'
 import { ClaimHint } from '@/components/seo/ClaimHint'
-import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
+import { peopleWord } from '@/lib/affiliations/public-count-rules'
 import { orgThemeVars } from '@/lib/branding/theme'
 import type { BrandPair } from '@/lib/branding/scan'
 import Link from 'next/link'
@@ -61,18 +61,16 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
   const page_ = (
     <SeoPage
       look="audience"
+      boxFirst
       trail={[{ name: ROOT_NAME[row.kind], path: ORG_PAGE_ROOT[row.kind] }, { name: st, path: `${ORG_PAGE_ROOT[row.kind]}/${ss}` }, { name: row.name, path }]}
       h1={h1 ?? row.name}
       lede={lede}
       jsonLd={orgJsonLd(page, path, hiring.jobs)}
     >
-      <OrgCandidateBand
-        orgName={row.name}
-        branded={!!vars}
-        peopleCount={peopleCount}
-        heading={row.kind === 'JOB_CENTER' ? 'Looking for work near here? See where you stand.' : undefined}
-        properties={props}
-      />
+      <p className="mt-3 text-xs text-muted-foreground">
+        Independent page. Not run by or affiliated with {row.name}.
+        {peopleCount != null && <> {peopleCount.toLocaleString('en-US')} {peopleWord(peopleCount)} {peopleCount === 1 ? 'has' : 'have'} connected with {row.name} on NextChapter.</>}
+      </p>
       {(row.kind === 'JOB_CENTER' || row.kind === 'WORKFORCE_BOARD') && <StateFilingLink name={st} slug={ss} className="mt-6" />}
       <section aria-labelledby="market" className="mt-10">
         <h2 id="market" className={H2}>Jobs where it serves</h2>

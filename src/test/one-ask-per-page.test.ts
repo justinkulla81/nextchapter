@@ -40,3 +40,12 @@ describe('box above the tool', () => {
     for (const t of ['warn-act-checker', 'warn-notice-generator']) expect(read(`src/app/tools/${t}/page.tsx`), t).toContain("{ name: 'Rapid response', path: '/rapid-response' }")
   })
 })
+
+describe('directory pages (workforce boards, job centers, economic development)', () => {
+  it('open with the organization box and carry no job seeker band', () => {
+    const src = read('src/components/seo/OrgPageView.tsx')
+    expect(src).toMatch(/look="audience"\s+boxFirst/)
+    expect(src).not.toContain('<OrgCandidateBand')
+    expect(src).toContain('Independent page. Not run by or affiliated with')
+  })
+})
