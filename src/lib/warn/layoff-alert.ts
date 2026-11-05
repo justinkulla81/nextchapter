@@ -174,7 +174,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
     const hq = needHq ? await inferHq(l.normalizedEmployer) : null
     if (!state && hq?.state) {
       state = hq.state; city = hq.city
-      placeNote = hq.source === 'sec' ? 'company headquarters, from SEC filings' : 'where it has filed WARN notices'
+      placeNote = hq.source === 'sec' ? 'company headquarters, from SEC filings' : 'where it has filed layoff notices'
     }
     const industry = await classifyLayoffIndustry({
       employer: l.employer, companyIndustry: company?.industry ?? null, naics: notice?.industry ?? null, sicDescription: hq?.sicDescription ?? null, allowModel: firstAttempt,
@@ -194,7 +194,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
     }
     input.costs = notice ?? undefined
     input.picture = { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) }
-    input.sources = await loadAlertSources(l.noticeId, l.sourceUrl, l.kind === 'warn' ? 'WARN filing' : l.kind === 'sec' ? 'SEC 8-K filing' : 'Notice')
+    input.sources = await loadAlertSources(l.noticeId, l.sourceUrl, l.kind === 'warn' ? 'State layoff filing' : l.kind === 'sec' ? 'SEC 8-K filing' : 'Notice')
 
     const sibling = await emailedSibling(l.normalizedEmployer, l.noticeId)
     if (sibling > 0) {

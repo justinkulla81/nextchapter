@@ -79,7 +79,7 @@ export function cleanEmployer(employer: string, companyName: string | null): str
 export function readableType(type: string | null): string | null {
   const t = type?.replace(/\s+/g, ' ').trim()
   // Rows confirmed before the wording changed still say "state WARN filing"; readers see "state filing".
-  return t && t.length > 3 && /[a-z]/.test(t) ? t.replace(/state WARN filing/g, 'state filing') : null
+  return t && t.length > 3 && /[a-z]/.test(t) ? t.replace(/state (?:WARN|layoff) filing/g, 'state filing') : null
 }
 
 /** "layoffs.fyi" for the tracker, the site's name for a press report; a Google News link is labelled with the publisher when one is known. */

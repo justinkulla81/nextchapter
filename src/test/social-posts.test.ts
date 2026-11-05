@@ -60,7 +60,7 @@ describe('filingPostText', () => {
     const t = filingPostText({ employer: 'Acme Widgets Incorporated of North America and Affiliated Companies Holdings', state: 'WA', workers: 1985, date: new Date('2026-05-13T12:00:00Z'), path: '/layoffs/company/acme' }, 'utm_source=x')
     const link = t.match(/https:\/\/\S+/)![0]
     expect(t.length - link.length + 23).toBeLessThanOrEqual(280)
-    expect(t).toContain('WARN layoff notice in Washington on May 13, naming 1,985 workers')
+    expect(t).toContain('layoff notice in Washington on May 13, naming 1,985 workers')
     expect(t).toContain('/layoffs/company/acme?utm_source=x')
   })
 })
@@ -227,7 +227,7 @@ describe('splitFilingEmployer', () => {
   })
   it('says the site in a filing post, with no street or zip', () => {
     const t = filingPostText({ employer: 'Geico', state: 'FL', city: 'Lakeland', workers: 114, date: new Date('2026-11-02T12:00:00Z'), path: '/layoffs/company/geico' }, 'u=1', false)
-    expect(t).toContain('Geico filed a WARN layoff notice for its Lakeland, Florida site on Nov 2, naming 114 workers.')
+    expect(t).toContain('Geico filed a layoff notice for its Lakeland, Florida site on Nov 2, naming 114 workers.')
     expect(t).not.toMatch(/Pipkin|33811/)
   })
 })

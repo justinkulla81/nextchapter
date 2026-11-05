@@ -30,7 +30,7 @@ describe('digest email', () => {
 
 describe('now-official email', () => {
   it('says what confirmed it and keeps the reported total beside the filing count', () => {
-    expect(officialSubject([official()])).toBe('Now official: Acme — state WARN filing')
+    expect(officialSubject([official()])).toBe('Now official: Acme — state layoff filing')
     expect(officialSubject([official({ kind: 'sec' })])).toBe('Now official: Acme — SEC 8-K filing')
     const html = officialBody([official()], { notices: 'https://x.test/warn' })
     expect(html).toContain('159 jobs in the filing')

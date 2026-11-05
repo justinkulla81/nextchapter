@@ -91,7 +91,7 @@ export function talkingPoints(p: LocalPicture, who: Audience): string | null {
     : null
   const hiring = p.topIndustries.length ? `Hiring most outside ${ind ?? 'this industry'}: ${top(p)}.` : null
   const unemployment = p.unemploymentRate != null ? `${p.areaLabel ?? where} unemployment is ${p.unemploymentRate}%` : null
-  const recent = p.layoffs12mo ? `${n(p.layoffs12mo)} workers in ${p.layoffEvents12mo ? `${n(p.layoffEvents12mo)} ` : ''}WARN-filed layoffs over the last 12 months` : null
+  const recent = p.layoffs12mo ? `${n(p.layoffs12mo)} workers in ${p.layoffEvents12mo ? `${n(p.layoffEvents12mo)} ` : ''}layoffs filed with states over the last 12 months` : null
 
   const lead = `${p.employer} is cutting ${size(p)}${ind ? ` in ${ind}` : ''}.`
   switch (who) {
@@ -108,7 +108,7 @@ export function talkingPoints(p: LocalPicture, who: Audience): string | null {
   }
 }
 
-const SOURCE_NOTE: Record<string, string> = { company: 'company record', filing: 'WARN filing', sec: 'SEC filing', model: 'classified by model' }
+const SOURCE_NOTE: Record<string, string> = { company: 'company record', filing: 'state layoff filing', sec: 'SEC filing', model: 'classified by model' }
 
 /** The "Local picture" rows for the alert email: industry, openings, who is hiring, and the area's recent layoffs. */
 export function pictureRows(p: LocalPicture, m: { industryLabel: string | null; industrySource: string | null }): [string, string][] {
@@ -123,7 +123,7 @@ export function pictureRows(p: LocalPicture, m: { industryLabel: string | null; 
   if (p.unemploymentRate != null || p.layoffs12mo) {
     rows.push([p.areaLabel ?? p.state ?? 'Area', [
       p.unemploymentRate != null ? `unemployment ${p.unemploymentRate}%` : null,
-      p.layoffs12mo ? `${n(p.layoffs12mo)} workers in ${p.layoffEvents12mo ? `${n(p.layoffEvents12mo)} ` : ''}WARN-filed layoffs in the last 12 months` : null,
+      p.layoffs12mo ? `${n(p.layoffs12mo)} workers in ${p.layoffEvents12mo ? `${n(p.layoffEvents12mo)} ` : ''}layoffs filed with states in the last 12 months` : null,
     ].filter(Boolean).join(', ')])
   }
   return rows

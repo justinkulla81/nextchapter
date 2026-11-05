@@ -39,7 +39,7 @@ const BASE: S[] = [
     why: 'Establishes who is speaking, in three sentences.',
   }],
   ['local-data', 'Data', 'stats', { title: 'What is happening in {{area}}', kicker: 'The data', bullets: ['White-collar unemployment in {{area}} is an estimated {{wcEst}}, against {{bcEst}} for blue-collar work.', '{{layoffs12}} workers were named in layoff notices in the last 12 months, {{layoffs90}} of them in the last 90 days.'], needsGeo: true, why: 'Their own numbers first. Nothing persuades like the buyer\'s county.' }],
-  ['layoffs', 'Data', 'warn', { title: 'Recent layoff announcements near you', kicker: 'The data', needsGeo: true, why: 'Names the employers. Real WARN filings, with dates.' }],
+  ['layoffs', 'Data', 'warn', { title: 'Recent layoff announcements near you', kicker: 'The data', needsGeo: true, why: 'Names the employers. Real state layoff filings, with dates.' }],
   ['white-collar', 'Data', 'stats', { title: 'White-collar workers are the story', kicker: 'The data', bullets: ['White-collar unemployment is {{natWc}} nationally, {{natWcChange}} from a year ago (3-month average, {{natAsOf}}).', 'The Information industry, the most exposed to AI, is at {{natInfo}}, {{natInfoChange}} from a year ago.'], why: 'The national white-collar trend, from our monthly report.' }],
   ['problem', 'Problem', 'bullets', { title: 'The problem', kicker: 'Problem', why: 'What fails today for the people and the institution.' }],
   ['why-now', 'Problem', 'bullets', {
@@ -99,7 +99,7 @@ const BASE: S[] = [
     bullets: [
       'Unemployment: Bureau of Labor Statistics Local Area Unemployment Statistics, latest month.',
       'Income and occupations: Census Bureau American Community Survey, 5-year estimates.',
-      'Colleges: National Center for Education Statistics IPEDS. Layoffs: state WARN filings.',
+      'Colleges: National Center for Education Statistics IPEDS. Layoffs: state layoff filings.',
       'White-collar and blue-collar unemployment for a county are ESTIMATES: the county rate split by its white-collar share, using the national ratio from our White Collar Employment Report.',
       'Demo screens show sample data, not real people or results.',
     ],

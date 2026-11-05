@@ -23,7 +23,7 @@ export function communityStatSentence(s: CommunityStats | null): string {
   if (!s || !w || w.notices <= 0) return ''
   const notices = `${n0(w.notices)} layoff ${w.notices === 1 ? 'notice' : 'notices'}`
   const workers = `${n0(w.workers)} ${w.workers === 1 ? 'worker' : 'workers'}`
-  return `In ${placePhrase(s)}, ${notices} covering ${workers} ${w.notices === 1 ? 'was' : 'were'} filed in the last six months (state WARN filings).`
+  return `In ${placePhrase(s)}, ${notices} covering ${workers} ${w.notices === 1 ? 'was' : 'were'} filed in the last six months (state layoff filings).`
 }
 
 export interface StatCard { value: string; label: string; note: string }
