@@ -194,7 +194,7 @@ export default function WarnActPage() {
         <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
           <li><Link href="/tools/layoff-deadlines" className={LINK}>Layoff deadlines: what to do and by when</Link></li>
           <li><Link href="/tools/severance-calculator" className={LINK}>Severance calculator</Link></li>
-          <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits by state and how to file</Link></li>
+          <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits and severance rules by state, and how to file</Link></li>
           <li><Link href="/resources/cobra-aca" className={LINK}>Health insurance after a layoff: COBRA vs ACA</Link></li>
           <li><Link href="/resources/72-hours" className={LINK}>The first 72 hours after a layoff</Link></li>
           <li><Link href="/tools/layoff-risk-check" className={LINK}>Layoff risk check: how many warning signs apply to you</Link></li>
