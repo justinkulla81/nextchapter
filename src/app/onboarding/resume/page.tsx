@@ -3,6 +3,8 @@ import { getCurrentUser } from '@/lib/supabase/get-current-user'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { prisma } from '@/lib/prisma'
 import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
+import { cookies } from 'next/headers'
+import { FIT_JOB_COOKIE, fitJobNext } from '@/lib/jobs/fit-job-cookie'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { checkAndDeleteDuplicateProfile, findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
@@ -57,7 +59,7 @@ export default async function OnboardingResumePage() {
       return (
         <div className="space-y-6">
           <h1 className="text-2xl font-semibold tracking-tight">You already have an account</h1>
-          <ExistingAccountNotice needsPassword={!existing?.passwordSetAt} email={profile.email} />
+          <ExistingAccountNotice needsPassword={!existing?.passwordSetAt} email={profile.email} next={fitJobNext((await cookies()).get(FIT_JOB_COOKIE)?.value)} />
         </div>
       )
     }
@@ -101,7 +103,7 @@ export default async function OnboardingResumePage() {
               <h1 className="text-2xl font-semibold tracking-tight">You already have an account</h1>
               <ExistingAccountNotice
                 needsPassword={!existingAccount.passwordSetAt}
-                email={profile.email}
+                email={profile.email} next={fitJobNext((await cookies()).get(FIT_JOB_COOKIE)?.value)}
               />
             </div>
           )
