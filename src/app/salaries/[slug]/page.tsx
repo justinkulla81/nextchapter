@@ -75,13 +75,16 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
       {byPay.length > 1 && (
         <Section id="states" title={`${stat.name} salary by state`} note="States with at least 8 listings that state pay.">
           <Chips kind="salary_to_state" event="topic_link_clicked" items={byPay.map((s) => ({ href: `/places/${s.slug}`, label: s.name, detail: usd(s.median!) }))} />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Between jobs?{' '}
+          <p className="mt-6 text-sm text-muted-foreground">
+            Between jobs? Unemployment benefits and severance rules in these states, or{' '}
             <TrackedLink href="/unemployment-benefits" event="salary_unemployment_link_clicked" properties={{ slug, title: stat.name }} className={LINK}>
-              Unemployment benefits and severance rules by state
+              in every state
             </TrackedLink>
             .
           </p>
+          <div className="mt-2">
+            <Chips kind="salary_to_state_unemployment" event="topic_link_clicked" items={byPay.map((s) => ({ href: `/unemployment-benefits/${s.slug}`, label: `${s.name} unemployment` }))} />
+          </div>
         </Section>
       )}
       <Section id="jobs" title={`Open ${stat.name.toLowerCase()} jobs`} note="Verified against the employer’s own career site within the last week.">
