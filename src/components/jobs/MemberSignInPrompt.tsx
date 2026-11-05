@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import { buttonVariants } from '@/components/ui/button'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
+import { markSigninAsked, signinAsked } from '@/lib/jobs/signin-ask'
 
 // A dismissible "Sign in" prompt on a public job page, for visitors who are members but not signed in here.
 // Signed-in members never see this page (src/proxy.ts sends them to the same job in the portal). Signing in lands on that
 // job in the portal; dismissing leaves the visitor on this page, and the prompt stays away for the rest of the browser session.
 // It opens after a short pause so the job is read first, and is not a registration ask (no email is collected here).
-const SEEN_KEY = 'nc_job_signin_prompt_v1'
 const DELAY_MS = 2500
 
 export function MemberSignInPrompt({ jobId, company }: { jobId: string; company: string }) {
@@ -17,9 +17,7 @@ export function MemberSignInPrompt({ jobId, company }: { jobId: string; company:
   const signInRef = useRef<HTMLAnchorElement>(null)
 
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(SEEN_KEY)) return
-    } catch {}
+    if (signinAsked()) return
     const t = window.setTimeout(() => {
       setOpen(true)
       posthog.capture('job_page_signin_prompt_shown', { jobId, company })
@@ -28,9 +26,7 @@ export function MemberSignInPrompt({ jobId, company }: { jobId: string; company:
   }, [jobId, company])
 
   function close(how: 'stay' | 'escape' | 'backdrop') {
-    try {
-      sessionStorage.setItem(SEEN_KEY, '1')
-    } catch {}
+    markSigninAsked()
     posthog.capture('job_page_signin_prompt_dismissed', { jobId, company, how })
     setOpen(false)
   }
@@ -63,9 +59,7 @@ export function MemberSignInPrompt({ jobId, company }: { jobId: string; company:
           ref={signInRef}
           href={`/auth/login?next=${encodeURIComponent(`/dashboard/jobs/${jobId}?src=public_page`)}`}
           onClick={() => {
-            try {
-              sessionStorage.setItem(SEEN_KEY, '1')
-            } catch {}
+            markSigninAsked()
             posthog.capture('job_page_signin_prompt_clicked', { jobId, company })
           }}
           className={cn(buttonVariants({ size: 'lg' }), 'mt-4 h-11 w-full rounded-full bg-action text-action-foreground hover:brightness-95')}

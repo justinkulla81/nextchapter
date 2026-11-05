@@ -5,11 +5,11 @@ import { useEffect, useRef, useState } from 'react'
 import { buttonVariants } from '@/components/ui/button'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
+import { markSigninAsked, signinAsked } from '@/lib/jobs/signin-ask'
 
 // "Check my fit" on a public job page. Anyone who already has an account would otherwise answer the onboarding questions and upload a résumé
 // before the app can tell (it only learns the email then), so the click first asks: sign in, or carry on as new. Members whose browser the site
-// recognises never get here (src/proxy.ts sends them to the job in the portal). "Carry on" is remembered for the browser session.
-const NEW_KEY = 'nc_fit_new_visitor_v1'
+// recognises never get here (src/proxy.ts sends them to the job in the portal). Answering either account question on the page is remembered for the browser session (src/lib/jobs/signin-ask.ts).
 
 export function CheckFitButton({ jobId, href, placement, className }: { jobId: string; href: string; placement: string; className?: string }) {
   const [open, setOpen] = useState(false)
@@ -26,14 +26,6 @@ export function CheckFitButton({ jobId, href, placement, className }: { jobId: s
     return () => document.removeEventListener('keydown', onKey)
   }, [open])
 
-  function skipAsk(): boolean {
-    try {
-      return !!sessionStorage.getItem(NEW_KEY)
-    } catch {
-      return false
-    }
-  }
-
   return (
     <>
       <Link
@@ -41,7 +33,7 @@ export function CheckFitButton({ jobId, href, placement, className }: { jobId: s
         className={className}
         onClick={(e) => {
           posthog.capture('jobs_page_personalize_clicked', props)
-          if (skipAsk()) return
+          if (signinAsked()) return
           e.preventDefault()
           posthog.capture('fit_signin_ask_shown', props)
           setOpen(true)
@@ -66,9 +58,7 @@ export function CheckFitButton({ jobId, href, placement, className }: { jobId: s
               <Link
                 href={href}
                 onClick={() => {
-                  try {
-                    sessionStorage.setItem(NEW_KEY, '1')
-                  } catch {}
+                  markSigninAsked()
                   posthog.capture('fit_signin_ask_answered', { ...props, answer: 'new' })
                 }}
                 className={cn(buttonVariants({ size: 'lg', variant: 'outline' }), 'h-11 flex-1 rounded-full')}

@@ -19,6 +19,8 @@ export interface OrgCopy {
   headline: string
   sentence: string
   button: string
+  /** Where the button goes: the organization's own claim page, or the contact form. */
+  href: string
 }
 
 export interface MemberCopy {
@@ -62,25 +64,48 @@ export const DEFAULT_COPY: PullCopy = {
   member: { headline: 'Tighten your search', sentence: 'Your profile decides why each job ranks where it does. Add what is missing and the list gets closer to the jobs that reply.', button: 'Improve my search' },
 }
 
-/** The organization ask. Contract-sold, so the button stays "Talk to us". Claims only what the organization pages already claim: no placement, speed or price wording. */
+/**
+ * The organization ask. Where an organization can claim a page and get a free workspace (workforce boards, job centers, economic
+ * development, rapid response, nonprofits, colleges: the claim pages say "a free workspace is created for you"), the box says so and
+ * the button starts the claim. Owner direction 2026-11-05: no "Talk to us"; "give the platform to your job seekers for free. Start here."
+ */
+const orgFree = (href: string): OrgCopy => ({
+  org: true,
+  headline: 'Give the platform to your job seekers, free.',
+  sentence: 'Claim your page and get a free workspace for the people you serve.',
+  button: 'Start here, free',
+  href,
+})
+
+/** Organizations with no free workspace today (search firms, associations, conferences): the pain, and a way to start that is not a sales call. */
 export const ORG_COPY: OrgCopy = {
   org: true,
   headline: 'Hard to reach experienced job seekers where they already look?',
-  sentence: 'Get your own page and your own numbers on NextChapter. A short call shows how.',
-  button: 'Talk to us',
+  sentence: 'Get your own page and your own numbers on NextChapter.',
+  button: 'Start here',
+  href: '/for-organizations#contact',
 }
 
-/** The organization ask on layoff pages (rapid response, the WARN tools): a layoff is coming or has hit, and the people affected need somewhere to start. */
+/** Employers on the WARN tools. Outplacement is set up by contract, so no "free" and no price or result claim (docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md). */
 export const ORG_LAYOFF_COPY: OrgCopy = {
   org: true,
   headline: 'A layoff is coming and the people affected have nowhere to start?',
-  sentence: 'Send them one link to a job search plan, local jobs and career support. A short call shows how.',
-  button: 'Talk to us',
+  sentence: 'Send them one link to a job search plan, local jobs and career support.',
+  button: 'Start here',
+  href: '/outplacement',
 }
 
-/** The organization copy for a page, chosen from the page's slug (see pullContext). */
+export const ORG_FREE_WORKFORCE = orgFree('/government-workforce#claim')
+export const ORG_FREE_NONPROFIT = orgFree('/nonprofits#claim')
+export const ORG_FREE_COLLEGE = orgFree('/higher-education#claim')
+
+/** The organization copy for a page, chosen from the start of its slug (see pullContext). */
 export function orgCopyForSlug(slug: string): OrgCopy {
-  return /^(rapid-response|tools-warn)/.test(slug) ? ORG_LAYOFF_COPY : ORG_COPY
+  if (/^tools-warn/.test(slug)) return ORG_LAYOFF_COPY
+  if (/^(workforce-boards|economic-development|job-centers|rapid-response)/.test(slug)) return ORG_FREE_WORKFORCE
+  if (/^nonprofits/.test(slug)) return ORG_FREE_NONPROFIT
+  if (/^higher-education/.test(slug)) return ORG_FREE_COLLEGE
+  return ORG_COPY
 }
 
 const FREE = 'Free. No résumé needed.'
