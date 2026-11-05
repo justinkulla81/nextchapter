@@ -2,7 +2,7 @@ import 'server-only'
 import { heavy } from '@/lib/db/heavy'
 import { prisma } from '@/lib/prisma'
 import { SITE_URL } from '@/lib/seo/facts'
-import { EMPLOYER_SITEMAP_SHARD_SIZE, countEmployerPages, employersInShard } from '@/lib/seo/employer-pages'
+import { EMPLOYER_PAGES_IN_SITEMAP, EMPLOYER_SITEMAP_SHARD_SIZE, countEmployerPages, employersInShard } from '@/lib/seo/employer-pages'
 import { employerSlug } from '@/lib/seo/employer-slug'
 import { nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
 import { planOrgPageUpdates } from '@/lib/seo/org-page-rules'
@@ -116,8 +116,8 @@ async function currentPages(): Promise<Page[]> {
   }
   for (const s of nonprofitStates) out.push({ path: `/nonprofits/${stateSlug(s)}`, lastModified: ONCE })
 
-  // Employer pages: the same set as the employer sitemap files.
-  const shards = Math.ceil((await heavy(() => countEmployerPages())) / EMPLOYER_SITEMAP_SHARD_SIZE)
+  // Employer pages: the same set as the employer sitemap files, none while they are out of the sitemap (employer-pages.ts).
+  const shards = EMPLOYER_PAGES_IN_SITEMAP ? Math.ceil((await heavy(() => countEmployerPages())) / EMPLOYER_SITEMAP_SHARD_SIZE) : 0
   for (let i = 0; i < shards; i++) {
     for (const e of await heavy(() => employersInShard(i))) out.push({ path: `/employers/${employerSlug(e.canonical, e.id)}`, lastModified: ONCE })
   }

@@ -11,6 +11,7 @@ import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { conferencesAtPlace } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
+import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
 import { getCityPage, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
@@ -119,8 +120,12 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
       />
 
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">Sources:</span> WARN notices from {name}’s published record; job counts from our live job board, taken from employers’ own career sites;
-        IPEDS for colleges; CareerOneStop for workforce boards and job centers; Census Bureau and BLS for county figures.
+        <span className="font-medium text-foreground">Sources:</span> Layoff notices from {name}’s published record; job counts from our live job board, taken from employers’ own career sites;
+        IPEDS for colleges; CareerOneStop for workforce boards and job centers; Census Bureau and BLS for county figures.{' '}
+        <TrackedLink href={`/unemployment-benefits/${state}`} event="place_unemployment_link_clicked" properties={{ level: 'city', state: code, city: p.slug }} className={LINK}>
+          {name} unemployment benefits and severance rules
+        </TrackedLink>
+        .
       </p>
     </SeoPage>
   )

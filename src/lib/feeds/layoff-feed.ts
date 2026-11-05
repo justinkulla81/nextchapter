@@ -70,7 +70,7 @@ export async function layoffFeed(o: LayoffFeedOpts): Promise<FeedDoc> {
     const sName = stateName(n.state)
     const { facts } = noticeContext(n, all)
     const bucket = bucketById.get(n.id) ?? null
-    const lead = `${n.employer}${n.division ? ` (${n.division} division)` : ''} filed a WARN layoff notice${n.place ? ` for ${n.place}, ${sName}` : ` in ${sName}`}${n.workers ? `, naming ${num(n.workers)} workers` : ''}${n.noticeDateKnown ? ` on ${noticeDay(n.noticeDate)}` : ` (layoffs effective ${n.effectiveDate ? noticeDay(n.effectiveDate) : 'date not given'})`}${n.type ? ` (${n.type})` : ''}.`
+    const lead = `${n.employer}${n.division ? ` (${n.division} division)` : ''} filed a layoff notice${n.place ? ` for ${n.place}, ${sName}` : ` in ${sName}`}${n.workers ? `, naming ${num(n.workers)} workers` : ''}${n.noticeDateKnown ? ` on ${noticeDay(n.noticeDate)}` : ` (layoffs effective ${n.effectiveDate ? noticeDay(n.effectiveDate) : 'date not given'})`}${n.type ? ` (${n.type})` : ''}.`
     const help = `If you are affected: ${sName} unemployment benefits ${SITE_URL}/unemployment-benefits/${stateSlug(n.state)}${n.board ? `; local help from ${n.board.name}` : ''}.`
     const record = n.sourceUrl ? `State record: ${n.sourceUrl}` : ''
     const description = [lead, ...facts, help, record].filter(Boolean).join(' ')
@@ -94,7 +94,7 @@ export async function layoffFeed(o: LayoffFeedOpts): Promise<FeedDoc> {
     for (const a of announcements.values()) {
       if (!hasRecentAnnouncement(a)) continue
       for (const it of a.items.filter((x) => x.rssPublishedAt && x.date.getTime() >= cutoff)) {
-        const lead = `${a.name}${it.division ? ` (${it.division} division)` : ''}: ${it.summary} (${noticeDay(it.date)}). This is an announcement or press report, not a WARN filing.`
+        const lead = `${a.name}${it.division ? ` (${it.division} division)` : ''}: ${it.summary} (${noticeDay(it.date)}). This is an announcement or press report, not a state filing.`
         items.push({
           title: `${a.name}${it.division ? ` (${it.division})` : ''}: ${it.summary}`,
           link: feedLink(`/layoffs/company/${a.slug}`, o.campaign),
@@ -113,22 +113,22 @@ export async function layoffFeed(o: LayoffFeedOpts): Promise<FeedDoc> {
 }
 
 export const allLayoffFeed = () => layoffFeed({
-  title: 'Layoff notices (WARN) from NextChapter',
-  description: 'New WARN Act layoff notices from every state labor department we collect, each with the state record, how it compares, and help for affected workers.',
+  title: 'Layoff notices from NextChapter',
+  description: 'New layoff notices from every state labor department we collect, each with the state record, how it compares, and help for affected workers.',
   selfPath: '/feeds/layoffs', pagePath: '/layoffs', campaign: 'layoffs-all',
 })
 
 export const largeLayoffFeed = () => layoffFeed({
   minWorkers: LARGE_NOTICE_WORKERS,
-  title: `Large layoffs: ${LARGE_NOTICE_WORKERS}+ workers (WARN) from NextChapter`,
-  description: `Only WARN notices naming ${LARGE_NOTICE_WORKERS} or more workers, in any state. Each with the state record.`,
+  title: `Large layoffs: ${LARGE_NOTICE_WORKERS}+ workers from NextChapter`,
+  description: `Only layoff notices naming ${LARGE_NOTICE_WORKERS} or more workers, in any state. Each with the state record.`,
   selfPath: '/feeds/layoffs-100plus.xml', pagePath: '/layoffs', campaign: 'layoffs-100plus',
 })
 
 export const stateLayoffFeed = (code: string, slug: string) => layoffFeed({
   state: code,
-  title: `${stateName(code)} layoff notices (WARN)`,
-  description: `New WARN Act layoff notices in ${stateName(code)}, collected from the state labor department, each with the state record and help for affected workers.`,
+  title: `${stateName(code)} layoff notices`,
+  description: `New layoff notices in ${stateName(code)}, collected from the state labor department, each with the state record and help for affected workers.`,
   selfPath: `/feeds/layoffs/${slug}`, pagePath: `/layoffs/${slug}`, campaign: `layoffs-${slug}`,
 })
 
@@ -136,8 +136,8 @@ export const industryLayoffFeed = (bucket: string) => {
   const slug = topicSlug(bucket)
   return layoffFeed({
     bucket,
-    title: `${bucket} layoff notices (WARN)`,
-    description: `New WARN Act layoff notices from ${bucket} employers, in every state, each with the state record.`,
+    title: `${bucket} layoff notices`,
+    description: `New layoff notices from ${bucket} employers, in every state, each with the state record.`,
     selfPath: `/feeds/industries/${slug}`, pagePath: `/industries/${slug}`, campaign: `industry-${slug}`,
   })
 }
@@ -152,7 +152,7 @@ export async function weeklyLayoffFeed(): Promise<FeedDoc> {
     const top = [...data.notices].sort((a, b) => (b.workers ?? 0) - (a.workers ?? 0)).filter((n) => n.workers).slice(0, 5)
     const states = new Set(data.notices.map((n) => n.state)).size
     const label = weekLabel(w.monday)
-    const lead = `${num(w.count)} WARN layoff notice${w.count === 1 ? '' : 's'} in ${states} state${states === 1 ? '' : 's'}${w.workers ? `, naming ${num(w.workers)} workers` : ''}, filed in the week of ${label}.`
+    const lead = `${num(w.count)} layoff notice${w.count === 1 ? '' : 's'} in ${states} state${states === 1 ? '' : 's'}${w.workers ? `, naming ${num(w.workers)} workers` : ''}, filed in the week of ${label}.`
     const biggest = top.length ? `Largest: ${top.map((n) => `${n.employer} (${stateName(n.state)}, ${num(n.workers!)})`).join('; ')}.` : ''
     items.push({
       title: `Layoffs, week of ${label}: ${num(w.count)} notices${w.workers ? `, ${num(w.workers)} workers` : ''}`,
@@ -165,8 +165,8 @@ export async function weeklyLayoffFeed(): Promise<FeedDoc> {
     })
   }
   return {
-    title: 'Weekly layoff summary (WARN) from NextChapter',
-    description: 'One item a week: how many WARN layoff notices were filed, how many workers they name, and the largest, with every notice on the week\'s page.',
+    title: 'Weekly layoff summary from NextChapter',
+    description: 'One item a week: how many layoff notices were filed, how many workers they name, and the largest, with every notice on the week\'s page.',
     path: '/layoffs/week', selfPath: '/feeds/layoffs-weekly.xml', items, hub: true,
   }
 }
@@ -185,7 +185,7 @@ export async function dailyLayoffFeed(): Promise<FeedDoc> {
     const states = new Set(notices.map((n) => n.state)).size
     const top = [...notices].filter((n) => n.workers).sort((a, b) => b.workers! - a.workers!).slice(0, 5)
     const label = noticeDay(day)
-    const lead = `${num(notices.length)} WARN layoff notice${notices.length === 1 ? '' : 's'} dated ${label}, in ${states} state${states === 1 ? '' : 's'}${workers ? `, naming ${num(workers)} workers` : ''}.`
+    const lead = `${num(notices.length)} layoff notice${notices.length === 1 ? '' : 's'} dated ${label}, in ${states} state${states === 1 ? '' : 's'}${workers ? `, naming ${num(workers)} workers` : ''}.`
     const biggest = top.length ? `Largest: ${top.map((n) => `${n.employer} (${stateName(n.state)}, ${num(n.workers!)})`).join('; ')}.` : ''
     items.push({
       title: `Layoffs on ${label}: ${num(notices.length)} notices${workers ? `, ${num(workers)} workers` : ''}`,
@@ -198,8 +198,8 @@ export async function dailyLayoffFeed(): Promise<FeedDoc> {
     })
   }
   return {
-    title: 'Daily layoff numbers (WARN) from NextChapter',
-    description: 'One item a day: how many WARN layoff notices were dated that day, how many workers they name, and the largest. Free to quote with a link back.',
+    title: 'Daily layoff numbers from NextChapter',
+    description: 'One item a day: how many layoff notices were dated that day, how many workers they name, and the largest. Free to quote with a link back.',
     path: '/layoffs/this-week', selfPath: '/feeds/layoffs-daily.xml', items, hub: true,
   }
 }

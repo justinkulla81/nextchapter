@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { Body, Button, Card, CardEmail, Headline, INK, MUTED, Small, Wordmark } from '@/lib/email/card-layout'
+import { Body, Button, Card, CardEmail, Headline, INK, MUTED, Small, Wordmark, Signoff } from '@/lib/email/card-layout'
 
 interface ScamAlertEmailProps {
   firstName: string | null
@@ -100,6 +100,7 @@ export default function ScamAlertEmail({
           Or just reply to this email and tell me who they are. I read every reply, and I&apos;d rather be corrected
           than miss a real one. <a href={alertUrl} style={{ color: MUTED }}>See why I flagged it</a>
         </Small>
+        <Signoff name={victoriaName} />
       </Card>
     </CardEmail>
   )

@@ -50,7 +50,7 @@ async function PayData() {
 }
 
 async function JourneyNews({ j }: { j: EmployeeJourney }) {
-  const items = await getPublishedNewsByTag(j.tag, 6)
+  const items = await getPublishedNewsByTag(j.tag, 12)
   return items.length === 0 ? (
     <p className="mt-4 rounded-xl border border-dashed border-border bg-white p-6 text-muted-foreground">
       No stories on this yet. New ones appear here as they are published; the <Link href="/news" className={LINK}>news page</Link> has everything so far.

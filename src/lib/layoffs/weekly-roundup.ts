@@ -113,44 +113,48 @@ export interface RoundupDrafts {
   pitch: string | null
 }
 
+/** Plain words, no "WARN" or "filings": a reader who has never heard of the law should follow every line. */
+export const ROUNDUP_HASHTAGS = '#layoffs #laidoff #jobsearch #careers #hiring'
+
 export function roundupDrafts(r: Roundup, stateName: (code: string) => string, site = 'https://launchyournextchapter.com'): RoundupDrafts {
   const when = windowLabel(r)
   const where = (e: RoundupEmployer) => (e.states.length ? ` (${e.states.map(stateName).join(', ')})` : '')
   const topLine = r.top.slice(0, 3).map((e) => `${e.employer}${where(e)}, ${n(e.workers)}`).join('; ')
   const stateLine = r.states.slice(0, 3).map((s) => `${stateName(s.state)} ${n(s.workers)}`).join(', ')
   const reportedLine = r.reported.slice(0, 3).map((e) => `${e.employer} about ${n(e.workers)}`).join('; ')
-  const filedLine = r.filings > 0 ? `${plural(r.filings, 'state WARN filing', 'state WARN filings')} from ${plural(r.employers, 'employer', 'employers')}, naming ${plural(r.workers, 'worker', 'workers')}.` : 'No state WARN filings were recorded.'
+  const headline = r.filings > 0 ? `${plural(r.workers, 'person', 'people')} found out this week that they are losing their jobs (${when}).` : `No new layoff notices came in this week (${when}).`
+  const filedLine = r.filings > 0 ? `${plural(r.employers, 'company', 'companies')} told their states they are laying people off: ${plural(r.filings, 'notice', 'notices')} in all.` : ''
+  const ask = 'Just got laid off? Here is what to do first, by company and state:'
 
   const linkedin = [
-    `Layoffs this week, from state filings and press reports (${when}):`,
+    headline,
+    ...(filedLine ? ['', filedLine] : []),
+    ...(r.top.length ? ['', `The biggest: ${topLine}.`] : []),
+    ...(r.states.length ? ['', `Where most people were hit: ${stateLine}.`] : []),
+    ...(r.reported.length ? ['', `Also in the news, reported by two or more outlets: ${reportedLine}.`] : []),
     '',
-    `State WARN filings: ${filedLine.replace(/\.$/, '')}.${r.top.length ? ` The biggest: ${topLine}.` : ''}`,
-    ...(r.states.length ? ['', `Most workers named by state: ${stateLine}.`] : []),
-    ...(r.reported.length ? ['', `Reported by two or more outlets, not state filings: ${reportedLine}.`] : []),
+    `${ask} ${site}/layoffs/this-week`,
     '',
-    `If you were affected, the steps by company and state are at ${site}/layoffs/this-week`,
+    'Source: notices companies sent their states, plus news reports.',
     '',
-    `Source: state WARN notices and press reports, tracked at ${site.replace('https://', '')}/layoffs.`,
+    ROUNDUP_HASHTAGS,
   ].join('\n')
 
-  const emailSubject = r.filings > 0 ? `Layoffs this week: ${n(r.workers)} workers named in ${plural(r.filings, 'state filing', 'state filings')}` : 'Layoffs this week'
+  const emailSubject = r.filings > 0 ? `${n(r.workers)} people lost their jobs this week` : 'Layoffs this week'
   const emailBody = [
-    `Layoffs, ${when}`,
+    headline,
+    ...(filedLine ? ['', filedLine] : []),
+    ...(r.top.length ? ['', 'The biggest:', ...r.top.map((e) => `- ${e.employer}${where(e)}: ${n(e.workers)} people${e.filings > 1 ? ` (${e.filings} notices)` : ''}`)] : []),
+    ...(r.states.length ? ['', 'Where most people were hit:', ...r.states.map((s) => `- ${stateName(s.state)}: ${n(s.workers)} people`)] : []),
+    ...(r.reported.length ? ['', 'Also in the news, reported by two or more outlets:', ...r.reported.map((e) => `- ${e.employer}: about ${n(e.workers)} people`)] : []),
     '',
-    filedLine,
-    ...(r.top.length ? ['', 'Largest filings:', ...r.top.map((e) => `- ${e.employer}${where(e)}: ${n(e.workers)}${e.filings > 1 ? ` across ${e.filings} filings` : ''}`)] : []),
-    ...(r.states.length ? ['', 'Most workers named by state:', ...r.states.map((s) => `- ${stateName(s.state)}: ${n(s.workers)} across ${plural(s.filings, 'filing', 'filings')}`)] : []),
-    ...(r.reported.length ? ['', 'Reported by two or more outlets (not state filings):', ...r.reported.map((e) => `- ${e.employer}: about ${n(e.workers)}`)] : []),
-    '',
-    `All of this week's layoffs: ${site}/layoffs/this-week`,
-    `By state: ${site}/layoffs/by-state`,
-    '',
-    'Laid off? The page for your company lists what to do first.',
+    `${ask} ${site}/layoffs/this-week`,
+    `Every state: ${site}/layoffs/by-state`,
   ].join('\n')
 
   const lead = r.states[0]
   const pitch = lead
-    ? `${stateName(lead.state)} led state layoff filings ${when}, with ${plural(lead.workers, 'worker', 'workers')} named across ${plural(lead.filings, 'filing', 'filings')}${r.states[1] ? `, followed by ${r.states.slice(1, 3).map((s) => stateName(s.state)).join(' and ')}` : ''}. We track every state WARN notice and press-reported cut, free to download and embed with a link back: ${site}/data. The underlying rows for any state are available on request.`
+    ? `${stateName(lead.state)} led state layoff notices ${when}, with ${plural(lead.workers, 'worker', 'workers')} named across ${plural(lead.filings, 'layoff notice', 'layoff notices')}${r.states[1] ? `, followed by ${r.states.slice(1, 3).map((s) => stateName(s.state)).join(' and ')}` : ''}. We track every state WARN notice and press-reported cut, free to download and embed with a link back: ${site}/data. The underlying rows for any state are available on request.`
     : null
 
   return { linkedin, emailSubject, emailBody, pitch }

@@ -181,7 +181,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
       <AreaNotices
         id="notices"
         title={row.kind === 'WORKFORCE_BOARD' ? 'Layoff notices in this board’s area' : 'Layoff notices where it serves'}
-        intro={`WARN notices filed with ${st} for employers in the workforce area${area.statewide ? '' : ' this organization serves'}.`}
+        intro={`Layoff notices filed with ${st} for employers in the workforce area${area.statewide ? '' : ' this organization serves'}.`}
         notices={notices}
         moreHref={`/layoffs/${ss}`}
         moreLabel={`All layoff notices in ${st}`}

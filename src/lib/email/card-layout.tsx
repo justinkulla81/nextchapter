@@ -13,7 +13,19 @@ export const MUTED = '#5f6368'
 export const BRAND = '#0b2545'
 export const GREEN = '#2e7d5b'
 
-const card: CSSProperties = { backgroundColor: '#ffffff', borderRadius: '24px' }
+// Warm paper card with a faint edge, so the email reads as a page in a chapter, not a form.
+export const PAPER = '#fffdf8'
+const PAPER_EDGE = '#ece4d4'
+const card: CSSProperties = { backgroundColor: PAPER, border: `1px solid ${PAPER_EDGE}`, borderRadius: '24px' }
+// Gmail ignores web fonts, so the display face only shows in Apple Mail and similar; everywhere else it falls back to CARD_FONT.
+export const DISPLAY_FONT = '"Bricolage Grotesque", "Google Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif'
+const HAND_FONT = '"Caveat", "Bradley Hand", "Segoe Print", cursive'
+
+/** Absolute URL of a file in public/email, so the image loads inside a mail client. */
+export function emailAsset(file: string): string {
+  const base = (process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com').replace(/\/$/, '')
+  return `${base}/email/${file}`
+}
 const gapStyle: CSSProperties = { height: '12px', lineHeight: '12px', fontSize: '12px' }
 
 function Gap() {
@@ -70,12 +82,89 @@ export function CardGap() {
   return <Gap />
 }
 
+/** The bookmark mark and the name. The mark is an image; the name stays text so it survives blocked images. */
 export function Wordmark() {
-  return <p style={{ margin: '0 0 28px', fontSize: '22px', fontWeight: 700, color: BRAND, letterSpacing: '-0.01em' }}>NextChapter</p>
+  return (
+    <p style={{ margin: '0 0 28px', fontFamily: DISPLAY_FONT, fontSize: '22px', fontWeight: 800, color: BRAND, letterSpacing: '-0.01em' }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={emailAsset('bookmark.png')} width={18} height={26} alt="" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', border: 0 }} />
+      <span style={{ verticalAlign: 'middle' }}>NextChapter</span>
+    </p>
+  )
+}
+
+/** Wordmark on the left and a small label on the right (for a newsletter: "Chapter 14 · Nov 5"). */
+export function Masthead({ right }: { right: string }) {
+  return (
+    <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} style={{ margin: '0 0 24px' }}>
+      <tbody>
+        <tr>
+          <td style={{ verticalAlign: 'middle', fontFamily: DISPLAY_FONT, fontSize: '20px', fontWeight: 800, color: BRAND, letterSpacing: '-0.01em' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={emailAsset('bookmark.png')} width={18} height={26} alt="" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', border: 0 }} />
+            <span style={{ verticalAlign: 'middle' }}>NextChapter</span>
+          </td>
+          <td align="right" style={{ verticalAlign: 'middle', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, color: MUTED }}>
+            {right}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  )
+}
+
+/** The orange hand-drawn line under a headline. */
+export function Squiggle() {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={emailAsset('squiggle.png')} width={150} height={8} alt="" style={{ display: 'block', border: 0, margin: '-12px 0 24px' }} />
+}
+
+/** A handwritten aside drawn as an image (Gmail ignores web fonts). The text is the alt, so blocked images still read. */
+export function HandNote({ src, text }: { src: string | null; text: string }) {
+  if (!src) return null
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} height={30} alt={text} style={{ display: 'block', height: '30px', width: 'auto', border: 0, margin: '0 0 20px' }} />
+}
+
+/** The pale box that opens an issue: a label, then the facts in a line or two. */
+export function ShortVersion({ children }: { children: ReactNode }) {
+  return (
+    <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} style={{ margin: '0 0 12px' }}>
+      <tbody>
+        <tr>
+          <td style={{ backgroundColor: '#e8f0f8', borderRadius: '16px', padding: '18px 22px', textAlign: 'left' }}>
+            <p style={{ margin: '0 0 6px', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, color: MUTED }}>The short version</p>
+            <p style={{ margin: 0, fontSize: '17px', lineHeight: '1.55', color: INK }}>{children}</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  )
+}
+
+/** Orange highlighter under a number or phrase that matters. Counts only; never on something clickable. */
+export function Mark({ children }: { children: ReactNode }) {
+  return <span style={{ backgroundColor: '#f9d9b4', padding: '0 3px' }}>{children}</span>
+}
+
+/** A short handwritten aside. Falls back to a plain italic where the hand font is missing. */
+export function MarginNote({ children }: { children: ReactNode }) {
+  return <p style={{ margin: '0 0 20px', fontFamily: HAND_FONT, fontSize: '22px', lineHeight: '1.2', fontWeight: 700, color: '#1d4e89' }}>{children}</p>
+}
+
+/** Victoria's handwritten sign-off, then an optional P.S. The name picks the image; the alt text keeps it readable with images off. */
+export function Signoff({ name = 'Victoria', ps, align = 'left' }: { name?: 'Victoria' | 'Vicki' | 'Vic'; ps?: ReactNode; align?: 'left' | 'center' }) {
+  return (
+    <div style={{ margin: '20px 0 0', textAlign: align }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={emailAsset(`signature-${name.toLowerCase()}.png`)} height={49} alt={name} style={{ display: 'inline-block', height: '49px', width: 'auto', border: 0 }} />
+      {ps && <p style={{ margin: '8px 0 0', fontSize: '15px', lineHeight: '1.6', color: MUTED }}>P.S. {ps}</p>}
+    </div>
+  )
 }
 
 export function Headline({ children }: { children: ReactNode }) {
-  return <h1 style={{ margin: '0 0 24px', fontSize: '30px', lineHeight: '1.25', fontWeight: 700, color: INK }}>{children}</h1>
+  return <h1 style={{ margin: '0 0 24px', fontFamily: DISPLAY_FONT, fontSize: '30px', lineHeight: '1.2', fontWeight: 800, color: BRAND, letterSpacing: '-0.01em' }}>{children}</h1>
 }
 
 /** Big number on a pale blue card, with a caption under it. */

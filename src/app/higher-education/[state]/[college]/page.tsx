@@ -335,7 +335,7 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
       <AreaNotices
         id="notices"
         title={`Layoff notices from ${c.name}`}
-        intro={`WARN notices ${c.name} has filed with ${st} as an employer.`}
+        intro={`Layoff notices ${c.name} has filed with ${st} as an employer.`}
         notices={collegeNotices}
         moreHref={`/layoffs/${state}`}
         moreLabel={`All layoff notices in ${st}`}

@@ -53,7 +53,7 @@ export default function LayoffAlertDigestEmail({ watching, notices, startUrl, un
           These come from the notices employers file with state labor departments. A notice gives the numbers and dates the employer reported; it does not say who is affected or why.
         </Lead>
         <Lead>If this touches you or someone you know, the first week matters most. We have a short plan, and it takes about five minutes to start.</Lead>
-        <Button campaign="layoff_alert_digest" href={startUrl}>See the first-week plan</Button>
+        <Button campaign="layoff_alert_digest" href={startUrl}>Get my laid-off game plan</Button>
       </Card>
     </CardEmail>
   )

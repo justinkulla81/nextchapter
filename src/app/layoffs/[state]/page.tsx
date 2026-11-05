@@ -1,7 +1,6 @@
 import { fitDescription, layoffsStateSeo } from '@/lib/seo/templates'
 import { LinkIndex } from '@/components/seo/LinkIndex'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
-import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { stateBrand, statePhrase } from '@/lib/branding/state-colors'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import type { Metadata } from 'next'
@@ -46,7 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   const workers = d.recent.reduce((s, n) => s + (n.workers ?? 0), 0)
-  const description = `${d.recent.length} layoff and job-cut notices (WARN filings) in ${d.name} in the last 12 months${workers > 0 ? `, naming ${workers.toLocaleString()} workers` : ''}: employers, dates, locations and the state record for each.`
+  const description = `${d.recent.length} layoff and job-cut notices filed with the state in ${d.name} in the last 12 months${workers > 0 ? `, naming ${workers.toLocaleString()} people` : ''}: employers, dates, locations and the state record for each.`
   return {
     title: titleMeta(layoffsStateSeo(d.name).title),
     description: fitDescription(description, 165),
@@ -89,19 +88,10 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{layoffsStateSeo(d.name).h1}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             Employers filed {d.recent.length.toLocaleString()} layoff notices in {d.name} in the last 12 months
-            {workers > 0 ? <>, naming {workers.toLocaleString()} workers</> : ''}. The most recent was filed {noticeDay(latest)}.
+            {workers > 0 ? <>, naming {workers.toLocaleString()} people</> : ''}. The most recent was filed {noticeDay(latest)}.
           </p>
           <PullTop name={`Layoffs in ${d.name}`} path={`/layoffs/${state}`} />
-          {st && (
-            <OrgCandidateBand
-              orgName={d.name}
-              branded
-              peopleCount={null}
-              heading={`Affected by a layoff in ${d.name}? See where you stand.`}
-              independent={`Independent page. Not from or affiliated with ${statePhrase(d.code)}.`}
-              properties={{ kind: 'LAYOFF_STATE', state: d.code }}
-            />
-          )}
+          {st && <p className="mt-3 text-xs text-muted-foreground">Independent page. Not from or affiliated with {statePhrase(d.code)}.</p>}
 
           <section aria-labelledby="economy" className="mt-10">
             <h2 id="economy" className={H2}>{d.name} jobs picture</h2>
@@ -143,7 +133,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
           <section aria-labelledby="notices" className="mt-12">
             <h2 id="notices" className={H2}>Notices in the last 12 months</h2>
             <div className="mt-4">
-              <NoticeTable notices={d.recent} caption={`WARN notices filed in ${d.name}, newest first`} linkEmployer page="state" placeHref={linkPlace} />
+              <NoticeTable notices={d.recent} caption={`Layoff notices filed in ${d.name}, newest first`} linkEmployer page="state" placeHref={linkPlace} />
             </div>
           </section>
 
@@ -170,7 +160,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
           <section aria-labelledby="help" className="mt-12 rounded-xl border border-border bg-white p-6">
             <h2 id="help" className="text-xl font-semibold tracking-tight text-navy">If you were laid off in {d.name}</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
-              <li><Link href={`/unemployment-benefits/${state}`} className={LINK}>{d.name} unemployment benefits: amounts, weeks and how to file</Link></li>
+              <li><Link href={`/unemployment-benefits/${state}`} className={LINK}>{d.name} unemployment benefits and severance rules: amounts, weeks and how to file</Link></li>
               <li><Link href="/start/laid-off" className={LINK}>What to do after a layoff</Link></li>
               <li><FeedLine feed={`/feeds/layoffs/${state}`} label={`Get new ${d.name} notices by RSS`} /></li>
               <li><Link href="/resources/cobra-aca" className={LINK}>Keeping your health coverage: COBRA and the marketplace</Link></li>
@@ -182,10 +172,10 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
 
           <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
             <span className="font-medium text-foreground">Coverage:</span> {d.all.length.toLocaleString()} {d.name} notices on file,
-            filed {noticeDay(earliest)} to {noticeDay(latest)}, collected daily from the state’s published WARN record
+            filed {noticeDay(earliest)} to {noticeDay(latest)}, collected daily from the state’s published layoff record
             {sources.length > 0 && <> ({sources.slice(0, 2).map((u, i) => <span key={u}>{i > 0 && ', '}<a href={u} className="underline underline-offset-2" target="_blank" rel="noopener noreferrer">{new URL(u).hostname}</a></span>)})</>}.
-            A state may publish late or leave out worker counts, so this is a floor rather than a count of every layoff. The
-            WARN Act generally applies to employers with 100 or more workers. See the{' '}
+            A state may publish late or leave out worker counts, so this is a floor rather than a count of every layoff. States generally
+            require a notice only from employers with 100 or more workers. See the{' '}
             <Link href="/layoffs" className={LINK}>national tracker</Link> for how we collect notices.
           </p>
           <div className="mt-10">

@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { ResumeCheck } from '@/components/tools/ResumeCheck'
 import { getPersona } from '@/lib/constants/personas'
 import { journeyChoices } from '@/lib/leads/infer-journey'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 export const metadata: Metadata = pageMetadata('/tools/resume-check')
@@ -26,6 +25,7 @@ export default function ResumeCheckPage() {
     .map((p) => ({ slug: p.slug, label: p.label }))
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Résumé check', path: '/tools/resume-check' }]}
       h1={pageH1('/tools/resume-check', 'Free ATS résumé checker: score your résumé in a minute')}
       lede="Paste your résumé to get a score out of 100 and see how many fixes it needs, including the headings, dates and layout applicant tracking systems commonly trip on. Leave an email to see exactly what to change. No AI, no account."
@@ -46,7 +46,6 @@ export default function ResumeCheckPage() {
           More: <Link href="/topics/resume-review" className={LINK}>how to review a résumé yourself</Link>, <Link href="/topics/resume-tips" className={LINK}>résumé tips for experienced professionals</Link> and <Link href="/tools" className={LINK}>all tools</Link>.
         </p>
       </section>
-      <ActionBand title="See how the market reads your résumé" body="A free Market Reality Assessment shows how recruiters read your background, then ranks every open job for you." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'resume_check' }} />
     </SeoPage>
   )
 }

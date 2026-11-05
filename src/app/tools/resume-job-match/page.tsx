@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { JobMatch } from '@/components/tools/JobMatch'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 export const metadata: Metadata = pageMetadata('/tools/resume-job-match')
@@ -19,6 +18,7 @@ const FAQ = [
 export default function ResumeJobMatchPage() {
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Résumé and job match', path: '/tools/resume-job-match' }]}
       h1={pageH1('/tools/resume-job-match', 'Résumé vs job description: see which keywords you are missing')}
       lede="Paste a job posting and your résumé to see which of the posting’s keywords your résumé already says and which it leaves out. Free, no AI, no account, and nothing leaves your browser."
@@ -48,7 +48,6 @@ export default function ResumeJobMatchPage() {
           More: <Link href="/tools/resume-check" className={LINK}>free résumé check</Link>, <Link href="/topics/resume-tips" className={LINK}>résumé tips</Link>, <Link href="/tools/resume-bullet-rewriter" className={LINK}>résumé bullet rewriter</Link> and <Link href="/tools" className={LINK}>all free tools</Link>.
         </p>
       </section>
-      <ActionBand title="See how the market reads your résumé" body="A free Market Reality Assessment shows how recruiters read your background, then ranks every open job for you." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'resume_job_match' }} />
     </SeoPage>
   )
 }

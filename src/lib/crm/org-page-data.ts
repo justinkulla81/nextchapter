@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { timedWithin } from '@/lib/perf/timed'
 import { buildLayoffTimeline } from '@/lib/companies/layoff-timeline'
 import { buildLayoffYear } from '@/lib/companies/layoff-year'
 import { LAYOFF_WINDOW_MONTHS } from '@/lib/crm/layoff-signals'
@@ -17,9 +18,12 @@ const DAY_MS = 24 * 60 * 60 * 1000
 let trackingStartCache: { at: number; value: Date | null } | null = null
 async function boardTrackingStart(): Promise<Date | null> {
   if (trackingStartCache && Date.now() - trackingStartCache.at < 60 * 60 * 1000) return trackingStartCache.value
-  const row = await prisma.exclusiveJobPosting.aggregate({ _min: { createdAt: true } })
-  trackingStartCache = { at: Date.now(), value: row._min.createdAt }
-  return row._min.createdAt
+  // The oldest posting, read as one row off the createdAt index. Prisma's aggregate _min wraps the table in a subquery
+  // that scans all of it (over 30 s on 1.2 M rows), which took every organization page down.
+  const row = await prisma.exclusiveJobPosting.findFirst({ orderBy: { createdAt: 'asc' }, select: { createdAt: true } })
+  const value = row?.createdAt ?? null
+  trackingStartCache = { at: Date.now(), value }
+  return value
 }
 
 const fullName = (c: { firstName: string | null; lastName: string | null }) =>
@@ -38,6 +42,11 @@ export async function loadOrgDemandData(org: OrgRef) {
   const byName = { equals: org.name, mode: 'insensitive' as const }
   const synthetic = org.canonicalNameNormalized.startsWith('-')
 
+  // Each read gets a deadline, so one stalled query leaves its section empty instead of holding the whole
+  // page until Vercel stops it at 30 s. A miss is recorded in PostHog (page_query_slow / page_query_stalled,
+  // route crm_org_page, with the label below), which says which read it was.
+  const read = <T,>(label: string, work: Promise<T>, fallback: T) => timedWithin('crm_org_page', label, org.id, work, fallback, 8_000)
+
   // A linked org matches on companyId, which is indexed. Adding a case-insensitive
   // companyName match to the OR defeats the index and scans the whole postings
   // table (over 60s for Canva, so the page failed to load). The name match is only
@@ -50,7 +59,7 @@ export async function loadOrgDemandData(org: OrgRef) {
 
   const yearAgo = new Date(Date.now() - 365 * DAY_MS)
   const [postings, applied, notices, layoffNews, researchNews, trackingStart, yearMentions, intakeMandates, searchRequests] = await Promise.all([
-    prisma.exclusiveJobPosting.findMany({
+    read('postings', prisma.exclusiveJobPosting.findMany({
       where: { OR: postingOr, status: 'approved', institutionScopeId: null },
       orderBy: { createdAt: 'desc' },
       take: 200,
@@ -59,59 +68,59 @@ export async function loadOrgDemandData(org: OrgRef) {
         badges: true, postedAt: true, createdAt: true, archivedAt: true, disclosure: true,
         salaryMin: true, salaryMax: true, salaryCurrency: true,
       },
-    }),
-    prisma.jobPosting.findMany({
+    }), []),
+    read('applied', prisma.jobPosting.findMany({
       where: { companyName: byName, appliedAt: { not: null } },
       orderBy: { appliedAt: 'desc' },
       take: 50,
       select: { title: true, appliedAt: true, declinedAt: true, interviewLandedAt: true, offerReceivedAt: true,
         candidate: { select: { id: true, firstName: true, lastName: true } } },
-    }),
-    prisma.warnNotice.findMany({
+    }), []),
+    read('notices', prisma.warnNotice.findMany({
       where: { OR: noticeOr, dismissedAt: null },
       orderBy: [{ noticeDate: 'desc' }, { fetchedAt: 'desc' }],
       take: 25,
       select: { id: true, state: true, employer: true, noticeDate: true, effectiveDate: true, employees: true,
         layoffType: true, sourceUrl: true, source: true, fetchedAt: true,
         costLowUsd: true, costHighUsd: true, costNote: true, outplacementProvider: true, outplacementNote: true },
-    }),
-    synthetic ? Promise.resolve([]) : prisma.layoffNewsMention.findMany({
+    }), []),
+    synthetic ? Promise.resolve([]) : read('layoff_news', prisma.layoffNewsMention.findMany({
       where: { companyKey: org.canonicalNameNormalized },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
       take: 10,
       select: { id: true, headline: true, url: true, publisher: true, employees: true, publishedAt: true },
-    }),
+    }), []),
     // Items in the research library that name this organization. Short names
     // ("Meta", "Box") would match half the library, so require a real name.
     org.name.trim().length >= 5
-      ? prisma.researchLibraryItem.findMany({
+      ? read('research_news', prisma.researchLibraryItem.findMany({
           where: { title: { contains: org.name.trim(), mode: 'insensitive' }, fetchFailed: false, status: { not: 'dismissed' } },
           orderBy: { dateFound: 'desc' },
           take: 8,
           select: { id: true, title: true, url: true, dateFound: true, summary: true },
-        })
+        }), [])
       : Promise.resolve([]),
-    boardTrackingStart(),
+    read('tracking_start', boardTrackingStart(), null),
     // Every mention of the past year, not just the ten shown, so the year total sees them all.
-    synthetic ? Promise.resolve([]) : prisma.layoffNewsMention.findMany({
+    synthetic ? Promise.resolve([]) : read('year_mentions', prisma.layoffNewsMention.findMany({
       where: { companyKey: org.canonicalNameNormalized, publishedAt: { gte: yearAgo } },
       select: { noticeId: true, publishedAt: true, employees: true, publisher: true },
-    }),
+    }), []),
     // Recruiters' open mandates naming this organization as the client. Admin-only:
     // the client is hidden from candidates on every other surface.
-    prisma.intakeSearch.findMany({
+    read('intake_mandates', prisma.intakeSearch.findMany({
       where: { status: 'OPEN', clientName: byName },
       orderBy: { createdAt: 'desc' },
       take: 20,
       select: { id: true, title: true, location: true, createdAt: true,
         recruiter: { select: { fullName: true } }, firm: { select: { name: true } } },
-    }),
-    prisma.searchRequest.findMany({
+    }), []),
+    read('search_requests', prisma.searchRequest.findMany({
       where: { status: { not: 'CLOSED' }, clientName: byName },
       orderBy: { createdAt: 'desc' },
       take: 20,
       select: { id: true, roleTitle: true, location: true, createdAt: true, firmName: true, contactName: true, confidential: true },
-    }),
+    }), []),
   ])
 
   const openJobs = postings.filter((p) => p.archivedAt === null)

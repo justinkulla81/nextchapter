@@ -1,9 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { AiJobCheckForm } from '@/components/tools/AiJobCheckForm'
 import { AI_EXPOSURE_SOURCE } from '@/lib/skills/ai-exposure'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { checkPath } from '@/lib/ai-check/slug'
 import occupations from '@/lib/ai-check/occupations.json'
@@ -15,13 +14,14 @@ const POPULAR = occupations.slice(0, 18)
 const FAQ = [
   { q: 'What does the AI exposure number mean?', a: 'It is the share of a job’s tasks that AI is already used for at work, weighted by time spent on each task. It comes from real usage data in the Anthropic Economic Index, not from a guess about the future.' },
   { q: 'Does a high number mean my job is going away?', a: 'No. It measures how much of the work AI is already used on, not job loss. Many jobs with high numbers are growing, and a low number means no use has been seen yet, not that the job is protected.' },
-  { q: 'Where does the data come from?', a: 'Exposure is from the Anthropic Economic Index. Pay and growth are from the Bureau of Labor Statistics. Skills and tasks are from O*NET. Layoff notices are public WARN filings.' },
+  { q: 'Where does the data come from?', a: 'Exposure is from the Anthropic Economic Index. Pay and growth are from the Bureau of Labor Statistics. Skills and tasks are from O*NET. Layoff notices are public layoff filings.' },
   { q: 'Do you save my job title?', a: 'No. The search runs once and nothing is stored unless you choose to start a free assessment.' },
 ]
 
 export default function AiJobCheckPage() {
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'AI job check', path: '/tools/ai-job-check' }]}
       h1={pageH1('/tools/ai-job-check', 'Is my job safe from AI? Free AI exposure check')}
       lede="Type your job title to see how much of the work AI already does, which related jobs pay more or are less exposed, and which skills to build. Free, no account."
@@ -60,7 +60,6 @@ export default function AiJobCheckPage() {
         </p>
       </section>
 
-      <ActionBand title="Turn the number into a plan" body="A free Market Reality Assessment shows how recruiters read your background, then ranks every open job for you." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'ai_job_check' }} />
     </SeoPage>
   )
 }

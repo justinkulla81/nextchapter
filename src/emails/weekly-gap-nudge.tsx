@@ -1,6 +1,6 @@
 import EngagementBlock from '@/emails/engagement-block'
 import type { EngagementLead } from '@/lib/journey/engagement'
-import { Button, Card, CardEmail, Headline, Hero, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
+import { Button, Card, CardEmail, Headline, Hero, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
 
 interface WeeklyGapNudgeEmailProps {
   engagement?: EngagementLead | null
@@ -44,6 +44,7 @@ export default function WeeklyGapNudgeEmail({
           <EngagementBlock lead={engagement} appUrl={appUrl} />
         </div>
         <Button href={dashboardUrl}>See what&apos;s fastest to close the gap</Button>
+        <Signoff align="center" />
       </Card>
     </CardEmail>
   )

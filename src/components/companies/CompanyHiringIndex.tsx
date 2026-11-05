@@ -84,10 +84,10 @@ function ProfileFacts({ p }: { p: HiringProfileView }) {
       <Fact label="Industry">{p.industry ?? 'Not classified yet'}</Fact>
       <Fact label="Layoffs (last 12 months)">
         {p.warnFilings12mo > 0
-          ? `${p.warnFilings12mo} WARN ${p.warnFilings12mo === 1 ? 'filing' : 'filings'}${p.warnEmployees12mo > 0 ? `, ${p.warnEmployees12mo.toLocaleString('en-US')} employees` : ''}`
-          : 'No WARN filings'}
+          ? `${p.warnFilings12mo} layoff ${p.warnFilings12mo === 1 ? 'filing' : 'filings'}${p.warnEmployees12mo > 0 ? `, ${p.warnEmployees12mo.toLocaleString('en-US')} employees` : ''}`
+          : 'No layoff filings'}
         {p.layoffNews12mo > 0 && ` · ${p.layoffNews12mo} layoff news ${p.layoffNews12mo === 1 ? 'mention' : 'mentions'}`}
-        {p.lastWarnAt && p.warnFilings12mo === 0 && <span className="block text-xs text-muted-foreground">Last WARN filing {monthYear(p.lastWarnAt)}</span>}
+        {p.lastWarnAt && p.warnFilings12mo === 0 && <span className="block text-xs text-muted-foreground">Last layoff filing {monthYear(p.lastWarnAt)}</span>}
       </Fact>
     </dl>
   )
@@ -144,10 +144,10 @@ function ProfileFactsRedesign({ p }: { p: HiringProfileView }) {
         <RFact label="Industry">{p.industry ?? 'Not classified yet'}</RFact>
         <RFact label="Layoffs in the last 12 months">
           {p.warnFilings12mo > 0
-            ? `${p.warnFilings12mo} WARN ${p.warnFilings12mo === 1 ? 'filing' : 'filings'}${p.warnEmployees12mo > 0 ? `, ${p.warnEmployees12mo.toLocaleString('en-US')} employees` : ''}`
-            : 'No WARN filings'}
+            ? `${p.warnFilings12mo} layoff ${p.warnFilings12mo === 1 ? 'filing' : 'filings'}${p.warnEmployees12mo > 0 ? `, ${p.warnEmployees12mo.toLocaleString('en-US')} employees` : ''}`
+            : 'No layoff filings'}
           {p.layoffNews12mo > 0 && `, and ${p.layoffNews12mo} layoff news ${p.layoffNews12mo === 1 ? 'mention' : 'mentions'}`}.
-          {p.lastWarnAt && p.warnFilings12mo === 0 && <span className="block text-sm text-muted-foreground">Last WARN filing {monthYear(p.lastWarnAt)}.</span>}
+          {p.lastWarnAt && p.warnFilings12mo === 0 && <span className="block text-sm text-muted-foreground">Last layoff filing {monthYear(p.lastWarnAt)}.</span>}
         </RFact>
       </dl>
     </div>

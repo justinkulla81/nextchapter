@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { NEWS_KINDS, instagramPermalink, linkedinEmbedUrl, podcastEmbed, videoEmbedUrl, youtubeId, type NewsKind } from '@/lib/news/kind'
 import { newsTagLabel, type NewsTagKey } from '@/lib/news/tags'
 import type { NewsItemView } from '@/lib/news/published'
+import { journeyForTag } from '@/lib/journeys/employee-journeys'
+import { TrackedLink } from '@/components/marketing/TrackedLink'
 import {
   NewsFilterGrid, NewsInstagramEmbed, NewsLink, NewsPicture, NewsVideoFrame,
   type NewsTrack,
@@ -31,13 +33,30 @@ function Meta({ item }: { item: NewsItemView }) {
   )
 }
 
-function Tags({ tags }: { tags: NewsTagKey[] }) {
+function Tags({ tags, item, placement }: { tags: NewsTagKey[]; item: NewsItemView; placement: Placement }) {
   if (tags.length === 0) return null
   return (
     <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Topics">
-      {tags.map((t) => (
-        <li key={t} className="rounded-full bg-off-white px-2 py-0.5 text-xs text-muted-foreground">{newsTagLabel(t)}</li>
-      ))}
+      {tags.map((t) => {
+        const journey = journeyForTag(t)
+        // A journey's tag leads to its page, except on that page itself. `relative z-10` lifts it above the card's stretched link.
+        if (journey && placement !== `journey-${journey.slug}`) {
+          return (
+            <li key={t} className="relative z-10 rounded-full bg-off-white px-2 py-0.5 text-xs">
+              <TrackedLink
+                href={`/journeys/${journey.slug}`}
+                event="news_tag_journey_clicked"
+                properties={{ itemId: item.id, tag: t, journey: journey.slug, placement }}
+                ariaLabel={`${newsTagLabel(t)}: see the journey page`}
+                className="text-primary hover:underline focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none"
+              >
+                {newsTagLabel(t)}
+              </TrackedLink>
+            </li>
+          )
+        }
+        return <li key={t} className="rounded-full bg-off-white px-2 py-0.5 text-xs text-muted-foreground">{newsTagLabel(t)}</li>
+      })}
     </ul>
   )
 }
@@ -57,19 +76,25 @@ function TakeLink({ item }: { item: NewsItemView }) {
  * Instagram post with a picture or caption on file uses it too, without a
  * headline — the caption is the content, so it gets the room instead.
  */
-function ArticleCard({ item, track, cta = 'Read the article →' }: { item: NewsItemView; track: NewsTrack; cta?: string }) {
+function ArticleCard({ item, track, placement, cta = 'Read the article →' }: { item: NewsItemView; track: NewsTrack; placement: Placement; cta?: string }) {
   const lines = item.title
     ? (item.imageUrl ? 'line-clamp-2' : 'line-clamp-6')
     : (item.imageUrl ? 'line-clamp-6' : 'line-clamp-[14]')
-  const className = `${CARD} group transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none`
-  const body = (
-    <>
+  // The card is a box, not one big link, so the journey tags inside it can be links too. The card's own link (the headline, or the
+  // call to action when there is no headline) is stretched over the whole box with ::after; the tags sit above it (z-10).
+  const className = `${CARD} group relative transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-brand`
+  const stretch = "after:absolute after:inset-0 after:content-[''] focus-visible:outline-none"
+  const href = item.slug ? `/news/${item.slug}` : item.url
+  const link = { href, track, internal: !!item.slug, newTab: !item.slug && item.kind !== 'report' }
+  const ctaText = item.slug ? 'Read our take →' : cta
+  return (
+    <article className={className}>
       {item.imageUrl && <NewsPicture src={item.imageUrl} className="aspect-video w-full shrink-0 bg-off-white object-cover" />}
       <div className={BODY}>
         <Meta item={item} />
         {item.title && (
           <h3 className="mt-2 line-clamp-3 text-lg leading-snug font-semibold text-navy group-hover:underline">
-            {item.title}
+            <NewsLink {...link} className={stretch}>{item.title}</NewsLink>
           </h3>
         )}
         {/* With no picture, or no headline, there is room to say more. */}
@@ -77,23 +102,21 @@ function ArticleCard({ item, track, cta = 'Read the article →' }: { item: News
           <p className={`mt-2 text-sm ${item.title ? 'text-muted-foreground' : 'text-foreground'} ${lines}`}>{item.blurb}</p>
         )}
         <div className="mt-auto pt-3">
-          <div className="[&>ul]:mt-0"><Tags tags={item.tags} /></div>
-          <p className="mt-3 text-sm font-medium text-primary">{item.slug ? 'Read our take →' : cta}</p>
+          <div className="[&>ul]:mt-0"><Tags tags={item.tags} item={item} placement={placement} /></div>
+          {item.title ? (
+            <p aria-hidden className="mt-3 text-sm font-medium text-primary">{ctaText}</p>
+          ) : (
+            <p className="mt-3 text-sm font-medium text-primary"><NewsLink {...link} className={stretch}>{ctaText}</NewsLink></p>
+          )}
         </div>
       </div>
-    </>
+    </article>
   )
-  // An item with our take opens its own page here first; that page carries
-  // the link out. A NextChapter report is our own page too, so it opens in the
-  // same tab. Everything else goes straight to the source in a new tab.
-  if (item.slug) return <NewsLink href={`/news/${item.slug}`} internal track={track} className={className}>{body}</NewsLink>
-  if (item.kind === 'report') return <NewsLink href={item.url} track={track} className={className}>{body}</NewsLink>
-  return <NewsLink href={item.url} newTab track={track} className={className}>{body}</NewsLink>
 }
 
 const videoHost = (url: string) => (youtubeId(url) ? 'YouTube' : 'Vimeo')
 
-function VideoCard({ item, track, played }: { item: NewsItemView; track: NewsTrack; played: NewsTrack }) {
+function VideoCard({ item, track, played, placement }: { item: NewsItemView; track: NewsTrack; played: NewsTrack; placement: Placement }) {
   return (
     <article className={CARD}>
       <NewsVideoFrame embed={videoEmbedUrl(item.url)} title={item.title} imageUrl={item.imageUrl} played={played} />
@@ -106,7 +129,7 @@ function VideoCard({ item, track, played }: { item: NewsItemView; track: NewsTra
         </h3>
         {item.blurb && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{item.blurb}</p>}
         <div className="mt-auto pt-3">
-          <div className="[&>ul]:mt-0"><Tags tags={item.tags} /></div>
+          <div className="[&>ul]:mt-0"><Tags tags={item.tags} item={item} placement={placement} /></div>
           <p className="mt-3 text-sm font-medium">
             <NewsLink href={item.url} newTab track={track} className="text-primary hover:underline">
               Watch on {videoHost(item.url)} →
@@ -120,7 +143,7 @@ function VideoCard({ item, track, played }: { item: NewsItemView; track: NewsTra
 }
 
 /** A Spotify or Apple Podcasts player, at the fixed height each host gives its player. */
-function PodcastCard({ item, track }: { item: NewsItemView; track: NewsTrack }) {
+function PodcastCard({ item, track, placement }: { item: NewsItemView; track: NewsTrack; placement: Placement }) {
   const embed = podcastEmbed(item.url)
   if (!embed) return null
   return (
@@ -142,7 +165,7 @@ function PodcastCard({ item, track }: { item: NewsItemView; track: NewsTrack }) 
         )}
         {item.blurb && <p className="mt-2 line-clamp-4 text-sm text-muted-foreground">{item.blurb}</p>}
         <div className="mt-auto pt-3">
-          <div className="[&>ul]:mt-0"><Tags tags={item.tags} /></div>
+          <div className="[&>ul]:mt-0"><Tags tags={item.tags} item={item} placement={placement} /></div>
           <p className="mt-3 text-sm font-medium">
             <NewsLink href={item.url} newTab track={track} className="text-primary hover:underline">
               Listen on {embed.host} →
@@ -156,11 +179,11 @@ function PodcastCard({ item, track }: { item: NewsItemView; track: NewsTrack }) 
 }
 
 /** The strip under an embedded post: what it is, its topics, and the way out to it. */
-function EmbedFooter({ item, track, href, label }: { item: NewsItemView; track: NewsTrack; href: string; label: string }) {
+function EmbedFooter({ item, track, href, label, placement }: { item: NewsItemView; track: NewsTrack; href: string; label: string; placement: Placement }) {
   return (
     <div className="shrink-0 border-t border-border px-5 py-3">
       <Meta item={item} />
-      <div className="[&>ul]:mt-2"><Tags tags={item.tags} /></div>
+      <div className="[&>ul]:mt-2"><Tags tags={item.tags} item={item} placement={placement} /></div>
       <p className="mt-2 text-sm font-medium">
         <NewsLink href={href} newTab track={track} className="text-primary hover:underline">{label}</NewsLink>
         <TakeLink item={item} />
@@ -173,24 +196,24 @@ function EmbedFooter({ item, track, href, label }: { item: NewsItemView; track: 
  * LinkedIn's own embed of a post. It does not report its height, so the
  * frame takes what the card has left and scrolls for a long post.
  */
-function LinkedInCard({ item, track }: { item: NewsItemView; track: NewsTrack }) {
+function LinkedInCard({ item, track, placement }: { item: NewsItemView; track: NewsTrack; placement: Placement }) {
   const embed = linkedinEmbedUrl(item.url)
   if (!embed) return null
   return (
     <article className={CARD}>
       <iframe src={embed} title="LinkedIn post" loading="lazy" allowFullScreen className="block min-h-0 w-full flex-1 border-0" />
-      <EmbedFooter item={item} track={track} href={item.url} label="Open on LinkedIn →" />
+      <EmbedFooter item={item} track={track} href={item.url} label="Open on LinkedIn →" placement={placement} />
     </article>
   )
 }
 
-function InstagramCard({ item, track }: { item: NewsItemView; track: NewsTrack }) {
+function InstagramCard({ item, track, placement }: { item: NewsItemView; track: NewsTrack; placement: Placement }) {
   const permalink = instagramPermalink(item.url)
   if (!permalink) return null
   return (
     <article className={CARD}>
       <NewsInstagramEmbed permalink={permalink} title={item.title} track={track} />
-      <EmbedFooter item={item} track={track} href={permalink} label="Open on Instagram →" />
+      <EmbedFooter item={item} track={track} href={permalink} label="Open on Instagram →" placement={placement} />
     </article>
   )
 }
@@ -202,14 +225,14 @@ function renderCard(item: NewsItemView, placement: Placement) {
   // every other card; one without is shown through its host's embed.
   if ((item.kind === 'instagram' || item.kind === 'linkedin') && (item.imageUrl || item.blurb)) {
     const host = item.kind === 'instagram' ? 'Instagram' : 'LinkedIn'
-    return <ArticleCard item={item} track={track} cta={`Open on ${host} →`} />
+    return <ArticleCard item={item} track={track} placement={placement} cta={`Open on ${host} →`} />
   }
-  if (item.kind === 'instagram') return <InstagramCard item={item} track={track} />
-  if (item.kind === 'linkedin') return <LinkedInCard item={item} track={track} />
-  if (item.kind === 'podcast') return <PodcastCard item={item} track={track} />
-  if (item.kind === 'video') return <VideoCard item={item} track={track} played={{ event: 'news_video_played', props }} />
-  if (item.kind === 'report') return <ArticleCard item={item} track={track} cta="Read the report →" />
-  return <ArticleCard item={item} track={track} />
+  if (item.kind === 'instagram') return <InstagramCard item={item} track={track} placement={placement} />
+  if (item.kind === 'linkedin') return <LinkedInCard item={item} track={track} placement={placement} />
+  if (item.kind === 'podcast') return <PodcastCard item={item} track={track} placement={placement} />
+  if (item.kind === 'video') return <VideoCard item={item} track={track} played={{ event: 'news_video_played', props }} placement={placement} />
+  if (item.kind === 'report') return <ArticleCard item={item} track={track} placement={placement} cta="Read the report →" />
+  return <ArticleCard item={item} track={track} placement={placement} />
 }
 
 /**

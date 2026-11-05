@@ -10,6 +10,8 @@ import { testedTitle } from '@/lib/seo/title-test-state'
 import { employerTitleB } from '@/lib/seo/title-tests'
 import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { getEmployerBrand } from '@/lib/branding/store'
+import { brandOrFallback } from '@/lib/branding/fallback'
+import { employerBrandKey } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { CompanyInterestFlag } from '@/components/company/CompanyInterestFlag'
@@ -119,7 +121,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   const seenConfs = sortConferences(seenAll)
   const topFunction = p?.topFunctions[0] ? functionByName(p.topFunctions[0].function) : null
   // The employer's own colors, read from its website (src/lib/branding), when we have them.
-  const brand = await getEmployerBrand(e.name)
+  const brand = brandOrFallback(await getEmployerBrand(e.name), employerBrandKey(e.name))
 
   const faq: { q: string; a: string }[] = []
   if (p && p.openNow > 0) {
@@ -338,10 +340,10 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         <AreaNotices
           id="notices"
           title={`Layoff notices from ${e.name}`}
-          intro={`WARN notices ${e.name} has filed with state labor departments.`}
+          intro={`Layoff notices ${e.name} has filed with state labor departments.`}
           notices={layoffs}
           moreHref={`/layoffs/company/${layoffs.slug}`}
-          moreLabel={`${e.name} layoff history`}
+          moreLabel={`${e.name} layoff history, severance and unemployment rules`}
           showState
         />
       )}

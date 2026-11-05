@@ -29,6 +29,7 @@ import { schoolsWithCoreRecruiter } from '@/lib/higher-ed/recruiting'
 import { loadWarmDoors } from '@/lib/crm/warm-doors'
 import { rateProspect, isDecisionMakerTitle, daysSince, type ProspectBand } from '@/lib/crm/org-prospect'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { timedWithin } from '@/lib/perf/timed'
 import { CrmHiringClient } from '@/components/admin/CrmHiringClient'
 import { MANDATE_STATUS_LABELS } from '@/lib/crm/mandates'
 import { Suspense } from 'react'
@@ -68,7 +69,10 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   if (!org) notFound()
   const id = org.id
   const slug = orgSlug(org.canonicalNameNormalized)
-  const publicPage = await publicPageForOrg(org).catch(() => null)
+  // Each read below gets a deadline, so one stalled query leaves its section empty instead of holding the page until
+  // Vercel stops it at 30 s. A miss is recorded in PostHog (page_query_slow / page_query_stalled, route crm_org_page).
+  const read = <T,>(label: string, work: Promise<T>, fallback: T) => timedWithin('crm_org_page', label, org.id, work, fallback, 8_000)
+  const publicPage = await read('public_page', publicPageForOrg(org), null)
   const firmPublicPath = searchFirmPublicPath({ canonicalNameNormalized: org.canonicalNameNormalized, orgTypes: org.orgTypes, hasSearchFirm: org.searchFirms.length > 0, companyIndustry: org.company?.industry ?? null })
   if (slug && param !== slug) redirect(`/support/admin/crm/organizations/${slug}`)
   // Open federal grants this organization could apply for. The table is applied
@@ -76,8 +80,8 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   const inBoardDirectory = org.orgTypes.includes('GOVERNMENT')
     ? Boolean(await prisma.workforceBoard.findFirst({ where: { name: { equals: org.name, mode: 'insensitive' } }, select: { id: true } }).catch(() => null))
     : false
-  const employerBenefits = await programsForEmployer(org.canonicalNameNormalized)
-  const funding = await opportunitiesForKinds(kindsForOrg({ orgTypes: org.orgTypes, name: org.name, inBoardDirectory }), { state: org.usState }).catch(() => [])
+  const employerBenefits = await read('employer_benefits', programsForEmployer(org.canonicalNameNormalized), [])
+  const funding = await read('funding', opportunitiesForKinds(kindsForOrg({ orgTypes: org.orgTypes, name: org.name, inBoardDirectory }), { state: org.usState }), [])
   // Everything below depends only on the org, so it all loads together.
   // Meetings tied to this organization directly or through one of its
   // opportunities. One calendar event is logged once per attendee, so group by
@@ -87,9 +91,9 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   // linked directory Company. One person can appear in both, so merge by id.
   const [demand, warmDoors, pipelines, meetingRows, historyRows, employmentRows, coreSchools] = await Promise.all([
     loadOrgDemandData(org),
-    loadWarmDoors({ orgId: org.id }).catch(() => []),
-    prisma.crmPipeline.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { key: true, label: true } }),
-    prisma.crmActivity.findMany({
+    read('warm_doors', loadWarmDoors({ orgId: org.id }), []),
+    read('pipelines', prisma.crmPipeline.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { key: true, label: true } }), []),
+    read('meetings', prisma.crmActivity.findMany({
       where: { type: 'MEETING', OR: [{ orgId: id }, { opportunity: { orgId: id } }] },
       orderBy: { occurredAt: 'desc' },
       take: 60,
@@ -98,22 +102,22 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         person: { select: { id: true, fullName: true } },
         opportunity: { select: { id: true, title: true } },
       },
-    }),
-    prisma.workHistoryEntry.findMany({
+    }), []),
+    read('work_history', prisma.workHistoryEntry.findMany({
       where: { companyNameNormalized: org.canonicalNameNormalized },
       select: { candidateId: true, roleTitle: true, startDate: true, endDate: true, isCurrent: true, candidate: { select: { firstName: true, lastName: true } } },
       orderBy: { startDate: 'desc' },
       take: 50,
-    }),
+    }), []),
     org.companyId
-      ? prisma.memberEmployment.findMany({
+      ? read('member_employment', prisma.memberEmployment.findMany({
           where: { companyId: org.companyId },
           select: { candidateId: true, title: true, startDate: true, endDate: true, isCurrent: true, candidate: { select: { firstName: true, lastName: true } } },
           take: 50,
-        })
+        }), [])
       : Promise.resolve([]),
     // Colleges that flag this company as a core recruiter. Admin-only: a college never sees another's list.
-    org.companyId ? schoolsWithCoreRecruiter(org.companyId).catch(() => []) : Promise.resolve([]),
+    org.companyId ? read('core_schools', schoolsWithCoreRecruiter(org.companyId), []) : Promise.resolve([]),
   ])
   const meetings = [...meetingRows.reduce((m, a) => {
     const key = a.sourceRef?.split(':')[0] ?? a.id
@@ -186,7 +190,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   ]
 
   // A college prospect that already has a customer workspace links to its account page.
-  const collegeAccount = await prisma.institution.findUnique({ where: { crmOrganizationId: org.id }, select: { name: true } }).catch(() => null)
+  const collegeAccount = await read('college_account', prisma.institution.findUnique({ where: { crmOrganizationId: org.id }, select: { name: true } }), null)
 
   return (
     <div className="space-y-6">
@@ -721,7 +725,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
                     <span>
                       <span className="font-medium">{n.employees ? `${n.employees.toLocaleString()} roles` : 'Roles not stated'}</span>
                       <span className="text-muted-foreground">
-                        {[n.layoffType, n.state, n.source === 'MANUAL_ANNOUNCEMENT' ? 'Announcement' : 'WARN filing'].filter(Boolean).map((t) => ` · ${t}`)}
+                        {[n.layoffType, n.state, n.source === 'MANUAL_ANNOUNCEMENT' ? 'Announcement' : 'Layoff filing'].filter(Boolean).map((t) => ` · ${t}`)}
                       </span>
                     </span>
                     <span className="text-xs text-muted-foreground">

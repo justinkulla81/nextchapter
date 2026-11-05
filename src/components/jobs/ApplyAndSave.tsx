@@ -163,6 +163,16 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
                 <li className="flex gap-2"><span aria-hidden className="text-success">✓</span><span>This job saved, with a reminder to follow up</span></li>
               </ul>
               <p className="mt-2 text-xs text-muted-foreground">That’s why we ask for your email. We never share it. Unsubscribe any time.</p>
+              <p className="mt-2 text-sm">
+                Already a member?{' '}
+                <a
+                  href={`/auth/login?next=${encodeURIComponent(`/dashboard/jobs/${jobId}?src=public_page`)}`}
+                  onClick={() => posthog.capture('apply_gate_sign_in_clicked', { jobId, company, variant })}
+                  className="font-medium text-brand underline underline-offset-4"
+                >
+                  Sign in
+                </a>
+              </p>
               <input type="hidden" name="jobId" value={jobId} />
               <input type="hidden" name="trigger" value="apply_gate" />
               <div className="hidden" aria-hidden>

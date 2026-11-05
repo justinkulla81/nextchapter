@@ -14,6 +14,10 @@ interface NetworkDigestEmailProps {
   openJobs: number | null
   medianPay: string | null
   posts: NetworkDigestPost[]
+  /** What is new around a role this week, one plain line each. */
+  highlights?: string[]
+  /** Why the member is getting this, finishing "You are getting this because ...". */
+  because: string
   pageUrl: string
   pageLabel: string
   networkUrl: string
@@ -27,6 +31,8 @@ export default function NetworkDigestEmail({
   openJobs,
   medianPay,
   posts,
+  highlights = [],
+  because,
   pageUrl,
   pageLabel,
   networkUrl,
@@ -45,11 +51,22 @@ export default function NetworkDigestEmail({
       <Card center pad="28px 32px 36px">
         <Wordmark />
         <Headline>Hi {firstName || 'there'}, this week in the {name} network.</Headline>
-        {openJobs !== null && (
+        {openJobs !== null && openJobs > 0 && (
           <Lead>
             <strong>{openJobs.toLocaleString('en-US')}</strong> verified open {scope} jobs right now
             {medianPay ? <>, with a median advertised pay of <strong>{medianPay}</strong> among listings that state it</> : null}. <a href={pageUrl}>{pageLabel}</a>.
           </Lead>
+        )}
+        {highlights.length > 0 && (
+          <>
+            <Lead>
+              <strong>Around the {name} role</strong>
+            </Lead>
+            {highlights.map((h) => (
+              <Lead key={h}>{h}.</Lead>
+            ))}
+            <Button campaign="network_digest" href={pageUrl}>{pageLabel}</Button>
+          </>
         )}
         {posts.length > 0 && (
           <>
@@ -64,7 +81,7 @@ export default function NetworkDigestEmail({
             <Button campaign="network_digest" href={networkUrl}>Open the {name} network</Button>
           </>
         )}
-        {posts.length === 0 && <Small>You are getting this because you joined the {name} network.</Small>}
+        <Small>You are getting this because {because}. Unsubscribe below to stop it.</Small>
       </Card>
     </CardEmail>
   )

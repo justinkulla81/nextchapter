@@ -91,7 +91,7 @@ export default async function AdminCompaniesPage({
       className: 'px-3 py-2 tabular-nums',
       render: (r) => (isSuppressedCell(r.signal.currentlySearchingDisplay) ? 'Insufficient data' : r.signal.currentlySearchingDisplay.count),
     },
-    { header: 'WARN', render: () => <span className="text-muted-foreground">Not available</span> },
+    { header: 'Layoff filings', render: () => <span className="text-muted-foreground">Not available</span> },
   ]
 
   return (
@@ -100,7 +100,7 @@ export default async function AdminCompaniesPage({
         <h1 className="text-2xl font-semibold tracking-tight">Companies</h1>
         <p className="mt-1 text-muted-foreground">
           {rows.length} companies, ranked by outplacement pitch signal ({highCount} at HIGH). Composite of postings
-          trajectory and member concentration only — WARN filings aren&apos;t available yet (see each company page).
+          trajectory and member concentration only — layoff filings aren&apos;t available yet (see each company page).
           The &quot;currently searching&quot; column is aggregate-only and suppressed below 5 members; click into a
           company page to view it (each view is logged with a reason).
         </p>

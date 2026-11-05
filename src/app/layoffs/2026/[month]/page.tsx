@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { PublicSiteFooter, PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
 import { CiteThisData } from '@/components/layoffs/CiteThisData'
+import { BetweenJobsLine } from '@/components/layoffs/BetweenJobsLine'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { LAYOFF_YEAR, MONTH_MIN_NOTICES, MONTH_SLUGS, byState, getYearNotices, monthIndex, monthName, topEmployers } from '@/lib/layoffs/monthly'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
@@ -42,8 +43,8 @@ export async function generateMetadata({ params }: { params: Promise<{ month: st
   const workers = d.notices.reduce((s, x) => s + (x.workers ?? 0), 0)
   const name = monthName(d.i)
   return {
-    title: titleMeta(`${name} ${LAYOFF_YEAR} Layoffs: ${n(d.notices.length)} WARN Notices${workers ? `, ${n(workers)} Workers` : ''}`),
-    description: `${n(d.notices.length)} WARN layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} workers` : ''}. The largest employers, the states, and the state record for each filing.`,
+    title: titleMeta(`${name} ${LAYOFF_YEAR} Layoffs: ${n(d.notices.length)} Layoff Notices${workers ? `, ${n(workers)} Workers` : ''}`),
+    description: `${n(d.notices.length)} layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} people` : ''}. The largest employers, the states, and the state record for each filing.`,
     robots: { index: d.notices.length >= MONTH_MIN_NOTICES, follow: true },
     alternates: { canonical: `/layoffs/2026/${month}` },
   }
@@ -69,7 +70,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
 
   return (
     <div className="flex flex-1 flex-col">
-      <StructuredData data={articleJsonLd({ headline: `${name} ${LAYOFF_YEAR} layoffs: ${n(notices.length)} WARN notices`, path, dateModified: modified, type: 'Article' })} />
+      <StructuredData data={articleJsonLd({ headline: `${name} ${LAYOFF_YEAR} layoffs: ${n(notices.length)} layoff notices`, path, dateModified: modified, type: 'Article' })} />
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: `Layoffs ${LAYOFF_YEAR}`, path: '/layoffs/2026' }, { name: name, path }])} />
       <PublicSiteHeader current="news" />
       <main className="flex-1 bg-off-white py-8">
@@ -78,11 +79,11 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link><span aria-hidden> › </span>
             <Link href="/layoffs/2026" className="hover:text-foreground">Layoffs {LAYOFF_YEAR}</Link><span aria-hidden> › </span><span className="text-foreground">{name}</span>
           </nav>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{name} {LAYOFF_YEAR} layoffs: {n(notices.length)} WARN notices</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{name} {LAYOFF_YEAR} layoffs: {n(notices.length)} layoff notices</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             {notices.length === 0
-              ? `No WARN notices carry a filing date in ${name} ${LAYOFF_YEAR}.`
-              : `Employers filed ${n(notices.length)} WARN layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} workers` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}.${prevSlug ? ` ${monthName(i - 1)} had ${n(prev.length)}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${n(Math.abs(diff))}` : ''}.` : ''}`}
+              ? `No layoff notices carry a filing date in ${name} ${LAYOFF_YEAR}.`
+              : `Employers filed ${n(notices.length)} layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} people` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}.${prevSlug ? ` ${monthName(i - 1)} had ${n(prev.length)}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${n(Math.abs(diff))}` : ''}.` : ''}`}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             {partial ? `${name} is not over, so this count will grow. ` : ''}Counted by the date on each filing; a state can publish a notice later, so a month’s count can grow.
@@ -95,7 +96,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
                 {employers.map((e) => (
                   <li key={e.slug} className="flex flex-wrap items-baseline justify-between gap-2 px-5 py-2.5 text-sm">
                     <Link href={`/layoffs/company/${e.slug}`} className="font-medium text-navy hover:underline">{e.name} layoffs</Link>
-                    <span className="tabular-nums text-muted-foreground">{e.workers > 0 ? `${n(e.workers)} workers · ` : ''}{n(e.notices)} {e.notices === 1 ? 'notice' : 'notices'}</span>
+                    <span className="tabular-nums text-muted-foreground">{e.workers > 0 ? `${n(e.workers)} people · ` : ''}{n(e.notices)} {e.notices === 1 ? 'notice' : 'notices'}</span>
                   </li>
                 ))}
               </ol>
@@ -110,7 +111,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
                   <li key={s.state}>
                     <Link href={`/layoffs/${stateSlug(s.state)}`} className="flex justify-between gap-2 rounded-lg border border-border bg-white px-3 py-2 hover:border-brand">
                       <span className="font-medium text-navy">{stateName(s.state)}</span>
-                      <span className="tabular-nums text-muted-foreground">{n(s.notices)} {s.notices === 1 ? 'notice' : 'notices'}{s.workers ? ` · ${n(s.workers)} workers` : ''}</span>
+                      <span className="tabular-nums text-muted-foreground">{n(s.notices)} {s.notices === 1 ? 'notice' : 'notices'}{s.workers ? ` · ${n(s.workers)} people` : ''}</span>
                     </Link>
                   </li>
                 ))}
@@ -127,7 +128,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
                 {sorted.slice(0, 100).map((x) => (
                   <li key={x.id} className="flex flex-wrap items-baseline justify-between gap-2 px-5 py-2.5 text-sm">
                     <Link href={`/layoffs/company/${x.slug}`} className="text-navy hover:underline">{x.employer}</Link>
-                    <span className="tabular-nums text-muted-foreground">{x.workers ? `${n(x.workers)} workers · ` : ''}{x.state} · {noticeDay(x.noticeDate)}</span>
+                    <span className="tabular-nums text-muted-foreground">{x.workers ? `${n(x.workers)} people · ` : ''}{x.state} · {noticeDay(x.noticeDate)}</span>
                   </li>
                 ))}
               </ul>
@@ -136,6 +137,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
           )}
 
           <CiteThisData path={path} source={`layoffs-2026-${month}`} />
+          <BetweenJobsLine page="month" />
 
           <nav aria-label="Other months" className="mt-10 flex flex-wrap justify-between gap-3 text-sm">
             {prevSlug ? <Link href={`/layoffs/2026/${prevSlug}`} className={LINK}>← {monthName(i - 1)}</Link> : <span />}

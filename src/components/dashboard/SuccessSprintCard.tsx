@@ -814,7 +814,7 @@ export function SuccessSprintCard({
     <HidePoints.Provider value={hidePoints}>
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <CardTitle className="font-display text-lg font-semibold text-ink">{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-3">

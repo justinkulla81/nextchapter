@@ -27,7 +27,7 @@ export function OrgCandidateBand({ orgName, branded, peopleCount, properties, he
       <p className="text-xs font-medium uppercase tracking-[0.12em] opacity-80">{independent}</p>
       <h2 id="candidate-offer" className="mt-3 max-w-2xl text-2xl font-bold tracking-tight sm:text-3xl [text-wrap:balance]">{heading}</h2>
       <p className="mt-3 max-w-2xl text-base opacity-90">
-        Get a free Market Reality Assessment: how your experience matches what employers here are hiring for, the jobs open near you, and a plan for the weeks ahead.
+        Not sure you match what employers here are hiring for? Get a free read on your fit, the jobs open near you and a plan for the weeks ahead.
       </p>
       {peopleCount != null && (
         <p className="mt-3 text-sm opacity-90">{peopleCount.toLocaleString('en-US')} {peopleWord(peopleCount)} {peopleCount === 1 ? 'has' : 'have'} connected with {orgName} on NextChapter.</p>
@@ -38,7 +38,7 @@ export function OrgCandidateBand({ orgName, branded, peopleCount, properties, he
         properties={{ ...properties, branded }}
         className={`mt-5 inline-block rounded-full px-6 py-2.5 text-sm font-semibold ${branded ? 'bg-[var(--org-cta)] text-[var(--org-cta-ink)] hover:opacity-90' : 'bg-orange text-navy hover:bg-orange/90'}`}
       >
-        <AssessmentCtaLabel>Get your free assessment</AssessmentCtaLabel>
+        <AssessmentCtaLabel>Show me jobs near me</AssessmentCtaLabel>
       </TrackedLink>
     </section>
   )

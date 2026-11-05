@@ -43,14 +43,14 @@ export function ComparePlaces({
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title={places.length > 0 ? 'Would moving beat staying?' : 'Compare places'}
-        intro={
-          employed
+      <div>
+        <h2 className="font-display text-xl font-semibold text-ink">{places.length > 0 ? 'Would moving beat staying?' : 'Compare job markets'}</h2>
+        <p className="mt-1 max-w-2xl text-base text-muted-foreground">
+          {employed
             ? 'Put a place next to where you live now: what your pay would buy, where your field is growing, and how the job market looks.'
-            : 'Put a place next to where you live now: how fast jobs come, what is open in your field, and what it costs to live there.'
-        }
-      />
+            : 'Put a place next to where you live now: how fast jobs come, what is open in your field, and what it costs to live there.'}
+        </p>
+      </div>
 
       <section aria-label="Places" className="space-y-4">
         <div className="flex flex-wrap gap-2" role="group" aria-label="What to compare">

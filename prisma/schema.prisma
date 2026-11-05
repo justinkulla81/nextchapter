@@ -3939,6 +3939,8 @@ model CommunityMembership {
   leftAt      DateTime?
   // Last weekly network digest sent for this membership (ROLE networks only).
   lastDigestAt DateTime?
+  // The member turned off the officer-change news in their role feed and digest (ROLE networks only).
+  turnoverMutedAt DateTime?
 
   @@unique([communityId, candidateId])
   @@index([candidateId, leftAt])
@@ -15492,6 +15494,8 @@ model CronRun {
   error      String?   @db.Text
   /// schedule | retry | manual — a retry is only ever attempted once per failure.
   trigger    String    @default("schedule")
+  /// What a job reports about a successful run (the start of its JSON answer), for jobs that opt in with recordResult.
+  detail     String?   @db.Text
 
   @@index([job, startedAt(sort: Desc)])
   @@index([status, startedAt])

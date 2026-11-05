@@ -7,6 +7,7 @@ import { isPersonalEmail } from '@/lib/workforce/college-score'
 import { cleanPersonName } from '@/lib/workforce/college-crm'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { contactRank, matchFirmToOrgs, segmentFor, type OrgForMatch } from './match'
+import { firmOrgName } from './clean-name'
 
 /** One firm as scripts/search-firms/export-firms.py writes it. */
 export interface FirmRecord {
@@ -57,7 +58,9 @@ export async function syncSearchFirms(firms: FirmRecord[]): Promise<{ matched: n
       continue
     }
 
-    const m = matchFirmToOrgs(f, orgs)
+    // The CRM organization is named for the firm, not for its careers page ("Careers | Roberts Recruiting"); the raw name stays on the SearchFirm row.
+    const orgFirm = { ...f, name: firmOrgName(f) }
+    const m = matchFirmToOrgs(orgFirm, orgs)
     if (m.kind === 'review') {
       await prisma.searchFirm.upsert({
         where: { sourceKey: f.sourceKey },
@@ -67,8 +70,8 @@ export async function syncSearchFirms(firms: FirmRecord[]): Promise<{ matched: n
       out.review++
       continue
     }
-    const orgId = m.kind === 'matched' ? await tagFirmOrg(m.orgId) : (await createFirmOrg(f)).id
-    if (m.kind === 'none') orgs.push({ id: orgId, name: f.name, website: f.website, emailDomain: f.domain })
+    const orgId = m.kind === 'matched' ? await tagFirmOrg(m.orgId) : (await createFirmOrg(orgFirm)).id
+    if (m.kind === 'none') orgs.push({ id: orgId, name: orgFirm.name, website: f.website, emailDomain: f.domain })
     const matchStatus = m.kind === 'matched' ? 'MATCHED' : 'ADDED'
     await prisma.searchFirm.upsert({
       where: { sourceKey: f.sourceKey },

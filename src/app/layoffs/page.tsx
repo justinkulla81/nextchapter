@@ -45,8 +45,8 @@ export default async function LayoffsHubPage() {
         data={{
           '@context': 'https://schema.org',
           '@type': 'Dataset',
-          name: 'U.S. layoff notices (WARN Act filings) by employer and state',
-          description: 'Layoff notices that employers filed with state labor departments under the WARN Act, with the employer, place, workers named, filing date and a link to each state record.',
+          name: 'U.S. layoff notices filed with the states, by employer and state',
+          description: 'Layoff notices that employers filed with state labor departments with the employer, place, workers named, filing date and a link to each state record.',
           url: `${SITE_URL}/layoffs`,
           license: LAYOFF_DATA_LICENSE_URL,
           isAccessibleForFree: true,
@@ -84,8 +84,8 @@ export default async function LayoffsHubPage() {
               <li><Link href="/layoffs/2026" className={LINK}>Layoffs 2026</Link>: every month, state, industry and company in one page.</li>
               <li><Link href="/layoffs/this-week" className={LINK}>Layoffs this week</Link>: notices filed in the last seven days.</li>
               <li><Link href="/layoffs/week" className={LINK}>Layoffs by week</Link>, every week of the last two years.</li>
-              <li><Link href="/layoffs/by-state" className={LINK}>WARN notices by state</Link>: notices and workers named in the last 12 months, each state’s own record and a file to download.</li>
-              <li><Link href="/data" className={LINK}>Download the WARN record</Link> as CSV or JSON, free to reuse with a link back.</li>
+              <li><Link href="/layoffs/by-state" className={LINK}>Layoff notices by state</Link>: notices and workers named in the last 12 months, each state’s own record and a file to download.</li>
+              <li><Link href="/data" className={LINK}>Download the layoff record</Link> as CSV or JSON, free to reuse with a link back.</li>
               <li><Link href="/data/embed" className={LINK}>Embed layoff notices</Link> for any state on your site, or <Link href="/feeds/layoffs" className={LINK}>subscribe by RSS</Link>.</li>
             </ul>
           </section>
@@ -97,7 +97,7 @@ export default async function LayoffsHubPage() {
             <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
               Employers and news reports use many names for the same thing: layoffs, job cuts, downsizing, a reduction in force
               (RIF), workforce reductions, restructuring, or mass firings. This tracker counts them all the same way, from the
-              WARN notices employers file with the states and the layoffs companies announce. Being let go in a RIF is not the
+              layoff notices employers file with the states and the layoffs companies announce. Being let go in a RIF is not the
               same as being fired for cause, and the difference matters for unemployment: see{' '}
               <Link href="/topics/fired-vs-laid-off" className={LINK}>fired vs laid off</Link> and{' '}
               <Link href="/topics/reduction-in-force" className={LINK}>what a reduction in force means</Link>.
@@ -105,7 +105,7 @@ export default async function LayoffsHubPage() {
           </section>
 
           <section aria-labelledby="by-state" className="mt-16">
-            <h2 id="by-state" className="text-2xl font-bold tracking-tight text-navy">WARN notices by state</h2>
+            <h2 id="by-state" className="text-2xl font-bold tracking-tight text-navy">Layoff notices by state</h2>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               States with at least one notice in the last 12 months. Each page lists every notice with its source, the local
               workforce boards, and that state’s unemployment benefits.
@@ -126,7 +126,7 @@ export default async function LayoffsHubPage() {
             )}
             {without.length > 0 && (
               <p className="mt-6 max-w-3xl text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Coverage note:</span> we have no WARN notices from the last 12
+                <span className="font-medium text-foreground">Coverage note:</span> we have no layoff notices from the last 12
                 months for {without.map(stateName).join(', ')}. Some of these states publish no notice list online, some
                 publish in a form we cannot yet read, and some had no qualifying layoffs. Their{' '}
                 <Link href="/unemployment-benefits" className={LINK}>unemployment benefits pages</Link> are still available.
@@ -136,7 +136,7 @@ export default async function LayoffsHubPage() {
 
           {employers.length > 0 && (
             <section aria-labelledby="employers" className="mt-16">
-              <h2 id="employers" className="text-2xl font-bold tracking-tight text-navy">Employers with the most workers named in WARN notices</h2>
+              <h2 id="employers" className="text-2xl font-bold tracking-tight text-navy">Employers with the most workers named in layoff notices</h2>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                 Over the last 12 months. Each page lists that employer’s notices by state, with dates, locations and the state record.
               </p>
@@ -168,7 +168,7 @@ export default async function LayoffsHubPage() {
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               <li><Link href="/start/laid-off" className={LINK}>What to do after a layoff</Link></li>
               <li><FeedLine feed="/feeds/layoffs-100plus.xml" label="Get large layoffs (100+ workers) by RSS" /></li>
-              <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits by state</Link></li>
+              <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits and severance rules by state</Link></li>
               <li><Link href="/resources/72-hours" className={LINK}>The first 72 hours after a layoff</Link></li>
               <li><Link href="/resources/cobra-aca" className={LINK}>COBRA and marketplace health coverage</Link></li>
               <li><Link href="/resources/warn-act" className={LINK}>The WARN Act in plain language: 60 days’ notice and what you are owed</Link></li>

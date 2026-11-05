@@ -1,4 +1,4 @@
-import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
+import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
 
 interface Week1KickoffEmailProps {
   firstName: string | null
@@ -57,6 +57,7 @@ export default function Week1KickoffEmail({
             : "Once these are done, I'll have real, personalized next steps ready for you."}
         </Lead>
         <Button href={`${appUrl}/dashboard`}>See my first-week checklist</Button>
+        <Signoff name={victoriaName} align="center" />
       </Card>
     </CardEmail>
   )

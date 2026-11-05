@@ -25,9 +25,9 @@ const BASE = '/support/admin/crm/warn/publishing'
 const BTN = 'inline-flex h-7 items-center rounded-md border border-border px-2 text-xs font-normal'
 const ACT = `${BTN} bg-white text-primary hover:bg-muted`
 const DONE = `${BTN} bg-muted text-muted-foreground hover:bg-muted`
-const TYPE_LABEL = { warn: 'WARN filing', news: 'News', buyout: 'Buyout' } as const
+const TYPE_LABEL = { warn: 'Layoff filing', news: 'News', buyout: 'Buyout' } as const
 
-const TYPES = [['all', 'All types'], ['warn', 'WARN'], ['news', 'News'], ['buyout', 'Buyout']] as const
+const TYPES = [['all', 'All types'], ['warn', 'State filings'], ['news', 'News'], ['buyout', 'Buyout']] as const
 const WHERES = [['us', 'U.S. only'], ['all', 'Everywhere']] as const
 const SORTS = [['priority', 'Push first'], ['size', 'Largest'], ['newest', 'Newest']] as const
 
@@ -107,10 +107,10 @@ export default async function LayoffPublishingPage({ searchParams }: { searchPar
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/support/admin/crm/warn" className="text-sm text-primary underline underline-offset-4">Back to WARN notices</Link>
+        <Link href="/support/admin/crm/warn" className="text-sm text-primary underline underline-offset-4">Back to layoff notices</Link>
         <h1 className="mt-2 text-2xl font-semibold">Layoff publishing</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-          Recent news-reported layoffs and buyouts, plus new WARN filings naming 100 or more workers. For each: whether it is in the layoff RSS feed, whether it was posted on LinkedIn, and whether you asked Google to index its page.
+          Recent news-reported layoffs and buyouts, plus new layoff filings naming 100 or more workers. For each: whether it is in the layoff RSS feed, whether it was posted on LinkedIn, and whether you asked Google to index its page.
         </p>
       </div>
 

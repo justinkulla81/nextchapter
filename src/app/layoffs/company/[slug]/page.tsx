@@ -30,9 +30,10 @@ import { CompanyStoriesSection } from '@/components/layoff-stories/CompanyStorie
 import { approvedStories, storyNumbersFor } from '@/lib/layoff-stories/store'
 import { getAnnouncements, hasRecentAnnouncement, type CompanyAnnouncements } from '@/lib/warn/company-announcements'
 import { getEmployerBrand } from '@/lib/branding/store'
+import { brandOrFallback } from '@/lib/branding/fallback'
+import { employerBrandKey } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { AffectedPrompt } from '@/components/layoffs/landing/AffectedPrompt'
-import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { ClaimHint } from '@/components/seo/ClaimHint'
 import { LandingHero } from '@/components/layoffs/landing/LandingHero'
 import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
@@ -110,21 +111,30 @@ function severanceFaq(name: string, states: string[]): { q: string; a: string }[
     const t = treatments.get(code)
     return t ? `${stateName(code)}: severance ${TREATMENT_PHRASE[t]}.` : `${stateName(code)}: sources disagree, so ask the state agency.`
   })
+  // A state with a weekly maximum but no fixed number of weeks (Georgia's depends on the state unemployment rate) still gets its
+  // amount; a state with no weekly maximum on record (or no row, a territory) is named at the end so its absence is not read as "no benefit".
+  const withoutAmount: string[] = []
   const amounts = shown.flatMap((code) => {
-    // A filing state with no row in the table (a territory) simply has no amount line.
     const ui = (STATE_UI as Record<string, (typeof STATE_UI)[keyof typeof STATE_UI] | undefined>)[code]
     const max = ui?.maxWeeklyBenefit.value
     const weeks = ui?.maxWeeks.value
-    return max != null && weeks != null ? [`${stateName(code)} pays up to $${max.toLocaleString('en-US')} a week for up to ${weeks} weeks`] : []
+    if (max == null) {
+      withoutAmount.push(stateName(code))
+      return []
+    }
+    const amount = `${stateName(code)} pays up to $${max.toLocaleString('en-US')} a week`
+    if (weeks != null) return [`${amount} for up to ${weeks} weeks`]
+    return [ui?.durationVaries.value ? `${amount}, for a number of weeks that depends on the state unemployment rate` : `${amount}; ask the state agency how many weeks`]
   })
+  const missing = withoutAmount.length > 0 ? ` For ${withoutAmount.join(' and ')}, ask the state agency for the weekly amount.` : ''
   const tail = more > 0 ? ` ${more} other ${more === 1 ? 'state is' : 'states are'} on the notices; each state’s unemployment page has its own rule.` : ''
   return [
     {
       q: `Does severance affect unemployment after the ${name} layoffs?`,
-      a: `${rules.join(' ')}${tail} Whether ${name} offers severance, and how much, is set by the company and each worker’s agreement; the WARN notices do not state it. File as soon as you are out of work and report severance when asked: the state decides how it counts.`,
+      a: `${rules.join(' ')}${tail} Whether ${name} offers severance, and how much, is set by the company and each worker’s agreement; the state layoff filings do not say. File as soon as you are out of work and report severance when asked: the state decides how it counts.`,
     },
     ...(amounts.length > 0
-      ? [{ q: `How much unemployment can ${name} workers get?`, a: `${amounts.join('; ')}. File in the state where you worked.` }]
+      ? [{ q: `How much unemployment can ${name} workers get?`, a: `${amounts.join('; ')}.${missing} File in the state where you worked.` }]
       : []),
   ]
 }
@@ -139,7 +149,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const lead = recent && ann ? ann.items[0] : null
   const description = lead && !c.notices.length
     ? `${c.name}: ${lead.summary} (${noticeDay(lead.date)}). What was announced, the source, and what to do if you are affected: benefits, severance, COBRA and local help.`
-    : `${lead ? `${lead.summary} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} WARN ${c.notices.length === 1 ? 'notice' : 'notices'} of layoffs and job cuts filed by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest filed ${noticeDay(c.latest)}. Dates, locations, and each state's severance and unemployment rules.`
+    : `${lead ? `${lead.summary} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} ${c.notices.length === 1 ? 'layoff' : 'layoffs'} reported by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest reported ${noticeDay(c.latest)}. Dates, locations, and each state's severance and unemployment rules.`
   // A page whose newest notice is over two years old, or that is too small to be worth a search result
   // (src/lib/seo/page-bars.ts), stays reachable but out of search results.
   const stale = !meetsCompanyLayoffBar(c) && !recent
@@ -180,7 +190,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const oldestNotice = c.notices.reduce((m, n) => (n.noticeDate < m ? n.noticeDate : m), c.latest)
   const largest = c.notices.reduce<(typeof c.notices)[number] | null>((m, n) => ((n.workers ?? 0) > (m?.workers ?? 0) ? n : m), null)
   // The employer's own colors, read from its website (src/lib/branding), when we have them.
-  const brand = await getEmployerBrand(c.name)
+  const brand = brandOrFallback(await getEmployerBrand(c.name), employerBrandKey(c.name))
   // Dated markup for search and AI answer engines: when the page's facts last changed, and the plain answers to what people ask.
   const modified = (ann && ann.latest > c.latest ? ann.latest : c.latest).toISOString().slice(0, 10)
   const path = `/layoffs/company/${slug}`
@@ -201,8 +211,8 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
     : null
   const faq = hasNotices
     ? [
-        { q: `Is ${c.name} laying off employees?`, a: `${c.name} has filed ${c.notices.length.toLocaleString()} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'}. The latest was filed ${noticeDay(c.latest)}.` },
-        { q: `How many ${c.name} workers are affected?`, a: workers > 0 ? `The notices on record name ${workers.toLocaleString()} workers${unknownCounts ? ', counting only the notices that gave a number' : ''}.` : 'The notices on record do not state a worker count.' },
+        { q: `Is ${c.name} laying off employees?`, a: `${c.name} has reported ${c.notices.length.toLocaleString()} ${c.notices.length === 1 ? 'layoff' : 'layoffs'} to the state. The latest was reported ${noticeDay(c.latest)}.` },
+        { q: `How many ${c.name} workers are affected?`, a: workers > 0 ? `The layoffs on record name ${workers.toLocaleString()} workers${unknownCounts ? ', counting only the ones that gave a number' : ''}.` : 'The layoffs on record do not state a worker count.' },
         { q: `Where are the ${c.name} layoffs?`, a: `${c.name} filed in ${c.states.map(stateName).join(', ')}.` },
         ...severanceFaq(c.name, c.states),
       ]
@@ -246,7 +256,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <section aria-labelledby="glance" className="mt-12 rounded-xl border border-border bg-white p-6">
               <h2 id="glance" className="text-xl font-semibold tracking-tight text-navy">{c.name} layoffs at a glance</h2>
               <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">WARN notices filed</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{c.notices.length.toLocaleString('en-US')}</dd></div>
+                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Layoffs reported</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{c.notices.length.toLocaleString('en-US')}</dd></div>
                 <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Workers named</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{workers > 0 ? workers.toLocaleString('en-US') : 'Not stated'}</dd></div>
                 <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">First and latest filing</dt><dd className="mt-1 font-semibold text-navy">{noticeDay(oldestNotice)}{oldestNotice.getTime() !== c.latest.getTime() ? ` to ${noticeDay(c.latest)}` : ''}</dd></div>
                 <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Largest notice</dt><dd className="mt-1 font-semibold text-navy">{largest?.workers ? `${largest.workers.toLocaleString('en-US')} workers, ${stateName(largest.state)}` : 'Not stated'}</dd></div>
@@ -261,21 +271,14 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             </section>
           )}
 
-          <OrgCandidateBand
-            orgName={c.name}
-            branded={!!brand}
-            peopleCount={null}
-            heading={`Affected by changes at ${c.name}? See where you stand.`}
-            independent={`Independent page. Not from or affiliated with ${c.name}.`}
-            properties={{ kind: 'LAYOFF_COMPANY', slug }}
-          />
+          <p className="mt-8 text-xs text-muted-foreground">Independent page. Not from or affiliated with {c.name}.</p>
 
           {ann && (
             <section aria-labelledby="announced" className="mt-10">
               <h2 id="announced" className={H2}>Announced and reported</h2>
               <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-                Company announcements and press reports, kept apart from WARN filings. A buyout is an offer, not a layoff: it counts no one as laid off,
-                and how many accept is not known until the company says. These do not change the notice and worker counts below.
+                Company announcements and press reports, kept apart from layoffs reported to the state. A buyout is an offer, not a layoff: it counts no one as laid off,
+                and how many accept is not known until the company says. These do not change the layoff and worker counts below.
               </p>
               <ul className="mt-4 space-y-3">
                 {ann.items.map((a) => (
@@ -307,13 +310,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           />
 
           <section aria-labelledby="affected" className="mt-12 rounded-xl border border-border bg-white p-6">
-            <h2 id="affected" className="text-xl font-semibold tracking-tight text-navy">Turn this into your plan</h2>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              This page is the same for everyone. Your free plan is built on your own situation: the deadlines that apply to you, what severance and COBRA will cost or pay, and jobs matched to your background.
-            </p>
-            <TrackedLink href="/onboarding/desire" event="layoff_company_account_cta_clicked" properties={{ company: slug, hasNotices, announced: !!ann }} className="mt-3 inline-block rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
-              Build my free plan
-            </TrackedLink>
+            <h2 id="affected" className="text-xl font-semibold tracking-tight text-navy">More for people at {c.name}</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               {hasNotices && isNetworkCompany(c) && (
                 <li><Link href={`/network/company/${slug}`} className={LINK}>Jobs, benefits and retraining for {c.name} employees and alumni</Link></li>
@@ -343,7 +340,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           {hasNotices && <section aria-labelledby="notices" className="mt-10">
             <h2 id="notices" className={H2}>Notices</h2>
             <div className="mt-4">
-              <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
+              <NoticeTable notices={c.notices} caption={`Layoffs reported by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
             </div>
             <StatementForm
               slug={slug}
@@ -375,7 +372,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <h2 id="boards" className={H2}>Local workforce boards</h2>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
               The public workforce boards for each location in these notices. Their American Job Centers offer free help with
-              job search, training and filing for benefits, and some run rapid-response services for workers in a WARN layoff.
+              job search, training and filing for benefits, and some run rapid-response services for workers in a layoff.
             </p>
             <div className="mt-4"><BoardList notices={c.notices} page="company" /></div>
           </section>}
@@ -397,7 +394,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           {hasNotices && <CiteThisData path={path} asOf={noticeDay(new Date(`${modified}T12:00:00Z`))} source="layoffs-company" csvHref={c.states.length === 1 ? `/data/layoffs.csv?state=${c.states[0]}` : '/data/layoffs.csv'} />}
 
           {hasNotices && <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
-            These are the notices {c.name} filed under the WARN Act, as published by each state. A notice gives the number of
+            These are the layoffs {c.name} reported to the states, as each state publishes them. A report gives the number of
             workers and dates the employer reported; it does not say why. See the{' '}
             <Link href="/layoffs" className={LINK}>layoff tracker</Link> for how notices are collected and what they cover.
           </p>}
@@ -406,7 +403,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           </p>
         </div>
       </main>
-      <PublicSiteFooter page="layoffs" />
+      <PublicSiteFooter page="layoffs" cta={false} />
     </div>
     </OrgBrandScope>
   )

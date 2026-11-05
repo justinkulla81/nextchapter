@@ -1,4 +1,5 @@
 import 'server-only'
+import { noticeShare } from './layoff-share'
 import { prisma } from '@/lib/prisma'
 import { announceOfficial } from './layoff-alert'
 import { sameEmployer } from './news-headline'
@@ -42,7 +43,7 @@ export async function confirmNewsRecord(f: OfficialFiling): Promise<boolean> {
   try {
     const news = await findNewsRecord(f)
     if (!news) return false
-    const label = f.kind === 'sec' ? 'SEC 8-K filing' : 'state WARN filing'
+    const label = f.kind === 'sec' ? 'SEC 8-K filing' : 'state filing'
     await prisma.warnNotice.update({
       where: { id: news.id },
       data: {
@@ -59,6 +60,7 @@ export async function confirmNewsRecord(f: OfficialFiling): Promise<boolean> {
         effectiveOn: f.effectiveDate ? f.effectiveDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : null,
         sourceUrl: f.sourceUrl,
         orgUrl: news.promotedOrgId ? `${SITE}/support/admin/crm/organizations/${news.promotedOrgId}` : null,
+        ...noticeShare({ noticeId: news.id, employer: news.employer, employees: news.employees, state: news.state ?? f.state }),
       })
     }
     return true

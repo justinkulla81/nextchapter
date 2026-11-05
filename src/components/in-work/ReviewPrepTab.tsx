@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
@@ -23,6 +24,7 @@ export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
     const q = prep?.managerQuestions ?? []
     return [q[0] ?? '', q[1] ?? '', q[2] ?? '']
   })
+  const hasLegacyCase = Boolean(prep?.theAsk?.trim() || prep?.evidence?.trim())
   const { pending, notice, run } = useRunner()
   const t = useType()
 
@@ -105,12 +107,25 @@ export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
           <Field label="Goals for the next period" hint="Two or three, each with a result you can measure.">
             <Textarea rows={3} maxLength={2000} value={goals} onChange={(e) => setGoals(e.target.value)} />
           </Field>
-          <Field label="Your ask" hint="Raise, promotion, scope or title. Be specific. Salary numbers go in the Salary and raise tab.">
-            <Textarea rows={3} maxLength={2000} value={theAsk} onChange={(e) => setTheAsk(e.target.value)} />
-          </Field>
-          <Field label="Evidence you already work at the next level" hint="Three examples. Say what you did and what changed.">
-            <Textarea rows={4} maxLength={2000} value={evidence} onChange={(e) => setEvidence(e.target.value)} />
-          </Field>
+          {/* The ask, the reasons and the walk-away are written once, on Build your case. A prep that already holds an ask or evidence keeps showing them, so nothing saved is hidden. */}
+          {hasLegacyCase ? (
+            <>
+              <Field label="Your ask" hint="Raise, promotion, scope or title. Be specific. Salary numbers go in the Salary and raise tab.">
+                <Textarea rows={3} maxLength={2000} value={theAsk} onChange={(e) => setTheAsk(e.target.value)} />
+              </Field>
+              <Field label="Evidence you already work at the next level" hint="Three examples. Say what you did and what changed.">
+                <Textarea rows={4} maxLength={2000} value={evidence} onChange={(e) => setEvidence(e.target.value)} />
+              </Field>
+            </>
+          ) : (
+            <p className={cn('text-ink', t.body)}>
+              Your ask, your reasons and your walk-away are written once, on{' '}
+              <Link href="/dashboard/review-prep" className="font-medium text-primary underline underline-offset-4">
+                Build your case
+              </Link>
+              .
+            </p>
+          )}
           <div className="space-y-2">
             <p className="text-base font-medium text-ink">Three questions for your manager</p>
             {questions.map((q, i) => (

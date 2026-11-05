@@ -11,11 +11,9 @@ import { loadOccupationCheck } from '@/lib/ai-check/load'
 import { checkPath, checkSlug, socFromSlug } from '@/lib/ai-check/slug'
 import { loadExposureForSoc } from '@/lib/skills/ai-exposure-server'
 import { AI_EXPOSURE_SOURCE, BAND_LABEL, EXPOSURE_WHY, RETRAINING_LINE, exposureSentence, scorePercent } from '@/lib/skills/ai-exposure'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { titleMeta } from '@/lib/seo/title'
-import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 // One page per occupation: the exposure number, the tasks, better-paid or less-exposed related jobs, the skills to build.
 // Built on first visit and cached a day (the same pattern as /jobs/title/[slug]); no AI model is called, so a page costs nothing
@@ -68,6 +66,7 @@ export default async function AiJobCheckResultPage({ params }: { params: Promise
 
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'AI job check', path: '/tools/ai-job-check' }, { name: e.title, path }]}
       h1={`${e.title}: how much of the work does AI already do?`}
       lede={
@@ -77,14 +76,6 @@ export default async function AiJobCheckResultPage({ params }: { params: Promise
           </p>
           <p className="mt-3 text-base">{exposureSentence(e)}</p>
           <p className="mt-2 text-sm text-muted-foreground">{EXPOSURE_WHY}</p>
-          <TrackedLink
-            href={MARKET_REALITY_START_HREF}
-            event="ai_job_check_cta_clicked"
-            properties={{ soc6, band: e.band, cta: 'assessment', placement: 'top' }}
-            className="mt-5 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
-          >
-            <AssessmentCtaLabel>Get my free assessment</AssessmentCtaLabel>
-          </TrackedLink>
           <p className="mt-3">
             <AiJobCheckShare soc6={soc6} title={e.title} path={path} />
           </p>
@@ -191,7 +182,7 @@ export default async function AiJobCheckResultPage({ params }: { params: Promise
 
       <section aria-labelledby="employer" className="mt-10 max-w-3xl">
         <h2 id="employer" className={H2}>Has your employer filed layoff notices?</h2>
-        <p className="mt-2 text-sm text-muted-foreground">A separate question from AI exposure. This checks public WARN filings for the company you work for.</p>
+        <p className="mt-2 text-sm text-muted-foreground">A separate question from AI exposure. This checks public layoff filings for the company you work for.</p>
         <div className="mt-4">
           <AiJobCheckEmployer soc6={soc6} />
         </div>

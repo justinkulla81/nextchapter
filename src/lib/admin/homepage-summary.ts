@@ -55,10 +55,15 @@ async function thisWeekSprintTargetCount(): Promise<number> {
   })
 }
 
-// The two big counts over the ~320k-row ExclusiveJobPosting table (one a sequential scan) took
-// 15-60s each in production. They are admin-only global numbers, so they are cached across
-// serverless instances with unstable_cache (5 minutes, tag 'admin-job-counts') instead of
-// only per instance. Meaning of each count is unchanged. The pending-listings count is NOT in
+// The two big counts over the ~1.2M-row (5 GB) ExclusiveJobPosting table take about 14s each in
+// production: the table churns constantly, so few pages are marked all-visible and every
+// "index-only" scan still reads the heap (2026-11-04: 531k and 236k heap fetches). Run together they
+// used up the database's disk IO and made unrelated pages slow (the crm_org_page slow-pages alert).
+// Fixed by autovacuum_vacuum_scale_factor = 0.02 (prisma/manual/exclusive-job-posting-autovacuum.sql):
+// both counts now take ~70ms.
+// They are admin-only global numbers, so they are cached across serverless instances with
+// unstable_cache (5 minutes, tag 'admin-job-counts') instead of only per instance. Meaning of
+// each count is unchanged. The pending-listings count is NOT in
 // here: it is the badge admins act on, it reads few rows through an index, and it must update
 // as soon as a listing is approved or rejected.
 export const ADMIN_JOB_COUNTS_TAG = 'admin-job-counts'

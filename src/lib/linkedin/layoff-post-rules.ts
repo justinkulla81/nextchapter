@@ -248,8 +248,8 @@ function lead(f: DraftFacts, v: number): string {
   const size = f.percent ? `${fmt(f.employees)} jobs (${f.percent}% of staff)` : `${fmt(f.employees)} jobs`
   if (f.credibility === 'warn-filing') {
     return [
-      `${f.employer} filed a WARN notice${f.place ? '' : f.state ? ` in ${f.state}` : ''}: ${size}${where}.`,
-      `A WARN notice just landed for ${f.employer}${where}. It covers ${size}.`,
+      `${f.employer} filed a layoff notice${f.place ? '' : f.state ? ` in ${f.state}` : ''}: ${size}${where}.`,
+      `A layoff notice just landed for ${f.employer}${where}. It covers ${size}.`,
     ][v % 2]
   }
   if (f.credibility === 'sec-filing') {
@@ -288,7 +288,7 @@ function body(angle: Angle, f: DraftFacts, v: number): string {
         `A layoff is one company's plan, not a verdict on the people. ${fmt(f.openSeniorRolesInState ?? 0)} senior roles are open in ${f.state} right now across the employers we track.`,
       ][v % 2]
     case 'timeline':
-      return `WARN notices generally give employees 60 days before a layoff takes effect. The date listed here is ${shortDate(f.effectiveDate ?? '')}. That window is the best time to start: quietly, with a plan, before the pressure of a last paycheck.`
+      return `Layoff notices generally give employees 60 days before a layoff takes effect. The date listed here is ${shortDate(f.effectiveDate ?? '')}. That window is the best time to start: quietly, with a plan, before the pressure of a last paycheck.`
     case 'company-offer':
       return [
         `${f.employer}: an open offer. If it would help the people affected, we would like to give every one of them a free NextChapter account: a pivot plan from their work history, retraining for the gaps, and networking outreach drafted for them. You would see counts of who engaged and landed, never names. If you lead People or HR there, send us a message.`,
@@ -428,7 +428,7 @@ export type Slide =
   | { kind: 'cta'; title: string; body: string; brand: string }
 
 const SOURCE_NAME: Record<Credibility, string> = {
-  'warn-filing': 'WARN notice filed', 'sec-filing': 'SEC filing', 'two-publishers': 'Reported by multiple outlets',
+  'warn-filing': 'Layoff notice filed', 'sec-filing': 'SEC filing', 'two-publishers': 'Reported by multiple outlets',
   'trusted-outlet': 'News report', unconfirmed: 'News report',
 }
 

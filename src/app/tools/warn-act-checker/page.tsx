@@ -17,6 +17,7 @@ const FAQ = [
 export default function WarnActCheckerPage() {
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Rapid response', path: '/rapid-response' }, { name: 'WARN Act checker', path: '/tools/warn-act-checker' }]}
       h1="WARN Act checker"
       lede="Enter your headcount and the number of jobs being cut. The checker applies the federal WARN Act thresholds and tells you whether 60 days’ notice is likely required. General information, not legal advice."

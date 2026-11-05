@@ -377,6 +377,16 @@ function boardSearchSummary(p: BoardSearchParams): string {
   return parts.join(' ')
 }
 
+// The headline for a member who arrived from a public page (src/lib/jobs/portal-job-redirect.ts): what they were looking at,
+// in their words: "Entry-level jobs for “analyst” in Denver, CO", "Remote jobs", "Contract & 1099 jobs". Null = no search or filter came with them.
+function carriedInTitle(search: BoardSearchParams, seniority: string | null, workTypes: WorkType[] | null): string | null {
+  const kind =
+    seniority === 'ENTRY_LEVEL' ? 'Entry-level' : search.remote ? REMOTE_FILTER_LABEL[search.remote] : workTypes?.length === 1 && workTypes[0] !== 'full_time' ? WORK_TYPE_LABEL[workTypes[0]] : ''
+  const where = boardSearchSummary(search)
+  if (!kind && !where) return null
+  return `${kind ? `${kind} jobs` : 'Jobs'} ${where}`.trim()
+}
+
 // No results: say what was searched and offer the ways to broaden it, each a link.
 function BoardSearchEmpty({ search }: { search: BoardSearchView }) {
   const at = { hash: 'apply-new-jobs' }
@@ -976,6 +986,7 @@ export default async function JobFitPage({
     ai?: string
     open?: string
     entry?: string
+    from?: string
   }>
 }) {
   const baseProfile = await getDashboardData()
@@ -987,6 +998,19 @@ export default async function JobFitPage({
   const part = parseFindPart(allParams.part)
   const { seniority, view, types, tab: tabParam, great, pivot, fn, sectors, blockers, cleared } = allParams
   const boardSearch = parseBoardSearchParams(allParams)
+  // Arrived from a public job search (src/lib/jobs/portal-job-redirect.ts): the member's own words lead the page.
+  const fromPublic = allParams.from === 'public'
+  if (fromPublic) {
+    after(() =>
+      captureServerEvent(baseProfile.id, 'search_carried_in', {
+        source: 'public_search',
+        q: boardSearch.q,
+        loc: boardSearch.loc,
+        remote: boardSearch.remote,
+        hasSearch: isSearchActive(boardSearch),
+      })
+    )
+  }
   // Other board filters that are on (search analytics, and the no-results suggestions).
   const filtersActive = [
     seniority && 'seniority',
@@ -1005,7 +1029,7 @@ export default async function JobFitPage({
   // `job` (the open job in the two-pane list) belongs to the list alone: links built from the other parameters
   // start without it, so a new filter or search never reopens an old job.
   const urlParams = Object.fromEntries(
-    Object.entries(allParams).filter((e): e is [string, string] => typeof e[1] === 'string' && e[0] !== 'job')
+    Object.entries(allParams).filter((e): e is [string, string] => typeof e[1] === 'string' && e[0] !== 'job' && e[0] !== 'from')
   )
   const greatFilters = parseGreatParam(great)
   // Function, employer sector and hard-requirement filters (job-functions.ts,
@@ -1052,7 +1076,10 @@ export default async function JobFitPage({
           }
         />
       ) : (
-        <PageHeader title={FIND_PART_HEADER[part].title} />
+        <PageHeader
+          title={fromPublic && part === 'jobs' ? carriedInTitle(boardSearch, seniorityGroup, parseWorkTypesParam(types)) ?? FIND_PART_HEADER[part].title : FIND_PART_HEADER[part].title}
+          intro={fromPublic && part === 'jobs' ? 'Ranked for you. Each one says why it fits, and saving it builds your search plan.' : undefined}
+        />
       )}
 
       {tab === 'my_jobs' && <SavedSearchesStrip email={profile.email} />}

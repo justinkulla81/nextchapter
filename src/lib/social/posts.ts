@@ -29,7 +29,7 @@ export function weekKey(d: Date): string {
 }
 
 /**
- * The Monday post: last seven days of WARN layoff notices as totals, never employer names (employer-specific posts go
+ * The Monday post: last seven days of layoff notices (state WARN notices) as totals, never employer names (employer-specific posts go
  * through the human-approved queue). Null when the week was too quiet.
  */
 export function weeklyLayoffPost(notices: WeekNotice[], now: Date, utm: string): SocialPost | null {
@@ -43,11 +43,11 @@ export function weeklyLayoffPost(notices: WeekNotice[], now: Date, utm: string):
   for (const x of thisWeek) byState.set(x.state, (byState.get(x.state) ?? 0) + (x.workers ?? 0))
   const top = [...byState].sort((a, b) => b[1] - a[1]).slice(0, 3).filter(([, w]) => w > 0).map(([s]) => stateName(s))
   const diff = thisWeek.length - lastWeek.length
-  const trend = lastWeek.length ? ` That is ${diff === 0 ? 'the same as' : `${n(Math.abs(diff))} ${diff > 0 ? 'more' : 'fewer'} than`} the week before.` : ''
+  const trend = lastWeek.length ? ` (${diff === 0 ? 'same as' : `${n(Math.abs(diff))} ${diff > 0 ? 'more' : 'fewer'} than`} last week)` : ''
   const text =
-    `Layoff notices filed in the last 7 days: ${n(thisWeek.length)} WARN notices${workers ? ` naming ${n(workers)} workers` : ''}.${trend}` +
-    (top.length ? ` Most workers: ${top.join(', ')}.` : '') +
-    ` Free data, every notice: ${SITE_URL}/layoffs/this-week?${utm}`
+    `${workers ? `${n(workers)} people` : `${n(thisWeek.length)} companies`} found out this week they are losing their jobs: ${n(thisWeek.length)} layoff notices${trend}.` +
+    (top.length ? ` Hit hardest: ${top.join(', ')}.` : '') +
+    ` Just laid off? Start here: ${SITE_URL}/layoffs/this-week?${utm} #layoffs #laidoff #jobsearch`
   return { key: `layoffs-week-${weekKey(now)}`, text }
 }
 
@@ -97,7 +97,7 @@ export function filingPostText(f: FilingForPost, utm: string, shortLinks = true)
   const workers = f.workers ? `, naming ${n(f.workers)} workers` : ''
   const link = `${SITE_URL}${f.path}?${utm}`
   const tail = ` What was filed and what to do if you are affected: ${link}`
-  const head = (name: string) => `${name} filed a WARN layoff notice${where} on ${day(f.date)}${workers}.`
+  const head = (name: string) => `${name} filed a layoff notice${where} on ${day(f.date)}${workers}.`
   const budget = textBudget(link, shortLinks)
   const fit = (name: string) => head(name === f.employer ? name : `${name}…`) + tail
   let name = f.employer
@@ -131,9 +131,9 @@ export function dailyLayoffPost(notices: DayNotice[], now: Date, utm: string): S
   for (const x of today) byState.set(x.state, (byState.get(x.state) ?? 0) + (x.workers ?? 0))
   const top = [...byState].sort((a, b) => b[1] - a[1]).slice(0, 3).filter(([, w]) => w > 0).map(([s]) => stateName(s))
   const text =
-    `New layoff notices in the last 24 hours: ${n(today.length)} WARN notices in ${n(states)} ${states === 1 ? 'state' : 'states'}${workers ? `, naming ${n(workers)} workers` : ''}.` +
-    (top.length ? ` Most workers: ${top.join(', ')}.` : '') +
-    ` Every notice, with the state record: ${SITE_URL}/layoffs/this-week?${utm}`
+    `${workers ? `${n(workers)} more people` : `${n(today.length)} more layoff notices`} found out they are losing their jobs in the last 24 hours, in ${n(states)} ${states === 1 ? 'state' : 'states'}.` +
+    (top.length ? ` Hit hardest: ${top.join(', ')}.` : '') +
+    ` Just laid off? Start here: ${SITE_URL}/layoffs/this-week?${utm} #layoffs #jobsearch`
   return { key: `layoffs-day-${dayKey(now)}`, text }
 }
 
@@ -183,7 +183,11 @@ export function rankingsPost(index: RankingForPost[], now: Date, utm: string): S
     ['Pay after cost of living', pick('paycost')],
   ].flatMap(([label, x]) => (x ? [`${label}: ${(x as RankingForPost).topName} (${(x as RankingForPost).topValueLabel})`] : []))
   const link = `${SITE_URL}/rankings/archive/${edition}?${utm}`
-  const text = `NextChapter job market rankings, ${MONTH_NAMES[now.getUTCMonth()]} ${now.getUTCFullYear()}: ${n(lists.length)} lists.${lines.length ? ` #1 for ${lines.join('. #1 for ')}.` : ''} All of them: ${link}`
+  // Drop the last list line until the whole post, link included, fits Bluesky's 300 characters.
+  const build = (ls: string[]) => `NextChapter job market rankings, ${MONTH_NAMES[now.getUTCMonth()]} ${now.getUTCFullYear()}: ${n(lists.length)} lists.${ls.length ? ` #1 for ${ls.join('. #1 for ')}.` : ''} All of them: ${link}`
+  let shown = lines
+  while (shown.length && [...build(shown)].length > 300) shown = shown.slice(0, -1)
+  const text = build(shown)
   return { key: `rankings-${edition}`, text }
 }
 
@@ -290,7 +294,7 @@ export function joltsPost(d: JoltsData, utm: string, shortLinks = true): SocialP
   const link = `${SITE_URL}/layoffs?${utm}`
   const now = million(d.layoffs)
   const before = `${monthName(d.prevMonth)}: ${million(d.prevLayoffs)}`
-  const text = `BLS JOLTS for ${monthName(d.month)} ${d.month.year}: ${million(d.openings)} job openings and ${now} layoffs and discharges (${before}). All industries. Compared with WARN layoff notices: ${link}`
+  const text = `BLS JOLTS for ${monthName(d.month)} ${d.month.year}: ${million(d.openings)} job openings and ${now} layoffs and discharges (${before}). All industries. Compared with layoff notices: ${link}`
   if (text.length > textBudget(link, shortLinks)) {
     return { key: `bls-jolts-${monthKey(d.month)}`, text: `BLS JOLTS, ${monthName(d.month)}: ${million(d.openings)} openings, ${now} layoffs (${before}). All industries. ${link}` }
   }

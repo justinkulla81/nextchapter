@@ -115,7 +115,7 @@ export function alertSubject(a: AlertInput): string {
 }
 
 const KIND_LABEL: Record<LayoffKind, string> = {
-  news: 'News report', sec: 'SEC 8-K filing', warn: 'WARN filing',
+  news: 'News report', sec: 'SEC 8-K filing', warn: 'State layoff filing',
 }
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -169,7 +169,14 @@ export function groupSummary(groups: ContactGroup[]): { people: number; withEmai
   }
 }
 
-export function alertBody(a: AlertInput, links: { source: string | null; org: string | null; notices: string }): string {
+/** The notice page button and the copyable LinkedIn message, for the emails that list several layoffs. */
+function shareBlock(noticePage?: string | null, linkedin?: string | null, candidate?: string | null): string {
+  if (!noticePage && !linkedin && !candidate) return ''
+  const box = (label: string, text: string) => `<p style="margin:8px 0 2px;color:${MUTED};font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">${label}</p><div style="margin:0;padding:8px 10px;border:1px solid ${LINE};border-radius:8px;font-size:13px;white-space:pre-wrap">${esc(text)}</div>`
+  return `${candidate ? box('Message to someone laid off', candidate) : ''}${noticePage ? `<p style="margin:6px 0 0;font-size:13px">${link(noticePage, 'Notice page')}</p>` : ''}${linkedin ? `<div style="margin:6px 0 0;padding:8px 10px;border:1px solid ${LINE};border-radius:8px;font-size:13px;white-space:pre-wrap">${esc(linkedin)}</div>` : ''}`
+}
+
+export function alertBody(a: AlertInput, links: { source: string | null; org: string | null; notices: string; noticePage?: string | null; linkedin?: string | null; candidate?: string | null }): string {
   const facts: [string, string][] = [
     ...(a.division ? [['Division', esc(a.division)] as [string, string]] : []),
     ['Source', esc(KIND_LABEL[a.kind]) + (a.confirmed ? '' : ' — one outlet so far, unconfirmed')],
@@ -201,8 +208,14 @@ export function alertBody(a: AlertInput, links: { source: string | null; org: st
 
   const buttons = [
     links.org ? `<a href="${esc(links.org)}" style="display:inline-block;padding:7px 14px;background:${ACCENT};border-radius:6px;color:#fff;text-decoration:none;font-size:13px;margin:0 6px 6px 0">Open in CRM</a>` : '',
+    links.noticePage ? `<a href="${esc(links.noticePage)}" style="display:inline-block;padding:7px 14px;border:1px solid ${LINE};border-radius:6px;color:${INK};text-decoration:none;font-size:13px;margin:0 6px 6px 0">Notice page</a>` : '',
     `<a href="${esc(links.notices)}" style="display:inline-block;padding:7px 14px;border:1px solid ${LINE};border-radius:6px;color:${INK};text-decoration:none;font-size:13px;margin:0 6px 6px 0">All layoff notices</a>`,
   ].join('')
+
+  const linkedinBlock = links.linkedin
+    ? `<p style="margin:10px 0 4px;color:${MUTED};font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600">LinkedIn message</p>
+<div style="margin:0 0 14px;padding:10px 12px;border:1px solid ${LINE};border-radius:8px;font-size:13px;white-space:pre-wrap">${esc(links.linkedin)}</div>`
+    : ''
 
   const picture = a.picture?.rows.length
     ? `<h2 style="font:600 18px/1.3 Georgia,'Times New Roman',serif;margin:22px 0 6px">Local picture</h2>
@@ -225,6 +238,8 @@ ${gapNote}
 <table role="presentation" cellpadding="3" style="border-collapse:collapse;margin:0 0 12px">${facts.map(([k, v]) => `<tr><td style="color:${MUTED};padding-right:14px">${k}</td><td>${v}</td></tr>`).join('')}</table>
 ${sourceList}
 <div>${buttons}</div>
+${linkedinBlock}
+${links.candidate ? shareBlock(null, null, links.candidate) : ''}
 ${picture}
 ${who}
 <p style="color:${MUTED};font-size:13px;margin-top:18px">Primary contact is settled in the 7 AM run, warm lead first.</p>
@@ -284,6 +299,9 @@ export interface DigestItem {
   people: number
   warm: number
   orgUrl: string | null
+  noticePage?: string | null
+  linkedin?: string | null
+  candidate?: string | null
 }
 
 export function digestSubject(items: Pick<DigestItem, 'employer'>[]): string {
@@ -296,7 +314,7 @@ export function digestBody(items: DigestItem[], links: { notices: string }): str
   const rows = items.map((i) => {
     const source = KIND_LABEL[i.kind] + (i.confirmed ? '' : ' (unconfirmed)')
     const crm = i.inCrm ? (i.people ? `${i.people} ${i.people === 1 ? 'person' : 'people'}${i.warm ? `, ${i.warm} warm` : ', none warm'}` : 'organization only') : 'not in CRM'
-    return `<tr><td style="padding:6px 12px 6px 0;border-top:1px solid ${LINE}">${link(i.orgUrl, i.employer, 'font-weight:600')}</td><td style="padding:6px 12px 6px 0;border-top:1px solid ${LINE};white-space:nowrap">${esc(sizeLabel(i.employees, i.percent))}</td><td style="padding:6px 12px 6px 0;border-top:1px solid ${LINE}">${esc(source)}</td><td style="padding:6px 0;border-top:1px solid ${LINE}">${esc(crm)}</td></tr>`
+    return `<tr><td style="padding:6px 12px 6px 0;border-top:1px solid ${LINE}">${link(i.orgUrl, i.employer, 'font-weight:600')}</td><td style="padding:6px 12px 6px 0;border-top:1px solid ${LINE};white-space:nowrap">${esc(sizeLabel(i.employees, i.percent))}</td><td style="padding:6px 12px 6px 0;border-top:1px solid ${LINE}">${esc(source)}</td><td style="padding:6px 0;border-top:1px solid ${LINE}">${esc(crm)}</td></tr>${i.noticePage || i.linkedin || i.candidate ? `<tr><td colspan="4" style="padding:0 0 8px">${shareBlock(i.noticePage, i.linkedin, i.candidate)}</td></tr>` : ''}`
   }).join('')
   return `<div style="max-width:640px;margin:0 auto;font:14px/1.5 ${FONT};color:${INK}">
 <p style="margin:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:${ACCENT};font-weight:600">Layoff alerts, one email</p>
@@ -318,9 +336,12 @@ export interface OfficialItem {
   effectiveOn: string | null
   sourceUrl: string | null
   orgUrl: string | null
+  noticePage?: string | null
+  linkedin?: string | null
+  candidate?: string | null
 }
 
-export const officialLabel = (kind: 'warn' | 'sec') => (kind === 'sec' ? 'SEC 8-K filing' : 'state WARN filing')
+export const officialLabel = (kind: 'warn' | 'sec') => (kind === 'sec' ? 'SEC 8-K filing' : 'state layoff filing')
 
 export function officialSubject(items: Pick<OfficialItem, 'employer' | 'kind'>[]): string {
   if (items.length === 1) return `Now official: ${items[0].employer} — ${officialLabel(items[0].kind)}`
@@ -336,6 +357,7 @@ export function officialBody(items: OfficialItem[], links: { notices: string }):
 <p style="margin:0;font:600 17px/1.3 Georgia,'Times New Roman',serif">${link(i.orgUrl, i.employer)}</p>
 <p style="margin:2px 0 0;color:${MUTED};font-size:13px">${bits}</p>
 ${i.sourceUrl ? `<p style="margin:6px 0 0;font-size:13px">${link(i.sourceUrl, 'Open the filing')}</p>` : ''}
+${shareBlock(i.noticePage, i.linkedin, i.candidate)}
 </div>`
   }).join('')
   return `<div style="max-width:640px;margin:0 auto;font:14px/1.5 ${FONT};color:${INK}">

@@ -234,7 +234,7 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
           ) : null}
         </Panel>
 
-        <Panel title="WARN layoff notices (last 12 months)" icon={TrendingDown}>
+        <Panel title="Layoff notices (last 12 months)" icon={TrendingDown}>
           {shownWarn.length > 0 ? (
             <ul className="divide-y divide-border text-sm">
               {!warn.length && <li className="py-1.5 text-muted-foreground">None name your counties; these are the latest across {states.join(' and ')}.</li>}
@@ -254,8 +254,8 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
           ) : (
             <p className="text-sm text-muted-foreground">
               {covered
-                ? 'No WARN filings in the last 12 months.'
-                : `None on file. NextChapter’s WARN sync doesn’t cover ${states.join(' or ')} filings yet; once it does, notices for these counties appear here automatically.`}
+                ? 'No layoff filings in the last 12 months.'
+                : `None on file. NextChapter’s layoff sync doesn’t cover ${states.join(' or ')} filings yet; once it does, notices for these counties appear here automatically.`}
             </p>
           )}
         </Panel>

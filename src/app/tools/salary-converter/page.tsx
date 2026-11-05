@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { SalaryConverter } from '@/components/tools/SalaryConverter'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 export const metadata: Metadata = pageMetadata('/tools/salary-converter')
@@ -18,6 +17,7 @@ export default function Page() {
 
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Salary converter', path: '/tools/salary-converter' }]}
       h1={pageH1('/tools/salary-converter', 'Salary converter: hourly to yearly and back')}
       lede="Turn hourly pay into yearly, monthly, weekly and daily pay, or any of them into the others. Change the hours and weeks to match a part-time or seasonal schedule."
@@ -38,7 +38,6 @@ export default function Page() {
           More: <Link href="/tools/pay-check" className={LINK}>pay check: is your salary in line</Link>, <Link href="/salaries" className={LINK}>salaries by job title</Link> and <Link href="/tools/severance-calculator" className={LINK}>severance calculator</Link>.
         </p>
       </section>
-      <ActionBand title="Know what the market pays your title" body="A free Market Reality Assessment and a weekly plan that starts with the deadlines." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'salary_converter' }} />
     </SeoPage>
   )
 }

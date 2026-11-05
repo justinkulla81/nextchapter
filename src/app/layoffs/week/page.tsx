@@ -21,9 +21,9 @@ export default async function WeeklyLayoffsIndex() {
       <PublicSiteHeader current="news" />
       <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-4xl px-6">
-          <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/layoffs/week', 'Layoffs by week: WARN notices')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/layoffs/week', 'Layoffs by week: layoff notices')}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
-            Every week of WARN layoff notices from the last two years: how many, how many workers, which states and employers. This week is on <Link href="/layoffs/this-week" className={LINK}>layoffs this week</Link>.
+            Every week of layoff notices from the last two years: how many, how many workers, which states and employers. This week is on <Link href="/layoffs/this-week" className={LINK}>layoffs this week</Link>.
           </p>
           <PullTop name="Layoffs by week" path="/layoffs/week" />
           <ul className="mt-8 divide-y divide-border rounded-xl border border-border bg-white">

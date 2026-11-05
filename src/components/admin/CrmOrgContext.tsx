@@ -79,16 +79,17 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
         p."topMajors", p.earnings10, p."presidentName", p."presidentTitle", p.phone
       from "CollegeProfile" p where lower(p.name) = lower(${org.name}) limit 1`
   }
-  const place = await withTimeout(resolveOrgPlace(orgId), 8000, null)
+  // The page stops at 30 s, and the place lookup runs before the other reads, so the waits add up: keep their sum well under it.
+  const place = await withTimeout(resolveOrgPlace(orgId), 5000, null)
   const area = place ? await (place.fips
     ? prisma.geoArea.findUnique({ where: { id: place.fips } })
     : prisma.geoArea.findFirst({ where: { level: 'STATE', state: place.state } })) : null
   const [local, layoffs, jobs, contacts, company] = await Promise.all([
-    place?.fips && area ? withTimeout(loadLocalNetwork(place.fips, place.countyKey, place.state), 8000, null) : null,
-    place ? withTimeout(loadCountyLayoffs(place.state, place.fips ? area?.name ?? null : null), 8000, null) : null,
-    place ? withTimeout(loadCountyJobs(place.fips, place.state, place.fips ? area?.name ?? null : null), 22000, null) : null,
+    place?.fips && area ? withTimeout(loadLocalNetwork(place.fips, place.countyKey, place.state), 6000, null) : null,
+    place ? withTimeout(loadCountyLayoffs(place.state, place.fips ? area?.name ?? null : null), 6000, null) : null,
+    place ? withTimeout(loadCountyJobs(place.fips, place.state, place.fips ? area?.name ?? null : null), 10000, null) : null,
     college ? prisma.collegeContact.findMany({ where: { collegeId: college.id }, select: { id: true, role: true, name: true, title: true, email: true, guessedEmail: true }, orderBy: [{ email: { sort: 'asc', nulls: 'last' } }] }) : [],
-    org.companyId ? withTimeout(loadCompanyContext(org.companyId), 8000, null) : null,
+    org.companyId ? withTimeout(loadCompanyContext(org.companyId), 6000, null) : null,
   ])
   const exposure = college ? degreeExposure(college.topMajors) : null
   const types = org.orgTypes.map((t) => TYPE_LABEL[t] ?? t)
@@ -122,7 +123,7 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
         <Tile label="Unemployment" value={area?.unemploymentRate != null ? `${area.unemploymentRate.toFixed(1)}%` : null}
           note={area ? `${areaLabel}${area.unemploymentRatePrior != null ? ` · ${area.unemploymentRatePrior.toFixed(1)}% a year ago` : ''}` : undefined} />
         <Tile label={`Layoffs, ${LAYOFF_DAYS} days`} value={layoffs ? `${layoffs.jobs.toLocaleString()} jobs` : null} note={layoffs ? `${layoffs.employers} employers · ${layoffs.filings} filings` : undefined} />
-        <Tile label={place?.fips ? 'Open jobs in county' : 'Open jobs in state'} value={jobs ? jobs.roles.toLocaleString() : place?.fips ? '0' : null} note={jobs ? `${jobs.employers.toLocaleString()} employers · ${jobs.professional.toLocaleString()} professional-level` : undefined} />
+        <Tile label={place?.fips ? 'Open jobs in county' : 'Open jobs in state'} value={jobs ? jobs.roles.toLocaleString() : place?.fips ? <span className="text-sm font-normal text-muted-foreground">Not counted yet; reload in a minute</span> : null} note={jobs ? `${jobs.employers.toLocaleString()} employers · ${jobs.professional.toLocaleString()} professional-level` : undefined} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -169,7 +170,7 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
                   </tbody>
                 </table>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {layoffs.rows.length > 7 ? `Top 7 of ${layoffs.employers} employers. ` : ''}Total {layoffs.jobs.toLocaleString()} jobs in {layoffs.filings} state WARN filings.
+                  {layoffs.rows.length > 7 ? `Top 7 of ${layoffs.employers} employers. ` : ''}Total {layoffs.jobs.toLocaleString()} jobs in {layoffs.filings} state layoff filings.
                 </p>
               </>
             ) : <p className="mt-1 text-sm text-muted-foreground">No state layoff filings in this window.</p>}

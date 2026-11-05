@@ -9,6 +9,7 @@ import { inferHq } from './layoff-hq-state'
 import { buildLocalPicture, classifyLayoffIndustry } from './layoff-context'
 import { pictureRows, placeFromHeadlines, talkingPoints, type Audience } from './layoff-picture'
 import { contactStrength } from '@/lib/crm/contact-strength'
+import { employerSlug } from './layoff-pages'
 
 const SITE = 'https://launchyournextchapter.com'
 const PARTNER: Record<string, Audience> = { rapid_response: 'rapid_response', workforce_board: 'workforce_board', job_centers: 'job_centers', economic_development: 'economic_development' }
@@ -18,7 +19,7 @@ const PARTNER: Record<string, Audience> = { rapid_response: 'rapid_response', wo
  * notice, built on demand. It reads only what is already stored: no Hunter search and no model call, so a layoff with no contacts found yet
  * shows fewer people, not a bill. Nothing is sent.
  */
-export async function layoffAlertView(noticeId: string): Promise<{ employer: string; html: string } | null> {
+export async function layoffAlertView(noticeId: string): Promise<{ employer: string; html: string; share: { url: string; employer: string; employees: number | null; state: string | null } } | null> {
   const n = await prisma.warnNotice.findUnique({
     where: { id: noticeId },
     select: {
@@ -37,7 +38,7 @@ export async function layoffAlertView(noticeId: string): Promise<{ employer: str
     : []
   const warm = people.filter((p) => ['hot', 'warm'].includes(contactStrength(p) ?? '')).length
   const headlines = (await prisma.layoffNewsMention.findMany({ where: { noticeId }, select: { headline: true } }).catch(() => [])).map((m) => m.headline)
-  const company = n.companyId ? await prisma.company.findUnique({ where: { id: n.companyId }, select: { industry: true } }).catch(() => null) : null
+  const company = n.companyId ? await prisma.company.findUnique({ where: { id: n.companyId }, select: { industry: true, name: true } }).catch(() => null) : null
   let state = n.state
   let city: string | null = null
   let placeNote: string | null = null
@@ -49,7 +50,7 @@ export async function layoffAlertView(noticeId: string): Promise<{ employer: str
   const hq = !state || (!company?.industry && !n.industry) ? await inferHq(n.normalizedEmployer) : null
   if (!state && hq?.state) {
     state = hq.state; city = hq.city
-    placeNote = hq.source === 'sec' ? 'company headquarters, from SEC filings' : 'where it has filed WARN notices'
+    placeNote = hq.source === 'sec' ? 'company headquarters, from SEC filings' : 'where it has filed layoff notices'
   }
   const industry = await classifyLayoffIndustry({ employer: n.employer, companyIndustry: company?.industry ?? null, naics: n.industry, sicDescription: hq?.sicDescription ?? null, allowModel: false })
   const picture = await buildLocalPicture({ employer: n.employer, employees: n.employees, state, county: n.county, industryKey: industry?.key ?? null })
@@ -60,7 +61,7 @@ export async function layoffAlertView(noticeId: string): Promise<{ employer: str
     employer: n.employer, division: n.division, employees: n.employees, percent: null, kind, confirmed: kind !== 'news' && (n.source === 'WARN_FILING' || kind === 'sec'),
     inCrm: !!org, people: people.length, warm, contactsFound: 0,
     costs: n,
-    sources: await loadAlertSources(n.id, n.sourceUrl, kind === 'warn' ? 'WARN filing' : kind === 'sec' ? 'SEC 8-K filing' : 'Notice'),
+    sources: await loadAlertSources(n.id, n.sourceUrl, kind === 'warn' ? 'State layoff filing' : kind === 'sec' ? 'SEC 8-K filing' : 'Notice'),
     picture: { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) },
   }
   if (related) {
@@ -70,6 +71,7 @@ export async function layoffAlertView(noticeId: string): Promise<{ employer: str
   }
   return {
     employer: n.employer,
+    share: { url: `${SITE}/layoffs/company/${employerSlug(n.employer, company?.name ?? null)}`, employer: company?.name ?? n.employer, employees: n.employees, state },
     html: alertBody(input, { source: null, org: orgId ? `${SITE}/support/admin/crm/organizations/${orgId}` : null, notices: `${SITE}/support/admin/crm/warn` }),
   }
 }

@@ -30,7 +30,7 @@ export interface FeedDoc {
 
 export const WEBSUB_HUB = 'https://pubsubhubbub.appspot.com/'
 export const FEED_LOGO = `${SITE_URL}/icon.png`
-export const FEED_LICENSE = 'Data from state WARN records, compiled by NextChapter; licensed CC BY 4.0 with credit to NextChapter and a link to the item.'
+export const FEED_LICENSE = 'Data from state layoff records, compiled by NextChapter; licensed CC BY 4.0 with credit to NextChapter and a link to the item.'
 
 export const xmlEscape = (v: string) =>
   v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')

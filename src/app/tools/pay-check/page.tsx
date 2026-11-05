@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { PayCheck } from '@/components/tools/PayCheck'
 import { getPersona } from '@/lib/constants/personas'
 import { journeyChoices } from '@/lib/leads/infer-journey'
 import { getTitleIndex, hasSalaryPage } from '@/lib/seo/job-titles'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 // Not prerendered: the title scan reads the whole board, and a build runs it in up to seven workers at once, which timed out
@@ -28,6 +27,7 @@ export default async function PayCheckPage() {
     .map((p) => ({ slug: p.slug, label: p.label }))
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Pay check', path: '/tools/pay-check' }]}
       h1={pageH1('/tools/pay-check', 'Pay check: is your salary in line?')}
       lede="Pick your job title and enter your yearly pay to see where it sits against what employers list for the same title today. Free, no account."
@@ -48,7 +48,6 @@ export default async function PayCheckPage() {
           More: <Link href="/salaries" className={LINK}>salary by job title</Link>, <Link href="/tools/severance-calculator" className={LINK}>severance calculator</Link> and <Link href="/tools" className={LINK}>all tools</Link>.
         </p>
       </section>
-      <ActionBand title="See jobs ranked for you" body="A free Market Reality Assessment shows how the market reads your résumé, then ranks every open job for you." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'pay_check' }} />
     </SeoPage>
   )
 }

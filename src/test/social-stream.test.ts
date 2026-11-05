@@ -333,3 +333,15 @@ describe('Bluesky link cards', () => {
     expect((cardFor({ campaign: 'x', lines: [] }, `${'word '.repeat(60)}ends.`).title ?? '').length).toBeLessThanOrEqual(110)
   })
 })
+
+describe('hashtags on model-written posts', () => {
+  it('adds the topic hashtags in code, only when they fit and none are there already', async () => {
+    const { withHashtags } = await import('@/lib/social/tags')
+    const link = 'https://launchyournextchapter.com/layoffs/this-week?utm_source=bluesky'
+    expect(withHashtags('Short post.', { topic: 'layoff' }, 'bluesky', link)).toBe('Short post.\n\n#layoffs #jobsearch')
+    expect(withHashtags('Already #layoffs', { topic: 'layoff' }, 'bluesky', link)).toBe('Already #layoffs')
+    expect(withHashtags('Short post.', { topic: 'roundup' }, 'bluesky', link)).toBe('Short post.')
+    const long = 'x'.repeat(290)
+    expect(withHashtags(long, { topic: 'layoff' }, 'bluesky', link)).toBe(long)
+  })
+})

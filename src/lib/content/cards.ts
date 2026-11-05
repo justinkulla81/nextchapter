@@ -14,7 +14,7 @@ const usd = (v: number) => `$${n(Math.round(v / 1000) * 1000)}`
 const FILE_FIRST = DEADLINE_STEPS.find((s) => s.id === 'd2')!.body
 
 export const CREDIBILITY_SOURCE: Record<Credibility, string> = {
-  'warn-filing': 'State WARN filing',
+  'warn-filing': 'State layoff filing',
   'sec-filing': 'Company SEC filing',
   'two-publishers': 'News reports from two publishers',
   'trusted-outlet': 'Major news outlet',

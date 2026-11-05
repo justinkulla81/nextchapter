@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { DeadlineEmailBox } from '@/components/cobra-aca/DeadlineEmailBox'
-import { LaidOffStart } from '@/components/cobra-aca/LaidOffStart'
 import { SeveranceCalculator, type CalculatorState } from '@/components/tools/SeveranceCalculator'
 import { SeveranceSources } from '@/components/severance/SeveranceSources'
 import { getPersona } from '@/lib/constants/personas'
@@ -32,6 +31,7 @@ export default function SeveranceCalculatorPage() {
 
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Severance calculator', path: '/tools/severance-calculator' }]}
       h1={pageH1('/tools/severance-calculator', 'Severance calculator')}
       lede="Enter your pay and years of service to see what the common formula of one to two weeks of pay per year of service comes to, what is left after federal withholding and payroll taxes, and how your state treats severance for unemployment. Your agreement sets the real number."
@@ -65,9 +65,6 @@ export default function SeveranceCalculatorPage() {
             eventPrefix="severance"
             blurb="One email as each date comes up over the next two months: filing for unemployment, the severance agreement review, health coverage. Then nothing. No account needed."
           />
-        </div>
-        <div className="mt-4">
-          <LaidOffStart placement="severance_tool" eventPrefix="severance" />
         </div>
       </section>
 

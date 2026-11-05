@@ -1453,7 +1453,7 @@ async function SettingsStaff({ ctx }: ScreenProps) {
 export const COMING_DESCRIPTIONS: Record<string, string> = {
   'candidate:privacy': 'Four plain-language sharing toggles and "Who viewed my profile."',
   'candidate:mentors': 'Browse alumni mentors by industry and function, and request a call.',
-  'alumni:layoffs': 'WARN notices matched to alumni employers, with one-click outreach.',
+  'alumni:layoffs': 'Layoff notices matched to alumni employers, with one-click outreach.',
   'alumni:outreach': 'Campaigns, a merge-field template editor, and a send log with opens, clicks and claims.',
   'alumni:mentors': 'The mentor roster, invitations and request activity.',
   'alumni:engagement': 'Engagement score distribution and CASE breakdown by class decade.',

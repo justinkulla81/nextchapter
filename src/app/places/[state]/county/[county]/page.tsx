@@ -12,6 +12,7 @@ import { countyKey } from '@/lib/workforce/places'
 import { conferencesAtPlace } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
+import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
 import { countyIndexable, getCountyPage, getPlaceLinker, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
@@ -76,7 +77,7 @@ export default async function CountyPlacePage({ params }: { params: Promise<{ st
       h1={placeCountySeo(c.name, s.code).h1}
       lede={<>
         {c.unemploymentRate != null && <>{c.name}’s unemployment rate is {c.unemploymentRate.toFixed(1)}%. </>}
-        {d.layoffs.notices > 0 ? <>Employers filed {d.layoffs.notices.toLocaleString()} layoff notices here in the last 12 months. </> : <>No WARN layoff notices here in the last 12 months. </>}
+        {d.layoffs.notices > 0 ? <>Employers filed {d.layoffs.notices.toLocaleString()} layoff notices here in the last 12 months. </> : <>No layoff notices here in the last 12 months. </>}
         {d.jobsOpen > 0 && <>{d.jobsOpen.toLocaleString()} open professional jobs are in its cities. </>}
       </>}
       jsonLd={[placeJsonLd({ type: 'AdministrativeArea', name: `${c.name}, ${name}`, path, population: c.population, containedIn: { name, path: placeUrl.state(state), type: 'State' } })]}
@@ -120,8 +121,12 @@ export default async function CountyPlacePage({ params }: { params: Promise<{ st
       />
 
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">Sources:</span> Census Bureau and BLS (county unemployment is not seasonally adjusted); WARN notices from {name}’s published record;
-        job counts from our live job board; IPEDS for colleges; CareerOneStop for workforce boards and job centers.
+        <span className="font-medium text-foreground">Sources:</span> Census Bureau and BLS (county unemployment is not seasonally adjusted); layoff notices from {name}’s published record;
+        job counts from our live job board; IPEDS for colleges; CareerOneStop for workforce boards and job centers.{' '}
+        <TrackedLink href={`/unemployment-benefits/${state}`} event="place_unemployment_link_clicked" properties={{ level: 'county', state: code, county: c.slug }} className={LINK}>
+          {name} unemployment benefits and severance rules
+        </TrackedLink>
+        .
       </p>
     </SeoPage>
   )

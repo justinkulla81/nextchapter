@@ -1,3 +1,4 @@
+import { noticeShare } from './layoff-share'
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { createResend } from '@/lib/email/resend-client'
@@ -146,6 +147,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
       run.queue.push({
         noticeId: l.noticeId, employer: l.employer, employees: l.employees, percent: l.percent, kind: l.kind, confirmed: l.confirmed,
         inCrm: !!org, people: people.length, warm, orgUrl: org ? `${SITE}/support/admin/crm/organizations/${org.id}` : null,
+        ...noticeShare({ noticeId: l.noticeId, employer: l.employer, employees: l.employees, state: notice?.state ?? null }),
       })
       return false
     }
@@ -159,7 +161,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
     // rarely names a place, so look in this order: the filing, the headlines, the CRM record, then the company's
     // SEC filings (headquarters) and the states it has filed WARN notices in.
     const headlines = (await prisma.layoffNewsMention.findMany({ where: { noticeId: l.noticeId }, select: { headline: true } }).catch(() => [])).map((m) => m.headline)
-    const company = notice?.companyId ? await prisma.company.findUnique({ where: { id: notice.companyId }, select: { industry: true } }).catch(() => null) : null
+    const company = notice?.companyId ? await prisma.company.findUnique({ where: { id: notice.companyId }, select: { industry: true, name: true } }).catch(() => null) : null
     let state = notice?.state ?? null
     let city: string | null = null
     let placeNote: string | null = null
@@ -172,7 +174,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
     const hq = needHq ? await inferHq(l.normalizedEmployer) : null
     if (!state && hq?.state) {
       state = hq.state; city = hq.city
-      placeNote = hq.source === 'sec' ? 'company headquarters, from SEC filings' : 'where it has filed WARN notices'
+      placeNote = hq.source === 'sec' ? 'company headquarters, from SEC filings' : 'where it has filed layoff notices'
     }
     const industry = await classifyLayoffIndustry({
       employer: l.employer, companyIndustry: company?.industry ?? null, naics: notice?.industry ?? null, sicDescription: hq?.sicDescription ?? null, allowModel: firstAttempt,
@@ -192,7 +194,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
     }
     input.costs = notice ?? undefined
     input.picture = { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) }
-    input.sources = await loadAlertSources(l.noticeId, l.sourceUrl, l.kind === 'warn' ? 'WARN filing' : l.kind === 'sec' ? 'SEC 8-K filing' : 'Notice')
+    input.sources = await loadAlertSources(l.noticeId, l.sourceUrl, l.kind === 'warn' ? 'State layoff filing' : l.kind === 'sec' ? 'SEC 8-K filing' : 'Notice')
 
     const sibling = await emailedSibling(l.normalizedEmployer, l.noticeId)
     if (sibling > 0) {
@@ -221,6 +223,7 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
         source: null,
         org: org ? `${SITE}/support/admin/crm/organizations/${org.id}` : null,
         notices: `${SITE}/support/admin/crm/warn`,
+        ...noticeShare({ noticeId: l.noticeId, employer: l.employer, companyName: company?.name ?? null, employees: l.employees, state }),
       })),
     })
     if (error) {

@@ -50,7 +50,7 @@ export function SeatRequestForm({ slug }: { slug: string }) {
       </div>
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="sr-note">Anything the organization should know (optional)</Label>
-        <Input id="sr-note" name="note" maxLength={1000} placeholder="Last day, teams affected, a WARN filing" />
+        <Input id="sr-note" name="note" maxLength={1000} placeholder="Last day, teams affected, a layoff filing" />
       </div>
       <div className="flex items-center gap-3 sm:col-span-3">
         <SubmitButton pendingLabel="Sending…">Ask for seats</SubmitButton>

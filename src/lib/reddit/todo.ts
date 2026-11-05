@@ -27,7 +27,7 @@ export function redditReply(x: RedditNotice): string {
   const filed = x.noticeDateKnown ? `, dated ${day(x.noticeDate)}` : ''
   const effective = x.effectiveDate ? `, with layoffs effective ${day(x.effectiveDate)}` : ''
   return [
-    `${x.employer} filed a WARN layoff notice${where}${x.workers ? ` naming ${n(x.workers)} workers` : ''}${filed}${effective}.`,
+    `${x.employer} filed a layoff notice${where}${x.workers ? ` naming ${n(x.workers)} workers` : ''}${filed}${effective}.`,
     x.sourceUrl ? `The state's own record: ${x.sourceUrl}` : '',
     `If you're affected: federal WARN generally requires covered employers to give 60 days' notice, and ${stateName(x.state)}'s unemployment benefits and how to file are here: ${SITE_URL}/unemployment-benefits/${stateSlug(x.state)}`,
     `Every notice we've seen from them: ${SITE_URL}/layoffs/company/${x.slug}?utm_source=reddit&utm_medium=social&utm_campaign=reply`,
@@ -47,7 +47,7 @@ export function statePostDraft(code: string, notices: number, workers: number): 
   const name = stateName(code)
   return {
     title: `${name} filed ${n(notices)} layoff notices in the last 7 days${workers ? `, naming ${n(workers)} workers` : ''}`,
-    body: `These are WARN notices filed with ${name}'s labor department. Each one links to the state's own record: ${SITE_URL}/layoffs/${stateSlug(code)}?utm_source=reddit&utm_medium=social&utm_campaign=state-post\n\nWARN notices are a floor, not every layoff: the law generally covers employers with 100+ workers, and a state can publish a notice days after it is filed.`,
+    body: `These are layoff notices filed with ${name}'s labor department. Each one links to the state's own record: ${SITE_URL}/layoffs/${stateSlug(code)}?utm_source=reddit&utm_medium=social&utm_campaign=state-post\n\nWARN notices are a floor, not every layoff: the law generally covers employers with 100+ workers, and a state can publish a notice days after it is filed.`,
   }
 }
 

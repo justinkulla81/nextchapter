@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache'
 import { SITE_URL } from '@/lib/seo/facts'
 import { liveJobSitemapShards } from '@/lib/jobs/public-job-page'
-import { EMPLOYER_SITEMAP_SHARD_SIZE, countEmployerPages } from '@/lib/seo/employer-pages'
+import { EMPLOYER_PAGES_IN_SITEMAP, EMPLOYER_SITEMAP_SHARD_SIZE, countEmployerPages } from '@/lib/seo/employer-pages'
 import { ORG_SITEMAP_SHARD_SIZE } from '@/lib/seo/org-page-rules'
 import { cachedIndexableOrgPages } from '@/lib/seo/org-pages'
 import { SEARCH_FIRM_SITEMAP_SHARD_SIZE, countSearchFirmPages } from '@/lib/seo/search-firm-pages'
@@ -19,8 +19,8 @@ export const dynamic = 'force-dynamic'
 const JOB_FILES_LIVE = liveJobSitemapShards()
 
 async function listMaps(): Promise<string[]> {
-  const employers = await countEmployerPages().catch(() => 0)
-  const employerShards = Math.max(1, Math.ceil(employers / EMPLOYER_SITEMAP_SHARD_SIZE))
+  const employers = EMPLOYER_PAGES_IN_SITEMAP ? await countEmployerPages().catch(() => 0) : 0
+  const employerShards = EMPLOYER_PAGES_IN_SITEMAP ? Math.max(1, Math.ceil(employers / EMPLOYER_SITEMAP_SHARD_SIZE)) : 0
   const shards = async (kind: 'JOB_CENTER' | 'ECON_DEV') =>
     Math.max(1, Math.ceil((await cachedIndexableOrgPages(kind).catch(() => [])).length / ORG_SITEMAP_SHARD_SIZE))
   const [centerShards, econShards] = await Promise.all([shards('JOB_CENTER'), shards('ECON_DEV')])
@@ -45,7 +45,7 @@ async function listMaps(): Promise<string[]> {
 }
 
 // The shard counts come from the database; they are kept for an hour so a crawler asking for the index does not run them each time.
-const cachedMaps = unstable_cache(listMaps, ['sitemap-index-v2', `jobs-${JOB_FILES_LIVE}`], { revalidate: 3600 })
+const cachedMaps = unstable_cache(listMaps, ['sitemap-index-v5', `jobs-${JOB_FILES_LIVE}`], { revalidate: 3600 })
 
 export async function GET() {
   const maps = await cachedMaps()

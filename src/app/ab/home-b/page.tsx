@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 }
 
 export default function HomeVariantB() {
-  return <NewHome variant="picker" fresh={<FreshLinks tone="dark" placement="home_b" />} />
+  return <NewHome variant="picker" fresh={<FreshLinks tone="dark" placement="home_b" jobs={false} />} />
 }

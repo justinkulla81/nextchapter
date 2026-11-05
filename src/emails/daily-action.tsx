@@ -1,4 +1,4 @@
-import { Button, Card, CardEmail, CardGap, Headline, INK, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
+import { Button, Card, CardEmail, CardGap, Headline, INK, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
 
 interface WeeklyRecap {
   pointsEarned: number
@@ -76,7 +76,7 @@ export default function DailyActionEmail({
               <p style={taskBox}>{resetTask}</p>
             </div>
           )}
-          <Lead>Five minutes, then you&apos;re back in motion. I&apos;ll be here. — {victoriaName}</Lead>
+          <Lead>Five minutes, then you&apos;re back in motion. I&apos;ll be here.</Lead>
         </>
       ) : bullets ? (
         <div style={{ textAlign: 'left' }}>
@@ -93,6 +93,7 @@ export default function DailyActionEmail({
       )}
 
         <Button campaign="daily_action" href={`${appUrl}/dashboard`}>{isReset && resetTask ? 'Start this now' : 'Open my dashboard'}</Button>
+        <Signoff name={victoriaName} align="center" />
       </Card>
 
       {weeklyRecap && (

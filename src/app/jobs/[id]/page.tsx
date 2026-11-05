@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { getEmployerBrand } from '@/lib/branding/store'
+import { getEmployerBrand, employerBrandKey } from '@/lib/branding/store'
+import { brandOrFallback } from '@/lib/branding/fallback'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -9,6 +10,7 @@ import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
 import { TrainingProvidedLine } from '@/components/jobs/TrainingProvidedLine'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ApplyAndSave } from '@/components/jobs/ApplyAndSave'
+import { MemberSignInPrompt } from '@/components/jobs/MemberSignInPrompt'
 import { ReadFullPostingLink } from '@/components/jobs/ReadFullPostingLink'
 import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import { lifecycleEmailsOn } from '@/lib/leads/lifecycle/config'
@@ -106,7 +108,8 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   // The skills this posting names that have a skills page, most asked for first. A failed read just leaves the section out.
   const jobSkills = skillsForPosting(tags?.skills ?? [], await loadSkillsMarket().catch(() => null))
   // The employer's own colors, read from its website (src/lib/branding): a thin strip and the company name only; the buttons stay ours.
-  const brand = await getEmployerBrand(job.companyName)
+  const realBrand = await getEmployerBrand(job.companyName)
+  const brand = brandOrFallback(realBrand, employerBrandKey(job.companyName))
   // Director and up at a big company, VP and up at a small one: ask whether they want recruiters in this space (src/lib/jobs/recruiter-ask.ts).
   const recruiterSpace = fn?.name ?? industry ?? baseTitle(job.title)
   const askRecruiters = showRecruiterAsk({ title: job.title, description: job.description, companyName: job.companyName, level: tags?.level }, tags?.company?.sizeBand)
@@ -116,6 +119,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
     <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
       <StructuredData data={jobPostingJsonLd(job)} />
       <PublicJobViewTracker jobId={job.id} company={job.companyName} remote={remote} hasPay={!!pay} />
+      <MemberSignInPrompt jobId={job.id} company={job.companyName} />
       <header>
         <SiteNav />
       </header>
@@ -130,7 +134,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
           <article className="min-w-0">
             <h1 className="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{job.title}</h1>
             <p className="mt-2 text-lg" style={brand ? { color: 'var(--org-1-text)' } : undefined}>{job.companyName}</p>
-            {brand && <p className="mt-0.5 text-xs text-muted-foreground">Listing collected from {job.companyName}&apos;s career site. NextChapter is independent of {job.companyName}.</p>}
+            {realBrand && <p className="mt-0.5 text-xs text-muted-foreground">Listing collected from {job.companyName}&apos;s career site. NextChapter is independent of {job.companyName}.</p>}
             <p className="mt-1 text-sm text-muted-foreground">
               {[place, pay, `Posted ${dateFmt.format(datePostedOf(job))}`].filter(Boolean).join(' · ')}
             </p>

@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { LayoffRunway, type RunwayState } from '@/components/tools/LayoffRunway'
 import { STATE_UI } from '@/lib/data/state-ui'
 import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 export const metadata: Metadata = pageMetadata('/tools/layoff-runway')
@@ -20,6 +19,7 @@ export default function Page() {
   const states: RunwayState[] = ALL_STATE_CODES.filter((c) => STATE_UI[c]).map((c) => ({ code: c, name: stateName(c), maxWeekly: STATE_UI[c].maxWeeklyBenefit.value, maxWeeks: STATE_UI[c].maxWeeks.value }))
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Layoff runway calculator', path: '/tools/layoff-runway' }]}
       h1={pageH1('/tools/layoff-runway', 'Layoff runway: how long your money will last')}
       lede="Enter your savings, monthly spending and any severance to see how many months they cover, and how much unemployment benefits for your state add. Free, nothing is saved."
@@ -40,7 +40,6 @@ export default function Page() {
           More: <Link href="/tools/unemployment-estimator" className={LINK}>unemployment benefit estimator</Link>, <Link href="/tools/severance-calculator" className={LINK}>severance calculator</Link>, <Link href="/resources/bridge-income" className={LINK}>bridge income while you search</Link> and <Link href="/resources/cobra-aca" className={LINK}>health coverage after a layoff</Link>.
         </p>
       </section>
-      <ActionBand title="Plan the weeks after a layoff" body="A free Market Reality Assessment and a weekly plan that starts with the deadlines." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'layoff_runway' }} />
     </SeoPage>
   )
 }

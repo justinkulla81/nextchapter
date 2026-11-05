@@ -47,12 +47,12 @@ export default async function LayoffsThisWeek() {
   const states = [...byState].sort((a, b) => b[1].w - a[1].w || b[1].n - a[1].n)
   const biggest = [...thisWeek].filter((n) => n.workers).sort((a, b) => b.workers! - a.workers!).slice(0, 8)
   const today = new Date().toISOString().slice(0, 10)
-  const headline = pageH1('/layoffs/this-week', 'Layoffs this week: new WARN notices')
+  const headline = pageH1('/layoffs/this-week', 'Layoffs this week: who is losing their jobs')
   const diff = thisWeek.length - lastWeek.length
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: `Layoffs this week: ${thisWeek.length} WARN notices${workers ? `, ${workers.toLocaleString('en-US')} workers` : ''}`,
+    headline: `Layoffs this week: ${thisWeek.length} layoff notices${workers ? `, ${workers.toLocaleString('en-US')} workers` : ''}`,
     datePublished: today,
     dateModified: today,
     author: organizationRef(),
@@ -72,11 +72,11 @@ export default async function LayoffsThisWeek() {
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{headline}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             {thisWeek.length === 0
-              ? 'No new WARN notices were filed in the last seven days.'
-              : `Employers filed ${thisWeek.length.toLocaleString('en-US')} layoff notices in the last seven days${workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before had ${lastWeek.length.toLocaleString('en-US')}${lastWorkers ? ` naming ${lastWorkers.toLocaleString('en-US')} workers` : ''}${diff !== 0 ? `, so notices are ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')}` : ''}.`}
+              ? 'No new layoff notices came in over the last seven days.'
+              : `${workers ? `${workers.toLocaleString('en-US')} people` : `People at ${thisWeek.length.toLocaleString('en-US')} companies`} found out in the last seven days that they are losing their jobs. Companies sent ${thisWeek.length.toLocaleString('en-US')} layoff notices to ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before it was ${lastWeek.length.toLocaleString('en-US')} notices${lastWorkers ? ` and ${lastWorkers.toLocaleString('en-US')} people` : ''}${diff !== 0 ? `, so layoffs are ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')} notices` : ''}.`}
           </p>
           <PullTop name="Layoffs this week" path="/layoffs/this-week" />
-          <p className="mt-2 text-sm text-muted-foreground">Counted by the date on each filing. A state may publish a notice days after it was filed, so recent weeks can grow.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Companies must warn their state before a big layoff. Each notice is counted on the day the company sent it. A state can post it days later, so recent weeks can grow.</p>
 
           {states.length > 0 && (
             <section aria-labelledby="states" className="mt-10">
@@ -86,7 +86,7 @@ export default async function LayoffsThisWeek() {
                   <li key={s}>
                     <Link href={`/layoffs/${stateSlug(s)}`} className="flex justify-between gap-2 rounded-lg border border-border bg-white px-3 py-2 hover:border-brand">
                       <span className="font-medium text-navy">{stateName(s)}</span>
-                      <span className="tabular-nums text-muted-foreground">{v.n} {v.n === 1 ? 'notice' : 'notices'}{v.w ? ` · ${v.w.toLocaleString('en-US')} workers` : ''}</span>
+                      <span className="tabular-nums text-muted-foreground">{v.n} {v.n === 1 ? 'notice' : 'notices'}{v.w ? ` · ${v.w.toLocaleString('en-US')} people` : ''}</span>
                     </Link>
                   </li>
                 ))}
@@ -98,12 +98,12 @@ export default async function LayoffsThisWeek() {
 
           {biggest.length > 0 && (
             <section aria-labelledby="biggest" className="mt-10">
-              <h2 id="biggest" className="text-2xl font-bold tracking-tight text-navy">Largest notices</h2>
+              <h2 id="biggest" className="text-2xl font-bold tracking-tight text-navy">Biggest layoffs</h2>
               <ul className="mt-4 divide-y divide-border rounded-xl border border-border bg-white">
                 {biggest.map((n) => (
                   <li key={n.id} className="flex flex-wrap items-baseline justify-between gap-2 px-5 py-3 text-sm">
                     <TrackedLink href={`/layoffs/company/${n.slug}`} event="topic_layoff_clicked" properties={{ source: 'this-week', slug: n.slug }} className="font-medium text-navy hover:underline">{n.employer}</TrackedLink>
-                    <span className="tabular-nums text-muted-foreground">{n.workers!.toLocaleString('en-US')} workers · {stateName(n.state)}{n.place ? `, ${n.place}` : ''} · {noticeDay(n.noticeDate)}</span>
+                    <span className="tabular-nums text-muted-foreground">{n.workers!.toLocaleString('en-US')} people · {stateName(n.state)}{n.place ? `, ${n.place}` : ''} · {noticeDay(n.noticeDate)}</span>
                   </li>
                 ))}
               </ul>
@@ -112,12 +112,12 @@ export default async function LayoffsThisWeek() {
 
           {thisWeek.length > 0 && (
             <section aria-labelledby="all" className="mt-10">
-              <h2 id="all" className="text-2xl font-bold tracking-tight text-navy">Every notice filed this week</h2>
+              <h2 id="all" className="text-2xl font-bold tracking-tight text-navy">Every layoff notice this week</h2>
               <ul className="mt-4 divide-y divide-border rounded-xl border border-border bg-white">
                 {thisWeek.slice(0, 80).map((n) => (
                   <li key={n.id} className="flex flex-wrap items-baseline justify-between gap-2 px-5 py-2.5 text-sm">
                     <Link href={`/layoffs/company/${n.slug}`} className="text-navy hover:underline">{n.employer}</Link>
-                    <span className="tabular-nums text-muted-foreground">{n.workers ? `${n.workers.toLocaleString('en-US')} workers · ` : ''}{n.state} · {noticeDay(n.noticeDate)}</span>
+                    <span className="tabular-nums text-muted-foreground">{n.workers ? `${n.workers.toLocaleString('en-US')} people · ` : ''}{n.state} · {noticeDay(n.noticeDate)}</span>
                   </li>
                 ))}
               </ul>
@@ -129,10 +129,11 @@ export default async function LayoffsThisWeek() {
             <h2 id="more" className="text-xl font-semibold tracking-tight text-navy">Use this data</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               <li><Link href="/layoffs/week" className={LINK}>Every earlier week</Link>, one page per week of the last two years.</li>
-              <li><Link href="/data" className={LINK}>Download the WARN record as CSV or JSON</Link>, free to reuse with a link back.</li>
+              <li><Link href="/data" className={LINK}>Download every layoff notice as CSV or JSON</Link>, free to reuse with a link back.</li>
               <li><Link href="/feeds/layoffs" className={LINK}>Subscribe by RSS</Link> to new notices.</li>
               <li><Link href="/data/embed" className={LINK}>Embed layoff notices</Link> for any state on your own site.</li>
               <li><Link href="/layoffs" className={LINK}>The full layoff tracker</Link>, and <Link href="/start/laid-off" className={LINK}>what to do if you were laid off</Link>.</li>
+              <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits and severance rules by state</Link>.</li>
             </ul>
           </section>
         </div>

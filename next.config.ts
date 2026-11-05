@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import renamedFirms from "./src/lib/search-firms/renamed-firms.json";
 
 // Same region as NEXT_PUBLIC_POSTHOG_HOST (e.g. https://us.i.posthog.com or
 // https://eu.i.posthog.com) — set once here since next.config.ts runs in
@@ -7,6 +8,8 @@ const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.postho
 const posthogAssetHost = posthogHost.replace("https://", "https://").replace(/^https:\/\/(\w+)\./, "https://$1-assets.");
 
 const nextConfig: NextConfig = {
+  // The email handwriting route reads this font from disk at request time, so the build has to ship it with the function.
+  outputFileTracingIncludes: { '/api/email/handwriting': ['./src/app/api/email/handwriting/Caveat-Bold.ttf'] },
   // /places/sitemap.xml queries every state's counties and the qualifying cities while the build prerenders it, and takes
   // longer than Next's 60 second default; every production deploy since 2026-10-26 failed on it. It refreshes every 6 hours at runtime.
   staticPageGenerationTimeout: 300,
@@ -66,6 +69,13 @@ const nextConfig: NextConfig = {
       })),
       // /membership became /alumni-plan (2026-11-04, the paid tier is the Alumni plan). Permanent, so links, search results and emails
       // that still carry the old address keep working.
+      // Search firms whose stored name was a careers-page title ("Careers | Roberts Recruiting"): the old addresses go to the clean one.
+      // Data and the reason: src/lib/search-firms/renamed-firms.json, prisma/manual/2026-11-05-clean-search-firm-names.sql.
+      ...renamedFirms.flatMap((f) => [
+        { source: `/search-firms/${f.oldSlug}`, destination: `/search-firms/${f.newSlug}`, permanent: true },
+        { source: `/prepared/${f.oldSlug}`, destination: `/prepared/${f.newSlug}`, permanent: true },
+        { source: `/prepared/${f.oldSlug}/:path+`, destination: `/prepared/${f.newSlug}/:path+`, permanent: true },
+      ]),
       { source: '/membership', destination: '/alumni-plan', permanent: true },
       // The signed-in page followed: /dashboard/membership became /dashboard/alumni-plan (2026-11-04). Permanent, because emails already sent link to the old address.
       { source: '/dashboard/membership', destination: '/dashboard/alumni-plan', permanent: true },
@@ -174,6 +184,8 @@ const nextConfig: NextConfig = {
         destination: '/layoffs/2026',
         permanent: true,
       })),
+      // 2026-11-05, owner: the paid-search page /after-a-layoff and its A/B test are retired; the address goes to the layoff tracker.
+      { source: '/after-a-layoff', destination: '/layoffs', permanent: true },
       // redirect-non-candidate.ts sends contest employers here after sign-in; the address has no page of its own.
       { source: '/noexperience/employers', destination: '/noexperience/employers/contests', permanent: false },
       // Retired 2026-10-23: the website shows plans, not prices.

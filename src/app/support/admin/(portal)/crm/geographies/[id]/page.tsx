@@ -95,7 +95,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
           <Stat label="White-collar share of workers" value={a.whiteCollarShare == null ? '–' : pct(a.whiteCollarShare * 100, 0)} note={state?.whiteCollarShare != null ? `State ${pct(state.whiteCollarShare * 100, 0)}` : undefined} />
           <Stat label="Median household income" value={money(a.medianHouseholdIncome)} note={incVsState == null ? undefined : `${incVsState >= 0 ? '$' + Math.round(incVsState / 1000) + 'K above' : '$' + Math.round(-incVsState / 1000) + 'K below'} the state`} />
           <Stat label="Per-capita income" value={money(a.perCapitaIncome)} />
-          <Stat label="Layoffs, last 12 months" value={num(a.layoffs12mo)} note={`${a.layoffEvents12mo} WARN filings; ${num(a.layoffs90d)} workers in the last 90 days`} />
+          <Stat label="Layoffs, last 12 months" value={num(a.layoffs12mo)} note={`${a.layoffEvents12mo} layoff filings; ${num(a.layoffs90d)} workers in the last 90 days`} />
           <Stat label="Labor force" value={num(a.laborForce)} />
         </div>
       </section>
@@ -103,7 +103,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
       <section aria-labelledby="layoffs" className="space-y-2">
         <SectionTitle id="layoffs" tone="history">Layoff announcements, last 12 months</SectionTitle>
         <p className="text-xs text-muted-foreground">Filings that name this county. The total above also counts filings placed here by ZIP code or city, so it can be higher than this list.</p>
-        {warn.length === 0 ? <p className="text-sm text-muted-foreground">No WARN filings on file for this area.</p> : (
+        {warn.length === 0 ? <p className="text-sm text-muted-foreground">No layoff filings on file for this area.</p> : (
           <ul className="divide-y divide-border rounded-lg border border-border text-sm">
             {warn.map((w) => (
               <li key={w.id} className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2">

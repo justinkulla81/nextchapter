@@ -8,7 +8,8 @@ import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { JourneyPicker } from '@/components/home/JourneyPicker'
 import { EmployerEmailCapture } from '@/components/network/EmployerEmailCapture'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
-import { getEmployerBrand } from '@/lib/branding/store'
+import { getEmployerBrand, employerBrandKey } from '@/lib/branding/store'
+import { brandOrFallback } from '@/lib/branding/fallback'
 import { NetworkViewTracker } from '@/components/network/NetworkViewTracker'
 import { canonical } from '@/lib/seo/canonical'
 import { DEFAULT_IMAGE, breadcrumbJsonLd, organizationRef, personRef } from '@/lib/seo/jsonld'
@@ -45,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const states = c.states.map(stateName).join(', ')
   return {
     title: titleMeta(networkTitle(c.name)),
-    description: `${c.name} filed ${c.notices.length} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'} in ${states}, most recently ${noticeDay(c.latest)}. Open jobs, unemployment benefits, retraining and what to do first.`,
+    description: `${c.name} filed ${c.notices.length} layoff ${c.notices.length === 1 ? 'notice' : 'notices'} in ${states}, most recently ${noticeDay(c.latest)}. Open jobs, unemployment benefits, retraining and what to do first.`,
     ...canonical(`/network/company/${slug}`),
   }
 }
@@ -65,6 +66,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
 
   const { company: c, state, atEmployer, inState } = data
   const [statements, brand] = await Promise.all([approvedStatementMap(slug, c.name), getEmployerBrand(c.name).catch(() => null)])
+  const brandOrDefault = brandOrFallback(brand, employerBrandKey(c.name))
   const workers = totalWorkers(c)
   const stateLabel = stateName(state)
   const path = `/network/company/${slug}`
@@ -77,7 +79,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
   const faq = [
     {
       q: `Did ${c.name} file layoff notices?`,
-      a: `Yes. ${c.name} has filed ${c.notices.length} WARN ${noticeWord} with ${states.length === 1 ? `the ${states[0]} labor department` : `labor departments in ${states.join(', ')}`}, naming ${workers.toLocaleString('en-US')} workers. The most recent was filed ${noticeDay(c.latest)}.`,
+      a: `Yes. ${c.name} has filed ${c.notices.length} layoff ${noticeWord} with ${states.length === 1 ? `the ${states[0]} labor department` : `labor departments in ${states.join(', ')}`}, naming ${workers.toLocaleString('en-US')} workers. The most recent was filed ${noticeDay(c.latest)}.`,
     },
     {
       q: `How do I file for unemployment after a layoff at ${c.name}?`,
@@ -99,7 +101,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
     '@id': `${SITE_URL}${path}`,
     url: `${SITE_URL}${path}`,
     name: networkTitle(c.name),
-    description: `WARN layoff notices filed by ${c.name}, open jobs, unemployment benefits and retraining.`,
+    description: `Layoff notices filed by ${c.name}, open jobs, unemployment benefits and retraining.`,
     dateModified: c.latest.toISOString(),
     inLanguage: 'en-US',
     about: { '@type': 'Organization', name: c.name },
@@ -115,7 +117,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
   }
 
   return (
-    <OrgBrandScope brand={brand?.pair}>
+    <OrgBrandScope brand={brandOrDefault.pair}>
     <div className="flex flex-1 flex-col">
       <StructuredData data={breadcrumbJsonLd([{ name: 'Layoff tracker', path: '/layoffs' }, { name: c.name, path }])} />
       <StructuredData data={pageLd} />
@@ -236,10 +238,10 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
           <section aria-labelledby="what-filed" className="mt-12">
             <h2 id="what-filed" className={H2}>What did {c.name} file?</h2>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-              A WARN notice gives the number of workers and the dates the employer reported. It does not say why. Notices are published by each state.
+              A layoff notice gives the number of workers and the dates the employer reported. It does not say why. Notices are published by each state.
             </p>
             <div className="mt-4">
-              <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
+              <NoticeTable notices={c.notices} caption={`Layoff notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
             </div>
             <p className="mt-3 text-sm">
               <Link href={`/layoffs/company/${slug}`} className={LINK}>Full notice record and news mentions for {c.name}</Link>

@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { JobLossReadiness, type ReadinessState } from '@/components/tools/JobLossReadiness'
 import { STATE_UI } from '@/lib/data/state-ui'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 export const metadata: Metadata = pageMetadata('/tools/job-loss-readiness')
@@ -29,6 +28,7 @@ export default function Page() {
   }))
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Layoff readiness check', path: '/tools/job-loss-readiness' }]}
       h1={pageH1('/tools/job-loss-readiness', 'Layoff readiness check: if your job ended tomorrow')}
       lede="Still employed and a little nervous? In a minute, see how long your money would last, what unemployment would pay in your state, and what you would lose with your work benefits, with the dates that matter. Free, nothing saved."
@@ -49,7 +49,6 @@ export default function Page() {
           More: <Link href="/resources/pre-exit" className={LINK}>how to prepare for a layoff</Link>, <Link href="/tools/layoff-runway" className={LINK}>layoff runway calculator</Link>, <Link href="/resources/cobra-aca" className={LINK}>health coverage after a layoff</Link> and <Link href="/tools/layoff-risk-check" className={LINK}>layoff risk check</Link>.
         </p>
       </section>
-      <ActionBand title="Get a plan for your next move" body="A free Market Reality Assessment and a weekly plan, whether you move now or just want options open." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'job_loss_readiness' }} />
     </SeoPage>
   )
 }

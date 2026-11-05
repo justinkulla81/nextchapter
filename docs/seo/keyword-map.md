@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-245 clusters, 1519 phrases.
+246 clusters, 1528 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -59,22 +59,23 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/resources/cobra-aca/:state` | family | cobra vs aca in {state} | Compare COBRA with an ACA Marketplace plan in one state | is aca cheaper than cobra in {state}; cobra vs aca cost {state}; {state} cobra vs marketplace; can i get aca instead of cobra in {state}; {state} health insurance after a layoff |
 | `/tools/cobra-vs-aca-calculator` | page | cobra vs aca calculator | Work out what COBRA and a Marketplace plan would each cost me | cobra vs aca cost calculator; cobra or marketplace cost calculator; aca subsidy calculator after layoff; how much is health insurance after a layoff |
 | `/resources/severance-pay` | page | is severance taxed | Understand how severance is taxed, how long I have to sign, and what to ask for | severance pay taxes; severance tax withholding; is severance taxed at 22%; is severance taxed at a higher rate; how long do i have to sign a severance agreement; do i have to sign a severance agreement; severance agreement over 40; severance agreement 21 days 7 days; lump sum severance or salary continuation; what to ask for in a severance package; is severance pay required by law |
+| `/resources/linkedin-profile` | page | linkedin profile tips | Fix my LinkedIn profile so recruiters find me and respond | how to optimize your linkedin profile; linkedin profile optimization; linkedin headline character limit; linkedin about section examples; linkedin profile checklist; linkedin keywords for job search; linkedin tips for job seekers; how to explain a layoff on linkedin |
 | `/resources/bridge-income` | page | bridge income | Earn while searching | income while job searching; interim jobs; contract work after layoff; freelance after layoff; consulting after layoff; side income after layoff |
 | `/funding` | page | funding for laid-off workers | Money to relocate, retrain or study after a job loss | relocation assistance; retraining grants; training grants for laid off workers; tuition assistance after layoff; displaced worker programs; free courses for job seekers; wioa training funds; reskilling funding |
 | `/unemployment-benefits` | page | unemployment benefits by state | Unemployment insurance rules across states | unemployment benefits; unemployment insurance; how to file for unemployment; apply for unemployment; unemployment eligibility; weekly unemployment benefit amount; maximum unemployment benefit by state; how long does unemployment last; unemployment waiting week; does severance affect unemployment |
 | `/unemployment-benefits/:state` | family | {state} unemployment benefits | Unemployment benefits in one state | {state} unemployment; file for unemployment in {state}; {state} weekly unemployment benefit; {state} unemployment eligibility; {state} unemployment weeks; does severance affect unemployment in {state}; can i collect unemployment if i get severance in {state}; {state} severance and unemployment |
-| `/layoffs` | page | layoff tracker | Which companies are laying off, and where | layoffs; recent layoffs; layoffs today; companies laying off; layoff list; mass layoffs; WARN notices; WARN notice list; WARN Act layoffs; who is laying off; layoffs tracker; job cuts; recent job cuts; job cuts today; companies cutting jobs; who is cutting jobs; job cuts tracker; downsizing; companies downsizing; corporate downsizing; downsizing tracker; reductions in force; companies with reductions in force; RIF tracker; recent RIFs; companies doing RIFs; workforce reductions; workforce reduction; staff cuts; headcount reductions; job losses; restructuring layoffs; mass firings; companies firing employees; who is firing |
+| `/layoffs` | page | layoff tracker | Which companies are laying off, and where | layoffs; recent layoffs; layoffs today; companies laying off; layoff list; mass layoffs; layoff notices; layoff notice list; layoffs filed; who is laying off; layoffs tracker; job cuts; recent job cuts; job cuts today; companies cutting jobs; who is cutting jobs; job cuts tracker; downsizing; companies downsizing; corporate downsizing; downsizing tracker; reductions in force; companies with reductions in force; RIF tracker; recent RIFs; companies doing RIFs; workforce reductions; workforce reduction; staff cuts; headcount reductions; job losses; restructuring layoffs; mass firings; companies firing employees; who is firing |
 | `/layoffs/2026` | page | layoffs 2026 | How many layoffs there have been this year, by month, state and company | layoffs in 2026; 2026 layoffs; layoff statistics 2026; layoffs by month 2026; companies laying off 2026; biggest layoffs 2026; layoff list 2026; how many layoffs in 2026; job cuts 2026; 2026 job cuts; downsizing 2026; companies downsizing 2026; reductions in force 2026; RIFs 2026; mass layoffs 2026; workforce reductions 2026 |
-| `/layoffs/2026/:month` | family | {month} 2026 layoffs | Layoffs in one month of 2026 | layoffs in {month} 2026; {month} 2026 layoff notices; {month} 2026 WARN notices; {month} 2026 job cuts; job cuts in {month} 2026 |
-| `/layoffs/this-week` | page | layoffs this week | Layoff notices filed in the last seven days | layoffs this week 2026; recent layoff notices; new WARN notices this week; latest layoff announcements; job cuts this week; companies laying off this week; downsizing this week |
-| `/layoffs/week` | page | layoffs by week | Layoff notices week by week | weekly layoffs; weekly layoff report; layoffs last week; WARN notices by week |
-| `/layoffs/week/:week` | family | layoffs week of {date} | Layoffs in one calendar week | layoffs {week}; WARN notices week of {date} |
+| `/layoffs/2026/:month` | family | {month} 2026 layoffs | Layoffs in one month of 2026 | layoffs in {month} 2026; {month} 2026 layoff notices; {month} 2026 layoffs filed; {month} 2026 job cuts; job cuts in {month} 2026 |
+| `/layoffs/this-week` | page | layoffs this week | Layoff notices filed in the last seven days | layoffs this week 2026; recent layoff notices; new layoff notices this week; latest layoff announcements; job cuts this week; companies laying off this week; downsizing this week |
+| `/layoffs/week` | page | layoffs by week | Layoff notices week by week | weekly layoffs; weekly layoff report; layoffs last week; layoff notices by week |
+| `/layoffs/week/:week` | family | layoffs week of {date} | Layoffs in one calendar week | layoffs {week}; layoff notices week of {date} |
 | `/press` | page | white-collar unemployment data to cite | Cite and download our labor-market data | white-collar long-search index; long-term unemployment white-collar data; how to cite layoff data |
-| `/feeds` | page | layoff notices rss feed | Subscribe to layoff notices by RSS | WARN notices rss; layoff alerts by state rss; layoff news feed; WARN notice feed |
-| `/data` | page | layoff data download | Download layoff data | WARN notices csv; WARN notice data; layoff data by state; layoffs dataset |
+| `/feeds` | page | layoff notices rss feed | Subscribe to layoff notices by RSS | layoff notices rss; layoff alerts by state rss; layoff news feed; layoff notice feed |
+| `/data` | page | layoff data download | Download layoff data | layoff notices csv; layoff notice data; layoff data by state; layoffs dataset |
 | `/data/embed` | page | layoff widget for website | Embed layoff, jobs and benefits widgets | embed layoff tracker; layoffs chart for website; unemployment benefits widget; jobs widget by industry; AI exposure widget for a job |
-| `/layoffs/:state` | family | {state} layoffs | Layoffs in one state | {state} WARN notices; {state} layoff list; recent layoffs in {state}; {state} companies laying off; {state} job cuts; {state} downsizing; {state} reduction in force; {state} mass layoffs; {state} companies cutting jobs |
-| `/layoffs/company/:slug` | family | {company} layoffs | Layoffs at one employer | {company} WARN notice; {company} layoff dates; {company} layoff 2026; {company} job cuts; {company} downsizing; {company} reduction in force; {company} RIF; {company} cutting jobs; {company} firing employees |
+| `/layoffs/:state` | family | {state} layoffs | Layoffs in one state | {state} layoff notices; {state} layoff list; recent layoffs in {state}; {state} companies laying off; {state} job cuts; {state} downsizing; {state} reduction in force; {state} mass layoffs; {state} companies cutting jobs |
+| `/layoffs/company/:slug` | family | {company} layoffs | Layoffs at one employer | {company} layoff notice; {company} layoff dates; {company} layoff 2026; {company} job cuts; {company} downsizing; {company} reduction in force; {company} RIF; {company} cutting jobs; {company} firing employees |
 | `/network/company/:slug` | family | {company} laid-off workers | What happens to workers laid off from one employer | former {company} employees; {company} laid off employees jobs; {company} severance and benefits; {company} alumni |
 | `/tools/warn-act-checker` | page | WARN Act checker | Employer asks whether WARN notice is required | WARN Act; WARN Act requirements; WARN Act 60 day notice; WARN Act calculator; mass layoff notice; reduction in force notice; plant closing notice; do I need to give WARN notice |
 | `/rapid-response` | page | rapid response layoff services | Employer planning a layoff looks for state support | rapid response; rapid response team; layoff aversion; layoff support for employers; plan a layoff; state rapid response coordinator |
@@ -142,7 +143,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/resume-bullet-rewriter` | page | resume bullet point rewriter | A job seeker wants stronger résumé bullet points | rewrite resume bullets; resume bullet points generator; improve resume bullet points; resume bullet point examples; AI resume bullet rewriter; resume bullet points checker |
 | `/tools/interview-answer-coach` | page | interview answer feedback | A job seeker wants feedback on an interview answer before the interview | practice interview answers; interview answer coach; how to answer why were you laid off; how to answer tell me about yourself; AI interview practice; interview answer checker |
 | `/resources/warn-act` | page | WARN Act rights | A worker asks what a WARN notice means and what an employer owes | WARN notice meaning; what is the WARN Act; WARN Act severance; WARN Act pay; WARN Act exceptions; WARN Act for employees; state WARN laws |
-| `/layoffs/by-state` | page | WARN notices by state | Find every state’s WARN layoff notices in one place | WARN notice list by state; layoffs by state 2026; state WARN notice database; WARN notices by state 2026 |
+| `/layoffs/by-state` | page | layoff notices by state | Find every state’s layoff notices in one place | layoff notice list by state; layoffs by state 2026; state layoff notice database; layoff notices by state 2026 |
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
 | `/tools/resume-check` | page | free resume check | Score my resume with a free tool | ats checker; resume checker; resume score; check my resume; free resume score; resume analyzer |
 | `/tools/resume-job-match` | page | resume vs job description | Compare my resume to a job description and see missing keywords | resume job description match; compare resume to job description; resume keyword checker; resume scanner; ats resume scanner; resume keywords for a job; match resume to job description; resume job match score |
@@ -489,6 +490,12 @@ Title is shown before the site suffix " | NextChapter".
 - Description: How severance is taxed, how many days you have to review and sign an agreement, what to ask for, and how it affects unemployment in your state. Sourced.
 - H1: Severance pay: taxes, your agreement and what is typical
 
+### `/resources/linkedin-profile`
+
+- Title: LinkedIn Profile Tips for Job Seekers: A Checklist
+- Description: Optimize your LinkedIn profile for a job search: headline, About, keywords and skills, with 18 checks, the reason for each and a 15-minute-a-day plan.
+- H1: How to optimize your LinkedIn profile for a job search
+
 ### `/resources/bridge-income`
 
 - Title: Bridge Income While Job Searching: Interim Work
@@ -507,26 +514,26 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/layoffs`
 
-- Title: Layoff Tracker: Layoffs, Job Cuts and WARN Notices by State
-- Description: Recent layoffs, job cuts, downsizing and reductions in force (RIFs) from WARN notices filed with the states, updated daily, with a page for each state and employer.
+- Title: Layoff Tracker: Layoffs and Job Cuts by State
+- Description: Recent layoffs and job cuts from layoff notices filed with the states, updated daily, with a page for each state and employer.
 
 ### `/layoffs/2026`
 
-- Title: Layoffs 2026: Every WARN Notice by Month, State and Company
-- Description: Layoffs in 2026 from WARN notices filed with state labor departments: totals by month, state, industry and company, a free CSV, and a line to cite.
-- H1: Layoffs 2026: every WARN notice, month by month
+- Title: Layoffs 2026: Every Layoff Notice by Month and State
+- Description: Layoffs in 2026 from layoff notices filed with state labor departments: totals by month, state, industry and company, a free CSV, and a line to cite.
+- H1: Layoffs 2026: every layoff notice, month by month
 
 ### `/layoffs/this-week`
 
-- Title: Layoffs This Week: New WARN Notices by State
+- Title: Layoffs This Week: New Layoff Notices by State
 - Description: Layoff notices filed in the last seven days: how many workers, which states and employers, with the state record for each. Updated every day.
-- H1: Layoffs this week: new WARN notices
+- H1: Layoffs this week: who is losing their jobs
 
 ### `/layoffs/week`
 
-- Title: Layoffs by Week: WARN Notices, Week by Week
-- Description: Every week of WARN layoff notices from the last two years: how many notices and workers, which states and employers, with the state record for each.
-- H1: Layoffs by week: WARN notices
+- Title: Layoffs by Week: Layoff Notices, Week by Week
+- Description: Every week of layoff notices from the last two years: how many notices and workers, which states and employers, with the state record for each.
+- H1: Layoffs by week: layoff notices
 
 ### `/press`
 
@@ -537,14 +544,14 @@ Title is shown before the site suffix " | NextChapter".
 ### `/feeds`
 
 - Title: Layoff Notice RSS Feeds by State and Industry
-- Description: Free RSS and JSON feeds of new WARN layoff notices by state, industry and size, each with the state record, how it compares, and help for affected workers.
+- Description: Free RSS and JSON feeds of new layoff notices by state, industry and size, each with the state record, how it compares, and help for affected workers.
 - H1: Layoff and conference feeds
 
 ### `/data`
 
-- Title: Layoff Data Download: WARN Notices as CSV and JSON
-- Description: Download every WARN Act layoff notice of the last 24 months as CSV or JSON, by state or all states, free to reuse with a link back.
-- H1: Layoff data: download the WARN record
+- Title: Layoff Data Download: Layoff Notices as CSV and JSON
+- Description: Download every layoff notice of the last 24 months as CSV or JSON, by state or all states, free to reuse with a link back.
+- H1: Layoff data: download the state record
 
 ### `/data/embed`
 
@@ -869,7 +876,7 @@ Title is shown before the site suffix " | NextChapter".
 ### `/tools/layoff-risk-check`
 
 - Title: Layoff Risk Check: Are There Warning Signs at Your Employer?
-- Description: Check five warning signs against public layoff records: your employer’s WARN notices, your industry’s trend and AI exposure. Free, nothing saved, not a prediction.
+- Description: Check five warning signs against public layoff records: your employer’s layoff notices, your industry’s trend and AI exposure. Free, nothing saved, not a prediction.
 - H1: Layoff risk check: are there warning signs where you work?
 
 ### `/tools/ai-job-check`
@@ -910,9 +917,9 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/layoffs/by-state`
 
-- Title: WARN Notices by State: Layoffs Filed in the Last 12 Months
-- Description: Every state’s WARN layoff notices in one table: notices and workers named in the last 12 months, the latest filing and the state’s own record. Free to download.
-- H1: WARN notices by state: what each state’s record shows
+- Title: Layoffs by State: Notices Filed in the Last 12 Months
+- Description: Every state’s layoff notices in one table: notices and workers named in the last 12 months, the latest filing and the state’s own record. Free to download.
+- H1: Layoff notices by state: what each state’s record shows
 
 ### `/tools/pay-check`
 

@@ -9,6 +9,7 @@ import { CommunityShort } from './community-short'
 import { PremiumShort, PersonalShort } from './leftovers-short'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
+import { FindFromPublicSearch } from './jobs-from-public'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
 import { FindUnpostedLive, FindUnpostedEmptyLive, FindUnpostedErrorLive, FindIndependentLive, FindIndependentNewLive, FindIndependentOfferLive, FindResourcesLive, FindResourcesOptedInLive } from './jobs-find-parts-live'
 import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, CompanyProfile, MarketYours, MarketPay, MarketLocal, MarketPivot, Interviews, Offers } from './jobs-more'
@@ -46,6 +47,7 @@ import { FundingLive } from './funding-live'
 import { ApplyHelperLive } from './apply-helper-live'
 import { ComparePlacesJobless, ComparePlacesEmployed, ComparePlacesLife, ComparePlacesEmpty, ComparePlacesNoCity } from './compare-places-live'
 import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
+import { RoleFeed, RoleFeedQuiet } from './role-feed'
 import { RoleNetworkAsk, FunctionNetworkAsk, IndustryNetworkAsk } from './peer-network'
 import { PublicLookWorkforce, PublicLookHigherEd, PublicLookRecruiter } from './public-look'
 import { CompanyLandingBuyout, CompanyLandingLayout, CompanyLandingNeither } from './company-landing'
@@ -151,6 +153,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/find/independent', place: 'Jobs', title: 'Find a job: independent work', replaces: 'Independent work toolkit on /dashboard/find-my-job', Component: FindIndependent },
   { path: 'jobs/find/resources', place: 'Jobs', title: 'Find a job: resources', replaces: 'Job boards, résumé book, guides on /dashboard/find-my-job', Component: FindResources },
   { path: 'jobs/mine', place: 'Jobs', title: 'My jobs', replaces: '/dashboard/find-my-job?tab=my_jobs', Component: MyJobs },
+  { path: 'jobs/find/from-public', place: 'Jobs', title: 'Find a job, arriving from a public search: same search box, results at once, each ranked for you (sample data)', replaces: 'the plain "Find a job" headline when a public search is carried in (the real page already lists the jobs before the tune strip and filters)', Component: FindFromPublicSearch },
   { path: 'jobs/find/jobs-live', place: 'Jobs', title: 'Find a job: the built list and detail (sample data)', replaces: 'the code that ships, fed sample data', Component: FindJobsLive },
   { path: 'jobs/find/unposted-live', place: 'Jobs', title: 'Find a job: not posted yet, built (sample data)', replaces: 'the code that ships, fed sample data', Component: FindUnpostedLive },
   { path: 'jobs/find/unposted-empty-live', place: 'Jobs', title: 'Find a job: not posted yet, nothing yet (sample data)', replaces: 'the code that ships, fed sample data', Component: FindUnpostedEmptyLive },
@@ -181,10 +184,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/live/in-work-overview', place: 'Jobs', title: 'In-work: overview (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="overview" /> },
   { path: 'jobs/live/in-work-impact', place: 'Jobs', title: 'In-work: impact log (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="impact" /> },
   { path: 'jobs/live/in-work-prep', place: 'Jobs', title: 'In-work: review prep (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="prep" /> },
-  { path: 'jobs/live/in-work-salary', place: 'Jobs', title: 'In-work: salary and raise (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="salary" /> },
-  { path: 'jobs/live/in-work-promotion', place: 'Jobs', title: 'In-work: promotion and scope (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="promotion" /> },
-  { path: 'jobs/live/in-work-feedback', place: 'Jobs', title: 'In-work: feedback (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="feedback" /> },
-  { path: 'jobs/live/in-work-outcome', place: 'Jobs', title: 'In-work: review outcome (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="outcome" /> },
+  { path: 'jobs/live/in-work-raise', place: 'Jobs', title: 'In-work: raise and promotion (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="raise" /> },
+  { path: 'jobs/live/in-work-feedback', place: 'Jobs', title: 'In-work: feedback and outcome (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="feedback" /> },
   { path: 'jobs/live/forms', place: 'Jobs', title: 'Forms: conversation, hire outcome, résumé upload (sample data)', replaces: 'the code that ships, fed sample data', Component: FormsLive },
   { path: 'learn/path/roles', place: 'Learn', title: 'Market: other roles you could do', replaces: '/dashboard/pivot-paths, /dashboard/pivot', Component: MarketPivot },
   { path: 'jobs/interviews', place: 'Jobs', title: 'Interviews', replaces: '/dashboard/interview-prep, /dashboard/review-prep', Component: Interviews },
@@ -292,6 +293,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/partner-move-ask', place: 'Network', title: 'Your move plan: asking for your last salary, in context, with a skip', replaces: 'new', Component: PartnerMovingAsk },
   { path: 'network/circles/partner-move-worth', place: 'Network', title: 'Your move plan: each salary in what it buys at home', replaces: 'new', Component: PartnerMovingWorth },
   { path: 'network/circles/partner-move', place: 'Network', title: 'Your move plan: places side by side, with what it costs to live there', replaces: 'new', Component: PartnerMoving },
+  { path: 'network/role-feed', place: 'Network', title: 'Your CRO feed: this week, recruiters, and more for CROs (sample data)', replaces: 'the community lists on Industry and function, for a member whose title is a leadership role', Component: RoleFeed },
+  { path: 'network/role-feed-quiet', place: 'Network', title: 'Your CRO feed: a quiet week (sample data)', replaces: 'same page, when nothing changed this week', Component: RoleFeedQuiet },
   { path: 'public/role-network', place: 'Public site', title: 'Role page: the one ask is joining the CRO network', replaces: 'the Market Reality Assessment box at the bottom of a role page', Component: RoleNetworkAsk },
   { path: 'public/function-network', place: 'Public site', title: 'Function page: the one ask is joining the Sales network', replaces: 'the Market Reality Assessment box at the bottom of a function page', Component: FunctionNetworkAsk },
   { path: 'public/industry-network', place: 'Public site', title: 'Industry page: the one ask is joining the Health care network', replaces: 'the Market Reality Assessment box at the bottom of an industry page', Component: IndustryNetworkAsk },

@@ -77,7 +77,6 @@ export const PUBLIC_NAV: PublicNavMenu[] = [
       {
         heading: 'After a layoff',
         links: [
-          { label: 'What to do after a layoff', href: '/after-a-layoff' },
           { label: 'Unemployment benefits', href: '/unemployment-benefits' },
           { label: 'Funding for you', href: '/funding' },
         ],
@@ -88,6 +87,12 @@ export const PUBLIC_NAV: PublicNavMenu[] = [
           { label: 'Free tools', href: '/tools' },
           { label: 'AI courses', href: '/ai-courses' },
           { label: 'Scam watch', href: '/scam-watch' },
+        ],
+      },
+      {
+        heading: 'While you’re working',
+        links: [
+          { label: 'Journeys', href: '/journeys', hint: 'Your rights, benefits, pay and side income' },
         ],
       },
     ],

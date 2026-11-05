@@ -1,3 +1,7 @@
+import { getOrgBrand } from '@/lib/branding/store'
+import { fallbackPair } from '@/lib/branding/fallback'
+import { buildPair, type BrandPair } from '@/lib/branding/scan'
+import { tint } from '@/lib/branding/colors'
 import 'server-only'
 import { cache } from 'react'
 import { memoTtl } from '@/lib/db/heavy'
@@ -11,6 +15,7 @@ import { STAFFING_INDUSTRY, isSearchFirmOrg } from '@/lib/seo/search-firm-link'
 import { resolveClaimableOrg } from '@/lib/org-claims/org'
 import { claimSlug } from '@/lib/org-claims/urls'
 import { isHexColor } from '@/lib/recruiter/brand'
+import { NOT_RECRUITER_ORGS, NOT_RECRUITER_SOURCES, isNotRecruiterOrg, isNotRecruiterSource } from '@/lib/search-firms/not-recruiters'
 import {
   SEARCH_FIRM_MIN_PUBLIC_ROLES,
   firmKind,
@@ -54,6 +59,8 @@ export interface SearchFirmPage {
   inboundSlug: string | null
   /** The firm's accent color for its page: the color it set when it claimed the page, else the one read from its website. Null: NextChapter's navy. */
   accent: string | null
+  /** The firm's two page colors: stored for the firm (set by hand or read from its site), else made from its accent, else one NextChapter picks so no firm page is without color. */
+  brand: BrandPair
   /** What the firm's own site says about it (its meta description), or null. Shown with a link to the site. */
   about: string | null
 }
@@ -75,9 +82,10 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
   const org = await prisma.crmOrganization.findUnique({
     where: { id: claim.id },
     select: {
-      id: true, name: true, website: true, hqCity: true, hqRegion: true, orgTypes: true, companyId: true,
+      id: true, name: true, canonicalNameNormalized: true, website: true, hqCity: true, hqRegion: true, orgTypes: true, companyId: true,
       company: { select: { industry: true } },
-      searchFirms: { select: { name: true, segment: true, teamPageUrl: true, website: true }, take: 1 },
+      // Every crawled row on the organization: a firm merged from a duplicate has two, and the postings of each are matched on its own name.
+      searchFirms: { select: { name: true, segment: true, teamPageUrl: true, website: true, sourceKey: true }, orderBy: { liveSearchCount: 'desc' } },
       recruiterFirm: { select: { status: true, slug: true, accentColor: true } },
     },
   })
@@ -86,11 +94,15 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
   const staffing = org.company?.industry === STAFFING_INDUSTRY
   if (!isSearchFirmOrg({ orgTypes: org.orgTypes, hasSearchFirm: !!firm, companyIndustry: org.company?.industry ?? null })) return null
 
-  const brand = await prisma.firmBrandColor.findUnique({ where: { orgId: org.id }, select: { color: true, about: true } }).catch(() => null)
+  const [brand, storedBrand] = await Promise.all([
+    prisma.firmBrandColor.findUnique({ where: { orgId: org.id }, select: { color: true, about: true } }).catch(() => null),
+    getOrgBrand('SEARCH_FIRM', org.id),
+  ])
   const own = org.recruiterFirm?.accentColor
   const accent = own && isHexColor(own) ? own : (brand?.color ?? null)
+  const pair: BrandPair = own && isHexColor(own) ? buildPair(own, tint(own, 0.55), true) : (storedBrand?.pair ?? (accent ? buildPair(accent, tint(accent, 0.55), true) : fallbackPair(org.id)))
 
-  const names = [...new Set([org.name, firm?.name].filter((n): n is string => !!n))]
+  const names = [...new Set([org.name, ...org.searchFirms.map((f) => f.name)].filter((n): n is string => !!n))]
   const or: Prisma.ExclusiveJobPostingWhereInput[] = [{ sourceCategory: 'search_firm', sourceName: { in: names } }]
   if (org.companyId) or.push({ companyId: org.companyId })
   const [listed, ghosts] = await Promise.all([
@@ -121,9 +133,10 @@ export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFir
       pay: yearlyRange(r),
     })),
     lastChecked: live.reduce<Date | null>((m, r) => (r.lastVerifiedAt && (!m || r.lastVerifiedAt > m) ? r.lastVerifiedAt : m), null),
-    indexable: isSearchFirmIndexable(summary.publicRoles),
+    indexable: isSearchFirmIndexable(summary.publicRoles) && !org.searchFirms.some((f) => isNotRecruiterSource(f.sourceKey)) && !isNotRecruiterOrg(org.canonicalNameNormalized),
     inboundSlug: org.recruiterFirm?.status === 'VERIFIED' ? (org.recruiterFirm.slug ?? null) : null,
-    accent,
+    accent: pair.primary,
+    brand: pair,
     about: brand?.about ?? null,
   }
 })
@@ -142,6 +155,10 @@ export interface FirmListing {
   industries: string[]
   functions: string[]
   seniorities: string[]
+  /** A recruiting firm in its own right (a SEARCH_FIRM organization or a crawled SearchFirm row), not an employer the company-industry field files under staffing. */
+  recruiter: boolean
+  /** Live public searches by function and level, keyed `<function>|<band>` ("Sales|C-suite"). A role page ranks firms on its own cell. */
+  fnLevel: Record<string, number>
   lastVerifiedAt: Date
 }
 
@@ -151,6 +168,7 @@ interface HitRow {
   name: string
   segment: string | null
   staffing: boolean
+  recruiter: boolean
   types: string[]
   fn: string | null
   state: string | null
@@ -164,15 +182,27 @@ interface HitRow {
  * Every firm with at least SEARCH_FIRM_MIN_PUBLIC_ROLES public searches — the same rule as the page's `indexable`, in SQL.
  * One pass over the firms' postings (the allowlist from public-job-page-server.ts), grouped here. Cached for 6 hours.
  */
+/** Searches per `<function>|<band>`, only where both are known. */
+function fnLevelCounts(rows: { fn: string | null; level: string | null }[]): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const r of rows) {
+    const band = seniorityBand(r.level)
+    if (r.fn && band) out[`${r.fn}|${band}`] = (out[`${r.fn}|${band}`] ?? 0) + 1
+  }
+  return out
+}
+
 export async function loadFirmListings(): Promise<FirmListing[]> {
   const hits = await prisma.$queryRaw<HitRow[]>`
     WITH firms AS (
       SELECT o.id AS oid, o."canonicalNameNormalized" AS canon, o.name AS fname, f.name AS fname2, o."companyId" AS cid,
-             f.segment AS segment, (c.industry = ${STAFFING_INDUSTRY}) AS staffing, o."orgTypes"::text[] AS types
+             f.segment AS segment, (c.industry = ${STAFFING_INDUSTRY}) AS staffing, (f.id IS NOT NULL OR o."orgTypes" && ARRAY['SEARCH_FIRM']::"CrmOrgType"[]) AS recruiter, o."orgTypes"::text[] AS types
       FROM "CrmOrganization" o
       LEFT JOIN "SearchFirm" f ON f."crmOrgId" = o.id
       LEFT JOIN "Company" c ON c.id = o."companyId"
-      WHERE o."orgTypes" && ARRAY['SEARCH_FIRM', 'OUTPLACEMENT_FIRM']::"CrmOrgType"[] OR f.id IS NOT NULL OR c.industry = ${STAFFING_INDUSTRY}
+      WHERE (o."orgTypes" && ARRAY['SEARCH_FIRM', 'OUTPLACEMENT_FIRM']::"CrmOrgType"[] OR f.id IS NOT NULL OR c.industry = ${STAFFING_INDUSTRY})
+        AND COALESCE(f."sourceKey" = ANY(${NOT_RECRUITER_SOURCES as string[]}::text[]), false) = false
+        AND o."canonicalNameNormalized" <> ALL(${NOT_RECRUITER_ORGS as string[]}::text[])
     ),
     -- Postings that name a search firm as their source, read once (the allowlist's partial index narrows it), then matched to
     -- firms by name. Joining firm by firm made the planner re-scan the board for every firm.
@@ -189,10 +219,17 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
       SELECT fm.oid, sf.jid, sf.fn, sf.state, sf.industry, sf.level, sf.verified
       FROM firms fm JOIN sf ON sf.sname = fm.fname OR sf.sname = fm.fname2
     )
-    SELECT fm.oid, fm.canon, fm.fname AS name, fm.segment, COALESCE(fm.staffing, false) AS staffing, fm.types, h.fn, h.state, h.industry, h.level, h.verified, h.jid AS "jobId"
+    SELECT fm.oid, fm.canon, fm.fname AS name, fm.segment, COALESCE(fm.staffing, false) AS staffing, fm.recruiter, fm.types, h.fn, h.state, h.industry, h.level, h.verified, h.jid AS "jobId"
     FROM hits h JOIN firms fm ON fm.oid = h.oid`
+  // An organization with two crawled rows (a firm merged from a duplicate) joins every hit once per row: one posting counts once.
   const by = new Map<string, HitRow[]>()
-  for (const h of hits) (by.get(h.oid) ?? by.set(h.oid, []).get(h.oid)!).push(h)
+  const seen = new Set<string>()
+  for (const h of hits) {
+    const k = `${h.oid}|${h.jobId}`
+    if (seen.has(k)) continue
+    seen.add(k)
+    ;(by.get(h.oid) ?? by.set(h.oid, []).get(h.oid)!).push(h)
+  }
   const out: FirmListing[] = []
   for (const [orgId, rows] of by) {
     const publicRoles = rows.length
@@ -208,11 +245,13 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
       orgId, slug, name: rows[0].name,
       kind: firmKind({ segment: rows[0].segment, staffing: rows[0].staffing, orgTypes: rows[0].types }),
       publicRoles,
+      recruiter: rows[0].recruiter,
       topFunction: count((r) => r.fn, 1)[0] ?? null,
       states: count((r) => r.state, 5),
       industries: count((r) => industryLabel(r.industry), 3),
       functions: count((r) => r.fn, 3),
       seniorities: count((r) => seniorityBand(r.level), 3),
+      fnLevel: fnLevelCounts(rows),
       lastVerifiedAt: rows.reduce((m, r) => (r.verified > m ? r.verified : m), rows[0].verified),
     })
   }
@@ -222,7 +261,7 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
 /** The cache stores JSON, so the date comes back as an ISO string. */
 export type CachedFirmListing = Omit<FirmListing, 'lastVerifiedAt'> & { lastVerifiedAt: string }
 
-const FIRMS_KEY = 'firms:v3'
+const FIRMS_KEY = 'firms:v7'
 const FIRMS_MAX_AGE_MS = 24 * 3600_000
 const toCached = async (): Promise<CachedFirmListing[]> => (await loadFirmListings()).map((f) => ({ ...f, lastVerifiedAt: f.lastVerifiedAt.toISOString() }))
 

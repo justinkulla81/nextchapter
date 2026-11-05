@@ -105,7 +105,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           {stats && stats.aiSkillPct > 0 && <li>{stats.aiSkillPct}% of these openings ask for AI skills. <Link href="/ai-skills" className={LINK}>See which AI skills each function needs</Link>.</li>}
           {stats && stats.skills.length > 0 && <li>The skills named most often: {stats.skills.slice(0, 5).map((x) => x.name).join(', ')}.</li>}
           <li><Link href="/funding" className={LINK}>Grants and funding for job seekers</Link>, ranked for your state and situation.</li>
-          <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits</Link> by state, if you are between jobs.</li>
+          <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits and severance rules</Link> by state, if you are between jobs.</li>
         </ul>
       </Section>
       <Section id="conferences" title={`${industry.name} conferences`} note="Dates, costs, calls for speakers and who runs each one.">
@@ -117,7 +117,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
         </Section>
       )}
       {layoffStates.length > 0 && (
-        <Section id="layoff-states" title={`${industry.name} layoffs by state`} note="WARN notices filed in the last 12 months.">
+        <Section id="layoff-states" title={`${industry.name} layoffs by state`} note="Layoff notices filed in the last 12 months.">
           <Chips kind="industry_to_state_layoffs" event="topic_link_clicked" items={layoffStates.map((x) => ({ href: x.href, label: `${x.name} (${x.notices})` }))} />
         </Section>
       )}

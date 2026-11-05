@@ -214,7 +214,7 @@ export default async function WorkforceBoardPage({
         <Tile
           label={`Jobs lost, ${windowLabel}`}
           value={report.jobs.toLocaleString()}
-          note={<>{report.companies.length} {report.companies.length === 1 ? 'company' : 'companies'} · state WARN filings{report.reportedJobs > 0 && <> · {report.reportedJobs.toLocaleString()} more reported company-wide</>}</>}
+          note={<>{report.companies.length} {report.companies.length === 1 ? 'company' : 'companies'} · state layoff filings{report.reportedJobs > 0 && <> · {report.reportedJobs.toLocaleString()} more reported company-wide</>}</>}
         />
         <Tile
           label="White collar"

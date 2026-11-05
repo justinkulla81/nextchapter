@@ -88,8 +88,8 @@ export default async function PressPage() {
             <ul className="mt-4 max-w-3xl list-disc space-y-2 pl-5 text-base leading-relaxed text-ink">
               <li><Link href="/reports/latest" className={LINK}>White Collar Employment Report</Link>, monthly: hiring, job changes, search length, AI attribution and public programs.</li>
               <li><Link href="/reports/white-collar-index" className={LINK}>White-Collar Long-Search Index</Link>, updated with each edition from Census microdata.</li>
-              <li><Link href="/layoffs" className={LINK}>Layoff tracker</Link> and the <Link href="/data" className={LINK}>WARN notice download</Link>, refreshed at least hourly.</li>
-              <li><Link href="/feeds" className={LINK}>Layoff and conference feeds</Link>: new WARN notices by RSS or JSON, by state, industry or size (100+ workers), plus a weekly summary and an <a href="/feeds/nextchapter.opml" className={LINK}>OPML file</a> of every feed.</li>
+              <li><Link href="/layoffs" className={LINK}>Layoff tracker</Link> and the <Link href="/data" className={LINK}>layoff notice download</Link>, refreshed at least hourly.</li>
+              <li><Link href="/feeds" className={LINK}>Layoff and conference feeds</Link>: new layoff notices by RSS or JSON, by state, industry or size (100+ workers), plus a weekly summary and an <a href="/feeds/nextchapter.opml" className={LINK}>OPML file</a> of every feed.</li>
               <li><Link href="/resources/ai-skills-pay-premium" className={LINK}>AI-skill pay premium</Link> in job postings, refreshed daily from the live job board.</li>
               <li><Link href="/reports/early-warning" className={LINK}>Early-warning labor indicators</Link> by group, with the bright spots and the concerns side by side.</li>
             </ul>
@@ -128,18 +128,18 @@ export default async function PressPage() {
               </article>
 
               <article className={CARD} aria-labelledby="fig-layoffs">
-                <h3 id="fig-layoffs" className="text-lg font-semibold text-navy">Layoff tracker and WARN notices</h3>
+                <h3 id="fig-layoffs" className="text-lg font-semibold text-navy">Layoff tracker and notices</h3>
                 {layoffs ? (
                   <>
                     <p className="mt-1 text-3xl font-bold tabular-nums text-navy">{num(layoffs.layoffsYear.layoffs)} <span className="text-base font-normal text-muted-foreground">layoffs in {layoffs.layoffsYear.year} naming {num(layoffs.layoffsYear.workers)} workers</span></p>
                     <p className="mt-2 text-sm leading-relaxed text-ink">
-                      Counted once per employer, state and notice date, filed or reported with a U.S. state, as of {layoffs.asOf}. The download holds {num(layoffs.filings.count)} WARN filings naming {num(layoffs.filings.workers)} workers over the last 24 months (since {layoffs.filings.since}), one row per filing. {num(layoffs.notCounted.count)} announcements this year with no U.S. state ({num(layoffs.notCounted.workers)} workers) are not counted anywhere. The two counts use different units; <Link href="/layoffs" className={LINK}>How we count</Link> defines each. A state notice list is a floor, not a count of every layoff.
+                      Counted once per employer, state and notice date, filed or reported with a U.S. state, as of {layoffs.asOf}. The download holds {num(layoffs.filings.count)} layoff notices naming {num(layoffs.filings.workers)} workers over the last 24 months (since {layoffs.filings.since}), one row per filing. {num(layoffs.notCounted.count)} announcements this year with no U.S. state ({num(layoffs.notCounted.workers)} workers) are not counted anywhere. The two counts use different units; <Link href="/layoffs" className={LINK}>How we count</Link> defines each. A state notice list is a floor, not a count of every layoff.
                     </p>
                   </>
                 ) : (
                   <p className="mt-2 text-sm text-muted-foreground">The layoff counts are temporarily unavailable. The files below still work.</p>
                 )}
-                <Cite id="layoffs" text={citationText('NextChapter layoff tracker, WARN Act notices collected from state labor departments', layoffs ? `as of ${layoffs.asOf}` : 'current', `${SITE_URL}/layoffs`, '{DATE}', LAYOFF_DATA_LICENSE)} />
+                <Cite id="layoffs" text={citationText('NextChapter layoff tracker, layoff notices collected from state labor departments', layoffs ? `as of ${layoffs.asOf}` : 'current', `${SITE_URL}/layoffs`, '{DATE}', LAYOFF_DATA_LICENSE)} />
                 <p className="mt-3 text-sm">
                   <PressDownload href="/data/layoffs.csv" id="layoffs-csv">layoffs.csv</PressDownload>
                   {' · '}
@@ -212,8 +212,8 @@ export default async function PressPage() {
               <li><PressDownload href="/reports/white-collar-employment-report-2026-09-data.csv" id="dl-report-data">September report data (CSV)</PressDownload></li>
               <li><PressDownload href="/reports/white-collar-employment-report-2026-09-brief.pdf" id="dl-brief">September report brief (PDF)</PressDownload></li>
               <li><PressDownload href="/reports/white-collar-employment-report-2026-09.pdf" id="dl-report-pdf">September report (PDF)</PressDownload></li>
-              <li><PressDownload href="/data/layoffs.csv" id="dl-layoffs-csv">WARN notices (CSV)</PressDownload></li>
-              <li><PressDownload href="/data/layoffs.json" id="dl-layoffs-json">WARN notices (JSON)</PressDownload></li>
+              <li><PressDownload href="/data/layoffs.csv" id="dl-layoffs-csv">Layoff notices (CSV)</PressDownload></li>
+              <li><PressDownload href="/data/layoffs.json" id="dl-layoffs-json">Layoff notices (JSON)</PressDownload></li>
               <li><PressDownload href="/resources/ai-skills-pay-premium/data.csv" id="dl-ai-premium">AI-skill pay premium (CSV)</PressDownload></li>
               <li><a href={REPLICATION_REPO_URL} className={LINK} rel="noopener noreferrer">Code and data repository</a></li>
             </ul>

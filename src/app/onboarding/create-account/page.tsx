@@ -11,16 +11,16 @@ import { DETAILS_PATH, needsContactDetails } from '@/lib/onboarding/details'
 export default async function CreateAccountPage() {
   const profile = await getCandidateProfileForUser()
 
-  if (!profile.assessmentComplete) {
+  // A profile flagged as a duplicate of a registered account is sent here by the onboarding hub (src/app/onboarding/page.tsx),
+  // so it must reach the notice below even if it never finished the first step. Sending it back to the hub made the two
+  // pages redirect to each other forever.
+  if (!profile.assessmentComplete && !profile.duplicateEmailBlockedAt) {
     redirect('/onboarding')
   }
 
   if (profile.registrationCompletedAt) {
     redirect('/dashboard')
   }
-
-  // No account without a name: the résumé usually supplies it, otherwise the details step asks.
-  if (needsContactDetails(profile)) redirect(DETAILS_PATH)
 
   // Authoritative block from syncRegistrationCompletion — the confirmed
   // email already belongs to another registered account. The client-side
@@ -42,6 +42,9 @@ export default async function CreateAccountPage() {
       </div>
     )
   }
+
+  // No account without a name: the résumé usually supplies it, otherwise the details step asks.
+  if (needsContactDetails(profile)) redirect(DETAILS_PATH)
 
   // In the question bundles with Google connect on, the required Google step creates the account, so this form is not part of that
   // flow. With it off (until CASA) this form is that step: it comes after the five question steps, and a coach-invited member gives

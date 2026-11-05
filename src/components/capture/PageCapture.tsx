@@ -23,7 +23,7 @@ export function PageCaptureTop({ capture, network }: { capture: PageCaptureConfi
         <div className="mx-auto mt-6 max-w-xl border-t border-border pt-5">
           {isFollowable(capture.save.q, capture.save.loc) ? (
             // A signed-in member gets one button (their account email is already verified); everyone else gets the email box.
-            <FollowTopicBox q={capture.save.q} loc={capture.save.loc} source={saveSource(capture.kind)} label={copy.heading.replace(/^Follow /, '')}>
+            <FollowTopicBox q={capture.save.q} loc={capture.save.loc} source={saveSource(capture.kind)} label={copy.follow}>
               <SaveSearchForm q={capture.save.q} loc={capture.save.loc} remote={false} source={saveSource(capture.kind)} heading={copy.heading} blurb={copy.blurb} cta={copy.cta} />
             </FollowTopicBox>
           ) : (

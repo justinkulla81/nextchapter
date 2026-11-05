@@ -16,6 +16,7 @@ import { titleJobsSeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
 import { slugForAbbreviation, titleLabel } from '@/lib/seo/title-aliases'
 import { RoleGuideLink } from '@/components/roles/RoleGuideLink'
+import { StateUnemploymentLinks } from '@/components/topics/StateUnemploymentLinks'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -114,6 +115,7 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
       {d.states.length > 0 && (
         <Section id="states" title={`Where ${stat.name.toLowerCase()} jobs are`}>
           <Chips kind="title_to_state" event="topic_link_clicked" items={d.states.map((s) => ({ href: `/places/${s.slug}`, label: s.name, detail: s.jobs.toLocaleString('en-US') }))} />
+          <StateUnemploymentLinks states={d.states} kind="title_to_state_unemployment" hubEvent="title_unemployment_link_clicked" properties={{ slug, title: stat.name }} />
         </Section>
       )}
       {places.length > 0 && (
