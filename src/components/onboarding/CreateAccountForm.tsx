@@ -28,8 +28,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export function CreateAccountForm({
   email: initialEmail,
   confidentialSearchMode = false,
+  loginNext,
 }: {
   email: string | null
+  /** Where an existing member lands after logging in (the job they asked about). */
+  loginNext?: string
   confidentialSearchMode?: boolean
 }) {
   const [email, setEmail] = useState(initialEmail ?? '')
@@ -169,7 +172,7 @@ export function CreateAccountForm({
   }
 
   if (blocked) {
-    return <ExistingAccountNotice needsPassword={blocked.needsPassword} email={email} />
+    return <ExistingAccountNotice needsPassword={blocked.needsPassword} email={email} next={loginNext} />
   }
 
   if (sent) {
