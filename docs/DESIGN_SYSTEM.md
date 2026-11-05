@@ -15,15 +15,18 @@ UI primitives come from `@base-ui/react`, not shadcn/Radix directly (though the 
 | `navy` | `#0b2545` | Primary text-on-light, headline color on marketing pages |
 | `brand` | `#1d4e89` | Brand blue — B-grade color, "Good fit" pills, secondary accents |
 | `light-blue` | `#2980d4` | Lighter accent, used sparingly |
-| `orange` | `#f4a259` | **Locked states, number/counts, badges** — legitimate use, not banned. Never used for CTAs. |
-| `success` | `#2e7d5b` | The single accent color for primary actions/CTAs, A-grade, ✓ status icon |
-| `success-hover` | `#3f9b72` | Hover state for success/primary buttons |
+| `action` | `#f4a259` (text `#0b2545`) | **The one action color**: every primary button and CTA (`bg-action`), e.g. Join free, the next-step box button. Defined as `--action` in `globals.css`. |
+| `orange` | `#f4a259` | The same hue as `action`, used for locked states, counts and badges. Never put it on something non-clickable that could be mistaken for a button. |
+| `success` | `#2e7d5b` | A-grade, ✓ status icon, positive states. Not a button color on the site (email buttons are green). |
+| `success-hover` | `#3f9b72` | Hover for success states. |
 | `error` | `#c4574a` | D/F grades, ✗ status icon, destructive actions |
 | `warning` | `#e9a94b` | C-grade color |
 | `off-white` | `#f7f9fa` | Page background |
+| `paper` / `paper-edge` | `#fffdf8` / `#ece4d4` | Warm card for the one personal note on a page (`PaperNote`, `HomeNote variant="paper"`). |
+| `marker` | `#fbe0bd` | Pale highlighter behind the one number that matters (`Highlight`). Counts only. |
 | `light-gray` / `gray` | `#e2e8f0` / `#8892a0` | Borders, muted text |
 
-**The accent-color rule** (from `design-principles.md`): success green is the *only* color used for anything actionable/CTA — it must never appear on non-actionable elements, and no other color may be used for a primary action. Orange is reserved specifically for locked/gated states, counts, and badges — it reads as "not available yet," never as "click me."
+**The accent-color rule** (from `design-principles.md`): the action color (`bg-action`, orange `#f4a259`) is the *only* color used for anything actionable/CTA, and no other color may be used for a primary action. Decoration that sits near an action (the `Squiggle`, `Highlight`) is brand blue or a pale tint so it cannot read as a button. Green is for A-grade and positive status, and for buttons in emails only.
 
 A `.dark` class and full dark-mode token set exist in `globals.css` (inherited from the shadcn scaffold), but nothing in the app currently toggles it — the product is light-mode only today. Don't assume dark mode is live anywhere.
 
