@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { StructuredData } from '@/components/StructuredData'
 import { SampleDossier } from '@/components/marketing/SampleDossier'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 export const metadata = pageMetadata('/dossier')
 
@@ -33,7 +34,7 @@ export default function DossierPage() {
         </p>
 
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/desire" />}>
+          <Button nativeButton={false} size="lg" variant="cta" render={<StartLink href="/onboarding/desire" source="dossier" />}>
             Join free
           </Button>
         </div>

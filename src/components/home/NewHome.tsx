@@ -12,6 +12,7 @@ import { AiExposureSection } from '@/components/marketing/AiExposureSection'
 import { Suspense, type ReactNode } from 'react'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 // The redesigned homepage (docs/candidate-redesign.md page contract): one headline, one
 // primary action, three sections (hero, jobs, what you get), then a row for everyone who
@@ -92,9 +93,9 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
           </div>
         )}
         <div className="mt-8">
-          <TrackedLink href={MARKET_REALITY_START_HREF} event="homepage_cta_clicked" properties={{ cta: 'hero_assessment', variant }} className={action}>
+          <StartLink href={MARKET_REALITY_START_HREF} source="home_hero" event="homepage_cta_clicked" properties={{ cta: 'hero_assessment', variant }} className={action}>
             <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
-          </TrackedLink>
+          </StartLink>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">Free to join. Free for Members, always. Takes about five minutes.</p>
         {picker && (
@@ -166,9 +167,9 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
         <div className="mx-auto max-w-4xl px-6 py-10 text-center">
           <h2 className="font-display text-3xl font-semibold tracking-tight text-balance">Still guessing why nobody calls back?</h2>
           <div className="mt-6">
-            <TrackedLink href={MARKET_REALITY_START_HREF} event="homepage_cta_clicked" properties={{ cta: 'footer_assessment', variant }} className={action}>
+            <StartLink href={MARKET_REALITY_START_HREF} source="home_footer" event="homepage_cta_clicked" properties={{ cta: 'footer_assessment', variant }} className={action}>
               <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
-            </TrackedLink>
+            </StartLink>
           </div>
           {fresh}
           <nav aria-label="Topics" className="mt-12 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-white/80">

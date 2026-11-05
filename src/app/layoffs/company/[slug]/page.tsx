@@ -48,6 +48,7 @@ import { submitJourneyLead } from '@/lib/leads/actions'
 import { STATE_UI } from '@/lib/data/state-ui'
 import { TREATMENT_PHRASE } from '@/lib/severance/calc'
 import { severanceByState } from '@/lib/severance/state-groups'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 // Pages are built on first visit and refreshed daily; there are over a
 // thousand employers, too many to prerender on every deploy.
@@ -322,9 +323,9 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               This page is the same for everyone. Your free plan is built on your own situation: the deadlines that apply to you, what severance and COBRA will cost or pay, and jobs matched to your background.
             </p>
-            <TrackedLink href="/onboarding/desire" event="layoff_company_account_cta_clicked" properties={{ company: slug, hasNotices, announced: !!ann }} className="mt-3 inline-block rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
+            <StartLink href="/onboarding/desire" source="layoff_company" event="layoff_company_account_cta_clicked" properties={{ company: slug, hasNotices, announced: !!ann }} className="mt-3 inline-block rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
               Build my free plan
-            </TrackedLink>
+            </StartLink>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               {hasNotices && isNetworkCompany(c) && (
                 <li><Link href={`/network/company/${slug}`} className={LINK}>Jobs, benefits and retraining for {c.name} employees and alumni</Link></li>

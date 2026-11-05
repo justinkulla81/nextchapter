@@ -5,6 +5,7 @@ import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
 import { getPersona } from '@/lib/constants/personas'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { adsEvent } from '@/lib/analytics/ads-events'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 /**
  * The one button on a landing page. Stores the visitor's situation first (the same hand-off LaidOffStart and the /start
@@ -13,9 +14,11 @@ import { adsEvent } from '@/lib/analytics/ads-events'
  */
 export function LandingCta({ label, persona, page, variant, placement }: { label: string; persona: string; page: string; variant: string; placement: string }) {
   return (
-    <Link
+    <StartLink
       href={MARKET_REALITY_START_HREF}
-      onClick={() => {
+      source={`landing_${page}`.slice(0, 50)}
+      situation={getPersona(persona)?.situation}
+      onNavigate={() => {
         const situation = getPersona(persona)?.situation
         try {
           if (situation) sessionStorage.setItem(SITUATION_SESSION_KEY, situation)
@@ -27,6 +30,6 @@ export function LandingCta({ label, persona, page, variant, placement }: { label
       className="inline-flex h-12 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95 active:cursor-wait"
     >
       {label}
-    </Link>
+    </StartLink>
   )
 }

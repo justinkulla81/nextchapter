@@ -12,6 +12,7 @@ import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { loadAiShareTrend } from '@/lib/skills/ai-market-trend-server'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -297,14 +298,15 @@ export default async function AiSkillsPage() {
             Employers, colleges and workforce boards: we can show the same for your people, counts only, and build the training to close it.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <TrackedLink
+            <StartLink
               href={MARKET_REALITY_START_HREF}
+              source="ai_skills"
               event="ai_skills_page_cta_clicked"
               properties={{ cta: 'candidate_assessment' }}
               className="inline-flex items-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
             >
               <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
-            </TrackedLink>
+            </StartLink>
             <TrackedLink
               href="/ai-training"
               event="ai_skills_page_cta_clicked"

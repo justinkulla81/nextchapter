@@ -9,6 +9,7 @@ import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 const INPUT = 'mt-1 w-full rounded-lg border border-border bg-white p-3 text-base'
 
@@ -28,9 +29,9 @@ function NextStep({ tool }: { tool: string }) {
     <div className="rounded-xl border border-border bg-white p-5">
       <h2 className="text-lg font-semibold tracking-tight text-navy">Sending applications and hearing nothing?</h2>
       <p className="mt-1 text-sm text-muted-foreground">See how recruiters read your background and get every open job ranked for you. Free.</p>
-      <TrackedLink href={MARKET_REALITY_START_HREF} event="free_ai_tool_cta_clicked" properties={{ tool }} className="mt-3 inline-flex h-11 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">
+      <StartLink href={MARKET_REALITY_START_HREF} source={`tool_${tool}`.slice(0, 40)} event="free_ai_tool_cta_clicked" properties={{ tool }} className="mt-3 inline-flex h-11 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95">
         <AssessmentCtaLabel>Show me jobs that fit me</AssessmentCtaLabel>
-      </TrackedLink>
+      </StartLink>
     </div>
   )
 }

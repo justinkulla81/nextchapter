@@ -4,6 +4,7 @@ import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 import { JobsByExposure } from '@/components/candidate/AiExposure'
 import { loadExposureMap, loadJobsByExposure } from '@/lib/skills/ai-exposure-server'
 import type { JobsByExposure as Split } from '@/lib/skills/ai-exposure'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 // Public section: what NextChapter shows about AI exposure, with the reason for each point. Facts only. It makes no
 // comparison with other products (docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md, row 18) and no prediction: the score is
@@ -50,9 +51,9 @@ export function AiExposureSectionView({ page, cta, split, occupations }: AiExpos
         )}
         {cta && (
           <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-            <TrackedLink href="/onboarding/desire" event={cta.event} properties={cta.properties} className={cta.className}>
+            <StartLink href="/onboarding/desire" source="ai_exposure" event={cta.event} properties={cta.properties} className={cta.className}>
               <AssessmentCtaLabel>Start my AI-proof plan</AssessmentCtaLabel>
-            </TrackedLink>
+            </StartLink>
             <Link href="/ai-skills" className="text-sm text-brand underline underline-offset-4">
               See which jobs ask for AI skills
             </Link>

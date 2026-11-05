@@ -5,6 +5,7 @@ import { ShieldAlert, MailWarning, Link2, BellRing } from 'lucide-react'
 import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 export const metadata: Metadata = pageMetadata('/scam-watch')
 
@@ -57,14 +58,15 @@ export default function ScamWatchPage() {
               fake, so you find out before you book the call or enter your details.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <TrackedLink
+              <StartLink
                 href="/onboarding/desire"
+                source="scam_watch"
                 event="scam_watch_cta_clicked"
                 properties={{ cta: 'hero_get_started', page: 'scam-watch' }}
                 className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
               >
                 Get free scam watch
-              </TrackedLink>
+              </StartLink>
             </div>
             <p className="mt-3 text-sm text-muted-foreground">Free for Members. Needs a connected Gmail account.</p>
           </div>

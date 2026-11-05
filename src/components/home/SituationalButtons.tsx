@@ -1,10 +1,10 @@
 'use client'
 
-import Link from 'next/link'
 import { usePostHog } from '@/lib/posthog/client'
 import { ArrowRight } from 'lucide-react'
 import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
 import { JOURNEY_CARDS } from '@/components/onboarding/journey-cards'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 // The same eight journey cards as onboarding (journey-cards.ts).
 const SITUATIONS = JOURNEY_CARDS
@@ -22,10 +22,12 @@ export function SituationalButtons() {
       </p>
       <div className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {SITUATIONS.map(({ situation, icon: Icon, label, description }) => (
-          <Link
+          <StartLink
             key={situation}
             href="/onboarding/desire"
-            onClick={() => {
+            source={`home_situation_${situation}`}
+            situation={situation}
+            onNavigate={() => {
               posthog?.capture('situational_entry_selected', { situation, destination: 'onboarding' })
               window.gtag?.('event', 'situational_entry_selected', { situation, destination: 'onboarding' })
               sessionStorage.setItem(SITUATION_SESSION_KEY, situation)
@@ -40,7 +42,7 @@ export function SituationalButtons() {
               <span className="mt-1 block text-xs text-muted-foreground">{description}</span>
             </span>
             <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-brand" />
-          </Link>
+          </StartLink>
         ))}
       </div>
     </div>

@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { LinkedInInsightTag } from "@/components/analytics/LinkedInInsightTag";
+import { StartGateHost } from '@/components/onboarding/StartGateHost'
 import { HomepageVisitTracker } from "@/components/marketing/HomepageVisitTracker";
 import "./globals.css";
 import { HOME_KEYWORDS, pageSeo } from '@/lib/seo/keywords'
@@ -82,7 +83,10 @@ export default function RootLayout({
         <GoogleAnalytics />
         <LinkedInInsightTag />
         <HomepageVisitTracker />
-        <PostHogProvider>{children}</PostHogProvider>
+        <PostHogProvider>
+          {children}
+          <StartGateHost />
+        </PostHogProvider>
       </body>
     </html>
   );

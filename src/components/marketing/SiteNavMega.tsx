@@ -11,6 +11,7 @@ import { PUBLIC_NAV, type PublicNavMenu } from '@/lib/nav/public-nav'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { NAV_CTA_LABEL, useNavCtaVariant } from '@/lib/ab/nav-cta'
 import { getNavSession, type NavSession } from '@/lib/nav/nav-session-action'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 const TOP = 'inline-flex items-center gap-1 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground'
 
@@ -145,7 +146,7 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
             nativeButton={false}
             render={signedIn
               ? <Link href="/dashboard" onClick={() => track('site_nav_cta_clicked', { cta: 'go_to_dashboard' })} />
-              : <Link href={MARKET_REALITY_START_HREF} onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment', cta_variant: ctaVariant })} />}
+              : <StartLink href={MARKET_REALITY_START_HREF} source="site_nav" onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment', cta_variant: ctaVariant })} />}
             variant="cta"
             className="hidden sm:inline-flex"
           >
@@ -183,7 +184,7 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
               nativeButton={false}
               render={signedIn
                 ? <Link href="/dashboard" onClick={() => track('site_nav_cta_clicked', { cta: 'go_to_dashboard', device: 'phone' })} />
-                : <Link href={MARKET_REALITY_START_HREF} onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment', device: 'phone', cta_variant: ctaVariant })} />}
+                : <StartLink href={MARKET_REALITY_START_HREF} source="site_nav_phone" onClick={() => track('site_nav_cta_clicked', { cta: 'get_assessment', device: 'phone', cta_variant: ctaVariant })} />}
               variant="cta"
               className="h-11 w-full"
             >

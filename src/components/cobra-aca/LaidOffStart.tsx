@@ -6,13 +6,16 @@ import { getPersona } from '@/lib/constants/personas'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { posthog } from '@/lib/posthog/client'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 /** The Market Reality button on the COBRA vs ACA pages. Stores "laid off" first, the same hand-off the /start pages and the journey picker use, so onboarding's first question is answered. */
 export function LaidOffStart({ placement, label = 'Get my laid-off game plan', eventPrefix = 'cobra_vs_aca' }: { placement: string; label?: string; eventPrefix?: string }) {
   return (
-    <Link
+    <StartLink
       href={MARKET_REALITY_START_HREF}
-      onClick={() => {
+      source={`${eventPrefix}_${placement}`.slice(0, 50)}
+      situation={getPersona('laid-off')?.situation}
+      onNavigate={() => {
         const situation = getPersona('laid-off')?.situation
         try {
           if (situation) sessionStorage.setItem(SITUATION_SESSION_KEY, situation)
@@ -24,6 +27,6 @@ export function LaidOffStart({ placement, label = 'Get my laid-off game plan', e
       className="inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
     >
       <AssessmentCtaLabel>{label}</AssessmentCtaLabel>
-    </Link>
+    </StartLink>
   )
 }

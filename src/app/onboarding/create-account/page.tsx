@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
+import { PathPayoff } from '@/components/onboarding/PathPayoff'
 import { StepViewed } from '@/components/onboarding/StepViewed'
 import { CreateAccountForm } from '@/components/onboarding/CreateAccountForm'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
@@ -66,6 +67,7 @@ export default async function CreateAccountPage() {
           {bundles ? 'Set a password and we’ll email you a confirmation link. Then you’ll see what we found.' : 'Set a password to see it — we’re emailing you a confirmation link now.'}
         </p>
       </div>
+      {bundles && <PathPayoff lead="Your results are ready. Create your account to see:" />}
       <CreateAccountForm email={profile.email} confidentialSearchMode={profile.confidentialSearchMode} />
     </div>
   )

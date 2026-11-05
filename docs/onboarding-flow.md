@@ -18,3 +18,11 @@ While Google connect is on, people with no personal Gmail leave their email on a
 ## Pick-up emails (people who started and left an email)
 
 `src/lib/onboarding/abandoned-start.ts` (rules, pure) and `abandoned-run.ts` (the pass), run by the `lead-lifecycle` cron every few minutes. Two emails: two hours after the last activity (at once after "Email me the link"), then three days after the first; a step past its window is skipped; two days between any two emails from us. Skips anyone registered, unsubscribed, suppressed, opted out, or who finished the old assessment (the `registration-reminders` cron covers them). The button is a magic link to their place. **Off until `ABANDONED_START_EMAILS=1`**; off, the cron response shows `abandonedStarts` counts only. PostHog: `onboarding_pickup_email_sent`, `nudge_email_clicked` (all nudge emails, by `kind` and `step`), `onboarding_save_for_later`, `onboarding_step_viewed` (every step, with source), `onboarding_bundle_completed` (answered).
+
+## The email box on every call to action (owner decision 2026-11-05)
+
+A button that starts registration on a public page opens a small email box in place instead of loading the first question (`StartLink` and `StartGateHost`, `src/components/onboarding/`; copy and the payoff lines in `src/lib/onboarding/start-gate.ts`; server action `captureStartEmail`). The box says what the email buys (the jobs that fit, a first-week plan, a starting grade with a résumé), takes the email, starts the profile with it, files the lead and goes on to the first question, which restates the same payoff (`PathPayoff`, also on the account step). Rules:
+- Every public registration button uses `StartLink`, never a bare link to `/onboarding/desire`. It is still a real link (no script, middle click and crawlers work).
+- It never asks twice: the `nc_started` cookie (30 days) skips the box; the box is not used on `/onboarding`, on portal and customer hosts, or after a form that already took the email (job save, recruiter and company interest, the fit check, the journey picker).
+- "Continue without saving" goes on without an email; the details step still asks for one before an account.
+- Events: `start_gate_opened`, `start_gate_submitted`, `start_gate_skipped`, `start_gate_dismissed`, `start_email_captured` (server), with `source` (which button on which page).

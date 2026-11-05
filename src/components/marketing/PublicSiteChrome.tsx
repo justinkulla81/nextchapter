@@ -6,6 +6,7 @@ import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { COMPANY_ADDRESS, COMPANY_BLUESKY_URL, COMPANY_LINKEDIN_URL, COMPANY_X_URL } from '@/lib/contact/constants'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 /**
  * The public site's top navigation — the homepage uses this same component,
@@ -43,14 +44,15 @@ export function PublicSiteFooter({ page, cta = true }: { cta?: boolean; page: 'a
           {page === 'seo' ? 'Free to join, always. Organizations, let’s talk.' : 'Answer a few questions and get a plain-language read on your market, matched jobs and a weekly plan. Free for Members, no résumé needed. Organizations, let’s talk.'}
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <TrackedLink
+          <StartLink
             href={MARKET_REALITY_START_HREF}
+            source={`footer_${page}`}
             event="about_cta_clicked"
             properties={{ cta: 'footer_get_grade', page }}
             className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
           >
             {page === 'seo' ? <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel> : 'Yes, build my plan'}
-          </TrackedLink>
+          </StartLink>
           <TrackedLink
             href="/contact"
             event="about_cta_clicked"

@@ -11,6 +11,7 @@ import { effectiveJourney } from '@/lib/journey/journey'
 import { flowOfProfile } from '@/lib/onboarding/flag'
 import { storedAnswers } from '@/lib/onboarding/answers'
 import { usableAnswers } from '@/lib/onboarding/bundles'
+import { PathPayoff } from '@/components/onboarding/PathPayoff'
 import { SaveForLater } from '@/components/onboarding/SaveForLater'
 import { entryFromGoalParam } from '@/lib/onboarding/resume-rule'
 
@@ -46,9 +47,10 @@ export default async function SituationPickerPage({ searchParams }: { searchPara
     const initial = usableAnswers('where_you_are', { journey }, profile ? storedAnswers(profile) : {})
     return (
       <BundleShell id="where_you_are" title={profile?.firstName ? `Hi ${profile.firstName}, which of these sounds most like you?` : 'Which of these sounds most like you?'}>
+        <PathPayoff lead="Five short steps, about five minutes. At the end you get:" />
         <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} hidden={entryGoal ? { entry: entryGoal } : undefined} />
         {/* Not a second primary action: a quiet path for someone who is not ready to answer now (docs/onboarding-flow.md, owner decision 2026-11-05). */}
-        {!profile?.registrationCompletedAt && <SaveForLater source="first_question" />}
+        {!profile?.registrationCompletedAt && !profile?.email && <SaveForLater source="first_question" />}
       </BundleShell>
     )
   }

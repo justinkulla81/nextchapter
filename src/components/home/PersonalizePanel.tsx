@@ -1,6 +1,6 @@
-import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 // The "This list is not personalized" panel: what an anonymous visitor doesn't get and
 // how to get it. Shared by the job search (/jobs) and the public job pages (/jobs/[id]).
@@ -72,14 +72,15 @@ export function PersonalizePanel({
         ))}
       </ol>
       <p className="mt-4 text-sm text-muted-foreground">Free, and it takes about five minutes.</p>
-      <TrackedLink
+      <StartLink
         href={PERSONALIZE_HREF}
+        source="jobs_page_panel"
         event="jobs_page_personalize_clicked"
         properties={properties}
         className={cn(buttonVariants({ size: 'lg' }), 'mt-4 h-12 w-full rounded-full bg-action text-action-foreground hover:brightness-95')}
       >
         {cta}
-      </TrackedLink>
+      </StartLink>
     </aside>
   )
 }

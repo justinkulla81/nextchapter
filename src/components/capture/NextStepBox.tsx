@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from 'react'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
-import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { posthog } from '@/lib/posthog/client'
 import { NetworkJoinButton } from '@/components/community/NetworkJoinButton'
@@ -10,6 +9,7 @@ import { networkCopy, type NetworkAsk } from '@/lib/community/network-copy'
 import { cn } from '@/lib/utils'
 import { DEFAULT_COPY, type PullCopy } from '@/lib/capture/pull-copy'
 import { SITUATION_SESSION_KEY, type SituationKey } from '@/lib/constants/onboarding'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 /** A page that knows who the visitor is (a journey page) words the box itself and hands their situation to onboarding. */
 export interface JourneyAsk { headline: string; sentence: string; situation: SituationKey; journey: string }
@@ -46,8 +46,10 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy = DEFAU
         {net && network ? (
           <NetworkJoinButton networkKey={network.key} kind={network.kind} name={network.name} onBusy={setBusy} />
         ) : (
-          <TrackedLink
+          <StartLink
             href={href}
+            source={org ? `top_${slug}` : `top_${slug}`.slice(0, 50)}
+            situation={ask && !org ? ask.situation : undefined}
             event="pull_cta_clicked"
             properties={{ spot: 'top', audience, slug, copy: copy.button ?? 'assessment', ...(ask && !org ? { journey: ask.journey, situation: ask.situation } : {}) }}
             onNavigate={ask && !org ? () => {
@@ -57,7 +59,7 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy = DEFAU
             className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95"
           >
             {org ? 'Talk to us' : (!ask && copy.button) || <AssessmentCtaLabel>Get my Market Reality Assessment</AssessmentCtaLabel>}
-          </TrackedLink>
+          </StartLink>
         )}
       </div>
       {extras && (

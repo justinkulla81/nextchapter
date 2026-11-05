@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 const VICTORIA_PHOTO_PATH = '/marketing/victoria-headshot-v4.jpg'
 
@@ -42,7 +43,7 @@ export function VictoriaChatPreview() {
             </div>
           </div>
         </div>
-        <Button nativeButton={false} className="w-full" render={<Link href="/onboarding/desire" />}>
+        <Button nativeButton={false} className="w-full" render={<StartLink href="/onboarding/desire" source="victoria_preview" />}>
           Start your free assessment to chat with Victoria
         </Button>
       </CardContent>

@@ -2,6 +2,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { peopleWord } from '@/lib/affiliations/public-count-rules'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 /**
  * The offer to a job seeker on a workforce board's page: a free Market Reality Assessment. When the board's colors are known the band is
@@ -32,14 +33,15 @@ export function OrgCandidateBand({ orgName, branded, peopleCount, properties, he
       {peopleCount != null && (
         <p className="mt-3 text-sm opacity-90">{peopleCount.toLocaleString('en-US')} {peopleWord(peopleCount)} {peopleCount === 1 ? 'has' : 'have'} connected with {orgName} on NextChapter.</p>
       )}
-      <TrackedLink
+      <StartLink
         href={MARKET_REALITY_START_HREF}
+        source="org_page"
         event="org_page_candidate_cta_clicked"
         properties={{ ...properties, branded }}
         className={`mt-5 inline-block rounded-full px-6 py-2.5 text-sm font-semibold ${branded ? 'bg-[var(--org-cta)] text-[var(--org-cta-ink)] hover:opacity-90' : 'bg-orange text-navy hover:bg-orange/90'}`}
       >
         <AssessmentCtaLabel>Show me jobs near me</AssessmentCtaLabel>
-      </TrackedLink>
+      </StartLink>
     </section>
   )
 }

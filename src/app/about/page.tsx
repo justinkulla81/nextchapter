@@ -11,6 +11,7 @@ import { COMPANY_LINKEDIN_URL, COMPANY_X_URL, FOUNDER_LINKEDIN_URL } from '@/lib
 import { FACTS } from '@/lib/seo/facts'
 import { organizationJsonLd, personJsonLd } from '@/lib/seo/jsonld'
 import { fitDescription } from '@/lib/seo/templates'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 const TITLE = 'About: the leading job transition platform'
 const DESCRIPTION = `${FACTS.name} is ${FACTS.tagline.charAt(0).toLowerCase()}${FACTS.tagline.slice(1)} Founded by ${FACTS.founder.name}, a serial education technology founder, operator and investor. MIT, Harvard, Carnegie Mellon.`
@@ -98,14 +99,15 @@ export default function AboutPage() {
               outplacement firms use NextChapter to move their people into new jobs at scale.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <TrackedLink
+              <StartLink
                 href="/onboarding/desire"
+                source="about_hero"
                 event="about_cta_clicked"
                 properties={{ cta: 'hero_start', audience: 'candidate' }}
                 className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
               >
                 Start your next chapter
-              </TrackedLink>
+              </StartLink>
               <TrackedLink
                 href="/contact?as=organization"
                 event="about_cta_clicked"

@@ -14,6 +14,7 @@ import { PullCtaTop, pullContext, withPullCtas } from '@/components/capture/Pull
 import type { PageCaptureConfig } from '@/lib/capture/page-capture'
 import type { NetworkAsk } from '@/lib/community/network-copy'
 import { FACT_LINKS, type Fact } from '@/lib/seo/topic-quality'
+import { StartLink } from '@/components/onboarding/StartLink'
 
 export const LINK = 'text-brand underline underline-offset-4'
 
@@ -170,9 +171,9 @@ export function JoinBand({ source, what }: { source: string; what: string }) {
       <p className="mt-2 max-w-2xl text-sm text-white/90">
         NextChapter is the leading job transition platform. A free account gives you a plain-language read on {what}, matched jobs and a weekly action plan.
       </p>
-      <TrackedLink href={PERSONALIZE_HREF} event="topic_cta_clicked" properties={{ source }} className="mt-4 inline-flex items-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95">
+      <StartLink href={PERSONALIZE_HREF} source="topic_block" event="topic_cta_clicked" properties={{ source }} className="mt-4 inline-flex items-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95">
         Join free
-      </TrackedLink>
+      </StartLink>
     </section>
   )
 }
