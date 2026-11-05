@@ -31,16 +31,28 @@ describe('pull copy', () => {
 })
 
 describe('organization copy', () => {
-  it('names a pain and a payoff, keeps Talk to us, and makes no placement, speed or price claim', async () => {
-    const { ORG_COPY, ORG_LAYOFF_COPY, orgCopyForSlug } = await import('@/lib/capture/pull-copy')
-    for (const c of [ORG_COPY, ORG_LAYOFF_COPY]) {
+  it('never says "Talk to us", names a pain or a payoff, and makes no price or result claim', async () => {
+    const { ORG_COPY, ORG_LAYOFF_COPY, ORG_FREE_WORKFORCE, ORG_FREE_NONPROFIT, ORG_FREE_COLLEGE } = await import('@/lib/capture/pull-copy')
+    for (const c of [ORG_COPY, ORG_LAYOFF_COPY, ORG_FREE_WORKFORCE, ORG_FREE_NONPROFIT, ORG_FREE_COLLEGE]) {
       expect(c.org).toBe(true)
-      expect(c.headline).toMatch(/\?$/)
-      expect(c.button).toBe('Talk to us')
-      expect(`${c.headline} ${c.sentence}`).not.toMatch(/WARN|placement rate|faster|free|\$|price|cost/i)
+      expect(c.button).not.toMatch(/talk to us/i)
+      expect(c.button).toMatch(/^Start here/)
+      expect(`${c.headline} ${c.sentence}`).not.toMatch(/WARN|placement rate|faster|\$|price|cost/i)
     }
-    expect(orgCopyForSlug('rapid-response-ohio')).toBe(ORG_LAYOFF_COPY)
-    expect(orgCopyForSlug('tools-warn-notice-generator')).toBe(ORG_LAYOFF_COPY)
-    expect(orgCopyForSlug('workforce-boards-ohio')).toBe(ORG_COPY)
+  })
+  it('says free only where an organization really gets a free workspace, and starts the claim there', async () => {
+    const { ORG_COPY, ORG_LAYOFF_COPY, ORG_FREE_WORKFORCE, ORG_FREE_NONPROFIT, ORG_FREE_COLLEGE } = await import('@/lib/capture/pull-copy')
+    expect(ORG_FREE_WORKFORCE.button).toBe('Start here, free')
+    expect([ORG_FREE_WORKFORCE.href, ORG_FREE_NONPROFIT.href, ORG_FREE_COLLEGE.href]).toEqual(['/government-workforce#claim', '/nonprofits#claim', '/higher-education#claim'])
+    for (const c of [ORG_COPY, ORG_LAYOFF_COPY]) expect(`${c.headline} ${c.sentence} ${c.button}`).not.toMatch(/free/i)
+    expect(ORG_LAYOFF_COPY.href).toBe('/outplacement')
+  })
+  it('picks the copy from the start of the page slug', async () => {
+    const { ORG_COPY, ORG_LAYOFF_COPY, ORG_FREE_WORKFORCE, ORG_FREE_NONPROFIT, ORG_FREE_COLLEGE, orgCopyForSlug } = await import('@/lib/capture/pull-copy')
+    for (const s of ['workforce-boards-ohio', 'job-centers-ohio-x', 'economic-development-texas', 'rapid-response-ohio']) expect(orgCopyForSlug(s)).toBe(ORG_FREE_WORKFORCE)
+    expect(orgCopyForSlug('nonprofits-ohio')).toBe(ORG_FREE_NONPROFIT)
+    expect(orgCopyForSlug('higher-education-ohio')).toBe(ORG_FREE_COLLEGE)
+    expect(orgCopyForSlug('tools-warn-act-checker')).toBe(ORG_LAYOFF_COPY)
+    expect(orgCopyForSlug('search-firms-x')).toBe(ORG_COPY)
   })
 })

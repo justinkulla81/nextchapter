@@ -82,3 +82,7 @@ The organization box (workforce boards, rapid response, colleges, search firms, 
 - The button stays "Talk to us": organization plans are sold by contract. No placement-rate, speed or price wording (`docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md`).
 
 Directory pages (workforce boards, job centers, economic development; `OrgPageView`): the organization box now opens the page and the job seeker band (the page's second ask, for a different audience) is gone. The "independent page, not run by or affiliated with" line and the connected-people count stay as a note under the box. The box was at 4,661px on a workforce board page before.
+
+## Organization button (2026-11-05, owner direction)
+
+No "Talk to us". Where an organization can claim a page and get a free workspace (workforce boards, job centers, economic development, rapid response, nonprofits, colleges): "Give the platform to your job seekers, free." / "Start here, free", and the button starts the claim (`/government-workforce#claim`, `/nonprofits#claim`, `/higher-education#claim`). Other organizations: the pain headline and "Start here" to the contact form. Employers on the WARN tools: "Start here" to `/outplacement`, with no "free", because outplacement is set up by contract.
