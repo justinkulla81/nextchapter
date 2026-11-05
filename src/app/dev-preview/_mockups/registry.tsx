@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 import { HomeToday, ProgressBuilt, ProgressTimeline } from './home'
-import { HomeTodayShort, HomeTodayShortQuiet } from './home-short'
+import { HomeTodayShort, HomeTodayShortQuiet, HomeTodayPaper } from './home-short'
 import { NetworkShort, NetworkTracker } from './network-short'
 import { LearnShort, LearnLibrary } from './learn-short'
 import { JobsShort, JobsMine } from './jobs-short'
@@ -137,6 +137,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'learn/learn/ai-exposure', place: 'Learn', title: 'AI exposure: what to learn next', replaces: 'the generic “AI Training” description line', Component: ExposureLearn },
   { path: 'home/today', place: 'Home', title: 'Your week', replaces: '/dashboard', Component: HomeToday },
   { path: 'home/today-short', place: 'Home', title: 'Your week, shortened: one next step, a Needs you strip, three modules (sample data)', replaces: 'the journey card, weekly focus, sprint and the stack of program, funding, employer-interest, portfolio, reconnect and session-impact cards above Jobs, Network and Learn; Unlocks moves to Effort and results', Component: HomeTodayShort },
+  { path: 'home/today-paper', place: 'Home', title: 'Your week on paper: the note signed by Victoria with a handwritten aside, the minutes as one number (sample data)', replaces: "the white note card's Cue pill and the minutes line in the eyebrow; no card is added", Component: HomeTodayPaper },
   { path: 'home/today-short-quiet', place: 'Home', title: 'Your week, shortened: nothing pending (sample data)', replaces: 'the same stack; the Needs you strip is absent', Component: HomeTodayShortQuiet },
   { path: 'home/paths/open', place: 'Home', title: 'Your journey: paths and focus switch (sample data)', replaces: 'the “What this changes for you” list, for members with active paths', Component: HomePathsOpen },
   { path: 'home/paths/waiting', place: 'Home', title: 'Your journey: paths wait at 3 hours a week (sample data)', replaces: 'the “What this changes for you” list, for members with active paths', Component: HomePathsWaiting },
