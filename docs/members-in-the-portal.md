@@ -26,7 +26,8 @@ session or the marker. Crawlers and signed-out visitors carry neither, so public
 | `/jobs?q&loc&remote` | `/dashboard/find-my-job?from=public&q&loc&remote` |
 | `/jobs/title/<slug>[/<place>]` | the same search, title as `q`, place as `loc` |
 | `/jobs/entry-level/**` | `seniority=ENTRY_LEVEL`, role as `q`, place as `loc` |
-| `/jobs/industry/<segment>[/<cut>]` | industry name as `q` |
+| `/jobs/industry/healthcare`, `financial-services` (and their cuts) | industry name as `q` |
+| every other `/jobs/industry/<segment>` | stays on the public page (see below) |
 | `/jobs/type/remote`, `hybrid` | `remote=remote`, `remote=hybrid` |
 | `/jobs/type/contract`, `interim`, `part-time` | `types=contract`, `types=contract`, `types=part_time` |
 
@@ -46,5 +47,5 @@ A member whose session has expired goes through `/auth/login`; the `/dashboard` 
 
 ## Known limits
 
-- Industry pages search by the industry's name; the board has no industry filter.
+- The board has no industry filter. Only healthcare and financial services are defined by the industry label alone, so the search for their names finds every job on the public page. The other 33 industry pages are built from employer lists, company words and title patterns. Measured 2026-11-05, the portal search finds 7% of the public retail page, 18% of restaurants and 33% of construction, so members stay on the public page for those (`CODE_DEFINED_INDUSTRIES` in `src/lib/jobs/portal-job-redirect.ts`; a test keeps it equal to `src/lib/segments/defs.ts`).
 - An entry-level role page can return a shorter list than the public page.
