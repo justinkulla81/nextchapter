@@ -6,6 +6,7 @@ import { coursePath } from '@/lib/learning/public-catalog-shared'
 import type { RoleDef } from '@/lib/seo/role-pages'
 
 const CARD = 'rounded-xl border border-border bg-white p-4'
+const upperFirst = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
 const day = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 
 /**
@@ -33,7 +34,7 @@ export function RoleResourceSections({ role, r, slug }: { role: RoleDef; r: Role
       )}
 
       {r.turnover && (
-        <Section id="turnover" title={r.turnover.ownSeat ? `${lower} turnover` : `${r.turnover.label} turnover`} note={`Departures and appointments reported in SEC filings and news in the last 120 days${r.turnover.ownSeat ? '' : `, for the ${r.turnover.label} seat above this role`}. Each links to its source.`}>
+        <Section id="turnover" title={`${upperFirst(r.turnover.ownSeat ? lower : r.turnover.label)} turnover`} note={`Departures and appointments reported in SEC filings and news in the last 120 days${r.turnover.ownSeat ? '' : `, for the ${r.turnover.label} seat above this role`}. Each links to its source.`}>
           <ul className="grid gap-3 sm:grid-cols-2">
             {r.turnover.items.map((t) => (
               <li key={t.id} className={CARD}>

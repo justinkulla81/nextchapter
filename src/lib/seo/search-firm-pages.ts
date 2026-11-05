@@ -153,6 +153,8 @@ export interface FirmListing {
   industries: string[]
   functions: string[]
   seniorities: string[]
+  /** A recruiting firm in its own right (a SEARCH_FIRM organization or a crawled SearchFirm row), not an employer the company-industry field files under staffing. */
+  recruiter: boolean
   /** Live public searches by function and level, keyed `<function>|<band>` ("Sales|C-suite"). A role page ranks firms on its own cell. */
   fnLevel: Record<string, number>
   lastVerifiedAt: Date
@@ -164,6 +166,7 @@ interface HitRow {
   name: string
   segment: string | null
   staffing: boolean
+  recruiter: boolean
   types: string[]
   fn: string | null
   state: string | null
@@ -191,7 +194,7 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
   const hits = await prisma.$queryRaw<HitRow[]>`
     WITH firms AS (
       SELECT o.id AS oid, o."canonicalNameNormalized" AS canon, o.name AS fname, f.name AS fname2, o."companyId" AS cid,
-             f.segment AS segment, (c.industry = ${STAFFING_INDUSTRY}) AS staffing, o."orgTypes"::text[] AS types
+             f.segment AS segment, (c.industry = ${STAFFING_INDUSTRY}) AS staffing, (f.id IS NOT NULL OR o."orgTypes" && ARRAY['SEARCH_FIRM']::"CrmOrgType"[]) AS recruiter, o."orgTypes"::text[] AS types
       FROM "CrmOrganization" o
       LEFT JOIN "SearchFirm" f ON f."crmOrgId" = o.id
       LEFT JOIN "Company" c ON c.id = o."companyId"
@@ -212,7 +215,7 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
       SELECT fm.oid, sf.jid, sf.fn, sf.state, sf.industry, sf.level, sf.verified
       FROM firms fm JOIN sf ON sf.sname = fm.fname OR sf.sname = fm.fname2
     )
-    SELECT fm.oid, fm.canon, fm.fname AS name, fm.segment, COALESCE(fm.staffing, false) AS staffing, fm.types, h.fn, h.state, h.industry, h.level, h.verified, h.jid AS "jobId"
+    SELECT fm.oid, fm.canon, fm.fname AS name, fm.segment, COALESCE(fm.staffing, false) AS staffing, fm.recruiter, fm.types, h.fn, h.state, h.industry, h.level, h.verified, h.jid AS "jobId"
     FROM hits h JOIN firms fm ON fm.oid = h.oid`
   const by = new Map<string, HitRow[]>()
   for (const h of hits) (by.get(h.oid) ?? by.set(h.oid, []).get(h.oid)!).push(h)
@@ -231,6 +234,7 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
       orgId, slug, name: rows[0].name,
       kind: firmKind({ segment: rows[0].segment, staffing: rows[0].staffing, orgTypes: rows[0].types }),
       publicRoles,
+      recruiter: rows[0].recruiter,
       topFunction: count((r) => r.fn, 1)[0] ?? null,
       states: count((r) => r.state, 5),
       industries: count((r) => industryLabel(r.industry), 3),
@@ -246,7 +250,7 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
 /** The cache stores JSON, so the date comes back as an ISO string. */
 export type CachedFirmListing = Omit<FirmListing, 'lastVerifiedAt'> & { lastVerifiedAt: string }
 
-const FIRMS_KEY = 'firms:v4'
+const FIRMS_KEY = 'firms:v5'
 const FIRMS_MAX_AGE_MS = 24 * 3600_000
 const toCached = async (): Promise<CachedFirmListing[]> => (await loadFirmListings()).map((f) => ({ ...f, lastVerifiedAt: f.lastVerifiedAt.toISOString() }))
 
