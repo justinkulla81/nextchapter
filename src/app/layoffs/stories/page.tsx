@@ -4,6 +4,7 @@ import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/Publi
 import { MIN_ANSWERS_TO_SHOW } from '@/lib/layoff-stories/rules'
 import { publishOpen, storyCounts } from '@/lib/layoff-stories/store'
 import { getCompanies } from '@/lib/warn/layoff-pages'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: { absolute: 'Layoff stories: what happened to people laid off | NextChapter' }, description: 'Notice, severance and how it was handled, from people who were laid off. Share yours in two minutes.', robots: { index: publishOpen(), follow: true } }
 export const revalidate = 3600
@@ -17,6 +18,7 @@ export default async function StoriesHubPage() {
       <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-6xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy">Layoff stories</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-3 max-w-xl text-muted-foreground">What people got for notice and severance, and how they were told, in their own answers. Private by default.</p>
           <Link href="/layoffs/stories/new?source=hub" className="mt-6 inline-flex h-11 items-center rounded-full bg-brand px-6 text-sm font-semibold text-white hover:opacity-90">Share what happened to you</Link>
           {listed.length > 0 ? (

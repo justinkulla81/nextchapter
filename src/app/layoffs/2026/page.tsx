@@ -17,6 +17,9 @@ import { noticeCountsByBucket } from '@/lib/seo/topic-data'
 import { getLayoffCounts } from '@/lib/warn/layoff-counts'
 import { noticeDay } from '@/lib/warn/layoff-pages'
 import { PullTop } from '@/components/capture/PullCta'
+import { Squiggle } from '@/components/ui/squiggle'
+import { ShortVersion } from '@/components/ui/short-version'
+import { Highlight } from '@/components/ui/highlight'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -57,9 +60,10 @@ export default async function Layoffs2026Page() {
             {asOf && <span className="ml-3">Updated {asOf}</span>}
           </nav>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/layoffs/2026', `Layoffs ${LAYOFF_YEAR}: every layoff notice, month by month`)}</h1>
-          <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
-            Employers have filed {n(notices.length)} layoff notices dated {LAYOFF_YEAR}{workers ? `, naming ${n(workers)} workers` : ''}, across {states.length} states. Collected daily from state labor departments, with the state’s own record linked on every row.
-          </p>
+          <Squiggle className="mt-2" />
+          <ShortVersion className="mt-5 max-w-3xl">
+            Employers have filed {n(notices.length)} layoff notices dated {LAYOFF_YEAR}{workers ? <>, naming <Highlight>{n(workers)} workers</Highlight></> : ''}, across {states.length} states. Collected daily from state labor departments, with the state’s own record linked on every row.
+          </ShortVersion>
           <PullTop name="Layoffs in 2026" path="/layoffs/2026" />
           {counts && (
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">

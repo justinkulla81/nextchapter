@@ -13,6 +13,8 @@ import { breadcrumbJsonLd, organizationRef } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { titleMeta } from '@/lib/seo/title'
 import { noticeDay } from '@/lib/warn/layoff-pages'
+import { Squiggle } from '@/components/ui/squiggle'
+import { ShortVersion } from '@/components/ui/short-version'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -83,11 +85,12 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
             <Link href="/layoffs/week" className="hover:text-foreground">Weekly layoffs</Link><span aria-hidden> › </span><span className="text-foreground">{label}</span>
           </nav>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">Layoffs, week of {label}</h1>
-          <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
-            {notices.length === 0
-              ? 'No layoff notices carry a filing date in that week.'
-              : `Employers filed ${notices.length.toLocaleString('en-US')} layoff notices dated that week${workers ? `, naming ${workers.toLocaleString('en-US')} people` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before had ${prev.length.toLocaleString('en-US')}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')}` : ''}.`}
-          </p>
+          <Squiggle className="mt-2" />
+          {notices.length === 0 ? (
+            <p className="mt-4 max-w-3xl text-lg text-muted-foreground">{'No layoff notices carry a filing date in that week.'}</p>
+          ) : (
+            <ShortVersion className="mt-5 max-w-3xl">{`Employers filed ${notices.length.toLocaleString('en-US')} layoff notices dated that week${workers ? `, naming ${workers.toLocaleString('en-US')} people` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before had ${prev.length.toLocaleString('en-US')}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')}` : ''}.`}</ShortVersion>
+          )}
           <p className="mt-2 text-sm text-muted-foreground">Counted by the date on each filing; a state can publish a notice later, so a week’s count can grow.</p>
 
           {states.length > 0 && (
