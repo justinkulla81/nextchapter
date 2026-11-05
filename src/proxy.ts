@@ -8,6 +8,7 @@ import { CUSTOMER_SUBDOMAINS_ON, customerSlugForHost } from '@/lib/organizations
 import { pausedPrefixes } from '@/lib/paused-pages'
 import { HOME_AB_COOKIE, HOME_AB_MAX_AGE_SECONDS, HOME_AB_VARIANT_PATH, decideHomeVariant } from '@/lib/home-ab'
 import { portalJobPath } from '@/lib/jobs/portal-job-redirect'
+import { markerDomain, memberStatus, MEMBER_MARKER_COOKIE, MEMBER_MARKER_MAX_AGE_SECONDS } from '@/lib/auth/member-marker'
 import { SERVER_COOKIES_SECURE } from '@/lib/supabase/cookie-options'
 import { MAIN_SITE_SEGMENTS, ORG_SUBDOMAINS_ON, mainOrigin, orgKindForHost, orgOrigin } from '@/lib/org-hosts'
 
@@ -97,13 +98,21 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     return NextResponse.redirect(`${portalOrigin('employer')}${pathname}${request.nextUrl.search}`, 308)
   }
   const portalHost = portalHostFor(host)
-  if (portalHost && portalHostOn(portalHost)) return routePortalHost(request, portalHost, pathname)
+  if (portalHost && portalHostOn(portalHost)) {
+    const res = await routePortalHost(request, portalHost, pathname)
+    // The member's session lives on this host only; leave a marker the main site can read (src/lib/auth/member-marker.ts).
+    return portalHost === 'candidate' ? markMember(res, request) : res
+  }
   if (!portalHost && !orgKindForHost(host) && host !== ADMIN_HOST) {
     // Main site: a signed-in member on a public job page or the public job search goes to the same thing in the portal (src/lib/jobs/portal-job-redirect.ts).
     if (request.method === 'GET' || request.method === 'HEAD') {
-      const hasSession = request.cookies.getAll().some((c) => c.name.startsWith('sb-') && c.name.includes('auth-token'))
-      const inPortal = portalJobPath(pathname, hasSession, request.nextUrl.search)
-      if (inPortal) return NextResponse.redirect(new URL(inPortal, request.url), 307)
+      const { session, marker } = memberStatus(request.cookies.getAll())
+      const inPortal = portalJobPath(pathname, session || marker, request.nextUrl.search)
+      if (inPortal) {
+        // Straight to the candidate host when it is on (no stop at the main site's own /dashboard redirect).
+        const host = hostForAppPath(inPortal.split('?')[0])
+        return markMember(NextResponse.redirect(host ? `${portalOrigin(host)}${inPortal}` : new URL(inPortal, request.url), 307), request)
+      }
     }
     // Main site: a portal that has its own host now lives there.
     const moved = hostForAppPath(pathname)
@@ -119,7 +128,23 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     return serveHomepageTest(request)
   }
 
-  return updateSession(request)
+  return markMember(await updateSession(request), request)
+}
+
+// A member's browser gets the marker once their session is seen (not for partner portal sessions, not when it is already set).
+function markMember(response: NextResponse, request: NextRequest): NextResponse {
+  const { session, marker } = memberStatus(request.cookies.getAll())
+  if (session && !marker) {
+    response.cookies.set(MEMBER_MARKER_COOKIE, '1', {
+      domain: markerDomain(process.env.NEXT_PUBLIC_APP_URL),
+      path: '/',
+      maxAge: MEMBER_MARKER_MAX_AGE_SECONDS,
+      sameSite: 'lax',
+      secure: SERVER_COOKIES_SECURE,
+      httpOnly: true,
+    })
+  }
+  return response
 }
 
 // The homepage test (src/lib/home-ab.ts): which cached homepage this visitor gets at "/". The variant is a rewrite, so the
