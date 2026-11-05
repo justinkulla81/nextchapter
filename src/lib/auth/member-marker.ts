@@ -8,6 +8,24 @@
 import { PORTAL_COOKIE_NAMES } from '@/lib/supabase/portal'
 
 export const MEMBER_MARKER_COOKIE = 'nc_member'
+/** The member's first name, for the main site's header ("Hi, Justin"). Display only: a name is not proof of anything. Same lifetime and domain as the marker. */
+export const MEMBER_NAME_COOKIE = 'nc_member_name'
+const NAME_MAX = 40
+
+export function encodeMemberName(name: string): string {
+  return encodeURIComponent(name.trim().slice(0, NAME_MAX))
+}
+
+export function decodeMemberName(value: string | undefined): string | null {
+  if (!value) return null
+  try {
+    const name = decodeURIComponent(value).trim().slice(0, NAME_MAX)
+    return name || null
+  } catch {
+    return null
+  }
+}
+
 export const MEMBER_MARKER_MAX_AGE_SECONDS = 365 * 24 * 60 * 60
 
 const PORTAL_NAMES = new Set<string>(Object.values(PORTAL_COOKIE_NAMES))

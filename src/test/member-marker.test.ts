@@ -23,3 +23,17 @@ describe('member marker', () => {
     expect(markerDomain(undefined)).toBeUndefined()
   })
 })
+
+describe('member name cookie', () => {
+  it('round-trips a first name, including accents and spaces', async () => {
+    const { encodeMemberName, decodeMemberName } = await import('@/lib/auth/member-marker')
+    for (const n of ['Justin', 'José', 'Mary Ann']) expect(decodeMemberName(encodeMemberName(n))).toBe(n)
+  })
+  it('caps the length and treats junk as no name', async () => {
+    const { encodeMemberName, decodeMemberName } = await import('@/lib/auth/member-marker')
+    expect(decodeMemberName(encodeMemberName('x'.repeat(100)))?.length).toBe(40)
+    expect(decodeMemberName(undefined)).toBeNull()
+    expect(decodeMemberName('%E0%A4%A')).toBeNull()
+    expect(decodeMemberName('%20')).toBeNull()
+  })
+})
