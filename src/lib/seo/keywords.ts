@@ -15,6 +15,7 @@ import type { Metadata } from 'next'
 import { SITE_URL } from './facts'
 import { titleMeta } from '@/lib/seo/title'
 import { fitDescription } from '@/lib/seo/templates'
+import { NICHES_HUB_CLUSTER, NICHE_CLUSTERS } from '@/lib/niches/niches'
 
 export interface PageSeo {
   /** Without the " | NextChapter" suffix. 30-56 characters. */
@@ -46,6 +47,9 @@ export interface KeywordCluster {
 // ---------------------------------------------------------------------------------------------------------------------
 
 export const KEYWORD_CLUSTERS: KeywordCluster[] = [
+  // ---- Service types: /niches hub and one page per kind of service (src/lib/niches/niches.ts) ----
+  NICHES_HUB_CLUSTER,
+  ...NICHE_CLUSTERS,
   // ---- Brand and category ----------------------------------------------------------------------------------------
   {
     id: 'home',
@@ -3100,6 +3104,7 @@ export function pageMetadata(path: string): Metadata {
 // ---------------------------------------------------------------------------------------------------------------------
 
 export const ANCHORS: Record<string, string> = {
+  '/niches': 'Job search and career services by type',
   '/start/laid-off': 'Laid off? Start here',
   '/resources/72-hours': 'Your first 72 hours after a layoff',
   '/resources/unemployed': 'Job search while unemployed',

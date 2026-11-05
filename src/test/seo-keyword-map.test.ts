@@ -6,6 +6,7 @@ import { PERSONAS } from '@/lib/constants/personas'
 import { KEYWORD_CLUSTERS, NO_TARGET_PAGES, ANCHORS, RELATED } from '@/lib/seo/keywords'
 import { keywordMapMarkdown } from '@/lib/seo/keyword-map-md'
 import { TOPICS } from '@/lib/seo/explainers'
+import { NICHES } from '@/lib/niches/niches'
 import { EMPLOYEE_JOURNEYS } from '@/lib/journeys/employee-journeys'
 
 const root = process.cwd()
@@ -39,6 +40,7 @@ describe('keyword map', () => {
     const personas = new Set(PERSONAS.map((p) => p.slug))
     const guides = new Set(GUIDE_LANDING_CONTENT.map((g) => g.slug))
     const topics = new Set(TOPICS.map((t) => t.slug))
+    const niches = new Set(NICHES.map((n) => n.slug))
     const journeys = new Set(EMPLOYEE_JOURNEYS.map((j) => j.slug))
     for (const c of KEYWORD_CLUSTERS.filter((k) => k.kind === 'page')) {
       const [, first, second] = c.owner.split('/')
@@ -48,6 +50,7 @@ describe('keyword map', () => {
         (first === 'start' && personas.has(second)) ||
         (first === 'resources' && guides.has(second)) ||
         (first === 'topics' && topics.has(second)) ||
+        (first === 'niches' && niches.has(second)) ||
         (first === 'journeys' && journeys.has(second))
       expect(exists, `${c.owner} has no page`).toBe(true)
     }

@@ -69,6 +69,10 @@ export default function ComparisonIndexPage() {
           <Link href="/outplacement" className="underline underline-offset-4">
             NextChapter for employers
           </Link>
+          {' · '}
+          <Link href="/niches" className="underline underline-offset-4">
+            Job search and career services by type
+          </Link>
         </div>
       </main>
     </div>

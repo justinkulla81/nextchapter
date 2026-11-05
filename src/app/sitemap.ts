@@ -13,6 +13,7 @@ import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { PERSONAS } from '@/lib/constants/personas'
 import { COMPETITOR_COMPARISONS } from '@/lib/marketing/competitor-comparisons'
 import { listIndexableAlternatives } from '@/lib/marketing/alternatives'
+import { NICHES } from '@/lib/niches/niches'
 import { getPublishedNews } from '@/lib/news/published'
 import { REPORT_EDITIONS, latestReport } from '@/lib/reports'
 import { AUTHORS } from '@/lib/seo/authors'
@@ -136,6 +137,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
 // /start/[persona] content lives in personas.ts; /vs/[competitor] in competitor-comparisons.ts.
 const PERSONAS_UPDATED = '2026-10-02'
 const COMPARISONS_UPDATED = '2026-08-25'
+const NICHES_UPDATED = '2026-11-05'
 
 const EXPLAINERS_UPDATED = '2026-10-25'
 
@@ -346,6 +348,10 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     ...COMPETITOR_COMPARISONS.map((c) => entry(`/vs/${c.slug}`, COMPARISONS_UPDATED, 'monthly', 0.5)),
     ...alternativePages.map((p) => entry(`/vs/${p.slug}`, p.checkedThrough.toISOString().slice(0, 10), 'monthly', 0.5)),
 
+    // Directory pages by kind of service.
+    entry('/niches', NICHES_UPDATED, 'monthly', 0.5),
+    ...NICHES.map((n) => entry(`/niches/${n.slug}`, NICHES_UPDATED, 'monthly', 0.5)),
+
     // Situational starting points.
     ...PERSONAS.map((p) => entry(`/start/${p.slug}`, PERSONAS_UPDATED, 'monthly', 0.6)),
 
@@ -408,10 +414,10 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
 // The finished list is kept in the data cache (six hours, a stale copy served while it refreshes), like the other database-backed
 // sitemaps. Without this every request to /sitemap.xml rebuilt it from the database (about 2 seconds, MISS on every call): the
 // CDN header in next.config.ts is not applied to a dynamic route on Vercel.
-// v5 adds the generated /vs/<competitor> pages. v4 is the list with the AI course pages and the /journeys pages (a new key so the six-hour cache does not hold back new URLs). If it cannot be built complete (the database is at its limit), the last complete list under the
+// v6 adds the /niches pages. v5 adds the generated /vs/<competitor> pages. v4 is the list with the AI course pages and the /journeys pages (a new key so the six-hour cache does not hold back new URLs). If it cannot be built complete (the database is at its limit), the last complete list under the
 // older key is served instead, so crawlers never see a short one. A failed build throws and is never cached.
-const cachedMainSitemap = cachedSitemap('main-sitemap-v5', buildSitemap)
-const previousMainSitemap = cachedSitemap('main-sitemap-v4', buildSitemap)
+const cachedMainSitemap = cachedSitemap('main-sitemap-v6', buildSitemap)
+const previousMainSitemap = cachedSitemap('main-sitemap-v5', buildSitemap)
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {

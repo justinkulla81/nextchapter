@@ -9,10 +9,25 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-246 clusters, 1528 phrases.
+261 clusters, 1606 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
+| `/niches` | page | job search services compared | See the kinds of job search, career change and layoff support services | types of job search services; career services directory; job search companies by type |
+| `/niches/reverse-recruiting` | page | reverse recruiting companies | Find reverse recruiting and done-for-you applications | reverse recruiting companies compared; best reverse recruiting services; done for you job applications; job application service; pay someone to apply to jobs; job search agency |
+| `/niches/outplacement-companies` | page | outplacement companies | Find outplacement and career transition firms | outplacement firms; list of outplacement providers; outplacement companies directory; career transition services companies; outplacement vendors list |
+| `/niches/career-coaching-platforms` | page | online career coaching platforms | Find online career coaching platforms | career coaching companies; online career coach services; career coaching apps; career coaching platforms compared |
+| `/niches/career-change-tools` | page | career change tools | Find career change and career exploration tools | career change apps; career exploration tools; tools to find a new career; career pivot tools; what career should i switch to tool |
+| `/niches/ai-job-search-tools` | page | ai job search tools | Find ai job search tools | ai job search apps; ai resume and job search tools; job application autofill tools; job search copilots; ai tools to apply for jobs |
+| `/niches/fractional-and-gig-marketplaces` | page | fractional work marketplaces | Find fractional and independent work marketplaces | fractional executive jobs; freelance marketplaces for professionals; interim and contract work platforms; where to find fractional work |
+| `/niches/job-sites-for-older-workers` | page | job sites for workers over 50 | Find job sites for workers over 50 | job boards for older workers; jobs for people over 50; senior job boards; age friendly employers |
+| `/niches/early-career-platforms` | page | entry level job platforms | Find entry-level and early-career job platforms | early career job platforms; internship and graduate job sites; entry level job sites; where to find entry level jobs |
+| `/niches/career-change-bootcamps` | page | career change bootcamps | Find bootcamps and retraining programs | bootcamps for career changers; retraining programs for adults; coding bootcamps directory; reskilling programs compared |
+| `/niches/professional-networking-platforms` | page | professional networking platforms | Find professional networking and mentorship platforms | mentorship platforms; online networking sites for professionals; find a mentor online; networking apps for job seekers |
+| `/niches/job-loss-support-groups` | page | job loss support groups | Find job loss support groups and communities | job transition support groups; support groups for unemployed professionals; online communities for job seekers; layoff support community |
+| `/niches/nonprofit-job-search-help` | page | nonprofit job search help | Find nonprofit job search and training help | free job search help nonprofits; free career services for adults; nonprofit career training programs; job training nonprofits near me |
+| `/niches/workforce-case-management-software` | page | workforce case management software | Find workforce board and case management software | case management software for workforce boards; workforce board technology vendors; career services software for workforce programs |
+| `/niches/college-career-services-software` | page | college career services software | Find college career services software | career services platforms for universities; alumni career platforms; university career center software; career outcomes software |
 | `/` | page | job transition platform | Find help after a layoff or while changing jobs; brand searches | job transition; job search help; free job search tools; help finding a job after a layoff; white collar job search; job search for experienced professionals; market reality assessment; nextchapter |
 | `/about` | page | about NextChapter | Who is NextChapter | nextchapter company; justin kulla; job transition company |
 | `/careers` | page | careers at NextChapter | Jobs at NextChapter | nextchapter jobs; work at nextchapter; nextchapter openings |
@@ -263,6 +278,96 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 ## Titles and descriptions
 
 Title is shown before the site suffix " | NextChapter".
+
+### `/niches`
+
+- Title: Job Search and Career Services by Type
+- Description: Directories of job search and career services by type: reverse recruiting, outplacement, coaching, bootcamps, tools and more, with what each is and how to choose.
+- H1: Job search and career services by type
+
+### `/niches/reverse-recruiting`
+
+- Title: Reverse Recruiting Companies and How to Choose
+- Description: Companies that apply and reach out to employers for you: what reverse recruiting services do, what they cost to ask about, and what to check before paying.
+- H1: Reverse recruiting companies
+
+### `/niches/outplacement-companies`
+
+- Title: Outplacement Companies: A Directory and Checklist
+- Description: A directory of outplacement and career transition firms, with what outplacement includes and the questions an employer should ask before choosing one.
+- H1: Outplacement companies
+
+### `/niches/career-coaching-platforms`
+
+- Title: Online Career Coaching Platforms Compared
+- Description: Online career coaching platforms and marketplaces: what a session covers, how coaches are matched and priced, and what to check before you book.
+- H1: Online career coaching platforms
+
+### `/niches/career-change-tools`
+
+- Title: Career Change Tools and Career Exploration Apps
+- Description: Tools that help you choose a new career: assessments, role matching and pivot paths. What they do, what data they use and how to judge the results.
+- H1: Career change tools
+
+### `/niches/ai-job-search-tools`
+
+- Title: AI Job Search Tools: Resume, Autofill and Trackers
+- Description: AI job search tools in one list: résumé builders, application autofill, trackers and job matchers. What each kind does and what to check before you sign up.
+- H1: AI job search tools
+
+### `/niches/fractional-and-gig-marketplaces`
+
+- Title: Fractional Work Marketplaces and Contract Platforms
+- Description: Marketplaces for fractional, interim and contract professional work: how they differ, how they take fees, and what to ask before you list yourself.
+- H1: Fractional work marketplaces
+
+### `/niches/job-sites-for-older-workers`
+
+- Title: Job Sites for Workers Over 50: A Directory
+- Description: Job boards and programs for workers over 50: what they list, how they screen employers and what to check, with a directory of sites and programs.
+- H1: Job sites for workers over 50
+
+### `/niches/early-career-platforms`
+
+- Title: Entry-Level and Early-Career Job Platforms
+- Description: Platforms for entry-level, graduate and internship roles: what they list, who pays for them and how to compare them before you spend time applying.
+- H1: Entry-level and early-career platforms
+
+### `/niches/career-change-bootcamps`
+
+- Title: Career Change Bootcamps and Retraining Programs
+- Description: Bootcamps and retraining programs for career changers: what they teach, how they are paid for and the outcome questions to ask before you enroll.
+- H1: Career change bootcamps
+
+### `/niches/professional-networking-platforms`
+
+- Title: Professional Networking and Mentorship Platforms
+- Description: Networking and mentorship platforms for professionals: how they match people, what they charge and how to use them when you are between jobs.
+- H1: Professional networking platforms
+
+### `/niches/job-loss-support-groups`
+
+- Title: Job Loss Support Groups and Online Communities
+- Description: Support groups and communities for people between jobs: free and paid groups, in-person and online, and what to look for in a group that helps your search.
+- H1: Job loss support groups
+
+### `/niches/nonprofit-job-search-help`
+
+- Title: Nonprofit Job Search and Career Training Help
+- Description: Nonprofits that offer free job search, career coaching and training: what they provide, who qualifies and how to find a local office near you.
+- H1: Nonprofit job search help
+
+### `/niches/workforce-case-management-software`
+
+- Title: Workforce Case Management Software Directory
+- Description: Software for workforce boards and public career services: case management, reporting and career tools. What these systems do and what to ask when you buy one.
+- H1: Workforce case management software
+
+### `/niches/college-career-services-software`
+
+- Title: College Career Services Software Directory
+- Description: Career services and alumni platforms for colleges: job boards, appointment tools and outcomes reporting, and the questions to ask before choosing one.
+- H1: College career services software
 
 ### `/`
 
