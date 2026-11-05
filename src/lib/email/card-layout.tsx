@@ -142,6 +142,22 @@ export function ShortVersion({ children }: { children: ReactNode }) {
   )
 }
 
+/** Left-aligned pale box with one big number and a caption under it, for a check-in or nudge. */
+export function PointsBox({ value, caption }: { value: string; caption: string }) {
+  return (
+    <table role="presentation" cellPadding={0} cellSpacing={0} style={{ margin: '0 0 12px' }}>
+      <tbody>
+        <tr>
+          <td style={{ backgroundColor: '#e8f0f8', borderRadius: '16px', padding: '14px 22px', textAlign: 'left' }}>
+            <span style={{ fontFamily: DISPLAY_FONT, fontSize: '48px', lineHeight: '1', fontWeight: 800, color: BRAND }}>{value}</span>
+            <span style={{ display: 'block', margin: '6px 0 0', fontSize: '14px', color: MUTED }}>{caption}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  )
+}
+
 /** Orange highlighter under a number or phrase that matters. Counts only; never on something clickable. */
 export function Mark({ children }: { children: ReactNode }) {
   return <span style={{ backgroundColor: '#f9d9b4', padding: '0 3px' }}>{children}</span>

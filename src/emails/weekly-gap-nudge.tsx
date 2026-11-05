@@ -1,6 +1,6 @@
 import EngagementBlock from '@/emails/engagement-block'
 import type { EngagementLead } from '@/lib/journey/engagement'
-import { Button, Card, CardEmail, Headline, Hero, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
+import { Body, Button, Card, CardEmail, HandNote, Headline, Masthead, MUTED, PointsBox, Signoff, Squiggle } from '@/lib/email/card-layout'
 
 interface WeeklyGapNudgeEmailProps {
   engagement?: EngagementLead | null
@@ -11,6 +11,8 @@ interface WeeklyGapNudgeEmailProps {
   weeklyPointsTarget: number
   dashboardUrl: string
   unsubscribeUrl: string
+  /** The handwritten aside under the points box. Left out when null. */
+  marginNote?: { src: string | null; text: string } | null
 }
 
 export default function WeeklyGapNudgeEmail({
@@ -22,6 +24,7 @@ export default function WeeklyGapNudgeEmail({
   weeklyPointsTarget,
   dashboardUrl,
   unsubscribeUrl,
+  marginNote = null,
 }: WeeklyGapNudgeEmailProps) {
   const pointsToGo = Math.max(0, weeklyPointsTarget - weeklyPoints)
 
@@ -31,20 +34,22 @@ export default function WeeklyGapNudgeEmail({
       audience="candidate"
       footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Turn off these weekly nudges</a>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Masthead right="Weekly nudge" />
         <Headline>{firstName ? `${firstName}, you` : 'You'} are close to an A this week</Headline>
-        <Hero value={String(pointsToGo)} caption="points from an A this week" />
-        {introCopy && <Lead>{introCopy}</Lead>}
-        <Lead>
+        <Squiggle />
+        <PointsBox value={String(pointsToGo)} caption="points from an A this week" />
+        {marginNote && <HandNote src={marginNote.src} text={marginNote.text} />}
+        {introCopy && <Body>{introCopy}</Body>}
+        <Body>
           You&apos;re at <strong>{weeklyPoints} of {weeklyPointsTarget}</strong> points for this week&apos;s Weekly Search Score. The &quot;More Actions
           Available&quot; list on your dashboard has quick options beyond what you committed to, and anything you complete there counts too.
-        </Lead>
+        </Body>
         <div style={{ textAlign: 'left', margin: '0 0 28px' }}>
           <EngagementBlock lead={engagement} appUrl={appUrl} />
         </div>
         <Button href={dashboardUrl}>See what&apos;s fastest to close the gap</Button>
-        <Signoff align="center" />
+        <Signoff />
       </Card>
     </CardEmail>
   )
