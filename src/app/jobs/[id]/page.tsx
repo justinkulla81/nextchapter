@@ -10,6 +10,7 @@ import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
 import { TrainingProvidedLine } from '@/components/jobs/TrainingProvidedLine'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ApplyAndSave } from '@/components/jobs/ApplyAndSave'
+import { MemberSignInPrompt } from '@/components/jobs/MemberSignInPrompt'
 import { ReadFullPostingLink } from '@/components/jobs/ReadFullPostingLink'
 import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import { lifecycleEmailsOn } from '@/lib/leads/lifecycle/config'
@@ -118,6 +119,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
     <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
       <StructuredData data={jobPostingJsonLd(job)} />
       <PublicJobViewTracker jobId={job.id} company={job.companyName} remote={remote} hasPay={!!pay} />
+      <MemberSignInPrompt jobId={job.id} company={job.companyName} />
       <header>
         <SiteNav />
       </header>
