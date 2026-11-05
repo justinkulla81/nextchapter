@@ -1,5 +1,6 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag, type EmailAudience } from '@/lib/email/audience-tag'
+import { DISPLAY_FONT, PAPER, emailAsset } from '@/lib/email/card-layout'
 
 // Shared shell for NextChapter Talent emails. The footer carries what
 // CAN-SPAM needs on anything sent on a recruiter's behalf: who sent it and
@@ -12,10 +13,13 @@ const container: React.CSSProperties = {
   margin: '0 auto',
   padding: '32px 24px',
   color: '#0a0a0a',
+  backgroundColor: PAPER,
+  border: '1px solid #ece4d4',
+  borderRadius: '24px',
   ...emailStyles.body,
 }
 
-const brand: React.CSSProperties = { fontSize: '18px', fontWeight: 700, color: '#0b2545', margin: 0 }
+const brand: React.CSSProperties = { fontFamily: DISPLAY_FONT, fontSize: '18px', fontWeight: 800, color: '#0b2545', margin: 0 }
 const sub: React.CSSProperties = { ...emailStyles.muted, margin: '0 0 24px' }
 const footer: React.CSSProperties = { marginTop: '32px', borderTop: '1px solid #e2e8f0', paddingTop: '16px', ...emailStyles.muted }
 export const intakeButton: React.CSSProperties = {
@@ -47,7 +51,11 @@ export function IntakeEmailLayout({
   const postal = process.env.INTAKE_POSTAL_ADDRESS
   return (
     <div style={container}>
-      <p style={brand}>{heading}</p>
+      <p style={brand}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={emailAsset('bookmark.png')} width={14} height={20} alt="" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', border: 0 }} />
+        <span style={{ verticalAlign: 'middle' }}>{heading}</span>
+      </p>
       {subheading && <p style={sub}>{subheading}</p>}
       {children}
       <div style={footer}>

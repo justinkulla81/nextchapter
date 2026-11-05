@@ -1,7 +1,7 @@
 import type { LayoffWeekBrief } from '@/lib/newsletter/layoff-week'
 import { emailCtaLabel } from '@/lib/ab/email-cta'
 import type { NavCtaVariant } from '@/lib/ab/nav-cta'
-import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
+import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
 
 interface NewsletterWeeklyEmailProps {
   introCopy: string | null
@@ -74,6 +74,7 @@ export default function NewsletterWeeklyEmail({
           that read it, and a plan for the week.
         </Lead>
         <Button campaign="newsletter_weekly" href={signupUrl} ctaVariant={ctaVariant}>{emailCtaLabel(ctaVariant, 'Get your Market Reality Assessment')}</Button>
+        <Signoff align="center" />
       </Card>
     </CardEmail>
   )

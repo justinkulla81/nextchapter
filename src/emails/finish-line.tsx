@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { Button, Card, CardEmail, CardGap, Headline, INK, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
+import { Button, Card, CardEmail, CardGap, Headline, INK, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
 
 interface FinishLineEmailProps {
   firstName: string | null
@@ -58,6 +58,7 @@ export default function FinishLineEmail({
           </ul>
         </div>
         <Button campaign="finish_line" href={dashboardUrl ?? `${appUrl}/dashboard`}>Open my dashboard</Button>
+        <Signoff name={victoriaName} align="center" />
       </Card>
       {checkIn && (
         <>
