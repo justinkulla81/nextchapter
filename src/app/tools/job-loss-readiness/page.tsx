@@ -28,6 +28,7 @@ export default function Page() {
   }))
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Layoff readiness check', path: '/tools/job-loss-readiness' }]}
       h1={pageH1('/tools/job-loss-readiness', 'Layoff readiness check: if your job ended tomorrow')}
       lede="Still employed and a little nervous? In a minute, see how long your money would last, what unemployment would pay in your state, and what you would lose with your work benefits, with the dates that matter. Free, nothing saved."

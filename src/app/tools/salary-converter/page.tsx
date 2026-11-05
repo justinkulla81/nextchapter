@@ -17,6 +17,7 @@ export default function Page() {
 
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Salary converter', path: '/tools/salary-converter' }]}
       h1={pageH1('/tools/salary-converter', 'Salary converter: hourly to yearly and back')}
       lede="Turn hourly pay into yearly, monthly, weekly and daily pay, or any of them into the others. Change the hours and weeks to match a part-time or seasonal schedule."

@@ -21,6 +21,7 @@ const FAQ = [
 export default function AiJobCheckPage() {
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'AI job check', path: '/tools/ai-job-check' }]}
       h1={pageH1('/tools/ai-job-check', 'Is my job safe from AI? Free AI exposure check')}
       lede="Type your job title to see how much of the work AI already does, which related jobs pay more or are less exposed, and which skills to build. Free, no account."

@@ -16,6 +16,7 @@ const FAQ = [
 export default function ResumeBulletRewriterPage() {
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Résumé bullet rewriter', path: '/tools/resume-bullet-rewriter' }]}
       h1={pageH1('/tools/resume-bullet-rewriter', 'Free résumé bullet rewriter')}
       lede="Paste up to four bullets from your résumé and get stronger versions that keep your facts, plus a prompt for any number worth adding. Free, no account."

@@ -15,6 +15,7 @@ const JOBS: PromptJob[] = [...occupations].sort((a, b) => a.title.localeCompare(
 export default function PromptPackPage() {
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'AI job check', path: '/tools/ai-job-check' }, { name: 'Prompts', path: '/tools/ai-job-check/prompts' }]}
       h1={pageH1('/tools/ai-job-check/prompts', 'Free AI prompts for a job search after a layoff')}
       lede={<p className="max-w-3xl">Twelve prompts to paste into any AI assistant, with your résumé or your situation. Each one sends the assistant to the numbers on a NextChapter page and asks it to cite them, so the answer rests on real figures instead of a guess.</p>}

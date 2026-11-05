@@ -86,6 +86,7 @@ export default async function ComparePage({ params }: { params: Promise<{ pair: 
 
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'AI job check', path: '/tools/ai-job-check' }, { name: `${a.title} vs ${b.title}`, path }]}
       h1={heading}
       lede={

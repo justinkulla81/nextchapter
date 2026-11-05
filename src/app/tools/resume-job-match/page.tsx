@@ -18,6 +18,7 @@ const FAQ = [
 export default function ResumeJobMatchPage() {
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Résumé and job match', path: '/tools/resume-job-match' }]}
       h1={pageH1('/tools/resume-job-match', 'Résumé vs job description: see which keywords you are missing')}
       lede="Paste a job posting and your résumé to see which of the posting’s keywords your résumé already says and which it leaves out. Free, no AI, no account, and nothing leaves your browser."

@@ -33,6 +33,7 @@ const TOOLS = [
 export default function ToolsPage() {
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }]}
       h1={pageH1('/tools', 'Free job search and layoff tools')}
       lede="Free calculators, trackers and lookups for people who lost a job, are planning a move or are running a layoff."
