@@ -9,6 +9,8 @@ interface MarketDigestCandidateEmailProps {
   nuggetTitle: string | null
   nuggetUrl: string | null
   nuggetSummary: string | null
+  /** The article is one of our own tips (a page on this site), not an outside read. */
+  nuggetIsTip?: boolean
   aiMarketText?: string | null
   dashboardUrl: string
   unsubscribeUrl: string
@@ -23,6 +25,7 @@ export default function MarketDigestCandidateEmail({
   nuggetTitle,
   nuggetUrl,
   nuggetSummary,
+  nuggetIsTip,
   aiMarketText,
   dashboardUrl,
   unsubscribeUrl,
@@ -66,7 +69,7 @@ export default function MarketDigestCandidateEmail({
         {aiMarketText && <Lead>{aiMarketText}</Lead>}
         {nuggetTitle && nuggetUrl && (
           <Lead>
-            <strong>Worth a read:</strong> <a href={nuggetUrl}>{nuggetTitle}</a>
+            <strong>{nuggetIsTip ? 'Tip from NextChapter:' : 'Worth a read:'}</strong> <a href={nuggetUrl}>{nuggetTitle}</a>
             {nuggetSummary && ` — ${nuggetSummary}`}
           </Lead>
         )}

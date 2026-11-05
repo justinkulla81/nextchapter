@@ -183,7 +183,11 @@ export function rankingsPost(index: RankingForPost[], now: Date, utm: string): S
     ['Pay after cost of living', pick('paycost')],
   ].flatMap(([label, x]) => (x ? [`${label}: ${(x as RankingForPost).topName} (${(x as RankingForPost).topValueLabel})`] : []))
   const link = `${SITE_URL}/rankings/archive/${edition}?${utm}`
-  const text = `NextChapter job market rankings, ${MONTH_NAMES[now.getUTCMonth()]} ${now.getUTCFullYear()}: ${n(lists.length)} lists.${lines.length ? ` #1 for ${lines.join('. #1 for ')}.` : ''} All of them: ${link}`
+  // Drop the last list line until the whole post, link included, fits Bluesky's 300 characters.
+  const build = (ls: string[]) => `NextChapter job market rankings, ${MONTH_NAMES[now.getUTCMonth()]} ${now.getUTCFullYear()}: ${n(lists.length)} lists.${ls.length ? ` #1 for ${ls.join('. #1 for ')}.` : ''} All of them: ${link}`
+  let shown = lines
+  while (shown.length && [...build(shown)].length > 300) shown = shown.slice(0, -1)
+  const text = build(shown)
   return { key: `rankings-${edition}`, text }
 }
 
