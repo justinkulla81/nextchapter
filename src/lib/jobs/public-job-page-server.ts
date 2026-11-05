@@ -44,6 +44,7 @@ export const PUBLIC_JOB_SELECT = {
   reopenCount: true,
   repostCount: true,
   directListing: true,
+  sourceCategory: true,
   salaryMin: true,
   salaryMax: true,
   salaryCurrency: true,
@@ -125,6 +126,13 @@ export const PUBLIC_JOB_OFFERED_SQL = Prisma.sql`(
 )`
 
 /**
+ * The jobs offered to search engines (sitemap, Google Indexing API, IndexNow) must be on the employer's own career system.
+ * Jobs linked through an aggregator such as Jooble keep their page for members but are noindex (isIndexableJob) and are
+ * reported to Google and Bing as removed (owner decision, 2026-11-04).
+ */
+export const PUBLIC_JOB_SEARCH_SQL = Prisma.sql`("directListing" IS TRUE OR "sourceCategory" = 'employer')`
+
+/**
  * Feed jobs in shard `shard` (0–15): the public allowlist, listed on the employer's own career system (directListing),
  * never hourly pay. For the aggregator feeds (src/lib/syndication/job-feed-server.ts).
  */
@@ -151,6 +159,7 @@ export async function publicJobsInShard(shard: number): Promise<{ id: string; la
     SELECT id, "lastVerifiedAt" FROM "ExclusiveJobPosting"
     WHERE ${PUBLIC_JOB_STATIC_SQL}
       AND (hashtext(id) & 15) = ${shard}::int
+      AND ${PUBLIC_JOB_SEARCH_SQL}
       AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
       AND ${PUBLIC_JOB_LIVE_SQL}
     ORDER BY id
@@ -171,6 +180,7 @@ export async function publicJobIdsInShard(shard: number): Promise<{ id: string; 
         + CASE WHEN "directListing" THEN 2 ELSE 0 END)::int AS value FROM "ExclusiveJobPosting"
     WHERE ${PUBLIC_JOB_STATIC_SQL}
       AND (hashtext(id) & 15) = ${shard}::int
+      AND ${PUBLIC_JOB_SEARCH_SQL}
       AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
       AND ${PUBLIC_JOB_LIVE_SQL}
     ORDER BY id`

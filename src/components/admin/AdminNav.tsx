@@ -354,6 +354,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/visitors/ai`, label: 'AI assistants' },
         { href: `${A}/search-console-striking`, label: 'Pages near page one' },
         { href: `${A}/funnel`, label: 'Funnel' },
+        { href: `${A}/lead-paths`, label: 'Registration and lead paths' },
         { href: `${A}/tagged-links`, label: 'Tagged links' },
         { href: `${A}/search-queries`, label: 'Search queries' },
         { href: `${A}/action-counts`, label: 'Action counts' },

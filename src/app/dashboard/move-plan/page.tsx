@@ -9,6 +9,8 @@ import { NetworkParts } from '@/components/network/NetworkParts'
 import { LastSalaryAsk } from '@/components/dashboard/LastSalaryAsk'
 import { AcceptInviteCard, AddPlaceForm, RemovePlaceButton } from './MovePlanForms'
 import { AddPlaceShell } from './AddPlaceShell'
+import { CompareSection } from './CompareSection'
+import { ActionLink } from '@/components/candidate/ActionLink'
 
 export const metadata: Metadata = { title: 'Your move plan' }
 
@@ -16,7 +18,9 @@ const dollars = (n: number) => `$${n.toLocaleString('en-US')}`
 
 // Places you are thinking of moving to, side by side: what it costs to live there, and what your pay would buy.
 // A partner sees the same places and, when allowed, their pay there; their own search stays their own.
-export default async function MovePlanPage() {
+export default async function MovePlanPage({ searchParams }: { searchParams: Promise<{ tab?: string; m?: string; lens?: string }> }) {
+  const params = await searchParams
+  const compare = params.tab === 'compare'
   const profile = await getDashboardProfile()
   const user = await getVerifiedSessionUser()
   const [plan, invite] = await Promise.all([loadMovePlan(profile.id), user?.email_confirmed_at ? pendingInviteFor(user.email) : Promise.resolve(null)])
@@ -29,7 +33,12 @@ export default async function MovePlanPage() {
       : `${plan.places.length} ${plan.places.length === 1 ? 'place' : 'places'}, side by side. Costs are compared with ${home ? homeName : 'the United States as a whole'}.`
   return (
     <div className="space-y-8">
-      <PageHeader title="Your move plan" intro={intro} />
+      <PageHeader title="Your move plan" intro={compare ? 'Where you live now against up to three other metro areas, measured the same way.' : intro} />
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Move plan sections">
+        <ActionLink href="/dashboard/move-plan" kind={compare ? 'secondary' : 'dark'} event="move_plan_tab_changed" props={{ tab: 'places' }}>Places and costs</ActionLink>
+        <ActionLink href="/dashboard/move-plan?tab=compare" kind={compare ? 'dark' : 'secondary'} event="move_plan_tab_changed" props={{ tab: 'compare' }}>Compare job markets</ActionLink>
+      </div>
+      {compare ? <CompareSection m={params.m} lens={params.lens} /> : <>
       <NetworkParts current="close" />
       {/* The partner invite email links here, so an invited partner accepts on this page as well as on Your people. */}
       {invite && plan.role !== 'partner' && <AcceptInviteCard linkId={invite.id} ownerName={invite.ownerFirstName ?? 'Your partner'} />}
@@ -98,6 +107,7 @@ export default async function MovePlanPage() {
           to compare places together.
         </p>
       )}
+      </>}
     </div>
   )
 }

@@ -8,7 +8,7 @@ import {
   jobPostingJsonLd,
   missingRequiredJobFields,
 } from '@/lib/jobs/public-job-page'
-import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_OFFERED_SQL, PUBLIC_JOB_STATIC_SQL, publicJobIdsInShard, publicJobRowsByIds } from '@/lib/jobs/public-job-page-server'
+import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_OFFERED_SQL, PUBLIC_JOB_SEARCH_SQL, PUBLIC_JOB_STATIC_SQL, publicJobIdsInShard, publicJobRowsByIds } from '@/lib/jobs/public-job-page-server'
 import { sitemapProblems, type SitemapProblems } from '@/lib/google/search-console'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 
@@ -53,8 +53,8 @@ async function counts() {
         count(*) FILTER (WHERE status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL AND ("expiresAt" IS NULL OR "expiresAt" > now())
           AND "lastVerifiedAt" > now() - make_interval(days => ${PUBLIC_JOB_VERIFIED_DAYS}::int)) AS verified,
         count(*) FILTER (WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}) AS public_pages,
-        count(*) FILTER (WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}) AS in_sitemap,
-        count(*) FILTER (WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION} AND ${PUBLIC_JOB_OFFERED_SQL}) AS offered,
+        count(*) FILTER (WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} AND ${PUBLIC_JOB_SEARCH_SQL} AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}) AS in_sitemap,
+        count(*) FILTER (WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} AND ${PUBLIC_JOB_SEARCH_SQL} AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION} AND ${PUBLIC_JOB_OFFERED_SQL}) AS offered,
         count(*) FILTER (WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} AND ("salaryMin" IS NOT NULL OR "salaryMax" IS NOT NULL) AND "payPeriod" IS NOT NULL) AS pay_stated
       FROM "ExclusiveJobPosting"`,
   )

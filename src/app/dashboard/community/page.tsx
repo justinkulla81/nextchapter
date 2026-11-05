@@ -34,7 +34,6 @@ import { CommunityPostForm } from '@/components/dashboard/CommunityPostForm'
 import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
 import { CommunityStreamItem } from '@/components/dashboard/CommunityStreamItem'
 import { CommunityChips } from '@/components/dashboard/CommunityChips'
-import { AlumniNetworkOptions } from '@/components/community/AlumniNetworkOptions'
 import { CommunityAutoJoinBanner } from '@/components/dashboard/CommunityAutoJoinBanner'
 import { getCandidateGroups } from '@/lib/community/groups'
 import { hasQualifyingCommunityBadge } from '@/lib/community/access'
@@ -711,9 +710,12 @@ async function CommunityTab({
             )}
           </Section>
         )}
-        <Section id="alumni" title="Groups to join">
-          <AlumniNetworkOptions candidateId={candidateId} />
-        </Section>
+        <p className="text-base text-ink">
+          Looking for more groups?{' '}
+          <Link href="/dashboard/following?tab=groups" className="font-medium text-brand underline underline-offset-4">
+            Join a school or past-employer network
+          </Link>
+        </p>
         {leaderboardTeaser && <CommunityLeaderboardModule result={leaderboardTeaser} />}
         <Section id="encouragement" title="Send encouragement">
           {encouragementGivingOptIn ? (

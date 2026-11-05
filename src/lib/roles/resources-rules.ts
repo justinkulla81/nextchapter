@@ -1,7 +1,7 @@
 // Rules for the "everything around a role" sections on a role page and for the member who holds that role. Pure: no I/O, so
 // it is unit-tested (src/test/role-resources.test.ts). The loaders that read the database are in resources.ts.
 
-import { ROLES, roleBySlug, rolesForTitle, type RoleDef } from '@/lib/seo/role-pages'
+import { ROLES, ladderOf, roleBySlug, rolesForTitle, type RoleDef } from '@/lib/seo/role-pages'
 
 /** The SEC officer code (src/lib/likely-openings/roles.ts) for each leadership role that has one. */
 const OFFICER_BY_ROLE: Record<string, string> = {
@@ -54,6 +54,8 @@ export interface FirmLike {
   orgId: string
   slug: string
   name: string
+  /** A recruiting firm itself; an employer filed under staffing by its company industry is not. Absent on an older stored listing, which then lists no firm. */
+  recruiter?: boolean
   /** Searches by `<function>|<band>`; absent on a listing stored before the field existed, which then lists no firm. */
   fnLevel?: Record<string, number>
 }
@@ -65,13 +67,13 @@ export const MIN_FIRM_ROLE_SEARCHES = 2
 export const firmSearchesForRole = (role: RoleDef, f: Pick<FirmLike, 'fnLevel'>): number => f.fnLevel?.[`${role.fn}|${firmBandForRole(role)}`] ?? 0
 
 /**
- * Firms with at least MIN_FIRM_ROLE_SEARCHES live searches in the role's function at the role's level, most first. A firm with
+ * Recruiting firms (not employers filed under staffing) with at least MIN_FIRM_ROLE_SEARCHES live searches in the role's function at the role's level, most first. A firm with
  * hundreds of searches elsewhere (a hospitality staffing firm with one sales director search) does not make the list.
  */
 export function firmsForRole<T extends FirmLike>(role: RoleDef, firms: T[], limit = 8): (T & { searches: number })[] {
   return firms
     .map((f) => ({ ...f, searches: firmSearchesForRole(role, f) }))
-    .filter((f) => f.searches >= MIN_FIRM_ROLE_SEARCHES)
+    .filter((f) => f.recruiter === true && f.searches >= MIN_FIRM_ROLE_SEARCHES)
     .sort((a, b) => b.searches - a.searches || a.name.localeCompare(b.name))
     .slice(0, limit)
 }
@@ -79,6 +81,8 @@ export function firmsForRole<T extends FirmLike>(role: RoleDef, firms: T[], limi
 export interface ConfLike {
   name: string
   kind: string
+  /** The event's own function tags; an event with none was matched only by inference and is not listed. */
+  functions: string[]
   datesConfirmed: boolean
   startDate: Date | null
   seniorities: string[]
@@ -90,17 +94,19 @@ export interface ConfLike {
 export const conferenceSeniorityForRole = (role: RoleDef): 'EXECUTIVE' | 'SENIOR' => (role.level === 'c-suite' ? 'EXECUTIVE' : 'SENIOR')
 
 /**
- * The conferences worth listing for a role: ones that have not started, built for the role's level (or for every level), the
- * ones that name the role first, then flagships, then the soonest. An event with no confirmed dates comes after the dated ones.
+ * The conferences worth listing for a role: ones tagged for its function that have not started, built for the role's level (or
+ * for every level), the ones that name the role or another role on its ladder (a CRO page counts "VP of Sales") first, then flagships, then the soonest. An event with no confirmed dates comes after the dated ones.
  * An event already under way, or one for other levels only, is left out.
  */
 export function conferencesForRole<T extends ConfLike>(role: RoleDef, rows: T[], now = new Date(), limit = 6): T[] {
   const level = conferenceSeniorityForRole(role)
-  const names = role.variants.map((v) => v.toLowerCase())
+  const names = ladderOf(role).flatMap((r) => [r.short, r.spelled, ...r.variants]).concat(role.variants).map((v) => v.toLowerCase())
   const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-  const named = (c: ConfLike) => c.roles.some((r) => names.some((n) => r.toLowerCase().includes(n)))
+  // Whole words only: "cro" must not match "microsoft" or "macro".
+  const nameRes = [...new Set(names)].filter((n) => n.length >= 3).map((n) => new RegExp(`(?:^|[^a-z0-9])${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:$|[^a-z0-9])`))
+  const named = (c: ConfLike) => c.roles.some((r) => nameRes.some((re) => re.test(r.toLowerCase())))
   return rows
-    .filter((c) => (c.seniorities.length === 0 || c.seniorities.includes(level)) && (!c.datesConfirmed || !c.startDate || c.startDate.getTime() > today))
+    .filter((c) => c.functions.includes(role.fn) && (c.seniorities.length === 0 || c.seniorities.includes(level)) && (!c.datesConfirmed || !c.startDate || c.startDate.getTime() > today))
     .map((c) => ({ c, dated: c.datesConfirmed && !!c.startDate, named: named(c), tailored: c.seniorities.includes(level), trade: c.kind === 'TRADE_SHOW' }))
     .sort((a, b) =>
       Number(b.dated) - Number(a.dated) ||

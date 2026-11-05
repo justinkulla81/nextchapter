@@ -85,7 +85,7 @@ export default async function NewsPage() {
           </p>
 
           <div className="mt-16 border-t border-border pt-10">
-            <FreshLinks tone="light" placement="news" />
+            <FreshLinks tone="light" placement="news" jobs={false} />
           </div>
 
           {tracker && (

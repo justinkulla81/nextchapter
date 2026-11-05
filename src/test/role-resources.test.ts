@@ -19,16 +19,22 @@ describe('turnoverScope', () => {
 
 describe('firmsForRole', () => {
   const firms: FirmLike[] = [
-    { orgId: 'oa', slug: 'a', name: 'A', fnLevel: { 'Sales|C-suite': 5, 'Sales|Manager': 90 } },
-    { orgId: 'ob', slug: 'b', name: 'B', fnLevel: { 'Sales|Manager': 50 } },
-    { orgId: 'oc', slug: 'c', name: 'C', fnLevel: { 'Finance|C-suite': 40 } },
-    { orgId: 'od', slug: 'd', name: 'D', fnLevel: { 'Sales|C-suite': 9, 'Sales|VP and director': 4 } },
-    { orgId: 'oh', slug: 'h', name: 'Hospitality staffing', fnLevel: { 'Sales|C-suite': 1, 'Sales|Manager': 300 } },
+    { orgId: 'oa', slug: 'a', name: 'A', recruiter: true, fnLevel: { 'Sales|C-suite': 5, 'Sales|Manager': 90 } },
+    { orgId: 'ob', slug: 'b', name: 'B', recruiter: true, fnLevel: { 'Sales|Manager': 50 } },
+    { orgId: 'oc', slug: 'c', name: 'C', recruiter: true, fnLevel: { 'Finance|C-suite': 40 } },
+    { orgId: 'od', slug: 'd', name: 'D', recruiter: true, fnLevel: { 'Sales|C-suite': 9, 'Sales|VP and director': 4 } },
+    { orgId: 'oh', slug: 'h', name: 'Hospitality staffing', recruiter: true, fnLevel: { 'Sales|C-suite': 1, 'Sales|Manager': 300 } },
     { orgId: 'og', slug: 'g', name: 'Stored before the field existed' },
+    { orgId: 'oj', slug: 'j', name: 'Payroll software company filed under staffing', recruiter: false, fnLevel: { 'Sales|C-suite': 6 } },
   ]
   it('ranks on searches in the role’s own function and level, and drops firms with fewer than two', () => {
     const r = firmsForRole(role('chief-revenue-officer'), firms)
     expect(r.map((f) => [f.slug, f.searches])).toEqual([['d', 9], ['a', 5]])
+  })
+  it('leaves out an employer filed under staffing, and a listing stored without the flag', () => {
+    const slugs = firmsForRole(role('chief-revenue-officer'), firms).map((f) => f.slug)
+    expect(slugs).not.toContain('j')
+    expect(slugs).not.toContain('g')
   })
   it('uses the VP and director cell for VP and director roles', () => {
     expect(firmBandForRole(role('vp-of-sales'))).toBe('VP and director')
@@ -38,8 +44,8 @@ describe('firmsForRole', () => {
 
 describe('conferencesForRole', () => {
   const now = new Date('2026-11-04T12:00:00Z')
-  const c = (name: string, o: Partial<{ kind: string; datesConfirmed: boolean; startDate: Date | null; seniorities: string[]; roles: string[]; importance: number }> = {}) => ({
-    name, kind: 'CONFERENCE', datesConfirmed: true, startDate: new Date('2027-03-10T00:00:00Z'), seniorities: [], roles: [], importance: 2, ...o,
+  const c = (name: string, o: Partial<{ kind: string; functions: string[]; datesConfirmed: boolean; startDate: Date | null; seniorities: string[]; roles: string[]; importance: number }> = {}) => ({
+    name, kind: 'CONFERENCE', functions: ['Sales'], datesConfirmed: true, startDate: new Date('2027-03-10T00:00:00Z'), seniorities: [], roles: [], importance: 2, ...o,
   })
   const cro = role('chief-revenue-officer')
   it('drops an event already under way and one built for other levels only', () => {
@@ -53,6 +59,14 @@ describe('conferencesForRole', () => {
   it('lists dated events before events with no confirmed dates', () => {
     const rows = [c('Undated', { datesConfirmed: false, startDate: null, importance: 1 }), c('Dated', { importance: 3 })]
     expect(conferencesForRole(cro, rows, now).map((x) => x.name)).toEqual(['Dated', 'Undated'])
+  })
+  it('leaves out an event with no function tag of its own, as an inferred match', () => {
+    expect(conferencesForRole(cro, [c('Music conference', { functions: [] }), c('Sales event')], now).map((x) => x.name)).toEqual(['Sales event'])
+  })
+  it('counts a role on the same ladder as naming the role, by whole word', () => {
+    const rows = [c('Plain'), c('Microsoft partner day', { roles: ['microsoft reseller'] }), c('Sales leaders', { roles: ['vp of sales'] })]
+    // "cro" inside "microsoft" does not count as naming the role, so only the ladder match leads; the other two tie and sort by name.
+    expect(conferencesForRole(cro, rows, now).map((x) => x.name)).toEqual(['Sales leaders', 'Microsoft partner day', 'Plain'])
   })
   it('uses the senior band for VP and director roles', () => {
     const rows = [c('Exec only', { seniorities: ['EXECUTIVE'] }), c('Senior', { seniorities: ['SENIOR'] })]
