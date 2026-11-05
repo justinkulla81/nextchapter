@@ -31,6 +31,17 @@ const FUNCTION_HEAD: Record<string, string> = {
   Legal: 'GC',
 }
 
+/**
+ * A filing can name several officers ("the new CEO, who previously served as Chief Strategy Officer and Chief Commercial
+ * Officer"). With more than one role on the row, a sentence that speaks of an earlier title is about another seat, not this one.
+ */
+export function isAboutSeat(summary: string, roles: readonly string[]): boolean {
+  return roles.length <= 1 || !/\b(previously|formerly|former)\b/i.test(summary)
+}
+
+/** A source link is shown only when it is a plain https address. */
+export const safeHttpsUrl = (url: string | null | undefined): string | null => (url && /^https:\/\/[^\s]+$/i.test(url) ? url : null)
+
 export interface TurnoverScope {
   codes: string[]
   /** "CRO" for the role's own seat; "sales leadership" when a VP or Director reads the function head's changes. */
@@ -60,22 +71,39 @@ export interface FirmLike {
   fnLevel?: Record<string, number>
 }
 
-/** Live searches a firm needs in the role's function at its level before it is called a specialist for it. */
-export const MIN_FIRM_ROLE_SEARCHES = 2
-
 /** A firm's live searches in the role's own function and level. */
 export const firmSearchesForRole = (role: RoleDef, f: Pick<FirmLike, 'fnLevel'>): number => f.fnLevel?.[`${role.fn}|${firmBandForRole(role)}`] ?? 0
 
+/** For a C-suite role: the same function one level below (VP and director), where firms that place its leaders also work. Other roles have none. */
+export const adjacentSearchesForRole = (role: RoleDef, f: Pick<FirmLike, 'fnLevel'>): number => (role.level === 'c-suite' ? f.fnLevel?.[`${role.fn}|VP and director`] ?? 0 : 0)
+
+/** Live searches a firm needs in the role's function at its level before it is called a specialist for it. */
+export const MIN_FIRM_ROLE_SEARCHES = 2
+/** Searches one level below that count when too few firms qualify at the role's own level. */
+export const MIN_ADJACENT_SEARCHES = 3
+/** A list shorter than this borrows from the level below. */
+export const SHORT_FIRM_LIST = 4
+
 /**
- * Recruiting firms (not employers filed under staffing) with at least MIN_FIRM_ROLE_SEARCHES live searches in the role's function at the role's level, most first. A firm with
- * hundreds of searches elsewhere (a hospitality staffing firm with one sales director search) does not make the list.
+ * Recruiting firms (not employers filed under staffing) with at least MIN_FIRM_ROLE_SEARCHES live searches in the role's function
+ * at its level, most first. A firm with hundreds of searches elsewhere (a hospitality staffing firm with one sales director search)
+ * does not make the list. When fewer than SHORT_FIRM_LIST qualify for a C-suite role, firms with MIN_ADJACENT_SEARCHES searches one
+ * level below follow, marked `adjacent`, so the page says what the count is.
  */
-export function firmsForRole<T extends FirmLike>(role: RoleDef, firms: T[], limit = 8): (T & { searches: number })[] {
-  return firms
-    .map((f) => ({ ...f, searches: firmSearchesForRole(role, f) }))
-    .filter((f) => f.recruiter === true && f.searches >= MIN_FIRM_ROLE_SEARCHES)
+export function firmsForRole<T extends FirmLike>(role: RoleDef, firms: T[], limit = 8): (T & { searches: number; adjacent: boolean })[] {
+  const recruiters = firms.filter((f) => f.recruiter === true)
+  const exact = recruiters
+    .map((f) => ({ ...f, searches: firmSearchesForRole(role, f), adjacent: false }))
+    .filter((f) => f.searches >= MIN_FIRM_ROLE_SEARCHES)
     .sort((a, b) => b.searches - a.searches || a.name.localeCompare(b.name))
-    .slice(0, limit)
+  if (exact.length >= SHORT_FIRM_LIST || role.level !== 'c-suite') return exact.slice(0, limit)
+  const taken = new Set(exact.map((f) => f.slug))
+  const next = recruiters
+    .filter((f) => !taken.has(f.slug))
+    .map((f) => ({ ...f, searches: adjacentSearchesForRole(role, f), adjacent: true }))
+    .filter((f) => f.searches >= MIN_ADJACENT_SEARCHES)
+    .sort((a, b) => b.searches - a.searches || a.name.localeCompare(b.name))
+  return [...exact, ...next].slice(0, limit)
 }
 
 export interface ConfLike {
@@ -94,7 +122,7 @@ export interface ConfLike {
 export const conferenceSeniorityForRole = (role: RoleDef): 'EXECUTIVE' | 'SENIOR' => (role.level === 'c-suite' ? 'EXECUTIVE' : 'SENIOR')
 
 /**
- * The conferences worth listing for a role: ones tagged for its function that have not started, built for the role's level (or
+ * The conferences worth listing for a role: ones tagged for its function that have not started (one starting today still counts), built for the role's level (or
  * for every level), the ones that name the role or another role on its ladder (a CRO page counts "VP of Sales") first, then flagships, then the soonest. An event with no confirmed dates comes after the dated ones.
  * An event already under way, or one for other levels only, is left out.
  */
@@ -106,7 +134,7 @@ export function conferencesForRole<T extends ConfLike>(role: RoleDef, rows: T[],
   const nameRes = [...new Set(names)].filter((n) => n.length >= 3).map((n) => new RegExp(`(?:^|[^a-z0-9])${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:$|[^a-z0-9])`))
   const named = (c: ConfLike) => c.roles.some((r) => nameRes.some((re) => re.test(r.toLowerCase())))
   return rows
-    .filter((c) => c.functions.includes(role.fn) && (c.seniorities.length === 0 || c.seniorities.includes(level)) && (!c.datesConfirmed || !c.startDate || c.startDate.getTime() > today))
+    .filter((c) => c.functions.includes(role.fn) && (c.seniorities.length === 0 || c.seniorities.includes(level)) && (!c.datesConfirmed || !c.startDate || c.startDate.getTime() >= today))
     .map((c) => ({ c, dated: c.datesConfirmed && !!c.startDate, named: named(c), tailored: c.seniorities.includes(level), trade: c.kind === 'TRADE_SHOW' }))
     .sort((a, b) =>
       Number(b.dated) - Number(a.dated) ||

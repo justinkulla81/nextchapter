@@ -6,20 +6,22 @@ import { conferencesForFunction, type Conf } from '@/lib/seo/topic-data'
 import { getPublicCatalog } from '@/lib/learning/public-catalog'
 import { catalogFunctionByName, functionPath as aiCoursesFunctionPath, coursePath, type PublicCourse } from '@/lib/learning/public-catalog-shared'
 import { ROLE_SHORT, signalSource, sourceLinkLabel, type SignalSource } from '@/lib/likely-openings/roles'
-import { conferencesForRole, firmsForRole, turnoverScope } from './resources-rules'
+import { conferencesForRole, firmsForRole, isAboutSeat, safeHttpsUrl, turnoverScope } from './resources-rules'
 import { mediaForFunction, type MediaItem } from './media'
 
 // Everything around a role besides its open jobs: the recruiters who recruit for it, the conferences and training for its
 // function, the officer changes filed for it, and the media its people follow. Each part fails soft: a part that cannot be
 // read is left off the page rather than failing it.
 
-/** `searches`: live public searches in the role's own function and level. */
-export interface RoleFirm { orgId: string; slug: string; name: string; searches: number }
+/** `searches`: live public searches in the role's own function and level, or one level below when `adjacent`. */
+export interface RoleFirm { orgId: string; slug: string; name: string; searches: number; adjacent: boolean }
 export interface RoleTurnover {
   label: string
   ownSeat: boolean
+  /** How many changes there were in the window (the list below shows the newest few). */
+  total: number
   /** `summary` is the plain sentence the reader wrote from the filing or report; `linkLabel` says which it is. */
-  items: { id: string; company: string; role: string; kind: 'left' | 'named'; date: Date; url: string; summary: string; source: SignalSource; linkLabel: string }[]
+  items: { id: string; company: string; role: string; kind: 'left' | 'named'; date: Date; url: string | null; summary: string; source: SignalSource; linkLabel: string }[]
 }
 export interface RoleResources {
   firms: RoleFirm[]
@@ -40,20 +42,23 @@ async function loadTurnover(role: RoleDef): Promise<RoleTurnover | null> {
   const rows = await prisma.likelyOpening.findMany({
     where: { signalType: { in: ['EXEC_DEPARTURE', 'EXEC_APPOINTMENT'] }, roles: { hasSome: scope.codes }, filingDate: { gte: since } },
     orderBy: { filingDate: 'desc' },
-    take: 8,
+    take: 40,
     select: { id: true, companyName: true, signalType: true, roles: true, filingDate: true, filingUrl: true, summary: true, cik: true },
   })
-  if (rows.length === 0) return null
+  // A sentence that speaks of an earlier title belongs to another seat (a new CEO who "previously served as" the role).
+  const own = rows.filter((r) => isAboutSeat(r.summary, r.roles))
+  if (own.length === 0) return null
   return {
     label: scope.label,
     ownSeat: scope.ownSeat,
-    items: rows.map((r) => ({
+    total: own.length,
+    items: own.slice(0, 8).map((r) => ({
       id: r.id,
       company: r.companyName,
       role: ROLE_SHORT[(r.roles.find((c) => scope.codes.includes(c)) ?? scope.codes[0]) as keyof typeof ROLE_SHORT] ?? scope.codes[0],
       kind: r.signalType === 'EXEC_DEPARTURE' ? 'left' : 'named',
       date: r.filingDate,
-      url: r.filingUrl,
+      url: safeHttpsUrl(r.filingUrl),
       summary: r.summary,
       source: signalSource(r.cik),
       linkLabel: sourceLinkLabel(signalSource(r.cik)),
@@ -73,7 +78,7 @@ export async function getRoleResources(role: RoleDef): Promise<RoleResources> {
   const fn = catalogFunctionByName(role.fn)
   const forFn = (catalog ?? []).filter((c) => c.functions.includes(role.fn))
   return {
-    firms: firmsForRole(role, firms ?? []).map((f) => ({ orgId: f.orgId, slug: f.slug, name: f.name, searches: f.searches })),
+    firms: firmsForRole(role, firms ?? []).map((f) => ({ orgId: f.orgId, slug: f.slug, name: f.name, searches: f.searches, adjacent: f.adjacent })),
     conferences: roleConferences,
     courses: { fnPath: fn ? aiCoursesFunctionPath(fn) : null, rows: forFn.slice(0, 6), total: forFn.length },
     turnover,

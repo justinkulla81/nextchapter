@@ -51,7 +51,7 @@ export default function NetworkDigestEmail({
       <Card center pad="28px 32px 36px">
         <Wordmark />
         <Headline>Hi {firstName || 'there'}, this week in the {name} network.</Headline>
-        {openJobs !== null && (
+        {openJobs !== null && openJobs > 0 && (
           <Lead>
             <strong>{openJobs.toLocaleString('en-US')}</strong> verified open {scope} jobs right now
             {medianPay ? <>, with a median advertised pay of <strong>{medianPay}</strong> among listings that state it</> : null}. <a href={pageUrl}>{pageLabel}</a>.

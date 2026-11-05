@@ -166,7 +166,9 @@ export function communityPostWhere(community: { type: CommunityType; value: stri
     if (!community.communityId) return { id: '__no_such_post__' }
     return {
       candidate: {
-        communityMemberships: { some: { communityId: community.communityId, leftAt: null } },
+        // A member joined automatically from their title (joinedVia AUTO) has not chosen to be seen in a role network, so their
+        // posts are not shown there; only members who clicked to join are (owner rule: joining by click is what makes you visible).
+        communityMemberships: { some: { communityId: community.communityId, leftAt: null, ...(community.type === 'ROLE' ? { joinedVia: 'MANUAL' as const } : {}) } },
         confidentialSearchMode: false,
       },
     }

@@ -57,7 +57,7 @@ export const MEDIA_BY_FUNCTION: Record<string, MediaItem[]> = {
     {
       name: '30 Minutes to President’s Club',
       kind: 'podcast',
-      by: '30MPC',
+      by: 'Armand Farrokh and Nick Cegelski, 30MPC',
       url: 'https://www.30mpc.com',
       blurb: 'Interviews with sales leaders and reps on tactics for prospecting, discovery and closing.',
     },
@@ -70,6 +70,8 @@ export const MEDIA_BY_FUNCTION: Record<string, MediaItem[]> = {
     },
     PAVILION,
     REVGENIUS,
+    { name: 'The Advanced Selling Podcast', kind: 'podcast', by: 'Bill Caskey and Bryan Neale', url: 'https://www.advancedsellingpodcast.com', blurb: 'A long-running show on B2B selling, sales management and compensation from two sales trainers.' },
+    { name: 'Sales Gravy Podcast', kind: 'podcast', by: 'Jeb Blount, Sales Gravy', url: 'https://www.salesgravy.com', blurb: 'Short episodes on prospecting, cold calling and sales leadership from the founder of a sales training company.' },
   ],
 
   Marketing: [
@@ -172,6 +174,8 @@ export const MEDIA_BY_FUNCTION: Record<string, MediaItem[]> = {
       blurb: 'Conversations with people behind products, from a community with articles, events and meetups.',
     },
     ACQUIRED,
+    { name: 'Department of Product', kind: 'newsletter', by: 'Department of Product', url: 'https://www.departmentofproduct.com', blurb: 'A newsletter and research platform tracking how product-led companies launch, price and organize their teams.' },
+    { name: 'The Reforge Blog', kind: 'publication', by: 'Reforge', url: 'https://www.reforge.com/blog', blurb: 'Articles on product management, growth and AI for product teams.' },
   ],
 
   Finance: [
@@ -299,6 +303,8 @@ export const MEDIA_BY_FUNCTION: Record<string, MediaItem[]> = {
     },
     PAVILION,
     REVGENIUS,
+    { name: '[Un]Churned', kind: 'podcast', by: 'Josh Schachter, Gainsight', url: 'https://unchurned.gainsight.com/s/podcast', blurb: 'Conversations with customer success practitioners on retention, AI and the post-sales model.' },
+    { name: 'Customer Success Talks', kind: 'podcast', by: 'Bayron Toruño', url: 'https://cstalkspodcast.com', blurb: 'A podcast on day-to-day customer success challenges for managers and early-career professionals.' },
   ],
 
   'Executive Leadership': [
@@ -415,6 +421,8 @@ export const MEDIA_BY_FUNCTION: Record<string, MediaItem[]> = {
       url: 'https://www.law.com/corpcounsel/',
       blurb: 'News on in-house legal work, from the Law.com network.',
     },
+    { name: 'Artificial Lawyer', kind: 'publication', by: 'Artificial Lawyer', url: 'https://www.artificiallawyer.com', blurb: 'News and commentary on legal technology and AI in the legal sector.' },
+    { name: 'Lawyerist', kind: 'publication', by: 'Lawyerist Media', url: 'https://lawyerist.com', blurb: 'Articles, product reviews and a podcast on running a law firm.' },
   ],
 
   'Data & Analytics': [
