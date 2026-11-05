@@ -673,7 +673,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     ],
     seo: {
       title: 'Layoff Tracker: Layoffs and Job Cuts by State',
-      description: 'Recent layoffs and job cuts from layoff notices filed with the states (under the federal WARN Act), updated daily, with a page for each state and employer.',
+      description: 'Recent layoffs and job cuts from layoff notices filed with the states, updated daily, with a page for each state and employer.',
     },
   },
   {

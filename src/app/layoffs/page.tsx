@@ -46,7 +46,7 @@ export default async function LayoffsHubPage() {
           '@context': 'https://schema.org',
           '@type': 'Dataset',
           name: 'U.S. layoff notices filed with the states, by employer and state',
-          description: 'Layoff notices that employers filed with state labor departments (under the federal WARN Act), with the employer, place, workers named, filing date and a link to each state record.',
+          description: 'Layoff notices that employers filed with state labor departments with the employer, place, workers named, filing date and a link to each state record.',
           url: `${SITE_URL}/layoffs`,
           license: LAYOFF_DATA_LICENSE_URL,
           isAccessibleForFree: true,
@@ -97,7 +97,7 @@ export default async function LayoffsHubPage() {
             <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
               Employers and news reports use many names for the same thing: layoffs, job cuts, downsizing, a reduction in force
               (RIF), workforce reductions, restructuring, or mass firings. This tracker counts them all the same way, from the
-              layoff notices employers file with the states (under the federal WARN Act) and the layoffs companies announce. Being let go in a RIF is not the
+              layoff notices employers file with the states and the layoffs companies announce. Being let go in a RIF is not the
               same as being fired for cause, and the difference matters for unemployment: see{' '}
               <Link href="/topics/fired-vs-laid-off" className={LINK}>fired vs laid off</Link> and{' '}
               <Link href="/topics/reduction-in-force" className={LINK}>what a reduction in force means</Link>.

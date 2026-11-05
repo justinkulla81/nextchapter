@@ -508,7 +508,7 @@ Title is shown before the site suffix " | NextChapter".
 ### `/layoffs`
 
 - Title: Layoff Tracker: Layoffs and Job Cuts by State
-- Description: Recent layoffs and job cuts from layoff notices filed with the states (under the federal WARN Act), updated daily, with a page for each state and employer.
+- Description: Recent layoffs and job cuts from layoff notices filed with the states, updated daily, with a page for each state and employer.
 
 ### `/layoffs/2026`
 

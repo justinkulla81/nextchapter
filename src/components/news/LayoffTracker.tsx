@@ -68,8 +68,8 @@ function NationalPicture({ national, trackedWorkers, year, headingLevel }: { nat
         <p className="mt-4 max-w-3xl text-sm text-muted-foreground">
           BLS estimates {people(ytd)} layoffs and discharges from January to {monthLabel(lastYtdMonth)}. The filings
           and reports in this tracker name {trackedWorkers.toLocaleString()} workers this year — about{' '}
-          {share < 1 ? share.toFixed(1) : Math.round(share)}% of that. The rest are layoffs below the WARN Act&apos;s size
-          threshold, in states that do not publish their notices, or never announced.
+          {share < 1 ? share.toFixed(1) : Math.round(share)}% of that. The rest are layoffs too small to require a state
+          notice, in states that do not publish their notices, or never announced.
         </p>
       )}
       <p className="mt-2 text-xs text-muted-foreground">
@@ -94,7 +94,7 @@ export function LayoffTracker({ data, national, headingLevel = 'h2', afterStats 
         '@context': 'https://schema.org',
         '@type': 'Dataset',
         name: 'NextChapter Layoff Tracker: layoff notices by state',
-        description: `Layoff and plant-closing notices filed with US state labor departments (under the federal WARN Act), collected daily from each state's public record, with layoffs reported elsewhere where no filing exists. ${data.total.notices.toLocaleString()} layoffs from ${data.total.states} states since ${data.total.since}.`,
+        description: `Layoff and plant-closing notices filed with US state labor departments, collected daily from each state's public record, with layoffs reported elsewhere where no filing exists. ${data.total.notices.toLocaleString()} layoffs from ${data.total.states} states since ${data.total.since}.`,
         url: `${SITE}/layoffs`,
         creator: { '@type': 'Organization', name: 'NextChapter', url: SITE },
         isAccessibleForFree: true,
@@ -136,7 +136,7 @@ export function LayoffTracker({ data, national, headingLevel = 'h2', afterStats 
           layoff that names no U.S. state shows “—” for the state and is listed but not counted in the totals above. Several
           reports of one layoff are shown once, with the number of workers most of them agree on. Not every
           state publishes its notices, some publish weeks late, and some leave out the number of workers, so the totals are
-          a floor rather than a count of every layoff. The WARN Act generally applies to employers with 100 or more workers.
+          a floor rather than a count of every layoff. States generally require a notice only from employers with 100 or more workers.
         </p>
         <p>
           The Sources column lists up to three places that reported each layoff: the state record, then the news outlets that
