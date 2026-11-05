@@ -1,0 +1,92 @@
+[
+  {
+    "name": "wd-accenture",
+    "adapter": "workday",
+    "tenant": "accenture",
+    "wd": "wd103",
+    "site": "AccentureCareers",
+    "type": "direct_ats",
+    "employer": "Accenture"
+  },
+  {
+    "name": "wd-nvidia",
+    "adapter": "workday",
+    "tenant": "nvidia",
+    "wd": "wd5",
+    "site": "NVIDIAExternalCareerSite",
+    "type": "direct_ats",
+    "employer": "Nvidia"
+  },
+  {
+    "name": "wd-abbott",
+    "adapter": "workday",
+    "tenant": "abbott",
+    "wd": "wd5",
+    "site": "abbottcareers",
+    "type": "direct_ats",
+    "employer": "Abbott"
+  },
+  {
+    "name": "wd-citigroup",
+    "adapter": "workday",
+    "tenant": "citi",
+    "wd": "wd5",
+    "site": "2",
+    "type": "direct_ats",
+    "employer": "Citigroup"
+  },
+  {
+    "name": "wd-state-street",
+    "adapter": "workday",
+    "tenant": "statestreet",
+    "wd": "wd1",
+    "site": "Global",
+    "type": "direct_ats",
+    "employer": "State Street"
+  },
+  {
+    "name": "wd-booz-allen-hamilton",
+    "adapter": "workday",
+    "tenant": "bah",
+    "wd": "wd1",
+    "site": "BAH_Jobs",
+    "type": "direct_ats",
+    "employer": "Booz Allen Hamilton"
+  },
+  {
+    "name": "wd-salesforce",
+    "adapter": "workday",
+    "tenant": "salesforce",
+    "wd": "wd12",
+    "site": "External_Career_Site",
+    "type": "direct_ats",
+    "employer": "Salesforce"
+  },
+  {
+    "name": "wd-jll",
+    "adapter": "workday",
+    "tenant": "jll",
+    "wd": "wd1",
+    "site": "jllcareers",
+    "type": "direct_ats",
+    "employer": "Jones Lang LaSalle"
+  },
+  {
+    "name": "wd-rtx-raytheon",
+    "adapter": "workday",
+    "tenant": "globalhr",
+    "wd": "wd5",
+    "site": "REC_RTX_Ext_Gateway",
+    "type": "direct_ats",
+    "employer": "Raytheon"
+  },
+  {
+    "name": "wd-leidos",
+    "adapter": "workday",
+    "tenant": "leidos",
+    "wd": "wd5",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Leidos"
+  }
+]
