@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { Chips, FactGrid, JobList, JoinBand, LINK, RankList, Section, TopicShell } from '@/components/topics/blocks'
+import { StateUnemploymentLinks } from '@/components/topics/StateUnemploymentLinks'
 import { FitCheck } from '@/components/capture/FitCheck'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { PERSONALIZE_HREF } from '@/components/home/PersonalizePanel'
@@ -139,6 +140,7 @@ export default async function EntryRolePage({ params }: { params: Promise<{ role
             ...cities.map(([, key, , jobs, name]) => ({ href: `/jobs/entry-level/${slug}/${key}`, label: name, detail: jobs.toLocaleString('en-US') })),
             ...live!.states.filter((s) => !cities.some((c) => c[1] === s.slug)).map((s) => ({ href: `/jobs/entry-level/${slug}/${s.slug}`, label: s.name, detail: s.jobs.toLocaleString('en-US') })),
           ]} />
+          <StateUnemploymentLinks states={live!.states} kind="entry_role_to_state_unemployment" hubEvent="entry_role_unemployment_link_clicked" properties={{ slug, role: lowerLabel }} />
           {live!.detail.topEmployers.length > 0 && (
             <>
               <h3 className="mt-5 text-sm font-semibold text-navy">Employers hiring {lowerLabel}s now</h3>
