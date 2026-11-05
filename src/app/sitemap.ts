@@ -12,6 +12,7 @@ import { cachedIndexableOrgPages } from '@/lib/seo/org-pages'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { PERSONAS } from '@/lib/constants/personas'
 import { COMPETITOR_COMPARISONS } from '@/lib/marketing/competitor-comparisons'
+import { listIndexableAlternatives } from '@/lib/marketing/alternatives'
 import { getPublishedNews } from '@/lib/news/published'
 import { REPORT_EDITIONS, latestReport } from '@/lib/reports'
 import { AUTHORS } from '@/lib/seo/authors'
@@ -301,6 +302,8 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   })
 
   const [stateAndWorkforcePages, topicPages, nonprofitPages, coursePages] = await Promise.all([loadSeoStatePages(entry), loadTopicPages(entry), loadNonprofitPages(entry), loadCoursePages(entry)])
+  // Generated /vs/<competitor> pages with enough cited, recent matrix cells. Fail-soft: an empty list leaves them out until the next build of the list.
+  const alternativePages = await listIndexableAlternatives()
   const seoStatePages = [...stateAndWorkforcePages, nonprofitPages]
   if (sitemapFailures.length > 0) throw new Error(`sitemap sections failed, not cached: ${[...new Set(sitemapFailures)].join(', ')}`)
 
@@ -341,6 +344,7 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     // Outplacement comparisons.
     entry('/vs', COMPARISONS_UPDATED, 'monthly', 0.5),
     ...COMPETITOR_COMPARISONS.map((c) => entry(`/vs/${c.slug}`, COMPARISONS_UPDATED, 'monthly', 0.5)),
+    ...alternativePages.map((p) => entry(`/vs/${p.slug}`, p.checkedThrough.toISOString().slice(0, 10), 'monthly', 0.5)),
 
     // Situational starting points.
     ...PERSONAS.map((p) => entry(`/start/${p.slug}`, PERSONAS_UPDATED, 'monthly', 0.6)),
