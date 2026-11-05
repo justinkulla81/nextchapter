@@ -28,3 +28,16 @@ export const PRIORITY_RANKINGS: PriorityLink[] = [
   { href: '/rankings/employers-with-the-most-open-jobs', label: 'Employers with the most open jobs' },
   { href: '/rankings/best-counties-for-laid-off-professionals', label: 'Best counties for laid-off professionals' },
 ]
+
+// Reports and data lists: the September white-collar report is the public page people read most (96 visitors in 30 days to 2026-11-04), and
+// the lists below are what the sitemap now leads with. Linked from the home page footer so each is found from the busiest page.
+export const PRIORITY_REPORTS: PriorityLink[] = [
+  { href: '/reports/white-collar-employment-report-september-2026', label: 'White-collar employment report, September 2026' },
+  { href: '/reports/white-collar-index', label: 'White-collar index' },
+  { href: '/reports/early-warning', label: 'Layoff early-warning report' },
+  { href: '/salaries', label: 'Salaries by job' },
+  { href: '/resources/pay-data', label: 'Pay data by area' },
+  { href: '/jobs/entry-level', label: 'Entry-level white-collar jobs' },
+  { href: '/top-employers', label: 'Top employers by function' },
+  { href: '/events', label: 'Career events' },
+]

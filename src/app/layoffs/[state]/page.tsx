@@ -184,8 +184,8 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
             <span className="font-medium text-foreground">Coverage:</span> {d.all.length.toLocaleString()} {d.name} notices on file,
             filed {noticeDay(earliest)} to {noticeDay(latest)}, collected daily from the state’s published layoff record
             {sources.length > 0 && <> ({sources.slice(0, 2).map((u, i) => <span key={u}>{i > 0 && ', '}<a href={u} className="underline underline-offset-2" target="_blank" rel="noopener noreferrer">{new URL(u).hostname}</a></span>)})</>}.
-            A state may publish late or leave out worker counts, so this is a floor rather than a count of every layoff. The
-            WARN Act generally applies to employers with 100 or more workers. See the{' '}
+            A state may publish late or leave out worker counts, so this is a floor rather than a count of every layoff. States generally
+            require a notice only from employers with 100 or more workers. See the{' '}
             <Link href="/layoffs" className={LINK}>national tracker</Link> for how we collect notices.
           </p>
           <div className="mt-10">

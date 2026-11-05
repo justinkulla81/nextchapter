@@ -15,15 +15,15 @@ export function feedGroups(): FeedGroup[] {
         { key: 'daily', title: 'Daily layoff numbers', blurb: 'One item a day: notices dated that day, workers named, the largest.', path: '/feeds/layoffs-daily.xml', page: '/layoffs/this-week' },
         { key: 'weekly', title: 'Weekly layoff summary', blurb: 'One item a week: notices filed, workers named, the largest.', path: '/feeds/layoffs-weekly.xml', page: '/layoffs/week' },
         { key: '100plus', title: `Large layoffs (${LARGE_NOTICE_WORKERS}+ workers)`, blurb: 'Only notices naming 100 or more workers, any state.', path: '/feeds/layoffs-100plus.xml', page: '/layoffs' },
-        { key: 'all', title: 'All layoff notices', blurb: 'Every new WARN notice we collect, all states.', path: '/feeds/layoffs', page: '/layoffs' },
+        { key: 'all', title: 'All layoff notices', blurb: 'Every new layoff notice we collect, all states.', path: '/feeds/layoffs', page: '/layoffs' },
       ],
     },
     {
-      id: 'states', title: 'Layoff notices by state', blurb: 'New WARN notices from one state labor department.',
+      id: 'states', title: 'Layoff notices by state', blurb: 'New layoff notices from one state labor department.',
       feeds: ALL_STATE_CODES.map((c) => ({ key: `state-${stateSlug(c)}`, title: `${stateName(c)} layoff notices`, blurb: '', path: `/feeds/layoffs/${stateSlug(c)}`, page: `/layoffs/${stateSlug(c)}` })),
     },
     {
-      id: 'industries', title: 'Layoff notices by industry', blurb: 'New WARN notices from employers in one industry, any state.',
+      id: 'industries', title: 'Layoff notices by industry', blurb: 'New layoff notices from employers in one industry, any state.',
       feeds: INDUSTRIES.map((i) => ({ key: `industry-${i.slug}`, title: `${i.name} layoff notices`, blurb: '', path: `/feeds/industries/${i.slug}`, page: `/industries/${i.slug}` })),
     },
     {

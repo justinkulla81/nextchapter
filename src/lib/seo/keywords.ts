@@ -664,7 +664,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     // tracker owns the "which companies are doing it" form of each; what a RIF is, or fired vs laid off, stays with the
     // guides (/topics/reduction-in-force, /topics/fired-vs-laid-off), which the hub links to.
     secondary: [
-      'layoffs', 'recent layoffs', 'layoffs today', 'companies laying off', 'layoff list', 'mass layoffs', 'WARN notices', 'WARN notice list', 'WARN Act layoffs', 'who is laying off',
+      'layoffs', 'recent layoffs', 'layoffs today', 'companies laying off', 'layoff list', 'mass layoffs', 'layoff notices', 'layoff notice list', 'layoffs filed', 'who is laying off',
       'layoffs tracker', 'job cuts', 'recent job cuts', 'job cuts today', 'companies cutting jobs', 'who is cutting jobs', 'job cuts tracker',
       'downsizing', 'companies downsizing', 'corporate downsizing', 'downsizing tracker',
       'reductions in force', 'companies with reductions in force', 'RIF tracker', 'recent RIFs', 'companies doing RIFs',
@@ -673,7 +673,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     ],
     seo: {
       title: 'Layoff Tracker: Layoffs and Job Cuts by State',
-      description: 'Recent layoffs and job cuts from layoff notices filed with the states (under the federal WARN Act), updated daily, with a page for each state and employer.',
+      description: 'Recent layoffs and job cuts from layoff notices filed with the states, updated daily, with a page for each state and employer.',
     },
   },
   {
@@ -695,7 +695,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/2026/:month',
     kind: 'family',
     primary: '{month} 2026 layoffs',
-    secondary: ['layoffs in {month} 2026', '{month} 2026 layoff notices', '{month} 2026 WARN notices', '{month} 2026 job cuts', 'job cuts in {month} 2026'],
+    secondary: ['layoffs in {month} 2026', '{month} 2026 layoff notices', '{month} 2026 layoffs filed', '{month} 2026 job cuts', 'job cuts in {month} 2026'],
   },
   {
     id: 'layoffs-this-week',
@@ -703,7 +703,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/this-week',
     kind: 'page',
     primary: 'layoffs this week',
-    secondary: ['layoffs this week 2026', 'recent layoff notices', 'new WARN notices this week', 'latest layoff announcements', 'job cuts this week', 'companies laying off this week', 'downsizing this week'],
+    secondary: ['layoffs this week 2026', 'recent layoff notices', 'new layoff notices this week', 'latest layoff announcements', 'job cuts this week', 'companies laying off this week', 'downsizing this week'],
     seo: {
       title: 'Layoffs This Week: New Layoff Notices by State',
       description: 'Layoff notices filed in the last seven days: how many workers, which states and employers, with the state record for each. Updated every day.',
@@ -716,7 +716,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/week',
     kind: 'page',
     primary: 'layoffs by week',
-    secondary: ['weekly layoffs', 'weekly layoff report', 'layoffs last week', 'WARN notices by week'],
+    secondary: ['weekly layoffs', 'weekly layoff report', 'layoffs last week', 'layoff notices by week'],
     seo: {
       title: 'Layoffs by Week: Layoff Notices, Week by Week',
       description: 'Every week of layoff notices from the last two years: how many notices and workers, which states and employers, with the state record for each.',
@@ -729,7 +729,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/week/:week',
     kind: 'family',
     primary: 'layoffs week of {date}',
-    secondary: ['layoffs {week}', 'WARN notices week of {date}'],
+    secondary: ['layoffs {week}', 'layoff notices week of {date}'],
   },
   {
     id: 'press-data',
@@ -750,7 +750,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/feeds',
     kind: 'page',
     primary: 'layoff notices rss feed',
-    secondary: ['WARN notices rss', 'layoff alerts by state rss', 'layoff news feed', 'WARN notice feed'],
+    secondary: ['layoff notices rss', 'layoff alerts by state rss', 'layoff news feed', 'layoff notice feed'],
     seo: {
       title: 'Layoff Notice RSS Feeds by State and Industry',
       description: 'Free RSS and JSON feeds of new layoff notices by state, industry and size, each with the state record, how it compares, and help for affected workers.',
@@ -763,7 +763,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/data',
     kind: 'page',
     primary: 'layoff data download',
-    secondary: ['WARN notices csv', 'WARN notice data', 'layoff data by state', 'layoffs dataset'],
+    secondary: ['layoff notices csv', 'layoff notice data', 'layoff data by state', 'layoffs dataset'],
     seo: {
       title: 'Layoff Data Download: Layoff Notices as CSV and JSON',
       description: 'Download every layoff notice of the last 24 months as CSV or JSON, by state or all states, free to reuse with a link back.',
@@ -789,7 +789,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/:state',
     kind: 'family',
     primary: '{state} layoffs',
-    secondary: ['{state} WARN notices', '{state} layoff list', 'recent layoffs in {state}', '{state} companies laying off', '{state} job cuts', '{state} downsizing', '{state} reduction in force', '{state} mass layoffs', '{state} companies cutting jobs'],
+    secondary: ['{state} layoff notices', '{state} layoff list', 'recent layoffs in {state}', '{state} companies laying off', '{state} job cuts', '{state} downsizing', '{state} reduction in force', '{state} mass layoffs', '{state} companies cutting jobs'],
   },
   {
     id: 'layoffs-company',
@@ -797,7 +797,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/company/:slug',
     kind: 'family',
     primary: '{company} layoffs',
-    secondary: ['{company} WARN notice', '{company} layoff dates', '{company} layoff 2026', '{company} job cuts', '{company} downsizing', '{company} reduction in force', '{company} RIF', '{company} cutting jobs', '{company} firing employees'],
+    secondary: ['{company} layoff notice', '{company} layoff dates', '{company} layoff 2026', '{company} job cuts', '{company} downsizing', '{company} reduction in force', '{company} RIF', '{company} cutting jobs', '{company} firing employees'],
   },
   {
     id: 'network-company',
@@ -1555,7 +1555,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     secondary: ['layoff risk assessment', 'am I going to be laid off', 'signs of layoffs', 'my layoff risk', 'layoff risk check', 'is my job safe from layoffs'],
     seo: {
       title: 'Layoff Risk Check: Are There Warning Signs at Your Employer?',
-      description: 'Check five warning signs against public layoff records: your employer’s WARN notices, your industry’s trend and AI exposure. Free, nothing saved, not a prediction.',
+      description: 'Check five warning signs against public layoff records: your employer’s layoff notices, your industry’s trend and AI exposure. Free, nothing saved, not a prediction.',
       h1: 'Layoff risk check: are there warning signs where you work?',
     },
   },
@@ -1647,11 +1647,11 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
   },
   {
     id: 'warn-notices-by-state',
-    intent: 'Find every state’s WARN layoff notices in one place',
+    intent: 'Find every state’s layoff notices in one place',
     owner: '/layoffs/by-state',
     kind: 'page',
-    primary: 'WARN notices by state',
-    secondary: ['WARN notice list by state', 'layoffs by state 2026', 'state WARN notice database', 'WARN notices by state 2026'],
+    primary: 'layoff notices by state',
+    secondary: ['layoff notice list by state', 'layoffs by state 2026', 'state layoff notice database', 'layoff notices by state 2026'],
     seo: {
       title: 'Layoffs by State: Notices Filed in the Last 12 Months',
       description: 'Every state’s layoff notices in one table: notices and workers named in the last 12 months, the latest filing and the state’s own record. Free to download.',
@@ -3309,7 +3309,7 @@ export function relatedLinks(path: string): { href: string; label: string }[] {
 }
 
 /** The homepage's <meta name="keywords">: Google ignores it, some other engines read it. The home cluster's phrases. */
-export const HOME_KEYWORDS = ['job transition platform', 'laid off', 'layoffs', 'unemployment benefits', 'job search', 'career change', 'career coach', 'resume', 'WARN notices', 'outplacement']
+export const HOME_KEYWORDS = ['job transition platform', 'laid off', 'layoffs', 'unemployment benefits', 'job search', 'career change', 'career coach', 'resume', 'layoff notices', 'outplacement']
 
 /** One line per linked owner page for llms.txt: anchor, URL and the page's description. */
 export function llmsPageLines(siteUrl: string): string[] {
