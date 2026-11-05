@@ -30,6 +30,14 @@ function placeSearch(place: string): string {
 
 export function portalJobPath(pathname: string, hasSession: boolean, search = ''): string | null {
   if (!hasSession) return null
+  // "Check my fit" on a public job page (the first onboarding step, with the job's id): a member already has an account and a
+  // résumé, so they go to the job inside the portal, where the fit is shown, instead of starting onboarding again.
+  if (pathname === '/onboarding/desire') {
+    const q = new URLSearchParams(search)
+    const job = q.get('job') ?? ''
+    if (q.get('from') === 'jobs_page' && /^c[a-z0-9]{20,32}$/.test(job)) return `/dashboard/jobs/${job}?src=check_fit`
+    return null
+  }
   const m = PUBLIC_JOB_PATH.exec(pathname)
   if (m) return `/dashboard/jobs/${m[1]}?src=public_page`
   // Entry-level pages: the board's "Entry level (0-2 yrs)" group, with the role and place when the page has them.

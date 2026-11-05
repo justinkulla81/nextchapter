@@ -4,6 +4,13 @@ import { portalJobPath } from '@/lib/jobs/portal-job-redirect'
 const ID = 'cm0abcdefghijklmnopqrstuv'
 
 describe('portalJobPath', () => {
+  it('sends a member who clicks "Check my fit" on a job page to that job in the portal, not into onboarding', () => {
+    const search = `?from=jobs_page&job=${ID}`
+    expect(portalJobPath('/onboarding/desire', true, search)).toBe(`/dashboard/jobs/${ID}?src=check_fit`)
+    expect(portalJobPath('/onboarding/desire', false, search)).toBeNull()
+    expect(portalJobPath('/onboarding/desire', true, '?from=jobs_page')).toBeNull()
+    expect(portalJobPath('/onboarding/desire', true, '?from=jobs_page&job=../x')).toBeNull()
+  })
   it('sends a signed-in member from the public job page to the portal job page', () => {
     expect(portalJobPath(`/jobs/${ID}`, true)).toBe(`/dashboard/jobs/${ID}?src=public_page`)
     expect(portalJobPath(`/jobs/${ID}/`, true)).toBe(`/dashboard/jobs/${ID}?src=public_page`)
