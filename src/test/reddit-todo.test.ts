@@ -9,7 +9,7 @@ const notice: RedditNotice = {
 describe('redditReply', () => {
   it('states only what the filing says and links the state record, benefits and the employer page', () => {
     const t = redditReply(notice)
-    expect(t).toContain('Acme Widgets filed a WARN layoff notice for Tarrant County, Texas naming 79 workers, dated October 7, 2026, with layoffs effective December 6, 2026.')
+    expect(t).toContain('Acme Widgets filed a layoff notice for Tarrant County, Texas naming 79 workers, dated October 7, 2026, with layoffs effective December 6, 2026.')
     expect(t).toContain("The state's own record: https://www.twc.texas.gov/warn.xlsx")
     expect(t).toContain('https://launchyournextchapter.com/unemployment-benefits/texas')
     expect(t).toContain('/layoffs/company/acme-widgets?utm_source=reddit')
@@ -18,7 +18,7 @@ describe('redditReply', () => {
 
   it('leaves out what the filing does not give', () => {
     const t = redditReply({ ...notice, workers: null, place: null, effectiveDate: null, sourceUrl: null })
-    expect(t).toContain('Acme Widgets filed a WARN layoff notice in Texas, dated')
+    expect(t).toContain('Acme Widgets filed a layoff notice in Texas, dated')
     expect(t).not.toContain('naming')
     expect(t).not.toContain("state's own record")
   })

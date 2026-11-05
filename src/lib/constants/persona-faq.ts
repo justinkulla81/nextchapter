@@ -4,7 +4,7 @@
 export const PERSONA_FAQ: Record<string, { q: string; a: string }[]> = {
   'laid-off': [
     { q: 'What should I do first after being laid off?', a: 'File for unemployment right away, note your COBRA deadline, read any severance agreement before signing, and lock in references while the relationships are warm. Then build a weekly search plan.' },
-    { q: 'How do I find companies that are laying off?', a: 'The layoff tracker lists WARN notices filed with state labor departments, by state and employer, with a page for each.' },
+    { q: 'How do I find companies that are laying off?', a: 'The layoff tracker lists layoff notices filed with state labor departments, by state and employer, with a page for each.' },
     { q: 'Is NextChapter free if I was laid off?', a: 'Yes. The Market Reality Assessment, the weekly plan and the AI career coach are free for job seekers.' },
   ],
   'thinking-about-a-move': [
