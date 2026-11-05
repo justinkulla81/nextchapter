@@ -1,4 +1,5 @@
 import type { LayoffWeekBrief } from '@/lib/newsletter/layoff-week'
+import type { JourneyWeekBrief } from '@/lib/newsletter/journey-week'
 import { emailCtaLabel } from '@/lib/ab/email-cta'
 import type { NavCtaVariant } from '@/lib/ab/nav-cta'
 import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
@@ -14,6 +15,8 @@ interface NewsletterWeeklyEmailProps {
   /** The last seven days of WARN layoff notices, when there were enough to be worth a block. */
   layoffs?: LayoffWeekBrief | null
   layoffsUrl?: string
+  /** Stories that went live in the last seven days, under the journey page each belongs to. Left out when there are none. */
+  journeys?: JourneyWeekBrief | null
   /** The recipient's arm of the assessment button label test. */
   ctaVariant?: NavCtaVariant
 }
@@ -24,7 +27,7 @@ interface NewsletterWeeklyEmailProps {
  * personal market numbers that need a profile to compute.
  */
 export default function NewsletterWeeklyEmail({
-  introCopy, articleTitle, articleUrl, articleSummary, newsUrl, signupUrl, unsubscribeUrl, layoffs, layoffsUrl, ctaVariant,
+  introCopy, articleTitle, articleUrl, articleSummary, newsUrl, signupUrl, unsubscribeUrl, layoffs, layoffsUrl, journeys, ctaVariant,
 }: NewsletterWeeklyEmailProps) {
   const intro = introCopy || "Here's this week's read on the job market."
   return (
@@ -64,6 +67,26 @@ export default function NewsletterWeeklyEmail({
             <Lead>
               <a href={layoffsUrl}>Every notice from the past week</a>. Know someone affected? Forward them this email: the page lists what to do and by when.
             </Lead>
+          </>
+        )}
+        {journeys && journeys.length > 0 && (
+          <>
+            <Lead>
+              <strong>At work this week:</strong> new stories on your rights, benefits, pay and side income.
+            </Lead>
+            {journeys.map((g) => (
+              <div key={g.slug} style={{ textAlign: 'left', margin: '0 0 12px' }}>
+                <a href={g.url} style={{ fontWeight: 600 }}>{g.label}</a>
+                <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
+                  {g.stories.map((s) => (
+                    <li key={s.url}>
+                      <a href={s.url}>{s.title}</a>
+                      {s.source ? ` (${s.source})` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </>
         )}
         <Lead>

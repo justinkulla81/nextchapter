@@ -168,7 +168,7 @@ export default async function LayoffsHubPage() {
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               <li><Link href="/start/laid-off" className={LINK}>What to do after a layoff</Link></li>
               <li><FeedLine feed="/feeds/layoffs-100plus.xml" label="Get large layoffs (100+ workers) by RSS" /></li>
-              <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits by state</Link></li>
+              <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits and severance rules by state</Link></li>
               <li><Link href="/resources/72-hours" className={LINK}>The first 72 hours after a layoff</Link></li>
               <li><Link href="/resources/cobra-aca" className={LINK}>COBRA and marketplace health coverage</Link></li>
               <li><Link href="/resources/warn-act" className={LINK}>The WARN Act in plain language: 60 days’ notice and what you are owed</Link></li>

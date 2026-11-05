@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 // Shared "you already have an account" messaging — shown wherever a
 // duplicate-account check finds a match (resume upload, create-account form,
@@ -8,9 +10,12 @@ import Link from 'next/link'
 export function ExistingAccountNotice({
   needsPassword,
   email,
+  next,
 }: {
   needsPassword: boolean
   email?: string | null
+  /** Where to land after logging in (a path on this site). */
+  next?: string
 }) {
   if (needsPassword) {
     return (
@@ -29,18 +34,24 @@ export function ExistingAccountNotice({
     )
   }
 
+  const qs = new URLSearchParams()
+  if (email) qs.set('email', email)
+  if (next) qs.set('next', next)
+  const query = qs.toString()
   return (
-    <div className="space-y-3 rounded-lg border border-border p-4">
-      <p className="text-sm text-foreground">
-        Looks like you already have an account with this email — log in instead of starting a
-        new one.
+    <div className="space-y-4 rounded-2xl border border-border bg-white p-6">
+      <p className="text-base text-foreground">
+        {email ? <>An account with <span className="font-medium">{email}</span> already exists.</> : 'An account with this email already exists.'} Log in to pick up where you left off.
       </p>
-      <Link
-        href={`/auth/login${email ? `?email=${encodeURIComponent(email)}` : ''}`}
-        className="inline-block text-sm font-medium text-primary underline underline-offset-4"
-      >
+      <Link href={`/auth/login${query ? `?${query}` : ''}`} className={cn(buttonVariants({ size: 'lg' }), 'h-11 rounded-full bg-action px-6 text-action-foreground hover:brightness-95')}>
         Log in
       </Link>
+      <p className="text-sm text-muted-foreground">
+        Forgot your password?{' '}
+        <Link href={`/auth/forgot-password?email=${encodeURIComponent(email ?? '')}`} className="font-medium text-primary underline underline-offset-4">
+          Reset it
+        </Link>
+      </p>
     </div>
   )
 }

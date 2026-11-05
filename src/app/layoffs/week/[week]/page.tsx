@@ -5,6 +5,7 @@ import { notFound, permanentRedirect } from 'next/navigation'
 import { PublicSiteFooter, PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { BetweenJobsLine } from '@/components/layoffs/BetweenJobsLine'
 import { nextWeek, parseWeekId, prevWeek, weekEnd, weekId, weekLabel } from '@/lib/layoffs/weeks'
 import { WEEKS_BACK, WEEK_MIN_NOTICES, currentWeekStart, getWeekNotices } from '@/lib/layoffs/weekly'
 import { SITE_URL } from '@/lib/seo/facts'
@@ -133,6 +134,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
               {notices.length > 80 && <p className="mt-3 text-sm text-muted-foreground">Showing 80 of {notices.length.toLocaleString('en-US')}. All rows are in the <Link href="/data" className={LINK}>downloadable record</Link>.</p>}
             </section>
           )}
+          <BetweenJobsLine page="week" />
           <nav aria-label="Other weeks" className="mt-10 flex flex-wrap justify-between gap-3 text-sm">
             <Link href={`/layoffs/week/${weekId(prevWeek(monday))}`} className={LINK}>← Previous week</Link>
             <Link href="/layoffs/week" className={LINK}>All weeks</Link>
