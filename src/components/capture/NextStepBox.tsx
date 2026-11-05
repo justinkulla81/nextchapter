@@ -10,7 +10,7 @@ import { networkCopy, type NetworkAsk } from '@/lib/community/network-copy'
 import { cn } from '@/lib/utils'
 import { usePathname } from 'next/navigation'
 import { useNavSession } from '@/lib/nav/use-nav-session'
-import { DEFAULT_COPY, MEMBER_COPY, type PullCopy } from '@/lib/capture/pull-copy'
+import { DEFAULT_COPY, MEMBER_HREF, type PullCopy } from '@/lib/capture/pull-copy'
 import { SITUATION_SESSION_KEY, type SituationKey } from '@/lib/constants/onboarding'
 
 /** A page that knows who the visitor is (a journey page) words the box itself and hands their situation to onboarding. */
@@ -39,16 +39,16 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy = DEFAU
       <section id="get-started" aria-label="Next step" className="mt-4 scroll-mt-6 rounded-3xl bg-navy p-4 text-white sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
           <div className="max-w-2xl">
-            <h2 className="text-lg font-semibold tracking-tight sm:text-xl">{MEMBER_COPY.headline}</h2>
-            <p className="mt-1 text-sm text-white/85">{MEMBER_COPY.sentence}</p>
+            <h2 className="text-lg font-semibold tracking-tight sm:text-xl">{copy.member.headline}</h2>
+            <p className="mt-1 text-sm text-white/85">{copy.member.sentence}</p>
           </div>
           <TrackedLink
-            href={MEMBER_COPY.href}
+            href={MEMBER_HREF}
             event="member_personalize_clicked"
-            properties={{ spot: 'top', slug, path: pathname }}
+            properties={{ spot: 'top', slug, path: pathname, copy: copy.member.button }}
             className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95"
           >
-            {MEMBER_COPY.button}
+            {copy.member.button}
           </TrackedLink>
         </div>
       </section>
