@@ -10,6 +10,7 @@ import { countOpenRequestsForCandidate } from '@/lib/documents/requests'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getPeerUnreadCount } from '@/lib/messaging/peer-threads'
+import { MemberNameSync } from '@/components/dashboard/MemberNameSync'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 import { PendingNetworkJoin } from '@/components/community/PendingNetworkJoin'
 import { DashboardActivityTracker } from '@/components/dashboard/DashboardActivityTracker'
@@ -107,6 +108,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       />
       {/* Help & feedback, in the corner of every portal page. */}
       <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />
+      <MemberNameSync />
     </>
   )
 }

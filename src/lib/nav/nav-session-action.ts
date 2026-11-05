@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
-import { MEMBER_MARKER_COOKIE } from '@/lib/auth/member-marker'
+import { decodeMemberName, MEMBER_MARKER_COOKIE, MEMBER_NAME_COOKIE } from '@/lib/auth/member-marker'
 
 export type NavSession = { signedIn: boolean; firstName: string | null }
 
@@ -16,8 +16,11 @@ export async function getNavSession(): Promise<NavSession> {
     // out: "My account" and the dashboard would only send them round the create-account step again.
     if (user?.is_anonymous) return { signedIn: false, firstName: null }
     // A member logs in on the candidate host, whose session cookie this host never sees. The site-wide marker (a flag, not a
-    // credential, src/lib/auth/member-marker.ts) says this browser belongs to a member; the name is only known on the candidate host.
-    if (!user) return (await cookies()).has(MEMBER_MARKER_COOKIE) ? { signedIn: true, firstName: null } : { signedIn: false, firstName: null }
+    // credential, src/lib/auth/member-marker.ts) says this browser belongs to a member; the candidate host leaves their first name beside it.
+    if (!user) {
+      const jar = await cookies()
+      return jar.has(MEMBER_MARKER_COOKIE) ? { signedIn: true, firstName: decodeMemberName(jar.get(MEMBER_NAME_COOKIE)?.value) } : { signedIn: false, firstName: null }
+    }
     const profile = await prisma.candidateProfile.findUnique({ where: { userId: user.id }, select: { firstName: true } })
     // No name on the profile (an admin, coach or recruiter, or an account made before the details step): the sign-in's own name.
     const meta = (user.user_metadata ?? {}) as Record<string, unknown>
