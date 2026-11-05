@@ -54,5 +54,7 @@ describe('nonprofit directory pages', () => {
   it('open with the organization box, and the state page has no second claim band', () => {
     for (const p of ['src/app/nonprofits/[state]/page.tsx', 'src/app/nonprofits/[state]/[org]/page.tsx']) expect(read(p), p).toMatch(/<SeoPage\s+boxFirst/)
     expect(read('src/app/nonprofits/[state]/page.tsx')).not.toContain('<ActionBand')
+    // A state theme (stateSlug) makes SeoPage show a job seeker band and hide the organization box: this page must not set one.
+    expect(read('src/app/nonprofits/[state]/page.tsx')).not.toContain('stateSlug=')
   })
 })
