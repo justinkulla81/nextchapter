@@ -2,6 +2,7 @@ import { getPublishedNews } from '@/lib/news/published'
 import { newsDisplayTitle } from '@/lib/news/slug'
 import { reportsNewestFirst } from '@/lib/reports'
 import { feedLink } from '@/lib/feeds/layoff-feed'
+import { rssCategories } from '@/lib/news/feed-categories'
 
 export const revalidate = 300
 
@@ -39,7 +40,8 @@ export async function GET() {
       <title>${esc(newsDisplayTitle(i))}</title>
       <link>${esc(link)}</link>
       <guid isPermaLink="false">nextchapter-news-${esc(i.id)}</guid>
-      <pubDate>${new Date(i.publishedAt).toUTCString()}</pubDate>${text ? `
+      <pubDate>${new Date(i.publishedAt).toUTCString()}</pubDate>${rssCategories(i.tags, SITE).map((c) => `
+      ${c}`).join('')}${text ? `
       <description>${esc(text)}</description>` : ''}${i.source ? `
       <source url="${esc(i.url)}">${esc(i.source)}</source>` : ''}
     </item>`
