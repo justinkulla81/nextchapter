@@ -93,8 +93,8 @@ export function LayoffTracker({ data, national, headingLevel = 'h2', afterStats 
       <StructuredData data={{
         '@context': 'https://schema.org',
         '@type': 'Dataset',
-        name: 'NextChapter Layoff Tracker: WARN notices by state',
-        description: `Layoff and plant-closing notices filed under the WARN Act with US state labor departments, collected daily from each state's public record, with layoffs reported elsewhere where no filing exists. ${data.total.notices.toLocaleString()} layoffs from ${data.total.states} states since ${data.total.since}.`,
+        name: 'NextChapter Layoff Tracker: layoff notices by state',
+        description: `Layoff and plant-closing notices filed with US state labor departments (under the federal WARN Act), collected daily from each state's public record, with layoffs reported elsewhere where no filing exists. ${data.total.notices.toLocaleString()} layoffs from ${data.total.states} states since ${data.total.since}.`,
         url: `${SITE}/layoffs`,
         creator: { '@type': 'Organization', name: 'NextChapter', url: SITE },
         isAccessibleForFree: true,
@@ -104,7 +104,7 @@ export function LayoffTracker({ data, national, headingLevel = 'h2', afterStats 
 
       <Heading id="layoff-tracker-heading" className="text-3xl font-bold tracking-tight text-navy">Layoff tracker</Heading>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Layoff notices employers have filed with state labor departments under the WARN Act, collected each day from the
+        Layoff notices employers have filed with state labor departments, collected each day from the
         states&apos; own public records, plus layoffs reported elsewhere where no state filing covers them.
       </p>
 

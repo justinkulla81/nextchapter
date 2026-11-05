@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { roleBySlug } from '@/lib/seo/role-pages'
-import { firmBandForRole, firmsForRole, rolesForMember, turnoverScope } from '@/lib/roles/resources-rules'
+import type { FirmLike } from '@/lib/roles/resources-rules'
+import { conferencesForRole, firmBandForRole, firmsForRole, rolesForMember, turnoverScope } from '@/lib/roles/resources-rules'
 
 const role = (slug: string) => roleBySlug(slug)!
 
@@ -17,19 +18,45 @@ describe('turnoverScope', () => {
 })
 
 describe('firmsForRole', () => {
-  const firms = [
-    { orgId: 'oa', slug: 'a', name: 'A', functions: ['Sales'], seniorities: ['C-suite'], publicRoles: 5 },
-    { orgId: 'ob', slug: 'b', name: 'B', functions: ['Sales'], seniorities: ['Manager'], publicRoles: 50 },
-    { orgId: 'oc', slug: 'c', name: 'C', functions: ['Finance'], seniorities: ['C-suite'], publicRoles: 40 },
-    { orgId: 'od', slug: 'd', name: 'D', functions: ['Sales', 'Finance'], seniorities: ['C-suite', 'VP and director'], publicRoles: 9 },
-    { orgId: 'og', slug: 'g', name: 'General', functions: [], seniorities: [], publicRoles: 99 },
+  const firms: FirmLike[] = [
+    { orgId: 'oa', slug: 'a', name: 'A', fnLevel: { 'Sales|C-suite': 5, 'Sales|Manager': 90 } },
+    { orgId: 'ob', slug: 'b', name: 'B', fnLevel: { 'Sales|Manager': 50 } },
+    { orgId: 'oc', slug: 'c', name: 'C', fnLevel: { 'Finance|C-suite': 40 } },
+    { orgId: 'od', slug: 'd', name: 'D', fnLevel: { 'Sales|C-suite': 9, 'Sales|VP and director': 4 } },
+    { orgId: 'oh', slug: 'h', name: 'Hospitality staffing', fnLevel: { 'Sales|C-suite': 1, 'Sales|Manager': 300 } },
+    { orgId: 'og', slug: 'g', name: 'Stored before the field existed' },
   ]
-  it('keeps specialists in the function at the role’s level, biggest first', () => {
-    expect(firmsForRole(role('chief-revenue-officer'), firms).map((f) => f.slug)).toEqual(['d', 'a'])
+  it('ranks on searches in the role’s own function and level, and drops firms with fewer than two', () => {
+    const r = firmsForRole(role('chief-revenue-officer'), firms)
+    expect(r.map((f) => [f.slug, f.searches])).toEqual([['d', 9], ['a', 5]])
   })
-  it('maps VP and director roles to the VP and director band', () => {
+  it('uses the VP and director cell for VP and director roles', () => {
     expect(firmBandForRole(role('vp-of-sales'))).toBe('VP and director')
     expect(firmsForRole(role('vp-of-sales'), firms).map((f) => f.slug)).toEqual(['d'])
+  })
+})
+
+describe('conferencesForRole', () => {
+  const now = new Date('2026-11-04T12:00:00Z')
+  const c = (name: string, o: Partial<{ kind: string; datesConfirmed: boolean; startDate: Date | null; seniorities: string[]; roles: string[]; importance: number }> = {}) => ({
+    name, kind: 'CONFERENCE', datesConfirmed: true, startDate: new Date('2027-03-10T00:00:00Z'), seniorities: [], roles: [], importance: 2, ...o,
+  })
+  const cro = role('chief-revenue-officer')
+  it('drops an event already under way and one built for other levels only', () => {
+    const rows = [c('Under way', { startDate: new Date('2026-11-02T00:00:00Z') }), c('Early career only', { seniorities: ['EARLY'] }), c('Fine')]
+    expect(conferencesForRole(cro, rows, now).map((x) => x.name)).toEqual(['Fine'])
+  })
+  it('puts the ones that name the role, then executive-level events, ahead of trade shows', () => {
+    const rows = [c('Trade show', { kind: 'TRADE_SHOW' }), c('Exec summit', { seniorities: ['EXECUTIVE'] }), c('Names the role', { roles: ['Chief Revenue Officer'] })]
+    expect(conferencesForRole(cro, rows, now).map((x) => x.name)).toEqual(['Names the role', 'Exec summit', 'Trade show'])
+  })
+  it('lists dated events before events with no confirmed dates', () => {
+    const rows = [c('Undated', { datesConfirmed: false, startDate: null, importance: 1 }), c('Dated', { importance: 3 })]
+    expect(conferencesForRole(cro, rows, now).map((x) => x.name)).toEqual(['Dated', 'Undated'])
+  })
+  it('uses the senior band for VP and director roles', () => {
+    const rows = [c('Exec only', { seniorities: ['EXECUTIVE'] }), c('Senior', { seniorities: ['SENIOR'] })]
+    expect(conferencesForRole(role('vp-of-sales'), rows, now).map((x) => x.name)).toEqual(['Senior'])
   })
 })
 

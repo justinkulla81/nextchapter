@@ -62,7 +62,7 @@ export function feedHeadline(
   }
   const last = turnover.items[0]
   const days = Math.max(1, Math.round((now.getTime() - last.date.getTime()) / DAY))
-  return { kind: 'quiet', title: `No ${turnover.label} seats changed hands this week.`, why: `We check SEC filings daily. The last change was ${days} days ago, at ${last.company}.`, action: jobs }
+  return { kind: 'quiet', title: `No ${turnover.label} seats changed hands this week.`, why: `We watch SEC filings and news reports. The last change was ${days} days ago, at ${last.company}.`, action: jobs }
 }
 
 /** The filings from the last seven days, newest first as given. */

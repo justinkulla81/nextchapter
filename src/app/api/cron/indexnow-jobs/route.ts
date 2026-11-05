@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { withCronRun } from '@/lib/cron/run'
+import { JOB_SEARCH_PINGS_PAUSED } from '@/lib/jobs/public-job-page'
+import { EMPLOYER_PAGES_IN_SITEMAP } from '@/lib/seo/employer-pages'
 import { runIndexNow } from '@/lib/syndication/indexnow-server'
 import { runCollegeIndexNow } from '@/lib/syndication/indexnow-colleges'
 import { runEmployerIndexNow } from '@/lib/syndication/indexnow-employers'
@@ -13,9 +15,10 @@ export const maxDuration = 800
 // run (src/lib/syndication/indexnow-server.ts), and announces newly indexable employer pages
 // (src/lib/syndication/indexnow-employers.ts) and search-firm pages. Safe to run again: it only sends changes.
 export const GET = withCronRun('indexnow-jobs', async () => {
-  const jobs = await runIndexNow()
+  // Job pings are paused (JOB_SEARCH_PINGS_PAUSED), and so are employer pings while employer pages are out of the sitemap (EMPLOYER_PAGES_IN_SITEMAP).
+  const jobs = JOB_SEARCH_PINGS_PAUSED ? { paused: true } : await runIndexNow()
   // Employer and search-firm pages ride the same daily run; a failure in one must not hide the others.
-  const employers = await runEmployerIndexNow().catch((e) => ({ error: String(e?.message ?? e).slice(0, 200) }))
+  const employers = !EMPLOYER_PAGES_IN_SITEMAP ? { paused: true } : await runEmployerIndexNow().catch((e) => ({ error: String(e?.message ?? e).slice(0, 200) }))
   const searchFirms = await runSearchFirmIndexNow().catch((e) => ({ error: String(e) }))
   // College pages (/higher-education/<state>/<college>) too, when new or reloaded.
   const colleges = await runCollegeIndexNow().catch((e) => ({ error: e instanceof Error ? e.message : String(e) }))

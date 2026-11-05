@@ -193,16 +193,16 @@ export function LayoffsSection({ id, title, scope, stats, notices, trackerHref, 
       {stats.notices > 0 ? (
         <>
           <ul className="mt-4 grid gap-4 sm:grid-cols-3">
-            <Stat value={stats.notices.toLocaleString()} label="WARN layoff notices, last 12 months" />
+            <Stat value={stats.notices.toLocaleString()} label="Layoff notices, last 12 months" />
             <Stat value={stats.workers.toLocaleString()} label="workers named" note="A floor: states may leave out counts" />
             <Stat value={stats.employers.toLocaleString()} label={stats.employers === 1 ? 'employer' : 'employers'} />
           </ul>
           <div className="mt-4">
-            <NoticeTable notices={notices.slice(0, 15)} caption={`WARN notices filed in ${scope}, newest first`} linkEmployer page="state" placeHref={placeHref} />
+            <NoticeTable notices={notices.slice(0, 15)} caption={`Layoff notices filed in ${scope}, newest first`} linkEmployer page="state" placeHref={placeHref} />
           </div>
         </>
       ) : (
-        <p className="mt-3 max-w-3xl text-sm text-muted-foreground">No WARN layoff notices naming {scope} in the last 12 months are on file. WARN covers employers with 100 or more workers, so smaller layoffs are not in it.</p>
+        <p className="mt-3 max-w-3xl text-sm text-muted-foreground">No layoff notices naming {scope} in the last 12 months are on file. The WARN Act covers employers with 100 or more workers, so smaller layoffs are not in it.</p>
       )}
       {trackerHref && <p className="mt-3 text-sm"><Link href={trackerHref} className={LINK}>All layoff notices in the state</Link></p>}
     </section>

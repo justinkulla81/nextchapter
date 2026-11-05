@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const states = c.states.map(stateName).join(', ')
   return {
     title: titleMeta(networkTitle(c.name)),
-    description: `${c.name} filed ${c.notices.length} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'} in ${states}, most recently ${noticeDay(c.latest)}. Open jobs, unemployment benefits, retraining and what to do first.`,
+    description: `${c.name} filed ${c.notices.length} layoff ${c.notices.length === 1 ? 'notice' : 'notices'} in ${states}, most recently ${noticeDay(c.latest)}. Open jobs, unemployment benefits, retraining and what to do first.`,
     ...canonical(`/network/company/${slug}`),
   }
 }
@@ -79,7 +79,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
   const faq = [
     {
       q: `Did ${c.name} file layoff notices?`,
-      a: `Yes. ${c.name} has filed ${c.notices.length} WARN ${noticeWord} with ${states.length === 1 ? `the ${states[0]} labor department` : `labor departments in ${states.join(', ')}`}, naming ${workers.toLocaleString('en-US')} workers. The most recent was filed ${noticeDay(c.latest)}.`,
+      a: `Yes. ${c.name} has filed ${c.notices.length} layoff ${noticeWord} with ${states.length === 1 ? `the ${states[0]} labor department` : `labor departments in ${states.join(', ')}`}, naming ${workers.toLocaleString('en-US')} workers. The most recent was filed ${noticeDay(c.latest)}.`,
     },
     {
       q: `How do I file for unemployment after a layoff at ${c.name}?`,
@@ -101,7 +101,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
     '@id': `${SITE_URL}${path}`,
     url: `${SITE_URL}${path}`,
     name: networkTitle(c.name),
-    description: `WARN layoff notices filed by ${c.name}, open jobs, unemployment benefits and retraining.`,
+    description: `Layoff notices filed by ${c.name}, open jobs, unemployment benefits and retraining.`,
     dateModified: c.latest.toISOString(),
     inLanguage: 'en-US',
     about: { '@type': 'Organization', name: c.name },
