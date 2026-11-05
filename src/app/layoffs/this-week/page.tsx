@@ -10,6 +10,9 @@ import { breadcrumbJsonLd, organizationRef } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getPublicNotices, noticeDay } from '@/lib/warn/layoff-pages'
 import { PullTop } from '@/components/capture/PullCta'
+import { Squiggle } from '@/components/ui/squiggle'
+import { ShortVersion } from '@/components/ui/short-version'
+import { Highlight } from '@/components/ui/highlight'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -70,11 +73,17 @@ export default async function LayoffsThisWeek() {
             <Link href="/layoffs" className="hover:text-foreground">Layoff tracker</Link><span aria-hidden> › </span><span className="text-foreground">This week</span>
           </nav>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{headline}</h1>
-          <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
-            {thisWeek.length === 0
-              ? 'No new layoff notices came in over the last seven days.'
-              : `${workers ? `${workers.toLocaleString('en-US')} people` : `People at ${thisWeek.length.toLocaleString('en-US')} companies`} found out in the last seven days that they are losing their jobs. Companies sent ${thisWeek.length.toLocaleString('en-US')} layoff notices to ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before it was ${lastWeek.length.toLocaleString('en-US')} notices${lastWorkers ? ` and ${lastWorkers.toLocaleString('en-US')} people` : ''}${diff !== 0 ? `, so layoffs are ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')} notices` : ''}.`}
-          </p>
+          <Squiggle className="mt-2" />
+          {thisWeek.length === 0 ? (
+            <p className="mt-4 max-w-3xl text-lg text-muted-foreground">No new layoff notices came in over the last seven days.</p>
+          ) : (
+            <ShortVersion className="mt-5 max-w-3xl">
+              {workers ? <Highlight>{workers.toLocaleString('en-US')} people</Highlight> : `People at ${thisWeek.length.toLocaleString('en-US')} companies`} found out in the last seven days
+              that they are losing their jobs. Companies sent {thisWeek.length.toLocaleString('en-US')} layoff notices to {states.length} {states.length === 1 ? 'state' : 'states'}.
+              The week before it was {lastWeek.length.toLocaleString('en-US')} notices{lastWorkers ? ` and ${lastWorkers.toLocaleString('en-US')} people` : ''}
+              {diff !== 0 ? `, so layoffs are ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')} notices` : ''}.
+            </ShortVersion>
+          )}
           <PullTop name="Layoffs this week" path="/layoffs/this-week" />
           <p className="mt-2 text-sm text-muted-foreground">Companies must warn their state before a big layoff. Each notice is counted on the day the company sent it. A state can post it days later, so recent weeks can grow.</p>
 
