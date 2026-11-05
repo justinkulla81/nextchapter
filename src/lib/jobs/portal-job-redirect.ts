@@ -1,3 +1,4 @@
+import { INDUSTRY_SLUGS } from '@/lib/segments/industry-options'
 import { fitJobFromSearch } from '@/lib/jobs/fit-job-cookie'
 // A signed-in member who lands on a public job page, the public job search or a job-title, entry-level, industry or job-type page (a result, Google, a shared link, an old email)
 // is sent to the same thing inside the portal, with their search carried over. There the save, the apply and the
@@ -9,11 +10,9 @@ const SEARCH_KEYS = ['q', 'loc', 'remote']
 const ENTRY_AND_EARLY = 'EARLY_CAREER,ENTRY_LEVEL'
 const ENTRY_HUB = /^\/jobs\/entry-level(?:\/category\/[a-z0-9-]{2,60})?\/?$/
 const ENTRY_ROLE_PAGE = /^\/jobs\/entry-level\/([a-z0-9-]{3,80})(?:\/([a-z0-9-]{2,60}))?\/?$/
-// Industry pages whose jobs are picked by the industry label alone (src/lib/segments/defs.ts: every rule is `codes` only), so the
-// portal search for the industry's name finds all of them. Every other industry page is built from employer lists, company
-// words and title patterns, and the portal search finds only a fraction of its jobs (retail 7%, restaurants 18%, construction
-// 33%, measured 2026-11-05), so a member stays on the public page there. A test keeps this list equal to the definitions.
-export const CODE_DEFINED_INDUSTRIES: ReadonlySet<string> = new Set(['healthcare', 'financial-services'])
+// Industry pages: every one redirects, to the board's industry filter (the same rules as the public page, segments/defs.ts), so a
+// member sees the page's own jobs ranked for them. A slug that is no industry stays on the public page. src/test/industry-filter.test.ts
+// keeps the list equal to the definitions.
 const INDUSTRY_PAGE = /^\/jobs\/industry\/([a-z0-9-]{3,60})(?:\/[a-z0-9-]{1,40})?\/?$/
 const TYPE_PAGE = /^\/jobs\/type\/([a-z-]{3,20})\/?$/
 // Job-type pages: remote and hybrid are the work arrangement; the rest are the work types the portal board offers
@@ -54,10 +53,10 @@ export function portalJobPath(pathname: string, hasSession: boolean, search = ''
     if (er[2]) to.set('loc', placeSearch(er[2]))
     return `/dashboard/find-my-job?${to.toString()}`
   }
-  // Industry pages: the industry's name as the search words, for the pages the search can reproduce (above).
+  // Industry pages: the industry filter (above).
   const ind = INDUSTRY_PAGE.exec(pathname)
-  if (ind && !CODE_DEFINED_INDUSTRIES.has(ind[1])) return null
-  if (ind) return `/dashboard/find-my-job?${new URLSearchParams({ from: 'public', q: words(ind[1]) }).toString()}`
+  if (ind && !INDUSTRY_SLUGS.has(ind[1])) return null
+  if (ind) return `/dashboard/find-my-job?${new URLSearchParams({ from: 'public', industry: ind[1] }).toString()}`
   const ty = TYPE_PAGE.exec(pathname)
   if (ty && TYPE_PARAMS[ty[1]]) {
     const [key, value] = TYPE_PARAMS[ty[1]]

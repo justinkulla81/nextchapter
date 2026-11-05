@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import type { LightRow } from '@/lib/jobs/board-light-rows'
+import { segmentMatcher, SEGMENT_INDUSTRY_CODES } from '@/lib/segments/defs'
 import {
   isEmptyQuery,
   isSearchActive,
@@ -51,6 +52,8 @@ export interface SearchIndex {
   city: Uint16Array
   states: Uint16Array
   arrangement: Uint8Array
+  /** Posting type (a table index; 'recruiter_search' marks a search firm's posting, which is in no industry list). */
+  postingType: Uint8Array
   /** Distinct values, normalized (normalizeSearchText); index 0 is the empty value. */
   /** Title and company as of the load (a row edited since reads its own, see boardSearchWith). */
   title: Uint32Array
@@ -67,6 +70,7 @@ export interface SearchIndex {
     skills: string[]
     city: string[]
     states: (readonly string[])[]
+    postingType: string[]
   }
   /** Companies on the board with live job counts, most jobs first. */
   companies: { name: string; norm: string; count: number }[]
@@ -93,6 +97,7 @@ interface FactsRow {
   locationState: string | null
   states: string | null
   skills: string | null
+  postingType?: string | null
 }
 
 // Strings Prisma hands back can be slices of the whole ~75 MB query response, and
@@ -128,6 +133,7 @@ export function buildSearchIndex(rows: FactsRow[], loadedMs = 0): SearchIndex {
   const soc = table(' ', norm)
   const skills = table(' ', norm)
   const city = table(' ', norm)
+  const postingType = table('', (raw) => ownCopy(raw))
   const states = table<readonly string[]>([], (v) => v.split(',').map((x) => ownCopy(x.trim().toUpperCase())).filter(Boolean))
   const index: SearchIndex = {
     pos: new Map(),
@@ -140,6 +146,7 @@ export function buildSearchIndex(rows: FactsRow[], loadedMs = 0): SearchIndex {
     city: new Uint16Array(n),
     states: new Uint16Array(n),
     arrangement: new Uint8Array(n),
+    postingType: new Uint8Array(n),
     tables: {
       title: title.values,
       titleFunction: [],
@@ -149,6 +156,7 @@ export function buildSearchIndex(rows: FactsRow[], loadedMs = 0): SearchIndex {
       skills: skills.values,
       city: city.values,
       states: states.values,
+      postingType: postingType.values,
     },
     companies: [],
     cities: [],
@@ -166,6 +174,7 @@ export function buildSearchIndex(rows: FactsRow[], loadedMs = 0): SearchIndex {
     index.skills[i] = skills.of(r.skills)
     index.city[i] = city.of(r.locationCity)
     index.states[i] = states.of(r.states ?? r.locationState)
+    index.postingType[i] = postingType.of(r.postingType ?? null)
     index.arrangement[i] = Math.max(0, ARRANGEMENTS.indexOf((r.workArrangement?.toLowerCase() ?? null) as (typeof ARRANGEMENTS)[number]))
     const co = normalizeSearchText(r.companyName).trim()
     if (co) {
@@ -204,7 +213,8 @@ async function readIndex(): Promise<SearchIndex> {
   const started = Date.now()
   const rows = await prisma.$queryRaw<FactsRow[]>`
     SELECT "id", "title", "companyName", "industry", "socTitle", "workArrangement", "locationCity", "locationState",
-      NULLIF(array_to_string("locationStates", ','), '') AS "states", NULLIF(array_to_string("skills", ' '), '') AS "skills"
+      NULLIF(array_to_string("locationStates", ','), '') AS "states", NULLIF(array_to_string("skills", ' '), '') AS "skills",
+      "postingType"
     FROM "ExclusiveJobPosting"
     WHERE "status" = 'approved' AND "archivedAt" IS NULL AND "institutionScopeId" IS NULL AND "distribution" <> 'EXCLUDED'
       AND ("expiresAt" IS NULL OR "expiresAt" > now())`
@@ -419,6 +429,42 @@ export function boardSearchWith(params: BoardSearchParams, index: SearchIndex | 
     indexReady: index !== null,
   }
 }
+
+// ── Industry filter ─────────────────────────────────────────────────────────
+
+type IndustryRow = Pick<LightRow, 'id' | 'title' | 'companyName' | 'sourceCategory' | 'employerSector' | 'requirementTags'>
+
+/**
+ * The portal's industry filter: a yes/no on a board row using the public industry page's own rules (segments/defs.ts), so a
+ * member's list for "Retail" is the list on /jobs/industry/retail. The rules read the posting's industry code and type, which the
+ * light rows do not carry, so they come from this index (the code is held normalized; the rules' codes are matched the same way).
+ * A job newer than the held index is judged without them. null for a slug that is not an industry.
+ */
+export function industryKeep(slug: string, index: SearchIndex): ((p: IndustryRow) => boolean) | null {
+  const match = segmentMatcher(slug)
+  if (!match) return null
+  const codeByNorm = new Map(SEGMENT_INDUSTRY_CODES.map((c) => [normalizeSearchText(c), c]))
+  const codeOf = index.tables.industry.map((v) => codeByNorm.get(v) ?? null)
+  return (p) => {
+    const j = index.pos.get(p.id) ?? -1
+    return match({
+      title: p.title,
+      company: p.companyName,
+      industry: j >= 0 ? codeOf[index.industry[j]] : null,
+      reqTags: p.requirementTags ?? null,
+      postingType: j >= 0 ? index.tables.postingType[index.postingType[j]] || null : null,
+      sourceCategory: p.sourceCategory ?? null,
+      sector: p.employerSector ?? null,
+    })
+  }
+}
+
+/** industryKeep with the held index, waiting for a cold one (a few seconds) because without it the industry codes cannot be read. null when the slug is no industry or the index did not arrive in time. */
+export async function industryKeepWithin(slug: string, waitMs = INDUSTRY_WAIT_MS): Promise<((p: IndustryRow) => boolean) | null> {
+  const index = await searchIndexWithin(waitMs, { startCold: true })
+  return index ? industryKeep(slug, index) : null
+}
+const INDUSTRY_WAIT_MS = 8_000
 
 // ── Typeahead ───────────────────────────────────────────────────────────────
 

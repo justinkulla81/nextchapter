@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CODE_DEFINED_INDUSTRIES, portalJobPath } from '@/lib/jobs/portal-job-redirect'
-import { SEGMENTS } from '@/lib/segments/defs'
+import { portalJobPath } from '@/lib/jobs/portal-job-redirect'
 import { ENTRY_AND_EARLY_PARAM } from '@/lib/jobs/job-seniority'
 
 const ID = 'cm0abcdefghijklmnopqrstuv'
@@ -39,18 +38,15 @@ describe('portalJobPath', () => {
     expect(portalJobPath('/jobs/entry-level/accounts-payable-clerk/denver-co', true)).toBe('/dashboard/find-my-job?from=public&seniority=EARLY_CAREER%2CENTRY_LEVEL&q=accounts+payable+clerk&loc=Denver%2C+CO')
     expect(portalJobPath('/jobs/entry-level', false)).toBeNull()
   })
-  it('sends a member from an industry page to the portal search for that industry', () => {
-    expect(portalJobPath('/jobs/industry/healthcare', true)).toBe('/dashboard/find-my-job?from=public&q=healthcare')
-    expect(portalJobPath('/jobs/industry/financial-services/2026-10', true)).toBe('/dashboard/find-my-job?from=public&q=financial+services')
-  })
-  it('keeps a member on the public page for industries the portal search cannot reproduce', () => {
-    for (const p of ['/jobs/industry/retail', '/jobs/industry/construction', '/jobs/industry/restaurants', '/jobs/industry/retail/2026-10']) {
-      expect(portalJobPath(p, true)).toBeNull()
+  it('sends a member from an industry page to the board filter for that industry', () => {
+    expect(portalJobPath('/jobs/industry/healthcare', true)).toBe('/dashboard/find-my-job?from=public&industry=healthcare')
+    expect(portalJobPath('/jobs/industry/financial-services/2026-10', true)).toBe('/dashboard/find-my-job?from=public&industry=financial-services')
+    for (const p of ['/jobs/industry/retail', '/jobs/industry/construction', '/jobs/industry/restaurants']) {
+      expect(portalJobPath(p, true)).toBe(`/dashboard/find-my-job?from=public&industry=${p.split('/').pop()}`)
     }
   })
-  it('lists exactly the industries defined by their industry label alone', () => {
-    const codeOnly = SEGMENTS.filter((s) => !s.exclude && s.rules.every((r) => r.codes && !r.employers && !r.company && !r.title && !r.tags && !r.sectors)).map((s) => s.slug)
-    expect([...CODE_DEFINED_INDUSTRIES].sort()).toEqual(codeOnly.sort())
+  it('keeps a member on the public page for a slug that is not an industry', () => {
+    expect(portalJobPath('/jobs/industry/nope-not-real', true)).toBeNull()
   })
   it('sends a member from a job-type page to the matching portal filter', () => {
     expect(portalJobPath('/jobs/type/remote', true)).toBe('/dashboard/find-my-job?from=public&remote=remote')

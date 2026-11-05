@@ -170,7 +170,9 @@ import { PastJobsSection } from '@/components/jobs/PastJobsSection'
 import { BoardSearchTracker } from '@/components/dashboard/one-board/BoardSearchTracker'
 import { loadSkillsMarket } from '@/lib/skills/market-server'
 import { skillsForPosting } from '@/lib/skills/for-job'
-import { buildBoardSearch, warmSearchIndex, type BoardSearch } from '@/lib/jobs/board-search-index'
+import { buildBoardSearch, industryKeepWithin, warmSearchIndex, type BoardSearch } from '@/lib/jobs/board-search-index'
+import { segmentBySlug } from '@/lib/segments/defs'
+import { IndustryFilter } from '@/components/dashboard/IndustryFilter'
 import { boardHref, boardHrefWithout, BOARD_SEARCH_URL_PARAMS } from '@/lib/jobs/board-url'
 import {
   isSearchActive,
@@ -379,9 +381,9 @@ function boardSearchSummary(p: BoardSearchParams): string {
 
 // The headline for a member who arrived from a public page (src/lib/jobs/portal-job-redirect.ts): what they were looking at,
 // in their words: "Entry-level jobs for “analyst” in Denver, CO", "Remote jobs", "Contract & 1099 jobs". Null = no search or filter came with them.
-function carriedInTitle(search: BoardSearchParams, seniority: readonly SeniorityGroup[], workTypes: WorkType[] | null): string | null {
+function carriedInTitle(search: BoardSearchParams, seniority: readonly SeniorityGroup[], workTypes: WorkType[] | null, industry: string | null): string | null {
   const kind =
-    seniority.includes('ENTRY_LEVEL') ? 'Entry-level' : search.remote ? REMOTE_FILTER_LABEL[search.remote] : workTypes?.length === 1 && workTypes[0] !== 'full_time' ? WORK_TYPE_LABEL[workTypes[0]] : ''
+    industry ? (segmentBySlug(industry)?.name ?? '') : seniority.includes('ENTRY_LEVEL') ? 'Entry-level' : search.remote ? REMOTE_FILTER_LABEL[search.remote] : workTypes?.length === 1 && workTypes[0] !== 'full_time' ? WORK_TYPE_LABEL[workTypes[0]] : ''
   const where = boardSearchSummary(search)
   if (!kind && !where) return null
   return `${kind ? `${kind} jobs` : 'Jobs'} ${where}`.trim()
@@ -397,7 +399,7 @@ function BoardSearchEmpty({ search }: { search: BoardSearchView }) {
   if (search.filtersActive.length > 0) {
     broaden.push({
       label: 'Turn off the other filters',
-      href: boardHrefWithout(search.urlParams, ['seniority', 'view', 'great', 'pivot', 'types', 'ai', 'open'], at),
+      href: boardHrefWithout(search.urlParams, ['seniority', 'view', 'great', 'pivot', 'types', 'ai', 'open', 'industry'], at),
     })
   }
   if (p.q && (p.loc || p.remote)) broaden.push({ label: `Search “${p.q}” everywhere`, href: boardHrefWithout(search.urlParams, ['loc', 'remote'], at) })
@@ -470,12 +472,15 @@ async function JobRecommendationsSection({
   aiView,
   openFilter = false,
   entryFilter = [],
+  industry = null,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   /** "Open to career changers / AI-upskilled" (posting-signals.ts): partner-search jobs carry no signals, so they hide. */
   openFilter?: boolean
   /** "No experience needed" / "Entry-level + AI" (entry-filters.ts): partner-search jobs carry no signals, so they hide. */
   entryFilter?: readonly EntryFilterKey[]
+  /** The industry filter (segments/defs.ts): partner-search jobs carry no industry data, so they hide. `ready` is false while the board's index has not loaded (the filter then shows every job and says so). */
+  industry?: { slug: string; name: string; ready: boolean } | null
   /** AI / Non-AI / All (ai-view.ts): partner-search jobs carry no AI data, so they show under All only. */
   aiView: AiView
   /** Candidate+ (isDossierUnlocked): the extras on each job. Every member sees every job. */
@@ -579,7 +584,8 @@ async function JobRecommendationsSection({
       surfacedPassesBoardFilters(boardFilters) &&
       aiView === 'all' &&
       !openFilter &&
-      entryFilter.length === 0
+      entryFilter.length === 0 &&
+      !industry
   )
   const signalLift = changerLiftFor(profile)
   const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
@@ -864,6 +870,19 @@ async function JobRecommendationsSection({
           fullIndex={search.matcher?.indexReady ?? true}
         />
       )}
+      {industry && !industry.ready && (
+        <p className="text-xs text-muted-foreground" role="status">
+          The {industry.name.toLowerCase()} list is still loading, so every job is shown for now.{' '}
+          <TrackedLink
+            href={boardHref(urlParams, {}, { hash: 'apply-new-jobs' })}
+            event="job_industry_filter_retried"
+            properties={{ industry: industry.slug }}
+            className="text-primary underline underline-offset-4"
+          >
+            Try again
+          </TrackedLink>
+        </p>
+      )}
       {search && search.active && search.matcher && !search.matcher.indexReady && (
         <p className="text-xs text-muted-foreground" role="status">
           Matched on job titles, companies and locations for now — skills and industries are still loading.{' '}
@@ -989,6 +1008,7 @@ export default async function JobFitPage({
     ai?: string
     open?: string
     entry?: string
+    industry?: string
     from?: string
   }>
 }) {
@@ -1011,9 +1031,12 @@ export default async function JobFitPage({
         loc: boardSearch.loc,
         remote: boardSearch.remote,
         hasSearch: isSearchActive(boardSearch),
+        industry: allParams.industry ?? null,
       })
     )
   }
+  // The industry filter (the `industry` URL parameter): a slug from the public industry pages (segments/defs.ts); anything else is ignored.
+  const industrySlug = segmentBySlug(allParams.industry ?? '')?.slug ?? null
   // Other board filters that are on (search analytics, and the no-results suggestions).
   const filtersActive = [
     seniority && 'seniority',
@@ -1028,6 +1051,7 @@ export default async function JobFitPage({
     allParams.ai && parseAiView(allParams.ai) !== 'all' && 'ai',
     parseOpenParam(allParams.open) && 'open',
     parseEntryParam(allParams.entry).length > 0 && 'entry',
+    industrySlug && 'industry',
   ].filter((f): f is string => !!f)
   // `job` (the open job in the two-pane list) belongs to the list alone: links built from the other parameters
   // start without it, so a new filter or search never reopens an old job.
@@ -1080,7 +1104,7 @@ export default async function JobFitPage({
         />
       ) : (
         <PageHeader
-          title={fromPublic && part === 'jobs' ? carriedInTitle(boardSearch, seniorityGroups, parseWorkTypesParam(types)) ?? FIND_PART_HEADER[part].title : FIND_PART_HEADER[part].title}
+          title={fromPublic && part === 'jobs' ? carriedInTitle(boardSearch, seniorityGroups, parseWorkTypesParam(types), industrySlug) ?? FIND_PART_HEADER[part].title : FIND_PART_HEADER[part].title}
           intro={fromPublic && part === 'jobs' ? 'Ranked for you. Each one says why it fits, and saving it builds your search plan.' : undefined}
         />
       )}
@@ -1110,6 +1134,7 @@ export default async function JobFitPage({
           aiView={parseAiView(allParams.ai)}
           openFilter={parseOpenParam(allParams.open)}
           entryFilter={parseEntryParam(allParams.entry)}
+          industry={industrySlug}
           part={part}
         />
       </Suspense>
@@ -1163,12 +1188,15 @@ async function FindMyJobBody({
   aiView,
   openFilter,
   entryFilter,
+  industry,
   part,
 }: {
   /** "Open to career changers / AI-upskilled" (the `open` URL parameter, posting-signals.ts). */
   openFilter: boolean
   /** "No experience needed" / "Entry-level + AI" (the `entry` URL parameter, entry-filters.ts). */
   entryFilter: EntryFilterKey[]
+  /** The industry filter's slug (segments/defs.ts), or null. */
+  industry: string | null
   profile: Awaited<ReturnType<typeof getDashboardData>>
   /** One part of the board at a time (docs/candidate-redesign.md): jobs, not posted yet, independent work, resources. */
   part: FindPart
@@ -1286,6 +1314,7 @@ async function FindMyJobBody({
     searchEfficiency,
     greatSets,
     searchMatcher,
+    industryKeep,
     aiIds,
     signalMap,
   ] = await Promise.all([
@@ -1321,6 +1350,8 @@ async function FindMyJobBody({
     greatFilters.length > 0 ? loadGreatSets() : Promise.resolve(null),
     // The board search (q / loc / remote / sort): matched on the in-memory board, board tab only.
     onBoard ? buildBoardSearch(boardSearch) : Promise.resolve(null),
+    // The industry filter's yes/no on a job (the public industry page's own rules), from the board's in-memory index: waits for a cold index (board-search-index.ts industryKeepWithin).
+    onBoard && industry ? industryKeepWithin(industry) : Promise.resolve(null),
     // AI / Non-AI: the ids of jobs that ask for an AI skill (cached; ~80 ms cold). Board tab only.
     onBoard ? loadAiPostingIds().catch((error) => {
       console.error('AI job ids unavailable, AI / Non-AI buttons hidden:', error)
@@ -1400,6 +1431,7 @@ async function FindMyJobBody({
         keepOpen,
         keepEntry,
         pivotFilter ? (p) => pivotFilter.matchesTitle(p.title) : null,
+        industryKeep,
         ...requirementKeeps(boardFilters, profile),
       ]),
       hiddenSectors: hiddenFromShown(boardFilters.sectorsShown),
@@ -1592,6 +1624,7 @@ async function FindMyJobBody({
                 aiView={appliedAiView}
                 openFilter={appliedOpenFilter}
                 entryFilter={appliedEntryFilter}
+                industry={industry ? { slug: industry, name: segmentBySlug(industry)?.name ?? industry, ready: industryKeep !== null } : null}
               />
             </Suspense>
           </div>
@@ -1627,6 +1660,7 @@ async function FindMyJobBody({
                 <GreatEmployerFilter surface="find_my_job" />
                 <SeniorityFilter surface="find_my_job" />
                 <FunctionFilter surface="find_my_job" />
+                <IndustryFilter surface="find_my_job" />
                 <EmployerSectorFilter surface="find_my_job" shown={boardFilters.sectorsShown} />
                 <RequirementFilters surface="find_my_job" hideBlockers={boardFilters.hideBlockers} clearedOnly={boardFilters.clearedOnly} holdsClearance={holdsClearance(profile)} />
                 <OpenToChangersFilter surface="find_my_job" on={appliedOpenFilter} count={appliedOpenFilter ? board.openTotal : null} />
