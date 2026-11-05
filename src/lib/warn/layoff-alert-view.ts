@@ -50,7 +50,7 @@ export async function layoffAlertView(noticeId: string): Promise<{ employer: str
   const hq = !state || (!company?.industry && !n.industry) ? await inferHq(n.normalizedEmployer) : null
   if (!state && hq?.state) {
     state = hq.state; city = hq.city
-    placeNote = hq.source === 'sec' ? 'company headquarters, from SEC filings' : 'where it has filed WARN notices'
+    placeNote = hq.source === 'sec' ? 'company headquarters, from SEC filings' : 'where it has filed layoff notices'
   }
   const industry = await classifyLayoffIndustry({ employer: n.employer, companyIndustry: company?.industry ?? null, naics: n.industry, sicDescription: hq?.sicDescription ?? null, allowModel: false })
   const picture = await buildLocalPicture({ employer: n.employer, employees: n.employees, state, county: n.county, industryKey: industry?.key ?? null })
@@ -61,7 +61,7 @@ export async function layoffAlertView(noticeId: string): Promise<{ employer: str
     employer: n.employer, division: n.division, employees: n.employees, percent: null, kind, confirmed: kind !== 'news' && (n.source === 'WARN_FILING' || kind === 'sec'),
     inCrm: !!org, people: people.length, warm, contactsFound: 0,
     costs: n,
-    sources: await loadAlertSources(n.id, n.sourceUrl, kind === 'warn' ? 'WARN filing' : kind === 'sec' ? 'SEC 8-K filing' : 'Notice'),
+    sources: await loadAlertSources(n.id, n.sourceUrl, kind === 'warn' ? 'State layoff filing' : kind === 'sec' ? 'SEC 8-K filing' : 'Notice'),
     picture: { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) },
   }
   if (related) {

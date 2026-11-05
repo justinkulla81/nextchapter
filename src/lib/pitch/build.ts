@@ -169,7 +169,7 @@ export function buildDeck(i: BuildInput): Deck {
     // A boxed note on the slide (counsel review, for example) always travels with the deck as a warning too.
     if (r.callout) warnings.push(`${fill(r.title, t)}: ${r.callout}`)
     if (noLayoffData && r.bullets.some((b) => /\{\{layoffs(12|90)\}\}/.test(b))) {
-      warnings.push(`No layoff filings on file for ${t.area}: bullets that cite layoff counts were left out of "${fill(r.title, t)}". State data may be incomplete; add a layoff by hand or check the state's WARN page.`)
+      warnings.push(`No layoff filings on file for ${t.area}: bullets that cite layoff counts were left out of "${fill(r.title, t)}". State data may be incomplete; add a layoff by hand or check the state's layoff notice page.`)
     }
     switch (r.kind) {
       case 'stats': s.facts = statsFor(r, i, t); break

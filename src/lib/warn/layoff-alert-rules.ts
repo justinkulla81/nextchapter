@@ -115,7 +115,7 @@ export function alertSubject(a: AlertInput): string {
 }
 
 const KIND_LABEL: Record<LayoffKind, string> = {
-  news: 'News report', sec: 'SEC 8-K filing', warn: 'WARN filing',
+  news: 'News report', sec: 'SEC 8-K filing', warn: 'State layoff filing',
 }
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -341,7 +341,7 @@ export interface OfficialItem {
   candidate?: string | null
 }
 
-export const officialLabel = (kind: 'warn' | 'sec') => (kind === 'sec' ? 'SEC 8-K filing' : 'state WARN filing')
+export const officialLabel = (kind: 'warn' | 'sec') => (kind === 'sec' ? 'SEC 8-K filing' : 'state layoff filing')
 
 export function officialSubject(items: Pick<OfficialItem, 'employer' | 'kind'>[]): string {
   if (items.length === 1) return `Now official: ${items[0].employer} — ${officialLabel(items[0].kind)}`

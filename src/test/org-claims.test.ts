@@ -85,10 +85,10 @@ const stats = (over: Partial<CommunityStats> = {}): CommunityStats => ({
 
 describe('community stat formatting', () => {
   it('writes one factual sentence for a county', () => {
-    expect(communityStatSentence(stats())).toBe('In Jefferson County, KY, 12 layoff notices covering 1,840 workers were filed in the last six months (state WARN filings).')
+    expect(communityStatSentence(stats())).toBe('In Jefferson County, KY, 12 layoff notices covering 1,840 workers were filed in the last six months (state layoff filings).')
   })
   it('names the state when the figures are statewide, and handles singulars', () => {
-    expect(communityStatSentence(stats({ scope: 'state', warn: { notices: 1, workers: 1, employers: 1 } }))).toBe('In Kentucky, 1 layoff notice covering 1 worker was filed in the last six months (state WARN filings).')
+    expect(communityStatSentence(stats({ scope: 'state', warn: { notices: 1, workers: 1, employers: 1 } }))).toBe('In Kentucky, 1 layoff notice covering 1 worker was filed in the last six months (state layoff filings).')
   })
   it('is empty, never zero or invented, when there is no figure', () => {
     expect(communityStatSentence(null)).toBe('')

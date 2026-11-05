@@ -49,7 +49,7 @@ export default function NewsletterWeeklyEmail({
         {layoffs && layoffsUrl && (
           <>
             <Lead>
-              <strong>Layoffs this week:</strong> {layoffs.notices.toLocaleString('en-US')} WARN notices in {layoffs.states.toLocaleString('en-US')} {layoffs.states === 1 ? 'state' : 'states'}
+              <strong>Layoffs this week:</strong> {layoffs.notices.toLocaleString('en-US')} layoff notices in {layoffs.states.toLocaleString('en-US')} {layoffs.states === 1 ? 'state' : 'states'}
               {layoffs.workers > 0 ? `, naming ${layoffs.workers.toLocaleString('en-US')} workers` : ''}. The largest:
             </Lead>
             <ul style={{ textAlign: 'left', margin: '0 0 16px', paddingLeft: 20 }}>

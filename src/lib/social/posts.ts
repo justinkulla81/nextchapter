@@ -97,7 +97,7 @@ export function filingPostText(f: FilingForPost, utm: string, shortLinks = true)
   const workers = f.workers ? `, naming ${n(f.workers)} workers` : ''
   const link = `${SITE_URL}${f.path}?${utm}`
   const tail = ` What was filed and what to do if you are affected: ${link}`
-  const head = (name: string) => `${name} filed a WARN layoff notice${where} on ${day(f.date)}${workers}.`
+  const head = (name: string) => `${name} filed a layoff notice${where} on ${day(f.date)}${workers}.`
   const budget = textBudget(link, shortLinks)
   const fit = (name: string) => head(name === f.employer ? name : `${name}…`) + tail
   let name = f.employer
@@ -290,7 +290,7 @@ export function joltsPost(d: JoltsData, utm: string, shortLinks = true): SocialP
   const link = `${SITE_URL}/layoffs?${utm}`
   const now = million(d.layoffs)
   const before = `${monthName(d.prevMonth)}: ${million(d.prevLayoffs)}`
-  const text = `BLS JOLTS for ${monthName(d.month)} ${d.month.year}: ${million(d.openings)} job openings and ${now} layoffs and discharges (${before}). All industries. Compared with WARN layoff notices: ${link}`
+  const text = `BLS JOLTS for ${monthName(d.month)} ${d.month.year}: ${million(d.openings)} job openings and ${now} layoffs and discharges (${before}). All industries. Compared with layoff notices: ${link}`
   if (text.length > textBudget(link, shortLinks)) {
     return { key: `bls-jolts-${monthKey(d.month)}`, text: `BLS JOLTS, ${monthName(d.month)}: ${million(d.openings)} openings, ${now} layoffs (${before}). All industries. ${link}` }
   }

@@ -59,7 +59,7 @@ async function sinceItems(since: Date): Promise<string[]> {
   const items: string[] = []
   if (warn._count._all > 0) {
     const people = warn._sum.employees ?? 0
-    items.push(`<li>${fmt(warn._count._all)} new layoff ${warn._count._all === 1 ? 'filing' : 'filings'}${people > 0 ? ` covering ${fmt(people)} workers` : ''} in the WARN data we track.</li>`)
+    items.push(`<li>${fmt(warn._count._all)} new layoff ${warn._count._all === 1 ? 'filing' : 'filings'}${people > 0 ? ` covering ${fmt(people)} workers` : ''} in the state layoff data we track.</li>`)
   }
   for (const t of takes) {
     items.push(`<li><a href="${appUrl()}/news/${encodeURIComponent(t.newsSlug!)}">${escapeHtml(t.newsTitle ?? 'Our latest take')}</a></li>`)

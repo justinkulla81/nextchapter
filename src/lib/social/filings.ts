@@ -86,7 +86,7 @@ export async function loadLayoffQueue(now: Date): Promise<LayoffItem[]> {
       ...(row.employees ? [row.kind === 'filing' ? `Workers named in the notice: ${n(row.employees)}` : `Workers affected, as reported: ${n(row.employees)}`] : []),
       ...(sourcing.percent ? [`Share of staff: ${sourcing.percent}% (a share of staff, not a headcount)`] : []),
       row.kind === 'filing'
-        ? `Source: a WARN layoff notice${where ? ` filed with ${where}` : ' filed with a state'} on ${day(date)}`
+        ? `Source: a layoff notice${where ? ` filed with ${where}` : ' filed with a state'} on ${day(date)}`
         : `Source: ${sourcing.basis === 'sec' ? 'an SEC filing' : 'multiple news reports'}`,
       'Say nothing about how many people lose jobs beyond the figures above',
     ]
