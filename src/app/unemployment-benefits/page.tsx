@@ -120,7 +120,7 @@ export default function UnemploymentBenefitsHub() {
         )}
         <p className="mt-3 max-w-3xl text-sm text-muted-foreground">
           Recently laid off? Start with <Link href="/start/laid-off" className={LINK}>what to do after a layoff</Link> and check the{' '}
-          <Link href="/layoffs" className={LINK}>layoff tracker</Link> for WARN notices in your state.
+          <Link href="/layoffs" className={LINK}>layoff tracker</Link> for layoff notices in your state.
         </p>
       </main>
       <PublicSiteFooter page="benefits" cta={false} />
