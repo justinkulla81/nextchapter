@@ -1,6 +1,10 @@
 import { PreviewShell } from '@/components/candidate/PreviewShell'
 import { Module } from '@/components/candidate/Module'
 import { HomeNote } from '@/components/candidate/HomeNote'
+import { Squiggle } from '@/components/ui/squiggle'
+import { FocusNumber } from '@/components/candidate/FocusNumber'
+import { handwritingUrl } from '@/lib/email/handwriting'
+import { checkinNoteText } from '@/lib/email/margin-note-text'
 
 // Home, shortened to the page contract (docs/candidate-redesign.md): one headline, one next step, and three
 // sections at most on the first view. Everything that used to stack above Jobs, Network and Learn (program cards,
@@ -17,15 +21,23 @@ const NEEDS_YOU: [string, string, string][] = [
   ['Northwind asked for your portfolio', 'Review the request', '#'],
 ]
 
-export function HomeTodayShort({ pending = true }: { pending?: boolean }) {
+// paper: phase 3 of the design-elements rollout. The note is on warm paper with a handwritten aside and Victoria's signature,
+// and the minutes line leaves the eyebrow for a pale number box. It adds no card (the note and the minutes were already here).
+export function HomeTodayShort({ pending = true, paper = false }: { pending?: boolean; paper?: boolean }) {
+  const noteText = checkinNoteText(105, 150)
+  const aside = paper ? { src: handwritingUrl('', noteText), text: noteText } : null
   return (
     <PreviewShell place="home" entry="today">
       <header className="space-y-1.5">
-        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Good morning, Maya · Week 3 · 105 of 150 minutes this week</p>
+        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Good morning, Maya · Week 3{paper ? '' : ' · 105 of 150 minutes this week'}</p>
         <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink text-balance sm:text-4xl">The right role, fast.</h1>
+        {paper && <Squiggle className="mt-1" />}
       </header>
+      {paper && <FocusNumber done={105} target={150} />}
 
       <HomeNote
+        variant={paper ? 'paper' : 'card'}
+        aside={aside}
         title="Tell 5 more people what you’re looking for."
         why="Most roles are filled through a person, not a posting. You said networking is uncomfortable, so this is the one step that moves your search most."
         startLabel="Start"
@@ -95,3 +107,4 @@ export function HomeTodayShort({ pending = true }: { pending?: boolean }) {
 }
 
 export const HomeTodayShortQuiet = () => <HomeTodayShort pending={false} />
+export const HomeTodayPaper = () => <HomeTodayShort paper />
