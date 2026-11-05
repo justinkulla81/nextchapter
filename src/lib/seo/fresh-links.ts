@@ -17,7 +17,7 @@ import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_OFFERED_SQL, PUBLIC_JOB_STATIC_SQL } fr
 export interface FreshLink {
   label: string
   href: string
-  kind: 'layoff' | 'job' | 'search' | 'tool' | 'ranking'
+  kind: 'layoff' | 'job' | 'search' | 'tool' | 'ranking' | 'report'
   key: string
 }
 
