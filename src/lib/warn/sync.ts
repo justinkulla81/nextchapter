@@ -297,6 +297,9 @@ async function promoteNotice(row: WarnRow, sourceUrl: string, orgs?: OrgIndex): 
   const all = orgs ?? await prisma.crmOrganization.findMany({ select: { id: true, name: true, orgTypes: true, goals: true } })
   const match = all.find((o) => strictOrgKey(o.name, normalizeOrgName) === strict)
 
+  // A layoff the owner or the news filed is an announcement, not a state WARN filing, and the CRM text must not say it was filed.
+  const announced = notice.source === 'MANUAL_ANNOUNCEMENT' || /layoffs\.fyi/i.test(sourceUrl)
+
   const org = match
     ? await prisma.crmOrganization.update({
         where: { id: match.id },
@@ -325,7 +328,7 @@ async function promoteNotice(row: WarnRow, sourceUrl: string, orgs?: OrgIndex): 
     create: {
       orgId: org.id, headcountAffected: row.employees,
       announcedAt: row.noticeDate, sourceUrl,
-      outreachAngle: `WARN filing${notice.division ? ` (${notice.division} division)` : ''}${row.effectiveDate ? `, effective ${row.effectiveDate.toISOString().slice(0, 10)}` : ''}${row.layoffType ? ` — ${row.layoffType}` : ''}`,
+      outreachAngle: `${announced ? 'Press report, no WARN filing' : 'WARN filing'}${notice.division ? ` (${notice.division} division)` : ''}${row.effectiveDate ? `, effective ${row.effectiveDate.toISOString().slice(0, 10)}` : ''}${row.layoffType ? ` — ${row.layoffType}` : ''}`,
     },
     update: {
       headcountAffected: row.employees ?? undefined,
@@ -359,7 +362,7 @@ async function promoteNotice(row: WarnRow, sourceUrl: string, orgs?: OrgIndex): 
           title: `${row.employer}${notice.division ? ` (${notice.division})` : ''} — ${row.employees ?? '?'} roles`,
           leadQuality: (row.employees ?? 0) >= 200 ? 'A' : 'B',
           eligibility: 'NOT_APPLICABLE',
-          nextStep: `WARN filed ${row.noticeDate?.toISOString().slice(0, 10) ?? 'recently'}${notice.division ? `, ${notice.division} division` : ''}${row.county ? ` in ${row.county}` : ''}. Find the CHRO or VP People.`,
+          nextStep: `${announced ? 'Layoff announced' : 'WARN filed'} ${row.noticeDate?.toISOString().slice(0, 10) ?? 'recently'}${notice.division ? `, ${notice.division} division` : ''}${row.county ? ` in ${row.county}` : ''}. Find the CHRO or VP People.`,
         },
       })
     }
