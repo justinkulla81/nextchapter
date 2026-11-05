@@ -53,6 +53,7 @@ const BY_PREFIX: Record<string, PullCopy> = {
   '/tools/resume-check': copy('Is your résumé getting ignored?', 'See how recruiters read your background, then get every open job ranked for you.', 'Show me how I read'),
   '/tools/resume-job-match': copy('Is your résumé getting ignored?', 'See how recruiters read your background, then get every open job ranked for you.', 'Show me how I read'),
   '/resources/severance-pay': LAID_OFF_COPY,
+  '/resources/linkedin-profile': copy('Is your profile getting you calls?', 'See how recruiters read your background, then get every open job ranked for you.', 'Show me how I read'),
   '/resources/cobra-aca': LAID_OFF_COPY,
   '/resources/unemployed': LAID_OFF_COPY,
   '/topics/severance': LAID_OFF_COPY,
