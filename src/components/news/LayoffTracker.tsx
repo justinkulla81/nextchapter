@@ -99,7 +99,7 @@ export function LayoffTracker({ data, national, headingLevel = 'h2', afterStats 
         creator: { '@type': 'Organization', name: 'NextChapter', url: SITE },
         isAccessibleForFree: true,
         spatialCoverage: 'United States',
-        keywords: ['layoffs', 'WARN notices', 'WARN Act', 'mass layoffs', 'plant closings'],
+        keywords: ['layoffs', 'layoff notices', 'mass layoffs', 'plant closings'],
       }} />
 
       <Heading id="layoff-tracker-heading" className="text-3xl font-bold tracking-tight text-navy">Layoff tracker</Heading>
