@@ -32,7 +32,7 @@ import { FindJobDetail } from '@/components/dashboard/find/FindJobDetail'
 
 export const metadata: Metadata = { title: 'Job' }
 
-const SOURCES = new Set(['my_jobs', 'email', 'job_search_daily', 'fresh_job_alert', 'saved_link', 'board', 'company', 'closed_on_click', 'public_page', 'alert'])
+const SOURCES = new Set(['my_jobs', 'email', 'job_search_daily', 'fresh_job_alert', 'saved_link', 'board', 'company', 'closed_on_click', 'public_page', 'check_fit', 'alert'])
 
 export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ src?: string }> }) {
   const [{ id }, { src }] = await Promise.all([params, searchParams])
