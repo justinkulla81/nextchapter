@@ -10,7 +10,7 @@ import { posthog } from '@/lib/posthog/client'
 import { PUBLIC_NAV, type PublicNavMenu } from '@/lib/nav/public-nav'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { NAV_CTA_LABEL, useNavCtaVariant } from '@/lib/ab/nav-cta'
-import { getNavSession, type NavSession } from '@/lib/nav/nav-session-action'
+import { useNavSession } from '@/lib/nav/use-nav-session'
 
 const TOP = 'inline-flex items-center gap-1 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground'
 
@@ -53,14 +53,7 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
   const assigned = useNavCtaVariant()
   const ctaVariant = assigned ?? 'control'
   // Public pages are cached for everyone, so who is signed in is asked for in the browser.
-  const [session, setSession] = useState<NavSession | null>(null)
-  useEffect(() => {
-    let live = true
-    getNavSession().then((s) => live && setSession(s))
-    return () => {
-      live = false
-    }
-  }, [])
+  const session = useNavSession()
   const signedIn = !!session?.signedIn
   const accountHref = session?.signedIn ? '/dashboard' : '/auth/login'
   const accountLabel = session?.signedIn ? (session.firstName ? `Hi, ${session.firstName}` : 'My account') : 'Log in'

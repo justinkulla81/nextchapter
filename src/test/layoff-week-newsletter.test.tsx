@@ -35,9 +35,9 @@ describe('layoffs this week newsletter block', () => {
     const base = { introCopy: null, articleTitle: 'T', articleUrl: 'https://x.test/a', articleSummary: null, newsUrl: 'https://x.test/news', signupUrl: 'https://x.test/s', unsubscribeUrl: 'https://x.test/u' }
     const brief = { notices: 12, workers: 3400, states: 5, top: [{ name: 'Big Co', workers: 900, state: 'Texas' }] }
     const withBlock = renderToStaticMarkup(NewsletterWeeklyEmail({ ...base, layoffs: brief, layoffsUrl: 'https://x.test/layoffs/this-week' }))
-    expect(withBlock).toContain('Layoffs this week')
+    expect(withBlock).toContain('12 layoff notices')
     expect(withBlock).toContain('Big Co')
     expect(withBlock).toContain('https://x.test/layoffs/this-week')
-    expect(renderToStaticMarkup(NewsletterWeeklyEmail({ ...base, layoffs: null }))).not.toContain('Layoffs this week')
+    expect(renderToStaticMarkup(NewsletterWeeklyEmail({ ...base, layoffs: null }))).not.toContain('layoff notices')
   })
 })

@@ -9,6 +9,7 @@ import { pausedPrefixes } from '@/lib/paused-pages'
 import { HOME_AB_COOKIE, HOME_AB_MAX_AGE_SECONDS, HOME_AB_VARIANT_PATH, decideHomeVariant } from '@/lib/home-ab'
 import { portalJobPath } from '@/lib/jobs/portal-job-redirect'
 import { markerDomain, memberStatus, MEMBER_MARKER_COOKIE, MEMBER_MARKER_MAX_AGE_SECONDS } from '@/lib/auth/member-marker'
+import { FIT_JOB_COOKIE, FIT_JOB_MAX_AGE_SECONDS, fitJobFromSearch } from '@/lib/jobs/fit-job-cookie'
 import { SERVER_COOKIES_SECURE } from '@/lib/supabase/cookie-options'
 import { MAIN_SITE_SEGMENTS, ORG_SUBDOMAINS_ON, mainOrigin, orgKindForHost, orgOrigin } from '@/lib/org-hosts'
 
@@ -128,7 +129,13 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     return serveHomepageTest(request)
   }
 
-  return markMember(await updateSession(request), request)
+  const response = markMember(await updateSession(request), request)
+  // "Check my fit" from a public job page: remember the job, so a duplicate-account stop later in onboarding can log the member back into it.
+  if (pathname === '/onboarding/desire' && request.method === 'GET') {
+    const fitJob = fitJobFromSearch(request.nextUrl.search)
+    if (fitJob) response.cookies.set(FIT_JOB_COOKIE, fitJob, { path: '/', maxAge: FIT_JOB_MAX_AGE_SECONDS, sameSite: 'lax', secure: SERVER_COOKIES_SECURE, httpOnly: true })
+  }
+  return response
 }
 
 // A member's browser gets the marker once their session is seen (not for partner portal sessions, not when it is already set).

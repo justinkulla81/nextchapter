@@ -5,11 +5,11 @@ import { subscribeToNewsletter, type NewsletterState } from '@/lib/newsletter/ac
 
 type NewsletterSource =
   | 'home' | 'how-it-works' | 'why-stuck' | 'news' | 'resources'
-  | 'employment-report' | 'employment-report-popup' | 'employment-report-pdf' | 'site-footer' | 'salaries' | 'places' | 'rankings' | 'ai-pay-premium' | 'pay-data'
+  | 'employment-report' | 'employment-report-popup' | 'employment-report-pdf' | 'site-footer' | 'salaries' | 'places' | 'rankings' | 'ai-pay-premium' | 'pay-data' | 'linkedin-guide'
 
-type Variant = 'default' | 'report' | 'compact' | 'inline'
+type Variant = 'default' | 'report' | 'tips' | 'compact' | 'inline'
 
-const COPY: Record<'default' | 'report', { heading: string; body: string; cta: string }> = {
+const COPY: Record<'default' | 'report' | 'tips', { heading: string; body: string; cta: string }> = {
   default: {
     heading: 'The job market, once a week',
     body:
@@ -21,6 +21,12 @@ const COPY: Record<'default' | 'report', { heading: string; body: string; cta: s
     body:
       'New data on white-collar employment, hiring and job searches, and the White-Collar Long-Search Index, the week the jobs report comes out — plus the Tuesday email on the search. Free, no account, unsubscribe any time.',
     cta: 'Get the report monthly',
+  },
+  tips: {
+    heading: 'Want one tip like this every Tuesday?',
+    body:
+      'A short, practical tip for your search from NextChapter, with the week’s most useful read on the job market. No account needed. Unsubscribe any time.',
+    cta: 'Send me the Tuesday tip',
   },
 }
 

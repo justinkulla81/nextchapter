@@ -49,6 +49,7 @@ export async function sendMarketDigestCandidateEmail(
       nuggetTitle: nugget?.title ?? null,
       nuggetUrl: nugget ? digestClickUrl('candidate', candidate.id, nugget.id) : null,
       nuggetSummary: nugget?.summary ?? null,
+      nuggetIsTip: !!nugget && nugget.url.startsWith('https://launchyournextchapter.com/'),
       aiMarketText,
       dashboardUrl,
       unsubscribeUrl,
