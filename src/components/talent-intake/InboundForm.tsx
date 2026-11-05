@@ -147,8 +147,8 @@ export function InboundForm({
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex items-center justify-center px-7 py-3.5 text-sm font-semibold uppercase disabled:cursor-wait"
-        style={{ background: accent, color: onAccent, letterSpacing: '.1em', cursor: pending ? 'wait' : 'pointer' }}
+        className="inline-flex items-center justify-center px-7 py-3.5 w-full text-sm font-semibold disabled:cursor-wait"
+        style={{ background: accent, color: onAccent, cursor: pending ? 'wait' : 'pointer' }}
       >
         {pending ? 'Sending…' : notFit ? 'Send my résumé' : `Send my résumé to ${firmName}`}
       </button>
