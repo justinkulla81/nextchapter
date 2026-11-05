@@ -4,6 +4,7 @@ import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { LayoffNumbersNote } from '@/components/layoffs/LayoffNumbersNote'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { BetweenJobsLine } from '@/components/layoffs/BetweenJobsLine'
 import { pageMetadata } from '@/lib/seo/keywords'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { getStateSummaries, noticeDay } from '@/lib/warn/layoff-pages'
@@ -89,6 +90,8 @@ export default async function WarnNoticesByStatePage() {
       </section>
 
       <LayoffNumbersNote counts={counts} className="mt-12 rounded-xl border border-border bg-white p-6" />
+
+      <BetweenJobsLine page="by_state" className="mt-8" />
 
       <section aria-labelledby="cite" className="mt-12 rounded-xl border border-border bg-white p-6">
         <h2 id="cite" className="text-xl font-semibold tracking-tight text-navy">Use and cite this data</h2>

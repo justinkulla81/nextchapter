@@ -177,6 +177,7 @@ export default async function Layoffs2026Page() {
               <li><Link href="/data" className={LINK}>Download the layoff record</Link> as CSV or JSON</li>
               <li><FeedLine feed="/feeds/layoffs" label="Get new layoff notices by RSS" /></li>
               <li><Link href="/start/laid-off" className={LINK}>Laid off? Start here</Link></li>
+              <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits and severance rules by state</Link></li>
             </ul>
           </section>
           <div className="mt-10"><LayoffAlertForm source="layoffs:2026" /></div>
