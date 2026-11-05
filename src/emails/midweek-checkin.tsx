@@ -1,4 +1,4 @@
-import { Button, Card, CardEmail, CardGap, Headline, INK, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
+import { Button, Card, CardEmail, CardGap, Headline, INK, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
 
 interface WeeklyRecap {
   pointsEarned: number
@@ -80,7 +80,7 @@ export default function MidweekCheckinEmail({
               <p style={taskBox}>{resetTask}</p>
             </div>
           )}
-          <Lead>Five minutes, then you&apos;re back in motion. I&apos;ll be here. — {victoriaName}</Lead>
+          <Lead>Five minutes, then you&apos;re back in motion. I&apos;ll be here.</Lead>
         </>
       ) : bullets ? (
         <div style={{ textAlign: 'left' }}>
@@ -103,6 +103,7 @@ export default function MidweekCheckinEmail({
             You&apos;re at {gap.weeklyPoints} of {gap.weeklyPointsTarget} points — {gap.pointsToGo} to go to lock in an A this week.
           </p>
         )}
+        <Signoff name={victoriaName} align="center" />
       </Card>
 
       {weeklyRecap && (
