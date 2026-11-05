@@ -175,6 +175,9 @@ const nextConfig: NextConfig = {
         destination: '/layoffs/2026',
         permanent: true,
       })),
+      // 2026-11-04, owner: /after-a-layoff goes to the layoff tracker. Temporary, so the paid-search page and its test
+      // (src/app/after-a-layoff, src/lib/after-layoff-ab.ts) can come back. Config redirects run before the proxy's A/B rewrite.
+      { source: '/after-a-layoff', destination: '/layoffs', permanent: false },
       // redirect-non-candidate.ts sends contest employers here after sign-in; the address has no page of its own.
       { source: '/noexperience/employers', destination: '/noexperience/employers/contests', permanent: false },
       // Retired 2026-10-23: the website shows plans, not prices.
