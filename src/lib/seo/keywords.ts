@@ -762,6 +762,27 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'layoff-data-reporters',
+    intent: 'Get monthly layoff statistics to quote',
+    owner: '/press/layoffs',
+    kind: 'page',
+    primary: 'layoff data for reporters',
+    secondary: ['layoff statistics for journalists', 'monthly layoff report', 'layoff statistics by month', 'layoff data to cite'],
+    seo: {
+      title: 'Layoff Data for Reporters: Monthly Release',
+      description: 'A monthly release of U.S. layoff notices for reporters: findings, change from last month and last year, state and employer tables, a CSV and the method.',
+      h1: 'Layoff data for reporters',
+    },
+  },
+  {
+    id: 'layoff-release-month',
+    intent: 'Quote one month of U.S. layoff notices',
+    owner: '/press/layoffs/:month',
+    kind: 'family',
+    primary: '{month} {year} layoff report',
+    secondary: ['{month} {year} layoff statistics', '{month} {year} layoff data', 'how many layoffs in {month} {year}'],
+  },
+  {
     id: 'feeds',
     intent: 'Subscribe to layoff notices by RSS',
     owner: '/feeds',

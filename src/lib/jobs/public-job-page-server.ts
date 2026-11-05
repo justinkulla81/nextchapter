@@ -196,3 +196,48 @@ export async function publicJobRowsByIds(ids: string[]): Promise<PublicJobRow[]>
   const now = Date.now()
   return rows.filter((r) => isPublicJob(r, now))
 }
+
+export interface SimilarJob {
+  id: string
+  title: string
+  locationCity: string | null
+  locationState: string | null
+}
+
+/**
+ * Other open roles at the same employer, for the "More roles at this employer" links on a public job page. Same rules as the
+ * sitemap (an indexable, live, employer-system listing), so a link never points at a page that is kept out of search.
+ * Filtered on companyId (indexed), so it reads only that employer's rows. A failed read returns an empty list.
+ */
+export async function similarJobsAtCompany(companyId: string | null | undefined, excludeId: string, limit = 6): Promise<SimilarJob[]> {
+  if (!companyId) return []
+  try {
+    const rows = await prisma.$queryRaw<SimilarJob[]>`
+      SELECT id, title, "locationCity", "locationState" FROM "ExclusiveJobPosting"
+      WHERE "companyId" = ${companyId}
+        AND id <> ${excludeId}
+        AND ${PUBLIC_JOB_STATIC_SQL}
+        AND ${PUBLIC_JOB_SEARCH_SQL}
+        AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
+        AND ${PUBLIC_JOB_LIVE_SQL}
+      ORDER BY "lastVerifiedAt" DESC
+      LIMIT ${limit * 3}`
+    return pickSimilarJobs(rows, limit)
+  } catch {
+    return []
+  }
+}
+
+/** One link per distinct title and place, so a company that posts the same role in ten offices does not fill the block. */
+export function pickSimilarJobs(rows: SimilarJob[], limit: number): SimilarJob[] {
+  const seen = new Set<string>()
+  const out: SimilarJob[] = []
+  for (const r of rows) {
+    const key = `${r.title.trim().toLowerCase()}|${r.locationCity ?? ''}|${r.locationState ?? ''}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(r)
+    if (out.length >= limit) break
+  }
+  return out
+}

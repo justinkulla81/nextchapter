@@ -62,7 +62,7 @@ export const NICHES: Niche[] = [
     categories: ['outplacement', 'job_transition'],
     audience: 'employers',
     primary: 'outplacement companies',
-    secondary: ['outplacement firms', 'list of outplacement providers', 'outplacement companies directory', 'career transition services companies', 'outplacement vendors list'],
+    secondary: ['outplacement firms', 'list of outplacement providers', 'outplacement companies directory', 'job transition services companies', 'outplacement vendors list'],
     title: 'Outplacement Companies: A Directory and Checklist',
     description: 'A directory of outplacement and career transition firms, with what outplacement includes and the questions an employer should ask before choosing one.',
     h1: 'Outplacement companies',
