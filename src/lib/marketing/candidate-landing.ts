@@ -24,8 +24,6 @@ export interface LandingContent {
   ctaNote: string
   tiles: LandingTile[]
   faq: { q: string; a: string }[]
-  /** After-a-layoff pages show the state picker and the clocks; the long-search page shows the long-search figure. */
-  extras: 'clocks' | 'long_search'
 }
 
 const NO_RESUME = 'No résumé. No account to start.'
@@ -53,19 +51,7 @@ export const STILL_SEARCHING: LandingContent = {
     { q: 'Do I need a résumé?', a: 'No. You can start without a résumé and without an account.' },
     { q: 'Is it free?', a: 'Yes. NextChapter is free for Members, always.' },
   ],
-  extras: 'long_search',
 }
-
-/** What to do when you lose a job, in the order the clocks start. The same four lines as the state unemployment pages. */
-export const LAYOFF_CLOCKS: LandingTile[] = [
-  { title: 'This week: file for unemployment', body: 'Most states pay only from the week you file, even if you got severance.' },
-  {
-    title: 'Before you sign a severance agreement',
-    body: 'If you are 40 or older, a release of age-discrimination claims must give you at least 21 days to consider it (45 days if it is part of a group layoff program) and 7 days to change your mind after you sign.',
-  },
-  { title: 'Within 60 days: choose health coverage', body: 'You have 60 days to elect COBRA and 60 days to join a Marketplace plan.' },
-  { title: 'Check whether you were owed notice', body: 'Employers with 100 or more employees must give 60 days’ written notice of a plant closing or mass layoff.' },
-]
 
 /** The long-search figure: the same one and the same source as https://launchyournextchapter.com/why-stuck. */
 export const LONG_SEARCH_FIGURE = {

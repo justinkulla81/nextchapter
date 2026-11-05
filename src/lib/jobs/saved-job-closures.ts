@@ -42,7 +42,7 @@ export async function findNewClosures(): Promise<Closure[]> {
     FROM "TrackedJob" t
     JOIN "ExclusiveJobPosting" p ON p.id = t."sourceId"
     WHERE t."source" = 'job_board' AND t."savedAt" IS NOT NULL AND t."dismissedAt" IS NULL
-      AND p."archivedAt" IS NOT NULL AND p."archivedAt" > now() - make_interval(days => ${LOOKBACK_DAYS})
+      AND p."archivedAt" IS NOT NULL AND p."archivedAt" > now() - make_interval(days => ${LOOKBACK_DAYS}::int)
       AND p."closeReason" IN (${Prisma.join([...CLOSURE_REASONS])})
       AND NOT EXISTS (SELECT 1 FROM "SavedJobClosureNotice" n WHERE n."candidateId" = t."candidateId" AND n."jobId" = p.id)
     ORDER BY p."archivedAt" DESC

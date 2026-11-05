@@ -1,13 +1,12 @@
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
-import { LAYOFF_CLOCKS, LONG_SEARCH_FIGURE, type LandingContent } from '@/lib/marketing/candidate-landing'
+import { LONG_SEARCH_FIGURE, type LandingContent } from '@/lib/marketing/candidate-landing'
 import { FOUNDER_LINE } from '@/lib/marketing/founder-line'
 import { LandingCta } from './LandingCta'
 import { LandingTracker } from './LandingTracker'
-import { StatePicker } from './StatePicker'
 
 // The page for an ad click from a candidate. One headline, one button, nothing else to click: the header is the logo
-// alone and the footer is two links. Below the hero: what the visitor gets, the state picker or the long-search figure,
+// alone and the footer is two links. Below the hero: what the visitor gets, the long-search figure,
 // the questions, and the same button again. docs/candidate-redesign.md governs the app; this is a public page, so the
 // first view is the hero and every section below says what it holds.
 
@@ -58,39 +57,18 @@ export function CandidateLanding({ c }: { c: LandingContent }) {
           </ul>
         </Section>
 
-        {c.extras === 'clocks' ? (
-          <>
-            <Section id="your-state" title="Start with your state’s rules">
-              <p className="mb-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
-                The weekly amount, how many weeks, how to file and how severance counts, with sources and dates.
-              </p>
-              <StatePicker page={c.page} variant={c.variant} />
-            </Section>
-            <Section id="clocks" title="The clocks that start when you lose a job">
-              <ol className="grid gap-4 md:grid-cols-2">
-                {LAYOFF_CLOCKS.map((t) => (
-                  <li key={t.title} className="rounded-2xl border border-border p-5">
-                    <p className="text-base font-semibold text-ink">{t.title}</p>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t.body}</p>
-                  </li>
-                ))}
-              </ol>
-            </Section>
-          </>
-        ) : (
-          <Section id="not-imagining-it" title="You are not imagining it">
-            <div className="rounded-2xl border border-border p-6">
-              <p className="font-display text-5xl font-semibold text-ink">{LONG_SEARCH_FIGURE.value}</p>
-              <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink">{LONG_SEARCH_FIGURE.text}</p>
-              <p className="mt-2 text-sm text-muted-foreground">Source: {LONG_SEARCH_FIGURE.source}</p>
-              <p className="mt-4">
-                <Link href="/why-stuck" className="text-sm font-semibold text-brand underline underline-offset-4">
-                  Read why a search stalls
-                </Link>
-              </p>
-            </div>
-          </Section>
-        )}
+        <Section id="not-imagining-it" title="You are not imagining it">
+          <div className="rounded-2xl border border-border p-6">
+            <p className="font-display text-5xl font-semibold text-ink">{LONG_SEARCH_FIGURE.value}</p>
+            <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink">{LONG_SEARCH_FIGURE.text}</p>
+            <p className="mt-2 text-sm text-muted-foreground">Source: {LONG_SEARCH_FIGURE.source}</p>
+            <p className="mt-4">
+              <Link href="/why-stuck" className="text-sm font-semibold text-brand underline underline-offset-4">
+                Read why a search stalls
+              </Link>
+            </p>
+          </div>
+        </Section>
 
         <Section id="questions" title="Questions">
           <dl className="space-y-5">
