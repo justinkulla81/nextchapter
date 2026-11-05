@@ -138,6 +138,18 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
               </>
             )}
             {!problem && <SaveSearchForm q={query.q} loc={query.loc} remote={query.remote} />}
+            <p className="text-sm text-muted-foreground">
+              Between jobs?{' '}
+              <TrackedLink
+                href="/unemployment-benefits"
+                event="jobs_index_unemployment_link_clicked"
+                properties={{ searched: !!searched, q: query.q, loc: query.loc, remote: query.remote }}
+                className="text-brand underline underline-offset-4"
+              >
+                Unemployment benefits and severance rules by state
+              </TrackedLink>
+              .
+            </p>
           </div>
         </div>
       </main>
