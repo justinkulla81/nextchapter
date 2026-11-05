@@ -1,11 +1,10 @@
-// Copy for the paid-search landing pages for candidates (Google Ads, campaign 1). Three pages, two audiences:
-//   /after-a-layoff   laid off in the last few weeks. Two versions are tested against each other (src/lib/after-layoff-ab.ts):
-//                     A leads with the plan, B leads with the money. Everything below the opening is identical.
-//   /still-searching  out of work for months. Not part of the test: a different person with a different question.
+// Copy for the paid-search landing page for candidates out of work for months (Google Ads, campaign 1):
+//   /still-searching  out of work for months.
+// (/after-a-layoff was retired 2026-11-05 and redirects to /layoffs.)
 // Every claim here is already on the site (the state unemployment pages, the Market Reality Assessment, the benefits
 // catalog), so nothing is promised that the product does not do. Free for Members is the site's standing line.
 
-export type LandingPageKey = 'after_a_layoff' | 'still_searching'
+export type LandingPageKey = 'still_searching'
 
 export interface LandingTile {
   title: string
@@ -31,40 +30,6 @@ export interface LandingContent {
 
 const NO_RESUME = 'No résumé. No account to start.'
 const FREE_NOTE = 'Free to join. Free for Members, always. About 5 minutes.'
-
-const AFTER_LAYOFF_TILES: LandingTile[] = [
-  { title: 'This week', body: 'File for unemployment in your state, and know what to ask about severance and health coverage.' },
-  { title: 'Money you may be owed', body: 'Health premium help, tuition aid, relocation grants and tax credits, ranked for you.' },
-  { title: 'Jobs worth your time', body: 'Professional roles checked open, with local ones on top.' },
-]
-
-const AFTER_LAYOFF_FAQ: LandingContent['faq'] = [
-  { q: 'Is it free?', a: 'Yes. NextChapter is free for Members, always.' },
-  { q: 'Do I need a résumé?', a: 'No. You can start without a résumé and without an account.' },
-  { q: 'Where do the program amounts come from?', a: 'Each program links to its official page and says when we last checked it against that page.' },
-]
-
-export const AFTER_LAYOFF_A: LandingContent = {
-  page: 'after_a_layoff',
-  variant: 'a',
-  persona: 'laid-off',
-  eyebrow: 'Laid off, or about to be?',
-  headline: 'Laid off? Here is what to do this week, and the money you may be owed.',
-  subhead: `Answer a few questions. Get a plan for unemployment, severance, health coverage and your job search, plus the programs you may qualify for out of more than 3,000 we track. ${NO_RESUME}`,
-  cta: 'Get my layoff plan',
-  ctaNote: FREE_NOTE,
-  tiles: AFTER_LAYOFF_TILES,
-  faq: AFTER_LAYOFF_FAQ,
-  extras: 'clocks',
-}
-
-export const AFTER_LAYOFF_B: LandingContent = {
-  ...AFTER_LAYOFF_A,
-  variant: 'b',
-  headline: 'Find the money you may be owed after a layoff. It takes five minutes.',
-  subhead: `Answer a few questions and see which of more than 3,000 benefit and aid programs you may qualify for, ranked for you. You also get a plan for unemployment, severance, health coverage and your job search. ${NO_RESUME}`,
-  cta: 'See what I qualify for',
-}
 
 export const STILL_SEARCHING: LandingContent = {
   page: 'still_searching',
@@ -110,10 +75,6 @@ export const LONG_SEARCH_FIGURE = {
 }
 
 export const LANDING_SEO: Record<LandingPageKey, { title: string; description: string }> = {
-  after_a_layoff: {
-    title: 'Laid off? What to do this week and the money you may be owed',
-    description: 'A plan for unemployment, severance, health coverage and your job search, plus the benefit and aid programs you may qualify for. Free for Members.',
-  },
   still_searching: {
     title: 'No interviews after months of applying? What is holding your search back',
     description: 'A five-minute assessment shows how hard your search is, which parts you control and what to fix first. Free for Members, no résumé needed.',

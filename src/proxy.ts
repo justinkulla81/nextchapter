@@ -7,7 +7,6 @@ import { CANDIDATE_ORG_PAGES, HOSTS, LEGACY_EMPLOYER_HOST_PREFIX, appPathFor, co
 import { CUSTOMER_SUBDOMAINS_ON, customerSlugForHost } from '@/lib/organizations/front-door'
 import { pausedPrefixes } from '@/lib/paused-pages'
 import { HOME_AB_COOKIE, HOME_AB_MAX_AGE_SECONDS, HOME_AB_VARIANT_PATH, decideHomeVariant } from '@/lib/home-ab'
-import { AFTER_LAYOFF_AB_COOKIE, AFTER_LAYOFF_AB_MAX_AGE_SECONDS, AFTER_LAYOFF_PATH, AFTER_LAYOFF_VARIANT_PATH, decideAfterLayoffVariant } from '@/lib/after-layoff-ab'
 import { portalJobPath } from '@/lib/jobs/portal-job-redirect'
 import { SERVER_COOKIES_SECURE } from '@/lib/supabase/cookie-options'
 import { MAIN_SITE_SEGMENTS, ORG_SUBDOMAINS_ON, mainOrigin, orgKindForHost, orgOrigin } from '@/lib/org-hosts'
@@ -120,36 +119,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     return serveHomepageTest(request)
   }
 
-  // The after-a-layoff test (src/lib/after-layoff-ab.ts): same mechanism as the homepage test, on the paid-search page.
-  if ((MAIN_HOSTS.has(host) || /^localhost(:\d+)?$/.test(host)) && pathname === AFTER_LAYOFF_PATH && (request.method === 'GET' || request.method === 'HEAD')) {
-    return serveAfterLayoffTest(request)
-  }
-
   return updateSession(request)
-}
-
-// Which cached version of /after-a-layoff this visitor gets. A rewrite, so the address and the cache stay as they are.
-// Anyone who is not clearly a signed-out person's browser gets version A and no cookie.
-async function serveAfterLayoffTest(request: NextRequest): Promise<NextResponse> {
-  const hasSession = request.cookies.getAll().some((c) => c.name.startsWith('sb-') && c.name.includes('auth-token'))
-  const { variant, assign } = decideAfterLayoffVariant({
-    cookie: request.cookies.get(AFTER_LAYOFF_AB_COOKIE)?.value,
-    userAgent: request.headers.get('user-agent'),
-    hasSession,
-    random: () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32,
-  })
-  let response: NextResponse
-  if (variant === 'b') {
-    const url = request.nextUrl.clone()
-    url.pathname = AFTER_LAYOFF_VARIANT_PATH
-    response = await updateSession(request, { rewriteTo: url })
-  } else {
-    response = await updateSession(request)
-  }
-  if (assign) {
-    response.cookies.set(AFTER_LAYOFF_AB_COOKIE, variant, { path: '/', maxAge: AFTER_LAYOFF_AB_MAX_AGE_SECONDS, sameSite: 'lax', secure: SERVER_COOKIES_SECURE, httpOnly: true })
-  }
-  return response
 }
 
 // The homepage test (src/lib/home-ab.ts): which cached homepage this visitor gets at "/". The variant is a rewrite, so the
