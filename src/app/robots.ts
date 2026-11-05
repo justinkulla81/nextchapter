@@ -86,7 +86,7 @@ export default function robots(): MetadataRoute.Robots {
       // rate is set in Search Console); Bing and these honor it, which keeps the database free for visitors.
       { userAgent: ['Bytespider', 'Amazonbot', 'CCBot'], crawlDelay: 5, allow: '/', disallow },
     ],
-    // The index lists /sitemap.xml and the other sitemap files; the old job sitemaps answer 410.
+    // The index lists /sitemap.xml and the job sitemaps (/jobs/sitemap/N.xml).
     sitemap: [`${siteUrl}/sitemap-index.xml`, `${siteUrl}/sitemap.xml`],
   }
 }
