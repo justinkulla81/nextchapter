@@ -44,8 +44,9 @@ export default function PrivacyPolicyPage() {
             <li>
               <strong>Information collected automatically:</strong> standard technical data such as
               IP address, browser type, and device information, collected via our hosting
-              infrastructure, and a session cookie used solely to keep you signed in. We do not use
-              advertising or third-party tracking cookies.
+              infrastructure, a session cookie used to keep you signed in, and, once you have an
+              account, a one-year cookie that tells our public pages you are a member so we can
+              take you to your account. We do not use advertising or third-party tracking cookies.
             </li>
           </ul>
         </section>
