@@ -16,7 +16,7 @@ export async function tagNewChroTitles(): Promise<number> {
       SELECT DISTINCT p.id
       FROM "CrmPerson" p
       JOIN "CrmAffiliation" af ON af."personId" = p.id AND af."isCurrent"
-        AND af."createdAt" > now() - make_interval(days => ${WINDOW_DAYS})
+        AND af."createdAt" > now() - make_interval(days => ${WINDOW_DAYS}::int)
       JOIN "CrmOrganization" o ON o.id = af."orgId" AND 'EMPLOYER' = ANY (o."orgTypes"::text[])
       WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL
         AND NOT ('CHRO'::"CrmPersonRole" = ANY (p.roles))
