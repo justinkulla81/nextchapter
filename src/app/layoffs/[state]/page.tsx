@@ -20,6 +20,9 @@ import { getPlaceLinker, getStateCounties, placeUrl } from '@/lib/places/places'
 import { titleMeta } from '@/lib/seo/title'
 import { LAYOFF_TOOL_LINKS, stateHelpLinks } from '@/lib/seo/layoff-links'
 import { PullTop } from '@/components/capture/PullCta'
+import { Squiggle } from '@/components/ui/squiggle'
+import { ShortVersion } from '@/components/ui/short-version'
+import { Highlight } from '@/components/ui/highlight'
 
 export const revalidate = 86400
 
@@ -86,10 +89,11 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
             <span className="text-foreground">{d.name}</span>
           </nav>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{layoffsStateSeo(d.name).h1}</h1>
-          <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
+          <Squiggle className="mt-2" />
+          <ShortVersion className="mt-5 max-w-3xl">
             Employers filed {d.recent.length.toLocaleString()} layoff notices in {d.name} in the last 12 months
-            {workers > 0 ? <>, naming {workers.toLocaleString()} people</> : ''}. The most recent was filed {noticeDay(latest)}.
-          </p>
+            {workers > 0 ? <>, naming <Highlight>{workers.toLocaleString()} people</Highlight></> : ''}. The most recent was filed {noticeDay(latest)}.
+          </ShortVersion>
           <PullTop name={`Layoffs in ${d.name}`} path={`/layoffs/${state}`} />
           {st && <p className="mt-3 text-xs text-muted-foreground">Independent page. Not from or affiliated with {statePhrase(d.code)}.</p>}
 

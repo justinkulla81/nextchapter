@@ -12,6 +12,8 @@ import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { titleMeta } from '@/lib/seo/title'
 import { noticeDay, type PublicNotice } from '@/lib/warn/layoff-pages'
+import { Squiggle } from '@/components/ui/squiggle'
+import { ShortVersion } from '@/components/ui/short-version'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const dynamicParams = true
@@ -80,11 +82,12 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
             <Link href="/layoffs/2026" className="hover:text-foreground">Layoffs {LAYOFF_YEAR}</Link><span aria-hidden> › </span><span className="text-foreground">{name}</span>
           </nav>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{name} {LAYOFF_YEAR} layoffs: {n(notices.length)} layoff notices</h1>
-          <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
-            {notices.length === 0
-              ? `No layoff notices carry a filing date in ${name} ${LAYOFF_YEAR}.`
-              : `Employers filed ${n(notices.length)} layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} people` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}.${prevSlug ? ` ${monthName(i - 1)} had ${n(prev.length)}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${n(Math.abs(diff))}` : ''}.` : ''}`}
-          </p>
+          <Squiggle className="mt-2" />
+          {notices.length === 0 ? (
+            <p className="mt-4 max-w-3xl text-lg text-muted-foreground">{`No layoff notices carry a filing date in ${name} ${LAYOFF_YEAR}.`}</p>
+          ) : (
+            <ShortVersion className="mt-5 max-w-3xl">{`Employers filed ${n(notices.length)} layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} people` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}.${prevSlug ? ` ${monthName(i - 1)} had ${n(prev.length)}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${n(Math.abs(diff))}` : ''}.` : ''}`}</ShortVersion>
+          )}
           <p className="mt-2 text-sm text-muted-foreground">
             {partial ? `${name} is not over, so this count will grow. ` : ''}Counted by the date on each filing; a state can publish a notice later, so a month’s count can grow.
           </p>

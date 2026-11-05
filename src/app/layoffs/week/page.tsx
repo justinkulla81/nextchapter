@@ -7,6 +7,7 @@ import { getWeeks } from '@/lib/layoffs/weekly'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { PullTop } from '@/components/capture/PullCta'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const metadata: Metadata = pageMetadata('/layoffs/week')
@@ -22,6 +23,7 @@ export default async function WeeklyLayoffsIndex() {
       <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-4xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/layoffs/week', 'Layoffs by week: layoff notices')}</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             Every week of layoff notices from the last two years: how many, how many workers, which states and employers. This week is on <Link href="/layoffs/this-week" className={LINK}>layoffs this week</Link>.
           </p>

@@ -29,6 +29,7 @@ export default async function WarnNoticesByStatePage() {
 
   return (
     <SeoPage
+      squiggle
       trail={[{ name: 'Layoff tracker', path: '/layoffs' }, { name: 'Layoff notices by state', path: '/layoffs/by-state' }]}
       h1="Layoff notices by state: what each state’s record shows"
       lede={
