@@ -55,7 +55,7 @@ export default async function WorkforceStatePage({ params }: { params: Promise<{
         <h2 id="picture" className={H2}>{d.name} at a glance</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {d.labor && <Stat value={rateText(d.labor)} label={`unemployment, ${periodLabel(d.labor.period)}`} note="Source: BLS Local Area Unemployment Statistics, counties summed" />}
-          <Stat value={d.layoffs.notices.toLocaleString()} label="WARN layoff notices, last 12 months" note={d.layoffs.workers > 0 ? `naming ${d.layoffs.workers.toLocaleString()} workers` : undefined} />
+          <Stat value={d.layoffs.notices.toLocaleString()} label="Layoff notices, last 12 months" note={d.layoffs.workers > 0 ? `naming ${d.layoffs.workers.toLocaleString()} workers` : undefined} />
           <Stat value={d.centers.length.toLocaleString()} label="American Job Centers" />
           {d.collegeCount > 0 && <Stat value={d.collegeCount.toLocaleString()} label="colleges in the IPEDS directory" note="public and private nonprofit" />}
         </ul>
@@ -113,7 +113,7 @@ export default async function WorkforceStatePage({ params }: { params: Promise<{
 
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> board and job center listings from CareerOneStop (U.S. Department of Labor); unemployment from the Bureau of Labor Statistics;
-        layoff notices from {d.name}’s published WARN record. <Link href={`/places/${state}`} className={LINK}>{d.name} by county and city</Link>. For employers: <Link href={`/rapid-response/${stateSlug(d.code)}`} className={LINK}>rapid response and layoff support in {d.name}</Link>.
+        layoff notices from {d.name}’s published layoff record. <Link href={`/places/${state}`} className={LINK}>{d.name} by county and city</Link>. For employers: <Link href={`/rapid-response/${stateSlug(d.code)}`} className={LINK}>rapid response and layoff support in {d.name}</Link>.
       </p>
     </SeoPage>
   )

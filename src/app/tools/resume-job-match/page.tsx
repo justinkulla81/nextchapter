@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { JobMatch } from '@/components/tools/JobMatch'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 export const metadata: Metadata = pageMetadata('/tools/resume-job-match')
@@ -48,7 +47,6 @@ export default function ResumeJobMatchPage() {
           More: <Link href="/tools/resume-check" className={LINK}>free résumé check</Link>, <Link href="/topics/resume-tips" className={LINK}>résumé tips</Link>, <Link href="/tools/resume-bullet-rewriter" className={LINK}>résumé bullet rewriter</Link> and <Link href="/tools" className={LINK}>all free tools</Link>.
         </p>
       </section>
-      <ActionBand title="Is your résumé getting ignored?" body="See how recruiters read your background, then get every open job ranked for you. Free." label="Show me how I read" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'resume_job_match' }} />
     </SeoPage>
   )
 }

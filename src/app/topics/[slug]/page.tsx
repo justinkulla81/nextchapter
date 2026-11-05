@@ -88,7 +88,7 @@ export default async function TopicPage({ params }: { params: Promise<{ slug: st
           </section>
         )}
       </div>
-      <ActionBand title={t.cta.title} body={t.cta.body} label={t.cta.label} href={t.cta.href} event="topic_page_cta_clicked" properties={{ topic: t.slug, href: t.cta.href }} />
+      {!t.cta.href.startsWith('/onboarding/desire') && <ActionBand title={t.cta.title} body={t.cta.body} label={t.cta.label} href={t.cta.href} event="topic_page_cta_clicked" properties={{ topic: t.slug, href: t.cta.href }} />}
       <RelatedLinks path={path} />
     </SeoPage>
   )

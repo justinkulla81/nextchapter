@@ -29,10 +29,10 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy = DEFAU
   const net = !ask && network && !org ? networkCopy(network.kind, network.name, network.spelled) : null
   const href = org ? '/for-organizations#contact' : `${MARKET_REALITY_START_HREF}&from=top_${slug}`
   return (
-    <section id="get-started" aria-label="Next step" className={cn('mt-8 scroll-mt-6 rounded-3xl bg-navy p-5 text-white sm:p-7', busy && 'cursor-wait')}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+    <section id="get-started" aria-label="Next step" className={cn('mt-4 scroll-mt-6 rounded-3xl bg-navy p-4 text-white sm:p-5', busy && 'cursor-wait')}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
         <div className="max-w-2xl">
-          <h2 className="text-xl font-semibold tracking-tight">{ask && !org ? ask.headline : net ? net.headline : org ? 'Do you run this, hire for it or serve these people?' : copy.headline}</h2>
+          <h2 className="text-lg font-semibold tracking-tight sm:text-xl">{ask && !org ? ask.headline : net ? net.headline : org ? 'Do you run this, hire for it or serve these people?' : copy.headline}</h2>
           <p className="mt-1 text-sm text-white/85">
             {ask && !org
               ? ask.sentence
@@ -42,6 +42,20 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy = DEFAU
                 ? 'Reach experienced job seekers where they already look, with your own page and your own numbers. A short call shows how.'
                 : copy.sentence}
           </p>
+          {extras && (
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-controls="next-step-extras"
+              onClick={() => {
+                if (!open) posthog.capture('next_step_box_expanded', { audience, slug })
+                setOpen(!open)
+              }}
+              className="mt-1 min-h-10 text-sm text-white/85 underline underline-offset-4 hover:text-white"
+            >
+              {open ? 'Close' : 'Not ready? Email me a first-week plan instead.'}
+            </button>
+          )}
         </div>
         {net && network ? (
           <NetworkJoinButton networkKey={network.key} kind={network.kind} name={network.name} onBusy={setBusy} />
@@ -60,25 +74,9 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy = DEFAU
           </TrackedLink>
         )}
       </div>
-      {extras && (
-        <div className="mt-4">
-          <button
-            type="button"
-            aria-expanded={open}
-            aria-controls="next-step-extras"
-            onClick={() => {
-              if (!open) posthog.capture('next_step_box_expanded', { audience, slug })
-              setOpen(!open)
-            }}
-            className="min-h-10 text-sm text-white/85 underline underline-offset-4 hover:text-white"
-          >
-            {open ? 'Close' : 'Not ready? Email me a first-week plan instead.'}
-          </button>
-          {open && (
-            <div id="next-step-extras" className="mt-3 rounded-2xl bg-white p-4 text-foreground sm:p-5">
-              {extras}
-            </div>
-          )}
+      {extras && open && (
+        <div id="next-step-extras" className="mt-3 rounded-2xl bg-white p-4 text-foreground sm:p-5">
+          {extras}
         </div>
       )}
     </section>

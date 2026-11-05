@@ -120,7 +120,7 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
       />
 
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">Sources:</span> WARN notices from {name}’s published record; job counts from our live job board, taken from employers’ own career sites;
+        <span className="font-medium text-foreground">Sources:</span> Layoff notices from {name}’s published record; job counts from our live job board, taken from employers’ own career sites;
         IPEDS for colleges; CareerOneStop for workforce boards and job centers; Census Bureau and BLS for county figures.{' '}
         <TrackedLink href={`/unemployment-benefits/${state}`} event="place_unemployment_link_clicked" properties={{ level: 'city', state: code, city: p.slug }} className={LINK}>
           {name} unemployment benefits and severance rules

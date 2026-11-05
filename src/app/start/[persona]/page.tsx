@@ -57,7 +57,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ person
             <p className="font-medium text-foreground">Practical first steps</p>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
               <li><Link href="/unemployment-benefits" className="text-brand underline underline-offset-4">Unemployment benefits by state: weekly amounts, weeks and how to file</Link></li>
-              <li><Link href="/layoffs" className="text-brand underline underline-offset-4">Layoff tracker: WARN notices by state and employer</Link></li>
+              <li><Link href="/layoffs" className="text-brand underline underline-offset-4">Layoff tracker: layoff notices by state and employer</Link></li>
             </ul>
           </div>
         </div>

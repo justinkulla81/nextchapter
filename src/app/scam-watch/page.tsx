@@ -148,7 +148,7 @@ export default function ScamWatchPage() {
         </section>
       </main>
 
-      <PublicSiteFooter page="scam-watch" />
+      <PublicSiteFooter page="scam-watch" cta={false} />
     </div>
   )
 }

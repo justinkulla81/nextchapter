@@ -316,7 +316,7 @@ export default async function AiSkillsPage() {
           </div>
         </section>
       </main>
-      <PublicSiteFooter page="ai-skills" />
+      <PublicSiteFooter page="ai-skills" cta={false} />
     </div>
   )
 }

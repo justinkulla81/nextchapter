@@ -115,13 +115,8 @@ export default function FundingPage() {
           </dl>
         </section>
 
-        <section className="mt-16 text-center">
-          <TrackedLink href={MARKET_REALITY_START_HREF} event="funding_cta_clicked" properties={{ cta: 'join_for_matches', page: 'funding_bottom' }} className={action}>
-            Join free and see what you qualify for
-          </TrackedLink>
-        </section>
       </main>
-      <PublicSiteFooter page="funding" />
+      <PublicSiteFooter page="funding" cta={false} />
     </div>
   )
 }
