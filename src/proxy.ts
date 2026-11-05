@@ -117,7 +117,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     }
     // Main site: a portal that has its own host now lives there.
     const moved = hostForAppPath(pathname)
-    if (moved) return NextResponse.redirect(`${portalOrigin(moved)}${publicPathFor(moved, pathname)}${request.nextUrl.search}`, 307)
+    if (moved) return rememberFitJob(NextResponse.redirect(`${portalOrigin(moved)}${publicPathFor(moved, pathname)}${request.nextUrl.search}`, 307), request, pathname)
     // The employer portal's own addresses typed on the main site (no page there).
     if (portalHostOn('employer') && /^\/(hiring|growth|learning)(\/|$)/.test(pathname)) {
       return NextResponse.redirect(`${portalOrigin('employer')}${pathname}${request.nextUrl.search}`, 307)
@@ -129,12 +129,14 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     return serveHomepageTest(request)
   }
 
-  const response = markMember(await updateSession(request), request)
-  // "Check my fit" from a public job page: remember the job, so a duplicate-account stop later in onboarding can log the member back into it.
-  if (pathname === '/onboarding/desire' && request.method === 'GET') {
-    const fitJob = fitJobFromSearch(request.nextUrl.search)
-    if (fitJob) response.cookies.set(FIT_JOB_COOKIE, fitJob, { path: '/', maxAge: FIT_JOB_MAX_AGE_SECONDS, sameSite: 'lax', secure: SERVER_COOKIES_SECURE, httpOnly: true })
-  }
+  return markMember(await updateSession(request), request)
+}
+
+// "Check my fit" from a public job page lands on the main site's /onboarding/desire, which moves to the candidate host: keep the job on the
+// whole site's domain, so a duplicate-account stop later in onboarding can log the member back into it (src/lib/jobs/fit-job-cookie.ts).
+function rememberFitJob(response: NextResponse, request: NextRequest, pathname: string): NextResponse {
+  const job = pathname === '/onboarding/desire' ? fitJobFromSearch(request.nextUrl.search) : null
+  if (job) response.cookies.set(FIT_JOB_COOKIE, job, { domain: markerDomain(process.env.NEXT_PUBLIC_APP_URL), path: '/', maxAge: FIT_JOB_MAX_AGE_SECONDS, sameSite: 'lax', secure: SERVER_COOKIES_SECURE, httpOnly: true })
   return response
 }
 
