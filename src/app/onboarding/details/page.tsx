@@ -3,6 +3,7 @@ import { DetailsForm } from '@/components/onboarding/DetailsForm'
 import { prisma } from '@/lib/prisma'
 import { entryOf } from '@/lib/onboarding/resume-rule'
 import { cookies } from 'next/headers'
+import { FIT_JOB_COOKIE, fitJobNext } from '@/lib/jobs/fit-job-cookie'
 import { LEAD_COOKIE, emailFromLeadCookie } from '@/lib/leads/lifecycle/prefill'
 
 // Who we are building this for. A name and an email are needed before an account can exist; LinkedIn is optional.
@@ -27,6 +28,7 @@ export default async function OnboardingDetailsPage() {
         </p>
       </div>
       <DetailsForm
+        loginNext={fitJobNext((await cookies()).get(FIT_JOB_COOKIE)?.value)}
         defaults={{ firstName: profile.firstName ?? '', lastName: profile.lastName ?? '', email: profile.email || leadEmail || '', linkedInUrl: profile.linkedInUrl ?? '' }}
       />
     </div>
