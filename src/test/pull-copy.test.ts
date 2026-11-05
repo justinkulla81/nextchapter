@@ -17,3 +17,18 @@ describe('pull copy', () => {
     }
   })
 })
+
+describe('organization copy', () => {
+  it('names a pain and a payoff, keeps Talk to us, and makes no placement, speed or price claim', async () => {
+    const { ORG_COPY, ORG_LAYOFF_COPY, orgCopyForSlug } = await import('@/lib/capture/pull-copy')
+    for (const c of [ORG_COPY, ORG_LAYOFF_COPY]) {
+      expect(c.org).toBe(true)
+      expect(c.headline).toMatch(/\?$/)
+      expect(c.button).toBe('Talk to us')
+      expect(`${c.headline} ${c.sentence}`).not.toMatch(/WARN|placement rate|faster|free|\$|price|cost/i)
+    }
+    expect(orgCopyForSlug('rapid-response-ohio')).toBe(ORG_LAYOFF_COPY)
+    expect(orgCopyForSlug('tools-warn-notice-generator')).toBe(ORG_LAYOFF_COPY)
+    expect(orgCopyForSlug('workforce-boards-ohio')).toBe(ORG_COPY)
+  })
+})
