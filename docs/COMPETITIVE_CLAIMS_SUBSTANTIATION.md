@@ -170,3 +170,17 @@ Rules enforced by `src/test/vs-insights-claims.test.ts`: every `substantiationRe
 ### Claims left that could not be substantiated
 
 None remain on `/vs/*` or `/insights/*` as statements about a competitor. Two softer items remain: (1) "X is an outplacement provider" for each named vendor, which is a plain description rather than a researched fact, and (2) VS-6 "bought on their own", which needs the owner's confirmation. The older rows 1 to 5, 14 to 17 above were already removed on 2026-10-23.
+
+## Generated competitor pages (added 2026-11-05)
+
+`/vs/<competitor>` pages for competitors beyond the four hand-written ones are generated from the competitor matrix
+(`src/lib/marketing/alternatives.ts`, `alternative-core.ts`). No `VS-n` row is needed because nothing is written by hand:
+
+- Statements about NextChapter come only from `src/lib/vision/capabilities.ts` rows marked BUILT or PARTIAL, each with an
+  `evidencePath` that must exist (checked by `src/test/vision-capabilities.test.ts`). A PLANNED row is shown as "Not part of
+  NextChapter today", never as something we do.
+- Statements about a competitor come only from `CompetitorCapability` cells that have a YES, PARTIAL or NO answer, an https
+  evidence URL and a check date. Each is shown with its source link and date. Cells are not read from `ProductCompetitor`
+  free-text fields, which are model-drafted and marked "needs review".
+- A page is indexed (and put in the sitemap) only with at least 3 such cells and a check in the last 365 days; otherwise it
+  resolves with noindex. Rule: `MIN_CITED_CELLS`, `MAX_CHECK_AGE_DAYS` in `alternative-core.ts`.

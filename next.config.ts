@@ -323,6 +323,8 @@ const nextConfig: NextConfig = {
       // The public AI course catalog is rendered per request (one small Course query) and kept by the CDN for an hour.
       { source: "/ai-courses/:path*", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       { source: "/ai-courses", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
+      // Generated competitor comparison pages (/vs/<competitor>) are rendered on first request and kept by the CDN for six hours.
+      { source: "/vs/:competitor", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=21600, stale-while-revalidate=86400" }] },
       { source: "/top-employers", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       // Pay data pages are rendered per request (a heavy scan; a build-time prerender ran out of database connections on 2026-11-03) and kept by the CDN for six hours.
       ...["/resources/pay-data", "/resources/pay-data/:path*"].map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=21600, stale-while-revalidate=86400" }] })),
