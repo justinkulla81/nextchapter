@@ -72,3 +72,13 @@ Left as they are: `/why-stuck` (twelve links are the page's chooser), the follow
 The box is smaller (less padding, the "Not ready?" link sits under the sentence, not on its own row) so page content starts higher. Guard: `src/test/one-ask-per-page.test.ts`.
 
 The wider crawl after the merge (220 pages, five per kind) found nine more: the AI job check detail and compare pages carried their own "Get my free assessment" button beside the box. Removed; the box has the AI copy for them.
+
+## Organization ask (2026-11-05)
+
+The organization box (workforce boards, rapid response, colleges, search firms, the WARN tools) used to say "Do you run this, hire for it or serve these people?". Now:
+
+- **Most organization pages:** "Hard to reach experienced job seekers where they already look?" / "Get your own page and your own numbers on NextChapter. A short call shows how."
+- **Rapid response and the WARN tools:** "A layoff is coming and the people affected have nowhere to start?" / "Send them one link to a job search plan, local jobs and career support. A short call shows how."
+- The button stays "Talk to us": organization plans are sold by contract. No placement-rate, speed or price wording (`docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md`).
+
+Directory pages (workforce boards, job centers, economic development; `OrgPageView`): the organization box now opens the page and the job seeker band (the page's second ask, for a different audience) is gone. The "independent page, not run by or affiliated with" line and the connected-people count stay as a note under the box. The box was at 4,661px on a workforce board page before.

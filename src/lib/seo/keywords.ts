@@ -15,6 +15,7 @@ import type { Metadata } from 'next'
 import { SITE_URL } from './facts'
 import { titleMeta } from '@/lib/seo/title'
 import { fitDescription } from '@/lib/seo/templates'
+import { NICHES_HUB_CLUSTER, NICHE_CLUSTERS } from '@/lib/niches/niches'
 
 export interface PageSeo {
   /** Without the " | NextChapter" suffix. 30-56 characters. */
@@ -46,6 +47,9 @@ export interface KeywordCluster {
 // ---------------------------------------------------------------------------------------------------------------------
 
 export const KEYWORD_CLUSTERS: KeywordCluster[] = [
+  // ---- Service types: /niches hub and one page per kind of service (src/lib/niches/niches.ts) ----
+  NICHES_HUB_CLUSTER,
+  ...NICHE_CLUSTERS,
   // ---- Brand and category ----------------------------------------------------------------------------------------
   {
     id: 'home',
@@ -756,6 +760,27 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
       description: 'The White-Collar Long-Search Index, layoff counts and AI-skill pay premium, each with its method, margin of error, license, citation and download.',
       h1: 'Press and data',
     },
+  },
+  {
+    id: 'layoff-data-reporters',
+    intent: 'Get monthly layoff statistics to quote',
+    owner: '/press/layoffs',
+    kind: 'page',
+    primary: 'layoff data for reporters',
+    secondary: ['layoff statistics for journalists', 'monthly layoff report', 'layoff statistics by month', 'layoff data to cite'],
+    seo: {
+      title: 'Layoff Data for Reporters: Monthly Release',
+      description: 'A monthly release of U.S. layoff notices for reporters: findings, change from last month and last year, state and employer tables, a CSV and the method.',
+      h1: 'Layoff data for reporters',
+    },
+  },
+  {
+    id: 'layoff-release-month',
+    intent: 'Quote one month of U.S. layoff notices',
+    owner: '/press/layoffs/:month',
+    kind: 'family',
+    primary: '{month} {year} layoff report',
+    secondary: ['{month} {year} layoff statistics', '{month} {year} layoff data', 'how many layoffs in {month} {year}'],
   },
   {
     id: 'feeds',
@@ -3100,6 +3125,7 @@ export function pageMetadata(path: string): Metadata {
 // ---------------------------------------------------------------------------------------------------------------------
 
 export const ANCHORS: Record<string, string> = {
+  '/niches': 'Job search and career services by type',
   '/start/laid-off': 'Laid off? Start here',
   '/resources/72-hours': 'Your first 72 hours after a layoff',
   '/resources/unemployed': 'Job search while unemployed',

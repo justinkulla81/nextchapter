@@ -1,4 +1,4 @@
-import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { CheckFitButton } from '@/components/jobs/CheckFitButton'
 import { buttonVariants } from '@/components/ui/button'
 import { PERSONALIZE_HREF } from '@/components/home/PersonalizePanel'
 import { cn } from '@/lib/utils'
@@ -28,14 +28,12 @@ export function JobFitCard({
           <p className="mt-0.5 text-sm text-muted-foreground">Upload your résumé and see your match to this job. Free, about a minute.</p>
         </div>
       </div>
-      <TrackedLink
+      <CheckFitButton
         href={`${PERSONALIZE_HREF}&job=${encodeURIComponent(jobId)}`}
-        event="jobs_page_personalize_clicked"
-        properties={{ placement: `job_page_${placement}`, jobId }}
+        jobId={jobId}
+        placement={placement}
         className={cn(buttonVariants({ size: 'lg' }), 'mt-4 h-12 w-full rounded-full bg-action text-action-foreground hover:brightness-95')}
-      >
-        Check my fit
-      </TrackedLink>
+      />
     </aside>
   )
 }

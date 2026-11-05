@@ -241,7 +241,7 @@ export default function CobraAcaPage() {
         <h2 id="next" className="text-xl font-semibold tracking-tight text-navy">Health insurance is one deadline of many</h2>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
           A free Market Reality Assessment shows how the market reads your résumé and gives you a weekly plan that starts with the dates that matter. Also useful right now:{' '}
-          <Link href="/unemployment-benefits" className={LINK}>unemployment benefits by state</Link>, <Link href="/tools/severance-calculator" className={LINK}>the severance calculator</Link> and <Link href="/tools/layoff-deadlines" className={LINK}>layoff deadlines</Link>.
+          <Link href="/unemployment-benefits" className={LINK}>unemployment benefits and severance rules by state</Link>, <Link href="/tools/severance-calculator" className={LINK}>the severance calculator</Link> and <Link href="/tools/layoff-deadlines" className={LINK}>layoff deadlines</Link>.
         </p>
       </section>
 

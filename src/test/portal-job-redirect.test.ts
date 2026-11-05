@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { portalJobPath } from '@/lib/jobs/portal-job-redirect'
+import { ENTRY_AND_EARLY_PARAM } from '@/lib/jobs/job-seniority'
 
 const ID = 'cm0abcdefghijklmnopqrstuv'
 
@@ -31,10 +32,10 @@ describe('portalJobPath', () => {
     expect(portalJobPath('/jobs/title/financial-analyst', false)).toBeNull()
   })
   it('sends a member from an entry-level page to the portal search for entry-level jobs', () => {
-    expect(portalJobPath('/jobs/entry-level', true)).toBe('/dashboard/find-my-job?from=public&seniority=ENTRY_LEVEL')
-    expect(portalJobPath('/jobs/entry-level/category/finance', true)).toBe('/dashboard/find-my-job?from=public&seniority=ENTRY_LEVEL')
-    expect(portalJobPath('/jobs/entry-level/accounts-payable-clerk', true)).toBe('/dashboard/find-my-job?from=public&seniority=ENTRY_LEVEL&q=accounts+payable+clerk')
-    expect(portalJobPath('/jobs/entry-level/accounts-payable-clerk/denver-co', true)).toBe('/dashboard/find-my-job?from=public&seniority=ENTRY_LEVEL&q=accounts+payable+clerk&loc=Denver%2C+CO')
+    expect(portalJobPath('/jobs/entry-level', true)).toBe('/dashboard/find-my-job?from=public&seniority=EARLY_CAREER%2CENTRY_LEVEL')
+    expect(portalJobPath('/jobs/entry-level/category/finance', true)).toBe('/dashboard/find-my-job?from=public&seniority=EARLY_CAREER%2CENTRY_LEVEL')
+    expect(portalJobPath('/jobs/entry-level/accounts-payable-clerk', true)).toBe('/dashboard/find-my-job?from=public&seniority=EARLY_CAREER%2CENTRY_LEVEL&q=accounts+payable+clerk')
+    expect(portalJobPath('/jobs/entry-level/accounts-payable-clerk/denver-co', true)).toBe('/dashboard/find-my-job?from=public&seniority=EARLY_CAREER%2CENTRY_LEVEL&q=accounts+payable+clerk&loc=Denver%2C+CO')
     expect(portalJobPath('/jobs/entry-level', false)).toBeNull()
   })
   it('sends a member from an industry page to the portal search for that industry', () => {
@@ -52,5 +53,8 @@ describe('portalJobPath', () => {
     for (const p of ['/jobs/alerts', '/jobs/title', '/jobs/industry', '/jobs/type', '/jobs/type/unknown', '/jobs/entry-level/llms.txt', `/jobs/${ID}/apply`]) {
       expect(portalJobPath(p, true)).toBeNull()
     }
+  })
+  it('asks for the same groups the board filter calls entry level plus early career', () => {
+    expect(decodeURIComponent(portalJobPath('/jobs/entry-level', true)!)).toContain(`seniority=${ENTRY_AND_EARLY_PARAM}`)
   })
 })

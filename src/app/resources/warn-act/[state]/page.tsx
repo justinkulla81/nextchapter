@@ -83,7 +83,7 @@ export default async function StateWarnPage({ params }: { params: Promise<{ stat
         <h2 id="tools" className="text-xl font-semibold tracking-tight text-navy">Using this</h2>
         <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
           <li>Employers: <Link href="/tools/warn-notice-generator" className={LINK}>draft the WARN notices and see the {law.name} deadline</Link> and <Link href="/tools/warn-act-checker" className={LINK}>check whether notice is likely required</Link>.</li>
-          <li>Workers: <Link href={`/layoffs/${slug}`} className={LINK}>{law.name} layoff notices on file</Link> and <Link href={`/unemployment-benefits/${slug}`} className={LINK}>{law.name} unemployment benefits and how to file</Link>.</li>
+          <li>Workers: <Link href={`/layoffs/${slug}`} className={LINK}>{law.name} layoff notices on file</Link> and <Link href={`/unemployment-benefits/${slug}`} className={LINK}>{law.name} unemployment benefits, severance rules and how to file</Link>.</li>
           <li><Link href="/layoffs/2026" className={LINK}>Layoffs in 2026</Link>, by month, state and company.</li>
         </ul>
       </section>
