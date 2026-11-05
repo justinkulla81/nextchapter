@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import Link from 'next/link'
 import { ShowAllGroup } from '@/components/seo/ShowAllGroup'
+import { statePhrase } from '@/lib/branding/state-colors'
 import { SeoPage, H2, LINK, Stat } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
@@ -68,11 +69,11 @@ export default async function NonprofitStatePage({ params }: { params: Promise<{
   return (
     <SeoPage
       boxFirst
-      stateSlug={state}
       trail={[{ name: 'Non-profits', path: '/nonprofits' }, { name: d.name, path: `/nonprofits/${state}` }]}
       h1={`${d.name} non-profits: chambers, economic development, workforce and job training organizations`}
       lede={<>{d.orgs.length} {d.name} non-profits with $1 million or more in annual revenue, from IRS records, and what is happening in the {d.name} job market around them. Staff can claim an organization’s page and set up a free workspace.</>}
     >
+      <p className="mt-3 text-xs text-muted-foreground">Independent page. Not from or affiliated with {statePhrase(d.code)}.</p>
       <section aria-labelledby="stats" className="mt-10">
         <h2 id="stats" className={H2}>What matters to {d.name} non-profits right now</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

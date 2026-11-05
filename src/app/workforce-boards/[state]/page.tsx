@@ -5,7 +5,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StateFilingLink } from '@/components/benefits/StateFilingGuide'
 import { B2bAssetBox } from '@/components/marketing/B2bAssetBox'
-import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
+import { statePhrase } from '@/lib/branding/state-colors'
+import { SeoPage, H2, LINK, Stat } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
 import { getStateBoards, getStateCenters, getStateColleges, getStateLabor, getStateLayoffs, periodLabel, rateText } from '@/lib/seo/workforce-pages'
@@ -45,12 +46,13 @@ export default async function WorkforceStatePage({ params }: { params: Promise<{
 
   return (
     <SeoPage
+      boxFirst
       look="audience"
-      stateSlug={state}
       trail={[{ name: 'Workforce boards', path: '/workforce-boards' }, { name: d.name, path: `/workforce-boards/${state}` }]}
       h1={workforceStateSeo(d.name).h1}
       lede={<>{d.name} has {d.boards.length} workforce {d.boards.length === 1 ? 'board' : 'boards'} and {d.centers.length} American Job {d.centers.length === 1 ? 'Center' : 'Centers'}. Job seekers get free help with search, training and benefits there; employers get hiring and layoff support.</>}
     >
+      <p className="mt-3 text-xs text-muted-foreground">Independent page. Not from or affiliated with {statePhrase(d.code)}.</p>
       <section aria-labelledby="picture" className="mt-10">
         <h2 id="picture" className={H2}>{d.name} at a glance</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -102,14 +104,6 @@ export default async function WorkforceStatePage({ params }: { params: Promise<{
         <B2bAssetBox assetKey="workforce-demo" page="workforce_state" />
       </section>
 
-      <ActionBand
-        title={`Run a workforce board in ${d.name}?`}
-        body="Claim your board’s page and set up a free workspace. Use a work email at your organization’s domain."
-        label="See how a board claims its page"
-        href="/government-workforce#claim"
-        event="seo_claim_clicked"
-        properties={{ page: 'workforce_state', audience: 'workforce', state: d.code }}
-      />
 
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> board and job center listings from CareerOneStop (U.S. Department of Labor); unemployment from the Bureau of Labor Statistics;
