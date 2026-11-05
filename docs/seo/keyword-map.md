@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-261 clusters, 1606 phrases.
+263 clusters, 1615 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -86,6 +86,8 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/layoffs/week` | page | layoffs by week | Layoff notices week by week | weekly layoffs; weekly layoff report; layoffs last week; layoff notices by week |
 | `/layoffs/week/:week` | family | layoffs week of {date} | Layoffs in one calendar week | layoffs {week}; layoff notices week of {date} |
 | `/press` | page | white-collar unemployment data to cite | Cite and download our labor-market data | white-collar long-search index; long-term unemployment white-collar data; how to cite layoff data |
+| `/press/layoffs` | page | layoff data for reporters | Get monthly layoff statistics to quote | layoff statistics for journalists; monthly layoff report; layoff statistics by month; layoff data to cite |
+| `/press/layoffs/:month` | family | {month} {year} layoff report | Quote one month of U.S. layoff notices | {month} {year} layoff statistics; {month} {year} layoff data; how many layoffs in {month} {year} |
 | `/feeds` | page | layoff notices rss feed | Subscribe to layoff notices by RSS | layoff notices rss; layoff alerts by state rss; layoff news feed; layoff notice feed |
 | `/data` | page | layoff data download | Download layoff data | layoff notices csv; layoff notice data; layoff data by state; layoffs dataset |
 | `/data/embed` | page | layoff widget for website | Embed layoff, jobs and benefits widgets | embed layoff tracker; layoffs chart for website; unemployment benefits widget; jobs widget by industry; AI exposure widget for a job |
@@ -645,6 +647,12 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Press and Data: Cite Our Labor-Market Figures
 - Description: The White-Collar Long-Search Index, layoff counts and AI-skill pay premium, each with its method, margin of error, license, citation and download.
 - H1: Press and data
+
+### `/press/layoffs`
+
+- Title: Layoff Data for Reporters: Monthly Release
+- Description: A monthly release of U.S. layoff notices for reporters: findings, change from last month and last year, state and employer tables, a CSV and the method.
+- H1: Layoff data for reporters
 
 ### `/feeds`
 
