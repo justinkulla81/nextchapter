@@ -25,7 +25,7 @@ session or the marker. Crawlers and signed-out visitors carry neither, so public
 | `/jobs/<id>` | `/dashboard/jobs/<id>?src=public_page` |
 | `/jobs?q&loc&remote` | `/dashboard/find-my-job?from=public&q&loc&remote` |
 | `/jobs/title/<slug>[/<place>]` | the same search, title as `q`, place as `loc` |
-| `/jobs/entry-level/**` | `seniority=ENTRY_LEVEL`, role as `q`, place as `loc` |
+| `/jobs/entry-level/**` | `seniority=EARLY_CAREER,ENTRY_LEVEL`, role as `q`, place as `loc` |
 | `/jobs/industry/healthcare`, `financial-services` (and their cuts) | industry name as `q` |
 | every other `/jobs/industry/<segment>` | stays on the public page (see below) |
 | `/jobs/type/remote`, `hybrid` | `remote=remote`, `remote=hybrid` |
@@ -48,4 +48,5 @@ A member whose session has expired goes through `/auth/login`; the `/dashboard` 
 ## Known limits
 
 - The board has no industry filter. Only healthcare and financial services are defined by the industry label alone, so the search for their names finds every job on the public page. The other 33 industry pages are built from employer lists, company words and title patterns. Measured 2026-11-05, the portal search finds 7% of the public retail page, 18% of restaurants and 33% of construction, so members stay on the public page for those (`CODE_DEFINED_INDUSTRIES` in `src/lib/jobs/portal-job-redirect.ts`; a test keeps it equal to `src/lib/segments/defs.ts`).
-- An entry-level role page can return a shorter list than the public page.
+- The `seniority` parameter takes one group or a comma list (`parseSeniorityParam` in `src/lib/jobs/job-seniority.ts`). The entry-level pages ask for early-career (2-5 years) and entry-level (0-2 years) together, which is what the public pages list; the Seniority dropdown has an "Entry level and early career" option for it. Measured 2026-11-05, with both groups the portal search finds 72% to 98% of a public role page's jobs (it was 10% to 96% with entry-level alone).
+- What is still missing is title wording: the search needs every word of the role name, so "marketing coordinator" misses "marketing assistant". The search is also looser than the public page, so it lists more.
