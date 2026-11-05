@@ -343,11 +343,10 @@ export interface Incentives { state: string; count: number; names: string[] }
 export interface PlaceView { cbsa: string; name: string; rows: Row[]; incentives: Incentives | null }
 
 export function compareHref(cbsas: string[], lens: Lens): string {
-  const params = new URLSearchParams()
+  const params = new URLSearchParams({ tab: 'compare' })
   if (cbsas.length) params.set('m', cbsas.join(','))
   if (lens === 'life') params.set('lens', 'life')
-  const q = params.toString()
-  return `/dashboard/compare-places${q ? `?${q}` : ''}`
+  return `/dashboard/move-plan?${params.toString()}`
 }
 
 /** The ?m= value, made safe: five-digit codes of metros we know, no repeats, at most MAX_PLACES. */

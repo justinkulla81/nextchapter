@@ -3,7 +3,6 @@ import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getAlumniNetworkOptions } from '@/lib/community/alumni-networks'
 import { programForCandidate } from '@/lib/employer/program-server'
-import { AlumniNetworkOptions } from '@/components/community/AlumniNetworkOptions'
 import { groupsIntro } from '@/lib/redesign/network-pages'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
@@ -42,7 +41,7 @@ export default async function GroupsPage() {
         title="Alumni and groups"
         intro={groupsIntro(count)}
         action={
-          <TrackedAction variant="primary" href="#join" event="group_join_started" properties={{ source: 'groups_primary', groups: count }}>
+          <TrackedAction variant="primary" href="/dashboard/following?tab=groups" event="group_join_started" properties={{ source: 'groups_primary', groups: count }}>
             Join a group
           </TrackedAction>
         }
@@ -87,11 +86,6 @@ export default async function GroupsPage() {
           )}
         </Section>
       )}
-      <div id="join" className="scroll-mt-4">
-        <Section id="join-title" title="Find more groups">
-          <AlumniNetworkOptions candidateId={profile.id} />
-        </Section>
-      </div>
       <TrackedAction variant="text" href="/dashboard/universities" event="universities_opened" properties={{ source: 'groups' }}>
         See your schools and alumni counts
       </TrackedAction>
