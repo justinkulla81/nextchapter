@@ -20,6 +20,9 @@ describe('one registration ask per page', () => {
       expect(read(`src/app/tools/${t}/page.tsx`), t).not.toContain('<ActionBand')
     }
   })
+  it('AI job check detail and compare pages leave the ask to the box', () => {
+    for (const p of ['src/app/tools/ai-job-check/[slug]/page.tsx', 'src/app/tools/ai-job-check/compare/[pair]/page.tsx']) expect(read(p), p).not.toContain('MARKET_REALITY_START_HREF')
+  })
   it('the home page asks once, in the hero', () => {
     const home = read('src/components/home/NewHome.tsx')
     expect(home.match(/MARKET_REALITY_START_HREF/g)?.length).toBe(2) // the import and the hero link

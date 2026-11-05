@@ -8,11 +8,9 @@ import { checkPath } from '@/lib/ai-check/slug'
 import { prisma } from '@/lib/prisma'
 import { loadExposureForSoc } from '@/lib/skills/ai-exposure-server'
 import { AI_EXPOSURE_SOURCE, BAND_LABEL, EXPOSURE_WHY, bandOf, scorePercent } from '@/lib/skills/ai-exposure'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { titleMeta } from '@/lib/seo/title'
-import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 // Two related jobs side by side: AI exposure, pay and openings. Built on first visit and cached a day, like the occupation
 // pages; the list of pairs is committed (compare-pairs.json), so nothing here is read at build time.
@@ -139,14 +137,6 @@ export default async function ComparePage({ params }: { params: Promise<{ pair: 
             </li>
           ))}
         </ul>
-        <TrackedLink
-          href={MARKET_REALITY_START_HREF}
-          event="ai_job_compare_cta_clicked"
-          properties={{ pair, cta: 'assessment' }}
-          className="mt-5 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
-        >
-          <AssessmentCtaLabel>Get my free assessment</AssessmentCtaLabel>
-        </TrackedLink>
       </section>
 
       {related.length > 0 && (
