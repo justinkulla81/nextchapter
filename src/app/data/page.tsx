@@ -36,7 +36,7 @@ export default async function DataPage() {
     license: LAYOFF_DATA_LICENSE_URL,
     creator: organizationRef(),
     isAccessibleForFree: true,
-    keywords: ['layoffs', 'WARN Act', 'mass layoffs', 'plant closings', 'employment'],
+    keywords: ['layoffs', 'layoff notices', 'mass layoffs', 'plant closings', 'employment'],
     ...(oldest && newest ? { temporalCoverage: `${oldest}/${newest}` } : {}),
     spatialCoverage: 'United States',
     variableMeasured: [...LAYOFF_COLUMNS],
