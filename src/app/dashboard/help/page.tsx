@@ -67,36 +67,29 @@ export default async function HelpAndFeedbackPage({ searchParams }: { searchPara
         <h2 id="new-message" className="font-display text-xl font-semibold text-ink">Your message</h2>
         <HelpFeedbackForm contextPath={reportedFrom ?? '/dashboard/help'} contextTitle={reportedFrom ? 'Page not found' : ''} initialKind={initialKind} />
       </section>
-      <section aria-labelledby="conversations" className="space-y-3">
-        <h2 id="conversations" className="font-display text-xl font-semibold text-ink">Your conversations</h2>
-        {requests.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-border p-6 text-base text-ink">Nothing yet. Choose “Get help” or “Report a problem” above to start one.</p>
-        ) : (
-          <>
-            <ul className="space-y-3">{shownRequests.map(renderRequest)}</ul>
-            {hiddenRequests.length > 0 && (
-              <MoreDetails summary={`Show more: ${hiddenRequests.length} earlier ${hiddenRequests.length === 1 ? 'conversation' : 'conversations'}`}>
-                <ul className="space-y-3">{hiddenRequests.map(renderRequest)}</ul>
-              </MoreDetails>
-            )}
-          </>
-        )}
-      </section>
-      <section aria-labelledby="ideas" className="space-y-3">
-        <h2 id="ideas" className="font-display text-xl font-semibold text-ink">Your ideas and feedback</h2>
-        {feedback.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-border p-6 text-base text-ink">Nothing yet. Choose “Share an idea” or “Give feedback” above. When something changes because of it, you will see it here.</p>
-        ) : (
-          <>
-            <ul className="divide-y divide-border rounded-2xl border border-border">{feedback.slice(0, 3).map(renderIdea)}</ul>
-            {feedback.length > 3 && (
-              <MoreDetails summary={`Show more: ${feedback.length - 3} earlier`}>
-                <ul className="divide-y divide-border rounded-2xl border border-border">{feedback.slice(3).map(renderIdea)}</ul>
-              </MoreDetails>
-            )}
-          </>
-        )}
-      </section>
+      {/* A section with nothing in it is left out: the form above is the page until a message or an idea exists. */}
+      {requests.length > 0 && (
+        <section aria-labelledby="conversations" className="space-y-3">
+          <h2 id="conversations" className="font-display text-xl font-semibold text-ink">Your conversations</h2>
+          <ul className="space-y-3">{shownRequests.map(renderRequest)}</ul>
+          {hiddenRequests.length > 0 && (
+            <MoreDetails summary={`Show more: ${hiddenRequests.length} earlier ${hiddenRequests.length === 1 ? 'conversation' : 'conversations'}`}>
+              <ul className="space-y-3">{hiddenRequests.map(renderRequest)}</ul>
+            </MoreDetails>
+          )}
+        </section>
+      )}
+      {feedback.length > 0 && (
+        <section aria-labelledby="ideas" className="space-y-3">
+          <h2 id="ideas" className="font-display text-xl font-semibold text-ink">Your ideas and feedback</h2>
+          <ul className="divide-y divide-border rounded-2xl border border-border">{feedback.slice(0, 3).map(renderIdea)}</ul>
+          {feedback.length > 3 && (
+            <MoreDetails summary={`Show more: ${feedback.length - 3} earlier`}>
+              <ul className="divide-y divide-border rounded-2xl border border-border">{feedback.slice(3).map(renderIdea)}</ul>
+            </MoreDetails>
+          )}
+        </section>
+      )}
       <p className="text-sm text-muted-foreground">
         Looking for an answer now? See the <Link href="/faq" className="font-medium text-brand underline underline-offset-4">FAQ</Link>. Going through a hard time?{' '}
         <Link href="/dashboard/support" className="font-medium text-brand underline underline-offset-4">Talk to someone</Link>.
