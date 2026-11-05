@@ -175,7 +175,8 @@ export async function updateSession(request: NextRequest, opts: { portal?: Porta
     const h = portalHostFor(request.headers.get('host'))
     const pub = (p: string) => (h && portalHostOn(h) ? publicPathFor(h, p) : p)
     redirectUrl.pathname = pub(portalLoginPath ?? '/auth/login')
-    redirectUrl.searchParams.set('next', pub(appPath))
+    // The candidate app keeps the page's own query (a search carried in from a public page, a job's source) through the login.
+    redirectUrl.searchParams.set('next', pub(appPath) + (appPath.startsWith('/dashboard') ? request.nextUrl.search : ''))
     return NextResponse.redirect(redirectUrl)
   }
 
