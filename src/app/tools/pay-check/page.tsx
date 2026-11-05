@@ -27,6 +27,7 @@ export default async function PayCheckPage() {
     .map((p) => ({ slug: p.slug, label: p.label }))
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Pay check', path: '/tools/pay-check' }]}
       h1={pageH1('/tools/pay-check', 'Pay check: is your salary in line?')}
       lede="Pick your job title and enter your yearly pay to see where it sits against what employers list for the same title today. Free, no account."

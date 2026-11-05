@@ -29,3 +29,9 @@ describe('one registration ask per page', () => {
     expect(read('src/components/home/HomeFunding.tsx')).not.toContain('MARKET_REALITY_START_HREF')
   })
 })
+
+describe('box above the tool', () => {
+  it('the pay check page opens with the box, above the form', () => {
+    expect(read('src/app/tools/pay-check/page.tsx')).toMatch(/<SeoPage\s+boxFirst/)
+  })
+})
