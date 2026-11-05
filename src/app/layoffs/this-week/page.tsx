@@ -133,6 +133,7 @@ export default async function LayoffsThisWeek() {
               <li><Link href="/feeds/layoffs" className={LINK}>Subscribe by RSS</Link> to new notices.</li>
               <li><Link href="/data/embed" className={LINK}>Embed layoff notices</Link> for any state on your own site.</li>
               <li><Link href="/layoffs" className={LINK}>The full layoff tracker</Link>, and <Link href="/start/laid-off" className={LINK}>what to do if you were laid off</Link>.</li>
+              <li><Link href="/unemployment-benefits" className={LINK}>Unemployment benefits and severance rules by state</Link>.</li>
             </ul>
           </section>
         </div>

@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { PublicSiteFooter, PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
 import { CiteThisData } from '@/components/layoffs/CiteThisData'
+import { BetweenJobsLine } from '@/components/layoffs/BetweenJobsLine'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { LAYOFF_YEAR, MONTH_MIN_NOTICES, MONTH_SLUGS, byState, getYearNotices, monthIndex, monthName, topEmployers } from '@/lib/layoffs/monthly'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
@@ -136,6 +137,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
           )}
 
           <CiteThisData path={path} source={`layoffs-2026-${month}`} />
+          <BetweenJobsLine page="month" />
 
           <nav aria-label="Other months" className="mt-10 flex flex-wrap justify-between gap-3 text-sm">
             {prevSlug ? <Link href={`/layoffs/2026/${prevSlug}`} className={LINK}>← {monthName(i - 1)}</Link> : <span />}

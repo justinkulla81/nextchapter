@@ -160,7 +160,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
           <section aria-labelledby="help" className="mt-12 rounded-xl border border-border bg-white p-6">
             <h2 id="help" className="text-xl font-semibold tracking-tight text-navy">If you were laid off in {d.name}</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
-              <li><Link href={`/unemployment-benefits/${state}`} className={LINK}>{d.name} unemployment benefits: amounts, weeks and how to file</Link></li>
+              <li><Link href={`/unemployment-benefits/${state}`} className={LINK}>{d.name} unemployment benefits and severance rules: amounts, weeks and how to file</Link></li>
               <li><Link href="/start/laid-off" className={LINK}>What to do after a layoff</Link></li>
               <li><FeedLine feed={`/feeds/layoffs/${state}`} label={`Get new ${d.name} notices by RSS`} /></li>
               <li><Link href="/resources/cobra-aca" className={LINK}>Keeping your health coverage: COBRA and the marketplace</Link></li>
