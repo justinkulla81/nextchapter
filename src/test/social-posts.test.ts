@@ -127,6 +127,12 @@ describe('rankingsPost', () => {
   it('waits for the month to have enough lists', () => {
     expect(rankingsPost([list('a', 'junior')], nov, 'u=1')).toBeNull()
   })
+  it('never runs past 300 characters with the link, dropping list lines first', () => {
+    const long = 'A Very Long Metropolitan Place Name, Somewhere'
+    const post = rankingsPost([...many, list('a', 'junior', { topName: long }), list('b', 'ai', { topName: long }), list('c', 'paycost', { topName: long })], nov, 'utm_source=bluesky&utm_medium=social&utm_campaign=data-story')!
+    expect([...post.text].length).toBeLessThanOrEqual(300)
+    expect(post.text).toContain('/rankings/archive/2026-11')
+  })
   it('announces the month once, with the leaders of three national lists and the archive link', () => {
     const post = rankingsPost([...many, list('best-cities-for-junior-jobs', 'junior'), list('x-ai', 'ai', { topName: 'Seattle' }), list('x-pay', 'paycost', { topName: 'Dallas' })], nov, 'utm_source=x')!
     expect(post.key).toBe('rankings-2026-11')

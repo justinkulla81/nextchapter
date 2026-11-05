@@ -21,6 +21,8 @@ const SOURCES = new Set([
   'ai-pay-premium',
   // The pay data pages (/resources/pay-data).
   'pay-data',
+  // The LinkedIn profile guide (/resources/linkedin-profile).
+  'linkedin-guide',
 ])
 const MAX_PER_HOUR_PER_IP = 5
 

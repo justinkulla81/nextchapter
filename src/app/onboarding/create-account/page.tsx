@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { CreateAccountForm } from '@/components/onboarding/CreateAccountForm'
+import { cookies } from 'next/headers'
+import { FIT_JOB_COOKIE, fitJobNext } from '@/lib/jobs/fit-job-cookie'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { flowOfProfile } from '@/lib/onboarding/flag'
@@ -37,7 +39,7 @@ export default async function CreateAccountPage() {
         <h1 className="text-2xl font-semibold tracking-tight">You already have an account</h1>
         <ExistingAccountNotice
           needsPassword={!existing?.passwordSetAt}
-          email={profile.email}
+          email={profile.email} next={fitJobNext((await cookies()).get(FIT_JOB_COOKIE)?.value)}
         />
       </div>
     )
@@ -64,7 +66,7 @@ export default async function CreateAccountPage() {
           {bundles ? 'Set a password and we’ll email you a confirmation link. Then you’ll see what we found.' : 'Set a password to see it — we’re emailing you a confirmation link now.'}
         </p>
       </div>
-      <CreateAccountForm email={profile.email} confidentialSearchMode={profile.confidentialSearchMode} />
+      <CreateAccountForm email={profile.email} confidentialSearchMode={profile.confidentialSearchMode} loginNext={fitJobNext((await cookies()).get(FIT_JOB_COOKIE)?.value)} />
     </div>
   )
 }

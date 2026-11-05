@@ -16,4 +16,16 @@ describe('pull copy', () => {
       expect(`${c.headline} ${c.button ?? ''}`).not.toMatch(/WARN|Market Reality|Hireability/)
     }
   })
+  it('gives a member the payoff in the page\'s own terms, never the registration ask', () => {
+    const paths = ['/layoffs', '/salaries/x', '/ai-skills', '/rankings', ...['job-loss-readiness', 'layoff-runway', 'layoff-deadlines', 'unemployment-estimator', 'severance-calculator', 'ai-job-check', 'pay-check', 'salary-converter', 'resume-check', 'resume-job-match'].map((t) => `/tools/${t}`)]
+    for (const path of paths) {
+      const c = pullCopyFor(path)
+      expect(c.member.headline.length).toBeGreaterThan(0)
+      expect(c.member.sentence).not.toContain('Free')
+      expect(c.member.sentence).toMatch(/\.$/)
+      expect(`${c.member.headline} ${c.member.button}`).not.toMatch(/WARN|Market Reality|Hireability|Get my|Start my/)
+    }
+    // Different pains get different member copy, not one line everywhere.
+    expect(new Set(paths.map((p) => pullCopyFor(p).member.headline)).size).toBeGreaterThan(8)
+  })
 })

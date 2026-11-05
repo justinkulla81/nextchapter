@@ -74,6 +74,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/glossary', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
   { path: '/tools', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
   { path: '/tools/severance-calculator', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
+  { path: '/resources/linkedin-profile', updated: '2026-11-05', freq: 'monthly', priority: 0.7 },
   { path: '/resources/severance-pay', updated: '2026-10-27', freq: 'monthly', priority: 0.7 },
   { path: '/tools/layoff-deadlines', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
   { path: '/tools/cobra-vs-aca-calculator', updated: '2026-10-26', freq: 'monthly', priority: 0.7 },

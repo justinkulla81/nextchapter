@@ -2,7 +2,8 @@ import type { LayoffWeekBrief } from '@/lib/newsletter/layoff-week'
 import type { JourneyWeekBrief } from '@/lib/newsletter/journey-week'
 import { emailCtaLabel } from '@/lib/ab/email-cta'
 import type { NavCtaVariant } from '@/lib/ab/nav-cta'
-import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
+import { Body, Button, Card, CardEmail, HandNote, Headline, Mark, Masthead, MUTED, ShortVersion, Signoff, Squiggle } from '@/lib/email/card-layout'
+import { chapterDate, chapterNumber } from '@/lib/newsletter/chapter'
 
 interface NewsletterWeeklyEmailProps {
   introCopy: string | null
@@ -19,6 +20,10 @@ interface NewsletterWeeklyEmailProps {
   journeys?: JourneyWeekBrief | null
   /** The recipient's arm of the assessment button label test. */
   ctaVariant?: NavCtaVariant
+  /** The handwritten aside under the short version, as a signed image URL plus its text. Left out when null. */
+  marginNote?: { src: string | null; text: string } | null
+  /** The send date, for the masthead's chapter number. Defaults to now. */
+  sentAt?: Date
 }
 
 /**
@@ -27,7 +32,7 @@ interface NewsletterWeeklyEmailProps {
  * personal market numbers that need a profile to compute.
  */
 export default function NewsletterWeeklyEmail({
-  introCopy, articleTitle, articleUrl, articleSummary, newsUrl, signupUrl, unsubscribeUrl, layoffs, layoffsUrl, journeys, ctaVariant,
+  introCopy, articleTitle, articleUrl, articleSummary, newsUrl, signupUrl, unsubscribeUrl, layoffs, layoffsUrl, journeys, ctaVariant, marginNote, sentAt = new Date(),
 }: NewsletterWeeklyEmailProps) {
   const intro = introCopy || "Here's this week's read on the job market."
   return (
@@ -42,20 +47,36 @@ export default function NewsletterWeeklyEmail({
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Masthead right={`Chapter ${chapterNumber(sentAt)} · ${chapterDate(sentAt)}`} />
         <Headline>{intro}</Headline>
-        <Lead>
-          <strong>Worth a read:</strong> <a href={articleUrl}>{articleTitle}</a>
+        <Squiggle />
+        {layoffs && layoffsUrl ? (
+          <ShortVersion>
+            <strong>{layoffs.notices.toLocaleString('en-US')} layoff notices</strong> in {layoffs.states.toLocaleString('en-US')}{' '}
+            {layoffs.states === 1 ? 'state' : 'states'}
+            {layoffs.workers > 0 && (
+              <>
+                , naming <Mark>{layoffs.workers.toLocaleString('en-US')} workers</Mark>
+              </>
+            )}
+            . Here is the read of the week.
+          </ShortVersion>
+        ) : articleSummary ? (
+          <ShortVersion>{articleSummary}</ShortVersion>
+        ) : null}
+        {marginNote && <HandNote src={marginNote.src} text={marginNote.text} />}
+        <Body>Hi, it&apos;s Victoria. Here is what I would read and do this week.</Body>
+        <Body>
+          <strong>{articleUrl.startsWith('https://launchyournextchapter.com/') ? 'Tip from NextChapter:' : 'Worth a read:'}</strong> <a href={articleUrl}>{articleTitle}</a>
           {articleSummary && ` — ${articleSummary}`}
-        </Lead>
+        </Body>
         {layoffs && layoffsUrl && (
           <>
-            <Lead>
-              <strong>Layoffs this week:</strong> {layoffs.notices.toLocaleString('en-US')} layoff notices in {layoffs.states.toLocaleString('en-US')} {layoffs.states === 1 ? 'state' : 'states'}
-              {layoffs.workers > 0 ? `, naming ${layoffs.workers.toLocaleString('en-US')} workers` : ''}. The largest:
-            </Lead>
-            <ul style={{ textAlign: 'left', margin: '0 0 16px', paddingLeft: 20 }}>
+            <Body>
+              <strong>The largest layoffs:</strong>
+            </Body>
+            <ul style={{ margin: '0 0 16px', paddingLeft: 20, fontSize: '16px', lineHeight: '1.6' }}>
               {layoffs.top.map((e) => (
                 <li key={e.name}>
                   {e.name}
@@ -64,18 +85,18 @@ export default function NewsletterWeeklyEmail({
                 </li>
               ))}
             </ul>
-            <Lead>
+            <Body>
               <a href={layoffsUrl}>Every notice from the past week</a>. Know someone affected? Forward them this email: the page lists what to do and by when.
-            </Lead>
+            </Body>
           </>
         )}
         {journeys && journeys.length > 0 && (
           <>
-            <Lead>
+            <Body>
               <strong>At work this week:</strong> new stories on your rights, benefits, pay and side income.
-            </Lead>
+            </Body>
             {journeys.map((g) => (
-              <div key={g.slug} style={{ textAlign: 'left', margin: '0 0 12px' }}>
+              <div key={g.slug} style={{ margin: '0 0 12px', fontSize: '16px', lineHeight: '1.6' }}>
                 <a href={g.url} style={{ fontWeight: 600 }}>{g.label}</a>
                 <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
                   {g.stories.map((s) => (
@@ -89,15 +110,15 @@ export default function NewsletterWeeklyEmail({
             ))}
           </>
         )}
-        <Lead>
+        <Body>
           More articles, videos and posts are on the <a href={newsUrl}>News page</a>.
-        </Lead>
-        <Lead>
+        </Body>
+        <Body>
           Searching for a job yourself? NextChapter is free for Members: a Market Reality Assessment, a resume tested against the systems
           that read it, and a plan for the week.
-        </Lead>
+        </Body>
         <Button campaign="newsletter_weekly" href={signupUrl} ctaVariant={ctaVariant}>{emailCtaLabel(ctaVariant, 'Get your Market Reality Assessment')}</Button>
-        <Signoff align="center" />
+        <Signoff ps="Know someone who just got the news? Forward this to them." />
       </Card>
     </CardEmail>
   )

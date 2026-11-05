@@ -7,6 +7,7 @@ import { HeadshotCreator } from '@/components/dashboard/HeadshotCreator'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { ActionLink } from '@/components/candidate/ActionLink'
+import { ProfileChecklist } from '@/components/linkedin/ProfileChecklist'
 import { PlainNote, SectionBlock } from '@/components/candidate/Blocks'
 
 export const metadata: Metadata = { title: 'LinkedIn' }
@@ -47,11 +48,11 @@ export default async function LinkedInPage() {
         </SectionBlock>
       </div>
       <ShowMore page="linkedin">
-        <SectionBlock id="shape-h" title="Get your profile in shape" why="Two things move the needle before you post anything: an updated headshot and a profile that is actually current.">
-          <PlainNote>Title, summary and recent experience should all match where you say you are today.</PlainNote>
-          <PlainNote>
-            After that, reach is mostly a habit, not a talent. Liking, sharing and commenting on other people’s posts puts you in front of their network too. Do it daily and your own posts travel further than your follower count alone would suggest.
-          </PlainNote>
+        <SectionBlock id="shape-h" title="Get your profile in shape" why="Recruiters search by keyword and decide in seconds, so each check below says why it is worth doing. Your ticks stay in this browser.">
+          <ProfileChecklist surface="dashboard" />
+          <ActionLink href="/resources/linkedin-profile" event="linkedin_guide_opened" props={{ source: 'dashboard' }}>
+            Read the full guide, with examples
+          </ActionLink>
         </SectionBlock>
         <HeadshotCreator />
       </ShowMore>
