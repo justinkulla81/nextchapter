@@ -127,7 +127,7 @@ export default async function StatePlacePage({ params }: { params: Promise<{ sta
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> Census Bureau and BLS for population, income and unemployment; WARN notices from {name}’s published record;
         job counts from our live job board, taken from employers’ own career sites; IPEDS for colleges; CareerOneStop for workforce boards and job centers.{' '}
-        <Link href={`/unemployment-benefits/${state}`} className={LINK}>{name} unemployment benefits</Link>.
+        <Link href={`/unemployment-benefits/${state}`} className={LINK}>{name} unemployment benefits and severance rules</Link>.
       </p>
     </SeoPage>
   )
