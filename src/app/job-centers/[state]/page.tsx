@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { GroupedLinkIndex } from '@/components/seo/LinkIndex'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
+import { statePhrase } from '@/lib/branding/state-colors'
 import { SeoPage, H2 } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { getStateOrgList } from '@/lib/seo/org-pages'
@@ -29,12 +30,13 @@ export default async function Page({ params }: { params: Promise<{ state: string
   for (const r of d.rows) (byCity.get(r.city ?? 'Statewide and regional') ?? byCity.set(r.city ?? 'Statewide and regional', []).get(r.city ?? 'Statewide and regional')!).push(r)
   return (
     <SeoPage
+      boxFirst
       look="audience"
-      stateSlug={state}
       trail={[{ name: 'American Job Centers', path: '/job-centers' }, { name: d.name, path: `/job-centers/${state}` }]}
       h1={`American Job Centers in ${d.name}`}
       lede={<>{d.rows.length.toLocaleString('en-US')} listed in {d.name}. Each page shows the counties it serves, the jobs open there and how to reach it.</>}
     >
+      <p className="mt-3 text-xs text-muted-foreground">Independent page. Not from or affiliated with {statePhrase(d.code)}.</p>
       <StateFilingLink name={d.name} slug={state} className="mt-6" />
       <section aria-labelledby="list" className="mt-10">
         <h2 id="list" className={H2}>All in {d.name}</h2>

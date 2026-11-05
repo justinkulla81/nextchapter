@@ -58,3 +58,15 @@ describe('nonprofit directory pages', () => {
     expect(read('src/app/nonprofits/[state]/page.tsx')).not.toContain('stateSlug=')
   })
 })
+
+describe('state directory pages', () => {
+  it('open with the organization box: no state theme (it swaps the box for a job seeker band) and no second claim band', () => {
+    for (const r of ['workforce-boards', 'economic-development', 'job-centers', 'higher-education', 'nonprofits']) {
+      const src = read(`src/app/${r}/[state]/page.tsx`)
+      expect(src, r).toMatch(/<SeoPage[\s\S]*?boxFirst/)
+      expect(src, r).not.toContain('stateSlug=')
+      expect(src, r).not.toContain('<ActionBand')
+      expect(src, r).toContain('Independent page. Not from or affiliated with')
+    }
+  })
+})

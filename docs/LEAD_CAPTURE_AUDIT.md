@@ -86,3 +86,5 @@ Directory pages (workforce boards, job centers, economic development; `OrgPageVi
 ## Organization button (2026-11-05, owner direction)
 
 No "Talk to us". Where an organization can claim a page and get a free workspace (workforce boards, job centers, economic development, rapid response, nonprofits, colleges): "Give the platform to your job seekers, free." / "Start here, free", and the button starts the claim (`/government-workforce#claim`, `/nonprofits#claim`, `/higher-education#claim`). Other organizations: the pain headline and "Start here" to the contact form. Employers on the WARN tools: "Start here" to `/outplacement`, with no "free", because outplacement is set up by contract.
+
+State directory pages (2026-11-05): the state pages for workforce boards, economic development, job centers, higher education and nonprofits set a state theme, which made the layout show a job seeker band and hide the organization box. The theme is gone: the organization box opens each page, the second claim bands (workforce boards, higher education, nonprofits) are gone, and the "independent page" line stays as a note.

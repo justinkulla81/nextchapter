@@ -3,7 +3,8 @@ import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { layoffAndRapidLinks } from '@/lib/seo/layoff-links'
-import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
+import { statePhrase } from '@/lib/branding/state-colors'
+import { SeoPage, H2, LINK, Stat } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
 import { LocalEventSection } from '@/components/events/LocalEventSection'
@@ -51,13 +52,14 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
 
   return (
     <SeoPage
+      boxFirst
       look="scene"
       hero={campusImage(state)}
-      stateSlug={state}
       trail={[{ name: 'Higher education', path: '/higher-education' }, { name: d.name, path: `/higher-education/${state}` }]}
       h1={higherEdStateSeo(d.name).h1}
       lede={<>{d.colleges.length} colleges in {d.name}, and the job market their graduates enter. A career services or alumni staff member can claim their college’s page and set up a free workspace.</>}
     >
+      <p className="mt-3 text-xs text-muted-foreground">Independent page. Not from or affiliated with {statePhrase(d.code)}.</p>
       <section aria-labelledby="market" className="mt-10">
         <h2 id="market" className={H2}>The {d.name} job market</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -108,14 +110,6 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
       <ConferenceSection id="conferences" title={`Higher education conferences in ${d.name}`} intro={`Conferences for college and university staff held in ${d.name}: admissions, student affairs, advancement, institutional leadership.`}
         source={`higher_ed_state:${d.code}`} load={() => higherEdConferencesIn(d.code, 24)} more={{ href: '/conferences', label: 'All conferences' }} />
 
-      <ActionBand
-        title={`Work in career services or alumni relations at a ${d.name} college?`}
-        body="Claim your college’s page and set up a free workspace for alumni and students. Use a work email at your institution’s domain."
-        label="See how a college claims its page"
-        href="/higher-education#claim"
-        event="seo_claim_clicked"
-        properties={{ page: 'higher_ed_state', audience: 'higher_ed', state: d.code }}
-      />
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> college directory from IPEDS (U.S. Department of Education), 2-year and 4-year public, private non-profit and for-profit institutions;
         unemployment from the Bureau of Labor Statistics.{!isCollegeTerritory(d.code) && <> <Link href={`/unemployment-benefits/${stateSlug(d.code)}`} className={LINK}>{d.name} unemployment benefits</Link>.</>}
