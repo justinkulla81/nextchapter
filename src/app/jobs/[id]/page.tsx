@@ -27,7 +27,7 @@ import { isExcerpt } from '@/lib/jobs/posting-text'
 import { testedTitle } from '@/lib/seo/title-test-state'
 import { jobTitleB } from '@/lib/seo/title-tests'
 import { datePostedOf, descriptionParagraphs, isIndexableJob, isRemoteJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
-import { getPublicJob } from '@/lib/jobs/public-job-page-server'
+import { getPublicJob, similarJobsAtCompany } from '@/lib/jobs/public-job-page-server'
 import { employerPath, isCompanyOfferedToSearch } from '@/lib/seo/employer-pages'
 import { prisma } from '@/lib/prisma'
 import { getTitleIndex } from '@/lib/seo/job-titles'
@@ -101,6 +101,8 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   // The employer's own page lists every open role it has; link to it when that page is offered to search engines.
   const employerHref =
     tags?.company && (await isCompanyOfferedToSearch(tags.company.id).catch(() => false)) ? employerPath(tags.company.canonicalNameNormalized, tags.company.id) : null
+  // Other open roles at this employer, linked straight from the page (a failed read leaves the block out).
+  const moreAtCompany = await similarJobsAtCompany(tags?.company?.id, job.id)
   // The title's own page lists every open role with this title; it exists only for titles with enough listings. A failed read just leaves the link out.
   const titleStat = (await getTitleIndex().catch(() => [])).find((t) => t.slug === titleSlug(baseTitle(job.title)))
   const industry = bucketFromIndustryText(tags?.industry)
@@ -189,6 +191,27 @@ export default async function PublicJobPage({ params }: { params: Params }) {
                 {industry && fn && ' · '}
                 {fn && <Link href={functionPath(fn.name)} className="underline underline-offset-4">{fn.name} jobs</Link>}
               </p>
+            )}
+
+            {moreAtCompany.length > 0 && (
+              <section aria-labelledby="more-at-company" className="mt-10">
+                <h2 id="more-at-company" className="font-display text-xl font-semibold">More roles at {job.companyName}</h2>
+                <ul className="mt-3 space-y-2 text-sm">
+                  {moreAtCompany.map((j) => (
+                    <li key={j.id}>
+                      <TrackedLink
+                        href={`/jobs/${j.id}`}
+                        event="job_page_similar_job_clicked"
+                        properties={{ jobId: job.id, toJobId: j.id, company: job.companyName }}
+                        className="font-medium text-brand underline underline-offset-4"
+                      >
+                        {j.title}
+                      </TrackedLink>
+                      {j.locationCity && j.locationState ? <span className="text-muted-foreground"> · {j.locationCity}, {j.locationState}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              </section>
             )}
 
             <RankingContext
