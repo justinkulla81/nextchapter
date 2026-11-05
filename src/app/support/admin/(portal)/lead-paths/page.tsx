@@ -134,9 +134,7 @@ export default async function LeadPathsPage({ searchParams }: { searchParams: Pr
                 {stops.map((r) => (
                   <tr key={r.stop.rank} className="border-t">
                     <td className="px-3 py-2">{r.stop.label}</td>
-                    <td className="px-3 py-2">
-                      <PageLink path={r.stop.path} />
-                    </td>
+                    <td className="px-3 py-2">{r.stop.path ? <PageLink path={r.stop.path} /> : <span className="text-muted-foreground">–</span>}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.reached}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.stop.path ? r.stoppedHere : '–'}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.stop.path ? pct(r.reached - r.stoppedHere, r.reached) : '–'}</td>
