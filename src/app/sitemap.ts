@@ -408,10 +408,10 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
 // The finished list is kept in the data cache (six hours, a stale copy served while it refreshes), like the other database-backed
 // sitemaps. Without this every request to /sitemap.xml rebuilt it from the database (about 2 seconds, MISS on every call): the
 // CDN header in next.config.ts is not applied to a dynamic route on Vercel.
-// v4 is the list with the AI course pages and the /journeys pages (a new key so the six-hour cache does not hold back new URLs). If it cannot be built complete (the database is at its limit), the last complete list under the
+// v5 adds the generated /vs/<competitor> pages. v4 is the list with the AI course pages and the /journeys pages (a new key so the six-hour cache does not hold back new URLs). If it cannot be built complete (the database is at its limit), the last complete list under the
 // older key is served instead, so crawlers never see a short one. A failed build throws and is never cached.
-const cachedMainSitemap = cachedSitemap('main-sitemap-v4', buildSitemap)
-const previousMainSitemap = cachedSitemap('main-sitemap-v3', buildSitemap)
+const cachedMainSitemap = cachedSitemap('main-sitemap-v5', buildSitemap)
+const previousMainSitemap = cachedSitemap('main-sitemap-v4', buildSitemap)
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
