@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   const workers = d.recent.reduce((s, n) => s + (n.workers ?? 0), 0)
-  const description = `${d.recent.length} layoff and job-cut notices filed with the state in ${d.name} in the last 12 months${workers > 0 ? `, naming ${workers.toLocaleString()} workers` : ''}: employers, dates, locations and the state record for each.`
+  const description = `${d.recent.length} layoff and job-cut notices filed with the state in ${d.name} in the last 12 months${workers > 0 ? `, naming ${workers.toLocaleString()} people` : ''}: employers, dates, locations and the state record for each.`
   return {
     title: titleMeta(layoffsStateSeo(d.name).title),
     description: fitDescription(description, 165),
@@ -89,7 +89,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{layoffsStateSeo(d.name).h1}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             Employers filed {d.recent.length.toLocaleString()} layoff notices in {d.name} in the last 12 months
-            {workers > 0 ? <>, naming {workers.toLocaleString()} workers</> : ''}. The most recent was filed {noticeDay(latest)}.
+            {workers > 0 ? <>, naming {workers.toLocaleString()} people</> : ''}. The most recent was filed {noticeDay(latest)}.
           </p>
           <PullTop name={`Layoffs in ${d.name}`} path={`/layoffs/${state}`} />
           {st && (

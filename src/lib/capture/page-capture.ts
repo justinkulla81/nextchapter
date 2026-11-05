@@ -43,28 +43,28 @@ export function ownerOffer(c: PageCaptureConfig): OwnerOffer {
     case 'county':
     case 'city':
       return {
-        who: `Run a workforce board, job center or economic development office, or hire in ${c.label}?`,
+        who: `Job seekers in ${c.label} looking to you for help, or openings you cannot fill?`,
         what: `Leave your work email. We'll send how organizations use NextChapter to reach job seekers in ${c.label}.`,
         href: '/for-organizations',
         hrefLabel: 'See how organizations use it',
       }
     case 'industry':
       return {
-        who: `Hire in ${c.label.toLowerCase()} or run an association for it?`,
+        who: `Hiring in ${c.label.toLowerCase()} and not seeing enough experienced applicants?`,
         what: `Leave your work email. We'll send how to reach experienced ${c.label.toLowerCase()} professionals on NextChapter.`,
         href: '/employers',
         hrefLabel: 'See employer options',
       }
     case 'function':
       return {
-        who: `Hire in ${c.label.toLowerCase()}?`,
+        who: `Hiring in ${c.label.toLowerCase()} and not seeing enough experienced applicants?`,
         what: `Leave your work email. We'll send how to reach experienced ${c.label.toLowerCase()} professionals on NextChapter.`,
         href: '/employers',
         hrefLabel: 'See employer options',
       }
     case 'title':
       return {
-        who: `Hiring ${c.label.toLowerCase()} roles?`,
+        who: `Hiring ${c.label.toLowerCase()} roles and not seeing the right people?`,
         what: `Leave your work email. We'll send how to reach people searching for ${c.label.toLowerCase()} jobs.`,
         href: '/employers',
         hrefLabel: 'See employer options',
