@@ -30,7 +30,7 @@ export function WarnAddManualForm({ companyNames }: { companyNames: string[] }) 
       id="warn-manual-add-form"
       className="w-full space-y-2 rounded-lg border border-border p-3"
     >
-      <p className="text-sm font-medium">Add a layoff you heard about (no WARN filing yet)</p>
+      <p className="text-sm font-medium">Add a layoff you heard about (no layoff filing yet)</p>
       <div className="flex flex-wrap gap-2">
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           Company

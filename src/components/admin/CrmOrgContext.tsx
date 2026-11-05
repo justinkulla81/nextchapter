@@ -170,7 +170,7 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
                   </tbody>
                 </table>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {layoffs.rows.length > 7 ? `Top 7 of ${layoffs.employers} employers. ` : ''}Total {layoffs.jobs.toLocaleString()} jobs in {layoffs.filings} state WARN filings.
+                  {layoffs.rows.length > 7 ? `Top 7 of ${layoffs.employers} employers. ` : ''}Total {layoffs.jobs.toLocaleString()} jobs in {layoffs.filings} state layoff filings.
                 </p>
               </>
             ) : <p className="mt-1 text-sm text-muted-foreground">No state layoff filings in this window.</p>}

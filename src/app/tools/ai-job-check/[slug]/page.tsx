@@ -191,7 +191,7 @@ export default async function AiJobCheckResultPage({ params }: { params: Promise
 
       <section aria-labelledby="employer" className="mt-10 max-w-3xl">
         <h2 id="employer" className={H2}>Has your employer filed layoff notices?</h2>
-        <p className="mt-2 text-sm text-muted-foreground">A separate question from AI exposure. This checks public WARN filings for the company you work for.</p>
+        <p className="mt-2 text-sm text-muted-foreground">A separate question from AI exposure. This checks public layoff filings for the company you work for.</p>
         <div className="mt-4">
           <AiJobCheckEmployer soc6={soc6} />
         </div>

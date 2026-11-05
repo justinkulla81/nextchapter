@@ -55,7 +55,7 @@ export default function EditorialStandardsPage() {
         <ul className="mt-4 list-disc space-y-2 pl-5">
           <li>
             We start from primary sources: the Bureau of Labor Statistics, Census Bureau survey microdata, the
-            Department of Labor, state agencies and their WARN filings, and SEC filings. Where we use a private
+            Department of Labor, state agencies and their layoff filings, and SEC filings. Where we use a private
             dataset or survey, we name it.
           </li>
           <li>Every figure in a report is linked to its source or explained in the methodology, and the data files are published.</li>

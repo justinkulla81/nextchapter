@@ -28,7 +28,7 @@ export default function PromptPackPage() {
       <section aria-labelledby="where" className="mt-10 max-w-3xl">
         <h2 id="where" className={H2}>Where the numbers come from</h2>
         <p className="mt-3 text-sm text-muted-foreground">
-          AI exposure: <a href={AI_EXPOSURE_SOURCE.url} className={LINK} rel="noopener">{AI_EXPOSURE_SOURCE.name}</a>, {AI_EXPOSURE_SOURCE.released}. Pay, growth and openings: Bureau of Labor Statistics. Layoff notices: WARN filings with state labor departments. <Link href="/tools/ai-job-check" className={LINK}>Check your job</Link>.
+          AI exposure: <a href={AI_EXPOSURE_SOURCE.url} className={LINK} rel="noopener">{AI_EXPOSURE_SOURCE.name}</a>, {AI_EXPOSURE_SOURCE.released}. Pay, growth and openings: Bureau of Labor Statistics. Layoff notices: layoff filings with state labor departments. <Link href="/tools/ai-job-check" className={LINK}>Check your job</Link>.
         </p>
       </section>
     </SeoPage>

@@ -162,10 +162,10 @@ export default async function AdminCompanyDetailPage({ params }: { params: Promi
           <div className="flex items-start gap-2 rounded-lg border border-dashed border-border bg-muted/30 p-3">
             <ShieldAlert className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             <div>
-              <p className="text-sm font-medium text-muted-foreground">WARN filings: not available</p>
+              <p className="text-sm font-medium text-muted-foreground">Layoff filings: not available</p>
               <p className="text-xs text-muted-foreground">
-                No WARN-filing monitoring agent exists yet. This composite is built from postings trajectory and
-                member concentration only — it will incorporate real WARN filings once that data source exists,
+                No layoff-filing monitoring agent exists yet. This composite is built from postings trajectory and
+                member concentration only — it will incorporate real layoff filings once that data source exists,
                 and this score should be read as a floor, not the full picture.
               </p>
             </div>

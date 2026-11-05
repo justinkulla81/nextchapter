@@ -104,7 +104,7 @@ export async function AlumniLayoffs({ ctx }: Props) {
   return (
     <div className="space-y-6">
       <p className="max-w-2xl text-sm text-muted-foreground">
-        Every night we check state WARN layoff notices against where your alumni work. A match doesn&apos;t mean someone was laid off; the email says
+        Every night we check state Layoff notices against where your alumni work. A match doesn&apos;t mean someone was laid off; the email says
         &ldquo;if you&apos;re affected, {ctx.institution.name} has your back&rdquo;, and only the alum can say they were.
       </p>
       {groups.size ? (

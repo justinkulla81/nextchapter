@@ -74,7 +74,7 @@ export function AiJobCheckEmployer({ soc6 }: { soc6: string }) {
       )}
       {employers && employers.length === 0 && (
         <p className="mt-4 max-w-xl text-sm text-muted-foreground">
-          No layoff notices or announcements on our record for that name. That is not proof of safety: WARN notices cover employers with 100 or more employees and layoffs of 50 or more at a site.
+          No layoff notices or announcements on our record for that name. That is not proof of safety: a layoff notice is only required from employers with 100 or more employees, and for layoffs of 50 or more at a site.
         </p>
       )}
       {employers && employers.length > 0 && (
@@ -86,8 +86,8 @@ export function AiJobCheckEmployer({ soc6 }: { soc6: string }) {
               </Link>
               <p className="mt-1 text-muted-foreground">
                 {emp.recentNotices === 0
-                  ? 'No WARN notices in the last 12 months.'
-                  : `${emp.recentNotices} WARN notice${emp.recentNotices === 1 ? '' : 's'} in the last 12 months, across ${emp.recentMonths} month${emp.recentMonths === 1 ? '' : 's'}${emp.latest ? `, latest ${new Date(emp.latest).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' })}` : ''}.`}
+                  ? 'No layoff notices in the last 12 months.'
+                  : `${emp.recentNotices} layoff notice${emp.recentNotices === 1 ? '' : 's'} in the last 12 months, across ${emp.recentMonths} month${emp.recentMonths === 1 ? '' : 's'}${emp.latest ? `, latest ${new Date(emp.latest).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' })}` : ''}.`}
                 {emp.announcedRecently ? ' A layoff was announced or reported in the last 12 months.' : ''}
               </p>
             </li>
