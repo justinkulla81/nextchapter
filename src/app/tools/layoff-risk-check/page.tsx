@@ -31,6 +31,7 @@ export default async function LayoffRiskCheckPage() {
 
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Layoff risk check', path: '/tools/layoff-risk-check' }]}
       h1="Layoff risk check: are there warning signs where you work?"
       lede={

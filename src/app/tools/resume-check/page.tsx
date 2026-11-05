@@ -25,6 +25,7 @@ export default function ResumeCheckPage() {
     .map((p) => ({ slug: p.slug, label: p.label }))
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Résumé check', path: '/tools/resume-check' }]}
       h1={pageH1('/tools/resume-check', 'Free ATS résumé checker: score your résumé in a minute')}
       lede="Paste your résumé to get a score out of 100 and see how many fixes it needs, including the headings, dates and layout applicant tracking systems commonly trip on. Leave an email to see exactly what to change. No AI, no account."

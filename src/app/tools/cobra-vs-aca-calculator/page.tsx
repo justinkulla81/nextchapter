@@ -23,6 +23,7 @@ export default function CobraVsAcaCalculatorPage() {
     .map((p) => ({ slug: p.slug, label: p.label }))
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'COBRA vs ACA calculator', path: '/tools/cobra-vs-aca-calculator' }]}
       h1={pageH1('/tools/cobra-vs-aca-calculator', 'COBRA vs ACA cost calculator')}
       lede={`Enter your COBRA quote and your household income to see what a Marketplace plan would cost after the premium tax credit, side by side, with your COBRA and Marketplace deadlines. Free, no account, nothing saved.`}

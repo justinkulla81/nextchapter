@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
@@ -31,7 +31,12 @@ describe('one registration ask per page', () => {
 })
 
 describe('box above the tool', () => {
-  it('the pay check page opens with the box, above the form', () => {
-    expect(read('src/app/tools/pay-check/page.tsx')).toMatch(/<SeoPage\s+boxFirst/)
+  const pages = (dir: string): string[] =>
+    readdirSync(join(process.cwd(), dir), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? pages(`${dir}/${e.name}`) : e.name === 'page.tsx' ? [`${dir}/${e.name}`] : []))
+  it('every tool page opens with the box, above the tool', () => {
+    for (const p of pages('src/app/tools')) expect(read(p), p).toMatch(/<SeoPage\s+boxFirst/)
+  })
+  it('the WARN tools sit under Rapid response, so they show the organization box, not the job seeker one', () => {
+    for (const t of ['warn-act-checker', 'warn-notice-generator']) expect(read(`src/app/tools/${t}/page.tsx`), t).toContain("{ name: 'Rapid response', path: '/rapid-response' }")
   })
 })

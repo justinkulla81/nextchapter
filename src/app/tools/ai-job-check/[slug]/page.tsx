@@ -66,6 +66,7 @@ export default async function AiJobCheckResultPage({ params }: { params: Promise
 
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'AI job check', path: '/tools/ai-job-check' }, { name: e.title, path }]}
       h1={`${e.title}: how much of the work does AI already do?`}
       lede={

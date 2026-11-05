@@ -16,6 +16,7 @@ const FAQ = [
 export default function InterviewAnswerCoachPage() {
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Interview answer coach', path: '/tools/interview-answer-coach' }]}
       h1={pageH1('/tools/interview-answer-coach', 'Free interview answer coach')}
       lede="Pick a common interview question, write the answer you would give, and get honest feedback and a stronger version. Free, no account."

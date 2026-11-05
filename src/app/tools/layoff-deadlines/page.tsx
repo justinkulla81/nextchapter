@@ -22,6 +22,7 @@ export default function LayoffDeadlinesPage() {
     .map((p) => ({ slug: p.slug, label: p.label }))
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Layoff deadlines', path: '/tools/layoff-deadlines' }]}
       h1={pageH1('/tools/layoff-deadlines', 'Layoff deadlines: what to do and by when')}
       lede="Enter your last day of work to see the dates that matter in the weeks after a layoff: filing for unemployment and choosing health coverage. Free, no account."

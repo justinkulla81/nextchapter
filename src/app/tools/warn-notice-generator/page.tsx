@@ -18,7 +18,8 @@ const FAQ = [
 export default function WarnNoticeGeneratorPage() {
   return (
     <SeoPage
-      trail={[{ name: 'Tools', path: '/tools' }, { name: 'WARN notice generator', path: '/tools/warn-notice-generator' }]}
+      boxFirst
+      trail={[{ name: 'Rapid response', path: '/rapid-response' }, { name: 'WARN notice generator', path: '/tools/warn-notice-generator' }]}
       h1={pageH1('/tools/warn-notice-generator', 'WARN notice template and generator')}
       lede="Answer a few questions to draft the three notices a plant closing or mass layoff requires: to each employee, to a union if one represents them, and to the State and local government. Free, no account, and nothing leaves your browser."
       jsonLd={[

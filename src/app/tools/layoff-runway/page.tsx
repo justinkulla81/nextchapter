@@ -19,6 +19,7 @@ export default function Page() {
   const states: RunwayState[] = ALL_STATE_CODES.filter((c) => STATE_UI[c]).map((c) => ({ code: c, name: stateName(c), maxWeekly: STATE_UI[c].maxWeeklyBenefit.value, maxWeeks: STATE_UI[c].maxWeeks.value }))
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Layoff runway calculator', path: '/tools/layoff-runway' }]}
       h1={pageH1('/tools/layoff-runway', 'Layoff runway: how long your money will last')}
       lede="Enter your savings, monthly spending and any severance to see how many months they cover, and how much unemployment benefits for your state add. Free, nothing is saved."

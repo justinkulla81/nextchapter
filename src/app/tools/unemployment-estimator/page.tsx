@@ -19,6 +19,7 @@ export default function Page() {
   const states: EstimatorState[] = ALL_STATE_CODES.filter((c) => STATE_UI[c]).map((c) => ({ code: c, slug: stateSlug(c), name: stateName(c), maxWeekly: STATE_UI[c].maxWeeklyBenefit.value, minWeekly: STATE_UI[c].minWeeklyBenefit.value, maxWeeks: STATE_UI[c].maxWeeks.value, agency: STATE_UI[c].agencyName.value, fileUrl: STATE_UI[c].fileUrl.value }))
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Unemployment benefit estimator', path: '/tools/unemployment-estimator' }]}
       h1={pageH1('/tools/unemployment-estimator', 'Unemployment benefit estimator: about how much you could get')}
       lede="Pick your state and enter your yearly pay for a planning estimate of the weekly benefit, how many weeks it can last and the most you could receive. The state sets the real amount."

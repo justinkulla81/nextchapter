@@ -31,6 +31,7 @@ export default function SeveranceCalculatorPage() {
 
   return (
     <SeoPage
+      boxFirst
       trail={[{ name: 'Tools', path: '/tools' }, { name: 'Severance calculator', path: '/tools/severance-calculator' }]}
       h1={pageH1('/tools/severance-calculator', 'Severance calculator')}
       lede="Enter your pay and years of service to see what the common formula of one to two weeks of pay per year of service comes to, what is left after federal withholding and payroll taxes, and how your state treats severance for unemployment. Your agreement sets the real number."
