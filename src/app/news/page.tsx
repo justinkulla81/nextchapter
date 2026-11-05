@@ -4,7 +4,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { NewsFeed } from '@/components/news/NewsFeed'
-import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { getPublishedNews } from '@/lib/news/published'
 import { newsDisplayTitle } from '@/lib/news/slug'
 import { getLayoffTracker } from '@/lib/warn/public-tracker'
@@ -12,7 +11,6 @@ import { LayoffTracker } from '@/components/news/LayoffTracker'
 import { getNationalLaborData } from '@/lib/market/bls-national'
 import { StructuredData } from '@/components/StructuredData'
 import { FreshLinks } from '@/components/marketing/FreshLinks'
-import { EMPLOYEE_JOURNEYS } from '@/lib/journeys/employee-journeys'
 import { PullTop } from '@/components/capture/PullCta'
 
 const SITE = 'https://launchyournextchapter.com'
@@ -54,22 +52,9 @@ export default async function NewsPage() {
         <div className="mx-auto max-w-6xl px-6">
           <h1 className="text-4xl font-bold tracking-tight text-navy">{pageH1('/news', 'News')}</h1>
           <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-            Articles, videos, podcasts and posts on the job market and searching for a job. For our own data, read the
-            monthly{' '}
-            <a href="/reports/latest" className="text-primary underline underline-offset-4">NextChapter White Collar Employment Report</a>{' '}
-            and the{' '}
-            <a href="/reports/white-collar-index" className="text-primary underline underline-offset-4">White-Collar Long-Search Index</a>.
+            Articles, videos, podcasts and posts on the job market and searching for a job.
           </p>
           <PullTop name="News" path="/news" />
-          <p className="mt-6 text-sm text-muted-foreground">
-            Follow a theme:{' '}
-            {EMPLOYEE_JOURNEYS.map((j, i) => (
-              <span key={j.slug}>{i > 0 && ' · '}<Link href={`/journeys/${j.slug}`} className="text-primary underline underline-offset-4">{j.label}</Link></span>
-            ))}
-          </p>
-          <div className="mt-8 max-w-xl rounded-2xl border border-border bg-white p-6">
-            <NewsletterSignup source="news" />
-          </div>
           <div className="mt-10">
             {items.length === 0 ? (
               <p className="rounded-xl border border-dashed border-border bg-white p-10 text-center text-muted-foreground">
