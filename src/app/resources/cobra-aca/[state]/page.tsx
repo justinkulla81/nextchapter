@@ -202,7 +202,7 @@ export default async function CobraAcaStatePage({ params }: { params: Params }) 
       <section aria-labelledby="next" className="mt-12 rounded-xl border border-border bg-white p-6">
         <h2 id="next" className="text-xl font-semibold tracking-tight text-navy">Compare with your own numbers</h2>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Enter your COBRA quote and your household income. Also: <Link href={`/unemployment-benefits/${state}`} className={LINK}>unemployment benefits in {name}</Link>.
+          Enter your COBRA quote and your household income. Also: <Link href={`/unemployment-benefits/${state}`} className={LINK}>unemployment benefits and severance rules in {name}</Link>.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-4">
           <Link

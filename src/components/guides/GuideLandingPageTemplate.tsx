@@ -77,8 +77,8 @@ export function GuideLandingPageTemplate({ content }: { content: GuideLandingCon
         {REPORT_LINK_SLUGS.has(content.slug) && (
           <div className="mt-12 rounded-xl border border-light-gray bg-off-white p-5 text-sm text-muted-foreground">
             <span className="font-medium text-foreground">Look up your state:</span>{' '}
-            <Link href="/unemployment-benefits" className="text-brand underline underline-offset-4">unemployment benefits by state</Link>{' '}
-            (weekly amounts, how many weeks, and how severance counts) and the{' '}
+            <Link href="/unemployment-benefits" className="text-brand underline underline-offset-4">unemployment benefits and severance rules by state</Link>{' '}
+            (weekly amounts and how many weeks) and the{' '}
             <Link href="/layoffs" className="text-brand underline underline-offset-4">layoff tracker by state and employer</Link>.
           </div>
         )}

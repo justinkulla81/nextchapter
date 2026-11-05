@@ -599,6 +599,20 @@ export function seniorityGroupOf(level: string | null | undefined): SeniorityGro
   return (level && GROUP_OF_RUNG[level as RungName]) || null
 }
 
+/** The `seniority` URL parameter: one group, or several separated by commas ("EARLY_CAREER,ENTRY_LEVEL"). Unknown names and repeats are dropped; the order is the groups' own. */
+export function parseSeniorityParam(raw: string | null | undefined): SeniorityGroup[] {
+  const asked = new Set((raw ?? '').split(',').map((x) => x.trim()))
+  return SENIORITY_GROUPS.filter((g) => asked.has(g.key)).map((g) => g.key)
+}
+
+/** The parameter value for a list of groups, in canonical order; '' for none. */
+export function seniorityParamValue(groups: readonly SeniorityGroup[]): string {
+  return SENIORITY_GROUPS.filter((g) => groups.includes(g.key)).map((g) => g.key).join(',')
+}
+
+/** What the public entry-level pages list: early-career (2-5 years) and entry-level (0-2 years) together. */
+export const ENTRY_AND_EARLY_PARAM = seniorityParamValue(['EARLY_CAREER', 'ENTRY_LEVEL'])
+
 /** Label for a group key ("DIRECTOR" -> "Director"); null for unknown. */
 export function seniorityGroupLabel(group: string | null | undefined): string | null {
   return SENIORITY_GROUPS.find((g) => g.key === group)?.label ?? null

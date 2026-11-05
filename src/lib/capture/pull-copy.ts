@@ -13,6 +13,14 @@ export interface PullCopy {
   member: MemberCopy
 }
 
+/** The organization ask (workforce boards, employers, colleges); its button goes to the contact form. Members never see this box, so it has no member copy. */
+export interface OrgCopy {
+  org: true
+  headline: string
+  sentence: string
+  button: string
+}
+
 export interface MemberCopy {
   headline: string
   /** Says why a fuller profile changes what this page shows. */
@@ -52,6 +60,27 @@ export const DEFAULT_COPY: PullCopy = {
   sentence: 'Find out where you stand: your odds, the jobs that fit you and a plan for the week ahead. Free. No résumé needed.',
   button: null,
   member: { headline: 'Tighten your search', sentence: 'Your profile decides why each job ranks where it does. Add what is missing and the list gets closer to the jobs that reply.', button: 'Improve my search' },
+}
+
+/** The organization ask. Contract-sold, so the button stays "Talk to us". Claims only what the organization pages already claim: no placement, speed or price wording. */
+export const ORG_COPY: OrgCopy = {
+  org: true,
+  headline: 'Hard to reach experienced job seekers where they already look?',
+  sentence: 'Get your own page and your own numbers on NextChapter. A short call shows how.',
+  button: 'Talk to us',
+}
+
+/** The organization ask on layoff pages (rapid response, the WARN tools): a layoff is coming or has hit, and the people affected need somewhere to start. */
+export const ORG_LAYOFF_COPY: OrgCopy = {
+  org: true,
+  headline: 'A layoff is coming and the people affected have nowhere to start?',
+  sentence: 'Send them one link to a job search plan, local jobs and career support. A short call shows how.',
+  button: 'Talk to us',
+}
+
+/** The organization copy for a page, chosen from the page's slug (see pullContext). */
+export function orgCopyForSlug(slug: string): OrgCopy {
+  return /^(rapid-response|tools-warn)/.test(slug) ? ORG_LAYOFF_COPY : ORG_COPY
 }
 
 const FREE = 'Free. No résumé needed.'
