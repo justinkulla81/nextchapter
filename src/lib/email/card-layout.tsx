@@ -93,6 +93,55 @@ export function Wordmark() {
   )
 }
 
+/** Wordmark on the left and a small label on the right (for a newsletter: "Chapter 14 · Nov 5"). */
+export function Masthead({ right }: { right: string }) {
+  return (
+    <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} style={{ margin: '0 0 24px' }}>
+      <tbody>
+        <tr>
+          <td style={{ verticalAlign: 'middle', fontFamily: DISPLAY_FONT, fontSize: '20px', fontWeight: 800, color: BRAND, letterSpacing: '-0.01em' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={emailAsset('bookmark.png')} width={18} height={26} alt="" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', border: 0 }} />
+            <span style={{ verticalAlign: 'middle' }}>NextChapter</span>
+          </td>
+          <td align="right" style={{ verticalAlign: 'middle', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, color: MUTED }}>
+            {right}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  )
+}
+
+/** The orange hand-drawn line under a headline. */
+export function Squiggle() {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={emailAsset('squiggle.png')} width={150} height={8} alt="" style={{ display: 'block', border: 0, margin: '-12px 0 24px' }} />
+}
+
+/** A handwritten aside drawn as an image (Gmail ignores web fonts). The text is the alt, so blocked images still read. */
+export function HandNote({ src, text }: { src: string | null; text: string }) {
+  if (!src) return null
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} height={30} alt={text} style={{ display: 'block', height: '30px', width: 'auto', border: 0, margin: '0 0 20px' }} />
+}
+
+/** The pale box that opens an issue: a label, then the facts in a line or two. */
+export function ShortVersion({ children }: { children: ReactNode }) {
+  return (
+    <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} style={{ margin: '0 0 12px' }}>
+      <tbody>
+        <tr>
+          <td style={{ backgroundColor: '#e8f0f8', borderRadius: '16px', padding: '18px 22px', textAlign: 'left' }}>
+            <p style={{ margin: '0 0 6px', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, color: MUTED }}>The short version</p>
+            <p style={{ margin: 0, fontSize: '17px', lineHeight: '1.55', color: INK }}>{children}</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  )
+}
+
 /** Orange highlighter under a number or phrase that matters. Counts only; never on something clickable. */
 export function Mark({ children }: { children: ReactNode }) {
   return <span style={{ backgroundColor: '#f9d9b4', padding: '0 3px' }}>{children}</span>
