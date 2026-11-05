@@ -35,10 +35,12 @@ type Handler = (request: NextRequest) => Promise<Response> | Response
  * A function killed at its time limit never reaches the finish write; that
  * row stays RUNNING and the watchdog marks it TIMED_OUT.
  *
+ * recordResult: keep the start of a successful run's JSON answer in CronRun.detail.
+ *
  * Ledger writes are best-effort: a database hiccup must never stop the job
  * itself from running.
  */
-export function withCronRun(job: string, handler: Handler) {
+export function withCronRun(job: string, handler: Handler, opts: { recordResult?: boolean } = {}) {
   return async function GET(request: NextRequest): Promise<Response> {
     if (!isBearerAuthorized(request.headers.get('authorization'), process.env.CRON_SECRET)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -51,12 +53,12 @@ export function withCronRun(job: string, handler: Handler) {
         console.error('Cron ledger: could not record start of', job, e)
         return null
       })
-    const finish = (status: 'OK' | 'FAILED', error?: string) =>
+    const finish = (status: 'OK' | 'FAILED', error?: string, detail?: string) =>
       runId
         ? prisma.cronRun
             .update({
               where: { id: runId },
-              data: { status, finishedAt: new Date(), durationMs: Date.now() - started, error: error?.slice(0, 2000) ?? null },
+              data: { status, finishedAt: new Date(), durationMs: Date.now() - started, error: error?.slice(0, 2000) ?? null, ...(detail ? { detail: detail.slice(0, 2000) } : {}) },
             })
             .catch((e) => console.error('Cron ledger: could not record finish of', job, e))
         : Promise.resolve()
@@ -71,7 +73,11 @@ export function withCronRun(job: string, handler: Handler) {
         await new Promise((r) => setTimeout(r, RETRY_PAUSE_MS))
         response = await handler(request)
       }
-      if (response.ok) await finish('OK')
+      if (response.ok) {
+        // A job that opts in keeps the start of its JSON answer, so a run that did nothing (a dry run) or stopped early can be told from one that worked.
+        const detail = opts.recordResult ? await response.clone().text().then((t) => t.slice(0, 2000)).catch(() => '') : ''
+        await finish('OK', undefined, detail)
+      }
       else {
         // The response body usually says what failed (a job that reports its failed steps); keep the start of it in the ledger.
         const detail = await response.clone().text().then((t) => t.slice(0, 600)).catch(() => '')

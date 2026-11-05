@@ -15492,6 +15492,8 @@ model CronRun {
   error      String?   @db.Text
   /// schedule | retry | manual — a retry is only ever attempted once per failure.
   trigger    String    @default("schedule")
+  /// What a job reports about a successful run (the start of its JSON answer), for jobs that opt in with recordResult.
+  detail     String?   @db.Text
 
   @@index([job, startedAt(sort: Desc)])
   @@index([status, startedAt])
