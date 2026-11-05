@@ -70,3 +70,5 @@ Crawled 130 live pages, two from each kind of page in the sitemap, counting link
 Left as they are: `/why-stuck` (twelve links are the page's chooser), the follow and deadline email boxes (a different capture), the header button.
 
 The box is smaller (less padding, the "Not ready?" link sits under the sentence, not on its own row) so page content starts higher. Guard: `src/test/one-ask-per-page.test.ts`.
+
+The wider crawl after the merge (220 pages, five per kind) found nine more: the AI job check detail and compare pages carried their own "Get my free assessment" button beside the box. Removed; the box has the AI copy for them.
