@@ -5,6 +5,8 @@ import NewsletterWeeklyEmail from '@/emails/newsletter-weekly'
 import { emailCtaVariant } from '@/lib/ab/email-cta'
 import { getPublicNotices } from '@/lib/warn/layoff-pages'
 import { buildLayoffWeekBrief } from './layoff-week'
+import { buildJourneyWeekBrief } from './journey-week'
+import { getPublishedNews } from '@/lib/news/published'
 
 /**
  * Sends this week's article to everyone on the newsletter list.
@@ -43,6 +45,8 @@ export async function sendWeeklyNewsletter(
   const resend = createResend(process.env.RESEND_API_KEY)
   // The layoffs block is read once for the whole send; a failed read leaves it out and the email goes as before.
   const layoffs = buildLayoffWeekBrief(await getPublicNotices().catch(() => []))
+  // The journey block is read once for the whole send too; getPublishedNews already returns [] on a failed read, so the block is simply left out.
+  const journeys = buildJourneyWeekBrief(await getPublishedNews(200), appUrl)
   let sent = 0
   for (const s of subscribers) {
     if (candidateEmails.has(s.email)) continue
@@ -63,6 +67,7 @@ export async function sendWeeklyNewsletter(
           unsubscribeUrl: `${appUrl}/api/unsubscribe/newsletter/${s.unsubscribeToken}`,
           layoffs,
           layoffsUrl: `${appUrl}/layoffs/this-week`,
+          journeys,
         }),
         headers: { 'List-Unsubscribe': `<${appUrl}/api/unsubscribe/newsletter/${s.unsubscribeToken}>` },
       })
