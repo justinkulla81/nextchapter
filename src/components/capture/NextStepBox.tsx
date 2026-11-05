@@ -8,7 +8,9 @@ import { posthog } from '@/lib/posthog/client'
 import { NetworkJoinButton } from '@/components/community/NetworkJoinButton'
 import { networkCopy, type NetworkAsk } from '@/lib/community/network-copy'
 import { cn } from '@/lib/utils'
-import { DEFAULT_COPY, type PullCopy } from '@/lib/capture/pull-copy'
+import { usePathname } from 'next/navigation'
+import { useNavSession } from '@/lib/nav/use-nav-session'
+import { DEFAULT_COPY, MEMBER_COPY, type PullCopy } from '@/lib/capture/pull-copy'
 import { SITUATION_SESSION_KEY, type SituationKey } from '@/lib/constants/onboarding'
 
 /** A page that knows who the visitor is (a journey page) words the box itself and hands their situation to onboarding. */
@@ -28,6 +30,30 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy = DEFAU
   const org = audience === 'org'
   const net = !ask && network && !org ? networkCopy(network.kind, network.name, network.spelled) : null
   const href = org ? '/for-organizations#contact' : `${MARKET_REALITY_START_HREF}&from=top_${slug}`
+  const pathname = usePathname()
+  const session = useNavSession()
+  // The page is cached for everyone and renders the signed-out box first. A member never sees the registration ask: they get the
+  // payoff of a fuller profile and a link to build it. The page's own network ask (a real join action) and the organization box stay.
+  if (session?.signedIn && !org && !net) {
+    return (
+      <section id="get-started" aria-label="Next step" className="mt-4 scroll-mt-6 rounded-3xl bg-navy p-4 text-white sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <div className="max-w-2xl">
+            <h2 className="text-lg font-semibold tracking-tight sm:text-xl">{MEMBER_COPY.headline}</h2>
+            <p className="mt-1 text-sm text-white/85">{MEMBER_COPY.sentence}</p>
+          </div>
+          <TrackedLink
+            href={MEMBER_COPY.href}
+            event="member_personalize_clicked"
+            properties={{ spot: 'top', slug, path: pathname }}
+            className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95"
+          >
+            {MEMBER_COPY.button}
+          </TrackedLink>
+        </div>
+      </section>
+    )
+  }
   return (
     <section id="get-started" aria-label="Next step" className={cn('mt-4 scroll-mt-6 rounded-3xl bg-navy p-4 text-white sm:p-5', busy && 'cursor-wait')}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
@@ -55,6 +81,19 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy = DEFAU
             >
               {open ? 'Close' : 'Not ready? Email me a first-week plan instead.'}
             </button>
+          )}
+          {!org && !net && (
+            <p className="mt-1 text-sm text-white/85">
+              Already a member?{' '}
+              <TrackedLink
+                href={`/auth/login?next=${encodeURIComponent(pathname || '/')}`}
+                event="login_prompt_clicked"
+                properties={{ spot: 'top', slug, path: pathname }}
+                className="inline-flex min-h-10 items-center font-medium underline underline-offset-4 hover:text-white"
+              >
+                Log in
+              </TrackedLink>
+            </p>
           )}
         </div>
         {net && network ? (

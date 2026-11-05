@@ -68,6 +68,14 @@ const BY_ROOT: Record<string, PullCopy> = {
   'ai-job-check': AI_COPY,
 }
 
+/** What a signed-in member sees where the registration ask would be: the payoff of a fuller profile, and the page to build it on. */
+export const MEMBER_COPY = {
+  headline: 'Make this page work for you',
+  sentence: 'Your profile ranks the jobs for you, with a fit score and the reason on each one.',
+  button: 'Personalize my results',
+  href: '/dashboard/improve',
+}
+
 /** The copy for a page: its own by path, else the one for its first folder ("/layoffs/this-week" reads "layoffs"), else the default. */
 export function pullCopyFor(path: string): PullCopy {
   const clean = path.split('?')[0].replace(/\/$/, '')
