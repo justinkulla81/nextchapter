@@ -35,6 +35,10 @@
   --color-tint-mint-ink: #1f6a4a;
   --color-tint-plum-ink: #5b3a6b;
   --color-off-white: #f7f9fa;
+  /* The warm page and the pale marker from the email look. Neither is an action colour: the action colour is --action. */
+  --color-paper: #fffdf8;
+  --color-paper-edge: #ece4d4;
+  --color-marker: #fbe0bd;
   --color-light-gray: #e2e8f0;
   --color-gray: #8892a0;
   --color-success: #2e7d5b;

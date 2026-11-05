@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Squiggle } from '@/components/ui/squiggle'
 import Link from 'next/link'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
@@ -19,7 +20,7 @@ export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export const LINK = 'text-brand underline underline-offset-4'
 
 /** The frame for the programmatic public pages (workforce, higher education by state, rapid response, tools). */
-export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm, boxFirst, brand, ask }: {
+export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm, boxFirst, brand, ask, squiggle }: {
   trail: { name: string; path: string }[]
   h1: string
   lede: ReactNode
@@ -41,6 +42,8 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   brand?: { color: string; ink: string; stripe?: string }
   /** A journey page words the next-step box itself and hands the visitor's situation to onboarding. */
   ask?: JourneyAsk
+  /** The hand-drawn line under the headline. Off by default; the design-elements preview turns it on (src/app/dev-preview/design-elements). */
+  squiggle?: boolean
 }) {
   const st = stateBrandFromSlug(stateSlug)
   const pull = pullContext(trail)
@@ -63,6 +66,7 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
             ))}
           </nav>
           <h1 className={`mt-3 text-3xl font-bold tracking-tight sm:text-4xl ${brand ? '' : 'text-navy'} ${look === 'audience' ? 'font-display [text-wrap:balance]' : ''}`}>{h1}</h1>
+          {squiggle && <Squiggle className="mt-2" />}
           <div className={`mt-4 max-w-3xl text-lg ${brand ? '' : 'text-muted-foreground'}`}>{lede}</div>
           </div>
           {look === 'scene' && hero && (
