@@ -77,7 +77,7 @@ export async function createSampleDraft(): Promise<{ message: string }> {
     where: { source: 'WARN_FILING', linkedinDraft: null, dismissedAt: null, employees: { gte: MIN_EMPLOYEES, lte: MAX_EMPLOYEES }, fetchedAt: { gte: new Date(Date.now() - 90 * 86_400_000) } },
     orderBy: { employees: 'desc' },
   })
-  if (!n) return { message: 'No recent WARN filing of 100 jobs or more without a draft.' }
+  if (!n) return { message: 'No recent layoff filing of 100 jobs or more without a draft.' }
   const recent = await prisma.linkedInPostDraft.findMany({ orderBy: { createdAt: 'desc' }, take: 20, select: { angle: true, layout: true } })
   await createDraft(n, 'warn-filing', new Date(), recent.map((r) => r.angle), recent.map((r) => r.layout))
   captureServerEvent(admin.email ?? 'admin', 'linkedin_sample_draft_created', { noticeId: n.id, employer: n.employer })

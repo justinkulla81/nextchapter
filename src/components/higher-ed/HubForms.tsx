@@ -118,7 +118,7 @@ export function LayoffSeatsForm({
       </div>
       {notices.length > 0 && (
         <div className="space-y-1.5 sm:col-span-3">
-          <Label htmlFor="lo-warn">The WARN notice, if there is one (optional)</Label>
+          <Label htmlFor="lo-warn">The layoff notice, if there is one (optional)</Label>
           <select id="lo-warn" name="warnNoticeId" className={sel} defaultValue="">
             <option value="">None</option>
             {notices.map((n) => (

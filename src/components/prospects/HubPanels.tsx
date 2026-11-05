@@ -92,7 +92,7 @@ export function EmployersPanel({ market, notices, scope }: { market: Market; not
       </Block>
       <Block title={`Layoffs in ${scope}`} sub={`${n0(notices.notices)} state filings covering ${n0(notices.jobs)} jobs. Anyone affected gets this hub first.`}>
         <ul className="divide-y divide-border rounded-xl border border-border px-4 text-sm">{notices.top.map((t) => <li key={t.employer} className="flex justify-between gap-3 py-2"><span>{t.employer}</span><span className="tabular-nums text-muted-foreground">{n0(t.employees)} jobs</span></li>)}</ul>
-        <p className="text-xs text-muted-foreground">Public state WARN filings.</p>
+        <p className="text-xs text-muted-foreground">Public state layoff filings.</p>
       </Block>
     </div>
   )

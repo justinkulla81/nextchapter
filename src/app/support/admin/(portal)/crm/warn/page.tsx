@@ -171,12 +171,12 @@ export default async function WarnReviewPage({
         <div>
           <h1 className="text-2xl font-semibold">Layoff notices</h1>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            WARN filings from state labor departments — the legally required notice before a mass layoff.
+            Layoff filings from state labor departments — the legally required notice before a mass layoff.
             Synced every morning, and each notice shows its local workforce board. Four of them (California, Colorado, Florida, Maryland)
             publish an industry sector, so their knowledge-work filings become leads on their own. The rest
             publish a headcount but no sector, and there is no way to tell a software reduction from a
             cannery closure without one — so those wait here for you. Most real announcements never file a
-            WARN notice at all (or won&apos;t for months), so anything heard about from a news article can be
+            layoff notice at all (or won&apos;t for months), so anything heard about from a news article can be
             added by hand below too.
           </p>
         </div>
@@ -188,8 +188,8 @@ export default async function WarnReviewPage({
       </header>
 
       <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
-        Why WARN and not layoffs.fyi: that site embeds a private Airtable base whose data endpoint refuses
-        access. WARN filings are public records, and they carry the <strong className="text-foreground">effective
+        Why state filings and not layoffs.fyi: that site embeds a private Airtable base whose data endpoint refuses
+        access. Layoff filings are public records, and they carry the <strong className="text-foreground">effective
         date</strong> — which is the number that decides when outreach lands, since reaching people before they
         leave is the whole point. Not every state can be synced: New York and North Carolina publish theirs as
         a Tableau dashboard with no data behind it, and roughly a dozen more post PDFs or render the list with

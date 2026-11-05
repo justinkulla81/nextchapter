@@ -82,7 +82,7 @@ export function AreaBriefView({ brief, audience, redesign = false }: { brief: Ar
 
   const layoffs = (
     <>
-      <Section title="Layoffs filed" note={`Public WARN notices in ${brief.area.stateName}${brief.area.boardId ? ' for this board’s area' : ''}, last ${brief.layoffs.windowDays} days.`}>
+      <Section title="Layoffs filed" note={`Public layoff notices in ${brief.area.stateName}${brief.area.boardId ? ' for this board’s area' : ''}, last ${brief.layoffs.windowDays} days.`}>
         {brief.layoffs.companies.length === 0 ? (
           <Empty>No layoff notices on file for this period.</Empty>
         ) : (
@@ -173,7 +173,7 @@ export function AreaBriefView({ brief, audience, redesign = false }: { brief: Ar
             </>
           )}
         </SectionBlock>
-        <SectionBlock id="area-layoffs" title="Layoffs filed" why={`Public WARN notices in ${brief.area.stateName}${brief.area.boardId ? ' for this board’s area' : ''}, last ${brief.layoffs.windowDays} days. Worth knowing before you apply.`}>
+        <SectionBlock id="area-layoffs" title="Layoffs filed" why={`Public layoff notices in ${brief.area.stateName}${brief.area.boardId ? ' for this board’s area' : ''}, last ${brief.layoffs.windowDays} days. Worth knowing before you apply.`}>
           {brief.layoffs.companies.length === 0 ? (
             <EmptyNote>No layoff notices on file for this period.</EmptyNote>
           ) : (
