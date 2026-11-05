@@ -9,6 +9,7 @@ import { pausedPrefixes } from '@/lib/paused-pages'
 import { HOME_AB_COOKIE, HOME_AB_MAX_AGE_SECONDS, HOME_AB_VARIANT_PATH, decideHomeVariant } from '@/lib/home-ab'
 import { portalJobPath } from '@/lib/jobs/portal-job-redirect'
 import { markerDomain, memberStatus, MEMBER_MARKER_COOKIE, MEMBER_MARKER_MAX_AGE_SECONDS } from '@/lib/auth/member-marker'
+import { FIT_JOB_COOKIE, FIT_JOB_MAX_AGE_SECONDS, fitJobFromSearch } from '@/lib/jobs/fit-job-cookie'
 import { SERVER_COOKIES_SECURE } from '@/lib/supabase/cookie-options'
 import { MAIN_SITE_SEGMENTS, ORG_SUBDOMAINS_ON, mainOrigin, orgKindForHost, orgOrigin } from '@/lib/org-hosts'
 
@@ -116,7 +117,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     }
     // Main site: a portal that has its own host now lives there.
     const moved = hostForAppPath(pathname)
-    if (moved) return NextResponse.redirect(`${portalOrigin(moved)}${publicPathFor(moved, pathname)}${request.nextUrl.search}`, 307)
+    if (moved) return rememberFitJob(NextResponse.redirect(`${portalOrigin(moved)}${publicPathFor(moved, pathname)}${request.nextUrl.search}`, 307), request, pathname)
     // The employer portal's own addresses typed on the main site (no page there).
     if (portalHostOn('employer') && /^\/(hiring|growth|learning)(\/|$)/.test(pathname)) {
       return NextResponse.redirect(`${portalOrigin('employer')}${pathname}${request.nextUrl.search}`, 307)
@@ -129,6 +130,14 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   }
 
   return markMember(await updateSession(request), request)
+}
+
+// "Check my fit" from a public job page lands on the main site's /onboarding/desire, which moves to the candidate host: keep the job on the
+// whole site's domain, so a duplicate-account stop later in onboarding can log the member back into it (src/lib/jobs/fit-job-cookie.ts).
+function rememberFitJob(response: NextResponse, request: NextRequest, pathname: string): NextResponse {
+  const job = pathname === '/onboarding/desire' ? fitJobFromSearch(request.nextUrl.search) : null
+  if (job) response.cookies.set(FIT_JOB_COOKIE, job, { domain: markerDomain(process.env.NEXT_PUBLIC_APP_URL), path: '/', maxAge: FIT_JOB_MAX_AGE_SECONDS, sameSite: 'lax', secure: SERVER_COOKIES_SECURE, httpOnly: true })
+  return response
 }
 
 // A member's browser gets the marker once their session is seen (not for partner portal sessions, not when it is already set).

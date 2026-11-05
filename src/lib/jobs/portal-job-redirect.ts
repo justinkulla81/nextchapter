@@ -1,3 +1,4 @@
+import { fitJobFromSearch } from '@/lib/jobs/fit-job-cookie'
 // A signed-in member who lands on a public job page, the public job search or a job-title, entry-level, industry or job-type page (a result, Google, a shared link, an old email)
 // is sent to the same thing inside the portal, with their search carried over. There the save, the apply and the
 // follow-up are recorded on their profile and the list is ranked for them; on the public page they are not.
@@ -33,10 +34,8 @@ export function portalJobPath(pathname: string, hasSession: boolean, search = ''
   // "Check my fit" on a public job page (the first onboarding step, with the job's id): a member already has an account and a
   // résumé, so they go to the job inside the portal, where the fit is shown, instead of starting onboarding again.
   if (pathname === '/onboarding/desire') {
-    const q = new URLSearchParams(search)
-    const job = q.get('job') ?? ''
-    if (q.get('from') === 'jobs_page' && /^c[a-z0-9]{20,32}$/.test(job)) return `/dashboard/jobs/${job}?src=check_fit`
-    return null
+    const job = fitJobFromSearch(search)
+    return job ? `/dashboard/jobs/${job}?src=check_fit` : null
   }
   const m = PUBLIC_JOB_PATH.exec(pathname)
   if (m) return `/dashboard/jobs/${m[1]}?src=public_page`

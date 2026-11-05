@@ -8,6 +8,8 @@ const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.postho
 const posthogAssetHost = posthogHost.replace("https://", "https://").replace(/^https:\/\/(\w+)\./, "https://$1-assets.");
 
 const nextConfig: NextConfig = {
+  // The email handwriting route reads this font from disk at request time, so the build has to ship it with the function.
+  outputFileTracingIncludes: { '/api/email/handwriting': ['./src/app/api/email/handwriting/Caveat-Bold.ttf'] },
   // /places/sitemap.xml queries every state's counties and the qualifying cities while the build prerenders it, and takes
   // longer than Next's 60 second default; every production deploy since 2026-10-26 failed on it. It refreshes every 6 hours at runtime.
   staticPageGenerationTimeout: 300,
