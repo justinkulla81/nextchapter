@@ -29,9 +29,10 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy: copyPr
   const [busy, setBusy] = useState(false)
   const org = audience === 'org'
   const seeker = copyProp && !('org' in copyProp) ? copyProp : DEFAULT_COPY
-  const copy = org ? (copyProp && 'org' in copyProp ? copyProp : ORG_COPY) : seeker
+  const orgCopy = copyProp && 'org' in copyProp ? copyProp : ORG_COPY
+  const copy = org ? orgCopy : seeker
   const net = !ask && network && !org ? networkCopy(network.kind, network.name, network.spelled) : null
-  const href = org ? '/for-organizations#contact' : `${MARKET_REALITY_START_HREF}&from=top_${slug}`
+  const href = org ? orgCopy.href : `${MARKET_REALITY_START_HREF}&from=top_${slug}`
   const pathname = usePathname()
   const session = useNavSession()
   // The page is cached for everyone and renders the signed-out box first. A member never sees the registration ask: they get the
@@ -109,7 +110,7 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy: copyPr
             gtagEvent="pull_cta_clicked"
             className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-action px-6 py-3 text-center text-base font-semibold leading-tight text-action-foreground hover:brightness-95"
           >
-            {org ? copy.button : (!ask && copy.button) || <AssessmentCtaLabel>Get my Market Reality Assessment</AssessmentCtaLabel>}
+            {org ? orgCopy.button : (!ask && copy.button) || <AssessmentCtaLabel>Get my Market Reality Assessment</AssessmentCtaLabel>}
           </TrackedLink>
         )}
       </div>
