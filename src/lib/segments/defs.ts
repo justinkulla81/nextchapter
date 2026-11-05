@@ -524,26 +524,55 @@ const COMPILED: Compiled[] = SEGMENTS.map((def) => ({ def, rules: def.rules.map(
 // A search firm's or staffing agency's posting is not the employer's own, so it is in no segment: the lists are of employers.
 const FIRM = /\b(staffing|recruit(ing|ers?|ment)|executive search|search (firm|group|partners|associates)|talent (acquisition|partners|solutions)|management search)\b|gecko hospitality|source one hospitality|food management search|jrg partners|park avenue group|^confidential$/i
 
-/** The segments one posting belongs to (usually none, at most a few). */
-export function segmentsOf(row: Pick<BoardRow, 'title' | 'company' | 'industry' | 'reqTags'> & { postingType?: string | null; sourceCategory?: string | null; sector?: string | null }): string[] {
-  if (row.postingType === 'recruiter_search' || row.sourceCategory === 'search_firm' || FIRM.test(row.company)) return []
-  const norm = companyKey(row.company)
-  const out: string[] = []
-  for (const { def, rules } of COMPILED) {
-    if (def.exclude?.title?.test(row.title) || def.exclude?.company?.test(row.company)) continue
-    const hit = rules.some((r) => {
-      if (r.codes && !(row.industry && r.codes.includes(row.industry))) return false
-      if (r.sectors && !(row.sector && r.sectors.includes(row.sector))) return false
-      if (r.employerSet && !employerIn(r.employerSet, norm)) return false
-      if (r.company && !r.company.test(row.company)) return false
-      if (r.title && !r.title.test(row.title)) return false
-      if (r.tags && !(row.reqTags && r.tags.test(row.reqTags))) return false
-      return true
-    })
-    if (hit) out.push(def.slug)
-  }
-  return out
+type SegmentFacts = Pick<BoardRow, 'title' | 'company' | 'industry' | 'reqTags'> & { postingType?: string | null; sourceCategory?: string | null; sector?: string | null }
+
+/** Whether a posting is a search firm's or staffing agency's (in no segment). */
+const isFirmPosting = (row: Pick<SegmentFacts, 'company' | 'postingType' | 'sourceCategory'>) =>
+  row.postingType === 'recruiter_search' || row.sourceCategory === 'search_firm' || FIRM.test(row.company)
+
+/** One segment's rules against one posting. `norm` is companyKey(row.company), so a caller testing many segments computes it once. */
+function inCompiled({ def, rules }: Compiled, row: SegmentFacts, norm: string): boolean {
+  if (def.exclude?.title?.test(row.title) || def.exclude?.company?.test(row.company)) return false
+  return rules.some((r) => {
+    if (r.codes && !(row.industry && r.codes.includes(row.industry))) return false
+    if (r.sectors && !(row.sector && r.sectors.includes(row.sector))) return false
+    if (r.employerSet && !employerIn(r.employerSet, norm)) return false
+    if (r.company && !r.company.test(row.company)) return false
+    if (r.title && !r.title.test(row.title)) return false
+    if (r.tags && !(row.reqTags && r.tags.test(row.reqTags))) return false
+    return true
+  })
 }
+
+/** The segments one posting belongs to (usually none, at most a few). */
+export function segmentsOf(row: SegmentFacts): string[] {
+  if (isFirmPosting(row)) return []
+  const norm = companyKey(row.company)
+  return COMPILED.filter((c) => inCompiled(c, row, norm)).map((c) => c.def.slug)
+}
+
+/**
+ * The same rules for one segment, as a yes/no on a posting: what the portal's industry filter uses, so a member's list is the
+ * public industry page's list. null for a slug that is not a segment. Company keys are remembered across calls (a board
+ * pass tests the same employer many times).
+ */
+export function segmentMatcher(slug: string): ((row: SegmentFacts) => boolean) | null {
+  const c = COMPILED.find((x) => x.def.slug === slug)
+  if (!c) return null
+  const keys = new Map<string, string>()
+  return (row) => {
+    if (isFirmPosting(row)) return false
+    let norm = keys.get(row.company)
+    if (norm === undefined) {
+      norm = companyKey(row.company)
+      keys.set(row.company, norm)
+    }
+    return inCompiled(c, row, norm)
+  }
+}
+
+/** Every industry code a segment rule names (ExclusiveJobPosting.industry), for matching an index that holds them normalized. */
+export const SEGMENT_INDUSTRY_CODES: readonly string[] = [...new Set(SEGMENTS.flatMap((s) => s.rules.flatMap((r) => r.codes ?? [])))]
 
 /** The industry bucket a layoff notice carries (src/lib/seo/topics.ts) to the segments where people from that industry can look next. */
 export const SEGMENTS_BY_BUCKET: Record<string, string[]> = {

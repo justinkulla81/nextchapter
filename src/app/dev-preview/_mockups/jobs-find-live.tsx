@@ -8,6 +8,7 @@ import { FindTwoPane } from '@/components/dashboard/find/FindTwoPane'
 import { boardEntry, surfacedEntry, type FindEntry } from '@/components/dashboard/find/entries'
 import { MyJobsRedesign } from '@/components/dashboard/find/MyJobsRedesign'
 import { OpenToChangersFilter } from '@/components/dashboard/OpenToChangersFilter'
+import { IndustryFilter } from '@/components/dashboard/IndustryFilter'
 import { EntryFilterChips } from '@/components/dashboard/EntryFilterChips'
 import type { JobMatch, MatchDimension, MatchDimensionKey, MatchStatus } from '@/lib/jobs/job-match-types'
 import type { MyJobItem, MyJobsView } from '@/lib/jobs/my-jobs-data'
@@ -138,6 +139,7 @@ export function FindJobsLive() {
       <details open className="rounded-lg border border-border px-3 py-2">
         <summary className="cursor-pointer text-sm font-medium text-ink">Filters and views</summary>
         <div className="mt-3 flex flex-wrap items-center gap-3">
+          <IndustryFilter surface="dev_preview" />
           <OpenToChangersFilter surface="dev_preview" on={false} />
         </div>
         <div className="mt-3">
