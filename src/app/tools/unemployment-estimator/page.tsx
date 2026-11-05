@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { UnemploymentEstimator, type EstimatorState } from '@/components/tools/UnemploymentEstimator'
 import { STATE_UI } from '@/lib/data/state-ui'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 export const metadata: Metadata = pageMetadata('/tools/unemployment-estimator')
@@ -40,7 +39,6 @@ export default function Page() {
           More: <Link href="/unemployment-benefits" className={LINK}>unemployment benefits by state</Link>, <Link href="/tools/layoff-runway" className={LINK}>layoff runway calculator</Link> and <Link href="/tools/layoff-deadlines" className={LINK}>layoff deadlines</Link>.
         </p>
       </section>
-      <ActionBand title="Do not wait to file." body="Get a free plan that starts with the deadlines, then your job search." label="Start my first-week plan" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'unemployment_estimator' }} />
     </SeoPage>
   )
 }

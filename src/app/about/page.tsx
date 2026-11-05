@@ -306,7 +306,7 @@ export default function AboutPage() {
         </section>
       </main>
 
-      <PublicSiteFooter page="about" />
+      <PublicSiteFooter page="about" cta={false} />
     </div>
   )
 }

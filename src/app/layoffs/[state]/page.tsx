@@ -1,7 +1,6 @@
 import { fitDescription, layoffsStateSeo } from '@/lib/seo/templates'
 import { LinkIndex } from '@/components/seo/LinkIndex'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
-import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { stateBrand, statePhrase } from '@/lib/branding/state-colors'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import type { Metadata } from 'next'
@@ -92,16 +91,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
             {workers > 0 ? <>, naming {workers.toLocaleString()} people</> : ''}. The most recent was filed {noticeDay(latest)}.
           </p>
           <PullTop name={`Layoffs in ${d.name}`} path={`/layoffs/${state}`} />
-          {st && (
-            <OrgCandidateBand
-              orgName={d.name}
-              branded
-              peopleCount={null}
-              heading={`Affected by a layoff in ${d.name}? See where you stand.`}
-              independent={`Independent page. Not from or affiliated with ${statePhrase(d.code)}.`}
-              properties={{ kind: 'LAYOFF_STATE', state: d.code }}
-            />
-          )}
+          {st && <p className="mt-3 text-xs text-muted-foreground">Independent page. Not from or affiliated with {statePhrase(d.code)}.</p>}
 
           <section aria-labelledby="economy" className="mt-10">
             <h2 id="economy" className={H2}>{d.name} jobs picture</h2>

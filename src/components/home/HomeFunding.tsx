@@ -1,12 +1,9 @@
 import Link from 'next/link'
-import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { FUNDING_STATS } from '@/lib/benefits/public-stats'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 
 // The homepage's funding band: there is money to move, retrain and learn, and members get the ones that fit
 // them, ranked. Numbers come from the catalog (src/lib/benefits/public-stats.ts) so they are never invented.
 
-const action = 'inline-flex h-14 items-center rounded-full bg-action px-8 text-base font-semibold text-action-foreground hover:brightness-95'
 const fmt = (n: number) => n.toLocaleString('en-US')
 
 export function HomeFunding() {
@@ -64,9 +61,6 @@ export function HomeFunding() {
         </ul>
 
         <div className="mt-10 text-center">
-          <TrackedLink href={MARKET_REALITY_START_HREF} event="funding_cta_clicked" properties={{ cta: 'join_for_matches', page: 'home' }} className={action}>
-            Join free and see what you qualify for
-          </TrackedLink>
           <p className="mt-3 text-sm text-muted-foreground">
             Free to join. Free for Members, always.{' '}
             <Link href="/funding" className="font-medium text-brand underline underline-offset-4">

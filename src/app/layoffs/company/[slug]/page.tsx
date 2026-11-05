@@ -34,7 +34,6 @@ import { brandOrFallback } from '@/lib/branding/fallback'
 import { employerBrandKey } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { AffectedPrompt } from '@/components/layoffs/landing/AffectedPrompt'
-import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { ClaimHint } from '@/components/seo/ClaimHint'
 import { LandingHero } from '@/components/layoffs/landing/LandingHero'
 import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
@@ -272,14 +271,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             </section>
           )}
 
-          <OrgCandidateBand
-            orgName={c.name}
-            branded={!!brand}
-            peopleCount={null}
-            heading={`Affected by changes at ${c.name}? See where you stand.`}
-            independent={`Independent page. Not from or affiliated with ${c.name}.`}
-            properties={{ kind: 'LAYOFF_COMPANY', slug }}
-          />
+          <p className="mt-8 text-xs text-muted-foreground">Independent page. Not from or affiliated with {c.name}.</p>
 
           {ann && (
             <section aria-labelledby="announced" className="mt-10">
@@ -318,13 +310,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           />
 
           <section aria-labelledby="affected" className="mt-12 rounded-xl border border-border bg-white p-6">
-            <h2 id="affected" className="text-xl font-semibold tracking-tight text-navy">Turn this into your plan</h2>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              This page is the same for everyone. Your free plan is built on your own situation: the deadlines that apply to you, what severance and COBRA will cost or pay, and jobs matched to your background.
-            </p>
-            <TrackedLink href="/onboarding/desire" event="layoff_company_account_cta_clicked" properties={{ company: slug, hasNotices, announced: !!ann }} className="mt-3 inline-block rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90">
-              Build my free plan
-            </TrackedLink>
+            <h2 id="affected" className="text-xl font-semibold tracking-tight text-navy">More for people at {c.name}</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               {hasNotices && isNetworkCompany(c) && (
                 <li><Link href={`/network/company/${slug}`} className={LINK}>Jobs, benefits and retraining for {c.name} employees and alumni</Link></li>
@@ -417,7 +403,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           </p>
         </div>
       </main>
-      <PublicSiteFooter page="layoffs" />
+      <PublicSiteFooter page="layoffs" cta={false} />
     </div>
     </OrgBrandScope>
   )
