@@ -73,15 +73,11 @@ export function withCronRun(job: string, handler: Handler, opts: { recordResult?
         await new Promise((r) => setTimeout(r, RETRY_PAUSE_MS))
         response = await handler(request)
       }
-<<<<<<< HEAD
-      if (response.ok) await finish('OK')
-=======
       if (response.ok) {
         // A job that opts in keeps the start of its JSON answer, so a run that did nothing (a dry run) or stopped early can be told from one that worked.
         const detail = opts.recordResult ? await response.clone().text().then((t) => t.slice(0, 2000)).catch(() => '') : ''
         await finish('OK', undefined, detail)
       }
->>>>>>> origin/main
       else {
         // The response body usually says what failed (a job that reports its failed steps); keep the start of it in the ledger.
         const detail = await response.clone().text().then((t) => t.slice(0, 600)).catch(() => '')
