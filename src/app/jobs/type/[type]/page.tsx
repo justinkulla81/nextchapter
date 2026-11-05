@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Chips, JobList, JoinBand, LINK, Section, TopicShell } from '@/components/topics/blocks'
+import { StateUnemploymentLinks } from '@/components/topics/StateUnemploymentLinks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { JOB_TYPES, getJobTypeDetail } from '@/lib/seo/job-titles'
@@ -53,6 +54,7 @@ export default async function JobTypePage({ params }: { params: Promise<{ type: 
       {d.states.length > 0 && (
         <Section id="states" title={`Where ${d.type.noun} jobs are listed`}>
           <Chips kind="type_to_state" event="topic_link_clicked" items={d.states.map((s) => ({ href: `/places/${s.slug}`, label: s.name, detail: s.jobs.toLocaleString('en-US') }))} />
+          <StateUnemploymentLinks states={d.states} kind="type_to_state_unemployment" hubEvent="type_unemployment_link_clicked" properties={{ type, jobType: d.type.noun }} />
         </Section>
       )}
       <Section id="other" title="Other job types">

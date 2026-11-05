@@ -9,7 +9,7 @@ import { usd } from '@/lib/seo/job-title-rules'
 import { salarySeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
 import { ShareBar } from '@/components/marketing/ShareBar'
-import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { StateUnemploymentLinks } from '@/components/topics/StateUnemploymentLinks'
 import { RoleGuideLink } from '@/components/roles/RoleGuideLink'
 import { AiPremiumSection } from '@/components/salaries/AiPremiumSection'
 import { RankingContext } from '@/components/rankings/RankingContext'
@@ -75,16 +75,7 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
       {byPay.length > 1 && (
         <Section id="states" title={`${stat.name} salary by state`} note="States with at least 8 listings that state pay.">
           <Chips kind="salary_to_state" event="topic_link_clicked" items={byPay.map((s) => ({ href: `/places/${s.slug}`, label: s.name, detail: usd(s.median!) }))} />
-          <p className="mt-6 text-sm text-muted-foreground">
-            Between jobs? Unemployment benefits and severance rules in these states, or{' '}
-            <TrackedLink href="/unemployment-benefits" event="salary_unemployment_link_clicked" properties={{ slug, title: stat.name }} className={LINK}>
-              in every state
-            </TrackedLink>
-            .
-          </p>
-          <div className="mt-2">
-            <Chips kind="salary_to_state_unemployment" event="topic_link_clicked" items={byPay.map((s) => ({ href: `/unemployment-benefits/${s.slug}`, label: `${s.name} unemployment` }))} />
-          </div>
+          <StateUnemploymentLinks states={byPay} kind="salary_to_state_unemployment" hubEvent="salary_unemployment_link_clicked" properties={{ slug, title: stat.name }} />
         </Section>
       )}
       <Section id="jobs" title={`Open ${stat.name.toLowerCase()} jobs`} note="Verified against the employer’s own career site within the last week.">
