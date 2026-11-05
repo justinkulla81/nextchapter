@@ -43,7 +43,7 @@ export default function NewsletterWeeklyEmail({
         <Wordmark />
         <Headline>{intro}</Headline>
         <Lead>
-          <strong>Worth a read:</strong> <a href={articleUrl}>{articleTitle}</a>
+          <strong>{articleUrl.startsWith('https://launchyournextchapter.com/') ? 'Tip from NextChapter:' : 'Worth a read:'}</strong> <a href={articleUrl}>{articleTitle}</a>
           {articleSummary && ` — ${articleSummary}`}
         </Lead>
         {layoffs && layoffsUrl && (

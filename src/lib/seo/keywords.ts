@@ -606,6 +606,19 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'linkedin-profile-guide',
+    intent: 'Fix my LinkedIn profile so recruiters find me and respond',
+    owner: '/resources/linkedin-profile',
+    kind: 'page',
+    primary: 'linkedin profile tips',
+    secondary: ['how to optimize your linkedin profile', 'linkedin profile optimization', 'linkedin headline character limit', 'linkedin about section examples', 'linkedin profile checklist', 'linkedin keywords for job search', 'linkedin tips for job seekers', 'how to explain a layoff on linkedin'],
+    seo: {
+      title: 'LinkedIn Profile Tips for Job Seekers: A Checklist',
+      description: 'Optimize your LinkedIn profile for a job search: headline, About, keywords and skills, with 18 checks, the reason for each and a 15-minute-a-day plan.',
+      h1: 'How to optimize your LinkedIn profile for a job search',
+    },
+  },
+  {
     id: 'bridge-income',
     intent: 'Earn while searching',
     owner: '/resources/bridge-income',

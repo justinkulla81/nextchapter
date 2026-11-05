@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-245 clusters, 1519 phrases.
+246 clusters, 1528 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -59,6 +59,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/resources/cobra-aca/:state` | family | cobra vs aca in {state} | Compare COBRA with an ACA Marketplace plan in one state | is aca cheaper than cobra in {state}; cobra vs aca cost {state}; {state} cobra vs marketplace; can i get aca instead of cobra in {state}; {state} health insurance after a layoff |
 | `/tools/cobra-vs-aca-calculator` | page | cobra vs aca calculator | Work out what COBRA and a Marketplace plan would each cost me | cobra vs aca cost calculator; cobra or marketplace cost calculator; aca subsidy calculator after layoff; how much is health insurance after a layoff |
 | `/resources/severance-pay` | page | is severance taxed | Understand how severance is taxed, how long I have to sign, and what to ask for | severance pay taxes; severance tax withholding; is severance taxed at 22%; is severance taxed at a higher rate; how long do i have to sign a severance agreement; do i have to sign a severance agreement; severance agreement over 40; severance agreement 21 days 7 days; lump sum severance or salary continuation; what to ask for in a severance package; is severance pay required by law |
+| `/resources/linkedin-profile` | page | linkedin profile tips | Fix my LinkedIn profile so recruiters find me and respond | how to optimize your linkedin profile; linkedin profile optimization; linkedin headline character limit; linkedin about section examples; linkedin profile checklist; linkedin keywords for job search; linkedin tips for job seekers; how to explain a layoff on linkedin |
 | `/resources/bridge-income` | page | bridge income | Earn while searching | income while job searching; interim jobs; contract work after layoff; freelance after layoff; consulting after layoff; side income after layoff |
 | `/funding` | page | funding for laid-off workers | Money to relocate, retrain or study after a job loss | relocation assistance; retraining grants; training grants for laid off workers; tuition assistance after layoff; displaced worker programs; free courses for job seekers; wioa training funds; reskilling funding |
 | `/unemployment-benefits` | page | unemployment benefits by state | Unemployment insurance rules across states | unemployment benefits; unemployment insurance; how to file for unemployment; apply for unemployment; unemployment eligibility; weekly unemployment benefit amount; maximum unemployment benefit by state; how long does unemployment last; unemployment waiting week; does severance affect unemployment |
@@ -488,6 +489,12 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Severance Pay: Taxes, Your Agreement, What Is Typical
 - Description: How severance is taxed, how many days you have to review and sign an agreement, what to ask for, and how it affects unemployment in your state. Sourced.
 - H1: Severance pay: taxes, your agreement and what is typical
+
+### `/resources/linkedin-profile`
+
+- Title: LinkedIn Profile Tips for Job Seekers: A Checklist
+- Description: Optimize your LinkedIn profile for a job search: headline, About, keywords and skills, with 18 checks, the reason for each and a 15-minute-a-day plan.
+- H1: How to optimize your LinkedIn profile for a job search
 
 ### `/resources/bridge-income`
 
