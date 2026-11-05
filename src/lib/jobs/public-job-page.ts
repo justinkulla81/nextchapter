@@ -94,6 +94,8 @@ export interface PublicJobRow {
   reopenCount: number | null
   repostCount: number | null
   directListing: boolean
+  /** Crawler source class ('employer', 'aggregator', 'venture', ...); optional so older callers and fixtures still fit. */
+  sourceCategory?: string | null
   salaryMin: number | null
   salaryMax: number | null
   salaryCurrency: string | null
@@ -108,7 +110,16 @@ export interface PublicJobRow {
 }
 
 /** True when the page has the posting's own text, enough to stand on its own in search (see PUBLIC_JOB_MIN_INDEX_DESCRIPTION). */
-export function isIndexableJob(job: Pick<PublicJobRow, 'description'>): boolean {
+/** On the employer's own career system: the crawler's directListing flag, or an 'employer' source (its own site, though not always flagged: jobs.apple.com, google.com careers). */
+export function isDirectJob(job: Pick<PublicJobRow, 'directListing' | 'sourceCategory'>): boolean {
+  return job.directListing || job.sourceCategory === 'employer'
+}
+
+export function isIndexableJob(job: Pick<PublicJobRow, 'description' | 'directListing' | 'sourceCategory'>): boolean {
+  // Owner decision, 2026-11-04: search engines get only jobs listed on the employer's own career system (isDirectJob).
+  // A job whose apply link is an aggregator's (Jooble and the like) keeps its page for members but is noindex, left out of
+  // the sitemap and told to Google/Bing as removed. Same rule as PUBLIC_JOB_SEARCH_SQL in public-job-page-server.ts.
+  if (!isDirectJob(job)) return false
   return new TextEncoder().encode(job.description ?? '').length >= PUBLIC_JOB_MIN_INDEX_DESCRIPTION
 }
 
