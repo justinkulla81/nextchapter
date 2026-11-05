@@ -171,8 +171,7 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
                   className="font-medium text-brand underline underline-offset-4"
                 >
                   Sign in
-                </a>{' '}
-                to apply and save it to your search.
+                </a>
               </p>
               <input type="hidden" name="jobId" value={jobId} />
               <input type="hidden" name="trigger" value="apply_gate" />
