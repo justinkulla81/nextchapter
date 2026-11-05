@@ -45,3 +45,10 @@ Copy lives in `src/lib/capture/pull-copy.ts` (the navy `NextStepBox` on every pu
 - Lifecycle email subjects: already questions about the reader's pain ("Heard back about your application?").
 - Layoff company page answers (`Q1`): already pain-first.
 - Organization asks (`OwnerInquiry`, `/for-organizations`, outplacement bands): an employer's pain needs the owner's wording and must not promise anything the company is not required to provide.
+
+## Closed out (2026-11-05)
+
+- **"People", not "workers":** every layoff page that shows a headcount (this week, state, month, week) now says "people". The WARN Act's own "100 or more workers" rule is unchanged. Page titles keep "Workers" for search.
+- **Hashtags on model-written posts:** `withHashtags` (`src/lib/social/tags.ts`) adds the topic's tags in code after a draft passes the check, only when they fit the channel limit. The writer still may not write hashtags, so it cannot invent one.
+- **Employer asks:** the organization box asks a pain question ("Hiring in {industry} and not seeing enough experienced applicants?") and the button reads "Show me how it works". The text of what they get is unchanged, so it promises nothing new.
+- **Nav button test:** left as it is. Adding arms to a test that started 2026-11-03 would change who sees what mid-run. The pain buttons are measured by the `copy` property on `pull_cta_clicked`; compare click-through by it in PostHog, then fold the winner into the test or end it.

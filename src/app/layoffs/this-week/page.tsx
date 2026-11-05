@@ -94,7 +94,7 @@ export default async function LayoffsThisWeek() {
             </section>
           )}
 
-          <IndustryLayoffLinks notices={thisWeek} heading="By industry" unit="people" />
+          <IndustryLayoffLinks notices={thisWeek} heading="By industry" />
 
           {biggest.length > 0 && (
             <section aria-labelledby="biggest" className="mt-10">

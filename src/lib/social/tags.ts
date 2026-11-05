@@ -69,3 +69,20 @@ export function withTags(text: string, fact: Pick<Fact, 'cites'>, channel: Chann
   const tagged = `${text}\n\ncc ${tags.join(' ')}`
   return [...tagged].length <= textBudget(link, channel === 'x') ? tagged : text
 }
+
+/** Plain hashtags by topic, added by code after a draft passes the check so the writer never invents one (validate.ts still rejects them in a draft). */
+const HASHTAGS: Partial<Record<Fact['topic'], string>> = {
+  layoff: '#layoffs #jobsearch',
+  help: '#laidoff #jobsearch',
+  ranking: '#jobsearch #careers',
+  skill: '#jobsearch #careers',
+  'ai-pay': '#careers #AI',
+}
+
+/** Adds the topic's hashtags to a finished post when it has none and they fit the channel's limit; otherwise the post goes out as it is. */
+export function withHashtags(text: string, fact: Pick<Fact, 'topic'>, channel: ChannelId, link: string): string {
+  const tags = HASHTAGS[fact.topic]
+  if (!tags || text.includes('#')) return text
+  const tagged = `${text}\n\n${tags}`
+  return [...tagged].length <= textBudget(link, channel === 'x') ? tagged : text
+}

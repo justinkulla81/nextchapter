@@ -9,7 +9,7 @@ import { aiPayFacts, factLink, helpFacts, pressWeeklyFact, rankingFacts, skillFa
 import { FILING_RULES, loadLayoffQueue, readLedger, writeLedger, type Ledger, type LayoffItem } from '@/lib/social/filings'
 import { baselineStories, gapMinutes, gapPassed, inWindow, isPressSlot, nextKind, storyDue, streamDay, tickSlot, type Kind } from '@/lib/social/pace'
 import { weekKey } from '@/lib/social/posts'
-import { withTags } from '@/lib/social/tags'
+import { withHashtags, withTags } from '@/lib/social/tags'
 import { wcIndexSummary } from '@/lib/reports-wc-index'
 import { enqueueLinkedInStory } from '@/lib/linkedin/story-drafts'
 import { cardFor } from '@/lib/social/cards'
@@ -145,7 +145,7 @@ async function runChannel(c: Channel, index: number, now: Date, shared: Shared):
 
   const draft = dryRun || fact.plain ? ({ by: 'template', body: null, reason: dryRun ? 'preview' : 'plain' } as const) : await writePost(fact, state.recent, c.id)
   const link = factLink(fact, c.id)
-  const text = withTags(draft.body ? draft.body.replace(LINK_TOKEN, link) : fact.fallback(link, c.id === 'x'), fact, c.id, link)
+  const text = withTags(withHashtags(draft.body ? draft.body.replace(LINK_TOKEN, link) : fact.fallback(link, c.id === 'x'), fact, c.id, link), fact, c.id, link)
   const base = { ...out, kind, factKey: fact.key, topic: fact.topic, writer: dryRun ? ('preview' as const) : draft.by, text }
   if (dryRun) return { ...base, status: 'would-send' }
 
