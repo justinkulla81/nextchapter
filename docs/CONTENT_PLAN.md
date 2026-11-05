@@ -59,6 +59,27 @@ Rules that apply to all pillars: every number comes from our data or a cited sou
 
 **9. Rankings and data drops.** Source: rankings crons (2nd of month). Content: one list post, one chart, one press email. Channels: all, plus journalist list.
 
+## 3a. LinkedIn post formats to apply (from https://authoredup.com/blog/viral-linkedin-posts-examples)
+
+| Format | How it applies to NextChapter | Pillar |
+|---|---|---|
+| Contrarian hook | Open with the number that contradicts the headline ("Payrolls rose. White-collar openings fell.") | Monthly report, jobs report |
+| Myth-busting | One myth per post, answered with our data ("Entry-level white-collar jobs are not gone: X open this week in [metro]") | Jobs report, hot jobs, tips |
+| Curiosity gap | First two lines carry the number, the "see more" fold withholds which employers or states | Daily layoffs, Friday rundown |
+| Familiar-phrase twist | Start from "We regret to inform you" or "Your position has been eliminated", then pivot to what to do in the next 48 hours | Benefits, tips |
+| Insider validation with data | Our own counts (notices, openings, resume scores) plus the cited source | All data pillars |
+| Personal story | Only real, consented stories from members or coaches; no invented ones | Tips, retraining |
+| Call-out list | "5 things your severance letter should say" style lists, factual only | Benefits, tips |
+| Emphatic repetition | Short parallel lines for rundown headlines | Friday rundown |
+| Reframe with analogy | Explain COBRA vs. ACA, or WARN notices, with one plain comparison | Benefits |
+| Actionable framework | Numbered steps, the copy-paste network message, the first-week checklist | Tips |
+| Visual and document assets | PDF carousel for the Friday rundown, one chart per report, one-page state benefits PDF | Rundown, reports, benefits |
+| Scannable formatting | Short lines, one idea each, no walls of text | All |
+| Engagement prompt | Close with a question that invites a comment ("Which state should we map next?"), not a registration ask; the page keeps the only ask | All |
+| Hashtags | 3 per post, existing tag registry (`tags.ts`) | All |
+
+Guardrails: every number still passes the checker, no claim about hiring or treatment of applicants, and contrarian hooks must be true to the data, not clickbait.
+
 ## 4. Channel roles
 
 | Channel | Role | Volume |
