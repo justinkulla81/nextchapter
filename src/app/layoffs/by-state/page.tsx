@@ -33,7 +33,7 @@ export default async function WarnNoticesByStatePage() {
       lede={
         <>
           <p>
-            Employers that must give notice of a plant closing or mass layoff file a layoff notice with the state (under the federal WARN Act), and each state publishes what it receives. In the last 12 months we have read{' '}
+            Employers that must give notice of a plant closing or mass layoff file a layoff notice with the state, and each state publishes what it receives. In the last 12 months we have read{' '}
             {notices.toLocaleString('en-US')} notices from {rows.length} states, naming {workers.toLocaleString('en-US')} workers. Open a state for every notice with its source, or download the data.
           </p>
           <AuthorByline updated={new Date().toISOString().slice(0, 10)} className="mt-4" />

@@ -19,7 +19,7 @@ export default async function EmbedLayoffChart({ params }: { params: Promise<{ s
   const workers = notices.reduce((s, x) => s + (x.workers ?? 0), 0)
   const title = `${where} layoffs by month, ${LAYOFF_YEAR}`
   return (
-    <EmbedCard title={title} href={code ? `/layoffs/${state}` : '/layoffs/2026'} linkLabel={code ? `All ${where} layoff notices` : `Layoffs ${LAYOFF_YEAR}: every notice, month by month`} note="Workers named in WARN notices filed with state labor departments, by notice date. The latest month is partial.">
+    <EmbedCard title={title} href={code ? `/layoffs/${state}` : '/layoffs/2026'} linkLabel={code ? `All ${where} layoff notices` : `Layoffs ${LAYOFF_YEAR}: every notice, month by month`} note="Workers named in layoff notices filed with state labor departments, by notice date. The latest month is partial.">
       <p style={{ margin: '0 0 8px' }}>
         {notices.length.toLocaleString('en-US')} notices so far in {LAYOFF_YEAR}{workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}.
       </p>
