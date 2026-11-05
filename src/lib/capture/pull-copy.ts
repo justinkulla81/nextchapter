@@ -70,7 +70,7 @@ const BY_PREFIX: Record<string, PullCopy> = {
   '/tools/resume-check': copy('Is your résumé getting ignored?', 'See how recruiters read your background, then get every open job ranked for you.', 'Show me how I read', { headline: 'See how recruiters read you', sentence: 'Recruiters read your background first. Complete your profile and every open job is ranked against it.', button: 'Improve my job matches' }),
   '/tools/resume-job-match': copy('Is your résumé getting ignored?', 'See how recruiters read your background, then get every open job ranked for you.', 'Show me how I read', { headline: 'See which jobs your résumé fits', sentence: 'Each job is scored against your background. Complete your profile and the list is ranked for you.', button: 'Improve my job matches' }),
   '/resources/severance-pay': LAID_OFF_COPY,
-  '/resources/linkedin-profile': copy('Is your profile getting you calls?', 'See how recruiters read your background, then get every open job ranked for you.', 'Show me how I read'),
+  '/resources/linkedin-profile': copy('Is your profile getting you calls?', 'See how recruiters read your background, then get every open job ranked for you.', 'Show me how I read', { headline: 'Get found by the right recruiters', sentence: 'Recruiters search by the words on your profile. Add your target jobs and skills and the jobs shown fit what you are aiming for.', button: 'Improve my job matches' }),
   '/resources/cobra-aca': LAID_OFF_COPY,
   '/resources/unemployed': LAID_OFF_COPY,
   '/topics/severance': LAID_OFF_COPY,
