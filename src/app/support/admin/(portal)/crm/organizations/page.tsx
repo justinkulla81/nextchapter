@@ -168,7 +168,7 @@ export default async function CrmOrganizationsPage({
                 <th className="px-3 py-2 font-medium">Deal</th>
                 <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro, added, per: String(perPage) }} defaultDir="desc" />
                 <th className="px-3 py-2 font-medium" title="Emails we sent to people at this organization, replies back, and the last one">Communication</th>
-                <th className="px-3 py-2 font-medium" title="WARN filings and announced layoffs at this organization, with the jobs they name and the latest date">Layoffs</th>
+                <th className="px-3 py-2 font-medium" title="Layoff filings and announced layoffs at this organization, with the jobs they name and the latest date">Layoffs</th>
                 <th className="px-3 py-2 font-medium">Pipelines</th>
                 <th className="px-3 py-2 font-medium" title="Open grants and forecasts this organization issues">Funding</th>
                 <th className="px-3 py-2 font-medium" title="Open RFPs, RFIs and pre-solicitations this organization issues">RFPs</th>

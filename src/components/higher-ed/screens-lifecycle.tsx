@@ -706,7 +706,7 @@ export async function WorkforceRapid({ ctx }: Props) {
   return (
     <div className="space-y-8">
       <p className="max-w-3xl text-sm text-muted-foreground">
-        When a WARN notice hits an employer in your region, offer the affected workers, alumni or not, a seat in a program the board can fund. Each offer gets a public
+        When a layoff notice hits an employer in your region, offer the affected workers, alumni or not, a seat in a program the board can fund. Each offer gets a public
         sign-up page to share with the employer, the union or the state’s rapid response team; sign-ups land in Exec Ed › Enrollments as WIOA applications.
       </p>
       {responses.length > 0 && (
@@ -778,7 +778,7 @@ export async function WorkforceRapid({ ctx }: Props) {
             ))}
           </ul>
         ) : (
-          <EmptyState icon={Megaphone} title="No recent WARN notices nearby" description="Set the college’s region in its profile so local filings show here." />
+          <EmptyState icon={Megaphone} title="No recent layoff notices nearby" description="Set the college’s region in its profile so local filings show here." />
         )}
       </section>
     </div>

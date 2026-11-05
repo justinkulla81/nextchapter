@@ -725,7 +725,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
                     <span>
                       <span className="font-medium">{n.employees ? `${n.employees.toLocaleString()} roles` : 'Roles not stated'}</span>
                       <span className="text-muted-foreground">
-                        {[n.layoffType, n.state, n.source === 'MANUAL_ANNOUNCEMENT' ? 'Announcement' : 'WARN filing'].filter(Boolean).map((t) => ` · ${t}`)}
+                        {[n.layoffType, n.state, n.source === 'MANUAL_ANNOUNCEMENT' ? 'Announcement' : 'Layoff filing'].filter(Boolean).map((t) => ` · ${t}`)}
                       </span>
                     </span>
                     <span className="text-xs text-muted-foreground">

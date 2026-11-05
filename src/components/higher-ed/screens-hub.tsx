@@ -177,7 +177,7 @@ export async function HubLayoffs({ ctx, searchParams }: Props) {
                 <p className="font-medium">{r.memberCompany?.name ?? r.employerName}</p>
                 <p className="text-muted-foreground">
                   {r._count.participants.toLocaleString()} of {(r.seats ?? 0).toLocaleString()} seats claimed · opened {day(r.createdAt)}
-                  {r.warnNotice ? ` · WARN: ${r.warnNotice.employees ?? '?'} workers` : ''}
+                  {r.warnNotice ? ` · Layoff notice: ${r.warnNotice.employees ?? '?'} workers` : ''}
                 </p>
                 <Link href={`/i/${slug}/rapid/${r.id}`} target="_blank" className="text-xs font-medium text-primary hover:underline">
                   Sign-up page{r.isActive ? '' : ' (closed)'}
@@ -191,7 +191,7 @@ export async function HubLayoffs({ ctx, searchParams }: Props) {
       {notices.length > 0 && (
         <section className="space-y-2" aria-labelledby="warn">
           <h2 id="warn" className="text-base font-semibold">
-            WARN notices in your region
+            Layoff notices in your region
           </h2>
           <p className="text-sm text-muted-foreground">Public layoff filings from the last four months. Add the employer as a member company to give its people seats.</p>
           <ul className="divide-y divide-border rounded-lg border border-border text-sm">

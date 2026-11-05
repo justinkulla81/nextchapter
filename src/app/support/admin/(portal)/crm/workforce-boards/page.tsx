@@ -340,7 +340,7 @@ export default async function WorkforceBoardsPage({
           <p className="mt-0.5 text-lg font-semibold tabular-nums">{rows.filter((r) => r.notices > 0).length.toLocaleString()}</p>
         </div>
         <div className="rounded-lg border border-border p-3">
-          <p className="text-xs text-muted-foreground">Jobs lost (state WARN filings)</p>
+          <p className="text-xs text-muted-foreground">Jobs lost (state layoff filings)</p>
           <p className="mt-0.5 text-lg font-semibold tabular-nums">{totals.jobs.toLocaleString()}</p>
         </div>
         <div className="rounded-lg border border-border p-3">
@@ -409,7 +409,7 @@ export default async function WorkforceBoardsPage({
                 <th className="px-3 py-1.5 font-medium">Board</th>
                 <th className="px-2 py-1.5 text-right font-medium" title="Internal fit score: reach to white-collar workers, size, mission, contact details, timing; a warm contact in the CRM adds more. Hover a score for the reasons.">Fit</th>
                 <th className="px-3 py-1.5 font-medium">Contacts</th>
-                <th className="px-2 py-1.5 text-right font-medium" title="Jobs in state WARN filings for this board's area">Jobs lost</th>
+                <th className="px-2 py-1.5 text-right font-medium" title="Jobs in state layoff filings for this board's area">Jobs lost</th>
                 {anyReported && (
                   <th className="px-2 py-1.5 text-right font-medium" title="Company-wide layoffs (layoffs.fyi, announcements) for companies headquartered here. Not all of these jobs are local, so they are not in Jobs lost.">
                     Reported company-wide
@@ -512,7 +512,7 @@ export default async function WorkforceBoardsPage({
                           {Math.round((r.knowledgeJobs / r.sectorJobs) * 100)}%
                         </span>
                       ) : (
-                        <span className="text-muted-foreground" title={`${STATE_NAMES[b.state] ?? b.state} does not publish an industry with its WARN filings`}>—</span>
+                        <span className="text-muted-foreground" title={`${STATE_NAMES[b.state] ?? b.state} does not publish an industry with its layoff filings`}>—</span>
                       )}
                     </td>
                     <td className="whitespace-nowrap px-2 py-2 text-right text-xs tabular-nums">

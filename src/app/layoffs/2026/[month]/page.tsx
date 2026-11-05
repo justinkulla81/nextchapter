@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ month: st
   const name = monthName(d.i)
   return {
     title: titleMeta(`${name} ${LAYOFF_YEAR} Layoffs: ${n(d.notices.length)} Layoff Notices${workers ? `, ${n(workers)} Workers` : ''}`),
-    description: `${n(d.notices.length)} layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} workers` : ''}. The largest employers, the states, and the state record for each filing.`,
+    description: `${n(d.notices.length)} layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} people` : ''}. The largest employers, the states, and the state record for each filing.`,
     robots: { index: d.notices.length >= MONTH_MIN_NOTICES, follow: true },
     alternates: { canonical: `/layoffs/2026/${month}` },
   }
@@ -82,7 +82,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             {notices.length === 0
               ? `No layoff notices carry a filing date in ${name} ${LAYOFF_YEAR}.`
-              : `Employers filed ${n(notices.length)} layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} workers` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}.${prevSlug ? ` ${monthName(i - 1)} had ${n(prev.length)}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${n(Math.abs(diff))}` : ''}.` : ''}`}
+              : `Employers filed ${n(notices.length)} layoff notices dated ${name} ${LAYOFF_YEAR}${workers ? `, naming ${n(workers)} people` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}.${prevSlug ? ` ${monthName(i - 1)} had ${n(prev.length)}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${n(Math.abs(diff))}` : ''}.` : ''}`}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             {partial ? `${name} is not over, so this count will grow. ` : ''}Counted by the date on each filing; a state can publish a notice later, so a month’s count can grow.
@@ -95,7 +95,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
                 {employers.map((e) => (
                   <li key={e.slug} className="flex flex-wrap items-baseline justify-between gap-2 px-5 py-2.5 text-sm">
                     <Link href={`/layoffs/company/${e.slug}`} className="font-medium text-navy hover:underline">{e.name} layoffs</Link>
-                    <span className="tabular-nums text-muted-foreground">{e.workers > 0 ? `${n(e.workers)} workers · ` : ''}{n(e.notices)} {e.notices === 1 ? 'notice' : 'notices'}</span>
+                    <span className="tabular-nums text-muted-foreground">{e.workers > 0 ? `${n(e.workers)} people · ` : ''}{n(e.notices)} {e.notices === 1 ? 'notice' : 'notices'}</span>
                   </li>
                 ))}
               </ol>
@@ -110,7 +110,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
                   <li key={s.state}>
                     <Link href={`/layoffs/${stateSlug(s.state)}`} className="flex justify-between gap-2 rounded-lg border border-border bg-white px-3 py-2 hover:border-brand">
                       <span className="font-medium text-navy">{stateName(s.state)}</span>
-                      <span className="tabular-nums text-muted-foreground">{n(s.notices)} {s.notices === 1 ? 'notice' : 'notices'}{s.workers ? ` · ${n(s.workers)} workers` : ''}</span>
+                      <span className="tabular-nums text-muted-foreground">{n(s.notices)} {s.notices === 1 ? 'notice' : 'notices'}{s.workers ? ` · ${n(s.workers)} people` : ''}</span>
                     </Link>
                   </li>
                 ))}
@@ -127,7 +127,7 @@ export default async function MonthLayoffsPage({ params }: { params: Promise<{ m
                 {sorted.slice(0, 100).map((x) => (
                   <li key={x.id} className="flex flex-wrap items-baseline justify-between gap-2 px-5 py-2.5 text-sm">
                     <Link href={`/layoffs/company/${x.slug}`} className="text-navy hover:underline">{x.employer}</Link>
-                    <span className="tabular-nums text-muted-foreground">{x.workers ? `${n(x.workers)} workers · ` : ''}{x.state} · {noticeDay(x.noticeDate)}</span>
+                    <span className="tabular-nums text-muted-foreground">{x.workers ? `${n(x.workers)} people · ` : ''}{x.state} · {noticeDay(x.noticeDate)}</span>
                   </li>
                 ))}
               </ul>

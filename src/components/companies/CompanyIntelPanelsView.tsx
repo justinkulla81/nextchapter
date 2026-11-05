@@ -75,7 +75,7 @@ export function CompanyIntelPanelsView({ d }: { d: CompanyIntelPanelsData }) {
         )}
       </SectionBlock>
 
-      <SectionBlock id="layoffs-h" title="Layoffs and recovery" why="From public WARN filings in the last two years.">
+      <SectionBlock id="layoffs-h" title="Layoffs and recovery" why="From public layoff filings in the last two years.">
         {d.layoffs.events.length === 0 ? (
           <EmptyNote>No layoff filings on record for this company in the last two years.</EmptyNote>
         ) : (

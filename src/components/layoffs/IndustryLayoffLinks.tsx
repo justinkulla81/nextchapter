@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { industryCountsForNotices } from '@/lib/seo/layoff-industry-links'
 
 /** "By industry" links from a layoff page to the industry pages behind its notices. Renders nothing when none of the notices has an industry page. */
-export async function IndustryLayoffLinks({ notices, heading = 'By industry', unit = 'workers' }: { notices: { id: string; workers: number | null }[]; heading?: string; /** What a headcount is called: plain-language pages say "people". */ unit?: string }) {
+export async function IndustryLayoffLinks({ notices, heading = 'By industry', unit = 'people' }: { notices: { id: string; workers: number | null }[]; heading?: string; /** What a headcount is called: plain-language pages say "people". */ unit?: string }) {
   const rows = await industryCountsForNotices(notices).catch(() => [])
   if (rows.length === 0) return null
   return (

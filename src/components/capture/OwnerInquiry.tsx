@@ -51,7 +51,7 @@ export function OwnerInquiry({ who, what, href, hrefLabel, source, label }: { wh
           className="h-11 shrink-0 sm:flex-1 rounded-lg border border-border bg-white px-3 text-base"
         />
         <Button type="submit" disabled={pending} className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
-          {pending ? 'Sending…' : 'Send me details'}
+          {pending ? 'Sending…' : 'Show me how it works'}
         </Button>
       </form>
       {state?.error && <p role="alert" className="mt-2 text-sm text-destructive">{state.error}</p>}

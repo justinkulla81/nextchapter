@@ -41,7 +41,7 @@ export default async function RedditTodoPage() {
   return (
     <div className="space-y-8">
       <div>
-        <Link href="/support/admin/crm/warn" className="text-sm text-primary underline underline-offset-4">Back to WARN notices</Link>
+        <Link href="/support/admin/crm/warn" className="text-sm text-primary underline underline-offset-4">Back to layoff notices</Link>
         <h1 className="mt-2 text-2xl font-semibold">Reddit to-do</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
           The largest layoff notices we collected in the last three days, each with Reddit threads about the employer and a reply built only from the filing. Read the reply, edit it so it sounds like you, post it from your own account, then tick Posted. Reddit removes link-only posts and bans accounts that promote a site, so answer people asking, put the facts in the text, and read each subreddit&apos;s rules first. Nothing here posts for you.

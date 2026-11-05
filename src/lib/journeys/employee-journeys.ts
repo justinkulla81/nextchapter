@@ -163,3 +163,6 @@ export const EMPLOYEE_JOURNEYS: EmployeeJourney[] = [
 ]
 
 export const getEmployeeJourney = (slug: string) => EMPLOYEE_JOURNEYS.find((j) => j.slug === slug)
+
+/** The journey page a News tag belongs to, or null for a tag that is not a journey's. */
+export const journeyForTag = (tag: string) => EMPLOYEE_JOURNEYS.find((j) => j.tag === tag)

@@ -25,7 +25,7 @@ const TOOLS = [
   { href: '/resources/warn-act', name: 'WARN Act in plain language', body: 'Who is covered, when 60 days’ notice is due, what is owed, and five state laws.' },
   { href: '/tools/warn-act-checker', name: 'WARN Act checker', body: 'For employers: is 60 days’ notice of a layoff likely required?' },
   { href: '/unemployment-benefits', name: 'Unemployment benefits by state', body: 'Weekly amount, weeks, waiting week and where to file, for every state.' },
-  { href: '/layoffs', name: 'Layoff tracker', body: 'Recent layoffs from WARN notices, by state and employer.' },
+  { href: '/layoffs', name: 'Layoff tracker', body: 'Recent layoffs from state layoff notices, by state and employer.' },
   { href: '/funding', name: 'Funding finder', body: 'Relocation, tuition and training money ranked for you.' },
   { href: '/ai-skills', name: 'AI skills data', body: 'Which jobs ask for AI skills and what they pay.' },
 ]

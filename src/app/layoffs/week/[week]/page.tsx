@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ week: str
   const workers = sum(d.notices)
   return {
     title: titleMeta(`Layoffs week of ${d.monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}: ${d.notices.length} layoff notices`),
-    description: `${d.notices.length} layoff notices were filed ${weekLabel(d.monday)}${workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}. See the states, the largest employers and the state record for each.`,
+    description: `${d.notices.length} layoff notices were filed ${weekLabel(d.monday)}${workers ? `, naming ${workers.toLocaleString('en-US')} people` : ''}. See the states, the largest employers and the state record for each.`,
     robots: { index: d.notices.length >= WEEK_MIN_NOTICES, follow: true },
     alternates: { canonical: `/layoffs/week/${week}` },
   }
@@ -85,7 +85,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             {notices.length === 0
               ? 'No layoff notices carry a filing date in that week.'
-              : `Employers filed ${notices.length.toLocaleString('en-US')} layoff notices dated that week${workers ? `, naming ${workers.toLocaleString('en-US')} workers` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before had ${prev.length.toLocaleString('en-US')}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')}` : ''}.`}
+              : `Employers filed ${notices.length.toLocaleString('en-US')} layoff notices dated that week${workers ? `, naming ${workers.toLocaleString('en-US')} people` : ''}, across ${states.length} ${states.length === 1 ? 'state' : 'states'}. The week before had ${prev.length.toLocaleString('en-US')}${diff !== 0 ? `, so notices were ${diff > 0 ? 'up' : 'down'} ${Math.abs(diff).toLocaleString('en-US')}` : ''}.`}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">Counted by the date on each filing; a state can publish a notice later, so a week’s count can grow.</p>
 
@@ -97,7 +97,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
                   <li key={s}>
                     <Link href={`/layoffs/${stateSlug(s)}`} className="flex justify-between gap-2 rounded-lg border border-border bg-white px-3 py-2 hover:border-brand">
                       <span className="font-medium text-navy">{stateName(s)}</span>
-                      <span className="tabular-nums text-muted-foreground">{v.n} {v.n === 1 ? 'notice' : 'notices'}{v.w ? ` · ${v.w.toLocaleString('en-US')} workers` : ''}</span>
+                      <span className="tabular-nums text-muted-foreground">{v.n} {v.n === 1 ? 'notice' : 'notices'}{v.w ? ` · ${v.w.toLocaleString('en-US')} people` : ''}</span>
                     </Link>
                   </li>
                 ))}
@@ -113,7 +113,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
                 {biggest.map((n) => (
                   <li key={n.id} className="flex flex-wrap items-baseline justify-between gap-2 px-5 py-3 text-sm">
                     <TrackedLink href={`/layoffs/company/${n.slug}`} event="topic_layoff_clicked" properties={{ source: `week:${week}`, slug: n.slug }} className="font-medium text-navy hover:underline">{n.employer}</TrackedLink>
-                    <span className="tabular-nums text-muted-foreground">{n.workers!.toLocaleString('en-US')} workers · {stateName(n.state)}{n.place ? `, ${n.place}` : ''} · {noticeDay(n.noticeDate)}</span>
+                    <span className="tabular-nums text-muted-foreground">{n.workers!.toLocaleString('en-US')} people · {stateName(n.state)}{n.place ? `, ${n.place}` : ''} · {noticeDay(n.noticeDate)}</span>
                   </li>
                 ))}
               </ul>
@@ -126,7 +126,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
                 {notices.slice(0, 80).map((n) => (
                   <li key={n.id} className="flex flex-wrap items-baseline justify-between gap-2 px-5 py-2.5 text-sm">
                     <Link href={`/layoffs/company/${n.slug}`} className="text-navy hover:underline">{n.employer}</Link>
-                    <span className="tabular-nums text-muted-foreground">{n.workers ? `${n.workers.toLocaleString('en-US')} workers · ` : ''}{n.state} · {noticeDay(n.noticeDate)}</span>
+                    <span className="tabular-nums text-muted-foreground">{n.workers ? `${n.workers.toLocaleString('en-US')} people · ` : ''}{n.state} · {noticeDay(n.noticeDate)}</span>
                   </li>
                 ))}
               </ul>

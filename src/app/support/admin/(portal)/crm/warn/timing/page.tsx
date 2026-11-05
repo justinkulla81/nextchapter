@@ -17,7 +17,7 @@ export default async function LayoffTimingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/support/admin/crm/warn" className="text-sm text-primary underline underline-offset-4">Back to WARN notices</Link>
+        <Link href="/support/admin/crm/warn" className="text-sm text-primary underline underline-offset-4">Back to layoff notices</Link>
         <h1 className="mt-2 text-2xl font-semibold">How soon a layoff reaches our site</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
           For each state: the days between the date on the filing and the day we first stored it, for filings in the last 90 days. This includes any delay at the state itself, because we do not record when a state posted a notice, so it cannot show how far we run behind a state. It is the number we can honestly quote, as &quot;on our site a median of N days after the filing date&quot;. We do not claim to be first or fastest.

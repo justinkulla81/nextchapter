@@ -81,7 +81,7 @@ export function LayoffList({ summary, scope }: { summary: NoticeSummary; scope: 
           <li key={t.employer + t.noticeDate.toISOString()} className="flex justify-between gap-3 py-2"><span>{t.employer}</span><span className="tabular-nums text-muted-foreground">{n0(t.employees)} jobs · {t.dateKind === 'effective' ? 'effective ' : ''}{t.noticeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span></li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-muted-foreground">Public state WARN filings.</p>
+      <p className="mt-3 text-xs text-muted-foreground">Public state layoff filings.</p>
     </div>
   )
 }
@@ -129,7 +129,7 @@ export function DashboardPreview({ org, stay }: { org: string; stay: string }) {
 export function PrivacyNote({ asOf }: { asOf: Date }) {
   return (
     <p className="border-t border-border pt-6 text-xs text-muted-foreground">
-      Prepared {asOf.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} from public data: our job database (open roles seen in the last 14 days), state WARN filings, Census Bureau and BLS figures, and our published monthly report.
+      Prepared {asOf.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} from public data: our job database (open roles seen in the last 14 days), state layoff filings, Census Bureau and BLS figures, and our published monthly report.
       This page is unlisted and shows no personal information. Roles link to the employers&apos; own postings.
     </p>
   )

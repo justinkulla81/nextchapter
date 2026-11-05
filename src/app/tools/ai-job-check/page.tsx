@@ -15,7 +15,7 @@ const POPULAR = occupations.slice(0, 18)
 const FAQ = [
   { q: 'What does the AI exposure number mean?', a: 'It is the share of a job’s tasks that AI is already used for at work, weighted by time spent on each task. It comes from real usage data in the Anthropic Economic Index, not from a guess about the future.' },
   { q: 'Does a high number mean my job is going away?', a: 'No. It measures how much of the work AI is already used on, not job loss. Many jobs with high numbers are growing, and a low number means no use has been seen yet, not that the job is protected.' },
-  { q: 'Where does the data come from?', a: 'Exposure is from the Anthropic Economic Index. Pay and growth are from the Bureau of Labor Statistics. Skills and tasks are from O*NET. Layoff notices are public WARN filings.' },
+  { q: 'Where does the data come from?', a: 'Exposure is from the Anthropic Economic Index. Pay and growth are from the Bureau of Labor Statistics. Skills and tasks are from O*NET. Layoff notices are public layoff filings.' },
   { q: 'Do you save my job title?', a: 'No. The search runs once and nothing is stored unless you choose to start a free assessment.' },
 ]
 

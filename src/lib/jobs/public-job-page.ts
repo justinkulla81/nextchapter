@@ -56,11 +56,12 @@ export function liveJobSitemapShards(env: Record<string, string | undefined> = p
 }
 
 /**
- * True while the daily job pings are paused (since 2026-11-04): the IndexNow run for job pages (indexnow-jobs) and the Google Indexing API run
+ * True while the daily job pings are paused: the IndexNow run for job pages (indexnow-jobs) and the Google Indexing API run
  * (google-indexing-jobs) send nothing, so Bing's and Google's crawl effort goes to the lists, tools and layoff pages. Job pages stay up; closed
- * jobs are simply not announced while this is on. Set to false to resume.
+ * jobs are simply not announced while this is on. Paused 2026-11-04, resumed 2026-11-05 on the owner's instruction. The pings now cover only
+ * jobs on the employer's own career system (PUBLIC_JOB_SEARCH_SQL), and a job already sent that is no longer one is reported as removed.
  */
-export const JOB_SEARCH_PINGS_PAUSED = true
+export const JOB_SEARCH_PINGS_PAUSED = false
 
 const INTERNSHIP_TYPES = new Set(['internship', 'co_op', 'coop'])
 // Same words as the SQL rule: \m(intern|interns|internships?|student trainee)\M
