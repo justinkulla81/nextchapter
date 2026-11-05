@@ -2,7 +2,6 @@ import { SiteNavMega } from './SiteNavMega'
 import { SiteFooterColumns } from './SiteFooterColumns'
 import Link from 'next/link'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
-import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { COMPANY_ADDRESS, COMPANY_BLUESKY_URL, COMPANY_LINKEDIN_URL, COMPANY_X_URL } from '@/lib/contact/constants'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
@@ -28,11 +27,6 @@ export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 
 export function PublicSiteFooter({ page, cta = true }: { cta?: boolean; page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' | 'careers' | 'ai-skills' | 'ai-training' | 'funding' | 'seo' }) {
   return (
     <footer className="bg-navy text-white">
-      <div className="border-b border-white/10">
-        <div className="mx-auto max-w-4xl px-6 py-8">
-          <NewsletterSignup source="site-footer" variant="compact" />
-        </div>
-      </div>
       <div className="pt-12">
         <SiteFooterColumns tone="dark" />
       </div>

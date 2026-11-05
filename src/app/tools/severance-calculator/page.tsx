@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { DeadlineEmailBox } from '@/components/cobra-aca/DeadlineEmailBox'
-import { LaidOffStart } from '@/components/cobra-aca/LaidOffStart'
 import { SeveranceCalculator, type CalculatorState } from '@/components/tools/SeveranceCalculator'
 import { SeveranceSources } from '@/components/severance/SeveranceSources'
 import { getPersona } from '@/lib/constants/personas'
@@ -65,9 +64,6 @@ export default function SeveranceCalculatorPage() {
             eventPrefix="severance"
             blurb="One email as each date comes up over the next two months: filing for unemployment, the severance agreement review, health coverage. Then nothing. No account needed."
           />
-        </div>
-        <div className="mt-4">
-          <LaidOffStart placement="severance_tool" eventPrefix="severance" />
         </div>
       </section>
 

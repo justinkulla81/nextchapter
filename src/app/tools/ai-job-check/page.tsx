@@ -1,9 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { AiJobCheckForm } from '@/components/tools/AiJobCheckForm'
 import { AI_EXPOSURE_SOURCE } from '@/lib/skills/ai-exposure'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { checkPath } from '@/lib/ai-check/slug'
 import occupations from '@/lib/ai-check/occupations.json'
@@ -60,7 +59,6 @@ export default function AiJobCheckPage() {
         </p>
       </section>
 
-      <ActionBand title="Does that number worry you?" body="See how recruiters read your background and which open jobs fit you best. Free." label="Show me jobs that fit me" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'ai_job_check' }} />
     </SeoPage>
   )
 }

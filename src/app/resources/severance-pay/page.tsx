@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { DeadlineEmailBox } from '@/components/cobra-aca/DeadlineEmailBox'
-import { LaidOffStart } from '@/components/cobra-aca/LaidOffStart'
 import { SeveranceSources } from '@/components/severance/SeveranceSources'
 import { money } from '@/lib/cobra-aca/calc'
 import { getPersona } from '@/lib/constants/personas'
@@ -229,9 +228,6 @@ export default function SeverancePayPage() {
             eventPrefix="severance"
             blurb="One email as each date comes up over the next two months: filing for unemployment, the severance agreement review, health coverage. Then nothing. No account needed."
           />
-        </div>
-        <div className="mt-4">
-          <LaidOffStart placement="severance_explainer" eventPrefix="severance" />
         </div>
         <p className="mt-6 max-w-3xl text-sm text-muted-foreground">
           Also: <Link href="/topics/severance" className={LINK}>severance package: what it includes and how to negotiate</Link>, <Link href="/resources/cobra-aca" className={LINK}>health insurance after a layoff</Link>,{' '}

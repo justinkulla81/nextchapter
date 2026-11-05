@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { ResumeCheck } from '@/components/tools/ResumeCheck'
 import { getPersona } from '@/lib/constants/personas'
 import { journeyChoices } from '@/lib/leads/infer-journey'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 export const metadata: Metadata = pageMetadata('/tools/resume-check')
@@ -46,7 +45,6 @@ export default function ResumeCheckPage() {
           More: <Link href="/topics/resume-review" className={LINK}>how to review a résumé yourself</Link>, <Link href="/topics/resume-tips" className={LINK}>résumé tips for experienced professionals</Link> and <Link href="/tools" className={LINK}>all tools</Link>.
         </p>
       </section>
-      <ActionBand title="Is your résumé getting ignored?" body="See how recruiters read your background, then get every open job ranked for you. Free." label="Show me how I read" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'resume_check' }} />
     </SeoPage>
   )
 }

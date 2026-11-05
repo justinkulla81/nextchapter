@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { LayoffRunway, type RunwayState } from '@/components/tools/LayoffRunway'
 import { STATE_UI } from '@/lib/data/state-ui'
 import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 export const metadata: Metadata = pageMetadata('/tools/layoff-runway')
@@ -40,7 +39,6 @@ export default function Page() {
           More: <Link href="/tools/unemployment-estimator" className={LINK}>unemployment benefit estimator</Link>, <Link href="/tools/severance-calculator" className={LINK}>severance calculator</Link>, <Link href="/resources/bridge-income" className={LINK}>bridge income while you search</Link> and <Link href="/resources/cobra-aca" className={LINK}>health coverage after a layoff</Link>.
         </p>
       </section>
-      <ActionBand title="Running out of runway?" body="Get a free plan that starts with the deadlines that cost people money." label="Get my laid-off game plan" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'layoff_runway' }} />
     </SeoPage>
   )
 }

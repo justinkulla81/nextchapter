@@ -136,7 +136,7 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
       </Suspense>
 
       <Suspense fallback={null}>
-        <AiExposureSection page="home" cta={{ event: 'homepage_cta_clicked', properties: { cta: 'ai_exposure_assessment', variant }, className: action }} />
+        <AiExposureSection page="home" />
       </Suspense>
 
       <HomeFunding />
@@ -164,12 +164,6 @@ export function NewHome({ variant = 'control', fresh = null }: { variant?: HomeV
 
       <footer className="bg-ink text-white">
         <div className="mx-auto max-w-4xl px-6 py-10 text-center">
-          <h2 className="font-display text-3xl font-semibold tracking-tight text-balance">Still guessing why nobody calls back?</h2>
-          <div className="mt-6">
-            <TrackedLink href={MARKET_REALITY_START_HREF} event="homepage_cta_clicked" properties={{ cta: 'footer_assessment', variant }} className={action}>
-              <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
-            </TrackedLink>
-          </div>
           {fresh}
           <nav aria-label="Topics" className="mt-12 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-white/80">
             {TOPIC_LINKS.map((l) => (

@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { PayCheck } from '@/components/tools/PayCheck'
 import { getPersona } from '@/lib/constants/personas'
 import { journeyChoices } from '@/lib/leads/infer-journey'
 import { getTitleIndex, hasSalaryPage } from '@/lib/seo/job-titles'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 // Not prerendered: the title scan reads the whole board, and a build runs it in up to seven workers at once, which timed out
@@ -48,7 +47,6 @@ export default async function PayCheckPage() {
           More: <Link href="/salaries" className={LINK}>salary by job title</Link>, <Link href="/tools/severance-calculator" className={LINK}>severance calculator</Link> and <Link href="/tools" className={LINK}>all tools</Link>.
         </p>
       </section>
-      <ActionBand title="Not sure you are paid fairly?" body="See which open jobs fit you and what they pay. Free." label="Show me jobs that fit me" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'pay_check' }} />
     </SeoPage>
   )
 }
