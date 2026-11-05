@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import Link from 'next/link'
 import { ShowAllGroup } from '@/components/seo/ShowAllGroup'
-import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK, Stat } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { NONPROFIT_KINDS, getNonprofitFunding, getStateNonprofits, money, type NonprofitPage } from '@/lib/seo/nonprofit-pages'
@@ -67,6 +67,7 @@ export default async function NonprofitStatePage({ params }: { params: Promise<{
 
   return (
     <SeoPage
+      boxFirst
       stateSlug={state}
       trail={[{ name: 'Non-profits', path: '/nonprofits' }, { name: d.name, path: `/nonprofits/${state}` }]}
       h1={`${d.name} non-profits: chambers, economic development, workforce and job training organizations`}
@@ -113,14 +114,6 @@ export default async function NonprofitStatePage({ params }: { params: Promise<{
         </section>
       ))}
 
-      <ActionBand
-        title={`Run a ${d.name} non-profit?`}
-        body="Claim your organization’s page and set up a free workspace. Use a work email at your organization’s domain."
-        label="See how a non-profit claims its page"
-        href="/nonprofits#claim"
-        event="seo_claim_clicked"
-        properties={{ page: 'nonprofit_state', audience: 'nonprofit', state: d.code }}
-      />
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> organization names, cities, revenue and filing years from IRS tax-exempt organization records; unemployment from the Bureau of Labor Statistics;
         grants from Grants.gov and SAM.gov.

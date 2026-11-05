@@ -49,3 +49,10 @@ describe('directory pages (workforce boards, job centers, economic development)'
     expect(src).toContain('Independent page. Not run by or affiliated with')
   })
 })
+
+describe('nonprofit directory pages', () => {
+  it('open with the organization box, and the state page has no second claim band', () => {
+    for (const p of ['src/app/nonprofits/[state]/page.tsx', 'src/app/nonprofits/[state]/[org]/page.tsx']) expect(read(p), p).toMatch(/<SeoPage\s+boxFirst/)
+    expect(read('src/app/nonprofits/[state]/page.tsx')).not.toContain('<ActionBand')
+  })
+})
