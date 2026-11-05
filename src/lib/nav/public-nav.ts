@@ -77,7 +77,6 @@ export const PUBLIC_NAV: PublicNavMenu[] = [
       {
         heading: 'After a layoff',
         links: [
-          { label: 'What to do after a layoff', href: '/after-a-layoff' },
           { label: 'Unemployment benefits', href: '/unemployment-benefits' },
           { label: 'Funding for you', href: '/funding' },
         ],
