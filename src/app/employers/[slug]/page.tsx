@@ -340,7 +340,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         <AreaNotices
           id="notices"
           title={`Layoff notices from ${e.name}`}
-          intro={`WARN notices ${e.name} has filed with state labor departments.`}
+          intro={`Layoff notices ${e.name} has filed with state labor departments.`}
           notices={layoffs}
           moreHref={`/layoffs/company/${layoffs.slug}`}
           moreLabel={`${e.name} layoff history, severance and unemployment rules`}

@@ -313,7 +313,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
             <li><Link href="/resources/severance-pay" className={LINK}>Severance pay: taxes, negotiating and the agreement</Link></li>
             <li>
               {hasLayoffPage ? (
-                <Link href={`/layoffs/${state}`} className={LINK}>{name} layoffs: recent WARN notices and local job centers</Link>
+                <Link href={`/layoffs/${state}`} className={LINK}>{name} layoffs: recent layoff notices and local job centers</Link>
               ) : (
                 <Link href="/layoffs" className={LINK}>The national layoff tracker</Link>
               )}

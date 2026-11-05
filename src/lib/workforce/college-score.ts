@@ -173,7 +173,7 @@ export function scoreCollege(c: ScoreInput): { score: number; parts: ScoreParts;
   const area = c.areaJobsLost > 0 ? Math.min(10, Math.round(Math.log10(c.areaJobsLost) * 3 * 10) / 10) : 0
   fit += area
   if (isCommunityCollege(c)) notes.push('Community college')
-  if (c.areaJobsLost > 0) notes.push(`${c.areaJobsLost.toLocaleString()} jobs in WARN filings nearby in the last year`)
+  if (c.areaJobsLost > 0) notes.push(`${c.areaJobsLost.toLocaleString()} jobs in layoff filings nearby in the last year`)
 
   // Size, up to 20: 5,000–20,000 students is the sweet spot; very selective
   // schools lose most of it — they run their own alumni career programs.
