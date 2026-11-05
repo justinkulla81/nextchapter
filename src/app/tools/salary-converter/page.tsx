@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { SalaryConverter } from '@/components/tools/SalaryConverter'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 export const metadata: Metadata = pageMetadata('/tools/salary-converter')
@@ -38,7 +37,6 @@ export default function Page() {
           More: <Link href="/tools/pay-check" className={LINK}>pay check: is your salary in line</Link>, <Link href="/salaries" className={LINK}>salaries by job title</Link> and <Link href="/tools/severance-calculator" className={LINK}>severance calculator</Link>.
         </p>
       </section>
-      <ActionBand title="Not sure what your title pays?" body="See how the market reads your background and which jobs fit. Free." label="Show me what I am worth" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'salary_converter' }} />
     </SeoPage>
   )
 }

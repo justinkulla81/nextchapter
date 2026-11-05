@@ -37,6 +37,27 @@ export const DEFAULT_COPY: PullCopy = {
   button: null,
 }
 
+const FREE = 'Free. No résumé needed.'
+const copy = (headline: string, sentence: string, button: string): PullCopy => ({ headline, sentence: `${sentence} ${FREE}`, button })
+
+/** Pages with their own pain, by path prefix (the longest prefix wins). The tool pages used to end in a second band saying this; the one box says it now. */
+const BY_PREFIX: Record<string, PullCopy> = {
+  '/tools/job-loss-readiness': copy('Not sure your job is safe?', 'Get a plan for your next move, whether you move now or just want options open.', 'Get my next-move plan'),
+  '/tools/layoff-runway': copy('Running out of runway?', 'Get a plan that starts with the deadlines that cost people money.', 'Get my laid-off game plan'),
+  '/tools/layoff-deadlines': copy('Missing a deadline can cost you money.', 'Get a plan that starts with the dates that matter, then your job search.', 'Get my laid-off game plan'),
+  '/tools/unemployment-estimator': copy('Do not wait to file.', 'Get a plan that starts with the deadlines, then your job search.', 'Start my first-week plan'),
+  '/tools/severance-calculator': LAID_OFF_COPY,
+  '/tools/ai-job-check': copy('Does that number worry you?', 'See how recruiters read your background and which open jobs fit you best.', 'Show me jobs that fit me'),
+  '/tools/pay-check': copy('Not sure you are paid fairly?', 'See which open jobs fit you and what they pay.', 'Show me jobs that fit me'),
+  '/tools/salary-converter': copy('Not sure what your title pays?', 'See how the market reads your background and which jobs fit.', 'Show me what I am worth'),
+  '/tools/resume-check': copy('Is your résumé getting ignored?', 'See how recruiters read your background, then get every open job ranked for you.', 'Show me how I read'),
+  '/tools/resume-job-match': copy('Is your résumé getting ignored?', 'See how recruiters read your background, then get every open job ranked for you.', 'Show me how I read'),
+  '/resources/severance-pay': LAID_OFF_COPY,
+  '/resources/cobra-aca': LAID_OFF_COPY,
+  '/resources/unemployed': LAID_OFF_COPY,
+  '/topics/severance': LAID_OFF_COPY,
+}
+
 const BY_ROOT: Record<string, PullCopy> = {
   layoffs: LAID_OFF_COPY,
   'unemployment-benefits': LAID_OFF_COPY,
@@ -47,8 +68,11 @@ const BY_ROOT: Record<string, PullCopy> = {
   'ai-job-check': AI_COPY,
 }
 
-/** The copy for a page, chosen from the first folder of its path ("/layoffs/this-week" reads "layoffs"). */
+/** The copy for a page: its own by path, else the one for its first folder ("/layoffs/this-week" reads "layoffs"), else the default. */
 export function pullCopyFor(path: string): PullCopy {
-  const root = path.split('?')[0].split('/').filter(Boolean)[0] ?? ''
+  const clean = path.split('?')[0].replace(/\/$/, '')
+  const own = Object.keys(BY_PREFIX).filter((k) => clean === k || clean.startsWith(`${k}/`)).sort((x, y) => y.length - x.length)[0]
+  if (own) return BY_PREFIX[own]
+  const root = clean.split('/').filter(Boolean)[0] ?? ''
   return BY_ROOT[root] ?? DEFAULT_COPY
 }

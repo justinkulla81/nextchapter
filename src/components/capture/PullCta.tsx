@@ -23,7 +23,7 @@ export function pullContext(trail: { name: string; path: string }[]) {
     topic: last?.name ?? 'your search',
     slug,
     audience: (ORG_ROOTS.has(root) ? 'org' : 'seeker') as PullAudience,
-    copy: pullCopyFor(trail[0]?.path ?? ''),
+    copy: pullCopyFor(last?.path ?? ''),
   }
 }
 

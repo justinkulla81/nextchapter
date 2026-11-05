@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { LayoffDeadlines } from '@/components/tools/LayoffDeadlines'
 import { getPersona } from '@/lib/constants/personas'
 import { journeyChoices } from '@/lib/leads/infer-journey'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 
 export const metadata: Metadata = pageMetadata('/tools/layoff-deadlines')
@@ -43,7 +42,6 @@ export default function LayoffDeadlinesPage() {
           More: <Link href="/unemployment-benefits" className={LINK}>unemployment benefits by state</Link>, <Link href="/resources/cobra-aca" className={LINK}>COBRA and marketplace health coverage</Link>, <Link href="/resources/72-hours" className={LINK}>the first 72 hours after a layoff</Link> and <Link href="/tools/severance-calculator" className={LINK}>the severance calculator</Link>.
         </p>
       </section>
-      <ActionBand title="Missing a deadline can cost you money." body="Get a free plan that starts with the dates that matter, then your job search." label="Get my laid-off game plan" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'layoff_deadlines' }} />
     </SeoPage>
   )
 }

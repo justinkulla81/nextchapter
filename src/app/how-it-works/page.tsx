@@ -3,15 +3,11 @@ import { StructuredData } from '@/components/StructuredData'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { STAGE_GUIDE, STAGE_ORDER, stageName } from '@/lib/journey/stage-guide'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import Image from 'next/image'
 import { ClipboardList, Compass, ListChecks, ShieldCheck, Trophy, type LucideIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
-import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { PullTop } from '@/components/capture/PullCta'
-import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 
 export const metadata: Metadata = pageMetadata('/how-it-works')
 
@@ -163,11 +159,6 @@ export default function HowItWorksPage() {
           </div>
         </div>
 
-        <div className="mt-16 text-center">
-          <Button nativeButton={false} size="lg" variant="cta" render={<Link href={MARKET_REALITY_START_HREF} />}>
-            <AssessmentCtaLabel>Get your Market Reality Assessment</AssessmentCtaLabel>
-          </Button>
-        </div>
 
         <div className="mt-20 border-t border-border pt-16">
           <NewsletterSignup source="how-it-works" />

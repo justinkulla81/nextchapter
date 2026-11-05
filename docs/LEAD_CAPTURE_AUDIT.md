@@ -52,3 +52,21 @@ Copy lives in `src/lib/capture/pull-copy.ts` (the navy `NextStepBox` on every pu
 - **Hashtags on model-written posts:** `withHashtags` (`src/lib/social/tags.ts`) adds the topic's tags in code after a draft passes the check, only when they fit the channel limit. The writer still may not write hashtags, so it cannot invent one.
 - **Employer asks:** the organization box asks a pain question ("Hiring in {industry} and not seeing enough experienced applicants?") and the button reads "Show me how it works". The text of what they get is unchanged, so it promises nothing new.
 - **Nav button test:** left as it is. Adding arms to a test that started 2026-11-03 would change who sees what mid-run. The pain buttons are measured by the `copy` property on `pull_cta_clicked`; compare click-through by it in PostHog, then fold the winner into the test or end it.
+
+## One ask per page (2026-11-05)
+
+Crawled 130 live pages, two from each kind of page in the sitemap, counting links into the assessment flow outside the header. 15 had two or more. Fixed:
+
+| Page | Was | Now |
+|---|---|---|
+| `/layoffs/<state>` | navy box + red state band | the box; the "independent page" line stays as a note |
+| `/layoffs/company/<slug>` | band + "Build my free plan" + footer band | the page's own journey form |
+| Nine seeker tool pages, severance pages | box + bottom band or button | the box, with tool-specific copy (`BY_PREFIX` in `pull-copy.ts`) |
+| `/topics/<slug>` | box + band pointing at the assessment | the box (bands that point elsewhere stay) |
+| `/about`, `/ai-skills`, `/funding`, `/scam-watch` | own ask + footer band | own ask |
+| `/how-it-works`, `/funding` | box or hero + a repeat at the bottom | one |
+| Home | hero + funding + AI section + footer | hero |
+
+Left as they are: `/why-stuck` (twelve links are the page's chooser), the follow and deadline email boxes (a different capture), the header button.
+
+The box is smaller (less padding, the "Not ready?" link sits under the sentence, not on its own row) so page content starts higher. Guard: `src/test/one-ask-per-page.test.ts`.
