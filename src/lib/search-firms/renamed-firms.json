@@ -1,0 +1,242 @@
+[
+  {
+    "sourceKey": "sf:apinc",
+    "from": "Advanced Placement, LLC (now",
+    "to": "Advanced Placement, LLC",
+    "oldSlug": "advanced-placement-llc-now",
+    "newSlug": "advanced-placement",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:jobskey2",
+    "from": "Careers",
+    "to": "Jobskey",
+    "oldSlug": "careers",
+    "newSlug": "jobskey",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:apexstaffing",
+    "from": "Careers | Apex Staffing",
+    "to": "Apex Staffing",
+    "oldSlug": "careers-apex-staffing",
+    "newSlug": "apex-staffing",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:blueridgeexecutivesearch",
+    "from": "Careers | Blue Ridge Executive Search",
+    "to": "Blue Ridge Executive Search",
+    "oldSlug": "careers-blue-ridge-executive-search",
+    "newSlug": "blue-ridge-executive-search",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:chelseasearchgroup",
+    "from": "Careers | Chelsea Search Group",
+    "to": "Chelsea Search Group",
+    "oldSlug": "careers-chelsea-search-group",
+    "newSlug": "chelsea-search-group",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:engagingtalentllc",
+    "from": "Careers | Engaging Talent",
+    "to": "Engaging Talent",
+    "oldSlug": "careers-engaging-talent",
+    "newSlug": "engaging-talent",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:mccloskeypartnersllc",
+    "from": "Careers | McCloskey Partners",
+    "to": "McCloskey Partners",
+    "oldSlug": "careers-mccloskey-partners",
+    "newSlug": "mccloskey-partners",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:medcareersolutions",
+    "from": "Careers | Med Career Solutions",
+    "to": "Med Career Solutions",
+    "oldSlug": "careers-med-career-solutions",
+    "newSlug": "med-career-solutions",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:mkconsultinggroup",
+    "from": "Careers | MK Consulting Group",
+    "to": "MK Consulting Group",
+    "oldSlug": "careers-mk-consulting-group",
+    "newSlug": "mk-consulting-group",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:nenniandassociates",
+    "from": "Careers | Nenni and Associates",
+    "to": "Nenni and Associates",
+    "oldSlug": "careers-nenni-and-associates",
+    "newSlug": "nenni-and-associates",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:nowhiringheroes",
+    "from": "Careers | NOW Hiring Heroes",
+    "to": "NOW Hiring Heroes",
+    "oldSlug": "careers-now-hiring-heroes",
+    "newSlug": "now-hiring-heroes",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:partnershipwithchildren",
+    "from": "Careers | Partnership with Children",
+    "to": "Partnership with Children",
+    "oldSlug": "careers-partnership-with-children",
+    "newSlug": "partnership-with-children",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:robertsrecruiting",
+    "from": "Careers | Roberts Recruiting",
+    "to": "Roberts Recruiting",
+    "oldSlug": "careers-roberts-recruiting",
+    "newSlug": "roberts-recruiting",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:rubixrecruiting",
+    "from": "Careers | Rubix Recruiting",
+    "to": "Rubix Recruiting",
+    "oldSlug": "careers-rubix-recruiting",
+    "newSlug": "rubix-recruiting",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:specialtymedicalstaffing",
+    "from": "Careers | Specialty Medical Staffing",
+    "to": "Specialty Medical Staffing",
+    "oldSlug": "careers-specialty-medical-staffing",
+    "newSlug": "specialty-medical-staffing",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:staffconnectny",
+    "from": "Careers | Staff Connect",
+    "to": "Staff Connect",
+    "oldSlug": "careers-staff-connect",
+    "newSlug": "staff-connect",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:synergyrecruitment",
+    "from": "Careers | Synergy Jobs (Pty)",
+    "to": "Synergy Jobs",
+    "oldSlug": "careers-synergy-jobs-pty",
+    "newSlug": "synergy-jobs",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:talonrecruiting",
+    "from": "Careers | Talon Recruiting",
+    "to": "Talon Recruiting",
+    "oldSlug": "careers-talon-recruiting",
+    "newSlug": "talon-recruiting",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:teklaresearch",
+    "from": "Careers | Tekla Research",
+    "to": "Tekla Research",
+    "oldSlug": "careers-tekla-research",
+    "newSlug": "tekla-research",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:vitaverstaffing",
+    "from": "Careers | Vitaver and Associates",
+    "to": "Vitaver and Associates",
+    "oldSlug": "careers-vitaver-and-associates",
+    "newSlug": "vitaver-and-associates",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:vwirecruit",
+    "from": "Careers | VW International",
+    "to": "VW International",
+    "oldSlug": "careers-vw-international",
+    "newSlug": "vw-international",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:integr8staff",
+    "from": "Integrat8staff | Job and Temp Staffing Agency in Los Angeles",
+    "to": "Integrat8staff",
+    "oldSlug": "integrat8staff-job-and-temp-staffing-agency-in-los-angeles",
+    "newSlug": "integrat8staff",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:riderflex",
+    "from": "National recruiting and consulting firm. C-suite through associate",
+    "to": "Riderflex",
+    "oldSlug": "national-recruiting-and-consulting-firm-c-suite-through-associate",
+    "newSlug": "riderflex",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:optimasearcheuropeamerica",
+    "from": "Optima Search | Europe & America",
+    "to": "Optima Search",
+    "oldSlug": "optima-search-europe-and-america",
+    "newSlug": "optima-search",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:prepintl",
+    "from": "PReP Intl = INTL-PREQUALIFIED READY EMPLOYEES FOR POWER INTL, LLC",
+    "to": "PReP Intl",
+    "oldSlug": "prep-intl-intl-prequalified-ready-employees-for-power-intl",
+    "newSlug": "prep-intl",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:barkersearch",
+    "from": "Recruiting Firm",
+    "to": "Barker Search",
+    "oldSlug": "recruiting-firm",
+    "newSlug": "barker-search",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:rightstaffinc",
+    "from": "RightStaff | Staffing Solutions Partner",
+    "to": "RightStaff",
+    "oldSlug": "rightstaff-staffing-solutions-partner",
+    "newSlug": "rightstaff",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:staffbuffalo",
+    "from": "StaffBuffalo | Recruiting | Talent Optimization | Human Resources | HR",
+    "to": "StaffBuffalo",
+    "oldSlug": "staffbuffalo-recruiting-talent-optimization-human-resources-hr",
+    "newSlug": "staffbuffalo",
+    "mergedInto": true
+  },
+  {
+    "sourceKey": "sf:teilurtalent",
+    "from": "Teilur Talent Nearshore Staffing Agency for LATAM Tech Talent",
+    "to": "Teilur Talent",
+    "oldSlug": "teilur-talent-nearshore-staffing-agency-for-latam-tech-talent",
+    "newSlug": "teilur-talent",
+    "mergedInto": false
+  },
+  {
+    "sourceKey": "sf:bartonpartnership",
+    "from": "The Barton Partnership | B Corp™",
+    "to": "The Barton Partnership",
+    "oldSlug": "barton-partnership-b",
+    "newSlug": "barton-partnership",
+    "mergedInto": true
+  }
+]
