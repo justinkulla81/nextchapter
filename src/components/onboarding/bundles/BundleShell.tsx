@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Meter } from '@/components/candidate/ui'
 import { BUNDLES, bundlePosition, type BundleId } from '@/lib/onboarding/bundles'
+import { StepViewed } from '@/components/onboarding/StepViewed'
 
 // Every bundle opens the same way: where you are in the five short steps, one serif headline, and why we ask,
 // before the first question. Nothing else sits above the questions.
@@ -9,6 +10,7 @@ export function BundleShell({ id, children, title }: { id: BundleId; children: R
   const { step, of } = bundlePosition(id)
   return (
     <div className="space-y-8">
+      <StepViewed step={id} />
       <div className="space-y-2">
         <p className="text-sm font-semibold text-ink">
           Step {step} of {of} · about {meta.seconds < 60 ? `${meta.seconds} seconds` : `${Math.round(meta.seconds / 60)} minute`}

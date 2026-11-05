@@ -70,8 +70,16 @@ export interface SourceRow {
   registered: number
 }
 
+export interface FirstQuestion {
+  /** Distinct human networks that opened the first question (/onboarding/desire). */
+  viewers: number
+  /** Of those, how many arrived with no referrer (typed, an app link, an email, or a link that hides where it came from). */
+  noReferrer: number
+}
+
 export interface LeadPathsData {
   days: number
+  firstQuestion: FirstQuestion
   starters: Starter[]
   stops: StopRow[]
   startersTruncated: boolean
@@ -241,8 +249,19 @@ async function loadGivers(days: number): Promise<{ givers: EmailGiver[]; fallOff
   return { givers, fallOff, bySource: [...by.values()].sort((a, b) => b.captured - a.captured) }
 }
 
+/** How many visitors reached the first question, for the line "X saw it, Y answered". Human traffic only, by network. */
+async function loadFirstQuestion(since: Date): Promise<FirstQuestion> {
+  const rows = await prisma.$queryRaw<{ viewers: bigint; no_ref: bigint }[]>(Prisma.sql`
+    SELECT COUNT(DISTINCT "ip") AS viewers,
+           COUNT(DISTINCT "ip") FILTER (WHERE "referrer" IS NULL OR "referrer" = '') AS no_ref
+    FROM "HomepageVisitEvent"
+    WHERE "eventType" = 'PAGE_VIEW' AND "path" LIKE '/onboarding/desire%' AND "createdAt" >= ${since}
+      AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns}))`)
+  return { viewers: Number(rows[0]?.viewers ?? 0), noReferrer: Number(rows[0]?.no_ref ?? 0) }
+}
+
 export async function computeLeadPaths(days: number): Promise<LeadPathsData> {
   const since = new Date(Date.now() - days * DAY_MS)
-  const [{ starters, truncated }, giverData] = await Promise.all([loadStarters(since), loadGivers(days)])
-  return { days, starters, stops: stopRows(starters), startersTruncated: truncated, ...giverData }
+  const [{ starters, truncated }, giverData, firstQuestion] = await Promise.all([loadStarters(since), loadGivers(days), loadFirstQuestion(since)])
+  return { days, firstQuestion, starters, stops: stopRows(starters), startersTruncated: truncated, ...giverData }
 }

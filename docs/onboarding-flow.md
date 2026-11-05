@@ -3,6 +3,7 @@
 The owner has decided this order. Do not design against another order or re-add the old steps. Built behind `ONBOARDING_BUNDLES=on` (branch `claude/onboarding-google-account-step`).
 
 1. Questions, with "Where you are" (journey) first.
+   **Save for later (owner approved 2026-11-05):** under the first question, a quiet text-weight form, "Not ready now? Email me a link to finish later" (`SaveForLater`, `src/app/onboarding/save-for-later-actions.ts`). It is not a second primary action: Continue stays the only one. It stores the email on the profile (the details step pre-fills it), files the visitor as a lead, and the "pick up where you left off" email goes within about 30 minutes. It does not change the order of the steps.
 2. Résumé. Never required (owner decision, 2026-10-29): anyone may skip it, Market Reality arrivals and unemployed journeys included, but the upload is the main action and skipping is a small link under it. Skippers go to the details step (`/onboarding/details`: first name, last name, email, LinkedIn optional) and are prompted on Home to "Upload your résumé to get your Market Reality". The same details step runs when a résumé is read but held no name or email. No account can be created without a name and an email (`needsContactDetails`, `src/lib/onboarding/details.ts`), and a registered member with no name on file is asked once on the dashboard.
    The upload returns as soon as the file is stored (`startResumeUpload`); reading it, the profile fill and the analysis run afterwards (`src/lib/resume/background-parse.ts`) while the page shows progress. State lives in `journeyDetails.resumeParse`; a Resume row counts as a résumé only once reading has finished. Failure shows "Try again" / "Upload a different file".
 3. Aiming, level and function (asked directly if there is no résumé).
@@ -13,3 +14,7 @@ The owner has decided this order. Do not design against another order or re-add 
 8. Welcome.
 
 While Google connect is on, people with no personal Gmail leave their email on a waitlist, and connecting is limited to testers until Google approves the app. Setup: `docs/SETUP.md`.
+
+## Pick-up emails (people who started and left an email)
+
+`src/lib/onboarding/abandoned-start.ts` (rules, pure) and `abandoned-run.ts` (the pass), run by the `lead-lifecycle` cron every few minutes. Two emails: two hours after the last activity (at once after "Email me the link"), then three days after the first; a step past its window is skipped; two days between any two emails from us. Skips anyone registered, unsubscribed, suppressed, opted out, or who finished the old assessment (the `registration-reminders` cron covers them). The button is a magic link to their place. **Off until `ABANDONED_START_EMAILS=1`**; off, the cron response shows `abandonedStarts` counts only. PostHog: `onboarding_pickup_email_sent`, `nudge_email_clicked` (all nudge emails, by `kind` and `step`), `onboarding_save_for_later`, `onboarding_step_viewed` (every step, with source), `onboarding_bundle_completed` (answered).

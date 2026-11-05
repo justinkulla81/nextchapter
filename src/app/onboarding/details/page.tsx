@@ -1,5 +1,6 @@
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { DetailsForm } from '@/components/onboarding/DetailsForm'
+import { StepViewed } from '@/components/onboarding/StepViewed'
 import { prisma } from '@/lib/prisma'
 import { entryOf } from '@/lib/onboarding/resume-rule'
 import { cookies } from 'next/headers'
@@ -16,6 +17,7 @@ export default async function OnboardingDetailsPage() {
 
   return (
     <div className="space-y-8">
+      <StepViewed step="details" />
       <div className="space-y-3">
         <h1 className="font-display text-4xl leading-tight font-semibold tracking-tight text-balance text-ink">
           {hasResume ? 'We could not find everything on your résumé.' : 'Tell us who this is for.'}

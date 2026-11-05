@@ -89,7 +89,7 @@ export default async function LeadPathsPage({ searchParams }: { searchParams: Pr
             <p className="text-xs uppercase tracking-widest text-muted-foreground">Started the registration path</p>
             <p className="mt-1 text-2xl font-semibold tabular-nums">{starters.length.toLocaleString('en-US')}</p>
             <p className="text-sm text-muted-foreground">
-              {startersRegistered} registered ({pct(startersRegistered, starters.length)}), {startersWithEmail} left an email
+              {data.firstQuestion.viewers.toLocaleString('en-US')} visitors opened the first question and {starters.length} answered it ({pct(starters.length, data.firstQuestion.viewers)}); {data.firstQuestion.noReferrer.toLocaleString('en-US')} of those arrived with no referrer. {startersRegistered} registered ({pct(startersRegistered, starters.length)}), {startersWithEmail} left an email
               {biggestLeak && (
                 <>
                   . Most stop at <PageLink path={biggestLeak.stop.path} /> ({biggestLeak.stoppedHere}).

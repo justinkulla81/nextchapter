@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
+import { StepViewed } from '@/components/onboarding/StepViewed'
 import { CreateAccountForm } from '@/components/onboarding/CreateAccountForm'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
@@ -58,6 +59,7 @@ export default async function CreateAccountPage() {
 
   return (
     <div className="space-y-6">
+      <StepViewed step="create_account" />
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{bundles ? 'Last step: create your account.' : 'Your report is ready.'}</h1>
         <p className="mt-1 text-muted-foreground">
