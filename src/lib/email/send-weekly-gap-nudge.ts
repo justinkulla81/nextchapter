@@ -2,6 +2,8 @@ import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import WeeklyGapNudgeEmail from '@/emails/weekly-gap-nudge'
+import { marginNoteFor } from '@/lib/email/margin-note'
+import { nudgeNoteText } from '@/lib/email/margin-note-text'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
 import { getEngagementLead } from '@/lib/journey/engagement-data'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -45,6 +47,7 @@ export async function sendWeeklyGapNudgeEmail(
       appUrl,
       weeklyPoints,
       weeklyPointsTarget,
+      marginNote: marginNoteFor(appUrl, nudgeNoteText(pointsToGo, weeklyPointsTarget)),
       dashboardUrl,
       unsubscribeUrl,
     }),

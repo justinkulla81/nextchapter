@@ -12,6 +12,8 @@ import { buildEmailClickUrl } from '@/lib/email/click-link'
 import type { WeeklyGap } from '@/lib/email/weekly-gap'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import MidweekCheckinEmail from '@/emails/midweek-checkin'
+import { marginNoteFor } from '@/lib/email/margin-note'
+import { checkinNoteText } from '@/lib/email/margin-note-text'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 interface Strength {
@@ -93,6 +95,7 @@ export async function sendMidweekCheckin(candidateId: string, introCopy?: string
         bullets: insights?.bullets ?? null,
         weeklyRecap,
         gap,
+        marginNote: gap && !isReset ? marginNoteFor(appUrl, checkinNoteText(gap.weeklyPoints, gap.weeklyPointsTarget)) : null,
         dashboardUrl: buildEmailClickUrl(appUrl, candidate.id, 'MIDWEEK_CHECKIN', `${appUrl}/dashboard`),
         appUrl,
         unsubscribeUrl,

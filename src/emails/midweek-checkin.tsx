@@ -1,4 +1,4 @@
-import { Button, Card, CardEmail, CardGap, Headline, INK, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
+import { Body, Button, Card, CardEmail, CardGap, HandNote, Headline, INK, Masthead, MUTED, PointsBox, Signoff, Squiggle } from '@/lib/email/card-layout'
 
 interface WeeklyRecap {
   pointsEarned: number
@@ -15,6 +15,8 @@ interface MidweekCheckinEmailProps {
   bullets: string[] | null
   weeklyRecap: WeeklyRecap | null
   gap?: { weeklyPoints: number; weeklyPointsTarget: number; pointsToGo: number } | null
+  /** The handwritten aside under the points box. Left out when null. */
+  marginNote?: { src: string | null; text: string } | null
   dashboardUrl?: string
   appUrl: string
   unsubscribeUrl: string
@@ -43,6 +45,7 @@ export default function MidweekCheckinEmail({
   bullets,
   weeklyRecap,
   gap = null,
+  marginNote = null,
   dashboardUrl,
   appUrl,
   unsubscribeUrl,
@@ -61,26 +64,29 @@ export default function MidweekCheckinEmail({
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
-        <Headline>Hi {firstName || 'there'} — {victoriaName} here. Midweek check-in:</Headline>
+      <Card pad="28px 32px 36px">
+        <Masthead right="Midweek check-in" />
+        <Headline>Hi {firstName || 'there'}, {victoriaName} here.</Headline>
+        <Squiggle />
+        {gap && <PointsBox value={`${gap.weeklyPoints} of ${gap.weeklyPointsTarget}`} caption={`points toward an A this week, ${gap.pointsToGo} to go`} />}
+        {marginNote && <HandNote src={marginNote.src} text={marginNote.text} />}
 
-        {introCopy && <Lead>{introCopy}</Lead>}
+        {introCopy && <Body>{introCopy}</Body>}
 
       {isReset ? (
         <>
-          <Lead>
+          <Body>
             I noticed you haven&apos;t checked in for a few days. A job search is hard, and it only
             works with steady effort — but you don&apos;t have to do it alone. We&apos;re here to help.
             You just need to get started.
-          </Lead>
-          <Lead>{resetTask ? 'Today, just do this:' : 'Today, pick one small thing and do it.'}</Lead>
+          </Body>
+          <Body>{resetTask ? 'Today, just do this:' : 'Today, pick one small thing and do it.'}</Body>
           {resetTask && (
             <div style={{ textAlign: 'left' }}>
               <p style={taskBox}>{resetTask}</p>
             </div>
           )}
-          <Lead>Five minutes, then you&apos;re back in motion. I&apos;ll be here.</Lead>
+          <Body>Five minutes, then you&apos;re back in motion. I&apos;ll be here.</Body>
         </>
       ) : bullets ? (
         <div style={{ textAlign: 'left' }}>
@@ -93,17 +99,12 @@ export default function MidweekCheckinEmail({
           </ul>
         </div>
       ) : (
-        <Lead>Check your dashboard for today&apos;s plan.</Lead>
+        <Body>Check your dashboard for today&apos;s plan.</Body>
       )}
 
         <Button campaign="weekly_checkin" href={dashboardUrl ?? `${appUrl}/dashboard`}>{isReset && resetTask ? 'Start this now' : 'Open my dashboard'}</Button>
 
-        {gap && (
-          <p style={{ margin: '24px 0 0', fontSize: '16px', fontWeight: 600, color: INK }}>
-            You&apos;re at {gap.weeklyPoints} of {gap.weeklyPointsTarget} points — {gap.pointsToGo} to go to lock in an A this week.
-          </p>
-        )}
-        <Signoff name={victoriaName} align="center" />
+        <Signoff name={victoriaName} />
       </Card>
 
       {weeklyRecap && (

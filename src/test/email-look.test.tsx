@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { render } from '@react-email/render'
 import MidweekCheckinEmail from '@/emails/midweek-checkin'
 import NewsletterWeeklyEmail from '@/emails/newsletter-weekly'
+import WeeklyGapNudgeEmail from '@/emails/weekly-gap-nudge'
+import { checkinNoteText, nudgeNoteText } from '@/lib/email/margin-note-text'
 
 // The shared card look: paper card, bookmark mark, and Victoria's handwritten sign-off.
 describe('email look', () => {
@@ -29,5 +31,27 @@ describe('email look', () => {
     expect(withNote).toContain('alt="biggest cut: Acme"')
     const without = await render(<NewsletterWeeklyEmail {...base} marginNote={{ src: null, text: 'biggest cut: Acme' }} />)
     expect(without).not.toContain('biggest cut')
+  })
+
+  it('puts the points in a box with a handwritten aside on the check-in and the nudge', async () => {
+    const note = { src: 'https://x.test/hw.png', text: 'past the halfway mark' }
+    const mid = await render(
+      <MidweekCheckinEmail firstName="Sam" victoriaName="Vic" introCopy={null} isReset={false} bullets={['One thing']} weeklyRecap={null} gap={{ weeklyPoints: 32, weeklyPointsTarget: 50, pointsToGo: 18 }} marginNote={note} appUrl="https://x.test" unsubscribeUrl="https://x.test/u" />,
+    )
+    expect(mid).toContain('32 of 50')
+    expect(mid).toContain('alt="past the halfway mark"')
+    expect(mid).toContain('Midweek check-in')
+    const nudge = await render(<WeeklyGapNudgeEmail firstName="Sam" weeklyPoints={32} weeklyPointsTarget={50} dashboardUrl="https://x.test/d" unsubscribeUrl="https://x.test/u" marginNote={note} />)
+    expect(nudge).toContain('points from an A this week')
+    expect(nudge).toContain('alt="past the halfway mark"')
+    expect(nudge).toContain('/email/signature-victoria.png')
+  })
+
+  it('writes margin notes that only read the numbers', () => {
+    expect(checkinNoteText(32, 50)).toBe('past the halfway mark')
+    expect(checkinNoteText(50, 50)).toBe('you hit the mark this week')
+    expect(checkinNoteText(0, 50)).toBe('one small thing is enough')
+    expect(nudgeNoteText(5, 50)).toBe('a small gap, easy to close')
+    expect(nudgeNoteText(0, 50)).toBe('nothing left to close')
   })
 })
