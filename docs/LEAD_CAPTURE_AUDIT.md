@@ -80,3 +80,5 @@ The organization box (workforce boards, rapid response, colleges, search firms, 
 - **Most organization pages:** "Hard to reach experienced job seekers where they already look?" / "Get your own page and your own numbers on NextChapter. A short call shows how."
 - **Rapid response and the WARN tools:** "A layoff is coming and the people affected have nowhere to start?" / "Send them one link to a job search plan, local jobs and career support. A short call shows how."
 - The button stays "Talk to us": organization plans are sold by contract. No placement-rate, speed or price wording (`docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md`).
+
+Directory pages (workforce boards, job centers, economic development; `OrgPageView`): the organization box now opens the page and the job seeker band (the page's second ask, for a different audience) is gone. The "independent page, not run by or affiliated with" line and the connected-people count stay as a note under the box. The box was at 4,661px on a workforce board page before.
