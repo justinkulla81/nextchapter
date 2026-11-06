@@ -26,6 +26,7 @@ import { computeRejectionTrends } from '@/lib/network/rejection-trends'
 import { computeNamedReasons } from '@/lib/scoring/named-reasons'
 import { getNamedReasonActionLink } from '@/lib/scoring/named-reason-ids'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { estimateCallCostUsd } from '@/lib/ai-spend/price'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { BIGGEST_BARRIER_OPTIONS, TOP_STRENGTH_OPTIONS, TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
@@ -562,6 +563,7 @@ New data added since the previous report (credit these specifically, by name, on
 `.trim()
 
   let data: ReturnType<typeof marketRealityReportSchema.parse> | null | undefined
+  const modelStarted = Date.now()
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
@@ -577,6 +579,17 @@ New data added since the previous report (credit these specifically, by name, on
     })
     const message = await stream.finalMessage()
     data = message.parsed_output
+    // What this report cost: the figure behind "can it be cheaper", measured rather than guessed.
+    captureServerEvent(candidateId, 'model_call_cost', {
+      feature: 'market_reality_report',
+      model: 'claude-opus-5',
+      inputTokens: message.usage.input_tokens,
+      outputTokens: message.usage.output_tokens,
+      cacheReadTokens: message.usage.cache_read_input_tokens ?? 0,
+      costUsd: estimateCallCostUsd('claude-opus-5', message.usage),
+      durationMs: Date.now() - modelStarted,
+      stopReason: message.stop_reason,
+    })
   } catch (error) {
     console.error('Failed to generate market reality report for candidate', candidateId, error)
     return
