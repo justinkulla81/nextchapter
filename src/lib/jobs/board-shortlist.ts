@@ -25,7 +25,7 @@ import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisab
 import { decodeBoardPart, encodeBoardPart } from '@/lib/jobs/board-snapshot-codec'
 import { annualPayForSort, type BoardSort } from '@/lib/jobs/board-search'
 import { sectorKeep } from '@/lib/jobs/employer-sector'
-import { loadBreadthClassifier, type BreadthClassifier, type BreadthPlacement } from '@/lib/jobs/search-breadth-server'
+import { loadBreadthClassifier, loadJobSocs, type BreadthClassifier, type BreadthPlacement } from '@/lib/jobs/search-breadth-server'
 import { emailBreadthFor, type Breadth } from '@/lib/jobs/search-breadth'
 import {
   marketTierFor,
@@ -911,6 +911,16 @@ export async function loadMemberMarketRows(candidate: FitCandidate & StageMember
   return loadLightBoardRows(boardLevelWindowWhere(undefined, { window: window ?? memberStageWindow(candidate), includeMidLevel: true, includeEarlyCareer: true }))
 }
 type StageMemberLike = Parameters<typeof memberStageWindow>[0]
+
+/**
+ * Loads the shared board (every live job, early-career rungs included) and the job-occupation maps into this
+ * instance's memory, ahead of the first member who needs a count. Onboarding calls it while a résumé is uploaded and
+ * read, so the job count on the next steps does not pay for a cold load. Both loads are shared and deduplicated, so
+ * calling it again, or while a member's own request is loading them, costs nothing.
+ */
+export async function warmSharedBoard(): Promise<void> {
+  await Promise.all([loadSharedBoard(true), loadJobSocs()])
+}
 
 /** Jobs relevant on every criterion in their own industries (no fit needed): the member's market size for its tier. */
 export function countRelevant(rows: BoardRankRow[], place: (p: BoardRankRow) => BreadthPlacement | null): number {

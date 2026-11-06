@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { extractResumeText } from '@/lib/resume/extract-text'
 import { classifyResumeDocument } from '@/lib/resume/classify-resume'
 import { extractProfileFieldsFromResume, type ExtractionTiming } from '@/lib/resume/extract-profile-fields'
-import { runPostUploadAnalysis } from '@/lib/resume/post-upload-analysis'
+import { dispatchPostUploadAnalysis } from '@/lib/resume/post-analysis-dispatch'
 import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { flagIfDuplicateAccount } from '@/lib/onboarding/duplicate-check'
@@ -158,7 +158,7 @@ export async function runResumeParse(profileId: string, attempt: string): Promis
     // After the handover a failure in the slower sync no longer concerns the member; it is logged by the extraction.
 
     stage = 'post_analysis'
-    await runPostUploadAnalysis(profileId, resumeId, previousResume).catch((error) => {
+    await dispatchPostUploadAnalysis(profileId, resumeId, previousResume).catch((error) => {
       console.error('Post-upload résumé analysis failed:', error)
     })
   } catch (error) {

@@ -14,7 +14,7 @@ import { startStepTiming } from '@/lib/onboarding/step-timing'
 
 export default async function ConfirmPage() {
   const timing = startStepTiming('aiming')
-  const profile = await getCandidateProfileForUser()
+  const profile = await getCandidateProfileForUser({ registrationSync: false })
   timing.profileLoaded()
 
   if (!profile.resumeStepComplete) {

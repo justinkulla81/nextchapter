@@ -10,7 +10,7 @@ import { usableAnswers } from '@/lib/onboarding/bundles'
 
 // O5, "How we coach you". Only part of the short question bundles; the classic flow asks tone on the location screen.
 export default async function CoachBundlePage() {
-  const profile = await getCandidateProfileForUser()
+  const profile = await getCandidateProfileForUser({ registrationSync: false })
   // Registered members can still come back to change their tone (the personalization strip links here); saving
   // sends them on through the finish screen, which sends a registered member to their dashboard.
   if (flowOfProfile(profile) !== 'bundles') redirect('/onboarding')

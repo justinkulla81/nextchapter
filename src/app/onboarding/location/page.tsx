@@ -10,7 +10,7 @@ import { storedAnswers } from '@/lib/onboarding/answers'
 import { usableAnswers } from '@/lib/onboarding/bundles'
 
 export default async function LocationPage() {
-  const profile = await getCandidateProfileForUser()
+  const profile = await getCandidateProfileForUser({ registrationSync: false })
 
   if (!profile.onboardingResumeConfirmedAt) {
     redirect('/onboarding/confirm')
