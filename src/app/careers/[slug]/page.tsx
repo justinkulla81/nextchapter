@@ -7,6 +7,7 @@ import { RoleBadge } from '@/components/careers/RoleBadge'
 import { StructuredData } from '@/components/StructuredData'
 import { careerJobPostingJsonLd } from '@/lib/careers/job-posting-jsonld'
 import { CAREERS_LOCATION, CAREER_ROLES, KIND_EXPLAINER, getRole } from '@/lib/careers/roles'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export function generateStaticParams() {
   return CAREER_ROLES.map((r) => ({ slug: r.slug }))
@@ -64,6 +65,7 @@ export default async function CareerRolePage({ params }: { params: Promise<{ slu
           </span>
         </div>
         <h1 className="mt-3 text-balance text-4xl font-bold tracking-tight text-navy">{role.title}</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-2 text-sm text-muted-foreground">{KIND_EXPLAINER[role.kind]}</p>
         <p className="mt-5 text-lg text-muted-foreground">{role.summary}</p>
 

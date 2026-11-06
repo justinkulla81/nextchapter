@@ -5,6 +5,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getAlumniNetworks, getParallelPaths, getPastJobs } from '@/lib/job-reviews/data'
 import { JobReviewCard } from '@/components/job-reviews/JobReviewCard'
 import { ParallelPathsForm } from '@/components/job-reviews/ParallelPathsForm'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Past jobs and alumni' }
 
@@ -18,6 +19,7 @@ export default async function PastJobsPage() {
     <div className="space-y-10">
       <div className="space-y-2">
         <h1 className="font-serif text-3xl font-semibold tracking-tight text-navy">Past jobs and alumni</h1>
+        <Squiggle className="mt-2" />
         <p className="max-w-xl text-base text-muted-foreground">
           Tell us how you got each job and what it was like. Jobs and companies get better matched to you, and other members only ever see anonymous totals.
         </p>

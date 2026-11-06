@@ -4,6 +4,7 @@ import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { PersonalInformationView } from '@/components/dashboard/PersonalInformationView'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'My Personal Information' }
 
@@ -24,6 +25,7 @@ export default async function PersonalInformationPage() {
           ← My Profile
         </Link>
         <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">My personal information</h1>
+        <Squiggle className="mt-2" />
         <PageHeaderBoxes pageKey="profile" candidateId={profile.id} />
       </div>
       <PersonalInformationView profile={profile} email={user?.email ?? ''} />

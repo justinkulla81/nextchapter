@@ -58,6 +58,7 @@ import { EmailActivitySyncButton, EmailActivityForceResyncButton } from '@/compo
 import { CalendarActivitySyncButton } from '@/components/dashboard/CalendarActivityControls'
 import { disconnectGmail } from '@/app/dashboard/email-activity/actions'
 import { disconnectCalendar } from '@/app/dashboard/calendar-activity/actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Network with My Contacts' }
 
@@ -721,6 +722,7 @@ export default async function NetworkPage({
       <div className="space-y-6">
         <div className="space-y-3">
           <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">People you know</h1>
+          <Squiggle className="mt-2" />
           <PageHeaderBoxes pageKey="network" candidateId={profile.id} />
         </div>
         <div className="rounded-lg border border-border p-4 text-sm">

@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { NewDraftForm, DuplicateDraftForm, DeleteDraftForm } from '@/components/dashboard/resume-studio/DraftActions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Resume studio' }
 
@@ -25,6 +26,7 @@ export default async function ResumeStudioPage() {
     <div className="space-y-6">
       <div className="space-y-3">
         <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Resume studio</h1>
+        <Squiggle className="mt-2" />
         <p className="text-muted-foreground">
           Write and tailor your resume here, then download it as a PDF or Word file. Keep a draft for each kind of role you are going after. The layouts are built to be read by
           applicant tracking systems.

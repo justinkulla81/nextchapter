@@ -25,6 +25,7 @@ import { checkRequirements, parseRequirementFlags, requirementMemberOf } from '@
 import { JobRequirementDetails, JobRequirementLabels } from '@/components/dashboard/JobRequirementLabels'
 import { loadJobPageView } from '@/lib/jobs/job-page-view'
 import { FindJobDetail } from '@/components/dashboard/find/FindJobDetail'
+import { Squiggle } from '@/components/ui/squiggle'
 
 // A board job's own page — what a saved link, a My jobs row or an email opens. It
 // opens for past jobs too (read-only): a banner says when and why it closed, there
@@ -128,6 +129,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         </p>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">{posting.title}</h1>
+          <Squiggle className="mt-2" />
           <span
             className={cn(
               'rounded-full px-2 py-0.5 text-xs font-medium',

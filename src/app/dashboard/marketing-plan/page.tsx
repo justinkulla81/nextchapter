@@ -23,6 +23,7 @@ import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
 import { formatRelativeTime } from '@/lib/format-relative-time'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import type { HardQuestionAnswers } from '@/lib/narrative/hard-questions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'My Marketing Plan' }
 
@@ -46,6 +47,7 @@ export default async function MarketingPlanPage({
       <div className="space-y-6">
         <div>
           <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">My Marketing Plan</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-1 text-muted-foreground">
             You&apos;re the product right now — this is where you plan how you get in front of
             people. Post ideas grounded in your actual background — pick one, get a draft, edit it

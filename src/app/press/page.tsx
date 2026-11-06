@@ -15,6 +15,7 @@ import { pageMetadata } from '@/lib/seo/keywords'
 import { getLayoffCounts } from '@/lib/warn/layoff-counts'
 import { LAYOFF_DATA_LICENSE } from '@/lib/data/layoff-export'
 import { LTU_JAN_AUG, PRESS_CONTACT_EMAIL, PRESS_CORRECTIONS, PRESS_PAGE_REVIEWED, SINGLE_MONTH_CAUTION, citationText } from '@/lib/press/figures'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -78,6 +79,7 @@ export default async function PressPage() {
       <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-4xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">Press and data</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             What NextChapter publishes, what each figure means, how to cite it, and where to get the files. We build the numbers from public data and publish the code, so every figure can be checked.
           </p>

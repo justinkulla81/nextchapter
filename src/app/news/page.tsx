@@ -12,6 +12,7 @@ import { getNationalLaborData } from '@/lib/market/bls-national'
 import { StructuredData } from '@/components/StructuredData'
 import { FreshLinks } from '@/components/marketing/FreshLinks'
 import { PullTop } from '@/components/capture/PullCta'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const SITE = 'https://launchyournextchapter.com'
 
@@ -51,6 +52,7 @@ export default async function NewsPage() {
       <main className="flex-1 bg-off-white py-16">
         <div className="mx-auto max-w-6xl px-6">
           <h1 className="text-4xl font-bold tracking-tight text-navy">{pageH1('/news', 'News')}</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
             Articles, videos, podcasts and posts on the job market and searching for a job.
           </p>

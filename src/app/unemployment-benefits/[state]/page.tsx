@@ -27,6 +27,7 @@ import { FILING_GUIDE_UPDATED } from '@/lib/data/state-ui-appeals'
 import { StateFilingGuide, appealSentence, READY_LIST } from '@/components/benefits/StateFilingGuide'
 import { PullTop } from '@/components/capture/PullCta'
 import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
+import { Squiggle } from '@/components/ui/squiggle'
 
 // Facts are static; the daily refresh keeps the link to this state's layoff
 // page and its list of workforce boards current.
@@ -198,6 +199,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
           <span className="text-foreground">{name}</span>
         </nav>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{unemploymentStateSeo(name).h1}</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-4 text-lg leading-relaxed text-foreground">
           {lead(name, ui)}
           {severanceSentence(name, code) && ` ${severanceSentence(name, code)}`}

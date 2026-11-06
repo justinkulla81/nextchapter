@@ -13,6 +13,7 @@ import { signedPct } from '@/lib/pay/ai-premium'
 import { loadAiJobsIndex } from '@/lib/ai-index/load'
 import { INDEX_CSV_PATH, INDEX_LICENSE, INDEX_LICENSE_URL, INDEX_NAME, INDEX_PATH, MIN_OPENINGS_RANKED, indexCitation, indexJsonLd, type OccupationRow } from '@/lib/ai-index/build'
 import { formatContentDate } from '@/components/seo/AuthorByline'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const metadata: Metadata = pageMetadata(INDEX_PATH)
@@ -67,6 +68,7 @@ export default async function AiJobsIndexPage() {
             {index ? `${index.edition} edition · data as of ${formatContentDate(index.asOf)}` : 'Monthly index'}
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1(INDEX_PATH, `The ${INDEX_NAME}`)}</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             How much of each job AI already does, how many jobs are open in it today, and what AI skills add to advertised pay. Built from the {AI_EXPOSURE_SOURCE.name} and the live NextChapter job board.
           </p>

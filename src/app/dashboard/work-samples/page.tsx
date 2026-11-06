@@ -15,6 +15,7 @@ import { AiSampleReviewPanel } from '@/components/dashboard/AiSampleReviewPanel'
 import { isAiReviewOn } from '@/lib/evidence/ai-review-flag'
 import { loadSampleReviews } from '@/lib/evidence/ai-sample-review-server'
 import { MAX_REVIEWS_PER_SAMPLE_PER_WEEK } from '@/lib/evidence/ai-sample-review'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Work Samples' }
 
@@ -45,6 +46,7 @@ export default async function WorkSamplesPage() {
       <div className="space-y-8">
         <div className="space-y-3">
           <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Work Samples</h1>
+          <Squiggle className="mt-2" />
         </div>
         <WorkSampleTypeGateForm alreadyAwarded={!!profile.workSampleTypeBonusAt} />
         <Suspense fallback={null}>

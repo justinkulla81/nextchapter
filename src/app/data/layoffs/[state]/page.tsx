@@ -12,6 +12,7 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { titleMeta } from '@/lib/seo/title'
 import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 export const dynamicParams = true
@@ -66,6 +67,7 @@ export default async function LayoffDataPage({ params }: { params: Promise<{ sta
       <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-4xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{where} layoffs by month, {LAYOFF_YEAR}</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             {n(notices.length)} layoff notices so far in {LAYOFF_YEAR}{workers ? `, naming ${n(workers)} workers` : ''}, from {code ? `the ${where} labor department` : 'state labor departments'}. The chart below is free to put on your own site and stays current on its own.
           </p>

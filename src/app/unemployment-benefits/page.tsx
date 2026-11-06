@@ -14,6 +14,7 @@ import { journeyChoices } from '@/lib/leads/infer-journey'
 import { TREATMENT_LABEL, TREATMENT_SENTENCE, TREATMENT_VERB } from '@/lib/severance/calc'
 import { groupByTreatment } from '@/lib/severance/state-groups'
 import { PullTop } from '@/components/capture/PullCta'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const DESCRIPTION =
   'Unemployment benefits in every state and DC: the maximum and minimum weekly benefit, how many weeks, the waiting week, how severance counts, and where to file. From official Department of Labor and state sources.'
@@ -49,6 +50,7 @@ export default function UnemploymentBenefitsHub() {
       <PublicSiteHeader />
       <main className="mx-auto w-full max-w-5xl px-6 py-14">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">Unemployment benefits by state</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-4 max-w-3xl text-lg leading-relaxed text-foreground">
           How much unemployment pays, for how long, and how to file, in every state and DC. Choose a state for how severance
           and pay in lieu of notice count, the work-search rules, and local job centers.

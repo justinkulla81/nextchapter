@@ -10,6 +10,7 @@ import { SITE_URL, reportsNewestFirst, latestReport, reportPath } from '@/lib/re
 import { wcIndexSummary, monthLabel } from '@/lib/reports-wc-index'
 import { LONGER_SEARCH_BODY, LONGER_SEARCH_FIGURES, LONGER_SEARCH_HEADLINE } from '@/lib/marketing/longer-search-message'
 import { PullTop } from '@/components/capture/PullCta'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const URL = `${SITE_URL}/reports`
 
@@ -48,6 +49,7 @@ export default function ReportsHubPage() {
 
       <main className="mx-auto w-full max-w-4xl px-6 py-8">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">NextChapter White Collar Employment Report</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">
           An independent, monthly read on the U.S. white-collar labor market — hiring and job changes, how long
           searches take, how often AI is actually cited, and what public programs are adding. Every figure comes from public data, with the methods and

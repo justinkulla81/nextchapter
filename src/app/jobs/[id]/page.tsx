@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils'
 import { ClaimSkills } from '@/components/skills/ClaimSkills'
 import { loadSkillsMarket } from '@/lib/skills/market-server'
 import { skillsForPosting } from '@/lib/skills/for-job'
+import { Squiggle } from '@/components/ui/squiggle'
 
 // A public, indexable page for one live job, with Google for Jobs structured data.
 // Which jobs get one: the allowlist in src/lib/jobs/public-job-page.ts. Every other id —
@@ -135,6 +136,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
         <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_21rem]">
           <article className="min-w-0">
             <h1 className="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{job.title}</h1>
+            <Squiggle className="mt-2" />
             <p className="mt-2 text-lg" style={brand ? { color: 'var(--org-1-text)' } : undefined}>{job.companyName}</p>
             {realBrand && <p className="mt-0.5 text-xs text-muted-foreground">Listing collected from {job.companyName}&apos;s career site. NextChapter is independent of {job.companyName}.</p>}
             <p className="mt-1 text-sm text-muted-foreground">

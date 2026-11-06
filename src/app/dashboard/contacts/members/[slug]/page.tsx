@@ -8,6 +8,7 @@ import { isMemberProfilePublic, getMemberDisplayIdentity, extractCandidateIdFrom
 import { selectDisplayedWorkHistory, sanitizeRoleTitle } from '@/lib/work-history/sanitize'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { Button } from '@/components/ui/button'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -77,6 +78,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
           {showPhoto && <AvatarDisplay name={displayName} url={candidate.profilePictureUrl} size={56} />}
           <div>
             <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">{displayName}</h1>
+            <Squiggle className="mt-2" />
             {location && (
               <p className="flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="size-3.5" aria-hidden />

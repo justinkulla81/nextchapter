@@ -4,6 +4,7 @@ import { getCurrentUser, getSessionAal } from '@/lib/supabase/get-current-user'
 import { isNcAdmin } from '@/lib/higher-ed/resolve'
 import { canSeeSystem, systemDashboard } from '@/lib/higher-ed/systems'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata = { title: 'System dashboard' }
 
@@ -35,6 +36,7 @@ export default async function SystemDashboardPage({ params }: { params: Promise<
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-10">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{d.name}</h1>
+        <Squiggle className="mt-2" />
         <p className="text-sm text-muted-foreground">
           {d.campuses.length} campuses · {d.totals.members.toLocaleString()} alumni on rosters · {pct(d.totals.participation)} joined. Last 12 months. Counts under five show as &lt;5.
         </p>
