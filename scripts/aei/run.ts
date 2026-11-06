@@ -5,6 +5,8 @@
 //   npm run aei:report -- [--asof 2026-10-31] [--exposure-file path.csv]
 //        [--microsoft-file ms.csv] [--openai-file oa.csv] [--no-crosscheck]
 //        [--postings-file postings.json]   (rows of {title, function, firstSeenAt, closedAt}; skips the database)
+//        [--counts-file counts.json]       (rows of {title, fn, seen_b, closed_b, n}: postings grouped by title and by the
+//                                           30-day window they fall in, which is all the exhibits use; skips the database)
 //
 // Reads CompanyJobOpening (read only). Writes only under data/aei/. See docs/AEI_SECTION.md
 // for how the section is worded and what it must not claim.
@@ -44,6 +46,16 @@ function csvOf(rows: Record<string, string | number | null>[]): string {
 }
 
 async function loadPostings(asOf: Date): Promise<PostingInput[]> {
+  const counts = arg('counts-file')
+  if (counts) {
+    const rows = JSON.parse(readFileSync(counts, 'utf8')) as { title: string; fn: string | null; seen_b: 'r' | 'p' | 'o'; closed_b: 'open' | 'r' | 'p' | 'x'; n: number }[]
+    const at = (days: number) => new Date(asOf.getTime() - days * 86_400_000)
+    const seen = { r: at(15), p: at(45), o: at(100) }
+    const closed = { open: null, r: at(10), p: at(40), x: at(60.5) }
+    const out: PostingInput[] = []
+    for (const r of rows) for (let i = 0; i < r.n; i++) out.push({ title: r.title, fn: r.fn, firstSeenAt: seen[r.seen_b], closedAt: closed[r.closed_b] })
+    return out
+  }
   const file = arg('postings-file')
   if (file) {
     const rows = JSON.parse(readFileSync(file, 'utf8')) as { title: string; function: string | null; firstSeenAt: string; closedAt: string | null }[]
@@ -143,4 +155,4 @@ async function main() {
   console.log(`Wrote ${outDir}`)
 }
 
-main().catch((e) => { console.error(e); process.exit(1) }).finally(async () => { if (!arg('postings-file')) await (await import('../../src/lib/prisma')).prisma.$disconnect() })
+main().catch((e) => { console.error(e); process.exit(1) }).finally(async () => { if (!arg('postings-file') && !arg('counts-file')) await (await import('../../src/lib/prisma')).prisma.$disconnect() })
