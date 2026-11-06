@@ -3,16 +3,20 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { InlineLoadingState, Spinner } from '@/components/ui/spinner'
+import { BUNDLE_ROUTE } from '@/lib/onboarding/bundles'
 
-const POLL_MS = 2000
+// One second: the status answer is cheap (a token check and one row), and the member is waiting on it.
+const POLL_MS = 1000
 
-// Shown while a just-uploaded résumé is being read in the background. It asks the server every couple of seconds
+// Shown while a just-uploaded résumé is being read in the background. It asks the server every second
 // and reloads the page once the reading has ended; the page then shows the next step, or what went wrong.
 // Leaving this page does not stop the reading: coming back shows this screen again or the finished result.
 export function ResumeParseProgress({ fileName }: { fileName: string }) {
   const router = useRouter()
 
   useEffect(() => {
+    // The next page after the résumé's "what you gained" screen is step 3; fetching its route now saves time later.
+    router.prefetch(BUNDLE_ROUTE.aiming)
     let stopped = false
     async function tick() {
       try {

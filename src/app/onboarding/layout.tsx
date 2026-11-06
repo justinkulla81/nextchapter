@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getCurrentUser } from '@/lib/supabase/get-current-user'
+import { getSessionIdentity } from '@/lib/supabase/get-current-user'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { OnboardingStepper } from '@/components/onboarding/OnboardingStepper'
@@ -27,7 +27,7 @@ export default async function OnboardingLayout({ children }: { children: React.R
   // session-less visitors to /onboarding/desire, which would self-loop.
   // A brand-new visitor simply has no profile yet; render the stepper with
   // nothing marked done rather than redirecting.
-  const user = await getCurrentUser()
+  const user = await getSessionIdentity()
 
   // An admin, hiring manager, recruiter, or coach landing anywhere under
   // /onboarding (e.g. a password-reset fallback redirect) should never

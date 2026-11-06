@@ -19,6 +19,38 @@ export const getCurrentUser = cache(async () => {
   return user
 })
 
+// Who the session belongs to, from the verified JWT claims rather than a round trip to Supabase's Auth server
+// (getCurrentUser above). The proxy (src/lib/supabase/middleware.ts) has already called getUser() for this request, so
+// the token is fresh; getClaims() checks its signature locally when the project signs with asymmetric keys, and
+// falls back to the same Auth call when it does not, so this is never less safe than getUser, only sometimes faster.
+// Carries only what onboarding's pages need: no identities, so a caller that needs those (the registration sync for a
+// member who is no longer anonymous) still uses getCurrentUser. Falls back to getCurrentUser if the claims cannot be
+// read, so an unreadable token never looks like "no session".
+export interface SessionIdentity {
+  id: string
+  email: string | null
+  isAnonymous: boolean
+}
+
+export const getSessionIdentity = cache(async (): Promise<SessionIdentity | null> => {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.getClaims()
+    const claims = data?.claims
+    if (!error && claims && typeof claims.sub === 'string') {
+      return {
+        id: claims.sub,
+        email: typeof claims.email === 'string' && claims.email !== '' ? claims.email : null,
+        isAnonymous: claims.is_anonymous === true,
+      }
+    }
+  } catch {
+    // Fall through to the full lookup.
+  }
+  const user = await getCurrentUser()
+  return user ? { id: user.id, email: user.email ?? null, isAnonymous: user.is_anonymous === true } : null
+})
+
 // The college/workforce org portal's own session (staff, member companies,
 // NextChapter admins), separate from the candidate one.
 export const getOrgUser = cache(async () => {

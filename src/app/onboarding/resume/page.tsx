@@ -19,6 +19,7 @@ import { entryOf } from '@/lib/onboarding/resume-rule'
 import { DETAILS_PATH, needsContactDetails } from '@/lib/onboarding/details'
 import { skipResume } from '@/app/onboarding/bundle-actions'
 import { SkipResumeButton } from '@/components/onboarding/bundles/SkipResumeButton'
+import { WarmJobBoard } from '@/components/onboarding/bundles/WarmJobBoard'
 import { ResumeParseProgress } from '@/components/onboarding/bundles/ResumeParseProgress'
 import { ResumeParseProblem } from '@/components/onboarding/bundles/ResumeParseProblem'
 import { readParseState } from '@/lib/resume/parse-state'
@@ -143,6 +144,7 @@ export default async function OnboardingResumePage() {
     const marketReality = entryOf(profile?.journeyDetails) !== null
     return (
       <BundleShell id="resume" title="Start with your résumé">
+        <WarmJobBoard />
         <ResumeUploadForm showNarrativePicker={false} resumeBookOptIn={profile?.resumeBookOptIn ?? true} background initialError={rejectedReason} />
         <PayoffPanel payoff={computePayoff('resume', {}, { journey: null, prefilled: [] })} />
         <form action={skipResume} className="space-y-1">
@@ -211,6 +213,7 @@ function ReadingFrame({ bundles, children }: { bundles: boolean; children: React
   if (bundles) {
     return (
       <BundleShell id="resume" title="Reading your résumé">
+        <WarmJobBoard />
         {children}
       </BundleShell>
     )
