@@ -7,6 +7,7 @@ import { getCandidateWeekNumber, getMondayOfWeek } from '@/lib/weekly/sprint'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { barHeights, bestWeekSentence, weeklyEffort } from '@/lib/redesign/effort-history'
 import { PageHeader } from '@/components/candidate/PageHeader'
+import { FocusNumber } from '@/components/candidate/FocusNumber'
 import { ActionLink } from '@/components/candidate/ActionLink'
 import { SeeAllLink } from '@/components/candidate/SeeAllLink'
 import { Section } from '@/components/candidate/ui'
@@ -75,11 +76,7 @@ export async function StatsRedesign({ profile }: { profile: CandidateProfile }) 
           <section aria-labelledby="effort" className="space-y-3 rounded-2xl border border-border p-6">
             <h2 id="effort" className="font-display text-xl font-semibold text-ink">Your effort</h2>
             <Tiles label="Your effort" items={[[`${totalMinutes.toLocaleString()}`, `minutes in ${weeks.length} ${weeks.length === 1 ? 'week' : 'weeks'}`], [`${applications}`, 'applications'], [`${conversations}`, 'conversations']]} />
-            {showPoints && (
-              <p className="text-sm text-muted-foreground">
-                This week: {engines.weeklyPoints} of {engines.weeklyPointsTarget} minutes toward your goal.
-              </p>
-            )}
+            {showPoints && <FocusNumber done={engines.weeklyPoints} target={engines.weeklyPointsTarget} />}
           </section>
           <section aria-labelledby="results" className="space-y-3 rounded-2xl border border-border p-6">
             <h2 id="results" className="font-display text-xl font-semibold text-ink">What came back</h2>
