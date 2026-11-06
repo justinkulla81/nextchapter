@@ -12,8 +12,8 @@ import { FOUNDER_LINE } from '@/lib/marketing/founder-line'
 // search, the AI coach, career exploration, fractional work. The images are the member screens with sample data. Kept out of the
 // index: it is reached by link, not by search.
 export const metadata: Metadata = {
-  title: 'Just got fired? Let us help | NextChapter',
-  description: 'A free AI coach that knows your whole search: jobs that fit you with the reason for each, a plan that changes when a search stalls, other roles you could do, and fractional work. Free.',
+  title: 'Laid off? Fired? Downsized? We can help you back faster | NextChapter',
+  description: 'Your free job transition account: an AI coach that knows your whole search, jobs that fit you with the reason for each, other roles you could do, and fractional work.',
   ...canonical('/after-a-layoff'),
   robots: { index: false, follow: true },
 }
@@ -58,11 +58,11 @@ const FEATURES: Feature[] = [
       'You choose how you are coached: pushed hard, casual or supported.',
       'A weekly check-in adjusts your plan. Your answer is never shown to employers or recruiters.',
     ],
-    src: '/marketing/after-layoff-coach-checkin.webp',
-    alt: 'The NextChapter weekly check-in shown in three coaching tones, pushed hard, casual and supported, each with how your answer changes your plan',
-    caption: 'The weekly check-in, in the coaching tone you choose.',
-    width: 1635,
-    height: 1080,
+    src: '/marketing/after-layoff-coach-stalled.webp',
+    alt: 'The NextChapter Home screen in week 4 of a search with 12 applications and no interviews, with the coach note “Widen your search by 150 jobs” and the reason',
+    caption: 'Your week: the plan changes as your search does.',
+    width: 1560,
+    height: 1185,
   },
   {
     id: 'explore',
@@ -98,12 +98,13 @@ const FEATURES: Feature[] = [
   },
 ]
 
+// The hero screen has no orange button on purpose: the only orange button in the hero is the sign-up.
 const HERO_SHOT = {
-  src: '/marketing/after-layoff-coach-stalled.webp',
-  alt: 'The NextChapter Home screen in week 4 of a search with 12 applications and no interviews, with the coach note “Widen your search by 150 jobs” and the reason',
-  caption: 'Your week: the plan changes as your search does.',
-  width: 1560,
-  height: 1185,
+  src: '/marketing/after-layoff-coach-checkin.webp',
+  alt: 'The NextChapter weekly check-in shown in three coaching tones, pushed hard, casual and supported, each with how your answer changes your plan',
+  caption: 'The weekly check-in, in the coaching tone you choose.',
+  width: 1635,
+  height: 1080,
 }
 
 const STEPS = [
@@ -122,7 +123,7 @@ const FAQ = [
 
 function Shot({ f, priority }: { f: Pick<Feature, 'src' | 'alt' | 'caption' | 'width' | 'height'>; priority?: boolean }) {
   return (
-    <figure>
+    <figure className="min-w-0">
       <div className="overflow-hidden rounded-xl border border-border bg-white shadow-lg">
         <Image src={f.src} alt={f.alt} width={f.width} height={f.height} sizes="(min-width: 1024px) 520px, 100vw" className="w-full" priority={priority} />
       </div>
@@ -144,16 +145,20 @@ export default function AfterALayoffPage() {
 
       <main>
         <section aria-labelledby="fired-heading" className="mx-auto grid max-w-6xl items-center gap-10 px-6 pt-10 pb-14 lg:grid-cols-[1fr_1.05fr] lg:pt-14">
-          <div>
-            <p className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Just got fired?</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Laid off? Fired? Downsized?</p>
             <h1 id="fired-heading" className="mt-3 font-display text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">
-              Let us help you land the right job, fast.
+              So were millions of others. We can help you back faster.
             </h1>
             <p className="mt-5 mb-7 max-w-xl text-lg text-muted-foreground">
-              A free AI coach that knows your whole search. Jobs that fit you, with the reason for each. A plan that changes when a search stalls. Other roles you could do, and fractional work while you look.
+              The BLS counts 15.58 million layoffs and discharges from January to September 2026. NextChapter is a free AI coach that knows your whole search: jobs that fit you with the reason for each, a plan that changes when a search stalls, other roles you could do, and fractional work while you look.
             </p>
-            <AfterLayoffForm />
-            <p className="mt-3 text-sm text-muted-foreground">Free for Members, always. No résumé. No account to start.</p>
+            <div className="rounded-3xl bg-navy p-5 text-white shadow-xl ring-1 ring-navy sm:p-6">
+              <p className="text-xl font-semibold tracking-tight">Your free job transition account</p>
+              <p className="mt-1 mb-4 text-sm text-white/85">Start with your email. We send your first-week plan, and you set up the rest when you are ready.</p>
+              <AfterLayoffForm />
+              <p className="mt-3 text-sm text-white/85">Free for Members, always. No résumé needed.</p>
+            </div>
           </div>
           <Shot f={HERO_SHOT} priority />
         </section>
@@ -171,7 +176,7 @@ export default function AfterALayoffPage() {
 
         <div className="mx-auto w-full max-w-6xl space-y-16 px-6 py-16">
           {FEATURES.map((f, i) => (
-            <section key={f.id} id={f.id} aria-labelledby={`${f.id}-title`} className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
+            <section key={f.id} id={f.id} aria-labelledby={`${f.id}-title`} className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14 [&>*]:min-w-0">
               <div className={i % 2 === 1 ? 'lg:order-2' : ''}>
                 <p className="text-sm font-semibold tracking-widest text-brand uppercase">{f.eyebrow}</p>
                 <h2 id={`${f.id}-title`} className="mt-2 font-display text-3xl leading-tight font-semibold text-balance text-ink">{f.title}</h2>
