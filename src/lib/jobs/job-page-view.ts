@@ -34,6 +34,7 @@ import { exposureFor } from '@/lib/skills/ai-exposure'
 import { loadSalaryContext } from '@/lib/market/salary-context'
 import { jobSalaryView } from '@/lib/market/salary-compare'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
+import { timed } from '@/lib/perf/timed'
 import { jobAiView } from '@/lib/jobs/job-ai-view'
 import type { FindJobDetailProps } from '@/components/dashboard/find/FindJobDetail'
 
@@ -52,29 +53,31 @@ export async function loadJobPageView(profile: Profile, posting: ExclusiveJobPos
       console.error(`Job page: ${what} unavailable:`, error)
       return null
     })
+  // Every step reports to PostHog (page_query_slow, route 'job_page') when it takes 300 ms or more, so a slow load names its step.
+  const step = <T,>(label: string, work: Promise<T>): Promise<T> => timed('job_page', label, profile.id, work)
   const memberKeywords = memberSkillKeywords(profile)
-  const [exposureMap, aiMarket] = await Promise.all([loadExposureMap(), soft(loadAiMarket(), 'AI market')])
+  const [exposureMap, aiMarket] = await Promise.all([step('exposureMap', loadExposureMap()), soft(step('aiMarket', loadAiMarket()), 'AI market')])
   const exposure = exposureFor(posting.socCode, exposureMap)
-  const salaryCtx = await soft(loadSalaryContext(profile), 'salary context')
+  const salaryCtx = await soft(step('salaryContext', loadSalaryContext(profile)), 'salary context')
   const salary = salaryCtx ? jobSalaryView(posting, salaryCtx.ctx, salaryCtx.catalog) : null
   const [bands, company, culturePrefs, workProfile, strengthKeysNow, area, tracked, watch, payHigh, benefits, openAtCompany, contactsMap, skillsFitFor] = await Promise.all([
-    posting.companyName ? resolveCompanySizeBands([posting.companyName]) : Promise.resolve([{ band: null }]),
-    posting.companyId ? prisma.company.findUnique({ where: { id: posting.companyId }, select: { id: true, sizeBand: true, ownershipType: true, canonicalNameNormalized: true } }) : Promise.resolve(null),
-    soft(getCulturePreferences(profile.id), 'culture preferences'),
-    soft(loadWorkProfile(profile.id), 'work profile'),
-    soft(loadStrengths(profile.id).then(strengthKeys), 'strengths'),
-    soft(localAreaForCandidate(profile.id), 'local area'),
-    prisma.trackedJob.findFirst({ where: { candidateId: profile.id, source: 'job_board', sourceId: posting.id }, include: { jobPosting: true } }),
-    posting.companyName ? prisma.companyWatchlistEntry.findFirst({ where: { candidateId: profile.id, companyNameNormalized: normalizeOrgName(posting.companyName) }, select: { id: true } }) : Promise.resolve(null),
-    soft(loadPayHighCompanies(), 'employer pay'),
-    soft(loadJobBenefits([posting.id]), 'benefits'),
-    posting.companyId ? prisma.exclusiveJobPosting.count({ where: { companyId: posting.companyId, status: 'approved' } }) : Promise.resolve(0),
-    soft(loadJobContacts([posting], profile.id), 'contacts'),
-    soft(loadSkillsFit(profile.id, memberKeywords), 'skills fit'),
+    posting.companyName ? step('companySizeBands', resolveCompanySizeBands([posting.companyName])) : Promise.resolve([{ band: null }]),
+    posting.companyId ? step('company', prisma.company.findUnique({ where: { id: posting.companyId }, select: { id: true, sizeBand: true, ownershipType: true, canonicalNameNormalized: true } })) : Promise.resolve(null),
+    soft(step('culturePreferences', getCulturePreferences(profile.id)), 'culture preferences'),
+    soft(step('workProfile', loadWorkProfile(profile.id)), 'work profile'),
+    soft(step('strengths', loadStrengths(profile.id).then(strengthKeys)), 'strengths'),
+    soft(step('localArea', localAreaForCandidate(profile.id)), 'local area'),
+    step('trackedJob', prisma.trackedJob.findFirst({ where: { candidateId: profile.id, source: 'job_board', sourceId: posting.id }, include: { jobPosting: true } })),
+    posting.companyName ? step('watchlist', prisma.companyWatchlistEntry.findFirst({ where: { candidateId: profile.id, companyNameNormalized: normalizeOrgName(posting.companyName) }, select: { id: true } })) : Promise.resolve(null),
+    soft(step('payHighCompanies', loadPayHighCompanies()), 'employer pay'),
+    soft(step('benefits', loadJobBenefits([posting.id])), 'benefits'),
+    posting.companyId ? step('openAtCompany', prisma.exclusiveJobPosting.count({ where: { companyId: posting.companyId, status: 'approved' } })) : Promise.resolve(0),
+    soft(step('contacts', loadJobContacts([posting], profile.id)), 'contacts'),
+    soft(step('skillsFit', loadSkillsFit(profile.id, memberKeywords)), 'skills fit'),
   ])
   const sizeBand = company?.sizeBand ?? bands[0]?.band ?? null
   const local = area ? { label: area.label, isLocal: (loc: string | null) => isLocationInArea(area, loc) } : null
-  const cultureProfiles = !confidential && posting.companyId ? await soft(getCultureProfiles([posting.companyId], profile.id), 'culture') : null
+  const cultureProfiles = !confidential && posting.companyId ? await soft(step('cultureProfiles', getCultureProfiles([posting.companyId], profile.id)), 'culture') : null
 
   const assessment = computeFitAssessment(profile, { ...posting, companySizeBand: sizeBand })
   const fitBucket = bucketFromAssessment(assessment)
@@ -114,9 +117,9 @@ export async function loadJobPageView(profile: Profile, posting: ExclusiveJobPos
   // Members who worked at this company (Plus Market Intelligence), the same gate as the company page.
   let insiders: { count: number; href: string } | undefined
   if (company && !confidential) {
-    const gated = await soft(Promise.all([hasTaggedEmployment(profile.id), getCandidateMarketIntelTier(profile.id)]).then(([tagged, tier]) => tagged && tierMeetsFeature(tier, 'insider_network')), 'insider gate')
+    const gated = await soft(step('insiderGate', Promise.all([hasTaggedEmployment(profile.id), getCandidateMarketIntelTier(profile.id)])).then(([tagged, tier]) => tagged && tierMeetsFeature(tier, 'insider_network')), 'insider gate')
     if (gated) {
-      const counts = await soft(countInsidersByCompany([company.id], profile.id), 'insiders')
+      const counts = await soft(step('insiders', countInsidersByCompany([company.id], profile.id)), 'insiders')
       const count = counts?.get(company.id) ?? 0
       if (count > 0) insiders = { count, href: `/dashboard/companies/${encodeURIComponent(company.canonicalNameNormalized)}#insiders` }
     }
@@ -140,7 +143,7 @@ export async function loadJobPageView(profile: Profile, posting: ExclusiveJobPos
     contacts,
     skillGap: gap,
     skillsFit: skillsFitFor?.(posting.title) ?? undefined,
-    jobSkills: skillsForPosting(posting.skills ?? [], await soft(loadSkillsMarket(), 'skills market')),
+    jobSkills: skillsForPosting(posting.skills ?? [], await soft(step('skillsMarket', loadSkillsMarket()), 'skills market')),
     match,
     explainGapsEnabled: isExplainGapsEnabled(),
     insiders,
