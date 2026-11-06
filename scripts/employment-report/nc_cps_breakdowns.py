@@ -65,14 +65,20 @@ def accumulate(acc, rows):
         if 22 <= age <= 27 and edu >= 43: keys.append("grads_22_27_ba")
         if 22 <= age <= 27 and edu == 39: keys.append("hs_22_27")
         if wc and age >= 50: keys.append("wc_50plus")
+        # Overlapping groups: college-educated (bachelor's+, any occupation) and knowledge workers
+        # (white-collar occupation AND bachelor's+). Not nested; a person can be in several.
+        if edu >= 43: keys.append("ba_plus")
+        if wc and edu >= 43: keys.append("knowledge_workers")
+        if wc and edu < 43: keys.append("wc_no_degree")
         if docc > 0: keys.append(f"occ_{docc}")
         if ind > 0: keys.append(f"ind_{ind}")
         if wc:
             keys += ["wc", age_bucket(age, True)]
             if ind > 0: keys.append(f"wc_ind_{ind}")
         for k in keys:
-            a = acc.setdefault(k, dict(lf=0.0, u=0.0, ltu=0.0, b1=0.0, b2=0.0, b3=0.0, ltusum=0.0, durs=[], n=0))
+            a = acc.setdefault(k, dict(lf=0.0, u=0.0, ltu=0.0, b1=0.0, b2=0.0, b3=0.0, ltusum=0.0, durs=[], n=0, emp=0.0))
             a["lf"] += w
+            if l <= 2: a["emp"] += w
             if un:
                 a["u"] += w; a["n"] += 1; a["durs"].append((dur, w))
                 if dur >= 27:
@@ -97,7 +103,7 @@ def summarize(acc, months):
         out[k] = dict(unemployment_rate=round(100*a["u"]/a["lf"], 2), ltu_share=round(100*a["ltu"]/a["u"], 1),
                       median_weeks=med, ltu_27_51=round(100*a["b1"]/ltu, 1), ltu_1_2yrs=round(100*a["b2"]/ltu, 1),
                       ltu_2yrs_plus=round(100*a["b3"]/ltu, 1), ltu_avg_weeks=round(a["ltusum"]/ltu, 1),
-                      ltu_thousands=round(a["ltu"]/months/1000), unemployed_respondents=a["n"],
+                      ltu_thousands=round(a["ltu"]/months/1000), employed_thousands=round(a["emp"]/months/1000), unemployed_respondents=a["n"],
                       reliable=a["n"] >= 100)
     return out
 
