@@ -1,0 +1,201 @@
+title,socCode,occupation,score,method
+#Machine Learning Engineer - Generative AI,15-2051,Data Scientists,1,alias
+ADMINISTRATIVE ASSISTANT II,43-6014,"Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",1,alias
+"AI Engineer, Model Training, Inference & Infra",15-1252,Software Developers,1,alias
+Accountant - Italian required (at least B2),13-2011,Accountants and Auditors,1,alternate
+"Accountant, Fiscal Department (Grants and Contracts Management)",13-2011,Accountants and Auditors,1,alternate
+Administrative Assistant (Commercial Construction Company),43-6014,"Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",1,alias
+Administrative Assistant - Investments,43-6014,"Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",1,alias
+Administrative Assistant 3,43-6014,"Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",1,alias
+Administrative Assistant – Full-Time (80 hours per pay period),43-6014,"Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",1,alias
+Archeologist (GS-11),19-3091,Anthropologists and Archeologists,1,alternate
+"Associate Attorney - Estate Planning, Estate Administration & Residential Real Estate",23-1011,Lawyers,1,alias
+Associate General Counsel - Privacy,23-1011,Lawyers,1,alias
+Attorney - Experienced to Expert Level (Maryland) (GG-15),23-1011,Lawyers,1,alias
+Audiologist (GS-12),29-1181,Audiologists,1,exact
+Brand Manager - Industry Thought Leadership,11-2021,Marketing Managers,1,alias
+"CEO I, USPI – Memorial Hermann Surgical Hospital Kingwood",11-1011,Chief Executives,1,alias
+Chief Executive Officer - Franchise,11-1011,Chief Executives,1,alias
+Chief Operating Officer - 2618,11-1021,General and Operations Managers,1,alias
+Civil Engineer - Professional Engineer (PE),17-2051,Civil Engineers,1,exact
+Civil Staff Engineer,17-2051,Civil Engineers,1,exact
+Construction Manager - Hyperscale,11-9021,Construction Managers,1,alias
+Construction Project Manager (New Homes),11-9021,Construction Managers,1,alias
+Construction Project Manager 4,11-9021,Construction Managers,1,alias
+Contract Recruiting Coordinator,13-1071,Human Resources Specialists,1,alias
+"Controller, Interim",11-3031,Financial Managers,1,alias
+Corporate Recruiter - Construction Industry,13-1071,Human Resources Specialists,1,alias
+Data Scientist (GS-14),15-2051,Data Scientists,1,alias
+Data Scientist I – Production Analytics,15-2051,Data Scientists,1,alias
+"Data Scientist, M-Powering Teacher Coaching",15-2051,Data Scientists,1,alias
+DevOps Engineer (Hybrid) - 26246,15-1252,Software Developers,1,alias
+"Development Manager, Southwest",11-3131,Training and Development Managers,1,alternate
+"Director of Engineering, HRIS Core Flows",11-9041,Architectural and Engineering Managers,1,alias
+Director of Sales - Sales and Marketing - Courtyard Little Rock,11-2022,Sales Managers,1,alias
+Economist II - AMZ27751.1,19-3011,Economists,1,exact
+Electrical Engineer - Cryomodule,17-2071,Electrical Engineers,1,exact
+Electrical Engineer / Principal Electrical Engineer - 20012,17-2071,Electrical Engineers,1,exact
+Electrical Engineer – Power Systems / Transmission & Interconnection,17-2071,Electrical Engineers,1,exact
+"Electrical Engineer; Schaumburg, IL",17-2071,Electrical Engineers,1,exact
+Engineering Manager - Network Health,11-9041,Architectural and Engineering Managers,1,alias
+"Engineering Manager, Agentic Internet & Data Insights",11-9041,Architectural and Engineering Managers,1,alias
+"Engineering Manager, Google Cloud AI/ML",11-9041,Architectural and Engineering Managers,1,alias
+"Engineering Manager, SAP S/4HANA",11-9041,Architectural and Engineering Managers,1,alias
+Entry-Level Civil Engineer - Water/Wastewater,17-2051,Civil Engineers,1,exact
+Executive Assistant (PT),43-6011,Executive Secretaries and Executive Administrative Assistants,1,alias
+Executive Assistant I - Finance,43-6011,Executive Secretaries and Executive Administrative Assistants,1,alias
+"Executive Assistant, P&T",43-6011,Executive Secretaries and Executive Administrative Assistants,1,alias
+Field Human Resources Manager - Penske Logistics (Transportation),11-3121,Human Resources Managers,0.75,fuzzy
+"Finance Manager, AMZL/RSR, AMZL/RSR OTR Cost",11-3031,Financial Managers,1,alias
+"Finance Manager, Prime Video Advertising",11-3031,Financial Managers,1,alias
+Financial Analyst - GASB,13-2051,Financial and Investment Analysts,1,alias
+Financial Analyst III (FP & A),13-2051,Financial and Investment Analysts,1,alias
+"Financial Analyst, Workforce Productivity",13-2051,Financial and Investment Analysts,1,alias
+General Manager - Biltmore Park TS,11-1021,General and Operations Managers,1,alias
+General Manager - PWM Airport,11-1021,General and Operations Managers,1,alias
+"General Manager V - WorldMark Bend, Seventh Mt.",11-1021,General and Operations Managers,1,alias
+"General Manager, UKI",11-1021,General and Operations Managers,1,alias
+"HR Business Partner - Supply Chain - Dubuque, IA",13-1071,Human Resources Specialists,1,alias
+HR Generalist / Payroll Specialist,13-1071,Human Resources Specialists,1,alias
+HUMAN RESOURCES SPECIALIST (GS-14),13-1071,Human Resources Specialists,1,exact
+"Human Resources Business Partner, Nights",13-1071,Human Resources Specialists,1,alias
+Human Resources Manager | Centennial Hills Rehab,11-3121,Human Resources Managers,1,alias
+Industrial Designer - Ditch Witch,27-1021,Commercial and Industrial Designers,1,alternate
+Interior Designer (Mid to Senior),27-1025,Interior Designers,1,exact
+"Junior Litigation Attorney, Coral Gables FL",23-1011,Lawyers,1,alias
+Lead Attorney - LAP (OSE/ISC #43130),23-1011,Lawyers,1,alias
+"Lead Financial Analyst, Digital FinOps",13-2051,Financial and Investment Analysts,1,alias
+Lead Security Engineer – Business Information Security Office (BISO),15-1212,Information Security Analysts,1,alias
+"Lead Software Engineer - Full Stack Java or Python, AWS, AI",15-1252,Software Developers,1,exact
+Lead Software Engineer – IBM z/OS - Connex Advantage Clearing and Settlement,15-1252,Software Developers,1,exact
+Legal Assistant (#52666),23-2011,Paralegals and Legal Assistants,1,alias
+"Litigation Attorney (In-Person, NY)",23-1011,Lawyers,1,alias
+Logistics Coordinator / Office Administrative,13-1081,Logisticians,1,alias
+Machine Learning Engineer 4 - Intelligent Foundations and Experiences (IFX),15-2051,Data Scientists,1,alias
+Management Analyst - Secret required,13-1111,Management Analysts,1,exact
+Marketing Manager - Programs,11-2021,Marketing Managers,1,exact
+"Marketing Manager, Travel",11-2021,Marketing Managers,1,exact
+Mechanical Engineer (Maple Ridge BC),17-2141,Mechanical Engineers,1,exact
+Mechanical Engineer - Structures & Mechanisms (Staff/L4) unpublished,17-2141,Mechanical Engineers,1,exact
+Mechanical Engineer – Senior Level – Dust Collection and Industrial HVAC Focus (Hybrid),17-2141,Mechanical Engineers,1,exact
+Mechanical Senior Engineer,17-2141,Mechanical Engineers,1,exact
+"Occupational Therapist, OT, Community Lead, Senior Living Visits",29-1122,Occupational Therapists,1,exact
+"Operations Manager - Flow Center - Riverside, California",11-1021,General and Operations Managers,1,alias
+Operations Manager / People Leader,11-1021,General and Operations Managers,1,alias
+"Operations Manager, Rail",11-1021,General and Operations Managers,1,alias
+Paralegal - International Trade,23-2011,Paralegals and Legal Assistants,1,alternate
+Payroll Specialist (Certified Payroll),43-3051,Payroll and Timekeeping Clerks,1,alias
+President - Catholic Memorial High School,11-1021,General and Operations Managers,1,alias
+"Principal DevOps Engineer, Continuous Delivery",15-1252,Software Developers,1,alias
+"Principal Marketing Manager, Lifecycle Marketing",11-2021,Marketing Managers,1,exact
+Principal Site Reliability Engineer (ADEM),15-1252,Software Developers,1,alias
+Principal Software Engineer - Embedded (Onsite),15-1252,Software Developers,1,exact
+"Principal Software Engineer, Agent Infrastructure",15-1252,Software Developers,1,exact
+Principal Staff Electrical Engineer - Radio Device Engineer,17-2071,Electrical Engineers,1,exact
+Product Designer - Native App,15-1255,Web and Digital Interface Designers,1,alias
+"Product Marketing Manager II, GTM Operations",11-2021,Marketing Managers,1,alias
+Public Relations and Communications Manager,11-2032,Public Relations Managers,0.75,fuzzy
+Recruiter / PDS Tech / Remote (US),13-1071,Human Resources Specialists,1,alias
+"Recruiter, Mission & Business Operations",13-1071,Human Resources Specialists,1,alias
+Regional Sales Manager - Construction - Chicago (Remote),11-2022,Sales Managers,1,alias
+Regional Sales Manager - West - Remote,11-2022,Sales Managers,1,alias
+"Regional Sales Manager, Provider Sales (Birmingham, Alabama)",11-2022,Sales Managers,1,alias
+Remote Electrical Engineer,17-2071,Electrical Engineers,1,exact
+SENIOR LANDSCAPE ARCHITECT (LANDSCAPE ARCHITECT III),17-1012,Landscape Architects,1,exact
+Sales Development & Training Manager,11-3131,Training and Development Managers,0.75,fuzzy
+"Sales Engineer, Denver",41-9031,Sales Engineers,1,exact
+Sales Manager - Colorado,11-2022,Sales Managers,1,alias
+"Sales Manager - Phoenix, AZ",11-2022,Sales Managers,1,alias
+"Sales Manager, Controls",11-2022,Sales Managers,1,alias
+"Security Engineer - Murfreesboro, TN",15-1212,Information Security Analysts,1,alias
+Senior AI Developer / Engineer,15-1252,Software Developers,1,alias
+Senior Accountant - Controller (français natif/bilingue),13-2011,Accountants and Auditors,1,alternate
+Senior Accountant – Manufacturing Accounting,13-2011,Accountants and Auditors,1,alternate
+Senior Administrative Assistant (Administrative Support Assistant III)- Card Partnerships,43-6014,"Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",1,alias
+"Senior Auditor, Global Audit and Risk Management",13-2011,Accountants and Auditors,1,alternate
+Senior Construction Manager (Maryland),11-9021,Construction Managers,1,alias
+"Senior Data Scientist (Remote, Continental United States)",15-2051,Data Scientists,1,alias
+"Senior Data Scientist, Digital Product Owner",15-2051,Data Scientists,1,alias
+"Senior Director Finance, FP&A - Shooters & ARPG",11-3031,Financial Managers,1,alias
+Senior Electrical Engineer - MC & I - Oil and Gas,17-2071,Electrical Engineers,1,exact
+"Senior Electrical Engineer, Radio Frequency (RF)",17-2071,Electrical Engineers,1,exact
+"Senior Engineering Manager, Machine Learning Platform",11-9041,Architectural and Engineering Managers,1,alias
+"Senior Finance Manager, Price Forecasting",11-3031,Financial Managers,1,alias
+"Senior Financial Analyst – Planning, Budgeting & Forecasting",13-2051,Financial and Investment Analysts,1,alias
+"Senior Financial Analyst, Primal Kitchen",13-2051,Financial and Investment Analysts,1,alias
+Senior Human Resources Manager,11-3121,Human Resources Managers,1,alias
+Senior Level Exhibit Designer,27-1027,Set and Exhibit Designers,1,alternate
+"Senior Machine Learning Engineer, Premium Discovery",15-2051,Data Scientists,1,alias
+Senior Mechanical Engineer (Design),17-2141,Mechanical Engineers,1,exact
+"Senior Mechanical Engineer, GRAISE (Grocery and In Store Experiences) Tech",17-2141,Mechanical Engineers,1,exact
+"Senior Paralegal, Contracting",23-2011,Paralegals and Legal Assistants,1,alternate
+Senior Product Designer - Ethena Pay,15-1255,Web and Digital Interface Designers,1,alias
+"Senior Product Marketing Manager, Clinical",11-2021,Marketing Managers,1,alias
+"Senior Recruiter, RPO",13-1071,Human Resources Specialists,1,alias
+"Senior Sales Manager, Industrial Services & Aftermarket",11-2022,Sales Managers,1,alias
+Senior Site Reliability Engineer (US Federal),15-1252,Software Developers,1,alias
+"Senior Software Engineer (Backend/Product focus, AIaaS)",15-1252,Software Developers,1,exact
+Senior Software Engineer (Ruby/Full-Stack) - Hybrid,15-1252,Software Developers,1,exact
+Senior Software Engineer - C#/.Net,15-1252,Software Developers,1,exact
+Senior Software Engineer - FedRamp,15-1252,Software Developers,1,exact
+"Senior Software Engineer - NET/C#, Angular and AWS",15-1252,Software Developers,1,exact
+Senior Software Engineer - TS/SCI FSP,15-1252,Software Developers,1,exact
+Senior Software Engineer – AI Evaluation / Coding Agents ($100-150/hr),15-1252,Software Developers,1,exact
+"Senior Software Engineer, AI Infrastructure Development Platform",15-1252,Software Developers,1,exact
+"Senior Software Engineer, Autonomous Revenue Operations",15-1252,Software Developers,1,exact
+"Senior Software Engineer, Cobalt",15-1252,Software Developers,1,exact
+"Senior Software Engineer, Elixir",15-1252,Software Developers,1,exact
+"Senior Software Engineer, HGB IT",15-1252,Software Developers,1,exact
+"Senior Software Engineer, Mobile (Repayment UX)",15-1252,Software Developers,1,exact
+"Senior Software Engineer, Riot Client - Publishing Platform",15-1252,Software Developers,1,exact
+Senior Software Engineer/ Principal Software Engineer - Copilot CLI,15-1252,Software Developers,1,exact
+Senior Staff Software Engineer 260421 5,15-1252,Software Developers,1,exact
+"Senior Systems Administrator, Classified IT",15-1244,Network and Computer Systems Administrators,1,alias
+"Senior Underwriter - Team Lead, Middle Market",13-2053,Insurance Underwriters,1,alias
+Senior/Staff Electrical Engineer - Long Range Platform,17-2071,Electrical Engineers,1,exact
+Site Reliability Engineer III - Machine Learning,15-1252,Software Developers,1,alias
+Software Developer Engineer 3/4,15-1252,Software Developers,1,fuzzy
+Software Engineer (G),15-1252,Software Developers,1,exact
+Software Engineer - AI Inference Engine,15-1252,Software Developers,1,exact
+"Software Engineer - Embedded Systems, Anesthesia Devices",15-1252,Software Developers,1,exact
+Software Engineer - Observability,15-1252,Software Developers,1,exact
+Software Engineer - Zero Trust Architecture 2,15-1252,Software Developers,1,exact
+"Software Engineer I, Perception (New Grad)",15-1252,Software Developers,1,exact
+Software Engineer II - Storage and File Systems,15-1252,Software Developers,1,exact
+Software Engineer III (Python/AuthE),15-1252,Software Developers,1,exact
+"Software Engineer III, Infrastructure, Google Cloud Data Management",15-1252,Software Developers,1,exact
+Software Engineer – Gap Year,15-1252,Software Developers,1,exact
+"Software Engineer, Agentic Pipeline Generation (Staff+)",15-1252,Software Developers,1,exact
+"Software Engineer, Components Test (Starshield)",15-1252,Software Developers,1,exact
+"Software Engineer, Enterprise AI Platform",15-1252,Software Developers,1,exact
+"Software Engineer, Identity & Access Management",15-1252,Software Developers,1,exact
+"Software Engineer, New Grad (2027)",15-1252,Software Developers,1,exact
+"Software Engineer, Scribe AI",15-1252,Software Developers,1,exact
+Software Engineer/Principal Software Engineer,15-1252,Software Developers,1,fuzzy
+"Sr Engineering Manager, Hardware – Display Products (Onsite)",11-9041,Architectural and Engineering Managers,1,alias
+"Sr Operations Manager, Repair",11-1021,General and Operations Managers,1,alias
+Sr Software Engineer I,15-1252,Software Developers,1,exact
+"Sr. Actuary (FSA), Pension Risk Transfer Pricing",15-2011,Actuaries,1,exact
+Sr. Electrical Engineer (Power Systems),17-2071,Electrical Engineers,1,exact
+"Sr. Financial Analyst, US Performance Marketing",13-2051,Financial and Investment Analysts,1,alias
+"Sr. Mechanical Engineer - CFD, Global Engineering Strategy",17-2141,Mechanical Engineers,1,exact
+"Sr. Product Marketing Manager, Prime Video Partner Experience",11-2021,Marketing Managers,1,alias
+Sr. Software Engineer - Agentic AI,15-1252,Software Developers,1,exact
+"Sr. Software Engineer, Platform",15-1252,Software Developers,1,exact
+Sr./Staff/Principal Software Engineer (Frontend/Fullstack),15-1252,Software Developers,1,exact
+Staff Accountant | Hybrid | St. Cloud,13-2011,Accountants and Auditors,1,alternate
+"Staff Data Scientist - Ads Measurement, Signals, Privacy",15-2051,Data Scientists,1,alias
+"Staff Financial Analyst - Sales, Global Business Solutions Group",13-2051,Financial and Investment Analysts,1,alias
+"Staff Mechanical Engineer, Advanced Product Development",17-2141,Mechanical Engineers,1,exact
+"Staff Security Engineer, Security Operations - Moveworks",15-1212,Information Security Analysts,1,alias
+Staff Software Engineer - Cloud Platform Products (Agentic Workloads) (Remote),15-1252,Software Developers,1,exact
+Staff Software Engineer - Spend Platform,15-1252,Software Developers,1,exact
+"Staff Software Engineer, Artificial Intelligence/LLM",15-1252,Software Developers,1,exact
+"Staff Software Engineer, DevOps",15-1252,Software Developers,1,exact
+"Staff Software Engineer, Inventory Management",15-1252,Software Developers,1,exact
+"Staff Software Engineer, Risk",15-1252,Software Developers,1,exact
+"Staff+ Software Engineer, Developer Experience",15-1252,Software Developers,1,exact
+System Administrator - MC2,15-1244,Network and Computer Systems Administrators,1,alias
+Talent Acquisition Partner - Contract,13-1071,Human Resources Specialists,1,alias
+"Technical Recruiter, Hardware - Air Dominance and Strike (Contract)",13-1071,Human Resources Specialists,1,alias
+UX designer,15-1255,Web and Digital Interface Designers,1,alias
