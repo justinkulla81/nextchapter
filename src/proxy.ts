@@ -106,7 +106,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   }
   if (!portalHost && !orgKindForHost(host) && host !== ADMIN_HOST) {
     // Main site: a signed-in member on a public job page or the public job search goes to the same thing in the portal (src/lib/jobs/portal-job-redirect.ts).
-    if (request.method === 'GET' || request.method === 'HEAD') {
+    if ((request.method === 'GET' || request.method === 'HEAD') && request.nextUrl.searchParams.get('stay') !== '1') {
       const { session, marker } = memberStatus(request.cookies.getAll())
       const inPortal = portalJobPath(pathname, session || marker, request.nextUrl.search)
       if (inPortal) {
