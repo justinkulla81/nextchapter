@@ -12,10 +12,10 @@ import { cn } from '@/lib/utils'
 
 const SITUATION = 'laid-off'
 
-// The link someone was given carries ?utm_source=<who>; it is saved on the lead as source "after-a-layoff:<who>".
+// Every link is the owner's own, so a lead with no tag is "after-a-layoff:justin". A link with ?utm_source=<who> keeps that tag instead.
 function sourceFrom(utm: string | null): string {
   const tag = (utm ?? '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 60)
-  return tag ? `after-a-layoff:${tag}` : 'after-a-layoff'
+  return `after-a-layoff:${tag || 'justin'}`
 }
 
 function Form() {
