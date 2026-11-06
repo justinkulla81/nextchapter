@@ -1,6 +1,7 @@
 import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { similarLiveJobs } from '@/lib/jobs/similar-live-jobs'
 import { getTitleDetail, type TitleJob } from '@/lib/seo/job-titles'
 import { baseTitle, titleSlug } from '@/lib/seo/job-title-rules'
 import { retryOnPoolTimeout } from '@/lib/db/heavy'
@@ -262,7 +263,7 @@ export function pickSimilarJobs(rows: SimilarJob[], limit: number): SimilarJob[]
 export async function getClosedJobContext(id: string): Promise<{ title: string; companyName: string; place: string | null; similar: SimilarJob[]; sameTitle: TitleJob[] } | null> {
   if (!/^[a-z0-9]{10,40}$/i.test(id)) return null
   try {
-    const row = await prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { title: true, companyName: true, disclosure: true, companyId: true, locationCity: true, locationState: true, location: true } })
+    const row = await prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { title: true, companyName: true, disclosure: true, companyId: true, locationCity: true, locationState: true, location: true, targetFunction: true, level: true } })
     if (!row) return null
     const confidential = row.disclosure !== 'OPEN'
     const [similar, detail] = await Promise.all([
@@ -275,9 +276,28 @@ export async function getClosedJobContext(id: string): Promise<{ title: string; 
       companyName: confidential ? '' : cleanCompanyText(row.companyName),
       place: row.locationCity && row.locationState ? `${row.locationCity}, ${row.locationState}` : row.location || row.locationState,
       similar,
-      sameTitle: (detail?.jobs ?? []).filter((j) => j.id !== id).slice(0, 8),
+      sameTitle: await sameTitleOrLikeIt((detail?.jobs ?? []).filter((j) => j.id !== id).slice(0, 8), { id, targetFunction: row.targetFunction, level: row.level, locationState: row.locationState }),
     }
   } catch {
     return null
+  }
+}
+
+/**
+ * The same title's open jobs when its page has any; otherwise (a rare title) open jobs in the same function and level, near the job's state first
+ * (similar-live-jobs.ts), kept to ones that have a public page so a link never lands on another dead one. A failed or slow read gives none.
+ */
+async function sameTitleOrLikeIt(sameTitle: TitleJob[], job: { id: string; targetFunction: string | null; level: string | null; locationState: string | null }): Promise<TitleJob[]> {
+  if (sameTitle.length > 0) return sameTitle
+  try {
+    const like = await Promise.race([similarLiveJobs(job, 16), new Promise<never>((_, reject) => setTimeout(() => reject(new Error('similar jobs timed out')), 3_000))])
+    const rows = await publicJobRowsByIds(like.map((j) => j.id))
+    const keep = new Set(rows.map((r) => r.id))
+    return like
+      .filter((j) => keep.has(j.id))
+      .slice(0, 6)
+      .map((j) => ({ id: j.id, title: j.title, company: j.confidential ? 'Confidential employer' : j.companyName, location: j.location, postedAt: '', pay: null }))
+  } catch {
+    return []
   }
 }
