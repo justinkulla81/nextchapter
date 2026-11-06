@@ -4,9 +4,9 @@ Segment tag: `laid-off-recent` (see `src/lib/marketing/campaign-tag.ts`). Create
 
 ## Setup
 - Objective: **Traffic** (clicks), optimize for link clicks. Switch to Conversions once the Reddit pixel is installed and registrations are firing.
-- Budget: **$50/day**, 14 days (about $700). Bid: automatic.
+- Budget: **$50/day on weekdays**, 14 calendar days = 10 weekdays (about $500). Set the daily budget with the weekday schedule so weekends spend nothing. Bid: automatic.
 - Placement: Feed (and conversation placement off for the first test).
-- Locations: United States. Devices: all. Schedule: all day.
+- Locations: United States. Devices: all. Schedule: **weekdays only (Monday to Friday)**, all day; weekends off.
 - Pause rule: if after $200 spend CTR is below 0.2% or there are 0 registrations, pause and rewrite the copy.
 
 ## Targeting (communities, not interests)
