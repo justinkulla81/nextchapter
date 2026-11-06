@@ -31,9 +31,9 @@ function SectionBlock({ section }: { section: EmployerSection }) {
 export function EmployerOverview({ className }: { className?: string }) {
   return (
     <div className={className}>
-      <h2 className="text-2xl font-semibold text-neutral-900">One organization, three sections</h2>
+      <h2 className="text-2xl font-semibold text-neutral-900">Three stages, one for each situation</h2>
       <p className="mt-2 max-w-2xl text-neutral-700">
-        Each section follows your people through their time with you. Take one, or all three together. Different people on your team can run different sections.
+        Hiring is for the people you want to bring in, Employees for the people you have, and Outplacement for the people who are leaving. Take one, or all three together. Different people on your team can run different sections.
       </p>
       <ul className="mt-6 grid gap-4 md:grid-cols-3">
         {EMPLOYER_SECTIONS.map((section) => (
