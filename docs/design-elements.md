@@ -17,10 +17,12 @@ The email look (`docs/email-look.md`) is carried onto the site in small, shared 
 - Candidate Home: `HomeNote variant="paper"` (signed by Victoria, no Cue pill) and the squiggle.
 - Every candidate page built on `PageHeader`: the squiggle.
 - Effort and results: `FocusNumber` in place of the "This week" sentence.
+- Every public page built on `SeoPage` or `TopicShell`: the squiggle. `SeoPage` skips it when the heading panel takes an organization's colors (`brand`); `squiggle={false}` turns it off.
+- How it works and Pricing (own headline markup): squiggle, and the opening sentence in `ShortVersion`.
 
 ## Rules
 
 - The paper note stays on Home. The redesign brief allows one note per page and none on working pages.
-- Public pages keep one registration ask (the `NextStepBox`).
+- Public pages keep one registration ask (the `NextStepBox`). The paper note and signature stay off them.
 - The site's action color is `--action` (orange). Decoration near an action stays blue or pale.
 - Not yet live: the handwritten aside on Home. It needs the week's numbers above the note, which are computed further down the page.
