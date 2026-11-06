@@ -5,7 +5,7 @@ import { AfterLayoffForm } from '@/components/marketing/AfterLayoffForm'
 import { canonical } from '@/lib/seo/canonical'
 
 // The page the owner sends to people who were just let go. One headline, one email field; the link's ?utm_source=<who>
-// is saved on the lead (source "after-a-layoff:<who>"). Kept out of the index: it is reached by link, not by search.
+// is saved on the lead (source "after-a-layoff:<who>"; "after-a-layoff:justin" when the link has no tag). Kept out of the index: it is reached by link, not by search.
 export const metadata: Metadata = {
   title: 'Just got fired? Let us help | NextChapter',
   description: 'Leave your email and get a first-week plan that starts with the deadlines that cost people money. Free.',
