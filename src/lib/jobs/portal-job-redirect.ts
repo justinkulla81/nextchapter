@@ -13,7 +13,7 @@ const ENTRY_ROLE_PAGE = /^\/jobs\/entry-level\/([a-z0-9-]{3,80})(?:\/([a-z0-9-]{
 // Industry pages: every one redirects, to the board's industry filter (the same rules as the public page, segments/defs.ts), so a
 // member sees the page's own jobs ranked for them. A slug that is no industry stays on the public page. src/test/industry-filter.test.ts
 // keeps the list equal to the definitions.
-const INDUSTRY_PAGE = /^\/jobs\/industry\/([a-z0-9-]{3,60})(?:\/[a-z0-9-]{1,40})?\/?$/
+const INDUSTRY_PAGE = /^\/jobs\/industry\/([a-z0-9-]{2,60})(?:\/[a-z0-9-]{1,40})?\/?$/
 const TYPE_PAGE = /^\/jobs\/type\/([a-z-]{3,20})\/?$/
 // Job-type pages: remote and hybrid are the work arrangement; the rest are the work types the portal board offers
 // (work-type.ts: an interim job is a contract job there).
