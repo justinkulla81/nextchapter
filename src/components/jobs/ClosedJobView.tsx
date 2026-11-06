@@ -34,7 +34,7 @@ export function ClosedJobView({ jobId, title, companyName, place, similar, sameT
         </Link>
         {sameTitle.length > 0 && (
           <section aria-labelledby="closed-same-title" className="mt-10">
-            <h2 id="closed-same-title" className="font-display text-xl font-semibold">Open {role} jobs</h2>
+            <h2 id="closed-same-title" className="font-display text-xl font-semibold">Open jobs like this</h2>
             <ul className={list}>
               {sameTitle.map((j) => (
                 <li key={j.id}>
