@@ -70,6 +70,7 @@ import { pickHomeNote, simpleNote } from '@/lib/redesign/home-note'
 import { getUnviewedCoachUpdate } from '@/lib/coach/session-notes-service'
 import { withBlockerStep } from '@/lib/personalization/blocker-step'
 import { HomeNote } from '@/components/candidate/HomeNote'
+import { Squiggle } from '@/components/ui/squiggle'
 import { JourneyCard } from '@/components/candidate/JourneyCard'
 import { NeedsYou } from '@/components/candidate/NeedsYou'
 import { HomeFold } from '@/components/candidate/HomeFold'
@@ -477,10 +478,11 @@ export default async function DashboardPage() {
         <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink text-balance sm:text-4xl">
           {journeyNow ? getJourney(journeyNow).goal : <>NextChapter&apos;s goal is to get you a job. Let&apos;s go!</>}
         </h1>
+        <Squiggle className="mt-1" />
       </header>
 
       {plain ? (
-        <HomeNote kind={note} {...plain} />
+        <HomeNote kind={note} variant="paper" {...plain} />
       ) : (
         <>
           {note === 'connect_accounts' && (

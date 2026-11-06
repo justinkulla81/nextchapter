@@ -14,14 +14,13 @@ import { clearResumePrefillMarks } from '@/lib/resume/clear-prefill-marks'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { requireCandidateId } from '@/lib/onboarding/require-candidate'
 import { saveSituation } from '@/lib/onboarding/save-situation'
-import { coachWrites, matchOverrides, parsePlace, whereYouAreWrites } from '@/lib/onboarding/answers'
+import { coachWrites, parsePlace, whereYouAreWrites } from '@/lib/onboarding/answers'
 import { BUNDLE_ROUTE, journeyOfSituation, validateAnswers, type Answers, type BundleId, type QuestionId } from '@/lib/onboarding/bundles'
 import { progressPatch } from '@/lib/onboarding/progress'
 import { ENTRY_KEY, entryFromGoalParam, entryOf } from '@/lib/onboarding/resume-rule'
 import { DETAILS_PATH } from '@/lib/onboarding/details'
 import { NETWORK_COMFORT_VALUES } from '@/lib/onboarding/finish'
 import { loadScanStatus, type ScanStatus } from '@/lib/onboarding/scan-counts'
-import { computeMatchState } from '@/lib/personalization/match-compute'
 
 // The server side of the onboarding question bundles (docs/personalization-audit/bundles.md O1 to O5).
 // Each action reads its answers from the form by question id, checks them with the same pure rules the
@@ -223,22 +222,8 @@ export async function finishBundles(formData: FormData): Promise<void> {
   redirect(hasResume ? '/onboarding/score' : '/onboarding')
 }
 
-// The live "how many jobs fit" count under O3 and O4: today's jobs run against the profile with the answers
-// on screen, not saved yet. Null counts (no function yet, or matching failed) make the screen say so plainly.
-export async function previewMatches(bundle: 'aiming' | 'where', answers: Answers, withBaseline: boolean): Promise<{ baseline: number | null; now: number | null }> {
-  try {
-    const profile = await getCandidateProfileForUser()
-    const count = async (p: typeof profile) => (await computeMatchState(p))?.counts.matches ?? null
-    const [baseline, now] = await Promise.all([
-      withBaseline ? count(profile) : Promise.resolve(null),
-      count({ ...profile, ...matchOverrides(bundle, answers) } as typeof profile),
-    ])
-    return { baseline, now }
-  } catch (error) {
-    console.error('Onboarding job count failed:', error)
-    return { baseline: null, now: null }
-  }
-}
+// The live "how many jobs fit" count under O3 and O4 is /api/onboarding/match-preview (a route, so it never queues in
+// front of a Continue: server actions run one at a time per client).
 
 // The Google reveal, polled while the first scan runs.
 export async function pollScan(): Promise<ScanStatus> {

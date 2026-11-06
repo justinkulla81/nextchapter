@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import renamedFirms from "./src/lib/search-firms/renamed-firms.json";
+import { STATE_NAMES } from "./src/lib/workforce/places";
 
 // Same region as NEXT_PUBLIC_POSTHOG_HOST (e.g. https://us.i.posthog.com or
 // https://eu.i.posthog.com) — set once here since next.config.ts runs in
@@ -178,6 +179,12 @@ const nextConfig: NextConfig = {
         { source: `/${alias}`, destination: '/layoffs', permanent: true },
         { source: `/${alias}/:path+`, destination: '/layoffs/:path+', permanent: true },
       ]),
+      // A state named in front of "layoffs" (/georgia-layoffs, /florida-layoffs/) is a natural address people and search
+      // engines try; the page is /layoffs/<state>. Without this each one 404s and emails the owner.
+      ...Object.values(STATE_NAMES).map((name) => {
+        const slug = name.toLowerCase().replace(/[^a-z]+/g, '-')
+        return { source: `/${slug}-layoffs`, destination: `/layoffs/${slug}`, permanent: true }
+      }),
       // The year page by its other names (/job-cuts-2026, /layoffs-2026 -> /layoffs/2026). Add the next year when its page exists.
       ...['layoffs', 'layoff', 'job-cuts', 'downsizing', 'rifs', 'mass-layoffs'].map((alias) => ({
         source: `/${alias}-2026`,

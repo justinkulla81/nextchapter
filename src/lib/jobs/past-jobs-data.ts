@@ -35,10 +35,15 @@ const lifecycleSelect = {
 
 type LifecycleRow = Prisma.ExclusiveJobPostingGetPayload<{ select: typeof lifecycleSelect }>
 
-async function withPriorClosures(rows: LifecycleRow[], now: Date): Promise<Map<string, PostingLifecycle>> {
+// A single job page waits at most this long for the closed-postings count. On a cold server instance that count regroups every
+// closed posting (seconds); the page shows without the "reposted" line then, and the next view has it (the load keeps running).
+const SINGLE_PAGE_COUNT_WAIT_MS = 300
+
+async function withPriorClosures(rows: LifecycleRow[], now: Date, maxWaitMs?: number): Promise<Map<string, PostingLifecycle>> {
   let counts: Map<string, number> | null = null
   try {
-    counts = await getClosedPostingCounts()
+    const load = getClosedPostingCounts()
+    counts = maxWaitMs === undefined ? await load : await Promise.race([load, new Promise<null>((resolve) => setTimeout(() => resolve(null), maxWaitMs))])
   } catch (error) {
     console.error('past jobs: closed-posting counts unavailable', error)
   }
@@ -53,14 +58,14 @@ async function withPriorClosures(rows: LifecycleRow[], now: Date): Promise<Map<s
 }
 
 /** Lifecycle of each board posting (ExclusiveJobPosting ids); missing ids are left out. */
-export async function loadPostingLifecycles(ids: string[], now: Date = new Date()): Promise<Map<string, PostingLifecycle>> {
+export async function loadPostingLifecycles(ids: string[], now: Date = new Date(), maxWaitMs?: number): Promise<Map<string, PostingLifecycle>> {
   if (ids.length === 0) return new Map()
   const rows = await prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids.slice(0, 500) } }, select: lifecycleSelect })
-  return withPriorClosures(rows, now)
+  return withPriorClosures(rows, now, maxWaitMs)
 }
 
 export async function loadPostingLifecycle(id: string, now: Date = new Date()): Promise<PostingLifecycle | null> {
-  return (await loadPostingLifecycles([id], now)).get(id) ?? null
+  return (await loadPostingLifecycles([id], now, SINGLE_PAGE_COUNT_WAIT_MS)).get(id) ?? null
 }
 
 // ── "Include past jobs" search ──────────────────────────────────────────────

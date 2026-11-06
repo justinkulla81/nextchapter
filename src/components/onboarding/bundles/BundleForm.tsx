@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useMemo, useRef, useState } from 'react'
-import { previewMatches, type BundleFormState } from '@/app/onboarding/bundle-actions'
+import type { BundleFormState } from '@/app/onboarding/bundle-actions'
 import { usePostHog } from '@/lib/posthog/client'
 import type { JourneyType } from '@/lib/journey/journey'
 import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
@@ -67,17 +67,34 @@ export function BundleForm({
     return () => clearTimeout(timer)
   }, [bundle])
 
-  // The live job count. Debounced so typing does not hit the server on every key; a late reply for an older
-  // set of answers is dropped.
+  // The live job count, asked of /api/onboarding/match-preview (a route, so it never queues in front of Continue).
+  // Debounced so typing does not hit the server on every key; a late reply for an older set of answers is dropped,
+  // and a request still running is cancelled when the answers change, or the page closes.
+  // The page works without it: if the count never comes the payoff keeps its plain headline.
   const countKey = previewJobs ? JSON.stringify(answers) : ''
+  const inFlight = useRef<AbortController | null>(null)
   useEffect(() => {
     if (!previewJobs) return
     const ready = previewJobs === 'aiming' ? !!answers.function && !!answers.level : !!answers.workSetup
     if (!ready) return
     const mine = ++latest.current
     const timer = setTimeout(async () => {
+      inFlight.current?.abort()
+      const controller = new AbortController()
+      inFlight.current = controller
       setCounting(true)
-      const result = await previewMatches(previewJobs, answers, baseline.current === null)
+      let result: { baseline: number | null; now: number | null } = { baseline: null, now: null }
+      try {
+        const res = await fetch('/api/onboarding/match-preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bundle: previewJobs, answers, withBaseline: baseline.current === null }),
+          signal: controller.signal,
+        })
+        if (res.ok) result = await res.json()
+      } catch {
+        if (controller.signal.aborted) return
+      }
       if (mine !== latest.current) return
       if (baseline.current === null) baseline.current = { value: result.baseline }
       setJobs({ baseline: baseline.current.value, now: result.now })
@@ -87,6 +104,7 @@ export function BundleForm({
     // answers is captured through countKey; the effect must re-run only when an answer changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countKey, previewJobs])
+  useEffect(() => () => inFlight.current?.abort(), [])
 
   const payoff = computePayoff(bundle, answers, { ...payoffInput, journey, jobs })
   const reason = open.length > 0 ? `Answer “${open[0].label}”${open.length > 1 ? ` and ${open.length - 1} more` : ''} to continue.` : null
