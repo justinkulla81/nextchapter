@@ -11,6 +11,7 @@ import { PersonalizePanel, PERSONALIZE_HREF } from '@/components/home/Personaliz
 import { allowByIp, HOUR_MS } from '@/lib/security/rate-limit'
 import { cleanPublicQuery, searchPublicBoardCached, type PublicBoardResult } from '@/lib/jobs/public-board'
 import { formatRelativeTime } from '@/lib/format-relative-time'
+import { Squiggle } from '@/components/ui/squiggle'
 
 // Search results for the homepage job box. Anonymous and unpersonalized by design: newest
 // first, matched on the words typed. The panel beside the list says so, and says exactly how
@@ -74,6 +75,7 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
         <h1 className="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
           {searched ? `Jobs for “${what}”` : pageH1('/jobs', 'Newest openings')}
         </h1>
+        <Squiggle className="mt-2" />
         <div className="mt-6">
           <JobSearchForm source="results" initialQ={query.q} initialLoc={query.loc} initialRemote={query.remote} />
         </div>

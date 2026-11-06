@@ -3,6 +3,7 @@ import { NOINDEX } from '@/lib/seo/canonical'
 import Link from 'next/link'
 import { CrucibleInterestForm } from '@/components/crucible/CrucibleInterestForm'
 import { CrucibleWordmark } from '@/components/crucible/CrucibleWordmark'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { ...NOINDEX, title: { absolute: 'The Full noexperienceneeded.ai Assessment' } }
 
@@ -20,6 +21,7 @@ export default function CrucibleFullPage() {
         <h1 className="text-2xl font-bold tracking-tight text-navy sm:text-3xl">
           A real work sample you can send to employers.
         </h1>
+        <Squiggle className="mx-auto mt-2 block" />
         <p className="mt-4 text-muted-foreground">
           The full noexperienceneeded.ai assessment is a 75-minute evaluation on a real codebase, with a report you can share
           directly with employers — the interview, before the interview. It&apos;s not open yet. Leave your email

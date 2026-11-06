@@ -10,6 +10,7 @@ import { SearchQuestionForm } from '@/components/marketing/SearchQuestionForm'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = pageMetadata('/why-stuck')
 
@@ -33,6 +34,7 @@ export default function WhyStuckPage() {
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl">
             {pageH1('/why-stuck', 'Why you’re stuck')}
           </h1>
+          <Squiggle className="mx-auto mt-2 block" />
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
             You&apos;re not imagining it. Unemployment is unpleasant and the search process is
             genuinely hard.

@@ -9,6 +9,7 @@ import {
 } from '@/lib/marketing/open-data'
 import { titleMeta } from '@/lib/seo/title'
 import { fitDescription } from '@/lib/seo/templates'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const URL = `${SITE_URL}/reports/replication`
 const REPO_URL = REPLICATION_REPO_URL
@@ -90,6 +91,7 @@ export default function ReplicationPage() {
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           White Collar Employment Report: replication materials
         </h1>
+        <Squiggle className="mt-2" />
 
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-foreground">
           The code, parameters and derived data behind the NextChapter White Collar Employment Report are public, so anyone can

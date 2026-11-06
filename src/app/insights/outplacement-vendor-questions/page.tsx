@@ -6,6 +6,7 @@ import { AuthorByline } from '@/components/seo/AuthorByline'
 import { insight } from '@/lib/seo/insights'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { RFP_QUESTIONS } from '@/lib/marketing/rfp-template-content'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = {
   title: 'The questions to ask an outplacement vendor',
@@ -56,6 +57,7 @@ export default function OutplacementVendorQuestionsArticlePage() {
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           The questions to ask an outplacement vendor
         </h1>
+        <Squiggle className="mt-2" />
         <AuthorByline updated={ARTICLE.lastUpdated} />
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">

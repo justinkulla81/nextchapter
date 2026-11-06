@@ -3,6 +3,7 @@ import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/Publi
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { RoleBadge } from '@/components/careers/RoleBadge'
 import { CAREERS_LOCATION, CAREER_VALUES, GROUP_HEADING, GROUP_ORDER, rolesInGroup } from '@/lib/careers/roles'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = {
   title: 'Careers at NextChapter',
@@ -27,6 +28,7 @@ export default function CareersPage() {
             <h1 className="mt-3 max-w-3xl text-balance text-4xl font-bold tracking-tight text-navy sm:text-5xl">
               Help people through the hardest week of their career
             </h1>
+            <Squiggle className="mt-2" />
             <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
               NextChapter helps professionals through a layoff or career change, and the organizations that support them.
               We are a small team where every person owns real work.
