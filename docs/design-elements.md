@@ -28,3 +28,9 @@ The email look (`docs/email-look.md`) is carried onto the site in small, shared 
 - Public pages keep one registration ask (the `NextStepBox`). The paper note and signature stay off them.
 - The site's action color is `--action` (orange). Decoration near an action stays blue or pale.
 - Not yet live: the handwritten aside on Home. It needs the week's numbers above the note, which are computed further down the page.
+
+## Adding a page
+
+- A new candidate page: use `PageHeader`; the squiggle comes with it.
+- A new public page: use `SeoPage` or `TopicShell`; the squiggle comes with them. A page with its own headline markup adds `<Squiggle />` under its `<h1>` (centered pages: `className="mx-auto mt-2 block"`).
+- Do not add a second registration ask or a paper note to a public page.
