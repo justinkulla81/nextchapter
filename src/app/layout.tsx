@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { MetaPixel } from "@/components/analytics/MetaPixel";
 import { PostHogProvider } from "@/lib/posthog/provider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { LinkedInInsightTag } from "@/components/analytics/LinkedInInsightTag";
@@ -81,6 +82,7 @@ export default function RootLayout({
         <PortalCanonicalUrl />
         <GoogleAnalytics />
         <LinkedInInsightTag />
+        <MetaPixel />
         <HomepageVisitTracker />
         <PostHogProvider>{children}</PostHogProvider>
       </body>

@@ -274,14 +274,14 @@ const nextConfig: NextConfig = {
     // Content-Security-Policy-Report-Only.
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"} https://www.googletagmanager.com https://www.google-analytics.com https://snap.licdn.com`,
+      `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"} https://www.googletagmanager.com https://www.google-analytics.com https://snap.licdn.com https://connect.facebook.net`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       `media-src 'self' blob: ${supabase}`,
       // analytics.google.com is listed bare as well as with the wildcard: a CSP wildcard (*.analytics.google.com) does not match the
       // bare host, which is where Google Analytics sends its page views and events (blocked from 2026-10-15 until this was added).
-      `connect-src 'self' ${supabase} ${supabaseWs} https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://*.g.doubleclick.net https://www.google.com https://px.ads.linkedin.com https://snap.licdn.com`,
+      `connect-src 'self' ${supabase} ${supabaseWs} https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://*.g.doubleclick.net https://www.google.com https://px.ads.linkedin.com https://snap.licdn.com https://www.facebook.com https://connect.facebook.net`,
       "frame-src 'self' https:",
       "worker-src 'self' blob:",
       "object-src 'none'",
