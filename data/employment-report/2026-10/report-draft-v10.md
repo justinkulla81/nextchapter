@@ -1,6 +1,6 @@
 # October 2026 White Collar Employment Report
 
-*Draft v9. Covers October 2026 data; to be published in November 2026. Not published or sent.*
+*Draft v10. Covers October 2026 data; to be published in November 2026. Not published or sent.*
 
 ## Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago
 
@@ -194,7 +194,7 @@ Note: Covers 89,447 matched postings out of 653,974 open postings crawled as of 
 - **Highest-scoring occupations with 100 or more open postings:** market research analysts and marketing specialists (0.65; 690 open), financial and investment analysts (0.57; 3,246), information security analysts (0.49; 1,181), technical writers (0.47; 227), data scientists (0.46; 3,583), secretaries and administrative assistants (0.45; 3,673), operations research analysts (0.43; 114).
 - **By function (average score of matched postings):** data and analytics 0.46, finance 0.38, marketing 0.38, administration 0.36, human resources 0.31, legal 0.23, engineering 0.21.
 - **Cross-check:** the unweighted Spearman rank correlation across the 756 overlapping occupations is 0.58 with Microsoft's applicability scores and 0.70 with OpenAI's exposure ratings: broad agreement, not close, so we show bands, not precise rankings.
-- **Match quality:** we reviewed all 200 sampled matches by hand (a sample drawn before the aggregator exclusion; same matching method). 7 looked questionable (3.5%), mostly engineering-adjacent titles such as machine learning engineers, DevOps and site-reliability roles matched to data scientists or software developers, and one logistics coordinator matched to logisticians.
+- **Match quality:** we reviewed all 200 sampled matches by hand. 4 (2%) looked wrong (for example a development manager matched to training and development managers, and a school president matched to general and operations managers). Another 15 (7.5%) were judgment calls between neighboring occupations: machine learning engineers, DevOps and site-reliability engineers, and software engineering managers. These matter because the neighboring occupations score differently, so averages for engineering-adjacent titles are the least certain figures in this section.
 - **Change over time:** not reported. Our postings history starts in mid-October 2026, and the exposure file used is Anthropic's October 22 version; a comparison with the current file on November 6 found the values for all 497 occupations in SOC groups 11 to 43 unchanged.
 
 *What it means for a job seeker:* exposure describes how much of a job's tasks AI tools are observed doing, which is a reason to build fluency with those tools, not a prediction that the job will go away.
