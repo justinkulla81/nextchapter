@@ -148,14 +148,14 @@ export default function AfterALayoffPage() {
           <div className="min-w-0">
             <p className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Laid off? Fired? Downsized?</p>
             <h1 id="fired-heading" className="mt-3 font-display text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">
-              So were millions of others. We can help you back faster.
+              15.58 million layoffs and discharges this year. We can help you back faster.
             </h1>
             <p className="mt-5 mb-7 max-w-xl text-lg text-muted-foreground">
-              The BLS counts 15.58 million layoffs and discharges from January to September 2026. NextChapter is a free AI coach that knows your whole search: jobs that fit you with the reason for each, a plan that changes when a search stalls, other roles you could do, and fractional work while you look.
+              BLS counted them from January to September 2026, and you are one of them. NextChapter is a free AI coach that knows your whole search: jobs that fit you with the reason for each, a plan that changes when a search stalls, other roles you could do, and fractional work while you look.
             </p>
             <div className="rounded-3xl bg-navy p-5 text-white shadow-xl ring-1 ring-navy sm:p-6">
               <p className="text-xl font-semibold tracking-tight">Your free job transition account</p>
-              <p className="mt-1 mb-4 text-sm text-white/85">Start with your email. We send your first-week plan, and you set up the rest when you are ready.</p>
+              <p className="mt-1 mb-4 text-sm text-white/85">Start with your email. We take you straight into setting it up, and send your first-week plan.</p>
               <AfterLayoffForm />
               <p className="mt-3 text-sm text-white/85">Free for Members, always. No résumé needed.</p>
             </div>

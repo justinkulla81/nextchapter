@@ -1,8 +1,7 @@
 'use client'
 
 import { Suspense, useActionState, useEffect } from 'react'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { submitJourneyLead, type JourneyState } from '@/lib/leads/actions'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
@@ -20,6 +19,7 @@ function sourceFrom(utm: string | null): string {
 
 function Form({ className }: { className?: string }) {
   const params = useSearchParams()
+  const router = useRouter()
   const source = sourceFrom(params.get('utm_source'))
   const [state, action, pending] = useActionState<JourneyState, FormData>(submitJourneyLead, undefined)
 
@@ -27,30 +27,24 @@ function Form({ className }: { className?: string }) {
     posthog.capture('after_a_layoff_viewed', { source, utmSource: params.get('utm_source'), utmCampaign: params.get('utm_campaign') })
   }, [source, params])
 
+  // Straight into registration: no second question. The situation is stored so the first onboarding question is already answered,
+  // and the lead cookie set by the action prefills their email on the details step.
+  useEffect(() => {
+    if (!state?.done) return
+    try {
+      sessionStorage.setItem(SITUATION_SESSION_KEY, SITUATION)
+    } catch {
+      // Private windows can block storage; onboarding simply asks.
+    }
+    posthog.capture('after_a_layoff_registration_started', { source, email_sent: !state.capped })
+    router.replace(MARKET_REALITY_START_HREF)
+  }, [state, source, router])
+
   if (state?.done) {
     return (
-      <div role="status" className="max-w-xl rounded-2xl bg-white p-5 text-left text-ink">
-        <h2 className="font-display text-2xl font-semibold text-ink">{state.capped ? 'We saved your email.' : 'Check your inbox.'}</h2>
-        <p className="mt-2 text-base text-muted-foreground">
-          {state.capped
-            ? 'We send a limited number of plan emails each day and today’s are used up, so yours has not gone out. Start now and your plan is ready in minutes.'
-            : <>Your first-week plan is on its way{state.email ? <> to <span className="font-medium text-ink">{state.email}</span></> : ''}. If it is not there in a few minutes, check spam.</>}
-        </p>
-        <Link
-          href={MARKET_REALITY_START_HREF}
-          onClick={() => {
-            try {
-              sessionStorage.setItem(SITUATION_SESSION_KEY, SITUATION)
-            } catch {
-              // Private windows can block storage.
-            }
-            posthog.capture('after_a_layoff_continue_clicked', { source, email_sent: !state.capped })
-          }}
-          className="mt-5 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
-        >
-          Start my Market Reality Assessment
-        </Link>
-      </div>
+      <p role="status" className="max-w-xl rounded-2xl bg-white p-5 text-base font-semibold text-ink">
+        Got it. Setting up your account…
+      </p>
     )
   }
 
