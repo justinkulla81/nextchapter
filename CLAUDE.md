@@ -53,6 +53,12 @@ why). A change that adds a card, tag, toggle or section to a candidate page must
 say what it removes. Build or change a page in `src/app/dev-preview/` first and
 look at a screenshot before wiring real data.
 
+## Ship it: merge and deploy without waiting
+
+Owner rule (2026-11-06): when a change is ready, open the pull request, merge it with `[deploy-now]` in the title, watch the
+Vercel deployment until it is READY, and test the live page. Do not stop at a branch, a draft or a question. Say what you
+shipped and what you tested. The "ask first" cases under Vercel and Supabase (destructive or hard to undo) still apply.
+
 ## Vercel and Supabase: Claude does the operations work
 
 The owner does not want to set Vercel environment variables or run Supabase
