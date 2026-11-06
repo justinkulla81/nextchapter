@@ -1,7 +1,7 @@
 import { timed } from '@/lib/perf/timed'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { after } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -9,7 +9,7 @@ import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { CandidatePlusExtraLine } from '@/components/jobs/CandidatePlusExtraLine'
 import { loadPostingLifecycle } from '@/lib/jobs/past-jobs-data'
-import { lifecycleBadge, lifecycleSentence, postedLine } from '@/lib/jobs/job-status'
+import { alternativesHrefs, lifecycleBadge, lifecycleSentence, postedLine } from '@/lib/jobs/job-status'
 import { seniorityLabel } from '@/lib/jobs/job-seniority'
 import { formatUsdK } from '@/lib/pay/market-pay'
 import { ClosedJobAlternatives, SimilarLiveJobs } from '@/components/jobs/ClosedJobAlternatives'
@@ -44,7 +44,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     step('posting', prisma.exclusiveJobPosting.findUnique({
       where: { id },
       select: {
-        id: true, title: true, companyName: true, location: true, url: true, status: true, distribution: true, disclosure: true,
+        id: true, title: true, companyName: true, location: true, url: true, status: true, archivedAt: true, expiresAt: true, closeReason: true, distribution: true, disclosure: true,
         institutionScopeId: true, source: true, level: true, salaryMin: true, salaryMax: true, payPeriod: true,
         description: true, submittedByEmployerId: true, submittedByRecruiterId: true, company: { select: { canonicalNameNormalized: true } },
         requirementFlags: true, locationState: true, targetFunction: true, employerSector: true,
@@ -59,6 +59,15 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     posting &&
     (tracked || (posting.status === 'approved' && !posting.institutionScopeId && posting.distribution !== 'EXCLUDED'))
   if (!posting || !visible) notFound()
+
+  // A public job page (or "Check my fit") that opens a job the employer already took down goes straight to the open jobs
+  // like it, not to a dead page. A job the member saved still opens, with its banner. Checked here, before the lifecycle load,
+  // so the redirect costs no more than the posting read.
+  const gone = posting.closeReason !== 'duplicate' && (!!posting.archivedAt || (!!posting.expiresAt && posting.expiresAt.getTime() <= Date.now()))
+  if (gone && !tracked && (src === 'public_page' || src === 'check_fit')) {
+    after(() => captureServerEvent(profile.id, 'closed_job_redirected', { source: src, jobId: posting.id, company: posting.companyName, title: posting.title }))
+    redirect(alternativesHrefs(posting.disclosure === 'CONFIDENTIAL' ? null : posting.companyName, posting.title).title)
+  }
 
   const life = await step('postingLifecycle', loadPostingLifecycle(posting.id))
   if (!life) notFound()
