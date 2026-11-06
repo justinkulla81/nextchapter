@@ -34,10 +34,10 @@ export const EMPLOYEES: PortalPageDef = {
     analyticsKey: 'employees',
     path: '/employees',
     eyebrow: 'Employees',
-    headline: 'Develop and keep the people you have',
+    headline: 'Losing good people, or not growing the ones you have? Start with one team.',
     subhead:
-      'Retention and learning and development for your current employees: promotion and raise preparation, internal roles and a skills plan starting with your courses. You see counts by team, never by person.',
-    primary: { label: 'Talk to us', href: '#talk' },
+      'Pick one team and we set it up with you: promotion and raise preparation, internal roles and a skills plan starting with your courses. You see counts by team, never by person.',
+    primary: { label: 'Start with one team', href: '#talk' },
     primaryNote: 'We set it up with you. Employees is for people who work for you today.',
     loginHref: PORTALS.employees.loginHref,
     parent: { href: '/employers', label: 'For employers' },
@@ -49,8 +49,8 @@ export const EMPLOYEES: PortalPageDef = {
     visuals: [retention, learning, enroll],
     steps: [
       {
-        title: 'Talk to us',
-        body: 'We set up Employees with you: which teams take part, which courses you cover and which internal roles to post.',
+        title: 'Pick a team',
+        body: 'Tell us which team to start with. We set up Employees with you: which courses you cover and which internal roles to post.',
       },
       {
         title: 'Enroll your people',
@@ -86,9 +86,9 @@ export const EMPLOYEES: PortalPageDef = {
       },
     ],
     finalCta: {
-      title: 'Tell us about your team',
-      intro: 'Tell us which teams you want to start with.',
-      form: { audience: 'ORGANIZATION', source: 'employees', heading: 'Talk to us about Employees' },
+      title: 'Start with one team',
+      intro: 'Tell us which team you want to start with.',
+      form: { audience: 'ORGANIZATION', source: 'employees', heading: 'Start Employees with one team' },
     },
     footerLinks: [
       { href: '/employers', label: 'For employers' },
