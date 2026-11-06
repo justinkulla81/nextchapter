@@ -35,7 +35,17 @@ interface EventRow {
   campaign: string | null
 }
 
+// Fail-soft: the chart is a side panel, so a query error shows as an empty chart, never a broken page.
 export async function loadSemEvents(windowDays: number): Promise<SemEvents> {
+  try {
+    return await querySemEvents(windowDays)
+  } catch (error) {
+    console.error('Paid search chart query failed:', error)
+    return { b2cLeads: [], b2bLeads: [], accounts: [] }
+  }
+}
+
+async function querySemEvents(windowDays: number): Promise<SemEvents> {
   const now = Date.now()
   const since = new Date(now - windowDays * DAY_MS)
   // The click can be up to LEAD_WINDOW_DAYS before a lead that falls inside the window.
@@ -60,13 +70,13 @@ export async function loadSemEvents(windowDays: number): Promise<SemEvents> {
       )
       SELECT DISTINCT ON (l."email") l."createdAt" AS "at", s."campaign"
       FROM leads l JOIN sem s ON s."ip" = l."ip"
-        AND l."createdAt" >= s."clickedAt" AND l."createdAt" <= s."clickedAt" + make_interval(days => ${LEAD_WINDOW_DAYS})
+        AND l."createdAt" >= s."clickedAt" AND l."createdAt" <= s."clickedAt" + make_interval(days => ${LEAD_WINDOW_DAYS}::int)
       ORDER BY l."email", l."createdAt" ASC`),
     prisma.$queryRaw<EventRow[]>(Prisma.sql`
       WITH sem AS (${sem})
       SELECT p."registrationCompletedAt" AS "at", s."campaign"
       FROM "CandidateProfile" p JOIN sem s ON s."ip" = p."signupIp"
-        AND p."registrationCompletedAt" >= s."clickedAt" AND p."registrationCompletedAt" <= s."clickedAt" + make_interval(days => ${LEAD_WINDOW_DAYS})
+        AND p."registrationCompletedAt" >= s."clickedAt" AND p."registrationCompletedAt" <= s."clickedAt" + make_interval(days => ${LEAD_WINDOW_DAYS}::int)
       WHERE p."registrationCompletedAt" >= ${since} AND p."userId" NOT LIKE 'demo-%'
         AND COALESCE(p."isSampleData", false) = false AND COALESCE(p."isSystemAccount", false) = false`),
   ])
