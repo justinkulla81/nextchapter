@@ -22,7 +22,8 @@ async function stillMissing(url: string): Promise<boolean> {
     const res = await fetch(url, { redirect: 'manual', cache: 'no-store', signal: AbortSignal.timeout(15_000) })
     return res.status === 404
   } catch {
-    return true
+    // A failed or timed-out recheck proves nothing about the page, so it must not email.
+    return false
   }
 }
 
