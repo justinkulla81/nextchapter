@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { portalJobPath } from '@/lib/jobs/portal-job-redirect'
+import { INDUSTRY_OPTIONS } from '@/lib/segments/industry-options'
 import { ENTRY_AND_EARLY_PARAM } from '@/lib/jobs/job-seniority'
 
 const ID = 'cm0abcdefghijklmnopqrstuv'
@@ -44,6 +45,12 @@ describe('portalJobPath', () => {
     for (const p of ['/jobs/industry/retail', '/jobs/industry/construction', '/jobs/industry/restaurants']) {
       expect(portalJobPath(p, true)).toBe(`/dashboard/find-my-job?from=public&industry=${p.split('/').pop()}`)
     }
+  })
+  it('redirects every industry page, including the two-letter slugs (tv, ai)', () => {
+    for (const o of INDUSTRY_OPTIONS) {
+      expect(portalJobPath(`/jobs/industry/${o.slug}`, true), o.slug).toBe(`/dashboard/find-my-job?from=public&industry=${o.slug}`)
+    }
+    expect(INDUSTRY_OPTIONS.some((o) => o.slug.length === 2)).toBe(true)
   })
   it('keeps a member on the public page for a slug that is not an industry', () => {
     expect(portalJobPath('/jobs/industry/nope-not-real', true)).toBeNull()
