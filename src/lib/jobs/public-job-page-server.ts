@@ -2,6 +2,7 @@ import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { retryOnPoolTimeout } from '@/lib/db/heavy'
+import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import {
   PUBLIC_JOB_GHOST_AGE_DAYS,
@@ -212,16 +213,29 @@ export interface SimilarJob {
 export async function similarJobsAtCompany(companyId: string | null | undefined, excludeId: string, limit = 6): Promise<SimilarJob[]> {
   if (!companyId) return []
   try {
-    const rows = await prisma.$queryRaw<SimilarJob[]>`
+    // The employer's newest rows by cheap columns first (no description read), then the full public rules on only those.
+    // A large employer has ~10,000 open rows; running the description checks and regexes on all of them took 2-7 s each
+    // view and slowed every member page on the shared database (2026-11-05).
+    const rows = await withStatementTimeout(
+      prisma.$queryRaw<SimilarJob[]>`
+      WITH recent AS MATERIALIZED (
+        SELECT id FROM "ExclusiveJobPosting"
+        WHERE "companyId" = ${companyId}
+          AND id <> ${excludeId}
+          AND status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL
+        ORDER BY "lastVerifiedAt" DESC
+        LIMIT 150
+      )
       SELECT id, title, "locationCity", "locationState" FROM "ExclusiveJobPosting"
-      WHERE "companyId" = ${companyId}
-        AND id <> ${excludeId}
+      WHERE id IN (SELECT id FROM recent)
         AND ${PUBLIC_JOB_STATIC_SQL}
         AND ${PUBLIC_JOB_SEARCH_SQL}
         AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
         AND ${PUBLIC_JOB_LIVE_SQL}
       ORDER BY "lastVerifiedAt" DESC
-      LIMIT ${limit * 3}`
+      LIMIT ${limit * 3}`,
+      3_000
+    )
     return pickSimilarJobs(rows, limit)
   } catch {
     return []
