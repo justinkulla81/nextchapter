@@ -10,6 +10,7 @@ import { AverageBarChart } from '@/components/admin/AverageBarChart'
 import { VisitorsPerDayChart } from '@/components/admin/VisitorsPerDayChart'
 import { loadCapturedEmailsForDays } from '@/lib/leads/captured-emails'
 import { capturedPerDay, countsPerDay } from '@/lib/admin/captured-per-day'
+import { loadSemEvents } from '@/lib/admin/sem-leads'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { isDatacenterIp } from '@/lib/http/datacenter-ip'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
@@ -259,7 +260,7 @@ export default async function AdminVisitorActivityPage({
   const toDaysRows = (rows: { key: string; count: number }[]) => rows.map((d) => ({ dateKey: d.key, count: d.count }))
   // Emails captured per day: every form on the public site plus new registrations.
   // Seeded sample profiles and profiles with no email are not captures (332 were bulk-created on Oct 15).
-  const [captured, registrationRows, applyClickRows, nativeApplicationRows] = await Promise.all([
+  const [captured, registrationRows, applyClickRows, nativeApplicationRows, sem] = await Promise.all([
     loadCapturedEmailsForDays(CHART_WINDOW_DAYS),
     prisma.candidateProfile.findMany({
       where: { createdAt: { gte: since(CHART_WINDOW_DAYS) }, isSampleData: false, email: { not: null } },
@@ -270,7 +271,13 @@ export default async function AdminVisitorActivityPage({
       select: { createdAt: true, userAgent: true, href: true, path: true },
     }),
     prisma.nativeJobApplication.findMany({ where: { createdAt: { gte: since(CHART_WINDOW_DAYS) } }, select: { createdAt: true } }),
+    loadSemEvents(CHART_WINDOW_DAYS),
   ])
+  const semSeries = [
+    { label: 'B2C leads', days: toDaysRows(countsPerDay(sem.b2cLeads, current, CHART_WINDOW_DAYS)), color: 'var(--color-brand)' },
+    { label: 'B2B leads', days: toDaysRows(countsPerDay(sem.b2bLeads, current, CHART_WINDOW_DAYS)), color: 'var(--color-navy)' },
+    { label: 'Accounts created', days: toDaysRows(countsPerDay(sem.accounts, current, CHART_WINDOW_DAYS)), color: 'var(--color-success)' },
+  ]
   // Only clicks tied to a job page: clicks recorded before path tracking (to Oct 27) had no page, so they cannot be told from footer or news links.
   const humanApplyClicks = applyClickRows.filter(
     (e) => classifyUserAgent(e.userAgent) === 'human' && isApplyClick('LINK_CLICK', e.href, e.path)
@@ -640,7 +647,14 @@ export default async function AdminVisitorActivityPage({
       </div>
       </TrafficRangeProvider>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-lg border border-border p-4">
+          <h2 className="text-sm font-medium text-foreground">Paid search leads and accounts per day</h2>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Last {CHART_WINDOW_DAYS} days (Eastern time). Visitors whose first visit came from a Google Ads click (utm_medium cpc or a gclid), then left an email or created an account from the same IP within 30 days. B2B is a campaign tagged b2b-; every other click is B2C. Contact-form leads carry no IP, so they are not counted here.
+          </p>
+          <VisitorsPerDayChart series={semSeries} emptyMessage="No paid search leads in this window yet." />
+        </div>
         <div className="rounded-lg border border-border p-4">
           <h2 className="text-sm font-medium text-foreground">Emails captured per day</h2>
           <p className="mb-3 text-xs text-muted-foreground">

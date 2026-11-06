@@ -327,7 +327,7 @@ export default async function AdminVisitorsPage({
 
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="mx-auto max-w-6xl space-y-8 p-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Visitors</h1>
         <p className="mt-1 text-muted-foreground">
@@ -343,24 +343,68 @@ export default async function AdminVisitorsPage({
         )}
       </div>
 
+      <nav aria-label="Sections on this page" className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        {[
+          ['#overview', 'Overview'],
+          ['#sources', 'Where visitors come from'],
+          ['#behavior', 'What they do'],
+          ['#jobs', 'Jobs and sign-ups'],
+          ['#devices', 'Devices'],
+        ].map(([href, label]) => (
+          <a key={href} href={href} className="text-primary underline underline-offset-4">
+            {label}
+          </a>
+        ))}
+        <span className="text-muted-foreground">|</span>
+        <Link href="/support/admin/visitors/portal" className="font-medium text-primary underline underline-offset-4">
+          Member portal usage
+        </Link>
+        <Link href="/support/admin/visitors/activity" className="text-primary underline underline-offset-4">
+          Visit log and traffic charts
+        </Link>
+      </nav>
+
+      <section id="overview" className="scroll-mt-4 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Overview</h2>
+          <p className="text-sm text-muted-foreground">Daily traffic, sign-ups and the average visit.</p>
+        </div>
       <KeyStatsSection days={keyStatsDays} countryTrackedSince={firstCountry ? etDateKey(firstCountry.createdAt) : null} />
 
       <div className="rounded-lg border border-border p-4">
-        <h2 className="text-sm font-medium text-foreground">Mobile vs desktop</h2>
+        <h2 className="text-sm font-medium text-foreground">Clicks per person per day</h2>
         <p className="mb-3 text-xs text-muted-foreground">
-          Share of human visits by device, last {CHART_WINDOW_DAYS} days. A visit is one person (IP address) on one day.
+          Across {analysis.visitorDays} visits ({analysis.visitors} different people) in the last {CHART_WINDOW_DAYS} days. People who looked at one page and left count as one page and zero clicks.
         </p>
-        <DeviceShareChart days={analysis.device.perDay} overall={analysis.device.overall} />
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs text-muted-foreground">
+              <th className="py-1 font-normal"></th>
+              <th className="py-1 text-right font-normal">Average</th>
+              <th className="py-1 text-right font-normal">Median</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-t border-border">
+              <td className="py-1">Pages viewed per person per day</td>
+              <td className="py-1 text-right tabular-nums">{analysis.perVisitorDay.pageViews.average.toFixed(2)}</td>
+              <td className="py-1 text-right tabular-nums">{analysis.perVisitorDay.pageViews.median}</td>
+            </tr>
+            <tr className="border-t border-border">
+              <td className="py-1">Link clicks per person per day</td>
+              <td className="py-1 text-right tabular-nums">{analysis.perVisitorDay.linkClicks.average.toFixed(2)}</td>
+              <td className="py-1 text-right tabular-nums">{analysis.perVisitorDay.linkClicks.median}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+      </section>
 
-      <div className="rounded-lg border border-border p-4">
-        <h2 className="text-sm font-medium text-foreground">Job pages: direct vs aggregator</h2>
-        <p className="mb-3 text-xs text-muted-foreground">
-          Share of human job-page views by where the job&apos;s Apply link goes, last {CHART_WINDOW_DAYS} days. Direct is the employer or recruiter&apos;s own page.
-        </p>
-        <JobSourceShareChart days={jobSourceDays} />
-      </div>
-
+      <section id="sources" className="scroll-mt-4 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Where visitors come from</h2>
+          <p className="text-sm text-muted-foreground">Channels, search terms and the people who clicked our emails.</p>
+        </div>
       <div className="grid gap-4 md:grid-cols-2">
         <BreakdownTable
           title="Where visitors come from"
@@ -372,9 +416,15 @@ export default async function AdminVisitorsPage({
           rows={aiAndSearchDetail}
           note="Gemini, ChatGPT, Perplexity, Claude, Copilot, Google, Bing, DuckDuckGo and Google for Jobs, one row each."
         />
-        <BreakdownTable title="Operating system" rows={osRows} />
-        <BreakdownTable title="Browser" rows={browserRows} />
       </div>
+
+      {searchConsoleGrant === 'missing' && (
+        <p className="rounded-lg border border-border p-4 text-sm text-foreground">
+          Google connected, but the Search Console permission was not ticked on the consent screen, so search terms are still unavailable.
+          Click Connect Google again and leave every box ticked.
+        </p>
+      )}
+      <SearchConsoleSection result={searchConsole} />
 
       <div className="rounded-lg border border-border p-4">
         <h2 className="text-sm font-medium text-foreground">People who came from our emails</h2>
@@ -409,7 +459,13 @@ export default async function AdminVisitorsPage({
           </table>
         )}
       </div>
+      </section>
 
+      <section id="behavior" className="scroll-mt-4 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">What they do</h2>
+          <p className="text-sm text-muted-foreground">First pages, where they go next, and the people who looked around the most.</p>
+        </div>
       <div className="rounded-lg border border-border p-4">
         <h2 className="text-sm font-medium text-foreground">Where visitors land, and where they came from</h2>
         <p className="mb-3 text-xs text-muted-foreground">
@@ -437,31 +493,66 @@ export default async function AdminVisitorsPage({
       </div>
 
       <div className="rounded-lg border border-border p-4">
-        <h2 className="text-sm font-medium text-foreground">Clicks per person per day</h2>
+        <h2 className="text-sm font-medium text-foreground">People who looked at more than one page</h2>
         <p className="mb-3 text-xs text-muted-foreground">
-          Across {analysis.visitorDays} visits ({analysis.visitors} different people) in the last {CHART_WINDOW_DAYS} days. People who looked at one page and left count as one page and zero clicks.
+          Last {CHART_WINDOW_DAYS} days, most different pages first. {analysis.people.length} people viewed two or more pages; the top {shownPeople.length} are shown. Job postings count as one page type.
         </p>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-muted-foreground">
-              <th className="py-1 font-normal"></th>
-              <th className="py-1 text-right font-normal">Average</th>
-              <th className="py-1 text-right font-normal">Median</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-t border-border">
-              <td className="py-1">Pages viewed per person per day</td>
-              <td className="py-1 text-right tabular-nums">{analysis.perVisitorDay.pageViews.average.toFixed(2)}</td>
-              <td className="py-1 text-right tabular-nums">{analysis.perVisitorDay.pageViews.median}</td>
-            </tr>
-            <tr className="border-t border-border">
-              <td className="py-1">Link clicks per person per day</td>
-              <td className="py-1 text-right tabular-nums">{analysis.perVisitorDay.linkClicks.average.toFixed(2)}</td>
-              <td className="py-1 text-right tabular-nums">{analysis.perVisitorDay.linkClicks.median}</td>
-            </tr>
-          </tbody>
-        </table>
+        {shownPeople.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nobody has viewed more than one page yet.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-muted-foreground">
+                <th className="py-1 pr-2 font-normal">Person</th>
+                <th className="py-1 pr-2 text-right font-normal">Pages</th>
+                <th className="py-1 pr-2 text-right font-normal">Views</th>
+                <th className="py-1 pr-2 text-right font-normal">Clicks</th>
+                <th className="py-1 pr-2 font-normal">Most viewed</th>
+                <th className="py-1 font-normal">Last seen</th>
+              </tr>
+            </thead>
+            <tbody>
+              {shownPeople.map((p) => {
+                const c = p.candidateId ? personCandidates.get(p.candidateId) : null
+                return (
+                  <tr key={p.ip} className="border-t border-border align-top">
+                    <td className="py-1 pr-2">
+                      {c ? (
+                        <Link href={`/support/admin/candidates/${c.id}`} className="text-primary underline underline-offset-4">
+                          {adminCandidateLabel(c)}
+                        </Link>
+                      ) : (
+                        'Anonymous'
+                      )}
+                      <div className="text-xs text-muted-foreground">
+                        {p.ip} · {personLocations.get(p.ip) ?? 'location unknown'}
+                      </div>
+                    </td>
+                    <td className="py-1 pr-2 text-right tabular-nums">{p.distinctPages}</td>
+                    <td className="py-1 pr-2 text-right tabular-nums">{p.pageViews}</td>
+                    <td className="py-1 pr-2 text-right tabular-nums">{p.linkClicks}</td>
+                    <td className="py-1 pr-2 break-all text-muted-foreground">{p.topPages.join(', ')}</td>
+                    <td className="py-1 tabular-nums">{formatAdminDateTime(p.lastSeen)}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+      </section>
+
+      <section id="jobs" className="scroll-mt-4 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Jobs and sign-ups</h2>
+          <p className="text-sm text-muted-foreground">Job postings, apply clicks and the lead-gen flow.</p>
+        </div>
+      <div className="rounded-lg border border-border p-4">
+        <h2 className="text-sm font-medium text-foreground">Job pages: direct vs aggregator</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Share of human job-page views by where the job&apos;s Apply link goes, last {CHART_WINDOW_DAYS} days. Direct is the employer or recruiter&apos;s own page.
+        </p>
+        <JobSourceShareChart days={jobSourceDays} />
       </div>
 
       <div className="rounded-lg border border-border p-4">
@@ -543,64 +634,26 @@ export default async function AdminVisitorsPage({
           <BreakdownTable title="Which lead-gen pages get the clicks" rows={analysis.leadGen.byEntry} />
         </div>
       </div>
+      </section>
 
+      <section id="devices" className="scroll-mt-4 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Devices</h2>
+          <p className="text-sm text-muted-foreground">Phone or computer, and which systems and browsers.</p>
+        </div>
       <div className="rounded-lg border border-border p-4">
-        <h2 className="text-sm font-medium text-foreground">People who looked at more than one page</h2>
+        <h2 className="text-sm font-medium text-foreground">Mobile vs desktop</h2>
         <p className="mb-3 text-xs text-muted-foreground">
-          Last {CHART_WINDOW_DAYS} days, most different pages first. {analysis.people.length} people viewed two or more pages; the top {shownPeople.length} are shown. Job postings count as one page type.
+          Share of human visits by device, last {CHART_WINDOW_DAYS} days. A visit is one person (IP address) on one day.
         </p>
-        {shownPeople.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nobody has viewed more than one page yet.</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs text-muted-foreground">
-                <th className="py-1 pr-2 font-normal">Person</th>
-                <th className="py-1 pr-2 text-right font-normal">Pages</th>
-                <th className="py-1 pr-2 text-right font-normal">Views</th>
-                <th className="py-1 pr-2 text-right font-normal">Clicks</th>
-                <th className="py-1 pr-2 font-normal">Most viewed</th>
-                <th className="py-1 font-normal">Last seen</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shownPeople.map((p) => {
-                const c = p.candidateId ? personCandidates.get(p.candidateId) : null
-                return (
-                  <tr key={p.ip} className="border-t border-border align-top">
-                    <td className="py-1 pr-2">
-                      {c ? (
-                        <Link href={`/support/admin/candidates/${c.id}`} className="text-primary underline underline-offset-4">
-                          {adminCandidateLabel(c)}
-                        </Link>
-                      ) : (
-                        'Anonymous'
-                      )}
-                      <div className="text-xs text-muted-foreground">
-                        {p.ip} · {personLocations.get(p.ip) ?? 'location unknown'}
-                      </div>
-                    </td>
-                    <td className="py-1 pr-2 text-right tabular-nums">{p.distinctPages}</td>
-                    <td className="py-1 pr-2 text-right tabular-nums">{p.pageViews}</td>
-                    <td className="py-1 pr-2 text-right tabular-nums">{p.linkClicks}</td>
-                    <td className="py-1 pr-2 break-all text-muted-foreground">{p.topPages.join(', ')}</td>
-                    <td className="py-1 tabular-nums">{formatAdminDateTime(p.lastSeen)}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
+        <DeviceShareChart days={analysis.device.perDay} overall={analysis.device.overall} />
       </div>
 
-      {searchConsoleGrant === 'missing' && (
-        <p className="rounded-lg border border-border p-4 text-sm text-foreground">
-          Google connected, but the Search Console permission was not ticked on the consent screen, so search terms are still unavailable.
-          Click Connect Google again and leave every box ticked.
-        </p>
-      )}
-      <SearchConsoleSection result={searchConsole} />
-
+      <div className="grid gap-4 md:grid-cols-2">
+        <BreakdownTable title="Operating system" rows={osRows} />
+        <BreakdownTable title="Browser" rows={browserRows} />
+      </div>
+      </section>
     </div>
   )
 }
