@@ -42,7 +42,7 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   brand?: { color: string; ink: string; stripe?: string }
   /** A journey page words the next-step box itself and hands the visitor's situation to onboarding. */
   ask?: JourneyAsk
-  /** The hand-drawn line under the headline. Off by default; the design-elements preview turns it on (src/app/dev-preview/design-elements). */
+  /** The hand-drawn line under the headline. On by default, except on a page whose heading panel takes an organization's colors (`brand`); pass false to turn it off. */
   squiggle?: boolean
 }) {
   const st = stateBrandFromSlug(stateSlug)
@@ -66,7 +66,7 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
             ))}
           </nav>
           <h1 className={`mt-3 text-3xl font-bold tracking-tight sm:text-4xl ${brand ? '' : 'text-navy'} ${look === 'audience' ? 'font-display [text-wrap:balance]' : ''}`}>{h1}</h1>
-          {squiggle && <Squiggle className="mt-2" />}
+          {(squiggle ?? !brand) && <Squiggle className="mt-2" />}
           <div className={`mt-4 max-w-3xl text-lg ${brand ? '' : 'text-muted-foreground'}`}>{lede}</div>
           </div>
           {look === 'scene' && hero && (

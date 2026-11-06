@@ -1,3 +1,4 @@
+import { Squiggle } from '@/components/ui/squiggle'
 import Link from 'next/link'
 import Image from 'next/image'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
@@ -70,6 +71,7 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture, her
                 ))}
               </nav>
               <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{title}</h1>
+              <Squiggle className="mt-2" />
               <p className="mt-4 max-w-3xl text-lg text-muted-foreground">{intro}</p>
             </div>
             {hero && (
