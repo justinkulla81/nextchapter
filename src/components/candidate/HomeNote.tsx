@@ -49,7 +49,7 @@ export function HomeNote({ kind = 'note', title, why, startLabel, startHref, why
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <Link
           href={startHref}
-          onClick={() => posthog.capture('home_note_started', { kind })}
+          onClick={() => posthog.capture('home_note_started', { kind, variant })}
           className="inline-flex h-12 items-center rounded-full bg-action px-8 text-base font-semibold text-action-foreground hover:brightness-95"
         >
           {startLabel}
@@ -57,7 +57,7 @@ export function HomeNote({ kind = 'note', title, why, startLabel, startHref, why
         <button
           type="button"
           onClick={() => {
-            posthog.capture('home_note_dismissed', { kind })
+            posthog.capture('home_note_dismissed', { kind, variant })
             try {
               window.localStorage.setItem(dayKey, today)
             } catch {}
