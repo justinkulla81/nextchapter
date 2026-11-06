@@ -135,14 +135,8 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
       {!open && <JobFitCard jobId={jobId} placement="inline" className="mt-5 lg:hidden" />}
 
       {gateOpen && variant === 'gate' && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={() => setGateOpen(false)}>
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="apply-gate-title"
-            className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="mt-4">
+          <div role="region" aria-labelledby="apply-gate-title" className={cn('max-w-md rounded-2xl border border-border bg-white p-5', pending && 'cursor-wait')}>
             <form
               action={action}
               noValidate
@@ -156,13 +150,13 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
                 setOpen(true)
               }}
             >
-              <h2 id="apply-gate-title" className="text-lg font-semibold">Apply at {company}, and get more jobs like this</h2>
+              <h2 id="apply-gate-title" className="text-lg font-semibold">Enter your email to apply at {company}</h2>
               <ul className="mt-2 space-y-1 text-sm">
                 <li className="flex gap-2"><span aria-hidden className="text-success">✓</span><span>New jobs like this one in your inbox, so you hear first</span></li>
                 <li className="flex gap-2"><span aria-hidden className="text-success">✓</span><span>See if you’d get an interview here, free, about a minute</span></li>
                 <li className="flex gap-2"><span aria-hidden className="text-success">✓</span><span>This job saved, with a reminder to follow up</span></li>
               </ul>
-              <p className="mt-2 text-xs text-muted-foreground">That’s why we ask for your email. We never share it. Unsubscribe any time.</p>
+              <p className="mt-2 text-xs text-muted-foreground">We use your email to personalize your job search and maximize your chances of landing a job. We never share it. Unsubscribe any time.</p>
               <p className="mt-2 text-sm">
                 Already a member?{' '}
                 <a

@@ -161,6 +161,12 @@ export async function updateSession(request: NextRequest, opts: { portal?: Porta
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone()
+    // A lapsed member sent here from a public job page (the marker cookie outlives the login) goes back to that job page, not a login wall:
+    // they see the job and Apply (which asks for an email), with the sign-in prompt on the page. `?stay=1` stops the proxy sending them here again.
+    const fromPublicJob = /^\/dashboard\/jobs\/(c[a-z0-9]{20,32})\/?$/.exec(appPath)
+    if (fromPublicJob && request.nextUrl.searchParams.get('src') === 'public_page' && portalHostFor(request.headers.get('host')) === 'candidate' && process.env.NEXT_PUBLIC_APP_URL) {
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/jobs/${fromPublicJob[1]}?stay=1`)
+    }
     const portalLoginPath = Object.entries({
       '/noexperience/employers': '/noexperience/employers/login',
       '/eqoveriq/contributors': '/eqoveriq/contributors/login',
