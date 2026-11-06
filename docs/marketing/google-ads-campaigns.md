@@ -79,8 +79,8 @@ Headlines max 30 characters, descriptions max 90. Every line repeats what the pa
 - Headlines: "Layoff Hits Your Region?" / "Send Workers One Link" / "Demo On Your Region's Data" /
   "Local Jobs On Top" / "Free For 50 Active Members" / "Build My Region's Demo"
 - Descriptions:
-  - "Each worker gets job search tools, career support and AI skills. You see counts, never who."
-  - "Built on your region's real layoff notices and job data. Demo opens in about a minute."
+  - "Each worker gets job search tools, career help and AI skills. You see counts, never who."
+  - "Built on your region's real layoff notices and job data. Your demo opens in a minute."
 - Ad group keywords (phrase): "rapid response layoff services", "dislocated worker services", "workforce board software",
   "WIOA job seeker tools", "layoff aversion tools"
 
@@ -110,3 +110,24 @@ Sitelinks (all three): "How it works" `/how-it-works`, "Vendor scorecard" `/rfp-
 2. Confirm landing pages return 200 on mobile: `/still-searching`, `/lp/outplacement`, `/lp/workforce`, `/lp/higher-ed`.
 3. Set an account-level daily budget cap and a payment method.
 4. Check the Ads policy for each ad group; employment-related ads must not target by protected characteristics.
+
+## Build 1 of 3: WIOA / workforce boards (click-by-click)
+
+Campaign settings: goal Leads; type Search; name `W1 Workforce boards`; Search Network only (untick Display and
+Search Partners); United States, "Presence" only; English; budget $40/day; bidding Maximize clicks with a $6 max CPC cap
+until 15 conversions, then switch to Maximize conversions; ad schedule Mon-Fri 7am-7pm Eastern.
+Final URL: `https://launchyournextchapter.com/lp/workforce` (tags go in the tracking template:
+`{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign=b2b-boards-google`). Display path: `workforce` / `demo`.
+
+Ad group "Rapid response": phrase "rapid response layoff services", "layoff aversion tools", "dislocated worker
+services"; exact [rapid response layoff services].
+Ad group "Boards": phrase "workforce board software", "WIOA job seeker tools", "workforce development platform".
+
+Headlines (15, any order): Layoff Hits Your Region? / Send Workers One Link / Demo On Your Region's Data / Local Jobs On Top /
+Free For 50 Active Members / Build My Region's Demo / Free Rapid Response Demo / Counts Of Who Stayed Local.
+Descriptions: "Each worker gets job search tools, career help and AI skills. You see counts, never who." (88) /
+"Built on your region's real layoff notices and job data. Your demo opens in a minute." (85) /
+"One sign-up link for the workers in each layoff. Free for up to 50 active members." (82).
+Sitelinks: How it works `/how-it-works`; Workforce boards `/workforce-boards`. Callouts: Free demo; Counts, never who;
+Built on your region's data.
+Negatives (campaign): jobs, job openings, hiring, near me, salary, resume, unemployment claim, login, internship, course, free download.
