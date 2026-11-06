@@ -63,7 +63,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   // A public job page (or "Check my fit") that opens a job the employer already took down goes straight to the open jobs
   // like it, not to a dead page. A job the member saved still opens, with its banner. Checked here, before the lifecycle load,
   // so the redirect costs no more than the posting read.
-  const gone = posting.closeReason !== 'duplicate' && (!!posting.archivedAt || (!!posting.expiresAt && posting.expiresAt.getTime() <= Date.now()))
+  const gone = posting.closeReason !== 'duplicate' && (!!posting.archivedAt || (!!posting.expiresAt && posting.expiresAt <= new Date()))
   if (gone && !tracked && (src === 'public_page' || src === 'check_fit')) {
     after(() => captureServerEvent(profile.id, 'closed_job_redirected', { source: src, jobId: posting.id, company: posting.companyName, title: posting.title }))
     redirect(alternativesHrefs(posting.disclosure === 'CONFIDENTIAL' ? null : posting.companyName, posting.title).title)
