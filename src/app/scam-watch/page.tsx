@@ -5,6 +5,7 @@ import { ShieldAlert, MailWarning, Link2, BellRing } from 'lucide-react'
 import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = pageMetadata('/scam-watch')
 
@@ -51,6 +52,7 @@ export default function ScamWatchPage() {
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-5xl">
               Fake recruiters go after people who are job hunting. Vic checks your inbox.
             </h1>
+            <Squiggle className="mt-2" />
             <p className="mt-5 text-lg text-muted-foreground">
               When you are looking for work, every recruiter email feels like good news, and scammers know it. NextChapter
               looks at recruiter and interview emails in your connected Gmail and emails you within minutes when one looks

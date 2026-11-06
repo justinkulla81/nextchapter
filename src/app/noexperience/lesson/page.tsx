@@ -3,6 +3,7 @@ import { NOINDEX } from '@/lib/seo/canonical'
 import Link from 'next/link'
 import { CrucibleInterestForm } from '@/components/crucible/CrucibleInterestForm'
 import { CrucibleWordmark } from '@/components/crucible/CrucibleWordmark'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { ...NOINDEX, title: { absolute: 'The noexperienceneeded.ai Lesson' } }
 
@@ -20,6 +21,7 @@ export default function CrucibleLessonPage() {
         <h1 className="text-2xl font-bold tracking-tight text-navy sm:text-3xl">
           How to turn a non-traditional background into the thing they hire.
         </h1>
+        <Squiggle className="mx-auto mt-2 block" />
         <p className="mt-4 text-muted-foreground">
           A short, practical lesson on the exact judgment this challenge measures — how to catch what an AI
           misses, and how to show that skill to an employer. Not open yet. Leave your email and we&apos;ll tell

@@ -6,6 +6,7 @@ import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
 import { COMPETITOR_COMPARISONS } from '@/lib/marketing/competitor-comparisons'
 import { PullTop } from '@/components/capture/PullCta'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = pageMetadata('/vs')
 
@@ -39,6 +40,7 @@ export default function ComparisonIndexPage() {
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           How NextChapter compares
         </h1>
+        <Squiggle className="mt-2" />
         <p className="mt-3 max-w-xl text-lg text-muted-foreground">
           What NextChapter does, next to the questions to ask each provider. We describe what we can show
           about our own product and make no claims about theirs.

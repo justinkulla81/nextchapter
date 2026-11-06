@@ -5,6 +5,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { insight } from '@/lib/seo/insights'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = {
   title: 'Outplacement accounts after the contract ends',
@@ -54,6 +55,7 @@ export default function OutplacementAccountAfterContractArticlePage() {
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
           What happens to your outplacement account when the contract ends
         </h1>
+        <Squiggle className="mt-2" />
         <AuthorByline updated={ARTICLE.lastUpdated} />
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">

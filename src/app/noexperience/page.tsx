@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { CrucibleLandingTracker } from '@/components/crucible/CrucibleLandingTracker'
 import { CrucibleWordmark } from '@/components/crucible/CrucibleWordmark'
 import { canonical } from '@/lib/seo/canonical'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = {
   ...canonical('/noexperience'),
@@ -96,6 +97,7 @@ export default async function CruciblePage({
           <br />
           Prove them wrong in 15 minutes.
         </h1>
+        <Squiggle className="mt-2" />
         <p className="mx-auto mt-6 max-w-2xl text-lg text-[#F5F3EE]/70">
           An AI wrote real code. It looks done. It isn&apos;t.{' '}
           <span className="font-semibold text-[#F5F3EE]">You&apos;re not taking a test — the AI is. You&apos;re the judge.</span>{' '}
