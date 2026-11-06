@@ -4,13 +4,13 @@
 //
 //   npm run aei:report -- [--asof 2026-10-31] [--exposure-file path.csv]
 //        [--microsoft-file ms.csv] [--openai-file oa.csv] [--no-crosscheck]
+//        [--postings-file postings.json]   (rows of {title, function, firstSeenAt, closedAt}; skips the database)
 //
 // Reads CompanyJobOpening (read only). Writes only under data/aei/. See docs/AEI_SECTION.md
 // for how the section is worded and what it must not claim.
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { prisma } from '../../src/lib/prisma'
 import { compareVintages, parseExposureCsv, type ExposureRow } from '../../src/lib/aei/exposure'
 import { buildTitleIndex } from '../../src/lib/aei/match'
 import { buildExhibits, matchPostings, matchSample, MIN_CELL, type PostingInput } from '../../src/lib/aei/aggregate'
@@ -44,6 +44,15 @@ function csvOf(rows: Record<string, string | number | null>[]): string {
 }
 
 async function loadPostings(asOf: Date): Promise<PostingInput[]> {
+  const file = arg('postings-file')
+  if (file) {
+    const rows = JSON.parse(readFileSync(file, 'utf8')) as { title: string; function: string | null; firstSeenAt: string; closedAt: string | null }[]
+    const from = asOf.getTime() - 61 * 86_400_000
+    return rows
+      .map((r) => ({ title: r.title, fn: r.function, firstSeenAt: new Date(`${r.firstSeenAt}Z`), closedAt: r.closedAt ? new Date(`${r.closedAt}Z`) : null }))
+      .filter((r) => r.firstSeenAt.getTime() <= asOf.getTime() && (!r.closedAt || r.closedAt.getTime() > from))
+  }
+  const { prisma } = await import('../../src/lib/prisma')
   const from = new Date(asOf.getTime() - 61 * 86_400_000)
   const out: PostingInput[] = []
   let cursor: string | undefined
@@ -134,4 +143,4 @@ async function main() {
   console.log(`Wrote ${outDir}`)
 }
 
-main().catch((e) => { console.error(e); process.exit(1) }).finally(() => prisma.$disconnect())
+main().catch((e) => { console.error(e); process.exit(1) }).finally(async () => { if (!arg('postings-file')) await (await import('../../src/lib/prisma')).prisma.$disconnect() })
