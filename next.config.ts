@@ -191,8 +191,6 @@ const nextConfig: NextConfig = {
         destination: '/layoffs/2026',
         permanent: true,
       })),
-      // 2026-11-05, owner: the paid-search page /after-a-layoff and its A/B test are retired; the address goes to the layoff tracker.
-      { source: '/after-a-layoff', destination: '/layoffs', permanent: true },
       // redirect-non-candidate.ts sends contest employers here after sign-in; the address has no page of its own.
       { source: '/noexperience/employers', destination: '/noexperience/employers/contests', permanent: false },
       // Retired 2026-10-23: the website shows plans, not prices.
