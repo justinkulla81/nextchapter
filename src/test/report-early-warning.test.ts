@@ -14,7 +14,7 @@ function editionMonth(slug: string): string | null {
 
 // Editions from October 2026 on carry the early-warning section with that month's own data snapshot.
 describe('early-warning section in monthly editions', () => {
-  const required = REPORT_EDITIONS.map((e) => ({ slug: e.slug, month: editionMonth(e.slug) })).filter((e) => e.month && e.month >= '2026-10')
+  const required = REPORT_EDITIONS.filter((e) => !e.earlyWarningPending).map((e) => ({ slug: e.slug, month: editionMonth(e.slug) })).filter((e) => e.month && e.month >= '2026-10')
 
   it('has a snapshot and renders the section for every edition from October 2026', () => {
     for (const { slug, month } of required) {
@@ -22,6 +22,14 @@ describe('early-warning section in monthly editions', () => {
       expect(fs.existsSync(path.join(snap, 'us-early-warning.csv')), `${slug}: missing ${month} snapshot (npm run report:early-warning -- --edition ${month})`).toBe(true)
       const page = fs.readFileSync(path.join(process.cwd(), 'src', 'app', 'reports', slug, 'page.tsx'), 'utf8')
       expect(page, `${slug}: page.tsx does not render EarlyWarningPanels`).toContain(`<EarlyWarningPanels edition="${month}"`)
+    }
+  })
+
+  it('removes the pending flag once the snapshot exists', () => {
+    for (const e of REPORT_EDITIONS.filter((x) => x.earlyWarningPending)) {
+      const month = editionMonth(e.slug)
+      const snap = path.join(process.cwd(), 'public', 'reports', 'early-warning', month!, 'us-early-warning.csv')
+      expect(fs.existsSync(snap), `${e.slug}: the ${month} snapshot exists, so remove earlyWarningPending and render EarlyWarningPanels`).toBe(false)
     }
   })
 
