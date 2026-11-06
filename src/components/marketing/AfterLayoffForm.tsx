@@ -58,7 +58,7 @@ function Form({ className }: { className?: string }) {
     <form
       action={action}
       noValidate
-      className={cn('flex max-w-lg flex-col gap-3 sm:flex-row', className, pending && 'cursor-wait')}
+      className={cn('flex flex-col gap-3 sm:flex-row', className, pending && 'cursor-wait')}
       onSubmit={() => posthog.capture('after_a_layoff_submitted', { source })}
     >
       <input type="hidden" name="situation" value={SITUATION} />
@@ -77,10 +77,10 @@ function Form({ className }: { className?: string }) {
         defaultValue={state?.email}
         placeholder="you@example.com"
         aria-invalid={state?.error ? true : undefined}
-        className="h-14 shrink-0 rounded-lg border border-border bg-white px-4 text-lg text-ink sm:flex-1"
+        className="h-14 min-w-0 rounded-lg border border-border bg-white px-4 text-lg text-ink sm:flex-1"
       />
-      <Button type="submit" size="lg" disabled={pending} className="h-14 rounded-full bg-action px-8 text-lg font-semibold text-action-foreground hover:bg-action hover:brightness-95">
-        {pending ? 'Sending…' : 'Email me my plan'}
+      <Button type="submit" size="lg" disabled={pending} className="h-14 shrink-0 rounded-full bg-action px-8 text-lg font-semibold text-action-foreground hover:bg-action hover:brightness-95">
+        {pending ? 'Starting…' : 'Start my account'}
       </Button>
       {state?.error && (
         <p role="alert" className="text-sm text-destructive sm:basis-full">
