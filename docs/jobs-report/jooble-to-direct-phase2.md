@@ -23,7 +23,20 @@ Each board lists far more than we hold direct (Nvidia: 0 direct, 2,000+ on its b
 
 ## Not found yet (career site or system not confirmed)
 
-Goldman Sachs (Jooble 65, direct 0), Jacobs (81, 0), ADP (151 across two names, 0), TikTok (73, 0), AECOM, Stantec, Deloitte, Lockheed Martin, Google, Apple, PwC, KPMG, Walmart: either a custom system (not Workday) or a Workday site name not guessed. Lockheed, Deloitte, Google, Apple, PwC, KPMG, Walmart, AECOM and Stantec already have direct rows, so their crawler source exists; the Jooble remainder is a coverage gap to look at in ncrawl (see `ncrawl-google-gap-prompt.md`). The rest need the job system found by following the Apply links on their career page.
+AECOM, Stantec, Deloitte, Lockheed Martin, Google, Apple, PwC, KPMG, Walmart: either a custom system (not Workday) or a Workday site name not guessed. (Goldman Sachs, Jacobs, ADP and TikTok are resolved below.) Lockheed, Deloitte, Google, Apple, PwC, KPMG, Walmart, AECOM and Stantec already have direct rows, so their crawler source exists; the Jooble remainder is a coverage gap to look at in ncrawl (see `ncrawl-google-gap-prompt.md`). The rest need the job system found by following the Apply links on their career page.
+
+## Found on their own sites (2026-11-06)
+
+Goldman Sachs, TikTok and ADP do not use Workday; each runs its own career site with a public endpoint. Jacobs uses Avature behind a bot check. Counts are all countries unless noted. Live via Jooble and direct counts are from 2026-11-05.
+
+| Employer | Live via Jooble | Live direct | Job system | Public endpoint | Status |
+|---|---|---|---|---|---|
+| Goldman Sachs | 65 | 0 | Own site, higher.gs.com | GraphQL `POST https://api-higher.gs.com/gateway/api/v1/graphql`, operation `GetRoles` (`roleSearch(searchQueryInput)`: `page`, `sort`, `filters`, `experiences`, `searchTerm`; returns `totalCount`, `items { roleId jobTitle locations { city state country } }`) | Works: 698 roles. The US location filter shape is not yet confirmed (a guessed filter field was rejected); filter by `locations.country` client-side until it is. |
+| TikTok | 73 | 0 | Own site, lifeattiktok.com | `POST https://api.lifeattiktok.com/api/v1/public/supplier/search/job/posts` with headers `Origin: https://lifeattiktok.com`, `Referer: https://lifeattiktok.com/`, `website-path: tiktok`; body `{"keyword":"","limit":100,"offset":0,"job_category_id_list":[],"location_code_list":[],"subject_id_list":[],"recruitment_id_list":[],"portal_type":6,"job_function_id_list":[],"storefront_id_list":[],"portal_entrance":1}` | Works: 4,291 postings, about a third in the US (38 of the first 100; one page, an estimate). Each post has `city_info` with the country. Page with `offset`. |
+| ADP | 151 (two company names) | 0 | Own server-rendered site, jobs.adp.com | Listing `https://jobs.adp.com/en/jobs/?page=N` (about 47 pages), detail `https://jobs.adp.com/en/jobs/<id>/<slug>/` with JobPosting data (address in `addressRegion`; no `validThrough` seen). Apply goes through myjobs.adp.com | Readable by page crawl. |
+| Jacobs | 81 | 0 | Avature, careers.jacobs.com (`/en_US/careers/SearchJobs`) | None readable | Blocked: every request, including robots.txt and the sitemap, answers an empty HTTP 202 (a bot challenge). Unresolved; the jobs stay on Jooble for now. |
+
+These need their own crawler adapters (not a Workday config line). Goldman and TikTok are clean JSON; ADP is a page crawl. Prompt: `docs/specs/ncrawl-own-site-adapters-prompt.md`.
 
 ## Staffing and recruiter firms (do not chase)
 
