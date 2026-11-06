@@ -22,6 +22,8 @@ const DEADLINE_MS = 240_000
 // (it did on 2026-11-04). Past this the candidate counts as failed and the worker moves on; the send claim makes a
 // re-run safe.
 const PER_CANDIDATE_MS = 45_000
+// The run answers by here even if something is still in flight (see the hard stop below).
+const HARD_STOP_MS = 270_000
 
 function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout>
@@ -90,6 +92,7 @@ export const GET = withCronRun('job-search-daily', async () => {
   let next = 0
 
   const processCandidate = async (candidate: (typeof queue)[number]) => {
+    console.log('Job Search Daily: starting candidate', candidate.id, `${Date.now() - startedAt}ms in`)
     if (await hasAlreadySentToday(candidate.id, 'JOB_SEARCH_DAILY')) return
     const state = engagement.get(candidate.id) ?? 'active'
     if (state === 'dormant') {
@@ -129,7 +132,23 @@ export const GET = withCronRun('job-search-daily', async () => {
       }
     }
   }
-  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, queue.length) }, worker))
+  // Hard stop: with 15 eligible members the run was still RUNNING after 6 minutes on 2026-11-04 and 2026-11-06 (the watchdog
+  // then called it TIMED_OUT) although every candidate is capped at 45 s, so something outside the per-candidate cap hung.
+  // Answer at HARD_STOP_MS whatever is still in flight, so the run is recorded FAILED with its counts and the log names the stall.
+  let hardStopped = false
+  let hardTimer: ReturnType<typeof setTimeout> | undefined
+  const hardStop = new Promise<void>((resolve) => {
+    hardTimer = setTimeout(() => {
+      hardStopped = true
+      resolve()
+    }, HARD_STOP_MS)
+  })
+  await Promise.race([Promise.all(Array.from({ length: Math.min(CONCURRENCY, queue.length) }, worker)), hardStop])
+  clearTimeout(hardTimer)
+  if (hardStopped) {
+    skippedForTime += Math.max(0, queue.length - next)
+    console.error(`Job Search Daily: hard stop at ${HARD_STOP_MS}ms; ${next} of ${queue.length} candidates started, ${sent} sent, ${failed} failed`)
+  }
   if (skippedForTime > 0) console.error(`Job Search Daily: ${skippedForTime} candidate(s) not reached before the ${DEADLINE_MS}ms deadline`)
 
   captureServerEvent('cron', 'job_search_daily_run', {

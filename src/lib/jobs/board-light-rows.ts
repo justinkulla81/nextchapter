@@ -183,6 +183,8 @@ export interface ReconcileResult {
   upserted: number
   deleted: number
   ms: number
+  /** false when the time budget ran out before the last page. */
+  complete: boolean
 }
 
 /**
@@ -193,13 +195,19 @@ export interface ReconcileResult {
  */
 const RECONCILE_PAUSE_MS = 250
 
-export async function reconcileBoardLightRows(): Promise<ReconcileResult> {
+export async function reconcileBoardLightRows(opts: { budgetMs?: number } = {}): Promise<ReconcileResult> {
   const started = Date.now()
   let lo = ''
   let pages = 0
   let upserted = 0
   let deleted = 0
   for (;;) {
+    // Out of time: stop between pages instead of being cut off mid-statement (an orphaned statement keeps running in Postgres and
+    // deadlocks the watchdog's retry, 2026-11-06). The triggers keep the copy in step; the next night repairs the rest.
+    if (opts.budgetMs !== undefined && Date.now() - started > opts.budgetMs) {
+      console.error('Board light rows: reconcile stopped at its time budget', { pages, lo })
+      return { pages, upserted, deleted, ms: Date.now() - started, complete: false }
+    }
     const next = await prisma.$queryRaw<{ id: string }[]>`
       SELECT "id" FROM "ExclusiveJobPosting" WHERE "id" > ${lo} ORDER BY "id" OFFSET ${RECONCILE_PAGE - 1} LIMIT 1`
     const hi = next[0]?.id ?? null
@@ -214,5 +222,5 @@ export async function reconcileBoardLightRows(): Promise<ReconcileResult> {
     // the same minutes. About 60 pages, so this adds about 15 s to the run.
     await new Promise((resolve) => setTimeout(resolve, RECONCILE_PAUSE_MS))
   }
-  return { pages, upserted, deleted, ms: Date.now() - started }
+  return { pages, upserted, deleted, ms: Date.now() - started, complete: true }
 }

@@ -32,7 +32,9 @@ describe('assessJob', () => {
     expect(r.detail).toContain('boom')
   })
   it('flags a run still RUNNING past the time limit as cut off, but not a fresh one', () => {
-    expect(assessJob(daily, { status: 'RUNNING', startedAt: min(10) }, min(5000), now).health).toBe('timed_out')
+    expect(assessJob(daily, { status: 'RUNNING', startedAt: min(20) }, min(5000), now).health).toBe('timed_out')
+    // Routes may run 800 s, so 10 minutes in is still a live run, not a cut-off one.
+    expect(assessJob(daily, { status: 'RUNNING', startedAt: min(10) }, min(5000), now).health).toBe('healthy')
     expect(assessJob(daily, { status: 'RUNNING', startedAt: min(1) }, min(5000), now).health).toBe('healthy')
   })
   it('flags a job that stopped starting', () => {
