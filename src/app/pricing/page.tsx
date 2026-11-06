@@ -7,6 +7,8 @@ import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
 import { FAMILY_LABELS, PORTAL_ORDER, PORTAL_PLAN_LABELS, plansAcrossPortals, plansForFamily, plansForPortal } from '@/lib/marketing/plans'
 import { hubJsonLd, portalMetadata } from '@/lib/marketing/portal-seo'
+import { Squiggle } from '@/components/ui/squiggle'
+import { ShortVersion } from '@/components/ui/short-version'
 
 // Every plan from src/lib/marketing/plans.ts: the individual plans, then each portal's plans under the portal's name with a
 // link to its page, then the plan that spans the employer sections. Names and what each includes, never an amount.
@@ -37,9 +39,10 @@ export default function PlansPage() {
       <main className="mx-auto w-full max-w-4xl px-6 py-8">
         <div className="text-center">
           <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">{pageH1('/pricing', 'Plans')}</h1>
-          <p className="mx-auto mt-3 max-w-xl text-lg text-muted-foreground">
+          <Squiggle className="mx-auto mt-2 block" />
+          <ShortVersion className="mx-auto mt-6 max-w-xl text-left">
             NextChapter is free for Members. Here is what each plan includes, for every kind of organization.
-          </p>
+          </ShortVersion>
         </div>
 
         <section className="mt-14" aria-labelledby="plans-individual">
