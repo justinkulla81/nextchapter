@@ -1,6 +1,6 @@
 # October 2026 White Collar Employment Report
 
-*Draft v11. Covers October 2026 data; to be published in November 2026. Not published or sent.*
+*Draft v12. Covers October 2026 data; to be published in November 2026. Not published or sent.*
 
 ## Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago
 
@@ -33,7 +33,7 @@ Share of employed people, January to September 2026 monthly average (Census CPS,
 
 Knowledge workers are about 70% of employed white-collar workers and about 73% of employed college graduates.
 
-| Group, January to September | Unemployment rate 2026 | 2025 | Share of unemployed out 27+ weeks 2026 | 2025 | Median weeks in current spell 2026 | 2025 |
+| Group, January to September | Unemployment rate, 2026 | Unemployment rate, 2025 | Share out 27+ weeks, 2026 | Share out 27+ weeks, 2025 | Median weeks in current spell, 2026 | Median weeks in current spell, 2025 |
 |---|---:|---:|---:|---:|---:|---:|
 | All workers | 4.32% | 4.30% | 25.8% | 22.7% | 11 | 9 |
 | White-collar | 2.63% | 2.48% | 28.5% | 23.2% | 12 | 9 |
@@ -48,7 +48,7 @@ White-collar workers aged 50 and over: 37.0% out 27+ weeks vs 29.5%, median spel
 
 ## Why white-collar and professional work matters for the middle class
 
-Blue-collar job loss has long drawn attention, for good reason: a plant closure hits a town at once. White-collar and professional work is now the larger part of the workforce, and the way it is lost is different.
+Blue-collar job loss has long drawn attention, for good reason: a plant closure hits a town at once. White-collar and professional work is now the larger part of the workforce, and white-collar job losses are often less concentrated in a single employer or location (our reading).
 
 - **It is a large share of work, and the strain shows up in duration, not the headline rate.** White-collar occupations are 43.9% of employed people and knowledge workers 30.7%, against 20.2% in blue-collar occupations. White-collar unemployment is 2.63% against 4.95% for blue-collar, yet 28.5% of unemployed white-collar workers have been out 27+ weeks, against 22.7% for blue-collar, and the share has also risen for blue-collar workers, by less (+2.9 points against +5.3; the blue-collar rise clears the BLS margin but not the more conservative one) (Census CPS, January to September 2026).
 - **Losses can be long-lasting.** Lachowska, Mas and Woodbury (2020), using Washington State records, find earnings about 16% below those of comparable workers five years after a job loss (NBER working-paper version). Davis and von Wachter (2011) find that over 20 years the loss averages 1.4 years of prior earnings when a layoff happens while unemployment is under 6%, and 2.8 years when it is above 8%. Schwerdt, Ichino, Ruf, Winter-Ebmer and Zweimüller (IZA, 2008), using Austrian plant closures, find long-run effects that are weak for blue-collar workers but strong and persistent for white-collar workers, consistent with firm-specific skills mattering more in white-collar jobs. These are studies of past periods and specific groups.
@@ -63,7 +63,7 @@ This section describes what the data show about white-collar and professional wo
 
 - **From "AI" to "the economy" in layoff announcements.** Challenger says AI dominated announced-cut reasons through spring and summer, while in the fall employers more often cite market and economic conditions, now the top reason for 2026. That is what employers say; it does not show what caused any cut.
 - **From low-hire, low-fire to a hiring pickup.** September looked "soft, but not dire" (Employ America) and "steadiness without a spark" (Indeed). October beat expectations, though announced hiring is mostly seasonal (72% of 2026 hiring plans, Challenger).
-- **From rate cuts to possible hikes.** Employ America's base case moved from easing to a hold to a hike, with an energy shock lifting inflation (CNN).
+- **From rate cuts to possible hikes, which tend to slow hiring.** Employ America's base case moved from easing to a hold to a hike, with an energy shock lifting inflation (CNN).
 - **Early-career workers remain the open question.** The Stanford Digital Economy Lab's August 2026 update puts employment of 22- to 25-year-olds in the most AI-exposed occupations 19% below comparable peers, up from 15% a year earlier; the authors treat this as an early indicator, not proof of cause. Yale's Budget Lab (Oct 14) found no clear economy-wide disruption from AI in September data. Indeed finds advertised pay rising fastest in the most AI-exposed occupations (about 46% since 2021, against about 25% in the least-exposed occupations).
 - **Voluntary exits instead of layoffs, at the largest employers.** Microsoft and Google both used voluntary exit offers this year (below).
 
@@ -111,7 +111,7 @@ Seattle, San Francisco and Santa Rosa have among the lowest local postings index
 
 ## Layoffs and voluntary exits
 
-- **Microsoft:** voluntary exit offers to about 60,000 employees, announced Oct 26. The 60,000 is the number eligible, about a quarter of the workforce, up to level 70 in the U.S., Canada, the U.K. and India, in participating organizations only. Microsoft reportedly anticipates under 5% will accept. The 60,000 and the eligibility details are as reported by CNBC, GeekWire, Fortune and Windows Central, not an official figure we could read. Challenger records voluntary programs by actual acceptances or a stated target, so these offers are not in its October total, and notes they often signal more layoffs.
+- **Microsoft:** voluntary exit offers to about 60,000 employees, announced Oct 26. The 60,000 is the number eligible, about a quarter of the workforce, up to level 70 in the U.S., Canada, the U.K. and India, in participating organizations only. Microsoft reportedly anticipates under 5% will accept. The 60,000 and the eligibility details are as reported by CNBC, GeekWire, Fortune and Windows Central, not an official figure we could read. Challenger records voluntary programs by actual acceptances or a stated target, so these offers are not in its October total, and says such offers “tend to signal more layoffs to come”.
 - **Google:** confirmed to Reuters on Nov 4 that it expanded voluntary exit offers in June 2026 to employees in Canada, France, Germany, Japan and Switzerland, following U.S. rounds that began in 2025. Participation has not been disclosed, and some units (Cloud, DeepMind) have been excluded.
 - **Squarespace:** about 300 employees, 19% of staff, confirmed by the company (TechCrunch, Nov 2).
 - **Amazon:** fewer than 1,000 corporate roles, mainly in its Stores division, confirmed Oct 7 (Reuters).
@@ -124,7 +124,7 @@ The full list of announcements we track is in NextChapter's layoff tracker; item
 
 ## Employers: who is hiring
 
-Counts as of October 26, 2026, not seasonally adjusted, from NextChapter's daily count of verified open jobs on employer career sites and the job systems behind them: 487,679 jobs, of which 130,710 (27%) are entry-level or early-career. This is a different universe from the Anthropic section below, which uses open postings in our crawl as of November 6 (653,974, excluding postings that link through a job aggregator), including imported postings not yet verified, some of which may no longer be open. These are all functions and levels, entry-level included; the Census white-collar test is not applied, so the counts are never combined with the white-collar figures above. A ranking shows who has the most open jobs among the jobs we track, not who hires most in the economy and not how good an employer is. Coverage is partial and follows our sources.
+Counts as of October 26, 2026, not seasonally adjusted, from NextChapter's daily count of verified open jobs on employer career sites and the job systems behind them (a job counts as verified when our crawl has confirmed it is still live on the employer's career site or job system within the past 14 days): 487,679 jobs, of which 130,710 (27%) are entry-level or early-career. This is a different universe from the Anthropic section below, which uses open postings in our crawl as of November 6 (653,974, excluding postings that link through a job aggregator), including imported postings not yet verified, some of which may no longer be open. These are all functions and levels, entry-level included; the Census white-collar test is not applied, so the counts are never combined with the white-collar figures above. A ranking shows who has the most open jobs among the jobs we track, not who hires most in the economy and not how good an employer is. Coverage is partial and follows our sources.
 
 **Most entry-level jobs (roughly 0 to 3 years of experience)**
 
@@ -190,16 +190,16 @@ We matched job titles on open postings NextChapter tracks (as of November 6) to 
 
 Note: Covers 89,447 matched postings out of 653,974 open postings crawled as of Nov 6, 2026. Postings that link through a job aggregator are excluded; about 86% of the rest were loaded in bulk from employer career sites and job systems, are not individually verified, and some may no longer be open.
 
-- **Coverage:** 89,447 of 653,974 open postings (13.7%) matched an occupation; the rest are not forced into one. The matched set leans toward professional and management titles. Counts are postings we crawl, not all U.S. openings; cells under 100 postings are not shown.
+- **Coverage:** 89,447 of 653,974 open postings (13.7%) matched an occupation; the rest are not forced into one, so every share here describes the matched postings, not all postings. The matched set leans toward professional and management titles. Counts are postings we crawl, not all U.S. openings; cells under 100 postings are not shown.
 - **Highest-scoring occupations with 100 or more open postings:** market research analysts and marketing specialists (0.65; 690 open), financial and investment analysts (0.57; 3,246), information security analysts (0.49; 1,181), technical writers (0.47; 227), data scientists (0.46; 3,583), secretaries and administrative assistants (0.45; 3,673), operations research analysts (0.43; 114).
 - **By function (average score of matched postings):** data and analytics 0.46, finance 0.38, marketing 0.38, administration 0.36, human resources 0.31, legal 0.23, engineering 0.21.
 - **Cross-check:** the unweighted Spearman rank correlation across the 756 overlapping occupations is 0.58 with Microsoft's applicability scores and 0.70 with OpenAI's exposure ratings: broad agreement, not close, so we show bands, not precise rankings.
-- **Match quality:** we reviewed all 200 sampled matches by hand. 4 (2%) looked wrong (for example a development manager matched to training and development managers, and a school president matched to general and operations managers). Another 15 (7.5%) were judgment calls between neighboring occupations: machine learning engineers, DevOps and site-reliability engineers, and software engineering managers. These matter because the neighboring occupations score differently, so averages for engineering-adjacent titles are the least certain figures in this section.
+- **Match quality:** we reviewed all 200 sampled matches by hand. 4 (2%) looked wrong (for example a development manager matched to training and development managers, and a school president matched to general and operations managers). Another 15 (7.5%) were judgment calls between neighboring occupations: machine learning engineers, DevOps and site-reliability engineers, and software engineering managers. These matter because the neighboring occupations score differently, so averages for engineering-adjacent titles are the least certain figures in this section. The 200 are distinct matched titles from the final dataset, taken at every nth title in alphabetical order (not random, and not weighted by how many postings each title has), reviewed from the job title to its assigned occupation without seeing exposure scores, so the rates describe titles, not postings. Judgment-call matches are counted as matched, as assigned, in every figure above.
 - **Change over time:** not reported. Our postings history starts in mid-October 2026, and the exposure file used is Anthropic's October 22 version; a comparison with the current file on November 6 found the values for all 497 occupations in SOC groups 11 to 43 unchanged.
 
 *What it means for a job seeker:* exposure describes how much of a job's tasks AI tools are observed doing, which is a reason to build fluency with those tools, not a prediction that the job will go away.
 
-## The new Congress
+## The incoming Congress
 
 Democrats won both chambers on November 3 (AP). Analysts expect a federal push to override state AI laws to lose momentum and more oversight hearings, and expect major technology legislation to be unlikely in 2027 without bipartisan votes (NatLawReview, Roll Call). On the economy, analysts flag a higher chance of budget standoffs and a debt-limit deadline around mid-to-late summer 2027, while divided government makes large tax or trade changes harder (PGIM, BNP Paribas Fortis, ICICI Bank). These are analysts' readings, not forecasts of ours.
 
@@ -208,6 +208,6 @@ Democrats won both chambers on November 3 (AP). Analysts expect a federal push t
 ## Appendix: other reference points (secondary and vendor data)
 
 - **Security hiring (a16z, Oct 28).** A survey of 100 chief information security officers at companies with 1,000 or more employees: 87% expect cybersecurity spending to rise; nearly half expect security headcount to rise, about half flat, 4% expect cuts; 18% have AI security-operations tools in production. a16z is an investor in the space, the survey is self-reported with 100 respondents, and we have not checked the methodology.
-- **Where people get interviews (Huntr, Oct 7).** In Huntr's own user data, applying on a company's careers page led to an interview 6.87% of the time versus 1.95% through job boards. Vendor data, not independently checked.
+- **Where people get interviews (Huntr, Oct 7).** In Huntr's own user data, applying on a company's careers page led to an interview 6.87% of the time versus 1.95% through job boards. Vendor data, not independently checked; the comparison is not necessarily causal and may reflect differences in applicants or jobs by channel.
 - **Corporate AI payoff (Apollo, Daily Spark).** Chief economist Torsten Slok writes that revenue per worker and profit margins are rising for the seven largest tech companies and flat for the other roughly 493 in the S&P 500, with no sign of an AI lift to productivity growth. Commentary; not independently checked.
 - **Reminder on sources:** figures drawn from Employ America, Indeed Hiring Lab, Apollo and news reports are as reported by those sources.

@@ -5,6 +5,9 @@
 ## What is being compared
 For each group, the share of unemployed people who have been unemployed 27 weeks or more (spells in progress), pooled over January to September 2026 and compared with the same months of 2025. Weights are the CPS composite weights. Not seasonally adjusted. The counts of records behind each group are unweighted person-month observations: the CPS follows households for several months, so one person can appear more than once.
 
+## How the nine months are pooled
+The share is a ratio of weighted sums, not an average of monthly percentages: the numerator is the sum, over January to September, of the weighted count of unemployed people out 27 weeks or more; the denominator is the sum of the weighted count of all unemployed people. The same is done for 2025. Weights are the CPS composite weights (PWCMPWGT); durations are top-coded at 119 weeks and are spells in progress.
+
 ## Method 1 (primary): BLS generalized variance functions
 Parameters are from BLS's published "Parameters and factors for calculating standard errors for estimates from the Current Population Survey", table PF-12, percent distribution, "27 weeks and over": alpha = 3790.63896835, beta = -1.4058504e-05. Factors: quarterly averages 0.7244570082; yearly averages 0.4135866746; change in consecutive yearly averages 0.5546751680.
 
@@ -18,8 +21,14 @@ How overlap between months and years is handled: BLS builds the published factor
 
 Limits: the nine-month factor is an interpolation, not a published value; and for subgroups (knowledge workers, white-collar without a bachelor's, ages 55 to 64, blue-collar) we use the parameters for all unemployed people, because BLS does not publish parameters for those cuts. That can understate variance for small groups. Check: the same method reproduces the September edition's published margins (white-collar 27+ weeks, +5.3 points: plus or minus 2.3 here for January to September against 2.4 for January to August; ages 55 to 64: 6.1 against 6.3).
 
+### Worked example: white-collar workers, 27+ week share
+Inputs: average monthly white-collar unemployed y = 1,933,000 persons; p = 28.5%.
+- Single-month standard error: sqrt(((3790.639 + (-1.4058504e-05 x 1,933,000)) / 1,933,000) x 28.5 x 71.5) = 1.992 points.
+- Factor for the change in nine-month averages: 0.6936 (see step 4).
+- Standard error of the change: 0.6936 x 1.992 = 1.382; 90% margin: 1.645 x 1.382 = plus or minus 2.3 points. The observed change is +5.3 points.
+
 ## Method 2 (conservative check)
-Treat the two years as independent samples of unemployed person-month observations, apply a design effect of 2.0, and count the pooled months as 40% independent. Margin = 1.645 x sqrt(5 x (p1(1-p1)/n1 + p2(1-p2)/n2)). This ignores the positive covariance between years, so it overstates the margin of the change.
+This is a sensitivity test, not a validated design-based estimate. The rule of thumb (design effect 2.0; pooled months counted as 40% independent, so eight months count as 3.2) was adopted in the September edition's first versions and has not been validated against replicate-weight estimates, which Census does not release for the public monthly files. Treat the two years as independent samples of unemployed person-month observations, apply a design effect of 2.0, and count the pooled months as 40% independent. Margin = 1.645 x sqrt(5 x (p1(1-p1)/n1 + p2(1-p2)/n2)); for white-collar workers, with n = 4,315 and 4,417 person-month observations and shares of 28.5% and 23.2%, that is plus or minus 3.4 points. This ignores the positive covariance between years, so it overstates the margin of the change.
 
 ## Results
 | Group | Unemployed (thousands, monthly average) | Share out 27+ weeks, 2026 | 2025 | Change (points) | 90% margin, BLS method | 90% margin, conservative | Clears BLS | Clears conservative |

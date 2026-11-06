@@ -23,7 +23,7 @@ text = re.sub(r'^# .*\n+\*Draft.*\n+', '', text, count=1)          # title + dra
 text = text.replace('![Share of the unemployed out of work 27 or more weeks, January to September 2025 and 2026, by group](chart-long-search-shares.png)', '\n\n@@CHART@@\n\n')
 frag = subprocess.run(['pandoc','-f','markdown','-t','html5','--section-divs','--wrap=none'], input=text, capture_output=True, text=True, check=True).stdout
 soup = BeautifulSoup(frag, 'html.parser')
-labels = ['Executive summary','Chapter 01 · Who we mean','Chapter 02 · The middle class','Chapter 03 · What changed','Chapter 04 · Bright spots','Chapter 05 · Clouds','Chapter 06 · Layoffs and voluntary exits','Chapter 07 · Employers','Chapter 08 · AI exposure and open jobs','Chapter 09 · The new Congress','Appendix']
+labels = ['Executive summary','Chapter 01 · Who we mean','Chapter 02 · The middle class','Chapter 03 · What changed','Chapter 04 · Bright spots','Chapter 05 · Clouds','Chapter 06 · Layoffs and voluntary exits','Chapter 07 · Employers','Chapter 08 · AI exposure and open jobs','Chapter 09 · The incoming Congress','Appendix']
 secs = soup.find_all('section', recursive=False)
 assert len(secs)==len(labels), len(secs)
 toc=[]
@@ -54,7 +54,7 @@ for idx,(t,ti) in enumerate(zip(tables,titles)):
 RELEASE = args.release
 img = base64.b64encode(open(chart,'rb').read()).decode()
 img_src = f'data:image/png;base64,{img}'
-fig = BeautifulSoup(f'<figure class="exhibit chart" style="margin:0"><span class="ex-label">Exhibit 1</span><span class="ex-title">Among the unemployed, long spells are more common than a year ago, most for white-collar workers</span><img alt="Share of the unemployed out of work 27+ weeks, Jan–Sep 2025 and 2026, by group" style="width:100%;height:auto;max-width:100%" src="{img_src}"><span class="ex-note">Share of unemployed people out of work 27 or more weeks. Change shown with its 90% margin of error (BLS generalized-variance method, as in the September edition). All six changes clear that margin; all but blue-collar also clear a more conservative approximation (design effect 2.0, pooled months counted as 40% independent). Not seasonally adjusted; spells in progress. Source: NextChapter calculation from Census CPS basic monthly microdata.</span></figure>','html.parser')
+fig = BeautifulSoup(f'<figure class="exhibit chart" style="margin:0"><span class="ex-label">Exhibit 1</span><span class="ex-title">Among the unemployed, long spells are more common than a year ago, most for white-collar workers</span><img alt="Share of the unemployed out of work 27+ weeks, Jan–Sep 2025 and 2026, by group" style="width:100%;height:auto;max-width:100%" src="{img_src}"><span class="ex-note">Share of unemployed people out of work 27 or more weeks. Change shown with its 90% margin of error (BLS generalized-variance method, as in the September edition). All six clear the BLS-method margin; five also clear a more conservative check (design effect 2.0, pooled months counted as 40% independent), and blue-collar does not. Not seasonally adjusted; spells in progress. Source: NextChapter calculation from Census CPS basic monthly microdata.</span></figure>','html.parser')
 for p in soup.find_all('p'):
     if p.get_text().strip()=='@@CHART@@': p.replace_with(fig)
 # takeaways and notes
@@ -79,20 +79,25 @@ cover = f'''<header class="cover"><div class="cover-in">
 <div class="cover-top"><div class="brand-wrap"><span class="wordmark">NextChapter</span><span class="brand-sub">Research</span></div><div class="eyebrow">Monthly labor market report{"" if RELEASE else " · DRAFT"}</div></div>
 <div class="eyebrow">The NextChapter White Collar Employment Report · October 2026</div>
 <h1>Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago</h1>
-<p class="dek">Unemployment among white-collar workers is low, but 28.5% of the unemployed had been out of work 27 weeks or more in January to September 2026, up from 23.2%. For knowledge workers it is 29.6%; for white-collar workers aged 55 to 64, 39.1%.</p>
 <div class="cover-stats">
 <div><span class="v">+165K</span><span class="l">Jobs added in October 2026 (BLS, seasonally adjusted); unemployment 4.1%</span></div>
 <div><span class="v">28.5%</span><span class="l">Of unemployed white-collar workers out 27+ weeks, Jan–Sep 2026 (23.2% in 2025)</span></div>
 <div><span class="v">39.1%</span><span class="l">Same measure, white-collar workers aged 55–64 (27.0% in 2025)</span></div>
 <div><span class="v">153</span><span class="l">White-Collar Long-Search Index, Sep 2026 (2019 = 100, seasonally adjusted; 135 a year earlier, a gap within sampling noise)</span></div>
 </div>
-<div class="cover-meta"><span>Covers October 2026 data; to be published November 2026</span><span>Census CPS microdata through September 2026; October CPS and the early-warning section to follow</span>{'' if RELEASE else '<span>Draft 11: not published</span>'}<span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
+<div class="box" style="margin-top:2px;padding:12px 16px;gap:6px"><div class="eyebrow">Key findings</div><ul style="gap:4px">
+<li>October payrolls rose by 165,000 and unemployment fell to 4.1% (BLS, seasonally adjusted).</li>
+<li>28.5% of unemployed white-collar workers had been unemployed 27+ weeks in January to September 2026 (23.2% a year earlier); 39.1% at ages 55 to 64 (27.0%).</li>
+<li>White-collar unemployment is low (2.63%): the change is in the share of the unemployed already in long spells, not in how many are out of work.</li>
+<li>This measures ongoing spells, not the chance that a newly unemployed worker stays out six months.</li>
+</ul></div>
+<div class="cover-meta"><span>Covers October 2026 data; to be published November 2026</span><span>Census CPS microdata through September 2026; October CPS and the early-warning section to follow</span>{'' if RELEASE else '<span>Draft 12: not published</span>'}<span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
 </div></header>'''
 FONTS = ''
 if args.fonts_dir:
     FONTS = ''.join('@font-face{font-family:"Source Serif 4";font-weight:%s;font-style:normal;font-display:swap;src:url(data:font/woff2;base64,%s) format("woff2")}' % (w, base64.b64encode(open(os.path.join(args.fonts_dir, 'source-serif-4-latin-%s-normal.woff2' % w),'rb').read()).decode()) for w in ('400','600'))
 tocol = '<nav class="toc" aria-label="Contents"><div class="eyebrow">Contents</div><ol>'+''.join(f'<li><a href="#{a}"><span class="n">—</span>{html.escape(b)}</a></li>' for a,b,c in toc)+'</ol></nav>'
-doc = f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>October 2026 White Collar Employment Report{'' if RELEASE else ' (draft)'}</title><style>{FONTS}{REPORT_CSS}.ncr table.emp1 th:first-child,.ncr table.emp1 td:first-child,.ncr table.emp2 th:nth-child(2),.ncr table.emp2 td:nth-child(2){{text-align:left!important}}.ncr{{--font-inter:"Inter";--font-source-serif:"Source Serif 4"}}</style></head><body style="margin:0"><div class="ncr">{cover}<div class="wrap"><div class="grid">{tocol}<main>{soup.decode()}</main></div></div></div></body></html>'''
+doc = f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>October 2026 White Collar Employment Report{'' if RELEASE else ' (draft)'}</title><style>{FONTS}{REPORT_CSS}.ncr .cover h1{{max-width:28ch}}.ncr table.emp1 th:first-child,.ncr table.emp1 td:first-child,.ncr table.emp2 th:nth-child(2),.ncr table.emp2 td:nth-child(2){{text-align:left!important}}.ncr{{--font-inter:"Inter";--font-source-serif:"Source Serif 4"}}</style></head><body style="margin:0"><div class="ncr">{cover}<div class="wrap"><div class="grid">{tocol}<main>{soup.decode()}</main></div></div></div></body></html>'''
 open(out,'w').write(doc)
 print('wrote',out,len(doc))
 
