@@ -29,7 +29,7 @@ function Form({ className }: { className?: string }) {
 
   if (state?.done) {
     return (
-      <div role="status" className="max-w-xl rounded-2xl border border-border bg-white p-6 text-left">
+      <div role="status" className="max-w-xl rounded-2xl bg-white p-5 text-left text-ink">
         <h2 className="font-display text-2xl font-semibold text-ink">{state.capped ? 'We saved your email.' : 'Check your inbox.'}</h2>
         <p className="mt-2 text-base text-muted-foreground">
           {state.capped
@@ -58,7 +58,7 @@ function Form({ className }: { className?: string }) {
     <form
       action={action}
       noValidate
-      className={cn('flex max-w-md flex-col gap-3 sm:flex-row', className, pending && 'cursor-wait')}
+      className={cn('flex max-w-lg flex-col gap-3 sm:flex-row', className, pending && 'cursor-wait')}
       onSubmit={() => posthog.capture('after_a_layoff_submitted', { source })}
     >
       <input type="hidden" name="situation" value={SITUATION} />
@@ -77,9 +77,9 @@ function Form({ className }: { className?: string }) {
         defaultValue={state?.email}
         placeholder="you@example.com"
         aria-invalid={state?.error ? true : undefined}
-        className="h-12 shrink-0 rounded-lg border border-border bg-white px-4 text-base sm:flex-1"
+        className="h-14 shrink-0 rounded-lg border border-border bg-white px-4 text-lg text-ink sm:flex-1"
       />
-      <Button type="submit" size="lg" disabled={pending} className="h-12 rounded-full bg-action px-6 text-action-foreground hover:bg-action hover:brightness-95">
+      <Button type="submit" size="lg" disabled={pending} className="h-14 rounded-full bg-action px-8 text-lg font-semibold text-action-foreground hover:bg-action hover:brightness-95">
         {pending ? 'Sending…' : 'Email me my plan'}
       </Button>
       {state?.error && (
