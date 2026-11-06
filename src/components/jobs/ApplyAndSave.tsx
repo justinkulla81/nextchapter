@@ -135,14 +135,8 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
       {!open && <JobFitCard jobId={jobId} placement="inline" className="mt-5 lg:hidden" />}
 
       {gateOpen && variant === 'gate' && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={() => setGateOpen(false)}>
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="apply-gate-title"
-            className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="mt-4">
+          <div role="region" aria-labelledby="apply-gate-title" className={cn('max-w-md rounded-2xl border border-border bg-white p-5', pending && 'cursor-wait')}>
             <form
               action={action}
               noValidate
