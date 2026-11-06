@@ -18,7 +18,7 @@ function sourceFrom(utm: string | null): string {
   return `after-a-layoff:${tag || 'justin'}`
 }
 
-function Form() {
+function Form({ className }: { className?: string }) {
   const params = useSearchParams()
   const source = sourceFrom(params.get('utm_source'))
   const [state, action, pending] = useActionState<JourneyState, FormData>(submitJourneyLead, undefined)
@@ -29,7 +29,7 @@ function Form() {
 
   if (state?.done) {
     return (
-      <div role="status" className="mx-auto max-w-xl rounded-2xl border border-border bg-white p-6 text-center">
+      <div role="status" className="max-w-xl rounded-2xl border border-border bg-white p-6 text-left">
         <h2 className="font-display text-2xl font-semibold text-ink">{state.capped ? 'We saved your email.' : 'Check your inbox.'}</h2>
         <p className="mt-2 text-base text-muted-foreground">
           {state.capped
@@ -58,7 +58,7 @@ function Form() {
     <form
       action={action}
       noValidate
-      className={cn('mx-auto flex max-w-md flex-col gap-3 sm:flex-row', pending && 'cursor-wait')}
+      className={cn('flex max-w-md flex-col gap-3 sm:flex-row', className, pending && 'cursor-wait')}
       onSubmit={() => posthog.capture('after_a_layoff_submitted', { source })}
     >
       <input type="hidden" name="situation" value={SITUATION} />
@@ -91,10 +91,10 @@ function Form() {
   )
 }
 
-export function AfterLayoffForm() {
+export function AfterLayoffForm({ className }: { className?: string }) {
   return (
     <Suspense fallback={null}>
-      <Form />
+      <Form className={className} />
     </Suspense>
   )
 }
