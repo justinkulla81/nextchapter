@@ -84,9 +84,9 @@ cover = f'''<header class="cover"><div class="cover-in">
 <div><span class="v">+165K</span><span class="l">Jobs added in October 2026 (BLS, seasonally adjusted); unemployment 4.1%</span></div>
 <div><span class="v">28.5%</span><span class="l">Of unemployed white-collar workers out 27+ weeks, Jan–Sep 2026 (23.2% in 2025)</span></div>
 <div><span class="v">39.1%</span><span class="l">Same measure, white-collar workers aged 55–64 (27.0% in 2025)</span></div>
-<div><span class="v">153</span><span class="l">White-Collar Long-Search Index, Sep 2026 (2019 = 100, seasonally adjusted; 135 a year earlier)</span></div>
+<div><span class="v">153</span><span class="l">White-Collar Long-Search Index, Sep 2026 (2019 = 100, seasonally adjusted; 135 a year earlier, a gap within sampling noise)</span></div>
 </div>
-<div class="cover-meta"><span>Covers October 2026 data; to be published November 2026</span><span>Census CPS microdata through September 2026</span>{'' if RELEASE else '<span>Draft 10: not published</span>'}<span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
+<div class="cover-meta"><span>Covers October 2026 data; to be published November 2026</span><span>Census CPS microdata through September 2026; October CPS and the early-warning section to follow</span>{'' if RELEASE else '<span>Draft 11: not published</span>'}<span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
 </div></header>'''
 FONTS = ''
 if args.fonts_dir:

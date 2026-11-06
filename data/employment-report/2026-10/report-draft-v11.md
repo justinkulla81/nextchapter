@@ -1,6 +1,6 @@
 # October 2026 White Collar Employment Report
 
-*Draft v10. Covers October 2026 data; to be published in November 2026. Not published or sent.*
+*Draft v11. Covers October 2026 data; to be published in November 2026. Not published or sent.*
 
 ## Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago
 
@@ -10,7 +10,7 @@ Employers added 165,000 jobs in October and unemployment fell to 4.1% (BLS, seas
 
 *What it means for a job seeker:* Economy-wide openings per unemployed person are up from a year ago (not a white-collar-specific measure), so there is more to apply to. At the same time, long-duration unemployment has become more prevalent among unemployed white-collar workers: the share whose ongoing spell has lasted at least 27 weeks rose from 23.2% to 28.5%. This measures ongoing spells rather than the probability that a newly unemployed worker will remain out six months, but job seekers should still plan for the possibility of a prolonged search.
 
-*Method note:* the CPS measures how long people have been unemployed so far, not whether they are actively searching. Margins of error use the BLS generalized-variance method with BLS's published CPS parameters, as in the September edition; for subgroups we apply the parameters for all unemployed people, which can understate variance for small groups, so we also check each result against a more conservative rule (design effect 2.0, pooled months counted as 40% independent). Census October microdata are not yet published, so occupation-level figures run through September, while payrolls and unemployment are October and JOLTS and CPI are September.
+*Method note:* the CPS measures how long people have been unemployed so far, not whether they are actively searching. Margins of error use the BLS generalized-variance method with BLS's published CPS parameters, as in the September edition; for subgroups we apply the parameters for all unemployed people, which can understate variance for small groups, so we also check each result against a more conservative rule (design effect 2.0, pooled months counted as 40% independent). Census October microdata are not yet published, so occupation-level figures run through September, while payrolls and unemployment are October and JOLTS and CPI are September. This edition does not yet include the October CPS figures or the early-warning section on early-career and senior white-collar unemployment; both will be added when Census publishes the October file (listed for about November 19). The margin-of-error calculation is documented in the accompanying methodology note.
 
 ## Who we mean: white-collar, professional, college-educated and knowledge workers
 
@@ -33,7 +33,7 @@ Share of employed people, January to September 2026 monthly average (Census CPS,
 
 Knowledge workers are about 70% of employed white-collar workers and about 73% of employed college graduates.
 
-| Group, January to September | Unemployment rate 2026 | 2025 | Share of unemployed out 27+ weeks 2026 | 2025 | Median weeks unemployed 2026 | 2025 |
+| Group, January to September | Unemployment rate 2026 | 2025 | Share of unemployed out 27+ weeks 2026 | 2025 | Median weeks in current spell 2026 | 2025 |
 |---|---:|---:|---:|---:|---:|---:|
 | All workers | 4.32% | 4.30% | 25.8% | 22.7% | 11 | 9 |
 | White-collar | 2.63% | 2.48% | 28.5% | 23.2% | 12 | 9 |
@@ -42,9 +42,9 @@ Knowledge workers are about 70% of employed white-collar workers and about 73% o
 | White-collar without a bachelor's | 2.85% | 2.85% | 26.4% | 20.2% | 11 | 8 |
 | Blue-collar | 4.95% | 5.04% | 22.7% | 19.8% | 9 | 8 |
 
-Note: Unweighted unemployed respondents, 2026 / 2025: all workers 15,822 / 16,915; white-collar 4,315 / 4,417; knowledge workers 2,861 / 2,856; white-collar without a bachelor's 1,454 / 1,561; bachelor's or more 4,614 / 4,662; blue-collar 3,765 / 4,023; white-collar ages 55 to 64 768 / 763.
+Note: Unweighted unemployed person-month observations (January to September pooled; the same person can appear in more than one month), 2026 / 2025: all workers 15,822 / 16,915; white-collar 4,315 / 4,417; knowledge workers 2,861 / 2,856; white-collar without a bachelor's 1,454 / 1,561; bachelor's or more 4,614 / 4,662; blue-collar 3,765 / 4,023; white-collar ages 55 to 64 768 / 763.
 
-White-collar workers aged 50 and over: 37.0% out 27+ weeks vs 29.5%, median 16 weeks vs 12. Ages 55 to 64: 39.1% vs 27.0%, median 18 weeks vs 12 (768 unemployed respondents in 2026). White-collar workers without a bachelor's degree show the same year-over-year rise with no change in unemployment: their unemployment rate was 2.85% in both years, while the share out 27+ weeks rose 6.2 points, from 20.2% to 26.4% (±3.9 points by the BLS method and ±5.7 by the conservative rule; it clears both). The rise for knowledge workers was 4.8 points; the difference between the two groups' increases is within the margin of error, so we do not say one group is worse off. We make no claim about the 0.15-point rise in the white-collar unemployment rate; it is small and we have not tested it. Not seasonally adjusted; October CPS is not published yet.
+White-collar workers aged 50 and over: 37.0% out 27+ weeks vs 29.5%, median spell so far 16 weeks vs 12. Ages 55 to 64: 39.1% vs 27.0%, median spell so far 18 weeks vs 12 (768 unemployed person-month observations in 2026). White-collar workers without a bachelor's degree show the same year-over-year rise with no change in unemployment: their unemployment rate was 2.85% in both years, while the share out 27+ weeks rose 6.2 points, from 20.2% to 26.4% (±3.9 points by the BLS method and ±5.7 by the conservative rule; it clears both). The rise for knowledge workers was 4.8 points; the difference between the two groups' increases is within the margin of error, so we do not say one group is worse off. We make no claim about the 0.15-point rise in the white-collar unemployment rate; it is small and we have not tested it. Not seasonally adjusted; October CPS is not published yet.
 
 ## Why white-collar and professional work matters for the middle class
 
@@ -77,7 +77,7 @@ Reference periods differ by row: payrolls and unemployment are October, JOLTS is
 |---|---|---|---|
 | Payrolls, October (seasonally adjusted) | +165,000 (+0.1% m/m; +0.6% y/y) | about 65,000 expected; August revised to +186,000 and September to +60,000 | BLS |
 | Unemployment rate, October | 4.1% | 4.2% in September | BLS |
-| Job openings, September (economy-wide) | 7.52 million (+4.6% m/m) | August revised to 7.19 million; BLS describes the monthly change as little changed | BLS JOLTS |
+| Job openings, September (economy-wide) | 7.52 million, up 333,000 from August | August revised to 7.19 million; BLS describes the level as little changed | BLS JOLTS |
 | Openings per unemployed person, September (economy-wide) | 1.06 | 1.02 in August; 0.94 a year earlier | BLS (our calculation) |
 | Layoff rate, September (economy-wide) | 1.0% | 1.1% in August; BLS describes the change as small | BLS JOLTS |
 | Quits rate, September (economy-wide) | 2.1% | 1.9% in August; BLS shows 197,000 of the roughly 321,000 rise was in accommodation and food services; quits elsewhere still rose 124,000 | BLS JOLTS |
@@ -107,7 +107,7 @@ Seattle, San Francisco and Santa Rosa have among the lowest local postings index
 
 *Rates:* before the report, Employ America's base case was a Federal Reserve rate increase in December and another in March. A strong report can raise those odds, and higher borrowing costs tend to slow hiring over time. That is one forecaster's view, not a certainty.
 
-*What it means for a job seeker:* The pressure is in information, finance and technology roles and in October wage growth (+3.1% y/y) that trails the latest September inflation reading (+3.7% y/y); look at sectors adding jobs (professional services, health care) alongside the one you know.
+*What it means for a job seeker:* The pressure is in information, finance and technology roles. The latest available readings show nominal wage growth of 3.1% in October and consumer-price inflation of 3.7% in September; these are different reference periods, not a direct real-wage comparison. Look at sectors adding jobs (professional services, health care) alongside the one you know.
 
 ## Layoffs and voluntary exits
 
