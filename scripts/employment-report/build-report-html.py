@@ -54,7 +54,7 @@ for idx,(t,ti) in enumerate(zip(tables,titles)):
 RELEASE = args.release
 img = base64.b64encode(open(chart,'rb').read()).decode()
 img_src = f'data:image/png;base64,{img}'
-fig = BeautifulSoup(f'<figure class="exhibit chart" style="margin:0"><span class="ex-label">Exhibit 1</span><span class="ex-title">Among the unemployed, long spells are more common than a year ago, most for white-collar workers</span><img alt="Share of the unemployed out of work 27+ weeks, Jan–Sep 2025 and 2026, by group" style="width:100%;height:auto;max-width:100%" src="{img_src}"><span class="ex-note">Share of unemployed people out of work 27 or more weeks. Change shown with its approximate 90% margin of error (conservative approximation: design effect 2.0, pooled months counted as 40% independent, which yields wider intervals than the BLS generalized-variance method). Not seasonally adjusted; spells in progress. Source: NextChapter calculation from Census CPS basic monthly microdata.</span></figure>','html.parser')
+fig = BeautifulSoup(f'<figure class="exhibit chart" style="margin:0"><span class="ex-label">Exhibit 1</span><span class="ex-title">Among the unemployed, long spells are more common than a year ago, most for white-collar workers</span><img alt="Share of the unemployed out of work 27+ weeks, Jan–Sep 2025 and 2026, by group" style="width:100%;height:auto;max-width:100%" src="{img_src}"><span class="ex-note">Share of unemployed people out of work 27 or more weeks. Change shown with its 90% margin of error (BLS generalized-variance method, as in the September edition). All six changes clear that margin; all but blue-collar also clear a more conservative approximation (design effect 2.0, pooled months counted as 40% independent). Not seasonally adjusted; spells in progress. Source: NextChapter calculation from Census CPS basic monthly microdata.</span></figure>','html.parser')
 for p in soup.find_all('p'):
     if p.get_text().strip()=='@@CHART@@': p.replace_with(fig)
 # takeaways and notes
@@ -86,7 +86,7 @@ cover = f'''<header class="cover"><div class="cover-in">
 <div><span class="v">39.1%</span><span class="l">Same measure, white-collar workers aged 55–64 (27.0% in 2025)</span></div>
 <div><span class="v">153</span><span class="l">White-Collar Long-Search Index, Sep 2026 (2019 = 100, seasonally adjusted; 135 a year earlier)</span></div>
 </div>
-<div class="cover-meta"><span>Covers October 2026 data; to be published November 2026</span><span>Census CPS microdata through September 2026</span>{'' if RELEASE else '<span>Draft 7: not published</span>'}<span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
+<div class="cover-meta"><span>Covers October 2026 data; to be published November 2026</span><span>Census CPS microdata through September 2026</span>{'' if RELEASE else '<span>Draft 8: not published</span>'}<span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
 </div></header>'''
 FONTS = ''
 if args.fonts_dir:

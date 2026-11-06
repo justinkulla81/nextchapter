@@ -1,0 +1,68 @@
+[
+ {
+  "group": "All workers",
+  "share_2025": 22.7,
+  "share_2026": 25.8,
+  "change": 3.1,
+  "unemployed_k": 7364,
+  "moe_bls": 1.1,
+  "moe_conservative": 1.7,
+  "clears_bls": true,
+  "clears_conservative": true
+ },
+ {
+  "group": "Blue-collar",
+  "share_2025": 19.8,
+  "share_2026": 22.7,
+  "change": 2.9,
+  "unemployed_k": 1714,
+  "moe_bls": 2.2,
+  "moe_conservative": 3.4,
+  "clears_bls": true,
+  "clears_conservative": false
+ },
+ {
+  "group": "White-collar",
+  "share_2025": 23.2,
+  "share_2026": 28.5,
+  "change": 5.3,
+  "unemployed_k": 1933,
+  "moe_bls": 2.3,
+  "moe_conservative": 3.4,
+  "clears_bls": true,
+  "clears_conservative": true
+ },
+ {
+  "group": "White-collar, no bachelor's",
+  "share_2025": 20.2,
+  "share_2026": 26.4,
+  "change": 6.2,
+  "unemployed_k": 633,
+  "moe_bls": 3.9,
+  "moe_conservative": 5.7,
+  "clears_bls": true,
+  "clears_conservative": true
+ },
+ {
+  "group": "Knowledge workers",
+  "share_2025": 24.8,
+  "share_2026": 29.6,
+  "change": 4.8,
+  "unemployed_k": 1297,
+  "moe_bls": 2.8,
+  "moe_conservative": 4.3,
+  "clears_bls": true,
+  "clears_conservative": true
+ },
+ {
+  "group": "White-collar, ages 55-64",
+  "share_2025": 27.0,
+  "share_2026": 39.1,
+  "change": 12.1,
+  "unemployed_k": 312,
+  "moe_bls": 6.1,
+  "moe_conservative": 8.8,
+  "clears_bls": true,
+  "clears_conservative": true
+ }
+]
