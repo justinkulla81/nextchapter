@@ -13,11 +13,11 @@ export async function getNavSession(): Promise<NavSession> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     // A visitor partway through onboarding holds an anonymous session. They have no account yet, so the header treats them as signed
-    // out: "My account" and the dashboard would only send them round the create-account step again.
-    if (user?.is_anonymous) return { signedIn: false, firstName: null }
-    // A member logs in on the candidate host, whose session cookie this host never sees. The site-wide marker (a flag, not a
-    // credential, src/lib/auth/member-marker.ts) says this browser belongs to a member; the candidate host leaves their first name beside it.
-    if (!user) {
+    // out: "My account" and the dashboard would only send them round the create-account step again. Unless this browser also belongs
+    // to a member: a member logs in on the candidate host, whose session cookie this host never sees, and the site-wide marker
+    // (a flag, not a credential, src/lib/auth/member-marker.ts) says so. The candidate host leaves their first name beside it. A
+    // leftover anonymous session from testing onboarding must not hide that.
+    if (!user || user.is_anonymous) {
       const jar = await cookies()
       return jar.has(MEMBER_MARKER_COOKIE) ? { signedIn: true, firstName: decodeMemberName(jar.get(MEMBER_NAME_COOKIE)?.value) } : { signedIn: false, firstName: null }
     }
