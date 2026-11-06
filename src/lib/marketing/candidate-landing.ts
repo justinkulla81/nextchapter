@@ -1,6 +1,6 @@
 // Copy for the paid-search landing page for candidates out of work for months (Google Ads, campaign 1):
 //   /still-searching  out of work for months.
-// (/after-a-layoff was retired 2026-11-05 and redirects to /layoffs.)
+// (/after-a-layoff is the just-fired email form again, from 2026-11-06; see src/components/marketing/AfterLayoffForm.tsx.)
 // Every claim here is already on the site (the state unemployment pages, the Market Reality Assessment, the benefits
 // catalog), so nothing is promised that the product does not do. Free for Members is the site's standing line.
 
