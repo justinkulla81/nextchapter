@@ -27,6 +27,7 @@ import { DIRECT_MAX_AGE_DAYS, FRESH_DAYS_DEFAULT, FRESH_DAYS_SENIOR, seniorWindo
 import { levelsInGroup, SENIORITY_GROUPS } from '@/lib/jobs/job-seniority'
 import { stampVerified } from '@/lib/jobs/liveness-store'
 import { archiveInBatches } from '@/lib/jobs/archive-in-batches'
+import { planCollapses, type CollapsePlan, type PrimaryRow } from '@/lib/jobs/direct-replacement'
 
 const levelsInAnyGroup = () => SENIORITY_GROUPS.flatMap((g) => levelsInGroup(g.key))
 
@@ -335,13 +336,39 @@ async function recordBenefits(kept: Screened[]) {
 // A second copy of a listed role (job-status.ts 'duplicate'): a copy already on the
 // board is archived with closeReason 'duplicate' (its company-history row follows at the
 // next finalize or the nightly hiring index — closeArchivedOpenings); a new one is not created. Confirmed, so finalize leaves it be.
-async function collapseDuplicates(urls: string[], now: Date): Promise<number> {
-  if (urls.length === 0) return 0
-  const result = await prisma.exclusiveJobPosting.updateMany({
-    where: { url: { in: urls }, addedBy: 'ncrawl', OR: [{ archivedAt: null }, { closeReason: { not: 'duplicate' } }, { closeReason: null }] },
-    data: { archivedAt: now, closeReason: 'duplicate', lastConfirmedAt: now },
-  })
-  return result.count
+// duplicateOfId keeps the row that replaced it, so a bad batch can be undone (src/lib/jobs/direct-replacement.ts).
+async function collapseDuplicates(plan: CollapsePlan, now: Date): Promise<number> {
+  if (plan.collapse.length === 0) return 0
+  let count = 0
+  for (let i = 0; i < plan.collapse.length; i += 500) {
+    const part = plan.collapse.slice(i, i + 500)
+    count += await prisma.$executeRaw`
+      UPDATE "ExclusiveJobPosting" p
+      SET "archivedAt" = ${now}, "closeReason" = 'duplicate', "lastConfirmedAt" = ${now}, "duplicateOfId" = COALESCE(NULLIF(v.pid, ''), p."duplicateOfId")
+      FROM unnest(${part.map((c) => c.url)}::text[], ${part.map((c) => c.primaryId ?? '')}::text[]) AS v(url, pid)
+      WHERE p.url = v.url AND p."addedBy" = 'ncrawl'
+        AND (p."archivedAt" IS NULL OR p."closeReason" IS DISTINCT FROM 'duplicate' OR (v.pid <> '' AND p."duplicateOfId" IS DISTINCT FROM v.pid))`
+  }
+  return count
+}
+
+// Which second copies may be collapsed now: a third party's copy (Jooble and the like) only into a direct row that is on the board,
+// open and verified in the last 14 days, up to a per-request cap. The rest stay as normal rows (see below).
+async function planDuplicateCollapses(duplicates: Screened[], now: Date): Promise<CollapsePlan> {
+  if (duplicates.length === 0) return planCollapses([], new Map(), now)
+  const dupUrls = duplicates.map((k) => k.job.url)
+  const primaryUrls = [...new Set(duplicates.map((k) => (k.job.duplicateOf as string).trim()))]
+  const [existingDups, primaries] = await Promise.all([
+    prisma.exclusiveJobPosting.findMany({ where: { url: { in: dupUrls } }, select: { url: true, sourceCategory: true } }),
+    prisma.exclusiveJobPosting.findMany({ where: { url: { in: primaryUrls } }, select: { id: true, url: true, archivedAt: true, lastVerifiedAt: true, directListing: true, sourceCategory: true } }),
+  ])
+  const existingByDupUrl = new Map(existingDups.map((e) => [e.url, e]))
+  const primariesByUrl = new Map<string, PrimaryRow>(primaries.map((p) => [p.url, p]))
+  return planCollapses(
+    duplicates.map((k) => ({ url: k.job.url, duplicateOf: (k.job.duplicateOf as string).trim(), existing: existingByDupUrl.get(k.job.url) ?? null })),
+    primariesByUrl,
+    now,
+  )
 }
 
 // The crawler's "last seen up" time for a job, never in the future.
@@ -445,7 +472,11 @@ export async function POST(request: NextRequest) {
   // Second copies of a role already listed elsewhere: collapsed, never on the board.
   const isDuplicate = (k: Screened) => typeof k.job.duplicateOf === 'string' && !!k.job.duplicateOf.trim() && k.job.duplicateOf.trim() !== k.job.url
   const duplicates = screened.kept.filter(isDuplicate)
-  const kept = screened.kept.filter((k) => !isDuplicate(k))
+  const collapsePlan = await planDuplicateCollapses(duplicates, new Date())
+  const collapseUrls = new Set(collapsePlan.collapse.map((c) => c.url))
+  // A duplicate whose collapse is blocked (its direct row is not yet live) stays an ordinary row: confirmed and updated as usual,
+  // so the finalize step does not archive a job that may still be open.
+  const kept = screened.kept.filter((k) => !isDuplicate(k) || !collapseUrls.has(k.job.url))
   const urls = kept.map((k) => k.job.url)
   const existing = await prisma.exclusiveJobPosting.findMany({
     where: { url: { in: urls } },
@@ -480,7 +511,9 @@ export async function POST(request: NextRequest) {
       dryRun: true,
       wouldCreate: toCreate.length,
       wouldUpdate: toUpdate.length,
-      wouldCollapse: duplicates.length,
+      wouldCollapse: collapsePlan.collapse.length,
+      wouldCollapseThirdParty: collapsePlan.guardedCollapses,
+      collapseBlocked: collapsePlan.blocked,
       wouldArchive: body.fullSync
         ? await prisma.exclusiveJobPosting.count({ where: { addedBy: 'ncrawl', archivedAt: null, url: { notIn: urls } } })
         : 0,
@@ -547,7 +580,7 @@ export async function POST(request: NextRequest) {
     const at = verifiedAtOf(k)
     return at ? [{ url: k.job.url, at }] : []
   }))
-  const collapsed = await collapseDuplicates(duplicates.map((k) => k.job.url), now)
+  const collapsed = await collapseDuplicates(collapsePlan, now)
   await recordOpenings(kept.filter((k) => !staysClosed(k)), (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
   await recordBenefits(kept)
 
@@ -562,5 +595,5 @@ export async function POST(request: NextRequest) {
     await closeOpeningsSafely()
   }
 
-  return NextResponse.json({ created: toCreate.length, updated: toUpdate.length, archived, collapsed, skipped })
+  return NextResponse.json({ created: toCreate.length, updated: toUpdate.length, archived, collapsed, collapseBlocked: collapsePlan.blocked, skipped })
 }

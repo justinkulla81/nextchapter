@@ -5330,6 +5330,9 @@ model ExclusiveJobPosting {
   repostCount        Int?
   repostFirstSeenAt  DateTime?
   duplicateCount     Int?
+  // For a collapsed copy (closeReason 'duplicate'): the board row that replaced it, set when a third party's copy is collapsed into the
+  // employer's own listing (src/lib/jobs/direct-replacement.ts). Lets a bad batch be undone. prisma/manual/2026-11-05-duplicate-of-id.sql.
+  duplicateOfId      String?
   // The person the source names as this job's contact or poster (ncrawl jobs.recruiter_name,
   // e.g. SchoolSpring's contact). Public on the listing; shown in "Who to contact".
   // Null = the source named no one. prisma/manual/2026-10-16-who-to-contact.sql.
