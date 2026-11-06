@@ -1,0 +1,5 @@
+band,label,open,newRecent,newPrior,closedRecent,closedPrior,shareOfMatched,newChangePct,suppressed
+none,No observed exposure (0),3265,4473,0,1208,1,3.7,,false
+under-0.1,Under 0.10,17312,25958,56,8886,87,19.4,46253.6,false
+0.1-0.3,0.10 to 0.29,34467,47739,241,14807,246,38.5,19708.7,false
+0.3-and-above,0.30 and above,34403,47985,80,14031,109,38.5,59881.3,false

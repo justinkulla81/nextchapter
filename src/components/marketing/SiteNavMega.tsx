@@ -213,9 +213,11 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
                 </div>
               </details>
             ))}
-            <Link href={accountHref} className="block py-3 text-base font-semibold text-foreground">
-              {accountLabel}
-            </Link>
+            {!signedIn && (
+              <Link href={accountHref} className="block py-3 text-base font-semibold text-foreground">
+                {accountLabel}
+              </Link>
+            )}
           </div>
         </div>
       )}

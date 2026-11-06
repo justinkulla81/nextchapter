@@ -1,0 +1,9 @@
+group,period,unemployment_rate_pct_2026,unemployment_rate_pct_2025,share_unemployed_out_27plus_weeks_pct_2026,share_unemployed_out_27plus_weeks_pct_2025,change_points,median_weeks_in_current_spell_2026,median_weeks_in_current_spell_2025,employed_thousands_2026,unweighted_unemployed_person_month_obs_2026,unweighted_unemployed_person_month_obs_2025,margin_90pct_bls_gvf_points,margin_90pct_conservative_points
+All workers,"Jan-Sep pooled, not seasonally adjusted",4.32,4.3,25.8,22.7,3.1,11,9,162655,15822,16915,1.1,1.7
+Blue-collar,"Jan-Sep pooled, not seasonally adjusted",4.95,5.04,22.7,19.8,2.9,9,8,32853,3765,4023,2.2,3.4
+White-collar,"Jan-Sep pooled, not seasonally adjusted",2.63,2.48,28.5,23.2,5.3,12,9,71389,4315,4417,2.3,3.4
+"White-collar, no bachelor's","Jan-Sep pooled, not seasonally adjusted",2.85,2.85,26.4,20.2,6.2,11,8,21476,1454,1561,3.9,5.7
+Knowledge workers,"Jan-Sep pooled, not seasonally adjusted",2.54,2.32,29.6,24.8,4.8,13,10,49913,2861,2856,2.8,4.3
+"White-collar, ages 55-64","Jan-Sep pooled, not seasonally adjusted",2.6,2.47,39.1,27.0,12.1,18,12,11737,768,763,6.1,8.8
+Bachelor's or more (any occupation),"Jan-Sep pooled, not seasonally adjusted",3.01,2.86,29.3,26.0,3.3,12,12,68539,4614,4662,,
+"White-collar, ages 50+","Jan-Sep pooled, not seasonally adjusted",2.51,2.47,37.0,29.5,7.5,16,12,24260,1575,1580,,

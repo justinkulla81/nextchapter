@@ -43,12 +43,27 @@ export interface ReportEdition {
   updatedAt?: string
   /** 1200×630 share image under /public. */
   ogImage: string
+  /**
+   * Set while an edition ships before its month's early-warning snapshot exists (the Census CPS file for the month is published weeks
+   * after the BLS jobs report). The early-warning test skips an edition with this set, and fails once the snapshot exists, so the flag is
+   * removed when the section is added. The value says what the edition is waiting for.
+   */
+  earlyWarningPending?: string
   /** Organizations and researchers the edition cites, as keys of the social tag registry (src/lib/social/tags.ts). The announcement post tags those that have a verified handle. */
   cites?: string[]
 }
 
 // Newest first is the job of helpers below; author order here is free.
 export const REPORT_EDITIONS: ReportEdition[] = [
+  {
+    slug: 'white-collar-employment-report-october-2026',
+    month: 'October 2026',
+    title: 'Hiring improved, but more unemployed white-collar workers are in long spells',
+    dek: 'October added 165,000 jobs and unemployment fell to 4.1%, but 28.5% of unemployed white-collar workers had been out of work six months or more in January to September, up from 23.2%, and 39.1% at ages 55 to 64.',
+    publishedAt: '2026-11-06',
+    ogImage: '/reports/white-collar-employment-report-2026-10-og.png',
+    earlyWarningPending: 'October CPS file (Census, about November 19, 2026)',
+  },
   {
     slug: 'white-collar-employment-report-september-2026',
     month: 'September 2026',
