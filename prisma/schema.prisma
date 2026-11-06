@@ -18181,3 +18181,15 @@ model FirmBrandColor {
   about     String?
   checkedAt DateTime @default(now())
 }
+
+/// Paid search spend typed in on Visitor activity: one row per Eastern day (YYYY-MM-DD) and segment ('b2c' | 'b2b').
+/// Re-entering a day and segment replaces it. Cost per lead on that page is this over the matched leads.
+/// prisma/manual/sem-spend.sql
+model SemSpend {
+  day         String
+  segment     String
+  amountCents Int
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@id([day, segment])
+}
