@@ -6,6 +6,7 @@ import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getMemberDisplayIdentity, buildMemberProfileSlug } from '@/lib/contacts/member-profile'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export async function generateMetadata({
   params,
@@ -82,6 +83,7 @@ export default async function UniversityAlumniPage({
 
       <div className="space-y-2">
         <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">{ownEntry.schoolName}</h1>
+        <Squiggle className="mt-2" />
         <p className="text-muted-foreground">
           {alumni.length} fellow NextChapter member{alumni.length === 1 ? '' : 's'} from {ownEntry.schoolName}.
         </p>

@@ -4,6 +4,7 @@ import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { loadWorkspace } from '@/lib/in-work/workspace-data'
 import { InWorkWorkspace, parseInWorkTab, type InWorkTab } from '@/components/in-work/InWorkWorkspace'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'In-work workspace' }
 
@@ -30,6 +31,7 @@ export default async function InWorkPage({
       return (
         <div className="mx-auto max-w-2xl space-y-2 p-6">
           <h1 className="text-xl font-semibold">Reviews, Raises and Promotion</h1>
+          <Squiggle className="mt-2" />
           <p className="text-sm text-muted-foreground">This workspace is being set up and is not available yet. Please check back soon.</p>
         </div>
       )

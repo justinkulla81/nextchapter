@@ -6,6 +6,7 @@ import { getCrucibleLeaderboard } from '@/lib/crucible/leaderboard'
 import { CRUCIBLE_JOB_INTENT_LABEL, type CrucibleJobIntentKey } from '@/lib/crucible/variants'
 import { cn } from '@/lib/utils'
 import { canonical } from '@/lib/seo/canonical'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = {
   ...canonical('/noexperience/leaderboard'),
@@ -40,6 +41,7 @@ export default async function CrucibleLeaderboardPage({
       <div className="mx-auto w-full max-w-xl px-6 py-16">
         <div className="text-center">
           <h1 className="text-2xl font-bold tracking-tight text-navy sm:text-3xl">Leaderboard</h1>
+          <Squiggle className="mx-auto mt-2 block" />
           <p className="mt-3 text-muted-foreground">
             Everyone who takes the challenge is on here automatically — ranked by score, one board per
             track.

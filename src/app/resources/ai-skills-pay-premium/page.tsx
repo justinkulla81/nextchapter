@@ -14,6 +14,7 @@ import { PREMIUM_METHOD, aiPremiumForFunction, signedPct, type FunctionAiPremium
 import { MIN_LIKE_N, MIN_PER_SIDE } from '@/lib/skills/ai-market'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
 import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -87,6 +88,7 @@ export default async function AiSkillsPayPremiumPage() {
       <main className="mx-auto w-full max-w-4xl px-6 py-8">
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Market data{asOfIso ? ` · as of ${formatContentDate(asOfIso)}` : ''}</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy text-balance sm:text-4xl">{TITLE}</h1>
+        <Squiggle className="mt-2" />
         <AuthorByline updated={asOfIso ?? '2026-10-27'} className="mt-3" />
 
         <p className={`mt-6 ${BODY} text-lg`}>

@@ -19,6 +19,8 @@ The email look (`docs/email-look.md`) is carried onto the site in small, shared 
 - Effort and results: `FocusNumber` in place of the "This week" sentence.
 - Every public page built on `SeoPage` or `TopicShell`: the squiggle. `SeoPage` skips it when the heading panel takes an organization's colors (`brand`); `squiggle={false}` turns it off.
 - How it works and Pricing (own headline markup): squiggle, and the opening sentence in `ShortVersion`.
+- Other public content pages and candidate pages with their own headline markup (news, data, reports, insights, resources, systems, niches, press, unemployment benefits, start, careers, jobs, and the candidate pages that do not use `PageHeader`): squiggle only.
+- Deliberately not covered: partner portals (recruiters, talent, employer), onboarding flows, legal pages, and transactional pages (unsubscribe, confirmations, application and sign-up forms, token links). Pages whose headline spans several lines in the source are not covered yet (why you're stuck, scam watch, vs, the jobs hub, no-experience pages, a few reports and insights).
 
 ## Rules
 

@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { PullTop } from '@/components/capture/PullCta'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = pageMetadata('/resources')
 
@@ -18,6 +19,7 @@ export default function ResourcesIndexPage() {
 
       <main className="mx-auto w-full max-w-5xl px-6 py-16">
         <h1 className="text-3xl font-bold tracking-tight text-navy">{pageH1('/resources', 'Resources')}</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Guides for every stage of a job search — from your first 72 hours to your first 90 days in
           a new role.

@@ -13,6 +13,7 @@ import { articleJsonLd, breadcrumbJsonLd, organizationRef } from '@/lib/seo/json
 import { SITE_URL } from '@/lib/seo/facts'
 import { stateName } from '@/lib/seo/states'
 import { titleMeta } from '@/lib/seo/title'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const revalidate = 21600 // 6 hours
 export const dynamicParams = true
@@ -90,6 +91,7 @@ export default async function LayoffReleasePage({ params }: { params: Promise<{ 
           </nav>
           <p className="mt-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase">Layoff data release · data as of {asOf}</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{r.label}: {n(r.notices)} layoff notices{r.workers ? `, ${n(r.workers)} people named` : ''}</h1>
+          <Squiggle className="mt-2" />
           {r.partial && <p className="mt-3 rounded-lg bg-white p-3 text-sm text-muted-foreground">{r.label} is not over, so these counts will grow. Quote the full month once it closes.</p>}
 
           <section aria-labelledby="findings" className="mt-8 rounded-xl border border-border bg-white p-6">

@@ -9,6 +9,7 @@ import { EarlyWarningPanels, buildEarlyWarning } from '@/components/reports/Earl
 import { SITE_URL, latestReport } from '@/lib/reports'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { titleMeta } from '@/lib/seo/title'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const SLUG = 'early-warning'
 const URL = `${SITE_URL}/reports/${SLUG}`
@@ -61,6 +62,7 @@ export default function EarlyWarningPage() {
         </nav>
 
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-navy sm:text-4xl">Early-warning labor indicators</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-3 max-w-2xl text-lg text-foreground">{LEAD}</p>
         {latestReport() && <AuthorByline updated={latestReport()!.publishedAt} />}
 

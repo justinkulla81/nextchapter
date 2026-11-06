@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { WhatINeedForm } from '@/components/dashboard/WhatINeedForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { WorkValueDomain, ImportanceRating, WhatINeedItemRating } from '@/lib/constants/what-i-need'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'What I Need' }
 
@@ -33,6 +34,7 @@ export default async function WhatINeedPage() {
           ← Skills & Behavioral Assessments
         </Link>
         <h1 className="mt-2 font-display text-3xl leading-tight font-semibold tracking-tight text-ink">What I Need</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">
           The work values you&apos;re not willing to trade away, ranked. This feeds your Search
           Strategy and Coaching Notes — the more current it is, the better the guidance. Retake it

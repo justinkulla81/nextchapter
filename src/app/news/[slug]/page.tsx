@@ -11,6 +11,7 @@ import { newsTagLabel } from '@/lib/news/tags'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const revalidate = 300
 
@@ -82,6 +83,7 @@ export default async function NewsItemPage({ params }: { params: Promise<{ slug:
             <span className="font-normal normal-case tracking-normal"> · {item.dateLabel}</span>
           </p>
           <h1 className="mt-2 text-3xl leading-tight font-bold tracking-tight text-navy sm:text-4xl">{title}</h1>
+          <Squiggle className="mt-2" />
           <AuthorByline updated={item.liveAt} />
 
           {item.imageUrl && (

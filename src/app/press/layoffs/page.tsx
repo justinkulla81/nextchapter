@@ -7,6 +7,7 @@ import { getRelease, listReleases } from '@/lib/press/layoff-release'
 import { PRESS_CONTACT_EMAIL } from '@/lib/press/figures'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const revalidate = 21600 // 6 hours
 
@@ -29,6 +30,7 @@ export default async function LayoffReleasesPage() {
             <Link href="/press" className="hover:text-foreground">Press and data</Link><span aria-hidden> › </span><span className="text-foreground">Layoff data for reporters</span>
           </nav>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1(PATH, 'Layoff data for reporters')}</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             Each month, a release of the U.S. layoff notices we collect from state labor departments: findings in plain sentences, comparisons with the month before and a year earlier, tables by state and employer, a CSV of every notice and the method. Free to quote and reuse with a link back.
           </p>

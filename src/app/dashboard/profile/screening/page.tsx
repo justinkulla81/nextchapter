@@ -8,6 +8,7 @@ import { AnsweredConfirmSection } from '@/components/dashboard/AnsweredConfirmSe
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Screening Questions' }
 
@@ -32,6 +33,7 @@ export default async function ScreeningPage() {
           ← My Profile
         </Link>
         <h1 className="mt-3 font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Screening Questions</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">
           Private to you. Nobody else sees these answers, not your coach, a recruiter, a college or an
           employer. We use them to sharpen your own weekly plan and warn you about roles you may not be

@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { Card, CardContent } from '@/components/ui/card'
 import { ScholarshipApplicationForm } from '@/components/dashboard/ScholarshipApplicationForm'
 import { cn } from '@/lib/utils'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Scholarship application' }
 
@@ -32,6 +33,7 @@ export default async function ScholarshipPage() {
           ← Back to Plans
         </Link>
         <h1 className="mt-2 font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Scholarship application</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-2 text-sm text-muted-foreground">
           If you want Coaching Premium and can&apos;t take it on right now, tell us what&apos;s going on and
           we&apos;ll see what we can do. This isn&apos;t about proving anything — a person reads every

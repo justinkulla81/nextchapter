@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Universities' }
 
@@ -45,6 +46,7 @@ export default async function UniversitiesIndexPage() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Universities</h1>
+        <Squiggle className="mt-2" />
         <p className="text-muted-foreground">Fellow NextChapter members from your own school(s).</p>
       </div>
 

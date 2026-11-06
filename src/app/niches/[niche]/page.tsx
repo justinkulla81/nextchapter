@@ -11,6 +11,7 @@ import { getNicheProviders } from '@/lib/niches/providers'
 import { CAPABILITIES } from '@/lib/vision/capabilities'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
+import { Squiggle } from '@/components/ui/squiggle'
 
 // The company list is read from the database on each request and kept by the CDN (next.config.ts), so the page does
 // not need the database at build.
@@ -56,6 +57,7 @@ export default async function NichePage({ params }: { params: Promise<{ niche: s
 
       <main className="mx-auto w-full max-w-4xl px-6 py-10">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1(path, niche.h1)}</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">{niche.what}</p>
         <PullTop name={niche.label} path={path} audience={niche.audience === 'people' ? 'seeker' : 'org'} />
 

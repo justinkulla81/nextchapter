@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { SlotPicker } from '@/components/dashboard/book-session/SlotPicker'
 import { LocalTime } from '@/components/dashboard/book-session/LocalTime'
 import { CancelSessionForm } from '@/components/dashboard/book-session/CancelSessionForm'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Book a coaching session' }
 
@@ -19,6 +20,7 @@ export default async function BookSessionPage() {
   const header = (
     <div className="space-y-3">
       <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink">Book a coaching session</h1>
+      <Squiggle className="mt-2" />
     </div>
   )
 

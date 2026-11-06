@@ -4,6 +4,7 @@ import { getCurrentUser, getSessionAal } from '@/lib/supabase/get-current-user'
 import { isNcAdmin } from '@/lib/higher-ed/resolve'
 import { prisma } from '@/lib/prisma'
 import { systemsForEmail } from '@/lib/higher-ed/systems'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata = { title: 'College systems' }
 
@@ -18,6 +19,7 @@ export default async function SystemsIndex() {
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-4 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">College systems</h1>
+      <Squiggle className="mt-2" />
       {systems.length ? (
         <ul className="divide-y divide-border rounded-lg border border-border bg-card">
           {systems.map((s) => (

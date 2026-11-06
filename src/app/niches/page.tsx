@@ -6,6 +6,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { PullTop } from '@/components/capture/PullCta'
 import { NICHES } from '@/lib/niches/niches'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = pageMetadata('/niches')
 
@@ -25,6 +26,7 @@ export default function NichesIndexPage() {
       </header>
       <main className="mx-auto w-full max-w-4xl px-6 py-8">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/niches', 'Job search and career services by type')}</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-3 max-w-xl text-lg text-muted-foreground">
           Each page explains one kind of service, what to ask before you pay, and lists companies in it with a link to their own site.
         </p>

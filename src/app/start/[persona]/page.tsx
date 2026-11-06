@@ -9,6 +9,7 @@ import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { PERSONA_FAQ } from '@/lib/constants/persona-faq'
 import { RelatedLinks } from '@/components/seo/RelatedLinks'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export function generateStaticParams() {
   return PERSONAS.map((p) => ({ persona: p.slug }))
@@ -41,6 +42,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ person
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
         <p className="text-sm font-semibold tracking-widest text-brand uppercase">{persona.label}</p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1(`/start/${persona.slug}`, persona.headline)}</h1>
+        <Squiggle className="mx-auto mt-2 block" />
         <div className="mx-auto mt-6 max-w-xl space-y-4 text-left text-muted-foreground">
           {persona.body.map((p) => (
             <p key={p}>{p}</p>

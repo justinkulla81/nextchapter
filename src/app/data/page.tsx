@@ -12,6 +12,7 @@ import { hasLayoffStatePage, noticeDay } from '@/lib/warn/layoff-pages'
 import { getLayoffCounts } from '@/lib/warn/layoff-counts'
 import { LayoffNumbersNote } from '@/components/layoffs/LayoffNumbersNote'
 import { PullTop } from '@/components/capture/PullCta'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
 
@@ -53,6 +54,7 @@ export default async function DataPage() {
       <main className="flex-1 bg-off-white py-8">
         <div className="mx-auto max-w-4xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/data', 'Layoff data: download the layoff record')}</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-4 text-lg text-muted-foreground">
             {rows.length.toLocaleString('en-US')} layoff notices filed with state labor departments{oldest && newest ? `, ${noticeDay(new Date(oldest))} to ${noticeDay(new Date(newest))}` : ''}, one row per filing, collected from each state and linked to each state’s own record.
           </p>
