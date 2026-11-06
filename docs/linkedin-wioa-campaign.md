@@ -59,8 +59,34 @@ page's deduplicated public figure, so use these only to pick states):
 | NY | 34 | 198 | 15,759 |
 | NJ | 18 | 128 | 15,290 |
 
-Pilot these six (162 boards). Rhode Island ranks ninth by workers but on 7 notices, so one filing is
+Pilot these six (162 boards), plus Kentucky and Massachusetts below. Rhode Island ranks ninth by workers but on 7 notices, so one filing is
 driving it; skip it for now.
+
+Add two states that train heavily. Our benefits catalog (`src/lib/benefits/catalog.json`, built 2026-10-23)
+holds 33 state training and tuition programs for Kentucky and 37 for Massachusetts, fourth and third
+behind Texas (45) and California (39). That counts what we have catalogued, not what a state spends, so
+it says "lots of programs a board can point people to", not "big retrainer".
+
+| State | Boards | 2026 notices | Workers named | Catalog training programs |
+|---|---|---|---|---|
+| KY | 11 | 38 | 3,084 | 33 |
+| MA | 17 | 32 | 5,460 | 37 |
+
+### Tracked links to paste (one per ad)
+
+```
+https://launchyournextchapter.com/workforce-boards/california?utm_source=linkedin&utm_medium=paid_social&utm_campaign=b2b-boards-linkedin-ads
+https://launchyournextchapter.com/workforce-boards/washington?utm_source=linkedin&utm_medium=paid_social&utm_campaign=b2b-boards-linkedin-ads
+https://launchyournextchapter.com/workforce-boards/texas?utm_source=linkedin&utm_medium=paid_social&utm_campaign=b2b-boards-linkedin-ads
+https://launchyournextchapter.com/workforce-boards/illinois?utm_source=linkedin&utm_medium=paid_social&utm_campaign=b2b-boards-linkedin-ads
+https://launchyournextchapter.com/workforce-boards/new-york?utm_source=linkedin&utm_medium=paid_social&utm_campaign=b2b-boards-linkedin-ads
+https://launchyournextchapter.com/workforce-boards/new-jersey?utm_source=linkedin&utm_medium=paid_social&utm_campaign=b2b-boards-linkedin-ads
+https://launchyournextchapter.com/workforce-boards/kentucky?utm_source=linkedin&utm_medium=paid_social&utm_campaign=b2b-boards-linkedin-ads
+https://launchyournextchapter.com/workforce-boards/massachusetts?utm_source=linkedin&utm_medium=paid_social&utm_campaign=b2b-boards-linkedin-ads
+https://launchyournextchapter.com/workforce-boards?utm_source=linkedin&utm_medium=paid_social&utm_campaign=b2b-boards-linkedin-ads
+```
+
+The last link is the national hub, for any state that is folded into another campaign or has no figure.
 
 Check the audience size in Campaign Manager before launching. LinkedIn needs at least 300 members, and
 board staff in one state can fall under that. If a state is under, fold it into a neighboring state's
