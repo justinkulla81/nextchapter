@@ -17083,6 +17083,18 @@ model SkillMarketSnapshot {
   @@index([computedAt])
 }
 
+// How many times each company + title + location has been posted and closed (the closed-postings map behind the "posted and
+// closed before" line and the board's ghost risk). Rebuilt nightly after the board-light-rows job (/api/cron/board-light-rows,
+// src/lib/jobs/ghost-risk-data.ts); readers take the newest, so no server instance groups the closed postings itself.
+// data: { "<company>|<title>|<location>": count }. prisma/manual/2026-11-06-closed-posting-snapshot.sql.
+model ClosedPostingSnapshot {
+  id         String   @id @default(cuid())
+  computedAt DateTime @default(now())
+  data       Json
+
+  @@index([computedAt])
+}
+
 // A skill a member watches ("Watch skill" on /skills/[slug]). Counts of new postings asking for it are
 // computed from the newest snapshot; nothing is sent to the member's Google account.
 model SkillWatch {

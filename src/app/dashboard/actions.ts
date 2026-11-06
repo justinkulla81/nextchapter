@@ -15,6 +15,7 @@ import type {
 } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { forgetMemberCookies } from '@/lib/auth/forget-member'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { recordMoodCheckIn } from '@/lib/daily/mood'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
@@ -44,6 +45,7 @@ import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
+  await forgetMemberCookies()
   redirect('/')
 }
 

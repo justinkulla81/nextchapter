@@ -39,7 +39,7 @@ export const HIGHER_EDUCATION: PortalPageDef = {
     eyebrow: 'Higher education',
     headline: 'Support every alum and student in their next career move',
     subhead:
-      'Claim your institution’s page with a work email at your domain, and a free workspace is created for you: your own page, your services, up to 50 active members and basic counts.',
+      'Claim your institution’s page with a work email at your domain, and a free workspace is created for you: your own page, your services, up to 50 active members and basic counts. Your students and alumni get free job search tools.',
     primary: { label: 'Claim your page', href: '#claim' },
     primaryNote: 'Career services, alumni relations, development, executive education and administration.',
     loginHref: PORTALS.higher_education.loginHref,
@@ -60,7 +60,7 @@ export const HIGHER_EDUCATION: PortalPageDef = {
       },
       {
         title: 'Invite your members',
-        body: 'Invite alumni and students, up to 50 active members on the free workspace. Counts show who joined and how active they are, with small groups held back.',
+        body: 'Invite alumni and students, up to 50 active members on the free workspace. Each member gets the free job search tools: a résumé studio with writing and keyword checks, a job application tracker, a networking list and a skills assessment. Counts show who joined and how active they are, with small groups held back.',
       },
     ],
     claim: {
@@ -86,6 +86,10 @@ export const HIGHER_EDUCATION: PortalPageDef = {
       {
         q: 'What does the Institution plan add?',
         a: 'Reporting and exports, exchange of records with your CRM, more active members, staff roles, an audit log of staff activity, and NextChapter coaching and courses offered to your members. Talk to us to set it up.',
+      },
+      {
+        q: 'What do students and alumni get?',
+        a: 'Every member gets the free job search tools: Resume Studio, which drafts a résumé for a target role with writing checks and a keyword check; a job application tracker; a networking list for contacts and follow-ups; a skills and personality assessment that improves job matches; and the Market Reality Report. Members also see the services your college lists.',
       },
       {
         q: 'Do alumni and students pay?',
