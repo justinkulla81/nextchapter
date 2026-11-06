@@ -1,4 +1,5 @@
 import 'server-only'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { MIN_WAIT_SAMPLES, WAIT_LIMIT_MS, type WaitOp } from '@/lib/perf/thinking-timer'
 
@@ -30,13 +31,16 @@ export async function waitEstimate(op: WaitOp, now: number = Date.now()): Promis
   const { event, field } = SOURCES[op]
   let value: WaitEstimate = { p95Ms: null, samples: 0 }
   try {
-    const rows = await prisma.$queryRaw<{ n: number; p95: number | null }[]>`
+    // The field name and the window are fixed values from this file (never input), so they go in as literals: a bound
+    // parameter inside ->> or make_interval has no type Postgres can infer.
+    const col = Prisma.raw(`properties ->> '${field}'`)
+    const rows = await prisma.$queryRaw<{ n: number; p95: number | null }[]>(Prisma.sql`
       SELECT count(*)::int AS n,
-             percentile_cont(0.95) WITHIN GROUP (ORDER BY (properties ->> ${field})::float8) AS p95
+             percentile_cont(0.95) WITHIN GROUP (ORDER BY (${col})::float8) AS p95
       FROM "AnalyticsEvent"
-      WHERE event = ${event}
-        AND "createdAt" > now() - make_interval(days => ${WINDOW_DAYS})
-        AND properties ->> ${field} ~ '^[0-9]+(\\.[0-9]+)?$'`
+      WHERE event = ${event}::text
+        AND "createdAt" > now() - ${Prisma.raw(`interval '${WINDOW_DAYS} days'`)}
+        AND ${col} ~ '^[0-9]+([.][0-9]+)?$'`)
     const row = rows[0]
     const samples = Number(row?.n ?? 0)
     const raw = samples >= MIN_WAIT_SAMPLES && row?.p95 != null ? Math.round(Number(row.p95)) : null
