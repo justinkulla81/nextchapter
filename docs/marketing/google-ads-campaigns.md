@@ -13,6 +13,25 @@ connector or API credentials are available to Claude). Budgets and bids are star
   `utm_source=google&utm_medium=cpc`; campaign tag is `<segment>-google`. `gclid` travels with B2B leads (LeadForm).
 - Turn on auto-tagging in the account so `gclid` is appended.
 
+## Lead test plan: three campaigns, one offer (owner direction 2026-11-06)
+
+Goal: acquire B2B leads from Google. Offer in every ad: a free demo. Run the three side by side with the same budget
+and compare cost per lead (`contact_form_sent`, source `lp-<offer>`) after 3 weeks or 30 clicks each, whichever is later.
+Candidate campaign 1 below is paused for this test.
+
+| Test | Page | Angle | Demo today |
+| --- | --- | --- | --- |
+| 1. Outplacement | `/lp/outplacement` | Sits alongside the provider you already use; does not replace it | Free pilot form, then a 30-minute call with Justin |
+| 2. WIOA / workforce boards | `/lp/workforce` | One link for workers in a layoff | Self-serve demo on the region's data (`/demo/workforce`) |
+| 3. Higher ed development | `/lp/higher-ed` | Never ask alumni who are out of work | Free workspace form, then a call with Justin |
+
+Only the workforce page has a self-serve demo. Outplacement and higher ed deliver the demo as the call after the form.
+Say "free demo" in those ads only if the page button and success text say it too (open item: reword those two pages).
+
+Test 1 ad lines (alongside angle): "Works With Your Outplacement" / "Add To Your Provider" / "Free Outplacement Demo" /
+"Keep Your Current Provider" and description "Add a Dossier each person keeps and a compliance record per seat. Free demo."
+Keywords add: "outplacement services for layoffs", "supplemental outplacement", "outplacement alternatives".
+
 ## Campaign 1: Candidates out of work for months
 
 - Type: Search, no Display or Search Partners expansion. Network: Google Search only. Location: United States.
