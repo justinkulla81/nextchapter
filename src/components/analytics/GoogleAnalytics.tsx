@@ -13,7 +13,7 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 // marketing page (see PORTAL_APP_SUBROUTES in lib/supabase/portal.ts) —
 // its bare path is deliberately absent here so pageviews on the marketing
 // page itself still get tracked; only the real app subroutes are excluded.
-const EXCLUDED_PREFIXES = [
+export const EXCLUDED_PREFIXES = [
   '/dashboard',
   '/onboarding',
   '/talent/dashboard',
