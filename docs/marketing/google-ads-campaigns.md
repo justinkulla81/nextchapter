@@ -52,6 +52,39 @@ headline, and the page subhead as a description (cut to 90 chars). Pages: `src/l
 
 Negatives: free, jobs, careers, salary, internship, pdf, template, jobs at, indeed, glassdoor.
 
+## Sign-up ads for the three B2B campaigns (paste-ready)
+
+Headlines max 30 characters, descriptions max 90. Every line repeats what the page says.
+
+### WIOA / workforce boards: `/lp/workforce`, goal "Build my region's demo"
+- Headlines: "Layoff Hits Your Region?" / "Send Workers One Link" / "Demo On Your Region's Data" /
+  "Local Jobs On Top" / "Free For 50 Active Members" / "Build My Region's Demo"
+- Descriptions:
+  - "Each worker gets job search tools, career support and AI skills. You see counts, never who."
+  - "Built on your region's real layoff notices and job data. Demo opens in about a minute."
+- Ad group keywords (phrase): "rapid response layoff services", "dislocated worker services", "workforce board software",
+  "WIOA job seeker tools", "layoff aversion tools"
+
+### Higher education development / alumni: `/lp/higher-ed`, goal "Get my free workspace"
+- Headlines: "Alumni Career Services Tool" / "Ask Alumni At The Right Time" / "Do-Not-Ask When Out Of Work" /
+  "Free Alumni Workspace" / "Prospect Signals From Alumni" / "Get My Free Workspace"
+- Descriptions:
+  - "Alumni between jobs are marked do-not-ask until it clears. Free for up to 50 active members."
+  - "Alumni who share a new role or employer tell your office first. Use your college email."
+- Ad group keywords (phrase): "alumni career services platform", "alumni engagement software",
+  "alumni career network platform", "alumni development software", "alumni relations software"
+
+### Outplacement: `/lp/outplacement`, goal "Start my free pilot"
+- Headlines: "Free Outplacement Pilot" / "10 Seats At No Charge" / "Planning A Reduction?" /
+  "Compliance Record Per Seat" / "HR Sees Counts, Not People" / "Start My Free Pilot"
+- Descriptions:
+  - "Up to 10 seats at no charge. Each person leaving keeps a Dossier after the contract ends."
+  - "HR reporting in counts and a compliance record for every seat, ready for legal."
+- Ad group keywords (phrase): "outplacement services", "outplacement provider", "layoff support for employees",
+  "reduction in force outplacement", "severance outplacement"
+
+Sitelinks (all three): "How it works" `/how-it-works`, "Vendor scorecard" `/rfp-template` (outplacement only).
+
 ## Before turning it on
 
 1. Link GA4 to the Google Ads account; import the conversions above; confirm one test conversion shows.
