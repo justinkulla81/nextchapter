@@ -350,6 +350,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/metrics`, label: 'Site metrics' },
         { href: `${A}/visitors`, label: 'Visitors' },
         { href: `${A}/visitors/activity`, label: 'Visitor activity' },
+        { href: `${A}/visitors/portal`, label: 'Member portal usage' },
         { href: `${A}/visitors/applied`, label: 'Jobs applied to' },
         { href: `${A}/visitors/ai`, label: 'AI assistants' },
         { href: `${A}/search-console-striking`, label: 'Pages near page one' },
