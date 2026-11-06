@@ -11,6 +11,7 @@ import { flagsFromTags, holdsClearance, isClearedJobFor, requirementMemberOf, ty
 import type { ActivePreference, PreferenceAction, PreferenceKind } from '@/lib/jobs/job-dismiss'
 import { countVerdicts, isMatch, verdictOf, type MatchCounts, type Verdict } from '@/lib/personalization/match-verdict'
 import type { SnapshotPreference } from '@/lib/personalization/match-inputs'
+import type { JobCriteria } from '@/lib/jobs/relevance'
 
 // One run of a member's matching over every live job in their level window: each job's
 // verdict (match-verdict.ts), the counts, and what the "What we know about you" card needs
@@ -67,9 +68,10 @@ const runs = new Map<string, { at: number; rows: BoardRankRow[]; value: Promise<
  * memo is shared (current profile only — a past profile would crowd it).
  * Null when matching has nothing to go on (no function, occupation or pivot role).
  */
-export async function computeMatchState(profile: MatchProfile, opts: { dismiss?: SnapshotPreference[]; live?: boolean } = {}): Promise<MatchState | null> {
+export async function computeMatchState(profile: MatchProfile, opts: { dismiss?: SnapshotPreference[]; live?: boolean; countOnly?: boolean } = {}): Promise<MatchState | null> {
   const rows = await loadMemberMarketRows(profile)
-  const key = opts.live ? `${profile.id}|${profile.updatedAt?.getTime?.() ?? ''}` : null
+  // A count-only run is never memoised here (callers keep their own cache) and never touches the shared placement memo.
+  const key = opts.live && !opts.countOnly ? `${profile.id}|${profile.updatedAt?.getTime?.() ?? ''}` : null
   if (key) {
     const hit = runs.get(key)
     if (hit && hit.rows === rows && Date.now() - hit.at < RUN_TTL_MS) return hit.value
@@ -83,7 +85,7 @@ export async function computeMatchState(profile: MatchProfile, opts: { dismiss?:
   return value
 }
 
-async function run(profile: MatchProfile, rows: BoardRankRow[], opts: { dismiss?: SnapshotPreference[]; live?: boolean }): Promise<MatchState | null> {
+async function run(profile: MatchProfile, rows: BoardRankRow[], opts: { dismiss?: SnapshotPreference[]; live?: boolean; countOnly?: boolean }): Promise<MatchState | null> {
   const started = Date.now()
   const [classifier, rules] = await Promise.all([
     loadBreadthClassifier(profile),
@@ -113,7 +115,18 @@ async function run(profile: MatchProfile, rows: BoardRankRow[], opts: { dismiss?
       if (!rules.dismissedIds.has(p.id)) hiddenLikeThem++
       continue
     }
-    const crit = (opts.live ? classifier.place(p)?.crit : undefined) ?? classifier.criteria(p).crit
+    let crit: JobCriteria
+    if (opts.countOnly) {
+      // Only the number of matches is wanted. placeFresh answers null for a job that fails location, field or skills
+      // (the cheap tests run first, and most of the board drops on geography), and any of those is a non-match, so
+      // the full criteria are never worked out for it. Jobs it keeps get the same criteria as below. Such a job gets
+      // no verdict, so `checked` and the other counts of a count-only run are not to be read.
+      const placed = classifier.placeFresh(p)
+      if (!placed) continue
+      crit = placed.crit
+    } else {
+      crit = (opts.live ? classifier.place(p)?.crit : undefined) ?? classifier.criteria(p).crit
+    }
     const fails = {
       location: crit.geo !== 0,
       field: crit.fn !== 'own',

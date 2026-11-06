@@ -10,9 +10,12 @@ import { effectiveJourney } from '@/lib/journey/journey'
 import { flowOfProfile } from '@/lib/onboarding/flag'
 import { storedAnswers } from '@/lib/onboarding/answers'
 import { usableAnswers } from '@/lib/onboarding/bundles'
+import { startStepTiming } from '@/lib/onboarding/step-timing'
 
 export default async function ConfirmPage() {
+  const timing = startStepTiming('aiming')
   const profile = await getCandidateProfileForUser()
+  timing.profileLoaded()
 
   if (!profile.resumeStepComplete) {
     redirect('/onboarding/resume')
@@ -20,6 +23,7 @@ export default async function ConfirmPage() {
   // The short question bundles (O3). Like the other bundle pages it never skips forward, so Back and "change my answer" work.
   if (flowOfProfile(profile) === 'bundles') {
     const journey = effectiveJourney(profile)
+    timing.done(profile.id, { journey })
     return (
       <BundleShell id="aiming">
         <BundleForm
