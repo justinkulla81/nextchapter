@@ -57,7 +57,7 @@ export const PUBLIC_NAV: PublicNavMenu[] = [
         heading: 'Layoffs and the market',
         links: [
           { label: 'Layoff tracker', href: '/layoffs' },
-          { label: 'White Collar Employment Report', href: '/reports/latest' },
+          { label: 'White-collar employment report', href: '/reports/latest' },
           { label: 'AI skills data', href: '/ai-skills' },
         ],
       },

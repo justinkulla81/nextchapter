@@ -25,7 +25,7 @@ function Panel({ menu, onPick }: { menu: PublicNavMenu; onPick: (href: string) =
     <div className={cn('grid gap-x-8 gap-y-6 p-6', menu.groups.length > 2 ? 'grid-cols-3' : 'grid-cols-2')}>
       {menu.groups.map((g) => (
         <div key={g.heading}>
-          <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{g.heading}</p>
+          <p className="text-sm font-semibold text-muted-foreground">{g.heading}</p>
           <ul className="mt-2 space-y-0.5">
             {g.links.map((l) => (
               <li key={l.href}>
@@ -191,7 +191,7 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
                 <div className="space-y-4 pb-4">
                   {m.groups.map((g) => (
                     <div key={g.heading}>
-                      <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{g.heading}</p>
+                      <p className="text-sm font-semibold text-muted-foreground">{g.heading}</p>
                       <ul className="mt-1">
                         {g.links.map((l) => (
                           <li key={l.href}>
