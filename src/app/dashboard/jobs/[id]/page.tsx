@@ -1,3 +1,4 @@
+import { timed } from '@/lib/perf/timed'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -37,8 +38,10 @@ const SOURCES = new Set(['my_jobs', 'email', 'job_search_daily', 'fresh_job_aler
 export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ src?: string }> }) {
   const [{ id }, { src }] = await Promise.all([params, searchParams])
   const profile = await getDashboardData()
+  // Slow steps (300 ms or more) report to PostHog as page_query_slow, route 'job_page' (src/lib/perf/timed.ts), so a slow open names its step.
+  const step = <T,>(label: string, work: Promise<T>): Promise<T> => timed('job_page', label, profile.id, work)
   const [posting, tracked, dossier] = await Promise.all([
-    prisma.exclusiveJobPosting.findUnique({
+    step('posting', prisma.exclusiveJobPosting.findUnique({
       where: { id },
       select: {
         id: true, title: true, companyName: true, location: true, url: true, status: true, distribution: true, disclosure: true,
@@ -46,9 +49,9 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         description: true, submittedByEmployerId: true, submittedByRecruiterId: true, company: { select: { canonicalNameNormalized: true } },
         requirementFlags: true, locationState: true, targetFunction: true, employerSector: true,
       },
-    }),
-    prisma.trackedJob.findFirst({ where: { candidateId: profile.id, source: 'job_board', sourceId: id }, select: { id: true } }),
-    isDossierUnlocked(profile.id),
+    })),
+    step('trackedJob', prisma.trackedJob.findFirst({ where: { candidateId: profile.id, source: 'job_board', sourceId: id }, select: { id: true } })),
+    step('dossierUnlocked', isDossierUnlocked(profile.id)),
   ])
   // Only what the board would ever show a member (every member sees every board job;
   // privacy settings still hide one) — or a job they saved themselves.
@@ -57,7 +60,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     (tracked || (posting.status === 'approved' && !posting.institutionScopeId && posting.distribution !== 'EXCLUDED'))
   if (!posting || !visible) notFound()
 
-  const life = await loadPostingLifecycle(posting.id)
+  const life = await step('postingLifecycle', loadPostingLifecycle(posting.id))
   if (!life) notFound()
 
   // An open job opens as the same pane Find a job shows beside its
@@ -65,8 +68,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   // A closed job keeps the page below, with its banner and the open jobs like it. If the member's fit cannot be
   // worked out, the page below is shown instead of an error.
   if (!life.isPast) {
-    const full = await prisma.exclusiveJobPosting.findUnique({ where: { id: posting.id } })
-    const view = full ? await loadJobPageView(profile, full, dossier.unlocked).catch((error) => {
+    const full = await step('fullPosting', prisma.exclusiveJobPosting.findUnique({ where: { id: posting.id } }))
+    const view = full ? await step('buildView', loadJobPageView(profile, full, dossier.unlocked)).catch((error) => {
       console.error('Job page view unavailable, showing the plain page:', error)
       return null
     }) : null
