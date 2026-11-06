@@ -8,6 +8,8 @@ import { ClipboardList, Compass, ListChecks, ShieldCheck, Trophy, type LucideIco
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { PullTop } from '@/components/capture/PullCta'
+import { Squiggle } from '@/components/ui/squiggle'
+import { ShortVersion } from '@/components/ui/short-version'
 
 export const metadata: Metadata = pageMetadata('/how-it-works')
 
@@ -72,11 +74,12 @@ export default function HowItWorksPage() {
       <div className="mx-auto max-w-5xl px-6 py-20">
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl">{pageH1('/how-it-works', 'How it works')}</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+          <Squiggle className="mx-auto mt-2 block" />
+          <ShortVersion className="mx-auto mt-6 max-w-2xl text-left">
             A clear path from &quot;I don&apos;t know where I stand&quot; to a job offer — five steps,
             each one building proof the last one didn&apos;t have. NextChapter is a free job
             transition platform, start to finish.
-          </p>
+          </ShortVersion>
           <PullTop name="How it works" path="/how-it-works" />
         </div>
 
