@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Chips, ConferenceList, Section, TopicShell, functionChip, industryChip } from '@/components/topics/blocks'
 import { prisma } from '@/lib/prisma'
 import { INDUSTRIES, JOB_FUNCTIONS } from '@/lib/seo/topics'
+import { conferenceSeekerCopy } from '@/lib/capture/pull-copy'
 import { getAssociations, sortConferences, type Conf } from '@/lib/seo/topic-data'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
@@ -30,6 +31,7 @@ export default async function ConferencesHub() {
       trail={[{ name: 'Conferences', path: '/conferences' }]}
       title="Conferences and trade shows"
       intro={`${d ? d.total.toLocaleString() : 'Thousands of'} conferences, trade shows and summits, each with dates, costs, speaking opportunities, the association behind it and the industries and functions it serves.`}
+      seekerAsk={conferenceSeekerCopy()}
     >
       {d && (
         <>

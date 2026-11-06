@@ -13,6 +13,7 @@ import type { Conf, TopicJob } from '@/lib/seo/topic-data'
 import { PageCaptureTop, PageCaptureOwner } from '@/components/capture/PageCapture'
 import { PullCtaTop, pullContext, withPullCtas } from '@/components/capture/PullCta'
 import type { PageCaptureConfig } from '@/lib/capture/page-capture'
+import type { PullCopy } from '@/lib/capture/pull-copy'
 import type { NetworkAsk } from '@/lib/community/network-copy'
 import { FACT_LINKS, type Fact } from '@/lib/seo/topic-quality'
 
@@ -34,7 +35,7 @@ const clip = (t: string, n: number) => (t.length > n ? `${t.slice(0, n).replace(
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 
 /** Page frame shared by every topic page: header, breadcrumb, h1, intro, footer. */
-export function TopicShell({ trail, title, intro, children, jsonLd, capture, hero, network }: {
+export function TopicShell({ trail, title, intro, children, jsonLd, capture, hero, network, seekerAsk }: {
   trail: { name: string; path: string }[]
   title: string
   intro: string
@@ -49,6 +50,11 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture, her
    * moves it up under the heading and intro, so the ask is the first thing after them. Needs `capture`.
    */
   network?: NetworkAsk
+  /**
+   * For a page whose root is organization-facing (conferences) but whose readers are mostly job seekers: a seeker ask under the
+   * heading, ahead of the page's organization ask at the end. Two audiences, one ask each.
+   */
+  seekerAsk?: PullCopy
 }) {
   const pull = pullContext(trail)
   const { body, bottom } = withPullCtas(children, pull, { hasCapture: !!capture, isOwnBand: (el) => el.type === JoinBand })
@@ -80,6 +86,7 @@ export function TopicShell({ trail, title, intro, children, jsonLd, capture, her
               </div>
             )}
           </div>
+          {seekerAsk && <PullCtaTop {...pull} audience="seeker" copy={seekerAsk} />}
           {capture && network && <PageCaptureTop capture={capture} network={network} />}
           {body}
           {capture ? !network && <PageCaptureTop capture={capture} /> : <PullCtaTop {...pull} />}

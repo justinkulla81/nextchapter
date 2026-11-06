@@ -21,6 +21,7 @@ import { effectiveFunctions } from '@/lib/seo/function-inference'
 import { costLabel, hasUpcomingDates, whenLabel, whereLabel } from '@/lib/events/format'
 import { titleMeta } from '@/lib/seo/title'
 import { SECONDARY_ACTION } from '@/components/ui/secondary-action'
+import { conferenceSeekerCopy } from '@/lib/capture/pull-copy'
 
 export const revalidate = 86400 // was hourly: one of the larger ISR write sources
 export const dynamicParams = true
@@ -135,6 +136,7 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
       title={c.name}
       intro={c.whyAttend ?? `${KIND_LABEL[c.kind as keyof typeof KIND_LABEL] ?? 'Conference'} for ${exact}.`}
       jsonLd={event ? [event] : undefined}
+      seekerAsk={conferenceSeekerCopy(c.name)}
     >
       <dl className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Fact label="Dates">{whenLabel(c)}</Fact>
