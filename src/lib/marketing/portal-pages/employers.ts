@@ -34,11 +34,12 @@ export const EMPLOYERS: PortalPageDef = {
     analyticsKey: 'employers',
     path: '/employers',
     eyebrow: 'Employers',
-    headline: 'Support your people at every stage, from hiring to departure',
+    headline: 'Hiring, keeping people or planning a reduction? Start with the one on your desk.',
     subhead:
-      'Hiring for future employees, Employees for current ones, and Outplacement for people who are leaving. Take one section, or all three.',
-    primary: { label: 'Talk to us', href: '#talk' },
-    primaryNote: 'Posting a role is free. Employees and Outplacement are set up with our team.',
+      'Post a role free today. If a reduction is coming, we set up a pilot of up to 10 outplacement seats at no charge: everyone leaving gets a place to land, and legal gets a compliance record for each seat.',
+    primary: { label: 'Post a role, free', href: '/talent/signup' },
+    secondary: { label: 'Plan a reduction: start a pilot', href: '/outplacement#talk' },
+    primaryNote: 'Posting a role is free. The outplacement pilot is up to 10 seats at no charge. Employees is set up with our team.',
     loginHref: '/employer-home',
     parent: { href: '/for-organizations', label: 'For organizations' },
     // The page replaces this node with the section overview and a link to each section’s page.
@@ -46,12 +47,12 @@ export const EMPLOYERS: PortalPageDef = {
     visuals: [hiring, employees, outplacement],
     steps: [
       {
-        title: 'Choose a section',
-        body: 'Pick the stage you need help with: Hiring, Employees or Outplacement. Each has its own page, and each can be taken on its own.',
+        title: 'Pick what is on your desk',
+        body: 'Hiring a role, keeping the people you have, or planning a reduction. Each has its own page, and each can be taken on its own.',
       },
       {
-        title: 'Get started',
-        body: 'Hiring starts when you post a role. Employees and Outplacement are set up with our team.',
+        title: 'Start free',
+        body: 'Hiring starts when you post a role. Outplacement starts with a pilot of up to 10 seats at no charge. Employees is set up with our team.',
       },
       {
         title: 'Add sections when you need them',
