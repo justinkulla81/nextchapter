@@ -12,8 +12,8 @@ import { FOUNDER_LINE } from '@/lib/marketing/founder-line'
 // search, the AI coach, career exploration, fractional work. The images are the member screens with sample data. Kept out of the
 // index: it is reached by link, not by search.
 export const metadata: Metadata = {
-  title: 'Just got fired? Let us help | NextChapter',
-  description: 'A free AI coach that knows your whole search: jobs that fit you with the reason for each, a plan that changes when a search stalls, other roles you could do, and fractional work. Free.',
+  title: 'Laid off? Fired? Downsized? We can help you back faster | NextChapter',
+  description: 'Your free job transition account: an AI coach that knows your whole search, jobs that fit you with the reason for each, other roles you could do, and fractional work.',
   ...canonical('/after-a-layoff'),
   robots: { index: false, follow: true },
 }
@@ -146,18 +146,18 @@ export default function AfterALayoffPage() {
       <main>
         <section aria-labelledby="fired-heading" className="mx-auto grid max-w-6xl items-center gap-10 px-6 pt-10 pb-14 lg:grid-cols-[1fr_1.05fr] lg:pt-14">
           <div className="min-w-0">
-            <p className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Just got fired?</p>
+            <p className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Laid off? Fired? Downsized?</p>
             <h1 id="fired-heading" className="mt-3 font-display text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">
-              Let us help you land the right job, fast.
+              So were millions of others. We can help you back faster.
             </h1>
             <p className="mt-5 mb-7 max-w-xl text-lg text-muted-foreground">
-              A free AI coach that knows your whole search. Jobs that fit you, with the reason for each. A plan that changes when a search stalls. Other roles you could do, and fractional work while you look.
+              The BLS counts 15.58 million layoffs and discharges from January to September 2026. NextChapter is a free AI coach that knows your whole search: jobs that fit you with the reason for each, a plan that changes when a search stalls, other roles you could do, and fractional work while you look.
             </p>
             <div className="rounded-3xl bg-navy p-5 text-white shadow-xl ring-1 ring-navy sm:p-6">
-              <p className="text-xl font-semibold tracking-tight">Get your free first-week plan</p>
-              <p className="mt-1 mb-4 text-sm text-white/85">Enter your email and it is in your inbox in minutes.</p>
+              <p className="text-xl font-semibold tracking-tight">Your free job transition account</p>
+              <p className="mt-1 mb-4 text-sm text-white/85">Start with your email. We send your first-week plan, and you set up the rest when you are ready.</p>
               <AfterLayoffForm />
-              <p className="mt-3 text-sm text-white/85">Free for Members, always. No résumé. No account to start.</p>
+              <p className="mt-3 text-sm text-white/85">Free for Members, always. No résumé needed.</p>
             </div>
           </div>
           <Shot f={HERO_SHOT} priority />
