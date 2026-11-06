@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/privacy-policy' },
 }
 
-const EFFECTIVE_DATE = 'October 30, 2026'
+const EFFECTIVE_DATE = 'November 6, 2026'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -46,7 +46,7 @@ export default function PrivacyPolicyPage() {
               IP address, browser type, and device information, collected via our hosting
               infrastructure, a session cookie used to keep you signed in, and, once you have an
               account, a one-year cookie that tells our public pages you are a member, and another that holds
-              your first name, so we can take you to your account and greet you by name. We do not use advertising or third-party tracking cookies.
+              your first name, so we can take you to your account and greet you by name. On our public marketing pages (not inside your account), advertising pixels from Meta (Facebook) and LinkedIn set cookies and tell those companies that your browser visited the page, so we can measure our own ads and show them to people who may find them useful. They are not loaded on signed-in pages or on forms where you enter personal details. You can block them in your browser settings or through the ad settings of your Meta and LinkedIn accounts.
             </li>
           </ul>
         </section>
@@ -261,7 +261,7 @@ export default function PrivacyPolicyPage() {
           <h2 className="text-xl font-semibold text-navy">5. How We Share Your Information</h2>
           <p>
             <strong>We do not sell your personal data.</strong>{' '}
-            We do not share it with data brokers or advertisers. We share information only in
+            We do not share it with data brokers or advertisers, other than the advertising pixels described in section 1, which see only that a browser visited a public page. We share information only in
             these circumstances:
           </p>
           <ul className="list-disc space-y-2 pl-6">
