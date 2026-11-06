@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { InlineLoadingState, Spinner } from '@/components/ui/spinner'
+import { ThinkingTimer } from '@/components/ui/ThinkingTimer'
 import { BUNDLE_ROUTE } from '@/lib/onboarding/bundles'
 
 // One second: the status answer is cheap (a token check and one row), and the member is waiting on it.
@@ -48,6 +49,7 @@ export function ResumeParseProgress({ fileName }: { fileName: string }) {
         We have <span className="font-medium text-foreground">{fileName}</span> and are filling in your answers from it. This usually takes under a minute.
         You can leave this page; we keep going and pick up where you left off.
       </p>
+      <ThinkingTimer op="resume_parse" />
       <InlineLoadingState label="This page updates by itself." />
     </div>
   )

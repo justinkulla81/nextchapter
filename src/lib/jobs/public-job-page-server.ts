@@ -289,15 +289,21 @@ export async function getClosedJobContext(id: string): Promise<{ title: string; 
  */
 async function sameTitleOrLikeIt(sameTitle: TitleJob[], job: { id: string; targetFunction: string | null; level: string | null; locationState: string | null }): Promise<TitleJob[]> {
   if (sameTitle.length > 0) return sameTitle
-  try {
-    const like = await Promise.race([similarLiveJobs(job, 16), new Promise<never>((_, reject) => setTimeout(() => reject(new Error('similar jobs timed out')), 3_000))])
-    const rows = await publicJobRowsByIds(like.map((j) => j.id))
-    const keep = new Set(rows.map((r) => r.id))
-    return like
-      .filter((j) => keep.has(j.id))
-      .slice(0, 6)
-      .map((j) => ({ id: j.id, title: j.title, company: j.confidential ? 'Confidential employer' : j.companyName, location: j.location, postedAt: '', pay: null }))
-  } catch {
-    return []
+  // Same function and level first; a narrow pair (an executive academic role) often has no public match, so then the function at any level.
+  for (const level of [job.level, null]) {
+    if (level === null && !job.level) break
+    try {
+      const like = await Promise.race([similarLiveJobs({ ...job, level }, 16), new Promise<never>((_, reject) => setTimeout(() => reject(new Error('similar jobs timed out')), 3_000))])
+      const rows = await publicJobRowsByIds(like.map((j) => j.id))
+      const keep = new Set(rows.map((r) => r.id))
+      const out = like
+        .filter((j) => keep.has(j.id))
+        .slice(0, 6)
+        .map((j) => ({ id: j.id, title: j.title, company: j.confidential ? 'Confidential employer' : j.companyName, location: j.location, postedAt: '', pay: null }))
+      if (out.length > 0) return out
+    } catch {
+      return []
+    }
   }
+  return []
 }
