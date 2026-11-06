@@ -10,7 +10,6 @@ import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
 import { TrainingProvidedLine } from '@/components/jobs/TrainingProvidedLine'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ApplyAndSave } from '@/components/jobs/ApplyAndSave'
-import { MemberSignInPrompt } from '@/components/jobs/MemberSignInPrompt'
 import { ReadFullPostingLink } from '@/components/jobs/ReadFullPostingLink'
 import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import { lifecycleEmailsOn } from '@/lib/leads/lifecycle/config'
@@ -18,7 +17,6 @@ import { StructuredData } from '@/components/StructuredData'
 import { PayVsMarket } from '@/components/jobs/PayVsMarket'
 import { JobAiExposure } from '@/components/jobs/JobAiExposure'
 import { EmployerLayoffLine } from '@/components/jobs/EmployerLayoffLine'
-import { JobFitCard } from '@/components/jobs/JobFitCard'
 import { RecruiterAsk } from '@/components/jobs/RecruiterAsk'
 import { showRecruiterAsk } from '@/lib/jobs/recruiter-ask'
 import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
@@ -27,7 +25,8 @@ import { isExcerpt } from '@/lib/jobs/posting-text'
 import { testedTitle } from '@/lib/seo/title-test-state'
 import { jobTitleB } from '@/lib/seo/title-tests'
 import { datePostedOf, descriptionParagraphs, isIndexableJob, isRemoteJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
-import { getPublicJob, similarJobsAtCompany } from '@/lib/jobs/public-job-page-server'
+import { ClosedJobView } from '@/components/jobs/ClosedJobView'
+import { getClosedJobContext, getPublicJob, similarJobsAtCompany } from '@/lib/jobs/public-job-page-server'
 import { employerPath, isCompanyOfferedToSearch } from '@/lib/seo/employer-pages'
 import { prisma } from '@/lib/prisma'
 import { getTitleIndex } from '@/lib/seo/job-titles'
@@ -85,8 +84,13 @@ const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric'
 export default async function PublicJobPage({ params }: { params: Params }) {
   const { id } = await params
   const job = await loadJob(id)
-  // A closed job answers 404 (not a redirect to another page, which Google counts as a soft 404 for job postings), so it leaves Google for Jobs.
-  if (!job) notFound()
+  // A job with no live listing is not a redirect (Google counts those as soft 404s for job postings). A known job shows open jobs like it,
+  // noindex and with no job data, so it leaves Google for Jobs; an unknown id is a 404.
+  if (!job) {
+    const gone = await getClosedJobContext(id)
+    if (!gone) notFound()
+    return <ClosedJobView jobId={id} title={gone.title} companyName={gone.companyName} similar={gone.similar} />
+  }
 
   const place = placeLabel(job)
   const pay = payLabel(job.salaryMin, job.salaryMax, job.payPeriod)
@@ -122,7 +126,6 @@ export default async function PublicJobPage({ params }: { params: Params }) {
     <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
       <StructuredData data={jobPostingJsonLd(job)} />
       <PublicJobViewTracker jobId={job.id} company={job.companyName} remote={remote} hasPay={!!pay} />
-      <MemberSignInPrompt jobId={job.id} company={job.companyName} />
       <header>
         <SiteNav />
       </header>
@@ -133,7 +136,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
           ← Search all jobs
         </Link>
 
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_21rem]">
+        <div className="mt-4">
           <article className="min-w-0">
             <h1 className="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{job.title}</h1>
             <Squiggle className="mt-2" />
@@ -251,7 +254,6 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             )}
           </article>
 
-          <JobFitCard jobId={job.id} placement="side" className="hidden h-fit lg:sticky lg:top-6 lg:block" />
         </div>
         <BrowseTheSite />
       </main>

@@ -255,3 +255,16 @@ export function pickSimilarJobs(rows: SimilarJob[], limit: number): SimilarJob[]
   }
   return out
 }
+
+/** What a job page with no live listing can say: the posting's title and employer, and the employer's other open roles. Null when no such id exists. */
+export async function getClosedJobContext(id: string): Promise<{ title: string; companyName: string; similar: SimilarJob[] } | null> {
+  if (!/^[a-z0-9]{10,40}$/i.test(id)) return null
+  try {
+    const row = await prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { title: true, companyName: true, disclosure: true, companyId: true } })
+    if (!row) return null
+    const confidential = row.disclosure !== 'OPEN'
+    return { title: row.title, companyName: confidential ? '' : cleanCompanyText(row.companyName), similar: confidential ? [] : await similarJobsAtCompany(row.companyId, id) }
+  } catch {
+    return null
+  }
+}

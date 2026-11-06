@@ -131,9 +131,9 @@ export function SiteNavMega({ current }: { current?: PublicNavMenu['key'] }) {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link href={accountHref} className="hidden whitespace-nowrap text-sm font-medium text-foreground/80 hover:text-foreground sm:inline-block">
+          {!signedIn && <Link href={accountHref} className="hidden whitespace-nowrap text-sm font-medium text-foreground/80 hover:text-foreground sm:inline-block">
             {accountLabel}
-          </Link>
+          </Link>}
           <Button
             nativeButton={false}
             render={signedIn

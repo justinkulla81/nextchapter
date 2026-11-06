@@ -6,7 +6,6 @@ import { saveAppliedJob, type ApplySaveState } from '@/lib/leads/apply-save'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { SaveJourneyStep } from '@/components/jobs/SaveJourneyStep'
-import { JobFitCard } from '@/components/jobs/JobFitCard'
 import { OPEN_APPLY_GATE_EVENT } from '@/components/jobs/ReadFullPostingLink'
 
 // The Apply button on a public job page plus the one-field "save this job" box under it.
@@ -131,8 +130,6 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
         )}
       </div>
 
-      {/* Before Apply is clicked the fit offer sits here on phones (desktop has the side card); after it, the offer leads the box. */}
-      {!open && <JobFitCard jobId={jobId} placement="inline" className="mt-5 lg:hidden" />}
 
       {gateOpen && variant === 'gate' && (
         <div className="mt-4">
@@ -153,7 +150,6 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
               <h2 id="apply-gate-title" className="text-lg font-semibold">Enter your email to apply at {company}</h2>
               <ul className="mt-2 space-y-1 text-sm">
                 <li className="flex gap-2"><span aria-hidden className="text-success">✓</span><span>New jobs like this one in your inbox, so you hear first</span></li>
-                <li className="flex gap-2"><span aria-hidden className="text-success">✓</span><span>See if you’d get an interview here, free, about a minute</span></li>
                 <li className="flex gap-2"><span aria-hidden className="text-success">✓</span><span>This job saved, with a reminder to follow up</span></li>
               </ul>
               <p className="mt-2 text-xs text-muted-foreground">We use your email to personalize your job search and maximize your chances of landing a job. We never share it. Unsubscribe any time.</p>
@@ -191,20 +187,11 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
                   {state.error}
                 </p>
               )}
-              <fieldset className="mt-4 space-y-2">
-                <legend className="text-sm font-medium">Send me new jobs</legend>
-                {[
-                  { name: 'alert_company', label: `at ${company}`, on: true },
-                  { name: 'alert_title', label: `titled ${jobTitle.replace(/\s+[-–—|].*$/, '')}`, on: true },
-                  ...(industry ? [{ name: 'alert_industry', label: `in ${industry}`, on: true }] : []),
-                ].map((a) => (
-                  <label key={a.name} className="flex items-start gap-2 text-sm">
-                    <input type="checkbox" name={a.name} value="1" defaultChecked={a.on} className="mt-0.5 size-4" />
-                    <span>{a.label}</span>
-                  </label>
-                ))}
-                <p className="text-xs text-muted-foreground">One email a day at most. We ask you to confirm first.</p>
-              </fieldset>
+              {/* Subscribed to new jobs at this employer, with this title and in this industry; the server still asks them to confirm by email. */}
+              <input type="hidden" name="alert_company" value="1" />
+              <input type="hidden" name="alert_title" value="1" />
+              {industry && <input type="hidden" name="alert_industry" value="1" />}
+              <p className="mt-3 text-xs text-muted-foreground">We’ll also send you new jobs like this one, one email a day at most. We ask you to confirm first.</p>
               <Button type="submit" disabled={pending} className="mt-4 h-11 w-full rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
                 {pending ? 'Saving…' : `Save and go to ${company}`}
               </Button>
@@ -239,7 +226,6 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
                 {emailOn ? `Check ${state.email} to confirm your ${state.alerts === 1 ? 'job alert' : `${state.alerts} job alerts`}. They start after you click the link.` : `Your ${state.alerts === 1 ? 'job alert is' : `${state.alerts} job alerts are`} saved.`}
               </p>
             )}
-            <JobFitCard jobId={jobId} placement="after_save" heading="Would you get an interview?" className="mt-3" />
             <SaveJourneyStep email={state.email ?? ''} what="job" properties={{ placement: 'job_saved', jobId, company, trigger }} />
           </div>
         ) : (
@@ -293,10 +279,6 @@ export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, ema
           </form>
         ))}
 
-      {/* After an Apply click the tracking box leads (the one primary action); the fit offer follows it. */}
-      {open && trigger === 'apply_click' && !state?.saved && (
-        <JobFitCard jobId={jobId} placement="after_apply" heading={`Applied to ${company}? See if you’d get an interview.`} className="mt-4" />
-      )}
     </div>
   )
 }
