@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import renamedFirms from "./src/lib/search-firms/renamed-firms.json";
 import { STATE_NAMES } from "./src/lib/workforce/places";
+import { MAJOR, EXTRA_CITY_STATES } from "./src/lib/places/major-cities-data";
 
 // Same region as NEXT_PUBLIC_POSTHOG_HOST (e.g. https://us.i.posthog.com or
 // https://eu.i.posthog.com) — set once here since next.config.ts runs in
@@ -95,8 +96,6 @@ const nextConfig: NextConfig = {
       { source: '/tools/ai-job-check/compare', destination: '/tools/ai-job-check', permanent: false },
       // Nothing lives at /search; people and search engines' site-search boxes expect it to run a job search (/jobs?q=).
       { source: '/search', destination: '/jobs', permanent: false },
-      // Short address for outreach emails: launchyournextchapter.com/call?a=100 (the query carries over).
-      { source: '/call', destination: '/feedback-call', permanent: false },
       // Parent addresses that have only dynamic children and no page of their own (someone trims a URL, or a crawler
       // walks a breadcrumb up). Each goes to the nearest real page. src/test/route-orphans.test.ts fails when a new
       // parent like this appears without a redirect here or an entry in its allowlist.
@@ -187,6 +186,28 @@ const nextConfig: NextConfig = {
         const slug = name.toLowerCase().replace(/[^a-z]+/g, '-')
         return { source: `/${slug}-layoffs`, destination: `/layoffs/${slug}`, permanent: true }
       }),
+      // /layoffs/<state>/<anything> (a city or county tacked on) goes to the state page; the state is the deepest layoff page.
+      // The state names are spelled out so this never catches /layoffs/company/x, /layoffs/2026/march or /layoffs/week/x.
+      {
+        source: `/layoffs/:state(${Object.values(STATE_NAMES).map((n) => n.toLowerCase().replace(/[^a-z]+/g, '-')).join('|')})/:path+`,
+        destination: '/layoffs/:state',
+        permanent: true,
+      },
+      // A state's postal code (/layoffs/tx) goes to its page (/layoffs/texas).
+      ...Object.entries(STATE_NAMES).map(([code, name]) => ({
+        source: `/layoffs/${code.toLowerCase()}`,
+        destination: `/layoffs/${name.toLowerCase().replace(/[^a-z]+/g, '-')}`,
+        permanent: true,
+      })),
+      // A big city's name (/layoffs/rochester) goes to its state's page; the layoff pages are by state.
+      ...(() => {
+        const stateSlugs = new Set(Object.values(STATE_NAMES).map((n) => n.toLowerCase().replace(/[^a-z]+/g, '-')))
+        const pairs: [string, string][] = [...MAJOR.map(([, st, city]) => [city, st] as [string, string]), ...EXTRA_CITY_STATES]
+        const seen = new Set<string>()
+        return pairs
+          .filter(([city]) => !stateSlugs.has(city) && !seen.has(city) && seen.add(city))
+          .map(([city, st]) => ({ source: `/layoffs/${city}`, destination: `/layoffs/${st}`, permanent: true }))
+      })(),
       // The year page by its other names (/job-cuts-2026, /layoffs-2026 -> /layoffs/2026). Add the next year when its page exists.
       ...['layoffs', 'layoff', 'job-cuts', 'downsizing', 'rifs', 'mass-layoffs'].map((alias) => ({
         source: `/${alias}-2026`,

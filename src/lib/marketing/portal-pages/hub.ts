@@ -14,11 +14,11 @@ export const HUB_SEO: PortalSeo = {
 
 export const HUB_COPY = {
   eyebrow: 'For organizations',
-  headline: 'A workspace for every organization that helps people get hired',
+  headline: 'Helping people get hired? Start with the portal built for your job.',
   subhead:
-    'Colleges, workforce organizations, employers, recruiters and coaches each have their own portal, page and plans. Job seekers use the core tools without paying.',
-  primary: { label: 'Talk to us', href: '#contact' },
-  primaryNote: 'Not sure which fits? Tell us what you are trying to do.',
+    'Colleges, workforce organizations, employers, recruiters and coaches each get their own portal. Pick yours below and see how it starts. Job seekers use the core tools without paying.',
+  primary: { label: 'Find my portal', href: '#portals' },
+  primaryNote: 'Not sure which fits? Tell us what you are trying to do at the bottom of the page.',
   portalsHeading: 'Choose your portal',
   portalsIntro: 'Each card says who the portal is for, what you get and how you start. Every card links to the portal’s page and its log in.',
   contactTitle: 'Talk to us',
