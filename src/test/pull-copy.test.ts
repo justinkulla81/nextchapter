@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_COPY, LAID_OFF_COPY, pullCopyFor } from '@/lib/capture/pull-copy'
+import { DEFAULT_COPY, LAID_OFF_COPY, conferenceSeekerCopy, pullCopyFor } from '@/lib/capture/pull-copy'
 
 describe('pull copy', () => {
   it('uses the laid-off pain on layoff, unemployment and start pages', () => {
@@ -54,5 +54,18 @@ describe('organization copy', () => {
     expect(orgCopyForSlug('higher-education-ohio')).toBe(ORG_FREE_COLLEGE)
     expect(orgCopyForSlug('tools-warn-act-checker')).toBe(ORG_LAYOFF_COPY)
     expect(orgCopyForSlug('search-firms-x')).toBe(ORG_COPY)
+  })
+})
+
+describe('conference seeker copy', () => {
+  it('names the event, asks about the pain, and keeps the free no-résumé promise', () => {
+    const named = conferenceSeekerCopy('Routes Americas')
+    expect(named.headline).toContain('Routes Americas')
+    for (const c of [named, conferenceSeekerCopy()]) {
+      expect(c.headline).toMatch(/\?$/)
+      expect(c.sentence).toContain('Free. No résumé needed.')
+      expect(c.button).toBeTruthy()
+      expect(`${c.headline} ${c.button}`).not.toMatch(/WARN|Market Reality|Hireability/)
+    }
   })
 })

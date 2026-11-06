@@ -148,3 +148,17 @@ export function pullCopyFor(path: string): PullCopy {
   const root = clean.split('/').filter(Boolean)[0] ?? ''
   return BY_ROOT[root] ?? DEFAULT_COPY
 }
+
+/**
+ * Conference pages are written for the organizers (the org box at the bottom), but most readers are professionals deciding whether
+ * an event is worth the ticket. They get their own ask at the top: the same free plan, worded for someone about to spend money to
+ * find a job or a client. Named (`Going to X?`) on an event page, general on the hub.
+ */
+export function conferenceSeekerCopy(name?: string): PullCopy {
+  return copy(
+    name ? `Going to ${name} to find your next role?` : 'Going to a conference to find your next role?',
+    'Do not walk in without a plan. Find out where you stand: your odds, the jobs that fit you and what to do this week.',
+    'Get my plan before I go',
+    DEFAULT_COPY.member,
+  )
+}
