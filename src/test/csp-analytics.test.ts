@@ -19,3 +19,12 @@ describe('content security policy: Google Analytics', () => {
     }
   })
 })
+
+describe('content security policy: Google Tag Manager and Google Ads tags', () => {
+  const scriptSrc = (config.split('\n').find((l) => l.includes("`script-src 'self'")) ?? '').split(/\s+/)
+  it('lets a Tag Manager container load the Google Ads conversion scripts', () => {
+    for (const h of ['https://www.googletagmanager.com', 'https://www.googleadservices.com', 'https://googleads.g.doubleclick.net']) {
+      expect(scriptSrc).toContain(h)
+    }
+  })
+})
