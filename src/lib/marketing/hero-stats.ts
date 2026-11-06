@@ -47,9 +47,9 @@ export const HERO_STATS: HeroStat[] = [
   },
   {
     value: '0.75%',
-    label: 'of white-collar workers had searched 27+ weeks, up from 0.56% a year earlier',
+    label: 'of white-collar workers had searched 27+ weeks in Jan-Sep 2026, up from 0.58% a year earlier',
     tone: 'cloud',
-    source: 'NextChapter White Collar Employment Report, Sept 2026 (Census CPS)',
+    source: 'NextChapter analysis of Census CPS, Jan-Sep 2026 vs Jan-Sep 2025, not seasonally adjusted',
     sourceUrl: '/reports/latest',
     evidence: 'P',
   },
