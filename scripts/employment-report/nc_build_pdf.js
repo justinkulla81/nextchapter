@@ -9,7 +9,7 @@ const fs = require('fs');
 (async () => {
   const [src, out, month = '', version = '1.0'] = process.argv.slice(2);
   if (!src || !out) { console.error('usage: node nc_build_pdf.js report.html out.pdf "Month YYYY" version'); process.exit(1); }
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH, args: ['--no-sandbox'] } : {});
   const page = await browser.newPage({ viewport: { width: 1100, height: 1400 } });
   await page.goto('file://' + path.resolve(src), { waitUntil: 'networkidle' });
   await page.evaluate(() => {
