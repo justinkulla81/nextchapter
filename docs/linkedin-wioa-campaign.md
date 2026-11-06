@@ -94,7 +94,7 @@ campaign and keep its state page as the landing page.
 
 ## A/B or not
 
-Not at this size. A board-staff audience is small (the size per state is unknown until Campaign Manager shows it), and at $50 a
+Not at this size. A board-staff audience is small (the size per state is unknown until Campaign Manager shows it), and at about $10 a
 day split across states, an A/B split leaves each arm with too few clicks to tell anything apart.
 
 - Run **one ad per state**, same template. The comparison that matters is state against state.
@@ -104,7 +104,7 @@ day split across states, an A/B split leaves each arm with too few clicks to tel
 
 ## Budget and schedule
 
-- $50 a day across the pilot, Monday to Friday, 3 weeks. These are suggested starting numbers.
+- LinkedIn sets targeting and budget per campaign, so run one campaign per state, each at $10 a day (LinkedIn's minimum), Monday to Friday, 3 weeks. Eight states is $80 a day, about $1,200 over 15 weekdays. To spend less, launch only the first four or five states. These are suggested starting numbers.
 - Objective: **Website visits**. Judge on clicks to the state page, demo builds and workspace claims,
   not impressions. Decide to scale or stop at day 21.
 
@@ -159,7 +159,7 @@ CPS, January to August 2026 average (a size comparison only). Both are in `src/l
 ## Launch checklist
 
 1. For each pilot state, copy `<N>` and `<W>` from its state page into the template.
-2. Create one campaign with the audience above, one ad group per state, the budget and schedule.
+2. Create one campaign per state (targeting and budget live on the campaign in LinkedIn), each inside the campaign group, with the audience above.
 3. Check each state's audience is 300 or more; fold any that are not.
 4. Open each tracked link from LinkedIn's preview, confirm the state page loads and the UTM tag shows in PostHog.
 5. After 48 hours, check the segment engagement report.
