@@ -11,6 +11,8 @@ import { VisitorsPerDayChart } from '@/components/admin/VisitorsPerDayChart'
 import { loadCapturedEmailsForDays } from '@/lib/leads/captured-emails'
 import { capturedPerDay, countsPerDay } from '@/lib/admin/captured-per-day'
 import { loadSemEvents } from '@/lib/admin/sem-leads'
+import { costLine, formatDollars, loadSemSpend } from '@/lib/admin/sem-spend'
+import { SemSpendForm } from '@/components/admin/SemSpendForm'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { isDatacenterIp } from '@/lib/http/datacenter-ip'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
@@ -23,7 +25,7 @@ import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMu
 import { segmentRangeSeries, type SegmentCountRow } from '@/lib/admin/visitor-segment-series'
 import { sourceSegment, type SourceSegment } from '@/lib/admin/visitor-source-segment'
 import { VisitorsSegmentChart, type SegmentChartLine } from '@/components/admin/VisitorsSegmentChart'
-import { allTimeDayCountFromFirstDay, byHourOfDayFromCounts, byWeekdayFromCounts, perDaySeriesFromCounts, perHourSeriesFromCounts } from '@/lib/admin/visitor-time-buckets'
+import { etDateKey, allTimeDayCountFromFirstDay, byHourOfDayFromCounts, byWeekdayFromCounts, perDaySeriesFromCounts, perHourSeriesFromCounts } from '@/lib/admin/visitor-time-buckets'
 
 export const maxDuration = 30
 
@@ -273,6 +275,23 @@ export default async function AdminVisitorActivityPage({
     prisma.nativeJobApplication.findMany({ where: { createdAt: { gte: since(CHART_WINDOW_DAYS) } }, select: { createdAt: true } }),
     loadSemEvents(CHART_WINDOW_DAYS),
   ])
+  const semDayKeys = countsPerDay([], current, CHART_WINDOW_DAYS).map((d) => d.key)
+  const semSpend = await loadSemSpend(semDayKeys)
+  const spendFor = (segment: 'b2c' | 'b2b') => semSpend.filter((r) => r.segment === segment)
+  const spendDays = (segment: 'b2c' | 'b2b') => {
+    const byDay = new Map(spendFor(segment).map((r) => [r.day, r.amountCents / 100] as const))
+    return semDayKeys.map((key) => ({ dateKey: key, count: byDay.get(key) ?? 0 }))
+  }
+  const sumCents = (rows: { amountCents: number }[]) => rows.reduce((t, r) => t + r.amountCents, 0)
+  const semCosts = [
+    costLine('B2C', sumCents(spendFor('b2c')), sem.b2cLeads.length, 0),
+    costLine('B2B', sumCents(spendFor('b2b')), sem.b2bLeads.length, 0),
+    costLine('All paid search', sumCents(semSpend), sem.b2cLeads.length + sem.b2bLeads.length, sem.accounts.length),
+  ]
+  const semSpendSeries = [
+    { label: 'B2C spend ($)', days: spendDays('b2c'), color: 'var(--color-brand)' },
+    { label: 'B2B spend ($)', days: spendDays('b2b'), color: 'var(--color-navy)' },
+  ]
   const semSeries = [
     { label: 'B2C leads', days: toDaysRows(countsPerDay(sem.b2cLeads, current, CHART_WINDOW_DAYS)), color: 'var(--color-brand)' },
     { label: 'B2B leads', days: toDaysRows(countsPerDay(sem.b2bLeads, current, CHART_WINDOW_DAYS)), color: 'var(--color-navy)' },
@@ -651,9 +670,38 @@ export default async function AdminVisitorActivityPage({
         <div className="rounded-lg border border-border p-4">
           <h2 className="text-sm font-medium text-foreground">Paid search leads and accounts per day</h2>
           <p className="mb-3 text-xs text-muted-foreground">
-            Last {CHART_WINDOW_DAYS} days (Eastern time). Visitors whose first visit came from a Google Ads click (utm_medium cpc or a gclid), then left an email or created an account from the same IP within 30 days. B2B is a campaign tagged b2b-; every other click is B2C. Contact-form leads carry no IP, so they are not counted here.
+            Last {CHART_WINDOW_DAYS} days (Eastern time). Visitors whose first visit came from a Google Ads click (utm_medium cpc or a gclid), then left an email or created an account from the same IP within 30 days. B2B is a campaign tagged b2b-; every other click is B2C. Contact-form leads carry no IP, so they are not counted here. Spend is typed in by day; cost per lead is spend over the leads above, and cost per account is shown for all paid search together, since accounts are not split by segment.
           </p>
           <VisitorsPerDayChart series={semSeries} emptyMessage="No paid search leads in this window yet." />
+          <h3 className="mb-1 mt-4 text-xs font-medium text-foreground">Spend and cost per lead, last {CHART_WINDOW_DAYS} days</h3>
+          <table className="mb-3 w-full text-xs">
+            <thead>
+              <tr className="text-left text-muted-foreground">
+                <th className="py-1 pr-2 font-normal"></th>
+                <th className="py-1 pr-2 text-right font-normal">Spend</th>
+                <th className="py-1 pr-2 text-right font-normal">Leads</th>
+                <th className="py-1 pr-2 text-right font-normal">Cost per lead</th>
+                <th className="py-1 text-right font-normal">Cost per account</th>
+              </tr>
+            </thead>
+            <tbody>
+              {semCosts.map((c) => (
+                <tr key={c.label} className="border-t border-border">
+                  <td className="py-1 pr-2">{c.label}</td>
+                  <td className="py-1 pr-2 text-right tabular-nums">{formatDollars(c.spendCents)}</td>
+                  <td className="py-1 pr-2 text-right tabular-nums">{c.leads}</td>
+                  <td className="py-1 pr-2 text-right tabular-nums" title={c.costPerLeadCents === null ? 'No leads yet, so there is no cost per lead.' : undefined}>
+                    {c.costPerLeadCents === null ? '—' : formatDollars(c.costPerLeadCents)}
+                  </td>
+                  <td className="py-1 text-right tabular-nums" title={c.costPerAccountCents === null ? 'No accounts yet.' : undefined}>
+                    {c.label !== 'All paid search' || c.costPerAccountCents === null ? '—' : formatDollars(c.costPerAccountCents)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <VisitorsPerDayChart series={semSpendSeries} emptyMessage="No spend entered yet. Add a day below." />
+          <SemSpendForm today={etDateKey(current)} windowStart={semDayKeys[0]} />
         </div>
         <div className="rounded-lg border border-border p-4">
           <h2 className="text-sm font-medium text-foreground">Emails captured per day</h2>
