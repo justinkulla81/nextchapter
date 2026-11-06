@@ -1,6 +1,6 @@
 # October 2026 White Collar Employment Report
 
-*Draft v8. Covers October 2026 data; to be published in November 2026. Not published or sent.*
+*Draft v9. Covers October 2026 data; to be published in November 2026. Not published or sent.*
 
 ## Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago
 
@@ -124,7 +124,7 @@ The full list of announcements we track is in NextChapter's layoff tracker; item
 
 ## Employers: who is hiring
 
-Counts as of October 26, 2026, not seasonally adjusted, from NextChapter's daily count of verified open jobs on employer career sites and the job systems behind them: 487,679 jobs, of which 130,710 (27%) are entry-level or early-career. This is a different universe from the Anthropic section below, which uses all open postings in our crawl (895,561 on November 6) including imported postings not yet verified, some of which may no longer be open. These are all functions and levels, entry-level included; the Census white-collar test is not applied, so the counts are never combined with the white-collar figures above. A ranking shows who has the most open jobs among the jobs we track, not who hires most in the economy and not how good an employer is. Coverage is partial and follows our sources.
+Counts as of October 26, 2026, not seasonally adjusted, from NextChapter's daily count of verified open jobs on employer career sites and the job systems behind them: 487,679 jobs, of which 130,710 (27%) are entry-level or early-career. This is a different universe from the Anthropic section below, which uses open postings in our crawl as of November 6 (653,974, excluding postings that link through a job aggregator), including imported postings not yet verified, some of which may no longer be open. These are all functions and levels, entry-level included; the Census white-collar test is not applied, so the counts are never combined with the white-collar figures above. A ranking shows who has the most open jobs among the jobs we track, not who hires most in the economy and not how good an employer is. Coverage is partial and follows our sources.
 
 **Most entry-level jobs (roughly 0 to 3 years of experience)**
 
@@ -183,18 +183,18 @@ We matched job titles on open postings NextChapter tracks (as of November 6) to 
 
 | Exposure of matched open postings | Share |
 |---|---:|
-| No observed exposure (0) | 2.6% |
-| Under 0.10 | 17.6% |
-| 0.10 to 0.29 | 36.5% |
-| 0.30 or higher | 43.2% |
+| No observed exposure (0) | 3.7% |
+| Under 0.10 | 19.4% |
+| 0.10 to 0.29 | 38.5% |
+| 0.30 or higher | 38.5% |
 
-Note: Covers 142,992 matched postings out of 895,561 open postings crawled as of Nov 6, 2026 (about 90% from an unverified import feed, some of which may no longer be open).
+Note: Covers 89,447 matched postings out of 653,974 open postings crawled as of Nov 6, 2026. Postings that link through a job aggregator are excluded; about 86% of the rest were loaded in bulk from employer career sites and job systems, are not individually verified, and some may no longer be open.
 
-- **Coverage:** 142,992 of 895,561 open postings (16%) matched an occupation; the rest are not forced into one. The matched set leans toward professional and management titles. Counts are postings we crawl (about 90% come from an import feed and are not verified; some may no longer be open), not all U.S. openings; cells under 100 postings are not shown.
-- **Highest-scoring occupations with 100 or more open postings:** market research analysts and marketing specialists (0.65; 1,984 open), financial and investment analysts (0.57; 5,958), information security analysts (0.49; 1,340), web developers (0.48; 106), technical writers (0.47; 229), data scientists (0.46; 4,746), secretaries and administrative assistants (0.45; 5,815).
-- **By function (average score of matched postings):** data and analytics 0.45, marketing 0.40, finance 0.37, administration 0.37, human resources 0.34, legal 0.23, engineering 0.21.
+- **Coverage:** 89,447 of 653,974 open postings (13.7%) matched an occupation; the rest are not forced into one. The matched set leans toward professional and management titles. Counts are postings we crawl, not all U.S. openings; cells under 100 postings are not shown.
+- **Highest-scoring occupations with 100 or more open postings:** market research analysts and marketing specialists (0.65; 690 open), financial and investment analysts (0.57; 3,246), information security analysts (0.49; 1,181), technical writers (0.47; 227), data scientists (0.46; 3,583), secretaries and administrative assistants (0.45; 3,673), operations research analysts (0.43; 114).
+- **By function (average score of matched postings):** data and analytics 0.46, finance 0.38, marketing 0.38, administration 0.36, human resources 0.31, legal 0.23, engineering 0.21.
 - **Cross-check:** the unweighted Spearman rank correlation across the 756 overlapping occupations is 0.58 with Microsoft's applicability scores and 0.70 with OpenAI's exposure ratings: broad agreement, not close, so we show bands, not precise rankings.
-- **Match quality:** we reviewed all 200 sampled matches by hand. 7 looked questionable (3.5%), mostly engineering-adjacent titles such as machine learning engineers, DevOps and site-reliability roles matched to data scientists or software developers, and one logistics coordinator matched to logisticians.
+- **Match quality:** we reviewed all 200 sampled matches by hand (a sample drawn before the aggregator exclusion; same matching method). 7 looked questionable (3.5%), mostly engineering-adjacent titles such as machine learning engineers, DevOps and site-reliability roles matched to data scientists or software developers, and one logistics coordinator matched to logisticians.
 - **Change over time:** not reported. Our postings history starts in mid-October 2026, and the exposure file used is Anthropic's October 22 version; a comparison with the current file on November 6 found the values for all 497 occupations in SOC groups 11 to 43 unchanged.
 
 *What it means for a job seeker:* exposure describes how much of a job's tasks AI tools are observed doing, which is a reason to build fluency with those tools, not a prediction that the job will go away.

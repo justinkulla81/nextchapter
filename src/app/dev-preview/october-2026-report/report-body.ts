@@ -10,7 +10,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <div><span class="v">39.1%</span><span class="l">Same measure, white-collar workers aged 55–64 (27.0% in 2025)</span></div>
 <div><span class="v">153</span><span class="l">White-Collar Long-Search Index, Sep 2026 (2019 = 100, seasonally adjusted; 135 a year earlier)</span></div>
 </div>
-<div class="cover-meta"><span>Covers October 2026 data; to be published November 2026</span><span>Census CPS microdata through September 2026</span><span>Draft 8: not published</span><span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
+<div class="cover-meta"><span>Covers October 2026 data; to be published November 2026</span><span>Census CPS microdata through September 2026</span><span>Draft 9: not published</span><span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
 </div></header><div class="wrap"><div class="grid"><nav class="toc" aria-label="Contents"><div class="eyebrow">Contents</div><ol><li><a href="#c0"><span class="n">—</span>Executive summary</a></li><li><a href="#c1"><span class="n">—</span>Who we mean</a></li><li><a href="#c2"><span class="n">—</span>The middle class</a></li><li><a href="#c3"><span class="n">—</span>What changed</a></li><li><a href="#c4"><span class="n">—</span>Bright spots</a></li><li><a href="#c5"><span class="n">—</span>Clouds</a></li><li><a href="#c6"><span class="n">—</span>Layoffs and voluntary exits</a></li><li><a href="#c7"><span class="n">—</span>Employers</a></li><li><a href="#c8"><span class="n">—</span>AI exposure and open jobs</a></li><li><a href="#c9"><span class="n">—</span>The new Congress</a></li><li><a href="#c10"><span class="n">—</span>Appendix</a></li></ol></nav><main><section class="" id="c0"><div class="chapter-head"><div class="eyebrow">Executive summary</div><h2 id="h-c0">Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago</h2></div>
 
 <p class="lead">Employers added 165,000 jobs in October and unemployment fell to 4.1% (BLS, seasonally adjusted). Yet among unemployed white-collar workers, 28.5% had been unemployed for 27 weeks or more in January to September 2026, up from 23.2% in the same months of 2025. Among knowledge workers (white-collar occupations with a bachelor’s degree or more) the share is 29.6%, up from 24.8%; among white-collar workers aged 55 to 64 it is 39.1%, up from 27.0%. All three increases are larger than their 90% margins of error on the year-over-year changes (about ±2.3, ±2.8 and ±6.1 percentage points, BLS generalized-variance method), and they also clear a more conservative approximation (about ±3.4, ±4.3 and ±8.8).</p>
@@ -334,7 +334,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 </section>
 <section class="" id="c7"><div class="chapter-head"><div class="eyebrow">Chapter 07 · Employers</div><h2 id="h-c7">Employers: who is hiring</h2></div>
 
-<p>Counts as of October 26, 2026, not seasonally adjusted, from NextChapter’s daily count of verified open jobs on employer career sites and the job systems behind them: 487,679 jobs, of which 130,710 (27%) are entry-level or early-career. This is a different universe from the Anthropic section below, which uses all open postings in our crawl (895,561 on November 6) including imported postings not yet verified, some of which may no longer be open. These are all functions and levels, entry-level included; the Census white-collar test is not applied, so the counts are never combined with the white-collar figures above. A ranking shows who has the most open jobs among the jobs we track, not who hires most in the economy and not how good an employer is. Coverage is partial and follows our sources.</p>
+<p>Counts as of October 26, 2026, not seasonally adjusted, from NextChapter’s daily count of verified open jobs on employer career sites and the job systems behind them: 487,679 jobs, of which 130,710 (27%) are entry-level or early-career. This is a different universe from the Anthropic section below, which uses open postings in our crawl as of November 6 (653,974, excluding postings that link through a job aggregator), including imported postings not yet verified, some of which may no longer be open. These are all functions and levels, entry-level included; the Census white-collar test is not applied, so the counts are never combined with the white-collar figures above. A ranking shows who has the most open jobs among the jobs we track, not who hires most in the economy and not how good an employer is. Coverage is partial and follows our sources.</p>
 <p><strong>Most entry-level jobs (roughly 0 to 3 years of experience)</strong></p>
 <div class="exhibit"><span class="ex-label">Exhibit 6</span><span class="ex-title">Employers with the most entry-level jobs, October 26, 2026</span><div class="tbl"><table class="emp2">
 <thead>
@@ -533,29 +533,29 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <tbody>
 <tr class="odd">
 <td>No observed exposure (0)</td>
-<td style="text-align: right;">2.6%</td>
+<td style="text-align: right;">3.7%</td>
 </tr>
 <tr class="even">
 <td>Under 0.10</td>
-<td style="text-align: right;">17.6%</td>
+<td style="text-align: right;">19.4%</td>
 </tr>
 <tr class="odd">
 <td>0.10 to 0.29</td>
-<td style="text-align: right;">36.5%</td>
+<td style="text-align: right;">38.5%</td>
 </tr>
 <tr class="even">
 <td>0.30 or higher</td>
-<td style="text-align: right;">43.2%</td>
+<td style="text-align: right;">38.5%</td>
 </tr>
 </tbody>
 </table></div></div>
-<p class="note">Note: Covers 142,992 matched postings out of 895,561 open postings crawled as of Nov 6, 2026 (about 90% from an unverified import feed, some of which may no longer be open).</p>
+<p class="note">Note: Covers 89,447 matched postings out of 653,974 open postings crawled as of Nov 6, 2026. Postings that link through a job aggregator are excluded; about 86% of the rest were loaded in bulk from employer career sites and job systems, are not individually verified, and some may no longer be open.</p>
 <ul>
-<li><strong>Coverage:</strong> 142,992 of 895,561 open postings (16%) matched an occupation; the rest are not forced into one. The matched set leans toward professional and management titles. Counts are postings we crawl (about 90% come from an import feed and are not verified; some may no longer be open), not all U.S. openings; cells under 100 postings are not shown.</li>
-<li><strong>Highest-scoring occupations with 100 or more open postings:</strong> market research analysts and marketing specialists (0.65; 1,984 open), financial and investment analysts (0.57; 5,958), information security analysts (0.49; 1,340), web developers (0.48; 106), technical writers (0.47; 229), data scientists (0.46; 4,746), secretaries and administrative assistants (0.45; 5,815).</li>
-<li><strong>By function (average score of matched postings):</strong> data and analytics 0.45, marketing 0.40, finance 0.37, administration 0.37, human resources 0.34, legal 0.23, engineering 0.21.</li>
+<li><strong>Coverage:</strong> 89,447 of 653,974 open postings (13.7%) matched an occupation; the rest are not forced into one. The matched set leans toward professional and management titles. Counts are postings we crawl, not all U.S. openings; cells under 100 postings are not shown.</li>
+<li><strong>Highest-scoring occupations with 100 or more open postings:</strong> market research analysts and marketing specialists (0.65; 690 open), financial and investment analysts (0.57; 3,246), information security analysts (0.49; 1,181), technical writers (0.47; 227), data scientists (0.46; 3,583), secretaries and administrative assistants (0.45; 3,673), operations research analysts (0.43; 114).</li>
+<li><strong>By function (average score of matched postings):</strong> data and analytics 0.46, finance 0.38, marketing 0.38, administration 0.36, human resources 0.31, legal 0.23, engineering 0.21.</li>
 <li><strong>Cross-check:</strong> the unweighted Spearman rank correlation across the 756 overlapping occupations is 0.58 with Microsoft’s applicability scores and 0.70 with OpenAI’s exposure ratings: broad agreement, not close, so we show bands, not precise rankings.</li>
-<li><strong>Match quality:</strong> we reviewed all 200 sampled matches by hand. 7 looked questionable (3.5%), mostly engineering-adjacent titles such as machine learning engineers, DevOps and site-reliability roles matched to data scientists or software developers, and one logistics coordinator matched to logisticians.</li>
+<li><strong>Match quality:</strong> we reviewed all 200 sampled matches by hand (a sample drawn before the aggregator exclusion; same matching method). 7 looked questionable (3.5%), mostly engineering-adjacent titles such as machine learning engineers, DevOps and site-reliability roles matched to data scientists or software developers, and one logistics coordinator matched to logisticians.</li>
 <li><strong>Change over time:</strong> not reported. Our postings history starts in mid-October 2026, and the exposure file used is Anthropic’s October 22 version; a comparison with the current file on November 6 found the values for all 497 occupations in SOC groups 11 to 43 unchanged.</li>
 </ul>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> Exposure describes how much of a job’s tasks AI tools are observed doing, which is a reason to build fluency with those tools, not a prediction that the job will go away.</p></div>

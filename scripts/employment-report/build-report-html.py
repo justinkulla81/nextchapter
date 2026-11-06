@@ -86,7 +86,7 @@ cover = f'''<header class="cover"><div class="cover-in">
 <div><span class="v">39.1%</span><span class="l">Same measure, white-collar workers aged 55–64 (27.0% in 2025)</span></div>
 <div><span class="v">153</span><span class="l">White-Collar Long-Search Index, Sep 2026 (2019 = 100, seasonally adjusted; 135 a year earlier)</span></div>
 </div>
-<div class="cover-meta"><span>Covers October 2026 data; to be published November 2026</span><span>Census CPS microdata through September 2026</span>{'' if RELEASE else '<span>Draft 8: not published</span>'}<span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
+<div class="cover-meta"><span>Covers October 2026 data; to be published November 2026</span><span>Census CPS microdata through September 2026</span>{'' if RELEASE else '<span>Draft 9: not published</span>'}<span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
 </div></header>'''
 FONTS = ''
 if args.fonts_dir:
