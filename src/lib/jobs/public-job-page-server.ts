@@ -1,6 +1,8 @@
 import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { getTitleDetail, type TitleJob } from '@/lib/seo/job-titles'
+import { baseTitle, titleSlug } from '@/lib/seo/job-title-rules'
 import { retryOnPoolTimeout } from '@/lib/db/heavy'
 import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
@@ -256,14 +258,25 @@ export function pickSimilarJobs(rows: SimilarJob[], limit: number): SimilarJob[]
   return out
 }
 
-/** What a job page with no live listing can say: the posting's title and employer, and the employer's other open roles. Null when no such id exists. */
-export async function getClosedJobContext(id: string): Promise<{ title: string; companyName: string; similar: SimilarJob[] } | null> {
+/** What a job page with no live listing can say: what the job was, the same title open elsewhere, and the employer's other open roles. Null when no such id exists. */
+export async function getClosedJobContext(id: string): Promise<{ title: string; companyName: string; place: string | null; similar: SimilarJob[]; sameTitle: TitleJob[] } | null> {
   if (!/^[a-z0-9]{10,40}$/i.test(id)) return null
   try {
-    const row = await prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { title: true, companyName: true, disclosure: true, companyId: true } })
+    const row = await prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { title: true, companyName: true, disclosure: true, companyId: true, locationCity: true, locationState: true, location: true } })
     if (!row) return null
     const confidential = row.disclosure !== 'OPEN'
-    return { title: row.title, companyName: confidential ? '' : cleanCompanyText(row.companyName), similar: confidential ? [] : await similarJobsAtCompany(row.companyId, id) }
+    const [similar, detail] = await Promise.all([
+      confidential ? Promise.resolve([]) : similarJobsAtCompany(row.companyId, id),
+      // The title's own page figures (stored, cheap): the newest open jobs with this title anywhere. Titles too rare for a page give none.
+      getTitleDetail(titleSlug(baseTitle(row.title))).catch(() => null),
+    ])
+    return {
+      title: row.title,
+      companyName: confidential ? '' : cleanCompanyText(row.companyName),
+      place: row.locationCity && row.locationState ? `${row.locationCity}, ${row.locationState}` : row.location || row.locationState,
+      similar,
+      sameTitle: (detail?.jobs ?? []).filter((j) => j.id !== id).slice(0, 8),
+    }
   } catch {
     return null
   }

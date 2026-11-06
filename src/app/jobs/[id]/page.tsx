@@ -89,7 +89,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   if (!job) {
     const gone = await getClosedJobContext(id)
     if (!gone) notFound()
-    return <ClosedJobView jobId={id} title={gone.title} companyName={gone.companyName} similar={gone.similar} />
+    return <ClosedJobView jobId={id} {...gone} />
   }
 
   const place = placeLabel(job)
