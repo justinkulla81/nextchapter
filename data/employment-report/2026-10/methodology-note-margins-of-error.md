@@ -2,6 +2,20 @@
 
 *October 2026 White Collar Employment Report. Reproducible with `scripts/employment-report/gvf-long-search-margins.py`.*
 
+## Validation against BLS
+As a check on the CPS pipeline, we computed all-worker figures from the microdata and compared them with BLS-published, not seasonally adjusted series for the same months (BLS series LNU01000000, LNU03000000, LNU03008636; ratio of January to September sums).
+
+| Measure | Period | This pipeline | BLS | Difference |
+|---|---|---:|---:|---:|
+| Unemployment rate (%) | Jan-Sep 2026 | 4.32 | 4.32 | 0.00 |
+| Unemployment rate (%) | Jan-Sep 2025 | 4.30 | 4.30 | 0.00 |
+| Share of unemployed out 27+ weeks (%) | Jan-Sep 2026 | 25.8 | 25.9 | -0.1 |
+| Share of unemployed out 27+ weeks (%) | Jan-Sep 2025 | 22.7 | 22.6 | +0.1 |
+| Unemployed 27+ weeks (thousands, monthly average) | Jan-Sep 2026 | 1,900 | 1,900 | 0 |
+| Unemployed 27+ weeks (thousands, monthly average) | Jan-Sep 2025 | 1,663 | 1,659 | +4 |
+
+The white-collar, knowledge-worker and other cuts use the same code and weights; BLS does not publish them, so they cannot be checked this way.
+
 ## What is being compared
 For each group, the share of unemployed people who have been unemployed 27 weeks or more (spells in progress), pooled over January to September 2026 and compared with the same months of 2025. Weights are the CPS composite weights. Not seasonally adjusted. The counts of records behind each group are unweighted person-month observations: the CPS follows households for several months, so one person can appear more than once.
 

@@ -81,17 +81,17 @@ cover = f'''<header class="cover"><div class="cover-in">
 <h1>Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago</h1>
 <div class="cover-stats">
 <div><span class="v">+165K</span><span class="l">Jobs added in October 2026 (BLS, seasonally adjusted); unemployment 4.1%</span></div>
-<div><span class="v">28.5%</span><span class="l">Of unemployed white-collar workers out 27+ weeks, Jan–Sep 2026 (23.2% in 2025)</span></div>
+<div><span class="v">28.5%</span><span class="l">Of unemployed white-collar workers out six months or more (27+ weeks), Jan–Sep 2026 (23.2% in 2025)</span></div>
 <div><span class="v">39.1%</span><span class="l">Same measure, white-collar workers aged 55–64 (27.0% in 2025)</span></div>
 <div><span class="v">153</span><span class="l">White-Collar Long-Search Index, Sep 2026 (2019 = 100, seasonally adjusted; 135 a year earlier, a gap within sampling noise)</span></div>
 </div>
 <div class="box" style="margin-top:2px;padding:12px 16px;gap:6px"><div class="eyebrow">Key findings</div><ul style="gap:4px">
 <li>October payrolls rose by 165,000 and unemployment fell to 4.1% (BLS, seasonally adjusted).</li>
-<li>28.5% of unemployed white-collar workers had been unemployed 27+ weeks in January to September 2026 (23.2% a year earlier); 39.1% at ages 55 to 64 (27.0%).</li>
+<li>28.5% of unemployed white-collar workers had been unemployed six months or more (27+ weeks) in January to September 2026 (23.2% a year earlier); 39.1% at ages 55 to 64 (27.0%).</li>
 <li>White-collar unemployment is low (2.63%): the change is in the share of the unemployed already in long spells, not in how many are out of work.</li>
 <li>This measures ongoing spells, not the chance that a newly unemployed worker stays out six months.</li>
 </ul></div>
-<div class="cover-meta"><span>Covers October 2026 data; to be published November 2026</span><span>Census CPS microdata through September 2026; October CPS and the early-warning section to follow</span>{'' if RELEASE else '<span>Draft 12: not published</span>'}<span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
+<div class="cover-meta"><span>Covers October 2026 data; {'published' if RELEASE else 'to be published'} November 2026</span><span>Census CPS microdata through September 2026; October CPS and the early-warning section to follow</span>{'' if RELEASE else '<span>Draft 13: not published</span>'}<span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
 </div></header>'''
 FONTS = ''
 if args.fonts_dir:
