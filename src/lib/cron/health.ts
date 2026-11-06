@@ -8,8 +8,11 @@ export interface RunSummary {
   error?: string | null
 }
 
-/** No Vercel function outlives 300s here; a run still RUNNING after this was cut off. */
-export const STUCK_AFTER_MS = 6 * 60_000
+/**
+ * The longest route (and every bundle) may run 800 s, so a run still RUNNING after this was cut off. At 6 minutes the watchdog
+ * marked live long jobs TIMED_OUT and retried them while they were still running (board-light-rows, 2026-11-06: deadlock).
+ */
+export const STUCK_AFTER_MS = 15 * 60_000
 
 export function isStuck(run: RunSummary, now: Date): boolean {
   return run.status === 'RUNNING' && now.getTime() - run.startedAt.getTime() > STUCK_AFTER_MS
