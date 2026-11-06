@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { extractResumeText } from '@/lib/resume/extract-text'
 import { classifyResumeDocument } from '@/lib/resume/classify-resume'
-import { extractProfileFieldsFromResume } from '@/lib/resume/extract-profile-fields'
+import { extractProfileFieldsFromResume, type ExtractionTiming } from '@/lib/resume/extract-profile-fields'
 import { runPostUploadAnalysis } from '@/lib/resume/post-upload-analysis'
 import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -19,6 +19,11 @@ const NOT_A_RESUME = "That doesn't look like a resume — please upload your act
 // "has a résumé" check (looksLikeResume not false) stays false until the profile is filled in.
 const READING = 'Still being read'
 
+// How long the handover may wait for the match baseline. It starts beside the model call and is normally done long
+// before the reply; if the database is slow it must not hold the member on the progress screen. Its inputs come from the
+// profile as it was before the write (already in memory), so a late finish still records the right "before".
+const BASELINE_WAIT_MS = 2000
+
 /**
  * The work the onboarding upload used to do before answering: read the file, check it is a résumé, fill the
  * profile, then hand the rest to the analysis. Runs after the response (see startResumeUpload) and again on Retry.
@@ -28,6 +33,11 @@ const READING = 'Still being read'
 export async function runResumeParse(profileId: string, attempt: string): Promise<void> {
   const started = Date.now()
   let stage = 'start'
+  // Milliseconds since the start, by stage: carried on resume_parse_completed so the long pole is visible.
+  const stages: Record<string, number> = {}
+  const lap = (name: string) => {
+    stages[name] = Date.now() - started
+  }
   try {
     const profile = await prisma.candidateProfile.findUnique({ where: { id: profileId } })
     const state = readParseState(profile?.journeyDetails)
@@ -45,7 +55,9 @@ export async function runResumeParse(profileId: string, attempt: string): Promis
       stage = 'read_file'
       const { data: blob, error } = await createAdminClient().storage.from('resumes').download(state.path)
       if (error || !blob) throw new Error('stored file could not be read')
+      lap('downloadMs')
       const { text, error: extractionError } = await extractResumeText(new File([blob], state.fileName), state.fileType)
+      lap('textMs')
 
       // No readable text is rejected here without a model call (classifyResumeDocument answers that case itself).
       if (!text || text.trim().length < 40) {
@@ -81,7 +93,7 @@ export async function runResumeParse(profileId: string, attempt: string): Promis
     // Only a reply with neither goes to classifyResumeDocument, before anything is written.
     const rowId = resumeId
     const gate = async ({ hasEntries }: { hasEntries: boolean }) => {
-      await baseline
+      await Promise.race([baseline.catch(() => {}), new Promise((resolve) => setTimeout(resolve, BASELINE_WAIT_MS))])
       if (!hasEntries) {
         const row = await prisma.resume.findUniqueOrThrow({ where: { id: rowId }, select: { extractedText: true } })
         const classification = await classifyResumeDocument(row.extractedText)
@@ -109,6 +121,7 @@ export async function runResumeParse(profileId: string, attempt: string): Promis
     // The member moves on as soon as the profile fields are written; education, work history, flags and level rank
     // finish behind that, and the analysis starts after them.
     let handedOn = false
+    const timing: ExtractionTiming = {}
     const handOn = async () => {
       // A résumé with no name or email would create an account with blank fields (see uploadResume).
       if (!profile.registrationCompletedAt) {
@@ -128,11 +141,13 @@ export async function runResumeParse(profileId: string, attempt: string): Promis
       await prisma.resume.update({ where: { id: rowId }, data: { looksLikeResume: true, notAResumeReason: null } })
       await clearParse(profileId, attempt)
       handedOn = true
-      captureServerEvent(profileId, 'resume_parse_completed', { resumeId: rowId, durationMs: Date.now() - started })
+      lap('handoverMs')
+      captureServerEvent(profileId, 'resume_parse_completed', { resumeId: rowId, durationMs: Date.now() - started, stages: { ...stages, ...timing } })
     }
     const filled = await extractProfileFieldsFromResume(resumeId, {
       beforeWrite: gate,
       onProfileWritten: handOn,
+      timing,
     })
     if (rejected) return
     if (!handedOn) {
