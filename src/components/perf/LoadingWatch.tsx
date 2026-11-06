@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import posthog from 'posthog-js'
 import { SLOW_PAGE_MS, STALLED_PAGE_MS } from '@/lib/perf/thresholds'
+import { ThinkingTimer } from '@/components/ui/ThinkingTimer'
 
 /**
  * Rendered inside a page's loading state. It exists only while a member is waiting, so its lifetime is the wait: at 4 s it reports
@@ -46,14 +47,17 @@ export function LoadingWatch() {
   if (stage === 'quick') return null
   return (
     <div className="flex flex-col items-center gap-2 text-center" role="status" aria-live="polite">
-      <p className="text-sm text-muted-foreground">
-        {stage === 'slow' ? 'This is taking longer than usual. Your information is safe.' : 'This is still not loading. Reloading usually fixes it.'}
-      </p>
-      {stage === 'stalled' ? (
-        <button type="button" onClick={() => window.location.reload()} className="text-sm font-medium text-ink underline underline-offset-4">
-          Reload this page
-        </button>
-      ) : null}
+      {stage === 'slow' ? (
+        <p className="text-sm text-muted-foreground">This is taking longer than usual. Your information is safe.</p>
+      ) : (
+        <>
+          <ThinkingTimer op="page" startedAgoMs={STALLED_PAGE_MS} />
+          <p className="text-sm text-muted-foreground">Still working. Your information is safe. If nothing changes, reloading usually fixes it.</p>
+          <button type="button" onClick={() => window.location.reload()} className="text-sm font-medium text-ink underline underline-offset-4">
+            Reload this page
+          </button>
+        </>
+      )}
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Check, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
+import { ThinkingTimer } from '@/components/ui/ThinkingTimer'
 import { retuneSearch } from '@/app/dashboard/retune-actions'
 import type { RetuneResult, RetuneTrigger } from '@/lib/personalization/match-verdict'
 
@@ -40,6 +41,7 @@ export function RetuneView({
             </li>
           ))}
         </ol>
+        <ThinkingTimer op="retune" />
       </section>
     )
   }
