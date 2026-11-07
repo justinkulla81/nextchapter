@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { render } from '@react-email/render'
 import MidweekCheckinEmail from '@/emails/midweek-checkin'
 import NewsletterWeeklyEmail from '@/emails/newsletter-weekly'
+import ReferenceRequestEmail from '@/emails/reference-request'
+import LeadLifecycleEmail from '@/emails/lead-lifecycle'
 import WeeklyGapNudgeEmail from '@/emails/weekly-gap-nudge'
 import { checkinNoteText, nudgeNoteText } from '@/lib/email/margin-note-text'
 
@@ -53,5 +55,24 @@ describe('email look', () => {
     expect(checkinNoteText(0, 50)).toBe('one small thing is enough')
     expect(nudgeNoteText(5, 50)).toBe('a small gap, easy to close')
     expect(nudgeNoteText(0, 50)).toBe('nothing left to close')
+  })
+
+  it('draws the squiggle under every headline, and keeps one-time links free of tracking tags', async () => {
+    const html = await render(
+      <ReferenceRequestEmail candidateName="Sam Rivera" refereeName="Dana" referenceUrl="https://x.test/ref/abc123?token=xyz" confidentialSearchMode />,
+    )
+    expect(html).toContain('/email/squiggle.png')
+    expect(html).toContain('/email/bookmark.png')
+    expect(html).toContain('href="https://x.test/ref/abc123?token=xyz"')
+    expect(html).not.toContain('utm_')
+    // Confidential mode never says the candidate is searching, in the headline or the body.
+    expect(html).not.toMatch(/job search/i)
+  })
+
+  it('signs a lead email as Victoria', async () => {
+    const html = await render(
+      <LeadLifecycleEmail content={{ headline: 'A first note', paragraphs: ['Hello.'], benefits: [], ctaLabel: 'Start', footerNote: 'You signed up.' } as never} ctaUrl="https://x.test/go" unsubscribeUrl="https://x.test/u" postalAddress="" audience="candidate" />,
+    )
+    expect(html).toContain('/email/signature-victoria.png')
   })
 })

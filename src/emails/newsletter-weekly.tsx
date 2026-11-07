@@ -2,7 +2,7 @@ import type { LayoffWeekBrief } from '@/lib/newsletter/layoff-week'
 import type { JourneyWeekBrief } from '@/lib/newsletter/journey-week'
 import { emailCtaLabel } from '@/lib/ab/email-cta'
 import type { NavCtaVariant } from '@/lib/ab/nav-cta'
-import { Body, Button, Card, CardEmail, HandNote, Headline, Mark, Masthead, MUTED, ShortVersion, Signoff, Squiggle } from '@/lib/email/card-layout'
+import { Body, Button, Card, CardEmail, HandNote, Headline, Mark, Masthead, MUTED, ShortVersion, Signoff } from '@/lib/email/card-layout'
 import { chapterDate, chapterNumber } from '@/lib/newsletter/chapter'
 
 interface NewsletterWeeklyEmailProps {
@@ -50,7 +50,6 @@ export default function NewsletterWeeklyEmail({
       <Card pad="28px 32px 36px">
         <Masthead right={`Chapter ${chapterNumber(sentAt)} · ${chapterDate(sentAt)}`} />
         <Headline>{intro}</Headline>
-        <Squiggle />
         {layoffs && layoffsUrl ? (
           <ShortVersion>
             <strong>{layoffs.notices.toLocaleString('en-US')} layoff notices</strong> in {layoffs.states.toLocaleString('en-US')}{' '}

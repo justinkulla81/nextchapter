@@ -11,4 +11,9 @@ Parts in the layout file:
 
 Gmail ignores web fonts, so the display and hand fonts only show in Apple Mail and similar clients. The signature and bookmark are PNGs for that reason. They load from `NEXT_PUBLIC_APP_URL` (default `https://launchyournextchapter.com`), so they only appear once a build that contains `public/email/` is live.
 
-Not yet on this look: emails that do not use the shared layout (reference requests, employer and company invites, lead lifecycle, admin alerts, the employer digest).
+- `Headline` draws the hand-drawn squiggle under every headline (`squiggle={false}` turns it off). The line follows the card's alignment.
+- `LinkButton` is the green pill for a signed, one-time link (invite, confirm, sign-in). It leaves the URL exactly as given, with no UTM tags. `Button` adds the tags and is for ordinary links.
+
+Every email except the internal staff ones is now on this look: the invite, reference, verification and digest emails that used a plain layout were moved onto the shared cards. The staff emails (`admin-*`, the visitor digest, the layoff context alert, PR hook and product-positioning alerts) keep their plain layout on purpose.
+
+Signed by Victoria: the conversational candidate emails (newsletter, check-ins, nudges, kickoff, finish line, Saturday check-in, weekly read, journey plan, registration reminder, win-back, lead follow-ups). Not on invites, verification, reference or employer emails.

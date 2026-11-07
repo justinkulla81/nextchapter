@@ -1,4 +1,4 @@
-import { Button, Card, CardEmail, GREEN, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
+import { Button, Card, CardEmail, GREEN, Headline, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
 
 export interface WeeklyReadEmailProps {
   firstName: string | null
@@ -51,6 +51,7 @@ export default function WeeklyReadEmail({ firstName, headline, lines, next, repo
           )}
         </div>
         <Button href={reportUrl}>See your full Market Reality Report</Button>
+        <Signoff align="center" />
       </Card>
     </CardEmail>
   )

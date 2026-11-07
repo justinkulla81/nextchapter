@@ -1,4 +1,4 @@
-import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
+import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
 
 interface CompleteRegistrationReminderEmailProps {
   firstName: string | null
@@ -37,6 +37,7 @@ export default function CompleteRegistrationReminderEmail({
         </Lead>
         <Lead>Click below to pick up exactly where you left off — no password needed.</Lead>
         <Button href={magicLink}>Finish creating my account</Button>
+        <Signoff align="center" />
       </Card>
     </CardEmail>
   )
