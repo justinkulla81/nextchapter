@@ -38,6 +38,40 @@ Goldman Sachs, TikTok and ADP do not use Workday; each runs its own career site 
 
 These need their own crawler adapters (not a Workday config line). Goldman and TikTok are clean JSON; ADP is a page crawl. Prompt: `docs/specs/ncrawl-own-site-adapters-prompt.md`.
 
+## Next tier: 23 more Workday boards (2026-11-07)
+
+Employers ranked just below the first ten by live Jooble jobs, not staffing firms. Each board answered the public Workday jobs endpoint on 2026-11-07 (all countries; Workday caps its count at 2,000). Together they hold 1040 Jooble-linked live US jobs. Sources, in crawler format: `scripts/jobsreport/sources/jooble-next.json`. Prompt: `docs/specs/ncrawl-next-tier-prompt.md`.
+
+| Employer | Live via Jooble | Live direct now | Workday board (tenant, cluster, site) |
+|---|---|---|---|
+| Hitachi | 59 | 0 | hitachi, wd1, hitachi |
+| Johnson Controls | 58 | 0 | jci, wd5, JCI |
+| KBR | 57 | 7 | kbr, wd5, KBR_Careers |
+| Micron | 55 | 4 | micron, wd1, External |
+| Capital One | 55 | 286 | capitalone, wd12, Capital_One |
+| Boeing | 54 | 4 | boeing, wd1, EXTERNAL_CAREERS |
+| Guidehouse | 53 | 86 | guidehouse, wd1, External |
+| Morgan Stanley | 50 | 1 | ms, wd5, External |
+| Home Depot | 49 | 3 | homedepot, wd5, CareerDepot |
+| RSM | 46 | 0 | rsm, wd1, RSMCareers |
+| Palo Alto Networks | 44 | 118 | paloaltonetworks, wd5, panwexternalcareers |
+| Stryker | 43 | 85 | stryker, wd1, StrykerCareers |
+| Centene | 42 | 8 | centene, wd5, centene_external |
+| Verizon | 42 | 0 | verizon, wd12, verizon-careers |
+| General Motors | 41 | 0 | generalmotors, wd5, Careers_GM |
+| The Hartford | 41 | 0 | thehartford, wd5, Careers_External |
+| Wolters Kluwer | 38 | 0 | wk, wd3, External |
+| Merck | 37 | 4 | msd, wd5, SearchJobs |
+| Truist | 37 | 0 | truist, wd1, Careers |
+| AIG | 36 | 0 | aig, wd1, aig |
+| Flextronics (Flex) | 35 | 0 | flextronics, wd1, Careers |
+| Gartner | 34 | 18 | gartner, wd5, EXT |
+| M&T Bank | 34 | 0 | mtb, wd5, MTB |
+
+**Other systems found, not yet verified** (the crawler needs an adapter for each): Uber (Oracle HCM, jobs.uber.com), Ford (Radancy, careers.ford.com), AMD (iCIMS and Jibe, careers.amd.com), Honeywell and BMO (Phenom), New York Life and Leonardo DRS (SAP SuccessFactors), Takeda (Avature).
+
+**No career system found by the probe:** EY, Willis Towers Watson, Visa, Regeneron, BD, HII, Schneider Electric, SAIC, USAA, Atlassian, Intuitive Surgical, Fujifilm, Canon, Anduril, WSP, Turner & Townsend, HNTB, BDO (a Workday site name not guessed, or a custom system). EY and Anduril, Capital One, Oracle and some others already have direct rows from another source.
+
 ## Staffing and recruiter firms (do not chase)
 
 Robert Half (866 via Jooble), CyberCoders (365), Jobot (343), LHH (327), Insight Global, Apex Systems, Kforce, Mindlance, HAN Staffing, Addison Group, Acturhire, Green Key, Artech, Motion Recruitment, Vaco, Randstad, Experis, Ampcus and similar. The posting is the recruiter's own listing for an unnamed client; the apply link is not a copy of a client's career-site job. Decision for the owner: keep them out of search (current rule) or index the ones whose own career site posts the job.
