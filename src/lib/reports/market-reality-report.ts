@@ -168,13 +168,22 @@ Write:
 Candidate data:
 `
 
-// Side-by-side test of a cheaper model (owner decision 2026-11-07: "drop the staff-only sections and test Sonnet 5 against Opus").
-// While MARKET_REALITY_SHADOW_MODEL is set, each report also runs that model on the SAME prompt, at the same time as the real call, and
+// Side-by-side test of a cheaper setup (owner decisions 2026-11-07: test Sonnet 5 against Opus, then Opus 5 at low effort).
+// While MARKET_REALITY_SHADOW_MODEL is set (with MARKET_REALITY_SHADOW_EFFORT for its effort), each report also runs that model on the SAME prompt, at the same time as the real call, and
 // the result is stored for staff to compare (AnalyticsEvent 'market_reality_shadow', Postgres only: it holds the report text). Members only
 // ever see the real report, and a shadow failure never touches it. It stops by itself after SHADOW_MAX comparisons, which caps the spend.
 const SHADOW_MAX = 20
 
-async function runShadow(model: string, prompt: string) {
+const SHADOW_EFFORTS = ['low', 'medium', 'high'] as const
+type ShadowEffort = (typeof SHADOW_EFFORTS)[number]
+
+/** MARKET_REALITY_SHADOW_EFFORT: the effort the shadow run uses (default medium, the same as the real call). */
+function shadowEffort(): ShadowEffort {
+  const v = process.env.MARKET_REALITY_SHADOW_EFFORT?.trim()
+  return (SHADOW_EFFORTS as readonly string[]).includes(v ?? '') ? (v as ShadowEffort) : 'medium'
+}
+
+async function runShadow(model: string, effort: ShadowEffort, prompt: string) {
   try {
     const done = await prisma.analyticsEvent.count({ where: { event: 'market_reality_shadow' } })
     if (done >= SHADOW_MAX) return null
@@ -184,12 +193,13 @@ async function runShadow(model: string, prompt: string) {
         model,
         max_tokens: 8000,
         thinking: { type: 'adaptive' },
-        output_config: { format: zodOutputFormat(marketRealityReportSchema), effort: 'medium' },
+        output_config: { format: zodOutputFormat(marketRealityReportSchema), effort },
         messages: [{ role: 'user', content: prompt }],
       })
       .finalMessage()
     return {
       model,
+      effort,
       output: message.parsed_output,
       inputTokens: message.usage.input_tokens,
       outputTokens: message.usage.output_tokens,
@@ -537,7 +547,7 @@ ${applicationGapPromptSection(applicationGaps)}
   const modelStarted = Date.now()
   const prompt = PROMPT_PREFIX + summary
   const shadowModel = process.env.MARKET_REALITY_SHADOW_MODEL?.trim()
-  const shadow = shadowModel ? runShadow(shadowModel, prompt) : null
+  const shadow = shadowModel ? runShadow(shadowModel, shadowEffort(), prompt) : null
   let opusCost: { inputTokens: number; outputTokens: number; costUsd: number | null; durationMs: number } | null = null
   try {
     const client = getAnthropicClient()
