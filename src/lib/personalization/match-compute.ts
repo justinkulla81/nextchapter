@@ -68,13 +68,38 @@ const runs = new Map<string, { at: number; rows: BoardRankRow[]; value: Promise<
  * memo is shared (current profile only — a past profile would crowd it).
  * Null when matching has nothing to go on (no function, occupation or pivot role).
  */
-export async function computeMatchState(profile: MatchProfile, opts: { dismiss?: SnapshotPreference[]; live?: boolean; countOnly?: boolean } = {}): Promise<MatchState | null> {
+/** Where one run's time went, filled in by computeMatchState when the caller passes one (retune reports it so a slow run says why). */
+export interface MatchTiming {
+  /** Loading the board rows: near 0 when this instance already holds the board, long on a cold one. */
+  loadMs?: number
+  /** Number of board rows the run went over. */
+  rows?: number
+  /** The breadth classifier and dismiss rules. */
+  classifierMs?: number
+  /** Judging every row. */
+  matchMs?: number
+  /** True when the run was answered from the one-minute memo and nothing above was measured. */
+  memo?: boolean
+}
+
+export async function computeMatchState(
+  profile: MatchProfile,
+  opts: { dismiss?: SnapshotPreference[]; live?: boolean; countOnly?: boolean; timing?: MatchTiming } = {}
+): Promise<MatchState | null> {
+  const loadStarted = Date.now()
   const rows = await loadMemberMarketRows(profile)
+  if (opts.timing) {
+    opts.timing.loadMs = Date.now() - loadStarted
+    opts.timing.rows = rows.length
+  }
   // A count-only run is never memoised here (callers keep their own cache) and never touches the shared placement memo.
   const key = opts.live && !opts.countOnly ? `${profile.id}|${profile.updatedAt?.getTime?.() ?? ''}` : null
   if (key) {
     const hit = runs.get(key)
-    if (hit && hit.rows === rows && Date.now() - hit.at < RUN_TTL_MS) return hit.value
+    if (hit && hit.rows === rows && Date.now() - hit.at < RUN_TTL_MS) {
+      if (opts.timing) opts.timing.memo = true
+      return hit.value
+    }
   }
   const value = run(profile, rows, opts)
   if (key) {
@@ -85,13 +110,15 @@ export async function computeMatchState(profile: MatchProfile, opts: { dismiss?:
   return value
 }
 
-async function run(profile: MatchProfile, rows: BoardRankRow[], opts: { dismiss?: SnapshotPreference[]; live?: boolean; countOnly?: boolean }): Promise<MatchState | null> {
+async function run(profile: MatchProfile, rows: BoardRankRow[], opts: { dismiss?: SnapshotPreference[]; live?: boolean; countOnly?: boolean; timing?: MatchTiming }): Promise<MatchState | null> {
   const started = Date.now()
   const [classifier, rules] = await Promise.all([
     loadBreadthClassifier(profile),
     loadDismissRules(profile.id, opts.dismiss ? asActive(opts.dismiss) : undefined).catch(() => null),
   ])
+  if (opts.timing) opts.timing.classifierMs = Date.now() - started
   if (!classifier) return null
+  const matchStarted = Date.now()
   const keepSector = sectorKeep(profile.hiddenEmployerSectors)
   const fit = boardListingFitBucketScorerFor('v2', profile)
   const reqMember = requirementMemberOf(profile as unknown as RequirementProfile)
@@ -154,6 +181,7 @@ async function run(profile: MatchProfile, rows: BoardRankRow[], opts: { dismiss?
       if (toolsConfirmed && crit.skills === 'strong') newThisWeekSkills++
     }
   }
+  if (opts.timing) opts.timing.matchMs = Date.now() - matchStarted
   return {
     verdicts,
     counts: countVerdicts(verdicts),
