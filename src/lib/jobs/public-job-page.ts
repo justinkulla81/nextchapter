@@ -29,6 +29,12 @@ export const PUBLIC_JOB_SOURCES = ['ats_feed', 'admin', 'employer', 'recruiter']
  * (2026-10-30: 349k of 652k live jobs verified within 7 days, 617k within 14), so 7 days hid about 300k open jobs behind a 404.
  */
 export const PUBLIC_JOB_VERIFIED_DAYS = 14
+/**
+ * How long a job on the employer's own career system keeps its page for visitors after the crawl last confirmed it open. Search engines
+ * still get only the PUBLIC_JOB_VERIFIED_DAYS set (sitemap, Google markup, index): between the two the page shows the job and Apply with a
+ * "last confirmed" note, noindex and with no job markup. Owner decision, 2026-11-07.
+ */
+export const PUBLIC_JOB_VIEW_DAYS = 30
 export const PUBLIC_JOB_MIN_DESCRIPTION = 200
 /**
  * A job page is offered to search engines only when it holds the real posting text, not a ~280-character snippet from an
@@ -132,11 +138,14 @@ export function isStaleVerified(lastVerifiedAt: Date | null, nowMs: number): boo
   return !!lastVerifiedAt && nowMs - lastVerifiedAt.getTime() > PUBLIC_JOB_VERIFIED_DAYS * DAY_MS
 }
 
+/** A job whose last confirmation is past the days search engines get (it may still be shown, see isViewableJob). */
+export const isStaleJob = (job: Pick<PublicJobRow, 'lastVerifiedAt'>): boolean => isStaleVerified(job.lastVerifiedAt, Date.now())
+
 /** The allowlist above. `confirmedGhost`: an admin confirmed member ghost flags on it. */
-export function isPublicJob(job: PublicJobRow, nowMs: number, confirmedGhost = false): boolean {
+export function isPublicJob(job: PublicJobRow, nowMs: number, confirmedGhost = false, verifiedDays = PUBLIC_JOB_VERIFIED_DAYS): boolean {
   if (job.status !== 'approved' || job.archivedAt || job.closeReason) return false
   if (job.expiresAt && job.expiresAt.getTime() <= nowMs) return false
-  if (!job.lastVerifiedAt || nowMs - job.lastVerifiedAt.getTime() > PUBLIC_JOB_VERIFIED_DAYS * DAY_MS) return false
+  if (!job.lastVerifiedAt || nowMs - job.lastVerifiedAt.getTime() > verifiedDays * DAY_MS) return false
   if ((job.description?.length ?? 0) < PUBLIC_JOB_MIN_DESCRIPTION) return false
   if (job.disclosure !== 'OPEN' || job.distribution !== 'OPEN') return false
   if (job.institutionScopeId || job.orgScopeId) return false
@@ -150,6 +159,11 @@ export function isPublicJob(job: PublicJobRow, nowMs: number, confirmedGhost = f
   if (nowMs - job.createdAt.getTime() > PUBLIC_JOB_GHOST_AGE_DAYS * DAY_MS && !(job.directListing && reopen === 0 && repost === 0)) return false
   if (confirmedGhost) return false
   return true
+}
+
+/** Whether the page shows the job to a visitor: isPublicJob, but a job on the employer's own career system stays up to PUBLIC_JOB_VIEW_DAYS since its last confirmation. */
+export function isViewableJob(job: PublicJobRow, nowMs: number, confirmedGhost = false): boolean {
+  return isPublicJob(job, nowMs, confirmedGhost, isDirectJob(job) ? PUBLIC_JOB_VIEW_DAYS : PUBLIC_JOB_VERIFIED_DAYS)
 }
 
 export function isRemoteJob(job: Pick<PublicJobRow, 'workArrangement' | 'location'>): boolean {
