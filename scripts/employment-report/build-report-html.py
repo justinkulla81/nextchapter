@@ -23,7 +23,7 @@ text = re.sub(r'^# .*\n+\*(Draft|Version).*\n+', '', text, count=1)          # t
 text = text.replace('![Share of the unemployed out of work 27 or more weeks, January to September 2025 and 2026, by group](chart-long-search-shares.png)', '\n\n@@CHART@@\n\n')
 frag = subprocess.run(['pandoc','-f','markdown','-t','html5','--section-divs','--wrap=none'], input=text, capture_output=True, text=True, check=True).stdout
 soup = BeautifulSoup(frag, 'html.parser')
-labels = ['Executive summary','Chapter 01 · Who we mean','Chapter 02 · The middle class','Chapter 03 · Industry, age, new graduates and place','Chapter 04 · What changed','Chapter 05 · Bright spots','Chapter 06 · Clouds','Chapter 07 · Layoffs and voluntary exits','Chapter 08 · Employers','Chapter 09 · AI and the workforce','Chapter 10 · The job search itself','Chapter 11 · The incoming Congress','Appendix']
+labels = ['Executive summary','Chapter 01 · Who we mean','Chapter 02 · The middle class','Chapter 03 · Industry, age, shifts, new graduates and place','Chapter 04 · What changed','Chapter 05 · Bright spots','Chapter 06 · Clouds','Chapter 07 · Layoffs and voluntary exits','Chapter 08 · Employers','Chapter 09 · AI and the workforce','Chapter 10 · The job search itself','Chapter 11 · The incoming Congress','Appendix']
 secs = soup.find_all('section', recursive=False)
 assert len(secs)==len(labels), len(secs)
 toc=[]

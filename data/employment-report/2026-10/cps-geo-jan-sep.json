@@ -1,0 +1,740 @@
+{
+ "division:New England": {
+  "2025": {
+   "employed_k": 3980,
+   "ur": 2.5,
+   "ltu": 24.6,
+   "n_unemp": 376
+  },
+  "2025_all": {
+   "employed_k": 7968,
+   "ur": 4.19,
+   "ltu": 22.9,
+   "n_unemp": 1326
+  },
+  "2026": {
+   "employed_k": 3819,
+   "ur": 2.94,
+   "ltu": 35.9,
+   "n_unemp": 406
+  },
+  "2026_all": {
+   "employed_k": 7814,
+   "ur": 4.3,
+   "ltu": 28.5,
+   "n_unemp": 1195
+  },
+  "emp_change_pct": -4.0,
+  "ltu_change": 11.3,
+  "ltu_moe_conservative": 12.0
+ },
+ "division:Middle Atlantic": {
+  "2025": {
+   "employed_k": 9546,
+   "ur": 2.57,
+   "ltu": 21.4,
+   "n_unemp": 419
+  },
+  "2025_all": {
+   "employed_k": 20367,
+   "ur": 4.49,
+   "ltu": 25.3,
+   "n_unemp": 1544
+  },
+  "2026": {
+   "employed_k": 9678,
+   "ur": 2.81,
+   "ltu": 31.8,
+   "n_unemp": 445
+  },
+  "2026_all": {
+   "employed_k": 20729,
+   "ur": 4.31,
+   "ltu": 30.3,
+   "n_unemp": 1397
+  },
+  "emp_change_pct": 1.4,
+  "ltu_change": 10.4,
+  "ltu_moe_conservative": 11.0
+ },
+ "division:East North Central": {
+  "2025": {
+   "employed_k": 9917,
+   "ur": 2.35,
+   "ltu": 21.2,
+   "n_unemp": 429
+  },
+  "2025_all": {
+   "employed_k": 23095,
+   "ur": 4.53,
+   "ltu": 21.2,
+   "n_unemp": 1873
+  },
+  "2026": {
+   "employed_k": 9754,
+   "ur": 2.55,
+   "ltu": 30.9,
+   "n_unemp": 412
+  },
+  "2026_all": {
+   "employed_k": 22904,
+   "ur": 4.27,
+   "ltu": 25.0,
+   "n_unemp": 1573
+  },
+  "emp_change_pct": -1.6,
+  "ltu_change": 9.7,
+  "ltu_moe_conservative": 11.1
+ },
+ "division:West North Central": {
+  "2025": {
+   "employed_k": 4660,
+   "ur": 2.38,
+   "ltu": 13.5,
+   "n_unemp": 347
+  },
+  "2025_all": {
+   "employed_k": 11218,
+   "ur": 3.88,
+   "ltu": 15.8,
+   "n_unemp": 1444
+  },
+  "2026": {
+   "employed_k": 4801,
+   "ur": 1.71,
+   "ltu": 14.8,
+   "n_unemp": 275
+  },
+  "2026_all": {
+   "employed_k": 11111,
+   "ur": 3.92,
+   "ltu": 15.8,
+   "n_unemp": 1320
+  },
+  "emp_change_pct": 3.0,
+  "ltu_change": 1.3,
+  "ltu_moe_conservative": 10.4
+ },
+ "division:South Atlantic": {
+  "2025": {
+   "employed_k": 13900,
+   "ur": 2.3,
+   "ltu": 22.4,
+   "n_unemp": 879
+  },
+  "2025_all": {
+   "employed_k": 32659,
+   "ur": 3.79,
+   "ltu": 22.5,
+   "n_unemp": 3023
+  },
+  "2026": {
+   "employed_k": 14336,
+   "ur": 2.42,
+   "ltu": 28.9,
+   "n_unemp": 834
+  },
+  "2026_all": {
+   "employed_k": 32658,
+   "ur": 3.94,
+   "ltu": 26.6,
+   "n_unemp": 2828
+  },
+  "emp_change_pct": 3.1,
+  "ltu_change": 6.5,
+  "ltu_moe_conservative": 7.8
+ },
+ "division:East South Central": {
+  "2025": {
+   "employed_k": 3436,
+   "ur": 2.0,
+   "ltu": 17.2,
+   "n_unemp": 189
+  },
+  "2025_all": {
+   "employed_k": 8971,
+   "ur": 3.69,
+   "ltu": 17.8,
+   "n_unemp": 888
+  },
+  "2026": {
+   "employed_k": 3546,
+   "ur": 1.76,
+   "ltu": 18.0,
+   "n_unemp": 157
+  },
+  "2026_all": {
+   "employed_k": 8866,
+   "ur": 3.88,
+   "ltu": 22.1,
+   "n_unemp": 840
+  },
+  "emp_change_pct": 3.2,
+  "ltu_change": 0.8,
+  "ltu_moe_conservative": 15.1
+ },
+ "division:West South Central": {
+  "2025": {
+   "employed_k": 8357,
+   "ur": 1.98,
+   "ltu": 24.8,
+   "n_unemp": 367
+  },
+  "2025_all": {
+   "employed_k": 20477,
+   "ur": 4.15,
+   "ltu": 21.9,
+   "n_unemp": 1922
+  },
+  "2026": {
+   "employed_k": 8514,
+   "ur": 2.49,
+   "ltu": 24.9,
+   "n_unemp": 407
+  },
+  "2026_all": {
+   "employed_k": 20473,
+   "ur": 4.44,
+   "ltu": 24.6,
+   "n_unemp": 1859
+  },
+  "emp_change_pct": 1.9,
+  "ltu_change": 0.1,
+  "ltu_moe_conservative": 11.4
+ },
+ "division:Mountain": {
+  "2025": {
+   "employed_k": 5597,
+   "ur": 2.38,
+   "ltu": 16.7,
+   "n_unemp": 536
+  },
+  "2025_all": {
+   "employed_k": 12924,
+   "ur": 4.13,
+   "ltu": 17.9,
+   "n_unemp": 2068
+  },
+  "2026": {
+   "employed_k": 5399,
+   "ur": 2.78,
+   "ltu": 21.1,
+   "n_unemp": 529
+  },
+  "2026_all": {
+   "employed_k": 12614,
+   "ur": 4.44,
+   "ltu": 22.1,
+   "n_unemp": 2115
+  },
+  "emp_change_pct": -3.5,
+  "ltu_change": 4.4,
+  "ltu_moe_conservative": 8.8
+ },
+ "division:Pacific": {
+  "2025": {
+   "employed_k": 11759,
+   "ur": 3.3,
+   "ltu": 31.1,
+   "n_unemp": 880
+  },
+  "2025_all": {
+   "employed_k": 25726,
+   "ur": 5.2,
+   "ltu": 27.8,
+   "n_unemp": 3016
+  },
+  "2026": {
+   "employed_k": 11541,
+   "ur": 3.4,
+   "ltu": 31.6,
+   "n_unemp": 856
+  },
+  "2026_all": {
+   "employed_k": 25486,
+   "ur": 5.06,
+   "ltu": 28.8,
+   "n_unemp": 2843
+  },
+  "emp_change_pct": -1.9,
+  "ltu_change": 0.5,
+  "ltu_moe_conservative": 8.2
+ },
+ "state:California": {
+  "2025": {
+   "employed_k": 8625,
+   "ur": 3.28,
+   "ltu": 35.0,
+   "n_unemp": 535
+  },
+  "2025_all": {
+   "employed_k": 18783,
+   "ur": 5.37,
+   "ltu": 29.8,
+   "n_unemp": 1843
+  },
+  "2026": {
+   "employed_k": 8358,
+   "ur": 3.51,
+   "ltu": 32.7,
+   "n_unemp": 546
+  },
+  "2026_all": {
+   "employed_k": 18507,
+   "ur": 5.16,
+   "ltu": 29.7,
+   "n_unemp": 1721
+  },
+  "emp_change_pct": -3.1,
+  "ltu_change": -2.3,
+  "ltu_moe_conservative": 10.6
+ },
+ "state:Texas": {
+  "2025": {
+   "employed_k": 6376,
+   "ur": 2.06,
+   "ltu": 27.0,
+   "n_unemp": 230
+  },
+  "2025_all": {
+   "employed_k": 15171,
+   "ur": 4.19,
+   "ltu": 21.9,
+   "n_unemp": 1068
+  },
+  "2026": {
+   "employed_k": 6453,
+   "ur": 2.71,
+   "ltu": 27.3,
+   "n_unemp": 270
+  },
+  "2026_all": {
+   "employed_k": 15152,
+   "ur": 4.45,
+   "ltu": 24.5,
+   "n_unemp": 1063
+  },
+  "emp_change_pct": 1.2,
+  "ltu_change": 0.3,
+  "ltu_moe_conservative": 14.7
+ },
+ "state:New York": {
+  "2025": {
+   "employed_k": 4323,
+   "ur": 2.46,
+   "ltu": 30.1,
+   "n_unemp": 178
+  },
+  "2025_all": {
+   "employed_k": 9493,
+   "ur": 4.2,
+   "ltu": 31.0,
+   "n_unemp": 642
+  },
+  "2026": {
+   "employed_k": 4357,
+   "ur": 3.52,
+   "ltu": 35.2,
+   "n_unemp": 231
+  },
+  "2026_all": {
+   "employed_k": 9553,
+   "ur": 4.71,
+   "ltu": 33.1,
+   "n_unemp": 658
+  },
+  "emp_change_pct": 0.8,
+  "ltu_change": 5.1,
+  "ltu_moe_conservative": 17.1
+ },
+ "state:Florida": {
+  "2025": {
+   "employed_k": 4178,
+   "ur": 2.2,
+   "ltu": 20.7,
+   "n_unemp": 155
+  },
+  "2025_all": {
+   "employed_k": 10760,
+   "ur": 3.6,
+   "ltu": 23.9,
+   "n_unemp": 631
+  },
+  "2026": {
+   "employed_k": 4281,
+   "ur": 2.42,
+   "ltu": 30.7,
+   "n_unemp": 170
+  },
+  "2026_all": {
+   "employed_k": 10659,
+   "ur": 4.03,
+   "ltu": 27.9,
+   "n_unemp": 635
+  },
+  "emp_change_pct": 2.5,
+  "ltu_change": 10.0,
+  "ltu_moe_conservative": 17.7
+ },
+ "state:Washington": {
+  "2025": {
+   "employed_k": 1773,
+   "ur": 3.53,
+   "ltu": 20.7,
+   "n_unemp": 132
+  },
+  "2025_all": {
+   "employed_k": 3828,
+   "ur": 4.69,
+   "ltu": 19.3,
+   "n_unemp": 379
+  },
+  "2026": {
+   "employed_k": 1842,
+   "ur": 3.27,
+   "ltu": 33.3,
+   "n_unemp": 126
+  },
+  "2026_all": {
+   "employed_k": 3854,
+   "ur": 4.96,
+   "ltu": 26.2,
+   "n_unemp": 387
+  },
+  "emp_change_pct": 3.9,
+  "ltu_change": 12.6,
+  "ltu_moe_conservative": 20.2
+ },
+ "state:Massachusetts": {
+  "2025": {
+   "employed_k": 2042,
+   "ur": 2.85,
+   "ltu": 23.9,
+   "n_unemp": 160
+  },
+  "2025_all": {
+   "employed_k": 3789,
+   "ur": 4.47,
+   "ltu": 24.5,
+   "n_unemp": 460
+  },
+  "2026": {
+   "employed_k": 1941,
+   "ur": 3.24,
+   "ltu": 34.5,
+   "n_unemp": 151
+  },
+  "2026_all": {
+   "employed_k": 3739,
+   "ur": 4.3,
+   "ltu": 30.8,
+   "n_unemp": 366
+  },
+  "emp_change_pct": -4.9,
+  "ltu_change": 10.6,
+  "ltu_moe_conservative": 18.9
+ },
+ "state:Illinois": {
+  "2025": {
+   "employed_k": 2908,
+   "ur": 2.3,
+   "ltu": 40.8,
+   "n_unemp": 117
+  },
+  "2025_all": {
+   "employed_k": 6252,
+   "ur": 4.48,
+   "ltu": 30.7,
+   "n_unemp": 473
+  },
+  "2026": {
+   "employed_k": 2833,
+   "ur": 3.1,
+   "ltu": 45.2,
+   "n_unemp": 140
+  },
+  "2026_all": {
+   "employed_k": 6192,
+   "ur": 4.72,
+   "ltu": 36.3,
+   "n_unemp": 443
+  },
+  "emp_change_pct": -2.6,
+  "ltu_change": 4.4,
+  "ltu_moe_conservative": 22.8
+ },
+ "state:Georgia": {
+  "2025": {
+   "employed_k": 2210,
+   "ur": 1.23,
+   "ltu": 43.7,
+   "n_unemp": 55
+  },
+  "2025_all": {
+   "employed_k": 5231,
+   "ur": 3.2,
+   "ltu": 28.4,
+   "n_unemp": 293
+  },
+  "2026": {
+   "employed_k": 2307,
+   "ur": 2.0,
+   "ltu": 31.0,
+   "n_unemp": 69
+  },
+  "2026_all": {
+   "employed_k": 5421,
+   "ur": 3.39,
+   "ltu": 22.6,
+   "n_unemp": 280
+  },
+  "emp_change_pct": 4.4
+ },
+ "state:North Carolina": {
+  "2025": {
+   "employed_k": 2121,
+   "ur": 3.0,
+   "ltu": 24.8,
+   "n_unemp": 113
+  },
+  "2025_all": {
+   "employed_k": 5132,
+   "ur": 3.65,
+   "ltu": 24.4,
+   "n_unemp": 329
+  },
+  "2026": {
+   "employed_k": 2118,
+   "ur": 2.04,
+   "ltu": 32.2,
+   "n_unemp": 74
+  },
+  "2026_all": {
+   "employed_k": 5033,
+   "ur": 3.48,
+   "ltu": 25.4,
+   "n_unemp": 278
+  },
+  "emp_change_pct": -0.1
+ },
+ "state:Virginia": {
+  "2025": {
+   "employed_k": 2117,
+   "ur": 2.53,
+   "ltu": 20.4,
+   "n_unemp": 90
+  },
+  "2025_all": {
+   "employed_k": 4266,
+   "ur": 4.02,
+   "ltu": 21.5,
+   "n_unemp": 282
+  },
+  "2026": {
+   "employed_k": 2165,
+   "ur": 2.69,
+   "ltu": 24.1,
+   "n_unemp": 90
+  },
+  "2026_all": {
+   "employed_k": 4243,
+   "ur": 4.22,
+   "ltu": 29.9,
+   "n_unemp": 275
+  },
+  "emp_change_pct": 2.3
+ },
+ "state:Colorado": {
+  "2025": {
+   "employed_k": 1489,
+   "ur": 1.95,
+   "ltu": 17.4,
+   "n_unemp": 56
+  },
+  "2025_all": {
+   "employed_k": 3120,
+   "ur": 4.11,
+   "ltu": 20.3,
+   "n_unemp": 242
+  },
+  "2026": {
+   "employed_k": 1468,
+   "ur": 2.98,
+   "ltu": 24.5,
+   "n_unemp": 80
+  },
+  "2026_all": {
+   "employed_k": 3021,
+   "ur": 4.51,
+   "ltu": 26.2,
+   "n_unemp": 239
+  },
+  "emp_change_pct": -1.4
+ },
+ "state:New Jersey": {
+  "2025": {
+   "employed_k": 2363,
+   "ur": 3.05,
+   "ltu": 17.9,
+   "n_unemp": 131
+  },
+  "2025_all": {
+   "employed_k": 4605,
+   "ur": 5.11,
+   "ltu": 21.6,
+   "n_unemp": 420
+  },
+  "2026": {
+   "employed_k": 2354,
+   "ur": 2.85,
+   "ltu": 34.2,
+   "n_unemp": 130
+  },
+  "2026_all": {
+   "employed_k": 4716,
+   "ur": 4.33,
+   "ltu": 30.0,
+   "n_unemp": 374
+  },
+  "emp_change_pct": -0.4,
+  "ltu_change": 16.3,
+  "ltu_moe_conservative": 19.6
+ },
+ "state:Pennsylvania": {
+  "2025": {
+   "employed_k": 2860,
+   "ur": 2.33,
+   "ltu": 11.2,
+   "n_unemp": 110
+  },
+  "2025_all": {
+   "employed_k": 6269,
+   "ur": 4.48,
+   "ltu": 20.1,
+   "n_unemp": 482
+  },
+  "2026": {
+   "employed_k": 2968,
+   "ur": 1.71,
+   "ltu": 18.5,
+   "n_unemp": 84
+  },
+  "2026_all": {
+   "employed_k": 6459,
+   "ur": 3.69,
+   "ltu": 25.2,
+   "n_unemp": 365
+  },
+  "emp_change_pct": 3.8
+ },
+ "state:District of Columbia": {
+  "2025": {
+   "employed_k": 298,
+   "ur": 3.86,
+   "ltu": 16.2,
+   "n_unemp": 229
+  },
+  "2025_all": {
+   "employed_k": 397,
+   "ur": 6.02,
+   "ltu": 26.1,
+   "n_unemp": 422
+  },
+  "2026": {
+   "employed_k": 275,
+   "ur": 3.53,
+   "ltu": 39.9,
+   "n_unemp": 175
+  },
+  "2026_all": {
+   "employed_k": 383,
+   "ur": 5.34,
+   "ltu": 42.9,
+   "n_unemp": 369
+  },
+  "emp_change_pct": -7.7,
+  "ltu_change": 23.7,
+  "ltu_moe_conservative": 16.3
+ },
+ "state:Maryland": {
+  "2025": {
+   "employed_k": 1510,
+   "ur": 2.99,
+   "ltu": 12.2,
+   "n_unemp": 74
+  },
+  "2025_all": {
+   "employed_k": 3086,
+   "ur": 4.5,
+   "ltu": 13.4,
+   "n_unemp": 236
+  },
+  "2026": {
+   "employed_k": 1607,
+   "ur": 3.25,
+   "ltu": 27.2,
+   "n_unemp": 91
+  },
+  "2026_all": {
+   "employed_k": 3069,
+   "ur": 4.6,
+   "ltu": 26.0,
+   "n_unemp": 233
+  },
+  "emp_change_pct": 6.4
+ },
+ "state:Arizona": {
+  "2025": {
+   "employed_k": 1613,
+   "ur": 2.56,
+   "ltu": 13.6,
+   "n_unemp": 78
+  },
+  "2025_all": {
+   "employed_k": 3677,
+   "ur": 4.44,
+   "ltu": 16.1,
+   "n_unemp": 288
+  },
+  "2026": {
+   "employed_k": 1432,
+   "ur": 3.32,
+   "ltu": 13.6,
+   "n_unemp": 82
+  },
+  "2026_all": {
+   "employed_k": 3475,
+   "ur": 5.21,
+   "ltu": 19.6,
+   "n_unemp": 308
+  },
+  "emp_change_pct": -11.2
+ },
+ "state:Ohio": {
+  "2025": {
+   "employed_k": 2367,
+   "ur": 2.61,
+   "ltu": 14.1,
+   "n_unemp": 110
+  },
+  "2025_all": {
+   "employed_k": 5676,
+   "ur": 5.05,
+   "ltu": 18.4,
+   "n_unemp": 511
+  },
+  "2026": {
+   "employed_k": 2363,
+   "ur": 1.8,
+   "ltu": 15.0,
+   "n_unemp": 67
+  },
+  "2026_all": {
+   "employed_k": 5686,
+   "ur": 3.53,
+   "ltu": 17.3,
+   "n_unemp": 316
+  },
+  "emp_change_pct": -0.2
+ }
+}
