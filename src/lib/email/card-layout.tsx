@@ -179,8 +179,19 @@ export function Signoff({ name = 'Victoria', ps, align = 'left' }: { name?: 'Vic
   )
 }
 
-export function Headline({ children }: { children: ReactNode }) {
-  return <h1 style={{ margin: '0 0 24px', fontFamily: DISPLAY_FONT, fontSize: '30px', lineHeight: '1.2', fontWeight: 800, color: BRAND, letterSpacing: '-0.01em' }}>{children}</h1>
+/** The one big headline, with the hand-drawn orange line under it. The line follows the card's alignment (centered cards center it). */
+export function Headline({ children, squiggle = true }: { children: ReactNode; squiggle?: boolean }) {
+  return (
+    <>
+      <h1 style={{ margin: '0 0 24px', fontFamily: DISPLAY_FONT, fontSize: '30px', lineHeight: '1.2', fontWeight: 800, color: BRAND, letterSpacing: '-0.01em' }}>{children}</h1>
+      {squiggle && (
+        <div style={{ margin: '-12px 0 24px', lineHeight: '0', fontSize: '0' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={emailAsset('squiggle.png')} width={150} height={8} alt="" style={{ display: 'inline-block', border: 0 }} />
+        </div>
+      )}
+    </>
+  )
 }
 
 /** Big number on a pale blue card, with a caption under it. */
@@ -220,6 +231,15 @@ export function Button({ href, children, campaign = 'unlabeled', ctaVariant }: {
   if (ctaVariant && link !== href) link = `${link}&utm_content=cta_${ctaVariant}`
   return (
     <a href={link} style={{ display: 'inline-block', padding: '14px 28px', backgroundColor: GREEN, color: '#ffffff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}>
+      {children}
+    </a>
+  )
+}
+
+/** The green pill for a signed, one-time link (invite, confirm, sign-in). Same look as `Button`, but the link is left exactly as given: no UTM tags. */
+export function LinkButton({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a href={href} style={{ display: 'inline-block', padding: '14px 28px', backgroundColor: GREEN, color: '#ffffff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}>
       {children}
     </a>
   )

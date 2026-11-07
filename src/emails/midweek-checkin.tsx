@@ -1,4 +1,4 @@
-import { Body, Button, Card, CardEmail, CardGap, HandNote, Headline, INK, Masthead, MUTED, PointsBox, Signoff, Squiggle } from '@/lib/email/card-layout'
+import { Body, Button, Card, CardEmail, CardGap, HandNote, Headline, INK, Masthead, MUTED, PointsBox, Signoff } from '@/lib/email/card-layout'
 
 interface WeeklyRecap {
   pointsEarned: number
@@ -67,7 +67,6 @@ export default function MidweekCheckinEmail({
       <Card pad="28px 32px 36px">
         <Masthead right="Midweek check-in" />
         <Headline>Hi {firstName || 'there'}, {victoriaName} here.</Headline>
-        <Squiggle />
         {gap && <PointsBox value={`${gap.weeklyPoints} of ${gap.weeklyPointsTarget}`} caption={`points toward an A this week, ${gap.pointsToGo} to go`} />}
         {marginNote && <HandNote src={marginNote.src} text={marginNote.text} />}
 

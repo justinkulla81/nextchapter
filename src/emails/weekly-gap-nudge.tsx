@@ -1,6 +1,6 @@
 import EngagementBlock from '@/emails/engagement-block'
 import type { EngagementLead } from '@/lib/journey/engagement'
-import { Body, Button, Card, CardEmail, HandNote, Headline, Masthead, MUTED, PointsBox, Signoff, Squiggle } from '@/lib/email/card-layout'
+import { Body, Button, Card, CardEmail, HandNote, Headline, Masthead, MUTED, PointsBox, Signoff } from '@/lib/email/card-layout'
 
 interface WeeklyGapNudgeEmailProps {
   engagement?: EngagementLead | null
@@ -37,7 +37,6 @@ export default function WeeklyGapNudgeEmail({
       <Card pad="28px 32px 36px">
         <Masthead right="Weekly nudge" />
         <Headline>{firstName ? `${firstName}, you` : 'You'} are close to an A this week</Headline>
-        <Squiggle />
         <PointsBox value={String(pointsToGo)} caption="points from an A this week" />
         {marginNote && <HandNote src={marginNote.src} text={marginNote.text} />}
         {introCopy && <Body>{introCopy}</Body>}

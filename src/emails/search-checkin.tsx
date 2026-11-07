@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import EngagementBlock from '@/emails/engagement-block'
 import type { EngagementLead } from '@/lib/journey/engagement'
-import { Button, Card, CardEmail, GREEN, Headline, INK, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
+import { Button, Card, CardEmail, GREEN, Headline, INK, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
 
 interface SearchCheckInEmailProps {
   engagement?: EngagementLead | null
@@ -73,6 +73,7 @@ export default function SearchCheckInEmail({
         <a href={gotAnOfferUrl} style={outlinedGreen}>
           Got an offer! 🎉
         </a>
+        <Signoff align="center" />
       </Card>
       {/* Best-effort open signal — many mail clients block remote images by
           default, so this undercounts opens rather than overcounting. */}

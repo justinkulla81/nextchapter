@@ -1,5 +1,5 @@
-import { emailStyles } from '@/lib/email/email-styles'
-import { AudienceTag } from '@/lib/email/audience-tag'
+import { Body, Card, CardEmail, Headline, MUTED, Wordmark } from '@/lib/email/card-layout'
+import { Button } from '@/lib/email/card-layout'
 
 interface CandidateMatchLine {
   displayName: string
@@ -19,37 +19,6 @@ interface MarketDigestEmployerEmailProps {
   unsubscribeUrl: string
 }
 
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
-}
-
-const logo: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: 700,
-  color: '#0b2545',
-}
-
-const button: React.CSSProperties = {
-  display: 'inline-block',
-  marginTop: '16px',
-  padding: '12px 20px',
-  backgroundColor: '#2e7d5b',
-  color: '#ffffff',
-  borderRadius: '999px',
-  textDecoration: 'none',
-  fontWeight: 600,
-}
-
-const footer: React.CSSProperties = {
-  marginTop: '32px',
-  ...emailStyles.muted,
-}
-
 export default function MarketDigestEmployerEmail({
   contactName,
   companyName,
@@ -61,34 +30,35 @@ export default function MarketDigestEmployerEmail({
   unsubscribeUrl,
 }: MarketDigestEmployerEmailProps) {
   return (
-    <div style={container}>
-      <p style={logo}>NextChapter</p>
-      <p>Hi {contactName || `the ${companyName} team`},</p>
-      {matchLines.length > 0 && (
-        <>
-          <p>Here&apos;s who&apos;s a match for what you&apos;re hiring this week.</p>
-          <ul>
-            {matchLines.map((m, i) => (
-              <li key={`${m.roleTitle}-${i}`}>
-                {m.locked ? m.displayName : <strong>{m.displayName}</strong>} — {m.matchLabel} for {m.roleTitle}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-      {nuggetTitle && nuggetUrl && (
-        <p>
-          <strong>Worth a read:</strong> <a href={nuggetUrl}>{nuggetTitle}</a>
-          {nuggetSummary && ` — ${nuggetSummary}`}
-        </p>
-      )}
-      <a href={portalUrl} style={button}>
-        See your matches →
-      </a>
-      <p style={footer}>
-        <a href={unsubscribeUrl}>Unsubscribe from the Weekly Market Digest</a>
-      </p>
-      <AudienceTag audience="employer" />
-    </div>
+    <CardEmail
+      preheader={matchLines.length > 0 ? `${matchLines.length} matches for what you're hiring this week.` : 'Your Weekly Market Digest.'}
+      audience="employer"
+      footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Unsubscribe from the Weekly Market Digest</a>}
+    >
+      <Card pad="28px 32px 36px">
+        <Wordmark />
+        <Headline>Your Weekly Market Digest</Headline>
+        <Body>Hi {contactName || `the ${companyName} team`},</Body>
+        {matchLines.length > 0 && (
+          <>
+            <Body>Here&apos;s who&apos;s a match for what you&apos;re hiring this week.</Body>
+            <ul style={{ margin: '0 0 16px', paddingLeft: 20, fontSize: '16px', lineHeight: '1.6' }}>
+              {matchLines.map((m, i) => (
+                <li key={`${m.roleTitle}-${i}`}>
+                  {m.locked ? m.displayName : <strong>{m.displayName}</strong>} — {m.matchLabel} for {m.roleTitle}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {nuggetTitle && nuggetUrl && (
+          <Body>
+            <strong>Worth a read:</strong> <a href={nuggetUrl}>{nuggetTitle}</a>
+            {nuggetSummary && ` — ${nuggetSummary}`}
+          </Body>
+        )}
+        <Button campaign="market_digest_employer" href={portalUrl}>See your matches →</Button>
+      </Card>
+    </CardEmail>
   )
 }

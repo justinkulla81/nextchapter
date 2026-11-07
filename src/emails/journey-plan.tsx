@@ -1,6 +1,6 @@
 import { emailCtaLabel } from '@/lib/ab/email-cta'
 import type { NavCtaVariant } from '@/lib/ab/nav-cta'
-import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark } from '@/lib/email/card-layout'
+import { Button, Card, CardEmail, Headline, Lead, MUTED, Wordmark, Signoff } from '@/lib/email/card-layout'
 
 interface JourneyPlanEmailProps {
   situationLabel: string
@@ -50,6 +50,7 @@ export default function JourneyPlanEmail({ situationLabel, intro, steps, startUr
         )}
         <Lead>The last step takes about five minutes and is free. It gives you a plan for the weeks after this one.</Lead>
         <Button campaign="journey_plan" href={startUrl} ctaVariant={ctaVariant}>{emailCtaLabel(ctaVariant, 'Get your Market Reality Assessment')}</Button>
+        <Signoff align="center" />
       </Card>
     </CardEmail>
   )
