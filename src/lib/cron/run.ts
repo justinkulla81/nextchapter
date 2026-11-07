@@ -25,7 +25,16 @@ export function isTransientDbError(e: unknown): boolean {
   return /Timed out fetching a new connection|Can't reach database server|max clients reached|Server has closed the connection/i.test(message)
 }
 
-type Handler = (request: NextRequest) => Promise<Response> | Response
+/** Handed to a cron handler: `progress` keeps a short note on this run's ledger row while it works. */
+export interface CronContext {
+  /**
+   * Overwrites CronRun.detail with the start of `note` (JSON). A run that is cut off at its time limit never reaches its finish write, so
+   * without this it leaves no trace of how far it got. Best-effort: a failed write never stops the job.
+   */
+  progress: (note: unknown) => Promise<void>
+}
+
+type Handler = (request: NextRequest, ctx: CronContext) => Promise<Response> | Response
 
 /**
  * Wraps a cron route's GET so every invocation leaves a record: started,
@@ -37,6 +46,7 @@ type Handler = (request: NextRequest) => Promise<Response> | Response
  * row stays RUNNING and the watchdog marks it TIMED_OUT.
  *
  * recordResult: keep the start of a successful run's JSON answer in CronRun.detail.
+ * A handler may also call ctx.progress(note) while it runs (see CronContext).
  *
  * Ledger writes are best-effort: a database hiccup must never stop the job
  * itself from running.
@@ -71,15 +81,24 @@ export function withCronRun(job: string, handler: Handler, opts: { recordResult?
             .catch((e) => console.error('Cron ledger: could not record finish of', job, e))
         : Promise.resolve()
 
+    const ctx: CronContext = {
+      progress: async (note) => {
+        if (!runId) return
+        await prisma.cronRun
+          .update({ where: { id: runId }, data: { detail: JSON.stringify(note).slice(0, 2000) } })
+          .catch((e) => console.warn('Cron ledger: could not record progress of', job, e))
+      },
+    }
+
     try {
       let response: Response
       try {
-        response = await handler(request)
+        response = await handler(request, ctx)
       } catch (e) {
         if (!isTransientDbError(e) || Date.now() - started > RETRY_WITHIN_MS) throw e
         console.warn('Cron job hit a transient database error, retrying once:', job, e)
         await new Promise((r) => setTimeout(r, RETRY_PAUSE_MS))
-        response = await handler(request)
+        response = await handler(request, ctx)
       }
       if (response.ok) {
         // A job that opts in keeps the start of its JSON answer, so a run that did nothing (a dry run) or stopped early can be told from one that worked.
