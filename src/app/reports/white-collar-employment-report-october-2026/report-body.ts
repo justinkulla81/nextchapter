@@ -11,18 +11,21 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 </div>
 <div class="box" style="margin-top:2px;padding:12px 16px;gap:6px"><div class="eyebrow">Key findings</div><ul style="gap:4px">
 <li>October payrolls rose by 165,000 and unemployment fell to 4.1% (BLS, seasonally adjusted).</li>
-<li>28.5% of unemployed white-collar workers had been unemployed six months or more (27+ weeks) in January to September 2026 (23.2% a year earlier); 39.1% at ages 55 to 64 (27.0%).</li>
-<li>White-collar unemployment is low (2.63%): the change is in the share of the unemployed already in long spells, not in how many are out of work.</li>
+<li>28.5% of unemployed white-collar workers had been unemployed six months or more (27+ weeks) in January to September 2026 (23.2% a year earlier). The share is highest, and rose most, at ages 55 to 64: 39.1% (27.0%).</li>
+<li>White-collar unemployment is low (2.63%): the change is in the share of the unemployed already in long spells. Our reading, not a finding: fewer people entering unemployment and slightly slower exits, more than more layoffs; the month-to-month data point that way but no single change is statistically distinguishable.</li>
+<li>Long spells also rose for blue-collar (+2.9) and all workers (+3.1). We do not show that white-collar workers' rise (+5.3) is larger; the level is higher (28.5% against 22.7% for blue-collar).</li>
 <li>This measures ongoing spells, not the chance that a newly unemployed worker stays out six months.</li>
 </ul></div>
 <div class="cover-meta"><span>Covers October 2026 data; published November 2026</span><span>Census CPS microdata through September 2026; October CPS and the early-warning section to follow</span><span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
-</div></header><div class="wrap"><div class="grid"><nav class="toc" aria-label="Contents"><div class="eyebrow">Contents</div><ol><li><a href="#c0"><span class="n">—</span>Executive summary</a></li><li><a href="#c1"><span class="n">—</span>Who we mean</a></li><li><a href="#c2"><span class="n">—</span>The middle class</a></li><li><a href="#c3"><span class="n">—</span>White-collar against all workers</a></li><li><a href="#c4"><span class="n">—</span>What changed</a></li><li><a href="#c5"><span class="n">—</span>Bright spots</a></li><li><a href="#c6"><span class="n">—</span>Clouds</a></li><li><a href="#c7"><span class="n">—</span>Layoffs and voluntary exits</a></li><li><a href="#c8"><span class="n">—</span>Employers</a></li><li><a href="#c9"><span class="n">—</span>AI and the workforce</a></li><li><a href="#c10"><span class="n">—</span>The job search itself</a></li><li><a href="#c11"><span class="n">—</span>The incoming Congress</a></li><li><a href="#c12"><span class="n">—</span>Appendix</a></li></ol></nav><main><section class="" id="c0"><div class="chapter-head"><div class="eyebrow">Executive summary</div><h2 id="h-c0">Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago</h2></div>
+</div></header><div class="wrap"><div class="grid"><nav class="toc" aria-label="Contents"><div class="eyebrow">Contents</div><ol><li><a href="#c0"><span class="n">—</span>Executive summary</a></li><li><a href="#c1"><span class="n">—</span>Who we mean</a></li><li><a href="#c2"><span class="n">—</span>The middle class</a></li><li><a href="#c3"><span class="n">—</span>Industry, age, new graduates and place</a></li><li><a href="#c4"><span class="n">—</span>What changed</a></li><li><a href="#c5"><span class="n">—</span>Bright spots</a></li><li><a href="#c6"><span class="n">—</span>Clouds</a></li><li><a href="#c7"><span class="n">—</span>Layoffs and voluntary exits</a></li><li><a href="#c8"><span class="n">—</span>Employers</a></li><li><a href="#c9"><span class="n">—</span>AI and the workforce</a></li><li><a href="#c10"><span class="n">—</span>The job search itself</a></li><li><a href="#c11"><span class="n">—</span>The incoming Congress</a></li><li><a href="#c12"><span class="n">—</span>Appendix</a></li></ol></nav><main><section class="" id="c0"><div class="chapter-head"><div class="eyebrow">Executive summary</div><h2 id="h-c0">Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago</h2></div>
 
-<p class="lead">Employers added 165,000 jobs in October and unemployment fell to 4.1% (BLS, seasonally adjusted). Yet among unemployed white-collar workers, 28.5% had been unemployed for 27 weeks (about six months) or more in January to September 2026, up from 23.2% in the same months of 2025. Among knowledge workers (white-collar occupations with a bachelor’s degree or more) the share is 29.6%, up from 24.8%; among white-collar workers aged 55 to 64 it is 39.1%, up from 27.0%. All three increases are larger than their 90% margins of error on the year-over-year changes (about ±2.3, ±2.8 and ±6.1 percentage points, BLS generalized-variance method), and they also clear a more conservative approximation (about ±3.4, ±4.3 and ±8.8).</p>
+<p class="lead">Employers added 165,000 jobs in October and unemployment fell to 4.1% (BLS, seasonally adjusted). Yet among unemployed white-collar workers, 28.5% had been unemployed for 27 weeks (about six months) or more in January to September 2026, up from 23.2% in the same months of 2025. The share is highest, and rose most, among workers aged 55 to 64: 39.1%, up from 27.0%. Among knowledge workers (white-collar occupations with a bachelor’s degree or more) it is 29.6%, up from 24.8%. All three increases are larger than their 90% margins of error on the year-over-year changes (about ±2.3, ±2.8 and ±6.1 percentage points, BLS generalized-variance method), and they also clear a more conservative approximation (about ±3.4, ±4.3 and ±8.8).</p>
+<p>Two limits on what this shows. First, long spells also became more common for blue-collar workers (+2.9 points) and for all workers (+3.1). White-collar workers’ +5.3 is not shown to be larger: the difference from blue-collar is 2.4 points against a margin of about ±3.2, so we do not say white-collar workers are worse off than others. What does clearly differ is the level: 28.5% of unemployed white-collar workers are in long spells against 22.7% for blue-collar workers (difference 5.8 points, margin about ±2.4). Second, at ages 55 to 64 the white-collar rise (+12.1) is not distinguishable from the all-worker rise at those ages (+5.9; difference 6.2 against about ±7.1), though the white-collar level is higher (39.1% against 30.5%; margin about ±5.3).</p>
 <figure class="exhibit chart" style="margin:0"><span class="ex-label">Exhibit 1</span><span class="ex-title">Among the unemployed, long spells are more common than a year ago, most for white-collar workers</span><img alt="Share of the unemployed out of work 27+ weeks, Jan–Sep 2025 and 2026, by group" src="/reports/october-2026-long-search-shares.png" style="width:100%;height:auto;max-width:100%"/><span class="ex-note">Share of unemployed people out of work 27 or more weeks. Change shown with its 90% margin of error (BLS generalized-variance method, as in the September edition). All six clear the BLS-method margin; five also clear a more conservative check (design effect 2.0, pooled months counted as 40% independent), and blue-collar does not. Not seasonally adjusted; spells in progress. Source: NextChapter calculation from Census CPS basic monthly microdata.</span></figure>
 <p>The white-collar unemployment rate itself is low, 2.63% against 2.48% a year earlier, so the squeeze shows up in the share of unemployed workers already out 27 weeks or more, not in how many people are out of work. The seasonally adjusted White-Collar Long-Search Index (2019 = 100, three-month average) was 153 in September, down from 162 in August and a peak of about 170 in June, but still above the 135 of September 2025; the 90% margin of error on the three-month index is about ±11% of its level (roughly ±17 points), so the gap with a year ago is not distinguishable from sampling noise on its own and we rely on the nine-month comparison above. A single month’s reading is noisier still (roughly ±24 points). Long-term unemployed workers are about 0.75% of the white-collar labor force, up from about 0.58% (the unemployment rate times the long-term share, our calculation).</p>
+<p><em>Our reading, not a finding: slower exits and fewer people entering unemployment, more than more layoffs.</em> The unemployment rate barely moved while the share in long spells rose five points. That pattern is what you would see if fewer new people were becoming unemployed and those already unemployed were leaving a little more slowly, since fewer short spells shrink the base the long spells are measured against. We tested this by matching the same people in consecutive months of the CPS (January to September, eight month-to-month pairs, about 415,000 matched people in 2026). Among unemployed white-collar workers, 25.3% were employed the next month, against 27.7% a year earlier (-2.4 points, margin about ±4.5), and among those out 27+ weeks, 13.2% against 16.4% (-3.2, margin ±7.3). Among employed white-collar workers, 0.63% were unemployed the next month, against 0.71% (-0.08, ±0.13); for all workers the entry rate fell from 0.97% to 0.86% (-0.11, ±0.10, a measurable decline). More white-collar layoffs would show up as a higher entry rate, and we do not see one. None of the white-collar changes is statistically distinguishable from zero on its own, so this is a direction consistent with the explanation, not proof of it. These flows use the monthly composite weight rather than longitudinal weights and are approximate in level; we compare the two years under the same method. Hiring improved in October, which could reverse the pattern; the October CPS file is not out yet.</p>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> Economy-wide openings per unemployed person are up from a year ago (not a white-collar-specific measure), so there is more to apply to. At the same time, long-duration unemployment has become more prevalent among unemployed white-collar workers: the share whose ongoing spell has lasted at least 27 weeks rose from 23.2% to 28.5%. This measures ongoing spells rather than the probability that a newly unemployed worker will remain out six months, but job seekers should still plan for the possibility of a prolonged search.</p></div>
-<p class="note"><em>Method note:</em> the CPS measures how long people have been unemployed so far, not whether they are actively searching. Margins of error use the BLS generalized-variance method with BLS’s published CPS parameters, as in the September edition; for subgroups we apply the parameters for all unemployed people, which can understate variance for small groups, so we also check each result against a more conservative rule (design effect 2.0, pooled months counted as 40% independent). Census October microdata are not yet published, so occupation-level figures run through September, while payrolls and unemployment are October and JOLTS and CPI are September. This edition does not yet include the October CPS figures or the early-warning section on early-career and senior white-collar unemployment; both will be added when Census publishes the October file (listed for about November 19). The margin-of-error calculation is documented in the accompanying methodology note. As a check, the same pipeline reproduces BLS’s published all-worker figures for these months: unemployment rate 4.32% in 2026 and 4.30% in 2025, and share out 27+ weeks of 25.8% against BLS’s 25.9% (2026) and 22.7% against 22.6% (2025).</p>
+<p class="note"><em>Method note:</em> the CPS measures how long people have been unemployed so far, not whether they are actively searching. Margins of error use the BLS generalized-variance method with BLS’s published CPS parameters, as in the September edition; for subgroups we apply the parameters for all unemployed people, which can understate variance for small groups, so we also check each result against a more conservative rule (design effect 2.0, pooled months counted as 40% independent). The month-to-month matching and its margins (design effect 2.0, transitions counted as 40% independent) are described in the methodology note. Census October microdata are not yet published, so occupation-level figures run through September, while payrolls and unemployment are October and JOLTS and CPI are September. This edition does not yet include the October CPS figures or the early-warning section on early-career and senior white-collar unemployment; both will be added when Census publishes the October file (listed for about November 19). The margin-of-error calculation is documented in the accompanying methodology note. As a check, the same pipeline reproduces BLS’s published all-worker figures for these months: unemployment rate 4.32% in 2026 and 4.30% in 2025, and share out 27+ weeks of 25.8% against BLS’s 25.9% (2026) and 22.7% against 22.6% (2025).</p>
 </section>
 <section class="" id="c1"><div class="chapter-head"><div class="eyebrow">Chapter 01 · Who we mean</div><h2 id="h-c1">Who we mean: white-collar, professional, college-educated and knowledge workers</h2></div>
 
@@ -160,7 +163,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 
 <p>Blue-collar job loss has long drawn attention, for good reason: a plant closure hits a town at once. White-collar and professional work is now the larger part of the workforce, and white-collar job losses are often less concentrated in a single employer or location (our reading).</p>
 <ul>
-<li><strong>It is a large share of work, and the strain shows up in duration, not the headline rate.</strong> White-collar occupations are 43.9% of employed people and knowledge workers 30.7%, against 20.2% in blue-collar occupations. White-collar unemployment is 2.63% against 4.95% for blue-collar, yet 28.5% of unemployed white-collar workers have been out 27+ weeks, against 22.7% for blue-collar, and the share has also risen for blue-collar workers, by less (+2.9 points against +5.3; the blue-collar rise clears the BLS margin but not the more conservative one) (Census CPS, January to September 2026).</li>
+<li><strong>It is a large share of work, and the strain shows up in duration, not the headline rate.</strong> White-collar occupations are 43.9% of employed people and knowledge workers 30.7%, against 20.2% in blue-collar occupations. White-collar unemployment is 2.63% against 4.95% for blue-collar, yet 28.5% of unemployed white-collar workers have been out 27+ weeks, against 22.7% for blue-collar, and the share has also risen for blue-collar workers, by less (+2.9 points against +5.3; the blue-collar rise clears the BLS margin but not the more conservative one; the 2.4-point gap between the two rises is within its margin, so we do not claim white-collar workers’ rise is larger) (Census CPS, January to September 2026).</li>
 <li><strong>Losses can be long-lasting.</strong> Lachowska, Mas and Woodbury (2020), using Washington State records, find earnings about 16% below those of comparable workers five years after a job loss (NBER working-paper version). Davis and von Wachter (2011) find that over 20 years the loss averages 1.4 years of prior earnings when a layoff happens while unemployment is under 6%, and 2.8 years when it is above 8%. Schwerdt, Ichino, Ruf, Winter-Ebmer and Zweimüller (IZA, 2008), using Austrian plant closures, find long-run effects that are weak for blue-collar workers but strong and persistent for white-collar workers, consistent with firm-specific skills mattering more in white-collar jobs. These are studies of past periods and specific groups.</li>
 <li><strong>Many do recover.</strong> The BLS survey of workers who lost jobs found that 66.1% of long-tenured workers who lost jobs in 2023 to 2025 were working again by January 2026, and about half of those earned as much as before (BLS, August 2026). Recovery is the common outcome; the cost is in time and, for many, pay.</li>
 <li><strong>The middle class leans on this work, and the losses are spread out.</strong> Pew Research Center (2022) found the share of adults in middle-class households fell from 61% in 1971 to 50% in 2021, and that 39% of adults with at least a bachelor’s degree were in the upper-income tier in 2021, against 16% or less of those without a degree. A job lost by a household’s main earner affects income, employer health coverage and the ability to carry a mortgage at once, and a longer spell lengthens each. White-collar cuts also come from many employers and metros rather than one plant in one town, so they seldom appear as a single local event (our reading, not a finding).</li>
@@ -168,7 +171,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> Among unemployed white-collar workers, a larger share has already been out of work for at least 27 weeks than a year ago. Job seekers should account for the possibility of a prolonged search, planning savings, health coverage and a wider set of target employers and metros from day one.</p></div>
 <p>This section describes what the data show about white-collar and professional work; it makes no claim that AI or any other single cause explains them.</p>
 </section>
-<section class="" id="c3"><div class="chapter-head"><div class="eyebrow">Chapter 03 · White-collar against all workers</div><h2 id="h-c3">How white-collar compares with all workers: industry and age</h2></div>
+<section class="" id="c3"><div class="chapter-head"><div class="eyebrow">Chapter 03 · Industry, age, new graduates and place</div><h2 id="h-c3">Industry, age, new graduates and place</h2></div>
 
 <p>The table sets white-collar workers (Census occupation groups 1 and 2) beside all workers, by the industry of the job they last held and by age. Rows are January to September 2026 against the same months of 2025, not seasonally adjusted. The margin is the 90% margin of error on the change in the share out 27+ weeks (BLS generalized-variance method, as for Exhibit 1); a change larger than its margin is marked with an asterisk. Cells with fewer than 100 unemployed person-month observations in either year are not shown.</p>
 <div class="exhibit"><span class="ex-label">Exhibit 4</span><span class="ex-title">White-collar against all workers by industry and age, January–September 2026 vs 2025</span><div class="tbl"><table>
@@ -292,11 +295,25 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <p class="note">Note: unemployed person-month observations behind each white-collar row, 2026: everyone 4,315; information 237; financial activities 310; professional and business services 947; education and health 1,505; public administration 178; under 35 1,378; 35 to 44 900; 45 to 54 832; 55 to 64 768. Industry is the industry of the last job, and “white-collar” is the occupation of that job. Census CPS basic monthly microdata, NextChapter calculation. All-workers figures for under 35 are not shown because that age band is built from different groups elsewhere in our data.</p>
 <ul>
 <li><strong>White-collar unemployment is lower than the all-worker rate in every row.</strong> In information the two are nearly equal (5.17% and 5.25%). We did not test whether the gaps in the rates are larger than sampling error, and we make no claim about them.</li>
-<li><strong>The rise in long spells is larger for white-collar workers than for all workers in the groups where both clear their margins.</strong> In education and health, white-collar +4.1 points against all workers +2.9; at ages 55 to 64, +12.1 against +5.9. We have not tested whether the differences between the two groups are themselves larger than sampling error.</li>
+<li><strong>We do not show that white-collar spells lengthened more than all workers’ spells.</strong> In education and health, white-collar +4.1 points against all workers +2.9; at ages 55 to 64, +12.1 against +5.9. The differences between the two are within their margins (at ages 55 to 64, 6.2 points against about ±7.1). What is clear at ages 55 to 64 is the level: 39.1% of unemployed white-collar workers are in long spells against 30.5% of all unemployed workers that age.</li>
 <li><strong>Financial activities is the exception.</strong> The share out 27+ weeks was flat to slightly lower for white-collar workers, even though payroll employment in the sector is down 1.1% over the year (BLS); the CPS measures those who report the sector as their last job, not payroll jobs, and the two are not the same.</li>
 <li><strong>Read the many-cell table with care.</strong> Nineteen changes are tested at the 90% level, so about two would clear by chance alone if nothing had changed. The consistent direction across most rows is more informative than any single cell.</li>
 </ul>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> The longer spells show up across industries and ages, most clearly at ages 55 to 64 and in information and professional services, while finance looks different. A search plan should rest on your own field and age group, not on the average.</p></div>
+<section class="level3" id="early-career-workers-and-new-graduates">
+<h3>Early-career workers and new graduates</h3>
+<ul>
+<li><strong>Our data do not test the early-career story, and the older-age finding does not contradict it.</strong> Press coverage of AI and jobs focuses on young workers. Our measure is the share of already-unemployed people in long spells, so it cannot see young people who are never hired into a first job, who stay in school or who leave the labor force; the research on early-career workers is about hiring and employment, not spell length. In our data the longest spells and the largest rises are at older ages, and white-collar workers under 35 have the shortest (21.1%, up from 17.3%; +3.8, margin ±3.4). Both can be true.</li>
+<li><strong>Recent graduates (ages 22 to 27 with a bachelor’s degree or more, any occupation, our CPS calculation).</strong> Unemployment 5.44% in January to September 2026 and in 2025, against 4.32% for all workers; 25.5% of the unemployed out 27+ weeks, up from 21.9% (+3.6, margin ±4.7, so not distinguishable from no change). The unemployment rate for all workers aged 16 to 24 was 9.36%, against 10.07% (not tested). Based on 766 unemployed person-month observations in 2026.</li>
+<li><strong>New York Fed (2026 Q3).</strong> The unemployment rate for recent college graduates was 5.2%, which the Fed describes as a fall, and the underemployment rate (working in a job that does not typically need a degree) 42.5%, which it describes as ticking up. Press coverage reports a separate New York Fed study attributing much of the rise since 2019 to remote work; we have not read it.</li>
+<li><strong>Employer surveys and postings point different ways, as reported.</strong> NACE’s spring 2026 update projects employers will raise hiring of the class of 2026 by 5.6%, up from a 1.6% projection in November 2025; Handshake’s August data show full-time postings down more than 16% from a year earlier and applications per job up 26% (secondary reports; we have not read the originals). Stanford’s August update (above) finds employment of 22- to 25-year-olds in the most AI-exposed occupations 19% below comparable peers; the authors treat that as an early indicator, not proof of cause.</li>
+<li><strong>What open jobs show.</strong> 130,710 of the 487,679 verified open jobs we track (27%) are entry-level or early-career (Employers chapter). We have no earlier counts to compare.</li>
+</ul>
+</section>
+<section class="level3" id="where-jobs-are-growing-and-shrinking">
+<h3>Where jobs are growing and shrinking</h3>
+<p>BLS state data cover all industries, not white-collar jobs; we have no reliable state-level white-collar measure (state samples in the CPS are too small). For September 2026, BLS reports payroll gains over the month in New Jersey (+14,900) and South Carolina (+12,500), a decline in Wisconsin (-13,700), and little change in the rest. Over the year, the largest gains were in Texas (+154,300), California (+129,300) and North Carolina (+67,000), and the District of Columbia had the only significant loss (-25,800, -3.5%) and the highest unemployment rate (5.6%) (BLS, state release of October 20). Among metropolitan areas, Indeed’s postings data show Seattle, San Francisco and Santa Rosa with the largest declines from February 2020 (about -35%, -37% and -32% as of October 2025, as reported); our own history of open jobs is too short to show place-level changes. BLS’s October state release is scheduled for November 20.</p>
+</section>
 </section>
 <section class="" id="c4"><div class="chapter-head"><div class="eyebrow">Chapter 04 · What changed</div><h2 id="h-c4">What changed in the story this month</h2></div>
 
@@ -666,8 +683,8 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <section class="level3" id="what-open-jobs-ask-for-and-what-they-pay">
 <h3>What open jobs ask for, and what they pay</h3>
 <p>From the open jobs on employer career sites and job systems that NextChapter tracks (deduplicated, staffing and search firms and internships excluded; November 7, 2026), 56,049 of 531,183 (10.6%) name a specific AI skill or tool in the posting text (the same measure as the employer table above). Of the 110,319 that post a pay range, 16,142 (14.6%) name an AI skill.</p>
-<p>We compared the middle of the posted pay range for postings that name an AI skill with the same function and level that do not. In 88 of the 89 function-and-level cells with at least 30 postings of each kind, the postings that name AI skills post higher pay; the median difference across cells is 22.1% and the range is -0.5% to +71.9%.</p>
-<div class="exhibit"><span class="ex-label">Exhibit 10</span><span class="ex-title">Posted pay: postings naming AI skills against other postings, same function and level, November 7, 2026</span><div class="tbl"><table>
+<p>Across employers, postings that name an AI skill post higher pay than other postings of the same function and level: in 88 of the 89 function-and-level cells with at least 30 postings of each kind, with a median difference of 22.1% (range -0.5% to +71.9%). <strong>Most of that gap is which employers ask, not what the same employer pays.</strong> Comparing postings within the same employer, function and level (306 cells at 144 employers, each with at least three postings of each kind), the median difference is +0.9% (middle half of cells from -2.6% to +12%); weighted by the number of AI-naming postings it is +3.9%. The AI-naming postings paid more in 159 cells, less in 89 and the same in 58. Employers mostly post one pay band for a role and level whether or not the posting names AI. So these data do not show that naming AI skills raises posted pay at a given employer; they show that the employers who ask for AI skills, such as large technology and finance firms, post higher pay. The within-employer comparison covers 2,281 of the 16,142 AI-naming postings with pay (14%), those from employers posting both kinds in the same cell, so it may not represent all employers.</p>
+<div class="exhibit"><span class="ex-label">Exhibit 10</span><span class="ex-title">Posted pay: postings naming AI skills against other postings, across employers and within the same employer, November 7, 2026</span><div class="tbl"><table>
 <colgroup>
 <col style="width: 13%"/>
 <col style="width: 17%"/>
@@ -688,6 +705,14 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 </thead>
 <tbody>
 <tr class="odd">
+<td><strong>Same employer, function and level (306 cells, 144 employers)</strong></td>
+<td style="text-align: right;">2,281</td>
+<td style="text-align: right;">4,931</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">+0.9% median; +3.9% weighted</td>
+</tr>
+<tr class="even">
 <td>Engineering, senior individual contributor</td>
 <td style="text-align: right;">1,692</td>
 <td style="text-align: right;">5,839</td>
@@ -695,7 +720,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$169,401</td>
 <td style="text-align: right;">+27.6%</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Engineering, early-career</td>
 <td style="text-align: right;">711</td>
 <td style="text-align: right;">6,041</td>
@@ -703,7 +728,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$117,500</td>
 <td style="text-align: right;">+46.8%</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Data and analytics, senior</td>
 <td style="text-align: right;">1,452</td>
 <td style="text-align: right;">1,006</td>
@@ -711,7 +736,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$160,000</td>
 <td style="text-align: right;">+31.3%</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Data and analytics, mid-level</td>
 <td style="text-align: right;">575</td>
 <td style="text-align: right;">616</td>
@@ -719,7 +744,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$144,425</td>
 <td style="text-align: right;">+27.6%</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Sales, mid-level</td>
 <td style="text-align: right;">427</td>
 <td style="text-align: right;">3,480</td>
@@ -727,7 +752,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$120,000</td>
 <td style="text-align: right;">+50.0%</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Finance, senior</td>
 <td style="text-align: right;">129</td>
 <td style="text-align: right;">1,308</td>
@@ -735,7 +760,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$120,000</td>
 <td style="text-align: right;">+42.6%</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Finance, manager</td>
 <td style="text-align: right;">174</td>
 <td style="text-align: right;">2,040</td>
@@ -743,7 +768,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$135,000</td>
 <td style="text-align: right;">+19.4%</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Marketing, senior</td>
 <td style="text-align: right;">279</td>
 <td style="text-align: right;">656</td>
@@ -751,7 +776,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$150,250</td>
 <td style="text-align: right;">+13.1%</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Product, senior</td>
 <td style="text-align: right;">342</td>
 <td style="text-align: right;">584</td>
@@ -759,7 +784,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$175,000</td>
 <td style="text-align: right;">+14.6%</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Human resources, early-career</td>
 <td style="text-align: right;">72</td>
 <td style="text-align: right;">1,090</td>
@@ -767,7 +792,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$79,172</td>
 <td style="text-align: right;">+57.9%</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Legal, mid-level</td>
 <td style="text-align: right;">76</td>
 <td style="text-align: right;">1,029</td>
@@ -777,8 +802,8 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 </tr>
 </tbody>
 </table></div></div>
-<p class="note">Note: the table shows 11 of the 89 cells; all 89 are in the data download (“ai-skill-pay” file). Midpoint of the posted minimum and maximum, USD, annual, for postings with a range between $30,000 and $1,000,000. About one in five postings posts a range. These are posted ranges, not pay received. The comparison holds function and level fixed but not employer, location or the specific title, and employers who ask for AI skills also tend to be employers who pay more (large technology and finance firms), so the gap is an association, not a price of AI skills. All functions and levels are included and the Census white-collar test is not applied, as in the Employers chapter.</p>
-<p>Two outside estimates point the same way, both from job-posting and vendor analyses we have not independently checked: PwC’s 2026 Global AI Jobs Barometer (June 2026; more than a billion job ads in 27 countries) reports a 62% wage premium for AI skills, with a range from 16% in the public sector to 118% in consumer industries, and Lightcast (July 2025; 1.3 billion postings) reports that postings requiring AI skills advertise about 28% more, roughly $18,000. Our history of open jobs starts in mid-October 2026, so we do not report growth in AI-skill demand; we will add it from the November edition. We also have no national measure of how many workers hold AI skills.</p>
+<p class="note">Note: the table shows the within-employer result and 11 of the 89 across-employer cells; all 89 are in the data download (“ai-skill-pay” file). Midpoint of the posted minimum and maximum, USD, annual, for postings with a range between $30,000 and $1,000,000. About one in five postings posts a range. These are posted ranges, not pay received. Neither comparison holds location or the specific title fixed, so neither is the price of an AI skill. All functions and levels are included and the Census white-collar test is not applied, as in the Employers chapter.</p>
+<p>Two outside estimates, from job-posting and vendor analyses we have not independently checked, are larger than our within-employer result; we do not know how much of them reflects which employers ask rather than what the same employer pays: PwC’s 2026 Global AI Jobs Barometer (June 2026; more than a billion job ads in 27 countries) reports a 62% wage premium for AI skills, with a range from 16% in the public sector to 118% in consumer industries, and Lightcast (July 2025; 1.3 billion postings) reports that postings requiring AI skills advertise about 28% more, roughly $18,000. Our history of open jobs starts in mid-October 2026, so we do not report growth in AI-skill demand; we will add it from the November edition. We also have no national measure of how many workers hold AI skills.</p>
 </section>
 <section class="level3" id="public-training-programs-and-rules">
 <h3>Public training programs and rules</h3>

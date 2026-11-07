@@ -1,0 +1,717 @@
+{
+ "2025": {
+  "matched_pairs": 428738,
+  "all": {
+   "ue_exit_to_employment": {
+    "rate": 25.94,
+    "n": 10118,
+    "se": 0.9743312635712114
+   },
+   "ue_exit_to_nilf": {
+    "rate": 24.39,
+    "n": 10118,
+    "se": 0.9546650595222769
+   },
+   "longterm_exit_to_employment": {
+    "rate": 14.12,
+    "n": 2158,
+    "se": 1.6759432454992043
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 29.34,
+    "n": 7960,
+    "se": 1.1411611564586457
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.97,
+    "n": 242903,
+    "se": 0.0444504027387978
+   }
+  },
+  "white_collar": {
+   "ue_exit_to_employment": {
+    "rate": 27.74,
+    "n": 2688,
+    "se": 1.9309944600125446
+   },
+   "ue_exit_to_nilf": {
+    "rate": 18.58,
+    "n": 2688,
+    "se": 1.6773586645770944
+   },
+   "longterm_exit_to_employment": {
+    "rate": 16.43,
+    "n": 592,
+    "se": 3.4057698136642722
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 31.11,
+    "n": 2096,
+    "se": 2.2610082541699716
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.71,
+    "n": 108737,
+    "se": 0.05690322603787263
+   }
+  },
+  "blue_collar": {
+   "ue_exit_to_employment": {
+    "rate": 29.14,
+    "n": 2319,
+    "se": 2.1100277946592736
+   },
+   "ue_exit_to_nilf": {
+    "rate": 21.44,
+    "n": 2319,
+    "se": 1.9056426433544
+   },
+   "longterm_exit_to_employment": {
+    "rate": 13.6,
+    "n": 443,
+    "se": 3.641699232781083
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 32.86,
+    "n": 1876,
+    "se": 2.4249642219788137
+   },
+   "eu_inflow_from_employment": {
+    "rate": 1.37,
+    "n": 48281,
+    "se": 0.11820114529534399
+   }
+  },
+  "wc_under35": {
+   "ue_exit_to_employment": {
+    "rate": 30.96,
+    "n": 821,
+    "se": 3.608129249701561
+   },
+   "ue_exit_to_nilf": {
+    "rate": 18.24,
+    "n": 821,
+    "se": 3.0135372409818384
+   },
+   "longterm_exit_to_employment": {
+    "rate": 22.62,
+    "n": 135,
+    "se": 8.052105810368904
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 32.69,
+    "n": 686,
+    "se": 4.004746875814578
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.94,
+    "n": 27591,
+    "se": 0.13007405774723815
+   }
+  },
+  "wc_35_54": {
+   "ue_exit_to_employment": {
+    "rate": 28.05,
+    "n": 1117,
+    "se": 3.0055775725727694
+   },
+   "ue_exit_to_nilf": {
+    "rate": 15.69,
+    "n": 1117,
+    "se": 2.4334691606581256
+   },
+   "longterm_exit_to_employment": {
+    "rate": 15.3,
+    "n": 251,
+    "se": 5.080296340676943
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 32.05,
+    "n": 866,
+    "se": 3.546049907604385
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.6,
+    "n": 51288,
+    "se": 0.07601126008776345
+   }
+  },
+  "wc_55_64": {
+   "ue_exit_to_employment": {
+    "rate": 23.31,
+    "n": 472,
+    "se": 4.351519198555562
+   },
+   "ue_exit_to_nilf": {
+    "rate": 18.7,
+    "n": 472,
+    "se": 4.013260227477288
+   },
+   "longterm_exit_to_employment": {
+    "rate": 12.72,
+    "n": 125,
+    "se": 6.662819962102276
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 27.11,
+    "n": 347,
+    "se": 5.33618171474801
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.62,
+    "n": 19759,
+    "se": 0.12474710647788342
+   }
+  },
+  "all_55_64": {
+   "ue_exit_to_employment": {
+    "rate": 24.1,
+    "n": 1238,
+    "se": 2.717981005758367
+   },
+   "ue_exit_to_nilf": {
+    "rate": 22.43,
+    "n": 1238,
+    "se": 2.650915972767786
+   },
+   "longterm_exit_to_employment": {
+    "rate": 11.76,
+    "n": 295,
+    "se": 4.193428906877152
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 27.97,
+    "n": 943,
+    "se": 3.268351949144408
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.69,
+    "n": 44002,
+    "se": 0.08814292764681671
+   }
+  }
+ },
+ "2026": {
+  "matched_pairs": 414826,
+  "all": {
+   "ue_exit_to_employment": {
+    "rate": 24.91,
+    "n": 9525,
+    "se": 0.9908984147588044
+   },
+   "ue_exit_to_nilf": {
+    "rate": 24.07,
+    "n": 9525,
+    "se": 0.9794960920209832
+   },
+   "longterm_exit_to_employment": {
+    "rate": 13.89,
+    "n": 2374,
+    "se": 1.5872177823552096
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 28.71,
+    "n": 7151,
+    "se": 1.196305020281732
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.86,
+    "n": 232127,
+    "se": 0.042782669385845365
+   }
+  },
+  "white_collar": {
+   "ue_exit_to_employment": {
+    "rate": 25.3,
+    "n": 2596,
+    "se": 1.9079196230293998
+   },
+   "ue_exit_to_nilf": {
+    "rate": 18.38,
+    "n": 2596,
+    "se": 1.6999881167391306
+   },
+   "longterm_exit_to_employment": {
+    "rate": 13.24,
+    "n": 705,
+    "se": 2.854334422269684
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 30.01,
+    "n": 1891,
+    "se": 2.356568105639596
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.63,
+    "n": 104883,
+    "se": 0.0547638212383447
+   }
+  },
+  "blue_collar": {
+   "ue_exit_to_employment": {
+    "rate": 29.45,
+    "n": 2257,
+    "se": 2.145416526455997
+   },
+   "ue_exit_to_nilf": {
+    "rate": 20.82,
+    "n": 2257,
+    "se": 1.9111724822810094
+   },
+   "longterm_exit_to_employment": {
+    "rate": 13.56,
+    "n": 485,
+    "se": 3.4765163780377786
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 33.95,
+    "n": 1772,
+    "se": 2.515331240137347
+   },
+   "eu_inflow_from_employment": {
+    "rate": 1.1,
+    "n": 45770,
+    "se": 0.1091047017701078
+   }
+  },
+  "wc_under35": {
+   "ue_exit_to_employment": {
+    "rate": 27.77,
+    "n": 810,
+    "se": 3.518842189933165
+   },
+   "ue_exit_to_nilf": {
+    "rate": 19.81,
+    "n": 810,
+    "se": 3.1312711529648727
+   },
+   "longterm_exit_to_employment": {
+    "rate": 15.06,
+    "n": 165,
+    "se": 6.225627110202043
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 31.03,
+    "n": 645,
+    "se": 4.073191488158802
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.82,
+    "n": 25649,
+    "se": 0.1262514867883403
+   }
+  },
+  "wc_35_54": {
+   "ue_exit_to_employment": {
+    "rate": 25.88,
+    "n": 1045,
+    "se": 3.029565315358015
+   },
+   "ue_exit_to_nilf": {
+    "rate": 14.5,
+    "n": 1045,
+    "se": 2.435539300830923
+   },
+   "longterm_exit_to_employment": {
+    "rate": 15.06,
+    "n": 275,
+    "se": 4.822563950517324
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 30.25,
+    "n": 770,
+    "se": 3.701323972660358
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.52,
+    "n": 50392,
+    "se": 0.07171280105289328
+   }
+  },
+  "wc_55_64": {
+   "ue_exit_to_employment": {
+    "rate": 20.87,
+    "n": 473,
+    "se": 4.178286118078018
+   },
+   "ue_exit_to_nilf": {
+    "rate": 19.01,
+    "n": 473,
+    "se": 4.034132738442662
+   },
+   "longterm_exit_to_employment": {
+    "rate": 9.82,
+    "n": 183,
+    "se": 4.918651842972753
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 28.41,
+    "n": 290,
+    "se": 5.921836006874189
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.53,
+    "n": 18968,
+    "se": 0.11798144542619657
+   }
+  },
+  "all_55_64": {
+   "ue_exit_to_employment": {
+    "rate": 25.15,
+    "n": 1188,
+    "se": 2.814795429154468
+   },
+   "ue_exit_to_nilf": {
+    "rate": 20.94,
+    "n": 1188,
+    "se": 2.639426469035083
+   },
+   "longterm_exit_to_employment": {
+    "rate": 13.14,
+    "n": 341,
+    "se": 4.091081198937786
+   },
+   "shortterm_exit_to_employment": {
+    "rate": 30.37,
+    "n": 847,
+    "se": 3.5332392478857284
+   },
+   "eu_inflow_from_employment": {
+    "rate": 0.62,
+    "n": 41735,
+    "se": 0.08610868939238256
+   }
+  }
+ },
+ "change": {
+  "all": {
+   "ue_exit_to_employment": {
+    "y2025": 25.94,
+    "y2026": 24.91,
+    "change": -1.03,
+    "moe90": 2.29,
+    "clears": false,
+    "n2025": 10118,
+    "n2026": 9525
+   },
+   "ue_exit_to_nilf": {
+    "y2025": 24.39,
+    "y2026": 24.07,
+    "change": -0.32,
+    "moe90": 2.25,
+    "clears": false,
+    "n2025": 10118,
+    "n2026": 9525
+   },
+   "longterm_exit_to_employment": {
+    "y2025": 14.12,
+    "y2026": 13.89,
+    "change": -0.23,
+    "moe90": 3.8,
+    "clears": false,
+    "n2025": 2158,
+    "n2026": 2374
+   },
+   "shortterm_exit_to_employment": {
+    "y2025": 29.34,
+    "y2026": 28.71,
+    "change": -0.63,
+    "moe90": 2.72,
+    "clears": false,
+    "n2025": 7960,
+    "n2026": 7151
+   },
+   "eu_inflow_from_employment": {
+    "y2025": 0.97,
+    "y2026": 0.86,
+    "change": -0.11,
+    "moe90": 0.1,
+    "clears": true,
+    "n2025": 242903,
+    "n2026": 232127
+   }
+  },
+  "white_collar": {
+   "ue_exit_to_employment": {
+    "y2025": 27.74,
+    "y2026": 25.3,
+    "change": -2.44,
+    "moe90": 4.47,
+    "clears": false,
+    "n2025": 2688,
+    "n2026": 2596
+   },
+   "ue_exit_to_nilf": {
+    "y2025": 18.58,
+    "y2026": 18.38,
+    "change": -0.2,
+    "moe90": 3.93,
+    "clears": false,
+    "n2025": 2688,
+    "n2026": 2596
+   },
+   "longterm_exit_to_employment": {
+    "y2025": 16.43,
+    "y2026": 13.24,
+    "change": -3.19,
+    "moe90": 7.31,
+    "clears": false,
+    "n2025": 592,
+    "n2026": 705
+   },
+   "shortterm_exit_to_employment": {
+    "y2025": 31.11,
+    "y2026": 30.01,
+    "change": -1.1,
+    "moe90": 5.37,
+    "clears": false,
+    "n2025": 2096,
+    "n2026": 1891
+   },
+   "eu_inflow_from_employment": {
+    "y2025": 0.71,
+    "y2026": 0.63,
+    "change": -0.08,
+    "moe90": 0.13,
+    "clears": false,
+    "n2025": 108737,
+    "n2026": 104883
+   }
+  },
+  "blue_collar": {
+   "ue_exit_to_employment": {
+    "y2025": 29.14,
+    "y2026": 29.45,
+    "change": 0.31,
+    "moe90": 4.95,
+    "clears": false,
+    "n2025": 2319,
+    "n2026": 2257
+   },
+   "ue_exit_to_nilf": {
+    "y2025": 21.44,
+    "y2026": 20.82,
+    "change": -0.62,
+    "moe90": 4.44,
+    "clears": false,
+    "n2025": 2319,
+    "n2026": 2257
+   },
+   "longterm_exit_to_employment": {
+    "y2025": 13.6,
+    "y2026": 13.56,
+    "change": -0.04,
+    "moe90": 8.28,
+    "clears": false,
+    "n2025": 443,
+    "n2026": 485
+   },
+   "shortterm_exit_to_employment": {
+    "y2025": 32.86,
+    "y2026": 33.95,
+    "change": 1.09,
+    "moe90": 5.75,
+    "clears": false,
+    "n2025": 1876,
+    "n2026": 1772
+   },
+   "eu_inflow_from_employment": {
+    "y2025": 1.37,
+    "y2026": 1.1,
+    "change": -0.27,
+    "moe90": 0.26,
+    "clears": true,
+    "n2025": 48281,
+    "n2026": 45770
+   }
+  },
+  "wc_under35": {
+   "ue_exit_to_employment": {
+    "y2025": 30.96,
+    "y2026": 27.77,
+    "change": -3.19,
+    "moe90": 8.29,
+    "clears": false,
+    "n2025": 821,
+    "n2026": 810
+   },
+   "ue_exit_to_nilf": {
+    "y2025": 18.24,
+    "y2026": 19.81,
+    "change": 1.57,
+    "moe90": 7.15,
+    "clears": false,
+    "n2025": 821,
+    "n2026": 810
+   },
+   "longterm_exit_to_employment": {
+    "y2025": 22.62,
+    "y2026": 15.06,
+    "change": -7.56,
+    "moe90": 16.74,
+    "clears": false,
+    "n2025": 135,
+    "n2026": 165
+   },
+   "shortterm_exit_to_employment": {
+    "y2025": 32.69,
+    "y2026": 31.03,
+    "change": -1.66,
+    "moe90": 9.4,
+    "clears": false,
+    "n2025": 686,
+    "n2026": 645
+   },
+   "eu_inflow_from_employment": {
+    "y2025": 0.94,
+    "y2026": 0.82,
+    "change": -0.12,
+    "moe90": 0.3,
+    "clears": false,
+    "n2025": 27591,
+    "n2026": 25649
+   }
+  },
+  "wc_35_54": {
+   "ue_exit_to_employment": {
+    "y2025": 28.05,
+    "y2026": 25.88,
+    "change": -2.17,
+    "moe90": 7.02,
+    "clears": false,
+    "n2025": 1117,
+    "n2026": 1045
+   },
+   "ue_exit_to_nilf": {
+    "y2025": 15.69,
+    "y2026": 14.5,
+    "change": -1.19,
+    "moe90": 5.66,
+    "clears": false,
+    "n2025": 1117,
+    "n2026": 1045
+   },
+   "longterm_exit_to_employment": {
+    "y2025": 15.3,
+    "y2026": 15.06,
+    "change": -0.24,
+    "moe90": 11.52,
+    "clears": false,
+    "n2025": 251,
+    "n2026": 275
+   },
+   "shortterm_exit_to_employment": {
+    "y2025": 32.05,
+    "y2026": 30.25,
+    "change": -1.8,
+    "moe90": 8.43,
+    "clears": false,
+    "n2025": 866,
+    "n2026": 770
+   },
+   "eu_inflow_from_employment": {
+    "y2025": 0.6,
+    "y2026": 0.52,
+    "change": -0.08,
+    "moe90": 0.17,
+    "clears": false,
+    "n2025": 51288,
+    "n2026": 50392
+   }
+  },
+  "wc_55_64": {
+   "ue_exit_to_employment": {
+    "y2025": 23.31,
+    "y2026": 20.87,
+    "change": -2.44,
+    "moe90": 9.92,
+    "clears": false,
+    "n2025": 472,
+    "n2026": 473
+   },
+   "ue_exit_to_nilf": {
+    "y2025": 18.7,
+    "y2026": 19.01,
+    "change": 0.31,
+    "moe90": 9.36,
+    "clears": false,
+    "n2025": 472,
+    "n2026": 473
+   },
+   "longterm_exit_to_employment": {
+    "y2025": 12.72,
+    "y2026": 9.82,
+    "change": -2.9,
+    "moe90": 13.62,
+    "clears": false,
+    "n2025": 125,
+    "n2026": 183
+   },
+   "shortterm_exit_to_employment": {
+    "y2025": 27.11,
+    "y2026": 28.41,
+    "change": 1.3,
+    "moe90": 13.11,
+    "clears": false,
+    "n2025": 347,
+    "n2026": 290
+   },
+   "eu_inflow_from_employment": {
+    "y2025": 0.62,
+    "y2026": 0.53,
+    "change": -0.09,
+    "moe90": 0.28,
+    "clears": false,
+    "n2025": 19759,
+    "n2026": 18968
+   }
+  },
+  "all_55_64": {
+   "ue_exit_to_employment": {
+    "y2025": 24.1,
+    "y2026": 25.15,
+    "change": 1.05,
+    "moe90": 6.44,
+    "clears": false,
+    "n2025": 1238,
+    "n2026": 1188
+   },
+   "ue_exit_to_nilf": {
+    "y2025": 22.43,
+    "y2026": 20.94,
+    "change": -1.49,
+    "moe90": 6.15,
+    "clears": false,
+    "n2025": 1238,
+    "n2026": 1188
+   },
+   "longterm_exit_to_employment": {
+    "y2025": 11.76,
+    "y2026": 13.14,
+    "change": 1.38,
+    "moe90": 9.64,
+    "clears": false,
+    "n2025": 295,
+    "n2026": 341
+   },
+   "shortterm_exit_to_employment": {
+    "y2025": 27.97,
+    "y2026": 30.37,
+    "change": 2.4,
+    "moe90": 7.92,
+    "clears": false,
+    "n2025": 943,
+    "n2026": 847
+   },
+   "eu_inflow_from_employment": {
+    "y2025": 0.69,
+    "y2026": 0.62,
+    "change": -0.07,
+    "moe90": 0.2,
+    "clears": false,
+    "n2025": 44002,
+    "n2026": 41735
+   }
+  }
+ }
+}
