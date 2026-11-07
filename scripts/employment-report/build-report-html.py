@@ -23,7 +23,7 @@ text = re.sub(r'^# .*\n+\*(Draft|Version).*\n+', '', text, count=1)          # t
 text = text.replace('![Share of the unemployed out of work 27 or more weeks, January to September 2025 and 2026, by group](chart-long-search-shares.png)', '\n\n@@CHART@@\n\n')
 frag = subprocess.run(['pandoc','-f','markdown','-t','html5','--section-divs','--wrap=none'], input=text, capture_output=True, text=True, check=True).stdout
 soup = BeautifulSoup(frag, 'html.parser')
-labels = ['Executive summary','Chapter 01 · Who we mean','Chapter 02 · The middle class','Chapter 03 · White-collar against all workers','Chapter 04 · What changed','Chapter 05 · Bright spots','Chapter 06 · Clouds','Chapter 07 · Layoffs and voluntary exits','Chapter 08 · Employers','Chapter 09 · AI and the workforce','Chapter 10 · The job search itself','Chapter 11 · The incoming Congress','Appendix']
+labels = ['Executive summary','Chapter 01 · Who we mean','Chapter 02 · The middle class','Chapter 03 · Industry, age, new graduates and place','Chapter 04 · What changed','Chapter 05 · Bright spots','Chapter 06 · Clouds','Chapter 07 · Layoffs and voluntary exits','Chapter 08 · Employers','Chapter 09 · AI and the workforce','Chapter 10 · The job search itself','Chapter 11 · The incoming Congress','Appendix']
 secs = soup.find_all('section', recursive=False)
 assert len(secs)==len(labels), len(secs)
 toc=[]
@@ -38,7 +38,7 @@ for i,(sec,lab) in enumerate(zip(secs,labels)):
     if i==0:
         nxt = head.find_next_sibling('p'); nxt['class']=['lead']
 # tables -> exhibits
-titles = ['Employed people by group, January–September 2026 monthly average','Unemployment and long spells by group, January–September 2026 vs 2025','White-collar against all workers by industry and age, January–September 2026 vs 2025','Bright spots: October jobs data and related measures','Clouds: pay, sectors, hiring and costs','Employers with the most entry-level jobs, October 26, 2026','Employers asking for AI skills, October 26, 2026','Top employers by function, October 26, 2026','Posted pay: postings naming AI skills against other postings, same function and level, November 7, 2026','AI exposure of matched open postings, November 6, 2026','What vendors report about applications, interviews and referrals']
+titles = ['Employed people by group, January–September 2026 monthly average','Unemployment and long spells by group, January–September 2026 vs 2025','White-collar against all workers by industry and age, January–September 2026 vs 2025','Bright spots: October jobs data and related measures','Clouds: pay, sectors, hiring and costs','Employers with the most entry-level jobs, October 26, 2026','Employers asking for AI skills, October 26, 2026','Top employers by function, October 26, 2026','Posted pay: postings naming AI skills against other postings, across employers and within the same employer, November 7, 2026','AI exposure of matched open postings, November 6, 2026','What vendors report about applications, interviews and referrals']
 tables = soup.find_all('table'); assert len(tables)==len(titles), len(tables)
 n=2
 for idx,(t,ti) in enumerate(zip(tables,titles)):
@@ -87,8 +87,9 @@ cover = f'''<header class="cover"><div class="cover-in">
 </div>
 <div class="box" style="margin-top:2px;padding:12px 16px;gap:6px"><div class="eyebrow">Key findings</div><ul style="gap:4px">
 <li>October payrolls rose by 165,000 and unemployment fell to 4.1% (BLS, seasonally adjusted).</li>
-<li>28.5% of unemployed white-collar workers had been unemployed six months or more (27+ weeks) in January to September 2026 (23.2% a year earlier); 39.1% at ages 55 to 64 (27.0%).</li>
-<li>White-collar unemployment is low (2.63%): the change is in the share of the unemployed already in long spells, not in how many are out of work.</li>
+<li>28.5% of unemployed white-collar workers had been unemployed six months or more (27+ weeks) in January to September 2026 (23.2% a year earlier). The share is highest, and rose most, at ages 55 to 64: 39.1% (27.0%).</li>
+<li>White-collar unemployment is low (2.63%): the change is in the share of the unemployed already in long spells. Our reading, not a finding: fewer people entering unemployment and slightly slower exits, more than more layoffs; the month-to-month data point that way but no single change is statistically distinguishable.</li>
+<li>Long spells also rose for blue-collar (+2.9) and all workers (+3.1). We do not show that white-collar workers' rise (+5.3) is larger; the level is higher (28.5% against 22.7% for blue-collar).</li>
 <li>This measures ongoing spells, not the chance that a newly unemployed worker stays out six months.</li>
 </ul></div>
 <div class="cover-meta"><span>Covers October 2026 data; {'published' if RELEASE else 'to be published'} November 2026</span><span>Census CPS microdata through September 2026; October CPS and the early-warning section to follow</span>{'' if RELEASE else '<span>Draft 13: not published</span>'}<span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
