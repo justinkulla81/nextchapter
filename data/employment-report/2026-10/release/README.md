@@ -1,6 +1,6 @@
 # Data and code for the October 2026 White Collar Employment Report
 
-Version 1.3. Aggregate cells only; no microdata. Not seasonally adjusted unless noted.
+Version 1.4. Aggregate cells only; no microdata. Not seasonally adjusted unless noted.
 
 | File | What it is |
 |---|---|
@@ -18,6 +18,6 @@ Code (repository `scripts/employment-report/`): `nc_cps_breakdowns.py` (CPS grou
 
 Definitions. White-collar: Census major occupation groups 1 and 2 (PRMJOCC1 = 1 or 2), current or most recent job. Knowledge workers: white-collar occupation and a bachelor's degree or more (PEEDUCA >= 43). Long-term unemployed: unemployed 27 weeks or more (PRUNEDUR >= 27), a spell in progress. Weights: PWCMPWGT.
 
-Suggested citation: NextChapter, White Collar Employment Report, October 2026, version 1.3, November 2026. launchyournextchapter.com/reports
+Suggested citation: NextChapter, White Collar Employment Report, October 2026, version 1.4, November 2026. launchyournextchapter.com/reports
 
-Revision log: 1.3 (Nov 7, 2026): added month-to-month flow analysis (labeled as our reading), tests of the difference between white-collar and blue-collar and between age groups, early-career, new-graduate and place sections, and a within-employer comparison of posted pay for postings naming AI skills; corrected the framing of the 55-64 finding (level higher, rise not shown to be larger). No earlier figure changed. 1.2 (Nov 7, 2026): added a chapter comparing white-collar and all workers by industry and age (Exhibit 4), an AI and the workforce chapter (company statements, posted pay for postings that name AI skills, training programs, hiring rules) and a job-search chapter (applications, interviews, referrals); no earlier figure changed. 1.1 (Nov 7, 2026): added a watch note on data center moratoriums and interest-rate-sensitive sectors to the Clouds chapter; no figures changed. 1.0 (Nov 6, 2026): initial release. Corrections will be listed here with the date and the figure changed.
+Revision log: 1.4 (Nov 7, 2026): added the direct employer-class check for AI-skill pay (postings not naming AI at AI-asking employers pay a median 24.3% more), BLS sector detail (269,000 since the October 2025 low, +9,000, +28,000, information -1,000), a tech paragraph, and outcomes by AI exposure from the CPS; no earlier figure changed. 1.3 (Nov 7, 2026): added month-to-month flow analysis (labeled as our reading), tests of the difference between white-collar and blue-collar and between age groups, early-career, new-graduate and place sections, and a within-employer comparison of posted pay for postings naming AI skills; corrected the framing of the 55-64 finding (level higher, rise not shown to be larger). No earlier figure changed. 1.2 (Nov 7, 2026): added a chapter comparing white-collar and all workers by industry and age (Exhibit 4), an AI and the workforce chapter (company statements, posted pay for postings that name AI skills, training programs, hiring rules) and a job-search chapter (applications, interviews, referrals); no earlier figure changed. 1.1 (Nov 7, 2026): added a watch note on data center moratoriums and interest-rate-sensitive sectors to the Clouds chapter; no figures changed. 1.0 (Nov 6, 2026): initial release. Corrections will be listed here with the date and the figure changed.

@@ -383,8 +383,8 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 </tr>
 <tr class="odd">
 <td>Professional and business services, October</td>
-<td>+70,000 (+0.3% m/m; +1.2% y/y)</td>
-<td>professional, scientific and technical +33,000</td>
+<td>+70,000 (+0.3% m/m; +1.2% y/y); +269,000 since a low in October 2025</td>
+<td>professional, scientific and technical +33,000 (computer systems design +3,200); administrative and support services +28,000; management of companies and enterprises +9,000</td>
 <td>BLS</td>
 </tr>
 <tr class="even">
@@ -431,8 +431,8 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 </tr>
 <tr class="even">
 <td>Information employment, over the year (seasonally adjusted)</td>
-<td>-4.2% (-119,000)</td>
-<td>total payrolls +0.6%</td>
+<td>-4.2% (-119,000); October -1,000 (little changed)</td>
+<td>total payrolls +0.6%; data processing, web hosting and related services 0 in October</td>
 <td>BLS</td>
 </tr>
 <tr class="odd">
@@ -468,6 +468,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 </tbody>
 </table></div></div>
 <p>Seattle, San Francisco and Santa Rosa have among the lowest local postings indexes in the country (Indeed).</p>
+<p><em>What happened to tech.</em> Announced technology cuts are large: 171,501 from January to October, up 21% (Challenger). Payrolls show it in one place, information, down 4.2% (119,000) over the year, though only 1,000 in October. Professional, scientific and technical services, which includes computer systems design, added 33,000 in October (computer systems design +3,200, to 2.35 million), and professional and business services as a whole has added 269,000 jobs since a low in October 2025 (BLS). In the household survey, employment in computer and mathematical occupations, the closest group to software work that the public data separate, averaged 6.83 million in January to September 2026, 1.5% above a year earlier (not tested; the estimate is noisy). Its unemployment rate was 3.31% against 3.22%, but the share of its unemployed out 27+ weeks was 41.9% against 27.2%: +14.7 points, margin about ±7.2 (±10.9 by the conservative rule), the largest rise of any occupation group with at least 400 unemployed observations (517 in 2026). So the data show tech jobs not shrinking in total while people who lose them stay out longer, and the information industry shrinking. We cannot isolate software engineers: the public file groups them with mathematical occupations, Challenger classifies cuts by the employer’s industry, not the occupation cut, so we cannot say how many of the 171,501 were software roles, and our open-jobs history starts in October, so we show no trend in software postings.</p>
 <p><em>Rates:</em> before the report, Employ America’s base case was a Federal Reserve rate increase in December and another in March. A strong report can raise those odds, and higher borrowing costs tend to slow hiring over time. That is one forecaster’s view, not a certainty. Sectors that depend on borrowing tend to feel higher rates first: construction, finance, and technology and data center projects funded with debt.</p>
 <p><em>Watch: data center moratoriums.</em> Several states and localities have proposed or enacted pauses on new data centers; one tracker counted 75 projects blocked or delayed in the first quarter of 2026 and statewide proposals in 14 states (Rockefeller Institute, citing Data Center Watch; trade-source figures, not independently checked). The direct effect is on temporary construction and electrical work, which is mostly blue-collar. A white-collar effect is possible but unmeasured: engineers, architects and project managers do design and management work ahead of construction. We make no estimate here and will track open postings for those roles in later editions.</p>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> The pressure is in information, finance and technology roles. The latest available readings show nominal wage growth of 3.1% in October and consumer-price inflation of 3.7% in September; these are different reference periods, not a direct real-wage comparison. Look at sectors adding jobs (professional services, health care) alongside the one you know.</p></div>
@@ -684,6 +685,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <h3>What open jobs ask for, and what they pay</h3>
 <p>From the open jobs on employer career sites and job systems that NextChapter tracks (deduplicated, staffing and search firms and internships excluded; November 7, 2026), 56,049 of 531,183 (10.6%) name a specific AI skill or tool in the posting text (the same measure as the employer table above). Of the 110,319 that post a pay range, 16,142 (14.6%) name an AI skill.</p>
 <p>Across employers, postings that name an AI skill post higher pay than other postings of the same function and level: in 88 of the 89 function-and-level cells with at least 30 postings of each kind, with a median difference of 22.1% (range -0.5% to +71.9%). <strong>Most of that gap is which employers ask, not what the same employer pays.</strong> Comparing postings within the same employer, function and level (306 cells at 144 employers, each with at least three postings of each kind), the median difference is +0.9% (middle half of cells from -2.6% to +12%); weighted by the number of AI-naming postings it is +3.9%. The AI-naming postings paid more in 159 cells, less in 89 and the same in 58. Employers mostly post one pay band for a role and level whether or not the posting names AI. So these data do not show that naming AI skills raises posted pay at a given employer; they show that the employers who ask for AI skills, such as large technology and finance firms, post higher pay. The within-employer comparison covers 2,281 of the 16,142 AI-naming postings with pay (14%), those from employers posting both kinds in the same cell, so it may not represent all employers.</p>
+<p><strong>Direct check: it is the employer class.</strong> We also compared postings that do not name AI skills at employers that ask for them (2,292 employers with at least five AI-naming postings) with postings at all other employers, in the same function and level. The first group pays a median 24.3% more (113 cells with at least 30 postings of each kind; higher in 110 of them; middle half of cells +17% to +31%), about the same premium as for AI-naming postings. These employers are 4% of the 57,648 employers with open jobs, but they hold 42.5% of open jobs and 82.4% of AI-naming jobs, and 84% of AI-naming postings with pay. So the premium belongs to the employer, not the posting: jobs at employers that ask for AI skills pay more whether or not they name AI. Two limits: employers with five or more AI-naming postings are also large employers, and we did not hold employer size or location fixed, so this shows employer type, not that AI skills open the door; and we cannot tell whether a worker without AI skills would be considered for those employers’ jobs.</p>
 <div class="exhibit"><span class="ex-label">Exhibit 10</span><span class="ex-title">Posted pay: postings naming AI skills against other postings, across employers and within the same employer, November 7, 2026</span><div class="tbl"><table>
 <colgroup>
 <col style="width: 13%"/>
@@ -713,6 +715,14 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">+0.9% median; +3.9% weighted</td>
 </tr>
 <tr class="even">
+<td><strong>Direct check: postings not naming AI at AI-asking employers (column 2) against postings at other employers (column 3), 113 cells</strong></td>
+<td style="text-align: right;">27,702</td>
+<td style="text-align: right;">56,780</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">+24.3% median</td>
+</tr>
+<tr class="odd">
 <td>Engineering, senior individual contributor</td>
 <td style="text-align: right;">1,692</td>
 <td style="text-align: right;">5,839</td>
@@ -720,7 +730,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$169,401</td>
 <td style="text-align: right;">+27.6%</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Engineering, early-career</td>
 <td style="text-align: right;">711</td>
 <td style="text-align: right;">6,041</td>
@@ -728,7 +738,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$117,500</td>
 <td style="text-align: right;">+46.8%</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Data and analytics, senior</td>
 <td style="text-align: right;">1,452</td>
 <td style="text-align: right;">1,006</td>
@@ -736,7 +746,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$160,000</td>
 <td style="text-align: right;">+31.3%</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Data and analytics, mid-level</td>
 <td style="text-align: right;">575</td>
 <td style="text-align: right;">616</td>
@@ -744,7 +754,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$144,425</td>
 <td style="text-align: right;">+27.6%</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Sales, mid-level</td>
 <td style="text-align: right;">427</td>
 <td style="text-align: right;">3,480</td>
@@ -752,7 +762,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$120,000</td>
 <td style="text-align: right;">+50.0%</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Finance, senior</td>
 <td style="text-align: right;">129</td>
 <td style="text-align: right;">1,308</td>
@@ -760,7 +770,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$120,000</td>
 <td style="text-align: right;">+42.6%</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Finance, manager</td>
 <td style="text-align: right;">174</td>
 <td style="text-align: right;">2,040</td>
@@ -768,7 +778,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$135,000</td>
 <td style="text-align: right;">+19.4%</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Marketing, senior</td>
 <td style="text-align: right;">279</td>
 <td style="text-align: right;">656</td>
@@ -776,7 +786,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$150,250</td>
 <td style="text-align: right;">+13.1%</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Product, senior</td>
 <td style="text-align: right;">342</td>
 <td style="text-align: right;">584</td>
@@ -784,7 +794,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$175,000</td>
 <td style="text-align: right;">+14.6%</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Human resources, early-career</td>
 <td style="text-align: right;">72</td>
 <td style="text-align: right;">1,090</td>
@@ -792,7 +802,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <td style="text-align: right;">$79,172</td>
 <td style="text-align: right;">+57.9%</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Legal, mid-level</td>
 <td style="text-align: right;">76</td>
 <td style="text-align: right;">1,029</td>
@@ -853,6 +863,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <li><strong>By function (average score of matched postings):</strong> data and analytics 0.46, finance 0.38, marketing 0.38, administration 0.36, human resources 0.31, legal 0.23, engineering 0.21.</li>
 <li><strong>Cross-check:</strong> the unweighted Spearman rank correlation across the 756 overlapping occupations is 0.58 with Microsoft’s applicability scores and 0.70 with OpenAI’s exposure ratings: broad agreement, not close, so we show bands, not precise rankings.</li>
 <li><strong>Match quality:</strong> we reviewed all 200 sampled matches by hand. 4 (2%) looked wrong (for example a development manager matched to training and development managers, and a school president matched to general and operations managers). Another 15 (7.5%) were judgment calls between neighboring occupations: machine learning engineers, DevOps and site-reliability engineers, and software engineering managers. These matter because the neighboring occupations score differently, so averages for engineering-adjacent titles are the least certain figures in this section. The 200 are distinct matched titles from the final dataset, taken at every nth title in alphabetical order (not random, and not weighted by how many postings each title has), reviewed from the job title to its assigned occupation without seeing exposure scores, so the rates describe titles, not postings. Judgment-call matches are counted as matched, as assigned, in every figure above.</li>
+<li><strong>Outcomes by exposure (our calculation; Census CPS occupation groups, January to September 2026 against 2025).</strong> We averaged exposure over the detailed occupations in each of 22 major occupation groups (a simple average, not weighted by employment) and compared groups. The six groups scoring 0.14 or higher (computer and mathematical 0.38, sales 0.24, legal 0.22, office and administrative support 0.19, business and financial operations 0.18, arts, design and media 0.14) had employment 0.3% below a year earlier; the thirteen groups below 0.10 had employment 0.8% below; the three in between (education and library, life, physical and social science, management) were unchanged. Unemployment rates: 3.74% against 3.71% for the more exposed groups, 4.41% against 4.52% for the least exposed. The share of the unemployed out 27+ weeks rose in both, from 25.1% to 29.7% for the more exposed and from 21.0% to 23.7% for the least exposed (neither difference tested). So in this data, more-exposed occupation groups are not losing employment faster than the least exposed. The clearest sign of strain in an exposed group is computer and mathematical occupations (the highest score, 0.38), where long spells rose 14.7 points (see Clouds). Limits: occupation groups mix exposed and unexposed jobs; the score describes tasks Claude is observed doing, not jobs lost; CPS employment by occupation group is noisy and we did not test these differences; sales and office groups include non-white-collar jobs; and the Stanford finding is about early-career workers, which group totals would hide. This is an association over one year, not evidence that AI caused or did not cause any outcome.</li>
 <li><strong>Change over time:</strong> not reported. Our postings history starts in mid-October 2026, and the exposure file used is Anthropic’s October 22 version; a comparison with the current file on November 6 found the values for all 497 occupations in SOC groups 11 to 43 unchanged.</li>
 </ul>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> Exposure describes how much of a job’s tasks AI tools are observed doing, which is a reason to build fluency with those tools, not a prediction that the job will go away.</p></div>

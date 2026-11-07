@@ -18,3 +18,9 @@ FROM cells WHERE na>=30 AND nn>=30 ORDER BY f, lv;
 --   percentile_cont(.5) WITHIN GROUP (ORDER BY mid) FILTER (WHERE ai) ma, percentile_cont(.5) WITHIN GROUP (ORDER BY mid) FILTER (WHERE NOT ai) mnn FROM p GROUP BY c,f,lv),
 -- q AS (SELECT *, ln(ma/mnn) g FROM cells WHERE na>=3 AND nn>=3)
 -- SELECT count(*), count(DISTINCT c), round((exp(percentile_cont(.5) WITHIN GROUP (ORDER BY g))-1)*100,1), round((exp(sum(g*na)/sum(na))-1)*100,1) FROM q;
+
+-- Employer-class check (version 1.4): postings NOT naming AI at employers with >=5 AI-naming live postings vs postings at all other employers,
+-- by function and level (cells with 30+ of each). Run through a one-off edge function (the 60 s tool limit is too short); result Nov 7, 2026:
+-- 113 cells, median +24.3%, 110 higher, quartiles +17.2% / +31.3%; 2,292 asking employers of 57,648 hold 42.5% of open roles and 82.4% of AI-naming roles.
+-- Shape: roles (as above) -> emp AS (SELECT c, count(*) n, count(*) FILTER (WHERE ai) na FROM roles GROUP BY c) -> p joins emp, askers = na>=5
+--   -> cells: median mid for (askers AND NOT ai) vs (NOT askers) -> ln ratio, summarized by median and quartiles.
