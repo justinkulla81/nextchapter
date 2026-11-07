@@ -17,6 +17,7 @@ function triggerFrom(request: NextRequest): string {
 const TRANSIENT_CODES = new Set(['P2024', 'P1001', 'P1002', 'P1008', 'P1017'])
 const RETRY_WITHIN_MS = 30_000
 const RETRY_PAUSE_MS = 5_000
+const LEDGER_RETRY_PAUSE_MS = 2_000
 export function isTransientDbError(e: unknown): boolean {
   const code = (e as { code?: string } | null)?.code
   if (code && TRANSIENT_CODES.has(code)) return true
@@ -46,9 +47,16 @@ export function withCronRun(job: string, handler: Handler, opts: { recordResult?
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const started = Date.now()
-    const runId = await prisma.cronRun
-      .create({ data: { job, trigger: triggerFrom(request) }, select: { id: true } })
-      .then((r) => r.id)
+    // The first jobs in a bundle start in the same second as the other 14:30 crons, when the connection pool is busiest.
+    // A start row that fails once is tried again after a pause; without it the job runs but leaves no record, and Job
+    // health reports it overdue (lead-nurture, 2026-11-06 and 11-07).
+    const recordStart = () => prisma.cronRun.create({ data: { job, trigger: triggerFrom(request) }, select: { id: true } }).then((r) => r.id)
+    const runId = await recordStart()
+      .catch(async (e) => {
+        console.warn('Cron ledger: could not record start of', job, 'retrying once', e)
+        await new Promise((r) => setTimeout(r, LEDGER_RETRY_PAUSE_MS))
+        return recordStart()
+      })
       .catch((e) => {
         console.error('Cron ledger: could not record start of', job, e)
         return null
