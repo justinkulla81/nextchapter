@@ -26,7 +26,7 @@ import { testedTitle } from '@/lib/seo/title-test-state'
 import { jobTitleB } from '@/lib/seo/title-tests'
 import { datePostedOf, descriptionParagraphs, isIndexableJob, isRemoteJob, isStaleJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
 import { ClosedJobView } from '@/components/jobs/ClosedJobView'
-import { getClosedJobContext, getPublicJob, similarJobsAtCompany } from '@/lib/jobs/public-job-page-server'
+import { getClosedJobContext, getPublicJob, similarJobsAtCompany, similarJobsLike } from '@/lib/jobs/public-job-page-server'
 import { employerPath, isCompanyOfferedToSearch } from '@/lib/seo/employer-pages'
 import { prisma } from '@/lib/prisma'
 import { getTitleIndex } from '@/lib/seo/job-titles'
@@ -110,6 +110,8 @@ export default async function PublicJobPage({ params }: { params: Params }) {
     tags?.company && (await isCompanyOfferedToSearch(tags.company.id).catch(() => false)) ? employerPath(tags.company.canonicalNameNormalized, tags.company.id) : null
   // Other open roles at this employer, linked straight from the page (a failed read leaves the block out).
   const moreAtCompany = await similarJobsAtCompany(tags?.company?.id, job.id)
+  // The same occupation at other employers, same state first, so a visitor who is not sold on this one has somewhere to go.
+  const likeJobs = await similarJobsLike({ id: job.id, socCode: tags?.socCode, locationState: job.locationState, excludeCompanyId: tags?.company?.id })
   // The title's own page lists every open role with this title; it exists only for titles with enough listings. A failed read just leaves the link out.
   const titleStat = (await getTitleIndex().catch(() => [])).find((t) => t.slug === titleSlug(baseTitle(job.title)))
   const industry = bucketFromIndustryText(tags?.industry)
@@ -218,6 +220,22 @@ export default async function PublicJobPage({ params }: { params: Params }) {
                         {j.title}
                       </TrackedLink>
                       {j.locationCity && j.locationState ? <span className="text-muted-foreground"> · {j.locationCity}, {j.locationState}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {likeJobs.length > 0 && (
+              <section aria-labelledby="like-jobs" className="mt-10">
+                <h2 id="like-jobs" className="font-display text-xl font-semibold">Similar jobs</h2>
+                <ul className="mt-3 space-y-2 text-sm">
+                  {likeJobs.map((j) => (
+                    <li key={j.id}>
+                      <TrackedLink href={`/jobs/${j.id}`} event="job_page_similar_job_clicked" properties={{ jobId: job.id, toJobId: j.id, kind: 'same_occupation' }} className="font-medium text-brand underline underline-offset-4">
+                        {j.title}
+                      </TrackedLink>
+                      <span className="text-muted-foreground"> · {[j.companyName, j.locationCity && j.locationState ? `${j.locationCity}, ${j.locationState}` : j.locationState].filter(Boolean).join(' · ')}</span>
                     </li>
                   ))}
                 </ul>
