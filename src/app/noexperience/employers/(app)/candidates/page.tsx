@@ -7,6 +7,7 @@ import { mapFunctionInterestToJobIntent } from '@/lib/crucible/employers/functio
 import { CandidateResumeDownloadButton } from '@/components/crucible/employers/CandidateResumeDownloadButton'
 import { CandidateFunctionFilter } from '@/components/crucible/employers/CandidateFunctionFilter'
 import type { CrucibleFunctionInterest } from '@prisma/client'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = {
   title: { absolute: 'noexperienceneeded.ai — Candidates' },
@@ -93,6 +94,7 @@ export default async function CrucibleEmployerCandidatesPage({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Candidates</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-1 text-muted-foreground">
             {total} candidate{total === 1 ? '' : 's'} passed the assessment and chose to share their resume.
           </p>

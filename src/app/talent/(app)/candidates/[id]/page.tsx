@@ -21,6 +21,7 @@ import {
   generateInterviewGuideAction,
   createPanelAction,
 } from './actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function CandidateEvidenceBriefPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -71,6 +72,7 @@ export default async function CandidateEvidenceBriefPage({ params }: { params: P
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{brief.candidateName}</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">
           {[brief.availability.highestLevelReached, brief.availability.primaryFunction].filter(Boolean).join(' · ')}
         </p>

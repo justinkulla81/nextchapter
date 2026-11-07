@@ -6,6 +6,7 @@ import { CancelCoachSessionForm } from '@/components/coach/CancelCoachSessionFor
 import { CoachGoogleSection } from '@/components/coach/google/CoachGoogleSection'
 import { getCoachGoogleStatus } from '@/lib/coach/google/connection'
 import { coachGoogleErrorMessage } from '@/lib/coach/google/config'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Booking' }
 
@@ -24,6 +25,7 @@ export default async function CoachBookingPage({ searchParams }: { searchParams:
     <div className="space-y-10">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Calendar and booking</h1>
+        <Squiggle className="mt-2" />
         <p className="text-muted-foreground">
           {ownCalendar
             ? 'Clients pick a time you are free. Each booking lands on your Google Calendar with a Meet link.'

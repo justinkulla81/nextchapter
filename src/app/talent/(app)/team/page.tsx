@@ -6,6 +6,7 @@ import { listAllAuthUsers, getAuthEmail } from '@/lib/admin/auth-users'
 import { InviteSeatForm } from '@/components/talent/InviteSeatForm'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { revokeSeat } from './actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function TeamSeatsPage() {
   const employer = await getTalentDashboardData()
@@ -32,6 +33,7 @@ export default async function TeamSeatsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">
           Invite teammates to share your roles, candidates, and hiring analytics.
         </p>

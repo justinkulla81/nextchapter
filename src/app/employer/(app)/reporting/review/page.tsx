@@ -3,6 +3,7 @@ import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
 import { getEngagementAggregates, getSeatUtilization } from '@/lib/employer/outplacement-reporting'
 import { recordPartnerAudit } from '@/lib/partners/audit'
 import { PrintButton } from '@/components/partners/PrintButton'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata = { title: 'Quarterly review' }
 
@@ -23,6 +24,7 @@ export default async function QuarterlyReviewPage() {
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Quarterly review</h1>
+          <Squiggle className="mt-2" />
           <p className="text-sm text-muted-foreground">
             {orgUser.programBrandName ?? orgUser.orgName} · prepared {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </p>

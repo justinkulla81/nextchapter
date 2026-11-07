@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getBlockedCandidateIdsForEmployer } from '@/lib/talent/conflict-check'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const STATUS_LABEL: Record<string, string> = {
   VIEWED: 'Viewed',
@@ -46,6 +47,7 @@ export default async function CandidateInboxPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Candidate Inbox</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">Everyone you&apos;ve interacted with, across all roles.</p>
       </div>
 

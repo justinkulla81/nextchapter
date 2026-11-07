@@ -5,6 +5,7 @@ import { getEmployerUnreadCount } from '@/lib/messaging/threads'
 import { getCandidatesLookingForYourRoles } from '@/lib/talent/candidate-discovery'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CandidateCard } from '@/components/talent/CandidateCard'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function TalentHomePage() {
   const employer = await getTalentDashboardData()
@@ -38,6 +39,7 @@ export default async function TalentHomePage() {
       <div>
         <p className="text-sm font-medium text-muted-foreground">NextChapter for Hiring Managers</p>
         <h1 className="text-2xl font-semibold tracking-tight">Welcome back{employer.companyName ? `, ${employer.companyName}` : ''}</h1>
+        <Squiggle className="mt-2" />
       </div>
 
       <section>

@@ -9,6 +9,7 @@ import { switcherItems } from '@/lib/employer/section-links'
 import { peekPortalUser, type PeekedUser } from '@/lib/supabase/peek-session'
 import { AccountLinkPanel } from '@/components/employer/AccountLinkPanel'
 import { linkViewsFor, type LinkView } from '@/lib/employer/account-link-server'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { ...NOINDEX, title: 'NextChapter for employers' }
 
@@ -101,6 +102,7 @@ export default async function EmployerHome({ searchParams }: { searchParams: Pro
       <main className="mx-auto max-w-3xl space-y-8 px-4 py-12">
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight">Your employer sections</h1>
+          <Squiggle className="mt-2" />
           <p className="text-muted-foreground">These are the parts of NextChapter you work in.</p>
           {notice && (
             <p role="alert" className="rounded-md border border-border bg-muted px-3 py-2 text-sm">

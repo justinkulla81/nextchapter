@@ -1,6 +1,6 @@
 # October 2026 White Collar Employment Report
 
-*Draft v13. Covers October 2026 data; to be published in November 2026. Not published or sent.*
+*Version 1.1. Covers October 2026 data; to be published in November 2026. Not published or sent.*
 
 ## Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago
 
@@ -105,7 +105,9 @@ Reference periods differ by row: wages and sector payrolls are October, prices a
 
 Seattle, San Francisco and Santa Rosa have among the lowest local postings indexes in the country (Indeed).
 
-*Rates:* before the report, Employ America's base case was a Federal Reserve rate increase in December and another in March. A strong report can raise those odds, and higher borrowing costs tend to slow hiring over time. That is one forecaster's view, not a certainty.
+*Rates:* before the report, Employ America's base case was a Federal Reserve rate increase in December and another in March. A strong report can raise those odds, and higher borrowing costs tend to slow hiring over time. That is one forecaster's view, not a certainty. Sectors that depend on borrowing tend to feel higher rates first: construction, finance, and technology and data center projects funded with debt.
+
+*Watch: data center moratoriums.* Several states and localities have proposed or enacted pauses on new data centers; one tracker counted 75 projects blocked or delayed in the first quarter of 2026 and statewide proposals in 14 states (Rockefeller Institute, citing Data Center Watch; trade-source figures, not independently checked). The direct effect is on temporary construction and electrical work, which is mostly blue-collar. A white-collar effect is possible but unmeasured: engineers, architects and project managers do design and management work ahead of construction. We make no estimate here and will track open postings for those roles in later editions.
 
 *What it means for a job seeker:* The pressure is in information, finance and technology roles. The latest available readings show nominal wage growth of 3.1% in October and consumer-price inflation of 3.7% in September; these are different reference periods, not a direct real-wage comparison. Look at sectors adding jobs (professional services, health care) alongside the one you know.
 

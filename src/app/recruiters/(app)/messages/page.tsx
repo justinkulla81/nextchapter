@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getRecruiterThreads } from '@/lib/messaging/threads'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function RecruiterMessagesPage() {
   const supabase = await createClient('recruiter')
@@ -21,6 +22,7 @@ export default async function RecruiterMessagesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Messages</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">Direct messages with candidates who signed up through you.</p>
       </div>
 

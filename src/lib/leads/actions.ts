@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { LEAD_COOKIE, LEAD_COOKIE_MAX_AGE } from '@/lib/leads/lifecycle/prefill'
+import { markerDomain } from '@/lib/auth/member-marker'
 import { prisma } from '@/lib/prisma'
 import { getClientIp } from '@/lib/http/client-ip'
 import { allowByIp, allowByTarget, DAY_MS, HOUR_MS } from '@/lib/security/rate-limit'
@@ -141,9 +142,9 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
       }
     }
 
-    // The /after-a-layoff form sends people straight into registration: the signed cookie prefills their email on the details step.
+    // The /after-a-layoff form sends people straight into registration: the signed cookie prefills their email on the details step. Registration runs on candidate.<site>, so the cookie is set on the whole site's domain (a host-only cookie never reaches it).
     if (source.startsWith('after-a-layoff')) {
-      ;(await cookies()).set(LEAD_COOKIE, lead.unsubscribeToken, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: LEAD_COOKIE_MAX_AGE })
+      ;(await cookies()).set(LEAD_COOKIE, lead.unsubscribeToken, { domain: markerDomain(process.env.NEXT_PUBLIC_APP_URL), httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: LEAD_COOKIE_MAX_AGE })
     }
     captureServerEvent(email, 'journey_lead_submitted', { situation: persona.slug, followup, source, emailed, capped, returning: !!existing, ...answers, helpCount: answers.helpPicked ? answers.helpPicked.split(',').length : 0 })
     return { done: true, email, slug: persona.slug, capped }
