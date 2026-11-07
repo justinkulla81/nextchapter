@@ -20,10 +20,11 @@ const OG_IMAGE = `${SITE_URL}/reports/white-collar-employment-report-2026-10-og.
 const CHART_URL = `${SITE_URL}/reports/october-2026-long-search-shares.png`
 const PDF_HREF = '/reports/white-collar-employment-report-2026-10.pdf'
 const PUBLISHED = '2026-11-06'
+const MODIFIED = '2026-11-07'
 const TITLE = 'NextChapter White Collar Employment Report: October 2026'
 
 const FILES = [
-  { label: 'Full report (PDF, 11 pages)', note: 'Version 1.0', href: PDF_HREF, type: 'pdf' as const },
+  { label: 'Full report (PDF, 11 pages)', note: 'Version 1.1', href: PDF_HREF, type: 'pdf' as const },
   { label: 'Long-search shares by group (CSV)', note: 'Exhibits 1 and 3, with margins and counts', href: '/reports/white-collar-employment-report-2026-10-data.csv', type: 'data' as const },
   { label: 'Validation against BLS (CSV)', note: 'Our CPS pipeline vs BLS published figures', href: '/reports/white-collar-employment-report-2026-10-validation-vs-bls.csv', type: 'data' as const },
   { label: 'Long-Search Index series (CSV)', note: 'Monthly, 2019 = 100', href: '/reports/white-collar-employment-report-2026-10-long-search-index.csv', type: 'data' as const },
@@ -64,11 +65,11 @@ const jsonLd = {
       '@type': 'Report',
       headline: TITLE,
       datePublished: PUBLISHED,
-      dateModified: PUBLISHED,
+      dateModified: MODIFIED,
       url: URL,
       mainEntityOfPage: URL,
       image: OG_IMAGE,
-      version: '1.0',
+      version: '1.1',
       author: personRef(),
       publisher: organizationRef(),
       about: ['employment', 'long-term unemployment', 'white-collar labor market', 'knowledge workers', 'job search'],
@@ -169,7 +170,7 @@ export default function WhiteCollarEmploymentReportOctober2026() {
 
       <section className="border-t border-light-gray bg-white">
         <div className="mx-auto w-full max-w-3xl px-6 py-10">
-          <AuthorByline updated={PUBLISHED} className="mb-4" />
+          <AuthorByline updated={MODIFIED} className="mb-4" />
           <ReportDownloads edition="2026-10" files={FILES} pageUrl={URL} chartUrl={CHART_URL} chartAlt="Share of unemployed out of work six months or more, by group, Jan-Sep 2026 vs 2025" />
           <div className="mb-6"><ShareBar url={URL} title={TITLE} placement="report_edition" label="Send this report to someone" /></div>
           <CiteThisReport title={TITLE} url={URL} published="November 6, 2026" />

@@ -19,7 +19,7 @@ css_ts = open(f'{REPO}/src/app/reports/white-collar-employment-report-september-
 REPORT_CSS = css_ts[css_ts.index('`')+1: css_ts.rindex('`')]
 PRINT_CSS = open(f'{REPO}/scripts/employment-report/print-compact.css').read()
 text = open(md).read()
-text = re.sub(r'^# .*\n+\*Draft.*\n+', '', text, count=1)          # title + draft line go on the cover
+text = re.sub(r'^# .*\n+\*(Draft|Version).*\n+', '', text, count=1)          # title + draft line go on the cover
 text = text.replace('![Share of the unemployed out of work 27 or more weeks, January to September 2025 and 2026, by group](chart-long-search-shares.png)', '\n\n@@CHART@@\n\n')
 frag = subprocess.run(['pandoc','-f','markdown','-t','html5','--section-divs','--wrap=none'], input=text, capture_output=True, text=True, check=True).stdout
 soup = BeautifulSoup(frag, 'html.parser')

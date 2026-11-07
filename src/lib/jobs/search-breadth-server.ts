@@ -192,7 +192,10 @@ export function loadJobSocs(): Promise<JobOccupations> {
   const now = Date.now()
   if (jobSocs && now - jobSocs.at < JOB_SOC_TTL_MS) return jobSocs.value
   if (!jobSocsLoading) {
-    const next = jobSocs ? readAndPublishJobSocs() : firstJobSocs()
+    // A refresh asks the shared snapshot first, like a cold start does: one instance's read serves every instance
+    // for ten minutes, and an unchanged board is not read again. Reading the database here on every instance's every
+    // refresh (the whole job table, in pages of 20k) was a main source of the Supabase egress overage.
+    const next = firstJobSocs()
     jobSocsLoading = next.then((r) => r.value)
     next.then(
       (r) => {
