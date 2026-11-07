@@ -111,7 +111,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   // Other open roles at this employer, linked straight from the page (a failed read leaves the block out).
   const moreAtCompany = await similarJobsAtCompany(tags?.company?.id, job.id)
   // The same occupation at other employers, same state first, so a visitor who is not sold on this one has somewhere to go.
-  const likeJobs = await similarJobsLike({ id: job.id, socCode: tags?.socCode, locationState: job.locationState, excludeCompanyId: tags?.company?.id })
+  const likeJobs = await similarJobsLike({ id: job.id, socCode: tags?.socCode, targetFunction: tags?.targetFunction, level: tags?.level, locationState: job.locationState, excludeCompanyId: tags?.company?.id })
   // The title's own page lists every open role with this title; it exists only for titles with enough listings. A failed read just leaves the link out.
   const titleStat = (await getTitleIndex().catch(() => [])).find((t) => t.slug === titleSlug(baseTitle(job.title)))
   const industry = bucketFromIndustryText(tags?.industry)
