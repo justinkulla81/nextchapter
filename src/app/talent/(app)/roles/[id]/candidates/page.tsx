@@ -7,6 +7,7 @@ import { CandidateCard } from '@/components/talent/CandidateCard'
 import { loadVisibilityMany } from '@/lib/evidence/load'
 import { compareByEvidenceThenFit } from '@/lib/evidence/score'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function MatchInboxPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -88,6 +89,7 @@ export default async function MatchInboxPage({ params }: { params: Promise<{ id:
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Candidate matches</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">For {role.roleTitle}.</p>
       </div>
 

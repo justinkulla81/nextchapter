@@ -4,6 +4,7 @@ import { InviteOrgUserForm } from '@/components/employer/InviteOrgUserForm'
 import { ConfirmActionButton } from '@/components/higher-ed/ConfirmActionButton'
 import { ActionButton } from '@/components/higher-ed/CommunityForms'
 import { removeOrgUserAction, resendOrgInviteAction } from './actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const ROLE_LABEL: Record<string, string> = { ADMIN: 'Admin', VIEWER: 'Viewer', LEGAL: 'Legal', FINANCE: 'Finance' }
 
@@ -19,6 +20,7 @@ export default async function EmployerTeamPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-sm text-muted-foreground">
           Who has access to this account, and what they can see — admin, viewer, legal, or finance.
         </p>

@@ -6,6 +6,7 @@ import { intakeRepliesSendingEnabled } from '@/lib/recruiter/intake/replies'
 import { TalentSubnav } from '@/components/recruiter/talent/TalentSubnav'
 import { ReplyQueue } from '@/components/recruiter/talent/ReplyQueue'
 import { approveReplies, cancelReply, editReply } from '../actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function TalentRepliesPage() {
   const ctx = await getTalentContext()
@@ -25,6 +26,7 @@ export default async function TalentRepliesPage() {
       <div>
         <p className="text-sm font-medium text-muted-foreground">{TALENT_PRODUCT_NAME} · {ctx.firm.name}</p>
         <h1 className="text-2xl font-semibold tracking-tight">Replies</h1>
+        <Squiggle className="mt-2" />
       </div>
       <TalentSubnav active="/recruiters/talent/replies" draftCount={drafts.length} />
 

@@ -5,6 +5,7 @@ import { readProgramSettings } from '@/lib/employer/program-settings'
 import { getEnrollableContracts } from '@/lib/employer/outplacement-enrollment'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
 import { makeEmployerKey, saveEmployerComms, turnOffEmployerKey } from './actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://launchyournextchapter.com'
 
@@ -34,6 +35,7 @@ Fields you leave out stay as they are. GET the same address to read your roster 
     <div className="space-y-10">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">HR system and emails</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-sm text-muted-foreground">
           Keep your roster in step with your HR system automatically, or upload a spreadsheet on Enroll. Either way, people are matched on your employee id, then email.
         </p>

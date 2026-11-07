@@ -11,6 +11,7 @@ import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
 import { loadVisibilityMany } from '@/lib/evidence/load'
 import { EvidenceBadge } from '@/components/evidence/EvidenceBadge'
 import type { CandidateProfile, Prisma } from '@prisma/client'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const maxDuration = 30
 
@@ -191,6 +192,7 @@ export default async function RecruiterSearchPage({
           ← Back home
         </Link>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Candidate search</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-sm">
           <Link href="/recruiters/pool" className="underline underline-offset-4">
             Find candidates who opted in to be found

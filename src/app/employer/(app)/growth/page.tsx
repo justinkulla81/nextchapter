@@ -7,6 +7,7 @@ import { NotOnProgram, StatTile, showCell } from '@/components/employer/StaffSta
 import { AddInternalRoleForm, InternalRoleOpenToggle } from '@/components/employer/StaffProgramForms'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Retention' }
 
@@ -22,6 +23,7 @@ export default async function EmployerGrowthPage() {
       <div className="space-y-2">
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Employees · Retention</p>
         <h1 className="text-2xl font-semibold tracking-tight">Keep and grow your people</h1>
+        <Squiggle className="mt-2" />
         <p className="max-w-2xl text-sm text-muted-foreground">
           Counts only. Nobody’s individual activity is shown here, and each count waits until at least 10 people have joined. Promotions and raises count only
           people who chose to share them.

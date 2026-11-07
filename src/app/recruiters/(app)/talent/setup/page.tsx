@@ -21,6 +21,7 @@ import {
   updateFirmSettings,
   updateMyTalentProfile,
 } from '../actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const TYPE_LABEL = { FUNCTION: 'Functions', INDUSTRY: 'Industries', LEVEL: 'Levels', GEO: 'Geographies', TAG: 'Niche tags' } as const
 const ROLE_LABEL = { ADMIN: 'Admin', RECRUITER: 'Recruiter', COORDINATOR: 'Coordinator' } as const
@@ -66,6 +67,7 @@ export default async function TalentSetupPage() {
       <div>
         <p className="text-sm font-medium text-muted-foreground">{TALENT_PRODUCT_NAME} · {firm.name}</p>
         <h1 className="text-2xl font-semibold tracking-tight">Setup</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">About 10 minutes, once. After that there&apos;s nothing to maintain.</p>
         {isAdmin && (
           <p className="mt-1 text-sm">

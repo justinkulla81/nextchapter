@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { firmTheme, isHexColor } from '@/lib/recruiter/brand'
 import { InboundForm } from './InboundForm'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export interface InboundViewFirm {
   name: string
@@ -67,6 +68,7 @@ export function InboundView({ firm, recruiter, recruiterSlug, notFit }: { firm: 
             <Image src={recruiter.profilePictureUrl} alt="" width={56} height={56} className="size-14 rounded-full object-cover" unoptimized />
           )}
           <h1 className={`text-4xl leading-tight sm:text-5xl${headingClass}`} style={{ textWrap: 'balance', ...headingFont }}>{heading}</h1>
+          <Squiggle className="mt-2" />
           <p className="max-w-xl text-lg" style={{ color: t.muted }}>{intro}</p>
           {recruiter?.intakeBio && <p className="max-w-xl whitespace-pre-line text-sm" style={{ color: t.muted }}>{recruiter.intakeBio}</p>}
         </div>

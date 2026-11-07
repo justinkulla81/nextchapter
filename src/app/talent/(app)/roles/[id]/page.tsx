@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { mapEmployerCompanySizeStringToBand } from '@/lib/scoring/level-rank'
 import { getEngagedCandidateComparison } from '@/lib/talent/role-comparison'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const STATUS_LABEL: Record<string, string> = {
   VIEWED: 'Viewed',
@@ -38,6 +39,7 @@ export default async function RoleDetailPage({ params }: { params: Promise<{ id:
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{role.roleTitle}</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">
           {[role.primaryFunction, role.roleLevel, role.locationRequirement, role.remotePolicy]
             .filter(Boolean)
