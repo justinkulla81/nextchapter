@@ -7,6 +7,7 @@ import { MessageBubbles } from '@/components/messaging/MessageBubbles'
 import { MessageComposer } from '@/components/messaging/MessageComposer'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { sendCoachMessage } from '../actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 function candidateDisplayName(candidate: { firstName: string | null; lastName: string | null } | null): string {
   if (!candidate) return 'Candidate'
@@ -41,6 +42,7 @@ export default async function CoachThreadPage({ params }: { params: Promise<{ th
         <div className="mt-2 flex items-center gap-2">
           <AvatarDisplay name={candidateName} url={thread.candidateAvatarUrl} size={32} />
           <h1 className="text-2xl font-semibold tracking-tight">{candidateName}</h1>
+          <Squiggle className="mt-2" />
         </div>
       </div>
 

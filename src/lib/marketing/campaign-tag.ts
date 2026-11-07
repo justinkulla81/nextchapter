@@ -59,6 +59,8 @@ export const CHANNELS = [
   { key: 'google', label: 'Google Search', source: 'google', medium: 'cpc', named: false, term: true },
   { key: 'facebook', label: 'Facebook ads', source: 'facebook', medium: 'paid_social', named: false, term: false },
   { key: 'linkedin-ads', label: 'LinkedIn ads', source: 'linkedin', medium: 'paid_social', named: false, term: false },
+  { key: 'reddit-ads', label: 'Reddit ads', source: 'reddit', medium: 'paid_social', named: false, term: false },
+  { key: 'bing', label: 'Bing Ads', source: 'bing', medium: 'cpc', named: false, term: true },
   { key: 'linkedin-post', label: 'LinkedIn post', source: 'linkedin', medium: 'social', named: false, term: false },
   { key: 'partner', label: 'A partner', source: '', medium: 'referral', named: true, term: false },
   { key: 'community', label: 'A community', source: '', medium: 'social', named: true, term: false },

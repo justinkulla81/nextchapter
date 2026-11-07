@@ -8,6 +8,7 @@ import { ConfirmingActionButton, TalentActionForm } from '@/components/recruiter
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { saveSearch, setSearchStatus } from '../actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 function CheckboxGroup({ name, options, selected }: { name: string; options: readonly string[]; selected: string[] }) {
   return (
@@ -76,6 +77,7 @@ export default async function TalentSearchesPage() {
       <div>
         <p className="text-sm font-medium text-muted-foreground">{TALENT_PRODUCT_NAME} · {ctx.firm.name}</p>
         <h1 className="text-2xl font-semibold tracking-tight">Open searches</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">
           A resume that meets every criterion you set is tagged Fit and emailed to you right away. Anyone who meets some of
           them is held for you and never gets an automatic &quot;not a match&quot; reply.

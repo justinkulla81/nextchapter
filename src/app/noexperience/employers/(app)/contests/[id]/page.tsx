@@ -7,6 +7,7 @@ import { CandidateResumeDownloadButton } from '@/components/crucible/employers/C
 import { ShortlistToggleButton } from '@/components/crucible/employers/ShortlistToggleButton'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CRUCIBLE_BAND_LABEL } from '@/lib/crucible/variants'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = {
   title: { absolute: 'noexperienceneeded.ai — Contest' },
@@ -40,6 +41,7 @@ export default async function CrucibleContestDetailPage({ params }: { params: Pr
       <div>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold tracking-tight">{contest.title}</h1>
+          <Squiggle className="mt-2" />
           <div className="flex items-center gap-3">
             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {STATE_LABEL[contest.state]}

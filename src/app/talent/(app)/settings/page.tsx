@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { COMPANY_SIZE_OPTIONS, COMPANY_STAGE_OPTIONS } from '@/lib/constants/onboarding'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function TalentSettingsPage() {
   const employer = await getTalentDashboardData()
@@ -20,6 +21,7 @@ export default async function TalentSettingsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">Your company info, shown on roles you post.</p>
       </div>
 

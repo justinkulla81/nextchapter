@@ -1,5 +1,6 @@
 import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
 import { getOrgInvoiceInfo } from '@/lib/employer/outplacement-billing'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
 
@@ -20,6 +21,7 @@ export default async function EmployerInvoicesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Invoices</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-sm text-muted-foreground">
           Contract totals, PO references, and invoice references. This reflects contract terms only —
           billing isn&apos;t automated yet, so treat this as a reference alongside your invoice from

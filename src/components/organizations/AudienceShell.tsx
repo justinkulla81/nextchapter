@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { cn } from '@/lib/utils'
+import { Squiggle } from '@/components/ui/squiggle'
 
 // The one frame for every audience page (employers, recruiters, coaches, colleges, workforce,
 // higher education membership). It carries the page contract from docs/candidate-redesign.md:
@@ -67,6 +68,7 @@ export function AudienceShell({ page, parent, eyebrow, headline, subhead, primar
           <h1 id="audience-heading" className="mt-3 font-display text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">
             {headline}
           </h1>
+          <Squiggle className="mx-auto mt-2 block" />
           <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">{subhead}</p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <TrackedLink href={primary.href} event="audience_cta_clicked" gtagEvent="audience_cta_clicked" properties={{ page, cta: primary.label }} className={actionButton}>

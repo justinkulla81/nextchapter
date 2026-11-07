@@ -3,6 +3,7 @@ import { getOrgRoster, summarizeCohorts } from '@/lib/employer/outplacement-rost
 import { RosterTable } from '@/components/employer/RosterTable'
 import { CohortsPanel } from '@/components/employer/CohortsPanel'
 import { orgProgram } from '@/lib/employer/program-server'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function EmployerRosterPage({ searchParams }: { searchParams: Promise<{ cohort?: string }> }) {
   const orgUser = await requireOutplacementRole(['ADMIN'])
@@ -16,6 +17,7 @@ export default async function EmployerRosterPage({ searchParams }: { searchParam
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Roster</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-sm text-muted-foreground">
           Everyone you&apos;ve enrolled, across every contract. This is your own enrollment record — no
           activity, grade, or engagement detail is ever shown here or anywhere else on this portal.

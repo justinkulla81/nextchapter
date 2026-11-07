@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { getSourcedCandidateResumeSignedUrl } from '../actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function CandidateBookPage() {
   const supabase = await createClient('recruiter')
@@ -38,6 +39,7 @@ export default async function CandidateBookPage() {
             ← Back to my candidates
           </Link>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">My candidate book</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-1 text-muted-foreground">
             The candidates you&apos;ve curated to present to an employer, with your commentary on each resume.
           </p>

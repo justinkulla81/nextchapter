@@ -9,6 +9,7 @@ import { CohortAiGapPanel } from '@/components/skills/CohortAiGapPanel'
 import { buttonVariants } from '@/components/ui/button'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { cn } from '@/lib/utils'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Learning and development' }
 
@@ -24,6 +25,7 @@ export default async function EmployerLearningPage() {
       <div className="space-y-2">
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Employees · Learning and development</p>
         <h1 className="text-2xl font-semibold tracking-tight">Skills for the roles ahead</h1>
+        <Squiggle className="mt-2" />
         <p className="max-w-2xl text-sm text-muted-foreground">
           Each person gets a skills plan for their role and the next one, with your courses first. You see counts only, once at least 10 people have joined.
         </p>

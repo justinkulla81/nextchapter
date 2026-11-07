@@ -12,6 +12,7 @@ import { OutcomeScorecardCard } from '@/components/employer/OutcomeScorecardCard
 import { getEmployerOutcomeScorecard } from '@/lib/employer/outcome-scorecard-server'
 import { getCareerGrowthActivity } from '@/lib/employer/career-growth-reporting'
 import { cn } from '@/lib/utils'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
 function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
@@ -41,6 +42,7 @@ export default async function EmployerReportingPage({
     return (
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Reporting</h1>
+        <Squiggle className="mt-2" />
         <p className="text-sm text-muted-foreground">No contracts on file yet.</p>
       </div>
     )

@@ -10,6 +10,7 @@ import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
 import { TrainingProvidedLine } from '@/components/jobs/TrainingProvidedLine'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ApplyAndSave } from '@/components/jobs/ApplyAndSave'
+import { ReturningMemberBanner } from '@/components/jobs/ReturningMemberBanner'
 import { ReadFullPostingLink } from '@/components/jobs/ReadFullPostingLink'
 import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import { lifecycleEmailsOn } from '@/lib/leads/lifecycle/config'
@@ -111,7 +112,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   // Other open roles at this employer, linked straight from the page (a failed read leaves the block out).
   const moreAtCompany = await similarJobsAtCompany(tags?.company?.id, job.id)
   // The same occupation at other employers, same state first, so a visitor who is not sold on this one has somewhere to go.
-  const likeJobs = await similarJobsLike({ id: job.id, socCode: tags?.socCode, locationState: job.locationState, excludeCompanyId: tags?.company?.id })
+  const likeJobs = await similarJobsLike({ id: job.id, socCode: tags?.socCode, targetFunction: tags?.targetFunction, level: tags?.level, locationState: job.locationState, excludeCompanyId: tags?.company?.id })
   // The title's own page lists every open role with this title; it exists only for titles with enough listings. A failed read just leaves the link out.
   const titleStat = (await getTitleIndex().catch(() => [])).find((t) => t.slug === titleSlug(baseTitle(job.title)))
   const industry = bucketFromIndustryText(tags?.industry)
@@ -154,6 +155,8 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             )}
             <NoExperienceLine jobId={job.id} signals={job.postingSignals} phrase={job.noExperiencePhrase} surface="public_job" className="mt-3 text-base" />
             <TrainingProvidedLine jobId={job.id} signals={job.postingSignals} phrase={job.trainingPhrase} surface="public_job" className="mt-3 text-base" />
+
+            <ReturningMemberBanner jobId={job.id} company={job.companyName} />
 
             <ApplyAndSave jobId={job.id} company={job.companyName} jobTitle={job.title} industry={industry} applyUrl={job.url} emailOn={applySaveEmailOn() || lifecycleEmailsOn()} reminderOn={lifecycleEmailsOn()} />
 

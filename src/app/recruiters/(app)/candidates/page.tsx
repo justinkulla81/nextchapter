@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { AddSourcedCandidateForm } from '@/components/recruiter/AddSourcedCandidateForm'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const STATUS_LABEL = {
   ADDED: 'Not yet invited',
@@ -34,6 +35,7 @@ export default async function RecruiterCandidatesPage() {
             ← Back home
           </Link>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">My candidates</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-1 text-muted-foreground">
             Add people from your own network who aren&apos;t on NextChapter yet. Once you invite them and they
             sign up, they get the full onboarding experience and join the general candidate pool — you&apos;ll

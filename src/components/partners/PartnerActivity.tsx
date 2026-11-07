@@ -1,4 +1,5 @@
 import { describeAuditAction } from '@/lib/partners/audit-labels'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export interface DownloadItem {
   label: string
@@ -22,6 +23,7 @@ export function PartnerActivity({ downloads, events }: { downloads: DownloadItem
     <div className="space-y-8">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Downloads and activity</h1>
+        <Squiggle className="mt-2" />
         <p className="max-w-2xl text-muted-foreground">Export your data as a spreadsheet, and see who did what in your workspace. Every download is recorded here.</p>
       </div>
 

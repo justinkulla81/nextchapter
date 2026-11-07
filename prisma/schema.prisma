@@ -18182,14 +18182,16 @@ model FirmBrandColor {
   checkedAt DateTime @default(now())
 }
 
-/// Paid search spend typed in on Visitor activity: one row per Eastern day (YYYY-MM-DD) and segment ('b2c' | 'b2b').
-/// Re-entering a day and segment replaces it. Cost per lead on that page is this over the matched leads.
-/// prisma/manual/sem-spend.sql
+/// Paid spend typed in on Visitor activity: one row per Eastern day (YYYY-MM-DD), ad channel
+/// ('google' | 'linkedin' | 'reddit' | 'facebook' | 'bing') and segment ('b2c' | 'b2b').
+/// Re-entering the same day, channel and segment replaces it. Cost per lead on that page is this over the matched leads.
+/// prisma/manual/sem-spend.sql, sem-spend-channel.sql
 model SemSpend {
   day         String
+  channel     String   @default("google")
   segment     String
   amountCents Int
   updatedAt   DateTime @default(now()) @updatedAt
 
-  @@id([day, segment])
+  @@id([day, channel, segment])
 }
