@@ -16,7 +16,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <li>This measures ongoing spells, not the chance that a newly unemployed worker stays out six months.</li>
 </ul></div>
 <div class="cover-meta"><span>Covers October 2026 data; published November 2026</span><span>Census CPS microdata through September 2026; October CPS and the early-warning section to follow</span><span>Justin Kulla, Founder and CEO · jkulla@launchyournextchapter.com</span></div>
-</div></header><div class="wrap"><div class="grid"><nav class="toc" aria-label="Contents"><div class="eyebrow">Contents</div><ol><li><a href="#c0"><span class="n">—</span>Executive summary</a></li><li><a href="#c1"><span class="n">—</span>Who we mean</a></li><li><a href="#c2"><span class="n">—</span>The middle class</a></li><li><a href="#c3"><span class="n">—</span>What changed</a></li><li><a href="#c4"><span class="n">—</span>Bright spots</a></li><li><a href="#c5"><span class="n">—</span>Clouds</a></li><li><a href="#c6"><span class="n">—</span>Layoffs and voluntary exits</a></li><li><a href="#c7"><span class="n">—</span>Employers</a></li><li><a href="#c8"><span class="n">—</span>AI exposure and open jobs</a></li><li><a href="#c9"><span class="n">—</span>The incoming Congress</a></li><li><a href="#c10"><span class="n">—</span>Appendix</a></li></ol></nav><main><section class="" id="c0"><div class="chapter-head"><div class="eyebrow">Executive summary</div><h2 id="h-c0">Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago</h2></div>
+</div></header><div class="wrap"><div class="grid"><nav class="toc" aria-label="Contents"><div class="eyebrow">Contents</div><ol><li><a href="#c0"><span class="n">—</span>Executive summary</a></li><li><a href="#c1"><span class="n">—</span>Who we mean</a></li><li><a href="#c2"><span class="n">—</span>The middle class</a></li><li><a href="#c3"><span class="n">—</span>White-collar against all workers</a></li><li><a href="#c4"><span class="n">—</span>What changed</a></li><li><a href="#c5"><span class="n">—</span>Bright spots</a></li><li><a href="#c6"><span class="n">—</span>Clouds</a></li><li><a href="#c7"><span class="n">—</span>Layoffs and voluntary exits</a></li><li><a href="#c8"><span class="n">—</span>Employers</a></li><li><a href="#c9"><span class="n">—</span>AI and the workforce</a></li><li><a href="#c10"><span class="n">—</span>The job search itself</a></li><li><a href="#c11"><span class="n">—</span>The incoming Congress</a></li><li><a href="#c12"><span class="n">—</span>Appendix</a></li></ol></nav><main><section class="" id="c0"><div class="chapter-head"><div class="eyebrow">Executive summary</div><h2 id="h-c0">Hiring improved in October, but more unemployed white-collar workers are in long spells than a year ago</h2></div>
 
 <p class="lead">Employers added 165,000 jobs in October and unemployment fell to 4.1% (BLS, seasonally adjusted). Yet among unemployed white-collar workers, 28.5% had been unemployed for 27 weeks (about six months) or more in January to September 2026, up from 23.2% in the same months of 2025. Among knowledge workers (white-collar occupations with a bachelor’s degree or more) the share is 29.6%, up from 24.8%; among white-collar workers aged 55 to 64 it is 39.1%, up from 27.0%. All three increases are larger than their 90% margins of error on the year-over-year changes (about ±2.3, ±2.8 and ±6.1 percentage points, BLS generalized-variance method), and they also clear a more conservative approximation (about ±3.4, ±4.3 and ±8.8).</p>
 <figure class="exhibit chart" style="margin:0"><span class="ex-label">Exhibit 1</span><span class="ex-title">Among the unemployed, long spells are more common than a year ago, most for white-collar workers</span><img alt="Share of the unemployed out of work 27+ weeks, Jan–Sep 2025 and 2026, by group" src="/reports/october-2026-long-search-shares.png" style="width:100%;height:auto;max-width:100%"/><span class="ex-note">Share of unemployed people out of work 27 or more weeks. Change shown with its 90% margin of error (BLS generalized-variance method, as in the September edition). All six clear the BLS-method margin; five also clear a more conservative check (design effect 2.0, pooled months counted as 40% independent), and blue-collar does not. Not seasonally adjusted; spells in progress. Source: NextChapter calculation from Census CPS basic monthly microdata.</span></figure>
@@ -168,7 +168,137 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> Among unemployed white-collar workers, a larger share has already been out of work for at least 27 weeks than a year ago. Job seekers should account for the possibility of a prolonged search, planning savings, health coverage and a wider set of target employers and metros from day one.</p></div>
 <p>This section describes what the data show about white-collar and professional work; it makes no claim that AI or any other single cause explains them.</p>
 </section>
-<section class="" id="c3"><div class="chapter-head"><div class="eyebrow">Chapter 03 · What changed</div><h2 id="h-c3">What changed in the story this month</h2></div>
+<section class="" id="c3"><div class="chapter-head"><div class="eyebrow">Chapter 03 · White-collar against all workers</div><h2 id="h-c3">How white-collar compares with all workers: industry and age</h2></div>
+
+<p>The table sets white-collar workers (Census occupation groups 1 and 2) beside all workers, by the industry of the job they last held and by age. Rows are January to September 2026 against the same months of 2025, not seasonally adjusted. The margin is the 90% margin of error on the change in the share out 27+ weeks (BLS generalized-variance method, as for Exhibit 1); a change larger than its margin is marked with an asterisk. Cells with fewer than 100 unemployed person-month observations in either year are not shown.</p>
+<div class="exhibit"><span class="ex-label">Exhibit 4</span><span class="ex-title">White-collar against all workers by industry and age, January–September 2026 vs 2025</span><div class="tbl"><table>
+<colgroup>
+<col style="width: 13%"/>
+<col style="width: 17%"/>
+<col style="width: 17%"/>
+<col style="width: 17%"/>
+<col style="width: 17%"/>
+<col style="width: 17%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Group</th>
+<th style="text-align: right;">White-collar: unemployment rate, 2026 (2025)</th>
+<th style="text-align: right;">White-collar: share out 27+ weeks, 2026 (2025)</th>
+<th style="text-align: right;">White-collar: change, points (±margin)</th>
+<th style="text-align: right;">All workers: unemployment rate, 2026 (2025)</th>
+<th style="text-align: right;">All workers: change in share out 27+ weeks, points (±margin)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Everyone</td>
+<td style="text-align: right;">2.63% (2.48%)</td>
+<td style="text-align: right;">28.5% (23.2%)</td>
+<td style="text-align: right;">+5.3 (±2.3)*</td>
+<td style="text-align: right;">4.32% (4.30%)</td>
+<td style="text-align: right;">+3.1 (±1.1)*</td>
+</tr>
+<tr class="even">
+<td><strong>Industry of last job</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="odd">
+<td>Information</td>
+<td style="text-align: right;">5.17% (4.64%)</td>
+<td style="text-align: right;">38.3% (25.2%)</td>
+<td style="text-align: right;">+13.1 (±10.2)*</td>
+<td style="text-align: right;">5.25% (5.06%)</td>
+<td style="text-align: right;">+5.9 (±8.2)</td>
+</tr>
+<tr class="even">
+<td>Financial activities</td>
+<td style="text-align: right;">2.21% (1.99%)</td>
+<td style="text-align: right;">31.8% (33.1%)</td>
+<td style="text-align: right;">-1.3 (±8.7)</td>
+<td style="text-align: right;">2.36% (2.36%)</td>
+<td style="text-align: right;">-1.0 (±6.1)</td>
+</tr>
+<tr class="odd">
+<td>Professional and business services</td>
+<td style="text-align: right;">3.23% (2.91%)</td>
+<td style="text-align: right;">31.3% (25.3%)</td>
+<td style="text-align: right;">+6.0 (±4.8)*</td>
+<td style="text-align: right;">4.08% (4.01%)</td>
+<td style="text-align: right;">+3.1 (±3.3)</td>
+</tr>
+<tr class="even">
+<td>Education and health</td>
+<td style="text-align: right;">2.50% (2.29%)</td>
+<td style="text-align: right;">23.3% (19.2%)</td>
+<td style="text-align: right;">+4.1 (±3.7)*</td>
+<td style="text-align: right;">3.18% (2.89%)</td>
+<td style="text-align: right;">+2.9 (±2.7)*</td>
+</tr>
+<tr class="odd">
+<td>Public administration</td>
+<td style="text-align: right;">1.70% (1.58%)</td>
+<td style="text-align: right;">28.4% (19.2%)</td>
+<td style="text-align: right;">+9.2 (±12.2)</td>
+<td style="text-align: right;">1.99% (1.75%)</td>
+<td style="text-align: right;">+7.9 (±8.0)</td>
+</tr>
+<tr class="even">
+<td><strong>Age</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="odd">
+<td>Under 35</td>
+<td style="text-align: right;">3.28% (3.05%)</td>
+<td style="text-align: right;">21.1% (17.3%)</td>
+<td style="text-align: right;">+3.8 (±3.4)*</td>
+<td style="text-align: right;">not shown</td>
+<td style="text-align: right;">not shown</td>
+</tr>
+<tr class="even">
+<td>35 to 44</td>
+<td style="text-align: right;">2.09% (2.05%)</td>
+<td style="text-align: right;">27.8% (23.9%)</td>
+<td style="text-align: right;">+3.9 (±5.0)</td>
+<td style="text-align: right;">3.28% (3.32%)</td>
+<td style="text-align: right;">+2.1 (±2.8)</td>
+</tr>
+<tr class="odd">
+<td>45 to 54</td>
+<td style="text-align: right;">2.32% (2.10%)</td>
+<td style="text-align: right;">32.5% (25.9%)</td>
+<td style="text-align: right;">+6.6 (±5.4)*</td>
+<td style="text-align: right;">3.18% (2.99%)</td>
+<td style="text-align: right;">+2.9 (±3.2)</td>
+</tr>
+<tr class="even">
+<td>55 to 64</td>
+<td style="text-align: right;">2.60% (2.47%)</td>
+<td style="text-align: right;">39.1% (27.0%)</td>
+<td style="text-align: right;">+12.1 (±6.1)*</td>
+<td style="text-align: right;">2.94% (2.91%)</td>
+<td style="text-align: right;">+5.9 (±3.6)*</td>
+</tr>
+</tbody>
+</table></div></div>
+<p class="note">Note: unemployed person-month observations behind each white-collar row, 2026: everyone 4,315; information 237; financial activities 310; professional and business services 947; education and health 1,505; public administration 178; under 35 1,378; 35 to 44 900; 45 to 54 832; 55 to 64 768. Industry is the industry of the last job, and “white-collar” is the occupation of that job. Census CPS basic monthly microdata, NextChapter calculation. All-workers figures for under 35 are not shown because that age band is built from different groups elsewhere in our data.</p>
+<ul>
+<li><strong>White-collar unemployment is lower than the all-worker rate in every row.</strong> In information the two are nearly equal (5.17% and 5.25%). We did not test whether the gaps in the rates are larger than sampling error, and we make no claim about them.</li>
+<li><strong>The rise in long spells is larger for white-collar workers than for all workers in the groups where both clear their margins.</strong> In education and health, white-collar +4.1 points against all workers +2.9; at ages 55 to 64, +12.1 against +5.9. We have not tested whether the differences between the two groups are themselves larger than sampling error.</li>
+<li><strong>Financial activities is the exception.</strong> The share out 27+ weeks was flat to slightly lower for white-collar workers, even though payroll employment in the sector is down 1.1% over the year (BLS); the CPS measures those who report the sector as their last job, not payroll jobs, and the two are not the same.</li>
+<li><strong>Read the many-cell table with care.</strong> Nineteen changes are tested at the 90% level, so about two would clear by chance alone if nothing had changed. The consistent direction across most rows is more informative than any single cell.</li>
+</ul>
+<div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> The longer spells show up across industries and ages, most clearly at ages 55 to 64 and in information and professional services, while finance looks different. A search plan should rest on your own field and age group, not on the average.</p></div>
+</section>
+<section class="" id="c4"><div class="chapter-head"><div class="eyebrow">Chapter 04 · What changed</div><h2 id="h-c4">What changed in the story this month</h2></div>
 
 <ul>
 <li><strong>From “AI” to “the economy” in layoff announcements.</strong> Challenger says AI dominated announced-cut reasons through spring and summer, while in the fall employers more often cite market and economic conditions, now the top reason for 2026. That is what employers say; it does not show what caused any cut.</li>
@@ -179,10 +309,10 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 </ul>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> Hiring conditions remain uneven: layoffs and voluntary exits are concentrated in specific sectors, while information and financial activities continue to contract.</p></div>
 </section>
-<section class="" id="c4"><div class="chapter-head"><div class="eyebrow">Chapter 04 · Bright spots</div><h2 id="h-c4">Bright spots</h2></div>
+<section class="" id="c5"><div class="chapter-head"><div class="eyebrow">Chapter 05 · Bright spots</div><h2 id="h-c5">Bright spots</h2></div>
 
 <p>Reference periods differ by row: payrolls and unemployment are October, JOLTS is September, Challenger is October announcements (not seasonally adjusted). Seasonally adjusted unless noted.</p>
-<div class="exhibit"><span class="ex-label">Exhibit 4</span><span class="ex-title">Bright spots: October jobs data and related measures</span><div class="tbl"><table class="txt">
+<div class="exhibit"><span class="ex-label">Exhibit 5</span><span class="ex-title">Bright spots: October jobs data and related measures</span><div class="tbl"><table class="txt">
 <colgroup>
 <col style="width: 25%"/>
 <col style="width: 25%"/>
@@ -257,10 +387,10 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <p>Payroll gains over January to October 2026 total 861,000 on current revisions (BLS).</p>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> Demand is broader than a month ago (68% of occupational sectors are above year-ago postings, Indeed), but new postings are flat over the month, so the flow of fresh listings has not picked up.</p></div>
 </section>
-<section class="" id="c5"><div class="chapter-head"><div class="eyebrow">Chapter 05 · Clouds</div><h2 id="h-c5">Clouds</h2></div>
+<section class="" id="c6"><div class="chapter-head"><div class="eyebrow">Chapter 06 · Clouds</div><h2 id="h-c6">Clouds</h2></div>
 
 <p>Reference periods differ by row: wages and sector payrolls are October, prices and JOLTS are September, ECI is Q3 (twelve months to September), and Challenger is January to October. Seasonally adjusted unless noted.</p>
-<div class="exhibit"><span class="ex-label">Exhibit 5</span><span class="ex-title">Clouds: pay, sectors, hiring and costs</span><div class="tbl"><table class="txt">
+<div class="exhibit"><span class="ex-label">Exhibit 6</span><span class="ex-title">Clouds: pay, sectors, hiring and costs</span><div class="tbl"><table class="txt">
 <colgroup>
 <col style="width: 25%"/>
 <col style="width: 25%"/>
@@ -325,7 +455,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <p><em>Watch: data center moratoriums.</em> Several states and localities have proposed or enacted pauses on new data centers; one tracker counted 75 projects blocked or delayed in the first quarter of 2026 and statewide proposals in 14 states (Rockefeller Institute, citing Data Center Watch; trade-source figures, not independently checked). The direct effect is on temporary construction and electrical work, which is mostly blue-collar. A white-collar effect is possible but unmeasured: engineers, architects and project managers do design and management work ahead of construction. We make no estimate here and will track open postings for those roles in later editions.</p>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> The pressure is in information, finance and technology roles. The latest available readings show nominal wage growth of 3.1% in October and consumer-price inflation of 3.7% in September; these are different reference periods, not a direct real-wage comparison. Look at sectors adding jobs (professional services, health care) alongside the one you know.</p></div>
 </section>
-<section class="" id="c6"><div class="chapter-head"><div class="eyebrow">Chapter 06 · Layoffs and voluntary exits</div><h2 id="h-c6">Layoffs and voluntary exits</h2></div>
+<section class="" id="c7"><div class="chapter-head"><div class="eyebrow">Chapter 07 · Layoffs and voluntary exits</div><h2 id="h-c7">Layoffs and voluntary exits</h2></div>
 
 <ul>
 <li><strong>Microsoft:</strong> voluntary exit offers to about 60,000 employees, announced Oct 26. The 60,000 is the number eligible, about a quarter of the workforce, up to level 70 in the U.S., Canada, the U.K. and India, in participating organizations only. Microsoft reportedly anticipates under 5% will accept. The 60,000 and the eligibility details are as reported by CNBC, GeekWire, Fortune and Windows Central, not an official figure we could read. Challenger records voluntary programs by actual acceptances or a stated target, so these offers are not in its October total, and says such offers “tend to signal more layoffs to come”.</li>
@@ -338,11 +468,11 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <p>The full list of announcements we track is in NextChapter’s layoff tracker; items there are reported by news outlets and not all are confirmed, so this section lists only company-confirmed announcements and filings.</p>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> A voluntary exit offer is a signal of restructuring, not a layoff, and the people who take them re-enter the market, often with a package that funds a longer search.</p></div>
 </section>
-<section class="" id="c7"><div class="chapter-head"><div class="eyebrow">Chapter 07 · Employers</div><h2 id="h-c7">Employers: who is hiring</h2></div>
+<section class="" id="c8"><div class="chapter-head"><div class="eyebrow">Chapter 08 · Employers</div><h2 id="h-c8">Employers: who is hiring</h2></div>
 
 <p>Counts as of October 26, 2026, not seasonally adjusted, from NextChapter’s daily count of verified open jobs on employer career sites and the job systems behind them (a job counts as verified when our crawl has confirmed it is still live on the employer’s career site or job system within the past 14 days): 487,679 jobs, of which 130,710 (27%) are entry-level or early-career. This is a different universe from the Anthropic section below, which uses open postings in our crawl as of November 6 (653,974, excluding postings that link through a job aggregator), including imported postings not yet verified, some of which may no longer be open. These are all functions and levels, entry-level included; the Census white-collar test is not applied, so the counts are never combined with the white-collar figures above. A ranking shows who has the most open jobs among the jobs we track, not who hires most in the economy and not how good an employer is. Coverage is partial and follows our sources.</p>
 <p><strong>Most entry-level jobs (roughly 0 to 3 years of experience)</strong></p>
-<div class="exhibit"><span class="ex-label">Exhibit 6</span><span class="ex-title">Employers with the most entry-level jobs, October 26, 2026</span><div class="tbl"><table class="emp2">
+<div class="exhibit"><span class="ex-label">Exhibit 7</span><span class="ex-title">Employers with the most entry-level jobs, October 26, 2026</span><div class="tbl"><table class="emp2">
 <thead>
 <tr class="header">
 <th style="text-align: right;">#</th>
@@ -411,7 +541,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <p>Safeway, an Albertsons brand, is listed separately by the source at 458 entry-level of 546 open.</p>
 <p><strong>Most jobs that need no experience (the posting says so):</strong> Rollins 171; Unifirst 116; AT&amp;T 98; Dewberry 78; Langan 59; SpaceX 42; Kiewit Infrastructure West 27; Bechtel Energy 26; AML RightSource 24; AIL 22.</p>
 <p><strong>Employers asking for AI skills</strong> (the posting names a specific AI skill or tool; this describes what postings ask for, not what caused any hiring or cut)</p>
-<div class="exhibit"><span class="ex-label">Exhibit 7</span><span class="ex-title">Employers asking for AI skills, October 26, 2026</span><div class="tbl"><table class="emp1">
+<div class="exhibit"><span class="ex-label">Exhibit 8</span><span class="ex-title">Employers asking for AI skills, October 26, 2026</span><div class="tbl"><table class="emp1">
 <thead>
 <tr class="header">
 <th>Employer</th>
@@ -473,7 +603,7 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 </tbody>
 </table></div></div>
 <p><strong>Top employers by function</strong> (total open jobs in the function; for engineering the parentheses show entry-level and AI-skill counts)</p>
-<div class="exhibit"><span class="ex-label">Exhibit 8</span><span class="ex-title">Top employers by function, October 26, 2026</span><div class="tbl"><table class="txt">
+<div class="exhibit"><span class="ex-label">Exhibit 9</span><span class="ex-title">Top employers by function, October 26, 2026</span><div class="tbl"><table class="txt">
 <colgroup>
 <col style="width: 50%"/>
 <col style="width: 50%"/>
@@ -526,10 +656,146 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 <p>Method: staffing and search firms are excluded; employers are matched by name and duplicate entries for one company are counted once; one employer whose thousands of postings could not yet be confirmed as distinct jobs is left out until checked. Our employer-level history starts in October 2026, so no month-over-month or year-over-year claim is made for any employer, and no employer is shown here in connection with layoffs. The full top-15 tables for all 21 functions are in the data download.</p>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> The employers with the most open jobs are a starting list of where volume is, not a measure of fit; use the function tables to find who hires for your role.</p></div>
 </section>
-<section class="" id="c8"><div class="chapter-head"><div class="eyebrow">Chapter 08 · AI exposure and open jobs</div><h2 id="h-c8">AI exposure and the jobs we see open (Anthropic Economic Index)</h2></div>
+<section class="" id="c9"><div class="chapter-head"><div class="eyebrow">Chapter 09 · AI and the workforce</div><h2 id="h-c9">AI and the workforce: what companies say, what jobs ask for, what the rules and programs are</h2></div>
 
+<p>This chapter covers four things: what companies say about AI and their workforce, what open jobs ask for and pay, what public rules and training programs exist, and (from the Anthropic Economic Index) how much of the work in open jobs AI is observed doing. It describes what is said and posted; it does not show that AI caused any hiring or layoff.</p>
+<section class="level3" id="what-companies-say-about-ai-and-their-workforce">
+<h3>What companies say about AI and their workforce</h3>
+<p>Employers cited AI as the reason for 121,401 of 617,189 announced job cuts in 2026 through October, about 20% (Challenger), and only 1,265 in October. Formal filings cite it less often: in our September edition we read every 2026 SEC Form 8-K that references Item 2.05, the item public companies use to report material restructuring costs, filed January 1 to September 30. Of 170 filings, 16 (9.4%, from 14 companies) cited AI as a reason or context in the restructuring section itself, and 24 (14%) mentioned AI, automation or machine learning anywhere. We have not repeated that search for October. The units differ (workers in announced cuts against filings), and a filing silent about AI does not show AI played no role, since Item 2.05 requires the decision and expected costs, not the reasons. Neither source is wrong; the gap between them is worth tracking. New York’s layoff-notice system has asked employers since March 2025 whether automation contributed; in its first year none of more than 160 filers said yes (Hunton Andrews Kurth, May 2026), and whether that reflects reality or under-reporting is unknown. Section “Layoffs and voluntary exits” above lists the specific October announcements.</p>
+</section>
+<section class="level3" id="what-open-jobs-ask-for-and-what-they-pay">
+<h3>What open jobs ask for, and what they pay</h3>
+<p>From the open jobs on employer career sites and job systems that NextChapter tracks (deduplicated, staffing and search firms and internships excluded; November 7, 2026), 56,049 of 531,183 (10.6%) name a specific AI skill or tool in the posting text (the same measure as the employer table above). Of the 110,319 that post a pay range, 16,142 (14.6%) name an AI skill.</p>
+<p>We compared the middle of the posted pay range for postings that name an AI skill with the same function and level that do not. In 88 of the 89 function-and-level cells with at least 30 postings of each kind, the postings that name AI skills post higher pay; the median difference across cells is 22.1% and the range is -0.5% to +71.9%.</p>
+<div class="exhibit"><span class="ex-label">Exhibit 10</span><span class="ex-title">Posted pay: postings naming AI skills against other postings, same function and level, November 7, 2026</span><div class="tbl"><table>
+<colgroup>
+<col style="width: 13%"/>
+<col style="width: 17%"/>
+<col style="width: 17%"/>
+<col style="width: 17%"/>
+<col style="width: 17%"/>
+<col style="width: 17%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Function and level</th>
+<th style="text-align: right;">Postings naming AI skills (with pay)</th>
+<th style="text-align: right;">Other postings (with pay)</th>
+<th style="text-align: right;">Median posted pay midpoint, AI</th>
+<th style="text-align: right;">Median, other</th>
+<th style="text-align: right;">Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Engineering, senior individual contributor</td>
+<td style="text-align: right;">1,692</td>
+<td style="text-align: right;">5,839</td>
+<td style="text-align: right;">$216,104</td>
+<td style="text-align: right;">$169,401</td>
+<td style="text-align: right;">+27.6%</td>
+</tr>
+<tr class="even">
+<td>Engineering, early-career</td>
+<td style="text-align: right;">711</td>
+<td style="text-align: right;">6,041</td>
+<td style="text-align: right;">$172,500</td>
+<td style="text-align: right;">$117,500</td>
+<td style="text-align: right;">+46.8%</td>
+</tr>
+<tr class="odd">
+<td>Data and analytics, senior</td>
+<td style="text-align: right;">1,452</td>
+<td style="text-align: right;">1,006</td>
+<td style="text-align: right;">$210,000</td>
+<td style="text-align: right;">$160,000</td>
+<td style="text-align: right;">+31.3%</td>
+</tr>
+<tr class="even">
+<td>Data and analytics, mid-level</td>
+<td style="text-align: right;">575</td>
+<td style="text-align: right;">616</td>
+<td style="text-align: right;">$184,325</td>
+<td style="text-align: right;">$144,425</td>
+<td style="text-align: right;">+27.6%</td>
+</tr>
+<tr class="odd">
+<td>Sales, mid-level</td>
+<td style="text-align: right;">427</td>
+<td style="text-align: right;">3,480</td>
+<td style="text-align: right;">$180,000</td>
+<td style="text-align: right;">$120,000</td>
+<td style="text-align: right;">+50.0%</td>
+</tr>
+<tr class="even">
+<td>Finance, senior</td>
+<td style="text-align: right;">129</td>
+<td style="text-align: right;">1,308</td>
+<td style="text-align: right;">$171,125</td>
+<td style="text-align: right;">$120,000</td>
+<td style="text-align: right;">+42.6%</td>
+</tr>
+<tr class="odd">
+<td>Finance, manager</td>
+<td style="text-align: right;">174</td>
+<td style="text-align: right;">2,040</td>
+<td style="text-align: right;">$161,125</td>
+<td style="text-align: right;">$135,000</td>
+<td style="text-align: right;">+19.4%</td>
+</tr>
+<tr class="even">
+<td>Marketing, senior</td>
+<td style="text-align: right;">279</td>
+<td style="text-align: right;">656</td>
+<td style="text-align: right;">$170,000</td>
+<td style="text-align: right;">$150,250</td>
+<td style="text-align: right;">+13.1%</td>
+</tr>
+<tr class="odd">
+<td>Product, senior</td>
+<td style="text-align: right;">342</td>
+<td style="text-align: right;">584</td>
+<td style="text-align: right;">$200,600</td>
+<td style="text-align: right;">$175,000</td>
+<td style="text-align: right;">+14.6%</td>
+</tr>
+<tr class="even">
+<td>Human resources, early-career</td>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">1,090</td>
+<td style="text-align: right;">$125,000</td>
+<td style="text-align: right;">$79,172</td>
+<td style="text-align: right;">+57.9%</td>
+</tr>
+<tr class="odd">
+<td>Legal, mid-level</td>
+<td style="text-align: right;">76</td>
+<td style="text-align: right;">1,029</td>
+<td style="text-align: right;">$203,250</td>
+<td style="text-align: right;">$140,000</td>
+<td style="text-align: right;">+45.2%</td>
+</tr>
+</tbody>
+</table></div></div>
+<p class="note">Note: the table shows 11 of the 89 cells; all 89 are in the data download (“ai-skill-pay” file). Midpoint of the posted minimum and maximum, USD, annual, for postings with a range between $30,000 and $1,000,000. About one in five postings posts a range. These are posted ranges, not pay received. The comparison holds function and level fixed but not employer, location or the specific title, and employers who ask for AI skills also tend to be employers who pay more (large technology and finance firms), so the gap is an association, not a price of AI skills. All functions and levels are included and the Census white-collar test is not applied, as in the Employers chapter.</p>
+<p>Two outside estimates point the same way, both from job-posting and vendor analyses we have not independently checked: PwC’s 2026 Global AI Jobs Barometer (June 2026; more than a billion job ads in 27 countries) reports a 62% wage premium for AI skills, with a range from 16% in the public sector to 118% in consumer industries, and Lightcast (July 2025; 1.3 billion postings) reports that postings requiring AI skills advertise about 28% more, roughly $18,000. Our history of open jobs starts in mid-October 2026, so we do not report growth in AI-skill demand; we will add it from the November edition. We also have no national measure of how many workers hold AI skills.</p>
+</section>
+<section class="level3" id="public-training-programs-and-rules">
+<h3>Public training programs and rules</h3>
+<p>Training and re-employment programs, as we reported in September: the federal Dislocated Worker program served about 187,000 people in its latest year and about one in five received training; a randomized trial of Rhode Island’s federally funded RESEA program (23,549 claimants) found selected claimants spent 1.99 fewer weeks on unemployment insurance and had about $1,153 higher annualized wages (one state; results vary); the Labor Department awarded nearly $162 million in July 2026 for apprenticeships paid on retention and progression milestones; Workforce Pell began July 1 with the Education Department’s final rule effective July 20; California launched a public monthly tracker of unemployment claims in AI-exposed occupations in July 2026. None has published outcome data on AI-related retraining. Public retraining remains small next to the number of long searches.</p>
+<p>Rules on the use of AI in hiring, per law-firm summaries of the statutes and regulations (check the official texts before relying on them):</p>
+<ul>
+<li><strong>California:</strong> Civil Rights Council regulations on automated-decision systems in employment took effect October 1, 2025, under the Fair Employment and Housing Act, and require employers to keep related records for four years.</li>
+<li><strong>Illinois:</strong> an amendment to the Illinois Human Rights Act (HB 3773) took effect January 1, 2026, treating AI use that produces discriminatory results as a civil-rights violation and requiring notice when AI is used in employment decisions.</li>
+<li><strong>Colorado:</strong> SB 26-189 replaced the 2024 Colorado AI Act in 2026; its employment provisions take effect January 1, 2027 and require notice, disclosure and review where automated tools materially influence consequential decisions such as hiring. A federal court challenge to the Colorado law is reported to be pending.</li>
+<li><strong>Federal:</strong> whether Congress will override state AI laws is discussed under “The incoming Congress” below.</li>
+</ul>
+<p>We did not verify rules on posting pay ranges or on “ghost” postings (jobs posted with no intent to hire) for this edition, and we report no figure on how common ghost postings are.</p>
+</section>
+<section class="level3" id="how-much-of-the-work-in-open-jobs-ai-is-observed-doing-anthropic-economic-index">
+<h3>How much of the work in open jobs AI is observed doing (Anthropic Economic Index)</h3>
 <p>We matched job titles on open postings NextChapter tracks (as of November 6) to occupations in the Anthropic Economic Index. Its score runs from 0 to 1 and is the share of an occupation’s tasks that Claude is observed doing in work usage, limited to tasks a language model could plausibly speed up. So 0.30 means 30% of the occupation’s tasks. The score describes tasks, not job loss, and says nothing about whether AI caused any hiring or layoff. Anthropic, Microsoft and OpenAI are AI developers and the authors of these measures, and NextChapter also uses AI tools to produce this report.</p>
-<div class="exhibit"><span class="ex-label">Exhibit 9</span><span class="ex-title">AI exposure of matched open postings, November 6, 2026</span><div class="tbl"><table>
+<div class="exhibit"><span class="ex-label">Exhibit 11</span><span class="ex-title">AI exposure of matched open postings, November 6, 2026</span><div class="tbl"><table>
 <thead>
 <tr class="header">
 <th>Exposure of matched open postings</th>
@@ -566,16 +832,68 @@ export const REPORT_BODY_HTML = `<header class="cover"><div class="cover-in">
 </ul>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> Exposure describes how much of a job’s tasks AI tools are observed doing, which is a reason to build fluency with those tools, not a prediction that the job will go away.</p></div>
 </section>
-<section class="" id="c9"><div class="chapter-head"><div class="eyebrow">Chapter 09 · The incoming Congress</div><h2 id="h-c9">The incoming Congress</h2></div>
+</section>
+<section class="" id="c10"><div class="chapter-head"><div class="eyebrow">Chapter 10 · The job search itself</div><h2 id="h-c10">The job search itself: applications, interviews and referrals</h2></div>
+
+<p>Almost all of what is known about how people search comes from hiring-software and job-search vendors, using their own customers and users. These are the best available figures, not representative samples, and we have not seen the underlying data.</p>
+<div class="exhibit"><span class="ex-label">Exhibit 12</span><span class="ex-title">What vendors report about applications, interviews and referrals</span><div class="tbl"><table class="txt">
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Question</th>
+<th>What is reported</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Applications per job</td>
+<td>244 per job in 2025, up from 116 in 2022 (more than 640 million applications, 6,000+ employers). A separate Greenhouse analysis of customer data gave 95 per job for 2025, and the two use different definitions.</td>
+<td>Greenhouse Hire Standard (March 2026)</td>
+</tr>
+<tr class="even">
+<td>Share of applications that lead to an interview</td>
+<td>About 3.6% to 4.7%, against 7% to 8% in 2021 (as relayed by a funnel-benchmark article citing Ashby; we could not read the original). Greenhouse separately says fewer than 7% of applicants get an interview.</td>
+<td>Ashby; Greenhouse (October 2026)</td>
+</tr>
+<tr class="odd">
+<td>Sending fewer, more targeted applications</td>
+<td>In Huntr user data for the second quarter of 2026, job seekers who sent 11 to 20 applications in the quarter got an interview from 8.12% of applications; those who sent 100 or more, 2.86%. Self-selected users, not necessarily causal: more selective people may send fewer.</td>
+<td>Huntr (Q2 2026)</td>
+</tr>
+<tr class="even">
+<td>Applying through a company careers page rather than a job board</td>
+<td>6.87% of applications led to an interview, against 1.95% through job boards. Not necessarily causal.</td>
+<td>Huntr (October 7, 2026)</td>
+</tr>
+<tr class="odd">
+<td>AI-written applications</td>
+<td>Greenhouse reports that recruiters say at least half of applications are written with AI; Willo reports 77% of hiring teams regularly see AI-generated or assisted applications, up from 53% in early 2024. Surveys of employers, not counts.</td>
+<td>Greenhouse; Willo</td>
+</tr>
+<tr class="even">
+<td>Referrals</td>
+<td>Referrals were about 18% of hires but about 1% of applications in Ashby’s data (about 250,000 hires), and 18.7% of hires but about 2% of applications in Gem’s engineering data. Other vendor claims run from 30% to 50% of hires; the figures disagree, so we use the two that agree. LinkedIn reports job seekers are 3.6 times more likely to be hired where they have a connection at the company (vendor claim).</td>
+<td>Ashby; Gem; LinkedIn</td>
+</tr>
+</tbody>
+</table></div></div>
+<p>What the sources have in common: application volume per job has roughly doubled since 2022, a smaller share of applications leads to interviews, a growing share of applications is written with AI tools, and referrals account for far more of hires than of applications. The challenges job seekers report with online applications are volume, automated screening that applicants cannot see, and no response; we found no measure of how often any of these occurs, and no source we could verify on whether the trend is the same for white-collar roles.</p>
+<div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> The figures point to fewer, better-matched applications (the Huntr comparison, with the caveat above), applying where the employer lists the job, and spending time on people who work at the target employer. They do not show that any one method works for you.</p></div>
+</section>
+<section class="" id="c11"><div class="chapter-head"><div class="eyebrow">Chapter 11 · The incoming Congress</div><h2 id="h-c11">The incoming Congress</h2></div>
 
 <p>Democrats won both chambers on November 3 (AP). Analysts expect a federal push to override state AI laws to lose momentum and more oversight hearings, and expect major technology legislation to be unlikely in 2027 without bipartisan votes (NatLawReview, Roll Call). On the economy, analysts flag a higher chance of budget standoffs and a debt-limit deadline around mid-to-late summer 2027, while divided government makes large tax or trade changes harder (PGIM, BNP Paribas Fortis, ICICI Bank). These are analysts’ readings, not forecasts of ours.</p>
 <div class="box"><div class="eyebrow">What this may mean for a job seeker</div><p> Congress does not set interest rates or hiring decisions; the nearer-term channels are government funding deadlines and the debt limit, which matter most for contractors and federal-adjacent employers, and the pace of any workforce-training bills.</p></div>
 </section>
-<section class="" id="c10"><div class="chapter-head"><div class="eyebrow">Appendix</div><h2 id="h-c10">Appendix: other reference points (secondary and vendor data)</h2></div>
+<section class="" id="c12"><div class="chapter-head"><div class="eyebrow">Appendix</div><h2 id="h-c12">Appendix: other reference points (secondary and vendor data)</h2></div>
 
 <ul>
 <li><strong>Security hiring (a16z, Oct 28).</strong> A survey of 100 chief information security officers at companies with 1,000 or more employees: 87% expect cybersecurity spending to rise; nearly half expect security headcount to rise, about half flat, 4% expect cuts; 18% have AI security-operations tools in production. a16z is an investor in the space, the survey is self-reported with 100 respondents, and we have not checked the methodology.</li>
-<li><strong>Where people get interviews (Huntr, Oct 7).</strong> In Huntr’s own user data, applying on a company’s careers page led to an interview 6.87% of the time versus 1.95% through job boards. Vendor data, not independently checked; the comparison is not necessarily causal and may reflect differences in applicants or jobs by channel.</li>
 <li><strong>Corporate AI payoff (Apollo, Daily Spark).</strong> Chief economist Torsten Slok writes that revenue per worker and profit margins are rising for the seven largest tech companies and flat for the other roughly 493 in the S&amp;P 500, with no sign of an AI lift to productivity growth. Commentary; not independently checked.</li>
 <li><strong>Reminder on sources:</strong> figures drawn from Employ America, Indeed Hiring Lab, Apollo and news reports are as reported by those sources.</li>
 </ul>
