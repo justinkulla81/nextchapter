@@ -17,8 +17,8 @@ export default function MarketRealityReportEmail({
       audience="candidate"
       footer={<>This report is only visible to you — never shared with employers.</>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Market reality report" />
         <Headline>We have your Market Reality Assessment</Headline>
         <Lead>Hi {candidateName},</Lead>
         {justEarnedBadge && <Lead>Nice work — you just earned the &quot;Market Reality Assessment&quot; badge!</Lead>}

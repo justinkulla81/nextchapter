@@ -24,8 +24,8 @@ export default function UpgradeOfferEmail({ copy, planName, ctaUrl, unsubscribeU
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Upgrade offer" />
         <Headline>{copy.headline}</Headline>
         <Hero value={copy.hero.value} caption={copy.hero.caption} />
         <Lead>{copy.intro}</Lead>
@@ -38,7 +38,7 @@ export default function UpgradeOfferEmail({ copy, planName, ctaUrl, unsubscribeU
         <FeatureCard key={f.title} title={f.title} body={f.body} tile={f.tile} />
       ))}
 
-      <Card center pad="32px">
+      <Card pad="32px">
         <p style={{ margin: '0 0 16px', fontSize: '19px', fontWeight: 700 }}>Not now? That is fine.</p>
         <Body>Everything you use today stays free. Reply to this email if you have a question and a person will answer.</Body>
         <Button href={ctaUrl}>See {planName}</Button>

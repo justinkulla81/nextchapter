@@ -53,8 +53,8 @@ export default function SearchCheckInEmail({
         </a>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Saturday check-in" />
         <Headline>Has anything changed{firstName ? `, ${firstName}` : ''}?</Headline>
         <Lead>
           One click tells us where you are, and your plan and our emails follow it right away. Something else changed, like a
@@ -73,7 +73,7 @@ export default function SearchCheckInEmail({
         <a href={gotAnOfferUrl} style={outlinedGreen}>
           Got an offer! 🎉
         </a>
-        <Signoff align="center" />
+        <Signoff />
       </Card>
       {/* Best-effort open signal — many mail clients block remote images by
           default, so this undercounts opens rather than overcounting. */}

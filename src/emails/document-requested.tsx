@@ -11,8 +11,8 @@ interface DocumentRequestedEmailProps {
 export default function DocumentRequestedEmail({ requesterLabel, title, instructions, dueLabel, uploadUrl }: DocumentRequestedEmailProps) {
   return (
     <CardEmail preheader={`${requesterLabel} asked you for a document: ${title}`} audience="candidate">
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Document requested" />
         <Headline>
           {requesterLabel} asked you for a document: {title}
         </Headline>

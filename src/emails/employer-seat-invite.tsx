@@ -10,7 +10,7 @@ export default function EmployerSeatInviteEmail({ companyName, inviterName, acce
   return (
     <CardEmail preheader={`Join ${companyName}'s hiring team on NextChapter.`} audience="employer">
       <Card pad="28px 32px 36px">
-        <Wordmark />
+        <Wordmark label="Employer seat invite" />
         <Headline>Join {companyName}&apos;s hiring team</Headline>
         <Body>Hi there,</Body>
         <Body>

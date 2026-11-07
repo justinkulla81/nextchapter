@@ -21,8 +21,8 @@ export default function FirmJoinedEmail({ firstName, firms, packageUrl }: FirmJo
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Firm joined" />
         <Headline>Hi {firstName || 'there'}, {one ? `${firms[0]} has joined NextChapter.` : `${firms.length} firms you picked have joined NextChapter.`}</Headline>
         {!one && (
           <div style={{ textAlign: 'left', margin: '0 0 16px' }}>

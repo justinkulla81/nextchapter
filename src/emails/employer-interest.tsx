@@ -8,8 +8,8 @@ interface EmployerInterestEmailProps {
 export default function EmployerInterestEmail({ firstName, companyName }: EmployerInterestEmailProps) {
   return (
     <CardEmail preheader={`${companyName} is interested in your profile`} audience="candidate">
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Employer interest" />
         <Headline>
           {firstName || 'Hi there'}, {companyName} is interested in your profile
         </Headline>

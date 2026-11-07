@@ -70,8 +70,8 @@ export default function WeeklyGoalAssignedEmail({
         </a>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Weekly goal assigned" />
         <Headline>
           {firstName ? `Hi ${firstName} — ` : ''}your new week is set.
         </Headline>
@@ -124,7 +124,7 @@ export default function WeeklyGoalAssignedEmail({
       </Card>
 
       <CardGap />
-      <Card center pad="28px 32px 36px">
+      <Card pad="28px 32px 36px">
         <div style={left}>
           {grade === 'A' ? (
             <>

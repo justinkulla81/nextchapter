@@ -19,8 +19,8 @@ export default function RoleMatchEmail({ role, actionUrl }: RoleMatchEmailProps)
   // Every member sees every job (owner's rule, 2026-10-16), so the role is always named.
   return (
     <CardEmail preheader={`${role.verdict}: ${role.roleTitle} at ${role.companyName}`} audience="candidate">
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Role match" />
         <Headline>
           {role.verdict}: {role.roleTitle} at {role.companyName}
         </Headline>

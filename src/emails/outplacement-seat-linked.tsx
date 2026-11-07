@@ -15,8 +15,8 @@ interface OutplacementSeatLinkedEmailProps {
 export default function OutplacementSeatLinkedEmail({ orgName, programType = 'OUTPLACEMENT' }: OutplacementSeatLinkedEmailProps) {
   return (
     <CardEmail preheader={`${orgName} has set up a NextChapter benefit for your account`} audience="candidate">
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Outplacement seat linked" />
         <Headline>
           {orgName} has set up a NextChapter {PROGRAM_TYPE_BENEFIT[programType]} benefit for your account
         </Headline>

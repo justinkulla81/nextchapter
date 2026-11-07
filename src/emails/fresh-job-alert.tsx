@@ -36,8 +36,8 @@ export default function FreshJobAlertEmail({ firstName, jobs, boardUrl, unsubscr
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Fresh job alert" />
         <Headline>
           Hi {firstName || 'there'}, {matchLine.charAt(0).toLowerCase() + matchLine.slice(1)} just posted.
         </Headline>

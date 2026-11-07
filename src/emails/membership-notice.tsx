@@ -19,8 +19,8 @@ export default function MembershipNoticeEmail({ heading: headingText, bodyLines,
       audience="candidate"
       footer={<>You&apos;re receiving this because you&apos;re on the NextChapter Alumni plan.</>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Membership notice" />
         <Headline>{headingText}</Headline>
         {bodyLines.map((line, i) => (
           <Lead key={i}>{line}</Lead>

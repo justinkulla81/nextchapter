@@ -192,8 +192,8 @@ export default function MarketDigestCoachEmail({
         </a>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Market digest coach" />
         <Headline>Your week at a glance</Headline>
         {clients.length > 0 ? (
           <Lead>

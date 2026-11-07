@@ -84,8 +84,8 @@ export default function BackchannelMatchEmail({
         </a>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Backchannel match" />
         <Headline>You may have a way in at {companyName}.</Headline>
         <Lead>
           {firstName ? `Hi ${firstName}, ` : ''}

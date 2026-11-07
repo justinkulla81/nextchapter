@@ -17,8 +17,8 @@ export default function PortfolioAccessRequestEmail({
       audience="candidate"
       footer={<>You control this. Approving lets them view your work samples and narrative.</>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Portfolio access request" />
         <Headline>
           {recruiterName}
           {recruiterFirm ? ` at ${recruiterFirm}` : ''} would like to see your Portfolio

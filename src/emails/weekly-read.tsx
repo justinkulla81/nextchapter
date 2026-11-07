@@ -26,8 +26,8 @@ export default function WeeklyReadEmail({ firstName, headline, lines, next, repo
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Weekly read" />
         <Headline>{headline}</Headline>
         <Lead>
           {firstName ? `Hi ${firstName}, ` : ''}
@@ -51,7 +51,7 @@ export default function WeeklyReadEmail({ firstName, headline, lines, next, repo
           )}
         </div>
         <Button href={reportUrl}>See your full Market Reality Report</Button>
-        <Signoff align="center" />
+        <Signoff />
       </Card>
     </CardEmail>
   )

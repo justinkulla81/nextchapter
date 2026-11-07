@@ -12,8 +12,8 @@ export default function ScholarshipDecisionEmail({ firstName, approved }: Schola
       preheader={approved ? 'Your scholarship application was approved.' : 'An update on your scholarship application.'}
       footer={<span style={{ color: MUTED }}>If you have questions, just reply to this email — a real person reads every response.</span>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Scholarship decision" />
         {approved ? (
           <>
             <Headline>

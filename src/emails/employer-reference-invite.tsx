@@ -21,7 +21,7 @@ export default function EmployerReferenceInviteEmail({
   return (
     <CardEmail preheader={`${managerName} at ${managerCompany} left you a reference.`} audience="employer">
       <Card pad="28px 32px 36px">
-        <Wordmark />
+        <Wordmark label="Employer reference invite" />
         <Headline>{managerName} left you a reference</Headline>
         <Body>Hi {employeeFirstName},</Body>
         <Body>

@@ -21,8 +21,8 @@ export default function UnlockRecruiterNetworkNudgeEmail({
       audience="candidate"
       footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Unsubscribe from these nudges</a>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Unlock recruiter network nudge" />
         <Headline>Your Market Reality Assessment just hit an A</Headline>
         <Lead>Hi {firstName || 'there'},</Lead>
         <Lead>

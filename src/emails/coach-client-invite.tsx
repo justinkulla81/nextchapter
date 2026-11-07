@@ -13,8 +13,8 @@ export default function CoachClientInviteEmail({ coachName, firmName, acceptUrl 
       audience="candidate"
       footer="If you weren't expecting this, you can ignore this email."
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Coach client invite" />
         <Headline>{coachName} invited you to work together</Headline>
         <Lead>
           {coachName}

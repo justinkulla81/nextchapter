@@ -14,8 +14,8 @@ export default function AdminNudgeEmail({ bodyText, ctaLabel, ctaUrl }: AdminNud
 
   return (
     <CardEmail preheader={paragraphs[0]?.slice(0, 120)} audience="candidate">
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Admin nudge" />
         {paragraphs.map((paragraph, i) => (
           <Lead key={i}>{paragraph}</Lead>
         ))}

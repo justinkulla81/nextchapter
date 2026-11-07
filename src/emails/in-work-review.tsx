@@ -24,8 +24,8 @@ export default function InWorkReviewEmail({ firstName, content, appUrl, unsubscr
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="In work review" />
         <Headline>Hi {firstName || 'there'},</Headline>
         <Lead>{content.intro}</Lead>
         <div style={{ textAlign: 'left', margin: '0 auto 28px', maxWidth: '500px', fontSize: '17px', lineHeight: '1.6' }}>

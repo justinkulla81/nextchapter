@@ -28,8 +28,8 @@ export default function RecruiterDailyDigestEmail({
       audience="recruiter"
       footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Unsubscribe from these alerts</a>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Recruiter daily digest" />
         <Headline>{fullName.split(' ')[0]}, new candidates unlocked visibility today</Headline>
         <Hero value={String(candidates.length)} caption={`new A-grade candidate${plural} in the Recruiter Database`} />
         <Button href={portalUrl}>View &amp; message candidates</Button>

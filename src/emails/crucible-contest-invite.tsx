@@ -32,7 +32,7 @@ export default function CrucibleContestInviteEmail({
       preheader={`${companyName} posted a contest: ${contestTitle}`}
       footer={<span style={{ color: MUTED }}>This is a one-time invite link tied to your assessment result — no password, no account required.</span>}
     >
-      <Card center pad="28px 32px 36px">
+      <Card pad="28px 32px 36px">
         <ContestWordmark />
         <Headline>You passed — and an employer wants your take on something real.</Headline>
         <Lead>

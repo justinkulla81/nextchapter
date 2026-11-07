@@ -36,7 +36,7 @@ export default function MarketDigestEmployerEmail({
       footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Unsubscribe from the Weekly Market Digest</a>}
     >
       <Card pad="28px 32px 36px">
-        <Wordmark />
+        <Wordmark label="Market digest employer" />
         <Headline>Your Weekly Market Digest</Headline>
         <Body>Hi {contactName || `the ${companyName} team`},</Body>
         {matchLines.length > 0 && (

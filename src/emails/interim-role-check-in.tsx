@@ -17,8 +17,8 @@ export default function InterimRoleCheckInEmail({
 
   return (
     <CardEmail audience="candidate" preheader="Quick check so your resume and Dossier stay accurate.">
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Interim role check in" />
         <Headline>
           {firstName ? `Hi ${firstName} — ` : ''}still doing {roleLabel}?
         </Headline>

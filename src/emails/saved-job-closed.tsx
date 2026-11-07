@@ -25,8 +25,8 @@ export default function SavedJobClosedEmail({ firstName, closed, similar, boardU
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Saved job closed" />
         <Headline>Hi {firstName || 'there'}, {one ? 'a job you saved is no longer listed.' : `${closed.length} jobs you saved are no longer listed.`}</Headline>
         <div style={{ textAlign: 'left', margin: '0 0 24px' }}>
           {closed.map((j, i) => (

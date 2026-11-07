@@ -13,8 +13,8 @@ export default function GuideDeliveryEmail({ firstName, guideTitle, downloadUrl 
       audience="candidate"
       footer={<>We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.</>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Guide delivery" />
         <Headline>Here&apos;s your copy of {guideTitle}</Headline>
         <Lead>Hi {firstName || 'there'},</Lead>
         <Button href={downloadUrl}>Download the guide</Button>
