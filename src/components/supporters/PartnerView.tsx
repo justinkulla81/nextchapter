@@ -1,5 +1,6 @@
 import { Heart, HandHeart, Moon, Ear, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export type NeedKind = 'listen' | 'space' | 'distract' | 'cheer' | 'none'
 
@@ -29,6 +30,7 @@ export function PartnerView({ data }: { data: PartnerViewData }) {
       <header className="space-y-3">
         <p className="text-lg font-bold text-ink">NextChapter</p>
         <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink text-balance">{data.memberFirstName}&apos;s week</h1>
+        <Squiggle className="mt-2" />
         <p className="text-base text-muted-foreground">{data.headline}</p>
         <dl className="grid grid-cols-4 gap-2 pt-1">
           {data.stats.map((s) => (

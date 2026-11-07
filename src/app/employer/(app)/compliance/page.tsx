@@ -1,5 +1,6 @@
 import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
 import { CompliancePackLookup } from '@/components/employer/CompliancePackLookup'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function EmployerCompliancePage() {
   // employer_legal only — see outplacement-compliance.ts's own comment for
@@ -10,6 +11,7 @@ export default async function EmployerCompliancePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Compliance pack</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-sm text-muted-foreground">
           Look up a specific person&apos;s enrollment record to confirm their outplacement benefit was
           delivered — for compliance and separation-agreement purposes. This is the only place on this

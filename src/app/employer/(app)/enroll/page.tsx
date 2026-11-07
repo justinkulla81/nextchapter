@@ -3,6 +3,7 @@ import { getEnrollableContracts } from '@/lib/employer/outplacement-enrollment'
 import { EnrollForms } from '@/components/employer/EnrollForms'
 import { enrollIntro, programKindOf } from '@/lib/employer/program-wording'
 import { orgProgram } from '@/lib/employer/program-server'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function EmployerEnrollPage() {
   const orgUser = await requireOutplacementRole(['ADMIN'])
@@ -13,6 +14,7 @@ export default async function EmployerEnrollPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Enroll</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-sm text-muted-foreground">
           {enrollIntro([...new Set(contracts.map((c) => programKindOf(c.journey)))])}
         </p>

@@ -7,6 +7,7 @@ import { HIGHEST_LEVEL_OPTIONS, PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants
 import { listPoolCandidates, MAX_PENDING_REQUESTS } from '@/lib/recruiter/introduction-requests'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { requestIntroductionFromPool } from './actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const maxDuration = 30
 
@@ -45,6 +46,7 @@ export default async function RecruiterPoolPage({
           ← Candidate search
         </Link>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Find candidates</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">
           Candidate+ members who have chosen to be found by recruiters. You see a role-level description only. Ask for an
           introduction and the candidate decides; their profile opens to you only if they say yes. You have{' '}

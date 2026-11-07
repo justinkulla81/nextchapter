@@ -7,6 +7,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PROGRAM_TYPE_LABEL, PROGRAM_TYPE_HOME } from '@/lib/employer/program-type'
 import { PRIVACY_NOTE, PROGRAM_KIND_BLURB, programKindOf } from '@/lib/employer/program-wording'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
 
@@ -28,6 +29,7 @@ export default async function EmployerOverviewPage() {
       <div>
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">NextChapter for Employers</p>
         <h1 className="text-2xl font-semibold tracking-tight">{orgUser.orgName}</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-sm text-muted-foreground">
           Signed in as {orgUser.fullName ?? orgUser.email} —{' '}
           {orgUser.role === 'ADMIN' && 'admin (enrollment, billing, and reporting).'}

@@ -6,6 +6,7 @@ import { InviteSourcedCandidateButton } from '@/components/recruiter/InviteSourc
 import { ResumeCommentaryForm } from '@/components/recruiter/ResumeCommentaryForm'
 import { ToggleBookButton } from '@/components/recruiter/ToggleBookButton'
 import { getSourcedCandidateResumeSignedUrl } from '../actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const STATUS_LABEL = {
   ADDED: 'Not yet invited',
@@ -39,6 +40,7 @@ export default async function SourcedCandidateDetailPage({ params }: { params: P
             ← Back to my candidates
           </Link>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">{candidate.name}</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-1 text-muted-foreground">{candidate.email}</p>
         </div>
         {isSignedUp && <ToggleBookButton sourcedCandidateId={candidate.id} inBook={candidate.inBook} />}

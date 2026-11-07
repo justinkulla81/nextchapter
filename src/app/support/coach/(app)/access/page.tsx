@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getCurrentCoach } from '@/lib/coach/current-coach'
 import { MakeCodeForm, SchedulingUrlForm, SessionsLeftForm, TurnOffCodeButton } from '@/components/coach/CoachAccessForms'
+import { Squiggle } from '@/components/ui/squiggle'
 
 // Coaches who bill clients themselves: make a code the client enters to get
 // sessions, set sessions left per client, and share a booking link. Payment
@@ -36,6 +37,7 @@ export default async function CoachAccessPage() {
     <div className="space-y-10">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Codes and sessions</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">
           Bill your clients however you like. Give them a code for the sessions they bought, keep their sessions left up to date, and share your booking link.
           Each session you log counts one down.

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { getCurrentRecruiter } from '@/lib/recruiter/current-recruiter'
 import { getRecruiterUnreadCount } from '@/lib/messaging/threads'
 import { getLateSubmissions, STAGE_LABEL } from '@/lib/recruiter/submissions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function RecruiterDashboardPage() {
   const recruiter = await getCurrentRecruiter()
@@ -30,6 +31,7 @@ export default async function RecruiterDashboardPage() {
       <div>
         <p className="text-sm font-medium text-muted-foreground">NextChapter for Recruiters</p>
         <h1 className="text-2xl font-semibold tracking-tight">Welcome back, {recruiter.fullName.split(' ')[0]}</h1>
+        <Squiggle className="mt-2" />
         {recruiter.firmName && <p className="mt-1 text-muted-foreground">{recruiter.firmName}</p>}
       </div>
 

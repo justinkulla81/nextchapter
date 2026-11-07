@@ -8,6 +8,7 @@ import { TalentActionForm } from '@/components/recruiter/talent/TalentForms'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createTalentFirm } from './actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const SOURCE_LABEL = { PAGE: 'Inbound page', NOT_FIT_LINK: '"Not a fit now" link', FORWARD: 'Forwarded email', MEMBER_INTEREST: 'Expressed interest on NextChapter' } as const
 
@@ -30,6 +31,7 @@ export default async function TalentHopperPage({ searchParams }: { searchParams:
         <div>
           <p className="text-sm font-medium text-muted-foreground">{TALENT_PRODUCT_NAME}</p>
           <h1 className="text-2xl font-semibold tracking-tight">Answer every candidate you can&apos;t place</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-2 text-muted-foreground">
             Candidates you can&apos;t help get a reply in your name and free support from NextChapter. You get the
             fits flagged right away, and you hear when the rest land.
