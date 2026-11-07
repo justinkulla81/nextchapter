@@ -24,3 +24,7 @@ FROM cells WHERE na>=30 AND nn>=30 ORDER BY f, lv;
 -- 113 cells, median +24.3%, 110 higher, quartiles +17.2% / +31.3%; 2,292 asking employers of 57,648 hold 42.5% of open roles and 82.4% of AI-naming roles.
 -- Shape: roles (as above) -> emp AS (SELECT c, count(*) n, count(*) FILTER (WHERE ai) na FROM roles GROUP BY c) -> p joins emp, askers = na>=5
 --   -> cells: median mid for (askers AND NOT ai) vs (NOT askers) -> ln ratio, summarized by median and quartiles.
+
+-- Version 1.5: software postings by title (regex on "title": software/swe engineer or developer, full-stack, back/front-end, mobile, iOS/Android,
+-- machine learning, devops, site reliability, data engineer). Nov 7, 2026 result: 29,605 postings, 6,010 employers, 32.2% name AI skills,
+-- 27.4% entry/early-career, 51.8% senior+, median posted pay $192,500 (7,951 with pay; AI-naming $210,800, other $178,125). Run through a one-off edge function.
