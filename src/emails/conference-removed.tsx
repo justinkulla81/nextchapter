@@ -15,8 +15,8 @@ interface Props {
 export default function ConferenceRemovedEmail({ firstName, conferenceName, reason, goals, notes, addUrl }: Props) {
   return (
     <CardEmail preheader={`We took ${conferenceName} off your conferences`} audience="candidate">
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Conference removed" />
         <Headline>We took {conferenceName} off your conferences</Headline>
         <Lead>
           {firstName ? `Hi ${firstName}, ` : ''}we reviewed {conferenceName} and removed it. {reason}

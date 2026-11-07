@@ -1,3 +1,5 @@
+import { readFileSync, readdirSync } from 'node:fs'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { render } from '@react-email/render'
 import MidweekCheckinEmail from '@/emails/midweek-checkin'
@@ -74,5 +76,16 @@ describe('email look', () => {
       <LeadLifecycleEmail content={{ headline: 'A first note', paragraphs: ['Hello.'], benefits: [], ctaLabel: 'Start', footerNote: 'You signed up.' } as never} ctaUrl="https://x.test/go" unsubscribeUrl="https://x.test/u" postalAddress="" audience="candidate" />,
     )
     expect(html).toContain('/email/signature-victoria.png')
+  })
+
+  it('keeps every shared-layout email on the new look', () => {
+    const dir = path.join(process.cwd(), 'src/emails')
+    for (const f of readdirSync(dir).filter((n) => n.endsWith('.tsx'))) {
+      const src = readFileSync(path.join(dir, f), 'utf8')
+      // A bare wordmark is the old look: the masthead carries the email's label.
+      expect(src, `${f} has a bare <Wordmark />`).not.toContain('<Wordmark />')
+      expect(src, `${f} centers its card`).not.toContain('<Card center')
+      expect(src, `${f} centers its sign-off`).not.toContain('align="center" />')
+    }
   })
 })

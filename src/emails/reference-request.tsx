@@ -20,7 +20,7 @@ export default function ReferenceRequestEmail({
   return (
     <CardEmail preheader={`${candidateName} asked you for a reference.`} audience="employer">
       <Card pad="28px 32px 36px">
-        <Wordmark />
+        <Wordmark label="Reference request" />
         <Headline>{candidateName} asked you for a reference</Headline>
         <Body>Hi {refereeName},</Body>
         {confidentialSearchMode ? (

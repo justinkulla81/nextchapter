@@ -11,8 +11,8 @@ export default function FriendReferralEmail({ referrerEmail }: FriendReferralEma
       audience="candidate"
       footer={<>If you weren&apos;t expecting this, you can safely ignore it — no account was created and nothing else will be sent.</>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Friend referral" />
         <Headline>{referrerEmail} thought of you</Headline>
         <Lead>
           They wanted to pass along NextChapter — a platform for people between chapters of their career. It gives you an honest read on where

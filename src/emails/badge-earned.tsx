@@ -20,8 +20,8 @@ export default function BadgeEarnedEmail({ firstName, badgeLabels, statsUrl, uns
         </a>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Badge earned" />
         <Headline>{headline}</Headline>
         <Lead>
           {firstName ? `Hi ${firstName}, ` : ''}

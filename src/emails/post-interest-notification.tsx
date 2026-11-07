@@ -13,8 +13,8 @@ export default function PostInterestNotificationEmail({
 }: PostInterestNotificationEmailProps) {
   return (
     <CardEmail preheader={`Someone is interested in your Community Board post: ${postTitle}`} audience="candidate">
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Post interest notification" />
         <Headline>Someone is interested in your Community Board post</Headline>
         <FactList
           rows={[

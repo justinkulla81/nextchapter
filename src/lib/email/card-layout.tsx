@@ -68,11 +68,11 @@ export function CardEmail({
   )
 }
 
-/** One white rounded card (a table row). */
-export function Card({ children, center = false, pad = '28px 32px' }: { children: ReactNode; center?: boolean; pad?: string }) {
+/** One white rounded card (a table row). Always left-aligned, like the newsletter; `center` is accepted but ignored. */
+export function Card({ children, pad = '28px 32px' }: { children: ReactNode; center?: boolean; pad?: string }) {
   return (
     <tr>
-      <td style={{ ...card, padding: pad, textAlign: center ? 'center' : 'left' }}>{children}</td>
+      <td style={{ ...card, padding: pad, textAlign: 'left' }}>{children}</td>
     </tr>
   )
 }
@@ -83,7 +83,8 @@ export function CardGap() {
 }
 
 /** The bookmark mark and the name. The mark is an image; the name stays text so it survives blocked images. */
-export function Wordmark() {
+export function Wordmark({ label }: { label?: string } = {}) {
+  if (label) return <Masthead right={label} />
   return (
     <p style={{ margin: '0 0 28px', fontFamily: DISPLAY_FONT, fontSize: '22px', fontWeight: 800, color: BRAND, letterSpacing: '-0.01em' }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -197,12 +198,12 @@ export function Headline({ children, squiggle = true }: { children: ReactNode; s
 /** Big number on a pale blue card, with a caption under it. */
 export function Hero({ value, caption }: { value: string; caption: string }) {
   return (
-    <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} style={{ margin: '0 0 28px' }}>
+    <table role="presentation" cellPadding={0} cellSpacing={0} style={{ margin: '0 0 24px' }}>
       <tbody>
         <tr>
-          <td style={{ backgroundColor: '#e8f0f8', borderRadius: '20px', padding: '36px 24px', textAlign: 'center' }}>
-            <p style={{ margin: 0, fontSize: '64px', lineHeight: '1', fontWeight: 700, color: BRAND }}>{value}</p>
-            <p style={{ margin: '10px 0 0', fontSize: '16px', color: MUTED }}>{caption}</p>
+          <td style={{ backgroundColor: '#e8f0f8', borderRadius: '16px', padding: '16px 26px', textAlign: 'left' }}>
+            <span style={{ fontFamily: DISPLAY_FONT, fontSize: '56px', lineHeight: '1', fontWeight: 800, color: BRAND }}>{value}</span>
+            <span style={{ display: 'block', margin: '8px 0 0', fontSize: '15px', color: MUTED }}>{caption}</span>
           </td>
         </tr>
       </tbody>
@@ -210,9 +211,9 @@ export function Hero({ value, caption }: { value: string; caption: string }) {
   )
 }
 
-/** Centered body paragraph under the headline or hero. */
+/** Body paragraph under the headline or hero. */
 export function Lead({ children }: { children: ReactNode }) {
-  return <p style={{ margin: '0 auto 28px', maxWidth: '500px', fontSize: '17px', lineHeight: '1.6', color: INK }}>{children}</p>
+  return <p style={{ margin: '0 0 24px', fontSize: '17px', lineHeight: '1.6', color: INK }}>{children}</p>
 }
 
 /** Left-aligned body paragraph for text-heavy cards. */

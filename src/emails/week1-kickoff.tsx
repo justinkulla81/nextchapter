@@ -31,8 +31,8 @@ export default function Week1KickoffEmail({
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Week1 kickoff" />
         <Headline>
           Hi {firstName || 'there'} — I&apos;m {victoriaName}, your AI coach here at NextChapter.
         </Headline>
@@ -57,7 +57,7 @@ export default function Week1KickoffEmail({
             : "Once these are done, I'll have real, personalized next steps ready for you."}
         </Lead>
         <Button href={`${appUrl}/dashboard`}>See my first-week checklist</Button>
-        <Signoff name={victoriaName} align="center" />
+        <Signoff name={victoriaName} />
       </Card>
     </CardEmail>
   )

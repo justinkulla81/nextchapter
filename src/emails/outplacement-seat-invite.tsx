@@ -26,8 +26,8 @@ export default function OutplacementSeatInviteEmail({ orgName, acceptUrl, welcom
       preheader={`${orgName} has set up a NextChapter benefit for you.`}
       footer={<span style={{ color: MUTED }}>If you weren&apos;t expecting this, you can ignore this email.</span>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Outplacement seat invite" />
         <Headline>
           {orgName} has set up a NextChapter {PROGRAM_TYPE_BENEFIT[programType]} benefit for you.
         </Headline>

@@ -22,8 +22,8 @@ export default function ConferenceHeadsUpEmail({ firstName, headline, eventName,
       audience="candidate"
       footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Turn off these reminders</a>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Conference heads up" />
         <Headline>{headline}</Headline>
         <Lead>
           {firstName ? `Hi ${firstName}, ` : ''}

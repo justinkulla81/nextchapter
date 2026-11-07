@@ -33,8 +33,8 @@ export default function JobAlertDigestEmail({ searchLabel, jobs, startUrl, start
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Job alert digest" />
         <Headline>{headline}</Headline>
         <div style={{ textAlign: 'left', margin: '0 0 28px' }}>
           {jobs.map((j) => (

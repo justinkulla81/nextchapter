@@ -39,8 +39,8 @@ export default function FinishLineEmail({
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Finish line" />
         <Headline>
           Hi {firstName || 'there'} — {victoriaName} here.
         </Headline>
@@ -58,7 +58,7 @@ export default function FinishLineEmail({
           </ul>
         </div>
         <Button campaign="finish_line" href={dashboardUrl ?? `${appUrl}/dashboard`}>Open my dashboard</Button>
-        <Signoff name={victoriaName} align="center" />
+        <Signoff name={victoriaName} />
       </Card>
       {checkIn && (
         <>

@@ -4,7 +4,8 @@ Every email built on `src/lib/email/card-layout.tsx` shares one look: a warm pap
 
 Parts in the layout file:
 
-- `Wordmark`: bookmark image plus the name as text, so it survives blocked images.
+- `Wordmark`: bookmark image plus the name as text, so it survives blocked images. Pass `label` (for example `label="Weekly nudge"`) and it becomes the masthead: the name on the left, the label on the right. Every email on the shared layout passes a label.
+- Cards are always left-aligned; `Card center` is ignored. A test (`src/test/email-look.test.tsx`) fails if an email goes back to a bare wordmark, a centered card or a centered sign-off.
 - `Signoff`: Victoria's handwritten sign-off. `name` is `Victoria`, `Vicki` or `Vic` and picks the image in `public/email/`. Use it on conversational emails (check-ins, nudges, the newsletter). Leave it off verification, receipt and invite emails.
 - `Mark`: orange highlighter for a count or number. Never on something clickable. Green stays the only button color.
 - `MarginNote`: a short handwritten aside. Falls back to a cursive system font outside Apple Mail.

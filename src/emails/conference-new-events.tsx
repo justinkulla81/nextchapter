@@ -25,8 +25,8 @@ export default function ConferenceNewEventsEmail({ firstName, headline, events, 
       audience="candidate"
       footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Turn off these reminders</a>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Conference new events" />
         <Headline>{headline}</Headline>
         <Lead>
           {firstName ? `Hi ${firstName}, ` : ''}we just added {events.length === 1 ? 'a conference' : 'conferences'} that fit your field.

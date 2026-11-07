@@ -13,8 +13,8 @@ interface Props {
 export default function OutplacementAccessEndingEmail({ orgName, endsOn, dashboardUrl, growth }: Props) {
   return (
     <CardEmail preheader={`The NextChapter benefit from ${orgName} ends on ${endsOn}`} audience="candidate">
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Outplacement access ending" />
         <Headline>
           The NextChapter benefit from {orgName} ends on {endsOn}
         </Headline>

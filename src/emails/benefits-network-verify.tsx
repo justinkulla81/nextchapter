@@ -16,7 +16,7 @@ export default function BenefitsNetworkVerifyEmail({
   return (
     <CardEmail preheader={`Confirm ${programName} from ${institutionName}.`} audience="organization">
       <Card pad="28px 32px 36px">
-        <Wordmark />
+        <Wordmark label="Benefits network verify" />
         <Headline>Confirm this offer from {institutionName}</Headline>
         <Body>Hi there,</Body>
         <Body>

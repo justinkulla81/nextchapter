@@ -56,8 +56,8 @@ export default function ScamAlertEmail({
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Scam alert" />
         <Headline>{headline}</Headline>
         <div style={{ textAlign: 'left' }}>
           <Body>

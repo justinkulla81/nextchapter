@@ -19,8 +19,8 @@ export default function JobAlertConfirmEmail({ what, confirmUrl, unsubscribeUrl,
       audience="candidate"
       footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Unsubscribe</a>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Job alert confirm" />
         {variant === 'ai_retraining' ? (
           <>
             <Headline>Confirm your interest in AI retraining</Headline>

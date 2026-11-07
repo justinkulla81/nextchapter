@@ -39,7 +39,7 @@ export default function LeadLifecycleEmail({ content, ctaUrl, unsubscribeUrl, po
       }
     >
       <Card pad="28px 32px 36px">
-        <Wordmark />
+        <Wordmark label="Lead lifecycle" />
         <Headline>{content.headline}</Headline>
         {content.paragraphs.map((p, i) => (
           <Body key={i}>{p}</Body>

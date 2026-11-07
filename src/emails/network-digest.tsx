@@ -48,8 +48,8 @@ export default function NetworkDigestEmail({
         </a>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Network digest" />
         <Headline>Hi {firstName || 'there'}, this week in the {name} network.</Headline>
         {openJobs !== null && openJobs > 0 && (
           <Lead>

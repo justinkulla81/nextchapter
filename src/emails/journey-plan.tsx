@@ -30,8 +30,8 @@ export default function JourneyPlanEmail({ situationLabel, intro, steps, startUr
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Journey plan" />
         <Headline>Your first week: {situationLabel}</Headline>
         <Lead>{intro}</Lead>
         <div style={{ textAlign: 'left', margin: '0 auto 28px', maxWidth: '500px', fontSize: '17px', lineHeight: '1.6' }}>
@@ -50,7 +50,7 @@ export default function JourneyPlanEmail({ situationLabel, intro, steps, startUr
         )}
         <Lead>The last step takes about five minutes and is free. It gives you a plan for the weeks after this one.</Lead>
         <Button campaign="journey_plan" href={startUrl} ctaVariant={ctaVariant}>{emailCtaLabel(ctaVariant, 'Get your Market Reality Assessment')}</Button>
-        <Signoff align="center" />
+        <Signoff />
       </Card>
     </CardEmail>
   )

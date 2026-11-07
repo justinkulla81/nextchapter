@@ -20,8 +20,8 @@ export default function NewMessageNotificationEmail({
       audience="candidate"
       footer={<>You&apos;re receiving this because you have an active conversation on NextChapter.</>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="New message notification" />
         <Headline>{senderName} sent you a new message on NextChapter</Headline>
         <Lead>Hi {recipientFirstName || 'there'},</Lead>
         <Button href={threadUrl}>View message</Button>

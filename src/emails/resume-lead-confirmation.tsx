@@ -16,8 +16,8 @@ export default function ResumeLeadConfirmationEmail({ fullName, ctaVariant }: Re
       audience="candidate"
       footer={<span style={{ color: MUTED }}>We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.</span>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Resume lead confirmation" />
         <Headline>Hi {firstName}, got your resume — thanks for sending it over</Headline>
         <Lead>
           We review submissions and pass strong matches along to recruiters in our network. There&apos;s no guaranteed timeline and not every

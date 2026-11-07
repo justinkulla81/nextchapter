@@ -24,8 +24,8 @@ export default function DeadlineReminderEmail({ title, body, context, stateUrl, 
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Deadline reminder" />
         <Headline>{title}</Headline>
         <Lead>{body}</Lead>
         <Small>{context} Dates are counted from your last day and are a guide: confirm the exact date on your own paperwork.</Small>

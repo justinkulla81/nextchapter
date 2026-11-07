@@ -16,8 +16,8 @@ export default function JobSavedEmail({ title, company, jobUrl, fitUrl, unsubscr
       audience="candidate"
       footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Unsubscribe</a>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Job saved" />
         <Headline>
           Saved: {title} at {company}
         </Headline>

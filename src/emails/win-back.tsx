@@ -15,14 +15,14 @@ export default function WinBackEmail({ content, ctaUrl, unsubscribeUrl }: WinBac
       audience="candidate"
       footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Turn off these emails</a>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Win back" />
         <Headline>{content.heading}</Headline>
         {content.body.map((line) => (
           <Lead key={line}>{line}</Lead>
         ))}
         <Button campaign="win_back" href={ctaUrl}>{content.cta}</Button>
-        <Signoff align="center" />
+        <Signoff />
         {content.closing && (
           <p style={{ margin: '28px auto 0', maxWidth: '500px', fontSize: '17px', lineHeight: '1.6' }}>{content.closing}</p>
         )}

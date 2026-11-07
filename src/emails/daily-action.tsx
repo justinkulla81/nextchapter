@@ -57,8 +57,8 @@ export default function DailyActionEmail({
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Daily action" />
         <Headline>Hi {firstName || 'there'} — {victoriaName} here.</Headline>
 
         {introCopy && <Lead>{introCopy}</Lead>}
@@ -93,7 +93,7 @@ export default function DailyActionEmail({
       )}
 
         <Button campaign="daily_action" href={`${appUrl}/dashboard`}>{isReset && resetTask ? 'Start this now' : 'Open my dashboard'}</Button>
-        <Signoff name={victoriaName} align="center" />
+        <Signoff name={victoriaName} />
       </Card>
 
       {weeklyRecap && (

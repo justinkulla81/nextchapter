@@ -14,7 +14,7 @@ export default function OutplacementOrgInviteEmail({ orgName, roleLabel, acceptU
   return (
     <CardEmail preheader={`You've been added to ${orgName}'s NextChapter for Employers account.`} audience="employer">
       <Card pad="28px 32px 36px">
-        <Wordmark />
+        <Wordmark label="Outplacement org invite" />
         <Headline>You&apos;ve been added to {orgName}&apos;s account</Headline>
         <Body>Hi there,</Body>
         <Body>

@@ -42,8 +42,8 @@ export default function SeniorBriefEmail({ firstName, itemKind, contactName, com
         )
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Senior brief" />
         {testDraft ? (
           <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#b3261e' }}>Test send to you only. Nothing was written to the member&apos;s Gmail. Draft for member {testDraft.memberId}.</p>
         ) : null}

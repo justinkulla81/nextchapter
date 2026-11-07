@@ -12,7 +12,7 @@ export default function MemberCompanyInviteEmail({ orgName, companyName, acceptU
   return (
     <CardEmail preheader={`${orgName} gave ${companyName} access to its member portal.`} audience="employer">
       <Card pad="28px 32px 36px">
-        <Wordmark />
+        <Wordmark label="Member company invite" />
         <Headline>{orgName} gave {companyName} access to its member portal</Headline>
         <Body>Hi there,</Body>
         <Body>

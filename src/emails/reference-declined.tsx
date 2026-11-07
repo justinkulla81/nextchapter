@@ -12,8 +12,8 @@ interface ReferenceDeclinedEmailProps {
 export default function ReferenceDeclinedEmail({ candidateName, refereeName }: ReferenceDeclinedEmailProps) {
   return (
     <CardEmail preheader={`${refereeName} is not able to leave you a reference right now`} audience="candidate">
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Reference declined" />
         <Headline>
           {candidateName}, {refereeName} is not able to leave you a reference right now
         </Headline>

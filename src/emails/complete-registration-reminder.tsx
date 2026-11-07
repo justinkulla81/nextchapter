@@ -27,8 +27,8 @@ export default function CompleteRegistrationReminderEmail({
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Complete registration reminder" />
         <Headline>
           Hi {firstName || 'there'}, you built your NextChapter profile and got an honest read on where you stand: {gradeDescription}.
         </Headline>
@@ -37,7 +37,7 @@ export default function CompleteRegistrationReminderEmail({
         </Lead>
         <Lead>Click below to pick up exactly where you left off — no password needed.</Lead>
         <Button href={magicLink}>Finish creating my account</Button>
-        <Signoff align="center" />
+        <Signoff />
       </Card>
     </CardEmail>
   )

@@ -140,7 +140,7 @@ export default function JobSearchDailyEmail({
       }
     >
       <Card pad="28px 32px 12px">
-        <Wordmark />
+        <Wordmark label="Job search daily" />
         <p style={wordmarkSub}>{masthead}</p>
         <Headline>Good morning, {content.firstName || 'there'}</Headline>
         <p style={sub}>
@@ -318,7 +318,7 @@ export default function JobSearchDailyEmail({
       )}
 
       <CardGap />
-      <Card center pad="28px 32px 32px">
+      <Card pad="28px 32px 32px">
         <Button href={action.href}>{action.label}</Button>
 
         {quote && (

@@ -22,8 +22,8 @@ export default function RecruiterCandidateInviteEmail({
       audience="candidate"
       footer={<>If you weren&apos;t expecting this, you can ignore this email.</>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Recruiter candidate invite" />
         <Headline>{who} wants to work with you</Headline>
         <Lead>
           They suggested you set up a free NextChapter account — a platform that turns your job search into a structured, coached plan and

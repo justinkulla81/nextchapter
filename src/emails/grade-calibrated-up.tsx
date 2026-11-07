@@ -26,8 +26,8 @@ export default function GradeCalibratedUpEmail({
         </a>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Grade calibrated up" />
         <Headline>Your Market Reality Assessment just moved up.</Headline>
         <Hero value={`${previousGrade} → ${newGrade}`} caption="Your grade" />
         <Lead>

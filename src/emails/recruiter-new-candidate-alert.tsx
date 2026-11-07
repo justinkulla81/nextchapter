@@ -32,8 +32,8 @@ export default function RecruiterNewCandidateAlertEmail({
       audience="recruiter"
       footer={<a href={unsubscribeUrl} style={{ color: MUTED }}>Unsubscribe from these alerts</a>}
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Recruiter new candidate alert" />
         <Headline>{fullName.split(' ')[0]}, a new candidate just unlocked visibility</Headline>
         <FactList
           rows={[

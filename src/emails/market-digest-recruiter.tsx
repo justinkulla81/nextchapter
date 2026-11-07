@@ -33,8 +33,8 @@ export default function MarketDigestRecruiterEmail({
         </a>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Market digest recruiter" />
         <Headline>
           Hi {fullName.split(' ')[0]}, here&apos;s this week&apos;s market read for {specialty || 'your specialty'}.
         </Headline>

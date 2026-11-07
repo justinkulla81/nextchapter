@@ -23,8 +23,8 @@ export default function PayCheckResultEmail({ title, sentence, rangeLine, salary
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Pay check result" />
         <Headline>Your pay check: {title}</Headline>
         <Lead>{sentence}</Lead>
         <Lead>

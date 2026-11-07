@@ -34,8 +34,8 @@ export default function LayoffAlertDigestEmail({ watching, notices, startUrl, un
         </>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Layoff alert digest" />
         <Headline>{headline}</Headline>
         <div style={{ textAlign: 'left', margin: '0 0 28px' }}>
           {notices.map((n) => (

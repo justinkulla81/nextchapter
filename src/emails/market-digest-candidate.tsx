@@ -40,8 +40,8 @@ export default function MarketDigestCandidateEmail({
         </a>
       }
     >
-      <Card center pad="28px 32px 36px">
-        <Wordmark />
+      <Card pad="28px 32px 36px">
+        <Wordmark label="Market digest candidate" />
         <Headline>Hi {firstName || 'there'}, here&apos;s this week&apos;s market update for your target role.</Headline>
         {adzunaIdealCount !== null && (
           <Hero
