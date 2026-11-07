@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, cleanCompanyText, isIndexableJob, liveJobSitemapShards, isPublicJob, isStaleVerified, jobPostingJsonLd, missingRequiredJobFields, payLabel, plausiblePay, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
+import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, cleanCompanyText, isIndexableJob, liveJobSitemapShards, isPublicJob, isStaleVerified, isViewableJob, jobPostingJsonLd, missingRequiredJobFields, payLabel, plausiblePay, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
 
 const NOW = Date.parse('2026-10-22T12:00:00Z')
 const DAY = 86_400_000
@@ -215,4 +215,19 @@ describe('liveJobSitemapShards', () => {
     expect(liveJobSitemapShards({ JOB_SITEMAP_SHARDS_LIVE: ' 6 ' })).toBe(6)
     expect(liveJobSitemapShards({ JOB_SITEMAP_SHARDS_LIVE: '99' })).toBe(16)
   })
+})
+
+describe('isViewableJob', () => {
+  const stale = (over: Partial<PublicJobRow> = {}) => job({ lastVerifiedAt: new Date(NOW - 20 * DAY), ...over })
+  it('keeps a direct employer job up to 30 days since its last confirmation', () => {
+    expect(isViewableJob(stale({ directListing: true }), NOW)).toBe(true)
+    expect(isViewableJob(job({ directListing: true, lastVerifiedAt: new Date(NOW - 31 * DAY) }), NOW)).toBe(false)
+  })
+  it('keeps the 14 day limit for a job linked through an aggregator', () => {
+    expect(isViewableJob(stale({ directListing: false, sourceCategory: 'aggregator' }), NOW)).toBe(false)
+  })
+  it('still fails every other rule', () => {
+    expect(isViewableJob(stale({ directListing: true, closeReason: 'filled' }), NOW)).toBe(false)
+  })
+  it('leaves isPublicJob (the search engine set) at 14 days', () => expect(isPublicJob(stale({ directListing: true }), NOW)).toBe(false))
 })

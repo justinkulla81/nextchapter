@@ -25,14 +25,13 @@ import { computeApplicationTrends } from '@/lib/network/application-trends'
 import { computeRejectionTrends } from '@/lib/network/rejection-trends'
 import { computeNamedReasons } from '@/lib/scoring/named-reasons'
 import { getNamedReasonActionLink } from '@/lib/scoring/named-reason-ids'
-import { captureServerEvent } from '@/lib/posthog/server'
+import { captureServerEvent, mirrorServerEvent } from '@/lib/posthog/server'
 import { estimateCallCostUsd } from '@/lib/ai-spend/price'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { BIGGEST_BARRIER_OPTIONS, TOP_STRENGTH_OPTIONS, TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
 import { computeDirectnessLevel, DIRECTNESS_INSTRUCTION } from '@/lib/scoring/directness-level'
 import { getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
-import { computeWeeksOfImprovement } from '@/lib/scoring/market-reality-history'
 import {
   CURRENT_JOB_STATUS_LABELS,
   isVagueTargetRole,
@@ -75,10 +74,6 @@ const marketRealityReportSchema = z.object({
   // render time (market-reality-sections.ts's self-check against the real
   // ResumeAnalysis finding). Empty array when no weak bullet was supplied.
   resumeRewrites: z.array(z.object({ before: z.string(), after: z.string() })).max(3),
-  hillToClimb: z.object({
-    tone: z.enum(['very_positive', 'positive_with_work', 'significant_climb']),
-    narrative: z.array(z.string()).min(2).max(5),
-  }),
   // Widened beyond exactly-7-days-numbered-1-7: the model occasionally emits
   // an extra day or an off-range day number while satisfying every "HARD
   // REQUIREMENT" item above, which used to hard-fail the whole report with
@@ -109,15 +104,6 @@ const marketRealityReportSchema = z.object({
       })
     ),
   }),
-  marketConditions: z
-    .object({
-      narrative: z.array(z.string()).min(1).max(4),
-    })
-    .nullable(),
-  executiveSummary: z.object({
-    improvementNarrative: z.array(z.string()).min(1).max(4),
-    whatToDoMore: z.array(z.string()).min(1).max(4),
-  }),
 })
 
 type RawActionPlan = z.infer<typeof marketRealityReportSchema>['actionPlan']
@@ -143,7 +129,7 @@ const PROMPT_PREFIX = `${VICTORIA_VOICE_PROMPT}
 
 You are writing this Market Reality Report as Victoria, directly for the candidate — not for an employer, so show everything, no hedging or hiding of self-report contradictions. This report is built around one named grade, the Market Reality Assessment (A-F) — a day-one read on their resume and real work experience, capped by how many similar roles actually exist in the market. It does NOT reflect references, networking, or other ongoing platform activity — that builds a separate thing, their Dossier, over time, and is out of scope for this report. Reference the grade by name where relevant instead of a single generic "score."
 
-HARD REQUIREMENT — override Victoria's usual first-person voice for this document specifically: this report reads as a formal written assessment, not a message from Victoria speaking to the candidate. Never write in first person about yourself ("I will be honest with you," "I noticed," "I want to point out," "in my view") anywhere in strengths, weaknesses, hillToClimb, gapAnalysis, marketConditions, or the executive summary. Address the candidate directly as "you," and state findings and conclusions plainly ("Your resume shows..." / "This is a real gap..." / "The market for this target is..."), never as Victoria's own personal reaction to them.
+HARD REQUIREMENT — override Victoria's usual first-person voice for this document specifically: this report reads as a formal written assessment, not a message from Victoria speaking to the candidate. Never write in first person about yourself ("I will be honest with you," "I noticed," "I want to point out," "in my view") anywhere in strengths, weaknesses, actionPlan, or gapAnalysis. Address the candidate directly as "you," and state findings and conclusions plainly ("Your resume shows..." / "This is a real gap..." / "The market for this target is..."), never as Victoria's own personal reaction to them.
 
 HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Room to grow/Biggest opportunity) — never a number.
 
@@ -151,19 +137,16 @@ HARD REQUIREMENT — never include "commit to your first Search Sprint," "start 
 
 HARD REQUIREMENT — never say anything that ranks employers or schools against each other, never state or imply a probability of being hired, never imply that a gap, a short tenure, or a career break is a character issue, and never use consolation framing ("unfortunately," "sadly," or similar) — state the situation and the path forward instead.
 
-Underlying theme to weave in naturally (don't force it into every section, but it must appear at least once, ideally in the hill-to-climb narrative or the action plan intro): not everyone who searches will land the role they want — that's the honest truth, never promise an outcome — but doing the real work on their resume, positioning, and search fundamentals meaningfully improves their odds. This grade reflects what's true today, not effort — never imply the 7-day action plan itself raises this specific grade; it becomes a fuller picture of the candidate once they build out their Dossier (references, network, verified work) elsewhere on the platform.
+Underlying theme to weave in naturally (don't force it into every section, but it must appear at least once, ideally in a weakness or the action plan): not everyone who searches will land the role they want — that's the honest truth, never promise an outcome — but doing the real work on their resume, positioning, and search fundamentals meaningfully improves their odds. This grade reflects what's true today, not effort — never imply the 7-day action plan itself raises this specific grade; it becomes a fuller picture of the candidate once they build out their Dossier (references, network, verified work) elsewhere on the platform.
 
 Write:
 1. Strengths (3-5): specific, evidenced by their actual data below, not generic praise. For a low-band candidate this section must still be short but never empty — find the real floor and name it (a real team size actually managed, a real process improvement, a real completed reference) rather than manufacturing praise or skipping the section.
-2. Weaknesses (2-5): an "accountability mirror," not a resume nitpick list — candidly name the ways this candidate could realistically fail or stall in a real search (self-report contradictions, low job-search intensity, unrealistic target vs. actual experience, real resume presentation gaps), evidenced by their actual data below. Be direct, not harsh. If "Target role" is flagged as vague/no clear direction below, combine that with their other motivation signals (job search intensity, tradeoff rankings, flexibility preferences) to name whether they seem to genuinely lack direction or just haven't written it down yet — don't treat vagueness alone as damning.
+2. Weaknesses (2-5): an "accountability mirror," not a resume nitpick list — candidly name the ways this candidate could realistically fail or stall in a real search (self-report contradictions, low job-search intensity, unrealistic target vs. actual experience, real resume presentation gaps), evidenced by their actual data below (when you cite the job market, use only the market facts and opening counts given below, never a number that isn't given, and skip any count that says "not available"). Be direct, not harsh. If "Target role" is flagged as vague/no clear direction below, combine that with their other motivation signals (job search intensity, tradeoff rankings, flexibility preferences) to name whether they seem to genuinely lack direction or just haven't written it down yet — don't treat vagueness alone as damning.
    - HARD REQUIREMENT: every weakness's "detail" must end with one concrete, specific instruction on exactly what to do about it — name the real page and the real field(s) to fill in or fix (e.g. "Fill this in on your Search Strategy page: target function, what you're known for, deal-breakers, and how you'd rank tradeoffs.") or the exact resume change needed. A diagnosis with no named next step is incomplete — the candidate reading this must know precisely where to click and what to enter, not just what's wrong.
    - HARD REQUIREMENT: if "Management/IC preference vs. goals conflict" below is YES, name this tension as one of the weaknesses (or fold it into the gap analysis). Trust that they genuinely want to be an individual contributor — never suggest they secretly want to manage — but be direct that their team-management history and/or their stated target role point toward a more senior/managerial track, and they'll need to either retarget their search toward true IC-track roles (which may mean a different title or level than they wrote down) or consciously plan for the trade-off a more senior title actually requires (less hands-on work, more people management, even if that's not their preference).
-   - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, straight talk is non-negotiable — do not soften or omit this: pivoting is genuinely harder than a lateral search. Name at least one concrete reason why in the weaknesses or hill-to-climb narrative — a longer realistic timeline, the extra work of translating past achievements into the target function/industry's language (on the resume, in interviews, in networking conversations), and a heavier dependence on warm introductions and networking since keyword-matched job boards won't surface an unconventional background. Never frame the pivot itself as a mistake or discourage it — only be honest about the work it requires.
+   - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, straight talk is non-negotiable — do not soften or omit this: pivoting is genuinely harder than a lateral search. Name at least one concrete reason why in the weaknesses — a longer realistic timeline, the extra work of translating past achievements into the target function/industry's language (on the resume, in interviews, in networking conversations), and a heavier dependence on warm introductions and networking since keyword-matched job boards won't surface an unconventional background. Never frame the pivot itself as a mistake or discourage it — only be honest about the work it requires.
    - HARD REQUIREMENT — for an A/B-band candidate, weaknesses must still be genuinely substantive, not manufactured-easy: name real, specific challenges from their actual data below (market scarcity for their target, a resume gap, unproven skills for a pivot, a self-report contradiction) rather than softened or omitted ones. A strong grade must never read as "nothing to say here" — find the real, honest friction even for a candidate who is doing everything right.
-3. Hill to climb: one honest, holistic evaluation of how hard finding a job will realistically be for this candidate, given everything below (their Market Reality Assessment, experience, market conditions, job search intensity, self-awareness signals, resume completeness). Choose a "tone" — "very_positive" for strong candidates who are doing the right things, "positive_with_work" for solid candidates with real gaps, "significant_climb" for candidates facing a genuinely hard market position — and write 2-5 narrative sentences that are honest about the difficulty but never discouraging: always end on what real work on their resume, positioning, and target does to improve their odds. Never imply the grade guarantees an outcome.
-   - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, the tone and narrative must reflect that pivoting is a harder path than a lateral move (see the weaknesses instruction above) — never pick "very_positive" on the strength of a lateral candidate's profile alone if they're pivoting. Still end on what's in their control: the transferable-skills story they build, the networking they do, and the specificity of the target they pick all move the needle even on a pivot.
-   - HARD REQUIREMENT: a "very_positive" tone still requires naming at least 2 sentences of real friction (a market condition, a resume gap, an unproven claim) — encouragement alone, with nothing honest to push against, is not a complete hill-to-climb narrative.
-4. An action plan (exactly 7 days, each with concrete items). Each item has a "text" field and an optional "actionType" tag. Where relevant, reference real features of this platform: joining the Community Board (posting a job/project/intro or expressing interest in one), requesting a reference, uploading a work sample, adding a job posting for fit feedback.
+3. An action plan (exactly 7 days, each with concrete items). Each item has a "text" field and an optional "actionType" tag. Where relevant, reference real features of this platform: joining the Community Board (posting a job/project/intro or expressing interest in one), requesting a reference, uploading a work sample, adding a job posting for fit feedback.
    - HARD REQUIREMENT: write every item's "text" in this exact shape: a short action name (3-6 words, no reasoning in it) + " — " + one short clause on why it matters, in plain language a candidate would find compelling. Example: "Confirm your industry — recruiters match you on this first." The UI hyperlinks only the part before the dash, so the action name must stand alone as something clickable; never put the reason before the dash or omit the dash.
    - HARD REQUIREMENT — priority order across the 7 days: foundational setup always comes before search activity, in this order, skipping whichever of the first four don't apply (see each item's own gating condition below) — (1) LinkedIn setup, (2) Gmail connect, (3) Search Strategy / target confirmation, (4) resume upload or applying resume suggestions. Only once those that apply are placed should later days move to search-activity items — networking (actionType "NETWORKING_LIST" or "OUTREACH_MESSAGE"), applying to jobs, job-fit feedback, interview prep, etc. Never place a search-activity item on an earlier day than a still-outstanding foundational item from this list.
    - After satisfying every HARD REQUIREMENT item below, fill any remaining day slots with items that make progress on "Currently open gaps" (see candidate data below) rather than generic advice — when a gap lists an existing platform resource, point the candidate at it by name instead of re-deriving generic advice unrelated to any open gap.
@@ -177,19 +160,48 @@ Write:
    - HARD REQUIREMENT: if "Industry confirmed" below says "no", one of the 7 days MUST include confirming their industry (auto-filled from their resume), tagged actionType "INDUSTRY_CONFIRM". If "yes", do NOT include this item.
    - HARD REQUIREMENT: if "Function/title/years confirmed" below says "no", one of the 7 days MUST include confirming their primary function, latest job title, and years of experience (auto-filled from their resume), tagged actionType "FUNCTION_CONFIRM". If "yes", do NOT include this item.
    - HARD REQUIREMENT: if "Salary/work authorization confirmed" below says "no", one of the 7 days MUST include answering their last salary and work authorization status (these are not on their resume), tagged actionType "SALARY_CONFIRM" for one item and actionType "WORK_AUTHORIZATION" for a separate item. If "yes", do NOT include either item.
-5. Gap analysis: identify gaps against their stated target role, and suggest a remediation path for each — upskilling, fractional/contract work (you may name real categories like "fractional/contract platforms such as Mercor or Toptal" without fabricating specific URLs), consulting, or networking.
+4. Gap analysis: identify gaps against their stated target role, and suggest a remediation path for each — upskilling, fractional/contract work (you may name real categories like "fractional/contract platforms such as Mercor or Toptal" without fabricating specific URLs), consulting, or networking.
    - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, weight networking and story-building remediation (translating prior achievements into the target function/industry's language, warm introductions into that space) more heavily than generic upskilling — keyword-matched job boards are the least effective channel for an unconventional background, and the gaps/remediation should reflect that honestly.
-   - If "Location preference" below is "remote", include one honest, non-judgmental note somewhere in the strengths/weaknesses/hill-to-climb sections acknowledging that on-site presence is genuinely a plus for many employers, that remote work matters a great deal to many people too, that there are real benefits to in-person work (mentorship, visibility, spontaneous collaboration), and that they might consider hybrid as a middle ground worth weighing — framed as an option to consider, never as pressure to abandon a real preference.
-6. Market conditions: if "Market data available" below is "yes", write 1-4 short bullet points of honest commentary on local job availability and occupational trend using ONLY the facts provided — never invent a number that isn't given. Weave in "Openings matching their exact target title" and "Openings matching their target function + industry" below wherever they say a real count (skip either one entirely if it says "not available" — do not mention a number for it or explain why it's missing). End with one direct sentence connecting these facts to how hard their search will realistically be — this should agree with, not contradict, the hill-to-climb tone above. If "Market data available" is "no", set marketConditions to null rather than speculating or estimating.
-7. Executive Summary (this appears at the very top of the report, before the grades — write it so it stands alone): two parts, each 1-4 sentences.
-   - improvementNarrative: see "Report-over-report change" below.
-     - HARD REQUIREMENT: if "Is this the candidate's first-ever report" is "yes", there is nothing to compare against — say so plainly and frame this as their baseline ("this is where you stand today"), never claim improvement or decline.
-     - Otherwise, credit them SPECIFICALLY by name for any real new data they added since their last report (e.g. "an updated resume," "your work-style assessment") — never a vague "you've been active." Connect it to what it actually did ONLY if the grade movement data below supports that connection — never invent a causal link the data doesn't support. If nothing new was added and nothing moved, say so plainly and honestly rather than manufacturing false credit — that's a real, useful signal too (nudge toward action, don't scold).
-   - whatToDoMore: the single highest-leverage thing(s) they should do more of right now on their resume, positioning, or target — grounded in "Currently open gaps" above, concrete and specific, not generic advice.
-8. Resume rewrites (0-3): "Weak bullets to rewrite" below lists up to 3 real, verbatim-quoted bullets already flagged by the resume scoring engine as weak. For EACH one supplied, write a rewritten version that keeps every real fact (no invented numbers, no invented outcomes) but leads with the result and states it as a from/to change wherever the original implies one. Copy the "before" field VERBATIM, character-for-character, from the supplied quote — it's matched back to the original finding by exact text, so a paraphrased "before" will silently discard the rewrite. If no weak bullets are supplied below, return an empty array — never invent a bullet to rewrite.
+   - If "Location preference" below is "remote", include one honest, non-judgmental note somewhere in the strengths or weaknesses acknowledging that on-site presence is genuinely a plus for many employers, that remote work matters a great deal to many people too, that there are real benefits to in-person work (mentorship, visibility, spontaneous collaboration), and that they might consider hybrid as a middle ground worth weighing — framed as an option to consider, never as pressure to abandon a real preference.
+5. Resume rewrites (0-3): "Weak bullets to rewrite" below lists up to 3 real, verbatim-quoted bullets already flagged by the resume scoring engine as weak. For EACH one supplied, write a rewritten version that keeps every real fact (no invented numbers, no invented outcomes) but leads with the result and states it as a from/to change wherever the original implies one. Copy the "before" field VERBATIM, character-for-character, from the supplied quote — it's matched back to the original finding by exact text, so a paraphrased "before" will silently discard the rewrite. If no weak bullets are supplied below, return an empty array — never invent a bullet to rewrite.
 
 Candidate data:
 `
+
+// Side-by-side test of a cheaper model (owner decision 2026-11-07: "drop the staff-only sections and test Sonnet 5 against Opus").
+// While MARKET_REALITY_SHADOW_MODEL is set, each report also runs that model on the SAME prompt, at the same time as the real call, and
+// the result is stored for staff to compare (AnalyticsEvent 'market_reality_shadow', Postgres only: it holds the report text). Members only
+// ever see the real report, and a shadow failure never touches it. It stops by itself after SHADOW_MAX comparisons, which caps the spend.
+const SHADOW_MAX = 20
+
+async function runShadow(model: string, prompt: string) {
+  try {
+    const done = await prisma.analyticsEvent.count({ where: { event: 'market_reality_shadow' } })
+    if (done >= SHADOW_MAX) return null
+    const started = Date.now()
+    const message = await getAnthropicClient()
+      .messages.stream({
+        model,
+        max_tokens: 8000,
+        thinking: { type: 'adaptive' },
+        output_config: { format: zodOutputFormat(marketRealityReportSchema), effort: 'medium' },
+        messages: [{ role: 'user', content: prompt }],
+      })
+      .finalMessage()
+    return {
+      model,
+      output: message.parsed_output,
+      inputTokens: message.usage.input_tokens,
+      outputTokens: message.usage.output_tokens,
+      costUsd: estimateCallCostUsd(model, message.usage),
+      durationMs: Date.now() - started,
+      stopReason: message.stop_reason,
+    }
+  } catch (error) {
+    console.error('Market Reality shadow run failed:', error)
+    return null
+  }
+}
 
 export async function generateMarketRealityReport(candidateId: string): Promise<void> {
   // workSamples/communityPosts/surfacedJobs/_count.weeklySprints/coach were
@@ -270,8 +282,6 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     jobPattern,
     applicationTrends,
     rejectionTrends,
-    priorReport,
-    marketRealitySnapshots,
     gradeRefresh,
     latestResumeAnalysisFindings,
     weekNumber,
@@ -293,12 +303,6 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
     generateJobPattern(candidateId),
     computeApplicationTrends(candidateId),
     computeRejectionTrends(candidateId),
-    // The most recent EXISTING report — relative to the new one about to
-    // be generated below, this is "last time." Null on a candidate's
-    // first-ever report, handled explicitly in the Executive Summary
-    // prompt instructions above rather than fabricating a comparison.
-    prisma.marketRealityReport.findFirst({ where: { candidateId }, orderBy: { generatedAt: 'desc' } }),
-    prisma.marketRealitySnapshot.findMany({ where: { candidateId }, orderBy: { weekStartDate: 'asc' } }),
     // MRG §11 — refresh the 5-component Market Reality Assessment composite
     // (MarketRealityComponentScore) in the same pass as everything else,
     // so report generation is the one designated "recompute moment."
@@ -321,7 +325,7 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
       }
     })(),
     // Up to 3 real, verbatim-quoted weak bullets from the latest
-    // ResumeAnalysis (resume-analysis/compute.ts) — passed into part 8 of
+    // ResumeAnalysis (resume-analysis/compute.ts) — passed into part 5 of
     // the prompt above so the model can write a real before/after rewrite
     // (Report Structure Spec §3.3) instead of a generic instruction.
     // Findings quote the offending text in quotes; only the
@@ -357,25 +361,6 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
         .slice(0, 3)
     : []
 
-  // Real, verified "what's new since last report" — every count here is a
-  // genuine created/completed timestamp compared against the prior report's
-  // generatedAt, never a guess. Only computed when a prior report exists;
-  // see the Executive Summary prompt's first-report branch above.
-  const [referencesCompletedSinceLastReport, applicationsSinceLastReport, outreachSinceLastReport] = priorReport
-    ? await Promise.all([
-        candidate.references.filter((r) => r.completedAt && r.completedAt > priorReport.generatedAt).length,
-        prisma.jobPosting.count({ where: { candidateId, appliedAt: { gt: priorReport.generatedAt } } }),
-        prisma.outreachLog.count({ where: { candidateId, loggedAt: { gt: priorReport.generatedAt } } }),
-      ])
-    : [0, 0, 0]
-  const resumeUpdatedSinceLastReport = !!(latestResume && priorReport && latestResume.uploadedAt > priorReport.generatedAt)
-  const assessmentCompletedSinceLastReport = !!(
-    latestAssessment &&
-    priorReport &&
-    latestAssessment.completedAt > priorReport.generatedAt
-  )
-  const weeksOfImprovement = priorReport ? computeWeeksOfImprovement(marketRealitySnapshots) : 0
-
   // Same structured gap list the Market Reality Report UI and Executive
   // Dossier already compute (see named-reasons.ts) — passed into the action
   // plan prompt below so the 7-day plan can actually prioritize closing
@@ -407,7 +392,7 @@ Market Reality Assessment: ${
       ? `${newGradeHeadline.headline} ${newGradeHeadline.strongestLine} ${newGradeHeadline.constraintLine}`
       : 'not enough data yet to compute'
   }
-Currently open gaps (named reasons a hiring manager would notice about this candidate right now — when choosing action-plan items in part 4 below, beyond what's already required, prioritize items that make progress on these, especially ones with an existing platform resource named):
+Currently open gaps (named reasons a hiring manager would notice about this candidate right now — when choosing action-plan items in part 3 below, beyond what's already required, prioritize items that make progress on these, especially ones with an existing platform resource named):
   ${
     namedReasons
       .filter((r) => r.kind === 'gap')
@@ -438,7 +423,7 @@ Industry background: ${candidate.industryContext ?? 'not specified'}
 Considering a pivot to a different function/industry, not just changing employers: ${candidate.isPivoting ? 'yes' : 'no'}
 Job status: ${candidate.currentJobStatus ? CURRENT_JOB_STATUS_LABELS[candidate.currentJobStatus] : 'not specified'}${
     candidate.currentJobStatus === 'SEEKING_PROMOTION'
-      ? ` — HARD REQUIREMENT: this candidate is currently employed and looking for a promotion or raise where they are, NOT preparing to leave or worried about being let go. Never ask about, speculate about, or reference job-security fears — that is not their situation and must stay entirely out of every section. The strengths/weaknesses/hill-to-climb/action-plan framing must reflect that they're negotiating from strength: having a job while searching is a real advantage (less financial pressure, no urgency-driven bad decisions, an employer who presumably already values them), and the honest strategy for them is different from every other persona here — build external leverage (real market interest, a competing offer, evidence of their market value) to bring back to their current employer for the promotion/raise ask, and treat the external search itself as something to run more discreetly/lower-profile than a candidate who's already out of work, since visibility risk cuts the other way for them. Weave negotiation-specific guidance into the weaknesses/action-plan/gap-analysis sections rather than generic job-search advice.`
+      ? ` — HARD REQUIREMENT: this candidate is currently employed and looking for a promotion or raise where they are, NOT preparing to leave or worried about being let go. Never ask about, speculate about, or reference job-security fears — that is not their situation and must stay entirely out of every section. The strengths/weaknesses/action-plan framing must reflect that they're negotiating from strength: having a job while searching is a real advantage (less financial pressure, no urgency-driven bad decisions, an employer who presumably already values them), and the honest strategy for them is different from every other persona here — build external leverage (real market interest, a competing offer, evidence of their market value) to bring back to their current employer for the promotion/raise ask, and treat the external search itself as something to run more discreetly/lower-profile than a candidate who's already out of work, since visibility risk cuts the other way for them. Weave negotiation-specific guidance into the weaknesses/action-plan/gap-analysis sections rather than generic job-search advice.`
       : ''
   }
 Journey: ${(() => {
@@ -497,7 +482,7 @@ Resume analysis: ${
       : 'no resume uploaded yet'
   }
 
-Weak bullets to rewrite (for part 8 only — copy "before" verbatim from these): ${
+Weak bullets to rewrite (for part 5 only — copy "before" verbatim from these): ${
     weakBulletQuotes.length > 0 ? weakBulletQuotes.map((q) => `"${q}"`).join(' | ') : 'none supplied'
   }
 
@@ -546,24 +531,14 @@ Openings matching their target function + industry: ${industrySpecificCount !== 
 ${skillGapPromptSection(skillGap)}
 ${applicationGapPromptSection(applicationGaps)}
 
---- Report-over-report change (for the Executive Summary section only) ---
-Is this the candidate's first-ever report: ${priorReport ? 'no' : 'yes'}
-${
-  priorReport
-    ? `Previous report generated: ${priorReport.generatedAt.toISOString().slice(0, 10)}
-Consecutive weeks of real improvement: ${weeksOfImprovement}
-New data added since the previous report (credit these specifically, by name, only where true):
-  - Completed references: ${referencesCompletedSinceLastReport}
-  - Resume: ${resumeUpdatedSinceLastReport ? 'uploaded or updated' : 'no change'}
-  - Work-style assessment: ${assessmentCompletedSinceLastReport ? 'completed' : 'no change'}
-  - Applications submitted: ${applicationsSinceLastReport}
-  - Networking outreach logged: ${outreachSinceLastReport}`
-    : 'No prior report exists — this is their baseline, nothing to compare against.'
-}
 `.trim()
 
   let data: ReturnType<typeof marketRealityReportSchema.parse> | null | undefined
   const modelStarted = Date.now()
+  const prompt = PROMPT_PREFIX + summary
+  const shadowModel = process.env.MARKET_REALITY_SHADOW_MODEL?.trim()
+  const shadow = shadowModel ? runShadow(shadowModel, prompt) : null
+  let opusCost: { inputTokens: number; outputTokens: number; costUsd: number | null; durationMs: number } | null = null
   try {
     const client = getAnthropicClient()
     const stream = client.messages.stream({
@@ -575,11 +550,17 @@ New data added since the previous report (credit these specifically, by name, on
       max_tokens: 8000,
       thinking: { type: 'adaptive' },
       output_config: { format: zodOutputFormat(marketRealityReportSchema), effort: 'medium' },
-      messages: [{ role: 'user', content: PROMPT_PREFIX + summary }],
+      messages: [{ role: 'user', content: prompt }],
     })
     const message = await stream.finalMessage()
     data = message.parsed_output
     // What this report cost: the figure behind "can it be cheaper", measured rather than guessed.
+    opusCost = {
+      inputTokens: message.usage.input_tokens,
+      outputTokens: message.usage.output_tokens,
+      costUsd: estimateCallCostUsd('claude-opus-5', message.usage),
+      durationMs: Date.now() - modelStarted,
+    }
     captureServerEvent(candidateId, 'model_call_cost', {
       feature: 'market_reality_report',
       model: 'claude-opus-5',
@@ -597,23 +578,18 @@ New data added since the previous report (credit these specifically, by name, on
 
   if (!data) return
 
-  await prisma.marketRealityReport.create({
+  const saved = await prisma.marketRealityReport.create({
+    select: { id: true },
     data: {
       candidateId,
       strengths: data.strengths,
       weaknesses: data.weaknesses,
-      hillToClimb: data.hillToClimb,
       // The skills gap is merged in code, not left to the model: the counts come from
       // real open roles and must appear exactly, every time.
       actionPlan: addSkillGapActionItem(normalizeActionPlan(data.actionPlan), skillGap),
       gapAnalysis: mergeApplicationGapsIntoGapAnalysis(mergeSkillGapIntoGapAnalysis(data.gapAnalysis, skillGap), applicationGaps),
-      marketConditions: marketConditions.dataAvailable
-        ? {
-            narrative: data.marketConditions?.narrative ?? [],
-            adzunaCount: marketConditions.adzunaCount,
-            blsYoyChangePct: marketConditions.blsYoyChangePct,
-          }
-        : Prisma.DbNull,
+      // No longer written: hill to climb, executive summary and the market narrative were read only by the staff report page
+      // (support/admin/.../market-reality/[reportId]), which hides a section that is null. Older rows keep theirs.
       jobSearchPattern: {
         summary: jobPattern.summary,
         signalCount: jobPattern.signalCount,
@@ -623,7 +599,6 @@ New data added since the previous report (credit these specifically, by name, on
         // Kept raw so the report page can render the gap as its own block later.
         skillGaps: skillGap,
       } as unknown as Prisma.InputJsonValue,
-      executiveSummary: data.executiveSummary as unknown as Prisma.InputJsonValue,
       // Self-check (spec §6 rule 7): only persist rewrites whose "before"
       // matches one of the real quoted bullets actually supplied to the
       // model — drops anything hallucinated or paraphrased rather than
@@ -634,6 +609,11 @@ New data added since the previous report (credit these specifically, by name, on
       resumeRewrites: data.resumeRewrites.filter((r) => weakBulletQuotes.includes(r.before)) as unknown as Prisma.InputJsonValue,
     },
   })
+
+  const shadowResult = shadow ? await shadow : null
+  if (shadowResult) {
+    mirrorServerEvent(candidateId, 'market_reality_shadow', { reportId: saved.id, real: { model: 'claude-opus-5', ...opusCost }, shadow: shadowResult })
+  }
 
   if (probabilityResult) {
     captureServerEvent(candidateId, 'grade_assigned', { grade: probabilityResult.probabilityGrade })
