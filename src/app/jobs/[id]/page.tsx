@@ -10,6 +10,7 @@ import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
 import { TrainingProvidedLine } from '@/components/jobs/TrainingProvidedLine'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ApplyAndSave } from '@/components/jobs/ApplyAndSave'
+import { ReturningMemberBanner } from '@/components/jobs/ReturningMemberBanner'
 import { ReadFullPostingLink } from '@/components/jobs/ReadFullPostingLink'
 import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import { lifecycleEmailsOn } from '@/lib/leads/lifecycle/config'
@@ -154,6 +155,8 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             )}
             <NoExperienceLine jobId={job.id} signals={job.postingSignals} phrase={job.noExperiencePhrase} surface="public_job" className="mt-3 text-base" />
             <TrainingProvidedLine jobId={job.id} signals={job.postingSignals} phrase={job.trainingPhrase} surface="public_job" className="mt-3 text-base" />
+
+            <ReturningMemberBanner jobId={job.id} company={job.companyName} />
 
             <ApplyAndSave jobId={job.id} company={job.companyName} jobTitle={job.title} industry={industry} applyUrl={job.url} emailOn={applySaveEmailOn() || lifecycleEmailsOn()} reminderOn={lifecycleEmailsOn()} />
 
