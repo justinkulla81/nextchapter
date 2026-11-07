@@ -1,6 +1,7 @@
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { getHiringAnalytics } from '@/lib/talent/hiring-analytics'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function TalentAnalyticsPage() {
   const employer = await getTalentDashboardData()
@@ -12,6 +13,7 @@ export default async function TalentAnalyticsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Hiring analytics</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">Time-to-hire and funnel conversion across every role.</p>
       </div>
 

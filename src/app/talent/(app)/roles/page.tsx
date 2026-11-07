@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { Button } from '@/components/ui/button'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function RolesPage() {
   const employer = await getTalentDashboardData()
@@ -16,6 +17,7 @@ export default async function RolesPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">My Roles</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-1 text-muted-foreground">Roles you&apos;ve posted.</p>
         </div>
         <Button nativeButton={false} render={<Link href="/talent/roles/new" />}>Post a Role</Button>

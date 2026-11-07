@@ -6,6 +6,7 @@ import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 import { MyJobBoardSubmissions } from '@/components/jobs/MyJobBoardSubmissions'
 import { Button } from '@/components/ui/button'
 import { reconfirmMyJobBoardPosting } from './actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function TalentJobBoardSubmissionsPage() {
   const supabase = await createClient('talent')
@@ -27,6 +28,7 @@ export default async function TalentJobBoardSubmissionsPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">My Job Board postings</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-1 text-muted-foreground">
             Postings expire 30 days after they&apos;re approved unless you confirm the role is
             still open.

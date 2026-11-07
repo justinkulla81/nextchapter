@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { getEmployerThreads } from '@/lib/messaging/threads'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function EmployerMessagesPage() {
   const employer = await getTalentDashboardData()
@@ -11,6 +12,7 @@ export default async function EmployerMessagesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Messages</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">
           Direct messages with candidates who&apos;ve been revealed to you.
         </p>

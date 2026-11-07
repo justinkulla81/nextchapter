@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCrucibleEmployerDashboardData } from '@/lib/crucible/employers/get-employer-dashboard-data'
 import { buttonVariants } from '@/components/ui/button'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = {
   title: { absolute: 'noexperienceneeded.ai — Contests' },
@@ -25,6 +26,7 @@ export default async function CrucibleContestsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Contests</h1>
+          <Squiggle className="mt-2" />
           <p className="mt-1 text-muted-foreground">
             Post a real business problem for a shot at a tailored, paid hire.
           </p>

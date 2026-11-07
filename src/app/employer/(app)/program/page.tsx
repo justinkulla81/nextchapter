@@ -2,6 +2,7 @@ import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
 import { orgProgram } from '@/lib/employer/program-server'
 import { PROGRAM_AREAS, PROGRAM_FEATURES, tierIncludes } from '@/lib/employer/program-settings'
 import { PackagesEditor, ProgramDetailsForm, ProgramLookForm, ServiceMenuRow } from '@/components/employer/ProgramForms'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const TIER_LABEL = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' } as const
 
@@ -15,6 +16,7 @@ export default async function EmployerProgramPage() {
     <div className="space-y-10">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Program</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Choose what your people get, who provides each service (NextChapter, or your own team), and which groups get what. They see it on their NextChapter
           dashboard and in their invite email. Changes don’t alter your contract or price.

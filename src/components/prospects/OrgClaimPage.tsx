@@ -6,6 +6,7 @@ import type { ClaimableOrg } from '@/lib/org-claims/org'
 import type { CommunityStats } from '@/lib/org-claims/community-stats'
 import { claimBenefits } from '@/lib/org-claims/claim-benefits'
 import type { KitKind } from '@/lib/org-claims/org-kit'
+import { Squiggle } from '@/components/ui/squiggle'
 
 /**
  * The claim page for any organization in the CRM. It starts with what the page gives people (jobs, who is hiring, contacts, events, training,
@@ -24,6 +25,7 @@ export function OrgClaimPage({ org, stats, peopleCount = null, page = null }: { 
       <section className="space-y-6 py-12" aria-labelledby="org-claim-h">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">For {org.name}</p>
         <h1 id="org-claim-h" className="font-serif text-4xl font-semibold leading-tight tracking-tight text-navy sm:text-5xl [text-wrap:balance]">The {org.name} page</h1>
+        <Squiggle className="mt-2" />
         <p className="max-w-2xl text-lg text-muted-foreground">
           We built a page for {org.name} from public data. It is free for the people who find it. Claiming it makes it yours.
         </p>

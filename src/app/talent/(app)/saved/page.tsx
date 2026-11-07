@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { prisma } from '@/lib/prisma'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function SavedCandidatesPage() {
   const employer = await getTalentDashboardData()
@@ -27,6 +28,7 @@ export default async function SavedCandidatesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Saved Candidates</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">Candidates you&apos;ve saved for later.</p>
       </div>
 

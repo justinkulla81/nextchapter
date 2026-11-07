@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { RecruiterSettingsForm } from '@/components/recruiter/RecruiterSettingsForm'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { uploadMyProfilePicture, removeMyProfilePicture, uploadMyFirmLogo, removeMyFirmLogo } from './actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function RecruiterSettingsPage() {
   const supabase = await createClient('recruiter')
@@ -29,6 +30,7 @@ export default async function RecruiterSettingsPage() {
       <div className="mt-4 mb-6 space-y-1">
         <p className="text-sm font-medium text-muted-foreground">NextChapter for Recruiters</p>
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <Squiggle className="mt-2" />
         <p className="text-muted-foreground">Your name, firm, and specialty — shown on every listing you submit.</p>
       </div>
 

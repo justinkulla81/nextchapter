@@ -7,6 +7,7 @@ import { INTAKE_CONSENT_SCOPE_LABELS, INTAKE_CONSENT_SCOPES } from '@/lib/recrui
 import { TagBadge } from '@/components/recruiter/talent/TalentSubnav'
 import { AssignControl, OpenResumeButton, TagButtons } from '@/components/recruiter/talent/TalentForms'
 import { assignConnection, getIntakeResumeUrl, overrideTag } from '../actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const SOURCE_LABEL = { PAGE: 'Inbound page', NOT_FIT_LINK: '"Not a fit now" link', FORWARD: 'Forwarded email', MEMBER_INTEREST: 'Expressed interest on NextChapter' } as const
 const REPLY_LABEL = { DRAFT: 'Waiting for your OK', APPROVED: 'Approved', SENT: 'Sent', CANCELLED: 'Cancelled' } as const
@@ -59,6 +60,7 @@ export default async function TalentConnectionPage({ params }: { params: Promise
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">{person.fullName}</h1>
+          <Squiggle className="mt-2" />
           <TagBadge tag={connection.tag} />
         </div>
         <p className="text-sm text-muted-foreground">

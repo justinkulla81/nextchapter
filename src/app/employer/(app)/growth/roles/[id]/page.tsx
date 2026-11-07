@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { requireEmployeesRole } from '@/lib/employer/outplacement-auth'
 import { INTERNAL_ROLE_STATUS, interestedPeople } from '@/lib/employer/staff-programs'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export const metadata: Metadata = { title: 'Interested in this role' }
 
@@ -25,6 +26,7 @@ export default async function InternalRoleInterestPage({ params }: { params: Pro
       </Link>
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{role.title}</h1>
+        <Squiggle className="mt-2" />
         <p className="text-sm text-muted-foreground">
           {[role.location, role.archivedAt ? 'Closed' : 'Open'].filter(Boolean).join(' · ')}
         </p>

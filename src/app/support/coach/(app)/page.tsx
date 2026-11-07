@@ -4,6 +4,7 @@ import { getCurrentCoach } from '@/lib/coach/current-coach'
 import { getCoachImpactReport } from '@/lib/coach/impact-report'
 import { getCoachUnreadCount } from '@/lib/messaging/threads'
 import { getCoachCaseload } from '@/lib/coach/caseload'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const HIGH_NEED_TAG = 'comfort_with_high_need_candidates'
 const SPECIALIST_MIN_CLIENTS = 2
@@ -26,6 +27,7 @@ export default async function CoachHomePage() {
       <div>
         <p className="text-sm font-medium text-muted-foreground">NextChapter for Coaches</p>
         <h1 className="text-2xl font-semibold tracking-tight">Welcome back, {coach.fullName.split(' ')[0]}</h1>
+        <Squiggle className="mt-2" />
         {coach.firmName && <p className="mt-1 text-muted-foreground">{coach.firmName}</p>}
         {isSpecialist && (
           <span className="mt-2 inline-block rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-medium text-brand">
