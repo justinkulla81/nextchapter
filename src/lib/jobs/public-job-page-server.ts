@@ -16,6 +16,7 @@ import {
   PUBLIC_JOB_VERIFIED_DAYS,
   cleanCompanyText,
   isPublicJob,
+  isViewableJob,
   type PublicJobRow,
 } from '@/lib/jobs/public-job-page'
 
@@ -85,7 +86,7 @@ export async function getPublicJob(id: string): Promise<PublicJobRow | null> {
     retryOnPoolTimeout(() => prisma.exclusiveJobPosting.findUnique({ where: { id }, select: PUBLIC_JOB_SELECT })),
     retryOnPoolTimeout(() => getConfirmedGhostIds()),
   ])
-  if (!job || !isPublicJob(job, Date.now(), ghosts.has(job.id))) return null
+  if (!job || !isViewableJob(job, Date.now(), ghosts.has(job.id))) return null
   return { ...job, companyName: cleanCompanyText(job.companyName) }
 }
 
