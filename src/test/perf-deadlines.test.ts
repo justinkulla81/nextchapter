@@ -102,6 +102,28 @@ describe('judgeSlowRows', () => {
     expect(v.timeouts).toBe(3)
   })
 
+  it('stays quiet when one page load has all its reads give up together (a dashboard load makes eight badge reads at once)', () => {
+    const at = 1_000_000
+    const labels = ['access', 'documentRequests', 'freshJobs', 'helpReplies', 'needsFollowUp', 'peerUnread', 'candidateUnread', 'supportNetworkUnread']
+    const rows = labels.map((label, i) => row({ event: 'page_query_stalled', route: 'layout', label, timedOut: true, ms: 1_500, at: at + i * 100 }))
+    const v = judgeSlowRows(rows)
+    expect(v.alert).toBe(false)
+    expect(v.timeouts).toBe(8)
+    expect(v.pageLoads).toBe(1)
+  })
+
+  it('alerts when separate page loads keep having reads give up, even from one person', () => {
+    const rows = [0, 60_000, 120_000].map((t) => row({ event: 'page_query_stalled', route: 'layout', label: 'freshJobs', timedOut: true, ms: 1_500, at: 5_000_000 + t }))
+    const v = judgeSlowRows(rows)
+    expect(v.alert).toBe(true)
+    expect(v.pageLoads).toBe(3)
+  })
+
+  it('alerts when several people each have a page load with reads giving up', () => {
+    const rows = ['a', 'b', 'c'].map((who) => row({ who, event: 'page_query_stalled', route: 'layout', label: 'freshJobs', timedOut: true, ms: 1_500, at: 9_000_000 }))
+    expect(judgeSlowRows(rows).alert).toBe(true)
+  })
+
   it('names the biggest offenders first', () => {
     const rows = [
       row({ event: 'page_query_stalled', route: 'layout', label: 'freshJobs', ms: 120_000 }),

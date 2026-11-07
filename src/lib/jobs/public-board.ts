@@ -2,6 +2,7 @@ import 'server-only'
 import { unstable_cache } from 'next/cache'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { classifyLocation } from '@/lib/jobs/us-location'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import { isPublicJob, isStaleVerified } from '@/lib/jobs/public-job-page'
@@ -21,6 +22,8 @@ import { industryRawValues } from '@/lib/seo/topics'
 export const PUBLIC_BOARD_PAGE_SIZE = 12
 const MAX_WORDS = 5
 const OVERFETCH = PUBLIC_BOARD_PAGE_SIZE * 5
+/** Longest one board read may run in the database (a state-wide search takes about 4 s on a cold cache). */
+const BOARD_STATEMENT_MS = 10_000
 
 export interface PublicBoardJob {
   id: string
@@ -54,6 +57,8 @@ export interface PublicBoardQuery {
   offset?: number
   /** Only these ncrawl seniority levels (BoardLightRow.level), e.g. ['DIRECTOR']. Off by default. */
   levels?: string[]
+  /** The caller only wants the jobs, not the match count (the saved-search alerts): skips the count query and returns total 0. */
+  skipTotal?: boolean
 }
 
 export function cleanPublicQuery(raw: { q?: string | null; loc?: string | null; remote?: string | null }): PublicBoardQuery {
@@ -127,15 +132,20 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
       ],
     },
   }
+  // Each read gets BOARD_STATEMENT_MS in the database, not the two-minute default: this search scans the board's copy, and one that cannot
+  // finish should free its connection (a count or read ran 28 to 79 s on 2026-11 before the cache and this limit).
   const [total, rows] = await Promise.all([
-    prisma.boardLightRow.count({ where: { AND: [where, noIntern] } }),
-    prisma.boardLightRow.findMany({
-      where: { AND: [where, noIntern] },
-      orderBy: [{ postedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
-      skip: query.offset ?? 0,
-      take: OVERFETCH, // headroom: non-US and confidential rows are dropped below
-      select: { id: true, title: true, companyName: true, location: true, postedAt: true, createdAt: true, salaryMin: true, salaryMax: true },
-    }),
+    query.skipTotal ? Promise.resolve(0) : withStatementTimeout(prisma.boardLightRow.count({ where: { AND: [where, noIntern] } }), BOARD_STATEMENT_MS),
+    withStatementTimeout(
+      prisma.boardLightRow.findMany({
+        where: { AND: [where, noIntern] },
+        orderBy: [{ postedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
+        skip: query.offset ?? 0,
+        take: OVERFETCH, // headroom: non-US and confidential rows are dropped below
+        select: { id: true, title: true, companyName: true, location: true, postedAt: true, createdAt: true, salaryMin: true, salaryMax: true },
+      }),
+      BOARD_STATEMENT_MS,
+    ),
   ])
   if (rows.length === 0) return { total, jobs: [], nextOffset: null }
 
