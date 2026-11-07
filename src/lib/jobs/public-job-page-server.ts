@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getTitleDetail, type TitleJob } from '@/lib/seo/job-titles'
 import { baseTitle, titleSlug } from '@/lib/seo/job-title-rules'
-import { retryOnPoolTimeout } from '@/lib/db/heavy'
+import { memoTtl, retryOnPoolTimeout, sharedLoad } from '@/lib/db/heavy'
 import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import {
@@ -216,15 +216,35 @@ export interface SimilarJob {
 export async function similarJobsAtCompany(companyId: string | null | undefined, excludeId: string, limit = 6): Promise<SimilarJob[]> {
   if (!companyId) return []
   try {
-    // The employer's newest rows by cheap columns first (no description read), then the full public rules on only those.
-    // A large employer has ~10,000 open rows; running the description checks and regexes on all of them took 2-7 s each
-    // view and slowed every member page on the shared database (2026-11-05).
-    const rows = await withStatementTimeout(
-      prisma.$queryRaw<SimilarJob[]>`
+    // The page's own job is dropped here, after the read, so one read serves every job page of the employer.
+    const rows = (await employerRoles(companyId)).filter((r) => r.id !== excludeId)
+    return pickSimilarJobs(rows, limit)
+  } catch {
+    return []
+  }
+}
+
+// How many rows one cached read keeps: the most any caller asks for (6 links, three candidates each) plus the page's own job.
+const SIMILAR_CACHED_ROWS = 25
+
+/**
+ * An employer's newest public roles, read once and shared. Every job page of the employer used to run this query again, and a crawl
+ * makes hundreds of thousands of such page views a day (351k reads between 2026-11-06 and 11-07), which was a large share of the
+ * database's disk reads and outbound data (Supabase Disk IO and egress warnings). Kept on the instance for ten minutes and in the
+ * shared data cache for an hour; a failed or slow read throws, so it is never stored.
+ */
+const employerRoles = memoTtl(10 * 60_000, (companyId: string) => companyId, (companyId: string) =>
+  sharedLoad(`similar-at-company:${companyId}`, 3600, () => loadEmployerRoles(companyId), { reviveDates: false }))
+
+async function loadEmployerRoles(companyId: string): Promise<SimilarJob[]> {
+  // The employer's newest rows by cheap columns first (no description read), then the full public rules on only those.
+  // A large employer has ~10,000 open rows; running the description checks and regexes on all of them took 2-7 s each
+  // view and slowed every member page on the shared database (2026-11-05).
+  return withStatementTimeout(
+    prisma.$queryRaw<SimilarJob[]>`
       WITH recent AS MATERIALIZED (
         SELECT id FROM "ExclusiveJobPosting"
         WHERE "companyId" = ${companyId}
-          AND id <> ${excludeId}
           AND status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL
         ORDER BY "lastVerifiedAt" DESC
         LIMIT 150
@@ -236,13 +256,9 @@ export async function similarJobsAtCompany(companyId: string | null | undefined,
         AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
         AND ${PUBLIC_JOB_LIVE_SQL}
       ORDER BY "lastVerifiedAt" DESC
-      LIMIT ${limit * 3}`,
-      3_000
-    )
-    return pickSimilarJobs(rows, limit)
-  } catch {
-    return []
-  }
+      LIMIT ${SIMILAR_CACHED_ROWS}`,
+    3_000
+  )
 }
 
 /** One link per distinct title and place, so a company that posts the same role in ten offices does not fill the block. */
@@ -261,22 +277,26 @@ export function pickSimilarJobs(rows: SimilarJob[], limit: number): SimilarJob[]
 
 export interface LikeJob { id: string; title: string; companyName: string; locationCity: string | null; locationState: string | null }
 
+interface LikeKey { socCode: string | null; targetFunction: string | null; level: string | null; locationState: string | null; excludeCompanyId: string | null }
+const SIMILAR_LIKE_CACHED_ROWS = 40
+
 /**
- * Open jobs like one: the same occupation (SOC code, which is indexed), in the same state first, employers on their own career system
- * first, newest first, at most two per employer. Reads only the occupation's newest rows by cheap columns, then applies the full public
- * rules to those (the same shape as similarJobsAtCompany, because the occupation's rows number in the thousands). `excludeCompanyId` leaves
- * out the employer a page already lists on its own. A failed or slow read (3 seconds) gives none.
+ * The candidates behind similarJobsLike, read once per occupation (or function and level), state and excluded employer, and shared. Job
+ * pages ran this query on every view: 80,000 reads in the 7.5 hours to 2026-11-07 22:48 UTC, the largest reader of the database's disk
+ * (Supabase Disk IO warning). Kept on the instance for ten minutes and in the shared data cache for an hour; a failed or slow read throws,
+ * so it is never stored.
  */
-export async function similarJobsLike(job: { id: string; socCode: string | null | undefined; targetFunction?: string | null; level?: string | null; locationState: string | null | undefined; excludeCompanyId?: string | null }, limit = 6): Promise<LikeJob[]> {
+const likeRoles = memoTtl(10 * 60_000, (k: LikeKey) => JSON.stringify(k), (k: LikeKey) =>
+  sharedLoad(`similar-like:${JSON.stringify(k)}`, 3600, () => loadLikeRoles(k), { reviveDates: false }))
+
+async function loadLikeRoles(job: LikeKey): Promise<LikeJob[]> {
   // About 28% of live jobs carry no occupation code (the feed did not send one). Those match on function and level instead, read from the
   // board's narrow copy (BoardLightRow, ~0.5 s; the wide table has no index on function and took over 8 s), newest first.
   const byCode = !!job.socCode
-  if (!byCode && !job.targetFunction) return []
   const exclude = job.excludeCompanyId ? Prisma.sql`AND ("companyId" IS NULL OR "companyId" <> ${job.excludeCompanyId})` : Prisma.empty
   const recent = byCode
     ? Prisma.sql`SELECT id FROM "ExclusiveJobPosting"
         WHERE "socCode" = ${job.socCode}
-          AND id <> ${job.id}
           AND status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL
           ${exclude}
         ORDER BY "lastVerifiedAt" DESC NULLS LAST
@@ -284,25 +304,38 @@ export async function similarJobsLike(job: { id: string; socCode: string | null 
     : Prisma.sql`SELECT id FROM "BoardLightRow"
         WHERE "targetFunction" = ${job.targetFunction}
           ${job.level ? Prisma.sql`AND level = ${job.level}` : Prisma.empty}
-          AND id <> ${job.id}
           AND status = 'approved' AND "archivedAt" IS NULL
         ORDER BY "postedAt" DESC NULLS LAST
         LIMIT 300`
-  try {
-    const rows = await withStatementTimeout(
-      prisma.$queryRaw<LikeJob[]>`
+  return withStatementTimeout(
+    prisma.$queryRaw<LikeJob[]>`
       WITH recent AS MATERIALIZED (${recent})
       SELECT id, title, "companyName", "locationCity", "locationState" FROM "ExclusiveJobPosting"
       WHERE id IN (SELECT id FROM recent)
         ${byCode ? Prisma.empty : exclude}
         AND ${PUBLIC_JOB_STATIC_SQL}
         AND ${PUBLIC_JOB_LIVE_SQL}
-      ORDER BY ("locationState" IS NOT DISTINCT FROM ${job.locationState ?? null}) DESC,
+      ORDER BY ("locationState" IS NOT DISTINCT FROM ${job.locationState}) DESC,
                ("directListing" OR "sourceCategory" = 'employer') DESC,
                "lastVerifiedAt" DESC
-      LIMIT ${limit * 4}`,
-      3_000,
-    )
+      LIMIT ${SIMILAR_LIKE_CACHED_ROWS}`,
+    3_000,
+  )
+}
+
+/**
+ * Open jobs like one: the same occupation (SOC code, which is indexed), in the same state first, employers on their own career system
+ * first, newest first, at most two per employer. Reads only the occupation's newest rows by cheap columns, then applies the full public
+ * rules to those (the same shape as similarJobsAtCompany, because the occupation's rows number in the thousands). `excludeCompanyId` leaves
+ * out the employer a page already lists on its own. A failed or slow read (3 seconds) gives none.
+ */
+export async function similarJobsLike(job: { id: string; socCode: string | null | undefined; targetFunction?: string | null; level?: string | null; locationState: string | null | undefined; excludeCompanyId?: string | null }, limit = 6): Promise<LikeJob[]> {
+  const byCode = !!job.socCode
+  if (!byCode && !job.targetFunction) return []
+  try {
+    // The page's own job is dropped here, after the read, so one read serves every job page with the same occupation, state and employer.
+    const rows = (await likeRoles({ socCode: job.socCode ?? null, targetFunction: job.targetFunction ?? null, level: job.level ?? null, locationState: job.locationState ?? null, excludeCompanyId: job.excludeCompanyId ?? null }))
+      .filter((r) => r.id !== job.id)
     const perCompany = new Map<string, number>()
     const seen = new Set<string>()
     const out: LikeJob[] = []
