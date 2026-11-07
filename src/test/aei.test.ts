@@ -40,6 +40,10 @@ describe('exposure file', () => {
 })
 
 describe('title matching', () => {
+  it('does not treat words like constructor or toString as synonyms', () => {
+    expect(normalizeTitle('Constructor Superintendent')).toContain('constructor')
+    expect(normalizeTitle('toString Analyst')).toContain('tostring')
+  })
   const index = buildTitleIndex(ROWS)
   it('normalizes levels, locations and plurals', () => {
     expect(normalizeTitle('Senior Software Engineer (Remote) - Austin, TX')).toBe('software developer')

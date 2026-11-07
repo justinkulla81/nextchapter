@@ -21,7 +21,7 @@ const LEVEL_WORDS = new Set([
 ])
 
 /** Job-title words that name the same occupation as the AEI/SOC wording. */
-const SYNONYMS: Record<string, string> = {
+const SYNONYMS: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, {
   engineer: 'developer',
   programmer: 'developer',
   rep: 'representative',
@@ -30,7 +30,7 @@ const SYNONYMS: Record<string, string> = {
   hr: 'human resources',
   mgr: 'manager',
   dir: 'director',
-}
+})
 
 function stem(token: string): string {
   if (token.length > 4 && token.endsWith('ies')) return `${token.slice(0, -3)}y`
