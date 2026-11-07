@@ -1,0 +1,209 @@
+[
+  {
+    "name": "wd-hitachi",
+    "adapter": "workday",
+    "tenant": "hitachi",
+    "wd": "wd1",
+    "site": "hitachi",
+    "type": "direct_ats",
+    "employer": "Hitachi"
+  },
+  {
+    "name": "wd-jci",
+    "adapter": "workday",
+    "tenant": "jci",
+    "wd": "wd5",
+    "site": "JCI",
+    "type": "direct_ats",
+    "employer": "Johnson Controls"
+  },
+  {
+    "name": "wd-kbr",
+    "adapter": "workday",
+    "tenant": "kbr",
+    "wd": "wd5",
+    "site": "KBR_Careers",
+    "type": "direct_ats",
+    "employer": "KBR"
+  },
+  {
+    "name": "wd-micron",
+    "adapter": "workday",
+    "tenant": "micron",
+    "wd": "wd1",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Micron"
+  },
+  {
+    "name": "wd-capitalone",
+    "adapter": "workday",
+    "tenant": "capitalone",
+    "wd": "wd12",
+    "site": "Capital_One",
+    "type": "direct_ats",
+    "employer": "Capital One"
+  },
+  {
+    "name": "wd-boeing",
+    "adapter": "workday",
+    "tenant": "boeing",
+    "wd": "wd1",
+    "site": "EXTERNAL_CAREERS",
+    "type": "direct_ats",
+    "employer": "Boeing"
+  },
+  {
+    "name": "wd-guidehouse",
+    "adapter": "workday",
+    "tenant": "guidehouse",
+    "wd": "wd1",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Guidehouse"
+  },
+  {
+    "name": "wd-ms",
+    "adapter": "workday",
+    "tenant": "ms",
+    "wd": "wd5",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Morgan Stanley"
+  },
+  {
+    "name": "wd-homedepot",
+    "adapter": "workday",
+    "tenant": "homedepot",
+    "wd": "wd5",
+    "site": "CareerDepot",
+    "type": "direct_ats",
+    "employer": "Home Depot"
+  },
+  {
+    "name": "wd-rsm",
+    "adapter": "workday",
+    "tenant": "rsm",
+    "wd": "wd1",
+    "site": "RSMCareers",
+    "type": "direct_ats",
+    "employer": "RSM"
+  },
+  {
+    "name": "wd-paloaltonetworks",
+    "adapter": "workday",
+    "tenant": "paloaltonetworks",
+    "wd": "wd5",
+    "site": "panwexternalcareers",
+    "type": "direct_ats",
+    "employer": "Palo Alto Networks"
+  },
+  {
+    "name": "wd-stryker",
+    "adapter": "workday",
+    "tenant": "stryker",
+    "wd": "wd1",
+    "site": "StrykerCareers",
+    "type": "direct_ats",
+    "employer": "Stryker"
+  },
+  {
+    "name": "wd-centene",
+    "adapter": "workday",
+    "tenant": "centene",
+    "wd": "wd5",
+    "site": "centene_external",
+    "type": "direct_ats",
+    "employer": "Centene"
+  },
+  {
+    "name": "wd-verizon",
+    "adapter": "workday",
+    "tenant": "verizon",
+    "wd": "wd12",
+    "site": "verizon-careers",
+    "type": "direct_ats",
+    "employer": "Verizon"
+  },
+  {
+    "name": "wd-generalmotors",
+    "adapter": "workday",
+    "tenant": "generalmotors",
+    "wd": "wd5",
+    "site": "Careers_GM",
+    "type": "direct_ats",
+    "employer": "General Motors"
+  },
+  {
+    "name": "wd-thehartford",
+    "adapter": "workday",
+    "tenant": "thehartford",
+    "wd": "wd5",
+    "site": "Careers_External",
+    "type": "direct_ats",
+    "employer": "The Hartford"
+  },
+  {
+    "name": "wd-wk",
+    "adapter": "workday",
+    "tenant": "wk",
+    "wd": "wd3",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Wolters Kluwer"
+  },
+  {
+    "name": "wd-msd",
+    "adapter": "workday",
+    "tenant": "msd",
+    "wd": "wd5",
+    "site": "SearchJobs",
+    "type": "direct_ats",
+    "employer": "Merck"
+  },
+  {
+    "name": "wd-truist",
+    "adapter": "workday",
+    "tenant": "truist",
+    "wd": "wd1",
+    "site": "Careers",
+    "type": "direct_ats",
+    "employer": "Truist"
+  },
+  {
+    "name": "wd-aig",
+    "adapter": "workday",
+    "tenant": "aig",
+    "wd": "wd1",
+    "site": "aig",
+    "type": "direct_ats",
+    "employer": "AIG"
+  },
+  {
+    "name": "wd-flextronics",
+    "adapter": "workday",
+    "tenant": "flextronics",
+    "wd": "wd1",
+    "site": "Careers",
+    "type": "direct_ats",
+    "employer": "Flextronics (Flex)"
+  },
+  {
+    "name": "wd-gartner",
+    "adapter": "workday",
+    "tenant": "gartner",
+    "wd": "wd5",
+    "site": "EXT",
+    "type": "direct_ats",
+    "employer": "Gartner"
+  },
+  {
+    "name": "wd-mtb",
+    "adapter": "workday",
+    "tenant": "mtb",
+    "wd": "wd5",
+    "site": "MTB",
+    "type": "direct_ats",
+    "employer": "M&T Bank"
+  }
+]
