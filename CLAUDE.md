@@ -179,6 +179,22 @@ fake test résumé (PDF, a made-up person and company names) with a fake email o
 different emails (`...nctest1@example.com`, `nctest2`, `nctest3`) so a retry never
 collides, and attach them with SendUserFile in the same reply. Do not wait to be asked.
 
+## Database egress: never read a big table whole
+
+Supabase bills egress (data leaving the database), and in November 2026 the project hit 713 GB against 250 GB included, almost
+all of it our own server reading large tables over and over. Before you write or change a query or a loop that reads rows:
+
+- Do not read a whole table, or page through one, on a request path, a render or a refresh timer. Filter and `select` only the
+  columns needed, `take` a bound, or hold the result (`memoTtl`, a per-instance cache with a TTL, or a snapshot) and share it.
+- Never trust a "small table" comment. Check the row count (`select count(*)`) before relying on one. `Company` has ~100k
+  rows, `ExclusiveJobPosting` ~570k live, `WarnNotice` ~5k, `GeoPlace` ~69k, and they grow.
+- A cache that every server instance refreshes on its own timer multiplies the read by the number of instances. Share the
+  result (the board snapshot, `sharedLoad`) so one instance reads and the rest reuse it.
+- When you add a cron or a heavy read, say in the PR how many rows it reads per run and how often.
+
+Check where it stands with `pg_stat_statements` (order by `rows`) and the Usage page's egress chart. A scheduled weekly check
+does this too.
+
 ## Build and 404 rules
 - A page must not need the live database to prerender if the query is heavy (a scan of jobs, companies or notices). `next build` runs seven workers at once against the database, and one statement timeout fails the whole deploy. Use `export const dynamic = 'force-dynamic'` and a `Vercel-CDN-Cache-Control` header in `next.config.ts` (see `/salaries`, `/top-employers`; a plain `Cache-Control` is ignored on a per-request page, so check `x-vercel-cache: HIT` on a GET after deploy), or `generateStaticParams() { return [] }` for dynamic routes.
 - A route folder with only `[slug]` children needs a redirect in `next.config.ts` for its parent address; `src/test/route-orphans.test.ts` fails otherwise. Unknown slugs redirect to the nearest real page (`resolveCompanySlug`), they do not 404.
