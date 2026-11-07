@@ -8,21 +8,29 @@ import { ALERT_COOLDOWN_MS, ALERT_MIN_EVENTS, ALERT_MIN_PEOPLE, ALERT_MIN_TIMEOU
 const ADMIN_TO = process.env.HELP_FORWARD_TO || process.env.CONTACT_FORWARD_TO || 'justin@launchyournextchapter.com'
 const SUPPORT = 'support@launchyournextchapter.com'
 
-export type SlowRow = { event: string; who: string; route: string | null; label: string | null; path: string | null; timedOut: boolean; ms: number | null }
+export type SlowRow = { event: string; who: string; route: string | null; label: string | null; path: string | null; timedOut: boolean; ms: number | null; /** When it was recorded (epoch ms), so one page load's reads can be told apart from separate loads. */ at?: number | null }
 
-export type SlowVerdict = { alert: boolean; events: number; people: number; timeouts: number; reasons: string[] }
+export type SlowVerdict = { alert: boolean; events: number; people: number; timeouts: number; pageLoads: number; reasons: string[] }
+
+/** The reads of one page load fire together: one person's timeouts within this many seconds are one page load, not several. */
+const SAME_PAGE_LOAD_S = 30
 
 /**
  * Whether the last few minutes of slow-page reports are a problem worth an email: several slow or stalled loads from more than one person,
- * or several page reads that gave up at their deadline. One person's one slow page is not an alert; a database that stopped answering is.
+ * or several page loads (not several reads: a dashboard load makes eight at once) that had a read give up at its deadline.
+ * One person's one slow page is not an alert; a database that stopped answering is. (2026-11-07: one member's single page load, with
+ * eight badge reads timing out together, sent an alert saying pages were slow for members.)
  */
 export function judgeSlowRows(rows: SlowRow[]): SlowVerdict {
   const people = new Set(rows.map((r) => r.who)).size
-  const timeouts = rows.filter((r) => r.event === 'page_query_stalled' && r.timedOut).length
+  const timedOut = rows.filter((r) => r.event === 'page_query_stalled' && r.timedOut)
+  const timeouts = timedOut.length
+  // A row with no time counts as its own page load.
+  const pageLoads = new Set(timedOut.map((r, i) => (r.at == null ? `row-${i}` : `${r.who}|${Math.floor(r.at / (SAME_PAGE_LOAD_S * 1000))}`))).size
   const reasons: string[] = []
   if (rows.length >= ALERT_MIN_EVENTS && people >= ALERT_MIN_PEOPLE) reasons.push(`${rows.length} slow or stalled reports from ${people} people in ${ALERT_WINDOW_MINUTES} minutes`)
-  if (timeouts >= ALERT_MIN_TIMEOUTS) reasons.push(`${timeouts} page reads gave up at their deadline`)
-  return { alert: reasons.length > 0, events: rows.length, people, timeouts, reasons }
+  if (pageLoads >= ALERT_MIN_TIMEOUTS) reasons.push(`${pageLoads} page loads had a read give up at its deadline (${timeouts} reads)`)
+  return { alert: reasons.length > 0, events: rows.length, people, timeouts, pageLoads, reasons }
 }
 
 /** The biggest offenders, by what was slow (a read's label, or a page's path), most first. */
@@ -39,9 +47,10 @@ export function topOffenders(rows: SlowRow[], limit = 6): { what: string; count:
 }
 
 async function recentRows(): Promise<SlowRow[]> {
-  const rows = await prisma.$queryRaw<{ event: string; who: string; route: string | null; label: string | null; path: string | null; timed_out: string | null; ms: string | null; waited: string | null }[]>`
+  const rows = await prisma.$queryRaw<{ event: string; who: string; route: string | null; label: string | null; path: string | null; timed_out: string | null; ms: string | null; waited: string | null; at: string | null }[]>`
     SELECT event, "distinctId" AS who, properties->>'route' AS route, properties->>'label' AS label, properties->>'path' AS path,
-           properties->>'timedOut' AS timed_out, properties->>'ms' AS ms, properties->>'waitedMs' AS waited
+           properties->>'timedOut' AS timed_out, properties->>'ms' AS ms, properties->>'waitedMs' AS waited,
+           (extract(epoch from "createdAt") * 1000)::bigint::text AS at
     FROM "AnalyticsEvent"
     WHERE event IN ('page_query_stalled', 'page_load_slow', 'page_load_stalled')
       AND "createdAt" > now() - make_interval(mins => ${ALERT_WINDOW_MINUTES}::int)`
@@ -49,6 +58,7 @@ async function recentRows(): Promise<SlowRow[]> {
     event: r.event, who: r.who, route: r.route, label: r.label, path: r.path,
     timedOut: r.timed_out === 'true',
     ms: r.ms !== null ? Number(r.ms) : r.waited !== null ? Number(r.waited) : null,
+    at: r.at !== null ? Number(r.at) : null,
   }))
 }
 

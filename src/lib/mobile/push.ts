@@ -28,7 +28,7 @@ export async function runMobilePush(now = new Date()): Promise<{ checked: number
     try {
       let message: Omit<PushMessage, 'to'> | null = null
       if (s.kind === 'jobs') {
-        const r = await searchPublicBoard({ q: s.q, loc: s.loc, remote: s.remote, since, ...(s.minPay ? { minPay: s.minPay } : {}) })
+        const r = await searchPublicBoard({ q: s.q, loc: s.loc, remote: s.remote, since, skipTotal: true, ...(s.minPay ? { minPay: s.minPay } : {}) })
         if (r.jobs.length > 0) message = { title: 'New jobs for your search', body: `${r.jobs.length >= 12 ? '12+' : r.jobs.length} new: ${label(s)}`, data: { screen: 'jobs', id: s.id } }
       } else {
         const a = await queryLayoffs({ employer: s.q, days: 14, limit: 5 })

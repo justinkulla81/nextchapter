@@ -193,7 +193,14 @@ export async function runJobAlerts(): Promise<JobAlertRunSummary> {
     const jobs: PublicBoardJob[] = []
     for (const l of group) {
       const since = l.lastAlertAt ?? l.confirmedAt!
-      const { jobs: found } = await searchPublicBoard({ q: l.searchQ, loc: l.searchLoc, remote: l.searchRemote, since })
+      // Only the jobs are used, so no count (skipTotal). A search that cannot finish in its time limit is skipped this run
+      // instead of ending the run for everyone after it.
+      let found: PublicBoardJob[] = []
+      try {
+        found = (await searchPublicBoard({ q: l.searchQ, loc: l.searchLoc, remote: l.searchRemote, since, skipTotal: true })).jobs
+      } catch (error) {
+        console.error('Job alert search failed, skipped this run:', error instanceof Error ? error.message : error)
+      }
       for (const j of found) {
         // Only jobs with a page on our site, so every link lands on the save-this-job box and the lead path.
         if (!j.pagePath || seen.has(j.id)) continue
