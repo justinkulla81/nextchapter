@@ -10,9 +10,9 @@ import { AverageBarChart } from '@/components/admin/AverageBarChart'
 import { VisitorsPerDayChart } from '@/components/admin/VisitorsPerDayChart'
 import { loadCapturedEmailsForDays } from '@/lib/leads/captured-emails'
 import { capturedPerDay, countsPerDay } from '@/lib/admin/captured-per-day'
-import { loadSemEvents } from '@/lib/admin/sem-leads'
+import { loadPaidFunnel, loadSemEvents } from '@/lib/admin/sem-leads'
 import { costLine, formatDollars, loadSemSpend } from '@/lib/admin/sem-spend'
-import { PAID_CHANNELS } from '@/lib/admin/paid-channels'
+import { PAID_CHANNELS, paidChannelLabel } from '@/lib/admin/paid-channels'
 import { SemSpendForm } from '@/components/admin/SemSpendForm'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { isDatacenterIp } from '@/lib/http/datacenter-ip'
@@ -263,7 +263,7 @@ export default async function AdminVisitorActivityPage({
   const toDaysRows = (rows: { key: string; count: number }[]) => rows.map((d) => ({ dateKey: d.key, count: d.count }))
   // Emails captured per day: every form on the public site plus new registrations.
   // Seeded sample profiles and profiles with no email are not captures (332 were bulk-created on Oct 15).
-  const [captured, registrationRows, applyClickRows, nativeApplicationRows, sem] = await Promise.all([
+  const [captured, registrationRows, applyClickRows, nativeApplicationRows, sem, paidFunnel] = await Promise.all([
     loadCapturedEmailsForDays(CHART_WINDOW_DAYS),
     prisma.candidateProfile.findMany({
       where: { createdAt: { gte: since(CHART_WINDOW_DAYS) }, isSampleData: false, email: { not: null } },
@@ -275,9 +275,19 @@ export default async function AdminVisitorActivityPage({
     }),
     prisma.nativeJobApplication.findMany({ where: { createdAt: { gte: since(CHART_WINDOW_DAYS) } }, select: { createdAt: true } }),
     loadSemEvents(CHART_WINDOW_DAYS),
+    loadPaidFunnel(CHART_WINDOW_DAYS),
   ])
   const semDayKeys = countsPerDay([], current, CHART_WINDOW_DAYS).map((d) => d.key)
   const semSpend = await loadSemSpend(semDayKeys)
+  const paidSum = (f: 'visitors' | 'emails' | 'accounts') => paidFunnel.reduce((t, r) => t + r[f], 0)
+  const paidTotal = {
+    channel: 'all' as const,
+    visitors: paidSum('visitors'),
+    emails: paidSum('emails'),
+    accounts: paidSum('accounts'),
+    emailRate: paidSum('visitors') ? paidSum('emails') / paidSum('visitors') : null,
+    accountRate: paidSum('visitors') ? paidSum('accounts') / paidSum('visitors') : null,
+  }
   const sumCents = (rows: { amountCents: number }[]) => rows.reduce((t, r) => t + r.amountCents, 0)
   const b2cLeads = sem.leads.filter((l) => !l.b2b)
   const b2bLeads = sem.leads.filter((l) => l.b2b)
@@ -714,6 +724,40 @@ export default async function AdminVisitorActivityPage({
           </table>
           <VisitorsPerDayChart series={semSpendSeries} emptyMessage="No spend entered yet. Add a day below." />
           <SemSpendForm today={etDateKey(current)} windowStart={semDayKeys[0]} />
+        </div>
+        <div className="rounded-lg border border-border p-4">
+          <h2 className="text-sm font-medium text-foreground">Paid conversions by channel</h2>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Visitors whose first paid click was in the last {CHART_WINDOW_DAYS} days, and how many of them left an email or created an account within 30 days of that click (same IP). Clicks from the last few days have not had the full 30 days yet, so the newest rates read low. The same person can be counted in both columns.
+          </p>
+          {paidFunnel.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No paid clicks in this window yet.</p>
+          ) : (
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-left text-muted-foreground">
+                  <th className="py-1 pr-2 font-normal">Channel</th>
+                  <th className="py-1 pr-2 text-right font-normal">Paid visitors</th>
+                  <th className="py-1 pr-2 text-right font-normal">Left an email</th>
+                  <th className="py-1 text-right font-normal">Created an account</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...paidFunnel, ...(paidFunnel.length > 1 ? [paidTotal] : [])].map((f) => (
+                  <tr key={f.channel} className="border-t border-border">
+                    <td className="py-1 pr-2">{f.channel === 'all' ? 'All paid' : paidChannelLabel(f.channel)}</td>
+                    <td className="py-1 pr-2 text-right tabular-nums">{f.visitors}</td>
+                    <td className="py-1 pr-2 text-right tabular-nums">
+                      {f.emails} <span className="text-muted-foreground">({f.emailRate === null ? '—' : `${Math.round(f.emailRate * 100)}%`})</span>
+                    </td>
+                    <td className="py-1 text-right tabular-nums">
+                      {f.accounts} <span className="text-muted-foreground">({f.accountRate === null ? '—' : `${Math.round(f.accountRate * 100)}%`})</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
         <div className="rounded-lg border border-border p-4">
           <h2 className="text-sm font-medium text-foreground">Emails captured per day</h2>

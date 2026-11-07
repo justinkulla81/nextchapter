@@ -34,3 +34,22 @@ describe('campaignOfPath', () => {
     expect(campaignOfPath('/x')).toBeNull()
   })
 })
+
+import { summarizeFunnel } from '@/lib/admin/sem-leads'
+
+describe('summarizeFunnel', () => {
+  it('counts visitors, emails and accounts per channel with rates', () => {
+    const f = summarizeFunnel([
+      { channel: 'google', leftEmail: true, createdAccount: false },
+      { channel: 'google', leftEmail: false, createdAccount: false },
+      { channel: 'google', leftEmail: true, createdAccount: true },
+      { channel: 'google', leftEmail: false, createdAccount: false },
+      { channel: 'linkedin', leftEmail: false, createdAccount: false },
+    ])
+    expect(f[0]).toMatchObject({ channel: 'google', visitors: 4, emails: 2, accounts: 1, emailRate: 0.5, accountRate: 0.25 })
+    expect(f[1]).toMatchObject({ channel: 'linkedin', visitors: 1, emails: 0, accounts: 0 })
+  })
+  it('returns nothing for no visitors', () => {
+    expect(summarizeFunnel([])).toEqual([])
+  })
+})
