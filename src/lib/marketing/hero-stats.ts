@@ -29,11 +29,11 @@ export const HERO_STATS: HeroStat[] = [
     evidence: 'P',
   },
   {
-    value: '612,000',
-    label: 'jobs added in the first nine months of 2026',
+    value: '861,000',
+    label: 'jobs added in the first ten months of 2026, seasonally adjusted',
     tone: 'bright-spot',
-    source: 'NextChapter White Collar Employment Report, Sept 2026 (BLS data)',
-    sourceUrl: '/reports/latest',
+    source: 'BLS Employment Situation, Oct 2026 (Dec 2025 to Oct 2026, current revisions)',
+    sourceUrl: 'https://www.bls.gov/news.release/empsit.nr0.htm',
     evidence: 'P',
   },
   {
@@ -47,9 +47,9 @@ export const HERO_STATS: HeroStat[] = [
   },
   {
     value: '0.75%',
-    label: 'of white-collar workers had searched 27+ weeks, up from 0.56% a year earlier',
+    label: 'of white-collar workers had searched 27+ weeks in Jan-Sep 2026, up from 0.58% a year earlier',
     tone: 'cloud',
-    source: 'NextChapter White Collar Employment Report, Sept 2026 (Census CPS)',
+    source: 'NextChapter analysis of Census CPS, Jan-Sep 2026 vs Jan-Sep 2025, not seasonally adjusted',
     sourceUrl: '/reports/latest',
     evidence: 'P',
   },
