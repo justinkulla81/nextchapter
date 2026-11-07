@@ -1,6 +1,6 @@
 # Data and code for the October 2026 White Collar Employment Report
 
-Version 1.0 (release candidate). Aggregate cells only; no microdata. Not seasonally adjusted unless noted.
+Version 1.1. Aggregate cells only; no microdata. Not seasonally adjusted unless noted.
 
 | File | What it is |
 |---|---|
@@ -15,6 +15,6 @@ Code (repository `scripts/employment-report/`): `nc_cps_breakdowns.py` (CPS grou
 
 Definitions. White-collar: Census major occupation groups 1 and 2 (PRMJOCC1 = 1 or 2), current or most recent job. Knowledge workers: white-collar occupation and a bachelor's degree or more (PEEDUCA >= 43). Long-term unemployed: unemployed 27 weeks or more (PRUNEDUR >= 27), a spell in progress. Weights: PWCMPWGT.
 
-Suggested citation: NextChapter, White Collar Employment Report, October 2026, version 1.0, November 2026. launchyournextchapter.com/reports
+Suggested citation: NextChapter, White Collar Employment Report, October 2026, version 1.1, November 2026. launchyournextchapter.com/reports
 
-Revision log: 1.0, initial release. Corrections will be listed here with the date and the figure changed.
+Revision log: 1.1 (Nov 7, 2026): added a watch note on data center moratoriums and interest-rate-sensitive sectors to the Clouds chapter; no figures changed. 1.0 (Nov 6, 2026): initial release. Corrections will be listed here with the date and the figure changed.
