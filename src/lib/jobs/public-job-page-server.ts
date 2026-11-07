@@ -1,7 +1,6 @@
 import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { similarLiveJobs } from '@/lib/jobs/similar-live-jobs'
 import { getTitleDetail, type TitleJob } from '@/lib/seo/job-titles'
 import { baseTitle, titleSlug } from '@/lib/seo/job-title-rules'
 import { retryOnPoolTimeout } from '@/lib/db/heavy'
@@ -260,11 +259,61 @@ export function pickSimilarJobs(rows: SimilarJob[], limit: number): SimilarJob[]
   return out
 }
 
+export interface LikeJob { id: string; title: string; companyName: string; locationCity: string | null; locationState: string | null }
+
+/**
+ * Open jobs like one: the same occupation (SOC code, which is indexed), in the same state first, employers on their own career system
+ * first, newest first, at most two per employer. Reads only the occupation's newest rows by cheap columns, then applies the full public
+ * rules to those (the same shape as similarJobsAtCompany, because the occupation's rows number in the thousands). `excludeCompanyId` leaves
+ * out the employer a page already lists on its own. A failed or slow read (3 seconds) gives none.
+ */
+export async function similarJobsLike(job: { id: string; socCode: string | null | undefined; locationState: string | null | undefined; excludeCompanyId?: string | null }, limit = 6): Promise<LikeJob[]> {
+  if (!job.socCode) return []
+  try {
+    const rows = await withStatementTimeout(
+      prisma.$queryRaw<LikeJob[]>`
+      WITH recent AS MATERIALIZED (
+        SELECT id FROM "ExclusiveJobPosting"
+        WHERE "socCode" = ${job.socCode}
+          AND id <> ${job.id}
+          AND status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL
+          ${job.excludeCompanyId ? Prisma.sql`AND ("companyId" IS NULL OR "companyId" <> ${job.excludeCompanyId})` : Prisma.empty}
+        ORDER BY "lastVerifiedAt" DESC NULLS LAST
+        LIMIT 200
+      )
+      SELECT id, title, "companyName", "locationCity", "locationState" FROM "ExclusiveJobPosting"
+      WHERE id IN (SELECT id FROM recent)
+        AND ${PUBLIC_JOB_STATIC_SQL}
+        AND ${PUBLIC_JOB_LIVE_SQL}
+      ORDER BY ("locationState" IS NOT DISTINCT FROM ${job.locationState ?? null}) DESC,
+               ("directListing" OR "sourceCategory" = 'employer') DESC,
+               "lastVerifiedAt" DESC
+      LIMIT ${limit * 4}`,
+      3_000,
+    )
+    const perCompany = new Map<string, number>()
+    const seen = new Set<string>()
+    const out: LikeJob[] = []
+    for (const r of rows) {
+      const company = cleanCompanyText(r.companyName)
+      const key = `${company}|${r.title.trim().toLowerCase()}|${r.locationCity ?? ''}`
+      if (seen.has(key) || (perCompany.get(company) ?? 0) >= 2) continue
+      seen.add(key)
+      perCompany.set(company, (perCompany.get(company) ?? 0) + 1)
+      out.push({ ...r, companyName: company })
+      if (out.length >= limit) break
+    }
+    return out
+  } catch {
+    return []
+  }
+}
+
 /** What a job page with no live listing can say: what the job was, the same title open elsewhere, and the employer's other open roles. Null when no such id exists. */
 export async function getClosedJobContext(id: string): Promise<{ title: string; companyName: string; place: string | null; similar: SimilarJob[]; sameTitle: TitleJob[] } | null> {
   if (!/^[a-z0-9]{10,40}$/i.test(id)) return null
   try {
-    const row = await prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { title: true, companyName: true, disclosure: true, companyId: true, locationCity: true, locationState: true, location: true, targetFunction: true, level: true } })
+    const row = await prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { title: true, companyName: true, disclosure: true, companyId: true, locationCity: true, locationState: true, location: true, socCode: true } })
     if (!row) return null
     const confidential = row.disclosure !== 'OPEN'
     const [similar, detail] = await Promise.all([
@@ -277,34 +326,16 @@ export async function getClosedJobContext(id: string): Promise<{ title: string; 
       companyName: confidential ? '' : cleanCompanyText(row.companyName),
       place: row.locationCity && row.locationState ? `${row.locationCity}, ${row.locationState}` : row.location || row.locationState,
       similar,
-      sameTitle: await sameTitleOrLikeIt((detail?.jobs ?? []).filter((j) => j.id !== id).slice(0, 8), { id, targetFunction: row.targetFunction, level: row.level, locationState: row.locationState }),
+      sameTitle: await sameTitleOrLikeIt((detail?.jobs ?? []).filter((j) => j.id !== id).slice(0, 8), { id, socCode: row.socCode, locationState: row.locationState }),
     }
   } catch {
     return null
   }
 }
 
-/**
- * The same title's open jobs when its page has any; otherwise (a rare title) open jobs in the same function and level, near the job's state first
- * (similar-live-jobs.ts), kept to ones that have a public page so a link never lands on another dead one. A failed or slow read gives none.
- */
-async function sameTitleOrLikeIt(sameTitle: TitleJob[], job: { id: string; targetFunction: string | null; level: string | null; locationState: string | null }): Promise<TitleJob[]> {
+/** The same title's open jobs when its page has any; otherwise (a rare title) open jobs in the same occupation (similarJobsLike). */
+async function sameTitleOrLikeIt(sameTitle: TitleJob[], job: { id: string; socCode: string | null; locationState: string | null }): Promise<TitleJob[]> {
   if (sameTitle.length > 0) return sameTitle
-  // Same function and level first; a narrow pair (an executive academic role) often has no public match, so then the function at any level.
-  for (const level of [job.level, null]) {
-    if (level === null && !job.level) break
-    try {
-      const like = await Promise.race([similarLiveJobs({ ...job, level }, 16), new Promise<never>((_, reject) => setTimeout(() => reject(new Error('similar jobs timed out')), 3_000))])
-      const rows = await publicJobRowsByIds(like.map((j) => j.id))
-      const keep = new Set(rows.map((r) => r.id))
-      const out = like
-        .filter((j) => keep.has(j.id))
-        .slice(0, 6)
-        .map((j) => ({ id: j.id, title: j.title, company: j.confidential ? 'Confidential employer' : j.companyName, location: j.location, postedAt: '', pay: null }))
-      if (out.length > 0) return out
-    } catch {
-      return []
-    }
-  }
-  return []
+  const like = await similarJobsLike(job)
+  return like.map((j) => ({ id: j.id, title: j.title, company: j.companyName, location: j.locationCity && j.locationState ? `${j.locationCity}, ${j.locationState}` : j.locationState, postedAt: '', pay: null }))
 }
