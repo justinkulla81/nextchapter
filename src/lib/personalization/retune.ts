@@ -3,7 +3,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { COMMUTE_MILES } from '@/lib/jobs/relevance'
 import { subFunctionLabel } from '@/lib/jobs/sub-functions'
 import { skillKey } from '@/lib/profile/skill-matrix'
-import { computeMatchState, type MatchProfile, type MatchState } from '@/lib/personalization/match-compute'
+import { computeMatchState, type MatchProfile, type MatchState, type MatchTiming } from '@/lib/personalization/match-compute'
 import { changedFields, profileFromInputs, type MatchInputs } from '@/lib/personalization/match-inputs'
 import { currentMatchInputs, previousMatchInputs, recordMatchSnapshot } from '@/lib/personalization/match-snapshot'
 import { diffVerdicts, isMatch, singleExclusions, topReasons, type ReasonContext, type RetuneResult, type RetuneTrigger } from '@/lib/personalization/match-verdict'
@@ -17,13 +17,18 @@ import { buildSignals } from '@/lib/personalization/signals'
  */
 export async function runRetune(profile: MatchProfile, trigger: RetuneTrigger): Promise<RetuneResult | null> {
   const started = Date.now()
+  // Where the time went, carried on search_retuned so a slow run (285 s on 2026-11-03, 473 s on 2026-11-07) says whether it was the
+  // board load, the rules or the matching. The member waits at most RETUNE_DEADLINE_MS, but the run goes on and reports when it ends.
+  const afterTiming: MatchTiming = {}
   const nowInputs = await currentMatchInputs(profile)
   const prev = await previousMatchInputs(profile.id, nowInputs).catch(() => null)
+  const inputsMs = Date.now() - started
   const beforeProfile = prev && !prev.unchanged ? ({ ...profileFromInputs(profile, prev.inputs), socOverride: prev.inputs.soc ?? undefined } as MatchProfile) : null
   const [after, before] = await Promise.all([
-    computeMatchState(profile, { live: true }),
+    computeMatchState(profile, { live: true, timing: afterTiming }),
     beforeProfile && prev ? computeMatchState(beforeProfile, { dismiss: prev.inputs.dismiss }) : Promise.resolve(null),
   ])
+  const computeMs = Date.now() - started - inputsMs
   if (!after) return null
   const member = after.classifier.member
   const ctx: ReasonContext = {
@@ -58,6 +63,7 @@ export async function runRetune(profile: MatchProfile, trigger: RetuneTrigger): 
     ms,
     notes,
   }
+  const recordStarted = Date.now()
   await recordMatchSnapshot({
     candidateId: profile.id,
     kind: 'retune',
@@ -74,6 +80,14 @@ export async function runRetune(profile: MatchProfile, trigger: RetuneTrigger): 
     afterStrong: result.after.strong,
     checked: result.checked,
     ms,
+    inputsMs,
+    computeMs,
+    recordMs: Date.now() - recordStarted,
+    loadMs: afterTiming.loadMs ?? null,
+    boardRows: afterTiming.rows ?? null,
+    classifierMs: afterTiming.classifierMs ?? null,
+    matchMs: afterTiming.matchMs ?? null,
+    memo: afterTiming.memo ?? false,
   })
   return result
 }
