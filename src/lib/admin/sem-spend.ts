@@ -1,9 +1,11 @@
 import { prisma } from '@/lib/prisma'
+import { isPaidChannel, type PaidChannel } from '@/lib/admin/paid-channels'
 
 export type SemSegment = 'b2c' | 'b2b'
 
 export interface SemSpendRow {
   day: string
+  channel: PaidChannel
   segment: SemSegment
   amountCents: number
 }
@@ -30,8 +32,8 @@ export const formatDollars = (cents: number) =>
 // Fail-soft like the lead query: before the table exists the chart shows no spend instead of breaking the page.
 export async function loadSemSpend(dayKeys: string[]): Promise<SemSpendRow[]> {
   try {
-    const rows = await prisma.semSpend.findMany({ where: { day: { in: dayKeys } }, select: { day: true, segment: true, amountCents: true } })
-    return rows.filter((r): r is SemSpendRow => r.segment === 'b2c' || r.segment === 'b2b')
+    const rows = await prisma.semSpend.findMany({ where: { day: { in: dayKeys } }, select: { day: true, channel: true, segment: true, amountCents: true } })
+    return rows.filter((r): r is SemSpendRow => (r.segment === 'b2c' || r.segment === 'b2b') && isPaidChannel(r.channel))
   } catch (error) {
     console.error('Paid search spend query failed:', error)
     return []
