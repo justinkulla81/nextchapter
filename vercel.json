@@ -21,6 +21,10 @@
       "schedule": "40 4 * * *"
     },
     {
+      "path": "/api/cron/closed-posting-snapshot",
+      "schedule": "20 5 * * *"
+    },
+    {
       "path": "/api/cron/job-feed-direct",
       "schedule": "50 5 * * *"
     },

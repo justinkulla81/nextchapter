@@ -97,6 +97,17 @@ describe('rebuildClosedPostingSnapshot', () => {
     expect(db.deleteMany).toHaveBeenCalledWith({ where: { id: { in: ['old1', 'old2'] } } })
   })
 
+  it('reports each step as it finishes, so a stalled run names its step', async () => {
+    db.grouped.mockResolvedValue([])
+    db.findMany.mockResolvedValue([])
+    const { rebuildClosedPostingSnapshot } = await load()
+    const steps: string[] = []
+    await rebuildClosedPostingSnapshot((step) => {
+      steps.push(step)
+    })
+    expect(steps).toEqual(['grouped', 'stored', 'pruned'])
+  })
+
   it('removes a collapsed duplicate from the stored counts, as the live grouping does', async () => {
     db.grouped.mockResolvedValue([{ companyName: 'Acme', title: 'Controller', location: 'Austin, TX', count: 2 }])
     db.groupBy.mockResolvedValue([{ companyName: 'Acme', title: 'Controller', location: 'Austin, TX', _count: { _all: 2 } }])
