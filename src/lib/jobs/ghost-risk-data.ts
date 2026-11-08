@@ -4,7 +4,7 @@ import { LIKELY_AGE_DAYS, repostKey, STILL_LISTED_DAYS } from '@/lib/jobs/ghost-
 import { groupClosedPostings } from '@/lib/jobs/board-light-rows'
 
 // How many times each company + title + location has been posted and closed. Grouping the closed postings (tens of thousands of
-// rows) took 16-25 s on a cold server instance (measured on the job page), so the nightly job (cron board-light-rows) groups them
+// rows) took 16-25 s on a cold server instance (measured on the job page), so the nightly job (cron closed-posting-snapshot) groups them
 // once and stores the result (ClosedPostingSnapshot); a server instance reads that snapshot and holds it. Only when there is no
 // snapshot yet, or it is too old (the nightly job has been failing), does an instance group the closed postings itself.
 // An hour: ghost risk turns on days of age and closures, and every instance re-read ~20k rows each time this expired.
@@ -71,12 +71,24 @@ export function getClosedPostingCounts(): Promise<Map<string, number>> {
   return cache.counts
 }
 
-/** The nightly rebuild (cron board-light-rows): group once, store, keep the newest few. */
-export async function rebuildClosedPostingSnapshot(): Promise<{ keys: number }> {
+/**
+ * The nightly rebuild (cron closed-posting-snapshot): group once, store, keep the newest few. `onStep` hears how long each step took, so a
+ * run that stalls says where (2026-11-07: the run that did this inside board-light-rows was cut off twice without a trace).
+ */
+export async function rebuildClosedPostingSnapshot(onStep?: (step: string, ms: number) => void | Promise<void>): Promise<{ keys: number }> {
+  let at = Date.now()
+  const lap = async (step: string) => {
+    const now = Date.now()
+    await onStep?.(step, now - at)
+    at = now
+  }
   const counts = await computeClosedPostingCounts()
+  await lap('grouped')
   await prisma.closedPostingSnapshot.create({ data: { data: Object.fromEntries(counts) } })
+  await lap('stored')
   const old = await prisma.closedPostingSnapshot.findMany({ orderBy: { computedAt: 'desc' }, skip: KEEP_SNAPSHOTS, select: { id: true } })
   if (old.length) await prisma.closedPostingSnapshot.deleteMany({ where: { id: { in: old.map((o) => o.id) } } })
+  await lap('pruned')
   return { keys: counts.size }
 }
 
