@@ -88,4 +88,11 @@ describe('email look', () => {
       expect(src, `${f} centers its sign-off`).not.toContain('align="center" />')
     }
   })
+
+  it('gives every staff email the internal frame, so it never looks like a member email', () => {
+    const dir = path.join(process.cwd(), 'src/emails')
+    const admin = readdirSync(dir).filter((n) => n.endsWith('.tsx') && /audience="admin"/.test(readFileSync(path.join(dir, n), 'utf8')))
+    expect(admin.length).toBeGreaterThanOrEqual(9)
+    for (const f of admin) expect(readFileSync(path.join(dir, f), 'utf8'), `${f} is a staff email without AdminFrame`).toContain('<AdminFrame>')
+  })
 })

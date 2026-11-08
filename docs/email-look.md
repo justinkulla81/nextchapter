@@ -15,6 +15,6 @@ Gmail ignores web fonts, so the display and hand fonts only show in Apple Mail a
 - `Headline` draws the hand-drawn squiggle under every headline (`squiggle={false}` turns it off). The line follows the card's alignment.
 - `LinkButton` is the green pill for a signed, one-time link (invite, confirm, sign-in). It leaves the URL exactly as given, with no UTM tags. `Button` adds the tags and is for ordinary links.
 
-Every email except the internal staff ones is now on this look: the invite, reference, verification and digest emails that used a plain layout were moved onto the shared cards. The staff emails (`admin-*`, the visitor digest, the layoff context alert, PR hook and product-positioning alerts) keep their plain layout on purpose.
+Every email except the staff ones is on this look. Staff emails (`admin-*`, the visitor digest, the layoff context alert, PR hook and product-positioning alerts) deliberately look different so they cannot be mistaken for a member email: `AdminFrame` in `src/lib/email/admin-layout.tsx` gives them a navy "Internal · NextChapter staff only" banner, a cool grey page, a square-edged white box with a navy left edge, and no bookmark, squiggle or paper card. A test fails if a staff email does not use it.
 
 Signed by Victoria: the conversational candidate emails (newsletter, check-ins, nudges, kickoff, finish line, Saturday check-in, weekly read, journey plan, registration reminder, win-back, lead follow-ups). Not on invites, verification, reference or employer emails.

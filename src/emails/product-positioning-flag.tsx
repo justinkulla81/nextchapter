@@ -1,20 +1,12 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag } from '@/lib/email/audience-tag'
+import { AdminFrame } from '@/lib/email/admin-layout'
 
 interface ProductPositioningFlagEmailProps {
   title: string | null
   url: string
   summary: string | null
   suggestedAction: string | null
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
 }
 
 const logo: React.CSSProperties = {
@@ -46,7 +38,7 @@ export default function ProductPositioningFlagEmail({
   suggestedAction,
 }: ProductPositioningFlagEmailProps) {
   return (
-    <div style={container}>
+    <AdminFrame>
       <p style={logo}>NextChapter</p>
       <p style={{ fontWeight: 600 }}>Product-positioning research: {title || url}</p>
       {summary && <p>{summary}</p>}
@@ -60,6 +52,6 @@ export default function ProductPositioningFlagEmail({
       </a>
       <p style={footer}>Flagged from Market Pulse — relevant to Victoria/Dossier copy.</p>
       <AudienceTag audience="admin" />
-    </div>
+    </AdminFrame>
   )
 }
