@@ -1,0 +1,86 @@
+[
+ {
+  "f": "Engineering",
+  "roles": "106783",
+  "ai_pct": "9.5",
+  "ai_roles": "10095"
+ },
+ {
+  "f": "Operations",
+  "roles": "66677",
+  "ai_pct": "2.5",
+  "ai_roles": "1655"
+ },
+ {
+  "f": "Sales",
+  "roles": "53971",
+  "ai_pct": "3.9",
+  "ai_roles": "2086"
+ },
+ {
+  "f": "Finance",
+  "roles": "46838",
+  "ai_pct": "4.7",
+  "ai_roles": "2178"
+ },
+ {
+  "f": "Data & Analytics",
+  "roles": "27620",
+  "ai_pct": "38.1",
+  "ai_roles": "10518"
+ },
+ {
+  "f": "Human Resources",
+  "roles": "18912",
+  "ai_pct": "5.2",
+  "ai_roles": "986"
+ },
+ {
+  "f": "Marketing",
+  "roles": "18295",
+  "ai_pct": "8.9",
+  "ai_roles": "1625"
+ },
+ {
+  "f": "Legal",
+  "roles": "17358",
+  "ai_pct": "4.1",
+  "ai_roles": "710"
+ },
+ {
+  "f": "Clinical",
+  "roles": "15814",
+  "ai_pct": "1.4",
+  "ai_roles": "220"
+ },
+ {
+  "f": "Programs",
+  "roles": "9600",
+  "ai_pct": "3.0",
+  "ai_roles": "287"
+ },
+ {
+  "f": "Product",
+  "roles": "9464",
+  "ai_pct": "25.4",
+  "ai_roles": "2401"
+ },
+ {
+  "f": "Security",
+  "roles": "8199",
+  "ai_pct": "15.7",
+  "ai_roles": "1288"
+ },
+ {
+  "f": "Investment",
+  "roles": "7382",
+  "ai_pct": "6.2",
+  "ai_roles": "456"
+ },
+ {
+  "f": "Administration",
+  "roles": "7239",
+  "ai_pct": "3.0",
+  "ai_roles": "216"
+ }
+]

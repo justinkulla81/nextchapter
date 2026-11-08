@@ -1,0 +1,142 @@
+{
+ "bachelors_plus:22-27": {
+  "2025": {
+   "ur": 5.44,
+   "ltu": 21.9,
+   "n": 844
+  },
+  "2026": {
+   "ur": 5.44,
+   "ltu": 25.5,
+   "n": 766
+  },
+  "ltu_change": 3.6,
+  "ltu_moe_conservative": 7.8
+ },
+ "bachelors_plus:28-34": {
+  "2025": {
+   "ur": 2.82,
+   "ltu": 23.2,
+   "n": 766
+  },
+  "2026": {
+   "ur": 2.8,
+   "ltu": 26.1,
+   "n": 728
+  },
+  "ltu_change": 2.9,
+  "ltu_moe_conservative": 8.2
+ },
+ "bachelors_plus:35-44": {
+  "2025": {
+   "ur": 2.19,
+   "ltu": 27.4,
+   "n": 988
+  },
+  "2026": {
+   "ur": 2.36,
+   "ltu": 27.1,
+   "n": 951
+  },
+  "ltu_change": -0.3,
+  "ltu_moe_conservative": 7.4
+ },
+ "bachelors_plus:45-54": {
+  "2025": {
+   "ur": 2.34,
+   "ltu": 29.8,
+   "n": 838
+  },
+  "2026": {
+   "ur": 2.56,
+   "ltu": 34.2,
+   "n": 873
+  },
+  "ltu_change": 4.4,
+  "ltu_moe_conservative": 8.3
+ },
+ "bachelors_plus:55-64": {
+  "2025": {
+   "ur": 2.68,
+   "ltu": 27.7,
+   "n": 753
+  },
+  "2026": {
+   "ur": 2.95,
+   "ltu": 37.0,
+   "n": 783
+  },
+  "ltu_change": 9.3,
+  "ltu_moe_conservative": 8.7
+ },
+ "no_bachelors:22-27": {
+  "2025": {
+   "ur": 7.11,
+   "ltu": 23.4,
+   "n": 1883
+  },
+  "2026": {
+   "ur": 7.06,
+   "ltu": 26.6,
+   "n": 1782
+  },
+  "ltu_change": 3.2,
+  "ltu_moe_conservative": 5.3
+ },
+ "no_bachelors:28-34": {
+  "2025": {
+   "ur": 4.81,
+   "ltu": 23.0,
+   "n": 1630
+  },
+  "2026": {
+   "ur": 5.51,
+   "ltu": 28.4,
+   "n": 1573
+  },
+  "ltu_change": 5.4,
+  "ltu_moe_conservative": 5.7
+ },
+ "no_bachelors:35-44": {
+  "2025": {
+   "ur": 4.35,
+   "ltu": 24.7,
+   "n": 2038
+  },
+  "2026": {
+   "ur": 4.14,
+   "ltu": 28.0,
+   "n": 1803
+  },
+  "ltu_change": 3.3,
+  "ltu_moe_conservative": 5.2
+ },
+ "no_bachelors:45-54": {
+  "2025": {
+   "ur": 3.54,
+   "ltu": 26.5,
+   "n": 1563
+  },
+  "2026": {
+   "ur": 3.71,
+   "ltu": 28.4,
+   "n": 1526
+  },
+  "ltu_change": 1.9,
+  "ltu_moe_conservative": 5.9
+ },
+ "no_bachelors:55-64": {
+  "2025": {
+   "ur": 3.06,
+   "ltu": 22.8,
+   "n": 1270
+  },
+  "2026": {
+   "ur": 2.94,
+   "ltu": 25.9,
+   "n": 1145
+  },
+  "ltu_change": 3.1,
+  "ltu_moe_conservative": 6.4
+ }
+}
