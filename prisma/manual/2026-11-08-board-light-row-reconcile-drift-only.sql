@@ -5,7 +5,8 @@
 -- deadlocks on 2026-11-01 and 2026-11-06 (40P01), and long lock waits. The new body selects only the rows that differ or are missing, so
 -- an in-step page locks nothing (dry run on the first page of 64: 0 drifted rows, reads only), and a write blocked behind an import gives up
 -- after 5 s (lock_timeout) so the caller can skip that page and carry on.
--- Same signature and result as before; replaces the function in place. NOT YET APPLIED to production: the Supabase confirmation prompt went unanswered on 2026-11-08; update this line once it has been run.
+-- Same signature and result as before; replaces the function in place. Applied to production 2026-11-08 (verified: one version, lock_timeout and the
+-- drift-only join present; run on the first page it returned 0 upserted, 0 deleted).
 -- ROLLBACK: run the old definition below.
 
 CREATE OR REPLACE FUNCTION public.board_light_row_reconcile(lo text, hi text)
