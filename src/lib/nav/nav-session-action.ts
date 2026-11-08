@@ -3,9 +3,11 @@
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
+import { portalHostOn, portalOrigin } from '@/lib/portal-hosts'
 import { decodeMemberName, MEMBER_MARKER_COOKIE, MEMBER_NAME_COOKIE } from '@/lib/auth/member-marker'
 
-export type NavSession = { signedIn: boolean; firstName: string | null }
+/** `verifyAt`: set when signedIn rests on the member marker alone; the browser asks that address whether the login is still live. */
+export type NavSession = { signedIn: boolean; firstName: string | null; verifyAt?: string }
 
 /** For the cached public header: is the visitor signed in, and what is their first name? Reads only, never creates a profile. */
 export async function getNavSession(): Promise<NavSession> {
@@ -19,7 +21,12 @@ export async function getNavSession(): Promise<NavSession> {
     // leftover anonymous session from testing onboarding must not hide that.
     if (!user || user.is_anonymous) {
       const jar = await cookies()
-      return jar.has(MEMBER_MARKER_COOKIE) ? { signedIn: true, firstName: decodeMemberName(jar.get(MEMBER_NAME_COOKIE)?.value) } : { signedIn: false, firstName: null }
+      if (!jar.has(MEMBER_MARKER_COOKIE)) return { signedIn: false, firstName: null }
+      return {
+        signedIn: true,
+        firstName: decodeMemberName(jar.get(MEMBER_NAME_COOKIE)?.value),
+        ...(portalHostOn('candidate') ? { verifyAt: `${portalOrigin('candidate')}/api/nav-session` } : {}),
+      }
     }
     const profile = await prisma.candidateProfile.findUnique({ where: { userId: user.id }, select: { firstName: true } })
     // No name on the profile (an admin, coach or recruiter, or an account made before the details step): the sign-in's own name.

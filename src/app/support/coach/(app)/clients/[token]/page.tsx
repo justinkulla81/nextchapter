@@ -8,6 +8,7 @@ import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
 import { getParallelPathsFor } from '@/lib/job-reviews/data'
 import { parallelPathView } from '@/lib/job-reviews/constants'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const SENTIMENT_TREND_ARROW: Record<'up' | 'down', string> = { up: '↑', down: '↓' }
 
@@ -75,6 +76,7 @@ export default async function CoachClientsPage({
         <div className="space-y-2">
           <CoachBrandHeader firmName={coach.firmName} logoUrl={coach.logoUrl} />
           <h1 className="text-2xl font-semibold tracking-tight">Clients</h1>
+          <Squiggle className="mt-2" />
           <p className="text-muted-foreground">
             {clients.length === 0
               ? 'No clients yet. Invite someone you coach, or share your invite link.'

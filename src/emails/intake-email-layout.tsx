@@ -1,6 +1,6 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag, type EmailAudience } from '@/lib/email/audience-tag'
-import { DISPLAY_FONT, PAPER, emailAsset } from '@/lib/email/card-layout'
+import { Masthead, PAPER, emailAsset } from '@/lib/email/card-layout'
 
 // Shared shell for NextChapter Talent emails. The footer carries what
 // CAN-SPAM needs on anything sent on a recruiter's behalf: who sent it and
@@ -19,7 +19,6 @@ const container: React.CSSProperties = {
   ...emailStyles.body,
 }
 
-const brand: React.CSSProperties = { fontFamily: DISPLAY_FONT, fontSize: '18px', fontWeight: 800, color: '#0b2545', margin: 0 }
 const sub: React.CSSProperties = { ...emailStyles.muted, margin: '0 0 24px' }
 const footer: React.CSSProperties = { marginTop: '32px', borderTop: '1px solid #e2e8f0', paddingTop: '16px', ...emailStyles.muted }
 export const intakeButton: React.CSSProperties = {
@@ -34,6 +33,7 @@ export const intakeButton: React.CSSProperties = {
 
 export function IntakeEmailLayout({
   heading,
+  label,
   subheading,
   children,
   footerNote,
@@ -41,6 +41,8 @@ export function IntakeEmailLayout({
   audience = 'candidate',
 }: {
   heading: string
+  /** The small label on the right of the masthead: what kind of email this is. */
+  label: string
   subheading?: string
   children: React.ReactNode
   footerNote: string
@@ -51,12 +53,12 @@ export function IntakeEmailLayout({
   const postal = process.env.INTAKE_POSTAL_ADDRESS
   return (
     <div style={container}>
-      <p style={brand}>
+      <Masthead name={heading} right={label} />
+      {subheading && <p style={{ ...sub, margin: '0 0 12px' }}>{subheading}</p>}
+      <div style={{ margin: '0 0 20px', lineHeight: '0', fontSize: '0' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={emailAsset('bookmark.png')} width={14} height={20} alt="" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', border: 0 }} />
-        <span style={{ verticalAlign: 'middle' }}>{heading}</span>
-      </p>
-      {subheading && <p style={sub}>{subheading}</p>}
+        <img src={emailAsset('squiggle.png')} width={150} height={8} alt="" style={{ display: 'inline-block', border: 0 }} />
+      </div>
       {children}
       <div style={footer}>
         <p style={{ margin: '0 0 8px' }}>{footerNote}</p>

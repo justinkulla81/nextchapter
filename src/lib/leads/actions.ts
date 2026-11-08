@@ -44,6 +44,17 @@ const PLAN_DAILY_CAP = () => {
   return Number.isFinite(n) && n >= 0 ? n : 25
 }
 
+/** The visitor's id from posthog-js's own cookie (ph_<key>_posthog, URL-encoded JSON), or null when it is missing or unreadable. */
+function posthogDistinctId(value: string | undefined): string | null {
+  if (!value) return null
+  try {
+    const id = (JSON.parse(decodeURIComponent(value)) as { distinct_id?: unknown }).distinct_id
+    return typeof id === 'string' && id.length > 0 && id.length <= 200 ? id : null
+  } catch {
+    return null
+  }
+}
+
 const text = (formData: FormData, k: string, max: number) => ((formData.get(k) as string | null) ?? '').trim().slice(0, max)
 
 export async function submitJourneyLead(_prev: JourneyState, formData: FormData): Promise<JourneyState> {
@@ -144,7 +155,19 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
 
     // The /after-a-layoff form sends people straight into registration: the signed cookie prefills their email on the details step. Registration runs on candidate.<site>, so the cookie is set on the whole site's domain (a host-only cookie never reaches it).
     if (source.startsWith('after-a-layoff')) {
-      ;(await cookies()).set(LEAD_COOKIE, lead.unsubscribeToken, { domain: markerDomain(process.env.NEXT_PUBLIC_APP_URL), httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: LEAD_COOKIE_MAX_AGE })
+      const jar = await cookies()
+      jar.set(LEAD_COOKIE, lead.unsubscribeToken, { domain: markerDomain(process.env.NEXT_PUBLIC_APP_URL), httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: LEAD_COOKIE_MAX_AGE })
+      // The submit is recorded here, where the lead is saved: a browser event is lost when the redirect into registration starts before
+      // PostHog (loaded at browser idle) has loaded. It uses the visitor's PostHog id from their cookie when they have one, so it joins
+      // their after_a_layoff_viewed; otherwise their email.
+      captureServerEvent(posthogDistinctId(jar.get(`ph_${process.env.NEXT_PUBLIC_POSTHOG_KEY}_posthog`)?.value) ?? email, 'after_a_layoff_submitted', {
+        source,
+        utmSource: source.split(':')[1] ?? null,
+        situation: persona.slug,
+        emailed,
+        capped,
+        returning: !!existing,
+      })
     }
     captureServerEvent(email, 'journey_lead_submitted', { situation: persona.slug, followup, source, emailed, capped, returning: !!existing, ...answers, helpCount: answers.helpPicked ? answers.helpPicked.split(',').length : 0 })
     return { done: true, email, slug: persona.slug, capped }

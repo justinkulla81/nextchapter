@@ -9,6 +9,7 @@ import { CancelRequestButton, DocumentReviewControls } from '@/components/coach/
 import { DocumentStatusBadge } from '@/components/documents/DocumentStatusBadge'
 import { OpenDocumentButton } from '@/components/documents/OpenDocumentButton'
 import { getClientDocumentUrl } from '@/app/support/coach/(app)/clients/[token]/[clientId]/documents/actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function ClientDocumentsPage({ params }: { params: Promise<{ token: string; clientId: string }> }) {
   const { token, clientId } = await params
@@ -29,6 +30,7 @@ export default async function ClientDocumentsPage({ params }: { params: Promise<
       <div className="mt-4 mb-8 space-y-1">
         <CoachBrandHeader firmName={coach.firmName} logoUrl={coach.logoUrl} />
         <h1 className="text-2xl font-semibold tracking-tight">Documents from {name}</h1>
+        <Squiggle className="mt-2" />
         <p className="text-muted-foreground">Ask for a document, then review it here. Only you and {name} can see what they upload.</p>
       </div>
 
