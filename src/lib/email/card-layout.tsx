@@ -95,7 +95,7 @@ export function Wordmark({ label }: { label?: string } = {}) {
 }
 
 /** Wordmark on the left and a small label on the right (for a newsletter: "Chapter 14 · Nov 5"). */
-export function Masthead({ right }: { right: string }) {
+export function Masthead({ right, name = 'NextChapter' }: { right: string; name?: string }) {
   return (
     <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} style={{ margin: '0 0 24px' }}>
       <tbody>
@@ -103,7 +103,7 @@ export function Masthead({ right }: { right: string }) {
           <td style={{ verticalAlign: 'middle', fontFamily: DISPLAY_FONT, fontSize: '20px', fontWeight: 800, color: BRAND, letterSpacing: '-0.01em' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={emailAsset('bookmark.png')} width={18} height={26} alt="" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', border: 0 }} />
-            <span style={{ verticalAlign: 'middle' }}>NextChapter</span>
+            <span style={{ verticalAlign: 'middle' }}>{name}</span>
           </td>
           <td align="right" style={{ verticalAlign: 'middle', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, color: MUTED }}>
             {right}
