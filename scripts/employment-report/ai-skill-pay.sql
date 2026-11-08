@@ -28,3 +28,7 @@ FROM cells WHERE na>=30 AND nn>=30 ORDER BY f, lv;
 -- Version 1.5: software postings by title (regex on "title": software/swe engineer or developer, full-stack, back/front-end, mobile, iOS/Android,
 -- machine learning, devops, site reliability, data engineer). Nov 7, 2026 result: 29,605 postings, 6,010 employers, 32.2% name AI skills,
 -- 27.4% entry/early-career, 51.8% senior+, median posted pay $192,500 (7,951 with pay; AI-naming $210,800, other $178,125). Run through a one-off edge function.
+
+-- Version 1.6: AI-skill postings by employer industry (Company.industry), outside Technology & Software, by function, concentration. Nov 8, 2026:
+-- 559,278 jobs, 58,659 naming AI (10.5%); Technology & Software 65,026 jobs, 29.7%, 32.9% of AI-naming jobs; outside it 39,350 AI jobs = 8.0% of 494,252.
+-- Shape: roles (as above) LEFT JOIN "Company" co ON co.id = companyId; emp = per employer (n, na); industry table = sum by co.industry; top-N by na within/outside technology.

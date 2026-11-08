@@ -1,0 +1,13 @@
+{
+ "ai_all": "58659",
+ "ai_nontech": "39350",
+ "roles_all": "559278",
+ "roles_nontech": "494252",
+ "ai_top10_all": "5499",
+ "ai_top50_all": "12346",
+ "ai_top10_nontech": "5174",
+ "ai_top50_nontech": "10109",
+ "employers_nontech": "60125",
+ "employers_nontech_any_ai": "7096",
+ "employers_nontech_5plus": "1643"
+}

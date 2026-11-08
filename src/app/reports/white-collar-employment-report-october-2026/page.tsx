@@ -24,7 +24,7 @@ const MODIFIED = '2026-11-07'
 const TITLE = 'NextChapter White Collar Employment Report: October 2026'
 
 const FILES = [
-  { label: 'Full report (PDF, 21 pages)', note: 'Version 1.5', href: PDF_HREF, type: 'pdf' as const },
+  { label: 'Full report (PDF, 24 pages)', note: 'Version 1.6', href: PDF_HREF, type: 'pdf' as const },
   { label: 'Long-search shares by group (CSV)', note: 'Exhibits 1 and 3, with margins and counts', href: '/reports/white-collar-employment-report-2026-10-data.csv', type: 'data' as const },
   { label: 'Validation against BLS (CSV)', note: 'Our CPS pipeline vs BLS published figures', href: '/reports/white-collar-employment-report-2026-10-validation-vs-bls.csv', type: 'data' as const },
   { label: 'Long-Search Index series (CSV)', note: 'Monthly, 2019 = 100', href: '/reports/white-collar-employment-report-2026-10-long-search-index.csv', type: 'data' as const },
@@ -33,6 +33,8 @@ const FILES = [
   { label: 'Month-to-month flows (JSON)', note: 'Exit and entry rates, matched CPS, 2026 vs 2025', href: '/reports/white-collar-employment-report-2026-10-flows.json', type: 'data' as const },
   { label: 'Sectors and metros: Indeed postings (CSV)', note: 'Postings index vs a year ago and Feb 2020, with our exposure grouping', href: '/reports/white-collar-employment-report-2026-10-indeed-sectors-metros.csv', type: 'data' as const },
   { label: 'White-collar by Census division and state (JSON)', note: 'Employment, unemployment, long spells, Jan-Sep 2026 vs 2025', href: '/reports/white-collar-employment-report-2026-10-geo.json', type: 'data' as const },
+  { label: 'AI-skill jobs by employer industry (CSV)', note: 'Outside and inside technology, Nov 8, 2026', href: '/reports/white-collar-employment-report-2026-10-ai-skill-by-industry.csv', type: 'data' as const },
+  { label: 'Degree-holders by age (JSON)', note: 'Unemployment and long spells, Jan-Sep 2026 vs 2025', href: '/reports/white-collar-employment-report-2026-10-degree-age.json', type: 'data' as const },
   { label: 'Employer rankings (JSON)', note: 'Open jobs by function, Oct 26, 2026', href: '/reports/white-collar-employment-report-2026-10-employer-rankings.json', type: 'data' as const },
   { label: 'AI exposure exhibits (ZIP)', note: 'Anthropic Economic Index match', href: '/reports/white-collar-employment-report-2026-10-ai-exposure.zip', type: 'data' as const },
   { label: 'Methodology note (PDF)', note: 'Margins of error, with a worked example', href: '/reports/white-collar-employment-report-2026-10-methodology.pdf', type: 'method' as const },
@@ -74,7 +76,7 @@ const jsonLd = {
       url: URL,
       mainEntityOfPage: URL,
       image: OG_IMAGE,
-      version: '1.5',
+      version: '1.6',
       author: personRef(),
       publisher: organizationRef(),
       about: ['employment', 'long-term unemployment', 'white-collar labor market', 'knowledge workers', 'job search'],
