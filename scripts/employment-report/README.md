@@ -105,7 +105,7 @@ clouds), not political, no claim that AI caused an outcome, no "displacement"/"d
 | Month-to-month flows (exit from unemployment, entry) | `nc_cps_flows.py` | Slow exits vs more layoffs |
 | White-collar by Census division and state | `nc_cps_geo.py` | Where white-collar employment and spells moved |
 | Outcomes by AI exposure (AEI score vs CPS occupation groups) | `exposure-outcomes.py` | Are more-exposed occupations losing jobs faster |
-| Posted pay: AI-naming vs other postings, across employers, within employer, and employer class | `ai-skill-pay.sql` (heavy; run through a one-off edge function, the tool limit is 60 s) | Is the AI-skills premium an employer premium |
+| Posted pay: AI-naming vs other postings, across employers, within employer, and employer class | `ai-skill-pay.sql` (whole-board aggregate: run once per edition, keep the result in `data/employment-report/<YYYY-MM>/`, never re-run to adjust a figure; CLAUDE.md egress rule) | Is the AI-skills premium an employer premium |
 | Degree-holders by age band, vs no bachelor's | `nc_cps_degree_age.py` | New vs older alumni: unemployment and long spells |
 | AI-skill postings by employer industry, outside technology, by function, concentration | one-off edge function (see `ai-skill-pay.sql` notes; query shape in the October 2026 methodology note) | Is AI-skill demand only a tech-company ask |
 | Software postings by title, postings by state | `ai-skill-pay.sql` notes | Software demand snapshot; where AI-skill jobs are |
