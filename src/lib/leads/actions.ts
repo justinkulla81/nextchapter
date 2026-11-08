@@ -160,14 +160,11 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
       // The submit is recorded here, where the lead is saved: a browser event is lost when the redirect into registration starts before
       // PostHog (loaded at browser idle) has loaded. It uses the visitor's PostHog id from their cookie when they have one, so it joins
       // their after_a_layoff_viewed; otherwise their email.
-      captureServerEvent(posthogDistinctId(jar.get(`ph_${process.env.NEXT_PUBLIC_POSTHOG_KEY}_posthog`)?.value) ?? email, 'after_a_layoff_submitted', {
-        source,
-        utmSource: source.split(':')[1] ?? null,
-        situation: persona.slug,
-        emailed,
-        capped,
-        returning: !!existing,
-      })
+      const visitor = posthogDistinctId(jar.get(`ph_${process.env.NEXT_PUBLIC_POSTHOG_KEY}_posthog`)?.value) ?? email
+      const landing = { source, utmSource: source.split(':')[1] ?? null, situation: persona.slug, emailed, capped, returning: !!existing }
+      captureServerEvent(visitor, 'after_a_layoff_submitted', landing)
+      // The form always sends the visitor straight into registration, so this is recorded with the submit, not when the browser arrives.
+      captureServerEvent(visitor, 'after_a_layoff_registration_started', landing)
     }
     captureServerEvent(email, 'journey_lead_submitted', { situation: persona.slug, followup, source, emailed, capped, returning: !!existing, ...answers, helpCount: answers.helpPicked ? answers.helpPicked.split(',').length : 0 })
     return { done: true, email, slug: persona.slug, capped }

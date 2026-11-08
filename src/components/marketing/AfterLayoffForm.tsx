@@ -36,9 +36,8 @@ function Form({ className }: { className?: string }) {
     } catch {
       // Private windows can block storage; onboarding simply asks.
     }
-    posthog.capture('after_a_layoff_registration_started', { source, email_sent: !state.capped })
     router.replace(MARKET_REALITY_START_HREF)
-  }, [state, source, router])
+  }, [state, router])
 
   if (state?.done) {
     return (
