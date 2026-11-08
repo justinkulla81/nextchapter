@@ -1,6 +1,7 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import type { UserAgentClass } from '@/lib/http/user-agent'
 import { AudienceTag } from '@/lib/email/audience-tag'
+import { AdminFrame } from '@/lib/email/admin-layout'
 
 interface VisitorSummary {
   ip: string
@@ -18,15 +19,6 @@ interface HomepageVisitorDigestEmailProps {
   date: string
   visitors: VisitorSummary[]
   adminUrl: string
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '520px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
 }
 
 const logo: React.CSSProperties = {
@@ -58,7 +50,7 @@ const button: React.CSSProperties = {
 // homepage that day, grouped by IP with the pages they clicked into.
 export default function HomepageVisitorDigestEmail({ date, visitors, adminUrl }: HomepageVisitorDigestEmailProps) {
   return (
-    <div style={container}>
+    <AdminFrame>
       <p style={logo}>NextChapter Admin</p>
       <p>
         {visitors.length} visitor{visitors.length === 1 ? '' : 's'} to your homepage on {date}:
@@ -110,6 +102,6 @@ export default function HomepageVisitorDigestEmail({ date, visitors, adminUrl }:
         View all visitors →
       </a>
       <AudienceTag audience="admin" />
-    </div>
+    </AdminFrame>
   )
 }

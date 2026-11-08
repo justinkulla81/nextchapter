@@ -1,5 +1,6 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag } from '@/lib/email/audience-tag'
+import { AdminFrame } from '@/lib/email/admin-layout'
 
 interface LayoffContextAlertEmailProps {
   submitterName: string
@@ -7,15 +8,6 @@ interface LayoffContextAlertEmailProps {
   submitterEmail: string
   employeeName: string
   employeeEmail: string
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
 }
 
 const logo: React.CSSProperties = {
@@ -49,7 +41,7 @@ export default function LayoffContextAlertEmail({
   employeeEmail,
 }: LayoffContextAlertEmailProps) {
   return (
-    <div style={container}>
+    <AdminFrame>
       <p style={logo}>NextChapter</p>
       <p style={badge}>Layoff signal — Give a Reference</p>
       <p style={{ marginTop: '16px', fontWeight: 600 }}>
@@ -67,6 +59,6 @@ export default function LayoffContextAlertEmail({
         does not wait for the weekly digest.
       </p>
       <AudienceTag audience="admin" />
-    </div>
+    </AdminFrame>
   )
 }

@@ -1,20 +1,12 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag } from '@/lib/email/audience-tag'
+import { AdminFrame } from '@/lib/email/admin-layout'
 
 interface PrHookAlertEmailProps {
   title: string | null
   url: string
   summary: string | null
   suggestedAction: string | null
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
 }
 
 const logo: React.CSSProperties = {
@@ -53,7 +45,7 @@ const footer: React.CSSProperties = {
 
 export default function PrHookAlertEmail({ title, url, summary, suggestedAction }: PrHookAlertEmailProps) {
   return (
-    <div style={container}>
+    <AdminFrame>
       <p style={logo}>NextChapter</p>
       <p style={badge}>PR / media hook</p>
       <p style={{ marginTop: '16px', fontWeight: 600 }}>{title || url}</p>
@@ -70,6 +62,6 @@ export default function PrHookAlertEmail({ title, url, summary, suggestedAction 
         Flagged by Market Pulse as high-priority — this does not wait for the weekly digest.
       </p>
       <AudienceTag audience="admin" />
-    </div>
+    </AdminFrame>
   )
 }
