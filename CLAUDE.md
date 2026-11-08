@@ -191,6 +191,9 @@ all of it our own server reading large tables over and over. Before you write or
 - A cache that every server instance refreshes on its own timer multiplies the read by the number of instances. Share the
   result (the board snapshot, `sharedLoad`) so one instance reads and the rest reuse it.
 - When you add a cron or a heavy read, say in the PR how many rows it reads per run and how often.
+- Ad-hoc analysis SQL run against production from a session (the Supabase connector connects as `postgres`, the same role as the app)
+  counts too: a whole-board aggregate ran 14-18 s and touched ~35 GB of buffers per call on 2026-11-08. Run it once, bound it with a
+  `LIMIT` or a sample, select only the columns needed, never in a loop, and keep the result rather than re-running it to adjust a figure.
 
 Check where it stands with `pg_stat_statements` (order by `rows`) and the Usage page's egress chart. A scheduled weekly check
 does this too.
