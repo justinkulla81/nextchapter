@@ -21,6 +21,7 @@ The email look (`docs/email-look.md`) is carried onto the site in small, shared 
 - How it works and Pricing (own headline markup): squiggle, and the opening sentence in `ShortVersion`.
 - Other public content pages and candidate pages with their own headline markup (news, data, reports, insights, resources, systems, niches, press, unemployment benefits, start, careers, jobs, and the candidate pages that do not use `PageHeader`): squiggle only.
 - Portals (recruiters, talent, employer, employer home, the no-experience employer pages, coach, and the organization, partner and intake views): squiggle only, on pages with their own headline. The portals stay Inter-only: the squiggle is blue and is not a typeface. No paper note, signature or number box there.
+- The coach client workspace (documents, full view, client brief, client list, invite a client, branding) has the squiggle too.
 - Deliberately not covered: the staff admin area, onboarding flows, legal pages, the manager reference flow, and transactional pages (unsubscribe, confirmations, application and sign-up forms, token links). Pages whose headline spans several lines in the source (why you're stuck, scam watch, vs, the jobs hub, the no-experience pages, a few reports and insights) now carry it too.
 
 ## Rules

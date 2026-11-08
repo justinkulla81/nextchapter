@@ -22,6 +22,7 @@ import {
   SESSION_DIMENSION_STATUS_STYLE,
   SESSION_DIMENSION_TREND_LABEL,
 } from '@/lib/coach/session-dimensions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const TREND_LABEL: Record<string, string> = {
   up: '↑ improving',
@@ -64,6 +65,7 @@ export default async function PreSessionBriefPage({
         <CoachBrandHeader firmName={coach.firmName} logoUrl={coach.logoUrl} />
         <p className="text-sm font-medium text-muted-foreground">Pre-Session Brief</p>
         <h1 className="text-2xl font-semibold tracking-tight">{brief.candidateName}</h1>
+        <Squiggle className="mt-2" />
         <p className="text-muted-foreground">
           {brief.weekNumber !== null ? `Week ${brief.weekNumber} in search` : 'Not yet registered'}
         </p>

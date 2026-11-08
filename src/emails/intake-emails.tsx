@@ -17,7 +17,7 @@ export function IntakeSubmissionConfirmationEmail({
 }) {
   const who = recruiterName ? `${recruiterName} at ${firmName}` : firmName
   return (
-    <IntakeEmailLayout
+    <IntakeEmailLayout label="Submission received"
       heading={firmName}
       subheading="Powered by NextChapter"
       footerNote={`You received this because you submitted your resume to ${firmName} on their NextChapter page.`}
@@ -50,7 +50,7 @@ export function IntakeReplyEmail({
   unsubscribeUrl: string
 }) {
   return (
-    <IntakeEmailLayout
+    <IntakeEmailLayout label="Reply"
       heading={firmName}
       subheading="Powered by NextChapter"
       footerNote={`Sent by NextChapter on behalf of ${firmName}. Reply to this email to reach them directly.`}
@@ -82,7 +82,7 @@ export function IntakeClaimReminderEmail({
   final: boolean
 }) {
   return (
-    <IntakeEmailLayout
+    <IntakeEmailLayout label="Claim reminder"
       heading="NextChapter"
       footerNote={`You received this because your resume was shared with ${firmName}. ${final ? 'This is the last reminder.' : ''}`}
       unsubscribeUrl={unsubscribeUrl}
@@ -118,7 +118,7 @@ export function IntakeFitAlertEmail({
   reviewUrl: string
 }) {
   return (
-    <IntakeEmailLayout
+    <IntakeEmailLayout label="Fit alert"
       heading="NextChapter Talent"
       subheading={`Fit for ${searchTitle}`}
       footerNote="You get this alert when a new resume matches every criterion on one of your open searches. Close the search to stop alerts for it."
@@ -156,7 +156,7 @@ export function IntakeApprovalDigestEmail({
   sendingEnabled: boolean
 }) {
   return (
-    <IntakeEmailLayout
+    <IntakeEmailLayout label="Approval digest"
       heading="NextChapter Talent"
       audience="recruiter"
       subheading={`${items.length} ${items.length === 1 ? 'reply' : 'replies'} waiting for your OK`}
@@ -197,7 +197,7 @@ export function RecruiterFirmInviteEmail({
   signupUrl: string
 }) {
   return (
-    <IntakeEmailLayout heading="NextChapter Talent" audience="recruiter" footerNote={`${inviterName} invited you to ${firmName} on NextChapter.`}>
+    <IntakeEmailLayout label="Invite" heading="NextChapter Talent" audience="recruiter" footerNote={`${inviterName} invited you to ${firmName} on NextChapter.`}>
       <p>Hi,</p>
       <p>
         {inviterName} invited you to join {firmName} on NextChapter Talent. You get a personal page and forwarding

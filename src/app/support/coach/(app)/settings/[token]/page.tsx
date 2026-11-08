@@ -6,6 +6,7 @@ import { OnboardingTemplateEditor } from '@/components/coach/OnboardingTemplateE
 import { getCoachTemplate } from '@/lib/coach/onboarding-form'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { uploadMyProfilePicture, removeMyProfilePicture } from './actions'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function CoachSettingsPage({
   params,
@@ -38,6 +39,7 @@ export default async function CoachSettingsPage({
       <div className="mt-4 mb-6 space-y-1">
         <p className="text-sm font-medium text-muted-foreground">Practice settings</p>
         <h1 className="text-2xl font-semibold tracking-tight">Branding</h1>
+        <Squiggle className="mt-2" />
         <p className="text-muted-foreground">
           Your name, logo, and accent color — used as we build out your branded practice tools.
         </p>

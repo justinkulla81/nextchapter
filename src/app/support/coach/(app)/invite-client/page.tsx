@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { InviteClientForm } from '@/components/coach/InviteClientForm'
 import { ResendInviteButton } from '@/components/coach/ResendInviteButton'
+import { Squiggle } from '@/components/ui/squiggle'
 
 const STATUS_LABEL = {
   accepted: 'Joined',
@@ -48,6 +49,7 @@ export default async function InviteClientByEmailPage() {
           ← Back home
         </Link>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Invite a client</h1>
+        <Squiggle className="mt-2" />
         <p className="mt-1 text-muted-foreground">
           Invite someone directly by email — they&apos;ll be able to set a password right away and start
           working with you, no separate confirmation step needed.

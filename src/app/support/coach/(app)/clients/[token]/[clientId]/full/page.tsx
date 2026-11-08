@@ -15,6 +15,7 @@ import { JobMetaLine, JobVerdict, JobWhyLine } from '@/components/jobs/JobCardPa
 import { DimensionTrendLine } from '@/components/coach/DimensionTrendLine'
 import { SESSION_DIMENSIONS, SESSION_DIMENSION_LABEL } from '@/lib/coach/session-dimensions'
 import { ReassignmentRequestForm } from '@/components/coach/ReassignmentRequestForm'
+import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function FullClientViewPage({
   params,
@@ -50,6 +51,7 @@ export default async function FullClientViewPage({
         <CoachBrandHeader firmName={coach.firmName} logoUrl={coach.logoUrl} />
         <p className="text-sm font-medium text-muted-foreground">Full Client View</p>
         <h1 className="text-2xl font-semibold tracking-tight">{view.candidateName}</h1>
+        <Squiggle className="mt-2" />
         <p className="text-muted-foreground">
           {view.weekNumber !== null ? `Week ${view.weekNumber} in search` : 'Not yet registered'}
           {view.email && ` · ${view.email}`}

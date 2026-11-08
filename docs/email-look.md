@@ -18,3 +18,5 @@ Gmail ignores web fonts, so the display and hand fonts only show in Apple Mail a
 Every email except the staff ones is on this look. Staff emails (`admin-*`, the visitor digest, the layoff context alert, PR hook and product-positioning alerts) deliberately look different so they cannot be mistaken for a member email: `AdminFrame` in `src/lib/email/admin-layout.tsx` gives them a navy "Internal · NextChapter staff only" banner, a cool grey page, a square-edged white box with a navy left edge, and no bookmark, squiggle or paper card. A test fails if a staff email does not use it.
 
 Signed by Victoria: the conversational candidate emails (newsletter, check-ins, nudges, kickoff, finish line, Saturday check-in, weekly read, journey plan, registration reminder, win-back, lead follow-ups). Not on invites, verification, reference or employer emails.
+
+The recruiter intake emails (`src/emails/intake-emails.tsx`) use `IntakeEmailLayout`, which has the same paper card and a masthead: the firm or product name on the left and a required `label` on the right, then the squiggle. Every call passes a label.
