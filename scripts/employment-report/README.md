@@ -86,3 +86,41 @@ them at build time.
 - The canary test (lead-lag on 12-month changes, 2020-03 to 2022-02 excluded) lives in
   `src/lib/reports/early-warning-analysis.ts`.
 - The AI-layoffs series starts October 2026, when the news check began collecting.
+
+## Every edition: standing sections, analyses and questions
+
+Added November 7, 2026 (October edition, versions 1.2 to 1.5). Each monthly edition repeats these; the edition's methodology note
+(`data/employment-report/<YYYY-MM>/methodology-note-margins-of-error.md`) documents each one. Editorial rules: balanced (bright spots and
+clouds), not political, no claim that AI caused an outcome, no "displacement"/"displaced" in our own wording, month-over-month seasonally adjusted
+(and year-over-year where useful), every "larger than" or "differs from" claim tested against a margin or labeled untested, an early-warning section.
+
+**Public CPS files need no API key.** Download `https://www2.census.gov/programs-surveys/cps/datasets/<YYYY>/basic/<mon><yy>pub.csv`
+(Jan to latest month, this year and last) into one folder; the scripts below read that folder. Do not read `CENSUS_API_KEY` out of Vercel.
+
+| Analysis | Script | Answers |
+|---|---|---|
+| Group breakdowns (white-collar, knowledge workers, blue-collar, age, industry, occupation, recent graduates) | `nc_cps_breakdowns.py` | Unemployment rate, long spells, medians, counts |
+| BLS-method margins on long-spell shares | `gvf-long-search-margins.py` | Which changes clear their margin |
+| Scorecard by industry and age, white-collar vs all workers | `scorecard-margins.py` | Exhibit 4 |
+| Month-to-month flows (exit from unemployment, entry) | `nc_cps_flows.py` | Slow exits vs more layoffs |
+| White-collar by Census division and state | `nc_cps_geo.py` | Where white-collar employment and spells moved |
+| Outcomes by AI exposure (AEI score vs CPS occupation groups) | `exposure-outcomes.py` | Are more-exposed occupations losing jobs faster |
+| Posted pay: AI-naming vs other postings, across employers, within employer, and employer class | `ai-skill-pay.sql` (heavy; run through a one-off edge function, the tool limit is 60 s) | Is the AI-skills premium an employer premium |
+| Software postings by title, postings by state | `ai-skill-pay.sql` notes | Software demand snapshot; where AI-skill jobs are |
+
+**Also every edition (manual pulls, cite the source and month):**
+- BLS payrolls by industry, year over year, from data.bls.gov series pages: professional and business services (and the sub-sectors in the release text),
+  information and its parts (telecommunications CES5051700001, motion picture and sound CES5051200001, data processing CES5051800001, software publishers CES5051320001),
+  financial activities, health care CES6562000001, federal CES9091000001, construction, manufacturing, retail, leisure and hospitality; state release (gains, losses, DC).
+- Indeed Hiring Lab sector and metro postings (`github.com/hiring-lab/job_postings_tracker`, CC BY 4.0): year over year and against February 2020, our more/less-exposed sector grouping,
+  software development, large metros.
+- Recent graduates (CPS 22 to 27 with a bachelor's degree, plus the New York Fed college labor market page), Stanford Digital Economy Lab, NACE and Handshake as reported.
+- Job-search mechanics (applications per job, interview rate, referrals): vendor data, labeled as such; AI-hiring rules (California, Illinois, Colorado, New York City) status.
+- Tech: Challenger announced tech cuts against information and professional-and-technical payrolls and computer and mathematical occupations; state plainly that software engineers cannot be isolated.
+- Company statements about AI and the workforce (Challenger reasons, SEC 8-K Item 2.05 search, voluntary exit offers) and training programs.
+- Findings carried as "our reading, not a finding" until a margin supports them (slow exits and fewer entries; the employer-class reading of the AI pay premium).
+
+**Questions the report answers every month:** Did hiring improve or weaken, and for whom (industry, age, geography, new graduates)? Are unemployed white-collar
+workers staying out longer, and is it slower exits or more job loss? How do white-collar and blue-collar compare, tested? Winners, losers and shifts under the net
+change? What happened to tech and software? Are AI-exposed occupations losing jobs faster? What do AI-skill jobs pay and is it the employer or the skill? What are
+companies saying about AI and the workforce? What is the job search like (applications, interviews, referrals)? New rules and training programs? Where are jobs growing and shrinking?
