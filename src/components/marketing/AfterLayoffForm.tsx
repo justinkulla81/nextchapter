@@ -53,7 +53,6 @@ function Form({ className }: { className?: string }) {
       action={action}
       noValidate
       className={cn('flex flex-col gap-3 sm:flex-row', className, pending && 'cursor-wait')}
-      onSubmit={() => posthog.capture('after_a_layoff_submitted', { source })}
     >
       <input type="hidden" name="situation" value={SITUATION} />
       <input type="hidden" name="source" value={source} />
