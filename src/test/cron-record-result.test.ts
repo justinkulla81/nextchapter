@@ -16,6 +16,23 @@ describe('withCronRun recordResult', () => {
     await withCronRun('a', async () => NextResponse.json({ dryRun: true, stoppedEarly: 'Google answered 403' }), { recordResult: true })(req)
     expect(update.mock.calls[0][0].data.detail).toContain('Google answered 403')
   })
+  it('lets a handler leave a progress note on its row while it runs', async () => {
+    await withCronRun('a', async (_req, ctx) => {
+      await ctx.progress({ step: 'reconcile', nextId: 'cmw1', pages: 4 })
+      return NextResponse.json({ ok: 1 })
+    })(req)
+    expect(update.mock.calls[0][0].data).toEqual({ detail: JSON.stringify({ step: 'reconcile', nextId: 'cmw1', pages: 4 }) })
+    expect(update.mock.calls[1][0].data.status).toBe('OK')
+  })
+  it('never lets a failed progress write stop the job', async () => {
+    update.mockRejectedValueOnce(new Error('ledger down'))
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const res = await withCronRun('a', async (_req, ctx) => {
+      await ctx.progress({ step: 'x' })
+      return NextResponse.json({ ok: 1 })
+    })(req)
+    expect(res.status).toBe(200)
+  })
   it('keeps nothing when the job does not opt in', async () => {
     await withCronRun('a', async () => NextResponse.json({ ok: 1 }))(req)
     expect('detail' in update.mock.calls[0][0].data).toBe(false)
