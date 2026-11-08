@@ -241,7 +241,10 @@ export async function getTitleDetail(slug: string): Promise<TitleDetail | null> 
   const stats = await getTitleIndex()
   const stat = stats.find((t) => t.slug === slug)
   if (!stat) return null
-  const parts = (await readBoardFigure<TitleParts>(`job-title:${slug}`)) ?? titleParts((await sharedScan()).rowsByBase.get(stat.base) ?? [])
+  // No stored row means the title fell below the minimum in the cron's latest run (the list above is cached ten minutes, longer than the rows
+  // are replaced), so it has no page. It used to run the whole-board scan here, 25-50 s on every cold instance: about 740 scans in 13 days.
+  const parts = await readBoardFigure<TitleParts>(`job-title:${slug}`)
+  if (!parts) return null
   const last = stat.base.split(' ').slice(-1)[0]
   return {
     stat,
