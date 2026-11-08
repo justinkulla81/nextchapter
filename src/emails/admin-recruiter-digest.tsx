@@ -1,5 +1,6 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag } from '@/lib/email/audience-tag'
+import { AdminFrame } from '@/lib/email/admin-layout'
 
 interface DigestCandidate {
   name: string
@@ -15,15 +16,6 @@ interface AdminRecruiterDigestEmailProps {
   candidates: DigestCandidate[]
   recruiterCount: number
   adminUrl: string
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '520px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
 }
 
 const logo: React.CSSProperties = {
@@ -58,7 +50,7 @@ export default function AdminRecruiterDigestEmail({
   adminUrl,
 }: AdminRecruiterDigestEmailProps) {
   return (
-    <div style={container}>
+    <AdminFrame>
       <p style={logo}>NextChapter Admin</p>
       <p>
         {candidates.length} candidate{candidates.length === 1 ? '' : 's'} unlocked recruiter-database visibility
@@ -79,6 +71,6 @@ export default function AdminRecruiterDigestEmail({
         View Recruiter Database →
       </a>
       <AudienceTag audience="admin" />
-    </div>
+    </AdminFrame>
   )
 }

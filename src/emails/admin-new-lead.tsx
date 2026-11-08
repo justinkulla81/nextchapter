@@ -1,5 +1,6 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag } from '@/lib/email/audience-tag'
+import { AdminFrame } from '@/lib/email/admin-layout'
 
 interface AdminNewLeadEmailProps {
   email: string
@@ -8,15 +9,6 @@ interface AdminNewLeadEmailProps {
   detail: string
   listUrl: string
   crmUrl: string | null
-}
-
-const container: React.CSSProperties = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  maxWidth: '480px',
-  margin: '0 auto',
-  padding: '32px 24px',
-  color: '#0a0a0a',
-  ...emailStyles.body,
 }
 
 const logo: React.CSSProperties = {
@@ -44,7 +36,7 @@ const button: React.CSSProperties = {
 // src/lib/leads/notify-new-lead.ts). The daily digest also lists them.
 export default function AdminNewLeadEmail({ email, name, channel, detail, listUrl, crmUrl }: AdminNewLeadEmailProps) {
   return (
-    <div style={container}>
+    <AdminFrame>
       <p style={logo}>NextChapter Admin</p>
       <p>New email captured: {channel}</p>
       <p style={row}>Email: {email}</p>
@@ -59,6 +51,6 @@ export default function AdminNewLeadEmail({ email, name, channel, detail, listUr
         <a href={listUrl}>See all captured emails</a>
       </p>
       <AudienceTag audience="admin" />
-    </div>
+    </AdminFrame>
   )
 }
