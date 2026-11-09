@@ -188,9 +188,9 @@ export default async function PressPage() {
             <p className="mt-3 text-sm">
               Also: <PressDownload href="/press/white-collar-index.svg" id="index-chart-svg">chart (SVG)</PressDownload>
               {' · '}
-              <PressDownload href="/reports/white-collar-employment-report-2026-09-og.png" id="report-og-png">report cover (PNG, 1200×630)</PressDownload>
+              <PressDownload href="/reports/white-collar-employment-report-2026-10-og.png" id="report-og-png">report cover (PNG, 1200×630)</PressDownload>
               {' · '}
-              <PressDownload href="/reports/chart-post-2026-09-productivity-vs-long-searches-1200x1350.png" id="chart-post-png">productivity vs long searches chart (PNG, 1200×1350)</PressDownload>
+              <PressDownload href="/reports/october-2026-long-search-shares.png" id="chart-post-png">share out of work 27+ weeks, by group (PNG, 1700×850)</PressDownload>
             </p>
           </section>
 
