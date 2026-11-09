@@ -36,6 +36,8 @@ export function sanitizeBodyHtml(input: string): string {
       const href = m ? safeHref(m[2] ?? m[3] ?? m[4] ?? '') : null
       return href ? `<a href="${escapeHtml(href)}">` : '<a>'
     }
+    // A signature block: the one place a div keeps a marker, so it can be styled grey below.
+    if (tag === 'div' && /\bdata-signature\b/i.test(attrs)) return '<div data-signature>'
     return tag === 'br' ? '<br>' : `<${tag}>`
   })
   // Any stray angle bracket left is text, not markup.
@@ -58,7 +60,9 @@ const INLINE: Record<string, string> = {
 }
 
 function inlineStyles(html: string): string {
-  return html.replace(/<(p|ul|ol|li)>/g, (_m, tag: string) => `<${tag} style="${INLINE[tag]}">`)
+  return html
+    .replace(/<div data-signature>/g, '<div style="margin:16px 0 0 0;color:#6b7280;font-size:13px;line-height:1.5">')
+    .replace(/<(p|ul|ol|li)>/g, (_m, tag: string) => `<${tag} style="${INLINE[tag]}">`)
 }
 
 /** Plain text for the text/plain part and for previews. */
@@ -136,7 +140,7 @@ export function renderEmail(input: RenderInput): { html: string; text: string } 
     body += `<p><a href="${escapeHtml(input.reportUrl)}">${escapeHtml(input.reportUrl)}</a></p>`
   }
   const bodyText = htmlToText(body)
-  const signed = /justin\s*$/i.test(bodyText)
+  const signed = /justin\s*$/i.test(bodyText) || body.includes('<div data-signature>')
   if (!signed) body += '<p>Justin</p>'
   body = inlineStyles(body)
 
