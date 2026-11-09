@@ -1,10 +1,10 @@
 @media print{
- body{font-size:9.2pt;line-height:1.42}
+ body{font-size:9pt;line-height:1.38}
  .chapter-head{break-before:auto!important;margin-top:8pt}
  #summary,#method{break-before:page!important}
  #summary .chapter-head,#method .chapter-head{break-before:auto!important}
- main{gap:12pt!important}
- section{gap:7pt!important}
+ main{gap:7pt!important}
+ section{gap:5pt!important}
  p,.items p,.box ul,.box ol,.note{max-width:none!important}
  .lead{font-size:10pt}
  .chart svg{max-height:2.3in;width:auto!important;max-width:100%;margin:0 auto}
@@ -22,4 +22,19 @@
  h2{font-size:17pt!important}
  h3{margin-top:2pt}
  .cover h1{font-size:34pt}
+ .ncr .cover{min-height:0!important;justify-content:flex-start!important;padding-bottom:0!important}
+ .ncr .cover::before{margin-bottom:.3in!important}
+ .ncr .cover-in{gap:9pt!important}
+ .ncr .cover h1{font-size:26pt!important}
+ .ncr .cover-stats{grid-template-columns:repeat(4,1fr)!important}
+ .ncr .cover-stats div{padding:7pt 8pt!important}
+ .ncr .cover-stats .v{font-size:15pt!important}
+ .ncr .cover-stats .l{font-size:6.8pt!important;line-height:1.3!important}
+ .ncr .cover .box{padding:7pt 10pt!important;gap:4pt!important}
+ .ncr .cover .box li{font-size:8.2pt!important;line-height:1.32!important}
+ .ncr .cover-meta{font-size:7.4pt!important;gap:3pt 14pt!important}
+ .exhibit:not(.chart){break-inside:auto!important}
+ .exhibit tr{break-inside:avoid}
+ .exhibit thead{display:table-header-group}
+ .ex-title,.ex-label{break-after:avoid}
 }

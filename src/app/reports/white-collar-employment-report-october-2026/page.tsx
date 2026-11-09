@@ -20,11 +20,11 @@ const OG_IMAGE = `${SITE_URL}/reports/white-collar-employment-report-2026-10-og.
 const CHART_URL = `${SITE_URL}/reports/october-2026-long-search-shares.png`
 const PDF_HREF = '/reports/white-collar-employment-report-2026-10.pdf'
 const PUBLISHED = '2026-11-06'
-const MODIFIED = '2026-11-07'
+const MODIFIED = '2026-11-09'
 const TITLE = 'NextChapter White Collar Employment Report: October 2026'
 
 const FILES = [
-  { label: 'Full report (PDF, 24 pages)', note: 'Version 1.6', href: PDF_HREF, type: 'pdf' as const },
+  { label: 'Full report (PDF, 21 pages)', note: 'Version 1.7', href: PDF_HREF, type: 'pdf' as const },
   { label: 'Long-search shares by group (CSV)', note: 'Exhibits 1 and 3, with margins and counts', href: '/reports/white-collar-employment-report-2026-10-data.csv', type: 'data' as const },
   { label: 'Validation against BLS (CSV)', note: 'Our CPS pipeline vs BLS published figures', href: '/reports/white-collar-employment-report-2026-10-validation-vs-bls.csv', type: 'data' as const },
   { label: 'Long-Search Index series (CSV)', note: 'Monthly, 2019 = 100', href: '/reports/white-collar-employment-report-2026-10-long-search-index.csv', type: 'data' as const },
@@ -76,7 +76,7 @@ const jsonLd = {
       url: URL,
       mainEntityOfPage: URL,
       image: OG_IMAGE,
-      version: '1.6',
+      version: '1.7',
       author: personRef(),
       publisher: organizationRef(),
       about: ['employment', 'long-term unemployment', 'white-collar labor market', 'knowledge workers', 'job search'],

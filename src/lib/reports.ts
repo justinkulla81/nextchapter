@@ -61,7 +61,7 @@ export const REPORT_EDITIONS: ReportEdition[] = [
     title: 'Hiring improved, but more unemployed white-collar workers are in long spells',
     dek: 'October added 165,000 jobs and unemployment fell to 4.1%, but 28.5% of unemployed white-collar workers had been out of work six months or more in January to September, up from 23.2%, and 39.1% at ages 55 to 64.',
     publishedAt: '2026-11-06',
-    updatedAt: '2026-11-07',
+    updatedAt: '2026-11-09',
     ogImage: '/reports/white-collar-employment-report-2026-10-og.png',
     earlyWarningPending: 'October CPS file (Census, about November 19, 2026)',
   },
