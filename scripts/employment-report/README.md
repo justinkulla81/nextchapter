@@ -129,3 +129,17 @@ clouds), not political, no claim that AI caused an outcome, no "displacement"/"d
 workers staying out longer, and is it slower exits or more job loss? How do white-collar and blue-collar compare, tested? Winners, losers and shifts under the net
 change? What happened to tech and software? Are AI-exposed occupations losing jobs faster? What do AI-skill jobs pay and is it the employer or the skill? What are
 companies saying about AI and the workforce? What is the job search like (applications, interviews, referrals)? New rules and training programs? Where are jobs growing and shrinking?
+
+## Indicators we track over time (every edition adds a row to `data/employment-report/indicators/`)
+
+New ideas are watched, not asserted. Each edition appends the latest value and its comparison to `watchlist-<YYYY-MM>.csv`, with the source and whether it is official, our calculation or secondary. The Census series are stored in full (`BABATOTALSAUS`, `BAHBATOTALSAUS`, `BAWBATOTALSAUS`, from 2004).
+
+| Area | What we track | Source and cadence |
+|---|---|---|
+| Entrepreneurship | Business applications (total, high-propensity, with planned wages), projected employer formations, each against a year earlier, February 2020 and the 2021 and 2020 peaks | Census Business Formation Statistics, monthly (next release November 12, 2026, with the annual revision); note the January 2026 definition change |
+| Entrepreneurship, CPS | Self-employed share of white-collar workers by age; unemployed workers who are self-employed the next month | `nc_cps_selfemp.py`, monthly files |
+| Side work | Share with more than one job; share whose second job is self-employment; Federal Reserve SHED gig and side-work questions when published; private polls only as labeled secondary | `nc_cps_sidework.py`; SHED annual (May) |
+| Higher-ed pipeline | Common App applicants (Nov to Mar deadline updates); NSC preliminary fall enrollment (late October) and final (January), by level and field (computer science); persistence and retention (June); completion (December); some college, no credential (spring); time to degree; College Board tuition and net price (fall); NCES degrees by field (annual) | Each organization's report; secondary summaries labeled until read at the source |
+| Link to the job market | Field-of-study trends against postings and pay by occupation; degree vs no degree by age (`nc_cps_degree_age.py`); New York Fed outcomes by major | Same pipeline |
+| Hypotheses (labeled as such) | The exposure-versus-AI-asks gap by function (high exposure, low AI-skill postings) and what moves it; AI-skill share in finance, HR, legal and administration; within-employer AI pay gap in those functions; solo-founder share; entry-level applications per posting | Our postings (once per edition), AEI, Carta, Handshake |
+
