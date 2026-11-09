@@ -5,8 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { submitJourneyLead, type JourneyState } from '@/lib/leads/actions'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
-import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
-import { getPersona } from '@/lib/constants/personas'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 
@@ -28,16 +26,10 @@ function Form({ className }: { className?: string }) {
     posthog.capture('after_a_layoff_viewed', { source, utmSource: params.get('utm_source'), utmCampaign: params.get('utm_campaign') })
   }, [source, params])
 
-  // Straight into registration: no second question. The situation is stored so the first onboarding question is already answered,
+  // Straight into registration: no second question. The registration page fills in the situation from the source on the link,
   // and the lead cookie set by the action prefills their email on the details step.
   useEffect(() => {
     if (!state?.done) return
-    try {
-      sessionStorage.setItem(SITUATION_SESSION_KEY, getPersona(SITUATION)?.situation ?? 'just_laid_off')
-    } catch {
-      // Private windows can block storage; onboarding simply asks.
-    }
-    // The source rides along so the registration page can record the arrival (src/app/onboarding/desire/page.tsx).
     router.replace(`${MARKET_REALITY_START_HREF}&from=${encodeURIComponent(source)}`)
   }, [state, source, router])
 
