@@ -76,7 +76,7 @@ export default async function CitationGapsPage() {
         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
           <li>Per question, across the {live.length} live assistants ({live.map((p) => p.id).join(', ') || 'none'}): about ${perQuestion.toFixed(3)}.</li>
           <li>All {CITATION_PROMPTS.length} questions once: about ${fullRunCostUsd(live, CITATION_PROMPTS.length).toFixed(2)}. That is more than the monthly cap of ${cap}, so a full pass is not run in one go.</li>
-          <li>The weekly run asks {GENERAL_PER_RUN} of them plus the week’s filing questions: about ${weekly.toFixed(2)} for the general ones. The list is covered in {Math.ceil(CITATION_PROMPTS.length / GENERAL_PER_RUN)} weeks.</li>
+          <li>The monthly run asks {GENERAL_PER_RUN} of them plus the month’s filing questions: about ${weekly.toFixed(2)} for the general ones. The list is covered in {Math.ceil(CITATION_PROMPTS.length / GENERAL_PER_RUN)} runs.</li>
           <li>Spent this month: ${Number(spent._sum.estCostUsd ?? 0).toFixed(2)} of the ${cap} cap.</li>
         </ul>
       </section>

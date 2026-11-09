@@ -4,5 +4,5 @@ import { runCitationCheck } from '@/lib/ai-visibility/run'
 
 export const maxDuration = 300
 
-// Weekly (Monday). Asks the tracked prompts of AI assistants and records whether we are cited. Capped monthly, see run.ts.
+// Monthly (1st, 16:00 UTC; was weekly until 2026-11-09). Asks the tracked prompts of AI assistants and records whether we are cited. Capped monthly, see run.ts.
 export const GET = withCronRun('ai-citation-check', async () => NextResponse.json(await runCitationCheck()))

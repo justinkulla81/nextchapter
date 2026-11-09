@@ -43,7 +43,8 @@ export const PROVIDERS: Provider[] = [
   {
     id: 'perplexity',
     estCostUsd: 0.012,
-    enabled: () => !!process.env.PERPLEXITY_API_KEY,
+    // Off since 2026-11-09 (owner): every call failed (the Agent API needs paid credits) and it never cited us. Restore the key check to switch it back on.
+    enabled: () => false,
     // Perplexity moved Sonar behind its Agent API (POST /v1/responses, OpenAI-compatible); /chat/completions now answers 403.
     // Web search is opt-in there, and the sources come back as a search_results item in the output.
     async ask(prompt) {
@@ -95,7 +96,8 @@ export const PROVIDERS: Provider[] = [
   {
     id: 'gemini',
     estCostUsd: 0.035,
-    enabled: () => !!process.env.GEMINI_API_KEY,
+    // Off since 2026-11-09 (owner): 0 citations in ~420 questions. Restore the key check to switch it back on.
+    enabled: () => false,
     async ask(prompt) {
       const model = process.env.AI_CITATION_GEMINI_MODEL || 'gemini-3.8-flash'
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
