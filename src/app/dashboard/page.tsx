@@ -12,7 +12,8 @@ import { getDashboardData, getVerifiedSessionUser } from '@/lib/dashboard/get-da
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
-import { computeWeeklyProgress } from '@/lib/weekly/weekly-engines'
+import { getWeeklyProgress } from '@/lib/weekly/cached-progress'
+import { FocusNumberSkeleton, HomeFocusNumber, HomeNoteAside } from '@/components/dashboard/HomeWeekNumbers'
 import { computeProbabilityGrade } from '@/lib/scoring/market-reality/probability'
 import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active-prompt'
 import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActivePromptCard'
@@ -230,7 +231,7 @@ async function HomeWeeklyPlan({
   blockers?: string[]
 }) {
   const [weeklyProgress, marketRealityGrade, currentSprint, suggestedActions, profileChecklistItems, resumeFixes] = await Promise.all([
-    mustArriveWithin('home', 'weeklyProgress', profile.id, timed('home', 'weeklyProgress', profile.id, computeWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode)), ESSENTIAL_DEADLINE_MS),
+    mustArriveWithin('home', 'weeklyProgress', profile.id, timed('home', 'weeklyProgress', profile.id, getWeeklyProgress(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode)), ESSENTIAL_DEADLINE_MS),
     // The one candidate-facing Market Reality Assessment — computeProbabilityGrade
     // is the single orchestrator (scoring/market-reality/probability.ts);
     // never call computeMarketRealityCompositeGrade directly here, that
@@ -462,6 +463,10 @@ export default async function DashboardPage() {
   after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: note, journey: journeyNow, stage: stageNow, weekNumber, audience, redesign: true }))
   const plain = simpleNote(note, { firstName, firstWeek, motivations: profile.motivations, coachFirstName: coachUpdate?.coachFirstName })
   const toneSet = profile.coachingStylePreference !== null
+  // The week's minutes box sits under the headline for members who search and see points (the senior overlay hides them). It carries
+  // the week of the search, so the eyebrow drops " · Week N of your search" when the box is there.
+  const showWeekBox = searching && engagementFor(profile).points
+  const weekProps = { candidateId: profile.id, weekNumber, privacyTier: profile.privacyTier, confidentialSearchMode: profile.confidentialSearchMode }
   return (
     <div className="space-y-6">
       {user && !user.email_confirmed_at && user.email && <EmailConfirmationBanner email={user.email} />}
@@ -473,16 +478,26 @@ export default async function DashboardPage() {
       <header className="space-y-1.5">
         <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
           Hello, {firstName}
-          {searching ? ` · Week ${weekNumber} of your search` : ''}
+          {searching && !showWeekBox ? ` · Week ${weekNumber} of your search` : ''}
         </p>
         <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink text-balance sm:text-4xl">
           {journeyNow ? getJourney(journeyNow).goal : <>NextChapter&apos;s goal is to get you a job. Let&apos;s go!</>}
         </h1>
         <Squiggle className="mt-1" />
       </header>
+      {showWeekBox && (
+        <Suspense fallback={<FocusNumberSkeleton />}>
+          <HomeFocusNumber {...weekProps} />
+        </Suspense>
+      )}
 
       {plain ? (
-        <HomeNote kind={note} variant="paper" {...plain} />
+        <HomeNote
+          kind={note}
+          variant="paper"
+          asideSlot={showWeekBox ? <Suspense fallback={null}><HomeNoteAside {...weekProps} /></Suspense> : undefined}
+          {...plain}
+        />
       ) : (
         <>
           {note === 'connect_accounts' && (

@@ -48,6 +48,11 @@ screen should feel like progress toward a job.
 - **Names say the benefit.** Home entries: Your week, Improve your search, Effort and results. Strips: Build your plan (Home), Better jobs for you (Jobs), Warmer introductions (Network), Closer to hired (Learn). The Personalize place is replaced by these strips and the Improve your search page. Settings: Account and privacy.
 - **Every question flow**: two or three questions at a time, "why we ask" first, the payoff updating as you answer, a finish screen that shows what you gained, and one optional next question. Long assessments become short rounds with a reveal at the end.
 
+## Added 2026-11-09
+
+- **Home shows the week's minutes as one pale box under the headline** (`HomeFocusNumber`, for members who search and see points). It carries "week N of your search", so the eyebrow no longer says it when the box is there. The senior overlay, which hides points, keeps the eyebrow as it was. The box loads inside Suspense and shares one computation with the weekly plan (`src/lib/weekly/cached-progress.ts`), so nothing above it waits.
+- **The Home note's handwritten aside** (`HomeNoteAside`) reads the same two numbers ("past the halfway mark"). It is drawn as an image by the signed `/api/email/handwriting` route and is left out when the image cannot be signed.
+
 ## Page contract
 
 1. One headline. One primary action, the most visible thing on the page.

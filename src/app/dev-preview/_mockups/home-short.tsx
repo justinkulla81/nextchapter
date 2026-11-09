@@ -29,11 +29,11 @@ export function HomeTodayShort({ pending = true, paper = false }: { pending?: bo
   return (
     <PreviewShell place="home" entry="today">
       <header className="space-y-1.5">
-        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Good morning, Maya · Week 3{paper ? '' : ' · 105 of 150 minutes this week'}</p>
+        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Good morning, Maya{paper ? '' : ' · Week 3 · 105 of 150 minutes this week'}</p>
         <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight text-ink text-balance sm:text-4xl">The right role, fast.</h1>
         {paper && <Squiggle className="mt-1" />}
       </header>
-      {paper && <FocusNumber done={105} target={150} />}
+      {paper && <FocusNumber done={105} target={150} week={3} />}
 
       <HomeNote
         variant={paper ? 'paper' : 'card'}
