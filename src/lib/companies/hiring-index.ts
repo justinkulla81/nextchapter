@@ -457,18 +457,27 @@ const PROFILE_PAGE = 1_000
  * Skips the heavy steps while the ncrawl import is writing (a batch confirmed in the
  * last 10 minutes), so the two big writers never overlap.
  */
-export async function rebuildHiringIndex(opts: { since: Date | null; now?: Date; budgetMs?: number }) {
+export async function rebuildHiringIndex(opts: { since: Date | null; now?: Date; budgetMs?: number; onStep?: (step: string, ms: number) => void | Promise<void> }) {
   const now = opts.now ?? new Date()
   const started = Date.now()
   const deadline = started + (opts.budgetMs ?? 230_000)
   const shard = now.getUTCDay() % SHARDS
   const ms: Record<string, number> = {}
-  const timed = async <T>(name: string, fn: () => Promise<T>): Promise<T> => {
+  // Each phase runs on its own: one that fails (a statement timeout, 2026-11-03 on) no longer stops the phases after it, and the
+  // run then fails naming every phase that did, with its time. The last good run is what `since` counts from, so a failing run
+  // is retried from the same point, never skipped.
+  const errors: Record<string, string> = {}
+  const timed = async <T>(name: string, fn: () => Promise<T>, fallback: T): Promise<T> => {
     const t = Date.now()
     try {
       return await fn()
+    } catch (error) {
+      errors[name] = (error instanceof Error ? error.message : String(error)).replace(/\s+/g, ' ').trim().slice(0, 160)
+      console.error('company hiring index phase failed:', name, error)
+      return fallback
     } finally {
       ms[name] = Date.now() - t
+      await Promise.resolve(opts.onStep?.(name, ms[name])).catch(() => {})
     }
   }
   const importing = await prisma.exclusiveJobPosting.count({
@@ -476,16 +485,16 @@ export async function rebuildHiringIndex(opts: { since: Date | null; now?: Date;
   })
   if (importing > 0) return { skipped: 'ncrawl import in progress', importing }
 
-  const linked = await timed('link', () => linkUnlinkedPostings(1000))
-  const synced = await timed('sync', () => syncBoardOpenings(5000))
-  const closed = await timed('close', () => closeArchivedOpenings({ deadline: started + 90_000 }))
-  const bench = shard === 0 ? await timed('benchmarks', () => rebuildPayBenchmarks()) : null
+  const linked = await timed('link', () => linkUnlinkedPostings(1000), 0)
+  const synced = await timed('sync', () => syncBoardOpenings(5000), 0)
+  const closed = await timed('close', () => closeArchivedOpenings({ deadline: started + 90_000 }), 0)
+  const bench = shard === 0 ? await timed('benchmarks', () => rebuildPayBenchmarks(), null) : null
   const since = opts.since ?? new Date(0)
-  const market = await timed('market', async () =>
-    priceOpeningsPaged(await openingIdsToPrice({ since, shard }), { deadline, pauseMs: 500 })
-  )
+  const market = await timed('market', async () => priceOpeningsPaged(await openingIdsToPrice({ since, shard }), { deadline, pauseMs: 500 }), null)
   const profiles = await timed('profiles', async () =>
-    rebuildHiringProfilesPaged(await companyIdsToProfile({ since, shard }), { deadline: deadline + 40_000, pauseMs: 500 })
+    rebuildHiringProfilesPaged(await companyIdsToProfile({ since, shard }), { deadline: deadline + 40_000, pauseMs: 500 }), null
   )
+  const failed = Object.entries(errors)
+  if (failed.length > 0) throw new Error(`company hiring index: ${failed.map(([phase, message]) => `${phase} failed after ${Math.round(ms[phase] / 1000)}s (${message})`).join('; ')}`)
   return { shard, since: since.toISOString(), linked, synced, closed, bench, market, profiles, ms }
 }

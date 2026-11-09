@@ -10,13 +10,13 @@ export const maxDuration = 300
 // reprofiles only what changed since the last successful run plus a seventh of
 // everything (all of it weekly; benchmarks rebuilt Sundays). Paged, with a time
 // budget, so no statement rewrites the whole table. Rerun-safe.
-export const GET = withCronRun('company-hiring-index', async () => {
+export const GET = withCronRun('company-hiring-index', async (_request, ctx) => {
   const last = await prisma.cronRun.findFirst({
     where: { job: 'company-hiring-index', status: 'OK' },
     orderBy: { startedAt: 'desc' },
     select: { startedAt: true },
   })
   // No successful run yet: the one-time full rebuild covered everything before today.
-  const result = await rebuildHiringIndex({ since: last?.startedAt ?? new Date(Date.now() - 86_400_000) })
+  const result = await rebuildHiringIndex({ since: last?.startedAt ?? new Date(Date.now() - 86_400_000), onStep: (step, ms) => ctx.progress({ step, ms }) })
   return NextResponse.json(result)
 })
