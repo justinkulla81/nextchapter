@@ -1,0 +1,13 @@
+indicator,period,value,comparison,source,status
+Business applications, total (seasonally adjusted),Sep 2026,534947,"+4.4% vs Sep 2025; +76% vs Feb 2020; trailing 12 months +15.0%; peak 576264 (Jul 2026)",Census Business Formation Statistics via FRED BABATOTALSAUS,official
+High-propensity business applications,Sep 2026,147331,"+3.1% vs Sep 2025; +27.7% vs Feb 2020; below Jul 2020 peak 184824; definition excludes internet-sales applications from Jan 2026",Census BFS via FRED BAHBATOTALSAUS,official (definition change flagged)
+Business applications with planned wages,Sep 2026,35786,"-2.8% vs Sep 2025; trailing 12 months -15.8%; -9.2% vs Feb 2020",Census BFS via FRED BAWBATOTALSAUS,official
+Projected employer formations within 4 quarters,Sep 2026,29022,"about 5.4% of September applications; within 8 quarters 39703 (7.4%)",Census BFS release CB26-163,official
+Self-employed share of employed white-collar workers,Jan-Sep 2026,11.29,"11.34% in 2025 (-0.05 +/-0.39)",NextChapter CPS calculation (nc_cps_selfemp.py),our calculation
+Unemployed white-collar workers self-employed next month,Jan-Sep 2026,3.70,"3.87% in 2025 (-0.17 +/-1.93)",NextChapter CPS calculation (nc_cps_selfemp.py),our calculation
+White-collar workers with more than one job,Jan-Sep 2026,6.26,"6.49% in 2025 (-0.23 +/-0.30)",NextChapter CPS calculation (nc_cps_sidework.py),our calculation
+White-collar workers whose second job is self-employment,Jan-Sep 2026,0.73,"0.76% in 2025 (-0.03 +/-0.11)",NextChapter CPS calculation (nc_cps_sidework.py),our calculation
+Adults doing gig activity in the prior month,Oct 2024 survey,about 20,"about one in five; about a fifth of them as main job",Federal Reserve SHED via secondary summaries; 2025 report may not repeat the questions,secondary; verify at federalreserve.gov
+Common App first-year applicants (final 2025-26),Season 2025-26,1527328,"+2% vs prior season; Nov 1 2025 benchmark 962284 (+5%)",Common App end-of-season and deadline reports,secondary; verify at commonapp.org
+Undergraduate enrollment growth (preliminary),Fall 2026,0.6,"+2.4% in fall 2025; community colleges +1.2%; master's -3.7%; computer and information science -12.4% at four-year and -10.4% graduate",National Student Clearinghouse preliminary report Oct 29 2026 via secondary coverage,secondary; verify at nscresearchcenter.org
+Public four-year in-state tuition and fees,2025-26,11950,"net tuition and fees for first-time full-time students about 2300 (reported)",College Board Trends in College Pricing via secondary coverage,secondary; verify at College Board

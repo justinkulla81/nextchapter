@@ -1,0 +1,102 @@
+{
+ "all": {
+  "2025": {
+   "multiple_jobs": 5.49,
+   "second_job_self_employed": 0.58,
+   "n": 409744
+  },
+  "2026": {
+   "multiple_jobs": 5.45,
+   "second_job_self_employed": 0.58,
+   "n": 389879
+  },
+  "multiple_jobs_change": {
+   "change": -0.04,
+   "moe90": 0.19
+  },
+  "second_job_self_employed_change": {
+   "change": 0.0,
+   "moe90": 0.06
+  }
+ },
+ "white_collar": {
+  "2025": {
+   "multiple_jobs": 6.49,
+   "second_job_self_employed": 0.76,
+   "n": 181297
+  },
+  "2026": {
+   "multiple_jobs": 6.26,
+   "second_job_self_employed": 0.73,
+   "n": 173955
+  },
+  "multiple_jobs_change": {
+   "change": -0.23,
+   "moe90": 0.3
+  },
+  "second_job_self_employed_change": {
+   "change": -0.03,
+   "moe90": 0.11
+  }
+ },
+ "wc_under35": {
+  "2025": {
+   "multiple_jobs": 6.3,
+   "second_job_self_employed": 0.54,
+   "n": 46996
+  },
+  "2026": {
+   "multiple_jobs": 5.89,
+   "second_job_self_employed": 0.51,
+   "n": 43667
+  },
+  "multiple_jobs_change": {
+   "change": -0.41,
+   "moe90": 0.58
+  },
+  "second_job_self_employed_change": {
+   "change": -0.03,
+   "moe90": 0.18
+  }
+ },
+ "wc_35_54": {
+  "2025": {
+   "multiple_jobs": 6.98,
+   "second_job_self_employed": 0.83,
+   "n": 85460
+  },
+  "2026": {
+   "multiple_jobs": 6.7,
+   "second_job_self_employed": 0.84,
+   "n": 83222
+  },
+  "multiple_jobs_change": {
+   "change": -0.28,
+   "moe90": 0.45
+  },
+  "second_job_self_employed_change": {
+   "change": 0.01,
+   "moe90": 0.16
+  }
+ },
+ "wc_55_64": {
+  "2025": {
+   "multiple_jobs": 5.94,
+   "second_job_self_employed": 0.83,
+   "n": 32424
+  },
+  "2026": {
+   "multiple_jobs": 5.95,
+   "second_job_self_employed": 0.86,
+   "n": 31047
+  },
+  "multiple_jobs_change": {
+   "change": 0.01,
+   "moe90": 0.69
+  },
+  "second_job_self_employed_change": {
+   "change": 0.03,
+   "moe90": 0.27
+  }
+ }
+}
