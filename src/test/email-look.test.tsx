@@ -6,6 +6,7 @@ import MidweekCheckinEmail from '@/emails/midweek-checkin'
 import NewsletterWeeklyEmail from '@/emails/newsletter-weekly'
 import ReferenceRequestEmail from '@/emails/reference-request'
 import LeadLifecycleEmail from '@/emails/lead-lifecycle'
+import { IntakeApprovalDigestEmail, IntakeClaimReminderEmail, IntakeFitAlertEmail, RecruiterFirmInviteEmail } from '@/emails/intake-emails'
 import WeeklyGapNudgeEmail from '@/emails/weekly-gap-nudge'
 import { checkinNoteText, nudgeNoteText } from '@/lib/email/margin-note-text'
 
@@ -94,5 +95,16 @@ describe('email look', () => {
     const admin = readdirSync(dir).filter((n) => n.endsWith('.tsx') && /audience="admin"/.test(readFileSync(path.join(dir, n), 'utf8')))
     expect(admin.length).toBeGreaterThanOrEqual(9)
     for (const f of admin) expect(readFileSync(path.join(dir, f), 'utf8'), `${f} is a staff email without AdminFrame`).toContain('<AdminFrame>')
+  })
+
+  it('tags recruiter intake emails as Recruiter and candidate ones as Member', async () => {
+    const fit = await render(<IntakeFitAlertEmail recruiterFirstName="Justin" candidateName="Sam Rivera" searchTitle="Director" summary={['x']} reasons={['y']} reviewUrl="https://x.test/r" />)
+    expect(fit).toMatch(/NextChapter · (<!-- -->)?Recruiter/)
+    expect(fit).not.toMatch(/NextChapter · (<!-- -->)?Member/)
+    const invite = await render(<RecruiterFirmInviteEmail inviterName="Dana" firmName="Summit" signupUrl="https://x.test/i" />)
+    expect(invite).toMatch(/NextChapter · (<!-- -->)?Recruiter/)
+    const claim = await render(<IntakeClaimReminderEmail firstName="Sam" firmName="Summit" claimUrl="https://x.test/c" unsubscribeUrl="https://x.test/u" final={false} />)
+    expect(claim).toMatch(/NextChapter · (<!-- -->)?Member/)
+    expect(IntakeApprovalDigestEmail).toBeTypeOf('function')
   })
 })
