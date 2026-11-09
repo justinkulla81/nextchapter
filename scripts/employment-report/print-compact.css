@@ -37,4 +37,10 @@
  .exhibit tr{break-inside:avoid}
  .exhibit thead{display:table-header-group}
  .ex-title,.ex-label{break-after:avoid}
+ section,section section,.items,.box{break-inside:auto!important}
+ h3{break-after:avoid}
+ ul,ol,li,.items li{break-inside:auto!important}
+ p,li{orphans:2;widows:2}
+ .ncr section,.ncr section section{display:block!important}
+ .ncr section>*+*{margin-top:5pt!important}
 }
