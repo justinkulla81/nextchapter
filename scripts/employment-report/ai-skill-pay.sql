@@ -1,4 +1,4 @@
--- Exhibit 10: posted-pay medians for open postings that name an AI skill vs those that do not, by function and level.
+-- Exhibit 9: posted-pay medians for open postings that name an AI skill vs those that do not, by function and level.
 -- Same live-board rule as src/lib/seo/employer-rankings.ts (LIVE_PUBLIC_SQL, one row per crawlerFingerprint). USD annual ranges 30k-1M.
 -- Cells need 30+ postings of each kind. Run against production; the report used the Nov 7, 2026 board.
 WITH roles AS (
@@ -11,7 +11,7 @@ cells AS (SELECT f,lv,count(*) FILTER (WHERE ai) na,count(*) FILTER (WHERE NOT a
 SELECT coalesce(f,'(unclassified)') AS "function", lv AS level, na, nn, round(ma) AS median_ai, round(mnn) AS median_other, round((ma/mnn-1)*100,1) AS difference_pct
 FROM cells WHERE na>=30 AND nn>=30 ORDER BY f, lv;
 
--- Within-employer version (Exhibit 10, first row): same companyId, targetFunction and level; cells with 3+ postings of each kind.
+-- Within-employer version (Exhibit 9, first row): same companyId, targetFunction and level; cells with 3+ postings of each kind.
 -- Result, Nov 7, 2026: 306 cells, 144 employers, 2,281 AI-naming and 4,931 other postings; median +0.9%, posting-weighted +3.9%, 159 cells up / 89 down / 58 equal.
 -- (Same roles/p CTEs as above, with "companyId" c and p restricted to c IS NOT NULL AND f IS NOT NULL.)
 -- cells AS (SELECT c,f,lv,count(*) FILTER (WHERE ai) na,count(*) FILTER (WHERE NOT ai) nn,
