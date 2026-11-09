@@ -71,6 +71,7 @@ export const JOB_TYPES: JobType[] = [
   { slug: 'hybrid', name: 'Hybrid', noun: 'hybrid' },
   { slug: 'contract', name: 'Contract', noun: 'contract' },
   { slug: 'part-time', name: 'Part-time', noun: 'part-time' },
+  { slug: 'fractional', name: 'Fractional', noun: 'fractional' },
   { slug: 'interim', name: 'Interim', noun: 'interim' },
 ]
 export const jobTypeBySlug = (slug: string) => JOB_TYPES.find((t) => t.slug === slug)
@@ -107,15 +108,16 @@ async function scan(): Promise<Dataset> {
       FROM "ExclusiveJobPosting" WHERE ${PUBLIC}
     ), c AS (SELECT b FROM t WHERE length(b) BETWEEN 6 AND 60 AND b !~ '[0-9]' GROUP BY b HAVING count(*) >= ${TITLE_MIN_JOBS})
     SELECT t.id, t.b, t.state, t.city, t.company, t.posted, t.pay::float8 AS pay, t.fn FROM t JOIN c ON c.b = t.b`
-  // Job types (remote, hybrid, contract, part-time, interim) are summed over all listings, not only those under a title page.
+  // Job types (remote, hybrid, contract, part-time, fractional, interim) are summed over all listings, not only those under a title page.
   const typesQuery = prisma.$queryRaw<{ ty: string; total: number; pay_n: number; med: number | null; states: { st: string; n: number }[] | null; ids: string[] | null; bases: string[] | null }[]>`
     WITH t AS (
       SELECT id, ${BASE} AS b, "locationState" AS st, COALESCE("postedAt", "createdAt") AS posted, ${PAY} AS pay,
         array_remove(ARRAY[
           CASE WHEN "workArrangement" = 'remote' THEN 'remote' END, CASE WHEN "workArrangement" = 'hybrid' THEN 'hybrid' END,
           CASE WHEN "employmentType" = 'contract' THEN 'contract' END, CASE WHEN "employmentType" = 'part_time' THEN 'part-time' END,
-          CASE WHEN "employmentType" = 'interim' THEN 'interim' END], NULL) AS types
-      FROM "ExclusiveJobPosting" WHERE ${PUBLIC} AND ("workArrangement" IN ('remote', 'hybrid') OR "employmentType" IN ('contract', 'part_time', 'interim'))
+          CASE WHEN "employmentType" = 'fractional' OR title ~* '\\mfractional\\M' THEN 'fractional' END,
+          CASE WHEN "employmentType" = 'interim' OR title ~* '\\minterim\\M' THEN 'interim' END], NULL) AS types
+      FROM "ExclusiveJobPosting" WHERE ${PUBLIC} AND ("workArrangement" IN ('remote', 'hybrid') OR "employmentType" IN ('contract', 'part_time', 'interim', 'fractional') OR title ~* '\\m(fractional|interim)\\M')
     ), u AS (SELECT unnest(types) AS ty, id, b, st, posted, pay FROM t)
     SELECT ty, count(*)::int AS total, count(pay)::int AS pay_n, percentile_cont(0.5) WITHIN GROUP (ORDER BY pay)::float8 AS med,
       (SELECT json_agg(x) FROM (SELECT st, count(*)::int AS n FROM u u2 WHERE u2.ty = u.ty AND u2.st IS NOT NULL GROUP BY st ORDER BY n DESC LIMIT 12) x) AS states,

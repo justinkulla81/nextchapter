@@ -103,6 +103,17 @@ export function classifyWorkType(input: WorkTypeInput): JobWorkType {
   return 'full_time'
 }
 
+/**
+ * A fractional job: the crawler's employment type is 'fractional', or the title says so ("Fractional CFO"). A fractional role is a
+ * part-time engagement, so it stays in the 'part_time' board type (WORK_TYPE_LABEL: "Part-time & fractional"); this is the extra
+ * signal that lets a card, a job page and a search engine call it fractional (job-card.ts, public-job-page.ts, /jobs/type/fractional).
+ * The title test is the same word as the SQL in src/lib/seo/job-titles.ts (\mfractional\M).
+ */
+export function isFractionalJob(input: { title: string; employmentType?: string | null }): boolean {
+  const sent = input.employmentType?.trim().toLowerCase()
+  return sent === 'fractional' || /\bfractional\b/i.test(input.title)
+}
+
 /** An internship or co-op (by the crawler's employment type or the title). Never shown on a member surface. */
 export function isInternshipJob(input: { title: string; employmentType?: string | null }): boolean {
   const sent = input.employmentType?.trim().toLowerCase().replace(/[\s-]+/g, '_')

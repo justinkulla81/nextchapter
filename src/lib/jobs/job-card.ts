@@ -4,7 +4,7 @@
 // Tests: src/test/job-card.test.ts.
 
 import { isWeakFit, type FitBucket, type LevelStep } from '@/lib/jobs/fit-bucket-types'
-import { WORK_TYPE_CHIP, type JobWorkType } from '@/lib/jobs/work-type'
+import { WORK_TYPE_CHIP, isFractionalJob, type JobWorkType } from '@/lib/jobs/work-type'
 
 // ── The verdict ────────────────────────────────────────────────────────────────
 
@@ -122,7 +122,9 @@ export function cardMetaParts(input: {
   if (location) parts.push(location)
   if (input.remote && !(location && REMOTE.test(location))) parts.push('Remote')
   if (input.pay) parts.push(input.pay)
-  if (input.workType !== 'full_time') parts.push(WORK_TYPE_CHIP[input.workType])
+  // A fractional role says so on the card instead of the generic "Part-time" (work-type.ts isFractionalJob).
+  if (isFractionalJob({ title: input.title })) parts.push('Fractional')
+  else if (input.workType !== 'full_time') parts.push(WORK_TYPE_CHIP[input.workType])
   else if (INTERIM.test(input.title)) parts.push('Interim')
   return parts
 }

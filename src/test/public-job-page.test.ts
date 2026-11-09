@@ -109,6 +109,9 @@ describe('jobPostingJsonLd', () => {
     const ld = jobPostingJsonLd(job({ payPeriod: null, employmentType: 'interim', company: null, expiresAt: null }))
     expect(ld.baseSalary).toBeUndefined()
     expect(ld.employmentType).toBeUndefined()
+    // a fractional role is part-time by definition, so Google is told PART_TIME
+    expect(jobPostingJsonLd(job({ title: 'Fractional CFO', employmentType: 'fractional' })).employmentType).toBe('PART_TIME')
+    expect(jobPostingJsonLd(job({ title: 'Head of Finance', employmentType: 'fractional' })).employmentType).toBe('PART_TIME')
     expect((ld.hiringOrganization as Record<string, unknown>).sameAs).toBeUndefined()
   })
   it('uses the real expiry when there is one, and escapes HTML in the description', () => {

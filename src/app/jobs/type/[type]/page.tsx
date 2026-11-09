@@ -21,7 +21,8 @@ export async function generateMetadata({ params }: { params: Promise<{ type: str
   const d = await getJobTypeDetail(type)
   if (!d) return { title: 'Jobs not found', robots: { index: false, follow: true } }
   const seo = jobTypeSeo(d.type.name, d.type.noun, d.total)
-  return { title: titleMeta(seo.title), description: seo.description, ...canonical(`/jobs/type/${type}`) }
+  // A type with no counted jobs yet (the board-figures cron has not run since it was added) stays out of search until it has some.
+  return { title: titleMeta(seo.title), description: seo.description, ...canonical(`/jobs/type/${type}`), ...(d.total === 0 ? { robots: { index: false, follow: true } } : {}) }
 }
 
 export default async function JobTypePage({ params }: { params: Promise<{ type: string }> }) {

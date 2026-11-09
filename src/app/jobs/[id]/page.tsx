@@ -25,6 +25,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { isExcerpt } from '@/lib/jobs/posting-text'
 import { testedTitle } from '@/lib/seo/title-test-state'
 import { jobTitleB } from '@/lib/seo/title-tests'
+import { isFractionalJob } from '@/lib/jobs/work-type'
 import { datePostedOf, descriptionParagraphs, isIndexableJob, isRemoteJob, isStaleJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
 import { ClosedJobView } from '@/components/jobs/ClosedJobView'
 import { getClosedJobContext, getPublicJob, similarJobsAtCompany, similarJobsLike } from '@/lib/jobs/public-job-page-server'
@@ -148,7 +149,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             <p className="mt-2 text-lg" style={brand ? { color: 'var(--org-1-text)' } : undefined}>{job.companyName}</p>
             {realBrand && <p className="mt-0.5 text-xs text-muted-foreground">Listing collected from {job.companyName}&apos;s career site. NextChapter is independent of {job.companyName}.</p>}
             <p className="mt-1 text-sm text-muted-foreground">
-              {[place, pay, `Posted ${dateFmt.format(datePostedOf(job))}`].filter(Boolean).join(' · ')}
+              {[place, pay, isFractionalJob(job) ? 'Fractional, part-time' : null, `Posted ${dateFmt.format(datePostedOf(job))}`].filter(Boolean).join(' · ')}
             </p>
             {stale && job.lastVerifiedAt && (
               <p className="mt-2 text-sm text-muted-foreground">We last confirmed this job open on {dateFmt.format(job.lastVerifiedAt)}. Check the employer’s site to see if it is still taking applications.</p>

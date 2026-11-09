@@ -23,6 +23,8 @@
 // (prisma/manual/2026-10-22-public-job-pages.sql) express the same rules in SQL.
 // Change all three together.
 
+import { isFractionalJob } from '@/lib/jobs/work-type'
+
 export const PUBLIC_JOB_SOURCES = ['ats_feed', 'admin', 'employer', 'recruiter'] as const
 /**
  * How recently the crawl must have confirmed a job open for it to keep a page. The crawl re-checks a job every 4 to 16 days
@@ -206,8 +208,8 @@ export function descriptionHtml(text: string | null): string {
     .join('')
 }
 
-// Google's employmentType enum. Only types that map exactly; interim, fractional,
-// advisory and board are left out rather than guessed.
+// Google's employmentType enum. Only types that map exactly; interim, advisory and board are left out rather than guessed.
+// A fractional role is part-time by definition, so it is sent as PART_TIME (isFractionalJob; its title already says "Fractional").
 const EMPLOYMENT_TYPE: Record<string, string> = {
   full_time: 'FULL_TIME',
   part_time: 'PART_TIME',
@@ -326,7 +328,7 @@ export function jobPostingJsonLd(job: PublicJobRow): Record<string, unknown> {
     data.baseSalary = { '@type': 'MonetaryAmount', currency: job.salaryCurrency || 'USD', value }
   }
 
-  const type = job.employmentType ? EMPLOYMENT_TYPE[job.employmentType] : undefined
+  const type = isFractionalJob(job) ? 'PART_TIME' : job.employmentType ? EMPLOYMENT_TYPE[job.employmentType] : undefined
   if (type) data.employmentType = type
 
   return data
