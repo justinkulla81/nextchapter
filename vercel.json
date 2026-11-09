@@ -6,7 +6,7 @@
   "crons": [
     {
       "path": "/api/cron/ai-citation-check",
-      "schedule": "0 16 * * 1"
+      "schedule": "0 16 1 * *"
     },
     {
       "path": "/api/cron/meeting-prep-offer",
