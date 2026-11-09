@@ -23,7 +23,7 @@ text = re.sub(r'^# .*\n+\*(Draft|Version).*\n+', '', text, count=1)          # t
 text = text.replace('![Share of the unemployed out of work 27 or more weeks, January to September 2025 and 2026, by group](chart-long-search-shares.png)', '\n\n@@CHART@@\n\n')
 frag = subprocess.run(['pandoc','-f','markdown','-t','html5','--section-divs','--wrap=none'], input=text, capture_output=True, text=True, check=True).stdout
 soup = BeautifulSoup(frag, 'html.parser')
-labels = ['Executive summary','Chapter 01 · Who we mean','Chapter 02 · The middle class','Chapter 03 · Industry, age, shifts, new graduates and place','Chapter 04 · What changed','Chapter 05 · Bright spots','Chapter 06 · Clouds','Chapter 07 · Layoffs and voluntary exits','Chapter 08 · Employers','Chapter 09 · AI and the workforce','Chapter 10 · The job search itself','Chapter 11 · How people respond','Chapter 12 · The incoming Congress','Appendix']
+labels = ['Executive summary','Chapter 01 · Who we mean','Chapter 02 · The middle class','Chapter 03 · Industry, age, shifts, new graduates and place','Chapter 04 · Bright spots','Chapter 05 · Clouds','Chapter 06 · Layoffs and voluntary exits','Chapter 07 · Employers','Chapter 08 · AI and the workforce','Chapter 09 · The job search itself','Chapter 10 · How people respond','Chapter 11 · The incoming Congress','Appendix']
 secs = soup.find_all('section', recursive=False)
 assert len(secs)==len(labels), len(secs)
 toc=[]
@@ -38,11 +38,11 @@ for i,(sec,lab) in enumerate(zip(secs,labels)):
     if i==0:
         nxt = head.find_next_sibling('p'); nxt['class']=['lead']
 # tables -> exhibits
-titles = ['Employed people by group, January–September 2026 monthly average','Unemployment and long spells by group, January–September 2026 vs 2025','White-collar against all workers by industry and age, January–September 2026 vs 2025','Bright spots: October jobs data and related measures','Clouds: pay, sectors, hiring and costs','Employers with the most entry-level jobs, October 26, 2026','Employers asking for AI skills, October 26, 2026','Top employers by function, October 26, 2026','Posted pay: postings naming AI skills against other postings, across employers and within the same employer, November 7, 2026','AI exposure of matched open postings, November 6, 2026','What vendors report about applications, interviews and referrals']
+titles = ['Employed people by group, January–September 2026 monthly average','Unemployment and long spells by group, January–September 2026 vs 2025','White-collar against all workers by industry and age, January–September 2026 vs 2025','Bright spots: October jobs data and related measures','Clouds: pay, sectors, hiring and costs','Employers with the most entry-level jobs, October 26, 2026','Employers asking for AI skills, October 26, 2026','Posted pay: postings naming AI skills against other postings, across employers and within the same employer, November 7, 2026','AI exposure of matched open postings, November 6, 2026','What vendors report about applications, interviews and referrals']
 tables = soup.find_all('table'); assert len(tables)==len(titles), len(tables)
 n=2
 for idx,(t,ti) in enumerate(zip(tables,titles)):
-    if idx in (3,4,7,10): t['class']=['txt']
+    if idx in (3,4,9): t['class']=['txt']
     if idx==5: t['class']=['emp2']
     if idx==6: t['class']=['emp1']
     ex = soup.new_tag('div', **{'class':'exhibit'})
