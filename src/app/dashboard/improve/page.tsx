@@ -15,9 +15,12 @@ import { TailoredRows } from '@/components/candidate/TailoredRows'
 import { UnlocksSection } from '@/components/dashboard/home/UnlocksSection'
 import { HomeModuleSkeleton } from '@/components/dashboard/home/HomeModuleSkeleton'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { timedWithin } from '@/lib/perf/timed'
 import { after } from 'next/server'
 
 export const metadata: Metadata = { title: 'Improve your search' }
+
+const MATCH_DEADLINE_MS = 3_000
 
 // Everything we use to tailor the site to this member, what each thing changes, and the one thing that
 // would help most. The whole picture in one place: each fact is changed where it lives, never here.
@@ -27,10 +30,19 @@ export default async function ImprovePage() {
   const searching = !journey || getJourney(journey).searching
 
   const [state, targetCompanies, weekNumber] = await Promise.all([
-    computeMatchState(profile, { live: true }).catch((error) => {
-      console.error('Improve your search: matching unavailable', error)
-      return null
-    }),
+    // The match ranks the member against the live board (10 s on a cold instance, 2026-11-09). The page waits at most
+    // MATCH_DEADLINE_MS for it and shows without the match-based rows; the run keeps going and holds its answer, so the next view has it.
+    timedWithin(
+      'page:improve',
+      'match',
+      profile.id,
+      computeMatchState(profile, { live: true }).catch((error) => {
+        console.error('Improve your search: matching unavailable', error)
+        return null
+      }),
+      null,
+      MATCH_DEADLINE_MS
+    ),
     prisma.companyWatchlistEntry.count({ where: { candidateId: profile.id } }).catch(() => 0),
     searching ? getCandidateWeekNumber(profile.id, getMondayOfWeek(new Date())).catch(() => null) : Promise.resolve(null),
   ])
