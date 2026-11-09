@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { countPeopleNeedingCompletion, countRemovedPeople } from '@/lib/admin/crm-counts'
 import { countRoutesToConfirm } from '@/lib/crm/route-review'
 import { AdminNav } from '@/components/admin/AdminNav'
+import { AdminBanner } from '@/components/admin/AdminBanner'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 import { countWorkItemsForReview } from '@/lib/work-help/questions'
 
@@ -136,6 +137,7 @@ export default async function AdminPortalLayout({ children }: { children: React.
       </Suspense>
       {/* pt-14 clears the fixed top bar — see CoachAppLayout's comment. */}
       <div className="pt-14">
+        <AdminBanner className="lg:pl-[calc(var(--admin-nav-w,16rem)+1.5rem)]" />
         <RoleContextBanner
           userId={user.id}
           currentRole="nc_admin"

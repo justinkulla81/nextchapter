@@ -22,7 +22,8 @@ The email look (`docs/email-look.md`) is carried onto the site in small, shared 
 - Other public content pages and candidate pages with their own headline markup (news, data, reports, insights, resources, systems, niches, press, unemployment benefits, start, careers, jobs, and the candidate pages that do not use `PageHeader`): squiggle only.
 - Portals (recruiters, talent, employer, employer home, the no-experience employer pages, coach, and the organization, partner and intake views): squiggle only, on pages with their own headline. The portals stay Inter-only: the squiggle is blue and is not a typeface. No paper note, signature or number box there.
 - The coach client workspace (documents, full view, client brief, client list, invite a client, branding) has the squiggle too.
-- Deliberately not covered: the staff admin area, onboarding flows, legal pages, the manager reference flow, and transactional pages (unsubscribe, confirmations, application and sign-up forms, token links). Pages whose headline spans several lines in the source (why you're stuck, scam watch, vs, the jobs hub, the no-experience pages, a few reports and insights) now carry it too.
+- The staff admin area (every page under the admin portal layout) carries `AdminBanner`: a navy "Internal · NextChapter staff only" bar with a "Not a member page" tag, like staff emails. It does not get the squiggle, the paper note or the other member-facing elements.
+- Deliberately not covered: the admin sign-in, forgot-password and MFA pages (before sign-in), onboarding flows, legal pages, the manager reference flow, and transactional pages (unsubscribe, confirmations, application and sign-up forms, token links). Pages whose headline spans several lines in the source (why you're stuck, scam watch, vs, the jobs hub, the no-experience pages, a few reports and insights) now carry it too.
 
 ## Rules
 
