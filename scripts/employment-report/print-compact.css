@@ -43,4 +43,5 @@
  p,li{orphans:2;widows:2}
  .ncr section,.ncr section section{display:block!important}
  .ncr section>*+*{margin-top:5pt!important}
+ .exhibit.chart img{max-height:3.0in!important;width:auto!important;max-width:100%!important;margin:0 auto;display:block}
 }

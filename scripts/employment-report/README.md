@@ -102,7 +102,8 @@ clouds), not political, no claim that AI caused an outcome, no "displacement"/"d
 | Group breakdowns (white-collar, knowledge workers, blue-collar, age, industry, occupation, recent graduates) | `nc_cps_breakdowns.py` | Unemployment rate, long spells, medians, counts |
 | BLS-method margins on long-spell shares | `gvf-long-search-margins.py` | Which changes clear their margin |
 | Scorecard by industry and age, white-collar vs all workers | `scorecard-margins.py` | Exhibit 4 |
-| Month-to-month flows (exit from unemployment, entry) | `nc_cps_flows.py` | Slow exits vs more layoffs |
+| Month-to-month flows (exit from unemployment, entry) | `nc_cps_flows.py` | Hypothesis: slower exits and fewer entries; validate against BLS published gross flows |
+| Reason for unemployment (loser, leaver, re-entrant) and long spells by reason | `nc_cps_reason.py` | Is the rise a shift toward retirees or leavers |
 | White-collar by Census division and state | `nc_cps_geo.py` | Where white-collar employment and spells moved |
 | Outcomes by AI exposure (AEI score vs CPS occupation groups) | `exposure-outcomes.py` | Are more-exposed occupations losing jobs faster |
 | Posted pay: AI-naming vs other postings, across employers, within employer, and employer class | `ai-skill-pay.sql` (whole-board aggregate: run once per edition, keep the result in `data/employment-report/<YYYY-MM>/`, never re-run to adjust a figure; CLAUDE.md egress rule) | Is the AI-skills premium an employer premium |
