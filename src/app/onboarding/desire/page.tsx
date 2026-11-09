@@ -14,6 +14,7 @@ import { storedAnswers } from '@/lib/onboarding/answers'
 import { usableAnswers } from '@/lib/onboarding/bundles'
 import { entryFromGoalParam } from '@/lib/onboarding/resume-rule'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { getPersona } from '@/lib/constants/personas'
 import { posthogCookieName, posthogDistinctId } from '@/lib/posthog/visitor-id'
 import { LEAD_COOKIE, emailFromLeadCookie } from '@/lib/leads/lifecycle/prefill'
 
@@ -55,10 +56,14 @@ export default async function SituationPickerPage({ searchParams }: { searchPara
   // The short question bundles (docs/personalization-audit/bundles.md O1), for members on that flow.
   // Everyone else gets the classic picker below, untouched.
   if (flowOfProfile(profile, user?.email) === 'bundles') {
-    const initial = usableAnswers('where_you_are', { journey }, profile ? storedAnswers(profile) : {})
+    const stored = usableAnswers('where_you_are', { journey }, profile ? storedAnswers(profile) : {})
+    // Someone from /after-a-layoff already told us they were laid off, on another host (session storage does not cross hosts), so the
+    // answer is filled in here and the first step submits it. A member who already answered keeps their own answer.
+    const answeredOnLanding = !!arrivedFrom && !profile?.desireComplete && !stored.situation
+    const initial = answeredOnLanding ? { ...stored, situation: getPersona('laid-off')?.situation ?? 'just_laid_off' } : stored
     return (
       <BundleShell id="where_you_are" title={profile?.firstName ? `Hi ${profile.firstName}, which of these sounds most like you?` : 'Which of these sounds most like you?'}>
-        <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} hidden={entryGoal ? { entry: entryGoal } : undefined} autoSubmit={!!arrivedFrom && !profile?.desireComplete} />
+        <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} hidden={entryGoal ? { entry: entryGoal } : undefined} autoSubmit={answeredOnLanding} />
       </BundleShell>
     )
   }
