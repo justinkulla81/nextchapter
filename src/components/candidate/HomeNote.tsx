@@ -8,12 +8,14 @@ import { cn } from '@/lib/utils'
 
 // Today's note: the one thing to do now, why it matters, and how to start. There is only ever one of
 // these on Home. "Why am I seeing this?" holds the explanation. "Not now" hides it until tomorrow.
-export function HomeNote({ kind = 'note', title, why, startLabel, startHref, whyDetail, variant = 'card', aside }: {
+export function HomeNote({ kind = 'note', title, why, startLabel, startHref, whyDetail, variant = 'card', aside, asideSlot }: {
   kind?: string; title: string; why: string; startLabel: string; startHref: string; whyDetail: string
   /** 'paper': warm paper card, a handwritten aside and Victoria's signature in place of the "Cue" pill. Off by default. */
   variant?: 'card' | 'paper'
   /** The handwritten aside as a signed image URL plus its text (the alt). Only the paper variant draws it. */
   aside?: { src: string | null; text: string } | null
+  /** A server-rendered aside (it loads after the note, so the note itself never waits on it). The paper variant draws it under the label. */
+  asideSlot?: React.ReactNode
 }) {
   const paper = variant === 'paper'
   const dayKey = `nc-note-dismissed:${kind}`
@@ -36,6 +38,7 @@ export function HomeNote({ kind = 'note', title, why, startLabel, startHref, why
         {!paper && <span className="rounded-full bg-ink px-2.5 py-0.5 text-xs font-semibold text-white">Cue</span>}
         <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Today&apos;s note</span>
       </div>
+      {paper && asideSlot}
       {paper && aside?.src && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={aside.src} alt={aside.text} height={30} className="h-[30px] w-auto" />
