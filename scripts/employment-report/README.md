@@ -108,6 +108,7 @@ clouds), not political, no claim that AI caused an outcome, no "displacement"/"d
 | Posted pay: AI-naming vs other postings, across employers, within employer, and employer class | `ai-skill-pay.sql` (whole-board aggregate: run once per edition, keep the result in `data/employment-report/<YYYY-MM>/`, never re-run to adjust a figure; CLAUDE.md egress rule) | Is the AI-skills premium an employer premium |
 | Degree-holders by age band, vs no bachelor's | `nc_cps_degree_age.py` | New vs older alumni: unemployment and long spells |
 | AI-skill postings by employer industry, outside technology, by function, concentration | one-off edge function (see `ai-skill-pay.sql` notes; query shape in the October 2026 methodology note) | Is AI-skill demand only a tech-company ask |
+| Self-employment share and flows from unemployment into self-employment (white-collar, by age) | `nc_cps_selfemp.py` | Is there a move into self-employment; pair with Census Business Formation Statistics (applications, high-propensity, projected formations) |
 | Software postings by title, postings by state | `ai-skill-pay.sql` notes | Software demand snapshot; where AI-skill jobs are |
 
 **Also every edition (manual pulls, cite the source and month):**
