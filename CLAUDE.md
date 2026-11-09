@@ -195,8 +195,9 @@ all of it our own server reading large tables over and over. Before you write or
   counts too: a whole-board aggregate ran 14-18 s and touched ~35 GB of buffers per call on 2026-11-08. Run it once, bound it with a
   `LIMIT` or a sample, select only the columns needed, never in a loop, and keep the result rather than re-running it to adjust a figure.
 
-Check where it stands with `pg_stat_statements` (order by `rows`) and the Usage page's egress chart. A scheduled weekly check
-does this too.
+Check where it stands with `pg_stat_statements` (order by `rows`) and the Usage page's egress chart. The Monday cron
+`db-slow-query-report` (`src/lib/perf/db-report.ts`) emails the week's top statements by time, rows returned and disk reads, the cache
+hit share and the watched tables' growth, so a statement that keeps coming back is the one to fix.
 
 ## Build and 404 rules
 - A page must not need the live database to prerender if the query is heavy (a scan of jobs, companies or notices). `next build` runs seven workers at once against the database, and one statement timeout fails the whole deploy. Use `export const dynamic = 'force-dynamic'` and a `Vercel-CDN-Cache-Control` header in `next.config.ts` (see `/salaries`, `/top-employers`; a plain `Cache-Control` is ignored on a per-request page, so check `x-vercel-cache: HIT` on a GET after deploy), or `generateStaticParams() { return [] }` for dynamic routes.

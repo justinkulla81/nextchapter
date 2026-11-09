@@ -1,0 +1,98 @@
+{
+ "white_collar": {
+  "2025": {
+   "n": 4422,
+   "job_loser_or_temp_ended": {
+    "share": 59.2,
+    "n": 2643,
+    "ltu_share": 21.1
+   },
+   "job_leaver": {
+    "share": 11.9,
+    "n": 527,
+    "ltu_share": 19.0
+   },
+   "reentrant": {
+    "share": 28.8,
+    "n": 1252,
+    "ltu_share": 29.2
+   },
+   "new_entrant": {
+    "share": 0.0,
+    "n": 0,
+    "ltu_share": null
+   }
+  },
+  "2026": {
+   "n": 4321,
+   "job_loser_or_temp_ended": {
+    "share": 59.0,
+    "n": 2581,
+    "ltu_share": 25.8
+   },
+   "job_leaver": {
+    "share": 12.9,
+    "n": 547,
+    "ltu_share": 25.5
+   },
+   "reentrant": {
+    "share": 28.1,
+    "n": 1193,
+    "ltu_share": 35.7
+   },
+   "new_entrant": {
+    "share": 0.0,
+    "n": 0,
+    "ltu_share": null
+   }
+  }
+ },
+ "wc_55_64": {
+  "2025": {
+   "n": 763,
+   "job_loser_or_temp_ended": {
+    "share": 74.0,
+    "n": 541,
+    "ltu_share": 25.3
+   },
+   "job_leaver": {
+    "share": 10.3,
+    "n": 81,
+    "ltu_share": 27.1
+   },
+   "reentrant": {
+    "share": 15.7,
+    "n": 141,
+    "ltu_share": 34.5
+   },
+   "new_entrant": {
+    "share": 0.0,
+    "n": 0,
+    "ltu_share": null
+   }
+  },
+  "2026": {
+   "n": 768,
+   "job_loser_or_temp_ended": {
+    "share": 68.7,
+    "n": 527,
+    "ltu_share": 34.0
+   },
+   "job_leaver": {
+    "share": 9.9,
+    "n": 78,
+    "ltu_share": 38.9
+   },
+   "reentrant": {
+    "share": 21.4,
+    "n": 163,
+    "ltu_share": 55.6
+   },
+   "new_entrant": {
+    "share": 0.0,
+    "n": 0,
+    "ltu_share": null
+   }
+  }
+ }
+}

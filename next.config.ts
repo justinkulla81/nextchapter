@@ -354,6 +354,10 @@ const nextConfig: NextConfig = {
       ...["/jobs/title", "/jobs/entry-level", "/salaries", "/tools/pay-check", "/roles"].map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=21600, stale-while-revalidate=86400" }] })),
       // Rendered per request, not at build; the CDN keeps each page for an hour.
       { source: "/sitemap.xml", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
+      // The job sitemap shards (/jobs/sitemap/N.xml, ~11k URLs each) are rendered per request from the database. Without this the CDN
+      // answered MISS every time (checked live 2026-11-09) and a cold shard took about 8.7 s, long enough for a crawler to give up.
+      // Kept an hour, with a stale copy served while it refreshes, so a crawler almost always gets a cached file.
+      { source: "/jobs/sitemap/:path*", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       // The public AI course catalog is rendered per request (one small Course query) and kept by the CDN for an hour.
       { source: "/ai-courses/:path*", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       { source: "/ai-courses", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },

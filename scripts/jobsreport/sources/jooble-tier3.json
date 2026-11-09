@@ -1,0 +1,236 @@
+[
+  {
+    "name": "wd-cvshealth",
+    "adapter": "workday",
+    "tenant": "cvshealth",
+    "wd": "wd1",
+    "site": "CVS_Health_Careers",
+    "type": "direct_ats",
+    "employer": "CVS Health"
+  },
+  {
+    "name": "wd-usbank",
+    "adapter": "workday",
+    "tenant": "usbank",
+    "wd": "wd1",
+    "site": "US_Bank_Careers",
+    "type": "direct_ats",
+    "employer": "U.S. Bank"
+  },
+  {
+    "name": "wd-regeneron",
+    "adapter": "workday",
+    "tenant": "regeneron",
+    "wd": "wd1",
+    "site": "Careers",
+    "type": "direct_ats",
+    "employer": "Regeneron"
+  },
+  {
+    "name": "wd-cisco",
+    "adapter": "workday",
+    "tenant": "cisco",
+    "wd": "wd5",
+    "site": "Cisco_Careers",
+    "type": "direct_ats",
+    "employer": "Cisco"
+  },
+  {
+    "name": "wd-blueorigin",
+    "adapter": "workday",
+    "tenant": "blueorigin",
+    "wd": "wd5",
+    "site": "BlueOrigin",
+    "type": "direct_ats",
+    "employer": "Blue Origin"
+  },
+  {
+    "name": "wd-haier",
+    "adapter": "workday",
+    "tenant": "haier",
+    "wd": "wd3",
+    "site": "GE_Appliances",
+    "type": "direct_ats",
+    "employer": "GE Appliances"
+  },
+  {
+    "name": "wd-tmobile",
+    "adapter": "workday",
+    "tenant": "tmobile",
+    "wd": "wd1",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "T-Mobile"
+  },
+  {
+    "name": "wd-mmc",
+    "adapter": "workday",
+    "tenant": "mmc",
+    "wd": "wd1",
+    "site": "MMC",
+    "type": "direct_ats",
+    "employer": "Marsh McLennan"
+  },
+  {
+    "name": "wd-aah",
+    "adapter": "workday",
+    "tenant": "aah",
+    "wd": "wd115",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Advocate Health"
+  },
+  {
+    "name": "wd-iqvia",
+    "adapter": "workday",
+    "tenant": "iqvia",
+    "wd": "wd1",
+    "site": "IQVIA",
+    "type": "direct_ats",
+    "employer": "IQVIA"
+  },
+  {
+    "name": "wd-sedgwick",
+    "adapter": "workday",
+    "tenant": "sedgwick",
+    "wd": "wd1",
+    "site": "Sedgwick",
+    "type": "direct_ats",
+    "employer": "Sedgwick"
+  },
+  {
+    "name": "wd-comcast",
+    "adapter": "workday",
+    "tenant": "comcast",
+    "wd": "wd115",
+    "site": "Comcast_Careers",
+    "type": "direct_ats",
+    "employer": "Comcast"
+  },
+  {
+    "name": "wd-cw",
+    "adapter": "workday",
+    "tenant": "cw",
+    "wd": "wd1",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Cushman & Wakefield"
+  },
+  {
+    "name": "wd-transunion",
+    "adapter": "workday",
+    "tenant": "transunion",
+    "wd": "wd5",
+    "site": "TransUnion",
+    "type": "direct_ats",
+    "employer": "TransUnion"
+  },
+  {
+    "name": "wd-eisneramper",
+    "adapter": "workday",
+    "tenant": "eisneramper",
+    "wd": "wd1",
+    "site": "EisnerAmper_External",
+    "type": "direct_ats",
+    "employer": "EisnerAmper"
+  },
+  {
+    "name": "wd-equinix",
+    "adapter": "workday",
+    "tenant": "equinix",
+    "wd": "wd1",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Equinix"
+  },
+  {
+    "name": "wd-philips",
+    "adapter": "workday",
+    "tenant": "philips",
+    "wd": "wd3",
+    "site": "jobs-and-careers",
+    "type": "direct_ats",
+    "employer": "Philips"
+  },
+  {
+    "name": "wd-manulife",
+    "adapter": "workday",
+    "tenant": "manulife",
+    "wd": "wd3",
+    "site": "MFCJH_Jobs",
+    "type": "direct_ats",
+    "employer": "John Hancock"
+  },
+  {
+    "name": "wd-magna",
+    "adapter": "workday",
+    "tenant": "magna",
+    "wd": "wd3",
+    "site": "Magna",
+    "type": "direct_ats",
+    "employer": "Magna"
+  },
+  {
+    "name": "wd-thomsonreuters",
+    "adapter": "workday",
+    "tenant": "thomsonreuters",
+    "wd": "wd5",
+    "site": "External_Career_Site",
+    "type": "direct_ats",
+    "employer": "Thomson Reuters"
+  },
+  {
+    "name": "wd-curtisswright",
+    "adapter": "workday",
+    "tenant": "curtisswright",
+    "wd": "wd1",
+    "site": "CW_External_Career_Site",
+    "type": "direct_ats",
+    "employer": "Curtiss-Wright"
+  },
+  {
+    "name": "wd-gevernova",
+    "adapter": "workday",
+    "tenant": "gevernova",
+    "wd": "wd5",
+    "site": "Vernova_ExternalSite",
+    "type": "direct_ats",
+    "employer": "GE Vernova"
+  },
+  {
+    "name": "wd-3m",
+    "adapter": "workday",
+    "tenant": "3m",
+    "wd": "wd1",
+    "site": "Search",
+    "type": "direct_ats",
+    "employer": "3M"
+  },
+  {
+    "name": "wd-bristolmyerssquibb",
+    "adapter": "workday",
+    "tenant": "bristolmyerssquibb",
+    "wd": "wd5",
+    "site": "BMS",
+    "type": "direct_ats",
+    "employer": "Bristol-Myers Squibb"
+  },
+  {
+    "name": "wd-novartis",
+    "adapter": "workday",
+    "tenant": "novartis",
+    "wd": "wd3",
+    "site": "Novartis_Careers",
+    "type": "direct_ats",
+    "employer": "Novartis"
+  },
+  {
+    "name": "wd-relx",
+    "adapter": "workday",
+    "tenant": "relx",
+    "wd": "wd3",
+    "site": "relx",
+    "type": "direct_ats",
+    "employer": "RELX"
+  }
+]
