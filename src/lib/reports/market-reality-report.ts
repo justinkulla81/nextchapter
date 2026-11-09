@@ -27,6 +27,7 @@ import { computeNamedReasons } from '@/lib/scoring/named-reasons'
 import { getNamedReasonActionLink } from '@/lib/scoring/named-reason-ids'
 import { captureServerEvent, mirrorServerEvent } from '@/lib/posthog/server'
 import { estimateCallCostUsd } from '@/lib/ai-spend/price'
+import { ACTION_PLAN_PROMPT_SECTION, finalizeActionPlan } from '@/lib/reports/action-plan-items'
 import { VICTORIA_VOICE_PROMPT } from '@/lib/victoria'
 import { isCasuallySearching } from '@/lib/scoring/search-intensity'
 import { BIGGEST_BARRIER_OPTIONS, TOP_STRENGTH_OPTIONS, TRADEOFF_PRIORITIES } from '@/lib/constants/onboarding'
@@ -74,11 +75,9 @@ const marketRealityReportSchema = z.object({
   // render time (market-reality-sections.ts's self-check against the real
   // ResumeAnalysis finding). Empty array when no weak bullet was supplied.
   resumeRewrites: z.array(z.object({ before: z.string(), after: z.string() })).max(3),
-  // Widened beyond exactly-7-days-numbered-1-7: the model occasionally emits
-  // an extra day or an off-range day number while satisfying every "HARD
-  // REQUIREMENT" item above, which used to hard-fail the whole report with
-  // this schema at .length(7)/min(1).max(7). normalizeActionPlan() below
-  // trims/renumbers whatever comes back into a clean 7-day plan instead.
+  // Loose on purpose: the model writes a short list of items (7 to 9) and finalizeActionPlan()
+  // (action-plan-items.ts) adds the setup steps, cleans the list and lays it out over the days, so a plan
+  // with a different day count or numbering must never hard-fail the whole report.
   actionPlan: z
     .array(
       z.object({
@@ -91,8 +90,8 @@ const marketRealityReportSchema = z.object({
         ),
       })
     )
-    .min(7)
-    .max(10),
+    .min(1)
+    .max(14),
   gapAnalysis: z.object({
     targetRole: z.string(),
     gaps: z.array(
@@ -105,18 +104,6 @@ const marketRealityReportSchema = z.object({
     ),
   }),
 })
-
-type RawActionPlan = z.infer<typeof marketRealityReportSchema>['actionPlan']
-
-// The model is asked for exactly 7 days but occasionally overshoots (an
-// extra day, or a day numbered outside 1-7) while satisfying all the "HARD
-// REQUIREMENT" items in the prompt above. Each entry's own items stay
-// grouped together (they were written to make sense as a set) — this just
-// keeps the first 7 entries in order and renumbers them 1-7, rather than
-// rejecting the whole report over a cosmetic day-count/day-number slip.
-function normalizeActionPlan(actionPlan: RawActionPlan): RawActionPlan {
-  return actionPlan.slice(0, 7).map((day, i) => ({ ...day, day: i + 1 }))
-}
 
 // Resume.atsFeedback/resultsFeedback/experienceFeedback are stored as
 // Json[] of { issue, action } (see analyze-resume.ts) — flatten each pair
@@ -146,21 +133,7 @@ Write:
    - HARD REQUIREMENT: if "Management/IC preference vs. goals conflict" below is YES, name this tension as one of the weaknesses (or fold it into the gap analysis). Trust that they genuinely want to be an individual contributor — never suggest they secretly want to manage — but be direct that their team-management history and/or their stated target role point toward a more senior/managerial track, and they'll need to either retarget their search toward true IC-track roles (which may mean a different title or level than they wrote down) or consciously plan for the trade-off a more senior title actually requires (less hands-on work, more people management, even if that's not their preference).
    - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, straight talk is non-negotiable — do not soften or omit this: pivoting is genuinely harder than a lateral search. Name at least one concrete reason why in the weaknesses — a longer realistic timeline, the extra work of translating past achievements into the target function/industry's language (on the resume, in interviews, in networking conversations), and a heavier dependence on warm introductions and networking since keyword-matched job boards won't surface an unconventional background. Never frame the pivot itself as a mistake or discourage it — only be honest about the work it requires.
    - HARD REQUIREMENT — for an A/B-band candidate, weaknesses must still be genuinely substantive, not manufactured-easy: name real, specific challenges from their actual data below (market scarcity for their target, a resume gap, unproven skills for a pivot, a self-report contradiction) rather than softened or omitted ones. A strong grade must never read as "nothing to say here" — find the real, honest friction even for a candidate who is doing everything right.
-3. An action plan (exactly 7 days, each with concrete items). Each item has a "text" field and an optional "actionType" tag. Where relevant, reference real features of this platform: joining the Community Board (posting a job/project/intro or expressing interest in one), requesting a reference, uploading a work sample, adding a job posting for fit feedback.
-   - HARD REQUIREMENT: write every item's "text" in this exact shape: a short action name (3-6 words, no reasoning in it) + " — " + one short clause on why it matters, in plain language a candidate would find compelling. Example: "Confirm your industry — recruiters match you on this first." The UI hyperlinks only the part before the dash, so the action name must stand alone as something clickable; never put the reason before the dash or omit the dash.
-   - HARD REQUIREMENT — priority order across the 7 days: foundational setup always comes before search activity, in this order, skipping whichever of the first four don't apply (see each item's own gating condition below) — (1) LinkedIn setup, (2) Gmail connect, (3) Search Strategy / target confirmation, (4) resume upload or applying resume suggestions. Only once those that apply are placed should later days move to search-activity items — networking (actionType "NETWORKING_LIST" or "OUTREACH_MESSAGE"), applying to jobs, job-fit feedback, interview prep, etc. Never place a search-activity item on an earlier day than a still-outstanding foundational item from this list.
-   - After satisfying every HARD REQUIREMENT item below, fill any remaining day slots with items that make progress on "Currently open gaps" (see candidate data below) rather than generic advice — when a gap lists an existing platform resource, point the candidate at it by name instead of re-deriving generic advice unrelated to any open gap.
-   - HARD REQUIREMENT: if "Resume on file" below says "no", one of the 7 days MUST include uploading a resume, tagged actionType "RESUME_UPDATE", and must explain that it meaningfully improves their score and lets this report generate specific, evidence-based resume suggestions. If "Resume on file" says "yes", one of the 7 days MUST instead include applying this report's/the resume analysis's suggestions to improve it, tagged actionType "RESUME_UPDATE". Never do both, never do neither.
-   - HARD REQUIREMENT: if "LinkedIn status confirmed" below says "no", one of the 7 days MUST include confirming whether they have a LinkedIn URL or don't have one yet, tagged actionType "LINKEDIN_SETUP". If "LinkedIn status confirmed" says "yes" but "LinkedIn URL on file" says "no", one of the 7 days MUST include actually creating a LinkedIn profile, tagged actionType "LINKEDIN_SETUP", explaining briefly why having one is critical to a modern job search (visibility to recruiters, network effects). If both say "yes", do NOT include this item — active LinkedIn use (posting, being active) lives in the Dossier's action list, not here.
-   - HARD REQUIREMENT: if "Gmail connected" below says "no", one of the 7 days MUST include connecting their Gmail account, tagged actionType "GMAIL_CONNECTED", explaining briefly why (it lets the platform detect real interview invites and rejections automatically instead of the candidate tracking them by hand). If "yes", do NOT include this item.
-   - HARD REQUIREMENT: if "Target role clearly stated" below says "no", one of the 7 days MUST include filling in the Search Strategy page (target function, what they're known for, deal-breakers, ranked tradeoffs), tagged actionType "SEARCH_STRATEGY_CHECKLIST" — this is the first filter every match runs on, so it belongs early, not buried among later search-activity items. If "yes", do NOT include this item.
-   - If any job posting has landed an interview (see "Interview landed" below), mention it and point them to this platform's own generated interview prep for that job, tagged actionType "INTERVIEW_PREP", rather than re-deriving interview advice yourself.
-   - If any job posting has an offer (see "Offer received" below), mention it and point them to this platform's own generated negotiation advice for that job, tagged actionType "NEGOTIATION_ADVICE", rather than re-deriving negotiation advice yourself.
-   - HARD REQUIREMENT: if "Profile confirmed" below says "no", one of the 7 days MUST include confirming their name/contact/address details (auto-filled from their resume, may need correction), tagged actionType "PROFILE_CONFIRM". If "yes", do NOT include this item.
-   - HARD REQUIREMENT: if "Industry confirmed" below says "no", one of the 7 days MUST include confirming their industry (auto-filled from their resume), tagged actionType "INDUSTRY_CONFIRM". If "yes", do NOT include this item.
-   - HARD REQUIREMENT: if "Function/title/years confirmed" below says "no", one of the 7 days MUST include confirming their primary function, latest job title, and years of experience (auto-filled from their resume), tagged actionType "FUNCTION_CONFIRM". If "yes", do NOT include this item.
-   - HARD REQUIREMENT: if "Salary/work authorization confirmed" below says "no", one of the 7 days MUST include answering their last salary and work authorization status (these are not on their resume), tagged actionType "SALARY_CONFIRM" for one item and actionType "WORK_AUTHORIZATION" for a separate item. If "yes", do NOT include either item.
-4. Gap analysis: identify gaps against their stated target role, and suggest a remediation path for each — upskilling, fractional/contract work (you may name real categories like "fractional/contract platforms such as Mercor or Toptal" without fabricating specific URLs), consulting, or networking.
+${ACTION_PLAN_PROMPT_SECTION}4. Gap analysis: identify gaps against their stated target role, and suggest a remediation path for each — upskilling, fractional/contract work (you may name real categories like "fractional/contract platforms such as Mercor or Toptal" without fabricating specific URLs), consulting, or networking.
    - HARD REQUIREMENT: if "Considering a pivot to a different function/industry" below is YES, weight networking and story-building remediation (translating prior achievements into the target function/industry's language, warm introductions into that space) more heavily than generic upskilling — keyword-matched job boards are the least effective channel for an unconventional background, and the gaps/remediation should reflect that honestly.
    - If "Location preference" below is "remote", include one honest, non-judgmental note somewhere in the strengths or weaknesses acknowledging that on-site presence is genuinely a plus for many employers, that remote work matters a great deal to many people too, that there are real benefits to in-person work (mentorship, visibility, spontaneous collaboration), and that they might consider hybrid as a middle ground worth weighing — framed as an option to consider, never as pressure to abandon a real preference.
 5. Resume rewrites (0-3): "Weak bullets to rewrite" below lists up to 3 real, verbatim-quoted bullets already flagged by the resume scoring engine as weak. For EACH one supplied, write a rewritten version that keeps every real fact (no invented numbers, no invented outcomes) but leads with the result and states it as a from/to change wherever the original implies one. Copy the "before" field VERBATIM, character-for-character, from the supplied quote — it's matched back to the original finding by exact text, so a paraphrased "before" will silently discard the rewrite. If no weak bullets are supplied below, return an empty array — never invent a bullet to rewrite.
@@ -402,7 +375,7 @@ Market Reality Assessment: ${
       ? `${newGradeHeadline.headline} ${newGradeHeadline.strongestLine} ${newGradeHeadline.constraintLine}`
       : 'not enough data yet to compute'
   }
-Currently open gaps (named reasons a hiring manager would notice about this candidate right now — when choosing action-plan items in part 3 below, beyond what's already required, prioritize items that make progress on these, especially ones with an existing platform resource named):
+Currently open gaps (named reasons a hiring manager would notice about this candidate right now — when choosing action-plan items in part 3 below, prioritize items that make progress on these, especially ones with an existing platform resource named):
   ${
     namedReasons
       .filter((r) => r.kind === 'gap')
@@ -588,6 +561,21 @@ ${applicationGapPromptSection(applicationGaps)}
 
   if (!data) return
 
+  // The setup steps and their order come from the member's data, in code (action-plan-items.ts); the model's own items follow them.
+  const plan = finalizeActionPlan(data.actionPlan, {
+    hasResume,
+    linkedInConfirmed: !!candidate.linkedInConfirmedAt,
+    linkedInUrlOnFile: !!candidate.linkedInUrl,
+    gmailConnected,
+    targetRoleClear: !!candidate.targetRoleType && !isVagueTargetRole(candidate.targetRoleType),
+    profileConfirmed: !!candidate.profileConfirmedAt,
+    industryConfirmed: !!candidate.industryConfirmedAt,
+    functionConfirmed: !!candidate.functionConfirmedAt,
+    salaryAndAuthorizationConfirmed: !!candidate.salaryConfirmedAt && !!candidate.workAuthConfirmedAt,
+  })
+  // How often the model still misses a setup step, or writes something out of scope: the measure of whether the prompt needs to change again.
+  captureServerEvent(candidateId, 'market_reality_plan_finalized', { ...plan.stats })
+
   const saved = await prisma.marketRealityReport.create({
     select: { id: true },
     data: {
@@ -596,7 +584,7 @@ ${applicationGapPromptSection(applicationGaps)}
       weaknesses: data.weaknesses,
       // The skills gap is merged in code, not left to the model: the counts come from
       // real open roles and must appear exactly, every time.
-      actionPlan: addSkillGapActionItem(normalizeActionPlan(data.actionPlan), skillGap),
+      actionPlan: addSkillGapActionItem(plan.days, skillGap),
       gapAnalysis: mergeApplicationGapsIntoGapAnalysis(mergeSkillGapIntoGapAnalysis(data.gapAnalysis, skillGap), applicationGaps),
       // No longer written: hill to climb, executive summary and the market narrative were read only by the staff report page
       // (support/admin/.../market-reality/[reportId]), which hides a section that is null. Older rows keep theirs.
