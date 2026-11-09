@@ -9,6 +9,9 @@ import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/Publi
 import { CompanyLayoffGuide } from '@/components/layoffs/CompanyLayoffGuide'
 import { buildLayoffGuide } from '@/lib/warn/layoff-guide'
 import { filingFacts, guidePrograms } from '@/lib/warn/layoff-guide-programs'
+import { NoFilingPage } from '@/components/layoffs/NoFilingPage'
+import { getKnownEmployer } from '@/lib/warn/known-employer'
+import { offeredCompanyIds } from '@/lib/seo/employer-pages'
 import { CiteThisData } from '@/components/layoffs/CiteThisData'
 import { LatestFilings, filingDateLabel } from '@/components/layoffs/LatestFilings'
 import { StructuredData } from '@/components/StructuredData'
@@ -143,7 +146,12 @@ function severanceFaq(name: string, states: string[]): { q: string; a: string }[
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const page = await loadPage(slug)
-  if (!page) return {}
+  if (!page) {
+    const known = await getKnownEmployer(slug)
+    if (!known) return {}
+    const t = `Is ${known.name} laying off employees? No layoff filing on record`
+    return { title: titleMeta(t), description: `No layoff filing and no press-reported layoff for ${known.name} on record at NextChapter.`, ...canonical(`/layoffs/company/${slug}`), robots: { index: false, follow: true } }
+  }
   const { c, ann } = page
   const recent = hasRecentAnnouncement(ann)
   const workers = c.notices.reduce((s, n) => s + (n.workers ?? 0), 0)
@@ -175,8 +183,15 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   // A page is built on the first request and kept a day, and that holds for a 404 too, so an employer asked for before its
   // announcement was filed stays missing until the next deploy. Do not try to opt this branch out of the cache with
   // unstable_noStore(): in this route it throws DYNAMIC_SERVER_USAGE and the page answers 500 (tried 2026-10-30, reverted).
-  // An employer with no filing or announcement (a typo, a word that is not a company) goes to the hub, not a 404.
-  if (!page) redirect('/layoffs')
+  if (!page) {
+    // An employer we know with no filing or announcement gets a plain "nothing on record" page (noindex, see NoFilingPage).
+    const known = await getKnownEmployer(slug)
+    // Anything else (a typo, a word that is not a company) goes to the hub, not a 404.
+    if (!known) redirect('/layoffs')
+    const offered = await offeredCompanyIds([known.id]).catch(() => new Set<string>())
+    const asOf = noticeDay(new Date())
+    return <NoFilingPage name={known.name} slug={slug} asOf={asOf} employerPageHref={offered.has(known.id) ? `/employers/${slug}` : null} />
+  }
   const { c, ann } = page
   const recentAnn = hasRecentAnnouncement(ann) ? ann : undefined
   const hasNotices = c.notices.length > 0
