@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { logBoardMemory } from '@/lib/jobs/board-light-rows'
-import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, writeSnapshot } from '@/lib/jobs/board-snapshot'
+import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot } from '@/lib/jobs/board-snapshot'
 import { decodeOccupations, encodeOccupations } from '@/lib/jobs/board-snapshot-codec'
 import { resolveCandidateOccupation } from '@/lib/careers/candidate-occupation'
 import { jobIndustryBucket, memberIndustryBuckets } from '@/lib/profile/industry-reading'
@@ -61,6 +61,8 @@ import { memberHasSkill } from '@/lib/jobs/job-skill-gap'
 const SIMILARITY_TTL_MS = 60 * 60_000
 const JOB_SOC_TTL_MS = 10 * 60_000
 const JOB_SOC_STALE_MS = 60 * 60_000
+/** How old a snapshot another build wrote may be and still be used: a deploy can change what is derived from the rows (the industry buckets). */
+const JOB_SOC_OTHER_BUILD_MAX_MS = 30 * 60_000
 
 type SimilarityIndex = Map<string, Map<string, SimilarOccupation>>
 let similarityMemo: { at: number; value: Promise<SimilarityIndex> } | null = null
@@ -167,7 +169,7 @@ async function firstJobSocs(): Promise<{ at: number; value: JobOccupations }> {
   if (!snapshotsDisabled()) {
     try {
       const [manifest, fingerprint] = await Promise.all([readManifest('occupations'), boardFingerprint()])
-      if (manifest && (Date.now() - manifest.at < JOB_SOC_TTL_MS || (fingerprint !== null && manifest.fingerprint === fingerprint))) {
+      if (manifest && snapshotUsable(manifest, fingerprint, { freshMs: JOB_SOC_TTL_MS, otherBuildMaxMs: JOB_SOC_OTHER_BUILD_MAX_MS })) {
         const parts = await readParts(manifest)
         const value = parts?.length === 1 ? decodeOccupations(parts[0]) : null
         if (value) return { at: Math.max(manifest.at, Date.now() - JOB_SOC_STALE_MS + 60_000), value }

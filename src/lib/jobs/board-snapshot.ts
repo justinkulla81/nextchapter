@@ -27,6 +27,14 @@ import { prisma } from '@/lib/prisma'
 //
 // Snapshots are per deployment (a new build may filter differently) and per
 // environment. Off with BOARD_SNAPSHOT=off.
+//
+// Two kinds are the exception (SHARED_ACROSS_BUILDS): the job occupations and the board search's
+// raw facts. Both are one narrow read of the wide table, and a deploy does not change what that
+// read returns. Keyed to the build, every deploy threw them away, so each cold instance after
+// one read the database itself, and a day with a dozen deploys made a dozen rounds of 50-60 MB
+// reads at once (a slow-pages alert on 2026-11-09 with eight connections held at the pooler).
+// They are checked against a SHAPE string instead: bump it whenever the codec or the query
+// behind the kind changes, and an older snapshot is ignored.
 
 const BUCKET = 'board-snapshots'
 const FORMAT = 2
@@ -42,7 +50,13 @@ export const yieldToRequests = () => new Promise<void>((resolve) => setImmediate
 const gzip = promisify(gzipCb)
 const gunzip = promisify(gunzipCb)
 
-export type SnapshotKind = 'board-core' | 'board-early' | 'occupations'
+export type SnapshotKind = 'board-core' | 'board-early' | 'occupations' | 'search-facts'
+
+/** Kinds a snapshot of another build may serve (see the header). The other kinds are read only by the build that wrote them. */
+export const SHARED_ACROSS_BUILDS: ReadonlySet<SnapshotKind> = new Set<SnapshotKind>(['occupations', 'search-facts'])
+
+/** What a build-independent snapshot must have been written as. Bump with its codec (board-snapshot-codec.ts) or its query. */
+export const SNAPSHOT_SHAPES: Partial<Record<SnapshotKind, string>> = { occupations: 'occupations-1', 'search-facts': 'search-facts-1' }
 
 export interface SnapshotManifest {
   v: number
@@ -54,6 +68,8 @@ export interface SnapshotManifest {
   at: number
   parts: string[]
   rows: number
+  /** For a build-independent kind: the SNAPSHOT_SHAPES value it was written as. */
+  shape?: string
 }
 
 export function snapshotsDisabled(env: Record<string, string | undefined> = process.env): boolean {
@@ -158,11 +174,28 @@ export async function readManifest(kind: SnapshotKind): Promise<SnapshotManifest
     const buf = await getObject(`${folder(kind)}/manifest.json`, { fresh: true })
     if (!buf) return null
     const m = JSON.parse(buf.toString('utf8')) as SnapshotManifest
-    return m.v === FORMAT && m.build === snapshotBuild() && m.kind === kind ? m : null
+    if (m.v !== FORMAT || m.kind !== kind) return null
+    // A build-independent kind is matched on its shape, and a manifest written before shapes existed has none: ignored, then rewritten.
+    if (SHARED_ACROSS_BUILDS.has(kind)) return m.shape !== undefined && m.shape === SNAPSHOT_SHAPES[kind] ? m : null
+    return m.build === snapshotBuild() ? m : null
   } catch (error) {
     console.error(`Board snapshot (${kind}): manifest unreadable`, error)
     return null
   }
+}
+
+/** True when this deployment did not write the manifest (only meaningful for a SHARED_ACROSS_BUILDS kind). */
+export const isOtherBuild = (m: SnapshotManifest, env: Record<string, string | undefined> = process.env): boolean => m.build !== snapshotBuild(env)
+
+/**
+ * Whether a manifest may be used now. Fresh (younger than `freshMs`), or the board has not changed since it was read. A snapshot another
+ * build wrote follows the same rule unless `otherBuildMaxMs` is given: then it is used only while younger than that, whatever the board did,
+ * because a deploy can change what is derived from the rows after they are read (the occupations' industry buckets).
+ */
+export function snapshotUsable(m: SnapshotManifest, fingerprint: string | null, opts: { freshMs: number; otherBuildMaxMs?: number; now?: number; env?: Record<string, string | undefined> }): boolean {
+  const age = (opts.now ?? Date.now()) - m.at
+  if (opts.otherBuildMaxMs !== undefined && isOtherBuild(m, opts.env)) return age < opts.otherBuildMaxMs
+  return age < opts.freshMs || (fingerprint !== null && m.fingerprint === fingerprint)
 }
 
 /** A manifest's parts, parsed (in order); null when any part can't be read. */
@@ -203,7 +236,8 @@ export async function writeSnapshot(kind: SnapshotKind, fingerprint: string, at:
       await putObject(path, await gzip(Buffer.from(JSON.stringify(parts[i])), { level: 6 }), 'application/gzip')
       paths.push(path)
     }
-    const manifest: SnapshotManifest = { v: FORMAT, build: snapshotBuild(), kind, fingerprint, at, parts: paths, rows }
+    const shape = SNAPSHOT_SHAPES[kind]
+    const manifest: SnapshotManifest = { v: FORMAT, build: snapshotBuild(), kind, fingerprint, at, parts: paths, rows, ...(shape ? { shape } : {}) }
     await putObject(`${folder(kind)}/manifest.json`, Buffer.from(JSON.stringify(manifest)), 'application/json')
     console.log(`[board-snapshot] wrote ${kind}`, JSON.stringify({ rows, parts: paths.length, fingerprint, ms: Date.now() - started }))
     await removeOrphans(kind, new Set(paths)).catch(() => undefined)

@@ -3,7 +3,8 @@ import { describe, it, expect, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 
-import { decodeBoardPart, decodeOccupations, encodeBoardPart, encodeOccupations, LIGHT_COLUMNS } from '@/lib/jobs/board-snapshot-codec'
+import { decodeBoardPart, decodeFacts, decodeOccupations, encodeBoardPart, encodeFactsPart, encodeOccupations, FACTS_PART_ROWS, LIGHT_COLUMNS } from '@/lib/jobs/board-snapshot-codec'
+import type { FactsRow } from '@/lib/jobs/board-search-index'
 import { LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
 import { stillLive } from '@/lib/jobs/board-shortlist'
 import { LIKELY_AGE_DAYS, LIKELY_PRIOR_CLOSURES } from '@/lib/jobs/ghost-risk'
@@ -89,6 +90,55 @@ describe('board snapshot codec', () => {
     expect(d.industries).toEqual(o.industries)
     expect(d.skills).toEqual(o.skills)
     expect(d.skillIds).toEqual(o.skillIds)
+  })
+})
+
+describe('search facts codec', () => {
+  const fact = (id: string, over: Partial<FactsRow> = {}): FactsRow => ({
+    id,
+    title: `Analyst ${id}`,
+    companyName: 'Acme Corp',
+    industry: 'finance',
+    socTitle: 'Financial Analysts',
+    workArrangement: 'remote',
+    locationCity: 'Austin',
+    locationState: 'TX',
+    states: 'TX,OK',
+    skills: 'excel sql',
+    postingType: 'direct',
+    ...over,
+  })
+
+  it('round-trips rows through JSON, nulls included', () => {
+    const rows = [fact('a'), fact('b', { industry: null, socTitle: null, workArrangement: null, locationCity: null, locationState: null, states: null, skills: null, postingType: null })]
+    const parts = [JSON.parse(JSON.stringify(encodeFactsPart(rows)))]
+    expect(decodeFacts(parts)).toEqual(rows)
+  })
+
+  it('reads a row with no postingType as null, which the index treats the same', () => {
+    const { postingType: _p, ...bare } = fact('a')
+    expect(decodeFacts([encodeFactsPart([bare])])).toEqual([{ ...bare, postingType: null }])
+  })
+
+  it('keeps the order across several parts and writes each repeated string once per part', () => {
+    const rows = ['a', 'b', 'c', 'd', 'e'].map((id) => fact(id))
+    const parts = [encodeFactsPart(rows.slice(0, 3)), encodeFactsPart(rows.slice(3))]
+    expect(parts[0].strings.filter((x) => x === 'Acme Corp')).toHaveLength(1)
+    expect(decodeFacts(JSON.parse(JSON.stringify(parts)))!.map((r) => r.id)).toEqual(['a', 'b', 'c', 'd', 'e'])
+  })
+
+  it('gives one string object for a value repeated across parts', () => {
+    const rows = decodeFacts(JSON.parse(JSON.stringify([encodeFactsPart([fact('a')]), encodeFactsPart([fact('b')])])))!
+    expect(rows[0].companyName).toBe(rows[1].companyName)
+  })
+
+  it('refuses a part in another format, so the caller reads the database', () => {
+    expect(decodeFacts([{ v: 2, ids: [], strings: [] }])).toBeNull()
+    expect(decodeFacts([null])).toBeNull()
+  })
+
+  it('has a part size that fits the rows of the live board in a handful of parts', () => {
+    expect(FACTS_PART_ROWS).toBeGreaterThanOrEqual(50_000)
   })
 })
 
