@@ -1,4 +1,5 @@
 import 'server-only'
+import { gunzipSync, gzipSync } from 'node:zlib'
 import { prisma } from '@/lib/prisma'
 import { LIKELY_AGE_DAYS, repostKey, STILL_LISTED_DAYS } from '@/lib/jobs/ghost-risk'
 import { groupClosedPostings } from '@/lib/jobs/board-light-rows'
@@ -41,12 +42,27 @@ export async function computeClosedPostingCounts(): Promise<Map<string, number>>
   return counts
 }
 
+// The map has ~520,000 keys (15 MB as JSON). Written as one object it stalled the nightly job after grouping on 2026-11-09 (the write never
+// finished, and Postgres logged no statement for it), so it is stored gzipped as one string: { v: 2, gz: <base64> }, about 4 MB.
+// Rows written before that are the plain object and are still read.
+type PackedSnapshot = { v: 2; gz: string }
+const isPacked = (data: unknown): data is PackedSnapshot => !!data && typeof data === 'object' && (data as PackedSnapshot).v === 2 && typeof (data as PackedSnapshot).gz === 'string'
+
+export function packClosedPostingCounts(counts: Map<string, number>): PackedSnapshot {
+  return { v: 2, gz: gzipSync(JSON.stringify(Object.fromEntries(counts))).toString('base64') }
+}
+
+export function unpackClosedPostingCounts(data: unknown): Map<string, number> | null {
+  if (isPacked(data)) return new Map(Object.entries(JSON.parse(gunzipSync(Buffer.from(data.gz, 'base64')).toString()) as Record<string, number>))
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return null
+  return new Map(Object.entries(data as Record<string, number>))
+}
+
 async function readSnapshot(): Promise<Map<string, number> | null> {
   try {
     const row = await prisma.closedPostingSnapshot.findFirst({ orderBy: { computedAt: 'desc' }, select: { computedAt: true, data: true } })
     if (!row || Date.now() - row.computedAt.getTime() > SNAPSHOT_MAX_AGE_MS) return null
-    if (!row.data || typeof row.data !== 'object' || Array.isArray(row.data)) return null
-    return new Map(Object.entries(row.data as Record<string, number>))
+    return unpackClosedPostingCounts(row.data)
   } catch (error) {
     console.error('ghost risk: closed-postings snapshot unavailable', error)
     return null
@@ -84,7 +100,9 @@ export async function rebuildClosedPostingSnapshot(onStep?: (step: string, ms: n
   }
   const counts = await computeClosedPostingCounts()
   await lap('grouped')
-  await prisma.closedPostingSnapshot.create({ data: { data: Object.fromEntries(counts) } })
+  const packed = packClosedPostingCounts(counts)
+  await lap('packed')
+  await prisma.closedPostingSnapshot.create({ data: { data: packed } })
   await lap('stored')
   const old = await prisma.closedPostingSnapshot.findMany({ orderBy: { computedAt: 'desc' }, skip: KEEP_SNAPSHOTS, select: { id: true } })
   if (old.length) await prisma.closedPostingSnapshot.deleteMany({ where: { id: { in: old.map((o) => o.id) } } })
