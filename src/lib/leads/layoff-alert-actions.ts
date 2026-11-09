@@ -5,6 +5,7 @@ import { getClientIp } from '@/lib/http/client-ip'
 import { allowByIp, allowByTarget, DAY_MS, HOUR_MS } from '@/lib/security/rate-limit'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { ALL_STATE_CODES } from '@/lib/seo/states'
+import { getKnownEmployer } from '@/lib/warn/known-employer'
 import { getCompanies } from '@/lib/warn/layoff-pages'
 import { layoffAlertEmailsOn } from '@/lib/leads/job-alert-config'
 import { sendAlertConfirmation } from '@/lib/leads/job-alerts'
@@ -31,7 +32,8 @@ export async function saveLayoffAlert(_prev: LayoffAlertState, formData: FormDat
   const stateRaw = text(formData, 'state', 2).toUpperCase()
   const state = (ALL_STATE_CODES as readonly string[]).includes(stateRaw) ? stateRaw : ''
   let employer = ''
-  if (slugRaw && /^[a-z0-9-]+$/.test(slugRaw) && (await getCompanies()).has(slugRaw)) employer = slugRaw
+  // An employer with a filing, or one we know that has none yet (its page says so and offers this alert).
+  if (slugRaw && /^[a-z0-9-]+$/.test(slugRaw) && ((await getCompanies()).has(slugRaw) || (await getKnownEmployer(slugRaw)))) employer = slugRaw
   if (!employer && !state) return { error: 'Pick an employer or a state to watch.', email }
 
   if (!(await allowByIp('layoff-alert', 10, HOUR_MS)) || !(await allowByTarget('layoff-alert', email, 5, DAY_MS))) {
