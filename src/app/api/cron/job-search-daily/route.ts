@@ -8,6 +8,8 @@ import { sendJobSearchDaily } from '@/lib/email/send-job-search-daily'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
 import { sendsToday } from '@/lib/email/send-days'
+import { warmSharedBoard } from '@/lib/jobs/board-shortlist'
+import { finishesWithin, runStatus } from '@/lib/job-search-daily/run-outcome'
 
 export const maxDuration = 300
 
@@ -24,6 +26,11 @@ const DEADLINE_MS = 240_000
 const PER_CANDIDATE_MS = 45_000
 // The run answers by here even if something is still in flight (see the hard stop below).
 const HARD_STOP_MS = 270_000
+// Every member's email ranks jobs against the shared board, which a cold instance reads from the database before the first member
+// can be built. On 2026-11-09 that load outlasted the per-member cap, so every member timed out behind it (one email went out eight
+// minutes later, from the background). The board is loaded once here, outside the cap; if it is not there in this time the run
+// fails at once with that said, instead of marking every member failed.
+const BOARD_WARM_MS = 150_000
 
 function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout>
@@ -41,7 +48,7 @@ function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
 //  - for Essentials members and members who have gone quiet for 2+ weeks,
 //    only if urgent and at most once a week; none once dormant (63+ days).
 // Own opt-out flag, own send-log key.
-export const GET = withCronRun('job-search-daily', async () => {
+export const GET = withCronRun('job-search-daily', async (_request, ctx) => {
   // Dial-back switch: JOB_SEARCH_DAILY_DAYS="1,3,5" sends only on those weekdays (0 = Sunday), to leave room under the email plan's
   // daily cap while cold outreach runs. Unset the variable to go back to every day.
   if (!sendsToday(process.env.JOB_SEARCH_DAILY_DAYS, new Date())) return NextResponse.json({ paused: 'weekday', days: process.env.JOB_SEARCH_DAILY_DAYS })
@@ -84,6 +91,16 @@ export const GET = withCronRun('job-search-daily', async () => {
   const engagement = await loadEngagementStates(queue.map((c) => c.id))
 
   const startedAt = Date.now()
+  // Load the shared board and the occupation maps once, before any member, and say how long it took (a cold load is the slow part).
+  if (queue.length > 0) {
+    await ctx.progress({ step: 'loading the board', members: queue.length })
+    const warm = await finishesWithin(warmSharedBoard(), BOARD_WARM_MS)
+    await ctx.progress({ step: warm.ok ? 'board loaded' : 'board not loaded', ms: warm.ms, members: queue.length })
+    if (!warm.ok) {
+      console.error(`Job Search Daily: the board was not loaded in ${BOARD_WARM_MS}ms (${warm.reason}); no member was started`)
+      return NextResponse.json({ error: 'board not loaded', reason: warm.reason, ms: warm.ms, checked: eligible.length, members: queue.length }, { status: 500 })
+    }
+  }
   let sent = 0
   let skippedNothingNew = 0
   let skippedNotUrgent = 0
@@ -115,6 +132,8 @@ export const GET = withCronRun('job-search-daily', async () => {
     else if (result.reason === 'nothing new') skippedNothingNew++
     else if (result.reason === 'not urgent') skippedNotUrgent++
   }
+  // A short note after each member, so a run that is cut off still says how far it got.
+  const noteProgress = () => ctx.progress({ step: 'members', started: next, of: queue.length, sent, failed })
   // Workers pull the next candidate until none are left or the deadline
   // passes. Candidates not reached are counted, never silently lost.
   const worker = async () => {
@@ -130,6 +149,7 @@ export const GET = withCronRun('job-search-daily', async () => {
         failed++
         console.error('Job Search Daily failed for candidate', candidate.id, error)
       }
+      await noteProgress()
     }
   }
   // Hard stop: with 15 eligible members the run was still RUNNING after 6 minutes on 2026-11-04 and 2026-11-06 (the watchdog
@@ -159,10 +179,10 @@ export const GET = withCronRun('job-search-daily', async () => {
     failed,
     skippedForTime,
   })
-  // Candidates left unsent make the run FAILED so the job watchdog emails about
+  // Candidates left unsent (skipped for time, or failed) make the run FAILED so the job watchdog emails about
   // it. Re-running by hand is safe: anyone already sent today is skipped.
   return NextResponse.json(
     { checked: eligible.length, sent, skippedNothingNew, skippedNotUrgent, failed, skippedForTime },
-    { status: skippedForTime > 0 ? 500 : 200 }
+    { status: runStatus({ failed, skippedForTime }) }
   )
-})
+}, { recordResult: true })
