@@ -119,6 +119,7 @@ export function IntakeFitAlertEmail({
 }) {
   return (
     <IntakeEmailLayout label="Fit alert"
+      audience="recruiter"
       heading="NextChapter Talent"
       subheading={`Fit for ${searchTitle}`}
       footerNote="You get this alert when a new resume matches every criterion on one of your open searches. Close the search to stop alerts for it."
