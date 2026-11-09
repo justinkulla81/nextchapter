@@ -6,6 +6,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { ReportEnhancements } from '@/components/reports/ReportEnhancements'
 import { ReportNextSteps } from '@/components/reports/ReportNextSteps'
+import { NewerEditionNotice } from '@/components/reports/NewerEditionNotice'
 import { SITE_URL } from '@/lib/reports'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { ShareBar } from '@/components/marketing/ShareBar'
@@ -197,6 +198,7 @@ export default function WhiteCollarEmploymentReportSeptember2026() {
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />
       <PublicSiteHeader current="reports" />
+      <NewerEditionNotice slug={SLUG} month="September 2026" />
 
       {/* Correction notice, linking to the correction boxes in Chapters 03 and 07. */}
       <div className="border-b border-warning/40 bg-warning/10">

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { ReportNextSteps } from '@/components/reports/ReportNextSteps'
+import { NewerEditionNotice } from '@/components/reports/NewerEditionNotice'
 import { SITE_URL } from '@/lib/reports'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { ShareBar } from '@/components/marketing/ShareBar'
@@ -162,6 +163,7 @@ export default function WhiteCollarEmploymentReportOctober2026() {
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />
       <PublicSiteHeader current="reports" />
+      <NewerEditionNotice slug={SLUG} month="October 2026" />
 
       <div className="border-b border-brand/30 bg-brand/5">
         <div className="mx-auto w-full max-w-5xl px-6 py-2.5 text-sm text-navy">
