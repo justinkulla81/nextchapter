@@ -24,7 +24,7 @@ vi.mock('@/lib/jobs/board-snapshot', () => ({
   inBackground: (t: () => Promise<void>) => snapshot.inBackground(t),
 }))
 
-import { readSearchFacts, type FactsRow } from '@/lib/jobs/board-search-index'
+import { readSearchFacts, resetSearchIndexForTests, warmSearchIndex, type FactsRow } from '@/lib/jobs/board-search-index'
 import { encodeFactsPart } from '@/lib/jobs/board-snapshot-codec'
 
 const fact = (id: string): FactsRow => ({
@@ -98,5 +98,53 @@ describe('readSearchFacts', () => {
     queryRaw.mockResolvedValue([])
     await readSearchFacts()
     expect(snapshot.writeSnapshot).not.toHaveBeenCalled()
+  })
+})
+
+describe('warmSearchIndex and the snapshot write', () => {
+  it('stays pending until the write the load started is done, so after() keeps the instance alive for it', async () => {
+    resetSearchIndexForTests()
+    snapshot.snapshotUsable.mockReturnValue(false)
+    queryRaw.mockResolvedValue([fact('a'), fact('b')])
+    let runWrite: () => Promise<void> = async () => undefined
+    snapshot.inBackground.mockImplementation((task: () => Promise<void>) => {
+      runWrite = task
+    })
+    let finishWrite: () => void = () => undefined
+    snapshot.writeSnapshot.mockImplementation(() => new Promise<undefined>((resolve) => (finishWrite = () => resolve(undefined))))
+
+    let warmed = false
+    const warm = warmSearchIndex().then(() => {
+      warmed = true
+    })
+    await new Promise((r) => setTimeout(r, 20))
+    expect(warmed).toBe(false) // the index is built, the write has not run
+
+    const running = runWrite()
+    await new Promise((r) => setTimeout(r, 20))
+    expect(snapshot.writeSnapshot).toHaveBeenCalledOnce()
+    expect(warmed).toBe(false) // the write is under way
+
+    finishWrite()
+    await running
+    await warm
+    expect(warmed).toBe(true)
+  })
+
+  it('resolves at once when this load wrote nothing (the index came from the snapshot)', async () => {
+    resetSearchIndexForTests()
+    snapshot.snapshotUsable.mockReturnValue(true)
+    snapshot.readParts.mockResolvedValue(JSON.parse(JSON.stringify([encodeFactsPart([fact('a')])])))
+    await warmSearchIndex()
+    expect(snapshot.writeSnapshot).not.toHaveBeenCalled()
+  })
+
+  it('still resolves when the write fails', async () => {
+    resetSearchIndexForTests()
+    snapshot.snapshotUsable.mockReturnValue(false)
+    queryRaw.mockResolvedValue([fact('a')])
+    snapshot.writeSnapshot.mockRejectedValue(new Error('storage down'))
+    snapshot.inBackground.mockImplementation((task: () => Promise<void>) => void task().catch(() => undefined))
+    await warmSearchIndex()
   })
 })
