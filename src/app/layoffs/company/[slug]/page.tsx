@@ -10,6 +10,7 @@ import { CompanyLayoffGuide } from '@/components/layoffs/CompanyLayoffGuide'
 import { buildLayoffGuide } from '@/lib/warn/layoff-guide'
 import { filingFacts, guidePrograms } from '@/lib/warn/layoff-guide-programs'
 import { CiteThisData } from '@/components/layoffs/CiteThisData'
+import { LatestFilings, filingDateLabel } from '@/components/layoffs/LatestFilings'
 import { StructuredData } from '@/components/StructuredData'
 import { LAYOFF_YEAR, MONTH_SLUGS, monthName } from '@/lib/layoffs/monthly'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -209,14 +210,21 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
     : hasNotices ? <>{layoffFactLine({ name: c.name, filings: c.notices.length, workers, exact: !unknownCounts, places, latest: noticeDay(c.latest) })}</>
     : latestAnn ? <>{reportLine(noticeDay(latestAnn.date), latestAnn.summary)}</>
     : null
+  const newestNotice = [...c.notices].sort((a, b) => b.noticeDate.getTime() - a.noticeDate.getTime())[0]
+  const newestWhere = newestNotice ? [newestNotice.city ?? newestNotice.place, stateName(newestNotice.state)].filter(Boolean).join(', ') : ''
+  const newestDetail = newestNotice
+    ? ` The newest (${filingDateLabel(newestNotice).toLowerCase()}) is in ${newestWhere}${newestNotice.workers != null ? ` and names ${newestNotice.workers.toLocaleString()} ${newestNotice.workers === 1 ? 'worker' : 'workers'}` : ''}${newestNotice.noticeDateKnown && newestNotice.effectiveDate ? `; it takes effect ${noticeDay(newestNotice.effectiveDate)}` : ''}.`
+    : ''
   const faq = hasNotices
     ? [
-        { q: `Is ${c.name} laying off employees?`, a: `${c.name} has reported ${c.notices.length.toLocaleString()} ${c.notices.length === 1 ? 'layoff' : 'layoffs'} to the state. The latest was reported ${noticeDay(c.latest)}.` },
+        { q: `Is ${c.name} laying off employees?`, a: `Yes. ${c.name} has reported ${c.notices.length.toLocaleString()} ${c.notices.length === 1 ? 'layoff' : 'layoffs'} to ${c.states.length === 1 ? 'the state' : 'states'}, as of ${noticeDay(new Date(`${modified}T12:00:00Z`))}.${newestDetail}` },
         { q: `How many ${c.name} workers are affected?`, a: workers > 0 ? `The layoffs on record name ${workers.toLocaleString()} workers${unknownCounts ? ', counting only the ones that gave a number' : ''}.` : 'The layoffs on record do not state a worker count.' },
         { q: `Where are the ${c.name} layoffs?`, a: `${c.name} filed in ${c.states.map(stateName).join(', ')}.` },
         ...severanceFaq(c.name, c.states),
       ]
-    : []
+    : recentAnn && latestAnn
+      ? [{ q: `Is ${c.name} laying off employees?`, a: `${reportLine(noticeDay(latestAnn.date), latestAnn.summary)} We have no layoff filing from ${c.name} with a state on record, as of ${noticeDay(new Date(`${modified}T12:00:00Z`))}.` }]
+      : []
 
   return (
     <OrgBrandScope brand={brand?.pair}>
@@ -246,30 +254,30 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           <YourState label={c.name} />
           <div className="mt-4 space-y-12">
             <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : (latestAnn?.workers ?? null)} hasNotices={hasNotices} noticeCount={c.notices.length} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
+            {hasNotices && (
+              <section aria-labelledby="glance" className="rounded-xl border border-border bg-white p-6">
+                <h2 id="glance" className="text-xl font-semibold tracking-tight text-navy">{c.name} layoffs at a glance</h2>
+                <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Layoffs reported</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{c.notices.length.toLocaleString('en-US')}</dd></div>
+                  <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Workers named</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{workers > 0 ? workers.toLocaleString('en-US') : 'Not stated'}</dd></div>
+                  <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">First and latest filing</dt><dd className="mt-1 font-semibold text-navy">{noticeDay(oldestNotice)}{oldestNotice.getTime() !== c.latest.getTime() ? ` to ${noticeDay(c.latest)}` : ''}</dd></div>
+                  <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Largest notice</dt><dd className="mt-1 font-semibold text-navy">{largest?.workers ? `${largest.workers.toLocaleString('en-US')} workers, ${stateName(largest.state)}` : 'Not stated'}</dd></div>
+                </dl>
+                <LatestFilings name={c.name} slug={slug} notices={c.notices} lastUpdated={noticeDay(new Date(`${modified}T12:00:00Z`))} />
+                <p className="mt-4 text-sm text-muted-foreground">
+                  See how this compares: {c.latest.getUTCFullYear() === LAYOFF_YEAR && (
+                    <><Link href={`/layoffs/2026/${MONTH_SLUGS[c.latest.getUTCMonth()]}`} className={LINK}>all {monthName(c.latest.getUTCMonth())} {LAYOFF_YEAR} layoffs</Link>, </>
+                  )}
+                  <Link href="/layoffs/2026" className={LINK}>layoffs in 2026</Link>
+                  {c.states.slice(0, 2).map((s) => <span key={s}>, <Link href={`/layoffs/${stateSlug(s)}`} className={LINK}>{stateName(s)} layoffs</Link></span>)}.
+                </p>
+              </section>
+            )}
             <SituationFlow variant={variant} company={c.name} slug={slug} state={c.states[0] ?? null} action={submitJourneyLead} searchSchools={searchSchools} buyoutRule={buyoutRule} />
             <SearchTimeFacts />
             <PeerEmployers company={c.name} near={peers.near} similar={peers.similar} metro={peers.homeState ? stateName(peers.homeState) : null} />
             <CompanyStoriesSection name={c.name} slug={slug} numbers={storyNumbers} stories={stories} />
           </div>
-
-          {hasNotices && (
-            <section aria-labelledby="glance" className="mt-12 rounded-xl border border-border bg-white p-6">
-              <h2 id="glance" className="text-xl font-semibold tracking-tight text-navy">{c.name} layoffs at a glance</h2>
-              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Layoffs reported</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{c.notices.length.toLocaleString('en-US')}</dd></div>
-                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Workers named</dt><dd className="mt-1 text-lg font-semibold tabular-nums text-navy">{workers > 0 ? workers.toLocaleString('en-US') : 'Not stated'}</dd></div>
-                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">First and latest filing</dt><dd className="mt-1 font-semibold text-navy">{noticeDay(oldestNotice)}{oldestNotice.getTime() !== c.latest.getTime() ? ` to ${noticeDay(c.latest)}` : ''}</dd></div>
-                <div className="rounded-lg bg-off-white p-3"><dt className="text-muted-foreground">Largest notice</dt><dd className="mt-1 font-semibold text-navy">{largest?.workers ? `${largest.workers.toLocaleString('en-US')} workers, ${stateName(largest.state)}` : 'Not stated'}</dd></div>
-              </dl>
-              <p className="mt-4 text-sm text-muted-foreground">
-                See how this compares: {c.latest.getUTCFullYear() === LAYOFF_YEAR && (
-                  <><Link href={`/layoffs/2026/${MONTH_SLUGS[c.latest.getUTCMonth()]}`} className={LINK}>all {monthName(c.latest.getUTCMonth())} {LAYOFF_YEAR} layoffs</Link>, </>
-                )}
-                <Link href="/layoffs/2026" className={LINK}>layoffs in 2026</Link>
-                {c.states.slice(0, 2).map((s) => <span key={s}>, <Link href={`/layoffs/${stateSlug(s)}`} className={LINK}>{stateName(s)} layoffs</Link></span>)}.
-              </p>
-            </section>
-          )}
 
           <p className="mt-8 text-xs text-muted-foreground">Independent page. Not from or affiliated with {c.name}.</p>
 
