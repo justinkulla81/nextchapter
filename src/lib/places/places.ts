@@ -461,8 +461,11 @@ const key = (...parts: (string | number | string[] | null)[]) => parts.map((p) =
 // re-ran the same query (about 90,000 calls). The data cache shares one result across instances for six hours, the same as a state's list.
 const sharedTop = memoTtl(10 * 60_000, (a: string, b: string[] | null, c: number) => key(a, b, c), (a: string, b: string[] | null, c: number) =>
   sharedLoad(`places-top-hiring:${createHash('sha1').update(key(a, b, c)).digest('hex')}`, 6 * 60 * 60, () => heavy(() => loadTopHiringEmployers(a, b, c))))
-const sharedJobs = memoTtl(10 * 60_000, (a: string, b: string[], c: number) => key(a, b, c), (a: string, b: string[], c: number) => heavy(() => loadRecentJobs(a, b, c)))
-const sharedHq = memoTtl(10 * 60_000, (a: string, b: string[] | null, c: number) => key(a, b, c), (a: string, b: string[] | null, c: number) => heavy(() => loadLargeEmployersHeadquartered(a, b, c)))
+// A city's recent jobs ran the same way (87,000 calls in a week, one longest at 119 s) and its large employers likewise: the same six-hour shared cache.
+const sharedJobs = memoTtl(10 * 60_000, (a: string, b: string[], c: number) => key(a, b, c), (a: string, b: string[], c: number) =>
+  sharedLoad(`places-recent-jobs:${createHash('sha1').update(key(a, b, c)).digest('hex')}`, 6 * 60 * 60, () => heavy(() => loadRecentJobs(a, b, c))))
+const sharedHq = memoTtl(10 * 60_000, (a: string, b: string[] | null, c: number) => key(a, b, c), (a: string, b: string[] | null, c: number) =>
+  sharedLoad(`places-city-hq:${createHash('sha1').update(key(a, b, c)).digest('hex')}`, 6 * 60 * 60, () => heavy(() => loadLargeEmployersHeadquartered(a, b, c))))
 // A state's own lists are one scan of the board each, so they are shared across instances in the data cache for six hours.
 const cachedStateTop = unstable_cache((state: string, limit: number) => heavy(() => loadTopHiringEmployers(state, null, limit)), ['places-state-top-hiring-v1'], { revalidate: 6 * 60 * 60 })
 const cachedStateHq = unstable_cache((state: string, limit: number) => heavy(() => loadLargeEmployersHeadquartered(state, null, limit)), ['places-state-hq-v1'], { revalidate: 6 * 60 * 60 })
