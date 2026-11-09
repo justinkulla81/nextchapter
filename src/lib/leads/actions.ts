@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers'
 import { LEAD_COOKIE, LEAD_COOKIE_MAX_AGE } from '@/lib/leads/lifecycle/prefill'
 import { markerDomain } from '@/lib/auth/member-marker'
+import { posthogCookieName, posthogDistinctId } from '@/lib/posthog/visitor-id'
 import { prisma } from '@/lib/prisma'
 import { getClientIp } from '@/lib/http/client-ip'
 import { allowByIp, allowByTarget, DAY_MS, HOUR_MS } from '@/lib/security/rate-limit'
@@ -42,17 +43,6 @@ const GENERIC_ERROR = 'Something went wrong. Try again in a minute.'
 const PLAN_DAILY_CAP = () => {
   const n = Number(process.env.JOURNEY_PLAN_DAILY_CAP)
   return Number.isFinite(n) && n >= 0 ? n : 25
-}
-
-/** The visitor's id from posthog-js's own cookie (ph_<key>_posthog, URL-encoded JSON), or null when it is missing or unreadable. */
-function posthogDistinctId(value: string | undefined): string | null {
-  if (!value) return null
-  try {
-    const id = (JSON.parse(decodeURIComponent(value)) as { distinct_id?: unknown }).distinct_id
-    return typeof id === 'string' && id.length > 0 && id.length <= 200 ? id : null
-  } catch {
-    return null
-  }
 }
 
 const text = (formData: FormData, k: string, max: number) => ((formData.get(k) as string | null) ?? '').trim().slice(0, max)
@@ -160,7 +150,7 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
       // The submit is recorded here, where the lead is saved: a browser event is lost when the redirect into registration starts before
       // PostHog (loaded at browser idle) has loaded. It uses the visitor's PostHog id from their cookie when they have one, so it joins
       // their after_a_layoff_viewed; otherwise their email.
-      const visitor = posthogDistinctId(jar.get(`ph_${process.env.NEXT_PUBLIC_POSTHOG_KEY}_posthog`)?.value) ?? email
+      const visitor = posthogDistinctId(jar.get(posthogCookieName())?.value) ?? email
       const landing = { source, utmSource: source.split(':')[1] ?? null, situation: persona.slug, emailed, capped, returning: !!existing }
       captureServerEvent(visitor, 'after_a_layoff_submitted', landing)
       // The form always sends the visitor straight into registration, so this is recorded with the submit, not when the browser arrives.

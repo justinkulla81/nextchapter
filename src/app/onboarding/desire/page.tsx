@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/get-current-user'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
@@ -12,12 +13,24 @@ import { flowOfProfile } from '@/lib/onboarding/flag'
 import { storedAnswers } from '@/lib/onboarding/answers'
 import { usableAnswers } from '@/lib/onboarding/bundles'
 import { entryFromGoalParam } from '@/lib/onboarding/resume-rule'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { posthogCookieName, posthogDistinctId } from '@/lib/posthog/visitor-id'
+import { LEAD_COOKIE, emailFromLeadCookie } from '@/lib/leads/lifecycle/prefill'
 
-export default async function SituationPickerPage({ searchParams }: { searchParams: Promise<{ goal?: string }> }) {
-  const user = await getCurrentUser()
+export default async function SituationPickerPage({ searchParams }: { searchParams: Promise<{ goal?: string; from?: string }> }) {
   // A Market Reality link (/onboarding/desire?goal=market-reality) makes the résumé step required later.
-  const { goal } = await searchParams
+  const { goal, from } = await searchParams
   const entryGoal = entryFromGoalParam(goal) ? goal : undefined
+  const user = await getCurrentUser()
+
+  // Arrived from the /after-a-layoff form (its source rides on the link): recorded here, on the server, so it is not lost to the browser.
+  // The visitor's PostHog id joins their earlier events; failing that, the email in the signed lead cookie.
+  const arrivedFrom = /^after-a-layoff(:[a-z0-9_-]{1,60})?$/.exec(from ?? '')?.[0]
+  if (arrivedFrom) {
+    const jar = await cookies()
+    const visitor = posthogDistinctId(jar.get(posthogCookieName())?.value) ?? emailFromLeadCookie(jar.get(LEAD_COOKIE)?.value)
+    if (visitor) captureServerEvent(visitor, 'after_a_layoff_registration_arrived', { source: arrivedFrom, utmSource: arrivedFrom.split(':')[1] ?? null, signedIn: !!user })
+  }
 
   // An admin, hiring manager, recruiter, or coach landing here (e.g. a
   // password-reset fallback redirect) should never silently get a stray
