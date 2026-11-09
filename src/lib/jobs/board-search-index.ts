@@ -246,15 +246,33 @@ export async function readSearchFacts(): Promise<FactsRow[]> {
   }
   const rows = await readFactsFromDatabase()
   if (fingerprint && rows.length > 0) {
-    // Encoded and written in the background, after the response; a failure only means the next cold instance reads the database.
-    inBackground(() => {
-      const parts: unknown[] = []
-      for (let i = 0; i < rows.length; i += FACTS_PART_ROWS) parts.push(encodeFactsPart(rows.slice(i, i + FACTS_PART_ROWS)))
-      return writeSnapshot('search-facts', fingerprint!, at, parts, rows.length)
+    // Encoded and written in the background, after the response; a failure only means the next cold instance reads the database. The write is
+    // kept in `factsWrite` so warmSearchIndex, which the board page runs inside after(), stays pending until it is done: after() keeps the
+    // instance alive only while the promise it was given is pending, and the first version of this wrote nothing in production because the
+    // instance was frozen between the index being built and the write starting (2026-11-09).
+    const done = new Promise<void>((resolve) => {
+      inBackground(async () => {
+        try {
+          const parts: unknown[] = []
+          for (let i = 0; i < rows.length; i += FACTS_PART_ROWS) parts.push(encodeFactsPart(rows.slice(i, i + FACTS_PART_ROWS)))
+          await writeSnapshot('search-facts', fingerprint!, at, parts, rows.length)
+        } finally {
+          resolve()
+        }
+      })
+    })
+    factsWrite = done
+    void done.then(() => {
+      if (factsWrite === done) factsWrite = null
     })
   }
   return rows
 }
+
+/** The snapshot write started by this instance's last database read of the facts, until it is done. */
+let factsWrite: Promise<void> | null = null
+/** The longest a warm-up waits for that write; the write itself carries on if it is slower. */
+const FACTS_WRITE_WAIT_MS = 120_000
 
 async function readIndex(): Promise<SearchIndex> {
   const started = Date.now()
@@ -290,7 +308,14 @@ export function loadSearchIndex(): Promise<SearchIndex> {
 /** Starts (or refreshes) the index load in the background; resolves once it is in, never rejects. */
 export function warmSearchIndex(): Promise<void> {
   return loadSearchIndex().then(
-    () => undefined,
+    async () => {
+      // Also wait for the snapshot write this load started, so an instance kept alive by after() stays alive until it is stored.
+      const write = factsWrite
+      if (!write) return
+      let timer: ReturnType<typeof setTimeout> | undefined
+      await Promise.race([write, new Promise<void>((resolve) => (timer = setTimeout(resolve, FACTS_WRITE_WAIT_MS)))])
+      clearTimeout(timer)
+    },
     () => undefined
   )
 }
@@ -337,6 +362,7 @@ export async function searchIndexWithin(waitMs: number, opts?: { startCold?: boo
 /** Tests only: swap the database read and forget the held index. */
 export function resetSearchIndexForTests(reader?: () => Promise<SearchIndex>): void {
   read = reader ?? readIndex
+  factsWrite = null
   held = null
   loading = null
 }
