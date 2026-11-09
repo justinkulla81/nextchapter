@@ -8,7 +8,7 @@ import { FOUNDER_LINE } from '@/lib/marketing/founder-line'
 
 // The page the owner sends to people who were just let go (LinkedIn, direct). One registration ask: the email form in the hero
 // (docs: one registration ask per public page). The link's ?utm_source=<who> is saved on the lead (source "after-a-layoff:<who>";
-// "after-a-layoff:justin" when the link has no tag). The four feature rows are the owner's value proposition: personalized job
+// "after-a-layoff:li", LinkedIn, when the link has no tag). The four feature rows are the owner's value proposition: personalized job
 // search, the AI coach, career exploration, fractional work. The images are the member screens with sample data. Kept out of the
 // index: it is reached by link, not by search.
 export const metadata: Metadata = {
