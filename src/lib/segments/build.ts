@@ -25,6 +25,8 @@ export async function buildSegments(now = new Date()): Promise<SegmentBuildResul
   const scanned = await scanBoard((rows) => {
     for (const r of rows) for (const slug of segmentsOf(r)) bySlug.get(slug)!.push(r)
   })
+  // The cursor reads the board in no particular order; the segments were built from rows in id order, so keep that.
+  for (const rows of bySlug.values()) rows.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
   const exposure = await loadExposureMap()
   const built: SegmentBuildResult['built'] = []
   const skipped: SegmentBuildResult['skipped'] = []
