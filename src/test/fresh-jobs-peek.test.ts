@@ -5,8 +5,11 @@ vi.mock('server-only', () => ({}))
 const findMany = vi.fn()
 const groupBy = vi.fn()
 const count = vi.fn()
+const lightGroupBy = vi.fn()
+const lightReady = vi.fn()
+vi.mock('@/lib/jobs/board-light-rows', () => ({ mirrorCanAnswer: () => true, boardLightRowsReady: () => lightReady() }))
 vi.mock('@/lib/prisma', () => ({
-  prisma: { exclusiveJobPosting: { findMany: (...a: unknown[]) => findMany(...a), groupBy: (...a: unknown[]) => groupBy(...a), count: (...a: unknown[]) => count(...a) } },
+  prisma: { boardLightRow: { groupBy: (...a: unknown[]) => lightGroupBy(...a) }, exclusiveJobPosting: { findMany: (...a: unknown[]) => findMany(...a), groupBy: (...a: unknown[]) => groupBy(...a), count: (...a: unknown[]) => count(...a) } },
 }))
 vi.mock('@/lib/db/statement-timeout', () => ({ withStatementTimeout: (q: Promise<unknown>) => q }))
 vi.mock('@/lib/jobs/board-shortlist', () => ({ liveBoardWhere: (extra: object) => ({ live: true, ...extra }) }))
@@ -27,6 +30,9 @@ beforeEach(() => {
   groupBy.mockReset()
   count.mockReset()
   readBoardFigure.mockReset()
+  lightGroupBy.mockReset()
+  lightReady.mockReset()
+  lightReady.mockResolvedValue(false)
   readBoardFigure.mockResolvedValue(null)
   resetFreshJobsFailureMemo()
 })
@@ -107,5 +113,20 @@ describe('fresh jobs prompt', () => {
     groupBy.mockRejectedValueOnce(new Error('down'))
     findMany.mockResolvedValueOnce(rows(3))
     expect(await getFreshJobsPeek('Legal', null)).toEqual({ count: 0, top: [] })
+  })
+})
+
+describe('fresh jobs live count fallback', () => {
+  it('groups on the narrow copy when it is ready', async () => {
+    lightReady.mockResolvedValue(true)
+    lightGroupBy.mockResolvedValue(groups({ Sales: 7 }))
+    expect(await getFreshJobsCount('Sales', null)).toBe(7)
+    expect(groupBy).not.toHaveBeenCalled()
+  })
+  it('falls back to the wide table when the copy fails', async () => {
+    lightReady.mockResolvedValue(true)
+    lightGroupBy.mockRejectedValue(new Error('boom'))
+    groupBy.mockResolvedValue(groups({ Sales: 9 }))
+    expect(await getFreshJobsCount('Sales', null)).toBe(9)
   })
 })

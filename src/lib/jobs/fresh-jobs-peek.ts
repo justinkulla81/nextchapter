@@ -1,11 +1,13 @@
 import 'server-only'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { liveBoardWhere } from '@/lib/jobs/board-shortlist'
 import { FRESH_HOURS } from '@/lib/jobs/competition'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
+import { boardLightRowsReady, mirrorCanAnswer } from '@/lib/jobs/board-light-rows'
 
 /** The nav badge and Home prompt show "99+" past this. */
 export const FRESH_PEEK_COUNT_CAP = 99
@@ -74,7 +76,16 @@ export async function buildFreshCountsByFunction(timeoutMs: number = GROUPED_STA
     createdAt: { gte: new Date(Date.now() - FRESH_HOURS * 3_600_000) },
     targetFunction: { not: null },
   })
-  const groups = await withStatementTimeout(prisma.exclusiveJobPosting.groupBy({ by: ['targetFunction'], where, _count: { _all: true } }), timeoutMs)
+  // The narrow copy answers this in about 0.7 s; the wide table took 5 to 20 s. The wide table is the fallback.
+  let groups: { targetFunction: string | null; _count: { _all: number } }[] | null = null
+  if (mirrorCanAnswer(where) && (await boardLightRowsReady())) {
+    try {
+      groups = await withStatementTimeout(prisma.boardLightRow.groupBy({ by: ['targetFunction'], where: where as Prisma.BoardLightRowWhereInput, _count: { _all: true } }), timeoutMs)
+    } catch (error) {
+      console.error('Fresh counts: narrow copy failed, reading the wide table', error)
+    }
+  }
+  groups ??= await withStatementTimeout(prisma.exclusiveJobPosting.groupBy({ by: ['targetFunction'], where, _count: { _all: true } }), timeoutMs)
   const counts: Record<string, number> = {}
   for (const g of groups) if (g.targetFunction) counts[g.targetFunction] = g._count._all
   return counts

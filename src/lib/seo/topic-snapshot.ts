@@ -12,7 +12,19 @@ import type { JobFilter } from '@/lib/seo/topic-data'
 // reads one row. A topic with no snapshot yet shows without its job figures, falls under the quality bar, and returns
 // by itself once the cron has stored one.
 
-export const SNAPSHOT_MAX_AGE_MS = 23 * 3600_000
+export const SNAPSHOT_MAX_AGE_MS = 48 * 3600_000
+/** Outside the off-peak window only a snapshot this old (or missing) is refreshed: the scans compete with job-page traffic for the database. */
+export const SNAPSHOT_PEAK_MAX_AGE_MS = 96 * 3600_000
+/** Off-peak hours (UTC) when the cron refreshes everything that is due: the board is quietest then. */
+export const OFF_PEAK_HOURS_UTC = [2, 3, 4, 5, 6, 7]
+
+export interface DueTopic<F> { f: F; key: string; at: number }
+
+/** Which topics to refresh now, stalest first. A manual run ignores the window. */
+export function dueTopics<F>(topics: { f: F; key: string; at: number }[], now: number, opts: { offPeak: boolean }): DueTopic<F>[] {
+  const maxAge = opts.offPeak ? SNAPSHOT_MAX_AGE_MS : SNAPSHOT_PEAK_MAX_AGE_MS
+  return topics.filter((t) => now - t.at > maxAge).sort((a, b) => a.at - b.at)
+}
 
 /** A page view refreshes a stored row only when it is this many times older than its max age; the cron does it before then. */
 const STALE_BACKSTOP = 3
@@ -93,14 +105,16 @@ export async function topicsWithSnapshot(): Promise<Set<string>> {
  * Refreshes the stalest snapshots, one topic at a time, until the time budget runs out. Called by the cron; a topic takes
  * up to about 40 seconds, so each run leaves a margin before the function limit.
  */
-export async function refreshTopicSnapshots(budgetMs: number): Promise<{ refreshed: string[]; skipped: number }> {
+export async function refreshTopicSnapshots(budgetMs: number, opts: { manual?: boolean } = {}): Promise<{ refreshed: string[]; skipped: number }> {
   const { computeTopicJobs, computeJobStats } = await import('@/lib/seo/topic-data')
   const existing = new Map((await prisma.topicSnapshot.findMany({ select: { key: true, updatedAt: true } })).map((r) => [r.key, r.updatedAt.getTime()]))
   const now = Date.now()
-  const due = topicFilters()
-    .map((f) => ({ f, key: JSON.stringify(f), at: Math.min(existing.get(`jobs:${JSON.stringify(f)}`) ?? 0, existing.get(`stats:${JSON.stringify(f)}`) ?? 0) }))
-    .filter((t) => now - t.at > SNAPSHOT_MAX_AGE_MS)
-    .sort((a, b) => a.at - b.at)
+  const offPeak = !!opts.manual || OFF_PEAK_HOURS_UTC.includes(new Date(now).getUTCHours())
+  const due = dueTopics(
+    topicFilters().map((f) => ({ f, key: JSON.stringify(f), at: Math.min(existing.get(`jobs:${JSON.stringify(f)}`) ?? 0, existing.get(`stats:${JSON.stringify(f)}`) ?? 0) })),
+    now,
+    { offPeak },
+  )
   const started = Date.now()
   const refreshed: string[] = []
   for (const t of due) {
