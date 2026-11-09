@@ -72,6 +72,45 @@ Employers ranked just below the first ten by live Jooble jobs, not staffing firm
 
 **No career system found by the probe:** EY, Willis Towers Watson, Visa, Regeneron, BD, HII, Schneider Electric, SAIC, USAA, Atlassian, Intuitive Surgical, Fujifilm, Canon, Anduril, WSP, Turner & Townsend, HNTB, BDO (a Workday site name not guessed, or a custom system). EY and Anduril, Capital One, Oracle and some others already have direct rows from another source.
 
+## Tier 3: 25 more Workday boards (2026-11-09)
+
+Found for the plan to raise live direct jobs by 25% (crawler fixes and new sources only; the 14-day window stays as it is). Real employers ranked below the first 33 by live Jooble rows, not staffing firms. Each board answered the public Workday jobs endpoint on 2026-11-09. Together they hold 705 Jooble-linked live US jobs and list 45,081 jobs on their boards (all countries; Workday caps its count at 2,000, so four boards hold more). Sources, in crawler format: `scripts/jobsreport/sources/jooble-tier3.json`. Prompt: `docs/specs/ncrawl-tier3-prompt.md`.
+
+Expected yield: on the first 33 employers about 35% of listed jobs were kept after the US and level screens (10% to 63% by employer). At 35% these 25 would add roughly 9,000 to 13,000 live direct jobs (about +4% to +5%), CVS Health's retail-heavy board counted at a lower rate. An estimate, not a measurement.
+
+| Employer | Live via Jooble | Workday board (tenant, cluster, site) | Board total |
+|---|---|---|---|
+| CVS Health | 102 | cvshealth, wd1, CVS_Health_Careers | 18970 |
+| U.S. Bank | 53 | usbank, wd1, US_Bank_Careers | 1222 |
+| Regeneron | 50 | regeneron, wd1, Careers | 626 |
+| Cisco | 37 | cisco, wd5, Cisco_Careers | 1464 |
+| Blue Origin | 32 | blueorigin, wd5, BlueOrigin | 1887 |
+| GE Appliances | 31 | haier, wd3, GE_Appliances | 163 |
+| T-Mobile | 28 | tmobile, wd1, External | 2000 |
+| Marsh McLennan | 28 | mmc, wd1, MMC | 1972 |
+| Advocate Health | 26 | aah, wd115, External | 2000 |
+| IQVIA | 26 | iqvia, wd1, IQVIA | 1899 |
+| Sedgwick | 25 | sedgwick, wd1, Sedgwick | 621 |
+| Comcast | 24 | comcast, wd115, Comcast_Careers | 681 |
+| Cushman & Wakefield | 23 | cw, wd1, External | 2000 |
+| TransUnion | 20 | transunion, wd5, TransUnion | 222 |
+| EisnerAmper | 19 | eisneramper, wd1, EisnerAmper_External | 157 |
+| Equinix | 19 | equinix, wd1, External | 309 |
+| Philips | 18 | philips, wd3, jobs-and-careers | 800 |
+| John Hancock | 18 | manulife, wd3, MFCJH_Jobs | 606 |
+| Magna | 18 | magna, wd3, Magna | 1383 |
+| Thomson Reuters | 17 | thomsonreuters, wd5, External_Career_Site | 488 |
+| Curtiss-Wright | 16 | curtisswright, wd1, CW_External_Career_Site | 387 |
+| GE Vernova | 16 | gevernova, wd5, Vernova_ExternalSite | 2156 |
+| 3M | 16 | 3m, wd1, Search | 786 |
+| Bristol-Myers Squibb | 15 | bristolmyerssquibb, wd5, BMS | 628 |
+| Novartis | 15 | novartis, wd3, Novartis_Careers | 860 |
+| RELX | 13 | relx, wd3, relx | 794 |
+
+**Other job systems found, needing a crawler adapter** (public career pages found by the career-site probe; endpoints not yet verified): Phenom (Marsh, Honda, Honeywell, LPL Financial, GE Healthcare, GE Aerospace, Corning, ICF, Philips, Crowe, BMO), Eightfold (Lumen, Qualcomm, Worley), SAP SuccessFactors (New York Life, Capgemini, Daiichi Sankyo, Wipro), iCIMS (Beth Israel Lahey Health, Akima), Oracle HCM (Uber), Avature (Takeda), UKG (Milliman), SmartRecruiters (Eurofins), Jibe (AXA XL). Phenom alone covers about a dozen employers and appears on boards of employers already above, so a Phenom adapter is the best next one to build if the crawler has none.
+
+**Not readable by the probe:** AMN Healthcare, Genworth, Amentum, CBRE, Zurich, Compass Group, Jazz Pharmaceuticals, Sodexo, Amcor, General Dynamics, Eli Lilly, Kroll, Koch, Fisher Investments, Neurocrine, Cohesity, Estee Lauder, Tempus, Globe Life, AdventHealth, Stellantis, Caris, Paylocity, Vizient, Protiviti, Grant Thornton, Moss Adams, Baker Tilly, FTI Consulting, Genentech, Visa, SAIC, Corning (a Workday site name not guessed, or a custom system).
+
 ## Staffing and recruiter firms (do not chase)
 
 Robert Half (866 via Jooble), CyberCoders (365), Jobot (343), LHH (327), Insight Global, Apex Systems, Kforce, Mindlance, HAN Staffing, Addison Group, Acturhire, Green Key, Artech, Motion Recruitment, Vaco, Randstad, Experis, Ampcus and similar. The posting is the recruiter's own listing for an unnamed client; the apply link is not a copy of a client's career-site job. Decision for the owner: keep them out of search (current rule) or index the ones whose own career site posts the job.
