@@ -6,6 +6,7 @@ import { TOPICS } from '@/lib/seo/explainers'
 import { htmlToPlainText } from '@/lib/seo/plain-text'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { REPORT_BODY_HTML as SEPTEMBER_2026 } from '../reports/white-collar-employment-report-september-2026/report-body'
+import { REPORT_BODY_HTML as OCTOBER_2026 } from '../reports/white-collar-employment-report-october-2026/report-body'
 
 // /llms-full.txt — plain-text bodies of every guide and report, no navigation
 // or boilerplate, regenerated at build time.
@@ -16,6 +17,7 @@ export const dynamic = 'force-static'
 
 // Authored HTML body per edition slug. Register each new edition here too.
 const REPORT_BODIES: Record<string, string> = {
+  'white-collar-employment-report-october-2026': OCTOBER_2026,
   'white-collar-employment-report-september-2026': SEPTEMBER_2026,
 }
 

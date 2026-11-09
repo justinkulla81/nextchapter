@@ -1,21 +1,21 @@
 const STATS = [
   {
-    value: '27.1%',
-    label: 'Of all unemployed people had been looking for work 27 weeks or more in September 2026, up from 23.6% a year earlier.',
-    href: '/reports/white-collar-employment-report-september-2026',
-    source: 'NextChapter White Collar Employment Report, Sept 2026 (BLS Employment Situation)',
+    value: '28.5%',
+    label: 'Of unemployed white-collar workers had been out of work 27 weeks (about six months) or more, January to September 2026, up from 23.2% a year earlier. The rise is larger than its margin of error (+5.3 points, ±2.3).',
+    href: '/reports/white-collar-employment-report-october-2026',
+    source: 'NextChapter White Collar Employment Report, Oct 2026 (Census CPS microdata)',
+  },
+  {
+    value: '39.1%',
+    label: 'Of unemployed white-collar workers aged 55 to 64 had been out of work 27 weeks or more, January to September 2026, up from 27.0% a year earlier.',
+    href: '/reports/white-collar-employment-report-october-2026',
+    source: 'NextChapter White Collar Employment Report, Oct 2026 (Census CPS microdata)',
   },
   {
     value: '0.75%',
-    label: 'Of the white-collar labor force was unemployed 27 weeks or more, January to August 2026, up from 0.56% a year earlier. The rise is larger than its margin of error.',
-    href: '/reports/white-collar-employment-report-september-2026',
-    source: 'NextChapter White Collar Employment Report, Sept 2026 (Census CPS microdata)',
-  },
-  {
-    value: '24.2%',
-    label: 'Of mid-career professionals, 10 to 15 years in, went 5+ years without a meaningful raise or promotion, as of June 2026.',
-    href: '/reports/white-collar-employment-report-september-2026',
-    source: 'Burning Glass Institute and NYU SPS, as cited in our Sept 2026 report',
+    label: 'Of the white-collar labor force was unemployed 27 weeks or more, January to September 2026, up from about 0.58% a year earlier (the unemployment rate times the long-term share).',
+    href: '/reports/white-collar-employment-report-october-2026',
+    source: 'NextChapter White Collar Employment Report, Oct 2026 (our calculation from Census CPS)',
   },
 ]
 
