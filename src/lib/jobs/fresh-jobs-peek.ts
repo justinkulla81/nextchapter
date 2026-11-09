@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { liveBoardWhere } from '@/lib/jobs/board-shortlist'
 import { FRESH_HOURS } from '@/lib/jobs/competition'
+import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 
 /** The nav badge and Home prompt show "99+" past this. */
 export const FRESH_PEEK_COUNT_CAP = 99
@@ -67,17 +68,35 @@ const FRESH_COUNT_TTL_SECONDS = 300
 // New jobs per function for the whole site: one grouped query per five minutes (not one per function, and never one per page view).
 // It throws on failure (never caches a quiet 0), so the caller decides what a miss looks like and the failure is recorded
 // (lib/perf/timed.ts). Expired entries are served while the next one is read.
+/** The grouped count over the last 72 hours of the open board (about 5 s cold). Run by the board-figures cron; a page only runs it when no stored row is usable. */
+export async function buildFreshCountsByFunction(timeoutMs: number = GROUPED_STATEMENT_MS): Promise<Record<string, number>> {
+  const where = liveBoardWhere({
+    createdAt: { gte: new Date(Date.now() - FRESH_HOURS * 3_600_000) },
+    targetFunction: { not: null },
+  })
+  const groups = await withStatementTimeout(prisma.exclusiveJobPosting.groupBy({ by: ['targetFunction'], where, _count: { _all: true } }), timeoutMs)
+  const counts: Record<string, number> = {}
+  for (const g of groups) if (g.targetFunction) counts[g.targetFunction] = g._count._all
+  return counts
+}
+
+/** A stored count older than this is not trusted (the cron runs twice a day): the live grouped count answers instead. */
+const STORED_MAX_AGE_MS = 24 * 3_600_000
+
+// The cron (board-figures) stores the counts, so a cold server instance or an expired cache is one primary-key read, not a 5 s scan that
+// the 1.5 s badge deadline gives up on (the "slow pages" alerts of 2026-11-08 and -09). The live query is the fallback only.
+async function readStoredCounts(): Promise<Record<string, number> | null> {
+  try {
+    const stored = await readBoardFigure<{ at: number; counts: Record<string, number> }>('fresh-job-counts')
+    if (!stored || typeof stored.at !== 'number' || Date.now() - stored.at > STORED_MAX_AGE_MS) return null
+    return stored.counts
+  } catch {
+    return null
+  }
+}
+
 const cachedFreshCountsByFunction = unstable_cache(
-  async (): Promise<Record<string, number>> => {
-    const where = liveBoardWhere({
-      createdAt: { gte: new Date(Date.now() - FRESH_HOURS * 3_600_000) },
-      targetFunction: { not: null },
-    })
-    const groups = await withStatementTimeout(prisma.exclusiveJobPosting.groupBy({ by: ['targetFunction'], where, _count: { _all: true } }), GROUPED_STATEMENT_MS)
-    const counts: Record<string, number> = {}
-    for (const g of groups) if (g.targetFunction) counts[g.targetFunction] = g._count._all
-    return counts
-  },
+  async (): Promise<Record<string, number>> => (await readStoredCounts()) ?? buildFreshCountsByFunction(),
   ['fresh-jobs-counts-v2'],
   { revalidate: FRESH_COUNT_TTL_SECONDS }
 )

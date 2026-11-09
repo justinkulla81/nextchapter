@@ -9,6 +9,7 @@ import { placeIndex } from '@/lib/seo/job-title-places'
 import { buildEntryFigures } from '@/lib/entry-roles/live'
 import { buildRoleFigures } from '@/lib/seo/role-figures'
 import { buildOrgJobStats } from '@/lib/seo/org-pages'
+import { buildFreshCountsByFunction } from '@/lib/jobs/fresh-jobs-peek'
 
 // The whole-board scans (10-65 s each over ~650k live postings), run one at a time instead of on public pages:
 // top employers, the workforce page counts, the jobs-by-AI-exposure split, the place job counts and the job-title
@@ -48,7 +49,13 @@ async function refreshOrgJobStats() {
   await replaceBoardFigures('org-job-stats:', [...stats].map(([state, v]) => [`org-job-stats:${state}`, v] as [BoardFigureKey, unknown]))
 }
 
+/** New jobs per function in the last 72 hours, for the dashboard nav badge and the Home prompt: one grouped count, one row. */
+async function refreshFreshJobCounts() {
+  await writeBoardFigure('fresh-job-counts', { at: Date.now(), counts: await buildFreshCountsByFunction(120_000) })
+}
+
 const STEPS: readonly (readonly [string, () => Promise<void>])[] = [
+  ['fresh-job-counts', refreshFreshJobCounts],
   ['employer-rankings', single('employer-rankings', buildEmployerRankings)],
   ['function-rankings', single('function-rankings', buildFunctionRankings)],
   ['workforce-jobs', single('workforce-jobs', jobCounts)],

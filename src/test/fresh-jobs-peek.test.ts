@@ -11,6 +11,8 @@ vi.mock('@/lib/prisma', () => ({
 vi.mock('@/lib/db/statement-timeout', () => ({ withStatementTimeout: (q: Promise<unknown>) => q }))
 vi.mock('@/lib/jobs/board-shortlist', () => ({ liveBoardWhere: (extra: object) => ({ live: true, ...extra }) }))
 vi.mock('@/lib/jobs/competition', () => ({ FRESH_HOURS: 72 }))
+const readBoardFigure = vi.fn()
+vi.mock('@/lib/jobs/stored-board-figures', () => ({ readBoardFigure: (...a: unknown[]) => readBoardFigure(...a) }))
 // A pass-through cache: each call runs the query, so the test sees exactly what reaches the database.
 vi.mock('next/cache', () => ({ unstable_cache: (fn: unknown) => fn }))
 vi.mock('react', () => ({ cache: (fn: unknown) => fn }))
@@ -24,7 +26,27 @@ beforeEach(() => {
   findMany.mockReset()
   groupBy.mockReset()
   count.mockReset()
+  readBoardFigure.mockReset()
+  readBoardFigure.mockResolvedValue(null)
   resetFreshJobsFailureMemo()
+})
+
+describe('fresh jobs stored count', () => {
+  it('reads the count the cron stored and never scans the board', async () => {
+    readBoardFigure.mockResolvedValue({ at: Date.now() - 3_600_000, counts: { Sales: 12 } })
+    expect(await getFreshJobsCount('Sales', null)).toBe(12)
+    expect(groupBy).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the live grouped count when the stored row is missing, too old or unreadable', async () => {
+    groupBy.mockResolvedValue(groups({ Sales: 5 }))
+    expect(await getFreshJobsCount('Sales', null)).toBe(5)
+    readBoardFigure.mockResolvedValue({ at: Date.now() - 25 * 3_600_000, counts: { Sales: 99 } })
+    expect(await getFreshJobsCount('Sales', null)).toBe(5)
+    readBoardFigure.mockRejectedValue(new Error('down'))
+    expect(await getFreshJobsCount('Sales', null)).toBe(5)
+    expect(groupBy).toHaveBeenCalledTimes(3)
+  })
 })
 
 describe('fresh jobs badge count', () => {
