@@ -24,6 +24,7 @@ export function BundleForm({
   action,
   previewJobs,
   hidden,
+  autoSubmit,
 }: {
   bundle: BundleId
   initial: Answers
@@ -34,6 +35,8 @@ export function BundleForm({
   previewJobs?: 'aiming' | 'where'
   /** Extra values the server action reads that are not questions (for example where the visitor came from). */
   hidden?: Record<string, string>
+  /** The visitor already told us where they are (the /after-a-layoff page): submit the preselected answer without asking. */
+  autoSubmit?: boolean
 }) {
   const [state, formAction, pending] = useActionState(action, undefined)
   const [answers, setAnswers] = useState<Answers>(initial)
@@ -42,6 +45,8 @@ export function BundleForm({
   const baseline = useRef<{ value: number | null } | null>(null)
   const latest = useRef(0)
   const posthog = usePostHog()
+  const formRef = useRef<HTMLFormElement>(null)
+  const autoSubmitted = useRef(false)
 
   // The situation card decides the journey on the first bundle; later bundles use the one already saved.
   const journey = bundle === 'where_you_are' ? (journeyOfSituation(answers.situation) ?? null) : storedJourney
@@ -66,6 +71,15 @@ export function BundleForm({
     const timer = setTimeout(() => setAnswers((a) => (a.situation ? a : { ...a, situation: picked })), 0)
     return () => clearTimeout(timer)
   }, [bundle])
+
+  // Once the preselected answer is complete, send it on its way: they already answered this on the page they came from.
+  // Only once, and only when nothing else is open, so an error shows the form with their answer instead of looping.
+  useEffect(() => {
+    if (!autoSubmit || bundle !== 'where_you_are' || autoSubmitted.current) return
+    if (!answers.situation || open.length > 0 || pending) return
+    autoSubmitted.current = true
+    formRef.current?.requestSubmit()
+  }, [autoSubmit, bundle, answers.situation, open.length, pending])
 
   // The live job count, asked of /api/onboarding/match-preview (a route, so it never queues in front of Continue).
   // Debounced so typing does not hit the server on every key; a late reply for an older set of answers is dropped,
@@ -110,7 +124,7 @@ export function BundleForm({
   const reason = open.length > 0 ? `Answer “${open[0].label}”${open.length > 1 ? ` and ${open.length - 1} more` : ''} to continue.` : null
 
   return (
-    <form action={formAction} className={cn('space-y-8', pending && 'cursor-progress [&_*]:cursor-progress')}>
+    <form ref={formRef} action={formAction} className={cn('space-y-8', pending && 'cursor-progress [&_*]:cursor-progress')}>
       <SpinnerCursor active={pending} />
       {hidden && Object.entries(hidden).map(([name, value]) => <input key={name} type="hidden" name={name} value={value} />)}
       <div className="space-y-6">
