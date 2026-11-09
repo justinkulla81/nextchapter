@@ -1,30 +1,28 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { LTU_JAN_AUG, SINGLE_MONTH_CAUTION, citationText, PRESS_CONTACT_EMAIL } from '@/lib/press/figures'
+import { LTU_JAN_SEP, SINGLE_MONTH_CAUTION, citationText, PRESS_CONTACT_EMAIL } from '@/lib/press/figures'
 import { indexChartSvg } from '@/lib/press/index-chart-svg'
 import { INDEX_ROUNDING_RULE } from '@/lib/reports-wc-index'
 
-const reportBody = fs.readFileSync(path.join(process.cwd(), 'src/app/reports/white-collar-employment-report-september-2026/report-body.ts'), 'utf8')
+const reportBody = fs.readFileSync(path.join(process.cwd(), 'src/app/reports/white-collar-employment-report-october-2026/report-body.ts'), 'utf8')
 const plain = reportBody.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ')
 
-// The press page quotes the report's January-August comparison. The report body is a static table, so this test is what keeps the
+// The press page quotes the report's January-September comparison. The report body is a static table, so this test is what keeps the
 // constants and the published text from drifting apart.
 describe('press figures match the published report', () => {
   it('white-collar share out 27+ weeks', () => {
-    const f = LTU_JAN_AUG.whiteCollarShare
-    expect(plain).toContain(`${f.y2026}% ${f.y2025}%`)
-    expect(plain).toContain(`+${f.change} pts ±${f.margin90} beyond 90% MOE`)
+    const f = LTU_JAN_SEP.whiteCollarShare
+    expect(plain).toContain(`${f.y2026}% (${f.y2025}%) +${f.change} (±${f.margin90})*`)
   })
   it('all-workers share out 27+ weeks', () => {
-    const f = LTU_JAN_AUG.allShare
+    const f = LTU_JAN_SEP.allShare
     expect(plain).toContain(`${f.y2026}% ${f.y2025}%`)
-    expect(plain).toContain(`+${f.change} pts ±${f.margin90} beyond 90% MOE`)
+    expect(plain).toContain(`+${f.change} (±${f.margin90})*`)
   })
-  it('the 2019 comparison and the single-month caution', () => {
-    expect(plain).toContain('53–62% above its 2019 level')
-    expect(plain).toContain('roughly ±24 points')
-    expect(SINGLE_MONTH_CAUTION).toContain('±24 points')
+  it('the index margin and the single-month caution', () => {
+    expect(plain).toContain('about ±17 points')
+    expect(SINGLE_MONTH_CAUTION).toContain('±17 points')
   })
 })
 

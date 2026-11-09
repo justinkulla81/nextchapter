@@ -55,9 +55,9 @@ export const STILL_SEARCHING: LandingContent = {
 
 /** The long-search figure: the same one and the same source as https://launchyournextchapter.com/why-stuck. */
 export const LONG_SEARCH_FIGURE = {
-  value: '27.1%',
-  text: 'of all unemployed people had been looking for work 27 weeks or more in September 2026, up from 23.6% a year earlier.',
-  source: 'NextChapter White Collar Employment Report, September 2026 (BLS Employment Situation)',
+  value: '28.5%',
+  text: 'of unemployed white-collar workers had been out of work 27 weeks or more in January to September 2026, up from 23.2% a year earlier.',
+  source: 'NextChapter White Collar Employment Report, October 2026 (Census CPS microdata)',
 }
 
 export const LANDING_SEO: Record<LandingPageKey, { title: string; description: string }> = {

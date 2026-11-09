@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { submitJourneyLead, type JourneyState } from '@/lib/leads/actions'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
+import { getPersona } from '@/lib/constants/personas'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 
@@ -32,7 +33,7 @@ function Form({ className }: { className?: string }) {
   useEffect(() => {
     if (!state?.done) return
     try {
-      sessionStorage.setItem(SITUATION_SESSION_KEY, SITUATION)
+      sessionStorage.setItem(SITUATION_SESSION_KEY, getPersona(SITUATION)?.situation ?? 'just_laid_off')
     } catch {
       // Private windows can block storage; onboarding simply asks.
     }

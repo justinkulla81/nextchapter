@@ -14,7 +14,7 @@ import { breadcrumbJsonLd, organizationRef } from '@/lib/seo/jsonld'
 import { pageMetadata } from '@/lib/seo/keywords'
 import { getLayoffCounts } from '@/lib/warn/layoff-counts'
 import { LAYOFF_DATA_LICENSE } from '@/lib/data/layoff-export'
-import { LTU_JAN_AUG, PRESS_CONTACT_EMAIL, PRESS_CORRECTIONS, PRESS_PAGE_REVIEWED, SINGLE_MONTH_CAUTION, citationText } from '@/lib/press/figures'
+import { LTU_JAN_SEP, PRESS_CONTACT_EMAIL, PRESS_CORRECTIONS, PRESS_PAGE_REVIEWED, SINGLE_MONTH_CAUTION, citationText } from '@/lib/press/figures'
 import { Squiggle } from '@/components/ui/squiggle'
 
 export const revalidate = 21600 // 6 hours: was hourly; every regeneration is a billed ISR write
@@ -53,7 +53,7 @@ export default async function PressPage() {
   const indexChange = yearAgo ? headlineChange(latest.index, yearAgo.index) : null
   const indexMonth = monthLabel(latest.month)
   const indexUrl = `${SITE_URL}/reports/white-collar-index`
-  const reportUrl = `${SITE_URL}${LTU_JAN_AUG.reportPath}`
+  const reportUrl = `${SITE_URL}${LTU_JAN_SEP.reportPath}`
   const svgUrl = `${SITE_URL}/press/white-collar-index.svg`
   const embed = `<a href="${indexUrl}"><img src="${svgUrl}" alt="White-Collar Long-Search Index, 2015 to ${indexMonth}, 2019 average = 100" width="720" height="400" style="max-width:100%;height:auto"></a>\n<p>Source: <a href="${indexUrl}">NextChapter White-Collar Long-Search Index</a> (CC BY 4.0)</p>`
 
@@ -121,13 +121,13 @@ export default async function PressPage() {
 
               <article className={CARD} aria-labelledby="fig-ltu">
                 <h3 id="fig-ltu" className="text-lg font-semibold text-navy">Share of the unemployed out 27+ weeks</h3>
-                <p className="mt-1 text-3xl font-bold tabular-nums text-navy">{LTU_JAN_AUG.whiteCollarShare.y2026}% <span className="text-base font-normal text-muted-foreground">of unemployed white-collar workers, vs {LTU_JAN_AUG.whiteCollarShare.y2025}% a year earlier</span></p>
+                <p className="mt-1 text-3xl font-bold tabular-nums text-navy">{LTU_JAN_SEP.whiteCollarShare.y2026}% <span className="text-base font-normal text-muted-foreground">of unemployed white-collar workers, vs {LTU_JAN_SEP.whiteCollarShare.y2025}% a year earlier</span></p>
                 <p className="mt-2 text-sm leading-relaxed text-ink">
-                  {LTU_JAN_AUG.period}, not seasonally adjusted. The change is +{LTU_JAN_AUG.whiteCollarShare.change} points, with a margin of ±{LTU_JAN_AUG.whiteCollarShare.margin90} at 90%, so it is beyond the margin of error. For all unemployed workers the share is {LTU_JAN_AUG.allShare.y2026}% against {LTU_JAN_AUG.allShare.y2025}% (+{LTU_JAN_AUG.allShare.change}, ±{LTU_JAN_AUG.allShare.margin90}). The index sits {LTU_JAN_AUG.aboveTwentyNineteen}.
+                  {LTU_JAN_SEP.period}, not seasonally adjusted. The change is +{LTU_JAN_SEP.whiteCollarShare.change} points, with a margin of ±{LTU_JAN_SEP.whiteCollarShare.margin90} at 90%, so it is beyond the margin of error. For all unemployed workers the share is {LTU_JAN_SEP.allShare.y2026}% against {LTU_JAN_SEP.allShare.y2025}% (+{LTU_JAN_SEP.allShare.change}, ±{LTU_JAN_SEP.allShare.margin90}).
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Single-month figures for smaller groups, such as workers 45 and over, swing widely from month to month and have no published margin of error. We do not quote them.</p>
-                <Cite id="ltu" text={citationText('White Collar Employment Report, September 2026: unemployed workers out 27+ weeks, January–August 2026 vs 2025', 'September 2026 edition', reportUrl, '{DATE}')} />
-                <p className="mt-3 text-sm"><Link href={LTU_JAN_AUG.reportPath} className={LINK}>September 2026 report</Link>{' · '}<span className="text-muted-foreground">{LTU_JAN_AUG.source}</span></p>
+                <Cite id="ltu" text={citationText('White Collar Employment Report, October 2026: unemployed workers out 27+ weeks, January–September 2026 vs 2025', 'October 2026 edition', reportUrl, '{DATE}')} />
+                <p className="mt-3 text-sm"><Link href={LTU_JAN_SEP.reportPath} className={LINK}>October 2026 report</Link>{' · '}<span className="text-muted-foreground">{LTU_JAN_SEP.source}</span></p>
               </article>
 
               <article className={CARD} aria-labelledby="fig-layoffs">
@@ -212,9 +212,8 @@ export default async function PressPage() {
               <li><PressDownload href="/reports/wc-index.csv" id="dl-wc-index">White-Collar Long-Search Index (CSV)</PressDownload></li>
               <li><PressDownload href="/reports/us-early-warning.csv" id="dl-early-warning">Early-warning indicators (CSV)</PressDownload></li>
               <li><PressDownload href="/reports/hires-per-opening.csv" id="dl-hires-per-opening">Hires per opening (CSV)</PressDownload></li>
-              <li><PressDownload href="/reports/white-collar-employment-report-2026-09-data.csv" id="dl-report-data">September report data (CSV)</PressDownload></li>
-              <li><PressDownload href="/reports/white-collar-employment-report-2026-09-brief.pdf" id="dl-brief">September report brief (PDF)</PressDownload></li>
-              <li><PressDownload href="/reports/white-collar-employment-report-2026-09.pdf" id="dl-report-pdf">September report (PDF)</PressDownload></li>
+              <li><PressDownload href="/reports/white-collar-employment-report-2026-10-data.csv" id="dl-report-data">October report data (CSV)</PressDownload></li>
+              <li><PressDownload href="/reports/white-collar-employment-report-2026-10.pdf" id="dl-report-pdf">October report (PDF)</PressDownload></li>
               <li><PressDownload href="/data/layoffs.csv" id="dl-layoffs-csv">Layoff notices (CSV)</PressDownload></li>
               <li><PressDownload href="/data/layoffs.json" id="dl-layoffs-json">Layoff notices (JSON)</PressDownload></li>
               <li><PressDownload href="/resources/ai-skills-pay-premium/data.csv" id="dl-ai-premium">AI-skill pay premium (CSV)</PressDownload></li>

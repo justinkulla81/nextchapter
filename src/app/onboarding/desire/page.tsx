@@ -58,7 +58,7 @@ export default async function SituationPickerPage({ searchParams }: { searchPara
     const initial = usableAnswers('where_you_are', { journey }, profile ? storedAnswers(profile) : {})
     return (
       <BundleShell id="where_you_are" title={profile?.firstName ? `Hi ${profile.firstName}, which of these sounds most like you?` : 'Which of these sounds most like you?'}>
-        <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} hidden={entryGoal ? { entry: entryGoal } : undefined} />
+        <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} hidden={entryGoal ? { entry: entryGoal } : undefined} autoSubmit={!!arrivedFrom && !profile?.desireComplete} />
       </BundleShell>
     )
   }

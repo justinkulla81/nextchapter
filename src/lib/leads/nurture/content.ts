@@ -1,4 +1,4 @@
-import { LTU_JAN_AUG } from '@/lib/press/figures'
+import { LTU_JAN_SEP } from '@/lib/press/figures'
 import { STATE_UI } from '@/lib/data/state-ui'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import type { LeadEmailContent } from '@/lib/leads/lifecycle/content'
@@ -56,8 +56,8 @@ const benefitsPath = (c: NurtureContext) => (c.stateCode ? `/unemployment-benefi
 const startPath = (c: NurtureContext) => `/start/${c.personaSlug}`
 
 const LTU_SENTENCE = (() => {
-  const s = LTU_JAN_AUG.whiteCollarShare
-  return `Among unemployed white-collar workers, ${s.y2026}% had been out of work 27 weeks or more in January to August 2026, up from ${s.y2025}% a year earlier (+${s.change} points, ±${s.margin90} at the 90% level).`
+  const s = LTU_JAN_SEP.whiteCollarShare
+  return `Among unemployed white-collar workers, ${s.y2026}% had been out of work 27 weeks or more in January to September 2026, up from ${s.y2025}% a year earlier (+${s.change} points, ±${s.margin90} at the 90% level).`
 })()
 
 /** "16.9% higher" / "3% lower": a gap in words, never a bare sign. */
