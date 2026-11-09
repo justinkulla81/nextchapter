@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  isFractionalJob,
   classifyWorkType,
   compensationKind,
   defaultWorkTypes,
@@ -58,6 +59,22 @@ describe('classifyWorkType', () => {
     expect(classifyWorkType({ title: 'Head of Finance', description: 'About 20 hours per week, remote.' })).toBe('part_time')
     expect(classifyWorkType({ title: 'Head of Finance', description: 'A full-time role.' })).toBe('full_time')
     expect(classifyWorkType({ title: 'Head of Finance' })).toBe('full_time')
+  })
+})
+
+describe('isFractionalJob', () => {
+  it('knows a fractional job by its employment type or its title', () => {
+    expect(isFractionalJob({ title: 'Fractional CFO', employmentType: null })).toBe(true)
+    expect(isFractionalJob({ title: 'Head of Marketing', employmentType: 'fractional' })).toBe(true)
+    expect(isFractionalJob({ title: 'Editorial Lead (Fractional)' })).toBe(true)
+  })
+  it('does not call an ordinary part-time, interim or full-time job fractional', () => {
+    expect(isFractionalJob({ title: 'Part-time Accountant', employmentType: 'part_time' })).toBe(false)
+    expect(isFractionalJob({ title: 'Interim CFO', employmentType: 'interim' })).toBe(false)
+    expect(isFractionalJob({ title: 'Fraction Controller' })).toBe(false)
+  })
+  it('keeps a fractional role in the part-time board type', () => {
+    expect(classifyWorkType({ title: 'Fractional CFO' })).toBe('part_time')
   })
 })
 

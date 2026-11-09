@@ -64,6 +64,8 @@ describe('job liveness: card freshness and close reason', () => {
     const base = { location: 'Atlanta, GA', pay: null, workType: 'full_time' as const, title: 'VP', now }
     expect(cardMetaParts({ ...base, posted: 'Posted 9 days ago', verifiedAt: new Date('2026-10-12T12:00:00Z') })).toEqual(['Posted 9 days ago, last checked 5 days ago', 'Atlanta, GA'])
     expect(cardMetaParts({ ...base, posted: 'Posted 9 days ago', verifiedAt: new Date('2026-10-17T08:00:00Z') })).toEqual(['Posted 9 days ago', 'Atlanta, GA'])
+    // a fractional role says so instead of the generic Part-time chip
+    expect(cardMetaParts({ ...base, title: 'Fractional CFO', workType: 'part_time', posted: null })).toEqual(['Atlanta, GA', 'Fractional'])
   })
   it("knows 'expired_checked'", () => {
     expect(isCloseReason('expired_checked')).toBe(true)
