@@ -213,7 +213,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const newestNotice = [...c.notices].sort((a, b) => b.noticeDate.getTime() - a.noticeDate.getTime())[0]
   const newestWhere = newestNotice ? [newestNotice.city ?? newestNotice.place, stateName(newestNotice.state)].filter(Boolean).join(', ') : ''
   const newestDetail = newestNotice
-    ? ` The newest (${filingDateLabel(newestNotice).toLowerCase()}) is in ${newestWhere}${newestNotice.workers != null ? ` and names ${newestNotice.workers.toLocaleString()} ${newestNotice.workers === 1 ? 'worker' : 'workers'}` : ''}${newestNotice.noticeDateKnown && newestNotice.effectiveDate ? `; it takes effect ${noticeDay(newestNotice.effectiveDate)}` : ''}.`
+    ? ` The newest (${filingDateLabel(newestNotice).replace(/^./, (ch) => ch.toLowerCase())}) is in ${newestWhere}${newestNotice.workers != null ? ` and names ${newestNotice.workers.toLocaleString()} ${newestNotice.workers === 1 ? 'worker' : 'workers'}` : ''}${newestNotice.noticeDateKnown && newestNotice.effectiveDate ? `; it takes effect ${noticeDay(newestNotice.effectiveDate)}` : ''}.`
     : ''
   const faq = hasNotices
     ? [

@@ -22,7 +22,7 @@ export function LatestFilings({ name, slug, notices, lastUpdated }: { name: stri
       <h3 className="text-base font-semibold text-navy">Latest filings by {name}</h3>
       <div className="mt-2 overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <caption className="sr-only">The {newest.length} newest layoff filings by {name}, as of {lastUpdated}</caption>
+          <caption className="sr-only">{newest.length === 1 ? 'The newest layoff filing' : `The ${newest.length} newest layoff filings`} by {name}, as of {lastUpdated}</caption>
           <thead className="text-xs text-muted-foreground">
             <tr>
               <th scope="col" className="py-2 pr-4 font-medium">Date</th>
