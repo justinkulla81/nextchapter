@@ -1,5 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot } from '@/lib/jobs/board-snapshot'
+import { decodeFacts, encodeFactsPart, FACTS_PART_ROWS } from '@/lib/jobs/board-snapshot-codec'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import type { LightRow } from '@/lib/jobs/board-light-rows'
@@ -86,7 +88,7 @@ let loading: Promise<SearchIndex> | null = null
 /** How long a search waits for an index already loading before it takes the fast path. */
 const SEARCH_WAIT_MS = 300
 
-interface FactsRow {
+export interface FactsRow {
   id: string
   title: string
   companyName: string
@@ -209,15 +211,54 @@ export function buildSearchIndex(rows: FactsRow[], loadedMs = 0): SearchIndex {
   return index
 }
 
-async function readIndex(): Promise<SearchIndex> {
-  const started = Date.now()
-  const rows = await prisma.$queryRaw<FactsRow[]>`
+/** The wide-table read behind the index: every live job's search facts (~578k rows, ~57 MB). */
+async function readFactsFromDatabase(): Promise<FactsRow[]> {
+  return prisma.$queryRaw<FactsRow[]>`
     SELECT "id", "title", "companyName", "industry", "socTitle", "workArrangement", "locationCity", "locationState",
       NULLIF(array_to_string("locationStates", ','), '') AS "states", NULLIF(array_to_string("skills", ' '), '') AS "skills",
       "postingType"
     FROM "ExclusiveJobPosting"
     WHERE "status" = 'approved' AND "archivedAt" IS NULL AND "institutionScopeId" IS NULL AND "distribution" <> 'EXCLUDED'
       AND ("expiresAt" IS NULL OR "expiresAt" > now())`
+}
+
+/**
+ * The facts a cold instance builds its index from: the snapshot another instance (of any build, see board-snapshot.ts) wrote, when it is
+ * fresh or the board has not changed since it was read — a few MB from storage — else the database, and the result is written as the next
+ * snapshot. Every deploy starts every instance cold, and each used to run the 57 MB read through the connection pooler itself; with a dozen
+ * deploys in a day that held eight pooler connections at once and slowed member pages (2026-11-09).
+ */
+export async function readSearchFacts(): Promise<FactsRow[]> {
+  const at = Date.now()
+  let fingerprint: string | null = null
+  if (!snapshotsDisabled()) {
+    try {
+      const [manifest, fp] = await Promise.all([readManifest('search-facts'), boardFingerprint()])
+      fingerprint = fp
+      if (manifest && snapshotUsable(manifest, fp, { freshMs: FRESH_MS })) {
+        const parts = await readParts(manifest)
+        const rows = parts ? decodeFacts(parts) : null
+        if (rows && rows.length > 0) return rows
+      }
+    } catch (error) {
+      console.error('Board search index: snapshot unreadable, reading the database', error)
+    }
+  }
+  const rows = await readFactsFromDatabase()
+  if (fingerprint && rows.length > 0) {
+    // Encoded and written in the background, after the response; a failure only means the next cold instance reads the database.
+    inBackground(() => {
+      const parts: unknown[] = []
+      for (let i = 0; i < rows.length; i += FACTS_PART_ROWS) parts.push(encodeFactsPart(rows.slice(i, i + FACTS_PART_ROWS)))
+      return writeSnapshot('search-facts', fingerprint!, at, parts, rows.length)
+    })
+  }
+  return rows
+}
+
+async function readIndex(): Promise<SearchIndex> {
+  const started = Date.now()
+  const rows = await readSearchFacts()
   return buildSearchIndex(rows, Date.now() - started)
 }
 

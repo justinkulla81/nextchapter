@@ -1,5 +1,6 @@
 import { LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
 import type { JobOccupations } from '@/lib/jobs/search-breadth-server'
+import type { FactsRow } from '@/lib/jobs/board-search-index'
 
 // The prepared board as plain JSON (board-snapshot.ts stores it between server
 // instances). Pure: no I/O, so the round trip is unit-tested
@@ -176,5 +177,81 @@ export function decodeOccupations(encoded: unknown): JobOccupations | null {
   }
   unflat(e.skills, e.skillsEnd, out.skills)
   unflat(e.skillIds, e.skillIdsEnd, out.skillIds)
+  return out
+}
+
+// The board search's raw facts (board-search-index.ts readIndex), one part per FACTS_PART_ROWS rows, column by column like the board,
+// with every repeated string (company, industry, city, skills…) written once per part. Rows come back exactly as the database read gives them
+// except that `postingType` is always present (null when the row had none), which the index treats the same.
+
+export const FACTS_PART_ROWS = 100_000
+
+interface EncodedFactsPart {
+  v: 1
+  strings: string[]
+  ids: string[]
+  title: number[]
+  company: number[]
+  industry: number[]
+  soc: number[]
+  arrangement: number[]
+  city: number[]
+  state: number[]
+  states: number[]
+  skills: number[]
+  postingType: number[]
+}
+
+/** One part of the search facts as JSON. Call per slice of FACTS_PART_ROWS rows. */
+export function encodeFactsPart(rows: readonly FactsRow[]): EncodedFactsPart {
+  const { strings, ref } = stringTable()
+  return {
+    v: 1,
+    strings,
+    ids: rows.map((r) => r.id),
+    title: rows.map((r) => ref(r.title)),
+    company: rows.map((r) => ref(r.companyName)),
+    industry: rows.map((r) => ref(r.industry)),
+    soc: rows.map((r) => ref(r.socTitle)),
+    arrangement: rows.map((r) => ref(r.workArrangement)),
+    city: rows.map((r) => ref(r.locationCity)),
+    state: rows.map((r) => ref(r.locationState)),
+    states: rows.map((r) => ref(r.states)),
+    skills: rows.map((r) => ref(r.skills)),
+    postingType: rows.map((r) => ref(r.postingType ?? null)),
+  }
+}
+
+/** Every part's rows, in order; null when any part is not in this format (the caller reads the database). */
+export function decodeFacts(encodedParts: unknown[]): FactsRow[] | null {
+  const out: FactsRow[] = []
+  // One string per distinct value across parts, so a company named in every part is held once.
+  const pool = new Map<string, string>()
+  for (const encoded of encodedParts) {
+    const e = encoded as EncodedFactsPart
+    if (!e || e.v !== 1 || !Array.isArray(e.ids) || !Array.isArray(e.strings)) return null
+    const s = e.strings.map((v) => {
+      const hit = pool.get(v)
+      if (hit !== undefined) return hit
+      pool.set(v, v)
+      return v
+    })
+    const at = (k: number): string | null => (k < 0 ? null : s[k])
+    for (let i = 0; i < e.ids.length; i++) {
+      out.push({
+        id: e.ids[i],
+        title: s[e.title[i]],
+        companyName: s[e.company[i]],
+        industry: at(e.industry[i]),
+        socTitle: at(e.soc[i]),
+        workArrangement: at(e.arrangement[i]),
+        locationCity: at(e.city[i]),
+        locationState: at(e.state[i]),
+        states: at(e.states[i]),
+        skills: at(e.skills[i]),
+        postingType: at(e.postingType[i]),
+      })
+    }
+  }
   return out
 }
