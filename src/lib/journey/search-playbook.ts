@@ -3,8 +3,8 @@
 // laid off counts weeks since their last day; everyone else counts weeks
 // since they started applying. Nothing here assumes a member is out of work.
 //
-// Evidence lines quote the NextChapter White Collar Employment Report, September 2026
-// (Version 1.72), and are shown only where they apply to that journey.
+// Evidence lines quote the NextChapter White Collar Employment Report, October 2026 edition
+// (and name the edition where a figure comes from an earlier one), and are shown only where they apply to that journey.
 
 import type { JourneyStage, JourneyType } from '@prisma/client'
 import { ACTIVE_SEARCH_STAGES } from './journey'
@@ -117,7 +117,7 @@ const LAID_OFF: PlaybookMilestone[] = [
       { text: 'Ask your local American Job Center about training funds and re-employment services.' },
       { text: 'Talk to a coach about your search.', href: '/coaching' },
     ],
-    evidence: '27.1% of all unemployed people had been out 27+ weeks in September 2026, up from 23.6% a year earlier (BLS). Among white-collar workers, 0.75% of the labor force was out 27+ weeks in January to August 2026, against 0.56% in 2025.',
+    evidence: '25.8% of all unemployed people had been out 27+ weeks in January to September 2026, up from 22.7% a year earlier. Among unemployed white-collar workers it was 28.5%, up from 23.2% (NextChapter calculation from Census CPS microdata).',
   },
   {
     atWeek: 40,
@@ -307,7 +307,7 @@ const NEXT_ACT: PlaybookMilestone[] = [
 
 // Students and new grads: campus recruiting runs early, most first jobs come
 // through people, and a first offer is negotiable. No claim here leans on
-// figures the September report does not carry.
+// figures the October report does not carry.
 const STUDENT_NEW_GRAD: PlaybookMilestone[] = [
   {
     atWeek: 2,

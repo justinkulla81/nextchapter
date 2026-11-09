@@ -4,7 +4,7 @@ import { NO_FACTS, nurtureContent, stateBenefit, type NurtureFacts } from '@/lib
 import { classifyLead, trackOfPersona, type NurtureContext, type NurtureTrack } from '@/lib/leads/nurture/tracks'
 import { PERSONAS } from '@/lib/constants/personas'
 import { GUIDES } from '@/lib/constants/guides'
-import { LTU_JAN_AUG } from '@/lib/press/figures'
+import { LTU_JAN_SEP } from '@/lib/press/figures'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 
 const TRACKS: NurtureTrack[] = ['laid_off', 'searching', 'considering', 'changing', 'layoff_watch', 'pay']
@@ -85,7 +85,7 @@ describe('nurture content', () => {
   })
 
   it('quotes the long-search figures exactly as the report states them', () => {
-    const s = LTU_JAN_AUG.whiteCollarShare
+    const s = LTU_JAN_SEP.whiteCollarShare
     const text = nurtureContent('laid_off', 'data_point', base).paragraphs.join(' ')
     expect(text).toContain(`${s.y2026}%`)
     expect(text).toContain(`${s.y2025}%`)
@@ -108,7 +108,7 @@ describe('nurture content', () => {
     expect(raw).toContain('44.7% higher')
     expect(raw).toMatch(/not matched on level or industry/)
     const none = nurtureContent('pay', 'data_point', base, NO_FACTS)
-    expect(none.paragraphs.join(' ')).toContain(`${LTU_JAN_AUG.whiteCollarShare.y2026}%`)
+    expect(none.paragraphs.join(' ')).toContain(`${LTU_JAN_SEP.whiteCollarShare.y2026}%`)
   })
 
   it('uses the risk-check wording for someone who ran it and the pay check for everyone else', () => {
