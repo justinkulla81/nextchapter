@@ -92,7 +92,11 @@ describe('rebuildClosedPostingSnapshot', () => {
     const { rebuildClosedPostingSnapshot } = await load()
     const result = await rebuildClosedPostingSnapshot()
     expect(result).toEqual({ keys: 2 })
-    expect(db.create).toHaveBeenCalledWith({ data: { data: { 'acme|controller|austin, tx': 2, 'beta co|analyst|': 1 } } })
+    const stored = db.create.mock.calls[0][0].data.data
+    expect(stored.v).toBe(2)
+    expect(typeof stored.gz).toBe('string')
+    const { unpackClosedPostingCounts } = await load()
+    expect(Object.fromEntries(unpackClosedPostingCounts(stored)!)).toEqual({ 'acme|controller|austin, tx': 2, 'beta co|analyst|': 1 })
     expect(db.findMany).toHaveBeenCalledWith(expect.objectContaining({ skip: 3 }))
     expect(db.deleteMany).toHaveBeenCalledWith({ where: { id: { in: ['old1', 'old2'] } } })
   })
@@ -105,7 +109,15 @@ describe('rebuildClosedPostingSnapshot', () => {
     await rebuildClosedPostingSnapshot((step) => {
       steps.push(step)
     })
-    expect(steps).toEqual(['grouped', 'stored', 'pruned'])
+    expect(steps).toEqual(['grouped', 'packed', 'stored', 'pruned'])
+  })
+
+  it('reads a packed snapshot the nightly job wrote, and an older plain-object one', async () => {
+    const { packClosedPostingCounts } = await load()
+    db.findFirst.mockResolvedValue({ computedAt: new Date(), data: packClosedPostingCounts(new Map([['acme|controller|', 4]])) })
+    const { getClosedPostingCounts } = await load()
+    expect((await getClosedPostingCounts()).get('acme|controller|')).toBe(4)
+    expect(db.grouped).not.toHaveBeenCalled()
   })
 
   it('removes a collapsed duplicate from the stored counts, as the live grouping does', async () => {
