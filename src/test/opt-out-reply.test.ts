@@ -49,3 +49,15 @@ describe('reply-to-opt-out footer', () => {
     expect(html).toContain('example.com/unsub')
   })
 })
+
+describe('signature block', () => {
+  it('renders a grey signature and does not append a second sign-off', () => {
+    const { html } = renderEmail({
+      bodyHtml: '<p>Hi</p><div data-signature>Justin Kulla<br>CEO and Founder, NextChapter<br>2248 Broadway</div>',
+      footerText: "Reply 'unsubscribe' or [click here] to remove yourself from future emails.",
+      postalAddress: '2248 Broadway', unsubscribeUrl: 'https://x.test/u', merge: { firstName: null, orgName: null, reportUrl: null },
+    } as never)
+    expect(html).toContain('color:#6b7280')
+    expect(html).not.toContain('<p style="margin:0 0 12px 0">Justin</p>')
+  })
+})

@@ -36,6 +36,8 @@ export function sanitizeBodyHtml(input: string): string {
       const href = m ? safeHref(m[2] ?? m[3] ?? m[4] ?? '') : null
       return href ? `<a href="${escapeHtml(href)}">` : '<a>'
     }
+    // A signature block: the one place a div keeps a marker, so it can be styled grey below.
+    if (tag === 'div' && /\bdata-signature\b/i.test(attrs)) return '<div data-signature>'
     return tag === 'br' ? '<br>' : `<${tag}>`
   })
   // Any stray angle bracket left is text, not markup.
@@ -58,7 +60,9 @@ const INLINE: Record<string, string> = {
 }
 
 function inlineStyles(html: string): string {
-  return html.replace(/<(p|ul|ol|li)>/g, (_m, tag: string) => `<${tag} style="${INLINE[tag]}">`)
+  return html
+    .replace(/<div data-signature>/g, '<div style="margin:16px 0 0 0;color:#6b7280;font-size:13px;line-height:1.5">')
+    .replace(/<(p|ul|ol|li)>/g, (_m, tag: string) => `<${tag} style="${INLINE[tag]}">`)
 }
 
 /** Plain text for the text/plain part and for previews. */
@@ -136,19 +140,23 @@ export function renderEmail(input: RenderInput): { html: string; text: string } 
     body += `<p><a href="${escapeHtml(input.reportUrl)}">${escapeHtml(input.reportUrl)}</a></p>`
   }
   const bodyText = htmlToText(body)
-  const signed = /justin\s*$/i.test(bodyText)
+  const signed = /justin\s*$/i.test(bodyText) || body.includes('<div data-signature>')
   if (!signed) body += '<p>Justin</p>'
   body = inlineStyles(body)
 
   const preview = input.previewText
     ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(input.previewText)}</div>`
     : ''
-  const html = `${preview}<div style="${WRAP}">${body}${footerHtml(input.footerText, input.postalAddress, input.unsubscribeUrl)}</div>`
+  // CAN-SPAM needs a postal address in every send. If neither the footer nor the body (a signature) carries it, the footer adds it.
+  const addressKey = input.postalAddress.split(/[\n,]/)[0].trim()
+  const hasAddress = /\{\{\s*postalAddress\s*\}\}/.test(input.footerText) || (addressKey !== '' && bodyText.includes(addressKey))
+  const footerSource = hasAddress ? input.footerText : `${input.footerText} {{postalAddress}}`
+  const html = `${preview}<div style="${WRAP}">${body}${footerHtml(footerSource, input.postalAddress, input.unsubscribeUrl)}</div>`
 
-  const footerPlain = input.footerText
+  const footerPlain = footerSource
     .replace(/\{\{\s*postalAddress\s*\}\}/g, input.postalAddress)
     .replace(/\[([^\]]+)\]/, `$1 (${input.unsubscribeUrl})`)
-  const footerText = isReplyOptOutFooter(input.footerText) || /\(http/.test(footerPlain) ? footerPlain : `${footerPlain} Unsubscribe: ${input.unsubscribeUrl}`
+  const footerText = isReplyOptOutFooter(footerSource) || /\(http/.test(footerPlain) ? footerPlain : `${footerPlain} Unsubscribe: ${input.unsubscribeUrl}`
   const text = `${htmlToText(body)}\n\n--\n${footerText}`
   return { html, text }
 }
