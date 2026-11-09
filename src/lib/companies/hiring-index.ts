@@ -219,16 +219,17 @@ export const SHARDS = 7
  * last run, those never priced, and this night's shard of the rest.
  */
 export async function openingIdsToPrice(opts: { all?: boolean; since?: Date; shard?: number }): Promise<string[]> {
+  // No ORDER BY in the SQL: with it Postgres walked the whole 1.3 GB table in primary-key order (random disk reads) and ran past the
+  // 2-minute statement timeout ("market failed after 120s", 2026-11-09); without it, it is one sequential scan. Sorted here instead.
   const rows = opts.all
-    ? await prisma.$queryRawUnsafe<{ id: string }[]>(`SELECT id FROM "CompanyJobOpening" ORDER BY id`)
+    ? await prisma.$queryRawUnsafe<{ id: string }[]>(`SELECT id FROM "CompanyJobOpening"`)
     : await prisma.$queryRawUnsafe<{ id: string }[]>(
         `SELECT id FROM "CompanyJobOpening"
-         WHERE "updatedAt" >= $1 OR ("marketPayMid" IS NULL AND "seniorityGroup" IS NOT NULL) OR mod(abs(hashtext(id)), ${SHARDS}) = $2
-         ORDER BY id`,
+         WHERE "updatedAt" >= $1 OR ("marketPayMid" IS NULL AND "seniorityGroup" IS NOT NULL) OR mod(abs(hashtext(id)), ${SHARDS}) = $2`,
         opts.since ?? new Date(0),
         opts.shard ?? 0
       )
-  return rows.map((r) => r.id)
+  return rows.map((r) => r.id).sort()
 }
 
 /** Companies to reprofile: changed openings or WARN notices since the last run, no profile yet, or this night's shard. */
@@ -487,7 +488,8 @@ export async function rebuildHiringIndex(opts: { since: Date | null; now?: Date;
 
   const linked = await timed('link', () => linkUnlinkedPostings(1000), 0)
   const synced = await timed('sync', () => syncBoardOpenings(5000), 0)
-  const closed = await timed('close', () => closeArchivedOpenings({ deadline: started + 90_000 }), 0)
+  // Sundays (shard 0) sweep every archived posting; the other nights only those archived since the last good run.
+  const closed = await timed('close', () => closeArchivedOpenings({ deadline: started + 90_000, since: shard === 0 ? null : opts.since }), 0)
   const bench = shard === 0 ? await timed('benchmarks', () => rebuildPayBenchmarks(), null) : null
   const since = opts.since ?? new Date(0)
   const market = await timed('market', async () => priceOpeningsPaged(await openingIdsToPrice({ since, shard }), { deadline, pauseMs: 500 }), null)

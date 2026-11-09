@@ -173,26 +173,42 @@ async function upsertOpeningChunk(rows: OpeningRow[]): Promise<number> {
 }
 
 /** Openings whose board listing has been archived are closed on the archive date, with its reason (job-status.ts). */
-export async function closeArchivedOpenings(opts: { deadline?: number } = {}): Promise<number> {
+export async function closeArchivedOpenings(opts: { deadline?: number; since?: Date | null } = {}): Promise<number> {
   // BATCH rows per statement: a backlog of archived listings (a mass archive) closed in
   // one UPDATE outruns the 2-minute statement timeout. Rerun-safe; leftovers wait.
+  //
+  // Each batch continues after the last url of the one before (keyset), so it never walks past the openings it already closed:
+  // the old form restarted at the top of the url index every batch and got slower with each one, until a single statement ran
+  // past the timeout (2026-11-09: "close failed after 120s"). With `since` (the nightly run) only postings archived since a day
+  // before it are looked at, through the archivedAt index; without it (the Sunday sweep) every archived posting is.
   const BATCH = 5000
+  const since = opts.since ? new Date(opts.since.getTime() - 86_400_000) : null
   let total = 0
+  let last = ''
   for (;;) {
-    const n = await prisma.$executeRawUnsafe(`
-      UPDATE "CompanyJobOpening" o
-      SET "closedAt" = p."archivedAt", "closeReason" = p."closeReason", "updatedAt" = now()
-      FROM "ExclusiveJobPosting" p
-      WHERE p.url = o.url AND p."archivedAt" IS NOT NULL
-        AND o.id IN (
-          SELECT o2.id FROM "CompanyJobOpening" o2
-          JOIN "ExclusiveJobPosting" p2 ON p2.url = o2.url
-          WHERE p2."archivedAt" IS NOT NULL AND o2."closedAt" IS NULL AND o2."lastSeenAt" <= p2."archivedAt"
-          LIMIT ${BATCH}
-        )
-        AND o."closedAt" IS NULL AND o."lastSeenAt" <= p."archivedAt"
-    `)
+    const rows = await prisma.$queryRawUnsafe<{ n: number; last: string | null }[]>(
+      `
+      WITH batch AS (
+        SELECT o.id, o.url, p."archivedAt" AS at, p."closeReason" AS reason
+        FROM "ExclusiveJobPosting" p
+        JOIN "CompanyJobOpening" o ON o.url = p.url
+        WHERE p."archivedAt" IS NOT NULL AND o."closedAt" IS NULL AND o."lastSeenAt" <= p."archivedAt"
+          AND o.url > $1 ${since ? 'AND p."archivedAt" >= $2' : ''}
+        ORDER BY o.url
+        LIMIT ${BATCH}
+      ), u AS (
+        UPDATE "CompanyJobOpening" o
+        SET "closedAt" = b.at, "closeReason" = b.reason, "updatedAt" = now()
+        FROM batch b WHERE o.id = b.id
+        RETURNING b.url
+      )
+      SELECT count(*)::int AS n, max(url) AS last FROM u
+      `,
+      ...(since ? [last, since] : [last])
+    )
+    const n = rows[0]?.n ?? 0
     total += n
-    if (n < BATCH || (opts.deadline && Date.now() > opts.deadline)) return total
+    if (n < BATCH || !rows[0]?.last || (opts.deadline && Date.now() > opts.deadline)) return total
+    last = rows[0].last
   }
 }
