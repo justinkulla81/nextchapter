@@ -36,8 +36,9 @@ function Form({ className }: { className?: string }) {
     } catch {
       // Private windows can block storage; onboarding simply asks.
     }
-    router.replace(MARKET_REALITY_START_HREF)
-  }, [state, router])
+    // The source rides along so the registration page can record the arrival (src/app/onboarding/desire/page.tsx).
+    router.replace(`${MARKET_REALITY_START_HREF}&from=${encodeURIComponent(source)}`)
+  }, [state, source, router])
 
   if (state?.done) {
     return (
