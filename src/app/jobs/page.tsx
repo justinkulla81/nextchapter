@@ -108,7 +108,7 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
             ) : (
               <>
                 <p className="mb-3 text-sm text-muted-foreground">
-                  About {result!.total.toLocaleString()} US openings{searched ? ' match' : ' right now'}. Showing the {jobs.length} newest.
+                  {result!.totalCapped ? 'More than' : 'About'} {result!.total.toLocaleString()} US openings{searched ? ' match' : ' right now'}. Showing the {jobs.length} newest.
                 </p>
                 <ul className="space-y-3">
                   {jobs.map((job) => {

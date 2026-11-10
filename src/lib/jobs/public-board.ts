@@ -24,6 +24,12 @@ const MAX_WORDS = 5
 const OVERFETCH = PUBLIC_BOARD_PAGE_SIZE * 5
 /** Longest one board read may run in the database (a state-wide search takes about 4 s on a cold cache). */
 const BOARD_STATEMENT_MS = 10_000
+/**
+ * The match count stops here. An exact count of a broad search (a whole state, or the bare page) is a scan of the board's copy that ran
+ * 28 to 79 s (2026-11); reading at most COUNT_CAP + 1 ids in the page's own order stops as soon as it has them, and above the cap the
+ * page says "More than 1,000". At or under the cap the count is exact, as before.
+ */
+export const COUNT_CAP = 1_000
 
 export interface PublicBoardJob {
   id: string
@@ -40,6 +46,8 @@ export interface PublicBoardJob {
 
 export interface PublicBoardResult {
   total: number
+  /** True when more than COUNT_CAP jobs match: `total` is then COUNT_CAP and the page says "More than 1,000". */
+  totalCapped?: boolean
   jobs: PublicBoardJob[]
   /** Mobile app paging: the `offset` for the next page, or null when the board has no more rows for this search. */
   nextOffset?: number | null
@@ -134,12 +142,15 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
   }
   // Each read gets BOARD_STATEMENT_MS in the database, not the two-minute default: this search scans the board's copy, and one that cannot
   // finish should free its connection (a count or read ran 28 to 79 s on 2026-11 before the cache and this limit).
-  const [total, rows] = await Promise.all([
-    query.skipTotal ? Promise.resolve(0) : withStatementTimeout(prisma.boardLightRow.count({ where: { AND: [where, noIntern] } }), BOARD_STATEMENT_MS),
+  const order: Prisma.BoardLightRowOrderByWithRelationInput[] = [{ postedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }]
+  const [counted, rows] = await Promise.all([
+    query.skipTotal
+      ? Promise.resolve([] as { id: string }[])
+      : withStatementTimeout(prisma.boardLightRow.findMany({ where: { AND: [where, noIntern] }, orderBy: order, take: COUNT_CAP + 1, select: { id: true } }), BOARD_STATEMENT_MS),
     withStatementTimeout(
       prisma.boardLightRow.findMany({
         where: { AND: [where, noIntern] },
-        orderBy: [{ postedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
+        orderBy: order,
         skip: query.offset ?? 0,
         take: OVERFETCH, // headroom: non-US and confidential rows are dropped below
         select: { id: true, title: true, companyName: true, location: true, postedAt: true, createdAt: true, salaryMin: true, salaryMax: true },
@@ -147,7 +158,9 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
       BOARD_STATEMENT_MS,
     ),
   ])
-  if (rows.length === 0) return { total, jobs: [], nextOffset: null }
+  const capped = counted.length > COUNT_CAP
+  const total = Math.min(counted.length, COUNT_CAP)
+  if (rows.length === 0) return { total, ...(capped ? { totalCapped: true } : {}), jobs: [], nextOffset: null }
 
   // The member board drops jobs confidently outside the US (board-shortlist keepRelevant);
   // do the same here. The count can't be filtered in SQL, so it is scaled by the US share
@@ -166,7 +179,8 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
   // (BoardLightRow) carries no verification date to filter on in SQL. The count is scaled by the share kept, like the US share.
   const stale = new Set(wide.filter((w) => isStaleVerified(w.lastVerifiedAt, nowMs)).map((w) => w.id))
   const freshUsRows = usRows.filter((r) => !stale.has(r.id))
-  const approxTotal = roundCount(Math.round(total * (freshUsRows.length / rows.length)))
+  // Over the cap the figure is the cap itself; below it the exact count is scaled by the share kept, as before.
+  const approxTotal = capped ? COUNT_CAP : roundCount(Math.round(total * (freshUsRows.length / rows.length)))
   const urlById = new Map(wide.map((w) => [w.id, w.url]))
   const publicIds = new Set(wide.filter((w) => isPublicJob(w, nowMs, ghosts.has(w.id))).map((w) => w.id))
 
@@ -191,7 +205,7 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
   const last = jobs[jobs.length - 1]
   const consumed = full && last ? rows.findIndex((r) => r.id === last.id) + 1 : rows.length
   const nextOffset = full || rows.length === OVERFETCH ? (query.offset ?? 0) + consumed : null
-  return { total: approxTotal, jobs, nextOffset }
+  return { total: approxTotal, ...(capped ? { totalCapped: true } : {}), jobs, nextOffset }
 }
 
 function roundCount(n: number): number {
