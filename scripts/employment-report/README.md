@@ -21,8 +21,16 @@ Builds the monthly index from the Census Bureau's Current Population Survey
 `public/reports/wc-index.csv`, which the index page reads at build time.
 
 ```
-npm run report:index
+npm run report:index                                  # rebuild the whole history from the Census API (needs CENSUS_API_KEY)
+npm run report:index-update -- --cps-dir DIR          # monthly: add the new month from public CPS files, no key needed
 ```
+
+For the monthly update, download the month's public file
+(`https://www2.census.gov/programs-surveys/cps/datasets/<YYYY>/basic/<mon><yy>pub.csv`, for example `sep26pub.csv`)
+into an empty folder and pass that folder as `--cps-dir`. The script keeps every existing row as it is and adds the
+new months. Without `--cps-dir` it asks the Census API (`CENSUS_API_KEY`).
+
+Checks: `python3 scripts/employment-report/test_seasonal.py` (also run by the test suite).
 
 Definitions (fixed month to month):
 
@@ -34,9 +42,19 @@ Definitions (fixed month to month):
 - **Weight** = `PWCMPWGT` (the composite weight BLS uses for labor-force estimates).
 - **Headline** = WC long-term unemployed ÷ WC labor force, published as a
   **3-month moving average** and as an **index with the 2019 average = 100**.
-- All figures are **not seasonally adjusted** at source; the published index is
-  seasonally adjusted (factors in the report's methodology). **October 2025**
+- All figures are **not seasonally adjusted** at source; the script adjusts the
+  headline rate itself: each month's rate is divided by a fixed monthly factor (the
+  average ratio of that calendar month to its year's mean, estimated over 2015–2019
+  and 2022–2025 and normalized to 1.0; the table is `SEASONAL_FACTORS` in the script,
+  and the report's methodology prints the same factors to three places). Factors are
+  re-estimated once a year: run with `--factors refit` to see and use the new ones,
+  then update the table. The index is the 3-month average of the adjusted rate over
+  the three latest available months, divided by its 2019 mean. **October 2025**
   was not collected during the shutdown; moving averages skip it.
+- The output is the file the site reads (`month`, `wc_ltu_rate_pct_nsa`, `_sa`,
+  `wc_ltu_rate_3mma_sa`, `wc_index_2019_100`, and the unemployment rate, shares out 27+
+  weeks and median weeks, all not seasonally adjusted). `--detail FILE` also writes
+  every group and measure.
 
 ## `nc_openings_and_aiwashing.py` — monthly companion metrics
 
