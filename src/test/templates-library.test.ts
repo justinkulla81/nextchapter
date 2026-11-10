@@ -69,7 +69,11 @@ describe('template library', () => {
 describe('layoffsAnnouncedTitle', () => {
   const lead = (over: Partial<{ kind: 'buyout' | 'layoff'; date: Date; workers: number | null }> = {}) => ({ kind: 'layoff' as const, date: new Date('2026-10-28T00:00:00Z'), workers: null, ...over })
   it('leads with the job count when the report gives one', () => {
-    expect(layoffsAnnouncedTitle('Omnicom', lead({ workers: 15000 }))).toBe('Omnicom Layoffs 2026: 15,000 Jobs Cut')
+    expect(layoffsAnnouncedTitle('Omnicom', lead({ workers: 15000 }))).toBe('Omnicom Layoffs October 2026: 15,000 Jobs Cut')
+  })
+  it('falls back to the year alone when the month will not fit', () => {
+    const t = layoffsAnnouncedTitle('Acme Industrial Holdings Co', lead({ workers: 15000 }))
+    expect(t).toBe('Acme Industrial Holdings Co Layoffs 2026: 15,000 Jobs Cut')
   })
   it('says when it was reported when there is no count', () => {
     expect(layoffsAnnouncedTitle('Marriott', lead())).toBe('Marriott Layoffs October 2026: What Was Reported')

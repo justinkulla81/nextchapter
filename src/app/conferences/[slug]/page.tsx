@@ -59,9 +59,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const when = whenLabel(c)
   const where = whereLabel(c)
   const speak = c.speaking === 'OPEN_CFP' ? ' Open call for speakers.' : ''
+  // People search "<conference> 2026" and "<conference> 2027" (Search Console, 2026-10 to 11: mema annual conference 2026 at position 8.5, aaae aviation
+  // issues conference 2027 at 8.0, both with no clicks), so an event with announced dates carries its year; one without stays plain.
+  const year = hasUpcomingDates(c) ? c.startDate!.getUTCFullYear() : null
   return {
-    title: titleMeta(`${c.name}: dates, cost, speakers and employers`),
-    description: fitDescription(`${c.name}${c.organizer ? ` by ${c.organizer}` : ''}. ${when}${where ? `, ${where}` : ''}. ${costLabel(c)}.${speak} Industries, functions and speaking opportunities.`.replace(/\s+/g, ' '), 165),
+    title: titleMeta(`${c.name}${year ? ` ${year}` : ''}: dates, location and cost`),
+    description: fitDescription(`${c.name}${year ? ` ${year}` : ''}${c.organizer ? ` by ${c.organizer}` : ''}. ${when}${where ? `, ${where}` : ''}. ${costLabel(c, { note: false })}.${speak} Industries, functions and speaking opportunities.`.replace(/\s+/g, ' '), 165),
     robots: { index: indexable, follow: true },
     ...canonical(conferencePath(c.id)),
   }
