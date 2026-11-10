@@ -63,7 +63,8 @@ export const layoffsAnnouncedTitle = (company: string, lead: { kind: 'buyout' | 
   const month = MONTH_NAMES[lead.date.getUTCMonth()]
   const what = lead.kind === 'buyout' ? 'Buyouts' : 'Layoffs'
   return pick(
-    ...(lead.kind === 'layoff' && lead.workers ? [`${company} Layoffs ${year}: ${lead.workers.toLocaleString('en-US')} Jobs Cut`] : []),
+    // The month is what "<company> layoffs october 2026" matches; the count stays because it answers the search in the result.
+    ...(lead.kind === 'layoff' && lead.workers ? [`${company} Layoffs ${month} ${year}: ${lead.workers.toLocaleString('en-US')} Jobs Cut`, `${company} Layoffs ${year}: ${lead.workers.toLocaleString('en-US')} Jobs Cut`] : []),
     `${company} ${what} ${month} ${year}: What Was Reported`,
     `${company} ${what} ${month} ${year}`,
     `${company} ${what} ${year}: What Was Reported`,

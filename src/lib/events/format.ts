@@ -30,8 +30,10 @@ export function whereLabel(e: ConferenceRow): string {
 }
 
 /** The cost in one honest line: what it is, or that it was not checked. */
-export function costLabel(e: ConferenceRow): string {
+export function costLabel(e: ConferenceRow, opts: { note?: boolean } = {}): string {
   const access = e.access as Access
+  // `note: false` leaves out the research note (costNote), which is written for us ("site returned 403 to fetch") and must not reach a search result.
+  if (opts.note === false) e = { ...e, costNote: null }
   if (access === 'FREE') return e.costNote ? `Free. ${e.costNote}` : 'Free'
   if (access === 'INVITE') return e.costNote ? `By invitation only. ${e.costNote}` : 'By invitation only'
   if (access === 'APPLY') return e.costNote ? `Apply to attend. ${e.costNote}` : 'Apply to attend'
