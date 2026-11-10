@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
+import { NextStepBox } from '@/components/capture/NextStepBox'
 import { ReportNextSteps } from '@/components/reports/ReportNextSteps'
 import { NewerEditionNotice } from '@/components/reports/NewerEditionNotice'
 import { SITE_URL } from '@/lib/reports'
@@ -181,6 +182,7 @@ export default function WhiteCollarEmploymentReportOctober2026() {
         <div className="mx-auto w-full max-w-3xl px-6 py-10">
           <AuthorByline updated={MODIFIED} className="mb-4" />
           <ReportDownloads edition="2026-10" files={FILES} pageUrl={URL} chartUrl={CHART_URL} chartAlt="Share of unemployed out of work six months or more, by group, Jan-Sep 2026 vs 2025" />
+          <div className="mb-6"><NextStepBox audience="seeker" slug="report-october-2026" /></div>
           <div className="mb-6"><ShareBar url={URL} title={TITLE} placement="report_edition" label="Send this report to someone" /></div>
           <CiteThisReport title={TITLE} url={URL} published="November 6, 2026" />
           <p className="text-xs font-semibold uppercase tracking-wider text-brand">About the author</p>
@@ -197,7 +199,7 @@ export default function WhiteCollarEmploymentReportOctober2026() {
 
       <ReportNextSteps page="report_edition" />
 
-      <PublicSiteFooter page="reports" />
+      <PublicSiteFooter page="reports" cta={false} />
     </div>
   )
 }
