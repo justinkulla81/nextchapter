@@ -22,7 +22,7 @@ export const GET = withCronRun('indexnow-jobs', async () => {
   const searchFirms = await runSearchFirmIndexNow().catch((e) => ({ error: String(e) }))
   // College pages (/higher-education/<state>/<college>) too, when new or reloaded.
   const colleges = await runCollegeIndexNow().catch((e) => ({ error: e instanceof Error ? e.message : String(e) }))
-  // Today's coverage numbers for the admin Job health page.
+  // Today's coverage numbers for the admin Job health page. Its answer is listed first and the run's result is kept (recordResult), so a failure here shows in CronRun.detail instead of hiding behind an OK run.
   const health = await recordJobSearchHealth().catch((e) => ({ error: e instanceof Error ? e.message.slice(0, 200) : String(e) }))
-  return NextResponse.json({ ...jobs, employers, searchFirms, colleges, health })
-})
+  return NextResponse.json({ health, ...jobs, employers, searchFirms, colleges })
+}, { recordResult: true })

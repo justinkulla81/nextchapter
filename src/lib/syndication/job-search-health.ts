@@ -46,8 +46,13 @@ export interface JobSearchHealth {
 export const pct = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 1000) / 10 : 0)
 
 async function counts() {
+  // One pass over the whole table (it reads each description's length), which ran past the database's default statement timeout
+  // and so never wrote a reading (the series file was never created, checked 2026-11-10; a timeout was logged as the daily run ended).
+  // Once a day, so it gets its own limit, the way the pay-data scan does.
   const rows = await retryOnPoolTimeout(() =>
-    prisma.$queryRaw<Record<string, bigint>[]>`
+    prisma.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = 240000`)
+      return tx.$queryRaw<Record<string, bigint>[]>`
       SELECT
         count(*) FILTER (WHERE status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL AND ("expiresAt" IS NULL OR "expiresAt" > now())) AS live,
         count(*) FILTER (WHERE status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL AND ("expiresAt" IS NULL OR "expiresAt" > now())
@@ -56,7 +61,8 @@ async function counts() {
         count(*) FILTER (WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} AND ${PUBLIC_JOB_SEARCH_SQL} AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}) AS in_sitemap,
         count(*) FILTER (WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} AND ${PUBLIC_JOB_SEARCH_SQL} AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION} AND ${PUBLIC_JOB_OFFERED_SQL}) AS offered,
         count(*) FILTER (WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} AND ("salaryMin" IS NOT NULL OR "salaryMax" IS NOT NULL) AND "payPeriod" IS NOT NULL) AS pay_stated
-      FROM "ExclusiveJobPosting"`,
+      FROM "ExclusiveJobPosting"`
+    }, { timeout: 280_000, maxWait: 20_000 }),
   )
   const r = rows[0]
   return {
