@@ -261,6 +261,23 @@ const nextConfig: NextConfig = {
         destination: '/reports/white-collar-employment-report-2026-:rest',
         permanent: true,
       },
+      // Cut-off copies of the report link (a wrapped or truncated URL in an
+      // email or post) end at "-" or at the bare name; send them to the newest edition.
+      {
+        source: '/reports/white-collar-employment-report-',
+        destination: '/reports/latest',
+        permanent: false,
+      },
+      {
+        source: '/reports/white-collar-employment-',
+        destination: '/reports/latest',
+        permanent: false,
+      },
+      {
+        source: '/reports/white-collar-employment-report',
+        destination: '/reports/latest',
+        permanent: false,
+      },
       {
         source: '/crucible/:path*',
         destination: '/noexperience/:path*',
