@@ -68,12 +68,30 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
   const reply: ReplyFilter = one('reply') === 'none' && !kind ? 'none' : kind || one('reply') === 'replied' || one('result') === 'replied' ? 'replied' : 'all'
   const q = one('q').trim().slice(0, 100)
   const page = Math.max(1, Number.parseInt(one('page'), 10) || 1)
+  const SORTS = ['sent', 'to', 'email', 'why', 'opens', 'clicks', 'reply'] as const
+  const sort = SORTS.find((x) => x === one('sort')) ?? 'sent'
+  const dir: 'asc' | 'desc' = one('dir') === 'asc' ? 'asc' : 'desc'
 
   const { rows: all, capped } = await loadSentEmails()
   const days = perDay(all)
   const inSource = source ? all.filter((r) => r.source === source) : all
   const t = totalsOf(inSource)
-  const shown = inSource.filter((r) => matches(r, engagement, reply, kind, q))
+  const sortKey = (r: (typeof all)[number]): number | string => {
+    switch (sort) {
+      case 'to': return (r.name ?? '').toLowerCase()
+      case 'email': return (r.subject ?? '').toLowerCase()
+      case 'why': return (r.purpose ?? '').toLowerCase()
+      case 'opens': return r.opens
+      case 'clicks': return r.clicks
+      case 'reply': return r.repliedAt ? r.repliedAt.getTime() : r.bounced ? -1 : 0
+      default: return r.sentAt.getTime()
+    }
+  }
+  const shown = inSource.filter((r) => matches(r, engagement, reply, kind, q)).sort((a, b) => {
+    const x = sortKey(a), y = sortKey(b)
+    const c = typeof x === 'string' ? x.localeCompare(y as string) : (x as number) - (y as number)
+    return dir === 'asc' ? c : -c
+  })
   const pages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE))
   const cur = Math.min(page, pages)
   const slice = shown.slice((cur - 1) * PAGE_SIZE, cur * PAGE_SIZE)
@@ -91,6 +109,7 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
     if (rp !== 'all') u.set('reply', rp)
     if (kind && rp === 'replied') u.set('kind', kind)
     if (q) u.set('q', q)
+    if (sort !== 'sent' || dir !== 'desc') { u.set('sort', sort); u.set('dir', dir) }
     if (p > 1) u.set('page', String(p))
     const s = u.toString()
     return `/support/admin/crm/sent${s ? `?${s}` : ''}`
@@ -169,7 +188,18 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
           <div className="overflow-x-auto rounded-xl border border-border bg-white">
             <table className="w-full text-sm">
               <thead className="text-left text-xs text-muted-foreground">
-                <tr><th className="p-3">Sent</th><th className="p-3">To</th><th className="p-3">Email</th><th className="p-3">Why it was sent</th><th className="p-3">Opens</th><th className="p-3">Clicks</th><th className="p-3">Reply</th></tr>
+                <tr>
+                  {([['sent', 'Sent'], ['to', 'To'], ['email', 'Email'], ['why', 'Why it was sent'], ['opens', 'Opens'], ['clicks', 'Clicks'], ['reply', 'Reply']] as const).map(([k, label]) => {
+                    const next = sort === k && dir === 'desc' ? 'asc' : 'desc'
+                    const u = new URLSearchParams(href(1).split('?')[1] ?? '')
+                    u.set('sort', k); u.set('dir', next); u.delete('page')
+                    return (
+                      <th key={k} className="p-3" aria-sort={sort === k ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                        <Link href={`/support/admin/crm/sent?${u.toString()}`} className="hover:underline">{label}{sort === k ? (dir === 'asc' ? ' ▲' : ' ▼') : ''}</Link>
+                      </th>
+                    )
+                  })}
+                </tr>
               </thead>
               <tbody>
                 {slice.map((r) => (
@@ -198,7 +228,7 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
                       )}
                     </td>
                     <td className="whitespace-nowrap p-3 tabular-nums">{r.tracked ? (r.opens > 0 ? <span className="text-success">{r.opens}×</span> : r.scannerOpenOnly ? <span className="text-muted-foreground" title="Opened within two minutes of sending: almost always a security scanner at the recipient's company, not a person">Scanner only</span> : <span className="text-muted-foreground">0</span>) : <span className="text-muted-foreground" title="Email sent from Gmail has no open tracking">Not tracked</span>}</td>
-                    <td className="whitespace-nowrap p-3 tabular-nums">{r.tracked ? (r.clicks > 0 ? <span className="text-success">{r.clicks}</span> : <span className="text-muted-foreground">0</span>) : <span className="text-muted-foreground">Not tracked</span>}</td>
+                    <td className="whitespace-nowrap p-3 tabular-nums">{r.tracked ? (r.clicks > 0 ? (r.scannerClick ? <span className="text-muted-foreground" title="First click came within two minutes of sending: almost always a security scanner at the recipient's company, not a person">{r.clicks} · scanner?</span> : <span className="text-success">{r.clicks}</span>) : <span className="text-muted-foreground">0</span>) : <span className="text-muted-foreground">Not tracked</span>}</td>
                     <td className="p-3">
                       {r.repliedAt ? (
                         <div className="space-y-0.5">

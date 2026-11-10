@@ -34,6 +34,8 @@ export interface SentEmailRow {
   opens: number
   /** Cold outreach only: an open event arrived but within two minutes of the send, which is a mail scanner, not a person. */
   scannerOpenOnly: boolean
+  /** First click came within two minutes of sending: almost always a company security scanner, not a person. */
+  scannerClick?: boolean
   clicks: number
   repliedAt: Date | null
   replyClass: ReplyClass | null
@@ -77,7 +79,7 @@ export async function loadSentEmails(): Promise<{ rows: SentEmailRow[]; capped: 
       where: { sentAt: { not: null } },
       select: {
         id: true, email: true, sentAt: true, status: true, fromListKeys: true, resendEmailId: true,
-        openCount: true, clickCount: true, repliedAt: true, bouncedAt: true,
+        openCount: true, clickCount: true, clickedAt: true, repliedAt: true, bouncedAt: true,
         edition: { select: { id: true, title: true, subject: true, isReport: true, lists: { select: { list: { select: { id: true, name: true } } } } } },
         person: { select: personSelect },
       },
@@ -150,6 +152,7 @@ export async function loadSentEmails(): Promise<{ rows: SentEmailRow[]; capped: 
       lists: (fromKeys.length ? fromKeys : editionLists).map((l) => ({ id: l.id, name: l.name })),
       edition: { id: r.edition.id, title: r.edition.title },
       tracked: true, opens: r.openCount, scannerOpenOnly: false, clicks: r.clickCount,
+      scannerClick: !!(r.clickedAt && r.sentAt && r.clickedAt.getTime() - r.sentAt.getTime() < 120_000),
       repliedAt: r.repliedAt, replyClass: r.repliedAt ? 'other' : null,
       bounced: !!r.bouncedAt, failed: r.status === 'FAILED',
       externalUrl: r.resendEmailId ? `https://resend.com/emails/${r.resendEmailId}` : null,

@@ -51,8 +51,8 @@ export async function applyResendEvent(event: ResendEvent): Promise<'applied' | 
     case 'email.bounced': {
       const detail = [event.data.bounce?.type, event.data.bounce?.subType, event.data.bounce?.message].filter(Boolean).join(' · ')
       await prisma.mailingEditionRecipient.update({ where: { id: r.id }, data: { bouncedAt: at, bounceDetail: detail.slice(0, 500) || null } })
-      // A temporary bounce is Resend still trying; only a permanent one stops mail.
-      if (!/transient|temporary/i.test(event.data.bounce?.type ?? '')) await suppress(r.email, 'BOUNCED', detail)
+      // Owner rule (2026-11-10): any bounce, permanent or not, takes the address off every list.
+      await suppress(r.email, 'BOUNCED', detail)
       break
     }
     case 'email.complained':
