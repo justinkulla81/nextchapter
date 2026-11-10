@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
-import { PUBLIC } from '@/lib/seo/job-titles'
+import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
 import { PLACE_MIN_SHOWN, type PlaceIndexRow, type TitlePlace } from '@/lib/seo/job-title-places'
 
 // A role-in-a-place page redirects to the role page when fewer than PLACE_MIN_SHOWN of its stored listings are still public
@@ -9,13 +9,19 @@ import { PLACE_MIN_SHOWN, type PlaceIndexRow, type TitlePlace } from '@/lib/seo/
 // sitemap kept listing it: about a quarter of the entry-level sitemap redirected (14 of 60 sampled, 2026-11-10), which Search Console
 // reports as "Page with redirect". This keeps the sitemap to the places that answer, with a margin for the six hours it is cached.
 
-/** Places with at least this many stored listings are left out of the check: a few closures cannot take them under the bar. */
-const SAFE_JOBS = 14
+/**
+ * Places with at least this many stored listings are left out of the check (a row keeps at most 40 ids): closures cannot take them under
+ * the bar before the sitemap is rebuilt. It was 14 at first, but a place with 15 stored listings had 3 live within hours of the rebuild.
+ */
+const SAFE_JOBS = 30
 const MARGIN = 2
 const READ_CHUNK = 100
 const ID_CHUNK = 5_000
 
-/** The places (index rows) whose page would answer now. Reads only the small places' stored rows, and checks their listing ids in batches. */
+/**
+ * The places (index rows) whose page would answer now. Reads the stored rows of every place under SAFE_JOBS and checks their listing ids in
+ * batches against the same rule the page applies (the public-job SQL fragments the segment scan uses).
+ */
 export async function placesThatAnswer(index: PlaceIndexRow[]): Promise<PlaceIndexRow[]> {
   const thin = index.filter((p) => p[3] < SAFE_JOBS)
   if (thin.length === 0) return index
@@ -30,7 +36,7 @@ export async function placesThatAnswer(index: PlaceIndexRow[]): Promise<PlaceInd
   const ids = [...new Set([...rows.values()].flatMap((r) => r?.jobIds ?? []))]
   const live = new Set<string>()
   for (let i = 0; i < ids.length; i += ID_CHUNK) {
-    const found = await prisma.$queryRaw<{ id: string }[]>`SELECT id FROM "ExclusiveJobPosting" WHERE id = ANY(${ids.slice(i, i + ID_CHUNK)}::text[]) AND ${PUBLIC}`
+    const found = await prisma.$queryRaw<{ id: string }[]>`SELECT id FROM "ExclusiveJobPosting" WHERE id = ANY(${ids.slice(i, i + ID_CHUNK)}::text[]) AND ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}`
     for (const f of found) live.add(f.id)
   }
 
