@@ -358,27 +358,29 @@ export async function similarJobsLike(job: { id: string; socCode: string | null 
   }
 }
 
-/** What a job page with no live listing can say: what the job was, the same title open elsewhere, and the employer's other open roles. Null when no such id exists. */
+/**
+ * What a job page with no live listing can say: what the job was, the same title open elsewhere, and the employer's other open roles. Null
+ * only when no such id exists. A failed read of the job itself throws (the page then errors and is not cached) and a failed read of the
+ * extras leaves them empty: both used to come back as null, so the page answered 404 and the data cache kept that for days. Search Console
+ * listed 94,992 such 404s on 2026-11-10; every one of 200 sampled ids exists in the database (131 closed, 69 still live).
+ */
 export async function getClosedJobContext(id: string): Promise<{ title: string; companyName: string; place: string | null; similar: SimilarJob[]; sameTitle: TitleJob[] } | null> {
   if (!/^[a-z0-9]{10,40}$/i.test(id)) return null
-  try {
-    const row = await prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { title: true, companyName: true, disclosure: true, companyId: true, locationCity: true, locationState: true, location: true, socCode: true, targetFunction: true, level: true } })
-    if (!row) return null
-    const confidential = row.disclosure !== 'OPEN'
-    const [similar, detail] = await Promise.all([
-      confidential ? Promise.resolve([]) : similarJobsAtCompany(row.companyId, id),
-      // The title's own page figures (stored, cheap): the newest open jobs with this title anywhere. Titles too rare for a page give none.
-      getTitleDetail(titleSlug(baseTitle(row.title))).catch(() => null),
-    ])
-    return {
-      title: row.title,
-      companyName: confidential ? '' : cleanCompanyText(row.companyName),
-      place: row.locationCity && row.locationState ? `${row.locationCity}, ${row.locationState}` : row.location || row.locationState,
-      similar,
-      sameTitle: await sameTitleOrLikeIt((detail?.jobs ?? []).filter((j) => j.id !== id).slice(0, 8), { id, socCode: row.socCode, targetFunction: row.targetFunction, level: row.level, locationState: row.locationState }),
-    }
-  } catch {
-    return null
+  const row = await retryOnPoolTimeout(() => prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { title: true, companyName: true, disclosure: true, companyId: true, locationCity: true, locationState: true, location: true, socCode: true, targetFunction: true, level: true } }))
+  if (!row) return null
+  const confidential = row.disclosure !== 'OPEN'
+  const [similar, detail] = await Promise.all([
+    confidential ? Promise.resolve([] as SimilarJob[]) : similarJobsAtCompany(row.companyId, id).catch(() => [] as SimilarJob[]),
+    // The title's own page figures (stored, cheap): the newest open jobs with this title anywhere. Titles too rare for a page give none.
+    getTitleDetail(titleSlug(baseTitle(row.title))).catch(() => null),
+  ])
+  const sameTitle = await sameTitleOrLikeIt((detail?.jobs ?? []).filter((j) => j.id !== id).slice(0, 8), { id, socCode: row.socCode, targetFunction: row.targetFunction, level: row.level, locationState: row.locationState }).catch(() => [] as TitleJob[])
+  return {
+    title: row.title,
+    companyName: confidential ? '' : cleanCompanyText(row.companyName),
+    place: row.locationCity && row.locationState ? `${row.locationCity}, ${row.locationState}` : row.location || row.locationState,
+    similar,
+    sameTitle,
   }
 }
 
