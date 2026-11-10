@@ -5,9 +5,9 @@ const db = vi.hoisted(() => ({ read: vi.fn(), queryRaw: vi.fn() }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: { $queryRaw: db.queryRaw } }))
 vi.mock('@/lib/jobs/stored-board-figures', () => ({ readBoardFigure: db.read }))
-vi.mock('@/lib/seo/job-titles', async () => {
+vi.mock('@/lib/jobs/public-job-page-server', async () => {
   const { Prisma } = await import('@prisma/client')
-  return { PUBLIC: Prisma.sql`status = 'approved'` }
+  return { PUBLIC_JOB_STATIC_SQL: Prisma.sql`status = 'approved'`, PUBLIC_JOB_LIVE_SQL: Prisma.sql`"archivedAt" IS NULL` }
 })
 
 import { placesThatAnswer } from '@/lib/entry-roles/sitemap-places'
@@ -22,7 +22,7 @@ beforeEach(() => {
 
 describe('placesThatAnswer', () => {
   it('keeps big places without reading anything', async () => {
-    const big = [row('a', 14), row('b', 40)]
+    const big = [row('a', 30), row('b', 40)]
     expect(await placesThatAnswer(big)).toEqual(big)
     expect(db.read).not.toHaveBeenCalled()
     expect(db.queryRaw).not.toHaveBeenCalled()
@@ -36,7 +36,14 @@ describe('placesThatAnswer', () => {
     )
     // Cincinnati has 4 left live (below the bar of 5 plus a margin of 2); Austin has 8.
     db.queryRaw.mockResolvedValue(['c1', 'c2', 'c3', 'c4', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8'].map((id) => ({ id })))
-    expect(await placesThatAnswer([thin, ok, row('big', 30)])).toEqual([ok, row('big', 30)])
+    expect(await placesThatAnswer([thin, ok, row('big', 40)])).toEqual([ok, row('big', 40)])
+  })
+
+  it('checks a place with 15 stored listings too: it can drop under the bar within hours', async () => {
+    const mid = row('dallas-tx', 15)
+    db.read.mockResolvedValue(stored(Array.from({ length: 15 }, (_, i) => `d${i}`)))
+    db.queryRaw.mockResolvedValue(['d0', 'd1', 'd2'].map((id) => ({ id })))
+    expect(await placesThatAnswer([mid])).toEqual([])
   })
 
   it('drops a small place that has no stored row', async () => {
