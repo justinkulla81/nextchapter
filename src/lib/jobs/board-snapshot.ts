@@ -58,6 +58,9 @@ export const SHARED_ACROSS_BUILDS: ReadonlySet<SnapshotKind> = new Set<SnapshotK
 /** What a build-independent snapshot must have been written as. Bump with its codec (board-snapshot-codec.ts) or its query. */
 export const SNAPSHOT_SHAPES: Partial<Record<SnapshotKind, string>> = { occupations: 'occupations-1', 'search-facts': 'search-facts-1' }
 
+/** A part of a snapshot, or a function that builds it when it is about to be written. */
+export type SnapshotPart = unknown
+
 export interface SnapshotManifest {
   v: number
   build: string
@@ -221,7 +224,7 @@ const lastWrite = new Map<SnapshotKind, string>()
  * Best effort and in the background — a failure only means the next cold instance reads
  * the database. Skipped when this instance already wrote that version.
  */
-export async function writeSnapshot(kind: SnapshotKind, fingerprint: string, at: number, parts: unknown[], rows: number): Promise<void> {
+export async function writeSnapshot(kind: SnapshotKind, fingerprint: string, at: number, parts: SnapshotPart[], rows: number): Promise<void> {
   if (snapshotsDisabled() || lastWrite.get(kind) === fingerprint) return
   const started = Date.now()
   lastWrite.set(kind, fingerprint)
@@ -233,7 +236,9 @@ export async function writeSnapshot(kind: SnapshotKind, fingerprint: string, at:
     for (let i = 0; i < parts.length; i++) {
       await yieldToRequests()
       const path = `${folder(kind)}/${stamp}-${i}.json.gz`
-      await putObject(path, await gzip(Buffer.from(JSON.stringify(parts[i])), { level: 6 }), 'application/gzip')
+      // A function is a part built when its turn comes, so only one part's JSON and compressed copy exist at a time (a 578k-row snapshot built whole took ~600 MB).
+      const part = typeof parts[i] === 'function' ? (parts[i] as () => unknown)() : parts[i]
+      await putObject(path, await gzip(Buffer.from(JSON.stringify(part)), { level: 6 }), 'application/gzip')
       paths.push(path)
     }
     const shape = SNAPSHOT_SHAPES[kind]

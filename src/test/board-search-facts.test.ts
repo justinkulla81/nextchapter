@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 
 const queryRaw = vi.fn()
-vi.mock('@/lib/prisma', () => ({ prisma: { $queryRaw: (...a: unknown[]) => queryRaw(...a) } }))
+const eventCreate = vi.fn(async (..._a: unknown[]) => ({}))
+vi.mock('@/lib/prisma', () => ({ prisma: { $queryRaw: (...a: unknown[]) => queryRaw(...a), analyticsEvent: { create: (...a: unknown[]) => eventCreate(...a) } } }))
 
 const snapshot = {
   snapshotsDisabled: vi.fn(() => false),
@@ -25,7 +26,7 @@ vi.mock('@/lib/jobs/board-snapshot', () => ({
 }))
 
 import { readSearchFacts, resetSearchIndexForTests, warmSearchIndex, type FactsRow } from '@/lib/jobs/board-search-index'
-import { encodeFactsPart } from '@/lib/jobs/board-snapshot-codec'
+import { decodeFacts, encodeFactsPart, FACTS_PART_ROWS } from '@/lib/jobs/board-snapshot-codec'
 
 const fact = (id: string): FactsRow => ({
   id, title: `Analyst ${id}`, companyName: 'Acme', industry: null, socTitle: null, workArrangement: null,
@@ -35,6 +36,7 @@ const fact = (id: string): FactsRow => ({
 beforeEach(() => {
   Object.values(snapshot).forEach((f) => f.mockClear())
   queryRaw.mockReset()
+  eventCreate.mockClear()
   snapshot.snapshotsDisabled.mockReturnValue(false)
   snapshot.boardFingerprint.mockResolvedValue('fp1')
   snapshot.readManifest.mockResolvedValue({ kind: 'search-facts', at: Date.now(), fingerprint: 'fp1', parts: ['p0'], rows: 2 })
@@ -56,10 +58,14 @@ describe('readSearchFacts', () => {
     const rows = await readSearchFacts()
     expect(rows).toHaveLength(3)
     expect(queryRaw).toHaveBeenCalledOnce()
+    await new Promise((r) => setTimeout(r, 20)) // the write starts after its "start" row is recorded
     expect(snapshot.writeSnapshot).toHaveBeenCalledOnce()
-    const [kind, fingerprint, , parts, count] = snapshot.writeSnapshot.mock.calls[0] as unknown as [string, string, number, unknown[], number]
+    const [kind, fingerprint, , parts, count] = snapshot.writeSnapshot.mock.calls[0] as unknown as [string, string, number, (() => unknown)[], number]
     expect([kind, fingerprint, count]).toEqual(['search-facts', 'fp1', 3])
+    // Parts are built when written, not up front: functions, one per FACTS_PART_ROWS rows.
     expect(parts).toHaveLength(1)
+    expect(typeof parts[0]).toBe('function')
+    expect(decodeFacts([parts[0]()])!.map((r) => r.id)).toEqual(['a', 'b', 'c'])
   })
 
   it('falls back to the database when the snapshot parts cannot be read or are in another format', async () => {
@@ -146,5 +152,61 @@ describe('warmSearchIndex and the snapshot write', () => {
     snapshot.writeSnapshot.mockRejectedValue(new Error('storage down'))
     snapshot.inBackground.mockImplementation((task: () => Promise<void>) => void task().catch(() => undefined))
     await warmSearchIndex()
+  })
+})
+
+describe('the write is recorded step by step', () => {
+  beforeEach(() => {
+    snapshot.writeSnapshot.mockReset()
+    snapshot.writeSnapshot.mockResolvedValue(undefined)
+  })
+
+  const phases = () => eventCreate.mock.calls.map((c) => (c[0] as { data: { event: string; properties: { phase: string } } }).data).filter((d) => d.event === 'search_facts_snapshot_written').map((d) => d.properties.phase)
+
+  it('records start and done when the manifest reads back as this write', async () => {
+    resetSearchIndexForTests()
+    snapshot.snapshotUsable.mockReturnValue(false)
+    queryRaw.mockResolvedValue([fact('a')])
+    snapshot.readManifest.mockResolvedValue(null) // none to read before the database read...
+    snapshot.inBackground.mockImplementation((task: () => Promise<void>) => void task())
+    snapshot.readManifest.mockResolvedValueOnce(null).mockResolvedValue({ kind: 'search-facts', fingerprint: 'fp1', at: Date.now(), parts: [], rows: 1 })
+    await warmSearchIndex()
+    expect(phases()).toEqual(['start', 'done'])
+  })
+
+  it('records failed when the write left no manifest for this version (writeSnapshot logs its own errors and returns)', async () => {
+    resetSearchIndexForTests()
+    snapshot.snapshotUsable.mockReturnValue(false)
+    queryRaw.mockResolvedValue([fact('a')])
+    snapshot.inBackground.mockImplementation((task: () => Promise<void>) => void task())
+    snapshot.readManifest.mockResolvedValue(null)
+    await warmSearchIndex()
+    expect(phases()).toEqual(['start', 'failed'])
+  })
+
+  it('records failed with the message when the write throws, and still lets the warm-up finish', async () => {
+    resetSearchIndexForTests()
+    snapshot.snapshotUsable.mockReturnValue(false)
+    queryRaw.mockResolvedValue([fact('a')])
+    snapshot.inBackground.mockImplementation((task: () => Promise<void>) => void task())
+    snapshot.readManifest.mockResolvedValue(null)
+    snapshot.writeSnapshot.mockRejectedValue(new Error('boom'))
+    await warmSearchIndex()
+    const last = eventCreate.mock.calls.at(-1)![0] as { data: { properties: { phase: string; error?: string } } }
+    expect(last.data.properties).toMatchObject({ phase: 'failed', error: 'boom' })
+  })
+
+  it('splits a large read into parts of FACTS_PART_ROWS rows', async () => {
+    resetSearchIndexForTests()
+    snapshot.snapshotUsable.mockReturnValue(false)
+    snapshot.inBackground.mockImplementation((task: () => Promise<void>) => void task())
+    snapshot.readManifest.mockResolvedValue(null)
+    snapshot.writeSnapshot.mockResolvedValue(undefined)
+    queryRaw.mockResolvedValue(Array.from({ length: FACTS_PART_ROWS * 2 + 5 }, (_, i) => fact(`r${i}`)))
+    await readSearchFacts()
+    await new Promise((r) => setTimeout(r, 20))
+    const parts = (snapshot.writeSnapshot.mock.calls[0] as unknown as [string, string, number, (() => unknown)[], number])[3]
+    expect(parts).toHaveLength(3)
+    expect(decodeFacts([parts[2]()])).toHaveLength(5)
   })
 })

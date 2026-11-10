@@ -252,10 +252,17 @@ export async function readSearchFacts(): Promise<FactsRow[]> {
     // instance was frozen between the index being built and the write starting (2026-11-09).
     const done = new Promise<void>((resolve) => {
       inBackground(async () => {
+        const started = Date.now()
         try {
-          const parts: unknown[] = []
-          for (let i = 0; i < rows.length; i += FACTS_PART_ROWS) parts.push(encodeFactsPart(rows.slice(i, i + FACTS_PART_ROWS)))
+          await recordFactsWrite({ phase: 'start', rows: rows.length })
+          // Each part is encoded as its turn comes (writeSnapshot calls the function), so the extra memory is one part, not the whole table.
+          const parts = Array.from({ length: Math.ceil(rows.length / FACTS_PART_ROWS) }, (_, k) => () => encodeFactsPart(rows.slice(k * FACTS_PART_ROWS, (k + 1) * FACTS_PART_ROWS)))
           await writeSnapshot('search-facts', fingerprint!, at, parts, rows.length)
+          // writeSnapshot reports its own failures to the log and returns, so the outcome is read back from the manifest.
+          const stored = await readManifest('search-facts').catch(() => null)
+          await recordFactsWrite({ phase: stored?.fingerprint === fingerprint ? 'done' : 'failed', rows: rows.length, ms: Date.now() - started })
+        } catch (error) {
+          await recordFactsWrite({ phase: 'failed', rows: rows.length, ms: Date.now() - started, error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) })
         } finally {
           resolve()
         }
@@ -267,6 +274,14 @@ export async function readSearchFacts(): Promise<FactsRow[]> {
     })
   }
   return rows
+}
+
+/**
+ * One row per step of a snapshot write, so a write that never finishes shows in the database (a "start" with no "done" or "failed" after it
+ * means the instance died or was frozen mid-write). The Vercel runtime logs were not readable when the first version wrote nothing (2026-11-09).
+ */
+async function recordFactsWrite(properties: { phase: 'start' | 'done' | 'failed'; rows: number; ms?: number; error?: string }): Promise<void> {
+  await prisma.analyticsEvent.create({ data: { distinctId: 'system', event: 'search_facts_snapshot_written', properties } }).catch(() => undefined)
 }
 
 /** The snapshot write started by this instance's last database read of the facts, until it is done. */

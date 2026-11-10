@@ -184,7 +184,7 @@ export function decodeOccupations(encoded: unknown): JobOccupations | null {
 // with every repeated string (company, industry, city, skills…) written once per part. Rows come back exactly as the database read gives them
 // except that `postingType` is always present (null when the row had none), which the index treats the same.
 
-export const FACTS_PART_ROWS = 100_000
+export const FACTS_PART_ROWS = 25_000
 
 interface EncodedFactsPart {
   v: 1
