@@ -10,7 +10,7 @@ import { placesThatAnswer } from '@/lib/entry-roles/sitemap-places'
 // has a stored row and still enough live listings (placesThatAnswer), so every address listed answers instead of redirecting.
 export const dynamic = 'force-dynamic'
 
-const build = cachedSitemap('entry-level-sitemap-v2', async (): Promise<MetadataRoute.Sitemap> => {
+const build = cachedSitemap('entry-level-sitemap-v3', async (): Promise<MetadataRoute.Sitemap> => {
   const places = await placesThatAnswer(await getEntryPlaceIndex())
   const now = new Date()
   return [
