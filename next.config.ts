@@ -279,6 +279,16 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
+        source: '/reports/white-collar-employment-report-:month(october|september)-',
+        destination: '/reports/latest',
+        permanent: false,
+      },
+      {
+        source: '/reports/white-collar-employment-report-:month(october|september)',
+        destination: '/reports/latest',
+        permanent: false,
+      },
+      {
         source: '/crucible/:path*',
         destination: '/noexperience/:path*',
         permanent: true,
