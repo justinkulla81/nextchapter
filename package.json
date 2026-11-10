@@ -73,6 +73,7 @@
     "verify:he-rls": "tsx --env-file=.env.local scripts/higher-ed/verify-rls.ts",
     "verify:talent-intake": "node --env-file=.env.local --conditions=react-server --import tsx scripts/verify-talent-intake.ts",
     "report:index": "node --env-file=.env.local scripts/employment-report/run-python.mjs scripts/employment-report/nc_white_collar_index.py --start 2015-01 --out public/reports/wc-index.csv",
+    "report:index-update": "node --env-file=.env.local scripts/employment-report/run-python.mjs scripts/employment-report/nc_white_collar_index.py --update public/reports/wc-index.csv",
     "report:companions": "node --env-file=.env.local scripts/employment-report/run-python.mjs scripts/employment-report/nc_openings_and_aiwashing.py --db $HOME/nextchapter-jobs/data/jobs.db",
     "report:chart-post": "tsx scripts/reports/monthly-chart-post.ts",
     "report:refresh-trends": "tsx scripts/reports/refresh-trends-data.ts",
