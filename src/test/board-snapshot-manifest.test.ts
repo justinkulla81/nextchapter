@@ -1,3 +1,4 @@
+import { gunzipSync } from 'node:zlib'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
@@ -97,6 +98,22 @@ describe('writeSnapshot', () => {
     vi.stubGlobal('fetch', b.fetchMock)
     await writeSnapshot('board-core', 'fp-b', NOW, [{}], 1)
     expect(JSON.parse(b.store.get('production/board-core/manifest.json')!).shape).toBeUndefined()
+  })
+
+  it('builds a part that is given as a function only when its turn comes, one at a time', async () => {
+    const a = fakeStorage()
+    vi.stubGlobal('fetch', a.fetchMock)
+    const order: string[] = []
+    const posted = () => a.fetchMock.mock.calls.filter((c) => (c[1] as { method?: string } | undefined)?.method === 'POST' && !String(c[0]).includes('/list/')).length
+    const part = (name: string) => () => {
+      order.push(`${name}@${posted()}`) // how many uploads had happened when this part was built
+      return { name }
+    }
+    await writeSnapshot('search-facts', 'fp-c', NOW, [part('p0'), part('p1'), { name: 'plain' }], 3)
+    expect(order).toEqual(['p0@0', 'p1@1'])
+    const written = JSON.parse(a.store.get('production/search-facts/manifest.json')!)
+    expect(written.parts).toHaveLength(3)
+    expect(JSON.parse(gunzipSync(Buffer.from(a.store.get(written.parts[0])!, 'latin1')).toString())).toEqual({ name: 'p0' })
   })
 
   it('names a shape for every build-independent kind', () => {

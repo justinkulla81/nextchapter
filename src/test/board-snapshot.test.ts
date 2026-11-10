@@ -137,8 +137,9 @@ describe('search facts codec', () => {
     expect(decodeFacts([null])).toBeNull()
   })
 
-  it('has a part size that fits the rows of the live board in a handful of parts', () => {
-    expect(FACTS_PART_ROWS).toBeGreaterThanOrEqual(50_000)
+  it('keeps a part small enough that building one at a time adds little memory, and big enough to stay a few dozen objects', () => {
+    expect(FACTS_PART_ROWS).toBeGreaterThanOrEqual(10_000)
+    expect(Math.ceil(600_000 / FACTS_PART_ROWS)).toBeLessThanOrEqual(60)
   })
 })
 
