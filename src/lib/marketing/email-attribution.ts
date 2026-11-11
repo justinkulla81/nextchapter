@@ -158,26 +158,36 @@ export function unsubscribeTokenFitsEmail(token: string, email: string): boolean
 
 export const MAILING_MATCH_WINDOW_DAYS = 21
 
-/** Unsubscribe token -> the one person it belongs to among recent edition recipients. Unmatched and ambiguous tokens are left out. */
-export async function resolveMailingRecipients(tokens: string[], now = new Date()): Promise<Map<string, EmailRecipient>> {
+export interface MailingMatches {
+  /** Token -> the one person it belongs to. */
+  unique: Map<string, EmailRecipient>
+  /** Token -> the few people it could belong to (more than one, at most MAX_CANDIDATES), when it cannot be narrowed to one. */
+  ambiguous: Map<string, EmailRecipient[]>
+}
+
+export const MAX_CANDIDATES = 4
+
+/** Unsubscribe tokens -> the person each belongs to among recent edition recipients, or the short list it could be. */
+export async function resolveMailingRecipients(tokens: string[], now = new Date()): Promise<MailingMatches> {
   const wanted = Array.from(new Set(tokens))
-  if (wanted.length === 0) return new Map()
-  // About a thousand rows in three weeks; only four narrow columns are read.
+  const none: MailingMatches = { unique: new Map(), ambiguous: new Map() }
+  if (wanted.length === 0) return none
+  // About a thousand rows in three weeks; only two narrow columns are read.
   const recent = await prisma.mailingEditionRecipient.findMany({
     where: { sentAt: { gte: new Date(now.getTime() - MAILING_MATCH_WINDOW_DAYS * 86_400_000) }, personId: { not: null } },
     select: { email: true, personId: true },
     take: 20000,
   })
-  const personByToken = new Map<string, Set<string>>()
+  const peopleByToken = new Map<string, string[]>()
   for (const token of wanted) {
-    const people = new Set<string>()
-    for (const r of recent) if (r.personId && unsubscribeTokenFitsEmail(token, r.email)) people.add(r.personId)
-    personByToken.set(token, people)
+    const ids = new Set<string>()
+    for (const r of recent) if (r.personId && unsubscribeTokenFitsEmail(token, r.email)) ids.add(r.personId)
+    if (ids.size > 0 && ids.size <= MAX_CANDIDATES) peopleByToken.set(token, Array.from(ids))
   }
-  const unique = Array.from(personByToken.entries()).filter(([, people]) => people.size === 1)
-  if (unique.length === 0) return new Map()
+  const allIds = Array.from(new Set(Array.from(peopleByToken.values()).flat()))
+  if (allIds.length === 0) return none
   const people = await prisma.crmPerson.findMany({
-    where: { id: { in: unique.map(([, ids]) => Array.from(ids)[0]) } },
+    where: { id: { in: allIds } },
     select: {
       id: true,
       fullName: true,
@@ -185,19 +195,22 @@ export async function resolveMailingRecipients(tokens: string[], now = new Date(
       affiliations: { where: { isCurrent: true }, orderBy: [{ isPrimary: 'desc' }, { createdAt: 'desc' }], take: 1, select: { title: true, org: { select: { name: true } } } },
     },
   })
-  const byId = new Map(people.map((p) => [p.id, p] as const))
-  const out = new Map<string, EmailRecipient>()
-  for (const [token, ids] of unique) {
-    const person = byId.get(Array.from(ids)[0])
-    if (!person) continue
-    const job = person.affiliations[0]
-    out.set(token, { personId: person.id, name: person.fullName, email: person.email, subject: null, orgName: job?.org.name ?? null, title: job?.title ?? null })
+  const asRecipient = (p: (typeof people)[number]): EmailRecipient => {
+    const job = p.affiliations[0]
+    return { personId: p.id, name: p.fullName, email: p.email, subject: null, orgName: job?.org.name ?? null, title: job?.title ?? null }
+  }
+  const byId = new Map(people.map((p) => [p.id, asRecipient(p)] as const))
+  const out: MailingMatches = { unique: new Map(), ambiguous: new Map() }
+  for (const [token, ids] of peopleByToken) {
+    const found = ids.map((id) => byId.get(id)).filter((r): r is EmailRecipient => !!r)
+    if (found.length === 1) out.unique.set(token, found[0])
+    else if (found.length > 1) out.ambiguous.set(token, found)
   }
   return out
 }
 
-/** Visits within this long of a visit that names someone, from the same IP, are that person's mail opening the rest of the email. */
-export const MAILING_IP_WINDOW_MS = 2 * 60 * 1000
+/** A scanner opens an email's links within a second or two of each other, then moves to the next recipient. */
+export const MAILING_IP_WINDOW_MS = 5 * 1000
 
 export interface MailingAnchor {
   ip: string | null
@@ -205,18 +218,27 @@ export interface MailingAnchor {
   at: Date
 }
 
-/** The token of the one person this visit probably belongs to (same IP, within two minutes of an unsubscribe-link visit), or null. */
+/**
+ * The token of the person this visit probably belongs to: same IP, and the nearest in time of the unsubscribe-link visits
+ * within five seconds. When two people are both close, the nearest wins only if it is at least three times closer.
+ */
 export function inferMailingTokenByIp(
   visit: { ip: string | null; createdAt: Date },
   anchors: MailingAnchor[],
   personIdOfToken: (token: string) => string | undefined
 ): string | null {
   if (!visit.ip) return null
-  const near = anchors.filter((a) => a.ip === visit.ip && Math.abs(a.at.getTime() - visit.createdAt.getTime()) <= MAILING_IP_WINDOW_MS)
-  const people = new Set<string>()
-  for (const a of near) {
-    const id = personIdOfToken(a.token)
-    if (id) people.add(id)
+  const best = new Map<string, { token: string; gap: number }>()
+  for (const a of anchors) {
+    if (a.ip !== visit.ip) continue
+    const gap = Math.abs(a.at.getTime() - visit.createdAt.getTime())
+    const person = personIdOfToken(a.token)
+    if (gap > MAILING_IP_WINDOW_MS || !person) continue
+    const prior = best.get(person)
+    if (!prior || gap < prior.gap) best.set(person, { token: a.token, gap })
   }
-  return people.size === 1 ? near.find((a) => personIdOfToken(a.token))!.token : null
+  const ranked = Array.from(best.values()).sort((x, y) => x.gap - y.gap)
+  if (ranked.length === 0) return null
+  if (ranked.length === 1) return ranked[0].token
+  return ranked[0].gap * 3 <= ranked[1].gap ? ranked[0].token : null
 }
