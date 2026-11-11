@@ -1,6 +1,8 @@
 import type { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { humanOpenCount } from '@/lib/mailing/open-human'
+import { loadPersonOrgs, ORG_SEGMENTS } from '@/lib/mailing/org-segments'
 
 const csv = (v: unknown) => {
   const s = v instanceof Date ? v.toISOString() : v == null ? '' : String(v)
@@ -19,10 +21,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     orderBy: { createdAt: 'asc' },
     select: { key: true, title: true, recipients: { orderBy: { email: 'asc' }, include: { person: { select: { fullName: true } } } } },
   })
-  const head = [...(all ? ['version', 'version_key'] : []), 'name', 'email', 'source', 'excluded', 'status', 'sent_at', 'delivered_at', 'first_opened_at_approx', 'open_count', 'first_clicked_at', 'click_count', 'bounced_at', 'bounce_detail', 'complained_at', 'unsubscribed_at', 'replied_at', 'error']
+  const orgs = await loadPersonOrgs(editions.flatMap((e) => e.recipients.flatMap((r) => (r.personId ? [r.personId] : []))))
+  const segmentLabel = new Map<string, string>(ORG_SEGMENTS.map((x) => [x.key, x.label]))
+  const head = [...(all ? ['version', 'version_key'] : []), 'name', 'organization', 'organization_types', 'email', 'source', 'excluded', 'status', 'sent_at', 'delivered_at', 'first_opened_at_approx', 'human_open_count', 'first_clicked_at', 'click_count', 'bounced_at', 'bounce_detail', 'complained_at', 'unsubscribed_at', 'replied_at', 'error']
   const rows = editions.flatMap((e) => e.recipients.map((r) => [
     ...(all ? [e.title, e.key] : []),
-    r.person?.fullName, r.email, r.source, r.excluded, r.status, r.sentAt, r.deliveredAt, r.openedAt, r.openCount,
+    r.person?.fullName, orgs.get(r.personId ?? '')?.orgName, (orgs.get(r.personId ?? '')?.segments ?? []).map((k) => segmentLabel.get(k)).join('; '), r.email, r.source, r.excluded, r.status, r.sentAt, r.deliveredAt, humanOpenCount(r) > 0 ? r.openedAt : null, humanOpenCount(r),
     r.clickedAt, r.clickCount, r.bouncedAt, r.bounceDetail, r.complainedAt, r.unsubscribedAt, r.repliedAt, r.error,
   ].map(csv).join(',')))
   const name = all ? `${editions[0]?.key ?? edition.key}-all-versions` : edition.key

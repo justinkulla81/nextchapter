@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { activeLists, getMailingSettings } from '@/lib/mailing/lists'
 import { fileUrlFor, syncEditionRoster } from '@/lib/mailing/editions'
 import { sanitizeBodyHtml } from '@/lib/mailing/render'
+import { humanOpenCount } from '@/lib/mailing/open-human'
+import { loadPersonOrgs } from '@/lib/mailing/org-segments'
 import { MailingComposer } from '@/components/admin/mailing/MailingComposer'
 import { EditionRecipientsTable } from '@/components/admin/mailing/EditionRecipientsTable'
 import { EditionVersions } from '@/components/admin/mailing/EditionVersions'
@@ -114,15 +116,16 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
 
   // Sending or sent: the dashboard.
   const sendable = edition.recipients.filter((r) => !r.excluded)
+  const orgs = await loadPersonOrgs(sendable.flatMap((r) => (r.personId ? [r.personId] : [])))
   const total = (pick: (r: (typeof sendable)[number]) => unknown) => sendable.filter((r) => pick(r)).length
   const sent = total((r) => r.status === 'SENT')
   const sum = (pick: (r: (typeof sendable)[number]) => number) => sendable.reduce((n, r) => n + pick(r), 0)
-  const opens = sum((r) => r.openCount)
+  const opens = sum((r) => humanOpenCount(r))
   const clicks = sum((r) => r.clickCount)
   const stats = [
     { label: 'Sent', value: sent, of: sendable.length },
     { label: 'Delivered', value: total((r) => r.deliveredAt) },
-    { label: 'Opened (approximate)', value: total((r) => r.openedAt), extra: `${opens} ${opens === 1 ? 'open' : 'opens'} in all`, note: 'Apple Mail opens many emails automatically, so this runs high. Clicks and replies are the real signal.' },
+    { label: 'Opened (approximate)', value: total((r) => humanOpenCount(r) > 0), extra: `${opens} ${opens === 1 ? 'open' : 'opens'} in all`, note: 'Opens within two minutes of delivery are Apple Mail and mail scanners loading the email, and are not counted. Clicks and replies are still the stronger signal.' },
     { label: 'Clicked', value: total((r) => r.clickedAt), extra: `${clicks} ${clicks === 1 ? 'click' : 'clicks'} in all` },
     { label: 'Replied', value: total((r) => r.repliedAt) },
     { label: 'Bounced', value: total((r) => r.bouncedAt) },
@@ -158,9 +161,10 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
       <EditionRecipientsTable
         editionId={edition.id}
         rows={sendable.map((r) => ({
+          orgName: orgs.get(r.personId ?? '')?.orgName ?? null, segments: orgs.get(r.personId ?? '')?.segments ?? [],
           id: r.id, personId: r.personId, name: r.person?.fullName ?? null, email: r.email, added: r.source === 'ADDED_THIS_EDITION',
-          status: r.status, error: r.error, sentAt: iso(r.sentAt), deliveredAt: iso(r.deliveredAt), openedAt: iso(r.openedAt),
-          openCount: r.openCount, clickedAt: iso(r.clickedAt), clickCount: r.clickCount, bouncedAt: iso(r.bouncedAt),
+          status: r.status, error: r.error, sentAt: iso(r.sentAt), deliveredAt: iso(r.deliveredAt), openedAt: humanOpenCount(r) > 0 ? iso(r.openedAt) : null,
+          openCount: humanOpenCount(r), clickedAt: iso(r.clickedAt), clickCount: r.clickCount, bouncedAt: iso(r.bouncedAt),
           bounceDetail: r.bounceDetail, unsubscribedAt: iso(r.unsubscribedAt), repliedAt: iso(r.repliedAt),
         }))}
       />

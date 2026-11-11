@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { posthog } from '@/lib/posthog/client'
+import { ORG_SEGMENTS, type OrgSegmentKey } from '@/lib/mailing/org-segments'
 
 export interface EditionRecipientRow {
   id: string
@@ -24,6 +25,9 @@ export interface EditionRecipientRow {
   repliedAt: string | null
   /** Set on the all-people page, where one table holds every version of the mailing. */
   version?: string
+  /** Their current organization, and the kinds of organization they work at (see org-segments). */
+  orgName: string | null
+  segments: string[]
 }
 
 type Filter = keyof typeof FILTERS
@@ -42,13 +46,14 @@ const FILTERS = {
   failed: { label: 'Failed', test: (r: EditionRecipientRow) => r.status === 'FAILED' },
 } satisfies Record<string, { label: string; test: (r: EditionRecipientRow) => boolean }>
 
-type SortKey = 'version' | 'name' | 'email' | 'sentAt' | 'deliveredAt' | 'openCount' | 'clickCount' | 'bouncedAt' | 'unsubscribedAt' | 'repliedAt'
+type SortKey = 'version' | 'name' | 'orgName' | 'email' | 'sentAt' | 'deliveredAt' | 'openCount' | 'clickCount' | 'bouncedAt' | 'unsubscribedAt' | 'repliedAt'
 const COLUMNS: { key: SortKey; label: string }[] = [
   { key: 'name', label: 'Name' },
+  { key: 'orgName', label: 'Organization' },
   { key: 'email', label: 'Email' },
   { key: 'sentAt', label: 'Sent' },
   { key: 'deliveredAt', label: 'Delivered' },
-  { key: 'openCount', label: 'Opens (approx.)' },
+  { key: 'openCount', label: 'Human opens (approx.)' },
   { key: 'clickCount', label: 'Clicks' },
   { key: 'repliedAt', label: 'Replied' },
   { key: 'bouncedAt', label: 'Bounced' },
@@ -62,14 +67,16 @@ const when = (iso: string | null) =>
 export function EditionRecipientsTable({ editionId, rows, allVersions = false }: { editionId: string; rows: EditionRecipientRow[]; allVersions?: boolean }) {
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
+  const [segment, setSegment] = useState<'all' | OrgSegmentKey | 'none'>('all')
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>(allVersions ? { key: 'sentAt', dir: -1 } : { key: 'name', dir: 1 })
   const columns = allVersions ? [{ key: 'version' as SortKey, label: 'Version' }, ...COLUMNS] : COLUMNS
 
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase()
-    const out = rows.filter((r) => FILTERS[filter].test(r) && (!needle || `${r.name ?? ''} ${r.email}`.toLowerCase().includes(needle)))
+    const inSegment = (r: EditionRecipientRow) => segment === 'all' || (segment === 'none' ? r.segments.length === 0 : r.segments.includes(segment))
+    const out = rows.filter((r) => FILTERS[filter].test(r) && inSegment(r) && (!needle || `${r.name ?? ''} ${r.orgName ?? ''} ${r.email}`.toLowerCase().includes(needle)))
     const val = (r: EditionRecipientRow): string | number => {
-      const v = sort.key === 'name' ? r.name ?? r.email : sort.key === 'version' ? r.version : r[sort.key]
+      const v = sort.key === 'name' ? r.name ?? r.email : sort.key === 'version' ? r.version : sort.key === 'orgName' ? r.orgName : r[sort.key]
       return typeof v === 'number' ? v : (v ?? '').toLowerCase()
     }
     return out.sort((a, b) => {
@@ -79,11 +86,11 @@ export function EditionRecipientsTable({ editionId, rows, allVersions = false }:
       if (y === '' && x !== '') return -1
       return (x < y ? -1 : x > y ? 1 : 0) * sort.dir
     })
-  }, [rows, q, filter, sort])
+  }, [rows, q, filter, segment, sort])
 
   const sortBy = (key: SortKey) => {
     // Counts and dates read best biggest/newest first; names A–Z.
-    const firstDir = key === 'name' || key === 'email' ? 1 : -1
+    const firstDir = key === 'name' || key === 'email' || key === 'orgName' ? 1 : -1
     setSort((s) => (s.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: firstDir }))
   }
 
@@ -115,6 +122,20 @@ export function EditionRecipientsTable({ editionId, rows, allVersions = false }:
             ))}
           </select>
         </label>
+        <label className="flex items-center gap-2">
+          <span className="text-muted-foreground">Organization type</span>
+          <select
+            value={segment}
+            onChange={(e) => { const s = e.target.value as typeof segment; setSegment(s); posthog.capture('mailing_recipients_org_type_filtered', { editionId, segment: s }) }}
+            className="h-9 rounded-lg border border-input bg-transparent px-2"
+          >
+            <option value="all">{`All organizations (${rows.length})`}</option>
+            {ORG_SEGMENTS.map((s) => (
+              <option key={s.key} value={s.key}>{`${s.label} (${rows.filter((r) => r.segments.includes(s.key)).length})`}</option>
+            ))}
+            <option value="none">{`No organization on file (${rows.filter((r) => r.segments.length === 0).length})`}</option>
+          </select>
+        </label>
         <span className="text-muted-foreground">{visible.length} of {rows.length}</span>
       </div>
       <div className="max-h-[40rem] overflow-auto rounded-lg border border-border">
@@ -141,6 +162,7 @@ export function EditionRecipientsTable({ editionId, rows, allVersions = false }:
                   {r.personId ? <Link href={`/support/admin/crm/people/${r.personId}`} target={allVersions ? '_blank' : undefined} rel={allVersions ? 'noreferrer' : undefined} className="hover:underline">{r.name ?? r.email}</Link> : '—'}
                   {r.added && <span className="ml-1.5 rounded-full bg-brand/10 px-1.5 py-0.5 text-[11px] text-brand">added</span>}
                 </td>
+                <td className="max-w-[28ch] truncate px-3 py-1.5" title={r.orgName ?? undefined}>{r.orgName ?? ''}</td>
                 <td className="px-3 py-1.5">{r.email}</td>
                 <td className="whitespace-nowrap px-3 py-1.5">{r.status === 'SENT' ? when(r.sentAt) : r.status === 'FAILED' ? <span className="text-destructive" title={r.error ?? ''}>Failed</span> : r.status === 'SKIPPED' ? 'Skipped' : 'Waiting'}</td>
                 <td className="whitespace-nowrap px-3 py-1.5">{when(r.deliveredAt)}</td>

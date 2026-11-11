@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { prisma } from '@/lib/prisma'
+import { humanOpenCount } from '@/lib/mailing/open-human'
+import { loadPersonOrgs } from '@/lib/mailing/org-segments'
 import { EditionRecipientsTable } from '@/components/admin/mailing/EditionRecipientsTable'
 
 export const maxDuration = 60
@@ -31,6 +33,7 @@ export default async function MailingEveryonePage({ params }: { params: Promise<
       person: { select: { fullName: true } },
     },
   })
+  const orgs = await loadPersonOrgs(recipients.flatMap((r) => (r.personId ? [r.personId] : [])))
   const label = new Map(editions.map((e, i) => [e.id, i === 0 ? 'Original' : (/version \d+/i.exec(e.title)?.[0] ?? e.title)]))
   captureServerEvent(admin.email ?? 'admin', 'mailing_everyone_viewed', { editionId: id, rootId, people: recipients.length })
 
@@ -48,9 +51,10 @@ export default async function MailingEveryonePage({ params }: { params: Promise<
         editionId={id}
         allVersions
         rows={recipients.map((r) => ({
+          orgName: orgs.get(r.personId ?? '')?.orgName ?? null, segments: orgs.get(r.personId ?? '')?.segments ?? [],
           id: r.id, personId: r.personId, name: r.person?.fullName ?? null, email: r.email, added: r.source === 'ADDED_THIS_EDITION',
-          status: r.status, error: r.error, sentAt: iso(r.sentAt), deliveredAt: iso(r.deliveredAt), openedAt: iso(r.openedAt),
-          openCount: r.openCount, clickedAt: iso(r.clickedAt), clickCount: r.clickCount, bouncedAt: iso(r.bouncedAt),
+          status: r.status, error: r.error, sentAt: iso(r.sentAt), deliveredAt: iso(r.deliveredAt), openedAt: humanOpenCount(r) > 0 ? iso(r.openedAt) : null,
+          openCount: humanOpenCount(r), clickedAt: iso(r.clickedAt), clickCount: r.clickCount, bouncedAt: iso(r.bouncedAt),
           bounceDetail: r.bounceDetail, unsubscribedAt: iso(r.unsubscribedAt), repliedAt: iso(r.repliedAt), version: label.get(r.editionId) ?? '',
         }))}
       />
