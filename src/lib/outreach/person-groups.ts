@@ -35,6 +35,7 @@ const ROLE_GROUP: Partial<Record<CrmPersonRole, PersonGroup>> = {
   BD_PARTNER: 'partner', GTM_PARTNER: 'partner', CONNECTOR: 'partner', ADVISOR: 'partner',
   JOB_SEEKER: 'candidate',
   PRESS: 'press',
+  WORKFORCE_STAFF: 'workforce', ECON_DEV_STAFF: 'workforce',
 }
 
 /** What a cold campaign's audience says about someone with no role on file. */

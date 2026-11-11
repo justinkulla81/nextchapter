@@ -30,3 +30,7 @@ ALTER TABLE "WorkforceStaffContact" ADD COLUMN IF NOT EXISTS "emailGuessed" BOOL
 ALTER TABLE "WorkforceStaffContact" ADD COLUMN IF NOT EXISTS "hunterStatus" TEXT;
 ALTER TABLE "WorkforceStaffContact" ADD COLUMN IF NOT EXISTS "hunterScore" INT;
 ALTER TABLE "WorkforceStaffContact" ADD COLUMN IF NOT EXISTS "hunterCheckedAt" TIMESTAMPTZ;
+
+-- User types for the staff list (2026-11-11). Both feed the "workforce" mailing list (src/lib/mailing/suggest.ts).
+ALTER TYPE "CrmPersonRole" ADD VALUE IF NOT EXISTS 'WORKFORCE_STAFF';
+ALTER TYPE "CrmPersonRole" ADD VALUE IF NOT EXISTS 'ECON_DEV_STAFF';
