@@ -137,15 +137,18 @@ Names that are descriptions ("N.J. bank", "San Francisco HQ") are not employers:
 Owner decision, 2026-11-11, from the October update results (1,424 sent, about 0.3% human clicks, no click at all from
 journalists, funders or researchers). Applies to list email sent from the mailing tool.
 
-- **Journalists:** offer the data download and a quotable one-line stat with its source, and say it is free to use with a link
-  back. Never ask for a call.
-- **Funders and research partners:** lead with the methodology and sources, since that is what they evaluate. The ask is
-  "reply if useful", never a call.
+- **Journalists:** a quotable one-line stat with its source, a link to the report (data and methods are on the page, free to use
+  with a link back), no separate CSV link. Never ask for a call.
+- **Funders and research partners:** senior people, so keep it short and non-technical: one finding, one link, no methodology.
+  The owner wants to talk to them, so the ask is a call ("Free for a call this week or next?").
+- The journalist, funder and research versions are held for the November edition: those people already got the October email.
 - **Higher-ed career services and alumni:** lead with the new-graduate figure, not the national headline.
 - **Warm contacts:** people the owner knows get a short personal note and are taken off the cold lists. Mixing them hides both
   signals.
 - One finding up front and the report behind a descriptive link, not seven findings in the body and a raw URL.
-- Judge a send by replies and human clicks. Opens within 10 seconds of sending are scanners, and `MailingClickEvent.bot` clicks
+- A reply that asks to be taken off the list is an unsubscribe, not a reply of interest: add the address to `MailingSuppression`
+  (`DO_NOT_EMAIL`) and count it as an unsubscribe. October had 0 replies of interest.
+- Judge a send by replies of interest and human clicks. Opens within 10 seconds of sending are scanners, and `MailingClickEvent.bot` clicks
   are not people.
 
 ## Onboarding flow
