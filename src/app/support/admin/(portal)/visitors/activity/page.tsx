@@ -15,7 +15,7 @@ import { costLine, formatDollars, loadSemSpend } from '@/lib/admin/sem-spend'
 import { PAID_CHANNELS, paidChannelLabel } from '@/lib/admin/paid-channels'
 import { SemSpendForm } from '@/components/admin/SemSpendForm'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
-import { isDatacenterIp } from '@/lib/http/datacenter-ip'
+import { DATACENTER_CIDRS, isDatacenterIp } from '@/lib/http/datacenter-ip'
 import { loadScannerIps } from '@/lib/marketing/mail-scanners'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
@@ -127,7 +127,9 @@ type LogRange = 'day' | 'week' | 'all'
 function botFilterSql(showBots: boolean, scannerIps: Set<string>): Prisma.Sql {
   if (showBots) return Prisma.sql`TRUE`
   const patterns = BOT_SIGNATURES.map((sig) => `%${sig}%`)
-  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns})))`
+  // Cloud networks (Google Cloud in Council Bluffs, Azure, AWS) are email link scanners and automated browsers, hidden with the bots.
+  const notCloud = Prisma.sql`NOT (CASE WHEN "ip" ~ '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' THEN "ip"::inet <<= ANY(${DATACENTER_CIDRS}::text[]::inet[]) ELSE false END)`
+  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns}))) AND ${notCloud}`
   return scannerIps.size > 0 ? Prisma.sql`${notBot} AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : notBot
 }
 
@@ -654,7 +656,7 @@ export default async function AdminVisitorActivityPage({
     candidate: e.candidate,
     inferredCandidate: !e.candidate && e.ip ? (inferredCandidateByIp.get(e.ip) ?? null) : null,
     source: e.eventType === 'PAGE_VIEW' ? classifyTrafficSource(e.path, e.referrer) : '—',
-    scanner: !!e.ip && scannerIps.has(e.ip),
+    scanner: !!e.ip && (scannerIps.has(e.ip) || isDatacenterIp(e.ip)),
     recipient: (() => {
       if (e.ip && scannerIps.has(e.ip)) return null
       const id = extractEmailLinkId(e.path)
@@ -754,9 +756,9 @@ export default async function AdminVisitorActivityPage({
           return (
             <span
               className="font-medium text-muted-foreground"
-              title={`This address opened the links in emails to ${r.mailRecipients} different people. It is a mail-security scanner checking their messages, not a person visiting.`}
+              title={isDatacenterIp(r.ip) ? 'This address belongs to a cloud network (Google Cloud, Azure, AWS). Email link scanners and automated browsers run there; it is not a person visiting.' : `This address opened the links in emails to ${r.mailRecipients} different people. It is a mail-security scanner checking their messages, not a person visiting.`}
             >
-              📧 Mail scanner
+              📧 Mail scanner or cloud bot
             </span>
           )
         }
@@ -828,7 +830,7 @@ export default async function AdminVisitorActivityPage({
             className="text-muted-foreground"
             title={`This IP address opened the links in emails to ${r.mailRecipients} different people (${r.views} views, ${r.clicks} clicks in all). It is a mail scanner shared by many recipients, so its totals do not describe one person.`}
           >
-            {r.scanner ? 'Mail scanner' : 'Shared IP'} · {r.mailRecipients} people
+            {isDatacenterIp(r.ip) ? 'Cloud network' : `${r.scanner ? 'Mail scanner' : 'Shared IP'} · ${r.mailRecipients} people`}
           </span>
         ) : (
           <span title={`${r.views} views, ${r.clicks} clicks, ${r.applyClicks} apply clicks from this IP`}>
