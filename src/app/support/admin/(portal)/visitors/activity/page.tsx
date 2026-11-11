@@ -130,32 +130,49 @@ function botFilterSql(showBots: boolean, scannerIps: Set<string>): Prisma.Sql {
 
 type LogEvent = Awaited<ReturnType<typeof prisma.homepageVisitEvent.findMany<{ include: { candidate: { select: { id: true; firstName: true; lastName: true; email: true } } } }>>>
 
-// Rows ordered by how many clicks the same IP made in the window (then newest). One window query over the range's rows only.
-async function loadEventsByClicks(botFilter: Prisma.Sql, start: Date, skip: number, take: number): Promise<LogEvent> {
-  const ids = await prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
-    SELECT "id" FROM (
-      SELECT "id", "createdAt",
-        count(*) FILTER (WHERE "eventType"::text = 'LINK_CLICK') OVER (PARTITION BY COALESCE("ip", "id")) AS "clicks"
-      FROM "HomepageVisitEvent"
-      WHERE ${botFilter} AND "createdAt" >= ${start}
-    ) t
-    ORDER BY "clicks" DESC, "createdAt" DESC
-    OFFSET ${skip} LIMIT ${take}`)
+type VisitorSort = 'clicks' | 'views'
+
+// One row per visitor (an IP; an event with no IP stands alone), ordered by how many clicks or page views that visitor made in the
+// window, then newest. The row shown is the visitor's latest event. One window query over the range's rows only.
+async function loadEventsByVisitor(
+  botFilter: Prisma.Sql,
+  start: Date,
+  skip: number,
+  take: number,
+  metric: VisitorSort
+): Promise<{ events: LogEvent; total: number }> {
+  const orderBy = metric === 'views' ? Prisma.sql`"views" DESC, "clicks" DESC` : Prisma.sql`"clicks" DESC, "views" DESC`
+  const [ids, totalRows] = await Promise.all([
+    prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
+      SELECT "id" FROM (
+        SELECT "id", "createdAt",
+          count(*) FILTER (WHERE "eventType"::text = 'LINK_CLICK') OVER (PARTITION BY COALESCE("ip", "id")) AS "clicks",
+          count(*) FILTER (WHERE "eventType"::text = 'PAGE_VIEW') OVER (PARTITION BY COALESCE("ip", "id")) AS "views",
+          row_number() OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt" DESC) AS "rn"
+        FROM "HomepageVisitEvent"
+        WHERE ${botFilter} AND "createdAt" >= ${start}
+      ) t
+      WHERE "rn" = 1
+      ORDER BY ${orderBy}, "createdAt" DESC
+      OFFSET ${skip} LIMIT ${take}`),
+    prisma.$queryRaw<{ n: bigint }[]>(Prisma.sql`
+      SELECT count(DISTINCT COALESCE("ip", "id")) AS "n" FROM "HomepageVisitEvent" WHERE ${botFilter} AND "createdAt" >= ${start}`),
+  ])
   const rows = await prisma.homepageVisitEvent.findMany({
     where: { id: { in: ids.map((r) => r.id) } },
     include: { candidate: { select: { id: true, firstName: true, lastName: true, email: true } } },
   })
   const order = new Map(ids.map((r, i) => [r.id, i] as const))
-  return rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+  return { events: rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)), total: Number(totalRows[0]?.n ?? 0) }
 }
 
 // Day / week and newest / most clicks: adjacent buttons (links), the current choice marked.
-function LogControls({ range, sortByClicks, showBots }: { range: LogRange; sortByClicks: boolean; showBots: boolean }) {
-  const href = (r: LogRange, byClicks: boolean) => {
+function LogControls({ range, sort, showBots }: { range: LogRange; sort: VisitorSort | null; showBots: boolean }) {
+  const href = (r: LogRange, by: VisitorSort | null) => {
     const q = new URLSearchParams()
     if (showBots) q.set('bots', 'show')
     if (r !== 'all') q.set('range', r)
-    if (byClicks) q.set('sort', 'clicks')
+    if (by) q.set('sort', by)
     const qs = q.toString()
     return `/support/admin/visitors/activity${qs ? `?${qs}` : ''}`
   }
@@ -170,20 +187,24 @@ function LogControls({ range, sortByClicks, showBots }: { range: LogRange; sortB
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
       <nav aria-label="Time range" className="flex gap-2">
         {ranges.map((r) => (
-          <Link key={r.key} href={href(r.key, sortByClicks)} aria-current={range === r.key ? 'true' : undefined} className={button(range === r.key)}>
+          <Link key={r.key} href={href(r.key, sort)} aria-current={range === r.key ? 'true' : undefined} className={button(range === r.key)}>
             {r.label}
           </Link>
         ))}
       </nav>
       <nav aria-label="Sort order" className="flex gap-2">
-        <Link href={href(range, false)} aria-current={!sortByClicks ? 'true' : undefined} className={button(!sortByClicks)}>
+        <Link href={href(range, null)} aria-current={!sort ? 'true' : undefined} className={button(!sort)}>
           Newest first
         </Link>
-        <Link href={href(range, true)} aria-current={sortByClicks ? 'true' : undefined} className={button(sortByClicks)}>
+        <Link href={href(range, 'clicks')} aria-current={sort === 'clicks' ? 'true' : undefined} className={button(sort === 'clicks')}>
           Most clicks first
         </Link>
+        <Link href={href(range, 'views')} aria-current={sort === 'views' ? 'true' : undefined} className={button(sort === 'views')}>
+          Most views first
+        </Link>
       </nav>
-      {sortByClicks && range === 'all' && <p className="text-xs text-muted-foreground">Most clicks looks at the last 30 days, the longest span it counts over.</p>}
+      {sort && range === 'all' && <p className="text-xs text-muted-foreground">Most clicks and most views look at the last 30 days, the longest span they count over. Each visitor (IP address) appears once.</p>}
+      {sort && range !== 'all' && <p className="text-xs text-muted-foreground">Each visitor (IP address) appears once, on their latest visit.</p>}
     </div>
   )
 }
@@ -223,9 +244,9 @@ export default async function AdminVisitorActivityPage({
   const showBots = rawParams.bots === 'show'
   // Log filter: the last day or week, and newest first or most clicks first. The charts above always show their own ranges.
   const logRange: LogRange = rawParams.range === 'day' || rawParams.range === 'week' ? rawParams.range : 'all'
-  const sortByClicks = rawParams.sort === 'clicks'
-  // Counting clicks per visitor is a window over the rows in range, so it never runs over the whole table: all time reads 30 days.
-  const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sortByClicks ? 30 : null
+  const sort: VisitorSort | null = rawParams.sort === 'clicks' || rawParams.sort === 'views' ? rawParams.sort : null
+  // Counting clicks or views per visitor is a window over the rows in range, so it never runs over the whole table: all time reads 30 days.
+  const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sort ? 30 : null
   const logStart = logDays ? new Date(now().getTime() - logDays * DAY_MS) : null
   const rangeWhere = logStart ? { createdAt: { gte: logStart } } : {}
   // Mail scanners are hidden with the bots: they open every link for every recipient, and are not people.
@@ -256,9 +277,9 @@ export default async function AdminVisitorActivityPage({
   // Human page views only (a known user agent that is not a bot), the series the charts have always drawn.
   const humanPageView = Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns}))`
   type BucketRow = { key: string; views: bigint; visitors: bigint }
-  const [events, dayRows, hourRows, totalsRows] = await Promise.all([
-    sortByClicks && logStart
-      ? loadEventsByClicks(botFilter, logStart, params.skip, params.take)
+  const [loaded, dayRows, hourRows, totalsRows] = await Promise.all([
+    sort && logStart
+      ? loadEventsByVisitor(botFilter, logStart, params.skip, params.take, sort)
       : prisma.homepageVisitEvent.findMany({
           where,
           orderBy: { createdAt: 'desc' },
@@ -288,6 +309,7 @@ export default async function AdminVisitorActivityPage({
       WHERE ${botFilter}`),
   ])
 
+  const events = Array.isArray(loaded) ? loaded : loaded.events
   const t = totalsRows[0]
   const totals: Record<TrafficRange, RangeTotals> = {
     day: { events: Number(t?.e1 ?? 0), visitors: Number(t?.v1 ?? 0) },
@@ -296,7 +318,7 @@ export default async function AdminVisitorActivityPage({
     all: { events: Number(t?.eall ?? 0), visitors: Number(t?.vall ?? 0) },
   }
   // Same count the log is paginated by (the bot rule is the same SQL filter).
-  const total = logDays === 1 ? totals.day.events : logDays === 7 ? totals['7d'].events : logDays === 30 ? totals['30d'].events : totals.all.events
+  const total = !Array.isArray(loaded) ? loaded.total : logDays === 1 ? totals.day.events : logDays === 7 ? totals['7d'].events : logDays === 30 ? totals['30d'].events : totals.all.events
   const toCounts = (rows: BucketRow[], field: 'views' | 'visitors') => new Map(rows.map((r) => [r.key, Number(r[field])] as const))
   const dayViews = toCounts(dayRows, 'views')
   const dayVisitors = toCounts(dayRows, 'visitors')
@@ -993,7 +1015,7 @@ export default async function AdminVisitorActivityPage({
         </div>
       </div>
 
-      <LogControls range={logRange} sortByClicks={sortByClicks} showBots={showBots} />
+      <LogControls range={logRange} sort={sort} showBots={showBots} />
 
       <AdminDataTable
         columns={columns}
@@ -1006,7 +1028,7 @@ export default async function AdminVisitorActivityPage({
           totalPages: result.totalPages,
           total: result.total,
           basePath: '/support/admin/visitors/activity',
-          baseParams: { ...(showBots ? { bots: 'show' } : {}), ...(logRange !== 'all' ? { range: logRange } : {}), ...(sortByClicks ? { sort: 'clicks' } : {}) },
+          baseParams: { ...(showBots ? { bots: 'show' } : {}), ...(logRange !== 'all' ? { range: logRange } : {}), ...(sort ? { sort } : {}) },
         }}
       />
     </div>
