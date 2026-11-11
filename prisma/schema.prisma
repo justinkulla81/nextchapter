@@ -13974,6 +13974,7 @@ model MailingEditionRecipient {
   repliedAt      DateTime?
 
   clickEvents    MailingClickEvent[]
+  openEvents     MailingOpenEvent[]
 
   @@unique([editionId, email])
   @@index([editionId, status])
@@ -13983,6 +13984,23 @@ model MailingEditionRecipient {
 /// One click on a link in a list email, as Resend reported it: who it was sent to, the address and browser the click came
 /// from, and when. A mail scanner's click (a data-centre address seconds after delivery) is stored too, so the visitor log can
 /// tell scanners from people; a person's click lets the visit that follows from the same address be named.
+/// One open of a list email as Resend reported it (the tracking pixel loaded): the address and browser that loaded it and when.
+/// A mail scanner or Apple Mail Privacy Protection loads the pixel by itself, so most opens are a machine's; those are stored
+/// with bot = true and are not counted as an open (see src/lib/mailing/click-human.ts).
+model MailingOpenEvent {
+  id          String                  @id @default(cuid())
+  recipientId String
+  recipient   MailingEditionRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  ip          String                  @default("")
+  userAgent   String?
+  openedAt    DateTime
+  bot         Boolean                 @default(false)
+  createdAt   DateTime                @default(now())
+
+  @@unique([recipientId, openedAt, ip])
+  @@index([ip, openedAt])
+}
+
 model MailingClickEvent {
   id          String                @id @default(cuid())
   recipientId String

@@ -79,3 +79,20 @@ export function burstClickIds(clicks: ClickStamp[]): Set<string> {
   }
   return out
 }
+
+// ── Opens ────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// An open is the tracking pixel loading. The same machines that click every link load it, and Apple Mail Privacy Protection loads
+// it for every Apple Mail user when the message arrives, from Apple's own 17.0.0.0/8 block, whether or not the person ever reads it.
+// Gmail's and Superhuman's image proxies fetch the pixel when the person opens the message, so those stay human.
+function isAppleAddress(ip: string | null): boolean {
+  return !!ip && /^17\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip)
+}
+
+/** Why an open is not a person's, or null for a human open. Same tests as a click, plus Apple Mail Privacy Protection. */
+export function botOpenReason(open: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): string | null {
+  if (isAppleAddress(open.ip)) return 'Apple Mail Privacy Protection loads the pixel on delivery'
+  return botClickReason(open, scannerIps, scannerBlocks)
+}
+
+export const isHumanOpen = (open: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): boolean =>
+  botOpenReason(open, scannerIps, scannerBlocks) === null
