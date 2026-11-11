@@ -184,7 +184,8 @@ export function decodeOccupations(encoded: unknown): JobOccupations | null {
 // with every repeated string (company, industry, city, skills…) written once per part. Rows come back exactly as the database read gives them
 // except that `postingType` is always present (null when the row had none), which the index treats the same.
 
-export const FACTS_PART_ROWS = 25_000
+/** Rows per part, and per page of the database read behind the index (board-search-index.ts), so a part is exactly one page. */
+export const FACTS_PART_ROWS = 20_000
 
 interface EncodedFactsPart {
   v: 1
@@ -222,36 +223,45 @@ export function encodeFactsPart(rows: readonly FactsRow[]): EncodedFactsPart {
   }
 }
 
-/** Every part's rows, in order; null when any part is not in this format (the caller reads the database). */
-export function decodeFacts(encodedParts: unknown[]): FactsRow[] | null {
-  const out: FactsRow[] = []
-  // One string per distinct value across parts, so a company named in every part is held once.
-  const pool = new Map<string, string>()
-  for (const encoded of encodedParts) {
-    const e = encoded as EncodedFactsPart
-    if (!e || e.v !== 1 || !Array.isArray(e.ids) || !Array.isArray(e.strings)) return null
-    const s = e.strings.map((v) => {
-      const hit = pool.get(v)
-      if (hit !== undefined) return hit
-      pool.set(v, v)
-      return v
-    })
-    const at = (k: number): string | null => (k < 0 ? null : s[k])
-    for (let i = 0; i < e.ids.length; i++) {
-      out.push({
-        id: e.ids[i],
-        title: s[e.title[i]],
-        companyName: s[e.company[i]],
-        industry: at(e.industry[i]),
-        socTitle: at(e.soc[i]),
-        workArrangement: at(e.arrangement[i]),
-        locationCity: at(e.city[i]),
-        locationState: at(e.state[i]),
-        states: at(e.states[i]),
-        skills: at(e.skills[i]),
-        postingType: at(e.postingType[i]),
-      })
+/** True when `encoded` is a part this codec wrote (checked before any part is read, so a bad one is never half fed to the index). */
+export function isFactsPart(encoded: unknown): boolean {
+  const e = encoded as EncodedFactsPart | null
+  return !!e && e.v === 1 && Array.isArray(e.ids) && Array.isArray(e.strings)
+}
+
+/** One part's rows, in order. `pool` makes one string object of a value repeated across parts. null when the part is not in this format. */
+export function decodeFactsPart(encoded: unknown, pool: Map<string, string> = new Map()): FactsRow[] | null {
+  if (!isFactsPart(encoded)) return null
+  const e = encoded as EncodedFactsPart
+  const s = e.strings.map((v) => {
+    const hit = pool.get(v)
+    if (hit !== undefined) return hit
+    pool.set(v, v)
+    return v
+  })
+  const at = (k: number): string | null => (k < 0 ? null : s[k])
+  const out: FactsRow[] = new Array(e.ids.length)
+  for (let i = 0; i < e.ids.length; i++) {
+    out[i] = {
+      id: e.ids[i],
+      title: s[e.title[i]],
+      companyName: s[e.company[i]],
+      industry: at(e.industry[i]),
+      socTitle: at(e.soc[i]),
+      workArrangement: at(e.arrangement[i]),
+      locationCity: at(e.city[i]),
+      locationState: at(e.state[i]),
+      states: at(e.states[i]),
+      skills: at(e.skills[i]),
+      postingType: at(e.postingType[i]),
     }
   }
   return out
+}
+
+/** Every part's rows, in order; null when any part is not in this format. Holds every row at once: the index is fed part by part instead (decodeFactsPart). */
+export function decodeFacts(encodedParts: unknown[]): FactsRow[] | null {
+  if (!encodedParts.every(isFactsPart)) return null
+  const pool = new Map<string, string>()
+  return encodedParts.flatMap((p) => decodeFactsPart(p, pool)!)
 }

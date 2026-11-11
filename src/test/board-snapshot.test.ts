@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 
-import { decodeBoardPart, decodeFacts, decodeOccupations, encodeBoardPart, encodeFactsPart, encodeOccupations, FACTS_PART_ROWS, LIGHT_COLUMNS } from '@/lib/jobs/board-snapshot-codec'
+import { decodeBoardPart, decodeFacts, decodeFactsPart, isFactsPart, decodeOccupations, encodeBoardPart, encodeFactsPart, encodeOccupations, FACTS_PART_ROWS, LIGHT_COLUMNS } from '@/lib/jobs/board-snapshot-codec'
 import type { FactsRow } from '@/lib/jobs/board-search-index'
 import { LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
 import { stillLive } from '@/lib/jobs/board-shortlist'
@@ -135,6 +135,16 @@ describe('search facts codec', () => {
   it('refuses a part in another format, so the caller reads the database', () => {
     expect(decodeFacts([{ v: 2, ids: [], strings: [] }])).toBeNull()
     expect(decodeFacts([null])).toBeNull()
+  })
+
+  it('reads one part at a time with decodeFactsPart, and checks a part before any is fed', () => {
+    const rows = [fact('a'), fact('b')]
+    const part = JSON.parse(JSON.stringify(encodeFactsPart(rows)))
+    expect(isFactsPart(part)).toBe(true)
+    expect(decodeFactsPart(part)).toEqual(rows)
+    expect(isFactsPart({ v: 2, ids: [], strings: [] })).toBe(false)
+    expect(isFactsPart(null)).toBe(false)
+    expect(decodeFactsPart({ v: 1 })).toBeNull()
   })
 
   it('keeps a part small enough that building one at a time adds little memory, and big enough to stay a few dozen objects', () => {
