@@ -112,6 +112,13 @@ function ShortUrl({ url, max = 'max-w-[26ch]' }: { url: string; max?: string }) 
   )
 }
 
+// The organization (and title) of the person an email went to, on its own line under their name.
+function RecipientOrg({ recipient }: { recipient: EmailRecipient }) {
+  const line = [recipient.title, recipient.orgName].filter(Boolean).join(' at ')
+  if (!line) return null
+  return <div className="text-xs text-muted-foreground">{line}</div>
+}
+
 function referrerHost(referrer: string): string {
   try {
     return new URL(referrer).hostname.replace(/^www\./, '')
@@ -528,6 +535,7 @@ export default async function AdminVisitorActivityPage({
                 {r.recipient.name}
               </Link>
               <span className="text-muted-foreground"> (clicked our email)</span>
+              <RecipientOrg recipient={r.recipient} />
             </>
           )
         }
@@ -539,6 +547,7 @@ export default async function AdminVisitorActivityPage({
                 {r.likelyRecipient.name}
               </Link>
               <span className="text-muted-foreground" title="Same IP address as their email click within the past 7 days. A guess, not a certain match."> (likely, same IP as their email click)</span>
+              <RecipientOrg recipient={r.likelyRecipient} />
             </>
           )
         }
