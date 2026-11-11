@@ -90,7 +90,8 @@ describe('clicks Resend recorded: visit to person', () => {
     const { inferPersonByClickIp } = await import('@/lib/marketing/email-attribution')
     const clicks = [{ ip: '9.9.9.9', at: t0, personId: 'p1' }]
     expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(20) }, clicks)).toBe('p1')
-    expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(-5) }, clicks)).toBeNull() // a visit before the click is not caused by it
+    expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(-5) }, clicks)).toBe('p1') // Resend logs the click a few seconds after our site logs the visit
+    expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(-4 * 60) }, clicks)).toBeNull()
     expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(11 * 60) }, clicks)).toBeNull()
     expect(inferPersonByClickIp({ ip: '8.8.8.8', createdAt: at(20) }, clicks)).toBeNull()
     expect(inferPersonByClickIp({ ip: null, createdAt: at(20) }, clicks)).toBeNull()

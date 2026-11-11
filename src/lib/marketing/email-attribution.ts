@@ -258,6 +258,9 @@ export function inferMailingTokenByIp(
 // A person's click on a list-email link comes from their own network; the visit to our site that follows comes from the
 // same address. That is the direct link between "we emailed them, they clicked" and "this visitor".
 export const CLICK_TO_VISIT_WINDOW_MS = 10 * 60 * 1000
+// Resend stamps a click when its event arrives, so our own log of the visit that click caused is often seconds, sometimes
+// a minute or two, earlier than the click (seen 2026-11-11: visits 3s to 90s before the click, same IP).
+export const CLICK_LEAD_WINDOW_MS = 3 * 60 * 1000
 
 export interface MailingClick {
   ip: string | null
@@ -265,16 +268,17 @@ export interface MailingClick {
   personId: string
 }
 
-/** The person whose click, from this visit's own IP in the ten minutes before it, is the nearest; null when two people tie. */
+/** The person whose click, from this visit's own IP within ten minutes before it (or up to three minutes after it: Resend logs late), is the nearest; null when two people tie. */
 export function inferPersonByClickIp(visit: { ip: string | null; createdAt: Date }, clicks: MailingClick[]): string | null {
   if (!visit.ip) return null
   const best = new Map<string, number>()
   for (const c of clicks) {
     if (c.ip !== visit.ip) continue
     const gap = visit.createdAt.getTime() - c.at.getTime()
-    if (gap < 0 || gap > CLICK_TO_VISIT_WINDOW_MS) continue
+    if (gap < -CLICK_LEAD_WINDOW_MS || gap > CLICK_TO_VISIT_WINDOW_MS) continue
+    const dist = Math.abs(gap)
     const prior = best.get(c.personId)
-    if (prior === undefined || gap < prior) best.set(c.personId, gap)
+    if (prior === undefined || dist < prior) best.set(c.personId, dist)
   }
   const ranked = Array.from(best.entries()).sort((x, y) => x[1] - y[1])
   if (ranked.length === 0) return null
