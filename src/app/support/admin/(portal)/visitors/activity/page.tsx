@@ -16,12 +16,13 @@ import { PAID_CHANNELS, paidChannelLabel } from '@/lib/admin/paid-channels'
 import { SemSpendForm } from '@/components/admin/SemSpendForm'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { isDatacenterIp } from '@/lib/http/datacenter-ip'
+import { loadScannerIps } from '@/lib/marketing/mail-scanners'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
-import { buildEmailIpAnchors, extractEmailLinkId, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor } from '@/lib/marketing/email-attribution'
+import { buildEmailIpAnchors, extractEmailLinkId, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
 import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
 import { segmentRangeSeries, type SegmentCountRow } from '@/lib/admin/visitor-segment-series'
 import { sourceSegment, type SourceSegment } from '@/lib/admin/visitor-source-segment'
@@ -63,6 +64,8 @@ interface Row {
   likelyRecipient: EmailRecipient | null
   // A mailing-list email visit whose token fits a few people and cannot be narrowed further.
   candidates: EmailRecipient[]
+  // An IP that opens the links in emails to many different people: a mail scanner, never a person.
+  scanner: boolean
   // Distinct recipients' unsubscribe links this IP has opened: a high number is a mail scanner shared by many people, not one person.
   mailRecipients: number
   // Emails this visitor gave us: the signup address of the account, or the address on a lead form submitted from the same IP.
@@ -118,9 +121,11 @@ function ShortUrl({ url, max = 'max-w-[26ch]' }: { url: string; max?: string }) 
 
 type LogRange = 'day' | 'week' | 'all'
 
-function botFilterSql(showBots: boolean): Prisma.Sql {
+function botFilterSql(showBots: boolean, scannerIps: Set<string>): Prisma.Sql {
+  if (showBots) return Prisma.sql`TRUE`
   const patterns = BOT_SIGNATURES.map((sig) => `%${sig}%`)
-  return showBots ? Prisma.sql`TRUE` : Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns})))`
+  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns})))`
+  return scannerIps.size > 0 ? Prisma.sql`${notBot} AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : notBot
 }
 
 type LogEvent = Awaited<ReturnType<typeof prisma.homepageVisitEvent.findMany<{ include: { candidate: { select: { id: true; firstName: true; lastName: true; email: true } } } }>>>
@@ -223,13 +228,20 @@ export default async function AdminVisitorActivityPage({
   const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sortByClicks ? 30 : null
   const logStart = logDays ? new Date(now().getTime() - logDays * DAY_MS) : null
   const rangeWhere = logStart ? { createdAt: { gte: logStart } } : {}
+  // Mail scanners are hidden with the bots: they open every link for every recipient, and are not people.
+  const scannerIps = await loadScannerIps().catch(() => new Set<string>())
   const where = showBots
     ? rangeWhere
     : {
         ...rangeWhere,
-        OR: [
-          { userAgent: null },
-          { NOT: BOT_SIGNATURES.map((s) => ({ userAgent: { contains: s, mode: 'insensitive' as const } })) },
+        AND: [
+          {
+            OR: [
+              { userAgent: null },
+              { NOT: BOT_SIGNATURES.map((s) => ({ userAgent: { contains: s, mode: 'insensitive' as const } })) },
+            ],
+          },
+          ...(scannerIps.size > 0 ? [{ OR: [{ ip: null }, { ip: { notIn: Array.from(scannerIps) } }] }] : []),
         ],
       }
   const etDay = Prisma.sql`to_char(("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/New_York', 'YYYY-MM-DD')`
@@ -237,7 +249,7 @@ export default async function AdminVisitorActivityPage({
 
   const current = now()
   const botPatterns = BOT_SIGNATURES.map((sig) => `%${sig}%`)
-  const botFilter = showBots ? Prisma.sql`TRUE` : Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${botPatterns})))`
+  const botFilter = botFilterSql(showBots, scannerIps)
   const since = (days: number) => new Date(current.getTime() - days * DAY_MS)
   const rangeSql = logStart ? Prisma.sql`"createdAt" >= ${logStart}` : Prisma.sql`TRUE`
 
@@ -246,7 +258,7 @@ export default async function AdminVisitorActivityPage({
   type BucketRow = { key: string; views: bigint; visitors: bigint }
   const [events, dayRows, hourRows, totalsRows] = await Promise.all([
     sortByClicks && logStart
-      ? loadEventsByClicks(botFilterSql(showBots), logStart, params.skip, params.take)
+      ? loadEventsByClicks(botFilter, logStart, params.skip, params.take)
       : prisma.homepageVisitEvent.findMany({
           where,
           orderBy: { createdAt: 'desc' },
@@ -516,6 +528,20 @@ export default async function AdminVisitorActivityPage({
   ].filter((t): t is string => !!t))
   const mailingByToken = mailingMatches.unique
 
+  // Clicks Resend recorded on list-email links, from these IPs in the ten minutes before the oldest visit shown: the person who
+  // clicked and the visit that follows from the same address. A missing table (before the migration) just means no clicks.
+  const clickRows =
+    uniqueIps.length > 0
+      ? await prisma.mailingClickEvent
+          .findMany({
+            where: { ip: { in: uniqueIps.filter((ip) => !scannerIps.has(ip) && !isDatacenterIp(ip)) }, clickedAt: { gte: new Date(oldestShown.getTime() - CLICK_TO_VISIT_WINDOW_MS), lte: newest } },
+            select: { ip: true, clickedAt: true, recipient: { select: { personId: true } } },
+          })
+          .catch(() => [])
+      : []
+  const mailingClicks: MailingClick[] = clickRows.flatMap((c) => (c.recipient.personId ? [{ ip: c.ip, at: c.clickedAt, personId: c.recipient.personId }] : []))
+  const clickPeople = await loadRecipientsByPersonId(mailingClicks.map((c) => c.personId))
+
   // Per-person totals: one row per IP, same bot rule as the log. "Person" is an IP — the best identity an
   // anonymous visit carries.
   const totalsByIp = new Map<string, { views: number; clicks: number; applyClicks: number; mail: number }>()
@@ -603,13 +629,20 @@ export default async function AdminVisitorActivityPage({
     candidate: e.candidate,
     inferredCandidate: !e.candidate && e.ip ? (inferredCandidateByIp.get(e.ip) ?? null) : null,
     source: e.eventType === 'PAGE_VIEW' ? classifyTrafficSource(e.path, e.referrer) : '—',
+    scanner: !!e.ip && scannerIps.has(e.ip),
     recipient: (() => {
+      if (e.ip && scannerIps.has(e.ip)) return null
       const id = extractEmailLinkId(e.path)
       if (id) return recipientByLink.get(id) ?? null
       const token = extractUnsubscribeToken(e.path)
       return token ? (mailingByToken.get(token) ?? null) : null
     })(),
     likelyRecipient: (() => {
+      if (e.ip && scannerIps.has(e.ip)) return null
+      if (!extractEmailLinkId(e.path) && !extractUnsubscribeToken(e.path)) {
+        const clicked = inferPersonByClickIp(e, mailingClicks)
+        if (clicked && clickPeople.has(clicked)) return clickPeople.get(clicked) ?? null
+      }
       const mailToken = extractEmailLinkId(e.path) || extractUnsubscribeToken(e.path) ? null : inferMailingTokenByIp(e, mailingAnchors, (t) => mailingByToken.get(t)?.personId)
       if (mailToken) return mailingByToken.get(mailToken) ?? null
       if (classifyUserAgent(e.userAgent) !== 'human' || isDatacenterIp(e.ip)) return null
@@ -617,6 +650,7 @@ export default async function AdminVisitorActivityPage({
       return id ? (recipientByLink.get(id) ?? null) : null
     })(),
     candidates: (() => {
+      if (e.ip && scannerIps.has(e.ip)) return []
       const token = extractUnsubscribeToken(e.path)
       return token && !mailingByToken.has(token) ? (mailingMatches.ambiguous.get(token) ?? []) : []
     })(),
@@ -626,7 +660,7 @@ export default async function AdminVisitorActivityPage({
       const found = new Map<string, { id: string; name: string }>()
       const link = extractEmailLinkId(e.path)
       const token = extractUnsubscribeToken(e.path)
-      const recipient = link ? recipientByLink.get(link) : token ? mailingByToken.get(token) : null
+      const recipient = e.ip && scannerIps.has(e.ip) ? null : link ? recipientByLink.get(link) : token ? mailingByToken.get(token) : null
       if (recipient) found.set(recipient.personId, { id: recipient.personId, name: recipient.name })
       for (const g of givenByEvent.get(e.id) ?? []) {
         const hit = crmByEmail.get(g.email.trim().toLowerCase())
@@ -650,6 +684,16 @@ export default async function AdminVisitorActivityPage({
       header: 'Visitor',
       cellClassName: 'max-w-[28ch]',
       render: (r) => {
+        if (r.scanner) {
+          return (
+            <span
+              className="font-medium text-muted-foreground"
+              title={`This address opened the links in emails to ${r.mailRecipients} different people. It is a mail-security scanner checking their messages, not a person visiting.`}
+            >
+              📧 Mail scanner
+            </span>
+          )
+        }
         const named = r.recipient ?? (!(r.candidate ?? r.inferredCandidate) ? r.likelyRecipient : null)
         if (named) {
           const certain = !!r.recipient
@@ -707,12 +751,12 @@ export default async function AdminVisitorActivityPage({
       render: (r) =>
         !r.ip ? (
           '—'
-        ) : r.mailRecipients >= 3 ? (
+        ) : r.scanner || r.mailRecipients >= 3 ? (
           <span
             className="text-muted-foreground"
             title={`This IP address opened the links in emails to ${r.mailRecipients} different people (${r.views} views, ${r.clicks} clicks in all). It is a mail scanner shared by many recipients, so its totals do not describe one person.`}
           >
-            Shared IP · {r.mailRecipients} people
+            {r.scanner ? 'Mail scanner' : 'Shared IP'} · {r.mailRecipients} people
           </span>
         ) : (
           <span title={`${r.views} views, ${r.clicks} clicks, ${r.applyClicks} apply clicks from this IP`}>

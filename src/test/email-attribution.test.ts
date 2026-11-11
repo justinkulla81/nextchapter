@@ -82,3 +82,23 @@ describe('mailing-list emails: unsubscribe token to person', () => {
     expect(inferMailingTokenByIp({ ip: '2.2.2.2', createdAt: at(500) }, [{ ip: '1.1.1.1', token: 'a', at: t0 }], (x) => person[x])).toBeNull()
   })
 })
+
+describe('clicks Resend recorded: visit to person', () => {
+  const t0 = new Date('2026-11-11T14:00:00Z')
+  const at = (s: number) => new Date(t0.getTime() + s * 1000)
+  it('names the person whose click came from the same IP in the ten minutes before the visit', async () => {
+    const { inferPersonByClickIp } = await import('@/lib/marketing/email-attribution')
+    const clicks = [{ ip: '9.9.9.9', at: t0, personId: 'p1' }]
+    expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(20) }, clicks)).toBe('p1')
+    expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(-5) }, clicks)).toBeNull() // a visit before the click is not caused by it
+    expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(11 * 60) }, clicks)).toBeNull()
+    expect(inferPersonByClickIp({ ip: '8.8.8.8', createdAt: at(20) }, clicks)).toBeNull()
+    expect(inferPersonByClickIp({ ip: null, createdAt: at(20) }, clicks)).toBeNull()
+  })
+  it('leaves a visit unnamed when two people clicked from one address at about the same time', async () => {
+    const { inferPersonByClickIp } = await import('@/lib/marketing/email-attribution')
+    const clicks = [{ ip: '9.9.9.9', at: t0, personId: 'p1' }, { ip: '9.9.9.9', at: at(30), personId: 'p2' }]
+    expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(40) }, clicks)).toBe('p2') // 10s after p2, 40s after p1: p2 is 4x closer
+    expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(50) }, clicks)).toBeNull() // 20s and 50s: not clearly closer
+  })
+})
