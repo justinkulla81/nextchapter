@@ -21,7 +21,7 @@ import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
-import { buildEmailIpAnchors, extractEmailLinkId, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, resolveEmailRecipients, type EmailRecipient } from '@/lib/marketing/email-attribution'
+import { buildEmailIpAnchors, extractEmailLinkId, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor } from '@/lib/marketing/email-attribution'
 import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
 import { segmentRangeSeries, type SegmentCountRow } from '@/lib/admin/visitor-segment-series'
 import { sourceSegment, type SourceSegment } from '@/lib/admin/visitor-source-segment'
@@ -406,6 +406,29 @@ export default async function AdminVisitorActivityPage({
     ...Array.from(ipAnchors.values()).flatMap((list) => list.map((a) => a.linkId)),
   ].filter((id): id is string => !!id))
 
+  // Mailing-list emails (the report, the newsletter): the unsubscribe link in the email names the recipient. A visit to it
+  // identifies them; a visit from the same IP within two minutes (the mail's scanner or the person opening the report) is theirs too.
+  const newest = events.reduce((max, e) => (e.createdAt > max ? e.createdAt : max), oldestShown)
+  const unsubscribeVisits =
+    uniqueIps.length > 0
+      ? await prisma.homepageVisitEvent.findMany({
+          where: {
+            ip: { in: uniqueIps },
+            path: { startsWith: '/updates/unsubscribe/' },
+            createdAt: { gte: new Date(oldestShown.getTime() - MAILING_IP_WINDOW_MS), lte: new Date(newest.getTime() + MAILING_IP_WINDOW_MS) },
+          },
+          select: { ip: true, path: true, createdAt: true },
+        })
+      : []
+  const mailingAnchors: MailingAnchor[] = unsubscribeVisits.flatMap((v) => {
+    const token = extractUnsubscribeToken(v.path)
+    return token ? [{ ip: v.ip, token, at: v.createdAt }] : []
+  })
+  const mailingByToken = await resolveMailingRecipients([
+    ...events.map((e) => extractUnsubscribeToken(e.path)),
+    ...mailingAnchors.map((a) => a.token),
+  ].filter((t): t is string => !!t))
+
   // Per-person totals: one row per IP, same bot rule as the log. "Person" is an IP — the best identity an
   // anonymous visit carries.
   const totalsByIp = new Map<string, { views: number; clicks: number; applyClicks: number }>()
@@ -494,9 +517,13 @@ export default async function AdminVisitorActivityPage({
     source: e.eventType === 'PAGE_VIEW' ? classifyTrafficSource(e.path, e.referrer) : '—',
     recipient: (() => {
       const id = extractEmailLinkId(e.path)
-      return id ? (recipientByLink.get(id) ?? null) : null
+      if (id) return recipientByLink.get(id) ?? null
+      const token = extractUnsubscribeToken(e.path)
+      return token ? (mailingByToken.get(token) ?? null) : null
     })(),
     likelyRecipient: (() => {
+      const mailToken = extractEmailLinkId(e.path) || extractUnsubscribeToken(e.path) ? null : inferMailingTokenByIp(e, mailingAnchors, (t) => mailingByToken.get(t)?.personId)
+      if (mailToken) return mailingByToken.get(mailToken) ?? null
       if (classifyUserAgent(e.userAgent) !== 'human' || isDatacenterIp(e.ip)) return null
       const id = inferEmailLinkByIp(e, ipAnchors, (linkId) => recipientByLink.get(linkId)?.personId)
       return id ? (recipientByLink.get(id) ?? null) : null
@@ -505,7 +532,8 @@ export default async function AdminVisitorActivityPage({
     crmPeople: (() => {
       const found = new Map<string, { id: string; name: string }>()
       const link = extractEmailLinkId(e.path)
-      const recipient = link ? recipientByLink.get(link) : null
+      const token = extractUnsubscribeToken(e.path)
+      const recipient = link ? recipientByLink.get(link) : token ? mailingByToken.get(token) : null
       if (recipient) found.set(recipient.personId, { id: recipient.personId, name: recipient.name })
       for (const g of givenByEvent.get(e.id) ?? []) {
         const hit = crmByEmail.get(g.email.trim().toLowerCase())
@@ -546,7 +574,7 @@ export default async function AdminVisitorActivityPage({
               <Link href={`/support/admin/crm/people/${r.likelyRecipient.personId}`} className="font-medium text-primary hover:underline">
                 {r.likelyRecipient.name}
               </Link>
-              <span className="text-muted-foreground" title="Same IP address as their email click within the past 7 days. A guess, not a certain match."> (likely, same IP as their email click)</span>
+              <span className="text-muted-foreground" title="Same IP address as a visit that named them: their email click within the past 7 days, or their unsubscribe link within two minutes. A strong guess, not a certain match."> (likely, same IP and time as their email link)</span>
               <RecipientOrg recipient={r.likelyRecipient} />
             </>
           )
