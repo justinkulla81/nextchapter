@@ -9,7 +9,7 @@ leadership / contact words, try a few common paths, fetch the best pages and rea
 job title, or a mailto link with a name beside it. Generic inboxes (info@, jobs@) are not people and are dropped.
 Polite: robots.txt honoured, one request at a time per host, 1 second apart, honest user agent, 12 second timeout, at most 8 pages per host.
 """
-import json, re, ssl, sys, threading, time, urllib.request, urllib.robotparser
+import json, os, re, ssl, sys, threading, time, urllib.request, urllib.robotparser
 from concurrent.futures import ThreadPoolExecutor
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
@@ -20,6 +20,12 @@ LINK = re.compile(r'\b(staff|our team|meet|team|leadership|directory|contact|abo
 STRONG = re.compile(r'\b(staff|our team|meet (the|our)|leadership|directory|team members|staff directory)\b', re.I)
 PATHS = ['/staff', '/our-staff', '/staff-directory', '/about/staff', '/about-us/staff', '/about/our-team', '/about-us/our-team', '/our-team', '/team',
          '/meet-the-team', '/about/leadership', '/leadership', '/contact', '/contact-us', '/about-us', '/about']
+# CRAWL_FOCUS overrides which links and paths count as a staff page, for a crawl aimed at one kind of person
+# (e.g. a community college's workforce, continuing education and adult education deans).
+_focus = os.environ.get('CRAWL_FOCUS')
+if _focus:
+    STRONG = re.compile(_focus, re.I); LINK = re.compile(_focus + r'|\b(staff|contact|leadership|directory|our team)\b', re.I)
+    PATHS = [x for x in os.environ.get('CRAWL_PATHS', '').split(',') if x] + ['/staff', '/contact', '/directory']
 TITLE = re.compile(r'\b(director|manager|coordinator|specialist|officer|administrator|supervisor|analyst|advisor|counselor|navigator|liaison|representative|'
                    r'chief|president|ceo|deputy|lead|planner|strategist|consultant|associate|assistant|executive|head of|vice president)\b', re.I)
 SKIPTITLE = re.compile(r'\b(board (chair|member)|chairman|vice[- ]chair|treasurer|trustee|commissioner|council ?(man|woman|member)|mayor|senator|governor)\b', re.I)
