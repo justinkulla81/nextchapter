@@ -76,11 +76,13 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
           <tbody>
             {versions.map((v, i) => (
               <tr key={v.id} className={`border-t border-border ${v.id === editionId ? 'bg-brand/5' : ''}`}>
-                <td className="px-3 py-1.5">
-                  {v.id === editionId
-                    ? <span className="font-medium">{v.title} <span className="text-xs font-normal text-muted-foreground">(this one)</span></span>
-                    : <Link href={`/support/admin/crm/mailing/editions/${v.id}`} className="font-medium text-brand hover:underline">{v.title}</Link>}
-                  {i === 0 && <span className="ml-1.5 text-xs text-muted-foreground">original</span>}
+                <td className="w-[26rem] max-w-[26rem] px-3 py-1.5">
+                  <div className="truncate" title={v.title}>
+                    {v.id === editionId
+                      ? <span className="font-medium">{v.title} <span className="text-xs font-normal text-muted-foreground">(this one)</span></span>
+                      : <Link href={`/support/admin/crm/mailing/editions/${v.id}`} className="font-medium text-brand hover:underline">{v.title}</Link>}
+                    {i === 0 && <span className="ml-1.5 text-xs text-muted-foreground">original</span>}
+                  </div>
                 </td>
                 <td className="whitespace-nowrap px-3 py-1.5">
                   {STATUS_LABEL[v.status]}{v.sentAt ? ` ${v.sentAt.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' })}` : ''}
@@ -91,7 +93,7 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
               </tr>
             ))}
             <tr className="border-t-2 border-border font-semibold">
-              <td className="px-3 py-1.5">All versions</td>
+              <td className="w-[26rem] max-w-[26rem] px-3 py-1.5">All versions</td>
               <td className="whitespace-nowrap px-3 py-1.5 text-xs font-normal text-muted-foreground">{people} {people === 1 ? 'person' : 'people'}</td>
               <td />
               <td className="px-3 py-1.5 tabular-nums">{scheduledPeople}</td>
