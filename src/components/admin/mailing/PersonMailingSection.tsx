@@ -3,6 +3,7 @@ import { activeLists, suggestionsFor } from '@/lib/mailing/lists'
 import { PersonMailingPanel } from './PersonMailingPanel'
 import { DoNotEmailToggle } from './DoNotEmailToggle'
 import { doNotEmailPeople } from '@/lib/mailing/lists'
+import { humanOpenCount, PREFETCH_OPEN_WINDOW_MS } from '@/lib/mailing/open-human'
 
 /** The person page's "Mailing lists and reports" section; loads its own data. */
 export async function PersonMailingSection({ personId, email }: { personId: string; email: string | null }) {
@@ -34,6 +35,15 @@ export async function PersonMailingSection({ personId, email }: { personId: stri
   })
   const reportKeys = [...new Set([...editions.map((x) => x.reportKey!), ...recentKeys])].sort().reverse()
 
+  // Opens are human opens only: an open within two minutes of delivery is Apple Mail or a mail scanner (see open-human.ts).
+  const recipientById = new Map(emails.map((x) => [x.id, x]))
+  const reportOpenedAt = (s: (typeof sends)[number]): Date | null => {
+    if (!s.openedAt) return null
+    const rec = s.editionRecipientId ? recipientById.get(s.editionRecipientId) : null
+    if (rec) return humanOpenCount(rec) > 0 ? s.openedAt : null
+    return s.openedAt.getTime() - s.sentAt.getTime() > PREFETCH_OPEN_WINDOW_MS ? s.openedAt : null
+  }
+
   const doNotEmail = (await doNotEmailPeople()).personIds.has(personId)
 
   return (
@@ -49,14 +59,14 @@ export async function PersonMailingSection({ personId, email }: { personId: stri
       suggested={suggestions.get(personId) ?? ['monthly_update']}
       reportSends={sends.map((s) => ({
         editionKey: s.editionKey, method: s.method, channel: s.channel, sentAt: s.sentAt.toISOString(),
-        openedAt: s.openedAt?.toISOString() ?? null, clickedAt: s.clickedAt?.toISOString() ?? null, repliedAt: s.repliedAt?.toISOString() ?? null,
+        openedAt: reportOpenedAt(s)?.toISOString() ?? null, clickedAt: s.clickedAt?.toISOString() ?? null, repliedAt: s.repliedAt?.toISOString() ?? null,
       }))}
       reportKeys={reportKeys}
       suppressed={suppression?.reason ?? null}
       listEmails={emails.map((r) => ({
         id: r.id, editionId: r.edition.id, title: r.edition.title, subject: r.edition.subject, email: r.email, failed: r.status === 'FAILED',
         sentAt: r.sentAt?.toISOString() ?? null, deliveredAt: r.deliveredAt?.toISOString() ?? null,
-        openCount: r.openCount, clickCount: r.clickCount, repliedAt: r.repliedAt?.toISOString() ?? null,
+        openCount: humanOpenCount(r), clickCount: r.clickCount, repliedAt: r.repliedAt?.toISOString() ?? null,
         bouncedAt: r.bouncedAt?.toISOString() ?? null, unsubscribedAt: r.unsubscribedAt?.toISOString() ?? null,
       }))}
     />
