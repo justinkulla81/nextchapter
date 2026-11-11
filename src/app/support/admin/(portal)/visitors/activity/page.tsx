@@ -226,18 +226,19 @@ async function loadEventsByVisitor(
 }
 
 // Day / week and newest / most clicks: adjacent buttons (links), the current choice marked.
-function LogControls({ range, sort, showBots, email, type }: { range: LogRange; sort: VisitorSort | null; showBots: boolean; email: EmailFilter | null; type: string | null }) {
-  const href = (r: LogRange, by: VisitorSort | null, bots: boolean = showBots, em: EmailFilter | null = email) => {
+function LogControls({ range, sort, showBots, email, type, unique }: { range: LogRange; sort: VisitorSort | null; showBots: boolean; email: EmailFilter | null; type: string | null; unique: boolean }) {
+  const href = (r: LogRange, by: VisitorSort | null, bots: boolean = showBots, em: EmailFilter | null = email, uq: boolean = unique) => {
     const q = new URLSearchParams()
     if (bots) q.set('bots', 'show')
     if (r !== 'all') q.set('range', r)
     if (by) q.set('sort', by)
     if (em) q.set('email', em)
     if (type) q.set('type', type)
+    if (uq) q.set('unique', '1')
     const qs = q.toString()
     return `/support/admin/visitors/activity${qs ? `?${qs}` : ''}`
   }
-  const context = { range, sort, bots: showBots, email, type }
+  const context = { range, sort, bots: showBots, email, type, unique }
   const button = (active: boolean) =>
     `rounded-md border px-3 py-1.5 text-sm ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted'}`
   const ranges: { key: LogRange; label: string }[] = [
@@ -272,6 +273,13 @@ function LogControls({ range, sort, showBots, email, type }: { range: LogRange; 
           Most views first
         </TrackedFilterLink>
       </nav>
+      <nav aria-label="Visitors" className="flex gap-2">
+        {([{ on: false, label: 'Every visit' }, { on: true, label: 'Unique only' }] as const).map((o) => (
+          <TrackedFilterLink filter="unique" value={o.on ? 'unique_only' : 'every_visit'} context={context} key={o.label} href={href(range, sort, showBots, email, o.on)} aria-current={unique === o.on ? 'true' : undefined} className={button(unique === o.on)}>
+            {o.label}
+          </TrackedFilterLink>
+        ))}
+      </nav>
       <nav aria-label="Email and CRM" className="flex gap-2">
         {([{ key: null, label: 'Email and CRM: both' }, { key: 'yes', label: 'Email or CRM: yes' }, { key: 'no', label: 'Email or CRM: no' }] as const).map((o) => (
           <TrackedFilterLink filter="email_crm" value={o.key ?? 'both'} context={context} key={o.label} href={href(range, sort, showBots, o.key)} aria-current={email === o.key ? 'true' : undefined} className={button(email === o.key)}>
@@ -284,9 +292,11 @@ function LogControls({ range, sort, showBots, email, type }: { range: LogRange; 
         {range !== 'all' && <input type="hidden" name="range" value={range} />}
         {sort && <input type="hidden" name="sort" value={sort} />}
         {email && <input type="hidden" name="email" value={email} />}
+        {unique && <input type="hidden" name="unique" value="1" />}
         <label htmlFor="visitor-type" className="text-sm text-muted-foreground">Visitor type</label>
         <select id="visitor-type" name="type" defaultValue={type ?? ''} className="rounded-md border border-border bg-background px-3 py-1.5 text-sm">
           <option value="">All types</option>
+          <option value="not-candidate">Everyone except candidates</option>
           {VISITOR_USER_TYPES.map((t) => (
             <option key={t} value={userTypeSlug(t)}>{t}</option>
           ))}
@@ -294,7 +304,9 @@ function LogControls({ range, sort, showBots, email, type }: { range: LogRange; 
         <button type="submit" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">Show this type</button>
       </TrackedTypeForm>
       {type && <p className="text-xs text-muted-foreground">The type filter looks at the {TYPE_SCAN_LIMIT} most recent visitors in the last 30 days (or the range chosen, if shorter), each counted once.</p>}
-      {(sort || email) && range === 'all' && <p className="text-xs text-muted-foreground">Most clicks, most views and the email filter look at the last 30 days, the longest span they count over.{sort ? ' Each visitor (IP address) appears once.' : ''}</p>}
+      {type === 'not-candidate' && <p className="text-xs text-muted-foreground">Everyone except candidates leaves out visitors we cannot place (Unknown) as well as candidates.</p>}
+      {unique && <p className="text-xs text-muted-foreground">Unique only shows each visitor (IP address) once, on their latest visit.</p>}
+      {(sort || email || unique) && range === 'all' && <p className="text-xs text-muted-foreground">Most clicks, most views, unique only and the email filter look at the last 30 days, the longest span they count over.{sort ? ' Each visitor (IP address) appears once.' : ''}</p>}
       {sort && range !== 'all' && <p className="text-xs text-muted-foreground">Each visitor (IP address) appears once, on their latest visit.</p>}
       {email && <p className="text-xs text-muted-foreground">Yes means we hold an email for the visitor&apos;s IP address: an account, an email link they came through, or a lead form or sign-up from it. No means none of those.</p>}
     </div>
@@ -339,9 +351,12 @@ export default async function AdminVisitorActivityPage({
   const sort: VisitorSort | null = rawParams.sort === 'clicks' || rawParams.sort === 'views' ? rawParams.sort : null
   const email: EmailFilter | null = rawParams.email === 'yes' || rawParams.email === 'no' ? rawParams.email : null
   const typeFilter: VisitorUserType | null = (rawParams.type && USER_TYPE_SLUGS[rawParams.type]) || null
-  const typeParam = typeFilter ? userTypeSlug(typeFilter) : null
+  const notCandidate = rawParams.type === 'not-candidate'
+  const typeActive = !!typeFilter || notCandidate
+  const typeParam = typeFilter ? userTypeSlug(typeFilter) : notCandidate ? 'not-candidate' : null
+  const unique = rawParams.unique === '1'
   // Counting clicks or views per visitor is a window over the rows in range, so it never runs over the whole table: all time reads 30 days.
-  const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sort || email || typeFilter ? 30 : null
+  const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sort || email || typeActive || unique ? 30 : null
   const logStart = logDays ? new Date(now().getTime() - logDays * DAY_MS) : null
   // Mail scanners are hidden with the bots: they open every link for every recipient, and are not people.
   const scannerIps = await loadScannerIps().catch(() => new Set<string>())
@@ -364,8 +379,8 @@ export default async function AdminVisitorActivityPage({
   const viewsLabel = showBots ? 'Page views, all traffic' : 'Human page views'
   type BucketRow = { key: string; views: bigint; visitors: bigint }
   const [loaded, dayRows, hourRows, totalsRows] = await Promise.all([
-    (sort || email || typeFilter) && logStart
-      ? loadEventsByVisitor(botFilter, logStart, typeFilter ? 0 : params.skip, typeFilter ? TYPE_SCAN_LIMIT : params.take, sort, email, !!sort || !!typeFilter)
+    (sort || email || typeActive || unique) && logStart
+      ? loadEventsByVisitor(botFilter, logStart, typeActive ? 0 : params.skip, typeActive ? TYPE_SCAN_LIMIT : params.take, sort, email, !!sort || typeActive || unique)
       : loadEventsNewest(botFilter, rangeSql, params.skip, params.take),
     // The charts read counts grouped by Eastern day and hour in the database, not every raw event.
     prisma.$queryRaw<BucketRow[]>(Prisma.sql`
@@ -820,12 +835,12 @@ export default async function AdminVisitorActivityPage({
   })
 
   // With a type chosen, the scan above covered the most recent visitors; page through the ones that match.
-  const matching = typeFilter ? typedRows.filter((r) => r.userType === typeFilter) : typedRows
-  const shown = typeFilter ? matching.slice(params.skip, params.skip + params.take) : matching
+  const matching = typeFilter ? typedRows.filter((r) => r.userType === typeFilter) : notCandidate ? typedRows.filter((r) => r.userType !== 'Candidate' && r.userType !== 'Unknown') : typedRows
+  const shown = typeActive ? matching.slice(params.skip, params.skip + params.take) : matching
   // One lookup per unique IP on the page shown, not per row scanned (ip-api.com's free tier allows about 45 a minute).
   const shownIps = Array.from(new Set(shown.map((r) => r.ip).filter((ip): ip is string => !!ip)))
   const locationByIp = new Map(await Promise.all(shownIps.map(async (ip) => [ip, formatIpLocation(await lookupIpLocation(ip))] as const)))
-  const result = paginatedResult(shown.map((r) => ({ ...r, location: r.ip ? (locationByIp.get(r.ip) ?? null) : null })), typeFilter ? matching.length : total, params)
+  const result = paginatedResult(shown.map((r) => ({ ...r, location: r.ip ? (locationByIp.get(r.ip) ?? null) : null })), typeActive ? matching.length : total, params)
 
   const columns: AdminColumn<Row>[] = [
     { header: 'When', cellClassName: 'tabular-nums text-muted-foreground', render: (r) => formatAdminShortDateTime(r.createdAt) },
@@ -1117,7 +1132,7 @@ export default async function AdminVisitorActivityPage({
         </div>
       </div>
 
-      <LogControls range={logRange} sort={sort} showBots={showBots} email={email} type={typeParam} />
+      <LogControls range={logRange} sort={sort} showBots={showBots} email={email} type={typeParam} unique={unique} />
 
       <AdminDataTable
         columns={columns}
@@ -1130,7 +1145,7 @@ export default async function AdminVisitorActivityPage({
           totalPages: result.totalPages,
           total: result.total,
           basePath: '/support/admin/visitors/activity',
-          baseParams: { ...(showBots ? { bots: 'show' } : {}), ...(logRange !== 'all' ? { range: logRange } : {}), ...(sort ? { sort } : {}), ...(email ? { email } : {}), ...(typeParam ? { type: typeParam } : {}) },
+          baseParams: { ...(showBots ? { bots: 'show' } : {}), ...(logRange !== 'all' ? { range: logRange } : {}), ...(sort ? { sort } : {}), ...(email ? { email } : {}), ...(typeParam ? { type: typeParam } : {}), ...(unique ? { unique: '1' } : {}) },
         }}
       />
     </div>
