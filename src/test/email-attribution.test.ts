@@ -50,3 +50,33 @@ describe('email attribution by IP', () => {
     expect(inferEmailLinkByIp(later, same, personOf)).toBe('clinkcccccccccc')
   })
 })
+
+describe('mailing-list emails: unsubscribe token to person', () => {
+  const enc = (s: string) => Buffer.from(s).toString('base64url')
+  it('reads the token off an unsubscribe landing path', async () => {
+    const { extractUnsubscribeToken } = await import('@/lib/marketing/email-attribution')
+    expect(extractUnsubscribeToken('/updates/unsubscribe/YUdWaGRHaG')).toBe('YUdWaGRHaG')
+    expect(extractUnsubscribeToken('/updates/other/YUdWaGRHaG')).toBeNull()
+    expect(extractUnsubscribeToken(null)).toBeNull()
+  })
+  it('fits a stored prefix to the once- or twice-encoded address, case-insensitively', async () => {
+    const { unsubscribeTokenFitsEmail } = await import('@/lib/marketing/email-attribution')
+    const email = 'Heather.Lee@example.com'
+    const once = enc(email.toLowerCase())
+    const twice = enc(once)
+    expect(unsubscribeTokenFitsEmail(twice.slice(0, 10), email)).toBe(true)
+    expect(unsubscribeTokenFitsEmail(once, email)).toBe(true)
+    expect(unsubscribeTokenFitsEmail(twice.slice(0, 10), 'someone.else@example.com')).toBe(false)
+  })
+  it('names a same-IP visit only when one person is within two minutes', async () => {
+    const { inferMailingTokenByIp } = await import('@/lib/marketing/email-attribution')
+    const t0 = new Date('2026-11-11T14:36:00Z')
+    const person: Record<string, string> = { a: 'p1', b: 'p2' }
+    const at = (s: number) => new Date(t0.getTime() + s * 1000)
+    const visit = { ip: '1.1.1.1', createdAt: at(1) }
+    expect(inferMailingTokenByIp(visit, [{ ip: '1.1.1.1', token: 'a', at: t0 }], (t) => person[t])).toBe('a')
+    expect(inferMailingTokenByIp(visit, [{ ip: '1.1.1.1', token: 'a', at: t0 }, { ip: '1.1.1.1', token: 'b', at: at(30) }], (t) => person[t])).toBeNull()
+    expect(inferMailingTokenByIp({ ip: '1.1.1.1', createdAt: at(600) }, [{ ip: '1.1.1.1', token: 'a', at: t0 }], (t) => person[t])).toBeNull()
+    expect(inferMailingTokenByIp({ ip: '2.2.2.2', createdAt: at(1) }, [{ ip: '1.1.1.1', token: 'a', at: t0 }], (t) => person[t])).toBeNull()
+  })
+})

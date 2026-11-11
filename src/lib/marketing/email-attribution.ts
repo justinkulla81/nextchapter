@@ -135,3 +135,88 @@ export function inferEmailLinkByIp(
   if (people.size !== 1) return null
   return nearby[nearby.length - 1].linkId
 }
+
+// ── Mailing-list emails (the monthly report, the newsletter) ─────────────────────────────────────────────────────────
+// These links carry no nc_e tag, but every one has an unsubscribe link whose token starts with the recipient's address
+// encoded in base64 (the visit log keeps only the first characters of it). Match that prefix against the people the
+// edition was sent to. A prefix that fits more than one recipient is not used: a wrong name is worse than none.
+const UNSUBSCRIBE_PATH = /^\/updates\/unsubscribe\/([A-Za-z0-9_-]{6,})/
+
+/** The unsubscribe token (or its stored prefix) on a landing path, or null. */
+export function extractUnsubscribeToken(path: string | null): string | null {
+  const m = path ? UNSUBSCRIBE_PATH.exec(path) : null
+  return m ? m[1] : null
+}
+
+const b64url = (s: string) => Buffer.from(s, 'utf-8').toString('base64url')
+
+/** True when the token (or stored prefix of it) is the start of this address's encoded form, once or twice encoded. */
+export function unsubscribeTokenFitsEmail(token: string, email: string): boolean {
+  const once = b64url(email.toLowerCase())
+  return once.startsWith(token) || b64url(once).startsWith(token)
+}
+
+export const MAILING_MATCH_WINDOW_DAYS = 21
+
+/** Unsubscribe token -> the one person it belongs to among recent edition recipients. Unmatched and ambiguous tokens are left out. */
+export async function resolveMailingRecipients(tokens: string[], now = new Date()): Promise<Map<string, EmailRecipient>> {
+  const wanted = Array.from(new Set(tokens))
+  if (wanted.length === 0) return new Map()
+  // About a thousand rows in three weeks; only four narrow columns are read.
+  const recent = await prisma.mailingEditionRecipient.findMany({
+    where: { sentAt: { gte: new Date(now.getTime() - MAILING_MATCH_WINDOW_DAYS * 86_400_000) }, personId: { not: null } },
+    select: { email: true, personId: true },
+    take: 20000,
+  })
+  const personByToken = new Map<string, Set<string>>()
+  for (const token of wanted) {
+    const people = new Set<string>()
+    for (const r of recent) if (r.personId && unsubscribeTokenFitsEmail(token, r.email)) people.add(r.personId)
+    personByToken.set(token, people)
+  }
+  const unique = Array.from(personByToken.entries()).filter(([, people]) => people.size === 1)
+  if (unique.length === 0) return new Map()
+  const people = await prisma.crmPerson.findMany({
+    where: { id: { in: unique.map(([, ids]) => Array.from(ids)[0]) } },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      affiliations: { where: { isCurrent: true }, orderBy: [{ isPrimary: 'desc' }, { createdAt: 'desc' }], take: 1, select: { title: true, org: { select: { name: true } } } },
+    },
+  })
+  const byId = new Map(people.map((p) => [p.id, p] as const))
+  const out = new Map<string, EmailRecipient>()
+  for (const [token, ids] of unique) {
+    const person = byId.get(Array.from(ids)[0])
+    if (!person) continue
+    const job = person.affiliations[0]
+    out.set(token, { personId: person.id, name: person.fullName, email: person.email, subject: null, orgName: job?.org.name ?? null, title: job?.title ?? null })
+  }
+  return out
+}
+
+/** Visits within this long of a visit that names someone, from the same IP, are that person's mail opening the rest of the email. */
+export const MAILING_IP_WINDOW_MS = 2 * 60 * 1000
+
+export interface MailingAnchor {
+  ip: string | null
+  token: string
+  at: Date
+}
+
+/** The token of the one person this visit probably belongs to (same IP, within two minutes of an unsubscribe-link visit), or null. */
+export function inferMailingTokenByIp(
+  visit: { ip: string | null; createdAt: Date },
+  anchors: MailingAnchor[],
+  personIdOfToken: (token: string) => string | undefined
+): string | null {
+  if (!visit.ip) return null
+  const near = anchors.filter((a) => a.ip === visit.ip && Math.abs(a.at.getTime() - visit.createdAt.getTime()) <= MAILING_IP_WINDOW_MS)
+  const people = new Set<string>()
+  for (const a of near) {
+    const id = personIdOfToken(a.token)
+    if (id) people.add(id)
+  }
+  return people.size === 1 ? near.find((a) => personIdOfToken(a.token))!.token : null
+}
