@@ -26,6 +26,7 @@ import { PREFETCH_OPEN_WINDOW_MS } from '@/lib/mailing/open-human'
 import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
 import { segmentRangeSeries, type SegmentCountRow } from '@/lib/admin/visitor-segment-series'
 import { sourceSegment, type SourceSegment } from '@/lib/admin/visitor-source-segment'
+import { loadVisitorTypeCounts, visitorTypeSeries } from '@/lib/admin/visitor-day-types'
 import { VisitorsSegmentChart, type SegmentChartLine } from '@/components/admin/VisitorsSegmentChart'
 import { TrackedFilterLink, TrackedTypeForm } from '@/components/admin/VisitorFilterTracking'
 import { USER_TYPE_SLUGS, VISITOR_USER_TYPES, userTypeFromCrm, userTypeFromLandingPath, userTypeSlug, type UserTypeBasis, type VisitorUserType } from '@/lib/admin/visitor-user-type'
@@ -481,6 +482,14 @@ export default async function AdminVisitorActivityPage({
       { label: `${name}: unique visitors`, color: sourceColors[name], dashed: true, data: s.visitors },
     ]
   })
+
+  // Visitors by type: one line per type from the stored daily snapshot (VisitorDayType). A missing table (before the migration) shows an empty chart.
+  const typeColors = ['var(--color-brand)', 'var(--color-orange)', 'var(--color-success)', 'var(--color-navy)', 'var(--color-light-blue)', 'var(--color-accent-employer)', 'var(--color-accent-coach)', 'var(--color-error)', 'var(--color-warning)', 'var(--color-accent-recruiter)', 'var(--color-gray)']
+  const typeLines: SegmentChartLine[] = visitorTypeSeries(await loadVisitorTypeCounts().catch(() => []), current, allTimeDays).map((t, i) => ({
+    label: t.userType,
+    color: typeColors[i % typeColors.length],
+    data: { day: t.series['7d'], '7d': t.series['7d'], '30d': t.series['30d'], all: t.series.all },
+  }))
 
   const toDaysRows = (rows: { key: string; count: number }[]) => rows.map((d) => ({ dateKey: d.key, count: d.count }))
   // Emails captured per day: every form on the public site plus new registrations.
@@ -1055,6 +1064,14 @@ export default async function AdminVisitorActivityPage({
         </p>
         <VisitorsSegmentChart chart="social_linkedin_email" lines={sourceLines} emptyMessage="No visits from these sources in this window yet." />
       </div>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-border p-4">
+        <h2 className="text-sm font-medium text-foreground">Visitors by type</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Human visitors per day, one line per type. A visitor is typed from the CRM (an email or unsubscribe link, a click, an address they gave), then a signed-in account, then the first page they landed on; everyone else is Unknown. Counted once per day per IP and saved each day, so it covers every day since the snapshot started.
+        </p>
+        <VisitorsSegmentChart chart="visitors_by_type" lines={typeLines} ranges={['7d', '30d', 'all']} note="Visitors per day (one per IP), bots excluded." emptyMessage="No typed visitors saved yet." />
       </div>
       </TrafficRangeProvider>
 

@@ -18263,3 +18263,17 @@ model SemSpend {
 
   @@id([day, channel, segment])
 }
+
+/// One row per visitor (IP) per Eastern day, with the type the visit log would give them (see src/lib/admin/visitor-day-types.ts).
+/// Written by the visitor-day-types cron; the Visitors > Activity "Visitors by type" chart reads it instead of re-matching visits.
+model VisitorDayType {
+  day       String // ET day, YYYY-MM-DD
+  ip        String
+  userType  String
+  basis     String // CRM | account | landing page | none
+  views     Int
+  createdAt DateTime @default(now())
+
+  @@id([day, ip])
+  @@index([day, userType])
+}
