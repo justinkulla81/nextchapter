@@ -22,8 +22,8 @@ function stats(rows: Row[]): Stats {
   }
 }
 
-const isWaiting = (r: Row) => r.status === 'PENDING' && !r.excluded
-const waiting = (rows: Row[]) => rows.filter(isWaiting).length
+/** Everyone on a version's list: sent, still waiting or failed, but not the people left off it. */
+const onList = (rows: Row[]) => new Set(rows.filter((r) => !r.excluded).map((r) => r.email)).size
 
 /** "Nov 12, 8:00 AM ET": the owner reads send times in Eastern. */
 const scheduledTime = (d: Date) =>
@@ -48,10 +48,8 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
   const all = versions.flatMap((v) => v.recipients)
   const together = stats(all)
   const people = new Set(all.filter((r) => r.status === 'SENT' && !r.excluded).map((r) => r.email)).size
-  // Distinct people still to be sent to by a version that is scheduled.
-  const scheduledPeople = new Set(
-    versions.filter((v) => v.status === 'SCHEDULED').flatMap((v) => v.recipients.filter(isWaiting).map((r) => r.email)),
-  ).size
+  // Distinct people on any version's list: someone on two versions counts once.
+  const peopleOnLists = onList(all)
   const cells = (s: Stats) => [
     s.sent, s.delivered, s.opened, s.opens, s.clicked, s.clicks, s.replied, s.bounced, s.unsubscribed,
   ]
@@ -73,7 +71,7 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
         <table className="w-full text-sm">
           <thead className="bg-muted text-left">
             <tr>
-              {['Version', 'Status', 'Scheduled for', 'People scheduled', 'Sent', 'Delivered', 'Opened', 'Opens', 'Clicked', 'Clicks', 'Replied', 'Bounced', 'Unsubscribed'].map((h) => (
+              {['Version', 'Status', 'Scheduled for', 'People in list', 'Sent', 'Delivered', 'Opened', 'Opens', 'Clicked', 'Clicks', 'Replied', 'Bounced', 'Unsubscribed'].map((h) => (
                 <th key={h} className="whitespace-nowrap px-3 py-2 font-medium">{h}</th>
               ))}
             </tr>
@@ -93,7 +91,7 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
                   {STATUS_LABEL[v.status]}{v.sentAt ? ` ${v.sentAt.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' })}` : ''}
                 </td>
                 <td className="whitespace-nowrap px-3 py-1.5">{v.status === 'SCHEDULED' && v.scheduledAt ? scheduledTime(v.scheduledAt) : '—'}</td>
-                <td className="px-3 py-1.5 tabular-nums">{v.status === 'SCHEDULED' ? waiting(v.recipients) : '—'}</td>
+                <td className="px-3 py-1.5 tabular-nums">{onList(v.recipients)}</td>
                 {cells(stats(v.recipients)).map((c, j) => <td key={j} className="px-3 py-1.5 tabular-nums">{c}</td>)}
               </tr>
             ))}
@@ -101,7 +99,7 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
               <td className="w-[26rem] max-w-[26rem] px-3 py-1.5">All versions</td>
               <td className="whitespace-nowrap px-3 py-1.5 text-xs font-normal text-muted-foreground">{people} {people === 1 ? 'person' : 'people'}</td>
               <td />
-              <td className="px-3 py-1.5 tabular-nums">{scheduledPeople}</td>
+              <td className="px-3 py-1.5 tabular-nums">{peopleOnLists}</td>
               {cells(together).map((c, j) => <td key={j} className="px-3 py-1.5 tabular-nums">{c}</td>)}
             </tr>
           </tbody>
