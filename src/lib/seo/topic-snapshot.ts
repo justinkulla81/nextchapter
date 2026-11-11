@@ -18,6 +18,13 @@ export const SNAPSHOT_PEAK_MAX_AGE_MS = 96 * 3600_000
 /** Off-peak hours (UTC) when the cron refreshes everything that is due: the board is quietest then. */
 export const OFF_PEAK_HOURS_UTC = [2, 3, 4, 5, 6, 7]
 
+/**
+ * The search-firm list scan is the heaviest read this cron runs and has failed after about 120 s on most attempts, so it is tried
+ * twice a night (02:xx and 05:xx UTC, off-peak) instead of every hour once it is a day old. A manual run always tries.
+ */
+export const FIRM_REFRESH_HOURS_UTC = [2, 5]
+export const firmRefreshAllowed = (now: number, manual = false): boolean => manual || FIRM_REFRESH_HOURS_UTC.includes(new Date(now).getUTCHours())
+
 export interface DueTopic<F> { f: F; key: string; at: number }
 
 /** Which topics to refresh now, stalest first. A manual run ignores the window. */
