@@ -76,7 +76,7 @@ export async function getCommunityFeed(limit = 20): Promise<CommunityFeedItem[]>
   }
 
   const activeStreaks = await prisma.candidateProfile.findMany({
-    where: { currentStreak: { gte: 7 }, privacyTier: { not: 'LOCKED' } },
+    where: { currentStreak: { gte: 7 }, privacyTier: { not: 'LOCKED' }, isSampleData: false, isSystemAccount: false },
     orderBy: { currentStreak: 'desc' },
     take: 10,
   })

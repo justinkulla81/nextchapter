@@ -20,7 +20,7 @@ export interface SurgeSignal {
 export async function getSurgeSignal(): Promise<SurgeSignal> {
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
   const [newSignupsLast24h, benchCoachCount, settings] = await Promise.all([
-    prisma.candidateProfile.count({ where: { registrationCompletedAt: { gte: oneDayAgo } } }),
+    prisma.candidateProfile.count({ where: { isSampleData: false, isSystemAccount: false, registrationCompletedAt: { gte: oneDayAgo } } }),
     prisma.coach.count({ where: { isOnCallBench: true, isSampleData: false } }),
     getCoachingSettings(),
   ])

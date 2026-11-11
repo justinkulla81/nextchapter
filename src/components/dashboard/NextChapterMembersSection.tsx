@@ -24,6 +24,7 @@ export async function NextChapterMembersSection({
   const where: Prisma.CandidateProfileWhereInput = {
     id: { not: viewerCandidateId },
     isSystemAccount: false,
+    isSampleData: false,
     confidentialSearchMode: false,
     privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC'] },
     ...(query

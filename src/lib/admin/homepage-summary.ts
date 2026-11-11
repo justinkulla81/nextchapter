@@ -135,10 +135,10 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     sprintTargetCount,
   ] = await Promise.all([
     prisma.eqOverIqContributorProfile.count({ where: { submittedAt: { not: null }, status: 'PENDING' } }),
-    prisma.candidateProfile.count({ where: { registrationCompletedAt: { gte: sevenDaysAgo } } }),
-    prisma.candidateProfile.count({ where: { recruiterDatabaseRequestedAt: { gte: sevenDaysAgo } } }),
+    prisma.candidateProfile.count({ where: { ...EXCLUDE_SYSTEM_ACCOUNT, registrationCompletedAt: { gte: sevenDaysAgo } } }),
+    prisma.candidateProfile.count({ where: { ...EXCLUDE_SYSTEM_ACCOUNT, recruiterDatabaseRequestedAt: { gte: sevenDaysAgo } } }),
     prisma.candidateProfile.count({ where: EXCLUDE_SYSTEM_ACCOUNT }),
-    prisma.candidateProfile.count({ where: { registrationCompletedAt: { not: null } } }),
+    prisma.candidateProfile.count({ where: { ...EXCLUDE_SYSTEM_ACCOUNT, registrationCompletedAt: { not: null } } }),
     prisma.coach.count(),
     prisma.recruiter.count(),
     prisma.employerProfile.count(), // Talent portal employers

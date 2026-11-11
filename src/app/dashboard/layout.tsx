@@ -174,7 +174,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="theme-candidate theme-redesign min-h-screen">
-      <IdentifyUser candidateId={profile.id} email={profile.email} />
+      {/* Demo accounts are fictional; identifying them would put them in PostHog's people and funnels. */}
+      {!profile.isSampleData && <IdentifyUser candidateId={profile.id} email={profile.email} />}
       <DashboardActivityTracker />
       <PendingNetworkJoin className="lg:ml-72" />
       {/* "Retuning your search": shown after any save that changes matching, on whatever page it lands. */}

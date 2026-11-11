@@ -34,6 +34,7 @@ export default async function UniversitiesIndexPage() {
         where: {
           id: { not: profile.id },
           isSystemAccount: false,
+          isSampleData: false,
           confidentialSearchMode: false,
           privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC'] },
           educationHistory: { some: { schoolNameNormalized: s.schoolNameNormalized } },
