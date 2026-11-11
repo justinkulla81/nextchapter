@@ -145,3 +145,12 @@ describe('tagMailingLinks', () => {
     expect(tagMailingLinks(html, 'bad id', 'html')).toBe(html)
   })
 })
+
+describe('dropPeopleOnSeveralAddresses', () => {
+  it('names nobody when a time match would put one person on several addresses (scanner burst)', async () => {
+    const { dropPeopleOnSeveralAddresses } = await import('@/lib/marketing/email-attribution')
+    const ips: Record<string, string> = { a: '1.1.1.1', b: '2.2.2.2', c: '3.3.3.3', d: '3.3.3.3' }
+    const out = dropPeopleOnSeveralAddresses(new Map([['a', ['briana']], ['b', ['briana']], ['c', ['cory']], ['d', ['cory']]]), (id) => ips[id])
+    expect(Array.from(out.keys())).toEqual(['c', 'd'])
+  })
+})
