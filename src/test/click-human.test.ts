@@ -19,6 +19,10 @@ describe('which list-email clicks are a person', () => {
     expect(isHumanClick(click({ ip: '203.0.113.7' }), new Set(['203.0.113.7']))).toBe(false)
     expect(isHumanClick(click({ userAgent: 'Mozilla/5.0 (compatible; Googlebot/2.1)' }), new Set())).toBe(false)
   })
+  it('does not count a click from a private or loopback address', () => {
+    for (const ip of ['10.234.14.96', '192.168.1.5', '172.20.0.1', '127.0.0.1', '100.100.1.1', 'fd00::1']) expect(isHumanClick(click({ ip }), new Set())).toBe(false)
+    expect(isHumanClick(click({ ip: '172.32.0.1' }), new Set())).toBe(true) // just outside 172.16.0.0/12
+  })
   it('does not count a click within two minutes of delivery, but does after that', () => {
     expect(botClickReason(click({ at: new Date(delivered.getTime() + 60_000) }), new Set())).toMatch(/two minutes/)
     expect(isHumanClick(click({ at: new Date(delivered.getTime() + 3 * 60_000) }), new Set())).toBe(true)

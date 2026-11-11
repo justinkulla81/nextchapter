@@ -14,9 +14,22 @@ export interface ClickFacts {
   deliveredAt: Date | null
 }
 
+/** An address no person's browser connects from: private ranges, loopback and link-local (IPv4 and IPv6). */
+export function isPrivateIp(ip: string | null): boolean {
+  if (!ip) return false
+  const v4 = ip.split('.').map(Number)
+  if (v4.length === 4 && v4.every((n) => Number.isInteger(n) && n >= 0 && n <= 255)) {
+    const [a, b] = v4
+    return a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254) || (a === 100 && b >= 64 && b <= 127)
+  }
+  const lower = ip.toLowerCase()
+  return lower === '::1' || lower.startsWith('fc') || lower.startsWith('fd') || lower.startsWith('fe80:')
+}
+
 /** Why a click is not a person's, or null for a human click. */
 export function botClickReason(click: ClickFacts, scannerIps: Set<string>): string | null {
   if (click.ip && scannerIps.has(click.ip)) return 'address opened the links in emails to many different people'
+  if (isPrivateIp(click.ip)) return 'address is a private network address'
   if (isDatacenterIp(click.ip)) return 'address is inside a cloud network'
   if (classifyUserAgent(click.userAgent) === 'bot') return 'browser identifies itself as a bot'
   if (click.deliveredAt && click.at.getTime() - click.deliveredAt.getTime() <= SCANNER_CLICK_WINDOW_MS) return 'clicked within two minutes of delivery'
