@@ -886,7 +886,10 @@ export default async function AdminVisitorActivityPage({
     return person ? { ...r, likelyRecipient: person, likelyBasis: 'same IP' } : r
   })
   // Whatever rule guessed it: one person on several addresses within minutes is a mail gateway, so name nobody.
-  const gateway = guessesOnSeveralAddresses(namedRows.flatMap((r) => (!r.recipient && r.likelyRecipient ? [{ id: r.id, personId: r.likelyRecipient.personId, ip: r.ip, at: r.createdAt }] : [])))
+  // A name that rests on a tracked link followed seconds before the visit (basis 'email click') is not a guess about who sat
+  // behind an address: it is the recipient whose email that link was in, and a gateway opening it from several addresses is
+  // expected. Those keep the name (the tooltip says it is their email, probably not them reading it).
+  const gateway = guessesOnSeveralAddresses(namedRows.flatMap((r) => (!r.recipient && r.likelyRecipient && r.likelyBasis !== 'email click' ? [{ id: r.id, personId: r.likelyRecipient.personId, ip: r.ip, at: r.createdAt }] : [])))
   const rows: Row[] = namedRows.map((r) => (gateway.has(r.id) ? { ...r, likelyRecipient: null, likelyBasis: null } : r))
 
   // Visitor type. The CRM person's roles, then the type of the organization they work at; failing that a signed-up account is a

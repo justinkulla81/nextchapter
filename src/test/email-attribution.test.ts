@@ -127,6 +127,11 @@ describe('peopleByNearClick', () => {
     expect(peopleByNearClick(visit, [{ at: t0, personId: 'p1', link: 'https://launchyournextchapter.com/other' }])).toEqual([])
     expect(peopleByNearClick(visit, [{ at: at(2), personId: 'p1', link }, { at: at(5), personId: 'p2', link }]).sort()).toEqual(['p1', 'p2'])
   })
+  it('sees through the click tracker\'s own suffix that some gateways append to the page path', async () => {
+    const { peopleByNearClick } = await import('@/lib/marketing/email-attribution')
+    const visit = { createdAt: at(3), path: '/reports/white-collar-employment-report-october-2026/1/010001a1cb96f7d3-f2a9a98e-306e-48c3-a2f4-0664666c182d-000000/0HJ7dbR_VKT6CGFu1pRDbeEJPm4Koza7HD' }
+    expect(peopleByNearClick(visit, [{ at: t0, personId: 'p1', link }])).toEqual(['p1'])
+  })
 })
 
 describe('tagMailingLinks', () => {

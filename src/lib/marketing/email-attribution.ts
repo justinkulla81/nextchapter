@@ -357,7 +357,9 @@ export const NEAR_CLICK_WINDOW_MS = 20 * 1000
 const pathOf = (u: string | null | undefined): string | null => {
   if (!u) return null
   try {
-    return new URL(u, 'https://x.invalid').pathname.replace(/\/$/, '')
+    // Some mail gateways and apps open the click-tracking address as if it were ours, which appends the tracker's own
+    // "/1/<message id>-000000/<hash>" to the page path (seen 2026-11-11); the page is what comes before it.
+    return new URL(u, 'https://x.invalid').pathname.replace(/\/1\/0100[0-9a-f]{12}-[^/]*(\/.*)?$/i, '').replace(/\/$/, '')
   } catch {
     return null
   }
