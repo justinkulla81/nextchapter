@@ -12493,6 +12493,13 @@ model WorkforceStaffContact {
   role      String?
   level     String?
   sourceUrl String
+  /// workforce_board | job_center | state_rapid_response | econ_dev
+  segment   String?
+  /// The address was worked out, not read off a page.
+  emailGuessed    Boolean   @default(false)
+  hunterStatus    String?
+  hunterScore     Int?
+  hunterCheckedAt DateTime?
   checkedAt DateTime @default(now())
   createdAt DateTime @default(now())
 
