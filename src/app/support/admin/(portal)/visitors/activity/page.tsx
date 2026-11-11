@@ -406,6 +406,13 @@ export default async function AdminVisitorActivityPage({
   ])
 
   const events = Array.isArray(loaded) ? loaded : loaded.events
+  // Email visits inside two minutes of delivery (the unsubscribe-link visit, the report visit that follows it, an outreach link),
+  // marked on the rows shown. In Human only mode they are already out of the list; in All traffic mode this labels them.
+  const prefetchIds = new Set(
+    events.length === 0
+      ? []
+      : (await prisma.$queryRaw<{ id: string }[]>(Prisma.sql`SELECT "id" FROM "HomepageVisitEvent" WHERE "id" = ANY(${events.map((x) => x.id)}) AND NOT ${notEmailPrefetchSql}`)).map((x) => x.id)
+  )
   const t = totalsRows[0]
   const totals: Record<TrafficRange, RangeTotals> = {
     day: { events: Number(t?.e1 ?? 0), visitors: Number(t?.v1 ?? 0) },
@@ -734,13 +741,7 @@ export default async function AdminVisitorActivityPage({
     candidate: e.candidate,
     inferredCandidate: !e.candidate && e.ip ? (inferredCandidateByIp.get(e.ip) ?? null) : null,
     source: e.eventType === 'PAGE_VIEW' ? classifyTrafficSource(e.path, e.referrer) : '—',
-    scanner:
-      (!!e.ip && (scannerIps.has(e.ip) || isDatacenterIp(e.ip))) ||
-      (() => {
-        const link = extractEmailLinkId(e.path)
-        const emailedAt = link ? recipientByLink.get(link)?.emailedAt : null
-        return !!emailedAt && e.createdAt.getTime() - emailedAt.getTime() <= PREFETCH_OPEN_WINDOW_MS
-      })(),
+    scanner: (!!e.ip && (scannerIps.has(e.ip) || isDatacenterIp(e.ip))) || prefetchIds.has(e.id),
     recipient: (() => {
       if (e.ip && scannerIps.has(e.ip)) return null
       const id = extractEmailLinkId(e.path)
