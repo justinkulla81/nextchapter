@@ -48,6 +48,9 @@ export interface EmailRecipient {
   name: string
   email: string | null
   subject: string | null
+  /** Where they work now (their primary current CRM affiliation), or null when the CRM has none. */
+  orgName: string | null
+  title: string | null
 }
 
 /** Link id -> the CRM person the email went to. Ids that match nothing are left out. */
@@ -58,14 +61,34 @@ export async function resolveEmailRecipients(linkIds: string[]): Promise<Map<str
     where: { id: { in: ids } },
     select: {
       id: true,
-      tracking: { select: { activity: { select: { subject: true, person: { select: { id: true, fullName: true, email: true } } } } } },
+      tracking: { select: { activity: { select: { subject: true, person: {
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          affiliations: {
+            where: { isCurrent: true },
+            orderBy: [{ isPrimary: 'desc' }, { createdAt: 'desc' }],
+            take: 1,
+            select: { title: true, org: { select: { name: true } } },
+          },
+        },
+      } } } } },
     },
   })
   const out = new Map<string, EmailRecipient>()
   for (const l of links) {
     const person = l.tracking.activity.person
     if (!person) continue
-    out.set(l.id, { personId: person.id, name: person.fullName, email: person.email, subject: l.tracking.activity.subject })
+    const job = person.affiliations[0]
+    out.set(l.id, {
+      personId: person.id,
+      name: person.fullName,
+      email: person.email,
+      subject: l.tracking.activity.subject,
+      orgName: job?.org.name ?? null,
+      title: job?.title ?? null,
+    })
   }
   return out
 }
