@@ -331,3 +331,59 @@ export function peopleByNearClick(visit: { createdAt: Date; path: string | null 
   if (ranked[0][1] * 3 <= ranked[1][1]) return [ranked[0][0]]
   return ranked.length <= 3 ? ranked.map(([id]) => id) : []
 }
+
+// ── Per-recipient tag on list-email links ─────────────────────────────────────────────────────────────────────────────
+// A list email (the report, the newsletter) is sent one message per recipient. Every link to our own site in it carries
+// nc_m=<the recipient's row id in that edition>, an opaque cuid with no name or address, so the visit that follows names
+// its recipient even when the click comes from a mail gateway's address. The unsubscribe link already names its owner and
+// is left alone.
+export const MAILING_VISIT_PARAM = 'nc_m'
+
+/** The mailing recipient id on a stored landing path, or null. */
+export function extractMailingRecipientId(path: string | null): string | null {
+  if (!path) return null
+  const q = path.indexOf('?')
+  if (q === -1) return null
+  const id = new URLSearchParams(path.slice(q + 1).split('#')[0]).get(MAILING_VISIT_PARAM)
+  return id && /^[a-z0-9]{10,40}$/i.test(id) ? id : null
+}
+
+function tagUrl(raw: string, recipientId: string): string {
+  let url: URL
+  try {
+    url = new URL(raw)
+  } catch {
+    return raw
+  }
+  if (!/^https?:$/.test(url.protocol) || !isOwnSite(url)) return raw
+  if (url.pathname.startsWith('/updates/unsubscribe') || url.pathname.startsWith('/api/')) return raw
+  if (!url.searchParams.has('utm_source')) {
+    url.searchParams.set('utm_source', 'email')
+    url.searchParams.set('utm_medium', 'newsletter')
+  }
+  url.searchParams.set(MAILING_VISIT_PARAM, recipientId)
+  return url.toString()
+}
+
+/** Adds the recipient tag to every own-site link in a rendered email: href attributes in HTML, bare addresses in plain text. */
+export function tagMailingLinks(content: string, recipientId: string, kind: 'html' | 'text'): string {
+  if (!/^[a-z0-9]{10,40}$/i.test(recipientId)) return content
+  if (kind === 'html') {
+    return content.replace(/href="(https?:\/\/[^"]+)"/g, (_m, href: string) => `href="${tagUrl(href.replace(/&amp;/g, '&'), recipientId).replace(/&/g, '&amp;')}"`)
+  }
+  return content.replace(/https?:\/\/[^\s<>"')]+/g, (u) => tagUrl(u, recipientId))
+}
+
+/** Mailing recipient id -> the CRM person that row was sent to. Ids that match nothing, or have no person, are left out. */
+export async function resolveMailingRecipientIds(ids: string[]): Promise<Map<string, EmailRecipient>> {
+  const wanted = Array.from(new Set(ids))
+  if (wanted.length === 0) return new Map()
+  const rows = await prisma.mailingEditionRecipient.findMany({ where: { id: { in: wanted }, personId: { not: null } }, select: { id: true, personId: true } })
+  const people = await loadRecipientsByPersonId(rows.flatMap((r) => (r.personId ? [r.personId] : [])))
+  const out = new Map<string, EmailRecipient>()
+  for (const r of rows) {
+    const person = r.personId ? people.get(r.personId) : undefined
+    if (person) out.set(r.id, person)
+  }
+  return out
+}

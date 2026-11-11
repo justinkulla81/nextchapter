@@ -128,3 +128,20 @@ describe('peopleByNearClick', () => {
     expect(peopleByNearClick(visit, [{ at: at(2), personId: 'p1', link }, { at: at(5), personId: 'p2', link }]).sort()).toEqual(['p1', 'p2'])
   })
 })
+
+describe('tagMailingLinks', () => {
+  const id = 'cmabc123def456ghi789'
+  it('tags our own links in html and text, and nothing else', async () => {
+    const { tagMailingLinks, extractMailingRecipientId } = await import('@/lib/marketing/email-attribution')
+    const html = '<a href="https://launchyournextchapter.com/reports/white-collar-employment-report-october-2026">r</a> <a href="https://example.com/x">x</a> <a href="https://launchyournextchapter.com/updates/unsubscribe/tok.en.sig">u</a> <a href="https://launchyournextchapter.com/a?b=1&amp;c=2">a</a>'
+    const out = tagMailingLinks(html, id, 'html')
+    expect(out).toContain(`/reports/white-collar-employment-report-october-2026?utm_source=email&amp;utm_medium=newsletter&amp;nc_m=${id}`)
+    expect(out).toContain('href="https://example.com/x"')
+    expect(out).toContain('href="https://launchyournextchapter.com/updates/unsubscribe/tok.en.sig"')
+    expect(out).toContain(`b=1&amp;c=2&amp;utm_source=email&amp;utm_medium=newsletter&amp;nc_m=${id}`)
+    expect(tagMailingLinks('Read https://launchyournextchapter.com/reports/x now', id, 'text')).toBe(`Read https://launchyournextchapter.com/reports/x?utm_source=email&utm_medium=newsletter&nc_m=${id} now`)
+    expect(extractMailingRecipientId(`/reports/x?utm_source=email&nc_m=${id}`)).toBe(id)
+    expect(extractMailingRecipientId('/reports/x')).toBeNull()
+    expect(tagMailingLinks(html, 'bad id', 'html')).toBe(html)
+  })
+})
