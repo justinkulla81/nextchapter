@@ -20,18 +20,23 @@ import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
-import { buildEmailIpAnchors, extractEmailLinkId, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
+import { buildEmailIpAnchors, extractEmailLinkId, extractMailingRecipientId, resolveMailingRecipientIds, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_LEAD_WINDOW_MS, CLICK_TO_VISIT_WINDOW_MS, peopleByNearClick, NEAR_CLICK_WINDOW_MS, peopleWhoTouchedBefore, TOUCH_LEAD_WINDOW_MS, TOUCH_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
 import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
 import { PREFETCH_OPEN_WINDOW_MS } from '@/lib/mailing/open-human'
 import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
 import { segmentRangeSeries, type SegmentCountRow } from '@/lib/admin/visitor-segment-series'
 import { sourceSegment, type SourceSegment } from '@/lib/admin/visitor-source-segment'
+import { loadVisitorTypeCounts, visitorTypeSeries } from '@/lib/admin/visitor-day-types'
 import { VisitorsSegmentChart, type SegmentChartLine } from '@/components/admin/VisitorsSegmentChart'
+import { TrackedFilterLink, TrackedTypeForm } from '@/components/admin/VisitorFilterTracking'
+import { USER_TYPE_SLUGS, VISITOR_USER_TYPES, userTypeFromCrm, userTypeFromLandingPath, userTypeSlug, type UserTypeBasis, type VisitorUserType } from '@/lib/admin/visitor-user-type'
 import { allTimeDayCountFromFirstDay, byHourOfDayFromCounts, byWeekdayFromCounts, perDaySeriesFromCounts, perHourSeriesFromCounts } from '@/lib/admin/visitor-time-buckets'
 
 export const maxDuration = 30
 
 const CHART_WINDOW_DAYS = 30
+// The visitor-type filter classifies this many recent visitors, then pages through the matches.
+const TYPE_SCAN_LIMIT = 300
 const DAY_MS = 24 * 60 * 60 * 1000
 
 // Module-level, not inline in the component: react-hooks/purity flags Date.now().
@@ -63,7 +68,7 @@ interface Row {
   // Set when this visit has no tag of its own but its IP matches a tagged email visit within the past week.
   likelyRecipient: EmailRecipient | null
   // Why likelyRecipient was set when it was not an email visit: the address they gave, or another event from the same IP.
-  likelyBasis: 'gave email' | 'same IP' | null
+  likelyBasis: 'gave email' | 'same IP' | 'opened email' | 'email click' | null
   // A mailing-list email visit whose token fits a few people and cannot be narrowed further.
   candidates: EmailRecipient[]
   // An IP that opens the links in emails to many different people: a mail scanner, never a person.
@@ -81,6 +86,9 @@ interface Row {
   applyClicks: number
   pageType: VisitPageType
   isApplyClick: boolean
+  // Who they are: the CRM, then a signed-up account, then a guess from the page they landed on.
+  userType: VisitorUserType
+  userTypeBasis: UserTypeBasis
 }
 
 const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com').replace(/\/$/, '')
@@ -159,6 +167,7 @@ function botFilterSql(showBots: boolean, scannerIps: Set<string>): Prisma.Sql {
 type LogEvent = Awaited<ReturnType<typeof prisma.homepageVisitEvent.findMany<{ include: { candidate: { select: { id: true; firstName: true; lastName: true; email: true } } } }>>>
 
 type VisitorSort = 'clicks' | 'views'
+type EmailFilter = 'yes' | 'no'
 
 // Newest first, through the same SQL filter as the counts and charts (a plain Prisma query cannot test a cloud-network block), so
 // with Human only on, a scanner or cloud-network visit never appears in the list that the page count describes.
@@ -173,31 +182,41 @@ async function loadEventsNewest(botFilter: Prisma.Sql, rangeSql: Prisma.Sql, ski
   return rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
 }
 
-// One row per visitor (an IP; an event with no IP stands alone), ordered by how many clicks or page views that visitor made in the
-// window, then newest. The row shown is the visitor's latest event. One window query over the range's rows only.
+// One window query over the range's rows only. Sorted by clicks or views: one row per visitor (an IP; an event with no IP stands
+// alone), that visitor's latest event. Not sorted: every event, newest first. The email filter keeps visitors we hold an email for
+// (the IP signed in, came through an email link, or submitted a lead form or signed up from it) or only those we do not.
 async function loadEventsByVisitor(
   botFilter: Prisma.Sql,
   start: Date,
   skip: number,
   take: number,
-  metric: VisitorSort
+  metric: VisitorSort | null,
+  email: EmailFilter | null,
+  collapse: boolean = !!metric
 ): Promise<{ events: LogEvent; total: number }> {
-  const orderBy = metric === 'views' ? Prisma.sql`"views" DESC, "clicks" DESC` : Prisma.sql`"clicks" DESC, "views" DESC`
+  const orderBy = metric === 'views' ? Prisma.sql`"views" DESC, "clicks" DESC, "createdAt" DESC` : metric === 'clicks' ? Prisma.sql`"clicks" DESC, "views" DESC, "createdAt" DESC` : Prisma.sql`"createdAt" DESC`
+  const rowFilter = Prisma.sql`${collapse ? Prisma.sql`"rn" = 1` : Prisma.sql`TRUE`} AND ${email === 'yes' ? Prisma.sql`"ident"` : email === 'no' ? Prisma.sql`NOT "ident"` : Prisma.sql`TRUE`}`
+  const inner = Prisma.sql`
+    SELECT "id", "createdAt",
+      count(*) FILTER (WHERE "eventType"::text = 'LINK_CLICK') OVER (PARTITION BY COALESCE("ip", "id")) AS "clicks",
+      count(*) FILTER (WHERE "eventType"::text = 'PAGE_VIEW') OVER (PARTITION BY COALESCE("ip", "id")) AS "views",
+      bool_or("signal") OVER (PARTITION BY COALESCE("ip", "id")) AS "ident",
+      row_number() OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt" DESC) AS "rn"
+    FROM (
+      SELECT "id", "createdAt", "ip", "eventType",
+        ("candidateId" IS NOT NULL OR "path" LIKE '%nc_e=%' OR "path" LIKE '/updates/unsubscribe/%'
+          OR ("ip" IS NOT NULL AND ("ip" IN (SELECT "ip" FROM "HomepageLead" WHERE "ip" IS NOT NULL)
+            OR "ip" IN (SELECT "signupIp" FROM "CandidateProfile" WHERE "signupIp" IS NOT NULL)))) AS "signal"
+      FROM "HomepageVisitEvent"
+      WHERE ${botFilter} AND "createdAt" >= ${start}
+    ) e`
   const [ids, totalRows] = await Promise.all([
     prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
-      SELECT "id" FROM (
-        SELECT "id", "createdAt",
-          count(*) FILTER (WHERE "eventType"::text = 'LINK_CLICK') OVER (PARTITION BY COALESCE("ip", "id")) AS "clicks",
-          count(*) FILTER (WHERE "eventType"::text = 'PAGE_VIEW') OVER (PARTITION BY COALESCE("ip", "id")) AS "views",
-          row_number() OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt" DESC) AS "rn"
-        FROM "HomepageVisitEvent"
-        WHERE ${botFilter} AND "createdAt" >= ${start}
-      ) t
-      WHERE "rn" = 1
-      ORDER BY ${orderBy}, "createdAt" DESC
+      SELECT "id" FROM (${inner}) t
+      WHERE ${rowFilter}
+      ORDER BY ${orderBy}
       OFFSET ${skip} LIMIT ${take}`),
-    prisma.$queryRaw<{ n: bigint }[]>(Prisma.sql`
-      SELECT count(DISTINCT COALESCE("ip", "id")) AS "n" FROM "HomepageVisitEvent" WHERE ${botFilter} AND "createdAt" >= ${start}`),
+    prisma.$queryRaw<{ n: bigint }[]>(Prisma.sql`SELECT count(*) AS "n" FROM (${inner}) t WHERE ${rowFilter}`),
   ])
   const rows = await prisma.homepageVisitEvent.findMany({
     where: { id: { in: ids.map((r) => r.id) } },
@@ -208,15 +227,19 @@ async function loadEventsByVisitor(
 }
 
 // Day / week and newest / most clicks: adjacent buttons (links), the current choice marked.
-function LogControls({ range, sort, showBots }: { range: LogRange; sort: VisitorSort | null; showBots: boolean }) {
-  const href = (r: LogRange, by: VisitorSort | null, bots: boolean = showBots) => {
+function LogControls({ range, sort, showBots, email, type, unique }: { range: LogRange; sort: VisitorSort | null; showBots: boolean; email: EmailFilter | null; type: string | null; unique: boolean }) {
+  const href = (r: LogRange, by: VisitorSort | null, bots: boolean = showBots, em: EmailFilter | null = email, uq: boolean = unique) => {
     const q = new URLSearchParams()
     if (bots) q.set('bots', 'show')
     if (r !== 'all') q.set('range', r)
     if (by) q.set('sort', by)
+    if (em) q.set('email', em)
+    if (type) q.set('type', type)
+    if (uq) q.set('unique', '1')
     const qs = q.toString()
     return `/support/admin/visitors/activity${qs ? `?${qs}` : ''}`
   }
+  const context = { range, sort, bots: showBots, email, type, unique }
   const button = (active: boolean) =>
     `rounded-md border px-3 py-1.5 text-sm ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted'}`
   const ranges: { key: LogRange; label: string }[] = [
@@ -228,31 +251,65 @@ function LogControls({ range, sort, showBots }: { range: LogRange; sort: Visitor
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
       <nav aria-label="Traffic" className="flex gap-2">
         {([{ show: false, label: 'Human only' }, { show: true, label: 'All traffic, bots and scanners included' }] as const).map((t) => (
-          <Link key={t.label} href={href(range, sort, t.show)} aria-current={showBots === t.show ? 'true' : undefined} className={button(showBots === t.show)}>
+          <TrackedFilterLink filter="traffic" value={t.show ? 'all_traffic' : 'human_only'} context={context} key={t.label} href={href(range, sort, t.show, email)} aria-current={showBots === t.show ? 'true' : undefined} className={button(showBots === t.show)}>
             {t.label}
-          </Link>
+          </TrackedFilterLink>
         ))}
       </nav>
       <nav aria-label="Time range" className="flex gap-2">
         {ranges.map((r) => (
-          <Link key={r.key} href={href(r.key, sort)} aria-current={range === r.key ? 'true' : undefined} className={button(range === r.key)}>
+          <TrackedFilterLink filter="range" value={r.key} context={context} key={r.key} href={href(r.key, sort, showBots, email)} aria-current={range === r.key ? 'true' : undefined} className={button(range === r.key)}>
             {r.label}
-          </Link>
+          </TrackedFilterLink>
         ))}
       </nav>
       <nav aria-label="Sort order" className="flex gap-2">
-        <Link href={href(range, null)} aria-current={!sort ? 'true' : undefined} className={button(!sort)}>
+        <TrackedFilterLink filter="sort" value="newest" context={context} href={href(range, null, showBots, email)} aria-current={!sort ? 'true' : undefined} className={button(!sort)}>
           Newest first
-        </Link>
-        <Link href={href(range, 'clicks')} aria-current={sort === 'clicks' ? 'true' : undefined} className={button(sort === 'clicks')}>
+        </TrackedFilterLink>
+        <TrackedFilterLink filter="sort" value="clicks" context={context} href={href(range, 'clicks', showBots, email)} aria-current={sort === 'clicks' ? 'true' : undefined} className={button(sort === 'clicks')}>
           Most clicks first
-        </Link>
-        <Link href={href(range, 'views')} aria-current={sort === 'views' ? 'true' : undefined} className={button(sort === 'views')}>
+        </TrackedFilterLink>
+        <TrackedFilterLink filter="sort" value="views" context={context} href={href(range, 'views', showBots, email)} aria-current={sort === 'views' ? 'true' : undefined} className={button(sort === 'views')}>
           Most views first
-        </Link>
+        </TrackedFilterLink>
       </nav>
-      {sort && range === 'all' && <p className="text-xs text-muted-foreground">Most clicks and most views look at the last 30 days, the longest span they count over. Each visitor (IP address) appears once.</p>}
+      <nav aria-label="Visitors" className="flex gap-2">
+        {([{ on: false, label: 'Every visit' }, { on: true, label: 'Unique only' }] as const).map((o) => (
+          <TrackedFilterLink filter="unique" value={o.on ? 'unique_only' : 'every_visit'} context={context} key={o.label} href={href(range, sort, showBots, email, o.on)} aria-current={unique === o.on ? 'true' : undefined} className={button(unique === o.on)}>
+            {o.label}
+          </TrackedFilterLink>
+        ))}
+      </nav>
+      <nav aria-label="Email and CRM" className="flex gap-2">
+        {([{ key: null, label: 'Email and CRM: both' }, { key: 'yes', label: 'Email or CRM: yes' }, { key: 'no', label: 'Email or CRM: no' }] as const).map((o) => (
+          <TrackedFilterLink filter="email_crm" value={o.key ?? 'both'} context={context} key={o.label} href={href(range, sort, showBots, o.key)} aria-current={email === o.key ? 'true' : undefined} className={button(email === o.key)}>
+            {o.label}
+          </TrackedFilterLink>
+        ))}
+      </nav>
+      <TrackedTypeForm context={context} method="get" action="/support/admin/visitors/activity" className="flex items-center gap-2">
+        {showBots && <input type="hidden" name="bots" value="show" />}
+        {range !== 'all' && <input type="hidden" name="range" value={range} />}
+        {sort && <input type="hidden" name="sort" value={sort} />}
+        {email && <input type="hidden" name="email" value={email} />}
+        {unique && <input type="hidden" name="unique" value="1" />}
+        <label htmlFor="visitor-type" className="text-sm text-muted-foreground">Visitor type</label>
+        <select id="visitor-type" name="type" defaultValue={type ?? ''} className="rounded-md border border-border bg-background px-3 py-1.5 text-sm">
+          <option value="">All types</option>
+          <option value="not-candidate">Everyone except candidates</option>
+          {VISITOR_USER_TYPES.map((t) => (
+            <option key={t} value={userTypeSlug(t)}>{t}</option>
+          ))}
+        </select>
+        <button type="submit" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">Show this type</button>
+      </TrackedTypeForm>
+      {type && <p className="text-xs text-muted-foreground">The type filter looks at the {TYPE_SCAN_LIMIT} most recent visitors in the last 30 days (or the range chosen, if shorter), each counted once.</p>}
+      {type === 'not-candidate' && <p className="text-xs text-muted-foreground">Everyone except candidates leaves out visitors we cannot place (Unknown) as well as candidates.</p>}
+      {unique && <p className="text-xs text-muted-foreground">Unique only shows each visitor (IP address) once, on their latest visit.</p>}
+      {(sort || email || unique) && range === 'all' && <p className="text-xs text-muted-foreground">Most clicks, most views, unique only and the email filter look at the last 30 days, the longest span they count over.{sort ? ' Each visitor (IP address) appears once.' : ''}</p>}
       {sort && range !== 'all' && <p className="text-xs text-muted-foreground">Each visitor (IP address) appears once, on their latest visit.</p>}
+      {email && <p className="text-xs text-muted-foreground">Yes means we hold an email for the visitor&apos;s IP address: an account, an email link they came through, or a lead form or sign-up from it. No means none of those.</p>}
     </div>
   )
 }
@@ -293,8 +350,14 @@ export default async function AdminVisitorActivityPage({
   // Log filter: the last day or week, and newest first or most clicks first. The charts above always show their own ranges.
   const logRange: LogRange = rawParams.range === 'day' || rawParams.range === 'week' ? rawParams.range : 'all'
   const sort: VisitorSort | null = rawParams.sort === 'clicks' || rawParams.sort === 'views' ? rawParams.sort : null
+  const email: EmailFilter | null = rawParams.email === 'yes' || rawParams.email === 'no' ? rawParams.email : null
+  const typeFilter: VisitorUserType | null = (rawParams.type && USER_TYPE_SLUGS[rawParams.type]) || null
+  const notCandidate = rawParams.type === 'not-candidate'
+  const typeActive = !!typeFilter || notCandidate
+  const typeParam = typeFilter ? userTypeSlug(typeFilter) : notCandidate ? 'not-candidate' : null
+  const unique = rawParams.unique === '1'
   // Counting clicks or views per visitor is a window over the rows in range, so it never runs over the whole table: all time reads 30 days.
-  const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sort ? 30 : null
+  const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sort || email || typeActive || unique ? 30 : null
   const logStart = logDays ? new Date(now().getTime() - logDays * DAY_MS) : null
   // Mail scanners are hidden with the bots: they open every link for every recipient, and are not people.
   const scannerIps = await loadScannerIps().catch(() => new Set<string>())
@@ -317,8 +380,8 @@ export default async function AdminVisitorActivityPage({
   const viewsLabel = showBots ? 'Page views, all traffic' : 'Human page views'
   type BucketRow = { key: string; views: bigint; visitors: bigint }
   const [loaded, dayRows, hourRows, totalsRows] = await Promise.all([
-    sort && logStart
-      ? loadEventsByVisitor(botFilter, logStart, params.skip, params.take, sort)
+    (sort || email || typeActive || unique) && logStart
+      ? loadEventsByVisitor(botFilter, logStart, typeActive ? 0 : params.skip, typeActive ? TYPE_SCAN_LIMIT : params.take, sort, email, !!sort || typeActive || unique)
       : loadEventsNewest(botFilter, rangeSql, params.skip, params.take),
     // The charts read counts grouped by Eastern day and hour in the database, not every raw event.
     prisma.$queryRaw<BucketRow[]>(Prisma.sql`
@@ -343,6 +406,13 @@ export default async function AdminVisitorActivityPage({
   ])
 
   const events = Array.isArray(loaded) ? loaded : loaded.events
+  // Email visits inside two minutes of delivery (the unsubscribe-link visit, the report visit that follows it, an outreach link),
+  // marked on the rows shown. In Human only mode they are already out of the list; in All traffic mode this labels them.
+  const prefetchIds = new Set(
+    events.length === 0
+      ? []
+      : (await prisma.$queryRaw<{ id: string }[]>(Prisma.sql`SELECT "id" FROM "HomepageVisitEvent" WHERE "id" = ANY(${events.map((x) => x.id)}) AND NOT ${notEmailPrefetchSql}`)).map((x) => x.id)
+  )
   const t = totalsRows[0]
   const totals: Record<TrafficRange, RangeTotals> = {
     day: { events: Number(t?.e1 ?? 0), visitors: Number(t?.v1 ?? 0) },
@@ -420,6 +490,14 @@ export default async function AdminVisitorActivityPage({
     ]
   })
 
+  // Visitors by type: one line per type from the stored daily snapshot (VisitorDayType). A missing table (before the migration) shows an empty chart.
+  const typeColors = ['var(--color-brand)', 'var(--color-orange)', 'var(--color-success)', 'var(--color-navy)', 'var(--color-light-blue)', 'var(--color-accent-employer)', 'var(--color-accent-coach)', 'var(--color-error)', 'var(--color-warning)', 'var(--color-accent-recruiter)', 'var(--color-gray)']
+  const typeLines: SegmentChartLine[] = visitorTypeSeries(await loadVisitorTypeCounts().catch(() => []), current, allTimeDays).map((t, i) => ({
+    label: t.userType,
+    color: typeColors[i % typeColors.length],
+    data: { day: t.series['7d'], '7d': t.series['7d'], '30d': t.series['30d'], all: t.series.all },
+  }))
+
   const toDaysRows = (rows: { key: string; count: number }[]) => rows.map((d) => ({ dateKey: d.key, count: d.count }))
   // Emails captured per day: every form on the public site plus new registrations.
   // Seeded sample profiles and profiles with no email are not captures (332 were bulk-created on Oct 15).
@@ -474,9 +552,6 @@ export default async function AdminVisitorActivityPage({
   // the daily digest email (send-homepage-visitor-digest.ts) — comfortably
   // stays under ip-api.com's free-tier rate limit even on a full 50-row page.
   const uniqueIps = Array.from(new Set(events.map((e) => e.ip).filter((ip): ip is string => !!ip)))
-  const locationByIp = new Map(
-    await Promise.all(uniqueIps.map(async (ip) => [ip, formatIpLocation(await lookupIpLocation(ip))] as const))
-  )
 
   // Only worth looking up for events that don't already carry a confirmed,
   // session-based candidateId (see HomepageVisitEvent.candidateId's own
@@ -548,6 +623,12 @@ export default async function AdminVisitorActivityPage({
     ...mailingAnchors.map((a) => a.token),
   ].filter((t): t is string => !!t))
   const mailingByToken = mailingMatches.unique
+  // Visits through a link in a list email carry the recipient's id (nc_m): the person, certain.
+  const mailingById = await resolveMailingRecipientIds(events.map((e) => extractMailingRecipientId(e.path)).filter((id): id is string => !!id))
+  const taggedPerson = (path: string | null) => {
+    const id = extractMailingRecipientId(path)
+    return id ? (mailingById.get(id) ?? null) : null
+  }
 
   // Clicks Resend recorded on list-email links, from these IPs in the ten minutes before the oldest visit shown: the person who
   // clicked and the visit that follows from the same address. A missing table (before the migration) just means no clicks.
@@ -555,13 +636,29 @@ export default async function AdminVisitorActivityPage({
     uniqueIps.length > 0
       ? await prisma.mailingClickEvent
           .findMany({
-            where: { bot: false, ip: { in: uniqueIps.filter((ip) => !scannerIps.has(ip) && !isDatacenterIp(ip)) }, clickedAt: { gte: new Date(oldestShown.getTime() - CLICK_TO_VISIT_WINDOW_MS), lte: newest } },
+            where: { bot: false, ip: { in: uniqueIps.filter((ip) => !scannerIps.has(ip) && !isDatacenterIp(ip)) }, clickedAt: { gte: new Date(oldestShown.getTime() - CLICK_TO_VISIT_WINDOW_MS), lte: new Date(newest.getTime() + CLICK_LEAD_WINDOW_MS) } },
             select: { ip: true, clickedAt: true, recipient: { select: { personId: true } } },
           })
           .catch(() => [])
       : []
   const mailingClicks: MailingClick[] = clickRows.flatMap((c) => (c.recipient.personId ? [{ ip: c.ip, at: c.clickedAt, personId: c.recipient.personId }] : []))
   const clickPeople = await loadRecipientsByPersonId(mailingClicks.map((c) => c.personId))
+
+  // Human opens and clicks of list emails just before the visits shown, any address (mail proxies hide the reader's own).
+  // Reads only the human ones in a window around the page: a dozen or so a day. A missing table just means none.
+  const touchFrom = new Date(oldestShown.getTime() - TOUCH_TO_VISIT_WINDOW_MS)
+  const touchTo = new Date(newest.getTime() + TOUCH_LEAD_WINDOW_MS)
+  const [openTouchRows, clickTouchRows, nearClickRows] = await Promise.all([
+    prisma.mailingOpenEvent.findMany({ where: { bot: false, openedAt: { gte: touchFrom, lte: touchTo } }, select: { openedAt: true, recipient: { select: { personId: true } } }, take: 1000 }).catch(() => []),
+    prisma.mailingClickEvent.findMany({ where: { bot: false, clickedAt: { gte: touchFrom, lte: touchTo } }, select: { clickedAt: true, link: true, recipient: { select: { personId: true } } }, take: 1000 }).catch(() => []),
+    // Every click, scanner or person, from any address, seconds around the visits shown: the tracked link that sent the visit.
+    prisma.mailingClickEvent.findMany({ where: { clickedAt: { gte: new Date(oldestShown.getTime() - NEAR_CLICK_WINDOW_MS), lte: new Date(newest.getTime() + NEAR_CLICK_WINDOW_MS) } }, select: { clickedAt: true, link: true, recipient: { select: { personId: true } } }, take: 2000 }).catch(() => []),
+  ])
+  const nearClicks = nearClickRows.flatMap((c) => (c.recipient.personId ? [{ at: c.clickedAt, personId: c.recipient.personId, link: c.link }] : []))
+  const touches = [
+    ...openTouchRows.flatMap((o) => (o.recipient.personId ? [{ at: o.openedAt, personId: o.recipient.personId }] : [])),
+    ...clickTouchRows.flatMap((c) => (c.recipient.personId ? [{ at: c.clickedAt, personId: c.recipient.personId }] : [])),
+  ]
 
   // Per-person totals: one row per IP, same bot rule as the log. "Person" is an IP — the best identity an
   // anonymous visit carries.
@@ -646,31 +743,27 @@ export default async function AdminVisitorActivityPage({
     href: e.href,
     referrer: e.referrer,
     userAgent: e.userAgent,
-    location: e.ip ? (locationByIp.get(e.ip) ?? null) : null,
+    location: null,
     candidate: e.candidate,
     inferredCandidate: !e.candidate && e.ip ? (inferredCandidateByIp.get(e.ip) ?? null) : null,
     source: e.eventType === 'PAGE_VIEW' ? classifyTrafficSource(e.path, e.referrer) : '—',
-    scanner:
-      (!!e.ip && (scannerIps.has(e.ip) || isDatacenterIp(e.ip))) ||
-      (() => {
-        const link = extractEmailLinkId(e.path)
-        const emailedAt = link ? recipientByLink.get(link)?.emailedAt : null
-        return !!emailedAt && e.createdAt.getTime() - emailedAt.getTime() <= PREFETCH_OPEN_WINDOW_MS
-      })(),
+    scanner: (!!e.ip && (scannerIps.has(e.ip) || isDatacenterIp(e.ip))) || prefetchIds.has(e.id),
     recipient: (() => {
       if (e.ip && scannerIps.has(e.ip)) return null
       const id = extractEmailLinkId(e.path)
       if (id) return recipientByLink.get(id) ?? null
+      const tagged = taggedPerson(e.path)
+      if (tagged) return tagged
       const token = extractUnsubscribeToken(e.path)
       return token ? (mailingByToken.get(token) ?? null) : null
     })(),
     likelyRecipient: (() => {
       if (e.ip && scannerIps.has(e.ip)) return null
-      if (!extractEmailLinkId(e.path) && !extractUnsubscribeToken(e.path)) {
+      if (!extractEmailLinkId(e.path) && !extractUnsubscribeToken(e.path) && !taggedPerson(e.path)) {
         const clicked = inferPersonByClickIp(e, mailingClicks)
         if (clicked && clickPeople.has(clicked)) return clickPeople.get(clicked) ?? null
       }
-      const mailToken = extractEmailLinkId(e.path) || extractUnsubscribeToken(e.path) ? null : inferMailingTokenByIp(e, mailingAnchors, (t) => mailingByToken.get(t)?.personId)
+      const mailToken = extractEmailLinkId(e.path) || extractUnsubscribeToken(e.path) || taggedPerson(e.path) ? null : inferMailingTokenByIp(e, mailingAnchors, (t) => mailingByToken.get(t)?.personId)
       if (mailToken) return mailingByToken.get(mailToken) ?? null
       if (classifyUserAgent(e.userAgent) !== 'human' || isDatacenterIp(e.ip)) return null
       const id = inferEmailLinkByIp(e, ipAnchors, (linkId) => recipientByLink.get(linkId)?.personId)
@@ -688,7 +781,7 @@ export default async function AdminVisitorActivityPage({
       const found = new Map<string, { id: string; name: string }>()
       const link = extractEmailLinkId(e.path)
       const token = extractUnsubscribeToken(e.path)
-      const recipient = e.ip && scannerIps.has(e.ip) ? null : link ? recipientByLink.get(link) : token ? mailingByToken.get(token) : null
+      const recipient = e.ip && scannerIps.has(e.ip) ? null : link ? recipientByLink.get(link) : taggedPerson(e.path) ?? (token ? mailingByToken.get(token) : null)
       if (recipient) found.set(recipient.personId, { id: recipient.personId, name: recipient.name })
       for (const g of givenByEvent.get(e.id) ?? []) {
         const hit = crmByEmail.get(g.email.trim().toLowerCase())
@@ -702,6 +795,8 @@ export default async function AdminVisitorActivityPage({
     applyClicks: e.ip ? (totalsByIp.get(e.ip)?.applyClicks ?? 0) : 0,
     pageType: classifyVisitPage(e.path),
     isApplyClick: isApplyClick(e.eventType, e.href, e.path),
+    userType: 'Unknown',
+    userTypeBasis: null,
   }))
 
   // Carry a name to the rest of a visitor's events. Each rule above looks in a short window around one event; once any event
@@ -720,10 +815,22 @@ export default async function AdminVisitorActivityPage({
   // An unnamed row that gave an address already in the CRM is that person; one more lookup for the people not loaded above.
   const needsName = (r: Row) => !r.recipient && !r.likelyRecipient && !r.candidate && !r.inferredCandidate
   const personIdsToLoad = new Set<string>()
+  // Visits nobody else names: the people who opened or clicked a list email in the minutes before (at most three; more is a guess about nothing).
+  const touchedByRow = new Map<string, string[]>()
+  const clickMatched = new Set<string>()
   for (const r of baseRows) {
     if (!needsName(r) || !shareable(r)) continue
     const key = r.crmPeople.length === 1 ? `crm:${r.crmPeople[0].id}` : inherited.get(r.id)
     if (key?.startsWith('crm:')) personIdsToLoad.add(key.slice(4))
+    if (!key && r.crmPeople.length === 0 && r.candidates.length === 0 && r.eventType === 'PAGE_VIEW') {
+      const byClick = peopleByNearClick(r, nearClicks)
+      const people = byClick.length > 0 ? byClick : peopleWhoTouchedBefore(r.createdAt, touches)
+      if (people.length >= 1 && people.length <= 3) {
+        touchedByRow.set(r.id, people)
+        if (byClick.length > 0) clickMatched.add(r.id)
+        people.forEach((id) => personIdsToLoad.add(id))
+      }
+    }
   }
   const loadedPeople = await loadRecipientsByPersonId(Array.from(personIdsToLoad))
   const accountsByKey = new Map<string, NonNullable<Row['candidate']>>()
@@ -738,13 +845,53 @@ export default async function AdminVisitorActivityPage({
       return person ? { ...r, likelyRecipient: person, likelyBasis: 'gave email' } : r
     }
     const key = inherited.get(r.id)
-    if (!key) return r
+    if (!key) {
+      const touched = (touchedByRow.get(r.id) ?? []).flatMap((id) => loadedPeople.get(id) ?? [])
+      if (touched.length === 1) return { ...r, likelyRecipient: touched[0], likelyBasis: clickMatched.has(r.id) ? 'email click' : 'opened email' }
+      if (touched.length > 1) return { ...r, candidates: touched }
+      return r
+    }
     if (key.startsWith('candidate:')) return { ...r, inferredCandidate: accountsByKey.get(key) ?? null }
     const person = loadedPeople.get(key.slice(4))
     return person ? { ...r, likelyRecipient: person, likelyBasis: 'same IP' } : r
   })
 
-  const result = paginatedResult(rows, total, params)
+  // Visitor type. The CRM person's roles, then the type of the organization they work at; failing that a signed-up account is a
+  // candidate; failing that a guess from the first page of the visit (last 30 days).
+  const typePersonIds = Array.from(new Set(rows.flatMap((r) => [r.recipient?.personId, r.likelyRecipient?.personId, ...r.crmPeople.map((p) => p.id)].filter((x): x is string => !!x))))
+  const typePeople =
+    typePersonIds.length > 0
+      ? await prisma.crmPerson.findMany({
+          where: { id: { in: typePersonIds } },
+          select: { id: true, roles: true, affiliations: { where: { isCurrent: true }, select: { org: { select: { orgTypes: true } } } } },
+        })
+      : []
+  const crmTypeByPerson = new Map(typePeople.map((p) => [p.id, userTypeFromCrm(p.roles.map(String), p.affiliations.flatMap((a) => a.org.orgTypes.map(String)))] as const))
+  const landingRows =
+    uniqueIps.length > 0
+      ? await prisma.$queryRaw<{ ip: string; path: string | null }[]>(Prisma.sql`
+          SELECT DISTINCT ON ("ip") "ip", "path" FROM "HomepageVisitEvent"
+          WHERE "ip" = ANY(${uniqueIps}) AND "eventType"::text = 'PAGE_VIEW' AND "createdAt" >= ${since(30)}
+          ORDER BY "ip", "createdAt" ASC`)
+      : []
+  const landingByIp = new Map(landingRows.map((r) => [r.ip, r.path] as const))
+  const typedRows: Row[] = rows.map((r) => {
+    if (r.scanner) return r
+    const personId = r.recipient?.personId ?? r.likelyRecipient?.personId ?? r.crmPeople[0]?.id
+    const crmType = personId ? crmTypeByPerson.get(personId) : undefined
+    if (crmType) return { ...r, userType: crmType, userTypeBasis: 'CRM' }
+    if (r.candidate ?? r.inferredCandidate) return { ...r, userType: 'Candidate', userTypeBasis: 'account' }
+    const guess = userTypeFromLandingPath((r.ip ? landingByIp.get(r.ip) : null) ?? r.path)
+    return guess ? { ...r, userType: guess, userTypeBasis: 'landing page' } : r
+  })
+
+  // With a type chosen, the scan above covered the most recent visitors; page through the ones that match.
+  const matching = typeFilter ? typedRows.filter((r) => r.userType === typeFilter) : notCandidate ? typedRows.filter((r) => r.userType !== 'Candidate' && r.userType !== 'Unknown') : typedRows
+  const shown = typeActive ? matching.slice(params.skip, params.skip + params.take) : matching
+  // One lookup per unique IP on the page shown, not per row scanned (ip-api.com's free tier allows about 45 a minute).
+  const shownIps = Array.from(new Set(shown.map((r) => r.ip).filter((ip): ip is string => !!ip)))
+  const locationByIp = new Map(await Promise.all(shownIps.map(async (ip) => [ip, formatIpLocation(await lookupIpLocation(ip))] as const)))
+  const result = paginatedResult(shown.map((r) => ({ ...r, location: r.ip ? (locationByIp.get(r.ip) ?? null) : null })), typeActive ? matching.length : total, params)
 
   const columns: AdminColumn<Row>[] = [
     { header: 'When', cellClassName: 'tabular-nums text-muted-foreground', render: (r) => formatAdminShortDateTime(r.createdAt) },
@@ -776,6 +923,10 @@ export default async function AdminVisitorActivityPage({
                   title={
                     certain
                       ? 'The visit came through a link in an email we sent them.'
+                      : r.likelyBasis === 'email click'
+                        ? 'A link in an email we sent them was followed within seconds of this visit, from a different address (how mail security tools and some mail apps open links). Matched by time and page. Their email, probably not them reading it.'
+                      : r.likelyBasis === 'opened email'
+                        ? 'They opened or clicked our email in the 15 minutes before this visit, and nobody else did. Matched by time, not by address (mail apps hide the reader\'s address). A guess, not a certain match.'
                       : r.likelyBasis === 'gave email'
                         ? 'This visitor gave an email address that belongs to them in the CRM. The visit is from the same IP address. A strong guess, not a certain match.'
                         : 'Same IP address as another visit that named them, and no other person was seen on that address. A strong guess, not a certain match.'
@@ -818,6 +969,18 @@ export default async function AdminVisitorActivityPage({
         return <span className="font-medium">{cls === 'bot' ? '🤖 Bot' : cls === 'human' ? '🧑 Human' : '❓ Unknown'}</span>
       },
     },
+    {
+      header: 'Visitor type',
+      render: (r) =>
+        r.userType === 'Unknown' ? (
+          <span className="text-muted-foreground">Unknown</span>
+        ) : (
+          <span title={r.userTypeBasis === 'CRM' ? 'From their CRM record: roles, then the type of their organization.' : r.userTypeBasis === 'account' ? 'They have a NextChapter account.' : 'A guess from the first page they landed on.'}>
+            {r.userType}
+            {r.userTypeBasis === 'landing page' && <span className="text-muted-foreground"> (guess)</span>}
+          </span>
+        ),
+    },
     { header: 'Location', render: (r) => r.location ?? '—' },
     {
       header: 'Visitor totals',
@@ -847,7 +1010,7 @@ export default async function AdminVisitorActivityPage({
         if (!fromEmail && r.givenEmails.length === 0 && r.crmPeople.length === 0) return <span className="text-muted-foreground">—</span>
         return (
           <div className="space-y-0.5">
-            {fromEmail && (
+            {fromEmail && (r.recipient || r.givenEmails.length === 0) && (
               <div>
                 <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">
                   {r.recipient ? 'From email' : 'Likely email'}
@@ -859,7 +1022,10 @@ export default async function AdminVisitorActivityPage({
                 <span className="font-medium">Gave</span> {g.email}
               </div>
             ))}
-            {r.crmPeople.map((p) => (
+            {r.crmPeople
+              // A CRM record named by its address repeats the "Gave" line above it.
+              .filter((p) => !(r.givenEmails.length > 0 && p.name.includes('@')))
+              .map((p) => (
               <div key={p.id} className="truncate text-xs">
                 <span className="rounded bg-success/10 px-1.5 py-0.5 font-medium text-success">CRM</span>{' '}
                 <Link href={`/support/admin/crm/people/${p.id}`} title={p.name} className="text-primary hover:underline">
@@ -873,17 +1039,15 @@ export default async function AdminVisitorActivityPage({
     },
     {
       header: 'Source',
-      render: (r) =>
-        r.recipient ? (
-          `Email to ${r.recipient.name}`
-        ) : r.eventType !== 'PAGE_VIEW' ? (
-          '—'
-        ) : (
-          <span title={r.referrer ?? undefined}>
-            {r.source}
-            {r.referrer && <span className="text-muted-foreground"> · {referrerHost(r.referrer)}</span>}
-          </span>
-        ),
+      cellClassName: 'max-w-[14ch]',
+      render: (r) => {
+        const label = r.recipient ? `Email to ${r.recipient.name}` : r.eventType !== 'PAGE_VIEW' ? '—' : r.referrer ? `${r.source} · ${referrerHost(r.referrer)}` : r.source
+        return (
+          <div className="truncate" title={r.referrer ? `${label} (${r.referrer})` : label}>
+            {label}
+          </div>
+        )
+      },
     },
     {
       header: 'Page or click',
@@ -892,11 +1056,11 @@ export default async function AdminVisitorActivityPage({
           return (
             <>
               {r.isApplyClick && <span className="mr-1.5 rounded bg-success/10 px-1.5 py-0.5 text-xs font-medium text-success">Apply</span>}
-              <ShortUrl url={absoluteUrl(r.href)} max="max-w-[34ch]" />
+              <ShortUrl url={absoluteUrl(r.href)} max="max-w-[28ch]" />
             </>
           )
         }
-        if (r.path) return <ShortUrl url={absoluteUrl(r.path)} max="max-w-[34ch]" />
+        if (r.path) return <ShortUrl url={absoluteUrl(r.path)} max="max-w-[28ch]" />
         return r.eventType === 'PAGE_VIEW' ? <span className="text-muted-foreground">/ (before path tracking)</span> : '—'
       },
     },
@@ -946,6 +1110,14 @@ export default async function AdminVisitorActivityPage({
         </p>
         <VisitorsSegmentChart chart="social_linkedin_email" lines={sourceLines} emptyMessage="No visits from these sources in this window yet." />
       </div>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-border p-4">
+        <h2 className="text-sm font-medium text-foreground">Visitors by type</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Human visitors per day, one line per type. A visitor is typed from the CRM (an email or unsubscribe link, a click, an address they gave), then a signed-in account, then the first page they landed on; everyone else is Unknown. Counted once per day per IP and saved each day, so it covers every day since the snapshot started.
+        </p>
+        <VisitorsSegmentChart chart="visitors_by_type" lines={typeLines} ranges={['7d', '30d', 'all']} note="Visitors per day (one per IP), bots excluded." emptyMessage="No typed visitors saved yet." />
       </div>
       </TrafficRangeProvider>
 
@@ -1024,7 +1196,7 @@ export default async function AdminVisitorActivityPage({
         </div>
       </div>
 
-      <LogControls range={logRange} sort={sort} showBots={showBots} />
+      <LogControls range={logRange} sort={sort} showBots={showBots} email={email} type={typeParam} unique={unique} />
 
       <AdminDataTable
         columns={columns}
@@ -1037,7 +1209,7 @@ export default async function AdminVisitorActivityPage({
           totalPages: result.totalPages,
           total: result.total,
           basePath: '/support/admin/visitors/activity',
-          baseParams: { ...(showBots ? { bots: 'show' } : {}), ...(logRange !== 'all' ? { range: logRange } : {}), ...(sort ? { sort } : {}) },
+          baseParams: { ...(showBots ? { bots: 'show' } : {}), ...(logRange !== 'all' ? { range: logRange } : {}), ...(sort ? { sort } : {}), ...(email ? { email } : {}), ...(typeParam ? { type: typeParam } : {}), ...(unique ? { unique: '1' } : {}) },
         }}
       />
     </div>

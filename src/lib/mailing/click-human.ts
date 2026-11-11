@@ -5,6 +5,13 @@ import { classifyUserAgent } from '@/lib/http/user-agent'
 // Mail-security scanners click every link in a message within moments of delivery, from a cloud network, so Resend reports a
 // "click" that no person made. Only a human click counts as a click: it sets clickedAt and the click counts, and it is what
 // the visitor log matches a later visit to.
+//
+// Known limits, as of 2026-11-11:
+// - Resend's event history begins 2026-10-13 17:56 UTC, so clicks and opens on the older sends could not be re-checked and
+//   keep the counts they had before these rules (18 clicks and 34 opens at the time).
+// - Every rule is a guess from the address, browser and timing. A slow scanner on a quiet address can pass as human (about
+//   24 clicks and 36 opens did when the counts were restated), and a person behind a network block that several recipients
+//   share can be taken for a scanner.
 export const SCANNER_CLICK_WINDOW_MS = 2 * 60 * 1000
 
 export interface ClickFacts {
@@ -79,3 +86,23 @@ export function burstClickIds(clicks: ClickStamp[]): Set<string> {
   }
   return out
 }
+
+// ── Opens ────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// An open is the tracking pixel loading. The same machines that click every link load it, and Apple Mail Privacy Protection loads
+// it for every Apple Mail user when the message arrives, from Apple's own 17.0.0.0/8 block, whether or not the person ever reads it.
+// Gmail's and Superhuman's image proxies fetch the pixel when the person opens the message, so those stay human.
+function isAppleAddress(ip: string | null): boolean {
+  return !!ip && /^17\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip)
+}
+
+/** Why an open is not a person's, or null for a human open. Same tests as a click, plus Apple Mail Privacy Protection. */
+export function botOpenReason(open: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): string | null {
+  if (isAppleAddress(open.ip)) return 'Apple Mail Privacy Protection loads the pixel on delivery'
+  // Apple's relay (Akamai, Fastly and Cloudflare addresses, mostly IPv6) fetches the pixel with the bare string "Mozilla/5.0" and
+  // nothing else; a real mail client or browser always says more.
+  if ((open.userAgent ?? '').trim() === 'Mozilla/5.0') return 'bare Mozilla/5.0 browser string: the image relay Apple Mail Privacy Protection uses'
+  return botClickReason(open, scannerIps, scannerBlocks)
+}
+
+export const isHumanOpen = (open: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): boolean =>
+  botOpenReason(open, scannerIps, scannerBlocks) === null

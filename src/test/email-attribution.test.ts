@@ -90,7 +90,8 @@ describe('clicks Resend recorded: visit to person', () => {
     const { inferPersonByClickIp } = await import('@/lib/marketing/email-attribution')
     const clicks = [{ ip: '9.9.9.9', at: t0, personId: 'p1' }]
     expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(20) }, clicks)).toBe('p1')
-    expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(-5) }, clicks)).toBeNull() // a visit before the click is not caused by it
+    expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(-5) }, clicks)).toBe('p1') // Resend logs the click a few seconds after our site logs the visit
+    expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(-4 * 60) }, clicks)).toBeNull()
     expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(11 * 60) }, clicks)).toBeNull()
     expect(inferPersonByClickIp({ ip: '8.8.8.8', createdAt: at(20) }, clicks)).toBeNull()
     expect(inferPersonByClickIp({ ip: null, createdAt: at(20) }, clicks)).toBeNull()
@@ -100,5 +101,47 @@ describe('clicks Resend recorded: visit to person', () => {
     const clicks = [{ ip: '9.9.9.9', at: t0, personId: 'p1' }, { ip: '9.9.9.9', at: at(30), personId: 'p2' }]
     expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(40) }, clicks)).toBe('p2') // 10s after p2, 40s after p1: p2 is 4x closer
     expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(50) }, clicks)).toBeNull() // 20s and 50s: not clearly closer
+  })
+})
+
+describe('peopleWhoTouchedBefore', () => {
+  const t0 = new Date('2026-11-11T17:00:00Z')
+  const at = (s: number) => new Date(t0.getTime() + s * 1000)
+  it('lists the distinct people who opened or clicked in the fifteen minutes before a visit', async () => {
+    const { peopleWhoTouchedBefore } = await import('@/lib/marketing/email-attribution')
+    const touches = [{ at: t0, personId: 'p1' }, { at: at(60), personId: 'p1' }, { at: at(-3600), personId: 'p2' }, { at: at(10 * 60), personId: 'p3' }]
+    expect(peopleWhoTouchedBefore(at(5 * 60), touches)).toEqual(['p1'])
+    expect(peopleWhoTouchedBefore(at(11 * 60), touches).sort()).toEqual(['p1', 'p3'])
+    expect(peopleWhoTouchedBefore(at(-4 * 60), touches)).toEqual([])
+  })
+})
+
+describe('peopleByNearClick', () => {
+  const t0 = new Date('2026-11-11T17:00:00Z')
+  const at = (s: number) => new Date(t0.getTime() + s * 1000)
+  const link = 'https://launchyournextchapter.com/reports/white-collar-employment-report-october-2026'
+  it('names the recipient whose link to the same page was clicked seconds from the visit, whatever the address', async () => {
+    const { peopleByNearClick } = await import('@/lib/marketing/email-attribution')
+    const visit = { createdAt: at(3), path: '/reports/white-collar-employment-report-october-2026?utm_source=x' }
+    expect(peopleByNearClick(visit, [{ at: t0, personId: 'p1', link }, { at: at(-300), personId: 'p2', link }])).toEqual(['p1'])
+    expect(peopleByNearClick(visit, [{ at: t0, personId: 'p1', link: 'https://launchyournextchapter.com/other' }])).toEqual([])
+    expect(peopleByNearClick(visit, [{ at: at(2), personId: 'p1', link }, { at: at(5), personId: 'p2', link }]).sort()).toEqual(['p1', 'p2'])
+  })
+})
+
+describe('tagMailingLinks', () => {
+  const id = 'cmabc123def456ghi789'
+  it('tags our own links in html and text, and nothing else', async () => {
+    const { tagMailingLinks, extractMailingRecipientId } = await import('@/lib/marketing/email-attribution')
+    const html = '<a href="https://launchyournextchapter.com/reports/white-collar-employment-report-october-2026">r</a> <a href="https://example.com/x">x</a> <a href="https://launchyournextchapter.com/updates/unsubscribe/tok.en.sig">u</a> <a href="https://launchyournextchapter.com/a?b=1&amp;c=2">a</a>'
+    const out = tagMailingLinks(html, id, 'html')
+    expect(out).toContain(`/reports/white-collar-employment-report-october-2026?utm_source=email&amp;utm_medium=newsletter&amp;nc_m=${id}`)
+    expect(out).toContain('href="https://example.com/x"')
+    expect(out).toContain('href="https://launchyournextchapter.com/updates/unsubscribe/tok.en.sig"')
+    expect(out).toContain(`b=1&amp;c=2&amp;utm_source=email&amp;utm_medium=newsletter&amp;nc_m=${id}`)
+    expect(tagMailingLinks('Read https://launchyournextchapter.com/reports/x now', id, 'text')).toBe(`Read https://launchyournextchapter.com/reports/x?utm_source=email&utm_medium=newsletter&nc_m=${id} now`)
+    expect(extractMailingRecipientId(`/reports/x?utm_source=email&nc_m=${id}`)).toBe(id)
+    expect(extractMailingRecipientId('/reports/x')).toBeNull()
+    expect(tagMailingLinks(html, 'bad id', 'html')).toBe(html)
   })
 })
