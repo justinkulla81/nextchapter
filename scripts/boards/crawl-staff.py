@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
 
-SITES = sys.argv[1]; OUT = sys.argv[2]
+SITES = sys.argv[1] if len(sys.argv) > 1 else ''; OUT = sys.argv[2] if len(sys.argv) > 2 else ''
 UA = 'Mozilla/5.0 (compatible; NextChapterStaffDirectory/1.0; +https://launchyournextchapter.com)'
 LINK = re.compile(r'\b(staff|our team|meet|team|leadership|directory|contact|about us|who we are|people|personnel|administration|management|executive)\b', re.I)
 STRONG = re.compile(r'\b(staff|our team|meet (the|our)|leadership|directory|team members|staff directory)\b', re.I)
@@ -181,4 +181,5 @@ def main():
     n = sum(len(r['people']) for r in results)
     print(len(results), 'hosts', sum(1 for r in results if r['people']), 'with people', n, 'people', sum(1 for r in results for p in r['people'] if p['email']), 'with email')
 
-main()
+if __name__ == '__main__':
+    main()

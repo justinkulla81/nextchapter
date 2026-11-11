@@ -21,3 +21,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS "WorkforceStaffContact_host_name_key" ON "Work
 CREATE INDEX IF NOT EXISTS "WorkforceStaffContact_role_level_idx" ON "WorkforceStaffContact" ("role", "level");
 CREATE INDEX IF NOT EXISTS "WorkforceStaffContact_email_idx" ON "WorkforceStaffContact" (lower("email"));
 ALTER TABLE "WorkforceStaffContact" ENABLE ROW LEVEL SECURITY;
+
+-- 2026-11-11 (later): upsert key, segment, and Hunter verification fields.
+ALTER TABLE "WorkforceStaffContact" ADD COLUMN IF NOT EXISTS "key" TEXT GENERATED ALWAYS AS ("host" || '|' || lower("name")) STORED;
+CREATE UNIQUE INDEX IF NOT EXISTS "WorkforceStaffContact_key_key" ON "WorkforceStaffContact" ("key");
+ALTER TABLE "WorkforceStaffContact" ADD COLUMN IF NOT EXISTS "segment" TEXT; -- workforce_board | job_center | state_rapid_response | econ_dev | dol
+ALTER TABLE "WorkforceStaffContact" ADD COLUMN IF NOT EXISTS "emailGuessed" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "WorkforceStaffContact" ADD COLUMN IF NOT EXISTS "hunterStatus" TEXT;
+ALTER TABLE "WorkforceStaffContact" ADD COLUMN IF NOT EXISTS "hunterScore" INT;
+ALTER TABLE "WorkforceStaffContact" ADD COLUMN IF NOT EXISTS "hunterCheckedAt" TIMESTAMPTZ;
