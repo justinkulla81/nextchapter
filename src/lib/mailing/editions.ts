@@ -7,6 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { computeRoster, rosterCounts, type RosterRow } from './roster'
 import { renderEmail } from './render'
+import { tagMailingLinks } from '@/lib/marketing/email-attribution'
 import { makeUnsubscribeToken } from './unsubscribe-token'
 import { addToLists, doNotEmailPeople, getMailingSettings, syncWebsiteSignups } from './lists'
 import { withAudienceHtml, withAudienceText, type EmailAudience } from '@/lib/email/audience-tag'
@@ -196,8 +197,9 @@ async function sendOne(
     unsubscribeUrl,
   })
   const audience = audienceForEdition(edition)
-  const html = withAudienceHtml(audience, rendered.html)
-  const text = withAudienceText(audience, rendered.text)
+  // Our own links carry this recipient's id so a visit names who it was sent to (not for a test send).
+  const html = to.recipientId ? tagMailingLinks(withAudienceHtml(audience, rendered.html), to.recipientId, 'html') : withAudienceHtml(audience, rendered.html)
+  const text = to.recipientId ? tagMailingLinks(withAudienceText(audience, rendered.text), to.recipientId, 'text') : withAudienceText(audience, rendered.text)
   const fromName = edition.lists.length === 1 ? edition.lists[0].list.defaultFromName || settings.fromName : settings.fromName
   return resend.emails.send({
     from: `${fromName} <${settings.fromEmail}>`,

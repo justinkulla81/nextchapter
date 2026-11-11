@@ -20,7 +20,7 @@ import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
-import { buildEmailIpAnchors, extractEmailLinkId, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_LEAD_WINDOW_MS, CLICK_TO_VISIT_WINDOW_MS, peopleByNearClick, NEAR_CLICK_WINDOW_MS, peopleWhoTouchedBefore, TOUCH_LEAD_WINDOW_MS, TOUCH_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
+import { buildEmailIpAnchors, extractEmailLinkId, extractMailingRecipientId, resolveMailingRecipientIds, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_LEAD_WINDOW_MS, CLICK_TO_VISIT_WINDOW_MS, peopleByNearClick, NEAR_CLICK_WINDOW_MS, peopleWhoTouchedBefore, TOUCH_LEAD_WINDOW_MS, TOUCH_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
 import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
 import { PREFETCH_OPEN_WINDOW_MS } from '@/lib/mailing/open-human'
 import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
@@ -607,6 +607,12 @@ export default async function AdminVisitorActivityPage({
     ...mailingAnchors.map((a) => a.token),
   ].filter((t): t is string => !!t))
   const mailingByToken = mailingMatches.unique
+  // Visits through a link in a list email carry the recipient's id (nc_m): the person, certain.
+  const mailingById = await resolveMailingRecipientIds(events.map((e) => extractMailingRecipientId(e.path)).filter((id): id is string => !!id))
+  const taggedPerson = (path: string | null) => {
+    const id = extractMailingRecipientId(path)
+    return id ? (mailingById.get(id) ?? null) : null
+  }
 
   // Clicks Resend recorded on list-email links, from these IPs in the ten minutes before the oldest visit shown: the person who
   // clicked and the visit that follows from the same address. A missing table (before the migration) just means no clicks.
@@ -736,16 +742,18 @@ export default async function AdminVisitorActivityPage({
       if (e.ip && scannerIps.has(e.ip)) return null
       const id = extractEmailLinkId(e.path)
       if (id) return recipientByLink.get(id) ?? null
+      const tagged = taggedPerson(e.path)
+      if (tagged) return tagged
       const token = extractUnsubscribeToken(e.path)
       return token ? (mailingByToken.get(token) ?? null) : null
     })(),
     likelyRecipient: (() => {
       if (e.ip && scannerIps.has(e.ip)) return null
-      if (!extractEmailLinkId(e.path) && !extractUnsubscribeToken(e.path)) {
+      if (!extractEmailLinkId(e.path) && !extractUnsubscribeToken(e.path) && !taggedPerson(e.path)) {
         const clicked = inferPersonByClickIp(e, mailingClicks)
         if (clicked && clickPeople.has(clicked)) return clickPeople.get(clicked) ?? null
       }
-      const mailToken = extractEmailLinkId(e.path) || extractUnsubscribeToken(e.path) ? null : inferMailingTokenByIp(e, mailingAnchors, (t) => mailingByToken.get(t)?.personId)
+      const mailToken = extractEmailLinkId(e.path) || extractUnsubscribeToken(e.path) || taggedPerson(e.path) ? null : inferMailingTokenByIp(e, mailingAnchors, (t) => mailingByToken.get(t)?.personId)
       if (mailToken) return mailingByToken.get(mailToken) ?? null
       if (classifyUserAgent(e.userAgent) !== 'human' || isDatacenterIp(e.ip)) return null
       const id = inferEmailLinkByIp(e, ipAnchors, (linkId) => recipientByLink.get(linkId)?.personId)
@@ -763,7 +771,7 @@ export default async function AdminVisitorActivityPage({
       const found = new Map<string, { id: string; name: string }>()
       const link = extractEmailLinkId(e.path)
       const token = extractUnsubscribeToken(e.path)
-      const recipient = e.ip && scannerIps.has(e.ip) ? null : link ? recipientByLink.get(link) : token ? mailingByToken.get(token) : null
+      const recipient = e.ip && scannerIps.has(e.ip) ? null : link ? recipientByLink.get(link) : taggedPerson(e.path) ?? (token ? mailingByToken.get(token) : null)
       if (recipient) found.set(recipient.personId, { id: recipient.personId, name: recipient.name })
       for (const g of givenByEvent.get(e.id) ?? []) {
         const hit = crmByEmail.get(g.email.trim().toLowerCase())
