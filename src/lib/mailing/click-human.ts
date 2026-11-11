@@ -27,9 +27,18 @@ export function isPrivateIp(ip: string | null): boolean {
   return lower === '::1' || lower.startsWith('fc') || lower.startsWith('fd') || lower.startsWith('fe80:')
 }
 
+/** The network block an address sits in: its first three numbers for IPv4 (a /24), its first three groups for IPv6. */
+export function ipBlock(ip: string | null): string | null {
+  if (!ip) return null
+  const parts = ip.includes(':') ? ip.split(':') : ip.split('.')
+  return parts.length >= 3 ? parts.slice(0, 3).join(ip.includes(':') ? ':' : '.') : null
+}
+
 /** Why a click is not a person's, or null for a human click. */
-export function botClickReason(click: ClickFacts, scannerIps: Set<string>): string | null {
+export function botClickReason(click: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): string | null {
   if (click.ip && scannerIps.has(click.ip)) return 'address opened the links in emails to many different people'
+  const block = ipBlock(click.ip)
+  if (block && scannerBlocks.has(block)) return 'address block clicked emails to several different people'
   if (isPrivateIp(click.ip)) return 'address is a private network address'
   if (isDatacenterIp(click.ip)) return 'address is inside a cloud network'
   if (isCloudProviderIp(click.ip)) return 'address belongs to Amazon Web Services or Google Cloud'
@@ -38,7 +47,8 @@ export function botClickReason(click: ClickFacts, scannerIps: Set<string>): stri
   return null
 }
 
-export const isHumanClick = (click: ClickFacts, scannerIps: Set<string>): boolean => botClickReason(click, scannerIps) === null
+export const isHumanClick = (click: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): boolean =>
+  botClickReason(click, scannerIps, scannerBlocks) === null
 
 // A scanner fans one email's links out over several addresses within moments (or hits one link twice in the same instant).
 // A person clicks once, from one address. Two clicks on the same email from different addresses within a minute, or from one

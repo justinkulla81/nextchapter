@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { botClickReason, burstClickIds, isHumanClick } from '@/lib/mailing/click-human'
+import { botClickReason, burstClickIds, ipBlock, isHumanClick } from '@/lib/mailing/click-human'
 
 const delivered = new Date('2026-11-11T15:55:26Z')
 const click = (over: Partial<Parameters<typeof botClickReason>[0]> = {}) => ({
@@ -18,6 +18,14 @@ describe('which list-email clicks are a person', () => {
     expect(isHumanClick(click({ ip: '74.176.10.1' }), new Set())).toBe(false)
     expect(isHumanClick(click({ ip: '203.0.113.7' }), new Set(['203.0.113.7']))).toBe(false)
     expect(isHumanClick(click({ userAgent: 'Mozilla/5.0 (compatible; Googlebot/2.1)' }), new Set())).toBe(false)
+  })
+  it('does not count a click from a network block that clicked emails for several different people', () => {
+    const blocks = new Set(['205.169.39', '2600:4040:9748'])
+    expect(isHumanClick(click({ ip: '205.169.39.210' }), new Set(), blocks)).toBe(false)
+    expect(isHumanClick(click({ ip: '2600:4040:9748:3e00::1' }), new Set(), blocks)).toBe(false)
+    expect(isHumanClick(click({ ip: '205.169.40.210' }), new Set(), blocks)).toBe(true)
+    expect(ipBlock('1.2.3.4')).toBe('1.2.3')
+    expect(ipBlock(null)).toBeNull()
   })
   it('does not count a click from an Amazon or Google Cloud address', () => {
     expect(isHumanClick(click({ ip: '3.148.231.115' }), new Set())).toBe(false)

@@ -2,7 +2,7 @@ import 'server-only'
 import type { CrmReportSendChannel } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { loadScannerIps } from '@/lib/marketing/mail-scanners'
+import { loadScannerBlocks, loadScannerIps } from '@/lib/marketing/mail-scanners'
 import { burstClickIds, isHumanClick } from './click-human'
 import { suppress } from './lists'
 import { baseSubject, isUnsubscribeReply } from './replies'
@@ -85,8 +85,11 @@ async function saveClick(recipientId: string, event: ResendEvent, fallbackAt: Da
     const at = Number.isNaN(stamp.getTime()) ? fallbackAt : stamp
     const ip = click.ipAddress?.slice(0, 64) || null
     const userAgent = click.userAgent?.slice(0, 300) || null
-    const scanners = await loadScannerIps().catch(() => new Set<string>())
-    const human = isHumanClick({ ip, userAgent, at, deliveredAt }, scanners)
+    const [scanners, blocks] = await Promise.all([
+      loadScannerIps().catch(() => new Set<string>()),
+      loadScannerBlocks().catch(() => new Set<string>()),
+    ])
+    const human = isHumanClick({ ip, userAgent, at, deliveredAt }, scanners, blocks)
     const link = (click.link ?? '').slice(0, 500)
     const saved = await prisma.mailingClickEvent.createMany({ data: [{ recipientId, ip, userAgent, link, clickedAt: at, bot: !human }], skipDuplicates: true })
     if (saved.count === 0) return false // the same click delivered again: already handled
