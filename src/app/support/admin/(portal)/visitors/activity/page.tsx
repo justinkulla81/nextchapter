@@ -10,10 +10,8 @@ import { AverageBarChart } from '@/components/admin/AverageBarChart'
 import { VisitorsPerDayChart } from '@/components/admin/VisitorsPerDayChart'
 import { loadCapturedEmailsForDays } from '@/lib/leads/captured-emails'
 import { capturedPerDay, countsPerDay } from '@/lib/admin/captured-per-day'
-import { loadPaidFunnel, loadSemEvents } from '@/lib/admin/sem-leads'
-import { costLine, formatDollars, loadSemSpend } from '@/lib/admin/sem-spend'
-import { PAID_CHANNELS, paidChannelLabel } from '@/lib/admin/paid-channels'
-import { SemSpendForm } from '@/components/admin/SemSpendForm'
+import { loadPaidFunnel } from '@/lib/admin/sem-leads'
+import { paidChannelLabel } from '@/lib/admin/paid-channels'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { DATACENTER_CIDRS, isDatacenterIp } from '@/lib/http/datacenter-ip'
 import { loadScannerIps } from '@/lib/marketing/mail-scanners'
@@ -28,7 +26,7 @@ import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
 import { segmentRangeSeries, type SegmentCountRow } from '@/lib/admin/visitor-segment-series'
 import { sourceSegment, type SourceSegment } from '@/lib/admin/visitor-source-segment'
 import { VisitorsSegmentChart, type SegmentChartLine } from '@/components/admin/VisitorsSegmentChart'
-import { etDateKey, allTimeDayCountFromFirstDay, byHourOfDayFromCounts, byWeekdayFromCounts, perDaySeriesFromCounts, perHourSeriesFromCounts } from '@/lib/admin/visitor-time-buckets'
+import { allTimeDayCountFromFirstDay, byHourOfDayFromCounts, byWeekdayFromCounts, perDaySeriesFromCounts, perHourSeriesFromCounts } from '@/lib/admin/visitor-time-buckets'
 
 export const maxDuration = 30
 
@@ -401,7 +399,7 @@ export default async function AdminVisitorActivityPage({
   const toDaysRows = (rows: { key: string; count: number }[]) => rows.map((d) => ({ dateKey: d.key, count: d.count }))
   // Emails captured per day: every form on the public site plus new registrations.
   // Seeded sample profiles and profiles with no email are not captures (332 were bulk-created on Oct 15).
-  const [captured, registrationRows, applyClickRows, nativeApplicationRows, sem, paidFunnel] = await Promise.all([
+  const [captured, registrationRows, applyClickRows, nativeApplicationRows, paidFunnel] = await Promise.all([
     loadCapturedEmailsForDays(CHART_WINDOW_DAYS),
     prisma.candidateProfile.findMany({
       where: { createdAt: { gte: since(CHART_WINDOW_DAYS) }, isSampleData: false, email: { not: null } },
@@ -412,11 +410,8 @@ export default async function AdminVisitorActivityPage({
       select: { createdAt: true, userAgent: true, href: true, path: true, ip: true },
     }),
     prisma.nativeJobApplication.findMany({ where: { createdAt: { gte: since(CHART_WINDOW_DAYS) } }, select: { createdAt: true } }),
-    loadSemEvents(CHART_WINDOW_DAYS),
     loadPaidFunnel(CHART_WINDOW_DAYS),
   ])
-  const semDayKeys = countsPerDay([], current, CHART_WINDOW_DAYS).map((d) => d.key)
-  const semSpend = await loadSemSpend(semDayKeys)
   const paidSum = (f: 'visitors' | 'emails' | 'accounts') => paidFunnel.reduce((t, r) => t + r[f], 0)
   const paidTotal = {
     channel: 'all' as const,
@@ -426,37 +421,6 @@ export default async function AdminVisitorActivityPage({
     emailRate: paidSum('visitors') ? paidSum('emails') / paidSum('visitors') : null,
     accountRate: paidSum('visitors') ? paidSum('accounts') / paidSum('visitors') : null,
   }
-  const sumCents = (rows: { amountCents: number }[]) => rows.reduce((t, r) => t + r.amountCents, 0)
-  const b2cLeads = sem.leads.filter((l) => !l.b2b)
-  const b2bLeads = sem.leads.filter((l) => l.b2b)
-  const channelCosts = PAID_CHANNELS.map((c) => ({
-    channel: c,
-    spend: semSpend.filter((r) => r.channel === c.key),
-    line: costLine(
-      c.label,
-      sumCents(semSpend.filter((r) => r.channel === c.key)),
-      sem.leads.filter((l) => l.channel === c.key).length,
-      sem.accounts.filter((a) => a.channel === c.key).length
-    ),
-  })).filter((c) => c.spend.length > 0 || c.line.leads > 0 || c.line.accounts > 0)
-  const semCosts = [
-    ...channelCosts.map((c) => c.line),
-    costLine('All paid', sumCents(semSpend), sem.leads.length, sem.accounts.length),
-    costLine('B2C, all channels', sumCents(semSpend.filter((r) => r.segment === 'b2c')), b2cLeads.length, 0),
-    costLine('B2B, all channels', sumCents(semSpend.filter((r) => r.segment === 'b2b')), b2bLeads.length, 0),
-  ]
-  const semSpendSeries = channelCosts
-    .filter((c) => c.spend.length > 0)
-    .map((c) => {
-      const byDay = new Map<string, number>()
-      for (const r of c.spend) byDay.set(r.day, (byDay.get(r.day) ?? 0) + r.amountCents / 100)
-      return { label: `${c.channel.label} spend ($)`, days: semDayKeys.map((key) => ({ dateKey: key, count: byDay.get(key) ?? 0 })), color: c.channel.color }
-    })
-  const semSeries = [
-    { label: 'B2C leads', days: toDaysRows(countsPerDay(b2cLeads.map((l) => l.at), current, CHART_WINDOW_DAYS)), color: 'var(--color-brand)' },
-    { label: 'B2B leads', days: toDaysRows(countsPerDay(b2bLeads.map((l) => l.at), current, CHART_WINDOW_DAYS)), color: 'var(--color-navy)' },
-    { label: 'Accounts created', days: toDaysRows(countsPerDay(sem.accounts.map((a) => a.at), current, CHART_WINDOW_DAYS)), color: 'var(--color-success)' },
-  ]
   // Only clicks tied to a job page: clicks recorded before path tracking (to Oct 27) had no page, so they cannot be told from footer or news links.
   const humanApplyClicks = applyClickRows.filter(
     (e) => (showBots || (classifyUserAgent(e.userAgent) === 'human' && !isDatacenterIp(e.ip) && !(e.ip && scannerIps.has(e.ip)))) && isApplyClick('LINK_CLICK', e.href, e.path)
@@ -956,42 +920,6 @@ export default async function AdminVisitorActivityPage({
       </TrafficRangeProvider>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <div className="rounded-lg border border-border p-4">
-          <h2 className="text-sm font-medium text-foreground">Paid leads, accounts and spend</h2>
-          <p className="mb-3 text-xs text-muted-foreground">
-            Last {CHART_WINDOW_DAYS} days (Eastern time). Visitors whose first visit came from a paid click on Google (a gclid, or a link tagged utm_medium cpc), Bing (msclkid), or a LinkedIn, Reddit or Facebook ad link tagged utm_medium paid_social, then left an email or created an account from the same IP within 30 days. An ad link with no tag is not counted, so tag every ad. B2B is a campaign tagged b2b-; every other click is B2C. Contact-form leads carry no IP, so they are not counted. Spend is typed in by day and channel; cost per lead is spend over the leads counted for that channel.
-          </p>
-          <VisitorsPerDayChart series={semSeries} emptyMessage="No paid leads in this window yet." />
-          <h3 className="mb-1 mt-4 text-xs font-medium text-foreground">Spend and cost per lead by channel, last {CHART_WINDOW_DAYS} days</h3>
-          <table className="mb-3 w-full text-xs">
-            <thead>
-              <tr className="text-left text-muted-foreground">
-                <th className="py-1 pr-2 font-normal"></th>
-                <th className="py-1 pr-2 text-right font-normal">Spend</th>
-                <th className="py-1 pr-2 text-right font-normal">Leads</th>
-                <th className="py-1 pr-2 text-right font-normal">Cost per lead</th>
-                <th className="py-1 text-right font-normal">Cost per account</th>
-              </tr>
-            </thead>
-            <tbody>
-              {semCosts.map((c) => (
-                <tr key={c.label} className="border-t border-border">
-                  <td className="py-1 pr-2">{c.label}</td>
-                  <td className="py-1 pr-2 text-right tabular-nums">{formatDollars(c.spendCents)}</td>
-                  <td className="py-1 pr-2 text-right tabular-nums">{c.leads}</td>
-                  <td className="py-1 pr-2 text-right tabular-nums" title={c.costPerLeadCents === null ? 'No leads yet, so there is no cost per lead.' : undefined}>
-                    {c.costPerLeadCents === null ? '—' : formatDollars(c.costPerLeadCents)}
-                  </td>
-                  <td className="py-1 text-right tabular-nums" title={c.costPerAccountCents === null ? 'No accounts yet.' : undefined}>
-                    {c.costPerAccountCents === null ? '—' : formatDollars(c.costPerAccountCents)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <VisitorsPerDayChart series={semSpendSeries} emptyMessage="No spend entered yet. Add a day below." />
-          <SemSpendForm today={etDateKey(current)} windowStart={semDayKeys[0]} />
-        </div>
         <div className="rounded-lg border border-border p-4">
           <h2 className="text-sm font-medium text-foreground">Paid conversions by channel</h2>
           <p className="mb-3 text-xs text-muted-foreground">
