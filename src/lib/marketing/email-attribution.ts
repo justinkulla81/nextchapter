@@ -285,3 +285,49 @@ export function inferPersonByClickIp(visit: { ip: string | null; createdAt: Date
   if (ranked.length === 1) return ranked[0][0]
   return ranked[0][1] * 3 <= ranked[1][1] ? ranked[0][0] : null
 }
+
+// ── Opens and clicks by time alone ────────────────────────────────────────────────────────────────────────────────────
+// Gmail's and Apple's image proxies hide the reader's address, so a human open or click often shares no IP with the visit it
+// leads to. What is left is time: the people who opened or clicked just before an otherwise unnamed human visit.
+export const TOUCH_TO_VISIT_WINDOW_MS = 15 * 60 * 1000
+export const TOUCH_LEAD_WINDOW_MS = 60 * 1000
+
+/** Distinct people with a human open or click within fifteen minutes before the visit (or a minute after: events arrive late). */
+export function peopleWhoTouchedBefore(visitAt: Date, touches: { at: Date; personId: string }[]): string[] {
+  const out = new Set<string>()
+  for (const t of touches) {
+    const gap = visitAt.getTime() - t.at.getTime()
+    if (gap >= -TOUCH_LEAD_WINDOW_MS && gap <= TOUCH_TO_VISIT_WINDOW_MS) out.add(t.personId)
+  }
+  return Array.from(out)
+}
+
+// A tracked link in an email is followed by the recipient's mail security (or the person), which loads our page from another
+// address a few seconds later or earlier than Resend stamps the click. Same page, a few seconds apart: that click's recipient.
+export const NEAR_CLICK_WINDOW_MS = 20 * 1000
+
+const pathOf = (u: string | null | undefined): string | null => {
+  if (!u) return null
+  try {
+    return new URL(u, 'https://x.invalid').pathname.replace(/\/$/, '')
+  } catch {
+    return null
+  }
+}
+
+/** People whose emailed link to this page was clicked within twenty seconds of the visit: the one clearly nearest, else up to three. */
+export function peopleByNearClick(visit: { createdAt: Date; path: string | null }, clicks: { at: Date; personId: string; link: string }[]): string[] {
+  const page = pathOf(visit.path)
+  if (!page) return []
+  const best = new Map<string, number>()
+  for (const c of clicks) {
+    const gap = Math.abs(visit.createdAt.getTime() - c.at.getTime())
+    if (gap > NEAR_CLICK_WINDOW_MS || pathOf(c.link) !== page) continue
+    const prior = best.get(c.personId)
+    if (prior === undefined || gap < prior) best.set(c.personId, gap)
+  }
+  const ranked = Array.from(best.entries()).sort((x, y) => x[1] - y[1])
+  if (ranked.length <= 1) return ranked.map(([id]) => id)
+  if (ranked[0][1] * 3 <= ranked[1][1]) return [ranked[0][0]]
+  return ranked.length <= 3 ? ranked.map(([id]) => id) : []
+}

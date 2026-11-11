@@ -103,3 +103,28 @@ describe('clicks Resend recorded: visit to person', () => {
     expect(inferPersonByClickIp({ ip: '9.9.9.9', createdAt: at(50) }, clicks)).toBeNull() // 20s and 50s: not clearly closer
   })
 })
+
+describe('peopleWhoTouchedBefore', () => {
+  const t0 = new Date('2026-11-11T17:00:00Z')
+  const at = (s: number) => new Date(t0.getTime() + s * 1000)
+  it('lists the distinct people who opened or clicked in the fifteen minutes before a visit', async () => {
+    const { peopleWhoTouchedBefore } = await import('@/lib/marketing/email-attribution')
+    const touches = [{ at: t0, personId: 'p1' }, { at: at(60), personId: 'p1' }, { at: at(-3600), personId: 'p2' }, { at: at(10 * 60), personId: 'p3' }]
+    expect(peopleWhoTouchedBefore(at(5 * 60), touches)).toEqual(['p1'])
+    expect(peopleWhoTouchedBefore(at(11 * 60), touches).sort()).toEqual(['p1', 'p3'])
+    expect(peopleWhoTouchedBefore(at(-4 * 60), touches)).toEqual([])
+  })
+})
+
+describe('peopleByNearClick', () => {
+  const t0 = new Date('2026-11-11T17:00:00Z')
+  const at = (s: number) => new Date(t0.getTime() + s * 1000)
+  const link = 'https://launchyournextchapter.com/reports/white-collar-employment-report-october-2026'
+  it('names the recipient whose link to the same page was clicked seconds from the visit, whatever the address', async () => {
+    const { peopleByNearClick } = await import('@/lib/marketing/email-attribution')
+    const visit = { createdAt: at(3), path: '/reports/white-collar-employment-report-october-2026?utm_source=x' }
+    expect(peopleByNearClick(visit, [{ at: t0, personId: 'p1', link }, { at: at(-300), personId: 'p2', link }])).toEqual(['p1'])
+    expect(peopleByNearClick(visit, [{ at: t0, personId: 'p1', link: 'https://launchyournextchapter.com/other' }])).toEqual([])
+    expect(peopleByNearClick(visit, [{ at: at(2), personId: 'p1', link }, { at: at(5), personId: 'p2', link }]).sort()).toEqual(['p1', 'p2'])
+  })
+})
