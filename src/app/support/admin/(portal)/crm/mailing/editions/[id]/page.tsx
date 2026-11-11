@@ -104,7 +104,7 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
             source: r.source, excluded: r.excluded, excludedReason: r.excludedReason, fromListKeys: r.fromListKeys,
             manualSentAt: r.personId && manual.get(r.personId) ? manual.get(r.personId)!.toISOString() : earlier.get(r.email)?.toISOString() ?? null,
           }))}
-          settings={{ fromName: settings.fromName, fromEmail: settings.fromEmail, testEmail: settings.testEmail, footerText: settings.footerText, postalAddress: settings.postalAddress, ratePerHour: settings.ratePerHour }}
+          settings={{ fromName: settings.fromName, fromEmail: settings.fromEmail, testEmail: settings.testEmail, footerText: settings.footerText, postalAddress: settings.postalAddress, ratePerHour: settings.ratePerHour, dailyCap: settings.dailyCap, seedEmails: settings.seedEmails }}
           fileUrl={fileUrlFor(edition.key)}
           // Version 2 onward: the "leave out anyone an earlier version emailed" box.
           earlierVersion={edition.versionOfId ? { reachedEmails: [...earlier.keys()] } : null}

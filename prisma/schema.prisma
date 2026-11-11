@@ -13901,6 +13901,10 @@ model MailingSettings {
   replyTo       String   @default("justin@launchyournextchapter.com")
   testEmail     String   @default("justin@launchyournextchapter.com")
   ratePerHour   Int      @default(50)
+  /// Most list emails that go out in one Eastern day, so volume on the sending domain grows gradually (owner decision 2026-11-12: start at 500).
+  dailyCap      Int      @default(500)
+  /// Inboxes at Gmail, Outlook, Yahoo and the like that "Send seed test" mails the real email to, to see where it lands (inbox, promotions, spam).
+  seedEmails    String[] @default([])
   /// The small grey line under every email. [text] becomes the unsubscribe
   /// link and {{postalAddress}} the address below.
   footerText    String   @default("Not useful? Reply 'unsubscribe' or [click here] and I'll take you off. NextChapter · {{postalAddress}}") @db.Text

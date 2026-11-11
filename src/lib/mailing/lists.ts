@@ -11,6 +11,8 @@ export const SETTINGS_DEFAULTS = {
   replyTo: 'justin@launchyournextchapter.com',
   testEmail: 'justin@launchyournextchapter.com',
   ratePerHour: 50,
+  dailyCap: 500,
+  seedEmails: ['justin.kulla@gmail.com'] as string[],
   footerText: "Reply 'unsubscribe' or [click here] to remove yourself from future emails. NextChapter · {{postalAddress}}",
   postalAddress: '',
 }
