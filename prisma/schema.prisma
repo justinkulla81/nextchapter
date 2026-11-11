@@ -12475,6 +12475,30 @@ model WorkforceBoardPartner {
   @@index([boardId])
 }
 
+/// A named staff member read off a workforce board's or job center's own website (scripts/boards/crawl-staff.py). The staff list,
+/// kept apart from the board list so staff can be emailed on their own. SQL: prisma/manual/2026-11-11-workforce-staff-contact.sql.
+model WorkforceStaffContact {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  /// 'board' | 'center'
+  orgKind   String
+  orgId     String
+  orgName   String
+  state     String?
+  host      String
+  name      String
+  title     String?
+  email     String?
+  phone     String?
+  /// Same values as CrmPerson.workforceStaffRole / workforceStaffLevel.
+  role      String?
+  level     String?
+  sourceUrl String
+  checkedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([role, level])
+}
+
 /// A news article about layoffs, or about AI and jobs, in a board's area.
 model WorkforceBoardNews {
   id          String    @id @default(cuid())
