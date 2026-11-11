@@ -28,3 +28,22 @@ export const loadScannerIps = memoTtl(10 * 60 * 1000, () => 'scanner-ips', async
 export function isMailScanner(ip: string | null, scanners: Set<string>): boolean {
   return !!ip && (scanners.has(ip) || isDatacenterIp(ip))
 }
+
+export const SCANNER_BLOCK_MIN_RECIPIENTS = 2
+
+/**
+ * Network blocks (an IPv4 /24, or the first three groups of an IPv6 address) from which list-email links were clicked for two or
+ * more different recipients in the last two weeks. A person's own network does not click other people's email; a scanner farm
+ * does, from a different address each time. One grouped statement over the click table (a few hundred rows), held ten minutes.
+ */
+export const loadScannerBlocks = memoTtl(10 * 60 * 1000, () => 'scanner-blocks', async (): Promise<Set<string>> => {
+  const since = new Date(Date.now() - LOOKBACK_DAYS * 86_400_000)
+  const rows = await prisma.$queryRaw<{ block: string }[]>(Prisma.sql`
+    SELECT CASE WHEN "ip" LIKE '%:%' THEN split_part("ip", ':', 1) || ':' || split_part("ip", ':', 2) || ':' || split_part("ip", ':', 3)
+                ELSE split_part("ip", '.', 1) || '.' || split_part("ip", '.', 2) || '.' || split_part("ip", '.', 3) END AS "block"
+    FROM "MailingClickEvent"
+    WHERE "clickedAt" >= ${since} AND "ip" IS NOT NULL
+    GROUP BY 1
+    HAVING count(DISTINCT "recipientId") >= ${SCANNER_BLOCK_MIN_RECIPIENTS}`)
+  return new Set(rows.map((r) => r.block))
+})
