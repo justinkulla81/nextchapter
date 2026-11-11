@@ -3,6 +3,7 @@
  * visits can be separated from people. Nothing is dropped: the events are kept, flagged, and filtered in reports.
  * Background: on 28 Oct and 4 Nov 2026, 191 and 89 one-page sessions from identical Linux Chrome 155 browsers (US, DE, FR,
  * GB, SG, HK, JP) opened /onboarding/desire with no referrer and left. PostHog's own bot check flagged none of them.
+ * Ordinary-Chrome visitors that this check cannot see are separated by interaction instead: see human-interaction.ts.
  */
 export interface NavigatorLike {
   webdriver?: boolean
