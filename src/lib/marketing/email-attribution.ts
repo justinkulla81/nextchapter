@@ -141,9 +141,17 @@ export function inferEmailLinkByIp(
 }
 
 // ── Mailing-list emails (the monthly report, the newsletter) ─────────────────────────────────────────────────────────
-// These links carry no nc_e tag, but every one has an unsubscribe link whose token starts with the recipient's address
-// encoded in base64 (the visit log keeps only the first characters of it). Match that prefix against the people the
-// edition was sent to. A prefix that fits more than one recipient is not used: a wrong name is worse than none.
+// Editions sent from 2026-11-11 on tag every link to our own site with nc_m (see MAILING_VISIT_PARAM below), which names the
+// recipient directly. Earlier editions carry no per-recipient tag, but every one has an unsubscribe link whose token starts
+// with the recipient's address encoded in base64: match that prefix against the people the edition was sent to. A prefix
+// that fits more than one recipient is not used: a wrong name is worse than none.
+//
+// Known limit, as of 2026-11-11: a person who follows the link leaves the whole token in the log (the address, the edition
+// and the signature, about 115 characters), which names exactly one recipient. A mail scanner requests a mangled address
+// instead: the first 10 characters of the token's base64, which fits one recipient in most cases and several in about 1 in
+// 8. Those rows come from scanner addresses, so the log hides them and never names them; the ambiguous ones show as "One of:
+// A, B" only with all traffic shown. The mangling is on the scanner's side, not in our tracker, which stores the address
+// exactly as the browser reports it.
 const UNSUBSCRIBE_PATH = /^\/updates\/unsubscribe\/([A-Za-z0-9_-]{6,})/
 
 /** The unsubscribe token (or its stored prefix) on a landing path, or null. */

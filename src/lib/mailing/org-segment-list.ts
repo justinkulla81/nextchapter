@@ -1,5 +1,5 @@
-// Pure data and helpers, no database import: the client table needs ORG_SEGMENTS, and a client bundle must never pull in prisma
-// (PrismaClient throws in the browser and the page shows "This page didn't load"). The query lives in org-segments.ts.
+// Pure data and helpers, no database import: the client table needs ORG_SEGMENTS, and a client bundle must never pull in the
+// database client (it throws in the browser and the page shows "This page didn't load"). The query lives in org-segments.ts.
 // The kinds of organization the owner sorts a mailing by. One person can fall in more than one (a university that runs a
 // workforce program), so the filter asks "is any of their organizations of this kind".
 export const ORG_SEGMENTS = [

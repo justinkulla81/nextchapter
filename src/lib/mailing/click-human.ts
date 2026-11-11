@@ -5,6 +5,13 @@ import { classifyUserAgent } from '@/lib/http/user-agent'
 // Mail-security scanners click every link in a message within moments of delivery, from a cloud network, so Resend reports a
 // "click" that no person made. Only a human click counts as a click: it sets clickedAt and the click counts, and it is what
 // the visitor log matches a later visit to.
+//
+// Known limits, as of 2026-11-11:
+// - Resend's event history begins 2026-10-13 17:56 UTC, so clicks and opens on the older sends could not be re-checked and
+//   keep the counts they had before these rules (18 clicks and 34 opens at the time).
+// - Every rule is a guess from the address, browser and timing. A slow scanner on a quiet address can pass as human (about
+//   24 clicks and 36 opens did when the counts were restated), and a person behind a network block that several recipients
+//   share can be taken for a scanner.
 export const SCANNER_CLICK_WINDOW_MS = 2 * 60 * 1000
 
 export interface ClickFacts {
