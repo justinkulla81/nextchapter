@@ -20,7 +20,7 @@ import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
-import { buildEmailIpAnchors, extractEmailLinkId, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
+import { buildEmailIpAnchors, extractEmailLinkId, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_LEAD_WINDOW_MS, CLICK_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
 import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
 import { PREFETCH_OPEN_WINDOW_MS } from '@/lib/mailing/open-human'
 import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
@@ -614,7 +614,7 @@ export default async function AdminVisitorActivityPage({
     uniqueIps.length > 0
       ? await prisma.mailingClickEvent
           .findMany({
-            where: { bot: false, ip: { in: uniqueIps.filter((ip) => !scannerIps.has(ip) && !isDatacenterIp(ip)) }, clickedAt: { gte: new Date(oldestShown.getTime() - CLICK_TO_VISIT_WINDOW_MS), lte: newest } },
+            where: { bot: false, ip: { in: uniqueIps.filter((ip) => !scannerIps.has(ip) && !isDatacenterIp(ip)) }, clickedAt: { gte: new Date(oldestShown.getTime() - CLICK_TO_VISIT_WINDOW_MS), lte: new Date(newest.getTime() + CLICK_LEAD_WINDOW_MS) } },
             select: { ip: true, clickedAt: true, recipient: { select: { personId: true } } },
           })
           .catch(() => [])
@@ -984,17 +984,15 @@ export default async function AdminVisitorActivityPage({
     },
     {
       header: 'Source',
-      render: (r) =>
-        r.recipient ? (
-          `Email to ${r.recipient.name}`
-        ) : r.eventType !== 'PAGE_VIEW' ? (
-          '—'
-        ) : (
-          <span title={r.referrer ?? undefined}>
-            {r.source}
-            {r.referrer && <span className="text-muted-foreground"> · {referrerHost(r.referrer)}</span>}
-          </span>
-        ),
+      cellClassName: 'max-w-[14ch]',
+      render: (r) => {
+        const label = r.recipient ? `Email to ${r.recipient.name}` : r.eventType !== 'PAGE_VIEW' ? '—' : r.referrer ? `${r.source} · ${referrerHost(r.referrer)}` : r.source
+        return (
+          <div className="truncate" title={r.referrer ? `${label} (${r.referrer})` : label}>
+            {label}
+          </div>
+        )
+      },
     },
     {
       header: 'Page or click',
@@ -1003,11 +1001,11 @@ export default async function AdminVisitorActivityPage({
           return (
             <>
               {r.isApplyClick && <span className="mr-1.5 rounded bg-success/10 px-1.5 py-0.5 text-xs font-medium text-success">Apply</span>}
-              <ShortUrl url={absoluteUrl(r.href)} max="max-w-[34ch]" />
+              <ShortUrl url={absoluteUrl(r.href)} max="max-w-[28ch]" />
             </>
           )
         }
-        if (r.path) return <ShortUrl url={absoluteUrl(r.path)} max="max-w-[34ch]" />
+        if (r.path) return <ShortUrl url={absoluteUrl(r.path)} max="max-w-[28ch]" />
         return r.eventType === 'PAGE_VIEW' ? <span className="text-muted-foreground">/ (before path tracking)</span> : '—'
       },
     },
