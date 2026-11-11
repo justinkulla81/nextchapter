@@ -143,8 +143,17 @@ journalists, funders or researchers). Applies to list email sent from the mailin
   The owner wants to talk to them, so the ask is a call ("Free for a call this week or next?").
 - The journalist, funder and research versions are held for the November edition: those people already got the October email.
 - **Higher-ed career services and alumni:** lead with the new-graduate figure, not the national headline.
-- **Warm contacts:** people the owner knows get a short personal note and are taken off the cold lists. Mixing them hides both
-  signals.
+- **Warm contacts:** people the owner knows get a short personal note ("We just released NextChapter's October Employment Report.
+  ... I'd love to catch up and tell you more about what we're doing with NextChapter. Free for a call this week or next?") and are
+  taken off the cold lists. They are the mailing list `warm_contacts`. A person is warm when they are not Hunter-sourced
+  (`CrmPerson.emailSource`) and any of these holds: CRM `warmth` HOT or WARM; a LinkedIn connection (`connectedAt` or
+  `linkedinDegree` 1st); two-way history (inbound email, a meeting or call, a LinkedIn message). Do not call every address the owner
+  imported warm: that was ~3,900 addresses. Leave them on `advisors` and `bd_partners`, which are relationship lists. Mixing warm and
+  cold hides both signals.
+- **November edition: few, straightforward groups.** Do not make a version per list. Use one group per audience (warm, journalists,
+  funders and research partners, higher-ed, workforce boards), one text per group, and one A/B test per group on one variable (the
+  ask is the first to test), split by a hash of the address. Judge a test only where each arm has a few hundred people; a group
+  too small to test (journalists, about 30) gets one version.
 - One finding up front and the report behind a descriptive link, not seven findings in the body and a raw URL.
 - A reply that asks to be taken off the list is an unsubscribe, not a reply of interest: add the address to `MailingSuppression`
   (`DO_NOT_EMAIL`) and count it as an unsubscribe. October had 0 replies of interest.

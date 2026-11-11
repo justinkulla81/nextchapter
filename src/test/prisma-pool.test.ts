@@ -4,13 +4,13 @@ vi.mock('@prisma/client', () => ({ PrismaClient: class { $extends() { return thi
 vi.mock('@/lib/security/token-crypto-extension', () => ({ tokenCryptoExtension: {} }))
 vi.mock('@/lib/security/token-defaults-extension', () => ({ tokenDefaultsExtension: {} }))
 
-import { BUILD_POOL_SIZE, withPoolSettings } from '@/lib/prisma'
+import { BUILD_POOL_SIZE, RUNTIME_POOL_SIZE, withPoolSettings } from '@/lib/prisma'
 
 describe('withPoolSettings', () => {
   it('adds a larger pool and a longer wait to the pooled URL, keeping pgbouncer', () => {
     const out = withPoolSettings('postgresql://u:p@host:6543/postgres?pgbouncer=true')!
     expect(out).toContain('pgbouncer=true')
-    expect(out).toContain('connection_limit=15')
+    expect(out).toContain(`connection_limit=${RUNTIME_POOL_SIZE}`)
     expect(out).toContain('pool_timeout=30')
   })
   it('keeps values already in the URL', () => {
@@ -26,7 +26,7 @@ describe('withPoolSettings', () => {
     expect(BUILD_POOL_SIZE).toBeLessThan(15)
   })
   it('keeps the runtime pool when not building', () => {
-    expect(withPoolSettings('postgresql://u:p@host:6543/postgres?pgbouncer=true', false)!).toContain('connection_limit=15')
+    expect(withPoolSettings('postgresql://u:p@host:6543/postgres?pgbouncer=true', false)!).toContain(`connection_limit=${RUNTIME_POOL_SIZE}`)
   })
   it('passes a missing URL through', () => {
     expect(withPoolSettings(undefined)).toBeUndefined()

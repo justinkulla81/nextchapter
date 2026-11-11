@@ -310,6 +310,46 @@ export function peopleWhoTouchedBefore(visitAt: Date, touches: { at: Date; perso
   return Array.from(out)
 }
 
+/**
+ * One person reads an email from one address. When the same person would be named on visits from two or more addresses in the
+ * same stretch (a university or company mail gateway fetching the links from several data centers, seen 2026-11-11: one
+ * recipient "in" New York, Detroit and Santa Clara within a minute), the time match is a scanner burst, not the person. Takes
+ * row id -> candidate people and each row's address; returns the same map without the people seen on more than one address,
+ * and without rows left with nobody.
+ */
+export function dropPeopleOnSeveralAddresses(byRow: Map<string, string[]>, addressOfRow: (rowId: string) => string | null): Map<string, string[]> {
+  const addresses = new Map<string, Set<string>>()
+  for (const [rowId, people] of byRow) {
+    const addr = addressOfRow(rowId) ?? `row:${rowId}`
+    for (const p of people) addresses.set(p, (addresses.get(p) ?? new Set()).add(addr))
+  }
+  const out = new Map<string, string[]>()
+  for (const [rowId, people] of byRow) {
+    const kept = people.filter((p) => (addresses.get(p)?.size ?? 0) <= 1)
+    if (kept.length > 0) out.set(rowId, kept)
+  }
+  return out
+}
+
+export const SEVERAL_ADDRESSES_WINDOW_MS = 10 * 60 * 1000
+
+/**
+ * Ids of the guessed (not certain) rows to unname: a person guessed on two different addresses within ten minutes of each
+ * other is a mail gateway fetching the links from several places, whichever rule made the guess (seen 2026-11-11: one
+ * recipient "in" New York, Detroit and Santa Clara in the same minute).
+ */
+export function guessesOnSeveralAddresses(guesses: { id: string; personId: string; ip: string | null; at: Date }[]): Set<string> {
+  const out = new Set<string>()
+  for (const a of guesses) {
+    for (const b of guesses) {
+      if (a.id === b.id || a.personId !== b.personId) continue
+      if ((a.ip ?? a.id) === (b.ip ?? b.id)) continue
+      if (Math.abs(a.at.getTime() - b.at.getTime()) <= SEVERAL_ADDRESSES_WINDOW_MS) out.add(a.id)
+    }
+  }
+  return out
+}
+
 // A tracked link in an email is followed by the recipient's mail security (or the person), which loads our page from another
 // address a few seconds later or earlier than Resend stamps the click. Same page, a few seconds apart: that click's recipient.
 export const NEAR_CLICK_WINDOW_MS = 20 * 1000
@@ -317,7 +357,9 @@ export const NEAR_CLICK_WINDOW_MS = 20 * 1000
 const pathOf = (u: string | null | undefined): string | null => {
   if (!u) return null
   try {
-    return new URL(u, 'https://x.invalid').pathname.replace(/\/$/, '')
+    // Some mail gateways and apps open the click-tracking address as if it were ours, which appends the tracker's own
+    // "/1/<message id>-000000/<hash>" to the page path (seen 2026-11-11); the page is what comes before it.
+    return new URL(u, 'https://x.invalid').pathname.replace(/\/1\/0100[0-9a-f]{12}-[^/]*(\/.*)?$/i, '').replace(/\/$/, '')
   } catch {
     return null
   }

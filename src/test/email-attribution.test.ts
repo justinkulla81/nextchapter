@@ -127,6 +127,11 @@ describe('peopleByNearClick', () => {
     expect(peopleByNearClick(visit, [{ at: t0, personId: 'p1', link: 'https://launchyournextchapter.com/other' }])).toEqual([])
     expect(peopleByNearClick(visit, [{ at: at(2), personId: 'p1', link }, { at: at(5), personId: 'p2', link }]).sort()).toEqual(['p1', 'p2'])
   })
+  it('sees through the click tracker\'s own suffix that some gateways append to the page path', async () => {
+    const { peopleByNearClick } = await import('@/lib/marketing/email-attribution')
+    const visit = { createdAt: at(3), path: '/reports/white-collar-employment-report-october-2026/1/010001a1cb96f7d3-f2a9a98e-306e-48c3-a2f4-0664666c182d-000000/0HJ7dbR_VKT6CGFu1pRDbeEJPm4Koza7HD' }
+    expect(peopleByNearClick(visit, [{ at: t0, personId: 'p1', link }])).toEqual(['p1'])
+  })
 })
 
 describe('tagMailingLinks', () => {
@@ -143,5 +148,30 @@ describe('tagMailingLinks', () => {
     expect(extractMailingRecipientId(`/reports/x?utm_source=email&nc_m=${id}`)).toBe(id)
     expect(extractMailingRecipientId('/reports/x')).toBeNull()
     expect(tagMailingLinks(html, 'bad id', 'html')).toBe(html)
+  })
+})
+
+describe('dropPeopleOnSeveralAddresses', () => {
+  it('names nobody when a time match would put one person on several addresses (scanner burst)', async () => {
+    const { dropPeopleOnSeveralAddresses } = await import('@/lib/marketing/email-attribution')
+    const ips: Record<string, string> = { a: '1.1.1.1', b: '2.2.2.2', c: '3.3.3.3', d: '3.3.3.3' }
+    const out = dropPeopleOnSeveralAddresses(new Map([['a', ['briana']], ['b', ['briana']], ['c', ['cory']], ['d', ['cory']]]), (id) => ips[id])
+    expect(Array.from(out.keys())).toEqual(['c', 'd'])
+  })
+})
+
+describe('guessesOnSeveralAddresses', () => {
+  it('flags a person guessed on two addresses within minutes, not on one address or hours apart', async () => {
+    const { guessesOnSeveralAddresses } = await import('@/lib/marketing/email-attribution')
+    const t = (m: number) => new Date(Date.UTC(2026, 10, 11, 20, m))
+    const out = guessesOnSeveralAddresses([
+      { id: 'a', personId: 'briana', ip: '1.1.1.1', at: t(12) },
+      { id: 'b', personId: 'briana', ip: '2.2.2.2', at: t(12) },
+      { id: 'c', personId: 'cory', ip: '3.3.3.3', at: t(12) },
+      { id: 'd', personId: 'cory', ip: '3.3.3.3', at: t(13) },
+      { id: 'e', personId: 'sam', ip: '4.4.4.4', at: t(0) },
+      { id: 'f', personId: 'sam', ip: '5.5.5.5', at: t(59) },
+    ])
+    expect(Array.from(out).sort()).toEqual(['a', 'b'])
   })
 })
