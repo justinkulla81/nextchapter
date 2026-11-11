@@ -1,0 +1,16 @@
+socCode,title,exposure,open,newRecent,newPrior,closedRecent,closedPrior,newChangePct
+13-1161,Market Research Analysts and Marketing Specialists,0.6483,1984,2529,1,546,0,
+13-2051,Financial and Investment Analysts,0.5716,5958,8374,3,2424,4,
+15-1212,Information Security Analysts,0.4859,1340,1969,9,688,12,
+15-1254,Web Developers,0.4802,106,128,1,28,0,
+27-3042,Technical Writers,0.4747,229,288,0,59,0,
+15-2051,Data Scientists,0.4605,4746,7010,35,2482,52,19928.6
+43-6014,"Secretaries and Administrative Assistants, Except Legal, Medical, and Executive",0.4528,5815,6849,0,1034,0,
+15-2031,Operations Research Analysts,0.4288,421,507,0,86,0,
+13-1071,Human Resources Specialists,0.4034,11598,16359,13,4805,6,
+11-3031,Financial Managers,0.3907,4958,7803,2,2847,4,
+27-1024,Graphic Designers,0.3672,1308,1690,0,382,0,
+13-2011,Accountants and Auditors,0.3478,10150,13597,2,3455,7,
+15-1244,Network and Computer Systems Administrators,0.3373,1263,1671,0,408,0,
+15-1242,Database Administrators,0.3315,353,522,0,169,0,
+41-9031,Sales Engineers,0.3224,2388,2898,5,544,6,
