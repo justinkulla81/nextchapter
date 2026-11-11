@@ -24,6 +24,7 @@ import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
 import { buildEmailIpAnchors, extractEmailLinkId, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
 import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
+import { PREFETCH_OPEN_WINDOW_MS } from '@/lib/mailing/open-human'
 import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
 import { segmentRangeSeries, type SegmentCountRow } from '@/lib/admin/visitor-segment-series'
 import { sourceSegment, type SourceSegment } from '@/lib/admin/visitor-source-segment'
@@ -127,10 +128,33 @@ type LogRange = 'day' | 'week' | 'all'
 // Cloud networks (Google Cloud in Council Bluffs, Azure, AWS, Facebook's crawler) are email link scanners and automated browsers.
 const notCloudSql = Prisma.sql`NOT (CASE WHEN "ip" ~ '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' THEN "ip"::inet <<= ANY(${DATACENTER_CIDRS}::text[]::inet[]) ELSE false END)`
 
+// An email visit that lands within two minutes of the email being delivered is the mail scanner checking the link, not the person
+// (the window that decides a human open, open-human.ts). Three cases, all fixed text with no user input:
+//  1. a visit to the list email's unsubscribe link (its token is the start of the recipient's encoded address) inside that window;
+//  2. the visit that follows it from the same address within five seconds (the report page the link redirects to);
+//  3. a visit through a tracked outreach link (nc_e) inside two minutes of the link being made.
+const PREFETCH_SECS = PREFETCH_OPEN_WINDOW_MS / 1000
+const b64url = (expr: string) => `translate(rtrim(encode(convert_to(${expr},'UTF8'),'base64'),'='),'+/','-_')`
+const unsubscribeToken = (v: string) => `substring(${v}."path" from '^/updates/unsubscribe/([A-Za-z0-9_-]+)')`
+// True when visit `v` (a table alias) is an unsubscribe-link visit inside the delivery window of the recipient its token names.
+const unsubscribePrefetch = (v: string) => `EXISTS (SELECT 1 FROM "MailingEditionRecipient" r WHERE r."deliveredAt" IS NOT NULL AND CASE
+    WHEN ${v}."createdAt" BETWEEN r."deliveredAt" AND r."deliveredAt" + make_interval(secs => ${PREFETCH_SECS})
+    THEN (left(${b64url('lower(r."email")')}, length(${unsubscribeToken(v)})) = ${unsubscribeToken(v)}
+       OR left(${b64url(b64url('lower(r."email")'))}, length(${unsubscribeToken(v)})) = ${unsubscribeToken(v)})
+    ELSE false END)`
+const notEmailPrefetchSql = Prisma.raw(`NOT (
+  ("path" LIKE '/updates/unsubscribe/%' AND ${unsubscribePrefetch('"HomepageVisitEvent"')})
+  OR ("path" NOT LIKE '/updates/unsubscribe/%' AND "ip" IS NOT NULL AND EXISTS (
+    SELECT 1 FROM "HomepageVisitEvent" u WHERE u."ip" = "HomepageVisitEvent"."ip" AND u."path" LIKE '/updates/unsubscribe/%'
+      AND u."createdAt" BETWEEN "HomepageVisitEvent"."createdAt" - make_interval(secs => 5) AND "HomepageVisitEvent"."createdAt" + make_interval(secs => 5)
+      AND ${unsubscribePrefetch('u')}))
+  OR ("path" LIKE '%nc_e=%' AND EXISTS (SELECT 1 FROM "CrmOutreachLink" l
+    WHERE l."id" = substring("path" from 'nc_e=([A-Za-z0-9]+)') AND "HomepageVisitEvent"."createdAt" <= l."createdAt" + make_interval(secs => ${PREFETCH_SECS}))))`)
+
 function botFilterSql(showBots: boolean, scannerIps: Set<string>): Prisma.Sql {
   if (showBots) return Prisma.sql`TRUE`
   const patterns = BOT_SIGNATURES.map((sig) => `%${sig}%`)
-  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns}))) AND ${notCloudSql}`
+  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns}))) AND ${notCloudSql} AND ${notEmailPrefetchSql}`
   return scannerIps.size > 0 ? Prisma.sql`${notBot} AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : notBot
 }
 
@@ -291,7 +315,7 @@ export default async function AdminVisitorActivityPage({
   // (email scanners, crawlers) and not a mail-scanner IP. All traffic: every page view.
   const humanPageView = showBots
     ? Prisma.sql`"eventType" = 'PAGE_VIEW'`
-    : Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notCloudSql}${
+    : Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notCloudSql} AND ${notEmailPrefetchSql}${
         scannerIps.size > 0 ? Prisma.sql` AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : Prisma.empty
       }`
   const viewsLabel = showBots ? 'Page views, all traffic' : 'Human page views'
@@ -670,7 +694,13 @@ export default async function AdminVisitorActivityPage({
     candidate: e.candidate,
     inferredCandidate: !e.candidate && e.ip ? (inferredCandidateByIp.get(e.ip) ?? null) : null,
     source: e.eventType === 'PAGE_VIEW' ? classifyTrafficSource(e.path, e.referrer) : '—',
-    scanner: !!e.ip && (scannerIps.has(e.ip) || isDatacenterIp(e.ip)),
+    scanner:
+      (!!e.ip && (scannerIps.has(e.ip) || isDatacenterIp(e.ip))) ||
+      (() => {
+        const link = extractEmailLinkId(e.path)
+        const emailedAt = link ? recipientByLink.get(link)?.emailedAt : null
+        return !!emailedAt && e.createdAt.getTime() - emailedAt.getTime() <= PREFETCH_OPEN_WINDOW_MS
+      })(),
     recipient: (() => {
       if (e.ip && scannerIps.has(e.ip)) return null
       const id = extractEmailLinkId(e.path)
@@ -770,7 +800,7 @@ export default async function AdminVisitorActivityPage({
           return (
             <span
               className="font-medium text-muted-foreground"
-              title={isDatacenterIp(r.ip) ? 'This address belongs to a cloud network (Google Cloud, Azure, AWS). Email link scanners and automated browsers run there; it is not a person visiting.' : `This address opened the links in emails to ${r.mailRecipients} different people. It is a mail-security scanner checking their messages, not a person visiting.`}
+              title={isDatacenterIp(r.ip) ? 'This address belongs to a cloud network (Google Cloud, Azure, AWS). Email link scanners and automated browsers run there; it is not a person visiting.' : r.mailRecipients < 3 && !scannerIps.has(r.ip ?? '') ? 'This visit came within two minutes of the email being sent, which is a mail scanner checking the link, not a person.' : `This address opened the links in emails to ${r.mailRecipients} different people. It is a mail-security scanner checking their messages, not a person visiting.`}
             >
               📧 Mail scanner or cloud bot
             </span>
@@ -844,7 +874,7 @@ export default async function AdminVisitorActivityPage({
             className="text-muted-foreground"
             title={`This IP address opened the links in emails to ${r.mailRecipients} different people (${r.views} views, ${r.clicks} clicks in all). It is a mail scanner shared by many recipients, so its totals do not describe one person.`}
           >
-            {isDatacenterIp(r.ip) ? 'Cloud network' : `${r.scanner ? 'Mail scanner' : 'Shared IP'} · ${r.mailRecipients} people`}
+            {isDatacenterIp(r.ip) ? 'Cloud network' : r.scanner && r.mailRecipients < 3 ? 'Sent seconds earlier' : `${r.scanner ? 'Mail scanner' : 'Shared IP'} · ${r.mailRecipients} people`}
           </span>
         ) : (
           <span title={`${r.views} views, ${r.clicks} clicks, ${r.applyClicks} apply clicks from this IP`}>

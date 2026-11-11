@@ -51,6 +51,8 @@ export interface EmailRecipient {
   /** Where they work now (their primary current CRM affiliation), or null when the CRM has none. */
   orgName: string | null
   title: string | null
+  /** When the tracked link was created, which is when the email went out. Only set for a tracked outreach link. */
+  emailedAt?: Date | null
 }
 
 /** Link id -> the CRM person the email went to. Ids that match nothing are left out. */
@@ -61,6 +63,7 @@ export async function resolveEmailRecipients(linkIds: string[]): Promise<Map<str
     where: { id: { in: ids } },
     select: {
       id: true,
+      createdAt: true,
       tracking: { select: { activity: { select: { subject: true, person: {
         select: {
           id: true,
@@ -88,6 +91,7 @@ export async function resolveEmailRecipients(linkIds: string[]): Promise<Map<str
       subject: l.tracking.activity.subject,
       orgName: job?.org.name ?? null,
       title: job?.title ?? null,
+      emailedAt: l.createdAt,
     })
   }
   return out
