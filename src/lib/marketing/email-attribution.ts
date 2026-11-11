@@ -141,9 +141,10 @@ export function inferEmailLinkByIp(
 }
 
 // ── Mailing-list emails (the monthly report, the newsletter) ─────────────────────────────────────────────────────────
-// These links carry no nc_e tag, but every one has an unsubscribe link whose token starts with the recipient's address
-// encoded in base64. Match that prefix against the people the edition was sent to. A prefix that fits more than one
-// recipient is not used: a wrong name is worse than none.
+// Editions sent from 2026-11-11 on tag every link to our own site with nc_m (see MAILING_VISIT_PARAM below), which names the
+// recipient directly. Earlier editions carry no per-recipient tag, but every one has an unsubscribe link whose token starts
+// with the recipient's address encoded in base64: match that prefix against the people the edition was sent to. A prefix
+// that fits more than one recipient is not used: a wrong name is worse than none.
 //
 // Known limit, as of 2026-11-11: a person who follows the link leaves the whole token in the log (the address, the edition
 // and the signature, about 115 characters), which names exactly one recipient. A mail scanner requests a mangled address
