@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { botClickReason, burstClickIds, ipBlock, isHumanClick } from '@/lib/mailing/click-human'
+import { botClickReason, botOpenReason, burstClickIds, ipBlock, isHumanClick, isHumanOpen } from '@/lib/mailing/click-human'
 
 const delivered = new Date('2026-11-11T15:55:26Z')
 const click = (over: Partial<Parameters<typeof botClickReason>[0]> = {}) => ({
@@ -61,5 +61,35 @@ describe('scanner bursts on one email', () => {
   it('only marks the clicks in the burst, not a person click from earlier the same day', () => {
     const ids = burstClickIds([c('early', '9.9.9.9', -3 * 3600_000), c('a', '1.1.1.1', 0), c('b', '2.2.2.2', 10_000)])
     expect(Array.from(ids).sort()).toEqual(['a', 'b'])
+  })
+})
+
+describe('which list-email opens are a person', () => {
+  const delivered = new Date('2026-11-11T15:00:00Z')
+  const open = (over: Partial<Parameters<typeof botOpenReason>[0]> = {}) => ({
+    ip: '198.51.100.20',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_7) AppleWebKit/537.36 Chrome/152.0.0.0 Safari/537.36',
+    at: new Date(delivered.getTime() + 20 * 60 * 1000),
+    deliveredAt: delivered,
+    ...over,
+  })
+  it('counts an open from an ordinary address well after delivery, including Gmail and Superhuman image proxies', () => {
+    expect(isHumanOpen(open(), new Set())).toBe(true)
+    expect(isHumanOpen(open({ ip: '66.249.84.1', userAgent: 'Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko Firefox/11.0 (via ggpht.com GoogleImageProxy)' }), new Set())).toBe(true)
+  })
+  it('does not count Apple Mail Privacy Protection, a scanner address, a cloud address or an open within two minutes of delivery', () => {
+    expect(botOpenReason(open({ ip: '17.58.12.9' }), new Set())).toMatch(/Apple Mail Privacy Protection/)
+    expect(isHumanOpen(open({ ip: '203.0.113.7' }), new Set(['203.0.113.7']))).toBe(false)
+    expect(isHumanOpen(open({ ip: '3.148.231.115' }), new Set())).toBe(false)
+    expect(isHumanOpen(open({ at: new Date(delivered.getTime() + 30_000) }), new Set())).toBe(false)
+  })
+  it('does not count the bare "Mozilla/5.0" image relay, but does count a browser that says more', () => {
+    expect(botOpenReason(open({ ip: '2a02:26f7:c356:fff0:c000::9', userAgent: 'Mozilla/5.0' }), new Set())).toMatch(/Apple Mail Privacy Protection/)
+    expect(isHumanOpen(open({ userAgent: '  Mozilla/5.0 ' }), new Set())).toBe(false)
+    expect(isHumanOpen(open({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148' }), new Set())).toBe(true)
+  })
+  it('does not mistake an address that merely starts with 17 for Apple', () => {
+    expect(isHumanOpen(open({ ip: '172.20.0.1' }), new Set())).toBe(false) // private, for another reason
+    expect(isHumanOpen(open({ ip: '171.64.1.1' }), new Set())).toBe(true)
   })
 })

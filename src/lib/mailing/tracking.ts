@@ -3,7 +3,7 @@ import type { CrmReportSendChannel } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { loadScannerBlocks, loadScannerIps } from '@/lib/marketing/mail-scanners'
-import { burstClickIds, isHumanClick } from './click-human'
+import { burstClickIds, isHumanClick, isHumanOpen } from './click-human'
 import { suppress } from './lists'
 import { baseSubject, isUnsubscribeReply } from './replies'
 import { applyOptOutReply } from './opt-out'
@@ -12,7 +12,7 @@ import { applyOptOutReply } from './opt-out'
 export type ResendEvent = {
   type: string
   created_at?: string
-  data: { email_id?: string; to?: string[]; bounce?: { type?: string; subType?: string; message?: string }; click?: { link?: string; ipAddress?: string; userAgent?: string; timestamp?: string } }
+  data: { email_id?: string; to?: string[]; bounce?: { type?: string; subType?: string; message?: string }; click?: { link?: string; ipAddress?: string; userAgent?: string; timestamp?: string }; open?: { ipAddress?: string; userAgent?: string; timestamp?: string } }
 }
 
 /**
@@ -35,12 +35,17 @@ export async function applyResendEvent(event: ResendEvent): Promise<'applied' | 
     case 'email.delivery_delayed':
       await prisma.mailingEditionRecipient.update({ where: { id: r.id }, data: { delayedAt: at } })
       break
-    case 'email.opened':
+    case 'email.opened': {
+      // A machine's open (a scanner, Apple Mail Privacy Protection) is kept so the log can tell, but is not counted as an open.
+      const human = await saveOpen(r.id, event, at, r.deliveredAt)
+      if (!human) break
+      const openedAt = openTime(event, at)
       await prisma.mailingEditionRecipient.update({
-        where: { id: r.id }, data: { openedAt: r.openedAt ?? at, openCount: { increment: 1 } },
+        where: { id: r.id }, data: { openedAt: r.openedAt ?? openedAt, openCount: { increment: 1 } },
       })
-      if (reportSend) await prisma.crmReportSend.updateMany({ where: { ...reportSend, openedAt: null }, data: { openedAt: at } })
+      if (reportSend) await prisma.crmReportSend.updateMany({ where: { ...reportSend, openedAt: null }, data: { openedAt } })
       break
+    }
     case 'email.clicked': {
       // A scanner's click is kept (so the visitor log can tell scanners from people) but never counted as a click.
       const human = await saveClick(r.id, event, at, r.deliveredAt)
@@ -105,6 +110,33 @@ async function saveClick(recipientId: string, event: ResendEvent, fallbackAt: Da
     return newOne ? false : human
   } catch (error) {
     console.error('Saving the click address failed:', error)
+    return true
+  }
+}
+
+/** The moment of the open as Resend recorded it (the event's own time otherwise). */
+function openTime(event: ResendEvent, fallbackAt: Date): Date {
+  const stamp = event.data.open?.timestamp ? new Date(event.data.open.timestamp) : fallbackAt
+  return Number.isNaN(stamp.getTime()) ? fallbackAt : stamp
+}
+
+/** Keeps the open's address, browser and time and says whether a person made it. Never blocks the event; an open that cannot be judged counts, as before. */
+async function saveOpen(recipientId: string, event: ResendEvent, fallbackAt: Date, deliveredAt: Date | null): Promise<boolean> {
+  const open = event.data.open
+  if (!open) return true
+  try {
+    const at = openTime(event, fallbackAt)
+    const ip = open.ipAddress?.slice(0, 64) || ''
+    const userAgent = open.userAgent?.slice(0, 300) || null
+    const [scanners, blocks] = await Promise.all([
+      loadScannerIps().catch(() => new Set<string>()),
+      loadScannerBlocks().catch(() => new Set<string>()),
+    ])
+    const human = isHumanOpen({ ip: ip || null, userAgent, at, deliveredAt }, scanners, blocks)
+    const saved = await prisma.mailingOpenEvent.createMany({ data: [{ recipientId, ip, userAgent, openedAt: at, bot: !human }], skipDuplicates: true })
+    return saved.count === 0 ? false : human // the same open delivered again was already handled
+  } catch (error) {
+    console.error('Saving the open address failed:', error)
     return true
   }
 }
