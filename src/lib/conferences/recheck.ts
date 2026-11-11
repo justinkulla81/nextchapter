@@ -13,7 +13,12 @@ const PER_RUN = 150
 const MODEL_CAP_PER_RUN = 40
 const DAY = 86_400_000
 
-export async function runConferenceRecheck(now = new Date(), opts: { limit?: number; modelCap?: number } = {}) {
+// The route allows 300 s (maxDuration). Stop starting new conferences at 240 s so the run ends with its stats instead of timing out;
+// the ones not reached keep their old recheckedAt and come first next run.
+const TIME_BUDGET_MS = 240_000
+
+export async function runConferenceRecheck(now = new Date(), opts: { limit?: number; modelCap?: number; budgetMs?: number } = {}) {
+  const deadline = Date.now() + (opts.budgetMs ?? TIME_BUDGET_MS)
   const rolled = await rollEditions(now)
   const followed = await prisma.userConference.findMany({ distinct: ['seriesId'], select: { seriesId: true } })
   const followedIds = new Set(followed.map((f) => f.seriesId))
@@ -30,11 +35,12 @@ export async function runConferenceRecheck(now = new Date(), opts: { limit?: num
     try { host = new URL(r.url!).host } catch { /* own group */ }
     byHost.set(host, [...(byHost.get(host) ?? []), r])
   }
-  const stats = { checked: 0, unchanged: 0, baselined: 0, changed: 0, modelCalls: 0, flagged: 0, rolled }
+  const stats = { checked: 0, unchanged: 0, baselined: 0, changed: 0, modelCalls: 0, flagged: 0, rolled, skippedForTime: 0 }
   let modelLeft = opts.modelCap ?? MODEL_CAP_PER_RUN
 
   await Promise.all([...byHost.values()].map(async (group) => {
     for (const s of group) {
+      if (Date.now() > deadline) { stats.skippedForTime++; continue }
       const page = await fetchConferencePages(s.url!)
       if (!page) { await prisma.conferenceEvent.update({ where: { id: s.id }, data: { recheckedAt: now } }); continue }
       stats.checked++
