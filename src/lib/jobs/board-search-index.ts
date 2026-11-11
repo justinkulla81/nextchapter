@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot } from '@/lib/jobs/board-snapshot'
-import { decodeFacts, encodeFactsPart, FACTS_PART_ROWS } from '@/lib/jobs/board-snapshot-codec'
+import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot, yieldToRequests } from '@/lib/jobs/board-snapshot'
+import { decodeFactsPart, encodeFactsPart, FACTS_PART_ROWS, isFactsPart } from '@/lib/jobs/board-snapshot-codec'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import type { LightRow } from '@/lib/jobs/board-light-rows'
@@ -125,163 +125,223 @@ function table<T>(empty: T, key: (raw: string) => T) {
   }
 }
 
-/** Builds the index from fact rows — exported for tests. */
-export function buildSearchIndex(rows: FactsRow[], loadedMs = 0): SearchIndex {
-  const n = rows.length
-  const norm = (v: string) => normalizeSearchText(v)
-  const title = table(' ', norm)
-  const company = table(' ', norm)
-  const industry = table(' ', norm)
-  const soc = table(' ', norm)
-  const skills = table(' ', norm)
-  const city = table(' ', norm)
-  const postingType = table('', (raw) => ownCopy(raw))
-  const states = table<readonly string[]>([], (v) => v.split(',').map((x) => ownCopy(x.trim().toUpperCase())).filter(Boolean))
-  const index: SearchIndex = {
-    pos: new Map(),
-    industry: new Uint16Array(n),
-    soc: new Uint16Array(n),
-    title: new Uint32Array(n),
-    titleLength: new Uint16Array(n),
-    company: new Uint32Array(n),
-    skills: new Uint32Array(n),
-    city: new Uint16Array(n),
-    states: new Uint16Array(n),
-    arrangement: new Uint8Array(n),
-    postingType: new Uint8Array(n),
-    tables: {
-      title: title.values,
-      titleFunction: [],
-      company: company.values,
-      industry: industry.values,
-      soc: soc.values,
-      skills: skills.values,
-      city: city.values,
-      states: states.values,
-      postingType: postingType.values,
-    },
-    companies: [],
-    cities: [],
-    loadedMs,
+/**
+ * Builds the index from fact rows, a page at a time: add() folds a page in and the caller drops it, so the 578k row objects never exist at
+ * once (they were most of the memory a cold load needed, on top of the board's own rows, and ran instances out of memory). The per-job
+ * columns are plain number arrays while it grows and become typed arrays in finish().
+ */
+export class IndexAccumulator {
+  private n = 0
+  private readonly pos = new Map<string, number>()
+  private readonly industry: number[] = []
+  private readonly soc: number[] = []
+  private readonly title: number[] = []
+  private readonly titleLength: number[] = []
+  private readonly company: number[] = []
+  private readonly skills: number[] = []
+  private readonly city: number[] = []
+  private readonly states: number[] = []
+  private readonly arrangement: number[] = []
+  private readonly postingType: number[] = []
+  private readonly tTitle = table(' ', normalizeSearchText)
+  private readonly tCompany = table(' ', normalizeSearchText)
+  private readonly tIndustry = table(' ', normalizeSearchText)
+  private readonly tSoc = table(' ', normalizeSearchText)
+  private readonly tSkills = table(' ', normalizeSearchText)
+  private readonly tCity = table(' ', normalizeSearchText)
+  private readonly tPostingType = table('', (raw) => ownCopy(raw))
+  private readonly tStates = table<readonly string[]>([], (v) => v.split(',').map((x) => ownCopy(x.trim().toUpperCase())).filter(Boolean))
+  private readonly companyCounts = new Map<string, { name: string; count: number }>()
+  private readonly cityCounts = new Map<string, number>()
+
+  /** Jobs folded in so far. */
+  get size(): number {
+    return this.n
   }
-  const companyCounts = new Map<string, { name: string; count: number }>()
-  const cityCounts = new Map<string, number>()
-  rows.forEach((r, i) => {
-    index.pos.set(ownCopy(r.id), i)
-    index.industry[i] = industry.of(r.industry)
-    index.soc[i] = soc.of(r.socTitle)
-    index.title[i] = title.of(r.title)
-    index.titleLength[i] = Math.min(r.title.length, 65_535)
-    index.company[i] = company.of(r.companyName)
-    index.skills[i] = skills.of(r.skills)
-    index.city[i] = city.of(r.locationCity)
-    index.states[i] = states.of(r.states ?? r.locationState)
-    index.postingType[i] = postingType.of(r.postingType ?? null)
-    index.arrangement[i] = Math.max(0, ARRANGEMENTS.indexOf((r.workArrangement?.toLowerCase() ?? null) as (typeof ARRANGEMENTS)[number]))
-    const co = normalizeSearchText(r.companyName).trim()
-    if (co) {
-      const c = companyCounts.get(co)
-      if (c) c.count++
-      else companyCounts.set(co, { name: ownCopy(r.companyName), count: 1 })
-    }
-    if (r.locationCity && r.locationState && !/[|\d]| - /.test(r.locationCity)) {
-      const label = ownCopy(`${r.locationCity}, ${r.locationState.toUpperCase()}`)
-      cityCounts.set(label, (cityCounts.get(label) ?? 0) + 1)
-    }
-  })
-  index.tables.titleFunction = new Array(index.tables.title.length).fill(null)
-  index.companies = [...companyCounts.entries()].map(([norm, c]) => ({ name: c.name, norm, count: c.count })).sort((a, b) => b.count - a.count)
-  // One entry per place whatever its spelling ("NEW YORK, NY" / "New York, NY"),
-  // labelled with its most common one; places with only a couple of jobs are left out.
-  const places = new Map<string, { label: string; top: number; norm: string; count: number }>()
-  for (const [label, count] of cityCounts) {
-    const norm = normalizeSearchText(label.split(',')[0]).trim()
-    const key = `${norm}|${label.slice(label.lastIndexOf(',') + 1).trim()}`
-    const p = places.get(key)
-    if (!p) places.set(key, { label, top: count, norm, count })
-    else {
-      p.count += count
-      if (count > p.top) Object.assign(p, { label, top: count })
+
+  add(rows: readonly FactsRow[]): void {
+    for (const r of rows) {
+      this.pos.set(ownCopy(r.id), this.n++)
+      this.industry.push(this.tIndustry.of(r.industry))
+      this.soc.push(this.tSoc.of(r.socTitle))
+      this.title.push(this.tTitle.of(r.title))
+      this.titleLength.push(Math.min(r.title.length, 65_535))
+      this.company.push(this.tCompany.of(r.companyName))
+      this.skills.push(this.tSkills.of(r.skills))
+      this.city.push(this.tCity.of(r.locationCity))
+      this.states.push(this.tStates.of(r.states ?? r.locationState))
+      this.postingType.push(this.tPostingType.of(r.postingType ?? null))
+      this.arrangement.push(Math.max(0, ARRANGEMENTS.indexOf((r.workArrangement?.toLowerCase() ?? null) as (typeof ARRANGEMENTS)[number])))
+      const co = normalizeSearchText(r.companyName).trim()
+      if (co) {
+        const c = this.companyCounts.get(co)
+        if (c) c.count++
+        else this.companyCounts.set(co, { name: ownCopy(r.companyName), count: 1 })
+      }
+      if (r.locationCity && r.locationState && !/[|\d]| - /.test(r.locationCity)) {
+        const label = ownCopy(`${r.locationCity}, ${r.locationState.toUpperCase()}`)
+        this.cityCounts.set(label, (this.cityCounts.get(label) ?? 0) + 1)
+      }
     }
   }
-  index.cities = [...places.values()]
-    .filter((p) => p.count >= 3)
-    .map(({ label, norm, count }) => ({ label, norm, count }))
-    .sort((a, b) => b.count - a.count)
-  return index
+
+  finish(loadedMs = 0): SearchIndex {
+    const index: SearchIndex = {
+      pos: this.pos,
+      industry: Uint16Array.from(this.industry),
+      soc: Uint16Array.from(this.soc),
+      title: Uint32Array.from(this.title),
+      titleLength: Uint16Array.from(this.titleLength),
+      company: Uint32Array.from(this.company),
+      skills: Uint32Array.from(this.skills),
+      city: Uint16Array.from(this.city),
+      states: Uint16Array.from(this.states),
+      arrangement: Uint8Array.from(this.arrangement),
+      postingType: Uint8Array.from(this.postingType),
+      tables: {
+        title: this.tTitle.values,
+        titleFunction: [],
+        company: this.tCompany.values,
+        industry: this.tIndustry.values,
+        soc: this.tSoc.values,
+        skills: this.tSkills.values,
+        city: this.tCity.values,
+        states: this.tStates.values,
+        postingType: this.tPostingType.values,
+      },
+      companies: [],
+      cities: [],
+      loadedMs,
+    }
+    index.tables.titleFunction = new Array(index.tables.title.length).fill(null)
+    index.companies = [...this.companyCounts.entries()].map(([norm, c]) => ({ name: c.name, norm, count: c.count })).sort((a, b) => b.count - a.count)
+    // One entry per place whatever its spelling ("NEW YORK, NY" / "New York, NY"),
+    // labelled with its most common one; places with only a couple of jobs are left out.
+    const places = new Map<string, { label: string; top: number; norm: string; count: number }>()
+    for (const [label, count] of this.cityCounts) {
+      const norm = normalizeSearchText(label.split(',')[0]).trim()
+      const key = `${norm}|${label.slice(label.lastIndexOf(',') + 1).trim()}`
+      const p = places.get(key)
+      if (!p) places.set(key, { label, top: count, norm, count })
+      else {
+        p.count += count
+        if (count > p.top) Object.assign(p, { label, top: count })
+      }
+    }
+    index.cities = [...places.values()]
+      .filter((p) => p.count >= 3)
+      .map(({ label, norm, count }) => ({ label, norm, count }))
+      .sort((a, b) => b.count - a.count)
+    return index
+  }
 }
 
-/** The wide-table read behind the index: every live job's search facts (~578k rows, ~57 MB). */
-async function readFactsFromDatabase(): Promise<FactsRow[]> {
+/** Builds the index from fact rows — exported for tests. */
+export function buildSearchIndex(rows: FactsRow[], loadedMs = 0): SearchIndex {
+  const acc = new IndexAccumulator()
+  acc.add(rows)
+  return acc.finish(loadedMs)
+}
+
+/** One page of the wide-table read behind the index: up to FACTS_PART_ROWS live jobs after `afterId`, in id order. */
+async function readFactsPage(afterId: string): Promise<FactsRow[]> {
   return prisma.$queryRaw<FactsRow[]>`
     SELECT "id", "title", "companyName", "industry", "socTitle", "workArrangement", "locationCity", "locationState",
       NULLIF(array_to_string("locationStates", ','), '') AS "states", NULLIF(array_to_string("skills", ' '), '') AS "skills",
       "postingType"
     FROM "ExclusiveJobPosting"
     WHERE "status" = 'approved' AND "archivedAt" IS NULL AND "institutionScopeId" IS NULL AND "distribution" <> 'EXCLUDED'
-      AND ("expiresAt" IS NULL OR "expiresAt" > now())`
+      AND ("expiresAt" IS NULL OR "expiresAt" > now())
+      AND "id" > ${afterId}
+    ORDER BY "id" LIMIT ${FACTS_PART_ROWS}`
 }
 
 /**
- * The facts a cold instance builds its index from: the snapshot another instance (of any build, see board-snapshot.ts) wrote, when it is
- * fresh or the board has not changed since it was read — a few MB from storage — else the database, and the result is written as the next
- * snapshot. Every deploy starts every instance cold, and each used to run the 57 MB read through the connection pooler itself; with a dozen
- * deploys in a day that held eight pooler connections at once and slowed member pages (2026-11-09).
+ * Feeds every live job's search facts into `acc`, a page at a time: from the snapshot another instance (of any build, see board-snapshot.ts)
+ * wrote, when it is fresh or the board has not changed since it was read — a few MB from storage — else from the database, and then the pages
+ * are written as the next snapshot. A page is folded in and dropped, so no more than one page of row objects exists at a time: the whole table
+ * as one array (578k rows, about 75 MB over the wire and several hundred MB as objects) on top of the board in memory is what ran cold
+ * instances out of memory, which showed as the board page failing and no snapshot ever being written (2026-11-10).
  */
-export async function readSearchFacts(): Promise<FactsRow[]> {
+export async function feedSearchFacts(acc: IndexAccumulator): Promise<void> {
   const at = Date.now()
   let fingerprint: string | null = null
+  let snapshotParts: unknown[] | null = null
   if (!snapshotsDisabled()) {
     try {
       const [manifest, fp] = await Promise.all([readManifest('search-facts'), boardFingerprint()])
       fingerprint = fp
       if (manifest && snapshotUsable(manifest, fp, { freshMs: FRESH_MS })) {
         const parts = await readParts(manifest)
-        const rows = parts ? decodeFacts(parts) : null
-        if (rows && rows.length > 0) return rows
+        if (parts && parts.length > 0 && parts.every(isFactsPart)) snapshotParts = parts
       }
     } catch (error) {
       console.error('Board search index: snapshot unreadable, reading the database', error)
     }
   }
-  const rows = await readFactsFromDatabase()
-  if (fingerprint && rows.length > 0) {
-    // Encoded and written in the background, after the response; a failure only means the next cold instance reads the database. The write is
-    // kept in `factsWrite` so warmSearchIndex, which the board page runs inside after(), stays pending until it is done: after() keeps the
-    // instance alive only while the promise it was given is pending, and the first version of this wrote nothing in production because the
-    // instance was frozen between the index being built and the write starting (2026-11-09).
-    const done = new Promise<void>((resolve) => {
-      inBackground(async () => {
-        const started = Date.now()
-        try {
-          await recordFactsWrite({ phase: 'start', rows: rows.length })
-          // Each part is encoded as its turn comes (writeSnapshot calls the function), so the extra memory is one part, not the whole table.
-          const parts = Array.from({ length: Math.ceil(rows.length / FACTS_PART_ROWS) }, (_, k) => () => encodeFactsPart(rows.slice(k * FACTS_PART_ROWS, (k + 1) * FACTS_PART_ROWS)))
-          await writeSnapshot('search-facts', fingerprint!, at, parts, rows.length)
-          // writeSnapshot reports its own failures to the log and returns, so the outcome is read back from the manifest.
-          const stored = await readManifest('search-facts').catch(() => null)
-          await recordFactsWrite({ phase: stored?.fingerprint === fingerprint ? 'done' : 'failed', rows: rows.length, ms: Date.now() - started })
-        } catch (error) {
-          await recordFactsWrite({ phase: 'failed', rows: rows.length, ms: Date.now() - started, error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) })
-        } finally {
-          resolve()
-        }
-      })
-    })
-    factsWrite = done
-    void done.then(() => {
-      if (factsWrite === done) factsWrite = null
-    })
+  if (snapshotParts) {
+    const pool = new Map<string, string>()
+    for (const part of snapshotParts) acc.add(decodeFactsPart(part, pool)!)
+    if (acc.size > 0) return
   }
-  return rows
+
+  const started = Date.now()
+  const keep = !!fingerprint // the pages are kept, encoded, only when they will be stored
+  const encoded: unknown[] = []
+  void recordFactsStep({ phase: 'read_start' })
+  try {
+    let afterId = ''
+    for (;;) {
+      const rows = await readFactsPage(afterId)
+      if (rows.length === 0) break
+      acc.add(rows)
+      if (keep) encoded.push(encodeFactsPart(rows))
+      afterId = rows[rows.length - 1].id
+      if (rows.length < FACTS_PART_ROWS) break
+      await yieldToRequests()
+    }
+  } catch (error) {
+    void recordFactsStep({ phase: 'read_failed', rows: acc.size, ms: Date.now() - started, error: errorText(error) })
+    throw error
+  }
+  void recordFactsStep({ phase: 'read_done', rows: acc.size, ms: Date.now() - started })
+  if (!fingerprint || acc.size === 0) return
+
+  // Written in the background, after the response; a failure only means the next cold instance reads the database. The write is kept in
+  // `factsWrite` so warmSearchIndex, which the board page runs inside after(), stays pending until it is done: after() keeps the instance
+  // alive only while the promise it was given is pending.
+  const total = acc.size
+  const done = new Promise<void>((resolve) => {
+    inBackground(async () => {
+      const writeStarted = Date.now()
+      try {
+        await recordFactsStep({ phase: 'write_start', rows: total })
+        await writeSnapshot('search-facts', fingerprint!, at, encoded, total)
+        // writeSnapshot reports its own failures to the log and returns, so the outcome is read back from the manifest.
+        const stored = await readManifest('search-facts').catch(() => null)
+        await recordFactsStep({ phase: stored?.fingerprint === fingerprint ? 'write_done' : 'write_failed', rows: total, ms: Date.now() - writeStarted })
+      } catch (error) {
+        await recordFactsStep({ phase: 'write_failed', rows: total, ms: Date.now() - writeStarted, error: errorText(error) })
+      } finally {
+        resolve()
+      }
+    })
+  })
+  factsWrite = done
+  void done.then(() => {
+    if (factsWrite === done) factsWrite = null
+  })
 }
 
+const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error)).slice(0, 300)
+
 /**
- * One row per step of a snapshot write, so a write that never finishes shows in the database (a "start" with no "done" or "failed" after it
- * means the instance died or was frozen mid-write). The Vercel runtime logs were not readable when the first version wrote nothing (2026-11-09).
+ * One row per step of an index load that reads the database (read_start, then read_done or read_failed; write_start, then write_done or
+ * write_failed), so a load that never finishes shows in the database: a step with nothing after it means the instance died or was frozen
+ * there. The Vercel runtime logs were not readable when the first versions wrote nothing (2026-11-09, 11-10).
  */
-async function recordFactsWrite(properties: { phase: 'start' | 'done' | 'failed'; rows: number; ms?: number; error?: string }): Promise<void> {
-  await prisma.analyticsEvent.create({ data: { distinctId: 'system', event: 'search_facts_snapshot_written', properties } }).catch(() => undefined)
+async function recordFactsStep(properties: { phase: string; rows?: number; ms?: number; error?: string }): Promise<void> {
+  await prisma.analyticsEvent.create({ data: { distinctId: 'system', event: 'search_facts_load', properties } }).catch(() => undefined)
 }
 
 /** The snapshot write started by this instance's last database read of the facts, until it is done. */
@@ -291,8 +351,9 @@ const FACTS_WRITE_WAIT_MS = 120_000
 
 async function readIndex(): Promise<SearchIndex> {
   const started = Date.now()
-  const rows = await readSearchFacts()
-  return buildSearchIndex(rows, Date.now() - started)
+  const acc = new IndexAccumulator()
+  await feedSearchFacts(acc)
+  return acc.finish(Date.now() - started)
 }
 
 let read: () => Promise<SearchIndex> = readIndex
