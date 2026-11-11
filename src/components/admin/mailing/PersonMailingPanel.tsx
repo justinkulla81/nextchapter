@@ -112,7 +112,7 @@ export function PersonMailingPanel({
                 <span title={s.method === 'AUTOMATED' ? 'Sent by the system' : 'Sent by you'}>{s.method === 'AUTOMATED' ? '✉︎ automated' : `✋ manual · ${CHANNEL_LABEL[s.channel] ?? s.channel}`}</span>
                 <span className="text-xs text-muted-foreground">
                   {fmt(s.sentAt)}
-                  {s.clickedAt ? ' · clicked' : s.openedAt ? ' · opened (approx.)' : ''}
+                  {s.clickedAt ? ' · clicked' : s.openedAt ? ' · opened (human, approx.)' : ''}
                   {s.repliedAt ? ' · replied' : ''}
                 </span>
                 {s.method === 'MANUAL' && (
@@ -168,7 +168,7 @@ function ListEmails({ rows }: { rows: PersonListEmail[] }) {
   const totals = [
     { label: 'Emails sent', value: `${sent.length}` },
     { label: 'Delivered', value: `${count((r) => r.deliveredAt)}` },
-    { label: 'Opened (approx.)', value: `${count((r) => r.openCount > 0)}`, extra: `${opens} ${opens === 1 ? 'open' : 'opens'}` },
+    { label: 'Opened (human, approx.)', value: `${count((r) => r.openCount > 0)}`, extra: `${opens} ${opens === 1 ? 'open' : 'opens'}` },
     { label: 'Clicked', value: `${count((r) => r.clickCount > 0)}`, extra: `${clicks} ${clicks === 1 ? 'click' : 'clicks'}` },
     { label: 'Replied', value: `${count((r) => r.repliedAt)}` },
   ]
