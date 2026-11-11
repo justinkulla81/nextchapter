@@ -60,9 +60,14 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
     <section className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">Versions <span className="text-sm font-normal text-muted-foreground">{versions.length}</span></h2>
-        <Link href={`/support/admin/crm/mailing/editions/${editionId}/export?all=1`} prefetch={false} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
-          Download CSV — all versions
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/support/admin/crm/mailing/editions/${editionId}/people`} className="rounded-md bg-navy px-3 py-1.5 text-sm font-medium text-white hover:opacity-90">
+            See everyone in this mailing
+          </Link>
+          <Link href={`/support/admin/crm/mailing/editions/${editionId}/export?all=1`} prefetch={false} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
+            Download CSV — all versions
+          </Link>
+        </div>
       </div>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-sm">
