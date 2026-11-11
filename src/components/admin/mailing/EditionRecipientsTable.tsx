@@ -22,6 +22,8 @@ export interface EditionRecipientRow {
   bounceDetail: string | null
   unsubscribedAt: string | null
   repliedAt: string | null
+  /** Set on the all-people page, where one table holds every version of the mailing. */
+  version?: string
 }
 
 type Filter = keyof typeof FILTERS
@@ -40,7 +42,7 @@ const FILTERS = {
   failed: { label: 'Failed', test: (r: EditionRecipientRow) => r.status === 'FAILED' },
 } satisfies Record<string, { label: string; test: (r: EditionRecipientRow) => boolean }>
 
-type SortKey = 'name' | 'email' | 'sentAt' | 'deliveredAt' | 'openCount' | 'clickCount' | 'bouncedAt' | 'unsubscribedAt' | 'repliedAt'
+type SortKey = 'version' | 'name' | 'email' | 'sentAt' | 'deliveredAt' | 'openCount' | 'clickCount' | 'bouncedAt' | 'unsubscribedAt' | 'repliedAt'
 const COLUMNS: { key: SortKey; label: string }[] = [
   { key: 'name', label: 'Name' },
   { key: 'email', label: 'Email' },
@@ -57,16 +59,17 @@ const when = (iso: string | null) =>
   iso ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''
 
 /** The sent dashboard's recipient list: search, filter by what each person did, sort any column. */
-export function EditionRecipientsTable({ editionId, rows }: { editionId: string; rows: EditionRecipientRow[] }) {
+export function EditionRecipientsTable({ editionId, rows, allVersions = false }: { editionId: string; rows: EditionRecipientRow[]; allVersions?: boolean }) {
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
-  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'name', dir: 1 })
+  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>(allVersions ? { key: 'sentAt', dir: -1 } : { key: 'name', dir: 1 })
+  const columns = allVersions ? [{ key: 'version' as SortKey, label: 'Version' }, ...COLUMNS] : COLUMNS
 
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase()
     const out = rows.filter((r) => FILTERS[filter].test(r) && (!needle || `${r.name ?? ''} ${r.email}`.toLowerCase().includes(needle)))
     const val = (r: EditionRecipientRow): string | number => {
-      const v = sort.key === 'name' ? r.name ?? r.email : r[sort.key]
+      const v = sort.key === 'name' ? r.name ?? r.email : sort.key === 'version' ? r.version : r[sort.key]
       return typeof v === 'number' ? v : (v ?? '').toLowerCase()
     }
     return out.sort((a, b) => {
@@ -87,8 +90,8 @@ export function EditionRecipientsTable({ editionId, rows }: { editionId: string;
   return (
     <section className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Recipients</h2>
-        <Link href={`/support/admin/crm/mailing/editions/${editionId}/export`} prefetch={false} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
+        <h2 className="text-lg font-semibold">{allVersions ? 'Everyone in this mailing, all versions' : 'Recipients'}</h2>
+        <Link href={`/support/admin/crm/mailing/editions/${editionId}/export${allVersions ? '?all=1' : ''}`} prefetch={false} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
           Download CSV
         </Link>
       </div>
@@ -118,7 +121,7 @@ export function EditionRecipientsTable({ editionId, rows }: { editionId: string;
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-muted text-left">
             <tr>
-              {COLUMNS.map((c) => (
+              {columns.map((c) => (
                 <th key={c.key} className="whitespace-nowrap px-3 py-2 font-medium" aria-sort={sort.key === c.key ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none'}>
                   <button type="button" onClick={() => sortBy(c.key)} className="hover:underline">
                     {c.label}{sort.key === c.key ? (sort.dir === 1 ? ' ↑' : ' ↓') : ''}
@@ -129,12 +132,13 @@ export function EditionRecipientsTable({ editionId, rows }: { editionId: string;
           </thead>
           <tbody>
             {visible.length === 0 && (
-              <tr><td colSpan={COLUMNS.length} className="px-3 py-6 text-center text-muted-foreground">Nobody matches.</td></tr>
+              <tr><td colSpan={columns.length} className="px-3 py-6 text-center text-muted-foreground">Nobody matches.</td></tr>
             )}
             {visible.map((r) => (
               <tr key={r.id} className="border-t border-border">
+                {allVersions && <td className="whitespace-nowrap px-3 py-1.5 text-muted-foreground">{r.version}</td>}
                 <td className="px-3 py-1.5">
-                  {r.personId ? <Link href={`/support/admin/crm/people/${r.personId}`} className="hover:underline">{r.name ?? '—'}</Link> : '—'}
+                  {r.personId ? <Link href={`/support/admin/crm/people/${r.personId}`} target={allVersions ? '_blank' : undefined} rel={allVersions ? 'noreferrer' : undefined} className="hover:underline">{r.name ?? r.email}</Link> : '—'}
                   {r.added && <span className="ml-1.5 rounded-full bg-brand/10 px-1.5 py-0.5 text-[11px] text-brand">added</span>}
                 </td>
                 <td className="px-3 py-1.5">{r.email}</td>
