@@ -13988,6 +13988,8 @@ model MailingClickEvent {
   /// The link clicked ('' when Resend did not say).
   link        String                @default("")
   clickedAt   DateTime
+  /// True when a mail scanner, not a person, made the click (see src/lib/mailing/click-human.ts). Not counted as a click.
+  bot         Boolean               @default(false)
   createdAt   DateTime              @default(now())
 
   @@unique([recipientId, clickedAt, link])

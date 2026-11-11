@@ -534,7 +534,7 @@ export default async function AdminVisitorActivityPage({
     uniqueIps.length > 0
       ? await prisma.mailingClickEvent
           .findMany({
-            where: { ip: { in: uniqueIps.filter((ip) => !scannerIps.has(ip) && !isDatacenterIp(ip)) }, clickedAt: { gte: new Date(oldestShown.getTime() - CLICK_TO_VISIT_WINDOW_MS), lte: newest } },
+            where: { bot: false, ip: { in: uniqueIps.filter((ip) => !scannerIps.has(ip) && !isDatacenterIp(ip)) }, clickedAt: { gte: new Date(oldestShown.getTime() - CLICK_TO_VISIT_WINDOW_MS), lte: newest } },
             select: { ip: true, clickedAt: true, recipient: { select: { personId: true } } },
           })
           .catch(() => [])
