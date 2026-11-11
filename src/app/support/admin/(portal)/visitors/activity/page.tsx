@@ -168,6 +168,10 @@ type LogEvent = Awaited<ReturnType<typeof prisma.homepageVisitEvent.findMany<{ i
 
 type VisitorSort = 'clicks' | 'views'
 type EmailFilter = 'yes' | 'no'
+// Which kinds of identification to keep (any of them): came through or gave an email, a guessed email, a CRM match.
+const MATCH_KINDS = ['email', 'likely', 'crm'] as const
+type MatchKind = (typeof MATCH_KINDS)[number]
+const MATCH_LABELS: Record<MatchKind, string> = { email: 'Email', likely: 'Likely', crm: 'CRM' }
 
 // Newest first, through the same SQL filter as the counts and charts (a plain Prisma query cannot test a cloud-network block), so
 // with Human only on, a scanner or cloud-network visit never appears in the list that the page count describes.
@@ -227,8 +231,8 @@ async function loadEventsByVisitor(
 }
 
 // Day / week and newest / most clicks: adjacent buttons (links), the current choice marked.
-function LogControls({ range, sort, showBots, email, type, unique }: { range: LogRange; sort: VisitorSort | null; showBots: boolean; email: EmailFilter | null; type: string | null; unique: boolean }) {
-  const href = (r: LogRange, by: VisitorSort | null, bots: boolean = showBots, em: EmailFilter | null = email, uq: boolean = unique) => {
+function LogControls({ range, sort, showBots, email, type, unique, match }: { range: LogRange; sort: VisitorSort | null; showBots: boolean; email: EmailFilter | null; type: string | null; unique: boolean; match: MatchKind[] }) {
+  const href = (r: LogRange, by: VisitorSort | null, bots: boolean = showBots, em: EmailFilter | null = email, uq: boolean = unique, mt: MatchKind[] = match) => {
     const q = new URLSearchParams()
     if (bots) q.set('bots', 'show')
     if (r !== 'all') q.set('range', r)
@@ -236,10 +240,11 @@ function LogControls({ range, sort, showBots, email, type, unique }: { range: Lo
     if (em) q.set('email', em)
     if (type) q.set('type', type)
     if (uq) q.set('unique', '1')
+    if (mt.length > 0) q.set('match', mt.join(','))
     const qs = q.toString()
     return `/support/admin/visitors/activity${qs ? `?${qs}` : ''}`
   }
-  const context = { range, sort, bots: showBots, email, type, unique }
+  const context = { range, sort, bots: showBots, email, type, unique, match: match.length > 0 ? match.join(',') : null }
   const button = (active: boolean) =>
     `rounded-md border px-3 py-1.5 text-sm ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted'}`
   const ranges: { key: LogRange; label: string }[] = [
@@ -288,12 +293,25 @@ function LogControls({ range, sort, showBots, email, type, unique }: { range: Lo
           </TrackedFilterLink>
         ))}
       </nav>
+      <nav aria-label="Include visitors identified by" className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-muted-foreground">Include</span>
+        {MATCH_KINDS.map((k) => {
+          const on = match.includes(k)
+          const next = on ? match.filter((x) => x !== k) : MATCH_KINDS.filter((x) => x === k || match.includes(x))
+          return (
+            <TrackedFilterLink filter="match" value={`${k}_${on ? 'off' : 'on'}`} context={context} key={k} href={href(range, sort, showBots, email, unique, next)} aria-current={on ? 'true' : undefined} className={button(on)}>
+              {MATCH_LABELS[k]}
+            </TrackedFilterLink>
+          )
+        })}
+      </nav>
       <TrackedTypeForm context={context} method="get" action="/support/admin/visitors/activity" className="flex items-center gap-2">
         {showBots && <input type="hidden" name="bots" value="show" />}
         {range !== 'all' && <input type="hidden" name="range" value={range} />}
         {sort && <input type="hidden" name="sort" value={sort} />}
         {email && <input type="hidden" name="email" value={email} />}
         {unique && <input type="hidden" name="unique" value="1" />}
+        {match.length > 0 && <input type="hidden" name="match" value={match.join(',')} />}
         <label htmlFor="visitor-type" className="text-sm text-muted-foreground">Visitor type</label>
         <select id="visitor-type" name="type" defaultValue={type ?? ''} className="rounded-md border border-border bg-background px-3 py-1.5 text-sm">
           <option value="">All types</option>
@@ -306,6 +324,7 @@ function LogControls({ range, sort, showBots, email, type, unique }: { range: Lo
       </TrackedTypeForm>
       {type && <p className="text-xs text-muted-foreground">The type filter looks at the {TYPE_SCAN_LIMIT} most recent visitors in the last 30 days (or the range chosen, if shorter), each counted once.</p>}
       {type === 'not-candidate' && <p className="text-xs text-muted-foreground">Everyone except candidates leaves out visitors we cannot place (Unknown) as well as candidates.</p>}
+      {match.length > 0 && <p className="text-xs text-muted-foreground">Include shows visitors with any of the chosen kinds. Email: came through one of our emails or gave an address. Likely: we guess who they are from an email, an address they gave, or the same IP. CRM: matched to a CRM person. It looks at the {TYPE_SCAN_LIMIT} most recent visitors in the last 30 days (or the range chosen, if shorter), each counted once.</p>}
       {unique && <p className="text-xs text-muted-foreground">Unique only shows each visitor (IP address) once, on their latest visit.</p>}
       {(sort || email || unique) && range === 'all' && <p className="text-xs text-muted-foreground">Most clicks, most views, unique only and the email filter look at the last 30 days, the longest span they count over.{sort ? ' Each visitor (IP address) appears once.' : ''}</p>}
       {sort && range !== 'all' && <p className="text-xs text-muted-foreground">Each visitor (IP address) appears once, on their latest visit.</p>}
@@ -356,8 +375,10 @@ export default async function AdminVisitorActivityPage({
   const typeActive = !!typeFilter || notCandidate
   const typeParam = typeFilter ? userTypeSlug(typeFilter) : notCandidate ? 'not-candidate' : null
   const unique = rawParams.unique === '1'
+  const match: MatchKind[] = MATCH_KINDS.filter((k) => (rawParams.match ?? '').split(',').includes(k))
+  const scanActive = typeActive || match.length > 0
   // Counting clicks or views per visitor is a window over the rows in range, so it never runs over the whole table: all time reads 30 days.
-  const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sort || email || typeActive || unique ? 30 : null
+  const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sort || email || scanActive || unique ? 30 : null
   const logStart = logDays ? new Date(now().getTime() - logDays * DAY_MS) : null
   // Mail scanners are hidden with the bots: they open every link for every recipient, and are not people.
   const scannerIps = await loadScannerIps().catch(() => new Set<string>())
@@ -380,8 +401,8 @@ export default async function AdminVisitorActivityPage({
   const viewsLabel = showBots ? 'Page views, all traffic' : 'Human page views'
   type BucketRow = { key: string; views: bigint; visitors: bigint }
   const [loaded, dayRows, hourRows, totalsRows] = await Promise.all([
-    (sort || email || typeActive || unique) && logStart
-      ? loadEventsByVisitor(botFilter, logStart, typeActive ? 0 : params.skip, typeActive ? TYPE_SCAN_LIMIT : params.take, sort, email, !!sort || typeActive || unique)
+    (sort || email || scanActive || unique) && logStart
+      ? loadEventsByVisitor(botFilter, logStart, scanActive ? 0 : params.skip, scanActive ? TYPE_SCAN_LIMIT : params.take, sort, email, !!sort || scanActive || unique)
       : loadEventsNewest(botFilter, rangeSql, params.skip, params.take),
     // The charts read counts grouped by Eastern day and hour in the database, not every raw event.
     prisma.$queryRaw<BucketRow[]>(Prisma.sql`
@@ -886,12 +907,15 @@ export default async function AdminVisitorActivityPage({
   })
 
   // With a type chosen, the scan above covered the most recent visitors; page through the ones that match.
-  const matching = typeFilter ? typedRows.filter((r) => r.userType === typeFilter) : notCandidate ? typedRows.filter((r) => r.userType !== 'Candidate' && r.userType !== 'Unknown') : typedRows
-  const shown = typeActive ? matching.slice(params.skip, params.skip + params.take) : matching
+  const byType = typeFilter ? typedRows.filter((r) => r.userType === typeFilter) : notCandidate ? typedRows.filter((r) => r.userType !== 'Candidate' && r.userType !== 'Unknown') : typedRows
+  // Same three kinds the Email and CRM column shows: a row stays when it has any chosen kind.
+  const hasKind = (r: Row, k: MatchKind) => (k === 'email' ? !!r.recipient || r.givenEmails.length > 0 : k === 'likely' ? !r.recipient && !!r.likelyRecipient : r.crmPeople.length > 0)
+  const matching = match.length > 0 ? byType.filter((r) => match.some((k) => hasKind(r, k))) : byType
+  const shown = scanActive ? matching.slice(params.skip, params.skip + params.take) : matching
   // One lookup per unique IP on the page shown, not per row scanned (ip-api.com's free tier allows about 45 a minute).
   const shownIps = Array.from(new Set(shown.map((r) => r.ip).filter((ip): ip is string => !!ip)))
   const locationByIp = new Map(await Promise.all(shownIps.map(async (ip) => [ip, formatIpLocation(await lookupIpLocation(ip))] as const)))
-  const result = paginatedResult(shown.map((r) => ({ ...r, location: r.ip ? (locationByIp.get(r.ip) ?? null) : null })), typeActive ? matching.length : total, params)
+  const result = paginatedResult(shown.map((r) => ({ ...r, location: r.ip ? (locationByIp.get(r.ip) ?? null) : null })), scanActive ? matching.length : total, params)
 
   const columns: AdminColumn<Row>[] = [
     { header: 'When', cellClassName: 'tabular-nums text-muted-foreground', render: (r) => formatAdminShortDateTime(r.createdAt) },
@@ -1196,7 +1220,7 @@ export default async function AdminVisitorActivityPage({
         </div>
       </div>
 
-      <LogControls range={logRange} sort={sort} showBots={showBots} email={email} type={typeParam} unique={unique} />
+      <LogControls range={logRange} sort={sort} showBots={showBots} email={email} type={typeParam} unique={unique} match={match} />
 
       <AdminDataTable
         columns={columns}
@@ -1209,7 +1233,7 @@ export default async function AdminVisitorActivityPage({
           totalPages: result.totalPages,
           total: result.total,
           basePath: '/support/admin/visitors/activity',
-          baseParams: { ...(showBots ? { bots: 'show' } : {}), ...(logRange !== 'all' ? { range: logRange } : {}), ...(sort ? { sort } : {}), ...(email ? { email } : {}), ...(typeParam ? { type: typeParam } : {}), ...(unique ? { unique: '1' } : {}) },
+          baseParams: { ...(showBots ? { bots: 'show' } : {}), ...(logRange !== 'all' ? { range: logRange } : {}), ...(sort ? { sort } : {}), ...(email ? { email } : {}), ...(typeParam ? { type: typeParam } : {}), ...(unique ? { unique: '1' } : {}), ...(match.length > 0 ? { match: match.join(',') } : {}) },
         }}
       />
     </div>
