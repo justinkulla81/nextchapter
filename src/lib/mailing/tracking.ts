@@ -3,7 +3,7 @@ import type { CrmReportSendChannel } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { loadScannerIps } from '@/lib/marketing/mail-scanners'
-import { isHumanClick } from './click-human'
+import { burstClickIds, isHumanClick } from './click-human'
 import { suppress } from './lists'
 import { baseSubject, isUnsubscribeReply } from './replies'
 import { applyOptOutReply } from './opt-out'
@@ -72,26 +72,48 @@ export async function applyResendEvent(event: ResendEvent): Promise<'applied' | 
 
 /**
  * Keeps the click's address, browser and time, and says whether a person made it (see click-human.ts). Never blocks the event;
- * when the click cannot be judged (no click detail) it counts, as before.
+ * when the click cannot be judged (no click detail, or the table cannot be written) it counts, as before.
+ *
+ * A scanner usually shows itself only by the next click: the first one looks like a person's. So after saving, the recipient's
+ * clicks are checked together; any earlier click that turns out to belong to a burst is flagged and taken back out of the counts.
  */
 async function saveClick(recipientId: string, event: ResendEvent, fallbackAt: Date, deliveredAt: Date | null): Promise<boolean> {
   const click = event.data.click
   if (!click) return true
-  const stamp = click.timestamp ? new Date(click.timestamp) : fallbackAt
-  const at = Number.isNaN(stamp.getTime()) ? fallbackAt : stamp
-  const ip = click.ipAddress?.slice(0, 64) || null
-  const userAgent = click.userAgent?.slice(0, 300) || null
-  const scanners = await loadScannerIps().catch(() => new Set<string>())
-  const human = isHumanClick({ ip, userAgent, at, deliveredAt }, scanners)
   try {
-    await prisma.mailingClickEvent.createMany({
-      data: [{ recipientId, ip, userAgent, link: (click.link ?? '').slice(0, 500), clickedAt: at, bot: !human }],
-      skipDuplicates: true,
-    })
+    const stamp = click.timestamp ? new Date(click.timestamp) : fallbackAt
+    const at = Number.isNaN(stamp.getTime()) ? fallbackAt : stamp
+    const ip = click.ipAddress?.slice(0, 64) || null
+    const userAgent = click.userAgent?.slice(0, 300) || null
+    const scanners = await loadScannerIps().catch(() => new Set<string>())
+    const human = isHumanClick({ ip, userAgent, at, deliveredAt }, scanners)
+    const link = (click.link ?? '').slice(0, 500)
+    const saved = await prisma.mailingClickEvent.createMany({ data: [{ recipientId, ip, userAgent, link, clickedAt: at, bot: !human }], skipDuplicates: true })
+    if (saved.count === 0) return false // the same click delivered again: already handled
+    const all = await prisma.mailingClickEvent.findMany({ where: { recipientId }, select: { id: true, ip: true, clickedAt: true, bot: true, link: true } })
+    const bursts = burstClickIds(all.map((c) => ({ id: c.id, ip: c.ip, at: c.clickedAt })))
+    const flipped = all.filter((c) => !c.bot && bursts.has(c.id))
+    if (flipped.length === 0) return human
+    await prisma.mailingClickEvent.updateMany({ where: { id: { in: flipped.map((c) => c.id) } }, data: { bot: true } })
+    // The click just saved was never counted; the earlier ones were.
+    const newOne = flipped.find((c) => c.ip === ip && c.clickedAt.getTime() === at.getTime() && c.link === link)
+    const wasCounted = flipped.length - (newOne ? 1 : 0)
+    if (wasCounted > 0) await takeBackCounts(recipientId, wasCounted)
+    return newOne ? false : human
   } catch (error) {
     console.error('Saving the click address failed:', error)
+    return true
   }
-  return human
+}
+
+/** Removes clicks that turned out to be a scanner's from the recipient's count; with none left, the recipient has not clicked. */
+async function takeBackCounts(recipientId: string, n: number): Promise<void> {
+  await prisma.mailingEditionRecipient.update({ where: { id: recipientId }, data: { clickCount: { decrement: n } } })
+  const now = await prisma.mailingEditionRecipient.findUnique({ where: { id: recipientId }, select: { clickCount: true } })
+  if (now && now.clickCount <= 0) {
+    await prisma.mailingEditionRecipient.update({ where: { id: recipientId }, data: { clickCount: 0, clickedAt: null } })
+    await prisma.crmReportSend.updateMany({ where: { editionRecipientId: recipientId }, data: { clickedAt: null } })
+  }
 }
 
 /**
