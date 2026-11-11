@@ -1,6 +1,6 @@
 import { meetsCompanyLayoffBar } from '@/lib/seo/page-bars'
 import { YourState } from '@/components/capture/YourState'
-import { layoffsAnnouncedTitle, layoffsCompanySeo } from '@/lib/seo/templates'
+import { announcedStatus, layoffsAnnouncedDescription, layoffsAnnouncedTitle, layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FeedLine } from '@/components/seo/FeedLine'
@@ -157,8 +157,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const workers = c.notices.reduce((s, n) => s + (n.workers ?? 0), 0)
   const lead = recent && ann ? ann.items[0] : null
   const description = lead && !c.notices.length
-    ? `${c.name}: ${lead.summary} (${noticeDay(lead.date)}). What was announced, the source, and what to do if you are affected: benefits, severance, COBRA and local help.`
-    : `${lead ? `${lead.summary} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} ${c.notices.length === 1 ? 'layoff' : 'layoffs'} reported by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest reported ${noticeDay(c.latest)}. Dates, locations, and each state's severance and unemployment rules.`
+    ? layoffsAnnouncedDescription(c.name, lead, noticeDay(lead.date))
+    : `${lead ? `${announcedStatus(lead.summary)} (${noticeDay(lead.date)}). ` : ''}${c.notices.length} ${c.notices.length === 1 ? 'layoff' : 'layoffs'} reported by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest reported ${noticeDay(c.latest)}. Dates, locations, and each state's severance and unemployment rules.`
   // A page whose newest notice is over two years old, or that is too small to be worth a search result
   // (src/lib/seo/page-bars.ts), stays reachable but out of search results.
   const stale = !meetsCompanyLayoffBar(c) && !recent

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { TEMPLATES, TEMPLATE_LINK_PATHS, TEMPLATE_LINK_SLUGS, fillTemplate, slotsIn, templateBySlug } from '@/lib/templates/library'
 import { KEYWORD_CLUSTERS } from '@/lib/seo/keywords'
-import { layoffsAnnouncedTitle } from '@/lib/seo/templates'
+import { announcedStatus, layoffsAnnouncedDescription, layoffsAnnouncedTitle } from '@/lib/seo/templates'
 
 const norm = (s: string) => s.toLowerCase().replace(/[“”"’']/g, '').replace(/\s+/g, ' ').trim()
 
@@ -84,5 +84,28 @@ describe('layoffsAnnouncedTitle', () => {
     const long = layoffsAnnouncedTitle('International Business Machines Corporation', lead())
     expect(long.length).toBeLessThanOrEqual(60)
     expect(long).toContain('Layoffs')
+  })
+})
+
+describe('layoffsAnnouncedDescription', () => {
+  const lead = (summary: string, over: Partial<{ kind: 'buyout' | 'layoff'; workers: number | null }> = {}) => ({ kind: 'layoff' as const, summary, workers: null, ...over })
+  it('opens with the facts and says plainly that a press report is unconfirmed', () => {
+    expect(layoffsAnnouncedDescription('Angi', lead('Reported by 1 publisher (TradingView) — unconfirmed', { workers: 300 }), 'Nov 3, 2026')).toBe(
+      'Angi layoffs: 300 jobs cut, reported Nov 3, 2026. Reported by TradingView; the company has not confirmed it. Benefits, severance, COBRA and local help.',
+    )
+  })
+  it('keeps the share of staff when the report gives one', () => {
+    expect(layoffsAnnouncedDescription('Nice', lead('Reported by 1 publisher (CTech) — unconfirmed · 10% of staff', { workers: 500 }), 'Nov 3, 2026')).toContain('500 jobs cut (10% of staff), reported Nov 3, 2026. Reported by CTech;')
+  })
+  it('names a state filing and never counts a buyout as jobs cut', () => {
+    expect(layoffsAnnouncedDescription('Marriott', lead('Confirmed by state filing', { workers: 91 }), 'Oct 28, 2026')).toContain('Confirmed by a state filing.')
+    expect(layoffsAnnouncedDescription('Acme', lead('Voluntary buyout offered to about 60,000 employees', { kind: 'buyout', workers: 60000 }), 'Oct 28, 2026')).not.toMatch(/jobs cut/)
+  })
+  it('stays within 160 characters', () => {
+    expect(layoffsAnnouncedDescription('Los Angeles Unified School District', lead('LAUSD board voted 5-2 to finalize 657 layoffs, mostly central-office jobs; a February vote had authorized preliminary notices.', { workers: 657 }), 'Nov 3, 2026').length).toBeLessThanOrEqual(160)
+  })
+  it('turns the tracker status strings into plain wording', () => {
+    expect(announcedStatus('Reported by 10 publishers')).toBe('Reported by 10 publishers')
+    expect(announcedStatus('SEC 8-K Item 2.05 (restructuring filing)')).toBe('Disclosed in an SEC 8-K filing')
   })
 })
