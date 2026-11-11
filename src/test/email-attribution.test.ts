@@ -154,3 +154,19 @@ describe('dropPeopleOnSeveralAddresses', () => {
     expect(Array.from(out.keys())).toEqual(['c', 'd'])
   })
 })
+
+describe('guessesOnSeveralAddresses', () => {
+  it('flags a person guessed on two addresses within minutes, not on one address or hours apart', async () => {
+    const { guessesOnSeveralAddresses } = await import('@/lib/marketing/email-attribution')
+    const t = (m: number) => new Date(Date.UTC(2026, 10, 11, 20, m))
+    const out = guessesOnSeveralAddresses([
+      { id: 'a', personId: 'briana', ip: '1.1.1.1', at: t(12) },
+      { id: 'b', personId: 'briana', ip: '2.2.2.2', at: t(12) },
+      { id: 'c', personId: 'cory', ip: '3.3.3.3', at: t(12) },
+      { id: 'd', personId: 'cory', ip: '3.3.3.3', at: t(13) },
+      { id: 'e', personId: 'sam', ip: '4.4.4.4', at: t(0) },
+      { id: 'f', personId: 'sam', ip: '5.5.5.5', at: t(59) },
+    ])
+    expect(Array.from(out).sort()).toEqual(['a', 'b'])
+  })
+})

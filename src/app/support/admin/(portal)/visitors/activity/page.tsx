@@ -20,7 +20,7 @@ import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
-import { buildEmailIpAnchors, extractEmailLinkId, extractMailingRecipientId, resolveMailingRecipientIds, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_LEAD_WINDOW_MS, CLICK_TO_VISIT_WINDOW_MS, peopleByNearClick, NEAR_CLICK_WINDOW_MS, peopleWhoTouchedBefore, dropPeopleOnSeveralAddresses, TOUCH_LEAD_WINDOW_MS, TOUCH_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
+import { buildEmailIpAnchors, extractEmailLinkId, extractMailingRecipientId, resolveMailingRecipientIds, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_LEAD_WINDOW_MS, CLICK_TO_VISIT_WINDOW_MS, peopleByNearClick, NEAR_CLICK_WINDOW_MS, peopleWhoTouchedBefore, dropPeopleOnSeveralAddresses, guessesOnSeveralAddresses, TOUCH_LEAD_WINDOW_MS, TOUCH_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
 import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
 import { PREFETCH_OPEN_WINDOW_MS } from '@/lib/mailing/open-human'
 import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
@@ -868,7 +868,7 @@ export default async function AdminVisitorActivityPage({
     const account = r.candidate ?? r.inferredCandidate
     if (account) accountsByKey.set(`candidate:${account.id}`, account)
   }
-  const rows: Row[] = baseRows.map((r) => {
+  const namedRows: Row[] = baseRows.map((r) => {
     if (!needsName(r) || !shareable(r)) return r
     if (r.crmPeople.length === 1) {
       const person = loadedPeople.get(r.crmPeople[0].id)
@@ -885,6 +885,9 @@ export default async function AdminVisitorActivityPage({
     const person = loadedPeople.get(key.slice(4))
     return person ? { ...r, likelyRecipient: person, likelyBasis: 'same IP' } : r
   })
+  // Whatever rule guessed it: one person on several addresses within minutes is a mail gateway, so name nobody.
+  const gateway = guessesOnSeveralAddresses(namedRows.flatMap((r) => (!r.recipient && r.likelyRecipient ? [{ id: r.id, personId: r.likelyRecipient.personId, ip: r.ip, at: r.createdAt }] : [])))
+  const rows: Row[] = namedRows.map((r) => (gateway.has(r.id) ? { ...r, likelyRecipient: null, likelyBasis: null } : r))
 
   // Visitor type. The CRM person's roles, then the type of the organization they work at; failing that a signed-up account is a
   // candidate; failing that a guess from the first page of the visit (last 30 days).
