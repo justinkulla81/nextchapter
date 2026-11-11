@@ -2,7 +2,7 @@
 // The user-agent check cannot see them: they send a normal Chrome string. Each range below was looked up in the
 // public registries (ARIN / RIPE whois) on 2026-10-29 and 2026-10-30 after the visitors page showed the same page path coming
 // from consecutive addresses in these blocks. Add a range here when a new block shows up the same way.
-const DATACENTER_CIDRS = [
+export const DATACENTER_CIDRS = [
   '74.176.0.0/14', // Microsoft (ARIN NetName MSFT)
   '72.152.0.0/14', // Microsoft (ARIN NetName MSFT)
   '51.54.0.0/15', // Microsoft Limited (RIPE UK-Microsoft, 51.54.0.0 - 51.59.255.255)
