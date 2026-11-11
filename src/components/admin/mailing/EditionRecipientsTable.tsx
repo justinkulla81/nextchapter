@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { posthog } from '@/lib/posthog/client'
-import { ORG_SEGMENTS, type OrgSegmentKey } from '@/lib/mailing/org-segments'
+import { ORG_SEGMENTS, type OrgSegmentKey } from '@/lib/mailing/org-segment-list'
 
 export interface EditionRecipientRow {
   id: string
