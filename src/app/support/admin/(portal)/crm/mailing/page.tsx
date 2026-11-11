@@ -17,6 +17,43 @@ const STATUS_CLASS = {
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000)
 
+type EditionRow = { id: string; title: string; versionOfId: string | null; createdAt: Date; lists: { listId: string }[] }
+
+/** "October 2026 Monthly Update — version 4 (…)" and "September 2026 Monthly Update" are one series. */
+function seriesOf(title: string) {
+  return title
+    .replace(/\s+—\s+version\s+\d+.*$/i, '')
+    .replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+}
+
+/**
+ * Editions grouped into an original with its versions (oldest first), newest group first,
+ * each with the lists it shows under: its own lists, or those of the earliest group of its series.
+ */
+function editionFamilies<T extends EditionRow>(editions: T[]) {
+  const byId = new Map(editions.map((e) => [e.id, e]))
+  const groups = new Map<string, T[]>()
+  for (const e of editions) {
+    const root = e.versionOfId && byId.has(e.versionOfId) ? e.versionOfId : e.id
+    groups.set(root, [...(groups.get(root) ?? []), e])
+  }
+  const families = [...groups.entries()].map(([rootId, members]) => {
+    members.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    const root = byId.get(rootId) ?? members[0]
+    return { rootId, editions: members, series: seriesOf(root.title), rootAt: root.createdAt.getTime(), newestAt: members[members.length - 1].createdAt.getTime(), ownListIds: root.lists.map((l) => l.listId), homeListIds: [] as string[] }
+  })
+  const earliest = new Map<string, (typeof families)[number]>()
+  for (const f of families) {
+    const first = earliest.get(f.series)
+    if (!first || f.rootAt < first.rootAt) earliest.set(f.series, f)
+  }
+  for (const f of families) f.homeListIds = earliest.get(f.series)!.ownListIds
+  return families.sort((a, b) => b.newestAt - a.newestAt)
+}
+
 /** Admin → CRM → Mailing lists: every list, its sends, and what needs doing. */
 export default async function MailingHomePage() {
   await requireAdmin()
@@ -36,6 +73,8 @@ export default async function MailingHomePage() {
   ])
   // Drafts the cadence job made that haven't been approved yet.
   const awaiting = editions.filter((e) => e.status === 'DRAFT' && e.cadenceListId)
+  const listName = new Map(lists.map((l) => [l.id, l.name]))
+  const families = editionFamilies(editions)
 
   return (
     <div className="space-y-8">
@@ -85,14 +124,13 @@ export default async function MailingHomePage() {
 
       <section className="space-y-4">
         {lists.map((list) => {
-          const mine = editions.filter((e) => e.lists.some((l) => l.listId === list.id))
-          // Copies sit under their original, oldest first; the six newest groups show.
-          const groups = new Map<string, typeof mine>()
-          for (const e of mine) {
-            const root = e.versionOfId && mine.some((x) => x.id === e.versionOfId) ? e.versionOfId : e.id
-            groups.set(root, [...(groups.get(root) ?? []), e])
-          }
-          const own = [...groups.values()].slice(0, 6).flatMap((g) => g.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()))
+          // Each original and all its versions form one group, shown once, newest group first.
+          // Versions often go to other lists than the original (test samples, the rest), so a
+          // group sits under the list of the earliest group with the same title once the month
+          // is dropped: every "Monthly Update" lands with September's.
+          const mine = families.filter((f) => f.homeListIds.includes(list.id))
+          const own = mine.slice(0, 6).flatMap((f) => f.editions)
+          const inGroup = new Set(own.filter((e) => e.versionOfId).map((e) => e.id))
           return (
             <div key={list.id} className="rounded-lg border border-border">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
@@ -118,11 +156,13 @@ export default async function MailingHomePage() {
               ) : (
                 <ul className="divide-y divide-border">
                   {own.map((e) => (
-                    <li key={e.id} className={`flex flex-wrap items-center gap-3 py-2 pr-4 text-sm ${e.versionOfId && groups.has(e.versionOfId) ? 'pl-9' : 'pl-4'}`}>
-                      {e.versionOfId && groups.has(e.versionOfId) && <span aria-hidden className="-ml-5 text-muted-foreground">↳</span>}
+                    <li key={e.id} className={`flex flex-wrap items-center gap-3 py-2 pr-4 text-sm ${inGroup.has(e.id) ? 'pl-9' : 'pl-4'}`}>
+                      {inGroup.has(e.id) && <span aria-hidden className="-ml-5 text-muted-foreground">↳</span>}
                       <Link href={`/support/admin/crm/mailing/editions/${e.id}`} className="font-medium text-brand hover:underline">{e.title}</Link>
                       <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_CLASS[e.status]}`}>{STATUS_LABEL[e.status]}</span>
-                      {e.lists.length > 1 && <span className="text-xs text-muted-foreground">+{e.lists.length - 1} more {e.lists.length === 2 ? 'list' : 'lists'}</span>}
+                      {e.lists.some((l) => l.listId !== list.id) && (
+                        <span className="text-xs text-muted-foreground">to {e.lists.map((l) => listName.get(l.listId) ?? 'another list').join(', ')}</span>
+                      )}
                       <span className="ml-auto text-xs text-muted-foreground">
                         {e.sentAt ? `Sent ${e.sentAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} to ${e._count.recipients}`
                           : e.status === 'SENDING' ? `${e._count.recipients} sent so far`
