@@ -10,7 +10,7 @@ import { applyOptOutReply } from './opt-out'
 export type ResendEvent = {
   type: string
   created_at?: string
-  data: { email_id?: string; to?: string[]; bounce?: { type?: string; subType?: string; message?: string }; click?: { link?: string } }
+  data: { email_id?: string; to?: string[]; bounce?: { type?: string; subType?: string; message?: string }; click?: { link?: string; ipAddress?: string; userAgent?: string; timestamp?: string } }
 }
 
 /**
@@ -40,6 +40,7 @@ export async function applyResendEvent(event: ResendEvent): Promise<'applied' | 
       if (reportSend) await prisma.crmReportSend.updateMany({ where: { ...reportSend, openedAt: null }, data: { openedAt: at } })
       break
     case 'email.clicked': {
+      await saveClick(r.id, event, at)
       // The unsubscribe link is a click too, but not interest in the report.
       if (event.data.click?.link?.includes('/updates/unsubscribe/')) break
       await prisma.mailingEditionRecipient.update({
@@ -63,6 +64,27 @@ export async function applyResendEvent(event: ResendEvent): Promise<'applied' | 
       return 'ignored'
   }
   return 'applied'
+}
+
+/** Keeps the click's address, browser and time so the visitor log can tell a person from a mail scanner. Never blocks the event. */
+async function saveClick(recipientId: string, event: ResendEvent, fallbackAt: Date): Promise<void> {
+  const click = event.data.click
+  if (!click) return
+  const stamp = click.timestamp ? new Date(click.timestamp) : fallbackAt
+  try {
+    await prisma.mailingClickEvent.createMany({
+      data: [{
+        recipientId,
+        ip: click.ipAddress?.slice(0, 64) || null,
+        userAgent: click.userAgent?.slice(0, 300) || null,
+        link: (click.link ?? '').slice(0, 500),
+        clickedAt: Number.isNaN(stamp.getTime()) ? fallbackAt : stamp,
+      }],
+      skipDuplicates: true,
+    })
+  } catch (error) {
+    console.error('Saving the click address failed:', error)
+  }
 }
 
 /**

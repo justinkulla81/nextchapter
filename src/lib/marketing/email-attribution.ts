@@ -186,20 +186,7 @@ export async function resolveMailingRecipients(tokens: string[], now = new Date(
   }
   const allIds = Array.from(new Set(Array.from(peopleByToken.values()).flat()))
   if (allIds.length === 0) return none
-  const people = await prisma.crmPerson.findMany({
-    where: { id: { in: allIds } },
-    select: {
-      id: true,
-      fullName: true,
-      email: true,
-      affiliations: { where: { isCurrent: true }, orderBy: [{ isPrimary: 'desc' }, { createdAt: 'desc' }], take: 1, select: { title: true, org: { select: { name: true } } } },
-    },
-  })
-  const asRecipient = (p: (typeof people)[number]): EmailRecipient => {
-    const job = p.affiliations[0]
-    return { personId: p.id, name: p.fullName, email: p.email, subject: null, orgName: job?.org.name ?? null, title: job?.title ?? null }
-  }
-  const byId = new Map(people.map((p) => [p.id, asRecipient(p)] as const))
+  const byId = await loadRecipientsByPersonId(allIds)
   const out: MailingMatches = { unique: new Map(), ambiguous: new Map() }
   for (const [token, ids] of peopleByToken) {
     const found = ids.map((id) => byId.get(id)).filter((r): r is EmailRecipient => !!r)
@@ -207,6 +194,26 @@ export async function resolveMailingRecipients(tokens: string[], now = new Date(
     else if (found.length > 1) out.ambiguous.set(token, found)
   }
   return out
+}
+
+/** CRM person id -> name, address and current title and organization, for the people a visit is matched to. */
+export async function loadRecipientsByPersonId(ids: string[]): Promise<Map<string, EmailRecipient>> {
+  if (ids.length === 0) return new Map()
+  const people = await prisma.crmPerson.findMany({
+    where: { id: { in: Array.from(new Set(ids)) } },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      affiliations: { where: { isCurrent: true }, orderBy: [{ isPrimary: 'desc' }, { createdAt: 'desc' }], take: 1, select: { title: true, org: { select: { name: true } } } },
+    },
+  })
+  return new Map(
+    people.map((p) => {
+      const job = p.affiliations[0]
+      return [p.id, { personId: p.id, name: p.fullName, email: p.email, subject: null, orgName: job?.org.name ?? null, title: job?.title ?? null }] as const
+    })
+  )
 }
 
 /** A scanner opens an email's links within a second or two of each other, then moves to the next recipient. */
@@ -241,4 +248,32 @@ export function inferMailingTokenByIp(
   if (ranked.length === 0) return null
   if (ranked.length === 1) return ranked[0].token
   return ranked[0].gap * 3 <= ranked[1].gap ? ranked[0].token : null
+}
+
+// ── Clicks Resend recorded ────────────────────────────────────────────────────────────────────────────────────────────
+// A person's click on a list-email link comes from their own network; the visit to our site that follows comes from the
+// same address. That is the direct link between "we emailed them, they clicked" and "this visitor".
+export const CLICK_TO_VISIT_WINDOW_MS = 10 * 60 * 1000
+
+export interface MailingClick {
+  ip: string | null
+  at: Date
+  personId: string
+}
+
+/** The person whose click, from this visit's own IP in the ten minutes before it, is the nearest; null when two people tie. */
+export function inferPersonByClickIp(visit: { ip: string | null; createdAt: Date }, clicks: MailingClick[]): string | null {
+  if (!visit.ip) return null
+  const best = new Map<string, number>()
+  for (const c of clicks) {
+    if (c.ip !== visit.ip) continue
+    const gap = visit.createdAt.getTime() - c.at.getTime()
+    if (gap < 0 || gap > CLICK_TO_VISIT_WINDOW_MS) continue
+    const prior = best.get(c.personId)
+    if (prior === undefined || gap < prior) best.set(c.personId, gap)
+  }
+  const ranked = Array.from(best.entries()).sort((x, y) => x[1] - y[1])
+  if (ranked.length === 0) return null
+  if (ranked.length === 1) return ranked[0][0]
+  return ranked[0][1] * 3 <= ranked[1][1] ? ranked[0][0] : null
 }
