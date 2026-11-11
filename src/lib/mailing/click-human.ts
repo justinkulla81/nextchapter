@@ -41,8 +41,23 @@ export function ipBlock(ip: string | null): string | null {
   return parts.length >= 3 ? parts.slice(0, 3).join(ip.includes(':') ? ':' : '.') : null
 }
 
-/** Why a click is not a person's, or null for a human click. */
-export function botClickReason(click: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): string | null {
+// Mail scanners drive old headless browsers: on 2026-11-11, 29 of the 38 clicks in the last 14 days that passed every other test
+// came from Chrome before 120 or Firefox before 115 (Chrome 84 from three different addresses on one recipient), and only 7 of
+// the 38 were followed by a page view from the same address. People's browsers update themselves, so a click from a browser
+// this old is a machine's. This applies to clicks only: Gmail's image proxy fetches the pixel as Firefox 11 and is a person's open.
+export const MIN_CHROME_MAJOR = 120
+export const MIN_FIREFOX_MAJOR = 115
+
+/** True for a browser string far enough behind current releases that a person's own browser would not still be on it. */
+export function isStaleBrowser(userAgent: string | null): boolean {
+  if (!userAgent) return false
+  const chrome = /Chrome\/(\d+)/.exec(userAgent)
+  if (chrome) return Number(chrome[1]) < MIN_CHROME_MAJOR
+  const firefox = /Firefox\/(\d+)/.exec(userAgent)
+  return !!firefox && Number(firefox[1]) < MIN_FIREFOX_MAJOR
+}
+
+function networkBotReason(click: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string>): string | null {
   if (click.ip && scannerIps.has(click.ip)) return 'address opened the links in emails to many different people'
   const block = ipBlock(click.ip)
   if (block && scannerBlocks.has(block)) return 'address block clicked emails to several different people'
@@ -52,6 +67,13 @@ export function botClickReason(click: ClickFacts, scannerIps: Set<string>, scann
   if (classifyUserAgent(click.userAgent) === 'bot') return 'browser identifies itself as a bot'
   if (click.deliveredAt && click.at.getTime() - click.deliveredAt.getTime() <= SCANNER_CLICK_WINDOW_MS) return 'clicked within two minutes of delivery'
   return null
+}
+
+/** Why a click is not a person's, or null for a human click. */
+export function botClickReason(click: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): string | null {
+  const network = networkBotReason(click, scannerIps, scannerBlocks)
+  if (network) return network
+  return isStaleBrowser(click.userAgent) ? 'browser is years out of date: a scanner, not a person' : null
 }
 
 export const isHumanClick = (click: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): boolean =>
@@ -101,7 +123,8 @@ export function botOpenReason(open: ClickFacts, scannerIps: Set<string>, scanner
   // Apple's relay (Akamai, Fastly and Cloudflare addresses, mostly IPv6) fetches the pixel with the bare string "Mozilla/5.0" and
   // nothing else; a real mail client or browser always says more.
   if ((open.userAgent ?? '').trim() === 'Mozilla/5.0') return 'bare Mozilla/5.0 browser string: the image relay Apple Mail Privacy Protection uses'
-  return botClickReason(open, scannerIps, scannerBlocks)
+  // The stale-browser test is for clicks only: Gmail's image proxy opens as Firefox 11 and is a person.
+  return networkBotReason(open, scannerIps, scannerBlocks)
 }
 
 export const isHumanOpen = (open: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): boolean =>
