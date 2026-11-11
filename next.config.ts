@@ -9,6 +9,11 @@ import { MAJOR, EXTRA_CITY_STATES } from "./src/lib/places/major-cities-data";
 const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
 const posthogAssetHost = posthogHost.replace("https://", "https://").replace(/^https:\/\/(\w+)\./, "https://$1-assets.");
 
+// Every cut-off of "white-collar-employment-report" from "white" on (a link wrapped
+// or truncated in an email), so none of them 404s.
+const REPORT_NAME = "white-collar-employment-report";
+const REPORT_CUTOFFS = Array.from({ length: REPORT_NAME.length - 4 }, (_, i) => REPORT_NAME.slice(0, i + 5)).join("|");
+
 const nextConfig: NextConfig = {
   // The email handwriting route reads this font from disk at request time, so the build has to ship it with the function.
   outputFileTracingIncludes: { '/api/email/handwriting': ['./src/app/api/email/handwriting/Caveat-Bold.ttf'] },
@@ -263,6 +268,11 @@ const nextConfig: NextConfig = {
       },
       // Cut-off copies of the report link (a wrapped or truncated URL in an
       // email or post) end at "-" or at the bare name; send them to the newest edition.
+      {
+        source: `/reports/:cut(${REPORT_CUTOFFS})`,
+        destination: '/reports/latest',
+        permanent: false,
+      },
       {
         source: '/reports/white-collar-employment-report-',
         destination: '/reports/latest',
