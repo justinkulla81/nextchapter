@@ -17,6 +17,18 @@ export const DATACENTER_CIDRS = [
   '18.32.0.0/11', // Amazon Technologies (ARIN AT-88-Z), AWS
   '18.64.0.0/10',
   '18.128.0.0/9',
+  // Looked up in ARIN / RIPE RDAP on 2026-11-11 after the visitors page showed them as Human.
+  '48.209.0.0/16', // RIPE netname "cloud", MICROSOFT-MAINT; opened the unsubscribe link then the report within a second
+  '48.210.0.0/16', // same
+  '128.85.0.0/17', // same
+  '173.252.64.0/18', // Facebook (ARIN FACEBOOK-INC): the link-preview crawler, one hit per address
+  '69.63.176.0/20', // Facebook (ARIN TFBNET2)
+  '69.171.224.0/19', // Facebook (ARIN TFBNET3)
+  '66.220.144.0/20', // Facebook (ARIN TFBNET3)
+  '54.64.0.0/11', // Amazon (ARIN AMAZON-2011L), EC2
+  '54.144.0.0/12', // Amazon (ARIN AMAZON), EC2
+  '54.160.0.0/11', // Amazon (ARIN AMAZON), EC2
+  '13.216.0.0/13', // Amazon (ARIN AMAZON-IAD), EC2
 ]
 
 function ipv4ToInt(ip: string): number | null {
