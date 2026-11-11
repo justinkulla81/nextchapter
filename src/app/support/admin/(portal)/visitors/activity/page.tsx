@@ -138,6 +138,19 @@ type LogEvent = Awaited<ReturnType<typeof prisma.homepageVisitEvent.findMany<{ i
 
 type VisitorSort = 'clicks' | 'views'
 
+// Newest first, through the same SQL filter as the counts and charts (a plain Prisma query cannot test a cloud-network block), so
+// with Human only on, a scanner or cloud-network visit never appears in the list that the page count describes.
+async function loadEventsNewest(botFilter: Prisma.Sql, rangeSql: Prisma.Sql, skip: number, take: number): Promise<LogEvent> {
+  const ids = await prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
+    SELECT "id" FROM "HomepageVisitEvent" WHERE ${botFilter} AND ${rangeSql} ORDER BY "createdAt" DESC, "id" DESC OFFSET ${skip} LIMIT ${take}`)
+  const rows = await prisma.homepageVisitEvent.findMany({
+    where: { id: { in: ids.map((r) => r.id) } },
+    include: { candidate: { select: { id: true, firstName: true, lastName: true, email: true } } },
+  })
+  const order = new Map(ids.map((r, i) => [r.id, i] as const))
+  return rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+}
+
 // One row per visitor (an IP; an event with no IP stands alone), ordered by how many clicks or page views that visitor made in the
 // window, then newest. The row shown is the visitor's latest event. One window query over the range's rows only.
 async function loadEventsByVisitor(
@@ -261,23 +274,8 @@ export default async function AdminVisitorActivityPage({
   // Counting clicks or views per visitor is a window over the rows in range, so it never runs over the whole table: all time reads 30 days.
   const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sort ? 30 : null
   const logStart = logDays ? new Date(now().getTime() - logDays * DAY_MS) : null
-  const rangeWhere = logStart ? { createdAt: { gte: logStart } } : {}
   // Mail scanners are hidden with the bots: they open every link for every recipient, and are not people.
   const scannerIps = await loadScannerIps().catch(() => new Set<string>())
-  const where = showBots
-    ? rangeWhere
-    : {
-        ...rangeWhere,
-        AND: [
-          {
-            OR: [
-              { userAgent: null },
-              { NOT: BOT_SIGNATURES.map((s) => ({ userAgent: { contains: s, mode: 'insensitive' as const } })) },
-            ],
-          },
-          ...(scannerIps.size > 0 ? [{ OR: [{ ip: null }, { ip: { notIn: Array.from(scannerIps) } }] }] : []),
-        ],
-      }
   const etDay = Prisma.sql`to_char(("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/New_York', 'YYYY-MM-DD')`
   const etHour = Prisma.sql`to_char(("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/New_York', 'YYYY-MM-DD HH24')`
 
@@ -299,13 +297,7 @@ export default async function AdminVisitorActivityPage({
   const [loaded, dayRows, hourRows, totalsRows] = await Promise.all([
     sort && logStart
       ? loadEventsByVisitor(botFilter, logStart, params.skip, params.take, sort)
-      : prisma.homepageVisitEvent.findMany({
-          where,
-          orderBy: { createdAt: 'desc' },
-          skip: params.skip,
-          take: params.take,
-          include: { candidate: { select: { id: true, firstName: true, lastName: true, email: true } } },
-        }),
+      : loadEventsNewest(botFilter, rangeSql, params.skip, params.take),
     // The charts read counts grouped by Eastern day and hour in the database, not every raw event.
     prisma.$queryRaw<BucketRow[]>(Prisma.sql`
       SELECT ${etDay} AS "key", count(*) AS "views", count(DISTINCT "ip") AS "visitors"
