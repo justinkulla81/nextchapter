@@ -331,6 +331,25 @@ export function dropPeopleOnSeveralAddresses(byRow: Map<string, string[]>, addre
   return out
 }
 
+export const SEVERAL_ADDRESSES_WINDOW_MS = 10 * 60 * 1000
+
+/**
+ * Ids of the guessed (not certain) rows to unname: a person guessed on two different addresses within ten minutes of each
+ * other is a mail gateway fetching the links from several places, whichever rule made the guess (seen 2026-11-11: one
+ * recipient "in" New York, Detroit and Santa Clara in the same minute).
+ */
+export function guessesOnSeveralAddresses(guesses: { id: string; personId: string; ip: string | null; at: Date }[]): Set<string> {
+  const out = new Set<string>()
+  for (const a of guesses) {
+    for (const b of guesses) {
+      if (a.id === b.id || a.personId !== b.personId) continue
+      if ((a.ip ?? a.id) === (b.ip ?? b.id)) continue
+      if (Math.abs(a.at.getTime() - b.at.getTime()) <= SEVERAL_ADDRESSES_WINDOW_MS) out.add(a.id)
+    }
+  }
+  return out
+}
+
 // A tracked link in an email is followed by the recipient's mail security (or the person), which loads our page from another
 // address a few seconds later or earlier than Resend stamps the click. Same page, a few seconds apart: that click's recipient.
 export const NEAR_CLICK_WINDOW_MS = 20 * 1000
