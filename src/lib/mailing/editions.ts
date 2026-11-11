@@ -237,8 +237,15 @@ export async function sendTestEmail(editionId: string): Promise<{ ok: boolean; m
  * run concurrently: each recipient is claimed with a conditional update
  * before it's sent, so two runs never mail the same person.
  */
+/** Owner rule (2026-11-11): list email goes out 7:00 a.m. to 5:00 p.m. Eastern only; the rest waits for 7:00 the next morning. */
+export function inSendWindow(now: Date): boolean {
+  const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', hourCycle: 'h23' }).format(now))
+  return hour >= 7 && hour < 17
+}
+
 export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; failed: number; editions: number }> {
   if (!process.env.RESEND_API_KEY) return { sent: 0, failed: 0, editions: 0 }
+  if (!inSendWindow(new Date())) return { sent: 0, failed: 0, editions: 0 }
   const now = new Date()
   // Scheduled editions whose time has come start sending.
   const due = await prisma.mailingEdition.findMany({ where: { status: 'SCHEDULED', scheduledAt: { lte: now } }, select: { id: true } })
