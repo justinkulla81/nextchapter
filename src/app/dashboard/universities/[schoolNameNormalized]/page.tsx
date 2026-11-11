@@ -42,6 +42,7 @@ export default async function UniversityAlumniPage({
     where: {
       id: { not: profile.id },
       isSystemAccount: false,
+      isSampleData: false,
       confidentialSearchMode: false,
       privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC'] },
       educationHistory: { some: { schoolNameNormalized } },

@@ -83,6 +83,8 @@ export async function getCandidateGroups(candidateId: string): Promise<Community
       prisma.candidateProfile.count({
         where: {
           id: { not: candidateId },
+          isSampleData: false,
+          isSystemAccount: false,
           privacyTier: { in: [...VISIBLE_TIERS] },
           educationHistory: { some: { schoolNameNormalized: primarySchool.schoolNameNormalized, isPrimary: true } },
         },
@@ -101,6 +103,8 @@ export async function getCandidateGroups(candidateId: string): Promise<Community
       prisma.candidateProfile.count({
         where: {
           id: { not: candidateId },
+          isSampleData: false,
+          isSystemAccount: false,
           privacyTier: { in: [...VISIBLE_TIERS] },
           workHistory: { some: { companyNameNormalized: entry.companyNameNormalized } },
         },
@@ -112,7 +116,7 @@ export async function getCandidateGroups(candidateId: string): Promise<Community
   if (profile.industryBucket) {
     addCount(
       prisma.candidateProfile.count({
-        where: { id: { not: candidateId }, privacyTier: { in: [...VISIBLE_TIERS] }, industryBucket: profile.industryBucket },
+        where: { id: { not: candidateId }, isSampleData: false, isSystemAccount: false, privacyTier: { in: [...VISIBLE_TIERS] }, industryBucket: profile.industryBucket },
       }),
       { dimension: 'industry', value: profile.industryBucket, label: profile.industryBucket }
     )
@@ -123,7 +127,7 @@ export async function getCandidateGroups(candidateId: string): Promise<Community
   if (profile.metroArea && profile.metroArea !== 'Other/Remote') {
     addCount(
       prisma.candidateProfile.count({
-        where: { id: { not: candidateId }, privacyTier: { in: [...VISIBLE_TIERS] }, metroArea: profile.metroArea },
+        where: { id: { not: candidateId }, isSampleData: false, isSystemAccount: false, privacyTier: { in: [...VISIBLE_TIERS] }, metroArea: profile.metroArea },
       }),
       { dimension: 'metro', value: profile.metroArea, label: profile.metroArea }
     )
@@ -132,7 +136,7 @@ export async function getCandidateGroups(candidateId: string): Promise<Community
   if (profile.primaryFunction && (PRIMARY_FUNCTION_OPTIONS as readonly string[]).includes(profile.primaryFunction)) {
     addCount(
       prisma.candidateProfile.count({
-        where: { id: { not: candidateId }, privacyTier: { in: [...VISIBLE_TIERS] }, primaryFunction: profile.primaryFunction },
+        where: { id: { not: candidateId }, isSampleData: false, isSystemAccount: false, privacyTier: { in: [...VISIBLE_TIERS] }, primaryFunction: profile.primaryFunction },
       }),
       { dimension: 'function', value: profile.primaryFunction, label: profile.primaryFunction }
     )

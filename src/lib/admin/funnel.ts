@@ -296,7 +296,7 @@ export async function computeFunnel(windowDays: FunnelWindowDays): Promise<Funne
   // profiles are counted as "started" only, so the registration drop-off is visible.
   // Demo workspaces (the workforce demo generator) create profiles with userId 'demo-…'; they are not people, and 332 of them
   // (made 15–16 October) once made "started an account" read 336 for a month with 4 real ones.
-  const cohortWhere = { createdAt: { gte: since }, NOT: { userId: { startsWith: 'demo-' } } }
+  const cohortWhere = { createdAt: { gte: since }, isSampleData: false, isSystemAccount: false, NOT: { userId: { startsWith: 'demo-' } } }
   const registeredWhere = { ...cohortWhere, registrationCompletedAt: { not: null } }
   const [started, registered, onboarded, withResume, activated, engaged, plus, hired] = await Promise.all([
     prisma.candidateProfile.count({ where: cohortWhere }),
