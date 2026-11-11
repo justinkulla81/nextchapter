@@ -2,6 +2,8 @@ import 'server-only'
 import type { CrmReportSendChannel } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { loadScannerIps } from '@/lib/marketing/mail-scanners'
+import { isHumanClick } from './click-human'
 import { suppress } from './lists'
 import { baseSubject, isUnsubscribeReply } from './replies'
 import { applyOptOutReply } from './opt-out'
@@ -40,7 +42,9 @@ export async function applyResendEvent(event: ResendEvent): Promise<'applied' | 
       if (reportSend) await prisma.crmReportSend.updateMany({ where: { ...reportSend, openedAt: null }, data: { openedAt: at } })
       break
     case 'email.clicked': {
-      await saveClick(r.id, event, at)
+      // A scanner's click is kept (so the visitor log can tell scanners from people) but never counted as a click.
+      const human = await saveClick(r.id, event, at, r.deliveredAt)
+      if (!human) break
       // The unsubscribe link is a click too, but not interest in the report.
       if (event.data.click?.link?.includes('/updates/unsubscribe/')) break
       await prisma.mailingEditionRecipient.update({
@@ -66,25 +70,28 @@ export async function applyResendEvent(event: ResendEvent): Promise<'applied' | 
   return 'applied'
 }
 
-/** Keeps the click's address, browser and time so the visitor log can tell a person from a mail scanner. Never blocks the event. */
-async function saveClick(recipientId: string, event: ResendEvent, fallbackAt: Date): Promise<void> {
+/**
+ * Keeps the click's address, browser and time, and says whether a person made it (see click-human.ts). Never blocks the event;
+ * when the click cannot be judged (no click detail) it counts, as before.
+ */
+async function saveClick(recipientId: string, event: ResendEvent, fallbackAt: Date, deliveredAt: Date | null): Promise<boolean> {
   const click = event.data.click
-  if (!click) return
+  if (!click) return true
   const stamp = click.timestamp ? new Date(click.timestamp) : fallbackAt
+  const at = Number.isNaN(stamp.getTime()) ? fallbackAt : stamp
+  const ip = click.ipAddress?.slice(0, 64) || null
+  const userAgent = click.userAgent?.slice(0, 300) || null
+  const scanners = await loadScannerIps().catch(() => new Set<string>())
+  const human = isHumanClick({ ip, userAgent, at, deliveredAt }, scanners)
   try {
     await prisma.mailingClickEvent.createMany({
-      data: [{
-        recipientId,
-        ip: click.ipAddress?.slice(0, 64) || null,
-        userAgent: click.userAgent?.slice(0, 300) || null,
-        link: (click.link ?? '').slice(0, 500),
-        clickedAt: Number.isNaN(stamp.getTime()) ? fallbackAt : stamp,
-      }],
+      data: [{ recipientId, ip, userAgent, link: (click.link ?? '').slice(0, 500), clickedAt: at, bot: !human }],
       skipDuplicates: true,
     })
   } catch (error) {
     console.error('Saving the click address failed:', error)
   }
+  return human
 }
 
 /**
