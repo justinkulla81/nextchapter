@@ -20,7 +20,7 @@ import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
-import { buildEmailIpAnchors, extractEmailLinkId, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_LEAD_WINDOW_MS, CLICK_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
+import { buildEmailIpAnchors, extractEmailLinkId, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_LEAD_WINDOW_MS, CLICK_TO_VISIT_WINDOW_MS, peopleByNearClick, NEAR_CLICK_WINDOW_MS, peopleWhoTouchedBefore, TOUCH_LEAD_WINDOW_MS, TOUCH_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
 import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
 import { PREFETCH_OPEN_WINDOW_MS } from '@/lib/mailing/open-human'
 import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
@@ -67,7 +67,7 @@ interface Row {
   // Set when this visit has no tag of its own but its IP matches a tagged email visit within the past week.
   likelyRecipient: EmailRecipient | null
   // Why likelyRecipient was set when it was not an email visit: the address they gave, or another event from the same IP.
-  likelyBasis: 'gave email' | 'same IP' | null
+  likelyBasis: 'gave email' | 'same IP' | 'opened email' | 'email click' | null
   // A mailing-list email visit whose token fits a few people and cannot be narrowed further.
   candidates: EmailRecipient[]
   // An IP that opens the links in emails to many different people: a mail scanner, never a person.
@@ -622,6 +622,22 @@ export default async function AdminVisitorActivityPage({
   const mailingClicks: MailingClick[] = clickRows.flatMap((c) => (c.recipient.personId ? [{ ip: c.ip, at: c.clickedAt, personId: c.recipient.personId }] : []))
   const clickPeople = await loadRecipientsByPersonId(mailingClicks.map((c) => c.personId))
 
+  // Human opens and clicks of list emails just before the visits shown, any address (mail proxies hide the reader's own).
+  // Reads only the human ones in a window around the page: a dozen or so a day. A missing table just means none.
+  const touchFrom = new Date(oldestShown.getTime() - TOUCH_TO_VISIT_WINDOW_MS)
+  const touchTo = new Date(newest.getTime() + TOUCH_LEAD_WINDOW_MS)
+  const [openTouchRows, clickTouchRows, nearClickRows] = await Promise.all([
+    prisma.mailingOpenEvent.findMany({ where: { bot: false, openedAt: { gte: touchFrom, lte: touchTo } }, select: { openedAt: true, recipient: { select: { personId: true } } }, take: 1000 }).catch(() => []),
+    prisma.mailingClickEvent.findMany({ where: { bot: false, clickedAt: { gte: touchFrom, lte: touchTo } }, select: { clickedAt: true, link: true, recipient: { select: { personId: true } } }, take: 1000 }).catch(() => []),
+    // Every click, scanner or person, from any address, seconds around the visits shown: the tracked link that sent the visit.
+    prisma.mailingClickEvent.findMany({ where: { clickedAt: { gte: new Date(oldestShown.getTime() - NEAR_CLICK_WINDOW_MS), lte: new Date(newest.getTime() + NEAR_CLICK_WINDOW_MS) } }, select: { clickedAt: true, link: true, recipient: { select: { personId: true } } }, take: 2000 }).catch(() => []),
+  ])
+  const nearClicks = nearClickRows.flatMap((c) => (c.recipient.personId ? [{ at: c.clickedAt, personId: c.recipient.personId, link: c.link }] : []))
+  const touches = [
+    ...openTouchRows.flatMap((o) => (o.recipient.personId ? [{ at: o.openedAt, personId: o.recipient.personId }] : [])),
+    ...clickTouchRows.flatMap((c) => (c.recipient.personId ? [{ at: c.clickedAt, personId: c.recipient.personId }] : [])),
+  ]
+
   // Per-person totals: one row per IP, same bot rule as the log. "Person" is an IP — the best identity an
   // anonymous visit carries.
   const totalsByIp = new Map<string, { views: number; clicks: number; applyClicks: number; mail: number }>()
@@ -781,10 +797,22 @@ export default async function AdminVisitorActivityPage({
   // An unnamed row that gave an address already in the CRM is that person; one more lookup for the people not loaded above.
   const needsName = (r: Row) => !r.recipient && !r.likelyRecipient && !r.candidate && !r.inferredCandidate
   const personIdsToLoad = new Set<string>()
+  // Visits nobody else names: the people who opened or clicked a list email in the minutes before (at most three; more is a guess about nothing).
+  const touchedByRow = new Map<string, string[]>()
+  const clickMatched = new Set<string>()
   for (const r of baseRows) {
     if (!needsName(r) || !shareable(r)) continue
     const key = r.crmPeople.length === 1 ? `crm:${r.crmPeople[0].id}` : inherited.get(r.id)
     if (key?.startsWith('crm:')) personIdsToLoad.add(key.slice(4))
+    if (!key && r.crmPeople.length === 0 && r.candidates.length === 0 && r.eventType === 'PAGE_VIEW') {
+      const byClick = peopleByNearClick(r, nearClicks)
+      const people = byClick.length > 0 ? byClick : peopleWhoTouchedBefore(r.createdAt, touches)
+      if (people.length >= 1 && people.length <= 3) {
+        touchedByRow.set(r.id, people)
+        if (byClick.length > 0) clickMatched.add(r.id)
+        people.forEach((id) => personIdsToLoad.add(id))
+      }
+    }
   }
   const loadedPeople = await loadRecipientsByPersonId(Array.from(personIdsToLoad))
   const accountsByKey = new Map<string, NonNullable<Row['candidate']>>()
@@ -799,7 +827,12 @@ export default async function AdminVisitorActivityPage({
       return person ? { ...r, likelyRecipient: person, likelyBasis: 'gave email' } : r
     }
     const key = inherited.get(r.id)
-    if (!key) return r
+    if (!key) {
+      const touched = (touchedByRow.get(r.id) ?? []).flatMap((id) => loadedPeople.get(id) ?? [])
+      if (touched.length === 1) return { ...r, likelyRecipient: touched[0], likelyBasis: clickMatched.has(r.id) ? 'email click' : 'opened email' }
+      if (touched.length > 1) return { ...r, candidates: touched }
+      return r
+    }
     if (key.startsWith('candidate:')) return { ...r, inferredCandidate: accountsByKey.get(key) ?? null }
     const person = loadedPeople.get(key.slice(4))
     return person ? { ...r, likelyRecipient: person, likelyBasis: 'same IP' } : r
@@ -872,6 +905,10 @@ export default async function AdminVisitorActivityPage({
                   title={
                     certain
                       ? 'The visit came through a link in an email we sent them.'
+                      : r.likelyBasis === 'email click'
+                        ? 'A link in an email we sent them was followed within seconds of this visit, from a different address (how mail security tools and some mail apps open links). Matched by time and page. Their email, probably not them reading it.'
+                      : r.likelyBasis === 'opened email'
+                        ? 'They opened or clicked our email in the 15 minutes before this visit, and nobody else did. Matched by time, not by address (mail apps hide the reader\'s address). A guess, not a certain match.'
                       : r.likelyBasis === 'gave email'
                         ? 'This visitor gave an email address that belongs to them in the CRM. The visit is from the same IP address. A strong guess, not a certain match.'
                         : 'Same IP address as another visit that named them, and no other person was seen on that address. A strong guess, not a certain match.'
