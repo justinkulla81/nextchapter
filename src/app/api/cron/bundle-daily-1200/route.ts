@@ -1,6 +1,7 @@
 import { cronBundle } from '@/lib/cron/bundle'
 import { GET as help_feedback_digest } from '../help-feedback-digest/route'
 import { GET as research_inbox_sweep } from '../research-inbox-sweep/route'
+import { GET as board_warm } from '../board-warm/route'
 import { GET as job_search_daily } from '../job-search-daily/route'
 import { GET as saved_job_closures } from '../saved-job-closures/route'
 import { GET as firm_joined_notices } from '../firm-joined-notices/route'
@@ -15,6 +16,8 @@ export const GET = cronBundle({
   'saved-job-closures': saved_job_closures,
   'firm-joined-notices': firm_joined_notices,
   'employer-brand-scan': employer_brand_scan,
+  // Loads the board into this instance first, so job-search-daily does not read it cold (2026-11-11).
+  'board-warm': board_warm,
   // Last: it can use the whole bundle's time (it timed out on 2026-11-04 and the jobs after it never ran).
   'job-search-daily': job_search_daily,
 })
