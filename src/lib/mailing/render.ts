@@ -52,16 +52,20 @@ export function sanitizeBodyHtml(input: string): string {
  * Tailwind's reset, so spacing and bullets are written onto each tag. The
  * preview renders this same HTML, so what Justin sees is what lands.
  */
+// Outlook for Windows draws mail with Word's engine: it ignores max-width and a font set only on an outer div, and handles a
+// unitless line-height badly. So the font, size, colour and a pixel line-height are written on every text tag, and the width is
+// fixed by a table that only Outlook sees (see renderEmail).
+const FONT = "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:23px;color:#1f2328"
 const INLINE: Record<string, string> = {
-  p: 'margin:0 0 12px 0',
-  ul: 'list-style-type:disc;padding-left:24px;margin:0 0 12px 0',
-  ol: 'list-style-type:decimal;padding-left:24px;margin:0 0 12px 0',
-  li: 'margin:0 0 6px 0',
+  p: `${FONT};margin:0 0 12px 0`,
+  ul: `${FONT};list-style-type:disc;padding-left:24px;margin:0 0 12px 0`,
+  ol: `${FONT};list-style-type:decimal;padding-left:24px;margin:0 0 12px 0`,
+  li: `${FONT};margin:0 0 6px 0`,
 }
 
 function inlineStyles(html: string): string {
   return html
-    .replace(/<div data-signature>/g, '<div style="margin:16px 0 0 0;color:#6b7280;font-size:13px;line-height:1.5">')
+    .replace(/<div data-signature>/g, '<div style="margin:16px 0 0 0;color:#6b7280;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Helvetica,Arial,sans-serif;font-size:13px;line-height:20px">')
     .replace(/<(p|ul|ol|li)>/g, (_m, tag: string) => `<${tag} style="${INLINE[tag]}">`)
 }
 
@@ -110,7 +114,7 @@ export interface RenderInput {
   unsubscribeUrl: string
 }
 
-const WRAP = 'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#1f2328;max-width:600px'
+const WRAP = `${FONT};max-width:600px`
 
 /**
  * A footer with no [link words] that tells people to reply is the plain-text opt-out: no link goes in the body. The
@@ -128,7 +132,7 @@ function footerHtml(text: string, postalAddress: string, unsubscribeUrl: string)
     : /\[([^\]]+)\]/.test(escaped)
       ? escaped.replace(/\[([^\]]+)\]/, `<a href="${escapeHtml(unsubscribeUrl)}" style="color:#8a8f98">$1</a>`)
       : `${escaped} <a href="${escapeHtml(unsubscribeUrl)}" style="color:#8a8f98">Unsubscribe</a>`
-  return `<p style="margin-top:32px;font-size:12px;line-height:1.5;color:#8a8f98">${linked}</p>`
+  return `<p style="margin:32px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#8a8f98">${linked}</p>`
 }
 
 export function renderEmail(input: RenderInput): { html: string; text: string } {
@@ -145,13 +149,15 @@ export function renderEmail(input: RenderInput): { html: string; text: string } 
   body = inlineStyles(body)
 
   const preview = input.previewText
-    ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(input.previewText)}</div>`
+    ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;font-size:1px;line-height:1px;color:#ffffff">${escapeHtml(input.previewText)}</div>`
     : ''
   // CAN-SPAM needs a postal address in every send. If neither the footer nor the body (a signature) carries it, the footer adds it.
   const addressKey = input.postalAddress.split(/[\n,]/)[0].trim()
   const hasAddress = /\{\{\s*postalAddress\s*\}\}/.test(input.footerText) || (addressKey !== '' && bodyText.includes(addressKey))
   const footerSource = hasAddress ? input.footerText : `${input.footerText} {{postalAddress}}`
-  const html = `${preview}<div style="${WRAP}">${body}${footerHtml(footerSource, input.postalAddress, input.unsubscribeUrl)}</div>`
+  // Outlook ignores max-width, so its lines would run the full window. A 600px table that only Outlook sees ("if mso") holds
+  // the width there; every other client skips the comment and uses the div's max-width.
+  const html = `${preview}<!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td width="600"><![endif]--><div style="${WRAP}">${body}${footerHtml(footerSource, input.postalAddress, input.unsubscribeUrl)}</div><!--[if mso]></td></tr></table><![endif]-->`
 
   const footerPlain = footerSource
     .replace(/\{\{\s*postalAddress\s*\}\}/g, input.postalAddress)

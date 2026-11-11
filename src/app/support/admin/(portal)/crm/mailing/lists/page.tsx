@@ -137,6 +137,16 @@ export default async function MailingListsPage() {
           <label className="text-xs"><span className="mb-1 block font-medium">Test emails go to</span><input name="testEmail" defaultValue={settings.testEmail} className={input} /></label>
           <label className="text-xs"><span className="mb-1 block font-medium">Emails per hour</span><input name="ratePerHour" type="number" min={1} max={2000} defaultValue={settings.ratePerHour} className={input} /></label>
           <label className="text-xs">
+            <span className="mb-1 block font-medium">Emails per day <span className="font-normal text-muted-foreground">Eastern day, all editions</span></span>
+            <input name="dailyCap" type="number" min={1} max={10000} defaultValue={settings.dailyCap} className={input} />
+            <span className="mt-1 block text-[11px] text-muted-foreground">A new sending domain should grow gradually, so raise this a little at a time.</span>
+          </label>
+          <label className="text-xs sm:col-span-2">
+            <span className="mb-1 block font-medium">Seed inboxes <span className="font-normal text-muted-foreground">your own Gmail, Outlook and Yahoo addresses, separated by commas</span></span>
+            <input name="seedEmails" defaultValue={settings.seedEmails.join(', ')} className={input} />
+            <span className="mt-1 block text-[11px] text-muted-foreground">&quot;Send seed test&quot; on an edition mails the real email to these, so you can see whether it lands in the inbox, promotions or spam.</span>
+          </label>
+          <label className="text-xs">
             <span className="mb-1 block font-medium">Postal address <span className="font-normal text-muted-foreground">required by law in every list email</span></span>
             <input name="postalAddress" defaultValue={settings.postalAddress} placeholder="Street, city, state ZIP (a PO box works)" className={input} />
           </label>

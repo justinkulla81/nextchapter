@@ -8,7 +8,7 @@ import { renderEmail } from '@/lib/mailing/render'
 import { rosterCounts } from '@/lib/mailing/roster'
 import {
   saveEdition, createAttachmentUpload, confirmAttachment, removeAttachment, setRecipientsExcluded,
-  searchPeopleForEdition, addEditionRecipient, removeAddedRecipient, sendTest, sendNow, scheduleSend,
+  searchPeopleForEdition, addEditionRecipient, removeAddedRecipient, sendTest, sendSeedTestAction, sendNow, scheduleSend,
   cancelSchedule, deleteDraftEdition, refreshRoster, setSkipEarlierVersions, type EditionDraft,
 } from '@/app/support/admin/(portal)/crm/mailing/actions'
 import { MailingEditor } from './MailingEditor'
@@ -63,7 +63,7 @@ export function MailingComposer({
   edition: ComposerEdition
   lists: ListOption[]
   recipients: ComposerRecipient[]
-  settings: { fromName: string; fromEmail: string; testEmail: string; footerText: string; postalAddress: string; ratePerHour: number }
+  settings: { fromName: string; fromEmail: string; testEmail: string; footerText: string; postalAddress: string; ratePerHour: number; dailyCap: number; seedEmails: string[] }
   fileUrl: string
   /** Set on version 2 onward: who earlier versions already reached. */
   earlierVersion?: { reachedEmails: string[] } | null
@@ -394,7 +394,7 @@ export function MailingComposer({
         ) : (
           <>
             <p className="text-xs text-muted-foreground">
-              Sends go out at up to {settings.ratePerHour} an hour, one email per person.
+              Sends go out at up to {settings.ratePerHour} an hour and {settings.dailyCap} a day, one email per person.
               {!settings.postalAddress && ' Add your postal address in Sender settings before sending — it has to be in every list email.'}
             </p>
             <div className="flex flex-wrap items-center gap-2">
@@ -410,6 +410,21 @@ export function MailingComposer({
               >
                 Send test to me ({settings.testEmail})
               </button>
+              {settings.seedEmails.length > 0 && (
+                <button
+                  type="button" disabled={pending}
+                  onClick={() => run(async () => {
+                    if (!(await save())) return
+                    const r = await sendSeedTestAction(edition.id)
+                    setMessage({ ok: r.ok, text: r.message })
+                    posthog.capture('mailing_seed_test_clicked', { editionId: edition.id, ok: r.ok, inboxes: r.sentTo.length })
+                  })}
+                  className="rounded-md border border-border px-3 py-2 text-sm hover:bg-muted"
+                  title="Mails the real email to your Gmail, Outlook and Yahoo test inboxes so you can see where it lands"
+                >
+                  Send seed test ({settings.seedEmails.length} {settings.seedEmails.length === 1 ? 'inbox' : 'inboxes'})
+                </button>
+              )}
               <button
                 type="button" disabled={pending || counts.total === 0}
                 onClick={() => setConfirming('now')}
