@@ -124,12 +124,13 @@ function ShortUrl({ url, max = 'max-w-[26ch]' }: { url: string; max?: string }) 
 
 type LogRange = 'day' | 'week' | 'all'
 
+// Cloud networks (Google Cloud in Council Bluffs, Azure, AWS, Facebook's crawler) are email link scanners and automated browsers.
+const notCloudSql = Prisma.sql`NOT (CASE WHEN "ip" ~ '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' THEN "ip"::inet <<= ANY(${DATACENTER_CIDRS}::text[]::inet[]) ELSE false END)`
+
 function botFilterSql(showBots: boolean, scannerIps: Set<string>): Prisma.Sql {
   if (showBots) return Prisma.sql`TRUE`
   const patterns = BOT_SIGNATURES.map((sig) => `%${sig}%`)
-  // Cloud networks (Google Cloud in Council Bluffs, Azure, AWS) are email link scanners and automated browsers, hidden with the bots.
-  const notCloud = Prisma.sql`NOT (CASE WHEN "ip" ~ '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' THEN "ip"::inet <<= ANY(${DATACENTER_CIDRS}::text[]::inet[]) ELSE false END)`
-  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns}))) AND ${notCloud}`
+  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns}))) AND ${notCloudSql}`
   return scannerIps.size > 0 ? Prisma.sql`${notBot} AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : notBot
 }
 
@@ -173,9 +174,9 @@ async function loadEventsByVisitor(
 
 // Day / week and newest / most clicks: adjacent buttons (links), the current choice marked.
 function LogControls({ range, sort, showBots }: { range: LogRange; sort: VisitorSort | null; showBots: boolean }) {
-  const href = (r: LogRange, by: VisitorSort | null) => {
+  const href = (r: LogRange, by: VisitorSort | null, bots: boolean = showBots) => {
     const q = new URLSearchParams()
-    if (showBots) q.set('bots', 'show')
+    if (bots) q.set('bots', 'show')
     if (r !== 'all') q.set('range', r)
     if (by) q.set('sort', by)
     const qs = q.toString()
@@ -190,6 +191,13 @@ function LogControls({ range, sort, showBots }: { range: LogRange; sort: Visitor
   ]
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+      <nav aria-label="Traffic" className="flex gap-2">
+        {([{ show: false, label: 'Human only' }, { show: true, label: 'All traffic, bots and scanners included' }] as const).map((t) => (
+          <Link key={t.label} href={href(range, sort, t.show)} aria-current={showBots === t.show ? 'true' : undefined} className={button(showBots === t.show)}>
+            {t.label}
+          </Link>
+        ))}
+      </nav>
       <nav aria-label="Time range" className="flex gap-2">
         {ranges.map((r) => (
           <Link key={r.key} href={href(r.key, sort)} aria-current={range === r.key ? 'true' : undefined} className={button(range === r.key)}>
@@ -279,8 +287,14 @@ export default async function AdminVisitorActivityPage({
   const since = (days: number) => new Date(current.getTime() - days * DAY_MS)
   const rangeSql = logStart ? Prisma.sql`"createdAt" >= ${logStart}` : Prisma.sql`TRUE`
 
-  // Human page views only (a known user agent that is not a bot), the series the charts have always drawn.
-  const humanPageView = Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns}))`
+  // The charts follow the Human only / All traffic switch. Human only: a known user agent that is not a bot, not a cloud network
+  // (email scanners, crawlers) and not a mail-scanner IP. All traffic: every page view.
+  const humanPageView = showBots
+    ? Prisma.sql`"eventType" = 'PAGE_VIEW'`
+    : Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notCloudSql}${
+        scannerIps.size > 0 ? Prisma.sql` AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : Prisma.empty
+      }`
+  const viewsLabel = showBots ? 'Page views, all traffic' : 'Human page views'
   type BucketRow = { key: string; views: bigint; visitors: bigint }
   const [loaded, dayRows, hourRows, totalsRows] = await Promise.all([
     sort && logStart
@@ -403,7 +417,7 @@ export default async function AdminVisitorActivityPage({
     }),
     prisma.homepageVisitEvent.findMany({
       where: { eventType: 'LINK_CLICK', createdAt: { gte: since(CHART_WINDOW_DAYS) }, href: { not: null }, path: { startsWith: '/jobs/' } },
-      select: { createdAt: true, userAgent: true, href: true, path: true },
+      select: { createdAt: true, userAgent: true, href: true, path: true, ip: true },
     }),
     prisma.nativeJobApplication.findMany({ where: { createdAt: { gte: since(CHART_WINDOW_DAYS) } }, select: { createdAt: true } }),
     loadSemEvents(CHART_WINDOW_DAYS),
@@ -453,10 +467,10 @@ export default async function AdminVisitorActivityPage({
   ]
   // Only clicks tied to a job page: clicks recorded before path tracking (to Oct 27) had no page, so they cannot be told from footer or news links.
   const humanApplyClicks = applyClickRows.filter(
-    (e) => classifyUserAgent(e.userAgent) === 'human' && isApplyClick('LINK_CLICK', e.href, e.path)
+    (e) => (showBots || (classifyUserAgent(e.userAgent) === 'human' && !isDatacenterIp(e.ip) && !(e.ip && scannerIps.has(e.ip)))) && isApplyClick('LINK_CLICK', e.href, e.path)
   )
   const applicationSeries = [
-    { label: 'Apply clicks (human)', days: toDaysRows(countsPerDay(humanApplyClicks.map((e) => e.createdAt), current, CHART_WINDOW_DAYS)), color: 'var(--color-success)' },
+    { label: showBots ? 'Apply clicks (all traffic)' : 'Apply clicks (human)', days: toDaysRows(countsPerDay(humanApplyClicks.map((e) => e.createdAt), current, CHART_WINDOW_DAYS)), color: 'var(--color-success)' },
     { label: 'Applied in NextChapter', days: toDaysRows(countsPerDay(nativeApplicationRows.map((r) => r.createdAt), current, CHART_WINDOW_DAYS)), color: 'var(--color-navy)' },
   ]
   const capturedDays = capturedPerDay(captured, registrationRows.map((r) => r.createdAt), current, CHART_WINDOW_DAYS)
@@ -468,11 +482,11 @@ export default async function AdminVisitorActivityPage({
   ]
   const colors = { views: 'var(--color-brand)', visitors: 'var(--color-warning)' }
   const weekdaySeries = [
-    { label: 'Human page views', color: colors.views, buckets: byWeekdayFromCounts(dayViews, current, CHART_WINDOW_DAYS) },
+    { label: viewsLabel, color: colors.views, buckets: byWeekdayFromCounts(dayViews, current, CHART_WINDOW_DAYS) },
     { label: 'Unique visitors', color: colors.visitors, buckets: byWeekdayFromCounts(dayVisitors, current, CHART_WINDOW_DAYS) },
   ]
   const hourSeries = (dayType: 'weekday' | 'weekend') => [
-    { label: 'Human page views', color: colors.views, buckets: byHourOfDayFromCounts(hourViews, current, CHART_WINDOW_DAYS, dayType) },
+    { label: viewsLabel, color: colors.views, buckets: byHourOfDayFromCounts(hourViews, current, CHART_WINDOW_DAYS, dayType) },
     { label: 'Unique visitors', color: colors.visitors, buckets: byHourOfDayFromCounts(hourVisitors, current, CHART_WINDOW_DAYS, dayType) },
   ]
 
@@ -922,18 +936,11 @@ export default async function AdminVisitorActivityPage({
           <Link href="/support/admin/visitors" className="text-primary underline underline-offset-4">
             See the full visitor stats
           </Link>
-          {' · '}
-          <Link
-            href={showBots ? '/support/admin/visitors/activity' : '/support/admin/visitors/activity?bots=show'}
-            className="text-primary underline underline-offset-4"
-          >
-            {showBots ? 'Hide bots' : 'Show bots'}
-          </Link>
         </p>
       </div>
 
       <div className="rounded-lg border border-border p-4">
-        <h2 className="mb-3 text-sm font-medium text-foreground">Human page views &amp; unique visitors</h2>
+        <h2 className="mb-3 text-sm font-medium text-foreground">{showBots ? 'Page views & unique visitors, all traffic' : 'Human page views & unique visitors'}</h2>
         <VisitorsTrafficChart data={trafficData} allTimeTruncated={false} />
       </div>
 

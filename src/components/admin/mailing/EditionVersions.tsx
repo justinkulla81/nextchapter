@@ -1,19 +1,20 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { humanOpenCount } from '@/lib/mailing/open-human'
 
 const STATUS_LABEL = { DRAFT: 'Draft', SCHEDULED: 'Scheduled', SENDING: 'Sending', SENT: 'Sent' } as const
 
 interface Stats { sent: number; delivered: number; opened: number; opens: number; clicked: number; clicks: number; replied: number; bounced: number; unsubscribed: number }
 
-type Row = { status: string; email: string; excluded: boolean; deliveredAt: Date | null; openCount: number; clickCount: number; repliedAt: Date | null; bouncedAt: Date | null; unsubscribedAt: Date | null }
+type Row = { status: string; email: string; excluded: boolean; sentAt: Date | null; deliveredAt: Date | null; openedAt: Date | null; openCount: number; clickCount: number; repliedAt: Date | null; bouncedAt: Date | null; unsubscribedAt: Date | null }
 
 function stats(rows: Row[]): Stats {
   const sent = rows.filter((r) => r.status === 'SENT' && !r.excluded)
   return {
     sent: sent.length,
     delivered: sent.filter((r) => r.deliveredAt).length,
-    opened: sent.filter((r) => r.openCount > 0).length,
-    opens: sent.reduce((n, r) => n + r.openCount, 0),
+    opened: sent.filter((r) => humanOpenCount(r) > 0).length,
+    opens: sent.reduce((n, r) => n + humanOpenCount(r), 0),
     clicked: sent.filter((r) => r.clickCount > 0).length,
     clicks: sent.reduce((n, r) => n + r.clickCount, 0),
     replied: sent.filter((r) => r.repliedAt).length,
@@ -40,7 +41,7 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
     orderBy: { createdAt: 'asc' },
     select: {
       id: true, title: true, status: true, sentAt: true, scheduledAt: true,
-      recipients: { select: { status: true, email: true, excluded: true, deliveredAt: true, openCount: true, clickCount: true, repliedAt: true, bouncedAt: true, unsubscribedAt: true } },
+      recipients: { select: { status: true, email: true, excluded: true, sentAt: true, deliveredAt: true, openedAt: true, openCount: true, clickCount: true, repliedAt: true, bouncedAt: true, unsubscribedAt: true } },
     },
   })
   if (versions.length < 2) return null
