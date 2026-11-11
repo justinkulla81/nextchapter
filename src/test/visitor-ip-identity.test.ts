@@ -22,3 +22,14 @@ describe('inheritIdentityByIp', () => {
     expect(got.size).toBe(0)
   })
 })
+
+import { isDatacenterIp } from '@/lib/http/datacenter-ip'
+
+describe('isDatacenterIp', () => {
+  it('flags the cloud, Facebook crawler and AWS ranges seen on the visitor log', () => {
+    for (const ip of ['34.122.147.229', '48.209.223.76', '128.85.97.37', '173.252.69.1', '69.171.230.112', '66.220.149.6', '54.162.1.1', '13.222.5.5']) expect(isDatacenterIp(ip)).toBe(true)
+  })
+  it('leaves ISP and mobile addresses alone', () => {
+    for (const ip of ['74.242.1.1', '72.145.1.1', '172.58.2.136', '107.119.69.5', '205.169.39.6']) expect(isDatacenterIp(ip)).toBe(false)
+  })
+})
