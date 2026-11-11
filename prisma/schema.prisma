@@ -10698,6 +10698,10 @@ model CrmPerson {
   /// at other companies), 'in_house' (talent acquisition at an employer), 'hr' (HR staff or leaders), 'support' (assistants,
   /// researchers, admin at a firm), 'unclear'. Null = not classified yet. The CRM recruiter views and the layoff alert use 'recruiter'.
   recruiterKind      String?
+  /// Workforce staff list (src/lib/crm/workforce-staff.ts): what the person does at a workforce board, job center or state workforce agency
+  /// ('rapid_response', 'business_services', 'program', 'leadership', 'operations', 'board_member', 'other') and their level ('senior', 'mid', 'junior', 'unknown'), read from the title. Null = not at a workforce organization. SQL: prisma/manual/2026-11-11-workforce-staff.sql.
+  workforceStaffRole  String?
+  workforceStaffLevel String?
   /// How this recruiter works, from src/lib/crm/recruiter-model.ts: 'retained_search', 'contingent', 'candidate_rep' (represents candidates to
   /// employers: reverse recruiting, candidate marketing; the prime target for the candidate CRM), 'in_house'. Empty = not known.
   recruiterModels    String[] @default([])
