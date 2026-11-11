@@ -125,7 +125,7 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
   const stats = [
     { label: 'Sent', value: sent, of: sendable.length },
     { label: 'Delivered', value: total((r) => r.deliveredAt) },
-    { label: 'Opened (approximate)', value: total((r) => humanOpenCount(r) > 0), extra: `${opens} ${opens === 1 ? 'open' : 'opens'} in all`, note: 'Opens within two minutes of delivery are Apple Mail and mail scanners loading the email, and are not counted. Clicks and replies are still the stronger signal.' },
+    { label: 'Opened (approximate)', value: total((r) => humanOpenCount(r) > 0), extra: `${opens} ${opens === 1 ? 'open' : 'opens'} in all`, note: 'Only a person\'s opens count: opens by mail scanners and Apple Mail are left out. Clicks and replies are still the stronger signal.' },
     { label: 'Clicked', value: total((r) => r.clickedAt), extra: `${clicks} ${clicks === 1 ? 'click' : 'clicks'} in all` },
     { label: 'Replied', value: total((r) => r.repliedAt) },
     { label: 'Bounced', value: total((r) => r.bouncedAt) },
