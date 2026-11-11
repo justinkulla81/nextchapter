@@ -72,6 +72,42 @@ export const layoffsAnnouncedTitle = (company: string, lead: { kind: 'buyout' | 
   )
 }
 
+/**
+ * The tracker's status string for an announcement ("Reported by 1 publisher (CTech) — unconfirmed", "Confirmed by state filing",
+ * "SEC 8-K Item 2.05 (restructuring filing)") as a plain sentence fragment. A hand-written summary is passed through as it is.
+ */
+export const announcedStatus = (summary: string): string => {
+  const press = /^Reported by (\d+) publishers?(?: \(([^)]+)\))?( — unconfirmed)?/.exec(summary)
+  if (press) {
+    const n = Number(press[1])
+    if (press[2]) return `Reported by ${press[2]}${press[3] ? '; the company has not confirmed it' : ''}`
+    return `Reported by ${n} publisher${n === 1 ? '' : 's'}`
+  }
+  if (/^Confirmed by state (WARN )?filing/i.test(summary)) return 'Confirmed by a state filing'
+  const sec = /^SEC (\d+-K)/.exec(summary)
+  if (sec) return `Disclosed in an SEC ${sec[1]} filing`
+  return summary.replace(/\.$/, '')
+}
+
+/**
+ * /layoffs/company/[slug] description when the page leads with a reported or announced layoff (no WARN filing). It opens with the
+ * facts a searcher wants (who, how many, when, how firm the report is) rather than the tracker's raw status string, which read
+ * "Angi: Reported by 1 publisher (TradingView) — unconfirmed (Nov 3, 2026). What was announced, the source, and ...".
+ * `when` is the report date already formatted for display.
+ */
+export const layoffsAnnouncedDescription = (company: string, lead: { kind: 'buyout' | 'layoff'; summary: string; workers: number | null }, when: string): string => {
+  const pct = /(\d+(?:\.\d+)?)% of staff/.exec(lead.summary)
+  const what = lead.kind === 'buyout' ? 'buyouts' : 'layoffs'
+  const size = lead.kind === 'layoff'
+    ? [lead.workers ? `${lead.workers.toLocaleString('en-US')} jobs cut` : null, pct ? `${pct[1]}% of staff` : null].filter(Boolean)
+    : []
+  const head = size.length > 0
+    ? `${company} ${what}: ${size.length === 2 ? `${size[0]} (${size[1]})` : size[0]}, reported ${when}.`
+    : `${company} ${what}, reported ${when}.`
+  const status = announcedStatus(lead.summary.replace(/\s*·\s*\d+(?:\.\d+)?% of staff/, ''))
+  return fitDescription(`${head} ${status}. Benefits, severance, COBRA and local help.`, 160)
+}
+
 /** /network/company/[slug]: workers laid off from the company, kept off the "<company> layoffs" phrase /layoffs/company owns. */
 export const networkCompanySeo = (company: string) => ({
   title: pick(`${company} Laid-Off Workers: Jobs and Benefits`, `${company} Laid-Off Workers: Jobs, Benefits, Retraining`, `${company} Laid-Off Workers`),
