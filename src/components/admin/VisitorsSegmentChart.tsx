@@ -34,9 +34,12 @@ function formatHour(key: string): string {
 
 // Several segments on one chart, each with a solid total and a dashed unique line. The range buttons are the
 // same ones as the traffic chart above and move together with it (they share the page's range).
-export function VisitorsSegmentChart({ chart, lines, emptyMessage }: { chart: string; lines: SegmentChartLine[]; emptyMessage: string }) {
+export function VisitorsSegmentChart({ chart, lines, emptyMessage, ranges, note }: { chart: string; lines: SegmentChartLine[]; emptyMessage: string; ranges?: TrafficRange[]; note?: string }) {
   const shared = useSharedTrafficRange()
-  const range = shared?.rangeFor(chart) ?? '30d'
+  const buttons = ranges ? RANGES.filter((r) => ranges.includes(r.value)) : RANGES
+  // A chart that cannot show the shared range (no hourly data) falls back to its first button.
+  const sharedRange = shared?.rangeFor(chart) ?? '30d'
+  const range = buttons.some((r) => r.value === sharedRange) ? sharedRange : buttons[0].value
   const current = RANGES.find((r) => r.value === range)!
   const series: ChartSeries[] = lines.map((l) => ({
     label: l.label,
@@ -55,7 +58,7 @@ export function VisitorsSegmentChart({ chart, lines, emptyMessage }: { chart: st
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <div className="inline-flex gap-1" role="group" aria-label={`${chart} time range`}>
-          {RANGES.map((r) => (
+          {buttons.map((r) => (
             <button
               key={r.value}
               type="button"
@@ -70,7 +73,7 @@ export function VisitorsSegmentChart({ chart, lines, emptyMessage }: { chart: st
             </button>
           ))}
         </div>
-        <span className="text-xs text-muted-foreground">{current.blurb}, bots excluded. Solid lines are page views, dashed lines are unique visitors (one per IP).</span>
+        <span className="text-xs text-muted-foreground">{note ?? `${current.blurb}, bots excluded. Solid lines are page views, dashed lines are unique visitors (one per IP).`}</span>
       </div>
       <VisitorsPerDayChart
         series={series}

@@ -331,6 +331,7 @@ export function peopleByNearClick(visit: { createdAt: Date; path: string | null 
   if (ranked[0][1] * 3 <= ranked[1][1]) return [ranked[0][0]]
   return ranked.length <= 3 ? ranked.map(([id]) => id) : []
 }
+<<<<<<< HEAD
 
 // ── Per-recipient tag on list-email links ─────────────────────────────────────────────────────────────────────────────
 // A list email (the report, the newsletter) is sent one message per recipient. Every link to our own site in it carries
@@ -387,3 +388,5 @@ export async function resolveMailingRecipientIds(ids: string[]): Promise<Map<str
   }
   return out
 }
+=======
+>>>>>>> origin/main

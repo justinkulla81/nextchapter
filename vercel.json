@@ -53,6 +53,10 @@
       "schedule": "55 23 * * *"
     },
     {
+      "path": "/api/cron/visitor-day-types",
+      "schedule": "20 */6 * * *"
+    },
+    {
       "path": "/api/cron/board-figures",
       "schedule": "50 3,6 * * *"
     },
