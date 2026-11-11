@@ -83,7 +83,7 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
                   {i === 0 && <span className="ml-1.5 text-xs text-muted-foreground">original</span>}
                 </td>
                 <td className="whitespace-nowrap px-3 py-1.5">
-                  {STATUS_LABEL[v.status]}{v.sentAt ? ` ${v.sentAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}
+                  {STATUS_LABEL[v.status]}{v.sentAt ? ` ${v.sentAt.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' })}` : ''}
                 </td>
                 <td className="whitespace-nowrap px-3 py-1.5">{v.status === 'SCHEDULED' && v.scheduledAt ? scheduledTime(v.scheduledAt) : '—'}</td>
                 <td className="px-3 py-1.5 tabular-nums">{v.status === 'SCHEDULED' ? waiting(v.recipients) : '—'}</td>

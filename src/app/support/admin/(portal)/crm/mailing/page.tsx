@@ -115,7 +115,7 @@ export default async function MailingHomePage() {
               <li key={e.id} className="flex flex-wrap items-center gap-3 py-2">
                 <Link href={`/support/admin/crm/mailing/editions/${e.id}`} className="font-medium text-brand hover:underline">{e.title}</Link>
                 <span className="text-xs text-muted-foreground">{e.subject || 'No subject yet'}</span>
-                <span className="ml-auto text-xs text-muted-foreground">Drafted {e.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                <span className="ml-auto text-xs text-muted-foreground">Drafted {e.createdAt.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' })}</span>
               </li>
             ))}
           </ul>
@@ -164,10 +164,10 @@ export default async function MailingHomePage() {
                         <span className="text-xs text-muted-foreground">to {e.lists.map((l) => listName.get(l.listId) ?? 'another list').join(', ')}</span>
                       )}
                       <span className="ml-auto text-xs text-muted-foreground">
-                        {e.sentAt ? `Sent ${e.sentAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} to ${e._count.recipients}`
+                        {e.sentAt ? `Sent ${e.sentAt.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric' })} to ${e._count.recipients}`
                           : e.status === 'SENDING' ? `${e._count.recipients} sent so far`
-                          : e.scheduledAt ? `For ${e.scheduledAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                          : `Started ${e.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                          : e.scheduledAt ? `For ${e.scheduledAt.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' })}`
+                          : `Started ${e.createdAt.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' })}`}
                       </span>
                     </li>
                   ))}
