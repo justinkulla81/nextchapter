@@ -27,6 +27,7 @@ import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
 import { segmentRangeSeries, type SegmentCountRow } from '@/lib/admin/visitor-segment-series'
 import { sourceSegment, type SourceSegment } from '@/lib/admin/visitor-source-segment'
 import { VisitorsSegmentChart, type SegmentChartLine } from '@/components/admin/VisitorsSegmentChart'
+import { TrackedFilterLink, TrackedTypeForm } from '@/components/admin/VisitorFilterTracking'
 import { USER_TYPE_SLUGS, VISITOR_USER_TYPES, userTypeFromCrm, userTypeFromLandingPath, userTypeSlug, type UserTypeBasis, type VisitorUserType } from '@/lib/admin/visitor-user-type'
 import { allTimeDayCountFromFirstDay, byHourOfDayFromCounts, byWeekdayFromCounts, perDaySeriesFromCounts, perHourSeriesFromCounts } from '@/lib/admin/visitor-time-buckets'
 
@@ -236,6 +237,7 @@ function LogControls({ range, sort, showBots, email, type }: { range: LogRange; 
     const qs = q.toString()
     return `/support/admin/visitors/activity${qs ? `?${qs}` : ''}`
   }
+  const context = { range, sort, bots: showBots, email, type }
   const button = (active: boolean) =>
     `rounded-md border px-3 py-1.5 text-sm ${active ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted'}`
   const ranges: { key: LogRange; label: string }[] = [
@@ -247,37 +249,37 @@ function LogControls({ range, sort, showBots, email, type }: { range: LogRange; 
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
       <nav aria-label="Traffic" className="flex gap-2">
         {([{ show: false, label: 'Human only' }, { show: true, label: 'All traffic, bots and scanners included' }] as const).map((t) => (
-          <Link key={t.label} href={href(range, sort, t.show, email)} aria-current={showBots === t.show ? 'true' : undefined} className={button(showBots === t.show)}>
+          <TrackedFilterLink filter="traffic" value={t.show ? 'all_traffic' : 'human_only'} context={context} key={t.label} href={href(range, sort, t.show, email)} aria-current={showBots === t.show ? 'true' : undefined} className={button(showBots === t.show)}>
             {t.label}
-          </Link>
+          </TrackedFilterLink>
         ))}
       </nav>
       <nav aria-label="Time range" className="flex gap-2">
         {ranges.map((r) => (
-          <Link key={r.key} href={href(r.key, sort, showBots, email)} aria-current={range === r.key ? 'true' : undefined} className={button(range === r.key)}>
+          <TrackedFilterLink filter="range" value={r.key} context={context} key={r.key} href={href(r.key, sort, showBots, email)} aria-current={range === r.key ? 'true' : undefined} className={button(range === r.key)}>
             {r.label}
-          </Link>
+          </TrackedFilterLink>
         ))}
       </nav>
       <nav aria-label="Sort order" className="flex gap-2">
-        <Link href={href(range, null, showBots, email)} aria-current={!sort ? 'true' : undefined} className={button(!sort)}>
+        <TrackedFilterLink filter="sort" value="newest" context={context} href={href(range, null, showBots, email)} aria-current={!sort ? 'true' : undefined} className={button(!sort)}>
           Newest first
-        </Link>
-        <Link href={href(range, 'clicks', showBots, email)} aria-current={sort === 'clicks' ? 'true' : undefined} className={button(sort === 'clicks')}>
+        </TrackedFilterLink>
+        <TrackedFilterLink filter="sort" value="clicks" context={context} href={href(range, 'clicks', showBots, email)} aria-current={sort === 'clicks' ? 'true' : undefined} className={button(sort === 'clicks')}>
           Most clicks first
-        </Link>
-        <Link href={href(range, 'views', showBots, email)} aria-current={sort === 'views' ? 'true' : undefined} className={button(sort === 'views')}>
+        </TrackedFilterLink>
+        <TrackedFilterLink filter="sort" value="views" context={context} href={href(range, 'views', showBots, email)} aria-current={sort === 'views' ? 'true' : undefined} className={button(sort === 'views')}>
           Most views first
-        </Link>
+        </TrackedFilterLink>
       </nav>
       <nav aria-label="Email and CRM" className="flex gap-2">
         {([{ key: null, label: 'Email and CRM: both' }, { key: 'yes', label: 'Email or CRM: yes' }, { key: 'no', label: 'Email or CRM: no' }] as const).map((o) => (
-          <Link key={o.label} href={href(range, sort, showBots, o.key)} aria-current={email === o.key ? 'true' : undefined} className={button(email === o.key)}>
+          <TrackedFilterLink filter="email_crm" value={o.key ?? 'both'} context={context} key={o.label} href={href(range, sort, showBots, o.key)} aria-current={email === o.key ? 'true' : undefined} className={button(email === o.key)}>
             {o.label}
-          </Link>
+          </TrackedFilterLink>
         ))}
       </nav>
-      <form method="get" action="/support/admin/visitors/activity" className="flex items-center gap-2">
+      <TrackedTypeForm context={context} method="get" action="/support/admin/visitors/activity" className="flex items-center gap-2">
         {showBots && <input type="hidden" name="bots" value="show" />}
         {range !== 'all' && <input type="hidden" name="range" value={range} />}
         {sort && <input type="hidden" name="sort" value={sort} />}
@@ -290,7 +292,7 @@ function LogControls({ range, sort, showBots, email, type }: { range: LogRange; 
           ))}
         </select>
         <button type="submit" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">Show this type</button>
-      </form>
+      </TrackedTypeForm>
       {type && <p className="text-xs text-muted-foreground">The type filter looks at the {TYPE_SCAN_LIMIT} most recent visitors in the last 30 days (or the range chosen, if shorter), each counted once.</p>}
       {(sort || email) && range === 'all' && <p className="text-xs text-muted-foreground">Most clicks, most views and the email filter look at the last 30 days, the longest span they count over.{sort ? ' Each visitor (IP address) appears once.' : ''}</p>}
       {sort && range !== 'all' && <p className="text-xs text-muted-foreground">Each visitor (IP address) appears once, on their latest visit.</p>}
