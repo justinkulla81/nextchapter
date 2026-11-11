@@ -940,7 +940,7 @@ export default async function AdminVisitorActivityPage({
         if (!fromEmail && r.givenEmails.length === 0 && r.crmPeople.length === 0) return <span className="text-muted-foreground">—</span>
         return (
           <div className="space-y-0.5">
-            {fromEmail && (
+            {fromEmail && (r.recipient || r.givenEmails.length === 0) && (
               <div>
                 <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">
                   {r.recipient ? 'From email' : 'Likely email'}
@@ -952,7 +952,10 @@ export default async function AdminVisitorActivityPage({
                 <span className="font-medium">Gave</span> {g.email}
               </div>
             ))}
-            {r.crmPeople.map((p) => (
+            {r.crmPeople
+              // A CRM record named by its address repeats the "Gave" line above it.
+              .filter((p) => !(r.givenEmails.length > 0 && p.name.includes('@')))
+              .map((p) => (
               <div key={p.id} className="truncate text-xs">
                 <span className="rounded bg-success/10 px-1.5 py-0.5 font-medium text-success">CRM</span>{' '}
                 <Link href={`/support/admin/crm/people/${p.id}`} title={p.name} className="text-primary hover:underline">

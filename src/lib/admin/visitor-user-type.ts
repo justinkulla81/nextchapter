@@ -35,6 +35,8 @@ const RULES: { type: VisitorUserType; roles: string[]; orgTypes: string[] }[] = 
 ]
 
 export function userTypeFromCrm(roles: string[], orgTypes: string[]): VisitorUserType {
+  // Someone marked as a job seeker is looking for work, whatever their past employer or other roles say, so a candidate role wins.
+  if (['JOB_SEEKER', 'EMPLOYEE_CANDIDATE'].some((x) => roles.includes(x))) return 'Candidate'
   for (const r of RULES) if (r.roles.some((x) => roles.includes(x))) return r.type
   for (const r of RULES) if (r.orgTypes.some((x) => orgTypes.includes(x))) return r.type
   return 'Other CRM contact'
