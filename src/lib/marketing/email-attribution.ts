@@ -310,6 +310,27 @@ export function peopleWhoTouchedBefore(visitAt: Date, touches: { at: Date; perso
   return Array.from(out)
 }
 
+/**
+ * One person reads an email from one address. When the same person would be named on visits from two or more addresses in the
+ * same stretch (a university or company mail gateway fetching the links from several data centers, seen 2026-11-11: one
+ * recipient "in" New York, Detroit and Santa Clara within a minute), the time match is a scanner burst, not the person. Takes
+ * row id -> candidate people and each row's address; returns the same map without the people seen on more than one address,
+ * and without rows left with nobody.
+ */
+export function dropPeopleOnSeveralAddresses(byRow: Map<string, string[]>, addressOfRow: (rowId: string) => string | null): Map<string, string[]> {
+  const addresses = new Map<string, Set<string>>()
+  for (const [rowId, people] of byRow) {
+    const addr = addressOfRow(rowId) ?? `row:${rowId}`
+    for (const p of people) addresses.set(p, (addresses.get(p) ?? new Set()).add(addr))
+  }
+  const out = new Map<string, string[]>()
+  for (const [rowId, people] of byRow) {
+    const kept = people.filter((p) => (addresses.get(p)?.size ?? 0) <= 1)
+    if (kept.length > 0) out.set(rowId, kept)
+  }
+  return out
+}
+
 // A tracked link in an email is followed by the recipient's mail security (or the person), which loads our page from another
 // address a few seconds later or earlier than Resend stamps the click. Same page, a few seconds apart: that click's recipient.
 export const NEAR_CLICK_WINDOW_MS = 20 * 1000

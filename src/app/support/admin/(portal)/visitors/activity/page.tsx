@@ -20,7 +20,7 @@ import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminShortDateTime } from '@/lib/admin/format-date'
 import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
-import { buildEmailIpAnchors, extractEmailLinkId, extractMailingRecipientId, resolveMailingRecipientIds, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_LEAD_WINDOW_MS, CLICK_TO_VISIT_WINDOW_MS, peopleByNearClick, NEAR_CLICK_WINDOW_MS, peopleWhoTouchedBefore, TOUCH_LEAD_WINDOW_MS, TOUCH_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
+import { buildEmailIpAnchors, extractEmailLinkId, extractMailingRecipientId, resolveMailingRecipientIds, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_LEAD_WINDOW_MS, CLICK_TO_VISIT_WINDOW_MS, peopleByNearClick, NEAR_CLICK_WINDOW_MS, peopleWhoTouchedBefore, dropPeopleOnSeveralAddresses, TOUCH_LEAD_WINDOW_MS, TOUCH_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
 import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
 import { PREFETCH_OPEN_WINDOW_MS } from '@/lib/mailing/open-human'
 import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
@@ -852,6 +852,15 @@ export default async function AdminVisitorActivityPage({
         people.forEach((id) => personIdsToLoad.add(id))
       }
     }
+  }
+  // A time-only match that would put one person on several addresses is a mail scanner burst: name nobody.
+  const ipByRow = new Map(baseRows.map((r) => [r.id, r.ip] as const))
+  const timeMatched = dropPeopleOnSeveralAddresses(new Map(Array.from(touchedByRow).filter(([id]) => !clickMatched.has(id))), (id) => ipByRow.get(id) ?? null)
+  for (const id of Array.from(touchedByRow.keys())) {
+    if (clickMatched.has(id)) continue
+    const kept = timeMatched.get(id)
+    if (kept) touchedByRow.set(id, kept)
+    else touchedByRow.delete(id)
   }
   const loadedPeople = await loadRecipientsByPersonId(Array.from(personIdsToLoad))
   const accountsByKey = new Map<string, NonNullable<Row['candidate']>>()
