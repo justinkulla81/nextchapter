@@ -10335,6 +10335,8 @@ enum CrmPersonRole {
   GTM_PARTNER
   FRIENDS_FAMILY // personal friends and family, not a business contact
   OTHER
+  WORKFORCE_STAFF // staff at a workforce board, American Job Center or state rapid response unit (not the board's volunteer members)
+  ECON_DEV_STAFF // staff at an economic development organization
 }
 
 // What an organization DOES for NextChapter. Same reasoning as

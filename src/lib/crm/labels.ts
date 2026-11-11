@@ -34,6 +34,8 @@ export const PERSON_ROLE_LABELS: Record<CrmPersonRole, string> = {
   PRESS: 'GTM: Press/Media',
   GTM_PARTNER: 'GTM: Partner',
   FRIENDS_FAMILY: 'FF: Friends and family',
+  WORKFORCE_STAFF: 'Workforce: Staff',
+  ECON_DEV_STAFF: 'Workforce: Economic development',
 }
 
 export const ORG_TYPE_LABELS: Record<CrmOrgType, string> = {
