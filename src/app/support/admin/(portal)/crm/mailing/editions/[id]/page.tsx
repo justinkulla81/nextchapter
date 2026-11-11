@@ -136,7 +136,7 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
       <p className="text-sm">
         {edition.status === 'SENDING'
           ? `Sending — ${sent} of ${sendable.length} so far, up to ${settings.ratePerHour} an hour.`
-          : `Sent ${edition.sentAt?.toLocaleDateString('en-US', { dateStyle: 'medium' })} to ${sent} ${sent === 1 ? 'person' : 'people'}.`}
+          : `Sent ${edition.sentAt?.toLocaleDateString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium' })} to ${sent} ${sent === 1 ? 'person' : 'people'}.`}
       </p>
       <section className="grid gap-3 sm:grid-cols-4">
         {stats.map((s) => (
