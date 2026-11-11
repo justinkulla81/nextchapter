@@ -16,13 +16,17 @@ import { tokenDefaultsExtension } from '@/lib/security/token-defaults-extension'
 // with its own pool, so at 15 a single build could hold hundreds of the pooler's 600 client slots and, with other deploys running, push every
 // real request into "max client connections reached" (a five-minute burst on 2026-10-26 rejected 7,733 connections and returned 500s to Googlebot).
 export const BUILD_POOL_SIZE = 3
+// Runtime pool per instance. 15 let about 40 busy instances fill the pooler's 600 client slots: a 33-second crawl of uncached pages on
+// 2026-11-11 (18:52 UTC) did that and every page returned 500 (EMAXCONN). 8 keeps the headroom over Prisma's default 7 that fixed the
+// 2026-10-26 pool timeouts (the wait stays 30s) and leaves room for about 75 instances.
+export const RUNTIME_POOL_SIZE = 8
 const isBuild = () => process.env.NEXT_PHASE === 'phase-production-build'
 
 export function withPoolSettings(url: string | undefined, building: boolean = isBuild()): string | undefined {
   if (!url) return url
   const [base, query = ''] = url.split('?')
   const params = new URLSearchParams(query)
-  if (!params.has('connection_limit')) params.set('connection_limit', String(building ? BUILD_POOL_SIZE : 15))
+  if (!params.has('connection_limit')) params.set('connection_limit', String(building ? BUILD_POOL_SIZE : RUNTIME_POOL_SIZE))
   if (!params.has('pool_timeout')) params.set('pool_timeout', building ? '120' : '30')
   return `${base}?${params.toString()}`
 }
