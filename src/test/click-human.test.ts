@@ -83,6 +83,11 @@ describe('which list-email opens are a person', () => {
     expect(isHumanOpen(open({ ip: '3.148.231.115' }), new Set())).toBe(false)
     expect(isHumanOpen(open({ at: new Date(delivered.getTime() + 30_000) }), new Set())).toBe(false)
   })
+  it('does not count the bare "Mozilla/5.0" image relay, but does count a browser that says more', () => {
+    expect(botOpenReason(open({ ip: '2a02:26f7:c356:fff0:c000::9', userAgent: 'Mozilla/5.0' }), new Set())).toMatch(/Apple Mail Privacy Protection/)
+    expect(isHumanOpen(open({ userAgent: '  Mozilla/5.0 ' }), new Set())).toBe(false)
+    expect(isHumanOpen(open({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148' }), new Set())).toBe(true)
+  })
   it('does not mistake an address that merely starts with 17 for Apple', () => {
     expect(isHumanOpen(open({ ip: '172.20.0.1' }), new Set())).toBe(false) // private, for another reason
     expect(isHumanOpen(open({ ip: '171.64.1.1' }), new Set())).toBe(true)

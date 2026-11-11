@@ -91,6 +91,9 @@ function isAppleAddress(ip: string | null): boolean {
 /** Why an open is not a person's, or null for a human open. Same tests as a click, plus Apple Mail Privacy Protection. */
 export function botOpenReason(open: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): string | null {
   if (isAppleAddress(open.ip)) return 'Apple Mail Privacy Protection loads the pixel on delivery'
+  // Apple's relay (Akamai, Fastly and Cloudflare addresses, mostly IPv6) fetches the pixel with the bare string "Mozilla/5.0" and
+  // nothing else; a real mail client or browser always says more.
+  if ((open.userAgent ?? '').trim() === 'Mozilla/5.0') return 'bare Mozilla/5.0 browser string: the image relay Apple Mail Privacy Protection uses'
   return botClickReason(open, scannerIps, scannerBlocks)
 }
 
