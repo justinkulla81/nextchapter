@@ -14,7 +14,7 @@ import { loadPaidFunnel } from '@/lib/admin/sem-leads'
 import { paidChannelLabel } from '@/lib/admin/paid-channels'
 import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { DATACENTER_CIDRS, isDatacenterIp } from '@/lib/http/datacenter-ip'
-import { loadScannerIps } from '@/lib/marketing/mail-scanners'
+import { loadBotClickNetworks, loadScannerIps } from '@/lib/marketing/mail-scanners'
 import { classifyDevice, classifyBrowser } from '@/lib/http/device'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminShortDateTime } from '@/lib/admin/format-date'
@@ -157,10 +157,16 @@ const notEmailPrefetchSql = Prisma.raw(`NOT (
   OR ("path" LIKE '%nc_e=%' AND EXISTS (SELECT 1 FROM "CrmOutreachLink" l
     WHERE l."id" = substring("path" from 'nc_e=([A-Za-z0-9]+)') AND "HomepageVisitEvent"."createdAt" <= l."createdAt" + make_interval(secs => ${PREFETCH_SECS}))))`)
 
-function botFilterSql(showBots: boolean, scannerIps: Set<string>): Prisma.Sql {
+// IPv4 /24 blocks (as "a.b.c" prefixes) that scanners click from, one address at a time: the visit that follows is theirs too.
+const notScannerBlockSql = (blocks: Set<string>): Prisma.Sql =>
+  blocks.size === 0
+    ? Prisma.empty
+    : Prisma.sql` AND NOT (CASE WHEN "ip" ~ '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' THEN "ip"::inet <<= ANY(${Array.from(blocks).map((b) => `${b}.0/24`)}::text[]::inet[]) ELSE false END)`
+
+function botFilterSql(showBots: boolean, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): Prisma.Sql {
   if (showBots) return Prisma.sql`TRUE`
   const patterns = BOT_SIGNATURES.map((sig) => `%${sig}%`)
-  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns}))) AND ${notCloudSql} AND ${notEmailPrefetchSql}`
+  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns}))) AND ${notCloudSql} AND ${notEmailPrefetchSql}${notScannerBlockSql(scannerBlocks)}`
   return scannerIps.size > 0 ? Prisma.sql`${notBot} AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : notBot
 }
 
@@ -381,13 +387,20 @@ export default async function AdminVisitorActivityPage({
   const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sort || email || scanActive || unique ? 30 : null
   const logStart = logDays ? new Date(now().getTime() - logDays * DAY_MS) : null
   // Mail scanners are hidden with the bots: they open every link for every recipient, and are not people.
-  const scannerIps = await loadScannerIps().catch(() => new Set<string>())
+  // Also hidden: any address a list-email click flagged as a bot came from, and the /24 blocks scanners click from. Their page
+  // visits otherwise pass as human (an iPhone or Chrome browser string from an address no cloud list knows).
+  const [mailScannerIps, botClickNetworks] = await Promise.all([
+    loadScannerIps().catch(() => new Set<string>()),
+    loadBotClickNetworks().catch(() => ({ ips: new Set<string>(), blocks: new Set<string>() })),
+  ])
+  const scannerIps = new Set([...mailScannerIps, ...botClickNetworks.ips])
+  const scannerBlocks = botClickNetworks.blocks
   const etDay = Prisma.sql`to_char(("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/New_York', 'YYYY-MM-DD')`
   const etHour = Prisma.sql`to_char(("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/New_York', 'YYYY-MM-DD HH24')`
 
   const current = now()
   const botPatterns = BOT_SIGNATURES.map((sig) => `%${sig}%`)
-  const botFilter = botFilterSql(showBots, scannerIps)
+  const botFilter = botFilterSql(showBots, scannerIps, scannerBlocks)
   const since = (days: number) => new Date(current.getTime() - days * DAY_MS)
   const rangeSql = logStart ? Prisma.sql`"createdAt" >= ${logStart}` : Prisma.sql`TRUE`
 
@@ -395,7 +408,7 @@ export default async function AdminVisitorActivityPage({
   // (email scanners, crawlers) and not a mail-scanner IP. All traffic: every page view.
   const humanPageView = showBots
     ? Prisma.sql`"eventType" = 'PAGE_VIEW'`
-    : Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notCloudSql} AND ${notEmailPrefetchSql}${
+    : Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notCloudSql} AND ${notEmailPrefetchSql}${notScannerBlockSql(scannerBlocks)}${
         scannerIps.size > 0 ? Prisma.sql` AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : Prisma.empty
       }`
   const viewsLabel = showBots ? 'Page views, all traffic' : 'Human page views'
@@ -768,7 +781,7 @@ export default async function AdminVisitorActivityPage({
     candidate: e.candidate,
     inferredCandidate: !e.candidate && e.ip ? (inferredCandidateByIp.get(e.ip) ?? null) : null,
     source: e.eventType === 'PAGE_VIEW' ? classifyTrafficSource(e.path, e.referrer) : '—',
-    scanner: (!!e.ip && (scannerIps.has(e.ip) || isDatacenterIp(e.ip))) || prefetchIds.has(e.id),
+    scanner: (!!e.ip && (scannerIps.has(e.ip) || isDatacenterIp(e.ip) || scannerBlocks.has(e.ip.split('.').slice(0, 3).join('.')))) || prefetchIds.has(e.id),
     recipient: (() => {
       if (e.ip && scannerIps.has(e.ip)) return null
       const id = extractEmailLinkId(e.path)
