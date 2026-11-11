@@ -24,6 +24,7 @@ import { adminCandidateLabel } from '@/lib/onboarding/details'
 import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
 import { buildEmailIpAnchors, extractEmailLinkId, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
 import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
+import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
 import { segmentRangeSeries, type SegmentCountRow } from '@/lib/admin/visitor-segment-series'
 import { sourceSegment, type SourceSegment } from '@/lib/admin/visitor-source-segment'
 import { VisitorsSegmentChart, type SegmentChartLine } from '@/components/admin/VisitorsSegmentChart'
@@ -62,6 +63,8 @@ interface Row {
   recipient: EmailRecipient | null
   // Set when this visit has no tag of its own but its IP matches a tagged email visit within the past week.
   likelyRecipient: EmailRecipient | null
+  // Why likelyRecipient was set when it was not an email visit: the address they gave, or another event from the same IP.
+  likelyBasis: 'gave email' | 'same IP' | null
   // A mailing-list email visit whose token fits a few people and cannot be narrowed further.
   candidates: EmailRecipient[]
   // An IP that opens the links in emails to many different people: a mail scanner, never a person.
@@ -638,7 +641,7 @@ export default async function AdminVisitorActivityPage({
       : []
   const crmByEmail = new Map(crmRows.map((r) => [r.email, { id: r.id, name: r.fullName }] as const))
 
-  const rows: Row[] = events.map((e) => ({
+  const baseRows: Row[] = events.map((e) => ({
     id: e.id,
     createdAt: e.createdAt,
     ip: e.ip,
@@ -671,6 +674,7 @@ export default async function AdminVisitorActivityPage({
       const id = inferEmailLinkByIp(e, ipAnchors, (linkId) => recipientByLink.get(linkId)?.personId)
       return id ? (recipientByLink.get(id) ?? null) : null
     })(),
+    likelyBasis: null,
     candidates: (() => {
       if (e.ip && scannerIps.has(e.ip)) return []
       const token = extractUnsubscribeToken(e.path)
@@ -697,6 +701,46 @@ export default async function AdminVisitorActivityPage({
     pageType: classifyVisitPage(e.path),
     isApplyClick: isApplyClick(e.eventType, e.href, e.path),
   }))
+
+  // Carry a name to the rest of a visitor's events. Each rule above looks in a short window around one event; once any event
+  // of an IP is identified (an email link, a recorded click, an account, an address they gave) the other events from that IP
+  // are the same person, unless a second person shows up on the IP.
+  const shareable = (r: Row) => !r.scanner && r.mailRecipients < 3 && classifyUserAgent(r.userAgent) === 'human' && !isDatacenterIp(r.ip)
+  const ownIdentity = (r: Row): string | null => {
+    if (r.recipient) return `crm:${r.recipient.personId}`
+    const account = r.candidate ?? r.inferredCandidate
+    if (account) return `candidate:${account.id}`
+    if (r.likelyRecipient) return `crm:${r.likelyRecipient.personId}`
+    if (r.crmPeople.length === 1) return `crm:${r.crmPeople[0].id}`
+    return null
+  }
+  const inherited = inheritIdentityByIp(baseRows.map((r) => ({ id: r.id, ip: r.ip, at: r.createdAt, identity: ownIdentity(r), excluded: !shareable(r) })))
+  // An unnamed row that gave an address already in the CRM is that person; one more lookup for the people not loaded above.
+  const needsName = (r: Row) => !r.recipient && !r.likelyRecipient && !r.candidate && !r.inferredCandidate
+  const personIdsToLoad = new Set<string>()
+  for (const r of baseRows) {
+    if (!needsName(r) || !shareable(r)) continue
+    const key = r.crmPeople.length === 1 ? `crm:${r.crmPeople[0].id}` : inherited.get(r.id)
+    if (key?.startsWith('crm:')) personIdsToLoad.add(key.slice(4))
+  }
+  const loadedPeople = await loadRecipientsByPersonId(Array.from(personIdsToLoad))
+  const accountsByKey = new Map<string, NonNullable<Row['candidate']>>()
+  for (const r of baseRows) {
+    const account = r.candidate ?? r.inferredCandidate
+    if (account) accountsByKey.set(`candidate:${account.id}`, account)
+  }
+  const rows: Row[] = baseRows.map((r) => {
+    if (!needsName(r) || !shareable(r)) return r
+    if (r.crmPeople.length === 1) {
+      const person = loadedPeople.get(r.crmPeople[0].id)
+      return person ? { ...r, likelyRecipient: person, likelyBasis: 'gave email' } : r
+    }
+    const key = inherited.get(r.id)
+    if (!key) return r
+    if (key.startsWith('candidate:')) return { ...r, inferredCandidate: accountsByKey.get(key) ?? null }
+    const person = loadedPeople.get(key.slice(4))
+    return person ? { ...r, likelyRecipient: person, likelyBasis: 'same IP' } : r
+  })
 
   const result = paginatedResult(rows, total, params)
 
@@ -727,7 +771,13 @@ export default async function AdminVisitorActivityPage({
                 </Link>
                 <span
                   className="text-muted-foreground"
-                  title={certain ? 'The visit came through a link in an email we sent them.' : 'Same IP address, seconds or days from a visit that named them. A strong guess, not a certain match.'}
+                  title={
+                    certain
+                      ? 'The visit came through a link in an email we sent them.'
+                      : r.likelyBasis === 'gave email'
+                        ? 'This visitor gave an email address that belongs to them in the CRM. The visit is from the same IP address. A strong guess, not a certain match.'
+                        : 'Same IP address as another visit that named them, and no other person was seen on that address. A strong guess, not a certain match.'
+                  }
                 >
                   {certain ? ' (emailed)' : ' (likely)'}
                 </span>
@@ -768,7 +818,7 @@ export default async function AdminVisitorActivityPage({
     },
     { header: 'Location', render: (r) => r.location ?? '—' },
     {
-      header: 'Visits',
+      header: 'Visitor totals',
       cellClassName: 'tabular-nums',
       render: (r) =>
         !r.ip ? (

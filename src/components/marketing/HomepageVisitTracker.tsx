@@ -18,6 +18,9 @@ function track(eventType: 'PAGE_VIEW' | 'LINK_CLICK', payload: { path?: string; 
 // A partner portal's sign-in pages are public (no portal tracker runs there), so they're logged here too.
 const PORTAL_SIGN_IN_PAGE = /^\/(?:recruiters|talent|employer|support\/coach|noexperience\/employers|eqoveriq\/contributors)\/(?:login|signup|forgot-password)(?:\/|$)/
 
+const DUPLICATE_VIEW_MS = 1500
+let lastView: { path: string; at: number } | null = null
+
 function isPublicMarketingPath(pathname: string): boolean {
   if (PORTAL_SIGN_IN_PAGE.test(pathname)) return true
   return !PROTECTED_APP_PATH_PREFIXES.some((prefix) => pathStartsWith(pathname, prefix))
@@ -51,6 +54,11 @@ function PageViewTracker() {
     // own previous page as the "referrer" (which is what the old
     // server-side Referer-header approach did — see the API route's own
     // comment for why that was wrong).
+    // The same page twice in one second is one view: the effect can run twice for one load (the search-params object changes
+    // identity, or the page is restored), and the log showed such pairs. A real reload takes longer than this.
+    const now = Date.now()
+    if (lastView && lastView.path === path && now - lastView.at < DUPLICATE_VIEW_MS) return
+    lastView = { path, at: now }
     track('PAGE_VIEW', { path, referrer: document.referrer || undefined })
   }, [pathname, searchParams])
 
