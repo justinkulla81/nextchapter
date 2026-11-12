@@ -56,6 +56,10 @@ export async function applyResendEvent(event: ResendEvent): Promise<'applied' | 
         where: { id: r.id }, data: { clickedAt: r.clickedAt ?? at, clickCount: { increment: 1 } },
       })
       if (reportSend) await prisma.crmReportSend.updateMany({ where: { ...reportSend, clickedAt: null }, data: { clickedAt: at } })
+      // A person who clicked a link opened the email, whether or not the tracking pixel was reported (Gmail and others often block
+      // it, and Resend open tracking can be off). Count that one open when none was seen.
+      await prisma.mailingEditionRecipient.updateMany({ where: { id: r.id, openCount: 0 }, data: { openCount: 1, openedAt: r.openedAt ?? at } })
+      if (reportSend) await prisma.crmReportSend.updateMany({ where: { ...reportSend, openedAt: null }, data: { openedAt: at } })
       break
     }
     case 'email.bounced': {
