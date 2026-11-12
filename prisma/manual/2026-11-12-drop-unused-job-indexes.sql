@@ -1,4 +1,6 @@
--- Dropped from production on 2026-11-12 (idx_scan = 0, 9-11 MB each, ~31 MB in all).
+-- Dropped from production on 2026-11-12 (idx_scan = 0, 9-11 MB each, ~31 MB in all). The two filter indexes
+-- (above_market_live, strong_benefits_live) were rebuilt the same day because the Great pay / Great benefits
+-- filters need them; only ai_exposed_ids_idx stays dropped. The notes below describe the state while they were gone.
 --   DROP INDEX CONCURRENTLY IF EXISTS "ExclusiveJobPosting_ai_exposed_ids_idx";
 --   DROP INDEX CONCURRENTLY IF EXISTS "ExclusiveJobPosting_above_market_live_idx";
 --   DROP INDEX CONCURRENTLY IF EXISTS "ExclusiveJobPosting_strong_benefits_live_idx";
