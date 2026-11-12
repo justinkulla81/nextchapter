@@ -18,9 +18,12 @@ export const PREFETCH_OPEN_WINDOW_MS = 2 * 60 * 1000
 
 export interface OpenFacts {
   openCount: number
+  /** A bounced email never reached a person, so any open recorded for it is a machine's (a gateway or scanner). */
+  bouncedAt?: Date | string | null
 }
 
-/** Human opens of a list email: the stored count, which the webhook already restricts to human opens. */
+/** Human opens of a list email: the stored count, which the webhook already restricts to human opens. A bounced email has none. */
 export function humanOpenCount(o: OpenFacts): number {
+  if (o.bouncedAt) return 0
   return Math.max(0, o.openCount)
 }
