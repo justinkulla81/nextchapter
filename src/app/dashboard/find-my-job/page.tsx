@@ -58,6 +58,9 @@ import { OpenToChangersFilter } from '@/components/dashboard/OpenToChangersFilte
 import { EntryFilterChips } from '@/components/dashboard/EntryFilterChips'
 import { ENTRY_FILTERS, parseEntryParam, passesEntryFilters, type EntryFilterKey } from '@/lib/jobs/entry-filters'
 import { AiViewToggle } from '@/components/dashboard/AiViewToggle'
+import { ShowAllSourcesButton, SourceViewToggle } from '@/components/dashboard/SourceViewToggle'
+import { isEmployerListed, parseSourceView, sourceKeep, type SourceView } from '@/lib/jobs/job-source'
+import { loadDirectEmployerNames } from '@/lib/jobs/job-source-server'
 import { GreatEmployerFilter } from '@/components/dashboard/GreatEmployerFilter'
 import { FunctionFilter } from '@/components/dashboard/FunctionFilter'
 import { EmployerSectorFilter } from '@/components/dashboard/EmployerSectorFilter'
@@ -470,6 +473,7 @@ async function JobRecommendationsSection({
   search,
   urlParams,
   aiView,
+  sourceView,
   openFilter = false,
   entryFilter = [],
   industry = null,
@@ -483,6 +487,8 @@ async function JobRecommendationsSection({
   industry?: { slug: string; name: string; ready: boolean } | null
   /** AI / Non-AI / All (ai-view.ts): partner-search jobs carry no AI data, so they show under All only. */
   aiView: AiView
+  /** Source gate (job-source.ts): From employers (default) or Employers and recruiters. */
+  sourceView: SourceView
   /** Candidate+ (isDossierUnlocked): the extras on each job. Every member sees every job. */
   candidatePlus: boolean
   board: BoardShortlist
@@ -583,6 +589,7 @@ async function JobRecommendationsSection({
       // known they read as private.
       surfacedPassesBoardFilters(boardFilters) &&
       aiView === 'all' &&
+      sourceView === 'all' &&
       !openFilter &&
       entryFilter.length === 0 &&
       !industry
@@ -926,6 +933,12 @@ async function JobRecommendationsSection({
             </p>
           ) : openFilter ? (
             <p>No jobs that fit you say they welcome career changers or people learning AI with these filters yet. Turn off Open to career changers to see every job.</p>
+          ) : sourceView === 'direct' && (board.sourceCounts.all ?? 0) > 0 ? (
+            <div className="space-y-2">
+              <p className="text-base font-semibold text-ink">No employer listings match this search yet.</p>
+              <p>{(board.sourceCounts.all ?? 0).toLocaleString()} recruiter and job-board listings do. Try them, or widen the search.</p>
+              <ShowAllSourcesButton count={board.sourceCounts.all ?? 0} surface="find_my_job_empty" />
+            </div>
           ) : aiView !== 'all' ? (
             <p>
               No {aiView === 'ai' ? 'jobs that ask for a specific AI skill' : 'jobs without an AI skill ask'} fit you with these filters yet.
@@ -1006,6 +1019,7 @@ export default async function JobFitPage({
     breadth?: string
     scope?: string
     ai?: string
+    source?: string
     open?: string
     entry?: string
     industry?: string
@@ -1132,6 +1146,7 @@ export default async function JobFitPage({
           breadthMode={breadthMode}
           scopeCtx={scopeCtx}
           aiView={parseAiView(allParams.ai)}
+          sourceView={parseSourceView(allParams.source)}
           openFilter={parseOpenParam(allParams.open)}
           entryFilter={parseEntryParam(allParams.entry)}
           industry={industrySlug}
@@ -1186,6 +1201,7 @@ async function FindMyJobBody({
   breadthMode,
   scopeCtx,
   aiView,
+  sourceView,
   openFilter,
   entryFilter,
   industry,
@@ -1216,6 +1232,8 @@ async function FindMyJobBody({
   scopeCtx: ScopeContext
   /** AI / Non-AI / All (ai-view.ts, the `ai` URL parameter). */
   aiView: AiView
+  /** Source gate (job-source.ts, the `source` URL parameter). */
+  sourceView: SourceView
 }) {
   const onBoard = tab === 'board'
   // Each part of the board is its own view.
@@ -1317,6 +1335,7 @@ async function FindMyJobBody({
     industryKeep,
     aiIds,
     signalMap,
+    directEmployers,
   ] = await Promise.all([
     emailConnectionPromise,
     // §4.8 — only fetched (and only ever true) for Confidential Search Mode
@@ -1362,6 +1381,11 @@ async function FindMyJobBody({
       console.error('Posting signals unavailable, open-to-changers filter and lift off:', error)
       return null
     }) : Promise.resolve(null),
+    // Employers that list jobs on their own career site (cached, job-source-server.ts): hides a job board's copy of their jobs.
+    onBoard ? loadDirectEmployerNames().catch((error) => {
+      console.error('Direct employer names unavailable, board copies stay in Employers and recruiters:', error)
+      return null
+    }) : Promise.resolve(null),
   ])
   // With no signals the filter can't be applied: show every job rather than none.
   const appliedOpenFilter = openFilter && !!signalMap
@@ -1370,6 +1394,8 @@ async function FindMyJobBody({
   const keepEntry = appliedEntryFilter.length > 0 ? (p: { id: string }) => passesEntryFilters(signalMap!.get(p.id), appliedEntryFilter) : null
   // With no AI ids the choice can't be applied: show every job rather than none.
   const appliedAiView: AiView = aiIds ? aiView : 'all'
+  // Without the employer names the gate still works in From employers; Employers and recruiters then hides no board copies.
+  const appliedSourceView = sourceView
   if (searchEfficiency.state !== 'NOT_ENOUGH_DATA') {
     captureServerEvent(profile.id, 'search_efficiency_viewed', {
       state: searchEfficiency.state,
@@ -1446,8 +1472,14 @@ async function FindMyJobBody({
       views: aiIds
         ? { current: appliedAiView, keeps: { ai: aiViewKeep('ai', aiIds), other: aiViewKeep('other', aiIds), all: null } }
         : undefined,
+      // From employers (default) / Employers and recruiters (job-source.ts): hides "Confidential" and junk-board
+      // listings in both, and in the second a board's copy of a job the employer lists itself.
+      sourceViews: {
+        current: appliedSourceView,
+        keeps: { direct: sourceKeep('direct', directEmployers), all: sourceKeep('all', directEmployers) },
+      },
       // The welcome lift: a tie-break within a fit level, after the level gate (board-shortlist.ts).
-      lift: changerLift && signalMap ? (p) => isOpenToChangers(signalMap.get(p.id)) : undefined,
+      lift: (p) => (changerLift && signalMap && isOpenToChangers(signalMap.get(p.id))) || (appliedSourceView === 'all' && isEmployerListed(p)),
     }),
     matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id),
@@ -1622,6 +1654,7 @@ async function FindMyJobBody({
                 search={searchView}
                 urlParams={urlParams}
                 aiView={appliedAiView}
+                sourceView={appliedSourceView}
                 openFilter={appliedOpenFilter}
                 entryFilter={appliedEntryFilter}
                 industry={industry ? { slug: industry, name: segmentBySlug(industry)?.name ?? industry, ready: industryKeep !== null } : null}
@@ -1648,6 +1681,11 @@ async function FindMyJobBody({
                 <WorkTypeToggle selected={workTypes} counts={board.countByWorkType} />
               </div>
               <div className="flex flex-wrap items-center gap-3">
+                <SourceViewToggle
+                  surface="find_my_job"
+                  current={appliedSourceView}
+                  moreCount={Math.max(0, (board.sourceCounts.all ?? 0) - (board.sourceCounts.direct ?? 0))}
+                />
                 {aiIds && (
                   <AiViewToggle
                     surface="find_my_job"

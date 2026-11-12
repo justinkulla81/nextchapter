@@ -5,7 +5,7 @@
 // filter. Pure (no I/O): used by server-rendered links and client toggles alike.
 
 /** The board's own URL parameters (anything else on the URL is kept too). */
-export const BOARD_URL_PARAMS = ['q', 'loc', 'remote', 'sort', 'view', 'types', 'seniority', 'great', 'pivot', 'tab', 'fn', 'sectors', 'blockers', 'cleared', 'breadth', 'scope', 'ai', 'open', 'entry', 'industry', 'part', 'job'] as const
+export const BOARD_URL_PARAMS = ['q', 'loc', 'remote', 'sort', 'view', 'types', 'seniority', 'great', 'pivot', 'tab', 'fn', 'sectors', 'blockers', 'cleared', 'breadth', 'scope', 'ai', 'source', 'open', 'entry', 'industry', 'part', 'job'] as const
 export type BoardUrlParam = (typeof BOARD_URL_PARAMS)[number]
 
 /** The search's parameters, for "Clear the search". */
@@ -37,7 +37,7 @@ export function boardHref(
 ): string {
   const sp = toParams(current)
   for (const [k, v] of Object.entries(changes)) {
-    const isDefault = (k === 'view' && v === 'all') || (k === 'ai' && v === 'all') || (k === 'tab' && v === 'board') || (k === 'sort' && v === 'best')
+    const isDefault = (k === 'view' && v === 'all') || (k === 'ai' && v === 'all') || (k === 'source' && v === 'direct') || (k === 'tab' && v === 'board') || (k === 'sort' && v === 'best')
     if (v === null || v === undefined || v === '' || isDefault) sp.delete(k)
     else sp.set(k, v)
   }
