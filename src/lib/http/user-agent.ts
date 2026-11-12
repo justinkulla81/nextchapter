@@ -44,6 +44,9 @@ export const BOT_SIGNATURES = [
   // agent cannot tell it from a person on Linux Chrome, so real Linux Chrome visitors are counted as bots too, a few
   // in a hundred on a site for white-collar job seekers. Linux Firefox and Android Chrome do not match this string.
   '(x11; linux x86_64) applewebkit/537.36 (khtml, like gecko) chrome/',
+  // A scripted browser on a ChromeOS build string: it walks the same page set (/places, /industries, /functions,
+  // /conferences, /jobs/title) from India and the US, several pages in the same second. 66 views in 7 days as of 2026-11-12.
+  'cros x86_64 14541',
 ]
 
 export type UserAgentClass = 'human' | 'bot' | 'unknown'
