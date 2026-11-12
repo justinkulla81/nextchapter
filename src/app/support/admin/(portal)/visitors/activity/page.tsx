@@ -478,7 +478,7 @@ export default async function AdminVisitorActivityPage({
   ])
 
   const events = loaded.events
-  const visitTotals = 'visitTotals' in loaded ? loaded.visitTotals : null
+  const visitTotals = ('visitTotals' in loaded ? loaded.visitTotals : null) as Map<string, { views: number; clicks: number }> | null
   // Email visits inside two minutes of delivery (the unsubscribe-link visit, the report visit that follows it, an outreach link),
   // marked on the rows shown. In Human only mode they are already out of the list; in All traffic mode this labels them.
   const prefetchIds = new Set(
