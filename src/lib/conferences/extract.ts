@@ -31,7 +31,9 @@ export async function fetchPublicPage(url: string): Promise<FetchedPage | null> 
       continue
     }
     if (!res.ok || !(res.headers.get('content-type') ?? '').includes('html')) return null
-    const html = (await res.text()).slice(0, 600_000)
+    // The 12 s timeout also covers reading the body; a site that sends headers and then stalls must not fail the whole run.
+    let html: string
+    try { html = (await res.text()).slice(0, 600_000) } catch { return null }
     const $ = cheerio.load(html)
     const links: { text: string; href: string }[] = []
     $('a[href]').each((_, el) => {
