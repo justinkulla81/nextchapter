@@ -61,8 +61,9 @@ export async function reconcileOpensFromResend(): Promise<ReconcileResult & { in
 }
 
 async function reconcileFromResendStatus(): Promise<ReconcileResult> {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) throw new Error('RESEND_API_KEY is not set')
+  // The sending key cannot list emails (Resend answers 401), so reading uses its own full-access key.
+  const apiKey = process.env.RESEND_READ_API_KEY
+  if (!apiKey) throw new Error('RESEND_READ_API_KEY is not set')
   const since = Date.now() - RECONCILE_LOOKBACK_DAYS * 86_400_000
   const out: ReconcileResult = { pages: 0, listed: 0, opened: 0, filled: 0, stoppedBecause: 'end' }
   let after: string | null = null
