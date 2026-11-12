@@ -17963,7 +17963,8 @@ model LocalEventSource {
 }
 
 // AI visibility (2026-10-28). Daily count of named AI crawlers/assistant fetchers per page, written by the proxy.
-// Only AI user agents are logged (src/lib/http/ai-crawlers.ts), so growth is bounded by distinct pages x bots per day.
+// Only AI user agents are logged (src/lib/http/ai-crawlers.ts). Record pages (jobs, employers...) are stored as `/<family>/*`
+// (crawlerPathKey) and rows older than 35 days are deleted daily (cron ai-crawler-prune), so the table stays bounded.
 model AiCrawlerHit {
   id         String   @id @default(cuid())
   day        DateTime @db.Date
