@@ -688,6 +688,8 @@ export interface BoardShortlist {
   dismiss: { hidden: number; rules: DismissRules | null }
   /** For each of opts.views: the jobs the board would show with that view (openTotal). */
   keptCounts: Record<string, number>
+  /** Jobs each source view would show (job-source.ts); empty when the source gate is off. */
+  sourceCounts: Record<string, number>
 }
 
 /**
@@ -768,6 +770,11 @@ export async function loadBoardShortlist(opts: {
    */
   views?: { current: string; keeps: Record<string, ((p: BoardRankRow) => boolean) | null> }
   /**
+   * The source gate (job-source.ts): "From employers" / "Employers and recruiters". Applied with `keep`
+   * and `views`; sourceCounts says how many jobs each source view would show, in memory, no read.
+   */
+  sourceViews?: { current: string; keeps: Record<string, (p: BoardRankRow) => boolean> }
+  /**
    * The welcome lift (posting-signals.ts): jobs this returns true for rank first WITHIN the same fit
    * level and breadth rank — a tie-break, never a new job in the window (the level gate is applied first).
    * The board passes it for members changing careers or early in their career.
@@ -791,7 +798,12 @@ export async function loadBoardShortlist(opts: {
   const baseKeep = inSector && opts.keep ? (p: BoardRankRow) => inSector(p) && opts.keep!(p) : (inSector ?? opts.keep)
   const withView = (view: ((p: BoardRankRow) => boolean) | null | undefined) =>
     view && baseKeep ? (p: BoardRankRow) => baseKeep(p) && view(p) : (view ?? baseKeep)
-  const keep = withView(opts.views?.keeps[opts.views.current])
+  const sourceKeepFor = (name: string) => opts.sourceViews?.keeps[name]
+  const withSource = (v: ((p: BoardRankRow) => boolean) | null | undefined, name: string) => {
+    const src = sourceKeepFor(name)
+    return src && v ? (p: BoardRankRow) => v(p) && src(p) : (v ?? src)
+  }
+  const keep = withSource(withView(opts.views?.keeps[opts.views.current]), opts.sourceViews?.current ?? '')
   // The member's classifier loads alongside the board (cold: the job-occupation read runs in parallel).
   const candidateId = (opts.candidate as { id?: string | null } | null)?.id ?? null
   const t0 = Date.now()
@@ -847,6 +859,10 @@ export async function loadBoardShortlist(opts: {
     keptCounts[name] = name === opts.views!.current ? ranked.openTotal : rankWith(withView(view)).openTotal
   }
   if (opts.views) lap.viewCounts = Date.now() - t0
+  const sourceCounts: Record<string, number> = {}
+  for (const name of Object.keys(opts.sourceViews?.keeps ?? {})) {
+    sourceCounts[name] = name === opts.sourceViews!.current ? ranked.openTotal : rankWith(withSource(withView(opts.views?.keeps[opts.views.current]), name)).openTotal
+  }
   const full = new Map(
     // Descriptions are stored whole; the board's cards and fit checks get the ~1,000-character
     // excerpt they were built on, so the page payload stays the size it was.
@@ -884,6 +900,7 @@ export async function loadBoardShortlist(opts: {
     },
     dismiss: { hidden: ranked.dismissedHidden, rules: dismissRules },
     keptCounts,
+    sourceCounts,
   }
 }
 
