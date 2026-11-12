@@ -14,6 +14,9 @@ describe('isDatacenterIp', () => {
     expect(isDatacenterIp('18.200.218.82')).toBe(true)
     expect(isDatacenterIp('172.252.65.105')).toBe(true)
     expect(isDatacenterIp('9.169.121.184')).toBe(true)
+    expect(isDatacenterIp('35.89.208.101')).toBe(true)
+    expect(isDatacenterIp('35.89.164.25')).toBe(true)
+    expect(isDatacenterIp('44.255.29.221')).toBe(true)
   })
 
   it('leaves home and campus addresses alone', () => {
@@ -25,6 +28,8 @@ describe('isDatacenterIp', () => {
     expect(isDatacenterIp('9.170.0.1')).toBe(false)
     expect(isDatacenterIp('18.31.0.1')).toBe(false)
     expect(isDatacenterIp('34.128.0.1')).toBe(false)
+    expect(isDatacenterIp('35.96.0.1')).toBe(false)
+    expect(isDatacenterIp('44.223.255.255')).toBe(false)
   })
 
   it('ignores missing, malformed and IPv6 input', () => {

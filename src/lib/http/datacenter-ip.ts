@@ -29,6 +29,9 @@ export const DATACENTER_CIDRS = [
   '54.144.0.0/12', // Amazon (ARIN AMAZON), EC2
   '54.160.0.0/11', // Amazon (ARIN AMAZON), EC2
   '13.216.0.0/13', // Amazon (ARIN AMAZON-IAD), EC2
+  // ARIN RDAP, 2026-11-12: AWS us-west-2 (Boardman, Oregon). Report-page visits came in pairs seconds apart, a Windows then a phone user agent.
+  '35.80.0.0/12', // Amazon (ARIN AMAZON-ZPDX)
+  '44.224.0.0/11', // Amazon (ARIN AMAZO-ZPDX)
 ]
 
 function ipv4ToInt(ip: string): number | null {
