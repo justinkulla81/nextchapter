@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { humanOpenCount } from '@/lib/mailing/open-human'
@@ -5,13 +6,15 @@ import { syncEditionRoster } from '@/lib/mailing/editions'
 
 const STATUS_LABEL = { DRAFT: 'Draft', SCHEDULED: 'Scheduled', SENDING: 'Sending', SENT: 'Sent' } as const
 
-interface Stats { sent: number; delivered: number; opened: number; opens: number; clicked: number; clicks: number; replied: number; bounced: number; unsubscribed: number }
+export interface Stats { listed: number; failed: number; sent: number; delivered: number; opened: number; opens: number; clicked: number; clicks: number; replied: number; bounced: number; unsubscribed: number }
 
-type Row = { status: string; email: string; excluded: boolean; sentAt: Date | null; deliveredAt: Date | null; openedAt: Date | null; openCount: number; clickCount: number; repliedAt: Date | null; bouncedAt: Date | null; unsubscribedAt: Date | null }
+export type Row = { status: string; email: string; excluded: boolean; sentAt: Date | null; deliveredAt: Date | null; openedAt: Date | null; openCount: number; clickCount: number; repliedAt: Date | null; bouncedAt: Date | null; unsubscribedAt: Date | null }
 
-function stats(rows: Row[]): Stats {
+export function stats(rows: Row[]): Stats {
   const sent = rows.filter((r) => r.status === 'SENT' && !r.excluded)
   return {
+    listed: rows.filter((r) => !r.excluded).length,
+    failed: rows.filter((r) => r.status === 'FAILED' && !r.excluded).length,
     sent: sent.length,
     delivered: sent.filter((r) => r.deliveredAt).length,
     opened: sent.filter((r) => humanOpenCount(r) > 0).length,
@@ -31,12 +34,8 @@ const onList = (rows: Row[]) => new Set(rows.filter((r) => !r.excluded).map((r) 
 const scheduledTime = (d: Date) =>
   `${d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET`
 
-/**
- * Every version of an edition (the original and its copies): each one's
- * sends on its own row, and all of them together. Renders nothing for an
- * edition that has never been copied.
- */
-export async function EditionVersions({ editionId, rootId }: { editionId: string; rootId: string }) {
+/** Every version of the mailing (the original first), with each one's recipients. Shared by the page and the table within a request. */
+export const loadVersions = cache(async (rootId: string) => {
   // A version scheduled or drafted without its roster built (copied or scheduled outside the page) would show 0 people
   // until it sends. Build it now so the table and "See everyone" match what will go out. Reads only the unbuilt ones.
   const unbuilt = await prisma.mailingEdition.findMany({
@@ -45,7 +44,7 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
   })
   for (const u of unbuilt) await syncEditionRoster(u.id)
 
-  const versions = await prisma.mailingEdition.findMany({
+  return prisma.mailingEdition.findMany({
     where: { OR: [{ id: rootId }, { versionOfId: rootId }] },
     orderBy: { createdAt: 'asc' },
     select: {
@@ -53,10 +52,21 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
       recipients: { select: { status: true, email: true, excluded: true, sentAt: true, deliveredAt: true, openedAt: true, openCount: true, clickCount: true, repliedAt: true, bouncedAt: true, unsubscribedAt: true } },
     },
   })
+})
+
+/**
+ * Every version of an edition (the original and its copies): each one's
+ * sends on its own row, and all of them together. Renders nothing for an
+ * edition that has never been copied. The original is version 1; every row,
+ * the current one included, opens that version on its own, and "All versions"
+ * opens the summary.
+ */
+export async function EditionVersions({ editionId, rootId, together = false }: { editionId: string; rootId: string; together?: boolean }) {
+  const versions = await loadVersions(rootId)
   if (versions.length < 2) return null
 
   const all = versions.flatMap((v) => v.recipients)
-  const together = stats(all)
+  const allStats = stats(all)
   const people = new Set(all.filter((r) => r.status === 'SENT' && !r.excluded).map((r) => r.email)).size
   // Distinct people on any version's list: someone on two versions counts once.
   const peopleOnLists = onList(all)
@@ -87,30 +97,37 @@ export async function EditionVersions({ editionId, rootId }: { editionId: string
             </tr>
           </thead>
           <tbody>
-            {versions.map((v, i) => (
-              <tr key={v.id} className={`border-t border-border ${v.id === editionId ? 'bg-brand/5' : ''}`}>
-                <td className="w-[26rem] max-w-[26rem] px-3 py-1.5">
-                  <div className="truncate" title={v.title}>
-                    {v.id === editionId
-                      ? <span className="font-medium">{v.title} <span className="text-xs font-normal text-muted-foreground">(this one)</span></span>
-                      : <Link href={`/support/admin/crm/mailing/editions/${v.id}`} className="font-medium text-brand hover:underline">{v.title}</Link>}
-                    {i === 0 && <span className="ml-1.5 text-xs text-muted-foreground">original</span>}
-                  </div>
-                </td>
-                <td className="whitespace-nowrap px-3 py-1.5">
-                  {STATUS_LABEL[v.status]}{v.sentAt ? ` ${v.sentAt.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' })}` : ''}
-                </td>
-                <td className="whitespace-nowrap px-3 py-1.5">{v.status === 'SCHEDULED' && v.scheduledAt ? scheduledTime(v.scheduledAt) : '—'}</td>
-                <td className="px-3 py-1.5 tabular-nums">{onList(v.recipients)}</td>
-                {cells(stats(v.recipients)).map((c, j) => <td key={j} className="px-3 py-1.5 tabular-nums">{c}</td>)}
-              </tr>
-            ))}
-            <tr className="border-t-2 border-border font-semibold">
-              <td className="w-[26rem] max-w-[26rem] px-3 py-1.5">All versions</td>
+            {versions.map((v, i) => {
+              const current = !together && v.id === editionId
+              // The original opens on its own page, not the summary the same address shows for the whole mailing.
+              const href = `/support/admin/crm/mailing/editions/${v.id}${i === 0 ? '?only=1' : ''}`
+              return (
+                <tr key={v.id} className={`border-t border-border ${current ? 'bg-brand/5' : ''}`}>
+                  <td className="w-[26rem] max-w-[26rem] px-3 py-1.5">
+                    <div className="truncate" title={v.title}>
+                      {current
+                        ? <span className="font-medium">{v.title} <span className="text-xs font-normal text-muted-foreground">(this one)</span></span>
+                        : <Link href={href} className="font-medium text-brand hover:underline">{v.title}</Link>}
+                      {i === 0 && <span className="ml-1.5 text-xs text-muted-foreground">version 1 · original</span>}
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-1.5">
+                    {STATUS_LABEL[v.status]}{v.sentAt ? ` ${v.sentAt.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' })}` : ''}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-1.5">{v.status === 'SCHEDULED' && v.scheduledAt ? scheduledTime(v.scheduledAt) : '—'}</td>
+                  <td className="px-3 py-1.5 tabular-nums">{onList(v.recipients)}</td>
+                  {cells(stats(v.recipients)).map((c, j) => <td key={j} className="px-3 py-1.5 tabular-nums">{c}</td>)}
+                </tr>
+              )
+            })}
+            <tr className={`border-t-2 border-border font-semibold ${together ? 'bg-brand/5' : ''}`}>
+              <td className="w-[26rem] max-w-[26rem] px-3 py-1.5">
+                {together ? <>All versions <span className="text-xs font-normal text-muted-foreground">(this one)</span></> : <Link href={`/support/admin/crm/mailing/editions/${rootId}`} className="text-brand hover:underline">All versions</Link>}
+              </td>
               <td className="whitespace-nowrap px-3 py-1.5 text-xs font-normal text-muted-foreground">{people} {people === 1 ? 'person' : 'people'}</td>
               <td />
               <td className="px-3 py-1.5 tabular-nums">{peopleOnLists}</td>
-              {cells(together).map((c, j) => <td key={j} className="px-3 py-1.5 tabular-nums">{c}</td>)}
+              {cells(allStats).map((c, j) => <td key={j} className="px-3 py-1.5 tabular-nums">{c}</td>)}
             </tr>
           </tbody>
         </table>

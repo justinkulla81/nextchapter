@@ -9,7 +9,7 @@ import { humanOpenCount } from '@/lib/mailing/open-human'
 import { loadPersonOrgs } from '@/lib/mailing/org-segments'
 import { MailingComposer } from '@/components/admin/mailing/MailingComposer'
 import { EditionRecipientsTable } from '@/components/admin/mailing/EditionRecipientsTable'
-import { EditionVersions } from '@/components/admin/mailing/EditionVersions'
+import { EditionVersions, loadVersions, stats } from '@/components/admin/mailing/EditionVersions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { duplicateEdition } from '../../actions'
 import { SectionTitle } from '@/components/admin/Collapsible'
@@ -18,9 +18,10 @@ export const maxDuration = 60
 
 const iso = (d: Date | null) => d?.toISOString() ?? null
 
-export default async function EditionPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EditionPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ only?: string }> }) {
   await requireAdmin()
   const { id } = await params
+  const { only } = await searchParams
   const exists = await prisma.mailingEdition.findUnique({ where: { id }, select: { status: true } })
   if (!exists) notFound()
   // A draft's roster follows the lists; pick up anyone who joined since.
@@ -74,7 +75,10 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
       </form>
     </header>
   )
-  const versions = <EditionVersions editionId={edition.id} rootId={rootId} />
+  // The original's address summarizes the whole mailing once it has copies; ?only=1 opens the original (version 1) by itself.
+  const family = edition.versionOfId === null && !only && (edition.status === 'SENT' || edition.status === 'SENDING') ? await loadVersions(rootId) : null
+  const together = !!family && family.length > 1
+  const versions = <EditionVersions editionId={edition.id} rootId={rootId} together={together} />
 
   if (edition.status === 'DRAFT' || edition.status === 'SCHEDULED') {
     // Archived lists the edition already targets still need to show.
@@ -117,32 +121,35 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
   // Sending or sent: the dashboard.
   const sendable = edition.recipients.filter((r) => !r.excluded)
   const orgs = await loadPersonOrgs(sendable.flatMap((r) => (r.personId ? [r.personId] : [])))
-  const total = (pick: (r: (typeof sendable)[number]) => unknown) => sendable.filter((r) => pick(r)).length
-  const sent = total((r) => r.status === 'SENT')
-  const sum = (pick: (r: (typeof sendable)[number]) => number) => sendable.reduce((n, r) => n + pick(r), 0)
-  const opens = sum((r) => humanOpenCount(r))
-  const clicks = sum((r) => r.clickCount)
-  const stats = [
-    { label: 'Sent', value: sent, of: sendable.length },
-    { label: 'Delivered', value: total((r) => r.deliveredAt) },
-    { label: 'Opened (approximate)', value: total((r) => humanOpenCount(r) > 0), extra: `${opens} ${opens === 1 ? 'open' : 'opens'} in all`, note: 'Only a person\'s opens count: opens by mail scanners and Apple Mail are left out. Clicks and replies are still the stronger signal.' },
-    { label: 'Clicked', value: total((r) => r.clickedAt), extra: `${clicks} ${clicks === 1 ? 'click' : 'clicks'} in all` },
-    { label: 'Replied', value: total((r) => r.repliedAt) },
-    { label: 'Bounced', value: total((r) => r.bouncedAt) },
-    { label: 'Unsubscribed', value: total((r) => r.unsubscribedAt) },
-    { label: 'Failed', value: total((r) => r.status === 'FAILED') },
+  const own = stats(sendable)
+  const all = together ? stats(family.flatMap((v) => v.recipients)) : own
+  const sent = all.sent
+  const opens = all.opens
+  const clicks = all.clicks
+  const cards = [
+    { label: 'Sent', value: all.sent, of: all.listed },
+    { label: 'Delivered', value: all.delivered },
+    { label: 'Opened (approximate)', value: all.opened, extra: `${opens} ${opens === 1 ? 'open' : 'opens'} in all`, note: 'Only a person\'s opens count: opens by mail scanners and Apple Mail are left out, and so are emails that bounced. Clicks and replies are still the stronger signal.' },
+    { label: 'Clicked', value: all.clicked, extra: `${clicks} ${clicks === 1 ? 'click' : 'clicks'} in all` },
+    { label: 'Replied', value: all.replied },
+    { label: 'Bounced', value: all.bounced },
+    { label: 'Unsubscribed', value: all.unsubscribed },
+    { label: 'Failed', value: all.failed },
   ]
+  const people = together ? new Set(family.flatMap((v) => v.recipients).filter((r) => r.status === 'SENT' && !r.excluded).map((r) => r.email)).size : sent
 
   return (
     <div className="space-y-6">
       {header}
       <p className="text-sm">
-        {edition.status === 'SENDING'
-          ? `Sending — ${sent} of ${sendable.length} so far, up to ${settings.ratePerHour} an hour.`
-          : `Sent ${edition.sentAt?.toLocaleDateString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium' })} to ${sent} ${sent === 1 ? 'person' : 'people'}.`}
+        {together
+          ? `All ${family.length} versions together: sent to ${people} ${people === 1 ? 'person' : 'people'}. Open a version below to see it on its own.`
+          : edition.status === 'SENDING'
+            ? `Sending — ${sent} of ${all.listed} so far, up to ${settings.ratePerHour} an hour.`
+            : `Sent ${edition.sentAt?.toLocaleDateString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium' })} to ${sent} ${sent === 1 ? 'person' : 'people'}.${edition.versionOfId === null && only ? ' This is version 1 on its own.' : ''}`}
       </p>
       <section className="grid gap-3 sm:grid-cols-4">
-        {stats.map((s) => (
+        {cards.map((s) => (
           <div key={s.label} className="rounded-lg border border-border p-3" title={s.note}>
             <p className="text-xs text-muted-foreground">{s.label}</p>
             <p className="text-2xl font-semibold tabular-nums">
@@ -158,7 +165,7 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
 
       {versions}
 
-      <EditionRecipientsTable
+      {!together && <EditionRecipientsTable
         editionId={edition.id}
         rows={sendable.map((r) => ({
           orgName: orgs.get(r.personId ?? '')?.orgName ?? null, segments: orgs.get(r.personId ?? '')?.segments ?? [],
@@ -167,15 +174,15 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
           openCount: humanOpenCount(r), clickedAt: iso(r.clickedAt), clickCount: r.clickCount, bouncedAt: iso(r.bouncedAt),
           bounceDetail: r.bounceDetail, unsubscribedAt: iso(r.unsubscribedAt), repliedAt: iso(r.repliedAt),
         }))}
-      />
+      />}
 
-      <section className="space-y-2">
+      {!together && <section className="space-y-2">
         <SectionTitle tone="history">What was sent</SectionTitle>
         <div className="max-w-2xl rounded-lg border border-border bg-white p-4 text-black">
           <p className="mb-3 border-b border-neutral-200 pb-2 text-sm"><span className="text-neutral-500">Subject:</span> {edition.subject}</p>
           <div className="text-[15px] leading-relaxed [&_a]:underline [&_ul]:list-disc [&_ul]:pl-6 [&_p]:mb-3" dangerouslySetInnerHTML={{ __html: sanitizeBodyHtml(edition.bodyHtml) }} />
         </div>
-      </section>
+      </section>}
     </div>
   )
 }
