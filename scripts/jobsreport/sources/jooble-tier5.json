@@ -1,0 +1,124 @@
+[
+  {
+    "name": "wd-u-s-bank",
+    "adapter": "workday",
+    "tenant": "usbank",
+    "wd": "wd1",
+    "site": "US_Bank_Careers",
+    "type": "direct_ats",
+    "employer": "U.S. Bank"
+  },
+  {
+    "name": "oracle-ford",
+    "adapter": "oracle",
+    "host": "efds.fa.em5.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "Ford"
+  },
+  {
+    "name": "jibe-amd",
+    "adapter": "jibe",
+    "host": "careers.amd.com",
+    "type": "direct_ats",
+    "employer": "AMD"
+  },
+  {
+    "name": "wd-merck",
+    "adapter": "workday",
+    "tenant": "msd",
+    "wd": "wd5",
+    "site": "SearchJobs",
+    "type": "direct_ats",
+    "employer": "Merck"
+  },
+  {
+    "name": "wd-toyota",
+    "adapter": "workday",
+    "tenant": "toyota",
+    "wd": "wd503",
+    "site": "TMNA",
+    "type": "direct_ats",
+    "employer": "Toyota"
+  },
+  {
+    "name": "wd-kyndryl",
+    "adapter": "workday",
+    "tenant": "kyndryl",
+    "wd": "wd5",
+    "site": "KyndrylEarlyCareers",
+    "type": "direct_ats",
+    "employer": "Kyndryl",
+    "note": "site KyndrylEarlyCareers lists only 29 early-career jobs; find the full external site"
+  },
+  {
+    "name": "wd-baxter",
+    "adapter": "workday",
+    "tenant": "baxter",
+    "wd": "wd1",
+    "site": "baxter",
+    "type": "direct_ats",
+    "employer": "Baxter"
+  },
+  {
+    "name": "oracle-jpmorgan-chase",
+    "adapter": "oracle",
+    "host": "jpmc.fa.oraclecloud.com",
+    "site": "CX_1001",
+    "type": "direct_ats",
+    "employer": "JPMorgan Chase"
+  },
+  {
+    "name": "oracle-uber",
+    "adapter": "oracle",
+    "host": "iaziqy.fa.ocs.oraclecloud.com",
+    "site": "UberCareers",
+    "type": "direct_ats",
+    "employer": "Uber"
+  },
+  {
+    "name": "wd-regal-rexnord",
+    "adapter": "workday",
+    "tenant": "regalrexnord",
+    "wd": "wd1",
+    "site": "Careers",
+    "type": "direct_ats",
+    "employer": "Regal Rexnord"
+  },
+  {
+    "name": "wd-carrier",
+    "adapter": "workday",
+    "tenant": "carrier",
+    "wd": "wd5",
+    "site": "jobs",
+    "type": "direct_ats",
+    "employer": "Carrier"
+  },
+  {
+    "name": "wd-intel",
+    "adapter": "workday",
+    "tenant": "intel",
+    "wd": "wd1",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Intel"
+  },
+  {
+    "name": "wd-micron",
+    "adapter": "workday",
+    "tenant": "micron",
+    "wd": "wd1",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Micron"
+  },
+  {
+    "name": "wd-cigna",
+    "adapter": "workday",
+    "tenant": "cigna",
+    "wd": "wd5",
+    "site": "cignacareers",
+    "type": "direct_ats",
+    "employer": "Cigna"
+  }
+]
