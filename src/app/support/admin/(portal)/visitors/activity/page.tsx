@@ -383,6 +383,8 @@ export default async function AdminVisitorActivityPage({
   const unique = rawParams.unique === '1'
   const match: MatchKind[] = MATCH_KINDS.filter((k) => (rawParams.match ?? '').split(',').includes(k))
   const scanActive = typeActive || match.length > 0
+  // Sorted, unique and the type or match filters show one row per visitor (their latest event); otherwise every event is a row.
+  const oneRowPerVisitor = !!sort || unique || scanActive
   // Counting clicks or views per visitor is a window over the rows in range, so it never runs over the whole table: all time reads 30 days.
   const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sort || email || scanActive || unique ? 30 : null
   const logStart = logDays ? new Date(now().getTime() - logDays * DAY_MS) : null
@@ -1035,10 +1037,19 @@ export default async function AdminVisitorActivityPage({
     },
     { header: 'Location', render: (r) => r.location ?? '—' },
     {
-      header: 'Visitor totals',
+      // One row per visitor (sorted, unique or filtered): that visitor's totals. Every visit: the row's own event, one view or one click.
+      header: oneRowPerVisitor ? 'Visitor totals' : 'This visit',
       cellClassName: 'tabular-nums',
       render: (r) =>
-        !r.ip ? (
+        !oneRowPerVisitor ? (
+          <span title="This row is one recorded event. Switch to Unique only or a sort order to see a visitor's totals.">
+            {r.eventType === 'PAGE_VIEW' ? (
+              <>1 <span className="text-muted-foreground">view</span></>
+            ) : (
+              <>1 <span className="text-muted-foreground">click</span></>
+            )}
+          </span>
+        ) : !r.ip ? (
           '—'
         ) : r.scanner || r.mailRecipients >= 3 ? (
           <span
