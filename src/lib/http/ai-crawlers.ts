@@ -29,6 +29,20 @@ export const AI_CRAWLERS: AiCrawler[] = [
   { bot: 'Grok', vendor: 'xAI', purpose: 'USER_FETCH', match: 'grok' },
 ]
 
+// Page families whose second segment is a record id or slug (one page per job, employer, school...). A crawler reads
+// each of them once, so storing the full path made ~530,000 one-hit rows in 16 days. They are stored as `/<family>/*`.
+// Families with a bounded, useful set of pages (places, salaries, skills, rankings, tools...) keep their full path.
+const COLLAPSED_FAMILIES = new Set(['jobs', 'employers', 'prepared', 'conferences', 'higher-education', 'search-firms', 'associations', 'network'])
+
+/** The path stored for a crawler hit: record pages become `/<family>/*`, everything else is kept as is. */
+export function crawlerPathKey(path: string): string {
+  const [, family, second] = path.split('/')
+  return family && second && COLLAPSED_FAMILIES.has(family) ? `/${family}/*` : path
+}
+
+/** Days of crawler hits kept. The admin AI page reads 30 days; the rest is margin. */
+export const AI_CRAWLER_RETENTION_DAYS = 35
+
 export function matchAiCrawler(userAgent: string | null | undefined): AiCrawler | null {
   if (!userAgent) return null
   const lower = userAgent.toLowerCase()
