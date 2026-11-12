@@ -9,6 +9,7 @@ import { CommunityShort } from './community-short'
 import { PremiumShort, PersonalShort } from './leftovers-short'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
+import { QualityGateDirect, QualityGateAll, QualityGateNoDirect } from './jobs-quality-gate'
 import { FindFromPublicSearch } from './jobs-from-public'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
 import { FindUnpostedLive, FindUnpostedEmptyLive, FindUnpostedErrorLive, FindIndependentLive, FindIndependentNewLive, FindIndependentOfferLive, FindResourcesLive, FindResourcesOptedInLive } from './jobs-find-parts-live'
@@ -149,6 +150,9 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/know-tabs', place: 'Network', title: 'People you know: Who to contact, Tracking, Plan (sample data)', replaces: '/dashboard/network?view=all, about 17 stacked blocks; priority, follow-up, backchannel, alumni and recruiter cards become one list', Component: NetworkTracker },
   { path: 'network/circles/overview', place: 'Network', title: 'Your network: all circles', replaces: '/dashboard/network', Component: NetworkOverviewMock },
   { path: 'network/circles/close', place: 'Network', title: 'Close circle', replaces: '/dashboard/supporters, /dashboard/my-coaching', Component: CloseCircle },
+  { path: 'jobs/find/quality-gate', place: 'Jobs', title: 'Find a job, quality gate: employer listings first, recruiters and job boards one tap away (sample data)', replaces: 'nothing on the page is removed: the two-button switch (From employers / Employers and recruiters) is the only addition. Behind it, listings that hide the employer, junk boards, and job-board copies of a job the employer lists itself stop appearing; the job row keeps its one fact line, now naming where the listing is from', Component: QualityGateDirect },
+  { path: 'jobs/find/quality-gate-all', place: 'Jobs', title: 'Find a job, quality gate: recruiter and job-board listings included (sample data)', replaces: 'the same page with the switch on Employers and recruiters', Component: QualityGateAll },
+  { path: 'jobs/find/quality-gate-empty', place: 'Jobs', title: 'Find a job, quality gate: no employer listing matches yet (sample data)', replaces: 'the empty state of the list when only recruiter and job-board listings match', Component: QualityGateNoDirect },
   { path: 'jobs/find/jobs', place: 'Jobs', title: 'Find a job: list and detail', replaces: '/dashboard/find-my-job, /dashboard/jobs/ID', Component: FindJobs },
   { path: 'jobs/find/unposted', place: 'Jobs', title: 'Find a job: not posted yet', replaces: 'Likely openings on /dashboard/find-my-job', Component: FindUnposted },
   { path: 'jobs/find/independent', place: 'Jobs', title: 'Find a job: independent work', replaces: 'Independent work toolkit on /dashboard/find-my-job', Component: FindIndependent },
