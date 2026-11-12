@@ -80,11 +80,20 @@ export interface MatchTiming {
   matchMs?: number
   /** True when the run was answered from the one-minute memo and nothing above was measured. */
   memo?: boolean
+  /** How long a memo hit waited for the run it joined (that run may be another caller's, and slow). */
+  memoWaitMs?: number
+}
+
+/** Thrown from the matching loop when a caller's deadline has passed: the run stops instead of using a server for minutes after the member stopped waiting. */
+export class MatchDeadlineError extends Error {
+  constructor(public readonly rowsDone: number) {
+    super('Matching stopped at its deadline')
+  }
 }
 
 export async function computeMatchState(
   profile: MatchProfile,
-  opts: { dismiss?: SnapshotPreference[]; live?: boolean; countOnly?: boolean; timing?: MatchTiming } = {}
+  opts: { dismiss?: SnapshotPreference[]; live?: boolean; countOnly?: boolean; timing?: MatchTiming; deadlineAt?: number } = {}
 ): Promise<MatchState | null> {
   const loadStarted = Date.now()
   const rows = await loadMemberMarketRows(profile)
@@ -98,7 +107,15 @@ export async function computeMatchState(
     const hit = runs.get(key)
     if (hit && hit.rows === rows && Date.now() - hit.at < RUN_TTL_MS) {
       if (opts.timing) opts.timing.memo = true
-      return hit.value
+      const waited = Date.now()
+      try {
+        return await hit.value
+      } catch (error) {
+        // The run joined was another caller's and stopped at that caller's deadline: this caller has its own, so it runs afresh.
+        if (!(error instanceof MatchDeadlineError)) throw error
+      } finally {
+        if (opts.timing) opts.timing.memoWaitMs = Date.now() - waited
+      }
     }
   }
   const value = run(profile, rows, opts)
@@ -110,7 +127,7 @@ export async function computeMatchState(
   return value
 }
 
-async function run(profile: MatchProfile, rows: BoardRankRow[], opts: { dismiss?: SnapshotPreference[]; live?: boolean; countOnly?: boolean; timing?: MatchTiming }): Promise<MatchState | null> {
+async function run(profile: MatchProfile, rows: BoardRankRow[], opts: { dismiss?: SnapshotPreference[]; live?: boolean; countOnly?: boolean; timing?: MatchTiming; deadlineAt?: number }): Promise<MatchState | null> {
   const started = Date.now()
   const [classifier, rules] = await Promise.all([
     loadBreadthClassifier(profile),
@@ -135,7 +152,9 @@ async function run(profile: MatchProfile, rows: BoardRankRow[], opts: { dismiss?
   let newThisWeek = 0
   let newThisWeekSkills = 0
   let hiddenLikeThem = 0
+  let seen = 0
   for (const p of rows) {
+    if (opts.deadlineAt && ++seen % 4096 === 0 && Date.now() > opts.deadlineAt) throw new MatchDeadlineError(seen)
     if (keepSector && !keepSector(p)) continue
     if (rules?.hidden(p)) {
       verdicts.set(p.id, verdictOf({ dismissed: true }))
