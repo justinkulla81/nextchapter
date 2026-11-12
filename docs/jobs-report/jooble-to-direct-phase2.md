@@ -111,6 +111,26 @@ Expected yield: on the first 33 employers about 35% of listed jobs were kept aft
 
 **Not readable by the probe:** AMN Healthcare, Genworth, Amentum, CBRE, Zurich, Compass Group, Jazz Pharmaceuticals, Sodexo, Amcor, General Dynamics, Eli Lilly, Kroll, Koch, Fisher Investments, Neurocrine, Cohesity, Estee Lauder, Tempus, Globe Life, AdventHealth, Stellantis, Caris, Paylocity, Vizient, Protiviti, Grant Thornton, Moss Adams, Baker Tilly, FTI Consulting, Genentech, Visa, SAIC, Corning (a Workday site name not guessed, or a custom system).
 
+## Tier 4 and the long-tail pilot (2026-11-12)
+
+**Tier 4: 9 more Workday boards** (verified 2026-11-12), listing 7,082 jobs (all countries). At the 35% keep rate seen on the first 33 employers that is about 2,478 kept US jobs, small next to the effort: the largest Jooble employers are now covered, so employer-by-employer discovery has diminishing returns. Sources:  (also one Greenhouse board, Revolution Medicines).
+
+| Employer | Workday board (tenant, cluster, site) | Board total |
+|---|---|---|
+| Pfizer | pfizer, wd1, PfizerCareers | 727 |
+| Highmark Health | highmarkhealth, wd1, highmark | 1893 |
+| Arrow Electronics | arrow, wd1, AC | 551 |
+| Medtronic | medtronic, wd1, MedtronicCareers | 1007 |
+| Cardinal Health | cardinalhealth, wd1, EXT | 853 |
+| Caterpillar | cat, wd5, CaterpillarCareers | 1047 |
+| Humana | humana, wd5, Humana_External_Career_Site | 336 |
+| Global Payments | tsys, wd1, TSYS | 492 |
+| CSL | csl, wd1, CSL_External | 176 |
+
+Not Workday or not readable by the probe: Deloitte, PwC and New York Life (SAP SuccessFactors), Humana's other brands, Honda, Marsh, Honeywell, Corning, ICF, GE Aerospace, GE Healthcare, Crowe, Acrisure (Phenom), UKG and Qualcomm (Eightfold), Textron (Taleo), Epic (Avature), Walgreens (BrassRing), AXA (iCIMS and Jibe), Uber (Oracle), and a custom or unreadable system for FedEx, Siemens, Kroll, Bain, DLA Piper, Aramark, Select Medical, Cox, Genworth, Zurich and others.
+
+**Long-tail pilot (platform probing).** From a random sample of 195 Jooble employers drawn from the long tail (small employers with 1 to 3 Jooble rows), a probe of six public job platforms (Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Recruitee) with the employer's name as the platform address found a board for 38 (19%). About 22 of those 38 are clearly the right company (for example Taptap Send, Komodo Health, IXL Learning, HiddenLayer, Ursa Major, Mirum, Kiniksa, Luminary Hospice, Supabase, Trainline, New Relic, LendingTree, commercetools, Anaplan, Coolblue, Aequor): a true hit rate of about 11%. The rest are name collisions from the single-first-word fallback ("general", "maple", "air", "sierra", "applied", "future"); a real run must verify the company name before accepting a board. Boards found hold 5 to 390 jobs each (typically 20 to 60, all countries). Scaled to the long tail's 29,800 employers, about 3,000 would have a readable board, but guessing addresses finds only a fraction; enumerating every employer on each platform (Common Crawl, ) finds far more than Jooble's tail.
+
 ## Staffing and recruiter firms (do not chase)
 
 Robert Half (866 via Jooble), CyberCoders (365), Jobot (343), LHH (327), Insight Global, Apex Systems, Kforce, Mindlance, HAN Staffing, Addison Group, Acturhire, Green Key, Artech, Motion Recruitment, Vaco, Randstad, Experis, Ampcus and similar. The posting is the recruiter's own listing for an unnamed client; the apply link is not a copy of a client's career-site job. Decision for the owner: keep them out of search (current rule) or index the ones whose own career site posts the job.
