@@ -101,6 +101,8 @@ const nextConfig: NextConfig = {
       { source: '/tools/ai-job-check/compare', destination: '/tools/ai-job-check', permanent: false },
       // Nothing lives at /search; people and search engines' site-search boxes expect it to run a job search (/jobs?q=).
       { source: '/search', destination: '/jobs', permanent: false },
+      // /start has only persona pages (/start/[persona]); the bare address is what people type and bookmark (alert 2026-11-12).
+      { source: '/start', destination: '/auth/signup', permanent: false },
       // Parent addresses that have only dynamic children and no page of their own (someone trims a URL, or a crawler
       // walks a breadcrumb up). Each goes to the nearest real page. src/test/route-orphans.test.ts fails when a new
       // parent like this appears without a redirect here or an entry in its allowlist.
@@ -137,6 +139,7 @@ const nextConfig: NextConfig = {
         ['/signup', '/auth/signup'],
         ['/sign-up', '/auth/signup'],
         ['/register', '/auth/signup'],
+        ['/get-started', '/auth/signup'],
         ['/privacy', '/privacy-policy'],
         ['/cookies', '/privacy-policy'],
         ['/cookie-policy', '/privacy-policy'],
