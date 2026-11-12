@@ -42,7 +42,7 @@ export const scannerClickVisitSql = `("eventType"::text = 'PAGE_VIEW' AND length
       AND b."clickedAt" BETWEEN "HomepageVisitEvent"."createdAt" - make_interval(secs => ${SCANNER_CLICK_WINDOW_SECS}) AND "HomepageVisitEvent"."createdAt" + make_interval(secs => ${SCANNER_CLICK_WINDOW_SECS})
       AND position(split_part("path", '?', 1) in b."link") > 0)
     AND NOT EXISTS (SELECT 1 FROM "MailingClickEvent" h WHERE NOT h."bot"
-      AND ((h."clickedAt" BETWEEN "HomepageVisitEvent"."createdAt" - make_interval(secs => ${SCANNER_CLICK_WINDOW_SECS}) AND "HomepageVisitEvent"."createdAt" + make_interval(secs => ${SCANNER_CLICK_WINDOW_SECS})
-          AND position(split_part("path", '?', 1) in h."link") > 0)
-        OR ("HomepageVisitEvent"."ip" IS NOT NULL AND h."ip" = "HomepageVisitEvent"."ip"
-          AND h."clickedAt" BETWEEN "HomepageVisitEvent"."createdAt" - make_interval(hours => ${HUMAN_IP_WINDOW_HOURS}) AND "HomepageVisitEvent"."createdAt" + make_interval(hours => ${HUMAN_IP_WINDOW_HOURS})))))`
+      AND h."clickedAt" BETWEEN "HomepageVisitEvent"."createdAt" - make_interval(secs => ${SCANNER_CLICK_WINDOW_SECS}) AND "HomepageVisitEvent"."createdAt" + make_interval(secs => ${SCANNER_CLICK_WINDOW_SECS})
+      AND position(split_part("path", '?', 1) in h."link") > 0)
+    AND NOT ("HomepageVisitEvent"."ip" IS NOT NULL AND EXISTS (SELECT 1 FROM "MailingClickEvent" h2 WHERE NOT h2."bot" AND h2."ip" = "HomepageVisitEvent"."ip"
+      AND h2."clickedAt" BETWEEN "HomepageVisitEvent"."createdAt" - make_interval(hours => ${HUMAN_IP_WINDOW_HOURS}) AND "HomepageVisitEvent"."createdAt" + make_interval(hours => ${HUMAN_IP_WINDOW_HOURS}))))`
