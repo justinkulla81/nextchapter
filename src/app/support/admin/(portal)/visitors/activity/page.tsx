@@ -138,7 +138,10 @@ const notCloudSql = Prisma.sql`NOT (CASE WHEN "ip" ~ '^[0-9]+\.[0-9]+\.[0-9]+\.[
 // (the window that decides a human open, open-human.ts). Three cases, all fixed text with no user input:
 //  1. a visit to the list email's unsubscribe link (its token is the start of the recipient's encoded address) inside that window;
 //  2. the visit that follows it from the same address within five seconds (the report page the link redirects to);
-//  3. a visit through a tracked outreach link (nc_e) inside two minutes of the link being made.
+//  3. a visit through a tracked outreach link (nc_e) inside two minutes of the link being made;
+//  4. a page view within 30 seconds of a click Resend flagged as a bot on a link to that page, with no human click on it in that
+//     window: the mail-security gateway loading the page it just clicked (Beth Moe, 2026-11-12: 41 bot clicks in 12 hours, and
+//     a page view after each, from addresses that look like phones). 2,565 of 3,443 report views in 3 days fit this.
 const PREFETCH_SECS = PREFETCH_OPEN_WINDOW_MS / 1000
 const b64url = (expr: string) => `translate(rtrim(encode(convert_to(${expr},'UTF8'),'base64'),'='),'+/','-_')`
 const unsubscribeToken = (v: string) => `substring(${v}."path" from '^/updates/unsubscribe/([A-Za-z0-9_-]+)')`
@@ -155,7 +158,14 @@ const notEmailPrefetchSql = Prisma.raw(`NOT (
       AND u."createdAt" BETWEEN "HomepageVisitEvent"."createdAt" - make_interval(secs => 5) AND "HomepageVisitEvent"."createdAt" + make_interval(secs => 5)
       AND ${unsubscribePrefetch('u')}))
   OR ("path" LIKE '%nc_e=%' AND EXISTS (SELECT 1 FROM "CrmOutreachLink" l
-    WHERE l."id" = substring("path" from 'nc_e=([A-Za-z0-9]+)') AND "HomepageVisitEvent"."createdAt" <= l."createdAt" + make_interval(secs => ${PREFETCH_SECS}))))`)
+    WHERE l."id" = substring("path" from 'nc_e=([A-Za-z0-9]+)') AND "HomepageVisitEvent"."createdAt" <= l."createdAt" + make_interval(secs => ${PREFETCH_SECS})))
+  OR ("eventType"::text = 'PAGE_VIEW' AND length(split_part("path", '?', 1)) > 1
+    AND EXISTS (SELECT 1 FROM "MailingClickEvent" b WHERE b."bot"
+      AND b."clickedAt" BETWEEN "HomepageVisitEvent"."createdAt" - make_interval(secs => 30) AND "HomepageVisitEvent"."createdAt" + make_interval(secs => 30)
+      AND position(split_part("path", '?', 1) in b."link") > 0)
+    AND NOT EXISTS (SELECT 1 FROM "MailingClickEvent" h WHERE NOT h."bot"
+      AND h."clickedAt" BETWEEN "HomepageVisitEvent"."createdAt" - make_interval(secs => 30) AND "HomepageVisitEvent"."createdAt" + make_interval(secs => 30)
+      AND position(split_part("path", '?', 1) in h."link") > 0)))`)
 
 // IPv4 /24 blocks (as "a.b.c" prefixes) that scanners click from, one address at a time: the visit that follows is theirs too.
 const notScannerBlockSql = (blocks: Set<string>): Prisma.Sql =>
