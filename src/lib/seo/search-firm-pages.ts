@@ -8,6 +8,7 @@ import { memoTtl } from '@/lib/db/heavy'
 import { persisted, storeNow } from '@/lib/seo/topic-snapshot'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
 import { PUBLIC_JOB_LIST_SELECT, PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_STATIC_SQL, withDescriptionStubs } from '@/lib/jobs/public-job-page-server'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
@@ -192,9 +193,28 @@ function fnLevelCounts(rows: { fn: string | null; level: string | null }[]): Rec
   return out
 }
 
-export async function loadFirmListings(): Promise<FirmListing[]> {
-  const hits = await prisma.$queryRaw<HitRow[]>`
-    WITH firms AS (
+interface FirmBase { oid: string; canon: string; fname: string; fname2: string | null; cid: string | null; segment: string | null; staffing: boolean | null; recruiter: boolean; types: string[] }
+interface PostingRow { jid: string; fn: string | null; state: string | null; industry: string | null; level: string | null; verified: Date }
+
+/** Company ids per batch: 100 ids read in 0.9 s through the (companyId, lastVerifiedAt) index on 2026-11-12. */
+export const FIRM_COMPANY_BATCH = 100
+const FIRMS_STAGE_MS = 20_000
+const SEARCH_FIRM_POSTINGS_STAGE_MS = 90_000
+const COMPANY_BATCH_STAGE_MS = 30_000
+
+/**
+ * The hits (organization, posting) behind the firm list, read in three stages that each have their own time limit, instead of one query.
+ * The single query ran past 120 s and was cancelled every time (11-09 to 11-12): it matched postings to firms with an OR join (a nested loop of
+ * every firm against every posting) and found the search-firm postings by walking the index of all live jobs. Here:
+ *   1. the firms (about 2,200 rows);
+ *   2. postings crawled from a firm's own board (sourceCategory 'search_firm'): their ids first, from the partial index on sourceName
+ *      (about 36,000), then the public rules by primary key (11,000 pass), matched to firms by name here;
+ *   3. postings tied to a firm's Company row, 100 companies per read through the company index.
+ * Any stage that fails or times out fails the whole load, so a half-built list is never stored.
+ */
+async function loadHitRows(): Promise<HitRow[]> {
+  const firms = await withStatementTimeout(
+    prisma.$queryRaw<FirmBase[]>`
       SELECT o.id AS oid, o."canonicalNameNormalized" AS canon, o.name AS fname, f.name AS fname2, o."companyId" AS cid,
              f.segment AS segment, (c.industry = ${STAFFING_INDUSTRY}) AS staffing, (f.id IS NOT NULL OR o."orgTypes" && ARRAY['SEARCH_FIRM']::"CrmOrgType"[]) AS recruiter, o."orgTypes"::text[] AS types
       FROM "CrmOrganization" o
@@ -202,25 +222,53 @@ export async function loadFirmListings(): Promise<FirmListing[]> {
       LEFT JOIN "Company" c ON c.id = o."companyId"
       WHERE (o."orgTypes" && ARRAY['SEARCH_FIRM', 'OUTPLACEMENT_FIRM']::"CrmOrgType"[] OR f.id IS NOT NULL OR c.industry = ${STAFFING_INDUSTRY})
         AND COALESCE(f."sourceKey" = ANY(${NOT_RECRUITER_SOURCES as string[]}::text[]), false) = false
-        AND o."canonicalNameNormalized" <> ALL(${NOT_RECRUITER_ORGS as string[]}::text[])
-    ),
-    -- Postings that name a search firm as their source, read once (the allowlist's partial index narrows it), then matched to
-    -- firms by name. Joining firm by firm made the planner re-scan the board for every firm.
-    sf AS (
+        AND o."canonicalNameNormalized" <> ALL(${NOT_RECRUITER_ORGS as string[]}::text[])`,
+    FIRMS_STAGE_MS,
+  )
+  const hit = (f: FirmBase, p: PostingRow): HitRow => ({
+    oid: f.oid, canon: f.canon, name: f.fname, segment: f.segment, staffing: f.staffing ?? false, recruiter: f.recruiter, types: f.types,
+    fn: p.fn, state: p.state, industry: p.industry, level: p.level, verified: p.verified, jobId: p.jid,
+  })
+  const out: HitRow[] = []
+
+  // Stage 2: postings crawled from a firm's own board, matched to firms by the board's name.
+  const crawled = await withStatementTimeout(
+    prisma.$queryRaw<(PostingRow & { sname: string })[]>`
+      WITH ids AS MATERIALIZED (
+        SELECT id FROM "ExclusiveJobPosting" WHERE "sourceCategory" = 'search_firm' AND "archivedAt" IS NULL AND "sourceName" IS NOT NULL
+      )
       SELECT "ExclusiveJobPosting".id AS jid, "sourceName" AS sname, "targetFunction" AS fn, "locationState" AS state, "industry" AS industry, "level"::text AS level, "lastVerifiedAt" AS verified
       FROM "ExclusiveJobPosting"
-      WHERE "sourceCategory" = 'search_firm' AND ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}
-    ),
-    hits AS (
-      SELECT fm.oid, "ExclusiveJobPosting".id AS jid, "targetFunction" AS fn, "locationState" AS state, "industry" AS industry, "level"::text AS level, "lastVerifiedAt" AS verified
-      FROM firms fm JOIN "ExclusiveJobPosting" ON "ExclusiveJobPosting"."companyId" = fm.cid
-      WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}
-      UNION
-      SELECT fm.oid, sf.jid, sf.fn, sf.state, sf.industry, sf.level, sf.verified
-      FROM firms fm JOIN sf ON sf.sname = fm.fname OR sf.sname = fm.fname2
+      WHERE "ExclusiveJobPosting".id IN (SELECT id FROM ids) AND "sourceCategory" = 'search_firm' AND ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}`,
+    SEARCH_FIRM_POSTINGS_STAGE_MS,
+  )
+  const byName = new Map<string, (PostingRow & { sname: string })[]>()
+  for (const r of crawled) (byName.get(r.sname) ?? byName.set(r.sname, []).get(r.sname)!).push(r)
+  for (const f of firms) {
+    for (const r of byName.get(f.fname) ?? []) out.push(hit(f, r))
+    if (f.fname2 && f.fname2 !== f.fname) for (const r of byName.get(f.fname2) ?? []) out.push(hit(f, r))
+  }
+
+  // Stage 3: postings tied to a firm's Company row, a batch of companies at a time.
+  const firmsByCompany = new Map<string, FirmBase[]>()
+  for (const f of firms) if (f.cid) (firmsByCompany.get(f.cid) ?? firmsByCompany.set(f.cid, []).get(f.cid)!).push(f)
+  const companyIds = [...firmsByCompany.keys()]
+  for (let i = 0; i < companyIds.length; i += FIRM_COMPANY_BATCH) {
+    const batch = companyIds.slice(i, i + FIRM_COMPANY_BATCH)
+    const rows = await withStatementTimeout(
+      prisma.$queryRaw<(PostingRow & { cid: string })[]>`
+        SELECT "ExclusiveJobPosting".id AS jid, "companyId" AS cid, "targetFunction" AS fn, "locationState" AS state, "industry" AS industry, "level"::text AS level, "lastVerifiedAt" AS verified
+        FROM "ExclusiveJobPosting"
+        WHERE "companyId" = ANY(${batch}::text[]) AND ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}`,
+      COMPANY_BATCH_STAGE_MS,
     )
-    SELECT fm.oid, fm.canon, fm.fname AS name, fm.segment, COALESCE(fm.staffing, false) AS staffing, fm.recruiter, fm.types, h.fn, h.state, h.industry, h.level, h.verified, h.jid AS "jobId"
-    FROM hits h JOIN firms fm ON fm.oid = h.oid`
+    for (const r of rows) for (const f of firmsByCompany.get(r.cid) ?? []) out.push(hit(f, r))
+  }
+  return out
+}
+
+export async function loadFirmListings(): Promise<FirmListing[]> {
+  const hits = await loadHitRows()
   // An organization with two crawled rows (a firm merged from a duplicate) joins every hit once per row: one posting counts once.
   const by = new Map<string, HitRow[]>()
   const seen = new Set<string>()

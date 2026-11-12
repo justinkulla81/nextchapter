@@ -13,7 +13,7 @@ const MISSING_PER_RUN = 20
 
 // Stores each human visitor's type per Eastern day (VisitorDayType) for the Visitors > Activity "Visitors by type" chart.
 // Every run redoes today and yesterday (today fills in during the day), then fills up to 20 past days that have no rows yet, newest first,
-// so the history backfills itself over the first runs. ?backfill=N redoes the last N days instead (up to 60).
+// so the history backfills itself over the first runs. ?backfill=N redoes the last N days instead (up to 60; add &skip=S to start S days further back).
 // Rerun-safe: a day's rows are replaced. Reads one day of visits grouped by IP per day processed, a few thousand rows each.
 export const GET = withCronRun('visitor-day-types', async (request: NextRequest) => {
   const asked = Number(request.nextUrl.searchParams.get('backfill'))
@@ -21,7 +21,10 @@ export const GET = withCronRun('visitor-day-types', async (request: NextRequest)
   const lastN = (n: number) => Array.from({ length: n }, (_, i) => etDateKey(new Date(now - (n - 1 - i) * DAY_MS)))
   let days: string[]
   if (Number.isFinite(asked) && asked > 0) {
-    days = lastN(Math.min(Math.floor(asked), 60))
+    // ?skip=S moves the window S days further back, so a second run (?backfill=40&skip=60) reaches the earliest days.
+    const skip = Math.max(0, Math.floor(Number(request.nextUrl.searchParams.get('skip'))) || 0)
+    const n = Math.min(Math.floor(asked), 60)
+    days = lastN(n + skip).slice(0, n)
   } else {
     const have = new Set((await prisma.visitorDayType.findMany({ distinct: ['day'], select: { day: true } })).map((r) => r.day))
     const recent = lastN(2)

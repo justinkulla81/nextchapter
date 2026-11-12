@@ -43,6 +43,8 @@ export function userTypeFromCrm(roles: string[], orgTypes: string[]): VisitorUse
 }
 
 const LANDING: { type: VisitorUserType; sections: string[] }[] = [
+  // Written for people who were just laid off, so someone landing here is a job seeker.
+  { type: 'Candidate', sections: ['/after-a-layoff'] },
   { type: 'Journalist', sections: ['/press'] },
   { type: 'Funder', sections: ['/funding'] },
   { type: 'Outplacement', sections: ['/outplacement'] },
