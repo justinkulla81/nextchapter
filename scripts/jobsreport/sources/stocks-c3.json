@@ -1,0 +1,169 @@
+[
+  {
+    "name": "wd-union-pacific",
+    "adapter": "workday",
+    "tenant": "unioncollege",
+    "wd": "wd5",
+    "site": "UnionCollegeCareers",
+    "type": "direct_ats",
+    "employer": "Union Pacific"
+  },
+  {
+    "name": "wd-s-p-global",
+    "adapter": "workday",
+    "tenant": "spgi",
+    "wd": "wd5",
+    "site": "SPGI_Careers",
+    "type": "direct_ats",
+    "employer": "S&P Global"
+  },
+  {
+    "name": "wd-stryker",
+    "adapter": "workday",
+    "tenant": "stryker",
+    "wd": "wd1",
+    "site": "StrykerCareers",
+    "type": "direct_ats",
+    "employer": "Stryker"
+  },
+  {
+    "name": "jibe-booking-holdings",
+    "adapter": "jibe",
+    "host": "jobs.booking.com",
+    "type": "direct_ats",
+    "employer": "Booking Holdings"
+  },
+  {
+    "name": "wd-simon-property-group",
+    "adapter": "workday",
+    "tenant": "simon",
+    "wd": "wd1",
+    "site": "Simon",
+    "type": "direct_ats",
+    "employer": "Simon Property Group"
+  },
+  {
+    "name": "jibe-aon-plc",
+    "adapter": "jibe",
+    "host": "jobs.aon.com",
+    "type": "direct_ats",
+    "employer": "Aon plc"
+  },
+  {
+    "name": "wd-rockwell-automation",
+    "adapter": "workday",
+    "tenant": "rockwellautomation",
+    "wd": "wd1",
+    "site": "External_Rockwell_Automation",
+    "type": "direct_ats",
+    "employer": "Rockwell Automation"
+  },
+  {
+    "name": "jibe-paychex",
+    "adapter": "jibe",
+    "host": "careers.paychex.com",
+    "type": "direct_ats",
+    "employer": "Paychex"
+  },
+  {
+    "name": "wd-biogen",
+    "adapter": "workday",
+    "tenant": "biibhr",
+    "wd": "wd3",
+    "site": "external",
+    "type": "direct_ats",
+    "employer": "Biogen"
+  },
+  {
+    "name": "wd-centene",
+    "adapter": "workday",
+    "tenant": "centene",
+    "wd": "wd5",
+    "site": "centene_external",
+    "type": "direct_ats",
+    "employer": "Centene"
+  },
+  {
+    "name": "wd-northern-trust",
+    "adapter": "workday",
+    "tenant": "ntrs",
+    "wd": "wd1",
+    "site": "northerntrust",
+    "type": "direct_ats",
+    "employer": "Northern Trust"
+  },
+  {
+    "name": "oracle-echostar",
+    "adapter": "oracle",
+    "host": "efgz-dev2.fa.us6.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "EchoStar"
+  },
+  {
+    "name": "jibe-first-citizens-bancshares",
+    "adapter": "jibe",
+    "host": "jobs.firstcitizens.com",
+    "type": "direct_ats",
+    "employer": "First Citizens BancShares"
+  },
+  {
+    "name": "jibe-incyte",
+    "adapter": "jibe",
+    "host": "careers.incyte.com",
+    "type": "direct_ats",
+    "employer": "Incyte"
+  },
+  {
+    "name": "wd-agilon-health-inc",
+    "adapter": "workday",
+    "tenant": "agilonhealth",
+    "wd": "wd1",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "agilon health, inc."
+  },
+  {
+    "name": "wd-teladoc-health",
+    "adapter": "workday",
+    "tenant": "teladoc",
+    "wd": "wd503",
+    "site": "teladochealth_is_hiring",
+    "type": "direct_ats",
+    "employer": "Teladoc Health"
+  },
+  {
+    "name": "wd-alignment-healthcare",
+    "adapter": "workday",
+    "tenant": "alignmenthealthcare",
+    "wd": "wd12",
+    "site": "ahc_external",
+    "type": "direct_ats",
+    "employer": "Alignment Healthcare"
+  },
+  {
+    "name": "wd-global-net-lease",
+    "adapter": "workday",
+    "tenant": "thisisglobal",
+    "wd": "wd3",
+    "site": "Global",
+    "type": "direct_ats",
+    "employer": "Global Net Lease"
+  },
+  {
+    "name": "jibe-yelp",
+    "adapter": "jibe",
+    "host": "careers.yelp.com",
+    "type": "direct_ats",
+    "employer": "Yelp"
+  },
+  {
+    "name": "wd-cae",
+    "adapter": "workday",
+    "tenant": "cae",
+    "wd": "wd3",
+    "site": "career",
+    "type": "direct_ats",
+    "employer": "CAE"
+  }
+]

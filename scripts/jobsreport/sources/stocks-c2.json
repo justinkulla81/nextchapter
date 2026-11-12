@@ -1,0 +1,185 @@
+[
+  {
+    "name": "jibe-pepsico",
+    "adapter": "jibe",
+    "host": "careers.pepsico.com",
+    "type": "direct_ats",
+    "employer": "PepsiCo"
+  },
+  {
+    "name": "wd-pfizer",
+    "adapter": "workday",
+    "tenant": "pfizer",
+    "wd": "wd1",
+    "site": "PfizerCareers",
+    "type": "direct_ats",
+    "employer": "Pfizer"
+  },
+  {
+    "name": "wd-accenture-plc",
+    "adapter": "workday",
+    "tenant": "accenture",
+    "wd": "wd103",
+    "site": "AccentureCareers",
+    "type": "direct_ats",
+    "employer": "Accenture plc"
+  },
+  {
+    "name": "oracle-uber-technologies",
+    "adapter": "oracle",
+    "host": "iaziqy.fa.ocs.oraclecloud.com",
+    "site": "UberCareers",
+    "type": "direct_ats",
+    "employer": "Uber Technologies"
+  },
+  {
+    "name": "wd-unilever",
+    "adapter": "workday",
+    "tenant": "unilever",
+    "wd": "wd3",
+    "site": "Unilever_Experienced_Professionals",
+    "type": "direct_ats",
+    "employer": "Unilever"
+  },
+  {
+    "name": "wd-the-boeing-company",
+    "adapter": "workday",
+    "tenant": "boeing",
+    "wd": "wd1",
+    "site": "EXTERNAL_CAREERS",
+    "type": "direct_ats",
+    "employer": "The Boeing Company"
+  },
+  {
+    "name": "jibe-constellation-energy",
+    "adapter": "jibe",
+    "host": "jobs.constellationenergy.com",
+    "type": "direct_ats",
+    "employer": "Constellation Energy"
+  },
+  {
+    "name": "wd-comcast",
+    "adapter": "workday",
+    "tenant": "comcast",
+    "wd": "wd115",
+    "site": "Comcast_Careers",
+    "type": "direct_ats",
+    "employer": "Comcast"
+  },
+  {
+    "name": "wd-the-travelers-companies",
+    "adapter": "workday",
+    "tenant": "travelers",
+    "wd": "wd5",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "The Travelers Companies"
+  },
+  {
+    "name": "jibe-msci",
+    "adapter": "jibe",
+    "host": "careers.msci.com",
+    "type": "direct_ats",
+    "employer": "MSCI"
+  },
+  {
+    "name": "jibe-ulta-beauty",
+    "adapter": "jibe",
+    "host": "careers.ulta.com",
+    "type": "direct_ats",
+    "employer": "Ulta Beauty"
+  },
+  {
+    "name": "wd-jabil",
+    "adapter": "workday",
+    "tenant": "jabil",
+    "wd": "wd5",
+    "site": "Jabil_Careers",
+    "type": "direct_ats",
+    "employer": "Jabil"
+  },
+  {
+    "name": "wd-church-dwight-co",
+    "adapter": "workday",
+    "tenant": "churchdwight",
+    "wd": "wd1",
+    "site": "chdcareers",
+    "type": "direct_ats",
+    "employer": "Church & Dwight Co."
+  },
+  {
+    "name": "jibe-principal-financial-group",
+    "adapter": "jibe",
+    "host": "careers.principal.com",
+    "type": "direct_ats",
+    "employer": "Principal Financial Group"
+  },
+  {
+    "name": "wd-liberty-latin-america",
+    "adapter": "workday",
+    "tenant": "liberty",
+    "wd": "wd5",
+    "site": "lu_job_board_faculty",
+    "type": "direct_ats",
+    "employer": "Liberty Latin America"
+  },
+  {
+    "name": "wd-blackline",
+    "adapter": "workday",
+    "tenant": "blackline",
+    "wd": "wd108",
+    "site": "BlackLineCareers",
+    "type": "direct_ats",
+    "employer": "BlackLine"
+  },
+  {
+    "name": "wd-global-partners-lp",
+    "adapter": "workday",
+    "tenant": "thisisglobal",
+    "wd": "wd3",
+    "site": "Global",
+    "type": "direct_ats",
+    "employer": "Global Partners LP"
+  },
+  {
+    "name": "jibe-tompkins-financial",
+    "adapter": "jibe",
+    "host": "careers.tompkinsfinancial.com",
+    "type": "direct_ats",
+    "employer": "Tompkins Financial"
+  },
+  {
+    "name": "wd-ameresco",
+    "adapter": "workday",
+    "tenant": "ameresco",
+    "wd": "wd5",
+    "site": "Ameresco",
+    "type": "direct_ats",
+    "employer": "Ameresco"
+  },
+  {
+    "name": "jibe-bj-s-restaurants",
+    "adapter": "jibe",
+    "host": "careers.bjsrestaurants.com",
+    "type": "direct_ats",
+    "employer": "BJ's Restaurants"
+  },
+  {
+    "name": "wd-jefferson-capital",
+    "adapter": "workday",
+    "tenant": "jeffersonhealth",
+    "wd": "wd5",
+    "site": "ThomasJeffersonExternal",
+    "type": "direct_ats",
+    "employer": "Jefferson Capital"
+  },
+  {
+    "name": "wd-the-goodyear-tire-rubber-company",
+    "adapter": "workday",
+    "tenant": "goodyear",
+    "wd": "wd1",
+    "site": "GoodyearCareers",
+    "type": "direct_ats",
+    "employer": "The Goodyear Tire & Rubber Company"
+  }
+]
