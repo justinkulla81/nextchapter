@@ -181,15 +181,38 @@ const MATCH_LABELS: Record<MatchKind, string> = { email: 'Email', likely: 'Likel
 
 // Newest first, through the same SQL filter as the counts and charts (a plain Prisma query cannot test a cloud-network block), so
 // with Human only on, a scanner or cloud-network visit never appears in the list that the page count describes.
-async function loadEventsNewest(botFilter: Prisma.Sql, rangeSql: Prisma.Sql, skip: number, take: number): Promise<LogEvent> {
-  const ids = await prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
-    SELECT "id" FROM "HomepageVisitEvent" WHERE ${botFilter} AND ${rangeSql} ORDER BY "createdAt" DESC, "id" DESC OFFSET ${skip} LIMIT ${take}`)
+// One row per visit: events from the same IP with no gap over 30 minutes are one visit (a person clicking through pages, or a
+// browser prefetching links), shown on its latest event with the visit's view and click counts. Reads the range only (30 days at most).
+const VISIT_GAP_MINUTES = 30
+async function loadEventsNewest(botFilter: Prisma.Sql, start: Date, skip: number, take: number): Promise<{ events: LogEvent; total: number; visitTotals: Map<string, { views: number; clicks: number }> }> {
+  const visits = Prisma.sql`
+    WITH ev AS (
+      SELECT "id", "createdAt", "ip", "eventType",
+        CASE WHEN lag("createdAt") OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt", "id") IS NULL
+               OR "createdAt" - lag("createdAt") OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt", "id") > make_interval(mins => ${VISIT_GAP_MINUTES})
+             THEN 1 ELSE 0 END AS "brk"
+      FROM "HomepageVisitEvent" WHERE ${botFilter} AND "createdAt" >= ${start}
+    ), s AS (
+      SELECT *, sum("brk") OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt", "id") AS "sid" FROM ev
+    ), g AS (
+      SELECT (array_agg("id" ORDER BY "createdAt" DESC, "id" DESC))[1] AS "id", max("createdAt") AS "last",
+        count(*) FILTER (WHERE "eventType"::text = 'PAGE_VIEW') AS "views", count(*) FILTER (WHERE "eventType"::text <> 'PAGE_VIEW') AS "clicks"
+      FROM s GROUP BY COALESCE("ip", "id"), "sid"
+    )`
+  const [ids, totalRows] = await Promise.all([
+    prisma.$queryRaw<{ id: string; views: bigint; clicks: bigint }[]>(Prisma.sql`${visits} SELECT "id", "views", "clicks" FROM g ORDER BY "last" DESC, "id" DESC OFFSET ${skip} LIMIT ${take}`),
+    prisma.$queryRaw<{ n: bigint }[]>(Prisma.sql`${visits} SELECT count(*) AS "n" FROM g`),
+  ])
   const rows = await prisma.homepageVisitEvent.findMany({
     where: { id: { in: ids.map((r) => r.id) } },
     include: { candidate: { select: { id: true, firstName: true, lastName: true, email: true } } },
   })
   const order = new Map(ids.map((r, i) => [r.id, i] as const))
-  return rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+  return {
+    events: rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)),
+    total: Number(totalRows[0]?.n ?? 0),
+    visitTotals: new Map(ids.map((r) => [r.id, { views: Number(r.views), clicks: Number(r.clicks) }] as const)),
+  }
 }
 
 // One window query over the range's rows only. Sorted by clicks or views: one row per visitor (an IP; an event with no IP stands
@@ -386,8 +409,8 @@ export default async function AdminVisitorActivityPage({
   // Sorted, unique and the type or match filters show one row per visitor (their latest event); otherwise every event is a row.
   const oneRowPerVisitor = !!sort || unique || scanActive
   // Counting clicks or views per visitor is a window over the rows in range, so it never runs over the whole table: all time reads 30 days.
-  const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : sort || email || scanActive || unique ? 30 : null
-  const logStart = logDays ? new Date(now().getTime() - logDays * DAY_MS) : null
+  const logDays = logRange === 'day' ? 1 : logRange === 'week' ? 7 : 30
+  const logStart = new Date(now().getTime() - logDays * DAY_MS)
   // Mail scanners are hidden with the bots: they open every link for every recipient, and are not people.
   // Also hidden: any address a list-email click flagged as a bot came from, and the /24 blocks scanners click from. Their page
   // visits otherwise pass as human (an iPhone or Chrome browser string from an address no cloud list knows).
@@ -416,9 +439,9 @@ export default async function AdminVisitorActivityPage({
   const viewsLabel = showBots ? 'Page views, all traffic' : 'Human page views'
   type BucketRow = { key: string; views: bigint; visitors: bigint }
   const [loaded, dayRows, hourRows, totalsRows] = await Promise.all([
-    (sort || email || scanActive || unique) && logStart
+    sort || email || scanActive || unique
       ? loadEventsByVisitor(botFilter, logStart, scanActive ? 0 : params.skip, scanActive ? TYPE_SCAN_LIMIT : params.take, sort, email, !!sort || scanActive || unique)
-      : loadEventsNewest(botFilter, rangeSql, params.skip, params.take),
+      : loadEventsNewest(botFilter, logStart, params.skip, params.take),
     // The charts read counts grouped by Eastern day and hour in the database, not every raw event.
     prisma.$queryRaw<BucketRow[]>(Prisma.sql`
       SELECT ${etDay} AS "key", count(*) AS "views", count(DISTINCT "ip") AS "visitors"
@@ -441,7 +464,8 @@ export default async function AdminVisitorActivityPage({
       WHERE ${botFilter}`),
   ])
 
-  const events = Array.isArray(loaded) ? loaded : loaded.events
+  const events = loaded.events
+  const visitTotals = 'visitTotals' in loaded ? loaded.visitTotals : null
   // Email visits inside two minutes of delivery (the unsubscribe-link visit, the report visit that follows it, an outreach link),
   // marked on the rows shown. In Human only mode they are already out of the list; in All traffic mode this labels them.
   const prefetchIds = new Set(
@@ -457,7 +481,7 @@ export default async function AdminVisitorActivityPage({
     all: { events: Number(t?.eall ?? 0), visitors: Number(t?.vall ?? 0) },
   }
   // Same count the log is paginated by (the bot rule is the same SQL filter).
-  const total = !Array.isArray(loaded) ? loaded.total : logDays === 1 ? totals.day.events : logDays === 7 ? totals['7d'].events : logDays === 30 ? totals['30d'].events : totals.all.events
+  const total = loaded.total
   const toCounts = (rows: BucketRow[], field: 'views' | 'visitors') => new Map(rows.map((r) => [r.key, Number(r[field])] as const))
   const dayViews = toCounts(dayRows, 'views')
   const dayVisitors = toCounts(dayRows, 'visitors')
@@ -1037,17 +1061,14 @@ export default async function AdminVisitorActivityPage({
     },
     { header: 'Location', render: (r) => r.location ?? '—' },
     {
-      // One row per visitor (sorted, unique or filtered): that visitor's totals. Every visit: the row's own event, one view or one click.
+      // One row per visitor (sorted, unique or filtered): that visitor's totals. Every visit: the views and clicks of that one visit.
       header: oneRowPerVisitor ? 'Visitor totals' : 'This visit',
       cellClassName: 'tabular-nums',
       render: (r) =>
         !oneRowPerVisitor ? (
-          <span title="This row is one recorded event. Switch to Unique only or a sort order to see a visitor's totals.">
-            {r.eventType === 'PAGE_VIEW' ? (
-              <>1 <span className="text-muted-foreground">view</span></>
-            ) : (
-              <>1 <span className="text-muted-foreground">click</span></>
-            )}
+          <span title={`One visit: events from this address with no gap over ${VISIT_GAP_MINUTES} minutes. Different addresses are counted as different visitors, even when one person's phone or VPN switches address.`}>
+            {(visitTotals?.get(r.id)?.views ?? 0)} <span className="text-muted-foreground">{visitTotals?.get(r.id)?.views === 1 ? 'view' : 'views'}</span>
+            {(visitTotals?.get(r.id)?.clicks ?? 0) > 0 && <> · {visitTotals?.get(r.id)?.clicks} <span className="text-muted-foreground">{visitTotals?.get(r.id)?.clicks === 1 ? 'click' : 'clicks'}</span></>}
           </span>
         ) : !r.ip ? (
           '—'
