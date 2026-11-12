@@ -13,6 +13,7 @@ export const maxDuration = 300
  */
 export const GET = withCronRun('mailing-send', async () => {
   const signups = await syncWebsiteSignups()
-  const result = await runSendBatch(25)
+  // 45 every five minutes lets the hourly rate in Mailing settings go up to about 540 (it was 25, a ceiling of 300 an hour).
+  const result = await runSendBatch(45)
   return NextResponse.json({ signups, ...result })
 })
