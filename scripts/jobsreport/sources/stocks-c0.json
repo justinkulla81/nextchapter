@@ -1,0 +1,223 @@
+[
+  {
+    "name": "wd-abbott-laboratories",
+    "adapter": "workday",
+    "tenant": "abbott",
+    "wd": "wd5",
+    "site": "abbottcareers",
+    "type": "direct_ats",
+    "employer": "Abbott Laboratories"
+  },
+  {
+    "name": "oracle-marriott-international",
+    "adapter": "oracle",
+    "host": "ejwl.fa.us2.oraclecloud.com",
+    "site": "CX",
+    "type": "direct_ats",
+    "employer": "Marriott International"
+  },
+  {
+    "name": "wd-enbridge",
+    "adapter": "workday",
+    "tenant": "enbridge",
+    "wd": "wd3",
+    "site": "enbridge_careers",
+    "type": "direct_ats",
+    "employer": "Enbridge"
+  },
+  {
+    "name": "wd-johnson-controls-international-plc",
+    "adapter": "workday",
+    "tenant": "jci",
+    "wd": "wd5",
+    "site": "JCI",
+    "type": "direct_ats",
+    "employer": "Johnson Controls International plc"
+  },
+  {
+    "name": "oracle-the-sherwin-williams-company",
+    "adapter": "oracle",
+    "host": "ejhp.fa.us6.oraclecloud.com",
+    "site": "CX_2",
+    "type": "direct_ats",
+    "employer": "The Sherwin-Williams Company"
+  },
+  {
+    "name": "wd-target",
+    "adapter": "workday",
+    "tenant": "target",
+    "wd": "wd5",
+    "site": "targetcareers",
+    "type": "direct_ats",
+    "employer": "Target"
+  },
+  {
+    "name": "wd-united-rentals",
+    "adapter": "workday",
+    "tenant": "ur",
+    "wd": "wd1",
+    "site": "URcareers",
+    "type": "direct_ats",
+    "employer": "United Rentals"
+  },
+  {
+    "name": "oracle-cummins",
+    "adapter": "oracle",
+    "host": "fa-espx-saasfaprod1.fa.ocs.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "Cummins"
+  },
+  {
+    "name": "wd-edwards-lifesciences",
+    "adapter": "workday",
+    "tenant": "edwards",
+    "wd": "wd5",
+    "site": "EdwardsCareers",
+    "type": "direct_ats",
+    "employer": "Edwards Lifesciences"
+  },
+  {
+    "name": "wd-xcel-energy",
+    "adapter": "workday",
+    "tenant": "xcelenergy",
+    "wd": "wd1",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Xcel Energy"
+  },
+  {
+    "name": "oracle-ford-motor-company",
+    "adapter": "oracle",
+    "host": "efds.fa.em5.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "Ford Motor Company"
+  },
+  {
+    "name": "wd-vylor",
+    "adapter": "workday",
+    "tenant": "vylor",
+    "wd": "wd115",
+    "site": "Vylor",
+    "type": "direct_ats",
+    "employer": "Vylor"
+  },
+  {
+    "name": "wd-state-street",
+    "adapter": "workday",
+    "tenant": "statestreet",
+    "wd": "wd1",
+    "site": "Global",
+    "type": "direct_ats",
+    "employer": "State Street"
+  },
+  {
+    "name": "wd-thomson-reuters",
+    "adapter": "workday",
+    "tenant": "thomsonreuters",
+    "wd": "wd5",
+    "site": "External_Career_Site",
+    "type": "direct_ats",
+    "employer": "Thomson Reuters"
+  },
+  {
+    "name": "wd-carrier-global",
+    "adapter": "workday",
+    "tenant": "carrier",
+    "wd": "wd5",
+    "site": "jobs",
+    "type": "direct_ats",
+    "employer": "Carrier Global"
+  },
+  {
+    "name": "wd-expedia-group",
+    "adapter": "workday",
+    "tenant": "expedia",
+    "wd": "wd108",
+    "site": "search",
+    "type": "direct_ats",
+    "employer": "Expedia Group"
+  },
+  {
+    "name": "oracle-dollar-general",
+    "adapter": "oracle",
+    "host": "ibxwjb.fa.ocs.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "Dollar General"
+  },
+  {
+    "name": "oracle-quest-diagnostics-incorporated",
+    "adapter": "oracle",
+    "host": "hdox.fa.us6.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "Quest Diagnostics Incorporated"
+  },
+  {
+    "name": "wd-insmed-incorporated",
+    "adapter": "workday",
+    "tenant": "insmed",
+    "wd": "wd504",
+    "site": "EXTERNAL",
+    "type": "direct_ats",
+    "employer": "Insmed Incorporated"
+  },
+  {
+    "name": "wd-tapestry",
+    "adapter": "workday",
+    "tenant": "tapestry",
+    "wd": "wd108",
+    "site": "Tapestry_Careers",
+    "type": "direct_ats",
+    "employer": "Tapestry"
+  },
+  {
+    "name": "wd-entegris",
+    "adapter": "workday",
+    "tenant": "entegris",
+    "wd": "wd1",
+    "site": "EntegrisCareers",
+    "type": "direct_ats",
+    "employer": "Entegris"
+  },
+  {
+    "name": "jibe-pacira-biosciences",
+    "adapter": "jibe",
+    "host": "careers.pacira.com",
+    "type": "direct_ats",
+    "employer": "Pacira BioSciences"
+  },
+  {
+    "name": "wd-carter-s",
+    "adapter": "workday",
+    "tenant": "carters",
+    "wd": "wd1",
+    "site": "CartersCareers",
+    "type": "direct_ats",
+    "employer": "Carter's"
+  },
+  {
+    "name": "jibe-universal-technical-institute",
+    "adapter": "jibe",
+    "host": "careers.uti.edu",
+    "type": "direct_ats",
+    "employer": "Universal Technical Institute"
+  },
+  {
+    "name": "oracle-suburban-propane-partners",
+    "adapter": "oracle",
+    "host": "icbojb.fa.ocs.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "Suburban Propane Partners"
+  },
+  {
+    "name": "jibe-cnb-financial",
+    "adapter": "jibe",
+    "host": "careers.cnb.com",
+    "type": "direct_ats",
+    "employer": "CNB Financial"
+  }
+]

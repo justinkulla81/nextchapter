@@ -1,0 +1,127 @@
+[
+  {
+    "name": "wd-marathon-petroleum",
+    "adapter": "workday",
+    "tenant": "mpc",
+    "wd": "wd1",
+    "site": "mpccareers",
+    "type": "direct_ats",
+    "employer": "Marathon Petroleum",
+    "boardTotal": 114
+  },
+  {
+    "name": "wd-morgan-stanley",
+    "adapter": "workday",
+    "tenant": "ms",
+    "wd": "wd5",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Morgan Stanley",
+    "boardTotal": 1191
+  },
+  {
+    "name": "wd-johnson-johnson",
+    "adapter": "workday",
+    "tenant": "jj",
+    "wd": "wd5",
+    "site": "jj",
+    "type": "direct_ats",
+    "employer": "Johnson & Johnson",
+    "boardTotal": 1795
+  },
+  {
+    "name": "wd-broadcom",
+    "adapter": "workday",
+    "tenant": "broadcom",
+    "wd": "wd1",
+    "site": "External_Career",
+    "type": "direct_ats",
+    "employer": "Broadcom",
+    "boardTotal": 418
+  },
+  {
+    "name": "wd-chevron",
+    "adapter": "workday",
+    "tenant": "chevron",
+    "wd": "wd5",
+    "site": "jobs",
+    "type": "direct_ats",
+    "employer": "Chevron",
+    "boardTotal": 159
+  },
+  {
+    "name": "wd-general-motors",
+    "adapter": "workday",
+    "tenant": "generalmotors",
+    "wd": "wd5",
+    "site": "Careers_GM",
+    "type": "direct_ats",
+    "employer": "General Motors",
+    "boardTotal": 667
+  },
+  {
+    "name": "wd-procter-gamble",
+    "adapter": "workday",
+    "tenant": "pg",
+    "wd": "wd5",
+    "site": "1000",
+    "type": "direct_ats",
+    "employer": "Procter & Gamble",
+    "boardTotal": 886
+  },
+  {
+    "name": "wd-coca-cola",
+    "adapter": "workday",
+    "tenant": "coke",
+    "wd": "wd1",
+    "site": "coca-cola-careers",
+    "type": "direct_ats",
+    "employer": "Coca-Cola",
+    "boardTotal": 263
+  },
+  {
+    "name": "wd-lowe-s",
+    "adapter": "workday",
+    "tenant": "lowes",
+    "wd": "wd5",
+    "site": "LWS_External_CS",
+    "type": "direct_ats",
+    "employer": "Lowe's",
+    "boardTotal": 12993
+  },
+  {
+    "name": "phenom-cvs-health",
+    "adapter": "phenom",
+    "host": "jobs.cvshealth.com",
+    "type": "direct_ats",
+    "employer": "CVS Health",
+    "boardTotal": 19086,
+    "note": "POST https://HOST/widgets with ddoKey refineSearch (public); adapter to build"
+  },
+  {
+    "name": "phenom-tjx",
+    "adapter": "phenom",
+    "host": "jobs.tjx.com",
+    "type": "direct_ats",
+    "employer": "TJX",
+    "boardTotal": 10051,
+    "note": "POST https://HOST/widgets with ddoKey refineSearch (public); adapter to build"
+  },
+  {
+    "name": "phenom-eli-lilly",
+    "adapter": "phenom",
+    "host": "careers.lilly.com",
+    "type": "direct_ats",
+    "employer": "Eli Lilly",
+    "boardTotal": 541,
+    "note": "POST https://HOST/widgets with ddoKey refineSearch (public); adapter to build"
+  },
+  {
+    "name": "ibm-careers-api",
+    "adapter": "ibm_search_api",
+    "type": "direct_ats",
+    "employer": "IBM",
+    "boardTotal": 3125,
+    "note": "POST https://www-api.ibm.com/search/api/v2 appId careers, scopes careers2 (public); adapter to build"
+  }
+]

@@ -1,0 +1,182 @@
+[
+  {
+    "name": "wd-conocophillips",
+    "adapter": "workday",
+    "tenant": "conocophillips",
+    "wd": "wd1",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "ConocoPhillips"
+  },
+  {
+    "name": "oracle-fortinet",
+    "adapter": "oracle",
+    "host": "edel.fa.us2.oraclecloud.com",
+    "site": "CX_2001",
+    "type": "direct_ats",
+    "employer": "Fortinet"
+  },
+  {
+    "name": "wd-elevance-health",
+    "adapter": "workday",
+    "tenant": "elevancehealth",
+    "wd": "wd1",
+    "site": "ANT",
+    "type": "direct_ats",
+    "employer": "Elevance Health"
+  },
+  {
+    "name": "wd-the-cigna-group",
+    "adapter": "workday",
+    "tenant": "cigna",
+    "wd": "wd5",
+    "site": "cignacareers",
+    "type": "direct_ats",
+    "employer": "The Cigna Group"
+  },
+  {
+    "name": "jibe-kinder-morgan",
+    "adapter": "jibe",
+    "host": "careers.kindermorgan.com",
+    "type": "direct_ats",
+    "employer": "Kinder Morgan"
+  },
+  {
+    "name": "wd-argenx-se",
+    "adapter": "workday",
+    "tenant": "argenx",
+    "wd": "wd3",
+    "site": "External_Careers",
+    "type": "direct_ats",
+    "employer": "argenx SE"
+  },
+  {
+    "name": "wd-nike",
+    "adapter": "workday",
+    "tenant": "nike",
+    "wd": "wd1",
+    "site": "nke2",
+    "type": "direct_ats",
+    "employer": "NIKE"
+  },
+  {
+    "name": "jibe-keysight-technologies",
+    "adapter": "jibe",
+    "host": "careers.keysight.com",
+    "type": "direct_ats",
+    "employer": "Keysight Technologies"
+  },
+  {
+    "name": "wd-agilent-technologies",
+    "adapter": "workday",
+    "tenant": "agilent",
+    "wd": "wd5",
+    "site": "Agilent_Student_Careers",
+    "type": "direct_ats",
+    "employer": "Agilent Technologies"
+  },
+  {
+    "name": "wd-sunbelt-rentals-holdings",
+    "adapter": "workday",
+    "tenant": "sunbeltrentals",
+    "wd": "wd1",
+    "site": "sbcareers",
+    "type": "direct_ats",
+    "employer": "Sunbelt Rentals Holdings"
+  },
+  {
+    "name": "wd-zoetis",
+    "adapter": "workday",
+    "tenant": "zoetis",
+    "wd": "wd5",
+    "site": "zoetis",
+    "type": "direct_ats",
+    "employer": "Zoetis"
+  },
+  {
+    "name": "jibe-the-bancorp",
+    "adapter": "jibe",
+    "host": "careers.thebancorp.com",
+    "type": "direct_ats",
+    "employer": "The Bancorp"
+  },
+  {
+    "name": "wd-wolverine-world-wide",
+    "adapter": "workday",
+    "tenant": "wwwinc",
+    "wd": "wd1",
+    "site": "WWW",
+    "type": "direct_ats",
+    "employer": "Wolverine World Wide"
+  },
+  {
+    "name": "jibe-certara",
+    "adapter": "jibe",
+    "host": "careers.certara.com",
+    "type": "direct_ats",
+    "employer": "Certara"
+  },
+  {
+    "name": "jibe-pdf-solutions",
+    "adapter": "jibe",
+    "host": "careers.pdf.com",
+    "type": "direct_ats",
+    "employer": "PDF Solutions"
+  },
+  {
+    "name": "jibe-energizer-holdings",
+    "adapter": "jibe",
+    "host": "careers.energizerholdings.com",
+    "type": "direct_ats",
+    "employer": "Energizer Holdings"
+  },
+  {
+    "name": "wd-global-ship-lease",
+    "adapter": "workday",
+    "tenant": "thisisglobal",
+    "wd": "wd3",
+    "site": "Global",
+    "type": "direct_ats",
+    "employer": "Global Ship Lease"
+  },
+  {
+    "name": "oracle-ani-pharmaceuticals",
+    "adapter": "oracle",
+    "host": "iboijb.fa.ocs.oraclecloud.com",
+    "site": "CX_1003",
+    "type": "direct_ats",
+    "employer": "ANI Pharmaceuticals"
+  },
+  {
+    "name": "wd-luxexperience-b-v",
+    "adapter": "workday",
+    "tenant": "luxexperience",
+    "wd": "wd103",
+    "site": "LuxExperience_Careers",
+    "type": "direct_ats",
+    "employer": "LuxExperience B.V."
+  },
+  {
+    "name": "jibe-innovage-holding",
+    "adapter": "jibe",
+    "host": "careers.innovage.com",
+    "type": "direct_ats",
+    "employer": "InnovAge Holding"
+  },
+  {
+    "name": "wd-liberty-capital",
+    "adapter": "workday",
+    "tenant": "liberty",
+    "wd": "wd5",
+    "site": "lu_job_board_faculty",
+    "type": "direct_ats",
+    "employer": "Liberty Capital"
+  },
+  {
+    "name": "jibe-gmr-solutions",
+    "adapter": "jibe",
+    "host": "careers.gmr.net",
+    "type": "direct_ats",
+    "employer": "GMR Solutions"
+  }
+]
