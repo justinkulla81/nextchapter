@@ -39,6 +39,14 @@ describe('which list-email clicks are a person', () => {
     expect(botClickReason(click({ at: new Date(delivered.getTime() + 60_000) }), new Set())).toMatch(/two minutes/)
     expect(isHumanClick(click({ at: new Date(delivered.getTime() + 3 * 60_000) }), new Set())).toBe(true)
   })
+  it('does not count a click from a browser years out of date, but does from a current one', () => {
+    const chrome84 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36'
+    expect(botClickReason(click({ userAgent: chrome84 }), new Set())).toMatch(/out of date/)
+    expect(isHumanClick(click({ userAgent: 'Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/109.0' }), new Set())).toBe(false)
+    expect(isHumanClick(click({ userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152.0.0.0 Safari/537.36' }), new Set())).toBe(true)
+    expect(isHumanClick(click({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148' }), new Set())).toBe(true)
+    expect(isHumanClick(click({ userAgent: null }), new Set())).toBe(true)
+  })
   it('counts a click when delivery is not known and nothing else marks it a bot', () => {
     expect(isHumanClick(click({ deliveredAt: null }), new Set())).toBe(true)
   })

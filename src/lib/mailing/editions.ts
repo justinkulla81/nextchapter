@@ -233,8 +233,35 @@ export async function sendTestEmail(editionId: string): Promise<{ ok: boolean; m
   return { ok: true, message: `Test sent to ${settings.testEmail}.` }
 }
 
+/** Sends the real email to each seed inbox (Gmail, Outlook, Yahoo...) marked [Seed], to see whether it lands in the inbox, promotions or spam. */
+export async function sendSeedTest(editionId: string): Promise<{ ok: boolean; message: string; sentTo: string[] }> {
+  if (!process.env.RESEND_API_KEY) return { ok: false, message: 'RESEND_API_KEY is not set, so nothing can be sent.', sentTo: [] }
+  const edition = await prisma.mailingEdition.findUniqueOrThrow({ where: { id: editionId }, include: { lists: { include: { list: true } } } })
+  if (!edition.subject.trim() || !edition.bodyHtml.trim()) return { ok: false, message: 'Add a subject and a message first.', sentTo: [] }
+  const settings = await getMailingSettings()
+  const seeds = Array.from(new Set(settings.seedEmails.map((e) => e.trim().toLowerCase()).filter(Boolean)))
+  if (seeds.length === 0) return { ok: false, message: 'No seed inboxes yet. Add them under Sender settings on the Mailing lists page.', sentTo: [] }
+  const resend = createResend(process.env.RESEND_API_KEY)
+  const attachments = await attachmentFor(edition)
+  const sentTo: string[] = []
+  const failed: string[] = []
+  for (const email of seeds) {
+    const { error } = await sendOne(resend, edition, { email, personId: null, recipientId: null }, settings, attachments, '[Seed] ')
+    if (error) failed.push(`${email} (${error.message})`)
+    else sentTo.push(email)
+  }
+  const message = `${sentTo.length ? `Seed test sent to ${sentTo.join(', ')}. Check each inbox in a few minutes: inbox, promotions or spam.` : 'Nothing was sent.'}${failed.length ? ` Refused: ${failed.join('; ')}.` : ''}`
+  return { ok: sentTo.length > 0 && failed.length === 0, message, sentTo }
+}
+
+/** Midnight at the start of the current Eastern day, as an instant. */
+function startOfEasternDay(now: Date): Date {
+  const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }))
+  return new Date(now.getTime() - (et.getHours() * 3_600_000 + et.getMinutes() * 60_000 + et.getSeconds() * 1000 + et.getMilliseconds()))
+}
+
 /**
- * Sends the next slice of every edition that's due, within the hourly rate.
+ * Sends the next slice of every edition that's due, within the hourly rate and the daily cap.
  * Called by the cron every five minutes and right after "Send now". Safe to
  * run concurrently: each recipient is claimed with a conditional update
  * before it's sent, so two runs never mail the same person.
@@ -255,7 +282,9 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
 
   const settings = await getMailingSettings()
   const sentLastHour = await prisma.mailingEditionRecipient.count({ where: { sentAt: { gte: new Date(now.getTime() - 3_600_000) } } })
-  let budget = Math.min(maxThisRun, Math.max(0, settings.ratePerHour - sentLastHour))
+  // The daily cap keeps the volume from the sending domain growing gradually (a young domain that jumps from 24 to 1,600 a day looks like spam).
+  const sentToday = await prisma.mailingEditionRecipient.count({ where: { sentAt: { gte: startOfEasternDay(now) } } })
+  let budget = Math.min(maxThisRun, Math.max(0, settings.ratePerHour - sentLastHour), Math.max(0, settings.dailyCap - sentToday))
 
   const editions = await prisma.mailingEdition.findMany({
     where: { status: 'SENDING' }, orderBy: { sendStartedAt: 'asc' }, include: { lists: { include: { list: true } } },

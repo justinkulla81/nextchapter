@@ -73,6 +73,10 @@ export const posthog = {
   reset() {
     run((ph) => ph.reset())
   },
+  /** Properties sent with every later event from this browser. */
+  register(properties: Properties) {
+    run((ph) => ph.register(properties))
+  },
 }
 
 // Drop-in for posthog-js/react's usePostHog(): same call shape, always defined.

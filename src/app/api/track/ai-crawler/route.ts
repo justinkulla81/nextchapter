@@ -2,7 +2,7 @@ import 'server-only'
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
-import { AI_CRAWLERS } from '@/lib/http/ai-crawlers'
+import { AI_CRAWLERS, crawlerPathKey } from '@/lib/http/ai-crawlers'
 
 // Called by the proxy (never by browsers) when a named AI crawler fetches a page. One row per day, bot and path, with a
 // hit counter, so a crawler reading 10,000 pages adds at most 10,000 rows and a repeat visit adds none. Best effort:
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const crawler = AI_CRAWLERS.find((c) => c.bot === body?.bot)
-    const path = typeof body?.path === 'string' ? body.path.slice(0, 300) : null
+    const path = typeof body?.path === 'string' ? crawlerPathKey(body.path.slice(0, 300)) : null
     if (!crawler || !path) return NextResponse.json({ recorded: false })
     const day = new Date()
     day.setUTCHours(0, 0, 0, 0)

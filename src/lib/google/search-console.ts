@@ -320,11 +320,11 @@ export async function inspectIndexState(urls: string[]): Promise<Map<string, Ind
 }
 
 export interface SitemapProblems {
-  /** Job sitemap files Google lists for the property, and the errors and warnings it reports on them. */
+  /** Job sitemap files, or the sitemap index that lists them, as Google lists them for the property, and the errors and warnings it reports on them. */
   files: number
   errors: number
   warnings: number
-  /** URLs submitted in the job sitemaps (what Google read). */
+  /** URLs submitted in those files (what Google read); through the index this counts every group's URLs, not only jobs. */
   submitted: number
 }
 
@@ -338,7 +338,10 @@ export async function sitemapProblems(): Promise<SitemapProblems> {
   const res = await authedFetch(session.token, `${API}/sites/${encodeURIComponent(session.siteUrl)}/sitemaps`)
   if (!res.ok) throw new SearchConsoleHttpError(res.status, await res.text())
   const data = (await res.json()) as { sitemap?: { path: string; errors?: string; warnings?: string; contents?: { type: string; submitted?: string }[] }[] }
-  const jobs = (data.sitemap ?? []).filter((m) => /\/jobs\/sitemap\//.test(m.path))
+  // The job shards (/jobs/sitemap/N.xml) are not submitted one by one: Google reads them through sitemap-index.xml, which Search Console lists as a
+  // single "Sitemap index" row (219,659 URLs discovered on 2026-11-11, job pages among them). Counting only /jobs/sitemap/ paths read 0 files and made
+  // a healthy read look like Google had read nothing. The index row's errors, warnings and URL count therefore stand for the job files.
+  const jobs = (data.sitemap ?? []).filter((m) => /\/jobs\/sitemap\/|\/sitemap-index\.xml$/.test(m.path))
   return {
     files: jobs.length,
     errors: jobs.reduce((n, m) => n + Number(m.errors ?? 0), 0),

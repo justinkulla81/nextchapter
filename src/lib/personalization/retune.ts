@@ -3,7 +3,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { COMMUTE_MILES } from '@/lib/jobs/relevance'
 import { subFunctionLabel } from '@/lib/jobs/sub-functions'
 import { skillKey } from '@/lib/profile/skill-matrix'
-import { computeMatchState, type MatchProfile, type MatchState, type MatchTiming } from '@/lib/personalization/match-compute'
+import { computeMatchState, MatchDeadlineError, type MatchProfile, type MatchState, type MatchTiming } from '@/lib/personalization/match-compute'
 import { changedFields, profileFromInputs, type MatchInputs } from '@/lib/personalization/match-inputs'
 import { currentMatchInputs, previousMatchInputs, recordMatchSnapshot } from '@/lib/personalization/match-snapshot'
 import { diffVerdicts, isMatch, singleExclusions, topReasons, type ReasonContext, type RetuneResult, type RetuneTrigger } from '@/lib/personalization/match-verdict'
@@ -15,6 +15,9 @@ import { buildSignals } from '@/lib/personalization/signals'
  * change (the baseline the save kept, run against today's jobs). Everything returned is
  * computed here; nothing is estimated. Records a 'retune' snapshot and search_retuned.
  */
+/** A retune still running after this long is stopped (the member gave up at 20 s; 60 s leaves room for a cold board load). */
+export const RUN_LIMIT_MS = 60_000
+
 export async function runRetune(profile: MatchProfile, trigger: RetuneTrigger): Promise<RetuneResult | null> {
   const started = Date.now()
   // Where the time went, carried on search_retuned so a slow run (285 s on 2026-11-03, 473 s on 2026-11-07) says whether it was the
@@ -24,10 +27,36 @@ export async function runRetune(profile: MatchProfile, trigger: RetuneTrigger): 
   const prev = await previousMatchInputs(profile.id, nowInputs).catch(() => null)
   const inputsMs = Date.now() - started
   const beforeProfile = prev && !prev.unchanged ? ({ ...profileFromInputs(profile, prev.inputs), socOverride: prev.inputs.soc ?? undefined } as MatchProfile) : null
-  const [after, before] = await Promise.all([
-    computeMatchState(profile, { live: true, timing: afterTiming }),
-    beforeProfile && prev ? computeMatchState(beforeProfile, { dismiss: prev.inputs.dismiss }) : Promise.resolve(null),
-  ])
+  // The member stops waiting at RETUNE_DEADLINE_MS (app/dashboard/retune-actions.ts); a run still going well past it only holds a server.
+  // The matching loop stops at this limit (the 2026-11-10 run took 334 s with the board already in memory, cause not yet known).
+  const deadlineAt = started + RUN_LIMIT_MS
+  const beforeTiming: MatchTiming = {}
+  let beforeMs: number | null = null
+  let after: MatchState | null
+  let before: MatchState | null
+  try {
+    ;[after, before] = await Promise.all([
+      computeMatchState(profile, { live: true, timing: afterTiming, deadlineAt }),
+      beforeProfile && prev ? computeMatchState(beforeProfile, { dismiss: prev.inputs.dismiss, timing: beforeTiming, deadlineAt }).finally(() => {
+            beforeMs = Date.now() - started
+          }) : Promise.resolve(null),
+    ])
+  } catch (error) {
+    if (!(error instanceof MatchDeadlineError)) throw error
+    captureServerEvent(profile.id, 'search_retune_stopped', {
+      trigger,
+      ms: Date.now() - started,
+      rowsDone: error.rowsDone,
+      inputsMs,
+      loadMs: afterTiming.loadMs ?? null,
+      memo: afterTiming.memo ?? false,
+      memoWaitMs: afterTiming.memoWaitMs ?? null,
+      classifierMs: afterTiming.classifierMs ?? null,
+      beforeLoadMs: beforeTiming.loadMs ?? null,
+      beforeClassifierMs: beforeTiming.classifierMs ?? null,
+    })
+    return null
+  }
   const computeMs = Date.now() - started - inputsMs
   if (!after) return null
   const member = after.classifier.member
@@ -88,6 +117,11 @@ export async function runRetune(profile: MatchProfile, trigger: RetuneTrigger): 
     classifierMs: afterTiming.classifierMs ?? null,
     matchMs: afterTiming.matchMs ?? null,
     memo: afterTiming.memo ?? false,
+    memoWaitMs: afterTiming.memoWaitMs ?? null,
+    beforeMs,
+    beforeLoadMs: beforeTiming.loadMs ?? null,
+    beforeClassifierMs: beforeTiming.classifierMs ?? null,
+    beforeMatchMs: beforeTiming.matchMs ?? null,
   })
   return result
 }

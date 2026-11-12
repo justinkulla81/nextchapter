@@ -18,7 +18,7 @@ import { PLACEHOLDER_RE } from '@/lib/mailing/prefill'
 import { isCadence } from '@/lib/mailing/cadence'
 import {
   ATTACH_WARN_BYTES, MAILING_BUCKET, editionCounts, ensureBucket, runSendBatch,
-  sendTestEmail, startSending, syncEditionRoster, earlierVersionSends,
+  sendTestEmail, sendSeedTest, startSending, syncEditionRoster, earlierVersionSends,
 } from '@/lib/mailing/editions'
 
 const BASE = '/support/admin/crm/mailing'
@@ -278,6 +278,13 @@ export async function sendTest(editionId: string) {
   return r
 }
 
+export async function sendSeedTestAction(editionId: string) {
+  const by = await admin()
+  const r = await sendSeedTest(editionId)
+  captureServerEvent(by, 'mailing_seed_test_sent', { editionId, ok: r.ok, inboxes: r.sentTo.length })
+  return r
+}
+
 async function readyToSend(editionId: string, confirmCount: number) {
   const [edition, settings] = await Promise.all([
     prisma.mailingEdition.findUniqueOrThrow({ where: { id: editionId }, include: { lists: true } }),
@@ -370,12 +377,16 @@ export async function saveSettings(formData: FormData) {
   await admin()
   const text = (k: string) => String(formData.get(k) ?? '').trim()
   const rate = Math.max(1, Math.min(2000, parseInt(text('ratePerHour'), 10) || 50))
+  const dailyCap = Math.max(1, Math.min(10000, parseInt(text('dailyCap'), 10) || 500))
+  const seedEmails = Array.from(new Set(text('seedEmails').split(/[\s,;]+/).map((e) => e.toLowerCase()).filter((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))))
   const data = {
     fromName: text('fromName') || 'Justin Kulla',
     fromEmail: text('fromEmail') || 'justin@updates.launchyournextchapter.com',
     replyTo: text('replyTo') || 'justin@launchyournextchapter.com',
     testEmail: text('testEmail') || 'justin@launchyournextchapter.com',
     ratePerHour: rate,
+    dailyCap,
+    seedEmails,
     footerText: text('footerText') || "Not interested? Just reply and I'll take you off my list. NextChapter · {{postalAddress}}",
     postalAddress: text('postalAddress'),
   }

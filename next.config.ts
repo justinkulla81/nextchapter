@@ -153,6 +153,8 @@ const nextConfig: NextConfig = {
         ['/sitemap', '/sitemap.xml'],
         ['/home', '/'],
         ['/job-seekers', '/jobs'],
+        ['/search-jobs', '/jobs'],
+        ['/search-jobs/results', '/jobs'],
         ['/companies', '/employers'],
         ['/services', '/how-it-works'],
         ['/solutions', '/how-it-works'],

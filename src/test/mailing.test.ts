@@ -225,7 +225,7 @@ describe('rendering', () => {
       postalAddress: '1 Main St, Boston MA', unsubscribeUrl: 'https://launchyournextchapter.com/updates/unsubscribe/t',
     })
     expect(html).toContain('Hi Jane,')
-    expect(html).toContain('<p style="margin:0 0 12px 0">Justin</p>')
+    expect(html).toMatch(/<p style="[^"]*margin:0 0 12px 0">Justin<\/p>/)
     expect(html).toContain('href="https://launchyournextchapter.com/updates/unsubscribe/t"')
     expect(html).toContain('1 Main St, Boston MA')
     expect(html).toContain('href="https://launchyournextchapter.com/reports/files/monthly-2026-10"')
@@ -246,8 +246,8 @@ describe('rendering', () => {
       bodyHtml: '<p>Hi</p><ul><li>a</li><li>b</li></ul><ol><li>c</li></ol>', merge: { firstName: null, orgName: null, reportUrl: null },
       footerText: '[Unsubscribe]', postalAddress: 'x', unsubscribeUrl: 'u',
     })
-    expect(html).toContain('<ul style="list-style-type:disc;padding-left:24px;margin:0 0 12px 0"><li style="margin:0 0 6px 0">a</li>')
-    expect(html).toContain('<ol style="list-style-type:decimal;')
+    expect(html).toMatch(/<ul style="[^"]*list-style-type:disc;padding-left:24px;margin:0 0 12px 0"><li style="[^"]*margin:0 0 6px 0">a<\/li>/)
+    expect(html).toMatch(/<ol style="[^"]*list-style-type:decimal;/)
     expect(html).not.toMatch(/<(p|ul|ol|li)>/)
   })
 })
@@ -375,4 +375,16 @@ describe('master lists', () => {
   it('does not suggest Candidates from a job-seeker type', () => {
     expect(suggestListKeys({ roles: ['JOB_SEEKER'], pipelineKeys: ['job_seekers', 'candidate_membership'] })).toEqual(['monthly_update'])
   })
+})
+
+describe('Outlook rendering', () => {
+  const html = renderEmail({ bodyHtml: '<p>Hello</p>', previewText: 'Preview line', merge: { firstName: null, orgName: null, reportUrl: null }, footerText: 'Reply unsubscribe. {{postalAddress}}', postalAddress: '1 Main St', unsubscribeUrl: 'https://x.test/u' }).html
+  it('holds the width at 600px for Outlook with a table only Outlook sees', () => {
+    expect(html).toContain('<!--[if mso]><table role="presentation" width="600"')
+    expect(html).toContain('<![endif]-->')
+  })
+  it('writes the font and a pixel line-height on each text tag, not only the wrapper', () => {
+    expect(html).toMatch(/<p style="[^"]*font-family:[^"]*line-height:23px[^"]*">Hello<\/p>/)
+  })
+  it('hides the preview line from Outlook too', () => expect(html).toContain('mso-hide:all'))
 })

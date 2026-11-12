@@ -29,6 +29,29 @@ export function isMailScanner(ip: string | null, scanners: Set<string>): boolean
   return !!ip && (scanners.has(ip) || isDatacenterIp(ip))
 }
 
+export const BOT_CLICK_BLOCK_MIN_IPS = 3
+
+/**
+ * Where the visitor log should look for scanners that visit the page after clicking: every address that made a click flagged bot
+ * in the last two weeks, and every IPv4 /24 (as "a.b.c" prefixes) with three or more such addresses (a scanner farm clicks from a
+ * different address each time, e.g. 103.196.9.x). One grouped statement over the click table (about 700 rows, 190 bot addresses in
+ * 14 days), held ten minutes on each instance.
+ */
+export const loadBotClickNetworks = memoTtl(10 * 60 * 1000, () => 'bot-click-networks', async (): Promise<{ ips: Set<string>; blocks: Set<string> }> => {
+  const since = new Date(Date.now() - LOOKBACK_DAYS * 86_400_000)
+  const rows = await prisma.$queryRaw<{ ip: string }[]>(Prisma.sql`
+    SELECT DISTINCT "ip" FROM "MailingClickEvent" WHERE "bot" = true AND "clickedAt" >= ${since} AND "ip" IS NOT NULL AND "ip" <> ''`)
+  const ips = new Set(rows.map((r) => r.ip))
+  const perBlock = new Map<string, number>()
+  for (const ip of ips) {
+    if (ip.includes(':')) continue
+    const block = ip.split('.').slice(0, 3).join('.')
+    perBlock.set(block, (perBlock.get(block) ?? 0) + 1)
+  }
+  const blocks = new Set(Array.from(perBlock).filter(([, n]) => n >= BOT_CLICK_BLOCK_MIN_IPS).map(([b]) => b))
+  return { ips, blocks }
+})
+
 export const SCANNER_BLOCK_MIN_RECIPIENTS = 2
 
 /**

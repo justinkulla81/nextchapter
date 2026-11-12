@@ -1,0 +1,17 @@
+Goal: make the crawler (`nextchapter-jobs`, ncrawl) store the full posting text for direct (employer-own) jobs whose description is only a stub, so those job pages can be offered to search engines. Dry run first; do NOT import into production until the owner approves the counts.
+
+Why
+- A job page is offered to Google (sitemap, IndexNow, Indexing API) only when it is on the employer's own career system AND its stored description is at least 1,500 bytes (`PUBLIC_JOB_MIN_INDEX_DESCRIPTION`, `src/lib/jobs/public-job-page.ts`). Below that the page is `noindex`.
+- Measured 2026-11-11 from one sixteenth of the table (shard 0 of 16, scaled up): of about 129,000 public job pages kept out of search, about 9,500 are on the employer's own career system with a description under 1,500 bytes. 76% of those are 200-499 bytes (average about 310), only about 9% are 1,100-1,499. These are stubs, not near-misses, so lowering the 1,500 threshold would recover about 1,600 jobs and let in near-empty pages. The fix is the text.
+- The thin rows concentrate on a few employer systems (shard 0 sample of 500, host and average stored bytes): careers.rtx.com 71 (203), jobs.baesystems.com 54 (356), Oracle Cloud HCM hosts (eeho, icfcjb, edel .fa...oraclecloud.com) 41 (435-600), careers.hpe.com 24 (352), careers.marsh.com 22 (317), careers.tranetechnologies.com 19 (343), careers.pnc.com 16 (328), iCIMS hosts (careers-peraton, careers-dewberry) 21 (465-508), careers.cisco.com 10 (348), careers.nttdata.com 9, myjobs.adp.com 9, jobs.danaher.com 7.
+- Example (RTX, `https://careers.rtx.com/global/en/job/01877953`, stored 203 bytes): the stored text is only the page's header fields, "Date Posted. 2026-10-01 Country. United States of America Location. US-MA-WOBURN-WB1 ... Position Role Type. Onsite. U.S. Citizen, U.S. Person, or Immigration Status R...", cut off. The posting body was never captured. A plain request for that URL from outside the crawler returned HTTP 410, so first check whether those rows are closed or the crawler's adapter reads a different endpoint.
+- The server does not drop text: `src/app/api/admin/jobs/import/route.ts` stores what the sender posts (`fullDescriptionOf`), and a payload with no description never erases one already held. So the fix is in the crawler's adapters, not in the site.
+
+Do this
+1. For each host above, find where the adapter gets the description (list endpoint summary, a header block, or the detail page) and why it is short. Check whether the full text is in the detail response or the page's `JobPosting` JSON-LD.
+2. Fix the adapters to send the full plain-text body (header fields such as "Date Posted" and "Country" are not the body). Keep the polite rate and the identified user agent. Career site and job system only, never the corporate site.
+3. Check the 410: for a sample of 30 stub rows per host, report how many the employer's own site still lists. A stub row the employer no longer lists should be closed through the normal liveness path, not enriched.
+4. Dry-run (no upload). Per host report: stub rows, fetched, full text found, bytes before and after, still under 1,500 bytes (and why), closed. Say how many of the about 9,500 would become indexable.
+5. Do not change the 1,500-byte threshold or `PUBLIC_JOB_SEARCH_SQL` in this task.
+
+Report back: the per-host table, files changed, how many rows turn out closed, the projected count of newly indexable direct jobs. Mark anything you could not measure. Do not import to production, and do not guess numbers.

@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { matchAiCrawler } from '@/lib/http/ai-crawlers'
+import { crawlerPathKey, matchAiCrawler } from '@/lib/http/ai-crawlers'
+
+describe('crawlerPathKey', () => {
+  it('collapses record pages to their family', () => {
+    expect(crawlerPathKey('/jobs/cmrxdofp50024lb041nti14px')).toBe('/jobs/*')
+    expect(crawlerPathKey('/employers/001-brown-and-brown-99vrrh')).toBe('/employers/*')
+    expect(crawlerPathKey('/higher-education/alabama/alabama-college/opengraph-image')).toBe('/higher-education/*')
+  })
+  it('keeps list pages and bounded families as they are', () => {
+    expect(crawlerPathKey('/jobs')).toBe('/jobs')
+    expect(crawlerPathKey('/places/alabama')).toBe('/places/alabama')
+    expect(crawlerPathKey('/salaries/account-coordinator')).toBe('/salaries/account-coordinator')
+    expect(crawlerPathKey('/')).toBe('/')
+  })
+})
 import { classifyTrafficSource, trafficSourceGroup } from '@/lib/marketing/classify-traffic-source'
 
 describe('matchAiCrawler', () => {

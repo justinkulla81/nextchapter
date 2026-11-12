@@ -3,6 +3,7 @@
 import { useEffect, Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
+import { HumanInteractionTracker } from '@/components/analytics/HumanInteractionTracker'
 
 const KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY
 
@@ -28,6 +29,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     <>
       <Suspense fallback={null}>
         <PageviewTracker />
+        <HumanInteractionTracker />
       </Suspense>
       {children}
     </>
