@@ -31,3 +31,20 @@ guesses). Result: 153 of 278 have a board (82 Greenhouse, 59 Ashby, 12 Lever) ho
 against the board's own name. Lever and Ashby matches are by address only, so each needs its company name verified before import
 (`sources/unicorns-us.json`, report in `out/unicorns-us-report.json`). The other 125 use another system (Workday, Rippling, Workable, custom) and need
 `career_site.py`.
+
+## Fortune 100 (tier 6) and the public-company lists, 2026-11-12
+
+Sources: `scripts/jobsreport/sources/jooble-tier6.json` (14), `jooble-tier6b.json` (13), `stocks-*.json` (Greenhouse/Lever/Ashby matches and career-site finds).
+
+**Found by guessing the Workday tenant and site (the cluster answers 404 for a real tenant with a wrong site, 422 otherwise):** Marathon Petroleum (114 jobs),
+Morgan Stanley (1,191), Johnson & Johnson (1,795), Broadcom (418), Chevron (159; it is on Workday, not Eightfold), General Motors (667), Procter & Gamble (886),
+Coca-Cola (263), Lowe's (12,993). Counts are all countries.
+
+**Phenom boards whose public search endpoint answers (adapter to build):** CVS Health (19,086), TJX (10,051), Eli Lilly (541). **IBM:** public search API, 3,125 hits.
+**Still unresolved:** American Airlines, Delta (Avature), Progressive, Tesla, Goldman Sachs (adapter exists, not in production), Alphabet, USAA,
+Exxon Mobil (SuccessFactors), Walgreens (BrassRing), MetLife (Avature). Berkshire Hathaway is a holding company; its jobs sit with its subsidiaries. Disney's
+Workday tenant lists only 27 jobs; its real board is elsewhere.
+
+**Stock lists (stockanalysis.com large, mid and small cap):** the pages show only the first 500 large-cap, 100 mid-cap and 500 small-cap rows (1,092 companies after
+de-duplication), so these are not the full lists. 90 have a Greenhouse, Lever or Ashby board. A career-site probe of the other 1,002 found career hosts for
+about 40% of them (Workday 43, SAP SuccessFactors 45, Phenom 44, iCIMS 23, Radancy 21, Jibe 18, Eightfold 13, Oracle 9, Avature 8 on the first 752).

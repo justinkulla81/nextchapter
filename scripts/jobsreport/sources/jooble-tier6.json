@@ -1,0 +1,144 @@
+[
+  {
+    "name": "wd-nationwide",
+    "adapter": "workday",
+    "tenant": "nationwide",
+    "wd": "wd1",
+    "site": "Nationwide_Career",
+    "type": "direct_ats",
+    "employer": "Nationwide",
+    "boardTotal": 161
+  },
+  {
+    "name": "jibe-costco",
+    "adapter": "jibe",
+    "host": "careers.costco.com",
+    "type": "direct_ats",
+    "employer": "Costco"
+  },
+  {
+    "name": "oracle-albertsons",
+    "adapter": "oracle",
+    "host": "eofd.fa.us6.oraclecloud.com",
+    "site": "CX_1001",
+    "type": "direct_ats",
+    "employer": "Albertsons"
+  },
+  {
+    "name": "jibe-state-farm",
+    "adapter": "jibe",
+    "host": "jobs.statefarm.com",
+    "type": "direct_ats",
+    "employer": "State Farm"
+  },
+  {
+    "name": "wd-ingram-micro",
+    "adapter": "workday",
+    "tenant": "ingrammicro",
+    "wd": "wd5",
+    "site": "IngramMicro",
+    "type": "direct_ats",
+    "employer": "Ingram Micro",
+    "boardTotal": 376
+  },
+  {
+    "name": "wd-boeing",
+    "adapter": "workday",
+    "tenant": "boeing",
+    "wd": "wd1",
+    "site": "EXTERNAL_CAREERS",
+    "type": "direct_ats",
+    "employer": "Boeing",
+    "boardTotal": 821
+  },
+  {
+    "name": "wd-comcast",
+    "adapter": "workday",
+    "tenant": "comcast",
+    "wd": "wd115",
+    "site": "Comcast_Careers",
+    "type": "direct_ats",
+    "employer": "Comcast",
+    "boardTotal": 709
+  },
+  {
+    "name": "wd-citigroup",
+    "adapter": "workday",
+    "tenant": "citi",
+    "wd": "wd5",
+    "site": "2",
+    "type": "direct_ats",
+    "employer": "Citigroup",
+    "boardTotal": 2000
+  },
+  {
+    "name": "wd-home-depot",
+    "adapter": "workday",
+    "tenant": "homedepot",
+    "wd": "wd5",
+    "site": "CareerDepot",
+    "type": "direct_ats",
+    "employer": "Home Depot",
+    "boardTotal": 941
+  },
+  {
+    "name": "wd-nike",
+    "adapter": "workday",
+    "tenant": "nike",
+    "wd": "wd1",
+    "site": "nke2",
+    "type": "direct_ats",
+    "employer": "Nike",
+    "boardTotal": 488
+  },
+  {
+    "name": "wd-target",
+    "adapter": "workday",
+    "tenant": "target",
+    "wd": "wd5",
+    "site": "targetcareers",
+    "type": "direct_ats",
+    "employer": "Target",
+    "boardTotal": 2000
+  },
+  {
+    "name": "wd-centene",
+    "adapter": "workday",
+    "tenant": "centene",
+    "wd": "wd5",
+    "site": "centene_external",
+    "type": "direct_ats",
+    "employer": "Centene",
+    "boardTotal": 375
+  },
+  {
+    "name": "wd-travelers",
+    "adapter": "workday",
+    "tenant": "travelers",
+    "wd": "wd5",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "Travelers",
+    "boardTotal": 419
+  },
+  {
+    "name": "wd-bristol-myers-squibb",
+    "adapter": "workday",
+    "tenant": "bristolmyerssquibb",
+    "wd": "wd5",
+    "site": "BMS",
+    "type": "direct_ats",
+    "employer": "Bristol Myers Squibb",
+    "boardTotal": 668
+  },
+  {
+    "name": "wd-tiaa",
+    "adapter": "workday",
+    "tenant": "tiaa",
+    "wd": "wd1",
+    "site": "Search",
+    "type": "direct_ats",
+    "employer": "TIAA",
+    "boardTotal": 171
+  }
+]
