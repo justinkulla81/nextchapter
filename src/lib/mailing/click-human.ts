@@ -117,12 +117,21 @@ function isAppleAddress(ip: string | null): boolean {
   return !!ip && /^17\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ip)
 }
 
+/** Gmail's image proxy ("Firefox/11.0 (via ggpht.com GoogleImageProxy)"), which loads the pixel when a message is opened. */
+export function isGmailImageProxy(userAgent: string | null): boolean {
+  return /GoogleImageProxy/i.test(userAgent ?? '')
+}
+
 /** Why an open is not a person's, or null for a human open. Same tests as a click, plus Apple Mail Privacy Protection. */
 export function botOpenReason(open: ClickFacts, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): string | null {
   if (isAppleAddress(open.ip)) return 'Apple Mail Privacy Protection loads the pixel on delivery'
   // Apple's relay (Akamai, Fastly and Cloudflare addresses, mostly IPv6) fetches the pixel with the bare string "Mozilla/5.0" and
   // nothing else; a real mail client or browser always says more.
   if ((open.userAgent ?? '').trim() === 'Mozilla/5.0') return 'bare Mozilla/5.0 browser string: the image relay Apple Mail Privacy Protection uses'
+  // Gmail's image proxy fetches the pixel when the person opens the message, from Google addresses (66.249, 72.14, 74.125,
+  // 192.178) that the cloud-network tests would call a scanner. Only a known scanner address still outranks it. On 2026-11-12 the
+  // cloud rule had thrown out 7 of 11 such opens in three days, so Gmail readers (Susan Kulla among them) showed as unopened.
+  if (isGmailImageProxy(open.userAgent) && !(open.ip && scannerIps.has(open.ip))) return null
   // The stale-browser test is for clicks only: Gmail's image proxy opens as Firefox 11 and is a person.
   return networkBotReason(open, scannerIps, scannerBlocks)
 }
