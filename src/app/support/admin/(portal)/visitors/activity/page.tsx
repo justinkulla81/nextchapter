@@ -23,6 +23,7 @@ import { classifyTrafficSource } from '@/lib/marketing/classify-traffic-source'
 import { buildEmailIpAnchors, extractEmailLinkId, extractMailingRecipientId, resolveMailingRecipientIds, extractUnsubscribeToken, IP_MATCH_WINDOW_MS, inferEmailLinkByIp, inferMailingTokenByIp, inferPersonByClickIp, loadRecipientsByPersonId, CLICK_LEAD_WINDOW_MS, CLICK_TO_VISIT_WINDOW_MS, peopleByNearClick, NEAR_CLICK_WINDOW_MS, peopleWhoTouchedBefore, dropPeopleOnSeveralAddresses, guessesOnSeveralAddresses, TOUCH_LEAD_WINDOW_MS, TOUCH_TO_VISIT_WINDOW_MS, MAILING_IP_WINDOW_MS, resolveEmailRecipients, resolveMailingRecipients, type EmailRecipient, type MailingAnchor, type MailingClick } from '@/lib/marketing/email-attribution'
 import { B2B_PORTAL_SECTIONS, CANDIDATE_PORTAL_SECTIONS, classifyVisitPage, isMutedVisitPageType, type VisitPageType } from '@/lib/admin/visit-page-type'
 import { PREFETCH_OPEN_WINDOW_MS } from '@/lib/mailing/open-human'
+import { scannerClickVisitSql } from '@/lib/marketing/scanner-click-visit'
 import { inheritIdentityByIp } from '@/lib/admin/visitor-ip-identity'
 import { segmentRangeSeries, type SegmentCountRow } from '@/lib/admin/visitor-segment-series'
 import { sourceSegment, type SourceSegment } from '@/lib/admin/visitor-source-segment'
@@ -141,7 +142,8 @@ const notCloudSql = Prisma.sql`NOT (CASE WHEN "ip" ~ '^[0-9]+\.[0-9]+\.[0-9]+\.[
 //  3. a visit through a tracked outreach link (nc_e) inside two minutes of the link being made;
 //  4. a page view within 30 seconds of a click Resend flagged as a bot on a link to that page, with no human click on it in that
 //     window: the mail-security gateway loading the page it just clicked (Beth Moe, 2026-11-12: 41 bot clicks in 12 hours, and
-//     a page view after each, from addresses that look like phones). 2,565 of 3,443 report views in 3 days fit this.
+//     a page view after each, from addresses that look like phones). 2,565 of 3,443 report views in 3 days fit this. Not when
+//     that address made a human click in the day around it (scanner-click-visit.ts has the rule and its tests).
 const PREFETCH_SECS = PREFETCH_OPEN_WINDOW_MS / 1000
 const b64url = (expr: string) => `translate(rtrim(encode(convert_to(${expr},'UTF8'),'base64'),'='),'+/','-_')`
 const unsubscribeToken = (v: string) => `substring(${v}."path" from '^/updates/unsubscribe/([A-Za-z0-9_-]+)')`
@@ -159,13 +161,7 @@ const notEmailPrefetchSql = Prisma.raw(`NOT (
       AND ${unsubscribePrefetch('u')}))
   OR ("path" LIKE '%nc_e=%' AND EXISTS (SELECT 1 FROM "CrmOutreachLink" l
     WHERE l."id" = substring("path" from 'nc_e=([A-Za-z0-9]+)') AND "HomepageVisitEvent"."createdAt" <= l."createdAt" + make_interval(secs => ${PREFETCH_SECS})))
-  OR ("eventType"::text = 'PAGE_VIEW' AND length(split_part("path", '?', 1)) > 1
-    AND EXISTS (SELECT 1 FROM "MailingClickEvent" b WHERE b."bot"
-      AND b."clickedAt" BETWEEN "HomepageVisitEvent"."createdAt" - make_interval(secs => 30) AND "HomepageVisitEvent"."createdAt" + make_interval(secs => 30)
-      AND position(split_part("path", '?', 1) in b."link") > 0)
-    AND NOT EXISTS (SELECT 1 FROM "MailingClickEvent" h WHERE NOT h."bot"
-      AND h."clickedAt" BETWEEN "HomepageVisitEvent"."createdAt" - make_interval(secs => 30) AND "HomepageVisitEvent"."createdAt" + make_interval(secs => 30)
-      AND position(split_part("path", '?', 1) in h."link") > 0)))`)
+  OR ${scannerClickVisitSql})`)
 
 // IPv4 /24 blocks (as "a.b.c" prefixes) that scanners click from, one address at a time: the visit that follows is theirs too.
 const notScannerBlockSql = (blocks: Set<string>): Prisma.Sql =>
