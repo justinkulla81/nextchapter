@@ -1,0 +1,90 @@
+[
+  {
+    "name": "wd-pfizer",
+    "adapter": "workday",
+    "tenant": "pfizer",
+    "wd": "wd1",
+    "site": "PfizerCareers",
+    "type": "direct_ats",
+    "employer": "Pfizer"
+  },
+  {
+    "name": "wd-highmarkhealth",
+    "adapter": "workday",
+    "tenant": "highmarkhealth",
+    "wd": "wd1",
+    "site": "highmark",
+    "type": "direct_ats",
+    "employer": "Highmark Health"
+  },
+  {
+    "name": "wd-arrow",
+    "adapter": "workday",
+    "tenant": "arrow",
+    "wd": "wd1",
+    "site": "AC",
+    "type": "direct_ats",
+    "employer": "Arrow Electronics"
+  },
+  {
+    "name": "wd-medtronic",
+    "adapter": "workday",
+    "tenant": "medtronic",
+    "wd": "wd1",
+    "site": "MedtronicCareers",
+    "type": "direct_ats",
+    "employer": "Medtronic"
+  },
+  {
+    "name": "wd-cardinalhealth",
+    "adapter": "workday",
+    "tenant": "cardinalhealth",
+    "wd": "wd1",
+    "site": "EXT",
+    "type": "direct_ats",
+    "employer": "Cardinal Health"
+  },
+  {
+    "name": "wd-cat",
+    "adapter": "workday",
+    "tenant": "cat",
+    "wd": "wd5",
+    "site": "CaterpillarCareers",
+    "type": "direct_ats",
+    "employer": "Caterpillar"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "Humana_External_Career_Site",
+    "type": "direct_ats",
+    "employer": "Humana"
+  },
+  {
+    "name": "wd-tsys",
+    "adapter": "workday",
+    "tenant": "tsys",
+    "wd": "wd1",
+    "site": "TSYS",
+    "type": "direct_ats",
+    "employer": "Global Payments"
+  },
+  {
+    "name": "wd-csl",
+    "adapter": "workday",
+    "tenant": "csl",
+    "wd": "wd1",
+    "site": "CSL_External",
+    "type": "direct_ats",
+    "employer": "CSL"
+  },
+  {
+    "name": "gr-revolution-medicines",
+    "adapter": "greenhouse",
+    "token": "revolutionmedicines",
+    "type": "direct_ats",
+    "employer": "Revolution Medicines"
+  }
+]
