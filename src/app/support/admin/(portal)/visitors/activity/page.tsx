@@ -201,7 +201,7 @@ async function loadEventsNewest(botFilter: Prisma.Sql, start: Date, skip: number
     WITH ev AS (
       SELECT "id", "createdAt", "ip", "eventType",
         CASE WHEN lag("createdAt") OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt", "id") IS NULL
-               OR "createdAt" - lag("createdAt") OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt", "id") > make_interval(mins => ${VISIT_GAP_MINUTES})
+               OR "createdAt" - lag("createdAt") OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt", "id") > make_interval(mins => ${Prisma.raw(String(VISIT_GAP_MINUTES))})
              THEN 1 ELSE 0 END AS "brk"
       FROM "HomepageVisitEvent" WHERE ${botFilter} AND "createdAt" >= ${start}
     ), s AS (
