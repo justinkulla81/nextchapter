@@ -163,10 +163,14 @@ const notScannerBlockSql = (blocks: Set<string>): Prisma.Sql =>
     ? Prisma.empty
     : Prisma.sql` AND NOT (CASE WHEN "ip" ~ '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' THEN "ip"::inet <<= ANY(${Array.from(blocks).map((b) => `${b}.0/24`)}::text[]::inet[]) ELSE false END)`
 
+// Visits from China with no signed-in account: a site for US white-collar job seekers. 2026-11: 181 addresses in 14 days, one
+// Windows Chrome string, one page each, no referrer, never signed in. A visitor who has an account (candidateId) stays.
+const notChinaScrapeSql = Prisma.sql`NOT ("country" = 'CN' AND "candidateId" IS NULL)`
+
 function botFilterSql(showBots: boolean, scannerIps: Set<string>, scannerBlocks: Set<string> = new Set()): Prisma.Sql {
   if (showBots) return Prisma.sql`TRUE`
   const patterns = BOT_SIGNATURES.map((sig) => `%${sig}%`)
-  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns}))) AND ${notCloudSql} AND ${notEmailPrefetchSql}${notScannerBlockSql(scannerBlocks)}`
+  const notBot = Prisma.sql`("userAgent" IS NULL OR NOT ("userAgent" ILIKE ANY(${patterns}))) AND ${notChinaScrapeSql} AND ${notCloudSql} AND ${notEmailPrefetchSql}${notScannerBlockSql(scannerBlocks)}`
   return scannerIps.size > 0 ? Prisma.sql`${notBot} AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : notBot
 }
 
@@ -433,7 +437,7 @@ export default async function AdminVisitorActivityPage({
   // (email scanners, crawlers) and not a mail-scanner IP. All traffic: every page view.
   const humanPageView = showBots
     ? Prisma.sql`"eventType" = 'PAGE_VIEW'`
-    : Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notCloudSql} AND ${notEmailPrefetchSql}${notScannerBlockSql(scannerBlocks)}${
+    : Prisma.sql`"eventType" = 'PAGE_VIEW' AND "userAgent" IS NOT NULL AND NOT ("userAgent" ILIKE ANY(${botPatterns})) AND ${notChinaScrapeSql} AND ${notCloudSql} AND ${notEmailPrefetchSql}${notScannerBlockSql(scannerBlocks)}${
         scannerIps.size > 0 ? Prisma.sql` AND ("ip" IS NULL OR NOT ("ip" = ANY(${Array.from(scannerIps)})))` : Prisma.empty
       }`
   const viewsLabel = showBots ? 'Page views, all traffic' : 'Human page views'
