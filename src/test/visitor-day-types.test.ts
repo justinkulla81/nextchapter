@@ -7,6 +7,7 @@ describe('decideVisitorType', () => {
     expect(decideVisitorType({ firstPath: '/press', crmType: null, hasAccount: true })).toEqual({ userType: 'Candidate', basis: 'account' })
     expect(decideVisitorType({ firstPath: '/press', crmType: null, hasAccount: false })).toEqual({ userType: 'Journalist', basis: 'landing page' })
     expect(decideVisitorType({ firstPath: '/', crmType: null, hasAccount: false })).toEqual({ userType: 'Unknown', basis: 'none' })
+    expect(decideVisitorType({ firstPath: '/after-a-layoff?utm_source=linkedin', crmType: null, hasAccount: false })).toEqual({ userType: 'Candidate', basis: 'landing page' })
   })
 })
 
