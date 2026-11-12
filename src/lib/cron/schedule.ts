@@ -88,7 +88,7 @@ export function cronSchedules(): CronSchedule[] {
 export const RERUN_SAFE_JOBS: ReadonlySet<string> = new Set([
   'crm-sync', 'gmail-sync', 'warn-sync', 'layoff-news', 'ats-job-board-feed', 'company-signals', 'company-events', 'company-outcomes', 'company-graph', 'company-hiring-index',
   'funding-opportunities', 'content-drafts', 'catalog-seeds', 'federal-contracts', 'board-bids', 'competitor-awards', 'news-discovery', 'likely-openings',
-  'workforce-boards', 'workforce-board-intel', 'refresh-youtube-content',
+  'workforce-boards', 'workforce-board-intel', 'refresh-youtube-content', 'conference-recheck',
   'expire-job-postings', 'benefits-network-expire-listings', 'population-snapshot',
   'partner-scores', 'activity-streaks', 'board-light-rows', 'board-warm', 'closed-posting-snapshot', 'job-feed-direct', 'job-feed-jooble', 'indexnow-jobs', 'indexnow-seo-pages', 'indexnow-layoffs', 'google-indexing-jobs', 'bing-url-submit', 'pivot-market', 'market-size', 'pay-data', 'ai-market', 'skills-market', 'board-figures', 'rankings', 'job-segments', 'page-warmup',
   // Asks the AI assistants a fixed list of questions. It costs money, but the run stops at the monthly cap (src/lib/ai-visibility/run.ts), so a second click cannot overspend.
