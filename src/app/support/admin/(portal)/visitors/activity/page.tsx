@@ -194,12 +194,14 @@ const MATCH_LABELS: Record<MatchKind, string> = { email: 'Email', likely: 'Likel
 // One row per visit: events from the same IP with no gap over 30 minutes are one visit (a person clicking through pages, or a
 // browser prefetching links), shown on its latest event with the visit's view and click counts. Reads the range only (30 days at most).
 const VISIT_GAP_MINUTES = 30
+// Grouping runs the full bot filter over every event in range, so it reads 7 days at most (30 days timed out the page on 2026-11-12).
+const VISIT_GROUP_DAYS = 7
 async function loadEventsNewest(botFilter: Prisma.Sql, start: Date, skip: number, take: number): Promise<{ events: LogEvent; total: number; visitTotals: Map<string, { views: number; clicks: number }> }> {
   const visits = Prisma.sql`
     WITH ev AS (
       SELECT "id", "createdAt", "ip", "eventType",
         CASE WHEN lag("createdAt") OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt", "id") IS NULL
-               OR "createdAt" - lag("createdAt") OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt", "id") > make_interval(mins => ${VISIT_GAP_MINUTES})
+               OR "createdAt" - lag("createdAt") OVER (PARTITION BY COALESCE("ip", "id") ORDER BY "createdAt", "id") > make_interval(mins => ${Prisma.raw(String(VISIT_GAP_MINUTES))})
              THEN 1 ELSE 0 END AS "brk"
       FROM "HomepageVisitEvent" WHERE ${botFilter} AND "createdAt" >= ${start}
     ), s AS (
@@ -209,10 +211,10 @@ async function loadEventsNewest(botFilter: Prisma.Sql, start: Date, skip: number
         count(*) FILTER (WHERE "eventType"::text = 'PAGE_VIEW') AS "views", count(*) FILTER (WHERE "eventType"::text <> 'PAGE_VIEW') AS "clicks"
       FROM s GROUP BY COALESCE("ip", "id"), "sid"
     )`
-  const [ids, totalRows] = await Promise.all([
-    prisma.$queryRaw<{ id: string; views: bigint; clicks: bigint }[]>(Prisma.sql`${visits} SELECT "id", "views", "clicks" FROM g ORDER BY "last" DESC, "id" DESC OFFSET ${skip} LIMIT ${take}`),
-    prisma.$queryRaw<{ n: bigint }[]>(Prisma.sql`${visits} SELECT count(*) AS "n" FROM g`),
-  ])
+  // One query: the total rides along on every row (count over the whole grouped set, before OFFSET and LIMIT).
+  const ids = await prisma.$queryRaw<{ id: string; views: bigint; clicks: bigint; total: bigint }[]>(
+    Prisma.sql`${visits} SELECT "id", "views", "clicks", count(*) OVER () AS "total" FROM g ORDER BY "last" DESC, "id" DESC OFFSET ${skip} LIMIT ${take}`
+  )
   const rows = await prisma.homepageVisitEvent.findMany({
     where: { id: { in: ids.map((r) => r.id) } },
     include: { candidate: { select: { id: true, firstName: true, lastName: true, email: true } } },
@@ -220,7 +222,7 @@ async function loadEventsNewest(botFilter: Prisma.Sql, start: Date, skip: number
   const order = new Map(ids.map((r, i) => [r.id, i] as const))
   return {
     events: rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)),
-    total: Number(totalRows[0]?.n ?? 0),
+    total: Number(ids[0]?.total ?? 0),
     visitTotals: new Map(ids.map((r) => [r.id, { views: Number(r.views), clicks: Number(r.clicks) }] as const)),
   }
 }
@@ -366,7 +368,8 @@ function LogControls({ range, sort, showBots, email, type, unique, match }: { ra
       {match.length > 0 && <p className="text-xs text-muted-foreground">Include shows visitors with any of the chosen kinds. Email: came through one of our emails or gave an address. Likely: we guess who they are from an email, an address they gave, or the same IP. CRM: matched to a CRM person. It looks at the {TYPE_SCAN_LIMIT} most recent visitors in the last 30 days (or the range chosen, if shorter), each counted once.</p>}
       {unique && <p className="text-xs text-muted-foreground">Unique only shows each visitor (IP address) once, on their latest visit.</p>}
       {(sort || email || unique) && range === 'all' && <p className="text-xs text-muted-foreground">Most clicks, most views, unique only and the email filter look at the last 30 days, the longest span they count over.{sort ? ' Each visitor (IP address) appears once.' : ''}</p>}
-      {sort && range !== 'all' && <p className="text-xs text-muted-foreground">Each visitor (IP address) appears once, on their latest visit.</p>}
+      {!sort && !email && !unique && match.length === 0 && !type && range === 'all' && <p className="text-xs text-muted-foreground">Every visit lists visits from the last {VISIT_GROUP_DAYS} days, each visit grouped from one address.</p>}
+      {sort && range !== 'all' &&<p className="text-xs text-muted-foreground">Each visitor (IP address) appears once, on their latest visit.</p>}
       {email && <p className="text-xs text-muted-foreground">Yes means we hold an email for the visitor&apos;s IP address: an account, an email link they came through, or a lead form or sign-up from it. No means none of those.</p>}
     </div>
   )
@@ -451,7 +454,7 @@ export default async function AdminVisitorActivityPage({
   const [loaded, dayRows, hourRows, totalsRows] = await Promise.all([
     sort || email || scanActive || unique
       ? loadEventsByVisitor(botFilter, logStart, scanActive ? 0 : params.skip, scanActive ? TYPE_SCAN_LIMIT : params.take, sort, email, !!sort || scanActive || unique)
-      : loadEventsNewest(botFilter, logStart, params.skip, params.take),
+      : loadEventsNewest(botFilter, new Date(Math.max(logStart.getTime(), now().getTime() - VISIT_GROUP_DAYS * DAY_MS)), params.skip, params.take),
     // The charts read counts grouped by Eastern day and hour in the database, not every raw event.
     prisma.$queryRaw<BucketRow[]>(Prisma.sql`
       SELECT ${etDay} AS "key", count(*) AS "views", count(DISTINCT "ip") AS "visitors"
@@ -475,7 +478,7 @@ export default async function AdminVisitorActivityPage({
   ])
 
   const events = loaded.events
-  const visitTotals = 'visitTotals' in loaded ? loaded.visitTotals : null
+  const visitTotals = ('visitTotals' in loaded ? loaded.visitTotals : null) as Map<string, { views: number; clicks: number }> | null
   // Email visits inside two minutes of delivery (the unsubscribe-link visit, the report visit that follows it, an outreach link),
   // marked on the rows shown. In Human only mode they are already out of the list; in All traffic mode this labels them.
   const prefetchIds = new Set(

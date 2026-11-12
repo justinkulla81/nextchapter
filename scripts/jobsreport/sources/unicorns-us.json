@@ -1,0 +1,1073 @@
+[
+  {
+    "name": "gr-anthropic",
+    "adapter": "greenhouse",
+    "token": "anthropic",
+    "type": "direct_ats",
+    "employer": "Anthropic"
+  },
+  {
+    "name": "ab-openai",
+    "adapter": "ashby",
+    "token": "openai",
+    "type": "direct_ats",
+    "employer": "OpenAI"
+  },
+  {
+    "name": "gr-databricks",
+    "adapter": "greenhouse",
+    "token": "databricks",
+    "type": "direct_ats",
+    "employer": "Databricks"
+  },
+  {
+    "name": "gr-stripe",
+    "adapter": "greenhouse",
+    "token": "stripe",
+    "type": "direct_ats",
+    "employer": "Stripe"
+  },
+  {
+    "name": "gr-anduril-industries",
+    "adapter": "greenhouse",
+    "token": "andurilindustries",
+    "type": "direct_ats",
+    "employer": "Anduril Industries"
+  },
+  {
+    "name": "gr-ramp",
+    "adapter": "greenhouse",
+    "token": "ramp",
+    "type": "direct_ats",
+    "employer": "Ramp"
+  },
+  {
+    "name": "ab-prometheus",
+    "adapter": "ashby",
+    "token": "prometheus",
+    "type": "direct_ats",
+    "employer": "Prometheus"
+  },
+  {
+    "name": "gr-scale-ai",
+    "adapter": "greenhouse",
+    "token": "scaleai",
+    "type": "direct_ats",
+    "employer": "Scale AI"
+  },
+  {
+    "name": "gr-epic-games",
+    "adapter": "greenhouse",
+    "token": "epicgames",
+    "type": "direct_ats",
+    "employer": "Epic Games"
+  },
+  {
+    "name": "gr-kalshi",
+    "adapter": "greenhouse",
+    "token": "kalshi",
+    "type": "direct_ats",
+    "employer": "Kalshi"
+  },
+  {
+    "name": "ab-etched",
+    "adapter": "ashby",
+    "token": "etched",
+    "type": "direct_ats",
+    "employer": "Etched"
+  },
+  {
+    "name": "ab-harvey",
+    "adapter": "ashby",
+    "token": "harvey",
+    "type": "direct_ats",
+    "employer": "Harvey"
+  },
+  {
+    "name": "gr-discord",
+    "adapter": "greenhouse",
+    "token": "discord",
+    "type": "direct_ats",
+    "employer": "Discord"
+  },
+  {
+    "name": "lv-gopuff",
+    "adapter": "lever",
+    "token": "gopuff",
+    "type": "direct_ats",
+    "employer": "GoPuff"
+  },
+  {
+    "name": "ab-plaid",
+    "adapter": "ashby",
+    "token": "plaid",
+    "type": "direct_ats",
+    "employer": "Plaid"
+  },
+  {
+    "name": "lv-shield-ai",
+    "adapter": "lever",
+    "token": "shieldai",
+    "type": "direct_ats",
+    "employer": "Shield AI"
+  },
+  {
+    "name": "gr-faire",
+    "adapter": "greenhouse",
+    "token": "faire",
+    "type": "direct_ats",
+    "employer": "Faire"
+  },
+  {
+    "name": "gr-ninjaone",
+    "adapter": "greenhouse",
+    "token": "ninjaone",
+    "type": "direct_ats",
+    "employer": "NinjaOne"
+  },
+  {
+    "name": "ab-openevidence",
+    "adapter": "ashby",
+    "token": "openevidence",
+    "type": "direct_ats",
+    "employer": "OpenEvidence"
+  },
+  {
+    "name": "lv-goodleap",
+    "adapter": "lever",
+    "token": "goodleap",
+    "type": "direct_ats",
+    "employer": "GoodLeap"
+  },
+  {
+    "name": "gr-colossal-biosciences",
+    "adapter": "greenhouse",
+    "token": "colossalbiosciences",
+    "type": "direct_ats",
+    "employer": "Colossal Biosciences"
+  },
+  {
+    "name": "ab-alchemy",
+    "adapter": "ashby",
+    "token": "alchemy",
+    "type": "direct_ats",
+    "employer": "Alchemy"
+  },
+  {
+    "name": "ab-whoop",
+    "adapter": "ashby",
+    "token": "whoop",
+    "type": "direct_ats",
+    "employer": "WHOOP"
+  },
+  {
+    "name": "gr-digital-currency-group",
+    "adapter": "greenhouse",
+    "token": "digitalcurrencygroup",
+    "type": "direct_ats",
+    "employer": "Digital Currency Group"
+  },
+  {
+    "name": "gr-gusto",
+    "adapter": "greenhouse",
+    "token": "gusto",
+    "type": "direct_ats",
+    "employer": "Gusto"
+  },
+  {
+    "name": "ab-mercor",
+    "adapter": "ashby",
+    "token": "mercor",
+    "type": "direct_ats",
+    "employer": "Mercor"
+  },
+  {
+    "name": "ab-notion-labs",
+    "adapter": "ashby",
+    "token": "notion",
+    "type": "direct_ats",
+    "employer": "Notion Labs"
+  },
+  {
+    "name": "gr-ripple",
+    "adapter": "greenhouse",
+    "token": "ripple",
+    "type": "direct_ats",
+    "employer": "Ripple"
+  },
+  {
+    "name": "gr-vercel",
+    "adapter": "greenhouse",
+    "token": "vercel",
+    "type": "direct_ats",
+    "employer": "Vercel"
+  },
+  {
+    "name": "gr-neuralink",
+    "adapter": "greenhouse",
+    "token": "neuralink",
+    "type": "direct_ats",
+    "employer": "Neuralink"
+  },
+  {
+    "name": "ab-replit",
+    "adapter": "ashby",
+    "token": "replit",
+    "type": "direct_ats",
+    "employer": "Replit"
+  },
+  {
+    "name": "gr-tanium",
+    "adapter": "greenhouse",
+    "token": "tanium",
+    "type": "direct_ats",
+    "employer": "Tanium"
+  },
+  {
+    "name": "gr-nuro",
+    "adapter": "greenhouse",
+    "token": "nuro",
+    "type": "direct_ats",
+    "employer": "Nuro"
+  },
+  {
+    "name": "gr-together-ai",
+    "adapter": "greenhouse",
+    "token": "togetherai",
+    "type": "direct_ats",
+    "employer": "Together AI"
+  },
+  {
+    "name": "gr-flexport",
+    "adapter": "greenhouse",
+    "token": "flexport",
+    "type": "direct_ats",
+    "employer": "Flexport"
+  },
+  {
+    "name": "gr-alphasense",
+    "adapter": "greenhouse",
+    "token": "alphasense",
+    "type": "direct_ats",
+    "employer": "AlphaSense"
+  },
+  {
+    "name": "ab-typesafe-ai",
+    "adapter": "ashby",
+    "token": "typesafe-ai",
+    "type": "direct_ats",
+    "employer": "TypeSafe AI"
+  },
+  {
+    "name": "gr-carta",
+    "adapter": "greenhouse",
+    "token": "carta",
+    "type": "direct_ats",
+    "employer": "Carta"
+  },
+  {
+    "name": "gr-psiquantum",
+    "adapter": "greenhouse",
+    "token": "psiquantum",
+    "type": "direct_ats",
+    "employer": "PsiQuantum"
+  },
+  {
+    "name": "ab-sandboxaq",
+    "adapter": "ashby",
+    "token": "sandboxaq",
+    "type": "direct_ats",
+    "employer": "SandboxAQ"
+  },
+  {
+    "name": "gr-fivetran",
+    "adapter": "greenhouse",
+    "token": "fivetran",
+    "type": "direct_ats",
+    "employer": "Fivetran"
+  },
+  {
+    "name": "gr-onetrust",
+    "adapter": "greenhouse",
+    "token": "onetrust",
+    "type": "direct_ats",
+    "employer": "OneTrust"
+  },
+  {
+    "name": "gr-river-ai",
+    "adapter": "greenhouse",
+    "token": "riverai",
+    "type": "direct_ats",
+    "employer": "River AI"
+  },
+  {
+    "name": "lv-ro",
+    "adapter": "lever",
+    "token": "ro",
+    "type": "direct_ats",
+    "employer": "Ro"
+  },
+  {
+    "name": "gr-checkr",
+    "adapter": "greenhouse",
+    "token": "checkr",
+    "type": "direct_ats",
+    "employer": "Checkr"
+  },
+  {
+    "name": "gr-dataiku",
+    "adapter": "greenhouse",
+    "token": "dataiku",
+    "type": "direct_ats",
+    "employer": "Dataiku"
+  },
+  {
+    "name": "ab-socure",
+    "adapter": "ashby",
+    "token": "socure",
+    "type": "direct_ats",
+    "employer": "Socure"
+  },
+  {
+    "name": "gr-quince",
+    "adapter": "greenhouse",
+    "token": "quince",
+    "type": "direct_ats",
+    "employer": "Quince"
+  },
+  {
+    "name": "lv-outreach",
+    "adapter": "lever",
+    "token": "outreach",
+    "type": "direct_ats",
+    "employer": "Outreach"
+  },
+  {
+    "name": "gr-branch-metrics",
+    "adapter": "greenhouse",
+    "token": "branchmetrics",
+    "type": "direct_ats",
+    "employer": "Branch Metrics"
+  },
+  {
+    "name": "ab-clubhouse",
+    "adapter": "ashby",
+    "token": "clubhouse",
+    "type": "direct_ats",
+    "employer": "Clubhouse"
+  },
+  {
+    "name": "ab-eliseai",
+    "adapter": "ashby",
+    "token": "eliseai",
+    "type": "direct_ats",
+    "employer": "EliseAI"
+  },
+  {
+    "name": "lv-houzz",
+    "adapter": "lever",
+    "token": "houzz",
+    "type": "direct_ats",
+    "employer": "Houzz"
+  },
+  {
+    "name": "ab-patreon",
+    "adapter": "ashby",
+    "token": "patreon",
+    "type": "direct_ats",
+    "employer": "Patreon"
+  },
+  {
+    "name": "gr-stockx",
+    "adapter": "greenhouse",
+    "token": "stockx",
+    "type": "direct_ats",
+    "employer": "StockX"
+  },
+  {
+    "name": "lv-articulate",
+    "adapter": "lever",
+    "token": "articulate",
+    "type": "direct_ats",
+    "employer": "Articulate"
+  },
+  {
+    "name": "gr-coalition",
+    "adapter": "greenhouse",
+    "token": "coalition",
+    "type": "direct_ats",
+    "employer": "Coalition"
+  },
+  {
+    "name": "ab-commure",
+    "adapter": "ashby",
+    "token": "commure",
+    "type": "direct_ats",
+    "employer": "Commure"
+  },
+  {
+    "name": "lv-moonpay",
+    "adapter": "lever",
+    "token": "moonpay",
+    "type": "direct_ats",
+    "employer": "MoonPay"
+  },
+  {
+    "name": "ab-thumbtack",
+    "adapter": "ashby",
+    "token": "thumbtack",
+    "type": "direct_ats",
+    "employer": "Thumbtack"
+  },
+  {
+    "name": "ab-consensys",
+    "adapter": "ashby",
+    "token": "consensys",
+    "type": "direct_ats",
+    "employer": "ConsenSys"
+  },
+  {
+    "name": "gr-verkada",
+    "adapter": "greenhouse",
+    "token": "verkada",
+    "type": "direct_ats",
+    "employer": "Verkada"
+  },
+  {
+    "name": "ab-spoton",
+    "adapter": "ashby",
+    "token": "spoton",
+    "type": "direct_ats",
+    "employer": "SpotOn"
+  },
+  {
+    "name": "lv-activecampaign",
+    "adapter": "lever",
+    "token": "activecampaign",
+    "type": "direct_ats",
+    "employer": "ActiveCampaign"
+  },
+  {
+    "name": "gr-age-of-learning-inc",
+    "adapter": "greenhouse",
+    "token": "ageoflearninginc",
+    "type": "direct_ats",
+    "employer": "Age of Learning, Inc."
+  },
+  {
+    "name": "gr-calendly",
+    "adapter": "greenhouse",
+    "token": "calendly",
+    "type": "direct_ats",
+    "employer": "Calendly"
+  },
+  {
+    "name": "gr-forter",
+    "adapter": "greenhouse",
+    "token": "forter",
+    "type": "direct_ats",
+    "employer": "Forter"
+  },
+  {
+    "name": "gr-grafana-labs",
+    "adapter": "greenhouse",
+    "token": "grafanalabs",
+    "type": "direct_ats",
+    "employer": "Grafana Labs"
+  },
+  {
+    "name": "gr-lucid-software",
+    "adapter": "greenhouse",
+    "token": "lucidsoftware",
+    "type": "direct_ats",
+    "employer": "Lucid Software"
+  },
+  {
+    "name": "gr-drivewealth",
+    "adapter": "greenhouse",
+    "token": "drivewealth",
+    "type": "direct_ats",
+    "employer": "DriveWealth"
+  },
+  {
+    "name": "gr-astranis",
+    "adapter": "greenhouse",
+    "token": "astranis",
+    "type": "direct_ats",
+    "employer": "Astranis"
+  },
+  {
+    "name": "ab-abridge",
+    "adapter": "ashby",
+    "token": "abridge",
+    "type": "direct_ats",
+    "employer": "Abridge"
+  },
+  {
+    "name": "ab-illumio",
+    "adapter": "ashby",
+    "token": "illumio",
+    "type": "direct_ats",
+    "employer": "Illumio"
+  },
+  {
+    "name": "gr-nextiva",
+    "adapter": "greenhouse",
+    "token": "nextiva",
+    "type": "direct_ats",
+    "employer": "Nextiva"
+  },
+  {
+    "name": "gr-amwins-group",
+    "adapter": "greenhouse",
+    "token": "amwins",
+    "type": "direct_ats",
+    "employer": "AmWINS Group"
+  },
+  {
+    "name": "gr-pendo",
+    "adapter": "greenhouse",
+    "token": "pendo",
+    "type": "direct_ats",
+    "employer": "Pendo"
+  },
+  {
+    "name": "lv-jumpcloud",
+    "adapter": "lever",
+    "token": "jumpcloud",
+    "type": "direct_ats",
+    "employer": "Jumpcloud"
+  },
+  {
+    "name": "ab-suno",
+    "adapter": "ashby",
+    "token": "suno",
+    "type": "direct_ats",
+    "employer": "Suno"
+  },
+  {
+    "name": "ab-honeybook",
+    "adapter": "ashby",
+    "token": "honeybook",
+    "type": "direct_ats",
+    "employer": "HoneyBook"
+  },
+  {
+    "name": "ab-paxos",
+    "adapter": "ashby",
+    "token": "paxos",
+    "type": "direct_ats",
+    "employer": "Paxos"
+  },
+  {
+    "name": "ab-headway",
+    "adapter": "ashby",
+    "token": "headway",
+    "type": "direct_ats",
+    "employer": "Headway"
+  },
+  {
+    "name": "gr-algolia",
+    "adapter": "greenhouse",
+    "token": "algolia",
+    "type": "direct_ats",
+    "employer": "Algolia"
+  },
+  {
+    "name": "ab-acorns",
+    "adapter": "ashby",
+    "token": "acorns",
+    "type": "direct_ats",
+    "employer": "Acorns"
+  },
+  {
+    "name": "gr-transmit-security",
+    "adapter": "greenhouse",
+    "token": "transmitsecurity",
+    "type": "direct_ats",
+    "employer": "Transmit Security"
+  },
+  {
+    "name": "ab-gamma",
+    "adapter": "ashby",
+    "token": "gamma",
+    "type": "direct_ats",
+    "employer": "Gamma"
+  },
+  {
+    "name": "gr-6sense",
+    "adapter": "greenhouse",
+    "token": "6sense",
+    "type": "direct_ats",
+    "employer": "6sense"
+  },
+  {
+    "name": "ab-webflow",
+    "adapter": "ashby",
+    "token": "webflow",
+    "type": "direct_ats",
+    "employer": "Webflow"
+  },
+  {
+    "name": "ab-northwood-space",
+    "adapter": "ashby",
+    "token": "northwoodspace",
+    "type": "direct_ats",
+    "employer": "Northwood Space"
+  },
+  {
+    "name": "gr-hive",
+    "adapter": "greenhouse",
+    "token": "hive",
+    "type": "direct_ats",
+    "employer": "Hive"
+  },
+  {
+    "name": "ab-mural",
+    "adapter": "ashby",
+    "token": "mural",
+    "type": "direct_ats",
+    "employer": "Mural"
+  },
+  {
+    "name": "gr-appsflyer",
+    "adapter": "greenhouse",
+    "token": "appsflyer",
+    "type": "direct_ats",
+    "employer": "AppsFlyer"
+  },
+  {
+    "name": "ab-clickhouse",
+    "adapter": "ashby",
+    "token": "clickhouse",
+    "type": "direct_ats",
+    "employer": "ClickHouse"
+  },
+  {
+    "name": "gr-cockroach-labs",
+    "adapter": "greenhouse",
+    "token": "cockroachlabs",
+    "type": "direct_ats",
+    "employer": "Cockroach Labs"
+  },
+  {
+    "name": "gr-druva",
+    "adapter": "greenhouse",
+    "token": "druva",
+    "type": "direct_ats",
+    "employer": "Druva"
+  },
+  {
+    "name": "gr-formlabs",
+    "adapter": "greenhouse",
+    "token": "formlabs",
+    "type": "direct_ats",
+    "employer": "Formlabs"
+  },
+  {
+    "name": "ab-iterable",
+    "adapter": "ashby",
+    "token": "iterable",
+    "type": "direct_ats",
+    "employer": "Iterable"
+  },
+  {
+    "name": "ab-simile",
+    "adapter": "ashby",
+    "token": "simile",
+    "type": "direct_ats",
+    "employer": "Simile"
+  },
+  {
+    "name": "ab-quora",
+    "adapter": "ashby",
+    "token": "quora",
+    "type": "direct_ats",
+    "employer": "Quora"
+  },
+  {
+    "name": "gr-zocdoc",
+    "adapter": "greenhouse",
+    "token": "zocdoc",
+    "type": "direct_ats",
+    "employer": "Zocdoc"
+  },
+  {
+    "name": "gr-dragos",
+    "adapter": "greenhouse",
+    "token": "dragos",
+    "type": "direct_ats",
+    "employer": "Dragos"
+  },
+  {
+    "name": "gr-pax-labs",
+    "adapter": "greenhouse",
+    "token": "paxlabs",
+    "type": "direct_ats",
+    "employer": "PAX Labs"
+  },
+  {
+    "name": "gr-workato",
+    "adapter": "greenhouse",
+    "token": "workato",
+    "type": "direct_ats",
+    "employer": "Workato"
+  },
+  {
+    "name": "gr-cresta",
+    "adapter": "greenhouse",
+    "token": "cresta",
+    "type": "direct_ats",
+    "employer": "Cresta"
+  },
+  {
+    "name": "gr-homelight",
+    "adapter": "greenhouse",
+    "token": "homelight",
+    "type": "direct_ats",
+    "employer": "HomeLight"
+  },
+  {
+    "name": "gr-unite-us",
+    "adapter": "greenhouse",
+    "token": "uniteus",
+    "type": "direct_ats",
+    "employer": "Unite Us"
+  },
+  {
+    "name": "ab-vanta",
+    "adapter": "ashby",
+    "token": "vanta",
+    "type": "direct_ats",
+    "employer": "Vanta"
+  },
+  {
+    "name": "ab-airbyte",
+    "adapter": "ashby",
+    "token": "airbyte",
+    "type": "direct_ats",
+    "employer": "Airbyte"
+  },
+  {
+    "name": "ab-andela",
+    "adapter": "ashby",
+    "token": "andela",
+    "type": "direct_ats",
+    "employer": "Andela"
+  },
+  {
+    "name": "gr-id-me",
+    "adapter": "greenhouse",
+    "token": "idme",
+    "type": "direct_ats",
+    "employer": "ID.me"
+  },
+  {
+    "name": "gr-moloco",
+    "adapter": "greenhouse",
+    "token": "moloco",
+    "type": "direct_ats",
+    "employer": "MOLOCO"
+  },
+  {
+    "name": "ab-nous-research",
+    "adapter": "ashby",
+    "token": "nousresearch",
+    "type": "direct_ats",
+    "employer": "Nous Research"
+  },
+  {
+    "name": "ab-render",
+    "adapter": "ashby",
+    "token": "render",
+    "type": "direct_ats",
+    "employer": "Render"
+  },
+  {
+    "name": "ab-eka-robotics",
+    "adapter": "ashby",
+    "token": "ekarobotics",
+    "type": "direct_ats",
+    "employer": "Eka Robotics"
+  },
+  {
+    "name": "ab-odyssey",
+    "adapter": "ashby",
+    "token": "odyssey",
+    "type": "direct_ats",
+    "employer": "Odyssey"
+  },
+  {
+    "name": "ab-away",
+    "adapter": "ashby",
+    "token": "away",
+    "type": "direct_ats",
+    "employer": "Away"
+  },
+  {
+    "name": "gr-netdocuments",
+    "adapter": "greenhouse",
+    "token": "netdocuments",
+    "type": "direct_ats",
+    "employer": "NetDocuments"
+  },
+  {
+    "name": "gr-yotpo",
+    "adapter": "greenhouse",
+    "token": "yotpo",
+    "type": "direct_ats",
+    "employer": "Yotpo"
+  },
+  {
+    "name": "ab-miro",
+    "adapter": "ashby",
+    "token": "miro",
+    "type": "direct_ats",
+    "employer": "Miro"
+  },
+  {
+    "name": "gr-distrokid",
+    "adapter": "greenhouse",
+    "token": "distrokid",
+    "type": "direct_ats",
+    "employer": "DistroKid"
+  },
+  {
+    "name": "gr-feedzai",
+    "adapter": "greenhouse",
+    "token": "feedzai",
+    "type": "direct_ats",
+    "employer": "Feedzai"
+  },
+  {
+    "name": "ab-g2",
+    "adapter": "ashby",
+    "token": "g2",
+    "type": "direct_ats",
+    "employer": "G2"
+  },
+  {
+    "name": "gr-airtable",
+    "adapter": "greenhouse",
+    "token": "airtable",
+    "type": "direct_ats",
+    "employer": "Airtable"
+  },
+  {
+    "name": "gr-bigid",
+    "adapter": "greenhouse",
+    "token": "bigid",
+    "type": "direct_ats",
+    "employer": "BigID"
+  },
+  {
+    "name": "gr-axonius",
+    "adapter": "greenhouse",
+    "token": "axonius",
+    "type": "direct_ats",
+    "employer": "Axonius"
+  },
+  {
+    "name": "lv-floqast",
+    "adapter": "lever",
+    "token": "floqast",
+    "type": "direct_ats",
+    "employer": "FloQast"
+  },
+  {
+    "name": "lv-sysdig",
+    "adapter": "lever",
+    "token": "sysdig",
+    "type": "direct_ats",
+    "employer": "Sysdig"
+  },
+  {
+    "name": "ab-sisense",
+    "adapter": "ashby",
+    "token": "sisense",
+    "type": "direct_ats",
+    "employer": "Sisense"
+  },
+  {
+    "name": "ab-substack",
+    "adapter": "ashby",
+    "token": "substack",
+    "type": "direct_ats",
+    "employer": "Substack"
+  },
+  {
+    "name": "ab-virta-health",
+    "adapter": "ashby",
+    "token": "virtahealth",
+    "type": "direct_ats",
+    "employer": "Virta Health"
+  },
+  {
+    "name": "ab-substrate",
+    "adapter": "ashby",
+    "token": "substrate",
+    "type": "direct_ats",
+    "employer": "Substrate"
+  },
+  {
+    "name": "gr-emplifi",
+    "adapter": "greenhouse",
+    "token": "emplifi",
+    "type": "direct_ats",
+    "employer": "Emplifi"
+  },
+  {
+    "name": "ab-classdojo",
+    "adapter": "ashby",
+    "token": "classdojo",
+    "type": "direct_ats",
+    "employer": "ClassDojo"
+  },
+  {
+    "name": "gr-appdirect",
+    "adapter": "greenhouse",
+    "token": "appdirect",
+    "type": "direct_ats",
+    "employer": "AppDirect"
+  },
+  {
+    "name": "ab-blacksmith",
+    "adapter": "ashby",
+    "token": "blacksmith",
+    "type": "direct_ats",
+    "employer": "Blacksmith"
+  },
+  {
+    "name": "ab-dash0",
+    "adapter": "ashby",
+    "token": "dash0",
+    "type": "direct_ats",
+    "employer": "Dash0"
+  },
+  {
+    "name": "gr-flexe",
+    "adapter": "greenhouse",
+    "token": "flexe",
+    "type": "direct_ats",
+    "employer": "Flexe"
+  },
+  {
+    "name": "gr-highradius",
+    "adapter": "greenhouse",
+    "token": "highradius",
+    "type": "direct_ats",
+    "employer": "HighRadius"
+  },
+  {
+    "name": "ab-injective",
+    "adapter": "ashby",
+    "token": "injective",
+    "type": "direct_ats",
+    "employer": "Injective"
+  },
+  {
+    "name": "gr-locus-robotics",
+    "adapter": "greenhouse",
+    "token": "locusrobotics",
+    "type": "direct_ats",
+    "employer": "Locus Robotics"
+  },
+  {
+    "name": "ab-morning-consult",
+    "adapter": "ashby",
+    "token": "morningconsult",
+    "type": "direct_ats",
+    "employer": "Morning Consult"
+  },
+  {
+    "name": "gr-pandadoc",
+    "adapter": "greenhouse",
+    "token": "pandadoc",
+    "type": "direct_ats",
+    "employer": "PandaDoc"
+  },
+  {
+    "name": "gr-pantheon-systems",
+    "adapter": "greenhouse",
+    "token": "pantheon",
+    "type": "direct_ats",
+    "employer": "Pantheon Systems"
+  },
+  {
+    "name": "gr-picsart",
+    "adapter": "greenhouse",
+    "token": "picsart",
+    "type": "direct_ats",
+    "employer": "Picsart"
+  },
+  {
+    "name": "ab-redis-labs",
+    "adapter": "ashby",
+    "token": "redis",
+    "type": "direct_ats",
+    "employer": "Redis Labs"
+  },
+  {
+    "name": "ab-sift",
+    "adapter": "ashby",
+    "token": "sift",
+    "type": "direct_ats",
+    "employer": "Sift"
+  },
+  {
+    "name": "gr-smartasset",
+    "adapter": "greenhouse",
+    "token": "smartasset",
+    "type": "direct_ats",
+    "employer": "SmartAsset"
+  },
+  {
+    "name": "gr-socket",
+    "adapter": "greenhouse",
+    "token": "socket",
+    "type": "direct_ats",
+    "employer": "Socket"
+  },
+  {
+    "name": "ab-tekion",
+    "adapter": "ashby",
+    "token": "tekion",
+    "type": "direct_ats",
+    "employer": "Tekion"
+  },
+  {
+    "name": "gr-thatch",
+    "adapter": "greenhouse",
+    "token": "thatch",
+    "type": "direct_ats",
+    "employer": "Thatch"
+  },
+  {
+    "name": "ab-town",
+    "adapter": "ashby",
+    "token": "town",
+    "type": "direct_ats",
+    "employer": "Town"
+  },
+  {
+    "name": "gr-vox-media",
+    "adapter": "greenhouse",
+    "token": "voxmedia",
+    "type": "direct_ats",
+    "employer": "Vox Media"
+  },
+  {
+    "name": "gr-vts",
+    "adapter": "greenhouse",
+    "token": "vts",
+    "type": "direct_ats",
+    "employer": "VTS"
+  },
+  {
+    "name": "gr-zenoti",
+    "adapter": "greenhouse",
+    "token": "zenoti",
+    "type": "direct_ats",
+    "employer": "Zenoti"
+  }
+]

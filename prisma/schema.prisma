@@ -14053,6 +14053,7 @@ model MailingClickEvent {
 
   @@unique([recipientId, clickedAt, link])
   @@index([ip, clickedAt])
+  @@index([clickedAt])
 }
 
 /// Who received which report edition, and how — sent by the composer
