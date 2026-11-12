@@ -85,6 +85,14 @@ describe('which list-email opens are a person', () => {
     expect(isHumanOpen(open(), new Set())).toBe(true)
     expect(isHumanOpen(open({ ip: '66.249.84.1', userAgent: 'Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko Firefox/11.0 (via ggpht.com GoogleImageProxy)' }), new Set())).toBe(true)
   })
+  it('counts Gmail image proxy opens from any Google address and soon after delivery, unless the address is a known scanner', () => {
+    const gmail = 'Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko Firefox/11.0 (via ggpht.com GoogleImageProxy)'
+    for (const ip of ['192.178.10.1', '74.125.210.3', '66.249.84.1', '34.118.1.1']) {
+      expect(isHumanOpen(open({ ip, userAgent: gmail }), new Set())).toBe(true)
+    }
+    expect(isHumanOpen(open({ ip: '192.178.10.1', userAgent: gmail, at: new Date(delivered.getTime() + 30_000) }), new Set())).toBe(true)
+    expect(isHumanOpen(open({ ip: '203.0.113.7', userAgent: gmail }), new Set(['203.0.113.7']))).toBe(false)
+  })
   it('does not count Apple Mail Privacy Protection, a scanner address, a cloud address or an open within two minutes of delivery', () => {
     expect(botOpenReason(open({ ip: '17.58.12.9' }), new Set())).toMatch(/Apple Mail Privacy Protection/)
     expect(isHumanOpen(open({ ip: '203.0.113.7' }), new Set(['203.0.113.7']))).toBe(false)
