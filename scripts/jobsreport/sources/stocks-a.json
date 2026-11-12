@@ -1,0 +1,240 @@
+[
+  {
+    "name": "gr-applovin-corporation",
+    "adapter": "greenhouse",
+    "token": "applovin",
+    "type": "direct_ats",
+    "employer": "AppLovin Corporation"
+  },
+  {
+    "name": "gr-cloudflare-inc",
+    "adapter": "greenhouse",
+    "token": "cloudflare",
+    "type": "direct_ats",
+    "employer": "Cloudflare, Inc."
+  },
+  {
+    "name": "gr-airbnb-inc",
+    "adapter": "greenhouse",
+    "token": "airbnb",
+    "type": "direct_ats",
+    "employer": "Airbnb, Inc."
+  },
+  {
+    "name": "ab-snowflake-inc",
+    "adapter": "ashby",
+    "token": "snowflake",
+    "type": "direct_ats",
+    "employer": "Snowflake Inc."
+  },
+  {
+    "name": "gr-carvana-co",
+    "adapter": "greenhouse",
+    "token": "carvana",
+    "type": "direct_ats",
+    "employer": "Carvana Co."
+  },
+  {
+    "name": "gr-datadog-inc",
+    "adapter": "greenhouse",
+    "token": "datadog",
+    "type": "direct_ats",
+    "employer": "Datadog, Inc."
+  },
+  {
+    "name": "gr-nasdaq-inc",
+    "adapter": "greenhouse",
+    "token": "nasdaq",
+    "type": "direct_ats",
+    "employer": "Nasdaq, Inc."
+  },
+  {
+    "name": "gr-block-inc",
+    "adapter": "greenhouse",
+    "token": "block",
+    "type": "direct_ats",
+    "employer": "Block, Inc."
+  },
+  {
+    "name": "lv-veeva-systems-inc",
+    "adapter": "lever",
+    "token": "veeva",
+    "type": "direct_ats",
+    "employer": "Veeva Systems Inc."
+  },
+  {
+    "name": "gr-natera-inc",
+    "adapter": "greenhouse",
+    "token": "natera",
+    "type": "direct_ats",
+    "employer": "Natera, Inc."
+  },
+  {
+    "name": "gr-rocket-lab-corporation",
+    "adapter": "greenhouse",
+    "token": "rocketlab",
+    "type": "direct_ats",
+    "employer": "Rocket Lab Corporation"
+  },
+  {
+    "name": "gr-ubiquiti-inc",
+    "adapter": "greenhouse",
+    "token": "ubiquiti",
+    "type": "direct_ats",
+    "employer": "Ubiquiti Inc."
+  },
+  {
+    "name": "ab-astera-labs-inc",
+    "adapter": "ashby",
+    "token": "astera",
+    "type": "direct_ats",
+    "employer": "Astera Labs, Inc."
+  },
+  {
+    "name": "lv-skydance-corporation",
+    "adapter": "lever",
+    "token": "skydance",
+    "type": "direct_ats",
+    "employer": "Skydance Corporation"
+  },
+  {
+    "name": "gr-revolution-medicines-inc",
+    "adapter": "greenhouse",
+    "token": "revolutionmedicines",
+    "type": "direct_ats",
+    "employer": "Revolution Medicines, Inc."
+  },
+  {
+    "name": "gr-roblox-corporation",
+    "adapter": "greenhouse",
+    "token": "roblox",
+    "type": "direct_ats",
+    "employer": "Roblox Corporation"
+  },
+  {
+    "name": "gr-twilio-inc",
+    "adapter": "greenhouse",
+    "token": "twilio",
+    "type": "direct_ats",
+    "employer": "Twilio Inc."
+  },
+  {
+    "name": "gr-coreweave-inc",
+    "adapter": "greenhouse",
+    "token": "coreweave",
+    "type": "direct_ats",
+    "employer": "CoreWeave, Inc."
+  },
+  {
+    "name": "gr-eqt-corporation",
+    "adapter": "greenhouse",
+    "token": "eqtcorporation",
+    "type": "direct_ats",
+    "employer": "EQT Corporation"
+  },
+  {
+    "name": "gr-okta-inc",
+    "adapter": "greenhouse",
+    "token": "okta",
+    "type": "direct_ats",
+    "employer": "Okta, Inc."
+  },
+  {
+    "name": "gr-zscaler-inc",
+    "adapter": "greenhouse",
+    "token": "zscaler",
+    "type": "direct_ats",
+    "employer": "Zscaler, Inc."
+  },
+  {
+    "name": "gr-roivant-sciences-ltd",
+    "adapter": "greenhouse",
+    "token": "roivantsciences",
+    "type": "direct_ats",
+    "employer": "Roivant Sciences Ltd."
+  },
+  {
+    "name": "gr-flex-ltd",
+    "adapter": "greenhouse",
+    "token": "flex",
+    "type": "direct_ats",
+    "employer": "Flex Ltd."
+  },
+  {
+    "name": "gr-coupang-inc",
+    "adapter": "greenhouse",
+    "token": "coupang",
+    "type": "direct_ats",
+    "employer": "Coupang, Inc."
+  },
+  {
+    "name": "gr-verisign-inc",
+    "adapter": "greenhouse",
+    "token": "verisign",
+    "type": "direct_ats",
+    "employer": "VeriSign, Inc."
+  },
+  {
+    "name": "gr-mongodb-inc",
+    "adapter": "greenhouse",
+    "token": "mongodb",
+    "type": "direct_ats",
+    "employer": "MongoDB, Inc."
+  },
+  {
+    "name": "gr-hp-inc",
+    "adapter": "greenhouse",
+    "token": "hp",
+    "type": "direct_ats",
+    "employer": "HP Inc."
+  },
+  {
+    "name": "gr-samsara-inc",
+    "adapter": "greenhouse",
+    "token": "samsara",
+    "type": "direct_ats",
+    "employer": "Samsara Inc."
+  },
+  {
+    "name": "ab-cerebras-systems-inc",
+    "adapter": "ashby",
+    "token": "cerebras",
+    "type": "direct_ats",
+    "employer": "Cerebras Systems Inc."
+  },
+  {
+    "name": "gr-affirm-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "affirm",
+    "type": "direct_ats",
+    "employer": "Affirm Holdings, Inc."
+  },
+  {
+    "name": "gr-maze-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "mazetherapeutics",
+    "type": "direct_ats",
+    "employer": "Maze Therapeutics, Inc."
+  },
+  {
+    "name": "gr-upstart-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "upstart",
+    "type": "direct_ats",
+    "employer": "Upstart Holdings, Inc."
+  },
+  {
+    "name": "gr-agility-robotics-inc",
+    "adapter": "greenhouse",
+    "token": "agilityrobotics",
+    "type": "direct_ats",
+    "employer": "Agility Robotics, Inc."
+  },
+  {
+    "name": "ab-marqeta-inc",
+    "adapter": "ashby",
+    "token": "marqeta-inc",
+    "type": "direct_ats",
+    "employer": "Marqeta, Inc."
+  }
+]
