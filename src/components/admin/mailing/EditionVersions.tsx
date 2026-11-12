@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { humanOpenCount } from '@/lib/mailing/open-human'
+import { syncEditionRoster } from '@/lib/mailing/editions'
 
 const STATUS_LABEL = { DRAFT: 'Draft', SCHEDULED: 'Scheduled', SENDING: 'Sending', SENT: 'Sent' } as const
 
@@ -36,6 +37,14 @@ const scheduledTime = (d: Date) =>
  * edition that has never been copied.
  */
 export async function EditionVersions({ editionId, rootId }: { editionId: string; rootId: string }) {
+  // A version scheduled or drafted without its roster built (copied or scheduled outside the page) would show 0 people
+  // until it sends. Build it now so the table and "See everyone" match what will go out. Reads only the unbuilt ones.
+  const unbuilt = await prisma.mailingEdition.findMany({
+    where: { OR: [{ id: rootId }, { versionOfId: rootId }], status: { in: ['DRAFT', 'SCHEDULED'] }, recipients: { none: {} } },
+    select: { id: true },
+  })
+  for (const u of unbuilt) await syncEditionRoster(u.id)
+
   const versions = await prisma.mailingEdition.findMany({
     where: { OR: [{ id: rootId }, { versionOfId: rootId }] },
     orderBy: { createdAt: 'asc' },
