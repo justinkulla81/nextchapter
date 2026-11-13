@@ -121,6 +121,13 @@ export interface PublicJobRow {
 
 /** True when the page has the posting's own text, enough to stand on its own in search (see PUBLIC_JOB_MIN_INDEX_DESCRIPTION). */
 /**
+ * Source categories whose jobs are offered to search engines although they are not an employer's own system: search and staffing firms
+ * and the interim and fractional source. Owner decision 2026-11-13: staffing firms and recruiters are fine as long as the jobs are real
+ * (the 1,500-byte text and 14-day confirmation rules still apply), and fractional work is offered too.
+ */
+export const OFFERED_FIRM_CATEGORIES = ['search_firm', 'interim'] as const
+
+/**
  * On the employer's own career system: the crawler's directListing flag, an 'employer' source (its own site, though not always flagged:
  * jobs.apple.com, google.com careers), or a link on an employer applicant tracking system such as Greenhouse, Lever or Ashby (a
  * venture board's feed that links to the company's own Greenhouse board; owner decision 2026-11-13, employer-ats.ts). An aggregator's row
@@ -128,6 +135,7 @@ export interface PublicJobRow {
  */
 export function isDirectJob(job: Pick<PublicJobRow, 'directListing' | 'sourceCategory'> & { url?: string | null }): boolean {
   if (job.directListing || job.sourceCategory === 'employer') return true
+  if ((OFFERED_FIRM_CATEGORIES as readonly (string | null | undefined)[]).includes(job.sourceCategory)) return true
   return job.sourceCategory !== 'aggregator' && isEmployerAtsUrl(job.url)
 }
 
