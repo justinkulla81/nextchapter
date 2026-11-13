@@ -1,0 +1,25 @@
+[
+  {
+    "name": "wd-uline",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Uline",
+    "tenant": "uline",
+    "wd": "wd1",
+    "site": "Uline_Careers"
+  },
+  {
+    "name": "jibe-orkin",
+    "adapter": "jibe",
+    "host": "careers.orkin.com",
+    "type": "direct_ats",
+    "employer": "orkin"
+  },
+  {
+    "name": "gr-relativity",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Relativity",
+    "token": "relativity"
+  }
+]
