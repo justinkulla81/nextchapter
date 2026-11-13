@@ -127,6 +127,8 @@ export function isPlausibleCompany(name: string): boolean {
   if (n.length < 2 || BARE_WORD.test(n) || DANGLING_END.test(n)) return false
   if (n.split(/\s+/).length > 5) return false
   if (FRAGMENT.test(n) || PLACE_OR_THING.test(n)) return false
+  // A tracker or list page, a superlative description, an industry group or an unnamed company ('Largest Australian airline', 'Restaurants and bars', 'Staffing co.').
+  if (/\btrackers?\b/i.test(n) || /^(?:largest|biggest|top|leading|major)\b/i.test(n) || /\band (?:bars|restaurants|retailers|banks)$/i.test(n) || /^[A-Za-z]+ co\.$/i.test(n)) return false
   return true
 }
 
@@ -172,6 +174,8 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
   // forum", "I-64 shut down for hours" and "Tesla to wind down Cybertruck production" are not (found in a dry run, 2026-11-13).
   const buyout = strong ? null : h.match(BUYOUT_OFFER)
   if (/\b(?:box office|representative office|embassy|consulate)\b/i.test(h)) return null
+  // A running list of layoffs ('Fierce Biotech Layoff Tracker 2026') is a page about many companies, not one company's layoff.
+  if (/\blayoffs? trackers?\b|\btracker\b.*\blayoffs?\b/i.test(h)) return null
   const weak = strong || buyout ? null : h.match(RELOCATION) ?? h.match(CLOSURE)
   if (weak && !PEOPLE_AFFECTED.test(h)) return null
   const m = strong ?? buyout ?? weak
