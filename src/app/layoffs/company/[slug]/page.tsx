@@ -267,7 +267,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             properties={{ page: 'layoff', audience: 'employer_hr', slug, hasNotices }}
           />
 
-          <OutreachRequestBlock slug={slug} employer={c.name} />
+          <OutreachRequestBlock slug={slug} employer={c.name} people={workers || null} />
           <YourState label={c.name} />
           <div className="mt-4 space-y-12">
             <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : (latestAnn?.workers ?? null)} hasNotices={hasNotices} noticeCount={c.notices.length} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />

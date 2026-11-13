@@ -132,7 +132,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
             <span aria-hidden> › </span>
             <span className="text-foreground">{c.name}</span>
           </nav>
-<OutreachRequestBlock slug={slug} employer={c.name} />
+<OutreachRequestBlock slug={slug} employer={c.name} people={workers || null} />
 <div className="mt-4 rounded-2xl bg-[var(--org-1,#14213D)] p-6 text-[var(--org-1-ink,#ffffff)] sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">NextChapter · for people leaving {c.name}</p>
             <h1 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
@@ -140,7 +140,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
             </h1>
             <p className="mt-3 max-w-2xl text-base opacity-90">
               {aboutCount(inState.total)} professional jobs are open in {stateLabel}
-              {atEmployer.total > 0 && <>, including {aboutCount(atEmployer.total)} at {c.name}</>}. Put in your email and we send a plan built for a layoff: benefits and deadlines first, then jobs matched to your background.
+              {atEmployer.total > 0 && <>, including {aboutCount(atEmployer.total)} at {c.name}</>}. Put in your email and we send the plan: what to file and by when first, then the jobs that fit your background.
             </p>
             <EmployerEmailCapture slug={slug} employer={c.name} />
             <p className="mt-4 text-sm opacity-90">

@@ -5,16 +5,20 @@ import { submitOutreachRequest, type OutreachRequestState } from '@/lib/leads/ou
 import { readOutreachTags, type OutreachTags } from '@/lib/outreach/landing-tags'
 import { posthog } from '@/lib/posthog/client'
 
+const people = (n: number | null) => (n && n > 1 ? `${n.toLocaleString('en-US')} people` : 'people')
+
 const COPY = {
   hr: {
-    heading: (e: string) => `Set up the 10 free seats for the people leaving ${e}`,
-    body: 'Up to 10 seats at no charge. You see counts of who used it, never names. Give us your work email and Justin Kulla will write to you.',
+    heading: (e: string, n: number | null) => `${people(n)} are leaving ${e}. Give them a place to start.`,
+    points: () => ['Up to 10 seats at no charge', 'You see counts of who used it, never names', 'Free for them whether or not you partner with us'],
+    body: 'Give us your work email and Justin Kulla will write to you to set it up.',
     button: 'Set up the 10 seats',
     done: 'Got it. Justin Kulla will email you to set up the seats.',
   },
   partner: {
-    heading: (e: string) => `Get a handout for the people leaving ${e}`,
-    body: 'A short note you can hand to anyone who comes in, with the link to this page. Give us your work email and Justin Kulla will send it.',
+    heading: (e: string, n: number | null) => `Someone from ${e} may walk in. Have this ready.`,
+    points: (n: number | null) => [`A free page for the ${people(n)} leaving, with roles matched to their work`, 'A short note you can hand out, with the link', 'Nothing for you to set up'],
+    body: 'Give us your work email and Justin Kulla will send you the handout.',
     button: 'Send me the handout',
     done: 'Got it. Justin Kulla will email you the handout.',
   },
@@ -26,7 +30,7 @@ const COPY = {
  * browser so the page stays static and cached. `forceTags` is for the preview page. Owner approved this as a second
  * registration ask on a public page on 2026-11-13.
  */
-export function OutreachRequestBlock({ slug, employer, forceTags }: { slug: string; employer: string; forceTags?: OutreachTags }) {
+export function OutreachRequestBlock({ slug, employer, people: peopleCount = null, forceTags }: { slug: string; employer: string; people?: number | null; forceTags?: OutreachTags }) {
   const [tags, setTags] = useState<OutreachTags | null>(forceTags ?? null)
   useEffect(() => {
     if (forceTags) return
@@ -38,13 +42,16 @@ export function OutreachRequestBlock({ slug, employer, forceTags }: { slug: stri
   const c = COPY[tags.role]
 
   return (
-    <section aria-labelledby="outreach-request" className="mt-4 rounded-2xl border-2 border-navy bg-white p-6 sm:p-8">
-      <h2 id="outreach-request" className="text-xl font-bold tracking-tight text-navy sm:text-2xl">{c.heading(employer)}</h2>
+    <section aria-labelledby="outreach-request" className="mt-4 rounded-2xl border-2 border-[var(--org-1,#14213D)] bg-white p-6 sm:p-8">
+      <h2 id="outreach-request" className="text-balance text-xl font-bold tracking-tight text-[var(--org-1,#14213D)] sm:text-2xl">{c.heading(employer, peopleCount)}</h2>
       {state?.saved ? (
-        <p role="status" className="mt-3 text-base font-semibold text-navy">{c.done}</p>
+        <p role="status" className="mt-3 text-base font-semibold text-[var(--org-1,#14213D)]">{c.done}</p>
       ) : (
         <>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{c.body}</p>
+          <ul className="mt-3 space-y-1 text-sm text-navy">
+            {c.points(peopleCount).map((t) => <li key={t} className="flex gap-2"><span aria-hidden className="text-[var(--org-1,#14213D)]">✓</span><span>{t}</span></li>)}
+          </ul>
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{c.body}</p>
           <form
             action={submit}
             noValidate
@@ -73,7 +80,7 @@ export function OutreachRequestBlock({ slug, employer, forceTags }: { slug: stri
               aria-invalid={state?.error ? true : undefined}
               className="h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-[#111111] sm:flex-1"
             />
-            <button type="submit" disabled={sending} className="h-12 rounded-full bg-brand px-6 text-base font-semibold text-white hover:brightness-95 disabled:cursor-wait">
+            <button type="submit" disabled={sending} className="h-12 rounded-full bg-[var(--org-1,#14213D)] px-6 text-base font-semibold text-[var(--org-1-ink,#ffffff)] hover:brightness-95 disabled:cursor-wait">
               {sending ? 'Sending…' : c.button}
             </button>
           </form>
