@@ -12275,6 +12275,8 @@ model WarnNotice {
   effectiveDate DateTime?
   employees     Int?
   layoffType    String?
+  /// 'white' or 'blue' when the headline points at white-collar (Census groups 1-2) or blue-collar work; null when it says neither. Never a filter on the news check.
+  workCollar    String?
   /// The division of the employer the layoff is in, when the filing or the coverage names one ("Xbox", "Defense"). Read by src/lib/warn/division.ts.
   division      String?
   county        String?
