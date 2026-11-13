@@ -43,6 +43,8 @@ export interface FeedPosting {
   employmentType: string | null
   salaryMin: number | null
   salaryMax: number | null
+  /** When the posting closes, if the source says; the board row expires then. */
+  closesAt?: Date | null
 }
 
 type Address = { addressLocality?: string; addressRegion?: string }
@@ -171,7 +173,7 @@ export async function collectFromPages(
         else stats.skippedInternal += 1
         continue
       }
-      kept.push({ url: job.url, posting, level: v.level, location: v.location })
+      kept.push({ url: job.url, posting, level: v.level, location: v.location, closesAt: posting.closesAt ?? null })
     }
   }
   await Promise.all(Array.from({ length: opts.workers }, worker))

@@ -141,3 +141,30 @@ describe('Florida state jobs and Cornerstone boards', () => {
     expect(csodUrl(b, '82635').startsWith(csodAdapter.prefix(b))).toBe(true)
   })
 })
+
+describe('NYC, KEPS, Taleo and CalCareers readers', () => {
+  it('names the NYC employer from the agency', async () => {
+    const { nycEmployer, nycUrl } = await import('@/lib/jobs/gov-nyc-core')
+    expect(nycEmployer("ADMIN FOR CHILDREN'S SVCS")).toBe("City of New York, Admin For Children's Svcs")
+    expect(nycUrl('807877')).toContain('JobOpeningId=807877')
+  })
+  it('reads the KEPS vacancy table', async () => {
+    const { parseKepsTable } = await import('@/lib/jobs/gov-keps-core')
+    const html = `<table><tr class="dlheader"><th>Vacancy ID</th></tr><tr><td><a href="JobDetails.aspx?vID=2026202702312">20262027 - 02312</a></td><td>Exceptional Child Instructor</td><td>Exceptional Child/LBD Instructor</td><td>11/13/2026</td><td>P-5 Elementary</td><td>Hardin County</td><td><span>Meadow View Elementary School</span></td><td><span>LBD</span></td></tr></table>`
+    const [p] = parseKepsTable(html)
+    expect(p).toMatchObject({ key: '2026202702312', title: 'Exceptional Child/LBD Instructor' })
+    expect((p.data as { district: string }).district).toBe('Hardin County')
+  })
+  it('reads the Taleo job list', async () => {
+    const { parseTaleoList, GOV_TALEO_BOARDS } = await import('@/lib/jobs/gov-taleo-core')
+    const html = `<a href="https://phh.tbe.taleo.net/phh04/ats/careers/v2/viewRequisition?org=PCG&cws=47&rid=21444" class="viewJobLink">911 Public Safety Center Supervisor 1</a><a href="https://phh.tbe.taleo.net/phh04/ats/careers/v2/viewRequisition?org=PCG&cws=47&rid=21444" class="viewJobLink">View</a>`
+    expect(parseTaleoList(html, GOV_TALEO_BOARDS[0])).toEqual([{ key: '21444', title: '911 Public Safety Center Supervisor 1' }])
+  })
+  it('reads a CalCareers posting and skips an id that is not one', async () => {
+    const { parseCalCareers, calcareersJobs } = await import('@/lib/jobs/gov-calcareers-core')
+    const page = `<span id="lblDepartmentName">Department of Motor Vehicles</span><span id="lblWorkingTitle">Analyst II</span><span id="lblPrimarySalary">$6,000.00 - $7,500.00 per Month</span><span id="lblFinalFilingDate">11/19/2026</span><span id="lblWorkLocation">Sacramento County</span><span id="lblJobType">Permanent, Full Time</span>`
+    expect(parseCalCareers(page)).toMatchObject({ title: 'Analyst II', employer: 'State of California, Department of Motor Vehicles', location: 'Sacramento County, CA', salaryMin: 72000, salaryMax: 90000, employmentType: 'full_time' })
+    expect(parseCalCareers('<html>nothing</html>')).toBeNull()
+    expect(calcareersJobs(538401, 3).map((j) => j.id)).toEqual(['538401', '538402', '538403'])
+  })
+})

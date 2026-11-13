@@ -29,6 +29,10 @@ export interface SitemapFeedConfig extends FeedSource {
   dedupeAgainstUrlPrefixes?: string[]
   /** Reads a job page that does not carry JobPosting JSON-LD. */
   parse?: (page: string) => FeedPosting | null
+  /** Rows are neither re-confirmed nor archived here: each leaves the board on its own closing date (CalCareers). */
+  noArchive?: boolean
+  /** With numericIds: fetch oldest first (a budget cut then leaves the newest for the next run). */
+  ascending?: boolean
   maxNewPerRun: number
   timeBudgetMs: number
   workers?: number
@@ -55,8 +59,8 @@ export async function runSitemapFeed(cfg: SitemapFeedConfig): Promise<SitemapFee
   })
   const known = new Set(existing.map((e) => e.url))
   const live = existing.filter((e) => !e.archivedAt)
-  const stay = live.filter((e) => inSitemap.has(e.url)).map((e) => e.id)
-  const gone = live.filter((e) => !inSitemap.has(e.url)).map((e) => e.id)
+  const stay = cfg.noArchive ? [] : live.filter((e) => inSitemap.has(e.url)).map((e) => e.id)
+  const gone = cfg.noArchive ? [] : live.filter((e) => !inSitemap.has(e.url)).map((e) => e.id)
 
   const now = new Date()
   const expiresAt = new Date(now.getTime() + THIRTY_DAYS_MS)
@@ -71,7 +75,7 @@ export async function runSitemapFeed(cfg: SitemapFeedConfig): Promise<SitemapFee
   let pool = relevant.filter((j) => !known.has(j.url))
   if (cfg.numericIds) {
     const maxKnown = Math.max(0, ...jobs.filter((j) => known.has(j.url)).map((j) => Number(j.id) || 0))
-    pool = pool.filter((j) => Number(j.id) > maxKnown).sort((a, b) => Number(b.id) - Number(a.id))
+    pool = pool.filter((j) => Number(j.id) > maxKnown).sort((a, b) => (cfg.ascending ? Number(a.id) - Number(b.id) : Number(b.id) - Number(a.id)))
   }
   // The same US and seniority screen on the slug title alone, so jobs the board would drop are not fetched.
   const candidates = pool.filter((j) => !j.title || screenImportedJob(j.title, 'United States').keep).slice(0, cfg.maxNewPerRun)
@@ -92,7 +96,7 @@ export async function runSitemapFeed(cfg: SitemapFeedConfig): Promise<SitemapFee
     const companyIds = await linkPostingsToCompanies(kept.map((k) => k.posting.employer))
     const result = await prisma.exclusiveJobPosting.createMany({
       skipDuplicates: true,
-      data: kept.map((k) => ({ ...boardRow(k, cfg, now, expiresAt), companyId: companyIds.get(k.posting.employer) ?? null })),
+      data: kept.map((k) => ({ ...boardRow(k, cfg, now, k.closesAt ? new Date(Math.min(k.closesAt.getTime() + 86_400_000, now.getTime() + 2 * THIRTY_DAYS_MS)) : expiresAt), companyId: companyIds.get(k.posting.employer) ?? null })),
     })
     created = result.count
   }
