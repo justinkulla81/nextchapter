@@ -155,3 +155,32 @@ describe('reply templates', () => {
     expect(text.toLowerCase()).not.toContain('reject')
   })
 })
+
+import { buildCandidateStatus, coarseStatus } from '@/lib/recruiter/intake/status'
+
+describe('candidate status for a firm', () => {
+  const landed = {
+    journeyStage: 'LANDED',
+    journeyStageChangedAt: new Date('2026-11-01'),
+    currentJob: { companyName: 'Acme', roleTitle: 'Controller', startDate: new Date('2026-11-10') },
+  }
+  it('shows nothing without consent', () => {
+    expect(buildCandidateStatus([], landed)).toEqual({ status: null, landing: null })
+    expect(buildCandidateStatus(['contact', 'profile_updates'], landed)).toEqual({ status: null, landing: null })
+  })
+  it('shows status only with the status scope', () => {
+    const v = buildCandidateStatus(['status'], landed)
+    expect(v.status?.label).toBe('Landed')
+    expect(v.landing).toBeNull()
+  })
+  it('shows the new job only with landing_details and only once landed', () => {
+    expect(buildCandidateStatus(['landing_details'], landed).landing?.employer).toBe('Acme')
+    expect(buildCandidateStatus(['landing_details'], landed).status).toBeNull()
+    expect(buildCandidateStatus(['landing_details'], { ...landed, journeyStage: 'APPLYING' }).landing).toBeNull()
+  })
+  it('keeps the plan stages private', () => {
+    expect(coarseStatus('OFFER')).toBe('INTERVIEWING')
+    expect(coarseStatus('PREPARING')).toBe('SEARCHING')
+    expect(coarseStatus(null)).toBeNull()
+  })
+})
