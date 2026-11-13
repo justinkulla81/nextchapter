@@ -613,10 +613,12 @@ def crawl_usajobs(src, log):
 def crawl_neogov(src, log):
     """NEOGOV / governmentjobs.com agency pages (HTML). src: agency slug, employer."""
     agency = src["agency"]
-    base = f"https://www.governmentjobs.com/careers/{agency}"
+    # The default listing order ties on date and reshuffles between requests, so pages repeat and
+    # jobs are missed. An explicit sort is stable: Louisville Metro returns all 42 of 42.
+    base = f"https://www.governmentjobs.com/careers/home/index?agency={agency}&sort=PositionTitle&isDescendingSort=false"
     page, seen, total, empty = 1, set(), None, 0
     while empty < 3 and page <= 40:
-        html = http(f"{base}?page={page}", headers={"X-Requested-With": "XMLHttpRequest", "Accept": "text/html"})
+        html = http(f"{base}&page={page}", headers={"X-Requested-With": "XMLHttpRequest", "Accept": "text/html"})
         if total is None:
             t = re.search(r'job-postings-number">\s*(\d+)', html)
             total = int(t.group(1)) if t else None
