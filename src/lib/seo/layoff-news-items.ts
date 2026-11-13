@@ -20,6 +20,9 @@ export interface NewsAnnouncement {
   buyout?: boolean
 }
 
+// Titles follow how people search a layoff: "<Company> layoffs", the jobs cut when known, and the month.
+const monthYear = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+
 export interface NewsItem {
   slug: string
   title: string
@@ -41,14 +44,17 @@ export function layoffNewsItems(
   for (const c of companies) {
     if (!inWindow(c.latest) || !opts.meetsBar(c)) continue
     const where = c.states.length === 1 ? ` in ${opts.stateName(c.states[0])}` : ''
-    by.set(c.slug, { slug: c.slug, title: `${c.name} layoff notice${where}`, date: c.latest })
+    const named = c.notices.filter((n) => n.workers != null)
+    const workers = named.reduce((t, n) => t + (n.workers ?? 0), 0)
+    const cut = named.length && workers > 0 ? `: ${workers.toLocaleString('en-US')} jobs cut${where}` : where
+    by.set(c.slug, { slug: c.slug, title: `${c.name} layoffs${cut} (${monthYear(c.latest)})`, date: c.latest })
   }
   // An announcement page is indexable on its own (a reported layoff or buyout in the last 12 months), so it needs no filing.
   for (const a of announcements) {
     if (!inWindow(a.latest)) continue
     const prev = by.get(a.slug)
     if (prev && prev.date.getTime() >= a.latest.getTime()) continue
-    by.set(a.slug, { slug: a.slug, title: `${a.name}: ${a.buyout ? 'buyout offered' : 'layoffs reported'}`, date: a.latest })
+    by.set(a.slug, { slug: a.slug, title: `${a.name} ${a.buyout ? 'buyout offered' : 'layoffs'} (${monthYear(a.latest)})`, date: a.latest })
   }
   return [...by.values()].sort((a, b) => b.date.getTime() - a.date.getTime() || (a.slug < b.slug ? -1 : 1)).slice(0, opts.limit ?? 1000)
 }
