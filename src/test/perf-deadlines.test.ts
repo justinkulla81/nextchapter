@@ -95,6 +95,13 @@ describe('judgeSlowRows', () => {
     expect(v.people).toBe(3)
   })
 
+  it('stays quiet when one person\'s single page load reports many slow reads and a second person has one', () => {
+    const slow = Array.from({ length: 13 }, (_, i) => row({ who: 'a', event: 'page_query_stalled', route: 'home', label: `read${i}`, ms: 6_000, at: 2_000_000 + i * 200 }))
+    const v = judgeSlowRows([...slow, row({ who: 'b', event: 'page_query_stalled', label: 'match', ms: 3_600, at: 2_300_000 }), row({ who: 'b', at: 2_500_000 })])
+    expect(v.alert).toBe(false)
+    expect(v.events).toBe(15)
+  })
+
   it('alerts when reads keep giving up at their deadline', () => {
     const rows = Array.from({ length: 3 }, () => row({ event: 'page_query_stalled', route: 'layout', label: 'freshJobs', timedOut: true, ms: 1_500 }))
     const v = judgeSlowRows(rows)
