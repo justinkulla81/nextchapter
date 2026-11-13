@@ -98,6 +98,12 @@ Check one: "Top Echelon Network (recruiter member boards)" (680 stale) and "APA 
 
 Left out as not real postings: "Remote", "Work at home", "Confidential", "Clients blackbox" and "GPAC" are generic or unnamed labels; they need a real employer or client name before they count. Staffing and recruiting firms (Creative Financial Staffing, Michael Page, Robert Half, Actalent, Aston Carter, Jobot, TEKsystems) stay in.
 
+## Rule widened (2026-11-13)
+
+Owner decision: a job is direct when its link is on an employer applicant tracking system (Greenhouse, Lever, Ashby, Workday, SmartRecruiters, iCIMS and the other hosts in `src/lib/jobs/employer-ats.ts`), whichever feed it came through. An aggregator's row is never direct. A venture, PE or accelerator board's own page (getro.com, jobs.accel.com and the like) is still not.
+
+Measured on the 3% sample before the change: 6,594 live jobs were not direct. Of those, 176 (about 5,900 on the board) link to an employer ATS, and 97 (about 3,200) also have the full text and a confirmation within 14 days, so about 3,200 jobs become offerable at once, about 1.6% more than the 204,000 offered. 14 of the 97 share a company and title with a direct row we already hold, which may be the same role in another city or a true duplicate; check after deploy. The other roughly 58,000 jobs from venture, PE and school or women's boards link to those boards' own pages and stay out.
+
 ## Next
 
 Crawler prompt: `docs/specs/ncrawl-direct-index-gap-prompt.md`. The crawler (`nextchapter-jobs`) is not reachable from the cloud session. Re-run `scripts/jobsreport/direct_index_gap.sql` after the crawler changes land to see the buckets move.
