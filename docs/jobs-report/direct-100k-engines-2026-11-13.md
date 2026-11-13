@@ -45,3 +45,22 @@ Their sitemaps list about 358,000 job-like URLs across the 441 non-Workday hosts
 **Greenhouse, Lever and Ashby by name on the same 10,405 (engine 3):** 363 verified-by-address boards (265 Greenhouse, 51 Lever, 47 Ashby), 23,091 jobs (`sources/sec-gh.json`).
 
 **Order of magnitude:** Workable 71.8k US + Workday strong matches about 207k all-country (about 125k US at 60%) + Phenom 94k (overlapping Workday) + Greenhouse/Lever/Ashby 23k + the sitemap hosts, before the seniority screen and de-duplication against production.
+
+## Workday on private companies, universities, hospitals and nonprofits (2026-11-13)
+
+`workday_discover.py` run on name lists from public sources: 6,256 US colleges and universities (Urban Institute IPEDS directory), 5,301 hospitals (CMS hospital file), the 16,000 largest tax-exempt
+organizations by revenue (IRS exempt-organization file, $10M and up; 8,000 + 8,000 names) and the 1,201 largest non-staffing employers on our board with Jooble or Careerjet copies.
+Result files, each one source per Workday tenant and career site, with `nameMatch` (strong: tenant equals the full name; medium: first two words; weak: first word or initials):
+
+| List | Names | Tenants | Sites | Jobs (all countries) |
+|---|---|---|---|---|
+| Largest employers on our board with only Jooble copies | 1,201 | 166 | 326 | 96,588 |
+| Universities | 6,256 | 293 | 507 | 83,675 |
+| Hospitals | 5,301 | 231 | 386 | 103,415 |
+| Nonprofits, largest 8,000 | 8,000 | 455 | 797 | 169,610 |
+| Nonprofits, next 8,000 | 8,000 | 280 | 542 | 102,912 |
+| SEC companies (earlier) | 10,405 | 704 | 1,296 | 345,499 |
+
+Combined and de-duplicated by tenant and site (`sources/workday-all-unique.json`): **1,278 tenants, 2,313 career sites, 533,670 jobs** (all countries; Workday caps each site's count at 2,000, so large boards are undercounted).
+Strong matches 278,798 jobs, medium 141,080, weak 113,792. Many health systems appear under several facility names (Trinity Health, Sentara, Sanford, Mercy) and map to one tenant; the unique file counts each once.
+Weak and medium matches need the company name checked from the postings before import: a short tenant word (for example `trinity`, `mercy`) can belong to a different employer. Some sites repeat the same jobs under two site names.
