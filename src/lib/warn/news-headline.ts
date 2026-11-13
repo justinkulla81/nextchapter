@@ -127,6 +127,8 @@ export function isPlausibleCompany(name: string): boolean {
   if (n.length < 2 || BARE_WORD.test(n) || DANGLING_END.test(n)) return false
   if (n.split(/\s+/).length > 5) return false
   if (FRAGMENT.test(n) || PLACE_OR_THING.test(n)) return false
+  // A tracker or list page, a superlative description, an industry group or an unnamed company ('Largest Australian airline', 'Restaurants and bars', 'Staffing co.').
+  if (/\btrackers?\b/i.test(n) || /^(?:largest|biggest|top|leading|major)\b/i.test(n) || /\band (?:bars|restaurants|retailers|banks)$/i.test(n) || /^[A-Za-z]+ co\.$/i.test(n)) return false
   return true
 }
 
@@ -142,6 +144,17 @@ function count(n: string | undefined, k: string | undefined): number | null {
 /** Short names a headline uses for a well-known company, mapped to the name it is tracked under (normalized, lower case). */
 const BRAND_NAMES: Record<string, string> = {
   amex: 'American Express',
+}
+
+/**
+ * The company inside a name the shapes above let through (2026-11-13): "SpaceX's AI Group" is SpaceX (a unit of it), and "PVH Simplifies"
+ * is PVH (the headline's verb stuck to the name). Each of these made a second page for a company that already had one.
+ */
+export function cleanName(name: string): string {
+  return name
+    .replace(/^(.+?)['’]s\s+(?:[\w&-]+\s+){0,3}?(?:group|unit|division|team|arm|business|subsidiary|operations|segment|lab|labs)$/i, '$1')
+    .replace(/\s+(?:simplifies|restructures|streamlines|trims|slashes|cuts|reorganizes|reorganises|reshuffles|shrinks|downsizes|eliminates|axes|sheds|lays|plans|unveils)$/i, '')
+    .trim()
 }
 
 export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
@@ -172,13 +185,15 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
   // forum", "I-64 shut down for hours" and "Tesla to wind down Cybertruck production" are not (found in a dry run, 2026-11-13).
   const buyout = strong ? null : h.match(BUYOUT_OFFER)
   if (/\b(?:box office|representative office|embassy|consulate)\b/i.test(h)) return null
+  // A running list of layoffs ('Fierce Biotech Layoff Tracker 2026') is a page about many companies, not one company's layoff.
+  if (/\blayoffs? trackers?\b|\btracker\b.*\blayoffs?\b/i.test(h)) return null
   const weak = strong || buyout ? null : h.match(RELOCATION) ?? h.match(CLOSURE)
   if (weak && !PEOPLE_AFFECTED.test(h)) return null
   const m = strong ?? buyout ?? weak
   const raw = (m?.groups?.co ?? m?.groups?.tco?.replace(/\s+(?:teams?|staff|workforce|employees|workers)$/i, ''))?.trim()
   if (!raw) return null
   const named = raw.replace(/\s+(?:merger|acquisition|takeover|deal)$/i, '').replace(/\s+(?:has|have|had|is|are|was|were|moves|may|might)(?: been)?$/i, '').replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
-  const company = BRAND_NAMES[named.toLowerCase()] ?? named
+  const company = BRAND_NAMES[cleanName(named).toLowerCase()] ?? cleanName(named)
   if (company.length < 2 || NOT_A_NAME.test(company) || !isPlausibleCompany(company)) return null
   const companyKey = normalizeOrgName(company)
   if (!companyKey) return null

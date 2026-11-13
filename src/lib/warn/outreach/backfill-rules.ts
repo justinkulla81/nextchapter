@@ -83,16 +83,9 @@ export function assignArms(items: { id: string; audience: string }[], day: numbe
   return out
 }
 
-/** The nine-o'clock-Eastern instants of `count` weekdays from the Monday `monday` falls on (weekends skipped). */
-export function businessDayTimes(monday: Date, count: number): Date[] {
-  const out: Date[] = []
-  for (let d = 0; out.length < count && d < count * 3; d++) {
-    const probe = new Date(monday.getTime() + d * 86_400_000)
-    const noonUtc = (() => { const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(probe).split('-').map(Number); return new Date(Date.UTC(ymd[0], ymd[1] - 1, ymd[2], 12)) })()
-    if (['Sat', 'Sun'].includes(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' }).format(noonUtc))) continue
-    out.push(weekSendTimes(probe, 1)[0])
-  }
-  return out
+/** The nine-o'clock-Eastern instants of `count` consecutive days from `monday`, weekends included (owner, 2026-11-13: the daily caps limit sends, so every day sends). */
+export function sendDayTimes(monday: Date, count: number): Date[] {
+  return Array.from({ length: count }, (_, d) => weekSendTimes(new Date(monday.getTime() + d * 86_400_000), 1)[0])
 }
 
 /** Fills the days in order: the best editions first, each day up to its cap (one edition larger than a day still goes whole). Returns the day of each edition. */

@@ -149,4 +149,9 @@ export const GOV_WORKDAY_BOARDS: WorkdayBoard[] = [
   { host: 'pensacolastate.wd501', site: 'PSC_Employment_Opportunities', employer: 'Pensacola State College', place: 'Pensacola, FL' },
   { host: 'tamus.wd1', site: 'TDEM_External', employer: 'Texas Division of Emergency Management', place: 'Austin, TX' },
   { host: 'tamus.wd1', site: 'teex_external', employer: 'Texas A&M Engineering Extension Service', place: 'College Station, TX' },
+  // Kentucky and Indiana universities.
+  { host: 'bsu.wd12', site: 'External', employer: 'Ball State University', place: 'Muncie, IN' },
+  { host: 'nku.wd108', site: 'NKU_External', employer: 'Northern Kentucky University', place: 'Highland Heights, KY' },
+  { host: 'univofky.wd108', site: 'UKSS', employer: 'University of Kentucky', place: 'Lexington, KY' },
+  { host: 'uofl.wd1', site: 'UofLCareerSite', employer: 'University of Louisville', place: 'Louisville, KY' },
 ]

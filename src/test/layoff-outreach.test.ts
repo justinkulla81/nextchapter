@@ -257,6 +257,17 @@ describe('who is safe to email', async () => {
     expect(addressQuality({ ...base, domainBounced: 1, domainDelivered: 0 }, now).reason).toBe('domain bounced before')
     expect(addressQuality({ ...base, domainBounced: 1, domainDelivered: 5 }, now).ok).toBe(true)
   })
+  it('holds a domain that bounced us lately, however verified the address (the Baltimore bounces, 2026-11-13)', () => {
+    const bounced = { domainDelivered: 12, domainBounced: 2, domainLastBounceAt: new Date('2026-11-13T10:00:00Z'), domainLastCleanAt: new Date('2026-11-01T00:00:00Z') }
+    expect(addressQuality({ ...base, hunterScore: 100, ...bounced }, now).reason).toBe('domain bounced recently')
+    expect(addressQuality({ ...base, ...bounced, domainLastCleanAt: new Date('2026-11-13T11:00:00Z') }, now).ok).toBe(true) // delivered cleanly since
+    expect(addressQuality({ ...base, ...bounced, domainLastBounceAt: new Date('2026-09-01T00:00:00Z') }, now).ok).toBe(true) // an old bounce
+    expect(addressQuality({ ...base, email: 'jane.doe@hotmail.com', ...bounced }, now).ok).toBe(true) // a shared provider is not one domain
+  })
+  it('trusts a Hunter check for 90 days', () => {
+    expect(addressQuality({ ...base, hunterAt: new Date('2026-08-20T00:00:00Z') }, now).ok).toBe(true)
+    expect(addressQuality({ ...base, hunterAt: new Date('2026-08-01T00:00:00Z') }, now).ok).toBe(false)
+  })
   it('lets a contact who has replied through, and ranks the warm and proven first', () => {
     const replied = addressQuality({ ...base, hunterStatus: null, replied: true }, now)
     expect(replied.ok).toBe(true)
@@ -266,12 +277,20 @@ describe('who is safe to email', async () => {
 
 describe('layoff pacing', async () => {
   const r = await import('@/lib/mailing/layoff-pacing-rules')
-  const { assignDaysByCap, businessDayTimes } = await import('@/lib/warn/outreach/backfill-rules')
+  const { assignDaysByCap, sendDayTimes } = await import('@/lib/warn/outreach/backfill-rules')
   it('trickles: 2 a run, one run in four skipped, 2 a day to one domain, a slow ramp', () => {
     expect(r.LAYOFF_RUN_MAX).toBe(2)
     expect(r.LAYOFF_PER_DOMAIN_PER_DAY).toBe(2)
     expect([0, 1, 2, 3, 4, 9].map(r.layoffDailyCap)).toEqual([40, 60, 80, 100, 120, 120])
     expect(r.LAYOFF_RUN_MAX * 12 * 4).toBeGreaterThan(r.layoffDailyCap(0)) // a 4-hour window can reach the cap, never a burst
+  })
+  it('spaces emails to one domain and stops a domain that bounced today', () => {
+    const now = new Date('2026-11-13T16:00:00Z')
+    expect(r.domainMaySend(undefined, now)).toBe(true)
+    expect(r.domainMaySend({ sent: 1, bounced: 0, lastSentAt: new Date('2026-11-13T15:59:59Z') }, now)).toBe(false)
+    expect(r.domainMaySend({ sent: 1, bounced: 0, lastSentAt: new Date('2026-11-13T15:20:00Z') }, now)).toBe(true)
+    expect(r.domainMaySend({ sent: 1, bounced: 1, lastSentAt: new Date('2026-11-13T10:00:00Z') }, now)).toBe(false)
+    expect(r.domainMaySend({ sent: 2, bounced: 0, lastSentAt: new Date('2026-11-13T10:00:00Z') }, now)).toBe(false)
   })
   it('stops for a day when bounces reach 3% of at least 20, or on any spam complaint', () => {
     expect(r.layoffBreakerTripped(100, 2, 0)).toBe(false)
@@ -287,9 +306,9 @@ describe('layoff pacing', async () => {
     expect(day.get('e0')).toBe(0)
     expect(day.get('e29')).toBe(2)
   })
-  it('sends on weekdays only, at 9 a.m. Eastern', () => {
-    const t = businessDayTimes(new Date('2026-11-16T15:00:00Z'), 6).map((d) => d.toISOString())
-    expect(t).toEqual(['2026-11-16T14:00:00.000Z', '2026-11-17T14:00:00.000Z', '2026-11-18T14:00:00.000Z', '2026-11-19T14:00:00.000Z', '2026-11-20T14:00:00.000Z', '2026-11-23T14:00:00.000Z'])
+  it('sends every day, weekends included, at 9 a.m. Eastern', () => {
+    const t = sendDayTimes(new Date('2026-11-16T15:00:00Z'), 6).map((d) => d.toISOString())
+    expect(t).toEqual(['2026-11-16T14:00:00.000Z', '2026-11-17T14:00:00.000Z', '2026-11-18T14:00:00.000Z', '2026-11-19T14:00:00.000Z', '2026-11-20T14:00:00.000Z', '2026-11-21T14:00:00.000Z'])
   })
   it('keeps spam words out of every headline', async () => {
     const { headlineFor, HEADLINE_CODES } = await import('@/lib/warn/outreach/copy')
@@ -315,6 +334,7 @@ describe('verifying directory addresses and cleaning names', async () => {
     expect(needsVerification({ ...dir, email: 'info@workforce.org' }, now)).toBe(false)
     expect(needsVerification({ ...dir, mx: false }, now)).toBe(false)
     expect(needsVerification({ ...dir, domainBounced: 2 }, now)).toBe(false)
+    expect(needsVerification({ ...dir, domainBounced: 1, domainDelivered: 4, domainLastBounceAt: new Date('2026-11-12T00:00:00Z'), domainLastCleanAt: null }, now)).toBe(false)
     expect(needsVerification({ ...dir, directory: { status: 'invalid', score: 10, at: new Date('2026-11-12T00:00:00Z') } }, now)).toBe(false)
     expect(needsVerification({ ...dir, personId: 'p1', primaryMatches: true, hunterStatus: 'risky', hunterAt: new Date('2026-11-01T00:00:00Z') }, now)).toBe(false)
     expect(needsVerification({ ...dir, personId: 'p1', primaryMatches: true, hunterStatus: null }, now)).toBe(true)

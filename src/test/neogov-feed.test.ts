@@ -126,3 +126,60 @@ describe('government Workday boards: bad listings', () => {
     expect(GOV_WORKDAY_BOARDS.length).toBeGreaterThan(95)
   })
 })
+
+describe('Florida state jobs and Cornerstone boards', () => {
+  it('reads Florida job ids from the sitemap and cleans the title in a job page', async () => {
+    const { parseFloridaSitemap, parseJobs2Web } = await import('@/lib/jobs/gov-florida-core')
+    const [job] = parseFloridaSitemap('<urlset><url><loc>https://jobs.myflorida.com/job/DELRAY-BEACH-ACCOUNTANT-III-64964553-FL-33444/1446542600/</loc></url></urlset>')
+    expect(job.id).toBe('1446542600')
+    const page = `<span itemprop="title">SENIOR ATTORNEY II - 42000504 1\n</span><meta itemprop="addressLocality" content="DELRAY BEACH"><meta itemprop="addressRegion" content="FL"><meta itemprop="datePosted" content="Tue Oct 27 00:00:00 UTC 2026"><span class="jobdescription"><p>Agency: State Courts System</p></span><span class="jobGeoLocation">`
+    expect(parseJobs2Web(page)).toMatchObject({ title: 'SENIOR ATTORNEY II', employer: 'State of Florida, State Courts System', location: 'Delray Beach, FL', state: 'FL' })
+  })
+  it('builds the Cornerstone job url under the board prefix', async () => {
+    const { csodAdapter, csodUrl } = await import('@/lib/jobs/gov-csod-core')
+    const b = csodAdapter.boards[0]
+    expect(csodUrl(b, '82635').startsWith(csodAdapter.prefix(b))).toBe(true)
+  })
+})
+
+describe('NYC, KEPS, Taleo and CalCareers readers', () => {
+  it('names the NYC employer from the agency', async () => {
+    const { nycEmployer, nycUrl } = await import('@/lib/jobs/gov-nyc-core')
+    expect(nycEmployer("ADMIN FOR CHILDREN'S SVCS")).toBe("City of New York, Admin For Children's Svcs")
+    expect(nycUrl('807877')).toContain('JobOpeningId=807877')
+  })
+  it('reads the KEPS vacancy table', async () => {
+    const { parseKepsTable } = await import('@/lib/jobs/gov-keps-core')
+    const html = `<table><tr class="dlheader"><th>Vacancy ID</th></tr><tr><td><a href="JobDetails.aspx?vID=2026202702312">20262027 - 02312</a></td><td>Exceptional Child Instructor</td><td>Exceptional Child/LBD Instructor</td><td>11/13/2026</td><td>P-5 Elementary</td><td>Hardin County</td><td><span>Meadow View Elementary School</span></td><td><span>LBD</span></td></tr></table>`
+    const [p] = parseKepsTable(html)
+    expect(p).toMatchObject({ key: '2026202702312', title: 'Exceptional Child/LBD Instructor' })
+    expect((p.data as { district: string }).district).toBe('Hardin County')
+  })
+  it('reads the Taleo job list', async () => {
+    const { parseTaleoList, GOV_TALEO_BOARDS } = await import('@/lib/jobs/gov-taleo-core')
+    const html = `<a href="https://phh.tbe.taleo.net/phh04/ats/careers/v2/viewRequisition?org=PCG&cws=47&rid=21444" class="viewJobLink">911 Public Safety Center Supervisor 1</a><a href="https://phh.tbe.taleo.net/phh04/ats/careers/v2/viewRequisition?org=PCG&cws=47&rid=21444" class="viewJobLink">View</a>`
+    expect(parseTaleoList(html, GOV_TALEO_BOARDS[0])).toEqual([{ key: '21444', title: '911 Public Safety Center Supervisor 1' }])
+  })
+  it('reads a CalCareers posting and skips an id that is not one', async () => {
+    const { parseCalCareers, calcareersJobs } = await import('@/lib/jobs/gov-calcareers-core')
+    const page = `<span id="lblDepartmentName">Department of Motor Vehicles</span><span id="lblWorkingTitle">Analyst II</span><span id="lblPrimarySalary">$6,000.00 - $7,500.00 per Month</span><span id="lblFinalFilingDate">11/19/2026</span><span id="lblWorkLocation">Sacramento County</span><span id="lblJobType">Permanent, Full Time</span>`
+    expect(parseCalCareers(page)).toMatchObject({ title: 'Analyst II', employer: 'State of California, Department of Motor Vehicles', location: 'Sacramento County, CA', salaryMin: 72000, salaryMax: 90000, employmentType: 'full_time' })
+    expect(parseCalCareers('<html>nothing</html>')).toBeNull()
+    expect(calcareersJobs(538401, 3).map((j) => j.id)).toEqual(['538401', '538402', '538403'])
+  })
+})
+
+describe('UKG government boards', () => {
+  it('builds the job url under the board prefix and lists each board once', async () => {
+    const { ukgAdapter, ukgUrl, GOV_UKG_BOARDS } = await import('@/lib/jobs/gov-ukg-core')
+    const b = GOV_UKG_BOARDS[0]
+    expect(ukgUrl(b, 'abc').startsWith(ukgAdapter.prefix(b))).toBe(true)
+    const keys = GOV_UKG_BOARDS.map((x) => `${x.tenant}/${x.guid}`)
+    expect(new Set(keys).size).toBe(keys.length)
+  })
+  it('reads the city and state of a UKG opportunity', async () => {
+    const { ukgLocation } = await import('@/lib/jobs/gov-ukg-core')
+    expect(ukgLocation({ Id: '1', Locations: [{ Address: { City: 'Loveland', State: { Code: 'CO' } } }] })).toBe('Loveland, CO')
+    expect(ukgLocation({ Id: '2', Locations: [] })).toBeNull()
+  })
+})

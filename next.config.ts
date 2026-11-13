@@ -109,7 +109,6 @@ const nextConfig: NextConfig = {
       ...[
         ['/network', '/layoffs'],
         ['/network/company', '/layoffs'],
-        ['/layoffs/company', '/layoffs'],
         ['/jobs/type', '/jobs'],
         ['/authors', '/about'],
         ['/places/:state/city', '/places/:state'],

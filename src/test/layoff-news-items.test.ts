@@ -13,16 +13,16 @@ describe('layoffNewsItems', () => {
   it('keeps a filing dated two days ago even though midnight is more than 48 hours back', () => {
     const out = layoffNewsItems([company('geico', '2026-11-02'), company('old', '2026-11-01')], [], opts)
     expect(out.map((i) => i.slug)).toEqual(['geico'])
-    expect(out[0].title).toBe('GEICO layoff notice in Florida')
+    expect(out[0].title).toBe('GEICO layoffs: 50 jobs cut in Florida (November 2026)')
   })
   it('adds announcements that have no filing, labelled as reports or buyouts', () => {
     const out = layoffNewsItems([], [{ slug: 'fiserv', name: 'Fiserv', latest: day('2026-11-03') }, { slug: 'acme', name: 'Acme', latest: day('2026-11-03'), buyout: true }], opts)
-    expect(out.map((i) => i.title)).toEqual(['Acme: buyout offered', 'Fiserv: layoffs reported'])
+    expect(out.map((i) => i.title)).toEqual(['Acme buyout offered (November 2026)', 'Fiserv layoffs (November 2026)'])
   })
   it('lists a company once, using the newer of its filing and its announcement', () => {
     const out = layoffNewsItems([company('x', '2026-11-02')], [{ slug: 'x', name: 'X', latest: day('2026-11-03') }], opts)
     expect(out).toHaveLength(1)
-    expect(out[0].title).toBe('X: layoffs reported')
+    expect(out[0].title).toBe('X layoffs (November 2026)')
   })
   it('skips filings below the page bar, future dates and dates before the window', () => {
     const out = layoffNewsItems([company('thin', '2026-11-03'), company('future', '2026-11-09')], [{ slug: 'ann-old', name: 'Old', latest: day('2026-10-30') }], { ...opts, meetsBar: (c) => c.slug !== 'thin' })

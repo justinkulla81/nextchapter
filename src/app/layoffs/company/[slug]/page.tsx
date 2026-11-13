@@ -1,4 +1,5 @@
 import { meetsCompanyLayoffBar } from '@/lib/seo/page-bars'
+import { shownInSearch } from '@/lib/seo/shown-in-search'
 import { YourState } from '@/components/capture/YourState'
 import { announcedStatus, layoffsAnnouncedDescription, layoffsAnnouncedTitle, layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
@@ -172,7 +173,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: { type: 'article', siteName: 'NextChapter', locale: 'en_US', title: titleText, description, url: `https://launchyournextchapter.com/layoffs/company/${slug}` },
     twitter: { card: 'summary_large_image', title: titleText, description },
     ...canonical(`/layoffs/company/${slug}`),
-    ...(stale ? { robots: { index: false, follow: true } } : {}),
+    ...(stale && !(await shownInSearch(`/layoffs/company/${slug}`)) ? { robots: { index: false, follow: true } } : {}),
   }
 }
 
