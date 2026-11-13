@@ -83,6 +83,16 @@ export interface SearchIndex {
 
 const FRESH_MS = 10 * 60_000
 const STALE_MS = 60 * 60_000
+/**
+ * How old the shared snapshot may be and still serve an instance, board changed or not. Imports change the board every few minutes, so the
+ * "unchanged board" rule almost never held and every instance read all ~570k live jobs (~28 pages, ~10 s each) every ten minutes: 307 reads
+ * averaging 10.9 s in pg_stat_statements on 2026-11-13. A job imported since is simply missing from search until the next refresh.
+ */
+const SNAPSHOT_FRESH_MS = 30 * 60_000
+/** An instance refreshing an index it already holds waits up to this long, then looks for another instance's snapshot before reading the database. */
+const REFRESH_JITTER_MS = 20_000
+/** Set while the load that is running refreshes an index this instance already holds (nobody is waiting on it). */
+let refreshingHeld = false
 let held: { at: number; index: Promise<SearchIndex>; value: SearchIndex } | null = null
 let loading: Promise<SearchIndex> | null = null
 /** How long a search waits for an index already loading before it takes the fast path. */
@@ -267,13 +277,21 @@ export async function feedSearchFacts(acc: IndexAccumulator): Promise<void> {
   const at = Date.now()
   let fingerprint: string | null = null
   let snapshotParts: unknown[] | null = null
+  const fromSnapshot = async (): Promise<unknown[] | null> => {
+    const [manifest, fp] = await Promise.all([readManifest('search-facts'), boardFingerprint()])
+    fingerprint = fp
+    if (!manifest || !snapshotUsable(manifest, fp, { freshMs: SNAPSHOT_FRESH_MS })) return null
+    const parts = await readParts(manifest)
+    return parts && parts.length > 0 && parts.every(isFactsPart) ? parts : null
+  }
   if (!snapshotsDisabled()) {
     try {
-      const [manifest, fp] = await Promise.all([readManifest('search-facts'), boardFingerprint()])
-      fingerprint = fp
-      if (manifest && snapshotUsable(manifest, fp, { freshMs: FRESH_MS })) {
-        const parts = await readParts(manifest)
-        if (parts && parts.length > 0 && parts.every(isFactsPart)) snapshotParts = parts
+      snapshotParts = await fromSnapshot()
+      if (!snapshotParts && refreshingHeld) {
+        // Every instance's index goes stale at about the same time: wait a random moment, then look again, so one instance's read serves
+        // the rest instead of each reading the table. Searches keep using the held index meanwhile.
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * REFRESH_JITTER_MS))
+        snapshotParts = await fromSnapshot()
       }
     } catch (error) {
       console.error('Board search index: snapshot unreadable, reading the database', error)
@@ -364,6 +382,7 @@ export function loadSearchIndex(): Promise<SearchIndex> {
   if (held && now - held.at < FRESH_MS) return held.index
   if (!loading) {
     const started = now
+    refreshingHeld = !!held && now - held.at < STALE_MS
     const next = read()
     loading = next
     next.then(
