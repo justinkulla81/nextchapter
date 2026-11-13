@@ -92,14 +92,14 @@ function toListing(item: UsajobsItem): UsajobsListing | null {
 }
 
 /**
- * Open-to-the-public federal postings from the last 30 days. Returns [] when
- * USAJOBS_API_KEY or USAJOBS_USER_AGENT (the registered email) is unset, so
- * the daily feed keeps running without it.
+ * Open-to-the-public federal postings from the last 30 days. With
+ * USAJOBS_API_KEY and USAJOBS_USER_AGENT (the registered email) it uses the
+ * search API; without them it falls back to the keyless Historic JOA API.
  */
 export async function fetchUsajobsListings(): Promise<UsajobsListing[]> {
   const apiKey = process.env.USAJOBS_API_KEY
   const userAgent = process.env.USAJOBS_USER_AGENT
-  if (!apiKey || !userAgent) return []
+  if (!apiKey || !userAgent) return fetchHistoricJoaListings()
 
   const listings: UsajobsListing[] = []
   let totalPages = 1
@@ -110,6 +110,73 @@ export async function fetchUsajobsListings(): Promise<UsajobsListing[]> {
     for (const item of data.SearchResult.SearchResultItems ?? []) {
       const listing = toListing(item)
       if (listing) listings.push(listing)
+    }
+  }
+  return listings
+}
+
+// Keyless fallback: USAJOBS's public Historic JOA API needs no key. It has no job
+// summary, so the description is empty; the link is the posting's control number.
+const HISTORIC_URL = 'https://data.usajobs.gov/api/historicjoa'
+
+interface HistoricJoa {
+  usajobsControlNumber?: number
+  hiringAgencyName?: string
+  hiringDepartmentName?: string
+  positionTitle?: string
+  positionCloseDate?: string | null
+  positionOpeningStatus?: string
+  payScale?: string
+  maximumGrade?: string
+  salaryType?: string
+  minimumSalary?: number
+  maximumSalary?: number
+  hiringpaths?: { hiringPath?: string }[]
+  positionlocations?: { positionLocationCity?: string; positionLocationState?: string; positionLocationCountry?: string }[]
+}
+
+export function historicToListing(j: HistoricJoa, today: string): UsajobsListing | null {
+  if (!j.positionTitle || !j.usajobsControlNumber) return null
+  if (!j.hiringpaths?.some((h) => h.hiringPath === 'The public')) return null
+  if (j.positionCloseDate && j.positionCloseDate < today) return null
+  const loc = j.positionlocations?.[0]
+  const location = loc ? [loc.positionLocationCity, loc.positionLocationState].filter(Boolean).join(', ') || null : null
+  const yearly = j.salaryType === 'Per Year' && j.minimumSalary && j.maximumSalary
+  return {
+    title: withGrade(j.positionTitle, j.payScale, j.maximumGrade),
+    companyName: j.hiringAgencyName && j.hiringDepartmentName && j.hiringAgencyName !== j.hiringDepartmentName
+      ? `${j.hiringAgencyName}, ${j.hiringDepartmentName}`
+      : (j.hiringAgencyName ?? j.hiringDepartmentName ?? 'U.S. federal government'),
+    location,
+    url: `https://www.usajobs.gov/job/${j.usajobsControlNumber}`,
+    description: null,
+    salaryMin: yearly ? Math.round(j.minimumSalary!) : null,
+    salaryMax: yearly ? Math.round(j.maximumSalary!) : null,
+    salaryCurrency: yearly ? 'USD' : null,
+  }
+}
+
+export async function fetchHistoricJoaListings(): Promise<UsajobsListing[]> {
+  const today = new Date().toISOString().slice(0, 10)
+  const start = new Date(Date.now() - POSTED_WITHIN_DAYS * 86400000).toISOString().slice(0, 10)
+  const listings: UsajobsListing[] = []
+  let next: string | null = `${HISTORIC_URL}?StartPositionOpenDate=${start}&EndPositionOpenDate=${today}`
+  for (let page = 0; next && page < MAX_PAGES; page++) {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+    try {
+      const res: Response = await fetch(next, { signal: controller.signal })
+      if (!res.ok) break
+      const body = (await res.json()) as { paging?: { next?: string | null }; data?: HistoricJoa[] }
+      for (const j of body.data ?? []) {
+        const l = historicToListing(j, today)
+        if (l) listings.push(l)
+      }
+      next = body.paging?.next ? `https://data.usajobs.gov${body.paging.next}` : null
+    } catch {
+      break
+    } finally {
+      clearTimeout(timeout)
     }
   }
   return listings

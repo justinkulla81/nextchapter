@@ -110,7 +110,7 @@ export const ENGAGEMENT = page({
   headline: 'Give alumni a reason to come back every time their job changes',
   subhead:
     'NextChapter is the leading job transition platform. Alumni get job search tools, mentors and job-search circles under your college’s name, and your office sees who is active, as counts.',
-  primaryNote: 'The workspace is free for up to 50 active members. You claim your page with a work email at your college’s domain.',
+  primaryNote: 'The workspace is free for a roster of up to 50 people. You claim your page with a work email at your college’s domain.',
   visuals: [alumni, admin, caseload],
   proofHeading: 'What your alumni relations team sees',
   proofIntro: 'Layoff alerts near your alumni and jobs posted for your alumni sit in one workspace. Riverside College is invented.',
@@ -145,7 +145,7 @@ export const OUTCOMES = page({
   headline: 'Know where your alumni work now, from the alumni who choose to tell you',
   subhead:
     'Alumni answer a short check-in when a job changes. You see the counts: who is working, who is between jobs, who moved to a new employer and who says your college helped. Small groups are held back.',
-  primaryNote: 'The workspace is free for up to 50 active members. Alumni decide what they share with your college.',
+  primaryNote: 'The workspace is free for a roster of up to 50 people. Alumni decide what they share with your college.',
   visuals: [admin, alumni, caseload],
   proofHeading: 'What your administrator sees',
   proofIntro: 'Counts of members and activity, the services you list, and small groups held back so no one can be picked out. Riverside College is invented.',
@@ -180,7 +180,7 @@ export const GIVING = page({
   headline: 'Ask alumni at the right moment, and never when they are out of work',
   subhead:
     'When an alum shares a new job with your college, development sees a signal: a VP-and-above title may be a timely major-gift conversation, and a new employer is worth a matching-gift check. Alumni between jobs are marked do-not-ask.',
-  primaryNote: 'Signals come from job news that alumni choose to share with your college, and from nothing else. The workspace is free for up to 50 active members.',
+  primaryNote: 'Signals come from job news that alumni choose to share with your college, and from nothing else. The workspace is free for a roster of up to 50 people.',
   visuals: [admin, alumni, caseload],
   proofHeading: 'What your administrator sees',
   proofIntro: 'The overview your administrator opens on arrival, with the services you list and counts that hold small groups back. Riverside College is invented.',
@@ -221,7 +221,7 @@ export const CAREER_SERVICES = page({
   headline: 'Offer alumni the career help your students get, for life',
   subhead:
     'NextChapter is a career platform that your office runs under its own name: your services listed, a caseload showing who needs a conversation, mentors from your alumni and job-search circles, so a small team can reach every alum.',
-  primaryNote: 'The workspace is free for up to 50 active members. Career services, alumni relations and development share it.',
+  primaryNote: 'The workspace is free for a roster of up to 50 people. Career services, alumni relations and development share it.',
   visuals: [caseload, admin, alumni],
   proofHeading: 'What career services sees',
   proofIntro: 'People who need a conversation are listed at the top, with the next step beside each name. Riverside College is invented.',

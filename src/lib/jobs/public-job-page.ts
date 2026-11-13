@@ -24,6 +24,7 @@
 // Change all three together.
 
 import { isFractionalJob } from '@/lib/jobs/work-type'
+import { isEmployerAtsUrl } from '@/lib/jobs/employer-ats'
 
 export const PUBLIC_JOB_SOURCES = ['ats_feed', 'admin', 'employer', 'recruiter'] as const
 /**
@@ -119,12 +120,29 @@ export interface PublicJobRow {
 }
 
 /** True when the page has the posting's own text, enough to stand on its own in search (see PUBLIC_JOB_MIN_INDEX_DESCRIPTION). */
-/** On the employer's own career system: the crawler's directListing flag, or an 'employer' source (its own site, though not always flagged: jobs.apple.com, google.com careers). */
-export function isDirectJob(job: Pick<PublicJobRow, 'directListing' | 'sourceCategory'>): boolean {
-  return job.directListing || job.sourceCategory === 'employer'
+/**
+ * Source categories whose jobs are offered to search engines although they are not an employer's own system: search and staffing firms,
+ * the interim and fractional source (owner, 2026-11-13: staffing firms and recruiters are fine when the jobs are real, and fractional work
+ * is offered too), and venture, PE, association, accelerator and women-board listings (owner, 2026-11-13: everything but the aggregators).
+ * The 1,500-byte text and 14-day confirmation rules still apply to all of them. Aggregators ('aggregator': Jooble, Careerjet and the like)
+ * and the generic 'board' and unlabeled rows stay out. To take a category back out, remove it here: the sitemap, the page's robots tag and
+ * the search pushes all follow.
+ */
+export const OFFERED_SOURCE_CATEGORIES = ['search_firm', 'interim', 'venture', 'pe', 'association', 'accelerator', 'women_board'] as const
+
+/**
+ * On the employer's own career system: the crawler's directListing flag, an 'employer' source (its own site, though not always flagged:
+ * jobs.apple.com, google.com careers), or a link on an employer applicant tracking system such as Greenhouse, Lever or Ashby (a
+ * venture board's feed that links to the company's own Greenhouse board; owner decision 2026-11-13, employer-ats.ts). An aggregator's row
+ * is never direct, whatever its link.
+ */
+export function isDirectJob(job: Pick<PublicJobRow, 'directListing' | 'sourceCategory'> & { url?: string | null }): boolean {
+  if (job.directListing || job.sourceCategory === 'employer') return true
+  if ((OFFERED_SOURCE_CATEGORIES as readonly (string | null | undefined)[]).includes(job.sourceCategory)) return true
+  return job.sourceCategory !== 'aggregator' && isEmployerAtsUrl(job.url)
 }
 
-export function isIndexableJob(job: Pick<PublicJobRow, 'description' | 'directListing' | 'sourceCategory'>): boolean {
+export function isIndexableJob(job: Pick<PublicJobRow, 'description' | 'directListing' | 'sourceCategory'> & { url?: string | null }): boolean {
   // Owner decision, 2026-11-04: search engines get only jobs listed on the employer's own career system (isDirectJob).
   // A job whose apply link is an aggregator's (Jooble and the like) keeps its page for members but is noindex, left out of
   // the sitemap and told to Google/Bing as removed. Same rule as PUBLIC_JOB_SEARCH_SQL in public-job-page-server.ts.

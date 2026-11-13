@@ -28,8 +28,9 @@ import { prisma } from '@/lib/prisma'
 // Snapshots are per deployment (a new build may filter differently) and per
 // environment. Off with BOARD_SNAPSHOT=off.
 //
-// Two kinds are the exception (SHARED_ACROSS_BUILDS): the job occupations and the board search's
-// raw facts. Both are one narrow read of the wide table, and a deploy does not change what that
+// Four kinds are the exception (SHARED_ACROSS_BUILDS): the job occupations, the board search's
+// raw facts, and the two boards (core, early career; those with a short age limit on another build's
+// snapshot, see board-shortlist.ts, because a deploy can change how rows are kept). Both are one narrow read of the wide table, and a deploy does not change what that
 // read returns. Keyed to the build, every deploy threw them away, so each cold instance after
 // one read the database itself, and a day with a dozen deploys made a dozen rounds of 50-60 MB
 // reads at once (a slow-pages alert on 2026-11-09 with eight connections held at the pooler).
@@ -53,10 +54,18 @@ const gunzip = promisify(gunzipCb)
 export type SnapshotKind = 'board-core' | 'board-early' | 'occupations' | 'search-facts'
 
 /** Kinds a snapshot of another build may serve (see the header). The other kinds are read only by the build that wrote them. */
-export const SHARED_ACROSS_BUILDS: ReadonlySet<SnapshotKind> = new Set<SnapshotKind>(['occupations', 'search-facts'])
+export const SHARED_ACROSS_BUILDS: ReadonlySet<SnapshotKind> = new Set<SnapshotKind>(['occupations', 'search-facts', 'board-core', 'board-early'])
 
 /** What a build-independent snapshot must have been written as. Bump with its codec (board-snapshot-codec.ts) or its query. */
-export const SNAPSHOT_SHAPES: Partial<Record<SnapshotKind, string>> = { occupations: 'occupations-1', 'search-facts': 'search-facts-1' }
+export const SNAPSHOT_SHAPES: Partial<Record<SnapshotKind, string>> = {
+  occupations: 'occupations-1',
+  'search-facts': 'search-facts-1',
+  // The board's rows are what keepRelevant (board-shortlist.ts) kept, with each row's prior closures and title function. A new LIGHT_SELECT
+  // column needs no bump (the codec refuses a part with other columns), but a change to what keepRelevant keeps, priorClosures counts or
+  // inferFunctionFromTitle returns does: bump it, or a deploy's cold instances serve the old build's board for up to BOARD_OTHER_BUILD_MAX_MS.
+  'board-core': 'board-1',
+  'board-early': 'board-1',
+}
 
 /** A part of a snapshot, or a function that builds it when it is about to be written. */
 export type SnapshotPart = unknown

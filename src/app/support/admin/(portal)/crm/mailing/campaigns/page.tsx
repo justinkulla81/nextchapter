@@ -55,6 +55,7 @@ export default async function LayoffOutreachCampaignsPage() {
       <header>
         <Link href="/support/admin/crm/mailing" className="text-sm text-muted-foreground hover:underline">← Mailing lists</Link>
         <h1 className="text-2xl font-semibold">Layoff outreach campaigns</h1>
+        <p className="mt-1 text-sm"><Link href="/support/admin/crm/mailing/campaigns/backfill" className="text-brand underline underline-offset-4">Backfill: draft the emails for layoffs the sweep missed</Link></p>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           When a layoff alert goes out, the same contacts are emailed (last {DAYS} days shown). Opens and clicks are people&apos;s, not mail scanners&apos;.
           You are on BCC; open links from the copy only in a private window, because they carry the recipient&apos;s tracking id.

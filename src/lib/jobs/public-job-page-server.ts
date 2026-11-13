@@ -6,7 +6,9 @@ import { baseTitle, titleSlug } from '@/lib/seo/job-title-rules'
 import { memoTtl, retryOnPoolTimeout, sharedLoad } from '@/lib/db/heavy'
 import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
+import { EMPLOYER_ATS_SQL_PATTERN } from '@/lib/jobs/employer-ats'
 import {
+  OFFERED_SOURCE_CATEGORIES,
   PUBLIC_JOB_GHOST_AGE_DAYS,
   PUBLIC_JOB_MIN_DESCRIPTION,
   PUBLIC_JOB_MIN_INDEX_DESCRIPTION,
@@ -130,11 +132,16 @@ export const PUBLIC_JOB_OFFERED_SQL = Prisma.sql`(
 )`
 
 /**
- * The jobs offered to search engines (sitemap, Google Indexing API, IndexNow) must be on the employer's own career system.
- * Jobs linked through an aggregator such as Jooble keep their page for members but are noindex (isIndexableJob) and are
- * reported to Google and Bing as removed (owner decision, 2026-11-04).
+ * The jobs offered to search engines (sitemap, Google Indexing API, IndexNow) must be on the employer's own career system: flagged
+ * direct by the crawler, an 'employer' source, or linked on an employer applicant tracking system (employer-ats.ts, owner decision
+ * 2026-11-13). Jobs linked through an aggregator such as Jooble keep their page for members but are noindex (isIndexableJob) and are
+ * reported to Google and Bing as removed (owner decision, 2026-11-04). Same rule as isDirectJob in public-job-page.ts.
  */
-export const PUBLIC_JOB_SEARCH_SQL = Prisma.sql`("directListing" IS TRUE OR "sourceCategory" = 'employer')`
+export const PUBLIC_JOB_SEARCH_SQL = Prisma.sql`(
+  "directListing" IS TRUE OR "sourceCategory" = 'employer'
+  OR "sourceCategory" IN (${Prisma.join([...OFFERED_SOURCE_CATEGORIES])})
+  OR ("sourceCategory" IS DISTINCT FROM 'aggregator' AND url ~* ${EMPLOYER_ATS_SQL_PATTERN}::text)
+)`
 
 /**
  * Feed jobs in shard `shard` (0–15): the public allowlist, listed on the employer's own career system (directListing),

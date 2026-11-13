@@ -5,6 +5,7 @@ import { getMailingSettings } from '@/lib/mailing/lists'
 import type { DraftContext } from '@/lib/warn/layoff-alert-drafts'
 import type { ContactGroup } from '@/lib/warn/layoff-alert-rules'
 import { AUDIENCE_LABEL, CAMPAIGN, CONTACT_COOLDOWN_DAYS, planOutreach } from './plan'
+import type { CopyMode } from './copy'
 
 /** A layoff older than this when its alert finally goes out (a held alert) is not emailed about. */
 const MAX_NOTICE_AGE_DAYS = 5
@@ -14,6 +15,9 @@ export const outreachEnabled = () => !/^(0|off|false)$/i.test(process.env.LAYOFF
 
 export interface OutreachResult { editions: number; recipients: number; skipped: string | null }
 
+/** The backfill (src/lib/warn/outreach/backfill.ts) queues older layoffs held as drafts: no age limit, the continued-support wording where it applies, nothing sends. */
+export interface QueueOptions { mode?: CopyMode; hold?: boolean }
+
 /**
  * Called once, right after a layoff alert goes to Justin. Makes one edition per audience and note (HR, Rapid Response,
  * workforce board, job center, economic development) with the layoff's contacts as the recipients, and starts it sending: the
@@ -22,13 +26,13 @@ export interface OutreachResult { editions: number; recipients: number; skipped:
  * Reads: one notice, one settings row, up to ~14 addresses against the suppression table and last week's outreach.
  * Never throws; a failure here must not undo the alert.
  */
-export async function queueLayoffOutreach(input: { noticeId: string; employer: string; groups: ContactGroup[]; ctx: DraftContext }): Promise<OutreachResult> {
+export async function queueLayoffOutreach(input: { noticeId: string; employer: string; groups: ContactGroup[]; ctx: DraftContext; opts?: QueueOptions }): Promise<OutreachResult> {
   const none = (skipped: string): OutreachResult => ({ editions: 0, recipients: 0, skipped })
   try {
     if (!outreachEnabled()) return none('switched off')
     const notice = await prisma.warnNotice.findUnique({ where: { id: input.noticeId }, select: { fetchedAt: true, dismissedAt: true } })
     if (!notice || notice.dismissedAt) return none('notice dismissed or missing')
-    if (Date.now() - notice.fetchedAt.getTime() > MAX_NOTICE_AGE_DAYS * 86_400_000) return none('notice too old')
+    if (!input.opts?.hold && Date.now() - notice.fetchedAt.getTime() > MAX_NOTICE_AGE_DAYS * 86_400_000) return none('notice too old')
     // One set of emails per layoff, ever.
     if (await prisma.mailingEdition.findFirst({ where: { campaign: CAMPAIGN, warnNoticeId: input.noticeId }, select: { id: true } })) return none('already queued')
 
@@ -52,7 +56,7 @@ export async function queueLayoffOutreach(input: { noticeId: string; employer: s
     const blocked = new Set<string>([...suppressed.map((s) => s.email), ...recent.map((r) => r.email)])
     const own = new Set([settings.testEmail, settings.replyTo, 'justin@launchyournextchapter.com'].map((e) => e.toLowerCase()))
 
-    const plans = planOutreach(input.groups, input.ctx, { blocked, ownAddresses: own })
+    const plans = planOutreach(input.groups, input.ctx, { blocked, ownAddresses: own, noticeId: input.noticeId, mode: input.opts?.mode })
     if (plans.length === 0) return none('no contact with a verified address')
 
     const bcc = settings.testEmail
@@ -62,12 +66,12 @@ export async function queueLayoffOutreach(input: { noticeId: string; employer: s
       const edition = await prisma.mailingEdition.create({
         data: {
           key,
-          title: `${input.employer} · ${AUDIENCE_LABEL[p.audience]}${p.variant ? ` · subject ${p.variant}` : ''}`,
+          title: `${input.employer} · ${AUDIENCE_LABEL[p.audience]}${p.variant ? ` · version ${p.variant}` : ''}`,
           subject: p.subject,
           bodyHtml: p.bodyHtml,
-          status: 'SENDING',
-          sendStartedAt: new Date(),
-          createdByEmail: 'layoff-outreach',
+          status: input.opts?.hold ? 'DRAFT' : 'SENDING',
+          sendStartedAt: input.opts?.hold ? null : new Date(),
+          createdByEmail: input.opts?.hold ? 'layoff-backfill' : 'layoff-outreach',
           campaign: CAMPAIGN,
           warnNoticeId: input.noticeId,
           audience: p.audience,
@@ -78,7 +82,7 @@ export async function queueLayoffOutreach(input: { noticeId: string; employer: s
       })
       recipients += p.recipients.length
       captureServerEvent('system', 'layoff_outreach_queued', {
-        noticeId: input.noticeId, employer: input.employer, audience: p.audience, variant: p.variant, editionId: edition.id, recipients: p.recipients.length,
+        noticeId: input.noticeId, employer: input.employer, audience: p.audience, variant: p.variant, editionId: edition.id, recipients: p.recipients.length, held: !!input.opts?.hold, mode: input.opts?.mode ?? 'new',
       })
     }
     return { editions: plans.length, recipients, skipped: null }

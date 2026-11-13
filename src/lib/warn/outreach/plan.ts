@@ -6,6 +6,7 @@
  */
 import { ALONGSIDE, SIGN_OFF, draftFor, draftKind, type DraftContext } from '@/lib/warn/layoff-alert-drafts'
 import type { ContactCard, ContactGroup } from '@/lib/warn/layoff-alert-rules'
+import { askArm, outreachCopy, taggedLink, type CopyAudience, type CopyMode } from './copy'
 
 export const CAMPAIGN = 'layoff_outreach'
 
@@ -39,6 +40,7 @@ export const BLS_NOW = { month: 'October', pct: '27.6', url: 'https://www.bls.go
 
 const BLS = `${BLS_NOW.pct}% of unemployed Americans had been looking for work for 27 weeks or longer in ${BLS_NOW.month} (BLS: ${BLS_NOW.url})`
 
+/** Owner confirmed 2026-11-13: the core job search tools stay free for the people we send, so "free" below is not a promotion that ends. */
 /** The value paragraph that goes in front of "we sit alongside": the problem, what the person gets, what the reader gets. */
 export function valueParagraph(audience: OutreachAudience): string {
   if (audience === 'outplacement') {
@@ -54,7 +56,9 @@ function linkify(line: string): string {
   return esc(line).replace(/https:\/\/[^\s<]+/g, (m) => {
     const trail = m.match(/[.,;:)]+$/)?.[0] ?? ''
     const url = trail ? m.slice(0, -trail.length) : m
-    return `<a href="${url}">${url}</a>${trail}`
+    // A campaign-tagged link shows its clean address; the tags stay in the href.
+    const shown = url.includes('utm_source=layoff_outreach') ? url.split('?')[0] : url
+    return `<a href="${url}">${shown}</a>${trail}`
   })
 }
 
@@ -88,7 +92,15 @@ export interface PlanOptions {
   blocked: Set<string>
   /** Addresses of ours (the owner's), never emailed as a contact. */
   ownAddresses?: Set<string>
+  /** The layoff, for the tag on the page link (read back by the landing page and PostHog). */
+  noticeId?: string
+  /** 'older' for a layoff announced weeks ago (the continued-support wording); the live sweep only ever sees 'new'. */
+  mode?: CopyMode
 }
+
+/** The v2 copy covers these audiences; economic development keeps the older note. */
+const COPY_AUDIENCE: Partial<Record<OutreachAudience, CopyAudience>> = { outplacement: 'hr', rapid_response: 'rapid_response', workforce_board: 'workforce_board', job_center: 'job_center' }
+const BLS_LINE = `${BLS_NOW.pct}% of unemployed Americans have been looking for 27 weeks or longer (BLS, ${BLS_NOW.month})`
 
 const validEmail = (e: string | null | undefined) => (e && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(e.trim()) ? e.trim().toLowerCase() : null)
 
@@ -109,9 +121,21 @@ export function planOutreach(groups: ContactGroup[], ctx: DraftContext, opts: Pl
       if (!email || c.guessed || seen.has(email)) continue
       const kind = draftKind(g.key, c.title)
       if (!kind || kind === 'other_employee' || kind === 'recruiters') continue
-      const draft = draftFor(kind, c, ctx)
-      if (!draft.body.includes(ALONGSIDE)) continue
-      const body = withGreetingMerge(draft.body.replace(ALONGSIDE, `${valueParagraph(audience)}\n\n${ALONGSIDE}`), c.greet)
+      const copyAudience = COPY_AUDIENCE[audience]
+      let draft: { subject: string; body: string; variant?: string }
+      let body: string
+      if (copyAudience) {
+        const arm = askArm(email, copyAudience)
+        const base = ctx.peoplePage ?? 'https://launchyournextchapter.com'
+        const v = outreachCopy({ audience: copyAudience, mode: opts.mode ?? 'new', arm, greet: c.greet ?? 'team', link: taggedLink(base, { audience: copyAudience, arm, noticeId: opts.noticeId }), picture: ctx.picture, bls: BLS_LINE, signOff: SIGN_OFF })
+        draft = { subject: v.subject, body: v.body, variant: arm }
+        body = withGreetingMerge(v.body, c.greet)
+      } else {
+        const d = draftFor(kind, c, ctx)
+        if (!d.body.includes(ALONGSIDE)) continue
+        draft = d
+        body = withGreetingMerge(d.body.replace(ALONGSIDE, `${valueParagraph(audience)}\n\n${ALONGSIDE}`), c.greet)
+      }
       seen.add(email)
       const key = `${audience}|${draft.subject}|${body}`
       const plan = out.get(key) ?? { audience, subject: draft.subject, variant: draft.variant ?? null, bodyHtml: bodyToHtml(body), recipients: [] }
