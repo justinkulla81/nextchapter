@@ -235,8 +235,8 @@ export default async function TalentConnectionPage({ params }: { params: Promise
           {connection.consentScopes.length === 0
             ? 'nothing yet'
             : INTAKE_CONSENT_SCOPES.filter((s) => connection.consentScopes.includes(s))
-                .map((s) => INTAKE_CONSENT_SCOPE_LABELS[s].label.toLowerCase())
-                .join(', ')}
+                .map((s) => INTAKE_CONSENT_SCOPE_LABELS[s].label)
+                .join(' · ')}
           . They can change this at any time.
         </p>
       </section>
