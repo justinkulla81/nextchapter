@@ -56,7 +56,7 @@ const BIG_LAYOFF_DAYS = 7
  */
 export function bigLayoffs(
   notices: { slug: string; employer: string; noticeDate: string; workers: number | null }[],
-  announcements: { slug: string; name: string; items: { date: Date; workers: number | null }[] }[],
+  announcements: { slug: string; name: string; items: { date: Date; workers: number | null; summary?: string }[] }[],
   now: number,
   limit = 8,
 ): FreshLink[] {
@@ -68,7 +68,8 @@ export function bigLayoffs(
     by.set(n.slug, { name: prev?.name ?? n.employer, workers: (prev?.workers ?? 0) + n.workers })
   }
   for (const a of announcements) {
-    const top = Math.max(0, ...a.items.filter((i) => i.date.getTime() >= since && i.workers).map((i) => i.workers as number))
+    // Only a confirmed figure leads the homepage: a single unconfirmed report ("Voestalpine: 150,000", 2026-11-13) can be far off.
+    const top = Math.max(0, ...a.items.filter((i) => i.date.getTime() >= since && i.workers && !/unconfirmed/i.test(i.summary ?? '')).map((i) => i.workers as number))
     if (!a.slug || top === 0) continue
     const prev = by.get(a.slug)
     // A press report and a filing are usually the same cut: keep the larger figure, never the sum.

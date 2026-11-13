@@ -23,4 +23,8 @@ describe('bigLayoffs', () => {
     const out = bigLayoffs([{ slug: 'x', employer: 'X', noticeDate: '2026-11-12', workers: 1200 }], [{ slug: 'x', name: 'X', items: [{ date: day('2026-11-12'), workers: 1000 }] }], NOW)
     expect(out[0].label).toBe('X layoffs: 1,200 jobs')
   })
+  it('leaves out a single unconfirmed report', () => {
+    const out = bigLayoffs([], [{ slug: 'v', name: 'Voestalpine', items: [{ date: day('2026-11-12'), workers: 150000, summary: 'Reported by 1 publisher (ad-hoc-news.de) — unconfirmed' }] }], NOW)
+    expect(out).toEqual([])
+  })
 })
