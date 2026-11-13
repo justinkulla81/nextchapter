@@ -32,3 +32,5 @@ Pay parsing takes the first dollar range in the text, so values over $1,000,000 
 (source in `edge/jobsreport-stats.ts`; aggregates only, gated by a token in `out/.stats-token` or
 `JOBSREPORT_STATS_TOKEN`) and writes `out/<geo>/report.md` and `report-data.json`, including same-method peer
 metros and the BLS peer table. Deploy the function with a fresh random token in place of the placeholder.
+
+- `neogov_national.py`: every open NEOGOV / governmentjobs.com posting in the country (about 32,000: state, county, city, school and special districts, universities, all levels) into `jobsreport_posting` under geo `us-neogov`. Two title-ordered passes, merged, because the site's sort ties reshuffle; reports the share of the posted total found and does not close missed postings below 90%. No descriptions (listing fields only). Run by the `NEOGOV national crawl` workflow. Louisville Metro and MSD postings also exist under the metro crawl's own ids, so count one or the other, not both.

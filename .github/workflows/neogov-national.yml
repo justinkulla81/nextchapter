@@ -1,0 +1,24 @@
+# Every open NEOGOV / governmentjobs.com posting in the country (state, county, city, school and special districts, universities),
+# all levels, into jobsreport_posting under geo `us-neogov`. About 3,200 pages twice, an hour or so. See scripts/jobsreport/neogov_national.py.
+# Needs the repository secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Run by hand; uncomment `schedule` to run weekly.
+name: NEOGOV national crawl
+
+on:
+  # schedule:
+  #   - cron: '23 6 * * 1'   # Mondays 06:23 UTC
+  workflow_dispatch:
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Crawl NEOGOV nationwide
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python3 scripts/jobsreport/neogov_national.py
