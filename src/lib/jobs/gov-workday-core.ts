@@ -24,11 +24,12 @@ export const boardPrefix = (b: WorkdayBoard) => `${boardOrigin(b)}/${b.site}/`
 export const jobUrl = (b: WorkdayBoard, externalPath: string) => `${boardOrigin(b)}/${b.site}${externalPath}`
 const tenantOf = (b: WorkdayBoard) => b.host.split('.')[0]
 
+// Accept-Language is set because Node's default ('*') makes some Workday tenants answer 500.
 async function request(url: string, init: RequestInit, timeoutMs: number): Promise<unknown | null> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
-    const res = await fetch(url, { ...init, signal: controller.signal, headers: { 'User-Agent': USER_AGENT, Accept: 'application/json', ...(init.headers ?? {}) } })
+    const res = await fetch(url, { ...init, signal: controller.signal, headers: { 'User-Agent': USER_AGENT, Accept: 'application/json', 'Accept-Language': 'en-US', ...(init.headers ?? {}) } })
     return res.ok ? await res.json() : null
   } catch {
     return null
@@ -52,7 +53,8 @@ export async function listBoard(b: WorkdayBoard, deadline: number): Promise<{ po
     if (total === null) total = page.total ?? 0 // Workday reports the total on the first page only
     const got = page.jobPostings ?? []
     if (got.length === 0) break
-    posts.push(...got)
+    // Some listings (a grouped posting) come without a title or a path; there is nothing to fetch for those.
+    posts.push(...got.filter((p) => typeof p.title === 'string' && p.title && typeof p.externalPath === 'string' && p.externalPath))
   }
   return { posts, complete: true }
 }

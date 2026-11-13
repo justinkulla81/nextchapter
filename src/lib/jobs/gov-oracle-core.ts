@@ -60,7 +60,7 @@ export async function listOracle(b: OracleBoard, deadline: number): Promise<{ po
     if (total === null) total = first.TotalJobsCount ?? 0
     const reqs = first.requisitionList ?? []
     if (reqs.length === 0) break
-    for (const r of reqs) posts.push({ key: r.Id, title: cleanOracleTitle(r.Title ?? ''), data: r })
+    for (const r of reqs) if (r.Id && r.Title) posts.push({ key: r.Id, title: cleanOracleTitle(r.Title), data: r })
   }
   return { posts, complete: true }
 }
