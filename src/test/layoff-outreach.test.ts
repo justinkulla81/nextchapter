@@ -262,6 +262,7 @@ describe('who is safe to email', async () => {
     expect(addressQuality({ ...base, hunterScore: 100, ...bounced }, now).reason).toBe('domain bounced recently')
     expect(addressQuality({ ...base, ...bounced, domainLastCleanAt: new Date('2026-11-13T11:00:00Z') }, now).ok).toBe(true) // delivered cleanly since
     expect(addressQuality({ ...base, ...bounced, domainLastBounceAt: new Date('2026-09-01T00:00:00Z') }, now).ok).toBe(true) // an old bounce
+    expect(addressQuality({ ...base, email: 'jane.doe@hotmail.com', ...bounced }, now).ok).toBe(true) // a shared provider is not one domain
   })
   it('trusts a Hunter check for 90 days', () => {
     expect(addressQuality({ ...base, hunterAt: new Date('2026-08-20T00:00:00Z') }, now).ok).toBe(true)

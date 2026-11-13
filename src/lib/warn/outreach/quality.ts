@@ -67,10 +67,15 @@ export function domainBouncingNow(f: Pick<AddressFacts, 'domainLastBounceAt' | '
   return !f.domainLastCleanAt || f.domainLastCleanAt.getTime() <= b.getTime()
 }
 
+/** Shared mail providers: one person's bounce there says nothing about anyone else's address, so the domain rules skip them. */
+const WEBMAIL = new Set(['gmail.com', 'googlemail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com', 'msn.com', 'aol.com', 'icloud.com', 'me.com', 'comcast.net', 'proton.me', 'protonmail.com'])
+export const isWebmail = (email: string) => WEBMAIL.has(email.trim().toLowerCase().split('@')[1] ?? '')
+
 /** The rules that stop an address whatever Hunter says; null when none applies. */
 function hardStop(f: AddressFacts, now: Date): string | null {
   if (isRoleAddress(f.email)) return 'role address'
   if (f.mx === false) return 'domain has no mail server'
+  if (isWebmail(f.email)) return null
   if (f.domainBounced > 0 && f.domainDelivered === 0) return 'domain bounced before'
   if (domainBouncingNow(f, now)) return 'domain bounced recently'
   return null
