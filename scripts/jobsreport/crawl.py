@@ -19,7 +19,7 @@ Disallow rules for the paths it requests. Status: written without network
 access; untested against live sites.
 """
 import argparse, hashlib, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 UA = "NextChapterResearch/1.0 (+https://launchyournextchapter.com/reports)"
@@ -582,10 +582,40 @@ def crawl_lever(src, log):
                  posted_at=datetime.fromtimestamp(ts / 1000, timezone.utc).isoformat() if ts else None,
                  posted_precision="timestamp")
 
+def crawl_usajobs_historic(src, log):
+    """Keyless USAJOBS Historic JOA API: open-to-the-public postings from the last 30 days in the metro."""
+    today = datetime.now(timezone.utc).date()
+    url = ("https://data.usajobs.gov/api/historicjoa?StartPositionOpenDate=%s&EndPositionOpenDate=%s"
+           % (today - timedelta(days=int(os.environ.get("USAJOBS_DAYS", 30))), today))
+    while url:
+        for attempt in range(4):  # the API resets long paging runs now and then
+            try:
+                d = json.loads(http(url, headers={"Accept": "application/json"})); break
+            except Exception as e:
+                if attempt == 3: raise
+                time.sleep(2 * (attempt + 1))
+        for j in d.get("data", []):
+            if not any(h.get("hiringPath") == "The public" for h in j.get("hiringpaths", [])): continue
+            if (j.get("positionCloseDate") or "9999") < str(today): continue
+            locs = [", ".join(x for x in (l.get("positionLocationCity"), l.get("positionLocationState")) if x)
+                    for l in j.get("positionlocations", [])]
+            if not any(in_metro(l) for l in locs): continue
+            yearly = j.get("salaryType") == "Per Year"
+            yield mk(src, j.get("hiringAgencyName", "U.S. Government"), str(j["usajobsControlNumber"]),
+                     title=j.get("positionTitle", ""), url="https://www.usajobs.gov/job/%s" % j["usajobsControlNumber"],
+                     req_id=j.get("announcementNumber"), location_raw=locs[0] if locs else None, locations=locs,
+                     description="", pay_min=j.get("minimumSalary") if yearly else None,
+                     pay_max=j.get("maximumSalary") if yearly else None, pay_period="year" if yearly else None,
+                     pay_stated=yearly, employment_type=j.get("workSchedule"),
+                     posted_at=j.get("positionOpenDate"), posted_precision="date")
+        nxt = (d.get("paging") or {}).get("next")
+        url = "https://data.usajobs.gov" + nxt if nxt else None
+
 def crawl_usajobs(src, log):
     key, ua = os.environ.get("USAJOBS_API_KEY"), os.environ.get("USAJOBS_USER_AGENT")
     if not key or not ua:
-        log("  usajobs: USAJOBS_API_KEY / USAJOBS_USER_AGENT not set, skipped"); return
+        log("  usajobs: no API key, using the keyless Historic JOA API")
+        yield from crawl_usajobs_historic(src, log); return
     page = 1
     while True:
         q = urllib.parse.urlencode({"LocationName": src.get("location", "Louisville, Kentucky"), "Radius": 25,
@@ -613,10 +643,12 @@ def crawl_usajobs(src, log):
 def crawl_neogov(src, log):
     """NEOGOV / governmentjobs.com agency pages (HTML). src: agency slug, employer."""
     agency = src["agency"]
-    base = f"https://www.governmentjobs.com/careers/{agency}"
+    # The default listing order ties on date and reshuffles between requests, so pages repeat and
+    # jobs are missed. An explicit sort is stable: Louisville Metro returns all 42 of 42.
+    base = f"https://www.governmentjobs.com/careers/home/index?agency={agency}&sort=PositionTitle&isDescendingSort=false"
     page, seen, total, empty = 1, set(), None, 0
     while empty < 3 and page <= 40:
-        html = http(f"{base}?page={page}", headers={"X-Requested-With": "XMLHttpRequest", "Accept": "text/html"})
+        html = http(f"{base}&page={page}", headers={"X-Requested-With": "XMLHttpRequest", "Accept": "text/html"})
         if total is None:
             t = re.search(r'job-postings-number">\s*(\d+)', html)
             total = int(t.group(1)) if t else None
