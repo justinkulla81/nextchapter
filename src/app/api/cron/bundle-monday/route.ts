@@ -11,6 +11,8 @@ import { GET as population_snapshot } from '../population-snapshot/route'
 import { GET as db_slow_query_report } from '../db-slow-query-report/route'
 import { GET as talent_digest } from '../talent-digest/route'
 import { GET as neogov_feed } from '../neogov-feed/route'
+import { GET as k12jobspot_feed } from '../k12jobspot-feed/route'
+import { GET as usajobs_board_feed } from '../usajobs-board-feed/route'
 
 // Jobs run in this order, lightest first, so one slow job at the end cannot hold up the rest.
 export const maxDuration = 800
@@ -28,4 +30,6 @@ export const GET = cronBundle({
   'db-slow-query-report': db_slow_query_report,
   'talent-digest': talent_digest,
   'neogov-feed': neogov_feed,
+  'k12jobspot-feed': k12jobspot_feed,
+  'usajobs-board-feed': usajobs_board_feed,
 })
