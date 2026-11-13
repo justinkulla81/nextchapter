@@ -13946,6 +13946,13 @@ model MailingEdition {
   versionOfId         String?
   versionOf           MailingEdition?      @relation("EditionVersions", fields: [versionOfId], references: [id], onDelete: SetNull)
   versions            MailingEdition[]     @relation("EditionVersions")
+  /// Set on the layoff outreach emails the app queues by itself when a layoff alert goes out (src/lib/warn/outreach):
+  /// campaign = 'layoff_outreach', warnNoticeId = the layoff, audience = who it is for ('outplacement', 'rapid_response',
+  /// 'workforce_board', 'job_center', 'economic_development'). bccEmail gets a copy of every send (owner request, 2026-11-13).
+  campaign            String?
+  warnNoticeId        String?
+  audience            String?
+  bccEmail            String?
   scheduledAt         DateTime?
   sendStartedAt       DateTime?
   sentAt              DateTime?
@@ -13960,6 +13967,7 @@ model MailingEdition {
   @@index([status, scheduledAt])
   @@index([reportKey])
   @@index([versionOfId])
+  @@index([campaign, warnNoticeId])
 }
 
 model MailingEditionList {

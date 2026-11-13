@@ -64,7 +64,8 @@ export default async function MailingHomePage() {
       include: { _count: { select: { members: { where: { status: 'ACTIVE' } } } } },
     }),
     prisma.mailingEdition.findMany({
-      orderBy: { createdAt: 'desc' }, take: 60,
+      // The layoff outreach emails send by themselves and have their own page; they would bury the lists' editions here.
+      where: { campaign: null }, orderBy: { createdAt: 'desc' }, take: 60,
       include: { lists: { select: { listId: true } }, _count: { select: { recipients: { where: { status: 'SENT' } } } } },
     }),
     prisma.mailingListPrompt.count({ where: { status: 'PENDING' } }),
@@ -83,7 +84,8 @@ export default async function MailingHomePage() {
           <h1 className="text-2xl font-semibold">Mailing lists</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             Each list has a cadence and a default readership. When a send is due a prefilled draft appears here and you get an email;
-            tailor who gets it, check the text, and approve. Nothing goes out without your approval.
+            tailor who gets it, check the text, and approve. Nothing goes out on a list without your approval; the layoff outreach emails are the exception
+            (they send by themselves when a layoff alert goes out, with you on BCC).
           </p>
         </div>
         <nav className="flex flex-wrap gap-2 text-sm">
@@ -92,6 +94,9 @@ export default async function MailingHomePage() {
           </Link>
           <Link href="/support/admin/crm/mailing/unsubscribes" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
             Process unsubscribes{unsubs > 0 && <span className={`ml-1.5 rounded-full px-1.5 text-xs font-semibold ${oldUnsubs > 0 ? 'bg-destructive/15 text-destructive' : 'bg-orange/20 text-orange'}`}>{unsubs}</span>}
+          </Link>
+          <Link href="/support/admin/crm/mailing/campaigns" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
+            Layoff outreach campaigns
           </Link>
           <Link href="/support/admin/crm/mailing/lists" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
             Lists and sender settings
