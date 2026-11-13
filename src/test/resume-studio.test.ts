@@ -42,7 +42,7 @@ describe('parseResumeDocument', () => {
 
   it('rejects oversized or malformed input with a readable message', () => {
     const doc = base()
-    doc.workHistory[0].bullets = Array.from({ length: 13 }, (_, i) => `Bullet number ${i} with 5 words`)
+    doc.workHistory[0].bullets = Array.from({ length: 16 }, (_, i) => `Bullet number ${i} with 5 words`)
     const tooMany = parseResumeDocument(doc)
     expect(tooMany.ok).toBe(false)
     expect(parseResumeDocument({ name: 5 }).ok).toBe(false)
@@ -126,11 +126,11 @@ describe('limits and messages', () => {
 
   it('names the field and the limit when something is too long', () => {
     const doc = base()
-    doc.skills = ['s'.repeat(80)]
+    doc.skills = ['s'.repeat(100)]
     const r = parseResumeDocument(doc)
     expect(r.ok).toBe(false)
     if (!r.ok) {
-      expect(r.error).toContain('A skill can be up to 60 characters')
+      expect(r.error).toContain('A skill can be up to 80 characters')
       expect(r.error).not.toMatch(/expected string/i)
     }
   })
