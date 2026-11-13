@@ -266,7 +266,7 @@ describe('who is safe to email', async () => {
 
 describe('layoff pacing', async () => {
   const r = await import('@/lib/mailing/layoff-pacing-rules')
-  const { assignDaysByCap, businessDayTimes } = await import('@/lib/warn/outreach/backfill-rules')
+  const { assignDaysByCap, sendDayTimes } = await import('@/lib/warn/outreach/backfill-rules')
   it('trickles: 2 a run, one run in four skipped, 2 a day to one domain, a slow ramp', () => {
     expect(r.LAYOFF_RUN_MAX).toBe(2)
     expect(r.LAYOFF_PER_DOMAIN_PER_DAY).toBe(2)
@@ -287,9 +287,9 @@ describe('layoff pacing', async () => {
     expect(day.get('e0')).toBe(0)
     expect(day.get('e29')).toBe(2)
   })
-  it('sends on weekdays only, at 9 a.m. Eastern', () => {
-    const t = businessDayTimes(new Date('2026-11-16T15:00:00Z'), 6).map((d) => d.toISOString())
-    expect(t).toEqual(['2026-11-16T14:00:00.000Z', '2026-11-17T14:00:00.000Z', '2026-11-18T14:00:00.000Z', '2026-11-19T14:00:00.000Z', '2026-11-20T14:00:00.000Z', '2026-11-23T14:00:00.000Z'])
+  it('sends every day, weekends included, at 9 a.m. Eastern', () => {
+    const t = sendDayTimes(new Date('2026-11-16T15:00:00Z'), 6).map((d) => d.toISOString())
+    expect(t).toEqual(['2026-11-16T14:00:00.000Z', '2026-11-17T14:00:00.000Z', '2026-11-18T14:00:00.000Z', '2026-11-19T14:00:00.000Z', '2026-11-20T14:00:00.000Z', '2026-11-21T14:00:00.000Z'])
   })
   it('keeps spam words out of every headline', async () => {
     const { headlineFor, HEADLINE_CODES } = await import('@/lib/warn/outreach/copy')
