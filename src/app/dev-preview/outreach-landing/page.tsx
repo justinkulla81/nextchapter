@@ -1,33 +1,40 @@
-import { EmployerEmailCapture } from '@/components/network/EmployerEmailCapture'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
-import { fallbackPair } from '@/lib/branding/fallback'
+import { NetworkHero } from '@/components/network/NetworkHero'
 import { OutreachRequestBlock } from '@/components/network/OutreachRequestBlock'
+import { fallbackPair } from '@/lib/branding/fallback'
 
-// The top of a company page for someone who arrived from a layoff outreach email: the HR or partner request, then the laid-off
-// person's capture (the link is forwardable). Sample employer; never reachable in production.
-// ?role=hr (default) or ?role=partner, ?co=<name> to see another company's colors
-export default async function OutreachLandingPreview({ searchParams }: { searchParams: Promise<{ role?: string; co?: string }> }) {
-  const { role, co } = await searchParams
+// The top of a company page for someone who arrived from a layoff outreach email: the HR or partner request, then the hero for the
+// people leaving. Sample facts; never reachable in production.
+// ?role=hr (default) or ?role=partner, ?co=<name> to see another company's colors, ?none=1 for no request block (a laid-off visitor).
+export default async function OutreachLandingPreview({ searchParams }: { searchParams: Promise<{ role?: string; co?: string; none?: string }> }) {
+  const { role, co, none } = await searchParams
   const name = co || 'Acme Health'
   const partner = role === 'partner'
   return (
     <OrgBrandScope brand={fallbackPair(name.toLowerCase())}>
-    <main className="min-h-screen bg-off-white py-8">
-      <div className="mx-auto max-w-6xl px-6">
-        <OutreachRequestBlock
-          slug="preview"
-          employer={name}
-          people={875}
-          forceTags={{ role: partner ? 'partner' : 'hr', audience: partner ? 'job_center' : 'hr', arm: 'A', noticeId: 'preview' }}
-        />
-        <div className="mt-4 rounded-2xl bg-[var(--org-1,#14213D)] p-6 text-[var(--org-1-ink,#ffffff)] sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">NextChapter · for people leaving {name}</p>
-          <h1 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">Leaving {name}? Start here.</h1>
-          <p className="mt-3 max-w-2xl text-base opacity-90">About 96,000 professional jobs are open in California. Put in your email and we send a plan built for a layoff: benefits and deadlines first, then jobs matched to your background.</p>
-          <EmployerEmailCapture slug="preview" employer={name} />
+      <main className="min-h-screen bg-off-white py-8">
+        <div className="mx-auto max-w-6xl px-6">
+          {!none && (
+            <OutreachRequestBlock slug="preview" employer={name} people={875} forceTags={{ role: partner ? 'partner' : 'hr', audience: partner ? 'job_center' : 'hr', arm: 'A', noticeId: 'preview' }} />
+          )}
+          <NetworkHero
+            f={{
+              employer: name,
+              slug: 'preview',
+              h1: `${name} laid-off workers: jobs, benefits and retraining`,
+              workers: 875,
+              stateLabel: 'California',
+              openInState: 'about 96,000',
+              openAtEmployer: 'about 40',
+              latestFiled: 'Nov 4, 2026',
+              places: ['Los Angeles', 'Pasadena'],
+              boards: ['Los Angeles County Workforce Development Board'],
+              unemploymentHref: '/unemployment-benefits/california',
+              source: 'California EDD WARN filings',
+            }}
+          />
         </div>
-      </div>
-    </main>
+      </main>
     </OrgBrandScope>
   )
 }

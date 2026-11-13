@@ -6,7 +6,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { JourneyPicker } from '@/components/home/JourneyPicker'
-import { EmployerEmailCapture } from '@/components/network/EmployerEmailCapture'
+import { NetworkHero } from '@/components/network/NetworkHero'
 import { OutreachRequestBlock } from '@/components/network/OutreachRequestBlock'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { getEmployerBrand, employerBrandKey } from '@/lib/branding/store'
@@ -133,20 +133,25 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
             <span className="text-foreground">{c.name}</span>
           </nav>
 <OutreachRequestBlock slug={slug} employer={c.name} people={workers || null} />
-<div className="mt-4 rounded-2xl bg-[var(--org-1,#14213D)] p-6 text-[var(--org-1-ink,#ffffff)] sm:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">NextChapter · for people leaving {c.name}</p>
-            <h1 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
-              {networkCompanySeo(c.name).h1}
-            </h1>
-            <p className="mt-3 max-w-2xl text-base opacity-90">
-              {aboutCount(inState.total)} professional jobs are open in {stateLabel}
-              {atEmployer.total > 0 && <>, including {aboutCount(atEmployer.total)} at {c.name}</>}. Put in your email and we send the plan: what to file and by when first, then the jobs that fit your background.
-            </p>
-            <EmployerEmailCapture slug={slug} employer={c.name} />
-            <p className="mt-4 text-sm opacity-90">
-              <Link href={`/layoffs/company/${slug}`} className="underline underline-offset-4">All {c.name} layoff notices, dates and sources</Link>
-            </p>
-          </div>
+<NetworkHero
+            f={{
+              employer: c.name,
+              slug,
+              h1: networkCompanySeo(c.name).h1,
+              workers,
+              stateLabel,
+              openInState: aboutCount(inState.total),
+              openAtEmployer: atEmployer.total > 0 ? aboutCount(atEmployer.total) : null,
+              latestFiled: noticeDay(c.latest),
+              places: [...new Set(c.notices.map((n) => n.place).filter((x): x is string => !!x))],
+              boards: [...new Set(c.notices.map((n) => n.board?.name).filter((x): x is string => !!x))],
+              unemploymentHref: `/unemployment-benefits/${stateSlug(state)}`,
+              source: `${states.length === 1 ? stateLabel : 'State'} labor department WARN filings`,
+            }}
+          />
+          <p className="mt-4 text-sm text-muted-foreground">
+            <Link href={`/layoffs/company/${slug}`} className="underline underline-offset-4">All {c.name} layoff notices, dates and sources</Link>
+          </p>
 
           <section aria-labelledby="jobs" className="mt-10">
             <h2 id="jobs" className={H2}>Jobs open now</h2>
