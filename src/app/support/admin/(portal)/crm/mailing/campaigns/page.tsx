@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { AUDIENCE_LABEL, CAMPAIGN, type OutreachAudience } from '@/lib/warn/outreach/plan'
-import { addCounts, emptyCounts, pct, rollup, type Counts } from '@/lib/warn/outreach/stats'
+import { addCounts, emptyCounts, headlineOf, pct, rollup, type Counts } from '@/lib/warn/outreach/stats'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +16,7 @@ export default async function LayoffOutreachCampaignsPage() {
   const since = daysAgo(DAYS)
   const editions = await prisma.mailingEdition.findMany({
     where: { campaign: CAMPAIGN, createdAt: { gte: since } },
-    select: { id: true, audience: true, warnNoticeId: true, createdAt: true },
+    select: { id: true, audience: true, warnNoticeId: true, createdAt: true, title: true },
     orderBy: { createdAt: 'desc' },
     take: 600,
   })
@@ -38,6 +38,8 @@ export default async function LayoffOutreachCampaignsPage() {
   const byType = rollup(editions, byEdition, (e) => e.audience)
   const byLayoffType = rollup(editions, byEdition, (e) => (e.warnNoticeId && e.audience ? `${e.warnNoticeId}|${e.audience}` : null))
   const total = [...byType.values()].reduce(addCounts, emptyCounts())
+  const titleOf = new Map(editions.map((e) => [e.id, e.title]))
+  const byHeadline = rollup(editions, byEdition, (e) => { const h = headlineOf(titleOf.get(e.id)); return h ? `day ${h.day} · ${h.code}` : null })
 
   const noticeIds = [...new Set(editions.map((e) => e.warnNoticeId).filter((x): x is string => !!x))]
   const notices = noticeIds.length
@@ -69,6 +71,17 @@ export default async function LayoffOutreachCampaignsPage() {
           ['All types', ...cells(total)],
         ]} emptyText="Nothing sent yet. The first layoff alert after this deploys starts it." />
       </section>
+
+      {byHeadline.size > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-lg font-semibold">Headline test</h2>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Each day two headline styles run against each other, split evenly by audience: n1 number first, q1 a question, loc where they can land, pg the free page, aud the audience&apos;s own line, quick a short personal line, plain the bare fact, num2 number and employer.
+            Compare the two styles within a day. Opens are noisy (mail apps preload them) and each arm is small, so read replies and clicks first.
+          </p>
+          <Table head={['Day · style', ...HEAD]} rows={[...byHeadline.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([k, c]) => [k, ...cells(c)])} emptyText="" />
+        </section>
+      )}
 
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">By layoff</h2>

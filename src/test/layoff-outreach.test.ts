@@ -194,3 +194,44 @@ describe('the backfill rules', async () => {
     expect(releaseTime(new Date('2026-11-16T15:00:00Z')).toISOString()).toBe('2026-11-23T14:00:00.000Z')
   })
 })
+
+describe('the backfill week', async () => {
+  const { assignDays, assignArms, weekSendTimes, HEADLINE_DAYS, SUPPRESSION_MARK_BEFORE } = await import('@/lib/warn/outreach/backfill-rules')
+  const { headlineFor, HEADLINE_CODES } = await import('@/lib/warn/outreach/copy')
+  const { headlineOf } = await import('@/lib/warn/outreach/stats')
+
+  it('sends Monday to Thursday at 9 a.m. Eastern, across the daylight-saving change', () => {
+    expect(weekSendTimes(new Date('2026-11-16T15:00:00Z')).map((d) => d.toISOString())).toEqual(['2026-11-16T14:00:00.000Z', '2026-11-17T14:00:00.000Z', '2026-11-18T14:00:00.000Z', '2026-11-19T14:00:00.000Z'])
+    expect(weekSendTimes(new Date('2026-03-09T15:00:00Z'))[0].toISOString()).toBe('2026-03-09T13:00:00.000Z')
+  })
+  it('splits the editions across the days by recipients, biggest first, evenly', () => {
+    const eds = Array.from({ length: 40 }, (_, i) => ({ id: `e${String(i).padStart(2, '0')}`, recipients: 1 + (i % 5) }))
+    const day = assignDays(eds, 4)
+    const load = [0, 0, 0, 0]
+    for (const e of eds) load[day.get(e.id)!] += e.recipients
+    expect(Math.max(...load) - Math.min(...load)).toBeLessThanOrEqual(5)
+    expect(day.size).toBe(40)
+  })
+  it('runs two headline styles a day, split evenly inside each audience, and uses all eight over the four days', () => {
+    expect(HEADLINE_DAYS.flat().sort()).toEqual([...HEADLINE_CODES].sort())
+    const items = ['hr', 'hr', 'hr', 'hr', 'job_center', 'job_center', 'workforce_board'].map((audience, i) => ({ id: `i${i}`, audience }))
+    const arms = assignArms(items, 1)
+    expect([...arms.values()].filter((c) => c === 'loc').length).toBe(4)
+    expect(new Set(arms.values())).toEqual(new Set(['loc', 'pg']))
+    expect(arms.get('i0')).not.toBe(arms.get('i1'))
+  })
+  it('writes every headline from the employer, the headcount and the place only', () => {
+    const f = { org: 'Acme', employees: 1200, state: 'KY', county: 'Warren County', audience: 'hr' as const, mode: 'new' as const }
+    const subjects = HEADLINE_CODES.map((c) => headlineFor(c, f))
+    expect(subjects).toContain('1,200 people leaving Acme')
+    expect(subjects).toContain("where Acme's 1,200 can land in Warren County")
+    for (const s of subjects) { expect(s).toContain('Acme'); expect(s.length).toBeLessThan(80); expect(s).not.toMatch(/free money|guarantee|act now|!/i) }
+    expect(headlineFor('plain', { ...f, employees: null })).toBe('Acme layoff')
+    expect(headlineFor('n1', { ...f, employees: null, mode: 'older' })).toBe('people who left Acme')
+  })
+  it('reads the style and the day back from an edition title; the deploy-time marks are the only ones the backfill looks past', () => {
+    expect(headlineOf('Acme · Job center · h:q1 · day 2')).toEqual({ code: 'q1', day: 2 })
+    expect(headlineOf('Acme · Job center')).toBeNull()
+    expect(SUPPRESSION_MARK_BEFORE.toISOString()).toBe('2026-11-13T03:08:00.000Z')
+  })
+})

@@ -35,3 +35,9 @@ export function rollup<K extends string>(editions: EditionRow[], byEdition: Map<
   }
   return out
 }
+
+/** The headline style and the send day of a backfill edition, from its title ("... · h:q1 · day 1"), or null for an edition that is not part of the test. */
+export function headlineOf(title: string | null | undefined): { code: string; day: number } | null {
+  const m = /· h:([a-z0-9]+) · day (\d+)\s*$/.exec(title ?? '')
+  return m ? { code: m[1], day: Number(m[2]) } : null
+}
