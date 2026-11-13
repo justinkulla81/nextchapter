@@ -1,13 +1,14 @@
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { NetworkHero } from '@/components/network/NetworkHero'
 import { OutreachRequestBlock } from '@/components/network/OutreachRequestBlock'
+import { AffectedPrompt } from '@/components/layoffs/landing/AffectedPrompt'
 import { fallbackPair } from '@/lib/branding/fallback'
 
 // The top of a company page for someone who arrived from a layoff outreach email: the HR or partner request, then the hero for the
 // people leaving. Sample facts; never reachable in production.
-// ?role=hr (default) or ?role=partner, ?co=<name> to see another company's colors, ?none=1 for no request block (a laid-off visitor).
-export default async function OutreachLandingPreview({ searchParams }: { searchParams: Promise<{ role?: string; co?: string; none?: string }> }) {
-  const { role, co, none } = await searchParams
+// ?role=hr (default) or ?role=partner, ?co=<name> to see another company's colors, ?none=1 for no request block (a laid-off visitor), ?small=1 for the smaller-employer layoff page (no job counts, "Were you affected?" action).
+export default async function OutreachLandingPreview({ searchParams }: { searchParams: Promise<{ role?: string; co?: string; none?: string; small?: string }> }) {
+  const { role, co, none, small } = await searchParams
   const name = co || 'Acme Health'
   const partner = role === 'partner'
   return (
@@ -31,7 +32,9 @@ export default async function OutreachLandingPreview({ searchParams }: { searchP
               boards: ['Los Angeles County Workforce Development Board'],
               unemploymentHref: '/unemployment-benefits/california',
               source: 'California EDD WARN filings',
+              ...(small ? { openInState: null, openAtEmployer: null, workers: 66, eyebrow: `Independent page. Not from or affiliated with ${name}.` } : {}),
             }}
+            capture={small ? <AffectedPrompt variant="layoff" name={name} slug="preview" /> : undefined}
           />
         </div>
       </main>
