@@ -71,3 +71,21 @@ database connector in one bounded read and ran 587 names not already covered by 
 (`sources/workday-company-sized.json`). Everything already searched overlaps heavily, so the size-classified part of `Company` is now covered: **1,297 tenants, 2,352 career sites, 538,834 jobs** in `workday-all-unique.json`.
 The other ~100,000 names are mostly small local employers (law firms, clinics, churches), where Workday is rare. To run them anyway on a machine with database access:
 `DATABASE_URL=... bash scripts/jobsreport/company_table_workday.sh` (one read of about 5 MB, then about 8 hours at 100 threads).
+
+## Round two: iCIMS, SmartRecruiters, BambooHR, Recruitee, Breezy, Oracle HCM, more Phenom (2026-11-13)
+Run on the 36,341 distinct names from the SEC, university, hospital, nonprofit, Jooble-top and size-classified Company lists. New scripts: `icims_discover.py`, `smb_ats_discover.py`.
+
+| System | Found | Jobs | File |
+|---|---|---|---|
+| iCIMS (careers-/jobs-<name>.icims.com; "Page 1 of N" times rows) | 491 portals | about 63,500 estimated | `sources/icims-found.json` |
+| SmartRecruiters (api.smartrecruiters.com companies, totalFound) | 383 boards | 67,743 | `sources/smb-ats-found.json` |
+| BambooHR (`/careers/list`) | 694 boards | 4,283 | same |
+| Recruitee (`/api/offers/`) | 111 boards | 7,215 | same |
+| Breezy (`/json`) | 91 boards | 1,699 | same |
+| Oracle HCM (recruitingCEJobRequisitions on the career hosts already found) | 23 sites | 135,699 | `sources/eightfold-oracle-found.json` |
+| Phenom, 59 more career hosts (`/widgets`) | +46 hosts | +47,203 (now 102 hosts, 141,593) | `sources/phenom-found.json` |
+| Eightfold | 3 tenants | 1,157 | `sources/eightfold-oracle-found.json` |
+
+About 327,000 jobs (all countries) before overlap with Workday, the US-only filter, the seniority screen and the white-collar rule. A large share is store and hourly work: Dollar General 91,429 (Oracle), Domino's 24,995 (SmartRecruiters), Advance Auto Parts 16,333 (Phenom), Marriott 13,156 (Oracle), Albertsons 8,739 (Oracle).
+Name-match strength is on every source (`nameMatch`); SmartRecruiters and iCIMS names can belong to another employer (for example "St Georges School" with 4,611 SmartRecruiters jobs), so verify the company from the postings before import.
+Weak matches are 11,137 SmartRecruiters/BambooHR/Recruitee/Breezy jobs and 22,025 iCIMS jobs.
