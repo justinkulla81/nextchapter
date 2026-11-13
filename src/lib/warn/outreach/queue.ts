@@ -25,7 +25,7 @@ export interface QueueOptions { mode?: CopyMode; hold?: boolean }
 /**
  * Called once, right after a layoff alert goes to Justin. Makes one edition per audience and note (HR, Rapid Response,
  * workforce board, job center, economic development) with the layoff's contacts as the recipients, and starts it sending: the
- * layoff send window (weekdays 8 a.m. to noon Eastern; an overnight layoff waits for the morning), hourly rate and daily cap, suppression list and unsubscribe handling all apply,
+ * layoff send window (every day 8 a.m. to noon Eastern; an overnight layoff waits for the morning), hourly rate and daily cap, suppression list and unsubscribe handling all apply,
  * and opens, clicks, replies and unsubscribes are tracked on the edition. Justin is copied (BCC) on each send.
  * Reads: one notice, one settings row, up to ~14 addresses against the suppression table and last week's outreach.
  * Never throws; a failure here must not undo the alert.

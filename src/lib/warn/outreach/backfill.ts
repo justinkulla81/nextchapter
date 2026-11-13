@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CAMPAIGN } from './plan'
 import { queueOutreachForNotice } from './for-notice'
-import { releaseTime, modeForAge, BACKFILL_DAYS, BACKFILL_MIN_EMPLOYEES, BATCH, SUPPRESSION_MARK_BEFORE, assignDaysByCap, assignArms, businessDayTimes } from './backfill-rules'
+import { releaseTime, modeForAge, BACKFILL_DAYS, BACKFILL_MIN_EMPLOYEES, BATCH, SUPPRESSION_MARK_BEFORE, assignDaysByCap, assignArms, sendDayTimes } from './backfill-rules'
 import { LAYOFF_RAMP } from '@/lib/mailing/layoff-pacing-rules'
 import { addressQuality, needsVerification } from './quality'
 import { ensureVerified } from './verify'
@@ -107,7 +107,7 @@ const AUDIENCE_TO_COPY: Record<string, HeadlineFacts['audience']> = {
 }
 
 /**
- * Schedules every held draft across the four days Monday to Thursday of the coming week (balanced by recipients, 9:00 Eastern each day;
+ * Schedules every held draft across consecutive days from the coming Monday, weekends included (9:00 Eastern each day, each day filled to the ramp;
  * the mailing tool sends inside the layoff window, 8 a.m. to noon, at its hourly rate and daily cap). Owner, 2026-11-13: test a different
  * headline each day. Each day runs two headline styles (HEADLINE_DAYS) against each other, split evenly by audience, so the day is the
  * same for both; the subject is rewritten and the edition's title carries "h:<style>" so the campaigns page can read the result by style.
@@ -161,7 +161,7 @@ export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: Da
   const caps = [...LAYOFF_RAMP, ...new Array<number>(30).fill(LAYOFF_RAMP[LAYOFF_RAMP.length - 1])]
   const dayOf = assignDaysByCap(sized.map((e) => ({ id: e.id, recipients: e.n })), caps)
   const dayCount = sized.length ? Math.max(...dayOf.values()) + 1 : 0
-  const times = businessDayTimes(monday, dayCount)
+  const times = sendDayTimes(monday, dayCount)
   const days: DayPlan[] = times.map((at, day) => ({ day, at, editions: 0, recipients: 0, arms: {} }))
   for (let day = 0; day < times.length; day++) {
     const today = sized.filter((e) => dayOf.get(e.id) === day)
