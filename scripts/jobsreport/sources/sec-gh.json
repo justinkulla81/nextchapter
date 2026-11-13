@@ -1,0 +1,2543 @@
+[
+  {
+    "name": "lv-palantir-technologies-inc",
+    "adapter": "lever",
+    "token": "palantir",
+    "type": "direct_ats",
+    "employer": "Palantir Technologies Inc."
+  },
+  {
+    "name": "gr-applovin-corp",
+    "adapter": "greenhouse",
+    "token": "applovin",
+    "type": "direct_ats",
+    "employer": "Applovin Corp"
+  },
+  {
+    "name": "gr-airbnb-inc",
+    "adapter": "greenhouse",
+    "token": "airbnb",
+    "type": "direct_ats",
+    "employer": "Airbnb, Inc."
+  },
+  {
+    "name": "gr-carvana-co",
+    "adapter": "greenhouse",
+    "token": "carvana",
+    "type": "direct_ats",
+    "employer": "Carvana Co."
+  },
+  {
+    "name": "gr-cloudflare-inc",
+    "adapter": "greenhouse",
+    "token": "cloudflare",
+    "type": "direct_ats",
+    "employer": "Cloudflare, Inc."
+  },
+  {
+    "name": "ab-snowflake-inc",
+    "adapter": "ashby",
+    "token": "snowflake",
+    "type": "direct_ats",
+    "employer": "Snowflake Inc."
+  },
+  {
+    "name": "gr-datadog-inc",
+    "adapter": "greenhouse",
+    "token": "datadog",
+    "type": "direct_ats",
+    "employer": "Datadog, Inc."
+  },
+  {
+    "name": "gr-nasdaq-inc",
+    "adapter": "greenhouse",
+    "token": "nasdaq",
+    "type": "direct_ats",
+    "employer": "Nasdaq, Inc."
+  },
+  {
+    "name": "gr-block-inc",
+    "adapter": "greenhouse",
+    "token": "block",
+    "type": "direct_ats",
+    "employer": "Block, Inc."
+  },
+  {
+    "name": "lv-veeva-systems-inc",
+    "adapter": "lever",
+    "token": "veeva",
+    "type": "direct_ats",
+    "employer": "Veeva Systems Inc"
+  },
+  {
+    "name": "gr-natera-inc",
+    "adapter": "greenhouse",
+    "token": "natera",
+    "type": "direct_ats",
+    "employer": "Natera, Inc."
+  },
+  {
+    "name": "lv-skydance-corp",
+    "adapter": "lever",
+    "token": "skydance",
+    "type": "direct_ats",
+    "employer": "Skydance Corp"
+  },
+  {
+    "name": "gr-revolution-medicines-inc",
+    "adapter": "greenhouse",
+    "token": "revolutionmedicines",
+    "type": "direct_ats",
+    "employer": "Revolution Medicines, Inc."
+  },
+  {
+    "name": "gr-ubiquiti-inc",
+    "adapter": "greenhouse",
+    "token": "ubiquiti",
+    "type": "direct_ats",
+    "employer": "Ubiquiti Inc."
+  },
+  {
+    "name": "gr-rocket-lab-corp",
+    "adapter": "greenhouse",
+    "token": "rocketlab",
+    "type": "direct_ats",
+    "employer": "Rocket Lab Corp"
+  },
+  {
+    "name": "gr-roblox-corp",
+    "adapter": "greenhouse",
+    "token": "roblox",
+    "type": "direct_ats",
+    "employer": "Roblox Corp"
+  },
+  {
+    "name": "ab-astera-labs-inc",
+    "adapter": "ashby",
+    "token": "astera",
+    "type": "direct_ats",
+    "employer": "Astera Labs, Inc."
+  },
+  {
+    "name": "gr-zscaler-inc",
+    "adapter": "greenhouse",
+    "token": "zscaler",
+    "type": "direct_ats",
+    "employer": "Zscaler, Inc."
+  },
+  {
+    "name": "gr-twilio-inc",
+    "adapter": "greenhouse",
+    "token": "twilio",
+    "type": "direct_ats",
+    "employer": "Twilio Inc"
+  },
+  {
+    "name": "gr-okta-inc",
+    "adapter": "greenhouse",
+    "token": "okta",
+    "type": "direct_ats",
+    "employer": "Okta, Inc."
+  },
+  {
+    "name": "gr-coupang-inc",
+    "adapter": "greenhouse",
+    "token": "coupang",
+    "type": "direct_ats",
+    "employer": "Coupang, Inc."
+  },
+  {
+    "name": "gr-roivant-sciences-ltd",
+    "adapter": "greenhouse",
+    "token": "roivantsciences",
+    "type": "direct_ats",
+    "employer": "Roivant Sciences Ltd."
+  },
+  {
+    "name": "gr-flex-ltd",
+    "adapter": "greenhouse",
+    "token": "flex",
+    "type": "direct_ats",
+    "employer": "Flex Ltd."
+  },
+  {
+    "name": "gr-coreweave-inc",
+    "adapter": "greenhouse",
+    "token": "coreweave",
+    "type": "direct_ats",
+    "employer": "Coreweave, Inc."
+  },
+  {
+    "name": "gr-mongodb-inc",
+    "adapter": "greenhouse",
+    "token": "mongodb",
+    "type": "direct_ats",
+    "employer": "Mongodb, Inc."
+  },
+  {
+    "name": "gr-hp-inc",
+    "adapter": "greenhouse",
+    "token": "hp",
+    "type": "direct_ats",
+    "employer": "Hp Inc"
+  },
+  {
+    "name": "gr-samsara-inc",
+    "adapter": "greenhouse",
+    "token": "samsara",
+    "type": "direct_ats",
+    "employer": "Samsara Inc."
+  },
+  {
+    "name": "gr-affirm-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "affirm",
+    "type": "direct_ats",
+    "employer": "Affirm Holdings, Inc."
+  },
+  {
+    "name": "ab-cerebras-systems-inc",
+    "adapter": "ashby",
+    "token": "cerebras",
+    "type": "direct_ats",
+    "employer": "Cerebras Systems Inc."
+  },
+  {
+    "name": "gr-sofi-technologies-inc",
+    "adapter": "greenhouse",
+    "token": "sofi",
+    "type": "direct_ats",
+    "employer": "Sofi Technologies, Inc."
+  },
+  {
+    "name": "gr-alnylam-pharmaceuticals-inc",
+    "adapter": "greenhouse",
+    "token": "alnylampharmaceuticals",
+    "type": "direct_ats",
+    "employer": "Alnylam Pharmaceuticals, Inc."
+  },
+  {
+    "name": "gr-toast-inc",
+    "adapter": "greenhouse",
+    "token": "toast",
+    "type": "direct_ats",
+    "employer": "Toast, Inc."
+  },
+  {
+    "name": "gr-reddit-inc",
+    "adapter": "greenhouse",
+    "token": "reddit",
+    "type": "direct_ats",
+    "employer": "Reddit, Inc."
+  },
+  {
+    "name": "ab-gen-digital-inc",
+    "adapter": "ashby",
+    "token": "gen-digital",
+    "type": "direct_ats",
+    "employer": "Gen Digital Inc."
+  },
+  {
+    "name": "gr-hasbro-inc",
+    "adapter": "greenhouse",
+    "token": "hasbro",
+    "type": "direct_ats",
+    "employer": "Hasbro, Inc."
+  },
+  {
+    "name": "gr-ionq-inc",
+    "adapter": "greenhouse",
+    "token": "ionq",
+    "type": "direct_ats",
+    "employer": "Ionq, Inc."
+  },
+  {
+    "name": "gr-ast-spacemobile-inc",
+    "adapter": "greenhouse",
+    "token": "astspacemobile",
+    "type": "direct_ats",
+    "employer": "Ast Spacemobile, Inc."
+  },
+  {
+    "name": "gr-summit-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "summittherapeutics",
+    "type": "direct_ats",
+    "employer": "Summit Therapeutics Inc."
+  },
+  {
+    "name": "gr-godaddy-inc",
+    "adapter": "greenhouse",
+    "token": "godaddy",
+    "type": "direct_ats",
+    "employer": "Godaddy Inc."
+  },
+  {
+    "name": "gr-jfrog-ltd",
+    "adapter": "greenhouse",
+    "token": "jfrog",
+    "type": "direct_ats",
+    "employer": "Jfrog Ltd"
+  },
+  {
+    "name": "lv-penumbra-inc",
+    "adapter": "lever",
+    "token": "penumbrainc",
+    "type": "direct_ats",
+    "employer": "Penumbra Inc"
+  },
+  {
+    "name": "gr-kymera-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "kymeratherapeutics",
+    "type": "direct_ats",
+    "employer": "Kymera Therapeutics, Inc."
+  },
+  {
+    "name": "gr-pinterest-inc",
+    "adapter": "greenhouse",
+    "token": "pinterest",
+    "type": "direct_ats",
+    "employer": "Pinterest, Inc."
+  },
+  {
+    "name": "gr-vaxcyte-inc",
+    "adapter": "greenhouse",
+    "token": "vaxcyte",
+    "type": "direct_ats",
+    "employer": "Vaxcyte, Inc."
+  },
+  {
+    "name": "gr-spyre-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "spyretherapeutics",
+    "type": "direct_ats",
+    "employer": "Spyre Therapeutics, Inc."
+  },
+  {
+    "name": "gr-paypay-corp",
+    "adapter": "greenhouse",
+    "token": "paypay",
+    "type": "direct_ats",
+    "employer": "Paypay Corp"
+  },
+  {
+    "name": "gr-figma-inc",
+    "adapter": "greenhouse",
+    "token": "figma",
+    "type": "direct_ats",
+    "employer": "Figma, Inc."
+  },
+  {
+    "name": "gr-dillard-s-inc",
+    "adapter": "greenhouse",
+    "token": "dillards",
+    "type": "direct_ats",
+    "employer": "Dillard'S, Inc."
+  },
+  {
+    "name": "ab-hinge-health-inc",
+    "adapter": "ashby",
+    "token": "hinge-health",
+    "type": "direct_ats",
+    "employer": "Hinge Health, Inc."
+  },
+  {
+    "name": "gr-netskope-inc",
+    "adapter": "greenhouse",
+    "token": "netskope",
+    "type": "direct_ats",
+    "employer": "Netskope Inc"
+  },
+  {
+    "name": "gr-praxis-precision-medicines-inc",
+    "adapter": "greenhouse",
+    "token": "praxisprecisionmedicines",
+    "type": "direct_ats",
+    "employer": "Praxis Precision Medicines, Inc."
+  },
+  {
+    "name": "gr-twist-bioscience-corp",
+    "adapter": "greenhouse",
+    "token": "twistbioscience",
+    "type": "direct_ats",
+    "employer": "Twist Bioscience Corp"
+  },
+  {
+    "name": "gr-corcept-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "corcepttherapeutics",
+    "type": "direct_ats",
+    "employer": "Corcept Therapeutics Inc"
+  },
+  {
+    "name": "ab-appfolio-inc",
+    "adapter": "ashby",
+    "token": "appfolio",
+    "type": "direct_ats",
+    "employer": "Appfolio Inc"
+  },
+  {
+    "name": "gr-zeta-global-holdings-corp",
+    "adapter": "greenhouse",
+    "token": "zetaglobal",
+    "type": "direct_ats",
+    "employer": "Zeta Global Holdings Corp."
+  },
+  {
+    "name": "lv-element-solutions-inc",
+    "adapter": "lever",
+    "token": "elementsolutions",
+    "type": "direct_ats",
+    "employer": "Element Solutions Inc"
+  },
+  {
+    "name": "gr-xp-inc",
+    "adapter": "greenhouse",
+    "token": "xpinc",
+    "type": "direct_ats",
+    "employer": "Xp Inc."
+  },
+  {
+    "name": "gr-gitlab-inc",
+    "adapter": "greenhouse",
+    "token": "gitlab",
+    "type": "direct_ats",
+    "employer": "Gitlab Inc."
+  },
+  {
+    "name": "ab-mosaic-co",
+    "adapter": "ashby",
+    "token": "mosaic",
+    "type": "direct_ats",
+    "employer": "Mosaic Co"
+  },
+  {
+    "name": "gr-duolingo-inc",
+    "adapter": "greenhouse",
+    "token": "duolingo",
+    "type": "direct_ats",
+    "employer": "Duolingo, Inc."
+  },
+  {
+    "name": "gr-dropbox-inc",
+    "adapter": "greenhouse",
+    "token": "dropbox",
+    "type": "direct_ats",
+    "employer": "Dropbox, Inc."
+  },
+  {
+    "name": "lv-e-l-f-beauty-inc",
+    "adapter": "lever",
+    "token": "elfbeauty",
+    "type": "direct_ats",
+    "employer": "E.L.F. Beauty, Inc."
+  },
+  {
+    "name": "gr-xometry-inc",
+    "adapter": "greenhouse",
+    "token": "xometry",
+    "type": "direct_ats",
+    "employer": "Xometry, Inc."
+  },
+  {
+    "name": "gr-axsome-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "axsometherapeutics",
+    "type": "direct_ats",
+    "employer": "Axsome Therapeutics, Inc."
+  },
+  {
+    "name": "gr-commvault-systems-inc",
+    "adapter": "greenhouse",
+    "token": "commvault",
+    "type": "direct_ats",
+    "employer": "Commvault Systems Inc"
+  },
+  {
+    "name": "ab-uipath-inc",
+    "adapter": "ashby",
+    "token": "uipath",
+    "type": "direct_ats",
+    "employer": "Uipath, Inc."
+  },
+  {
+    "name": "gr-hut-8-corp",
+    "adapter": "greenhouse",
+    "token": "hut8",
+    "type": "direct_ats",
+    "employer": "Hut 8 Corp."
+  },
+  {
+    "name": "gr-beta-technologies-inc",
+    "adapter": "greenhouse",
+    "token": "betatechnologiesinc",
+    "type": "direct_ats",
+    "employer": "Beta Technologies, Inc."
+  },
+  {
+    "name": "gr-lyft-inc",
+    "adapter": "greenhouse",
+    "token": "lyft",
+    "type": "direct_ats",
+    "employer": "Lyft, Inc."
+  },
+  {
+    "name": "gr-stepstone-group-inc",
+    "adapter": "greenhouse",
+    "token": "stepstone",
+    "type": "direct_ats",
+    "employer": "Stepstone Group Inc."
+  },
+  {
+    "name": "gr-mirum-pharmaceuticals-inc",
+    "adapter": "greenhouse",
+    "token": "mirumpharmaceuticals",
+    "type": "direct_ats",
+    "employer": "Mirum Pharmaceuticals, Inc."
+  },
+  {
+    "name": "gr-klaviyo-inc",
+    "adapter": "greenhouse",
+    "token": "klaviyo",
+    "type": "direct_ats",
+    "employer": "Klaviyo, Inc."
+  },
+  {
+    "name": "gr-cogent-biosciences-inc",
+    "adapter": "greenhouse",
+    "token": "cogentbiosciences",
+    "type": "direct_ats",
+    "employer": "Cogent Biosciences, Inc."
+  },
+  {
+    "name": "lv-super-group-sghc-ltd",
+    "adapter": "lever",
+    "token": "super",
+    "type": "direct_ats",
+    "employer": "Super Group (Sghc) Ltd"
+  },
+  {
+    "name": "gr-doximity-inc",
+    "adapter": "greenhouse",
+    "token": "doximity",
+    "type": "direct_ats",
+    "employer": "Doximity, Inc."
+  },
+  {
+    "name": "gr-box-inc",
+    "adapter": "greenhouse",
+    "token": "boxinc",
+    "type": "direct_ats",
+    "employer": "Box Inc"
+  },
+  {
+    "name": "gr-nice-ltd",
+    "adapter": "greenhouse",
+    "token": "nice",
+    "type": "direct_ats",
+    "employer": "Nice Ltd."
+  },
+  {
+    "name": "gr-billiontoone-inc",
+    "adapter": "greenhouse",
+    "token": "billiontoone",
+    "type": "direct_ats",
+    "employer": "Billiontoone, Inc."
+  },
+  {
+    "name": "lv-plexus-corp",
+    "adapter": "lever",
+    "token": "plexus",
+    "type": "direct_ats",
+    "employer": "Plexus Corp"
+  },
+  {
+    "name": "gr-erasca-inc",
+    "adapter": "greenhouse",
+    "token": "erasca",
+    "type": "direct_ats",
+    "employer": "Erasca, Inc."
+  },
+  {
+    "name": "gr-oklo-inc",
+    "adapter": "greenhouse",
+    "token": "oklo",
+    "type": "direct_ats",
+    "employer": "Oklo Inc."
+  },
+  {
+    "name": "gr-spire-inc",
+    "adapter": "greenhouse",
+    "token": "spire",
+    "type": "direct_ats",
+    "employer": "Spire Inc"
+  },
+  {
+    "name": "gr-braze-inc",
+    "adapter": "greenhouse",
+    "token": "braze",
+    "type": "direct_ats",
+    "employer": "Braze, Inc."
+  },
+  {
+    "name": "gr-sezzle-inc",
+    "adapter": "greenhouse",
+    "token": "sezzle",
+    "type": "direct_ats",
+    "employer": "Sezzle Inc."
+  },
+  {
+    "name": "gr-edgewise-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "edgewisetherapeutics",
+    "type": "direct_ats",
+    "employer": "Edgewise Therapeutics, Inc."
+  },
+  {
+    "name": "ab-brunswick-corp",
+    "adapter": "ashby",
+    "token": "brunswick",
+    "type": "direct_ats",
+    "employer": "Brunswick Corp"
+  },
+  {
+    "name": "gr-adaptive-biotechnologies-corp",
+    "adapter": "greenhouse",
+    "token": "adaptivebiotechnologies",
+    "type": "direct_ats",
+    "employer": "Adaptive Biotechnologies Corp"
+  },
+  {
+    "name": "gr-heartflow-inc",
+    "adapter": "greenhouse",
+    "token": "heartflowinc",
+    "type": "direct_ats",
+    "employer": "Heartflow, Inc."
+  },
+  {
+    "name": "gr-mercury-systems-inc",
+    "adapter": "greenhouse",
+    "token": "mercury",
+    "type": "direct_ats",
+    "employer": "Mercury Systems Inc"
+  },
+  {
+    "name": "gr-definium-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "definiumtherapeutics",
+    "type": "direct_ats",
+    "employer": "Definium Therapeutics, Inc."
+  },
+  {
+    "name": "gr-relay-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "relaytherapeutics",
+    "type": "direct_ats",
+    "employer": "Relay Therapeutics, Inc."
+  },
+  {
+    "name": "gr-caredx-inc",
+    "adapter": "greenhouse",
+    "token": "caredxinc",
+    "type": "direct_ats",
+    "employer": "Caredx, Inc."
+  },
+  {
+    "name": "gr-sphere-entertainment-co",
+    "adapter": "greenhouse",
+    "token": "sphereentertainment",
+    "type": "direct_ats",
+    "employer": "Sphere Entertainment Co."
+  },
+  {
+    "name": "gr-pulse-biosciences-inc",
+    "adapter": "greenhouse",
+    "token": "pulsebiosciences",
+    "type": "direct_ats",
+    "employer": "Pulse Biosciences, Inc."
+  },
+  {
+    "name": "gr-iovance-biotherapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "iovancebiotherapeutics",
+    "type": "direct_ats",
+    "employer": "Iovance Biotherapeutics, Inc."
+  },
+  {
+    "name": "gr-cohen-steers-inc",
+    "adapter": "greenhouse",
+    "token": "cohensteers",
+    "type": "direct_ats",
+    "employer": "Cohen & Steers, Inc."
+  },
+  {
+    "name": "gr-tango-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "tangotherapeutics",
+    "type": "direct_ats",
+    "employer": "Tango Therapeutics, Inc."
+  },
+  {
+    "name": "gr-life360-inc",
+    "adapter": "greenhouse",
+    "token": "life360",
+    "type": "direct_ats",
+    "employer": "Life360, Inc."
+  },
+  {
+    "name": "gr-twenty-one-capital-inc",
+    "adapter": "greenhouse",
+    "token": "twentyonecapital",
+    "type": "direct_ats",
+    "employer": "Twenty One Capital, Inc."
+  },
+  {
+    "name": "gr-disc-medicine-inc",
+    "adapter": "greenhouse",
+    "token": "discmedicine",
+    "type": "direct_ats",
+    "employer": "Disc Medicine, Inc."
+  },
+  {
+    "name": "gr-appian-corp",
+    "adapter": "greenhouse",
+    "token": "appian",
+    "type": "direct_ats",
+    "employer": "Appian Corp"
+  },
+  {
+    "name": "ab-post-holdings-inc",
+    "adapter": "ashby",
+    "token": "post",
+    "type": "direct_ats",
+    "employer": "Post Holdings, Inc."
+  },
+  {
+    "name": "gr-dyne-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "dynetherapeutics",
+    "type": "direct_ats",
+    "employer": "Dyne Therapeutics, Inc."
+  },
+  {
+    "name": "gr-avepoint-inc",
+    "adapter": "greenhouse",
+    "token": "avepoint",
+    "type": "direct_ats",
+    "employer": "Avepoint, Inc."
+  },
+  {
+    "name": "gr-agilysys-inc",
+    "adapter": "greenhouse",
+    "token": "agilysys",
+    "type": "direct_ats",
+    "employer": "Agilysys Inc"
+  },
+  {
+    "name": "lv-pattern-group-inc",
+    "adapter": "lever",
+    "token": "pattern",
+    "type": "direct_ats",
+    "employer": "Pattern Group Inc."
+  },
+  {
+    "name": "gr-surgery-partners-inc",
+    "adapter": "greenhouse",
+    "token": "surgerypartners",
+    "type": "direct_ats",
+    "employer": "Surgery Partners, Inc."
+  },
+  {
+    "name": "lv-extreme-networks-inc",
+    "adapter": "lever",
+    "token": "extremenetworks",
+    "type": "direct_ats",
+    "employer": "Extreme Networks Inc"
+  },
+  {
+    "name": "gr-fervo-energy-co",
+    "adapter": "greenhouse",
+    "token": "fervoenergy",
+    "type": "direct_ats",
+    "employer": "Fervo Energy Co"
+  },
+  {
+    "name": "gr-assured-guaranty-ltd",
+    "adapter": "greenhouse",
+    "token": "assuredguaranty",
+    "type": "direct_ats",
+    "employer": "Assured Guaranty Ltd"
+  },
+  {
+    "name": "gr-alarm-com-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "alarmcom",
+    "type": "direct_ats",
+    "employer": "Alarm.Com Holdings, Inc."
+  },
+  {
+    "name": "gr-acadia-pharmaceuticals-inc",
+    "adapter": "greenhouse",
+    "token": "acadiapharmaceuticals",
+    "type": "direct_ats",
+    "employer": "Acadia Pharmaceuticals Inc"
+  },
+  {
+    "name": "ab-lemonade-inc",
+    "adapter": "ashby",
+    "token": "lemonade",
+    "type": "direct_ats",
+    "employer": "Lemonade, Inc."
+  },
+  {
+    "name": "gr-cargurus-inc",
+    "adapter": "greenhouse",
+    "token": "cargurus",
+    "type": "direct_ats",
+    "employer": "Cargurus, Inc."
+  },
+  {
+    "name": "gr-siriuspoint-ltd",
+    "adapter": "greenhouse",
+    "token": "siriuspoint",
+    "type": "direct_ats",
+    "employer": "Siriuspoint Ltd"
+  },
+  {
+    "name": "gr-axogen-inc",
+    "adapter": "greenhouse",
+    "token": "axogen",
+    "type": "direct_ats",
+    "employer": "Axogen, Inc."
+  },
+  {
+    "name": "gr-rush-street-interactive-inc",
+    "adapter": "greenhouse",
+    "token": "rushstreetinteractive",
+    "type": "direct_ats",
+    "employer": "Rush Street Interactive, Inc."
+  },
+  {
+    "name": "lv-kyivstar-group-ltd",
+    "adapter": "lever",
+    "token": "kyivstar",
+    "type": "direct_ats",
+    "employer": "Kyivstar Group Ltd."
+  },
+  {
+    "name": "gr-atricure-inc",
+    "adapter": "greenhouse",
+    "token": "atricure",
+    "type": "direct_ats",
+    "employer": "Atricure, Inc."
+  },
+  {
+    "name": "gr-nmi-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "nmi",
+    "type": "direct_ats",
+    "employer": "Nmi Holdings, Inc."
+  },
+  {
+    "name": "gr-lincoln-international-inc",
+    "adapter": "greenhouse",
+    "token": "lincolninternational",
+    "type": "direct_ats",
+    "employer": "Lincoln International, Inc."
+  },
+  {
+    "name": "gr-beam-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "beamtherapeutics",
+    "type": "direct_ats",
+    "employer": "Beam Therapeutics Inc."
+  },
+  {
+    "name": "gr-mbx-biosciences-inc",
+    "adapter": "greenhouse",
+    "token": "mbxbiosciences",
+    "type": "direct_ats",
+    "employer": "Mbx Biosciences, Inc."
+  },
+  {
+    "name": "gr-fastly-inc",
+    "adapter": "greenhouse",
+    "token": "fastly",
+    "type": "direct_ats",
+    "employer": "Fastly, Inc."
+  },
+  {
+    "name": "gr-eplus-inc",
+    "adapter": "greenhouse",
+    "token": "eplusinc",
+    "type": "direct_ats",
+    "employer": "Eplus Inc"
+  },
+  {
+    "name": "gr-ncino-inc",
+    "adapter": "greenhouse",
+    "token": "ncinoinc",
+    "type": "direct_ats",
+    "employer": "Ncino, Inc."
+  },
+  {
+    "name": "gr-curaleaf-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "curaleaf",
+    "type": "direct_ats",
+    "employer": "Curaleaf Holdings, Inc."
+  },
+  {
+    "name": "lv-lindblad-expeditions-holdings-inc",
+    "adapter": "lever",
+    "token": "lindblad-expeditions",
+    "type": "direct_ats",
+    "employer": "Lindblad Expeditions Holdings, Inc."
+  },
+  {
+    "name": "gr-vir-biotechnology-inc",
+    "adapter": "greenhouse",
+    "token": "virbiotechnologyinc",
+    "type": "direct_ats",
+    "employer": "Vir Biotechnology, Inc."
+  },
+  {
+    "name": "gr-septerna-inc",
+    "adapter": "greenhouse",
+    "token": "septerna",
+    "type": "direct_ats",
+    "employer": "Septerna, Inc."
+  },
+  {
+    "name": "lv-telesat-corp",
+    "adapter": "lever",
+    "token": "telesat",
+    "type": "direct_ats",
+    "employer": "Telesat Corp"
+  },
+  {
+    "name": "gr-ethos-technologies-inc",
+    "adapter": "greenhouse",
+    "token": "ethos",
+    "type": "direct_ats",
+    "employer": "Ethos Technologies Inc."
+  },
+  {
+    "name": "gr-immunome-inc",
+    "adapter": "greenhouse",
+    "token": "immunomeinc",
+    "type": "direct_ats",
+    "employer": "Immunome Inc."
+  },
+  {
+    "name": "gr-asana-inc",
+    "adapter": "greenhouse",
+    "token": "asana",
+    "type": "direct_ats",
+    "employer": "Asana, Inc."
+  },
+  {
+    "name": "gr-vera-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "veratherapeuticsinc",
+    "type": "direct_ats",
+    "employer": "Vera Therapeutics, Inc."
+  },
+  {
+    "name": "gr-upstart-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "upstart",
+    "type": "direct_ats",
+    "employer": "Upstart Holdings, Inc."
+  },
+  {
+    "name": "ab-amplitude-inc",
+    "adapter": "ashby",
+    "token": "amplitude",
+    "type": "direct_ats",
+    "employer": "Amplitude, Inc."
+  },
+  {
+    "name": "gr-alamar-biosciences-inc",
+    "adapter": "greenhouse",
+    "token": "alamarbiosciences",
+    "type": "direct_ats",
+    "employer": "Alamar Biosciences, Inc."
+  },
+  {
+    "name": "gr-five9-inc",
+    "adapter": "greenhouse",
+    "token": "five9",
+    "type": "direct_ats",
+    "employer": "Five9, Inc."
+  },
+  {
+    "name": "gr-western-union-co",
+    "adapter": "greenhouse",
+    "token": "westernunion",
+    "type": "direct_ats",
+    "employer": "Western Union Co"
+  },
+  {
+    "name": "lv-replimune-group-inc",
+    "adapter": "lever",
+    "token": "replimune",
+    "type": "direct_ats",
+    "employer": "Replimune Group, Inc."
+  },
+  {
+    "name": "gr-veracyte-inc",
+    "adapter": "greenhouse",
+    "token": "veracyte",
+    "type": "direct_ats",
+    "employer": "Veracyte, Inc."
+  },
+  {
+    "name": "gr-maravai-lifesciences-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "maravailifesciences",
+    "type": "direct_ats",
+    "employer": "Maravai Lifesciences Holdings, Inc."
+  },
+  {
+    "name": "gr-standard-nuclear-inc",
+    "adapter": "greenhouse",
+    "token": "standardnuclearinc",
+    "type": "direct_ats",
+    "employer": "Standard Nuclear, Inc."
+  },
+  {
+    "name": "lv-idt-corp",
+    "adapter": "lever",
+    "token": "idt",
+    "type": "direct_ats",
+    "employer": "Idt Corp"
+  },
+  {
+    "name": "gr-maze-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "mazetherapeutics",
+    "type": "direct_ats",
+    "employer": "Maze Therapeutics, Inc."
+  },
+  {
+    "name": "gr-genedx-holdings-corp",
+    "adapter": "greenhouse",
+    "token": "genedx",
+    "type": "direct_ats",
+    "employer": "Genedx Holdings Corp."
+  },
+  {
+    "name": "gr-agility-robotics-inc",
+    "adapter": "greenhouse",
+    "token": "agilityrobotics",
+    "type": "direct_ats",
+    "employer": "Agility Robotics, Inc."
+  },
+  {
+    "name": "ab-marqeta-inc",
+    "adapter": "ashby",
+    "token": "marqeta-inc",
+    "type": "direct_ats",
+    "employer": "Marqeta, Inc."
+  },
+  {
+    "name": "ab-interface-inc",
+    "adapter": "ashby",
+    "token": "interface",
+    "type": "direct_ats",
+    "employer": "Interface Inc"
+  },
+  {
+    "name": "ab-absci-corp",
+    "adapter": "ashby",
+    "token": "absci",
+    "type": "direct_ats",
+    "employer": "Absci Corp"
+  },
+  {
+    "name": "gr-inspire-medical-systems-inc",
+    "adapter": "greenhouse",
+    "token": "inspiremedicalsystemsinc",
+    "type": "direct_ats",
+    "employer": "Inspire Medical Systems, Inc."
+  },
+  {
+    "name": "gr-generate-biomedicines-inc",
+    "adapter": "greenhouse",
+    "token": "generatebiomedicines",
+    "type": "direct_ats",
+    "employer": "Generate Biomedicines, Inc."
+  },
+  {
+    "name": "gr-stoke-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "stoketherapeutics",
+    "type": "direct_ats",
+    "employer": "Stoke Therapeutics, Inc."
+  },
+  {
+    "name": "gr-butterfly-network-inc",
+    "adapter": "greenhouse",
+    "token": "butterflynetwork",
+    "type": "direct_ats",
+    "employer": "Butterfly Network, Inc."
+  },
+  {
+    "name": "lv-cleanspark-inc",
+    "adapter": "lever",
+    "token": "cleanspark",
+    "type": "direct_ats",
+    "employer": "Cleanspark, Inc."
+  },
+  {
+    "name": "ab-formula-systems-1985-ltd",
+    "adapter": "ashby",
+    "token": "formula",
+    "type": "direct_ats",
+    "employer": "Formula Systems (1985) Ltd"
+  },
+  {
+    "name": "lv-wealthfront-corp",
+    "adapter": "lever",
+    "token": "wealthfront",
+    "type": "direct_ats",
+    "employer": "Wealthfront Corp"
+  },
+  {
+    "name": "gr-braveheart-bio-inc",
+    "adapter": "greenhouse",
+    "token": "braveheartbio",
+    "type": "direct_ats",
+    "employer": "Braveheart Bio, Inc."
+  },
+  {
+    "name": "gr-personalis-inc",
+    "adapter": "greenhouse",
+    "token": "personalisinc",
+    "type": "direct_ats",
+    "employer": "Personalis, Inc."
+  },
+  {
+    "name": "gr-j-j-snack-foods-corp",
+    "adapter": "greenhouse",
+    "token": "jjsnackfoods",
+    "type": "direct_ats",
+    "employer": "J&J Snack Foods Corp"
+  },
+  {
+    "name": "gr-ultragenyx-pharmaceutical-inc",
+    "adapter": "greenhouse",
+    "token": "ultragenyxpharmaceutical",
+    "type": "direct_ats",
+    "employer": "Ultragenyx Pharmaceutical Inc."
+  },
+  {
+    "name": "gr-genius-sports-ltd",
+    "adapter": "greenhouse",
+    "token": "geniussports",
+    "type": "direct_ats",
+    "employer": "Genius Sports Ltd"
+  },
+  {
+    "name": "gr-proto-labs-inc",
+    "adapter": "greenhouse",
+    "token": "proto",
+    "type": "direct_ats",
+    "employer": "Proto Labs Inc"
+  },
+  {
+    "name": "gr-century-communities-inc",
+    "adapter": "greenhouse",
+    "token": "centurycommunitiesinc",
+    "type": "direct_ats",
+    "employer": "Century Communities, Inc."
+  },
+  {
+    "name": "gr-sweetgreen-inc",
+    "adapter": "greenhouse",
+    "token": "sweetgreen",
+    "type": "direct_ats",
+    "employer": "Sweetgreen, Inc."
+  },
+  {
+    "name": "gr-pagaya-technologies-ltd",
+    "adapter": "greenhouse",
+    "token": "pagaya",
+    "type": "direct_ats",
+    "employer": "Pagaya Technologies Ltd."
+  },
+  {
+    "name": "gr-rapport-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "rapporttherapeutics",
+    "type": "direct_ats",
+    "employer": "Rapport Therapeutics, Inc."
+  },
+  {
+    "name": "ab-tyra-biosciences-inc",
+    "adapter": "ashby",
+    "token": "tyrabiosciences",
+    "type": "direct_ats",
+    "employer": "Tyra Biosciences, Inc."
+  },
+  {
+    "name": "gr-hawkeye-360-inc",
+    "adapter": "greenhouse",
+    "token": "hawkeye360",
+    "type": "direct_ats",
+    "employer": "Hawkeye 360, Inc."
+  },
+  {
+    "name": "lv-weride-inc",
+    "adapter": "lever",
+    "token": "weride",
+    "type": "direct_ats",
+    "employer": "Weride Inc."
+  },
+  {
+    "name": "gr-ocular-therapeutix-inc",
+    "adapter": "greenhouse",
+    "token": "oculartherapeutix",
+    "type": "direct_ats",
+    "employer": "Ocular Therapeutix, Inc"
+  },
+  {
+    "name": "gr-kardigan-inc",
+    "adapter": "greenhouse",
+    "token": "kardigan",
+    "type": "direct_ats",
+    "employer": "Kardigan, Inc."
+  },
+  {
+    "name": "gr-upbound-group-inc",
+    "adapter": "greenhouse",
+    "token": "upbound",
+    "type": "direct_ats",
+    "employer": "Upbound Group, Inc."
+  },
+  {
+    "name": "gr-mineralys-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "mineralystherapeutics",
+    "type": "direct_ats",
+    "employer": "Mineralys Therapeutics, Inc."
+  },
+  {
+    "name": "ab-ibotta-inc",
+    "adapter": "ashby",
+    "token": "ibotta",
+    "type": "direct_ats",
+    "employer": "Ibotta, Inc."
+  },
+  {
+    "name": "gr-bandwidth-inc",
+    "adapter": "greenhouse",
+    "token": "bandwidth",
+    "type": "direct_ats",
+    "employer": "Bandwidth Inc."
+  },
+  {
+    "name": "ab-arlo-technologies-inc",
+    "adapter": "ashby",
+    "token": "arlo",
+    "type": "direct_ats",
+    "employer": "Arlo Technologies, Inc."
+  },
+  {
+    "name": "ab-agi-inc",
+    "adapter": "ashby",
+    "token": "agi-inc",
+    "type": "direct_ats",
+    "employer": "Agi Inc"
+  },
+  {
+    "name": "gr-innodata-inc",
+    "adapter": "greenhouse",
+    "token": "innodatainc",
+    "type": "direct_ats",
+    "employer": "Innodata Inc"
+  },
+  {
+    "name": "gr-avalyn-pharma-inc",
+    "adapter": "greenhouse",
+    "token": "avalynpharma",
+    "type": "direct_ats",
+    "employer": "Avalyn Pharma Inc."
+  },
+  {
+    "name": "gr-pagerduty-inc",
+    "adapter": "greenhouse",
+    "token": "pagerduty",
+    "type": "direct_ats",
+    "employer": "Pagerduty, Inc."
+  },
+  {
+    "name": "gr-upwork-inc",
+    "adapter": "greenhouse",
+    "token": "upwork",
+    "type": "direct_ats",
+    "employer": "Upwork, Inc"
+  },
+  {
+    "name": "ab-goodrx-holdings-inc",
+    "adapter": "ashby",
+    "token": "goodrx",
+    "type": "direct_ats",
+    "employer": "Goodrx Holdings, Inc."
+  },
+  {
+    "name": "gr-keel-infrastructure-corp",
+    "adapter": "greenhouse",
+    "token": "keelinfrastructure",
+    "type": "direct_ats",
+    "employer": "Keel Infrastructure Corp."
+  },
+  {
+    "name": "gr-sb-energy-inc",
+    "adapter": "greenhouse",
+    "token": "sbenergy",
+    "type": "direct_ats",
+    "employer": "Sb Energy, Inc."
+  },
+  {
+    "name": "gr-seaport-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "seaporttherapeutics",
+    "type": "direct_ats",
+    "employer": "Seaport Therapeutics, Inc."
+  },
+  {
+    "name": "gr-reformation-inc",
+    "adapter": "greenhouse",
+    "token": "reformation",
+    "type": "direct_ats",
+    "employer": "Reformation Inc."
+  },
+  {
+    "name": "gr-si-bone-inc",
+    "adapter": "greenhouse",
+    "token": "siboneinc",
+    "type": "direct_ats",
+    "employer": "Si-Bone, Inc."
+  },
+  {
+    "name": "gr-freenome-inc",
+    "adapter": "greenhouse",
+    "token": "freenome",
+    "type": "direct_ats",
+    "employer": "Freenome, Inc."
+  },
+  {
+    "name": "gr-riskified-ltd",
+    "adapter": "greenhouse",
+    "token": "riskified",
+    "type": "direct_ats",
+    "employer": "Riskified Ltd."
+  },
+  {
+    "name": "gr-quinstreet-inc",
+    "adapter": "greenhouse",
+    "token": "quinstreet",
+    "type": "direct_ats",
+    "employer": "Quinstreet, Inc"
+  },
+  {
+    "name": "gr-securitize-corp",
+    "adapter": "greenhouse",
+    "token": "securitize",
+    "type": "direct_ats",
+    "employer": "Securitize Corp."
+  },
+  {
+    "name": "ab-harmonic-inc",
+    "adapter": "ashby",
+    "token": "harmonic",
+    "type": "direct_ats",
+    "employer": "Harmonic Inc."
+  },
+  {
+    "name": "gr-ambiq-micro-inc",
+    "adapter": "greenhouse",
+    "token": "ambiqmicroinc",
+    "type": "direct_ats",
+    "employer": "Ambiq Micro, Inc."
+  },
+  {
+    "name": "gr-ceribell-inc",
+    "adapter": "greenhouse",
+    "token": "ceribell",
+    "type": "direct_ats",
+    "employer": "Ceribell, Inc."
+  },
+  {
+    "name": "ab-uniti-group-inc",
+    "adapter": "ashby",
+    "token": "uniti",
+    "type": "direct_ats",
+    "employer": "Uniti Group Inc."
+  },
+  {
+    "name": "gr-zoominfo-technologies-inc",
+    "adapter": "greenhouse",
+    "token": "zoominfo",
+    "type": "direct_ats",
+    "employer": "Zoominfo Technologies Inc."
+  },
+  {
+    "name": "gr-jade-biosciences-inc",
+    "adapter": "greenhouse",
+    "token": "jadebiosciences",
+    "type": "direct_ats",
+    "employer": "Jade Biosciences, Inc."
+  },
+  {
+    "name": "gr-everquote-inc",
+    "adapter": "greenhouse",
+    "token": "everquote",
+    "type": "direct_ats",
+    "employer": "Everquote, Inc."
+  },
+  {
+    "name": "gr-blacksky-technology-inc",
+    "adapter": "greenhouse",
+    "token": "blacksky",
+    "type": "direct_ats",
+    "employer": "Blacksky Technology Inc."
+  },
+  {
+    "name": "gr-coursera-inc",
+    "adapter": "greenhouse",
+    "token": "coursera",
+    "type": "direct_ats",
+    "employer": "Coursera, Inc."
+  },
+  {
+    "name": "gr-omada-health-inc",
+    "adapter": "greenhouse",
+    "token": "omadahealth",
+    "type": "direct_ats",
+    "employer": "Omada Health, Inc."
+  },
+  {
+    "name": "gr-city-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "citytherapeutics",
+    "type": "direct_ats",
+    "employer": "City Therapeutics, Inc."
+  },
+  {
+    "name": "ab-bumble-inc",
+    "adapter": "ashby",
+    "token": "bumbleinc",
+    "type": "direct_ats",
+    "employer": "Bumble Inc."
+  },
+  {
+    "name": "gr-tetra-technologies-inc",
+    "adapter": "greenhouse",
+    "token": "tetra",
+    "type": "direct_ats",
+    "employer": "Tetra Technologies Inc"
+  },
+  {
+    "name": "gr-syndax-pharmaceuticals-inc",
+    "adapter": "greenhouse",
+    "token": "syndaxpharmaceuticals",
+    "type": "direct_ats",
+    "employer": "Syndax Pharmaceuticals Inc"
+  },
+  {
+    "name": "gr-pubmatic-inc",
+    "adapter": "greenhouse",
+    "token": "pubmatic",
+    "type": "direct_ats",
+    "employer": "Pubmatic, Inc."
+  },
+  {
+    "name": "lv-aeva-technologies-inc",
+    "adapter": "lever",
+    "token": "aeva",
+    "type": "direct_ats",
+    "employer": "Aeva Technologies, Inc."
+  },
+  {
+    "name": "gr-tripadvisor-inc",
+    "adapter": "greenhouse",
+    "token": "tripadvisor",
+    "type": "direct_ats",
+    "employer": "Tripadvisor, Inc."
+  },
+  {
+    "name": "gr-ginkgo-bioworks-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "ginkgobioworks",
+    "type": "direct_ats",
+    "employer": "Ginkgo Bioworks Holdings, Inc."
+  },
+  {
+    "name": "gr-onespan-inc",
+    "adapter": "greenhouse",
+    "token": "onespan",
+    "type": "direct_ats",
+    "employer": "Onespan Inc."
+  },
+  {
+    "name": "gr-obsidian-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "obsidiantherapeutics",
+    "type": "direct_ats",
+    "employer": "Obsidian Therapeutics, Inc."
+  },
+  {
+    "name": "gr-mediaalpha-inc",
+    "adapter": "greenhouse",
+    "token": "mediaalpha",
+    "type": "direct_ats",
+    "employer": "Mediaalpha, Inc."
+  },
+  {
+    "name": "gr-alumis-inc",
+    "adapter": "greenhouse",
+    "token": "alumis",
+    "type": "direct_ats",
+    "employer": "Alumis Inc."
+  },
+  {
+    "name": "gr-gcm-grosvenor-inc",
+    "adapter": "greenhouse",
+    "token": "gcmgrosvenor",
+    "type": "direct_ats",
+    "employer": "Gcm Grosvenor Inc."
+  },
+  {
+    "name": "gr-array-technologies-inc",
+    "adapter": "greenhouse",
+    "token": "array",
+    "type": "direct_ats",
+    "employer": "Array Technologies, Inc."
+  },
+  {
+    "name": "gr-prime-medicine-inc",
+    "adapter": "greenhouse",
+    "token": "primemedicine",
+    "type": "direct_ats",
+    "employer": "Prime Medicine, Inc."
+  },
+  {
+    "name": "gr-nextdoor-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "nextdoor",
+    "type": "direct_ats",
+    "employer": "Nextdoor Holdings, Inc."
+  },
+  {
+    "name": "ab-docebo-inc",
+    "adapter": "ashby",
+    "token": "docebo",
+    "type": "direct_ats",
+    "employer": "Docebo Inc."
+  },
+  {
+    "name": "gr-ironwood-pharmaceuticals-inc",
+    "adapter": "greenhouse",
+    "token": "ironwoodpharmaceuticals",
+    "type": "direct_ats",
+    "employer": "Ironwood Pharmaceuticals Inc"
+  },
+  {
+    "name": "gr-yext-inc",
+    "adapter": "greenhouse",
+    "token": "yext",
+    "type": "direct_ats",
+    "employer": "Yext, Inc."
+  },
+  {
+    "name": "lv-attovia-therapeutics-inc",
+    "adapter": "lever",
+    "token": "attovia-therapeutics",
+    "type": "direct_ats",
+    "employer": "Attovia Therapeutics, Inc."
+  },
+  {
+    "name": "gr-similarweb-ltd",
+    "adapter": "greenhouse",
+    "token": "similarweb",
+    "type": "direct_ats",
+    "employer": "Similarweb Ltd."
+  },
+  {
+    "name": "gr-unusual-machines-inc",
+    "adapter": "greenhouse",
+    "token": "unusualmachines",
+    "type": "direct_ats",
+    "employer": "Unusual Machines, Inc."
+  },
+  {
+    "name": "ab-t1-energy-inc",
+    "adapter": "ashby",
+    "token": "t1energy",
+    "type": "direct_ats",
+    "employer": "T1 Energy Inc."
+  },
+  {
+    "name": "gr-kura-oncology-inc",
+    "adapter": "greenhouse",
+    "token": "kuraoncology",
+    "type": "direct_ats",
+    "employer": "Kura Oncology, Inc."
+  },
+  {
+    "name": "gr-4d-molecular-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "4dmoleculartherapeutics",
+    "type": "direct_ats",
+    "employer": "4D Molecular Therapeutics, Inc."
+  },
+  {
+    "name": "ab-bicara-therapeutics-inc",
+    "adapter": "ashby",
+    "token": "bicara-therapeutics",
+    "type": "direct_ats",
+    "employer": "Bicara Therapeutics Inc."
+  },
+  {
+    "name": "gr-sprout-social-inc",
+    "adapter": "greenhouse",
+    "token": "sproutsocial",
+    "type": "direct_ats",
+    "employer": "Sprout Social, Inc."
+  },
+  {
+    "name": "gr-groupon-inc",
+    "adapter": "greenhouse",
+    "token": "groupon",
+    "type": "direct_ats",
+    "employer": "Groupon, Inc."
+  },
+  {
+    "name": "gr-vtex",
+    "adapter": "greenhouse",
+    "token": "vtex",
+    "type": "direct_ats",
+    "employer": "Vtex"
+  },
+  {
+    "name": "ab-iambic-therapeutics-inc",
+    "adapter": "ashby",
+    "token": "iambic-therapeutics",
+    "type": "direct_ats",
+    "employer": "Iambic Therapeutics, Inc."
+  },
+  {
+    "name": "gr-bitgo-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "bitgo",
+    "type": "direct_ats",
+    "employer": "Bitgo Holdings, Inc."
+  },
+  {
+    "name": "gr-hyliion-holdings-corp",
+    "adapter": "greenhouse",
+    "token": "hyliion",
+    "type": "direct_ats",
+    "employer": "Hyliion Holdings Corp."
+  },
+  {
+    "name": "lv-regenxbio-inc",
+    "adapter": "lever",
+    "token": "regenxbio",
+    "type": "direct_ats",
+    "employer": "Regenxbio Inc."
+  },
+  {
+    "name": "ab-netgear-inc",
+    "adapter": "ashby",
+    "token": "netgear",
+    "type": "direct_ats",
+    "employer": "Netgear, Inc."
+  },
+  {
+    "name": "lv-crescent-biopharma-inc",
+    "adapter": "lever",
+    "token": "crescent-biopharma",
+    "type": "direct_ats",
+    "employer": "Crescent Biopharma, Inc."
+  },
+  {
+    "name": "ab-hudson-pacific-properties-inc",
+    "adapter": "ashby",
+    "token": "hudson-pacific-properties",
+    "type": "direct_ats",
+    "employer": "Hudson Pacific Properties, Inc."
+  },
+  {
+    "name": "gr-lendingtree-inc",
+    "adapter": "greenhouse",
+    "token": "lendingtree",
+    "type": "direct_ats",
+    "employer": "Lendingtree, Inc."
+  },
+  {
+    "name": "gr-smith-douglas-homes-corp",
+    "adapter": "greenhouse",
+    "token": "smithdouglashomes",
+    "type": "direct_ats",
+    "employer": "Smith Douglas Homes Corp."
+  },
+  {
+    "name": "gr-ooma-inc",
+    "adapter": "greenhouse",
+    "token": "ooma",
+    "type": "direct_ats",
+    "employer": "Ooma Inc"
+  },
+  {
+    "name": "ab-nerdwallet-inc",
+    "adapter": "ashby",
+    "token": "nerdwallet",
+    "type": "direct_ats",
+    "employer": "Nerdwallet, Inc."
+  },
+  {
+    "name": "gr-gravity-co-ltd",
+    "adapter": "greenhouse",
+    "token": "gravity",
+    "type": "direct_ats",
+    "employer": "Gravity Co., Ltd."
+  },
+  {
+    "name": "gr-908-devices-inc",
+    "adapter": "greenhouse",
+    "token": "908devicesinc",
+    "type": "direct_ats",
+    "employer": "908 Devices Inc."
+  },
+  {
+    "name": "gr-factorial-energy-inc",
+    "adapter": "greenhouse",
+    "token": "factorialenergy",
+    "type": "direct_ats",
+    "employer": "Factorial Energy Inc."
+  },
+  {
+    "name": "gr-prokidney-corp",
+    "adapter": "greenhouse",
+    "token": "prokidney",
+    "type": "direct_ats",
+    "employer": "Prokidney Corp."
+  },
+  {
+    "name": "gr-neuropace-inc",
+    "adapter": "greenhouse",
+    "token": "neuropace",
+    "type": "direct_ats",
+    "employer": "Neuropace Inc"
+  },
+  {
+    "name": "gr-solid-power-inc",
+    "adapter": "greenhouse",
+    "token": "solidpower",
+    "type": "direct_ats",
+    "employer": "Solid Power, Inc."
+  },
+  {
+    "name": "gr-arvinas-inc",
+    "adapter": "greenhouse",
+    "token": "arvinas",
+    "type": "direct_ats",
+    "employer": "Arvinas, Inc."
+  },
+  {
+    "name": "gr-vital-farms-inc",
+    "adapter": "greenhouse",
+    "token": "vitalfarms",
+    "type": "direct_ats",
+    "employer": "Vital Farms, Inc."
+  },
+  {
+    "name": "gr-avalo-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "avalotherapeutics",
+    "type": "direct_ats",
+    "employer": "Avalo Therapeutics, Inc."
+  },
+  {
+    "name": "gr-clearfield-inc",
+    "adapter": "greenhouse",
+    "token": "clearfield",
+    "type": "direct_ats",
+    "employer": "Clearfield, Inc."
+  },
+  {
+    "name": "gr-lyell-immunopharma-inc",
+    "adapter": "greenhouse",
+    "token": "lyellimmunopharma",
+    "type": "direct_ats",
+    "employer": "Lyell Immunopharma, Inc."
+  },
+  {
+    "name": "gr-cerus-corp",
+    "adapter": "greenhouse",
+    "token": "cerus",
+    "type": "direct_ats",
+    "employer": "Cerus Corp"
+  },
+  {
+    "name": "gr-maplight-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "maplighttherapeutics",
+    "type": "direct_ats",
+    "employer": "Maplight Therapeutics, Inc."
+  },
+  {
+    "name": "gr-mntn-inc",
+    "adapter": "greenhouse",
+    "token": "mntn",
+    "type": "direct_ats",
+    "employer": "Mntn, Inc."
+  },
+  {
+    "name": "gr-blue-moon-metals-inc",
+    "adapter": "greenhouse",
+    "token": "bluemoonmetals",
+    "type": "direct_ats",
+    "employer": "Blue Moon Metals Inc."
+  },
+  {
+    "name": "lv-energy-recovery-inc",
+    "adapter": "lever",
+    "token": "energyrecovery",
+    "type": "direct_ats",
+    "employer": "Energy Recovery, Inc."
+  },
+  {
+    "name": "lv-alector-inc",
+    "adapter": "lever",
+    "token": "alector",
+    "type": "direct_ats",
+    "employer": "Alector, Inc."
+  },
+  {
+    "name": "lv-teamshares-inc",
+    "adapter": "lever",
+    "token": "teamshares",
+    "type": "direct_ats",
+    "employer": "Teamshares Inc"
+  },
+  {
+    "name": "gr-perion-network-ltd",
+    "adapter": "greenhouse",
+    "token": "perionnetworkltd",
+    "type": "direct_ats",
+    "employer": "Perion Network Ltd."
+  },
+  {
+    "name": "gr-stitch-fix-inc",
+    "adapter": "greenhouse",
+    "token": "stitchfix",
+    "type": "direct_ats",
+    "employer": "Stitch Fix, Inc."
+  },
+  {
+    "name": "gr-ziprecruiter-inc",
+    "adapter": "greenhouse",
+    "token": "ziprecruiter",
+    "type": "direct_ats",
+    "employer": "Ziprecruiter, Inc."
+  },
+  {
+    "name": "gr-chargepoint-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "chargepoint",
+    "type": "direct_ats",
+    "employer": "Chargepoint Holdings, Inc."
+  },
+  {
+    "name": "gr-faeth-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "faeththerapeutics",
+    "type": "direct_ats",
+    "employer": "Faeth Therapeutics, Inc."
+  },
+  {
+    "name": "gr-arbor-realty-trust-inc",
+    "adapter": "greenhouse",
+    "token": "arborrealtytrust",
+    "type": "direct_ats",
+    "employer": "Arbor Realty Trust Inc"
+  },
+  {
+    "name": "gr-verra-mobility-corp",
+    "adapter": "greenhouse",
+    "token": "verramobility",
+    "type": "direct_ats",
+    "employer": "Verra Mobility Corp"
+  },
+  {
+    "name": "gr-eikon-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "eikontherapeutics",
+    "type": "direct_ats",
+    "employer": "Eikon Therapeutics, Inc."
+  },
+  {
+    "name": "gr-smartrent-inc",
+    "adapter": "greenhouse",
+    "token": "smartrent",
+    "type": "direct_ats",
+    "employer": "Smartrent, Inc."
+  },
+  {
+    "name": "lv-eagle-point-credit-co",
+    "adapter": "lever",
+    "token": "eaglepointcredit",
+    "type": "direct_ats",
+    "employer": "Eagle Point Credit Co"
+  },
+  {
+    "name": "ab-angi-inc",
+    "adapter": "ashby",
+    "token": "angi",
+    "type": "direct_ats",
+    "employer": "Angi Inc."
+  },
+  {
+    "name": "lv-fate-therapeutics-inc",
+    "adapter": "lever",
+    "token": "fatetherapeutics",
+    "type": "direct_ats",
+    "employer": "Fate Therapeutics Inc"
+  },
+  {
+    "name": "gr-blend-labs-inc",
+    "adapter": "greenhouse",
+    "token": "blend",
+    "type": "direct_ats",
+    "employer": "Blend Labs, Inc."
+  },
+  {
+    "name": "lv-korro-bio-inc",
+    "adapter": "lever",
+    "token": "korrobio",
+    "type": "direct_ats",
+    "employer": "Korro Bio, Inc."
+  },
+  {
+    "name": "lv-velo3d-inc",
+    "adapter": "lever",
+    "token": "velo3d",
+    "type": "direct_ats",
+    "employer": "Velo3D, Inc."
+  },
+  {
+    "name": "gr-tss-inc",
+    "adapter": "greenhouse",
+    "token": "tss",
+    "type": "direct_ats",
+    "employer": "Tss, Inc."
+  },
+  {
+    "name": "gr-1stdibs-com-inc",
+    "adapter": "greenhouse",
+    "token": "1stdibscom",
+    "type": "direct_ats",
+    "employer": "1Stdibs.Com, Inc."
+  },
+  {
+    "name": "gr-firy-inc",
+    "adapter": "greenhouse",
+    "token": "firy",
+    "type": "direct_ats",
+    "employer": "Firy Inc."
+  },
+  {
+    "name": "gr-entrada-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "entradatherapeutics",
+    "type": "direct_ats",
+    "employer": "Entrada Therapeutics, Inc."
+  },
+  {
+    "name": "gr-digimarc-corp",
+    "adapter": "greenhouse",
+    "token": "digimarc",
+    "type": "direct_ats",
+    "employer": "Digimarc Corp"
+  },
+  {
+    "name": "gr-dhi-group-inc",
+    "adapter": "greenhouse",
+    "token": "dhigroupinc",
+    "type": "direct_ats",
+    "employer": "Dhi Group, Inc."
+  },
+  {
+    "name": "gr-invivyd-inc",
+    "adapter": "greenhouse",
+    "token": "invivyd",
+    "type": "direct_ats",
+    "employer": "Invivyd, Inc."
+  },
+  {
+    "name": "lv-terrascend-corp",
+    "adapter": "lever",
+    "token": "terrascend",
+    "type": "direct_ats",
+    "employer": "Terrascend Corp."
+  },
+  {
+    "name": "gr-deep-fission-inc",
+    "adapter": "greenhouse",
+    "token": "deepfissioninc",
+    "type": "direct_ats",
+    "employer": "Deep Fission, Inc."
+  },
+  {
+    "name": "gr-audioeye-inc",
+    "adapter": "greenhouse",
+    "token": "audioeye",
+    "type": "direct_ats",
+    "employer": "Audioeye Inc"
+  },
+  {
+    "name": "ab-expensify-inc",
+    "adapter": "ashby",
+    "token": "expensify",
+    "type": "direct_ats",
+    "employer": "Expensify, Inc."
+  },
+  {
+    "name": "gr-protara-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "protaratherapeutics",
+    "type": "direct_ats",
+    "employer": "Protara Therapeutics, Inc."
+  },
+  {
+    "name": "gr-akebia-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "akebiatherapeutics",
+    "type": "direct_ats",
+    "employer": "Akebia Therapeutics, Inc."
+  },
+  {
+    "name": "gr-compass-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "compasstherapeutics",
+    "type": "direct_ats",
+    "employer": "Compass Therapeutics, Inc."
+  },
+  {
+    "name": "gr-comstock-inc",
+    "adapter": "greenhouse",
+    "token": "comstock",
+    "type": "direct_ats",
+    "employer": "Comstock Inc."
+  },
+  {
+    "name": "gr-brilliant-earth-group-inc",
+    "adapter": "greenhouse",
+    "token": "brilliantearth",
+    "type": "direct_ats",
+    "employer": "Brilliant Earth Group, Inc."
+  },
+  {
+    "name": "lv-atrium-therapeutics-inc",
+    "adapter": "lever",
+    "token": "atrium-therapeutics",
+    "type": "direct_ats",
+    "employer": "Atrium Therapeutics, Inc."
+  },
+  {
+    "name": "ab-swarmer-inc",
+    "adapter": "ashby",
+    "token": "swarmer",
+    "type": "direct_ats",
+    "employer": "Swarmer, Inc"
+  },
+  {
+    "name": "ab-arq-inc",
+    "adapter": "ashby",
+    "token": "arq",
+    "type": "direct_ats",
+    "employer": "Arq, Inc."
+  },
+  {
+    "name": "gr-bark-inc",
+    "adapter": "greenhouse",
+    "token": "bark",
+    "type": "direct_ats",
+    "employer": "Bark, Inc."
+  },
+  {
+    "name": "gr-outset-medical-inc",
+    "adapter": "greenhouse",
+    "token": "outsetmedical",
+    "type": "direct_ats",
+    "employer": "Outset Medical, Inc."
+  },
+  {
+    "name": "gr-gossamer-bio-inc",
+    "adapter": "greenhouse",
+    "token": "gossamerbio",
+    "type": "direct_ats",
+    "employer": "Gossamer Bio, Inc."
+  },
+  {
+    "name": "ab-vertical-aerospace-ltd",
+    "adapter": "ashby",
+    "token": "vertical-aerospace",
+    "type": "direct_ats",
+    "employer": "Vertical Aerospace Ltd."
+  },
+  {
+    "name": "gr-pliant-therapeutics-inc",
+    "adapter": "greenhouse",
+    "token": "plianttherapeuticsinc",
+    "type": "direct_ats",
+    "employer": "Pliant Therapeutics, Inc."
+  },
+  {
+    "name": "gr-grove-collaborative-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "grovecollaborative",
+    "type": "direct_ats",
+    "employer": "Grove Collaborative Holdings, Inc."
+  },
+  {
+    "name": "gr-airsculpt-technologies-inc",
+    "adapter": "greenhouse",
+    "token": "airsculpt",
+    "type": "direct_ats",
+    "employer": "Airsculpt Technologies, Inc."
+  },
+  {
+    "name": "gr-caribou-biosciences-inc",
+    "adapter": "greenhouse",
+    "token": "cariboubiosciencesinc",
+    "type": "direct_ats",
+    "employer": "Caribou Biosciences, Inc."
+  },
+  {
+    "name": "lv-microvision-inc",
+    "adapter": "lever",
+    "token": "microvision",
+    "type": "direct_ats",
+    "employer": "Microvision, Inc."
+  },
+  {
+    "name": "gr-aeye-inc",
+    "adapter": "greenhouse",
+    "token": "aeyeinc",
+    "type": "direct_ats",
+    "employer": "Aeye, Inc."
+  },
+  {
+    "name": "gr-xos-inc",
+    "adapter": "greenhouse",
+    "token": "xosinc",
+    "type": "direct_ats",
+    "employer": "Xos, Inc."
+  },
+  {
+    "name": "gr-aura-systems-inc",
+    "adapter": "greenhouse",
+    "token": "aura",
+    "type": "direct_ats",
+    "employer": "Aura Systems Inc"
+  },
+  {
+    "name": "gr-townsquare-media-inc",
+    "adapter": "greenhouse",
+    "token": "townsquaremedia",
+    "type": "direct_ats",
+    "employer": "Townsquare Media, Inc."
+  },
+  {
+    "name": "gr-skillsoft-corp",
+    "adapter": "greenhouse",
+    "token": "skillsoft",
+    "type": "direct_ats",
+    "employer": "Skillsoft Corp."
+  },
+  {
+    "name": "ab-paid-inc",
+    "adapter": "ashby",
+    "token": "paid",
+    "type": "direct_ats",
+    "employer": "Paid Inc"
+  },
+  {
+    "name": "lv-system1-inc",
+    "adapter": "lever",
+    "token": "system1",
+    "type": "direct_ats",
+    "employer": "System1, Inc."
+  },
+  {
+    "name": "ab-vantage-corp-singapore",
+    "adapter": "ashby",
+    "token": "vantage",
+    "type": "direct_ats",
+    "employer": "Vantage Corp (Singapore)"
+  },
+  {
+    "name": "gr-fractyl-health-inc",
+    "adapter": "greenhouse",
+    "token": "fractylhealthinc",
+    "type": "direct_ats",
+    "employer": "Fractyl Health, Inc."
+  },
+  {
+    "name": "lv-getty-images-holdings-inc",
+    "adapter": "lever",
+    "token": "gettyimages",
+    "type": "direct_ats",
+    "employer": "Getty Images Holdings, Inc."
+  },
+  {
+    "name": "lv-crypto-co",
+    "adapter": "lever",
+    "token": "crypto",
+    "type": "direct_ats",
+    "employer": "Crypto Co"
+  },
+  {
+    "name": "ab-fathom-holdings-inc",
+    "adapter": "ashby",
+    "token": "fathom",
+    "type": "direct_ats",
+    "employer": "Fathom Holdings Inc."
+  },
+  {
+    "name": "ab-vanta-holdings-inc",
+    "adapter": "ashby",
+    "token": "vanta",
+    "type": "direct_ats",
+    "employer": "Vanta Holdings Inc."
+  },
+  {
+    "name": "ab-glow-holdings-inc",
+    "adapter": "ashby",
+    "token": "glow",
+    "type": "direct_ats",
+    "employer": "Glow Holdings, Inc."
+  },
+  {
+    "name": "lv-cambium-networks-corp",
+    "adapter": "lever",
+    "token": "cambiumnetworks",
+    "type": "direct_ats",
+    "employer": "Cambium Networks Corp"
+  },
+  {
+    "name": "lv-fiscalnote-holdings-inc",
+    "adapter": "lever",
+    "token": "fiscalnote",
+    "type": "direct_ats",
+    "employer": "Fiscalnote Holdings, Inc."
+  },
+  {
+    "name": "lv-entrata-inc",
+    "adapter": "lever",
+    "token": "entrata",
+    "type": "direct_ats",
+    "employer": "Entrata, Inc."
+  },
+  {
+    "name": "lv-kepler-group-ltd",
+    "adapter": "lever",
+    "token": "kepler",
+    "type": "direct_ats",
+    "employer": "Kepler Group Ltd"
+  },
+  {
+    "name": "gr-block-inc",
+    "adapter": "greenhouse",
+    "token": "block",
+    "type": "direct_ats",
+    "employer": "Block, Inc."
+  },
+  {
+    "name": "gr-roku-inc",
+    "adapter": "greenhouse",
+    "token": "roku",
+    "type": "direct_ats",
+    "employer": "Roku, Inc"
+  },
+  {
+    "name": "gr-nice-ltd",
+    "adapter": "greenhouse",
+    "token": "nice",
+    "type": "direct_ats",
+    "employer": "Nice Ltd."
+  },
+  {
+    "name": "gr-life360-inc",
+    "adapter": "greenhouse",
+    "token": "life360",
+    "type": "direct_ats",
+    "employer": "Life360, Inc."
+  },
+  {
+    "name": "gr-droneshield-ltd",
+    "adapter": "greenhouse",
+    "token": "droneshield",
+    "type": "direct_ats",
+    "employer": "Droneshield Ltd"
+  },
+  {
+    "name": "gr-agility-robotics-inc",
+    "adapter": "greenhouse",
+    "token": "agilityrobotics",
+    "type": "direct_ats",
+    "employer": "Agility Robotics, Inc."
+  },
+  {
+    "name": "lv-latch-inc",
+    "adapter": "lever",
+    "token": "latch",
+    "type": "direct_ats",
+    "employer": "Latch, Inc."
+  },
+  {
+    "name": "ab-vertical-aerospace-ltd",
+    "adapter": "ashby",
+    "token": "vertical-aerospace",
+    "type": "direct_ats",
+    "employer": "Vertical Aerospace Ltd."
+  },
+  {
+    "name": "ab-vertical-aerospace-ltd",
+    "adapter": "ashby",
+    "token": "vertical-aerospace",
+    "type": "direct_ats",
+    "employer": "Vertical Aerospace Ltd."
+  },
+  {
+    "name": "ab-vertical-aerospace-ltd",
+    "adapter": "ashby",
+    "token": "vertical-aerospace",
+    "type": "direct_ats",
+    "employer": "Vertical Aerospace Ltd."
+  },
+  {
+    "name": "ab-gen-digital-inc",
+    "adapter": "ashby",
+    "token": "gen-digital",
+    "type": "direct_ats",
+    "employer": "Gen Digital Inc."
+  },
+  {
+    "name": "gr-solid-power-inc",
+    "adapter": "greenhouse",
+    "token": "solidpower",
+    "type": "direct_ats",
+    "employer": "Solid Power, Inc."
+  },
+  {
+    "name": "gr-spire-inc",
+    "adapter": "greenhouse",
+    "token": "spire",
+    "type": "direct_ats",
+    "employer": "Spire Inc"
+  },
+  {
+    "name": "lv-weride-inc",
+    "adapter": "lever",
+    "token": "weride",
+    "type": "direct_ats",
+    "employer": "Weride Inc."
+  },
+  {
+    "name": "gr-digitalbridge-group-inc",
+    "adapter": "greenhouse",
+    "token": "digitalbridge",
+    "type": "direct_ats",
+    "employer": "Digitalbridge Group, Inc."
+  },
+  {
+    "name": "gr-digitalbridge-group-inc",
+    "adapter": "greenhouse",
+    "token": "digitalbridge",
+    "type": "direct_ats",
+    "employer": "Digitalbridge Group, Inc."
+  },
+  {
+    "name": "gr-digitalbridge-group-inc",
+    "adapter": "greenhouse",
+    "token": "digitalbridge",
+    "type": "direct_ats",
+    "employer": "Digitalbridge Group, Inc."
+  },
+  {
+    "name": "lv-cleanspark-inc",
+    "adapter": "lever",
+    "token": "cleanspark",
+    "type": "direct_ats",
+    "employer": "Cleanspark, Inc."
+  },
+  {
+    "name": "ab-brunswick-corp",
+    "adapter": "ashby",
+    "token": "brunswick",
+    "type": "direct_ats",
+    "employer": "Brunswick Corp"
+  },
+  {
+    "name": "gr-revolution-medicines-inc",
+    "adapter": "greenhouse",
+    "token": "revolutionmedicines",
+    "type": "direct_ats",
+    "employer": "Revolution Medicines, Inc."
+  },
+  {
+    "name": "gr-agility-robotics-inc",
+    "adapter": "greenhouse",
+    "token": "agilityrobotics",
+    "type": "direct_ats",
+    "employer": "Agility Robotics, Inc."
+  },
+  {
+    "name": "gr-agility-robotics-inc",
+    "adapter": "greenhouse",
+    "token": "agilityrobotics",
+    "type": "direct_ats",
+    "employer": "Agility Robotics, Inc."
+  },
+  {
+    "name": "gr-agility-robotics-inc",
+    "adapter": "greenhouse",
+    "token": "agilityrobotics",
+    "type": "direct_ats",
+    "employer": "Agility Robotics, Inc."
+  },
+  {
+    "name": "lv-system1-inc",
+    "adapter": "lever",
+    "token": "system1",
+    "type": "direct_ats",
+    "employer": "System1, Inc."
+  },
+  {
+    "name": "gr-box-inc",
+    "adapter": "greenhouse",
+    "token": "boxinc",
+    "type": "direct_ats",
+    "employer": "Box Inc"
+  },
+  {
+    "name": "ab-hudson-pacific-properties-inc",
+    "adapter": "ashby",
+    "token": "hudson-pacific-properties",
+    "type": "direct_ats",
+    "employer": "Hudson Pacific Properties, Inc."
+  },
+  {
+    "name": "gr-arbor-realty-trust-inc",
+    "adapter": "greenhouse",
+    "token": "arborrealtytrust",
+    "type": "direct_ats",
+    "employer": "Arbor Realty Trust Inc"
+  },
+  {
+    "name": "gr-arbor-realty-trust-inc",
+    "adapter": "greenhouse",
+    "token": "arborrealtytrust",
+    "type": "direct_ats",
+    "employer": "Arbor Realty Trust Inc"
+  },
+  {
+    "name": "gr-arbor-realty-trust-inc",
+    "adapter": "greenhouse",
+    "token": "arborrealtytrust",
+    "type": "direct_ats",
+    "employer": "Arbor Realty Trust Inc"
+  },
+  {
+    "name": "lv-skydance-corp",
+    "adapter": "lever",
+    "token": "skydance",
+    "type": "direct_ats",
+    "employer": "Skydance Corp"
+  },
+  {
+    "name": "gr-grove-collaborative-holdings-inc",
+    "adapter": "greenhouse",
+    "token": "grovecollaborative",
+    "type": "direct_ats",
+    "employer": "Grove Collaborative Holdings, Inc."
+  },
+  {
+    "name": "lv-eagle-point-credit-co",
+    "adapter": "lever",
+    "token": "eaglepointcredit",
+    "type": "direct_ats",
+    "employer": "Eagle Point Credit Co"
+  },
+  {
+    "name": "lv-eagle-point-credit-co",
+    "adapter": "lever",
+    "token": "eaglepointcredit",
+    "type": "direct_ats",
+    "employer": "Eagle Point Credit Co"
+  },
+  {
+    "name": "lv-eagle-point-credit-co",
+    "adapter": "lever",
+    "token": "eaglepointcredit",
+    "type": "direct_ats",
+    "employer": "Eagle Point Credit Co"
+  },
+  {
+    "name": "lv-eagle-point-credit-co",
+    "adapter": "lever",
+    "token": "eaglepointcredit",
+    "type": "direct_ats",
+    "employer": "Eagle Point Credit Co"
+  },
+  {
+    "name": "lv-teamshares-inc",
+    "adapter": "lever",
+    "token": "teamshares",
+    "type": "direct_ats",
+    "employer": "Teamshares Inc"
+  },
+  {
+    "name": "gr-factorial-energy-inc",
+    "adapter": "greenhouse",
+    "token": "factorialenergy",
+    "type": "direct_ats",
+    "employer": "Factorial Energy Inc."
+  },
+  {
+    "name": "lv-fiscalnote-holdings-inc",
+    "adapter": "lever",
+    "token": "fiscalnote",
+    "type": "direct_ats",
+    "employer": "Fiscalnote Holdings, Inc."
+  },
+  {
+    "name": "gr-pagaya-technologies-ltd",
+    "adapter": "greenhouse",
+    "token": "pagaya",
+    "type": "direct_ats",
+    "employer": "Pagaya Technologies Ltd."
+  },
+  {
+    "name": "gr-dillard-s-inc",
+    "adapter": "greenhouse",
+    "token": "dillards",
+    "type": "direct_ats",
+    "employer": "Dillard'S, Inc."
+  },
+  {
+    "name": "lv-kyivstar-group-ltd",
+    "adapter": "lever",
+    "token": "kyivstar",
+    "type": "direct_ats",
+    "employer": "Kyivstar Group Ltd."
+  }
+]

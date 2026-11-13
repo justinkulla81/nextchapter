@@ -1,0 +1,7820 @@
+[
+ {
+  "employer": "Apple Inc.",
+  "host": "careers.apple.com",
+  "systems": {}
+ },
+ {
+  "employer": "Nvidia Corp",
+  "host": "careers.nvidia.com",
+  "systems": {}
+ },
+ {
+  "employer": "Microsoft Corp",
+  "host": "careers.microsoft.com",
+  "systems": {}
+ },
+ {
+  "employer": "Walmart Inc.",
+  "host": "careers.walmart.com",
+  "systems": {}
+ },
+ {
+  "employer": "Jpmorgan Chase & Co",
+  "host": "careers.jpmorganchase.com",
+  "systems": {
+   "oracle": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001"
+  }
+ },
+ {
+  "employer": "Micron Technology Inc",
+  "host": "careers.micron.com",
+  "systems": {
+   "workday": "https://micron.wd1.myworkdayjobs.com/en-US/External",
+   "eightfold": "https://www.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Exxonmobil Holdings Corp",
+  "host": "jobs.exxonmobil.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Mastercard Inc",
+  "host": "careers.mastercard.com",
+  "systems": {
+   "workday": "https://mastercard.wd1.myworkdayjobs.com/CorporateCareers",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Abbvie Inc.",
+  "host": "careers.abbvie.com",
+  "systems": {}
+ },
+ {
+  "employer": "Chevron Corp",
+  "host": "careers.chevron.com",
+  "systems": {
+   "eightfold": "https://chevron.eightfold.ai",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Cisco Systems, Inc.",
+  "host": "careers.cisco.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Oracle Corp",
+  "host": "careers.oracle.com",
+  "systems": {}
+ },
+ {
+  "employer": "Merck & Co., Inc.",
+  "host": "jobs.merck.com",
+  "systems": {
+   "workday": "https://msd.wd5.myworkdayjobs.com/SearchJobs",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Home Depot, Inc.",
+  "host": "careers.homedepot.com",
+  "systems": {
+   "workday": "https://homedepot.wd5.myworkdayjobs.com/CareerDepot",
+   "brassring": "https://sjobs.brassring.com",
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Intel Corp",
+  "host": "jobs.intel.com",
+  "systems": {
+   "workday": "https://intel.wd1.myworkdayjobs.com/External"
+  }
+ },
+ {
+  "employer": "Novartis Ag",
+  "host": "careers.novartis.com",
+  "systems": {}
+ },
+ {
+  "employer": "Applied Materials Inc /De",
+  "host": "careers.appliedmaterials.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Astrazeneca Plc",
+  "host": "careers.astrazeneca.com",
+  "systems": {
+   "eightfold": "https://astrazeneca.eightfold.ai",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Shell Plc",
+  "host": "jobs.shell.com",
+  "systems": {
+   "workday": "https://shell.wd3.myworkdayjobs.com/ShellCareers"
+  }
+ },
+ {
+  "employer": "Sap Se",
+  "host": "careers.sap.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Lam Research Corp",
+  "host": "careers.lamresearch.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com",
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Caterpillar Inc",
+  "host": "careers.caterpillar.com",
+  "systems": {}
+ },
+ {
+  "employer": "Palo Alto Networks Inc",
+  "host": "jobs.paloaltonetworks.com",
+  "systems": {
+   "workday": "https://paloaltonetworks.wd5.myworkdayjobs.com/en-US/panwexternalcareers",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Thermo Fisher Scientific Inc.",
+  "host": "careers.thermofisher.com",
+  "systems": {
+   "brassring": "https://sjobs.brassring.com",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Alibaba Group Holding Ltd",
+  "host": "careers.alibaba.com",
+  "systems": {}
+ },
+ {
+  "employer": "Netflix Inc",
+  "host": "jobs.netflix.com",
+  "systems": {}
+ },
+ {
+  "employer": "Toyota Motor Corp/",
+  "host": "careers.toyota.com",
+  "systems": {
+   "workday": "https://toyota.wd503.myworkdayjobs.com/TMNA",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Amgen Inc",
+  "host": "careers.amgen.com",
+  "systems": {
+   "workday": "https://amgen.wd1.myworkdayjobs.com/en-US/Careers",
+   "eightfold": "https://amgen.eightfold.ai",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Mitsubishi Ufj Financial Group Inc",
+  "host": "jobs.mitsubishiufjfinancial.com",
+  "systems": {}
+ },
+ {
+  "employer": "Arista Networks, Inc.",
+  "host": "jobs.aristanetworks.com",
+  "systems": {}
+ },
+ {
+  "employer": "Dell Technologies Inc.",
+  "host": "jobs.dell.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ge Vernova Inc.",
+  "host": "careers.gevernova.com",
+  "systems": {
+   "workday": "https://gevernova.wd5.myworkdayjobs.com/Vernova_ExternalSite"
+  }
+ },
+ {
+  "employer": "American Express Co",
+  "host": "careers.americanexpress.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bhp Group Ltd",
+  "host": "careers.bhp.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Citigroup Inc",
+  "host": "careers.citigroup.com",
+  "systems": {
+   "workday": "https://citi.wd5.myworkdayjobs.com/en-US/2",
+   "eightfold": "https://citi.eightfold.ai",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Arm Holdings Plc /Uk",
+  "host": "careers.arm.com",
+  "systems": {
+   "icims": "https://earlycareers-arm.icims.com",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Mcdonalds Corp",
+  "host": "jobs.mcdonalds.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Kla Corp",
+  "host": "careers.kla.com",
+  "systems": {}
+ },
+ {
+  "employer": "Shopify Inc.",
+  "host": "careers.shopify.com",
+  "systems": {}
+ },
+ {
+  "employer": "Pepsico Inc",
+  "host": "careers.pepsico.com",
+  "systems": {
+   "icims": "https://pepjobs-pepsico.icims.com",
+   "avature": "https://sandboxpepsi.avature.net",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Totalenergies Se",
+  "host": "careers.totalenergies.com",
+  "systems": {
+   "avature": "https://totalenergies.avature.net"
+  }
+ },
+ {
+  "employer": "Abbott Laboratories",
+  "host": "jobs.abbott.com",
+  "systems": {
+   "workday": "https://abbott.wd5.myworkdayjobs.com/abbottcareers",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Verizon Communications Inc",
+  "host": "careers.verizon.com",
+  "systems": {}
+ },
+ {
+  "employer": "Blackrock, Inc.",
+  "host": "careers.blackrock.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Deere & Co",
+  "host": "careers.deere.com",
+  "systems": {}
+ },
+ {
+  "employer": "Qualcomm Inc/De",
+  "host": "careers.qualcomm.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Novo Nordisk A S",
+  "host": "careers.novonordisk.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Nextera Energy Inc",
+  "host": "jobs.nexteraenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com",
+   "avature": "https://nee.avature.net"
+  }
+ },
+ {
+  "employer": "Salesforce, Inc.",
+  "host": "careers.salesforce.com",
+  "systems": {}
+ },
+ {
+  "employer": "Pfizer Inc",
+  "host": "careers.pfizer.com",
+  "systems": {
+   "workday": "https://pfizer.wd1.myworkdayjobs.com/PfizerCareers"
+  }
+ },
+ {
+  "employer": "Danaher Corp /De/",
+  "host": "jobs.danaher.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Rio Tinto Ltd",
+  "host": "jobs.riotinto.com",
+  "systems": {
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Intuitive Surgical Inc",
+  "host": "careers.intuitive.com",
+  "systems": {}
+ },
+ {
+  "employer": "Conocophillips",
+  "host": "careers.conocophillips.com",
+  "systems": {
+   "workday": "https://conocophillips.wd1.myworkdayjobs.com/External"
+  }
+ },
+ {
+  "employer": "Sumitomo Mitsui Financial Group, Inc.",
+  "host": "careers.sumitomomitsuifinancial.com",
+  "systems": {}
+ },
+ {
+  "employer": "Tjx Companies Inc /De/",
+  "host": "jobs.tjx.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Accenture Plc",
+  "host": "careers.accenture.com",
+  "systems": {
+   "workday": "https://accenture.wd103.myworkdayjobs.com/AccentureCareers"
+  }
+ },
+ {
+  "employer": "Ubs Group Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Uber Technologies, Inc",
+  "host": "jobs.uber.com",
+  "systems": {
+   "oracle": "https://iaziqy.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/UberCareers"
+  }
+ },
+ {
+  "employer": "Unilever Plc",
+  "host": "careers.unilever.com",
+  "systems": {
+   "workday": "https://unilever.wd3.myworkdayjobs.com/Unilever_Experienced_Professionals",
+   "radancy_mcloud": "tmpwebeng"
+  }
+ },
+ {
+  "employer": "Rio Tinto Plc",
+  "host": "jobs.riotinto.com",
+  "systems": {
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Eaton Corp Plc",
+  "host": "jobs.eaton.com",
+  "systems": {
+   "eightfold": "https://eaton.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Chubb Ltd",
+  "host": "careers.chubb.com",
+  "systems": {}
+ },
+ {
+  "employer": "Boeing Co",
+  "host": "jobs.boeing.com",
+  "systems": {
+   "workday": "https://boeing.wd1.myworkdayjobs.com/en-US/EXTERNAL_CAREERS",
+   "avature": "https://boeing.avature.net",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "S&P Global Inc.",
+  "host": "careers.spglobal.com",
+  "systems": {
+   "workday": "https://spgi.wd5.myworkdayjobs.com/SPGI_Careers",
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Hitachi Ltd",
+  "host": "careers.hitachi.com",
+  "systems": {
+   "workday": "https://hitachi.wd1.myworkdayjobs.com/hitachi"
+  }
+ },
+ {
+  "employer": "Lowes Companies Inc",
+  "host": "jobs.lowes.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Newmont Corp /De/",
+  "host": "jobs.newmont.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Sandisk Corp",
+  "host": "careers.sandisk.com",
+  "systems": {}
+ },
+ {
+  "employer": "Altria Group, Inc.",
+  "host": "careers.altria.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Starbucks Corp",
+  "host": "careers.starbucks.com",
+  "systems": {
+   "eightfold": "https://starbucks.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Stryker Corp",
+  "host": "careers.stryker.com",
+  "systems": {
+   "workday": "https://stryker.wd1.myworkdayjobs.com/StrykerCareers"
+  }
+ },
+ {
+  "employer": "Mckesson Corp",
+  "host": "careers.mckesson.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Booking Holdings Inc.",
+  "host": "careers.booking.com",
+  "systems": {
+   "icims": "https://internal-workingatbooking.icims.com"
+  }
+ },
+ {
+  "employer": "Seagate Technology Holdings Plc",
+  "host": "careers.seagate.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sanofi",
+  "host": "jobs.sanofi.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Airbnb, Inc.",
+  "host": "careers.airbnb.com",
+  "systems": {}
+ },
+ {
+  "employer": "Western Digital Corp",
+  "host": "jobs.westerndigital.com",
+  "systems": {}
+ },
+ {
+  "employer": "Marriott International Inc /Md/",
+  "host": "careers.marriott.com",
+  "systems": {
+   "oracle": "https://ejwl.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX"
+  }
+ },
+ {
+  "employer": "Cvs Health Corp",
+  "host": "jobs.cvshealth.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Servicenow, Inc.",
+  "host": "careers.servicenow.com",
+  "systems": {}
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Equinix Inc",
+  "host": "careers.equinix.com",
+  "systems": {}
+ },
+ {
+  "employer": "Gsk Plc",
+  "host": "jobs.gsk.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Snowflake Inc.",
+  "host": "careers.snowflake.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Agnico Eagle Mines Ltd",
+  "host": "careers.agnicoeagle.com",
+  "systems": {
+   "taleo": "https://agnicoeagle.taleo.net/careersection/2"
+  }
+ },
+ {
+  "employer": "Corning Inc /Ny",
+  "host": "careers.corning.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Marsh & Mclennan Companies, Inc.",
+  "host": "careers.marshmclennan.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Phillips 66",
+  "host": "careers.phillips66.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Constellation Energy Corp",
+  "host": "jobs.constellationenergy.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Regeneron Pharmaceuticals, Inc.",
+  "host": "careers.regeneron.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ing Groep Nv",
+  "host": "careers.ing.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Trane Technologies Plc",
+  "host": "careers.tranetechnologies.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Adobe Inc.",
+  "host": "careers.adobe.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Intuit Inc.",
+  "host": "careers.intuit.com",
+  "systems": {
+   "radancy_mcloud": "tmpwebeng"
+  }
+ },
+ {
+  "employer": "Elevance Health, Inc.",
+  "host": "careers.elevancehealth.com",
+  "systems": {
+   "workday": "https://elevancehealth.wd1.myworkdayjobs.com/ANT"
+  }
+ },
+ {
+  "employer": "Fortinet, Inc.",
+  "host": "jobs.fortinet.com",
+  "systems": {
+   "oracle": "https://edel.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_2001"
+  }
+ },
+ {
+  "employer": "Synopsys Inc",
+  "host": "careers.synopsys.com",
+  "systems": {
+   "avature": "https://synopsys.avature.net",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Monster Beverage Corp",
+  "host": "careers.monster.com",
+  "systems": {}
+ },
+ {
+  "employer": "Cintas Corp",
+  "host": "careers.cintas.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "American Tower Corp /Ma/",
+  "host": "careers.americantower.com",
+  "systems": {}
+ },
+ {
+  "employer": "Moodys Corp /De/",
+  "host": "careers.moodys.com",
+  "systems": {
+   "successfactors": "https://career8.successfactors.com",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Sherwin Williams Co",
+  "host": "careers.sherwin.com",
+  "systems": {
+   "oracle": "https://ejhp.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_2"
+  }
+ },
+ {
+  "employer": "Ecolab Inc.",
+  "host": "jobs.ecolab.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Comcast Corp",
+  "host": "jobs.comcast.com",
+  "systems": {
+   "workday": "https://comcast.wd115.myworkdayjobs.com/en-US/Comcast_Careers",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Johnson Controls International Plc",
+  "host": "jobs.johnsoncontrols.com",
+  "systems": {
+   "workday": "https://jci.wd5.myworkdayjobs.com/en-US/JCI"
+  }
+ },
+ {
+  "employer": "National Grid Plc",
+  "host": "jobs.nationalgrid.com",
+  "systems": {}
+ },
+ {
+  "employer": "Hilton Worldwide Holdings Inc.",
+  "host": "jobs.hilton.com",
+  "systems": {
+   "oracle": "https://efet.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1"
+  }
+ },
+ {
+  "employer": "Travelers Companies, Inc.",
+  "host": "careers.travelers.com",
+  "systems": {
+   "workday": "https://travelers.wd5.myworkdayjobs.com/External",
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Enterprise Products Partners L.P.",
+  "host": "careers.enterpriseproducts.com",
+  "systems": {
+   "taleo": "https://epco.taleo.net/careersection/it"
+  }
+ },
+ {
+  "employer": "Eni Spa",
+  "host": "careers.eni.com",
+  "systems": {}
+ },
+ {
+  "employer": "Colgate Palmolive Co",
+  "host": "jobs.colgate.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Cigna Group",
+  "host": "jobs.cigna.com",
+  "systems": {
+   "workday": "https://cigna.wd5.myworkdayjobs.com/cignacareers",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Mercadolibre Inc",
+  "host": "jobs.mercadolibre.com",
+  "systems": {}
+ },
+ {
+  "employer": "Northrop Grumman Corp /De/",
+  "host": "jobs.northropgrumman.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Robinhood Markets, Inc.",
+  "host": "careers.robinhood.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ross Stores, Inc.",
+  "host": "careers.rossstores.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com",
+   "avature": "https://ross.avature.net"
+  }
+ },
+ {
+  "employer": "Eog Resources Inc",
+  "host": "careers.eogresources.com",
+  "systems": {}
+ },
+ {
+  "employer": "Target Corp",
+  "host": "jobs.target.com",
+  "systems": {
+   "workday": "https://target.wd5.myworkdayjobs.com/targetcareers"
+  }
+ },
+ {
+  "employer": "Republic Services, Inc.",
+  "host": "jobs.republicservices.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Bae Systems Plc /Fi/",
+  "host": "jobs.baesystems.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Fedex Corp",
+  "host": "careers.fedex.com",
+  "systems": {}
+ },
+ {
+  "employer": "Slb Limited/Nv",
+  "host": "careers.slb.com",
+  "systems": {}
+ },
+ {
+  "employer": "Honeywell International Inc",
+  "host": "careers.honeywell.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "O Reilly Automotive Inc",
+  "host": "careers.oreilly.com",
+  "systems": {}
+ },
+ {
+  "employer": "Infineon Technologies Ag",
+  "host": "jobs.infineon.com",
+  "systems": {
+   "eightfold": "https://infineon.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Aon Plc",
+  "host": "jobs.aon.com",
+  "systems": {
+   "icims": "https://cookie-policy-scripts.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "United Rentals, Inc.",
+  "host": "careers.unitedrentals.com",
+  "systems": {
+   "workday": "https://ur.wd1.myworkdayjobs.com/en-US/URcareers"
+  }
+ },
+ {
+  "employer": "Barrick Mining Corp",
+  "host": "jobs.barrick.com",
+  "systems": {}
+ },
+ {
+  "employer": "Kinder Morgan, Inc.",
+  "host": "careers.kindermorgan.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Csl Ltd",
+  "host": "jobs.csl.com",
+  "systems": {}
+ },
+ {
+  "employer": "Takeda Pharmaceutical Co Ltd",
+  "host": "jobs.takeda.com",
+  "systems": {
+   "avature": "https://takeda.avature.net",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Cencora, Inc.",
+  "host": "careers.cencora.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Crh Public Ltd Co",
+  "host": "jobs.crh.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Boston Scientific Corp",
+  "host": "jobs.bostonscientific.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com",
+   "eightfold": "https://bostonscientific.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Cummins Inc",
+  "host": "jobs.cummins.com",
+  "systems": {
+   "oracle": "https://fa-espx-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1"
+  }
+ },
+ {
+  "employer": "Cardinal Health Inc",
+  "host": "jobs.cardinalhealth.com",
+  "systems": {}
+ },
+ {
+  "employer": "Fastenal Co",
+  "host": "careers.fastenal.com",
+  "systems": {}
+ },
+ {
+  "employer": "Aflac Inc",
+  "host": "careers.aflac.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Truist Financial Corp",
+  "host": "careers.truist.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "London Stock Exchange Group Plc",
+  "host": "careers.londonstock.com",
+  "systems": {}
+ },
+ {
+  "employer": "Argenx Se",
+  "host": "careers.argenx.com",
+  "systems": {
+   "workday": "https://argenx.wd3.myworkdayjobs.com/en-US/External_Careers"
+  }
+ },
+ {
+  "employer": "Edwards Lifesciences Corp",
+  "host": "jobs.edwards.com",
+  "systems": {
+   "workday": "https://edwards.wd5.myworkdayjobs.com/EdwardsCareers"
+  }
+ },
+ {
+  "employer": "Dominion Energy, Inc",
+  "host": "careers.dominionenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Nike, Inc.",
+  "host": "careers.nike.com",
+  "systems": {
+   "workday": "https://nike.wd1.myworkdayjobs.com/nke2",
+   "avature": "https://nikeats.avature.net"
+  }
+ },
+ {
+  "employer": "Garmin Ltd",
+  "host": "careers.garmin.com",
+  "systems": {}
+ },
+ {
+  "employer": "E.On Se",
+  "host": "jobs.eon.com",
+  "systems": {
+   "oracle": "https://fa-eylc-saasfaeuraprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+   "successfactors": "https://career5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Nucor Corp",
+  "host": "jobs.nucor.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Idexx Laboratories Inc /De",
+  "host": "careers.idexx.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Paccar Inc",
+  "host": "jobs.paccar.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Occidental Petroleum Corp /De/",
+  "host": "careers.occidentalpetroleum.com",
+  "systems": {}
+ },
+ {
+  "employer": "Autodesk, Inc.",
+  "host": "jobs.autodesk.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Ametek Inc/",
+  "host": "jobs.ametek.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Entergy Corp /De/",
+  "host": "jobs.entergy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ebay Inc",
+  "host": "careers.ebay.com",
+  "systems": {}
+ },
+ {
+  "employer": "Honeywell Aerospace Inc.",
+  "host": "careers.honeywell.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Autozone Inc",
+  "host": "careers.autozone.com",
+  "systems": {}
+ },
+ {
+  "employer": "Xcel Energy Inc",
+  "host": "jobs.xcelenergy.com",
+  "systems": {
+   "workday": "https://xcelenergy.wd1.myworkdayjobs.com/External"
+  }
+ },
+ {
+  "employer": "Humana Inc",
+  "host": "careers.humana.com",
+  "systems": {
+   "phenom": "phenompeople"
+  }
+ },
+ {
+  "employer": "Agilent Technologies, Inc.",
+  "host": "careers.agilent.com",
+  "systems": {
+   "workday": "https://agilent.wd5.myworkdayjobs.com/Agilent_Student_Careers"
+  }
+ },
+ {
+  "employer": "L3Harris Technologies, Inc. /De/",
+  "host": "careers.l3harris.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Anglogold Ashanti Plc",
+  "host": "careers.anglogoldashanti.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Keurig Dr Pepper Inc.",
+  "host": "careers.keurigdrpepper.com",
+  "systems": {
+   "eightfold": "https://kdrp.eightfold.ai",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Ford Motor Co",
+  "host": "careers.ford.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Veeva Systems Inc",
+  "host": "careers.veeva.com",
+  "systems": {}
+ },
+ {
+  "employer": "Keysight Technologies, Inc.",
+  "host": "careers.keysight.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Reckitt Benckiser Group Plc",
+  "host": "careers.reckitt.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Waste Connections, Inc.",
+  "host": "careers.wasteconnections.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Thomson Reuters Corp /Can/",
+  "host": "careers.thomsonreuters.com",
+  "systems": {
+   "workday": "https://thomsonreuters.wd5.myworkdayjobs.com/External_Career_Site"
+  }
+ },
+ {
+  "employer": "Msci Inc.",
+  "host": "careers.msci.com",
+  "systems": {
+   "icims": "https://ukcareers-msci.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "State Street Corp",
+  "host": "careers.statestreet.com",
+  "systems": {
+   "workday": "https://statestreet.wd1.myworkdayjobs.com/en-US/Global",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Nokia Corp",
+  "host": "careers.nokia.com",
+  "systems": {}
+ },
+ {
+  "employer": "Honda Motor Co Ltd",
+  "host": "careers.honda.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Vistra Corp.",
+  "host": "careers.vistra.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu",
+   "phenom": "phenompeople"
+  }
+ },
+ {
+  "employer": "Carrier Global Corp",
+  "host": "jobs.carrier.com",
+  "systems": {
+   "workday": "https://carrier.wd5.myworkdayjobs.com/jobs",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Consolidated Edison Inc",
+  "host": "jobs.consolidatededison.com",
+  "systems": {}
+ },
+ {
+  "employer": "Rockwell Automation, Inc",
+  "host": "jobs.rockwellautomation.com",
+  "systems": {
+   "workday": "https://rockwellautomation.wd1.myworkdayjobs.com/External_Rockwell_Automation"
+  }
+ },
+ {
+  "employer": "Revolution Medicines, Inc.",
+  "host": "jobs.revolution.com",
+  "systems": {
+   "workday": "https://tempus.wd5.myworkdayjobs.com/Tempus_Careers",
+   "greenhouse": "job-boards.greenhouse.io/kasa",
+   "lever": "jobs.lever.co/mylaurelhealth"
+  }
+ },
+ {
+  "employer": "Yum Brands Inc",
+  "host": "jobs.yum.com",
+  "systems": {}
+ },
+ {
+  "employer": "Dollarama Inc./Adr",
+  "host": "jobs.dollarama.com",
+  "systems": {
+   "successfactors": "https://hcm17.sapsf.com"
+  }
+ },
+ {
+  "employer": "Carnival Corp Ltd.",
+  "host": "jobs.carnival.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Paychex Inc",
+  "host": "careers.paychex.com",
+  "systems": {
+   "icims": "https://internal-paychex.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Kroger Co",
+  "host": "jobs.kroger.com",
+  "systems": {}
+ },
+ {
+  "employer": "United Airlines Holdings, Inc.",
+  "host": "careers.united.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Haleon Plc",
+  "host": "careers.haleon.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Sysco Corp",
+  "host": "careers.sysco.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Teradyne, Inc",
+  "host": "jobs.teradyne.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Jd.Com, Inc.",
+  "host": "careers.jdcom.com",
+  "systems": {}
+ },
+ {
+  "employer": "Biogen Inc.",
+  "host": "jobs.biogen.com",
+  "systems": {
+   "workday": "https://biibhr.wd3.myworkdayjobs.com/external"
+  }
+ },
+ {
+  "employer": "Ge Healthcare Technologies Inc.",
+  "host": "careers.gehealthcare.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Vulcan Materials Co",
+  "host": "careers.vulcanmaterials.com",
+  "systems": {}
+ },
+ {
+  "employer": "Astera Labs, Inc.",
+  "host": "careers.astera.com",
+  "systems": {}
+ },
+ {
+  "employer": "United Microelectronics Corp",
+  "host": "careers.united.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Gold Fields Ltd",
+  "host": "careers.goldfields.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Vodafone Group Public Ltd Co",
+  "host": "careers.vodafone.com",
+  "systems": {}
+ },
+ {
+  "employer": "Restaurant Brands International Inc.",
+  "host": "careers.restaurant.com",
+  "systems": {}
+ },
+ {
+  "employer": "Extra Space Storage Inc.",
+  "host": "careers.extraspace.com",
+  "systems": {}
+ },
+ {
+  "employer": "Netapp, Inc.",
+  "host": "careers.netapp.com",
+  "systems": {
+   "successfactors": "https://career4.successfactors.com",
+   "eightfold": "https://netapp.eightfold.ai",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Nutrien Ltd.",
+  "host": "jobs.nutrien.com",
+  "systems": {
+   "successfactors": "https://hcm17.sapsf.com"
+  }
+ },
+ {
+  "employer": "Centene Corp",
+  "host": "jobs.centene.com",
+  "systems": {
+   "workday": "https://centene.wd5.myworkdayjobs.com/centene_external"
+  }
+ },
+ {
+  "employer": "Sunbelt Rentals Holdings, Inc.",
+  "host": "careers.sunbeltrentals.com",
+  "systems": {
+   "workday": "https://sunbeltrentals.wd1.myworkdayjobs.com/sbcareers"
+  }
+ },
+ {
+  "employer": "Fiserv Inc",
+  "host": "careers.fiserv.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Iron Mountain Inc",
+  "host": "jobs.ironmountain.com",
+  "systems": {}
+ },
+ {
+  "employer": "Fresenius Se & Co. Kgaa",
+  "host": "careers.fresenius.com",
+  "systems": {}
+ },
+ {
+  "employer": "Zoetis Inc.",
+  "host": "careers.zoetis.com",
+  "systems": {
+   "workday": "https://zoetis.wd5.myworkdayjobs.com/zoetis"
+  }
+ },
+ {
+  "employer": "Sharkninja, Inc.",
+  "host": "careers.sharkninja.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Steel Dynamics Inc",
+  "host": "careers.steeldynamics.com",
+  "systems": {
+   "icims": "https://careers-steeldynamics.icims.com"
+  }
+ },
+ {
+  "employer": "Northern Trust Corp",
+  "host": "careers.northerntrust.com",
+  "systems": {
+   "workday": "https://ntrs.wd1.myworkdayjobs.com/northerntrust"
+  }
+ },
+ {
+  "employer": "Twilio Inc",
+  "host": "jobs.twilio.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Ryanair Holdings Plc",
+  "host": "careers.ryanair.com",
+  "systems": {
+   "successfactors": "https://career2.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Teck Resources Ltd",
+  "host": "jobs.teck.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Okta, Inc.",
+  "host": "careers.okta.com",
+  "systems": {}
+ },
+ {
+  "employer": "Labcorp Holdings Inc.",
+  "host": "careers.labcorp.com",
+  "systems": {
+   "workday": "https://labcorp.wd1.myworkdayjobs.com/External"
+  }
+ },
+ {
+  "employer": "Dollar General Corp",
+  "host": "careers.dollargeneral.com",
+  "systems": {
+   "oracle": "https://ibxwjb.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1"
+  }
+ },
+ {
+  "employer": "Dexcom Inc",
+  "host": "careers.dexcom.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com",
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Tenaris Sa",
+  "host": "jobs.tenaris.com",
+  "systems": {}
+ },
+ {
+  "employer": "Echostar Corp",
+  "host": "jobs.echostar.com",
+  "systems": {
+   "oracle": "https://efgz-dev2.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Pg&E Corp",
+  "host": "careers.pge.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com",
+   "radancy_mcloud": "tmpwebeng"
+  }
+ },
+ {
+  "employer": "Kraft Heinz Co",
+  "host": "careers.kraftheinz.com",
+  "systems": {}
+ },
+ {
+  "employer": "Dte Energy Co",
+  "host": "careers.dteenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Flex Ltd.",
+  "host": "jobs.flex.com",
+  "systems": {
+   "workday": "https://flextronics.wd1.myworkdayjobs.com/en-US/Careers"
+  }
+ },
+ {
+  "employer": "Veralto Corp",
+  "host": "jobs.veralto.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Quest Diagnostics Inc",
+  "host": "careers.questdiagnostics.com",
+  "systems": {
+   "oracle": "https://hdox.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Ulta Beauty, Inc.",
+  "host": "careers.ulta.com",
+  "systems": {
+   "icims": "https://cdcmcareers-ulta.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Dover Corp",
+  "host": "careers.dover.com",
+  "systems": {}
+ },
+ {
+  "employer": "Pembina Pipeline Corp",
+  "host": "careers.pembina.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Nomura Holdings Inc",
+  "host": "careers.nomura.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Ppg Industries Inc",
+  "host": "careers.ppg.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Trip.Com Group Ltd",
+  "host": "careers.trip.com",
+  "systems": {}
+ },
+ {
+  "employer": "Celestica Inc",
+  "host": "careers.celestica.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Bending Spoons S.P.A.",
+  "host": "jobs.bendingspoons.com",
+  "systems": {}
+ },
+ {
+  "employer": "Kinross Gold Corp",
+  "host": "jobs.kinross.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Centerpoint Energy Inc",
+  "host": "careers.centerpointenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Tapestry, Inc.",
+  "host": "careers.tapestry.com",
+  "systems": {
+   "workday": "https://tapestry.wd108.myworkdayjobs.com/Tapestry_Careers"
+  }
+ },
+ {
+  "employer": "Mongodb, Inc.",
+  "host": "careers.mongodb.com",
+  "systems": {}
+ },
+ {
+  "employer": "Qnity Electronics, Inc.",
+  "host": "careers.qnityelectronics.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Church & Dwight Co Inc /De/",
+  "host": "careers.churchdwight.com",
+  "systems": {
+   "workday": "https://churchdwight.wd1.myworkdayjobs.com/chdcareers"
+  }
+ },
+ {
+  "employer": "Halliburton Co",
+  "host": "careers.halliburton.com",
+  "systems": {
+   "successfactors": "https://career4.successfactors.com",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Eversource Energy",
+  "host": "jobs.eversource.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Global Payments Inc",
+  "host": "careers.global.com",
+  "systems": {
+   "workday": "https://thisisglobal.wd3.myworkdayjobs.com/Global"
+  }
+ },
+ {
+  "employer": "Jabil Inc",
+  "host": "careers.jabil.com",
+  "systems": {
+   "workday": "https://jabil.wd5.myworkdayjobs.com/en-US/Jabil_Careers"
+  }
+ },
+ {
+  "employer": "Dollar Tree, Inc.",
+  "host": "careers.dollartree.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "First Citizens Bancshares Inc /De/",
+  "host": "jobs.firstcitizens.com",
+  "systems": {
+   "icims": "https://firstcitizens.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Steris Plc",
+  "host": "careers.steris.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Insmed Inc",
+  "host": "careers.insmed.com",
+  "systems": {
+   "workday": "https://insmed.wd504.myworkdayjobs.com/en-US/EXTERNAL"
+  }
+ },
+ {
+  "employer": "United Therapeutics Corp",
+  "host": "careers.united.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Technipfmc Plc",
+  "host": "careers.technipfmc.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Regions Financial Corp",
+  "host": "careers.regions.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Incyte Corp",
+  "host": "careers.incyte.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Principal Financial Group Inc",
+  "host": "careers.principal.com",
+  "systems": {
+   "icims": "https://internalspanish-principal.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Lpl Financial Holdings Inc.",
+  "host": "careers.lpl.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Us Foods Holding Corp.",
+  "host": "careers.usfoods.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Hubbell Inc",
+  "host": "careers.hubbell.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Unity Software Inc.",
+  "host": "careers.unity.com",
+  "systems": {}
+ },
+ {
+  "employer": "Amrize Ltd",
+  "host": "careers.amrize.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Southwest Airlines Co",
+  "host": "careers.southwest.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Best Buy Co Inc",
+  "host": "careers.bestbuy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Equifax Inc",
+  "host": "careers.equifax.com",
+  "systems": {}
+ },
+ {
+  "employer": "Dow Inc.",
+  "host": "jobs.dow.com",
+  "systems": {}
+ },
+ {
+  "employer": "Wolters Kluwer N V /Fi",
+  "host": "careers.wolterskluwer.com",
+  "systems": {
+   "workday": "https://wk.wd3.myworkdayjobs.com/External"
+  }
+ },
+ {
+  "employer": "Lennar Corp /New/",
+  "host": "careers.lennar.com",
+  "systems": {}
+ },
+ {
+  "employer": "Biontech Se",
+  "host": "jobs.biontech.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Xpo, Inc.",
+  "host": "jobs.xpo.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Entegris Inc",
+  "host": "careers.entegris.com",
+  "systems": {
+   "workday": "https://entegris.wd1.myworkdayjobs.com/EntegrisCareers"
+  }
+ },
+ {
+  "employer": "Reliance, Inc.",
+  "host": "careers.reliance.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Wipro Ltd",
+  "host": "careers.wipro.com",
+  "systems": {
+   "successfactors": "https://rmkcdn.successfactors.com"
+  }
+ },
+ {
+  "employer": "Alnylam Pharmaceuticals, Inc.",
+  "host": "careers.alnylam.com",
+  "systems": {}
+ },
+ {
+  "employer": "Zimmer Biomet Holdings, Inc.",
+  "host": "careers.zimmerbiomet.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Rivian Automotive, Inc. / De",
+  "host": "careers.rivian.com",
+  "systems": {
+   "icims": "https://us-careers-rivian.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Dupont De Nemours, Inc.",
+  "host": "careers.dupont.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Nrg Energy, Inc.",
+  "host": "careers.nrgenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Fortive Corp",
+  "host": "careers.fortive.com",
+  "systems": {
+   "eightfold": "https://fortive.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Expand Energy Corp",
+  "host": "jobs.expandenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Telenor Asa",
+  "host": "careers.telenor.com",
+  "systems": {}
+ },
+ {
+  "employer": "Snap-On Inc",
+  "host": "careers.snap.com",
+  "systems": {}
+ },
+ {
+  "employer": "Fedex Freight Holding Company, Inc.",
+  "host": "careers.fedexfreight.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Reddit, Inc.",
+  "host": "careers.reddit.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bunge Global Sa",
+  "host": "jobs.bunge.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Super Micro Computer, Inc.",
+  "host": "jobs.supermicro.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Medpace Holdings, Inc.",
+  "host": "careers.medpace.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "General Mills Inc",
+  "host": "careers.generalmills.com",
+  "systems": {
+   "workday": "https://genmills.wd1.myworkdayjobs.com/GMI_External_Careers"
+  }
+ },
+ {
+  "employer": "Rollins Inc",
+  "host": "careers.rollins.com",
+  "systems": {
+   "icims": "https://bughouse-rollins.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Franklin Templeton Inc",
+  "host": "careers.franklintempleton.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Td Synnex Corp",
+  "host": "careers.tdsynnex.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Rb Global Inc.",
+  "host": "careers.rbglobal.com",
+  "systems": {
+   "oracle": "https://fa-exew-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1"
+  }
+ },
+ {
+  "employer": "East West Bancorp Inc",
+  "host": "careers.eastwest.com",
+  "systems": {}
+ },
+ {
+  "employer": "Rogers Communications Inc",
+  "host": "jobs.rogers.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Revvity, Inc.",
+  "host": "jobs.revvity.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "James Hardie Industries Plc",
+  "host": "careers.jameshardie.com",
+  "systems": {
+   "ukg": "https://recruiting.ultipro.com/CPG1000CPGIN/JobBoard/253dc3cc-aea8-42ff-86ba-cdc25366d931",
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Curtiss Wright Corp",
+  "host": "careers.curtisswright.com",
+  "systems": {
+   "workday": "https://curtisswright.wd1.myworkdayjobs.com/CW_External_Career_Site"
+  }
+ },
+ {
+  "employer": "Ball Corp",
+  "host": "careers.ball.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Circle Internet Group, Inc.",
+  "host": "careers.circle.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Cf Industries Holdings, Inc.",
+  "host": "careers.cfindustries.com",
+  "systems": {}
+ },
+ {
+  "employer": "Cgi Inc",
+  "host": "jobs.cgi.com",
+  "systems": {}
+ },
+ {
+  "employer": "Hasbro, Inc.",
+  "host": "jobs.hasbro.com",
+  "systems": {
+   "greenhouse": "job-boards.greenhouse.io/hasbro"
+  }
+ },
+ {
+  "employer": "Western Midstream Partners, Lp",
+  "host": "careers.westernmidstream.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Hf Sinclair Corp",
+  "host": "careers.hfsinclair.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Yum China Holdings, Inc.",
+  "host": "jobs.yum.com",
+  "systems": {}
+ },
+ {
+  "employer": "Masco Corp /De/",
+  "host": "jobs.masco.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Nutanix, Inc.",
+  "host": "careers.nutanix.com",
+  "systems": {}
+ },
+ {
+  "employer": "Allegion Plc",
+  "host": "careers.allegion.com",
+  "systems": {
+   "workday": "https://allegion.wd5.myworkdayjobs.com/careers"
+  }
+ },
+ {
+  "employer": "Magna International Inc",
+  "host": "jobs.magna.com",
+  "systems": {}
+ },
+ {
+  "employer": "Cemex Sab De Cv",
+  "host": "jobs.cemex.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Invitation Homes Inc.",
+  "host": "careers.invitationhomes.com",
+  "systems": {
+   "workday": "https://invitationhomes.wd503.myworkdayjobs.com/en-US/INVH"
+  }
+ },
+ {
+  "employer": "Rbc Bearings Inc",
+  "host": "jobs.rbc.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Emera Inc",
+  "host": "careers.emera.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Lincoln Electric Holdings Inc",
+  "host": "jobs.lincolnelectric.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Assurant, Inc.",
+  "host": "jobs.assurant.com",
+  "systems": {
+   "workday": "https://assurant.wd1.myworkdayjobs.com/Assurant_Careers"
+  }
+ },
+ {
+  "employer": "Zebra Technologies Corp",
+  "host": "careers.zebra.com",
+  "systems": {
+   "workday": "https://zebra.wd501.myworkdayjobs.com/Zebra_careers"
+  }
+ },
+ {
+  "employer": "Clean Harbors Inc",
+  "host": "careers.cleanharbors.com",
+  "systems": {
+   "oracle": "https://epyc.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CLH"
+  }
+ },
+ {
+  "employer": "Daiwa Securities Group Inc.",
+  "host": "jobs.daiwasecurities.com",
+  "systems": {}
+ },
+ {
+  "employer": "Mastec Inc",
+  "host": "careers.mastec.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Sun Communities Inc",
+  "host": "careers.suncommunities.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Didi Global Inc.",
+  "host": "careers.didiglobal.com",
+  "systems": {}
+ },
+ {
+  "employer": "Qxo, Inc.",
+  "host": "jobs.qxo.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Toll Brothers, Inc.",
+  "host": "careers.toll.com",
+  "systems": {}
+ },
+ {
+  "employer": "Textron Inc",
+  "host": "careers.textron.com",
+  "systems": {
+   "taleo": "https://textron.taleo.net/careersection/textron"
+  }
+ },
+ {
+  "employer": "Docusign, Inc.",
+  "host": "careers.docusign.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Aramark",
+  "host": "careers.aramark.com",
+  "systems": {}
+ },
+ {
+  "employer": "Avery Dennison Corp",
+  "host": "jobs.averydennison.com",
+  "systems": {}
+ },
+ {
+  "employer": "Caci International Inc /De/",
+  "host": "careers.caci.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Telus Corp",
+  "host": "careers.telus.com",
+  "systems": {
+   "workday": "https://lifeworks.wd3.myworkdayjobs.com/en-US/External",
+   "successfactors": "https://hcm17.sapsf.com"
+  }
+ },
+ {
+  "employer": "Equinox Gold Corp.",
+  "host": "careers.equinoxgold.com",
+  "systems": {
+   "successfactors": "https://hcm47.sapsf.com"
+  }
+ },
+ {
+  "employer": "Five Below, Inc",
+  "host": "careers.fivebelow.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Bentley Systems Inc",
+  "host": "jobs.bentley.com",
+  "systems": {
+   "workday": "https://bentleysystems.wd5.myworkdayjobs.com/bentley"
+  }
+ },
+ {
+  "employer": "Bj'S Wholesale Club Holdings, Inc.",
+  "host": "careers.bjs.com",
+  "systems": {
+   "workday": "https://bjswholesaleclub.wd1.myworkdayjobs.com/BJsCareers"
+  }
+ },
+ {
+  "employer": "Encompass Health Corp",
+  "host": "careers.encompasshealth.com",
+  "systems": {
+   "avature": "https://encompasshealth.avature.net"
+  }
+ },
+ {
+  "employer": "Brightspring Health Services, Inc.",
+  "host": "careers.brightspringhealth.com",
+  "systems": {
+   "icims": "https://login.icims.com"
+  }
+ },
+ {
+  "employer": "Baxter International Inc",
+  "host": "jobs.baxter.com",
+  "systems": {
+   "workday": "https://baxter.wd1.myworkdayjobs.com/en-US/baxter",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Godaddy Inc.",
+  "host": "jobs.godaddy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Jfrog Ltd",
+  "host": "careers.jfrog.com",
+  "systems": {}
+ },
+ {
+  "employer": "Mccormick & Co Inc",
+  "host": "careers.mccormick.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Dynatrace, Inc.",
+  "host": "careers.dynatrace.com",
+  "systems": {}
+ },
+ {
+  "employer": "Invesco Ltd.",
+  "host": "careers.invesco.com",
+  "systems": {
+   "workday": "https://invesco.wd1.myworkdayjobs.com/IVZ",
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Trimble Inc.",
+  "host": "careers.trimble.com",
+  "systems": {}
+ },
+ {
+  "employer": "Texas Roadhouse, Inc.",
+  "host": "careers.texasroadhouse.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Sk Telecom Co Ltd",
+  "host": "careers.sktelecom.com",
+  "systems": {
+   "taleo": "https://tas-sktelecom.taleo.net/careersection/ex"
+  }
+ },
+ {
+  "employer": "Unum Group",
+  "host": "careers.unum.com",
+  "systems": {
+   "workday": "https://unum.wd1.myworkdayjobs.com/en-US/External"
+  }
+ },
+ {
+  "employer": "Akzo Nobel Nv",
+  "host": "careers.akzonobel.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Regal Rexnord Corp",
+  "host": "careers.regalrexnord.com",
+  "systems": {
+   "workday": "https://regalrexnord.wd1.myworkdayjobs.com/en-US/Careers"
+  }
+ },
+ {
+  "employer": "Huntington Ingalls Industries, Inc.",
+  "host": "careers.huntingtoningalls.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Gartner Inc",
+  "host": "jobs.gartner.com",
+  "systems": {}
+ },
+ {
+  "employer": "Jack Henry & Associates Inc",
+  "host": "careers.jackhenry.com",
+  "systems": {
+   "avature": "https://jackhenry.avature.net",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Fresenius Medical Care Ag",
+  "host": "jobs.freseniusmedicalcare.com",
+  "systems": {
+   "workday": "https://freseniusmedicalcare.wd3.myworkdayjobs.com/fme"
+  }
+ },
+ {
+  "employer": "Davita Inc.",
+  "host": "careers.davita.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Ally Financial Inc.",
+  "host": "jobs.ally.com",
+  "systems": {
+   "workday": "https://ally.wd1.myworkdayjobs.com/Ally"
+  }
+ },
+ {
+  "employer": "Pentair Plc",
+  "host": "careers.pentair.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Generac Holdings Inc.",
+  "host": "careers.generac.com",
+  "systems": {}
+ },
+ {
+  "employer": "Yara International Asa",
+  "host": "jobs.yara.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Sirius Xm Holdings Inc.",
+  "host": "careers.siriusxm.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Biomarin Pharmaceutical Inc",
+  "host": "careers.biomarin.com",
+  "systems": {}
+ },
+ {
+  "employer": "U-Haul Holding Co /Nv/",
+  "host": "jobs.uhaul.com",
+  "systems": {
+   "workday": "https://uhaul.wd1.myworkdayjobs.com/fr-CA/UhaulJobs"
+  }
+ },
+ {
+  "employer": "Dominos Pizza Inc",
+  "host": "careers.dominos.com",
+  "systems": {}
+ },
+ {
+  "employer": "Flowserve Corp",
+  "host": "careers.flowserve.com",
+  "systems": {
+   "workday": "https://flowserve.wd1.myworkdayjobs.com/applied"
+  }
+ },
+ {
+  "employer": "Pinterest, Inc.",
+  "host": "careers.pinterest.com",
+  "systems": {}
+ },
+ {
+  "employer": "Moog Inc.",
+  "host": "careers.moog.com",
+  "systems": {
+   "workday": "https://moog.wd5.myworkdayjobs.com/MOOG_External_Career_Site"
+  }
+ },
+ {
+  "employer": "Ryder System Inc",
+  "host": "jobs.ryder.com",
+  "systems": {}
+ },
+ {
+  "employer": "Life Time Group Holdings, Inc.",
+  "host": "careers.lifetime.com",
+  "systems": {}
+ },
+ {
+  "employer": "Molina Healthcare, Inc.",
+  "host": "careers.molinahealthcare.com",
+  "systems": {
+   "oracle": "https://hckd.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Oge Energy Corp.",
+  "host": "jobs.oge.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Wintrust Financial Corp",
+  "host": "careers.wintrust.com",
+  "systems": {
+   "workday": "https://wintrust.wd1.myworkdayjobs.com/Search"
+  }
+ },
+ {
+  "employer": "Booz Allen Hamilton Holding Corp",
+  "host": "careers.boozallen.com",
+  "systems": {
+   "workday": "https://bah.wd1.myworkdayjobs.com/BAH_Jobs"
+  }
+ },
+ {
+  "employer": "Umb Financial Corp",
+  "host": "careers.umb.com",
+  "systems": {
+   "workday": "https://umb.wd1.myworkdayjobs.com/UMBExternal"
+  }
+ },
+ {
+  "employer": "Southstate Bank Corp",
+  "host": "careers.southstatebank.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Viasat Inc",
+  "host": "careers.viasat.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Hudbay Minerals Inc.",
+  "host": "careers.hudbayminerals.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com",
+   "adp": "workforcenow.adp.com"
+  }
+ },
+ {
+  "employer": "Donaldson Co Inc",
+  "host": "careers.donaldson.com",
+  "systems": {
+   "workday": "https://donaldson.wd115.myworkdayjobs.com/DonaldsonCareers"
+  }
+ },
+ {
+  "employer": "Cubesmart",
+  "host": "careers.cubesmart.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Globus Medical Inc",
+  "host": "careers.globus.com",
+  "systems": {}
+ },
+ {
+  "employer": "Dillard'S, Inc.",
+  "host": "careers.dillards.com",
+  "systems": {}
+ },
+ {
+  "employer": "Hubspot Inc",
+  "host": "jobs.hubspot.com",
+  "systems": {}
+ },
+ {
+  "employer": "Caretrust Reit, Inc.",
+  "host": "careers.caretrust.com",
+  "systems": {}
+ },
+ {
+  "employer": "Popular, Inc.",
+  "host": "jobs.popular.com",
+  "systems": {
+   "successfactors": "https://performancemanager4na.successfactors.com"
+  }
+ },
+ {
+  "employer": "Owens Corning",
+  "host": "careers.owenscorning.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Eldorado Gold Corp /Fi",
+  "host": "careers.eldoradogold.com",
+  "systems": {
+   "successfactors": "https://hcm17.sapsf.com"
+  }
+ },
+ {
+  "employer": "Arrow Electronics, Inc.",
+  "host": "careers.arrow.com",
+  "systems": {
+   "workday": "https://arrow.wd1.myworkdayjobs.com/en-US/AC",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Zions Bancorporation, National Association /Ut/",
+  "host": "careers.zionsbancorporation.com",
+  "systems": {}
+ },
+ {
+  "employer": "Leonardo Drs, Inc.",
+  "host": "careers.leonardodrs.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Digitalocean Holdings, Inc.",
+  "host": "careers.digitalocean.com",
+  "systems": {}
+ },
+ {
+  "employer": "Victoria'S Secret & Co.",
+  "host": "careers.victoriassecret.com",
+  "systems": {
+   "taleo": "https://vsco.taleo.net/careersection/vss_in",
+   "avature": "https://vs.avature.net",
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Draftkings Inc.",
+  "host": "careers.draftkings.com",
+  "systems": {}
+ },
+ {
+  "employer": "Saia Inc",
+  "host": "jobs.saia.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Chewy, Inc.",
+  "host": "careers.chewy.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Twist Bioscience Corp",
+  "host": "careers.twist.com",
+  "systems": {}
+ },
+ {
+  "employer": "Murphy Usa Inc.",
+  "host": "jobs.murphyusa.com",
+  "systems": {}
+ },
+ {
+  "employer": "Wynn Resorts Ltd",
+  "host": "jobs.wynnresorts.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sasol Ltd",
+  "host": "jobs.sasol.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Cae Inc",
+  "host": "careers.cae.com",
+  "systems": {
+   "workday": "https://cae.wd3.myworkdayjobs.com/en-US/career"
+  }
+ },
+ {
+  "employer": "Rambus Inc",
+  "host": "careers.rambus.com",
+  "systems": {
+   "icims": "https://careers-rambus.icims.com"
+  }
+ },
+ {
+  "employer": "Primo Brands Corp",
+  "host": "careers.primobrands.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Snap Inc",
+  "host": "careers.snap.com",
+  "systems": {}
+ },
+ {
+  "employer": "Stantec Inc",
+  "host": "careers.stantec.com",
+  "systems": {}
+ },
+ {
+  "employer": "10X Genomics, Inc.",
+  "host": "careers.10xgenomics.com",
+  "systems": {}
+ },
+ {
+  "employer": "Hanover Insurance Group, Inc.",
+  "host": "jobs.hanover.com",
+  "systems": {}
+ },
+ {
+  "employer": "Mgm Resorts International",
+  "host": "careers.mgmresorts.com",
+  "systems": {}
+ },
+ {
+  "employer": "Corteva, Inc.",
+  "host": "careers.corteva.com",
+  "systems": {
+   "eightfold": "https://corteva.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Corcept Therapeutics Inc",
+  "host": "careers.corcept.com",
+  "systems": {}
+ },
+ {
+  "employer": "Descartes Systems Group Inc",
+  "host": "careers.descartes.com",
+  "systems": {}
+ },
+ {
+  "employer": "Epam Systems, Inc.",
+  "host": "careers.epam.com",
+  "systems": {}
+ },
+ {
+  "employer": "Servicetitan, Inc.",
+  "host": "careers.servicetitan.com",
+  "systems": {
+   "workday": "https://servicetitan.wd1.myworkdayjobs.com/ServiceTitan"
+  }
+ },
+ {
+  "employer": "First Majestic Silver Corp",
+  "host": "careers.firstmajestic.com",
+  "systems": {
+   "successfactors": "https://hcm19.sapsf.com"
+  }
+ },
+ {
+  "employer": "Gap Inc",
+  "host": "careers.gap.com",
+  "systems": {}
+ },
+ {
+  "employer": "Gitlab Inc.",
+  "host": "jobs.gitlab.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ralliant Corp",
+  "host": "careers.ralliant.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Lamb Weston Holdings, Inc.",
+  "host": "careers.lambweston.com",
+  "systems": {
+   "workday": "https://lambweston.wd1.myworkdayjobs.com/Lamb_External",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Alkermes Plc.",
+  "host": "careers.alkermes.com",
+  "systems": {}
+ },
+ {
+  "employer": "Carmax Inc",
+  "host": "careers.carmax.com",
+  "systems": {
+   "workday": "https://carmax.wd1.myworkdayjobs.com/External"
+  }
+ },
+ {
+  "employer": "Etsy Inc",
+  "host": "careers.etsy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Spx Technologies, Inc.",
+  "host": "careers.spx.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Eastman Chemical Co",
+  "host": "careers.eastman.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "B2Gold Corp",
+  "host": "careers.b2gold.com",
+  "systems": {
+   "successfactors": "https://hcm17.sapsf.com"
+  }
+ },
+ {
+  "employer": "Timken Co",
+  "host": "careers.timken.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Bausch & Lomb Corp",
+  "host": "careers.bauschlomb.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Amneal Pharmaceuticals, Inc.",
+  "host": "careers.amneal.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Crocs, Inc.",
+  "host": "careers.crocs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Molson Coors Beverage Co",
+  "host": "careers.molsoncoors.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Conagra Brands Inc.",
+  "host": "careers.conagrabrands.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Duolingo, Inc.",
+  "host": "careers.duolingo.com",
+  "systems": {}
+ },
+ {
+  "employer": "Dropbox, Inc.",
+  "host": "careers.dropbox.com",
+  "systems": {}
+ },
+ {
+  "employer": "Adt Inc.",
+  "host": "jobs.adt.com",
+  "systems": {
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Genpact Ltd",
+  "host": "careers.genpact.com",
+  "systems": {
+   "workday": "https://genpact.wd108.myworkdayjobs.com/External_Careers"
+  }
+ },
+ {
+  "employer": "Bachem Holding Ag/Adr",
+  "host": "careers.bachem.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "National Fuel Gas Co",
+  "host": "careers.nationalfuel.com",
+  "systems": {}
+ },
+ {
+  "employer": "Cleveland-Cliffs Inc.",
+  "host": "careers.clevelandcliffs.com",
+  "systems": {
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Easyjet Plc",
+  "host": "careers.easyjet.com",
+  "systems": {
+   "taleo": "https://easyjet.taleo.net/careersection/2"
+  }
+ },
+ {
+  "employer": "Commvault Systems Inc",
+  "host": "careers.commvault.com",
+  "systems": {}
+ },
+ {
+  "employer": "Gildan Activewear Inc.",
+  "host": "careers.gildan.com",
+  "systems": {
+   "icims": "https://uscareers-hrl-gildan.icims.com"
+  }
+ },
+ {
+  "employer": "Churchill Downs Inc",
+  "host": "jobs.churchilldowns.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Uipath, Inc.",
+  "host": "careers.uipath.com",
+  "systems": {
+   "ashby": "jobs.ashbyhq.com/uipath"
+  }
+ },
+ {
+  "employer": "Southwest Gas Holdings, Inc.",
+  "host": "careers.southwest.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Formfactor Inc",
+  "host": "jobs.formfactor.com",
+  "systems": {
+   "workday": "https://formfactor.wd1.myworkdayjobs.com/FFI-Careers"
+  }
+ },
+ {
+  "employer": "Msa Safety Inc",
+  "host": "careers.msasafety.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Terex Corp",
+  "host": "jobs.terex.com",
+  "systems": {
+   "workday": "https://terex.wd1.myworkdayjobs.com/terexcareers"
+  }
+ },
+ {
+  "employer": "Gatx Corp",
+  "host": "jobs.gatx.com",
+  "systems": {}
+ },
+ {
+  "employer": "Fluor Corp",
+  "host": "careers.fluor.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com",
+   "eightfold": "https://fluor.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Gates Industrial Corp Ltd.",
+  "host": "careers.gates.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Oceanagold Corp",
+  "host": "careers.oceanagold.com",
+  "systems": {}
+ },
+ {
+  "employer": "Fnb Corp/Pa/",
+  "host": "careers.fnbpa.com",
+  "systems": {}
+ },
+ {
+  "employer": "Txnm Energy Inc",
+  "host": "jobs.txnmenergy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Gxo Logistics, Inc.",
+  "host": "jobs.gxo.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "H&R Block Inc",
+  "host": "careers.hrblock.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Middleby Corp",
+  "host": "careers.middleby.com",
+  "systems": {}
+ },
+ {
+  "employer": "Radnet, Inc.",
+  "host": "careers.radnet.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Mobility Global Inc.",
+  "host": "careers.mobilityglobal.com",
+  "systems": {}
+ },
+ {
+  "employer": "Aci Worldwide, Inc.",
+  "host": "careers.aciworldwide.com",
+  "systems": {
+   "oracle": "https://ebwg.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX"
+  }
+ },
+ {
+  "employer": "Teleflex Inc",
+  "host": "careers.teleflex.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Copa Holdings, S.A.",
+  "host": "careers.copas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Dolby Laboratories, Inc.",
+  "host": "careers.dolby.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Hagerty, Inc.",
+  "host": "careers.hagerty.com",
+  "systems": {
+   "workday": "https://hagerty.wd5.myworkdayjobs.com/hagerty"
+  }
+ },
+ {
+  "employer": "Ingram Micro Holding Corp",
+  "host": "careers.ingrammicro.com",
+  "systems": {
+   "workday": "https://ingrammicro.wd5.myworkdayjobs.com/en-US/IngramMicro"
+  }
+ },
+ {
+  "employer": "Open Text Corp",
+  "host": "careers.opentext.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Albertsons Companies, Inc.",
+  "host": "jobs.albertsonscompanies.com",
+  "systems": {
+   "oracle": "https://eofd.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001"
+  }
+ },
+ {
+  "employer": "Wyndham Hotels & Resorts, Inc.",
+  "host": "careers.wyndhamhotels.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Autonation, Inc.",
+  "host": "careers.autonation.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Selective Insurance Group Inc",
+  "host": "jobs.selective.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Klaviyo, Inc.",
+  "host": "careers.klaviyo.com",
+  "systems": {}
+ },
+ {
+  "employer": "Trex Co Inc",
+  "host": "careers.trex.com",
+  "systems": {
+   "ukg": "https://recruiting.ultipro.com/TRE1006TRCI/JobBoard/699366e7-23c6-46d9-ae0d-4f649323dabf"
+  }
+ },
+ {
+  "employer": "Enpro Inc.",
+  "host": "careers.enpro.com",
+  "systems": {}
+ },
+ {
+  "employer": "Eagle Materials Inc",
+  "host": "careers.eaglematerials.com",
+  "systems": {}
+ },
+ {
+  "employer": "Vontier Corp",
+  "host": "careers.vontier.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Ormat Technologies, Inc.",
+  "host": "careers.ormat.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Vail Resorts Inc",
+  "host": "jobs.vailresorts.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Box Inc",
+  "host": "careers.box.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bilibili Inc.",
+  "host": "jobs.bilibili.com",
+  "systems": {}
+ },
+ {
+  "employer": "Octave Intelligence Plc",
+  "host": "careers.octave.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Tal Education Group",
+  "host": "jobs.tal.com",
+  "systems": {}
+ },
+ {
+  "employer": "Varonis Systems Inc",
+  "host": "careers.varonis.com",
+  "systems": {}
+ },
+ {
+  "employer": "Waystar Holding Corp.",
+  "host": "careers.waystar.com",
+  "systems": {}
+ },
+ {
+  "employer": "Modine Manufacturing Co",
+  "host": "careers.modine.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Lifestance Health Group, Inc.",
+  "host": "careers.lifestance.com",
+  "systems": {}
+ },
+ {
+  "employer": "Solv Energy, Inc.",
+  "host": "careers.solvenergy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Valaris Ltd",
+  "host": "jobs.valaris.com",
+  "systems": {}
+ },
+ {
+  "employer": "Enersys",
+  "host": "jobs.enersys.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Plexus Corp",
+  "host": "jobs.plexus.com",
+  "systems": {
+   "eightfold": "https://plexus.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Parsons Corp",
+  "host": "jobs.parsons.com",
+  "systems": {
+   "phenom": "phenompeople"
+  }
+ },
+ {
+  "employer": "Credit Acceptance Corp",
+  "host": "careers.creditacceptance.com",
+  "systems": {
+   "workday": "https://creditacceptance.wd5.myworkdayjobs.com/Credit_Acceptance"
+  }
+ },
+ {
+  "employer": "Blackberry Ltd",
+  "host": "careers.blackberry.com",
+  "systems": {}
+ },
+ {
+  "employer": "Lear Corp",
+  "host": "jobs.lear.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Choice Hotels International Inc /De",
+  "host": "careers.choicehotels.com",
+  "systems": {
+   "workday": "https://choicehotels.wd5.myworkdayjobs.com/HotelExternal"
+  }
+ },
+ {
+  "employer": "Rush Enterprises Inc Tx",
+  "host": "careers.rushenterprises.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Sensient Technologies Corp",
+  "host": "careers.sensient.com",
+  "systems": {
+   "oracle": "https://eour.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Howard Hughes Holdings Inc.",
+  "host": "careers.howardhughes.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "One Gas, Inc.",
+  "host": "jobs.onegas.com",
+  "systems": {
+   "oracle": "https://ibedqy.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/ONEGas"
+  }
+ },
+ {
+  "employer": "Livanova Plc",
+  "host": "careers.livanova.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Remitly Global, Inc.",
+  "host": "careers.remitly.com",
+  "systems": {
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Applied Digital Corp.",
+  "host": "jobs.applied.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Sonoco Products Co",
+  "host": "careers.sonoco.com",
+  "systems": {
+   "workday": "https://sonoco.wd1.myworkdayjobs.com/en-US/CorporateCareers"
+  }
+ },
+ {
+  "employer": "Mobileye Global Inc.",
+  "host": "careers.mobileye.com",
+  "systems": {}
+ },
+ {
+  "employer": "Dutch Bros Inc.",
+  "host": "careers.dutchbros.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Colliers International Group Inc.",
+  "host": "careers.colliers.com",
+  "systems": {}
+ },
+ {
+  "employer": "Kbr, Inc.",
+  "host": "careers.kbr.com",
+  "systems": {}
+ },
+ {
+  "employer": "Federated Hermes, Inc.",
+  "host": "careers.federatedhermes.com",
+  "systems": {}
+ },
+ {
+  "employer": "Insight Enterprises Inc",
+  "host": "careers.insight.com",
+  "systems": {
+   "eightfold": "https://insight.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Brp Inc.",
+  "host": "careers.brp.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Versant Media Group, Inc.",
+  "host": "careers.versantmedia.com",
+  "systems": {
+   "smartrecruiters": "jobs.smartrecruiters.com/my-applications"
+  }
+ },
+ {
+  "employer": "Alaska Air Group, Inc.",
+  "host": "careers.alaskaair.com",
+  "systems": {
+   "icims": "https://employee-alaskaair.icims.com"
+  }
+ },
+ {
+  "employer": "Applied Optoelectronics, Inc.",
+  "host": "jobs.applied.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Radian Group Inc",
+  "host": "careers.radian.com",
+  "systems": {
+   "workday": "https://compass.wd501.myworkdayjobs.com/Radian_External_Career_Site",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Tanger Inc.",
+  "host": "careers.tanger.com",
+  "systems": {
+   "workday": "https://tanger.wd108.myworkdayjobs.com/Tanger_External_CareerSite"
+  }
+ },
+ {
+  "employer": "Cinemark Holdings, Inc.",
+  "host": "careers.cinemark.com",
+  "systems": {
+   "workday": "https://cinemark.wd1.myworkdayjobs.com/cinemark"
+  }
+ },
+ {
+  "employer": "Rxo, Inc.",
+  "host": "jobs.rxo.com",
+  "systems": {
+   "workday": "https://rxo.wd501.myworkdayjobs.com/rxojobs"
+  }
+ },
+ {
+  "employer": "Valvoline Inc",
+  "host": "jobs.valvoline.com",
+  "systems": {}
+ },
+ {
+  "employer": "Tenable Holdings, Inc.",
+  "host": "careers.tenable.com",
+  "systems": {
+   "greenhouse": "boards.greenhouse.io/tenableinc"
+  }
+ },
+ {
+  "employer": "Meritage Homes Corp",
+  "host": "careers.meritagehomes.com",
+  "systems": {
+   "icims": "https://careers-meritagehomes.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Mattel Inc /De/",
+  "host": "careers.mattel.com",
+  "systems": {
+   "radancy_mcloud": "tmpwebeng"
+  }
+ },
+ {
+  "employer": "Kodiak Gas Services, Inc.",
+  "host": "careers.kodiakgas.com",
+  "systems": {
+   "workday": "https://kodiakgas.wd12.myworkdayjobs.com/en-US/KodiakGasCareers"
+  }
+ },
+ {
+  "employer": "Atmus Filtration Technologies Inc.",
+  "host": "careers.atmusfiltrationtechnologies.com",
+  "systems": {}
+ },
+ {
+  "employer": "D-Wave Quantum Inc.",
+  "host": "careers.dwavequantum.com",
+  "systems": {}
+ },
+ {
+  "employer": "Itron, Inc.",
+  "host": "careers.itron.com",
+  "systems": {
+   "workday": "https://itron.wd5.myworkdayjobs.com/Early_Careers"
+  }
+ },
+ {
+  "employer": "Amdocs Ltd",
+  "host": "jobs.amdocs.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Lumen Technologies, Inc.",
+  "host": "careers.lumen.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Robert Half Inc.",
+  "host": "careers.roberthalf.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Transalta Corp",
+  "host": "jobs.transalta.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Pvh Corp. /De/",
+  "host": "careers.pvh.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Unifirst Corp",
+  "host": "jobs.unifirst.com",
+  "systems": {
+   "taleo": "https://unifirst.taleo.net/careersection/iam",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Lionsgate Studios Corp.",
+  "host": "careers.lionsgatestudios.com",
+  "systems": {}
+ },
+ {
+  "employer": "Belden Inc.",
+  "host": "careers.belden.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Magnite, Inc.",
+  "host": "careers.magnite.com",
+  "systems": {
+   "workday": "https://osv-rubicon.wd5.myworkdayjobs.com/MagniteCareers"
+  }
+ },
+ {
+  "employer": "Mdu Resources Group Inc",
+  "host": "jobs.mdu.com",
+  "systems": {
+   "ukg": "https://recruiting2.ultipro.com/MDU1000MDUR/JobBoard/34f4650a-2ede-45d5-b029-51238e91cb36"
+  }
+ },
+ {
+  "employer": "Boot Barn Holdings, Inc.",
+  "host": "careers.bootbarn.com",
+  "systems": {}
+ },
+ {
+  "employer": "Dorman Products, Inc.",
+  "host": "jobs.dormanproducts.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Gentex Corp",
+  "host": "careers.gentex.com",
+  "systems": {
+   "workday": "https://gentex.wd5.myworkdayjobs.com/Gentex"
+  }
+ },
+ {
+  "employer": "Vishay Intertechnology Inc",
+  "host": "jobs.vishay.com",
+  "systems": {}
+ },
+ {
+  "employer": "Marriott Vacations Worldwide Corp",
+  "host": "careers.marriottvacationsworldwide.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Diodes Inc /Del/",
+  "host": "careers.diodes.com",
+  "systems": {
+   "adp": "workforcenow.adp.com"
+  }
+ },
+ {
+  "employer": "Garrett Motion Inc.",
+  "host": "jobs.garrettmotion.com",
+  "systems": {}
+ },
+ {
+  "employer": "Warby Parker Inc.",
+  "host": "jobs.warbyparker.com",
+  "systems": {}
+ },
+ {
+  "employer": "Delek Us Holdings, Inc.",
+  "host": "jobs.delekus.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Willscot Holdings Corp",
+  "host": "careers.willscot.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Bread Financial Holdings, Inc.",
+  "host": "careers.breadfinancial.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Covista Inc.",
+  "host": "careers.covista.com",
+  "systems": {}
+ },
+ {
+  "employer": "Coty Inc.",
+  "host": "careers.coty.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Archer Aviation Inc.",
+  "host": "careers.archeraviation.com",
+  "systems": {}
+ },
+ {
+  "employer": "Kyndryl Holdings, Inc.",
+  "host": "careers.kyndryl.com",
+  "systems": {
+   "workday": "https://kyndryl.wd5.myworkdayjobs.com/KyndrylEarlyCareers"
+  }
+ },
+ {
+  "employer": "Vita Coco Company, Inc.",
+  "host": "careers.vitacoco.com",
+  "systems": {
+   "greenhouse": "job-boards.greenhouse.io/thevitacococompany"
+  }
+ },
+ {
+  "employer": "Twenty One Capital, Inc.",
+  "host": "careers.twentyone.com",
+  "systems": {}
+ },
+ {
+  "employer": "Appian Corp",
+  "host": "careers.appian.com",
+  "systems": {}
+ },
+ {
+  "employer": "Organon & Co.",
+  "host": "jobs.organon.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Kadant Inc",
+  "host": "careers.kadant.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Aumovio Se",
+  "host": "jobs.aumovio.com",
+  "systems": {}
+ },
+ {
+  "employer": "Oceaneering International Inc",
+  "host": "careers.oceaneering.com",
+  "systems": {}
+ },
+ {
+  "employer": "Cushman & Wakefield Ltd.",
+  "host": "careers.cushmanwakefield.com",
+  "systems": {
+   "workday": "https://cw.wd1.myworkdayjobs.com/External"
+  }
+ },
+ {
+  "employer": "Monday.Com Ltd.",
+  "host": "jobs.monday.com",
+  "systems": {}
+ },
+ {
+  "employer": "Knife River Corp",
+  "host": "jobs.kniferiver.com",
+  "systems": {}
+ },
+ {
+  "employer": "Par Pacific Holdings, Inc.",
+  "host": "careers.parpacific.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Shake Shack Inc.",
+  "host": "careers.shakeshack.com",
+  "systems": {}
+ },
+ {
+  "employer": "Freshpet, Inc.",
+  "host": "jobs.freshpet.com",
+  "systems": {}
+ },
+ {
+  "employer": "Genworth Financial Inc",
+  "host": "jobs.genworth.com",
+  "systems": {}
+ },
+ {
+  "employer": "Skywest Inc",
+  "host": "jobs.skywest.com",
+  "systems": {
+   "icims": "https://aspire-skywest.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Cal-Maine Foods Inc",
+  "host": "careers.calmainefoods.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Steven Madden, Ltd.",
+  "host": "careers.steven.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bausch Health Companies Inc.",
+  "host": "careers.bauschhealth.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Freshworks Inc.",
+  "host": "careers.freshworks.com",
+  "systems": {
+   "smartrecruiters": "jobs.smartrecruiters.com/Freshworks"
+  }
+ },
+ {
+  "employer": "Cargurus, Inc.",
+  "host": "careers.cargurus.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Resideo Technologies, Inc.",
+  "host": "careers.resideo.com",
+  "systems": {
+   "oracle": "https://ehtl.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX"
+  }
+ },
+ {
+  "employer": "Constellium Se",
+  "host": "jobs.constellium.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Ipg Photonics Corp",
+  "host": "jobs.ipgphotonics.com",
+  "systems": {}
+ },
+ {
+  "employer": "Teradata Corp /De/",
+  "host": "careers.teradata.com",
+  "systems": {}
+ },
+ {
+  "employer": "Wix.Com Ltd.",
+  "host": "careers.wix.com",
+  "systems": {}
+ },
+ {
+  "employer": "Trinet Group, Inc.",
+  "host": "jobs.trinet.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Aveanna Healthcare Holdings, Inc.",
+  "host": "jobs.aveanna.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sps Commerce Inc",
+  "host": "jobs.spscommerce.com",
+  "systems": {
+   "workday": "https://spscommerce.wd108.myworkdayjobs.com/en-US/SPS",
+   "icims": "https://careers-spscommerce.icims.com"
+  }
+ },
+ {
+  "employer": "Adma Biologics, Inc.",
+  "host": "careers.admabiologics.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Quantumscape Corp",
+  "host": "careers.quantumscape.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Kohls Corp",
+  "host": "careers.kohls.com",
+  "systems": {
+   "workday": "https://kohls.wd504.myworkdayjobs.com/kohlscareers",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Advance Auto Parts Inc",
+  "host": "jobs.advanceautoparts.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Flywire Corp",
+  "host": "careers.flywire.com",
+  "systems": {
+   "workday": "https://flywire.wd108.myworkdayjobs.com/flywirecareers"
+  }
+ },
+ {
+  "employer": "Strive, Inc.",
+  "host": "careers.strive.com",
+  "systems": {}
+ },
+ {
+  "employer": "Aecon Group Inc.",
+  "host": "careers.aecon.com",
+  "systems": {}
+ },
+ {
+  "employer": "Imax Corp",
+  "host": "careers.imax.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Seadrill Ltd",
+  "host": "careers.seadrill.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bel Fuse Inc /Nj",
+  "host": "careers.belfuse.com",
+  "systems": {}
+ },
+ {
+  "employer": "Digi International Inc",
+  "host": "careers.digi.com",
+  "systems": {}
+ },
+ {
+  "employer": "Corecivic, Inc.",
+  "host": "jobs.corecivic.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Ardent Health, Inc.",
+  "host": "jobs.ardenthealth.com",
+  "systems": {
+   "workday": "https://ensemblehp.wd5.myworkdayjobs.com/en-US/EnsembleHealthPartnersCareers",
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Brighthouse Financial, Inc.",
+  "host": "jobs.brighthousefinancial.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Newell Brands Inc.",
+  "host": "careers.newellbrands.com",
+  "systems": {
+   "successfactors": "https://career4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Bright Horizons Family Solutions Inc.",
+  "host": "careers.brighthorizons.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Samsonite International Sa/Adr",
+  "host": "careers.samsonite.com",
+  "systems": {}
+ },
+ {
+  "employer": "Enerflex Ltd.",
+  "host": "jobs.enerflex.com",
+  "systems": {
+   "successfactors": "https://hcm17.sapsf.com"
+  }
+ },
+ {
+  "employer": "Eplus Inc",
+  "host": "careers.eplus.com",
+  "systems": {
+   "greenhouse": "job-boards.greenhouse.io/eplusinc"
+  }
+ },
+ {
+  "employer": "Blackbaud Inc",
+  "host": "careers.blackbaud.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Celldex Therapeutics, Inc.",
+  "host": "careers.celldex.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Veeco Instruments Inc",
+  "host": "careers.veeco.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Payoneer Global Inc.",
+  "host": "careers.payoneer.com",
+  "systems": {}
+ },
+ {
+  "employer": "Chagee Holdings Ltd.",
+  "host": "jobs.chagee.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sunrun Inc.",
+  "host": "careers.sunrun.com",
+  "systems": {
+   "workday": "https://sunrun.wd5.myworkdayjobs.com/en-US/Sunrun_Careers",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Springer Nature Ag & Co. Kgaa/Adr",
+  "host": "careers.springernature.com",
+  "systems": {
+   "workday": "https://springernature.wd3.myworkdayjobs.com/SpringerNatureCareers"
+  }
+ },
+ {
+  "employer": "Encore Capital Group Inc",
+  "host": "careers.encorecapital.com",
+  "systems": {
+   "workday": "https://encore.wd1.myworkdayjobs.com/en-US/externalnew",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Penguin Solutions, Inc.",
+  "host": "careers.penguinsolutions.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Dxc Technology Co",
+  "host": "careers.dxc.com",
+  "systems": {
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Under Armour, Inc.",
+  "host": "careers.underarmour.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Perrigo Co Plc",
+  "host": "careers.perrigo.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Rogers Corp",
+  "host": "jobs.rogers.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Dana Inc",
+  "host": "jobs.dana.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Custom Truck One Source, Inc.",
+  "host": "careers.customtruck.com",
+  "systems": {}
+ },
+ {
+  "employer": "Stubhub Holdings, Inc.",
+  "host": "careers.stubhub.com",
+  "systems": {
+   "greenhouse": "job-boards.greenhouse.io/stubhubinc"
+  }
+ },
+ {
+  "employer": "Upstart Holdings, Inc.",
+  "host": "careers.upstart.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ducommun Inc /De/",
+  "host": "careers.ducommun.com",
+  "systems": {}
+ },
+ {
+  "employer": "Boston Beer Co Inc",
+  "host": "careers.bostonbeer.com",
+  "systems": {}
+ },
+ {
+  "employer": "Fortrea Holdings Inc.",
+  "host": "careers.fortrea.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Western Union Co",
+  "host": "careers.westernunion.com",
+  "systems": {
+   "workday": "https://westernunion.wd5.myworkdayjobs.com/WesternUnionJobs",
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Arhaus, Inc.",
+  "host": "careers.arhaus.com",
+  "systems": {
+   "ukg": "https://recruiting.ultipro.com/ARH1000ARH/JobBoard/e5051b40-e91f-fa81-f0bf-ed2e9361f690"
+  }
+ },
+ {
+  "employer": "Whirlpool Corp /De/",
+  "host": "jobs.whirlpool.com",
+  "systems": {
+   "successfactors": "https://dmscdn.successfactors.com",
+   "eightfold": "https://whirlpool.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Blue Bird Corp",
+  "host": "careers.blue.com",
+  "systems": {}
+ },
+ {
+  "employer": "Prestige Consumer Healthcare Inc.",
+  "host": "careers.prestigeconsumerhealthcare.com",
+  "systems": {}
+ },
+ {
+  "employer": "Spectrum Brands Holdings, Inc.",
+  "host": "jobs.spectrum.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Peabody Energy Corp",
+  "host": "jobs.peabodyenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Sonic Automotive Inc",
+  "host": "jobs.sonicautomotive.com",
+  "systems": {}
+ },
+ {
+  "employer": "Driven Brands Holdings Inc.",
+  "host": "careers.drivenbrands.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Sonos Inc",
+  "host": "careers.sonos.com",
+  "systems": {
+   "workday": "https://sonos.wd1.myworkdayjobs.com/Sonos"
+  }
+ },
+ {
+  "employer": "Karooooo Ltd.",
+  "host": "careers.karooooo.com",
+  "systems": {}
+ },
+ {
+  "employer": "Frontier Group Holdings, Inc.",
+  "host": "careers.frontier.com",
+  "systems": {}
+ },
+ {
+  "employer": "Intuitive Machines, Inc.",
+  "host": "careers.intuitive.com",
+  "systems": {}
+ },
+ {
+  "employer": "Concentrix Corp",
+  "host": "jobs.concentrix.com",
+  "systems": {
+   "workday": "https://cnx.wd1.myworkdayjobs.com/external_global"
+  }
+ },
+ {
+  "employer": "Kemper Corp",
+  "host": "careers.kemper.com",
+  "systems": {
+   "workday": "https://kemper.wd5.myworkdayjobs.com/Kemper_Careers"
+  }
+ },
+ {
+  "employer": "Agilon Health, Inc.",
+  "host": "jobs.agilonhealth.com",
+  "systems": {
+   "workday": "https://agilonhealth.wd1.myworkdayjobs.com/External"
+  }
+ },
+ {
+  "employer": "Certara, Inc.",
+  "host": "careers.certara.com",
+  "systems": {
+   "icims": "https://employees-certara.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Dentsply Sirona Inc.",
+  "host": "careers.dentsplysirona.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Insperity, Inc.",
+  "host": "careers.insperity.com",
+  "systems": {
+   "avature": "https://insperity.avature.net"
+  }
+ },
+ {
+  "employer": "Trulieve Cannabis Corp.",
+  "host": "careers.trulieve.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Agios Pharmaceuticals, Inc.",
+  "host": "careers.agiospharmaceuticals.com",
+  "systems": {}
+ },
+ {
+  "employer": "Kennametal Inc",
+  "host": "careers.kennametal.com",
+  "systems": {}
+ },
+ {
+  "employer": "Etoro Group Ltd.",
+  "host": "careers.etoro.com",
+  "systems": {}
+ },
+ {
+  "employer": "Therealreal, Inc.",
+  "host": "careers.therealreal.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Wolverine World Wide Inc /De/",
+  "host": "careers.wolverineworldwide.com",
+  "systems": {
+   "workday": "https://wwwinc.wd1.myworkdayjobs.com/WWW",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Brightstar Lottery Plc",
+  "host": "careers.brightstarlottery.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Global Industrial Co",
+  "host": "careers.globalindustrial.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Omnicell, Inc.",
+  "host": "careers.omnicell.com",
+  "systems": {}
+ },
+ {
+  "employer": "Pdf Solutions Inc",
+  "host": "careers.pdf.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Werner Enterprises Inc",
+  "host": "careers.werner.com",
+  "systems": {}
+ },
+ {
+  "employer": "Connectone Bancorp, Inc.",
+  "host": "careers.connectone.com",
+  "systems": {}
+ },
+ {
+  "employer": "Astrana Health, Inc.",
+  "host": "careers.astranahealth.com",
+  "systems": {}
+ },
+ {
+  "employer": "Gentherm Inc",
+  "host": "careers.gentherm.com",
+  "systems": {
+   "successfactors": "https://hcm17.sapsf.com"
+  }
+ },
+ {
+  "employer": "Herbalife Ltd.",
+  "host": "careers.herbalife.com",
+  "systems": {}
+ },
+ {
+  "employer": "Teladoc Health, Inc.",
+  "host": "careers.teladochealth.com",
+  "systems": {
+   "workday": "https://teladoc.wd503.myworkdayjobs.com/en-US/teladochealth_is_hiring"
+  }
+ },
+ {
+  "employer": "Century Communities, Inc.",
+  "host": "careers.centurycommunities.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ingles Markets Inc",
+  "host": "careers.inglesmarkets.com",
+  "systems": {}
+ },
+ {
+  "employer": "Hawaiian Electric Industries Inc",
+  "host": "careers.hawaiianelectric.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Wendy'S Co",
+  "host": "careers.wendys.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sweetgreen, Inc.",
+  "host": "careers.sweetgreen.com",
+  "systems": {}
+ },
+ {
+  "employer": "Blackline, Inc.",
+  "host": "careers.blackline.com",
+  "systems": {
+   "workday": "https://blackline.wd108.myworkdayjobs.com/BlackLineCareers"
+  }
+ },
+ {
+  "employer": "Patria Investments Ltd",
+  "host": "careers.patria.com",
+  "systems": {}
+ },
+ {
+  "employer": "Capital Southwest Corp",
+  "host": "careers.capital.com",
+  "systems": {}
+ },
+ {
+  "employer": "Conmed Corp",
+  "host": "careers.conmed.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Stepan Co",
+  "host": "jobs.stepan.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Ani Pharmaceuticals Inc",
+  "host": "jobs.anipharmaceuticals.com",
+  "systems": {
+   "oracle": "https://iboijb.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1003"
+  }
+ },
+ {
+  "employer": "Jetblue Airways Corp",
+  "host": "careers.jetblue.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Alignment Healthcare, Inc.",
+  "host": "careers.alignmenthealthcare.com",
+  "systems": {
+   "workday": "https://alignmenthealthcare.wd12.myworkdayjobs.com/ahc_external"
+  }
+ },
+ {
+  "employer": "Ryerson Holding Corp",
+  "host": "careers.ryerson.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Clarivate Plc",
+  "host": "careers.clarivate.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Cracker Barrel Old Country Store, Inc",
+  "host": "careers.crackerbarrel.com",
+  "systems": {}
+ },
+ {
+  "employer": "Icf International, Inc.",
+  "host": "careers.icf.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Novocure Ltd",
+  "host": "careers.novocure.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Tompkins Financial Corp",
+  "host": "careers.tompkinsfinancial.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Pacira Biosciences, Inc.",
+  "host": "careers.pacira.com",
+  "systems": {
+   "icims": "https://careers-pacira.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Kardigan, Inc.",
+  "host": "careers.kardigan.com",
+  "systems": {}
+ },
+ {
+  "employer": "Evercommerce Inc.",
+  "host": "careers.evercommerce.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Green Thumb Industries Inc.",
+  "host": "careers.greenthumbindustries.com",
+  "systems": {}
+ },
+ {
+  "employer": "Liquidity Services Inc",
+  "host": "careers.liquidityservices.com",
+  "systems": {}
+ },
+ {
+  "employer": "Global Partners Lp",
+  "host": "careers.global.com",
+  "systems": {
+   "workday": "https://thisisglobal.wd3.myworkdayjobs.com/Global"
+  }
+ },
+ {
+  "employer": "Flex Lng Ltd.",
+  "host": "jobs.flex.com",
+  "systems": {
+   "workday": "https://flextronics.wd1.myworkdayjobs.com/en-US/Careers"
+  }
+ },
+ {
+  "employer": "Newcleo Plc",
+  "host": "careers.newcleo.com",
+  "systems": {}
+ },
+ {
+  "employer": "Trimas Corp",
+  "host": "careers.trimas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Webtoon Entertainment Inc.",
+  "host": "careers.webtoon.com",
+  "systems": {}
+ },
+ {
+  "employer": "Opera Ltd",
+  "host": "jobs.opera.com",
+  "systems": {}
+ },
+ {
+  "employer": "Flowers Foods Inc",
+  "host": "careers.flowersfoods.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Dole Plc",
+  "host": "jobs.dole.com",
+  "systems": {}
+ },
+ {
+  "employer": "Innoviva, Inc.",
+  "host": "careers.innoviva.com",
+  "systems": {}
+ },
+ {
+  "employer": "Carters Inc",
+  "host": "careers.carters.com",
+  "systems": {
+   "workday": "https://carters.wd1.myworkdayjobs.com/CartersCareers"
+  }
+ },
+ {
+  "employer": "Innodata Inc",
+  "host": "careers.innodata.com",
+  "systems": {}
+ },
+ {
+  "employer": "Andersen Group Inc.",
+  "host": "careers.andersen.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Bjs Restaurants Inc",
+  "host": "careers.bjsrestaurants.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Innovage Holding Corp.",
+  "host": "careers.innovage.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Nabors Industries Ltd",
+  "host": "jobs.nabors.com",
+  "systems": {}
+ },
+ {
+  "employer": "United Fire Group Inc",
+  "host": "careers.united.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Deluxe Corp",
+  "host": "careers.deluxe.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ameresco, Inc.",
+  "host": "careers.ameresco.com",
+  "systems": {
+   "workday": "https://ameresco.wd5.myworkdayjobs.com/Ameresco"
+  }
+ },
+ {
+  "employer": "Dream Finders Homes, Inc.",
+  "host": "careers.dreamfindershomes.com",
+  "systems": {
+   "adp": "recruiting.adp.com"
+  }
+ },
+ {
+  "employer": "Precision Drilling Corp",
+  "host": "jobs.precisiondrilling.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Suburban Propane Partners Lp",
+  "host": "jobs.suburbanpropane.com",
+  "systems": {
+   "oracle": "https://icbojb.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+   "icims": "https://careers-suburbanpropane.icims.com"
+  }
+ },
+ {
+  "employer": "Freenome, Inc.",
+  "host": "careers.freenome.com",
+  "systems": {}
+ },
+ {
+  "employer": "Seneca Foods Corp",
+  "host": "careers.senecafoods.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Dauch Corp",
+  "host": "careers.dauch.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Lindsay Corp",
+  "host": "careers.lindsay.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Six Flags Entertainment Corporation/New",
+  "host": "careers.sixflags.com",
+  "systems": {
+   "icims": "https://careers-cedarfair.icims.com",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Accel Entertainment, Inc.",
+  "host": "jobs.accel.com",
+  "systems": {}
+ },
+ {
+  "employer": "Target Hospitality Corp.",
+  "host": "jobs.target.com",
+  "systems": {
+   "workday": "https://target.wd5.myworkdayjobs.com/targetcareers"
+  }
+ },
+ {
+  "employer": "Grid Dynamics Holdings, Inc.",
+  "host": "careers.griddynamics.com",
+  "systems": {}
+ },
+ {
+  "employer": "Yelp Inc",
+  "host": "careers.yelp.com",
+  "systems": {
+   "phenom": "cdn.phenompeople",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Uniti Group Inc.",
+  "host": "careers.uniti.com",
+  "systems": {}
+ },
+ {
+  "employer": "Rapid7, Inc.",
+  "host": "careers.rapid7.com",
+  "systems": {}
+ },
+ {
+  "employer": "Everquote, Inc.",
+  "host": "careers.everquote.com",
+  "systems": {}
+ },
+ {
+  "employer": "Usa Today Co., Inc.",
+  "host": "jobs.usatoday.com",
+  "systems": {}
+ },
+ {
+  "employer": "Kronos Worldwide Inc",
+  "host": "careers.kronosworldwide.com",
+  "systems": {}
+ },
+ {
+  "employer": "Pasqal Holding Sa",
+  "host": "careers.pasqal.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bumble Inc.",
+  "host": "jobs.bumble.com",
+  "systems": {}
+ },
+ {
+  "employer": "Syensqo Sa/Adr",
+  "host": "careers.syensqo.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bloomin' Brands, Inc.",
+  "host": "jobs.bloominbrands.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sky Harbour Group Corp",
+  "host": "careers.sky.com",
+  "systems": {}
+ },
+ {
+  "employer": "Fuelcell Energy Inc",
+  "host": "careers.fuelcellenergy.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Iqiyi, Inc.",
+  "host": "careers.iqiyi.com",
+  "systems": {}
+ },
+ {
+  "employer": "First Watch Restaurant Group, Inc.",
+  "host": "careers.firstwatch.com",
+  "systems": {}
+ },
+ {
+  "employer": "Vistance Networks, Inc.",
+  "host": "jobs.vistancenetworks.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Tripadvisor, Inc.",
+  "host": "careers.tripadvisor.com",
+  "systems": {
+   "greenhouse": "boards.greenhouse.io/tripadvisor"
+  }
+ },
+ {
+  "employer": "Taskus, Inc.",
+  "host": "jobs.taskus.com",
+  "systems": {
+   "workday": "https://taskus.wd1.myworkdayjobs.com/Careers"
+  }
+ },
+ {
+  "employer": "Covenant Logistics Group, Inc.",
+  "host": "jobs.covenantlogistics.com",
+  "systems": {}
+ },
+ {
+  "employer": "Eastman Kodak Co",
+  "host": "careers.eastman.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Burford Capital Ltd",
+  "host": "careers.burfordcapital.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Heartland Express Inc",
+  "host": "jobs.heartland.com",
+  "systems": {}
+ },
+ {
+  "employer": "Quidelortho Corp",
+  "host": "careers.quidelortho.com",
+  "systems": {
+   "workday": "https://orthoclinical.wd1.myworkdayjobs.com/Search"
+  }
+ },
+ {
+  "employer": "Sturm Ruger & Co Inc",
+  "host": "careers.sturm.com",
+  "systems": {}
+ },
+ {
+  "employer": "Washington Trust Bancorp Inc",
+  "host": "careers.washingtontrustbancorp.com",
+  "systems": {}
+ },
+ {
+  "employer": "Yext, Inc.",
+  "host": "jobs.yext.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bioventus Inc.",
+  "host": "careers.bioventus.com",
+  "systems": {
+   "workday": "https://osv-bioventus.wd501.myworkdayjobs.com/External"
+  }
+ },
+ {
+  "employer": "Arrow Financial Corp",
+  "host": "careers.arrow.com",
+  "systems": {
+   "workday": "https://arrow.wd1.myworkdayjobs.com/en-US/AC",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Metallus Inc.",
+  "host": "careers.metallus.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Green Dot Corp",
+  "host": "careers.greendot.com",
+  "systems": {
+   "workday": "https://greendotcorp.wd1.myworkdayjobs.com/en-us"
+  }
+ },
+ {
+  "employer": "Capital Bancorp Inc",
+  "host": "careers.capital.com",
+  "systems": {}
+ },
+ {
+  "employer": "Enviri Corp",
+  "host": "careers.enviri.com",
+  "systems": {}
+ },
+ {
+  "employer": "Papa Johns International Inc",
+  "host": "jobs.papajohns.com",
+  "systems": {}
+ },
+ {
+  "employer": "Mativ Holdings, Inc.",
+  "host": "careers.mativ.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Olema Pharmaceuticals, Inc.",
+  "host": "careers.olemapharmaceuticals.com",
+  "systems": {}
+ },
+ {
+  "employer": "Vishay Precision Group, Inc.",
+  "host": "jobs.vishay.com",
+  "systems": {}
+ },
+ {
+  "employer": "Groupon, Inc.",
+  "host": "careers.groupon.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bally'S Corp",
+  "host": "careers.ballys.com",
+  "systems": {}
+ },
+ {
+  "employer": "Matthews International Corp",
+  "host": "careers.matthews.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Western Asset Diversified Income Fund (Wdi)",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Evotec Se",
+  "host": "careers.evotec.com",
+  "systems": {
+   "workday": "https://evotecgroup.wd3.myworkdayjobs.com/en-US/Evotec_Career_Site",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Stratasys Ltd.",
+  "host": "careers.stratasys.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Robinhood Ventures Fund I",
+  "host": "jobs.robinhoodventures.com",
+  "systems": {}
+ },
+ {
+  "employer": "Taboola.Com Ltd.",
+  "host": "careers.taboola.com",
+  "systems": {}
+ },
+ {
+  "employer": "Nrc Health",
+  "host": "careers.nrc.com",
+  "systems": {}
+ },
+ {
+  "employer": "American Integrity Insurance Group, Inc.",
+  "host": "careers.americanintegrityinsurance.com",
+  "systems": {
+   "icims": "https://careers-aiicfl.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Strata Critical Medical, Inc.",
+  "host": "careers.stratacriticalmedical.com",
+  "systems": {}
+ },
+ {
+  "employer": "Western Asset Managed Municipals Fund Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Ethan Allen Interiors Inc",
+  "host": "careers.ethanallen.com",
+  "systems": {}
+ },
+ {
+  "employer": "Adamas Trust, Inc.",
+  "host": "careers.adamas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Lendingtree, Inc.",
+  "host": "careers.lendingtree.com",
+  "systems": {}
+ },
+ {
+  "employer": "Portillo'S Inc.",
+  "host": "careers.portillos.com",
+  "systems": {}
+ },
+ {
+  "employer": "Coinshares Plc",
+  "host": "careers.coinshares.com",
+  "systems": {}
+ },
+ {
+  "employer": "Mountain Lake Acquisition Corp. Ii",
+  "host": "careers.mountainlake.com",
+  "systems": {}
+ },
+ {
+  "employer": "Alight, Inc. / Delaware",
+  "host": "careers.alight.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Factorial Energy Inc.",
+  "host": "careers.factorial.com",
+  "systems": {}
+ },
+ {
+  "employer": "Caleres Inc",
+  "host": "jobs.caleres.com",
+  "systems": {}
+ },
+ {
+  "employer": "General Catalyst Global Resilience Merger Corp.",
+  "host": "jobs.generalcatalyst.com",
+  "systems": {
+   "greenhouse": "job-boards.greenhouse.io/generalcatalyst"
+  }
+ },
+ {
+  "employer": "Nerdy Inc.",
+  "host": "careers.nerdy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Consolidated Water Co. Ltd.",
+  "host": "careers.consolidated.com",
+  "systems": {}
+ },
+ {
+  "employer": "Spinnova Plc",
+  "host": "careers.spinnova.com",
+  "systems": {}
+ },
+ {
+  "employer": "Virgin Galactic Holdings, Inc",
+  "host": "careers.virgingalactic.com",
+  "systems": {}
+ },
+ {
+  "employer": "Prothena Corp Public Ltd Co",
+  "host": "careers.prothena.com",
+  "systems": {}
+ },
+ {
+  "employer": "Puma Biotechnology, Inc.",
+  "host": "jobs.puma.com",
+  "systems": {}
+ },
+ {
+  "employer": "Tronox Holdings Plc",
+  "host": "jobs.tronox.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Claritev Corp",
+  "host": "careers.claritev.com",
+  "systems": {}
+ },
+ {
+  "employer": "Genesco Inc",
+  "host": "careers.genesco.com",
+  "systems": {}
+ },
+ {
+  "employer": "Norwood Financial Corp",
+  "host": "careers.norwood.com",
+  "systems": {}
+ },
+ {
+  "employer": "Boston Omaha Corp",
+  "host": "jobs.boston.com",
+  "systems": {}
+ },
+ {
+  "employer": "Powerfleet, Inc.",
+  "host": "careers.powerfleet.com",
+  "systems": {}
+ },
+ {
+  "employer": "Citi Trends Inc",
+  "host": "jobs.cititrends.com",
+  "systems": {}
+ },
+ {
+  "employer": "Trex Bio, Inc.",
+  "host": "careers.trex.com",
+  "systems": {
+   "ukg": "https://recruiting.ultipro.com/TRE1006TRCI/JobBoard/699366e7-23c6-46d9-ae0d-4f649323dabf"
+  }
+ },
+ {
+  "employer": "Cs Disco, Inc.",
+  "host": "careers.csdisco.com",
+  "systems": {}
+ },
+ {
+  "employer": "Paysafe Ltd",
+  "host": "careers.paysafe.com",
+  "systems": {}
+ },
+ {
+  "employer": "Verano Holdings Corp.",
+  "host": "careers.verano.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Roxmore Resources Inc.",
+  "host": "careers.roxmore.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ses Ai Corp",
+  "host": "careers.ses.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "J.Jill, Inc.",
+  "host": "jobs.jjill.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Prenetics Global Ltd",
+  "host": "careers.prenetics.com",
+  "systems": {}
+ },
+ {
+  "employer": "Blue Water Acquisition Corp. Iii",
+  "host": "careers.bluewater.com",
+  "systems": {}
+ },
+ {
+  "employer": "Cooper-Standard Holdings Inc.",
+  "host": "careers.cooperstandard.com",
+  "systems": {
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Virtus Total Return Fund Inc.",
+  "host": "jobs.virtustotal.com",
+  "systems": {}
+ },
+ {
+  "employer": "Verra Mobility Corp",
+  "host": "careers.verramobility.com",
+  "systems": {
+   "greenhouse": "job-boards.greenhouse.io/verramobility",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Global Indemnity Group, Llc",
+  "host": "careers.global.com",
+  "systems": {
+   "workday": "https://thisisglobal.wd3.myworkdayjobs.com/Global"
+  }
+ },
+ {
+  "employer": "Emergent Biosolutions Inc.",
+  "host": "careers.emergentbiosolutions.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Western Asset High Income Fund Ii Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Iheartmedia, Inc.",
+  "host": "careers.iheartmedia.com",
+  "systems": {
+   "workday": "https://iheartmedia.wd5.myworkdayjobs.com/External_iHM"
+  }
+ },
+ {
+  "employer": "Angi Inc.",
+  "host": "jobs.angi.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sab Biotherapeutics, Inc.",
+  "host": "careers.sab.com",
+  "systems": {
+   "successfactors": "https://hcm23.sapsf.com"
+  }
+ },
+ {
+  "employer": "Oatly Group Ab",
+  "host": "careers.oatly.com",
+  "systems": {}
+ },
+ {
+  "employer": "Brc Inc.",
+  "host": "careers.brc.com",
+  "systems": {}
+ },
+ {
+  "employer": "Hirequest, Inc.",
+  "host": "jobs.hirequest.com",
+  "systems": {}
+ },
+ {
+  "employer": "Black Rock Coffee Bar, Inc.",
+  "host": "careers.blackrock.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Solarius Capital Acquisition Corp.",
+  "host": "careers.solariuscapital.com",
+  "systems": {}
+ },
+ {
+  "employer": "Octave Specialty Group Inc",
+  "host": "careers.octave.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Conduent Inc",
+  "host": "careers.conduent.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Applied Energetics, Inc.",
+  "host": "jobs.applied.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Nu Skin Enterprises, Inc.",
+  "host": "careers.nuskin.com",
+  "systems": {}
+ },
+ {
+  "employer": "U.S. Gold Corp.",
+  "host": "careers.usg.com",
+  "systems": {}
+ },
+ {
+  "employer": "1Stdibs.Com, Inc.",
+  "host": "careers.1stdibs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Baozun Inc.",
+  "host": "jobs.baozun.com",
+  "systems": {}
+ },
+ {
+  "employer": "Gopro, Inc.",
+  "host": "jobs.gopro.com",
+  "systems": {
+   "greenhouse": "job-boards.greenhouse.io/goprojobs"
+  }
+ },
+ {
+  "employer": "Taylor Devices, Inc.",
+  "host": "jobs.taylor.com",
+  "systems": {}
+ },
+ {
+  "employer": "Marti Technologies, Inc.",
+  "host": "careers.marti.com",
+  "systems": {}
+ },
+ {
+  "employer": "Western Asset Inflation-Linked Income Fund",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Thredup Inc.",
+  "host": "careers.thredup.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Lifetime Brands, Inc",
+  "host": "careers.lifetime.com",
+  "systems": {}
+ },
+ {
+  "employer": "Blue Water Acquisition Corp. Iv",
+  "host": "careers.bluewater.com",
+  "systems": {}
+ },
+ {
+  "employer": "Franklin Covey Co",
+  "host": "careers.franklincovey.com",
+  "systems": {}
+ },
+ {
+  "employer": "Terrascend Corp.",
+  "host": "careers.terrascend.com",
+  "systems": {}
+ },
+ {
+  "employer": "Robot Consulting Co., Ltd.",
+  "host": "careers.robot.com",
+  "systems": {}
+ },
+ {
+  "employer": "Expensify, Inc.",
+  "host": "careers.expensify.com",
+  "systems": {}
+ },
+ {
+  "employer": "Western Asset Global High Income Fund Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Epsilon Energy Ltd.",
+  "host": "careers.epsilon.com",
+  "systems": {}
+ },
+ {
+  "employer": "Curiositystream Inc.",
+  "host": "jobs.curiositystream.com",
+  "systems": {
+   "adp": "workforcenow.adp.com"
+  }
+ },
+ {
+  "employer": "Brc Group Holdings, Inc.",
+  "host": "careers.brc.com",
+  "systems": {}
+ },
+ {
+  "employer": "Canaan Inc.",
+  "host": "careers.canaan.com",
+  "systems": {}
+ },
+ {
+  "employer": "Western Asset Municipal High Income Fund Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Global Atomic Corp",
+  "host": "careers.global.com",
+  "systems": {
+   "workday": "https://thisisglobal.wd3.myworkdayjobs.com/Global"
+  }
+ },
+ {
+  "employer": "Robinhood Ventures Fund Ii",
+  "host": "jobs.robinhoodventures.com",
+  "systems": {}
+ },
+ {
+  "employer": "Evolution Petroleum Corp",
+  "host": "careers.evolution.com",
+  "systems": {}
+ },
+ {
+  "employer": "Maruwa Co., Ltd./Adr",
+  "host": "careers.maruwa.com",
+  "systems": {}
+ },
+ {
+  "employer": "East West Ave Acquisition Corp.",
+  "host": "careers.eastwest.com",
+  "systems": {}
+ },
+ {
+  "employer": "Solana Co",
+  "host": "jobs.solana.com",
+  "systems": {
+   "ashby": "jobs.ashbyhq.com/phantom"
+  }
+ },
+ {
+  "employer": "Western Asset High Yield Opportunity Fund Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Global Ai, Inc.",
+  "host": "careers.global.com",
+  "systems": {
+   "workday": "https://thisisglobal.wd3.myworkdayjobs.com/Global"
+  }
+ },
+ {
+  "employer": "Kingfisher Metals Corp.",
+  "host": "careers.kingfisher.com",
+  "systems": {}
+ },
+ {
+  "employer": "Organogenesis Holdings Inc.",
+  "host": "careers.organogenesis.com",
+  "systems": {}
+ },
+ {
+  "employer": "Western Asset Mortgage Opportunity Fund Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Western Asset Investment Grade Income Fund Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Broadway Financial Corp De",
+  "host": "careers.broadway.com",
+  "systems": {}
+ },
+ {
+  "employer": "Shutterstock, Inc.",
+  "host": "careers.shutterstock.com",
+  "systems": {
+   "workday": "https://shutterstock.wd1.myworkdayjobs.com/ShutterstockCareers",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Western Asset Intermediate Muni Fund Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Wheels Up Experience Inc.",
+  "host": "careers.wheelsup.com",
+  "systems": {
+   "icims": "https://careers-wheelsup.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Team Inc",
+  "host": "careers.team.com",
+  "systems": {}
+ },
+ {
+  "employer": "Amanat Acquisition Corp.",
+  "host": "careers.amanat.com",
+  "systems": {}
+ },
+ {
+  "employer": "Western Asset Investment Grade Opportunity Trust Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Luda Technology Group Ltd",
+  "host": "careers.luda.com",
+  "systems": {}
+ },
+ {
+  "employer": "Endava Plc",
+  "host": "careers.endava.com",
+  "systems": {}
+ },
+ {
+  "employer": "Cps Technologies Corp/De/",
+  "host": "jobs.cps.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bark, Inc.",
+  "host": "careers.bark.com",
+  "systems": {}
+ },
+ {
+  "employer": "Federated Hermes Premier Municipal Income Fund",
+  "host": "careers.federatedhermes.com",
+  "systems": {}
+ },
+ {
+  "employer": "Here Group Ltd",
+  "host": "careers.here.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Selectquote, Inc.",
+  "host": "careers.selectquote.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "U.S. Goldmining Inc.",
+  "host": "careers.usg.com",
+  "systems": {}
+ },
+ {
+  "employer": "Phenixfin Corp",
+  "host": "careers.phenixfin.com",
+  "systems": {}
+ },
+ {
+  "employer": "Mastech Digital, Inc.",
+  "host": "jobs.mastech.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sunpower Inc.",
+  "host": "careers.sunpower.com",
+  "systems": {}
+ },
+ {
+  "employer": "Leishen Energy Holding Co., Ltd.",
+  "host": "careers.leishen.com",
+  "systems": {}
+ },
+ {
+  "employer": "Alithya Group Inc",
+  "host": "careers.alithya.com",
+  "systems": {}
+ },
+ {
+  "employer": "Chegg, Inc",
+  "host": "careers.chegg.com",
+  "systems": {}
+ },
+ {
+  "employer": "Research Solutions, Inc.",
+  "host": "careers.research.com",
+  "systems": {}
+ },
+ {
+  "employer": "Boundless Bio, Inc.",
+  "host": "careers.boundless.com",
+  "systems": {}
+ },
+ {
+  "employer": "Globus Maritime Ltd",
+  "host": "careers.globus.com",
+  "systems": {}
+ },
+ {
+  "employer": "Myomo, Inc.",
+  "host": "careers.myomo.com",
+  "systems": {}
+ },
+ {
+  "employer": "Veritone, Inc.",
+  "host": "careers.veritone.com",
+  "systems": {
+   "workday": "https://veritone.wd1.myworkdayjobs.com/Veritone_Career_Site"
+  }
+ },
+ {
+  "employer": "Caesarstone Ltd.",
+  "host": "careers.caesarstone.com",
+  "systems": {}
+ },
+ {
+  "employer": "Genoil Inc",
+  "host": "careers.genoil.com",
+  "systems": {}
+ },
+ {
+  "employer": "Gamesquare Holdings, Inc.",
+  "host": "careers.gamesquare.com",
+  "systems": {}
+ },
+ {
+  "employer": "Buzzfeed, Inc.",
+  "host": "jobs.buzzfeed.com",
+  "systems": {}
+ },
+ {
+  "employer": "Grove Collaborative Holdings, Inc.",
+  "host": "careers.grove.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sonoro Gold Corp.",
+  "host": "careers.sonoro.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sportsman'S Warehouse Holdings, Inc.",
+  "host": "careers.sportsmans.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bgsf, Inc.",
+  "host": "jobs.bgsf.com",
+  "systems": {}
+ },
+ {
+  "employer": "Grace Therapeutics, Inc.",
+  "host": "jobs.grace.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Sachem Capital Corp.",
+  "host": "careers.sachem.com",
+  "systems": {}
+ },
+ {
+  "employer": "United Guardian Inc",
+  "host": "careers.united.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Phenom Resources Corp.",
+  "host": "careers.phenom.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Impact Biomedical Inc.",
+  "host": "careers.impact.com",
+  "systems": {
+   "greenhouse": "job-boards.greenhouse.io/impact"
+  }
+ },
+ {
+  "employer": "Axil Brands, Inc.",
+  "host": "careers.axilbrands.com",
+  "systems": {}
+ },
+ {
+  "employer": "Blue Biofuels, Inc.",
+  "host": "careers.blue.com",
+  "systems": {}
+ },
+ {
+  "employer": "Inmune Bio, Inc.",
+  "host": "careers.inmunebio.com",
+  "systems": {}
+ },
+ {
+  "employer": "Valor Energy Inc",
+  "host": "careers.valorenergy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Grandstand Ltd",
+  "host": "careers.grandstand.com",
+  "systems": {}
+ },
+ {
+  "employer": "One Group Hospitality, Inc.",
+  "host": "careers.one.com",
+  "systems": {}
+ },
+ {
+  "employer": "Townsquare Media, Inc.",
+  "host": "careers.townsquaremedia.com",
+  "systems": {}
+ },
+ {
+  "employer": "Anghami Inc",
+  "host": "careers.anghami.com",
+  "systems": {}
+ },
+ {
+  "employer": "Creative Realities, Inc.",
+  "host": "careers.creative.com",
+  "systems": {}
+ },
+ {
+  "employer": "Aeries Technology, Inc.",
+  "host": "careers.aeriestechnology.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sunlands Technology Group",
+  "host": "jobs.sunlands.com",
+  "systems": {}
+ },
+ {
+  "employer": "Destination Xl Group, Inc.",
+  "host": "careers.destinationxl.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "United Maritime Corp",
+  "host": "careers.united.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Intelligent Protection Management Corp.",
+  "host": "careers.intelligentprotectionmanagement.com",
+  "systems": {}
+ },
+ {
+  "employer": "International Battery Metals Ltd.",
+  "host": "jobs.battery.com",
+  "systems": {}
+ },
+ {
+  "employer": "Biostem Technologies, Inc.",
+  "host": "careers.biostem.com",
+  "systems": {}
+ },
+ {
+  "employer": "Provectus Biopharmaceuticals, Inc.",
+  "host": "careers.provectus.com",
+  "systems": {}
+ },
+ {
+  "employer": "Rich Sparkle Holdings Ltd",
+  "host": "careers.rich.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Four Seasons Education (Cayman) Inc.",
+  "host": "careers.fourseasons.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Sky Quarry Inc.",
+  "host": "careers.sky.com",
+  "systems": {}
+ },
+ {
+  "employer": "Reed'S, Inc.",
+  "host": "careers.reed.com",
+  "systems": {}
+ },
+ {
+  "employer": "T-Rex Acquisition Corp.",
+  "host": "careers.trex.com",
+  "systems": {
+   "ukg": "https://recruiting.ultipro.com/TRE1006TRCI/JobBoard/699366e7-23c6-46d9-ae0d-4f649323dabf"
+  }
+ },
+ {
+  "employer": "Arts Way Manufacturing Co Inc",
+  "host": "careers.artsway.com",
+  "systems": {}
+ },
+ {
+  "employer": "System1, Inc.",
+  "host": "careers.system1.com",
+  "systems": {}
+ },
+ {
+  "employer": "Research Frontiers Inc",
+  "host": "careers.research.com",
+  "systems": {}
+ },
+ {
+  "employer": "Vantage Corp (Singapore)",
+  "host": "careers.vantage.com",
+  "systems": {}
+ },
+ {
+  "employer": "Eon Resources Inc.",
+  "host": "jobs.eon.com",
+  "systems": {
+   "oracle": "https://fa-eylc-saasfaeuraprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+   "successfactors": "https://career5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Mogu Inc.",
+  "host": "careers.mogu.com",
+  "systems": {}
+ },
+ {
+  "employer": "Beasley Broadcast Group Inc",
+  "host": "careers.beasley.com",
+  "systems": {}
+ },
+ {
+  "employer": "Fusemachines Inc.",
+  "host": "jobs.fusemachines.com",
+  "systems": {}
+ },
+ {
+  "employer": "Kalo Gold Corp.",
+  "host": "jobs.kalo.com",
+  "systems": {}
+ },
+ {
+  "employer": "Fusion Fuel Green Plc",
+  "host": "careers.fusionfuel.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ucloudlink Group Inc.",
+  "host": "careers.ucloudlink.com",
+  "systems": {}
+ },
+ {
+  "employer": "Military Metals Corp.",
+  "host": "careers.military.com",
+  "systems": {}
+ },
+ {
+  "employer": "Arrive Ai Inc.",
+  "host": "careers.arrive.com",
+  "systems": {
+   "ashby": "jobs.ashbyhq.com/arrive"
+  }
+ },
+ {
+  "employer": "Adm Endeavors, Inc.",
+  "host": "careers.adm.com",
+  "systems": {}
+ },
+ {
+  "employer": "Data Storage Corp",
+  "host": "careers.data.com",
+  "systems": {}
+ },
+ {
+  "employer": "Athena Gold Corp",
+  "host": "jobs.athena.com",
+  "systems": {
+   "workday": "https://athenago.wd108.myworkdayjobs.com/athena"
+  }
+ },
+ {
+  "employer": "Blue Gold Ltd",
+  "host": "careers.blue.com",
+  "systems": {}
+ },
+ {
+  "employer": "One Bullion Ltd",
+  "host": "careers.one.com",
+  "systems": {}
+ },
+ {
+  "employer": "Taoweave, Inc.",
+  "host": "careers.taoweave.com",
+  "systems": {}
+ },
+ {
+  "employer": "Global Engine Group Holding Ltd",
+  "host": "careers.global.com",
+  "systems": {
+   "workday": "https://thisisglobal.wd3.myworkdayjobs.com/Global"
+  }
+ },
+ {
+  "employer": "Reliance Global Group, Inc.",
+  "host": "careers.reliance.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Chase Packaging Corp",
+  "host": "jobs.chase.com",
+  "systems": {}
+ },
+ {
+  "employer": "Brookmount Explorations Inc",
+  "host": "careers.brookmountexplorations.com",
+  "systems": {}
+ },
+ {
+  "employer": "Xcel Brands, Inc.",
+  "host": "careers.xcel.com",
+  "systems": {}
+ },
+ {
+  "employer": "Cid Holdco, Inc.",
+  "host": "careers.cid.com",
+  "systems": {}
+ },
+ {
+  "employer": "Darkpulse, Inc.",
+  "host": "careers.darkpulse.com",
+  "systems": {}
+ },
+ {
+  "employer": "Nymox Pharmaceutical Corp",
+  "host": "careers.nymox.com",
+  "systems": {}
+ },
+ {
+  "employer": "Circle Energy, Inc./Nv",
+  "host": "careers.circle.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "60 Degrees Pharmaceuticals, Inc.",
+  "host": "jobs.60degrees.com",
+  "systems": {}
+ },
+ {
+  "employer": "Impact Analytics Inc.",
+  "host": "careers.impact.com",
+  "systems": {
+   "greenhouse": "job-boards.greenhouse.io/impact"
+  }
+ },
+ {
+  "employer": "Sky Gold Corp.",
+  "host": "careers.sky.com",
+  "systems": {}
+ },
+ {
+  "employer": "International Stem Cell Corp",
+  "host": "jobs.stemcell.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Dogecoin Cash, Inc.",
+  "host": "careers.dogecoincash.com",
+  "systems": {}
+ },
+ {
+  "employer": "Nation Gold Corp.",
+  "host": "careers.nation.com",
+  "systems": {}
+ },
+ {
+  "employer": "Kinetic Seas Inc.",
+  "host": "careers.kinetic.com",
+  "systems": {}
+ },
+ {
+  "employer": "Global Gas Corp",
+  "host": "careers.global.com",
+  "systems": {
+   "workday": "https://thisisglobal.wd3.myworkdayjobs.com/Global"
+  }
+ },
+ {
+  "employer": "Target Group Inc.",
+  "host": "jobs.target.com",
+  "systems": {
+   "workday": "https://target.wd5.myworkdayjobs.com/targetcareers"
+  }
+ },
+ {
+  "employer": "Arcadia Biosciences, Inc.",
+  "host": "careers.arcadia.com",
+  "systems": {}
+ },
+ {
+  "employer": "Stemtech Corp",
+  "host": "careers.stemtech.com",
+  "systems": {}
+ },
+ {
+  "employer": "First Choice Healthcare Solutions, Inc.",
+  "host": "jobs.firstchoice.com",
+  "systems": {}
+ },
+ {
+  "employer": "Archer Spinco, Inc.",
+  "host": "careers.archer.com",
+  "systems": {}
+ },
+ {
+  "employer": "Trinzic, Inc.",
+  "host": "careers.trinzic.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Entrata, Inc.",
+  "host": "careers.entrata.com",
+  "systems": {}
+ },
+ {
+  "employer": "Computacenter Plc/Adr",
+  "host": "careers.computacenter.com",
+  "systems": {}
+ },
+ {
+  "employer": "Western Asset Global Corporate Opportunity Fund Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Western Asset Premier Bond Fund",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Freelancer Ltd",
+  "host": "careers.freelancer.com",
+  "systems": {}
+ },
+ {
+  "employer": "Western Asset High Income Opportunity Fund Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Huaqin Co. Ltd/Adr",
+  "host": "jobs.huaqin.com",
+  "systems": {}
+ },
+ {
+  "employer": "Reece Limited/Adr",
+  "host": "careers.reece.com",
+  "systems": {}
+ },
+ {
+  "employer": "Western Asset Inflation-Linked Opportunities & Income Fund",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Entergy Texas, Inc.",
+  "host": "jobs.entergy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Calm Chain International Ltd",
+  "host": "careers.calm.com",
+  "systems": {
+   "greenhouse": "boards.greenhouse.io/calm"
+  }
+ },
+ {
+  "employer": "Gibson Energy Inc/Adr",
+  "host": "careers.gibsonenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Phoenix Metals Corp.",
+  "host": "careers.phoenixmetals.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Weis Markets Inc",
+  "host": "jobs.weismarkets.com",
+  "systems": {
+   "workday": "https://weis.wd108.myworkdayjobs.com/en-US/Careers"
+  }
+ },
+ {
+  "employer": "United Breweries Co Inc",
+  "host": "careers.united.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Vista Gold Corp",
+  "host": "careers.vista.com",
+  "systems": {}
+ },
+ {
+  "employer": "Franklin Templeton Digital Holdings Trust",
+  "host": "careers.franklintempleton.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Clover Biopharmaceuticals, Ltd.",
+  "host": "careers.clover.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Franklin Templeton Holdings Trust",
+  "host": "careers.franklintempleton.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Western Asset Emerging Markets Debt Fund Inc.",
+  "host": "careers.westernasset.com",
+  "systems": {
+   "workday": "https://franklintempleton.wd5.myworkdayjobs.com/Jobs-WAM"
+  }
+ },
+ {
+  "employer": "Wella Co",
+  "host": "careers.wella.com",
+  "systems": {}
+ },
+ {
+  "employer": "Mkango Rare Earths Ltd",
+  "host": "careers.mkangorareearths.com",
+  "systems": {}
+ },
+ {
+  "employer": "Tailored Brands, Inc. / De",
+  "host": "careers.tailoredbrands.com",
+  "systems": {
+   "eightfold": "https://fortive-sandbox.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Nightingale Health Plc",
+  "host": "careers.nightingalehealth.com",
+  "systems": {}
+ },
+ {
+  "employer": "Magna Mining Inc.",
+  "host": "jobs.magna.com",
+  "systems": {}
+ },
+ {
+  "employer": "Storagevault Canada Inc./Adr",
+  "host": "careers.storagevaultcanada.com",
+  "systems": {}
+ },
+ {
+  "employer": "Invesco Municipal Trust",
+  "host": "careers.invescomunicipaltrust.com",
+  "systems": {}
+ },
+ {
+  "employer": "Alibaba Group Holding Ltd",
+  "host": "careers.alibaba.com",
+  "systems": {}
+ },
+ {
+  "employer": "Jpmorgan Chase & Co",
+  "host": "careers.jpmorganchase.com",
+  "systems": {
+   "oracle": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001"
+  }
+ },
+ {
+  "employer": "Shell Plc",
+  "host": "jobs.shell.com",
+  "systems": {
+   "workday": "https://shell.wd3.myworkdayjobs.com/ShellCareers"
+  }
+ },
+ {
+  "employer": "Sap Se",
+  "host": "careers.sap.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Novartis Ag",
+  "host": "careers.novartis.com",
+  "systems": {}
+ },
+ {
+  "employer": "Toyota Motor Corp/",
+  "host": "careers.toyota.com",
+  "systems": {
+   "workday": "https://toyota.wd503.myworkdayjobs.com/TMNA",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Mitsubishi Ufj Financial Group Inc",
+  "host": "careers.mitsubishiufjfinancial.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bhp Group Ltd",
+  "host": "careers.bhp.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Novo Nordisk A S",
+  "host": "careers.novonordisk.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Sanofi",
+  "host": "jobs.sanofi.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Unilever Plc",
+  "host": "careers.unilever.com",
+  "systems": {
+   "workday": "https://unilever.wd3.myworkdayjobs.com/Unilever_Experienced_Professionals",
+   "radancy_mcloud": "tmpwebeng"
+  }
+ },
+ {
+  "employer": "Gsk Plc",
+  "host": "jobs.gsk.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Rio Tinto Plc",
+  "host": "jobs.riotinto.com",
+  "systems": {
+   "radancy_mcloud": "m-cloud.io"
+  }
+ },
+ {
+  "employer": "Sumitomo Mitsui Financial Group, Inc.",
+  "host": "jobs.sumitomomitsuifinancial.com",
+  "systems": {}
+ },
+ {
+  "employer": "Byd Co Ltd",
+  "host": "careers.byd.com",
+  "systems": {}
+ },
+ {
+  "employer": "Csl Ltd",
+  "host": "jobs.csl.com",
+  "systems": {}
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Bae Systems Plc /Fi/",
+  "host": "jobs.baesystems.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Reckitt Benckiser Group Plc",
+  "host": "careers.reckitt.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Eni Spa",
+  "host": "careers.eni.com",
+  "systems": {}
+ },
+ {
+  "employer": "Comcast Corp",
+  "host": "jobs.comcast.com",
+  "systems": {
+   "workday": "https://comcast.wd115.myworkdayjobs.com/en-US/Comcast_Careers",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Infineon Technologies Ag",
+  "host": "jobs.infineon.com",
+  "systems": {
+   "eightfold": "https://infineon.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Hitachi Ltd",
+  "host": "careers.hitachi.com",
+  "systems": {
+   "workday": "https://hitachi.wd1.myworkdayjobs.com/hitachi"
+  }
+ },
+ {
+  "employer": "National Grid Plc",
+  "host": "jobs.nationalgrid.com",
+  "systems": {}
+ },
+ {
+  "employer": "Takeda Pharmaceutical Co Ltd",
+  "host": "jobs.takeda.com",
+  "systems": {
+   "avature": "https://takeda.avature.net",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Daikin Industries Ltd",
+  "host": "careers.daikinindustries.com",
+  "systems": {}
+ },
+ {
+  "employer": "Nokia Corp",
+  "host": "careers.nokia.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ing Groep Nv",
+  "host": "careers.ing.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Metlife Inc",
+  "host": "jobs.metlife.com",
+  "systems": {
+   "avature": "https://metlife.avature.net"
+  }
+ },
+ {
+  "employer": "Trip.Com Group Ltd",
+  "host": "careers.trip.com",
+  "systems": {}
+ },
+ {
+  "employer": "Haleon Plc",
+  "host": "careers.haleon.com",
+  "systems": {
+   "eightfold": "https://app.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Jd.Com, Inc.",
+  "host": "careers.jdcom.com",
+  "systems": {}
+ },
+ {
+  "employer": "Honda Motor Co Ltd",
+  "host": "careers.honda.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Kenvue Inc.",
+  "host": "jobs.kenvue.com",
+  "systems": {
+   "workday": "https://kenvue.wd5.myworkdayjobs.com/en-US/kenvue"
+  }
+ },
+ {
+  "employer": "Murata Manufacturing Co., Ltd./Adr",
+  "host": "careers.muratamanufacturing.com",
+  "systems": {}
+ },
+ {
+  "employer": "Teck Resources Ltd",
+  "host": "jobs.teck.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "E.On Se",
+  "host": "jobs.eon.com",
+  "systems": {
+   "oracle": "https://fa-eylc-saasfaeuraprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+   "successfactors": "https://career5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Strive, Inc.",
+  "host": "careers.strive.com",
+  "systems": {}
+ },
+ {
+  "employer": "Lennar Corp /New/",
+  "host": "careers.lennar.com",
+  "systems": {}
+ },
+ {
+  "employer": "Vodafone Group Public Ltd Co",
+  "host": "jobs.vodafone.com",
+  "systems": {
+   "eightfold": "https://vodafone-qa-sandbox.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Hydro One Ltd",
+  "host": "jobs.hydroone.com",
+  "systems": {
+   "successfactors": "https://hcm47.sapsf.com"
+  }
+ },
+ {
+  "employer": "Ryanair Holdings Plc",
+  "host": "careers.ryanair.com",
+  "systems": {
+   "successfactors": "https://career2.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Mccormick & Co Inc",
+  "host": "careers.mccormick.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Tenaris Sa",
+  "host": "jobs.tenaris.com",
+  "systems": {}
+ },
+ {
+  "employer": "Telenor Asa",
+  "host": "careers.telenor.com",
+  "systems": {}
+ },
+ {
+  "employer": "Rogers Communications Inc",
+  "host": "jobs.rogers.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "First Citizens Bancshares Inc /De/",
+  "host": "jobs.firstcitizens.com",
+  "systems": {
+   "icims": "https://firstcitizens.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "State Street Corp",
+  "host": "careers.statestreet.com",
+  "systems": {
+   "workday": "https://statestreet.wd1.myworkdayjobs.com/en-US/Global",
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Santander Bank Polska Sa/Adr",
+  "host": "jobs.santanderbank.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Nomura Holdings Inc",
+  "host": "careers.nomura.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "James Hardie Industries Plc",
+  "host": "careers.jameshardie.com",
+  "systems": {
+   "ukg": "https://recruiting.ultipro.com/CPG1000CPGIN/JobBoard/253dc3cc-aea8-42ff-86ba-cdc25366d931",
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Fresenius Se & Co. Kgaa",
+  "host": "careers.fresenius.com",
+  "systems": {}
+ },
+ {
+  "employer": "Akzo Nobel Nv",
+  "host": "careers.akzonobel.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Gold Fields Ltd",
+  "host": "careers.goldfields.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Fresenius Medical Care Ag",
+  "host": "jobs.freseniusmedicalcare.com",
+  "systems": {
+   "workday": "https://freseniusmedicalcare.wd3.myworkdayjobs.com/fme"
+  }
+ },
+ {
+  "employer": "Regions Financial Corp",
+  "host": "careers.regions.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Emera Inc",
+  "host": "careers.emera.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "U-Haul Holding Co /Nv/",
+  "host": "jobs.uhaul.com",
+  "systems": {
+   "workday": "https://uhaul.wd1.myworkdayjobs.com/fr-CA/UhaulJobs"
+  }
+ },
+ {
+  "employer": "Alstom",
+  "host": "jobs.alstom.com",
+  "systems": {}
+ },
+ {
+  "employer": "Cemex Sab De Cv",
+  "host": "jobs.cemex.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Pearson Plc",
+  "host": "jobs.pearson.com",
+  "systems": {
+   "oracle": "https://hccz.fa.em3.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_2"
+  }
+ },
+ {
+  "employer": "Sasol Ltd",
+  "host": "jobs.sasol.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Jardine Matheson Southeast Asia Limited/Adr",
+  "host": "careers.jardinematheson.com",
+  "systems": {}
+ },
+ {
+  "employer": "Molson Coors Beverage Co",
+  "host": "careers.molsoncoors.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Bilibili Inc.",
+  "host": "jobs.bilibili.com",
+  "systems": {}
+ },
+ {
+  "employer": "Rush Enterprises Inc Tx",
+  "host": "careers.rushenterprises.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Jardine Matheson Southeast Asia Limited/Adr",
+  "host": "careers.jardinematheson.com",
+  "systems": {}
+ },
+ {
+  "employer": "Daiwa Securities Group Inc.",
+  "host": "careers.daiwasecurities.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sl Green Realty Corp",
+  "host": "careers.slgreenrealty.com",
+  "systems": {}
+ },
+ {
+  "employer": "Unum Group",
+  "host": "careers.unum.com",
+  "systems": {
+   "workday": "https://unum.wd1.myworkdayjobs.com/en-US/External"
+  }
+ },
+ {
+  "employer": "Popular, Inc.",
+  "host": "jobs.popular.com",
+  "systems": {
+   "successfactors": "https://performancemanager4na.successfactors.com"
+  }
+ },
+ {
+  "employer": "Dte Energy Co",
+  "host": "careers.dteenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Bel Fuse Inc /Nj",
+  "host": "careers.belfuse.com",
+  "systems": {}
+ },
+ {
+  "employer": "Moog Inc.",
+  "host": "careers.moog.com",
+  "systems": {
+   "workday": "https://moog.wd5.myworkdayjobs.com/MOOG_External_Career_Site"
+  }
+ },
+ {
+  "employer": "Cbiz, Inc.",
+  "host": "careers.cbiz.com",
+  "systems": {
+   "oracle": "https://ebez.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1"
+  }
+ },
+ {
+  "employer": "Under Armour, Inc.",
+  "host": "careers.underarmour.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Comfortdelgro Corp Ltd",
+  "host": "careers.comfortdelgro.com",
+  "systems": {
+   "successfactors": "https://performancemanager10.successfactors.com"
+  }
+ },
+ {
+  "employer": "Coronado Global Resources Inc.",
+  "host": "careers.coronadoglobal.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Aryzta Ag (Fka Iaws Group Plc)",
+  "host": "careers.aryzta.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Evotec Se",
+  "host": "careers.evotec.com",
+  "systems": {
+   "workday": "https://evotecgroup.wd3.myworkdayjobs.com/en-US/Evotec_Career_Site",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Seneca Foods Corp",
+  "host": "careers.senecafoods.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Bowman Consulting Group Ltd.",
+  "host": "careers.bowman.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Magna Mining Inc.",
+  "host": "jobs.magna.com",
+  "systems": {}
+ },
+ {
+  "employer": "Iheartmedia, Inc.",
+  "host": "careers.iheartmedia.com",
+  "systems": {
+   "workday": "https://iheartmedia.wd5.myworkdayjobs.com/External_iHM"
+  }
+ },
+ {
+  "employer": "Quarterhill Inc.",
+  "host": "careers.quarterhill.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Creative Technology Ltd",
+  "host": "careers.creative.com",
+  "systems": {}
+ },
+ {
+  "employer": "Newport Gold, Inc.",
+  "host": "careers.newport.com",
+  "systems": {}
+ },
+ {
+  "employer": "Madison Technologies Inc.",
+  "host": "jobs.madison.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sleep Number Corp",
+  "host": "careers.sleepnumber.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Schaeffler Ag/Adr",
+  "host": "jobs.schaeffler.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Bachem Holding Ag/Adr",
+  "host": "careers.bachem.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Dormakaba Holding Ag",
+  "host": "jobs.dormakaba.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Northern Trust Corp",
+  "host": "careers.northerntrust.com",
+  "systems": {
+   "workday": "https://ntrs.wd1.myworkdayjobs.com/northerntrust"
+  }
+ },
+ {
+  "employer": "Wolters Kluwer N V /Fi",
+  "host": "careers.wolterskluwer.com",
+  "systems": {
+   "workday": "https://wk.wd3.myworkdayjobs.com/External"
+  }
+ },
+ {
+  "employer": "Msa Safety Inc",
+  "host": "careers.msasafety.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Partnerre Ltd",
+  "host": "careers.partnerre.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Byd Electronic (International) Co Ltd",
+  "host": "careers.byd.com",
+  "systems": {}
+ },
+ {
+  "employer": "Brightspring Health Services, Inc.",
+  "host": "careers.brightspringhealth.com",
+  "systems": {
+   "icims": "https://login.icims.com"
+  }
+ },
+ {
+  "employer": "Freelancer Ltd",
+  "host": "careers.freelancer.com",
+  "systems": {}
+ },
+ {
+  "employer": "Creative Technology Ltd",
+  "host": "careers.creative.com",
+  "systems": {}
+ },
+ {
+  "employer": "Kemper Corp",
+  "host": "careers.kemper.com",
+  "systems": {
+   "workday": "https://kemper.wd5.myworkdayjobs.com/Kemper_Careers"
+  }
+ },
+ {
+  "employer": "Samsonite International Sa/Adr",
+  "host": "careers.samsonite.com",
+  "systems": {}
+ },
+ {
+  "employer": "Popular, Inc.",
+  "host": "jobs.popular.com",
+  "systems": {
+   "successfactors": "https://performancemanager4na.successfactors.com"
+  }
+ },
+ {
+  "employer": "Sky Harbour Group Corp",
+  "host": "careers.sky.com",
+  "systems": {}
+ },
+ {
+  "employer": "Verisure Plc/Adr",
+  "host": "careers.verisure.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Pasqal Holding Sa",
+  "host": "careers.pasqal.com",
+  "systems": {}
+ },
+ {
+  "employer": "Solarius Capital Acquisition Corp.",
+  "host": "careers.solariuscapital.com",
+  "systems": {}
+ },
+ {
+  "employer": "Solarius Capital Acquisition Corp.",
+  "host": "careers.solariuscapital.com",
+  "systems": {}
+ },
+ {
+  "employer": "Seneca Foods Corp",
+  "host": "careers.senecafoods.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Seneca Foods Corp",
+  "host": "careers.senecafoods.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Computacenter Plc/Adr",
+  "host": "careers.computacenter.com",
+  "systems": {}
+ },
+ {
+  "employer": "Umb Financial Corp",
+  "host": "careers.umb.com",
+  "systems": {
+   "workday": "https://umb.wd1.myworkdayjobs.com/UMBExternal"
+  }
+ },
+ {
+  "employer": "Eon Resources Inc.",
+  "host": "jobs.eon.com",
+  "systems": {
+   "oracle": "https://fa-eylc-saasfaeuraprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
+   "successfactors": "https://career5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Dte Energy Co",
+  "host": "careers.dteenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Dte Energy Co",
+  "host": "careers.dteenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Dte Energy Co",
+  "host": "careers.dteenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Santander Holdings Usa, Inc.",
+  "host": "careers.santander.com",
+  "systems": {
+   "workday": "https://santander.wd3.myworkdayjobs.com/en-US/SantanderCareers"
+  }
+ },
+ {
+  "employer": "Boeing Co",
+  "host": "jobs.boeing.com",
+  "systems": {
+   "workday": "https://boeing.wd1.myworkdayjobs.com/en-US/EXTERNAL_CAREERS",
+   "avature": "https://boeing.avature.net",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Brighthouse Financial, Inc.",
+  "host": "jobs.brighthousefinancial.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Brighthouse Financial, Inc.",
+  "host": "jobs.brighthousefinancial.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Brighthouse Financial, Inc.",
+  "host": "jobs.brighthousefinancial.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Brighthouse Financial, Inc.",
+  "host": "jobs.brighthousefinancial.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Brighthouse Financial, Inc.",
+  "host": "jobs.brighthousefinancial.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com"
+  }
+ },
+ {
+  "employer": "Enterprise Products Partners L.P.",
+  "host": "careers.enterpriseproducts.com",
+  "systems": {
+   "taleo": "https://epco.taleo.net/careersection/it"
+  }
+ },
+ {
+  "employer": "Kinder Morgan, Inc.",
+  "host": "careers.kindermorgan.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Adamas Trust, Inc.",
+  "host": "careers.adamas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Adamas Trust, Inc.",
+  "host": "careers.adamas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Adamas Trust, Inc.",
+  "host": "careers.adamas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Adamas Trust, Inc.",
+  "host": "careers.adamas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Adamas Trust, Inc.",
+  "host": "careers.adamas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Adamas Trust, Inc.",
+  "host": "careers.adamas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Adamas Trust, Inc.",
+  "host": "careers.adamas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Adamas Trust, Inc.",
+  "host": "careers.adamas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Adamas Trust, Inc.",
+  "host": "careers.adamas.com",
+  "systems": {}
+ },
+ {
+  "employer": "Revolution Medicines, Inc.",
+  "host": "jobs.revolution.com",
+  "systems": {
+   "workday": "https://tempus.wd5.myworkdayjobs.com/Tempus_Careers",
+   "greenhouse": "job-boards.greenhouse.io/kasa",
+   "lever": "jobs.lever.co/mylaurelhealth"
+  }
+ },
+ {
+  "employer": "Fusemachines Inc.",
+  "host": "jobs.fusemachines.com",
+  "systems": {}
+ },
+ {
+  "employer": "Mercari, Inc./Adr",
+  "host": "careers.mercari.com",
+  "systems": {}
+ },
+ {
+  "employer": "Qxo, Inc.",
+  "host": "jobs.qxo.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Entergy Mississippi, Llc",
+  "host": "jobs.entergy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Springer Nature Ag & Co. Kgaa/Adr",
+  "host": "careers.springernature.com",
+  "systems": {
+   "workday": "https://springernature.wd3.myworkdayjobs.com/SpringerNatureCareers"
+  }
+ },
+ {
+  "employer": "Reece Limited/Adr",
+  "host": "careers.reece.com",
+  "systems": {}
+ },
+ {
+  "employer": "Buzzfeed, Inc.",
+  "host": "jobs.buzzfeed.com",
+  "systems": {}
+ },
+ {
+  "employer": "Pembina Pipeline Corp",
+  "host": "careers.pembina.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Connectone Bancorp, Inc.",
+  "host": "careers.connectone.com",
+  "systems": {}
+ },
+ {
+  "employer": "Pembina Pipeline Corp",
+  "host": "careers.pembina.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Pembina Pipeline Corp",
+  "host": "careers.pembina.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Pembina Pipeline Corp",
+  "host": "careers.pembina.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Pembina Pipeline Corp",
+  "host": "careers.pembina.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Pembina Pipeline Corp",
+  "host": "careers.pembina.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Ford Motor Co",
+  "host": "careers.ford.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Ford Motor Co",
+  "host": "careers.ford.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Ford Motor Co",
+  "host": "careers.ford.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Machten, Inc.",
+  "host": "careers.machten.com",
+  "systems": {}
+ },
+ {
+  "employer": "System1, Inc.",
+  "host": "careers.system1.com",
+  "systems": {}
+ },
+ {
+  "employer": "Emera Inc",
+  "host": "careers.emera.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Emera Inc",
+  "host": "careers.emera.com",
+  "systems": {
+   "icims": "https://www.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Alibaba Group Holding Ltd",
+  "host": "careers.alibaba.com",
+  "systems": {}
+ },
+ {
+  "employer": "Citigroup Inc",
+  "host": "careers.citigroup.com",
+  "systems": {
+   "workday": "https://citi.wd5.myworkdayjobs.com/en-US/2",
+   "eightfold": "https://citi.eightfold.ai",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Citigroup Inc",
+  "host": "careers.citigroup.com",
+  "systems": {
+   "workday": "https://citi.wd5.myworkdayjobs.com/en-US/2",
+   "eightfold": "https://citi.eightfold.ai",
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Global Gas Corp",
+  "host": "careers.global.com",
+  "systems": {
+   "workday": "https://thisisglobal.wd3.myworkdayjobs.com/Global"
+  }
+ },
+ {
+  "employer": "Easyjet Plc",
+  "host": "careers.easyjet.com",
+  "systems": {
+   "taleo": "https://easyjet.taleo.net/careersection/2"
+  }
+ },
+ {
+  "employer": "Prenetics Global Ltd",
+  "host": "careers.prenetics.com",
+  "systems": {}
+ },
+ {
+  "employer": "Schindler Holding Ag/Adr",
+  "host": "careers.schindler.com",
+  "systems": {}
+ },
+ {
+  "employer": "Schindler Holding Ag/Adr",
+  "host": "careers.schindler.com",
+  "systems": {}
+ },
+ {
+  "employer": "Box Inc",
+  "host": "careers.box.com",
+  "systems": {}
+ },
+ {
+  "employer": "Whitecap Resources Inc.",
+  "host": "careers.whitecapresources.com",
+  "systems": {}
+ },
+ {
+  "employer": "Santander Bank Polska Sa/Adr",
+  "host": "jobs.santanderbank.com",
+  "systems": {
+   "radancy_mcloud": "radancy"
+  }
+ },
+ {
+  "employer": "Mountain Lake Acquisition Corp. Ii",
+  "host": "careers.mountainlake.com",
+  "systems": {}
+ },
+ {
+  "employer": "Mountain Lake Acquisition Corp. Ii",
+  "host": "careers.mountainlake.com",
+  "systems": {}
+ },
+ {
+  "employer": "Oracle Corp",
+  "host": "careers.oracle.com",
+  "systems": {}
+ },
+ {
+  "employer": "Santander Uk Plc",
+  "host": "careers.santander.com",
+  "systems": {
+   "workday": "https://santander.wd3.myworkdayjobs.com/en-US/SantanderCareers"
+  }
+ },
+ {
+  "employer": "Santander Uk Plc",
+  "host": "careers.santander.com",
+  "systems": {
+   "workday": "https://santander.wd3.myworkdayjobs.com/en-US/SantanderCareers"
+  }
+ },
+ {
+  "employer": "Occidental Petroleum Corp /De/",
+  "host": "careers.occidentalpetroleum.com",
+  "systems": {}
+ },
+ {
+  "employer": "National Grid Plc",
+  "host": "jobs.nationalgrid.com",
+  "systems": {}
+ },
+ {
+  "employer": "Applied Energetics, Inc.",
+  "host": "jobs.applied.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "National Grid Plc",
+  "host": "jobs.nationalgrid.com",
+  "systems": {}
+ },
+ {
+  "employer": "National Grid Plc",
+  "host": "jobs.nationalgrid.com",
+  "systems": {}
+ },
+ {
+  "employer": "National Grid Plc",
+  "host": "jobs.nationalgrid.com",
+  "systems": {}
+ },
+ {
+  "employer": "Jpmorgan Chase & Co",
+  "host": "careers.jpmorganchase.com",
+  "systems": {
+   "oracle": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001"
+  }
+ },
+ {
+  "employer": "Jpmorgan Chase & Co",
+  "host": "careers.jpmorganchase.com",
+  "systems": {
+   "oracle": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001"
+  }
+ },
+ {
+  "employer": "Jpmorgan Chase & Co",
+  "host": "careers.jpmorganchase.com",
+  "systems": {
+   "oracle": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001"
+  }
+ },
+ {
+  "employer": "Jpmorgan Chase & Co",
+  "host": "careers.jpmorganchase.com",
+  "systems": {
+   "oracle": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001"
+  }
+ },
+ {
+  "employer": "Jpmorgan Chase & Co",
+  "host": "careers.jpmorganchase.com",
+  "systems": {
+   "oracle": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001"
+  }
+ },
+ {
+  "employer": "Jpmorgan Chase & Co",
+  "host": "jobs.jpmorganchase.com",
+  "systems": {}
+ },
+ {
+  "employer": "Jpmorgan Chase & Co",
+  "host": "careers.jpmorganchase.com",
+  "systems": {
+   "oracle": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001"
+  }
+ },
+ {
+  "employer": "Phenixfin Corp",
+  "host": "jobs.phenixfin.com",
+  "systems": {}
+ },
+ {
+  "employer": "Venyra Corp",
+  "host": "careers.venyra.com",
+  "systems": {}
+ },
+ {
+  "employer": "Fuelcell Energy Inc",
+  "host": "careers.fuelcellenergy.com",
+  "systems": {
+   "successfactors": "https://hcm41.sapsf.com"
+  }
+ },
+ {
+  "employer": "Zions Bancorporation, National Association /Ut/",
+  "host": "careers.zionsbancorporation.com",
+  "systems": {}
+ },
+ {
+  "employer": "Yara International Asa",
+  "host": "jobs.yara.com",
+  "systems": {
+   "successfactors": "https://performancemanager.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Aib Group Plc/Adr",
+  "host": "careers.aib.com",
+  "systems": {}
+ },
+ {
+  "employer": "Bread Financial Holdings, Inc.",
+  "host": "careers.breadfinancial.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Bread Financial Holdings, Inc.",
+  "host": "careers.breadfinancial.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Bread Financial Holdings, Inc.",
+  "host": "careers.breadfinancial.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Super Micro Computer, Inc.",
+  "host": "jobs.supermicro.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Sunpower Inc.",
+  "host": "careers.sunpower.com",
+  "systems": {}
+ },
+ {
+  "employer": "Aeries Technology, Inc.",
+  "host": "careers.aeriestechnology.com",
+  "systems": {}
+ },
+ {
+  "employer": "Blue Water Acquisition Corp. Iii",
+  "host": "careers.bluewater.com",
+  "systems": {}
+ },
+ {
+  "employer": "Blue Water Acquisition Corp. Iii",
+  "host": "careers.bluewater.com",
+  "systems": {}
+ },
+ {
+  "employer": "Transalta Corp",
+  "host": "jobs.transalta.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Transalta Corp",
+  "host": "jobs.transalta.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Transalta Corp",
+  "host": "jobs.transalta.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Grove Collaborative Holdings, Inc.",
+  "host": "careers.grove.com",
+  "systems": {}
+ },
+ {
+  "employer": "Nightingale Health Plc",
+  "host": "careers.nightingalehealth.com",
+  "systems": {}
+ },
+ {
+  "employer": "Consumers Energy Co",
+  "host": "careers.consumersenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Regions Financial Corp",
+  "host": "careers.regions.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Regions Financial Corp",
+  "host": "careers.regions.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Assurant, Inc.",
+  "host": "jobs.assurant.com",
+  "systems": {
+   "workday": "https://assurant.wd1.myworkdayjobs.com/Assurant_Careers"
+  }
+ },
+ {
+  "employer": "Cid Holdco, Inc.",
+  "host": "careers.cid.com",
+  "systems": {}
+ },
+ {
+  "employer": "Hydro One Ltd",
+  "host": "jobs.hydroone.com",
+  "systems": {
+   "successfactors": "https://hcm47.sapsf.com"
+  }
+ },
+ {
+  "employer": "Thomson Reuters Corp /Can/",
+  "host": "careers.thomsonreuters.com",
+  "systems": {
+   "workday": "https://thomsonreuters.wd5.myworkdayjobs.com/External_Career_Site"
+  }
+ },
+ {
+  "employer": "Strive, Inc.",
+  "host": "careers.strive.com",
+  "systems": {}
+ },
+ {
+  "employer": "Wintrust Financial Corp",
+  "host": "careers.wintrust.com",
+  "systems": {
+   "workday": "https://wintrust.wd1.myworkdayjobs.com/Search"
+  }
+ },
+ {
+  "employer": "Blue Gold Ltd",
+  "host": "careers.blue.com",
+  "systems": {}
+ },
+ {
+  "employer": "Agnico Eagle Mines Ltd",
+  "host": "careers.agnicoeagle.com",
+  "systems": {
+   "taleo": "https://agnicoeagle.taleo.net/careersection/2"
+  }
+ },
+ {
+  "employer": "Xcel Energy Inc",
+  "host": "jobs.xcelenergy.com",
+  "systems": {
+   "workday": "https://xcelenergy.wd1.myworkdayjobs.com/External"
+  }
+ },
+ {
+  "employer": "Nextera Energy Inc",
+  "host": "jobs.nexteraenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com",
+   "avature": "https://nee.avature.net"
+  }
+ },
+ {
+  "employer": "Nextera Energy Inc",
+  "host": "jobs.nexteraenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com",
+   "avature": "https://nee.avature.net"
+  }
+ },
+ {
+  "employer": "Nextera Energy Inc",
+  "host": "jobs.nexteraenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com",
+   "avature": "https://nee.avature.net"
+  }
+ },
+ {
+  "employer": "Nextera Energy Inc",
+  "host": "jobs.nexteraenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com",
+   "avature": "https://nee.avature.net"
+  }
+ },
+ {
+  "employer": "Nextera Energy Inc",
+  "host": "jobs.nexteraenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com",
+   "avature": "https://nee.avature.net"
+  }
+ },
+ {
+  "employer": "Nextera Energy Inc",
+  "host": "jobs.nexteraenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager8.successfactors.com",
+   "avature": "https://nee.avature.net"
+  }
+ },
+ {
+  "employer": "Maruwa Co., Ltd./Adr",
+  "host": "careers.maruwa.com",
+  "systems": {}
+ },
+ {
+  "employer": "Coinshares Plc",
+  "host": "careers.coinshares.com",
+  "systems": {}
+ },
+ {
+  "employer": "General Catalyst Global Resilience Merger Corp.",
+  "host": "jobs.generalcatalyst.com",
+  "systems": {
+   "greenhouse": "job-boards.greenhouse.io/generalcatalyst"
+  }
+ },
+ {
+  "employer": "General Catalyst Global Resilience Merger Corp.",
+  "host": "jobs.generalcatalyst.com",
+  "systems": {
+   "greenhouse": "job-boards.greenhouse.io/generalcatalyst"
+  }
+ },
+ {
+  "employer": "East West Ave Acquisition Corp.",
+  "host": "careers.eastwest.com",
+  "systems": {}
+ },
+ {
+  "employer": "East West Ave Acquisition Corp.",
+  "host": "careers.eastwest.com",
+  "systems": {}
+ },
+ {
+  "employer": "Whirlpool Corp /De/",
+  "host": "jobs.whirlpool.com",
+  "systems": {
+   "successfactors": "https://dmscdn.successfactors.com",
+   "eightfold": "https://whirlpool.eightfold.ai"
+  }
+ },
+ {
+  "employer": "Valaris Ltd",
+  "host": "jobs.valaris.com",
+  "systems": {}
+ },
+ {
+  "employer": "Brc Group Holdings, Inc.",
+  "host": "careers.brc.com",
+  "systems": {}
+ },
+ {
+  "employer": "Brc Group Holdings, Inc.",
+  "host": "careers.brc.com",
+  "systems": {}
+ },
+ {
+  "employer": "Brc Group Holdings, Inc.",
+  "host": "careers.brc.com",
+  "systems": {}
+ },
+ {
+  "employer": "Brc Group Holdings, Inc.",
+  "host": "careers.brc.com",
+  "systems": {}
+ },
+ {
+  "employer": "Brc Group Holdings, Inc.",
+  "host": "careers.brc.com",
+  "systems": {}
+ },
+ {
+  "employer": "Newmont Corp /De/",
+  "host": "jobs.newmont.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Iheartmedia, Inc.",
+  "host": "careers.iheartmedia.com",
+  "systems": {
+   "workday": "https://iheartmedia.wd5.myworkdayjobs.com/External_iHM"
+  }
+ },
+ {
+  "employer": "Pg&E Corp",
+  "host": "careers.pge.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com",
+   "radancy_mcloud": "tmpwebeng"
+  }
+ },
+ {
+  "employer": "Anghami Inc",
+  "host": "careers.anghami.com",
+  "systems": {}
+ },
+ {
+  "employer": "First Citizens Bancshares Inc /De/",
+  "host": "jobs.firstcitizens.com",
+  "systems": {
+   "icims": "https://firstcitizens.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "First Citizens Bancshares Inc /De/",
+  "host": "jobs.firstcitizens.com",
+  "systems": {
+   "icims": "https://firstcitizens.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "First Citizens Bancshares Inc /De/",
+  "host": "jobs.firstcitizens.com",
+  "systems": {
+   "icims": "https://firstcitizens.icims.com",
+   "jibe": "jibeapply.com"
+  }
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ubs Ag",
+  "host": "careers.ubs.com",
+  "systems": {}
+ },
+ {
+  "employer": "Newcleo Plc",
+  "host": "careers.newcleo.com",
+  "systems": {}
+ },
+ {
+  "employer": "Kinross Gold Corp",
+  "host": "jobs.kinross.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Entergy Arkansas, Llc",
+  "host": "jobs.entergy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sachem Capital Corp.",
+  "host": "careers.sachem.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sachem Capital Corp.",
+  "host": "careers.sachem.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sachem Capital Corp.",
+  "host": "careers.sachem.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sachem Capital Corp.",
+  "host": "careers.sachem.com",
+  "systems": {}
+ },
+ {
+  "employer": "Sachem Capital Corp.",
+  "host": "careers.sachem.com",
+  "systems": {}
+ },
+ {
+  "employer": "Factorial Energy Inc.",
+  "host": "careers.factorial.com",
+  "systems": {}
+ },
+ {
+  "employer": "Truist Financial Corp",
+  "host": "careers.truist.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Truist Financial Corp",
+  "host": "careers.truist.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Truist Financial Corp",
+  "host": "careers.truist.com",
+  "systems": {
+   "phenom": "cdn.phenompeople"
+  }
+ },
+ {
+  "employer": "Gibson Energy Inc/Adr",
+  "host": "careers.gibsonenergy.com",
+  "systems": {
+   "successfactors": "https://performancemanager4.successfactors.com"
+  }
+ },
+ {
+  "employer": "Octave Intelligence Plc",
+  "host": "careers.octave.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "60 Degrees Pharmaceuticals, Inc.",
+  "host": "jobs.60degrees.com",
+  "systems": {}
+ },
+ {
+  "employer": "Entergy Louisiana, Llc",
+  "host": "jobs.entergy.com",
+  "systems": {}
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Enbridge Inc",
+  "host": "careers.enbridge.com",
+  "systems": {
+   "workday": "https://enbridge.wd3.myworkdayjobs.com/enbridge_careers"
+  }
+ },
+ {
+  "employer": "Aumovio Se",
+  "host": "jobs.aumovio.com",
+  "systems": {}
+ },
+ {
+  "employer": "Storagevault Canada Inc./Adr",
+  "host": "careers.storagevaultcanada.com",
+  "systems": {}
+ },
+ {
+  "employer": "Dillard'S, Inc.",
+  "host": "careers.dillards.com",
+  "systems": {}
+ },
+ {
+  "employer": "Blue Line Holdings, Inc.",
+  "host": "careers.blue.com",
+  "systems": {}
+ },
+ {
+  "employer": "Ses Ai Corp",
+  "host": "careers.ses.com",
+  "systems": {
+   "successfactors": "https://performancemanager5.successfactors.eu"
+  }
+ },
+ {
+  "employer": "Blue Water Acquisition Corp. Iv",
+  "host": "careers.bluewater.com",
+  "systems": {}
+ },
+ {
+  "employer": "Blue Water Acquisition Corp. Iv",
+  "host": "careers.bluewater.com",
+  "systems": {}
+ },
+ {
+  "employer": "Dollarama Inc./Adr",
+  "host": "jobs.dollarama.com",
+  "systems": {
+   "successfactors": "https://hcm17.sapsf.com"
+  }
+ }
+]
