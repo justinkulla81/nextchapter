@@ -63,6 +63,15 @@ const JOB_SOC_TTL_MS = 10 * 60_000
 const JOB_SOC_STALE_MS = 60 * 60_000
 /** How old a snapshot another build wrote may be and still be used: a deploy can change what is derived from the rows (the industry buckets). */
 const JOB_SOC_OTHER_BUILD_MAX_MS = 30 * 60_000
+/**
+ * How old the shared snapshot may be and still serve an instance, whether or not the board changed since. The board changes every few
+ * minutes (imports), so the "unchanged board" rule almost never held and each instance read the whole job table every ten minutes
+ * (448 pages of ~20k rows at ~10 s each in pg_stat_statements, a slow-pages alert on 2026-11-12). A job imported since is classified
+ * by its title until the next refresh, as above, so a half-hour-old read costs nothing a ten-minute-old one didn't.
+ */
+const JOB_SOC_SNAPSHOT_FRESH_MS = 30 * 60_000
+/** An instance refreshing a copy it already holds waits up to this long, then looks for another instance's snapshot before reading the database itself. */
+const JOB_SOC_REFRESH_JITTER_MS = 20_000
 
 type SimilarityIndex = Map<string, Map<string, SimilarOccupation>>
 let similarityMemo: { at: number; value: Promise<SimilarityIndex> } | null = null
@@ -165,14 +174,25 @@ const emptyOccupations = (): JobOccupations => ({
  * past the fresh window is served while a fresh read runs, as a warm instance's held
  * copy is. Else the database, and the result is written as the next snapshot.
  */
-async function firstJobSocs(): Promise<{ at: number; value: JobOccupations }> {
+async function snapshotJobSocs(): Promise<{ at: number; value: JobOccupations } | null> {
+  const [manifest, fingerprint] = await Promise.all([readManifest('occupations'), boardFingerprint()])
+  if (!manifest || !snapshotUsable(manifest, fingerprint, { freshMs: JOB_SOC_SNAPSHOT_FRESH_MS, otherBuildMaxMs: JOB_SOC_OTHER_BUILD_MAX_MS })) return null
+  const parts = await readParts(manifest)
+  const value = parts?.length === 1 ? decodeOccupations(parts[0]) : null
+  return value ? { at: Math.max(manifest.at, Date.now() - JOB_SOC_STALE_MS + 60_000), value } : null
+}
+
+async function firstJobSocs(opts: { holdingCopy?: boolean } = {}): Promise<{ at: number; value: JobOccupations }> {
   if (!snapshotsDisabled()) {
     try {
-      const [manifest, fingerprint] = await Promise.all([readManifest('occupations'), boardFingerprint()])
-      if (manifest && snapshotUsable(manifest, fingerprint, { freshMs: JOB_SOC_TTL_MS, otherBuildMaxMs: JOB_SOC_OTHER_BUILD_MAX_MS })) {
-        const parts = await readParts(manifest)
-        const value = parts?.length === 1 ? decodeOccupations(parts[0]) : null
-        if (value) return { at: Math.max(manifest.at, Date.now() - JOB_SOC_STALE_MS + 60_000), value }
+      const hit = await snapshotJobSocs()
+      if (hit) return hit
+      if (opts.holdingCopy) {
+        // Every instance's copy goes stale at about the same time: wait a random moment, then look again, so one instance's read
+        // serves the rest instead of each reading the table. Nobody waits on this: the held copy is served meanwhile.
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * JOB_SOC_REFRESH_JITTER_MS))
+        const again = await snapshotJobSocs()
+        if (again) return again
       }
     } catch (error) {
       console.error('Job occupations: snapshot unreadable, reading the database', error)
@@ -197,7 +217,7 @@ export function loadJobSocs(): Promise<JobOccupations> {
     // A refresh asks the shared snapshot first, like a cold start does: one instance's read serves every instance
     // for ten minutes, and an unchanged board is not read again. Reading the database here on every instance's every
     // refresh (the whole job table, in pages of 20k) was a main source of the Supabase egress overage.
-    const next = firstJobSocs()
+    const next = firstJobSocs({ holdingCopy: jobSocs !== null && now - jobSocs.at < JOB_SOC_STALE_MS })
     jobSocsLoading = next.then((r) => r.value)
     next.then(
       (r) => {
