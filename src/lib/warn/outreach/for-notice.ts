@@ -5,14 +5,14 @@ import { buildLocalPicture, classifyLayoffIndustry } from '@/lib/warn/layoff-con
 import { placeFromHeadlines } from '@/lib/warn/layoff-picture'
 import { layoffPeople } from '@/lib/warn/layoff-alert-people'
 import { draftContext } from '@/lib/warn/layoff-alert-links'
-import { queueLayoffOutreach, type OutreachResult } from './queue'
+import { queueLayoffOutreach, type OutreachResult, type QueueOptions } from './queue'
 
 /**
  * The outreach for a layoff whose alert went out in a digest (past the run's cap of full alerts), so it has no contact search
  * behind it. Finds the place, the industry, the local picture and the contacts the way the full alert does, from what is already
  * in the database (no new Hunter search, no model call), then queues the emails. Never throws.
  */
-export async function queueOutreachForNotice(noticeId: string): Promise<OutreachResult> {
+export async function queueOutreachForNotice(noticeId: string, opts?: QueueOptions): Promise<OutreachResult> {
   try {
     const n = await prisma.warnNotice.findUnique({
       where: { id: noticeId },
@@ -37,7 +37,7 @@ export async function queueOutreachForNotice(noticeId: string): Promise<Outreach
     const picture = await buildLocalPicture({ employer: n.employer, employees: n.employees, state, county: n.county, industryKey: industry?.key ?? null })
     const related = await layoffPeople(orgId, { state, county: n.county, city, address: n.address, workforceBoardId: n.workforceBoardId, industryKey: industry?.key ?? null })
     const ctx = await draftContext(picture, n.employer, state, n.county, noticeId)
-    return await queueLayoffOutreach({ noticeId, employer: n.employer, groups: related.groups, ctx: { ...ctx, track: undefined } })
+    return await queueLayoffOutreach({ noticeId, employer: n.employer, groups: related.groups, ctx: { ...ctx, track: undefined }, opts })
   } catch (e) {
     console.error('Layoff outreach for notice failed', noticeId, e)
     return { editions: 0, recipients: 0, skipped: 'error' }
