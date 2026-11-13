@@ -146,6 +146,11 @@ export default async function MailingListsPage() {
             <input name="coldDailyCap" type="number" min={1} max={10000} defaultValue={settings.coldDailyCap} className={input} />
             <span className="mt-1 block text-[11px] text-muted-foreground">People who replied or opened before, and contacts you know, are sent first and are not held to this. Everyone else shares it, so the sending domain grows on people who respond.</span>
           </label>
+          <label className="text-xs">
+            <span className="mb-1 block font-medium">Send from, for people who have not responded <span className="font-normal text-muted-foreground">an address on a separate subdomain; leave empty to use the main one</span></span>
+            <input name="coldFromEmail" type="email" defaultValue={settings.coldFromEmail} placeholder="justin@connect.launchyournextchapter.com" className={input} />
+            <span className="mt-1 block text-[11px] text-muted-foreground">Only use a domain that shows as verified in Resend, or these emails will fail to send.</span>
+          </label>
           <label className="text-xs sm:col-span-2">
             <span className="mb-1 block font-medium">Seed inboxes <span className="font-normal text-muted-foreground">your own Gmail, Outlook and Yahoo addresses, separated by commas</span></span>
             <input name="seedEmails" defaultValue={settings.seedEmails.join(', ')} className={input} />

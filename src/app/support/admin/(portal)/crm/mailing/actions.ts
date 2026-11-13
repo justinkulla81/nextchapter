@@ -379,6 +379,8 @@ export async function saveSettings(formData: FormData) {
   const rate = Math.max(1, Math.min(2000, parseInt(text('ratePerHour'), 10) || 50))
   const dailyCap = Math.max(1, Math.min(10000, parseInt(text('dailyCap'), 10) || 500))
   const coldDailyCap = Math.max(0, Math.min(dailyCap, parseInt(text('coldDailyCap'), 10) || 0 || 150))
+  const coldFromRaw = text('coldFromEmail').toLowerCase()
+  const coldFromEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(coldFromRaw) ? coldFromRaw : ''
   const seedEmails = Array.from(new Set(text('seedEmails').split(/[\s,;]+/).map((e) => e.toLowerCase()).filter((e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e))))
   const data = {
     fromName: text('fromName') || 'Justin Kulla',
@@ -388,6 +390,7 @@ export async function saveSettings(formData: FormData) {
     ratePerHour: rate,
     dailyCap,
     coldDailyCap,
+    coldFromEmail,
     seedEmails,
     footerText: text('footerText') || "Not interested? Just reply and I'll take you off my list. NextChapter · {{postalAddress}}",
     postalAddress: text('postalAddress'),
