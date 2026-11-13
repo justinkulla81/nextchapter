@@ -65,7 +65,7 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--csv", required=True); ap.add_argument("--out", required=True)
     a = ap.parse_args()
     names = [r["company"] for r in csv.DictReader(open(a.csv))]
-    with ThreadPoolExecutor(max_workers=16) as ex: res = list(ex.map(probe, names))
+    with ThreadPoolExecutor(max_workers=40) as ex: res = list(ex.map(probe, names))
     rep, srcs = [], []
     for n, r in zip(names, res):
         rep.append({"employer": n, **(r or {"platform": None})})

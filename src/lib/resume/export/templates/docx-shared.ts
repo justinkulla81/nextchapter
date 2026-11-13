@@ -1,5 +1,6 @@
 import {
   AlignmentType,
+  BorderStyle,
   convertInchesToTwip,
   LevelFormat,
   Paragraph,
@@ -67,6 +68,8 @@ export function headingParagraph(
   const label = tokens.headingCase === 'uppercase' ? text.toUpperCase() : text
   return new Paragraph({
     spacing: { before: pt(spaceBeforeHeadingPt(tokens)), after: pt(tokens.spaceAfterHeadingPt) },
+    // A thin rule under the heading, for the templates that set it. A paragraph border, not a table or a drawn line.
+    border: tokens.headingRule ? { bottom: { style: BorderStyle.SINGLE, size: 4, space: 1, color: '777777' } } : undefined,
     children: [
       new TextRun({
         text: label,
@@ -88,8 +91,9 @@ export function labelWithRightDateParagraph(options: {
   tokens: ResumeTemplateStyleTokens
   spacingBeforePt?: number
   spacingAfterPt?: number
+  italicRight?: boolean
 }): Paragraph {
-  const { leftRuns, dateLabel, tokens, spacingBeforePt = 0, spacingAfterPt = 0 } = options
+  const { leftRuns, dateLabel, tokens, spacingBeforePt = 0, spacingAfterPt = 0, italicRight = false } = options
   return new Paragraph({
     spacing: { before: pt(spacingBeforePt), after: pt(spacingAfterPt) },
     children: [
@@ -114,6 +118,7 @@ export function labelWithRightDateParagraph(options: {
         ],
         font: tokens.docxFontFamily,
         size: pt(tokens.bodySizePt),
+        italics: italicRight,
       }),
     ],
   })
