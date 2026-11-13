@@ -51,6 +51,16 @@ describe('readManifest across builds', () => {
     expect(isOtherBuild(m!)).toBe(true)
   })
 
+  it('serves the board written by the build before a deploy, and ignores a pre-shape one', async () => {
+    const { fetchMock } = fakeStorage({
+      'production/board-core/manifest.json': manifest({ kind: 'board-core', shape: 'board-1' }),
+      'production/board-early/manifest.json': manifest({ kind: 'board-early', shape: undefined }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    expect((await readManifest('board-core'))?.build).toBe('build-old')
+    expect(await readManifest('board-early')).toBeNull()
+  })
+
   it('ignores one written in another shape, and one written before shapes existed', async () => {
     const wrong = fakeStorage({ 'production/occupations/manifest.json': manifest({ shape: 'occupations-0' }) })
     vi.stubGlobal('fetch', wrong.fetchMock)
@@ -67,13 +77,16 @@ describe('readManifest across builds', () => {
     expect((await readManifest('search-facts'))?.kind).toBe('search-facts')
   })
 
-  it('still reads the board kinds only from the build that wrote them', async () => {
-    const other = fakeStorage({ 'production/board-core/manifest.json': manifest({ kind: 'board-core', shape: undefined }) })
-    vi.stubGlobal('fetch', other.fetchMock)
+  it('reads a board written before shapes existed from no build, and one in the wrong shape', async () => {
+    const legacyOther = fakeStorage({ 'production/board-core/manifest.json': manifest({ kind: 'board-core', shape: undefined }) })
+    vi.stubGlobal('fetch', legacyOther.fetchMock)
     expect(await readManifest('board-core')).toBeNull()
-    const same = fakeStorage({ 'production/board-core/manifest.json': manifest({ kind: 'board-core', build: 'build-new', shape: undefined }) })
-    vi.stubGlobal('fetch', same.fetchMock)
-    expect((await readManifest('board-core'))?.build).toBe('build-new')
+    const legacySame = fakeStorage({ 'production/board-core/manifest.json': manifest({ kind: 'board-core', build: 'build-new', shape: undefined }) })
+    vi.stubGlobal('fetch', legacySame.fetchMock)
+    expect(await readManifest('board-core')).toBeNull()
+    const wrong = fakeStorage({ 'production/board-core/manifest.json': manifest({ kind: 'board-core', shape: 'board-0' }) })
+    vi.stubGlobal('fetch', wrong.fetchMock)
+    expect(await readManifest('board-core')).toBeNull()
   })
 
   it('rejects a manifest of another kind or format', async () => {
@@ -87,7 +100,7 @@ describe('readManifest across builds', () => {
 })
 
 describe('writeSnapshot', () => {
-  it('stamps a build-independent kind with its shape and leaves the board kinds without one', async () => {
+  it('stamps every build-independent kind, the boards included, with its shape', async () => {
     const a = fakeStorage()
     vi.stubGlobal('fetch', a.fetchMock)
     await writeSnapshot('search-facts', 'fp-a', NOW, [{ v: 1, ids: [], strings: [] }], 0)
@@ -97,7 +110,7 @@ describe('writeSnapshot', () => {
     const b = fakeStorage()
     vi.stubGlobal('fetch', b.fetchMock)
     await writeSnapshot('board-core', 'fp-b', NOW, [{}], 1)
-    expect(JSON.parse(b.store.get('production/board-core/manifest.json')!).shape).toBeUndefined()
+    expect(JSON.parse(b.store.get('production/board-core/manifest.json')!)).toMatchObject({ shape: SNAPSHOT_SHAPES['board-core'], build: 'build-new' })
   })
 
   it('builds a part that is given as a function only when its turn comes, one at a time', async () => {
@@ -137,6 +150,13 @@ describe('snapshotUsable', () => {
     expect(board(manifest({ kind: 'board-core', build: 'build-new', at: NOW - 2 * MIN, fingerprint: 'old' }), 'new')).toBe(true)
     expect(board(manifest({ kind: 'board-core', build: 'build-new', at: NOW - 4 * MIN, fingerprint: 'old' }), 'new')).toBe(false)
     expect(board(manifest({ kind: 'board-core', build: 'build-new', at: NOW - 4 * MIN, fingerprint: 'same' }), 'same')).toBe(true)
+  })
+
+  it('holds the board another build wrote to five minutes, changed board or not, and this build\'s own to three or an unchanged board', () => {
+    const board = (m: SnapshotManifest, fp: string | null) => snapshotUsable(m, fp, { freshMs: 3 * MIN, otherBuildMaxMs: 5 * MIN, now: NOW, env })
+    expect(board(manifest({ kind: 'board-core', at: NOW - 4 * MIN, fingerprint: 'old' }), 'new')).toBe(true)
+    expect(board(manifest({ kind: 'board-core', at: NOW - 6 * MIN, fingerprint: 'same' }), 'same')).toBe(false)
+    expect(board(manifest({ kind: 'board-core', build: 'build-new', at: NOW - 4 * MIN, fingerprint: 'old' }), 'new')).toBe(false)
   })
 
   it('holds another build\'s snapshot to the shorter limit, whatever the board did', () => {
