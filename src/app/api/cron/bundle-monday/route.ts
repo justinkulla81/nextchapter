@@ -13,6 +13,8 @@ import { GET as talent_digest } from '../talent-digest/route'
 import { GET as neogov_feed } from '../neogov-feed/route'
 import { GET as k12jobspot_feed } from '../k12jobspot-feed/route'
 import { GET as usajobs_board_feed } from '../usajobs-board-feed/route'
+import { GET as edjoin_feed } from '../edjoin-feed/route'
+import { GET as careersingov_feed } from '../careersingov-feed/route'
 
 // Jobs run in this order, lightest first, so one slow job at the end cannot hold up the rest.
 export const maxDuration = 800
@@ -32,4 +34,6 @@ export const GET = cronBundle({
   'neogov-feed': neogov_feed,
   'k12jobspot-feed': k12jobspot_feed,
   'usajobs-board-feed': usajobs_board_feed,
+  'edjoin-feed': edjoin_feed,
+  'careersingov-feed': careersingov_feed,
 })

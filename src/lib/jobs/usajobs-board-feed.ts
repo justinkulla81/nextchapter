@@ -15,7 +15,7 @@ import { fetchRecentJoas, joaToKept } from '@/lib/jobs/usajobs-board-core'
 
 const URL_PREFIX = 'https://www.usajobs.gov/job/'
 const WINDOW_DAYS = 45
-const TIME_BUDGET_MS = 100_000
+const TIME_BUDGET_MS = 80_000
 const SRC = { addedBy: 'usajobs_feed', sourceName: 'USAJOBS' }
 
 export interface UsajobsBoardResult {

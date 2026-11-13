@@ -54,7 +54,7 @@ export const CRON_BUNDLES: Readonly<Record<string, readonly string[]>> = {
   'bundle-company-light': ['company-events', 'company-outcomes'],
   'bundle-tuesday-digests': ['market-digest-recruiters', 'market-digest-employers', 'weekly-read', 'market-digest-coaches', 'upgrade-offer', 'network-digest'],
   'bundle-wednesday': ['nudge-recruiter-network-unlock', 'win-back'],
-  'bundle-monday': ['layoff-roundup', 'senior-brief', 'outplacement-agent', 'course-scan', 'higher-ed-weekly', 'market-reality-snapshot', 'auto-assign-sprint', 'conference-recheck', 'population-snapshot', 'db-slow-query-report', 'talent-digest', 'neogov-feed', 'k12jobspot-feed', 'usajobs-board-feed'],
+  'bundle-monday': ['layoff-roundup', 'senior-brief', 'outplacement-agent', 'course-scan', 'higher-ed-weekly', 'market-reality-snapshot', 'auto-assign-sprint', 'conference-recheck', 'population-snapshot', 'db-slow-query-report', 'talent-digest', 'neogov-feed', 'k12jobspot-feed', 'usajobs-board-feed', 'edjoin-feed', 'careersingov-feed'],
   'bundle-sunday': ['partner-scores', 'workforce-boards', 'job-segments'],
   'bundle-afternoon': ['lead-nurture', 'layoff-alerts', 'job-alerts', 'deadline-reminders', 'census-comms', 'notify-recruiters-new-candidates', 'backchannel-match', 'registration-reminders', 'interim-role-reverify'],
   'bundle-hourly-light': ['indexnow-layoffs', 'mailing-verify', 'mailing-open-reconcile', 'topic-snapshots', 'layoff-outreach', 'direct-reverify'],

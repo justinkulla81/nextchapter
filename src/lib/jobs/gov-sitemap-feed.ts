@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { screenImportedJob } from '@/lib/jobs/import-screen'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
-import { boardRow, collectFromPages, fetchText, THIRTY_DAYS_MS, type CollectStats, type FeedSource, type SitemapJob } from '@/lib/jobs/gov-feed-core'
+import { boardRow, collectFromPages, dedupeKey, fetchText, THIRTY_DAYS_MS, type CollectStats, type FeedSource, type SitemapJob } from '@/lib/jobs/gov-feed-core'
 
 // A government job site that publishes a sitemap of its open jobs, with schema.org JobPosting data on each job page.
 // Each run: re-confirms board rows still in the sitemap (so they stay on the board), archives rows that left it, and
@@ -20,6 +20,13 @@ export interface SitemapFeedConfig extends FeedSource {
   titleOk: (title: string) => boolean
   /** A sitemap with fewer jobs than this is treated as broken and changes nothing. */
   minJobs: number
+  /**
+   * Job ids rise over time and the sitemap has no titles (EdJoin). Only ids above the highest id already on the board are
+   * fetched, newest first, so jobs the board screen rejected are not fetched again every week.
+   */
+  numericIds?: boolean
+  /** Skip a job whose employer and title match a live board row whose url starts with one of these (an indexed range read each). */
+  dedupeAgainstUrlPrefixes?: string[]
   maxNewPerRun: number
   timeBudgetMs: number
   workers?: number
@@ -59,12 +66,24 @@ export async function runSitemapFeed(cfg: SitemapFeedConfig): Promise<SitemapFee
   }
 
   const relevant = jobs.filter((j) => cfg.titleOk(j.title))
-  const candidates = relevant
-    .filter((j) => !known.has(j.url))
-    // The same US and seniority screen on the slug title alone, so jobs the board would drop are not fetched.
-    .filter((j) => screenImportedJob(j.title, 'United States').keep)
-    .slice(0, cfg.maxNewPerRun)
-  const { kept, stats } = await collectFromPages(candidates, { workers: cfg.workers ?? 6, fetchTimeoutMs: 15_000, deadline: started + cfg.timeBudgetMs, now })
+  let pool = relevant.filter((j) => !known.has(j.url))
+  if (cfg.numericIds) {
+    const maxKnown = Math.max(0, ...jobs.filter((j) => known.has(j.url)).map((j) => Number(j.id) || 0))
+    pool = pool.filter((j) => Number(j.id) > maxKnown).sort((a, b) => Number(b.id) - Number(a.id))
+  }
+  // The same US and seniority screen on the slug title alone, so jobs the board would drop are not fetched.
+  const candidates = pool.filter((j) => !j.title || screenImportedJob(j.title, 'United States').keep).slice(0, cfg.maxNewPerRun)
+  const collected = await collectFromPages(candidates, { workers: cfg.workers ?? 6, fetchTimeoutMs: 15_000, deadline: started + cfg.timeBudgetMs, now })
+  const stats = collected.stats
+  let kept = collected.kept
+  if (cfg.dedupeAgainstUrlPrefixes?.length && kept.length > 0) {
+    const others = await prisma.exclusiveJobPosting.findMany({
+      where: { archivedAt: null, OR: cfg.dedupeAgainstUrlPrefixes.map((p) => ({ url: { gte: p, lt: p + '\uffff' } })) },
+      select: { title: true, companyName: true },
+    })
+    const seen = new Set(others.map((o) => dedupeKey(o.companyName, o.title)))
+    kept = kept.filter((k) => !seen.has(dedupeKey(k.posting.employer, k.posting.title)))
+  }
 
   let created = 0
   if (kept.length > 0) {
