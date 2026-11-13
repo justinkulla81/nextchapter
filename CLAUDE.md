@@ -234,6 +234,20 @@ Check where it stands with `pg_stat_statements` (order by `rows`) and the Usage 
 `db-slow-query-report` (`src/lib/perf/db-report.ts`) emails the week's top statements by time, rows returned and disk reads, the cache
 hit share and the watched tables' growth, so a statement that keeps coming back is the one to fix.
 
+## Search indexing: no changes without the owner's approval
+
+Owner rule (2026-11-13). Between Oct 22 and Nov 5, 2026 the job sitemap was pushed (~176k), cut (~45k), answered 410 Gone,
+had its Google pings paused, and came back (~200k). Google's indexed pages fell from about 165k to 40k and search visits from
+about 230 a day to about 30. Search traffic must grow, and changing these signals is what shrank it.
+
+Ask the owner first, and say what it will do to indexed pages, before any change that removes or hides public URLs from search:
+- 410, 404 or a redirect for a page type, or `noindex` on a page type, or a quality bar that moves pages below it
+- removing URLs or files from any sitemap or the sitemap index, pausing shards (`JOB_SITEMAP_SHARDS_LIVE`), or `PAUSE_HEAVY_PAGES`
+- pausing or cutting the Google Indexing API or IndexNow pings, or a `robots.txt` Disallow on a public path
+
+Fixing a page so it loads, adding pages, and the normal 404 for a single closed job are fine. A database or egress emergency
+is not an exception: make the page cheap to serve (cache, snapshot) instead of hiding it from Google.
+
 ## Build and 404 rules
 - A page must not need the live database to prerender if the query is heavy (a scan of jobs, companies or notices). `next build` runs seven workers at once against the database, and one statement timeout fails the whole deploy. Use `export const dynamic = 'force-dynamic'` and a `Vercel-CDN-Cache-Control` header in `next.config.ts` (see `/salaries`, `/top-employers`; a plain `Cache-Control` is ignored on a per-request page, so check `x-vercel-cache: HIT` on a GET after deploy), or `generateStaticParams() { return [] }` for dynamic routes.
 - A route folder with only `[slug]` children needs a redirect in `next.config.ts` for its parent address; `src/test/route-orphans.test.ts` fails otherwise. Unknown slugs redirect to the nearest real page (`resolveCompanySlug`), they do not 404.
