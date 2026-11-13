@@ -105,9 +105,9 @@ const lightCache = new Map<string, { at: number; rows: Promise<LightRow[]> }>()
 /** A job's prior closures (ghost-risk.ts) for its company + title + location. */
 const priorClosures = (p: LightRow, closedCounts: Map<string, number>) => closedCounts.get(repostKey(p.companyName, p.title, p.location)) ?? 0
 
-/** Not confidently outside the US, and not a listing that looks evergreen or fake (ghost-risk.ts). */
 // What this keeps (and priorClosures counts) is stored in the shared board snapshot, which outlives a deploy: when it changes, bump
 // SNAPSHOT_SHAPES['board-core'] and ['board-early'] in board-snapshot.ts.
+/** Not confidently outside the US, and not a listing that looks evergreen or fake (ghost-risk.ts). */
 function keepRelevant(all: LightRow[], closedCounts: Map<string, number>, listed: Map<string, number>): LightRow[] {
   const nowMs = Date.now()
   // Only relevant jobs reach a member. Excluded rows are kept in the database —
