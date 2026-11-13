@@ -50,20 +50,23 @@ export async function loadAddressFacts(items: { email: string; personId?: string
           select: { id: true, email: true, emails: true, emailVerifiedStatus: true, emailVerifyScore: true, emailVerifiedAt: true, warmth: true, firstRepliedAt: true },
         })
       : Promise.resolve([]),
-    prisma.$queryRaw<{ dom: string; n: bigint; b: bigint }[]>`
+    // Resend reports most bounces as delivered too, so a delivery counts only when the email did not bounce.
+    prisma.$queryRaw<{ dom: string; n: bigint; b: bigint; lb: Date | null; lc: Date | null }[]>`
       SELECT split_part(lower(email), '@', 2) AS dom,
-             count(*) FILTER (WHERE "deliveredAt" IS NOT NULL) AS n, count(*) FILTER (WHERE "bouncedAt" IS NOT NULL) AS b
+             count(*) FILTER (WHERE "deliveredAt" IS NOT NULL AND "bouncedAt" IS NULL) AS n, count(*) FILTER (WHERE "bouncedAt" IS NOT NULL) AS b,
+             max("bouncedAt") AS lb, max("deliveredAt") FILTER (WHERE "bouncedAt" IS NULL) AS lc
       FROM "MailingEditionRecipient" WHERE split_part(lower(email), '@', 2) = ANY(${domains}::text[]) GROUP BY 1`,
-    prisma.$queryRaw<{ dom: string; n: bigint }[]>`
-      SELECT split_part(lower(email), '@', 2) AS dom, count(*) AS n
+    prisma.$queryRaw<{ dom: string; n: bigint; lb: Date | null }[]>`
+      SELECT split_part(lower(email), '@', 2) AS dom, count(*) AS n, max("createdAt") AS lb
       FROM "MailingSuppression" WHERE reason = 'BOUNCED' AND split_part(lower(email), '@', 2) = ANY(${domains}::text[]) GROUP BY 1`,
     prisma.addressVerification.findMany({ where: { email: { in: emails } }, select: { email: true, status: true, score: true, checkedAt: true } }),
   ])
   const directory = new Map(saved.map((v) => [v.email, v]))
   const person = new Map(people.map((p) => [p.id, p]))
-  const dom = new Map<string, { d: number; b: number }>()
-  for (const r of delivered) dom.set(r.dom, { d: Number(r.n), b: Number(r.b) })
-  for (const r of bounced) { const x = dom.get(r.dom) ?? { d: 0, b: 0 }; x.b = Math.max(x.b, Number(r.n)); dom.set(r.dom, x) }
+  const dom = new Map<string, { d: number; b: number; lb: Date | null; lc: Date | null }>()
+  const later = (a: Date | null, b: Date | null) => (!a ? b : !b ? a : a > b ? a : b)
+  for (const r of delivered) dom.set(r.dom, { d: Number(r.n), b: Number(r.b), lb: r.lb, lc: r.lc })
+  for (const r of bounced) { const x = dom.get(r.dom) ?? { d: 0, b: 0, lb: null, lc: null }; x.b = Math.max(x.b, Number(r.n)); x.lb = later(x.lb, r.lb); dom.set(r.dom, x) }
   const mx = new Map<string, boolean | null>()
   await Promise.all(domains.map(async (d) => { mx.set(d, await hasMailServer(d)) }))
 
@@ -81,6 +84,8 @@ export async function loadAddressFacts(items: { email: string; personId?: string
       replied: !!p?.firstRepliedAt,
       domainDelivered: d?.d ?? 0,
       domainBounced: d?.b ?? 0,
+      domainLastBounceAt: d?.lb ?? null,
+      domainLastCleanAt: d?.lc ?? null,
       mx: mx.get(domainOf(email)) ?? null,
       directory: directory.get(email) ? { status: directory.get(email)!.status, score: directory.get(email)!.score, at: directory.get(email)!.checkedAt } : null,
     })
