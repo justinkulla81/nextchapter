@@ -46,6 +46,46 @@ export async function getFreshLayoffLinks(limit: number = LAYOFF_LINKS): Promise
     .map((x) => ({ label: `${x.name} layoffs`, href: `/layoffs/company/${x.slug}`, kind: 'layoff' as const, key: x.slug }))
 }
 
+const BIG_LAYOFF_WORKERS = 1000
+const BIG_LAYOFF_DAYS = 7
+
+/**
+ * Big layoffs first (owner, 2026-11-13): employers cutting at least 1,000 jobs in the last week, largest first, with the number in the
+ * link. "<company> layoffs" searches peak in the first days, and the homepage and the layoff hub are the pages Google rechecks most.
+ * Pure so the window and the sum can be tested; the loader below reads the same shared notices and announcements as the list above.
+ */
+export function bigLayoffs(
+  notices: { slug: string; employer: string; noticeDate: string; workers: number | null }[],
+  announcements: { slug: string; name: string; items: { date: Date; workers: number | null }[] }[],
+  now: number,
+  limit = 8,
+): FreshLink[] {
+  const since = now - BIG_LAYOFF_DAYS * 86_400_000
+  const by = new Map<string, { name: string; workers: number }>()
+  for (const n of notices) {
+    if (!n.slug || !n.workers || Date.parse(n.noticeDate) < since) continue
+    const prev = by.get(n.slug)
+    by.set(n.slug, { name: prev?.name ?? n.employer, workers: (prev?.workers ?? 0) + n.workers })
+  }
+  for (const a of announcements) {
+    const top = Math.max(0, ...a.items.filter((i) => i.date.getTime() >= since && i.workers).map((i) => i.workers as number))
+    if (!a.slug || top === 0) continue
+    const prev = by.get(a.slug)
+    // A press report and a filing are usually the same cut: keep the larger figure, never the sum.
+    if (!prev || top > prev.workers) by.set(a.slug, { name: prev?.name ?? a.name, workers: top })
+  }
+  return [...by.entries()]
+    .filter(([, v]) => v.workers >= BIG_LAYOFF_WORKERS && v.name)
+    .sort((a, b) => b[1].workers - a[1].workers)
+    .slice(0, limit)
+    .map(([slug, v]) => ({ label: `${v.name} layoffs: ${v.workers.toLocaleString('en-US')} jobs`, href: `/layoffs/company/${slug}`, kind: 'layoff' as const, key: slug }))
+}
+
+export async function getBigLayoffLinks(limit = 8): Promise<FreshLink[]> {
+  const [notices, announcements] = await Promise.all([getRecentNotices().catch(() => []), getAnnouncements().catch(() => new Map())])
+  return bigLayoffs(notices, [...announcements.values()], Date.now(), limit)
+}
+
 // The newest jobs that are in the job sitemap (public page, real posting text, live, offered to search engines): the same rules as
 // src/app/jobs/sitemap.ts, newest first, eight rows. Cached for half an hour so a page view never runs it.
 // It first takes the newest NEWEST_WINDOW postings by creation date (an index walk) and only then applies the full rules, which
