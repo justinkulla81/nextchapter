@@ -247,10 +247,11 @@ ${who}
 }
 
 /** The notice's label: how many outlets, and the share of staff when the text gave one. */
-export function layoffTypeLabel(o: { publishers: number; publisher: string | null; percent: number | null }): string {
-  const base = o.publishers >= 2
+export function layoffTypeLabel(o: { publishers: number; publisher: string | null; percent: number | null; event?: string | null }): string {
+  const lead = o.event && o.event !== 'Layoff' ? `${o.event} · ` : ''
+  const base = lead + (o.publishers >= 2
     ? `Reported by ${o.publishers} publishers`
-    : `Reported by 1 publisher (${o.publisher ?? 'unknown'}) — unconfirmed`
+    : `Reported by 1 publisher (${o.publisher ?? 'unknown'}) — unconfirmed`)
   return o.percent ? `${base} · ${o.percent}% of staff` : base
 }
 
