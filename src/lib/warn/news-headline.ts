@@ -118,8 +118,8 @@ const NOT_A_NAME = /\b(stock|shares|firm|giant|maker|makers|retailer|chain|plant
  * Arsenal's decision"), or a place or thing ("South Fort Meade facility", "LC4 budget proposal"). Found in the news-reported layoffs on
  * 2026-10-27: about 30 of 137 had a name like these.
  */
-const BARE_WORD = /^(?:the|a|an|ai|us|u\.s\.|usa|announcing|announces|corporate jobs|jobs|job cuts|layoffs?|more|big four bank|australian bank)$/i
-const FRAGMENT = /\b(?:to|expects?|expected|blamed|blames?|posts?|defends?|defend|aims?|discontinues?|shuts?|closes?|closing|decision|proposal|budget|calls?|will|would|could|reorganization|says?|said|says|names?|hits?|falls?|rises?|invites?|urges?|asks?|woos?|courts?|lures?|assures?)\b/i
+const BARE_WORD = /^(?:the|a|an|ai|us|u\.s\.|usa|announcing|announces|corporate jobs|jobs|job cuts|layoffs?|more|big four bank|australian bank|about|over|from|almost|despite|it|u|people|management|staffing|staffers|journalism|head office|corporate headquarters|commercial (?:airplane|aircraft|airliner|plane)|civil aircraft|water leak|q3|prominent business|national nonprofit)$/i
+const FRAGMENT = /\b(?:on|to|expects?|expected|blamed|blames?|posts?|defends?|defend|aims?|discontinues?|shuts?|closes?|closing|decision|proposal|budget|calls?|will|would|could|reorganization|says?|said|says|names?|hits?|falls?|rises?|invites?|urges?|asks?|woos?|courts?|lures?|assures?)\b/i
 const PLACE_OR_THING = /\b(?:facility|factory|plant|operator|manufacturer|contractor|council|dev|news|skill games)\b/i
 const DANGLING_END = /\b(?:to|and|for|of|at|in|on|with|by|as|the|a)$/i
 export function isPlausibleCompany(name: string): boolean {
@@ -153,7 +153,10 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
     .replace(/\s+/g, ' ')
     .trim()
     // "Online whiteboard company Miro cuts…": a lowercase description before the name is not part of it.
-    .replace(/^(?:[A-Za-z][\w-]* ){1,4}(?:company|firm|startup|start-up|maker|giant|platform|provider|unicorn|vendor|retailer) (?=[A-Z0-9])/, '')
+    .replace(/^(?:[A-Za-z][\w-]* ){1,4}(?:company|firm|startup|start-up|maker|giant|platform|provider|unicorn|vendor|retailer|publisher|insurer|lender|carmaker|automaker|airline|developer|host|manufacturer|supplier|brewer|chipmaker|drugmaker|biotech|conglomerate) (?=[A-Z0-9])/, '')
+    // "Insurer FM", "Cambridge-based HubSpot", "Norway's biggest bank DNB": a sector word or place in front of the name is not part of it.
+    .replace(/^(?:Insurer|Lender|Carmaker|Automaker|Airline|Publisher|Retailer|Chipmaker|Drugmaker|Brewer|Bank|Insurance giant|Tech giant) (?=[A-Z0-9])/, '')
+    .replace(/^(?:[A-Z][\w.]*(?: [A-Z][\w.]*)?-based|[A-Z][\w.]*(?: [A-Z][\w.]*)?['’]s (?:biggest|largest|top)) (?:[a-z-]+ ){0,3}?(?=[A-Z0-9])/, '')
     // An aside after the name ("Miro, valued at $17.5B, lays off…").
     .replace(/^([^,]{2,40}),\s*(?:valued at|backed by|which|once valued)[^,]*,\s*/i, '$1 ')
     // A section label in front of the headline is not part of the subject.
@@ -174,7 +177,7 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
   const m = strong ?? buyout ?? weak
   const raw = (m?.groups?.co ?? m?.groups?.tco?.replace(/\s+(?:teams?|staff|workforce|employees|workers)$/i, ''))?.trim()
   if (!raw) return null
-  const named = raw.replace(/\s+(?:merger|acquisition|takeover|deal)$/i, '').replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
+  const named = raw.replace(/\s+(?:merger|acquisition|takeover|deal)$/i, '').replace(/\s+(?:has|have|had|is|are|was|were|moves|may|might)(?: been)?$/i, '').replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
   const company = BRAND_NAMES[named.toLowerCase()] ?? named
   if (company.length < 2 || NOT_A_NAME.test(company) || !isPlausibleCompany(company)) return null
   const companyKey = normalizeOrgName(company)
