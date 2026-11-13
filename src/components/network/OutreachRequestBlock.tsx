@@ -35,6 +35,7 @@ export function OutreachRequestBlock({ slug, employer, people: peopleCount = nul
   useEffect(() => {
     if (forceTags) return
     const t = readOutreachTags(window.location.search)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only: the query string is not available when the page is rendered
     if (t) { setTags(t); posthog.capture('outreach_landing_viewed', { slug, role: t.role, audience: t.audience, arm: t.arm, noticeId: t.noticeId }) }
   }, [slug, forceTags])
   const [state, submit, sending] = useActionState<OutreachRequestState, FormData>(submitOutreachRequest, undefined)

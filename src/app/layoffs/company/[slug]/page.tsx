@@ -100,6 +100,11 @@ function guidePlaces(c: CompanySummary): Record<string, string | null> {
   return out
 }
 
+/** Whether a date is within the last year. Kept out of the component: Date.now() may not be called during render (react-hooks/purity). */
+function withinLastYear(d: Date): boolean {
+  return Date.now() - d.getTime() < 365 * 86_400_000
+}
+
 const KIND_LABEL = { buyout: 'Voluntary buyout offer', layoff: 'Reported layoff' } as const
 
 const FAQ_STATES = 3
@@ -229,7 +234,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
     : latestAnn ? <>{reportLine(noticeDay(latestAnn.date), latestAnn.summary)}</>
     : null
   // A smaller employer (under the network page's minimum) with a layoff in the last year gets the same hero as the network pages.
-  const useNetworkLook = variant === 'layoff' && hasNotices && workers >= 50 && !isNetworkCompany(c) && Date.now() - c.latest.getTime() < 365 * 86_400_000
+  const useNetworkLook = variant === 'layoff' && hasNotices && workers >= 50 && !isNetworkCompany(c) && withinLastYear(c.latest)
   const newestNotice = [...c.notices].sort((a, b) => b.noticeDate.getTime() - a.noticeDate.getTime())[0]
   const newestWhere = newestNotice ? [newestNotice.city ?? newestNotice.place, stateName(newestNotice.state)].filter(Boolean).join(', ') : ''
   const newestDetail = newestNotice
