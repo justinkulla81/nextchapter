@@ -308,6 +308,8 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
   let sent = 0
   let failed = 0
   const dne = await doNotEmailPeople()
+  // Layoff outreach is time-sensitive and tiny (a handful of recipients): it goes first, ahead of any bulk edition that started earlier.
+  editions.sort((a, b) => Number(b.campaign === LAYOFF_OUTREACH_CAMPAIGN) - Number(a.campaign === LAYOFF_OUTREACH_CAMPAIGN))
   const layoffWindowOpen = inLayoffSendWindow(now)
   for (const edition of editions) {
     // Layoff outreach waits for its own 8 a.m. to noon weekday window; it stays SENDING with its recipients pending.
