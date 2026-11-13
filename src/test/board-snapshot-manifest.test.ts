@@ -132,6 +132,13 @@ describe('snapshotUsable', () => {
     expect(use(manifest({ build: 'build-new', at: NOW - 3 * 60 * MIN }), null)).toBe(false)
   })
 
+  it('serves a refresh of the shared board from a snapshot up to three minutes old, changed board or not (board-shortlist.ts)', () => {
+    const board = (m: SnapshotManifest, fp: string | null) => snapshotUsable(m, fp, { freshMs: 3 * MIN, now: NOW, env })
+    expect(board(manifest({ kind: 'board-core', build: 'build-new', at: NOW - 2 * MIN, fingerprint: 'old' }), 'new')).toBe(true)
+    expect(board(manifest({ kind: 'board-core', build: 'build-new', at: NOW - 4 * MIN, fingerprint: 'old' }), 'new')).toBe(false)
+    expect(board(manifest({ kind: 'board-core', build: 'build-new', at: NOW - 4 * MIN, fingerprint: 'same' }), 'same')).toBe(true)
+  })
+
   it('holds another build\'s snapshot to the shorter limit, whatever the board did', () => {
     expect(use(manifest({ at: NOW - 20 * MIN }), 'fp1', 30 * MIN)).toBe(true)
     expect(use(manifest({ at: NOW - 45 * MIN }), 'fp1', 30 * MIN)).toBe(false)
