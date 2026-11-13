@@ -56,7 +56,6 @@ export function IntakeEmailLayout({
       <Masthead name={heading} right={label} />
       {subheading && <p style={{ ...sub, margin: '0 0 12px' }}>{subheading}</p>}
       <div style={{ margin: '0 0 20px', lineHeight: '0', fontSize: '0' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={emailAsset('squiggle.png')} width={150} height={8} alt="" style={{ display: 'inline-block', border: 0 }} />
       </div>
       {children}

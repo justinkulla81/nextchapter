@@ -1,5 +1,5 @@
 import 'server-only'
-import { catalogConferences, type CatalogRow } from '@/lib/seo/topic-data'
+import { catalogConferences } from '@/lib/seo/topic-data'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { collegePath } from '@/lib/seo/college-bar'
 import { getStateCollegeListings } from '@/lib/seo/college-pages'

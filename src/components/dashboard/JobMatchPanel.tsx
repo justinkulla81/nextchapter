@@ -12,7 +12,6 @@ import {
   type MatchStatus,
 } from '@/lib/jobs/job-match-types'
 import { explainJobGaps } from '@/app/dashboard/find-my-job/actions'
-import { CandidatePlusExtraLine } from '@/components/jobs/CandidatePlusExtraLine'
 import { JobRequirementDetails } from '@/components/dashboard/JobRequirementLabels'
 
 // The per-job match and gaps (src/lib/jobs/job-match.ts) on a board card: a compact
@@ -58,7 +57,6 @@ export function JobMatchDetails({
   jobId,
   match,
   explainEnabled,
-  candidatePlus = false,
   insiders,
 }: {
   jobId: string

@@ -16,7 +16,7 @@ const COPY = {
     done: 'Got it. Justin Kulla will email you to set up the seats.',
   },
   partner: {
-    heading: (e: string, n: number | null) => `Someone from ${e} may walk in. Have this ready.`,
+    heading: (e: string, _n: number | null) => `Someone from ${e} may walk in. Have this ready.`,
     points: (n: number | null) => [`A free page for the ${people(n)} leaving, with roles matched to their work`, 'A short note you can hand out, with the link', 'Nothing for you to set up'],
     body: 'Give us your work email and Justin Kulla will send you the handout.',
     button: 'Send me the handout',

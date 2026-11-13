@@ -34,7 +34,6 @@ import { classifyWorkType, isWorkType } from '@/lib/jobs/work-type'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { aggregatorKind } from '@/lib/jobs/liveness'
 import { archiveDeadPostings, closeOpeningsQuietly } from '@/lib/jobs/liveness-store'
-import { candidatePlusRequiredMessage } from '@/lib/jobs/candidate-plus-extras'
 import { markPostingWorking, POSTING_WORK_WINDOW_MS, runPostingWork } from '@/lib/jobs/posting-background'
 
 export type FormState = { error?: string } | undefined

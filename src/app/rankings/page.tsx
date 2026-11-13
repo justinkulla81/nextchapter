@@ -8,7 +8,6 @@ import { RANKINGS_HERO } from '@/lib/rankings/art'
 import { editionLabel } from '@/lib/rankings/build-edition'
 import { readRankingIndex } from '@/lib/rankings/store'
 import { TOPIC_BLURB, topicSlug } from '@/lib/rankings/topics'
-import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { titleMeta } from '@/lib/seo/title'
 
