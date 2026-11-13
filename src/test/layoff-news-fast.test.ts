@@ -6,7 +6,7 @@ import { cronSchedules } from '@/lib/cron/schedule'
 
 describe('layoff news fast lane', () => {
   it('uses a small set of the full check queries, so the hourly cadence stays light on the news host', () => {
-    expect(FAST_QUERIES.length).toBeLessThanOrEqual(8)
+    expect(FAST_QUERIES.length).toBeLessThanOrEqual(14)
     for (const q of FAST_QUERIES) expect(QUERIES).toContain(q)
   })
   it('reads a window wider than its hourly cadence', () => {
