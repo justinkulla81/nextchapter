@@ -38,4 +38,11 @@ describe('workforce events beyond a plain layoff', () => {
     expect(readCollar('Ferrara Candy to close Chicago plant, 200 jobs')).toBe('blue')
     expect(readCollar('Qantas to cut 850 jobs')).toBe('unknown')
   })
+  it('reads the company out of a headline with a sector word or place in front of it, and drops what is not a company', () => {
+    expect(co('Insurer FM will move HQ to Providence tower, close Johnston office')).toBe('FM')
+    expect(co('Cambridge-based HubSpot announces 660 layoffs amid restructuring')).toBe('HubSpot')
+    expect(co('Mobile publisher Fortis Games shuts down, up to 440 workers affected')).toBe('Fortis Games')
+    expect(co('BT has cut nearly 12,000 jobs in a year, but why could more redundancies follow?')).toBe('BT')
+    for (const h of ['Almost 300 workers cut at plant', 'Staffing to cut nearly 700 Illinois jobs', 'Eiji Aonuma on Nintendo Layoffs: 10,977 Jobs Lost']) expect(co(h), h).toBeNull()
+  })
 })
