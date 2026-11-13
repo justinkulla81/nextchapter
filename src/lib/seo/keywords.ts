@@ -1702,7 +1702,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/layoffs/company',
     kind: 'page',
     primary: 'companies with layoffs',
-    secondary: ['list of companies with layoffs', 'companies laying off 2026', 'which companies are laying off', 'company layoffs list'],
+    secondary: ['list of companies with layoffs', 'which companies are laying off', 'company layoffs list'],
     seo: {
       title: 'Companies With Layoffs in 2026: Every Employer, A to Z',
       description: 'Every company that filed a layoff notice or announced job cuts in the last 12 months, A to Z, with the month, jobs cut and states. Updated as notices are filed.',

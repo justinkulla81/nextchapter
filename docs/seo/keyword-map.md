@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-263 clusters, 1615 phrases.
+264 clusters, 1619 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -161,6 +161,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/interview-answer-coach` | page | interview answer feedback | A job seeker wants feedback on an interview answer before the interview | practice interview answers; interview answer coach; how to answer why were you laid off; how to answer tell me about yourself; AI interview practice; interview answer checker |
 | `/resources/warn-act` | page | WARN Act rights | A worker asks what a WARN notice means and what an employer owes | WARN notice meaning; what is the WARN Act; WARN Act severance; WARN Act pay; WARN Act exceptions; WARN Act for employees; state WARN laws |
 | `/layoffs/by-state` | page | layoff notices by state | Find every state’s layoff notices in one place | layoff notice list by state; layoffs by state 2026; state layoff notice database; layoff notices by state 2026 |
+| `/layoffs/company` | page | companies with layoffs | Find whether a company has had layoffs | list of companies with layoffs; which companies are laying off; company layoffs list |
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
 | `/tools/resume-check` | page | free resume check | Score my resume with a free tool | ats checker; resume checker; resume score; check my resume; free resume score; resume analyzer |
 | `/tools/resume-job-match` | page | resume vs job description | Compare my resume to a job description and see missing keywords | resume job description match; compare resume to job description; resume keyword checker; resume scanner; ats resume scanner; resume keywords for a job; match resume to job description; resume job match score |
@@ -1033,6 +1034,12 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Layoffs by State: Notices Filed in the Last 12 Months
 - Description: Every state’s layoff notices in one table: notices and workers named in the last 12 months, the latest filing and the state’s own record. Free to download.
 - H1: Layoff notices by state: what each state’s record shows
+
+### `/layoffs/company`
+
+- Title: Companies With Layoffs in 2026: Every Employer, A to Z
+- Description: Every company that filed a layoff notice or announced job cuts in the last 12 months, A to Z, with the month, jobs cut and states. Updated as notices are filed.
+- H1: Companies with layoffs: every employer, A to Z
 
 ### `/tools/pay-check`
 
