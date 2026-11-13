@@ -11,7 +11,9 @@ import {
 } from './layoff-alert-rules'
 import { enrichLayoffHr } from './layoff-hr-enrich'
 import { layoffPeople } from './layoff-alert-people'
-import { withComposeLinks } from './layoff-alert-drafts'
+import { withComposeLinks, type DraftContext } from './layoff-alert-drafts'
+import { queueLayoffOutreach } from './outreach/queue'
+import { queueOutreachForNotice } from './outreach/for-notice'
 import { loadAlertSources } from './layoff-alert-sources'
 import { draftContext } from './layoff-alert-links'
 import { inferHq } from './layoff-hq-state'
@@ -59,6 +61,8 @@ async function flushAlertRun(): Promise<void> {
       else {
         await prisma.warnNotice.updateMany({ where: { id: { in: items.map((i) => i.noticeId) } }, data: { alertSentAt: new Date() } }).catch(() => {})
         captureServerEvent('cron', 'layoff_alert_digest_sent', { layoffs: items.length, employers: items.slice(0, 10).map((i) => i.employer) })
+        // These had no full alert, so no contact search; the outreach finds its contacts from what the database already has.
+        for (const i of items.slice(0, 15)) await queueOutreachForNotice(i.noticeId)
       }
     } catch (e) {
       console.error('Layoff digest failed:', e)
@@ -186,9 +190,10 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
     }).catch((e) => { console.error('Layoff alert people failed for', l.employer, e); return null })
     const PARTNER: Record<string, Audience> = { rapid_response: 'rapid_response', workforce_board: 'workforce_board', job_centers: 'job_centers', economic_development: 'economic_development' }
     const groups = related?.groups.map((g) => (PARTNER[g.key] ? { ...g, pitch: talkingPoints(picture, PARTNER[g.key]) ?? undefined } : g)) ?? []
+    let outreachCtx: DraftContext | null = null
     if (related) {
       // A "Write email" button on each contact with an address: Gmail compose from justin@launchyournextchapter.com, a note written for their role. A failure here sends the alert without buttons.
-      input.groups = await draftContext(picture, l.employer, state, notice?.county ?? null, l.noticeId).then((x) => withComposeLinks(groups, x)).catch((e) => { console.error('Layoff alert drafts failed for', l.employer, e); return groups })
+      input.groups = await draftContext(picture, l.employer, state, notice?.county ?? null, l.noticeId).then((x) => { outreachCtx = x; return withComposeLinks(groups, x) }).catch((e) => { console.error('Layoff alert drafts failed for', l.employer, e); return groups })
       const where = [city ?? notice?.county, state].filter(Boolean).join(', ')
       input.place = where ? `${where}${placeNote ? ` (${placeNote})` : ''}` : related.placeLabel
     }
@@ -232,6 +237,10 @@ export async function alertNewLayoff(l: NewLayoff, opts: { sendThin?: boolean } 
     }
     if (run) run.full++
     await prisma.warnNotice.update({ where: { id: l.noticeId }, data: { alertSentAt: new Date() } }).catch(() => {})
+    // The same contacts are emailed by the mailing tool (owner decision 2026-11-13): the notes this alert drafts, sent for real, Justin on BCC.
+    // The compose-link tracker is left off: those links open Gmail, these are sent.
+    const ctx = outreachCtx as DraftContext | null
+    if (ctx) await queueLayoffOutreach({ noticeId: l.noticeId, employer: l.employer, groups, ctx: { ...ctx, track: undefined } })
     captureServerEvent('cron', 'layoff_alert_sent', {
       employer: l.employer, kind: l.kind, employees: l.employees, percent: l.percent,
       inCrm: !!org, warm, confirmed: l.confirmed, gaps: input.gaps ?? [],
