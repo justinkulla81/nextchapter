@@ -5,9 +5,9 @@ import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
 
-/** Hourly: checks up to 100 never-checked list addresses with Hunter (P0 first), then suppresses any it finds invalid. */
+/** Hourly: checks up to 100 never-checked list addresses with Hunter (P0 first), then suppresses any it finds invalid and takes risky ones off the lists. */
 export const GET = withCronRun('mailing-verify', async () => {
   const verified = await verifyListMembers()
-  const pruned = verified.invalid > 0 ? await pruneLists() : null
+  const pruned = verified.invalid > 0 || verified.risky > 0 ? await pruneLists() : null
   return NextResponse.json({ verified, pruned })
 })
