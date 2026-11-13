@@ -35,8 +35,9 @@ describe('direct means the employer\'s own system, whichever feed it came throug
   it('still needs the posting\'s own text', () => {
     expect(isIndexableJob(row({ url: 'https://jobs.lever.co/acme/1', description: 'x'.repeat(280) }))).toBe(false)
   })
-  it('keeps a venture board\'s own page, and any aggregator row, out', () => {
-    expect(isDirectJob(row({ url: 'https://jobs.accel.com/jobs/1' }))).toBe(false)
+  it('keeps any aggregator row out, whatever its link; a venture board row is offered by its category, not its link', () => {
+    expect(isDirectJob(row({ sourceCategory: 'board', url: 'https://jobs.accel.com/jobs/1' }))).toBe(false)
+    expect(isDirectJob(row({ url: 'https://jobs.accel.com/jobs/1' }))).toBe(true) // venture (OFFERED_SOURCE_CATEGORIES, owner 2026-11-13)
     expect(isDirectJob(row({ sourceCategory: 'aggregator', url: 'https://jobs.lever.co/acme/1' }))).toBe(false)
     expect(isIndexableJob(row({ sourceCategory: 'aggregator', url: 'https://jobs.lever.co/acme/1' }))).toBe(false)
   })

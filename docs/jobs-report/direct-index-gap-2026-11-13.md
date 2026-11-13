@@ -40,7 +40,7 @@ Location unknown is the new finding. These jobs are dropped as "not in the US" o
 1. **Stale confirmation: 86,000 jobs.** The cron `direct-reverify` (2026-11-13, `src/lib/jobs/direct-reverify.ts`) checks them hourly through the employer system's public job API or the page's own job data, the way a member's click does, and refreshes the live ones. On a 13-job test most Workday jobs answered live and the rest were unclear (HTTP 403) and left alone; none was wrongly called dead. The crawler's re-check cadence is still the better fix.
 2. **Missing or short text: 41,000 jobs** (crawler).
 3. **Location unknown: 30,000 jobs** (crawler).
-4. **Rules widened**: an employer ATS link counts as direct (about 3,200 more offerable) and search firms and the `interim` source count as direct (about 6,100 more offerable, a 10% sample reading).
+4. **Rules widened** (the third, 2026-11-13: venture, PE, association, accelerator and women-board listings, about 16,000 more offerable on the sample, 12% of them sharing a company and title with a job already offered; one list, `OFFERED_SOURCE_CATEGORIES`, to take any back out): an employer ATS link counts as direct (about 3,200 more offerable) and search firms and the `interim` source count as direct (about 6,100 more offerable, a 10% sample reading).
 
 Not recommended: lengthening the 14-day window, or lowering the 1,500-byte threshold (stubs, not near-misses).
 

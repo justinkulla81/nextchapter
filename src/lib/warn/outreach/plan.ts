@@ -40,6 +40,7 @@ export const BLS_NOW = { month: 'October', pct: '27.6', url: 'https://www.bls.go
 
 const BLS = `${BLS_NOW.pct}% of unemployed Americans had been looking for work for 27 weeks or longer in ${BLS_NOW.month} (BLS: ${BLS_NOW.url})`
 
+/** Owner confirmed 2026-11-13: the core job search tools stay free for the people we send, so "free" below is not a promotion that ends. */
 /** The value paragraph that goes in front of "we sit alongside": the problem, what the person gets, what the reader gets. */
 export function valueParagraph(audience: OutreachAudience): string {
   if (audience === 'outplacement') {
