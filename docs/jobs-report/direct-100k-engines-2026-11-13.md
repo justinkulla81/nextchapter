@@ -64,3 +64,10 @@ Result files, each one source per Workday tenant and career site, with `nameMatc
 Combined and de-duplicated by tenant and site (`sources/workday-all-unique.json`): **1,278 tenants, 2,313 career sites, 533,670 jobs** (all countries; Workday caps each site's count at 2,000, so large boards are undercounted).
 Strong matches 278,798 jobs, medium 141,080, weak 113,792. Many health systems appear under several facility names (Trinity Health, Sentara, Sanford, Mercy) and map to one tenant; the unique file counts each once.
 Weak and medium matches need the company name checked from the postings before import: a short tenant word (for example `trinity`, `mercy`) can belong to a different employer. Some sites repeat the same jobs under two site names.
+
+## The Company table (2026-11-13)
+The cloud session cannot read `Company` in bulk (no database connection; the anon key returns nothing under row-level security), so I took the 2,381 size-classified rows (MID_LARGE, LARGE, ENTERPRISE, MEGA) through the
+database connector in one bounded read and ran 587 names not already covered by the SEC, university, hospital, nonprofit and Jooble lists: 149 tenants, 278 sites, 63,362 jobs, of which only 19 tenants and about 5,100 jobs were new
+(`sources/workday-company-sized.json`). Everything already searched overlaps heavily, so the size-classified part of `Company` is now covered: **1,297 tenants, 2,352 career sites, 538,834 jobs** in `workday-all-unique.json`.
+The other ~100,000 names are mostly small local employers (law firms, clinics, churches), where Workday is rare. To run them anyway on a machine with database access:
+`DATABASE_URL=... bash scripts/jobsreport/company_table_workday.sh` (one read of about 5 MB, then about 8 hours at 100 threads).
