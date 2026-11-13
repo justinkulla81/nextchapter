@@ -34,6 +34,9 @@ export const QUERIES = [
   'early retirement offer', 'relocating headquarters', 'relocate jobs', 'closing office', 'office closure', 'plant closure', 'shutting down',
   'to shut down', 'ceasing operations', 'merger job cuts', 'layoffs after merger', 'AI layoffs', 'AI displacement', 'jobs replaced by AI',
   'layoffs automation', 'wind down operations', 'closing stores',
+  // Aimed at white-collar work: offices, headquarters, corporate and professional roles (Census groups 1 and 2).
+  'office layoffs', 'closing headquarters', 'back-office job cuts', 'white-collar job cuts', 'middle management cuts', 'software engineers laid off',
+  'consulting firm layoffs', 'law firm layoffs', 'finance layoffs', 'insurance layoffs', 'entry-level jobs AI', 'AI replaces workers',
 ]
 /**
  * The fast lane (runLayoffNewsCheck({ fast: true })): a few broad queries on Google News limited to the last few hours, hourly. The
