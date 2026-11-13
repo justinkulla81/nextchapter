@@ -1474,8 +1474,8 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/recruiters`
 
-- Title: Candidate Search for Recruiters and Search Firms
-- Description: Search candidates who chose to be found, ask for an introduction, and submit a packet in your firm’s logo built from the candidate’s Dossier. Free for now.
+- Title: Free Résumé Page and Candidate CRM for Recruiters
+- Description: A free résumé page in your firm’s logo, a candidate CRM with stages, notes and next steps, and candidate status shared by choice. Free for now.
 
 ### `/submit-search`
 
