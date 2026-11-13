@@ -12309,6 +12309,8 @@ model WarnNotice {
   alertSentAt   DateTime?
   alertHeldAt   DateTime?
   alertGaveUpAt DateTime?
+  /// When the layoff outreach sweep looked at this notice (src/lib/warn/outreach/sweep.ts), whether or not it found anyone to email, so it is looked at once.
+  outreachCheckedAt DateTime?
 
   /// What the layoff costs the employer, as the filing states it (SEC 8-K Item 2.05 usually does; WARN and news almost never). Dollars.
   costLowUsd           Float?
