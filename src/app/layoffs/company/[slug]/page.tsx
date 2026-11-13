@@ -20,6 +20,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { canonical } from '@/lib/seo/canonical'
 import { isNetworkCompany, primaryState } from '@/lib/network/eligibility'
+import { OutreachRequestBlock } from '@/components/network/OutreachRequestBlock'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getRecentNotices } from '@/lib/seo/topic-data'
@@ -266,6 +267,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             properties={{ page: 'layoff', audience: 'employer_hr', slug, hasNotices }}
           />
 
+          <OutreachRequestBlock slug={slug} employer={c.name} people={workers || null} />
           <YourState label={c.name} />
           <div className="mt-4 space-y-12">
             <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : (latestAnn?.workers ?? null)} hasNotices={hasNotices} noticeCount={c.notices.length} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
