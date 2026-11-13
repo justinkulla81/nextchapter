@@ -117,3 +117,12 @@ describe('government Oracle boards', () => {
     expect(oracleUrl(b, '42').startsWith(oracleAdapter.prefix(b))).toBe(true)
   })
 })
+
+describe('government Workday boards: bad listings', () => {
+  it('has no duplicate boards after the second round', async () => {
+    const { GOV_WORKDAY_BOARDS } = await import('@/lib/jobs/gov-workday-boards')
+    const keys = GOV_WORKDAY_BOARDS.map((b) => `${b.host}/${b.site}`)
+    expect(new Set(keys).size).toBe(keys.length)
+    expect(GOV_WORKDAY_BOARDS.length).toBeGreaterThan(95)
+  })
+})
