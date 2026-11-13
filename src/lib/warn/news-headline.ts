@@ -146,6 +146,17 @@ const BRAND_NAMES: Record<string, string> = {
   amex: 'American Express',
 }
 
+/**
+ * The company inside a name the shapes above let through (2026-11-13): "SpaceX's AI Group" is SpaceX (a unit of it), and "PVH Simplifies"
+ * is PVH (the headline's verb stuck to the name). Each of these made a second page for a company that already had one.
+ */
+export function cleanName(name: string): string {
+  return name
+    .replace(/^(.+?)['’]s\s+(?:[\w&-]+\s+){0,3}?(?:group|unit|division|team|arm|business|subsidiary|operations|segment|lab|labs)$/i, '$1')
+    .replace(/\s+(?:simplifies|restructures|streamlines|trims|slashes|cuts|reorganizes|reorganises|reshuffles|shrinks|downsizes|eliminates|axes|sheds|lays|plans|unveils)$/i, '')
+    .trim()
+}
+
 export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
   // Quote marks around a phrase ('large part') are not part of it; a possessive's apostrophe is.
   const h = headline
@@ -182,7 +193,7 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
   const raw = (m?.groups?.co ?? m?.groups?.tco?.replace(/\s+(?:teams?|staff|workforce|employees|workers)$/i, ''))?.trim()
   if (!raw) return null
   const named = raw.replace(/\s+(?:merger|acquisition|takeover|deal)$/i, '').replace(/\s+(?:has|have|had|is|are|was|were|moves|may|might)(?: been)?$/i, '').replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
-  const company = BRAND_NAMES[named.toLowerCase()] ?? named
+  const company = BRAND_NAMES[cleanName(named).toLowerCase()] ?? cleanName(named)
   if (company.length < 2 || NOT_A_NAME.test(company) || !isPlausibleCompany(company)) return null
   const companyKey = normalizeOrgName(company)
   if (!companyKey) return null
