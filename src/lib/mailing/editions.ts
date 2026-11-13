@@ -63,6 +63,22 @@ function toRow(r: {
 }
 
 /**
+ * Addresses Hunter called risky (a catch-all domain, or it could not decide), lowercased. The owner does not want them mailed
+ * (2026-11-13). About 1,000 rows, email only.
+ */
+async function riskyAddresses(): Promise<Set<string>> {
+  const rows = await prisma.crmPerson.findMany({ where: { emailVerifiedStatus: 'risky', deletedAt: null, email: { not: null } }, select: { email: true } })
+  return new Set(rows.map((r) => r.email!.trim().toLowerCase()))
+}
+
+/** Whether the address is the person's own and Hunter called it risky. */
+async function isRiskyAddress(email: string, personId: string | null): Promise<boolean> {
+  if (!personId) return false
+  const p = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { email: true, emailVerifiedStatus: true } })
+  return p?.emailVerifiedStatus === 'risky' && p.email?.trim().toLowerCase() === email
+}
+
+/**
  * Brings the stored roster in line with the target lists: new ACTIVE
  * members appear (unchecked if they already got this report by hand),
  * people who left drop off, choices made in the composer stand. Never runs
@@ -89,6 +105,7 @@ export async function syncEditionRoster(editionId: string) {
     : []
 
   const earlierSends = await earlierVersionSends(edition.id, edition.versionOfId)
+  const risky = await riskyAddresses()
 
   const next = computeRoster({
     members: members.map((m) => ({ email: m.email, personId: m.personId, listKey: keyById.get(m.listId)!, status: m.status })),
@@ -96,6 +113,7 @@ export async function syncEditionRoster(editionId: string) {
     suppressed,
     manualSends: new Map(manual.map((m) => [m.personId, m.sentAt])),
     versionSends: earlierSends,
+    risky,
   })
 
   const nextEmails = new Set(next.map((r) => r.email))
@@ -342,6 +360,10 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
         await prisma.mailingEditionRecipient.update({ where: { id: next.id }, data: { status: 'SKIPPED', excluded: true, excludedReason: 'suppressed' } })
         continue
       }
+      if (await isRiskyAddress(next.email, next.personId)) {
+        await prisma.mailingEditionRecipient.update({ where: { id: next.id }, data: { status: 'SKIPPED', excluded: true, excludedReason: 'risky_address' } })
+        continue
+      }
       // Claim it: only the run that moves attempts from n to n+1 sends.
       const claimed = await prisma.mailingEditionRecipient.updateMany({
         where: { id: next.id, status: 'PENDING', attempts: next.attempts }, data: { attempts: { increment: 1 } },
@@ -349,7 +371,7 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
       if (claimed.count === 0) continue
       if (!isLayoff) { budget--; if (!warmPass) coldBudget-- }
       try {
-        const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id, cold: !warmPass }, settings, attachments)
+        const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id, cold: !warmPass && !isLayoff }, settings, attachments)
         if (error || !data) throw new Error(error?.message ?? 'no response from Resend')
         await recordSent(edition, next.id, data.id)
         sent++

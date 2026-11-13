@@ -29,7 +29,7 @@ export interface VerifyResult {
 /**
  * Checks addresses on the active mailing lists that Hunter has never looked at, P0 first, then P1, P2 and the rest.
  * Metered: each address is one verification credit. Stops at the per-run cap, when the account is down to the reserve, or at the time limit.
- * An address Hunter calls invalid is suppressed on every list by the next clean-up (pruneLists).
+ * An address Hunter calls invalid is suppressed on every list, and a risky one taken off its lists, by the next clean-up (pruneLists).
  */
 export async function verifyListMembers(opts: { max?: number; reserve?: number } = {}): Promise<VerifyResult> {
   const max = opts.max ?? VERIFY_PER_RUN

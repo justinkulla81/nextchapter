@@ -51,7 +51,7 @@ export async function fileLeadInCrm(lead: FiledLead): Promise<string | null> {
 
     let person = await prisma.crmPerson.findFirst({
       where: { deletedAt: null, OR: [{ email }, { emails: { has: email } }] },
-      select: { id: true, roles: true, candidateId: true },
+      select: { id: true, roles: true, candidateId: true, email: true, emailVerifiedStatus: true },
     })
     let created = false
     if (!person) {
@@ -65,7 +65,7 @@ export async function fileLeadInCrm(lead: FiledLead): Promise<string | null> {
           // A business lead has no organization yet: a human should look.
           needsCompletion: !!lead.b2b,
         },
-        select: { id: true, roles: true, candidateId: true },
+        select: { id: true, roles: true, candidateId: true, email: true, emailVerifiedStatus: true },
       })
       created = true
     } else if (!lead.b2b && !person.roles.includes('JOB_SEEKER')) {
@@ -93,7 +93,9 @@ export async function fileLeadInCrm(lead: FiledLead): Promise<string | null> {
         if (e?.code !== 'P2002') throw e
       })
 
-    if (!lead.b2b) {
+    // An address Hunter calls risky stays off the lists (owner, 2026-11-13): pruneLists takes it off, so do not put it back.
+    const risky = person.emailVerifiedStatus === 'risky' && person.email?.trim().toLowerCase() === email
+    if (!lead.b2b && !risky) {
       const list = await leadList()
       await addToLists({
         email,

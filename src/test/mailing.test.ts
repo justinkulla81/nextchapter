@@ -95,6 +95,19 @@ describe('roster math', () => {
     expect(rows.filter((r) => !r.excluded).map((r) => r.email).sort()).toEqual(['c@x.com', 'd@x.com', 'e@x.com', 'z@x.com'])
   })
 
+  it('holds back risky addresses, even over a composer tick, but never rewrites a sent row', () => {
+    const members = [m('a@x.com', 'monthly_update'), m('b@x.com', 'monthly_update'), m('c@x.com', 'monthly_update')]
+    const existing: RosterRow[] = [
+      { email: 'b@x.com', personId: null, source: 'BASE', excluded: false, excludedReason: null, fromListKeys: ['monthly_update'], alsoAddToListIds: [], status: 'PENDING' },
+      { email: 'c@x.com', personId: null, source: 'BASE', excluded: false, excludedReason: null, fromListKeys: ['monthly_update'], alsoAddToListIds: [], status: 'SENT' },
+      { email: 'z@x.com', personId: 'pz', source: 'ADDED_THIS_EDITION', excluded: false, excludedReason: null, fromListKeys: [], alsoAddToListIds: [], status: 'PENDING' },
+    ]
+    const rows = computeRoster({ ...base, members, existing, risky: new Set(['a@x.com', 'b@x.com', 'c@x.com', 'z@x.com']) })
+    const by = new Map(rows.map((r) => [r.email, r]))
+    for (const e of ['a@x.com', 'b@x.com', 'z@x.com']) expect(by.get(e)).toMatchObject({ excluded: true, excludedReason: 'risky_address' })
+    expect(by.get('c@x.com')).toMatchObject({ excluded: false, status: 'SENT' })
+  })
+
   it('leaves out unsubscribed, bounced and suppressed addresses', () => {
     const rows = computeRoster({
       ...base,
