@@ -24,6 +24,7 @@
 // Change all three together.
 
 import { isFractionalJob } from '@/lib/jobs/work-type'
+import { isEmployerAtsUrl } from '@/lib/jobs/employer-ats'
 
 export const PUBLIC_JOB_SOURCES = ['ats_feed', 'admin', 'employer', 'recruiter'] as const
 /**
@@ -119,12 +120,18 @@ export interface PublicJobRow {
 }
 
 /** True when the page has the posting's own text, enough to stand on its own in search (see PUBLIC_JOB_MIN_INDEX_DESCRIPTION). */
-/** On the employer's own career system: the crawler's directListing flag, or an 'employer' source (its own site, though not always flagged: jobs.apple.com, google.com careers). */
-export function isDirectJob(job: Pick<PublicJobRow, 'directListing' | 'sourceCategory'>): boolean {
-  return job.directListing || job.sourceCategory === 'employer'
+/**
+ * On the employer's own career system: the crawler's directListing flag, an 'employer' source (its own site, though not always flagged:
+ * jobs.apple.com, google.com careers), or a link on an employer applicant tracking system such as Greenhouse, Lever or Ashby (a
+ * venture board's feed that links to the company's own Greenhouse board; owner decision 2026-11-13, employer-ats.ts). An aggregator's row
+ * is never direct, whatever its link.
+ */
+export function isDirectJob(job: Pick<PublicJobRow, 'directListing' | 'sourceCategory'> & { url?: string | null }): boolean {
+  if (job.directListing || job.sourceCategory === 'employer') return true
+  return job.sourceCategory !== 'aggregator' && isEmployerAtsUrl(job.url)
 }
 
-export function isIndexableJob(job: Pick<PublicJobRow, 'description' | 'directListing' | 'sourceCategory'>): boolean {
+export function isIndexableJob(job: Pick<PublicJobRow, 'description' | 'directListing' | 'sourceCategory'> & { url?: string | null }): boolean {
   // Owner decision, 2026-11-04: search engines get only jobs listed on the employer's own career system (isDirectJob).
   // A job whose apply link is an aggregator's (Jooble and the like) keeps its page for members but is noindex, left out of
   // the sitemap and told to Google/Bing as removed. Same rule as PUBLIC_JOB_SEARCH_SQL in public-job-page-server.ts.
