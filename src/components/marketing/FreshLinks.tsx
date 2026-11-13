@@ -1,6 +1,6 @@
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { PRIORITY_RANKINGS, PRIORITY_REPORTS, PRIORITY_TOOLS } from '@/lib/seo/priority-links'
-import { getFreshJobLinks, getFreshLayoffLinks, getRisingSearchLinks, type FreshLink } from '@/lib/seo/fresh-links'
+import { getBigLayoffLinks, getFreshJobLinks, getFreshLayoffLinks, getRisingSearchLinks, type FreshLink } from '@/lib/seo/fresh-links'
 
 // Newest layoff pages and job pages as a plain link list. `tone` matches the surface it sits on: 'dark' for the home footer,
 // 'light' for /news. Renders nothing when there is nothing to list.
@@ -29,9 +29,10 @@ const asLinks = (items: { href: string; label: string }[], kind: FreshLink['kind
 
 // `jobs={false}` leaves out the newest-jobs list and skips its query. The home page does (2026-11-04): jobs are out of the sitemap, so the busiest page does not link them.
 export async function FreshLinks({ tone, placement, jobs: showJobs = true }: { tone: 'dark' | 'light'; placement: string; jobs?: boolean }) {
-  const [layoffs, jobs, rising] = await Promise.all([getFreshLayoffLinks(), showJobs ? getFreshJobLinks() : Promise.resolve([]), getRisingSearchLinks(8)])
+  const [big, layoffs, jobs, rising] = await Promise.all([getBigLayoffLinks(), getFreshLayoffLinks(), showJobs ? getFreshJobLinks() : Promise.resolve([]), getRisingSearchLinks(8)])
   return (
     <div className={tone === 'dark' ? 'mt-12 space-y-6 text-left' : 'space-y-6'}>
+      <LinkList title="Big layoffs this week" links={big} placement={placement} tone={tone} />
       <LinkList title="Latest layoffs" links={layoffs} placement={placement} tone={tone} />
       <LinkList title="Newest jobs" links={jobs} placement={placement} tone={tone} />
       <LinkList title="Searched for lately" links={rising} placement={placement} tone={tone} />
@@ -47,8 +48,13 @@ export async function FreshLinks({ tone, placement, jobs: showJobs = true }: { t
  * this list the newest announcements (employers with no WARN filing) have no link a crawler can follow from /layoffs.
  */
 export async function LatestLayoffLinks({ limit, placement, tone }: { limit: number; placement: string; tone: 'dark' | 'light' }) {
-  const layoffs = await getFreshLayoffLinks(limit)
-  return <LinkList title="Latest layoffs" links={layoffs} placement={placement} tone={tone} />
+  const [big, layoffs] = await Promise.all([getBigLayoffLinks(), getFreshLayoffLinks(limit)])
+  return (
+    <div className="space-y-6">
+      <LinkList title="Big layoffs this week" links={big} placement={placement} tone={tone} />
+      <LinkList title="Latest layoffs" links={layoffs} placement={placement} tone={tone} />
+    </div>
+  )
 }
 
 /** Pages that already show on the edge of page one, linked with the search as the text. For the layoff hub. */
