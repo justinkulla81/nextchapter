@@ -2,6 +2,11 @@
   "regions": [
     "pdx1"
   ],
+  "functions": {
+    "src/app/api/cron/job-search-daily/route.ts": {
+      "memory": 4096
+    }
+  },
   "ignoreCommand": "sh scripts/vercel-ignore-build.sh",
   "crons": [
     {

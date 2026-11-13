@@ -17,6 +17,9 @@ const BREAK_ANSWER_WINDOW_DAYS = 30
 // Building one candidate's email is several queries plus a send, so a serial
 // pass over every candidate outgrows the limit. A few workers share the list.
 const CONCURRENCY = 4
+// Memory: the shared board is ~1.4 GB resident (412,932 core + 145,757 early-career rows on 2026-11-13) and each worker
+// ranks against it, so four workers outgrew the default 2 GB function and the instance was killed for memory (2026-11-13,
+// manual run). vercel.json gives this route 4 GB.
 // Stop starting new candidates here so the run finishes cleanly (and records
 // its result) instead of being killed at the limit.
 const DEADLINE_MS = 240_000
