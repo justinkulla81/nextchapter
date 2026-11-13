@@ -1,0 +1,162 @@
+{
+ "eightfold": [
+  {
+   "employer": "Netapp, Inc.",
+   "tenant": "netapp",
+   "domain": "netapp.com",
+   "total": 317
+  },
+  {
+   "employer": "Fluor Corp",
+   "tenant": "fluor",
+   "domain": "fluor.com",
+   "total": 681
+  },
+  {
+   "employer": "Insight Enterprises Inc",
+   "tenant": "insight",
+   "domain": "insight.com",
+   "total": 159
+  }
+ ],
+ "oracle": [
+  {
+   "employer": "Jpmorgan Chase & Co",
+   "host": "jpmc.fa.oraclecloud.com",
+   "site": "CX_1001",
+   "total": 7001
+  },
+  {
+   "employer": "Uber Technologies, Inc",
+   "host": "iaziqy.fa.ocs.oraclecloud.com",
+   "site": "UberCareers",
+   "total": 803
+  },
+  {
+   "employer": "Marriott International Inc /Md/",
+   "host": "ejwl.fa.us2.oraclecloud.com",
+   "site": "CX",
+   "total": 13156
+  },
+  {
+   "employer": "Fortinet, Inc.",
+   "host": "edel.fa.us2.oraclecloud.com",
+   "site": "CX_2001",
+   "total": 1076
+  },
+  {
+   "employer": "Sherwin Williams Co",
+   "host": "ejhp.fa.us6.oraclecloud.com",
+   "site": "CX_2",
+   "total": 2295
+  },
+  {
+   "employer": "Hilton Worldwide Holdings Inc.",
+   "host": "efet.fa.us2.oraclecloud.com",
+   "site": "CX_1",
+   "total": 4332
+  },
+  {
+   "employer": "Cummins Inc",
+   "host": "fa-espx-saasfaprod1.fa.ocs.oraclecloud.com",
+   "site": "CX_1",
+   "total": 1158
+  },
+  {
+   "employer": "Eon Resources Inc.",
+   "host": "fa-eylc-saasfaeuraprod1.fa.ocs.oraclecloud.com",
+   "site": "CX_1",
+   "total": 147
+  },
+  {
+   "employer": "Dollar General Corp",
+   "host": "ibxwjb.fa.ocs.oraclecloud.com",
+   "site": "CX_1",
+   "total": 91429
+  },
+  {
+   "employer": "Echostar Corp",
+   "host": "efgz-dev2.fa.us6.oraclecloud.com",
+   "site": "CX_1",
+   "total": 19
+  },
+  {
+   "employer": "Quest Diagnostics Inc",
+   "host": "hdox.fa.us6.oraclecloud.com",
+   "site": "CX_1",
+   "total": 2126
+  },
+  {
+   "employer": "Rb Global Inc.",
+   "host": "fa-exew-saasfaprod1.fa.ocs.oraclecloud.com",
+   "site": "CX_1",
+   "total": 405
+  },
+  {
+   "employer": "Clean Harbors Inc",
+   "host": "epyc.fa.us2.oraclecloud.com",
+   "site": "CLH",
+   "total": 1353
+  },
+  {
+   "employer": "Molina Healthcare, Inc.",
+   "host": "hckd.fa.us2.oraclecloud.com",
+   "site": "CX_1",
+   "total": 433
+  },
+  {
+   "employer": "Aci Worldwide, Inc.",
+   "host": "ebwg.fa.us2.oraclecloud.com",
+   "site": "CX",
+   "total": 119
+  },
+  {
+   "employer": "Albertsons Companies, Inc.",
+   "host": "eofd.fa.us6.oraclecloud.com",
+   "site": "CX_1001",
+   "total": 8739
+  },
+  {
+   "employer": "Sensient Technologies Corp",
+   "host": "eour.fa.us2.oraclecloud.com",
+   "site": "CX",
+   "total": 106
+  },
+  {
+   "employer": "One Gas, Inc.",
+   "host": "ibedqy.fa.ocs.oraclecloud.com",
+   "site": "ONEGas",
+   "total": 26
+  },
+  {
+   "employer": "Resideo Technologies, Inc.",
+   "host": "ehtl.fa.us6.oraclecloud.com",
+   "site": "CX",
+   "total": 52
+  },
+  {
+   "employer": "Ani Pharmaceuticals Inc",
+   "host": "iboijb.fa.ocs.oraclecloud.com",
+   "site": "CX_1003",
+   "total": 32
+  },
+  {
+   "employer": "Suburban Propane Partners Lp",
+   "host": "icbojb.fa.ocs.oraclecloud.com",
+   "site": "CX_1",
+   "total": 363
+  },
+  {
+   "employer": "Pearson Plc",
+   "host": "hccz.fa.em3.oraclecloud.com",
+   "site": "CX_2",
+   "total": 357
+  },
+  {
+   "employer": "Cbiz, Inc.",
+   "host": "ebez.fa.us2.oraclecloud.com",
+   "site": "CX_1",
+   "total": 172
+  }
+ ]
+}

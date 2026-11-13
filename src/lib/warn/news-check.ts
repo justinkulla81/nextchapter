@@ -34,6 +34,9 @@ export const QUERIES = [
   'early retirement offer', 'relocating headquarters', 'relocate jobs', 'closing office', 'office closure', 'plant closure', 'shutting down',
   'to shut down', 'ceasing operations', 'merger job cuts', 'layoffs after merger', 'AI layoffs', 'AI displacement', 'jobs replaced by AI',
   'layoffs automation', 'wind down operations', 'closing stores',
+  // Aimed at white-collar work: offices, headquarters, corporate and professional roles (Census groups 1 and 2).
+  'office layoffs', 'closing headquarters', 'back-office job cuts', 'white-collar job cuts', 'middle management cuts', 'software engineers laid off',
+  'consulting firm layoffs', 'law firm layoffs', 'finance layoffs', 'insurance layoffs', 'entry-level jobs AI', 'AI replaces workers',
 ]
 /**
  * The fast lane (runLayoffNewsCheck({ fast: true })): a few broad queries on Google News limited to the last few hours, hourly. The
@@ -293,6 +296,7 @@ async function newsCheck(opts: { fast?: boolean }): Promise<NewsCheckResult> {
     // The same company match a state filing gets, so the layoff is findable by
     // company and not only by name. A failure leaves it unmatched, never blocks it.
     const match = await matchOrCreateCompanyForEmployer(company).catch(() => null)
+    const event = readWorkforceEvent(first.headline)
     const notice = await prisma.warnNotice.create({
       data: {
         ...(match ? {
@@ -303,11 +307,12 @@ async function newsCheck(opts: { fast?: boolean }): Promise<NewsCheckResult> {
         employer: company,
         normalizedEmployer: key,
         division: firstDivision(mentions.map((m) => m.headline)),
-        rssPublishedAt: new Date(),
+        // An HQ or office move is not a layoff: it is filed as a lead, but the public layoff feed waits for a person (found 2026-11-13).
+        rssPublishedAt: event === 'relocation' ? null : new Date(),
         source: 'MANUAL_ANNOUNCEMENT',
         noticeDate: new Date(Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate())),
         employees,
-        layoffType: layoffTypeLabel({ publishers: publishers.size, publisher: first.publisher, percent, event: workforceEventLabel(readWorkforceEvent(first.headline)) }),
+        layoffType: layoffTypeLabel({ publishers: publishers.size, publisher: first.publisher, percent, event: workforceEventLabel(event) }),
         sourceUrl: first.url,
       },
       select: { id: true },

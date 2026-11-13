@@ -87,7 +87,7 @@ const HEADCOUNT = new RegExp(
 // Workforce events that are not worded as a layoff: a redundancy programme, a buyout offer, an office or plant closing, a headquarters
 // moving, a merger that cuts jobs. Each still needs a name as the subject and a verb, so a headline that fits none is skipped.
 /** "BT to make 500 staff redundant", "Vodafone makes 11,000 redundancies". */
-const REDUNDANT = new RegExp(String.raw`^${NAME},? (?:${HEDGE} )*(?:make|makes|making) (?:about |around |nearly |more than |over |up to |roughly |some )?(?<n>\d[\d,]*)?\s?(?:[a-z-]+ ){0,2}?(?:redundant|redundancies)\b`, 'i')
+const REDUNDANT = new RegExp(String.raw`^${NAME},? (?:${HEDGE} )*(?:make|makes|making) (?:about |around |nearly |more than |over |up to |roughly |some |large |many |further )?(?:(?<n>\d[\d,]*)\s?)?(?:(?:[a-z-]+ ){0,1}(?:staff|workers|employees|people|roles|jobs|positions) )?(?:redundant|redundancies)\b`, 'i')
 /** "Ford offers buyouts to 5,000 workers", "Intel launches voluntary separation program", "Boeing extends early retirement offer". */
 const BUYOUT_OFFER = new RegExp(
   String.raw`^${NAME},? (?:${HEDGE} )*(?:offers?|offering|launch(?:es|ing)?|announces?|extends?|opens?|rolls? out|unveils?) (?:a |another |new |second |its |voluntary |round of )*(?:voluntary )?(?:buy-?outs?|separation (?:program(?:me)?|packages?|offers?)|early[- ]retirement|departure program(?:me)?|exit program(?:me)?|severance (?:program(?:me)?|packages?))(?:.*?(?<n>\d[\d,]*)\s?(?:[a-z-]+ ){0,2}?(?:employees|workers|staff|people))?`,
@@ -119,7 +119,7 @@ const NOT_A_NAME = /\b(stock|shares|firm|giant|maker|makers|retailer|chain|plant
  * 2026-10-27: about 30 of 137 had a name like these.
  */
 const BARE_WORD = /^(?:the|a|an|ai|us|u\.s\.|usa|announcing|announces|corporate jobs|jobs|job cuts|layoffs?|more|big four bank|australian bank)$/i
-const FRAGMENT = /\b(?:to|expects?|expected|blamed|blames?|posts?|defends?|defend|aims?|discontinues?|shuts?|closes?|closing|decision|proposal|budget|calls?|will|would|could|reorganization|says?|said|says|names?|hits?|falls?|rises?)\b/i
+const FRAGMENT = /\b(?:to|expects?|expected|blamed|blames?|posts?|defends?|defend|aims?|discontinues?|shuts?|closes?|closing|decision|proposal|budget|calls?|will|would|could|reorganization|says?|said|says|names?|hits?|falls?|rises?|invites?|urges?|asks?|woos?|courts?|lures?|assures?)\b/i
 const PLACE_OR_THING = /\b(?:facility|factory|plant|operator|manufacturer|contractor|council|dev|news|skill games)\b/i
 const DANGLING_END = /\b(?:to|and|for|of|at|in|on|with|by|as|the|a)$/i
 export function isPlausibleCompany(name: string): boolean {
@@ -160,11 +160,18 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
     .replace(/^(?:exclusive|breaking|update|report|reports|just in|developing|analysis|opinion)\s*[:|-]\s*/i, '')
   // The owner shapes go first: "Airtable's new owner" is a name-shaped phrase the
   // others would take for the company itself.
-  const m = h.match(OWNER) ?? h.match(TARGET)
+  const strong = h.match(OWNER) ?? h.match(TARGET)
     ?? h.match(WITH_COUNT) ?? h.match(LAYOFFS_COUNT) ?? h.match(ANNOUNCES)
     ?? h.match(COUNT_THEN_CUTS) ?? h.match(CUTS_FIRST) ?? h.match(LAYOFFS_PCT) ?? h.match(PCT_LAYOFFS)
     ?? h.match(SHARE_PCT) ?? h.match(SHARE_WORDS) ?? h.match(LARGE_PART) ?? h.match(HEADCOUNT)
-    ?? h.match(REDUNDANT) ?? h.match(BUYOUT_OFFER) ?? h.match(MERGER) ?? h.match(RELOCATION) ?? h.match(CLOSURE)
+    ?? h.match(REDUNDANT) ?? h.match(MERGER)
+  // A buyout, relocation or closure is a workforce event only when the headline says people are affected. "Apple to shut down its support
+  // forum", "I-64 shut down for hours" and "Tesla to wind down Cybertruck production" are not (found in a dry run, 2026-11-13).
+  const buyout = strong ? null : h.match(BUYOUT_OFFER)
+  if (/\b(?:box office|representative office|embassy|consulate)\b/i.test(h)) return null
+  const weak = strong || buyout ? null : h.match(RELOCATION) ?? h.match(CLOSURE)
+  if (weak && !PEOPLE_AFFECTED.test(h)) return null
+  const m = strong ?? buyout ?? weak
   const raw = (m?.groups?.co ?? m?.groups?.tco?.replace(/\s+(?:teams?|staff|workforce|employees|workers)$/i, ''))?.trim()
   if (!raw) return null
   const named = raw.replace(/\s+(?:merger|acquisition|takeover|deal)$/i, '').replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
@@ -175,6 +182,20 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
   return { company, companyKey, employees: count(m!.groups?.n, m!.groups?.k), percent: readPercent(h) }
 }
 
+
+
+/** Words that say people lose or change jobs, or a corporate workplace (not a road, a plant's output or a product) is affected. */
+const PEOPLE_AFFECTED = /\b(?:jobs?|workers?|employees?|staff(?:ers)?|workforce|layoffs?|laid off|redundan\w+|headcount|positions|roles|severance|job (?:losses|cuts)|offices?|headquarters|hq|head office|law firm)\b/i
+
+/**
+ * Whether a headline points at white-collar work (Census groups 1 and 2), blue-collar work, or neither. Most headlines say neither, so
+ * 'unknown' is the common answer and is never a reason to drop one; only the report's frame, not the news check, narrows by it.
+ */
+export function readCollar(headline: string): 'white' | 'blue' | 'unknown' {
+  const white = /\b(?:offices?|headquarters|hq|corporate|back[- ]office|software|engineers?|developers?|tech|bank(?:s|ing)?|finance|financial|consult\w*|law firm|insurance|marketing|sales|managers?|management|executives?|analysts?|accountants?|recruit\w*|HR|AI|studio|media|newsroom|white[- ]collar|salaried|remote)\b/i.test(headline)
+  const blue = /\b(?:plants?|factor(?:y|ies)|warehouses?|stores?|restaurants?|mines?|mills?|refiner(?:y|ies)|assembly|production line|drivers?|truckers?|hourly|manufactur\w*|shipyard|fulfillment)\b/i.test(headline)
+  return white && !blue ? 'white' : blue && !white ? 'blue' : 'unknown'
+}
 
 /** What kind of workforce action a headline reports; names the entry so the alert and the tracker say what happened. */
 export type WorkforceEvent = 'layoff' | 'buyout' | 'closure' | 'relocation' | 'merger' | 'redundancy' | 'ai_displacement'
