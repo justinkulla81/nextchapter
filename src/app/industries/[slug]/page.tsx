@@ -1,4 +1,5 @@
 import { fitDescription } from '@/lib/seo/templates'
+import { shownInSearch } from '@/lib/seo/shown-in-search'
 import { FeedLine } from '@/components/seo/FeedLine'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: titleMeta(`${d.industry.name}: jobs, conferences and layoffs`),
     description: fitDescription(d.intro, 165),
-    robots: { index: d.assessment.indexable, follow: true },
+    robots: { index: d.assessment.indexable || (await shownInSearch(`/industries/${slug}`)), follow: true },
     ...canonical(`/industries/${slug}`),
   }
 }

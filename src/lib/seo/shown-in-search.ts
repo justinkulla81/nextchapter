@@ -55,3 +55,8 @@ const cached = unstable_cache(load, ['shown-in-search-v1'], { revalidate: 6 * 36
 export async function pagesShownInSearch(): Promise<Set<string>> {
   return new Set(await cached().catch(() => [] as string[]))
 }
+
+/** Whether Google showed this path in search in the last 28 days. A quality bar never sets noindex on one that it did. */
+export async function shownInSearch(path: string): Promise<boolean> {
+  return (await pagesShownInSearch()).has(path.replace(/\/+$/, '') || '/')
+}
