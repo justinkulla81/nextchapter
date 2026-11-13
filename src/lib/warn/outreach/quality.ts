@@ -39,25 +39,43 @@ export interface AddressFacts {
   domainBounced: number
   /** The domain has a mail server; null when the lookup was inconclusive. */
   mx: boolean | null
+  /** A saved Hunter check of this address itself (AddressVerification), whoever it belongs to; null when never checked. */
+  directory: { status: string; score: number | null; at: Date } | null
 }
 
 export interface Quality { ok: boolean; score: number; reason: string | null }
+
+const isFresh = (at: Date | null | undefined, now: Date) => !!at && now.getTime() - at.getTime() <= HUNTER_FRESH_DAYS * 86_400_000
+/** A directory address has nothing else vouching for it, so Hunter must call it deliverable with a high score. */
+export const DIRECTORY_MIN_SCORE = 90
 
 export function addressQuality(f: AddressFacts, now: Date = new Date()): Quality {
   const no = (reason: string): Quality => ({ ok: false, score: 0, reason })
   if (isRoleAddress(f.email)) return no('role address')
   if (f.mx === false) return no('domain has no mail server')
   if (f.domainBounced > 0 && f.domainDelivered === 0) return no('domain bounced before')
-  if (!f.personId) return no('no verified contact')
-  const fresh = !!f.hunterAt && now.getTime() - f.hunterAt.getTime() <= HUNTER_FRESH_DAYS * 86_400_000
-  const hunterOk = f.primaryMatches && fresh && !!f.hunterStatus && HUNTER_OK.has(f.hunterStatus.toLowerCase())
+  const personOk = !!f.personId && f.primaryMatches && isFresh(f.hunterAt, now) && !!f.hunterStatus && HUNTER_OK.has(f.hunterStatus.toLowerCase())
+  const dirOk = !!f.directory && f.directory.status === 'deliverable' && (f.directory.score ?? 0) >= DIRECTORY_MIN_SCORE && isFresh(f.directory.at, now)
   let score: number
-  if (hunterOk) score = 10 + Math.max(0, Math.min(100, f.hunterScore ?? 0)) / 10
-  else if (f.replied && f.domainBounced === 0) score = 8
-  else return no('not verified deliverable')
+  if (personOk) score = 10 + Math.max(0, Math.min(100, f.hunterScore ?? 0)) / 10
+  else if (dirOk) score = 10 + Math.max(0, Math.min(100, f.directory!.score ?? 0)) / 10
+  else if (f.replied && !!f.personId && f.domainBounced === 0) score = 8
+  else return no(f.personId || f.directory ? 'not verified deliverable' : 'no verified contact')
   if (f.warmth === 'HOT') score += 3
   else if (f.warmth === 'WARM') score += 2
   if (f.replied) score += 3
   if (f.domainDelivered > 0 && f.domainBounced === 0) score += 1
   return { ok: true, score, reason: null }
+}
+
+/**
+ * Whether it is worth spending a Hunter credit on this address: it passes every other rule, and nothing has checked it recently (no fresh Hunter
+ * status on the contact, no saved check of the address). An address Hunter already called risky or invalid is not checked again.
+ */
+export function needsVerification(f: AddressFacts, now: Date = new Date()): boolean {
+  if (isRoleAddress(f.email) || f.mx === false || (f.domainBounced > 0 && f.domainDelivered === 0)) return false
+  if (f.replied && f.personId) return false
+  if (f.directory && isFresh(f.directory.at, now)) return false
+  if (f.personId && f.primaryMatches && f.hunterStatus && isFresh(f.hunterAt, now)) return false
+  return true
 }

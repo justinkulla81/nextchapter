@@ -5,6 +5,7 @@
  */
 import { STATE_NAMES } from '@/lib/workforce/places'
 import type { LocalPicture } from '@/lib/warn/layoff-picture'
+import { cleanEmployerName } from './employer-name'
 
 export type CopyAudience = 'hr' | 'job_center' | 'workforce_board' | 'rapid_response'
 export type CopyMode = 'new' | 'older'
@@ -106,7 +107,7 @@ export type HeadlineCode = (typeof HEADLINE_CODES)[number]
  * personal line, plain the bare fact, num2 the number and the employer. Facts only: the employer, the headcount and the place.
  */
 export function headlineFor(code: HeadlineCode, f: HeadlineFacts): string {
-  const org = f.org
+  const org = cleanEmployerName(f.org)
   const N = f.employees ? n(f.employees) : null
   const state = f.state ? (STATE_NAMES[f.state] ?? f.state) : null
   const place = f.county ? `${f.county.replace(/\s+county$/i, '')} County` : state

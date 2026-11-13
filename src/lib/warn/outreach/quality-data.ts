@@ -43,7 +43,7 @@ export async function loadAddressFacts(items: { email: string; personId?: string
   const personIds = [...new Set([...byEmail.values()].filter((x): x is string => !!x))]
   const domains = [...new Set(emails.map(domainOf).filter(Boolean))]
 
-  const [people, delivered, bounced] = await Promise.all([
+  const [people, delivered, bounced, saved] = await Promise.all([
     personIds.length
       ? prisma.crmPerson.findMany({
           where: { id: { in: personIds }, deletedAt: null },
@@ -57,7 +57,9 @@ export async function loadAddressFacts(items: { email: string; personId?: string
     prisma.$queryRaw<{ dom: string; n: bigint }[]>`
       SELECT split_part(lower(email), '@', 2) AS dom, count(*) AS n
       FROM "MailingSuppression" WHERE reason = 'BOUNCED' AND split_part(lower(email), '@', 2) = ANY(${domains}::text[]) GROUP BY 1`,
+    prisma.addressVerification.findMany({ where: { email: { in: emails } }, select: { email: true, status: true, score: true, checkedAt: true } }),
   ])
+  const directory = new Map(saved.map((v) => [v.email, v]))
   const person = new Map(people.map((p) => [p.id, p]))
   const dom = new Map<string, { d: number; b: number }>()
   for (const r of delivered) dom.set(r.dom, { d: Number(r.n), b: Number(r.b) })
@@ -80,6 +82,7 @@ export async function loadAddressFacts(items: { email: string; personId?: string
       domainDelivered: d?.d ?? 0,
       domainBounced: d?.b ?? 0,
       mx: mx.get(domainOf(email)) ?? null,
+      directory: directory.get(email) ? { status: directory.get(email)!.status, score: directory.get(email)!.score, at: directory.get(email)!.checkedAt } : null,
     })
   }
   return out

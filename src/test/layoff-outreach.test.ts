@@ -239,7 +239,7 @@ describe('the backfill week', async () => {
 describe('who is safe to email', async () => {
   const { addressQuality, isRoleAddress } = await import('@/lib/warn/outreach/quality')
   const now = new Date('2026-11-13T12:00:00Z')
-  const base = { email: 'jane.doe@acme.com', personId: 'p1', hunterStatus: 'deliverable', hunterScore: 95, hunterAt: new Date('2026-10-20T00:00:00Z'), primaryMatches: true, warmth: 'UNKNOWN', replied: false, domainDelivered: 0, domainBounced: 0, mx: true }
+  const base = { email: 'jane.doe@acme.com', personId: 'p1', hunterStatus: 'deliverable', hunterScore: 95, hunterAt: new Date('2026-10-20T00:00:00Z'), primaryMatches: true, warmth: 'UNKNOWN', replied: false, domainDelivered: 0, domainBounced: 0, mx: true, directory: null }
   it('sends only to a CRM contact Hunter marked deliverable, recently', () => {
     expect(addressQuality(base, now).ok).toBe(true)
     expect(addressQuality({ ...base, hunterStatus: 'valid' }, now).ok).toBe(true)
@@ -295,5 +295,36 @@ describe('layoff pacing', async () => {
     const { headlineFor, HEADLINE_CODES } = await import('@/lib/warn/outreach/copy')
     for (const audience of ['hr', 'job_center', 'workforce_board', 'rapid_response', 'economic_development'] as const) for (const mode of ['new', 'older'] as const)
       for (const c of HEADLINE_CODES) expect(headlineFor(c, { org: 'Acme', employees: 120, state: 'KY', county: null, audience, mode }), `${c} ${audience} ${mode}`).not.toMatch(/\bfree\b|!|\$|guarantee|urgent|act now/i)
+  })
+})
+
+describe('verifying directory addresses and cleaning names', async () => {
+  const { addressQuality, needsVerification } = await import('@/lib/warn/outreach/quality')
+  const { cleanEmployerName } = await import('@/lib/warn/outreach/employer-name')
+  const now = new Date('2026-11-13T12:00:00Z')
+  const dir = { email: 'sam.lee@workforce.org', personId: null as string | null, hunterStatus: null, hunterScore: null, hunterAt: null, primaryMatches: false, warmth: null, replied: false, domainDelivered: 0, domainBounced: 0, mx: true as boolean | null, directory: null as { status: string; score: number | null; at: Date } | null }
+  it('emails a directory address only after Hunter called it deliverable with a high score, recently', () => {
+    expect(addressQuality(dir, now).reason).toBe('no verified contact')
+    expect(addressQuality({ ...dir, directory: { status: 'deliverable', score: 96, at: new Date('2026-11-12T00:00:00Z') } }, now).ok).toBe(true)
+    expect(addressQuality({ ...dir, directory: { status: 'deliverable', score: 80, at: new Date('2026-11-12T00:00:00Z') } }, now).ok).toBe(false)
+    for (const status of ['risky', 'invalid']) expect(addressQuality({ ...dir, directory: { status, score: 99, at: new Date('2026-11-12T00:00:00Z') } }, now).reason).toBe('not verified deliverable')
+    expect(addressQuality({ ...dir, directory: { status: 'deliverable', score: 99, at: new Date('2026-01-01T00:00:00Z') } }, now).ok).toBe(false)
+  })
+  it('spends a credit only on an address that passes every other rule and has not been checked', () => {
+    expect(needsVerification(dir, now)).toBe(true)
+    expect(needsVerification({ ...dir, email: 'info@workforce.org' }, now)).toBe(false)
+    expect(needsVerification({ ...dir, mx: false }, now)).toBe(false)
+    expect(needsVerification({ ...dir, domainBounced: 2 }, now)).toBe(false)
+    expect(needsVerification({ ...dir, directory: { status: 'invalid', score: 10, at: new Date('2026-11-12T00:00:00Z') } }, now)).toBe(false)
+    expect(needsVerification({ ...dir, personId: 'p1', primaryMatches: true, hunterStatus: 'risky', hunterAt: new Date('2026-11-01T00:00:00Z') }, now)).toBe(false)
+    expect(needsVerification({ ...dir, personId: 'p1', primaryMatches: true, hunterStatus: null }, now)).toBe(true)
+  })
+  it('writes the employer as a person would, with no filing address or plant name', () => {
+    expect(cleanEmployerName('The Mosaic Company 5880 Manley Road FORT MEADE, FL, 33841')).toBe('The Mosaic Company')
+    expect(cleanEmployerName('Excel Mining LLC - MC Mining Preparation Plant')).toBe('Excel Mining LLC')
+    expect(cleanEmployerName('DHL Supply Chain (Formerly Exel)')).toBe('DHL Supply Chain')
+    expect(cleanEmployerName('Acme Corp 100 Main Street Suite 4 Louisville KY 40202')).toBe('Acme Corp')
+    for (const n of ['TomTom', 'Century Aluminum of Kentucky Hawesville', 'Laurel Grocery Company LLC', 'Jabil Inc', '3M', '7-Eleven, Inc.']) expect(cleanEmployerName(n)).toBe(n)
+    expect(cleanEmployerName('A'.repeat(30) + ' ' + 'B'.repeat(40)).length).toBeLessThanOrEqual(60)
   })
 })
