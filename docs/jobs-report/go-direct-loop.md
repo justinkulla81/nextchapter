@@ -12,14 +12,15 @@ Why this works with the rules already in place: a job is offered to Google only 
 
 1. **List.** Run `scripts/jobsreport/aggregator_employers.sql` once (CLAUDE.md "Database egress": one grouped pass, no loop). Save the JSON to `scripts/jobsreport/out/aggregator-employers-<date>.json`.
 2. **Find the career system.** `python3 scripts/jobsreport/go_direct.py --employers <that file> --limit 150`, then `--offset 150`, and so on. Per employer it skips generic labels and employers already in `sources/*.json`, then looks at the career site and the job-system links on it (never the corporate site), then at the employer's own name as a board on Workday, Greenhouse, Lever, Ashby and SmartRecruiters.
-3. **Write sources** in crawler format to `sources/aggregator-direct-<date>.json` (high confidence), with a review list (a board found under a shortened name: confirm the company first), a not-found list ranked by aggregator rows (the next adapter to build, or a hand search that follows the Apply links), and a skipped list.
-4. **Hand to the crawler.** `docs/specs/ncrawl-aggregator-direct-prompt.md` is the standing prompt for `nextchapter-jobs`, which is not reachable from the cloud session. Dry run first; the owner approves counts before import.
-5. **Collapse.** Once the direct rows exist, the matcher sends `duplicateOf` on the aggregator copies (`src/lib/jobs/direct-replacement.ts`), so the employer drops off the next list.
-6. **Measure.** Compare the employer count and row count in step 1 with last cycle's, and re-run `scripts/jobsreport/direct_index_gap.sql` once to see the offered-to-Google bucket move.
+3. **Verify.** `python3 scripts/jobsreport/verify_sources.py scripts/jobsreport/sources/aggregator-direct-<date>.json`. A board found by name is kept only when its own name or postings match the employer (the first pass rejected 47 of 177: Google's "Workday" board is an India operations centre, "Apex Systems" was "Apex Eye"). Rejects go to `out/go-direct-rejected-<date>.json`.
+4. **Write sources** in crawler format to `sources/aggregator-direct-<date>.json` (high confidence), with a review list (a board found under a shortened name: confirm the company first), a not-found list ranked by aggregator rows (the next adapter to build, or a hand search that follows the Apply links), and a skipped list.
+5. **Hand to the crawler.** `docs/specs/ncrawl-aggregator-direct-prompt.md` is the standing prompt for `nextchapter-jobs`, which is not reachable from the cloud session. Dry run first; the owner approves counts before import.
+6. **Collapse.** Once the direct rows exist, the matcher sends `duplicateOf` on the aggregator copies (`src/lib/jobs/direct-replacement.ts`), so the employer drops off the next list.
+7. **Measure.** Compare the employer count and row count in step 1 with last cycle's, and re-run `scripts/jobsreport/direct_index_gap.sql` once to see the offered-to-Google bucket move.
 
-## First run (2026-11-13)
+## First full pass (2026-11-13)
 
-A 12-employer test slice of the top of the list found three readable systems at once: Uline (Workday, Uline_Careers), Orkin (Jibe, careers.orkin.com) and Relativity (Greenhouse); the crawler already had sources for four others, five were skipped (generic label, or already covered), and Maximus, Saab, Yo AI Labs and the remaining slice need a hand search of their career site. Sources: `scripts/jobsreport/sources/aggregator-direct-2026-11-13.json`. The full top-1000 pass is the first scheduled run.
+Results: `docs/jobs-report/go-direct-2026-11-13.md` (1,000 employers: 129 verified sources covering 7,050 aggregator jobs, 507 employers with no readable system).
 
 ## Limits
 
