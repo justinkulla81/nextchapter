@@ -25,3 +25,23 @@ board's own name. Run on the 105,000 names in `Company` (start with the 40,000 J
 - Common Crawl's index (to list every board address on each platform): reachable but answering 504 or empty from the cloud network today; run it from the Mac, one platform and one letter prefix at a time.
 - Third-party scraped datasets of board lists: licensed for non-commercial use; not used.
 - Remote-only boards (Remotive, Arbeitnow, RemoteOK, WeWorkRemotely) are aggregators of postings; not direct.
+
+## Results of the full runs (2026-11-13)
+
+**Workable (engine 1), complete:** 71,798 US jobs from 3,002 employers (`workable-us-employers-2026-11-13.csv`). 96% have a description of 1,500+ characters. About 14% have hourly or trades titles. Top states: CA 10,135, TX 7,672, NY 5,628, NJ 3,817, FL 3,693.
+The employer count is concentrated: Kreyco 4,652, Mindrift 2,151, "Clients Blackbox, Inc." 1,887, NoGigiddy 1,698, WealthBridge Financial Group 1,432. Several of these look like gig platforms,
+recruiters or mass postings. Apply the ghost-listing screen (`ghost-risk.ts`) and cap per-employer counts before import.
+
+**Workday discovery from 10,405 SEC company names (engine 2), complete:** 704 Workday tenants, 1,296 career sites, 345,499 jobs (all countries; each site's total is capped at 2,000 by Workday's count).
+By how well the tenant matches the company name: strong (tenant equals the full name) 756 sites, 207,676 jobs; medium (first two words) 324 sites, 87,358; weak (first word or initials) 216 sites, 50,465.
+Verify the company on weak and medium matches before import. 107 more tenants were found whose career site name is not guessable (`workday-sec.json` has the rest). Largest: CVS Health 19,320, Dollar Tree 18,689, TJX 10,824, DaVita 3,360, Thermo Fisher 3,265, Micron 2,902.
+Overlap: CVS, TJX, Dollar Tree and others are also on Phenom (below); count each employer once.
+
+**Phenom (engine 2b):** 56 of the 74 Phenom career hosts answer the public `/widgets` search: 94,390 jobs (all countries), `sources/phenom-found.json`.
+
+**Career hosts for 10,405 SEC names (`career_hosts_fast.py`):** 1,240 career hosts (careers.<name>.com or jobs.<name>.com) and the system behind each: SuccessFactors 202, Workday 150+, Phenom 111, Radancy 62, iCIMS 73, Jibe, Eightfold 30, Oracle 33, Avature 11, Greenhouse 16 (`sources/career-hosts-sec.json`).
+Their sitemaps list about 358,000 job-like URLs across the 441 non-Workday hosts (`career-hosts-sitemap-counts.json`; noisy: some hosts matched the wrong company, and some URLs are category pages). Use the JobPosting JSON-LD (engine 4) on them.
+
+**Greenhouse, Lever and Ashby by name on the same 10,405 (engine 3):** 363 verified-by-address boards (265 Greenhouse, 51 Lever, 47 Ashby), 23,091 jobs (`sources/sec-gh.json`).
+
+**Order of magnitude:** Workable 71.8k US + Workday strong matches about 207k all-country (about 125k US at 60%) + Phenom 94k (overlapping Workday) + Greenhouse/Lever/Ashby 23k + the sitemap hosts, before the seniority screen and de-duplication against production.
