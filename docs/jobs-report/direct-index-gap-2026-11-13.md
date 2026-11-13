@@ -18,24 +18,31 @@ What this does not measure: how many offered pages Google has actually indexed. 
 | Aggregator or other (not direct) | 220,000 | 38% |
 | Direct | 352,000 | 62% |
 
-## Direct jobs: offered, and what keeps the rest out
+## Direct jobs: offered, and what keeps the rest out (corrected, 10% sample times 10)
 
-| Direct jobs | Estimated | Share of direct |
+This replaces the first version, which skipped the sitemap's other fixed rules (US only, internships, reopened jobs) and so overstated the offered count (204,000). Buckets are mutually exclusive, in the order a job meets the rules (the sitemap SQL, `public-job-page-server.ts`); the sample held 35,520 live direct jobs.
+
+| Direct jobs | Estimated | Share |
 |---|---|---|
-| Offered to Google | 204,000 | 58% |
-| Kept out: last confirmed 14 to 30 days ago (good text) | 82,000 | 23% |
-| Kept out: no description stored at all | 39,000 | 11% |
-| Kept out: description under 1,500 bytes | 26,000 | 7.5% |
+| Offered to Google | 189,000 | 53% |
+| Confirmed open 14 to 30 days ago (good text, hidden only for that) | 86,000 | 24% |
+| Location unknown: no country and no state stored | 30,000 | 8.6% |
+| No description stored | 24,000 | 6.9% |
+| Description under 1,500 bytes | 17,000 | 4.9% |
+| Reopened or reposted twice or more | 4,200 | 1.2% |
+| Outside the US | 3,200 | 0.9% |
+| Confirmed over 30 days ago, or an internship | 100 | |
 
-Of the 65,000 with missing or short text, about 45,000 were confirmed open in the last 14 days, so they would be offered the day the text is fixed. No direct job was last confirmed more than 30 days ago (the board hides those). The earlier note that the 11% had "no verification date" was wrong: all have dates; they have no description.
+Location unknown is the new finding. These jobs are dropped as "not in the US" only because the crawler stored no structured location. Their text says "Remote" or "Multiple Locations", or is empty, so no safe fix exists from our side: the crawler already screens out non-US jobs, so it should record country US (or the state) on what it keeps. Fractional work: about 300 live rows in all (sample), 220 of them aggregator, 50 on the `interim` source (fresh, but their text is short), a handful from employers, search firms and venture boards.
 
 ## Levers, by jobs recovered
 
-1. **Missing or short text, fresh jobs: about 45,000 jobs.** Fastest, because these are already confirmed open. The existing prompt `docs/specs/ncrawl-full-description-prompt.md` sized only the short stubs (about 9,500). The 39,000 with no description at all are a larger and separate problem: the adapter stores nothing.
-2. **Stale direct jobs: about 82,000 jobs.** The crawler holds the rows and has not re-checked them in 14 days. The fix is re-verification cadence, not new sources.
-3. **Employers with only aggregator copies:** the section below. Smaller in jobs, but they are the point of keeping the aggregator rows.
+1. **Stale confirmation: 86,000 jobs.** The cron `direct-reverify` (2026-11-13, `src/lib/jobs/direct-reverify.ts`) checks them hourly through the employer system's public job API or the page's own job data, the way a member's click does, and refreshes the live ones. On a 13-job test most Workday jobs answered live and the rest were unclear (HTTP 403) and left alone; none was wrongly called dead. The crawler's re-check cadence is still the better fix.
+2. **Missing or short text: 41,000 jobs** (crawler).
+3. **Location unknown: 30,000 jobs** (crawler).
+4. **Rules widened**: an employer ATS link counts as direct (about 3,200 more offerable) and search firms and the `interim` source count as direct (about 6,100 more offerable, a 10% sample reading).
 
-Not recommended: lengthening the 14-day window. It would offer the 82,000 stale jobs but also closed ones, and expired job markup is a quality risk with Google. The 1,500-byte threshold also stays (stubs, not near-misses).
+Not recommended: lengthening the 14-day window, or lowering the 1,500-byte threshold (stubs, not near-misses).
 
 ## By employer (estimated jobs; from `direct_index_gap.sql`, section 2)
 
