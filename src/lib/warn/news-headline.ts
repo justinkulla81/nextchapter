@@ -33,7 +33,7 @@ export function readPercent(text: string): number | null {
 const NAME = String.raw`(?<co>[A-Z0-9][\w&.'’-]*(?: (?:&|[A-Z0-9][\w&.'’-]*)){0,4}?)`
 const HEDGE = String.raw`(?:is|are|will|plans? to|set to|to|reportedly|preparing to|prepares to|preparing|prepares|poised to|expected to|about to|ready to|looks? to|looking to|said to|likely to|may|could|would|now|also|again)`
 const VERB = String.raw`(?:${HEDGE} )*(?:lay(?:s|ing)? off|laid off|cut(?:s|ting)?|slash(?:es|ing)?|eliminat(?:e|es|ing)|axe[sd]?|shed(?:s|ding)?|trim(?:s|ming)?|let(?:s|ting)? go(?: of)?)`
-const COUNT = String.raw`(?:about |around |nearly |more than |over |up to |roughly |some |another |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k|thousand)?\+?\s*(?:[a-z-]+ ){0,3}?(?:jobs|employees|workers|staff|staffers|positions|people|roles)`
+const COUNT = String.raw`(?:about |around |nearly |more than |over |up to |roughly |some |another |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k(?![a-z])|thousand)?\+?\s*(?:[a-z-]+ ){0,3}?(?:jobs|employees|workers|staff|staffers|positions|people|roles)`
 
 const WITH_COUNT = new RegExp(String.raw`^${NAME},? ${VERB} ${COUNT}`, 'i')
 const LAYOFFS_COUNT = new RegExp(String.raw`^${NAME}(?:'s)? (?:layoffs?|job cuts)[:,]? .*?${COUNT}`, 'i')
@@ -69,7 +69,7 @@ const PCT_LAYOFFS = new RegExp(
 )
 /** "Amazon confirms 14,000 corporate layoffs", "Verizon announces 13,000 job cuts". */
 const COUNT_THEN_CUTS = new RegExp(
-  String.raw`^${NAME},? (?:(?:announces|confirms|reveals|details|reports|plans|begins) )?(?:about |around |nearly |more than |over |up to |roughly |some |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k|thousand)?\+? (?:[a-z-]+ ){0,2}?(?:layoffs|job cuts|staff cuts|redundancies|buyouts)\b`,
+  String.raw`^${NAME},? (?:(?:announces|confirms|reveals|details|reports|plans|begins) )?(?:about |around |nearly |more than |over |up to |roughly |some |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k(?![a-z])|thousand)?\+? (?:[a-z-]+ ){0,2}?(?:layoffs|job cuts|staff cuts|redundancies|buyouts)\b`,
   'i',
 )
 /** "Layoffs hit Microsoft again", "Job cuts at Nestle: 16,000 roles to go": the company comes after the noun. */
@@ -79,7 +79,7 @@ const CUTS_FIRST = new RegExp(
 )
 /** "Salesforce reduces headcount by 4,000". */
 const HEADCOUNT = new RegExp(
-  String.raw`^${NAME},? (?:is |are |will |plans? to |set to |to |reportedly )?(?:reduc(?:es|ing|e)|shrink(?:s|ing)?|trim(?:s|ming)?) (?:its |their |the )?(?:global |total |entire |overall |corporate |white-collar |office )?(?:headcount|workforce|work force|staff)(?: by (?:about |around |nearly |more than |over |roughly |some )?(?:${PCT}|(?<n>\d[\d,]*)(?<k>k|thousand)?))?`,
+  String.raw`^${NAME},? (?:is |are |will |plans? to |set to |to |reportedly )?(?:reduc(?:es|ing|e)|shrink(?:s|ing)?|trim(?:s|ming)?) (?:its |their |the )?(?:global |total |entire |overall |corporate |white-collar |office )?(?:headcount|workforce|work force|staff)(?: by (?:about |around |nearly |more than |over |roughly |some )?(?:${PCT}|(?<n>\d[\d,]*)(?<k>k(?![a-z])|thousand)?))?`,
   'i',
 )
 

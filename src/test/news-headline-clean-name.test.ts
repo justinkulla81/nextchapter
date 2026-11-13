@@ -19,3 +19,10 @@ describe('readLayoffHeadline with cleaned names', () => {
     expect(readLayoffHeadline("SpaceX's AI group cuts 60 jobs")?.company).toBe('SpaceX')
   })
 })
+
+describe('readLayoffHeadline counts', () => {
+  it('does not read a word starting with K as thousands (Voestalpine, 2026-11-13: 150 became 150,000)', () => {
+    expect(readLayoffHeadline('Voestalpine to cut 150 Kindberg jobs')?.employees).toBe(150)
+    expect(readLayoffHeadline('Acme to cut 15k jobs')?.employees).toBe(15000)
+  })
+})
