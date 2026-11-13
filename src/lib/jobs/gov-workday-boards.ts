@@ -128,4 +128,18 @@ export const GOV_WORKDAY_BOARDS: WorkdayBoard[] = [
   { host: 'mes.wd5', site: 'Careers', employer: 'Maryland Environmental Service', place: 'Millersville, MD' },
   { host: 'tstc.wd1', site: 'TSTC_Jobs', employer: 'Texas State Technical College', place: 'Waco, TX' },
   { host: 'nwtc.wd1', site: 'NWTC1', employer: 'Northeast Wisconsin Technical College', place: 'Green Bay, WI' },
+  // Fourth round: more public universities and colleges, St. Louis County, County of Kauai.
+  { host: 'oregonstate.wd501', site: 'OSU_Careers_Site', employer: 'Oregon State University', place: 'Corvallis, OR' },
+  { host: 'adams.wd1', site: 'ASU', employer: 'Adams State University', place: 'Alamosa, CO' },
+  { host: 'umgc.wd1', site: 'UMGC_Careers', employer: 'University of Maryland Global Campus', place: 'Adelphi, MD' },
+  { host: 'umd.wd1', site: 'UMES', employer: 'University of Maryland Eastern Shore', place: 'Princess Anne, MD' },
+  { host: 'wisconsin.wd1', site: 'UW_Madison', employer: 'University of Wisconsin-Madison', place: 'Madison, WI' },
+  { host: 'wisconsin.wd1', site: 'UW_Comprehensives', employer: 'University of Wisconsin comprehensive universities', place: 'Wisconsin' },
+  { host: 'wisconsin.wd1', site: 'UW_Milwaukee', employer: 'University of Wisconsin-Milwaukee', place: 'Milwaukee, WI' },
+  { host: 'vsc.wd108', site: 'VTSU', employer: 'Vermont State University', place: 'Vermont' },
+  { host: 'vsc.wd108', site: 'CCV', employer: 'Community College of Vermont', place: 'Vermont' },
+  { host: 'fhsu.wd503', site: 'CAREERS', employer: 'Fort Hays State University', place: 'Hays, KS' },
+  { host: 'stlouiscountymo.wd108', site: 'OpportunityCentral', employer: 'St. Louis County, Missouri', place: 'St. Louis County, MO' },
+  { host: 'kauai.wd1', site: 'Kauai_External_Career_Site', employer: 'County of Kauai', place: 'Kauai County, HI' },
+  { host: 'tamus.wd1', site: 'ETAMU_External', employer: 'East Texas A&M University', place: 'Commerce, TX' },
 ]
