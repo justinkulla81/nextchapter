@@ -86,6 +86,13 @@ pay, screen or treat applicants, optional disclaimers, or extra statements).
 They can create unintended consequences. Include only what is required or what
 was explicitly asked for, and don't end replies with offers of further extras.
 
+## End every session with what the owner needs to do
+
+Owner rule (2026-11-13): finish every session's last reply with a short "What you need to do" list: the steps only the owner can
+take (things Claude could not do from the cloud session, approvals, runs on their machine, pages Claude cannot operate), each
+with where to do it and what happens if they skip it. If there is nothing, say "Nothing needed from you." Keep it to what is
+required, not offers of extra work.
+
 ## Jobs report scope
 
 Every jobs report, local (a metro or county) and national, covers **all white-collar
