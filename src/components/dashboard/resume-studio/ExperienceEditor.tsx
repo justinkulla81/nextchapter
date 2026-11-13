@@ -28,10 +28,29 @@ export function ExperienceEditor({ roles, onChange }: { roles: Roles; onChange: 
               <ReorderControls noun="role" index={i} count={roles.length} onMove={(d) => onChange(moveItem(roles, i, d))} onRemove={() => onChange(removeAt(roles, i))} />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Job title" value={role.roleTitle} onChange={(v) => setRole(i, { ...role, roleTitle: v })} maxLength={150} />
+              <Field label="Job title" value={role.roleTitle} onChange={(v) => setRole(i, { ...role, roleTitle: v })} maxLength={200} />
               <Field label="Company" value={role.companyName} onChange={(v) => setRole(i, { ...role, companyName: v })} maxLength={150} />
             </div>
-            <Field label="Dates" value={role.dateRangeLabel} onChange={(v) => setRole(i, { ...role, dateRangeLabel: v })} placeholder="Jan 2020 – Present" maxLength={60} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Dates" value={role.dateRangeLabel} onChange={(v) => setRole(i, { ...role, dateRangeLabel: v })} placeholder="Jan 2020 – Present" maxLength={60} />
+              <Field label="Location" value={role.location ?? ''} onChange={(v) => setRole(i, { ...role, location: v || null })} placeholder="City, State" maxLength={160} />
+            </div>
+
+            {(role.extraRoles ?? []).map((extra, x) => (
+              <div key={x} className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-medium text-foreground">{`Another title at ${role.companyName || 'this company'}`}</p>
+                  <ReorderControls noun="title" index={x} count={(role.extraRoles ?? []).length} onMove={(d) => setRole(i, { ...role, extraRoles: moveItem(role.extraRoles ?? [], x, d) })} onRemove={() => setRole(i, { ...role, extraRoles: removeAt(role.extraRoles ?? [], x) })} />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Job title" value={extra.roleTitle} onChange={(v) => setRole(i, { ...role, extraRoles: replaceAt(role.extraRoles ?? [], x, { ...extra, roleTitle: v }) })} maxLength={200} />
+                  <Field label="Dates" value={extra.dateRangeLabel} onChange={(v) => setRole(i, { ...role, extraRoles: replaceAt(role.extraRoles ?? [], x, { ...extra, dateRangeLabel: v }) })} maxLength={60} />
+                </div>
+              </div>
+            ))}
+            <Button type="button" size="sm" variant="ghost" disabled={(role.extraRoles ?? []).length >= 6} onClick={() => setRole(i, { ...role, extraRoles: [...(role.extraRoles ?? []), { roleTitle: '', dateRangeLabel: '' }] })}>
+              Add another title at this company
+            </Button>
 
             <div className="space-y-3">
               <p className="text-sm font-medium text-foreground">Bullets</p>
@@ -46,7 +65,7 @@ export function ExperienceEditor({ roles, onChange }: { roles: Roles; onChange: 
                         <Textarea
                           value={bullet}
                           rows={2}
-                          maxLength={400}
+                          maxLength={900}
                           onChange={(e) => setRole(i, { ...role, bullets: replaceAt(role.bullets, b, e.target.value) })}
                         />
                       </Label>
@@ -68,10 +87,10 @@ export function ExperienceEditor({ roles, onChange }: { roles: Roles; onChange: 
                   </div>
                 )
               })}
-              <Button type="button" size="sm" variant="outline" disabled={role.bullets.length >= 12} onClick={() => setRole(i, { ...role, bullets: [...role.bullets, ''] })}>
+              <Button type="button" size="sm" variant="outline" disabled={role.bullets.length >= 15} onClick={() => setRole(i, { ...role, bullets: [...role.bullets, ''] })}>
                 Add a bullet
               </Button>
-              {role.bullets.length >= 12 && <p className="text-xs text-muted-foreground">That is the most bullets a role can have. Remove or combine some to add more.</p>}
+              {role.bullets.length >= 15 && <p className="text-xs text-muted-foreground">That is the most bullets a role can have. Remove or combine some to add more.</p>}
             </div>
           </CardContent>
         </Card>
@@ -80,12 +99,12 @@ export function ExperienceEditor({ roles, onChange }: { roles: Roles; onChange: 
       <Button
         type="button"
         variant="outline"
-        disabled={roles.length >= 25}
+        disabled={roles.length >= 30}
         onClick={() => onChange([...roles, { companyName: '', roleTitle: '', dateRangeLabel: '', bullets: [''] }])}
       >
         Add a role
       </Button>
-      {roles.length >= 25 && <p className="text-xs text-muted-foreground">That is the most roles a resume can hold here. Remove one to add another.</p>}
+      {roles.length >= 30 && <p className="text-xs text-muted-foreground">That is the most roles a resume can hold here. Remove one to add another.</p>}
     </section>
   )
 }

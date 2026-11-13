@@ -3,6 +3,8 @@ import type { DocumentProps } from '@react-pdf/renderer'
 import type { ReactElement } from 'react'
 import type { ResumeDocumentData } from '../document-data'
 import type { AccentColorChoice, ResumeTemplateStyleTokens } from '../style-tokens'
+import { buildExecutiveDocx, ExecutivePdfDocument } from './executive'
+import { executiveTokens } from './executive-tokens'
 import { buildClassicDocx, ClassicPdfDocument } from './classic'
 import { classicTokens } from './classic-tokens'
 import { buildModernDocx, ModernPdfDocument } from './modern'
@@ -17,6 +19,7 @@ export interface ResumeTemplateDefinition {
 }
 
 export const RESUME_TEMPLATES: Record<string, ResumeTemplateDefinition> = {
+  executive: { tokens: executiveTokens, buildDocx: buildExecutiveDocx, buildPdfDocument: ExecutivePdfDocument },
   classic: { tokens: classicTokens, buildDocx: buildClassicDocx, buildPdfDocument: ClassicPdfDocument },
   modern: { tokens: modernTokens, buildDocx: buildModernDocx, buildPdfDocument: ModernPdfDocument },
   minimal: { tokens: minimalTokens, buildDocx: buildMinimalDocx, buildPdfDocument: MinimalPdfDocument },

@@ -16403,10 +16403,21 @@ model ResumeDraft {
   document       Json
   // The posting text last pasted in for the keyword check, so it is there next visit.
   jobDescription String?          @db.Text
+  // What this version is for, so versions can be told apart at a glance. kind is one of ORIGINAL (the
+  // upload as read), GENERAL, FUNCTION, INDUSTRY, COMPANY, JOB; targetLabel names the function, industry,
+  // company or job it is aimed at ("Private equity", "Stripe").
+  kind           String           @default("GENERAL")
+  targetLabel    String?
+  // The uploaded file this draft was read from, and the draft it was copied from, if any.
+  sourceResumeId String?
+  parentDraftId  String?
+  // Result of the import completeness check: what was read, and anything in the file that did not land.
+  importReport   Json?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
   @@index([candidateId, updatedAt])
+  @@index([candidateId, sourceResumeId])
 }
 
 // ── REQUESTED DOCUMENTS ──────────────────────────────────────────────────────

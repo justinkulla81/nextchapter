@@ -11,6 +11,7 @@ import { buildResumeDocumentData } from '@/lib/resume/export/document-data'
 import { RESUME_TEMPLATE_META } from '@/lib/resume/export/template-meta'
 import { blankResumeDocument, fitToLimits, parseResumeDocument } from '@/lib/resume/studio/document'
 import { summarizeDocument } from '@/lib/resume/studio/writing-checks'
+import { cleanTargetLabel, defaultVersionName, isDraftKind, type DraftKind } from '@/lib/resume/studio/versions'
 
 const MAX_DRAFTS = 20
 const MAX_JOB_DESCRIPTION = 20_000
@@ -52,6 +53,9 @@ export interface SaveDraftInput {
   templateId: string
   document: unknown
   jobDescription: string
+  // What the version is for. Optional so older callers keep working; the Original keeps its kind whatever is sent.
+  kind?: string
+  targetLabel?: string | null
 }
 export type SaveDraftResult = { ok: true; savedAt: string } | { ok: false; error: string }
 
@@ -60,7 +64,7 @@ export async function saveDraft(draftId: string, input: SaveDraftInput): Promise
   const profile = await currentCandidate()
   if (!profile) return { ok: false, error: 'You need to be logged in to do this. Sign in and try again.' }
 
-  const draft = await prisma.resumeDraft.findFirst({ where: { id: draftId, candidateId: profile.id }, select: { id: true } })
+  const draft = await prisma.resumeDraft.findFirst({ where: { id: draftId, candidateId: profile.id }, select: { id: true, kind: true } })
   if (!draft) return { ok: false, error: 'We could not find this draft. It may have been deleted. Go back to your drafts and open it again.' }
 
   const parsed = parseResumeDocument(input.document)
@@ -68,12 +72,18 @@ export async function saveDraft(draftId: string, input: SaveDraftInput): Promise
   const name = input.name.trim().slice(0, 100)
   if (!name) return { ok: false, error: 'Give this draft a name so you can tell it apart from your others.' }
   const templateId = RESUME_TEMPLATE_META.some((t) => t.id === input.templateId) ? input.templateId : 'classic'
+  // The Original stays the Original; any other draft can be re-labelled, but never promoted to Original.
+  const requestedKind = isDraftKind(input.kind) && input.kind !== 'ORIGINAL' ? input.kind : null
+  const kind: DraftKind = draft.kind === 'ORIGINAL' ? 'ORIGINAL' : (requestedKind ?? (isDraftKind(draft.kind) ? draft.kind : 'GENERAL'))
+  const labelUpdate = input.targetLabel !== undefined ? { targetLabel: cleanTargetLabel(input.targetLabel) } : {}
 
   const updated = await prisma.resumeDraft.update({
     where: { id: draft.id },
     data: {
       name,
       templateId,
+      kind,
+      ...labelUpdate,
       document: parsed.data as unknown as Prisma.InputJsonValue,
       jobDescription: input.jobDescription.trim().slice(0, MAX_JOB_DESCRIPTION) || null,
     },
@@ -107,6 +117,11 @@ export async function duplicateDraft(_prev: StudioActionState, formData: FormDat
       templateId: source.templateId,
       document: source.document as Prisma.InputJsonValue,
       jobDescription: source.jobDescription,
+      // A copy of the Original is a version of it, not a second Original.
+      kind: source.kind === 'ORIGINAL' ? 'GENERAL' : source.kind,
+      targetLabel: source.targetLabel,
+      sourceResumeId: source.sourceResumeId,
+      parentDraftId: source.id,
     },
   })
   captureServerEvent(profile.id, 'resume_draft_duplicated', { candidateId: profile.id, draftId: copy.id, fromDraftId: source.id })
@@ -121,4 +136,42 @@ export async function deleteDraft(_prev: StudioActionState, formData: FormData):
   if (result.count > 0) captureServerEvent(profile.id, 'resume_draft_deleted', { candidateId: profile.id, draftId })
   revalidatePath('/dashboard/resume/studio')
   redirect('/dashboard/resume/studio')
+}
+
+export interface MakeVersionInput {
+  fromDraftId: string
+  kind: string
+  targetLabel: string
+}
+
+// A labelled version of an existing draft, usually the Original: same content to start from, a name and a label that
+// say what it is for (a function, an industry, a company or a job), and a link back to what it was copied from.
+export async function makeVersion(input: MakeVersionInput): Promise<{ ok: true; draftId: string } | { ok: false; error: string }> {
+  const profile = await currentCandidate()
+  if (!profile) return { ok: false, error: 'You need to be logged in to do this. Sign in and try again.' }
+  if (!isDraftKind(input.kind) || input.kind === 'ORIGINAL') return { ok: false, error: 'Choose what this version is for.' }
+  const targetLabel = cleanTargetLabel(input.targetLabel)
+  if (input.kind !== 'GENERAL' && !targetLabel) return { ok: false, error: 'Say which one it is for, so you can find this version later.' }
+
+  const source = await prisma.resumeDraft.findFirst({ where: { id: input.fromDraftId, candidateId: profile.id } })
+  if (!source) return { ok: false, error: 'We could not find that draft. Reload the page and try again.' }
+  const count = await prisma.resumeDraft.count({ where: { candidateId: profile.id } })
+  if (count >= MAX_DRAFTS) return { ok: false, error: `You have ${MAX_DRAFTS} drafts, the most we keep. Delete one you no longer need, then try again.` }
+
+  const copy = await prisma.resumeDraft.create({
+    data: {
+      candidateId: profile.id,
+      name: defaultVersionName(input.kind, targetLabel, source.name),
+      templateId: source.templateId,
+      document: source.document as Prisma.InputJsonValue,
+      jobDescription: source.jobDescription,
+      kind: input.kind,
+      targetLabel,
+      sourceResumeId: source.sourceResumeId,
+      parentDraftId: source.id,
+    },
+  })
+  captureServerEvent(profile.id, 'resume_version_created', { candidateId: profile.id, draftId: copy.id, fromDraftId: source.id, kind: input.kind, hasTarget: Boolean(targetLabel) })
+  revalidatePath('/dashboard/resume/studio')
+  return { ok: true, draftId: copy.id }
 }
