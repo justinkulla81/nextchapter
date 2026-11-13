@@ -91,6 +91,12 @@ const SHARED_STALE_MS = 5 * 60_000
  * SHARED_STALE_MS old while a refresh loads, so three minutes is inside what members already see. Same build only (snapshotBuild).
  */
 const BOARD_SNAPSHOT_FRESH_MS = 3 * 60_000
+/**
+ * How old a snapshot another build wrote may be and still serve a cold or refreshing instance, whatever the board did since. Snapshots
+ * survive a deploy (SNAPSHOT_SHAPES 'board-1'): a deploy used to send every instance back to the database for the whole board (~370k rows) at
+ * once. A deploy can change what keepRelevant keeps, so another build's board is held to the longest a member's held copy is already served.
+ */
+const BOARD_OTHER_BUILD_MAX_MS = SHARED_STALE_MS
 /** An instance refreshing a board it already holds waits up to this long, then looks for another instance's snapshot before reading the database itself. */
 const BOARD_REFRESH_JITTER_MS = 15_000
 const LIGHT_MAX_KEYS = 20
@@ -99,6 +105,8 @@ const lightCache = new Map<string, { at: number; rows: Promise<LightRow[]> }>()
 /** A job's prior closures (ghost-risk.ts) for its company + title + location. */
 const priorClosures = (p: LightRow, closedCounts: Map<string, number>) => closedCounts.get(repostKey(p.companyName, p.title, p.location)) ?? 0
 
+// What this keeps (and priorClosures counts) is stored in the shared board snapshot, which outlives a deploy: when it changes, bump
+// SNAPSHOT_SHAPES['board-core'] and ['board-early'] in board-snapshot.ts.
 /** Not confidently outside the US, and not a listing that looks evergreen or fake (ghost-risk.ts). */
 function keepRelevant(all: LightRow[], closedCounts: Map<string, number>, listed: Map<string, number>): LightRow[] {
   const nowMs = Date.now()
@@ -294,7 +302,7 @@ function publishBoard(kind: SnapshotKind, board: HeldBoard): void {
 async function readBoardSnapshot(kind: SnapshotKind, fingerprint: Promise<string | null>, held: HeldBoard | null = null): Promise<HeldBoard | null> {
   const [manifest, now] = await Promise.all([readManifest(kind), fingerprint])
   if (!manifest) return null
-  if (!snapshotUsable(manifest, now, { freshMs: BOARD_SNAPSHOT_FRESH_MS })) return null
+  if (!snapshotUsable(manifest, now, { freshMs: BOARD_SNAPSHOT_FRESH_MS, otherBuildMaxMs: BOARD_OTHER_BUILD_MAX_MS })) return null
   if (held && manifest.at <= held.readAt) return held
   const encoded = await readParts(manifest)
   if (!encoded) return null
