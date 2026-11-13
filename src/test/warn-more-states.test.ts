@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseHawaiiWarn, parseKentuckyWorkbook, parseSouthCarolinaItems, resolveSouthCarolinaPdfs, parseMinnesotaList, resolveKentuckyFiles, parseNevadaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
+import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseHawaiiWarn, parseKentuckyWorkbook, normalizeKentuckyCounty, parseSouthCarolinaItems, resolveSouthCarolinaPdfs, parseMinnesotaList, resolveKentuckyFiles, parseNevadaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
 import type { PdfItem } from '@/lib/warn/pdf-table'
 import { parseWashingtonGrid } from '@/lib/warn/washington'
 
@@ -164,6 +164,7 @@ describe('Kentucky WARN workbooks', () => {
     expect(rows[0].effectiveDate?.toISOString().slice(0, 10)).toBe('2026-12-21')
     expect(rows[0].industry).toContain('42')
     expect(rows[1].noticeDate?.toISOString().slice(0, 10)).toBe('2026-10-12')
+    expect(rows[1].county).toBe('Jefferson')
   })
   it('reads a prior-year sheet with blank county and company headers and text dates', () => {
     const rows = parseKentuckyWorkbook([{ name: '2025', rows: [
@@ -174,6 +175,14 @@ describe('Kentucky WARN workbooks', () => {
     expect(rows[0]).toMatchObject({ employer: 'Blue Oval SK Group/Battery Plant', employees: 1514, county: 'Hardin', layoffType: 'Closure' })
     expect(rows[0].noticeDate?.toISOString().slice(0, 10)).toBe('2025-12-16')
     expect(rows[0].effectiveDate?.toISOString().slice(0, 10)).toBe('2026-02-14')
+  })
+  it('stores one spelling of a county: Jefferson, however the sheet writes it', () => {
+    expect(normalizeKentuckyCounty('Jefferson')).toBe('Jefferson')
+    expect(normalizeKentuckyCounty('Jefferson County - Louisville')).toBe('Jefferson')
+    expect(normalizeKentuckyCounty('Jefferson County - Louisville County')).toBe('Jefferson')
+    expect(normalizeKentuckyCounty(' Jefferson   County ')).toBe('Jefferson')
+    expect(normalizeKentuckyCounty('Out of the State County')).toBe('Out of the State County')
+    expect(normalizeKentuckyCounty('')).toBeNull()
   })
   it('finds the current and prior-year workbooks on the Rapid Response page', () => {
     const html = '<a href="/Services/Documents/Employer%20Guide%20to%20WARN.pdf">Employer guide to WARN</a><a href="/Services/Documents/Website-WARN%20Notice%20Report%2010262026.xlsx"><span>WARN Notice Report</span></a><a href="/Services/Documents/Prior%20Year%20Warn%20Notices.xlsx">Prior Year Warn Notices</a>'
