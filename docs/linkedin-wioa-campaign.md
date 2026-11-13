@@ -24,7 +24,7 @@ claims about price, outcomes or board results.
 
 The ad offers a free workspace where the board's white-collar clients get job search tools, and the board's
 own services are listed beside them. That is all the workforce page claims
-(`src/lib/marketing/portal-pages/workforce.ts`): the board's page, its services, up to 50 active members, and
+(`src/lib/marketing/portal-pages/workforce.ts`): the board's page, its services, a sign-up page for every layoff and a roster of up to 50 people, and
 basic counts, with core job search tools free for the job seeker. Do not list AI coaching, career
 exploration or retraining in the ad: coaching and courses are on the paid Program plan, retraining is what
 the board already does with WIOA money, and a four-item list reads as a different product from the
@@ -139,8 +139,8 @@ last 12 months" and "naming ... workers")
 
 - Intro text: The fiscal 2026 Dislocated Worker appropriation is essentially unchanged at $1.396B, while
   about 546,000 white-collar workers have been out of work 27 weeks or longer this year. Give the ones
-  you serve job search tools of their own, with your services listed beside them. The workspace is free
-  for up to 50 active members. See your region's demo in 60 seconds.
+  you serve job search tools of their own, with your services listed beside them. The workspace is free, with a
+  sign-up page for every layoff and a roster of up to 50 people. See your region's demo in 60 seconds.
 - Headline: Built to sit next to WIOA, not against it
 - Image text: $1.396B, essentially flat. ~546,000 white-collar workers out 27+ weeks.
 - Link: https://launchyournextchapter.com/workforce-boards with the tracked parameters.
