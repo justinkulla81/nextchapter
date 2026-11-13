@@ -168,3 +168,18 @@ describe('NYC, KEPS, Taleo and CalCareers readers', () => {
     expect(calcareersJobs(538401, 3).map((j) => j.id)).toEqual(['538401', '538402', '538403'])
   })
 })
+
+describe('UKG government boards', () => {
+  it('builds the job url under the board prefix and lists each board once', async () => {
+    const { ukgAdapter, ukgUrl, GOV_UKG_BOARDS } = await import('@/lib/jobs/gov-ukg-core')
+    const b = GOV_UKG_BOARDS[0]
+    expect(ukgUrl(b, 'abc').startsWith(ukgAdapter.prefix(b))).toBe(true)
+    const keys = GOV_UKG_BOARDS.map((x) => `${x.tenant}/${x.guid}`)
+    expect(new Set(keys).size).toBe(keys.length)
+  })
+  it('reads the city and state of a UKG opportunity', async () => {
+    const { ukgLocation } = await import('@/lib/jobs/gov-ukg-core')
+    expect(ukgLocation({ Id: '1', Locations: [{ Address: { City: 'Loveland', State: { Code: 'CO' } } }] })).toBe('Loveland, CO')
+    expect(ukgLocation({ Id: '2', Locations: [] })).toBeNull()
+  })
+})
