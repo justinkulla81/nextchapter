@@ -1,0 +1,1187 @@
+[
+ {
+  "employer": "Marriott International Inc /Md/",
+  "host": "careers.marriott.com",
+  "systems": [
+   "oracle"
+  ],
+  "sitemapJobUrls": 31555,
+  "measuredJobs": 28551,
+  "jobPostingShare": 0.9,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Home Depot, Inc.",
+  "host": "careers.homedepot.com",
+  "systems": [
+   "brassring",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 25513,
+  "measuredJobs": 25509,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Nike, Inc.",
+  "host": "careers.nike.com",
+  "systems": [
+   "avature"
+  ],
+  "sitemapJobUrls": 17897,
+  "measuredJobs": 17567,
+  "jobPostingShare": 1.0,
+  "usShare": 0.5
+ },
+ {
+  "employer": "Ulta Beauty, Inc.",
+  "host": "careers.ulta.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 11847,
+  "measuredJobs": 11868,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Revolution Medicines, Inc.",
+  "host": "jobs.revolution.com",
+  "systems": [
+   "greenhouse",
+   "lever"
+  ],
+  "sitemapJobUrls": 5820,
+  "measuredJobs": 5808,
+  "jobPostingShare": 1.0,
+  "usShare": 0.8
+ },
+ {
+  "employer": "Northrop Grumman Corp /De/",
+  "host": "jobs.northropgrumman.com",
+  "systems": [
+   "eightfold"
+  ],
+  "sitemapJobUrls": 3974,
+  "measuredJobs": 3179,
+  "jobPostingShare": 0.8,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Pepsico Inc",
+  "host": "careers.pepsico.com",
+  "systems": [
+   "icims",
+   "avature",
+   "jibe"
+  ],
+  "sitemapJobUrls": 2733,
+  "measuredJobs": 2733,
+  "jobPostingShare": 1.0,
+  "usShare": 0.5
+ },
+ {
+  "employer": "Micron Technology Inc",
+  "host": "careers.micron.com",
+  "systems": [
+   "eightfold"
+  ],
+  "sitemapJobUrls": 3034,
+  "measuredJobs": 2730,
+  "jobPostingShare": 0.9,
+  "usShare": 0.5555555555555556
+ },
+ {
+  "employer": "Encompass Health Corp",
+  "host": "careers.encompasshealth.com",
+  "systems": [
+   "avature"
+  ],
+  "sitemapJobUrls": 2436,
+  "measuredJobs": 2433,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Qualcomm Inc/De",
+  "host": "careers.qualcomm.com",
+  "systems": [
+   "eightfold"
+  ],
+  "sitemapJobUrls": 2182,
+  "measuredJobs": 2182,
+  "jobPostingShare": 1.0,
+  "usShare": 0.1
+ },
+ {
+  "employer": "Brightspring Health Services, Inc.",
+  "host": "careers.brightspringhealth.com",
+  "systems": [
+   "icims"
+  ],
+  "sitemapJobUrls": 2674,
+  "measuredJobs": 2139,
+  "jobPostingShare": 0.8,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Bjs Restaurants Inc",
+  "host": "careers.bjsrestaurants.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 2055,
+  "measuredJobs": 2054,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Quest Diagnostics Inc",
+  "host": "careers.questdiagnostics.com",
+  "systems": [
+   "oracle",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 4088,
+  "measuredJobs": 2042,
+  "jobPostingShare": 0.5,
+  "usShare": 1.0
+ },
+ {
+  "employer": "L3Harris Technologies, Inc. /De/",
+  "host": "careers.l3harris.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 3173,
+  "measuredJobs": 1896,
+  "jobPostingShare": 0.6,
+  "usShare": 0.8333333333333334
+ },
+ {
+  "employer": "Takeda Pharmaceutical Co Ltd",
+  "host": "jobs.takeda.com",
+  "systems": [
+   "avature",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 3654,
+  "measuredJobs": 1821,
+  "jobPostingShare": 0.5,
+  "usShare": 0.4
+ },
+ {
+  "employer": "Ardent Health, Inc.",
+  "host": "jobs.ardenthealth.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 1541,
+  "measuredJobs": 1537,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Lam Research Corp",
+  "host": "careers.lamresearch.com",
+  "systems": [
+   "successfactors",
+   "eightfold"
+  ],
+  "sitemapJobUrls": 1653,
+  "measuredJobs": 1487,
+  "jobPostingShare": 0.9,
+  "usShare": 0.3333333333333333
+ },
+ {
+  "employer": "Infineon Technologies Ag",
+  "host": "jobs.infineon.com",
+  "systems": [
+   "eightfold"
+  ],
+  "sitemapJobUrls": 1476,
+  "measuredJobs": 1328,
+  "jobPostingShare": 0.9,
+  "usShare": 0.2222222222222222
+ },
+ {
+  "employer": "Spectrum Brands Holdings, Inc.",
+  "host": "jobs.spectrum.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 6663,
+  "measuredJobs": 1317,
+  "jobPostingShare": 0.2,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Mastec Inc",
+  "host": "careers.mastec.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 1176,
+  "measuredJobs": 1175,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Sysco Corp",
+  "host": "careers.sysco.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 5827,
+  "measuredJobs": 1165,
+  "jobPostingShare": 0.2,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Aon Plc",
+  "host": "jobs.aon.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 1107,
+  "measuredJobs": 1103,
+  "jobPostingShare": 1.0,
+  "usShare": 0.5
+ },
+ {
+  "employer": "Radnet, Inc.",
+  "host": "careers.radnet.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 1076,
+  "measuredJobs": 1080,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Vodafone Group Public Ltd Co",
+  "host": "jobs.vodafone.com",
+  "systems": [
+   "eightfold"
+  ],
+  "sitemapJobUrls": 1318,
+  "measuredJobs": 1054,
+  "jobPostingShare": 0.8,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Clean Harbors Inc",
+  "host": "careers.cleanharbors.com",
+  "systems": [
+   "oracle"
+  ],
+  "sitemapJobUrls": 1157,
+  "measuredJobs": 1041,
+  "jobPostingShare": 0.9,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Amgen Inc",
+  "host": "careers.amgen.com",
+  "systems": [
+   "eightfold",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 3392,
+  "measuredJobs": 1013,
+  "jobPostingShare": 0.3,
+  "usShare": 0.3333333333333333
+ },
+ {
+  "employer": "Boeing Co",
+  "host": "jobs.boeing.com",
+  "systems": [
+   "avature",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 3600,
+  "measuredJobs": 1011,
+  "jobPostingShare": 0.3,
+  "usShare": 0.6666666666666666
+ },
+ {
+  "employer": "Rivian Automotive, Inc. / De",
+  "host": "careers.rivian.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 959,
+  "measuredJobs": 959,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Mckesson Corp",
+  "host": "careers.mckesson.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 1867,
+  "measuredJobs": 923,
+  "jobPostingShare": 0.5,
+  "usShare": 0.8
+ },
+ {
+  "employer": "Comcast Corp",
+  "host": "jobs.comcast.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 1817,
+  "measuredJobs": 913,
+  "jobPostingShare": 0.5,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Synopsys Inc",
+  "host": "careers.synopsys.com",
+  "systems": [
+   "avature",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 1805,
+  "measuredJobs": 906,
+  "jobPostingShare": 0.5,
+  "usShare": 0.4
+ },
+ {
+  "employer": "Rb Global Inc.",
+  "host": "careers.rbglobal.com",
+  "systems": [
+   "oracle"
+  ],
+  "sitemapJobUrls": 832,
+  "measuredJobs": 834,
+  "jobPostingShare": 1.0,
+  "usShare": 0.6
+ },
+ {
+  "employer": "Sanofi",
+  "host": "jobs.sanofi.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 2103,
+  "measuredJobs": 832,
+  "jobPostingShare": 0.4,
+  "usShare": 0.5
+ },
+ {
+  "employer": "Keysight Technologies, Inc.",
+  "host": "careers.keysight.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 816,
+  "measuredJobs": 815,
+  "jobPostingShare": 1.0,
+  "usShare": 0.6
+ },
+ {
+  "employer": "Palo Alto Networks Inc",
+  "host": "jobs.paloaltonetworks.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 2453,
+  "measuredJobs": 745,
+  "jobPostingShare": 0.3,
+  "usShare": 0.6666666666666666
+ },
+ {
+  "employer": "Unifirst Corp",
+  "host": "jobs.unifirst.com",
+  "systems": [
+   "taleo",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 1803,
+  "measuredJobs": 720,
+  "jobPostingShare": 0.4,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Fedex Freight Holding Company, Inc.",
+  "host": "careers.fedexfreight.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 663,
+  "measuredJobs": 652,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Echostar Corp",
+  "host": "jobs.echostar.com",
+  "systems": [
+   "oracle",
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 641,
+  "measuredJobs": 645,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Uber Technologies, Inc",
+  "host": "jobs.uber.com",
+  "systems": [
+   "oracle"
+  ],
+  "sitemapJobUrls": 1032,
+  "measuredJobs": 621,
+  "jobPostingShare": 0.6,
+  "usShare": 0.3333333333333333
+ },
+ {
+  "employer": "Fluor Corp",
+  "host": "careers.fluor.com",
+  "systems": [
+   "successfactors",
+   "eightfold"
+  ],
+  "sitemapJobUrls": 758,
+  "measuredJobs": 606,
+  "jobPostingShare": 0.8,
+  "usShare": 0.625
+ },
+ {
+  "employer": "Rush Enterprises Inc Tx",
+  "host": "careers.rushenterprises.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 554,
+  "measuredJobs": 553,
+  "jobPostingShare": 1.0,
+  "usShare": 0.8
+ },
+ {
+  "employer": "Keurig Dr Pepper Inc.",
+  "host": "careers.keurigdrpepper.com",
+  "systems": [
+   "eightfold",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 1680,
+  "measuredJobs": 504,
+  "jobPostingShare": 0.3,
+  "usShare": 0.6666666666666666
+ },
+ {
+  "employer": "Halliburton Co",
+  "host": "careers.halliburton.com",
+  "systems": [
+   "successfactors",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 1003,
+  "measuredJobs": 501,
+  "jobPostingShare": 0.5,
+  "usShare": 0.2
+ },
+ {
+  "employer": "Astrazeneca Plc",
+  "host": "careers.astrazeneca.com",
+  "systems": [
+   "eightfold",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 1641,
+  "measuredJobs": 492,
+  "jobPostingShare": 0.3,
+  "usShare": 0.6666666666666666
+ },
+ {
+  "employer": "Ing Groep Nv",
+  "host": "careers.ing.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 1643,
+  "measuredJobs": 485,
+  "jobPostingShare": 0.3,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Molina Healthcare, Inc.",
+  "host": "careers.molinahealthcare.com",
+  "systems": [
+   "oracle",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 1598,
+  "measuredJobs": 476,
+  "jobPostingShare": 0.3,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Arm Holdings Plc /Uk",
+  "host": "careers.arm.com",
+  "systems": [
+   "icims",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 938,
+  "measuredJobs": 471,
+  "jobPostingShare": 0.5,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Paychex Inc",
+  "host": "careers.paychex.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 464,
+  "measuredJobs": 452,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Carrier Global Corp",
+  "host": "jobs.carrier.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 2154,
+  "measuredJobs": 421,
+  "jobPostingShare": 0.2,
+  "usShare": 0.5
+ },
+ {
+  "employer": "First Citizens Bancshares Inc /De/",
+  "host": "jobs.firstcitizens.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 401,
+  "measuredJobs": 403,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Constellation Energy Corp",
+  "host": "jobs.constellationenergy.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 400,
+  "measuredJobs": 398,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Bowman Consulting Group Ltd.",
+  "host": "careers.bowman.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 390,
+  "measuredJobs": 390,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Kinder Morgan, Inc.",
+  "host": "careers.kindermorgan.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 308,
+  "measuredJobs": 309,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Baxter International Inc",
+  "host": "jobs.baxter.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 1474,
+  "measuredJobs": 292,
+  "jobPostingShare": 0.2,
+  "usShare": 0.5
+ },
+ {
+  "employer": "Resideo Technologies, Inc.",
+  "host": "careers.resideo.com",
+  "systems": [
+   "oracle"
+  ],
+  "sitemapJobUrls": 364,
+  "measuredJobs": 291,
+  "jobPostingShare": 0.8,
+  "usShare": 0.5
+ },
+ {
+  "employer": "Dexcom Inc",
+  "host": "careers.dexcom.com",
+  "systems": [
+   "successfactors",
+   "eightfold"
+  ],
+  "sitemapJobUrls": 313,
+  "measuredJobs": 281,
+  "jobPostingShare": 0.9,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Viasat Inc",
+  "host": "careers.viasat.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 265,
+  "measuredJobs": 265,
+  "jobPostingShare": 1.0,
+  "usShare": 0.9
+ },
+ {
+  "employer": "Blackrock, Inc.",
+  "host": "careers.blackrock.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 814,
+  "measuredJobs": 243,
+  "jobPostingShare": 0.3,
+  "usShare": 1.0
+ },
+ {
+  "employer": "E.On Se",
+  "host": "jobs.eon.com",
+  "systems": [
+   "oracle",
+   "successfactors"
+  ],
+  "sitemapJobUrls": 411,
+  "measuredJobs": 243,
+  "jobPostingShare": 0.6,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Whirlpool Corp /De/",
+  "host": "jobs.whirlpool.com",
+  "systems": [
+   "successfactors",
+   "eightfold"
+  ],
+  "sitemapJobUrls": 269,
+  "measuredJobs": 242,
+  "jobPostingShare": 0.9,
+  "usShare": 0.6666666666666666
+ },
+ {
+  "employer": "Netapp, Inc.",
+  "host": "careers.netapp.com",
+  "systems": [
+   "successfactors",
+   "eightfold",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 804,
+  "measuredJobs": 239,
+  "jobPostingShare": 0.3,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Docusign, Inc.",
+  "host": "careers.docusign.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 240,
+  "measuredJobs": 237,
+  "jobPostingShare": 1.0,
+  "usShare": 0.6
+ },
+ {
+  "employer": "Unilever Plc",
+  "host": "careers.unilever.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 772,
+  "measuredJobs": 227,
+  "jobPostingShare": 0.3,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Qxo, Inc.",
+  "host": "jobs.qxo.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 252,
+  "measuredJobs": 227,
+  "jobPostingShare": 0.9,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Eversource Energy",
+  "host": "jobs.eversource.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 438,
+  "measuredJobs": 225,
+  "jobPostingShare": 0.5,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Trinet Group, Inc.",
+  "host": "jobs.trinet.com",
+  "systems": [
+   "eightfold"
+  ],
+  "sitemapJobUrls": 196,
+  "measuredJobs": 156,
+  "jobPostingShare": 0.8,
+  "usShare": 0.625
+ },
+ {
+  "employer": "Moodys Corp /De/",
+  "host": "careers.moodys.com",
+  "systems": [
+   "successfactors",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 744,
+  "measuredJobs": 148,
+  "jobPostingShare": 0.2,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Principal Financial Group Inc",
+  "host": "careers.principal.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 155,
+  "measuredJobs": 148,
+  "jobPostingShare": 1.0,
+  "usShare": 0.6
+ },
+ {
+  "employer": "Insight Enterprises Inc",
+  "host": "careers.insight.com",
+  "systems": [
+   "eightfold"
+  ],
+  "sitemapJobUrls": 179,
+  "measuredJobs": 143,
+  "jobPostingShare": 0.8,
+  "usShare": 0.75
+ },
+ {
+  "employer": "Sunrun Inc.",
+  "host": "careers.sunrun.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 716,
+  "measuredJobs": 141,
+  "jobPostingShare": 0.2,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Wolverine World Wide Inc /De/",
+  "host": "careers.wolverineworldwide.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 701,
+  "measuredJobs": 140,
+  "jobPostingShare": 0.2,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Haleon Plc",
+  "host": "careers.haleon.com",
+  "systems": [
+   "eightfold"
+  ],
+  "sitemapJobUrls": 233,
+  "measuredJobs": 139,
+  "jobPostingShare": 0.6,
+  "usShare": 0.3333333333333333
+ },
+ {
+  "employer": "Dauch Corp",
+  "host": "careers.dauch.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 696,
+  "measuredJobs": 138,
+  "jobPostingShare": 0.2,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Santander Bank Polska Sa/Adr",
+  "host": "jobs.santanderbank.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 680,
+  "measuredJobs": 134,
+  "jobPostingShare": 0.2,
+  "usShare": 0.0
+ },
+ {
+  "employer": "J.Jill, Inc.",
+  "host": "jobs.jjill.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 596,
+  "measuredJobs": 119,
+  "jobPostingShare": 0.2,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Incyte Corp",
+  "host": "careers.incyte.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 108,
+  "measuredJobs": 116,
+  "jobPostingShare": 1.0,
+  "usShare": 0.5
+ },
+ {
+  "employer": "Andersen Group Inc.",
+  "host": "careers.andersen.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 111,
+  "measuredJobs": 111,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Selective Insurance Group Inc",
+  "host": "jobs.selective.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 105,
+  "measuredJobs": 105,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Lamb Weston Holdings, Inc.",
+  "host": "careers.lambweston.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 251,
+  "measuredJobs": 75,
+  "jobPostingShare": 0.3,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Chevron Corp",
+  "host": "careers.chevron.com",
+  "systems": [
+   "eightfold",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 363,
+  "measuredJobs": 74,
+  "jobPostingShare": 0.2,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Sensient Technologies Corp",
+  "host": "careers.sensient.com",
+  "systems": [
+   "oracle",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 371,
+  "measuredJobs": 74,
+  "jobPostingShare": 0.2,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Sirius Xm Holdings Inc.",
+  "host": "careers.siriusxm.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 42,
+  "measuredJobs": 64,
+  "jobPostingShare": 1.0,
+  "usShare": 0.5
+ },
+ {
+  "employer": "Meritage Homes Corp",
+  "host": "careers.meritagehomes.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 62,
+  "measuredJobs": 63,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "International Stem Cell Corp",
+  "host": "jobs.stemcell.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 112,
+  "measuredJobs": 56,
+  "jobPostingShare": 0.5,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Certara, Inc.",
+  "host": "careers.certara.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 54,
+  "measuredJobs": 54,
+  "jobPostingShare": 1.0,
+  "usShare": 0.2
+ },
+ {
+  "employer": "Carnival Corp Ltd.",
+  "host": "jobs.carnival.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 261,
+  "measuredJobs": 52,
+  "jobPostingShare": 0.2,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Skywest Inc",
+  "host": "jobs.skywest.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 54,
+  "measuredJobs": 52,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Verra Mobility Corp",
+  "host": "careers.verramobility.com",
+  "systems": [
+   "greenhouse",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 176,
+  "measuredJobs": 52,
+  "jobPostingShare": 0.3,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Cal-Maine Foods Inc",
+  "host": "careers.calmainefoods.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 51,
+  "measuredJobs": 51,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Amdocs Ltd",
+  "host": "jobs.amdocs.com",
+  "systems": [
+   "eightfold"
+  ],
+  "sitemapJobUrls": 52,
+  "measuredJobs": 46,
+  "jobPostingShare": 0.9,
+  "usShare": 0.2222222222222222
+ },
+ {
+  "employer": "Kadant Inc",
+  "host": "careers.kadant.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 42,
+  "measuredJobs": 42,
+  "jobPostingShare": 1.0,
+  "usShare": 0.8
+ },
+ {
+  "employer": "Tompkins Financial Corp",
+  "host": "careers.tompkinsfinancial.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 36,
+  "measuredJobs": 36,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Sharkninja, Inc.",
+  "host": "careers.sharkninja.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 344,
+  "measuredJobs": 34,
+  "jobPostingShare": 0.1,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Msci Inc.",
+  "host": "careers.msci.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 325,
+  "measuredJobs": 33,
+  "jobPostingShare": 0.1,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Jack Henry & Associates Inc",
+  "host": "careers.jackhenry.com",
+  "systems": [
+   "avature",
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 329,
+  "measuredJobs": 32,
+  "jobPostingShare": 0.1,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Destination Xl Group, Inc.",
+  "host": "careers.destinationxl.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 327,
+  "measuredJobs": 32,
+  "jobPostingShare": 0.1,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Pdf Solutions Inc",
+  "host": "careers.pdf.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 21,
+  "measuredJobs": 20,
+  "jobPostingShare": 1.0,
+  "usShare": 0.4
+ },
+ {
+  "employer": "Pacira Biosciences, Inc.",
+  "host": "careers.pacira.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 20,
+  "measuredJobs": 20,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Quarterhill Inc.",
+  "host": "careers.quarterhill.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 21,
+  "measuredJobs": 20,
+  "jobPostingShare": 1.0,
+  "usShare": 0.9
+ },
+ {
+  "employer": "Selectquote, Inc.",
+  "host": "careers.selectquote.com",
+  "systems": [
+   "icims",
+   "jibe"
+  ],
+  "sitemapJobUrls": 21,
+  "measuredJobs": 19,
+  "jobPostingShare": 1.0,
+  "usShare": 1.0
+ },
+ {
+  "employer": "Evotec Se",
+  "host": "careers.evotec.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 154,
+  "measuredJobs": 15,
+  "jobPostingShare": 0.1,
+  "usShare": 0.0
+ },
+ {
+  "employer": "Encore Capital Group Inc",
+  "host": "careers.encorecapital.com",
+  "systems": [
+   "radancy_mcloud"
+  ],
+  "sitemapJobUrls": 145,
+  "measuredJobs": 14,
+  "jobPostingShare": 0.1,
+  "usShare": 1.0
+ }
+]
