@@ -5,7 +5,7 @@ import { getMailingSettings } from '@/lib/mailing/lists'
 import type { DraftContext } from '@/lib/warn/layoff-alert-drafts'
 import type { ContactGroup } from '@/lib/warn/layoff-alert-rules'
 import { AUDIENCE_LABEL, CAMPAIGN, CONTACT_COOLDOWN_DAYS, planOutreach } from './plan'
-import { addressQuality, needsVerification } from './quality'
+import { addressQuality, isVerifyBlocked, needsVerification } from './quality'
 import { cleanEmployerName } from './employer-name'
 import { ensureVerified } from './verify'
 import { loadAddressFacts } from './quality-data'
@@ -68,7 +68,8 @@ export async function queueLayoffOutreach(input: { noticeId: string; employer: s
     if (toCheck.length) {
       const v = await ensureVerified(toCheck, { max: 40, timeMs: 60_000 })
       if (v.checked) facts = await loadAddressFacts(items)
-      waiting = [...facts.values()].filter((f) => needsVerification(f)).length
+      // If Hunter cannot be asked at all (no credits left, the day's ceiling), do not wait for it: go on with the addresses already verified.
+      waiting = isVerifyBlocked(v.stopped) ? 0 : [...facts.values()].filter((f) => needsVerification(f)).length
     }
     const screened: Record<string, number> = {}
     for (const [email, f] of facts) {

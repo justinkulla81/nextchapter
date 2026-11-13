@@ -5,7 +5,7 @@ import { CAMPAIGN } from './plan'
 import { queueOutreachForNotice } from './for-notice'
 import { releaseTime, modeForAge, BACKFILL_DAYS, BACKFILL_MIN_EMPLOYEES, BATCH, SUPPRESSION_MARK_BEFORE, assignDaysByCap, assignArms, sendDayTimes } from './backfill-rules'
 import { LAYOFF_RAMP } from '@/lib/mailing/layoff-pacing-rules'
-import { addressQuality, needsVerification } from './quality'
+import { addressQuality, isVerifyBlocked, needsVerification } from './quality'
 import { ensureVerified } from './verify'
 import { loadAddressFacts } from './quality-data'
 import { headlineFor, type HeadlineCode, type HeadlineFacts } from './copy'
@@ -128,7 +128,8 @@ export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: Da
   if (toCheck.length) {
     const v = await ensureVerified(toCheck, { max: 250, timeMs: 110_000 })
     if (v.checked) pre = await loadAddressFacts(items)
-    const waiting = [...pre.values()].filter((f) => needsVerification(f, now)).length
+    // Out of credits (or Hunter unavailable): schedule with what is verified; the rest are screened out below, not waited for.
+    const waiting = isVerifyBlocked(v.stopped) ? 0 : [...pre.values()].filter((f) => needsVerification(f, now)).length
     if (waiting > 0) return { days: [], removed: 0, verifying: waiting }
   }
   const emails = [...new Set(eds.flatMap((e) => e.recipients.map((r) => r.email)))]
