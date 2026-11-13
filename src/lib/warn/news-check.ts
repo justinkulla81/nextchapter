@@ -4,7 +4,7 @@ import { searchTopic, searchGoogleNews, type DiscoveredArticle } from '@/lib/new
 import { matchOrCreateCompanyForEmployer } from './company-match'
 import { firstDivision } from './division'
 import { looksLikeEmployer } from './tracker-merge'
-import { readLayoffHeadline, readPercent, publisherKey, sameEmployer } from './news-headline'
+import { readLayoffHeadline, readPercent, publisherKey, sameEmployer, readWorkforceEvent, workforceEventLabel } from './news-headline'
 import { alertNewLayoff, withAlertRun } from './layoff-alert'
 import { layoffTypeLabel } from './layoff-alert-rules'
 import { findLayoffContacts } from './layoff-contacts-run'
@@ -29,6 +29,14 @@ export const QUERIES = [
   'reduction in force', 'layoffs AI automation', 'AI job cuts', 'layoffs after acquisition', 'new owner layoffs', 'private equity layoffs',
   'tech layoffs', 'healthcare layoffs', 'bank layoffs', 'retail layoffs', 'startup layoffs',
   'media entertainment layoffs', 'manufacturing layoffs', 'grocery layoffs',
+  // Other workforce actions that cost people their jobs, worded the way headlines word them (added 2026-11-13).
+  'WARN notice', 'WARN Act notice filed', 'redundancies', 'makes redundant', 'voluntary buyout', 'offers buyouts', 'voluntary separation program',
+  'early retirement offer', 'relocating headquarters', 'relocate jobs', 'closing office', 'office closure', 'plant closure', 'shutting down',
+  'to shut down', 'ceasing operations', 'merger job cuts', 'layoffs after merger', 'AI layoffs', 'AI displacement', 'jobs replaced by AI',
+  'layoffs automation', 'wind down operations', 'closing stores',
+  // Aimed at white-collar work: offices, headquarters, corporate and professional roles (Census groups 1 and 2).
+  'office layoffs', 'closing headquarters', 'back-office job cuts', 'white-collar job cuts', 'middle management cuts', 'software engineers laid off',
+  'consulting firm layoffs', 'law firm layoffs', 'finance layoffs', 'insurance layoffs', 'entry-level jobs AI', 'AI replaces workers',
 ]
 /**
  * The fast lane (runLayoffNewsCheck({ fast: true })): a few broad queries on Google News limited to the last few hours, hourly. The
@@ -36,7 +44,10 @@ export const QUERIES = [
  * after it was published (October 2026); a window of hours has nothing to crowd it. Google only: Bing's recent-hours filter returned
  * stories nine hours old. A few requests, not the full set, so the hourly cadence does not lean on a shared host.
  */
-export const FAST_QUERIES = ['layoffs', 'lays off employees', 'to cut jobs', 'announces layoffs', 'workforce reduction', 'job cuts announced', 'reduction in force', 'confirms layoffs']
+export const FAST_QUERIES = [
+  'layoffs', 'lays off employees', 'to cut jobs', 'announces layoffs', 'workforce reduction', 'job cuts announced', 'reduction in force', 'confirms layoffs',
+  'redundancies', 'voluntary buyout', 'closing office', 'shutting down', 'relocating headquarters', 'AI layoffs',
+]
 /** Hours back the fast lane reads: wider than its hourly cadence, so a late run or a late-indexed story is still caught. */
 export const FAST_WINDOW_HOURS = 3
 /** Searches in flight at once. */
@@ -299,7 +310,7 @@ async function newsCheck(opts: { fast?: boolean }): Promise<NewsCheckResult> {
         source: 'MANUAL_ANNOUNCEMENT',
         noticeDate: new Date(Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate())),
         employees,
-        layoffType: layoffTypeLabel({ publishers: publishers.size, publisher: first.publisher, percent }),
+        layoffType: layoffTypeLabel({ publishers: publishers.size, publisher: first.publisher, percent, event: workforceEventLabel(readWorkforceEvent(first.headline)) }),
         sourceUrl: first.url,
       },
       select: { id: true },

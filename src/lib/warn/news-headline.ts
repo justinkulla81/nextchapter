@@ -37,7 +37,7 @@ const COUNT = String.raw`(?:about |around |nearly |more than |over |up to |rough
 
 const WITH_COUNT = new RegExp(String.raw`^${NAME},? ${VERB} ${COUNT}`, 'i')
 const LAYOFFS_COUNT = new RegExp(String.raw`^${NAME}(?:'s)? (?:layoffs?|job cuts)[:,]? .*?${COUNT}`, 'i')
-const ANNOUNCES = new RegExp(String.raw`^${NAME} (?:announces|confirms|begins|starts|plans|unveils|launches|to begin)(?: (?:new|more|mass|another|a new round of|fresh))? (?:[a-z-]+ ){0,2}?(?:layoffs|job cuts|staff cuts|headcount cuts)\b`, 'i')
+const ANNOUNCES = new RegExp(String.raw`^${NAME} (?:announces|confirms|begins|starts|plans|unveils|launches|to begin)(?: (?:new|more|mass|another|a new round of|fresh))? (?:[a-z-]+ ){0,2}?(?:layoffs|job cuts|staff cuts|headcount cuts|redundancies|buyouts)\b`, 'i')
 
 // The wider shapes: the layoff is announced without a headcount, as a share of
 // the workforce, or by the company's owner. Each still needs a name as the
@@ -69,7 +69,7 @@ const PCT_LAYOFFS = new RegExp(
 )
 /** "Amazon confirms 14,000 corporate layoffs", "Verizon announces 13,000 job cuts". */
 const COUNT_THEN_CUTS = new RegExp(
-  String.raw`^${NAME},? (?:(?:announces|confirms|reveals|details|reports|plans|begins) )?(?:about |around |nearly |more than |over |up to |roughly |some |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k|thousand)?\+? (?:[a-z-]+ ){0,2}?(?:layoffs|job cuts|staff cuts)\b`,
+  String.raw`^${NAME},? (?:(?:announces|confirms|reveals|details|reports|plans|begins) )?(?:about |around |nearly |more than |over |up to |roughly |some |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k|thousand)?\+? (?:[a-z-]+ ){0,2}?(?:layoffs|job cuts|staff cuts|redundancies|buyouts)\b`,
   'i',
 )
 /** "Layoffs hit Microsoft again", "Job cuts at Nestle: 16,000 roles to go": the company comes after the noun. */
@@ -83,8 +83,34 @@ const HEADCOUNT = new RegExp(
   'i',
 )
 
+
+// Workforce events that are not worded as a layoff: a redundancy programme, a buyout offer, an office or plant closing, a headquarters
+// moving, a merger that cuts jobs. Each still needs a name as the subject and a verb, so a headline that fits none is skipped.
+/** "BT to make 500 staff redundant", "Vodafone makes 11,000 redundancies". */
+const REDUNDANT = new RegExp(String.raw`^${NAME},? (?:${HEDGE} )*(?:make|makes|making) (?:about |around |nearly |more than |over |up to |roughly |some |large |many |further )?(?:(?<n>\d[\d,]*)\s?)?(?:(?:[a-z-]+ ){0,1}(?:staff|workers|employees|people|roles|jobs|positions) )?(?:redundant|redundancies)\b`, 'i')
+/** "Ford offers buyouts to 5,000 workers", "Intel launches voluntary separation program", "Boeing extends early retirement offer". */
+const BUYOUT_OFFER = new RegExp(
+  String.raw`^${NAME},? (?:${HEDGE} )*(?:offers?|offering|launch(?:es|ing)?|announces?|extends?|opens?|rolls? out|unveils?) (?:a |another |new |second |its |voluntary |round of )*(?:voluntary )?(?:buy-?outs?|separation (?:program(?:me)?|packages?|offers?)|early[- ]retirement|departure program(?:me)?|exit program(?:me)?|severance (?:program(?:me)?|packages?))(?:.*?(?<n>\d[\d,]*)\s?(?:[a-z-]+ ){0,2}?(?:employees|workers|staff|people))?`,
+  'i',
+)
+/** "Starbucks to close its Seattle office", "GM shutting down Orion plant, 1,200 jobs", "Acme to shut down". */
+const CLOSURE = new RegExp(
+  String.raw`^${NAME},? (?:${HEDGE} )*(?:(?:clos(?:e|es|ing)|shutter(?:s|ing)?) (?:its |their |the |a |all )?(?:[A-Za-z.-]+ ){0,3}?(?:offices?|headquarters|plants?|facilit(?:y|ies)|factor(?:y|ies)|stores?|locations?|sites?|campus|operations|business|division|unit)|(?:shut(?:s|ting)? down|wind(?:s|ing)? down|cease(?:s)? operations)\b)(?:.*?(?<n>\d[\d,]*)\s?(?:[a-z-]+ ){0,2}?(?:jobs|employees|workers|staff|positions))?`,
+  'i',
+)
+/** "Boeing to relocate headquarters to Arlington", "Chevron moving corporate offices to Houston". */
+const RELOCATION = new RegExp(
+  String.raw`^${NAME},? (?:${HEDGE} )*(?:relocat(?:e|es|ing)|mov(?:e|es|ing)|shift(?:s|ing)?|transfer(?:s|ring)?) (?:its |their |the )?(?:corporate |global |world |u\.s\. |us )?(?:headquarters|hq|head office|corporate offices?|offices?|operations|manufacturing|production|jobs|business)\b`,
+  'i',
+)
+/** "Kroger-Albertsons merger to cost 3,000 jobs", "Acme merger could cut 500 roles". */
+const MERGER = new RegExp(
+  String.raw`^${NAME}(?:'s)?(?:[- ]\w[\w&.'’-]*)? (?:merger|acquisition|takeover|deal|combination) (?:with [A-Z][\w&.'’ -]{1,30} )?(?:${HEDGE} )*(?:cost|cut|eliminate|result in|lead to|put at risk|threaten|axe)(?: up to| about| around| as many as| nearly)? (?<n>\d[\d,]*)\s?(?:[a-z-]+ ){0,2}?(?:jobs|employees|workers|staff|positions|roles)`,
+  'i',
+)
+
 /** Words that make the subject a description rather than a company's name. */
-const NOT_A_NAME = /\b(firm|giant|maker|makers|retailer|chain|plant|startup|employer|employers|company|companies|agency|district|city|county|state|states|government|federal|tech|more|mass|new|major|another|local|dozens|hundreds|thousands|layoffs|layoff|health|global|banking|workers|employees|report|reports|why|how|what|here|these|this|after|amid|as|area|bay|region|industry|sector|hospital|school|schools|university|us|u\.s\.|trump|congress|prepares|preparing|plans|announces|confirms|reveals|begins|starts)\b/i
+const NOT_A_NAME = /\b(stock|shares|firm|giant|maker|makers|retailer|chain|plant|startup|employer|employers|company|companies|agency|district|city|county|state|states|government|federal|tech|more|mass|new|major|another|local|dozens|hundreds|thousands|layoffs|layoff|health|global|banking|workers|employees|report|reports|why|how|what|here|these|this|after|amid|as|area|bay|region|industry|sector|hospital|school|schools|university|us|u\.s\.|trump|congress|prepares|preparing|plans|announces|confirms|reveals|begins|starts)\b/i
 
 /**
  * What survives the shapes above but is still not a company: a bare article or abbreviation ("The", "AI", "U.S."), a clause that
@@ -93,7 +119,7 @@ const NOT_A_NAME = /\b(firm|giant|maker|makers|retailer|chain|plant|startup|empl
  * 2026-10-27: about 30 of 137 had a name like these.
  */
 const BARE_WORD = /^(?:the|a|an|ai|us|u\.s\.|usa|announcing|announces|corporate jobs|jobs|job cuts|layoffs?|more|big four bank|australian bank)$/i
-const FRAGMENT = /\b(?:to|expects?|expected|blamed|blames?|posts?|defends?|defend|aims?|discontinues?|shuts?|closes?|closing|decision|proposal|budget|calls?|will|would|could|reorganization|says?|said|says|names?|hits?|falls?|rises?)\b/i
+const FRAGMENT = /\b(?:to|expects?|expected|blamed|blames?|posts?|defends?|defend|aims?|discontinues?|shuts?|closes?|closing|decision|proposal|budget|calls?|will|would|could|reorganization|says?|said|says|names?|hits?|falls?|rises?|invites?|urges?|asks?|woos?|courts?|lures?|assures?)\b/i
 const PLACE_OR_THING = /\b(?:facility|factory|plant|operator|manufacturer|contractor|council|dev|news|skill games)\b/i
 const DANGLING_END = /\b(?:to|and|for|of|at|in|on|with|by|as|the|a)$/i
 export function isPlausibleCompany(name: string): boolean {
@@ -134,18 +160,61 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
     .replace(/^(?:exclusive|breaking|update|report|reports|just in|developing|analysis|opinion)\s*[:|-]\s*/i, '')
   // The owner shapes go first: "Airtable's new owner" is a name-shaped phrase the
   // others would take for the company itself.
-  const m = h.match(OWNER) ?? h.match(TARGET)
+  const strong = h.match(OWNER) ?? h.match(TARGET)
     ?? h.match(WITH_COUNT) ?? h.match(LAYOFFS_COUNT) ?? h.match(ANNOUNCES)
     ?? h.match(COUNT_THEN_CUTS) ?? h.match(CUTS_FIRST) ?? h.match(LAYOFFS_PCT) ?? h.match(PCT_LAYOFFS)
     ?? h.match(SHARE_PCT) ?? h.match(SHARE_WORDS) ?? h.match(LARGE_PART) ?? h.match(HEADCOUNT)
+    ?? h.match(REDUNDANT) ?? h.match(MERGER)
+  // A buyout, relocation or closure is a workforce event only when the headline says people are affected. "Apple to shut down its support
+  // forum", "I-64 shut down for hours" and "Tesla to wind down Cybertruck production" are not (found in a dry run, 2026-11-13).
+  const buyout = strong ? null : h.match(BUYOUT_OFFER)
+  if (/\b(?:box office|representative office|embassy|consulate)\b/i.test(h)) return null
+  const weak = strong || buyout ? null : h.match(RELOCATION) ?? h.match(CLOSURE)
+  if (weak && !PEOPLE_AFFECTED.test(h)) return null
+  const m = strong ?? buyout ?? weak
   const raw = (m?.groups?.co ?? m?.groups?.tco?.replace(/\s+(?:teams?|staff|workforce|employees|workers)$/i, ''))?.trim()
   if (!raw) return null
-  const named = raw.replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
+  const named = raw.replace(/\s+(?:merger|acquisition|takeover|deal)$/i, '').replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
   const company = BRAND_NAMES[named.toLowerCase()] ?? named
   if (company.length < 2 || NOT_A_NAME.test(company) || !isPlausibleCompany(company)) return null
   const companyKey = normalizeOrgName(company)
   if (!companyKey) return null
   return { company, companyKey, employees: count(m!.groups?.n, m!.groups?.k), percent: readPercent(h) }
+}
+
+
+
+/** Words that say people lose or change jobs, or a corporate workplace (not a road, a plant's output or a product) is affected. */
+const PEOPLE_AFFECTED = /\b(?:jobs?|workers?|employees?|staff(?:ers)?|workforce|layoffs?|laid off|redundan\w+|headcount|positions|roles|severance|job (?:losses|cuts)|offices?|headquarters|hq|head office|law firm)\b/i
+
+/**
+ * Whether a headline points at white-collar work (Census groups 1 and 2), blue-collar work, or neither. Most headlines say neither, so
+ * 'unknown' is the common answer and is never a reason to drop one; only the report's frame, not the news check, narrows by it.
+ */
+export function readCollar(headline: string): 'white' | 'blue' | 'unknown' {
+  const white = /\b(?:offices?|headquarters|hq|corporate|back[- ]office|software|engineers?|developers?|tech|bank(?:s|ing)?|finance|financial|consult\w*|law firm|insurance|marketing|sales|managers?|management|executives?|analysts?|accountants?|recruit\w*|HR|AI|studio|media|newsroom|white[- ]collar|salaried|remote)\b/i.test(headline)
+  const blue = /\b(?:plants?|factor(?:y|ies)|warehouses?|stores?|restaurants?|mines?|mills?|refiner(?:y|ies)|assembly|production line|drivers?|truckers?|hourly|manufactur\w*|shipyard|fulfillment)\b/i.test(headline)
+  return white && !blue ? 'white' : blue && !white ? 'blue' : 'unknown'
+}
+
+/** What kind of workforce action a headline reports; names the entry so the alert and the tracker say what happened. */
+export type WorkforceEvent = 'layoff' | 'buyout' | 'closure' | 'relocation' | 'merger' | 'redundancy' | 'ai_displacement'
+
+const EVENT_LABEL: Record<WorkforceEvent, string> = {
+  layoff: 'Layoff', buyout: 'Voluntary buyout', closure: 'Office, plant or business closure', relocation: 'Relocation',
+  merger: 'Merger-related job cuts', redundancy: 'Redundancies', ai_displacement: 'AI-related job cuts',
+}
+export const workforceEventLabel = (e: WorkforceEvent): string => EVENT_LABEL[e]
+
+/** The most specific event a headline names; a plain layoff when it names none of the others. */
+export function readWorkforceEvent(headline: string): WorkforceEvent {
+  if (/buy-?outs?|voluntary (?:separation|departure|exit|retirement)|early[- ]retirement/i.test(headline)) return 'buyout'
+  if (/\b(?:relocat\w*|moving (?:its )?(?:corporate |global )?(?:headquarters|hq|offices?))\b/i.test(headline)) return 'relocation'
+  if (/\b(?:clos(?:e|es|ing|ure|ures)|shut(?:s|ting)? down|shutter\w*|wind(?:s|ing)? down|cease(?:s)? operations|shutdown)\b/i.test(headline)) return 'closure'
+  if (/\b(?:merger|acquisition|takeover|combination)\b/i.test(headline)) return 'merger'
+  if (/\bredundan(?:t|cies|cy)\b/i.test(headline)) return 'redundancy'
+  if (/\b(?:AI|artificial intelligence|automation|automat\w+)\b/.test(headline) || /\bartificial intelligence\b/i.test(headline)) return 'ai_displacement'
+  return 'layoff'
 }
 
 /** "CNBC on MSN" and "CNBC" are one publisher, for telling two sources from one. */

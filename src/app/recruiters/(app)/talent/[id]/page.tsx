@@ -5,12 +5,16 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { canAssign, findVisibleConnection, getTalentContext } from '@/lib/recruiter/intake/access'
 import { INTAKE_CONSENT_SCOPE_LABELS, INTAKE_CONSENT_SCOPES } from '@/lib/recruiter/intake/constants'
 import { TagBadge } from '@/components/recruiter/talent/TalentSubnav'
-import { AssignControl, OpenResumeButton, TagButtons } from '@/components/recruiter/talent/TalentForms'
-import { assignConnection, getIntakeResumeUrl, overrideTag } from '../actions'
+import { AssignControl, OpenResumeButton, PipelineForm, TagButtons } from '@/components/recruiter/talent/TalentForms'
+import { loadCandidateStatus } from '@/lib/recruiter/intake/status-load'
+import { assignConnection, getIntakeResumeUrl, overrideTag, savePipeline } from '../actions'
+import { PIPELINE_STAGE_LABELS, isPipelineStage } from '@/lib/recruiter/intake/pipeline-stages'
 import { Squiggle } from '@/components/ui/squiggle'
 
 const SOURCE_LABEL = { PAGE: 'Inbound page', NOT_FIT_LINK: '"Not a fit now" link', FORWARD: 'Forwarded email', MEMBER_INTEREST: 'Expressed interest on NextChapter' } as const
 const REPLY_LABEL = { DRAFT: 'Waiting for your OK', APPROVED: 'Approved', SENT: 'Sent', CANCELLED: 'Cancelled' } as const
+
+const stageName = (s: string) => (isPipelineStage(s) ? PIPELINE_STAGE_LABELS[s] : s)
 
 export default async function TalentConnectionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -20,6 +24,7 @@ export default async function TalentConnectionPage({ params }: { params: Promise
     search: true,
     replies: { orderBy: { createdAt: 'desc' } },
     routingDecisions: { orderBy: { createdAt: 'desc' } },
+    stageEvents: { orderBy: { createdAt: 'desc' }, take: 20 },
   })
   if (!connection || !ctx.firm) notFound()
 
@@ -40,7 +45,16 @@ export default async function TalentConnectionPage({ params }: { params: Promise
   const parsed = (latest?.parsedJson ?? null) as Record<string, unknown> | null
   const person = connection.intakeCandidate
 
+  const view = await loadCandidateStatus(person.candidateId, connection.consentScopes)
+
   captureServerEvent(ctx.recruiter.id, 'talent_candidate_viewed', { connectionId: connection.id, firmId: ctx.firm.id })
+  captureServerEvent(ctx.recruiter.id, 'talent_status_viewed', {
+    connectionId: connection.id,
+    firmId: ctx.firm.id,
+    scopes: connection.consentScopes,
+    status: view.status?.value ?? null,
+    hasLanding: !!view.landing,
+  })
 
   const facts: [string, unknown][] = [
     ['Current role', [parsed?.currentTitle, parsed?.currentEmployer].filter(Boolean).join(' at ')],
@@ -80,6 +94,26 @@ export default async function TalentConnectionPage({ params }: { params: Promise
           <p className="text-sm text-orange">Same LinkedIn profile as another candidate under a different email. Check before reaching out.</p>
         )}
       </div>
+
+      <section className="space-y-3 rounded-lg border border-orange/40 bg-orange/5 p-5">
+        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Pipeline</h2>
+        <PipelineForm
+          action={savePipeline.bind(null, connection.id)}
+          stage={connection.pipelineStage}
+          note={connection.pipelineNote}
+          nextStep={connection.nextStepAt ? connection.nextStepAt.toISOString().slice(0, 10) : null}
+        />
+        {connection.stageEvents.length > 0 && (
+          <ul className="space-y-1 text-xs text-muted-foreground">
+            {connection.stageEvents.map((e) => (
+              <li key={e.id}>
+                {e.createdAt.toLocaleDateString()} · {stageName(e.fromStage)} to {stageName(e.toStage)}
+                {e.recruiterId && ` · ${nameOf.get(e.recruiterId) ?? 'a teammate'}`}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {connection.summary && (
         <section className="rounded-lg border border-border p-5">
@@ -178,17 +212,33 @@ export default async function TalentConnectionPage({ params }: { params: Promise
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">What they share with {ctx.firm.name}</h2>
-        {connection.consentScopes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing yet. They choose when they open their free profile.</p>
+        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Where they are now</h2>
+        {view.status ? (
+          <p className="text-sm">
+            <span className="font-medium">{view.status.label}</span>
+            {view.status.changedAt && <span className="text-muted-foreground"> · since {view.status.changedAt.toLocaleDateString()}</span>}
+          </p>
+        ) : connection.consentScopes.includes('status') ? (
+          <p className="text-sm text-muted-foreground">
+            {person.claimedAt ? 'No status on file yet.' : 'They have not opened their free profile yet, so there is no status to show.'}
+          </p>
         ) : (
-          <ul className="list-disc space-y-1 pl-5 text-sm">
-            {INTAKE_CONSENT_SCOPES.filter((s) => connection.consentScopes.includes(s)).map((s) => (
-              <li key={s}>{INTAKE_CONSENT_SCOPE_LABELS[s].label}</li>
-            ))}
-          </ul>
+          <p className="text-sm text-muted-foreground">They have not shared their search status with {ctx.firm.name}. You do not need to ask; if they share it, it appears here.</p>
         )}
-        <p className="text-xs text-muted-foreground">{person.claimedAt ? 'Has a NextChapter account.' : 'Has not opened their profile yet.'}</p>
+        {view.landing && (
+          <p className="text-sm">
+            Started as {view.landing.title} at {view.landing.employer} on {view.landing.startDate.toLocaleDateString()}.
+          </p>
+        )}
+        <p className="text-xs text-muted-foreground">
+          Shared with {ctx.firm.name}:{' '}
+          {connection.consentScopes.length === 0
+            ? 'nothing yet'
+            : INTAKE_CONSENT_SCOPES.filter((s) => connection.consentScopes.includes(s))
+                .map((s) => INTAKE_CONSENT_SCOPE_LABELS[s].label.toLowerCase())
+                .join(', ')}
+          . They can change this at any time.
+        </p>
       </section>
 
       {connection.routingDecisions.length > 0 && (

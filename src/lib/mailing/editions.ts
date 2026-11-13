@@ -274,6 +274,19 @@ export function inSendWindow(now: Date): boolean {
   return hour >= 7 && hour < 17
 }
 
+/**
+ * Owner rule (2026-11-13): layoff outreach goes out on weekdays, 8:00 a.m. to 12:00 p.m. Eastern only. A layoff found overnight
+ * (the alert reaches Justin at any hour) waits in its edition and sends the next morning at 8:00. Narrower than inSendWindow,
+ * which still gates every send.
+ */
+export const LAYOFF_OUTREACH_CAMPAIGN = 'layoff_outreach'
+export function inLayoffSendWindow(now: Date): boolean {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', hourCycle: 'h23' }).formatToParts(now)
+  const weekday = parts.find((p) => p.type === 'weekday')?.value ?? ''
+  const hour = Number(parts.find((p) => p.type === 'hour')?.value ?? '-1')
+  return !['Sat', 'Sun'].includes(weekday) && hour >= 8 && hour < 12
+}
+
 export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; failed: number; editions: number }> {
   if (!process.env.RESEND_API_KEY) return { sent: 0, failed: 0, editions: 0 }
   if (!inSendWindow(new Date())) return { sent: 0, failed: 0, editions: 0 }
@@ -295,7 +308,10 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
   let sent = 0
   let failed = 0
   const dne = await doNotEmailPeople()
+  const layoffWindowOpen = inLayoffSendWindow(now)
   for (const edition of editions) {
+    // Layoff outreach waits for its own 8 a.m. to noon weekday window; it stays SENDING with its recipients pending.
+    if (edition.campaign === LAYOFF_OUTREACH_CAMPAIGN && !layoffWindowOpen) continue
     const attachments = budget > 0 ? await attachmentFor(edition) : undefined
     while (budget > 0) {
       const next = await prisma.mailingEditionRecipient.findFirst({

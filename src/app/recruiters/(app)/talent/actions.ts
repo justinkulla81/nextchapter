@@ -9,6 +9,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { sendRecruiterFirmInvite } from '@/lib/email/send-intake'
 import { canAssign, canManageFirm, findVisibleConnection, getTalentContext, visibleConnectionsWhere } from '@/lib/recruiter/intake/access'
 import { INTAKE_LEVELS } from '@/lib/recruiter/intake/constants'
+import { parsePipelineInput } from '@/lib/recruiter/intake/pipeline-stages'
 import { slugify, validateSlug } from '@/lib/recruiter/intake/slug'
 import { draftReply } from '@/lib/recruiter/intake/pipeline'
 import { sendApprovedReply } from '@/lib/recruiter/intake/replies'
@@ -428,4 +429,44 @@ export async function cancelReply(replyId: string) {
   })
   captureServerEvent(ctx.recruiter.id, 'talent_reply_cancelled', { replyId })
   revalidatePath('/recruiters/talent/replies')
+}
+
+// ── Pipeline ────────────────────────────────────────────────────────────────
+
+// The firm's own stage, note and next step for one person. Only a recruiter
+// who can see the connection can change it; every stage move is logged.
+export async function savePipeline(connectionId: string, _prev: TalentFormState, formData: FormData): Promise<TalentFormState> {
+  const ctx = await getTalentContext()
+  const connection = await findVisibleConnection(ctx, connectionId, {})
+  if (!connection) return { error: 'This candidate is no longer on your list. Go back to the candidates page.' }
+
+  const parsed = parsePipelineInput({ stage: str(formData, 'stage'), note: str(formData, 'note'), nextStep: str(formData, 'nextStep') })
+  if ('error' in parsed) return { error: parsed.error }
+
+  const moved = parsed.stage !== connection.pipelineStage
+  await prisma.$transaction([
+    prisma.intakeConnection.update({
+      where: { id: connection.id },
+      data: {
+        pipelineStage: parsed.stage,
+        pipelineNote: parsed.note,
+        nextStepAt: parsed.nextStepAt,
+        ...(moved ? { pipelineChangedAt: new Date() } : {}),
+      },
+    }),
+    ...(moved
+      ? [prisma.intakeStageEvent.create({ data: { connectionId: connection.id, fromStage: connection.pipelineStage, toStage: parsed.stage, recruiterId: ctx.recruiter.id } })]
+      : []),
+  ])
+  captureServerEvent(ctx.recruiter.id, 'talent_pipeline_saved', {
+    connectionId,
+    firmId: connection.firmId,
+    from: connection.pipelineStage,
+    to: parsed.stage,
+    hasNote: !!parsed.note,
+    hasNextStep: !!parsed.nextStepAt,
+  })
+  revalidatePath(`/recruiters/talent/${connectionId}`)
+  revalidatePath('/recruiters/talent')
+  return { success: 'Saved.' }
 }
