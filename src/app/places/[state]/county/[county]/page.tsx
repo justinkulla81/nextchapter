@@ -1,4 +1,5 @@
 import { placeCountySeo } from '@/lib/seo/templates'
+import { shownInSearch } from '@/lib/seo/shown-in-search'
 import { YourState } from '@/components/capture/YourState'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
     title: layoffTitle ?? titleMeta(placeCountySeo(c.name, s.code).title),
     description: `${c.name}, ${name}: ${bits.length ? bits.join(', ') + '. ' : ''}Employers, colleges, the local workforce board and American Job Centers.`,
     ...canonical(placeUrl.county(state, county)),
-    ...(countyIndexable(c.population, d.cities.length, d.layoffs.notices) ? {} : { robots: { index: false, follow: true } }),
+    ...(countyIndexable(c.population, d.cities.length, d.layoffs.notices) || (await shownInSearch(placeUrl.county(state, county))) ? {} : { robots: { index: false, follow: true } }),
   }
 }
 

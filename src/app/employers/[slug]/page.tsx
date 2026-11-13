@@ -1,4 +1,5 @@
 import { CompanyOutlookSection } from '@/components/seo/CompanyOutlookSection'
+import { shownInSearch } from '@/lib/seo/shown-in-search'
 import { RankingContext } from '@/components/rankings/RankingContext'
 import { BestCompanyNote } from '@/components/rankings/BestCompanyNote'
 import { parentOf } from '@/lib/rankings/employers-specs'
@@ -93,7 +94,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: titleMeta(await testedTitle('employers', `/employers/${slug}`, title(e), employerTitleB(e.name, e.profile?.openNow ?? null))),
     description: description(e),
     ...canonical(`/employers/${slug}`),
-    ...(e.indexable ? {} : { robots: { index: false, follow: true } }),
+    ...(e.indexable || (await shownInSearch(`/employers/${slug}`)) ? {} : { robots: { index: false, follow: true } }),
   }
 }
 
