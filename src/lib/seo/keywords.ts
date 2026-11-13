@@ -1697,6 +1697,19 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'layoff-companies-a-z',
+    intent: 'Find whether a company has had layoffs',
+    owner: '/layoffs/company',
+    kind: 'page',
+    primary: 'companies with layoffs',
+    secondary: ['list of companies with layoffs', 'companies laying off 2026', 'which companies are laying off', 'company layoffs list'],
+    seo: {
+      title: 'Companies With Layoffs in 2026: Every Employer, A to Z',
+      description: 'Every company that filed a layoff notice or announced job cuts in the last 12 months, A to Z, with the month, jobs cut and states. Updated as notices are filed.',
+      h1: 'Companies with layoffs: every employer, A to Z',
+    },
+  },
+  {
     id: 'pay-check',
     intent: 'Check whether a salary is in line for a job title',
     owner: '/tools/pay-check',

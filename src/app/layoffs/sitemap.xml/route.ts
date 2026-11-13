@@ -20,6 +20,7 @@ export async function GET() {
   if (states.length) urls.push({ loc: `${SITE_URL}/layoffs`, lastmod: newest.toISOString() })
   // The year page and each month with enough notices to be indexed.
   if (states.length) urls.push({ loc: `${SITE_URL}/layoffs/2026`, lastmod: newest.toISOString() })
+  if (states.length) urls.push({ loc: `${SITE_URL}/layoffs/company`, lastmod: newest.toISOString() })
   for (const m of (await getMonths().catch(() => [])).filter((x) => x.count >= MONTH_MIN_NOTICES)) urls.push({ loc: `${SITE_URL}/layoffs/2026/${m.slug}`, lastmod: newest.toISOString() })
   for (const s of states) urls.push({ loc: `${SITE_URL}/layoffs/${stateSlug(s.state)}`, lastmod: s.latest.toISOString() })
   for (const c of companies.values()) {
