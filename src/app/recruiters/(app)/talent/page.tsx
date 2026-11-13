@@ -8,6 +8,7 @@ import { TalentActionForm } from '@/components/recruiter/talent/TalentForms'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createTalentFirm } from './actions'
+import { PIPELINE_STAGE_LABELS, isPipelineStage, isStepDue } from '@/lib/recruiter/intake/pipeline-stages'
 import { Squiggle } from '@/components/ui/squiggle'
 
 const SOURCE_LABEL = { PAGE: 'Inbound page', NOT_FIT_LINK: '"Not a fit now" link', FORWARD: 'Forwarded email', MEMBER_INTEREST: 'Expressed interest on NextChapter' } as const
@@ -19,6 +20,7 @@ const FILTERS = [
   { key: 'fit', label: 'Strong fit' },
   { key: 'niche', label: 'In your niche' },
   { key: 'outside', label: 'Outside focus' },
+  { key: 'due', label: 'Next step due' },
 ] as const
 
 export default async function TalentHopperPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
@@ -73,7 +75,9 @@ export default async function TalentHopperPage({ searchParams }: { searchParams:
             ? { tag: 'NICHE' }
             : view === 'outside'
               ? { tag: 'OUTSIDE' }
-              : {}
+              : view === 'due'
+                ? { pipelineStage: { in: ['NEW', 'TALKING', 'PRESENTED'] }, nextStepAt: { lte: new Date() } }
+                : {}
 
   const [connections, draftCount, recruiters, heldInterests] = await Promise.all([
     prisma.intakeConnection.findMany({
@@ -160,6 +164,7 @@ export default async function TalentHopperPage({ searchParams }: { searchParams:
             <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="px-4 py-2 font-medium">Name</th>
+                <th className="px-4 py-2 font-medium">Stage</th>
                 <th className="px-4 py-2 font-medium">Tag</th>
                 <th className="px-4 py-2 font-medium">Why</th>
                 <th className="px-4 py-2 font-medium">Recruiter</th>
@@ -184,6 +189,14 @@ export default async function TalentHopperPage({ searchParams }: { searchParams:
                         {c.intakeCandidate.fullName}
                       </Link>
                       {c.intakeCandidate.location && <p className="text-xs text-muted-foreground">{c.intakeCandidate.location}</p>}
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      {isPipelineStage(c.pipelineStage) ? PIPELINE_STAGE_LABELS[c.pipelineStage] : c.pipelineStage}
+                      {c.nextStepAt && (
+                        <p className={isStepDue(c.nextStepAt, c.pipelineStage) ? 'font-medium text-orange' : 'text-muted-foreground'}>
+                          Next step {c.nextStepAt.toLocaleDateString('en-US', { timeZone: 'UTC' })}
+                        </p>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <TagBadge tag={c.tag} />

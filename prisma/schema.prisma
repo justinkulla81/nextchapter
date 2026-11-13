@@ -9107,9 +9107,18 @@ model IntakeConnection {
   updatedAt             DateTime         @updatedAt
   disconnectedAt        DateTime?
 
+  // The firm's own CRM pipeline for this person: NEW | TALKING | PRESENTED | PLACED | NOT_A_FIT
+  // (src/lib/recruiter/intake/pipeline-stages.ts). Never shown to the candidate.
+  // Applied by hand: prisma/manual/intake-pipeline.sql.
+  pipelineStage     String    @default("NEW")
+  pipelineNote      String?   @db.Text
+  nextStepAt        DateTime? @db.Date
+  pipelineChangedAt DateTime?
+
   consentEvents    IntakeConsentEvent[]
   routingDecisions IntakeRoutingDecision[]
   replies          IntakeReply[]
+  stageEvents      IntakeStageEvent[]
 
   @@unique([firmId, intakeCandidateId])
   @@index([firmId, recruiterId])
@@ -9129,6 +9138,19 @@ model IntakeConsentEvent {
   createdAt         DateTime         @default(now())
 
   @@index([connectionId])
+}
+
+// Append-only log of pipeline stage changes, so each move has a date and a name.
+model IntakeStageEvent {
+  id           String           @id @default(cuid())
+  connectionId String
+  connection   IntakeConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  fromStage    String
+  toStage      String
+  recruiterId  String?
+  createdAt    DateTime         @default(now())
+
+  @@index([connectionId, createdAt])
 }
 
 // Append-only routing audit trail (suggestions, confirmations, reassigns).
