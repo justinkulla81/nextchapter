@@ -26,7 +26,8 @@ import { isExcerpt } from '@/lib/jobs/posting-text'
 import { testedTitle } from '@/lib/seo/title-test-state'
 import { jobTitleB } from '@/lib/seo/title-tests'
 import { isFractionalJob } from '@/lib/jobs/work-type'
-import { datePostedOf, descriptionParagraphs, isIndexableJob, isRemoteJob, isStaleJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
+import { datePostedOf, descriptionParagraphs, isDirectJob, isIndexableJob, isRemoteJob, isStaleJob, jobPageIndexable, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
+import { pagesShownInSearch } from '@/lib/seo/shown-in-search'
 import { ClosedJobView } from '@/components/jobs/ClosedJobView'
 import { getClosedJobContext, getPublicJob, similarJobsAtCompany, similarJobsLike } from '@/lib/jobs/public-job-page-server'
 import { employerPath, isCompanyOfferedToSearch } from '@/lib/seo/employer-pages'
@@ -63,6 +64,14 @@ type Params = Promise<{ id: string }>
 
 const loadJob = cache((id: string) => getPublicJob(id))
 
+async function indexTagFor(job: NonNullable<Awaited<ReturnType<typeof loadJob>>>): Promise<boolean> {
+  if (isStaleJob(job)) return false
+  if (isIndexableJob(job)) return true
+  if (!isDirectJob(job)) return false
+  const shown = await pagesShownInSearch().catch(() => new Set<string>())
+  return jobPageIndexable(job, shown.has(`/jobs/${job.id}`))
+}
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params
   const job = await loadJob(id)
@@ -78,8 +87,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     ),
     description: `${job.companyName} is hiring a ${job.title}${place ? ` (${place})` : ''}. ${lead}…`,
     alternates: { canonical: `/jobs/${job.id}` },
-    // A job with only a snippet of the posting stays visible to visitors but is kept out of search (see isIndexableJob).
-    robots: { index: isIndexableJob(job) && !isStaleJob(job), follow: true },
+    // A job with only a snippet of the posting stays visible to visitors but is kept out of search (see isIndexableJob), unless it is
+    // on the employer's own career system and Google already shows it (jobPageIndexable). Search Console is read only for those.
+    robots: { index: await indexTagFor(job), follow: true },
   }
 }
 
