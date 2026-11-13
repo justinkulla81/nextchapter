@@ -43,7 +43,7 @@ export async function runOutreachSweep(now = new Date()): Promise<SweepResult> {
     out.looked++
     const r = await queueOutreachForNotice(n.id)
     // One look each: a layoff with nobody to email is not retried every hour. A failure ('error') is retried next run.
-    if (r.skipped !== 'error') await prisma.warnNotice.update({ where: { id: n.id }, data: { outreachCheckedAt: now } })
+    if (r.skipped !== 'error' && r.skipped !== 'waiting for address verification') await prisma.warnNotice.update({ where: { id: n.id }, data: { outreachCheckedAt: now } })
     if (r.skipped) out.skipped[r.skipped] = (out.skipped[r.skipped] ?? 0) + 1
     else { out.queued++; out.editions += r.editions; out.recipients += r.recipients }
   }

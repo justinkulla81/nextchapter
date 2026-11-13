@@ -5,7 +5,8 @@ import { CAMPAIGN } from './plan'
 import { queueOutreachForNotice } from './for-notice'
 import { releaseTime, modeForAge, BACKFILL_DAYS, BACKFILL_MIN_EMPLOYEES, BATCH, SUPPRESSION_MARK_BEFORE, assignDaysByCap, assignArms, businessDayTimes } from './backfill-rules'
 import { LAYOFF_RAMP } from '@/lib/mailing/layoff-pacing-rules'
-import { addressQuality } from './quality'
+import { addressQuality, needsVerification } from './quality'
+import { ensureVerified } from './verify'
 import { loadAddressFacts } from './quality-data'
 import { headlineFor, type HeadlineCode, type HeadlineFacts } from './copy'
 
@@ -112,13 +113,24 @@ const AUDIENCE_TO_COPY: Record<string, HeadlineFacts['audience']> = {
  * same for both; the subject is rewritten and the edition's title carries "h:<style>" so the campaigns page can read the result by style.
  * First takes out anyone suppressed since the draft was made, as releaseHeld does.
  */
-export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: DayPlan[]; removed: number }> {
+export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: DayPlan[]; removed: number; verifying?: number }> {
   const monday = releaseTime(now)
   const eds = await prisma.mailingEdition.findMany({
     where: heldWhere,
     select: { id: true, title: true, audience: true, warnNoticeId: true, bodyHtml: true, recipients: { where: { excluded: false }, select: { id: true, email: true, personId: true } } },
   })
   if (eds.length === 0) return { days: [], removed: 0 }
+  // Every address nothing has checked recently is checked with Hunter first (one credit each, saved). If some are still waiting, nothing is
+  // scheduled yet: the next hourly run carries on, and the week is scheduled once every address has an answer.
+  const items = eds.flatMap((e) => e.recipients.map((r) => ({ email: r.email, personId: r.personId })))
+  let pre = await loadAddressFacts(items)
+  const toCheck = [...pre.values()].filter((f) => needsVerification(f, now)).map((f) => f.email)
+  if (toCheck.length) {
+    const v = await ensureVerified(toCheck, { max: 250, timeMs: 110_000 })
+    if (v.checked) pre = await loadAddressFacts(items)
+    const waiting = [...pre.values()].filter((f) => needsVerification(f, now)).length
+    if (waiting > 0) return { days: [], removed: 0, verifying: waiting }
+  }
   const emails = [...new Set(eds.flatMap((e) => e.recipients.map((r) => r.email)))]
   const suppressed = emails.length ? new Set((await prisma.mailingSuppression.findMany({ where: { email: { in: emails } }, select: { email: true } })).map((s) => s.email)) : new Set<string>()
   const drop = eds.flatMap((e) => e.recipients.filter((r) => suppressed.has(r.email)).map((r) => r.id))
@@ -127,7 +139,7 @@ export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: Da
   // Re-screen every address against the quality rules (quality.ts: Hunter-deliverable CRM contacts only, no role addresses, no bounced domains)
   // and order the editions by how likely their addresses are to be real, so the safest go first and the sender builds its record on them.
   const live = eds.map((e) => ({ ...e, recipients: e.recipients.filter((r) => !dropped.has(r.id)) }))
-  const facts = await loadAddressFacts(live.flatMap((e) => e.recipients.map((r) => ({ email: r.email, personId: r.personId }))))
+  const facts = pre
   const failed: string[] = []
   const scored = live.map((e) => {
     const ok = e.recipients.filter((r) => {
@@ -197,6 +209,7 @@ export async function runBackfillAuto(now = new Date()): Promise<{ drafted: { lo
   if (pending === 0 && daysToMonday < 4) {
     const s = await scheduleBackfillWeek(now)
     if (s.days.length) out.scheduled = s.days
+    else if (s.verifying) out.note = `verifying addresses with Hunter, ${s.verifying} left`
   }
   return out
 }

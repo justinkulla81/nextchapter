@@ -18345,3 +18345,16 @@ model VisitorDayType {
   @@id([day, ip])
   @@index([day, userType])
 }
+
+/// A saved Hunter verification for any email address (src/lib/warn/outreach/verify.ts), so the layoff outreach can email a directory contact
+/// (a job center's or workforce board's staff) only once Hunter has said it is deliverable. status: deliverable | risky | invalid.
+model AddressVerification {
+  email        String   @id
+  status       String
+  hunterStatus String?
+  score        Int?
+  checkedAt    DateTime @default(now())
+  source       String   @default("layoff-outreach")
+
+  @@index([checkedAt])
+}
