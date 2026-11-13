@@ -317,10 +317,14 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
   // Layoff outreach is time-sensitive and tiny (a handful of recipients): it goes first, ahead of any bulk edition that started earlier.
   editions.sort((a, b) => Number(b.campaign === LAYOFF_OUTREACH_CAMPAIGN) - Number(a.campaign === LAYOFF_OUTREACH_CAMPAIGN))
   const layoffWindowOpen = inLayoffSendWindow(now)
+  let layoffBudget = 45
   for (const warmPass of [true, false]) for (const edition of editions) {
     // Layoff outreach waits for its own 8 a.m. to noon weekday window; it stays SENDING with its recipients pending.
     if (edition.campaign === LAYOFF_OUTREACH_CAMPAIGN && !layoffWindowOpen) continue
-    const canSend = () => budget > 0 && (warmPass || coldBudget > 0)
+    // Owner decision (2026-11-13): layoff outreach is exempt from the hourly rate, the daily cap and the cold cap. It is about ten
+    // emails a day, and it must not wait behind bulk mail. Its own per-run allowance keeps one run bounded.
+    const isLayoff = edition.campaign === LAYOFF_OUTREACH_CAMPAIGN
+    const canSend = () => (isLayoff ? layoffBudget > 0 : budget > 0 && (warmPass || coldBudget > 0))
     const attachments = canSend() ? await attachmentFor(edition) : undefined
     while (canSend()) {
       const next = await prisma.mailingEditionRecipient.findFirst({
@@ -337,8 +341,8 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
         where: { id: next.id, status: 'PENDING', attempts: next.attempts }, data: { attempts: { increment: 1 } },
       })
       if (claimed.count === 0) continue
-      budget--
-      if (!warmPass) coldBudget--
+      if (isLayoff) layoffBudget--
+      else { budget--; if (!warmPass) coldBudget-- }
       try {
         const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id }, settings, attachments)
         if (error || !data) throw new Error(error?.message ?? 'no response from Resend')
