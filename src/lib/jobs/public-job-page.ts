@@ -121,11 +121,14 @@ export interface PublicJobRow {
 
 /** True when the page has the posting's own text, enough to stand on its own in search (see PUBLIC_JOB_MIN_INDEX_DESCRIPTION). */
 /**
- * Source categories whose jobs are offered to search engines although they are not an employer's own system: search and staffing firms
- * and the interim and fractional source. Owner decision 2026-11-13: staffing firms and recruiters are fine as long as the jobs are real
- * (the 1,500-byte text and 14-day confirmation rules still apply), and fractional work is offered too.
+ * Source categories whose jobs are offered to search engines although they are not an employer's own system: search and staffing firms,
+ * the interim and fractional source (owner, 2026-11-13: staffing firms and recruiters are fine when the jobs are real, and fractional work
+ * is offered too), and venture, PE, association, accelerator and women-board listings (owner, 2026-11-13: everything but the aggregators).
+ * The 1,500-byte text and 14-day confirmation rules still apply to all of them. Aggregators ('aggregator': Jooble, Careerjet and the like)
+ * and the generic 'board' and unlabeled rows stay out. To take a category back out, remove it here: the sitemap, the page's robots tag and
+ * the search pushes all follow.
  */
-export const OFFERED_FIRM_CATEGORIES = ['search_firm', 'interim'] as const
+export const OFFERED_SOURCE_CATEGORIES = ['search_firm', 'interim', 'venture', 'pe', 'association', 'accelerator', 'women_board'] as const
 
 /**
  * On the employer's own career system: the crawler's directListing flag, an 'employer' source (its own site, though not always flagged:
@@ -135,7 +138,7 @@ export const OFFERED_FIRM_CATEGORIES = ['search_firm', 'interim'] as const
  */
 export function isDirectJob(job: Pick<PublicJobRow, 'directListing' | 'sourceCategory'> & { url?: string | null }): boolean {
   if (job.directListing || job.sourceCategory === 'employer') return true
-  if ((OFFERED_FIRM_CATEGORIES as readonly (string | null | undefined)[]).includes(job.sourceCategory)) return true
+  if ((OFFERED_SOURCE_CATEGORIES as readonly (string | null | undefined)[]).includes(job.sourceCategory)) return true
   return job.sourceCategory !== 'aggregator' && isEmployerAtsUrl(job.url)
 }
 

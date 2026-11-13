@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { breakerTripped, hostOf, interleaveByHost, isFirmDead, reverifyShard, REVERIFY_BREAKER_SHARE } from '@/lib/jobs/direct-reverify-rules'
-import { isDirectJob, isIndexableJob, OFFERED_FIRM_CATEGORIES, PUBLIC_JOB_MIN_INDEX_DESCRIPTION } from '@/lib/jobs/public-job-page'
+import { isDirectJob, isIndexableJob, OFFERED_SOURCE_CATEGORIES, PUBLIC_JOB_MIN_INDEX_DESCRIPTION } from '@/lib/jobs/public-job-page'
 
 describe('direct re-verification rules', () => {
   it('rotates through the 16 sitemap shards, one per hour', () => {
@@ -26,18 +26,18 @@ describe('direct re-verification rules', () => {
   })
 })
 
-describe('search firms and the interim source are offered', () => {
+describe('search firms, the interim source and the venture, PE, association, accelerator and women boards are offered', () => {
   const full = 'x'.repeat(PUBLIC_JOB_MIN_INDEX_DESCRIPTION)
   const row = (o: Record<string, unknown>) => ({ directListing: false, sourceCategory: null, url: 'https://example.com/j', description: full, ...o }) as Parameters<typeof isIndexableJob>[0]
   it('counts them as direct, with the same text rule', () => {
-    expect([...OFFERED_FIRM_CATEGORIES]).toEqual(['search_firm', 'interim'])
-    for (const c of OFFERED_FIRM_CATEGORIES) {
+    expect([...OFFERED_SOURCE_CATEGORIES]).toEqual(['search_firm', 'interim', 'venture', 'pe', 'association', 'accelerator', 'women_board'])
+    for (const c of OFFERED_SOURCE_CATEGORIES) {
       expect(isDirectJob(row({ sourceCategory: c }))).toBe(true)
       expect(isIndexableJob(row({ sourceCategory: c }))).toBe(true)
       expect(isIndexableJob(row({ sourceCategory: c, description: 'x'.repeat(300) }))).toBe(false)
     }
   })
-  it('does not count aggregators, venture boards or an unlabeled row', () => {
-    for (const c of ['aggregator', 'venture', 'pe', 'association', 'women_board', null]) expect(isDirectJob(row({ sourceCategory: c })), String(c)).toBe(false)
+  it('does not count aggregators, the generic board category or an unlabeled row', () => {
+    for (const c of ['aggregator', 'board', null]) expect(isDirectJob(row({ sourceCategory: c })), String(c)).toBe(false)
   })
 })

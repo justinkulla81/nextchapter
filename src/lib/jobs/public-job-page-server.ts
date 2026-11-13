@@ -8,7 +8,7 @@ import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import { EMPLOYER_ATS_SQL_PATTERN } from '@/lib/jobs/employer-ats'
 import {
-  OFFERED_FIRM_CATEGORIES,
+  OFFERED_SOURCE_CATEGORIES,
   PUBLIC_JOB_GHOST_AGE_DAYS,
   PUBLIC_JOB_MIN_DESCRIPTION,
   PUBLIC_JOB_MIN_INDEX_DESCRIPTION,
@@ -139,7 +139,7 @@ export const PUBLIC_JOB_OFFERED_SQL = Prisma.sql`(
  */
 export const PUBLIC_JOB_SEARCH_SQL = Prisma.sql`(
   "directListing" IS TRUE OR "sourceCategory" = 'employer'
-  OR "sourceCategory" IN (${Prisma.join([...OFFERED_FIRM_CATEGORIES])})
+  OR "sourceCategory" IN (${Prisma.join([...OFFERED_SOURCE_CATEGORIES])})
   OR ("sourceCategory" IS DISTINCT FROM 'aggregator' AND url ~* ${EMPLOYER_ATS_SQL_PATTERN}::text)
 )`
 
