@@ -8,6 +8,8 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { computeRoster, rosterCounts, type RosterRow } from './roster'
 import { renderEmail } from './render'
 import { tagMailingLinks } from '@/lib/marketing/email-attribution'
+import { layoffPacing, nextLayoffRecipient } from './layoff-pacing'
+import { domainOf } from './layoff-pacing-rules'
 import { makeUnsubscribeToken } from './unsubscribe-token'
 import { addToLists, doNotEmailPeople, getMailingSettings, syncWebsiteSignups } from './lists'
 import { withAudienceHtml, withAudienceText, type EmailAudience } from '@/lib/email/audience-tag'
@@ -309,14 +311,21 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
   let failed = 0
   const dne = await doNotEmailPeople()
   const layoffWindowOpen = inLayoffSendWindow(now)
+  // The layoff outreach goes out as a trickle (layoff-pacing.ts): a few an hour, a slow daily ramp, a stop if bounces rise.
+  const layoffPace = layoffWindowOpen && editions.some((e) => e.campaign === LAYOFF_OUTREACH_CAMPAIGN) ? await layoffPacing(now, startOfEasternDay(now), LAYOFF_OUTREACH_CAMPAIGN) : null
+  let layoffSent = 0
   for (const edition of editions) {
     // Layoff outreach waits for its own 8 a.m. to noon weekday window; it stays SENDING with its recipients pending.
-    if (edition.campaign === LAYOFF_OUTREACH_CAMPAIGN && !layoffWindowOpen) continue
+    const isLayoff = edition.campaign === LAYOFF_OUTREACH_CAMPAIGN
+    if (isLayoff && (!layoffWindowOpen || !layoffPace || layoffPace.hold)) continue
     const attachments = budget > 0 ? await attachmentFor(edition) : undefined
     while (budget > 0) {
-      const next = await prisma.mailingEditionRecipient.findFirst({
-        where: { editionId: edition.id, status: 'PENDING', excluded: false }, orderBy: [{ attempts: 'asc' }, { email: 'asc' }],
-      })
+      if (isLayoff && layoffSent >= layoffPace!.runMax) break
+      const next = isLayoff
+        ? await nextLayoffRecipient(edition.id, layoffPace!)
+        : await prisma.mailingEditionRecipient.findFirst({
+            where: { editionId: edition.id, status: 'PENDING', excluded: false }, orderBy: [{ attempts: 'asc' }, { email: 'asc' }],
+          })
       if (!next) break
       const suppressed = (await prisma.mailingSuppression.findUnique({ where: { email: next.email } })) || (next.personId && dne.personIds.has(next.personId))
       if (suppressed) {
@@ -334,6 +343,11 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
         if (error || !data) throw new Error(error?.message ?? 'no response from Resend')
         await recordSent(edition, next.id, data.id)
         sent++
+        if (isLayoff) {
+          layoffSent++
+          const d = domainOf(next.email)
+          layoffPace!.domainSent.set(d, (layoffPace!.domainSent.get(d) ?? 0) + 1)
+        }
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e)
         await prisma.mailingEditionRecipient.update({

@@ -5,6 +5,8 @@ import { getMailingSettings } from '@/lib/mailing/lists'
 import type { DraftContext } from '@/lib/warn/layoff-alert-drafts'
 import type { ContactGroup } from '@/lib/warn/layoff-alert-rules'
 import { AUDIENCE_LABEL, CAMPAIGN, CONTACT_COOLDOWN_DAYS, planOutreach } from './plan'
+import { addressQuality } from './quality'
+import { loadAddressFacts } from './quality-data'
 import type { CopyMode } from './copy'
 
 /** A layoff older than this when its alert finally goes out (a held alert) is not emailed about. */
@@ -54,6 +56,14 @@ export async function queueLayoffOutreach(input: { noticeId: string; employer: s
         ])
       : [[], []]
     const blocked = new Set<string>([...suppressed.map((s) => s.email), ...recent.map((r) => r.email)])
+    // Only addresses most likely to be real and deliverable (quality.ts): the sending domain must not be spam filtered.
+    const facts = await loadAddressFacts(input.groups.flatMap((g) => g.cards.map((c) => ({ email: c.email ?? '', personId: c.personId }))))
+    const screened: Record<string, number> = {}
+    for (const [email, f] of facts) {
+      const q = addressQuality(f)
+      if (!q.ok) { blocked.add(email); screened[q.reason ?? 'screened'] = (screened[q.reason ?? 'screened'] ?? 0) + 1 }
+    }
+    if (Object.keys(screened).length) captureServerEvent('system', 'layoff_outreach_screened', { noticeId: input.noticeId, employer: input.employer, held: !!input.opts?.hold, ...screened })
     const own = new Set([settings.testEmail, settings.replyTo, 'justin@launchyournextchapter.com'].map((e) => e.toLowerCase()))
 
     const plans = planOutreach(input.groups, input.ctx, { blocked, ownAddresses: own, noticeId: input.noticeId, mode: input.opts?.mode })

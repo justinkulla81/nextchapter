@@ -3,7 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CAMPAIGN } from './plan'
 import { queueOutreachForNotice } from './for-notice'
-import { releaseTime, modeForAge, BACKFILL_DAYS, BACKFILL_MIN_EMPLOYEES, BATCH, SUPPRESSION_MARK_BEFORE, DAY_MAX_RECIPIENTS, weekSendTimes, assignDays, assignArms } from './backfill-rules'
+import { releaseTime, modeForAge, BACKFILL_DAYS, BACKFILL_MIN_EMPLOYEES, BATCH, SUPPRESSION_MARK_BEFORE, assignDaysByCap, assignArms, businessDayTimes } from './backfill-rules'
+import { LAYOFF_RAMP } from '@/lib/mailing/layoff-pacing-rules'
+import { addressQuality } from './quality'
+import { loadAddressFacts } from './quality-data'
 import { headlineFor, type HeadlineCode, type HeadlineFacts } from './copy'
 
 /**
@@ -111,10 +114,9 @@ const AUDIENCE_TO_COPY: Record<string, HeadlineFacts['audience']> = {
  */
 export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: DayPlan[]; removed: number }> {
   const monday = releaseTime(now)
-  const times = weekSendTimes(monday)
   const eds = await prisma.mailingEdition.findMany({
     where: heldWhere,
-    select: { id: true, title: true, audience: true, warnNoticeId: true, bodyHtml: true, recipients: { where: { excluded: false }, select: { id: true, email: true } } },
+    select: { id: true, title: true, audience: true, warnNoticeId: true, bodyHtml: true, recipients: { where: { excluded: false }, select: { id: true, email: true, personId: true } } },
   })
   if (eds.length === 0) return { days: [], removed: 0 }
   const emails = [...new Set(eds.flatMap((e) => e.recipients.map((r) => r.email)))]
@@ -122,12 +124,32 @@ export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: Da
   const drop = eds.flatMap((e) => e.recipients.filter((r) => suppressed.has(r.email)).map((r) => r.id))
   if (drop.length) await prisma.mailingEditionRecipient.updateMany({ where: { id: { in: drop } }, data: { excluded: true, excludedReason: 'suppressed_since_draft' } })
   const dropped = new Set(drop)
-  const sized = eds.map((e) => ({ ...e, n: e.recipients.filter((r) => !dropped.has(r.id)).length })).filter((e) => e.n > 0)
+  // Re-screen every address against the quality rules (quality.ts: Hunter-deliverable CRM contacts only, no role addresses, no bounced domains)
+  // and order the editions by how likely their addresses are to be real, so the safest go first and the sender builds its record on them.
+  const live = eds.map((e) => ({ ...e, recipients: e.recipients.filter((r) => !dropped.has(r.id)) }))
+  const facts = await loadAddressFacts(live.flatMap((e) => e.recipients.map((r) => ({ email: r.email, personId: r.personId }))))
+  const failed: string[] = []
+  const scored = live.map((e) => {
+    const ok = e.recipients.filter((r) => {
+      const f = facts.get(r.email.toLowerCase())
+      const q = f ? addressQuality(f, now) : null
+      if (!q?.ok) { failed.push(r.id); return false }
+      return true
+    })
+    const mean = ok.length ? ok.reduce((sum, r) => sum + addressQuality(facts.get(r.email.toLowerCase())!, now).score, 0) / ok.length : 0
+    return { ...e, n: ok.length, score: mean }
+  })
+  if (failed.length) await prisma.mailingEditionRecipient.updateMany({ where: { id: { in: failed } }, data: { excluded: true, excludedReason: 'screened_at_schedule' } })
+  const sized = scored.filter((e) => e.n > 0).sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
 
   const noticeIds = [...new Set(sized.map((e) => e.warnNoticeId).filter((x): x is string => !!x))]
   const notices = new Map((await prisma.warnNotice.findMany({ where: { id: { in: noticeIds } }, select: { id: true, employer: true, employees: true, state: true, county: true } })).map((n) => [n.id, n]))
 
-  const dayOf = assignDays(sized.map((e) => ({ id: e.id, recipients: e.n })), times.length)
+  // A trickle, not a batch: each day takes what the sender's own ramp allows (40, 60, 80, 100, then 120), best addresses first.
+  const caps = [...LAYOFF_RAMP, ...new Array<number>(30).fill(LAYOFF_RAMP[LAYOFF_RAMP.length - 1])]
+  const dayOf = assignDaysByCap(sized.map((e) => ({ id: e.id, recipients: e.n })), caps)
+  const dayCount = sized.length ? Math.max(...dayOf.values()) + 1 : 0
+  const times = businessDayTimes(monday, dayCount)
   const days: DayPlan[] = times.map((at, day) => ({ day, at, editions: 0, recipients: 0, arms: {} }))
   for (let day = 0; day < times.length; day++) {
     const today = sized.filter((e) => dayOf.get(e.id) === day)
@@ -135,13 +157,13 @@ export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: Da
     for (const e of today) {
       const code = arms.get(e.id)! as HeadlineCode
       const notice = e.warnNoticeId ? notices.get(e.warnNoticeId) : undefined
-      const facts: HeadlineFacts = {
+      const hf: HeadlineFacts = {
         org: notice?.employer ?? e.title.split(' · ')[0], employees: notice?.employees ?? null, state: notice?.state ?? null, county: notice?.county ?? null,
         audience: AUDIENCE_TO_COPY[e.audience ?? ''] ?? 'hr', mode: /a few weeks/.test(e.bodyHtml) ? 'older' : 'new',
       }
       await prisma.mailingEdition.update({
         where: { id: e.id },
-        data: { subject: headlineFor(code, facts).slice(0, 200), title: `${e.title.split(' · h:')[0]} · h:${code} · day ${day + 1}`, status: 'SCHEDULED', scheduledAt: times[day] },
+        data: { subject: headlineFor(code, hf).slice(0, 200), title: `${e.title.split(' · h:')[0]} · h:${code} · day ${day + 1}`, status: 'SCHEDULED', scheduledAt: times[day] },
       })
       days[day].editions++
       days[day].recipients += e.n
@@ -150,7 +172,7 @@ export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: Da
       a.recipients += e.n
     }
   }
-  captureServerEvent('admin', 'layoff_backfill_week_scheduled', { editions: sized.length, recipients: days.reduce((s, d) => s + d.recipients, 0), removed: drop.length, days: days.map((d) => ({ at: d.at.toISOString(), recipients: d.recipients, over: d.recipients > DAY_MAX_RECIPIENTS })) })
+  captureServerEvent('admin', 'layoff_backfill_week_scheduled', { editions: sized.length, recipients: days.reduce((s, d) => s + d.recipients, 0), removed: drop.length, screened_out: failed.length, days: days.map((d) => ({ at: d.at.toISOString(), recipients: d.recipients })) })
   return { days, removed: drop.length }
 }
 

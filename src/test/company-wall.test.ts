@@ -171,6 +171,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/warn/layoff-alert-people.ts': 'admin WARN tooling: imported only by the layoff alert; lists the CRM and workforce contacts tied to one layoff',
     'src/lib/warn/layoff-alert.ts':'admin WARN tooling: emails the owner about a new layoff; imported only by WARN sync, news-check and the SEC 8-K check',
     'src/lib/warn/layoff-hq-state.ts': 'admin WARN tooling: imported only by the layoff alert; fills in an employer\'s US state on its CRM organization from SEC filings',
+    'src/lib/warn/outreach/quality-data.ts': 'admin WARN tooling: imported only by the layoff outreach queue and backfill; reads a CRM contact\'s Hunter status so only verified-deliverable addresses are emailed',
     'src/lib/warn/outreach/for-notice.ts': 'admin WARN tooling: imported only by the layoff alert; finds a digest layoff\'s contacts in the CRM so the layoff outreach emails can be queued',
     'src/lib/warn/layoff-primary-run.ts': 'admin WARN tooling: imported only by the warn-sync and layoff-news crons',
     'src/lib/warn/news-check.ts': 'admin WARN tooling: imported only by the warn-sync and layoff-news crons',
