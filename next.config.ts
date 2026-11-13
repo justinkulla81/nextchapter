@@ -399,6 +399,10 @@ const nextConfig: NextConfig = {
       // answered MISS every time (checked live 2026-11-09) and a cold shard took about 8.7 s, long enough for a crawler to give up.
       // Kept an hour, with a stale copy served while it refreshes, so a crawler almost always gets a cached file.
       { source: "/jobs/sitemap/:path*", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
+      // Every other sitemap file, the same way (2026-11-13): /jobs/entry-level/sitemap.xml took over 120 s on a cold build and timed
+      // out, then answered in under a second once cached. A crawler that hits the cold build gets nothing; with a stale copy served
+      // while it refreshes, it always gets a file.
+      ...["/sitemap-index.xml", "/:dir*/sitemap.xml", "/:dir*/sitemap/:file"].map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] })),
       // The public AI course catalog is rendered per request (one small Course query) and kept by the CDN for an hour.
       { source: "/ai-courses/:path*", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
       { source: "/ai-courses", headers: [{ key: "Vercel-CDN-Cache-Control", value: "max-age=3600, stale-while-revalidate=86400" }] },
