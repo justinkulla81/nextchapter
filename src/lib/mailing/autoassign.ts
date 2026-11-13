@@ -89,6 +89,8 @@ export interface PruneResult {
   staleAddress: number
   /** Addresses Hunter calls invalid or undeliverable, now suppressed everywhere. */
   invalid: number
+  /** Memberships on an address Hunter calls risky (catch-all or undecided): taken off the list, not suppressed (owner, 2026-11-13). */
+  risky: number
 }
 
 /**
@@ -100,14 +102,14 @@ export interface PruneResult {
  * A REMOVED row also stops auto-assign adding the person back.
  */
 export async function pruneLists(opts: { dryRun?: boolean } = {}): Promise<PruneResult> {
-  const result: PruneResult = { wrongType: 0, deletedPerson: 0, staleAddress: 0, invalid: 0 }
+  const result: PruneResult = { wrongType: 0, deletedPerson: 0, staleAddress: 0, invalid: 0, risky: 0 }
   const lists = await prisma.mailingList.findMany({ select: { id: true, key: true } })
   const keyOf = new Map(lists.map((l) => [l.id, l.key]))
   const members = await prisma.mailingListMember.findMany({
     where: { status: 'ACTIVE', personId: { not: null } },
     select: { id: true, listId: true, email: true, personId: true, addedVia: true, consentNote: true, person: { select: { deletedAt: true, email: true, emails: true, emailVerifiedStatus: true } } },
   })
-  const wrongTypeIds: string[] = [], deletedIds: string[] = [], staleIds: string[] = [], invalidEmails = new Set<string>()
+  const wrongTypeIds: string[] = [], deletedIds: string[] = [], staleIds: string[] = [], riskyIds: string[] = [], invalidEmails = new Set<string>()
   const registered = await registeredMemberEmails()
   const personIds = [...new Set(members.map((m) => m.personId!))]
   const suggested = new Map<string, string[]>()
@@ -120,6 +122,7 @@ export async function pruneLists(opts: { dryRun?: boolean } = {}): Promise<Prune
     const mine = [p.email, ...p.emails].map((e) => normalizeListEmail(e ?? '')).filter(Boolean)
     if (mine.length && !mine.includes(m.email)) { staleIds.push(m.id); continue }
     if (m.email === normalizeListEmail(p.email ?? '') && (p.emailVerifiedStatus === 'invalid' || p.emailVerifiedStatus === 'undeliverable')) { invalidEmails.add(m.email); continue }
+    if (m.email === normalizeListEmail(p.email ?? '') && p.emailVerifiedStatus === 'risky') { riskyIds.push(m.id); continue }
     const key = keyOf.get(m.listId)
     if (m.addedVia === 'IMPORT' && m.consentNote === AUTO_NOTE && key && key !== 'monthly_update') {
       // Candidates is registered members only; every other list follows the person's type.
@@ -131,9 +134,10 @@ export async function pruneLists(opts: { dryRun?: boolean } = {}): Promise<Prune
   result.deletedPerson = deletedIds.length
   result.staleAddress = staleIds.length
   result.invalid = invalidEmails.size
+  result.risky = riskyIds.length
   if (opts.dryRun) return result
   const now = new Date()
-  for (const ids of [wrongTypeIds, deletedIds, staleIds]) {
+  for (const ids of [wrongTypeIds, deletedIds, staleIds, riskyIds]) {
     for (let i = 0; i < ids.length; i += 1000) {
       await prisma.mailingListMember.updateMany({ where: { id: { in: ids.slice(i, i + 1000) }, status: 'ACTIVE' }, data: { status: 'REMOVED', statusAt: now } })
     }
