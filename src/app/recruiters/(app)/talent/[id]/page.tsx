@@ -6,6 +6,7 @@ import { canAssign, findVisibleConnection, getTalentContext } from '@/lib/recrui
 import { INTAKE_CONSENT_SCOPE_LABELS, INTAKE_CONSENT_SCOPES } from '@/lib/recruiter/intake/constants'
 import { TagBadge } from '@/components/recruiter/talent/TalentSubnav'
 import { AssignControl, OpenResumeButton, TagButtons } from '@/components/recruiter/talent/TalentForms'
+import { loadCandidateStatus } from '@/lib/recruiter/intake/status-load'
 import { assignConnection, getIntakeResumeUrl, overrideTag } from '../actions'
 import { Squiggle } from '@/components/ui/squiggle'
 
@@ -40,7 +41,16 @@ export default async function TalentConnectionPage({ params }: { params: Promise
   const parsed = (latest?.parsedJson ?? null) as Record<string, unknown> | null
   const person = connection.intakeCandidate
 
+  const view = await loadCandidateStatus(person.candidateId, connection.consentScopes)
+
   captureServerEvent(ctx.recruiter.id, 'talent_candidate_viewed', { connectionId: connection.id, firmId: ctx.firm.id })
+  captureServerEvent(ctx.recruiter.id, 'talent_status_viewed', {
+    connectionId: connection.id,
+    firmId: ctx.firm.id,
+    scopes: connection.consentScopes,
+    status: view.status?.value ?? null,
+    hasLanding: !!view.landing,
+  })
 
   const facts: [string, unknown][] = [
     ['Current role', [parsed?.currentTitle, parsed?.currentEmployer].filter(Boolean).join(' at ')],
@@ -178,17 +188,33 @@ export default async function TalentConnectionPage({ params }: { params: Promise
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">What they share with {ctx.firm.name}</h2>
-        {connection.consentScopes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing yet. They choose when they open their free profile.</p>
+        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Where they are now</h2>
+        {view.status ? (
+          <p className="text-sm">
+            <span className="font-medium">{view.status.label}</span>
+            {view.status.changedAt && <span className="text-muted-foreground"> · since {view.status.changedAt.toLocaleDateString()}</span>}
+          </p>
+        ) : connection.consentScopes.includes('status') ? (
+          <p className="text-sm text-muted-foreground">
+            {person.claimedAt ? 'No status on file yet.' : 'They have not opened their free profile yet, so there is no status to show.'}
+          </p>
         ) : (
-          <ul className="list-disc space-y-1 pl-5 text-sm">
-            {INTAKE_CONSENT_SCOPES.filter((s) => connection.consentScopes.includes(s)).map((s) => (
-              <li key={s}>{INTAKE_CONSENT_SCOPE_LABELS[s].label}</li>
-            ))}
-          </ul>
+          <p className="text-sm text-muted-foreground">They have not shared their search status with {ctx.firm.name}. You do not need to ask; if they share it, it appears here.</p>
         )}
-        <p className="text-xs text-muted-foreground">{person.claimedAt ? 'Has a NextChapter account.' : 'Has not opened their profile yet.'}</p>
+        {view.landing && (
+          <p className="text-sm">
+            Started as {view.landing.title} at {view.landing.employer} on {view.landing.startDate.toLocaleDateString()}.
+          </p>
+        )}
+        <p className="text-xs text-muted-foreground">
+          Shared with {ctx.firm.name}:{' '}
+          {connection.consentScopes.length === 0
+            ? 'nothing yet'
+            : INTAKE_CONSENT_SCOPES.filter((s) => connection.consentScopes.includes(s))
+                .map((s) => INTAKE_CONSENT_SCOPE_LABELS[s].label.toLowerCase())
+                .join(', ')}
+          . They can change this at any time.
+        </p>
       </section>
 
       {connection.routingDecisions.length > 0 && (
