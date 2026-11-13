@@ -52,7 +52,7 @@ export async function queueLayoffOutreach(input: { noticeId: string; employer: s
     const blocked = new Set<string>([...suppressed.map((s) => s.email), ...recent.map((r) => r.email)])
     const own = new Set([settings.testEmail, settings.replyTo, 'justin@launchyournextchapter.com'].map((e) => e.toLowerCase()))
 
-    const plans = planOutreach(input.groups, input.ctx, { blocked, ownAddresses: own })
+    const plans = planOutreach(input.groups, input.ctx, { blocked, ownAddresses: own, noticeId: input.noticeId })
     if (plans.length === 0) return none('no contact with a verified address')
 
     const bcc = settings.testEmail
@@ -62,7 +62,7 @@ export async function queueLayoffOutreach(input: { noticeId: string; employer: s
       const edition = await prisma.mailingEdition.create({
         data: {
           key,
-          title: `${input.employer} · ${AUDIENCE_LABEL[p.audience]}${p.variant ? ` · subject ${p.variant}` : ''}`,
+          title: `${input.employer} · ${AUDIENCE_LABEL[p.audience]}${p.variant ? ` · version ${p.variant}` : ''}`,
           subject: p.subject,
           bodyHtml: p.bodyHtml,
           status: 'SENDING',

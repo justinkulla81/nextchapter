@@ -15,7 +15,7 @@ const group = (key: string, cards: ContactCard[]): ContactGroup => ({ key, label
 const none = { blocked: new Set<string>() }
 
 describe('planOutreach', () => {
-  it('writes each audience its own email, with the greeting as a merge tag and the value paragraph before "we sit alongside"', () => {
+  it('writes each audience its own email, with the greeting as a merge tag and one tagged link', () => {
     const plans = planOutreach([
       group('head_hr', [card()]),
       group('rapid_response', [card({ name: 'Sam Roe', email: 'sam@state.gov', greet: 'Sam', personId: 'p2', title: 'Coordinator' })]),
@@ -23,10 +23,10 @@ describe('planOutreach', () => {
     expect(plans.map((p) => p.audience).sort()).toEqual(['outplacement', 'rapid_response'])
     for (const p of plans) {
       expect(p.bodyHtml.startsWith('<p>Hi {{firstName}},')).toBe(true)
-      expect(p.bodyHtml.indexOf(BLS_NOW.url)).toBeGreaterThan(-1)
-      expect(p.bodyHtml.indexOf(BLS_NOW.url)).toBeLessThan(p.bodyHtml.indexOf('We sit alongside them'))
+      expect(p.bodyHtml).toContain('utm_source=layoff_outreach')
       expect(p.bodyHtml).toContain('<div data-signature>')
-      expect(p.bodyHtml).toContain('15 minutes this week')
+      expect(p.bodyHtml).toMatch(/15 minutes this week|send it/)
+      expect(p.bodyHtml).toMatch(/>https:\/\/launchyournextchapter\.com\/network\/company\/acme<\/a>/)
     }
   })
 
@@ -112,5 +112,68 @@ describe('the sweep for smaller layoffs', async () => {
     expect(w.fetchedAt.gte.getTime()).toBe(now.getTime() - 5 * 86_400_000)
     expect(w.OR).toEqual([{ country: null }, { country: 'US' }])
     expect(w.NOT).toEqual({ alertHeldAt: { not: null }, alertSentAt: null, alertGaveUpAt: null })
+  })
+})
+
+describe('outreach copy v2', async () => {
+  const { askArm, outreachCopy, taggedLink } = await import('@/lib/warn/outreach/copy')
+  const base = { greet: 'Chelsea', link: 'https://launchyournextchapter.com/network/company/acme?x=1', picture, bls: '27.6% of unemployed Americans have been looking for 27 weeks or longer (BLS, October)', signOff: SIGN_OFF }
+  it('splits the ask by a hash of the address, the same address always the same arm, Rapid Response always the call', () => {
+    expect(askArm('A@b.com', 'hr')).toBe(askArm(' a@b.com ', 'hr'))
+    const arms = new Set(Array.from({ length: 40 }, (_, i) => askArm(`p${i}@x.org`, 'job_center')))
+    expect(arms).toEqual(new Set(['A', 'B']))
+    expect(askArm('a@b.com', 'rapid_response')).toBe('B')
+  })
+  it('differs between the two arms only in the last line before the signature', () => {
+    for (const audience of ['hr', 'job_center', 'workforce_board'] as const) {
+      for (const mode of ['new', 'older'] as const) {
+        const a = outreachCopy({ ...base, audience, mode, arm: 'A' })
+        const b = outreachCopy({ ...base, audience, mode, arm: 'B' })
+        expect(a.subject).toBe(b.subject)
+        const strip = (s: string) => s.split('\n\n').slice(0, -2).join('\n\n')
+        expect(strip(a.body)).toBe(strip(b.body))
+        expect(a.body.split('\n\n').at(-2)).not.toBe(b.body.split('\n\n').at(-2))
+        expect(b.body).toContain('Worth 15 minutes this week?')
+        expect(a.body).toContain('Reply "send it"')
+      }
+    }
+  })
+  it('is short, has one link, and the older wording leads with the stage not "I saw that"', () => {
+    const words = (s: string) => s.split('\n\n').slice(0, -1).join(' ').split(/\s+/).length
+    for (const audience of ['hr', 'job_center', 'workforce_board', 'rapid_response'] as const) {
+      for (const mode of ['new', 'older'] as const) {
+        const m = outreachCopy({ ...base, audience, mode, arm: 'B' })
+        expect(words(m.body)).toBeLessThan(110)
+        expect(m.body.match(/https:\/\//g)?.length).toBe(1)
+        expect(m.body).not.toMatch(/I saw that|I'm Justin Kulla|hope this/i)
+      }
+    }
+    expect(outreachCopy({ ...base, audience: 'hr', mode: 'older', arm: 'B' }).body).toContain('a few weeks ago')
+    expect(outreachCopy({ ...base, audience: 'hr', mode: 'new', arm: 'B' }).body).not.toContain('a few weeks')
+  })
+  it('only promises what the page does: each person adds their email, and 10 seats for HR only', () => {
+    const hr = outreachCopy({ ...base, audience: 'hr', mode: 'new', arm: 'A' }).body
+    expect(hr).toContain('each person adds their email')
+    expect(hr).toContain('10 seats at no charge')
+    expect(outreachCopy({ ...base, audience: 'job_center', mode: 'new', arm: 'A' }).body).not.toContain('seats')
+  })
+  it('tags the page link so a sign-up can be traced to the email, and keeps the link on the page that answers', () => {
+    const u = new URL(taggedLink('https://launchyournextchapter.com/layoffs/company/acme', { audience: 'hr', arm: 'A', noticeId: 'n1' }))
+    expect(u.pathname).toBe('/layoffs/company/acme')
+    expect(Object.fromEntries(u.searchParams)).toEqual({ utm_source: 'layoff_outreach', utm_medium: 'email', utm_campaign: 'hr', utm_content: 'A', lo_n: 'n1' })
+  })
+  it('planOutreach uses v2 for HR and tags the link; economic development keeps the older note', () => {
+    const plans = planOutreach([group('head_hr', [card()]), group('economic_development', [card({ name: 'Ed Dev', email: 'ed@chamber.org', greet: 'Ed', personId: undefined, title: null })])], ctx, { blocked: new Set(), noticeId: 'n9' })
+    const hr = plans.find((p) => p.audience === 'outplacement')!
+    expect(hr.bodyHtml).toContain('utm_source=layoff_outreach')
+    expect(hr.bodyHtml).toContain('lo_n=n9')
+    expect(plans.find((p) => p.audience === 'economic_development')!.bodyHtml).toContain('We sit alongside them')
+  })
+  it('reads the tags back on the landing page, and ignores any other visit', async () => {
+    const { readOutreachTags } = await import('@/lib/outreach/landing-tags')
+    expect(readOutreachTags('?utm_source=layoff_outreach&utm_medium=email&utm_campaign=hr&utm_content=A&lo_n=n1')).toEqual({ role: 'hr', audience: 'hr', arm: 'A', noticeId: 'n1' })
+    expect(readOutreachTags('?utm_source=layoff_outreach&utm_campaign=rapid_response')?.role).toBe('partner')
+    expect(readOutreachTags('?utm_source=google&utm_campaign=hr')).toBeNull()
+    expect(readOutreachTags('')).toBeNull()
   })
 })

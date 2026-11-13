@@ -7,6 +7,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { JourneyPicker } from '@/components/home/JourneyPicker'
 import { EmployerEmailCapture } from '@/components/network/EmployerEmailCapture'
+import { OutreachRequestBlock } from '@/components/network/OutreachRequestBlock'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { getEmployerBrand, employerBrandKey } from '@/lib/branding/store'
 import { brandOrFallback } from '@/lib/branding/fallback'
@@ -131,6 +132,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
             <span aria-hidden> › </span>
             <span className="text-foreground">{c.name}</span>
           </nav>
+<OutreachRequestBlock slug={slug} employer={c.name} />
 <div className="mt-4 rounded-2xl bg-[var(--org-1,#14213D)] p-6 text-[var(--org-1-ink,#ffffff)] sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] opacity-80">NextChapter · for people leaving {c.name}</p>
             <h1 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">

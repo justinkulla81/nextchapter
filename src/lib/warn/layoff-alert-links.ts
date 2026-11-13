@@ -1,7 +1,8 @@
 import 'server-only'
 import type { LocalPicture } from './layoff-picture'
 import type { DraftContext } from './layoff-alert-drafts'
-import { employerSlug } from './layoff-pages'
+import { employerSlug, getCompanies } from './layoff-pages'
+import { isNetworkCompany } from '@/lib/network/eligibility'
 import { stateSlug } from '@/lib/seo/states'
 import { buildEmailClickUrl } from '@/lib/email/click-link'
 import { composeKey } from './layoff-alert-drafts'
@@ -14,7 +15,11 @@ const SITE = 'https://launchyournextchapter.com'
  * email); a slow or failed check just drops it, and the note links the state page instead.
  */
 export async function draftContext(picture: LocalPicture, employer: string, state: string | null, county: string | null, noticeId: string): Promise<DraftContext> {
-  const peoplePage = `${SITE}/network/company/${employerSlug(employer, null)}`
+  // An employer under the network page's minimum redirects from /network/company to /layoffs/company, and a redirect drops the
+  // campaign tags on the link, so link the page that answers.
+  const slug = employerSlug(employer, null)
+  const company = (await getCompanies().catch(() => null))?.get(slug)
+  const peoplePage = `${SITE}/${company && !isNetworkCompany(company) ? 'layoffs' : 'network'}/company/${slug}`
   const countySlug = county ? `${county.replace(/\s+county$/i, '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')}-county` : null
   const url = countySlug && state ? `${SITE}/places/${stateSlug(state)}/county/${countySlug}` : null
   const localPage = url && (await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(4000) }).then((r) => r.status === 200, () => false)) ? url : null
