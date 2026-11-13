@@ -21,7 +21,7 @@ import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-
 import { notInternshipWhere } from '@/lib/internships/exclude'
 import { emailLevelFit } from '@/lib/jobs/email-level-fit'
 import { findLightRowsPage, logBoardMemory, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
-import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, writeSnapshot, yieldToRequests, type SnapshotKind } from '@/lib/jobs/board-snapshot'
+import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot, yieldToRequests, type SnapshotKind } from '@/lib/jobs/board-snapshot'
 import { decodeBoardPart, encodeBoardPart } from '@/lib/jobs/board-snapshot-codec'
 import { annualPayForSort, type BoardSort } from '@/lib/jobs/board-search'
 import { sectorKeep } from '@/lib/jobs/employer-sector'
@@ -84,6 +84,15 @@ const PER_COMPANY = 5
 // Rows are read-only downstream; per-row work is memoised on them (rowFacts).
 const LIGHT_TTL_MS = 60_000
 const SHARED_STALE_MS = 5 * 60_000
+/**
+ * How old another instance's snapshot may be and still serve a refresh, whether or not the board changed since. Imports change the board
+ * every few minutes, so "unchanged since" almost never held and each instance re-read the whole board (~370k rows, 19 pages) every minute
+ * it was in use (about 4.7M BoardLightRow rows in 17 hours in pg_stat_statements, 2026-11-13). A held copy is already served up to
+ * SHARED_STALE_MS old while a refresh loads, so three minutes is inside what members already see. Same build only (snapshotBuild).
+ */
+const BOARD_SNAPSHOT_FRESH_MS = 3 * 60_000
+/** An instance refreshing a board it already holds waits up to this long, then looks for another instance's snapshot before reading the database itself. */
+const BOARD_REFRESH_JITTER_MS = 15_000
 const LIGHT_MAX_KEYS = 20
 const lightCache = new Map<string, { at: number; rows: Promise<LightRow[]> }>()
 
@@ -278,10 +287,15 @@ function publishBoard(kind: SnapshotKind, board: HeldBoard): void {
   })
 }
 
-/** The snapshot of this board, when one was written at the board's current version; else null. */
-async function readBoardSnapshot(kind: SnapshotKind, fingerprint: Promise<string | null>): Promise<HeldBoard | null> {
+/**
+ * The snapshot of this board, when one was written at the board's current version or within BOARD_SNAPSHOT_FRESH_MS; else null.
+ * With `held`, a snapshot no newer than the copy already held is that copy (nothing to download).
+ */
+async function readBoardSnapshot(kind: SnapshotKind, fingerprint: Promise<string | null>, held: HeldBoard | null = null): Promise<HeldBoard | null> {
   const [manifest, now] = await Promise.all([readManifest(kind), fingerprint])
-  if (!manifest || !now || manifest.fingerprint !== now) return null
+  if (!manifest) return null
+  if (!snapshotUsable(manifest, now, { freshMs: BOARD_SNAPSHOT_FRESH_MS })) return null
+  if (held && manifest.at <= held.readAt) return held
   const encoded = await readParts(manifest)
   if (!encoded) return null
   const pool = new Map<string, string>()
@@ -326,12 +340,19 @@ function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, kind: Snapshot
     // Read every load: a direct listing's still-listed confirmation moves without a board write.
     const listed = getStillListedDirect()
     if (held && held.fingerprint && (await fingerprint) === held.fingerprint) return stillLive(held, Date.now(), await listed)
-    // A cold instance: the snapshot another instance wrote, when the board hasn't changed since.
-    if (!held && !snapshotsDisabled()) {
-      const snap = await readBoardSnapshot(kind, fingerprint).catch((error) => {
-        console.error(`Board snapshot (${name}): unreadable, reading the database`, error)
-        return null
-      })
+    // The snapshot another instance wrote, when the board hasn't changed since or it is only minutes old. An instance that already holds a
+    // board waits a random moment and looks again before reading the database, so one instance's read serves the rest.
+    if (!snapshotsDisabled()) {
+      const fromSnapshot = () =>
+        readBoardSnapshot(kind, fingerprint, held).catch((error) => {
+          console.error(`Board snapshot (${name}): unreadable, reading the database`, error)
+          return null
+        })
+      let snap = await fromSnapshot()
+      if (!snap && held) {
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * BOARD_REFRESH_JITTER_MS))
+        snap = await fromSnapshot()
+      }
       if (snap) {
         logBoardMemory(`shared board (${name}) from snapshot`, { rows: snap.rows.length, ms: Date.now() - started })
         return stillLive(snap, Date.now(), await listed)
