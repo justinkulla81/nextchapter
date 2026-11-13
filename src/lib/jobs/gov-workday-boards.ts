@@ -142,4 +142,11 @@ export const GOV_WORKDAY_BOARDS: WorkdayBoard[] = [
   { host: 'stlouiscountymo.wd108', site: 'OpportunityCentral', employer: 'St. Louis County, Missouri', place: 'St. Louis County, MO' },
   { host: 'kauai.wd1', site: 'Kauai_External_Career_Site', employer: 'County of Kauai', place: 'Kauai County, HI' },
   { host: 'tamus.wd1', site: 'ETAMU_External', employer: 'East Texas A&M University', place: 'Commerce, TX' },
+  // Fifth round: Florida public colleges and an expressway authority, Texas A&M System agencies.
+  { host: 'flvs.wd1', site: 'FLVS_Jobs', employer: 'Florida Virtual School', place: 'Orlando, FL' },
+  { host: 'fgcu.wd5', site: 'eaglejobs', employer: 'Florida Gulf Coast University', place: 'Fort Myers, FL' },
+  { host: 'cfxway.wd1', site: 'CFX_Careers', employer: 'Central Florida Expressway Authority', place: 'Orlando, FL' },
+  { host: 'pensacolastate.wd501', site: 'PSC_Employment_Opportunities', employer: 'Pensacola State College', place: 'Pensacola, FL' },
+  { host: 'tamus.wd1', site: 'TDEM_External', employer: 'Texas Division of Emergency Management', place: 'Austin, TX' },
+  { host: 'tamus.wd1', site: 'teex_external', employer: 'Texas A&M Engineering Extension Service', place: 'College Station, TX' },
 ]
