@@ -53,7 +53,7 @@ export async function loadJobStatuses(now = new Date(), opts: { recordFirstSeen?
           where: { job: s.job },
           orderBy: { startedAt: 'desc' },
           take: 2,
-          select: { status: true, startedAt: true, error: true, durationMs: true, trigger: true },
+          select: { status: true, startedAt: true, error: true, durationMs: true, trigger: true, detail: true },
         }),
       ),
     ),
@@ -76,7 +76,11 @@ export async function loadJobStatuses(now = new Date(), opts: { recordFirstSeen?
   }
   return schedules.map((s, i) => {
     const latest = latestRuns[i][0] ?? null
-    const { health, detail } = forgiveOneOff(s, assessJob(s, latest, latest ? null : firstSeen.get(s.job) ?? now, now), latestRuns[i][1]?.status)
+    const assessed = forgiveOneOff(s, assessJob(s, latest, latest ? null : firstSeen.get(s.job) ?? now, now), latestRuns[i][1]?.status)
+    const { health } = assessed
+    // A run that was cut off leaves the last note it wrote through ctx.progress (CronRun.detail): say how far it got.
+    const progress = (health === 'timed_out' || health === 'failed') && latest?.detail ? ` Last progress note: ${latest.detail}` : ''
+    const detail = assessed.detail + progress
     return { job: s.job, schedule: s.schedule, health, detail, lastStartedAt: latest?.startedAt ?? null, lastDurationMs: latest?.durationMs ?? null, lastTrigger: latest?.trigger ?? null }
   })
 }

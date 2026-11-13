@@ -31,3 +31,54 @@ export function releaseTime(from: Date): Date {
   }
   throw new Error('no Monday found')
 }
+
+/**
+ * The deploy-time marks that kept the layoffs filed before the live outreach started from being mailed live (outreachCheckedAt set at
+ * 2026-11-13 03:08 UTC). The backfill is the owner-approved way to reach them, so a mark made before this moment does not hide a layoff
+ * from it; a mark made after (the sweep looked, or the backfill found nobody) still does.
+ */
+export const SUPPRESSION_MARK_BEFORE = new Date('2026-11-13T03:08:00Z')
+
+/** Most emails one send day takes (the layoff window is 8 a.m. to noon Eastern, 500 an hour, shared with the other mailings). */
+export const DAY_MAX_RECIPIENTS = 1200
+
+/** The nine-o'clock-Eastern instants of the four days (Monday to Thursday) of the week that starts on `monday` (a Date inside that Monday). */
+export function weekSendTimes(monday: Date, days = 4): Date[] {
+  const out: Date[] = []
+  for (let d = 0; d < days; d++) {
+    const probe = new Date(monday.getTime() + d * 86_400_000)
+    const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(probe).split('-').map(Number)
+    const noonUtc = new Date(Date.UTC(ymd[0], ymd[1] - 1, ymd[2], 12))
+    out.push(new Date(Date.UTC(ymd[0], ymd[1] - 1, ymd[2], 9, 0) - easternOffsetMinutes(noonUtc) * 60_000))
+  }
+  return out
+}
+
+/** Which day (0-based) each edition goes on: biggest first, each to the day with the fewest recipients so far. Stable for equal sizes. */
+export function assignDays(editions: { id: string; recipients: number }[], days = 4): Map<string, number> {
+  const load = new Array<number>(days).fill(0)
+  const out = new Map<string, number>()
+  for (const e of [...editions].sort((a, b) => b.recipients - a.recipients || a.id.localeCompare(b.id))) {
+    let best = 0
+    for (let d = 1; d < days; d++) if (load[d] < load[best]) best = d
+    out.set(e.id, best)
+    load[best] += e.recipients
+  }
+  return out
+}
+
+/** The two headline styles each day tests, against each other within that day (so the day of the week is the same for both). */
+export const HEADLINE_DAYS: readonly (readonly [string, string])[] = [['n1', 'q1'], ['loc', 'pg'], ['aud', 'quick'], ['plain', 'num2']]
+
+/** Within one day, alternate the two arms by audience so each audience is split evenly. */
+export function assignArms(items: { id: string; audience: string }[], day: number): Map<string, string> {
+  const pair = HEADLINE_DAYS[day % HEADLINE_DAYS.length]
+  const seen = new Map<string, number>()
+  const out = new Map<string, string>()
+  for (const it of [...items].sort((a, b) => a.audience.localeCompare(b.audience) || a.id.localeCompare(b.id))) {
+    const i = seen.get(it.audience) ?? 0
+    out.set(it.id, pair[i % 2])
+    seen.set(it.audience, i + 1)
+  }
+  return out
+}

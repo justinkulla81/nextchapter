@@ -93,3 +93,36 @@ export function taggedLink(base: string, o: { audience: CopyAudience; arm: AskAr
   if (o.noticeId) u.searchParams.set('lo_n', o.noticeId)
   return u.toString()
 }
+
+/** What a headline needs to know about the layoff. */
+export interface HeadlineFacts { org: string; employees: number | null; state: string | null; county: string | null; audience: CopyAudience | 'economic_development'; mode: CopyMode }
+
+export const HEADLINE_CODES = ['n1', 'q1', 'loc', 'pg', 'aud', 'quick', 'plain', 'num2'] as const
+export type HeadlineCode = (typeof HEADLINE_CODES)[number]
+
+/**
+ * The subject lines the backfill tests (owner, 2026-11-13: a different headline each day). Eight styles, two a day: n1 the number first,
+ * q1 a question, loc where they can land, pg the free page, aud the audience's own line (what the live emails use), quick a short
+ * personal line, plain the bare fact, num2 the number and the employer. Facts only: the employer, the headcount and the place.
+ */
+export function headlineFor(code: HeadlineCode, f: HeadlineFacts): string {
+  const org = f.org
+  const N = f.employees ? n(f.employees) : null
+  const state = f.state ? (STATE_NAMES[f.state] ?? f.state) : null
+  const place = f.county ? `${f.county.replace(/\s+county$/i, '')} County` : state
+  const older = f.mode === 'older'
+  switch (code) {
+    case 'n1': return N ? `${N} people ${older ? 'who left' : 'leaving'} ${org}` : `people ${older ? 'who left' : 'leaving'} ${org}`
+    case 'q1': return N ? `who is helping ${org}'s ${N}?` : `who is helping the people leaving ${org}?`
+    case 'loc': return place ? `where ${org}'s ${N ?? 'people'} can land in ${place}` : `where ${org}'s ${N ?? 'people'} can land`
+    case 'pg': return N ? `a free page for ${org}'s ${N}` : `a free page for the people leaving ${org}`
+    case 'aud':
+      if (f.audience === 'rapid_response') return older ? `${org}, a few weeks on` : `before your ${org} meeting`
+      if (f.audience === 'job_center') return older ? `still helping the people from ${org}` : `if someone from ${org} walks in`
+      if (f.audience === 'hr') return older ? `${N ? `the ${N}` : 'the people'} who left ${org}` : `${N ? `${N} people` : 'people'} leaving ${org}`
+      return older ? `${org}'s ${N ?? 'layoff'}, a few weeks on` : `${org}'s ${N ? `${N}, ` : ''}in ${place ?? 'your region'}`
+    case 'quick': return `${org}: quick question`
+    case 'plain': return `${org} layoff`
+    case 'num2': return N ? `${N} jobs, ${org}` : `jobs ending at ${org}`
+  }
+}

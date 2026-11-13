@@ -1,3 +1,4 @@
+import { InboundView } from '@/components/talent-intake/InboundView'
 import { Action, Panel, Pill, PortalFrame, Quiet, SAMPLE_BRANDS, Table, Title } from './portal-frame'
 
 // Sample-data previews of the recruiter portal, for /recruiters. Hartley Search and every candidate are made up.
@@ -114,6 +115,96 @@ export function RecruiterPipeline() {
           ]}
         />
       </Panel>
+    </PortalFrame>
+  )
+}
+
+// The firm's résumé page as a candidate opens it: the real InboundView with Hartley Search's sample brand settings.
+export function RecruiterInbound() {
+  return (
+    <div className="w-[1440px] overflow-hidden bg-white" data-shot>
+      <InboundView
+        firm={{ name: 'Hartley Search', slug: 'hartley', logoUrl: null, brandHeroUrl: null, accentColor: '#e07a5f', brandFont: 'editorial', brandTone: 'cream' }}
+        recruiter={null}
+        recruiterSlug={null}
+        notFit={false}
+      />
+    </div>
+  )
+}
+
+const FILTERS = ['All', 'Assigned to me', 'Strong fit', 'In your niche', 'Outside focus', 'Next step due']
+
+// The candidate list, wording from src/app/recruiters/(app)/talent/page.tsx.
+export function RecruiterCandidates() {
+  return (
+    <PortalFrame type="recruiter" brand={SAMPLE_BRANDS.recruiter} nav={NAV} active="Talent" trail="Talent › Candidates">
+      <Title intro="Every résumé sent to your page, read and sorted. Open one to set its stage and next step.">Candidates</Title>
+      <div className="flex flex-wrap gap-2 text-sm">
+        {FILTERS.map((f, i) => (
+          <span key={f} className={i === 0 ? 'rounded-full bg-ink px-3 py-1 font-medium text-white' : 'rounded-full border border-border px-3 py-1 text-muted-foreground'}>{f}</span>
+        ))}
+      </div>
+      <Panel title="5 candidates" why="a next step turns orange on the day it is due, and the Next step due filter shows only those.">
+        <Table
+          head={['Name', 'Stage', 'Tag', 'Why', 'Recruiter', 'Updated']}
+          rows={[
+            [<span key="a" className="font-medium">Dana Whitfield</span>, <span key="a2">Talking<br /><span className="text-xs font-medium text-orange">Next step Nov 14</span></span>, <Pill key="a3" tone="good">Fit</Pill>, 'VP Finance, matches your open CFO search', 'Pat Hartley', 'Nov 12'],
+            [<span key="b" className="font-medium">Marcus Bell</span>, <span key="b2">New<br /><span className="text-xs font-medium text-orange">Next step Nov 13</span></span>, <Pill key="b3" tone="warm">In your niche</Pill>, 'Controller, healthcare services', 'Pat Hartley', 'Nov 11'],
+            [<span key="c" className="font-medium">Priya Raman</span>, <span key="c2">Presented to a client<br /><span className="text-xs text-muted-foreground">Next step Nov 20</span></span>, <Pill key="c3" tone="good">Fit</Pill>, 'Director FP&A, matches your focus', 'Lee Ortiz', 'Nov 10'],
+            [<span key="d" className="font-medium">Tom Eriksen</span>, <span key="d2">Placed</span>, <Pill key="d3" tone="good">Fit</Pill>, 'CFO, mid-market manufacturing', 'Lee Ortiz', 'Nov 6'],
+            [<span key="e" className="font-medium">Ana Kowalski</span>, <span key="e2">Not a fit</span>, <Pill key="e3">Outside focus</Pill>, 'Marketing manager', 'General hopper', 'Nov 5'],
+          ]}
+        />
+      </Panel>
+    </PortalFrame>
+  )
+}
+
+// One candidate: the pipeline and what they chose to share, wording from src/app/recruiters/(app)/talent/[id]/page.tsx.
+export function RecruiterCandidateStatus() {
+  return (
+    <PortalFrame type="recruiter" brand={SAMPLE_BRANDS.recruiter} nav={NAV} active="Talent" trail="Talent › Candidates › Dana Whitfield">
+      <Title intro="dana.whitfield@example.com · Inbound page · Nov 4">Dana Whitfield</Title>
+      <div className="grid grid-cols-[1.2fr_1fr] gap-6">
+        <div className="space-y-6">
+          <Panel title="Pipeline" why="stage, note and next step are for your firm; the candidate never sees them.">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-xs text-muted-foreground">Stage</p>
+                <p className="mt-1 rounded-md border border-border px-3 py-2 text-ink">Talking</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Next step by</p>
+                <p className="mt-1 rounded-md border border-border px-3 py-2 text-ink">2026-11-14</p>
+              </div>
+            </div>
+            <div className="text-sm">
+              <p className="text-xs text-muted-foreground">Note</p>
+              <p className="mt-1 rounded-md border border-border px-3 py-2 text-ink">Open to relocating to Chicago. Send the CFO brief before Friday.</p>
+            </div>
+            <Action>Save pipeline</Action>
+            <ul className="space-y-1 text-xs text-muted-foreground">
+              <li>Nov 12 · New to Talking · Pat Hartley</li>
+            </ul>
+          </Panel>
+          <Panel title="Summary" why="read from the résumé, against your specialties and open searches.">
+            <ul className="list-disc space-y-1 pl-5 text-sm text-ink">
+              <li>VP Finance with 14 years in healthcare services</li>
+              <li>Matches your open CFO search for a regional health system</li>
+            </ul>
+          </Panel>
+        </div>
+        <div className="space-y-6">
+          <Panel title="Where they are now" why="shown only because Dana chose to share her search status and where she lands.">
+            <p className="text-sm"><span className="font-medium text-ink">Interviewing</span> <span className="text-muted-foreground">· since 11/10/2026</span></p>
+            <p className="text-xs text-muted-foreground">Shared with Hartley Search: My search status · Where I land. They can change this at any time.</p>
+          </Panel>
+          <Panel title="Resume" why="only your firm can open the file she sent.">
+            <p className="text-sm text-ink">whitfield-resume.pdf · 11/4/2026</p>
+          </Panel>
+        </div>
+      </div>
     </PortalFrame>
   )
 }

@@ -16,7 +16,7 @@ export async function runK12JobSpotFeed(): Promise<SitemapFeedResult> {
     titleOk: isRelevantTitle,
     minJobs: 3000,
     maxNewPerRun: 1500,
-    timeBudgetMs: 100_000,
+    timeBudgetMs: 60_000,
     loadJobs: loadK12Jobs,
   })
 }

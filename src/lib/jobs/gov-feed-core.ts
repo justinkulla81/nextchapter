@@ -68,7 +68,8 @@ export function parseJobPostingLd(page: string): FeedPosting | null {
   const value = ((posting.baseSalary as { value?: { minValue?: number; maxValue?: number; unitText?: string } } | undefined)?.value) ?? {}
   const yearly = String(value.unitText ?? '').toUpperCase() === 'YEAR' && Number(value.minValue) > 0
   const posted = typeof posting.datePosted === 'string' ? new Date(posting.datePosted) : null
-  const type = typeof posting.employmentType === 'string' ? posting.employmentType : null
+  const rawType = Array.isArray(posting.employmentType) ? posting.employmentType[0] : posting.employmentType
+  const type = typeof rawType === 'string' ? rawType : null
   return {
     title: decodeEntities(posting.title).trim(),
     employer: ((posting.hiringOrganization as { name?: string } | undefined)?.name ?? '').trim(),
@@ -86,6 +87,8 @@ export interface FeedSource {
   /** Stored on the row: who added it. Never 'ncrawl', so ncrawl syncs cannot archive these rows. */
   addedBy: string
   sourceName: string
+  /** True when the job is taken from the employer's own job system; false for an aggregator's copy. Default true. */
+  direct?: boolean
 }
 
 export interface KeptJob {
@@ -101,6 +104,9 @@ export type SkipReason = 'screen' | 'old' | 'internal'
 /** The board's own import screen plus the feeds' rules; null reason means keep. */
 export function judge(posting: FeedPosting, now: Date): { keep: true; level: string; location: string | null } | { keep: false; reason: SkipReason } {
   if (/\binternal (candidates|applicants|employees) only\b|\binternal only\b/i.test(posting.title + ' ' + posting.description.slice(0, 600))) return { keep: false, reason: 'internal' }
+  // Some listings name the job (or a recruiter's header) in the employer field; the employer is unknown, so skip them.
+  const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+  if (norm(posting.employer).includes(norm(posting.title)) || norm(posting.title).includes(norm(posting.employer))) return { keep: false, reason: 'screen' }
   const verdict = screenImportedJob(posting.title, posting.location, { companyName: posting.employer, description: posting.description })
   if (!verdict.keep) return { keep: false, reason: 'screen' }
   if (posting.postedAt && now.getTime() - posting.postedAt.getTime() > YEAR_MS) return { keep: false, reason: 'old' }
@@ -120,8 +126,8 @@ export function boardRow(k: KeptJob, src: FeedSource, now: Date, expiresAt: Date
     skills: skillsFrom(p.title, p.description),
     level: k.level,
     sourceCategory: 'public_sector',
-    postingType: 'direct',
-    directListing: true,
+    postingType: src.direct === false ? null : 'direct',
+    directListing: src.direct !== false,
     source: 'ats_feed',
     status: 'approved',
     addedBy: src.addedBy,
@@ -170,4 +176,10 @@ export async function collectFromPages(
   }
   await Promise.all(Array.from({ length: opts.workers }, worker))
   return { kept, stats }
+}
+
+/** Normalised employer and title, to spot the same job listed by two sources. */
+export function dedupeKey(employer: string, title: string): string {
+  const n = (x: string) => x.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim()
+  return `${n(employer)}|${n(title)}`
 }

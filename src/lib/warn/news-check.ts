@@ -296,6 +296,7 @@ async function newsCheck(opts: { fast?: boolean }): Promise<NewsCheckResult> {
     // The same company match a state filing gets, so the layoff is findable by
     // company and not only by name. A failure leaves it unmatched, never blocks it.
     const match = await matchOrCreateCompanyForEmployer(company).catch(() => null)
+    const event = readWorkforceEvent(first.headline)
     const notice = await prisma.warnNotice.create({
       data: {
         ...(match ? {
@@ -306,11 +307,12 @@ async function newsCheck(opts: { fast?: boolean }): Promise<NewsCheckResult> {
         employer: company,
         normalizedEmployer: key,
         division: firstDivision(mentions.map((m) => m.headline)),
-        rssPublishedAt: new Date(),
+        // An HQ or office move is not a layoff: it is filed as a lead, but the public layoff feed waits for a person (found 2026-11-13).
+        rssPublishedAt: event === 'relocation' ? null : new Date(),
         source: 'MANUAL_ANNOUNCEMENT',
         noticeDate: new Date(Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate())),
         employees,
-        layoffType: layoffTypeLabel({ publishers: publishers.size, publisher: first.publisher, percent, event: workforceEventLabel(readWorkforceEvent(first.headline)) }),
+        layoffType: layoffTypeLabel({ publishers: publishers.size, publisher: first.publisher, percent, event: workforceEventLabel(event) }),
         sourceUrl: first.url,
       },
       select: { id: true },

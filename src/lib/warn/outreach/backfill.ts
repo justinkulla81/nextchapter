@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CAMPAIGN } from './plan'
 import { queueOutreachForNotice } from './for-notice'
-import { releaseTime, modeForAge, BACKFILL_DAYS, BACKFILL_MIN_EMPLOYEES, BATCH } from './backfill-rules'
+import { releaseTime, modeForAge, BACKFILL_DAYS, BACKFILL_MIN_EMPLOYEES, BATCH, SUPPRESSION_MARK_BEFORE, DAY_MAX_RECIPIENTS, weekSendTimes, assignDays, assignArms } from './backfill-rules'
+import { headlineFor, type HeadlineCode, type HeadlineFacts } from './copy'
 
 /**
  * One-off catch-up for the layoffs the live sweep never emailed (it only sees layoffs under 5 days old): every US layoff of 50+ people
@@ -25,7 +26,7 @@ export async function pendingCandidates(now = new Date()): Promise<Candidate[]> 
     SELECT DISTINCT ON (w."normalizedEmployer") w.id, w.employer, w.employees, w."noticeDate"
     FROM "WarnNotice" w
     WHERE w."noticeDate" >= ${since} AND w."noticeDate" <= ${now} AND w."dismissedAt" IS NULL
-      AND w.employees >= ${BACKFILL_MIN_EMPLOYEES} AND (w.country IS NULL OR w.country = 'US') AND w."outreachCheckedAt" IS NULL
+      AND w.employees >= ${BACKFILL_MIN_EMPLOYEES} AND (w.country IS NULL OR w.country = 'US') AND (w."outreachCheckedAt" IS NULL OR w."outreachCheckedAt" <= ${SUPPRESSION_MARK_BEFORE})
       AND NOT EXISTS (
         SELECT 1 FROM "MailingEdition" e JOIN "WarnNotice" w2 ON w2.id = e."warnNoticeId"
         WHERE e.campaign = ${CAMPAIGN} AND w2."normalizedEmployer" = w."normalizedEmployer")
@@ -93,4 +94,87 @@ export async function discardHeld(): Promise<number> {
   const r = await prisma.mailingEdition.deleteMany({ where: heldWhere })
   captureServerEvent('admin', 'layoff_backfill_discarded', { editions: r.count })
   return r.count
+}
+
+export interface DayPlan { day: number; at: Date; editions: number; recipients: number; arms: Record<string, { editions: number; recipients: number }> }
+
+const AUDIENCE_TO_COPY: Record<string, HeadlineFacts['audience']> = {
+  outplacement: 'hr', rapid_response: 'rapid_response', workforce_board: 'workforce_board', job_center: 'job_center', economic_development: 'economic_development',
+}
+
+/**
+ * Schedules every held draft across the four days Monday to Thursday of the coming week (balanced by recipients, 9:00 Eastern each day;
+ * the mailing tool sends inside the layoff window, 8 a.m. to noon, at its hourly rate and daily cap). Owner, 2026-11-13: test a different
+ * headline each day. Each day runs two headline styles (HEADLINE_DAYS) against each other, split evenly by audience, so the day is the
+ * same for both; the subject is rewritten and the edition's title carries "h:<style>" so the campaigns page can read the result by style.
+ * First takes out anyone suppressed since the draft was made, as releaseHeld does.
+ */
+export async function scheduleBackfillWeek(now = new Date()): Promise<{ days: DayPlan[]; removed: number }> {
+  const monday = releaseTime(now)
+  const times = weekSendTimes(monday)
+  const eds = await prisma.mailingEdition.findMany({
+    where: heldWhere,
+    select: { id: true, title: true, audience: true, warnNoticeId: true, bodyHtml: true, recipients: { where: { excluded: false }, select: { id: true, email: true } } },
+  })
+  if (eds.length === 0) return { days: [], removed: 0 }
+  const emails = [...new Set(eds.flatMap((e) => e.recipients.map((r) => r.email)))]
+  const suppressed = emails.length ? new Set((await prisma.mailingSuppression.findMany({ where: { email: { in: emails } }, select: { email: true } })).map((s) => s.email)) : new Set<string>()
+  const drop = eds.flatMap((e) => e.recipients.filter((r) => suppressed.has(r.email)).map((r) => r.id))
+  if (drop.length) await prisma.mailingEditionRecipient.updateMany({ where: { id: { in: drop } }, data: { excluded: true, excludedReason: 'suppressed_since_draft' } })
+  const dropped = new Set(drop)
+  const sized = eds.map((e) => ({ ...e, n: e.recipients.filter((r) => !dropped.has(r.id)).length })).filter((e) => e.n > 0)
+
+  const noticeIds = [...new Set(sized.map((e) => e.warnNoticeId).filter((x): x is string => !!x))]
+  const notices = new Map((await prisma.warnNotice.findMany({ where: { id: { in: noticeIds } }, select: { id: true, employer: true, employees: true, state: true, county: true } })).map((n) => [n.id, n]))
+
+  const dayOf = assignDays(sized.map((e) => ({ id: e.id, recipients: e.n })), times.length)
+  const days: DayPlan[] = times.map((at, day) => ({ day, at, editions: 0, recipients: 0, arms: {} }))
+  for (let day = 0; day < times.length; day++) {
+    const today = sized.filter((e) => dayOf.get(e.id) === day)
+    const arms = assignArms(today.map((e) => ({ id: e.id, audience: e.audience ?? 'other' })), day)
+    for (const e of today) {
+      const code = arms.get(e.id)! as HeadlineCode
+      const notice = e.warnNoticeId ? notices.get(e.warnNoticeId) : undefined
+      const facts: HeadlineFacts = {
+        org: notice?.employer ?? e.title.split(' · ')[0], employees: notice?.employees ?? null, state: notice?.state ?? null, county: notice?.county ?? null,
+        audience: AUDIENCE_TO_COPY[e.audience ?? ''] ?? 'hr', mode: /a few weeks/.test(e.bodyHtml) ? 'older' : 'new',
+      }
+      await prisma.mailingEdition.update({
+        where: { id: e.id },
+        data: { subject: headlineFor(code, facts).slice(0, 200), title: `${e.title.split(' · h:')[0]} · h:${code} · day ${day + 1}`, status: 'SCHEDULED', scheduledAt: times[day] },
+      })
+      days[day].editions++
+      days[day].recipients += e.n
+      const a = (days[day].arms[code] ??= { editions: 0, recipients: 0 })
+      a.editions++
+      a.recipients += e.n
+    }
+  }
+  captureServerEvent('admin', 'layoff_backfill_week_scheduled', { editions: sized.length, recipients: days.reduce((s, d) => s + d.recipients, 0), removed: drop.length, days: days.map((d) => ({ at: d.at.toISOString(), recipients: d.recipients, over: d.recipients > DAY_MAX_RECIPIENTS })) })
+  return { days, removed: drop.length }
+}
+
+/**
+ * The hourly driver (cron layoff-backfill): makes the held drafts for every layoff still pending, within a time budget, and once none is
+ * pending and the next Monday is under four days away, schedules the week. Off with LAYOFF_BACKFILL_AUTO=0. Reads, per run: the pending
+ * list (about 900 rows) per batch, plus what each drafted layoff reads (see createHeldDrafts).
+ */
+export async function runBackfillAuto(now = new Date()): Promise<{ drafted: { looked: number; queued: number; editions: number; recipients: number }; pending: number; scheduled: DayPlan[] | null; note: string | null }> {
+  const out = { drafted: { looked: 0, queued: 0, editions: 0, recipients: 0 }, pending: 0, scheduled: null as DayPlan[] | null, note: null as string | null }
+  if (/^(0|off|false)$/i.test(process.env.LAYOFF_BACKFILL_AUTO ?? '')) return { ...out, note: 'switched off' }
+  const end = Date.now() + 170_000
+  let pending = (await pendingCandidates(now)).length
+  while (pending > 0 && Date.now() < end) {
+    const r = await createHeldDrafts(now)
+    out.drafted.looked += r.looked; out.drafted.queued += r.queued; out.drafted.editions += r.editions; out.drafted.recipients += r.recipients
+    if (r.looked === 0 || r.queued + (r.skipped['no contact with a verified address'] ?? 0) === 0) { out.note = 'a batch made nothing; stopped'; break }
+    pending = Math.max(0, r.remaining - r.looked)
+  }
+  out.pending = pending
+  const daysToMonday = (releaseTime(now).getTime() - now.getTime()) / 86_400_000
+  if (pending === 0 && daysToMonday < 4) {
+    const s = await scheduleBackfillWeek(now)
+    if (s.days.length) out.scheduled = s.days
+  }
+  return out
 }
