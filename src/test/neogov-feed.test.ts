@@ -84,3 +84,36 @@ describe('edjoin and careersingovernment sitemaps', () => {
     expect(dedupeKey('City of San Jose', 'Building Inspector, Senior')).toBe(dedupeKey('CITY OF SAN JOSE', 'building inspector senior'))
   })
 })
+
+describe('government Workday boards', () => {
+  it('reads a yearly pay range from a description', async () => {
+    const { yearlyPayFrom } = await import('@/lib/jobs/gov-workday-core')
+    expect(yearlyPayFrom('The salary range is $137,134.40 - $181,230.40 annually.')).toEqual({ min: 137134, max: 181230 })
+    expect(yearlyPayFrom('Pay is $37.23-$50.91 Hourly')).toBeNull()
+  })
+  it('builds the job url from the board and path', async () => {
+    const { jobUrl, boardPrefix } = await import('@/lib/jobs/gov-workday-core')
+    const b = { host: 'calvertcountymd.wd1', site: 'calvertcountymdemploymentopportunities', employer: 'Calvert County Government', place: 'Calvert County, MD' }
+    expect(jobUrl(b, '/job/X/Grant-Writer_JR1')).toBe('https://calvertcountymd.wd1.myworkdayjobs.com/calvertcountymdemploymentopportunities/job/X/Grant-Writer_JR1')
+    expect(jobUrl(b, '/job/X/Grant-Writer_JR1').startsWith(boardPrefix(b))).toBe(true)
+  })
+  it('only lists boards that are verified and unique', async () => {
+    const { GOV_WORKDAY_BOARDS } = await import('@/lib/jobs/gov-workday-boards')
+    const keys = GOV_WORKDAY_BOARDS.map((b) => `${b.host}/${b.site}`)
+    expect(new Set(keys).size).toBe(keys.length)
+    expect(GOV_WORKDAY_BOARDS.length).toBeGreaterThan(50)
+  })
+})
+
+describe('government Oracle boards', () => {
+  it('reads the title out of a Dallas County requisition label', async () => {
+    const { cleanOracleTitle } = await import('@/lib/jobs/gov-oracle-core')
+    expect(cleanOracleTitle('0000007224.SYSTEM ENGINEER LEAD.INFO TECH - OPERATIONS')).toBe('SYSTEM ENGINEER LEAD')
+    expect(cleanOracleTitle('Fleet Operations Manager (Facilities & Operations Department)')).toBe('Fleet Operations Manager (Facilities & Operations Department)')
+  })
+  it('builds the job url from the board and requisition id', async () => {
+    const { oracleUrl, oracleAdapter } = await import('@/lib/jobs/gov-oracle-core')
+    const b = oracleAdapter.boards[0]
+    expect(oracleUrl(b, '42').startsWith(oracleAdapter.prefix(b))).toBe(true)
+  })
+})

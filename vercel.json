@@ -153,6 +153,10 @@
       "schedule": "0 10 * * 1"
     },
     {
+      "path": "/api/cron/bundle-gov-jobs",
+      "schedule": "37 4 * * 2"
+    },
+    {
       "path": "/api/cron/bundle-sunday",
       "schedule": "0 5 * * 0"
     },
