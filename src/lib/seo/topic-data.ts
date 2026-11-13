@@ -1,4 +1,5 @@
 import 'server-only'
+import { pagesShownInSearch } from '@/lib/seo/shown-in-search'
 import { createHash } from 'node:crypto'
 import { cache } from 'react'
 import { heavy, memoTtl, sharedLoad } from '@/lib/db/heavy'
@@ -25,6 +26,7 @@ import {
   CRAWLER_INDUSTRY_BUCKET,
   INDUSTRIES,
   associationSlug,
+  conferencePath,
   bucketFromIndustryText,
   bucketFromWarn,
   type JobRule,
@@ -384,7 +386,7 @@ const cachedConferenceExtras = unstable_cache(loadConferenceExtras, ['conference
 
 /** id -> assessment for every published conference, from the rows alone (no per-page queries), so the sitemap and the page agree. */
 export const getConferenceAssessments = cache(async (): Promise<Map<string, Assessment>> => {
-  const [catalog, associations, extras] = await Promise.all([getCatalogIndex(), getAssociations(), cachedConferenceExtras().catch(() => [] as [string, { employers: number; speakers: number }][])])
+  const [catalog, associations, extras, shown] = await Promise.all([getCatalogIndex(), getAssociations(), cachedConferenceExtras().catch(() => [] as [string, { employers: number; speakers: number }][]), pagesShownInSearch()])
   const extraById = new Map(extras)
   const assocSlugs = new Set(associations.map((a) => a.slug))
   const perIndustry = new Map<string, number>()
@@ -399,7 +401,9 @@ export const getConferenceAssessments = cache(async (): Promise<Map<string, Asse
     const e = extraById.get(c.id)
     const hasLists = !!e && (e.employers > 0 || e.speakers > 0)
     const topUpcoming = c.importance === 1 && c.datesConfirmed && !!c.startDate && new Date(c.startDate).getTime() >= Date.now() - 86_400_000
-    out.set(c.id, hasLists || topUpcoming ? a : { ...a, indexable: false })
+    // A conference Google already shows in search keeps its index tag whatever the bar says (src/lib/seo/shown-in-search.ts).
+    const inSearch = shown.has(conferencePath(c.id))
+    out.set(c.id, hasLists || topUpcoming || inSearch ? (inSearch ? { ...a, indexable: true } : a) : { ...a, indexable: false })
   }
   return out
 })
