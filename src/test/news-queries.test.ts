@@ -11,6 +11,7 @@ describe('layoff news queries', () => {
     expect(new Set(queries).size).toBe(queries.length)
     for (const q of ['layoffs', 'lays off employees', 'to cut jobs', 'job cuts announced', 'announces layoffs']) expect(queries).toContain(q)
     expect(queries.length).toBeGreaterThan(15)
-    expect(queries.length).toBeLessThan(40)
+    // 69 since the buyouts, closures, mergers and AI searches were added; all run well inside SEARCH_BUDGET_MS. The ceiling catches a runaway list.
+    expect(queries.length).toBeLessThan(100)
   })
 })
