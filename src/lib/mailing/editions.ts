@@ -357,7 +357,8 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
         if (isLayoff) {
           layoffSent++
           const d = domainOf(next.email)
-          layoffPace!.domainSent.set(d, (layoffPace!.domainSent.get(d) ?? 0) + 1)
+          const day = layoffPace!.domainSent.get(d) ?? { sent: 0, bounced: 0, lastSentAt: null }
+          layoffPace!.domainSent.set(d, { ...day, sent: day.sent + 1, lastSentAt: new Date() })
         }
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e)
