@@ -444,7 +444,7 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (!isBearerAuthorized(authHeader, process.env.NC_ATS_API_KEY)) {
+  if (!isBearerAuthorized(authHeader, process.env.NC_ATS_API_KEY) && !isBearerAuthorized(authHeader, process.env.NC_IMPORT_KEY_CLOUD)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
