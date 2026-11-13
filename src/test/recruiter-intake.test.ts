@@ -204,3 +204,33 @@ describe('intake pipeline input', () => {
     expect(isStepDue(new Date('2026-11-01T00:00:00Z'), 'NOT_A_FIT', now)).toBe(false)
   })
 })
+
+import { buildWeeklyDigest, type DigestRow } from '@/lib/recruiter/intake/digest'
+
+describe('weekly digest', () => {
+  const now = new Date('2026-11-16T12:00:00Z')
+  const row = (o: Partial<DigestRow>): DigestRow => ({
+    connectionId: 'c', name: 'Pat', createdAt: new Date('2026-09-01'), pipelineStage: 'NEW', nextStepAt: null, scopes: [], source: null, ...o,
+  })
+  const changed = { journeyStage: 'LANDED', journeyStageChangedAt: new Date('2026-11-14'), currentJob: { companyName: 'Acme', roleTitle: 'Controller', startDate: new Date('2026-11-10') } }
+  it('is empty when nothing happened, so no email goes out', () => {
+    expect(buildWeeklyDigest([row({})], now).isEmpty).toBe(true)
+  })
+  it('lists a status change only inside the granted scope', () => {
+    expect(buildWeeklyDigest([row({ source: changed })], now).changes).toHaveLength(0)
+    const d = buildWeeklyDigest([row({ scopes: ['status', 'landing_details'], source: changed })], now)
+    expect(d.changes[0]).toMatchObject({ label: 'Landed', landing: 'Controller at Acme' })
+  })
+  it('ignores a change older than a week', () => {
+    const old = { ...changed, journeyStageChangedAt: new Date('2026-10-01') }
+    expect(buildWeeklyDigest([row({ scopes: ['status'], source: old })], now).changes).toHaveLength(0)
+  })
+  it('lists due next steps for open stages and counts new candidates', () => {
+    const d = buildWeeklyDigest(
+      [row({ connectionId: 'a', pipelineStage: 'TALKING', nextStepAt: new Date('2026-11-16') }), row({ connectionId: 'b', pipelineStage: 'PLACED', nextStepAt: new Date('2026-11-01') }), row({ connectionId: 'c', createdAt: new Date('2026-11-15') })],
+      now
+    )
+    expect(d.due.map((x) => x.connectionId)).toEqual(['a'])
+    expect(d.newCount).toBe(1)
+  })
+})

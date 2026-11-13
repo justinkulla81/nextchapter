@@ -214,3 +214,66 @@ export function RecruiterFirmInviteEmail({
     </IntakeEmailLayout>
   )
 }
+
+export function IntakeWeeklyDigestEmail({
+  recruiterFirstName,
+  digest,
+  candidatesUrl,
+}: {
+  recruiterFirstName: string
+  digest: {
+    newCount: number
+    newNames: string[]
+    due: { name: string; stage: string; nextStepAt: string }[]
+    changes: { name: string; label: string; landing: string | null }[]
+  }
+  candidatesUrl: string
+}) {
+  return (
+    <IntakeEmailLayout
+      label="Weekly digest"
+      heading="NextChapter Talent"
+      audience="recruiter"
+      subheading="Your week"
+      footerNote="You get this only on weeks when something changed. It never contacts a candidate. Candidates share their status with your firm by choice and can stop at any time."
+    >
+      <p>Hi {recruiterFirstName},</p>
+      {digest.due.length > 0 && (
+        <>
+          <p><strong>Next steps due</strong></p>
+          <ul>
+            {digest.due.map((d, i) => (
+              <li key={i}>
+                {d.name}, {d.stage}, due {d.nextStepAt}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {digest.changes.length > 0 && (
+        <>
+          <p><strong>Candidates whose status changed</strong></p>
+          <ul>
+            {digest.changes.map((c, i) => (
+              <li key={i}>
+                {c.name}: {c.label}
+                {c.landing ? `, ${c.landing}` : ''}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {digest.newCount > 0 && (
+        <p>
+          <strong>{digest.newCount} new {digest.newCount === 1 ? 'candidate' : 'candidates'}</strong>: {digest.newNames.join(', ')}
+          {digest.newCount > digest.newNames.length ? ` and ${digest.newCount - digest.newNames.length} more` : ''}.
+        </p>
+      )}
+      <p>
+        <a href={candidatesUrl} style={intakeButton}>
+          Open your candidates
+        </a>
+      </p>
+    </IntakeEmailLayout>
+  )
+}
