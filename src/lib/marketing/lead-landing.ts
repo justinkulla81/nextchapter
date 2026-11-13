@@ -108,7 +108,7 @@ export const LEAD_OFFERS: Record<LeadOfferKey, LeadOffer> = {
     bullets: [
       'A demo built on your region’s real layoff notices and job data, in about a minute',
       'One sign-up page to share with the workers in each layoff',
-      'A free workspace for up to 50 active members',
+      'A free workspace, with no limit on how many workers join a layoff',
     ],
     form: {
       title: 'Build your region’s demo',
@@ -116,7 +116,7 @@ export const LEAD_OFFERS: Record<LeadOfferKey, LeadOffer> = {
       button: 'Build my region’s demo',
       choicesLabel: 'Your role',
       choices: ['Rapid Response', 'Workforce board', 'Economic development', 'Other'],
-      fine: 'The workspace is free for up to 50 active members. We use your details only for your demo and to reply.',
+      fine: 'The workspace is free, and layoff sign-ups are not limited. We use your details only for your demo and to reply.',
     },
     success: {
       title: 'Your demo is ready.',
@@ -156,7 +156,7 @@ export const LEAD_OFFERS: Record<LeadOfferKey, LeadOffer> = {
     subhead:
       'Alumni who are between jobs are marked do-not-ask until it clears. Alumni who share a new role or employer tell your office first, so your next conversation starts with something that is true today.',
     bullets: [
-      'A free workspace for your college, up to 50 active members',
+      'A free workspace for your college, with a roster of up to 50 people',
       'Prospect signals for a VP-and-above title or a new employer, from alumni who choose to share',
       'A donor report for the Resilience Fund, so career help and giving connect',
     ],
@@ -166,7 +166,7 @@ export const LEAD_OFFERS: Record<LeadOfferKey, LeadOffer> = {
       button: 'Get my free workspace',
       choicesLabel: 'Your office',
       choices: ['Development', 'Alumni relations', 'Career services', 'Other'],
-      fine: 'Free for up to 50 active members. We use your details only to set up your workspace and reply.',
+      fine: 'Free for a roster of up to 50 people. We use your details only to set up your workspace and reply.',
     },
     success: {
       title: 'Thanks. Next, claim your college’s page.',
@@ -182,7 +182,7 @@ export const LEAD_OFFERS: Record<LeadOfferKey, LeadOffer> = {
     stepsTitle: 'How it works',
     steps: [
       { title: 'Claim your page', body: 'A staff member confirms a work email at your college’s domain.' },
-      { title: 'Invite your alumni', body: 'Up to 50 active members on the free workspace, with your own services listed for them.' },
+      { title: 'Invite your alumni', body: 'Up to 50 people on the free workspace roster, with your own services listed for them.' },
       { title: 'See the signals', body: 'Job news arrives from alumni who share it, with the do-not-ask list kept for you.' },
     ],
     shotsTitle: 'What your office sees',

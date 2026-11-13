@@ -30,7 +30,7 @@ export const RAPID_RESPONSE: PortalPageDef = {
     primary: { label: 'See your region’s layoffs in a live demo', href: DEMO },
     secondary: { label: 'Claim your free workspace', href: '/government-workforce#claim' },
     founderLine: true,
-    primaryNote: 'The demo takes about a minute and uses your region’s real WARN notices and job data. We ask for a work email so the demo is yours. The workspace is free for up to 50 active members.',
+    primaryNote: 'The demo takes about a minute and uses your region’s real WARN notices and job data. We ask for a work email so the demo is yours. The workspace is free, and the number of workers who join a layoff is not limited.',
     parent: { href: '/for-organizations', label: 'For organizations' },
     loginHref: PORTALS.workforce.loginHref,
     // The page replaces this node with the personal line and the live layoff counts.

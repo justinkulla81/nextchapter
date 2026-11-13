@@ -40,7 +40,7 @@ export const WORKFORCE: PortalPageDef = {
     eyebrow: 'Workforce and economic development',
     headline: 'Help the job seekers in your region get back to work',
     subhead:
-      'Claim your organization’s page with a work email at your domain, and a free workspace is created for you: your own page, your services, up to 50 active members and basic counts.',
+      'Claim your organization’s page with a work email at your domain, and a free workspace is created for you: your own page, your services, a sign-up page for every layoff, a roster of up to 50 people and basic counts.',
     primary: { label: 'Claim your page', href: '#claim' },
     primaryNote: 'Workforce boards, economic development organizations and chambers. Community organizations can claim a page too.',
     loginHref: PORTALS.workforce.loginHref,
@@ -58,7 +58,7 @@ export const WORKFORCE: PortalPageDef = {
       },
       {
         title: 'Invite the people you serve',
-        body: 'Invite participants, up to 50 active members on the free workspace. Counts show who joined and how active they are, with small groups held back.',
+        body: 'Invite participants, up to 50 people on the free workspace roster. Counts show who joined and how active they are, with small groups held back. The number of workers who join a layoff sign-up page is not limited.',
       },
     ],
     claim: {
@@ -79,11 +79,11 @@ export const WORKFORCE: PortalPageDef = {
       },
       {
         q: 'What does the free workspace include?',
-        a: 'Your own page on NextChapter, up to 50 active members, your own services listed for the people you serve, and basic counts of participants and activity.',
+        a: 'Your own page on NextChapter, a sign-up page for every layoff (the number of workers who join is not limited), your own services listed for the people you serve, basic counts of participants and activity, and a roster of up to 50 people you import or invite.',
       },
       {
         q: 'What does the Program plan add?',
-        a: 'Reporting and exports, exchange of records with your CRM, more active members, staff roles, an audit log of staff activity, NextChapter coaching and courses offered to the people you serve, and program reporting scoped with you.',
+        a: 'Reporting and exports, exchange of records with your CRM, a larger roster, staff roles, an audit log of staff activity, NextChapter coaching and courses offered to the people you serve, and program reporting scoped with you.',
       },
       {
         q: 'Does NextChapter replace our system of record?',
