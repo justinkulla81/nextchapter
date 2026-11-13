@@ -89,3 +89,16 @@ Run on the 36,341 distinct names from the SEC, university, hospital, nonprofit, 
 About 327,000 jobs (all countries) before overlap with Workday, the US-only filter, the seniority screen and the white-collar rule. A large share is store and hourly work: Dollar General 91,429 (Oracle), Domino's 24,995 (SmartRecruiters), Advance Auto Parts 16,333 (Phenom), Marriott 13,156 (Oracle), Albertsons 8,739 (Oracle).
 Name-match strength is on every source (`nameMatch`); SmartRecruiters and iCIMS names can belong to another employer (for example "St Georges School" with 4,611 SmartRecruiters jobs), so verify the company from the postings before import.
 Weak matches are 11,137 SmartRecruiters/BambooHR/Recruitee/Breezy jobs and 22,025 iCIMS jobs.
+
+## Round three: government and education boards, measured sitemap hosts (2026-11-13)
+
+**Government (governmentjobs.com, NEOGOV).** `https://www.governmentjobs.com/sitemap.xml` lists 40,466 job pages. A random sample of 400: 95% carry schema.org JobPosting data, all US, 94% have a description of 1,500+ characters, the hiring agency is named
+(San Bernardino County, City of Henderson, State of Louisiana, City and County of Honolulu), about 30% are hourly, trades or public-safety titles. We hold 5,758 live rows from this host, so about 34,700 are new.
+**Education (EDJOIN, California K-12 and colleges).** `https://www.edjoin.org/sitemap/jobs/1` lists 14,798 job pages; sample of 400: all carry JobPosting data, all US (98% California), 63% with 1,500+ characters, about 36% support or hourly titles. We hold 835 live rows; about 14,000 new.
+Both are the employers' own posting systems. `scripts/jobsreport/sitemap_jsonld_harvest.py` reads any sitemap's job pages into JSON lines (resumable, 8 to 10 threads).
+
+**Measured sitemap hosts.** The 441 career hosts with sitemaps (`career-hosts-sitemap-counts.json`) were sampled: 10 pages per host checked for JobPosting data (`sitemap-hosts-measured.json`). 231 unique hosts, 148,629 job pages, about 92,300 of them US. Largest: Marriott (Oracle) 28,551, Home Depot (BrassRing) 25,509,
+Nike (Avature) 17,567, Ulta (iCIMS) 11,868, Northrop Grumman (Eightfold) 3,179. By system, not yet counted anywhere else: BrassRing 25,509, Avature 23,770 (13,012 US), Eightfold 13,040, Radancy 10,634, SuccessFactors 3,504, Taleo 720, about 77,000 in all (about 55,000 US). Oracle and iCIMS hosts overlap earlier counts.
+Two hosts matched the wrong company (a SPAC shell named General Catalyst) and were dropped.
+
+**Checked and not used:** Microsoft's careers search API (blocked from the cloud network), Accenture and Apple (not reachable), USAJOBS (needs an API key), `jobs.lever.co`, `jobs.smartrecruiters.com`, `ats.rippling.com`, `jobs.dayforcehcm.com`, Paylocity and Paycom (no global sitemap).
