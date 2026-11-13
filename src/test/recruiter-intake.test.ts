@@ -184,3 +184,23 @@ describe('candidate status for a firm', () => {
     expect(coarseStatus(null)).toBeNull()
   })
 })
+
+import { isStepDue, parsePipelineInput } from '@/lib/recruiter/intake/pipeline-stages'
+
+describe('intake pipeline input', () => {
+  it('rejects an unknown stage and a bad date, and says what to do', () => {
+    expect(parsePipelineInput({ stage: 'X', note: '', nextStep: '' })).toEqual({ error: 'Pick a stage from the list.' })
+    expect('error' in parsePipelineInput({ stage: 'NEW', note: '', nextStep: '12/01/2026' })).toBe(true)
+    expect('error' in parsePipelineInput({ stage: 'NEW', note: '', nextStep: '2026-02-31' })).toBe(true)
+  })
+  it('drops the next step once the stage is closed', () => {
+    const r = parsePipelineInput({ stage: 'PLACED', note: ' hi ', nextStep: '2026-12-01' })
+    expect(r).toEqual({ stage: 'PLACED', note: 'hi', nextStepAt: null })
+  })
+  it('flags a due step only for open stages', () => {
+    const now = new Date('2026-11-14T10:00:00Z')
+    expect(isStepDue(new Date('2026-11-14T00:00:00Z'), 'TALKING', now)).toBe(true)
+    expect(isStepDue(new Date('2026-11-15T00:00:00Z'), 'TALKING', now)).toBe(false)
+    expect(isStepDue(new Date('2026-11-01T00:00:00Z'), 'NOT_A_FIT', now)).toBe(false)
+  })
+})

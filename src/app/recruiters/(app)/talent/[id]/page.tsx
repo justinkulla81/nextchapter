@@ -5,13 +5,16 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { canAssign, findVisibleConnection, getTalentContext } from '@/lib/recruiter/intake/access'
 import { INTAKE_CONSENT_SCOPE_LABELS, INTAKE_CONSENT_SCOPES } from '@/lib/recruiter/intake/constants'
 import { TagBadge } from '@/components/recruiter/talent/TalentSubnav'
-import { AssignControl, OpenResumeButton, TagButtons } from '@/components/recruiter/talent/TalentForms'
+import { AssignControl, OpenResumeButton, PipelineForm, TagButtons } from '@/components/recruiter/talent/TalentForms'
 import { loadCandidateStatus } from '@/lib/recruiter/intake/status-load'
-import { assignConnection, getIntakeResumeUrl, overrideTag } from '../actions'
+import { assignConnection, getIntakeResumeUrl, overrideTag, savePipeline } from '../actions'
+import { PIPELINE_STAGE_LABELS, isPipelineStage } from '@/lib/recruiter/intake/pipeline-stages'
 import { Squiggle } from '@/components/ui/squiggle'
 
 const SOURCE_LABEL = { PAGE: 'Inbound page', NOT_FIT_LINK: '"Not a fit now" link', FORWARD: 'Forwarded email', MEMBER_INTEREST: 'Expressed interest on NextChapter' } as const
 const REPLY_LABEL = { DRAFT: 'Waiting for your OK', APPROVED: 'Approved', SENT: 'Sent', CANCELLED: 'Cancelled' } as const
+
+const stageName = (s: string) => (isPipelineStage(s) ? PIPELINE_STAGE_LABELS[s] : s)
 
 export default async function TalentConnectionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -21,6 +24,7 @@ export default async function TalentConnectionPage({ params }: { params: Promise
     search: true,
     replies: { orderBy: { createdAt: 'desc' } },
     routingDecisions: { orderBy: { createdAt: 'desc' } },
+    stageEvents: { orderBy: { createdAt: 'desc' }, take: 20 },
   })
   if (!connection || !ctx.firm) notFound()
 
@@ -90,6 +94,26 @@ export default async function TalentConnectionPage({ params }: { params: Promise
           <p className="text-sm text-orange">Same LinkedIn profile as another candidate under a different email. Check before reaching out.</p>
         )}
       </div>
+
+      <section className="space-y-3 rounded-lg border border-orange/40 bg-orange/5 p-5">
+        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Pipeline</h2>
+        <PipelineForm
+          action={savePipeline.bind(null, connection.id)}
+          stage={connection.pipelineStage}
+          note={connection.pipelineNote}
+          nextStep={connection.nextStepAt ? connection.nextStepAt.toISOString().slice(0, 10) : null}
+        />
+        {connection.stageEvents.length > 0 && (
+          <ul className="space-y-1 text-xs text-muted-foreground">
+            {connection.stageEvents.map((e) => (
+              <li key={e.id}>
+                {e.createdAt.toLocaleDateString()} · {stageName(e.fromStage)} to {stageName(e.toStage)}
+                {e.recruiterId && ` · ${nameOf.get(e.recruiterId) ?? 'a teammate'}`}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {connection.summary && (
         <section className="rounded-lg border border-border p-5">
