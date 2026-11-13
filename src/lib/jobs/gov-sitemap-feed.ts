@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { screenImportedJob } from '@/lib/jobs/import-screen'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
-import { boardRow, collectFromPages, dedupeKey, fetchText, THIRTY_DAYS_MS, type CollectStats, type FeedSource, type SitemapJob } from '@/lib/jobs/gov-feed-core'
+import { boardRow, collectFromPages, dedupeKey, fetchText, THIRTY_DAYS_MS, type CollectStats, type FeedPosting, type FeedSource, type SitemapJob } from '@/lib/jobs/gov-feed-core'
 
 // A government job site that publishes a sitemap of its open jobs, with schema.org JobPosting data on each job page.
 // Each run: re-confirms board rows still in the sitemap (so they stay on the board), archives rows that left it, and
@@ -27,6 +27,8 @@ export interface SitemapFeedConfig extends FeedSource {
   numericIds?: boolean
   /** Skip a job whose employer and title match a live board row whose url starts with one of these (an indexed range read each). */
   dedupeAgainstUrlPrefixes?: string[]
+  /** Reads a job page that does not carry JobPosting JSON-LD. */
+  parse?: (page: string) => FeedPosting | null
   maxNewPerRun: number
   timeBudgetMs: number
   workers?: number
@@ -73,7 +75,7 @@ export async function runSitemapFeed(cfg: SitemapFeedConfig): Promise<SitemapFee
   }
   // The same US and seniority screen on the slug title alone, so jobs the board would drop are not fetched.
   const candidates = pool.filter((j) => !j.title || screenImportedJob(j.title, 'United States').keep).slice(0, cfg.maxNewPerRun)
-  const collected = await collectFromPages(candidates, { workers: cfg.workers ?? 6, fetchTimeoutMs: 15_000, deadline: started + cfg.timeBudgetMs, now })
+  const collected = await collectFromPages(candidates, { workers: cfg.workers ?? 6, fetchTimeoutMs: 15_000, deadline: started + cfg.timeBudgetMs, now, parse: cfg.parse })
   const stats = collected.stats
   let kept = collected.kept
   if (cfg.dedupeAgainstUrlPrefixes?.length && kept.length > 0) {
