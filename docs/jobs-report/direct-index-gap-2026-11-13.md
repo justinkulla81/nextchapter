@@ -39,7 +39,7 @@ Not recommended: lengthening the 14-day window. It would offer the 82,000 stale 
 
 ## By employer (estimated jobs; from `direct_index_gap.sql`, section 2)
 
-"Staffing" rows are intermediaries and are not targets.
+Staffing and recruiting firms are included: their postings count as direct when the job is real (see the check below).
 
 **Direct text missing or short, fresh (lever 1)**
 
@@ -77,7 +77,7 @@ Not recommended: lengthening the 14-day window. It would offer the 82,000 stale 
 | Nvidia | 370 | 330 |
 | Bank of America | 360 | 370 |
 
-Check one: "Top Echelon Network (recruiter member boards)" (680 stale) and "APA International Placement Consultants" (440) are marked direct but are recruiter boards. If `sourceCategory` is 'employer' for them, that is a labeling error in the crawler config, and they should not count as direct.
+Check one: "Top Echelon Network (recruiter member boards)" (680 stale) and "APA International Placement Consultants" (440) are recruiter boards. Owner decision 2026-11-13: staffing firms and recruiters are fine as long as the jobs are real. So the test is the job, not the firm: a live posting on the firm's own system with a real title, employer or client, and location, not a talent-pool or "general application" listing and not a copy of another board. The crawler should report what share of these boards' rows pass that test.
 
 **Aggregator copies and no direct jobs offered (the find-a-direct-source list)**
 
@@ -96,7 +96,7 @@ Check one: "Top Echelon Network (recruiter member boards)" (680 stale) and "APA 
 | Capital One | 700 | 330 | |
 | Amazon | 1,280 | 8,460 | direct is large; aggregator copies are the remainder |
 
-Left out as not employers: "Remote", "Work at home", "Confidential", "Clients blackbox", "GPAC" (generic or unnamed postings); Creative Financial Staffing, Michael Page, Robert Half, Actalent, Aston Carter, Jobot (staffing and recruiting firms).
+Left out as not real postings: "Remote", "Work at home", "Confidential", "Clients blackbox" and "GPAC" are generic or unnamed labels; they need a real employer or client name before they count. Staffing and recruiting firms (Creative Financial Staffing, Michael Page, Robert Half, Actalent, Aston Carter, Jobot, TEKsystems) stay in.
 
 ## Next
 
