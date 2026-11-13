@@ -15,6 +15,7 @@ Outputs (date-stamped):
   out/go-direct-review-<date>.json          a board was found under a shortened name: check the company before use
   out/go-direct-notfound-<date>.json        no readable system yet (custom or unprobed): next adapter to build, by rows
   out/go-direct-skipped-<date>.json         unnamed or junk labels, and employers that already have a source
+Then run verify_sources.py on the sources file: it drops boards that belong to another company.
 
 Skipped on purpose: generic labels ("Confidential", "Remote", "Work at home", ...) and junk boards. Staffing firms and
 recruiters are kept (owner decision 2026-11-13: fine when the jobs are real). Public endpoints only, identified user agent.
@@ -25,7 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from discover import variants, workday, greenhouse, lever, ashby, smartrecruiters, HERE
 from career_site import look, to_source
 
-GENERIC = re.compile(r"^(confidential|undisclosed|anonymous|stealth|private employer|our client|client of|remote|work at home|clients? blackbox|gpac|"
+GENERIC = re.compile(r"^(confidential|unavailable|remote( jobs| services)?$|undisclosed|anonymous|stealth|private employer|our client|client of|remote|work at home|clients? blackbox|gpac|"
                      r"testing site.*|federal government of the united states|clearancejobs|grabjobs|jobot|talent\.com|jobrapido|adzuna|ziprecruiter|learn4good)\b", re.I)
 
 def norm(name):
@@ -81,7 +82,14 @@ def main():
     ap.add_argument("--min-rows", type=int, default=2, help="employers with at least this many live aggregator jobs (more than 1 = 2)")
     ap.add_argument("--workers", type=int, default=10)
     a = ap.parse_args()
-    rows = json.load(open(a.employers))
+    if a.employers.endswith(".txt"):          # co|rows_total|jooble per line (the compact export of aggregator_employers.sql)
+        rows = []
+        for l in open(a.employers):
+            if l.strip():
+                co, n, j = l.rstrip("\n").rsplit("|", 2)
+                rows.append({"co": co.strip(), "rows_total": int(n), "jooble": int(j), "careerjet": int(n) - int(j)})
+    else:
+        rows = json.load(open(a.employers))
     if isinstance(rows, dict): rows = rows.get("top", rows.get("rows", []))
     rows = [r for r in rows if r["rows_total"] >= a.min_rows]
     rows.sort(key=lambda r: -r["rows_total"])

@@ -16,10 +16,979 @@
     "employer": "orkin"
   },
   {
-    "name": "gr-relativity",
+    "name": "gr-energy-innovation-policy-and-technology",
     "adapter": "greenhouse",
     "type": "direct_ats",
-    "employer": "Relativity",
-    "token": "relativity"
+    "employer": "Energy Innovation: Policy And Technology",
+    "token": "energyinnovation"
+  },
+  {
+    "name": "sr-raytheon-technologies",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Raytheon Technologies",
+    "company": "raytheontechnologies"
+  },
+  {
+    "name": "jibe-insight-global",
+    "adapter": "jibe",
+    "host": "careers.insightglobal.com",
+    "type": "direct_ats",
+    "employer": "insight global"
+  },
+  {
+    "name": "sr-city-of-new-york",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "City Of New York",
+    "company": "cityofnewyork"
+  },
+  {
+    "name": "sr-turner-townsend",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Turner & Townsend",
+    "company": "turnertownsend"
+  },
+  {
+    "name": "wd-city-year",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "City Year",
+    "tenant": "cityyear",
+    "wd": "wd5",
+    "site": "CityYear"
+  },
+  {
+    "name": "wd-sentara-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Sentara Health",
+    "tenant": "sentara",
+    "wd": "wd1",
+    "site": "SCS"
+  },
+  {
+    "name": "jibe-publicis-groupe",
+    "adapter": "jibe",
+    "host": "careers.publicisgroupe.com",
+    "type": "direct_ats",
+    "employer": "publicis groupe"
+  },
+  {
+    "name": "gr-spacex",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Spacex",
+    "token": "spacex"
+  },
+  {
+    "name": "ab-foley",
+    "adapter": "ashby",
+    "type": "direct_ats",
+    "employer": "Foley",
+    "token": "foley"
+  },
+  {
+    "name": "sr-goodwinrecruiting",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Goodwinrecruiting",
+    "company": "goodwinrecruiting"
+  },
+  {
+    "name": "wd-baker-tilly",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Baker Tilly",
+    "tenant": "bakertilly",
+    "wd": "wd5",
+    "site": "BTCareers"
+  },
+  {
+    "name": "gr-nava-pbc",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Nava Pbc",
+    "token": "navapbc"
+  },
+  {
+    "name": "wd-adventhealth",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Adventhealth",
+    "tenant": "adventhealth",
+    "wd": "wd12",
+    "site": "AH_External_Career_Site"
+  },
+  {
+    "name": "oracle-hilton",
+    "adapter": "oracle",
+    "host": "efet.fa.us2.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "hilton"
+  },
+  {
+    "name": "sr-geico",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Geico",
+    "company": "geico"
+  },
+  {
+    "name": "jibe-critter-control",
+    "adapter": "jibe",
+    "host": "careers.crittercontrol.com",
+    "type": "direct_ats",
+    "employer": "critter control"
+  },
+  {
+    "name": "jibe-peraton",
+    "adapter": "jibe",
+    "host": "talent.peraton.com",
+    "type": "direct_ats",
+    "employer": "peraton"
+  },
+  {
+    "name": "wd-cliftonlarsonallen",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cliftonlarsonallen",
+    "tenant": "cliftonlarsonallen",
+    "wd": "wd115",
+    "site": "CLA"
+  },
+  {
+    "name": "sr-software-placement-group",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Software Placement Group",
+    "company": "softwareplacementgroup"
+  },
+  {
+    "name": "sr-stellent-it",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Stellent It",
+    "company": "stellentit"
+  },
+  {
+    "name": "sr-sodexo",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Sodexo",
+    "company": "sodexo"
+  },
+  {
+    "name": "wd-bdo",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Bdo",
+    "tenant": "bdo",
+    "wd": "wd3",
+    "site": "BDO"
+  },
+  {
+    "name": "wd-harris-computer",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Harris Computer",
+    "tenant": "harriscomputer",
+    "wd": "wd3",
+    "site": "1"
+  },
+  {
+    "name": "gr-formativgroup",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Formativgroup",
+    "token": "formativgroup"
+  },
+  {
+    "name": "jibe-accentcare",
+    "adapter": "jibe",
+    "host": "careers.accentcare.com",
+    "type": "direct_ats",
+    "employer": "accentcare"
+  },
+  {
+    "name": "jibe-lakeshore-learning-materials",
+    "adapter": "jibe",
+    "host": "careers.lakeshore.edu",
+    "type": "direct_ats",
+    "employer": "lakeshore learning materials"
+  },
+  {
+    "name": "jibe-waltham-services",
+    "adapter": "jibe",
+    "host": "careers.walthamservices.com",
+    "type": "direct_ats",
+    "employer": "waltham services"
+  },
+  {
+    "name": "jibe-clark-pest-control",
+    "adapter": "jibe",
+    "host": "careers.clarkpest.com",
+    "type": "direct_ats",
+    "employer": "clark pest control"
+  },
+  {
+    "name": "wd-ntt-data",
+    "adapter": "workday",
+    "tenant": "nttglobaldatacenters",
+    "wd": "wd501",
+    "site": "External",
+    "type": "direct_ats",
+    "employer": "ntt data"
+  },
+  {
+    "name": "wd-fujifilm",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fujifilm",
+    "tenant": "fujifilm",
+    "wd": "wd3",
+    "site": "FLB_CS"
+  },
+  {
+    "name": "sr-marathon-ts",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Marathon Ts",
+    "company": "marathonts"
+  },
+  {
+    "name": "wd-syneos-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Syneos Health",
+    "tenant": "syneoshealth",
+    "wd": "wd12",
+    "site": "Syneos_Health_External_Site"
+  },
+  {
+    "name": "wd-td-bank",
+    "adapter": "workday",
+    "tenant": "td",
+    "wd": "wd3",
+    "site": "TD_Bank_Careers",
+    "type": "direct_ats",
+    "employer": "td bank"
+  },
+  {
+    "name": "sr-eurofins",
+    "adapter": "smartrecruiters",
+    "company": "Eurofins",
+    "type": "direct_ats",
+    "employer": "eurofins"
+  },
+  {
+    "name": "oracle-vi-living",
+    "adapter": "oracle",
+    "host": "eexs.fa.us2.oraclecloud.com",
+    "site": "AllJobs",
+    "type": "direct_ats",
+    "employer": "vi living"
+  },
+  {
+    "name": "sr-saxon-global",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Saxon Global",
+    "company": "saxonglobal"
+  },
+  {
+    "name": "gr-axon",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Axon",
+    "token": "axon"
+  },
+  {
+    "name": "sr-electrical-automation-services",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Electrical Automation Services",
+    "company": "electricalautomationservices"
+  },
+  {
+    "name": "wd-prescryptive-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Prescryptive Health",
+    "tenant": "prescryptive",
+    "wd": "wd503",
+    "site": "Prescryptive_Health_External"
+  },
+  {
+    "name": "jibe-national-federation-of-independent-business",
+    "adapter": "jibe",
+    "host": "careers.nfib.com",
+    "type": "direct_ats",
+    "employer": "national federation of independent business"
+  },
+  {
+    "name": "sr-crunch-fitness",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Crunch Fitness",
+    "company": "crunchfitness"
+  },
+  {
+    "name": "gr-vaco-by-highspring",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Vaco By Highspring",
+    "token": "vacobyhighspring"
+  },
+  {
+    "name": "gr-liftoff",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Liftoff",
+    "token": "liftoff"
+  },
+  {
+    "name": "jibe-pam-health",
+    "adapter": "jibe",
+    "host": "talent.pamhealth.com",
+    "type": "direct_ats",
+    "employer": "pam health"
+  },
+  {
+    "name": "wd-fis",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fis",
+    "tenant": "fis",
+    "wd": "wd5",
+    "site": "SearchJobs"
+  },
+  {
+    "name": "wd-mercy",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Mercy",
+    "tenant": "mercy",
+    "wd": "wd1",
+    "site": "mercycareers"
+  },
+  {
+    "name": "sr-crawford-thomas-recruiting",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Crawford Thomas Recruiting",
+    "company": "crawfordthomasrecruiting"
+  },
+  {
+    "name": "wd-michaels-stores",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Michaels Stores",
+    "tenant": "michaels",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "sr-timmons-group",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Timmons Group",
+    "company": "timmonsgroup"
+  },
+  {
+    "name": "wd-vizient",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Vizient",
+    "tenant": "vizient",
+    "wd": "wd1",
+    "site": "Vizient_Careers"
+  },
+  {
+    "name": "gr-coinbase",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Coinbase",
+    "token": "coinbase"
+  },
+  {
+    "name": "ab-clera",
+    "adapter": "ashby",
+    "type": "direct_ats",
+    "employer": "Clera",
+    "token": "clera"
+  },
+  {
+    "name": "oracle-citizens-bank",
+    "adapter": "oracle",
+    "host": "hcgn.fa.us2.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "citizens bank"
+  },
+  {
+    "name": "wd-lifespace-communities",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Lifespace Communities",
+    "tenant": "lifespacecommunities",
+    "wd": "wd1",
+    "site": "Careers"
+  },
+  {
+    "name": "jibe-prime-healthcare",
+    "adapter": "jibe",
+    "host": "careers.primehealthcare.com",
+    "type": "direct_ats",
+    "employer": "prime healthcare"
+  },
+  {
+    "name": "sr-red-bull",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Red Bull",
+    "company": "redbull"
+  },
+  {
+    "name": "jibe-astrion",
+    "adapter": "jibe",
+    "host": "careers.astrion.us",
+    "type": "direct_ats",
+    "employer": "astrion"
+  },
+  {
+    "name": "wd-cohesity",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cohesity",
+    "tenant": "cohesity",
+    "wd": "wd5",
+    "site": "cohesity_careers"
+  },
+  {
+    "name": "gr-adyen",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Adyen",
+    "token": "adyen"
+  },
+  {
+    "name": "gr-justworks",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Justworks",
+    "token": "justworks"
+  },
+  {
+    "name": "gr-oscar-health",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Oscar Health",
+    "token": "oscar"
+  },
+  {
+    "name": "ab-formenergy",
+    "adapter": "ashby",
+    "type": "direct_ats",
+    "employer": "Formenergy",
+    "token": "formenergy"
+  },
+  {
+    "name": "wd-marmon-holdings",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Marmon Holdings",
+    "tenant": "marmon",
+    "wd": "wd501",
+    "site": "Marmon_Careers"
+  },
+  {
+    "name": "wd-fortra",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fortra",
+    "tenant": "fortra",
+    "wd": "wd12",
+    "site": "FortraCareers"
+  },
+  {
+    "name": "wd-elekta",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Elekta",
+    "tenant": "elekta",
+    "wd": "wd3",
+    "site": "Elekta_Careers"
+  },
+  {
+    "name": "gr-mach-industries",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Mach Industries",
+    "token": "machindustries"
+  },
+  {
+    "name": "sr-markel",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Markel",
+    "company": "markel"
+  },
+  {
+    "name": "oracle-ascension",
+    "adapter": "oracle",
+    "host": "ibpcjb.fa.ocs.oraclecloud.com",
+    "site": "CX_1004",
+    "type": "direct_ats",
+    "employer": "ascension"
+  },
+  {
+    "name": "sr-securitas",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Securitas",
+    "company": "securitas"
+  },
+  {
+    "name": "oracle-lifepoint-health",
+    "adapter": "oracle",
+    "host": "ibnjjb.fa.ocs.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "lifepoint health"
+  },
+  {
+    "name": "sr-xplor",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Xplor",
+    "company": "xplor"
+  },
+  {
+    "name": "jibe-axa-xl",
+    "adapter": "jibe",
+    "host": "careers.axa.com",
+    "type": "direct_ats",
+    "employer": "axa xl"
+  },
+  {
+    "name": "jibe-govcio",
+    "adapter": "jibe",
+    "host": "careers.govcio.com",
+    "type": "direct_ats",
+    "employer": "govcio"
+  },
+  {
+    "name": "sr-prosidian-consulting",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Prosidian Consulting",
+    "company": "prosidianconsulting"
+  },
+  {
+    "name": "jibe-wanzek-construction",
+    "adapter": "jibe",
+    "host": "careers.wanzek.com",
+    "type": "direct_ats",
+    "employer": "wanzek construction"
+  },
+  {
+    "name": "jibe-cdm-smith",
+    "adapter": "jibe",
+    "host": "careers.cdmsmith.com",
+    "type": "direct_ats",
+    "employer": "cdm smith"
+  },
+  {
+    "name": "sr-keenfinity",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Keenfinity",
+    "company": "keenfinity"
+  },
+  {
+    "name": "wd-proofpoint",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Proofpoint",
+    "tenant": "proofpoint",
+    "wd": "wd5",
+    "site": "ProofpointCareers"
+  },
+  {
+    "name": "oracle-arcadis",
+    "adapter": "oracle",
+    "host": "ebcs.fa.em2.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "arcadis"
+  },
+  {
+    "name": "jibe-chenega",
+    "adapter": "jibe",
+    "host": "careers.chenega.com",
+    "type": "direct_ats",
+    "employer": "chenega"
+  },
+  {
+    "name": "sr-hattori-hanzo-shears",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Hattori Hanzo Shears",
+    "company": "hattorihanzoshears"
+  },
+  {
+    "name": "wd-pacific-life",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Pacific Life",
+    "tenant": "pacificlife",
+    "wd": "wd1",
+    "site": "PacificlifeCareers"
+  },
+  {
+    "name": "lv-the-intersect-group",
+    "adapter": "lever",
+    "type": "direct_ats",
+    "employer": "The Intersect Group",
+    "token": "intersect"
+  },
+  {
+    "name": "sr-airswift",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Airswift",
+    "company": "airswift"
+  },
+  {
+    "name": "sr-athene",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Athene",
+    "company": "athene"
+  },
+  {
+    "name": "wd-reworld-waste",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Reworld Waste",
+    "tenant": "reworld",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "gr-brex",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Brex",
+    "token": "brex"
+  },
+  {
+    "name": "jibe-arthur-j-gallagher",
+    "adapter": "jibe",
+    "host": "jobs.ajg.com",
+    "type": "direct_ats",
+    "employer": "arthur j. gallagher"
+  },
+  {
+    "name": "gr-wikimedia-foundation",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Wikimedia Foundation",
+    "token": "wikimedia"
+  },
+  {
+    "name": "ab-reflow",
+    "adapter": "ashby",
+    "type": "direct_ats",
+    "employer": "Reflow",
+    "token": "reflow"
+  },
+  {
+    "name": "wd-astreya",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Astreya",
+    "tenant": "astreya",
+    "wd": "wd5",
+    "site": "life-at-astreya-opportunities"
+  },
+  {
+    "name": "gr-pushpay",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Pushpay",
+    "token": "pushpay"
+  },
+  {
+    "name": "jibe-m-c-dean",
+    "adapter": "jibe",
+    "host": "careers.mcdean.com",
+    "type": "direct_ats",
+    "employer": "m.c. dean"
+  },
+  {
+    "name": "sr-my3tech",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "My3Tech",
+    "company": "my3tech"
+  },
+  {
+    "name": "wd-cart-com",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cart.Com",
+    "tenant": "cart",
+    "wd": "wd1",
+    "site": "Cart"
+  },
+  {
+    "name": "sr-honorvet-technologies",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Honorvet Technologies",
+    "company": "honorvettechnologies"
+  },
+  {
+    "name": "sr-experian",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Experian",
+    "company": "experian"
+  },
+  {
+    "name": "wd-hntb",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Hntb",
+    "tenant": "hntb",
+    "wd": "wd5",
+    "site": "HNTB_Careers"
+  },
+  {
+    "name": "wd-genesys",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Genesys",
+    "tenant": "genesys",
+    "wd": "wd1",
+    "site": "Genesys"
+  },
+  {
+    "name": "wd-solenis",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Solenis",
+    "tenant": "solenis",
+    "wd": "wd1",
+    "site": "Solenis"
+  },
+  {
+    "name": "jibe-trc-companies",
+    "adapter": "jibe",
+    "host": "careers.trccompanies.com",
+    "type": "direct_ats",
+    "employer": "trc companies"
+  },
+  {
+    "name": "jibe-simventions",
+    "adapter": "jibe",
+    "host": "careers.simventions.com",
+    "type": "direct_ats",
+    "employer": "simventions"
+  },
+  {
+    "name": "sr-momentum-worldwide",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Momentum Worldwide",
+    "company": "momentumworldwide"
+  },
+  {
+    "name": "lv-ghj",
+    "adapter": "lever",
+    "type": "direct_ats",
+    "employer": "Ghj",
+    "token": "ghj"
+  },
+  {
+    "name": "gr-abacus-group",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Abacus Group",
+    "token": "abacus"
+  },
+  {
+    "name": "oracle-brookdale-senior-living",
+    "adapter": "oracle",
+    "host": "ibmwjb.fa.ocs.oraclecloud.com",
+    "site": "CX_1",
+    "type": "direct_ats",
+    "employer": "brookdale senior living"
+  },
+  {
+    "name": "wd-rosendin-electric",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Rosendin Electric",
+    "tenant": "rosendin",
+    "wd": "wd1",
+    "site": "Careers"
+  },
+  {
+    "name": "gr-lob",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Lob",
+    "token": "lob"
+  },
+  {
+    "name": "wd-sumitomo-pharma",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Sumitomo Pharma",
+    "tenant": "sumitomopharma",
+    "wd": "wd5",
+    "site": "SMPA"
+  },
+  {
+    "name": "sr-the-structures-company",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "The Structures Company",
+    "company": "thestructurescompany"
+  },
+  {
+    "name": "wd-hub-international",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Hub International",
+    "tenant": "hubinternational",
+    "wd": "wd1",
+    "site": "HUBInternational"
+  },
+  {
+    "name": "wd-zendesk",
+    "adapter": "workday",
+    "tenant": "zendesk",
+    "wd": "wd1",
+    "site": "zendesk",
+    "type": "direct_ats",
+    "employer": "zendesk"
+  },
+  {
+    "name": "wd-gfiber",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Gfiber",
+    "tenant": "gfiber",
+    "wd": "wd501",
+    "site": "Gfiber"
+  },
+  {
+    "name": "wd-banner-health",
+    "adapter": "workday",
+    "tenant": "bannerhealth",
+    "wd": "wd108",
+    "site": "Careers",
+    "type": "direct_ats",
+    "employer": "banner health"
+  },
+  {
+    "name": "wd-vsg-business-solutions",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Vsg Business Solutions",
+    "tenant": "vsg",
+    "wd": "wd1",
+    "site": "VSG"
+  },
+  {
+    "name": "ab-canals",
+    "adapter": "ashby",
+    "type": "direct_ats",
+    "employer": "Canals",
+    "token": "canals"
+  },
+  {
+    "name": "wd-cengage-group",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cengage Group",
+    "tenant": "cengage",
+    "wd": "wd5",
+    "site": "CengageNorthAmericaCareers"
+  },
+  {
+    "name": "jibe-bernhard",
+    "adapter": "jibe",
+    "host": "careers.bernhard.com",
+    "type": "direct_ats",
+    "employer": "bernhard"
+  },
+  {
+    "name": "wd-2020-companies",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "2020 Companies",
+    "tenant": "2020companies",
+    "wd": "wd1",
+    "site": "External_Careers"
+  },
+  {
+    "name": "wd-dla-piper",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Dla Piper",
+    "tenant": "dlapiper",
+    "wd": "wd1",
+    "site": "dlapiper"
+  },
+  {
+    "name": "sr-jobs-for-humanity",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Jobs For Humanity",
+    "company": "jobsforhumanity"
+  },
+  {
+    "name": "jibe-geosyntec-consultants",
+    "adapter": "jibe",
+    "host": "careers.geosyntec.com",
+    "type": "direct_ats",
+    "employer": "geosyntec consultants"
+  },
+  {
+    "name": "sr-turner-construction",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Turner Construction",
+    "company": "turnerconstruction"
+  },
+  {
+    "name": "wd-rite-hite",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Rite-Hite",
+    "tenant": "ritehite",
+    "wd": "wd12",
+    "site": "RHH"
+  },
+  {
+    "name": "sr-harvard-university",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Harvard University",
+    "company": "harvarduniversity"
+  },
+  {
+    "name": "sr-advantage-solutions",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Advantage Solutions",
+    "company": "advantagesolutions"
   }
 ]

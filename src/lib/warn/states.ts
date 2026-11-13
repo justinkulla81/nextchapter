@@ -1095,6 +1095,18 @@ export function resolveKentuckyFiles(pageHtml: string): { current: string | null
   return { current, prior }
 }
 
+/**
+ * The workbooks write Jefferson County three ways ("Jefferson", "Jefferson County - Louisville", sometimes with a stray "County"),
+ * and so any county: the sheets from 2017 to 2024 add "County - <city>". Store the bare county name, as the current report does.
+ * "Out of the State County" is a placeholder the state uses for an employer outside Kentucky, so it stays as written.
+ */
+export function normalizeKentuckyCounty(raw: string): string | null {
+  const t = raw.replace(/\s+/g, ' ').trim()
+  if (!t || /^out of the state/i.test(t)) return t || null
+  const bare = t.replace(/\s+-\s+.*$/, '').replace(/(\s+county)+$/i, '').trim()
+  return bare || null
+}
+
 export function parseKentuckyWorkbook(sheets: XlsxSheet[]): WarnRow[] {
   const out: WarnRow[] = []
   const date = (v: string | undefined): Date | null => {
@@ -1127,7 +1139,7 @@ export function parseKentuckyWorkbook(sheets: XlsxSheet[]): WarnRow[] {
         effectiveDate: iProjected >= 0 ? date(row[iProjected]) : null,
         employees: parseCount(String(row[iCount] ?? '')),
         layoffType: /closure/i.test(type) ? 'Closure' : /layoff/i.test(type) ? 'Layoff' : null,
-        county: String(row[iCounty] ?? '').replace(/\s+/g, ' ').trim() || null,
+        county: normalizeKentuckyCounty(String(row[iCounty] ?? '')),
         address: null,
         industry: normalizeIndustry(String(row[iNaics] ?? '').trim() || null, 'KY'),
       })

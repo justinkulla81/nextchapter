@@ -177,3 +177,20 @@ describe('outreach copy v2', async () => {
     expect(readOutreachTags('')).toBeNull()
   })
 })
+
+describe('the backfill rules', async () => {
+  const { modeForAge, releaseTime, NEW_DAYS } = await import('@/lib/warn/outreach/backfill-rules')
+  it('gives layoffs 14 days old or less the standard email and older ones the continued-support wording', () => {
+    const now = new Date('2026-11-13T12:00:00Z')
+    expect(NEW_DAYS).toBe(14)
+    expect(modeForAge(new Date('2026-11-13T00:00:00Z'), now)).toBe('new')
+    expect(modeForAge(new Date('2026-10-30T12:00:00Z'), now)).toBe('new')
+    expect(modeForAge(new Date('2026-10-29T12:00:00Z'), now)).toBe('older')
+  })
+  it('releases on the next Monday at 9:00 a.m. Eastern, in winter and summer time', () => {
+    expect(releaseTime(new Date('2026-11-13T12:00:00Z')).toISOString()).toBe('2026-11-16T14:00:00.000Z')
+    expect(releaseTime(new Date('2026-07-10T12:00:00Z')).toISOString()).toBe('2026-07-13T13:00:00.000Z')
+    expect(releaseTime(new Date('2026-11-16T10:00:00Z')).toISOString()).toBe('2026-11-16T14:00:00.000Z')
+    expect(releaseTime(new Date('2026-11-16T15:00:00Z')).toISOString()).toBe('2026-11-23T14:00:00.000Z')
+  })
+})

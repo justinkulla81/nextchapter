@@ -155,3 +155,104 @@ describe('reply templates', () => {
     expect(text.toLowerCase()).not.toContain('reject')
   })
 })
+
+import { buildCandidateStatus, coarseStatus } from '@/lib/recruiter/intake/status'
+
+describe('candidate status for a firm', () => {
+  const landed = {
+    journeyStage: 'LANDED',
+    journeyStageChangedAt: new Date('2026-11-01'),
+    currentJob: { companyName: 'Acme', roleTitle: 'Controller', startDate: new Date('2026-11-10') },
+  }
+  it('shows nothing without consent', () => {
+    expect(buildCandidateStatus([], landed)).toEqual({ status: null, landing: null })
+    expect(buildCandidateStatus(['contact', 'profile_updates'], landed)).toEqual({ status: null, landing: null })
+  })
+  it('shows status only with the status scope', () => {
+    const v = buildCandidateStatus(['status'], landed)
+    expect(v.status?.label).toBe('Landed')
+    expect(v.landing).toBeNull()
+  })
+  it('shows the new job only with landing_details and only once landed', () => {
+    expect(buildCandidateStatus(['landing_details'], landed).landing?.employer).toBe('Acme')
+    expect(buildCandidateStatus(['landing_details'], landed).status).toBeNull()
+    expect(buildCandidateStatus(['landing_details'], { ...landed, journeyStage: 'APPLYING' }).landing).toBeNull()
+  })
+  it('keeps the plan stages private', () => {
+    expect(coarseStatus('OFFER')).toBe('INTERVIEWING')
+    expect(coarseStatus('PREPARING')).toBe('SEARCHING')
+    expect(coarseStatus(null)).toBeNull()
+  })
+})
+
+import { isStepDue, parsePipelineInput } from '@/lib/recruiter/intake/pipeline-stages'
+
+describe('intake pipeline input', () => {
+  it('rejects an unknown stage and a bad date, and says what to do', () => {
+    expect(parsePipelineInput({ stage: 'X', note: '', nextStep: '' })).toEqual({ error: 'Pick a stage from the list.' })
+    expect('error' in parsePipelineInput({ stage: 'NEW', note: '', nextStep: '12/01/2026' })).toBe(true)
+    expect('error' in parsePipelineInput({ stage: 'NEW', note: '', nextStep: '2026-02-31' })).toBe(true)
+  })
+  it('drops the next step once the stage is closed', () => {
+    const r = parsePipelineInput({ stage: 'PLACED', note: ' hi ', nextStep: '2026-12-01' })
+    expect(r).toEqual({ stage: 'PLACED', note: 'hi', nextStepAt: null })
+  })
+  it('flags a due step only for open stages', () => {
+    const now = new Date('2026-11-14T10:00:00Z')
+    expect(isStepDue(new Date('2026-11-14T00:00:00Z'), 'TALKING', now)).toBe(true)
+    expect(isStepDue(new Date('2026-11-15T00:00:00Z'), 'TALKING', now)).toBe(false)
+    expect(isStepDue(new Date('2026-11-01T00:00:00Z'), 'NOT_A_FIT', now)).toBe(false)
+  })
+})
+
+import { buildWeeklyDigest, type DigestRow } from '@/lib/recruiter/intake/digest'
+
+describe('weekly digest', () => {
+  const now = new Date('2026-11-16T12:00:00Z')
+  const row = (o: Partial<DigestRow>): DigestRow => ({
+    connectionId: 'c', name: 'Pat', createdAt: new Date('2026-09-01'), pipelineStage: 'NEW', nextStepAt: null, scopes: [], source: null, ...o,
+  })
+  const changed = { journeyStage: 'LANDED', journeyStageChangedAt: new Date('2026-11-14'), currentJob: { companyName: 'Acme', roleTitle: 'Controller', startDate: new Date('2026-11-10') } }
+  it('is empty when nothing happened, so no email goes out', () => {
+    expect(buildWeeklyDigest([row({})], now).isEmpty).toBe(true)
+  })
+  it('lists a status change only inside the granted scope', () => {
+    expect(buildWeeklyDigest([row({ source: changed })], now).changes).toHaveLength(0)
+    const d = buildWeeklyDigest([row({ scopes: ['status', 'landing_details'], source: changed })], now)
+    expect(d.changes[0]).toMatchObject({ label: 'Landed', landing: 'Controller at Acme' })
+  })
+  it('ignores a change older than a week', () => {
+    const old = { ...changed, journeyStageChangedAt: new Date('2026-10-01') }
+    expect(buildWeeklyDigest([row({ scopes: ['status'], source: old })], now).changes).toHaveLength(0)
+  })
+  it('lists due next steps for open stages and counts new candidates', () => {
+    const d = buildWeeklyDigest(
+      [row({ connectionId: 'a', pipelineStage: 'TALKING', nextStepAt: new Date('2026-11-16') }), row({ connectionId: 'b', pipelineStage: 'PLACED', nextStepAt: new Date('2026-11-01') }), row({ connectionId: 'c', createdAt: new Date('2026-11-15') })],
+      now
+    )
+    expect(d.due.map((x) => x.connectionId)).toEqual(['a'])
+    expect(d.newCount).toBe(1)
+  })
+})
+
+import { parsePilotLines, pilotArm } from '@/lib/recruiter/pilot'
+
+describe('pilot firm list', () => {
+  it('reads lines, skips a header, and flags a line with no contact email', () => {
+    const r = parsePilotLines('Firm,Website,Email\nHartley Search, hartleysearch.com, Pat@HartleySearch.com\nNo Email Co, noemail.com,\n')
+    expect(r.rows).toEqual([{ name: 'Hartley Search', website: 'hartleysearch.com', email: 'pat@hartleysearch.com' }])
+    expect(r.errors).toHaveLength(1)
+    expect(r.errors[0].message).toMatch(/contact email/)
+  })
+  it('rejects the same email twice and more than 100 lines', () => {
+    expect(parsePilotLines('A, a.com, x@a.com\nB, b.com, X@a.com').errors).toHaveLength(1)
+    const many = Array.from({ length: 101 }, (_, i) => `F${i}, f${i}.com, p${i}@f${i}.com`).join('\n')
+    expect(parsePilotLines(many).rows).toHaveLength(0)
+  })
+  it('gives the same arm every time and splits roughly in half', () => {
+    expect(pilotArm('Pat@a.com')).toBe(pilotArm('pat@a.com'))
+    const a = Array.from({ length: 400 }, (_, i) => pilotArm(`p${i}@f${i}.com`)).filter((x) => x === 'A').length
+    expect(a).toBeGreaterThan(150)
+    expect(a).toBeLessThan(250)
+  })
+})

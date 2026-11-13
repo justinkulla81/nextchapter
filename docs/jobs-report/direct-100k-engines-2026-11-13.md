@@ -45,3 +45,47 @@ Their sitemaps list about 358,000 job-like URLs across the 441 non-Workday hosts
 **Greenhouse, Lever and Ashby by name on the same 10,405 (engine 3):** 363 verified-by-address boards (265 Greenhouse, 51 Lever, 47 Ashby), 23,091 jobs (`sources/sec-gh.json`).
 
 **Order of magnitude:** Workable 71.8k US + Workday strong matches about 207k all-country (about 125k US at 60%) + Phenom 94k (overlapping Workday) + Greenhouse/Lever/Ashby 23k + the sitemap hosts, before the seniority screen and de-duplication against production.
+
+## Workday on private companies, universities, hospitals and nonprofits (2026-11-13)
+
+`workday_discover.py` run on name lists from public sources: 6,256 US colleges and universities (Urban Institute IPEDS directory), 5,301 hospitals (CMS hospital file), the 16,000 largest tax-exempt
+organizations by revenue (IRS exempt-organization file, $10M and up; 8,000 + 8,000 names) and the 1,201 largest non-staffing employers on our board with Jooble or Careerjet copies.
+Result files, each one source per Workday tenant and career site, with `nameMatch` (strong: tenant equals the full name; medium: first two words; weak: first word or initials):
+
+| List | Names | Tenants | Sites | Jobs (all countries) |
+|---|---|---|---|---|
+| Largest employers on our board with only Jooble copies | 1,201 | 166 | 326 | 96,588 |
+| Universities | 6,256 | 293 | 507 | 83,675 |
+| Hospitals | 5,301 | 231 | 386 | 103,415 |
+| Nonprofits, largest 8,000 | 8,000 | 455 | 797 | 169,610 |
+| Nonprofits, next 8,000 | 8,000 | 280 | 542 | 102,912 |
+| SEC companies (earlier) | 10,405 | 704 | 1,296 | 345,499 |
+
+Combined and de-duplicated by tenant and site (`sources/workday-all-unique.json`): **1,278 tenants, 2,313 career sites, 533,670 jobs** (all countries; Workday caps each site's count at 2,000, so large boards are undercounted).
+Strong matches 278,798 jobs, medium 141,080, weak 113,792. Many health systems appear under several facility names (Trinity Health, Sentara, Sanford, Mercy) and map to one tenant; the unique file counts each once.
+Weak and medium matches need the company name checked from the postings before import: a short tenant word (for example `trinity`, `mercy`) can belong to a different employer. Some sites repeat the same jobs under two site names.
+
+## The Company table (2026-11-13)
+The cloud session cannot read `Company` in bulk (no database connection; the anon key returns nothing under row-level security), so I took the 2,381 size-classified rows (MID_LARGE, LARGE, ENTERPRISE, MEGA) through the
+database connector in one bounded read and ran 587 names not already covered by the SEC, university, hospital, nonprofit and Jooble lists: 149 tenants, 278 sites, 63,362 jobs, of which only 19 tenants and about 5,100 jobs were new
+(`sources/workday-company-sized.json`). Everything already searched overlaps heavily, so the size-classified part of `Company` is now covered: **1,297 tenants, 2,352 career sites, 538,834 jobs** in `workday-all-unique.json`.
+The other ~100,000 names are mostly small local employers (law firms, clinics, churches), where Workday is rare. To run them anyway on a machine with database access:
+`DATABASE_URL=... bash scripts/jobsreport/company_table_workday.sh` (one read of about 5 MB, then about 8 hours at 100 threads).
+
+## Round two: iCIMS, SmartRecruiters, BambooHR, Recruitee, Breezy, Oracle HCM, more Phenom (2026-11-13)
+Run on the 36,341 distinct names from the SEC, university, hospital, nonprofit, Jooble-top and size-classified Company lists. New scripts: `icims_discover.py`, `smb_ats_discover.py`.
+
+| System | Found | Jobs | File |
+|---|---|---|---|
+| iCIMS (careers-/jobs-<name>.icims.com; "Page 1 of N" times rows) | 491 portals | about 63,500 estimated | `sources/icims-found.json` |
+| SmartRecruiters (api.smartrecruiters.com companies, totalFound) | 383 boards | 67,743 | `sources/smb-ats-found.json` |
+| BambooHR (`/careers/list`) | 694 boards | 4,283 | same |
+| Recruitee (`/api/offers/`) | 111 boards | 7,215 | same |
+| Breezy (`/json`) | 91 boards | 1,699 | same |
+| Oracle HCM (recruitingCEJobRequisitions on the career hosts already found) | 23 sites | 135,699 | `sources/eightfold-oracle-found.json` |
+| Phenom, 59 more career hosts (`/widgets`) | +46 hosts | +47,203 (now 102 hosts, 141,593) | `sources/phenom-found.json` |
+| Eightfold | 3 tenants | 1,157 | `sources/eightfold-oracle-found.json` |
+
+About 327,000 jobs (all countries) before overlap with Workday, the US-only filter, the seniority screen and the white-collar rule. A large share is store and hourly work: Dollar General 91,429 (Oracle), Domino's 24,995 (SmartRecruiters), Advance Auto Parts 16,333 (Phenom), Marriott 13,156 (Oracle), Albertsons 8,739 (Oracle).
+Name-match strength is on every source (`nameMatch`); SmartRecruiters and iCIMS names can belong to another employer (for example "St Georges School" with 4,611 SmartRecruiters jobs), so verify the company from the postings before import.
+Weak matches are 11,137 SmartRecruiters/BambooHR/Recruitee/Breezy jobs and 22,025 iCIMS jobs.

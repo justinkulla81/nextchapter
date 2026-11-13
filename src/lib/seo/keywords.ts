@@ -2892,8 +2892,8 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     primary: 'recruiter candidate search',
     secondary: ['candidate sourcing', 'search firm tools', 'recruiting workspace', 'candidate submission packet', 'executive search candidates'],
     seo: {
-      title: 'Candidate Search for Recruiters and Search Firms',
-      description: 'Search candidates who chose to be found, ask for an introduction, and submit a packet in your firm’s logo built from the candidate’s Dossier. Free for now.',
+      title: 'Free Résumé Page and Candidate CRM for Recruiters',
+      description: 'A free résumé page in your firm’s logo, a candidate CRM with stages, notes and next steps, and candidate status shared by choice. Free for now.',
     },
   },
   {

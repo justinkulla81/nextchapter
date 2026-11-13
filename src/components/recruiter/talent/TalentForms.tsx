@@ -8,6 +8,11 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { TalentFormState } from '@/app/recruiters/(app)/talent/actions'
 import { INTAKE_TAG_LABELS } from '@/lib/recruiter/intake/constants'
+import { PIPELINE_NOTE_MAX, PIPELINE_STAGES, PIPELINE_STAGE_LABELS } from '@/lib/recruiter/intake/pipeline-stages'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Textarea } from '@/components/ui/textarea'
 
 // Generic wrapper for Talent's server-action forms: busy cursor while
 // pending, plain-language error or confirmation under the button, input
@@ -201,5 +206,45 @@ export function ConfirmingActionButton({
     >
       {pending ? (pendingLabel ?? 'Saving…') : label}
     </Button>
+  )
+}
+
+// Stage, note and next step for one person. TalentActionForm keeps what was typed when a field fails.
+export function PipelineForm({
+  action,
+  stage,
+  note,
+  nextStep,
+}: {
+  action: (prev: TalentFormState, formData: FormData) => Promise<TalentFormState>
+  stage: string
+  note: string | null
+  nextStep: string | null
+}) {
+  return (
+    <TalentActionForm action={action} submitLabel="Save pipeline" pendingLabel="Saving…">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="stage">Stage</Label>
+          <NativeSelect
+            id="stage"
+            name="stage"
+            defaultValue={stage}
+            placeholder="Pick a stage"
+            options={PIPELINE_STAGES.map((s) => ({ value: s, label: PIPELINE_STAGE_LABELS[s] }))}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="nextStep">Next step by</Label>
+          <Input id="nextStep" name="nextStep" type="date" defaultValue={nextStep ?? ''} />
+          <p className="text-xs text-muted-foreground">Leave blank if nothing is due. It clears when you close the candidate.</p>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="note">Note</Label>
+        <Textarea id="note" name="note" defaultValue={note ?? ''} maxLength={PIPELINE_NOTE_MAX} placeholder="What you said, what you owe them, what the client needs" />
+        <p className="text-xs text-muted-foreground">Only your firm sees this. The candidate never does.</p>
+      </div>
+    </TalentActionForm>
   )
 }

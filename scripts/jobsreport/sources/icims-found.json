@@ -1,0 +1,4912 @@
+[
+ {
+  "name": "icims-jobs-microsoft",
+  "adapter": "icims",
+  "host": "jobs-microsoft.icims.com",
+  "type": "direct_ats",
+  "employer": "Microsoft Corp",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-express",
+  "adapter": "icims",
+  "host": "careers-express.icims.com",
+  "type": "direct_ats",
+  "employer": "American Express Co",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-pepsico",
+  "adapter": "icims",
+  "host": "careers-pepsico.icims.com",
+  "type": "direct_ats",
+  "employer": "Pepsico Inc",
+  "estJobs": 200,
+  "pages": 4,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-parker",
+  "adapter": "icims",
+  "host": "careers-parker.icims.com",
+  "type": "direct_ats",
+  "employer": "Parker-Hannifin Corp",
+  "estJobs": 9,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-vet",
+  "adapter": "icims",
+  "host": "careers-vet.icims.com",
+  "type": "direct_ats",
+  "employer": "Valero Energy Corp/Tx",
+  "estJobs": 300,
+  "pages": 6,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-mmc",
+  "adapter": "icims",
+  "host": "careers-mmc.icims.com",
+  "type": "direct_ats",
+  "employer": "Marsh & Mclennan Companies, Inc.",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-generaldynamics",
+  "adapter": "icims",
+  "host": "careers-generaldynamics.icims.com",
+  "type": "direct_ats",
+  "employer": "General Dynamics Corp",
+  "estJobs": 7,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-quanta",
+  "adapter": "icims",
+  "host": "careers-quanta.icims.com",
+  "type": "direct_ats",
+  "employer": "Quanta Services, Inc.",
+  "estJobs": 540,
+  "pages": 27,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-howmet",
+  "adapter": "icims",
+  "host": "careers-howmet.icims.com",
+  "type": "direct_ats",
+  "employer": "Howmet Aerospace Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-aon",
+  "adapter": "icims",
+  "host": "careers-aon.icims.com",
+  "type": "direct_ats",
+  "employer": "Aon Plc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-boston",
+  "adapter": "icims",
+  "host": "careers-boston.icims.com",
+  "type": "direct_ats",
+  "employer": "Boston Scientific Corp",
+  "estJobs": 20,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-msci",
+  "adapter": "icims",
+  "host": "careers-msci.icims.com",
+  "type": "direct_ats",
+  "employer": "Msci Inc.",
+  "estJobs": 41,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-waters",
+  "adapter": "icims",
+  "host": "careers-waters.icims.com",
+  "type": "direct_ats",
+  "employer": "Waters Corp /De/",
+  "estJobs": 180,
+  "pages": 9,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-horton",
+  "adapter": "icims",
+  "host": "careers-horton.icims.com",
+  "type": "direct_ats",
+  "employer": "Horton D R Inc /De/",
+  "estJobs": 15,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-prudential",
+  "adapter": "icims",
+  "host": "careers-prudential.icims.com",
+  "type": "direct_ats",
+  "employer": "Prudential Financial Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-viking",
+  "adapter": "icims",
+  "host": "careers-viking.icims.com",
+  "type": "direct_ats",
+  "employer": "Viking Holdings Ltd",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-vulcan",
+  "adapter": "icims",
+  "host": "careers-vulcan.icims.com",
+  "type": "direct_ats",
+  "employer": "Vulcan Materials Co",
+  "estJobs": 27,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-steeldynamics",
+  "adapter": "icims",
+  "host": "careers-steeldynamics.icims.com",
+  "type": "direct_ats",
+  "employer": "Steel Dynamics Inc",
+  "estJobs": 150,
+  "pages": 3,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-jobs-dollargeneral",
+  "adapter": "icims",
+  "host": "jobs-dollargeneral.icims.com",
+  "type": "direct_ats",
+  "employer": "Dollar General Corp",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-quest",
+  "adapter": "icims",
+  "host": "careers-quest.icims.com",
+  "type": "direct_ats",
+  "employer": "Quest Diagnostics Inc",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-berkley",
+  "adapter": "icims",
+  "host": "careers-berkley.icims.com",
+  "type": "direct_ats",
+  "employer": "Berkley W R Corp",
+  "estJobs": 260,
+  "pages": 13,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-cfr",
+  "adapter": "icims",
+  "host": "careers-cfr.icims.com",
+  "type": "direct_ats",
+  "employer": "Citizens Financial Group Inc/Ri",
+  "estJobs": 20,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ppl",
+  "adapter": "icims",
+  "host": "careers-ppl.icims.com",
+  "type": "direct_ats",
+  "employer": "Ppl Corp",
+  "estJobs": 7,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-insmed",
+  "adapter": "icims",
+  "host": "careers-insmed.icims.com",
+  "type": "direct_ats",
+  "employer": "Insmed Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-snapon",
+  "adapter": "icims",
+  "host": "careers-snapon.icims.com",
+  "type": "direct_ats",
+  "employer": "Snap-On Inc",
+  "estJobs": 220,
+  "pages": 11,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-amersports",
+  "adapter": "icims",
+  "host": "careers-amersports.icims.com",
+  "type": "direct_ats",
+  "employer": "Amer Sports, Inc.",
+  "estJobs": 17,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-generalmills",
+  "adapter": "icims",
+  "host": "careers-generalmills.icims.com",
+  "type": "direct_ats",
+  "employer": "General Mills Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-didiglobal",
+  "adapter": "icims",
+  "host": "careers-didiglobal.icims.com",
+  "type": "direct_ats",
+  "employer": "Didi Global Inc.",
+  "estJobs": 300,
+  "pages": 6,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-jobs-tollbrothers",
+  "adapter": "icims",
+  "host": "jobs-tollbrothers.icims.com",
+  "type": "direct_ats",
+  "employer": "Toll Brothers, Inc.",
+  "estJobs": 150,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-jobs-latam",
+  "adapter": "icims",
+  "host": "jobs-latam.icims.com",
+  "type": "direct_ats",
+  "employer": "Latam Airlines Group S.A.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-brightspring",
+  "adapter": "icims",
+  "host": "careers-brightspring.icims.com",
+  "type": "direct_ats",
+  "employer": "Brightspring Health Services, Inc.",
+  "estJobs": 2000,
+  "pages": 40,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-equity",
+  "adapter": "icims",
+  "host": "careers-equity.icims.com",
+  "type": "direct_ats",
+  "employer": "Equity Lifestyle Properties Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-fnf",
+  "adapter": "icims",
+  "host": "careers-fnf.icims.com",
+  "type": "direct_ats",
+  "employer": "Fidelity National Financial, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-universalhealthservices",
+  "adapter": "icims",
+  "host": "careers-universalhealthservices.icims.com",
+  "type": "direct_ats",
+  "employer": "Universal Health Services Inc",
+  "estJobs": 160,
+  "pages": 8,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-daifuku",
+  "adapter": "icims",
+  "host": "careers-daifuku.icims.com",
+  "type": "direct_ats",
+  "employer": "Daifuku Co., Ltd./Adr",
+  "estJobs": 180,
+  "pages": 9,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-agnc",
+  "adapter": "icims",
+  "host": "careers-agnc.icims.com",
+  "type": "direct_ats",
+  "employer": "Agnc Investment Corp.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-stifel",
+  "adapter": "icims",
+  "host": "careers-stifel.icims.com",
+  "type": "direct_ats",
+  "employer": "Stifel Financial Corp",
+  "estJobs": 150,
+  "pages": 3,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-ryder",
+  "adapter": "icims",
+  "host": "careers-ryder.icims.com",
+  "type": "direct_ats",
+  "employer": "Ryder System Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-nova",
+  "adapter": "icims",
+  "host": "careers-nova.icims.com",
+  "type": "direct_ats",
+  "employer": "Nova Ltd.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-aes",
+  "adapter": "icims",
+  "host": "careers-aes.icims.com",
+  "type": "direct_ats",
+  "employer": "Aes Corp",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-biorad",
+  "adapter": "icims",
+  "host": "careers-biorad.icims.com",
+  "type": "direct_ats",
+  "employer": "Bio-Rad Laboratories, Inc.",
+  "estJobs": 100,
+  "pages": 5,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-allison",
+  "adapter": "icims",
+  "host": "careers-allison.icims.com",
+  "type": "direct_ats",
+  "employer": "Allison Transmission Holdings Inc",
+  "estJobs": 10,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-bruker",
+  "adapter": "icims",
+  "host": "careers-bruker.icims.com",
+  "type": "direct_ats",
+  "employer": "Bruker Corp",
+  "estJobs": 247,
+  "pages": 13,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-federalrealty",
+  "adapter": "icims",
+  "host": "careers-federalrealty.icims.com",
+  "type": "direct_ats",
+  "employer": "Federal Realty Investment Trust",
+  "estJobs": 12,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-hingehealth",
+  "adapter": "icims",
+  "host": "jobs-hingehealth.icims.com",
+  "type": "direct_ats",
+  "employer": "Hinge Health, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-oldnational",
+  "adapter": "icims",
+  "host": "careers-oldnational.icims.com",
+  "type": "direct_ats",
+  "employer": "Old National Bancorp /In/",
+  "estJobs": 300,
+  "pages": 6,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-aurora",
+  "adapter": "icims",
+  "host": "careers-aurora.icims.com",
+  "type": "direct_ats",
+  "employer": "Aurora Innovation, Inc.",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-mohawk",
+  "adapter": "icims",
+  "host": "careers-mohawk.icims.com",
+  "type": "direct_ats",
+  "employer": "Mohawk Industries Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-aei",
+  "adapter": "icims",
+  "host": "careers-aei.icims.com",
+  "type": "direct_ats",
+  "employer": "Advanced Energy Industries Inc",
+  "estJobs": 16,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-rambus",
+  "adapter": "icims",
+  "host": "careers-rambus.icims.com",
+  "type": "direct_ats",
+  "employer": "Rambus Inc",
+  "estJobs": 80,
+  "pages": 4,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-nipponexpress",
+  "adapter": "icims",
+  "host": "careers-nipponexpress.icims.com",
+  "type": "direct_ats",
+  "employer": "Nippon Express Holdings, Inc./Adr",
+  "estJobs": 45,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-healthequity",
+  "adapter": "icims",
+  "host": "careers-healthequity.icims.com",
+  "type": "direct_ats",
+  "employer": "Healthequity, Inc.",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-element",
+  "adapter": "icims",
+  "host": "careers-element.icims.com",
+  "type": "direct_ats",
+  "employer": "Element Solutions Inc",
+  "estJobs": 10,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-frontdoor",
+  "adapter": "icims",
+  "host": "careers-frontdoor.icims.com",
+  "type": "direct_ats",
+  "employer": "Frontdoor, Inc.",
+  "estJobs": 17,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-stonex",
+  "adapter": "icims",
+  "host": "careers-stonex.icims.com",
+  "type": "direct_ats",
+  "employer": "Stonex Group Inc.",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-gildan",
+  "adapter": "icims",
+  "host": "careers-gildan.icims.com",
+  "type": "direct_ats",
+  "employer": "Gildan Activewear Inc.",
+  "estJobs": 13,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-lithia",
+  "adapter": "icims",
+  "host": "careers-lithia.icims.com",
+  "type": "direct_ats",
+  "employer": "Lithia Motors Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-gatx",
+  "adapter": "icims",
+  "host": "careers-gatx.icims.com",
+  "type": "direct_ats",
+  "employer": "Gatx Corp",
+  "estJobs": 25,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-noble",
+  "adapter": "icims",
+  "host": "careers-noble.icims.com",
+  "type": "direct_ats",
+  "employer": "Noble Corp Plc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-hamilton",
+  "adapter": "icims",
+  "host": "careers-hamilton.icims.com",
+  "type": "direct_ats",
+  "employer": "Hamilton Lane Inc",
+  "estJobs": 10,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-jobyaviation",
+  "adapter": "icims",
+  "host": "careers-jobyaviation.icims.com",
+  "type": "direct_ats",
+  "employer": "Joby Aviation, Inc.",
+  "estJobs": 160,
+  "pages": 8,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-hrblock",
+  "adapter": "icims",
+  "host": "careers-hrblock.icims.com",
+  "type": "direct_ats",
+  "employer": "H&R Block Inc",
+  "estJobs": 900,
+  "pages": 18,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-casella",
+  "adapter": "icims",
+  "host": "careers-casella.icims.com",
+  "type": "direct_ats",
+  "employer": "Casella Waste Systems Inc",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-aci",
+  "adapter": "icims",
+  "host": "careers-aci.icims.com",
+  "type": "direct_ats",
+  "employer": "Aci Worldwide, Inc.",
+  "estJobs": 4,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-ibp",
+  "adapter": "icims",
+  "host": "careers-ibp.icims.com",
+  "type": "direct_ats",
+  "employer": "Installed Building Products, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-reynoldsconsumerproducts",
+  "adapter": "icims",
+  "host": "careers-reynoldsconsumerproducts.icims.com",
+  "type": "direct_ats",
+  "employer": "Reynolds Consumer Products Inc.",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-iridium",
+  "adapter": "icims",
+  "host": "careers-iridium.icims.com",
+  "type": "direct_ats",
+  "employer": "Iridium Communications Inc.",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-alaskaair",
+  "adapter": "icims",
+  "host": "careers-alaskaair.icims.com",
+  "type": "direct_ats",
+  "employer": "Alaska Air Group, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-alliancelaundry",
+  "adapter": "icims",
+  "host": "careers-alliancelaundry.icims.com",
+  "type": "direct_ats",
+  "employer": "Alliance Laundry Holdings Inc.",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-jobs-sprouts",
+  "adapter": "icims",
+  "host": "jobs-sprouts.icims.com",
+  "type": "direct_ats",
+  "employer": "Sprouts Farmers Market, Inc.",
+  "estJobs": 1380,
+  "pages": 69,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-cis",
+  "adapter": "icims",
+  "host": "careers-cis.icims.com",
+  "type": "direct_ats",
+  "employer": "Ccc Intelligent Solutions Holdings Inc.",
+  "estJobs": 17,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-exponent",
+  "adapter": "icims",
+  "host": "careers-exponent.icims.com",
+  "type": "direct_ats",
+  "employer": "Exponent Inc",
+  "estJobs": 300,
+  "pages": 6,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-renasant",
+  "adapter": "icims",
+  "host": "careers-renasant.icims.com",
+  "type": "direct_ats",
+  "employer": "Renasant Corp",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-acadiahealthcare",
+  "adapter": "icims",
+  "host": "careers-acadiahealthcare.icims.com",
+  "type": "direct_ats",
+  "employer": "Acadia Healthcare Company, Inc.",
+  "estJobs": 840,
+  "pages": 42,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-hayward",
+  "adapter": "icims",
+  "host": "careers-hayward.icims.com",
+  "type": "direct_ats",
+  "employer": "Hayward Holdings, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-kbhome",
+  "adapter": "icims",
+  "host": "careers-kbhome.icims.com",
+  "type": "direct_ats",
+  "employer": "Kb Home",
+  "estJobs": 24,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-aveanna",
+  "adapter": "icims",
+  "host": "careers-aveanna.icims.com",
+  "type": "direct_ats",
+  "employer": "Aveanna Healthcare Holdings, Inc.",
+  "estJobs": 180,
+  "pages": 9,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-greenbrickpartners",
+  "adapter": "icims",
+  "host": "careers-greenbrickpartners.icims.com",
+  "type": "direct_ats",
+  "employer": "Green Brick Partners, Inc.",
+  "estJobs": 19,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-jobs-trustmark",
+  "adapter": "icims",
+  "host": "jobs-trustmark.icims.com",
+  "type": "direct_ats",
+  "employer": "Trustmark Corp",
+  "estJobs": 50,
+  "pages": 5,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-fourcorners",
+  "adapter": "icims",
+  "host": "careers-fourcorners.icims.com",
+  "type": "direct_ats",
+  "employer": "Four Corners Property Trust, Inc.",
+  "estJobs": 18,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-ardenthealth",
+  "adapter": "icims",
+  "host": "careers-ardenthealth.icims.com",
+  "type": "direct_ats",
+  "employer": "Ardent Health, Inc.",
+  "estJobs": 23,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-gdit",
+  "adapter": "icims",
+  "host": "careers-gdit.icims.com",
+  "type": "direct_ats",
+  "employer": "Gabelli Dividend & Income Trust",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-pennentertainment",
+  "adapter": "icims",
+  "host": "careers-pennentertainment.icims.com",
+  "type": "direct_ats",
+  "employer": "Penn Entertainment, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-celldex",
+  "adapter": "icims",
+  "host": "careers-celldex.icims.com",
+  "type": "direct_ats",
+  "employer": "Celldex Therapeutics, Inc.",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-pediatrix",
+  "adapter": "icims",
+  "host": "careers-pediatrix.icims.com",
+  "type": "direct_ats",
+  "employer": "Pediatrix Medical Group, Inc.",
+  "estJobs": 180,
+  "pages": 9,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-wafd",
+  "adapter": "icims",
+  "host": "careers-wafd.icims.com",
+  "type": "direct_ats",
+  "employer": "Wafd Inc",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-replimune",
+  "adapter": "icims",
+  "host": "careers-replimune.icims.com",
+  "type": "direct_ats",
+  "employer": "Replimune Group, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-mfp",
+  "adapter": "icims",
+  "host": "careers-mfp.icims.com",
+  "type": "direct_ats",
+  "employer": "Midera Food Processing, Inc.",
+  "estJobs": 9,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-albany",
+  "adapter": "icims",
+  "host": "careers-albany.icims.com",
+  "type": "direct_ats",
+  "employer": "Albany International Corp /De/",
+  "estJobs": 8,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-jobs-getty",
+  "adapter": "icims",
+  "host": "jobs-getty.icims.com",
+  "type": "direct_ats",
+  "employer": "Getty Realty Corp /Md/",
+  "estJobs": 30,
+  "pages": 3,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-amr",
+  "adapter": "icims",
+  "host": "careers-amr.icims.com",
+  "type": "direct_ats",
+  "employer": "Alpha Metallurgical Resources, Inc.",
+  "estJobs": 180,
+  "pages": 9,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-lemaitre",
+  "adapter": "icims",
+  "host": "careers-lemaitre.icims.com",
+  "type": "direct_ats",
+  "employer": "Lemaitre Vascular Inc",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-photronics",
+  "adapter": "icims",
+  "host": "careers-photronics.icims.com",
+  "type": "direct_ats",
+  "employer": "Photronics Inc",
+  "estJobs": 24,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-nomadfoods",
+  "adapter": "icims",
+  "host": "careers-nomadfoods.icims.com",
+  "type": "direct_ats",
+  "employer": "Nomad Foods Ltd",
+  "estJobs": 13,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-herbalife",
+  "adapter": "icims",
+  "host": "careers-herbalife.icims.com",
+  "type": "direct_ats",
+  "employer": "Herbalife Ltd.",
+  "estJobs": 26,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-wendys",
+  "adapter": "icims",
+  "host": "careers-wendys.icims.com",
+  "type": "direct_ats",
+  "employer": "Wendy'S Co",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-oculartherapeutix",
+  "adapter": "icims",
+  "host": "careers-oculartherapeutix.icims.com",
+  "type": "direct_ats",
+  "employer": "Ocular Therapeutix, Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-dole",
+  "adapter": "icims",
+  "host": "careers-dole.icims.com",
+  "type": "direct_ats",
+  "employer": "Dole Plc",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-piedmont",
+  "adapter": "icims",
+  "host": "careers-piedmont.icims.com",
+  "type": "direct_ats",
+  "employer": "Piedmont Realty Trust, Inc.",
+  "estJobs": 1850,
+  "pages": 37,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-innovage",
+  "adapter": "icims",
+  "host": "careers-innovage.icims.com",
+  "type": "direct_ats",
+  "employer": "Innovage Holding Corp.",
+  "estJobs": 200,
+  "pages": 4,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-osb",
+  "adapter": "icims",
+  "host": "careers-osb.icims.com",
+  "type": "direct_ats",
+  "employer": "Old Second Bancorp Inc",
+  "estJobs": 10,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-tmc",
+  "adapter": "icims",
+  "host": "careers-tmc.icims.com",
+  "type": "direct_ats",
+  "employer": "Tmc The Metals Co Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-asi",
+  "adapter": "icims",
+  "host": "careers-asi.icims.com",
+  "type": "direct_ats",
+  "employer": "Ategrity Specialty Insurance Co Holdings",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-suburbanpropane",
+  "adapter": "icims",
+  "host": "careers-suburbanpropane.icims.com",
+  "type": "direct_ats",
+  "employer": "Suburban Propane Partners Lp",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-bowhead",
+  "adapter": "icims",
+  "host": "careers-bowhead.icims.com",
+  "type": "direct_ats",
+  "employer": "Bowhead Specialty Holdings Inc.",
+  "estJobs": 300,
+  "pages": 6,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-horizon",
+  "adapter": "icims",
+  "host": "careers-horizon.icims.com",
+  "type": "direct_ats",
+  "employer": "Horizon Bancorp Inc /In/",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-yelp",
+  "adapter": "icims",
+  "host": "careers-yelp.icims.com",
+  "type": "direct_ats",
+  "employer": "Yelp Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-transcat",
+  "adapter": "icims",
+  "host": "careers-transcat.icims.com",
+  "type": "direct_ats",
+  "employer": "Transcat Inc",
+  "estJobs": 80,
+  "pages": 4,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-daktronics",
+  "adapter": "icims",
+  "host": "careers-daktronics.icims.com",
+  "type": "direct_ats",
+  "employer": "Daktronics Inc /Sd/",
+  "estJobs": 22,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-jbgsmith",
+  "adapter": "icims",
+  "host": "careers-jbgsmith.icims.com",
+  "type": "direct_ats",
+  "employer": "Jbg Smith Properties",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-tei",
+  "adapter": "icims",
+  "host": "careers-tei.icims.com",
+  "type": "direct_ats",
+  "employer": "Tortoise Energy Infrastructure Corp",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-obsidian",
+  "adapter": "icims",
+  "host": "careers-obsidian.icims.com",
+  "type": "direct_ats",
+  "employer": "Obsidian Therapeutics, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-barrett",
+  "adapter": "icims",
+  "host": "careers-barrett.icims.com",
+  "type": "direct_ats",
+  "employer": "Barrett Business Services Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-dbv",
+  "adapter": "icims",
+  "host": "careers-dbv.icims.com",
+  "type": "direct_ats",
+  "employer": "Dbv Technologies S.A.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-naturalgrocers",
+  "adapter": "icims",
+  "host": "careers-naturalgrocers.icims.com",
+  "type": "direct_ats",
+  "employer": "Natural Grocers By Vitamin Cottage, Inc.",
+  "estJobs": 350,
+  "pages": 7,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-ibex",
+  "adapter": "icims",
+  "host": "careers-ibex.icims.com",
+  "type": "direct_ats",
+  "employer": "Ibex Ltd",
+  "estJobs": 19,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-rare",
+  "adapter": "icims",
+  "host": "careers-rare.icims.com",
+  "type": "direct_ats",
+  "employer": "Rare Element Resources Ltd",
+  "estJobs": 8,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-root",
+  "adapter": "icims",
+  "host": "root.icims.com",
+  "type": "direct_ats",
+  "employer": "Root, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-fbfs",
+  "adapter": "icims",
+  "host": "careers-fbfs.icims.com",
+  "type": "direct_ats",
+  "employer": "First Business Financial Services, Inc.",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-gmr",
+  "adapter": "icims",
+  "host": "careers-gmr.icims.com",
+  "type": "direct_ats",
+  "employer": "Gmr Solutions Inc.",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-titanmachinery",
+  "adapter": "icims",
+  "host": "careers-titanmachinery.icims.com",
+  "type": "direct_ats",
+  "employer": "Titan Machinery Inc.",
+  "estJobs": 24,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-bridgewater",
+  "adapter": "icims",
+  "host": "careers-bridgewater.icims.com",
+  "type": "direct_ats",
+  "employer": "Bridgewater Bancshares Inc",
+  "estJobs": 17,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-gray",
+  "adapter": "icims",
+  "host": "careers-gray.icims.com",
+  "type": "direct_ats",
+  "employer": "Gray Media, Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-orange",
+  "adapter": "icims",
+  "host": "careers-orange.icims.com",
+  "type": "direct_ats",
+  "employer": "Orange County Bancorp, Inc. /De/",
+  "estJobs": 250,
+  "pages": 5,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-lucky",
+  "adapter": "icims",
+  "host": "careers-lucky.icims.com",
+  "type": "direct_ats",
+  "employer": "Lucky Strike Entertainment Corp",
+  "estJobs": 12,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-chai",
+  "adapter": "icims",
+  "host": "careers-chai.icims.com",
+  "type": "direct_ats",
+  "employer": "Crane Harbor Acquisition Corp. Ii",
+  "estJobs": 90,
+  "pages": 9,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-apex",
+  "adapter": "icims",
+  "host": "careers-apex.icims.com",
+  "type": "direct_ats",
+  "employer": "Apex Treasury Corp",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-magnera",
+  "adapter": "icims",
+  "host": "careers-magnera.icims.com",
+  "type": "direct_ats",
+  "employer": "Magnera Corp",
+  "estJobs": 150,
+  "pages": 3,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-assembly",
+  "adapter": "icims",
+  "host": "careers-assembly.icims.com",
+  "type": "direct_ats",
+  "employer": "Assembly Biosciences, Inc.",
+  "estJobs": 8,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-primis",
+  "adapter": "icims",
+  "host": "careers-primis.icims.com",
+  "type": "direct_ats",
+  "employer": "Primis Financial Corp.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-jjill",
+  "adapter": "icims",
+  "host": "careers-jjill.icims.com",
+  "type": "direct_ats",
+  "employer": "J.Jill, Inc.",
+  "estJobs": 20,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-lifeway",
+  "adapter": "icims",
+  "host": "careers-lifeway.icims.com",
+  "type": "direct_ats",
+  "employer": "Lifeway Foods, Inc.",
+  "estJobs": 17,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-lmi",
+  "adapter": "icims",
+  "host": "careers-lmi.icims.com",
+  "type": "direct_ats",
+  "employer": "Legato Merger Corp. Iv",
+  "estJobs": 240,
+  "pages": 12,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ars",
+  "adapter": "icims",
+  "host": "careers-ars.icims.com",
+  "type": "direct_ats",
+  "employer": "Ars Pharmaceuticals, Inc.",
+  "estJobs": 650,
+  "pages": 13,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-optimum",
+  "adapter": "icims",
+  "host": "jobs-optimum.icims.com",
+  "type": "direct_ats",
+  "employer": "Optimum Communications, Inc.",
+  "estJobs": 2,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-tcw",
+  "adapter": "icims",
+  "host": "careers-tcw.icims.com",
+  "type": "direct_ats",
+  "employer": "Tcw Strategic Income Fund Inc",
+  "estJobs": 9,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-allspringglobal",
+  "adapter": "icims",
+  "host": "careers-allspringglobal.icims.com",
+  "type": "direct_ats",
+  "employer": "Allspring Global Dividend Opportunity Fund",
+  "estJobs": 24,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-strattec",
+  "adapter": "icims",
+  "host": "careers-strattec.icims.com",
+  "type": "direct_ats",
+  "employer": "Strattec Security Corp",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-daa",
+  "adapter": "icims",
+  "host": "careers-daa.icims.com",
+  "type": "direct_ats",
+  "employer": "Digital Asset Acquisition Corp.",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-rcm",
+  "adapter": "icims",
+  "host": "careers-rcm.icims.com",
+  "type": "direct_ats",
+  "employer": "Rcm Technologies, Inc.",
+  "estJobs": 80,
+  "pages": 4,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-ferrellgas",
+  "adapter": "icims",
+  "host": "careers-ferrellgas.icims.com",
+  "type": "direct_ats",
+  "employer": "Ferrellgas Partners L P",
+  "estJobs": 400,
+  "pages": 20,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-harvard",
+  "adapter": "icims",
+  "host": "careers-harvard.icims.com",
+  "type": "direct_ats",
+  "employer": "Harvard Ave Acquisition Corp",
+  "estJobs": 300,
+  "pages": 15,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-tls",
+  "adapter": "icims",
+  "host": "careers-tls.icims.com",
+  "type": "direct_ats",
+  "employer": "Trisalus Life Sciences, Inc.",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-alta",
+  "adapter": "icims",
+  "host": "careers-alta.icims.com",
+  "type": "direct_ats",
+  "employer": "Alta Equipment Group Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-exagen",
+  "adapter": "icims",
+  "host": "careers-exagen.icims.com",
+  "type": "direct_ats",
+  "employer": "Exagen Inc.",
+  "estJobs": 4,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-jobs-spa",
+  "adapter": "icims",
+  "host": "jobs-spa.icims.com",
+  "type": "direct_ats",
+  "employer": "Silver Pegasus Acquisition Corp.",
+  "estJobs": 460,
+  "pages": 23,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-epsilon",
+  "adapter": "icims",
+  "host": "careers-epsilon.icims.com",
+  "type": "direct_ats",
+  "employer": "Epsilon Energy Ltd.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-sevenhills",
+  "adapter": "icims",
+  "host": "careers-sevenhills.icims.com",
+  "type": "direct_ats",
+  "employer": "Seven Hills Realty Trust",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-platinum",
+  "adapter": "icims",
+  "host": "careers-platinum.icims.com",
+  "type": "direct_ats",
+  "employer": "Platinum Group Metals Ltd",
+  "estJobs": 32,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-kvh",
+  "adapter": "icims",
+  "host": "careers-kvh.icims.com",
+  "type": "direct_ats",
+  "employer": "Kvh Industries Inc De",
+  "estJobs": 2,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-caa",
+  "adapter": "icims",
+  "host": "careers-caa.icims.com",
+  "type": "direct_ats",
+  "employer": "Charlton Aria Acquisition Corp",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-bancroft",
+  "adapter": "icims",
+  "host": "careers-bancroft.icims.com",
+  "type": "direct_ats",
+  "employer": "Bancroft Fund Ltd",
+  "estJobs": 240,
+  "pages": 12,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-sound",
+  "adapter": "icims",
+  "host": "careers-sound.icims.com",
+  "type": "direct_ats",
+  "employer": "Sound Point Meridian Capital, Inc.",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-parkdental",
+  "adapter": "icims",
+  "host": "careers-parkdental.icims.com",
+  "type": "direct_ats",
+  "employer": "Park Dental Partners, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-wheelsup",
+  "adapter": "icims",
+  "host": "careers-wheelsup.icims.com",
+  "type": "direct_ats",
+  "employer": "Wheels Up Experience Inc.",
+  "estJobs": 11,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-team",
+  "adapter": "icims",
+  "host": "team.icims.com",
+  "type": "direct_ats",
+  "employer": "Team Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-shimmick",
+  "adapter": "icims",
+  "host": "careers-shimmick.icims.com",
+  "type": "direct_ats",
+  "employer": "Shimmick Corp",
+  "estJobs": 80,
+  "pages": 4,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-sunrise",
+  "adapter": "icims",
+  "host": "careers-sunrise.icims.com",
+  "type": "direct_ats",
+  "employer": "Sunrise Realty Trust, Inc.",
+  "estJobs": 8,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-spanish",
+  "adapter": "icims",
+  "host": "careers-spanish.icims.com",
+  "type": "direct_ats",
+  "employer": "Spanish Mountain Gold Ltd.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-concord",
+  "adapter": "icims",
+  "host": "careers-concord.icims.com",
+  "type": "direct_ats",
+  "employer": "Concord Acquisition Corp Ii",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-noodles",
+  "adapter": "icims",
+  "host": "careers-noodles.icims.com",
+  "type": "direct_ats",
+  "employer": "Noodles & Co",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-here",
+  "adapter": "icims",
+  "host": "careers-here.icims.com",
+  "type": "direct_ats",
+  "employer": "Here Group Ltd",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-selectquote",
+  "adapter": "icims",
+  "host": "careers-selectquote.icims.com",
+  "type": "direct_ats",
+  "employer": "Selectquote, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-jobs-sonotek",
+  "adapter": "icims",
+  "host": "jobs-sonotek.icims.com",
+  "type": "direct_ats",
+  "employer": "Sono Tek Corp",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-southland",
+  "adapter": "icims",
+  "host": "careers-southland.icims.com",
+  "type": "direct_ats",
+  "employer": "Southland Holdings, Inc.",
+  "estJobs": 13,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-vanguard",
+  "adapter": "icims",
+  "host": "careers-vanguard.icims.com",
+  "type": "direct_ats",
+  "employer": "Vanguard Green Investment Ltd",
+  "estJobs": 16,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-jobs-ftc",
+  "adapter": "icims",
+  "host": "jobs-ftc.icims.com",
+  "type": "direct_ats",
+  "employer": "Ftc Solar, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-ehs",
+  "adapter": "icims",
+  "host": "careers-ehs.icims.com",
+  "type": "direct_ats",
+  "employer": "Elite Health Systems Inc.",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-blackhawk",
+  "adapter": "icims",
+  "host": "careers-blackhawk.icims.com",
+  "type": "direct_ats",
+  "employer": "Black Hawk Acquisition Corp",
+  "estJobs": 6,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-sentinel",
+  "adapter": "icims",
+  "host": "careers-sentinel.icims.com",
+  "type": "direct_ats",
+  "employer": "Sentinel Holdings Ltd.",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-sas",
+  "adapter": "icims",
+  "host": "careers-sas.icims.com",
+  "type": "direct_ats",
+  "employer": "Saker Aviation Services, Inc.",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-dragonfly",
+  "adapter": "icims",
+  "host": "careers-dragonfly.icims.com",
+  "type": "direct_ats",
+  "employer": "Dragonfly Energy Holdings Corp.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-karyopharm",
+  "adapter": "icims",
+  "host": "careers-karyopharm.icims.com",
+  "type": "direct_ats",
+  "employer": "Karyopharm Therapeutics Inc.",
+  "estJobs": 10,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-trinseo",
+  "adapter": "icims",
+  "host": "careers-trinseo.icims.com",
+  "type": "direct_ats",
+  "employer": "Trinseo Plc",
+  "estJobs": 15,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-jobs-fasttrack",
+  "adapter": "icims",
+  "host": "jobs-fasttrack.icims.com",
+  "type": "direct_ats",
+  "employer": "Fast Track Group",
+  "estJobs": 70,
+  "pages": 7,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-pec",
+  "adapter": "icims",
+  "host": "careers-pec.icims.com",
+  "type": "direct_ats",
+  "employer": "Pineapple Express Cannabis Co",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-asm",
+  "adapter": "icims",
+  "host": "careers-asm.icims.com",
+  "type": "direct_ats",
+  "employer": "Ares Strategic Mining Inc.",
+  "estJobs": 140,
+  "pages": 7,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-flanigans",
+  "adapter": "icims",
+  "host": "careers-flanigans.icims.com",
+  "type": "direct_ats",
+  "employer": "Flanigans Enterprises Inc",
+  "estJobs": 1800,
+  "pages": 36,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-metro",
+  "adapter": "icims",
+  "host": "careers-metro.icims.com",
+  "type": "direct_ats",
+  "employer": "Metro Inc./Adr",
+  "estJobs": 21,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-cgl",
+  "adapter": "icims",
+  "host": "careers-cgl.icims.com",
+  "type": "direct_ats",
+  "employer": "Cgl Logistics Holdings Ltd",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-ari",
+  "adapter": "icims",
+  "host": "jobs-ari.icims.com",
+  "type": "direct_ats",
+  "employer": "American Realty Investors Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-jobs-canon",
+  "adapter": "icims",
+  "host": "jobs-canon.icims.com",
+  "type": "direct_ats",
+  "employer": "Canon Inc",
+  "estJobs": 240,
+  "pages": 12,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-kyocera",
+  "adapter": "icims",
+  "host": "careers-kyocera.icims.com",
+  "type": "direct_ats",
+  "employer": "Kyocera Corp",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-wilson",
+  "adapter": "icims",
+  "host": "careers-wilson.icims.com",
+  "type": "direct_ats",
+  "employer": "Wilson Bank Holding Co",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-stratus",
+  "adapter": "icims",
+  "host": "careers-stratus.icims.com",
+  "type": "direct_ats",
+  "employer": "Stratus Properties Inc",
+  "estJobs": 19,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-kbs",
+  "adapter": "icims",
+  "host": "careers-kbs.icims.com",
+  "type": "direct_ats",
+  "employer": "Kbs Real Estate Investment Trust Iii, Inc.",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-mci",
+  "adapter": "icims",
+  "host": "careers-mci.icims.com",
+  "type": "direct_ats",
+  "employer": "Mgt Capital Investments, Inc.",
+  "estJobs": 1880,
+  "pages": 94,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-soitec",
+  "adapter": "icims",
+  "host": "careers-soitec.icims.com",
+  "type": "direct_ats",
+  "employer": "Soitec Sa",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-pti",
+  "adapter": "icims",
+  "host": "careers-pti.icims.com",
+  "type": "direct_ats",
+  "employer": "Proshares Trust Ii",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-lordabbett",
+  "adapter": "icims",
+  "host": "careers-lordabbett.icims.com",
+  "type": "direct_ats",
+  "employer": "Lord Abbett Credit Opportunities Fund",
+  "estJobs": 14,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-hines",
+  "adapter": "icims",
+  "host": "careers-hines.icims.com",
+  "type": "direct_ats",
+  "employer": "Hines Global Income Trust, Inc.",
+  "estJobs": 180,
+  "pages": 9,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-addison",
+  "adapter": "icims",
+  "host": "careers-addison.icims.com",
+  "type": "direct_ats",
+  "employer": "Addison Group",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-peraton",
+  "adapter": "icims",
+  "host": "careers-peraton.icims.com",
+  "type": "direct_ats",
+  "employer": "Peraton",
+  "estJobs": 1350,
+  "pages": 27,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-teksystems",
+  "adapter": "icims",
+  "host": "careers-teksystems.icims.com",
+  "type": "direct_ats",
+  "employer": "TEKsystems",
+  "estJobs": 140,
+  "pages": 7,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-sargentlundy",
+  "adapter": "icims",
+  "host": "careers-sargentlundy.icims.com",
+  "type": "direct_ats",
+  "employer": "Sargent & Lundy",
+  "estJobs": 2340,
+  "pages": 117,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-rpmliving",
+  "adapter": "icims",
+  "host": "careers-rpmliving.icims.com",
+  "type": "direct_ats",
+  "employer": "RPM Living",
+  "estJobs": 280,
+  "pages": 14,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-hays",
+  "adapter": "icims",
+  "host": "careers-hays.icims.com",
+  "type": "direct_ats",
+  "employer": "Hays",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-nv5",
+  "adapter": "icims",
+  "host": "careers-nv5.icims.com",
+  "type": "direct_ats",
+  "employer": "NV5",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-judge",
+  "adapter": "icims",
+  "host": "careers-judge.icims.com",
+  "type": "direct_ats",
+  "employer": "The Judge Group",
+  "estJobs": 14,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-highgate",
+  "adapter": "icims",
+  "host": "careers-highgate.icims.com",
+  "type": "direct_ats",
+  "employer": "Highgate Hotels",
+  "estJobs": 220,
+  "pages": 11,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-ascension",
+  "adapter": "icims",
+  "host": "careers-ascension.icims.com",
+  "type": "direct_ats",
+  "employer": "Ascension",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-primehealthcare",
+  "adapter": "icims",
+  "host": "careers-primehealthcare.icims.com",
+  "type": "direct_ats",
+  "employer": "Prime Healthcare",
+  "estJobs": 3500,
+  "pages": 70,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-nyu",
+  "adapter": "icims",
+  "host": "careers-nyu.icims.com",
+  "type": "direct_ats",
+  "employer": "NYU Langone Health",
+  "estJobs": 230,
+  "pages": 23,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-skanska",
+  "adapter": "icims",
+  "host": "careers-skanska.icims.com",
+  "type": "direct_ats",
+  "employer": "Skanska",
+  "estJobs": 400,
+  "pages": 8,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-pamhealth",
+  "adapter": "icims",
+  "host": "careers-pamhealth.icims.com",
+  "type": "direct_ats",
+  "employer": "PAM Health",
+  "estJobs": 1650,
+  "pages": 33,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-zoll",
+  "adapter": "icims",
+  "host": "careers-zoll.icims.com",
+  "type": "direct_ats",
+  "employer": "ZOLL Medical",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-chenega",
+  "adapter": "icims",
+  "host": "careers-chenega.icims.com",
+  "type": "direct_ats",
+  "employer": "Chenega",
+  "estJobs": 420,
+  "pages": 21,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-commonwealth",
+  "adapter": "icims",
+  "host": "careers-commonwealth.icims.com",
+  "type": "direct_ats",
+  "employer": "Commonwealth of Pennsylvania",
+  "estJobs": 2,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-aerotek",
+  "adapter": "icims",
+  "host": "careers-aerotek.icims.com",
+  "type": "direct_ats",
+  "employer": "Aerotek",
+  "estJobs": 320,
+  "pages": 16,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-hdsupply",
+  "adapter": "icims",
+  "host": "careers-hdsupply.icims.com",
+  "type": "direct_ats",
+  "employer": "HD Supply",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-lewisbrisbois",
+  "adapter": "icims",
+  "host": "careers-lewisbrisbois.icims.com",
+  "type": "direct_ats",
+  "employer": "Lewis Brisbois Bisgaard & Smith",
+  "estJobs": 250,
+  "pages": 5,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-sri",
+  "adapter": "icims",
+  "host": "careers-sri.icims.com",
+  "type": "direct_ats",
+  "employer": "SRI Tech",
+  "estJobs": 39,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-enfra",
+  "adapter": "icims",
+  "host": "careers-enfra.icims.com",
+  "type": "direct_ats",
+  "employer": "Enfra",
+  "estJobs": 600,
+  "pages": 12,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-harris",
+  "adapter": "icims",
+  "host": "careers-harris.icims.com",
+  "type": "direct_ats",
+  "employer": "Harris Computer",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-foley",
+  "adapter": "icims",
+  "host": "careers-foley.icims.com",
+  "type": "direct_ats",
+  "employer": "Foley",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-2020companies",
+  "adapter": "icims",
+  "host": "careers-2020companies.icims.com",
+  "type": "direct_ats",
+  "employer": "2020 Companies",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-ymca",
+  "adapter": "icims",
+  "host": "careers-ymca.icims.com",
+  "type": "direct_ats",
+  "employer": "YMCA",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-gannettfleming",
+  "adapter": "icims",
+  "host": "careers-gannettfleming.icims.com",
+  "type": "direct_ats",
+  "employer": "Gannett Fleming",
+  "estJobs": 260,
+  "pages": 13,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-davidsonhospitality",
+  "adapter": "icims",
+  "host": "careers-davidsonhospitality.icims.com",
+  "type": "direct_ats",
+  "employer": "Davidson Hospitality Group",
+  "estJobs": 800,
+  "pages": 16,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-bernhard",
+  "adapter": "icims",
+  "host": "careers-bernhard.icims.com",
+  "type": "direct_ats",
+  "employer": "Bernhard",
+  "estJobs": 600,
+  "pages": 12,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-nationaldebtrelief",
+  "adapter": "icims",
+  "host": "careers-nationaldebtrelief.icims.com",
+  "type": "direct_ats",
+  "employer": "National Debt Relief",
+  "estJobs": 43,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-liro",
+  "adapter": "icims",
+  "host": "careers-liro.icims.com",
+  "type": "direct_ats",
+  "employer": "The LiRo Group",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-kleinfelder",
+  "adapter": "icims",
+  "host": "careers-kleinfelder.icims.com",
+  "type": "direct_ats",
+  "employer": "Kleinfelder",
+  "estJobs": 250,
+  "pages": 5,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-emory",
+  "adapter": "icims",
+  "host": "careers-emory.icims.com",
+  "type": "direct_ats",
+  "employer": "Emory University",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-citynational",
+  "adapter": "icims",
+  "host": "careers-citynational.icims.com",
+  "type": "direct_ats",
+  "employer": "City National Bank",
+  "estJobs": 80,
+  "pages": 4,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-cypress",
+  "adapter": "icims",
+  "host": "careers-cypress.icims.com",
+  "type": "direct_ats",
+  "employer": "Cypress HCM",
+  "estJobs": 2,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-tradesmen",
+  "adapter": "icims",
+  "host": "jobs-tradesmen.icims.com",
+  "type": "direct_ats",
+  "employer": "Tradesmen International",
+  "estJobs": 540,
+  "pages": 27,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-suffolkconstruction",
+  "adapter": "icims",
+  "host": "careers-suffolkconstruction.icims.com",
+  "type": "direct_ats",
+  "employer": "Suffolk Construction",
+  "estJobs": 340,
+  "pages": 17,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-spectra",
+  "adapter": "icims",
+  "host": "careers-spectra.icims.com",
+  "type": "direct_ats",
+  "employer": "Spectra Experiences",
+  "estJobs": 1140,
+  "pages": 57,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-dewberry",
+  "adapter": "icims",
+  "host": "careers-dewberry.icims.com",
+  "type": "direct_ats",
+  "employer": "Dewberry",
+  "estJobs": 520,
+  "pages": 26,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-bgca",
+  "adapter": "icims",
+  "host": "careers-bgca.icims.com",
+  "type": "direct_ats",
+  "employer": "Boys & Girls Clubs of America",
+  "estJobs": 11,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-puzzlehr",
+  "adapter": "icims",
+  "host": "careers-puzzlehr.icims.com",
+  "type": "direct_ats",
+  "employer": "PuzzleHR",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-ssoe",
+  "adapter": "icims",
+  "host": "careers-ssoe.icims.com",
+  "type": "direct_ats",
+  "employer": "SSOE Group",
+  "estJobs": 220,
+  "pages": 11,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-clearwaterliving",
+  "adapter": "icims",
+  "host": "careers-clearwaterliving.icims.com",
+  "type": "direct_ats",
+  "employer": "Clearwater Living",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-vhb",
+  "adapter": "icims",
+  "host": "careers-vhb.icims.com",
+  "type": "direct_ats",
+  "employer": "Vanasse Hangen Brustlin",
+  "estJobs": 160,
+  "pages": 8,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-audacy",
+  "adapter": "icims",
+  "host": "careers-audacy.icims.com",
+  "type": "direct_ats",
+  "employer": "Audacy",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-devereux",
+  "adapter": "icims",
+  "host": "careers-devereux.icims.com",
+  "type": "direct_ats",
+  "employer": "Devereux Advanced Behavioral Health",
+  "estJobs": 360,
+  "pages": 18,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-simventions",
+  "adapter": "icims",
+  "host": "careers-simventions.icims.com",
+  "type": "direct_ats",
+  "employer": "SimVentions",
+  "estJobs": 27,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-jobs-bylight",
+  "adapter": "icims",
+  "host": "jobs-bylight.icims.com",
+  "type": "direct_ats",
+  "employer": "By Light Professional IT Services",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-vsc",
+  "adapter": "icims",
+  "host": "careers-vsc.icims.com",
+  "type": "direct_ats",
+  "employer": "V-Soft Consulting",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-geosyntec",
+  "adapter": "icims",
+  "host": "careers-geosyntec.icims.com",
+  "type": "direct_ats",
+  "employer": "Geosyntec Consultants",
+  "estJobs": 250,
+  "pages": 5,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-nikkiso",
+  "adapter": "icims",
+  "host": "careers-nikkiso.icims.com",
+  "type": "direct_ats",
+  "employer": "Nikkiso",
+  "estJobs": 150,
+  "pages": 3,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-teksynap",
+  "adapter": "icims",
+  "host": "careers-teksynap.icims.com",
+  "type": "direct_ats",
+  "employer": "TekSynap",
+  "estJobs": 180,
+  "pages": 9,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-ernesthealth",
+  "adapter": "icims",
+  "host": "careers-ernesthealth.icims.com",
+  "type": "direct_ats",
+  "employer": "Ernest Health",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-navitus",
+  "adapter": "icims",
+  "host": "careers-navitus.icims.com",
+  "type": "direct_ats",
+  "employer": "Navitus Health Solutions",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-tutera",
+  "adapter": "icims",
+  "host": "careers-tutera.icims.com",
+  "type": "direct_ats",
+  "employer": "Tutera Senior Living Communities",
+  "estJobs": 14,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-mimecast",
+  "adapter": "icims",
+  "host": "careers-mimecast.icims.com",
+  "type": "direct_ats",
+  "employer": "Mimecast",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-psi",
+  "adapter": "icims",
+  "host": "careers-psi.icims.com",
+  "type": "direct_ats",
+  "employer": "PSI",
+  "estJobs": 4,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-adventisthealth",
+  "adapter": "icims",
+  "host": "careers-adventisthealth.icims.com",
+  "type": "direct_ats",
+  "employer": "Adventist Health",
+  "estJobs": 6,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-nakupuna",
+  "adapter": "icims",
+  "host": "careers-nakupuna.icims.com",
+  "type": "direct_ats",
+  "employer": "Nakupuna Companies",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-efco",
+  "adapter": "icims",
+  "host": "jobs-efco.icims.com",
+  "type": "direct_ats",
+  "employer": "EFCO",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-ameritfleet",
+  "adapter": "icims",
+  "host": "careers-ameritfleet.icims.com",
+  "type": "direct_ats",
+  "employer": "Amerit Fleet Solutions",
+  "estJobs": 220,
+  "pages": 11,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-starr",
+  "adapter": "icims",
+  "host": "careers-starr.icims.com",
+  "type": "direct_ats",
+  "employer": "Starr Companies",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-urs",
+  "adapter": "icims",
+  "host": "careers-urs.icims.com",
+  "type": "direct_ats",
+  "employer": "Urban Ridge Supplies",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-indeed",
+  "adapter": "icims",
+  "host": "careers-indeed.icims.com",
+  "type": "direct_ats",
+  "employer": "Indeed",
+  "estJobs": 150,
+  "pages": 3,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-consilio",
+  "adapter": "icims",
+  "host": "careers-consilio.icims.com",
+  "type": "direct_ats",
+  "employer": "Consilio",
+  "estJobs": 80,
+  "pages": 4,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-danone",
+  "adapter": "icims",
+  "host": "careers-danone.icims.com",
+  "type": "direct_ats",
+  "employer": "Danone",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-northsidehospital",
+  "adapter": "icims",
+  "host": "careers-northsidehospital.icims.com",
+  "type": "direct_ats",
+  "employer": "Northside Hospital",
+  "estJobs": 950,
+  "pages": 19,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-swissport",
+  "adapter": "icims",
+  "host": "careers-swissport.icims.com",
+  "type": "direct_ats",
+  "employer": "Swissport",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-arh",
+  "adapter": "icims",
+  "host": "careers-arh.icims.com",
+  "type": "direct_ats",
+  "employer": "Appalachian Regional Healthcare",
+  "estJobs": 420,
+  "pages": 21,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-baycare",
+  "adapter": "icims",
+  "host": "careers-baycare.icims.com",
+  "type": "direct_ats",
+  "employer": "BayCare Health System",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-covenanthealth",
+  "adapter": "icims",
+  "host": "careers-covenanthealth.icims.com",
+  "type": "direct_ats",
+  "employer": "Covenant Health",
+  "estJobs": 1360,
+  "pages": 68,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-dialysisclinic",
+  "adapter": "icims",
+  "host": "careers-dialysisclinic.icims.com",
+  "type": "direct_ats",
+  "employer": "Dialysis Clinic",
+  "estJobs": 300,
+  "pages": 15,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-lexingtonhealth",
+  "adapter": "icims",
+  "host": "careers-lexingtonhealth.icims.com",
+  "type": "direct_ats",
+  "employer": "Lexington Health",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-mississippi",
+  "adapter": "icims",
+  "host": "careers-mississippi.icims.com",
+  "type": "direct_ats",
+  "employer": "Mississippi State University",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ohsu",
+  "adapter": "icims",
+  "host": "careers-ohsu.icims.com",
+  "type": "direct_ats",
+  "employer": "OHSU",
+  "estJobs": 540,
+  "pages": 27,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-prideindustries",
+  "adapter": "icims",
+  "host": "careers-prideindustries.icims.com",
+  "type": "direct_ats",
+  "employer": "Pride Industries",
+  "estJobs": 140,
+  "pages": 7,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-rev",
+  "adapter": "icims",
+  "host": "careers-rev.icims.com",
+  "type": "direct_ats",
+  "employer": "REV Group",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-southcoast",
+  "adapter": "icims",
+  "host": "careers-southcoast.icims.com",
+  "type": "direct_ats",
+  "employer": "Southcoast Hospitals Group",
+  "estJobs": 400,
+  "pages": 8,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-svh",
+  "adapter": "icims",
+  "host": "careers-svh.icims.com",
+  "type": "direct_ats",
+  "employer": "Stormont-Vail HealthCare",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-sutterhealth",
+  "adapter": "icims",
+  "host": "careers-sutterhealth.icims.com",
+  "type": "direct_ats",
+  "employer": "Sutter Health",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-tmh",
+  "adapter": "icims",
+  "host": "careers-tmh.icims.com",
+  "type": "direct_ats",
+  "employer": "Tallahassee Memorial Healthcare",
+  "estJobs": 300,
+  "pages": 6,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-texaschildrens",
+  "adapter": "icims",
+  "host": "careers-texaschildrens.icims.com",
+  "type": "direct_ats",
+  "employer": "Texas Children's Hospital",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-thinktogether",
+  "adapter": "icims",
+  "host": "careers-thinktogether.icims.com",
+  "type": "direct_ats",
+  "employer": "Think Together",
+  "estJobs": 200,
+  "pages": 4,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-youthvillages",
+  "adapter": "icims",
+  "host": "careers-youthvillages.icims.com",
+  "type": "direct_ats",
+  "employer": "Youth Villages",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-agrace",
+  "adapter": "icims",
+  "host": "careers-agrace.icims.com",
+  "type": "direct_ats",
+  "employer": "Agrace HospiceCare",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-heart",
+  "adapter": "icims",
+  "host": "careers-heart.icims.com",
+  "type": "direct_ats",
+  "employer": "American Heart Association",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-clarkson",
+  "adapter": "icims",
+  "host": "careers-clarkson.icims.com",
+  "type": "direct_ats",
+  "employer": "Clarkson University",
+  "estJobs": 17,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-chc",
+  "adapter": "icims",
+  "host": "careers-chc.icims.com",
+  "type": "direct_ats",
+  "employer": "College of the Holy Cross",
+  "estJobs": 11,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-dch",
+  "adapter": "icims",
+  "host": "careers-dch.icims.com",
+  "type": "direct_ats",
+  "employer": "Dayton Children's Hospital",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-depaul",
+  "adapter": "icims",
+  "host": "careers-depaul.icims.com",
+  "type": "direct_ats",
+  "employer": "DePaul University",
+  "estJobs": 100,
+  "pages": 5,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-macalester",
+  "adapter": "icims",
+  "host": "careers-macalester.icims.com",
+  "type": "direct_ats",
+  "employer": "Macalester College",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-nlu",
+  "adapter": "icims",
+  "host": "careers-nlu.icims.com",
+  "type": "direct_ats",
+  "employer": "National Louis University",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-nyit",
+  "adapter": "icims",
+  "host": "careers-nyit.icims.com",
+  "type": "direct_ats",
+  "employer": "New York Institute Of Technology",
+  "estJobs": 80,
+  "pages": 4,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-newhaven",
+  "adapter": "icims",
+  "host": "careers-newhaven.icims.com",
+  "type": "direct_ats",
+  "employer": "University of New Haven",
+  "estJobs": 25,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-usu",
+  "adapter": "icims",
+  "host": "careers-usu.icims.com",
+  "type": "direct_ats",
+  "employer": "Utah State University",
+  "estJobs": 180,
+  "pages": 9,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-libertymutual",
+  "adapter": "icims",
+  "host": "careers-libertymutual.icims.com",
+  "type": "direct_ats",
+  "employer": "Liberty Mutual",
+  "estJobs": 250,
+  "pages": 5,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-usaa",
+  "adapter": "icims",
+  "host": "careers-usaa.icims.com",
+  "type": "direct_ats",
+  "employer": "USAA",
+  "estJobs": 8,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-northwesternmutual",
+  "adapter": "icims",
+  "host": "careers-northwesternmutual.icims.com",
+  "type": "direct_ats",
+  "employer": "Northwestern Mutual",
+  "estJobs": 450,
+  "pages": 9,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-brookline",
+  "adapter": "icims",
+  "host": "careers-brookline.icims.com",
+  "type": "direct_ats",
+  "employer": "Brookline College-Phoenix",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-wesleyan",
+  "adapter": "icims",
+  "host": "careers-wesleyan.icims.com",
+  "type": "direct_ats",
+  "employer": "Wesleyan University",
+  "estJobs": 4,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-cua",
+  "adapter": "icims",
+  "host": "careers-cua.icims.com",
+  "type": "direct_ats",
+  "employer": "The Catholic University of America",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ccf",
+  "adapter": "icims",
+  "host": "careers-ccf.icims.com",
+  "type": "direct_ats",
+  "employer": "College of Central Florida",
+  "estJobs": 450,
+  "pages": 9,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-stthomas",
+  "adapter": "icims",
+  "host": "careers-stthomas.icims.com",
+  "type": "direct_ats",
+  "employer": "St. Thomas University",
+  "estJobs": 15,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-asc",
+  "adapter": "icims",
+  "host": "careers-asc.icims.com",
+  "type": "direct_ats",
+  "employer": "Agnes Scott College",
+  "estJobs": 2,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-sus",
+  "adapter": "icims",
+  "host": "careers-sus.icims.com",
+  "type": "direct_ats",
+  "employer": "South University-Savannah",
+  "estJobs": 560,
+  "pages": 28,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ccr",
+  "adapter": "icims",
+  "host": "careers-ccr.icims.com",
+  "type": "direct_ats",
+  "employer": "College of Court Reporting Inc",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-alc",
+  "adapter": "icims",
+  "host": "careers-alc.icims.com",
+  "type": "direct_ats",
+  "employer": "Alice Lloyd College",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-dorsey",
+  "adapter": "icims",
+  "host": "careers-dorsey.icims.com",
+  "type": "direct_ats",
+  "employer": "Dorsey College",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-atcc",
+  "adapter": "icims",
+  "host": "careers-atcc.icims.com",
+  "type": "direct_ats",
+  "employer": "Alexandria Technical & Community College",
+  "estJobs": 9,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ntc",
+  "adapter": "icims",
+  "host": "careers-ntc.icims.com",
+  "type": "direct_ats",
+  "employer": "Northwest Technical College",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-wbs",
+  "adapter": "icims",
+  "host": "careers-wbs.icims.com",
+  "type": "direct_ats",
+  "employer": "Wesley Biblical Seminary",
+  "estJobs": 5,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-scca",
+  "adapter": "icims",
+  "host": "careers-scca.icims.com",
+  "type": "direct_ats",
+  "employer": "Southeast Community College Area",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-sbs",
+  "adapter": "icims",
+  "host": "careers-sbs.icims.com",
+  "type": "direct_ats",
+  "employer": "Shore Beauty School",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-touro",
+  "adapter": "icims",
+  "host": "careers-touro.icims.com",
+  "type": "direct_ats",
+  "employer": "Touro University",
+  "estJobs": 300,
+  "pages": 6,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-mccn",
+  "adapter": "icims",
+  "host": "careers-mccn.icims.com",
+  "type": "direct_ats",
+  "employer": "Mount Carmel College of Nursing",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-northcoast",
+  "adapter": "icims",
+  "host": "careers-northcoast.icims.com",
+  "type": "direct_ats",
+  "employer": "The North Coast College",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-chestnut",
+  "adapter": "icims",
+  "host": "careers-chestnut.icims.com",
+  "type": "direct_ats",
+  "employer": "Chestnut Hill College",
+  "estJobs": 80,
+  "pages": 4,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-curtis",
+  "adapter": "icims",
+  "host": "careers-curtis.icims.com",
+  "type": "direct_ats",
+  "employer": "Curtis Institute of Music",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-vettech",
+  "adapter": "icims",
+  "host": "careers-vettech.icims.com",
+  "type": "direct_ats",
+  "employer": "Vet Tech Institute",
+  "estJobs": 200,
+  "pages": 4,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-uri",
+  "adapter": "icims",
+  "host": "careers-uri.icims.com",
+  "type": "direct_ats",
+  "employer": "University of Rhode Island",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-jobs-schreiner",
+  "adapter": "icims",
+  "host": "jobs-schreiner.icims.com",
+  "type": "direct_ats",
+  "employer": "Schreiner University",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-eaglegate",
+  "adapter": "icims",
+  "host": "careers-eaglegate.icims.com",
+  "type": "direct_ats",
+  "employer": "Eagle Gate College-Murray",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-evms",
+  "adapter": "icims",
+  "host": "careers-evms.icims.com",
+  "type": "direct_ats",
+  "employer": "Eastern Virginia Medical School",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-morainepark",
+  "adapter": "icims",
+  "host": "careers-morainepark.icims.com",
+  "type": "direct_ats",
+  "employer": "Moraine Park Technical College",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-cvtc",
+  "adapter": "icims",
+  "host": "careers-cvtc.icims.com",
+  "type": "direct_ats",
+  "employer": "Chippewa Valley Technical College",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-northwoodtechnicalcollege",
+  "adapter": "icims",
+  "host": "careers-northwoodtechnicalcollege.icims.com",
+  "type": "direct_ats",
+  "employer": "Northwood Technical College",
+  "estJobs": 7,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-jobs-pct",
+  "adapter": "icims",
+  "host": "jobs-pct.icims.com",
+  "type": "direct_ats",
+  "employer": "Pennsylvania College of Technology",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-kcs",
+  "adapter": "icims",
+  "host": "careers-kcs.icims.com",
+  "type": "direct_ats",
+  "employer": "KC's School of Hair Design",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-provocollege",
+  "adapter": "icims",
+  "host": "careers-provocollege.icims.com",
+  "type": "direct_ats",
+  "employer": "Provo College",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-buckeye",
+  "adapter": "icims",
+  "host": "careers-buckeye.icims.com",
+  "type": "direct_ats",
+  "employer": "Buckeye Joint Vocational School",
+  "estJobs": 12,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-arizonacollege",
+  "adapter": "icims",
+  "host": "careers-arizonacollege.icims.com",
+  "type": "direct_ats",
+  "employer": "Arizona College of Nursing-Tempe",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-careers",
+  "adapter": "icims",
+  "host": "jobs-careers.icims.com",
+  "type": "direct_ats",
+  "employer": "Careers Unlimited",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-esi",
+  "adapter": "icims",
+  "host": "jobs-esi.icims.com",
+  "type": "direct_ats",
+  "employer": "Elevate Salon Institute",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-phc",
+  "adapter": "icims",
+  "host": "careers-phc.icims.com",
+  "type": "direct_ats",
+  "employer": "Patrick Henry College",
+  "estJobs": 150,
+  "pages": 3,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-cwi",
+  "adapter": "icims",
+  "host": "careers-cwi.icims.com",
+  "type": "direct_ats",
+  "employer": "College of Western Idaho",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ice",
+  "adapter": "icims",
+  "host": "careers-ice.icims.com",
+  "type": "direct_ats",
+  "employer": "Institute of Culinary Education",
+  "estJobs": 250,
+  "pages": 5,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-unitekcollege",
+  "adapter": "icims",
+  "host": "careers-unitekcollege.icims.com",
+  "type": "direct_ats",
+  "employer": "Unitek College",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-usta",
+  "adapter": "icims",
+  "host": "careers-usta.icims.com",
+  "type": "direct_ats",
+  "employer": "Universal Spa Training Academy",
+  "estJobs": 17,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-rvu",
+  "adapter": "icims",
+  "host": "careers-rvu.icims.com",
+  "type": "direct_ats",
+  "employer": "Rocky Vista University",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-parkplace",
+  "adapter": "icims",
+  "host": "careers-parkplace.icims.com",
+  "type": "direct_ats",
+  "employer": "Park Place Premier Barber School",
+  "estJobs": 16,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-mason",
+  "adapter": "icims",
+  "host": "careers-mason.icims.com",
+  "type": "direct_ats",
+  "employer": "Mason Anthony School of Cosmetology Arts & Sciences",
+  "estJobs": 6,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-mpi",
+  "adapter": "icims",
+  "host": "careers-mpi.icims.com",
+  "type": "direct_ats",
+  "employer": "Motion Picture Institute",
+  "estJobs": 20,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-drmc",
+  "adapter": "icims",
+  "host": "careers-drmc.icims.com",
+  "type": "direct_ats",
+  "employer": "DEKALB REGIONAL MEDICAL CENTER",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-oasis",
+  "adapter": "icims",
+  "host": "careers-oasis.icims.com",
+  "type": "direct_ats",
+  "employer": "OASIS BEHAVIORAL HEALTH HOSPITAL",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-jrmc",
+  "adapter": "icims",
+  "host": "careers-jrmc.icims.com",
+  "type": "direct_ats",
+  "employer": "JOHNSON REGIONAL MEDICAL CENTER",
+  "estJobs": 15,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-sarh",
+  "adapter": "icims",
+  "host": "careers-sarh.icims.com",
+  "type": "direct_ats",
+  "employer": "SOUTH ARKANSAS REGIONAL HOSPITAL LLC",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-vistahealth",
+  "adapter": "icims",
+  "host": "careers-vistahealth.icims.com",
+  "type": "direct_ats",
+  "employer": "VISTA HEALTH FAYETTEVILLE",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-memorialcare",
+  "adapter": "icims",
+  "host": "careers-memorialcare.icims.com",
+  "type": "direct_ats",
+  "employer": "MEMORIALCARE LONG BEACH MEDICAL CENTER",
+  "estJobs": 250,
+  "pages": 5,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-pdh",
+  "adapter": "icims",
+  "host": "careers-pdh.icims.com",
+  "type": "direct_ats",
+  "employer": "PLUMAS DISTRICT HOSPITAL",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-vch",
+  "adapter": "icims",
+  "host": "careers-vch.icims.com",
+  "type": "direct_ats",
+  "employer": "VALLEY CHILDREN'S HOSPITAL",
+  "estJobs": 1000,
+  "pages": 20,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-hamiltonmedical",
+  "adapter": "icims",
+  "host": "careers-hamiltonmedical.icims.com",
+  "type": "direct_ats",
+  "employer": "HAMILTON MEDICAL CENTER",
+  "estJobs": 25,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-carle",
+  "adapter": "icims",
+  "host": "careers-carle.icims.com",
+  "type": "direct_ats",
+  "employer": "CARLE HEALTH PROCTOR HOSPITAL",
+  "estJobs": 600,
+  "pages": 12,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-loretto",
+  "adapter": "icims",
+  "host": "careers-loretto.icims.com",
+  "type": "direct_ats",
+  "employer": "LORETTO HOSPITAL",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-mercyhealth",
+  "adapter": "icims",
+  "host": "careers-mercyhealth.icims.com",
+  "type": "direct_ats",
+  "employer": "MERCYHEALTH FHN HOSPITAL",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-methodisthospitals",
+  "adapter": "icims",
+  "host": "careers-methodisthospitals.icims.com",
+  "type": "direct_ats",
+  "employer": "METHODIST HOSPITALS INC",
+  "estJobs": 200,
+  "pages": 4,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-eskenazihealth",
+  "adapter": "icims",
+  "host": "careers-eskenazihealth.icims.com",
+  "type": "direct_ats",
+  "employer": "ESKENAZI HEALTH",
+  "estJobs": 15,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-riverviewhealth",
+  "adapter": "icims",
+  "host": "careers-riverviewhealth.icims.com",
+  "type": "direct_ats",
+  "employer": "RIVERVIEW HEALTH",
+  "estJobs": 45,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-phh",
+  "adapter": "icims",
+  "host": "careers-phh.icims.com",
+  "type": "direct_ats",
+  "employer": "PARKVIEW HUNTINGTON HOSPITAL",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-mcmc",
+  "adapter": "icims",
+  "host": "careers-mcmc.icims.com",
+  "type": "direct_ats",
+  "employer": "MERCYONE CLINTON MEDICAL CENTER",
+  "estJobs": 7,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-jobs-kennedykrieger",
+  "adapter": "icims",
+  "host": "jobs-kennedykrieger.icims.com",
+  "type": "direct_ats",
+  "employer": "KENNEDY KRIEGER INSTITUTE",
+  "estJobs": 110,
+  "pages": 11,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-bnh",
+  "adapter": "icims",
+  "host": "careers-bnh.icims.com",
+  "type": "direct_ats",
+  "employer": "BAYSTATE NOBLE HOSPITAL",
+  "estJobs": 100,
+  "pages": 5,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-heywood",
+  "adapter": "icims",
+  "host": "careers-heywood.icims.com",
+  "type": "direct_ats",
+  "employer": "HEYWOOD HOSPITAL -",
+  "estJobs": 150,
+  "pages": 3,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-lhs",
+  "adapter": "icims",
+  "host": "careers-lhs.icims.com",
+  "type": "direct_ats",
+  "employer": "LAKEWOOD HEALTH SYSTEM",
+  "estJobs": 520,
+  "pages": 26,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-rehc",
+  "adapter": "icims",
+  "host": "careers-rehc.icims.com",
+  "type": "direct_ats",
+  "employer": "RIVER'S EDGE HOSPITAL & CLINIC",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-communitymedical",
+  "adapter": "icims",
+  "host": "careers-communitymedical.icims.com",
+  "type": "direct_ats",
+  "employer": "COMMUNITY MEDICAL CENTER",
+  "estJobs": 160,
+  "pages": 8,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-carepointhealth",
+  "adapter": "icims",
+  "host": "careers-carepointhealth.icims.com",
+  "type": "direct_ats",
+  "employer": "CAREPOINT HEALTH - BAYONNE MEDICAL CENTER",
+  "estJobs": 250,
+  "pages": 5,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-englewood",
+  "adapter": "icims",
+  "host": "careers-englewood.icims.com",
+  "type": "direct_ats",
+  "employer": "ENGLEWOOD HOSPITAL AND MEDICAL CENTER",
+  "estJobs": 10,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-centrastate",
+  "adapter": "icims",
+  "host": "careers-centrastate.icims.com",
+  "type": "direct_ats",
+  "employer": "CENTRASTATE MEDICAL CENTER",
+  "estJobs": 100,
+  "pages": 5,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-bronxcare",
+  "adapter": "icims",
+  "host": "careers-bronxcare.icims.com",
+  "type": "direct_ats",
+  "employer": "BRONXCARE HOSPITAL CENTER",
+  "estJobs": 150,
+  "pages": 3,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-sach",
+  "adapter": "icims",
+  "host": "careers-sach.icims.com",
+  "type": "direct_ats",
+  "employer": "ST ANTHONY COMMUNITY HOSPITAL",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-chsli",
+  "adapter": "icims",
+  "host": "careers-chsli.icims.com",
+  "type": "direct_ats",
+  "employer": "CHSLI ST JOSEPH HOSPITAL",
+  "estJobs": 1050,
+  "pages": 21,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-slhs",
+  "adapter": "icims",
+  "host": "careers-slhs.icims.com",
+  "type": "direct_ats",
+  "employer": "SLHS MASSENA, INC",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-blythedale",
+  "adapter": "icims",
+  "host": "careers-blythedale.icims.com",
+  "type": "direct_ats",
+  "employer": "BLYTHEDALE CHILDREN'S HOSPITAL",
+  "estJobs": 11,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ketteringhealth",
+  "adapter": "icims",
+  "host": "careers-ketteringhealth.icims.com",
+  "type": "direct_ats",
+  "employer": "KETTERING HEALTH GREENE MEMORIAL",
+  "estJobs": 520,
+  "pages": 26,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-blanchard",
+  "adapter": "icims",
+  "host": "careers-blanchard.icims.com",
+  "type": "direct_ats",
+  "employer": "BLANCHARD VALLEY HOSPITAL",
+  "estJobs": 16,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-jobs-ccoc",
+  "adapter": "icims",
+  "host": "jobs-ccoc.icims.com",
+  "type": "direct_ats",
+  "employer": "CRYSTAL CLINIC ORTHOPAEDIC CENTER",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-rolling",
+  "adapter": "icims",
+  "host": "careers-rolling.icims.com",
+  "type": "direct_ats",
+  "employer": "ROLLING HILLS HOSPITAL, LLC",
+  "estJobs": 8,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-fhp",
+  "adapter": "icims",
+  "host": "careers-fhp.icims.com",
+  "type": "direct_ats",
+  "employer": "FIRST HOSPITAL PANAMERICANO",
+  "estJobs": 160,
+  "pages": 8,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-allendale",
+  "adapter": "icims",
+  "host": "careers-allendale.icims.com",
+  "type": "direct_ats",
+  "employer": "ALLENDALE COUNTY HOSPITAL",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-brookings",
+  "adapter": "icims",
+  "host": "careers-brookings.icims.com",
+  "type": "direct_ats",
+  "employer": "BROOKINGS HEALTH SYSTEM",
+  "estJobs": 10,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-monumenthealth",
+  "adapter": "icims",
+  "host": "careers-monumenthealth.icims.com",
+  "type": "direct_ats",
+  "employer": "MONUMENT HEALTH SPEARFISH HOSPITAL",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-milbank",
+  "adapter": "icims",
+  "host": "careers-milbank.icims.com",
+  "type": "direct_ats",
+  "employer": "MILBANK AREA HOSPITAL/AVERA HEALTH",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-creekside",
+  "adapter": "icims",
+  "host": "careers-creekside.icims.com",
+  "type": "direct_ats",
+  "employer": "CREEKSIDE BEHAVIORAL HEALTH",
+  "estJobs": 7,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-jacksonhealthcare",
+  "adapter": "icims",
+  "host": "careers-jacksonhealthcare.icims.com",
+  "type": "direct_ats",
+  "employer": "JACKSON HEALTHCARE CENTER",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-uuhc",
+  "adapter": "icims",
+  "host": "careers-uuhc.icims.com",
+  "type": "direct_ats",
+  "employer": "UNIVERSITY OF UTAH HOSPITAL AND CLINICS",
+  "estJobs": 520,
+  "pages": 52,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-virginiahospitalcenter",
+  "adapter": "icims",
+  "host": "careers-virginiahospitalcenter.icims.com",
+  "type": "direct_ats",
+  "employer": "VIRGINIA HOSPITAL CENTER",
+  "estJobs": 750,
+  "pages": 15,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-monhealth",
+  "adapter": "icims",
+  "host": "careers-monhealth.icims.com",
+  "type": "direct_ats",
+  "employer": "MON HEALTH MEDICAL CENTER",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-mile",
+  "adapter": "icims",
+  "host": "careers-mile.icims.com",
+  "type": "direct_ats",
+  "employer": "MILE BLUFF MEDICAL CENTER",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ascensionwisconsinhospital",
+  "adapter": "icims",
+  "host": "careers-ascensionwisconsinhospital.icims.com",
+  "type": "direct_ats",
+  "employer": "ASCENSION SE WISCONSIN HOSPITAL",
+  "estJobs": 17,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-northside",
+  "adapter": "icims",
+  "host": "careers-northside.icims.com",
+  "type": "direct_ats",
+  "employer": "Northside Hospital Inc",
+  "estJobs": 950,
+  "pages": 19,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-sutterbay",
+  "adapter": "icims",
+  "host": "careers-sutterbay.icims.com",
+  "type": "direct_ats",
+  "employer": "Sutter Bay Hospitals",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-cooperhealth",
+  "adapter": "icims",
+  "host": "careers-cooperhealth.icims.com",
+  "type": "direct_ats",
+  "employer": "Cooper Health System A New Jersey Non-Profit Corporation",
+  "estJobs": 950,
+  "pages": 95,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-umms",
+  "adapter": "icims",
+  "host": "careers-umms.icims.com",
+  "type": "direct_ats",
+  "employer": "University Of Maryland Medical System Corporation",
+  "estJobs": 140,
+  "pages": 7,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-jobs-fchp",
+  "adapter": "icims",
+  "host": "jobs-fchp.icims.com",
+  "type": "direct_ats",
+  "employer": "Fallon Community Health Plan Inc",
+  "estJobs": 49,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-pvm",
+  "adapter": "icims",
+  "host": "careers-pvm.icims.com",
+  "type": "direct_ats",
+  "employer": "Poudre Valley Medical Group Llc",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-sumter",
+  "adapter": "icims",
+  "host": "careers-sumter.icims.com",
+  "type": "direct_ats",
+  "employer": "Sumter Electric Cooperative Inc",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-healtheast",
+  "adapter": "icims",
+  "host": "careers-healtheast.icims.com",
+  "type": "direct_ats",
+  "employer": "Healtheast St Johns Hospital",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-mec",
+  "adapter": "icims",
+  "host": "careers-mec.icims.com",
+  "type": "direct_ats",
+  "employer": "Mckenzie Electric Cooperative Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-mtf",
+  "adapter": "icims",
+  "host": "careers-mtf.icims.com",
+  "type": "direct_ats",
+  "employer": "Musculoskeletal Transplant Foundation Inc",
+  "estJobs": 13,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-sagaftra",
+  "adapter": "icims",
+  "host": "careers-sagaftra.icims.com",
+  "type": "direct_ats",
+  "employer": "Sag-Aftra Health Fund",
+  "estJobs": 9,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-oneblood",
+  "adapter": "icims",
+  "host": "careers-oneblood.icims.com",
+  "type": "direct_ats",
+  "employer": "Oneblood Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-luriechildrens",
+  "adapter": "icims",
+  "host": "careers-luriechildrens.icims.com",
+  "type": "direct_ats",
+  "employer": "Lurie Childrens Medical Group Inc",
+  "estJobs": 6,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-plannedparenthood",
+  "adapter": "icims",
+  "host": "careers-plannedparenthood.icims.com",
+  "type": "direct_ats",
+  "employer": "Planned Parenthood Federation Of",
+  "estJobs": 11,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-alpa",
+  "adapter": "icims",
+  "host": "jobs-alpa.icims.com",
+  "type": "direct_ats",
+  "employer": "Air Line Pilots Association International",
+  "estJobs": 20,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-tuality",
+  "adapter": "icims",
+  "host": "careers-tuality.icims.com",
+  "type": "direct_ats",
+  "employer": "Tuality Healthcare",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-nysa",
+  "adapter": "icims",
+  "host": "careers-nysa.icims.com",
+  "type": "direct_ats",
+  "employer": "New York Shipping Association Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ccsww",
+  "adapter": "icims",
+  "host": "careers-ccsww.icims.com",
+  "type": "direct_ats",
+  "employer": "Catholic Community Services Of Western Washington",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-vinfen",
+  "adapter": "icims",
+  "host": "careers-vinfen.icims.com",
+  "type": "direct_ats",
+  "employer": "Vinfen Corporation",
+  "estJobs": 550,
+  "pages": 11,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-riversideresearch",
+  "adapter": "icims",
+  "host": "careers-riversideresearch.icims.com",
+  "type": "direct_ats",
+  "employer": "Riverside Research Institute",
+  "estJobs": 50,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-versiti",
+  "adapter": "icims",
+  "host": "careers-versiti.icims.com",
+  "type": "direct_ats",
+  "employer": "Versiti Blood Health Inc",
+  "estJobs": 150,
+  "pages": 3,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-nrdc",
+  "adapter": "icims",
+  "host": "careers-nrdc.icims.com",
+  "type": "direct_ats",
+  "employer": "Natural Resources Defense Council Inc",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-afcu",
+  "adapter": "icims",
+  "host": "careers-afcu.icims.com",
+  "type": "direct_ats",
+  "employer": "Arizona Financial Credit Union",
+  "estJobs": 14,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-cacu",
+  "adapter": "icims",
+  "host": "careers-cacu.icims.com",
+  "type": "direct_ats",
+  "employer": "Corporate America Credit Union",
+  "estJobs": 21,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-healthpoint",
+  "adapter": "icims",
+  "host": "careers-healthpoint.icims.com",
+  "type": "direct_ats",
+  "employer": "Healthpoint",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-thinkeducation",
+  "adapter": "icims",
+  "host": "careers-thinkeducation.icims.com",
+  "type": "direct_ats",
+  "employer": "T H I N K Education",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-klove",
+  "adapter": "icims",
+  "host": "careers-klove.icims.com",
+  "type": "direct_ats",
+  "employer": "K-Love Inc",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-jointcommission",
+  "adapter": "icims",
+  "host": "careers-jointcommission.icims.com",
+  "type": "direct_ats",
+  "employer": "Joint Commission On Accreditation Of Healthcare Organizations",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-chsi",
+  "adapter": "icims",
+  "host": "careers-chsi.icims.com",
+  "type": "direct_ats",
+  "employer": "Cox Health Systems Insurance Company",
+  "estJobs": 80,
+  "pages": 4,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-sanmiguel",
+  "adapter": "icims",
+  "host": "careers-sanmiguel.icims.com",
+  "type": "direct_ats",
+  "employer": "San Miguel Electric Cooperative Inc",
+  "estJobs": 4,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-prc",
+  "adapter": "icims",
+  "host": "jobs-prc.icims.com",
+  "type": "direct_ats",
+  "employer": "Presbyterian Retirement Communities Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-heritagechristianservices",
+  "adapter": "icims",
+  "host": "careers-heritagechristianservices.icims.com",
+  "type": "direct_ats",
+  "employer": "Heritage Christian Services Inc",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-willowvalleycommunities",
+  "adapter": "icims",
+  "host": "careers-willowvalleycommunities.icims.com",
+  "type": "direct_ats",
+  "employer": "Willow Valley Communities",
+  "estJobs": 40,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-empeople",
+  "adapter": "icims",
+  "host": "careers-empeople.icims.com",
+  "type": "direct_ats",
+  "employer": "Empeople Credit Union",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-girlscouts",
+  "adapter": "icims",
+  "host": "careers-girlscouts.icims.com",
+  "type": "direct_ats",
+  "employer": "Girl Scouts Of The United States Of America",
+  "estJobs": 13,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-aphl",
+  "adapter": "icims",
+  "host": "careers-aphl.icims.com",
+  "type": "direct_ats",
+  "employer": "Association Of Public Health Laboratories Inc",
+  "estJobs": 4,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-lifelongmedical",
+  "adapter": "icims",
+  "host": "careers-lifelongmedical.icims.com",
+  "type": "direct_ats",
+  "employer": "Lifelong Medical Care",
+  "estJobs": 2,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-cck",
+  "adapter": "icims",
+  "host": "careers-cck.icims.com",
+  "type": "direct_ats",
+  "employer": "Centre College Of Kentucky",
+  "estJobs": 5,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-mana",
+  "adapter": "icims",
+  "host": "careers-mana.icims.com",
+  "type": "direct_ats",
+  "employer": "Mana Nutritive Aid Products Inc",
+  "estJobs": 32,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-adl",
+  "adapter": "icims",
+  "host": "careers-adl.icims.com",
+  "type": "direct_ats",
+  "employer": "Anti-Defamation League",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-meridianhealth",
+  "adapter": "icims",
+  "host": "careers-meridianhealth.icims.com",
+  "type": "direct_ats",
+  "employer": "Meridian Health Services Corp",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-iqt",
+  "adapter": "icims",
+  "host": "careers-iqt.icims.com",
+  "type": "direct_ats",
+  "employer": "In-Q-Tel Inc",
+  "estJobs": 9,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-vistacommunityclinic",
+  "adapter": "icims",
+  "host": "careers-vistacommunityclinic.icims.com",
+  "type": "direct_ats",
+  "employer": "Vista Community Clinic",
+  "estJobs": 10,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-lsss",
+  "adapter": "icims",
+  "host": "careers-lsss.icims.com",
+  "type": "direct_ats",
+  "employer": "Lutheran Social Service Of The South Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-heliohealth",
+  "adapter": "icims",
+  "host": "careers-heliohealth.icims.com",
+  "type": "direct_ats",
+  "employer": "Helio Health Inc",
+  "estJobs": 150,
+  "pages": 3,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-orau",
+  "adapter": "icims",
+  "host": "careers-orau.icims.com",
+  "type": "direct_ats",
+  "employer": "Oak Ridge Associated Universities Inc",
+  "estJobs": 17,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-isaca",
+  "adapter": "icims",
+  "host": "careers-isaca.icims.com",
+  "type": "direct_ats",
+  "employer": "Information Systems Audit And Control Association Inc",
+  "estJobs": 6,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-cymca",
+  "adapter": "icims",
+  "host": "careers-cymca.icims.com",
+  "type": "direct_ats",
+  "employer": "Crossroads Young Mens Christian Association Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-mpr",
+  "adapter": "icims",
+  "host": "careers-mpr.icims.com",
+  "type": "direct_ats",
+  "employer": "Minnesota Public Radio",
+  "estJobs": 18,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-sbec",
+  "adapter": "icims",
+  "host": "careers-sbec.icims.com",
+  "type": "direct_ats",
+  "employer": "San Bernard Electric Cooperative Incorporated",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-damar",
+  "adapter": "icims",
+  "host": "careers-damar.icims.com",
+  "type": "direct_ats",
+  "employer": "Damar Services Inc",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-medcura",
+  "adapter": "icims",
+  "host": "jobs-medcura.icims.com",
+  "type": "direct_ats",
+  "employer": "Medcura Health Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-mjhs",
+  "adapter": "icims",
+  "host": "careers-mjhs.icims.com",
+  "type": "direct_ats",
+  "employer": "Mjhs Hospice And Palliative Care Inc",
+  "estJobs": 80,
+  "pages": 4,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-liveonny",
+  "adapter": "icims",
+  "host": "careers-liveonny.icims.com",
+  "type": "direct_ats",
+  "employer": "Liveonny Inc",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-lafh",
+  "adapter": "icims",
+  "host": "careers-lafh.icims.com",
+  "type": "direct_ats",
+  "employer": "L A Family Housing Corporation",
+  "estJobs": 13,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-roadrunner",
+  "adapter": "icims",
+  "host": "careers-roadrunner.icims.com",
+  "type": "direct_ats",
+  "employer": "Roadrunner Food Bank Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-carepartners",
+  "adapter": "icims",
+  "host": "careers-carepartners.icims.com",
+  "type": "direct_ats",
+  "employer": "Carepartners Of Connecticut Inc",
+  "estJobs": 150,
+  "pages": 3,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-tsne",
+  "adapter": "icims",
+  "host": "careers-tsne.icims.com",
+  "type": "direct_ats",
+  "employer": "Third Sector New England Inc",
+  "estJobs": 11,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-benaroyaresearch",
+  "adapter": "icims",
+  "host": "careers-benaroyaresearch.icims.com",
+  "type": "direct_ats",
+  "employer": "Benaroya Research Institute At Virginia Mason",
+  "estJobs": 8,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-joslin",
+  "adapter": "icims",
+  "host": "jobs-joslin.icims.com",
+  "type": "direct_ats",
+  "employer": "Joslin Diabetes Center Inc",
+  "estJobs": 4,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-teams",
+  "adapter": "icims",
+  "host": "careers-teams.icims.com",
+  "type": "direct_ats",
+  "employer": "Medical Teams International",
+  "estJobs": 30,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-elk",
+  "adapter": "icims",
+  "host": "careers-elk.icims.com",
+  "type": "direct_ats",
+  "employer": "Elk Regional Health Center",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-jobs-accion",
+  "adapter": "icims",
+  "host": "jobs-accion.icims.com",
+  "type": "direct_ats",
+  "employer": "Accion Opportunity Fund Community Development",
+  "estJobs": 10,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-concern",
+  "adapter": "icims",
+  "host": "careers-concern.icims.com",
+  "type": "direct_ats",
+  "employer": "Concern For Independent Living Inc",
+  "estJobs": 6,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-careconnect",
+  "adapter": "icims",
+  "host": "careers-careconnect.icims.com",
+  "type": "direct_ats",
+  "employer": "Careconnect Health Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-centralmainehealthcare",
+  "adapter": "icims",
+  "host": "careers-centralmainehealthcare.icims.com",
+  "type": "direct_ats",
+  "employer": "Central Maine Healthcare Corporation",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-immanuel",
+  "adapter": "icims",
+  "host": "careers-immanuel.icims.com",
+  "type": "direct_ats",
+  "employer": "Immanuel",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-pinkerton",
+  "adapter": "icims",
+  "host": "careers-pinkerton.icims.com",
+  "type": "direct_ats",
+  "employer": "Pinkerton Academy",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-brookville",
+  "adapter": "icims",
+  "host": "careers-brookville.icims.com",
+  "type": "direct_ats",
+  "employer": "Brookville Center For Childrens Services Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-uiccu",
+  "adapter": "icims",
+  "host": "careers-uiccu.icims.com",
+  "type": "direct_ats",
+  "employer": "University Of Illinois Community Credit Union",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-gocs",
+  "adapter": "icims",
+  "host": "careers-gocs.icims.com",
+  "type": "direct_ats",
+  "employer": "Great Oaks Charter School",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-carefor",
+  "adapter": "icims",
+  "host": "careers-carefor.icims.com",
+  "type": "direct_ats",
+  "employer": "Care For The Homeless Inc",
+  "estJobs": 32,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-deerfield",
+  "adapter": "icims",
+  "host": "careers-deerfield.icims.com",
+  "type": "direct_ats",
+  "employer": "Deerfield Episcopal Retirement Comm Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-westernsouthern",
+  "adapter": "icims",
+  "host": "careers-westernsouthern.icims.com",
+  "type": "direct_ats",
+  "employer": "Western And Southern Life Insurance Company Veba Trust",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-neighborhooddefender",
+  "adapter": "icims",
+  "host": "careers-neighborhooddefender.icims.com",
+  "type": "direct_ats",
+  "employer": "Neighborhood Defender Service Inc",
+  "estJobs": 7,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-sil",
+  "adapter": "icims",
+  "host": "careers-sil.icims.com",
+  "type": "direct_ats",
+  "employer": "Summer Institute Of Linguistics Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-connection",
+  "adapter": "icims",
+  "host": "careers-connection.icims.com",
+  "type": "direct_ats",
+  "employer": "The Connection Inc",
+  "estJobs": 120,
+  "pages": 6,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-fss",
+  "adapter": "icims",
+  "host": "careers-fss.icims.com",
+  "type": "direct_ats",
+  "employer": "First Step Staffing",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-avon",
+  "adapter": "icims",
+  "host": "careers-avon.icims.com",
+  "type": "direct_ats",
+  "employer": "Avon Old Farms School Inc",
+  "estJobs": 7,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-cpm",
+  "adapter": "icims",
+  "host": "careers-cpm.icims.com",
+  "type": "direct_ats",
+  "employer": "Cascade Public Media",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-chrysalis",
+  "adapter": "icims",
+  "host": "careers-chrysalis.icims.com",
+  "type": "direct_ats",
+  "employer": "The Chrysalis Center",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-jobs-cusa",
+  "adapter": "icims",
+  "host": "jobs-cusa.icims.com",
+  "type": "direct_ats",
+  "employer": "Conference U S A",
+  "estJobs": 240,
+  "pages": 12,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-americafirst",
+  "adapter": "icims",
+  "host": "careers-americafirst.icims.com",
+  "type": "direct_ats",
+  "employer": "America First Policy Institute",
+  "estJobs": 23,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-christiancare",
+  "adapter": "icims",
+  "host": "careers-christiancare.icims.com",
+  "type": "direct_ats",
+  "employer": "Christian Care Communities Inc",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-gbi",
+  "adapter": "icims",
+  "host": "careers-gbi.icims.com",
+  "type": "direct_ats",
+  "employer": "Great Basin Institute",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-marvin",
+  "adapter": "icims",
+  "host": "careers-marvin.icims.com",
+  "type": "direct_ats",
+  "employer": "Marvin M Schwan Charitable Foundation",
+  "estJobs": 250,
+  "pages": 5,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-aspireindiana",
+  "adapter": "icims",
+  "host": "careers-aspireindiana.icims.com",
+  "type": "direct_ats",
+  "employer": "Aspire Indiana Inc",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-goodshepherdhospice",
+  "adapter": "icims",
+  "host": "careers-goodshepherdhospice.icims.com",
+  "type": "direct_ats",
+  "employer": "Good Shepherd Hospice",
+  "estJobs": 36,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-kci",
+  "adapter": "icims",
+  "host": "careers-kci.icims.com",
+  "type": "direct_ats",
+  "employer": "Kci Holding Usa Employee Health Care Plan",
+  "estJobs": 220,
+  "pages": 11,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-mydental",
+  "adapter": "icims",
+  "host": "careers-mydental.icims.com",
+  "type": "direct_ats",
+  "employer": "My Community Dental Centers Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ddn",
+  "adapter": "icims",
+  "host": "careers-ddn.icims.com",
+  "type": "direct_ats",
+  "employer": "Delta Dental Of Nebraska",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-communityoutreach",
+  "adapter": "icims",
+  "host": "careers-communityoutreach.icims.com",
+  "type": "direct_ats",
+  "employer": "Community Outreach Center Inc",
+  "estJobs": 13,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-explore",
+  "adapter": "icims",
+  "host": "careers-explore.icims.com",
+  "type": "direct_ats",
+  "employer": "Explore Excel Charter School",
+  "estJobs": 60,
+  "pages": 3,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-sjv",
+  "adapter": "icims",
+  "host": "careers-sjv.icims.com",
+  "type": "direct_ats",
+  "employer": "Saint Joseph Villa",
+  "estJobs": 13,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-secure",
+  "adapter": "icims",
+  "host": "careers-secure.icims.com",
+  "type": "direct_ats",
+  "employer": "Secure Community Network Inc",
+  "estJobs": 3,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-slco",
+  "adapter": "icims",
+  "host": "careers-slco.icims.com",
+  "type": "direct_ats",
+  "employer": "Sharing Life Community Outreach Inc",
+  "estJobs": 100,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-usonainstitute",
+  "adapter": "icims",
+  "host": "careers-usonainstitute.icims.com",
+  "type": "direct_ats",
+  "employer": "Usona Institute Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-lrp",
+  "adapter": "icims",
+  "host": "careers-lrp.icims.com",
+  "type": "direct_ats",
+  "employer": "Ltc Reinsurance Pcc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-hoffman",
+  "adapter": "icims",
+  "host": "careers-hoffman.icims.com",
+  "type": "direct_ats",
+  "employer": "Hoffman Institute Foundation",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-jobs-alternatives",
+  "adapter": "icims",
+  "host": "jobs-alternatives.icims.com",
+  "type": "direct_ats",
+  "employer": "Alternatives For Children",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-pamf",
+  "adapter": "icims",
+  "host": "careers-pamf.icims.com",
+  "type": "direct_ats",
+  "employer": "Petersen Automotive Museum Foundation",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-ymcagreenville",
+  "adapter": "icims",
+  "host": "careers-ymcagreenville.icims.com",
+  "type": "direct_ats",
+  "employer": "Ymca Of Greenville",
+  "estJobs": 40,
+  "pages": 2,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-hga",
+  "adapter": "icims",
+  "host": "careers-hga.icims.com",
+  "type": "direct_ats",
+  "employer": "Houston Gateway Academy Inc",
+  "estJobs": 80,
+  "pages": 4,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-noblereach",
+  "adapter": "icims",
+  "host": "careers-noblereach.icims.com",
+  "type": "direct_ats",
+  "employer": "Noblereach Foundation",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "medium"
+ },
+ {
+  "name": "icims-careers-buildon",
+  "adapter": "icims",
+  "host": "careers-buildon.icims.com",
+  "type": "direct_ats",
+  "employer": "Buildon Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-apha",
+  "adapter": "icims",
+  "host": "careers-apha.icims.com",
+  "type": "direct_ats",
+  "employer": "American Public Health Association Inc",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-riverwoodsdurham",
+  "adapter": "icims",
+  "host": "careers-riverwoodsdurham.icims.com",
+  "type": "direct_ats",
+  "employer": "Riverwoods Durham",
+  "estJobs": 9,
+  "pages": 1,
+  "nameMatch": "strong"
+ },
+ {
+  "name": "icims-careers-fhccgla",
+  "adapter": "icims",
+  "host": "careers-fhccgla.icims.com",
+  "type": "direct_ats",
+  "employer": "Family Health Care Centers Of Greater Los Angeles Inc",
+  "estJobs": 22,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-pillars",
+  "adapter": "icims",
+  "host": "careers-pillars.icims.com",
+  "type": "direct_ats",
+  "employer": "Pillars Community Health",
+  "estJobs": 1,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-mdi",
+  "adapter": "icims",
+  "host": "careers-mdi.icims.com",
+  "type": "direct_ats",
+  "employer": "Mdi Commercial Services",
+  "estJobs": 15,
+  "pages": 1,
+  "nameMatch": "weak"
+ },
+ {
+  "name": "icims-careers-catholiceldercare",
+  "adapter": "icims",
+  "host": "careers-catholiceldercare.icims.com",
+  "type": "direct_ats",
+  "employer": "Catholic Eldercare",
+  "estJobs": 9,
+  "pages": 1,
+  "nameMatch": "strong"
+ }
+]

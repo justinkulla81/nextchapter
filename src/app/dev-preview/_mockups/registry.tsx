@@ -59,7 +59,7 @@ import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, 
 import { OrgAdminCollege, OrgAdminNonprofit, OrgAdminWorkforce, HigherEdAlumni, HigherEdCareer, WorkforceHubDashboard, WorkforceHubLayoffs } from './marketing-org'
 import { HiringDashboard, HiringEvidenceBrief, HiringRoles, EmployeesLearning, EmployeesRetention, EmployeesEnroll, OutplacementReporting, OutplacementRoster, OutplacementCompliance } from './marketing-employer'
 import { CoachClients, CoachBrief, CoachSessionLog } from './marketing-coach'
-import { RecruiterPacket, RecruiterSearch, RecruiterPipeline } from './marketing-recruiter'
+import { RecruiterPacket, RecruiterSearch, RecruiterPipeline, RecruiterInbound, RecruiterCandidates, RecruiterCandidateStatus } from './marketing-recruiter'
 
 import { AdvisoryBoardsNone, AdvisoryBoardsAdvisory } from './advisory-boards-live'
 import { FollowingCompanies, FollowingEvents, FollowingEmails, FollowingSkills } from './following'
@@ -106,6 +106,9 @@ export const MOCKUPS: Mockup[] = [
   { path: 'marketing/outplacement-compliance', place: 'Partner pages', title: 'Outplacement: compliance record (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: OutplacementCompliance },
   { path: 'marketing/recruiter-submission-packet', place: 'Partner pages', title: 'Recruiter: submission packet and export (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterPacket },
   { path: 'marketing/recruiter-search', place: 'Partner pages', title: 'Recruiter: candidate search (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterSearch },
+  { path: 'marketing/recruiter-inbound-page', place: 'Partner pages', title: 'Recruiter: the firm’s résumé page (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterInbound },
+  { path: 'marketing/recruiter-candidates', place: 'Partner pages', title: 'Recruiter: candidates with stage and next step (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterCandidates },
+  { path: 'marketing/recruiter-candidate-status', place: 'Partner pages', title: 'Recruiter: one candidate, pipeline and shared status (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterCandidateStatus },
   { path: 'marketing/recruiter-pipeline', place: 'Partner pages', title: 'Recruiter: feedback and placement (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterPipeline },
   { path: 'jobs/live/compare-places', place: 'Jobs', title: 'Compare places: out of work, two places (sample data)', replaces: 'new page; adds one entry under Market and pay, removes nothing', Component: ComparePlacesJobless },
   { path: 'jobs/live/compare-places-employed', place: 'Jobs', title: 'Compare places: employed, two places (sample data)', replaces: 'new page', Component: ComparePlacesEmployed },

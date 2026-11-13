@@ -6,6 +6,7 @@ import {
   IntakeClaimReminderEmail,
   IntakeFitAlertEmail,
   IntakeReplyEmail,
+  IntakeWeeklyDigestEmail,
   IntakeSubmissionConfirmationEmail,
   RecruiterFirmInviteEmail,
 } from '@/emails/intake-emails'
@@ -207,6 +208,30 @@ export function sendRecruiterFirmInvite(args: { to: string; firmName: string; in
       signupUrl: args.existingAccount
         ? `${appUrl()}/recruiters/talent/join/${args.token}`
         : `${appUrl()}/recruiters/signup?invite=${args.token}`,
+    }),
+  })
+}
+
+export function sendIntakeWeeklyDigest(args: {
+  to: string
+  recruiterId: string
+  recruiterFirstName: string
+  digest: { newCount: number; newNames: string[]; due: { name: string; stage: string; nextStepAt: string }[]; changes: { name: string; label: string; landing: string | null }[] }
+}) {
+  const parts = [
+    args.digest.due.length ? `${args.digest.due.length} next ${args.digest.due.length === 1 ? 'step' : 'steps'} due` : null,
+    args.digest.changes.length ? `${args.digest.changes.length} ${args.digest.changes.length === 1 ? 'status change' : 'status changes'}` : null,
+    args.digest.newCount ? `${args.digest.newCount} new` : null,
+  ].filter(Boolean)
+  return send({
+    to: args.to,
+    subject: `Your candidates this week: ${parts.join(', ')}`,
+    fromName: 'NextChapter Talent',
+    idempotencyKey: `intake-weekly-${args.recruiterId}-${new Date().toISOString().slice(0, 10)}`,
+    react: IntakeWeeklyDigestEmail({
+      recruiterFirstName: args.recruiterFirstName,
+      digest: args.digest,
+      candidatesUrl: `${appUrl()}/recruiters/talent`,
     }),
   })
 }

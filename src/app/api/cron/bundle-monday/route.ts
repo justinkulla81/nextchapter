@@ -9,6 +9,7 @@ import { GET as auto_assign_sprint } from '../auto-assign-sprint/route'
 import { GET as conference_recheck } from '../conference-recheck/route'
 import { GET as population_snapshot } from '../population-snapshot/route'
 import { GET as db_slow_query_report } from '../db-slow-query-report/route'
+import { GET as talent_digest } from '../talent-digest/route'
 
 // Jobs run in this order, lightest first, so one slow job at the end cannot hold up the rest.
 export const maxDuration = 800
@@ -24,4 +25,5 @@ export const GET = cronBundle({
   'conference-recheck': conference_recheck,
   'population-snapshot': population_snapshot,
   'db-slow-query-report': db_slow_query_report,
+  'talent-digest': talent_digest,
 })

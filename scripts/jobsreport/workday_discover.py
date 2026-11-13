@@ -17,16 +17,24 @@ DROP = {"inc", "incorporated", "corp", "corporation", "company", "co", "ltd", "l
 SITES = ["External", "external", "Careers", "careers", "External_Career", "ExternalCareerSite", "External_Careers", "{t}", "{T}", "{t}careers", "{T}Careers", "{T}_Careers", "{t}_careers",
          "Careers_External", "jobs", "Jobs", "search", "Search", "External_Site", "ExternalSite", "{T}External", "{t}External", "{T}_External", "{T}CareerSite", "{T}_Career", "careersite", "CareerSite", "Global", "global", "US", "USA", "en-US"]
 
+GENERIC = {"university", "college", "colleges", "hospital", "hospitals", "medical", "center", "centers", "health", "healthcare", "system", "systems", "foundation", "institute", "school", "schools",
+           "regional", "community", "memorial", "general", "childrens", "children", "association", "society", "county", "city", "state", "national", "american", "united", "services", "service"}
+
 def variants(name):
-    s = re.sub(r"\(.*?\)", " ", name.lower().replace("&", " and "))
+    s = re.sub(r"\(.*?\)", " ", name.lower().replace("&", " and ").replace("'", ""))
     toks = [t for t in re.findall(r"[a-z0-9]+", s)]
     core = [t for t in toks if t not in DROP] or toks
     out = []
     def add(v):
-        if v and len(v) >= 3 and v not in out: out.append(v)
+        if v and len(v) >= 3 and v not in out and v not in GENERIC and v not in DROP: out.append(v)
     add("".join(core)); add("".join(core[:2])); add(core[0] if core else "")
     if len(core) >= 3: add("".join(w[0] for w in core))
-    return out[:4]
+    # universities, hospitals, nonprofits: tenants usually drop the generic words ("University of Michigan" -> umich, michigan)
+    plain = [t for t in core if t not in GENERIC]
+    if plain and plain != core:
+        add("".join(plain)); add("".join(plain[:2])); add(plain[0])
+        if "university" in core or "college" in core: add("u" + plain[0])
+    return out[:7]
 
 def call(t, c, site, timeout=12):
     body = json.dumps({"limit": 1, "offset": 0, "searchText": "", "appliedFacets": {}}).encode()

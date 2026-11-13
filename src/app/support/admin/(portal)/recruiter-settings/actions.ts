@@ -10,6 +10,7 @@ import { EXPORT_DESTINATIONS } from '@/lib/constants/recruiter-export-destinatio
 import { randomBytes } from 'crypto'
 import { slugify } from '@/lib/recruiter/intake/slug'
 import { normalizeWebsite } from '@/lib/recruiter/brand'
+import { parsePilotLines, pilotArm } from '@/lib/recruiter/pilot'
 
 export type FormState = { error?: string } | undefined
 export type InviteFirmState = { error?: string; link?: string; firmName?: string } | undefined
@@ -177,4 +178,63 @@ export async function inviteFirmToRegister(_prev: InviteFirmState, formData: For
   revalidatePath('/support/admin/recruiter-settings')
   const base = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
   return { link: `${base}/recruiters/start/${token}`, firmName: name }
+}
+
+export type PilotFirmsState = { error?: string; csv?: string; created?: number; skipped?: { name: string; reason: string }[] } | undefined
+
+// Pilot activation: one pre-verified firm and one registration link per pasted line. Nothing is emailed; the admin
+// takes the links out as a CSV. Each link only works for someone at the contact's company (emailMayClaimFirm), so
+// going live at once does not hand a firm to a stranger.
+export async function createPilotFirms(_prev: PilotFirmsState, formData: FormData): Promise<PilotFirmsState> {
+  const admin = await requireAdmin()
+  const actor = admin?.email ?? 'admin'
+  const parsed = parsePilotLines((formData.get('lines') as string | null) ?? '')
+  if (parsed.rows.length === 0 && parsed.errors.length === 0) return { error: 'Paste one firm per line: name, website, contact email.' }
+  if (parsed.rows.length === 0) return { error: parsed.errors.map((e) => (e.line ? `Line ${e.line}: ${e.message}` : e.message)).join(' ') }
+
+  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
+  const out: string[] = ['firm,website,contact_email,arm,link']
+  const skipped: { name: string; reason: string }[] = parsed.errors.map((e) => ({ name: `Line ${e.line}`, reason: e.message }))
+  let created = 0
+  for (const row of parsed.rows) {
+    try {
+      const site = normalizeWebsite(row.website)
+      if (!site.ok) {
+        skipped.push({ name: row.name, reason: site.message })
+        continue
+      }
+      const existing = await prisma.recruiterFirm.findUnique({ where: { name: row.name }, include: { _count: { select: { recruiters: true } } } })
+      if (existing && existing._count.recruiters > 0) {
+        skipped.push({ name: row.name, reason: 'Already has members.' })
+        continue
+      }
+      let slug = existing?.slug ?? (slugify(row.name) || 'firm')
+      if (!existing?.slug) {
+        const root = slug
+        let n = 1
+        while (await prisma.recruiterFirm.findUnique({ where: { slug } })) slug = `${root}-${++n}`
+      }
+      const token = randomBytes(18).toString('base64url')
+      const data = {
+        website: site.url,
+        onboardingToken: token,
+        onboardingContactEmail: row.email,
+        status: 'VERIFIED' as RecruiterFirmStatus,
+        verifiedAt: new Date(),
+        verifiedBy: `${actor} (pilot)`,
+      }
+      const firm = existing
+        ? await prisma.recruiterFirm.update({ where: { id: existing.id }, data })
+        : await prisma.recruiterFirm.create({ data: { name: row.name, slug, ...data } })
+      const csv = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v)
+      out.push([csv(row.name), csv(site.url ?? ''), row.email, pilotArm(row.email), `${base}/recruiters/start/${token}`].join(','))
+      created++
+      captureServerEvent(actor, 'recruiter_pilot_firm_created', { firmId: firm.id, arm: pilotArm(row.email) })
+    } catch (error) {
+      console.error('createPilotFirms failed for', row.name, error)
+      skipped.push({ name: row.name, reason: 'Could not be created. Try this line again.' })
+    }
+  }
+  revalidatePath('/support/admin/recruiter-settings')
+  return { created, skipped, csv: created > 0 ? out.join('\n') : undefined }
 }
