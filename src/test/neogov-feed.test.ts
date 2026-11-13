@@ -126,3 +126,18 @@ describe('government Workday boards: bad listings', () => {
     expect(GOV_WORKDAY_BOARDS.length).toBeGreaterThan(95)
   })
 })
+
+describe('Florida state jobs and Cornerstone boards', () => {
+  it('reads Florida job ids from the sitemap and cleans the title in a job page', async () => {
+    const { parseFloridaSitemap, parseJobs2Web } = await import('@/lib/jobs/gov-florida-core')
+    const [job] = parseFloridaSitemap('<urlset><url><loc>https://jobs.myflorida.com/job/DELRAY-BEACH-ACCOUNTANT-III-64964553-FL-33444/1446542600/</loc></url></urlset>')
+    expect(job.id).toBe('1446542600')
+    const page = `<span itemprop="title">SENIOR ATTORNEY II - 42000504 1\n</span><meta itemprop="addressLocality" content="DELRAY BEACH"><meta itemprop="addressRegion" content="FL"><meta itemprop="datePosted" content="Tue Oct 27 00:00:00 UTC 2026"><span class="jobdescription"><p>Agency: State Courts System</p></span><span class="jobGeoLocation">`
+    expect(parseJobs2Web(page)).toMatchObject({ title: 'SENIOR ATTORNEY II', employer: 'State of Florida, State Courts System', location: 'Delray Beach, FL', state: 'FL' })
+  })
+  it('builds the Cornerstone job url under the board prefix', async () => {
+    const { csodAdapter, csodUrl } = await import('@/lib/jobs/gov-csod-core')
+    const b = csodAdapter.boards[0]
+    expect(csodUrl(b, '82635').startsWith(csodAdapter.prefix(b))).toBe(true)
+  })
+})

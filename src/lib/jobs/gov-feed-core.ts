@@ -151,7 +151,7 @@ export interface CollectStats { candidates: number; fetched: number; skippedBySc
 /** Fetches the job pages of `candidates` a few at a time, judges each, and returns the keepers. Stops at the time budget. */
 export async function collectFromPages(
   candidates: SitemapJob[],
-  opts: { workers: number; fetchTimeoutMs: number; deadline: number; now: Date },
+  opts: { workers: number; fetchTimeoutMs: number; deadline: number; now: Date; parse?: (page: string) => FeedPosting | null },
 ): Promise<{ kept: KeptJob[]; stats: CollectStats }> {
   const kept: KeptJob[] = []
   const stats: CollectStats = { candidates: candidates.length, fetched: 0, skippedByScreen: 0, skippedOld: 0, skippedInternal: 0, stoppedAtBudget: false }
@@ -161,7 +161,7 @@ export async function collectFromPages(
       if (Date.now() > opts.deadline) { stats.stoppedAtBudget = true; return }
       const job = candidates[next++]
       const page = await fetchText(job.url, opts.fetchTimeoutMs)
-      const posting = page ? parseJobPostingLd(page) : null
+      const posting = page ? (opts.parse ?? parseJobPostingLd)(page) : null
       if (!posting || !posting.employer) continue
       stats.fetched += 1
       const v = judge(posting, opts.now)
