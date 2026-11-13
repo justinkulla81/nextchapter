@@ -4,8 +4,8 @@ universities. White-collar jobs at every level (Census groups 1 and 2), with ful
 
 How, without paging 10 jobs at a time:
   1. /sitemap.xml lists every open job URL (~41,000) in one request; the URL carries the id and a title slug.
-  2. The title slug is screened (RELEVANT): clearly non-white-collar jobs (custodian, mechanic, driver, police officer,
-     lifeguard ...) are never fetched. Ambiguous titles are kept; classify.sql makes the final white-collar call after load.
+  2. The title slug is screened (relevant()): only professional and management titles pass; trades, service, protective,
+     clerical, part-time and pool titles are never fetched. Quality over volume; classify.sql makes the final tag after load.
   3. Jobs already in the table (open, with a description) are only touched (last_seen), not fetched again.
   4. New relevant jobs are fetched from their own page, which carries schema.org JobPosting data: full description, date
      posted, employer, location, pay, closing date. A few requests at a time.
@@ -28,31 +28,39 @@ SITEMAP = "https://www.governmentjobs.com/sitemap.xml"
 WORKERS = 6
 MIN_SITEMAP_JOBS = 20000  # a short or broken sitemap must not close real postings
 
-# Titles that are clearly not white-collar (service, trades, protective, labor, drivers, food, clerical-only). A title with a
-# white-collar word is kept even if it also has one of these ("Maintenance Planner", "Police Records Analyst").
-EXCLUDE = re.compile(r"\b(custodian|janitor\w*|housekeep\w*|groundskeeper|laborer|maintenance (worker|mechanic|technician|tech|man)|"
-    r"mechanic|welder|carpenter|painter|plumber|electrician|hvac|lineman|lineworker|equipment operator|heavy equipment|truck driver|"
-    r"bus driver|driver|chauffeur|operator|refuse|sanitation|landfill|crew (leader|member|chief)|tree trimmer|arborist|"
-    r"firefighter|fire fighter|police officer|patrol officer|deputy sheriff|sheriff.s deputy|correctional officer|corrections officer|"
-    r"detention officer|jailer|dispatcher|telecommunicator|lifeguard|life guard|cook|food service|cashier|server|bartender|"
-    r"recreation (leader|aide|attendant)|camp counselor|seasonal|crossing guard|bus (aide|monitor|attendant)|"
-    r"teacher.s aide|instructional aide|paraeducator|paraprofessional|substitute|nursing assistant|cna|medical assistant|"
-    r"patient care (tech|assistant)|orderly|attendant|aide|clerk|receptionist|secretary|typist|data entry|mail (clerk|carrier)|"
-    r"warehouse|stock(er| clerk)|courier|trades?worker|tradesperson|utility worker|maintenance (i|ii|iii)|"
-    r"equipment mechanic|service worker|general (laborer|maintenance)|facility attendant|parking (attendant|enforcement)|"
-    r"administrative (assistant|aide)|office (assistant|aide)|recreation assistant|pipe ?layer|correctional deputy|public safety officer|student (worker|assistant)|"
-    r"clerical|collector|locksmith|construction worker|police (recruit|cadet)|facilit(y|ies) tech|lift station|trades ?worker|"
-    r"meter reader|animal (care|control) (officer|attendant)|kennel|dietary|food|cafeteria|usher|referee|umpire|scorekeeper)\b", re.I)
-KEEP = re.compile(r"\b(analyst|engineer|manager|director|supervisor|administrator|accountant|auditor|planner|coordinator|specialist|"
-    r"architect|attorney|counsel|paralegal|nurse|physician|therapist|social worker|counselor|librarian|teacher|professor|instructor|"
-    r"programmer|developer|scientist|economist|buyer|buyer|inspector|superintendent|principal|officer|chief|executive|assistant (city|county|"
-    r"town|district)|budget|finance|financial|human resources|hr|it|information|technology|communications|public information|"
-    r"grant|contract|procurement|purchasing|appraiser|assessor|surveyor|designer|researcher|investigator|case ?manager|"
-    r"program|project|policy|compliance|risk|legal|records analyst)\b", re.I)
+# The screen is positive: a title must name a professional or management role (PROFESSIONAL) and must not be a trade, service,
+# protective, clerical or labor role (NOT_WHITE_COLLAR), however it is worded. Quality over volume: a white-collar job with an
+# unusual title is skipped rather than risk a blue-collar one getting in. classify.sql makes the final tag after load.
+NOT_WHITE_COLLAR = re.compile(r"\b(custodi\w+|janitor\w*|housekeep\w*|groundskeep\w*|labor\w*|mechanic\w*|welder|carpent\w*|painter|plumb\w*|"
+    r"electrician|hvac|line ?(man|worker|crew)|operator|operations? (aide|assistant)|heavy equipment|driver|chauffeur|refuse|sanitation|"
+    r"landfill|solid waste|crew|tree|arborist|forest(er)? (tech|aide)|firefighter|fire ?fighter|police|patrol|deputy|sheriff|"
+    r"correction\w*|detention|jail\w*|dispatch\w*|telecommunicator|lifeguard|cook|chef|baker|food|dietary|cafeteria|cashier|server|"
+    r"bartender|usher|seasonal|temporary|part[- ]time|substitute|sub|crossing guard|aide|attendant|assistant|clerk|clerical|"
+    r"receptionist|secretary|typist|data entry|mail|warehouse|stock\w*|courier|trades?|utility|maintenance|repair\w*|facilit\w*|"
+    r"custody|guard|security|ranger|lookout|laundry|meter|kennel|animal (care|control|shelter)|field (tech|worker|aide)|"
+    r"technician|tech|installer|inspector aide|worker|helper|apprentice|trainee|intern|student|volunteer|pool|on call|on-call|"
+    r"parking|gym|fitness|activities|pt|extra help|stipend|coach|referee|umpire|scorekeeper|paraprofessional|paraeducator|nursing assistant|cna|lpn|"
+    r"medical (assistant|records)|patient (care|support)|orderly|phlebotom\w*|pharmacy tech\w*|radiologic tech\w*|sterile)\b", re.I)
+PROFESSIONAL = re.compile(r"\b(analyst|engineer\w*|manager|director|administrator|accountant|accounting|auditor|actuary|economist|"
+    r"statistician|planner|coordinator|specialist|architect|attorney|counsel|paralegal|legal|judge|magistrate|nurse|physician|"
+    r"psychiatrist|psychologist|pharmacist|dentist|veterinarian|therapist|dietitian|epidemiologist|social worker|counselor|clinician|"
+    r"librarian|archivist|curator|teacher|professor|lecturer|faculty|instructor|dean|provost|principal|superintendent|programmer|"
+    r"developer|software|devops|cyber\w*|network|database|gis|data|web|systems?|scientist|biologist|chemist|geologist|hydrologist|"
+    r"researcher|research|investigator|appraiser|assessor|surveyor|designer|writer|editor|producer|buyer|procurement|purchasing|"
+    r"contract\w*|grants?|budget|fiscal|finance|financial|treasurer|controller|payroll|human resources|hr|recruiter|"
+    r"compliance|risk|policy|program|project|consultant|advisor|adviser|liaison|executive|chief|president|vice president|"
+    r"administrator|supervisor|officer|communications?|public information|marketing|outreach|public health|health educator|"
+    r"caseworker|case manager|probation|parole|registrar|recorder|commissioner|ombudsman|strategist|strategy|operations)\b", re.I)
 
 def relevant(title):
-    return not EXCLUDE.search(title) or bool(KEEP.search(title)) and not re.search(
-        r"\b(police|fire|correctional|corrections|detention|deputy|public safety) officer\b|\b(driver|operator|custodian|mechanic|assistant|aide|clerk)\b", title, re.I)
+    t = title.lower()
+    if NOT_WHITE_COLLAR.search(t) and not re.search(r"\b(director|manager|chief|superintendent|attorney|counsel|engineer\w*|analyst|"
+            r"administrator|principal|dean|professor|teacher|librarian|accountant|physician|nurse)\b", t):
+        return False
+    if re.search(r"\b(police|fire|correction\w*|detention|jail\w*|sheriff|deputy|custodi\w+|mechanic\w*|maintenance|operator|"
+                 r"driver|laborer|assistant)\b.*\b(officer|supervisor|technician|worker|specialist|aide|assistant|operator)\b", t):
+        return False  # a protective, trade or support role even when it carries a manager-sounding noun
+    return bool(PROFESSIONAL.search(t))
 
 def sitemap_jobs(log):
     xml = c.http(SITEMAP, headers={"Accept": "application/xml"}, timeout=120)
