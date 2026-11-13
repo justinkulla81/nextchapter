@@ -5,6 +5,7 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { markWarmRecipients } from './warm'
 import { computeRoster, rosterCounts, type RosterRow } from './roster'
 import { renderEmail } from './render'
 import { tagMailingLinks } from '@/lib/marketing/email-attribution'
@@ -306,25 +307,34 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
   const editions = await prisma.mailingEdition.findMany({
     where: { status: 'SENDING' }, orderBy: { sendStartedAt: 'asc' }, include: { lists: { include: { list: true } } },
   })
+  // Warm first: recipients we have a warm signal for go before everyone else, and the rest share the cold daily cap, so a
+  // young sending domain grows on people who respond. Each edition's roster is flagged once (warmMarkedAt).
+  for (const e of editions) if (!e.warmMarkedAt) await markWarmRecipients(e.id)
+  const coldSentToday = await prisma.mailingEditionRecipient.count({ where: { sentAt: { gte: startOfEasternDay(now) }, warm: false } })
+  let coldBudget = Math.max(0, settings.coldDailyCap - coldSentToday)
   const resend = createResend(process.env.RESEND_API_KEY)
   let sent = 0
   let failed = 0
   const dne = await doNotEmailPeople()
+  // Layoff outreach is time-sensitive and tiny (a handful of recipients): it goes first, ahead of any bulk edition that started earlier.
+  editions.sort((a, b) => Number(b.campaign === LAYOFF_OUTREACH_CAMPAIGN) - Number(a.campaign === LAYOFF_OUTREACH_CAMPAIGN))
   const layoffWindowOpen = inLayoffSendWindow(now)
-  // The layoff outreach goes out as a trickle (layoff-pacing.ts): a few an hour, a slow daily ramp, a stop if bounces rise.
+  // The layoff outreach is exempt from the hourly rate, the daily cap and the cold cap (owner, 2026-11-13), but not from its own limits
+  // (layoff-pacing.ts): a trickle of a few every five minutes, a slow daily ramp, at most 2 a day to one recipient domain, and a stop for
+  // 24 hours if bounces rise. The sending domain must not be spam filtered.
   const layoffPace = layoffWindowOpen && editions.some((e) => e.campaign === LAYOFF_OUTREACH_CAMPAIGN) ? await layoffPacing(now, startOfEasternDay(now), LAYOFF_OUTREACH_CAMPAIGN) : null
   let layoffSent = 0
-  for (const edition of editions) {
+  for (const warmPass of [true, false]) for (const edition of editions) {
     // Layoff outreach waits for its own 8 a.m. to noon weekday window; it stays SENDING with its recipients pending.
     const isLayoff = edition.campaign === LAYOFF_OUTREACH_CAMPAIGN
     if (isLayoff && (!layoffWindowOpen || !layoffPace || layoffPace.hold)) continue
-    const attachments = budget > 0 ? await attachmentFor(edition) : undefined
-    while (budget > 0) {
-      if (isLayoff && layoffSent >= layoffPace!.runMax) break
+    const canSend = () => (isLayoff ? layoffSent < layoffPace!.runMax : budget > 0 && (warmPass || coldBudget > 0))
+    const attachments = canSend() ? await attachmentFor(edition) : undefined
+    while (canSend()) {
       const next = isLayoff
-        ? await nextLayoffRecipient(edition.id, layoffPace!)
+        ? await nextLayoffRecipient(edition.id, layoffPace!, warmPass)
         : await prisma.mailingEditionRecipient.findFirst({
-            where: { editionId: edition.id, status: 'PENDING', excluded: false }, orderBy: [{ attempts: 'asc' }, { email: 'asc' }],
+            where: { editionId: edition.id, status: 'PENDING', excluded: false, warm: warmPass }, orderBy: [{ attempts: 'asc' }, { email: 'asc' }],
           })
       if (!next) break
       const suppressed = (await prisma.mailingSuppression.findUnique({ where: { email: next.email } })) || (next.personId && dne.personIds.has(next.personId))
@@ -337,7 +347,7 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
         where: { id: next.id, status: 'PENDING', attempts: next.attempts }, data: { attempts: { increment: 1 } },
       })
       if (claimed.count === 0) continue
-      budget--
+      if (!isLayoff) { budget--; if (!warmPass) coldBudget-- }
       try {
         const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id }, settings, attachments)
         if (error || !data) throw new Error(error?.message ?? 'no response from Resend')

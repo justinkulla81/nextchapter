@@ -47,10 +47,10 @@ export async function layoffPacing(now: Date, dayStart: Date, campaign: string):
 
 export const domainHasRoom = (p: LayoffPacing, email: string) => (p.domainSent.get(domainOf(email)) ?? 0) < LAYOFF_PER_DOMAIN_PER_DAY
 
-/** The next pending recipient of a layoff edition whose domain still has room today, or null (the edition waits for tomorrow). Looks at 30 at most. */
-export async function nextLayoffRecipient(editionId: string, p: LayoffPacing) {
+/** The next pending recipient of a layoff edition (warm ones first, in the warm pass) whose domain still has room today, or null (the edition waits for tomorrow). Looks at 30 at most. */
+export async function nextLayoffRecipient(editionId: string, p: LayoffPacing, warm: boolean) {
   const pending = await prisma.mailingEditionRecipient.findMany({
-    where: { editionId, status: 'PENDING', excluded: false }, orderBy: [{ attempts: 'asc' }, { email: 'asc' }], take: 30,
+    where: { editionId, status: 'PENDING', excluded: false, warm }, orderBy: [{ attempts: 'asc' }, { email: 'asc' }], take: 30,
   })
   return pending.find((r) => domainHasRoom(p, r.email)) ?? null
 }

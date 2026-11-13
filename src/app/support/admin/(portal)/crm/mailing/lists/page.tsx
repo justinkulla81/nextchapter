@@ -141,6 +141,11 @@ export default async function MailingListsPage() {
             <input name="dailyCap" type="number" min={1} max={10000} defaultValue={settings.dailyCap} className={input} />
             <span className="mt-1 block text-[11px] text-muted-foreground">A new sending domain should grow gradually, so raise this a little at a time.</span>
           </label>
+          <label className="text-xs">
+            <span className="mb-1 block font-medium">Emails per day to people who have not responded <span className="font-normal text-muted-foreground">within the daily limit</span></span>
+            <input name="coldDailyCap" type="number" min={1} max={10000} defaultValue={settings.coldDailyCap} className={input} />
+            <span className="mt-1 block text-[11px] text-muted-foreground">People who replied or opened before, and contacts you know, are sent first and are not held to this. Everyone else shares it, so the sending domain grows on people who respond.</span>
+          </label>
           <label className="text-xs sm:col-span-2">
             <span className="mb-1 block font-medium">Seed inboxes <span className="font-normal text-muted-foreground">your own Gmail, Outlook and Yahoo addresses, separated by commas</span></span>
             <input name="seedEmails" defaultValue={settings.seedEmails.join(', ')} className={input} />
