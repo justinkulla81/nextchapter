@@ -68,3 +68,19 @@ describe('usajobs board rows', () => {
     expect(joaToKept({ ...open, hiringpaths: [{ hiringPath: 'Federal employees - Competitive service' }] }, new Date('2026-11-13')).keep).toBe(false)
   })
 })
+
+describe('edjoin and careersingovernment sitemaps', () => {
+  it('reads EdJoin job ids (no titles in the sitemap)', async () => {
+    const { parseEdjoinSitemap } = await import('@/lib/jobs/edjoin-core')
+    expect(parseEdjoinSitemap('<urlset><url><loc>https://www.edjoin.org/Home/JobPosting/459520</loc></url></urlset>')).toEqual([{ id: '459520', url: 'https://www.edjoin.org/Home/JobPosting/459520', title: '' }])
+  })
+  it('reads CareersInGovernment ids and title slugs', async () => {
+    const { parseCigSitemap } = await import('@/lib/jobs/careersingov-core')
+    const [job] = parseCigSitemap('<urlset><url><loc>https://www.careersingovernment.com/job/734713/speech-language-pathologist-clinical-fellow/</loc></url><url><loc>https://www.careersingovernment.com/company/1/x/</loc></url></urlset>')
+    expect(job).toMatchObject({ id: '734713', title: 'speech language pathologist clinical fellow' })
+  })
+  it('matches the same job across sources', async () => {
+    const { dedupeKey } = await import('@/lib/jobs/gov-feed-core')
+    expect(dedupeKey('City of San Jose', 'Building Inspector, Senior')).toBe(dedupeKey('CITY OF SAN JOSE', 'building inspector senior'))
+  })
+})
