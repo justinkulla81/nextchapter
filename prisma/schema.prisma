@@ -13924,6 +13924,8 @@ model MailingSettings {
   id            String   @id @default("singleton")
   /// Emails a day that may go to people we have no warm signal for (see src/lib/mailing/warm.ts). Warm recipients are not held to it.
   coldDailyCap  Int      @default(150)
+  /// Sender address for recipients with no warm signal, on a separate subdomain so their reputation cannot touch the main one. Empty = use fromEmail.
+  coldFromEmail String   @default("")
   fromName      String   @default("Justin Kulla")
   fromEmail     String   @default("justin@updates.launchyournextchapter.com")
   replyTo       String   @default("justin@launchyournextchapter.com")

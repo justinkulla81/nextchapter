@@ -13,6 +13,7 @@ export const SETTINGS_DEFAULTS = {
   ratePerHour: 50,
   dailyCap: 500,
   coldDailyCap: 150,
+  coldFromEmail: '',
   seedEmails: ['justin.kulla@gmail.com'] as string[],
   footerText: "Reply 'unsubscribe' or [click here] to remove yourself from future emails. NextChapter · {{postalAddress}}",
   postalAddress: '',

@@ -183,7 +183,7 @@ function audienceForEdition(edition: EditionForSend): EmailAudience {
 async function sendOne(
   resend: Resend,
   edition: EditionForSend,
-  to: { email: string; personId: string | null; recipientId: string | null },
+  to: { email: string; personId: string | null; recipientId: string | null; cold?: boolean },
   settings: Awaited<ReturnType<typeof getMailingSettings>>,
   attachments: Awaited<ReturnType<typeof attachmentFor>>,
   subjectPrefix = '',
@@ -205,7 +205,8 @@ async function sendOne(
   const text = to.recipientId ? tagMailingLinks(withAudienceText(audience, rendered.text), to.recipientId, 'text') : withAudienceText(audience, rendered.text)
   const fromName = edition.lists.length === 1 ? edition.lists[0].list.defaultFromName || settings.fromName : settings.fromName
   return resend.emails.send({
-    from: `${fromName} <${settings.fromEmail}>`,
+    // Cold recipients send from their own subdomain when one is set (Mailing settings), so a poor reputation there stays there.
+    from: `${fromName} <${to.cold && settings.coldFromEmail ? settings.coldFromEmail : settings.fromEmail}>`,
     replyTo: settings.replyTo,
     to: to.email,
     // Layoff outreach copies the owner on every send (edition.bccEmail); never on a test or seed send.
@@ -349,7 +350,7 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
       if (claimed.count === 0) continue
       if (!isLayoff) { budget--; if (!warmPass) coldBudget-- }
       try {
-        const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id }, settings, attachments)
+        const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id, cold: !warmPass }, settings, attachments)
         if (error || !data) throw new Error(error?.message ?? 'no response from Resend')
         await recordSent(edition, next.id, data.id)
         sent++
