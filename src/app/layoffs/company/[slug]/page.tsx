@@ -21,6 +21,7 @@ import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { canonical } from '@/lib/seo/canonical'
 import { isNetworkCompany, primaryState } from '@/lib/network/eligibility'
 import { OutreachRequestBlock } from '@/components/network/OutreachRequestBlock'
+import { NetworkHero } from '@/components/network/NetworkHero'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getRecentNotices } from '@/lib/seo/topic-data'
@@ -44,7 +45,7 @@ import { LandingHero } from '@/components/layoffs/landing/LandingHero'
 import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
 import { SearchTimeFacts } from '@/components/layoffs/landing/SearchTimeFacts'
 import { PeerEmployers } from '@/components/layoffs/landing/PeerEmployers'
-import { landingVariant, layoffFactLine, reportLine } from '@/lib/layoffs/landing'
+import { landingHeadline, landingVariant, layoffFactLine, reportLine } from '@/lib/layoffs/landing'
 import { searchSchools } from '@/lib/layoffs/landing-actions'
 import { getPeerEmployers } from '@/lib/layoffs/peers'
 import { BUYOUT_UNEMPLOYMENT_CHECKED, buyoutRuleFor } from '@/lib/warn/buyout-unemployment'
@@ -226,6 +227,8 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
     : hasNotices ? <>{layoffFactLine({ name: c.name, filings: c.notices.length, workers, exact: !unknownCounts, places, latest: noticeDay(c.latest) })}</>
     : latestAnn ? <>{reportLine(noticeDay(latestAnn.date), latestAnn.summary)}</>
     : null
+  // A smaller employer (under the network page's minimum) with a layoff in the last year gets the same hero as the network pages.
+  const useNetworkLook = variant === 'layoff' && hasNotices && workers >= 50 && !isNetworkCompany(c) && Date.now() - c.latest.getTime() < 365 * 86_400_000
   const newestNotice = [...c.notices].sort((a, b) => b.noticeDate.getTime() - a.noticeDate.getTime())[0]
   const newestWhere = newestNotice ? [newestNotice.city ?? newestNotice.place, stateName(newestNotice.state)].filter(Boolean).join(', ') : ''
   const newestDetail = newestNotice
@@ -270,7 +273,28 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           <OutreachRequestBlock slug={slug} employer={c.name} people={workers || null} />
           <YourState label={c.name} />
           <div className="mt-4 space-y-12">
-            <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : (latestAnn?.workers ?? null)} hasNotices={hasNotices} noticeCount={c.notices.length} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
+            {useNetworkLook ? (
+              <NetworkHero
+                f={{
+                  employer: c.name,
+                  slug,
+                  h1: landingHeadline(variant, c.name, c.notices[0]?.workers ?? null, hasNotices, c.notices.length),
+                  workers,
+                  stateLabel: stateName(primaryState(c.notices)),
+                  openInState: null,
+                  openAtEmployer: null,
+                  latestFiled: noticeDay(c.latest),
+                  places: [...new Set(c.notices.map((n) => n.place).filter((x): x is string => !!x))],
+                  boards: [...new Set(c.notices.map((n) => n.board?.name).filter((x): x is string => !!x))],
+                  unemploymentHref: `/unemployment-benefits/${stateSlug(primaryState(c.notices))}`,
+                  source: 'State labor department WARN filings',
+                  eyebrow: `Independent page. Not from or affiliated with ${c.name}.`,
+                }}
+                capture={<AffectedPrompt variant={variant} name={c.name} slug={slug} />}
+              />
+            ) : (
+              <LandingHero variant={variant} name={c.name} slug={slug} latestWorkers={hasNotices ? (c.notices[0]?.workers ?? null) : (latestAnn?.workers ?? null)} hasNotices={hasNotices} noticeCount={c.notices.length} context={heroContext} action={<AffectedPrompt variant={variant} name={c.name} slug={slug} />} />
+            )}
             {hasNotices && (
               <section aria-labelledby="glance" className="rounded-xl border border-border bg-white p-6">
                 <h2 id="glance" className="text-xl font-semibold tracking-tight text-navy">{c.name} layoffs at a glance</h2>
