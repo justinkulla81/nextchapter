@@ -348,3 +348,11 @@ describe('verifying directory addresses and cleaning names', async () => {
     expect(cleanEmployerName('A'.repeat(30) + ' ' + 'B'.repeat(40)).length).toBeLessThanOrEqual(60)
   })
 })
+
+describe('when Hunter cannot be asked', async () => {
+  const { isVerifyBlocked } = await import('@/lib/warn/outreach/quality')
+  it('stops waiting for an answer that cannot come, but keeps waiting when it only paused', () => {
+    for (const s of ['floor', 'daily', 'hunter_error', 'not_configured']) expect(isVerifyBlocked(s), s).toBe(true)
+    for (const s of ['done', 'cap', 'time']) expect(isVerifyBlocked(s), s).toBe(false)
+  })
+})

@@ -15,6 +15,13 @@
  */
 
 export const HUNTER_OK = new Set(['deliverable', 'valid'])
+
+/**
+ * Why a verification run stopped for good (no credits left above the margin, the day's ceiling, Hunter down or not configured), as opposed to
+ * stopping for now (the per-run cap, the time budget). When it stopped for good there is no point waiting for an answer: the layoff is drafted
+ * and scheduled with the addresses already verified, and the rest are simply not emailed.
+ */
+export const isVerifyBlocked = (stopped: string) => ['floor', 'daily', 'hunter_error', 'not_configured'].includes(stopped)
 /** A Hunter check older than this is treated as no check. */
 export const HUNTER_FRESH_DAYS = 90
 /** A domain that bounced one of our emails this recently is held until a later email there is delivered cleanly. */
