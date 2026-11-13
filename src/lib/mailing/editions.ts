@@ -371,7 +371,7 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
       if (claimed.count === 0) continue
       if (!isLayoff) { budget--; if (!warmPass) coldBudget-- }
       try {
-        const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id, cold: !warmPass }, settings, attachments)
+        const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id, cold: !warmPass && !isLayoff }, settings, attachments)
         if (error || !data) throw new Error(error?.message ?? 'no response from Resend')
         await recordSent(edition, next.id, data.id)
         sent++
