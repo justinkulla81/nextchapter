@@ -234,3 +234,25 @@ describe('weekly digest', () => {
     expect(d.newCount).toBe(1)
   })
 })
+
+import { parsePilotLines, pilotArm } from '@/lib/recruiter/pilot'
+
+describe('pilot firm list', () => {
+  it('reads lines, skips a header, and flags a line with no contact email', () => {
+    const r = parsePilotLines('Firm,Website,Email\nHartley Search, hartleysearch.com, Pat@HartleySearch.com\nNo Email Co, noemail.com,\n')
+    expect(r.rows).toEqual([{ name: 'Hartley Search', website: 'hartleysearch.com', email: 'pat@hartleysearch.com' }])
+    expect(r.errors).toHaveLength(1)
+    expect(r.errors[0].message).toMatch(/contact email/)
+  })
+  it('rejects the same email twice and more than 100 lines', () => {
+    expect(parsePilotLines('A, a.com, x@a.com\nB, b.com, X@a.com').errors).toHaveLength(1)
+    const many = Array.from({ length: 101 }, (_, i) => `F${i}, f${i}.com, p${i}@f${i}.com`).join('\n')
+    expect(parsePilotLines(many).rows).toHaveLength(0)
+  })
+  it('gives the same arm every time and splits roughly in half', () => {
+    expect(pilotArm('Pat@a.com')).toBe(pilotArm('pat@a.com'))
+    const a = Array.from({ length: 400 }, (_, i) => pilotArm(`p${i}@f${i}.com`)).filter((x) => x === 'A').length
+    expect(a).toBeGreaterThan(150)
+    expect(a).toBeLessThan(250)
+  })
+})

@@ -7,6 +7,7 @@ import { ConfirmingActionButton } from '@/components/recruiter/talent/TalentForm
 import { RecruiterSettingsForm } from '@/components/admin/RecruiterSettingsForm'
 import { RecruiterFirmForm } from '@/components/admin/RecruiterFirmForm'
 import { FirmInviteForm } from '@/components/admin/FirmInviteForm'
+import { PilotFirmsForm } from '@/components/admin/PilotFirmsForm'
 import { Card, CardContent } from '@/components/ui/card'
 
 const STATUS_STYLE: Record<string, string> = {
@@ -75,6 +76,10 @@ export default async function RecruiterSettingsAdminPage() {
               themselves.
             </p>
             <FirmInviteForm />
+            <div className="space-y-2 border-t border-border pt-4">
+              <h3 className="text-sm font-semibold">Pilot: many firms at once</h3>
+              <PilotFirmsForm />
+            </div>
             {firms.filter((f) => f.onboardingToken).length > 0 && (
               <ul className="space-y-1 text-sm">
                 {firms.filter((f) => f.onboardingToken).map((f) => (
