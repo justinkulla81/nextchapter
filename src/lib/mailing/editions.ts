@@ -205,6 +205,8 @@ async function sendOne(
     from: `${fromName} <${settings.fromEmail}>`,
     replyTo: settings.replyTo,
     to: to.email,
+    // Layoff outreach copies the owner on every send (edition.bccEmail); never on a test or seed send.
+    ...(edition.bccEmail && to.recipientId ? { bcc: [edition.bccEmail] } : {}),
     subject: `${subjectPrefix}${edition.subject}`.slice(0, 200),
     html,
     text,
