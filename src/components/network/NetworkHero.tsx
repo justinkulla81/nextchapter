@@ -9,8 +9,8 @@ export interface NetworkHeroFacts {
   h1: string
   workers: number
   stateLabel: string
-  /** "about 96,000", already rounded. */
-  openInState: string
+  /** "about 96,000", already rounded. Null where the page has not looked jobs up (the layoff page of a smaller employer). */
+  openInState: string | null
   openAtEmployer: string | null
   latestFiled: string
   /** Where the cuts are, as the notices name them ("Redmond, Bellevue"). */
@@ -20,6 +20,8 @@ export interface NetworkHeroFacts {
   unemploymentHref: string
   /** Where the facts come from, e.g. "Washington Employment Security Department WARN filings". */
   source: string
+  /** The line above the headline. Default: "For people leaving {employer}". */
+  eyebrow?: string
 }
 
 /**
@@ -29,11 +31,11 @@ export interface NetworkHeroFacts {
  */
 const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
 
-export function NetworkHero({ f, aside }: { f: NetworkHeroFacts; aside?: ReactNode }) {
+export function NetworkHero({ f, aside, capture }: { f: NetworkHeroFacts; aside?: ReactNode; /** Replaces the email field (the layoff page keeps its own "Were you affected?" action). */ capture?: ReactNode }) {
   const boardLine = f.boards.length > 0 ? f.boards.slice(0, 2).join(' and ') : null
   const steps = [
     { title: `Your ${f.stateLabel} deadlines`, body: 'What to file and by when, so nothing lapses.', href: f.unemploymentHref },
-    { title: 'Roles that fit you', body: `${cap(f.openInState)} professional jobs are open in ${f.stateLabel}${f.openAtEmployer ? `, ${f.openAtEmployer} at ${f.employer}` : ''}, sorted by your background.` },
+    { title: 'Roles that fit you', body: f.openInState ? `${cap(f.openInState)} professional jobs are open in ${f.stateLabel}${f.openAtEmployer ? `, ${f.openAtEmployer} at ${f.employer}` : ''}, sorted by your background.` : `Professional jobs open in ${f.stateLabel}, sorted by your background.` },
     { title: 'Free help near you', body: boardLine ? `${boardLine}: job search, training and filing help, at no cost.` : 'Your local workforce board and American Job Center: job search, training and filing help, at no cost.' },
   ]
   return (
@@ -43,14 +45,18 @@ export function NetworkHero({ f, aside }: { f: NetworkHeroFacts; aside?: ReactNo
         <div>
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             <span aria-hidden className="inline-block h-2 w-2 rounded-full bg-[var(--org-2,#e0a43a)]" />
-            For people leaving {f.employer}
+            {f.eyebrow ?? `For people leaving ${f.employer}`}
           </p>
           <h1 id="hero-h1" className="mt-3 text-balance font-display text-3xl font-bold tracking-tight text-navy sm:text-4xl">{f.h1}</h1>
           <p className="mt-4 max-w-xl text-lg text-navy">
             <strong className="text-[var(--org-1-text,#14213D)]">{f.workers.toLocaleString('en-US')}</strong> people are leaving {f.employer}.{' '}
-            <strong className="text-[var(--org-1-text,#14213D)]">{cap(f.openInState)}</strong> professional jobs are open in {f.stateLabel}. Let&apos;s find the ones that fit you.
+            {f.openInState ? (
+              <><strong className="text-[var(--org-1-text,#14213D)]">{cap(f.openInState)}</strong> professional jobs are open in {f.stateLabel}. Let&apos;s find the ones that fit you.</>
+            ) : (
+              <>Here is what to do first, and where the jobs are.</>
+            )}
           </p>
-          <EmployerEmailCapture slug={f.slug} employer={f.employer} tone="light" />
+          {capture ? <div className="mt-5 max-w-xl rounded-2xl border border-border bg-off-white p-1">{capture}</div> : <EmployerEmailCapture slug={f.slug} employer={f.employer} tone="light" />}
         </div>
         <ol className="space-y-4 self-center" aria-label="What you get first">
           {steps.map((s, i) => (
