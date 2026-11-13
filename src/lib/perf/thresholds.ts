@@ -7,7 +7,7 @@
 export const SLOW_PAGE_MS = 4_000
 export const STALLED_PAGE_MS = 10_000
 
-/** The alert fires when, inside WINDOW_MINUTES, at least MIN_EVENTS slow or stalled reports come from at least MIN_PEOPLE people, or any page's own data timed out MIN_TIMEOUTS times. */
+/** The alert fires when, inside WINDOW_MINUTES, at least MIN_EVENTS slow or stalled page loads (a load's many reports count once) come from at least MIN_PEOPLE people, or any page's own data timed out MIN_TIMEOUTS times. */
 export const ALERT_WINDOW_MINUTES = 15
 export const ALERT_MIN_EVENTS = 5
 export const ALERT_MIN_PEOPLE = 2

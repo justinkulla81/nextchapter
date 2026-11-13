@@ -26,9 +26,13 @@ export function judgeSlowRows(rows: SlowRow[]): SlowVerdict {
   const timedOut = rows.filter((r) => r.event === 'page_query_stalled' && r.timedOut)
   const timeouts = timedOut.length
   // A row with no time counts as its own page load.
-  const pageLoads = new Set(timedOut.map((r, i) => (r.at == null ? `row-${i}` : `${r.who}|${Math.floor(r.at / (SAME_PAGE_LOAD_S * 1000))}`))).size
+  const loadsOf = (list: SlowRow[]) => new Set(list.map((r, i) => (r.at == null ? `row-${i}` : `${r.who}|${Math.floor(r.at / (SAME_PAGE_LOAD_S * 1000))}`))).size
+  const pageLoads = loadsOf(timedOut)
+  // The slow reports too are counted by page load, not by row: one dashboard load reports a slow read for each of its reads
+  // (2026-11-12: 13 of 15 reports were one member's one page load, and the alert said "15 reports from 2 people").
+  const slowLoads = loadsOf(rows)
   const reasons: string[] = []
-  if (rows.length >= ALERT_MIN_EVENTS && people >= ALERT_MIN_PEOPLE) reasons.push(`${rows.length} slow or stalled reports from ${people} people in ${ALERT_WINDOW_MINUTES} minutes`)
+  if (slowLoads >= ALERT_MIN_EVENTS && people >= ALERT_MIN_PEOPLE) reasons.push(`${slowLoads} slow or stalled page loads (${rows.length} reports) from ${people} people in ${ALERT_WINDOW_MINUTES} minutes`)
   if (pageLoads >= ALERT_MIN_TIMEOUTS) reasons.push(`${pageLoads} page loads had a read give up at its deadline (${timeouts} reads)`)
   return { alert: reasons.length > 0, events: rows.length, people, timeouts, pageLoads, reasons }
 }
