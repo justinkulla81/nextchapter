@@ -21,7 +21,6 @@ import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 // two-job employer with one AI job does not outrank a company with a hundred.
 
 export const SHARE_MIN_ROLES = 25
-const WIDELY_REPORTED = 3
 export const RANK_SIZE = 25
 export const FUNCTION_RANK_SIZE = 15
 

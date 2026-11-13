@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { compareHref, type Lens } from '@/lib/workforce/metro-compare'
+import { type Lens } from '@/lib/workforce/metro-compare'
 
 // Compare places is now the "Compare job markets" tab of Your move plan. Old links and saved comparisons keep working.
 export default async function ComparePlacesPage({ searchParams }: { searchParams: Promise<{ m?: string; lens?: string }> }) {

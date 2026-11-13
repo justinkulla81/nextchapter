@@ -29,7 +29,7 @@ function pickVariant(): Variant {
 
 const noSubscribe = () => () => {}
 
-export function ApplyAndSave({ jobId, company, jobTitle, industry, applyUrl, emailOn, reminderOn }: { jobId: string; company: string; jobTitle: string; industry: string | null; applyUrl: string; emailOn: boolean; reminderOn: boolean }) {
+export function ApplyAndSave({ jobId, company, industry, applyUrl, emailOn, reminderOn }: { jobId: string; company: string; jobTitle: string; industry: string | null; applyUrl: string; emailOn: boolean; reminderOn: boolean }) {
   const [open, setOpen] = useState(false)
   const [trigger, setTrigger] = useState<'apply_click' | 'save_link' | 'apply_gate'>('save_link')
   // Read on the browser only; the server and the first paint say 'gate' (a button, never a bare link), then it settles on the saved variant.

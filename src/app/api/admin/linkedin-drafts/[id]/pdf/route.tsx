@@ -12,6 +12,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     <Document>
       {r.pngs.map((png, i) => (
         <Page key={i} size={[1080, 1350]} style={{ padding: 0 }}>
+          {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image has no alt prop; this is a rendered PDF page, not HTML */}
           <Image src={{ data: png, format: 'png' }} style={{ width: 1080, height: 1350 }} />
         </Page>
       ))}
