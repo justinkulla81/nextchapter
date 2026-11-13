@@ -5,6 +5,7 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { markWarmRecipients } from './warm'
 import { computeRoster, rosterCounts, type RosterRow } from './roster'
 import { renderEmail } from './render'
 import { tagMailingLinks } from '@/lib/marketing/email-attribution'
@@ -304,18 +305,24 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
   const editions = await prisma.mailingEdition.findMany({
     where: { status: 'SENDING' }, orderBy: { sendStartedAt: 'asc' }, include: { lists: { include: { list: true } } },
   })
+  // Warm first: recipients we have a warm signal for go before everyone else, and the rest share the cold daily cap, so a
+  // young sending domain grows on people who respond. Each edition's roster is flagged once (warmMarkedAt).
+  for (const e of editions) if (!e.warmMarkedAt) await markWarmRecipients(e.id)
+  const coldSentToday = await prisma.mailingEditionRecipient.count({ where: { sentAt: { gte: startOfEasternDay(now) }, warm: false } })
+  let coldBudget = Math.max(0, settings.coldDailyCap - coldSentToday)
   const resend = createResend(process.env.RESEND_API_KEY)
   let sent = 0
   let failed = 0
   const dne = await doNotEmailPeople()
   const layoffWindowOpen = inLayoffSendWindow(now)
-  for (const edition of editions) {
+  for (const warmPass of [true, false]) for (const edition of editions) {
     // Layoff outreach waits for its own 8 a.m. to noon weekday window; it stays SENDING with its recipients pending.
     if (edition.campaign === LAYOFF_OUTREACH_CAMPAIGN && !layoffWindowOpen) continue
-    const attachments = budget > 0 ? await attachmentFor(edition) : undefined
-    while (budget > 0) {
+    const canSend = () => budget > 0 && (warmPass || coldBudget > 0)
+    const attachments = canSend() ? await attachmentFor(edition) : undefined
+    while (canSend()) {
       const next = await prisma.mailingEditionRecipient.findFirst({
-        where: { editionId: edition.id, status: 'PENDING', excluded: false }, orderBy: [{ attempts: 'asc' }, { email: 'asc' }],
+        where: { editionId: edition.id, status: 'PENDING', excluded: false, warm: warmPass }, orderBy: [{ attempts: 'asc' }, { email: 'asc' }],
       })
       if (!next) break
       const suppressed = (await prisma.mailingSuppression.findUnique({ where: { email: next.email } })) || (next.personId && dne.personIds.has(next.personId))
@@ -329,6 +336,7 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
       })
       if (claimed.count === 0) continue
       budget--
+      if (!warmPass) coldBudget--
       try {
         const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id }, settings, attachments)
         if (error || !data) throw new Error(error?.message ?? 'no response from Resend')

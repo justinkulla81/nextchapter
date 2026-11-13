@@ -13920,6 +13920,8 @@ model MailingListPrompt {
 /// defaults apply until it exists.
 model MailingSettings {
   id            String   @id @default("singleton")
+  /// Emails a day that may go to people we have no warm signal for (see src/lib/mailing/warm.ts). Warm recipients are not held to it.
+  coldDailyCap  Int      @default(150)
   fromName      String   @default("Justin Kulla")
   fromEmail     String   @default("justin@updates.launchyournextchapter.com")
   replyTo       String   @default("justin@launchyournextchapter.com")
@@ -13980,6 +13982,8 @@ model MailingEdition {
   scheduledAt         DateTime?
   sendStartedAt       DateTime?
   sentAt              DateTime?
+  /// When the roster's warm flags were last worked out (src/lib/mailing/warm.ts); null = not yet.
+  warmMarkedAt        DateTime?
   createdByEmail      String?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
@@ -14024,6 +14028,8 @@ model MailingEditionRecipient {
   /// For ADDED_THIS_EDITION: lists to add them to once it is sent.
   alsoAddToListIds String[]               @default([])
 
+  /// A person we have a warm signal for (replied or opened before, or a known contact): sent first, not held to the cold daily cap.
+  warm           Boolean   @default(false)
   /// 'PENDING' | 'SENT' | 'FAILED' | 'SKIPPED'
   status         String    @default("PENDING")
   attempts       Int       @default(0)
