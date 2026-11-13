@@ -94,6 +94,21 @@
     "width": 1440,
     "height": 843
   },
+  "recruiter-candidate-status": {
+    "src": "/marketing/recruiter-candidate-status.webp",
+    "width": 1440,
+    "height": 921
+  },
+  "recruiter-candidates": {
+    "src": "/marketing/recruiter-candidates.webp",
+    "width": 1440,
+    "height": 870
+  },
+  "recruiter-inbound-page": {
+    "src": "/marketing/recruiter-inbound-page.webp",
+    "width": 1440,
+    "height": 900
+  },
   "recruiter-pipeline": {
     "src": "/marketing/recruiter-pipeline.webp",
     "width": 1440,

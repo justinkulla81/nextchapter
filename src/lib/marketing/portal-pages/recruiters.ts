@@ -12,27 +12,27 @@ import type { PortalPageDef } from './types'
 // Rewritten 2026-11-14 around the recruiter pilot (docs/recruiter-pilot-plan.md): the free branded résumé page and CRM lead; candidate search
 // and packets follow. Not claimed here until it is on: the Monday digest (TALENT_DIGEST_ENABLED).
 
-const search = shot('recruiter-search', {
-  title: 'Candidate search',
-  alt: 'A recruiter candidate search with filters, matching candidates, the number of references on file and how many are open to a call, and a button to ask for an introduction.',
-  why: 'Each row shows how much evidence is on file, so you can pick who to ask for an introduction, and each candidate decides.',
+const inbound = shot('recruiter-inbound-page', {
+  title: 'Your résumé page',
+  alt: 'A “Send your résumé” page in a firm’s logo and colors, with a box to drop a résumé and a button to send it to the firm.',
+  why: 'Candidates send their résumé to your page, and each one gets a free NextChapter profile, so you get the résumé and they get a plan.',
 })
-const packet = shot('recruiter-submission-packet', {
-  title: 'Submission packet and export',
-  alt: 'A submission packet in a firm’s logo with positioning, strengths and what references said, beside export file buttons and a list of what is never in the packet.',
-  why: 'The packet is built from a fixed list of fields taken from the candidate’s Dossier, so nothing else can reach it, and the export file uses each system’s own field names.',
+const candidates = shot('recruiter-candidates', {
+  title: 'Every candidate, sorted',
+  alt: 'A list of candidates sent to a firm’s page, each with a stage, a next-step date, a Fit or In your niche tag, the reason for the tag and the recruiter it went to.',
+  why: 'Each résumé is read and tagged against your specialties and open searches, and a next step turns orange on the day it is due.',
 })
-const pipeline = shot('recruiter-pipeline', {
-  title: 'Feedback and placement',
-  alt: 'A list of submissions moving through reviewed, screened, submitted, interviewed and placed, with a pass reason and the days since the last update.',
-  why: 'Every change is logged with a date, and the days since the last change show which candidates are going quiet.',
+const status = shot('recruiter-candidate-status', {
+  title: 'Stage, note and shared status',
+  alt: 'One candidate’s page with a stage, a next-step date and a note for the firm, a log of stage changes, and the search status the candidate chose to share.',
+  why: 'The stage and note are for your firm. The search status appears because the candidate chose to share it.',
 })
 
 export const RECRUITERS: PortalPageDef = {
   seo: {
     ...pageSeo('/recruiters'),
     path: '/recruiters',
-    image: { src: search.src, width: search.width, height: search.height, alt: search.alt },
+    image: { src: inbound.src, width: inbound.width, height: inbound.height, alt: inbound.alt },
   },
   content: {
     analyticsKey: 'recruiters',
@@ -49,7 +49,7 @@ export const RECRUITERS: PortalPageDef = {
       heading: 'What a recruiter sees',
       intro: 'These are screens from the recruiter workspace. Hartley Search and the candidates are invented.',
     },
-    visuals: [pipeline, search, packet],
+    visuals: [inbound, candidates, status],
     steps: [
       {
         title: 'Put your page on your site',
