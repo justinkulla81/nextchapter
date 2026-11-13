@@ -43,6 +43,6 @@ describe('workforce events beyond a plain layoff', () => {
     expect(co('Cambridge-based HubSpot announces 660 layoffs amid restructuring')).toBe('HubSpot')
     expect(co('Mobile publisher Fortis Games shuts down, up to 440 workers affected')).toBe('Fortis Games')
     expect(co('BT has cut nearly 12,000 jobs in a year, but why could more redundancies follow?')).toBe('BT')
-    for (const h of ['Almost 300 workers cut at plant', 'Staffing to cut nearly 700 Illinois jobs', 'Eiji Aonuma on Nintendo Layoffs: 10,977 Jobs Lost']) expect(co(h), h).toBeNull()
+    for (const h of ['Almost 300 workers cut at plant', 'Staffing to cut nearly 700 Illinois jobs', 'Eiji Aonuma on Nintendo Layoffs: 10,977 Jobs Lost', 'Fierce Biotech Layoff Tracker 2026: Vertex trims 78 employees', 'Largest Australian airline to cut 850 jobs, move work to India', 'Restaurants and bars cut 7,200 jobs in October', 'Staffing co. to cut nearly 700 Illinois jobs']) expect(co(h), h).toBeNull()
   })
 })
