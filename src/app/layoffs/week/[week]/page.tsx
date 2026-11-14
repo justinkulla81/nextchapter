@@ -31,7 +31,8 @@ async function load(week: string) {
   const current = currentWeekStart().getTime()
   if (monday.getTime() > current) return null
   if (monday.getTime() === current) return { redirect: true as const }
-  if (monday.getTime() < current - WEEKS_BACK * 7 * 86_400_000) return null
+  // A week older than the window had a page once and is still linked; send it to the list of weeks instead of a 404.
+  if (monday.getTime() < current - WEEKS_BACK * 7 * 86_400_000) return { redirect: 'index' as const }
   const [this_, prev] = await Promise.all([getWeekNotices(week), getWeekNotices(weekId(prevWeek(monday)))])
   if (!this_) return null
   return { redirect: false as const, monday, notices: this_.notices, prev: prev?.notices ?? [] }
@@ -40,7 +41,7 @@ async function load(week: string) {
 export async function generateMetadata({ params }: { params: Promise<{ week: string }> }): Promise<Metadata> {
   const { week } = await params
   const d = await load(week)
-  if (!d || d.redirect) return { title: 'Week not found', robots: { index: false, follow: true } }
+  if (!d || d.redirect !== false) return { title: 'Week not found', robots: { index: false, follow: true } }
   const workers = sum(d.notices)
   return {
     title: titleMeta(`Layoffs week of ${d.monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}: ${d.notices.length} layoff notices`),
@@ -54,6 +55,7 @@ export default async function WeekPage({ params }: { params: Promise<{ week: str
   const { week } = await params
   const d = await load(week)
   if (!d) notFound()
+  if (d.redirect === 'index') permanentRedirect('/layoffs/week')
   if (d.redirect) permanentRedirect('/layoffs/this-week')
   const { monday, notices, prev } = d
   const workers = sum(notices)
