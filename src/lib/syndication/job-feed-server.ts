@@ -60,20 +60,28 @@ export async function readFeedManifest(variant: FeedVariant = 'direct'): Promise
 
 export const feedPartUrl = (p: FeedPart) => publicObjectUrl(FEED_BUCKET, p.path)
 
-/** One shard's XML (its <job> elements) in pieces of at most JOBS_PER_PART jobs each. */
-export async function buildShardXml(shard: number, variant: FeedVariant = 'direct'): Promise<{ parts: { xml: string; jobs: number }[]; jobs: number }> {
+/**
+ * A part is rebuilt once it is this old: every other day. The feed route serves parts up to 72 hours old. Each rebuild reads every
+ * job in the shard with its full posting text (~5 KB a row), so building daily, and once per variant, read ~2 GB a day (Supabase
+ * egress overrun, 2026-11-13). Both variants are now built from one read, every other day: ~0.5 GB a day.
+ */
+const PART_REBUILD_AFTER_MS = 40 * 3600_000
+
+type ShardXml = { parts: { xml: string; jobs: number }[]; jobs: number }
+
+/** One shard's XML (its <job> elements) for each variant, in pieces of at most JOBS_PER_PART jobs, from one read of the rows. */
+export async function buildShardXml(shard: number, variants: FeedVariant[] = ['direct']): Promise<Partial<Record<FeedVariant, ShardXml>>> {
   const now = Date.now()
   const optOut = feedOptOutSet()
   const ids = (await feedJobIdsInShard(shard)).map((r) => r.id)
-  const parts: { xml: string; jobs: number }[] = []
-  let pieces: string[] = []
-  let jobs = 0
-  const push = (xml: string) => {
-    pieces.push(xml)
-    jobs++
-    if (pieces.length >= JOBS_PER_PART) {
-      parts.push({ xml: pieces.join(''), jobs: pieces.length })
-      pieces = []
+  const acc = new Map<FeedVariant, { parts: { xml: string; jobs: number }[]; pieces: string[]; jobs: number }>(variants.map((v) => [v, { parts: [], pieces: [], jobs: 0 }]))
+  const push = (variant: FeedVariant, xml: string) => {
+    const a = acc.get(variant)!
+    a.pieces.push(xml)
+    a.jobs++
+    if (a.pieces.length >= JOBS_PER_PART) {
+      a.parts.push({ xml: a.pieces.join(''), jobs: a.pieces.length })
+      a.pieces = []
     }
   }
   for (const part of chunk(ids, ROW_CHUNK)) {
@@ -83,14 +91,16 @@ export async function buildShardXml(shard: number, variant: FeedVariant = 'direc
       // Direct feed: the employer's apply link; a job without a usable one is left out.
       const url = r.directListing ? httpUrl(r.url) : null
       if (!url || isFeedOptedOut(r.companyName, optOut)) continue
-      if (variant === 'jooble') {
-        if (!isFreshForJooble(r, now)) continue
-        push(joobleJobXml(r, url))
-      } else push(feedJobXml(r, url))
+      if (acc.has('direct')) push('direct', feedJobXml(r, url))
+      if (acc.has('jooble') && isFreshForJooble(r, now)) push('jooble', joobleJobXml(r, url))
     }
   }
-  if (pieces.length > 0 || parts.length === 0) parts.push({ xml: pieces.join(''), jobs: pieces.length })
-  return { parts, jobs }
+  const out: Partial<Record<FeedVariant, ShardXml>> = {}
+  for (const [variant, a] of acc) {
+    if (a.pieces.length > 0 || a.parts.length === 0) a.parts.push({ xml: a.pieces.join(''), jobs: a.pieces.length })
+    out[variant] = { parts: a.parts, jobs: a.jobs }
+  }
+  return out
 }
 
 export interface JobFeedResult {
@@ -104,18 +114,21 @@ export interface JobFeedResult {
 }
 
 /**
- * Rebuilds feed parts, oldest first, while `budgetMs` lasts (always at least one).
- * `shards` limits it to those parts (a dry run on one shard, say). Dry run: nothing written.
+ * Rebuilds feed parts, oldest first, while `budgetMs` lasts (always at least one), for every variant from one read of each shard.
+ * Only parts older than PART_REBUILD_AFTER_MS are rebuilt, unless `shards` names them (a dry run on one shard, say). Dry run: nothing
+ * written. The result's counts are the first variant's.
  */
-export async function runJobFeed(opts: { dryRun?: boolean; budgetMs?: number; shards?: number[]; variant?: FeedVariant } = {}): Promise<JobFeedResult> {
-  const variant = opts.variant ?? 'direct'
-  const v = VARIANTS[variant]
+export async function runJobFeed(opts: { dryRun?: boolean; budgetMs?: number; shards?: number[]; variant?: FeedVariant; variants?: FeedVariant[] } = {}): Promise<JobFeedResult> {
+  const variants: FeedVariant[] = opts.variants ?? (opts.variant ? [opts.variant] : ['direct', 'jooble'])
   const started = Date.now()
   const dryRun = !!opts.dryRun
   const budget = opts.budgetMs ?? 600_000
-  const manifest: FeedManifest = (await readFeedManifest(variant)) ?? { v: 1, parts: [], updatedAt: new Date(0).toISOString() }
-  const builtAt = (s: number) => Date.parse(manifest.parts.find((p) => p.shard === s)?.builtAt ?? '') || 0
-  const order = (opts.shards ?? Array.from({ length: PUBLIC_JOB_SITEMAP_SHARDS }, (_, i) => i)).sort((a, b) => builtAt(a) - builtAt(b) || a - b)
+  const manifests = new Map<FeedVariant, FeedManifest>()
+  for (const variant of variants) manifests.set(variant, (await readFeedManifest(variant)) ?? { v: 1, parts: [], updatedAt: new Date(0).toISOString() })
+  // A shard is as old as its oldest variant's part.
+  const builtAt = (s: number) => Math.min(...variants.map((v) => Date.parse(manifests.get(v)!.parts.find((p) => p.shard === s)?.builtAt ?? '') || 0))
+  const all = opts.shards ?? Array.from({ length: PUBLIC_JOB_SITEMAP_SHARDS }, (_, i) => i).filter((s) => Date.now() - builtAt(s) > PART_REBUILD_AFTER_MS)
+  const order = [...all].sort((a, b) => builtAt(a) - builtAt(b) || a - b)
   const result: JobFeedResult = { dryRun, built: [], partsFresh: 0, totalJobs: 0, totalGzBytes: 0, timedOut: false }
   let slowest = 0
 
@@ -126,36 +139,44 @@ export async function runJobFeed(opts: { dryRun?: boolean; budgetMs?: number; sh
       break
     }
     const t = Date.now()
-    const { parts, jobs } = await buildShardXml(shard, variant)
-    const written: FeedPart[] = []
+    const xml = await buildShardXml(shard, variants)
     let rawBytes = 0
     let gzBytes = 0
-    for (const [sub, part] of parts.entries()) {
-      const raw = Buffer.from(part.xml, 'utf8')
-      const gz = await gzip(raw, { level: 6 })
-      rawBytes += raw.length
-      gzBytes += gz.length
-      if (!result.sampleXml && part.xml) result.sampleXml = part.xml.slice(0, part.xml.indexOf('</job>') + 7)
-      const path = `${v.prefix}${String(shard).padStart(2, '0')}-${sub}.xml.gz`
-      // Part names are stable, so they're read past the CDN cache by the feed route (?v=).
-      if (!dryRun) await putObject(FEED_BUCKET, path, gz, 'application/gzip')
-      written.push({ shard, sub, path, jobs: part.jobs, bytes: gz.length, builtAt: new Date().toISOString() })
-    }
-    if (!dryRun) {
-      manifest.parts = [...manifest.parts.filter((p) => p.shard !== shard), ...written].sort((a, b) => a.shard - b.shard || (a.sub ?? 0) - (b.sub ?? 0))
-      manifest.updatedAt = new Date().toISOString()
-      await putObject(FEED_BUCKET, v.manifest, Buffer.from(JSON.stringify(manifest)), 'application/json')
+    for (const variant of variants) {
+      const { parts } = xml[variant]!
+      const v = VARIANTS[variant]
+      const manifest = manifests.get(variant)!
+      const written: FeedPart[] = []
+      for (const [sub, part] of parts.entries()) {
+        const raw = Buffer.from(part.xml, 'utf8')
+        const gz = await gzip(raw, { level: 6 })
+        if (variant === variants[0]) {
+          rawBytes += raw.length
+          gzBytes += gz.length
+        }
+        if (!result.sampleXml && part.xml) result.sampleXml = part.xml.slice(0, part.xml.indexOf('</job>') + 7)
+        const path = `${v.prefix}${String(shard).padStart(2, '0')}-${sub}.xml.gz`
+        // Part names are stable, so they're read past the CDN cache by the feed route (?v=).
+        if (!dryRun) await putObject(FEED_BUCKET, path, gz, 'application/gzip')
+        written.push({ shard, sub, path, jobs: part.jobs, bytes: gz.length, builtAt: new Date().toISOString() })
+      }
+      if (!dryRun) {
+        manifest.parts = [...manifest.parts.filter((p) => p.shard !== shard), ...written].sort((a, b) => a.shard - b.shard || (a.sub ?? 0) - (b.sub ?? 0))
+        manifest.updatedAt = new Date().toISOString()
+        await putObject(FEED_BUCKET, v.manifest, Buffer.from(JSON.stringify(manifest)), 'application/json')
+      }
     }
     const ms = Date.now() - t
     slowest = Math.max(slowest, ms)
-    result.built.push({ shard, jobs, rawBytes, gzBytes, ms })
+    result.built.push({ shard, jobs: xml[variants[0]]!.jobs, rawBytes, gzBytes, ms })
   }
-  const parts = dryRun ? result.built.map((b) => ({ shard: b.shard, jobs: b.jobs, bytes: b.gzBytes, builtAt: new Date().toISOString() })) : manifest.parts
+  const first = manifests.get(variants[0])!
+  const parts = dryRun ? result.built.map((b) => ({ shard: b.shard, jobs: b.jobs, bytes: b.gzBytes, builtAt: new Date().toISOString() })) : first.parts
   // Counted per shard (a shard may be several parts).
-  result.partsFresh = new Set(parts.filter((p) => Date.now() - Date.parse(p.builtAt) < 36 * 3600_000).map((p) => p.shard)).size
+  result.partsFresh = new Set(parts.filter((p) => Date.now() - Date.parse(p.builtAt) < 72 * 3600_000).map((p) => p.shard)).size
   result.totalJobs = parts.reduce((n, p) => n + p.jobs, 0)
   result.totalGzBytes = parts.reduce((n, p) => n + p.bytes, 0)
-  console.log('Job feed run', { variant, ...result, sampleXml: undefined })
+  console.log('Job feed run', { variants, ...result, sampleXml: undefined })
   return result
 }
 

@@ -34,10 +34,6 @@
       "schedule": "50 5 * * *"
     },
     {
-      "path": "/api/cron/job-feed-jooble",
-      "schedule": "10 6 * * *"
-    },
-    {
       "path": "/api/cron/refresh-youtube-content",
       "schedule": "30 11 */2 * *"
     },
