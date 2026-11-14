@@ -6,7 +6,7 @@ import { withStatementTimeout } from '@/lib/db/statement-timeout'
 import { classifyLocation } from '@/lib/jobs/us-location'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import { isPublicJob, isStaleVerified } from '@/lib/jobs/public-job-page'
-import { PUBLIC_JOB_SELECT } from '@/lib/jobs/public-job-page-server'
+import { PUBLIC_JOB_LIST_SELECT, withDescriptionStubs } from '@/lib/jobs/public-job-page-server'
 import { parseScope } from '@/lib/leads/alert-scope'
 import { industryRawValues } from '@/lib/seo/topics'
 
@@ -168,10 +168,13 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
   const usRows = rows.filter((r) => classifyLocation(r.location) !== 'non_us')
 
   const [wide, ghosts] = await Promise.all([
-    prisma.exclusiveJobPosting.findMany({
-      where: { id: { in: usRows.map((r) => r.id) }, disclosure: 'OPEN' },
-      select: PUBLIC_JOB_SELECT,
-    }),
+    // The board never shows the posting text: read only the first characters isPublicJob checks (a full row is ~5 KB).
+    prisma.exclusiveJobPosting
+      .findMany({
+        where: { id: { in: usRows.map((r) => r.id) }, disclosure: 'OPEN' },
+        select: PUBLIC_JOB_LIST_SELECT,
+      })
+      .then(withDescriptionStubs),
     getConfirmedGhostIds(),
   ])
   const nowMs = Date.now()
