@@ -223,10 +223,10 @@ const nextConfig: NextConfig = {
         destination: '/layoffs/2026',
         permanent: true,
       })),
-      // 2025 has no layoff pages of its own (the year and month pages start at 2026). /layoffs/2025/august and the
-      // other months were 404ing and emailing the owner; send them to the year page.
-      { source: '/layoffs/2025', destination: '/layoffs/2026', permanent: true },
-      { source: '/layoffs/2025/:path+', destination: '/layoffs/2026', permanent: true },
+      // Years before 2026 have no layoff pages of their own (the year and month pages start at 2026). /layoffs/2025/august,
+      // /layoffs/2020/april and the like were 404ing and emailing the owner; send any earlier year to the 2026 page.
+      { source: '/layoffs/:year(20[0-1]\\d|202[0-5])', destination: '/layoffs/2026', permanent: true },
+      { source: '/layoffs/:year(20[0-1]\\d|202[0-5])/:path+', destination: '/layoffs/2026', permanent: true },
       // redirect-non-candidate.ts sends contest employers here after sign-in; the address has no page of its own.
       { source: '/noexperience/employers', destination: '/noexperience/employers/contests', permanent: false },
       // Retired 2026-10-23: the website shows plans, not prices.
