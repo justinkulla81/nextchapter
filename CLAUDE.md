@@ -70,8 +70,8 @@ about 250 GB a month, **about 8 GB a day for the whole site**. Before you ship a
 rows, estimate its data use (rows per run × bytes per row × runs a day; a full `ExclusiveJobPosting` row with its description is ~5 KB,
 a narrow row ~250 B) and put the figure in the PR. Anything over **0.5 GB a day needs the owner's OK before it ships**: tell them the
 figure and the trade-off (a slower refresh, a cache, fewer rows). Lists never read full posting text: use `PUBLIC_JOB_LIST_SELECT` with
-`withDescriptionStubs`. The daily `egress-watch` cron (`src/lib/perf/egress-watch.ts`) emails the owner when the day's estimate passes
-6 GB; treat that email as a bug to fix the same day.
+`withDescriptionStubs`. The hourly `egress-watch` cron (`src/lib/perf/egress-watch.ts`) emails the owner (at most once a day) when the
+rate passes 8 GB a day; treat that email as a bug to fix the same day.
 
 ## Vercel and Supabase: Claude does the operations work
 

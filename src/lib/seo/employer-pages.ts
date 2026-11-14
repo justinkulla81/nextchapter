@@ -81,6 +81,23 @@ function money(n: number): string {
   return n >= 1000 ? `$${Math.round(n / 1000)}k` : `$${n}`
 }
 
+/**
+ * Just what the share image prints: the name and two counts. The image used getEmployerBySlug, which reads the employer's 60 newest
+ * jobs, layoff and SEC counts and more, for every employer every day and after every deploy (Supabase egress overrun, 2026-11-13).
+ */
+export const getEmployerCardBySlug = cache(async (slug: string): Promise<{ name: string; openNow: number; opened90d: number } | null> => {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return null
+  const select = { id: true, name: true, canonicalNameNormalized: true, hiringProfile: { select: { openNow: true, opened90d: true } } } as const
+  let company = await prisma.company.findUnique({ where: { canonicalNameNormalized: canonicalFromEmployerSlug(slug) }, select })
+  const suffix = idSuffixFromSlug(slug)
+  if (!company && suffix) {
+    const candidate = await prisma.company.findFirst({ where: { id: { endsWith: suffix } }, select })
+    if (candidate && employerSlug(candidate.canonicalNameNormalized, candidate.id) === slug) company = candidate
+  }
+  if (!company || employerSlug(company.canonicalNameNormalized, company.id) !== slug) return null
+  return { name: company.name, openNow: company.hiringProfile?.openNow ?? 0, opened90d: company.hiringProfile?.opened90d ?? 0 }
+})
+
 export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPage | null> => {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return null
   const select = {

@@ -3,19 +3,24 @@ import { prisma } from '@/lib/prisma'
 import { createResend } from '@/lib/email/resend-client'
 import { emailDocument, escapeHtml } from '@/lib/help/email-layout'
 
-// Daily data budget check (owner decision 2026-11-14, after the Supabase egress quota cut the site off). The plan includes ~250 GB a
-// month, about 8 GB a day. Postgres does not count bytes sent, so this estimates them from pg_stat_statements: rows returned since
-// yesterday's snapshot, times a row width (a statement that reads the full posting text is ~5 KB a row, others ~250 B). It is an
-// estimate; the real figure is on the Usage page. When the day's estimate passes the alert line the admin gets an email naming the
+// Hourly data budget check (owner decisions 2026-11-14, after the Supabase egress quota cut the site off). The plan includes ~250 GB a
+// month, about 8 GB a day, and the owner is emailed as soon as the rate goes over that (at most once a day). Postgres does not count bytes sent, so this estimates them from pg_stat_statements: rows returned over the last
+// six hours or so, times a row width (a statement that reads the full posting text is ~5 KB a row, others ~250 B). It is an
+// estimate; the real figure is on the Usage page. When the rate, as GB a day, passes the alert line the admin gets an email naming the
 // statements behind it.
 
 const ADMIN_TO = process.env.HELP_FORWARD_TO || process.env.CONTACT_FORWARD_TO || 'justin@launchyournextchapter.com'
 const SUPPORT = 'support@launchyournextchapter.com'
 const SNAPSHOT_EVENT = 'db_egress_watch_snapshot'
+const ALERT_EVENT = 'db_egress_alert_sent'
+/** The rate is measured against the newest snapshot at least this old, so one busy hour is not read as a whole day. */
+const WINDOW_MS = 6 * 3600_000
+/** Snapshots older than this are deleted (one a run, ~20 KB each). */
+const SNAPSHOT_KEEP_MS = 2 * 24 * 3600_000
 const USAGE_PAGE = 'https://supabase.com/dashboard/org/cpdalvjctomuevzcijtn/usage#egress'
 const KEEP = 300
-/** Alert line in GB a day. The plan allows ~8; alerting at 6 leaves room to act. */
-export const EGRESS_ALERT_GB = Number(process.env.EGRESS_ALERT_GB) || 6
+/** Alert line in GB a day: the plan's ~8 GB a day (owner, 2026-11-14). */
+export const EGRESS_ALERT_GB = Number(process.env.EGRESS_ALERT_GB) || 8
 
 const FULL_TEXT_ROW_BYTES = 5_000
 const NARROW_ROW_BYTES = 250
@@ -60,19 +65,28 @@ export async function runEgressWatch(): Promise<{ estimatedGb: number; alerted: 
     return { skipped: 'pg_stat_statements is not readable' }
   }
 
-  const last = await prisma.analyticsEvent.findFirst({ where: { event: SNAPSHOT_EVENT }, orderBy: { createdAt: 'desc' }, select: { properties: true, createdAt: true } })
+  const now = Date.now()
+  // The newest snapshot at least WINDOW_MS old; in the first hours, the oldest there is (at least an hour old).
+  const last =
+    (await prisma.analyticsEvent.findFirst({ where: { event: SNAPSHOT_EVENT, createdAt: { lte: new Date(now - WINDOW_MS) } }, orderBy: { createdAt: 'desc' }, select: { properties: true, createdAt: true } })) ??
+    (await prisma.analyticsEvent.findFirst({ where: { event: SNAPSHOT_EVENT, createdAt: { lte: new Date(now - 3600_000) } }, orderBy: { createdAt: 'asc' }, select: { properties: true, createdAt: true } }))
   const prior = (last?.properties ?? null) as { totals?: Record<string, { rows: number; calls: number }> } | null
   const before = prior?.totals ?? null
   const totals = Object.fromEntries(rows.map((r) => [r.queryid, { rows: r.rows, calls: r.calls }]))
   await prisma.analyticsEvent.create({ data: { distinctId: 'system', event: SNAPSHOT_EVENT, properties: { totals } } })
+  await prisma.analyticsEvent.deleteMany({ where: { event: SNAPSHOT_EVENT, createdAt: { lt: new Date(now - SNAPSHOT_KEEP_MS) } } }).catch(() => undefined)
 
   const firstRun = before === null || !last
   if (firstRun) return { estimatedGb: 0, alerted: false, firstRun: true }
-  const hours = Math.max(1, (Date.now() - last.createdAt.getTime()) / 3_600_000)
+  const hours = Math.max(1, (now - last.createdAt.getTime()) / 3_600_000)
   const deltas = dailyDelta(rows, before)
   const perDay = (gb: number) => (gb * 24) / hours
   const estimatedGb = perDay(deltas.reduce((s, d) => s + d.gb, 0))
-  if (estimatedGb < EGRESS_ALERT_GB || !process.env.RESEND_API_KEY) return { estimatedGb: Math.round(estimatedGb * 10) / 10, alerted: false, firstRun: false }
+  const rounded = Math.round(estimatedGb * 10) / 10
+  if (estimatedGb < EGRESS_ALERT_GB || !process.env.RESEND_API_KEY) return { estimatedGb: rounded, alerted: false, firstRun: false }
+  // At most one email a day: the next one only if it is still over a day later.
+  const recent = await prisma.analyticsEvent.findFirst({ where: { event: ALERT_EVENT, createdAt: { gte: new Date(now - 24 * 3600_000) } }, select: { id: true } })
+  if (recent) return { estimatedGb: rounded, alerted: false, firstRun: false }
 
   const top = deltas.slice(0, 8)
   const tableRows = top
@@ -92,7 +106,7 @@ export async function runEgressWatch(): Promise<{ estimatedGb: number; alerted: 
     footer: `Daily estimate from pg_stat_statements (rows returned times a row width). The real egress figure is on the Usage page: ${USAGE_PAGE}.`,
     bodyHtml: `
       <p style="margin:0 0 6px;font-size:20px;font-weight:700;line-height:1.3">${escapeHtml(headline)}</p>
-      <p style="margin:0 0 14px;font-size:14px;color:#55606e">The plan includes about 8 GB a day (250 GB a month). Over that, Supabase bills extra or, with the spend cap on, cuts the site's database off. These statements sent the most:</p>
+      <p style="margin:0 0 14px;font-size:14px;color:#55606e">Measured over the last ${fmt(hours, 0)} hours. The plan includes about 8 GB a day (250 GB a month). Over that, Supabase bills extra or, with the spend cap on, cuts the site's database off. These statements sent the most:</p>
       <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="font-size:14px">${tableRows}</table>`,
   })
   const text =
@@ -101,5 +115,6 @@ export async function runEgressWatch(): Promise<{ estimatedGb: number; alerted: 
     `\n\nReal egress figure: ${USAGE_PAGE}`
   const { error } = await createResend(process.env.RESEND_API_KEY, 'admin').emails.send({ from: `NextChapter Support <${SUPPORT}>`, to: ADMIN_TO, subject: `Data use alert: about ${fmt(estimatedGb, 1)} GB a day`, html, text })
   if (error) console.error('Egress watch email failed:', error)
-  return { estimatedGb: Math.round(estimatedGb * 10) / 10, alerted: !error, firstRun: false }
+  else await prisma.analyticsEvent.create({ data: { distinctId: 'system', event: ALERT_EVENT, properties: { estimatedGb: rounded } } })
+  return { estimatedGb: rounded, alerted: !error, firstRun: false }
 }
