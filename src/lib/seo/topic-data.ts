@@ -7,7 +7,7 @@ import { readSnapshot } from '@/lib/seo/topic-snapshot'
 import { unstable_cache } from 'next/cache'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { PUBLIC_JOB_SELECT } from '@/lib/jobs/public-job-page-server'
+import { PUBLIC_JOB_LIST_SELECT, withDescriptionStubs } from '@/lib/jobs/public-job-page-server'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
 import { cleanEmployer } from '@/lib/warn/public-tracker'
@@ -112,7 +112,8 @@ async function loadJobs(f: JobFilter): Promise<TopicJobs> {
     : []
   const nByCompany = new Map(topEmployers.map((e) => [e.cid, e.n]))
   const empSorted = empRows.map((r) => ({ ...r, n: nByCompany.get(r.id) ?? 0 })).sort((x, y) => y.n - x.n).slice(0, 12)
-  const wide = await prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids.map((r) => r.id) } }, select: PUBLIC_JOB_SELECT })
+  // The list never shows the posting text: read only the first characters isPublicJob checks (a full row is ~5 KB).
+  const wide = await withDescriptionStubs(await prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids.map((r) => r.id) } }, select: PUBLIC_JOB_LIST_SELECT }))
   const byId = new Map(wide.map((w) => [w.id, w]))
   const now = Date.now()
   const rows = ids.flatMap((r) => {

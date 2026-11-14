@@ -20,7 +20,7 @@ vi.mock('@/lib/db/statement-timeout', () => ({
 }))
 vi.mock('@/lib/jobs/job-dismiss-server', () => ({ getConfirmedGhostIds: async () => new Set<string>() }))
 vi.mock('@/lib/jobs/public-job-page', () => ({ isPublicJob: () => true, isStaleVerified: () => false }))
-vi.mock('@/lib/jobs/public-job-page-server', () => ({ PUBLIC_JOB_SELECT: {} }))
+vi.mock('@/lib/jobs/public-job-page-server', () => ({ PUBLIC_JOB_LIST_SELECT: {}, withDescriptionStubs: async <T,>(rows: T[]) => rows }))
 vi.mock('@/lib/seo/topics', () => ({ industryRawValues: () => [] }))
 
 import { COUNT_CAP, searchPublicBoard } from '@/lib/jobs/public-board'

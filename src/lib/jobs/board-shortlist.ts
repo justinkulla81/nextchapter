@@ -82,15 +82,16 @@ const PER_COMPANY = 5
 // - Any other filter: its own rows from the wide table, keyed by the filter.
 //
 // Rows are read-only downstream; per-row work is memoised on them (rowFacts).
-const LIGHT_TTL_MS = 60_000
-const SHARED_STALE_MS = 5 * 60_000
+const LIGHT_TTL_MS = 5 * 60_000
+const SHARED_STALE_MS = 35 * 60_000
 /**
  * How old another instance's snapshot may be and still serve a refresh, whether or not the board changed since. Imports change the board
  * every few minutes, so "unchanged since" almost never held and each instance re-read the whole board (~370k rows, 19 pages) every minute
  * it was in use (about 4.7M BoardLightRow rows in 17 hours in pg_stat_statements, 2026-11-13). A held copy is already served up to
  * SHARED_STALE_MS old while a refresh loads, so three minutes is inside what members already see. Same build only (snapshotBuild).
  */
-const BOARD_SNAPSHOT_FRESH_MS = 3 * 60_000
+// Owner decision 2026-11-14 (Supabase egress over quota): 30 minutes. A new job reaches the board within half an hour.
+const BOARD_SNAPSHOT_FRESH_MS = 30 * 60_000
 /**
  * How old a snapshot another build wrote may be and still serve a cold or refreshing instance, whatever the board did since. Snapshots
  * survive a deploy (SNAPSHOT_SHAPES 'board-1'): a deploy used to send every instance back to the database for the whole board (~370k rows) at

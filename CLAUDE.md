@@ -53,11 +53,25 @@ why). A change that adds a card, tag, toggle or section to a candidate page must
 say what it removes. Build or change a page in `src/app/dev-preview/` first and
 look at a screenshot before wiring real data.
 
-## Ship it: merge and deploy without waiting
+## Ship it: merge, and let the twice-daily batch deploy it
 
-Owner rule (2026-11-06): when a change is ready, open the pull request, merge it with `[deploy-now]` in the title, watch the
-Vercel deployment until it is READY, and test the live page. Do not stop at a branch, a draft or a question. Say what you
-shipped and what you tested. The "ask first" cases under Vercel and Supabase (destructive or hard to undo) still apply.
+Owner rule (2026-11-06, changed 2026-11-14): when a change is ready, open the pull request and merge it. Do not put `[deploy-now]`
+in the title: production deploys go out in the batch at 01:05 and 13:05 UTC (`deploy-batch` cron, `scripts/vercel-ignore-build.sh`).
+About 750 one-at-a-time production deploys in the first half of November 2026 ran up the Vercel bill, and each one emptied the page
+caches and sent every server back to the database (part of the Supabase egress overrun that cut the site off on 2026-11-13).
+`[deploy-now]` is only for a fix to a site that is down or broken for users, or when the owner asks for it. After the batch deploy,
+test the live page and say what shipped. Do not stop at a branch, a draft or a question. The "ask first" cases under Vercel and
+Supabase (destructive or hard to undo) still apply. Preview deployments are not used: non-main branches never build.
+
+## Data budget: every feature states its GB a day
+
+Owner rule (2026-11-14), after Supabase cut the site's database off for using 1,260 GB against a 275 GB allowance. The plan includes
+about 250 GB a month, **about 8 GB a day for the whole site**. Before you ship a feature, cron, page type or query change that reads
+rows, estimate its data use (rows per run × bytes per row × runs a day; a full `ExclusiveJobPosting` row with its description is ~5 KB,
+a narrow row ~250 B) and put the figure in the PR. Anything over **0.5 GB a day needs the owner's OK before it ships**: tell them the
+figure and the trade-off (a slower refresh, a cache, fewer rows). Lists never read full posting text: use `PUBLIC_JOB_LIST_SELECT` with
+`withDescriptionStubs`. The daily `egress-watch` cron (`src/lib/perf/egress-watch.ts`) emails the owner when the day's estimate passes
+6 GB; treat that email as a bug to fix the same day.
 
 ## Vercel and Supabase: Claude does the operations work
 

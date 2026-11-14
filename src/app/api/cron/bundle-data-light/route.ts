@@ -1,4 +1,5 @@
 import { cronBundle } from '@/lib/cron/bundle'
+import { GET as egress_watch } from '../egress-watch/route'
 import { GET as ceo_speaking } from '../ceo-speaking/route'
 import { GET as higher_ed_nightly } from '../higher-ed-nightly/route'
 import { GET as catalog_seeds } from '../catalog-seeds/route'
@@ -12,6 +13,7 @@ import { GET as likely_openings } from '../likely-openings/route'
 export const maxDuration = 800
 
 export const GET = cronBundle({
+  'egress-watch': egress_watch,
   'ceo-speaking': ceo_speaking,
   'higher-ed-nightly': higher_ed_nightly,
   'catalog-seeds': catalog_seeds,

@@ -4,7 +4,7 @@ import { heavy, memoTtl } from '@/lib/db/heavy'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { PUBLIC_JOB_SELECT } from '@/lib/jobs/public-job-page-server'
+import { PUBLIC_JOB_LIST_SELECT, withDescriptionStubs } from '@/lib/jobs/public-job-page-server'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
 import { stateName, stateSlug } from '@/lib/seo/states'
@@ -219,7 +219,8 @@ function payText(min: number | null, max: number | null, period: string | null):
 /** The newest listings, re-checked against the full public-page rule so every one listed has a page. */
 export async function newestJobs(ids: string[], limit: number): Promise<TitleJob[]> {
   const [wide, ghosts] = await Promise.all([
-    prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids } }, select: PUBLIC_JOB_SELECT }),
+    // The list never shows the posting text: read only the first characters isPublicJob checks (a full row is ~5 KB).
+    prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids } }, select: PUBLIC_JOB_LIST_SELECT }).then(withDescriptionStubs),
     getConfirmedGhostIds(),
   ])
   const byId = new Map(wide.map((w) => [w.id, w]))
