@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { risingPages, usableQuery } from '@/lib/seo/rising-pages'
+import { risingPages, topSearchPages, usableQuery } from '@/lib/seo/rising-pages'
 
 const row = (page: string, query: string, impressions: number, position: number) => ({ page: `https://launchyournextchapter.com${page}`, query, clicks: 0, impressions, position })
 
@@ -53,5 +53,28 @@ describe('usableQuery', () => {
       { page: 'https://launchyournextchapter.com/employers/jobot', query: 'jobot jobs', clicks: 0, impressions: 12, position: 9 },
     ]
     expect(risingPages(rows, { limit: 5 })[0]?.query).toBe('jobot jobs')
+  })
+})
+
+describe('topSearchPages', () => {
+  const S = 'https://launchyournextchapter.com'
+  const row = (page: string, query: string, clicks: number, impressions = 100, position = 5) => ({ page: `${S}${page}`, query, clicks, impressions, position })
+  it('ranks pages by clicks, labels them with their top search, and leaves out job ads and pages with no clicks', () => {
+    const rows = [
+      row('/layoffs/company/apptegy', 'apptegy layoffs', 18),
+      row('/layoffs/company/apptegy', 'apptegy', 2, 900),
+      row('/conferences/mema-annual-conference', 'mema annual conference 2026', 7),
+      row('/jobs/cmvjxbwgy05jsjp0912wj9dju', 'senior associate', 40),
+      row('/employers/openkrill', 'openkrill', 0, 500),
+      row('/dashboard/home', 'nextchapter', 30),
+    ]
+    expect(topSearchPages(rows, { limit: 5 })).toEqual([
+      { path: '/layoffs/company/apptegy', query: 'apptegy layoffs', clicks: 20, impressions: 1000 },
+      { path: '/conferences/mema-annual-conference', query: 'mema annual conference 2026', clicks: 7, impressions: 100 },
+    ])
+  })
+  it('skips excluded paths and keeps the limit', () => {
+    const rows = [row('/functions/legal', 'legal jobs', 4), row('/functions/finance', 'finance jobs', 3), row('/topics/fired-vs-laid-off', 'fired vs laid off', 2)]
+    expect(topSearchPages(rows, { limit: 1, exclude: new Set(['/functions/legal']) }).map((p) => p.path)).toEqual(['/functions/finance'])
   })
 })

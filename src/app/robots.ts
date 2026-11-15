@@ -87,6 +87,8 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: ['Bytespider', 'Amazonbot', 'CCBot'], crawlDelay: 5, allow: '/', disallow },
     ],
     // The index lists /sitemap.xml and the job sitemaps (/jobs/sitemap/N.xml).
-    sitemap: [`${siteUrl}/sitemap-index.xml`, `${siteUrl}/sitemap.xml`],
+    // The layoff news sitemap (recent layoff pages, Google News format). It was in neither this list nor the sitemap index, so Google
+    // had no way to find it (2026-11-15).
+    sitemap: [`${siteUrl}/sitemap-index.xml`, `${siteUrl}/sitemap.xml`, `${siteUrl}/layoffs/news-sitemap.xml`],
   }
 }
