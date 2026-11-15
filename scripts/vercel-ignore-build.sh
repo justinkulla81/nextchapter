@@ -5,7 +5,8 @@
 # long tail of pages (billed ISR writes, plus the post-deploy warm-up). A main push therefore builds only:
 #   - inside the release window: minutes 00-29 of 01:00 and 13:00 UTC, when the deploy-batch cron (vercel.json) fires
 #     the deploy hook; or
-#   - when the head commit message contains [deploy-now], for an urgent fix.
+#   - when the head commit message contains [deploy-now], for an urgent fix; or
+#   - when the build has NC_DEPLOY_NOW=1 (an API deployment the owner asked for), so no commit is needed.
 # Other pushes to main are skipped and ship with the next window. Non-main branches never build.
 # Inside the window, a build is skipped only when nothing but docs/scripts/markdown, CI workflows and tests changed.
 # Any git error (or a missing previous SHA, as on a deploy-hook build) means build.
@@ -14,6 +15,9 @@
 case "$VERCEL_GIT_COMMIT_MESSAGE" in
   *"[deploy-now]"*) exit 1 ;;
 esac
+
+# The owner asked for a deploy now (CLAUDE.md "Ship it"): a deployment made through the Vercel API with this build variable.
+[ "$NC_DEPLOY_NOW" = "1" ] && exit 1
 
 hour=$(date -u +%H)
 minute=$(date -u +%M)
