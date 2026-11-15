@@ -61,3 +61,42 @@ export function risingPages(rows: PerfRow[], opts: RisingOptions): RisingPage[] 
   }
   return out.sort((a, b) => b.impressions - a.impressions || (a.path < b.path ? -1 : 1)).slice(0, opts.limit)
 }
+
+/**
+ * The pages Google already sends the most visitors to (Search Console clicks in the window), for the "Most read from search" links in
+ * the site footer and on the home page. Linking them from every public page tells Google they matter to us, the cheapest help for pages
+ * that ranked before the late-October drop. Single job pages are left out (they close within weeks), and so are pages outside these
+ * public sections. The link text is the search that brought the most clicks (else impressions), as typed.
+ */
+export const TOP_SEARCH_PREFIXES = [
+  '/layoffs/', '/employers/', '/conferences/', '/functions/', '/industries/', '/jobs/title/', '/jobs/entry-level/', '/topics/',
+  '/reports/', '/places/', '/salaries/', '/unemployment-benefits/', '/rankings/', '/tools/', '/resources/', '/network/company/',
+] as const
+const JOB_DETAIL = /^\/jobs\/c[a-z0-9]{20,}$/
+
+export interface TopSearchPage {
+  path: string
+  query: string
+  clicks: number
+  impressions: number
+}
+
+export function topSearchPages(rows: PerfRow[], opts: { limit: number; prefixes?: readonly string[]; exclude?: ReadonlySet<string> }): TopSearchPage[] {
+  const prefixes = opts.prefixes ?? TOP_SEARCH_PREFIXES
+  const by = new Map<string, { clicks: number; impressions: number; top: { query: string; clicks: number; impressions: number } }>()
+  for (const r of rows) {
+    const path = pathOf(r.page)
+    if (!path || JOB_DETAIL.test(path) || opts.exclude?.has(path)) continue
+    if (!prefixes.some((p) => path.startsWith(p) && path.length > p.length)) continue
+    const e = by.get(path) ?? { clicks: 0, impressions: 0, top: { query: '', clicks: -1, impressions: -1 } }
+    e.clicks += r.clicks
+    e.impressions += r.impressions
+    if (usableQuery(r.query) && (r.clicks > e.top.clicks || (r.clicks === e.top.clicks && r.impressions > e.top.impressions))) {
+      e.top = { query: r.query, clicks: r.clicks, impressions: r.impressions }
+    }
+    by.set(path, e)
+  }
+  const out: TopSearchPage[] = []
+  for (const [path, e] of by) if (e.clicks > 0 && e.top.query) out.push({ path, query: e.top.query, clicks: e.clicks, impressions: e.impressions })
+  return out.sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions || (a.path < b.path ? -1 : 1)).slice(0, opts.limit)
+}

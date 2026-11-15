@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+import { TopSearchLinks } from '@/components/marketing/FreshLinks'
 import { SiteNavMega } from './SiteNavMega'
 import { SiteFooterColumns } from './SiteFooterColumns'
 import Link from 'next/link'
@@ -28,6 +30,12 @@ export function PublicSiteFooter({ page, cta = true }: { cta?: boolean; page: 'a
     <footer className="bg-navy text-white">
       <div className="pt-12">
         <SiteFooterColumns tone="dark" />
+        {/* Every public page links the pages Google sends the most visitors to (FreshLinks.tsx TopSearchLinks). */}
+        <div className="mx-auto max-w-6xl px-6 pb-10">
+          <Suspense fallback={null}>
+            <TopSearchLinks limit={12} placement={`footer_${page}`} tone="dark" />
+          </Suspense>
+        </div>
       </div>
       <div className={`mx-auto max-w-4xl px-6 text-center ${cta ? 'py-16' : 'py-10'}`}>
         {cta && <FooterAsk page={page} />}

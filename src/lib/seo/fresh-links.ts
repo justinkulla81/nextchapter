@@ -5,7 +5,7 @@ import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { heavy } from '@/lib/db/heavy'
 import { loadSearchPerformance } from '@/lib/google/search-performance'
-import { risingPages } from '@/lib/seo/rising-pages'
+import { risingPages, topSearchPages } from '@/lib/seo/rising-pages'
 import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION } from '@/lib/jobs/public-job-page'
 import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_OFFERED_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
 
@@ -130,6 +130,33 @@ export async function getRisingSearchLinks(limit = 8, prefixes?: readonly string
     const perf = await loadSearchPerformance(28)
     if (perf.status !== 'ok') return []
     return risingPages(perf.rows, { limit, prefixes }).map((p) => ({
+      label: p.query.charAt(0).toUpperCase() + p.query.slice(1),
+      href: p.path,
+      kind: 'search' as const,
+      key: p.path,
+    }))
+  } catch {
+    return []
+  }
+}
+
+/** The pages Google sends the most visitors to (rising-pages.ts topSearchPages), linked with their top search as the text. Empty when Search Console cannot be read. */
+// The footer asks on every public page view. A Search Console failure is not cached by loadSearchPerformance, so each server holds the
+// last answer (empty included) for 10 minutes: an outage costs one call per server per 10 minutes, not one per page view.
+let topMemo: { at: number; rows: import('@/lib/seo/search-analysis').PerfRow[] } | null = null
+const TOP_MEMO_MS = 10 * 60_000
+
+async function topSearchRows(): Promise<import('@/lib/seo/search-analysis').PerfRow[]> {
+  if (topMemo && Date.now() - topMemo.at < TOP_MEMO_MS) return topMemo.rows
+  const perf = await loadSearchPerformance(28).catch(() => null)
+  topMemo = { at: Date.now(), rows: perf?.status === 'ok' ? perf.rows : [] }
+  return topMemo.rows
+}
+
+export async function getTopSearchLinks(limit = 12, exclude?: ReadonlySet<string>): Promise<FreshLink[]> {
+  try {
+    const rows = await topSearchRows()
+    return topSearchPages(rows, { limit, exclude }).map((p) => ({
       label: p.query.charAt(0).toUpperCase() + p.query.slice(1),
       href: p.path,
       kind: 'search' as const,

@@ -175,7 +175,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: titleMeta(titleText),
     description,
     // Without these the share card's caption on X, LinkedIn and Bluesky was the site-wide default for every employer.
-    openGraph: { type: 'article', siteName: 'NextChapter', locale: 'en_US', title: titleText, description, url: `https://launchyournextchapter.com/layoffs/company/${slug}` },
+    // The same date as the page's Article markup (dateModified), so search and share cards read the page as dated news.
+    openGraph: { type: 'article', siteName: 'NextChapter', locale: 'en_US', title: titleText, description, url: `https://launchyournextchapter.com/layoffs/company/${slug}`, modifiedTime: (ann && ann.latest > c.latest ? ann.latest : c.latest).toISOString() },
     twitter: { card: 'summary_large_image', title: titleText, description },
     ...canonical(`/layoffs/company/${slug}`),
     ...(stale && !(await shownInSearch(`/layoffs/company/${slug}`)) ? { robots: { index: false, follow: true } } : {}),
