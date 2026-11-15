@@ -25,6 +25,9 @@ export const OFF_PEAK_HOURS_UTC = [2, 3, 4, 5, 6, 7]
 export const FIRM_REFRESH_HOURS_UTC = [2, 5]
 export const firmRefreshAllowed = (now: number, manual = false): boolean => manual || FIRM_REFRESH_HOURS_UTC.includes(new Date(now).getUTCHours())
 
+/** Time left for topics after `usedMs` already spent in a run: at most 180 s, and stop starting topics by 250 s so one more (up to 40 s) still ends before the 300 s function limit. */
+export const topicBudgetMs = (usedMs: number): number => Math.max(0, Math.min(180_000, 250_000 - usedMs))
+
 export interface DueTopic<F> { f: F; key: string; at: number }
 
 /** Which topics to refresh now, stalest first. A manual run ignores the window. */
