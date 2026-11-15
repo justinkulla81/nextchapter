@@ -83,9 +83,9 @@ const nextConfig: NextConfig = {
         { source: `/prepared/${f.oldSlug}`, destination: `/prepared/${f.newSlug}`, permanent: true },
         { source: `/prepared/${f.oldSlug}/:path+`, destination: `/prepared/${f.newSlug}/:path+`, permanent: true },
       ]),
-      // /titles is a guessed address for the job titles index (a visitor typed it, 2026-11-14); it lives at /jobs/title.
-      { source: '/titles', destination: '/jobs/title', permanent: false },
-      { source: '/titles/:slug', destination: '/jobs/title/:slug', permanent: false },
+      // /titles is a guessed address for the job titles index (a visitor typed it, 2026-11-14); it lives at /jobs/title. Permanent (2026-11-15) so search engines credit /jobs/title.
+      { source: '/titles', destination: '/jobs/title', permanent: true },
+      { source: '/titles/:slug', destination: '/jobs/title/:slug', permanent: true },
       { source: '/membership', destination: '/alumni-plan', permanent: true },
       // The signed-in page followed: /dashboard/membership became /dashboard/alumni-plan (2026-11-04). Permanent, because emails already sent link to the old address.
       { source: '/dashboard/membership', destination: '/dashboard/alumni-plan', permanent: true },
