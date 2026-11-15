@@ -1,7 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
-import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
+import { buildOpeningRow, closeArchivedOpenings, sweepOpenOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
 import {
   AREA_SHRINK_K,
   BENCHMARK_WINDOW_DAYS,
@@ -448,9 +448,23 @@ export async function rebuildHiringProfilesPaged(ids: string[], opts: PagingOpti
 
 const PROFILE_PAGE = 1_000
 
+/** Where the last finished run's sweep of open openings stopped, from its ledger note; null (start at the top) when it left none. */
+export function sweepAfterFrom(detail: string | null | undefined): string | null {
+  if (!detail) return null
+  // The ledger keeps only the first 2,000 characters of a result, so the field is read on its own (it comes first) rather than by parsing it all.
+  const m = /^\{"sweepAfter":("(?:[^"\\]|\\.)*")/.exec(detail)
+  if (!m) return null
+  try {
+    const after = JSON.parse(m[1]) as unknown
+    return typeof after === 'string' && after ? after : null
+  } catch {
+    return null
+  }
+}
+
 /**
  * The nightly run, incremental: links and copies new postings, closes archived
- * ones, then prices and profiles only what changed since the last successful run
+ * ones (and sweeps a slice of every open opening for ones missed), then prices and profiles only what changed since the last successful run
  * plus one seventh of everything (so all of it is refreshed weekly). Benchmarks are
  * rebuilt on shard 0 (Sundays, UTC), before that night's repricing. Work that would
  * outrun the deadline waits for the next night.
@@ -458,7 +472,16 @@ const PROFILE_PAGE = 1_000
  * Skips the heavy steps while the ncrawl import is writing (a batch confirmed in the
  * last 10 minutes), so the two big writers never overlap.
  */
-export async function rebuildHiringIndex(opts: { since: Date | null; now?: Date; budgetMs?: number; onStep?: (step: string, ms: number) => void | Promise<void> }) {
+export async function rebuildHiringIndex(opts: {
+  since: Date | null
+  /** Where the last run's sweep of open openings stopped (sweepOpenOpenings); null starts at the top. */
+  sweepAfter?: string | null
+  /** Hears where the sweep stopped as soon as it does, before the later phases run. */
+  onSweep?: (after: string | null) => void
+  now?: Date
+  budgetMs?: number
+  onStep?: (step: string, ms: number) => void | Promise<void>
+}) {
   const now = opts.now ?? new Date()
   const started = Date.now()
   const deadline = started + (opts.budgetMs ?? 230_000)
@@ -491,7 +514,15 @@ export async function rebuildHiringIndex(opts: { since: Date | null; now?: Date;
   // Every night closes only the openings whose postings were archived since the last good run (less a day). Sundays used to sweep every
   // archived posting, but with ~900k of them the sweep's statements ran past the 2-minute statement timeout and failed the run (2026-11-08,
   // 11-09, 11-15); a sweep in bounded windows measured ~13 min, far past the budget. A failed run does not move `since`, so nothing is skipped.
-  const closed = await timed('close', () => closeArchivedOpenings({ deadline: started + 90_000, since: opts.since }), 0)
+  const closed = await timed('close', () => closeArchivedOpenings({ deadline: started + 60_000, since: opts.since }), 0)
+  // The catch-all for what that misses (a posting archived before its opening was copied, nights the close failed): a slice of a sweep of
+  // every open opening in bounded windows, resumed where the last run stopped. A whole pass takes ~13 min, so it is spread over the nights.
+  let sweep: { closed: number; windows: number; after: string | null } = { closed: 0, windows: 0, after: opts.sweepAfter ?? null }
+  sweep = await timed('sweep', async () => {
+    const r = await sweepOpenOpenings({ after: opts.sweepAfter ?? null, deadline: started + 110_000 })
+    opts.onSweep?.(r.after)
+    return r
+  }, sweep)
   const bench = shard === 0 ? await timed('benchmarks', () => rebuildPayBenchmarks(), null) : null
   const since = opts.since ?? new Date(0)
   const market = await timed('market', async () => priceOpeningsPaged(await openingIdsToPrice({ since, shard }), { deadline, pauseMs: 500 }), null)
@@ -500,5 +531,5 @@ export async function rebuildHiringIndex(opts: { since: Date | null; now?: Date;
   )
   const failed = Object.entries(errors)
   if (failed.length > 0) throw new Error(`company hiring index: ${failed.map(([phase, message]) => `${phase} failed after ${Math.round(ms[phase] / 1000)}s (${message})`).join('; ')}`)
-  return { shard, since: since.toISOString(), linked, synced, closed, bench, market, profiles, ms }
+  return { sweepAfter: sweep.after, shard, since: since.toISOString(), linked, synced, closed, sweep: { closed: sweep.closed, windows: sweep.windows }, bench, market, profiles, ms }
 }
