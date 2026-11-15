@@ -181,6 +181,8 @@ export async function closeArchivedOpenings(opts: { deadline?: number; since?: D
   // the old form restarted at the top of the url index every batch and got slower with each one, until a single statement ran
   // past the timeout (2026-11-09: "close failed after 120s"). With `since` (the nightly run) only postings archived since a day
   // before it are looked at, through the archivedAt index; without it (a first run, with no good run before it) every archived posting is.
+  // `p.url > $1` is spelled out: Postgres does not carry o.url > $1 across the join, so without it every batch walked the posting url index
+  // from the top again. sweepOpenOpenings is the bounded catch-all for what this misses.
   const BATCH = 5000
   const since = opts.since ? new Date(opts.since.getTime() - 86_400_000) : null
   let total = 0
@@ -193,7 +195,7 @@ export async function closeArchivedOpenings(opts: { deadline?: number; since?: D
         FROM "ExclusiveJobPosting" p
         JOIN "CompanyJobOpening" o ON o.url = p.url
         WHERE p."archivedAt" IS NOT NULL AND o."closedAt" IS NULL AND o."lastSeenAt" <= p."archivedAt"
-          AND o.url > $1 ${since ? 'AND p."archivedAt" >= $2' : ''}
+          AND o.url > $1 AND p.url > $1 ${since ? 'AND p."archivedAt" >= $2' : ''}
         ORDER BY o.url
         LIMIT ${BATCH}
       ), u AS (
@@ -210,5 +212,53 @@ export async function closeArchivedOpenings(opts: { deadline?: number; since?: D
     total += n
     if (n < BATCH || !rows[0]?.last || (opts.deadline && Date.now() > opts.deadline)) return total
     last = rows[0].last
+  }
+}
+
+/** Open openings looked at per sweep statement: about 8-15 s on a cold cache (measured 2026-11-15), far inside the 2-minute statement timeout. */
+export const SWEEP_WINDOW = 10_000
+
+/**
+ * The catch-all for openings the nightly pass missed (a run that failed, a posting archived before its opening was copied): walks the open
+ * openings in url order, a fixed window of SWEEP_WINDOW per statement, and closes those whose posting is archived. It replaces the Sunday
+ * sweep of every archived posting, which joined two 1.5M-row url indexes and ran past the 2-minute statement timeout every Sunday
+ * (2026-11-08, 11-09, 11-15): its last batch, finding few matches, walked both indexes to the end.
+ *
+ * Each statement costs the same however many openings it closes. The run stops at its deadline and returns where it stopped (`after`), so
+ * the next night carries on from there; null once it reaches the last opening, so the next night starts over from the top.
+ */
+export async function sweepOpenOpenings(opts: { after: string | null; deadline: number }): Promise<{ closed: number; windows: number; after: string | null }> {
+  let after = opts.after ?? ''
+  let closed = 0
+  let windows = 0
+  for (;;) {
+    const rows = await prisma.$queryRawUnsafe<{ seen: number; n: number; last: string | null }[]>(
+      `
+      WITH win AS (
+        SELECT o.id, o.url, o."lastSeenAt"
+        FROM "CompanyJobOpening" o
+        WHERE o."closedAt" IS NULL AND o.url > $1
+        ORDER BY o.url
+        LIMIT ${SWEEP_WINDOW}
+      ), batch AS (
+        SELECT w.id, p."archivedAt" AS at, p."closeReason" AS reason
+        FROM win w JOIN "ExclusiveJobPosting" p ON p.url = w.url
+        WHERE p."archivedAt" IS NOT NULL AND w."lastSeenAt" <= p."archivedAt"
+      ), u AS (
+        UPDATE "CompanyJobOpening" o
+        SET "closedAt" = b.at, "closeReason" = b.reason, "updatedAt" = now()
+        FROM batch b WHERE o.id = b.id
+        RETURNING o.id
+      )
+      SELECT (SELECT count(*)::int FROM win) AS seen, (SELECT count(*)::int FROM u) AS n, (SELECT max(url) FROM win) AS last
+      `,
+      after
+    )
+    windows++
+    const { seen = 0, n = 0, last = null } = rows[0] ?? {}
+    closed += n
+    if (seen < SWEEP_WINDOW || !last) return { closed, windows, after: null }
+    after = last
+    if (Date.now() > opts.deadline) return { closed, windows, after }
   }
 }
