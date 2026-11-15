@@ -149,32 +149,49 @@ export async function findLightRowsPage(
   return prisma.exclusiveJobPosting.findMany({ where: paged, select, orderBy: { id: 'asc' }, take })
 }
 
+/** The closed postings are grouped in this many slices (by company), one statement and one progress note each. */
+export const CLOSED_GROUP_SLICES = 8
+
+export type ClosedPostingGroup = { companyName: string; title: string; location: string | null; count: number }
+
+// One slice: the companies whose normalised name hashes to `slice`. Normalised the way repostKey is (trimmed, lower case, runs of
+// spaces made one), so every spelling that folds into one key lands in the same slice and keeps the same order as one big grouping.
+const closedSliceSql = (table: 'BoardLightRow' | 'ExclusiveJobPosting') => `
+  SELECT "companyName", title, location, count(*)::int AS count
+  FROM "${table}"
+  WHERE "archivedAt" IS NOT NULL
+    AND (hashtext(lower(regexp_replace(btrim("companyName"), '\\s+', ' ', 'g'))) & ${CLOSED_GROUP_SLICES - 1}) = $1
+  GROUP BY 1, 2, 3
+  ORDER BY 1, 2, 3`
+
 /**
  * Closed (archived) postings per company + title + location, the input to
- * ghost risk. Ordered, so callers that fold groups differing only in case or
- * spacing into one key always keep the same one.
+ * ghost risk, handed over one slice of companies at a time. Ordered within a
+ * slice, and every spelling of one company is in the same slice, so callers
+ * that fold groups differing only in case or spacing into one key always keep
+ * the same one.
+ *
+ * In slices since 2026-11-15: the nightly snapshot job stalled twice without
+ * finishing its one ~740k-row grouping (and without a trace of where). A slice
+ * is about an eighth of that, and onSlice hears each one, so a stall names its slice.
  */
-export async function groupClosedPostings(): Promise<{ companyName: string; title: string; location: string | null; count: number }[]> {
-  if (await boardLightRowsReady()) {
+export async function groupClosedPostings(
+  onSlice: (rows: ClosedPostingGroup[], slice: number) => void | Promise<void>
+): Promise<void> {
+  let table: 'BoardLightRow' | 'ExclusiveJobPosting' = (await boardLightRowsReady()) ? 'BoardLightRow' : 'ExclusiveJobPosting'
+  const read = (slice: number) => prisma.$queryRawUnsafe<ClosedPostingGroup[]>(closedSliceSql(table), slice)
+  for (let slice = 0; slice < CLOSED_GROUP_SLICES; slice++) {
+    let rows: ClosedPostingGroup[]
     try {
-      const rows = await prisma.boardLightRow.groupBy({
-        by: ['companyName', 'title', 'location'],
-        where: { archivedAt: { not: null } },
-        _count: { _all: true },
-        orderBy: [{ companyName: 'asc' }, { title: 'asc' }, { location: 'asc' }],
-      })
-      return rows.map((r) => ({ companyName: r.companyName, title: r.title, location: r.location, count: r._count._all }))
+      rows = await read(slice)
     } catch (error) {
-      console.error('Board light rows: closed-postings read failed, reading the wide table', error)
+      if (table !== 'BoardLightRow') throw error
+      console.error('Board light rows: closed-postings read failed, reading the wide table from slice', slice, error)
+      table = 'ExclusiveJobPosting'
+      rows = await read(slice)
     }
+    await onSlice(rows, slice)
   }
-  const rows = await prisma.exclusiveJobPosting.groupBy({
-    by: ['companyName', 'title', 'location'],
-    where: { archivedAt: { not: null } },
-    _count: { _all: true },
-    orderBy: [{ companyName: 'asc' }, { title: 'asc' }, { location: 'asc' }],
-  })
-  return rows.map((r) => ({ companyName: r.companyName, title: r.title, location: r.location, count: r._count._all }))
 }
 
 const RECONCILE_PAGE = 20_000

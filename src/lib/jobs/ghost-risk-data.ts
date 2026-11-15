@@ -2,7 +2,7 @@ import 'server-only'
 import { gunzipSync, gzipSync } from 'node:zlib'
 import { prisma } from '@/lib/prisma'
 import { LIKELY_AGE_DAYS, repostKey, STILL_LISTED_DAYS } from '@/lib/jobs/ghost-risk'
-import { groupClosedPostings } from '@/lib/jobs/board-light-rows'
+import { CLOSED_GROUP_SLICES, groupClosedPostings } from '@/lib/jobs/board-light-rows'
 
 // How many times each company + title + location has been posted and closed. Grouping the closed postings (tens of thousands of
 // rows) took 16-25 s on a cold server instance (measured on the job page), so the nightly job (cron closed-posting-snapshot) groups them
@@ -10,18 +10,24 @@ import { groupClosedPostings } from '@/lib/jobs/board-light-rows'
 // snapshot yet, or it is too old (the nightly job has been failing), does an instance group the closed postings itself.
 // An hour: ghost risk turns on days of age and closures, and every instance re-read ~20k rows each time this expired.
 const TTL_MS = 60 * 60 * 1000
-/** A snapshot older than this is not trusted: the nightly job has stopped, so the live grouping is the better answer. */
-export const SNAPSHOT_MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000
+/**
+ * A snapshot older than this is not used, and an instance groups the closed postings itself. Two weeks, not three days (2026-11-15):
+ * closures pile up slowly, so a week-old count is nearly as good, while every instance re-grouping ~740k rows each hour is the kind of
+ * read that ran the database past its data allowance. A failing nightly job emails the owner long before this runs out.
+ */
+export const SNAPSHOT_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000
 const KEEP_SNAPSHOTS = 3
 let cache: { at: number; counts: Promise<Map<string, number>> } | null = null
 
 /** Groups the closed postings now (slow). The nightly job calls this; readers only do when there is no usable snapshot. */
-export async function computeClosedPostingCounts(): Promise<Map<string, number>> {
+export async function computeClosedPostingCounts(onSlice?: (slice: number) => void | Promise<void>): Promise<Map<string, number>> {
   // From the narrow BoardLightRow copy when it's there (board-light-rows.ts) — the
-  // same rows; the wide table took ~7 s to group.
-  const rows = await groupClosedPostings()
+  // same rows; the wide table took ~7 s to group. One slice of companies at a time.
   const counts = new Map<string, number>()
-  for (const r of rows) counts.set(repostKey(r.companyName, r.title, r.location), r.count)
+  await groupClosedPostings(async (rows, slice) => {
+    for (const r of rows) counts.set(repostKey(r.companyName, r.title, r.location), r.count)
+    await onSlice?.(slice)
+  })
   // A collapsed second copy of a live role (closeReason 'duplicate', job-status.ts) is
   // archived but never closed: it must not count as the role closing before.
   try {
@@ -98,7 +104,7 @@ export async function rebuildClosedPostingSnapshot(onStep?: (step: string, ms: n
     await onStep?.(step, now - at)
     at = now
   }
-  const counts = await computeClosedPostingCounts()
+  const counts = await computeClosedPostingCounts((slice) => lap(`grouped slice ${slice + 1} of ${CLOSED_GROUP_SLICES}`))
   await lap('grouped')
   const packed = packClosedPostingCounts(counts)
   await lap('packed')

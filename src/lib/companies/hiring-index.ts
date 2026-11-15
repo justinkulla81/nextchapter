@@ -488,8 +488,10 @@ export async function rebuildHiringIndex(opts: { since: Date | null; now?: Date;
 
   const linked = await timed('link', () => linkUnlinkedPostings(1000), 0)
   const synced = await timed('sync', () => syncBoardOpenings(5000), 0)
-  // Sundays (shard 0) sweep every archived posting; the other nights only those archived since the last good run.
-  const closed = await timed('close', () => closeArchivedOpenings({ deadline: started + 90_000, since: shard === 0 ? null : opts.since }), 0)
+  // Every night closes only the openings whose postings were archived since the last good run (less a day). Sundays used to sweep every
+  // archived posting, but with ~900k of them the sweep's statements ran past the 2-minute statement timeout and failed the run (2026-11-08,
+  // 11-09, 11-15); a sweep in bounded windows measured ~13 min, far past the budget. A failed run does not move `since`, so nothing is skipped.
+  const closed = await timed('close', () => closeArchivedOpenings({ deadline: started + 90_000, since: opts.since }), 0)
   const bench = shard === 0 ? await timed('benchmarks', () => rebuildPayBenchmarks(), null) : null
   const since = opts.since ?? new Date(0)
   const market = await timed('market', async () => priceOpeningsPaged(await openingIdsToPrice({ since, shard }), { deadline, pauseMs: 500 }), null)
