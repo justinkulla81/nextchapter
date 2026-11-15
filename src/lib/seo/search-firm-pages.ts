@@ -199,7 +199,8 @@ interface PostingRow { jid: string; fn: string | null; state: string | null; ind
 /** Company ids per batch: 100 ids read in 0.9 s through the (companyId, lastVerifiedAt) index on 2026-11-12. */
 export const FIRM_COMPANY_BATCH = 100
 const FIRMS_STAGE_MS = 20_000
-const SEARCH_FIRM_POSTINGS_STAGE_MS = 90_000
+// 90 s was too tight on a cold cache: the 02:41 attempt on 11-14 stopped at 91 s and the 05:41 attempt (warm) succeeded.
+export const SEARCH_FIRM_POSTINGS_STAGE_MS = 150_000
 const COMPANY_BATCH_STAGE_MS = 30_000
 
 /**
