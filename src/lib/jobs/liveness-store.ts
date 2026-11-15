@@ -89,7 +89,7 @@ export async function hotPostingUrls(limit: number): Promise<string[]> {
       SELECT "postingId", 1 FROM "FreshJobAlertSend" WHERE "sentAt" > now() - interval '7 days'
     )
     SELECT p.url FROM t JOIN "ExclusiveJobPosting" p ON p.id = t.id
-    WHERE p."archivedAt" IS NULL AND p."addedBy" = 'ncrawl'
+    WHERE p."archivedAt" IS NULL AND p."addedBy" IN ('ncrawl', 'bulk_import')
     GROUP BY p.url ORDER BY sum(t.w) DESC LIMIT ${limit}
   `
   return rows.map((r) => r.url)

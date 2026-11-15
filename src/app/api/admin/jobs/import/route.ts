@@ -152,6 +152,9 @@ interface ImportJobInput {
   // From the employer's own careers site / ATS (ncrawl master-list.py direct_listing): never
   // aged out by posted date while the crawl still sends it. Optional; left out, the row keeps it.
   directListing?: boolean
+  // Bulk imports from employers' job systems (scripts/jobsreport/import): 'bulk_import' marks new rows so the crawler's full-sync
+  // finalize (addedBy 'ncrawl') never archives them. Honoured on create only; any other value is ignored.
+  addedBy?: 'bulk_import'
 }
 
 interface ImportRequestBody {
@@ -535,7 +538,7 @@ export async function POST(request: NextRequest) {
         ...rowData(k),
         companyId: companyIds.get(rowData(k).companyName) ?? null,
         url: k.job.url,
-        addedBy: 'ncrawl',
+        addedBy: k.job.addedBy === 'bulk_import' ? 'bulk_import' : 'ncrawl',
         source: 'ats_feed',
         status: 'approved',
         postingType: 'direct',
