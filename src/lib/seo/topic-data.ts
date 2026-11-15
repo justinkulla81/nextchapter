@@ -1,4 +1,5 @@
 import 'server-only'
+import { pagesShownInSearch } from '@/lib/seo/shown-in-search'
 import { createHash } from 'node:crypto'
 import { cache } from 'react'
 import { heavy, memoTtl, sharedLoad } from '@/lib/db/heavy'
@@ -6,7 +7,7 @@ import { readSnapshot } from '@/lib/seo/topic-snapshot'
 import { unstable_cache } from 'next/cache'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { PUBLIC_JOB_SELECT } from '@/lib/jobs/public-job-page-server'
+import { PUBLIC_JOB_LIST_SELECT, withDescriptionStubs } from '@/lib/jobs/public-job-page-server'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
 import { cleanEmployer } from '@/lib/warn/public-tracker'
@@ -25,6 +26,7 @@ import {
   CRAWLER_INDUSTRY_BUCKET,
   INDUSTRIES,
   associationSlug,
+  conferencePath,
   bucketFromIndustryText,
   bucketFromWarn,
   type JobRule,
@@ -110,7 +112,8 @@ async function loadJobs(f: JobFilter): Promise<TopicJobs> {
     : []
   const nByCompany = new Map(topEmployers.map((e) => [e.cid, e.n]))
   const empSorted = empRows.map((r) => ({ ...r, n: nByCompany.get(r.id) ?? 0 })).sort((x, y) => y.n - x.n).slice(0, 12)
-  const wide = await prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids.map((r) => r.id) } }, select: PUBLIC_JOB_SELECT })
+  // The list never shows the posting text: read only the first characters isPublicJob checks (a full row is ~5 KB).
+  const wide = await withDescriptionStubs(await prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids.map((r) => r.id) } }, select: PUBLIC_JOB_LIST_SELECT }))
   const byId = new Map(wide.map((w) => [w.id, w]))
   const now = Date.now()
   const rows = ids.flatMap((r) => {
@@ -384,7 +387,7 @@ const cachedConferenceExtras = unstable_cache(loadConferenceExtras, ['conference
 
 /** id -> assessment for every published conference, from the rows alone (no per-page queries), so the sitemap and the page agree. */
 export const getConferenceAssessments = cache(async (): Promise<Map<string, Assessment>> => {
-  const [catalog, associations, extras] = await Promise.all([getCatalogIndex(), getAssociations(), cachedConferenceExtras().catch(() => [] as [string, { employers: number; speakers: number }][])])
+  const [catalog, associations, extras, shown] = await Promise.all([getCatalogIndex(), getAssociations(), cachedConferenceExtras().catch(() => [] as [string, { employers: number; speakers: number }][]), pagesShownInSearch()])
   const extraById = new Map(extras)
   const assocSlugs = new Set(associations.map((a) => a.slug))
   const perIndustry = new Map<string, number>()
@@ -399,7 +402,9 @@ export const getConferenceAssessments = cache(async (): Promise<Map<string, Asse
     const e = extraById.get(c.id)
     const hasLists = !!e && (e.employers > 0 || e.speakers > 0)
     const topUpcoming = c.importance === 1 && c.datesConfirmed && !!c.startDate && new Date(c.startDate).getTime() >= Date.now() - 86_400_000
-    out.set(c.id, hasLists || topUpcoming ? a : { ...a, indexable: false })
+    // A conference Google already shows in search keeps its index tag whatever the bar says (src/lib/seo/shown-in-search.ts).
+    const inSearch = shown.has(conferencePath(c.id))
+    out.set(c.id, hasLists || topUpcoming || inSearch ? (inSearch ? { ...a, indexable: true } : a) : { ...a, indexable: false })
   }
   return out
 })

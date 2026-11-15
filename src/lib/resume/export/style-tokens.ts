@@ -36,6 +36,15 @@ export interface ResumeTemplateStyleTokens {
 
   marginInches: number
 
+  // Layout of the page, still one column. 'inline' (the default) puts "Title — Company" on one line with the
+  // dates opposite. 'stacked' puts the employer and its location on the first line and the title and dates
+  // on the second, which is how most traditional and executive resumes are set.
+  layout?: 'inline' | 'stacked'
+  // Where the name and contact line sit. Default 'left'.
+  headerAlign?: 'left' | 'center'
+  // A thin rule under each section heading. Default false.
+  headingRule?: boolean
+
   // Space before a heading is exactly 2.5x space after, per spec. Stored
   // as the "after" value; "before" is derived (never hand-entered) so the
   // ratio can't drift between templates.

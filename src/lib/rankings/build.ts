@@ -133,7 +133,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     const { stats, totals } = await loadSkillStats()
     for (const spec of specs) {
       const ed = rankSkills(spec, stats, totals, edition, builtAt, await prevRanksOf(spec.slug))
-      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+      if (ed) built.push({ ed, spec })
+      else skipped.push(spec.slug)
     }
     // The industry lists build in this group too: one more pass over the board, no city work.
     const industries = industrySpecs()
@@ -141,7 +142,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     const industryStats = await loadIndustryStats()
     for (const spec of industries) {
       const ed = rankIndustries(spec, industryStats, edition, builtAt, await prevRanksOf(spec.slug))
-      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+      if (ed) built.push({ ed, spec })
+      else skipped.push(spec.slug)
     }
   } else if (group === 'industry') {
     const codes = INDUSTRIES.map((i) => i.code)
@@ -162,7 +164,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
         slice.push({ ...b, n: r.n, paid: r.paid, payMed: r.payMed, cityN: b.n, entry: 0, ai: 0, remote: 0, eng: 0, engPaid: 0, engPay: null, mid: 0, exec: 0 })
       }
       const ed = rankCities(spec, slice, infoOf, ctx, edition, builtAt, await prevRanksOf(spec.slug))
-      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+      if (ed) built.push({ ed, spec })
+      else skipped.push(spec.slug)
     }
   } else if (group === 'profile') {
     const [citiesRaw, entities, cityRows, socGroups, premiums, socs, groups, degreeEntities, degreeCityRows] = await Promise.all([loadCityStats(), loadEntityStats(), loadProfileCityRows(), loadSocGroups(), loadAiPayPremium().catch(() => []), loadSocStats(), loadGroupStats(), loadDegreeEntities(), loadDegreeCityRows()])
@@ -175,7 +178,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     specs = profileSpecs()
     for (const spec of specs) {
       const ed = rankProfile(spec, data, edition, builtAt, await prevRanksOf(spec.slug))
-      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+      if (ed) built.push({ ed, spec })
+      else skipped.push(spec.slug)
     }
     // The degree lists build in this group too: their reads join postings to the BLS occupation table.
     const degreeData = { socs, groups, entities: degreeEntities, cityRows: degreeCityRows, base: data.base, info: infoOf }
@@ -183,7 +187,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     specs = [...specs, ...degrees]
     for (const spec of degrees) {
       const ed = rankDegrees(spec, degreeData, edition, builtAt, await prevRanksOf(spec.slug))
-      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+      if (ed) built.push({ ed, spec })
+      else skipped.push(spec.slug)
     }
   } else if (group === 'support') {
     const [rawCounties, ajc, states, events, flex] = await Promise.all([loadCountyStats(), loadAjcByCounty(), loadStateFacts(), loadConferenceEvents(), loadFlexStats()])
@@ -199,7 +204,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     specs = supportSpecs()
     for (const spec of specs) {
       const ed = rankSupport(spec, data, edition, builtAt, await prevRanksOf(spec.slug))
-      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+      if (ed) built.push({ ed, spec })
+      else skipped.push(spec.slug)
     }
     // The employer hiring lists build in this group too: one more pass over the board, no city work.
     const [employers, growth] = await Promise.all([loadEmployerStats(), loadEmployerGrowth()])
@@ -208,7 +214,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     specs = [...specs, ...employerLists]
     for (const spec of employerLists) {
       const ed = rankEmployers(spec, { employers, growth, href }, edition, builtAt, await prevRanksOf(spec.slug))
-      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+      if (ed) built.push({ ed, spec })
+      else skipped.push(spec.slug)
     }
   } else if (group === 'workforce') {
     const raw = await loadCountyStats()
@@ -218,7 +225,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     specs = workforceSpecs()
     for (const spec of specs) {
       const ed = rankCounties(spec, counties, edition, builtAt, await prevRanksOf(spec.slug))
-      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+      if (ed) built.push({ ed, spec })
+      else skipped.push(spec.slug)
     }
   } else if (group === 'college') {
     const [citiesRaw, { colleges, collegeCities }] = await Promise.all([loadCityStats(), loadColleges()])
@@ -235,7 +243,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
       const ed = spec.measure === 'collegepay'
         ? rankColleges(spec, colleges, edition, builtAt, prev)
         : rankCities(spec, towns, infoOf, { costOf: () => null }, edition, builtAt, prev)
-      ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+      if (ed) built.push({ ed, spec })
+      else skipped.push(spec.slug)
     }
   } else {
     const [citiesRaw, extra] = await Promise.all([
@@ -265,7 +274,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
           slice.push({ ...b, n: r.n, paid: r.paid, payMed: r.payMed, cityN: b.n, entry: 0, ai: 0, remote: 0, eng: 0, engPaid: 0, engPay: null, mid: 0, exec: 0 })
         }
         const ed = rankCities(spec, slice, infoOf, ctx, edition, builtAt, await prevRanksOf(spec.slug))
-        ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+        if (ed) built.push({ ed, spec })
+        else skipped.push(spec.slug)
       }
     } else {
       const hrefs = await countyHrefs([...new Set((extra as CountyStat[]).map((c) => c.st))])
@@ -281,7 +291,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
           : m === 'perunemp' ? rankCounties(spec, countiesJobs, edition, builtAt, prev)
           : m === 'growth' || m === 'infogrowth' ? rankCounties(spec, counties, edition, builtAt, prev)
           : rankCities(spec, cities, infoOf, ctx, edition, builtAt, prev)
-        ed ? built.push({ ed, spec }) : skipped.push(spec.slug)
+        if (ed) built.push({ ed, spec })
+        else skipped.push(spec.slug)
       }
     }
   }

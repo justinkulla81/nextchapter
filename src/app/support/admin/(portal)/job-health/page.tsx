@@ -4,6 +4,7 @@ import { UNHEALTHY, type JobHealth } from '@/lib/cron/health'
 import { RANKINGS_GROUPS, RERUN_SAFE_JOBS } from '@/lib/cron/schedule'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { runJobNow } from './actions'
+import { ConfirmSendNow } from './ConfirmSendNow'
 import { pct, readJobSearchHealth } from '@/lib/syndication/job-search-health'
 
 export const maxDuration = 300
@@ -152,6 +153,8 @@ export default async function JobHealthPage() {
                           Run now
                         </SubmitButton>
                       </form>
+                    ) : s.job === 'job-search-daily' ? (
+                      <ConfirmSendNow />
                     ) : (
                       <span className="text-muted-foreground">Emails people, so it only runs on schedule</span>
                     )}
@@ -164,7 +167,7 @@ export default async function JobHealthPage() {
       )}
 
       <p className="text-sm">
-        A failed or cut-off data-sync job is retried once automatically. Jobs that email people are never retried or run by hand, so nothing is sent twice. The checker itself is the <code>job-health</code> job, which runs every 15 minutes. If it shows as overdue, nothing is watching the others.
+        A failed or cut-off data-sync job is retried once automatically. Jobs that email people are never retried automatically and only run by hand when they skip anyone already sent today (Job Search Daily), so nothing is sent twice. The checker itself is the <code>job-health</code> job, which runs every 15 minutes. If it shows as overdue, nothing is watching the others.
       </p>
     </div>
   )

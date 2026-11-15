@@ -6,7 +6,7 @@ vi.mock('next/server', () => ({ after: (fn: () => void) => fn() }))
 vi.mock('@/lib/db/heavy', () => ({ heavy: (f: () => unknown) => f(), sharedLoad: (_k: string, _t: number, f: () => unknown) => f() }))
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 
-import { dueTopics, firmRefreshAllowed, SNAPSHOT_MAX_AGE_MS, SNAPSHOT_PEAK_MAX_AGE_MS } from '@/lib/seo/topic-snapshot'
+import { dueTopics, firmRefreshAllowed, topicBudgetMs, SNAPSHOT_MAX_AGE_MS, SNAPSHOT_PEAK_MAX_AGE_MS } from '@/lib/seo/topic-snapshot'
 
 const H = 3600_000
 const now = Date.UTC(2026, 10, 9, 12)
@@ -33,5 +33,15 @@ describe('firmRefreshAllowed', () => {
   })
   it('a manual run always tries', () => {
     expect(firmRefreshAllowed(at(14), true)).toBe(true)
+  })
+})
+
+describe('topicBudgetMs', () => {
+  it('gives topics the full 180 s when nothing else ran', () => {
+    expect(topicBudgetMs(0)).toBe(180_000)
+  })
+  it('takes the firm build out of the budget and never goes negative', () => {
+    expect(topicBudgetMs(150_000)).toBe(100_000)
+    expect(topicBudgetMs(400_000)).toBe(0)
   })
 })

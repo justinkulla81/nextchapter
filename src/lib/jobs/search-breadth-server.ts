@@ -59,17 +59,18 @@ import { memberHasSkill } from '@/lib/jobs/job-skill-gap'
 //   A job imported since the last refresh is classified by its title alone until then.
 
 const SIMILARITY_TTL_MS = 60 * 60_000
-const JOB_SOC_TTL_MS = 10 * 60_000
-const JOB_SOC_STALE_MS = 60 * 60_000
+const JOB_SOC_TTL_MS = 60 * 60_000
+const JOB_SOC_STALE_MS = 7 * 60 * 60_000
 /** How old a snapshot another build wrote may be and still be used: a deploy can change what is derived from the rows (the industry buckets). */
-const JOB_SOC_OTHER_BUILD_MAX_MS = 30 * 60_000
+const JOB_SOC_OTHER_BUILD_MAX_MS = 6 * 60 * 60_000
 /**
  * How old the shared snapshot may be and still serve an instance, whether or not the board changed since. The board changes every few
  * minutes (imports), so the "unchanged board" rule almost never held and each instance read the whole job table every ten minutes
  * (448 pages of ~20k rows at ~10 s each in pg_stat_statements, a slow-pages alert on 2026-11-12). A job imported since is classified
  * by its title until the next refresh, as above, so a half-hour-old read costs nothing a ten-minute-old one didn't.
  */
-const JOB_SOC_SNAPSHOT_FRESH_MS = 30 * 60_000
+// Owner decision 2026-11-14 (Supabase egress over quota): six hours. A job imported since is classified by its title until then.
+const JOB_SOC_SNAPSHOT_FRESH_MS = 6 * 60 * 60_000
 /** An instance refreshing a copy it already holds waits up to this long, then looks for another instance's snapshot before reading the database itself. */
 const JOB_SOC_REFRESH_JITTER_MS = 20_000
 

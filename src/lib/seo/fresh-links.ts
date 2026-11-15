@@ -5,7 +5,7 @@ import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { heavy } from '@/lib/db/heavy'
 import { loadSearchPerformance } from '@/lib/google/search-performance'
-import { risingPages } from '@/lib/seo/rising-pages'
+import { risingPages, topSearchPages } from '@/lib/seo/rising-pages'
 import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION } from '@/lib/jobs/public-job-page'
 import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_OFFERED_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
 
@@ -44,6 +44,47 @@ export async function getFreshLayoffLinks(limit: number = LAYOFF_LINKS): Promise
     .sort((a, b) => b.at - a.at || (b.workers ?? 0) - (a.workers ?? 0))
     .slice(0, limit)
     .map((x) => ({ label: `${x.name} layoffs`, href: `/layoffs/company/${x.slug}`, kind: 'layoff' as const, key: x.slug }))
+}
+
+const BIG_LAYOFF_WORKERS = 1000
+const BIG_LAYOFF_DAYS = 7
+
+/**
+ * Big layoffs first (owner, 2026-11-13): employers cutting at least 1,000 jobs in the last week, largest first, with the number in the
+ * link. "<company> layoffs" searches peak in the first days, and the homepage and the layoff hub are the pages Google rechecks most.
+ * Pure so the window and the sum can be tested; the loader below reads the same shared notices and announcements as the list above.
+ */
+export function bigLayoffs(
+  notices: { slug: string; employer: string; noticeDate: string; workers: number | null }[],
+  announcements: { slug: string; name: string; items: { date: Date; workers: number | null; summary?: string }[] }[],
+  now: number,
+  limit = 8,
+): FreshLink[] {
+  const since = now - BIG_LAYOFF_DAYS * 86_400_000
+  const by = new Map<string, { name: string; workers: number }>()
+  for (const n of notices) {
+    if (!n.slug || !n.workers || Date.parse(n.noticeDate) < since) continue
+    const prev = by.get(n.slug)
+    by.set(n.slug, { name: prev?.name ?? n.employer, workers: (prev?.workers ?? 0) + n.workers })
+  }
+  for (const a of announcements) {
+    // Only a confirmed figure leads the homepage: a single unconfirmed report ("Voestalpine: 150,000", 2026-11-13) can be far off.
+    const top = Math.max(0, ...a.items.filter((i) => i.date.getTime() >= since && i.workers && !/unconfirmed/i.test(i.summary ?? '')).map((i) => i.workers as number))
+    if (!a.slug || top === 0) continue
+    const prev = by.get(a.slug)
+    // A press report and a filing are usually the same cut: keep the larger figure, never the sum.
+    if (!prev || top > prev.workers) by.set(a.slug, { name: prev?.name ?? a.name, workers: top })
+  }
+  return [...by.entries()]
+    .filter(([, v]) => v.workers >= BIG_LAYOFF_WORKERS && v.name)
+    .sort((a, b) => b[1].workers - a[1].workers)
+    .slice(0, limit)
+    .map(([slug, v]) => ({ label: `${v.name} layoffs: ${v.workers.toLocaleString('en-US')} jobs`, href: `/layoffs/company/${slug}`, kind: 'layoff' as const, key: slug }))
+}
+
+export async function getBigLayoffLinks(limit = 8): Promise<FreshLink[]> {
+  const [notices, announcements] = await Promise.all([getRecentNotices().catch(() => []), getAnnouncements().catch(() => new Map())])
+  return bigLayoffs(notices, [...announcements.values()], Date.now(), limit)
 }
 
 // The newest jobs that are in the job sitemap (public page, real posting text, live, offered to search engines): the same rules as
@@ -89,6 +130,33 @@ export async function getRisingSearchLinks(limit = 8, prefixes?: readonly string
     const perf = await loadSearchPerformance(28)
     if (perf.status !== 'ok') return []
     return risingPages(perf.rows, { limit, prefixes }).map((p) => ({
+      label: p.query.charAt(0).toUpperCase() + p.query.slice(1),
+      href: p.path,
+      kind: 'search' as const,
+      key: p.path,
+    }))
+  } catch {
+    return []
+  }
+}
+
+/** The pages Google sends the most visitors to (rising-pages.ts topSearchPages), linked with their top search as the text. Empty when Search Console cannot be read. */
+// The footer asks on every public page view. A Search Console failure is not cached by loadSearchPerformance, so each server holds the
+// last answer (empty included) for 10 minutes: an outage costs one call per server per 10 minutes, not one per page view.
+let topMemo: { at: number; rows: import('@/lib/seo/search-analysis').PerfRow[] } | null = null
+const TOP_MEMO_MS = 10 * 60_000
+
+async function topSearchRows(): Promise<import('@/lib/seo/search-analysis').PerfRow[]> {
+  if (topMemo && Date.now() - topMemo.at < TOP_MEMO_MS) return topMemo.rows
+  const perf = await loadSearchPerformance(28).catch(() => null)
+  topMemo = { at: Date.now(), rows: perf?.status === 'ok' ? perf.rows : [] }
+  return topMemo.rows
+}
+
+export async function getTopSearchLinks(limit = 12, exclude?: ReadonlySet<string>): Promise<FreshLink[]> {
+  try {
+    const rows = await topSearchRows()
+    return topSearchPages(rows, { limit, exclude }).map((p) => ({
       label: p.query.charAt(0).toUpperCase() + p.query.slice(1),
       href: p.path,
       kind: 'search' as const,

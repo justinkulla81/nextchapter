@@ -154,7 +154,11 @@ export function MailingComposer({
     }
   }
 
-  const toggle = (ids: string[], excluded: boolean) => {
+  const toggle = (allIds: string[], excluded: boolean) => {
+    // Risky addresses stay off whatever is ticked (owner, 2026-11-13).
+    const risky = new Set(recipients.filter((r) => r.excludedReason === 'risky_address').map((r) => r.id))
+    const ids = allIds.filter((id) => !risky.has(id))
+    if (ids.length === 0) return
     setRecipients((rs) => rs.map((r) => (ids.includes(r.id) ? { ...r, excluded, excludedReason: excluded ? 'unchecked' : null } : r)))
     run(async () => { await setRecipientsExcluded(edition.id, ids, excluded) })
   }
@@ -351,7 +355,7 @@ export function MailingComposer({
                   return (
                     <tr key={r.id} className={`border-t border-border ${r.excluded ? 'text-muted-foreground' : ''}`}>
                       <td className="px-3 py-1.5">
-                        <input type="checkbox" checked={!r.excluded} disabled={locked} onChange={() => toggle([r.id], !r.excluded)} aria-label={`Send to ${r.name ?? r.email}`} />
+                        <input type="checkbox" checked={!r.excluded} disabled={locked || r.excludedReason === 'risky_address'} onChange={() => toggle([r.id], !r.excluded)} aria-label={`Send to ${r.name ?? r.email}`} />
                       </td>
                       <td className="px-3 py-1.5">{r.name ?? '—'}{r.orgName && <span className="block text-xs text-muted-foreground">{r.orgName}</span>}</td>
                       <td className="px-3 py-1.5">{r.email}</td>
@@ -366,6 +370,7 @@ export function MailingComposer({
                         {r.excludedReason === 'already_got_version' && (r.manualSentAt ? `Got another version on ${fmtDate(r.manualSentAt)}` : 'Got another version')}
                         {r.excludedReason === 'unsubscribed' && 'Unsubscribed'}
                         {r.excludedReason === 'suppressed' && 'Address bounced or complained'}
+                        {r.excludedReason === 'risky_address' && 'Not mailed: Hunter can’t confirm this address (catch-all or undecided)'}
                         {r.source === 'ADDED_THIS_EDITION' && !locked && (
                           <button type="button" onClick={() => run(async () => { await removeAddedRecipient(edition.id, r.id); setRecipients((rs) => rs.filter((x) => x.id !== r.id)) })} className="ml-2 text-xs text-muted-foreground underline">
                             Remove

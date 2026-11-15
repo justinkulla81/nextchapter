@@ -81,6 +81,7 @@ export default async function LayoffsHubPage() {
           <section aria-labelledby="use-data" className="mt-12 rounded-xl border border-border bg-white p-6">
             <h2 id="use-data" className="text-xl font-semibold tracking-tight text-navy">Use the layoff data</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
+              <li><Link href="/layoffs/company" className={LINK}>Companies with layoffs, A to Z</Link>: every employer with a layoff in the last 12 months.</li>
               <li><Link href="/layoffs/2026" className={LINK}>Layoffs 2026</Link>: every month, state, industry and company in one page.</li>
               <li><Link href="/layoffs/this-week" className={LINK}>Layoffs this week</Link>: notices filed in the last seven days.</li>
               <li><Link href="/layoffs/week" className={LINK}>Layoffs by week</Link>, every week of the last two years.</li>

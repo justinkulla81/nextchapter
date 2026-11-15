@@ -34,6 +34,8 @@ export interface RosterInput {
   manualSends: Map<string, Date>
   /** email → when another version of this edition reached them. */
   versionSends?: Map<string, Date>
+  /** Addresses Hunter calls risky (catch-all or undecided): never mailed (owner, 2026-11-13). */
+  risky?: Set<string>
 }
 
 export interface RosterCounts {
@@ -43,7 +45,7 @@ export interface RosterCounts {
   total: number
 }
 
-export function computeRoster({ members, existing, suppressed, manualSends, versionSends = new Map() }: RosterInput): RosterRow[] {
+export function computeRoster({ members, existing, suppressed, manualSends, versionSends = new Map(), risky = new Set() }: RosterInput): RosterRow[] {
   const base = new Map<string, { personId: string | null; lists: Set<string> }>()
   for (const m of members) {
     if (m.status !== 'ACTIVE' || suppressed.has(m.email)) continue
@@ -60,6 +62,15 @@ export function computeRoster({ members, existing, suppressed, manualSends, vers
     const prev = byEmail.get(email)
     const manual = b.personId ? manualSends.get(b.personId) : undefined
     const earlier = versionSends.get(email)
+    const pending = (prev?.status ?? 'PENDING') === 'PENDING'
+    // A risky address is held back even over a composer choice: it is the one rule a tick in the composer cannot override.
+    if (pending && risky.has(email)) {
+      out.push({
+        email, personId: b.personId ?? prev?.personId ?? null, source: 'BASE', excluded: true, excludedReason: 'risky_address',
+        fromListKeys: [...b.lists].sort(), alsoAddToListIds: prev?.alsoAddToListIds ?? [], status: 'PENDING',
+      })
+      continue
+    }
     out.push({
       email,
       personId: b.personId ?? prev?.personId ?? null,
@@ -84,7 +95,9 @@ export function computeRoster({ members, existing, suppressed, manualSends, vers
       ...r,
       ...(suppressed.has(r.email) && r.status === 'PENDING'
         ? { excluded: true, excludedReason: 'suppressed' }
-        : {}),
+        : risky.has(r.email) && r.status === 'PENDING'
+          ? { excluded: true, excludedReason: 'risky_address' }
+          : {}),
     })
   }
   return out

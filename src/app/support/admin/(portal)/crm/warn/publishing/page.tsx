@@ -57,7 +57,6 @@ function ButtonGroup<T extends string>({ label, options, current, make }: { labe
 }
 
 function IndexActions({ r }: { r: PublishingRow }) {
-  const url = `${SITE_URL}${r.path}`
   return (
     <div className="flex flex-wrap gap-1">
       <a href={searchConsoleLink()} target="_blank" rel="noopener noreferrer" className={ACT} title="Opens Search Console. Paste the address into the box at the top, press Enter, then choose Request indexing.">Open Search Console</a>

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { parseResumeDocument } from '@/lib/resume/studio/document'
 import { ResumeEditor } from '@/components/dashboard/resume-studio/ResumeEditor'
+import type { ImportReportView } from '@/components/dashboard/resume-studio/VersionPanel'
 import { EmptyState } from '@/components/ui/empty-state'
 import { FileText } from 'lucide-react'
 import { Squiggle } from '@/components/ui/squiggle'
@@ -31,6 +32,9 @@ export default async function ResumeDraftPage({ params }: { params: Promise<{ id
           initialDocument={parsed.data}
           initialJobDescription={draft.jobDescription ?? ''}
           savedAt={draft.updatedAt.toISOString()}
+          initialKind={draft.kind}
+          initialTargetLabel={draft.targetLabel ?? ''}
+          importReport={draft.kind === 'ORIGINAL' ? (draft.importReport as ImportReportView | null) : null}
         />
       ) : (
         <EmptyState

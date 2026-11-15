@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, cleanCompanyText, isIndexableJob, liveJobSitemapShards, isPublicJob, isStaleVerified, isViewableJob, jobPostingJsonLd, missingRequiredJobFields, payLabel, plausiblePay, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
+import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, cleanCompanyText, isIndexableJob, jobPageIndexable, liveJobSitemapShards, isPublicJob, isStaleVerified, isViewableJob, jobPostingJsonLd, missingRequiredJobFields, payLabel, plausiblePay, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
 
 const NOW = Date.parse('2026-10-22T12:00:00Z')
 const DAY = 86_400_000
@@ -233,4 +233,21 @@ describe('isViewableJob', () => {
     expect(isViewableJob(stale({ directListing: true, closeReason: 'filled' }), NOW)).toBe(false)
   })
   it('leaves isPublicJob (the search engine set) at 14 days', () => expect(isPublicJob(stale({ directListing: true }), NOW)).toBe(false))
+})
+
+describe('jobPageIndexable', () => {
+  const now = Date.now()
+  const fresh = new Date(now - 2 * 86_400_000)
+  const short = 'x'.repeat(400)
+  it('keeps the index tag on a short employer job Google already shows', () => {
+    expect(jobPageIndexable(job({ directListing: true, description: short, lastVerifiedAt: fresh }), true, now)).toBe(true)
+    expect(jobPageIndexable(job({ directListing: true, description: short, lastVerifiedAt: fresh }), false, now)).toBe(false)
+  })
+  it('never indexes an aggregator job or a job past the confirmation window, shown or not', () => {
+    expect(jobPageIndexable(job({ directListing: false, sourceCategory: 'aggregator', description: 'x'.repeat(4000), lastVerifiedAt: fresh }), true, now)).toBe(false)
+    expect(jobPageIndexable(job({ directListing: true, description: 'x'.repeat(4000), lastVerifiedAt: new Date(now - 20 * 86_400_000) }), true, now)).toBe(false)
+  })
+  it('still indexes a full-text employer job without Search Console', () => {
+    expect(jobPageIndexable(job({ directListing: true, description: 'x'.repeat(4000), lastVerifiedAt: fresh }), false, now)).toBe(true)
+  })
 })

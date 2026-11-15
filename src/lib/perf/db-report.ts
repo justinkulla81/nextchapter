@@ -122,7 +122,6 @@ async function readIo(): Promise<IoCounters | null> {
   }
 }
 
-const th = 'padding:0 0 6px;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#55606e;text-align:left'
 const queryCell = (q: string) => `<td style="padding:6px 12px 6px 0;vertical-align:top;font-size:12px;line-height:1.45;font-family:ui-monospace,Menlo,monospace;word-break:break-all">${escapeHtml(q)}</td>`
 const section = (title: string, blurb: string, rows: string) => `
   <p style="margin:22px 0 4px;font-size:16px;font-weight:700;line-height:1.3">${escapeHtml(title)}</p>

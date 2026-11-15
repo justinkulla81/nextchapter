@@ -130,7 +130,6 @@ export const bingSubmitBody = (urls: string[]) => ({ siteUrl: `${SITE_URL}/`, ur
 // Shared by NextChapter's own careers feeds (src/lib/careers/job-feed.ts).
 
 // Characters XML 1.0 forbids (control characters, lone surrogates, U+FFFE/F).
-// eslint-disable-next-line no-control-regex
 const INVALID_XML = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uD800-\uDFFF￾￿]/g
 
 export function cdata(value: string | null | undefined): string {

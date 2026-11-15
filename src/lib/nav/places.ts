@@ -1,7 +1,7 @@
 // What the candidate menu is made of (the places themselves are in redesign-places.ts): tabs, the
 // menu rules that show, lock or hide them by the member's situation, paid access, and menu entries.
 
-import { itemVisibility, seniorDemoted, seniorItemVisibility, statusUnlock, NO_SENIOR_OVERLAY, type MenuItemKey, type MenuMode, type SeniorOverlay } from '@/lib/journey/menu'
+import { seniorDemoted, seniorItemVisibility, statusUnlock, NO_SENIOR_OVERLAY, type MenuItemKey, type MenuMode, type SeniorOverlay } from '@/lib/journey/menu'
 
 export interface PlaceTab {
   label: string

@@ -1,6 +1,5 @@
 import 'server-only'
 import { unstable_cache } from 'next/cache'
-import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { heavy } from '@/lib/db/heavy'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'

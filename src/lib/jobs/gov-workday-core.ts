@@ -3,7 +3,7 @@ import { isUsLocation } from '@/lib/jobs/us-location'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import { decodeEntities, htmlToText, USER_AGENT, type FeedPosting } from '@/lib/jobs/gov-feed-core'
 import { isRelevantTitle } from '@/lib/jobs/gov-titles'
-import type { BoardAdapter, BoardPost } from '@/lib/jobs/gov-board-core'
+import type { BoardAdapter } from '@/lib/jobs/gov-board-core'
 import { GOV_WORKDAY_BOARDS } from '@/lib/jobs/gov-workday-boards'
 
 // Government employers on Workday: the public job-list and job-detail JSON that each Workday career site itself uses

@@ -81,6 +81,23 @@ function money(n: number): string {
   return n >= 1000 ? `$${Math.round(n / 1000)}k` : `$${n}`
 }
 
+/**
+ * Just what the share image prints: the name and two counts. The image used getEmployerBySlug, which reads the employer's 60 newest
+ * jobs, layoff and SEC counts and more, for every employer every day and after every deploy (Supabase egress overrun, 2026-11-13).
+ */
+export const getEmployerCardBySlug = cache(async (slug: string): Promise<{ name: string; openNow: number; opened90d: number } | null> => {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return null
+  const select = { id: true, name: true, canonicalNameNormalized: true, hiringProfile: { select: { openNow: true, opened90d: true } } } as const
+  let company = await prisma.company.findUnique({ where: { canonicalNameNormalized: canonicalFromEmployerSlug(slug) }, select })
+  const suffix = idSuffixFromSlug(slug)
+  if (!company && suffix) {
+    const candidate = await prisma.company.findFirst({ where: { id: { endsWith: suffix } }, select })
+    if (candidate && employerSlug(candidate.canonicalNameNormalized, candidate.id) === slug) company = candidate
+  }
+  if (!company || employerSlug(company.canonicalNameNormalized, company.id) !== slug) return null
+  return { name: company.name, openNow: company.hiringProfile?.openNow ?? 0, opened90d: company.hiringProfile?.opened90d ?? 0 }
+})
+
 export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPage | null> => {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return null
   const select = {
@@ -152,10 +169,11 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
 export const EMPLOYER_SITEMAP_SHARD_SIZE = 10_000
 /**
  * Whether the employer pages (/employers/<name>) are offered to Google in the sitemap index. Off since 2026-11-04 so Google's small crawl
- * allowance goes to the lists, tools and layoff pages first. Only what we announce changes: the pages stay up and indexable, and the ones Google
+ * allowance goes to the lists, tools and layoff pages first. Back on 2026-11-13: employer pages were the second-biggest search source and
+ * their search visits fell from 132 to 16 a week after they left; Crawl stats showed no crawl shortage. Only what we announce changes: the pages stay up and indexable, and the ones Google
  * already has stay in its index. Set to true to bring the files back (they are listed in src/app/sitemap-index.xml/route.ts).
  */
-export const EMPLOYER_PAGES_IN_SITEMAP = false
+export const EMPLOYER_PAGES_IN_SITEMAP = true
 
 /** A layoff notice (filing or announcement) tied to the company in the last two years. */
 const HAS_SEC_EVENT = `EXISTS (SELECT 1 FROM "CompanyEvent" e WHERE e."companyId" = c.id AND e."eventDate" >= now() - interval '2 years')`

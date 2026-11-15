@@ -27,7 +27,7 @@ export async function runNeogovFeed(): Promise<SitemapFeedResult> {
     titleOk: isRelevantTitle,
     minJobs: 20_000, // a short or broken sitemap must not archive real postings
     maxNewPerRun: 1500,
-    timeBudgetMs: 120_000,
+    timeBudgetMs: 100_000,
     loadJobs: async () => {
       const xml = await fetchText(SITEMAP_URL, 90_000)
       return xml ? parseSitemap(xml) : []

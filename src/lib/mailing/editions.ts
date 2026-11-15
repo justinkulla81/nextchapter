@@ -5,9 +5,12 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { markWarmRecipients } from './warm'
 import { computeRoster, rosterCounts, type RosterRow } from './roster'
 import { renderEmail } from './render'
 import { tagMailingLinks } from '@/lib/marketing/email-attribution'
+import { layoffPacing, nextLayoffRecipient } from './layoff-pacing'
+import { domainOf } from './layoff-pacing-rules'
 import { makeUnsubscribeToken } from './unsubscribe-token'
 import { addToLists, doNotEmailPeople, getMailingSettings, syncWebsiteSignups } from './lists'
 import { withAudienceHtml, withAudienceText, type EmailAudience } from '@/lib/email/audience-tag'
@@ -60,6 +63,22 @@ function toRow(r: {
 }
 
 /**
+ * Addresses Hunter called risky (a catch-all domain, or it could not decide), lowercased. The owner does not want them mailed
+ * (2026-11-13). About 1,000 rows, email only.
+ */
+async function riskyAddresses(): Promise<Set<string>> {
+  const rows = await prisma.crmPerson.findMany({ where: { emailVerifiedStatus: 'risky', deletedAt: null, email: { not: null } }, select: { email: true } })
+  return new Set(rows.map((r) => r.email!.trim().toLowerCase()))
+}
+
+/** Whether the address is the person's own and Hunter called it risky. */
+async function isRiskyAddress(email: string, personId: string | null): Promise<boolean> {
+  if (!personId) return false
+  const p = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { email: true, emailVerifiedStatus: true } })
+  return p?.emailVerifiedStatus === 'risky' && p.email?.trim().toLowerCase() === email
+}
+
+/**
  * Brings the stored roster in line with the target lists: new ACTIVE
  * members appear (unchecked if they already got this report by hand),
  * people who left drop off, choices made in the composer stand. Never runs
@@ -86,6 +105,7 @@ export async function syncEditionRoster(editionId: string) {
     : []
 
   const earlierSends = await earlierVersionSends(edition.id, edition.versionOfId)
+  const risky = await riskyAddresses()
 
   const next = computeRoster({
     members: members.map((m) => ({ email: m.email, personId: m.personId, listKey: keyById.get(m.listId)!, status: m.status })),
@@ -93,6 +113,7 @@ export async function syncEditionRoster(editionId: string) {
     suppressed,
     manualSends: new Map(manual.map((m) => [m.personId, m.sentAt])),
     versionSends: earlierSends,
+    risky,
   })
 
   const nextEmails = new Set(next.map((r) => r.email))
@@ -180,7 +201,7 @@ function audienceForEdition(edition: EditionForSend): EmailAudience {
 async function sendOne(
   resend: Resend,
   edition: EditionForSend,
-  to: { email: string; personId: string | null; recipientId: string | null },
+  to: { email: string; personId: string | null; recipientId: string | null; cold?: boolean },
   settings: Awaited<ReturnType<typeof getMailingSettings>>,
   attachments: Awaited<ReturnType<typeof attachmentFor>>,
   subjectPrefix = '',
@@ -202,7 +223,8 @@ async function sendOne(
   const text = to.recipientId ? tagMailingLinks(withAudienceText(audience, rendered.text), to.recipientId, 'text') : withAudienceText(audience, rendered.text)
   const fromName = edition.lists.length === 1 ? edition.lists[0].list.defaultFromName || settings.fromName : settings.fromName
   return resend.emails.send({
-    from: `${fromName} <${settings.fromEmail}>`,
+    // Cold recipients send from their own subdomain when one is set (Mailing settings), so a poor reputation there stays there.
+    from: `${fromName} <${to.cold && settings.coldFromEmail ? settings.coldFromEmail : settings.fromEmail}>`,
     replyTo: settings.replyTo,
     to: to.email,
     // Layoff outreach copies the owner on every send (edition.bccEmail); never on a test or seed send.
@@ -275,16 +297,15 @@ export function inSendWindow(now: Date): boolean {
 }
 
 /**
- * Owner rule (2026-11-13): layoff outreach goes out on weekdays, 8:00 a.m. to 12:00 p.m. Eastern only. A layoff found overnight
+ * Owner rule (2026-11-13): layoff outreach goes out every day, weekends included, 8:00 a.m. to 12:00 p.m. Eastern only (the daily
+ * caps limit how many go out, so a skipped weekend is two days of sends lost). A layoff found overnight
  * (the alert reaches Justin at any hour) waits in its edition and sends the next morning at 8:00. Narrower than inSendWindow,
  * which still gates every send.
  */
 export const LAYOFF_OUTREACH_CAMPAIGN = 'layoff_outreach'
 export function inLayoffSendWindow(now: Date): boolean {
-  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', hourCycle: 'h23' }).formatToParts(now)
-  const weekday = parts.find((p) => p.type === 'weekday')?.value ?? ''
-  const hour = Number(parts.find((p) => p.type === 'hour')?.value ?? '-1')
-  return !['Sat', 'Sun'].includes(weekday) && hour >= 8 && hour < 12
+  const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', hourCycle: 'h23' }).format(now))
+  return hour >= 8 && hour < 12
 }
 
 export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; failed: number; editions: number }> {
@@ -304,23 +325,43 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
   const editions = await prisma.mailingEdition.findMany({
     where: { status: 'SENDING' }, orderBy: { sendStartedAt: 'asc' }, include: { lists: { include: { list: true } } },
   })
+  // Warm first: recipients we have a warm signal for go before everyone else, and the rest share the cold daily cap, so a
+  // young sending domain grows on people who respond. Each edition's roster is flagged once (warmMarkedAt).
+  for (const e of editions) if (!e.warmMarkedAt) await markWarmRecipients(e.id)
+  const coldSentToday = await prisma.mailingEditionRecipient.count({ where: { sentAt: { gte: startOfEasternDay(now) }, warm: false } })
+  let coldBudget = Math.max(0, settings.coldDailyCap - coldSentToday)
   const resend = createResend(process.env.RESEND_API_KEY)
   let sent = 0
   let failed = 0
   const dne = await doNotEmailPeople()
+  // Layoff outreach is time-sensitive and tiny (a handful of recipients): it goes first, ahead of any bulk edition that started earlier.
+  editions.sort((a, b) => Number(b.campaign === LAYOFF_OUTREACH_CAMPAIGN) - Number(a.campaign === LAYOFF_OUTREACH_CAMPAIGN))
   const layoffWindowOpen = inLayoffSendWindow(now)
-  for (const edition of editions) {
-    // Layoff outreach waits for its own 8 a.m. to noon weekday window; it stays SENDING with its recipients pending.
-    if (edition.campaign === LAYOFF_OUTREACH_CAMPAIGN && !layoffWindowOpen) continue
-    const attachments = budget > 0 ? await attachmentFor(edition) : undefined
-    while (budget > 0) {
-      const next = await prisma.mailingEditionRecipient.findFirst({
-        where: { editionId: edition.id, status: 'PENDING', excluded: false }, orderBy: [{ attempts: 'asc' }, { email: 'asc' }],
-      })
+  // The layoff outreach is exempt from the hourly rate, the daily cap and the cold cap (owner, 2026-11-13), but not from its own limits
+  // (layoff-pacing.ts): a trickle of a few every five minutes, a slow daily ramp, at most 2 a day to one recipient domain, and a stop for
+  // 24 hours if bounces rise. The sending domain must not be spam filtered.
+  const layoffPace = layoffWindowOpen && editions.some((e) => e.campaign === LAYOFF_OUTREACH_CAMPAIGN) ? await layoffPacing(now, startOfEasternDay(now), LAYOFF_OUTREACH_CAMPAIGN) : null
+  let layoffSent = 0
+  for (const warmPass of [true, false]) for (const edition of editions) {
+    // Layoff outreach waits for its own 8 a.m. to noon window; it stays SENDING with its recipients pending.
+    const isLayoff = edition.campaign === LAYOFF_OUTREACH_CAMPAIGN
+    if (isLayoff && (!layoffWindowOpen || !layoffPace || layoffPace.hold)) continue
+    const canSend = () => (isLayoff ? layoffSent < layoffPace!.runMax : budget > 0 && (warmPass || coldBudget > 0))
+    const attachments = canSend() ? await attachmentFor(edition) : undefined
+    while (canSend()) {
+      const next = isLayoff
+        ? await nextLayoffRecipient(edition.id, layoffPace!, warmPass)
+        : await prisma.mailingEditionRecipient.findFirst({
+            where: { editionId: edition.id, status: 'PENDING', excluded: false, warm: warmPass }, orderBy: [{ attempts: 'asc' }, { email: 'asc' }],
+          })
       if (!next) break
       const suppressed = (await prisma.mailingSuppression.findUnique({ where: { email: next.email } })) || (next.personId && dne.personIds.has(next.personId))
       if (suppressed) {
         await prisma.mailingEditionRecipient.update({ where: { id: next.id }, data: { status: 'SKIPPED', excluded: true, excludedReason: 'suppressed' } })
+        continue
+      }
+      if (await isRiskyAddress(next.email, next.personId)) {
+        await prisma.mailingEditionRecipient.update({ where: { id: next.id }, data: { status: 'SKIPPED', excluded: true, excludedReason: 'risky_address' } })
         continue
       }
       // Claim it: only the run that moves attempts from n to n+1 sends.
@@ -328,12 +369,18 @@ export async function runSendBatch(maxThisRun = 25): Promise<{ sent: number; fai
         where: { id: next.id, status: 'PENDING', attempts: next.attempts }, data: { attempts: { increment: 1 } },
       })
       if (claimed.count === 0) continue
-      budget--
+      if (!isLayoff) { budget--; if (!warmPass) coldBudget-- }
       try {
-        const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id }, settings, attachments)
+        const { data, error } = await sendOne(resend, edition, { email: next.email, personId: next.personId, recipientId: next.id, cold: !warmPass && !isLayoff }, settings, attachments)
         if (error || !data) throw new Error(error?.message ?? 'no response from Resend')
         await recordSent(edition, next.id, data.id)
         sent++
+        if (isLayoff) {
+          layoffSent++
+          const d = domainOf(next.email)
+          const day = layoffPace!.domainSent.get(d) ?? { sent: 0, bounced: 0, lastSentAt: null }
+          layoffPace!.domainSent.set(d, { ...day, sent: day.sent + 1, lastSentAt: new Date() })
+        }
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e)
         await prisma.mailingEditionRecipient.update({

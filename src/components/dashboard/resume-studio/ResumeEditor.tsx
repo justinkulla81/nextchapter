@@ -18,6 +18,9 @@ import { OnetAttribution } from '@/components/OnetAttribution'
 import { saveDraft } from '@/app/dashboard/resume/studio/actions'
 import { Field, TextAreaField, ReorderControls, moveItem, removeAt, replaceAt, splitList } from '@/components/dashboard/resume-studio/EditorParts'
 import { ExperienceEditor } from '@/components/dashboard/resume-studio/ExperienceEditor'
+import { SectionsEditor } from '@/components/dashboard/resume-studio/SectionsEditor'
+import { VersionPanel, ImportReportPanel, type ImportReportView } from '@/components/dashboard/resume-studio/VersionPanel'
+import { isDraftKind, type DraftKind } from '@/lib/resume/studio/versions'
 
 type SaveState = { kind: 'saved'; at: string } | { kind: 'error'; message: string } | { kind: 'idle' }
 
@@ -28,6 +31,9 @@ export function ResumeEditor({
   initialDocument,
   initialJobDescription,
   savedAt,
+  initialKind = 'GENERAL',
+  initialTargetLabel = '',
+  importReport = null,
 }: {
   draftId: string
   initialName: string
@@ -35,6 +41,9 @@ export function ResumeEditor({
   initialDocument: ResumeDocumentData
   initialJobDescription: string
   savedAt: string
+  initialKind?: string
+  initialTargetLabel?: string
+  importReport?: ImportReportView | null
 }) {
   const [name, setName] = useState(initialName)
   const [templateId, setTemplateId] = useState(initialTemplateId)
@@ -42,6 +51,8 @@ export function ResumeEditor({
   const [skillsText, setSkillsText] = useState(initialDocument.skills.join(', '))
   const [certsText, setCertsText] = useState(initialDocument.certifications.join(', '))
   const [jobDescription, setJobDescription] = useState(initialJobDescription)
+  const [kind, setKind] = useState<DraftKind>(isDraftKind(initialKind) ? initialKind : 'GENERAL')
+  const [targetLabel, setTargetLabel] = useState(initialTargetLabel)
   const [coverage, setCoverage] = useState<KeywordCoverage | null>(null)
   const [saving, setSaving] = useState(false)
   const [save, setSave] = useState<SaveState>({ kind: 'saved', at: savedAt })
@@ -54,9 +65,9 @@ export function ResumeEditor({
 
   // Unsaved changes are whatever differs from what was last saved, so editing a field back to
   // its saved value clears the warning.
-  const snapshot = useMemo(() => JSON.stringify([name, templateId, current, jobDescription]), [name, templateId, current, jobDescription])
+  const snapshot = useMemo(() => JSON.stringify([name, templateId, current, jobDescription, kind, targetLabel]), [name, templateId, current, jobDescription, kind, targetLabel])
   const [savedSnapshot, setSavedSnapshot] = useState(() =>
-    JSON.stringify([initialName, initialTemplateId, { ...initialDocument, skills: splitList(initialDocument.skills.join(', ')), certifications: splitList(initialDocument.certifications.join(', ')) }, initialJobDescription])
+    JSON.stringify([initialName, initialTemplateId, { ...initialDocument, skills: splitList(initialDocument.skills.join(', ')), certifications: splitList(initialDocument.certifications.join(', ')) }, initialJobDescription, isDraftKind(initialKind) ? initialKind : 'GENERAL', initialTargetLabel])
   )
   const dirty = snapshot !== savedSnapshot
 
@@ -72,7 +83,7 @@ export function ResumeEditor({
   async function handleSave() {
     setSaving(true)
     const savingSnapshot = snapshot
-    const result = await saveDraft(draftId, { name, templateId, document: current, jobDescription })
+    const result = await saveDraft(draftId, { name, templateId, document: current, jobDescription, kind, targetLabel })
     setSaving(false)
     if (result.ok) {
       setSavedSnapshot(savingSnapshot)
@@ -105,6 +116,8 @@ export function ResumeEditor({
   return (
     <div className={cn('grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]', busy && 'cursor-progress')}>
       <div className="space-y-8">
+        {importReport && <ImportReportPanel report={importReport} />}
+
         <section className="space-y-3" aria-labelledby="studio-header">
           <h2 id="studio-header" className="text-lg font-semibold tracking-tight">
             Your details
@@ -114,10 +127,10 @@ export function ResumeEditor({
               <Field label="Draft name" value={name} onChange={setName} maxLength={100} placeholder="For example: Tailored for VP Finance roles" />
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label="Your name" value={doc.name} onChange={(v) => setDoc((d) => ({ ...d, name: v }))} maxLength={100} />
-                <Field label="Title under your name" value={doc.targetTitle ?? ''} onChange={(v) => setDoc((d) => ({ ...d, targetTitle: v || null }))} maxLength={150} />
+                <Field label="Title under your name" value={doc.targetTitle ?? ''} onChange={(v) => setDoc((d) => ({ ...d, targetTitle: v || null }))} maxLength={250} />
                 <Field label="Email" type="email" value={doc.contact.email ?? ''} onChange={(v) => setContact('email', v)} maxLength={200} />
                 <Field label="Phone" value={doc.contact.phone ?? ''} onChange={(v) => setContact('phone', v)} maxLength={40} />
-                <Field label="Location" value={doc.contact.location ?? ''} onChange={(v) => setContact('location', v)} placeholder="City, State" maxLength={120} />
+                <Field label="Location" value={doc.contact.location ?? ''} onChange={(v) => setContact('location', v)} placeholder="City, State" maxLength={160} />
                 <Field label="LinkedIn address" value={doc.contact.linkedinUrl ?? ''} onChange={(v) => setContact('linkedinUrl', v)} maxLength={300} />
               </div>
             </CardContent>
@@ -135,8 +148,8 @@ export function ResumeEditor({
                 value={doc.summary ?? ''}
                 onChange={(v) => setDoc((d) => ({ ...d, summary: v || null }))}
                 rows={4}
-                maxLength={1500}
-                hint={summary.summaryLength > 600 ? 'This is long for a summary. Readers skim it, so try trimming it to the strongest points.' : `${summary.summaryLength} of 1,500 characters`}
+                maxLength={2500}
+                hint={summary.summaryLength > 600 ? 'This is long for a summary. Readers skim it, so try trimming it to the strongest points.' : `${summary.summaryLength} of 2,500 characters`}
               />
             </CardContent>
           </Card>
@@ -157,8 +170,8 @@ export function ResumeEditor({
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
                   <Field label="School" value={e.schoolName} onChange={(v) => setDoc((d) => ({ ...d, education: replaceAt(d.education, i, { ...e, schoolName: v }) }))} maxLength={150} />
-                  <Field label="Degree" value={e.degreeLabel ?? ''} onChange={(v) => setDoc((d) => ({ ...d, education: replaceAt(d.education, i, { ...e, degreeLabel: v || null }) }))} placeholder="MBA, Finance" maxLength={150} />
-                  <Field label="Year" value={e.dateLabel ?? ''} onChange={(v) => setDoc((d) => ({ ...d, education: replaceAt(d.education, i, { ...e, dateLabel: v || null }) }))} maxLength={30} />
+                  <Field label="Degree" value={e.degreeLabel ?? ''} onChange={(v) => setDoc((d) => ({ ...d, education: replaceAt(d.education, i, { ...e, degreeLabel: v || null }) }))} placeholder="MBA, Finance" maxLength={200} />
+                  <Field label="Years" value={e.dateLabel ?? ''} onChange={(v) => setDoc((d) => ({ ...d, education: replaceAt(d.education, i, { ...e, dateLabel: v || null }) }))} maxLength={40} />
                 </div>
               </CardContent>
             </Card>
@@ -169,12 +182,15 @@ export function ResumeEditor({
           {doc.education.length >= 10 && <p className="text-xs text-muted-foreground">That is the most schools you can list. Remove one to add another.</p>}
         </section>
 
+        <SectionsEditor sections={doc.sections ?? []} onChange={(sections) => setDoc((d) => ({ ...d, sections }))} />
+
         <section className="space-y-3" aria-labelledby="studio-skills">
           <h2 id="studio-skills" className="text-lg font-semibold tracking-tight">
             Skills and certifications
           </h2>
           <Card>
             <CardContent className="space-y-4 pt-6">
+              <Field label="Skills heading" value={doc.skillsHeading ?? ''} onChange={(v) => setDoc((d) => ({ ...d, skillsHeading: v || null }))} placeholder="Skills" maxLength={60} />
               <TextAreaField label="Skills" value={skillsText} onChange={setSkillsText} rows={3} hint="Separate with commas. Tools and technologies read best here." />
               <TextAreaField label="Certifications" value={certsText} onChange={setCertsText} rows={2} hint="Separate with commas." />
             </CardContent>
@@ -183,6 +199,8 @@ export function ResumeEditor({
       </div>
 
       <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start" aria-label="Save, checks and download">
+        <VersionPanel draftId={draftId} draftName={name} kind={kind} onKind={setKind} targetLabel={targetLabel} onTargetLabel={setTargetLabel} />
+
         <Card>
           <CardContent className="space-y-3 pt-6">
             <Button type="button" onClick={handleSave} disabled={saving} className={cn('w-full', saving && 'cursor-progress')}>

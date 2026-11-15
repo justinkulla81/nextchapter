@@ -1,4 +1,3 @@
-import { emailStyles } from '@/lib/email/email-styles'
 import type { UserAgentClass } from '@/lib/http/user-agent'
 import { AudienceTag } from '@/lib/email/audience-tag'
 import { AdminFrame } from '@/lib/email/admin-layout'

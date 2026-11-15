@@ -20,5 +20,6 @@ describe('page capture top', () => {
     expect(html).toContain('aria-expanded="false"')
     expect(html).not.toContain('Question 1')
     expect(html).not.toContain('id="next-step-extras"')
-  })
+    // The first case cold-imports the whole capture component tree, which can pass the 5 s default when the full suite runs.
+  }, 30_000)
 })

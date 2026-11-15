@@ -82,3 +82,21 @@ export function assignArms(items: { id: string; audience: string }[], day: numbe
   }
   return out
 }
+
+/** The nine-o'clock-Eastern instants of `count` consecutive days from `monday`, weekends included (owner, 2026-11-13: the daily caps limit sends, so every day sends). */
+export function sendDayTimes(monday: Date, count: number): Date[] {
+  return Array.from({ length: count }, (_, d) => weekSendTimes(new Date(monday.getTime() + d * 86_400_000), 1)[0])
+}
+
+/** Fills the days in order: the best editions first, each day up to its cap (one edition larger than a day still goes whole). Returns the day of each edition. */
+export function assignDaysByCap(editions: { id: string; recipients: number }[], caps: readonly number[]): Map<string, number> {
+  const out = new Map<string, number>()
+  let day = 0
+  let load = 0
+  for (const e of editions) {
+    while (load > 0 && load + e.recipients > caps[Math.min(day, caps.length - 1)]) { day++; load = 0 }
+    out.set(e.id, day)
+    load += e.recipients
+  }
+  return out
+}

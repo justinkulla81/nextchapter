@@ -5,6 +5,7 @@
  */
 import { STATE_NAMES } from '@/lib/workforce/places'
 import type { LocalPicture } from '@/lib/warn/layoff-picture'
+import { cleanEmployerName } from './employer-name'
 
 export type CopyAudience = 'hr' | 'job_center' | 'workforce_board' | 'rapid_response'
 export type CopyMode = 'new' | 'older'
@@ -102,11 +103,11 @@ export type HeadlineCode = (typeof HEADLINE_CODES)[number]
 
 /**
  * The subject lines the backfill tests (owner, 2026-11-13: a different headline each day). Eight styles, two a day: n1 the number first,
- * q1 a question, loc where they can land, pg the free page, aud the audience's own line (what the live emails use), quick a short
+ * q1 a question, loc where they can land, pg a page for them, aud the audience's own line (what the live emails use), quick a short
  * personal line, plain the bare fact, num2 the number and the employer. Facts only: the employer, the headcount and the place.
  */
 export function headlineFor(code: HeadlineCode, f: HeadlineFacts): string {
-  const org = f.org
+  const org = cleanEmployerName(f.org)
   const N = f.employees ? n(f.employees) : null
   const state = f.state ? (STATE_NAMES[f.state] ?? f.state) : null
   const place = f.county ? `${f.county.replace(/\s+county$/i, '')} County` : state
@@ -115,7 +116,7 @@ export function headlineFor(code: HeadlineCode, f: HeadlineFacts): string {
     case 'n1': return N ? `${N} people ${older ? 'who left' : 'leaving'} ${org}` : `people ${older ? 'who left' : 'leaving'} ${org}`
     case 'q1': return N ? `who is helping ${org}'s ${N}?` : `who is helping the people leaving ${org}?`
     case 'loc': return place ? `where ${org}'s ${N ?? 'people'} can land in ${place}` : `where ${org}'s ${N ?? 'people'} can land`
-    case 'pg': return N ? `a free page for ${org}'s ${N}` : `a free page for the people leaving ${org}`
+    case 'pg': return N ? `a page for ${org}'s ${N}` : `a page for the people leaving ${org}`
     case 'aud':
       if (f.audience === 'rapid_response') return older ? `${org}, a few weeks on` : `before your ${org} meeting`
       if (f.audience === 'job_center') return older ? `still helping the people from ${org}` : `if someone from ${org} walks in`

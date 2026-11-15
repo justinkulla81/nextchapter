@@ -89,7 +89,6 @@ export function CompetitorTable({ rows: serverRows, relationships, categories, a
   const track = (control: string, value: string) => posthog.capture('competitor_table_filtered', { control, value, rows: rows.length })
 
   const catLabel = useMemo(() => new Map(categories.map((c) => [c.key, c.label])), [categories])
-  const relLabel = useMemo(() => new Map(relationships.map((c) => [c.key, c.label])), [relationships])
 
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase()

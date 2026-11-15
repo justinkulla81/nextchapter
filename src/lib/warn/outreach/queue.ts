@@ -5,6 +5,10 @@ import { getMailingSettings } from '@/lib/mailing/lists'
 import type { DraftContext } from '@/lib/warn/layoff-alert-drafts'
 import type { ContactGroup } from '@/lib/warn/layoff-alert-rules'
 import { AUDIENCE_LABEL, CAMPAIGN, CONTACT_COOLDOWN_DAYS, planOutreach } from './plan'
+import { addressQuality, isVerifyBlocked, needsVerification } from './quality'
+import { cleanEmployerName } from './employer-name'
+import { ensureVerified } from './verify'
+import { loadAddressFacts } from './quality-data'
 import type { CopyMode } from './copy'
 
 /** A layoff older than this when its alert finally goes out (a held alert) is not emailed about. */
@@ -21,7 +25,7 @@ export interface QueueOptions { mode?: CopyMode; hold?: boolean }
 /**
  * Called once, right after a layoff alert goes to Justin. Makes one edition per audience and note (HR, Rapid Response,
  * workforce board, job center, economic development) with the layoff's contacts as the recipients, and starts it sending: the
- * layoff send window (weekdays 8 a.m. to noon Eastern; an overnight layoff waits for the morning), hourly rate and daily cap, suppression list and unsubscribe handling all apply,
+ * layoff send window (every day 8 a.m. to noon Eastern; an overnight layoff waits for the morning), hourly rate and daily cap, suppression list and unsubscribe handling all apply,
  * and opens, clicks, replies and unsubscribes are tracked on the edition. Justin is copied (BCC) on each send.
  * Reads: one notice, one settings row, up to ~14 addresses against the suppression table and last week's outreach.
  * Never throws; a failure here must not undo the alert.
@@ -54,10 +58,31 @@ export async function queueLayoffOutreach(input: { noticeId: string; employer: s
         ])
       : [[], []]
     const blocked = new Set<string>([...suppressed.map((s) => s.email), ...recent.map((r) => r.email)])
+    // Only addresses most likely to be real and deliverable (quality.ts): the sending domain must not be spam filtered.
+    const items = input.groups.flatMap((g) => g.cards.map((c) => ({ email: c.email ?? '', personId: c.personId })))
+    let facts = await loadAddressFacts(items)
+    // An address nothing has checked recently (a directory contact, a contact Hunter never looked at) is checked with Hunter, one credit each, and
+    // emailed only if Hunter calls it deliverable. A layoff whose addresses could not all be checked this time is tried again, not given up on.
+    const toCheck = [...facts.values()].filter((f) => needsVerification(f)).map((f) => f.email)
+    let waiting = 0
+    if (toCheck.length) {
+      const v = await ensureVerified(toCheck, { max: 40, timeMs: 60_000 })
+      if (v.checked) facts = await loadAddressFacts(items)
+      // If Hunter cannot be asked at all (no credits left, the day's ceiling), do not wait for it: go on with the addresses already verified.
+      waiting = isVerifyBlocked(v.stopped) ? 0 : [...facts.values()].filter((f) => needsVerification(f)).length
+    }
+    const screened: Record<string, number> = {}
+    for (const [email, f] of facts) {
+      const q = addressQuality(f)
+      if (!q.ok) { blocked.add(email); screened[q.reason ?? 'screened'] = (screened[q.reason ?? 'screened'] ?? 0) + 1 }
+    }
+    if (Object.keys(screened).length) captureServerEvent('system', 'layoff_outreach_screened', { noticeId: input.noticeId, employer: input.employer, held: !!input.opts?.hold, ...screened })
     const own = new Set([settings.testEmail, settings.replyTo, 'justin@launchyournextchapter.com'].map((e) => e.toLowerCase()))
 
-    const plans = planOutreach(input.groups, input.ctx, { blocked, ownAddresses: own, noticeId: input.noticeId, mode: input.opts?.mode })
-    if (plans.length === 0) return none('no contact with a verified address')
+    // The employer's name as a person writes it (no filing street address, no plant name) in every subject and body.
+    const ctx = { ...input.ctx, picture: { ...input.ctx.picture, employer: cleanEmployerName(input.ctx.picture.employer) } }
+    const plans = planOutreach(input.groups, ctx, { blocked, ownAddresses: own, noticeId: input.noticeId, mode: input.opts?.mode })
+    if (plans.length === 0) return none(waiting > 0 ? 'waiting for address verification' : 'no contact with a verified address')
 
     const bcc = settings.testEmail
     let recipients = 0

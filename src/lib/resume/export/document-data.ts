@@ -33,6 +33,28 @@ export interface ResumeDocumentData {
   education: ResumeEducationItem[]
   skills: string[]
   certifications: string[]
+  // What the resume itself calls the skills list ("Core Competencies", "Technical Skills"). Null = "Skills".
+  skillsHeading?: string | null
+  // Any other section the resume has (Extracurricular, Publications, Board service, Awards...), in the
+  // order they appear, so nothing in an uploaded resume is left with nowhere to go.
+  sections?: ResumeCustomSection[]
+}
+
+export interface ResumeCustomItem {
+  title: string // "STANFORD UNIVERSITY, MIT"
+  subtitle: string | null // "Lecturer"
+  dateLabel: string | null // "2017-Present", as written
+  bullets: string[]
+}
+
+export interface ResumeCustomSection {
+  heading: string
+  items: ResumeCustomItem[]
+}
+
+export interface ResumeExtraRole {
+  roleTitle: string
+  dateRangeLabel: string
 }
 
 export interface ResumeWorkHistoryItem {
@@ -40,6 +62,10 @@ export interface ResumeWorkHistoryItem {
   roleTitle: string
   dateRangeLabel: string // "Jan 2020 – Present", already formatted, right-aligned via tab stop by the renderer
   bullets: string[]
+  // Where the job was ("New York, NY"), when the resume says. Stacked layouts show it opposite the company.
+  location?: string | null
+  // Further titles at the same employer, each with its own dates ("Partner, TZP Impact", "2020-2023").
+  extraRoles?: ResumeExtraRole[]
 }
 
 export interface ResumeEducationItem {

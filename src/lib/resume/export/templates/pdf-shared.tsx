@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from '@react-pdf/renderer'
+import { Font, StyleSheet, Text, View } from '@react-pdf/renderer'
 import type { ResumeTemplateStyleTokens } from '../style-tokens'
 import { spaceBeforeHeadingPt } from '../style-tokens'
 
@@ -6,6 +6,11 @@ import { spaceBeforeHeadingPt } from '../style-tokens'
 // so unlike the docx renderer there's no A4-default footgun here — but we
 // still pass it explicitly on every template for parity/readability.
 export const PDF_PAGE_SIZE = 'LETTER' as const
+
+// react-pdf breaks long words across lines with a hyphen by default, and the hyphen lands in the text layer:
+// an applicant tracking system then reads "custom-" and "ers" instead of "customers". Returning the word whole
+// turns that off, so a word that does not fit moves to the next line instead.
+Font.registerHyphenationCallback((word) => [word])
 
 // @react-pdf/renderer is restricted to the 14 standard PDF fonts here
 // (Helvetica/Times-Roman/Courier families) so nothing needs Font.register
@@ -21,6 +26,8 @@ export function pdfHeadingStyle(tokens: ResumeTemplateStyleTokens, accentColor: 
       color: tokens.headingUsesAccent && accentColor ? `#${accentColor}` : '#111111',
       marginTop: spaceBeforeHeadingPt(tokens),
       marginBottom: tokens.spaceAfterHeadingPt,
+      // A thin rule under the heading, for the templates that set it.
+      ...(tokens.headingRule ? { borderBottomWidth: 0.6, borderBottomColor: '#777777', paddingBottom: 2 } : {}),
       // No letterSpacing set — omission is deliberate, this is the "no
       // letter-spacing on headings" rule (§13.2) satisfied by construction.
     },
@@ -49,10 +56,12 @@ export function LabelWithRightDate({
   left,
   dateLabel,
   tokens,
+  italicRight,
 }: {
   left: React.ReactNode
   dateLabel: string
   tokens: ResumeTemplateStyleTokens
+  italicRight?: boolean
 }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
@@ -67,6 +76,7 @@ export function LabelWithRightDate({
           fontSize: tokens.bodySizePt,
           flexShrink: 0,
           textAlign: 'right',
+          ...(italicRight ? { fontStyle: 'italic' as const } : {}),
         }}
       >
         {dateLabel}

@@ -36,6 +36,6 @@ describe('scannerClickVisitSql', () => {
   it('carries the same windows as the code rule', () => {
     expect(scannerClickVisitSql).toContain('make_interval(secs => 30)')
     expect(scannerClickVisitSql).toContain('make_interval(hours => 24)')
-    expect(scannerClickVisitSql).toContain('h."ip" = "HomepageVisitEvent"."ip"')
+    expect(scannerClickVisitSql).toContain('h2."ip" = "HomepageVisitEvent"."ip"')
   })
 })

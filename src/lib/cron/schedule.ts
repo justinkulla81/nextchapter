@@ -55,10 +55,11 @@ export const CRON_BUNDLES: Readonly<Record<string, readonly string[]>> = {
   'bundle-tuesday-digests': ['market-digest-recruiters', 'market-digest-employers', 'weekly-read', 'market-digest-coaches', 'upgrade-offer', 'network-digest'],
   'bundle-wednesday': ['nudge-recruiter-network-unlock', 'win-back'],
   'bundle-monday': ['layoff-roundup', 'senior-brief', 'outplacement-agent', 'course-scan', 'higher-ed-weekly', 'market-reality-snapshot', 'auto-assign-sprint', 'conference-recheck', 'population-snapshot', 'db-slow-query-report', 'talent-digest'],
-  'bundle-gov-jobs': ['k12jobspot-feed', 'careersingov-feed', 'usajobs-board-feed', 'edjoin-feed', 'neogov-feed', 'gov-oracle-feed', 'gov-workday-feed'],
+  'bundle-gov-jobs': ['k12jobspot-feed', 'careersingov-feed', 'usajobs-board-feed', 'edjoin-feed', 'neogov-feed', 'gov-oracle-feed', 'gov-csod-feed', 'florida-state-feed', 'gov-workday-feed'],
+  'bundle-gov-jobs-2': ['gov-taleo-feed', 'gov-ukg-feed', 'gov-nyc-feed', 'gov-keps-feed', 'gov-calcareers-feed', 'jobsreport-neogov'],
   'bundle-sunday': ['partner-scores', 'workforce-boards', 'job-segments'],
   'bundle-afternoon': ['lead-nurture', 'layoff-alerts', 'job-alerts', 'deadline-reminders', 'census-comms', 'notify-recruiters-new-candidates', 'backchannel-match', 'registration-reminders', 'interim-role-reverify'],
-  'bundle-hourly-light': ['indexnow-layoffs', 'mailing-verify', 'mailing-open-reconcile', 'topic-snapshots', 'layoff-outreach', 'layoff-backfill', 'direct-reverify'],
+  'bundle-hourly-light': ['egress-watch', 'indexnow-layoffs', 'mailing-verify', 'mailing-open-reconcile', 'topic-snapshots', 'layoff-outreach', 'layoff-backfill', 'direct-reverify'],
   'bundle-every-5': ['lead-lifecycle', 'mailing-send', 'social-filings', 'slow-page-alert'],
   'bundle-data-light': ['ceo-speaking', 'higher-ed-nightly', 'catalog-seeds', 'landed-to-managing', 'events-refresh', 'funding-opportunities', 'expire-job-postings', 'likely-openings'],
   'bundle-market-data': ['pivot-market', 'market-size', 'company-hiring-index', 'pay-data'],
@@ -91,7 +92,7 @@ export const RERUN_SAFE_JOBS: ReadonlySet<string> = new Set([
   'funding-opportunities', 'content-drafts', 'catalog-seeds', 'federal-contracts', 'board-bids', 'competitor-awards', 'news-discovery', 'likely-openings',
   'workforce-boards', 'workforce-board-intel', 'refresh-youtube-content', 'conference-recheck',
   'expire-job-postings', 'benefits-network-expire-listings', 'population-snapshot',
-  'partner-scores', 'activity-streaks', 'board-light-rows', 'board-warm', 'closed-posting-snapshot', 'job-feed-direct', 'job-feed-jooble', 'indexnow-jobs', 'indexnow-seo-pages', 'indexnow-layoffs', 'google-indexing-jobs', 'bing-url-submit', 'pivot-market', 'market-size', 'pay-data', 'ai-market', 'skills-market', 'board-figures', 'rankings', 'job-segments', 'page-warmup',
+  'partner-scores', 'activity-streaks', 'board-light-rows', 'board-warm', 'closed-posting-snapshot', 'indexnow-jobs', 'indexnow-seo-pages', 'indexnow-layoffs', 'google-indexing-jobs', 'bing-url-submit', 'pivot-market', 'market-size', 'pay-data', 'ai-market', 'skills-market', 'board-figures', 'rankings', 'job-segments', 'page-warmup',
   // Asks the AI assistants a fixed list of questions. It costs money, but the run stops at the monthly cap (src/lib/ai-visibility/run.ts), so a second click cannot overspend.
   'ai-citation-check',
 ])

@@ -23,7 +23,7 @@ export async function runCareersInGovFeed(): Promise<SitemapFeedResult> {
     ],
     minJobs: 2000,
     maxNewPerRun: 1500,
-    timeBudgetMs: 60_000,
+    timeBudgetMs: 40_000,
     loadJobs: loadCigJobs,
   })
 }

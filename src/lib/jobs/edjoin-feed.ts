@@ -16,7 +16,7 @@ export async function runEdjoinFeed(): Promise<SitemapFeedResult> {
     numericIds: true,
     minJobs: 3000,
     maxNewPerRun: 1500,
-    timeBudgetMs: 100_000,
+    timeBudgetMs: 80_000,
     loadJobs: loadEdjoinJobs,
   })
 }

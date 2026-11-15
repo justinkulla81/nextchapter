@@ -1,4 +1,3 @@
-import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag } from '@/lib/email/audience-tag'
 import { AdminFrame } from '@/lib/email/admin-layout'
 

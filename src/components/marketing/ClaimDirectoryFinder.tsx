@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { usePostHog } from '@/lib/posthog/client'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 
@@ -15,6 +16,7 @@ import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
  */
 export function ClaimDirectoryFinder({ path, noun, page }: { path: string; noun: string; page: string }) {
   const posthog = usePostHog()
+  const router = useRouter()
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -28,7 +30,7 @@ export function ClaimDirectoryFinder({ path, noun, page }: { path: string; noun:
     setError('')
     setBusy(true)
     posthog?.capture('claim_directory_opened', { page, state: code, directory: `/${path}`, via: 'select' })
-    window.location.assign(`/${path}/${stateSlug(code)}`)
+    router.push(`/${path}/${stateSlug(code)}`)
   }
 
   return (

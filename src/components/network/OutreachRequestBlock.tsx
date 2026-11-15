@@ -16,7 +16,7 @@ const COPY = {
     done: 'Got it. Justin Kulla will email you to set up the seats.',
   },
   partner: {
-    heading: (e: string, n: number | null) => `Someone from ${e} may walk in. Have this ready.`,
+    heading: (e: string, _n: number | null) => `Someone from ${e} may walk in. Have this ready.`,
     points: (n: number | null) => [`A free page for the ${people(n)} leaving, with roles matched to their work`, 'A short note you can hand out, with the link', 'Nothing for you to set up'],
     body: 'Give us your work email and Justin Kulla will send you the handout.',
     button: 'Send me the handout',
@@ -35,6 +35,7 @@ export function OutreachRequestBlock({ slug, employer, people: peopleCount = nul
   useEffect(() => {
     if (forceTags) return
     const t = readOutreachTags(window.location.search)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only: the query string is not available when the page is rendered
     if (t) { setTags(t); posthog.capture('outreach_landing_viewed', { slug, role: t.role, audience: t.audience, arm: t.arm, noticeId: t.noticeId }) }
   }, [slug, forceTags])
   const [state, submit, sending] = useActionState<OutreachRequestState, FormData>(submitOutreachRequest, undefined)

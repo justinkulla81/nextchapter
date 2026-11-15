@@ -1,5 +1,4 @@
 import { ActionLink } from '@/components/candidate/ActionLink'
-import { PageHeader } from '@/components/candidate/PageHeader'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { PlacePicker } from '@/components/market/PlacePicker'
 import { compareHref, forLens, headlineKeys, summarize, type Incentives, type Lens, type PlaceView, type Row, type Verdict } from '@/lib/workforce/metro-compare'

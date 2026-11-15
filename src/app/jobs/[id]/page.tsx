@@ -21,24 +21,25 @@ import { EmployerLayoffLine } from '@/components/jobs/EmployerLayoffLine'
 import { RecruiterAsk } from '@/components/jobs/RecruiterAsk'
 import { showRecruiterAsk } from '@/lib/jobs/recruiter-ask'
 import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
-import { buttonVariants } from '@/components/ui/button'
 import { isExcerpt } from '@/lib/jobs/posting-text'
 import { testedTitle } from '@/lib/seo/title-test-state'
 import { jobTitleB } from '@/lib/seo/title-tests'
 import { isFractionalJob } from '@/lib/jobs/work-type'
-import { datePostedOf, descriptionParagraphs, isIndexableJob, isRemoteJob, isStaleJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
+import { datePostedOf, descriptionParagraphs, isDirectJob, isIndexableJob, isRemoteJob, isStaleJob, jobPageIndexable, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
+import { pagesShownInSearch } from '@/lib/seo/shown-in-search'
 import { ClosedJobView } from '@/components/jobs/ClosedJobView'
 import { getClosedJobContext, getPublicJob, similarJobsAtCompany, similarJobsLike } from '@/lib/jobs/public-job-page-server'
 import { employerPath, isCompanyOfferedToSearch } from '@/lib/seo/employer-pages'
 import { prisma } from '@/lib/prisma'
 import { getTitleIndex } from '@/lib/seo/job-titles'
 import { baseTitle, titleSlug } from '@/lib/seo/job-title-rules'
+import { placeKey, type TitlePlace } from '@/lib/seo/job-title-places'
+import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { BrowseTheSite } from '@/components/marketing/BrowseTheSite'
 import { RankingContext } from '@/components/rankings/RankingContext'
 import { cityAwardKeys } from '@/lib/rankings/place-keys'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
-import { cn } from '@/lib/utils'
 import { ClaimSkills } from '@/components/skills/ClaimSkills'
 import { loadSkillsMarket } from '@/lib/skills/market-server'
 import { skillsForPosting } from '@/lib/skills/for-job'
@@ -61,6 +62,14 @@ type Params = Promise<{ id: string }>
 
 const loadJob = cache((id: string) => getPublicJob(id))
 
+async function indexTagFor(job: NonNullable<Awaited<ReturnType<typeof loadJob>>>): Promise<boolean> {
+  if (isStaleJob(job)) return false
+  if (isIndexableJob(job)) return true
+  if (!isDirectJob(job)) return false
+  const shown = await pagesShownInSearch().catch(() => new Set<string>())
+  return jobPageIndexable(job, shown.has(`/jobs/${job.id}`))
+}
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params
   const job = await loadJob(id)
@@ -76,9 +85,17 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     ),
     description: `${job.companyName} is hiring a ${job.title}${place ? ` (${place})` : ''}. ${lead}…`,
     alternates: { canonical: `/jobs/${job.id}` },
-    // A job with only a snippet of the posting stays visible to visitors but is kept out of search (see isIndexableJob).
-    robots: { index: isIndexableJob(job) && !isStaleJob(job), follow: true },
+    // A job with only a snippet of the posting stays visible to visitors but is kept out of search (see isIndexableJob), unless it is
+    // on the employer's own career system and Google already shows it (jobPageIndexable). Search Console is read only for those.
+    robots: { index: await indexTagFor(job), follow: true },
   }
+}
+
+async function titlePlaceFor(slug: string | undefined, state: string | null, city: string | null): Promise<TitlePlace | null> {
+  if (!slug || !state) return null
+  const keys = [placeKey('city', state, city), placeKey('state', state)].filter((k): k is string => !!k)
+  const found = await Promise.all(keys.map((k) => readBoardFigure<TitlePlace>(`job-title-place:${slug}:${k}`).catch(() => null)))
+  return found.find((f) => f && f.jobs > 0) ?? null
 }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -116,6 +133,9 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   const likeJobs = await similarJobsLike({ id: job.id, socCode: tags?.socCode, targetFunction: tags?.targetFunction, level: tags?.level, locationState: job.locationState, excludeCompanyId: tags?.company?.id })
   // The title's own page lists every open role with this title; it exists only for titles with enough listings. A failed read just leaves the link out.
   const titleStat = (await getTitleIndex().catch(() => [])).find((t) => t.slug === titleSlug(baseTitle(job.title)))
+  // "<title> jobs in <city>" (else the state): a page that outlives this listing, so search visitors and links land somewhere that stays up.
+  // One keyed BoardFigure read each; a pair below the page bar has no row and no link.
+  const titlePlace = await titlePlaceFor(titleStat?.slug, job.locationState, job.locationCity)
   const industry = bucketFromIndustryText(tags?.industry)
   const fn = functionByName(tags?.targetFunction)
   // The skills this posting names that have a skills page, most asked for first. A failed read just leaves the section out.
@@ -195,6 +215,12 @@ export default async function PublicJobPage({ params }: { params: Params }) {
                   <>
                     <Link href={`/places/${stateSlug(job.locationState)}`} className="underline underline-offset-4">{stateName(job.locationState)} job market</Link>
                     {(titleStat || industry || fn) && ' · '}
+                  </>
+                )}
+                {titleStat && titlePlace && (
+                  <>
+                    <Link href={`/jobs/title/${titleStat.slug}/${titlePlace.key}`} className="underline underline-offset-4">{titleStat.name} jobs in {titlePlace.name} ({titlePlace.jobs.toLocaleString('en-US')})</Link>
+                    {' · '}
                   </>
                 )}
                 {titleStat && (

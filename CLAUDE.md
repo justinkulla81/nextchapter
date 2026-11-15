@@ -53,11 +53,26 @@ why). A change that adds a card, tag, toggle or section to a candidate page must
 say what it removes. Build or change a page in `src/app/dev-preview/` first and
 look at a screenshot before wiring real data.
 
-## Ship it: merge and deploy without waiting
+## Ship it: merge, and let the twice-daily batch deploy it
 
-Owner rule (2026-11-06): when a change is ready, open the pull request, merge it with `[deploy-now]` in the title, watch the
-Vercel deployment until it is READY, and test the live page. Do not stop at a branch, a draft or a question. Say what you
-shipped and what you tested. The "ask first" cases under Vercel and Supabase (destructive or hard to undo) still apply.
+Owner rule (2026-11-06, changed 2026-11-14): when a change is ready, open the pull request and merge it. Do not put `[deploy-now]`
+in the title: production deploys go out in the batch at 01:05 and 13:05 UTC (`deploy-batch` cron, `scripts/vercel-ignore-build.sh`).
+About 750 one-at-a-time production deploys in the first half of November 2026 ran up the Vercel bill, and each one emptied the page
+caches and sent every server back to the database (part of the Supabase egress overrun that cut the site off on 2026-11-13).
+`[deploy-now]` is only for a fix to a site that is down or broken for users, or when the owner asks for it. When the owner asks for a deploy
+with nothing new to merge, create a production deployment of `main` through the Vercel API with the build variable `NC_DEPLOY_NOW=1`. After the batch deploy,
+test the live page and say what shipped. Do not stop at a branch, a draft or a question. The "ask first" cases under Vercel and
+Supabase (destructive or hard to undo) still apply. Preview deployments are not used: non-main branches never build.
+
+## Data budget: every feature states its GB a day
+
+Owner rule (2026-11-14), after Supabase cut the site's database off for using 1,260 GB against a 275 GB allowance. The plan includes
+about 250 GB a month, **about 8 GB a day for the whole site**. Before you ship a feature, cron, page type or query change that reads
+rows, estimate its data use (rows per run × bytes per row × runs a day; a full `ExclusiveJobPosting` row with its description is ~5 KB,
+a narrow row ~250 B) and put the figure in the PR. Anything over **0.5 GB a day needs the owner's OK before it ships**: tell them the
+figure and the trade-off (a slower refresh, a cache, fewer rows). Lists never read full posting text: use `PUBLIC_JOB_LIST_SELECT` with
+`withDescriptionStubs`. The hourly `egress-watch` cron (`src/lib/perf/egress-watch.ts`) emails the owner (at most once a day) when the
+rate passes 8 GB a day; treat that email as a bug to fix the same day.
 
 ## Vercel and Supabase: Claude does the operations work
 
@@ -85,6 +100,13 @@ order to be a "good guy" (for example public commitments about how we hire,
 pay, screen or treat applicants, optional disclaimers, or extra statements).
 They can create unintended consequences. Include only what is required or what
 was explicitly asked for, and don't end replies with offers of further extras.
+
+## End every session with what the owner needs to do
+
+Owner rule (2026-11-13): finish every session's last reply with a short "What you need to do" list: the steps only the owner can
+take (things Claude could not do from the cloud session, approvals, runs on their machine, pages Claude cannot operate), each
+with where to do it and what happens if they skip it. If there is nothing, say "Nothing needed from you." Keep it to what is
+required, not offers of extra work.
 
 ## Jobs report scope
 
@@ -226,6 +248,20 @@ all of it our own server reading large tables over and over. Before you write or
 Check where it stands with `pg_stat_statements` (order by `rows`) and the Usage page's egress chart. The Monday cron
 `db-slow-query-report` (`src/lib/perf/db-report.ts`) emails the week's top statements by time, rows returned and disk reads, the cache
 hit share and the watched tables' growth, so a statement that keeps coming back is the one to fix.
+
+## Search indexing: no changes without the owner's approval
+
+Owner rule (2026-11-13). Between Oct 22 and Nov 5, 2026 the job sitemap was pushed (~176k), cut (~45k), answered 410 Gone,
+had its Google pings paused, and came back (~200k). Google's indexed pages fell from about 165k to 40k and search visits from
+about 230 a day to about 30. Search traffic must grow, and changing these signals is what shrank it.
+
+Ask the owner first, and say what it will do to indexed pages, before any change that removes or hides public URLs from search:
+- 410, 404 or a redirect for a page type, or `noindex` on a page type, or a quality bar that moves pages below it
+- removing URLs or files from any sitemap or the sitemap index, pausing shards (`JOB_SITEMAP_SHARDS_LIVE`), or `PAUSE_HEAVY_PAGES`
+- pausing or cutting the Google Indexing API or IndexNow pings, or a `robots.txt` Disallow on a public path
+
+Fixing a page so it loads, adding pages, and the normal 404 for a single closed job are fine. A database or egress emergency
+is not an exception: make the page cheap to serve (cache, snapshot) instead of hiding it from Google.
 
 ## Build and 404 rules
 - A page must not need the live database to prerender if the query is heavy (a scan of jobs, companies or notices). `next build` runs seven workers at once against the database, and one statement timeout fails the whole deploy. Use `export const dynamic = 'force-dynamic'` and a `Vercel-CDN-Cache-Control` header in `next.config.ts` (see `/salaries`, `/top-employers`; a plain `Cache-Control` is ignored on a per-request page, so check `x-vercel-cache: HIT` on a GET after deploy), or `generateStaticParams() { return [] }` for dynamic routes.

@@ -151,6 +151,21 @@ export function isIndexableJob(job: Pick<PublicJobRow, 'description' | 'directLi
 }
 
 /**
+ * The job page's robots index tag. A job on the employer's own career system that Google already shows in search (an impression in the
+ * last 28 days, src/lib/seo/shown-in-search.ts) keeps its index tag even when its text is under PUBLIC_JOB_MIN_INDEX_DESCRIPTION: the
+ * text bar is for pages Google has not taken up, not for ones it ranks (owner approval, 2026-11-13). The aggregator rule and the
+ * 14-day confirmation rule still apply.
+ */
+export function jobPageIndexable(
+  job: Pick<PublicJobRow, 'description' | 'directListing' | 'sourceCategory' | 'lastVerifiedAt'> & { url?: string | null },
+  shownInSearch: boolean,
+  nowMs: number = Date.now(),
+): boolean {
+  if (isStaleVerified(job.lastVerifiedAt, nowMs)) return false
+  return isIndexableJob(job) || (shownInSearch && isDirectJob(job))
+}
+
+/**
  * True when the crawl last confirmed the job open more than PUBLIC_JOB_VERIFIED_DAYS ago. A job with no verification date at all
  * (employer-posted, never crawled) is not stale. Lists use this to stop showing a job whose own page would 404 (isPublicJob).
  */

@@ -33,7 +33,7 @@ export function readPercent(text: string): number | null {
 const NAME = String.raw`(?<co>[A-Z0-9][\w&.'’-]*(?: (?:&|[A-Z0-9][\w&.'’-]*)){0,4}?)`
 const HEDGE = String.raw`(?:is|are|will|plans? to|set to|to|reportedly|preparing to|prepares to|preparing|prepares|poised to|expected to|about to|ready to|looks? to|looking to|said to|likely to|may|could|would|now|also|again)`
 const VERB = String.raw`(?:${HEDGE} )*(?:lay(?:s|ing)? off|laid off|cut(?:s|ting)?|slash(?:es|ing)?|eliminat(?:e|es|ing)|axe[sd]?|shed(?:s|ding)?|trim(?:s|ming)?|let(?:s|ting)? go(?: of)?)`
-const COUNT = String.raw`(?:about |around |nearly |more than |over |up to |roughly |some |another |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k|thousand)?\+?\s*(?:[a-z-]+ ){0,3}?(?:jobs|employees|workers|staff|staffers|positions|people|roles)`
+const COUNT = String.raw`(?:about |around |nearly |more than |over |up to |roughly |some |another |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k(?![a-z])|thousand)?\+?\s*(?:[a-z-]+ ){0,3}?(?:jobs|employees|workers|staff|staffers|positions|people|roles)`
 
 const WITH_COUNT = new RegExp(String.raw`^${NAME},? ${VERB} ${COUNT}`, 'i')
 const LAYOFFS_COUNT = new RegExp(String.raw`^${NAME}(?:'s)? (?:layoffs?|job cuts)[:,]? .*?${COUNT}`, 'i')
@@ -69,7 +69,7 @@ const PCT_LAYOFFS = new RegExp(
 )
 /** "Amazon confirms 14,000 corporate layoffs", "Verizon announces 13,000 job cuts". */
 const COUNT_THEN_CUTS = new RegExp(
-  String.raw`^${NAME},? (?:(?:announces|confirms|reveals|details|reports|plans|begins) )?(?:about |around |nearly |more than |over |up to |roughly |some |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k|thousand)?\+? (?:[a-z-]+ ){0,2}?(?:layoffs|job cuts|staff cuts|redundancies|buyouts)\b`,
+  String.raw`^${NAME},? (?:(?:announces|confirms|reveals|details|reports|plans|begins) )?(?:about |around |nearly |more than |over |up to |roughly |some |almost |at least )?(?<n>\d[\d,]*(?:\.\d+)?)\s?(?<k>k(?![a-z])|thousand)?\+? (?:[a-z-]+ ){0,2}?(?:layoffs|job cuts|staff cuts|redundancies|buyouts)\b`,
   'i',
 )
 /** "Layoffs hit Microsoft again", "Job cuts at Nestle: 16,000 roles to go": the company comes after the noun. */
@@ -79,7 +79,7 @@ const CUTS_FIRST = new RegExp(
 )
 /** "Salesforce reduces headcount by 4,000". */
 const HEADCOUNT = new RegExp(
-  String.raw`^${NAME},? (?:is |are |will |plans? to |set to |to |reportedly )?(?:reduc(?:es|ing|e)|shrink(?:s|ing)?|trim(?:s|ming)?) (?:its |their |the )?(?:global |total |entire |overall |corporate |white-collar |office )?(?:headcount|workforce|work force|staff)(?: by (?:about |around |nearly |more than |over |roughly |some )?(?:${PCT}|(?<n>\d[\d,]*)(?<k>k|thousand)?))?`,
+  String.raw`^${NAME},? (?:is |are |will |plans? to |set to |to |reportedly )?(?:reduc(?:es|ing|e)|shrink(?:s|ing)?|trim(?:s|ming)?) (?:its |their |the )?(?:global |total |entire |overall |corporate |white-collar |office )?(?:headcount|workforce|work force|staff)(?: by (?:about |around |nearly |more than |over |roughly |some )?(?:${PCT}|(?<n>\d[\d,]*)(?<k>k(?![a-z])|thousand)?))?`,
   'i',
 )
 
@@ -118,8 +118,8 @@ const NOT_A_NAME = /\b(stock|shares|firm|giant|maker|makers|retailer|chain|plant
  * Arsenal's decision"), or a place or thing ("South Fort Meade facility", "LC4 budget proposal"). Found in the news-reported layoffs on
  * 2026-10-27: about 30 of 137 had a name like these.
  */
-const BARE_WORD = /^(?:the|a|an|ai|us|u\.s\.|usa|announcing|announces|corporate jobs|jobs|job cuts|layoffs?|more|big four bank|australian bank)$/i
-const FRAGMENT = /\b(?:to|expects?|expected|blamed|blames?|posts?|defends?|defend|aims?|discontinues?|shuts?|closes?|closing|decision|proposal|budget|calls?|will|would|could|reorganization|says?|said|says|names?|hits?|falls?|rises?|invites?|urges?|asks?|woos?|courts?|lures?|assures?)\b/i
+const BARE_WORD = /^(?:the|a|an|ai|us|u\.s\.|usa|announcing|announces|corporate jobs|jobs|job cuts|layoffs?|more|big four bank|australian bank|about|over|from|almost|despite|it|u|people|management|staffing|staffers|journalism|head office|corporate headquarters|commercial (?:airplane|aircraft|airliner|plane)|civil aircraft|water leak|q3|prominent business|national nonprofit)$/i
+const FRAGMENT = /\b(?:on|to|expects?|expected|blamed|blames?|posts?|defends?|defend|aims?|discontinues?|shuts?|closes?|closing|decision|proposal|budget|calls?|will|would|could|reorganization|says?|said|says|names?|hits?|falls?|rises?|invites?|urges?|asks?|woos?|courts?|lures?|assures?)\b/i
 const PLACE_OR_THING = /\b(?:facility|factory|plant|operator|manufacturer|contractor|council|dev|news|skill games)\b/i
 const DANGLING_END = /\b(?:to|and|for|of|at|in|on|with|by|as|the|a)$/i
 export function isPlausibleCompany(name: string): boolean {
@@ -127,6 +127,8 @@ export function isPlausibleCompany(name: string): boolean {
   if (n.length < 2 || BARE_WORD.test(n) || DANGLING_END.test(n)) return false
   if (n.split(/\s+/).length > 5) return false
   if (FRAGMENT.test(n) || PLACE_OR_THING.test(n)) return false
+  // A tracker or list page, a superlative description, an industry group or an unnamed company ('Largest Australian airline', 'Restaurants and bars', 'Staffing co.').
+  if (/\btrackers?\b/i.test(n) || /^(?:largest|biggest|top|leading|major)\b/i.test(n) || /\band (?:bars|restaurants|retailers|banks)$/i.test(n) || /^[A-Za-z]+ co\.$/i.test(n)) return false
   return true
 }
 
@@ -144,6 +146,17 @@ const BRAND_NAMES: Record<string, string> = {
   amex: 'American Express',
 }
 
+/**
+ * The company inside a name the shapes above let through (2026-11-13): "SpaceX's AI Group" is SpaceX (a unit of it), and "PVH Simplifies"
+ * is PVH (the headline's verb stuck to the name). Each of these made a second page for a company that already had one.
+ */
+export function cleanName(name: string): string {
+  return name
+    .replace(/^(.+?)['’]s\s+(?:[\w&-]+\s+){0,3}?(?:group|unit|division|team|arm|business|subsidiary|operations|segment|lab|labs)$/i, '$1')
+    .replace(/\s+(?:simplifies|restructures|streamlines|trims|slashes|cuts|reorganizes|reorganises|reshuffles|shrinks|downsizes|eliminates|axes|sheds|lays|plans|unveils)$/i, '')
+    .trim()
+}
+
 export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
   // Quote marks around a phrase ('large part') are not part of it; a possessive's apostrophe is.
   const h = headline
@@ -153,7 +166,10 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
     .replace(/\s+/g, ' ')
     .trim()
     // "Online whiteboard company Miro cuts…": a lowercase description before the name is not part of it.
-    .replace(/^(?:[A-Za-z][\w-]* ){1,4}(?:company|firm|startup|start-up|maker|giant|platform|provider|unicorn|vendor|retailer) (?=[A-Z0-9])/, '')
+    .replace(/^(?:[A-Za-z][\w-]* ){1,4}(?:company|firm|startup|start-up|maker|giant|platform|provider|unicorn|vendor|retailer|publisher|insurer|lender|carmaker|automaker|airline|developer|host|manufacturer|supplier|brewer|chipmaker|drugmaker|biotech|conglomerate) (?=[A-Z0-9])/, '')
+    // "Insurer FM", "Cambridge-based HubSpot", "Norway's biggest bank DNB": a sector word or place in front of the name is not part of it.
+    .replace(/^(?:Insurer|Lender|Carmaker|Automaker|Airline|Publisher|Retailer|Chipmaker|Drugmaker|Brewer|Bank|Insurance giant|Tech giant) (?=[A-Z0-9])/, '')
+    .replace(/^(?:[A-Z][\w.]*(?: [A-Z][\w.]*)?-based|[A-Z][\w.]*(?: [A-Z][\w.]*)?['’]s (?:biggest|largest|top)) (?:[a-z-]+ ){0,3}?(?=[A-Z0-9])/, '')
     // An aside after the name ("Miro, valued at $17.5B, lays off…").
     .replace(/^([^,]{2,40}),\s*(?:valued at|backed by|which|once valued)[^,]*,\s*/i, '$1 ')
     // A section label in front of the headline is not part of the subject.
@@ -169,13 +185,15 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
   // forum", "I-64 shut down for hours" and "Tesla to wind down Cybertruck production" are not (found in a dry run, 2026-11-13).
   const buyout = strong ? null : h.match(BUYOUT_OFFER)
   if (/\b(?:box office|representative office|embassy|consulate)\b/i.test(h)) return null
+  // A running list of layoffs ('Fierce Biotech Layoff Tracker 2026') is a page about many companies, not one company's layoff.
+  if (/\blayoffs? trackers?\b|\btracker\b.*\blayoffs?\b/i.test(h)) return null
   const weak = strong || buyout ? null : h.match(RELOCATION) ?? h.match(CLOSURE)
   if (weak && !PEOPLE_AFFECTED.test(h)) return null
   const m = strong ?? buyout ?? weak
   const raw = (m?.groups?.co ?? m?.groups?.tco?.replace(/\s+(?:teams?|staff|workforce|employees|workers)$/i, ''))?.trim()
   if (!raw) return null
-  const named = raw.replace(/\s+(?:merger|acquisition|takeover|deal)$/i, '').replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
-  const company = BRAND_NAMES[named.toLowerCase()] ?? named
+  const named = raw.replace(/\s+(?:merger|acquisition|takeover|deal)$/i, '').replace(/\s+(?:has|have|had|is|are|was|were|moves|may|might)(?: been)?$/i, '').replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
+  const company = BRAND_NAMES[cleanName(named).toLowerCase()] ?? cleanName(named)
   if (company.length < 2 || NOT_A_NAME.test(company) || !isPlausibleCompany(company)) return null
   const companyKey = normalizeOrgName(company)
   if (!companyKey) return null

@@ -89,6 +89,8 @@ Adzuna is fourth: read its spec first (403 to us).
 
 Feed endpoints for the top three, from stored tables and a daily cron (no live query per request):
 
+> **Turned off 2026-11-15 (owner decision, data budget).** The `job-feed-direct` cron, which built both the direct and the Jooble feed, is off: each rebuild read every direct job with its full text (~0.5-1 GB a day of database egress), and Supabase's logs showed no download of either feed (Nov 9, 12, 14-15). The feed URLs answer 503 once their parts are 72 hours old. To turn the feeds back on, add the cron to `vercel.json` again, once an aggregator has taken the feed.
+
 - `https://launchyournextchapter.com/feeds/jobs-direct.xml.gz`: Indeed-style layout for Talent.com and Careerjet (and Adzuna once confirmed). Only jobs listed on the employer's own career system, each `<url>` the employer's apply link.
 - `https://launchyournextchapter.com/feeds/jobs-jooble.xml.gz`: Jooble's tag set, posted within the last 45 days.
 

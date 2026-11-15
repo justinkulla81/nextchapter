@@ -17,7 +17,16 @@ vi.mock('@/lib/prisma', () => ({
     exclusiveJobPosting: { groupBy: db.groupBy },
   },
 }))
-vi.mock('@/lib/jobs/board-light-rows', () => ({ groupClosedPostings: db.grouped }))
+// groupClosedPostings hands rows over a slice at a time; the mock's resolved value is handed over as two slices.
+vi.mock('@/lib/jobs/board-light-rows', () => ({
+  CLOSED_GROUP_SLICES: 2,
+  groupClosedPostings: async (onSlice: (rows: unknown[], slice: number) => Promise<void>) => {
+    const rows = ((await db.grouped()) ?? []) as unknown[]
+    const half = Math.ceil(rows.length / 2)
+    await onSlice(rows.slice(0, half), 0)
+    await onSlice(rows.slice(half), 1)
+  },
+}))
 
 const DAY = 24 * 60 * 60 * 1000
 const load = async () => {
@@ -49,8 +58,15 @@ describe('getClosedPostingCounts', () => {
     expect(db.grouped).toHaveBeenCalledTimes(1)
   })
 
-  it('does not trust a snapshot older than three days', async () => {
-    db.findFirst.mockResolvedValue({ computedAt: new Date(Date.now() - 4 * DAY), data: { stale: 9 } })
+  it('keeps using a snapshot a week old, so a failing nightly job does not send every instance to group the closed postings', async () => {
+    db.findFirst.mockResolvedValue({ computedAt: new Date(Date.now() - 7 * DAY), data: { 'acme|controller|': 5 } })
+    const { getClosedPostingCounts } = await load()
+    expect((await getClosedPostingCounts()).get('acme|controller|')).toBe(5)
+    expect(db.grouped).not.toHaveBeenCalled()
+  })
+
+  it('does not trust a snapshot older than two weeks', async () => {
+    db.findFirst.mockResolvedValue({ computedAt: new Date(Date.now() - 15 * DAY), data: { stale: 9 } })
     db.grouped.mockResolvedValue([])
     const { getClosedPostingCounts } = await load()
     const counts = await getClosedPostingCounts()
@@ -109,7 +125,7 @@ describe('rebuildClosedPostingSnapshot', () => {
     await rebuildClosedPostingSnapshot((step) => {
       steps.push(step)
     })
-    expect(steps).toEqual(['grouped', 'packed', 'stored', 'pruned'])
+    expect(steps).toEqual(['grouped slice 1 of 2', 'grouped slice 2 of 2', 'grouped', 'packed', 'stored', 'pruned'])
   })
 
   it('reads a packed snapshot the nightly job wrote, and an older plain-object one', async () => {

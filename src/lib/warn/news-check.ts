@@ -4,7 +4,7 @@ import { searchTopic, searchGoogleNews, type DiscoveredArticle } from '@/lib/new
 import { matchOrCreateCompanyForEmployer } from './company-match'
 import { firstDivision } from './division'
 import { looksLikeEmployer } from './tracker-merge'
-import { readLayoffHeadline, readPercent, publisherKey, sameEmployer, readWorkforceEvent, workforceEventLabel } from './news-headline'
+import { readLayoffHeadline, readPercent, publisherKey, sameEmployer, readWorkforceEvent, workforceEventLabel, readCollar } from './news-headline'
 import { alertNewLayoff, withAlertRun } from './layoff-alert'
 import { layoffTypeLabel } from './layoff-alert-rules'
 import { findLayoffContacts } from './layoff-contacts-run'
@@ -312,6 +312,7 @@ async function newsCheck(opts: { fast?: boolean }): Promise<NewsCheckResult> {
         source: 'MANUAL_ANNOUNCEMENT',
         noticeDate: new Date(Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate())),
         employees,
+        workCollar: readCollar(first.headline) === 'unknown' ? null : readCollar(first.headline),
         layoffType: layoffTypeLabel({ publishers: publishers.size, publisher: first.publisher, percent, event: workforceEventLabel(event) }),
         sourceUrl: first.url,
       },

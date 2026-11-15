@@ -235,3 +235,124 @@ describe('the backfill week', async () => {
     expect(SUPPRESSION_MARK_BEFORE.toISOString()).toBe('2026-11-13T03:08:00.000Z')
   })
 })
+
+describe('who is safe to email', async () => {
+  const { addressQuality, isRoleAddress } = await import('@/lib/warn/outreach/quality')
+  const now = new Date('2026-11-13T12:00:00Z')
+  const base = { email: 'jane.doe@acme.com', personId: 'p1', hunterStatus: 'deliverable', hunterScore: 95, hunterAt: new Date('2026-10-20T00:00:00Z'), primaryMatches: true, warmth: 'UNKNOWN', replied: false, domainDelivered: 0, domainBounced: 0, mx: true, directory: null }
+  it('sends only to a CRM contact Hunter marked deliverable, recently', () => {
+    expect(addressQuality(base, now).ok).toBe(true)
+    expect(addressQuality({ ...base, hunterStatus: 'valid' }, now).ok).toBe(true)
+    for (const s of ['risky', 'invalid', 'undeliverable', null]) expect(addressQuality({ ...base, hunterStatus: s }, now).reason).toBe('not verified deliverable')
+    expect(addressQuality({ ...base, hunterAt: new Date('2026-03-01T00:00:00Z') }, now).ok).toBe(false)
+    expect(addressQuality({ ...base, primaryMatches: false }, now).ok).toBe(false)
+  })
+  it('never sends to a directory address with no contact behind it (the only two bounces so far), a role address, or a dead domain', () => {
+    expect(addressQuality({ ...base, personId: null }, now).reason).toBe('no verified contact')
+    for (const e of ['info@acme.com', 'jobs@acme.com', 'Careers@acme.com', 'hr@acme.com', 'contact.us@acme.com', 'no-reply@acme.com']) expect(isRoleAddress(e), e).toBe(true)
+    expect(isRoleAddress('jane.doe@acme.com')).toBe(false)
+    expect(addressQuality({ ...base, email: 'info@acme.com' }, now).reason).toBe('role address')
+    expect(addressQuality({ ...base, mx: false }, now).reason).toBe('domain has no mail server')
+    expect(addressQuality({ ...base, mx: null }, now).ok).toBe(true) // an inconclusive lookup is not held against it
+    expect(addressQuality({ ...base, domainBounced: 1, domainDelivered: 0 }, now).reason).toBe('domain bounced before')
+    expect(addressQuality({ ...base, domainBounced: 1, domainDelivered: 5 }, now).ok).toBe(true)
+  })
+  it('holds a domain that bounced us lately, however verified the address (the Baltimore bounces, 2026-11-13)', () => {
+    const bounced = { domainDelivered: 12, domainBounced: 2, domainLastBounceAt: new Date('2026-11-13T10:00:00Z'), domainLastCleanAt: new Date('2026-11-01T00:00:00Z') }
+    expect(addressQuality({ ...base, hunterScore: 100, ...bounced }, now).reason).toBe('domain bounced recently')
+    expect(addressQuality({ ...base, ...bounced, domainLastCleanAt: new Date('2026-11-13T11:00:00Z') }, now).ok).toBe(true) // delivered cleanly since
+    expect(addressQuality({ ...base, ...bounced, domainLastBounceAt: new Date('2026-09-01T00:00:00Z') }, now).ok).toBe(true) // an old bounce
+    expect(addressQuality({ ...base, email: 'jane.doe@hotmail.com', ...bounced }, now).ok).toBe(true) // a shared provider is not one domain
+  })
+  it('trusts a Hunter check for 90 days', () => {
+    expect(addressQuality({ ...base, hunterAt: new Date('2026-08-20T00:00:00Z') }, now).ok).toBe(true)
+    expect(addressQuality({ ...base, hunterAt: new Date('2026-08-01T00:00:00Z') }, now).ok).toBe(false)
+  })
+  it('lets a contact who has replied through, and ranks the warm and proven first', () => {
+    const replied = addressQuality({ ...base, hunterStatus: null, replied: true }, now)
+    expect(replied.ok).toBe(true)
+    expect(addressQuality({ ...base, warmth: 'HOT', replied: true, domainDelivered: 3 }, now).score).toBeGreaterThan(addressQuality(base, now).score)
+  })
+})
+
+describe('layoff pacing', async () => {
+  const r = await import('@/lib/mailing/layoff-pacing-rules')
+  const { assignDaysByCap, sendDayTimes } = await import('@/lib/warn/outreach/backfill-rules')
+  it('trickles: 2 a run, one run in four skipped, 2 a day to one domain, a slow ramp', () => {
+    expect(r.LAYOFF_RUN_MAX).toBe(2)
+    expect(r.LAYOFF_PER_DOMAIN_PER_DAY).toBe(2)
+    expect([0, 1, 2, 3, 4, 9].map(r.layoffDailyCap)).toEqual([40, 60, 80, 100, 120, 120])
+    expect(r.LAYOFF_RUN_MAX * 12 * 4).toBeGreaterThan(r.layoffDailyCap(0)) // a 4-hour window can reach the cap, never a burst
+  })
+  it('spaces emails to one domain and stops a domain that bounced today', () => {
+    const now = new Date('2026-11-13T16:00:00Z')
+    expect(r.domainMaySend(undefined, now)).toBe(true)
+    expect(r.domainMaySend({ sent: 1, bounced: 0, lastSentAt: new Date('2026-11-13T15:59:59Z') }, now)).toBe(false)
+    expect(r.domainMaySend({ sent: 1, bounced: 0, lastSentAt: new Date('2026-11-13T15:20:00Z') }, now)).toBe(true)
+    expect(r.domainMaySend({ sent: 1, bounced: 1, lastSentAt: new Date('2026-11-13T10:00:00Z') }, now)).toBe(false)
+    expect(r.domainMaySend({ sent: 2, bounced: 0, lastSentAt: new Date('2026-11-13T10:00:00Z') }, now)).toBe(false)
+  })
+  it('stops for a day when bounces reach 3% of at least 20, or on any spam complaint', () => {
+    expect(r.layoffBreakerTripped(100, 2, 0)).toBe(false)
+    expect(r.layoffBreakerTripped(100, 3, 0)).toBe(true)
+    expect(r.layoffBreakerTripped(10, 5, 0)).toBe(false)
+    expect(r.layoffBreakerTripped(10, 0, 1)).toBe(true)
+  })
+  it('fills the days in order against the ramp, best editions first', () => {
+    const eds = Array.from({ length: 30 }, (_, i) => ({ id: `e${i}`, recipients: 5 }))
+    const day = assignDaysByCap(eds, [40, 60, 80])
+    expect([...day.values()].filter((d) => d === 0).length).toBe(8)
+    expect([...day.values()].filter((d) => d === 1).length).toBe(12)
+    expect(day.get('e0')).toBe(0)
+    expect(day.get('e29')).toBe(2)
+  })
+  it('sends every day, weekends included, at 9 a.m. Eastern', () => {
+    const t = sendDayTimes(new Date('2026-11-16T15:00:00Z'), 6).map((d) => d.toISOString())
+    expect(t).toEqual(['2026-11-16T14:00:00.000Z', '2026-11-17T14:00:00.000Z', '2026-11-18T14:00:00.000Z', '2026-11-19T14:00:00.000Z', '2026-11-20T14:00:00.000Z', '2026-11-21T14:00:00.000Z'])
+  })
+  it('keeps spam words out of every headline', async () => {
+    const { headlineFor, HEADLINE_CODES } = await import('@/lib/warn/outreach/copy')
+    for (const audience of ['hr', 'job_center', 'workforce_board', 'rapid_response', 'economic_development'] as const) for (const mode of ['new', 'older'] as const)
+      for (const c of HEADLINE_CODES) expect(headlineFor(c, { org: 'Acme', employees: 120, state: 'KY', county: null, audience, mode }), `${c} ${audience} ${mode}`).not.toMatch(/\bfree\b|!|\$|guarantee|urgent|act now/i)
+  })
+})
+
+describe('verifying directory addresses and cleaning names', async () => {
+  const { addressQuality, needsVerification } = await import('@/lib/warn/outreach/quality')
+  const { cleanEmployerName } = await import('@/lib/warn/outreach/employer-name')
+  const now = new Date('2026-11-13T12:00:00Z')
+  const dir = { email: 'sam.lee@workforce.org', personId: null as string | null, hunterStatus: null, hunterScore: null, hunterAt: null, primaryMatches: false, warmth: null, replied: false, domainDelivered: 0, domainBounced: 0, mx: true as boolean | null, directory: null as { status: string; score: number | null; at: Date } | null }
+  it('emails a directory address only after Hunter called it deliverable with a high score, recently', () => {
+    expect(addressQuality(dir, now).reason).toBe('no verified contact')
+    expect(addressQuality({ ...dir, directory: { status: 'deliverable', score: 96, at: new Date('2026-11-12T00:00:00Z') } }, now).ok).toBe(true)
+    expect(addressQuality({ ...dir, directory: { status: 'deliverable', score: 80, at: new Date('2026-11-12T00:00:00Z') } }, now).ok).toBe(false)
+    for (const status of ['risky', 'invalid']) expect(addressQuality({ ...dir, directory: { status, score: 99, at: new Date('2026-11-12T00:00:00Z') } }, now).reason).toBe('not verified deliverable')
+    expect(addressQuality({ ...dir, directory: { status: 'deliverable', score: 99, at: new Date('2026-01-01T00:00:00Z') } }, now).ok).toBe(false)
+  })
+  it('spends a credit only on an address that passes every other rule and has not been checked', () => {
+    expect(needsVerification(dir, now)).toBe(true)
+    expect(needsVerification({ ...dir, email: 'info@workforce.org' }, now)).toBe(false)
+    expect(needsVerification({ ...dir, mx: false }, now)).toBe(false)
+    expect(needsVerification({ ...dir, domainBounced: 2 }, now)).toBe(false)
+    expect(needsVerification({ ...dir, domainBounced: 1, domainDelivered: 4, domainLastBounceAt: new Date('2026-11-12T00:00:00Z'), domainLastCleanAt: null }, now)).toBe(false)
+    expect(needsVerification({ ...dir, directory: { status: 'invalid', score: 10, at: new Date('2026-11-12T00:00:00Z') } }, now)).toBe(false)
+    expect(needsVerification({ ...dir, personId: 'p1', primaryMatches: true, hunterStatus: 'risky', hunterAt: new Date('2026-11-01T00:00:00Z') }, now)).toBe(false)
+    expect(needsVerification({ ...dir, personId: 'p1', primaryMatches: true, hunterStatus: null }, now)).toBe(true)
+  })
+  it('writes the employer as a person would, with no filing address or plant name', () => {
+    expect(cleanEmployerName('The Mosaic Company 5880 Manley Road FORT MEADE, FL, 33841')).toBe('The Mosaic Company')
+    expect(cleanEmployerName('Excel Mining LLC - MC Mining Preparation Plant')).toBe('Excel Mining LLC')
+    expect(cleanEmployerName('DHL Supply Chain (Formerly Exel)')).toBe('DHL Supply Chain')
+    expect(cleanEmployerName('Acme Corp 100 Main Street Suite 4 Louisville KY 40202')).toBe('Acme Corp')
+    for (const n of ['TomTom', 'Century Aluminum of Kentucky Hawesville', 'Laurel Grocery Company LLC', 'Jabil Inc', '3M', '7-Eleven, Inc.']) expect(cleanEmployerName(n)).toBe(n)
+    expect(cleanEmployerName('A'.repeat(30) + ' ' + 'B'.repeat(40)).length).toBeLessThanOrEqual(60)
+  })
+})
+
+describe('when Hunter cannot be asked', async () => {
+  const { isVerifyBlocked } = await import('@/lib/warn/outreach/quality')
+  it('stops waiting for an answer that cannot come, but keeps waiting when it only paused', () => {
+    for (const s of ['floor', 'daily', 'hunter_error', 'not_configured']) expect(isVerifyBlocked(s), s).toBe(true)
+    for (const s of ['done', 'cap', 'time']) expect(isVerifyBlocked(s), s).toBe(false)
+  })
+})

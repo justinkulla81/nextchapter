@@ -19,3 +19,14 @@ export async function runJobNow(formData: FormData) {
   })
   revalidatePath('/support/admin/job-health')
 }
+
+/**
+ * Runs Job Search Daily now, for the members who have not had today's email. Safe to repeat: the job skips anyone already sent
+ * today (hasAlreadySentToday), so nothing goes out twice. It emails people, so the page asks for a second click first.
+ */
+export async function runJobSearchDailyNow() {
+  await requireAdmin()
+  const result = await invokeCron('job-search-daily', 'manual')
+  captureServerEvent('cron', 'job_run_now_clicked', { job: 'job-search-daily', group: null, ok: result.ok, status: result.status })
+  revalidatePath('/support/admin/job-health')
+}
