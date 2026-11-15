@@ -39,4 +39,11 @@ describe('rebuildHiringIndex phases', () => {
     )
     expect(steps).toEqual(['link', 'sync', 'close', 'market', 'profiles'])
   })
+
+  it('closes only what was archived since the last good run on a Sunday too (the full sweep ran past the statement timeout)', async () => {
+    db.close.mockResolvedValue(0)
+    const since = new Date('2026-11-14T08:29:31Z')
+    await rebuildHiringIndex({ since, now: new Date('2026-11-15T08:27:00Z') }).catch(() => {})
+    expect(db.close).toHaveBeenCalledWith(expect.objectContaining({ since }))
+  })
 })

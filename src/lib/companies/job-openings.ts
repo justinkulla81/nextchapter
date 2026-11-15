@@ -180,7 +180,7 @@ export async function closeArchivedOpenings(opts: { deadline?: number; since?: D
   // Each batch continues after the last url of the one before (keyset), so it never walks past the openings it already closed:
   // the old form restarted at the top of the url index every batch and got slower with each one, until a single statement ran
   // past the timeout (2026-11-09: "close failed after 120s"). With `since` (the nightly run) only postings archived since a day
-  // before it are looked at, through the archivedAt index; without it (the Sunday sweep) every archived posting is.
+  // before it are looked at, through the archivedAt index; without it (a first run, with no good run before it) every archived posting is.
   const BATCH = 5000
   const since = opts.since ? new Date(opts.since.getTime() - 86_400_000) : null
   let total = 0
