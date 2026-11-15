@@ -230,6 +230,14 @@ export async function similarJobsAtCompany(companyId: string | null | undefined,
   }
 }
 
+/**
+ * How long the "similar jobs" reads are kept: on the instance an hour, in the shared data cache 12 hours (owner decision 2026-11-15,
+ * Supabase egress). At an hour they were re-read all day for ~1,000 occupations and every employer a crawl touched: ~1.6 GB a day.
+ * A job that closes can stay in these links up to 12 hours; the job page itself is already cached up to 3 days.
+ */
+const SIMILAR_INSTANCE_MS = 60 * 60_000
+const SIMILAR_SHARED_SEC = 12 * 3600
+
 // How many rows one cached read keeps: the most any caller asks for (6 links, three candidates each) plus the page's own job.
 const SIMILAR_CACHED_ROWS = 25
 
@@ -239,8 +247,8 @@ const SIMILAR_CACHED_ROWS = 25
  * database's disk reads and outbound data (Supabase Disk IO and egress warnings). Kept on the instance for ten minutes and in the
  * shared data cache for an hour; a failed or slow read throws, so it is never stored.
  */
-const employerRoles = memoTtl(10 * 60_000, (companyId: string) => companyId, (companyId: string) =>
-  sharedLoad(`similar-at-company:${companyId}`, 3600, () => loadEmployerRoles(companyId), { reviveDates: false }))
+const employerRoles = memoTtl(SIMILAR_INSTANCE_MS, (companyId: string) => companyId, (companyId: string) =>
+  sharedLoad(`similar-at-company:${companyId}`, SIMILAR_SHARED_SEC, () => loadEmployerRoles(companyId), { reviveDates: false }))
 
 async function loadEmployerRoles(companyId: string): Promise<SimilarJob[]> {
   // The employer's newest rows by cheap columns first (no description read), then the full public rules on only those.
@@ -295,8 +303,8 @@ const SIMILAR_LIKE_CACHED_ROWS = 300
  * a key per state and employer is a key a crawl never repeats. Kept on the instance for ten minutes and in the shared data cache for an
  * hour; a failed or slow read throws, so it is never stored.
  */
-const likeRoles = memoTtl(10 * 60_000, (k: LikeKey) => JSON.stringify(k), (k: LikeKey) =>
-  sharedLoad(`similar-like-v2:${JSON.stringify(k)}`, 3600, () => loadLikeRoles(k), { reviveDates: false }))
+const likeRoles = memoTtl(SIMILAR_INSTANCE_MS, (k: LikeKey) => JSON.stringify(k), (k: LikeKey) =>
+  sharedLoad(`similar-like-v2:${JSON.stringify(k)}`, SIMILAR_SHARED_SEC, () => loadLikeRoles(k), { reviveDates: false }))
 
 async function loadLikeRoles(job: LikeKey): Promise<LikeRow[]> {
   // About 28% of live jobs carry no occupation code (the feed did not send one). Those match on function and level instead, read from the
