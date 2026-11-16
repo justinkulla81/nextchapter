@@ -248,6 +248,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'Dashboard', comingIn: null },
       { key: 'companies', label: 'Member companies', comingIn: null },
       { key: 'participants', label: 'Participants', comingIn: null },
+      { key: 'pipeline', label: 'Pipeline', comingIn: null, demoOnly: true },
+      { key: 'jobs', label: 'Jobs and skills', comingIn: null, demoOnly: true },
       { key: 'learning', label: 'Learning and partners', comingIn: null, demoOnly: true },
       { key: 'upskill', label: 'Employer upskilling', comingIn: null, demoOnly: true },
       { key: 'skills', label: 'Future skills', comingIn: null, demoOnly: true },
