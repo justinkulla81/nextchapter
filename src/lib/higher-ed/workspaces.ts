@@ -118,7 +118,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'candidate',
     tabs: [
       { key: 'home', label: 'Home', comingIn: null },
-      // A workforce participant's own NextChapter account lists the program under Network › Groups.
+      // A workforce participant's own NextChapter account lists the organization under Network › Groups.
       { key: 'groups', label: 'Groups', comingIn: null, orgKind: 'workforce' },
       { key: 'jobs', label: 'Jobs & projects', comingIn: null, modules: ['alumniJobs', 'projects'], orgKind: 'college' },
       // Internships live only in the college portal, never on the member job board.
@@ -247,7 +247,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     // A workforce customer's own work: the companies it serves, the people
     // it's helping, layoffs in its region, and how many it kept local.
     key: 'hub',
-    label: 'Program',
+    label: 'Talent Hub',
     icon: 'MapPin',
     release: 'V1',
     requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:hub'],
@@ -256,7 +256,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'home', label: 'Dashboard', comingIn: null, group: 'Overview' },
       { key: 'pipeline', label: 'Pipeline', comingIn: null, demoOnly: true, group: 'Overview' },
-      // Everyone the program helps, by track, with the benefits matched to each person (src/lib/workforce/people-crm.ts).
+      // Everyone the organization helps, by track, with the benefits matched to each person (src/lib/workforce/people-crm.ts).
       { key: 'participants', label: 'People', comingIn: null, group: 'Overview' },
       { key: 'local', label: 'Kept in region', comingIn: null, group: 'Overview' },
       { key: 'region', label: 'Local market', comingIn: null, group: 'Overview' },
