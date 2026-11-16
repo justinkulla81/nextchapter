@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { BookOpen, Briefcase, HandHeart, MessagesSquare, ShieldCheck, Users } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
+import { orgKindOf } from '@/lib/higher-ed/workspaces'
 import { MODULES, modulesFrom, type ModuleKey, type Modules } from '@/lib/higher-ed/modules'
 import {
   COMPENSATION,
@@ -458,7 +459,11 @@ export async function LearnSections({ ctx }: Props) {
     ctx.memberId ? prisma.institutionMember.findUnique({ where: { id: ctx.memberId }, select: { candidate: { select: { journey: true } } } }) : null,
     mods.courseAuditing ? openAuditCourses(ctx.institution.id, ctx.memberId) : Promise.resolve([]),
   ])
-  const path = journey?.candidate?.journey ? LEARNING_PATHS[journey.candidate.journey] : null
+  const rawPath = journey?.candidate?.journey ? LEARNING_PATHS[journey.candidate.journey] : null
+  // A workforce program has no alumni or course auditing: leave out steps that say so.
+  const workforce = orgKindOf(ctx.institution.orgType) === 'workforce'
+  const steps = rawPath ? (workforce ? rawPath.steps.filter((s) => !/\balum|audit/i.test(s)) : rawPath.steps) : []
+  const path = rawPath && steps.length ? { ...rawPath, steps } : null
   return (
     <div className="space-y-8">
       {path && (
@@ -470,7 +475,7 @@ export async function LearnSections({ ctx }: Props) {
           </ol>
         </Section>
       )}
-      {mods.courseAuditing && (
+      {mods.courseAuditing && !workforce && (
         <Section id="audit-h" title="Audit a course" intro={`Sit in on a regular ${ctx.institution.name} course. No grade and no credit; the professor approves each auditor.`}>
           {courses.length ? (
             <ul className="grid gap-3 sm:grid-cols-2">
