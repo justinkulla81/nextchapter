@@ -48,27 +48,44 @@ export default async function WorkspacePage({
         )}
       </div>
 
-      {tabs.length > 1 && (
-        <nav aria-label={`${labelFor(config, kind)} sections`} className="flex gap-1 overflow-x-auto border-b border-border">
-          {tabs.map((t, i) => {
-            const href = i === 0 ? base : `${base}/${t.key}`
-            const isActive = t.key === active.key
-            return (
-              <Link
-                key={t.key}
-                href={href}
-                aria-current={isActive ? 'page' : undefined}
-                className={cn(
-                  '-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-medium transition-colors',
-                  isActive ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground',
-                )}
-              >
-                {labelFor(t, kind)}
-              </Link>
-            )
-          })}
-        </nav>
-      )}
+      {tabs.length > 1 && (() => {
+        const groups = [...new Set(tabs.map((t) => t.group).filter((g): g is string => !!g))]
+        const hrefOf = (t: (typeof tabs)[number]) => (t.key === tabs[0].key ? base : `${base}/${t.key}`)
+        const shown = groups.length > 1 && active.group ? tabs.filter((t) => t.group === active.group) : tabs
+        const link = (isActive: boolean) =>
+          cn('-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-medium transition-colors', isActive ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')
+        return (
+          <div className="space-y-3">
+            {groups.length > 1 && (
+              <nav aria-label={`${labelFor(config, kind)} areas`} className="flex flex-wrap gap-2">
+                {groups.map((g) => {
+                  const first = tabs.find((t) => t.group === g)!
+                  const isActive = g === active.group
+                  return (
+                    <Link
+                      key={g}
+                      href={hrefOf(first)}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={cn('rounded-full px-3 py-1.5 text-sm font-medium transition-colors', isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground hover:bg-muted/70')}
+                    >
+                      {g}
+                    </Link>
+                  )
+                })}
+              </nav>
+            )}
+            {shown.length > 1 && (
+              <nav aria-label={`${labelFor(config, kind)} sections`} className="flex gap-1 overflow-x-auto border-b border-border">
+                {shown.map((t) => (
+                  <Link key={t.key} href={hrefOf(t)} aria-current={t.key === active.key ? 'page' : undefined} className={link(t.key === active.key)}>
+                    {labelFor(t, kind)}
+                  </Link>
+                ))}
+              </nav>
+            )}
+          </div>
+        )
+      })()}
 
       {locked ? (
         <LockedFeature feature={locked} slug={slug} plan={ctx.institution.plan} />

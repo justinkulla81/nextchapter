@@ -46,6 +46,8 @@ export type WorkspaceTab = {
   // Only on demo workspaces (isDemo): screens built on sample data that a real
   // customer should not see until they hold real data.
   demoOnly?: boolean
+  // The section of a long tab list it sits under (a second row of navigation).
+  group?: string
 }
 
 export type WorkspaceConfig = {
@@ -105,6 +107,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
   {
     key: 'candidate',
     label: 'Candidate',
+    // What a participant sees, for a workforce customer.
+    workforceLabel: 'Participant view',
     icon: 'GraduationCap',
     release: 'V1',
     requiredRoles: ['MEMBER'],
@@ -221,7 +225,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     key: 'employer',
     label: 'Employer',
     // A workforce org's member company: its layoffs, its people, its hiring.
-    workforceLabel: 'Your company',
+    workforceLabel: 'Employer view',
     icon: 'Building2',
     release: 'V1',
     requiredRoles: ['EMPLOYER'],
@@ -245,22 +249,25 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'hub',
     orgKind: 'workforce',
     tabs: [
-      { key: 'home', label: 'Dashboard', comingIn: null },
-      { key: 'companies', label: 'Member companies', comingIn: null },
-      { key: 'participants', label: 'Participants', comingIn: null },
-      { key: 'pipeline', label: 'Pipeline', comingIn: null, demoOnly: true },
-      { key: 'jobs', label: 'Jobs and skills', comingIn: null, demoOnly: true },
-      { key: 'learning', label: 'Learning and partners', comingIn: null, demoOnly: true },
-      { key: 'upskill', label: 'Employer upskilling', comingIn: null, demoOnly: true },
-      { key: 'skills', label: 'Future skills', comingIn: null, demoOnly: true },
-      { key: 'rapid', label: 'Rapid response', comingIn: null, demoOnly: true },
-      { key: 'benefits', label: 'Benefits', comingIn: null, demoOnly: true },
-      { key: 'attract', label: 'Attract', comingIn: null, demoOnly: true },
-      { key: 'grants', label: 'Grants and reporting', comingIn: null, demoOnly: true },
-      { key: 'local', label: 'Kept in region', comingIn: null },
-      { key: 'region', label: 'Local market', comingIn: null },
-      // Layoffs come last: the workspace starts with companies, people and jobs.
-      { key: 'layoffs', label: 'Layoffs', comingIn: null },
+      { key: 'home', label: 'Dashboard', comingIn: null, group: 'Overview' },
+      { key: 'pipeline', label: 'Pipeline', comingIn: null, demoOnly: true, group: 'Overview' },
+      { key: 'participants', label: 'Participants', comingIn: null, group: 'Overview' },
+      { key: 'local', label: 'Kept in region', comingIn: null, group: 'Overview' },
+      { key: 'region', label: 'Local market', comingIn: null, group: 'Overview' },
+      { key: 'companies', label: 'Member companies', comingIn: null, group: 'Employers' },
+      { key: 'upskill', label: 'Upskilling', comingIn: null, demoOnly: true, group: 'Employers' },
+      { key: 'jobs', label: 'Jobs and skills', comingIn: null, demoOnly: true, group: 'Employers' },
+      { key: 'rapid', label: 'Rapid response', comingIn: null, demoOnly: true, group: 'Employers' },
+      // Layoff seats come after the rapid-response plan.
+      { key: 'layoffs', label: 'Layoff seats', comingIn: null, group: 'Employers' },
+      { key: 'learning', label: 'Colleges and partners', comingIn: null, demoOnly: true, group: 'Higher ed' },
+      { key: 'skills', label: 'Future skills', comingIn: null, demoOnly: true, group: 'Higher ed' },
+      { key: 'training', label: 'Programs', comingIn: null, demoOnly: true, group: 'Training' },
+      { key: 'benefits', label: 'Benefits', comingIn: null, demoOnly: true, group: 'Training' },
+      { key: 'system', label: 'Board and job centers', comingIn: null, demoOnly: true, group: 'Workforce system' },
+      { key: 'attract', label: 'Attract', comingIn: null, demoOnly: true, group: 'Attract and funding' },
+      { key: 'funding', label: 'Grants and contests', comingIn: null, demoOnly: true, group: 'Attract and funding' },
+      { key: 'grants', label: 'Reporting', comingIn: null, demoOnly: true, group: 'Attract and funding' },
     ],
   },
   {

@@ -22,7 +22,7 @@ import { PortalTypeBar } from '@/components/partners/PortalTypeBar'
 
 async function getTaglineAndFeatures(institutionId: string) {
   const row = await prisma.institution.findUnique({ where: { id: institutionId }, select: { profile: true, enabledFeatures: true } })
-  return { tagline: readProfile(row?.profile).tagline ?? null, features: workspaceFeaturesOf(row?.enabledFeatures) }
+  return { tagline: readProfile(row?.profile).tagline ?? null, features: workspaceFeaturesOf(row?.enabledFeatures), chromeColor: (row?.enabledFeatures as { demo?: { chromeColor?: string } } | null)?.demo?.chromeColor ?? null }
 }
 
 export const metadata: Metadata = {
@@ -53,7 +53,7 @@ export default async function InstitutionPortalLayout({
 
   const { institution } = access
   // An organization that owns this college sets one brand for all its portals; it wins over the college's own.
-  const [{ tagline, features }, orgBrand] = await Promise.all([
+  const [{ tagline, features, chromeColor }, orgBrand] = await Promise.all([
     getTaglineAndFeatures(institution.id),
     organizationBrandFor('HIGHER_ED', institution.id).catch(() => null),
   ])
@@ -87,7 +87,7 @@ export default async function InstitutionPortalLayout({
       <CanonicalOrgUrl slug={slug} base={orgBasePath(slug, institution.orgType)} />
       <PortalTypeBar
         type={orgKindOf(institution.orgType) === 'workforce' ? 'workforce' : 'higher_ed'}
-        chrome={institution.isDemo && institution.accentColor ? accent : null}
+        chrome={institution.isDemo ? (chromeColor && /^#[0-9a-fA-F]{6}$/.test(chromeColor) ? chromeColor : institution.accentColor ? accent : null) : null}
         use={institution.orgType === 'WORKFORCE_BOARD' ? 'Workforce boards' : institution.orgType === 'ECONOMIC_DEVELOPMENT' ? 'Economic development' : null}
       />
       {institution.isDemo && (
