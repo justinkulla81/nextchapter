@@ -27,8 +27,15 @@ export async function HubHome({ ctx }: Props) {
   const d = await hubDashboard(ctx.institution.id)
   const slug = ctx.institution.slug
   const activation = d.participants ? Math.round((d.joined / d.participants) * 100) : null
+  const feats = ctx.institution.isDemo ? (await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } }))?.enabledFeatures : null
+  const preparedFor = (feats as { demo?: { preparedFor?: string | null } } | null)?.demo?.preparedFor
   return (
     <div className="space-y-6">
+      {preparedFor && (
+        <p className="text-sm text-muted-foreground">
+          Prepared for <span className="font-medium text-foreground">{preparedFor}</span>, {ctx.institution.name}. Sample people and companies; regional data is real.
+        </p>
+      )}
       <BriefCard institutionId={ctx.institution.id} agent="workforce_dev" />
       {!d.local && (
         <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm">

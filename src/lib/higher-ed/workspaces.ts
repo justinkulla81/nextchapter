@@ -43,6 +43,9 @@ export type WorkspaceTab = {
   orgKind?: OrgKind
   // Its name on a workforce customer's portal, when different.
   workforceLabel?: string
+  // Only on demo workspaces (isDemo): screens built on sample data that a real
+  // customer should not see until they hold real data.
+  demoOnly?: boolean
 }
 
 export type WorkspaceConfig = {
@@ -245,6 +248,13 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'Dashboard', comingIn: null },
       { key: 'companies', label: 'Member companies', comingIn: null },
       { key: 'participants', label: 'Participants', comingIn: null },
+      { key: 'learning', label: 'Learning and partners', comingIn: null, demoOnly: true },
+      { key: 'upskill', label: 'Employer upskilling', comingIn: null, demoOnly: true },
+      { key: 'skills', label: 'Future skills', comingIn: null, demoOnly: true },
+      { key: 'rapid', label: 'Rapid response', comingIn: null, demoOnly: true },
+      { key: 'benefits', label: 'Benefits', comingIn: null, demoOnly: true },
+      { key: 'attract', label: 'Attract', comingIn: null, demoOnly: true },
+      { key: 'grants', label: 'Grants and reporting', comingIn: null, demoOnly: true },
       { key: 'local', label: 'Kept in region', comingIn: null },
       { key: 'region', label: 'Local market', comingIn: null },
       // Layoffs come last: the workspace starts with companies, people and jobs.
