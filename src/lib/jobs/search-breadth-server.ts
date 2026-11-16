@@ -210,6 +210,24 @@ async function readAndPublishJobSocs(): Promise<{ at: number; value: JobOccupati
   return { at, value }
 }
 
+/**
+ * The occupations-warm cron (10:50 UTC): reads the occupations from the database and writes the shared snapshot, so the 12:00
+ * Job Search Daily finds one under JOB_SOC_SNAPSHOT_FRESH_MS old. Without it the noon run read the table cold (about 29 pages
+ * at ~12 s each, over six minutes) and gave up on the board load (2026-11-11, 2026-11-16). Skips the read when a snapshot
+ * younger than `skipIfYoungerMs` is already there. Awaits the write, so the snapshot exists when the cron answers.
+ */
+export async function refreshJobSocsSnapshot(skipIfYoungerMs: number): Promise<{ read: boolean; ageMs?: number; jobs?: number }> {
+  if (snapshotsDisabled()) return { read: false }
+  const manifest = await readManifest('occupations')
+  if (manifest && Date.now() - manifest.at < skipIfYoungerMs) return { read: false, ageMs: Date.now() - manifest.at }
+  const at = Date.now()
+  const fingerprint = await boardFingerprint()
+  const value = await readJobSocs()
+  if (fingerprint) await writeSnapshot('occupations', fingerprint, at, [encodeOccupations(value)], value.socs.size)
+  jobSocs = { at, value: Promise.resolve(value) }
+  return { read: true, jobs: value.socs.size }
+}
+
 /** Live job id → O*NET occupation and stored sub-function. */
 export function loadJobSocs(): Promise<JobOccupations> {
   const now = Date.now()
