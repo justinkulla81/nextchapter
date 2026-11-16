@@ -21,6 +21,7 @@ export const FAMILY_TONE: Record<string, { card: string; label: string }> = {
   'Work arrangements': { card: 'bg-tint-sky', label: 'text-navy' },
   'Best overall': { card: 'bg-tint-sun', label: 'text-tint-sun-ink' },
   Growth: { card: 'bg-tint-sun', label: 'text-tint-sun-ink' },
+  'Best places for professionals': { card: 'bg-tint-mint', label: 'text-tint-mint-ink' },
 }
 export const toneOf = (family: string) => FAMILY_TONE[family] ?? { card: 'bg-tint-sky', label: 'text-navy' }
 

@@ -46,6 +46,7 @@ import { CoachWhatCandidateSees } from './coach-candidate'
 import { CoachSchedulingConnected, CoachSchedulingEmpty, CoachSchedulingBroken } from './coach-scheduling'
 import { FundingLive } from './funding-live'
 import { ApplyHelperLive } from './apply-helper-live'
+import { BestPlacesAll, BestPlacesCriterion } from './best-places'
 import { ComparePlacesJobless, ComparePlacesEmployed, ComparePlacesLife, ComparePlacesEmpty, ComparePlacesNoCity } from './compare-places-live'
 import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
 import { RoleFeed, RoleFeedQuiet } from './role-feed'
@@ -110,6 +111,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'marketing/recruiter-candidates', place: 'Partner pages', title: 'Recruiter: candidates with stage and next step (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterCandidates },
   { path: 'marketing/recruiter-candidate-status', place: 'Partner pages', title: 'Recruiter: one candidate, pipeline and shared status (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterCandidateStatus },
   { path: 'marketing/recruiter-pipeline', place: 'Partner pages', title: 'Recruiter: feedback and placement (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterPipeline },
+  { path: 'rankings/best-places', place: 'Public pages', title: 'Best places for white-collar professionals (sample data)', replaces: 'new ranking; adds the criteria section, removes nothing', Component: BestPlacesAll },
+  { path: 'rankings/best-places-criterion', place: 'Public pages', title: 'One best-places criterion: housing (sample data)', replaces: 'new ranking; adds the link back to the overall list', Component: BestPlacesCriterion },
   { path: 'jobs/live/compare-places', place: 'Jobs', title: 'Compare places: out of work, two places (sample data)', replaces: 'new page; adds one entry under Market and pay, removes nothing', Component: ComparePlacesJobless },
   { path: 'jobs/live/compare-places-employed', place: 'Jobs', title: 'Compare places: employed, two places (sample data)', replaces: 'new page', Component: ComparePlacesEmployed },
   { path: 'jobs/live/compare-places-life', place: 'Jobs', title: 'Compare places: just for life there (sample data)', replaces: 'new page', Component: ComparePlacesLife },

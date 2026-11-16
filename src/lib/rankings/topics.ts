@@ -27,4 +27,5 @@ export const TOPIC_BLURB: Record<string, string> = {
   Research: 'Research jobs and funding.',
   'Higher education': 'Colleges and the jobs near them.',
   Degrees: 'Which degrees match open jobs.',
+  'Best places for professionals': 'Each criterion behind the best places for white-collar professionals.',
 }

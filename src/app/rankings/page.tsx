@@ -20,12 +20,12 @@ export const metadata: Metadata = {
   openGraph: { title: 'Job market rankings: best cities by job type, pay and growth', description: 'Monthly rankings of cities and counties for junior jobs, AI skills, remote work, pay after cost of living and job growth.', url: `${SITE_URL}/rankings`, type: 'website' },
 }
 
-const FAMILY_ORDER = ['Entry-level', 'Levels', 'AI', 'AI skills', 'Pay', 'Work style', 'Job families', 'Industries', 'Industry markets', 'AI and jobs', 'Function profiles', 'Industry profiles', 'Support', 'Hiring and layoffs', 'Conferences', 'Work arrangements', 'Markets', 'Growth', 'Best overall', 'Workforce', 'Research', 'Higher education', 'Degrees']
+const FAMILY_ORDER = ['Entry-level', 'Levels', 'AI', 'AI skills', 'Pay', 'Work style', 'Job families', 'Industries', 'Industry markets', 'AI and jobs', 'Function profiles', 'Industry profiles', 'Support', 'Hiring and layoffs', 'Conferences', 'Work arrangements', 'Markets', 'Growth', 'Best overall', 'Workforce', 'Research', 'Higher education', 'Degrees', 'Best places for professionals']
 
 export default async function RankingsHub() {
   const index = await readRankingIndex()
   const newest = index.map((x) => x.edition).sort().reverse()[0]
-  const LIST_FAMILIES = ['Job families', 'AI skills', 'Industry markets', 'Function profiles', 'Industry profiles', 'Support', 'Hiring and layoffs', 'Conferences', 'Work arrangements', 'Workforce', 'Research', 'Higher education', 'Degrees']
+  const LIST_FAMILIES = ['Job families', 'AI skills', 'Industry markets', 'Function profiles', 'Industry profiles', 'Support', 'Hiring and layoffs', 'Conferences', 'Work arrangements', 'Workforce', 'Research', 'Higher education', 'Degrees', 'Best places for professionals']
   const national = index.filter((x) => x.scopeKind === 'national' && !LIST_FAMILIES.includes(x.family))
   const months = archiveMonths(index)
   const families = FAMILY_ORDER.filter((f) => index.some((x) => x.family === f))
@@ -90,7 +90,7 @@ export default async function RankingsHub() {
         <h2 id="how" className={H2}>How the rankings are made</h2>
         <div className="mt-3 max-w-3xl space-y-3 text-sm text-foreground">
           <p>Each ranking has a sample bar: a place is ranked only if enough openings sit behind its figure. Each page gives the formula, the sources and the data date, and older months stay online at their own addresses.</p>
-          <p>Our job data covers professional roles on the career sites of employers we track, so the rankings describe that market. They rank conditions we can measure, such as how many openings are entry-level or ask for AI skills, not how pleasant a place is to live or work.</p>
+          <p>Our job data covers professional roles on the career sites of employers we track, so the rankings describe that market. Most rank job-market conditions we can measure, such as how many openings are entry-level or ask for AI skills. The best places for white-collar professionals adds public data on housing, layoffs, AI exposure, schools, safety and community, and publishes each of those criteria as its own ranking.</p>
         </div>
       </section>
       <div className="mt-12"><NewsletterSignup source="rankings" /></div>
