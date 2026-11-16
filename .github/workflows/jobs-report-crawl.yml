@@ -32,4 +32,17 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: python3 scripts/jobsreport/crawl.py --geo ${{ matrix.geo }}
+        run: |
+          if [ -n "$SUPABASE_SERVICE_ROLE_KEY" ] && [ -n "$SUPABASE_URL" ]; then
+            python3 scripts/jobsreport/crawl.py --geo ${{ matrix.geo }}
+          else
+            # No database secrets: fetch only, and keep the rows as an artifact to be loaded separately.
+            python3 scripts/jobsreport/crawl.py --geo ${{ matrix.geo }} --dry-run
+          fi
+      - name: Keep fetched rows
+        if: ${{ always() && (github.event.inputs.geo == '' || github.event.inputs.geo == matrix.geo) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawl-${{ matrix.geo }}
+          path: scripts/jobsreport/out/${{ matrix.geo }}/*.jsonl
+          if-no-files-found: ignore
