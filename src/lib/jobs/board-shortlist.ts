@@ -21,7 +21,7 @@ import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-
 import { notInternshipWhere } from '@/lib/internships/exclude'
 import { emailLevelFit } from '@/lib/jobs/email-level-fit'
 import { findLightRowsPage, logBoardMemory, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
-import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot, yieldToRequests, type SnapshotKind } from '@/lib/jobs/board-snapshot'
+import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot, type SnapshotKind } from '@/lib/jobs/board-snapshot'
 import { decodeBoardPart, encodeBoardPart } from '@/lib/jobs/board-snapshot-codec'
 import { annualPayForSort, type BoardSort } from '@/lib/jobs/board-search'
 import { sectorKeep } from '@/lib/jobs/employer-sector'
@@ -271,19 +271,33 @@ async function readSharedRows(
 }
 
 const SNAPSHOT_PART_ROWS = 50_000
+
+/**
+ * The version a freshly read board's snapshot is stamped with. Unchanged across the read: that version, so the snapshot serves for as
+ * long as the board stays at it. Changed while it was read (on 2026-11-16 the board took 100+ row changes a minute against a 20-40 s
+ * read, so this was every read, no snapshot was written for 9 hours, and every cold instance read the whole board from the database and
+ * ran out of memory): written anyway under a mark no version equals, so it serves only its two fresh hours. Null when unreadable.
+ */
+export function snapshotVersion(before: string | null, after: string | null): string | null {
+  if (!before) return null
+  return before === after ? before : `${before}~moved`
+}
 const SLOW_SHORTLIST_MS = 2_000
 
-/** Writes the held board as a snapshot (board-snapshot.ts) for the next cold instance. */
-function publishBoard(kind: SnapshotKind, board: HeldBoard): void {
-  const fingerprint = board.fingerprint
+/**
+ * Writes the held board as a snapshot (board-snapshot.ts) for the next cold instance. `fingerprint` is the version stamped on it:
+ * the board's version when it held still across the read, else snapshotVersion's mark that matches no version, so readers take it
+ * only within BOARD_SNAPSHOT_FRESH_MS of `board.readAt` (when the read started), the same age every snapshot is trusted for.
+ */
+function publishBoard(kind: SnapshotKind, board: HeldBoard, fingerprint: string | null): void {
   if (snapshotsDisabled()) return
-  if (!fingerprint) return console.log(`[board-snapshot] ${kind} not written: the board changed while it was read`)
+  if (!fingerprint) return console.log(`[board-snapshot] ${kind} not written: the board's version is unreadable`)
   inBackground(async () => {
-    const parts: unknown[] = []
+    // Each part is built when writeSnapshot reaches it, so one part's JSON exists at a time instead of the whole board's beside it.
+    const parts: (() => unknown)[] = []
     for (let i = 0; i < board.rows.length || i === 0; i += SNAPSHOT_PART_ROWS) {
-      await yieldToRequests()
       const end = Math.min(board.rows.length, i + SNAPSHOT_PART_ROWS)
-      parts.push(
+      parts.push(() =>
         encodeBoardPart({
           rows: board.rows.slice(i, end),
           expires: Array.from(board.expires.subarray(i, end), (x) => (Number.isNaN(x) ? null : x)),
@@ -374,7 +388,7 @@ function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, kind: Snapshot
     const after = before ? await boardFingerprint() : null
     const board: HeldBoard = { ...out, fingerprint: before && before === after ? before : null, readAt: started }
     logBoardMemory(`shared board (${name})`, { rows: board.rows.length, ms: Date.now() - started })
-    publishBoard(kind, board)
+    publishBoard(kind, board, snapshotVersion(before, after))
     return board
   }
   return () => {
