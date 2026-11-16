@@ -65,7 +65,7 @@ const nextConfig: NextConfig = {
         // Not the sitemap files: /job-centers/sitemap/0.xml is a dotted segment under a "state" called sitemap.
         source: `/${kind}/:state((?!sitemap/)[^/]+)/:host([a-z0-9-]+(?:\\.[a-z0-9-]+)+)/:rest*`,
         destination: `/${kind}/:state`,
-        permanent: false,
+        permanent: true,
       })),
       // The industry "Nonprofit & Social Impact" became "Non-profit & Social Impact" (2026-11-03, #887), which changed its slug. Anything
       // that linked, indexed or embedded the old address keeps working: a permanent redirect for each place the slug is used.
@@ -103,9 +103,9 @@ const nextConfig: NextConfig = {
       // Comparison pages live under /tools/ai-job-check/compare/[pair]; the folder itself has no page.
       { source: '/tools/ai-job-check/compare', destination: '/tools/ai-job-check', permanent: false },
       // Nothing lives at /search; people and search engines' site-search boxes expect it to run a job search (/jobs?q=).
-      { source: '/search', destination: '/jobs', permanent: false },
+      { source: '/search', destination: '/jobs', permanent: true },
       // /start has only persona pages (/start/[persona]); the bare address is what people type and bookmark (alert 2026-11-12).
-      { source: '/start', destination: '/auth/signup', permanent: false },
+      { source: '/start', destination: '/auth/signup', permanent: true },
       // Parent addresses that have only dynamic children and no page of their own (someone trims a URL, or a crawler
       // walks a breadcrumb up). Each goes to the nearest real page. src/test/route-orphans.test.ts fails when a new
       // parent like this appears without a redirect here or an entry in its allowlist.
@@ -121,7 +121,7 @@ const nextConfig: NextConfig = {
         ['/ai-courses/for', '/ai-courses'],
         ['/ai-courses/from', '/ai-courses'],
         ['/ai-courses/course', '/ai-courses'],
-      ].map(([source, destination]) => ({ source, destination, permanent: false })),
+      ].map(([source, destination]) => ({ source, destination, permanent: true })),
       // Addresses crawlers and first-time visitors guess on any company site (the alert emails of 2026-10-28 were all
       // these, in one minute). Each goes to the nearest real page.
       ...[
@@ -278,32 +278,32 @@ const nextConfig: NextConfig = {
       {
         source: `/reports/:cut(${REPORT_CUTOFFS})`,
         destination: '/reports/latest',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/reports/white-collar-employment-report-',
         destination: '/reports/latest',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/reports/white-collar-employment-',
         destination: '/reports/latest',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/reports/white-collar-employment-report',
         destination: '/reports/latest',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/reports/white-collar-employment-report-:month(october|september)-',
         destination: '/reports/latest',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/reports/white-collar-employment-report-:month(october|september)',
         destination: '/reports/latest',
-        permanent: false,
+        permanent: true,
       },
       {
         source: '/crucible/:path*',

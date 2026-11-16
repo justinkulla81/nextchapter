@@ -22,7 +22,7 @@ import { ClaimHint } from '@/components/seo/ClaimHint'
 import { hiringPlaces, listOf } from '@/lib/seo/employer-locations'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { permanentRedirect, redirect } from 'next/navigation'
 import { SituationFlow } from '@/components/layoffs/landing/SituationFlow'
 import { searchSchools } from '@/lib/layoffs/landing-actions'
 import { submitJourneyLead } from '@/lib/leads/actions'
@@ -104,7 +104,9 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   if (!e) {
     // A shortened or older spelling goes to the employer it stands for, otherwise to the employer list.
     const to = await resolveEmployerSlug(slug).catch(() => null)
-    redirect(to && to !== slug ? `/employers/${to}` : '/employers')
+    // The other spelling is permanent; an employer with no page yet may get one, so the list is a temporary stop.
+    if (to && to !== slug) permanentRedirect(`/employers/${to}`)
+    redirect('/employers')
   }
   const p = e.profile
   const path = `/employers/${slug}`
