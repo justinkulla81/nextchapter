@@ -97,8 +97,8 @@ export async function HubLearning({ ctx }: Props) {
     <div className="space-y-8">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile label="Learning partners" value={rows.length} note="Colleges in your region (federal data)" />
-        <StatTile label="Open programs" value={programs.length} note="Run by this program" />
-        <StatTile label="People enrolled" value={small(enrolled)} note="In this program’s courses" />
+        <StatTile label="Open programs" value={programs.length} note="Run by your organization" />
+        <StatTile label="People enrolled" value={small(enrolled)} note="In your courses" />
         <StatTile label="Skills with no partner yet" value={DEMAND_SKILLS.filter((d) => !rows.some((r) => r.lanes.includes(d.lane))).length} note="Where to recruit a provider" />
       </div>
 
@@ -864,7 +864,7 @@ export async function HubPipeline({ ctx }: Props) {
   return (
     <div className="space-y-6">
       <p className="max-w-3xl text-sm text-muted-foreground">
-        One plan from the first day to the next promotion: attract people, help them land, keep them here, and improve their careers. Each row is a kind of person; each column is what the program does for them.
+        One plan from the first day to the next promotion: attract people, help them land, keep them here, and improve their careers. Each row is a kind of person; each column is what your team does for them.
       </p>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full min-w-[56rem] text-sm">
@@ -923,7 +923,7 @@ export async function HubSystem({ ctx }: Props) {
   return (
     <div className="space-y-8">
       <p className="max-w-2xl text-sm text-muted-foreground">
-        The public workforce system in your region, and how this program works beside it: referrals both ways, a shared view of who is served, and no one counted twice.
+        The public workforce system in your region, and how this hub works beside it: referrals both ways, a shared view of who is served, and no one counted twice.
       </p>
       <Section title="Your workforce board">
         {board?.name ? (
@@ -970,7 +970,7 @@ export async function HubSystem({ ctx }: Props) {
         <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
           <li>A layoff the board hears about first becomes a response here the same day, and the other way round.</li>
           <li>Professionals and managers get the same first-week plan as everyone, with services the board does not usually offer.</li>
-          <li>Training the board pays for shows up in the program’s counts without a second sign-up.</li>
+          <li>Training the board pays for shows up in your counts without a second sign-up.</li>
         </ul>
       </Section>
     </div>
@@ -1115,7 +1115,7 @@ function opportunities(now = new Date()): Opp[] {
       deadline: 'Issued February 24, 2026: confirm whether it has closed',
       who: 'Community colleges, usually with workforce and employer partners.',
       fit: 'Partner role',
-      why: 'A partner college could apply with employers and the board. A shared skills picture from this program strengthens the employer side.',
+      why: 'A partner college could apply with employers and the board. A shared skills picture from this hub strengthens the employer side.',
       partners: 'Jefferson Community and Technical College, other colleges, member employers, KentuckianaWorks.',
       next: 'Ask the colleges whether they plan to apply and offer the employer demand data.',
       checked: 'Reported by a secondary source: confirm',
@@ -1129,7 +1129,7 @@ function opportunities(now = new Date()): Opp[] {
       deadline: 'Launched June 2026: confirm the notice and its deadline',
       who: 'Not confirmed: the official page blocked automated access.',
       fit: 'Watch',
-      why: 'A federal pilot built around AI upskilling, in line with this program’s focus.',
+      why: 'A federal pilot built around AI upskilling, in line with this hub’s focus.',
       partners: 'To be set once eligibility is confirmed.',
       next: 'Open the notice and confirm who can apply.',
       checked: 'Reported by a secondary source: confirm',

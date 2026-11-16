@@ -1,7 +1,13 @@
 # Workforce portal blueprint
 
 Status: draft for the owner's approval, 2026-11-16. Nothing here is built unless it says so. It replaces the grown-by-feature Program
-workspace with one structure built on jobs to be done. Decisions already made are marked **Decided**; open ones are in the last section.
+workspace (now named **Talent Hub**) with one structure built on jobs to be done. Decisions already made are marked **Decided**; open ones are in the last section.
+
+## Name (**Decided**: not "Program")
+
+A workforce organization may run programs; those are its own, and the workspace lists them as Programs under Training. The workspace itself is
+called **Talent Hub** (the rail item and page heading). "Program" is not used for the portal or for what the organization offers as a whole. For
+a person, the organization shows up as a **group** they belong to.
 
 ## What the portal is for
 
@@ -108,9 +114,10 @@ person says yes. We never write to a member's Google account.
 
 ## Home page
 
-The Home page opens with a **splash picture of the place** (downtown or an economic image) and the organization's high-level stats, then what needs
+The Home page opens with a **splash picture of the place** (downtown or an economic image) that **the organization uploads**, with its logo; until it does,
+a generic placeholder image shows (**Decided**) and the organization's high-level stats, then what needs
 the team this week.
-- **Picture:** the organization uploads its own, or we offer licensed photos with their credit shown. We do not take pictures from the web.
+- **Picture and logo:** the organization uploads them. Until then, a generic placeholder. We do not take pictures from the web.
 - **Stats:** from Market (jobs open, unemployment rate and labor force, the figures the organization chooses to headline), each with its source and date.
 - **Best-of rankings and awards:** from our own rankings where the place ranks (for example best places for white-collar professionals), and awards the
   organization adds itself with a source link. Nothing is invented.
@@ -140,6 +147,18 @@ Who uses it: the organization (where to put money and cohorts), colleges and tra
 and each person (what to learn next). It needs one skills vocabulary applied the same way to postings and résumés; the current keyword list is a
 starting point, not the final method.
 
+## Anonymous candidate profiles (**Decided**: go with anonymous totals, and show candidates as A, B, C)
+
+For employers, colleges and the organization itself, a list of de-identified candidates ("Candidate A", "Candidate B"...), each showing industry,
+seniority band, function, time out of work, skills and a short summary, plus totals and summaries across them. Anyone can say "this is the talent
+here" without seeing who anyone is.
+Guardrails, because a list of rare combinations can identify a person even without a name:
+- Coarse bands only: industry, function and seniority bands, weeks out in ranges. No name, employer, school, exact title, dates or free text.
+- A combination that fewer than five people share is generalized (a wider band) or left out.
+- A person appears only if they allowed anonymous profiles; an employer or college that wants to reach someone sends an introduction request, and the
+  person decides (the existing share-profile choice).
+- Totals use the same minimum group size. The method is logged so counsel can review it.
+
 ## Sharing data with colleges and employers
 
 What can be shared: skills demand and supply, jobs, training and education programs, and the gaps between them. How, in order of build:
@@ -159,7 +178,8 @@ the portal, its visits, and an edit and unpublish control.
 
 ## Decided and open
 
-Decided: design both modes; light person record with export; the seven verbs and the areas; the flows above; white page with the organization's accent;
+Decided: the workspace is called Talent Hub; data sharing starts with partner views, then snapshots; anonymous totals and Candidate A, B, C profiles;
+the organization uploads its splash picture and logo (a generic placeholder until then); design both modes; light person record with export; the seven verbs and the areas; the flows above; white page with the organization's accent;
 Market section with current data; the directory seeds from public page data; a Home with a splash picture, stats and rankings; Jobs the organization
 can add to; a red zone at 26 weeks; skills demand, supply and gaps; data sharing with partners.
 
@@ -167,9 +187,7 @@ Open:
 1. Who sends partner invitations: the platform (from a verified address, with an opt-out) or the steward from their own email. Decide later.
 2. Which case management system the region uses.
 3. Which two flows matter most to the first customer (recommended: A and B).
-4. Which data-sharing step comes first (recommended: partner views, then snapshots).
-5. Whether counsel clears anonymous totals from members who are not in the program (supply side of the skills view).
-6. Where the splash pictures come from (the organization's own, or a licensed library).
+4. Counsel's review of the anonymous totals and candidate profiles (including members who are not in the organization's own group), before they ship.
 
 ## Phases
 
