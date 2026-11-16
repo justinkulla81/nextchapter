@@ -53,6 +53,7 @@ function TopChart({ rows, noun }: { rows: RankRow[]; noun: Noun }) {
 }
 
 const JUMP_LABEL: Record<Noun, (name: string) => string> = {
+  'metro areas': (n) => `Jobs and employers in the ${n} area`,
   cities: (n) => `Jobs and employers in ${n}`,
   counties: (n) => `${n} job market`,
   industries: (n) => `${n} jobs, employers and outlook`,
@@ -189,10 +190,33 @@ function MonthByMonth({ e, entry }: { e: RankingEdition; entry: RankingIndexEntr
   )
 }
 
+/** An all-round list's criteria: what each measures, its weight, and a link to the list that ranks places on it alone. */
+function Components({ e }: { e: RankingEdition }) {
+  const list = [...(e.components ?? [])].sort((a, b) => b.weight - a.weight)
+  return (
+    <section aria-labelledby="criteria">
+      <h2 id="criteria" className={H2}>What the score is made of</h2>
+      <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{list.length} criteria, weighted. Each one has its own ranking: open it to see the places that lead on that criterion alone.</p>
+      <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+        {list.map((c) => (
+          <li key={c.slug} className={`${CARD} flex gap-4 p-4`}>
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-tint-sky text-sm font-bold tabular-nums text-navy" aria-label={`${c.weight}% of the score`}>{c.weight}%</span>
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-navy">{c.label}</h3>
+              <p className="mt-1 text-sm text-foreground">{c.what}</p>
+              <p className="mt-1 text-sm"><TrackedLink href={`/rankings/${c.slug}`} event="ranking_criterion_link_clicked" properties={{ slug: e.slug, edition: e.edition, to: c.slug, weight: c.weight, direction: 'to_criterion' }} className={LINK}>{c.title}</TrackedLink></p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 export async function RankingView({ e, index, latest }: { e: RankingEdition; index: RankingIndexEntry[]; latest: boolean }) {
   const path = `/rankings/${e.slug}`
   const label = editionLabel(e.edition)
-  const unit = e.measure === 'swe' ? 'engineering openings' : e.measure === 'paycost' ? 'openings with pay posted' : e.measure === 'collegepay' ? 'students enrolled' : e.measure === 'lowunemp' || e.measure === 'unempdrop' || e.measure === 'whitecollar' ? 'people in the labor force' : e.unit
+  const unit = e.measure.startsWith('wp_') ? 'white-collar openings' : e.measure === 'swe' ? 'engineering openings' : e.measure === 'paycost' ? 'openings with pay posted' : e.measure === 'collegepay' ? 'students enrolled' : e.measure === 'lowunemp' || e.measure === 'unempdrop' || e.measure === 'whitecollar' ? 'people in the labor force' : e.unit
   const entry = index.find((x) => x.slug === e.slug)
   const sameScope = index.filter((x) => x.slug !== e.slug && x.scopeKind === e.scope.kind && x.scopeId === e.scope.id).slice(0, 6)
   const sameMeasure = index.filter((x) => x.slug !== e.slug && x.measure === e.measure && x.scopeKind !== e.scope.kind).slice(0, 6)
@@ -220,7 +244,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
       trail={[{ name: 'Rankings', path: '/rankings' }, { name: e.title, path }]}
       h1={e.h1}
       jsonLd={ld}
-      lede={<><span className="block text-base font-medium text-navy">{e.lead}</span><span className="mt-2 block text-sm">{label} edition. Updated monthly, from {e.placeNoun === 'counties' ? 'public Bureau of Labor Statistics and Census data' : 'open jobs we verified on employer career sites'}.{!latest && entry && <> This is an earlier edition: <Link href={path} className={LINK}>see the latest</Link>.</>}</span></>}
+      lede={<><span className="block text-base font-medium text-navy">{e.lead}</span><span className="mt-2 block text-sm">{label} edition. Updated monthly, from {e.placeNoun === 'counties' ? 'public Bureau of Labor Statistics and Census data' : e.placeNoun === 'metro areas' ? 'open white-collar jobs we verified on employer career sites and public federal data' : 'open jobs we verified on employer career sites'}.{!latest && entry && <> This is an earlier edition: <Link href={path} className={LINK}>see the latest</Link>.</>}</span></>}
     >
       <section aria-labelledby="facts" className="grid gap-4 lg:grid-cols-[1fr_1.6fr]">
         <div className={`${CARD} p-5`}>
@@ -230,6 +254,14 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         </div>
         <TopChart rows={e.rows} noun={e.placeNoun} />
       </section>
+
+      {e.components && <Components e={e} />}
+      {e.partOf && (
+        <p className="max-w-3xl rounded-xl bg-off-white p-4 text-sm text-foreground">
+          This is one of the {e.partOf.criteria} criteria in{' '}
+          <TrackedLink href={`/rankings/${e.partOf.slug}`} event="ranking_criterion_link_clicked" properties={{ slug: e.slug, edition: e.edition, to: e.partOf.slug, direction: 'to_overall' }} className={LINK}>{e.partOf.title.toLowerCase()}</TrackedLink>, where it carries {e.partOf.weight}% of the score.
+        </p>
+      )}
 
       <section aria-labelledby="stands-out">
         <h2 id="stands-out" className={H2}>What stands out</h2>
@@ -258,7 +290,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         <div className={`${CARD} mt-4 overflow-x-auto`}>
           <table className="w-full min-w-[32rem] text-left text-sm">
             <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', 'job families': 'Job family', states: 'State', colleges: 'College', degrees: 'Field or level', occupations: 'Occupation', employers: 'Employer' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
+              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ 'metro areas': 'Metro area', cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', 'job families': 'Job family', states: 'State', colleges: 'College', degrees: 'Field or level', occupations: 'Occupation', employers: 'Employer' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {e.rows.map((r) => (
@@ -303,7 +335,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         </section>
       )}
 
-      <section aria-labelledby="cite">
+      <section aria-labelledby="cite" className="[overflow-wrap:anywhere]">
         <h2 id="cite" className={H2}>Cite this ranking</h2>
         <p className={`${CARD} mt-3 max-w-3xl p-4 text-sm text-foreground`}>NextChapter, “{e.title},” {label} edition. {url}</p>
         <p className="mt-3 text-sm text-muted-foreground">Link to it: <code className="rounded bg-muted px-1.5 py-0.5 text-xs text-foreground">{`<a href="${SITE_URL}${path}">${e.title} (NextChapter, ${label})</a>`}</code></p>

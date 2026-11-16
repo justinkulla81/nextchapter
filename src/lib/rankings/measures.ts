@@ -1,7 +1,7 @@
 // What each list ranks and how: the value, how it is shown, the three supporting numbers on each row and the plain-words
 // method. Pure, so every rule is unit-tested without a database.
 
-import type { CityMeasureId, CityStat, CountyStat, MeasureId } from '@/lib/rankings/types'
+import type { CityMeasureId, CityStat, CountyStat, MeasureId, WhitePlacesMeasureId } from '@/lib/rankings/types'
 
 export const nf = (n: number) => Math.round(n).toLocaleString('en-US')
 export const pct0 = (x: number) => `${Math.round(x * 100)}%`
@@ -425,6 +425,19 @@ const PERUNEMP: CountyMeasure = {
 }
 export const COUNTY_MEASURES: Record<CountyMeasure['id'], CountyMeasure> = { ...COUNTY_BASE, lowunemp: LOWUNEMP, unempdrop: UNEMPDROP, whitecollar: WHITECOLLAR, aiexposed: AIEXPOSED, perunemp: PERUNEMP }
 
+const WHITE_PLACES_IDS: WhitePlacesMeasureId[] = ['wp_all', 'wp_open', 'wp_grow', 'wp_pay', 'wp_house', 'wp_supply', 'wp_unemp', 'wp_layoff', 'wp_ai', 'wp_train', 'wp_edu', 'wp_safe', 'wp_family', 'wp_diverse', 'wp_invest', 'wp_peers', 'wp_flex']
+/** Every best-places list cites the same sources (metro-places.ts keeps the list beside the criteria; this copy avoids an import cycle). */
+const WHITE_PLACES_SOURCES = [
+  'NextChapter job data: open white-collar roles on employer career sites, verified in the last week, with posted pay and work arrangement',
+  'Bureau of Labor Statistics: Quarterly Census of Employment and Wages 2022 to 2025, Local Area Unemployment Statistics',
+  'Census Bureau: American Community Survey (occupations, rent, home value), population estimates, Building Permits Survey, CBSA delineation 2023',
+  'Bureau of Economic Analysis regional price parities 2024',
+  'State WARN layoff notices, last 12 months',
+  'CareerOneStop American Job Center directory; NCES college directory',
+  'County Health Rankings & Roadmaps 2025 (CDC homicide deaths, child care cost and centers, Stanford Education Data Archive test scores, broadband, school funding adequacy, libraries, parks, commuting)',
+  'Anthropic Economic Index, labor market impacts (March 2026): observed AI exposure by occupation group',
+]
+
 const POSTINGS = ['NextChapter job data: open professional roles on employer career sites, verified in the last week']
 const DEGREE_SOURCES = ['NextChapter job data: open professional roles, matched to standard occupation (SOC) codes', 'Bureau of Labor Statistics, Employment Projections 2025-35: typical entry-level education and projected employment change by occupation']
 
@@ -432,6 +445,7 @@ const BEST_SOURCES = ['Fortune and Great Place To Work, 100 Best Companies to Wo
 const EMPLOYER_SOURCES = ['NextChapter job data: open professional roles on employer career sites, verified in the last 14 days', 'NextChapter weekly company signals (open roles by company), for the growth list']
 
 export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
+  ...(Object.fromEntries(WHITE_PLACES_IDS.map((id) => [id, WHITE_PLACES_SOURCES])) as Record<WhitePlacesMeasureId, string[]>),
   lowunemp: ['Bureau of Labor Statistics, Local Area Unemployment Statistics (not seasonally adjusted)'],
   unempdrop: ['Bureau of Labor Statistics, Local Area Unemployment Statistics (not seasonally adjusted)'],
   whitecollar: ['Census Bureau, American Community Survey 5-year estimates (occupation by county)'],
