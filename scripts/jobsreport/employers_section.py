@@ -15,7 +15,7 @@ def render(d, place=None, top=10, fn_top=5, top_lists="https://launchyournextcha
     noe = [(e["name"], n(e["no_exp"]), n(e["entry"])) for e in d["no_exp"][:top] if e["no_exp"] > 0]
     aic = [(e["name"], n(e["ai_skill"]), n(e["open"])) for e in d["ai_count"][:top]]
     ais = [(e["name"], f"{e['share_pct']}%", n(e["open"])) for e in d["ai_share"][:top]]
-    out = [f"## Employers\n\nWho is hiring in {where}, among jobs NextChapter tracks ({n(d['total_open'])} open white-collar jobs, {n(d['total_entry'])} of them entry-level). These are counts of openings, not a ranking of employer quality, and the tracked set is not every job in {where}.\n"]
+    out = [f"## Employers\n\nWho is hiring in {where}, among jobs NextChapter tracks ({n(d['total_open'])} open jobs in the NextChapter job-board feed, {n(d['total_entry'])} of them entry-level). This is the feed's all-occupations frame, so it is separate from the white-collar career-site counts elsewhere in this report and is never added to them. These are counts of openings, not a ranking of employer quality, and the tracked set is not every job in {where}.\n"]
     out += ["### Most entry-level jobs\n", table(["Employer", "Entry-level jobs", "All open jobs"], ent), ""]
     if noe: out += ["### Most jobs where no experience is needed\n", "A narrower count than entry-level: the posting itself says people without experience are welcome.\n", table(["Employer", "No experience needed", "Entry-level jobs"], noe), ""]
     out += ["### Most jobs asking for AI skills\n", table(["Employer", "Jobs asking for AI skills", "All open jobs"], aic), ""]

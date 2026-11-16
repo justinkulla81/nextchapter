@@ -1,6 +1,6 @@
 ## Employers
 
-Who is hiring in the United States, among jobs NextChapter tracks (487,679 open white-collar jobs, 130,710 of them entry-level). These are counts of openings, not a ranking of employer quality, and the tracked set is not every job in the United States.
+Who is hiring in the United States, among jobs NextChapter tracks (487,679 open jobs in the NextChapter job-board feed, 130,710 of them entry-level). This is the feed's all-occupations frame, so it is separate from the white-collar career-site counts elsewhere in this report and is never added to them. These are counts of openings, not a ranking of employer quality, and the tracked set is not every job in the United States.
 
 ### Most entry-level jobs
 
