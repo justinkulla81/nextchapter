@@ -7,7 +7,7 @@
 
 export type AffiliationKind = 'COACH' | 'OUTPLACEMENT' | 'COLLEGE' | 'RECRUITER' | 'WORKFORCE_BOARD' | 'EMPLOYER_FUNNEL'
 
-export type VisibleField = 'journey' | 'stage' | 'activity' | 'searchDetail' | 'dossier' | 'tone' | 'outcome' | 'mood' | 'screening'
+export type VisibleField = 'journey' | 'stage' | 'activity' | 'searchDetail' | 'dossier' | 'tone' | 'outcome' | 'mood' | 'screening' | 'needs'
 
 // NONE: never. AGGREGATE: counts only, never named. MEMBER: this person, by name.
 export type VisibilityLevel = 'NONE' | 'AGGREGATE' | 'MEMBER'
@@ -29,6 +29,7 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     outcome: member('you agree to share with your coach'),
     mood: none,
     screening: none,
+    needs: none,
   },
   OUTPLACEMENT: {
     journey: none,
@@ -40,6 +41,7 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     outcome: agg('you turn on sharing your outcome with your former employer'),
     mood: none,
     screening: none,
+    needs: none,
   },
   COLLEGE: {
     journey: agg('you share engagement with the college'),
@@ -51,6 +53,9 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     outcome: member('you share your outcome with the college'),
     mood: none,
     screening: none,
+    // Workforce programs: why the member joined (moving here, changing fields...) and the help they said they need,
+    // by name, to match them to benefits (src/lib/workforce/people-crm.ts).
+    needs: member('you share the help you need with the program'),
   },
   RECRUITER: {
     journey: none,
@@ -62,6 +67,7 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     outcome: none,
     mood: none,
     screening: none,
+    needs: none,
   },
   WORKFORCE_BOARD: {
     journey: none,
@@ -73,6 +79,7 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     outcome: agg('you choose to be counted, anonymously, when you find work'),
     mood: none,
     screening: none,
+    needs: none,
   },
   EMPLOYER_FUNNEL: {
     journey: none,
@@ -84,6 +91,7 @@ export const VISIBILITY: Record<AffiliationKind, Record<VisibleField, Visibility
     outcome: none,
     mood: none,
     screening: none,
+    needs: none,
   },
 }
 
@@ -106,6 +114,7 @@ export const FIELD_LABELS: Record<VisibleField, string> = {
   outcome: 'When you land a job',
   mood: 'Your mood check-ins',
   screening: 'Your screening answers',
+  needs: 'Why you joined and the help you need',
 }
 
 // What this affiliation can see, in plain words, given what the member has

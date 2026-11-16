@@ -15,6 +15,7 @@ import { hubLayoffs, memberCompanies, small } from '@/lib/workforce/hub'
 import { marketJobs } from '@/lib/workforce/market-jobs'
 import { BENEFITS, DEMAND_SKILLS, FUNNEL, LANES, ORIGINS, RESPONSE_STEPS, rand01, randInt } from '@/lib/workforce/program-content'
 import { StatTile } from './StatTile'
+import { NEED_CATEGORIES, peopleCrm } from '@/lib/workforce/people-crm'
 import { PrintButton } from './PrintButton'
 import { FutureSkillsTool } from './FutureSkillsTool'
 
@@ -465,12 +466,33 @@ export async function HubRapid({ ctx }: Props) {
 
 // ---------------------------------------------------------------------------
 
-export async function HubBenefits({ ctx }: Props) {
-  const inst = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { profile: true, name: true } })
+export async function HubBenefits({ ctx, base }: Props) {
+  const [inst, people] = await Promise.all([
+    prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { profile: true, name: true } }),
+    peopleCrm(ctx.institution.id),
+  ])
   const board = (inst.profile as { workforce?: { board?: { name?: string; website?: string | null } } } | null)?.workforce?.board
   const groups = [...new Set(BENEFITS.map((b) => b.group))]
+  // Who each kind of help is matched to (Program › People holds the person-by-person view).
+  const matched = NEED_CATEGORIES.map((c) => ({ ...c, n: people.filter((p) => p.matches.some((m) => m.category === c.key)).length })).filter((c) => c.n > 0)
+  const sharing = people.filter((p) => p.sharedNeeds).length
   return (
     <div className="space-y-6">
+      {matched.length > 0 && (
+        <Section title="Matched to your people" intro={`From each person's layoff, training, and the help they shared. ${sharing.toLocaleString()} of ${people.length.toLocaleString()} people shared what they need.`}>
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {matched.map((c) => (
+              <li key={c.key}>
+                <Link href={`${base}/participants?need=${c.key}`} className="block rounded-lg border border-border bg-card p-3 hover:border-primary">
+                  <span className="block text-2xl font-semibold tabular-nums">{c.n.toLocaleString()}</span>
+                  <span className="block text-sm font-medium">{c.label}</span>
+                  <span className="block text-xs text-primary">See who</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
       <p className="max-w-2xl text-sm text-muted-foreground">
         What a person who loses a job, or moves here, can use, in one place that {inst.name} keeps current. These are general descriptions; amounts and deadlines are set by the state and the workforce board.
         {board?.website && (

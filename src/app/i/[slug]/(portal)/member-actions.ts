@@ -13,7 +13,7 @@ import { closeTransitionFlag, graceDaysFrom, openTransitionFlag, reportNewJob } 
 import { captureServerEvent } from '@/lib/posthog/server'
 import { applyJourneyChange } from '@/lib/journey/apply'
 
-const SCOPES: InstitutionConsentScope[] = ['SHARE_ENGAGEMENT', 'SHARE_OUTCOME', 'SHARE_SEARCH_DETAIL_WITH_CAREER', 'SHARE_DOSSIER_WITH_EMPLOYERS']
+const SCOPES: InstitutionConsentScope[] = ['SHARE_ENGAGEMENT', 'SHARE_OUTCOME', 'SHARE_SEARCH_DETAIL_WITH_CAREER', 'SHARE_DOSSIER_WITH_EMPLOYERS', 'SHARE_NEEDS']
 const PREVIEW = 'This is a preview: there’s no member record behind it, so nothing was saved.'
 
 async function me(slug: string) {

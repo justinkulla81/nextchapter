@@ -12809,6 +12809,7 @@ enum InstitutionConsentScope {
   SHARE_SEARCH_DETAIL_WITH_CAREER // default off
   SHARE_DOSSIER_WITH_EMPLOYERS // default off
   LIST_IN_DIRECTORY // default off: appear in the alumni directory
+  SHARE_NEEDS // default off: workforce programs see the help a member said they need (childcare, housing...), to match benefits
 }
 
 enum TransitionFlagState {

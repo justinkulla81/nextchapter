@@ -58,6 +58,14 @@ export const BENEFITS: Benefit[] = [
   { group: 'Training', name: 'On-the-job training wage support', what: 'A hiring employer can be reimbursed for part of a new hire’s wages while they learn the role.', how: 'The board matches hiring employers and eligible people.' },
   { group: 'Career', name: 'Free career support seats', what: 'Résumé scoring, AI exposure for their job title, local jobs ranked first, and an AI career coach.', how: 'Every person in a layoff gets a seat from the pool.' },
   { group: 'Career', name: 'Employer introductions', what: 'Member companies that are hiring see a short profile for people who chose to share one.', how: 'The person chooses; nothing is shared by default.' },
+  { group: 'Income', name: 'Free nonprofit credit counseling and emergency assistance', what: 'A nonprofit credit counselor walks through debts and a budget at no cost; local agencies help with one-time emergencies.', how: 'Referred by the program; the person makes the call.' },
+  { group: 'Training', name: 'First-job support from partner colleges', what: 'Career services, internships and employer introductions for students and recent graduates.', how: 'Through the partner college’s career center.' },
+  { group: 'Childcare', name: 'Child care assistance', what: 'The state’s child care subsidy helps pay for care, based on income and family size.', how: 'Apply through the state program; the program shares the link.' },
+  { group: 'Childcare', name: 'Supportive services during training (childcare)', what: 'Workforce boards can pay for childcare and transportation while someone is in approved training.', how: 'Asked for with the board’s career coach.' },
+  { group: 'Housing', name: 'Rental and mortgage assistance, and a free housing counselor', what: 'Local help with rent or a mortgage during a job loss, and HUD-approved housing counselors who advise at no cost.', how: 'The program lists the local agencies.' },
+  { group: 'Transportation', name: 'Transportation help (transit and supportive services)', what: 'Getting to interviews, training and a new job: transit options and, during approved training, supportive services.', how: 'Asked for with the program or the board’s career coach.' },
+  { group: 'Legal', name: 'Free legal help on work authorization and benefits', what: 'Legal aid on benefits, taxes and work authorization questions, and free tax preparation for eligible incomes.', how: 'The program lists local legal aid and tax sites.' },
+  { group: 'Moving here', name: 'Relocation help', what: 'Housing, schools, a partner job search and a welcome network for people moving to the region.', how: 'Through the program’s relocation concierge.' },
   { group: 'Moving here', name: 'Relocation help (if your region offers it)', what: 'Where a region or state has an incentive for new households, it is listed here with the income rules.', how: 'Set by the program; the demo leaves it empty.' },
 ]
 

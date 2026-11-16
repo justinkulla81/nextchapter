@@ -10,7 +10,7 @@
 
 import 'server-only'
 import { createHash } from 'crypto'
-import type { InstitutionOrgType, JourneyStage, JourneyType, Prisma } from '@prisma/client'
+import type { CurrentJobStatus, InstitutionOrgType, JourneyStage, JourneyType, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { localArea, placeAt, type LocalSettings } from './local'
 import { countyKey, STATE_NAMES } from './places'
@@ -32,7 +32,18 @@ const COMPANIES: { name: string; industry: string }[] = [
   { name: 'Lanterra Software', industry: 'Technology' },
   { name: 'Copperleaf Financial', industry: 'Financial services' },
 ]
-const JOURNEYS: JourneyType[] = ['LAID_OFF', 'LAID_OFF', 'LAID_OFF', 'EXPLORING_MOVE', 'CAREER_CHANGE', 'LAID_OFF']
+const JOURNEYS: JourneyType[] = ['LAID_OFF', 'LAID_OFF', 'LAID_OFF', 'LAID_OFF', 'CAREER_CHANGE', 'LAID_OFF']
+// Beyond the layoffs: people the program helps for other reasons (Program › People tracks, src/lib/workforce/people-crm.ts).
+type ExtraKind = 'moving' | 'grad' | 'growing' | 'pivot'
+const EXTRAS: { kind: ExtraKind; n: number; journey: JourneyType; status: CurrentJobStatus }[] = [
+  { kind: 'moving', n: 18, journey: 'EXPLORING_MOVE', status: 'EMPLOYED_CONSIDERING_MOVE' },
+  { kind: 'grad', n: 16, journey: 'STUDENT_NEW_GRAD', status: 'NEW_GRADUATE_FIRST_JOB' },
+  { kind: 'growing', n: 14, journey: 'GROWING', status: 'EMPLOYED_CONSIDERING_MOVE' },
+  { kind: 'pivot', n: 12, journey: 'CAREER_CHANGE', status: 'CAREER_PIVOT' },
+]
+// What people told NextChapter they need (CandidateProfile.benefitsPressures and biggestBarriers), for benefit matching.
+const PRESSURES = ['RENT_MORTGAGE', 'HEALTH_INSURANCE', 'DEPENDENTS_CHILDCARE', 'DEBT_PAYMENTS', 'NO_EMERGENCY_SAVINGS', 'SUPPORTING_FAMILY']
+const BARRIERS = ['life_logistics', 'skills_gap', 'local_job_market', 'interview_nerves', 'ats_blackhole']
 const STAGES: JourneyStage[] = ['EXPLORING', 'PREPARING', 'APPLYING', 'APPLYING', 'INTERVIEWING', 'INTERVIEWING', 'OFFER']
 const DOSSIER_LINES = [
   'Operations manager who ran a 200-person distribution center; strongest at cutting cost without cutting service.',
@@ -239,17 +250,29 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     ),
   )
 
-  // Participants: 150, mostly from the layoffs, some signed up directly.
+  // Participants: 150 from the layoffs or signed up directly, then 60 more on other tracks (moving here, new graduates,
+  // employed and growing, career pivot).
   const N = 150
+  const extraKind = (i: number): (typeof EXTRAS)[number] | null => {
+    let k = i - N
+    for (const e of EXTRAS) {
+      if (k < e.n) return k >= 0 ? e : null
+      k -= e.n
+    }
+    return null
+  }
+  const TOTAL = N + EXTRAS.reduce((a, e) => a + e.n, 0)
   const featured = 3
   const memberId = (i: number) => (i === featured ? `${slug}_member_featured` : `${slug}_m_${String(i).padStart(3, '0')}`)
   const candId = (i: number) => `${slug}_cand_${String(i).padStart(3, '0')}`
-  const people = Array.from({ length: N }, (_, i) => {
-    const l = i < 70 ? 0 : i < 115 ? 1 : i < 140 ? 2 : -1
+  const people = Array.from({ length: TOTAL }, (_, i) => {
+    const extra = extraKind(i)
+    const l = extra ? -1 : i < 70 ? 0 : i < 115 ? 1 : i < 140 ? 2 : -1
     const spec = l >= 0 ? layoffSpecs[l] : null
     const joinedAt = spec ? new Date(now.getTime() - (spec.daysAgo - 2 - Math.floor(rand(seed, i, 2) * Math.min(spec.daysAgo - 3, 20))) * DAY) : new Date(now.getTime() - Math.floor(rand(seed, i, 2) * 90) * DAY)
-    const joined = i === featured || rand(seed, i, 3) < 0.72
-    return { i, l, joined, joinedAt, first: pick(FIRST, seed, i, 4), last: pick(LAST, seed, i, 5), title: pick(TITLES, seed, i, 6) }
+    const joined = i === featured || !!extra || rand(seed, i, 3) < 0.72
+    const title = extra?.kind === 'grad' ? 'Recent graduate' : pick(TITLES, seed, i, 6)
+    return { i, l, extra, joined, joinedAt, first: pick(FIRST, seed, i, 4), last: pick(LAST, seed, i, 5), title }
   })
   // Joined: a sample candidate each, at a stage of their search; the oldest
   // layoff has the most people landed.
@@ -258,7 +281,7 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
   const landedOf = new Set(
     joined
       .filter((p) => (p.l === 0 ? rand(seed, p.i, 7) < 0.55 : p.l === 1 ? rand(seed, p.i, 7) < 0.25 : rand(seed, p.i, 7) < 0.05))
-      .filter((p) => p.i !== featured)
+      .filter((p) => p.i !== featured && !p.extra)
       .map((p) => p.i),
   )
   await prisma.candidateProfile.createMany({
@@ -269,13 +292,17 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
         userId: `${demoUserPrefix(slug)}${p.i}`,
         firstName: p.first,
         lastName: p.last,
-        journey: p.i === featured ? 'LAID_OFF' : JOURNEYS[k % JOURNEYS.length],
-        journeyStage: landed ? ('LANDED' as const) : p.i === featured ? ('APPLYING' as const) : STAGES[Math.floor(rand(seed, p.i, 8) * STAGES.length) % STAGES.length],
+        journey: p.extra ? p.extra.journey : p.i === featured ? 'LAID_OFF' : JOURNEYS[k % JOURNEYS.length],
+        journeyStage: landed ? ('LANDED' as const) : p.i === featured ? ('APPLYING' as const) : p.extra?.kind === 'growing' ? ('EXPLORING' as const) : STAGES[Math.floor(rand(seed, p.i, 8) * STAGES.length) % STAGES.length],
         journeyChangedAt: p.joinedAt,
         journeyStageChangedAt: p.joinedAt,
-        currentJobStatus: landed ? ('EMPLOYED_CONSIDERING_MOVE' as const) : ('LAID_OFF' as const),
-        currentCity: town(p.i, 9).city,
-        currentState: town(p.i, 9).state,
+        currentJobStatus: p.extra ? p.extra.status : landed ? ('EMPLOYED_CONSIDERING_MOVE' as const) : ('LAID_OFF' as const),
+        // People moving here still live elsewhere.
+        currentCity: p.extra?.kind === 'moving' ? pick(ELSEWHERE, seed, p.i, 23)[0] : town(p.i, 9).city,
+        currentState: p.extra?.kind === 'moving' ? pick(ELSEWHERE, seed, p.i, 23)[1] : town(p.i, 9).state,
+        // Two or so money pressures and a barrier each; most people name at least one.
+        benefitsPressures: PRESSURES.filter((_, j) => rand(seed, p.i, 30 + j) < (p.extra?.kind === 'growing' ? 0.08 : 0.3)),
+        biggestBarriers: BARRIERS.filter((_, j) => rand(seed, p.i, 40 + j) < 0.25),
         metroArea: localTowns[0].city,
         positioningStatementText: sharesDossier(p.i) ? pick(DOSSIER_LINES, seed, p.i, 22) : null,
         isSampleData: true,
@@ -294,7 +321,8 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
       status: p.joined ? ('CLAIMED' as const) : ('INVITED' as const),
       claimedAt: p.joined ? p.joinedAt : null,
       lastKnownTitle: p.title,
-      lastKnownEmployer: p.l >= 0 ? companies[layoffSpecs[p.l].company].name : null,
+      // Employed and growing: they work at a member company that enrolled its team (not a layoff).
+      lastKnownEmployer: p.l >= 0 ? companies[layoffSpecs[p.l].company].name : p.extra?.kind === 'growing' ? companies[(p.i % 3) * 3 + 1].name : null,
       memberCompanyId: p.l >= 0 ? companies[layoffSpecs[p.l].company].id : null,
       rapidResponseId: p.l >= 0 ? layoffs[p.l].id : null,
       candidateId: p.joined ? candId(p.i) : null,
@@ -312,6 +340,8 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
       { memberId: memberId(p.i), scope: 'SHARE_OUTCOME' as const, granted: rand(seed, p.i, 10) < 0.88, source: 'CLAIM', isSampleData: true, changedAt: p.joinedAt },
       { memberId: memberId(p.i), scope: 'SHARE_SEARCH_DETAIL_WITH_CAREER' as const, granted: rand(seed, p.i, 11) < 0.35, source: 'CLAIM', isSampleData: true, changedAt: p.joinedAt },
       { memberId: memberId(p.i), scope: 'SHARE_DOSSIER_WITH_EMPLOYERS' as const, granted: sharesDossier(p.i), source: 'CLAIM', isSampleData: true, changedAt: p.joinedAt },
+      // About six in ten let the program see the help they need, so it can match benefits.
+      { memberId: memberId(p.i), scope: 'SHARE_NEEDS' as const, granted: p.i === featured || rand(seed, p.i, 24) < 0.6, source: 'CLAIM', isSampleData: true, changedAt: p.joinedAt },
     ]),
   })
 
@@ -361,14 +391,20 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     select: { id: true },
   })
   const cohort = await prisma.cohort.create({
-    data: { programId: program.id, name: 'This month, online', startsAt: new Date(now.getTime() - 10 * DAY), endsAt: new Date(now.getTime() + 18 * DAY), seats: 30, modality: 'online', sessionsTotal: 8, minAttendancePct: 75, isSampleData: true },
+    data: { programId: program.id, name: 'This month, online', startsAt: new Date(now.getTime() - 10 * DAY), endsAt: new Date(now.getTime() + 18 * DAY), seats: 60, modality: 'online', sessionsTotal: 8, minAttendancePct: 75, isSampleData: true },
     select: { id: true },
   })
   await prisma.enrollment.createMany({
     data: joined
-      .filter((p) => !landedOf.has(p.i))
+      .filter((p) => !landedOf.has(p.i) && !p.extra)
       .slice(0, 22)
       .map((p, k) => ({ cohortId: cohort.id, memberId: memberId(p.i), status: 'ENROLLED' as const, payer: k % 3 === 0 ? ('WIOA_VOUCHER' as const) : ('SELF_PAY' as const), enrolledAt: new Date(now.getTime() - 10 * DAY), sessionsAttended: 2 + (k % 2), isSampleData: true })),
+  })
+  // Retraining beyond the layoffs: an employer pays for its growing staff, the board pays for career changers.
+  await prisma.enrollment.createMany({
+    data: joined
+      .filter((p) => p.extra?.kind === 'growing' || p.extra?.kind === 'pivot')
+      .map((p, k) => ({ cohortId: cohort.id, memberId: memberId(p.i), status: 'ENROLLED' as const, payer: p.extra?.kind === 'growing' ? ('EMPLOYER' as const) : ('WIOA_VOUCHER' as const), enrolledAt: new Date(now.getTime() - 10 * DAY), sessionsAttended: 2 + (k % 2), isSampleData: true })),
   })
 }
 
