@@ -41,6 +41,8 @@ function Section({ title, intro, sample, children }: { title: string; intro?: st
   )
 }
 
+const PLEDGES = ['Hire local first', 'Share openings with the pool', 'Fund upskilling', 'Name future skills in job specs']
+
 function Th({ children }: { children?: React.ReactNode }) {
   return <th className="px-3 py-2 text-left font-medium">{children}</th>
 }
@@ -239,6 +241,31 @@ export async function HubUpskill({ ctx }: Props) {
         </Section>
       )}
 
+      <Section title="Talent pledge" intro="Employers choose which commitments to make. The scoreboard shows who made them; it is the community’s, not a ranking of employers." sample>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <Th>Employer</Th>
+                {PLEDGES.map((p) => (
+                  <Th key={p}>{p}</Th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(({ c }) => (
+                <tr key={c.id} className="border-t border-border">
+                  <td className="px-3 py-2 font-medium">{c.name}</td>
+                  {PLEDGES.map((p, i) => (
+                    <td key={p} className="px-3 py-2">{rand01(seed, `pl${c.id}${i}`) < 0.6 ? 'Pledged' : <span className="text-muted-foreground">Not yet</span>}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
       <Section title="Every member company, not only the ones with layoffs" intro="Employers that keep people current are less likely to lay them off. Each row is the course demand a partner could fill." sample>
         <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
@@ -281,6 +308,40 @@ export async function HubSkills({ ctx }: Props) {
       <Section title="Put the skills of the future into job specs" intro="Work with a hiring manager on one role. Paste the description, see what AI changes about it, and name the skills in the spec so local people can learn them and apply.">
         <FutureSkillsTool slug={ctx.institution.slug} partnerNames={colleges.map((c) => c.name)} />
       </Section>
+
+      <Section title="From spec to hire" intro="Follow one skill from a job description to a course to a hire, so you can show the skill someone named ended up in a job." sample>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <Th>Role</Th>
+                <Th>Skill named</Th>
+                <Th>Course</Th>
+                <Th>Enrolled</Th>
+                <Th>Hired into the role</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ['Senior Financial Analyst', 'AI-assisted forecasting', colleges[0]?.name ?? 'Partner college'],
+                ['HR Business Partner', 'Skills-based hiring', colleges[1]?.name ?? 'Partner college'],
+                ['Operations Manager', 'Process automation', colleges[2]?.name ?? 'Partner college'],
+              ].map(([role, skill, course], i) => {
+                const enrolled = randInt(ctx.institution.slug, `sp${i}`, 8, 30)
+                return (
+                  <tr key={role} className="border-t border-border">
+                    <td className="px-3 py-2 font-medium">{role}</td>
+                    <td className="px-3 py-2">{skill}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{course}</td>
+                    <td className="px-3 py-2 tabular-nums">{enrolled}</td>
+                    <td className="px-3 py-2 tabular-nums">{Math.round(enrolled * (0.1 + rand01(ctx.institution.slug, `sh${i}`) * 0.25))}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Section>
     </div>
   )
 }
@@ -288,7 +349,8 @@ export async function HubSkills({ ctx }: Props) {
 // ---------------------------------------------------------------------------
 
 export async function HubRapid({ ctx }: Props) {
-  const [notices, layoffs] = await Promise.all([regionNotices(ctx.institution.id), hubLayoffs(ctx.institution.id)])
+  const [notices, layoffs, companies] = await Promise.all([regionNotices(ctx.institution.id), hubLayoffs(ctx.institution.id), memberCompanies(ctx.institution.id)])
+  const hiring = companies.filter((c) => c.hiring)
   const seed = ctx.institution.slug
   const slug = ctx.institution.slug
   const stepsDone = (started: boolean, active: boolean, k: number) => (started ? (active ? Math.min(4, 2 + (k % 3)) : 6) : 1)
@@ -339,6 +401,29 @@ export async function HubRapid({ ctx }: Props) {
               </tbody>
             </table>
           </div>
+        )}
+      </Section>
+
+      <Section title="Hiring pool before the exit date" intro="Employers that are hiring see the group’s skills, with each person’s consent, while people are still on the payroll. Nobody is named to an employer until they say yes." sample>
+        {layoffs.length === 0 || hiring.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">Appears when a layoff has seats and a member company is hiring.</p>
+        ) : (
+          <ul className="space-y-2">
+            {layoffs.filter((l) => l.isActive).map((l) => {
+              const affected = l.seats ?? 0
+              const consented = Math.round(affected * (0.3 + rand01(seed, `pc${l.id}`) * 0.25))
+              return (
+                <li key={l.id} className="rounded-lg border border-border bg-card p-4 text-sm">
+                  <p className="font-medium">
+                    {l.memberCompany?.name ?? l.employerName}: {affected.toLocaleString()} affected, {small(consented)} agreed to be introduced
+                  </p>
+                  <p className="mt-1 text-muted-foreground">
+                    {hiring.map((h, i) => `${h.name} (${randInt(seed, `h${l.id}${i}`, 2, 9)} open roles match)`).join(' · ')}
+                  </p>
+                </li>
+              )
+            })}
+          </ul>
         )}
       </Section>
 
@@ -461,6 +546,24 @@ export async function HubAttract({ ctx }: Props) {
       </Section>
 
       <RelocationInterest slug={ctx.institution.slug} ctxId={ctx.institution.id} />
+
+      <Section title="Relocation concierge" intro="Everything around the job, so the move holds. Each step is a link or a download the household uses; nothing is written to their accounts." sample>
+        <div className="grid gap-3 md:grid-cols-2">
+          {[
+            ['Partner job search', 'The partner’s field and local jobs, ranked first, with employer introductions.'],
+            ['Schools and neighborhoods', 'Short guides matched to the household’s commute and kids’ ages.'],
+            ['Housing', 'Where to look and what rents and prices run, with sources.'],
+            ['Welcome network', 'A local host from a member employer, and a first-month event list as a calendar download.'],
+            ['Alumni who left', `Graduates of partner colleges now living elsewhere: ${randInt(ctx.institution.slug, 'al', 900, 2400).toLocaleString()} reachable through the colleges, with their consent.`],
+            ['Proof for the funder', 'A lease, a utility start, or an employer’s start-date confirmation, kept private.'],
+          ].map(([t, d]) => (
+            <div key={t} className="rounded-lg border border-border bg-card p-4 text-sm">
+              <p className="font-medium">{t}</p>
+              <p className="text-muted-foreground">{d}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
 
       <Section title="What a person sees before they decide" intro="One page per person that pairs their field with local jobs and the benefits in this workspace.">
         <ul className="grid gap-2 md:grid-cols-3">
