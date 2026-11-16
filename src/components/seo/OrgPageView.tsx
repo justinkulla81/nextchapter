@@ -17,6 +17,7 @@ import { placeUrl } from '@/lib/places/places'
 import { periodLabel, rateText } from '@/lib/seo/workforce-pages'
 import type { AreaJob, HiringEmployer, OrgPage } from '@/lib/seo/org-pages'
 import { AreaNotices } from '@/components/seo/AreaNotices'
+import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
 import { CompanyEvents } from '@/components/seo/CompanyEvents'
 import type { eventsForCompanyIds } from '@/lib/events/sec-events'
 import type { PageNotices } from '@/lib/seo/org-notices'
@@ -66,12 +67,24 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
       h1={h1 ?? row.name}
       lede={lede}
       jsonLd={orgJsonLd(page, path, hiring.jobs)}
-      situations={{ state: row.state, area: row.city ?? st, boardId: row.kind === 'WORKFORCE_BOARD' ? row.id : null, slug: `${row.kind.toLowerCase()}_${row.slug}`.slice(0, 70), page: 'board' }}
     >
-      <p className="mt-3 text-xs text-muted-foreground">
-        Independent page. Not run by or affiliated with {row.name}.
-        {peopleCount != null && <> {peopleCount.toLocaleString('en-US')} {peopleWord(peopleCount)} {peopleCount === 1 ? 'has' : 'have'} connected with {row.name} on NextChapter.</>}
-      </p>
+      {row.kind === 'WORKFORCE_BOARD' ? (
+        // Owner decision 2026-11-16: a board's page makes two asks. The box above is for the board ("Claim your page"); this band is
+        // for the job seekers it serves, who say where they are and start onboarding with this board carried along. The band carries
+        // the independence line and the connected-people count.
+        <OrgCandidateBand
+          orgName={row.name}
+          branded={!!brand}
+          peopleCount={peopleCount}
+          properties={props}
+          situations={{ state: row.state, area: row.city ?? st, boardId: row.id, slug: `board_${row.slug}`.slice(0, 70), page: 'board' }}
+        />
+      ) : (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Independent page. Not run by or affiliated with {row.name}.
+          {peopleCount != null && <> {peopleCount.toLocaleString('en-US')} {peopleWord(peopleCount)} {peopleCount === 1 ? 'has' : 'have'} connected with {row.name} on NextChapter.</>}
+        </p>
+      )}
       {(row.kind === 'JOB_CENTER' || row.kind === 'WORKFORCE_BOARD') && <StateFilingLink name={st} slug={ss} className="mt-6" />}
       <section aria-labelledby="market" className="mt-10">
         <h2 id="market" className={H2}>Jobs where it serves</h2>
