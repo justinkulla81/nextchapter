@@ -87,6 +87,7 @@ export default async function InstitutionPortalLayout({
       <CanonicalOrgUrl slug={slug} base={orgBasePath(slug, institution.orgType)} />
       <PortalTypeBar
         type={orgKindOf(institution.orgType) === 'workforce' ? 'workforce' : 'higher_ed'}
+        chrome={institution.isDemo && institution.accentColor ? accent : null}
         use={institution.orgType === 'WORKFORCE_BOARD' ? 'Workforce boards' : institution.orgType === 'ECONOMIC_DEVELOPMENT' ? 'Economic development' : null}
       />
       {institution.isDemo && (
