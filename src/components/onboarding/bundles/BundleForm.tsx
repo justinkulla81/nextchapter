@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useMemo, useRef, useState } from 'react'
+import { useActionState, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { BundleFormState } from '@/app/onboarding/bundle-actions'
 import { usePostHog } from '@/lib/posthog/client'
 import type { JourneyType } from '@/lib/journey/journey'
@@ -25,6 +25,7 @@ export function BundleForm({
   previewJobs,
   hidden,
   autoSubmit,
+  extra,
 }: {
   bundle: BundleId
   initial: Answers
@@ -37,6 +38,8 @@ export function BundleForm({
   hidden?: Record<string, string>
   /** The visitor already told us where they are (the /after-a-layoff page): submit the preselected answer without asking. */
   autoSubmit?: boolean
+  /** A form field that is not one of the bundle's questions, shown under them (the Where step's board offer). */
+  extra?: ReactNode
 }) {
   const [state, formAction, pending] = useActionState(action, undefined)
   const [answers, setAnswers] = useState<Answers>(initial)
@@ -137,6 +140,7 @@ export function BundleForm({
             onAnswered={() => posthog?.capture('onboarding_question_answered', { bundleId: bundle, questionId: q.id, journey })}
           />
         ))}
+        {extra}
       </div>
 
       <PayoffPanel payoff={payoff} busy={counting} />

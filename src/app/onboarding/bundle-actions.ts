@@ -21,6 +21,8 @@ import { ENTRY_KEY, entryFromGoalParam, entryOf } from '@/lib/onboarding/resume-
 import { DETAILS_PATH } from '@/lib/onboarding/details'
 import { NETWORK_COMFORT_VALUES } from '@/lib/onboarding/finish'
 import { loadScanStatus, type ScanStatus } from '@/lib/onboarding/scan-counts'
+import { ARRIVED_FROM_KEY, arrivedFromDetails, arrivedFromForm } from '@/lib/onboarding/arrived-from'
+import { buildRelocation, parseRelocation } from '@/lib/journey/relocation'
 
 // The server side of the onboarding question bundles (docs/personalization-audit/bundles.md O1 to O5).
 // Each action reads its answers from the form by question id, checks them with the same pure rules the
@@ -37,6 +39,9 @@ const FIELDS: QuestionId[] = [
 
 /** The hidden field the first screen carries when the visitor arrived through a Market Reality link. */
 const ENTRY_FIELD = 'entry'
+
+/** The Where step's "Connect me with <board>" box (BoardConnectOffer). Its value is the board's id. */
+const CONNECT_BOARD_FIELD = 'connectBoard'
 
 function answersFrom(formData: FormData): Answers {
   const out: Answers = {}
@@ -74,9 +79,12 @@ export async function submitWhereYouAre(_prev: BundleFormState, formData: FormDa
   const now = await detailsOf(candidateId)
   // A Market Reality link (?goal=market-reality) makes the résumé required later; see resume-rule.ts. Kept once set.
   const entry = entryFromGoalParam(String(formData.get(ENTRY_FIELD) ?? '')) ?? entryOf(now.journeyDetails)
+  // Started from a place or workforce-board page: keep the place, its board and the situation picked there, for the Where step.
+  const arrived = arrivedFromForm(formData)
+  if (arrived) captureServerEvent(candidateId, 'onboarding_arrived_from_place', { candidateId, state: arrived.state, area: arrived.area, boardId: arrived.boardId, pickedSituation: arrived.situation, situation: answers.situation })
   await applyJourneyChange(candidateId, {
     stage: writes.stage,
-    details: { ...writes.details, ...(entry ? { [ENTRY_KEY]: entry } : {}), ...progressPatch(now.journeyDetails, { completed: 'where_you_are' }) },
+    details: { ...writes.details, ...(entry ? { [ENTRY_KEY]: entry } : {}), ...(arrived ? { [ARRIVED_FROM_KEY]: arrived } : {}), ...progressPatch(now.journeyDetails, { completed: 'where_you_are' }) },
     source: 'ONBOARDING',
   })
   if (Object.keys(writes.profile).length > 0) await prisma.candidateProfile.update({ where: { id: candidateId }, data: writes.profile })
@@ -165,7 +173,30 @@ export async function submitWhere(_prev: BundleFormState, formData: FormData): P
     },
   })
   if (place.city || place.state) await clearResumePrefillMarks(candidateId, ['currentCity', 'currentState'])
-  await applyJourneyChange(candidateId, { details: progressPatch(before.journeyDetails, { completed: 'where' }), source: 'ONBOARDING' })
+
+  // Arrived from a place or board page. "I'm moving here" plus a yes to moving: that state goes on the member's move list, so its
+  // jobs count as within reach (src/lib/journey/relocation.ts). A no keeps whatever was there.
+  const arrived = arrivedFromDetails(before.journeyDetails)
+  const movingThere = arrived?.situation === 'relocating' && openToRelocation
+  const current = parseRelocation(before.journeyDetails, openToRelocation)
+  const relocation = movingThere && current.scope !== 'ANYWHERE'
+    ? buildRelocation({ scope: 'STATES', states: [...(current.scope === 'STATES' ? current.states ?? [] : []), arrived!.state] })
+    : null
+  await applyJourneyChange(candidateId, { details: { ...(relocation ? { relocation } : {}), ...progressPatch(before.journeyDetails, { completed: 'where' }) }, source: 'ONBOARDING' })
+
+  // "Connect me with <board>": offered only for the board the page named, and only ticked boxes connect. The board sees an
+  // anonymous count; the member decides later, in privacy settings, whether to share their name.
+  if (arrived?.boardId && formData.get(CONNECT_BOARD_FIELD) === arrived.boardId) {
+    const board = await prisma.workforceBoard.findUnique({ where: { id: arrived.boardId }, select: { id: true, state: true } })
+    if (board) {
+      await prisma.workforceBoardConnection.upsert({
+        where: { candidateId_boardId: { candidateId, boardId: board.id } },
+        create: { candidateId, boardId: board.id, source: 'onboarding' },
+        update: { status: 'ACTIVE', endedAt: null },
+      })
+      captureServerEvent(candidateId, 'workforce_board_connected', { candidateId, boardId: board.id, state: board.state, source: 'onboarding', situation: arrived.situation })
+    }
+  }
 
   bundleDone('where', candidateId, effectiveJourney(before), answers)
   revalidatePath('/onboarding', 'layout')

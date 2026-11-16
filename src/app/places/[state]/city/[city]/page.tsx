@@ -1,4 +1,5 @@
 import { placeCitySeo } from '@/lib/seo/templates'
+import { boardForPlace } from '@/lib/onboarding/arrived-from'
 import { YourState } from '@/components/capture/YourState'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -69,6 +70,7 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
       stateSlug={state}
       look="scene"
       hero={settingImage(p.population, `${state}-${city}`, 'city')}
+      situations={{ state: code, area: p.name, boardId: boardForPlace(d.boards)?.id ?? null, slug: `place_${state}-${city}`, page: 'place' }}
       capture={{ kind: 'city', slug: `${state}-${city}`, label: p.name, save: { q: '', loc: `${p.name}, ${code}` } }}
       trail={trail}
       h1={placeCitySeo(p.name, code).h1}

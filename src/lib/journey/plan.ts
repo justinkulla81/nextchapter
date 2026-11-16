@@ -139,6 +139,13 @@ const DRIVER_PLAN: Record<MoveDriver, { firstWeek: PlanItem[]; ongoing: PlanItem
     ],
     ongoing: [T('Check the news about your company and keep your résumé current')],
   },
+  relocating: {
+    firstWeek: [
+      T('Set the area you are moving to in your job search, so jobs there come first'),
+      T('Find the workforce board and job center where you are moving'),
+    ],
+    ongoing: [T('Have one conversation a week with someone who works in your new area', 'OUTREACH_CALL')],
+  },
 }
 
 // Time gates. A search that has run a while without results needs different

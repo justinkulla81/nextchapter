@@ -12,6 +12,7 @@ import { stateName } from '@/lib/seo/states'
 import Image from 'next/image'
 import { PageCaptureTop, PageCaptureOwner } from '@/components/capture/PageCapture'
 import type { JourneyAsk } from '@/components/capture/NextStepBox'
+import type { SituationAsk } from '@/components/capture/SituationChoice'
 import { PullCtaTop, pullContext, withPullCtas } from '@/components/capture/PullCta'
 import type { PageCaptureConfig } from '@/lib/capture/page-capture'
 import { AssessmentCtaLabel } from '@/components/ab/AssessmentCtaLabel'
@@ -20,7 +21,7 @@ export const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export const LINK = 'text-brand underline underline-offset-4'
 
 /** The frame for the programmatic public pages (workforce, higher education by state, rapid response, tools). */
-export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm, boxFirst, brand, ask, squiggle }: {
+export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = 'plain', capture, hero, calm, boxFirst, brand, ask, squiggle, situations }: {
   trail: { name: string; path: string }[]
   h1: string
   lede: ReactNode
@@ -44,6 +45,8 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
   ask?: JourneyAsk
   /** The hand-drawn line under the headline. On by default, except on a page whose heading panel takes an organization's colors (`brand`); pass false to turn it off. */
   squiggle?: boolean
+  /** A place or workforce-board page: the registration ask becomes four situation choices that carry the place (and its board) into onboarding. */
+  situations?: SituationAsk
 }) {
   const st = stateBrandFromSlug(stateSlug)
   const pull = pullContext(trail)
@@ -84,11 +87,12 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
               heading={`Looking for work in ${stateName(st.code)}? See where you stand.`}
               independent={`Independent page. Not from or affiliated with ${statePhrase(st.code)}.`}
               properties={{ kind: 'STATE', state: st.code }}
+              situations={situations}
             />
           )}
-          {boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} ask={ask} />)}
+          {boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} ask={ask} situations={situations} />)}
           {body}
-          {!boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} ask={ask} />)}
+          {!boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} ask={ask} situations={situations} />)}
           {capture && <PageCaptureOwner capture={capture} />}
           {bottom}
         </div>

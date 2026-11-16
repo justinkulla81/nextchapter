@@ -1,6 +1,7 @@
 import type { ReactNode, ReactElement } from 'react'
 import { Children } from 'react'
 import { JourneyPicker } from '@/components/home/JourneyPicker'
+import type { SituationAsk } from '@/components/capture/SituationChoice'
 import { NextStepBox, type JourneyAsk } from '@/components/capture/NextStepBox'
 import { orgCopyForSlug, pullCopyFor, type OrgCopy, type PullCopy } from '@/lib/capture/pull-copy'
 
@@ -28,9 +29,9 @@ export function pullContext(trail: { name: string; path: string }[]) {
 }
 
 /** The one box. People who are not ready open the first-week-plan email in place. */
-export function PullCtaTop({ slug, audience, ask, copy }: { topic?: string; slug: string; audience: PullAudience; ask?: JourneyAsk; copy?: PullCopy | OrgCopy }) {
+export function PullCtaTop({ slug, audience, ask, copy, situations }: { topic?: string; slug: string; audience: PullAudience; ask?: JourneyAsk; copy?: PullCopy | OrgCopy; situations?: SituationAsk }) {
   const source = `page:topic:${slug}`.slice(0, 80)
-  return <NextStepBox audience={audience} slug={slug} ask={ask} copy={audience === 'org' && !(copy && 'org' in copy) ? orgCopyForSlug(slug) : copy} extras={audience === 'seeker' ? <JourneyPicker source={source} compact /> : undefined} />
+  return <NextStepBox audience={audience} slug={slug} ask={ask} situations={situations} copy={audience === 'org' && !(copy && 'org' in copy) ? orgCopyForSlug(slug) : copy} extras={audience === 'seeker' ? <JourneyPicker source={source} compact /> : undefined} />
 }
 
 /**

@@ -17,10 +17,21 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { getPersona } from '@/lib/constants/personas'
 import { posthogCookieName, posthogDistinctId } from '@/lib/posthog/visitor-id'
 import { LEAD_COOKIE, emailFromLeadCookie } from '@/lib/leads/lifecycle/prefill'
+import { prisma } from '@/lib/prisma'
+import { arrivedHiddenFields, parseArrivedFrom } from '@/lib/onboarding/arrived-from'
 
-export default async function SituationPickerPage({ searchParams }: { searchParams: Promise<{ goal?: string; from?: string }> }) {
+export default async function SituationPickerPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   // A Market Reality link (/onboarding/desire?goal=market-reality) makes the résumé step required later.
-  const { goal, from } = await searchParams
+  const sp = await searchParams
+  const goal = typeof sp.goal === 'string' ? sp.goal : undefined
+  const from = typeof sp.from === 'string' ? sp.from : undefined
+  // Arrived from a place or workforce-board page with a situation picked there (src/lib/onboarding/arrived-from.ts). A board id
+  // that is not a real board is dropped, so the Where step never offers a board that does not exist.
+  let arrived = parseArrivedFrom(sp)
+  if (arrived?.boardId) {
+    const board = await prisma.workforceBoard.findUnique({ where: { id: arrived.boardId }, select: { id: true } }).catch(() => null)
+    if (!board) arrived = { ...arrived, boardId: null }
+  }
   const entryGoal = entryFromGoalParam(goal) ? goal : undefined
   const user = await getCurrentUser()
 
@@ -60,10 +71,16 @@ export default async function SituationPickerPage({ searchParams }: { searchPara
     // Someone from /after-a-layoff already told us they were laid off, on another host (session storage does not cross hosts), so the
     // answer is filled in here and the first step submits it. A member who already answered keeps their own answer.
     const answeredOnLanding = !!arrivedFrom && !profile?.desireComplete && !stored.situation
-    const initial = answeredOnLanding ? { ...stored, situation: getPersona('laid-off')?.situation ?? 'just_laid_off' } : stored
+    // A situation picked on a place or board page fills the card (they still confirm it and answer the follow-up); "I'm moving
+    // here" also answers what is behind the move.
+    const fromPlace = !answeredOnLanding && !stored.situation && arrived?.situation
+      ? { situation: arrived.situation, ...(arrived.situation === 'relocating' ? { moveDriver: 'relocating' } : {}) }
+      : {}
+    const initial = answeredOnLanding ? { ...stored, situation: getPersona('laid-off')?.situation ?? 'just_laid_off' } : { ...stored, ...fromPlace }
+    const hidden = { ...(entryGoal ? { entry: entryGoal } : {}), ...(arrived ? arrivedHiddenFields(arrived) : {}) }
     return (
       <BundleShell id="where_you_are" title={profile?.firstName ? `Hi ${profile.firstName}, which of these sounds most like you?` : 'Which of these sounds most like you?'}>
-        <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} hidden={entryGoal ? { entry: entryGoal } : undefined} autoSubmit={answeredOnLanding} />
+        <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} hidden={Object.keys(hidden).length > 0 ? hidden : undefined} autoSubmit={answeredOnLanding} />
       </BundleShell>
     )
   }

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/privacy-policy' },
 }
 
-const EFFECTIVE_DATE = 'October 30, 2026'
+const EFFECTIVE_DATE = 'November 16, 2026'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -273,6 +273,16 @@ export default function PrivacyPolicyPage() {
               signal (Private), or visible only to specific companies you pre-approve (Stealth).
             </li>
             <li>
+              <strong>With a workforce board you choose to work with</strong> — only if you turn on
+              &quot;Share my name&quot; for that board in Dashboard → Privacy. It is off by default.
+              Until you turn it on, the board sees you only as part of anonymous counts (never a
+              group smaller than 10). When it is on, we share your name, email address, city and
+              state, and the situation you chose, so the board can contact you about its services.
+              We never share your résumé, your activity or your grade. You can turn it off at any
+              time, and we stop sharing from then on. While Confidential Search Mode is on, we do not
+              share your name with any board.
+            </li>
+            <li>
               <strong>With service providers</strong> who process data on our behalf under contract
               — Anthropic (AI analysis, described above), Supabase (database hosting and
               authentication), Resend (transactional email delivery), and Vercel (application
@@ -296,6 +306,7 @@ export default function PrivacyPolicyPage() {
           <h2 className="text-xl font-semibold text-navy">6. Your Choices &amp; Rights</h2>
           <ul className="list-disc space-y-2 pl-6">
             <li>Change your visibility setting at any time from Dashboard → Privacy.</li>
+            <li>Choose whether each workforce board you work with may see your name, from Dashboard → Privacy → Workforce boards.</li>
             <li>Update or correct your profile information at any time.</li>
             <li>
               <strong>Deactivate your account</strong> at any time, immediately and without

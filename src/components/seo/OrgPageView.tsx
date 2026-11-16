@@ -66,6 +66,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
       h1={h1 ?? row.name}
       lede={lede}
       jsonLd={orgJsonLd(page, path, hiring.jobs)}
+      situations={{ state: row.state, area: row.city ?? st, boardId: row.kind === 'WORKFORCE_BOARD' ? row.id : null, slug: `${row.kind.toLowerCase()}_${row.slug}`.slice(0, 70), page: 'board' }}
     >
       <p className="mt-3 text-xs text-muted-foreground">
         Independent page. Not run by or affiliated with {row.name}.

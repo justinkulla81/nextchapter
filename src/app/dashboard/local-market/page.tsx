@@ -41,7 +41,7 @@ export default async function LocalMarketPage() {
 
   const [stateBoards, connections] = await Promise.all([
     prisma.workforceBoard.findMany({ where: { state: code }, select: { id: true, name: true, website: true, state: true, statewide: true }, orderBy: { name: 'asc' } }),
-    prisma.workforceBoardConnection.findMany({ where: { candidateId: profile.id, status: 'ACTIVE' }, select: { boardId: true, shareOutcome: true, board: { select: { name: true } } } }),
+    prisma.workforceBoardConnection.findMany({ where: { candidateId: profile.id, status: 'ACTIVE' }, select: { boardId: true, shareOutcome: true, shareIdentity: true, board: { select: { name: true } } } }),
   ])
   const boards = visibleBoards(stateBoards)
   const brief = await getAreaBrief(connections[0] ? { boardId: connections[0].boardId } : { state: code })
@@ -49,7 +49,8 @@ export default async function LocalMarketPage() {
   const boardPanel = (
     <WorkforceBoardPanel
       boards={boards.map((b) => ({ id: b.id, name: b.name, website: b.website }))}
-      connections={connections.map((c) => ({ boardId: c.boardId, name: c.board.name, shareOutcome: c.shareOutcome }))}
+      connections={connections.map((c) => ({ boardId: c.boardId, name: c.board.name, shareOutcome: c.shareOutcome, shareIdentity: c.shareIdentity }))}
+      confidential={profile.confidentialSearchMode}
     />
   )
 

@@ -52,6 +52,7 @@ import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
 import { RoleFeed, RoleFeedQuiet } from './role-feed'
 import { RoleNetworkAsk, FunctionNetworkAsk, IndustryNetworkAsk } from './peer-network'
 import { PublicLookWorkforce, PublicLookHigherEd, PublicLookRecruiter } from './public-look'
+import { WorkforceSituations } from './workforce-situations'
 import { CompanyLandingBuyout, CompanyLandingLayout, CompanyLandingNeither } from './company-landing'
 import { StartPlanLive, StartHelpLive, GraduationLive, ReaskLive, OtherPathsSchoolLive } from './start-grad-live'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
@@ -84,6 +85,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'company-page/layoff', place: 'Public pages', title: 'Company page, layoff version (Microsoft sample)', replaces: '/layoffs/company/<slug> with WARN notices', Component: CompanyLandingLayout },
   { path: 'company-page/neither', place: 'Public pages', title: 'Company page, no layoff or buyout (Costco sample)', replaces: '/layoffs/company/<slug> with neither', Component: CompanyLandingNeither },
   { path: 'public-look/workforce', place: 'Public pages', title: 'Workforce board page, shared look (sample data)', replaces: '/workforce-boards, /job-centers, /economic-development pages', Component: PublicLookWorkforce },
+  { path: 'public-look/situations', place: 'Public pages', title: 'Place and board pages: situation choice, board offer and name sharing (sample data)', replaces: '/places and /workforce-boards asks, onboarding Where step, privacy settings', Component: WorkforceSituations },
   { path: 'public-look/higher-ed', place: 'Public pages', title: 'College page, shared look (sample data)', replaces: '/higher-education pages', Component: PublicLookHigherEd },
   { path: 'public-look/recruiter', place: 'Public pages', title: 'Search firm page, shared look (sample data)', replaces: '/search-firms pages', Component: PublicLookRecruiter },
   { path: 'marketing/coach-clients', place: 'Partner pages', title: 'Coach: client list (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: CoachClients },

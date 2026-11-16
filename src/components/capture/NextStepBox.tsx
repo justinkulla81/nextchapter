@@ -12,6 +12,7 @@ import { usePathname } from 'next/navigation'
 import { useNavSession } from '@/lib/nav/use-nav-session'
 import { DEFAULT_COPY, MEMBER_HREF, ORG_COPY, type OrgCopy, type PullCopy } from '@/lib/capture/pull-copy'
 import { SITUATION_SESSION_KEY, type SituationKey } from '@/lib/constants/onboarding'
+import { SituationChoice, type SituationAsk } from '@/components/capture/SituationChoice'
 
 /** A page that knows who the visitor is (a journey page) words the box itself and hands their situation to onboarding. */
 export interface JourneyAsk { headline: string; sentence: string; situation: SituationKey; journey: string }
@@ -24,7 +25,7 @@ export interface JourneyAsk { headline: string; sentence: string; situation: Sit
  * On a role, function or industry page the ask is the page's own network instead ("Are you a CRO? Join the CRO network"): same
  * box, same one button, so the page still makes one ask. The email and journey options behind "Not ready?" stay.
  */
-export function NextStepBox({ audience, slug, extras, network, ask, copy: copyProp }: { audience: 'seeker' | 'org'; slug: string; extras?: ReactNode; network?: NetworkAsk; ask?: JourneyAsk; /** The pain and the payoff for this page (src/lib/capture/pull-copy.ts). */ copy?: PullCopy | OrgCopy }) {
+export function NextStepBox({ audience, slug, extras, network, ask, copy: copyProp, situations }: { audience: 'seeker' | 'org'; slug: string; extras?: ReactNode; network?: NetworkAsk; ask?: JourneyAsk; /** The pain and the payoff for this page (src/lib/capture/pull-copy.ts). */ copy?: PullCopy | OrgCopy; /** A place or workforce-board page: the one button becomes four situation choices that carry the place into onboarding. */ situations?: SituationAsk }) {
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const org = audience === 'org'
@@ -32,6 +33,7 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy: copyPr
   const orgCopy = copyProp && 'org' in copyProp ? copyProp : ORG_COPY
   const copy = org ? orgCopy : seeker
   const net = !ask && network && !org ? networkCopy(network.kind, network.name, network.spelled) : null
+  const choose = !org && !net && !ask && situations ? situations : null
   const href = org ? orgCopy.href : `${MARKET_REALITY_START_HREF}&from=top_${slug}`
   const pathname = usePathname()
   const session = useNavSession()
@@ -97,7 +99,7 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy: copyPr
             </p>
           )}
         </div>
-        {net && network ? (
+        {choose ? null : net && network ? (
           <NetworkJoinButton networkKey={network.key} kind={network.kind} name={network.name} onBusy={setBusy} />
         ) : (
           <TrackedLink
@@ -114,6 +116,7 @@ export function NextStepBox({ audience, slug, extras, network, ask, copy: copyPr
           </TrackedLink>
         )}
       </div>
+      {choose && <SituationChoice ask={choose} />}
       {extras && open && (
         <div id="next-step-extras" className="mt-3 rounded-2xl bg-white p-4 text-foreground sm:p-5">
           {extras}
