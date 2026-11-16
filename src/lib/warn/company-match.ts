@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { sharedLoad } from '@/lib/db/heavy'
 import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { strictOrgKey } from '@/lib/crm/normalize'
 import { resolveAmbiguous } from './ambiguous-resolve'
@@ -28,7 +29,39 @@ export interface WarnCompanyMatchResult {
  * runtime, and what pushed the weekly sync past its time limit.
  */
 export type CompanyIndex = { id: string; name: string }[]
+
+/**
+ * The index comes from Vercel's shared data cache, kept six hours, in INDEX_PARTS pieces (an entry is capped at 2 MB), plus the companies
+ * created since it was read. Every caller read the whole table (~114k rows) itself: the hourly layoff-news check, the layoffs inbox and the
+ * WARN syncs each start on a cold instance, so it ran ~5 times an hour and was the largest single source of egress on 2026-11-16. A cached
+ * id that no longer exists (a merged company) is caught in matchOrCreateCompanyForEmployer, which then reads the table fresh once.
+ */
+const INDEX_PARTS = 6
+const INDEX_TTL_SEC = 6 * 3600
+type IndexPart = { at: string; rows: [string, string][] }
+
+async function loadIndexPart(part: number): Promise<IndexPart> {
+  const at = new Date().toISOString()
+  const rows = await prisma.$queryRaw<{ id: string; name: string }[]>`
+    SELECT id, name FROM "Company" WHERE (hashtext(id) & 2147483647) % ${INDEX_PARTS}::int = ${part}::int`
+  return { at, rows: rows.map((r) => [r.id, r.name]) }
+}
+
 export async function loadCompanyIndex(): Promise<CompanyIndex> {
+  const parts = await Promise.all(
+    Array.from({ length: INDEX_PARTS }, (_, k) => sharedLoad(`company-index-v1:${k}`, INDEX_TTL_SEC, () => loadIndexPart(k), { reviveDates: false }))
+  )
+  // Companies created after the oldest piece was read (a minute of slack for clocks); they replace any cached row with the same id.
+  const since = new Date(Math.min(...parts.map((p) => Date.parse(p.at))) - 60_000)
+  const fresh = await prisma.company.findMany({ where: { createdAt: { gte: since } }, select: { id: true, name: true } })
+  const byId = new Map<string, string>()
+  for (const p of parts) for (const [id, name] of p.rows) byId.set(id, name)
+  for (const c of fresh) byId.set(c.id, c.name)
+  return [...byId].map(([id, name]) => ({ id, name }))
+}
+
+/** The whole table straight from the database: only when the cached index named a company that no longer exists. */
+async function loadCompanyIndexFresh(): Promise<CompanyIndex> {
   return prisma.company.findMany({ select: { id: true, name: true } })
 }
 
@@ -45,6 +78,17 @@ function sharedCompanyIndex(): Promise<CompanyIndex> {
 }
 
 export async function matchOrCreateCompanyForEmployer(rawEmployer: string, index?: CompanyIndex): Promise<WarnCompanyMatchResult> {
+  const result = await matchOrCreate(rawEmployer, index)
+  if (!result.companyId) return result
+  // The index can be up to six hours old: a company merged away since then is matched by an id that is gone. Read fresh once and redo.
+  const exists = await prisma.company.findUnique({ where: { id: result.companyId }, select: { id: true } })
+  if (exists) return result
+  const freshIndex = await loadCompanyIndexFresh()
+  if (sharedIndex) sharedIndex = { at: Date.now(), index: Promise.resolve(freshIndex) }
+  return matchOrCreate(rawEmployer, freshIndex)
+}
+
+async function matchOrCreate(rawEmployer: string, index?: CompanyIndex): Promise<WarnCompanyMatchResult> {
   const employer = fixAllCapsCompanyName(rawEmployer.trim())
   const strictKey = strictOrgKey(employer, normalizeOrgName)
   if (!strictKey) return { companyId: null, status: 'UNMATCHED', candidates: null }
