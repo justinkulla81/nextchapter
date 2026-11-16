@@ -79,11 +79,26 @@ export async function withDescriptionStubs<T extends { id: string }>(rows: T[]):
   return rows.map((r) => ({ ...r, description: byId.get(r.id) ?? null }))
 }
 
-/** The job, or null when it has no public page (closed, private, not verified…). One primary-key read. */
+/**
+ * How long a job's row is kept in the shared data cache. The page is ISR-cached for 3 days, but that cache starts empty on every
+ * deploy, and crawlers then re-render pages they had already read: this one primary-key read (with the full posting text, ~4 KB)
+ * ran ~59,000 times in 6 hours on 2026-11-15, ~1.2 GB a day of Supabase egress. The data cache outlives deploys, so a re-render
+ * within a day reads the row from there. Whether the job is still viewable is decided after the read, from the cached dates
+ * (isViewableJob) and the live ghost list, so an expired or reported job still drops; a job archived in the database can stay
+ * up to a day longer on a page rendered from this copy.
+ */
+const PUBLIC_JOB_ROW_SHARED_SEC = 24 * 3600
+
+function publicJobRow(id: string) {
+  return sharedLoad(`public-job:${id}`, PUBLIC_JOB_ROW_SHARED_SEC, () =>
+    retryOnPoolTimeout(() => prisma.exclusiveJobPosting.findUnique({ where: { id }, select: PUBLIC_JOB_SELECT })))
+}
+
+/** The job, or null when it has no public page (closed, private, not verified…). One primary-key read, kept a day (above). */
 export async function getPublicJob(id: string): Promise<PublicJobRow | null> {
   if (!/^[a-z0-9]{10,40}$/i.test(id)) return null
   const [job, ghosts] = await Promise.all([
-    retryOnPoolTimeout(() => prisma.exclusiveJobPosting.findUnique({ where: { id }, select: PUBLIC_JOB_SELECT })),
+    publicJobRow(id),
     retryOnPoolTimeout(() => getConfirmedGhostIds()),
   ])
   if (!job || !isViewableJob(job, Date.now(), ghosts.has(job.id))) return null
