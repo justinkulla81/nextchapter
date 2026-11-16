@@ -1,4 +1,5 @@
 import { placeStateSeo } from '@/lib/seo/templates'
+import { boardForPlace } from '@/lib/onboarding/arrived-from'
 import { YourState } from '@/components/capture/YourState'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import { redirectFromBareSlug } from '@/lib/places/resolve'
@@ -65,6 +66,7 @@ export default async function StatePlacePage({ params }: { params: Promise<{ sta
       stateSlug={state}
       look="scene"
       hero={stateImage(code)}
+      situations={{ state: code, area: name, boardId: boardForPlace(d.boards)?.id ?? null, slug: `place_${state}`, page: 'place' }}
       capture={{ kind: 'state', slug: state, label: name, save: { q: '', loc: name } }}
       trail={[{ name: 'Local job markets', path: '/places' }, { name, path: placeUrl.state(state) }]}
       h1={placeStateSeo(name).h1}

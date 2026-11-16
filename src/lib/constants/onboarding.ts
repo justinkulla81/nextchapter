@@ -28,6 +28,8 @@ export const SITUATION_TO_JOURNEY = {
   just_resigned: 'LAID_OFF',
   ready_to_move: 'EXPLORING_MOVE',
   worried_let_go: 'EXPLORING_MOVE',
+  // From a place or workforce-board page: "I'm moving here". A move journey whose driver is the relocation itself.
+  relocating: 'EXPLORING_MOVE',
   growing_in_job: 'GROWING',
   looking_for_promotion: 'PROMOTION',
   career_pivot: 'CAREER_CHANGE',
@@ -49,6 +51,7 @@ export const SITUATION_TO_JOB_STATUS: Record<SituationKey, CurrentJobStatus> = {
   just_resigned: 'RESIGNED',
   ready_to_move: 'EMPLOYED_CONSIDERING_MOVE',
   worried_let_go: 'EMPLOYED_CONSIDERING_MOVE',
+  relocating: 'EMPLOYED_CONSIDERING_MOVE',
   growing_in_job: 'EMPLOYED_CONSIDERING_MOVE',
   looking_for_promotion: 'SEEKING_PROMOTION',
   career_pivot: 'CAREER_PIVOT',

@@ -98,7 +98,8 @@ export async function getAreaBrief(
   let boardMembers: AreaBrief['boardMembers'] = null
   if (board) {
     const conns = await prisma.workforceBoardConnection.findMany({
-      where: { boardId: board.id, status: 'ACTIVE' },
+      // Registered members only: onboarding can connect a visitor before their account exists.
+      where: { boardId: board.id, status: 'ACTIVE', candidate: { registrationCompletedAt: { not: null } } },
       select: { shareOutcome: true, candidate: { select: { journey: true, journeyStage: true, currentJobStatus: true, journeyStageChangedAt: true } } },
     })
     const since = now.getTime() - LAYOFF_WINDOW_DAYS * DAY

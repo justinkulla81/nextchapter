@@ -19,6 +19,7 @@ import { AreaBriefView } from '@/components/workforce/AreaBriefView'
 import { getOrgBrand } from '@/lib/branding/store'
 import { claimSlugFor } from '@/lib/seo/org-pages'
 import { boardIntroFor } from '@/lib/workforce/board-intro-data'
+import { loadBoardMembers } from '@/lib/workforce/board-members'
 
 export const maxDuration = 60
 
@@ -131,6 +132,7 @@ export default async function WorkforceBoardPage({
   const aiNews = news.filter((n) => n.topic === 'ai')
   const windowLabel = windowDef.label.toLowerCase()
   const brief = await getAreaBrief({ boardId: board.id }).catch(() => null)
+  const members = await loadBoardMembers(board.id).catch(() => null)
   // The board's brand colors (read from its website) and its launch kit, when they exist: the kit page is what gets sent to the board.
   const intro = await boardIntroFor(board).catch(() => null)
   const [brand, claimSlug, kitLink] = await Promise.all([
@@ -209,6 +211,49 @@ export default async function WorkforceBoardPage({
           {brief ? <AreaBriefView brief={brief} audience="board" /> : <Empty>We could not build the brief for this board.</Empty>}
         </div>
       </details>
+
+      <Section title="Members working with this board" summary={members ? `${members.connected.toLocaleString()} connected · ${members.named.length.toLocaleString()} shared their name` : undefined}>
+        {!members ? (
+          <Empty>We could not load this board’s members. Reload the page in a minute.</Empty>
+        ) : members.connected === 0 ? (
+          <Empty>No members have connected with this board yet. Members connect from the board’s or a place’s page as they sign up, or from Local market on their dashboard.</Empty>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Anonymous unless a member turns on “Share my name” in their privacy settings (off by default; never anyone in Confidential Search Mode).
+              Counts are for us: what goes to the board is the area brief above, which holds back any group under 10.
+            </p>
+            <ul className="flex flex-wrap gap-2 text-sm">
+              {members.bySituation.map((g) => (
+                <li key={g.label} className="rounded-md bg-muted px-2.5 py-1">{g.label}: <span className="font-semibold tabular-nums">{g.count.toLocaleString()}</span></li>
+              ))}
+            </ul>
+            {members.named.length > 0 ? (
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
+                    <tr><th className="p-2 font-medium">Name</th><th className="p-2 font-medium">Email</th><th className="p-2 font-medium">Where</th><th className="p-2 font-medium">Situation</th><th className="p-2 font-medium">Connected</th><th className="p-2 font-medium">Shared since</th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {members.named.map((m, i) => (
+                      <tr key={`${m.email ?? m.name}-${i}`}>
+                        <td className="p-2 font-medium">{m.name}</td>
+                        <td className="p-2">{m.email ? <a href={`mailto:${m.email}`} className="text-primary hover:underline">{m.email}</a> : '—'}</td>
+                        <td className="p-2">{m.place ?? '—'}</td>
+                        <td className="p-2">{m.situation ?? '—'}</td>
+                        <td className="p-2 tabular-nums">{formatDate(m.connectedAt)}{m.source === 'onboarding' ? ' · at sign-up' : ''}</td>
+                        <td className="p-2 tabular-nums">{m.sharedSince ? formatDate(m.sharedSince) : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <Empty>No member has chosen to share their name with this board, so everyone is counted anonymously.</Empty>
+            )}
+          </div>
+        )}
+      </Section>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Tile

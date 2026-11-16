@@ -32,6 +32,7 @@ import { Section } from '@/components/candidate/ui'
 import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { Callout } from '@/components/candidate/Callout'
 import { ActionWindowField } from '@/components/dashboard/ActionWindowField'
+import { WorkforceBoardPanel } from '@/components/workforce/WorkforceBoardPanel'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = { title: 'Privacy Settings' }
@@ -56,7 +57,7 @@ function detailText(details: unknown, key: string): string {
 
 export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ gmailConnected?: string; gmailError?: string }> }) {
   const profile = await getDashboardProfile()
-  const [affiliations, params, emailConn, calendarConn, dossierStatus, coach, intakeConnections] = await Promise.all([
+  const [affiliations, params, emailConn, calendarConn, dossierStatus, coach, intakeConnections, boardConnections] = await Promise.all([
     loadAffiliations(profile.id),
     searchParams,
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id }, orderBy: { connectedAt: 'desc' }, select: { connectedEmail: true, connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
@@ -71,6 +72,12 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
       where: { disconnectedAt: null, intakeCandidate: { candidateId: profile.id } },
       include: { firm: { select: { name: true } }, recruiter: { select: { fullName: true } } },
       orderBy: { createdAt: 'desc' },
+    }),
+    // Workforce boards this member works with: whether each may see their name (off by default).
+    prisma.workforceBoardConnection.findMany({
+      where: { candidateId: profile.id, status: 'ACTIVE' },
+      select: { boardId: true, shareOutcome: true, shareIdentity: true, board: { select: { name: true } } },
+      take: 20,
     }),
   ])
   const stateOf = (c: { disconnectedAt: Date | null; needsReconnectAt: Date | null; lastSyncAt: Date | null } | null, account: string | null): ConnectionState =>
@@ -138,7 +145,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
       </section>
       )}
 
-      <MoreDetails summary="Show more: your situation, email, coach access, your data and your account">
+      <MoreDetails summary="Show more: your situation, workforce boards, email, coach access, your data and your account">
         <div className="space-y-8">
           {block('situation', 'Your situation', 'Why you are moving (or growing where you are) and how close you are to applying. Your plan and check-ins follow these. Changing them does not change Confidential Search Mode on its own.',
             <JourneySelector
@@ -156,6 +163,14 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
               }}
             />)}
           <AffiliationVisibilityCard affiliations={affiliations} />
+          {boardConnections.length > 0 &&
+            block('workforce-boards', 'Workforce boards', 'Boards you work with see you only in anonymous counts. Each one sees your name only if you turn it on here.',
+              <WorkforceBoardPanel
+                variant="privacy"
+                boards={[]}
+                confidential={profile.confidentialSearchMode}
+                connections={boardConnections.map((c) => ({ boardId: c.boardId, name: c.board.name, shareOutcome: c.shareOutcome, shareIdentity: c.shareIdentity }))}
+              />)}
           <p className="text-base">
             <Link href="/dashboard/recruiter-requests" className="font-medium text-brand underline underline-offset-4">See recruiter requests waiting on your answer</Link>
           </p>

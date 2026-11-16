@@ -15315,6 +15315,12 @@ model WorkforceBoardConnection {
   connectedAt  DateTime                       @default(now())
   endedAt      DateTime?
   shareOutcome Boolean                        @default(false)
+  /// Member-controlled, default off: share name, email, city and situation with this board. Until then the board (and its
+  /// CRM record) sees anonymous counts only. Ignored while the member is in Confidential Search Mode.
+  shareIdentity          Boolean   @default(false)
+  shareIdentityChangedAt DateTime?
+  /// Where the connection was made: dashboard, onboarding (arrived from a place or board page).
+  source                 String?
   updatedAt    DateTime                       @updatedAt
 
   @@unique([candidateId, boardId])

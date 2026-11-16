@@ -12,14 +12,15 @@ import { publicCount } from './public-count-rules'
 
 const REAL_MEMBER = `c."confidentialSearchMode" = false AND c."isSystemAccount" = false AND c."isSampleData" = false`
 
-/** Members who chose to connect with a workforce board. `boardIds` is the board's id plus any records folded into its page. */
+/** Members who chose to connect with a workforce board. `boardIds` is the board's id plus any records folded into its page. Registered members
+ *  only: the onboarding Where step can connect a visitor before their account exists. */
 export async function boardConnectionCount(boardIds: string[]): Promise<number | null> {
   if (boardIds.length === 0) return null
   try {
     const rows = await prisma.$queryRawUnsafe<{ n: bigint }[]>(
       `SELECT COUNT(DISTINCT w."candidateId") AS n
          FROM "WorkforceBoardConnection" w JOIN "CandidateProfile" c ON c.id = w."candidateId"
-        WHERE w."boardId" = ANY($1) AND w."status" = 'ACTIVE' AND ${REAL_MEMBER}`,
+        WHERE w."boardId" = ANY($1) AND w."status" = 'ACTIVE' AND c."registrationCompletedAt" IS NOT NULL AND ${REAL_MEMBER}`,
       boardIds,
     )
     return publicCount(Number(rows[0]?.n ?? 0))

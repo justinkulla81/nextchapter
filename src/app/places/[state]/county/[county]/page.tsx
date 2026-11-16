@@ -1,4 +1,5 @@
 import { placeCountySeo } from '@/lib/seo/templates'
+import { boardForPlace } from '@/lib/onboarding/arrived-from'
 import { shownInSearch } from '@/lib/seo/shown-in-search'
 import { YourState } from '@/components/capture/YourState'
 import type { Metadata } from 'next'
@@ -73,6 +74,7 @@ export default async function CountyPlacePage({ params }: { params: Promise<{ st
       stateSlug={state}
       look="scene"
       hero={settingImage(c.population, `${state}-${county}`, 'county')}
+      situations={{ state: code, area: c.name, boardId: boardForPlace(d.boards)?.id ?? null, slug: `place_${state}-${county}`, page: 'place' }}
       capture={{ kind: 'county', slug: `${state}-${county}`, label: c.name, save: { q: '', loc: `${c.name}, ${code}` } }}
       trail={[{ name: 'Local job markets', path: '/places' }, { name, path: placeUrl.state(state) }, { name: c.name, path }]}
       h1={placeCountySeo(c.name, s.code).h1}

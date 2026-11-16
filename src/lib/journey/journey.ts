@@ -285,6 +285,7 @@ export const MOVE_DRIVERS = [
   { key: 'options', label: 'Keeping my options open' },
   { key: 'unhappy', label: 'Ready to leave my job' },
   { key: 'layoff_worry', label: 'Worried about a layoff' },
+  { key: 'relocating', label: 'Moving to a new area' },
 ] as const
 export type MoveDriver = (typeof MOVE_DRIVERS)[number]['key']
 
@@ -406,6 +407,8 @@ const DRIVER_FRAMING: Record<MoveDriver, string> = {
   unhappy: ' They are unhappy at work: be honest about whether the market offers something better and what they would trade.',
   layoff_worry:
     ' They are worried about a layoff: say how long a search would likely take in their market and what a runway looks like. Stay measured, never alarmist, and do not predict that a layoff will happen.',
+  relocating:
+    ' They are moving to a new area: judge their fit against the market where they are moving (their move states), not only where they live now, and say what it takes to search from a distance.',
 }
 
 // What the report should know about this member: journey, stage and, for a
