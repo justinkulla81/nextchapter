@@ -24,11 +24,15 @@ export const EGRESS_ALERT_GB = Number(process.env.EGRESS_ALERT_GB) || 8
 
 const FULL_TEXT_ROW_BYTES = 5_000
 const NARROW_ROW_BYTES = 250
+/** A clipped posting text (left(description, n), n up to ~1,000) plus the narrow columns beside it. */
+const CLIPPED_TEXT_ROW_BYTES = 1_200
 
 /** Bytes a row of this statement sends, roughly: full posting or course text is ~5 KB, anything else a few hundred bytes. */
 export function rowBytes(query: string): number {
-  const q = query.replace(/left\(\s*"?description"?[^)]*\)/gi, '')
-  return /"description"|"descriptionHtml"|"rawText"/i.test(q) ? FULL_TEXT_ROW_BYTES : NARROW_ROW_BYTES
+  // A statement that clips the text (left(description, n)) sends at most the clip, even when a subquery names the full column: the
+  // windowed company-signals read was counted as full text and put a 6-hour estimate at 22 GB a day (2026-11-16).
+  if (/left\(\s*"?description"?\s*,/i.test(query)) return CLIPPED_TEXT_ROW_BYTES
+  return /"description"|"descriptionHtml"|"rawText"/i.test(query) ? FULL_TEXT_ROW_BYTES : NARROW_ROW_BYTES
 }
 
 export type WatchRow = { queryid: string; rows: number; calls: number; query: string }

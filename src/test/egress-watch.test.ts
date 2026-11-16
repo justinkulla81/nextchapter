@@ -5,9 +5,10 @@ vi.mock('@/lib/email/resend-client', () => ({ createResend: vi.fn() }))
 import { dailyDelta, rowBytes } from '@/lib/perf/egress-watch'
 
 describe('egress watch', () => {
-  it('counts a full posting text read as wide and a left() stub as narrow', () => {
+  it('counts a full posting text read as wide, a clipped one as clipped, others as narrow', () => {
     expect(rowBytes('SELECT "id", "description" FROM "ExclusiveJobPosting"')).toBe(5000)
-    expect(rowBytes('SELECT id, left(description, $1) AS d FROM "ExclusiveJobPosting"')).toBe(250)
+    expect(rowBytes('SELECT id, left(description, $1) AS d FROM "ExclusiveJobPosting"')).toBe(1200)
+    expect(rowBytes('SELECT "companyName", left("description", $4) AS "description" FROM (SELECT "companyName", "description", row_number() OVER () FROM x) s')).toBe(1200)
     expect(rowBytes('SELECT "id", "title" FROM "BoardLightRow"')).toBe(250)
   })
   it('takes rows since the snapshot, and all of them after a reset or for a new statement', () => {
