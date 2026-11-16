@@ -880,3 +880,219 @@ export async function HubPipeline({ ctx }: Props) {
     </div>
   )
 }
+
+// ---------------------------------------------------------------------------
+
+export async function HubTraining({ ctx }: Props) {
+  const id = ctx.institution.id
+  const programs = await prisma.program.findMany({
+    where: { institutionId: id, isActive: true },
+    take: 10,
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, name: true, summary: true, credential: true, hours: true, wioaEligible: true, skills: true, cohorts: { select: { id: true, name: true, seats: true, modality: true, _count: { select: { enrollments: true } } } } },
+  })
+  const payers = await prisma.enrollment.groupBy({ by: ['payer'], where: { cohort: { program: { institutionId: id } } }, _count: { _all: true } })
+  const enrolled = payers.reduce((n, p) => n + p._count._all, 0)
+  const payerLabel = (p: string) => (p === 'WIOA_VOUCHER' ? 'Workforce funds' : p === 'SELF_PAY' ? 'Paid by the person' : p.replace(/_/g, ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase()))
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatTile label="Programs" value={programs.length} />
+        <StatTile label="Cohorts" value={programs.reduce((n, p) => n + p.cohorts.length, 0)} />
+        <StatTile label="People enrolled" value={small(enrolled)} />
+        <StatTile label="Eligible for workforce funds" value={programs.filter((p) => p.wioaEligible).length} note="On the state’s approved list" />
+      </div>
+      <Section title="Retraining and upskilling programs" intro="Courses this program runs with college partners. People can enroll themselves, or a workforce board can pay.">
+        {programs.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">No programs yet.</p>
+        ) : (
+          <ul className="space-y-3">
+            {programs.map((p) => (
+              <li key={p.id} className="rounded-lg border border-border bg-card p-4 text-sm">
+                <p className="font-medium">{p.name}</p>
+                {p.summary && <p className="text-muted-foreground">{p.summary}</p>}
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {[p.credential, p.hours ? `${p.hours} hours` : null, p.wioaEligible ? 'Workforce funds can pay' : null].filter(Boolean).join(' · ')}
+                </p>
+                {p.cohorts.map((c) => (
+                  <p key={c.id} className="mt-1 text-xs">
+                    {c.name} · {small(c._count.enrollments)} of {c.seats ?? '—'} seats{c.modality ? ` · ${c.modality}` : ''}
+                  </p>
+                ))}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+      {payers.length > 0 && (
+        <Section title="Who pays">
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card text-sm">
+            {payers.map((p) => (
+              <li key={p.payer} className="flex justify-between px-3 py-2">
+                <span>{payerLabel(p.payer)}</span>
+                <span className="tabular-nums text-muted-foreground">{small(p._count._all)}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+      <Section title="The four lanes">
+        <ul className="grid gap-2 md:grid-cols-2">
+          {LANES.map((l) => (
+            <li key={l.key} className="rounded-lg border border-border bg-card p-4 text-sm">
+              <p className="font-medium">{l.label}</p>
+              <p className="text-muted-foreground">{l.who}</p>
+            </li>
+          ))}
+        </ul>
+      </Section>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+
+type Link2 = { name: string; address?: string | null; phone?: string | null; website?: string | null }
+
+export async function HubSystem({ ctx }: Props) {
+  const inst = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { profile: true } })
+  const wf = (inst.profile as { workforce?: { board?: { name?: string; website?: string | null; counties?: string[]; source?: string; sourceUrl?: string }; careerLinks?: Link2[] } } | null)?.workforce
+  const board = wf?.board
+  const centers = wf?.careerLinks ?? []
+  const services = [
+    ['Adult and dislocated worker services', 'Career coaching and, for people who lost a job, help with training costs through the board.'],
+    ['Rapid response', 'Sessions for people affected by a layoff, set up with the employer before the last day.'],
+    ['Individual training accounts', 'Funds for approved training on the state’s eligible provider list.'],
+    ['Youth services', 'Career and education help for young people, run through the board’s providers.'],
+  ]
+  return (
+    <div className="space-y-8">
+      <p className="max-w-2xl text-sm text-muted-foreground">
+        The public workforce system in your region, and how this program works beside it: referrals both ways, a shared view of who is served, and no one counted twice.
+      </p>
+      <Section title="Your workforce board">
+        {board?.name ? (
+          <div className="rounded-lg border border-border bg-card p-4 text-sm">
+            <p className="font-medium">{board.name}</p>
+            {board.counties && board.counties.length > 0 && <p className="text-muted-foreground">Serves {board.counties.slice(0, 8).join(', ')}</p>}
+            {board.website && (
+              <a href={board.website} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                {board.website.replace(/^https?:\/\//, '')}
+              </a>
+            )}
+            <p className="mt-1 text-xs text-muted-foreground">Source: {board.source ?? 'CareerOneStop'}</p>
+          </div>
+        ) : (
+          <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">No workforce board found for this region.</p>
+        )}
+      </Section>
+      <Section title="American Job Centers and career centers">
+        {centers.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">No centers listed for this region yet.</p>
+        ) : (
+          <ul className="grid gap-2 md:grid-cols-2">
+            {centers.slice(0, 8).map((c) => (
+              <li key={c.name} className="rounded-lg border border-border bg-card p-4 text-sm">
+                <p className="font-medium">{c.name}</p>
+                {c.address && <p className="text-muted-foreground">{c.address}</p>}
+                {c.phone && <p className="text-muted-foreground">{c.phone}</p>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+      <Section title="What the public system offers" intro="General descriptions. Funding and eligibility are set by the board and the state.">
+        <ul className="grid gap-2 md:grid-cols-2">
+          {services.map(([t, d]) => (
+            <li key={t} className="rounded-lg border border-border bg-card p-4 text-sm">
+              <p className="font-medium">{t}</p>
+              <p className="text-muted-foreground">{d}</p>
+            </li>
+          ))}
+        </ul>
+      </Section>
+      <Section title="How the two work together" sample>
+        <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
+          <li>A layoff the board hears about first becomes a response here the same day, and the other way round.</li>
+          <li>Professionals and managers get the same first-week plan as everyone, with services the board does not usually offer.</li>
+          <li>Training the board pays for shows up in the program’s counts without a second sign-up.</li>
+        </ul>
+      </Section>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+
+const OPPORTUNITIES: { name: string; who: string; amount: string; terms: string; fit: string; source: string; url: string }[] = [
+  {
+    name: 'Kentucky Talent Recruitment Grant',
+    who: 'Cabinet for Economic Development (HB 576, 2026)',
+    amount: 'Up to $500,000 per applicant',
+    terms: '20% local match, cash or in-kind; up to 18 months; regional applications preferred; relocation 50%, student retention 25%, marketing 25% of the fund',
+    fit: 'Attracting households and keeping graduates: the Attract and Reporting tabs track the counts and proof it asks for.',
+    source: 'Application Framework, October 2026',
+    url: 'https://newkentuckyhome.ky.gov/Locating_Expanding/Talent',
+  },
+  {
+    name: 'Kentucky AI Workforce Readiness Network',
+    who: 'Issued by SCWDB (Reskill grant funding)',
+    amount: 'Planning target of about 980 participants; no ceiling stated',
+    terms: 'Five training pathways, remote-first with in-person for rapid response; teaming allowed',
+    fit: 'A professional layer sits beside the pathways: only one is near white-collar work.',
+    source: 'Solicitation questions and answers, August 2026',
+    url: '',
+  },
+  {
+    name: 'AI-powered career readiness workshops',
+    who: 'Issued by SCWDB',
+    amount: 'Not to exceed $100,000; about 100 participants',
+    terms: 'A unit rate for each completed participant; eight modules; privacy and no model training on participant data',
+    fit: 'Workshop outputs overlap with the résumé, posting and interview tools here.',
+    source: 'Request for proposals, July 2026',
+    url: '',
+  },
+]
+
+export async function HubFunding({ ctx }: Props) {
+  void ctx
+  return (
+    <div className="space-y-8">
+      <p className="max-w-2xl text-sm text-muted-foreground">
+        Public funding opportunities that match what this program does, with the terms that matter. Confirm dates and eligibility in each solicitation; open windows change.
+      </p>
+      <Section title="Grants and solicitations">
+        <ul className="space-y-3">
+          {OPPORTUNITIES.map((o) => (
+            <li key={o.name} className="rounded-lg border border-border bg-card p-4 text-sm">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="font-medium">{o.name}</p>
+                <p className="text-xs text-muted-foreground">{o.who}</p>
+              </div>
+              <p className="mt-1">{o.amount}</p>
+              <p className="text-muted-foreground">{o.terms}</p>
+              <p className="mt-2">
+                <span className="font-medium">Where this program fits: </span>
+                <span className="text-muted-foreground">{o.fit}</span>
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Source: {o.source}
+                {o.url && (
+                  <>
+                    {' · '}
+                    <a href={o.url} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                      Program page
+                    </a>
+                  </>
+                )}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </Section>
+      <Section title="Contests and challenges" intro="Hiring challenges, pitch contests and employer competitions sit here beside grants, so one calendar shows what is open.">
+        <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">None tracked in this demo.</p>
+      </Section>
+    </div>
+  )
+}
