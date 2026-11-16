@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
-import { extractTopSkills } from '@/lib/companies/skills-extraction'
+import type { RankedSkill } from '@/lib/companies/skills-extraction'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 
 // company_signals (Phase 2 Master Script, Part C, Prompt 2) — computed
@@ -79,35 +79,45 @@ async function openPostingsGrouped(): Promise<Map<string, PostingRow[]>> {
   return grouped
 }
 
-// Skills are counted from the title and the first 1,000 characters of the description, for the newest SKILL_SAMPLE
-// postings of each employer name (2,429 of ~65,000 names have more than 40 open roles and hold 59% of the rows).
-// Employers with SKILL_SAMPLE roles or fewer are read in full; for bigger ones buildCompanySignals scales the counts
-// up to the real number of open roles. Read in buckets of employer names so no single result is huge.
-const SKILL_SAMPLE = 30
-const SAMPLE_BUCKETS = 4
-async function sampleTextsGrouped(): Promise<Map<string, string[]>> {
-  const grouped = new Map<string, string[]>()
-  for (let bucket = 0; bucket < SAMPLE_BUCKETS; bucket++) {
-    const rows = await withLongTimeout((tx) => tx.$queryRaw<{ companyName: string; title: string; description: string | null }[]>`
-      SELECT "companyName", "title", left("description", 1000) AS "description"
-      FROM (
-        SELECT "companyName", "title", "description",
-               row_number() OVER (PARTITION BY "companyName" ORDER BY "createdAt" DESC, "id") AS rn
-        FROM public."ExclusiveJobPosting"
-        WHERE "institutionScopeId" IS NULL AND "archivedAt" IS NULL
-          AND (hashtext("companyName") & ${SAMPLE_BUCKETS - 1}::int) = ${bucket}::int
-      ) t
-      WHERE rn <= ${SKILL_SAMPLE}::int`)
-    for (const row of rows) {
-      const key = normalizeOrgName(row.companyName)
-      if (!key) continue
-      const text = `${row.title} ${row.description ?? ''}`
-      const list = grouped.get(key)
-      if (list) list.push(text)
-      else grouped.set(key, [text])
-    }
+// Skills come from each posting's stored skills list (ExclusiveJobPosting.skills), which the job import fills by
+// running extractTopSkills over the title and full posting text (skillsFrom, posting-text.ts): the same scan this job
+// used to run itself. Counting is done in SQL, so the database returns the top SKILLS_PER_NAME terms of each employer
+// name (~200,000 short rows, ~6 MB) instead of 1,000 characters of text from up to 30 postings per employer (~300,000
+// rows, ~1.5 GB a run, the largest statement in the 2026-11-15 egress alert). Every open posting counts, so nothing is
+// scaled up from a sample. A posting with no text, or none of the terms, has an empty list and adds nothing (as before).
+// Names that normalize to one employer are merged here; a term just outside one name's top 15 can be undercounted
+// for such an employer, which only matters for the 10th place.
+const SKILLS_PER_NAME = 15
+const TOP_SKILLS = 10
+async function skillCountsGrouped(): Promise<Map<string, RankedSkill[]>> {
+  const rows = await withLongTimeout((tx) => tx.$queryRaw<{ companyName: string; term: string; n: number }[]>`
+    SELECT "companyName", term, n FROM (
+      SELECT "companyName", term, count(*)::int AS n,
+             row_number() OVER (PARTITION BY "companyName" ORDER BY count(*) DESC, term) AS rk
+      FROM public."ExclusiveJobPosting", unnest("skills") AS term
+      WHERE "institutionScopeId" IS NULL AND "archivedAt" IS NULL
+      GROUP BY "companyName", term
+    ) t
+    WHERE rk <= ${SKILLS_PER_NAME}::int`)
+  const counts = new Map<string, Map<string, number>>()
+  for (const row of rows) {
+    const key = normalizeOrgName(row.companyName)
+    if (!key) continue
+    let terms = counts.get(key)
+    if (!terms) counts.set(key, (terms = new Map()))
+    terms.set(row.term, (terms.get(row.term) ?? 0) + row.n)
   }
-  return grouped
+  const ranked = new Map<string, RankedSkill[]>()
+  for (const [key, terms] of counts) ranked.set(key, topSkills(terms))
+  return ranked
+}
+
+/** The TOP_SKILLS terms by number of postings that ask for them; ties by name, so a run is repeatable. */
+export function topSkills(terms: Map<string, number>): RankedSkill[] {
+  return [...terms]
+    .map(([term, count]) => ({ term, count }))
+    .sort((a, b) => b.count - a.count || a.term.localeCompare(b.term))
+    .slice(0, TOP_SKILLS)
 }
 
 // The 4- and 12-week comparisons only need how many roles an employer had then, not the postings themselves, so both
@@ -208,21 +218,14 @@ export interface ComputedCompanySignal {
 
 export interface SignalInputs {
   current: Map<string, PostingRow[]>
-  /** Title + description text of up to SKILL_SAMPLE of each employer's newest open postings. */
-  sampleTexts: Map<string, string[]>
+  /** Each employer's most-asked skills, counted over all its open postings (skillCountsGrouped). */
+  skills: Map<string, RankedSkill[]>
   past4wk: Map<string, number>
   past12wk: Map<string, number>
 }
 
-/** Skill counts from a sample, scaled up to all the employer's open roles when the sample is smaller than that. */
-export function scaleSkillCounts(ranked: { term: string; count: number }[], sampled: number, total: number): { term: string; count: number }[] {
-  if (sampled <= 0 || sampled >= total) return ranked
-  const scale = total / sampled
-  return ranked.map((r) => ({ term: r.term, count: Math.max(1, Math.round(r.count * scale)) }))
-}
-
 // The pure part: one ComputedCompanySignal per company with at least one currently-open posting.
-export function buildCompanySignals({ current: currentGrouped, sampleTexts, past4wk: fourWeeksAgoCounts, past12wk: twelveWeeksAgoCounts }: SignalInputs, asOf: Date): ComputedCompanySignal[] {
+export function buildCompanySignals({ current: currentGrouped, skills, past4wk: fourWeeksAgoCounts, past12wk: twelveWeeksAgoCounts }: SignalInputs, asOf: Date): ComputedCompanySignal[] {
   const results: ComputedCompanySignal[] = []
   const importWeeks = bulkImportWeeks([...currentGrouped.values()].flatMap((rows) => rows.map((p) => p.createdAt)))
 
@@ -254,8 +257,7 @@ export function buildCompanySignals({ current: currentGrouped, sampleTexts, past
       .sort((a, b) => b.count - a.count)
       .slice(0, 5)
 
-    const texts = sampleTexts.get(companyNameNormalized) ?? []
-    const topSkillsRequested = scaleSkillCounts(extractTopSkills(texts, 10), texts.length, openRolesTotal)
+    const topSkillsRequested = skills.get(companyNameNormalized) ?? []
 
     const postingAges = current.map((p) => Math.floor((asOf.getTime() - p.createdAt.getTime()) / DAY_MS))
     const medianPostingAgeDays = medianOf(postingAges)
@@ -285,6 +287,6 @@ export async function computeAllCompanySignals(asOf: Date = new Date()): Promise
 
   const current = await openPostingsGrouped()
   const { past4, past12 } = await pastOpenCounts(fourWeeksAgo, twelveWeeksAgo)
-  const sampleTexts = await sampleTextsGrouped()
-  return buildCompanySignals({ current, sampleTexts, past4wk: past4, past12wk: past12 }, asOf)
+  const skills = await skillCountsGrouped()
+  return buildCompanySignals({ current, skills, past4wk: past4, past12wk: past12 }, asOf)
 }
