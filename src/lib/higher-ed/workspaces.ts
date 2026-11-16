@@ -48,6 +48,9 @@ export type WorkspaceTab = {
   demoOnly?: boolean
   // The section of a long tab list it sits under (a second row of navigation).
   group?: string
+  // The screen belongs to another workspace and is shown here too (a workforce customer's Program holds what Exec Ed and the
+  // WIOA workspace hold for a college). It shows only to someone who can open that workspace, and keeps that screen's plan lock.
+  from?: { workspace: WorkspaceKey; tab: string }
 }
 
 export type WorkspaceConfig = {
@@ -255,19 +258,24 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'local', label: 'Kept in region', comingIn: null, group: 'Overview' },
       { key: 'region', label: 'Local market', comingIn: null, group: 'Overview' },
       { key: 'companies', label: 'Member companies', comingIn: null, group: 'Employers' },
+      { key: 'clients', label: 'Corporate clients', comingIn: null, group: 'Employers', from: { workspace: 'execed', tab: 'clients' } },
       { key: 'upskill', label: 'Upskilling', comingIn: null, demoOnly: true, group: 'Employers' },
       { key: 'jobs', label: 'Jobs and skills', comingIn: null, demoOnly: true, group: 'Employers' },
       { key: 'rapid', label: 'Rapid response', comingIn: null, demoOnly: true, group: 'Employers' },
+      { key: 'responses', label: 'Rapid response', comingIn: null, group: 'Employers', from: { workspace: 'workforce', tab: 'rapid' } },
       // Layoff seats come after the rapid-response plan.
       { key: 'layoffs', label: 'Layoff seats', comingIn: null, group: 'Employers' },
       { key: 'learning', label: 'Colleges and partners', comingIn: null, demoOnly: true, group: 'Higher ed' },
       { key: 'skills', label: 'Future skills', comingIn: null, demoOnly: true, group: 'Higher ed' },
-      { key: 'training', label: 'Programs', comingIn: null, demoOnly: true, group: 'Training' },
+      { key: 'programs', label: 'Programs', comingIn: null, group: 'Training', from: { workspace: 'execed', tab: 'home' } },
+      { key: 'enrollments', label: 'Enrollments', comingIn: null, group: 'Training', from: { workspace: 'execed', tab: 'enrollments' } },
       { key: 'benefits', label: 'Benefits', comingIn: null, demoOnly: true, group: 'Training' },
       { key: 'system', label: 'Board and job centers', comingIn: null, demoOnly: true, group: 'Workforce system' },
-      { key: 'attract', label: 'Attract', comingIn: null, demoOnly: true, group: 'Attract and funding' },
-      { key: 'funding', label: 'Grants and contests', comingIn: null, demoOnly: true, group: 'Attract and funding' },
-      { key: 'grants', label: 'Reporting', comingIn: null, demoOnly: true, group: 'Attract and funding' },
+      { key: 'wioa', label: 'WIOA participants', comingIn: null, group: 'Workforce system', from: { workspace: 'workforce', tab: 'home' } },
+      { key: 'etpl', label: 'Eligible training list', comingIn: null, group: 'Workforce system', from: { workspace: 'workforce', tab: 'etpl' } },
+      { key: 'funding', label: 'Grants and funding', comingIn: null, demoOnly: true, group: 'Workforce system' },
+      { key: 'attract', label: 'Attract', comingIn: null, demoOnly: true, group: 'Attract and reporting' },
+      { key: 'grants', label: 'Reporting', comingIn: null, demoOnly: true, group: 'Attract and reporting' },
     ],
   },
   {
