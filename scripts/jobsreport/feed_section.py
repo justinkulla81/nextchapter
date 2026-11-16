@@ -17,6 +17,11 @@ def main():
                                  headers={"apikey": key, "Authorization": "Bearer " + key, "Content-Type": "application/json"})
     rk = json.load(urllib.request.urlopen(req, timeout=300))
     json.dump(rk, open(os.path.join(HERE, "out", a.geo, "employer-rankings.json"), "w"), indent=1)
+    w = g.get("warn")
+    if w:
+        req = urllib.request.Request(f"{base}/rest/v1/rpc/jobsreport_warn", data=json.dumps({"p_state": w["state"], "p_counties": w["counties"]}).encode(),
+                                     headers={"apikey": key, "Authorization": "Bearer " + key, "Content-Type": "application/json"})
+        json.dump(json.load(urllib.request.urlopen(req, timeout=300)), open(os.path.join(HERE, "out", a.geo, "warn.json"), "w"), indent=1)
     print(f"{a.geo}: {out['live']} live feed postings, {out['white_collar']} white-collar")
 if __name__ == "__main__":
     main()

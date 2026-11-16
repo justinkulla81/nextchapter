@@ -34,7 +34,7 @@ if limited:
     if top_share > MAX_TOP_SHARE: why.append(f"{top['employer']} is {top_share:.0%} of all postings (maximum {MAX_TOP_SHARE:.0%})")
     notice = "> **Limited sample.** " + " and ".join(why).capitalize() + ". Treat the shares and pay figures below as describing these employers only, not the local market.\n\n"
 if limited and a.strict:
-    print(notice + "## Labor market\n\n" + f"Unemployment was {me['unemployment_rate']}% in {bls['month']}, against {me['unemployment_rate_year_ago']}% a year earlier; nonfarm employment changed {me['nonfarm_12m_pct']}% over twelve months.\n\n## Employers read\n\n" + table(["Employer", "Postings"], [(e["employer"], e["n"]) for e in d["employers"]]))
+    print(notice + "## Labor market\n\n" + f"Unemployment was {me['unemployment_rate']}% in {bls['month']}, against {me['unemployment_rate_year_ago']}% a year earlier; nonfarm employment {'was flat' if abs(me['nonfarm_12m_pct']) < 0.05 else ('rose ' if me['nonfarm_12m_pct'] > 0 else 'fell ') + str(abs(me['nonfarm_12m_pct'])) + '%'} over twelve months.\n\n## Employers read\n\n" + table(["Employer", "Postings"], [(e["employer"], e["n"]) for e in d["employers"]]))
     raise SystemExit
 _fp = f"{H}/out/{a.geo}/feed-exposure.json"
 feed_block = ""
@@ -61,6 +61,14 @@ Anthropic rates each occupation's observed exposure to AI, which weighs real usa
 {table(['Highly exposed occupations with the most openings', 'Postings'], [(x['title'], f"{x['n']:,}") for x in fx['top_high_exposure'][:8]])}
 
 Directional only. Retraining paths (related occupations with lower exposure and stronger projected growth) are the next addition."""
+_wp = f"{H}/out/{a.geo}/warn.json"
+if os.path.exists(_wp):
+    _w = json.load(open(_wp)); _l, _q = _w["last12"], _w["prior12"]; _cn = ", ".join(_w["counties"]) + (" County" if len(_w["counties"]) == 1 else " counties") + ", " + _w["state"]
+    feed_block += f"""
+
+## Announced layoffs
+
+In the 12 months to {_w['as_of']}, employers filed {_l['notices']} WARN layoff notices in {_cn}, covering {_l['workers']:,} workers, against {_q['notices']} notices and {_q['workers']:,} workers in the 12 months before. For comparison, {_w['state']} as a whole had {_w['state_last12']['notices']} notices covering {_w['state_last12']['workers']:,} workers. This is a separate frame from the postings above: WARN notices cover all occupations, are required only for larger layoffs and plant closings, and are not matched to the white-collar counts. Totals are aggregate only; employers are not listed."""
 _er = f"{H}/out/{a.geo}/employer-rankings.json"
 if os.path.exists(_er):
     from employers_section import render as _render_emp
@@ -80,7 +88,7 @@ print(notice + f"""## Summary
 
 The sample is {wc:,} white-collar postings from {o['employers']} employers' own career sites. {pct(hc['n'], wc)} are health care, {pct(ent, wc)} are entry-level, {pct(sr, wc)} are senior individual contributor or above, and median stated pay is {money(s['median_annual_pay'])} a year.
 
-- **Labor market:** unemployment was {me['unemployment_rate']}% in {bls['month']}, against {me['unemployment_rate_year_ago']}% a year earlier; nonfarm employment changed {me['nonfarm_12m_pct']}% over twelve months.
+- **Labor market:** unemployment was {me['unemployment_rate']}% in {bls['month']}, against {me['unemployment_rate_year_ago']}% a year earlier; nonfarm employment {'was flat' if abs(me['nonfarm_12m_pct']) < 0.05 else ('rose ' if me['nonfarm_12m_pct'] > 0 else 'fell ') + str(abs(me['nonfarm_12m_pct'])) + '%'} over twelve months.
 - **Entry-level:** {ent} white-collar postings across {n_emp_entry} employers.
 - **AI:** {s['ai_pct']}% of white-collar postings mention AI; those pay a median of {money(ai[True]['median_pay']) if True in ai else 'n/a'} against {money(ai[False]['median_pay'])} for the rest.
 - **Concentration:** {top['employer']} alone is {pct(top['n'], o['postings'])} of all postings, so the mix reflects the largest readable employers more than the whole market.

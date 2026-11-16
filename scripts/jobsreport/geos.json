@@ -56,6 +56,12 @@
       "clark": "18019",
       "floyd": "18043",
       "harrison": "18061"
+    },
+    "warn": {
+      "state": "KY",
+      "counties": [
+        "Jefferson"
+      ]
     }
   },
   "indianapolis": {
