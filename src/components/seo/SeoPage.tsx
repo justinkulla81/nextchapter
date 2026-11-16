@@ -79,7 +79,9 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
           )}
           {brand?.stripe && <div aria-hidden className="-mx-5 -mb-5 mt-6 h-2 rounded-b-3xl sm:-mx-7 sm:-mb-7" style={{ backgroundColor: brand.stripe }} />}
           </div>
-          {st && (
+          {/* A state page with its own capture box (the place pages) makes its one ask in that box, under the heading: the state band
+              would be a second ask (owner rule, one registration ask per public page). */}
+          {st && !capture && (
             <OrgCandidateBand
               orgName={stateName(st.code)}
               branded
@@ -90,9 +92,9 @@ export function SeoPage({ trail, h1, lede, jsonLd, children, stateSlug, look = '
               situations={situations}
             />
           )}
-          {boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} ask={ask} situations={situations} />)}
+          {(boxFirst || st) && (capture ? <PageCaptureTop capture={capture} situations={situations} /> : !st && <PullCtaTop {...pull} ask={ask} situations={situations} />)}
           {body}
-          {!boxFirst && (capture ? <PageCaptureTop capture={capture} /> : !st && <PullCtaTop {...pull} ask={ask} situations={situations} />)}
+          {!boxFirst && !st && (capture ? <PageCaptureTop capture={capture} situations={situations} /> : <PullCtaTop {...pull} ask={ask} situations={situations} />)}
           {capture && <PageCaptureOwner capture={capture} />}
           {bottom}
         </div>

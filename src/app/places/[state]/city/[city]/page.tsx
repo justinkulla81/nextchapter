@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { redirectToCity } from '@/lib/places/resolve'
-import { SeoPage, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, LINK } from '@/components/seo/SeoPage'
 import { CollegeTable, EconomySection, EmployerList, HeadquarteredList, JobList, LayoffsSection, PlaceLinks, WorkforceSection } from '@/components/places/PlaceSections'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
 import { LocalEventSection } from '@/components/events/LocalEventSection'
@@ -112,14 +112,6 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
         links={d.nearby.map((x) => ({ href: placeUrl.city(state, x.slug), label: x.name, note: x.jobs ? `${x.jobs.toLocaleString()} jobs` : undefined }))} />
       <p className="mt-4 text-sm"><Link href={placeUrl.state(state)} className={LINK}>All of {name}</Link></p>
 
-      <ActionBand
-        title={`Laid off or looking for work in ${p.name}?`}
-        body="See what to do first and the jobs open near you."
-        label="See your options after a layoff"
-        href="/start/laid-off"
-        event="place_cta_clicked"
-        properties={{ level: 'city', state: code, city: p.slug }}
-      />
 
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> Layoff notices from {name}’s published record; job counts from our live job board, taken from employers’ own career sites;
