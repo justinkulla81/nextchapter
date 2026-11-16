@@ -83,6 +83,7 @@ import {
   type CommunityParams,
 } from './screens-community'
 import { CareerStatusCard } from './CareerStatusCard'
+import { CandidateGroups } from './screens-groups'
 import { PrivacyPanel } from './PrivacyPanel'
 import { CrmUploadForm } from './CrmUploadForm'
 import { InviteAlumniButton } from './InviteAlumniButton'
@@ -188,7 +189,7 @@ const CANDIDATE_TOOLS = [
   { label: 'Support Network', href: '/dashboard/network', what: 'The people who can help, organized.' },
 ]
 
-async function CandidateHome({ ctx }: ScreenProps) {
+async function CandidateHome({ ctx, base }: ScreenProps) {
   const member = ctx.memberId
     ? await prisma.institutionMember.findUnique({ where: { id: ctx.memberId }, select: { firstName: true, affiliation: true, classYear: true } })
     : null
@@ -218,7 +219,21 @@ async function CandidateHome({ ctx }: ScreenProps) {
         </figure>
       )}
       <div>
-        <h2 className="text-lg font-semibold">{member?.firstName ? `Welcome back, ${member.firstName}` : `Welcome to ${brand}`}</h2>
+        {/* In a workforce program's participant preview (drawn in the candidate site's frame), the headline is the candidate site's and
+            the program reads as one of the participant's groups, linking to Network › Alumni and groups. */}
+        {kind === 'workforce' && ctx.workspaces.includes('hub') ? (
+          <>
+            <h2 className="font-display text-3xl font-semibold tracking-tight text-ink">{member?.firstName ? `Welcome back, ${member.firstName}` : `Welcome to ${brand}`}</h2>
+            <p className="mt-2">
+              <Link href={`${base}/groups`} className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-sm font-medium text-success hover:underline">
+                <Users className="size-3.5" aria-hidden="true" />
+                Member of {brand}
+              </Link>
+            </p>
+          </>
+        ) : (
+          <h2 className="text-lg font-semibold">{member?.firstName ? `Welcome back, ${member.firstName}` : `Welcome to ${brand}`}</h2>
+        )}
         <p className="mt-1 text-sm text-muted-foreground">
           {kind === 'workforce' ? (
             <>
@@ -1549,6 +1564,7 @@ async function StaffConnectScreen(props: ScreenProps) {
 
 export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:home': CandidateHome,
+  'candidate:groups': CandidateGroups,
   'candidate:mentors': CandidateMentoring,
   'alumni:home': AlumniHome,
   'alumni:mentors': AlumniMentorsAll,

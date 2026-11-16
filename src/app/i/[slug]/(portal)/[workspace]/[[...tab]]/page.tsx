@@ -9,6 +9,9 @@ import { LockedFeature } from '@/components/plans/LockedFeature'
 import { blockedScreen } from '@/lib/plans/entitlements'
 import { ComingIn } from '@/components/higher-ed/ComingIn'
 import { COMING_DESCRIPTIONS, WORKSPACE_SCREENS, type ScreenSearchParams } from '@/components/higher-ed/screens'
+import { EmployerSiteFrame, ParticipantSiteFrame } from '@/components/higher-ed/SiteFrames'
+import { memberCompanyFor } from '@/lib/workforce/company-portal'
+import { prisma } from '@/lib/prisma'
 
 // Every workspace under /i/[slug]/<workspace>/<tab> (spec §4). One route,
 // driven by the WORKSPACES config, so a new workspace is config plus a
@@ -26,7 +29,12 @@ export default async function WorkspacePage({
 
   const ctx = await requireWorkspace(slug, config.key as WorkspaceKey)
   const kind = orgKindOf(ctx.institution.orgType)
-  const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), kind).filter((t) => (!t.demoOnly || ctx.institution.isDemo) && (!t.from || ctx.workspaces.includes(t.from.workspace)))
+  // A workforce program's staff open the participant and employer views as previews ("See it as"), drawn in the
+  // frame of the real site each person uses (src/components/higher-ed/SiteFrames.tsx).
+  const framed = kind === 'workforce' && ctx.workspaces.includes('hub') && (config.key === 'candidate' || config.key === 'employer')
+  const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), kind).filter(
+    (t) => (!t.demoOnly || ctx.institution.isDemo) && (!t.from || ctx.workspaces.includes(t.from.workspace)) && (t.key !== 'groups' || framed),
+  )
   const activeKey = tab?.[0] ?? tabs[0]?.key
   const active = tabs.find((t) => t.key === activeKey)
   if (!active || (tab && tab.length > 1)) notFound()
@@ -36,17 +44,52 @@ export default async function WorkspacePage({
   const locked = blockedScreen(active.from ? `${active.from.workspace}:${active.from.tab}` : `${config.key}:${active.key}`, ctx.institution.plan)
   const base = `${orgBasePath(slug, ctx.institution.orgType)}/${config.homePath}`
 
+  const screen = locked ? (
+    <LockedFeature feature={locked} slug={slug} plan={ctx.institution.plan} />
+  ) : Screen ? (
+    <Screen ctx={ctx} searchParams={await searchParams} base={base} />
+  ) : (
+    <ComingIn step={active.comingIn ?? 'a later step'} what={COMING_DESCRIPTIONS[`${config.key}:${active.key}`] ?? active.label} />
+  )
+  const groupName = ctx.institution.programBrandName ?? ctx.institution.name
+  const header = (
+    <div className="flex flex-wrap items-center gap-3">
+      <h1 className="text-2xl font-semibold tracking-tight">{labelFor(config, kind)}</h1>
+      {ctx.readOnly && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+          <Eye className="size-3" aria-hidden="true" />
+          Read-only
+        </span>
+      )}
+    </div>
+  )
+  if (framed) {
+    const frameTabs = tabs.map((t) => ({ key: t.key, label: labelFor(t, kind) }))
+    if (config.key === 'candidate') {
+      const member = ctx.memberId ? await prisma.institutionMember.findUnique({ where: { id: ctx.memberId }, select: { firstName: true } }) : null
+      return (
+        <div className="space-y-6">
+          {header}
+          <ParticipantSiteFrame base={base} tabs={frameTabs} active={active.key} firstName={member?.firstName ?? null} groupName={groupName}>
+            {screen}
+          </ParticipantSiteFrame>
+        </div>
+      )
+    }
+    const company = await memberCompanyFor(ctx)
+    return (
+      <div className="space-y-6">
+        {header}
+        <EmployerSiteFrame base={base} tabs={frameTabs} active={active.key} companyName={company?.name ?? null} groupName={groupName}>
+          {screen}
+        </EmployerSiteFrame>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{labelFor(config, kind)}</h1>
-        {ctx.readOnly && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-            <Eye className="size-3" aria-hidden="true" />
-            Read-only
-          </span>
-        )}
-      </div>
+      {header}
 
       {tabs.length > 1 && (() => {
         const groups = [...new Set(tabs.map((t) => t.group).filter((g): g is string => !!g))]
@@ -87,13 +130,7 @@ export default async function WorkspacePage({
         )
       })()}
 
-      {locked ? (
-        <LockedFeature feature={locked} slug={slug} plan={ctx.institution.plan} />
-      ) : Screen ? (
-        <Screen ctx={ctx} searchParams={await searchParams} base={base} />
-      ) : (
-        <ComingIn step={active.comingIn ?? 'a later step'} what={COMING_DESCRIPTIONS[`${config.key}:${active.key}`] ?? active.label} />
-      )}
+      {screen}
     </div>
   )
 }

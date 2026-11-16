@@ -118,6 +118,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'candidate',
     tabs: [
       { key: 'home', label: 'Home', comingIn: null },
+      // A workforce participant's own NextChapter account lists the program under Network › Alumni and groups.
+      { key: 'groups', label: 'Alumni and groups', comingIn: null, orgKind: 'workforce' },
       { key: 'jobs', label: 'Jobs & projects', comingIn: null, modules: ['alumniJobs', 'projects'], orgKind: 'college' },
       // Internships live only in the college portal, never on the member job board.
       { key: 'internships', label: 'Internships', comingIn: null, modules: ['internships'], orgKind: 'college' },
