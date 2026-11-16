@@ -82,6 +82,16 @@ export default async function InstitutionPortalLayout({
     badge: w.release === 'V2' ? 'Coming' : locked.has(w.key) && w.minTier ? `${TIER_LABELS[w.minTier]} tier` : null,
   }))
 
+  // A workforce customer's Program holds what Exec Ed and the WIOA workspace hold for a college (their screens are tabs there),
+  // and the person-facing views are previews, not places to work. Anyone who cannot open Program keeps those rail items.
+  const folded = orgKindOf(institution.orgType) === 'workforce' && access.workspaces.includes('hub')
+  const railItems: RailItem[] = folded
+    ? [
+        ...rail.filter((r) => !['execed', 'workforce', 'candidate', 'employer'].includes(r.key)),
+        ...rail.filter((r) => ['candidate', 'employer'].includes(r.key)).map((r, i) => ({ ...r, section: i === 0 ? 'See it as' : undefined })),
+      ]
+    : rail
+
   return (
     <div className="theme-partner flex min-h-screen flex-col bg-background" style={theme}>
       <CanonicalOrgUrl slug={slug} base={orgBasePath(slug, institution.orgType)} />
@@ -138,7 +148,7 @@ export default async function InstitutionPortalLayout({
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col lg:flex-row">
         {rail.length > 0 && (
           <aside className="border-b border-border lg:w-60 lg:shrink-0 lg:border-r lg:border-b-0">
-            <WorkspaceRail items={rail} />
+            <WorkspaceRail items={railItems} />
           </aside>
         )}
         <main className="min-w-0 flex-1 px-4 py-6 lg:px-8">{children}</main>

@@ -883,73 +883,6 @@ export async function HubPipeline({ ctx }: Props) {
 
 // ---------------------------------------------------------------------------
 
-export async function HubTraining({ ctx }: Props) {
-  const id = ctx.institution.id
-  const programs = await prisma.program.findMany({
-    where: { institutionId: id, isActive: true },
-    take: 10,
-    orderBy: { createdAt: 'desc' },
-    select: { id: true, name: true, summary: true, credential: true, hours: true, wioaEligible: true, skills: true, cohorts: { select: { id: true, name: true, seats: true, modality: true, _count: { select: { enrollments: true } } } } },
-  })
-  const payers = await prisma.enrollment.groupBy({ by: ['payer'], where: { cohort: { program: { institutionId: id } } }, _count: { _all: true } })
-  const enrolled = payers.reduce((n, p) => n + p._count._all, 0)
-  const payerLabel = (p: string) => (p === 'WIOA_VOUCHER' ? 'Workforce funds' : p === 'SELF_PAY' ? 'Paid by the person' : p.replace(/_/g, ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase()))
-  return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Programs" value={programs.length} />
-        <StatTile label="Cohorts" value={programs.reduce((n, p) => n + p.cohorts.length, 0)} />
-        <StatTile label="People enrolled" value={small(enrolled)} />
-        <StatTile label="Eligible for workforce funds" value={programs.filter((p) => p.wioaEligible).length} note="On the state’s approved list" />
-      </div>
-      <Section title="Retraining and upskilling programs" intro="Courses this program runs with college partners. People can enroll themselves, or a workforce board can pay.">
-        {programs.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">No programs yet.</p>
-        ) : (
-          <ul className="space-y-3">
-            {programs.map((p) => (
-              <li key={p.id} className="rounded-lg border border-border bg-card p-4 text-sm">
-                <p className="font-medium">{p.name}</p>
-                {p.summary && <p className="text-muted-foreground">{p.summary}</p>}
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {[p.credential, p.hours ? `${p.hours} hours` : null, p.wioaEligible ? 'Workforce funds can pay' : null].filter(Boolean).join(' · ')}
-                </p>
-                {p.cohorts.map((c) => (
-                  <p key={c.id} className="mt-1 text-xs">
-                    {c.name} · {small(c._count.enrollments)} of {c.seats ?? '—'} seats{c.modality ? ` · ${c.modality}` : ''}
-                  </p>
-                ))}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
-      {payers.length > 0 && (
-        <Section title="Who pays">
-          <ul className="divide-y divide-border rounded-lg border border-border bg-card text-sm">
-            {payers.map((p) => (
-              <li key={p.payer} className="flex justify-between px-3 py-2">
-                <span>{payerLabel(p.payer)}</span>
-                <span className="tabular-nums text-muted-foreground">{small(p._count._all)}</span>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
-      <Section title="The four lanes">
-        <ul className="grid gap-2 md:grid-cols-2">
-          {LANES.map((l) => (
-            <li key={l.key} className="rounded-lg border border-border bg-card p-4 text-sm">
-              <p className="font-medium">{l.label}</p>
-              <p className="text-muted-foreground">{l.who}</p>
-            </li>
-          ))}
-        </ul>
-      </Section>
-    </div>
-  )
-}
-
 // ---------------------------------------------------------------------------
 
 type Link2 = { name: string; address?: string | null; phone?: string | null; website?: string | null }
@@ -1024,74 +957,245 @@ export async function HubSystem({ ctx }: Props) {
 
 // ---------------------------------------------------------------------------
 
-const OPPORTUNITIES: { name: string; who: string; amount: string; terms: string; fit: string; source: string; url: string }[] = [
-  {
-    name: 'Kentucky Talent Recruitment Grant',
-    who: 'Cabinet for Economic Development (HB 576, 2026)',
-    amount: 'Up to $500,000 per applicant',
-    terms: '20% local match, cash or in-kind; up to 18 months; regional applications preferred; relocation 50%, student retention 25%, marketing 25% of the fund',
-    fit: 'Attracting households and keeping graduates: the Attract and Reporting tabs track the counts and proof it asks for.',
-    source: 'Application Framework, October 2026',
-    url: 'https://newkentuckyhome.ky.gov/Locating_Expanding/Talent',
-  },
-  {
-    name: 'Kentucky AI Workforce Readiness Network',
-    who: 'Issued by SCWDB (Reskill grant funding)',
-    amount: 'Planning target of about 980 participants; no ceiling stated',
-    terms: 'Five training pathways, remote-first with in-person for rapid response; teaming allowed',
-    fit: 'A professional layer sits beside the pathways: only one is near white-collar work.',
-    source: 'Solicitation questions and answers, August 2026',
-    url: '',
-  },
-  {
-    name: 'AI-powered career readiness workshops',
-    who: 'Issued by SCWDB',
-    amount: 'Not to exceed $100,000; about 100 participants',
-    terms: 'A unit rate for each completed participant; eight modules; privacy and no model training on participant data',
-    fit: 'Workshop outputs overlap with the résumé, posting and interview tools here.',
-    source: 'Request for proposals, July 2026',
-    url: '',
-  },
-]
+type Opp = {
+  name: string
+  funder: string
+  amount: string
+  deadline: string
+  who: string
+  fit: 'Best fit' | 'Good fit' | 'Partner role' | 'Watch'
+  why: string
+  partners: string
+  next: string
+  checked: 'Read in the official document' | 'Read on the official page' | 'Reported by a secondary source: confirm' | 'No open call found'
+  source: string
+  url: string
+}
+
+// The first Wednesday of a month, in UTC: the Governor's Reserve Fund's monthly deadline.
+function firstWednesday(y: number, m: number) {
+  const d = new Date(Date.UTC(y, m, 1))
+  d.setUTCDate(1 + ((3 - d.getUTCDay() + 7) % 7))
+  return d
+}
+function nextReserveDeadline(now = new Date()) {
+  let d = firstWednesday(now.getUTCFullYear(), now.getUTCMonth())
+  if (d.getTime() + 86_400_000 <= now.getTime()) d = firstWednesday(now.getUTCFullYear() + (now.getUTCMonth() === 11 ? 1 : 0), (now.getUTCMonth() + 1) % 12)
+  return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(d)
+}
+
+const APPLICANT_NOTE = 'A company such as NextChapter cannot be the applicant: the nonprofit, local board or government applies, and a vendor joins as a partner.'
+
+function opportunities(now = new Date()): Opp[] {
+  return [
+    {
+      name: 'Governor’s Reserve Fund',
+      funder: 'Kentucky Education and Labor Cabinet',
+      amount: 'Set by the request; projects run up to two years',
+      deadline: `Monthly: close of business on the first Wednesday. Next: ${nextReserveDeadline(now)}`,
+      who: 'Local workforce areas, state and quasi-governmental agencies, and nonprofits that provide workforce activities. Not for-profits.',
+      fit: 'Best fit',
+      why: 'Two tracks, Local Initiative and Innovation or Governor’s Priority Investments. A professional career pathway with AI skills, with statewide impact and measured outcomes, is the kind of innovative practice it describes. It is rolling, so it is the fastest way to fund a pilot.',
+      partners: 'KentuckianaWorks as the local area, One Louisville as the nonprofit lead, two or three partner colleges, member employers who commit to ongoing support (the application asks for partner contributions and sustainability).',
+      next: 'Draft the project and budget, gather the previous-grant performance sheet, and name partner commitments. ' + APPLICANT_NOTE,
+      checked: 'Read in the official document',
+      source: 'Governor’s Reserve Fund application instructions, rev. Aug 2026',
+      url: 'https://kwib.ky.gov/Documents/WIOA_Governors_Reserve_Fund_Application.pdf',
+    },
+    {
+      name: 'Kentucky Talent Recruitment Grant',
+      funder: 'Kentucky Cabinet for Economic Development (HB 576, 2026)',
+      amount: 'Up to $500,000 per applicant; 20% local match, cash or in-kind; up to 18 months',
+      deadline: 'During an open window the Cabinet announces: confirm the current window',
+      who: 'City and county governments, economic development organizations, and 501(c)(3) or (6) nonprofits. Regional applications are preferred.',
+      fit: 'Best fit',
+      why: 'Funds relocation (50% of the fund), student retention (25%) and marketing (25%). Households are counted against an income minimum with proof such as an employer’s confirmation or a lease, which is what the Attract and Reporting tabs track. Staff time can count as match.',
+      partners: 'Neighboring counties for a regional application, partner colleges for retention, member employers for confirmations, Live in Lou for the marketing track.',
+      next: 'Decide which category to lead with, line up the 20% match, and set the household goal.',
+      checked: 'Read in the official document',
+      source: 'Talent Recruitment Grant Application Framework, October 2026',
+      url: 'https://newkentuckyhome.ky.gov/Locating_Expanding/Talent',
+    },
+    {
+      name: 'National Dislocated Worker Grants',
+      funder: 'U.S. Department of Labor, through the state',
+      amount: 'Not stated on the page',
+      deadline: 'Rolling: no closing date at this time',
+      who: 'States, and through the state the local boards. Employment Recovery grants respond to large layoffs.',
+      fit: 'Good fit',
+      why: 'A large professional layoff in the region could qualify for an Employment Recovery grant, which pays for the response and for training. Kentucky’s guidance, reissued August 2026, sets how local boards ask.',
+      partners: 'KentuckianaWorks and the state Education and Labor Cabinet as applicants, the affected employer, partner colleges for training.',
+      next: 'Keep the rapid-response record current so a layoff can be shown quickly, and ask the board how it plans to use the grant.',
+      checked: 'Read on the official page',
+      source: 'U.S. Department of Labor, Grant Funding Opportunities',
+      url: 'https://www.dol.gov/node/149597',
+    },
+    {
+      name: 'AI-Ready America Coordination Hubs (NSF TechAccess)',
+      funder: 'National Science Foundation, with the Department of Labor',
+      amount: '$1 million a year for three years per hub, with a possible fourth; one hub per state',
+      deadline: 'Round 2: letter of intent December 15, 2026, proposal January 15, 2027. Round 3: June 1 and July 1, 2027',
+      who: 'A lead with statewide convening power and experience running multi-sector initiatives; workforce organizations and nonprofits are named partners, with letters of collaboration.',
+      fit: 'Partner role',
+      why: 'Kentucky would have one hub, so a Louisville organization is more likely a partner than the lead. It could anchor the professional and AI-skills layer and the Louisville data.',
+      partners: 'The state workforce board and Education and Labor Cabinet, the state’s universities and community colleges, employer associations, KentuckianaWorks and other local boards.',
+      next: 'Find out who in Kentucky is leading an application and offer the Louisville layer before the December letter of intent.',
+      checked: 'Read in the official document',
+      source: 'NSF 26-508 solicitation',
+      url: 'https://www.nsf.gov/funding/opportunities/techaccess-ai-ready-america/nsf26-508/solicitation',
+    },
+    {
+      name: 'Kentucky AI Workforce Readiness Network',
+      funder: 'Issued by SCWDB (Reskill grant funding)',
+      amount: 'Planning target of about 980 participants; no ceiling stated',
+      deadline: 'Solicitation questions and answers dated August 2026: check whether it is still open',
+      who: 'Teams and primes, including out-of-state for-profits; local areas give support letters.',
+      fit: 'Partner role',
+      why: 'Five training pathways and only one near white-collar work. A professional layer fits beside them, and teaming is allowed.',
+      partners: 'A prime contractor, KentuckianaWorks for a letter of support, partner colleges.',
+      next: 'Ask KentuckianaWorks and the state whether a second round or a subaward is planned.',
+      checked: 'Read in the official document',
+      source: 'Solicitation questions and answers, August 2026',
+      url: '',
+    },
+    {
+      name: 'AI-powered career readiness workshops',
+      funder: 'Issued by SCWDB',
+      amount: 'Not to exceed $100,000; about 100 participants; a rate for each completed participant',
+      deadline: 'Request for proposals dated July 2026: likely closed',
+      who: 'Providers; privacy and no model training on participant data are required.',
+      fit: 'Watch',
+      why: 'Useful as a template: eight modules, six participant work products and an 80% completion rule are the shape a local version could take.',
+      partners: 'Local board and employers.',
+      next: 'Use it to set expectations for a Louisville workshop, not to apply.',
+      checked: 'Read in the official document',
+      source: 'Request for proposals, July 2026',
+      url: '',
+    },
+    {
+      name: 'Reskill Dislocated Worker Grants',
+      funder: 'U.S. Department of Labor',
+      amount: 'About $50 million; awards of $2 million to $8 million',
+      deadline: 'Closed in August 2026; watch for a next round',
+      who: 'States and eligible applicants through them.',
+      fit: 'Watch',
+      why: 'Shows the direction of federal money: retraining for people displaced by AI and automation.',
+      partners: 'State Education and Labor Cabinet, KentuckianaWorks.',
+      next: 'Ask the state how Kentucky’s award is being spent and where a local project could join.',
+      checked: 'Reported by a secondary source: confirm',
+      source: 'Grants aggregator, November 2026',
+      url: 'https://www.dol.gov/node/149597',
+    },
+    {
+      name: 'Strengthening Community Colleges Training Grants',
+      funder: 'U.S. Department of Labor',
+      amount: '$65 million in the sixth round',
+      deadline: 'Issued February 24, 2026: confirm whether it has closed',
+      who: 'Community colleges, usually with workforce and employer partners.',
+      fit: 'Partner role',
+      why: 'A partner college could apply with employers and the board. A shared skills picture from this program strengthens the employer side.',
+      partners: 'Jefferson Community and Technical College, other colleges, member employers, KentuckianaWorks.',
+      next: 'Ask the colleges whether they plan to apply and offer the employer demand data.',
+      checked: 'Reported by a secondary source: confirm',
+      source: 'State workforce notice, 2026',
+      url: '',
+    },
+    {
+      name: 'AI Upskill Accelerator Pilot',
+      funder: 'U.S. Economic Development Administration',
+      amount: 'Not confirmed',
+      deadline: 'Launched June 2026: confirm the notice and its deadline',
+      who: 'Not confirmed: the official page blocked automated access.',
+      fit: 'Watch',
+      why: 'A federal pilot built around AI upskilling, in line with this program’s focus.',
+      partners: 'To be set once eligibility is confirmed.',
+      next: 'Open the notice and confirm who can apply.',
+      checked: 'Reported by a secondary source: confirm',
+      source: 'EDA, June 2026',
+      url: 'https://www.eda.gov/ai-upskill/ai-upskill-accelerator-pilot-program-notice-of-funding-opportunity',
+    },
+    {
+      name: 'Foundation funding for workforce and AI skills',
+      funder: 'Lumina, Ascendium, Walmart Foundation, JPMorgan Chase, LinkedIn',
+      amount: 'Varies',
+      deadline: 'No open call found on November 16, 2026. LinkedIn’s 2026 Future of Work Fund closed March 15; the JFF early-career call closed February 25',
+      who: 'Mostly nonprofits and colleges.',
+      fit: 'Watch',
+      why: 'Foundation calls come and go. A funded pilot with measured outcomes is what they ask for.',
+      partners: 'A community foundation or a funder collaborative, plus the partners above.',
+      next: 'Check each funder’s site monthly and ask the Louisville community foundation about its plans.',
+      checked: 'No open call found',
+      source: 'Funder websites',
+      url: '',
+    },
+  ]
+}
+
+const FIT_STYLE: Record<Opp['fit'], string> = {
+  'Best fit': 'bg-primary text-primary-foreground',
+  'Good fit': 'bg-muted text-foreground',
+  'Partner role': 'bg-muted text-foreground',
+  Watch: 'bg-muted text-muted-foreground',
+}
 
 export async function HubFunding({ ctx }: Props) {
   void ctx
+  const list = opportunities()
+  const groups: [string, Opp['fit'][]][] = [
+    ['Apply now', ['Best fit']],
+    ['Apply or join', ['Good fit', 'Partner role']],
+    ['Watch and learn from', ['Watch']],
+  ]
   return (
     <div className="space-y-8">
-      <p className="max-w-2xl text-sm text-muted-foreground">
-        Public funding opportunities that match what this program does, with the terms that matter. Confirm dates and eligibility in each solicitation; open windows change.
+      <p className="max-w-3xl text-sm text-muted-foreground">
+        Funding this organization and its partners could pursue, with our read on fit, the partners to bring in, and the next move. Dates were checked on November 16, 2026; confirm each in its official notice before you plan around it.
       </p>
-      <Section title="Grants and solicitations">
-        <ul className="space-y-3">
-          {OPPORTUNITIES.map((o) => (
-            <li key={o.name} className="rounded-lg border border-border bg-card p-4 text-sm">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <p className="font-medium">{o.name}</p>
-                <p className="text-xs text-muted-foreground">{o.who}</p>
-              </div>
-              <p className="mt-1">{o.amount}</p>
-              <p className="text-muted-foreground">{o.terms}</p>
-              <p className="mt-2">
-                <span className="font-medium">Where this program fits: </span>
-                <span className="text-muted-foreground">{o.fit}</span>
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Source: {o.source}
-                {o.url && (
-                  <>
-                    {' · '}
-                    <a href={o.url} target="_blank" rel="noreferrer" className="text-primary hover:underline">
-                      Program page
-                    </a>
-                  </>
-                )}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </Section>
+      {groups.map(([title, fits]) => {
+        const rows = list.filter((o) => fits.includes(o.fit))
+        return (
+          <Section key={title} title={title}>
+            <ul className="space-y-3">
+              {rows.map((o) => (
+                <li key={o.name} className="rounded-lg border border-border bg-card p-4 text-sm">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="font-medium">{o.name}</p>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${FIT_STYLE[o.fit]}`}>{o.fit}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{o.funder}</p>
+                  <dl className="mt-2 grid gap-x-6 gap-y-1 md:grid-cols-[9rem_1fr]">
+                    <dt className="font-medium">Amount</dt>
+                    <dd className="text-muted-foreground">{o.amount}</dd>
+                    <dt className="font-medium">Deadline</dt>
+                    <dd className="text-muted-foreground">{o.deadline}</dd>
+                    <dt className="font-medium">Who can apply</dt>
+                    <dd className="text-muted-foreground">{o.who}</dd>
+                    <dt className="font-medium">Why it fits</dt>
+                    <dd className="text-muted-foreground">{o.why}</dd>
+                    <dt className="font-medium">Partners to bring in</dt>
+                    <dd className="text-muted-foreground">{o.partners}</dd>
+                    <dt className="font-medium">Next move</dt>
+                    <dd className="text-muted-foreground">{o.next}</dd>
+                  </dl>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {o.checked} · {o.source}
+                    {o.url && (
+                      <>
+                        {' · '}
+                        <a href={o.url} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                          Open
+                        </a>
+                      </>
+                    )}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </Section>
+        )
+      })}
       <Section title="Contests and challenges" intro="Hiring challenges, pitch contests and employer competitions sit here beside grants, so one calendar shows what is open.">
-        <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">None tracked in this demo.</p>
+        <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">None found for this region on November 16, 2026.</p>
       </Section>
     </div>
   )

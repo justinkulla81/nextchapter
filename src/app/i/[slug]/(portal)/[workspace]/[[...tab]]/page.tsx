@@ -26,14 +26,14 @@ export default async function WorkspacePage({
 
   const ctx = await requireWorkspace(slug, config.key as WorkspaceKey)
   const kind = orgKindOf(ctx.institution.orgType)
-  const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), kind).filter((t) => !t.demoOnly || ctx.institution.isDemo)
+  const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), kind).filter((t) => (!t.demoOnly || ctx.institution.isDemo) && (!t.from || ctx.workspaces.includes(t.from.workspace)))
   const activeKey = tab?.[0] ?? tabs[0]?.key
   const active = tabs.find((t) => t.key === activeKey)
   if (!active || (tab && tab.length > 1)) notFound()
 
   const Screen = WORKSPACE_SCREENS[`${config.key}:${active.key}`]
   // The free plan locks reporting, the CRM exchange, the activity log and WIOA reporting.
-  const locked = blockedScreen(`${config.key}:${active.key}`, ctx.institution.plan)
+  const locked = blockedScreen(active.from ? `${active.from.workspace}:${active.from.tab}` : `${config.key}:${active.key}`, ctx.institution.plan)
   const base = `${orgBasePath(slug, ctx.institution.orgType)}/${config.homePath}`
 
   return (

@@ -9,7 +9,7 @@ import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib
 import Link from 'next/link'
 import { listOrgKeys } from '@/lib/census/api-keys'
 import { HubCompanies, HubHome, HubLayoffs, HubLocal, HubParticipants, WorkforceOverview } from './screens-hub'
-import { HubAttract, HubBenefits, HubGrants, HubJobs, HubLearning, HubPipeline, HubRapid, HubSkills, HubFunding, HubSystem, HubTraining, HubUpskill } from './screens-hub-program'
+import { HubAttract, HubBenefits, HubGrants, HubJobs, HubLearning, HubPipeline, HubRapid, HubSkills, HubFunding, HubSystem, HubUpskill } from './screens-hub-program'
 import { CompanyOverview, CompanySupport } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
@@ -1620,7 +1620,12 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:benefits': HubBenefits,
   'hub:attract': HubAttract,
   'hub:grants': HubGrants,
-  'hub:training': HubTraining,
+  'hub:programs': ExecEdPrograms,
+  'hub:enrollments': ExecEdEnrollments,
+  'hub:clients': ExecEdClients,
+  'hub:wioa': WorkforceHome,
+  'hub:etpl': WorkforceEtpl,
+  'hub:responses': WorkforceRapid,
   'hub:system': HubSystem,
   'hub:funding': HubFunding,
   'hub:region': Region,
