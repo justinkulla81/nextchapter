@@ -26,6 +26,10 @@ import { awardEntries } from '@/lib/rankings/awards'
 import { addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
 import type { BuildGroup, CityStat, CollegeStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/measures'
+import { buildMetroStats, principalCity, rankWhitePlaces, whitePlacesSpecs, type MetroStat } from '@/lib/rankings/metro-places'
+import { loadCountyFacts, loadWhiteCollarByCounty } from '@/lib/rankings/metro-scan'
+import { loadMetros } from '@/lib/workforce/metro-compare-data'
+import type { CommunityDoc } from '@/lib/rankings/metro-places'
 
 const titleCase = (s: string) => s.replace(/\b[a-z]/g, (c) => c.toUpperCase())
 
@@ -128,7 +132,31 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     return prev ? new Map(prev.rows.map((r) => [r.key, r.rank])) : null
   }
 
-  if (group === 'skills') {
+  if (group === 'metro') {
+    const [metros, { context, placeCounty }, communityDoc] = await Promise.all([loadMetros(), loadCountyContext(), import('@/lib/rankings/data/county-community.json').then((m) => m.default)])
+    const [postings, { facts }] = await Promise.all([loadWhiteCollarByCounty(placeCounty), loadCountyFacts(placeCounty)])
+    const stats = buildMetroStats({
+      metros: metros.map((m) => ({ cbsa: m.cbsa, name: m.name, counties: m.counties, rpp: m.rpp.all ?? null })),
+      counties: facts, postings, context, community: communityDoc as unknown as CommunityDoc,
+      housing: (cbsa) => costsFor({ metroCode: cbsa }),
+    })
+    // A metro links to its first-named city's place page, else to its most populous county's page.
+    const states = [...new Set(stats.map((m) => m.st).filter(Boolean))]
+    const info = await placeInfo(states)
+    const hrefs = await countyHrefs([...new Set([...facts.values()].map((f) => f.st))])
+    const link = (m: MetroStat) => {
+      const city = info.get(`${m.st}|${placeKey(principalCity(m.name))}`)?.href
+      if (city) return city
+      const big = [...m.counties].sort((a, b) => (facts.get(b)?.population ?? 0) - (facts.get(a)?.population ?? 0))[0]
+      return big ? hrefs.get(big) ?? null : null
+    }
+    specs = whitePlacesSpecs()
+    for (const spec of specs) {
+      const ed = rankWhitePlaces(spec, stats, link, edition, builtAt, await prevRanksOf(spec.slug))
+      if (ed) built.push({ ed, spec })
+      else skipped.push(spec.slug)
+    }
+  } else if (group === 'skills') {
     specs = skillSpecs()
     const { stats, totals } = await loadSkillStats()
     for (const spec of specs) {

@@ -323,4 +323,72 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     why: 'Median posted pay differs widely between industries for the same kind of professional role.',
     use: 'Use it when you are choosing between industries, or deciding whether to take your skills to another one. Pay reflects the roles each industry posts, so compare within your job family too.',
   },
+  wp_all: {
+    why: 'Where to build a white-collar career depends on more than the job count: what the pay buys, what a house costs, how often employers cut, how exposed the work is to AI, and whether the schools, streets and services suit the life around the job. This list weighs all of them, and every criterion has its own ranking.',
+    use: 'Start with the overall list, then open the criteria that matter most to you. If you have children, the family and safety lists may count for more than the weights here; if you work remotely, pay and openings may count for less.',
+  },
+  wp_open: {
+    why: 'Openings per white-collar worker show how many chances there are for each professional already there, which matters more than the raw count when you are one of many applicants.',
+    use: 'A high figure means more doors per person competing. Pair it with the pay and layoff lists before you move.',
+  },
+  wp_grow: {
+    why: 'Growth in the white-collar sectors shows which economies are adding professional jobs and which are standing still, a better guide to the next few years than today\'s openings alone.',
+    use: 'A metro that is growing gives you more room to change employers later. Read it with the layoff list: fast growth can come with fast cuts.',
+  },
+  wp_pay: {
+    why: 'A salary buys different amounts in different places. This list divides the median posted white-collar salary by the local price level.',
+    use: 'Use it to compare an offer in one metro with an offer in another. A lower salary in a cheaper metro can leave you ahead.',
+  },
+  wp_house: {
+    why: 'Housing is the largest cost most professionals carry. Comparing home values and rent with local white-collar pay shows where a professional salary still buys a home.',
+    use: 'If you plan to buy, weight the home-value part; if you rent, the rent part. Check the housing supply list too: where building is slow, prices tend to rise.',
+  },
+  wp_supply: {
+    why: 'Metros that permit more new homes per resident are adding housing stock, which keeps prices and rents from climbing as fast when jobs arrive.',
+    use: 'Read it with the housing affordability list: an affordable metro that builds little may not stay affordable.',
+  },
+  wp_unemp: {
+    why: 'The overall unemployment rate mixes all kinds of work. This estimate isolates white-collar workers, so it shows how hard the professional market is locally.',
+    use: 'A low rate means fewer professionals chasing each opening. It is an estimate built from county rates, so treat small differences as ties.',
+  },
+  wp_layoff: {
+    why: 'Layoff notices show where employers have been cutting. Counting only white-collar industries, per white-collar worker, shows the risk a professional faces in each metro.',
+    use: 'A metro high on this list has had few professional layoffs in the past year. Not every layoff needs a WARN notice, so treat it as a signal, not a full count.',
+  },
+  wp_ai: {
+    why: 'AI is changing some jobs and industries faster than others. A metro whose jobs and industries are less exposed is less likely to see its professional work reshaped quickly.',
+    use: 'Exposure is not job loss: exposed work often changes rather than disappears. If you live in a highly exposed metro, build AI skills; if you are choosing a place, this is one measure of stability.',
+  },
+  wp_train: {
+    why: 'Retraining is easier where public job centers, which fund and arrange training, and community and technical colleges, which teach most short courses, are close by.',
+    use: 'If you plan to change fields, a metro high on this list gives you more public ways to retrain. Ask your local American Job Center about training funds.',
+  },
+  wp_edu: {
+    why: 'Colleges and universities nearby make it easier to take a course, earn a certificate or finish a degree while you work.',
+    use: 'Use it if you expect to upskill. A metro with many colleges usually has evening and part-time programs too.',
+  },
+  wp_safe: {
+    why: 'Safety shapes where people want to live. Homicide deaths are the violence measure published consistently for every county.',
+    use: 'Homicide rates vary within a metro more than between metros, so look at the neighbourhood as well as the metro figure.',
+  },
+  wp_family: {
+    why: 'For professionals with children, the cost of child care, the strength of the schools and the number of child care places can matter as much as pay.',
+    use: 'If you have young children, give this list more weight than the overall score does. Test scores are averages for the whole metro, and districts within it differ.',
+  },
+  wp_diverse: {
+    why: 'A metro that depends on one industry is exposed when that industry cuts. An even spread of industries gives more places to go after a layoff.',
+    use: 'If your field is cyclical, a diverse economy lets you move to another industry without moving house.',
+  },
+  wp_invest: {
+    why: 'Broadband, school funding, short commutes, libraries and parks are what a community has invested in, and they make remote work and family life easier.',
+    use: 'Use it to compare places that score alike on jobs and pay. The parts are published, so you can weight the ones you care about.',
+  },
+  wp_peers: {
+    why: 'Where more of the workforce is in professional occupations, there are more peers, more networking and more employers who need white-collar skills.',
+    use: 'A large professional community helps when you change jobs through people you know. Pair it with the openings list.',
+  },
+  wp_flex: {
+    why: 'Remote and hybrid roles widen your options: you can keep a job through a move or work for an employer elsewhere in the metro.',
+    use: 'If flexibility matters, start your search in the metros at the top and filter openings by remote or hybrid.',
+  },
 }

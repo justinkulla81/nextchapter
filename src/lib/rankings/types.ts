@@ -84,12 +84,18 @@ export type MeasureId =
   | 'sx_ui' | 'sx_weeks' | 'sx_programs' | 'sx_training' | 'sx_relocate' | 'sx_ajc' | 'sx_hire' | 'sx_need' | 'kx_ajc' | 'cf_all' | 'cf_ind' | 'cf_fn' | 'ef_flex' | 'ef_contract'
   | 'em_all' | 'em_junior' | 'em_mid' | 'em_senior' | 'em_lead' | 'em_fn' | 'em_growth' | 'em_best' | 'em_bestjr'
   | 'dg_field' | 'dg_fieldpay' | 'dg_fieldgrow' | 'dg_level' | 'dg_levelpay' | 'dg_occ' | 'dg_occpay' | 'dg_occgrow' | 'dg_share' | 'dg_city' | 'dg_cityshare'
+  | WhitePlacesMeasureId
+
+/** The best-places-for-white-collar-professionals lists (metro-places.ts): the all-round list and one per criterion. */
+export type WhitePlacesMeasureId =
+  | 'wp_all' | 'wp_open' | 'wp_grow' | 'wp_pay' | 'wp_house' | 'wp_supply' | 'wp_unemp' | 'wp_layoff' | 'wp_ai'
+  | 'wp_train' | 'wp_edu' | 'wp_safe' | 'wp_family' | 'wp_diverse' | 'wp_invest' | 'wp_peers' | 'wp_flex'
 
 /** The measures a single city is ranked on by one value. Composite lists score a whole pool at once and are not in this set. */
 export type CityMeasureId = 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent' | 'midcareer' | 'leadership' | 'fnopen' | 'fnpay' | 'icopen' | 'icpay'
 
 /** Which stored build a list belongs to: the three builds run as separate monthly jobs so each stays inside the time limit. */
-export type BuildGroup = 'places' | 'functions' | 'skills' | 'workforce' | 'college' | 'industry' | 'profile' | 'support'
+export type BuildGroup = 'places' | 'functions' | 'skills' | 'workforce' | 'college' | 'industry' | 'profile' | 'support' | 'metro'
 
 export interface RankingEdition {
   slug: string
@@ -103,7 +109,7 @@ export interface RankingEdition {
   /** What a place needs to be ranked, in the measure's own unit ("openings" or "jobs"). */
   minN: number
   unit: 'openings' | 'jobs' | 'students'
-  placeNoun: 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'colleges' | 'industries' | 'job families' | 'states' | 'degrees' | 'occupations' | 'employers'
+  placeNoun: 'metro areas' | 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'colleges' | 'industries' | 'job families' | 'states' | 'degrees' | 'occupations' | 'employers'
   baseline: { label: string; valueLabel: string } | null
   lead: string
   keyFacts: string[]
@@ -113,7 +119,13 @@ export interface RankingEdition {
   sources: string[]
   /** Titles of sibling lists, for the "also see" block. */
   rows: RankRow[]
+  /** An all-round list: the criteria its score is made of, each with its weight and its own single-criterion list. */
+  components?: RankComponent[]
+  /** A single-criterion list that is one part of an all-round list. */
+  partOf?: { slug: string; title: string; weight: number; criteria: number }
 }
+
+export interface RankComponent { label: string; weight: number; slug: string; title: string; what: string }
 
 export interface RankingIndexEntry {
   slug: string
