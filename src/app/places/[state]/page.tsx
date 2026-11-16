@@ -5,7 +5,7 @@ import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import { redirectFromBareSlug } from '@/lib/places/resolve'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK, Stat } from '@/components/seo/SeoPage'
 import { CollegeTable, EconomySection, EmployerList, HeadquarteredList, LayoffsSection, PlaceLinks, WorkforceSection } from '@/components/places/PlaceSections'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
@@ -117,14 +117,6 @@ export default async function StatePlacePage({ params }: { params: Promise<{ sta
       <PlaceLinks id="cities" title={`${name} cities`} intro="Cities with open jobs, layoff notices, a job center or a college."
         links={d.cities.map((c) => ({ href: placeUrl.city(state, c.slug), label: c.name, note: c.jobs ? `${c.jobs.toLocaleString()} jobs` : undefined }))} />
 
-      <ActionBand
-        title={`Laid off or looking for work in ${name}?`}
-        body={`See what to do first, what ${name} unemployment benefits pay, and the jobs open near you.`}
-        label="See your options after a layoff"
-        href="/start/laid-off"
-        event="place_cta_clicked"
-        properties={{ level: 'state', state: code }}
-      />
 
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> Census Bureau and BLS for population, income and unemployment; layoff notices from {name}’s published record;

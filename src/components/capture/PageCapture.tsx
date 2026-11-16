@@ -1,6 +1,7 @@
 import { JourneyPicker } from '@/components/home/JourneyPicker'
 import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 import { NextStepBox } from '@/components/capture/NextStepBox'
+import type { SituationAsk } from '@/components/capture/SituationChoice'
 import { OwnerInquiry } from '@/components/capture/OwnerInquiry'
 import { FollowTopicBox } from '@/components/capture/FollowTopicBox'
 import { isFollowable } from '@/lib/leads/topic-follow'
@@ -13,7 +14,7 @@ import { captureSource, ownerOffer, saveCopy, saveSource, type PageCaptureConfig
  * email save/follow box. The bottom part (`PageCaptureOwner`) is for the organization behind the page. Both are rendered by the page
  * frames (SeoPage, TopicShell) from one config, so a page opts in with a single prop.
  */
-export function PageCaptureTop({ capture, network }: { capture: PageCaptureConfig; network?: NetworkAsk }) {
+export function PageCaptureTop({ capture, network, situations }: { capture: PageCaptureConfig; network?: NetworkAsk; situations?: SituationAsk }) {
   const source = captureSource(capture)
   const copy = saveCopy(capture)
   const body = (
@@ -33,7 +34,7 @@ export function PageCaptureTop({ capture, network }: { capture: PageCaptureConfi
       )}
     </>
   )
-  return <NextStepBox audience="seeker" slug={capture.slug} extras={body} network={network} />
+  return <NextStepBox audience="seeker" slug={capture.slug} extras={body} network={network} situations={situations} />
 }
 
 export function PageCaptureOwner({ capture }: { capture: PageCaptureConfig }) {
