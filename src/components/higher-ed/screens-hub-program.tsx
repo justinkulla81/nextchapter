@@ -12,6 +12,7 @@ import { prisma } from '@/lib/prisma'
 import { regionNotices } from '@/lib/higher-ed/rapid-response'
 import { readLocal, localArea, isInArea } from '@/lib/workforce/local'
 import { hubLayoffs, memberCompanies, small } from '@/lib/workforce/hub'
+import { marketJobs } from '@/lib/workforce/market-jobs'
 import { BENEFITS, DEMAND_SKILLS, FUNNEL, LANES, ORIGINS, RESPONSE_STEPS, rand01, randInt } from '@/lib/workforce/program-content'
 import { StatTile } from './StatTile'
 import { PrintButton } from './PrintButton'
@@ -46,19 +47,23 @@ function Th({ children }: { children?: React.ReactNode }) {
 
 // Real colleges near the region (IPEDS), largest first. One bounded read of
 // the state's rows with a few columns, filtered to the demo's area.
+const NARROW = /seminary|theological|nursing|medical|beauty|barber|cosmetology|massage|bible/i
+
 async function nearbyColleges(institutionId: string) {
-  const inst = await prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { enabledFeatures: true } })
+  const inst = await prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { enabledFeatures: true, profile: true } })
   const local = readLocal(inst.enabledFeatures)
   if (!local) return []
   const area = await localArea(local)
   if (!area) return []
+  // Both sides of a border: every state the region covers.
+  const states = [...new Set([local.anchorState, ...((inst.profile as { region?: { areas?: { state: string }[] } } | null)?.region?.areas ?? []).map((a) => a.state)])]
   const rows = await prisma.collegeProfile.findMany({
-    where: { state: local.anchorState, enrollment: { gt: 400 } },
+    where: { state: { in: states }, enrollment: { gt: 400 } },
     orderBy: { enrollment: 'desc' },
-    take: 80,
+    take: 300,
     select: { unitid: true, name: true, city: true, state: true, control: true, level: true, enrollment: true, hasExecEd: true, hasRetraining: true, aiPrograms: true, website: true },
   })
-  return rows.filter((c) => isInArea(area, c.city, c.state)).slice(0, 8)
+  return rows.filter((c) => isInArea(area, c.city, c.state) && !NARROW.test(c.name)).slice(0, 10)
 }
 
 function aiAwards(ai: unknown): number {
@@ -187,6 +192,8 @@ export async function HubLearning({ ctx }: Props) {
 
 export async function HubUpskill({ ctx }: Props) {
   const companies = await memberCompanies(ctx.institution.id)
+  const local = readLocal((await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })).enabledFeatures)
+  const market = local ? await marketJobs(local.anchorCity, local.anchorState).catch(() => null) : null
   const seed = ctx.institution.slug
   const rows = companies.map((c) => {
     const headcount = randInt(seed, `hc${c.id}`, 80, 900)
@@ -201,6 +208,37 @@ export async function HubUpskill({ ctx }: Props) {
         <StatTile label="Employees in courses" value={total.toLocaleString()} note="Sample" />
         <StatTile label="Skills requested" value={new Set(rows.map((r) => r.skill)).size} note="Across members" />
       </div>
+      {market && market.skills.length > 0 && (
+        <Section title="Skills gaps of people who are employed" intro="Demand is real: how many current local postings ask for each skill. Supply is the share of employed participants whose résumé shows it, from consented résumé analysis." sample>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <Th>Skill</Th>
+                  <Th>Postings asking (real)</Th>
+                  <Th>Employed participants who show it</Th>
+                  <Th>Gap</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {market.skills.slice(0, 8).map((k, i) => {
+                  const have = Math.round(100 * Math.max(0.05, Math.min(0.9, k.share * (0.35 + rand01(ctx.institution.slug, `gap${i}`) * 0.7))))
+                  const want = Math.round(k.share * 100)
+                  return (
+                    <tr key={k.skill} className="border-t border-border">
+                      <td className="px-3 py-2 font-medium">{k.skill}</td>
+                      <td className="px-3 py-2 tabular-nums">{want}% <span className="text-xs text-muted-foreground">({k.postings} postings)</span></td>
+                      <td className="px-3 py-2 tabular-nums">{have}%</td>
+                      <td className="px-3 py-2 tabular-nums">{want - have > 0 ? `${want - have} points short` : 'Covered'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Section>
+      )}
+
       <Section title="Every member company, not only the ones with layoffs" intro="Employers that keep people current are less likely to lay them off. Each row is the course demand a partner could fill." sample>
         <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
@@ -422,6 +460,8 @@ export async function HubAttract({ ctx }: Props) {
         </div>
       </Section>
 
+      <RelocationInterest slug={ctx.institution.slug} ctxId={ctx.institution.id} />
+
       <Section title="What a person sees before they decide" intro="One page per person that pairs their field with local jobs and the benefits in this workspace.">
         <ul className="grid gap-2 md:grid-cols-3">
           {['Local jobs that match their field, with pay', 'How their pay compares with the cost of living here', 'Colleges, courses and benefits that help them settle'].map((t) => (
@@ -535,6 +575,205 @@ export async function HubGrants({ ctx }: Props) {
           <li>We never write to a person’s Google account.</li>
         </ul>
       </Section>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+
+async function RelocationInterest({ slug, ctxId }: { slug: string; ctxId: string }) {
+  const local = readLocal((await prisma.institution.findUniqueOrThrow({ where: { id: ctxId }, select: { enabledFeatures: true } })).enabledFeatures)
+  const market = local ? await marketJobs(local.anchorCity, local.anchorState).catch(() => null) : null
+  const fields = [
+    { f: 'Finance and accounting', n: randInt(slug, 'rf1', 30, 120) },
+    { f: 'Technology and data', n: randInt(slug, 'rf2', 40, 140) },
+    { f: 'Operations and supply chain', n: randInt(slug, 'rf3', 25, 90) },
+    { f: 'Marketing and sales', n: randInt(slug, 'rf4', 20, 80) },
+    { f: 'People and HR', n: randInt(slug, 'rf5', 10, 50) },
+  ].sort((a, b) => b.n - a.n)
+  const score = randInt(slug, 'rs', 58, 72)
+  return (
+    <Section title="People interested in moving here, and what their résumés show" intro="Counts and averages only, from people who chose to share. Where there are fewer than five people, the cell is hidden." sample>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatTile label="Interested in moving" value={fields.reduce((n, x) => n + x.n, 0).toLocaleString()} />
+        <StatTile label="Average résumé score" value={`${score} of 100`} note="Before suggested fixes" />
+        <StatTile label="Skills match local postings" value={`${randInt(slug, 'sm', 54, 78)}%`} note="At least three skills in common" />
+        <StatTile label="Could start within 3 months" value={`${randInt(slug, 'st3', 22, 41)}%`} />
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <Th>Field</Th>
+                <Th>People</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {fields.map((x) => (
+                <tr key={x.f} className="border-t border-border">
+                  <td className="px-3 py-2 font-medium">{x.f}</td>
+                  <td className="px-3 py-2 tabular-nums">{x.n}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4 text-sm">
+          <p className="font-medium">What local employers ask for that these résumés lack</p>
+          <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
+            {(market?.skills.slice(0, 4) ?? []).map((k, i) => (
+              <li key={k.skill}>
+                {k.skill}: missing from {randInt(slug, `ms${i}`, 25, 55)}% of résumés <span className="text-xs">(in {k.postings} local postings)</span>
+              </li>
+            ))}
+            {!market?.skills.length && <li>Appears when local postings are available.</li>}
+          </ul>
+        </div>
+      </div>
+    </Section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+
+export async function HubJobs({ ctx }: Props) {
+  const local = readLocal((await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })).enabledFeatures)
+  if (!local) return <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">Set your region on Kept in region to see local jobs and skills.</p>
+  const m = await marketJobs(local.anchorCity, local.anchorState)
+  const money = (n: number | null) => (n ? `$${Math.round(n / 1000)}k` : '—')
+  return (
+    <div className="space-y-8">
+      <p className="max-w-2xl text-sm text-muted-foreground">
+        What employers in {local.anchorCity} are asking for right now, from current postings. Skills are counted from the job descriptions, so you can plan courses and cohorts around real demand.
+      </p>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatTile label="Current postings read" value={m.sampled.toLocaleString()} note="Newest 250 in the area" />
+        <StatTile label="State a pay range" value={m.sampled ? `${Math.round((m.withPay / m.sampled) * 100)}%` : '—'} />
+        <StatTile label="Middle of pay ranges" value={money(m.medianMid)} />
+        <StatTile label="Mention AI" value={`${Math.round(m.aiShare * 100)}%`} note="Of postings read" />
+      </div>
+      <Section title="Skills being asked for">
+        {m.skills.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">No postings with descriptions found for this area yet.</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {m.skills.slice(0, 12).map((k) => (
+              <li key={k.skill} className="grid grid-cols-[14rem_1fr_6rem] items-center gap-3 text-sm">
+                <span className="font-medium">{k.skill}</span>
+                <span className="h-2 rounded-full bg-muted" role="img" aria-label={`${Math.round(k.share * 100)}% of postings`}>
+                  <span className="block h-2 rounded-full bg-primary" style={{ width: `${Math.max(3, Math.round(k.share * 100))}%` }} />
+                </span>
+                <span className="text-right tabular-nums text-muted-foreground">{k.postings} postings</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Section title="Seniority">
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card text-sm">
+            {m.byLevel.slice(0, 8).map((l) => (
+              <li key={l.level} className="flex justify-between px-3 py-2">
+                <span>{l.level.replace(/_/g, ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase())}</span>
+                <span className="tabular-nums text-muted-foreground">{l.n}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+        <Section title="Employers hiring most">
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card text-sm">
+            {m.companies.map((c) => (
+              <li key={c.name} className="flex justify-between px-3 py-2">
+                <span>{c.name}</span>
+                <span className="tabular-nums text-muted-foreground">{c.n}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      </div>
+      <Section title="Newest postings">
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <Th>Role</Th>
+                <Th>Employer</Th>
+                <Th>Pay range</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {m.titles.map((t, i) => (
+                <tr key={`${t.title}${i}`} className="border-t border-border">
+                  <td className="px-3 py-2 font-medium">{t.title}</td>
+                  <td className="px-3 py-2">{t.company}</td>
+                  <td className="px-3 py-2 tabular-nums">{t.min && t.max ? `${money(t.min)} to ${money(t.max)}` : 'Not stated'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+
+const PIPELINE: { key: string; track: string; journeys: string[]; attract: string; land: string; retain: string; improve: string }[] = [
+  { key: 'move', track: 'Moving here', journeys: [], attract: 'Campaign to people elsewhere; local jobs next to pay and cost of living', land: 'Interview help, relocation guidance, employer introductions', retain: 'Welcome network, partner job search, school and housing help', improve: 'Career plan and courses after the move' },
+  { key: 'laid', track: 'Laid off', journeys: ['LAID_OFF'], attract: 'Rapid response reaches people the week of the notice', land: 'Benefits session, free seats, hiring employers matched', retain: 'Keep them in the region: local jobs rank first', improve: 'Retraining paid where funds allow' },
+  { key: 'pivot', track: 'Career pivot', journeys: ['CAREER_CHANGE'], attract: 'Pivot paths from shrinking to growing roles', land: 'Skills check against local postings', retain: 'Employer introductions in the new field', improve: 'Certificate or exec ed with a partner college' },
+  { key: 'grow', track: 'Employed and growing', journeys: ['GROWING', 'PROMOTION', 'EXPLORING_MOVE'], attract: 'Employers enroll teams, layoff or not', land: 'Skills gaps found from résumés and postings', retain: 'Stay-interview prompts and local options before they leave', improve: 'Upskilling courses, AI skills first' },
+  { key: 'grad', track: 'New graduates', journeys: ['STUDENT_NEW_GRAD', 'RETURNING'], attract: 'Partner colleges connect students to local employers', land: 'First-job support', retain: 'Alumni network keeps graduates here', improve: 'Early-career course paths' },
+]
+
+export async function HubPipeline({ ctx }: Props) {
+  const slug = ctx.institution.slug
+  const members = await prisma.institutionMember.findMany({
+    where: { institutionId: ctx.institution.id, candidateId: { not: null } },
+    take: 1000,
+    select: { candidate: { select: { journey: true } } },
+  })
+  const count = (j: string[]) => members.filter((m) => !!m.candidate?.journey && j.includes(m.candidate.journey)).length
+  return (
+    <div className="space-y-6">
+      <p className="max-w-3xl text-sm text-muted-foreground">
+        One plan from the first day to the next promotion: attract people, help them land, keep them here, and improve their careers. Each row is a kind of person; each column is what the program does for them.
+      </p>
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full min-w-[56rem] text-sm">
+          <thead className="bg-muted/50">
+            <tr>
+              <Th>Who</Th>
+              <Th>Attract</Th>
+              <Th>Land</Th>
+              <Th>Retain</Th>
+              <Th>Improve</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {PIPELINE.map((r) => {
+              const n = r.journeys.length ? count(r.journeys) : randInt(slug, `pipe${r.key}`, 140, 420)
+              return (
+                <tr key={r.key} className="border-t border-border align-top">
+                  <td className="min-w-36 px-3 py-3">
+                    <span className="font-medium">{r.track}</span>
+                    <span className="block text-xs tabular-nums text-muted-foreground">
+                      {r.journeys.length ? `${small(n)} in this demo` : (<>{n} interested<Sample /></>)}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-muted-foreground">{r.attract}</td>
+                  <td className="px-3 py-3 text-muted-foreground">{r.land}</td>
+                  <td className="px-3 py-3 text-muted-foreground">{r.retain}</td>
+                  <td className="px-3 py-3 text-muted-foreground">{r.improve}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-muted-foreground">Counts under five show as &lt;5. People in this demo are sample participants.</p>
     </div>
   )
 }
