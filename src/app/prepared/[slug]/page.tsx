@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound, redirect } from 'next/navigation'
+import { notFound, permanentRedirect, redirect } from 'next/navigation'
 import { PROSPECTS } from '@/lib/prospects/config'
 import { getArea, getCollege, getHub, getMarket, getNotices, getReadiness } from '@/lib/prospects/market'
 import { LongSearchCard, PrivacyNote, Section, StatStrip } from '@/components/prospects/Sections'
@@ -30,7 +30,7 @@ export default async function ProspectPage({ params }: { params: Promise<{ slug:
     const org = await resolveClaimableOrg(slug)
     // An address cut off in the middle of a name ("/prepared/central-", a link a mail program or a person shortened) is not a
     // missing page: send it to where an organization finds its own page rather than to a dead end.
-    if (!org && slug.endsWith('-')) redirect('/for-organizations')
+    if (!org && slug.endsWith('-')) permanentRedirect('/for-organizations')
     // Two records read to this address: the page cannot say which one it is, which is a data problem to fix, not a missing page.
     if (!org && await claimSlugIsAmbiguous(slug)) redirect('/for-organizations')
     if (!org) notFound()

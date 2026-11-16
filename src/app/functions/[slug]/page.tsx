@@ -1,7 +1,7 @@
 import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { LINK, FactGrid, RankList, Chips, ConferenceList, JobList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
@@ -34,7 +34,7 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
   const { slug } = await params
   const d = await loadFunction(slug)
   // An unknown function (a typed or bookmarked address like /functions/general) goes to the hub, not a 404.
-  if (!d) redirect('/functions')
+  if (!d) permanentRedirect('/functions')
   const { fn, jobs, stats, confs, orgs, facts, intro } = d
   const path = `/functions/${slug}`
   return (
