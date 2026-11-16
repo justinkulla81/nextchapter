@@ -5,7 +5,7 @@ import { myEnrollments } from '@/lib/higher-ed/programs'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { Chip } from '@/components/candidate/ui'
 
-// Network › Alumni and groups, as a workforce participant sees it: the same page as /dashboard/groups, with the
+// Network › Groups, as a workforce participant sees it: the same page as /dashboard/groups, with the
 // program listed as one of their groups and what it adds to each place (Learn, coaching, local employers).
 // Reads three counts and the member's own enrollments; nothing scans a large table.
 export async function CandidateGroups({ ctx, base }: { ctx: WorkspaceContext; base: string }) {
@@ -26,7 +26,7 @@ export async function CandidateGroups({ ctx, base }: { ctx: WorkspaceContext; ba
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Alumni and groups" intro="Schools, past employers and programs you belong to. They add their own jobs, learning and people to the places you already use." />
+      <PageHeader title="Groups" intro="Programs, past employers and schools you belong to. They add their own jobs, learning and people to the places you already use." />
       <article className="space-y-5 rounded-2xl border border-border p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">

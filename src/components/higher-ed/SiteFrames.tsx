@@ -19,7 +19,7 @@ type Place = { id: string; label: string; icon: LucideIcon; entries: { tab: stri
 const PLACES: Place[] = [
   { id: 'home', label: 'Home', icon: Home, entries: [{ tab: 'home', label: 'Your week' }] },
   { id: 'jobs', label: 'Jobs', icon: Briefcase, entries: [] },
-  { id: 'network', label: 'Network', icon: Users, entries: [{ tab: 'groups', label: 'Alumni and groups' }, { tab: 'coaching', label: 'Coaching' }] },
+  { id: 'network', label: 'Network', icon: Users, entries: [{ tab: 'groups', label: 'Groups' }, { tab: 'coaching', label: 'Coaching' }] },
   { id: 'learn', label: 'Learn', icon: BookOpen, entries: [{ tab: 'programs', label: 'Skills and courses' }] },
   { id: 'money', label: 'Finances and benefits', icon: Wallet, entries: [] },
   { id: 'account', label: 'Account and privacy', icon: UserCog, entries: [{ tab: 'privacy', label: 'Privacy' }] },
