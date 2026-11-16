@@ -525,9 +525,12 @@ export async function rebuildHiringIndex(opts: {
   }, sweep)
   const bench = shard === 0 ? await timed('benchmarks', () => rebuildPayBenchmarks(), null) : null
   const since = opts.since ?? new Date(0)
-  const market = await timed('market', async () => priceOpeningsPaged(await openingIdsToPrice({ since, shard }), { deadline, pauseMs: 500 }), null)
+  // A phase only checks its deadline before starting a page, and a page runs up to ~35 s (market) or ~50 s (profiles), so the last page
+  // ends well after the deadline. Profiles could start a page at 270 s and ran to 293.6 s of the 300 s limit (2026-11-16). Market now
+  // stops starting pages 40 s before the budget and profiles at the budget, so the run ends by about 280 s.
+  const market = await timed('market', async () => priceOpeningsPaged(await openingIdsToPrice({ since, shard }), { deadline: deadline - 40_000, pauseMs: 500 }), null)
   const profiles = await timed('profiles', async () =>
-    rebuildHiringProfilesPaged(await companyIdsToProfile({ since, shard }), { deadline: deadline + 40_000, pauseMs: 500 }), null
+    rebuildHiringProfilesPaged(await companyIdsToProfile({ since, shard }), { deadline, pauseMs: 500 }), null
   )
   const failed = Object.entries(errors)
   if (failed.length > 0) throw new Error(`company hiring index: ${failed.map(([phase, message]) => `${phase} failed after ${Math.round(ms[phase] / 1000)}s (${message})`).join('; ')}`)
