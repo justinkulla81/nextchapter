@@ -20,7 +20,7 @@ const PUBLIC_PER_DAY = 60
 // Generate a workforce demo and open it. Anyone can (rate limited); a
 // NextChapter admin's demos don't expire.
 export async function createWorkforceDemo(_prev: DemoFormState, f: FormData): Promise<DemoFormState> {
-  const values = Object.fromEntries(['name', 'orgType', 'anchorCity', 'anchorState', 'radiusMiles', 'email'].map((k) => [k, String(f.get(k) ?? '').trim()]))
+  const values = Object.fromEntries(['name', 'orgType', 'anchorCity', 'anchorState', 'radiusMiles', 'email', 'preparedFor', 'accentColor'].map((k) => [k, String(f.get(k) ?? '').trim()]))
   const orgType = values.orgType as (typeof TYPES)[number]
   if (!TYPES.includes(orgType)) return { error: 'Pick what kind of organization you are.', values }
   const email = values.email.toLowerCase()
@@ -42,6 +42,8 @@ export async function createWorkforceDemo(_prev: DemoFormState, f: FormData): Pr
       anchorCity: values.anchorCity,
       anchorState: values.anchorState,
       radiusMiles: Number(values.radiusMiles) || 40,
+      preparedFor: values.preparedFor,
+      accentColor: values.accentColor,
       source: admin ? 'admin' : 'public',
       requestedBy: email,
     })

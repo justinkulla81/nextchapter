@@ -9,6 +9,7 @@ import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib
 import Link from 'next/link'
 import { listOrgKeys } from '@/lib/census/api-keys'
 import { HubCompanies, HubHome, HubLayoffs, HubLocal, HubParticipants, WorkforceOverview } from './screens-hub'
+import { HubAttract, HubBenefits, HubGrants, HubLearning, HubRapid, HubSkills, HubUpskill } from './screens-hub-program'
 import { CompanyOverview, CompanySupport } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
@@ -1610,6 +1611,13 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:layoffs': HubLayoffs,
   'hub:participants': HubParticipants,
   'hub:local': HubLocal,
+  'hub:learning': HubLearning,
+  'hub:upskill': HubUpskill,
+  'hub:skills': HubSkills,
+  'hub:rapid': HubRapid,
+  'hub:benefits': HubBenefits,
+  'hub:attract': HubAttract,
+  'hub:grants': HubGrants,
   'hub:region': Region,
   'employer:overview': CompanyOverview,
   'employer:support': CompanySupport,

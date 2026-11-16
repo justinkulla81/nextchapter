@@ -73,6 +73,9 @@ export type WorkforceDemoInput = {
   anchorCity: string
   anchorState: string
   radiusMiles?: number
+  // Brand colour (#RRGGBB) and the person the demo is prepared for.
+  accentColor?: string
+  preparedFor?: string
   // 'public' demos expire; 'admin' ones stay until deleted.
   source: 'public' | 'admin'
   requestedBy: string | null
@@ -134,7 +137,7 @@ export async function generateWorkforceDemo(input: WorkforceDemoInput, now = new
       slug,
       name,
       programBrandName: `${name} Talent Hub`,
-      accentColor: '#1f5f8b',
+      accentColor: /^#[0-9a-fA-F]{6}$/.test(input.accentColor ?? '') ? input.accentColor! : '#1f5f8b',
       orgType: input.orgType,
       tier: 'INSTITUTION',
       includedSeats: 500,
@@ -149,7 +152,7 @@ export async function generateWorkforceDemo(input: WorkforceDemoInput, now = new
         local,
         // The real workforce board's site behind "Your local career center".
         ...(board?.website ? { services: { career_center: { on: true, provider: 'college', linkUrl: board.website } } } : {}),
-        demo: { source: input.source, requestedBy: input.requestedBy, createdAt: now.toISOString(), expiresAt: expiresAt?.toISOString() ?? null },
+        demo: { source: input.source, requestedBy: input.requestedBy, preparedFor: input.preparedFor?.trim().slice(0, 80) || null, createdAt: now.toISOString(), expiresAt: expiresAt?.toISOString() ?? null },
       },
     },
     select: { id: true },

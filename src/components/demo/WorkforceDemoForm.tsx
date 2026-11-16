@@ -51,6 +51,16 @@ export function WorkforceDemoForm({ defaults }: { defaults?: { name: string; cit
           <Input id="d-radius" name="radiusMiles" type="number" min={10} max={100} defaultValue={v.radiusMiles || '40'} />
         </div>
       </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="d-for">Prepared for (optional)</Label>
+          <Input id="d-for" name="preparedFor" maxLength={80} defaultValue={v.preparedFor} placeholder="Name of the person you are showing it to" />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="d-color">Brand color (optional)</Label>
+          <Input id="d-color" name="accentColor" maxLength={7} defaultValue={v.accentColor} placeholder="#1F5F8B" className="font-mono" />
+        </div>
+      </div>
       <div className="space-y-1.5">
         <Label htmlFor="d-email">Your work email</Label>
         <Input id="d-email" name="email" type="email" required defaultValue={v.email} />

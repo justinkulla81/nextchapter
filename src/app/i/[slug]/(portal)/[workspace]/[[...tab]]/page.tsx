@@ -26,7 +26,7 @@ export default async function WorkspacePage({
 
   const ctx = await requireWorkspace(slug, config.key as WorkspaceKey)
   const kind = orgKindOf(ctx.institution.orgType)
-  const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), kind)
+  const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), kind).filter((t) => !t.demoOnly || ctx.institution.isDemo)
   const activeKey = tab?.[0] ?? tabs[0]?.key
   const active = tabs.find((t) => t.key === activeKey)
   if (!active || (tab && tab.length > 1)) notFound()
