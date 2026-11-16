@@ -98,4 +98,4 @@ export const RERUN_SAFE_JOBS: ReadonlySet<string> = new Set([
 ])
 
 /** The rankings job builds three packs of lists by default; the admin "Run now" can rebuild one group on its own (src/app/api/cron/rankings). */
-export const RANKINGS_GROUPS = ['places', 'functions', 'skills', 'workforce', 'college', 'industry', 'profile', 'support'] as const
+export const RANKINGS_GROUPS = ['places', 'functions', 'skills', 'workforce', 'college', 'industry', 'profile', 'support', 'metro'] as const
