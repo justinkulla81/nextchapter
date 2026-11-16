@@ -34,7 +34,7 @@ where the gap is: professionals rarely enter the public system, so nothing track
 
 Open: which system the region uses (Geographic Solutions, a Salesforce build, other). Not confirmed.
 
-## The seven verbs and the six areas
+## The seven verbs and the areas
 
 **Verbs** (what the organization does; Home shows one tile for each, with status and what needs you):
 Attract · Retrain · Support (layoff response) · Train · Fund · Understand (labor market) · Coordinate
@@ -48,12 +48,13 @@ Attract · Retrain · Support (layoff response) · Train · Fund · Understand (
 | Employers | Member companies, layoffs and response, hiring, pledges, upskilling, job specs |
 | Partners | Colleges, training providers, the board and job centers, community groups: directory, claim status, commitments, referrals |
 | Funding | Opportunities, applications, awards, match, compliance |
+| Jobs | The jobs in the region: see them all, add a job, add listings from elsewhere, feature the ones that go first to the program's people |
 | Market | Current labor market data: jobs, skills, layoffs, pay against peers, migration, AI exposure. It feeds every other area |
 | Reports | Everything above as reports (below) |
-| Previews | The public pages, the participant view and the employer view, and how the organization controls them |
+| Public presence | Every public page the organization controls (inventory, status, edit, publish), plus the participant and employer previews |
 
-Rules for every screen: one primary action; the page background is white with clean cards, brand color on headings and actions (no gray
-page); every figure says where it comes from; anything invented is labeled sample.
+Rules for every screen: one primary action; the page background is **white** with clean cards and **the organization's own color as the accent**
+(headings, active states, actions; text color picked for contrast; no gray page); every figure says where it comes from; anything invented is labeled sample.
 
 ## Flows (use cases, each ending in a report)
 
@@ -105,15 +106,70 @@ The program is a group in the person's own account: discussion, a shared resourc
 moderate. People choose their own visibility. The program sees counts, never a person's search; employers never see individuals unless the
 person says yes. We never write to a member's Google account.
 
+## Home page
+
+The Home page opens with a **splash picture of the place** (downtown or an economic image) and the organization's high-level stats, then what needs
+the team this week.
+- **Picture:** the organization uploads its own, or we offer licensed photos with their credit shown. We do not take pictures from the web.
+- **Stats:** from Market (jobs open, unemployment rate and labor force, the figures the organization chooses to headline), each with its source and date.
+- **Best-of rankings and awards:** from our own rankings where the place ranks (for example best places for white-collar professionals), and awards the
+  organization adds itself with a source link. Nothing is invented.
+
+## Jobs
+
+The organization sees all jobs in its region, and can **add a job** (a form), **add listings from elsewhere** (paste links, upload a spreadsheet, or connect
+an employer's job feed), and review a queue before anything is published. Each listing shows where it came from and links to the employer's own career
+site. The organization can feature jobs so the program's people see them first. Employers can submit their own jobs through the Employer view.
+
+## Red zone: long-term unemployment
+
+People in the program who have been out of work **26 weeks or more** (BLS counts 27 and over as long-term; we use 26 as the owner chose) are a segment in
+People, with a watch list at 18 to 25 weeks. Each row shows the track, weeks out, services used and the next action (outreach, coaching, retraining,
+supportive services). Only people in the program, and detail only where the person shares it; counts under five are hidden. The Home page shows the
+count, and Reports tracks how many leave the red zone for work.
+
+## Skills intelligence (the killer use case)
+
+Three views of one skills picture for the region:
+1. **Demand:** the skills in local job postings, by occupation and employer.
+2. **Supply:** the skills in local people's résumés, from consented résumé analysis (the program's participants, plus members in the region who allow
+   anonymous totals; the area brief already reports totals this way). Aggregates only; groups under five are hidden.
+3. **Gap:** demand minus supply, by skill and occupation, and for each person their own gaps against local jobs.
+
+Who uses it: the organization (where to put money and cohorts), colleges and training providers (what to teach), employers (how deep the local pool is),
+and each person (what to learn next). It needs one skills vocabulary applied the same way to postings and résumés; the current keyword list is a
+starting point, not the final method.
+
+## Sharing data with colleges and employers
+
+What can be shared: skills demand and supply, jobs, training and education programs, and the gaps between them. How, in order of build:
+1. **Partner views.** A claimed partner sees a scoped, read-only view: colleges see skills demand and gaps against their programs; employers see talent
+   supply and their own pipeline. Aggregate by default.
+2. **Shareable snapshots.** A link or embed for a report, with a stated audience, purpose, scope and expiry, and a log of who opened it.
+3. **Program and job feeds.** A published catalog of training and education programs, and a jobs feed, that partners and the public can read
+   (including as structured data so search engines understand it).
+4. **API and exports** later; the portal already issues organization API keys for census data, which is the pattern to extend.
+Rule: individuals are never shared. Row-level detail goes only to the person's own consented recipients.
+
+## Public presence
+
+One screen lists **every public page the organization controls**: its claimed page, layoff pages for employers in its region, the relocation page,
+employer and partner pages, events, and the program and job feeds. Each shows its status (published, draft, unclaimed), who can edit it, what it feeds in
+the portal, its visits, and an edit and unpublish control.
+
 ## Decided and open
 
-Decided: design both modes; light person record with export; the seven verbs and six areas; the flows above; white page; Market section with
-current data; the directory seeds from public page data.
+Decided: design both modes; light person record with export; the seven verbs and the areas; the flows above; white page with the organization's accent;
+Market section with current data; the directory seeds from public page data; a Home with a splash picture, stats and rankings; Jobs the organization
+can add to; a red zone at 26 weeks; skills demand, supply and gaps; data sharing with partners.
 
 Open:
 1. Who sends partner invitations: the platform (from a verified address, with an opt-out) or the steward from their own email. Decide later.
 2. Which case management system the region uses.
 3. Which two flows matter most to the first customer (recommended: A and B).
+4. Which data-sharing step comes first (recommended: partner views, then snapshots).
+5. Whether counsel clears anonymous totals from members who are not in the program (supply side of the skills view).
+6. Where the splash pictures come from (the organization's own, or a licensed library).
 
 ## Phases
 
