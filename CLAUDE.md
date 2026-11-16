@@ -43,6 +43,9 @@ A public page makes one registration ask: the navy `NextStepBox` (`src/component
 frames (`SeoPage`, `TopicShell`) and `PullTop` render for you. Do not add a second "Get my plan / Get my Market Reality
 Assessment" button, a mid-page strip or a closing band to a page, and pass `cta={false}` to `PublicSiteFooter` on a page that
 already carries the box. A page's own content links (file a claim, download the data) are not asks. Owner decision, 2026-11-03.
+Exception (owner decision, 2026-11-16): a workforce board's page (`/workforce-boards/<state>/<board>`, `OrgPageView`) makes two asks:
+the box for the board ("Claim your page") and the job-seeker band with the "Which one is you?" situation choice (`OrgCandidateBand`
+with `situations`). Keep both.
 
 ## Candidate site redesign
 
