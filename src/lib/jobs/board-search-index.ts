@@ -1,7 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot, yieldToRequests } from '@/lib/jobs/board-snapshot'
-import { decodeFactsPart, encodeFactsPart, FACTS_PART_ROWS, isFactsPart } from '@/lib/jobs/board-snapshot-codec'
+import { decodeFactsPart, encodeFactsPart, isFactsPart } from '@/lib/jobs/board-snapshot-codec'
+import { heapBlockCount, heapRangeSql, heapRanges, type HeapRange } from '@/lib/db/heap-ranges'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import type { LightRow } from '@/lib/jobs/board-light-rows'
@@ -171,6 +172,8 @@ export class IndexAccumulator {
 
   add(rows: readonly FactsRow[]): void {
     for (const r of rows) {
+      // A job updated while the table is read in block ranges can come back twice (heap-ranges.ts): the first copy counts.
+      if (this.pos.has(r.id)) continue
       this.pos.set(ownCopy(r.id), this.n++)
       this.industry.push(this.tIndustry.of(r.industry))
       this.soc.push(this.tSoc.of(r.socTitle))
@@ -253,17 +256,16 @@ export function buildSearchIndex(rows: FactsRow[], loadedMs = 0): SearchIndex {
   return acc.finish(loadedMs)
 }
 
-/** One page of the wide-table read behind the index: up to FACTS_PART_ROWS live jobs after `afterId`, in id order. */
-async function readFactsPage(afterId: string): Promise<FactsRow[]> {
+/** One page of the wide-table read behind the index: the live jobs in one block range of the table (heap-ranges.ts). */
+async function readFactsPage(range: HeapRange): Promise<FactsRow[]> {
   return prisma.$queryRaw<FactsRow[]>`
     SELECT "id", "title", "companyName", "industry", "socTitle", "workArrangement", "locationCity", "locationState",
       NULLIF(array_to_string("locationStates", ','), '') AS "states", NULLIF(array_to_string("skills", ' '), '') AS "skills",
       "postingType"
     FROM "ExclusiveJobPosting"
-    WHERE "status" = 'approved' AND "archivedAt" IS NULL AND "institutionScopeId" IS NULL AND "distribution" <> 'EXCLUDED'
-      AND ("expiresAt" IS NULL OR "expiresAt" > now())
-      AND "id" > ${afterId}
-    ORDER BY "id" LIMIT ${FACTS_PART_ROWS}`
+    WHERE ${heapRangeSql(range)}
+      AND "status" = 'approved' AND "archivedAt" IS NULL AND "institutionScopeId" IS NULL AND "distribution" <> 'EXCLUDED'
+      AND ("expiresAt" IS NULL OR "expiresAt" > now())`
 }
 
 /**
@@ -308,14 +310,12 @@ export async function feedSearchFacts(acc: IndexAccumulator): Promise<void> {
   const encoded: unknown[] = []
   void recordFactsStep({ phase: 'read_start' })
   try {
-    let afterId = ''
-    for (;;) {
-      const rows = await readFactsPage(afterId)
-      if (rows.length === 0) break
-      acc.add(rows)
-      if (keep) encoded.push(encodeFactsPart(rows))
-      afterId = rows[rows.length - 1].id
-      if (rows.length < FACTS_PART_ROWS) break
+    for (const range of heapRanges(await heapBlockCount('ExclusiveJobPosting'))) {
+      const rows = await readFactsPage(range)
+      if (rows.length > 0) {
+        acc.add(rows)
+        if (keep) encoded.push(encodeFactsPart(rows))
+      }
       await yieldToRequests()
     }
   } catch (error) {
