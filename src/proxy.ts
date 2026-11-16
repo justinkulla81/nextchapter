@@ -1,5 +1,6 @@
 import { NextResponse, type NextFetchEvent, type NextRequest } from 'next/server'
 import { matchAiCrawler } from '@/lib/http/ai-crawlers'
+import { stripTrailingPunctuation } from '@/lib/http/trailing-punctuation'
 import { updateSession } from '@/lib/supabase/middleware'
 import { PROTECTED_APP_PATH_PREFIXES, pathStartsWith } from '@/lib/supabase/portal'
 import { APP_TOP_LEVEL, PORTAL_ROOT_PAGES } from '@/lib/app-top-level'
@@ -58,6 +59,17 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     if (first && first !== first.toLowerCase() && APP_TOP_LEVEL.has(first.toLowerCase())) {
       const url = request.nextUrl.clone()
       url.pathname = `/${first.toLowerCase()}${pathname.slice(first.length + 1)}`
+      return NextResponse.redirect(url, 308)
+    }
+  }
+
+  // /after-a-layoff. and the like: a link copied out of a sentence with its full stop, comma or closing bracket. No route
+  // ends in punctuation, so send it to the address without it (404 alert, 2026-11-05).
+  if (MAIN_HOSTS.has(host) && (request.method === 'GET' || request.method === 'HEAD')) {
+    const clean = stripTrailingPunctuation(pathname)
+    if (clean) {
+      const url = request.nextUrl.clone()
+      url.pathname = clean
       return NextResponse.redirect(url, 308)
     }
   }
