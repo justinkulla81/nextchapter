@@ -180,12 +180,11 @@ export function decodeOccupations(encoded: unknown): JobOccupations | null {
   return out
 }
 
-// The board search's raw facts (board-search-index.ts readIndex), one part per FACTS_PART_ROWS rows, column by column like the board,
+// The board search's raw facts (board-search-index.ts readIndex), one part per page of the database read (a block range of the table,
+// heap-ranges.ts, so parts differ in size), column by column like the board,
 // with every repeated string (company, industry, city, skills…) written once per part. Rows come back exactly as the database read gives them
 // except that `postingType` is always present (null when the row had none), which the index treats the same.
 
-/** Rows per part, and per page of the database read behind the index (board-search-index.ts), so a part is exactly one page. */
-export const FACTS_PART_ROWS = 20_000
 
 interface EncodedFactsPart {
   v: 1
@@ -203,7 +202,7 @@ interface EncodedFactsPart {
   postingType: number[]
 }
 
-/** One part of the search facts as JSON. Call per slice of FACTS_PART_ROWS rows. */
+/** One part of the search facts as JSON. Call per page of the read. */
 export function encodeFactsPart(rows: readonly FactsRow[]): EncodedFactsPart {
   const { strings, ref } = stringTable()
   return {

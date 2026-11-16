@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { heapBlockCount, heapRangeSql, heapRanges } from '@/lib/db/heap-ranges'
 import { logBoardMemory } from '@/lib/jobs/board-light-rows'
 import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot } from '@/lib/jobs/board-snapshot'
 import { decodeOccupations, encodeOccupations } from '@/lib/jobs/board-snapshot-codec'
@@ -117,9 +118,9 @@ export interface JobOccupations {
 let jobSocs: { at: number; value: Promise<JobOccupations> } | null = null
 let jobSocsLoading: Promise<JobOccupations> | null = null
 
-// Read a page at a time (keyset on the primary key) and folded into the maps as it goes:
-// the whole result — every live job's skill arrays — never sits in memory beside the maps.
-const JOB_SOC_PAGE = 20_000
+// Read a block range at a time, in the table's physical order (heap-ranges.ts), and folded into the maps as it goes:
+// the whole result — every live job's skill arrays — never sits in memory beside the maps. A row read twice (updated
+// mid-pass) just sets the same map entries again.
 type JobSocRow = { id: string; socCode: string | null; subFunction: string | null; industry: string | null; skills: string[]; skillIds: string[] }
 
 async function readJobSocs(): Promise<JobOccupations> {
@@ -135,13 +136,11 @@ async function readJobSocs(): Promise<JobOccupations> {
   const skills = new Map<string, readonly string[]>()
   const skillIds = new Map<string, readonly string[]>()
   const bucketOf = new Map<string, string | null>()
-  let afterId = ''
-  for (;;) {
+  for (const range of heapRanges(await heapBlockCount('ExclusiveJobPosting'))) {
     const rows = await prisma.$queryRaw<JobSocRow[]>`
       SELECT "id", "socCode", "subFunction", "industry", "skills", "skillIds" FROM "ExclusiveJobPosting"
-      WHERE "archivedAt" IS NULL AND "id" > ${afterId}
-        AND ("socCode" IS NOT NULL OR "subFunction" IS NOT NULL OR "industry" IS NOT NULL OR cardinality("skills") > 0 OR cardinality("skillIds") > 0)
-      ORDER BY "id" LIMIT ${JOB_SOC_PAGE}`
+      WHERE ${heapRangeSql(range)} AND "archivedAt" IS NULL
+        AND ("socCode" IS NOT NULL OR "subFunction" IS NOT NULL OR "industry" IS NOT NULL OR cardinality("skills") > 0 OR cardinality("skillIds") > 0)`
     for (const r of rows) {
       if (r.socCode) socs.set(r.id, intern(r.socCode))
       if (r.subFunction) subs.set(r.id, intern(r.subFunction))
@@ -153,8 +152,6 @@ async function readJobSocs(): Promise<JobOccupations> {
       if (r.skills && r.skills.length > 0) skills.set(r.id, r.skills.map((x) => intern(x.toLowerCase())))
       if (r.skillIds && r.skillIds.length > 0) skillIds.set(r.id, r.skillIds.map(intern))
     }
-    if (rows.length < JOB_SOC_PAGE) break
-    afterId = rows[rows.length - 1].id
   }
   logBoardMemory('job occupations', { socs: socs.size, skills: skills.size, skillIds: skillIds.size })
   return { socs, subs, industries, skills, skillIds }

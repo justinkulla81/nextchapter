@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 
-import { decodeBoardPart, decodeFacts, decodeFactsPart, isFactsPart, decodeOccupations, encodeBoardPart, encodeFactsPart, encodeOccupations, FACTS_PART_ROWS, LIGHT_COLUMNS } from '@/lib/jobs/board-snapshot-codec'
+import { decodeBoardPart, decodeFacts, decodeFactsPart, isFactsPart, decodeOccupations, encodeBoardPart, encodeFactsPart, encodeOccupations, LIGHT_COLUMNS } from '@/lib/jobs/board-snapshot-codec'
 import type { FactsRow } from '@/lib/jobs/board-search-index'
 import { LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
 import { stillLive } from '@/lib/jobs/board-shortlist'
@@ -147,10 +147,6 @@ describe('search facts codec', () => {
     expect(decodeFactsPart({ v: 1 })).toBeNull()
   })
 
-  it('keeps a part small enough that building one at a time adds little memory, and big enough to stay a few dozen objects', () => {
-    expect(FACTS_PART_ROWS).toBeGreaterThanOrEqual(10_000)
-    expect(Math.ceil(600_000 / FACTS_PART_ROWS)).toBeLessThanOrEqual(60)
-  })
 })
 
 describe('stillLive: a held board brought up to now, as a fresh read would give it', () => {

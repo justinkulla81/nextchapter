@@ -2,14 +2,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
-// The database read: a page per call, found by the `afterId` the loader passes (the second argument of the tagged template).
+// The database read: one block range per call. The loader asks for the heap's size (mocked below), then reads each range; the mock puts
+// ROWS_PER_RANGE rows in each range and every row past the last full range in the last, open-ended one.
+const ROWS_PER_RANGE = 1_000
 let dbRows: FactsRow[] = []
-const queryRaw = vi.fn(async (_strings: unknown, afterId: string, limit: number) => {
-  const from = afterId === '' ? 0 : dbRows.findIndex((r) => r.id === afterId) + 1
-  return dbRows.slice(from, from + limit)
+const rangeIndex = (r: HeapRange) => Number(/^\((\d+),0\)$/.exec(r.from)![1]) / HEAP_RANGE_BLOCKS
+const queryRaw = vi.fn(async (_strings: unknown, range: HeapRange) => {
+  const i = rangeIndex(range)
+  return dbRows.slice(i * ROWS_PER_RANGE, range.to ? (i + 1) * ROWS_PER_RANGE : undefined)
 })
+vi.mock('@/lib/db/heap-ranges', async (actual) => ({
+  ...(await actual<typeof import('@/lib/db/heap-ranges')>()),
+  heapBlockCount: async () => Math.max(1, Math.ceil(dbRows.length / ROWS_PER_RANGE)) * HEAP_RANGE_BLOCKS,
+  heapRangeSql: (r: HeapRange) => r, // the range itself reaches the query as its first value
+}))
 const eventCreate = vi.fn(async (..._a: unknown[]) => ({}))
-vi.mock('@/lib/prisma', () => ({ prisma: { $queryRaw: (...a: [unknown, string, number]) => queryRaw(...a), analyticsEvent: { create: (...a: unknown[]) => eventCreate(...a) } } }))
+vi.mock('@/lib/prisma', () => ({ prisma: { $queryRaw: (...a: [unknown, HeapRange]) => queryRaw(...a), analyticsEvent: { create: (...a: unknown[]) => eventCreate(...a) } } }))
 
 const snapshot = {
   snapshotsDisabled: vi.fn(() => false),
@@ -32,7 +40,8 @@ vi.mock('@/lib/jobs/board-snapshot', () => ({
 }))
 
 import { buildSearchIndex, feedSearchFacts, IndexAccumulator, resetSearchIndexForTests, warmSearchIndex, type FactsRow } from '@/lib/jobs/board-search-index'
-import { decodeFactsPart, encodeFactsPart, FACTS_PART_ROWS } from '@/lib/jobs/board-snapshot-codec'
+import { decodeFactsPart, encodeFactsPart } from '@/lib/jobs/board-snapshot-codec'
+import { HEAP_RANGE_BLOCKS, type HeapRange } from '@/lib/db/heap-ranges'
 
 const fact = (id: string, over: Partial<FactsRow> = {}): FactsRow => ({
   id, title: `Analyst ${id}`, companyName: 'Acme', industry: null, socTitle: null, workArrangement: null,
@@ -94,16 +103,17 @@ describe('feedSearchFacts', () => {
     expect(steps()).toEqual([])
   })
 
-  it('reads the database a keyset page at a time, and writes the pages as the next snapshot', async () => {
-    dbRows = many(FACTS_PART_ROWS * 2 + 5)
+  it('reads the database a block range at a time, and writes the ranges as the next snapshot', async () => {
+    dbRows = many(ROWS_PER_RANGE * 2 + 5)
     const acc = new IndexAccumulator()
     await feedSearchFacts(acc)
     await wait()
-    expect(acc.size).toBe(FACTS_PART_ROWS * 2 + 5)
+    expect(acc.size).toBe(ROWS_PER_RANGE * 2 + 5)
     expect(queryRaw).toHaveBeenCalledTimes(3)
-    expect(queryRaw.mock.calls.map((c) => c[1])).toEqual(['', dbRows[FACTS_PART_ROWS - 1].id, dbRows[FACTS_PART_ROWS * 2 - 1].id])
+    expect(queryRaw.mock.calls.map((c) => (c[1] as HeapRange).from)).toEqual(['(0,0)', `(${HEAP_RANGE_BLOCKS},0)`, `(${HEAP_RANGE_BLOCKS * 2},0)`])
+    expect((queryRaw.mock.calls[2][1] as HeapRange).to).toBeNull() // the last range takes rows added past the end
     const [kind, fingerprint, , parts, count] = snapshot.writeSnapshot.mock.calls[0] as unknown as [string, string, number, unknown[], number]
-    expect([kind, fingerprint, count]).toEqual(['search-facts', 'fp1', FACTS_PART_ROWS * 2 + 5])
+    expect([kind, fingerprint, count]).toEqual(['search-facts', 'fp1', ROWS_PER_RANGE * 2 + 5])
     expect(parts).toHaveLength(3)
     expect(decodeFactsPart(parts[2])).toHaveLength(5)
     expect(steps()).toEqual(['read_start', 'read_done', 'write_start', 'write_failed']) // no manifest to read back in this mock
@@ -117,14 +127,14 @@ describe('feedSearchFacts', () => {
     expect(steps()).toEqual(['read_start', 'read_done', 'write_start', 'write_done'])
   })
 
-  it('stops at an empty page, and at a short one without asking again', async () => {
-    dbRows = many(FACTS_PART_ROWS) // exactly one full page: a second call finds nothing
-    await feedSearchFacts(new IndexAccumulator())
-    expect(queryRaw).toHaveBeenCalledTimes(2)
-    queryRaw.mockClear()
-    dbRows = many(7) // a short page ends the read
-    await feedSearchFacts(new IndexAccumulator())
-    expect(queryRaw).toHaveBeenCalledTimes(1)
+  it('reads every range, an empty one included, and keeps one copy of a job read twice', async () => {
+    dbRows = many(ROWS_PER_RANGE * 3)
+    dbRows.splice(ROWS_PER_RANGE, ROWS_PER_RANGE, ...dbRows.slice(0, ROWS_PER_RANGE)) // range 1 repeats range 0: rows moved mid-read
+    const acc = new IndexAccumulator()
+    await feedSearchFacts(acc)
+    expect(queryRaw).toHaveBeenCalledTimes(3)
+    expect(acc.size).toBe(ROWS_PER_RANGE * 2)
+    expect(acc.finish().pos.get(dbRows[ROWS_PER_RANGE * 2].id)).toBe(ROWS_PER_RANGE)
   })
 
   it('falls back to the database when the parts cannot be read or are in another format', async () => {
