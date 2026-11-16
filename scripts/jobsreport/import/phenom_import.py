@@ -1,10 +1,28 @@
 import json,os,sys,time,datetime,urllib.request,concurrent.futures as cf,threading,html
 KEY=os.environ["K"]; URL="https://launchyournextchapter.com/api/admin/jobs/import"
+
+def _confirm(urls):
+    body=json.dumps({"confirmUrls":urls}).encode()
+    for a in range(4):
+        try:
+            r=urllib.request.Request(URL,data=body,method="POST",headers={"Authorization":"Bearer "+KEY,"Content-Type":"application/json"})
+            return json.load(urllib.request.urlopen(r,timeout=120))
+        except Exception: time.sleep(3*(a+1))
+    return {}
+def post(jobs,*a):
+    # REFRESH=1: confirm the jobs we already hold with one narrow update; send only the rest in full.
+    if os.environ.get("REFRESH")=="1" and not (a and a[0]):
+        got=set(_confirm([j["url"] for j in jobs]).get("confirmedUrls",[]))
+        rest=[j for j in jobs if j["url"] not in got]
+        out=dict(_post(rest,*a)) if rest else {}
+        out["updated"]=(out.get("updated",0) or 0)+len(got); return out
+    return _post(jobs,*a)
+
 src=json.load(open("/home/user/nextchapter/scripts/jobsreport/sources/phenom-found.json"))
 def http(u,data=None):
     r=urllib.request.Request(u,data=data,headers={"User-Agent":"Mozilla/5.0","Content-Type":"application/json","Accept":"application/json"})
     return urllib.request.urlopen(r,timeout=60).read().decode()
-def post(jobs):
+def _post(jobs):
     body=json.dumps({"jobs":jobs}).encode()
     for a in range(4):
         try:
@@ -26,7 +44,7 @@ def work(s):
         for j in jobs:
             loc=", ".join(x for x in (j.get("city"),j.get("state")) if x)
             if j.get("country") in ("United States","US","USA"): loc+=", United States"
-            buf.append({"title":j.get("title",""),"companyName":s["employer"],"location":loc,"url":f"{base}/{path}/job/{j['jobSeqNo']}","description":html.unescape(j.get("descriptionTeaser") or ""),"postedAt":j.get("postedDate") or j.get("dateCreated"),"sourceCategory":"employer","sourceName":"Phenom","directListing":True,"lastVerifiedAt":now})
+            buf.append({"title":j.get("title",""),"companyName":s["employer"],"location":loc,"url":f"{base}/{path}/job/{j['jobSeqNo']}","description":html.unescape(j.get("descriptionTeaser") or ""),"postedAt":j.get("postedDate") or j.get("dateCreated"),"sourceCategory":"employer","sourceName":"Phenom","directListing":True,"addedBy":"bulk_import","lastVerifiedAt":now})
         frm+=len(jobs)
         if len(buf)>=100:
             r=post(buf); buf=[]

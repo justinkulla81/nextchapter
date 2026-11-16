@@ -1,6 +1,24 @@
 import json, os, sys, time, re, html, urllib.request, urllib.error, concurrent.futures as cf, datetime, threading
 R="/home/user/nextchapter/scripts/jobsreport/sources/"
 KEY=os.environ["K"]; URL="https://launchyournextchapter.com/api/admin/jobs/import"
+
+def _confirm(urls):
+    body=json.dumps({"confirmUrls":urls}).encode()
+    for a in range(4):
+        try:
+            r=urllib.request.Request(URL,data=body,method="POST",headers={"Authorization":"Bearer "+KEY,"Content-Type":"application/json"})
+            return json.load(urllib.request.urlopen(r,timeout=120))
+        except Exception: time.sleep(3*(a+1))
+    return {}
+def post(jobs,*a):
+    # REFRESH=1: confirm the jobs we already hold with one narrow update; send only the rest in full.
+    if os.environ.get("REFRESH")=="1" and not (a and a[0]):
+        got=set(_confirm([j["url"] for j in jobs]).get("confirmedUrls",[]))
+        rest=[j for j in jobs if j["url"] not in got]
+        out=dict(_post(rest,*a)) if rest else {}
+        out["updated"]=(out.get("updated",0) or 0)+len(got); return out
+    return _post(jobs,*a)
+
 UA="Mozilla/5.0 (compatible; NextChapterJobs/1.0)"
 def get(url, data=None, headers=None, timeout=40):
     for a in range(3):
@@ -13,7 +31,7 @@ def get(url, data=None, headers=None, timeout=40):
             return None
         except Exception: time.sleep(2)
     return None
-def post(jobs):
+def _post(jobs):
     body=json.dumps({"jobs":jobs}).encode()
     for a in range(4):
         try:
@@ -23,7 +41,7 @@ def post(jobs):
     return {}
 now=lambda: datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 def J(title,emp,loc,url,desc,posted,src):
-    return {"title":title,"companyName":emp,"location":loc,"url":url,"description":desc,"postedAt":posted,"sourceCategory":"employer","sourceName":src,"directListing":True,"lastVerifiedAt":now()}
+    return {"title":title,"companyName":emp,"location":loc,"url":url,"description":desc,"postedAt":posted,"sourceCategory":"employer","sourceName":src,"directListing":True,"addedBy":"bulk_import","lastVerifiedAt":now()}
 def greenhouse(s):
     d=get(f"https://boards-api.greenhouse.io/v1/boards/{s['token']}/jobs?content=true")
     for j in (d or {}).get("jobs",[]):
