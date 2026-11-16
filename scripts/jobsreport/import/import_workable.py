@@ -1,9 +1,27 @@
 import json, os, sys, time, urllib.request, concurrent.futures as cf, datetime
 SRC="/tmp/claude-0/-home-user-nextchapter/b4e83622-3eb6-54e1-83b5-d8fdcae1ab60/scratchpad/workable-us.jsonl"
 KEY=os.environ["K"]; URL="https://launchyournextchapter.com/api/admin/jobs/import"
+
+def _confirm(urls):
+    body=json.dumps({"confirmUrls":urls}).encode()
+    for a in range(4):
+        try:
+            r=urllib.request.Request(URL,data=body,method="POST",headers={"Authorization":"Bearer "+KEY,"Content-Type":"application/json"})
+            return json.load(urllib.request.urlopen(r,timeout=120))
+        except Exception: time.sleep(3*(a+1))
+    return {}
+def post(jobs,*a):
+    # REFRESH=1: confirm the jobs we already hold with one narrow update; send only the rest in full.
+    if os.environ.get("REFRESH")=="1" and not (a and a[0]):
+        got=set(_confirm([j["url"] for j in jobs]).get("confirmedUrls",[]))
+        rest=[j for j in jobs if j["url"] not in got]
+        out=dict(_post(rest,*a)) if rest else {}
+        out["updated"]=(out.get("updated",0) or 0)+len(got); return out
+    return _post(jobs,*a)
+
 MODE=sys.argv[1]; LIMIT=int(sys.argv[2]) if len(sys.argv)>2 else 10**9
 BATCH=100
-def post(jobs, dry):
+def _post(jobs, dry):
     body=json.dumps({"jobs":jobs,"dryRun":dry}).encode()
     for a in range(4):
         try:
@@ -20,7 +38,7 @@ def mapjob(j):
     now=datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     return {"title":j["title"],"companyName":j["employer"],"location":loc,"url":j["applyUrl"],
       "description":j.get("description"),"postedAt":j.get("posted"),"sourceCategory":"employer",
-      "sourceName":"Workable","directListing":True,"lastVerifiedAt":now}
+      "sourceName":"Workable","directListing":True,"addedBy":"bulk_import","lastVerifiedAt":now}
 def batches():
     buf=[];n=0
     with open(SRC) as f:

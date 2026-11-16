@@ -168,6 +168,10 @@ interface ImportRequestBody {
   // Batched full sync, last step: archive every 'ncrawl' row not confirmed
   // since `startedAt` (the moment the run's first batch was sent).
   finalizeSync?: { startedAt: string; force?: boolean }
+  // Daily refresh of bulk-imported jobs (scripts/jobsreport/import): the urls the employer's system still lists. Stamps the
+  // 'bulk_import' rows among them confirmed and live again, writes nothing else, reads no posting text, and answers with the urls it
+  // held (the sender posts the rest in full).
+  confirmUrls?: string[]
 }
 
 function isValidJob(job: unknown): job is ImportJobInput {
@@ -456,6 +460,22 @@ export async function POST(request: NextRequest) {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  if (Array.isArray(body.confirmUrls)) {
+    const urls = body.confirmUrls.filter((u): u is string => typeof u === 'string' && u.length > 0 && u.length < 2000).slice(0, 5000)
+    const now = new Date()
+    const held = urls.length
+      ? await prisma.$queryRaw<{ url: string }[]>`
+          UPDATE "ExclusiveJobPosting"
+          SET "lastVerifiedAt" = ${now}, "lastConfirmedAt" = ${now},
+              "archivedAt" = CASE WHEN "closeReason" IN ('removed', 'aged_out') THEN NULL ELSE "archivedAt" END,
+              "closeReason" = CASE WHEN "closeReason" IN ('removed', 'aged_out') THEN NULL ELSE "closeReason" END
+          WHERE "url" = ANY(${urls}::text[]) AND "addedBy" = 'bulk_import'
+            AND ("archivedAt" IS NULL OR "closeReason" IN ('removed', 'aged_out'))
+          RETURNING "url"`
+      : []
+    return NextResponse.json({ sent: urls.length, confirmed: held.length, confirmedUrls: held.map((r) => r.url) })
   }
 
   if (body.finalizeSync) {
