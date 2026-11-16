@@ -256,7 +256,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
     tabs: [
       { key: 'home', label: 'Dashboard', comingIn: null, group: 'Overview' },
       { key: 'pipeline', label: 'Pipeline', comingIn: null, demoOnly: true, group: 'Overview' },
-      { key: 'participants', label: 'Participants', comingIn: null, group: 'Overview' },
+      // Everyone the program helps, by track, with the benefits matched to each person (src/lib/workforce/people-crm.ts).
+      { key: 'participants', label: 'People', comingIn: null, group: 'Overview' },
       { key: 'local', label: 'Kept in region', comingIn: null, group: 'Overview' },
       { key: 'region', label: 'Local market', comingIn: null, group: 'Overview' },
       { key: 'companies', label: 'Member companies', comingIn: null, group: 'Employers' },

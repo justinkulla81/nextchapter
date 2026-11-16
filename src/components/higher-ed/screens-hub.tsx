@@ -7,18 +7,16 @@ import { Building2, MapPin, Users } from 'lucide-react'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
 import { regionNotices } from '@/lib/higher-ed/rapid-response'
-import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, participants, seatRequests, small, type LocalSplit } from '@/lib/workforce/hub'
+import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, seatRequests, small, type LocalSplit } from '@/lib/workforce/hub'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
-import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, ParticipantForm, SeatRequestAnswer } from './HubForms'
+import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
 import { BriefCard } from './BriefCard'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
 const day = (d: Date | null) => (d ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(d)) : '—')
 const pct = (x: number | null) => (x === null ? 'Too early' : `${Math.round(x * 100)}%`)
-const STAGE: Record<string, string> = { EXPLORING: 'Exploring', PREPARING: 'Preparing', APPLYING: 'Applying', INTERVIEWING: 'Interviewing', OFFER: 'Has an offer', LANDED: 'Landed', PAUSED: 'Paused' }
-
 function Th({ children }: { children: React.ReactNode }) {
   return <th className="px-3 py-2 text-left font-medium">{children}</th>
 }
@@ -212,67 +210,6 @@ export async function HubLayoffs({ ctx, searchParams }: Props) {
             ))}
           </ul>
         </section>
-      )}
-    </div>
-  )
-}
-
-export async function HubParticipants({ ctx, searchParams }: Props) {
-  const slug = ctx.institution.slug
-  const [rows, companies] = await Promise.all([
-    participants(ctx.institution.id, { q: searchParams.q?.trim() || undefined, companyId: searchParams.company }),
-    prisma.memberCompany.findMany({ where: { institutionId: ctx.institution.id }, orderBy: { name: 'asc' }, select: { id: true, name: true } }),
-  ])
-  return (
-    <div className="space-y-6">
-      {!ctx.readOnly && (
-        <details className="rounded-lg border border-border bg-card p-4">
-          <summary className="cursor-pointer text-sm font-medium text-primary">Add someone</summary>
-          <div className="pt-3">
-            <ParticipantForm slug={slug} companies={companies} />
-            <p className="mt-3 text-xs text-muted-foreground">
-              Adding many? Upload a spreadsheet in <Link href={`/i/${slug}/admin/roster`} className="font-medium text-primary hover:underline">Admin › Roster</Link> with affiliation PARTICIPANT, or connect your system there.
-            </p>
-          </div>
-        </details>
-      )}
-      <form className="flex max-w-md gap-2" action={`/i/${slug}/hub/participants`}>
-        <label htmlFor="pq" className="sr-only">
-          Search participants
-        </label>
-        <input id="pq" name="q" defaultValue={searchParams.q ?? ''} placeholder="Search by name or email" className="h-9 flex-1 rounded-md border border-input bg-background px-2 text-sm" />
-        <button className="rounded-md border border-border px-3 text-sm">Search</button>
-      </form>
-      {rows.length === 0 ? (
-        <EmptyState icon={Users} title="No participants yet" description="People join when you give a company seats and they sign up, or when you add them here." />
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <Th>Name</Th>
-                <Th>Laid off from</Th>
-                <Th>Joined</Th>
-                <Th>Where they are</Th>
-                <Th>Added</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((p) => (
-                <tr key={p.id} className="border-t border-border">
-                  <td className="min-w-40 px-3 py-2">
-                    {[p.firstName, p.lastName].filter(Boolean).join(' ') || 'Unnamed'}
-                    <span className="block text-xs text-muted-foreground">{p.email}</span>
-                  </td>
-                  <td className="px-3 py-2">{p.memberCompany?.name ?? '—'}</td>
-                  <td className="px-3 py-2">{p.joined ? 'Joined' : 'Not yet'}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{p.stage ? STAGE[p.stage] : p.joined ? 'Not shared' : '—'}</td>
-                  <td className="px-3 py-2 tabular-nums">{day(p.createdAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       )}
     </div>
   )

@@ -8,7 +8,7 @@ import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import Link from 'next/link'
 import { listOrgKeys } from '@/lib/census/api-keys'
-import { HubCompanies, HubHome, HubLayoffs, HubLocal, HubParticipants, WorkforceOverview } from './screens-hub'
+import { HubCompanies, HubHome, HubLayoffs, HubLocal, WorkforceOverview } from './screens-hub'
 import { HubAttract, HubBenefits, HubGrants, HubJobs, HubLearning, HubPipeline, HubRapid, HubSkills, HubFunding, HubSystem, HubUpskill } from './screens-hub-program'
 import { CompanyOverview, CompanySupport } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
@@ -84,6 +84,7 @@ import {
 } from './screens-community'
 import { CareerStatusCard } from './CareerStatusCard'
 import { CandidateGroups } from './screens-groups'
+import { HubPeople } from './screens-people'
 import { PrivacyPanel } from './PrivacyPanel'
 import { CrmUploadForm } from './CrmUploadForm'
 import { InviteAlumniButton } from './InviteAlumniButton'
@@ -102,7 +103,7 @@ import { removeStaff, resendStaffInvite } from '@/app/i/[slug]/(portal)/staff-ac
 import { ActionButton } from './CommunityForms'
 import { addEarlyCareerRoleAction, addRecruitingDateAction, archiveEarlyCareerRoleAction, removeRecruitingDateAction, saveCoreRecruiter, archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
-export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string } & CommunityParams
+export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string; track?: string; need?: string } & CommunityParams
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -965,6 +966,8 @@ const CONSENT_COPY: Record<string, { label: (c: string) => string; help: string 
   SHARE_SEARCH_DETAIL_WITH_CAREER: { label: () => 'Let Career Services see my progress', help: 'Weekly progress and activity, so a counselor can help. Never assessments or messages.' },
   SHARE_ENGAGEMENT: { label: (c) => `Count my activity toward ${c}'s alumni engagement`, help: 'That you used the tools and took calls, as totals. Never what you did in them.' },
   SHARE_DOSSIER_WITH_EMPLOYERS: { label: (c) => `Show my Dossier to employers ${c} approves`, help: 'Employers that hire through your college can see your Dossier and ask for an introduction. You say yes or no each time.' },
+  // Workforce programs only: they match people to benefits (Program › People, src/lib/workforce/people-crm.ts).
+  SHARE_NEEDS: { label: (c) => `Let ${c} see why I joined and the help I need`, help: 'Whether you are moving here, changing fields or starting out, and the money pressures and barriers you told NextChapter about, like childcare, rent or health coverage, so they can match you to local programs. Never amounts or messages.' },
 }
 
 async function CandidatePrivacy({ ctx }: ScreenProps) {
@@ -979,8 +982,15 @@ async function CandidatePrivacy({ ctx }: ScreenProps) {
     SHARE_ENGAGEMENT: consent?.shareEngagement ?? true,
     SHARE_DOSSIER_WITH_EMPLOYERS: consent?.shareDossier ?? false,
   }
+  const workforce = orgKindOf(ctx.institution.orgType) === 'workforce'
+  if (workforce) {
+    const needs = await prisma.institutionConsent.findFirst({ where: { memberId: ctx.memberId, scope: 'SHARE_NEEDS' }, orderBy: { changedAt: 'desc' }, select: { granted: true } })
+    granted.SHARE_NEEDS = needs?.granted ?? false
+  }
   const views = await listProfileViews(ctx.memberId)
-  const rows = Object.entries(CONSENT_COPY).map(([scope, c]) => ({ scope, label: c.label(ctx.institution.name), help: c.help, granted: granted[scope] }))
+  const rows = Object.entries(CONSENT_COPY)
+    .filter(([scope]) => workforce || scope !== 'SHARE_NEEDS')
+    .map(([scope, c]) => ({ scope, label: c.label(ctx.institution.name), help: c.help, granted: granted[scope] }))
   return (
     <div className="max-w-2xl space-y-6">
       <p className="text-sm text-muted-foreground">
@@ -1625,7 +1635,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:home': HubHome,
   'hub:companies': HubCompanies,
   'hub:layoffs': HubLayoffs,
-  'hub:participants': HubParticipants,
+  'hub:participants': HubPeople,
   'hub:local': HubLocal,
   'hub:pipeline': HubPipeline,
   'hub:jobs': HubJobs,

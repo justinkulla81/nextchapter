@@ -25,17 +25,19 @@ account or the Saturday check-in (`appliesAcrossAffiliations`, enforced in
 
 ## Who sees what
 
-| | Situation | Stage | Activity | Search detail | Dossier | Coaching style | Outcome | Mood |
-|---|---|---|---|---|---|---|---|---|
-| Coach | by name* | by name* | by name* | by name* | by name* | by name* | by name* | never |
-| Outplacement (former employer) | no | no | no | no | no | no | counts only, on opt-in | never |
-| College | counts only† | counts only† | counts only† | by name, if shared | by name, if shared | no | by name, if shared | never |
-| Recruiters | no | no | no | no | by name, on opt-in | no | no | never |
-| Workforce board | no | no | no | no | no | no | counts only | never |
-| Employer hiring funnel | no | no | no | no | by name, only what you sent them | no | no | never |
+| | Situation | Stage | Activity | Search detail | Dossier | Coaching style | Outcome | Mood | Why you joined and help you need |
+|---|---|---|---|---|---|---|---|---|---|
+| Coach | by name* | by name* | by name* | by name* | by name* | by name* | by name* | never | no |
+| Outplacement (former employer) | no | no | no | no | no | no | counts only, on opt-in | never | no |
+| College or workforce program | counts only† | counts only† | counts only† | by name, if shared | by name, if shared | no | by name, if shared | never | by name, if shared‡ |
+| Recruiters | no | no | no | no | by name, on opt-in | no | no | never | no |
+| Workforce board | no | no | no | no | no | no | counts only | never | no |
+| Employer hiring funnel | no | no | no | no | by name, only what you sent them | no | no | never | no |
 
 \* after the member agrees to share with their coach.
 † only members who share engagement with the college; groups under the minimum size are hidden.
+‡ workforce programs only (`SHARE_NEEDS`, off by default): moving here, changing fields, starting out or growing, and the money
+pressures and barriers the member named, so the program can match them to benefits (`src/lib/workforce/people-crm.ts`).
 
 An employer hiring funnel appears on the Privacy page for every employer the
 member has chosen to reveal themselves to (`ApprovedEmployer`).
