@@ -13,6 +13,10 @@ import { StatTile } from './StatTile'
 import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
 import { BriefCard } from './BriefCard'
 import { EditLink } from './EditLink'
+import { readLocal } from '@/lib/workforce/local'
+import { getAwards, readRankingIndex } from '@/lib/rankings/store'
+import { groupByMonth, viewAwards } from '@/lib/rankings/awards'
+import { cityAwardKeys } from '@/lib/rankings/place-keys'
 import { nextReserveDeadline } from './screens-hub-program'
 import { ResponseFlow, loadFlowData } from './screens-hub-flow'
 import { PortalHomeMore, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem } from '@/components/partners/PortalHome'
@@ -99,6 +103,38 @@ function HomeHero({ name, region, tagline, imageUrl, credit, creditUrl, stats, e
   )
 }
 
+// Where the region's main city places in our monthly rankings, the newest month (blueprint: "Best-of rankings and awards").
+// One shared, cached read of the city's award bucket and the ranking index; nothing when the city has no top-25 placing.
+async function HomeRankings({ enabledFeatures }: { enabledFeatures: unknown }) {
+  const local = readLocal(enabledFeatures)
+  if (!local) return null
+  const [awards, index] = await Promise.all([getAwards(cityAwardKeys(local.anchorCity, local.anchorState)).catch(() => []), readRankingIndex().catch(() => [])])
+  const months = groupByMonth(viewAwards(awards, index))
+  const latest = months[0]
+  if (!latest) return null
+  return (
+    <section aria-labelledby="home-ranks" className="space-y-2 rounded-xl border border-border bg-card p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="home-ranks" className="text-base font-semibold">
+          Where {local.anchorCity} ranks
+        </h2>
+        <p className="text-xs text-muted-foreground">{latest.month}, NextChapter rankings of U.S. cities</p>
+      </div>
+      <ul className="grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
+        {latest.items.slice(0, 6).map((a) => (
+          <li key={a.slug} className="flex items-baseline gap-2">
+            <span className="inline-flex min-w-[2.5rem] shrink-0 justify-center rounded-full bg-muted px-2 py-0.5 text-xs font-bold tabular-nums">#{a.rank}</span>
+            <a href={a.href} target="_blank" rel="noreferrer" className="hover:underline">
+              {a.title}
+            </a>
+            <span className="text-xs text-muted-foreground">of {a.places}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 export async function HubHome({ ctx, base }: Props) {
   const slug = ctx.institution.slug
   const id = ctx.institution.id
@@ -120,10 +156,13 @@ export async function HubHome({ ctx, base }: Props) {
   const demo = (inst.enabledFeatures as { demo?: { preparedFor?: string | null } } | null)?.demo
   const un = profile?.region?.unemployment?.[0]
   const activation = d.participants ? Math.round((d.joined / d.participants) * 100) : null
-  const unanswered = notices.filter((n) => !n.responseId).length
+  const unansweredList = notices.filter((n) => !n.responseId)
+  const unanswered = unansweredList.length
+  // The action names the biggest layoff waiting, so the button says what it is for.
+  const biggest = [...unansweredList].sort((a, b) => (b.employees ?? 0) - (a.employees ?? 0))[0]
   const isDemo = ctx.institution.isDemo
   const needs: { label: string; detail: string; href: string; cta: string }[] = []
-  if (unanswered > 0) needs.push({ label: `${unanswered} layoff${unanswered === 1 ? '' : 's'} filed in your region with no response yet`, detail: 'Real filings from the last 120 days.', href: `${base}/${isDemo ? 'rapid' : 'layoffs'}`, cta: 'Plan the response' })
+  if (unanswered > 0) needs.push({ label: `${unanswered} layoff${unanswered === 1 ? '' : 's'} filed in your region with no response yet`, detail: 'Real filings from the last 120 days.', href: `${base}/${isDemo ? 'rapid' : 'layoffs'}`, cta: biggest ? `Plan the response to ${biggest.employer.length > 40 ? 'the biggest layoff' : `the ${biggest.employer} layoff`}` : 'Plan the response' })
   if (requests.length > 0) needs.push({ label: `${requests.length} seat request${requests.length === 1 ? '' : 's'} from member companies waiting`, detail: 'A company asked for free access for its people.', href: `${base}/layoffs`, cta: 'Answer the request' })
   if (redZone > 0) needs.push({ label: `${small(redZone)} people out of work 26 weeks or more`, detail: 'The longest searches, where outreach matters most.', href: `${base}/participants`, cta: 'See who' })
   if (claimsWaiting > 0) needs.push({ label: `${claimsWaiting} organization${claimsWaiting === 1 ? '' : 's'} asked to join your talent network`, detail: 'Check who they are, then confirm or decline.', href: `${base}/ecosystem`, cta: 'Review requests' })
@@ -178,6 +217,8 @@ export async function HubHome({ ctx, base }: Props) {
           { label: 'Member companies', value: String(d.companies), note: `${d.layoffs} layoff${d.layoffs === 1 ? '' : 's'} with seats` },
         ]}
       />
+
+      <HomeRankings enabledFeatures={inst.enabledFeatures} />
 
       <PortalNeeds portal="workforce" items={items} empty="Nothing needs you this week." />
 
