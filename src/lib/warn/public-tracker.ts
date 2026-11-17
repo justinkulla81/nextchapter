@@ -1,4 +1,5 @@
 import 'server-only'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { employerSlug } from './layoff-pages'
 import { MERGE_WINDOW_DAYS, mergeReported, reportedKind, type LooseNotice, type MergedLayoff } from './tracker-merge'
@@ -185,32 +186,16 @@ async function looseReportedRows(): Promise<MergedLayoff[]> {
 }
 
 /**
- * The public layoff tracker's data: WARN notices as filed with state labor
- * departments, plus layoffs reported elsewhere that no filing covers.
+ * The tracker's rows before grouping (both getLayoffTracker queries): live notices with a U.S. state (`base`), and the ones kept
+ * (`kept`). A reported layoff is kept only when no state filing of the same employer falls within 45 days; a filing is marked
+ * also_reported when a reported layoff or a news story of the same employer does.
  *
- * State filings are the spine. Reported layoffs — the layoffs.fyi tracker
- * and announcements entered by hand from the press — are added only when
- * the same employer has no state filing within 45 days either side, so a
- * layoff is never listed twice, and each such row is labelled with where it
- * came from rather than passed off as a filing. They matter because most of
- * the largest states publish no notice list a program can read.
- *
- * One line per employer per state per date: some states file a row per
- * site, and eight rows of one or two workers each say less than one row
- * saying 46 across eight sites. Dismissed rows are left out.
- *
- * Returns null rather than throwing, so the News page loses the tracker
- * instead of failing with it.
+ * The "within 45 days of the same employer" checks are one hash self-join (`near`). They were correlated EXISTS over the `base` CTE,
+ * which has no index, so every notice scanned all ~4,200 others: ~16M comparisons and 4-6 s of database CPU a call, ~280 calls a day
+ * (the News page rebuilds every 5 minutes), #5 by time in the 2026-11-17 statement stats. Same rows, measured on production: 110 ms.
  */
-export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | null> {
-  try {
-    const rows = await prisma.$queryRaw<{
-      state: string | null; employer: string; company: string | null; county: string | null
-      workers: number | null; sites: number; notice_date: Date; effective_date: Date | null
-      type: string | null; source_url: string | null; key: string; reported: boolean; also_reported: boolean
-      company_industry: string | null; raw_industry: string | null; country: string | null; division: string | null; nkey: string
-    }[]>`
-      WITH base AS (
+export const TRACKER_KEPT_CTES = Prisma.sql`
+        base AS (
         SELECT w.*,
                (w.source = 'MANUAL_ANNOUNCEMENT' OR w."sourceUrl" ILIKE '%layoffs.fyi%') AS reported,
                -- The employer as a grouping key: lower case, without a site
@@ -236,26 +221,55 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
         -- until 2026-10-27 (src/lib/warn/layoff-counts.ts says what is left out).
         WHERE w."dismissedAt" IS NULL AND w."state" IS NOT NULL AND w."noticeDate" IS NOT NULL AND w."noticeDate" <= NOW()
       ),
+      -- For each notice: is there a reported layoff, and a state filing, of the same employer within 45 days (itself included,
+      -- which changes nothing below: a reported row is never a filing, and a filing never a reported row).
+      near AS (
+        SELECT b.id, bool_or(o.reported) AS has_reported, bool_or(NOT o.reported) AS has_filing
+        FROM base b
+        JOIN base o ON o."normalizedEmployer" = b."normalizedEmployer"
+         AND o."noticeDate" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
+        GROUP BY b.id
+      ),
       kept AS (
         SELECT b.*,
                -- A filing the press or layoffs.fyi also reported: two sources agree.
-               (NOT b.reported AND (EXISTS (
-                 SELECT 1 FROM base r
-                 WHERE r.reported AND r."normalizedEmployer" = b."normalizedEmployer"
-                   AND r."noticeDate" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
-               ) OR EXISTS (
+               (NOT b.reported AND (COALESCE(n.has_reported, false) OR EXISTS (
                  SELECT 1 FROM "LayoffNewsMention" m
                  WHERE m."companyKey" = b."normalizedEmployer"
                    AND m."publishedAt" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
                ))) AS also_reported
         FROM base b
-        WHERE NOT b.reported
-           OR NOT EXISTS (
-             SELECT 1 FROM base f
-             WHERE NOT f.reported AND f."normalizedEmployer" = b."normalizedEmployer"
-               AND f."noticeDate" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
-           )
-      )
+        LEFT JOIN near n ON n.id = b.id
+        WHERE NOT b.reported OR NOT COALESCE(n.has_filing, false)
+      )`
+
+/**
+ * The public layoff tracker's data: WARN notices as filed with state labor
+ * departments, plus layoffs reported elsewhere that no filing covers.
+ *
+ * State filings are the spine. Reported layoffs — the layoffs.fyi tracker
+ * and announcements entered by hand from the press — are added only when
+ * the same employer has no state filing within 45 days either side, so a
+ * layoff is never listed twice, and each such row is labelled with where it
+ * came from rather than passed off as a filing. They matter because most of
+ * the largest states publish no notice list a program can read.
+ *
+ * One line per employer per state per date: some states file a row per
+ * site, and eight rows of one or two workers each say less than one row
+ * saying 46 across eight sites. Dismissed rows are left out.
+ *
+ * Returns null rather than throwing, so the News page loses the tracker
+ * instead of failing with it.
+ */
+export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | null> {
+  try {
+    const rows = await prisma.$queryRaw<{
+      state: string | null; employer: string; company: string | null; county: string | null
+      workers: number | null; sites: number; notice_date: Date; effective_date: Date | null
+      type: string | null; source_url: string | null; key: string; reported: boolean; also_reported: boolean
+      company_industry: string | null; raw_industry: string | null; country: string | null; division: string | null; nkey: string
+    }[]>`
+      WITH ${TRACKER_KEPT_CTES}
       SELECT k.state,
              MIN(k.employer) AS employer,
              MIN(c.name) FILTER (WHERE k."companyMatchStatus" = 'MATCHED') AS company,
@@ -285,52 +299,7 @@ export async function getLayoffTracker(limit = 40): Promise<LayoffTrackerData | 
       n30: number; w30: number | null; s30: number; ny: number; wy: number | null; sy: number
       n: number; s: number; since: Date | null; fetched: Date | null; covered: number
     }[]>`
-      WITH base AS (
-        SELECT w.*,
-               (w.source = 'MANUAL_ANNOUNCEMENT' OR w."sourceUrl" ILIKE '%layoffs.fyi%') AS reported,
-               -- The employer as a grouping key: lower case, without a site
-               -- address in brackets ("Kaiser (1840 California Ave.)"), after
-               -- a dash ("Key Energy Services - Ventura Location") or written
-               -- straight after the name, as Florida does ("Grunt Style, LLC
-               -- 2300 Grand Cypress Dr …"),
-               -- punctuation, or a trailing "LLC"/"Inc." — so one employer's
-               -- sites, and its name spelled two ways, land on one line.
-               -- POSIX classes rather than backslashes: inside this template
-               -- a backslash is dropped before the query is sent, which once
-               -- made the pattern match nothing and listed 28 sites of one
-               -- employer as 28 lines.
-               regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(lower(w.employer),
-                 '[[:space:]][0-9]{2,}[[:space:]].*$', ''),
-                 '[[:space:]]*[(][^)]*[)][[:space:]]*$', ''),
-                 '[[:space:]]+-[[:space:]]+.*$', ''),
-                 '[^a-z0-9 ]', '', 'g'),
-                 '[[:space:]]+(llc|inc|incorporated|corp|corporation|co|company|ltd|lp|llp)$', '') AS gkey
-        FROM "WarnNotice" w
-        -- Only layoffs attributed to a U.S. state. An announcement with no state (a company's global cuts, a foreign
-        -- government) is not a U.S. layoff: 128 of them, 335,448 workers, were half of this year's headline total
-        -- until 2026-10-27 (src/lib/warn/layoff-counts.ts says what is left out).
-        WHERE w."dismissedAt" IS NULL AND w."state" IS NOT NULL AND w."noticeDate" IS NOT NULL AND w."noticeDate" <= NOW()
-      ),
-      kept AS (
-        SELECT b.*,
-               -- A filing the press or layoffs.fyi also reported: two sources agree.
-               (NOT b.reported AND (EXISTS (
-                 SELECT 1 FROM base r
-                 WHERE r.reported AND r."normalizedEmployer" = b."normalizedEmployer"
-                   AND r."noticeDate" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
-               ) OR EXISTS (
-                 SELECT 1 FROM "LayoffNewsMention" m
-                 WHERE m."companyKey" = b."normalizedEmployer"
-                   AND m."publishedAt" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
-               ))) AS also_reported
-        FROM base b
-        WHERE NOT b.reported
-           OR NOT EXISTS (
-             SELECT 1 FROM base f
-             WHERE NOT f.reported AND f."normalizedEmployer" = b."normalizedEmployer"
-               AND f."noticeDate" BETWEEN b."noticeDate" - INTERVAL '45 days' AND b."noticeDate" + INTERVAL '45 days'
-           )
-      )
+      WITH ${TRACKER_KEPT_CTES}
       -- Counted the way the table lists them: one per employer, state and
       -- date, however many sites the state filed it as.
       , grouped AS (

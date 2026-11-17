@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
-  ORG_PAGE_MIN_EXTRA_BLOCKS, ORG_PAGE_MIN_OPEN_JOBS, cleanOrgName, crmOrgName, groupPartnerDuplicates, partnerKey, extraBlocks, meetsOrgPageBar, orgSlugs, planOrgPageUpdates, slugifyName, type OrgPageFacts,
+  ORG_PAGE_MIN_EXTRA_BLOCKS, ORG_PAGE_MIN_OPEN_JOBS, cleanOrgName, crmOrgName, groupPartnerDuplicates, otherStateCounties, partnerKey, extraBlocks, meetsOrgPageBar, orgSlugs, planOrgPageUpdates, slugifyName, type OrgPageFacts,
 } from '@/lib/seo/org-page-rules'
 
 const base: OrgPageFacts = { hasIdentity: true, hasArea: true, jobsOpen: 40, entryLevelJobs: 6, colleges: 1, otherPartners: 0, hasLabor: false }
@@ -109,5 +109,19 @@ describe('layoff notices are on these pages (owner decision 2026-10-27, replacin
   })
   it.each(['job-centers/[state]/[slug]', 'economic-development/[state]/[slug]', 'workforce-boards/[state]/[board]'])('%s passes the area notices to the page', (d) => {
     expect(readFileSync(join('src/app', d, 'page.tsx'), 'utf8')).toContain('noticesForOrgPage')
+  })
+})
+
+describe('a metro across a state line', () => {
+  // Louisville/Jefferson County, KY-IN (CBSA 31140), as in metro-compare.json.
+  const louisville = ['18019', '18043', '18061', '18175', '21029', '21103', '21111', '21163', '21179', '21185', '21211', '21215']
+  it('gives a Kentucky page the Indiana counties, and an Indiana page the Kentucky ones', () => {
+    const fromKy = otherStateCounties(louisville, 'KY')
+    expect([...fromKy.keys()]).toEqual(['IN'])
+    expect([...fromKy.get('IN')!]).toEqual(['18019', '18043', '18061', '18175'])
+    expect([...otherStateCounties(louisville, 'IN').get('KY')!]).toHaveLength(8)
+  })
+  it('gives nothing for a metro inside one state', () => {
+    expect(otherStateCounties(['21067', '21017'], 'KY').size).toBe(0)
   })
 })

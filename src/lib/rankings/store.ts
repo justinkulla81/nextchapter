@@ -2,7 +2,7 @@ import 'server-only'
 import { readBoardFigure, writeBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { memoTtl } from '@/lib/db/heavy'
 import { AWARD_BUCKETS, awardEntries, bucketEntries, bucketOf, mergeAwards, type Award, type AwardBook } from '@/lib/rankings/awards'
-import type { PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
+import type { BuildGroup, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 
 // Editions are stored one row each, `ranking:<slug>:<yyyy-mm>`, and never change after the month ends. The index row lists
 // the newest edition of every list. Pages read these rows; none runs a scan.
@@ -16,6 +16,12 @@ export const previousEdition = (edition: string) => {
   const [y, m] = edition.split('-').map(Number)
   const d = new Date(Date.UTC(y, m - 2, 1))
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
+}
+
+/** The method version each group was last built with (method-version.ts). */
+export const readRankingMethods = async (): Promise<Partial<Record<BuildGroup, string>>> => (await readBoardFigure<Partial<Record<BuildGroup, string>>>('ranking-method')) ?? {}
+export async function recordRankingMethod(group: BuildGroup, version: string): Promise<void> {
+  await writeBoardFigure('ranking-method', { ...(await readRankingMethods()), [group]: version })
 }
 
 export const isEdition = (s: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(s)

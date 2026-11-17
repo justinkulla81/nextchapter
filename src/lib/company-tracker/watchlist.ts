@@ -69,35 +69,30 @@ async function getTopHirerMatcher(candidateId: string): Promise<(companyName: st
   }
 }
 
-// Active NC Job Board postings only (archived/rejected/excluded/expired
-// rows never count) — the same eligibility filter find-my-job/page.tsx's
-// main boardPostings query uses, so "N open in our system" here never
-// disagrees with what Discover actually shows. This dataset is bounded by
-// the curated ATS company list plus admin/employer/recruiter submissions —
-// small enough to fetch in full and match in JS against each candidate's
-// watchlist, rather than needing a normalized column on ExclusiveJobPosting
-// itself.
+// Active NC Job Board postings at the watched companies only (archived/rejected/excluded/expired rows never count), the
+// same eligibility filter the board uses, so "N open in our system" here never disagrees with what Discover shows.
+//
+// Until 2026-11-17 this read every live job (~700k rows) and matched them in JS, once a minute per server instance: it
+// took 51 s on the owner's Find a job load and was ~200 MB out of the database each time. Now one query per watched
+// company, narrowed in the database by the first word of its name (companyName has a trigram index) and matched exactly
+// with orgNamesMatch afterwards.
 type ActivePosting = WatchlistPosting
-// Same live set for every candidate, and every dashboard / find-my-job render needs it:
-// memoised per server instance for a minute (same pattern as ghost-risk-data.ts). Rows are
-// read-only to callers; a new import or approval shows up within the TTL.
-const ACTIVE_TTL_MS = 60_000
-let activeCache: { at: number; rows: Promise<ActivePosting[]> } | null = null
+/** Most postings read per watched company (newest first). */
+const PER_COMPANY_ROWS = 300
 
-function getActivePostings(): Promise<ActivePosting[]> {
-  if (!activeCache || Date.now() - activeCache.at > ACTIVE_TTL_MS) {
-    const rows = loadActivePostings()
-    activeCache = { at: Date.now(), rows }
-    rows.catch(() => {
-      if (activeCache?.rows === rows) activeCache = null
-    })
-  }
-  return activeCache.rows
+/** The first word of a company name as it would appear inside a posting's name: "Macy's Inc" -> "macy", "The Home Depot" -> "home". */
+export function companyNameProbe(name: string): string {
+  const lower = name.toLowerCase().trim().replace(/^the\s+/, '')
+  return /[a-z0-9&]+/.exec(lower)?.[0] ?? ''
 }
 
-async function loadActivePostings(): Promise<ActivePosting[]> {
-  return prisma.exclusiveJobPosting.findMany({
+async function loadActivePostingsFor(companyName: string): Promise<ActivePosting[]> {
+  const probe = companyNameProbe(companyName)
+  if (!probe) return []
+  const rows = await prisma.exclusiveJobPosting.findMany({
     where: {
+      // Three letters or more uses the trigram index; a shorter name ("3M", "HP") is matched whole.
+      companyName: probe.length >= 3 ? { contains: probe, mode: 'insensitive' } : { equals: companyName.trim(), mode: 'insensitive' },
       archivedAt: null,
       institutionScopeId: null,
       status: 'approved',
@@ -108,16 +103,11 @@ async function loadActivePostings(): Promise<ActivePosting[]> {
       // Internships are Higher Ed portal only (internships/exclude.ts).
       AND: [notInternshipWhere()],
     },
-    select: {
-      id: true,
-      title: true,
-      companyName: true,
-      location: true,
-      url: true,
-      createdAt: true,
-    },
+    select: { id: true, title: true, companyName: true, location: true, url: true, createdAt: true },
     orderBy: { createdAt: 'desc' },
-  }).then((rows) => rows.filter((r) => !isInternshipJob(r)))
+    take: PER_COMPANY_ROWS,
+  })
+  return rows.filter((r) => !isInternshipJob(r) && orgNamesMatch(r.companyName, companyName))
 }
 
 // This candidate's own automated-search-partner matches (see
@@ -150,12 +140,15 @@ async function getSurfacedJobPostings(candidateId: string): Promise<WatchlistPos
 // Candidate+ status doesn't matter there).
 async function matchWatchlistEntries(candidateId: string) {
   const entries = await prisma.companyWatchlistEntry.findMany({ where: { candidateId }, orderBy: { createdAt: 'desc' } })
-  // Nothing watched means nothing to match: skip loading the whole live board (~80k rows).
+  // Nothing watched means nothing to match.
   if (entries.length === 0) return []
-  const [boardPostings, surfacedPostings] = await Promise.all([getActivePostings(), getSurfacedJobPostings(candidateId)])
+  const [boardByEntry, surfacedPostings] = await Promise.all([
+    Promise.all(entries.map((e) => loadActivePostingsFor(e.companyName))),
+    getSurfacedJobPostings(candidateId),
+  ])
 
-  return entries.map((entry) => {
-    const boardMatches = boardPostings.filter((p) => orgNamesMatch(p.companyName, entry.companyName))
+  return entries.map((entry, i) => {
+    const boardMatches = boardByEntry[i]
     const surfacedMatches = surfacedPostings.filter((p) => orgNamesMatch(p.companyName, entry.companyName))
     const allMatches = [...boardMatches, ...surfacedMatches]
     const newPostingCount = allMatches.filter((p) => p.createdAt > entry.lastViewedAt).length

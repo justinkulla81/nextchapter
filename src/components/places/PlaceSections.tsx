@@ -1,4 +1,7 @@
 import { StateFilingLink } from '@/components/benefits/StateFilingGuide'
+import type { AcrossStateHelp } from '@/lib/seo/org-pages'
+import { orgPagePath } from '@/lib/seo/org-page-rules'
+import { stateSlug } from '@/lib/seo/states'
 import { LinkIndex } from '@/components/seo/LinkIndex'
 import Link from 'next/link'
 import { H2, LINK, Stat } from '@/components/seo/SeoPage'
@@ -130,10 +133,12 @@ export function CollegeTable({ id, title, colleges, showCity = true, more }: { i
 }
 
 /** Workforce boards and American Job Centers serving a place. */
-export function WorkforceSection({ id, state, stateSlugValue, boards, centers, scope }: {
+export function WorkforceSection({ id, state, stateSlugValue, boards, centers, scope, across = [] }: {
   id: string; state: string; stateSlugValue: string; boards: PublicBoard[]; centers: PlaceCenter[]; scope: string
+  /** The same metro across a state line (acrossStateForCounties): its boards, job centers and economic development groups. */
+  across?: AcrossStateHelp[]
 }) {
-  if (boards.length === 0 && centers.length === 0) return null
+  if (boards.length === 0 && centers.length === 0 && across.length === 0) return null
   return (
     <section aria-labelledby={id} className="mt-12">
       <h2 id={id} className={H2}>Workforce development and job centers</h2>
@@ -162,6 +167,28 @@ export function WorkforceSection({ id, state, stateSlugValue, boards, centers, s
           ))}
         </ul>
       )}
+      {across.map((a) => {
+        const os = stateSlug(a.state)
+        const links = [
+          ...a.boards.map((x) => ({ key: x.id, href: orgPagePath('WORKFORCE_BOARD', os, x.slug), name: x.name, what: 'Workforce board' })),
+          ...a.centers.map((x) => ({ key: x.id, href: orgPagePath('JOB_CENTER', os, x.slug), name: x.name, what: 'American Job Center' })),
+          ...a.partners.map((x) => ({ key: x.id, href: orgPagePath('ECON_DEV', os, x.slug), name: x.name, what: 'Economic development' })),
+        ]
+        return (
+          <div key={a.state} className="mt-6">
+            <h3 className="text-base font-semibold text-navy">Across the state line in {a.stateName}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">The {a.metro} metro area reaches into {a.stateName}. These serve that side of it.</p>
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+              {links.map((l) => (
+                <li key={l.key} className="rounded-xl border border-border bg-white p-4 text-sm">
+                  <Link href={l.href} className={`${LINK} font-medium`}>{l.name}</Link>
+                  <p className="mt-1 text-xs text-muted-foreground">{l.what}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      })}
     </section>
   )
 }

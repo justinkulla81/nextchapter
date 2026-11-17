@@ -46,6 +46,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
   claimSlug: string | null
 }) {
   const { row, area, blocks: b } = page
+  const across = page.acrossState ?? []
   const st = stateName(row.state)
   const ss = stateSlug(row.state)
   const where = area.statewide ? `all of ${st}` : area.counties.map((c) => c.name).slice(0, 4).join(', ') + (area.counties.length > 4 ? ` and ${area.counties.length - 4} more` : '')
@@ -156,7 +157,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
         </section>
       )}
 
-      {(b.centers.length > 0 || b.boards.length > 0 || b.partners.length > 0) && (
+      {(b.centers.length > 0 || b.boards.length > 0 || b.partners.length > 0 || across.length > 0) && (
         <section aria-labelledby="partners" className="mt-12">
           <h2 id="partners" className={H2}>Other help in the same area</h2>
           <div className="mt-4 grid gap-6 text-sm sm:grid-cols-3">
@@ -164,6 +165,20 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
             {b.centers.length > 0 && <div><p className="font-medium text-navy">American Job Centers</p><ul className="mt-2 space-y-1">{b.centers.map((x) => <li key={x.id}><Link href={orgPagePath('JOB_CENTER', ss, x.slug)} className={LINK}>{x.name}</Link></li>)}</ul>{b.centerCount > b.centers.length && <p className="mt-1 text-xs text-muted-foreground">and {n0(b.centerCount - b.centers.length)} more</p>}</div>}
             {b.partners.length > 0 && <div><p className="font-medium text-navy">Economic development</p><ul className="mt-2 space-y-1">{b.partners.map((x) => <li key={x.id}><Link href={orgPagePath('ECON_DEV', ss, x.slug)} className={LINK}>{x.name}</Link></li>)}</ul></div>}
           </div>
+          {across.map((a) => {
+            const os = stateSlug(a.state)
+            return (
+              <div key={a.state} className="mt-8">
+                <h3 className="text-base font-semibold text-navy">Across the state line in {a.stateName}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">The {a.metro} metro area reaches into {a.stateName}. These serve that side of it.</p>
+                <div className="mt-3 grid gap-6 text-sm sm:grid-cols-3">
+                  {a.boards.length > 0 && <div><p className="font-medium text-navy">Workforce boards</p><ul className="mt-2 space-y-1">{a.boards.map((x) => <li key={x.id}><Link href={orgPagePath('WORKFORCE_BOARD', os, x.slug)} className={LINK}>{x.name}</Link></li>)}</ul></div>}
+                  {a.centers.length > 0 && <div><p className="font-medium text-navy">American Job Centers</p><ul className="mt-2 space-y-1">{a.centers.map((x) => <li key={x.id}><Link href={orgPagePath('JOB_CENTER', os, x.slug)} className={LINK}>{x.name}</Link></li>)}</ul></div>}
+                  {a.partners.length > 0 && <div><p className="font-medium text-navy">Economic development</p><ul className="mt-2 space-y-1">{a.partners.map((x) => <li key={x.id}><Link href={orgPagePath('ECON_DEV', os, x.slug)} className={LINK}>{x.name}</Link></li>)}</ul></div>}
+                </div>
+              </div>
+            )
+          })}
         </section>
       )}
 
