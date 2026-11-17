@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
@@ -13,8 +14,14 @@ import { saveSearchScope } from '@/app/dashboard/find-my-job/scope-actions'
  * (search-scope.ts). It takes the place of the Narrow / Wide buttons (BreadthToggle): the
  * choice goes in the URL (`scope`), is saved as the member's preference, and sets how far
  * past their own field the board reaches. `preview` runs it without the server, for dev-preview.
+ *
+ * Widening is a strategy, not a switch: while `needsStrategy` (widen-strategy.ts: no strategy finished and nothing
+ * outside home switched on), Broader and Everything open the Widen your search page instead, where the member sees
+ * where the jobs are and picks what to add. After that the switch works directly, with "Change your strategy" beside it.
  */
-export function ScopeToggle({ surface, current, preview = false, onPreview }: { surface: string; current: SearchScope; preview?: boolean; onPreview?: (s: SearchScope) => void }) {
+export const WIDEN_HREF = '/dashboard/find-my-job/widen'
+
+export function ScopeToggle({ surface, current, preview = false, onPreview, needsStrategy = false }: { surface: string; current: SearchScope; preview?: boolean; onPreview?: (s: SearchScope) => void; needsStrategy?: boolean }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -23,7 +30,13 @@ export function ScopeToggle({ surface, current, preview = false, onPreview }: { 
   const value = preview ? shown : current
 
   function select(scope: SearchScope) {
-    if (scope === value) return
+    if (scope === value && !(needsStrategy && scope !== 'narrow')) return
+    if (needsStrategy && scope !== 'narrow') {
+      posthog.capture('search_strategy_started', { source: 'scope_toggle', to: scope, surface })
+      if (preview) return
+      startTransition(() => router.push(`${WIDEN_HREF}?from=board`))
+      return
+    }
     posthog.capture('search_scope_changed', { from: value, to: scope, surface })
     if (preview) {
       setShown(scope)
@@ -64,6 +77,13 @@ export function ScopeToggle({ surface, current, preview = false, onPreview }: { 
       <span className="text-sm text-muted-foreground" aria-live="polite">
         {SCOPE_HINT[value]}
       </span>
+      <Link
+        href={`${WIDEN_HREF}?from=board`}
+        onClick={() => posthog.capture('search_strategy_started', { source: 'scope_link', to: value, surface, first: needsStrategy })}
+        className="text-sm font-medium text-brand underline underline-offset-4"
+      >
+        {needsStrategy ? 'Plan where to widen' : 'Change your strategy'}
+      </Link>
     </div>
   )
 }
