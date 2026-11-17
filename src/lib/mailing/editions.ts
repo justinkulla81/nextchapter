@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { markWarmRecipients } from './warm'
 import { computeRoster, rosterCounts, type RosterRow } from './roster'
-import { renderEmail } from './render'
+import { escapeHtml, renderEmail } from './render'
 import { tagMailingLinks } from '@/lib/marketing/email-attribution'
 import { layoffPacing, nextLayoffRecipient } from './layoff-pacing'
 import { domainOf } from './layoff-pacing-rules'
@@ -16,6 +16,8 @@ import { addToLists, doNotEmailPeople, getMailingSettings, syncWebsiteSignups } 
 import { withAudienceHtml, withAudienceText, type EmailAudience } from '@/lib/email/audience-tag'
 import { communityStatsFor } from '@/lib/org-claims/community-stats'
 import { communityStatSentence } from '@/lib/org-claims/format'
+import { rankingPickForOrg } from '@/lib/org-claims/ranking-line'
+import { rankingSentenceHtml } from '@/lib/org-claims/ranking-pick'
 import { claimUrlFor } from '@/lib/org-claims/urls'
 
 export const MAILING_BUCKET = 'mailing-files'
@@ -170,13 +172,14 @@ async function mergeFor(personId: string | null, bodyHtml = '') {
   const first = p?.firstName || p?.fullName?.split(/\s+/)[0] || null
   const org = p?.affiliations[0]?.org ?? null
   // A name that is really an address ("jason.wendle") isn't a first name.
-  const out: { firstName: string | null; orgName: string | null; claimUrl?: string | null; communityStat?: string | null } = {
+  const out: { firstName: string | null; orgName: string | null; claimUrl?: string | null; communityStat?: string | null; rankingLine?: string | null } = {
     firstName: first && !first.includes('.') && !first.includes('@') ? first : null,
     orgName: org?.name ?? null,
   }
   // The organization's page and its community figure are looked up only when the message uses them. Both are empty when we have none.
   if (org && /\{\{\s*claimUrl\s*\}\}/.test(bodyHtml)) out.claimUrl = claimUrlFor(org.canonicalNameNormalized)
   if (org && /\{\{\s*communityStat\s*\}\}/.test(bodyHtml)) out.communityStat = communityStatSentence(await communityStatsFor({ crmOrgId: org.id }))
+  if (org && /\{\{\s*rankingLine\s*\}\}/.test(bodyHtml)) out.rankingLine = rankingSentenceHtml(await rankingPickForOrg(org.name), escapeHtml)
   return out
 }
 

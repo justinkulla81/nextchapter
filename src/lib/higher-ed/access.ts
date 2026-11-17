@@ -8,7 +8,7 @@ import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getCurrentUser, getOrgUser, getSessionAal } from '@/lib/supabase/get-current-user'
-import { isReadOnlyIn, orgBasePath, type WorkspaceKey } from './workspaces'
+import { employerCan, isReadOnlyIn, orgBasePath, type EmployerRole, type WorkspaceKey } from './workspaces'
 import { DEMO_PREVIEW_COOKIE, resolveDemoGuestAccess, resolveInstitutionAccess, WorkspaceAccessError, type InstitutionAccess } from './resolve'
 import { DEMO_GUEST_COOKIE, guestSlugs } from './demo-guest'
 
@@ -71,3 +71,14 @@ export async function requireWorkspace(
   return { ...access, workspace, readOnly }
 }
 
+
+// A write in a member company's view that belongs to one part of it (hiring or outplacement). The company's main login
+// holds every part; a contact holds the roles the organization gave them. Hidden tabs are not the protection; this is.
+// Null when the person holds the view but not this part of it: the action says so in words.
+export async function requireEmployerRole(slug: string, role: EmployerRole): Promise<WorkspaceContext | null> {
+  const ctx = await requireWorkspace(slug, 'employer', { write: true })
+  return employerCan(ctx.tokens, role) ? ctx : null
+}
+
+export const employerRoleError = (role: EmployerRole) =>
+  `This is for your company's ${role === 'hiring' ? 'hiring' : 'outplacement'} contact. Ask the organization to add the ${role} role to your login.`

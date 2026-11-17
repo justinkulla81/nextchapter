@@ -11,6 +11,7 @@ import { placeAt } from '@/lib/workforce/local'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { mainOrigin } from '@/lib/org-hosts'
 import { inviteMemberCompany, syncMemberAccess } from '@/lib/workforce/member-access'
+import { CONTACT_ROLE_LABELS, inviteCompanyContact, parseContactRoles, removeCompanyContact } from '@/lib/workforce/member-contacts'
 import { answerSeatRequest } from '@/lib/workforce/company-portal'
 import { RESPONSE_STEPS } from '@/lib/workforce/program-content'
 import { FUNDING_STATUS_KEYS } from '@/lib/workforce/hub-flow'
@@ -161,6 +162,29 @@ export async function inviteMemberContact(slug: string, companyId: string, email
   captureServerEvent(ctx.userId, 'hub_member_company_invited', { institutionId: ctx.institution.id, companyId, emailed: r.sent })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, sent: r.sent, path: r.path, message: r.sent ? `Invite sent to ${email.trim().toLowerCase()}.` : 'Demo: nothing is emailed. Share this link instead.' }
+}
+
+// A person at a member company with a role: hiring, outplacement, or both (owner, 2026-11-17).
+export async function inviteCompanyContactAction(slug: string, _prev: unknown, f: FormData): Promise<Result & { path?: string | null }> {
+  const ctx = await hub(slug)
+  const companyId = str(f, 'companyId')
+  const email = str(f, 'email')
+  const roles = parseContactRoles(f.getAll('roles').map(String))
+  const r = await inviteCompanyContact({ institutionId: ctx.institution.id, companyId, email, roles, by: ctx.email ?? ctx.userId })
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(ctx.userId, r.updated ? 'hub_company_contact_roles_changed' : 'hub_company_contact_invited', { institutionId: ctx.institution.id, companyId, roles, emailed: r.sent })
+  revalidatePath(`/i/${slug}`, 'layout')
+  const who = email.trim().toLowerCase()
+  return { ok: true, path: r.path, message: r.updated ? `Saved. ${who} now has ${roles.map((x) => CONTACT_ROLE_LABELS[x].toLowerCase()).join(' and ')}.` : r.sent ? `Invite sent to ${who}.` : 'Demo: nothing is emailed. Share this link instead.' }
+}
+
+export async function removeCompanyContactAction(slug: string, id: string): Promise<Result> {
+  const ctx = await hub(slug)
+  const r = await removeCompanyContact(ctx.institution.id, id)
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(ctx.userId, 'hub_company_contact_removed', { institutionId: ctx.institution.id, contactId: id })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
 }
 
 // A member company's seat request: approve with the seats given, or decline.

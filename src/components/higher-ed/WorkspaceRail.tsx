@@ -31,6 +31,8 @@ export type RailItem = {
   badge: string | null
   // A small heading shown above this item (the first of a group).
   section?: string
+  // Areas of a workspace and their pages (Talent Hub), shown under the item while it is open. The open area lists its pages.
+  children?: { label: string; pages: { label: string; href: string }[] }[]
 }
 
 // The left role rail (spec §4). Renders only what the server resolved this
@@ -72,6 +74,40 @@ export function WorkspaceRail({ items }: { items: RailItem[] }) {
               <Icon className="size-4" aria-hidden="true" />
               <span>{item.label}</span>
             </Link>
+            {active && item.children && item.children.length > 0 && (
+              <ul className="mt-1 mb-2 ml-5 hidden space-y-0.5 border-l border-border pl-2 lg:block">
+                {item.children.map((area) => {
+                  const pageActive = (href: string) => pathname === href
+                  const areaActive = area.pages.some((p) => pageActive(p.href))
+                  return (
+                    <li key={area.label}>
+                      <Link
+                        href={area.pages[0].href}
+                        aria-current={areaActive && area.pages.length === 1 ? 'page' : undefined}
+                        className={cn('block rounded-md px-2 py-1.5 text-sm', areaActive ? 'font-semibold text-ink' : 'text-muted-foreground hover:text-ink')}
+                      >
+                        {area.label}
+                      </Link>
+                      {areaActive && area.pages.length > 1 && (
+                        <ul className="mt-0.5 mb-1 ml-2 space-y-0.5">
+                          {area.pages.map((p) => (
+                            <li key={p.href}>
+                              <Link
+                                href={p.href}
+                                aria-current={pageActive(p.href) ? 'page' : undefined}
+                                className={cn('block rounded-md px-2 py-1 text-[13px]', pageActive(p.href) ? 'bg-[var(--portal-tint,var(--muted))] font-medium text-ink' : 'text-muted-foreground hover:text-ink')}
+                              >
+                                {p.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
           </Fragment>
         )
       })}

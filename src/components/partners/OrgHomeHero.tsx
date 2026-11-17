@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { EditLink } from '@/components/higher-ed/EditLink'
 
 // The splash at the top of an organization's Home: its own picture (a city, a campus, an office building) with the
 // organization's line on it and three numbers underneath, each saying where it comes from. Used by the workforce Talent
@@ -61,7 +61,7 @@ export function OrgHomeHero({
   stats,
   placeholder = 'skyline',
   logoUrl,
-  editHref,
+  edit,
 }: {
   name: string
   /** The small line on the picture: the region, the campus town, or the organization's name. */
@@ -73,8 +73,8 @@ export function OrgHomeHero({
   stats: HeroStat[]
   placeholder?: HeroPlaceholder
   logoUrl?: string | null
-  /** Where the picture and line are changed. Shown only to people who can change them. */
-  editHref?: string | null
+  /** Pencil links for whoever can see the editor: the picture and tagline (Branding) and, when there is one, the region. */
+  edit?: { brandingHref: string; regionHref?: string; readOnly: boolean } | null
 }) {
   const drawing = DRAWINGS[placeholder]
   return (
@@ -84,7 +84,7 @@ export function OrgHomeHero({
           // eslint-disable-next-line @next/next/no-img-element -- the organization's own uploaded or licensed picture
           <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover object-[center_30%]" />
         ) : (
-          <svg viewBox="0 0 800 220" preserveAspectRatio="xMidYMax slice" role="img" aria-label={`${drawing.label}: upload your own picture`} className="absolute inset-0 size-full text-primary">
+          <svg viewBox="0 0 800 220" preserveAspectRatio="xMidYMax slice" role="img" aria-label={`${drawing.label}: upload your own picture in Admin, Branding`} className="absolute inset-0 size-full text-primary">
             <rect width="800" height="220" fill="currentColor" opacity="0.08" />
             <g fill="currentColor" opacity="0.28">
               {drawing.shapes}
@@ -107,11 +107,7 @@ export function OrgHomeHero({
             {credit}
           </a>
         )}
-        {editHref && (
-          <Link href={editHref} className="absolute top-2 left-2 rounded bg-black/55 px-2 py-1 text-xs font-medium text-white hover:underline focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none">
-            {imageUrl ? 'Change picture' : 'Add your picture'}
-          </Link>
-        )}
+        {edit && <EditLink href={edit.brandingHref} what="picture and tagline" readOnly={edit.readOnly} onDark className="absolute top-2 left-2" />}
       </div>
       {stats.length > 0 && (
         <dl className="grid grid-cols-1 gap-px bg-border sm:grid-cols-3">
@@ -123,6 +119,11 @@ export function OrgHomeHero({
             </div>
           ))}
         </dl>
+      )}
+      {edit?.regionHref && (
+        <div className="flex justify-end border-t border-border bg-card px-4 py-1.5">
+          <EditLink href={edit.regionHref} what="region" readOnly={edit.readOnly} />
+        </div>
       )}
     </section>
   )

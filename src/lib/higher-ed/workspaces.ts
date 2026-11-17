@@ -20,12 +20,22 @@ export type WorkspaceKey =
   // Workforce customers (boards, economic development orgs, chambers):
   // member companies, participants, layoffs, kept-in-region.
   | 'hub'
+  // Their business side (owner, 2026-11-17): bringing employers to the region, and the businesses already here.
+  | 'business'
 
 // What a person holds at one institution. Staff roles come straight from
 // InstitutionUser; a VIEWER seat is scoped to one workspace ("VIEWER:alumni");
 // MEMBER is an InstitutionMember; EMPLOYER is a seat on an APPROVED
 // InstitutionEmployer.
-export type AccessToken = InstitutionUserRole | `VIEWER:${string}` | 'MEMBER' | 'EMPLOYER'
+export type AccessToken = InstitutionUserRole | `VIEWER:${string}` | 'MEMBER' | 'EMPLOYER' | `EMPLOYER:${EmployerRole}`
+
+// The part of a member company's view one of its people works in (MemberCompanyContact.roles, owner 2026-11-17).
+// EMPLOYER alone is the company's main login and sees all of it.
+export const EMPLOYER_ROLES = ['hiring', 'outplacement'] as const
+export type EmployerRole = (typeof EMPLOYER_ROLES)[number]
+export const EMPLOYER_ROLE_LABELS: Record<EmployerRole, string> = { hiring: 'Hiring', outplacement: 'Outplacement' }
+/** Whole-company access, or this role. */
+export const employerCan = (tokens: ReadonlySet<AccessToken>, role: EmployerRole) => tokens.has('EMPLOYER') || tokens.has(`EMPLOYER:${role}`)
 
 export type Release = 'V1' | 'V2'
 
@@ -238,14 +248,15 @@ export const WORKSPACES: WorkspaceConfig[] = [
     workforceLabel: 'Employer view',
     icon: 'Building2',
     release: 'V1',
-    requiredRoles: ['EMPLOYER'],
+    // A member company's people each see their part (hiring or outplacement); its main login sees all of it.
+    requiredRoles: ['EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement'],
     homePath: 'employer',
     tabs: [
       { key: 'overview', label: 'Overview', comingIn: null, orgKind: 'workforce' },
-      { key: 'home', label: 'Shared Dossiers', workforceLabel: 'Hiring', comingIn: null },
-      { key: 'page', label: 'Employer page and roles', workforceLabel: 'Jobs you post', comingIn: null },
+      { key: 'home', label: 'Shared Dossiers', workforceLabel: 'Hiring', comingIn: null, requiredRoles: ['EMPLOYER', 'EMPLOYER:hiring'] },
+      { key: 'page', label: 'Employer page and roles', workforceLabel: 'Jobs you post', comingIn: null, requiredRoles: ['EMPLOYER', 'EMPLOYER:hiring'] },
       // Layoff support comes last: the workspace starts with hiring and jobs.
-      { key: 'support', label: 'Layoff support', comingIn: null, orgKind: 'workforce' },
+      { key: 'support', label: 'Layoff support', comingIn: null, orgKind: 'workforce', requiredRoles: ['EMPLOYER', 'EMPLOYER:outplacement'] },
     ],
   },
   {
@@ -294,6 +305,25 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'local', label: 'Kept in region', comingIn: null, group: 'Reports' },
       { key: 'grants', label: 'Grant reporting', comingIn: null, demoOnly: true, group: 'Reports' },
       { key: 'public', label: 'Public pages and previews', comingIn: null, group: 'Public presence' },
+    ],
+  },
+  {
+    // A workforce customer's business side (owner, 2026-11-17), next to Talent Hub: companies that could move or expand here,
+    // a pitch built from the region's own data, and the employers and small businesses already here.
+    key: 'business',
+    label: 'Business Hub',
+    icon: 'Building2',
+    release: 'V1',
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'EMPLOYER_RELATIONS', 'VIEWER:business'],
+    homePath: 'business',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'home', label: 'Overview', comingIn: null },
+      { key: 'leads', label: 'Expansion leads', comingIn: null },
+      { key: 'pitch', label: 'Pitch builder', comingIn: null },
+      { key: 'incentives', label: 'Incentives and costs', comingIn: null },
+      { key: 'employers', label: 'Big employers', comingIn: null },
+      { key: 'small', label: 'Startups and small business', comingIn: null },
     ],
   },
   {
@@ -426,6 +456,9 @@ export const DEMO_PERSONAS = [
   { key: 'WORKFORCE_PARTNER', label: 'Workforce board', tokens: ['WORKFORCE_PARTNER'] },
   { key: 'MEMBER', label: 'Alum (candidate)', tokens: ['MEMBER'] },
   { key: 'EMPLOYER', label: 'Employer', tokens: ['EMPLOYER'] },
+  // Workforce only: one person at a member company, by the part of its view they work in.
+  { key: 'EMPLOYER:hiring', label: 'Employer: hiring', tokens: ['EMPLOYER:hiring'] },
+  { key: 'EMPLOYER:outplacement', label: 'Employer: outplacement', tokens: ['EMPLOYER:outplacement'] },
 ] as const satisfies readonly { key: string; label: string; tokens: readonly AccessToken[] }[]
 
 export type DemoPersonaKey = (typeof DEMO_PERSONAS)[number]['key']
@@ -447,13 +480,13 @@ export const staffRoleLabel = (role: InstitutionUserRole, kind: OrgKind): string
 // workforce wording (a member there is a participant, not an alum). `group`
 // splits staff roles from the outside views (the people and companies served).
 export function demoPersonasFor(kind: OrgKind, tier: InstitutionTier): { key: string; label: string; group: 'all' | 'staff' | 'outside' }[] {
-  const workforceKeys: string[] = ['all', ...WORKFORCE_STAFF_ROLES, 'MEMBER', 'EMPLOYER']
-  return DEMO_PERSONAS.filter((p) => (kind !== 'workforce' || workforceKeys.includes(p.key)) && workspacesFor(new Set<AccessToken>(p.tokens), tier, { wioa: true }, kind).length > 0).map((p) => ({
+  const workforceKeys: string[] = ['all', ...WORKFORCE_STAFF_ROLES, 'MEMBER', 'EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement']
+  return DEMO_PERSONAS.filter((p) => (kind === 'workforce' ? workforceKeys.includes(p.key) : !p.key.startsWith('EMPLOYER:')) && workspacesFor(new Set<AccessToken>(p.tokens), tier, { wioa: true }, kind).length > 0).map((p) => ({
     key: p.key,
-    group: p.key === 'all' ? 'all' : p.key === 'MEMBER' || p.key === 'EMPLOYER' ? 'outside' : 'staff',
+    group: p.key === 'all' ? 'all' : p.key === 'MEMBER' || p.key.startsWith('EMPLOYER') ? 'outside' : 'staff',
     label:
       kind === 'workforce'
-        ? ({ all: 'Everything (all roles)', MEMBER: 'Participant (job seeker)', EMPLOYER: 'Member company' } as Record<string, string>)[p.key] ?? staffRoleLabel(p.key as InstitutionUserRole, kind)
+        ? ({ all: 'Everything (all roles)', MEMBER: 'Participant (job seeker)', EMPLOYER: 'Member company: whole company', 'EMPLOYER:hiring': 'Member company: hiring', 'EMPLOYER:outplacement': 'Member company: outplacement' } as Record<string, string>)[p.key] ?? staffRoleLabel(p.key as InstitutionUserRole, kind)
         : p.key === 'all'
           ? 'Everything (all roles)'
           : p.label,

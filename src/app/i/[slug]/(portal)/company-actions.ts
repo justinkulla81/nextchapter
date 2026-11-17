@@ -5,20 +5,23 @@
 
 import { revalidatePath } from 'next/cache'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { requireWorkspace } from '@/lib/higher-ed/access'
+import { employerRoleError, requireEmployerRole } from '@/lib/higher-ed/access'
+import type { EmployerRole } from '@/lib/higher-ed/workspaces'
 import { prisma } from '@/lib/prisma'
 import { memberCompanyFor, requestSeats } from '@/lib/workforce/company-portal'
 
 type Result = { error?: string; ok?: boolean; message?: string } | undefined
 
-async function company(slug: string) {
-  const ctx = await requireWorkspace(slug, 'employer', { write: true })
+async function company(slug: string, role: EmployerRole) {
+  const ctx = await requireEmployerRole(slug, role)
+  if (!ctx) return { roleError: employerRoleError(role) }
   const c = await memberCompanyFor(ctx)
   return c ? { ctx, c } : null
 }
 
 export async function requestSeatsAction(slug: string, _prev: Result, f: FormData): Promise<Result> {
-  const r0 = await company(slug)
+  const r0 = await company(slug, 'outplacement')
+  if (r0 && 'roleError' in r0) return { error: r0.roleError }
   if (!r0) return { error: 'Your login isn’t connected to a member company. Ask the organization for an invite.' }
   const seats = Number(String(f.get('seats') ?? ''))
   const r = await requestSeats({ institutionId: r0.ctx.institution.id, companyId: r0.c.id, seats, note: String(f.get('note') ?? ''), by: r0.ctx.email ?? r0.ctx.userId })
@@ -29,7 +32,8 @@ export async function requestSeatsAction(slug: string, _prev: Result, f: FormDat
 }
 
 export async function setOwnHiring(slug: string, hiring: boolean): Promise<{ error?: string }> {
-  const r0 = await company(slug)
+  const r0 = await company(slug, 'hiring')
+  if (r0 && 'roleError' in r0) return { error: r0.roleError }
   if (!r0) return { error: 'Your login isn’t connected to a member company.' }
   await prisma.memberCompany.update({ where: { id: r0.c.id }, data: { hiring } })
   captureServerEvent(r0.ctx.userId, 'company_hiring_set', { institutionId: r0.ctx.institution.id, companyId: r0.c.id, hiring })

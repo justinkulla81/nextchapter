@@ -99,6 +99,7 @@ import { CareerStatusCard } from './CareerStatusCard'
 import { CandidateGroups } from './screens-groups'
 import { WorkforcePreviewHome } from './WorkforcePreviewHome'
 import { HubPeople } from './screens-people'
+import { BusinessEmployers, BusinessHome, BusinessIncentives, BusinessLeads, BusinessPitch, BusinessSmall } from './screens-business'
 import { PrivacyPanel } from './PrivacyPanel'
 import { CrmUploadForm } from './CrmUploadForm'
 import { InviteAlumniButton } from './InviteAlumniButton'
@@ -384,7 +385,7 @@ async function AlumniHome({ ctx, base }: ScreenProps) {
         creditUrl={photo?.pageUrl ?? null}
         logoUrl={ctx.institution.logoUrl}
         placeholder="campus"
-        editHref={brandingEditPath(ctx)}
+        edit={brandingEditPath(ctx) ? { brandingHref: brandingEditPath(ctx)!, readOnly: ctx.readOnly } : null}
         stats={[
           { label: 'Alumni on your roster', value: c.members.toLocaleString(), note: 'From your roster upload' },
           { label: 'Joined NextChapter', value: c.claimed.toLocaleString(), note: joinedShare === null ? 'Invite alumni from Admin › Roster' : `${joinedShare}% of your roster` },
@@ -1766,6 +1767,12 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:system': HubSystem,
   'hub:funding': HubFunding,
   'hub:public': HubPublic,
+  'business:home': BusinessHome,
+  'business:leads': BusinessLeads,
+  'business:pitch': BusinessPitch,
+  'business:incentives': BusinessIncentives,
+  'business:employers': BusinessEmployers,
+  'business:small': BusinessSmall,
   'hub:applications': HubApplications,
   'hub:report': HubReport,
   'hub:skillsgap': HubSkillsGaps,

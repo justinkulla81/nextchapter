@@ -7,7 +7,7 @@ import type { InstitutionOrgType, InstitutionTier, InstitutionUserRole, Prisma, 
 import { prisma } from '@/lib/prisma'
 import { isAdminEmail } from '@/lib/admin/is-admin-email'
 import { adminMfaSatisfied, type Aal } from '@/lib/admin/mfa'
-import { ALL_TOKENS, demoPersonaTokens, orgKindOf, workspaceFeaturesOf, workspacesFor, type AccessToken, type WorkspaceKey } from './workspaces'
+import { ALL_TOKENS, demoPersonaTokens, EMPLOYER_ROLES, orgKindOf, workspaceFeaturesOf, workspacesFor, type AccessToken, type EmployerRole, type WorkspaceKey } from './workspaces'
 
 type Db = PrismaClient | Prisma.TransactionClient
 
@@ -52,6 +52,8 @@ export type InstitutionAccess = {
   staffUsers: { id: string; role: InstitutionUserRole; workspace: string | null }[]
   memberId: string | null
   employerProfileIds: string[]
+  // The member company a contact works for (MemberCompanyContact), when they hold a role there and not the whole company.
+  memberCompanyIds?: string[]
 }
 
 async function demoFeaturedMember(db: Db, institution: { id: string; slug: string }): Promise<string | null> {
@@ -101,7 +103,7 @@ export async function resolveInstitutionAccess(
   const features = workspaceFeaturesOf(enabledFeatures)
 
   const memberOnly = !!args.memberOnly
-  const [staffUsers, member, employerLinks, ncAdmin] = await Promise.all([
+  const [staffUsers, member, employerLinks, ncAdmin, contacts] = await Promise.all([
     memberOnly ? [] : db.institutionUser.findMany({
       where: { institutionId: institution.id, userId: args.userId, revokedAt: null, acceptedAt: { not: null } },
       select: { id: true, role: true, workspace: true },
@@ -121,6 +123,14 @@ export async function resolveInstitutionAccess(
       select: { employerProfileId: true },
     }),
     memberOnly ? false : isNcAdmin(args.userId, args.email, db, args.aal ?? null),
+    // A person at a member company with a role (hiring, outplacement). One indexed lookup, a few narrow rows.
+    memberOnly
+      ? []
+      : db.memberCompanyContact.findMany({
+          where: { institutionId: institution.id, userId: args.userId, acceptedAt: { not: null } },
+          select: { roles: true, memberCompanyId: true, memberCompany: { select: { employerProfileId: true } } },
+          take: 5,
+        }),
   ])
 
   const own = new Set<AccessToken>()
@@ -133,6 +143,9 @@ export async function resolveInstitutionAccess(
   }
   if (member) own.add('MEMBER')
   if (employerLinks.length) own.add('EMPLOYER')
+  for (const c of contacts) for (const r of c.roles) if ((EMPLOYER_ROLES as readonly string[]).includes(r.toLowerCase())) own.add(`EMPLOYER:${r.toLowerCase() as EmployerRole}`)
+  // A hiring contact acts through the company's connected hiring login (intros, jobs it posts).
+  const contactProfiles = contacts.filter((c) => c.roles.includes('HIRING') && c.memberCompany.employerProfileId).map((c) => c.memberCompany.employerProfileId!)
 
   let tokens: ReadonlySet<AccessToken> = own
   let mode: InstitutionAccess['mode'] = 'own'
@@ -175,7 +188,8 @@ export async function resolveInstitutionAccess(
     staffUsers,
     // On a demo, previewing as an alum acts as the seeded featured alum.
     memberId: member?.id ?? (mode === 'demo-admin' ? await demoFeaturedMember(db, institution) : null),
-    employerProfileIds: employerLinks.map((l) => l.employerProfileId),
+    employerProfileIds: [...new Set([...employerLinks.map((l) => l.employerProfileId), ...contactProfiles])],
+    memberCompanyIds: contacts.map((c) => c.memberCompanyId),
   }
 }
 

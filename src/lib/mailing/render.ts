@@ -93,6 +93,8 @@ export interface MergeValues {
   claimUrl?: string | null
   /** One factual sentence about the organization's community; empty when we have no figure. */
   communityStat?: string | null
+  /** Ready-made HTML (its link escaped already): the best ranking a workforce board's area holds; empty when none qualifies. */
+  rankingLine?: string | null
 }
 
 export function applyMergeTags(html: string, v: MergeValues): string {
@@ -102,6 +104,7 @@ export function applyMergeTags(html: string, v: MergeValues): string {
     .replace(/\{\{\s*reportUrl\s*\}\}/g, escapeHtml(v.reportUrl ?? ''))
     .replace(/\{\{\s*claimUrl\s*\}\}/g, escapeHtml(v.claimUrl ?? ''))
     .replace(/\{\{\s*communityStat\s*\}\}/g, escapeHtml(v.communityStat ?? ''))
+    .replace(/\{\{\s*rankingLine\s*\}\}/g, v.rankingLine ?? '')
 }
 
 export interface RenderInput {

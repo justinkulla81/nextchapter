@@ -3,7 +3,8 @@ import type { CSSProperties } from 'react'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
-import { demoPersonasFor, labelFor, lockedWorkspacesFor, orgBasePath, orgKindOf, TIER_LABELS, workspaceFeaturesOf, WORKSPACES } from '@/lib/higher-ed/workspaces'
+import { demoPersonasFor, labelFor, lockedWorkspacesFor, orgBasePath, orgKindOf, tabsFor, TIER_LABELS, workspaceFeaturesOf, WORKSPACES } from '@/lib/higher-ed/workspaces'
+import { modulesFrom } from '@/lib/higher-ed/modules'
 import { signOutOrg } from './session-actions'
 import { CanonicalOrgUrl } from '@/components/higher-ed/CanonicalOrgUrl'
 import { orgKindForHost } from '@/lib/org-hosts'
@@ -21,7 +22,7 @@ import { PortalTypeBar } from '@/components/partners/PortalTypeBar'
 
 async function getTaglineAndFeatures(institutionId: string) {
   const row = await prisma.institution.findUnique({ where: { id: institutionId }, select: { profile: true, enabledFeatures: true } })
-  return { tagline: readProfile(row?.profile).tagline ?? null, features: workspaceFeaturesOf(row?.enabledFeatures), chromeColor: (row?.enabledFeatures as { demo?: { chromeColor?: string } } | null)?.demo?.chromeColor ?? null }
+  return { tagline: readProfile(row?.profile).tagline ?? null, features: workspaceFeaturesOf(row?.enabledFeatures), modules: modulesFrom(row?.enabledFeatures), chromeColor: (row?.enabledFeatures as { demo?: { chromeColor?: string } } | null)?.demo?.chromeColor ?? null }
 }
 
 export const metadata: Metadata = {
@@ -52,7 +53,7 @@ export default async function InstitutionPortalLayout({
 
   const { institution } = access
   // An organization that owns this college sets one brand for all its portals; it wins over the college's own.
-  const [{ tagline, features, chromeColor }, orgBrand] = await Promise.all([
+  const [{ tagline, features, chromeColor, modules }, orgBrand] = await Promise.all([
     getTaglineAndFeatures(institution.id),
     organizationBrandFor('HIGHER_ED', institution.id).catch(() => null),
   ])
@@ -88,6 +89,21 @@ export default async function InstitutionPortalLayout({
   const folded = orgKindOf(institution.orgType) === 'workforce' && access.workspaces.includes('hub')
   const previews = folded ? rail.filter((r) => ['candidate', 'employer'].includes(r.key) && !r.badge) : []
   const railItems: RailItem[] = folded ? rail.filter((r) => !['execed', 'workforce', 'candidate', 'employer'].includes(r.key)) : rail
+  // Talent Hub opens in the rail into its areas and their pages (owner, 2026-11-17), instead of rows of pills on the page.
+  // Same tabs and filters the page uses ([workspace]/[[...tab]]/page.tsx); phones keep the pills.
+  // The Business Hub (no areas) lists its pages the same way, one per line.
+  if (folded) {
+    for (const key of ['hub', 'business'] as const) {
+      const item = railItems.find((r) => r.key === key)
+      if (!item) continue
+      const tabs = tabsFor(access.tokens, key, modules, 'workforce').filter((t) => (!t.demoOnly || institution.isDemo) && (!t.from || access.workspaces.includes(t.from.workspace)))
+      const href = (k: string) => (k === tabs[0]?.key ? item.href : `${item.href}/${k}`)
+      const groups = [...new Set(tabs.map((t) => t.group).filter((g): g is string => !!g))]
+      item.children = groups.length
+        ? groups.map((g) => ({ label: g, pages: tabs.filter((t) => t.group === g).map((t) => ({ label: labelFor(t, 'workforce'), href: href(t.key) })) }))
+        : tabs.map((t) => ({ label: labelFor(t, 'workforce'), pages: [{ label: labelFor(t, 'workforce'), href: href(t.key) }] }))
+    }
+  }
 
   return (
     <div className="theme-partner theme-portal flex min-h-screen flex-col bg-background" style={theme}>

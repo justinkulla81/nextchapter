@@ -143,25 +143,60 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
   // Each read gets BOARD_STATEMENT_MS in the database, not the two-minute default: this search scans the board's copy, and one that cannot
   // finish should free its connection (a count or read ran 28 to 79 s on 2026-11 before the cache and this limit).
   const order: Prisma.BoardLightRowOrderByWithRelationInput[] = [{ postedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }]
-  const [counted, rows] = await Promise.all([
-    query.skipTotal
-      ? Promise.resolve([] as { id: string }[])
-      : // The count needs no order, and with one the planner walked the board's date index and fetched each row at random to test the
-        // location or words: ~45,000 buffers and ~2 s for "Chicago", up to 10 s; #12 by database time in the 2026-11-17 statement stats.
-        // Unordered, with plain index scans off for this statement, it reads the table in order (or a trigram index) and stops at the cap:
-        // 6,081 buffers, 155 ms for "Chicago"; "Boise" and word searches keep their trigram indexes.
-        withStatementTimeout(prisma.boardLightRow.findMany({ where: { AND: [where, noIntern] }, take: COUNT_CAP + 1, select: { id: true } }), BOARD_STATEMENT_MS, { noIndexScan: true }),
+  const rowSelect = { id: true, title: true, companyName: true, location: true, postedAt: true, createdAt: true, salaryMin: true, salaryMax: true } as const
+  const orderedPage = () =>
     withStatementTimeout(
       prisma.boardLightRow.findMany({
         where: { AND: [where, noIntern] },
         orderBy: order,
         skip: query.offset ?? 0,
         take: OVERFETCH, // headroom: non-US and confidential rows are dropped below
-        select: { id: true, title: true, companyName: true, location: true, postedAt: true, createdAt: true, salaryMin: true, salaryMax: true },
+        select: rowSelect,
       }),
       BOARD_STATEMENT_MS,
-    ),
-  ])
+    )
+  // The saved-search alerts skip the count and read the page as before.
+  if (query.skipTotal) return finishSearch(query, [], await orderedPage())
+  // The count needs no order, and with one the planner walked the board's date index and fetched each row at random to test the
+  // location or words: ~45,000 buffers and ~2 s for "Chicago", up to 10 s; #12 by database time in the 2026-11-17 statement stats.
+  // Unordered, with plain index scans off for this statement, it reads the table in order (or a trigram index) and stops at the cap:
+  // 6,081 buffers, 155 ms for "Chicago"; "Boise" and word searches keep their trigram indexes.
+  const counted = await withStatementTimeout(
+    prisma.boardLightRow.findMany({ where: { AND: [where, noIntern] }, take: COUNT_CAP + 1, select: { id: true, postedAt: true, createdAt: true } }),
+    BOARD_STATEMENT_MS,
+    { noIndexScan: true },
+  )
+  // Under the cap the count holds every match, so the page is cut from it (newest first, as the ordered read sorts) and only those rows are
+  // read, by id. The ordered read walked the board's date index testing each row's words, which for a rare search is the whole board: up
+  // to 9.7 s (#16 and #18 by database time in the 2026-11-17 statement stats). Over the cap the words are common and that walk finds a page
+  // in a few hundred rows, so it stays.
+  let rows: Awaited<ReturnType<typeof orderedPage>>
+  if (counted.length <= COUNT_CAP) {
+    const offset = query.offset ?? 0
+    const pageIds = newestFirst(counted).slice(offset, offset + OVERFETCH).map((r) => r.id)
+    const read = pageIds.length ? await prisma.boardLightRow.findMany({ where: { id: { in: pageIds } }, select: rowSelect }) : []
+    const byId = new Map(read.map((r) => [r.id, r]))
+    rows = pageIds.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []))
+  } else {
+    rows = await orderedPage()
+  }
+  return finishSearch(query, counted, rows)
+}
+
+/** The board's order (postedAt newest first, no date last, then createdAt newest first), for a list read without one. */
+export function newestFirst<T extends { postedAt: Date | null; createdAt: Date }>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => {
+    if (a.postedAt && b.postedAt) {
+      const d = b.postedAt.getTime() - a.postedAt.getTime()
+      if (d !== 0) return d
+    } else if (a.postedAt || b.postedAt) return a.postedAt ? -1 : 1
+    return b.createdAt.getTime() - a.createdAt.getTime()
+  })
+}
+
+type BoardRow = { id: string; title: string; companyName: string; location: string | null; postedAt: Date | null; createdAt: Date; salaryMin: number | null; salaryMax: number | null }
+
+async function finishSearch(query: PublicBoardQuery, counted: { id: string }[], rows: BoardRow[]): Promise<PublicBoardResult> {
   const capped = counted.length > COUNT_CAP
   const total = Math.min(counted.length, COUNT_CAP)
   if (rows.length === 0) return { total, ...(capped ? { totalCapped: true } : {}), jobs: [], nextOffset: null }
