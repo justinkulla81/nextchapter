@@ -266,7 +266,7 @@ function GapsPart({ st, extras, skills }: { st: Strengths; extras: WhyHireExtras
       </SectionBlock>
       {skills}
       {plan.length > 0 && (
-        <SectionBlock id="plan-h" title="Go in with a plan (only you see this)" why="These are not strengths yet. Pick roles that don't start with them, or prepare one example for each before the interview.">
+        <SectionBlock id="plan-h" title="Go in with a plan (you and your coach only)" why="These are not strengths yet. Pick roles that don't start with them, or prepare one example for each before the interview.">
           <FactList label="Weaker spots to plan for" items={plan} />
         </SectionBlock>
       )}

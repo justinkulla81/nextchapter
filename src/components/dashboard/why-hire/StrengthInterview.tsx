@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 
 // Find your strengths: free-form questions, one at a time, area by area. Each answer can bring one follow-up that
 // asks for the specifics; each finished area ends with a reveal of the strength, the proof, a line to say, and (only
-// for the member) the weaker spot to plan for. The hub lists the six areas and where the member is in each.
+// for the member and their coach) the weaker spot to plan for. The hub lists the six areas and where the member is in each.
 
 export type { ReflectionRow }
 
@@ -52,7 +52,7 @@ function Hub({ rows, done, actions }: { rows: ReflectionRow[]; done: number; act
       />
       <div className="space-y-3">
         <p className="rounded-xl bg-muted/60 px-4 py-3 text-sm text-ink">
-          <span className="font-semibold">Why we ask:</span> what you say here becomes your “why hire me”, your pitch and the strengths employers see in your Dossier (you can hide any one). Weaker spots stay private: only you see them, never employers.
+          <span className="font-semibold">Why we ask:</span> what you say here becomes your “why hire me”, your pitch and the strengths employers see in your Dossier (you can hide any one). Weaker spots stay between you and your coach, if you have one. Employers never see them.
         </p>
         <div className="space-y-1.5">
           <div className="flex justify-between text-sm">
@@ -210,7 +210,7 @@ function AreaFlow({ areaKey, row, rows, redo, actions }: { areaKey: AreaKey; row
         <p className="text-sm text-muted-foreground">
           Question {qNumber} of {area.questions.length}
           {isFollowUp ? ', one more on that' : ''}
-          {q.kind === 'weakness' ? ' · only you see this one' : ''}
+          {q.kind === 'weakness' ? ' · employers never see this one' : ''}
         </p>
         {prior && (
           <blockquote className="border-l-2 border-border pl-4 text-sm text-muted-foreground">
@@ -313,7 +313,7 @@ function Reveal({ areaKey, areaTitle, summary, done, nextArea, hidden, setHidden
         </div>
         {summary.watchOut && (
           <p className="max-w-2xl text-base text-white/90">
-            <span className="font-semibold text-white">Go in with a plan (only you see this):</span> {summary.watchOut}
+            <span className="font-semibold text-white">Go in with a plan (you and your coach only):</span> {summary.watchOut}
           </p>
         )}
         <div className="space-y-1.5">

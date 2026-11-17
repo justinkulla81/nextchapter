@@ -53,6 +53,8 @@ export type CoachProfileContext = {
   ownWords: { areaTitle: string; strength: string; proof: string; sayIt: string }[]
   /** Areas finished, of AREAS.length. */
   ownDone: number
+  /** Weak spots to plan for, measured and in the client's own words. Coaches see them (owner, 2026-11-17); employers never do. */
+  weakSpots: { label: string; line: string }[]
 }
 
 // For coaches: what the person is best at, how they like to work, what they
@@ -78,5 +80,12 @@ export async function coachProfileContext(candidateId: string): Promise<CoachPro
       return r ? [{ areaTitle: a.title, strength: r.strength, proof: r.proof, sayIt: r.sayIt }] : []
     }),
     ownDone: own.length,
+    weakSpots: [
+      ...(st?.weakSpots ?? []).map((w) => ({ label: w.label, line: w.line })),
+      ...AREAS.flatMap((a) => {
+        const w = own.find((x) => x.area === a.key)?.watchOut
+        return w ? [{ label: a.title, line: w }] : []
+      }),
+    ],
   }
 }
