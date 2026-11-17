@@ -517,11 +517,12 @@ export async function communityForCounties(fipsList: string[], state: string): P
  * organization or chamber first (the directory and research ones, not a multi-county planning district), then a community job
  * program. For the board's layoff email, which names them ("One Louisville, Goodwill Kentucky ... serve them too"). Narrow, cached.
  */
-export async function localPartnerNames(state: string | null, county: string | null): Promise<string[]> {
-  if (!state || !county) return []
+export async function localPartnerNames(state: string | null, county: string | null, fallbackTokens: string[] = []): Promise<string[]> {
+  // No county on the notice: the counties its workforce board serves stand in (a notice often names the board but not the county).
+  const wanted = county ? [countyToken(county.replace(/\s+county$/i, ''))] : fallbackTokens
+  if (!state || wanted.length === 0) return []
   const dir = await stateDirectory(state)
-  const token = countyToken(county.replace(/\s+county$/i, ''))
-  const serves = (tokens: string[]) => tokens.includes(token)
+  const serves = (tokens: string[]) => tokens.some((t) => wanted.includes(t))
   const local = dir.partners.filter((p) => p.kind === 'LOCAL_EDO' && serves(p.tokens))
   // Organizations found on their own sites (chambers, city offices) are the ones people know by name; directory ones next.
   local.sort((a, b) => (a.source === 'RESEARCH' ? 0 : 1) - (b.source === 'RESEARCH' ? 0 : 1) || a.tokens.length - b.tokens.length)
