@@ -5,6 +5,7 @@ import { FlaskConical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
+import posthog from 'posthog-js'
 import { resetDemoData, setDemoPersona, skipDemoAhead } from '@/app/i/[slug]/(portal)/actions'
 
 // "Demo mode" banner (spec §4). Everyone on a demo tenant sees the banner;
@@ -17,8 +18,11 @@ export function DemoBar({
   canReset = true,
   canSkip = true,
   personas,
+  guestLink = null,
 }: {
   slug: string
+  // A link that opens this demo read-only, no account needed (src/lib/higher-ed/demo-guest.ts). Null: not offered.
+  guestLink?: string | null
   isNcAdmin: boolean
   persona: string | null
   // A prospect on a guest pass: read-only, can switch who they look as.
@@ -31,6 +35,17 @@ export function DemoBar({
 }) {
   const [confirming, setConfirming] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [copied, setCopied] = useState<'yes' | 'failed' | null>(null)
+  function copyLink() {
+    if (!guestLink) return
+    navigator.clipboard
+      .writeText(guestLink)
+      .then(() => {
+        setCopied('yes')
+        posthog.capture('demo_guest_link_copied', { slug, guest })
+      })
+      .catch(() => setCopied('failed'))
+  }
   const [pending, startTransition] = useTransition()
 
   function reset() {
@@ -60,6 +75,16 @@ export function DemoBar({
 
         {(isNcAdmin || guest) && (
           <div className="ml-auto flex flex-wrap items-center gap-3">
+            {guestLink && (
+              <span className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={copyLink} title="Opens this demo read-only, no account needed. Works for 90 days.">
+                  {copied === 'yes' ? 'Link copied' : 'Copy guest link'}
+                </Button>
+                {copied === 'failed' && (
+                  <input aria-label="Guest link" readOnly value={guestLink} onFocus={(e) => e.currentTarget.select()} className="h-8 w-64 rounded-md border border-amber-300 bg-white px-2 text-xs" />
+                )}
+              </span>
+            )}
             <form action={setDemoPersona.bind(null, slug)} className="flex items-center gap-2">
               <label htmlFor="demo-persona" className="font-medium">
                 Preview as
