@@ -5662,6 +5662,13 @@ model JobTrackerNote {
 // and segment server-side events without hitting PostHog's API. Client-side
 // posthog.capture() call sites are not mirrored here (no single choke point
 // for those yet); the admin action-counts view is labeled accordingly.
+/// Which instance is replacing a stale board snapshot (prisma/manual/2026-11-17-snapshot-refresh-lease.sql).
+model SnapshotRefreshLease {
+  kind   String   @id
+  until  DateTime @db.Timestamptz(6)
+  holder String
+}
+
 model AnalyticsEvent {
   id         String   @id @default(cuid())
   distinctId String

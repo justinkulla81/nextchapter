@@ -22,7 +22,7 @@ import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-
 import { notInternshipWhere } from '@/lib/internships/exclude'
 import { emailLevelFit } from '@/lib/jobs/email-level-fit'
 import { findLightRowsPage, logBoardMemory, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
-import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot, type SnapshotKind } from '@/lib/jobs/board-snapshot'
+import { boardFingerprint, claimSnapshotRefresh, inBackground, readManifest, readParts, REFRESH_GRACE_MS, snapshotsDisabled, snapshotUsable, writeSnapshot, type SnapshotKind } from '@/lib/jobs/board-snapshot'
 import { decodeBoardPart, encodeBoardPart } from '@/lib/jobs/board-snapshot-codec'
 import { annualPayForSort, type BoardSort } from '@/lib/jobs/board-search'
 import { sectorKeep } from '@/lib/jobs/employer-sector'
@@ -316,10 +316,10 @@ function publishBoard(kind: SnapshotKind, board: HeldBoard, fingerprint: string 
  * The snapshot of this board, when one was written at the board's current version or within BOARD_SNAPSHOT_FRESH_MS; else null.
  * With `held`, a snapshot no newer than the copy already held is that copy (nothing to download).
  */
-async function readBoardSnapshot(kind: SnapshotKind, fingerprint: Promise<string | null>, held: HeldBoard | null = null): Promise<HeldBoard | null> {
+async function readBoardSnapshot(kind: SnapshotKind, fingerprint: Promise<string | null>, held: HeldBoard | null = null, graceMs = 0): Promise<HeldBoard | null> {
   const [manifest, now] = await Promise.all([readManifest(kind), fingerprint])
   if (!manifest) return null
-  if (!snapshotUsable(manifest, now, { freshMs: BOARD_SNAPSHOT_FRESH_MS, otherBuildMaxMs: BOARD_OTHER_BUILD_MAX_MS })) return null
+  if (!snapshotUsable(manifest, now, { freshMs: BOARD_SNAPSHOT_FRESH_MS + graceMs, otherBuildMaxMs: BOARD_OTHER_BUILD_MAX_MS + graceMs })) return null
   if (held && manifest.at <= held.readAt) return held
   const encoded = await readParts(manifest)
   if (!encoded) return null
@@ -368,8 +368,8 @@ function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, kind: Snapshot
     // The snapshot another instance wrote, when the board hasn't changed since or it is only minutes old. An instance that already holds a
     // board waits a random moment and looks again before reading the database, so one instance's read serves the rest.
     if (!snapshotsDisabled()) {
-      const fromSnapshot = () =>
-        readBoardSnapshot(kind, fingerprint, held).catch((error) => {
+      const fromSnapshot = (graceMs = 0) =>
+        readBoardSnapshot(kind, fingerprint, held, graceMs).catch((error) => {
           console.error(`Board snapshot (${name}): unreadable, reading the database`, error)
           return null
         })
@@ -378,6 +378,8 @@ function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, kind: Snapshot
         await new Promise((resolve) => setTimeout(resolve, Math.random() * BOARD_REFRESH_JITTER_MS))
         snap = await fromSnapshot()
       }
+      // Another instance is already reading the replacement: keep serving the last snapshot (or the held copy) a little longer.
+      if (!snap && !(await claimSnapshotRefresh(kind))) snap = await fromSnapshot(REFRESH_GRACE_MS)
       if (snap) {
         logBoardMemory(`shared board (${name}) from snapshot`, { rows: snap.rows.length, ms: Date.now() - started })
         return stillLive(snap, Date.now(), await listed)

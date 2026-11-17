@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot, yieldToRequests } from '@/lib/jobs/board-snapshot'
+import { boardFingerprint, claimSnapshotRefresh, inBackground, readManifest, readParts, REFRESH_GRACE_MS, snapshotsDisabled, snapshotUsable, writeSnapshot, yieldToRequests } from '@/lib/jobs/board-snapshot'
 import { decodeFactsPart, encodeFactsPart, isFactsPart } from '@/lib/jobs/board-snapshot-codec'
 import { heapBlockCount, heapRangeSql, heapRanges, type HeapRange } from '@/lib/db/heap-ranges'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
@@ -279,10 +279,10 @@ export async function feedSearchFacts(acc: IndexAccumulator): Promise<void> {
   const at = Date.now()
   let fingerprint: string | null = null
   let snapshotParts: unknown[] | null = null
-  const fromSnapshot = async (): Promise<unknown[] | null> => {
+  const fromSnapshot = async (graceMs = 0): Promise<unknown[] | null> => {
     const [manifest, fp] = await Promise.all([readManifest('search-facts'), boardFingerprint()])
     fingerprint = fp
-    if (!manifest || !snapshotUsable(manifest, fp, { freshMs: SNAPSHOT_FRESH_MS })) return null
+    if (!manifest || !snapshotUsable(manifest, fp, { freshMs: SNAPSHOT_FRESH_MS + graceMs })) return null
     const parts = await readParts(manifest)
     return parts && parts.length > 0 && parts.every(isFactsPart) ? parts : null
   }
@@ -295,6 +295,8 @@ export async function feedSearchFacts(acc: IndexAccumulator): Promise<void> {
         await new Promise((resolve) => setTimeout(resolve, Math.random() * REFRESH_JITTER_MS))
         snapshotParts = await fromSnapshot()
       }
+      // Another instance is already reading the replacement: keep using the last snapshot a little longer.
+      if (!snapshotParts && !(await claimSnapshotRefresh('search-facts'))) snapshotParts = await fromSnapshot(REFRESH_GRACE_MS)
     } catch (error) {
       console.error('Board search index: snapshot unreadable, reading the database', error)
     }
