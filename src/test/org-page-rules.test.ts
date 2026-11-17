@@ -69,6 +69,18 @@ describe('duplicate partner records', () => {
     const barren = g.find((x) => x.primary.id === 'edd-12')!
     expect(barren.aliases.map((a) => a.id)).toEqual(['state-KY'])
   })
+  it('folds a directory copy that adds an acronym in brackets (KIPDA), and keeps different names apart', () => {
+    const ky = [
+      { id: 'edd-254', name: 'Kentuckiana Regional Planning and Development Agency (KY DLG/Gold)', kind: 'EDD', counties: ['jefferson', 'oldham'] },
+      { id: 'edo-KY-kipda', name: 'Kentuckiana Regional Planning and Development Agency (KIPDA)', kind: 'LOCAL_EDO', counties: ['jefferson'] },
+      { id: 'edo-OH-onecolumbus', name: 'One Columbus (Columbus Region)', kind: 'LOCAL_EDO', counties: [] },
+      { id: 'edo-OH-columbus', name: 'One Columbus', kind: 'LOCAL_EDO', counties: [] },
+    ]
+    const g = groupPartnerDuplicates(ky)
+    expect(g.find((x) => x.primary.id === 'edd-254')!.aliases.map((a) => a.id)).toEqual(['edo-KY-kipda'])
+    // Only an acronym folds: "(Columbus Region)" is a different name.
+    expect(partnerKey('One Columbus (Columbus Region)')).not.toBe(partnerKey('One Columbus'))
+  })
   it('never depends on row order', () => {
     expect(groupPartnerDuplicates([...rows].reverse()).map((g) => g.primary.id).sort()).toEqual(groupPartnerDuplicates(rows).map((g) => g.primary.id).sort())
   })

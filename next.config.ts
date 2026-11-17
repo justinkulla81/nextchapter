@@ -84,6 +84,9 @@ const nextConfig: NextConfig = {
         { source: `/prepared/${f.oldSlug}/:path+`, destination: `/prepared/${f.newSlug}/:path+`, permanent: true },
       ]),
       // /titles is a guessed address for the job titles index (a visitor typed it, 2026-11-14); it lives at /jobs/title. Permanent (2026-11-15) so search engines credit /jobs/title.
+      // Greater Louisville Inc. renamed itself One Louisville; the two CRM records were merged (2026-11-17). Its claim page follows.
+      { source: '/prepared/greater-louisville-inc', destination: '/prepared/one-louisville', permanent: true },
+      { source: '/prepared/greater-louisville-inc/:path+', destination: '/prepared/one-louisville/:path+', permanent: true },
       { source: '/titles', destination: '/jobs/title', permanent: true },
       { source: '/titles/:slug', destination: '/jobs/title/:slug', permanent: true },
       { source: '/membership', destination: '/alumni-plan', permanent: true },

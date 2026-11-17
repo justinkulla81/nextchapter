@@ -97,7 +97,10 @@ export function planOrgPageUpdates(current: { path: string; lastModified: string
 // Duplicate partner records
 
 /** What makes two partner records the same organization: the same cleaned name in the same state. */
-export const partnerKey = (name: string) => cleanOrgName(name).toLowerCase().replace(/[^a-z0-9]/g, '')
+// A trailing acronym in brackets ("Kentuckiana Regional Planning and Development Agency (KIPDA)") is the same organization as the
+// name without it: the state directory adds it, the EDA district list does not. The folded copy's old address (".../...-kipda")
+// redirects to the page that stays (renamedOrgSlug).
+export const partnerKey = (name: string) => cleanOrgName(name).replace(/\s*\([A-Z][A-Za-z&]{1,9}\)\s*$/, '').toLowerCase().replace(/[^a-z0-9]/g, '')
 
 /**
  * Groups records that are one organization under two sources (an EDA economic development district and the state
