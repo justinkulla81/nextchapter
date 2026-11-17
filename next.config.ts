@@ -84,6 +84,16 @@ const nextConfig: NextConfig = {
         { source: `/prepared/${f.oldSlug}/:path+`, destination: `/prepared/${f.newSlug}/:path+`, permanent: true },
       ]),
       // /titles is a guessed address for the job titles index (a visitor typed it, 2026-11-14); it lives at /jobs/title. Permanent (2026-11-15) so search engines credit /jobs/title.
+      // Economic development organizations that renamed themselves (2026-11-17, prisma/manual/2026-11-17_rename_six_edos.sql): the page
+      // address follows the name, so each old address redirects permanently to the new one.
+      ...[
+        ['alabama', 'mobile-area-chamber-of-commerce', 'mobile-chamber'],
+        ['florida', 'jacksonville-area-regional-development-partnership', 'jaxusa-partnership'],
+        ['florida', 'manatee-county-economic-development-council', 'bradenton-area-economic-development-corporation'],
+        ['florida', 'ocala-marion-county-economic-development-council', 'ocala-metro-chamber-and-economic-partnership'],
+        ['florida', 'orlando-area-economic-development-commission', 'orlando-economic-partnership'],
+        ['iowa', 'iowa-city-area-development-group', 'greater-iowa-city-inc'],
+      ].map(([st, from, to]) => ({ source: `/economic-development/${st}/${from}`, destination: `/economic-development/${st}/${to}`, permanent: true })),
       // Greater Louisville Inc. renamed itself One Louisville; the two CRM records were merged (2026-11-17). Its claim page follows.
       { source: '/prepared/greater-louisville-inc', destination: '/prepared/one-louisville', permanent: true },
       { source: '/prepared/greater-louisville-inc/:path+', destination: '/prepared/one-louisville/:path+', permanent: true },
