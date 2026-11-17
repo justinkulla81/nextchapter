@@ -1,4 +1,5 @@
 import 'server-only'
+import { revalidatePath } from 'next/cache'
 import { lookupAreaCode } from '@/lib/market/metro-areas'
 import { costsFor } from '@/lib/market/area-costs'
 import { getStateCities, getStateCityPlaces, getStateCounties, placeUrl } from '@/lib/places/places'
@@ -358,6 +359,14 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
   const mine = new Set(specs.map((x) => x.slug))
   const index = (await readRankingIndex()).filter((e) => !mine.has(e.slug) && (e.group ?? 'places') !== group)
   await writeRankingIndex([...index, ...entries])
+  // Pages are cached for hours; a list built for the first time would otherwise keep showing the redirect it cached while empty.
+  try {
+    for (const e of entries) revalidatePath(`/rankings/${e.slug}`)
+    revalidatePath('/rankings')
+    revalidatePath('/rankings/topic/[family]', 'page')
+  } catch (err) {
+    console.error('rankings: revalidate failed', err instanceof Error ? err.message : String(err))
+  }
   // Every month's placings are kept (awards.ts). The first build after they shipped rebuilds them from the stored editions, so
   // the months already published are included; after that each build adds its own.
   if (await awardBookExists()) await addToAwardBook(built.flatMap(({ ed }) => awardEntries(ed)))
