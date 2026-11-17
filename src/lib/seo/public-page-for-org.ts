@@ -56,7 +56,7 @@ export async function publicPageForOrg(org: OrgRef): Promise<PublicPageLink | nu
       return hit ? link(`/workforce-boards/${stateSlug(center.state)}/${hit.slug}`, 'Workforce board page (this job center)') : link(`/workforce-boards/${stateSlug(center.state)}`, 'Workforce boards in the state')
     }
     if (org.usState && org.usState in STATE_NAMES) {
-      const partner = await prisma.localPartnerOrg.findMany({ where: { state: org.usState }, select: { name: true } })
+      const partner = await prisma.localPartnerOrg.findMany({ where: { state: org.usState, kind: { not: 'COMMUNITY_JOBS' } }, select: { name: true } })
       if (partner.some((p) => cleanPartner(p.name) === org.name.trim().toLowerCase())) return link(`/economic-development/${stateSlug(org.usState)}`, 'Economic development listing')
     }
   }
