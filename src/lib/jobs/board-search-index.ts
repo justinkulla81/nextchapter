@@ -89,7 +89,9 @@ const STALE_MS = 60 * 60_000
  * "unchanged board" rule almost never held and every instance read all ~570k live jobs (~28 pages, ~10 s each) every ten minutes: 307 reads
  * averaging 10.9 s in pg_stat_statements on 2026-11-13. A job imported since is simply missing from search until the next refresh.
  */
-const SNAPSHOT_FRESH_MS = 30 * 60_000
+// Two hours since 2026-11-17 (egress alert: the search facts were read whole ~12 times a day, ~1.1 GB), the same as the board
+// (board-shortlist.ts BOARD_SNAPSHOT_FRESH_MS, owner decision 2026-11-16): a new job reaches search when it reaches the board.
+const SNAPSHOT_FRESH_MS = 2 * 60 * 60_000
 /** An instance refreshing an index it already holds waits up to this long, then looks for another instance's snapshot before reading the database. */
 const REFRESH_JITTER_MS = 20_000
 /** Set while the load that is running refreshes an index this instance already holds (nobody is waiting on it). */
