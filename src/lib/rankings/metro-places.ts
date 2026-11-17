@@ -278,8 +278,8 @@ export interface Criterion {
 }
 
 /** Metros below this many people, or with fewer white-collar openings than MIN_OPENINGS, are not ranked. */
-export const MIN_POPULATION = 150_000
-export const MIN_OPENINGS = 100
+export const MIN_POPULATION = 350_000
+export const MIN_OPENINGS = 300
 /** Openings that post a salary a metro needs before its median pay (and the pay and housing criteria built on it) is shown. */
 export const MIN_PAID = 25
 /** White-collar occupations with a published wage a metro needs for its pay figure. */
@@ -292,10 +292,13 @@ export const MIN_PART_SHARE = 0.6
 export const CRITERIA: Criterion[] = [
   {
     id: 'wp_open', label: 'White-collar job openings', weight: 11,
-    title: 'Metros with the most white-collar job openings per worker', slug: 'metros-with-the-most-white-collar-job-openings',
-    what: 'Open white-collar roles per 1,000 white-collar workers who live there, so a small metro with a busy market can beat a big one.',
-    parts: [{ label: 'Openings per 1,000 white-collar workers', weight: 1, value: (m) => m.openingsPer1k, show: one }],
-    lead: (n, v, s) => `${n} has the most white-collar openings per worker in ${s}: ${v} open roles for every 1,000 white-collar workers.`,
+    title: 'Metros with the most white-collar job openings', slug: 'metros-with-the-most-white-collar-job-openings',
+    what: 'Half the number of open white-collar roles (the depth of the market: how many jobs there are to apply for), half the open roles per 1,000 white-collar workers who live there (how many chances each one has).',
+    parts: [
+      { label: 'Open white-collar roles', weight: 50, value: (m) => m.openings, show: nf },
+      { label: 'Openings per 1,000 white-collar workers', weight: 50, value: (m) => m.openingsPer1k, show: one },
+    ],
+    lead: (n, v, s) => `${n} has the strongest white-collar job market by openings in ${s}, with a score of ${v}.`,
   },
   {
     id: 'wp_grow', label: 'White-collar job growth', weight: 9,

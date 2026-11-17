@@ -8,5 +8,5 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   const entry = (await readRankingIndex()).find((x) => x.slug === slug)
   const e = entry ? await readRanking(slug, entry.edition) : null
   if (!e) return new Response('Not found', { status: 404 })
-  return Response.json({ ...e, license: 'Free to use and share with a link to https://launchyournextchapter.com/rankings/' + slug }, { headers: { 'Cache-Control': 'public, max-age=3600' } })
+  return Response.json({ ...e, license: 'Free to use and share with a link to https://launchyournextchapter.com/rankings/' + slug }, { headers: { 'Cache-Control': 'public, max-age=600' } })
 }
