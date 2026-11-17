@@ -102,6 +102,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/contact-messages', label: 'Contact messages', badge: badgeFor('contactUnhandled') },
         { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
         { href: '/support/admin/crm/needs-review', label: 'Emails to confirm', badge: badgeFor('activityReview') },
+        { href: '/support/admin/organizations/claims', label: 'Claims to approve' },
         { href: '/support/admin/crm/meeting-prep', label: 'Prep for tomorrow' },
       ],
     },

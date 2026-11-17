@@ -32,7 +32,8 @@ import {
   listMemberDirectory,
   listOpenTransitions,
 } from '@/lib/higher-ed/views'
-import { STAFF_ROLE_LABELS, staffRoleLabel, TIER_LABELS, WORKSPACES, auditPortalOf, getWorkspace, orgKindOf, tierIncludes, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { STAFF_ROLE_LABELS, staffRoleLabel, TIER_LABELS, WORKSPACES, auditPortalOf, brandingEditPath, getWorkspace, orgKindOf, tierIncludes, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 import { listPartnerAudit } from '@/lib/partners/audit'
 import { PartnerActivity } from '@/components/partners/PartnerActivity'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -366,18 +367,36 @@ async function CandidateHome({ ctx, base }: ScreenProps) {
 // ── Alumni Relations ────────────────────────────────────────────────────────
 
 async function AlumniHome({ ctx, base }: ScreenProps) {
-  const [c, { mix, total }] = await Promise.all([getAlumniHomeCounts(ctx), getJourneyMix(ctx)])
+  const [c, { mix, total }, { profile }] = await Promise.all([getAlumniHomeCounts(ctx), getJourneyMix(ctx), loadInstitutionData(ctx.institution.id)])
+  // The college's splash (owner decision 2026-11-17, like the workforce Home): its own campus picture, or the first sourced
+  // photo, with three numbers up front. It replaces the row of four tiles; the Active seats count is dropped from this Home.
+  const photo = profile.heroImageUrl ? { url: profile.heroImageUrl, credit: null, pageUrl: null } : (profile.photos?.[0] ?? null)
+  const place = [profile.college?.city, profile.college?.state].filter(Boolean).join(', ')
+  const joinedShare = c.members ? Math.round((c.claimed / c.members) * 100) : null
   return (
     <div className="space-y-6">
+      <OrgHomeHero
+        name={ctx.institution.name}
+        line={place || (profile.region?.name ?? ctx.institution.name)}
+        tagline={profile.tagline ?? ctx.institution.name}
+        imageUrl={photo?.url ?? null}
+        credit={photo?.credit ?? null}
+        creditUrl={photo?.pageUrl ?? null}
+        logoUrl={ctx.institution.logoUrl}
+        placeholder="campus"
+        editHref={brandingEditPath(ctx)}
+        stats={[
+          { label: 'Alumni on your roster', value: c.members.toLocaleString(), note: 'From your roster upload' },
+          { label: 'Joined NextChapter', value: c.claimed.toLocaleString(), note: joinedShare === null ? 'Invite alumni from Admin › Roster' : `${joinedShare}% of your roster` },
+          { label: 'In transition', value: c.inTransition.toLocaleString(), note: 'Alumni flagged as between jobs' },
+        ]}
+      />
       <WaitingForYou ctx={ctx} office="alumni" base={base} />
       <BriefCard institutionId={ctx.institution.id} agent="alumni_services" />
       <MilestonesFeed ctx={ctx} />
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Members" value={c.members.toLocaleString()} href={`${base}/members`} />
-        <StatTile label="Claimed" value={c.claimed.toLocaleString()} href={`${base}/members?status=CLAIMED`} />
-        <StatTile label="Active seats" value={c.activeSeats.toLocaleString()} />
-        <StatTile label="In transition" value={c.inTransition.toLocaleString()} href={`${base}/members?transition=1`} />
-      </div>
+      <p className="text-sm">
+        <Link href={`${base}/members?transition=1`} className="font-medium text-primary hover:underline">See who is in transition</Link>
+      </p>
       <section aria-labelledby="journey-mix" className="space-y-2">
         <h2 id="journey-mix" className="text-base font-semibold">
           Where your alumni are

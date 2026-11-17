@@ -10725,6 +10725,12 @@ model OrgClaim {
   section           String?
   /// What the verified claim did: ADMIN | REQUESTED | REVIEW | SKIPPED. Null = not a section claim.
   outcome           String?
+  /// A verified claim for a type with a free workspace waits for NextChapter to approve it (owner decision 2026-11-17).
+  /// Applied by hand: prisma/manual/2026-11-17-org-claim-approval.sql.
+  approvedAt        DateTime?
+  approvedBy        String?
+  declinedAt        DateTime?
+  declinedBy        String?
 
   @@index([crmOrganizationId])
   @@index([crmOrganizationId, section])

@@ -16,6 +16,8 @@ import { nextReserveDeadline } from './screens-hub-program'
 import { ResponseFlow, loadFlowData } from './screens-hub-flow'
 import { PortalHomeMore, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem } from '@/components/partners/PortalHome'
 import { PortalHomeLink } from '@/components/partners/PortalHomeLink'
+import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
+import { brandingEditPath } from '@/lib/higher-ed/workspaces'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
@@ -42,55 +44,6 @@ const VERBS: Verb[] = [
   { verb: 'Understand', line: 'Jobs, skills, pay and unemployment in your region.', tab: 'region' },
   { verb: 'Coordinate', line: 'Employers, colleges and the public system in one picture.', tab: 'companies' },
 ]
-
-// The splash picture: the organization's own, or a generic placeholder until it uploads one.
-function HomeHero({ name, region, tagline, imageUrl, credit, creditUrl, stats }: { name: string; region: string; tagline: string | null; imageUrl: string | null; credit?: string | null; creditUrl?: string | null; stats: { label: string; value: string; note?: string }[] }) {
-  return (
-    <section aria-label={`${name} overview`} className="overflow-hidden rounded-xl border border-border">
-      <div className="relative h-44 w-full bg-primary/10 sm:h-56">
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover object-[center_30%]" />
-        ) : (
-          <svg viewBox="0 0 800 220" preserveAspectRatio="xMidYMax slice" role="img" aria-label="Placeholder skyline: upload your own picture in Admin, Branding" className="absolute inset-0 size-full text-primary">
-            <rect width="800" height="220" fill="currentColor" opacity="0.08" />
-            <g fill="currentColor" opacity="0.28">
-              <rect x="40" y="110" width="60" height="110" />
-              <rect x="110" y="70" width="50" height="150" />
-              <rect x="170" y="130" width="70" height="90" />
-              <rect x="250" y="40" width="56" height="180" />
-              <rect x="316" y="95" width="64" height="125" />
-              <rect x="390" y="120" width="48" height="100" />
-              <rect x="448" y="60" width="62" height="160" />
-              <rect x="520" y="105" width="70" height="115" />
-              <rect x="600" y="80" width="52" height="140" />
-              <rect x="662" y="125" width="80" height="95" />
-            </g>
-          </svg>
-        )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/55 to-transparent p-4 pt-10 sm:p-6 sm:pt-12">
-          <p className="text-sm font-medium text-white/90">{region}</p>
-          {tagline && <p className="text-lg font-semibold text-white sm:text-xl">{tagline}</p>}
-        </div>
-        {/* The license (CC BY or BY-SA) asks for the credit; small, in the corner. */}
-        {imageUrl && credit && (
-          <a href={creditUrl ?? undefined} target="_blank" rel="noreferrer" className="absolute top-2 right-2 max-w-[70%] truncate rounded bg-black/45 px-1.5 py-0.5 text-[10px] text-white/90 hover:underline">
-            {credit}
-          </a>
-        )}
-      </div>
-      <dl className="grid grid-cols-1 gap-px bg-border sm:grid-cols-3">
-        {stats.map((x) => (
-          <div key={x.label} className="bg-card p-4">
-            <dt className="text-xs font-medium text-muted-foreground">{x.label}</dt>
-            <dd className="mt-1 text-2xl font-semibold tabular-nums">{x.value}</dd>
-            {x.note && <p className="mt-0.5 text-xs text-muted-foreground">{x.note}</p>}
-          </div>
-        ))}
-      </dl>
-    </section>
-  )
-}
 
 export async function HubHome({ ctx, base }: Props) {
   const slug = ctx.institution.slug
@@ -157,9 +110,10 @@ export async function HubHome({ ctx, base }: Props) {
       </div>
 
       {/* The organization's region picture stays on the Home (owner decision, 2026-11-17), under the primary action. */}
-      <HomeHero
+      <OrgHomeHero
         name={ctx.institution.name}
-        region={profile?.region?.name ?? ctx.institution.name}
+        line={profile?.region?.name ?? ctx.institution.name}
+        editHref={brandingEditPath(ctx)}
         tagline={profile?.tagline ?? null}
         imageUrl={profile?.heroImageUrl ?? null}
         credit={profile?.heroCredit ?? null}
