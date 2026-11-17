@@ -1,4 +1,5 @@
 import 'server-only'
+import { localPartnerNames } from '@/lib/seo/org-pages'
 import type { LocalPicture } from './layoff-picture'
 import type { DraftContext } from './layoff-alert-drafts'
 import { employerSlug, getCompanies } from './layoff-pages'
@@ -25,5 +26,6 @@ export async function draftContext(picture: LocalPicture, employer: string, stat
   const localPage = url && (await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(4000) }).then((r) => r.status === 200, () => false)) ? url : null
   // A click on a Write email button is counted (layoff_alert_compose_clicked) and then opens Gmail; with no signing secret the plain link is used.
   const track = (href: string, meta: { group: string; variant: string | undefined; personId: string | undefined }) => buildEmailClickUrl(SITE, 'admin', composeKey(meta.group, meta.variant, noticeId, meta.personId), href)
-  return { picture, peoplePage, localPage, track }
+  const partners = await localPartnerNames(state, county).catch(() => [])
+  return { picture, peoplePage, localPage, track, partners }
 }

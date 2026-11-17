@@ -1,0 +1,21 @@
+{
+ "years": [
+  2022,
+  2024
+ ],
+ "source": "BLS Quarterly Census of Employment and Wages, metro areas, annual averages, private sector, NAICS 51, 52, 54 and 55",
+ "metros": {
+  "14860": [
+   85054,
+   80835
+  ],
+  "25540": [
+   104319,
+   99415
+  ],
+  "35980": [
+   8667,
+   9082
+  ]
+ }
+}

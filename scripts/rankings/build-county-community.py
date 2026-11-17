@@ -33,6 +33,20 @@ CHR = {
 }
 FIELDS = list(CHR.values()) + ['permitUnits']
 
+# Connecticut planning region -> the old county or counties holding most of its people (Census 2022 county-to-region crosswalk).
+CT_REGION_FROM_COUNTIES = {
+    '09110': ['09003', '09013'],  # Capitol: Hartford, Tolland
+    '09120': ['09001'],           # Greater Bridgeport: Fairfield
+    '09130': ['09007'],           # Lower Connecticut River Valley: Middlesex
+    '09140': ['09009', '09005'],  # Naugatuck Valley: New Haven (Waterbury), Litchfield
+    '09150': ['09015'],           # Northeastern: Windham
+    '09160': ['09005'],           # Northwest Hills: Litchfield
+    '09170': ['09009'],           # South Central: New Haven
+    '09180': ['09011'],           # Southeastern: New London
+    '09190': ['09001'],           # Western: Fairfield
+}
+CT_COUNTY_POP_2020 = {'09001': 957419, '09003': 899498, '09005': 185186, '09007': 164245, '09009': 864835, '09011': 268555, '09013': 149788, '09015': 116418}
+
 
 def num(s):
     s = (s or '').strip()
@@ -66,6 +80,18 @@ def main(chr_path, bps_path):
             fips = row[1].strip().zfill(2) + row[2].strip().zfill(3)
             units = sum(int(float(row[i] or 0)) for i in (7, 10, 13, 16))
             out.setdefault(fips, {})['permitUnits'] = units
+    # Connecticut: County Health Rankings 2025 publishes some measures under the nine planning regions (which replaced the counties
+    # in Census and BLS data, and which the CBSA delineation uses) and others only under the eight old counties. A region missing
+    # a measure takes it from the old county or counties that hold most of its people, weighted by their 2020 population.
+    for region, olds in CT_REGION_FROM_COUNTIES.items():
+        row = out.setdefault(region, {})
+        for name in CHR.values():
+            if row.get(name) is not None:
+                continue
+            vals = [(out.get(f, {}).get(name), CT_COUNTY_POP_2020[f]) for f in olds]
+            vals = [(v, w) for v, w in vals if v is not None]
+            if vals:
+                row[name] = sum(v * w for v, w in vals) / sum(w for _, w in vals)
     year = os.path.basename(bps_path)[2:6]
     rows = {k: [None if v.get(f) is None else round(v[f], 4) for f in FIELDS] for k, v in sorted(out.items())}
     doc = {

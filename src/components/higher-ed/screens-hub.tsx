@@ -73,7 +73,7 @@ function HomeHero({ name, region, tagline, imageUrl, stats }: { name: string; re
           {tagline && <p className="text-lg font-semibold text-white sm:text-xl">{tagline}</p>}
         </div>
       </div>
-      <dl className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
+      <dl className="grid grid-cols-1 gap-px bg-border sm:grid-cols-3">
         {stats.map((x) => (
           <div key={x.label} className="bg-card p-4">
             <dt className="text-xs font-medium text-muted-foreground">{x.label}</dt>
@@ -117,8 +117,9 @@ export async function HubHome({ ctx, base }: Props) {
   if (isDemo && dueFunding.length === 0) needs.push({ label: `Governor’s Reserve Fund: next deadline ${nextReserveDeadline(now)}`, detail: 'Monthly, first Wednesday. Check fit and partners.', href: `${base}/funding`, cta: 'See funding' })
   const verbs = VERBS.filter((v) => (!v.demoOnly || isDemo) && (!v.from || ctx.workspaces.includes(v.from)))
   // The portal Home pattern (src/components/partners/PortalHome.tsx): one line and one primary action, what needs you, three
-  // numbers with their sources, the region's layoffs as a dense table. The picture, the seven verbs, the brief and the full
-  // participation tiles sit under "More". Same reads as before: no new query.
+  // numbers with their sources, the region's layoffs as a dense table. The region picture stays visible under the action
+  // (owner decision, 2026-11-17); the seven verbs, the brief and the full participation tiles sit under "More". Same reads
+  // as before: no new query.
   // The primary action is the top item's own action; the item stays in the list with its reason.
   const primary = needs[0]
   const items: NeedsItem[] = needs.map((n) => ({ key: n.cta.toLowerCase().replace(/\W+/g, '_'), title: n.label, why: n.detail, href: n.href, action: n.cta }))
@@ -146,6 +147,19 @@ export async function HubHome({ ctx, base }: Props) {
           {action.label}
         </PortalHomeLink>
       </div>
+
+      {/* The organization's region picture stays on the Home (owner decision, 2026-11-17), under the primary action. */}
+      <HomeHero
+        name={ctx.institution.name}
+        region={profile?.region?.name ?? ctx.institution.name}
+        tagline={profile?.tagline ?? null}
+        imageUrl={profile?.heroImageUrl ?? null}
+        stats={[
+          { label: un ? `Unemployment, ${un.area}` : 'Unemployment', value: un ? `${un.rate}%` : '—', note: un ? `${periodLabel(un.period)}, U.S. Bureau of Labor Statistics` : 'Set your region to show it' },
+          { label: 'Labor force', value: un?.laborForce ? un.laborForce.toLocaleString() : '—', note: un?.laborForce ? un.area : undefined },
+          { label: 'Member companies', value: String(d.companies), note: `${d.layoffs} layoff${d.layoffs === 1 ? '' : 's'} with seats` },
+        ]}
+      />
 
       <PortalNeeds portal="workforce" items={items} empty="Nothing needs you this week." />
 
@@ -177,19 +191,7 @@ export async function HubHome({ ctx, base }: Props) {
         </p>
       )}
 
-      <PortalHomeMore label="More: your region, your team's work and participation">
-        <HomeHero
-          name={ctx.institution.name}
-          region={profile?.region?.name ?? ctx.institution.name}
-          tagline={profile?.tagline ?? null}
-          imageUrl={profile?.heroImageUrl ?? null}
-          stats={[
-            { label: un ? `Unemployment, ${un.area}` : 'Unemployment', value: un ? `${un.rate}%` : '—', note: un ? `${periodLabel(un.period)}, U.S. Bureau of Labor Statistics` : 'Set your region to show it' },
-            { label: 'Labor force', value: un?.laborForce ? un.laborForce.toLocaleString() : '—', note: un?.laborForce ? un.area : undefined },
-            { label: 'People helped', value: d.participants.toLocaleString(), note: activation === null ? undefined : `${activation}% have joined` },
-            { label: 'Member companies', value: String(d.companies), note: `${d.layoffs} layoff${d.layoffs === 1 ? '' : 's'} with seats` },
-          ]}
-        />
+      <PortalHomeMore label="More: your team's work and participation">
         <section aria-labelledby="verbs-h" className="space-y-3">
           <h3 id="verbs-h" className="font-semibold text-ink">
             What your team does
