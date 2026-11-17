@@ -44,7 +44,8 @@ const JUMP_LABEL: Record<Noun, (name: string) => string> = {
   skills: (n) => `${n}: ranks by month and open jobs`,
   tools: (n) => `${n}: ranks by month and open jobs`,
   certifications: (n) => `Open jobs naming ${n}`,
-  degrees: (n) => `${n}: open jobs and pay`,
+  degrees: (n) => `${n}: graduates, open jobs and pay by career stage`,
+  majors: (n) => `${n}: graduates, jobs and pay`,
   occupations: (n) => `${n}: open jobs and pay`,
   employers: (n) => `${n}: open jobs and hiring`,
 }
@@ -228,7 +229,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
       trail={[{ name: 'Rankings', path: '/rankings' }, { name: e.title, path }]}
       h1={e.h1}
       jsonLd={ld}
-      lede={<><span className="block text-base font-medium text-navy">{e.lead}</span><span className="mt-2 block text-sm">{quarterly ? 'Quarterly' : 'Monthly'} ranking, {label} edition, published {published}{latest && <>; the next edition is published {nextEditionDate(e.edition, quarterly)}</>}. <Link href="/rankings/archive" className={LINK}>Past editions</Link> stay online. Built from {e.placeNoun === 'counties' ? 'public Bureau of Labor Statistics and Census data' : e.placeNoun === 'metro areas' ? 'open white-collar jobs we verified on employer career sites and public federal data' : 'open jobs we verified on employer career sites'}.{!latest && entry && <> This is an earlier edition: <Link href={path} className={LINK}>see the latest</Link>.</>}</span></>}
+      lede={<><span className="block text-base font-medium text-navy">{e.lead}</span><span className="mt-2 block text-sm">{quarterly ? 'Quarterly' : 'Monthly'} ranking, {label} edition, published {published}{latest && <>; the next edition is published {nextEditionDate(e.edition, quarterly)}</>}. <Link href="/rankings/archive" className={LINK}>Past editions</Link> stay online. Built from {e.placeNoun === 'majors' ? 'federal college completions data (IPEDS)' : e.measure === 'dg_fieldratio' ? 'open jobs we verified on employer career sites and federal college completions data' : e.placeNoun === 'counties' ? 'public Bureau of Labor Statistics and Census data' : e.placeNoun === 'metro areas' ? 'open white-collar jobs we verified on employer career sites and public federal data' : 'open jobs we verified on employer career sites'}.{!latest && entry && <> This is an earlier edition: <Link href={path} className={LINK}>see the latest</Link>.</>}</span></>}
     >
       {/* The leaders appear once, in the top 25 below: the key facts keep only what the list does not already show. */}
       <p className="text-sm text-muted-foreground" aria-label="Key facts">
@@ -254,7 +255,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         <div className={`${CARD} mt-4 overflow-x-auto`}>
           <table className="w-full min-w-[32rem] text-left text-sm">
             <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ 'metro areas': 'Metro area', cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', 'job families': 'Job family', states: 'State', colleges: 'College', degrees: 'Field or level', occupations: 'Occupation', employers: 'Employer' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
+              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ 'metro areas': 'Metro area', cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', 'job families': 'Job family', states: 'State', colleges: 'College', degrees: 'Field or level', occupations: 'Occupation', employers: 'Employer', majors: 'Major' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {e.rows.slice(25).map((r) => (

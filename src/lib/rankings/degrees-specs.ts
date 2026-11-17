@@ -11,6 +11,7 @@ import { INDUSTRIES, MIN_RANKED, editionFor, type Spec } from '@/lib/rankings/bu
 import { REGIONS, regionById } from '@/lib/rankings/regions'
 import { CRAWLER_INDUSTRY_BUCKET, functionPath, industryPath } from '@/lib/seo/topics'
 import type { CityStat, MeasureId, PlaceInfo, RankingEdition } from '@/lib/rankings/types'
+import { MAJORS, MAJOR_BASE_YEAR, MAJOR_YEAR, fieldMajorsPath, fieldSupply, majorChange, majorPath, type Major } from '@/lib/rankings/majors'
 
 export type EduLevel = 'none' | 'hs' | 'somecollege' | 'postnd' | 'assoc' | 'bach' | 'master' | 'doctoral'
 export interface Occupation { t: string; e: EduLevel; x: string | null; tr: string | null; g: number | null; emp: number | null; w: number | null }
@@ -64,7 +65,22 @@ export function educationRows(): { soc: string; lvl: EduLevel; fld: string | nul
 // ---- Scan shapes ---------------------------------------------------------------------------------------------------
 
 export interface SocStat { soc: string; n: number; paid: number; payMed: number | null }
-export interface GroupStat { kind: 'level' | 'field'; key: string; n: number; paid: number; payMed: number | null }
+/** `stage` rows are keyed `field|stage`. */
+export interface GroupStat { kind: 'level' | 'field' | 'stage'; key: string; n: number; paid: number; payMed: number | null }
+
+/** Career stages for the degree lists, from a posting's seniority level (the rungs in src/lib/jobs/career-stage.ts). */
+export const STAGE_LEVELS = {
+  early: ['ENTRY_IC', 'EARLY_IC'],
+  mid: ['MID_IC', 'SENIOR_IC', 'MANAGER'],
+  late: ['SR_MANAGER', 'PRINCIPAL', 'DIRECTOR', 'HEAD', 'CHIEF_OF_STAFF', 'SCHOOL_LEADER', 'VP', 'PARTNER', 'EVP_SVP', 'C_SUITE', 'BOARD'],
+} as const
+export type Stage = keyof typeof STAGE_LEVELS
+export const STAGE_LABEL: Record<Stage, { name: string; years: string; desc: string }> = {
+  early: { name: 'Early career', years: '0 to 5 years', desc: 'entry-level and early-career roles (about 0 to 5 years of experience)' },
+  mid: { name: 'Mid-career', years: '5 to 15 years', desc: 'mid-level, senior individual-contributor and manager roles' },
+  late: { name: 'Late career', years: '15 years and more', desc: 'senior manager, principal, director, vice president and executive roles' },
+}
+const STAGES = Object.keys(STAGE_LEVELS) as Stage[]
 export interface DegreeEntityStat { kind: 'function' | 'industry'; key: string; coded: number; degree4: number }
 export interface DegreeCityRow { st: string; city: string; coded: number; below: number }
 
@@ -139,7 +155,44 @@ export function cityDegreeSpecs(): Spec[] {
   return out
 }
 
-export const degreeSpecs = (): Spec[] => [...fieldSpecs(), ...levelSpecs(), ...occupationSpecs(), ...shareSpecs(), ...cityDegreeSpecs()]
+const SUPPLY_NOTE = `Degrees awarded are from the federal IPEDS Completions survey for the ${MAJOR_YEAR} school year: first majors at bachelor's level and above, so a double major counts once.`
+
+export function majorSpecs(): Spec[] {
+  return [
+    dg('college-majors-with-the-most-graduates', 'dg_major', 'College majors with the most graduates', 'most', 'all majors'),
+    dg('college-majors-with-the-fewest-graduates', 'dg_major', 'College majors with the fewest graduates', 'fewest', 'all majors'),
+    dg('college-majors-offered-at-the-most-colleges', 'dg_majorschools', 'College majors offered at the most colleges', 'most', 'all majors'),
+    dg('college-majors-offered-at-the-fewest-colleges', 'dg_majorschools', 'College majors offered at the fewest colleges', 'fewest', 'all majors'),
+    dg('college-majors-with-the-fastest-growing-number-of-graduates', 'dg_majorgrow', 'College majors with the fastest-growing number of graduates', 'fast', 'all majors'),
+    dg('college-majors-with-the-fastest-shrinking-number-of-graduates', 'dg_majorgrow', 'College majors with the fastest-shrinking number of graduates', 'slow', 'all majors'),
+  ]
+}
+
+export function ratioSpecs(): Spec[] {
+  return [
+    dg('degree-fields-with-the-most-open-jobs-per-graduate', 'dg_fieldratio', 'Degree fields with the most open jobs per graduate', 'most', 'all fields'),
+    dg('degree-fields-with-the-fewest-open-jobs-per-graduate', 'dg_fieldratio', 'Degree fields with the fewest open jobs per graduate', 'fewest', 'all fields'),
+  ]
+}
+
+const STAGE_SLUG: Record<Stage, string> = { early: 'early-career', mid: 'mid-career', late: 'late-career' }
+export function stageSpecs(): Spec[] {
+  return STAGES.flatMap((st) => [
+    dg(`degree-fields-with-the-most-${STAGE_SLUG[st]}-jobs`, 'dg_stage', `Degree fields with the most ${STAGE_LABEL[st].name.toLowerCase()} jobs`, st, 'all fields'),
+    dg(`degree-fields-with-the-highest-${STAGE_SLUG[st]}-pay`, 'dg_stagepay', `Degree fields with the highest ${STAGE_LABEL[st].name.toLowerCase()} pay`, st, 'all fields'),
+  ])
+}
+
+export const degreeSpecs = (): Spec[] => [...fieldSpecs(), ...levelSpecs(), ...occupationSpecs(), ...shareSpecs(), ...cityDegreeSpecs(), ...majorSpecs(), ...ratioSpecs(), ...stageSpecs()]
+
+/** The slugs of the degree-field lists, for the major and field pages to link to. */
+export const FIELD_LIST_SLUGS = {
+  open: 'degree-fields-with-the-most-open-jobs', pay: 'degree-fields-with-the-highest-posted-pay', grow: 'degree-fields-projected-to-grow-fastest',
+  ratio: 'degree-fields-with-the-most-open-jobs-per-graduate', early: 'degree-fields-with-the-most-early-career-jobs', mid: 'degree-fields-with-the-most-mid-career-jobs',
+  late: 'degree-fields-with-the-most-late-career-jobs', earlyPay: 'degree-fields-with-the-highest-early-career-pay', midPay: 'degree-fields-with-the-highest-mid-career-pay',
+  latePay: 'degree-fields-with-the-highest-late-career-pay', majors: 'college-majors-with-the-most-graduates', schools: 'college-majors-offered-at-the-most-colleges',
+  majorGrow: 'college-majors-with-the-fastest-growing-number-of-graduates',
+} as const
 
 // ---- Rankers -------------------------------------------------------------------------------------------------------
 
@@ -168,7 +221,7 @@ export function rankFields(spec: Spec, groups: GroupStat[], edition: string, bui
     const growth = weightedGrowth(fieldCodes(g.key))
     const v = measure === 'dg_fieldpay' ? (g.payMed as number) : measure === 'dg_fieldgrow' ? growth : g.n
     return v == null ? [] : [{
-      key: `field:${g.key}`, name: g.key, sub: 'Field of study', href: null, value: v, n: g.n, employers: [],
+      key: `field:${g.key}`, name: g.key, sub: 'Field of study', href: fieldMajorsPath(g.key), value: v, n: g.n, employers: [],
       valueLabel: measure === 'dg_fieldpay' ? usdK(v) : measure === 'dg_fieldgrow' ? signed(v) : `${nf(v)} jobs`,
       stats: [{ label: 'Open jobs', value: nf(g.n) }, { label: 'Share of four-year-degree jobs', value: `${(share(g.n, total) * 100).toFixed(1)}%` }, { label: 'Median posted pay', value: payOf(g) }, { label: 'Projected growth to 2035', value: growth != null ? signed(growth) : 'Not available' }],
     }]
@@ -306,6 +359,134 @@ export function rankDegreeCities(
   })
 }
 
+const fieldStats = (field: string, groups: GroupStat[]) => {
+  const g = groups.find((x) => x.kind === 'field' && x.key === field)
+  return g ? [{ label: 'Open jobs', value: nf(g.n) }, { label: 'Median posted pay', value: payOf(g) }] : []
+}
+
+/** Majors by degrees awarded, by colleges offering them, or by the change in degrees awarded. Federal data only: no board read. */
+export function rankMajors(spec: Spec, groups: GroupStat[], edition: string, builtAt: string, prev: Map<string, number> | null): RankingEdition | null {
+  const m = spec.measure
+  const asc = spec.fn === 'fewest' || spec.fn === 'slow'
+  const grow = m === 'dg_majorgrow'
+  const schools = m === 'dg_majorschools'
+  // "Fewest" lists keep to majors that are real programs, not a code a handful of colleges report.
+  const min = grow ? 1000 : asc ? (schools ? 200 : 300) : 0
+  const minSchools = asc ? 5 : 0
+  const pool = MAJORS.filter((x) => x.total >= Math.max(min, 1) && x.schools >= minSchools && (!grow || majorChange(x, 1000) != null))
+  const total = MAJORS.reduce((s, x) => s + x.total, 0)
+  const ranked: Ranked[] = pool.map((x: Major) => {
+    const ch = majorChange(x, 1000)
+    const v = grow ? (ch as number) : schools ? x.schools : x.total
+    return {
+      key: `major:${x.cip}`, name: x.title, sub: x.field ?? 'Leads to many kinds of work', href: majorPath(x), value: v, n: x.total, employers: [],
+      valueLabel: grow ? signed(v) : schools ? `${nf(v)} colleges` : `${nf(v)} degrees`,
+      stats: [
+        { label: `Degrees awarded, ${MAJOR_YEAR}`, value: nf(x.total) },
+        { label: 'Share of all degrees', value: `${(share(x.total, total) * 100).toFixed(1)}%` },
+        { label: 'Colleges awarding it', value: nf(x.schools) },
+        { label: `Change since ${MAJOR_BASE_YEAR}`, value: ch != null ? signed(ch) : 'Too small to say' },
+        ...(x.field ? fieldStats(x.field, groups).map((s) => ({ ...s, label: `${s.label} in ${x.field}` })) : []),
+      ],
+    }
+  })
+  const what = grow ? (asc ? 'the fastest-shrinking number of graduates' : 'the fastest-growing number of graduates') : schools ? `is offered at the ${asc ? 'fewest' : 'most'} colleges` : `the ${asc ? 'fewest' : 'most'} graduates`
+  return editionFor(spec, ranked, null, edition, builtAt, prev, {
+    minN: Math.max(min, 1), minRanked: spec.minRanked ?? MIN_RANKED, noun: 'majors', unit: 'degrees awarded', sampleUnit: 'degrees', asc,
+    lead: (name, v) => grow ? `${name} has ${what} of the college majors: ${v} in degrees awarded from ${MAJOR_BASE_YEAR} to ${MAJOR_YEAR}.`
+      : schools ? `${name} ${what} of the college majors: ${v} award degrees in it.` : `${name} has ${what} of the college majors: ${v} awarded in ${MAJOR_YEAR}.`,
+    method: [
+      `A major is a federal program code series (CIP), such as Computer Science or Registered Nursing. ${grow ? `A major's score is the change in its degrees awarded at bachelor's level and above from ${MAJOR_BASE_YEAR} to ${MAJOR_YEAR}.` : schools ? "A major's score is the number of colleges that awarded at least one degree in it at bachelor's level and above." : "A major's score is the number of degrees awarded in it at bachelor's level and above."}`,
+      `${SUPPLY_NOTE} ${min > 0 ? `Only majors with at least ${nf(min)} degrees a year${minSchools ? ` at ${minSchools} or more colleges` : ''} are ranked.` : ''} The degree field beside each major is the kind of work its graduates usually enter; the open jobs and pay shown for it come from our job data.`.trim(),
+    ],
+  })
+}
+
+/** Open four-year-degree jobs in a field for every 100 degrees the field's majors award a year. */
+export function rankFieldRatio(spec: Spec, groups: GroupStat[], edition: string, builtAt: string, prev: Map<string, number> | null): RankingEdition | null {
+  const supply = fieldSupply()
+  const asc = spec.fn === 'fewest'
+  const fields = groups.filter((g) => g.kind === 'field' && supply.has(g.key) && g.n >= 300 && (supply.get(g.key)?.total ?? 0) >= 5000)
+  const ranked: Ranked[] = fields.map((g) => {
+    const sup = supply.get(g.key)!
+    const v = (g.n / sup.total) * 100
+    return {
+      key: `field:${g.key}`, name: g.key, sub: 'Field of study', href: fieldMajorsPath(g.key), value: v, n: g.n, employers: [], valueLabel: `${v.toFixed(1)} per 100`,
+      stats: [{ label: 'Open jobs', value: nf(g.n) }, { label: `Degrees awarded, ${MAJOR_YEAR}`, value: nf(sup.total) }, { label: 'Majors that lead to it', value: nf(sup.majors) }, { label: 'Median posted pay', value: payOf(g) }],
+    }
+  })
+  const jobs = fields.reduce((s, g) => s + g.n, 0)
+  const grads = fields.reduce((s, g) => s + supply.get(g.key)!.total, 0)
+  return editionFor(spec, ranked, { label: 'all fields', valueLabel: `${((jobs / Math.max(grads, 1)) * 100).toFixed(1)} per 100` }, edition, builtAt, prev, {
+    minN: 300, minRanked: spec.minRanked ?? MIN_RANKED, noun: 'degrees', unit: 'open jobs', sampleUnit: 'openings', asc,
+    lead: (name, v, _s, b) => `${name} has the ${asc ? 'fewest' : 'most'} open jobs for each new graduate of the degree fields: ${v} graduates a year${b ? `, against ${b} across all fields` : ''}.`,
+    method: [
+      "A field's score is the number of its open professional roles for every 100 degrees awarded a year in the majors that lead to it. Open jobs are the roles on our board today whose occupation typically needs a bachelor's, master's or doctoral degree; graduates are a year of new degrees. The figure compares fields with each other: it is not the chance that any one graduate is hired.",
+      `${SUPPLY_NOTE} Each major is matched to the field its graduates usually enter, our own judgment on the program code, and majors such as English, history or the arts that lead to many kinds of work are left out. ${EDU_NOTE} Only fields with at least 300 open jobs and 5,000 degrees a year are ranked.`,
+    ],
+  })
+}
+
+/** Fields by open jobs or posted pay at one career stage. */
+export function rankFieldStage(spec: Spec, groups: GroupStat[], edition: string, builtAt: string, prev: Map<string, number> | null): RankingEdition | null {
+  const st = spec.fn as Stage
+  const pay = spec.measure === 'dg_stagepay'
+  const label = STAGE_LABEL[st]
+  const rows = groups.filter((g) => g.kind === 'stage' && g.key.endsWith(`|${st}`))
+  const all = new Map(groups.filter((g) => g.kind === 'field').map((g) => [g.key, g]))
+  const pool = rows.filter((g) => g.n >= 100 && (!pay || (g.paid >= 30 && g.payMed != null)))
+  const ranked: Ranked[] = pool.map((g) => {
+    const field = g.key.split('|')[0]
+    const v = pay ? (g.payMed as number) : g.n
+    const others = STAGES.filter((x) => x !== st).map((x) => groups.find((y) => y.kind === 'stage' && y.key === `${field}|${x}`))
+    return {
+      key: `field:${field}`, name: field, sub: 'Field of study', href: fieldMajorsPath(field), value: v, n: g.n, employers: [], valueLabel: pay ? usdK(v) : `${nf(v)} jobs`,
+      stats: [
+        { label: `${label.name} jobs`, value: nf(g.n) },
+        { label: `Share of the field's jobs`, value: pct0(share(g.n, all.get(field)?.n ?? 0)) },
+        { label: `${label.name} median pay`, value: payOf(g) },
+        ...STAGES.filter((x) => x !== st).map((x, i) => ({ label: `${STAGE_LABEL[x].name} median pay`, value: others[i] ? payOf(others[i]!) : 'Not enough pay data' })),
+      ],
+    }
+  })
+  return editionFor(spec, ranked, null, edition, builtAt, prev, {
+    minN: 100, minRanked: spec.minRanked ?? MIN_RANKED, noun: 'degrees', unit: `${label.name.toLowerCase()} open jobs`, sampleUnit: 'openings',
+    lead: (name, v) => pay ? `${name} has the highest median posted pay for ${label.name.toLowerCase()} roles of the degree fields: ${v} a year.` : `${name} has the most ${label.name.toLowerCase()} open jobs of the degree fields: ${v} in our data.`,
+    method: [
+      `A career stage comes from each posting's seniority level. ${label.name} covers ${label.desc}. ${pay ? `A field's score is the median advertised annual salary of its ${label.name.toLowerCase()} roles that post a salary range.` : `A field's score is the number of its open ${label.name.toLowerCase()} professional roles.`}`,
+      `A degree field is a group of occupations usually reached through the same kind of study, and only occupations that typically need a bachelor's, master's or doctoral degree are included. ${EDU_NOTE} Only fields with at least 100 such jobs${pay ? ' and 30 that post pay' : ''} are ranked.`,
+    ],
+  })
+}
+
+/** One degree field's figures for the majors pages, written with each monthly build so a page never scans the board. */
+export interface DegreeFieldFigure {
+  field: string
+  open: number
+  /** Median posted pay, or null when fewer than 20 roles post pay. */
+  pay: number | null
+  growth: number | null
+  /** Degrees awarded a year in its majors, and open jobs per 100 of them. */
+  grads: number
+  perHundred: number | null
+  stages: Record<Stage, { open: number; pay: number | null }>
+}
+export interface DegreeFieldFigures { edition: string; fields: DegreeFieldFigure[] }
+
+export function degreeFieldFigures(groups: GroupStat[], edition: string): DegreeFieldFigures {
+  const supply = fieldSupply()
+  const payOrNull = (g: GroupStat | undefined) => (g && g.payMed != null && g.paid >= 20 ? Math.round(g.payMed) : null)
+  const fields = groups.filter((g) => g.kind === 'field').map((g): DegreeFieldFigure => {
+    const grads = supply.get(g.key)?.total ?? 0
+    const st = (x: Stage) => groups.find((y) => y.kind === 'stage' && y.key === `${g.key}|${x}`)
+    return {
+      field: g.key, open: g.n, pay: payOrNull(g), growth: weightedGrowth(fieldCodes(g.key)), grads, perHundred: grads >= 1000 ? Math.round((g.n / grads) * 1000) / 10 : null,
+      stages: Object.fromEntries(STAGES.map((x) => [x, { open: st(x)?.n ?? 0, pay: payOrNull(st(x)) }])) as DegreeFieldFigure['stages'],
+    }
+  })
+  return { edition, fields: fields.sort((a, b) => b.open - a.open) }
+}
+
 /** Dispatches one degree spec to its ranker. */
 export function rankDegrees(
   spec: Spec,
@@ -313,6 +494,9 @@ export function rankDegrees(
   edition: string, builtAt: string, prev: Map<string, number> | null,
 ): RankingEdition | null {
   const m = spec.measure
+  if (m === 'dg_major' || m === 'dg_majorschools' || m === 'dg_majorgrow') return rankMajors(spec, data.groups, edition, builtAt, prev)
+  if (m === 'dg_fieldratio') return rankFieldRatio(spec, data.groups, edition, builtAt, prev)
+  if (m === 'dg_stage' || m === 'dg_stagepay') return rankFieldStage(spec, data.groups, edition, builtAt, prev)
   if (m === 'dg_field' || m === 'dg_fieldpay' || m === 'dg_fieldgrow') return rankFields(spec, data.groups, edition, builtAt, prev)
   if (m === 'dg_level' || m === 'dg_levelpay') return rankLevels(spec, data.groups, edition, builtAt, prev)
   if (m === 'dg_occ' || m === 'dg_occpay' || m === 'dg_occgrow') return rankOccupations(spec, data.socs, edition, builtAt, prev)

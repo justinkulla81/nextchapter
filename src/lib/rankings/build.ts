@@ -17,7 +17,7 @@ import { profileSpecs, rankProfile } from '@/lib/rankings/wave5-specs'
 import { rankSupport, supportSpecs } from '@/lib/rankings/wave6-specs'
 import { loadAjcByCounty, loadConferenceEvents, loadFlexStats, loadStateFacts } from '@/lib/rankings/wave6-scan'
 import { loadEntityStats, loadProfileCityRows, loadSocGroups } from '@/lib/rankings/wave5-scan'
-import { degreeSpecs, rankDegrees } from '@/lib/rankings/degrees-specs'
+import { degreeFieldFigures, degreeSpecs, rankDegrees } from '@/lib/rankings/degrees-specs'
 import { employerSpecs, rankEmployers } from '@/lib/rankings/employers-specs'
 import { employerHrefs, loadEmployerGrowth, loadEmployerStats } from '@/lib/rankings/employers-scan'
 import { loadDegreeCityRows, loadDegreeEntities, loadGroupStats, loadSocStats } from '@/lib/rankings/degrees-scan'
@@ -25,7 +25,7 @@ import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
 import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
 import { awardEntries } from '@/lib/rankings/awards'
 import { RANKING_METHOD } from '@/lib/rankings/method-version'
-import { recordRankingMethod, addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
+import { recordRankingMethod, addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writeDegreeFields, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
 import type { BuildGroup, CityStat, CollegeStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/living-cost'
 import { editionFor } from '@/lib/rankings/cadence'
@@ -235,6 +235,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     const degreeData = { socs, groups, entities: degreeEntities, cityRows: degreeCityRows, base: data.base, info: infoOf }
     const degrees = degreeSpecs()
     specs = [...specs, ...degrees]
+    // The majors pages read this one small row, not the editions.
+    await writeDegreeFields(degreeFieldFigures(groups, edition))
     for (const spec of degrees) {
       const ed = rankDegrees(spec, degreeData, edition, builtAt, await prevRanksOf(spec.slug))
       if (ed) built.push({ ed, spec })
