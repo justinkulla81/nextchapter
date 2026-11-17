@@ -164,22 +164,52 @@ async function loadStateJobStats(state: string): Promise<StateJobStats> {
   return { cityJobs, stateJobs }
 }
 
-/** One pass over the open board for every state's city and state counts. Run by the board-figures cron, never by a page. */
-export async function buildOrgJobStats(): Promise<Map<string, { cityJobs: CityJobRow[]; stateJob: JobStatRow | null }>> {
-  const rows = await prisma.$transaction(async (tx) => {
+type StoredEmployer = { name: string; n: number; cn: string | null; cid: string | null; linkable: boolean | null }
+type StateFigure = { cityJobs: CityJobRow[]; stateJob: JobStatRow | null; topEmployers: StoredEmployer[]; newestJobs: AreaJob[] }
+
+/**
+ * One pass over the open board for every state's city and state counts, plus the statewide "who is hiring" block (top ten employers,
+ * eight newest jobs). Run by the board-figures cron, never by a page. The public jobs' narrow columns go into a temporary table once and
+ * every figure is read from it. A statewide organization page used to count the whole state's jobs itself (loadAreaHiring): ~25 s and
+ * ~48,000 blocks from disk for California, 63 s at worst, #9 and #10 by database time in the 2026-11-17 statement stats.
+ */
+export async function buildOrgJobStats(): Promise<Map<string, StateFigure>> {
+  const { rows, employers, newest } = await prisma.$transaction(async (tx) => {
     await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = '600s'`)
-    return tx.$queryRaw<(JobStatRow & { st: string; city: string | null; by_state: number })[]>`
-      SELECT "locationState" AS st, lower("locationCity") AS city, GROUPING(lower("locationCity"))::int AS by_state,
+    await tx.$executeRaw`
+      CREATE TEMP TABLE org_jobs ON COMMIT DROP AS
+      SELECT id, title, "companyName", "companyId", location, "locationState" AS st, lower("locationCity") AS city,
+        level, "postingSignals", "createdAt", "lastVerifiedAt"
+      ${jobsFrom} AND "locationState" IS NOT NULL`
+    const rows = await tx.$queryRaw<(JobStatRow & { st: string; city: string | null; by_state: number })[]>`
+      SELECT st, city, GROUPING(city)::int AS by_state,
         count(*)::int AS open,
         count(*) FILTER (WHERE ${ENTRY})::int AS entry,
         count(*) FILTER (WHERE ${ENTRY} AND 'no_experience_ok' = ANY("postingSignals"))::int AS noexp,
         count(*) FILTER (WHERE ${ENTRY} AND 'training_provided' = ANY("postingSignals"))::int AS training,
         max("createdAt") AS newest
-      ${jobsFrom} AND "locationState" IS NOT NULL
-      GROUP BY GROUPING SETS (("locationState", lower("locationCity")), ("locationState"))`
+      FROM org_jobs
+      GROUP BY GROUPING SETS ((st, city), (st))`
+    const employers = await tx.$queryRaw<(StoredEmployer & { st: string })[]>`
+      SELECT g.st, g.name, g.n, c."canonicalNameNormalized" AS cn, c.id AS cid, (p."openNow" >= 3) AS linkable
+      FROM (
+        SELECT st, name, cid, n, row_number() OVER (PARTITION BY st ORDER BY n DESC, name) AS rk
+        FROM (SELECT st, "companyName" AS name, "companyId" AS cid, count(*)::int AS n FROM org_jobs GROUP BY 1, 2, 3) a
+      ) g
+      LEFT JOIN "Company" c ON c.id = g.cid
+      LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
+      WHERE g.rk <= 10
+      ORDER BY g.st, g.n DESC, g.name`
+    const newest = await tx.$queryRaw<(AreaJob & { st: string })[]>`
+      SELECT st, id, title, company, location FROM (
+        SELECT st, id, title, "companyName" AS company, location,
+          row_number() OVER (PARTITION BY st ORDER BY "lastVerifiedAt" DESC NULLS LAST, id) AS rk
+        FROM org_jobs
+      ) x WHERE rk <= 8 ORDER BY st, rk`
+    return { rows, employers, newest }
   }, { timeout: 620_000, maxWait: 30_000 })
-  const out = new Map<string, { cityJobs: CityJobRow[]; stateJob: JobStatRow | null }>()
-  for (const code of ALL_STATE_CODES) out.set(code, { cityJobs: [], stateJob: null })
+  const out = new Map<string, StateFigure>()
+  for (const code of ALL_STATE_CODES) out.set(code, { cityJobs: [], stateJob: null, topEmployers: [], newestJobs: [] })
   for (const r of rows) {
     const entry = out.get(r.st)
     if (!entry) continue
@@ -187,6 +217,8 @@ export async function buildOrgJobStats(): Promise<Map<string, { cityJobs: CityJo
     if (r.by_state === 1) entry.stateJob = stat
     else if (r.city !== null) entry.cityJobs.push({ city: r.city, ...stat })
   }
+  for (const { st, ...e } of employers) out.get(st)?.topEmployers.push(e)
+  for (const { st, ...j } of newest) out.get(st)?.newestJobs.push(j)
   return out
 }
 
@@ -348,24 +380,41 @@ const citySpellings = (p: CityPlace) => [p.key, p.name.toLowerCase(), p.name.toL
 export interface HiringEmployer { name: string; openRoles: number; href: string | null }
 export interface AreaJob { id: string; title: string; company: string; location: string | null }
 
+const hiringEmployer = (r: StoredEmployer): HiringEmployer =>
+  ({ name: r.name, openRoles: r.n, href: r.linkable && r.cn && r.cid ? `/employers/${employerSlug(r.cn, r.cid)}` : null })
+
 async function loadAreaHiring(state: string, area: Area): Promise<{ employers: HiringEmployer[]; jobs: AreaJob[] }> {
   if (!area.statewide && area.places.length === 0) return { employers: [], jobs: [] }
+  // A whole state: the board-figures cron's stored row (buildOrgJobStats), refreshed twice a day. The page is cached 7 days anyway.
+  if (area.statewide) {
+    const stored = await readBoardFigure<Partial<StateFigure>>(`org-job-stats:${state}`).catch(() => null)
+    if (stored?.topEmployers && stored.newestJobs) return { employers: stored.topEmployers.map(hiringEmployer), jobs: stored.newestJobs }
+  }
   const spellings = area.statewide ? null : [...new Set(area.places.flatMap(citySpellings))]
   const where = Prisma.sql`AND "locationState" = ${state} ${spellings ? Prisma.sql`AND lower("locationCity") = ANY(${spellings})` : Prisma.empty}`
   const [emp, jobs] = await Promise.all([
-    prisma.$queryRaw<{ name: string; n: number; cn: string | null; cid: string | null; linkable: boolean | null }[]>`
+    prisma.$queryRaw<StoredEmployer[]>`
       SELECT g.name, g.n, c."canonicalNameNormalized" AS cn, c.id AS cid, (p."openNow" >= 3) AS linkable
       FROM (SELECT "companyName" AS name, "companyId" AS cid, count(*)::int AS n ${jobsFrom} ${where} GROUP BY 1, 2 ORDER BY n DESC, name LIMIT 10) g
       LEFT JOIN "Company" c ON c.id = g.cid
       LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
       ORDER BY g.n DESC, g.name`,
-    prisma.$queryRaw<{ id: string; title: string; company: string; location: string | null }[]>`
-      SELECT id, title, "companyName" AS company, location ${jobsFrom} ${where} ORDER BY "lastVerifiedAt" DESC NULLS LAST, id LIMIT 8`,
+    // The newest eight per city spelling, each read in the place index's own order (state, city, lastVerifiedAt DESC NULLS LAST, id),
+    // then the newest eight of those. One query over all the spellings had to read and sort every job in the area: ~5,000 rows and
+    // ~15,000 buffers for Houston and three neighbors (2026-11-17).
+    spellings
+      ? prisma.$queryRaw<AreaJob[]>`
+          SELECT j.id, j.title, j.company, j.location FROM unnest(${spellings}::text[]) AS s(city)
+          CROSS JOIN LATERAL (
+            SELECT id, title, "companyName" AS company, location, "lastVerifiedAt" ${jobsFrom}
+              AND "locationState" = ${state} AND lower("locationCity") = s.city
+            ORDER BY "lastVerifiedAt" DESC NULLS LAST, id LIMIT 8
+          ) j
+          ORDER BY j."lastVerifiedAt" DESC NULLS LAST, j.id LIMIT 8`
+      : prisma.$queryRaw<AreaJob[]>`
+          SELECT id, title, "companyName" AS company, location ${jobsFrom} ${where} ORDER BY "lastVerifiedAt" DESC NULLS LAST, id LIMIT 8`,
   ])
-  return {
-    employers: emp.map((r) => ({ name: r.name, openRoles: r.n, href: r.linkable && r.cn && r.cid ? `/employers/${employerSlug(r.cn, r.cid)}` : null })),
-    jobs,
-  }
+  return { employers: emp.map(hiringEmployer), jobs }
 }
 
 const sharedAreaHiring = memoTtl(10 * 60_000, (state: string, area: Area) => `${state}|${area.statewide}|${area.places.map((p) => p.key).join(',')}`, (state: string, area: Area) => {
