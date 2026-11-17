@@ -2,7 +2,7 @@ import 'server-only'
 import { readSearchExpansion } from '@/lib/profile/search-expansion'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { sharedPartsLoad } from '@/lib/db/heavy'
+import { sharedLoad, sharedPartsLoad } from '@/lib/db/heavy'
 import { heapBlockCount, heapRangeSql, heapRanges } from '@/lib/db/heap-ranges'
 import { logBoardMemory } from '@/lib/jobs/board-light-rows'
 import { boardFingerprint, claimSnapshotRefresh, inBackground, readManifest, readParts, REFRESH_GRACE_MS, snapshotsDisabled, snapshotUsable, writeSnapshot } from '@/lib/jobs/board-snapshot'
@@ -382,12 +382,18 @@ let placeCoords: { at: number; value: Promise<Map<string, { lat: number; lon: nu
 let placeCoordsReady: Map<string, { lat: number; lon: number }> | null = null
 export function loadPlaceCoords(): Promise<Map<string, { lat: number; lon: number }>> {
   if (!placeCoords || Date.now() - placeCoords.at > PLACES_TTL_MS) {
-    const value = prisma.geoPlace
-      .findMany({ select: { state: true, nameKey: true, lat: true, lon: true, population: true }, orderBy: { population: 'asc' } })
-      .then((rows) => {
+    // One copy in the shared data cache for a day (2026-11-17 egress: every cold instance read all ~69k rows), as compact
+    // [key, lat, lon] entries (~0.7 MB gzipped, under the 2 MB entry cap).
+    const value = sharedLoad('place-coords-v1', 24 * 3600, async () => {
+      const rows = await prisma.geoPlace.findMany({ select: { state: true, nameKey: true, lat: true, lon: true, population: true }, orderBy: { population: 'asc' } })
+      const byKey = new Map<string, [number, number]>()
+      // Ascending population: the biggest place of a name wins.
+      for (const r of rows) byKey.set(`${r.state}|${r.nameKey}`, [r.lat, r.lon])
+      return [...byKey].map(([k, [lat, lon]]) => [k, lat, lon] as [string, number, number])
+    }, { reviveDates: false })
+      .then((entries) => {
         const m = new Map<string, { lat: number; lon: number }>()
-        // Ascending population: the biggest place of a name wins.
-        for (const r of rows) m.set(`${r.state}|${r.nameKey}`, { lat: r.lat, lon: r.lon })
+        for (const [k, lat, lon] of entries) m.set(k, { lat, lon })
         // Census centroids that sit far from where people work (San Francisco's includes the Farallon Islands).
         for (const [k, v] of Object.entries(PLACE_CORRECTIONS)) m.set(k, v)
         placeCoordsReady = m

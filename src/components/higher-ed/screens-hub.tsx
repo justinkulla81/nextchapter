@@ -10,8 +10,16 @@ import { regionNotices } from '@/lib/higher-ed/rapid-response'
 import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, seatRequests, small, type LocalSplit } from '@/lib/workforce/hub'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
-import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
+import { CompanyContactForm, HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
+import { ConfirmActionButton } from './ConfirmActionButton'
+import { removeCompanyContactAction } from '@/app/i/[slug]/(portal)/hub-actions'
+import { CONTACT_ROLE_LABELS, companyContacts, parseContactRoles } from '@/lib/workforce/member-contacts'
 import { BriefCard } from './BriefCard'
+import { EditLink } from './EditLink'
+import { readLocal } from '@/lib/workforce/local'
+import { getAwards, readRankingIndex } from '@/lib/rankings/store'
+import { groupByMonth, viewAwards } from '@/lib/rankings/awards'
+import { cityAwardKeys } from '@/lib/rankings/place-keys'
 import { nextReserveDeadline } from './screens-hub-program'
 import { ResponseFlow, loadFlowData } from './screens-hub-flow'
 import { PortalHomeMore, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem } from '@/components/partners/PortalHome'
@@ -44,7 +52,7 @@ const VERBS: Verb[] = [
 ]
 
 // The splash picture: the organization's own, or a generic placeholder until it uploads one.
-function HomeHero({ name, region, tagline, imageUrl, credit, creditUrl, stats }: { name: string; region: string; tagline: string | null; imageUrl: string | null; credit?: string | null; creditUrl?: string | null; stats: { label: string; value: string; note?: string }[] }) {
+function HomeHero({ name, region, tagline, imageUrl, credit, creditUrl, stats, edit }: { name: string; region: string; tagline: string | null; imageUrl: string | null; credit?: string | null; creditUrl?: string | null; stats: { label: string; value: string; note?: string }[]; edit?: { brandingHref: string; regionHref: string; readOnly: boolean } }) {
   return (
     <section aria-label={`${name} overview`} className="overflow-hidden rounded-xl border border-border">
       <div className="relative h-44 w-full bg-primary/10 sm:h-56">
@@ -72,6 +80,7 @@ function HomeHero({ name, region, tagline, imageUrl, credit, creditUrl, stats }:
           <p className="text-sm font-medium text-white/90">{region}</p>
           {tagline && <p className="text-lg font-semibold text-white sm:text-xl">{tagline}</p>}
         </div>
+        {edit && <EditLink href={edit.brandingHref} what="picture and tagline" readOnly={edit.readOnly} onDark className="absolute top-2 left-2" />}
         {/* The license (CC BY or BY-SA) asks for the credit; small, in the corner. */}
         {imageUrl && credit && (
           <a href={creditUrl ?? undefined} target="_blank" rel="noreferrer" className="absolute top-2 right-2 max-w-[70%] truncate rounded bg-black/45 px-1.5 py-0.5 text-[10px] text-white/90 hover:underline">
@@ -88,6 +97,43 @@ function HomeHero({ name, region, tagline, imageUrl, credit, creditUrl, stats }:
           </div>
         ))}
       </dl>
+      {edit && (
+        <div className="flex justify-end border-t border-border bg-card px-4 py-1.5">
+          <EditLink href={edit.regionHref} what="region" readOnly={edit.readOnly} />
+        </div>
+      )}
+    </section>
+  )
+}
+
+// Where the region's main city places in our monthly rankings, the newest month (blueprint: "Best-of rankings and awards").
+// One shared, cached read of the city's award bucket and the ranking index; nothing when the city has no top-25 placing.
+async function HomeRankings({ enabledFeatures }: { enabledFeatures: unknown }) {
+  const local = readLocal(enabledFeatures)
+  if (!local) return null
+  const [awards, index] = await Promise.all([getAwards(cityAwardKeys(local.anchorCity, local.anchorState)).catch(() => []), readRankingIndex().catch(() => [])])
+  const months = groupByMonth(viewAwards(awards, index))
+  const latest = months[0]
+  if (!latest) return null
+  return (
+    <section aria-labelledby="home-ranks" className="space-y-2 rounded-xl border border-border bg-card p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="home-ranks" className="text-base font-semibold">
+          Where {local.anchorCity} ranks
+        </h2>
+        <p className="text-xs text-muted-foreground">{latest.month}, NextChapter rankings of U.S. cities</p>
+      </div>
+      <ul className="grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
+        {latest.items.slice(0, 6).map((a) => (
+          <li key={a.slug} className="flex items-baseline gap-2">
+            <span className="inline-flex min-w-[2.5rem] shrink-0 justify-center rounded-full bg-muted px-2 py-0.5 text-xs font-bold tabular-nums">#{a.rank}</span>
+            <a href={a.href} target="_blank" rel="noreferrer" className="hover:underline">
+              {a.title}
+            </a>
+            <span className="text-xs text-muted-foreground">of {a.places}</span>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }
@@ -113,10 +159,13 @@ export async function HubHome({ ctx, base }: Props) {
   const demo = (inst.enabledFeatures as { demo?: { preparedFor?: string | null } } | null)?.demo
   const un = profile?.region?.unemployment?.[0]
   const activation = d.participants ? Math.round((d.joined / d.participants) * 100) : null
-  const unanswered = notices.filter((n) => !n.responseId).length
+  const unansweredList = notices.filter((n) => !n.responseId)
+  const unanswered = unansweredList.length
+  // The action names the biggest layoff waiting, so the button says what it is for.
+  const biggest = [...unansweredList].sort((a, b) => (b.employees ?? 0) - (a.employees ?? 0))[0]
   const isDemo = ctx.institution.isDemo
   const needs: { label: string; detail: string; href: string; cta: string }[] = []
-  if (unanswered > 0) needs.push({ label: `${unanswered} layoff${unanswered === 1 ? '' : 's'} filed in your region with no response yet`, detail: 'Real filings from the last 120 days.', href: `${base}/${isDemo ? 'rapid' : 'layoffs'}`, cta: 'Plan the response' })
+  if (unanswered > 0) needs.push({ label: `${unanswered} layoff${unanswered === 1 ? '' : 's'} filed in your region with no response yet`, detail: 'Real filings from the last 120 days.', href: `${base}/${isDemo ? 'rapid' : 'layoffs'}`, cta: biggest ? `Plan the response to ${biggest.employer.length > 40 ? 'the biggest layoff' : `the ${biggest.employer} layoff`}` : 'Plan the response' })
   if (requests.length > 0) needs.push({ label: `${requests.length} seat request${requests.length === 1 ? '' : 's'} from member companies waiting`, detail: 'A company asked for free access for its people.', href: `${base}/layoffs`, cta: 'Answer the request' })
   if (redZone > 0) needs.push({ label: `${small(redZone)} people out of work 26 weeks or more`, detail: 'The longest searches, where outreach matters most.', href: `${base}/participants`, cta: 'See who' })
   if (claimsWaiting > 0) needs.push({ label: `${claimsWaiting} organization${claimsWaiting === 1 ? '' : 's'} asked to join your talent network`, detail: 'Check who they are, then confirm or decline.', href: `${base}/ecosystem`, cta: 'Review requests' })
@@ -164,12 +213,15 @@ export async function HubHome({ ctx, base }: Props) {
         imageUrl={profile?.heroImageUrl ?? null}
         credit={profile?.heroCredit ?? null}
         creditUrl={profile?.heroSourceUrl ?? null}
+        edit={{ brandingHref: `${base.replace(/\/hub$/, '')}/admin/branding`, regionHref: `${base}/local`, readOnly: ctx.readOnly }}
         stats={[
           { label: un ? `Unemployment, ${un.area}` : 'Unemployment', value: un ? `${un.rate}%` : '—', note: un ? `${periodLabel(un.period)}, U.S. Bureau of Labor Statistics` : 'Set your region to show it' },
           { label: 'Labor force', value: un?.laborForce ? un.laborForce.toLocaleString() : '—', note: un?.laborForce ? un.area : undefined },
           { label: 'Member companies', value: String(d.companies), note: `${d.layoffs} layoff${d.layoffs === 1 ? '' : 's'} with seats` },
         ]}
       />
+
+      <HomeRankings enabledFeatures={inst.enabledFeatures} />
 
       <PortalNeeds portal="workforce" items={items} empty="Nothing needs you this week." />
 
@@ -235,8 +287,9 @@ export async function HubHome({ ctx, base }: Props) {
 }
 
 export async function HubCompanies({ ctx }: Props) {
-  const rows = await memberCompanies(ctx.institution.id)
+  const [rows, contacts] = await Promise.all([memberCompanies(ctx.institution.id), companyContacts(ctx.institution.id)])
   const slug = ctx.institution.slug
+  const companyName = new Map(rows.map((c) => [c.id, c.name]))
   return (
     <div className="space-y-6">
       {!ctx.readOnly && (
@@ -296,6 +349,52 @@ export async function HubCompanies({ ctx }: Props) {
             </tbody>
           </table>
         </div>
+      )}
+      {rows.length > 0 && (
+        <section aria-labelledby="company-people" className="space-y-3">
+          <div>
+            <h2 id="company-people" className="text-base font-semibold">
+              People at member companies
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Each person sees their part of the company&apos;s view: outplacement sees layoff seats and how its people are doing; hiring sees shared profiles and the jobs it posts. The main contact sees all of it.
+            </p>
+          </div>
+          {contacts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No one added yet.</p>
+          ) : (
+            <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+              {contacts.map((p) => (
+                <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
+                  <div>
+                    <p className="font-medium">{p.email}</p>
+                    <p className="text-muted-foreground">
+                      {companyName.get(p.memberCompanyId) ?? 'Company'} · {parseContactRoles(p.roles).map((r) => CONTACT_ROLE_LABELS[r]).join(' and ')} ·{' '}
+                      {p.acceptedAt ? 'Active' : `Invited ${p.invitedAt.toLocaleDateString('en-US', { timeZone: 'UTC' })}`}
+                    </p>
+                  </div>
+                  {!ctx.readOnly && (
+                    <ConfirmActionButton
+                      variant="outline"
+                      label="Remove"
+                      confirm={`Remove ${p.email}? They stop seeing ${companyName.get(p.memberCompanyId) ?? 'the company'}'s view right away.`}
+                      confirmLabel="Remove access"
+                      run={removeCompanyContactAction.bind(null, slug, p.id)}
+                    />
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {!ctx.readOnly && (
+            <details className="rounded-lg border border-border bg-card p-4" open={contacts.length === 0}>
+              <summary className="cursor-pointer text-sm font-medium text-primary">Add a person at a member company</summary>
+              <div className="pt-3">
+                <CompanyContactForm slug={slug} companies={rows.map((c) => ({ id: c.id, name: c.name, connected: !!c.employerProfileId }))} />
+              </div>
+            </details>
+          )}
+        </section>
       )}
     </div>
   )

@@ -7,6 +7,7 @@
 // companies and seats); everything invented is labeled "Sample".
 
 import Link from 'next/link'
+import { Pencil } from 'lucide-react'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
 import { regionNotices } from '@/lib/higher-ed/rapid-response'
@@ -15,6 +16,7 @@ import { hubLayoffs, memberCompanies, small } from '@/lib/workforce/hub'
 import { marketJobs } from '@/lib/workforce/market-jobs'
 import { BENEFITS, DEMAND_SKILLS, FUNNEL, LANES, ORIGINS, RESPONSE_STEPS, rand01, randInt } from '@/lib/workforce/program-content'
 import { StatTile } from './StatTile'
+import { EditLink } from './EditLink'
 import { NEED_CATEGORIES, peopleCrm } from '@/lib/workforce/people-crm'
 import { PrintButton } from './PrintButton'
 import { nearbyColleges } from '@/lib/workforce/colleges-near'
@@ -1200,7 +1202,7 @@ export async function HubPublic({ ctx, base }: Props) {
   const state = (inst.profile as { region?: { state?: string } } | null)?.region?.state ?? null
   const orgBase = base.replace(/\/hub$/, '')
   const site = 'https://launchyournextchapter.com'
-  const rows: { name: string; what: string; feeds: string; control: string; status: 'Live' | 'Planned'; href: string; cta: string; external?: boolean }[] = [
+  const rows: { name: string; what: string; feeds: string; control: string; status: 'Live' | 'Planned'; href: string; cta: string; external?: boolean; edit?: { href: string; external?: boolean } }[] = [
     {
       name: 'Your organization’s page',
       what: 'The page people find in search: jobs open across your area, employers hiring, colleges, events and how to reach you.',
@@ -1210,6 +1212,7 @@ export async function HubPublic({ ctx, base }: Props) {
       href: state ? `${site}/workforce-boards/${stateSlug(state)}` : `${site}/government-workforce#claim`,
       cta: 'Find your page',
       external: true,
+      edit: { href: state ? `${site}/workforce-boards/${stateSlug(state)}` : `${site}/government-workforce#claim`, external: true },
     },
     {
       name: 'Layoff pages',
@@ -1220,6 +1223,7 @@ export async function HubPublic({ ctx, base }: Props) {
       href: `${site}/layoffs`,
       cta: 'See the layoff tracker',
       external: true,
+      edit: { href: `${base}/layoffs` },
     },
     {
       name: 'Moving here page',
@@ -1247,6 +1251,7 @@ export async function HubPublic({ ctx, base }: Props) {
       status: 'Live',
       href: `${orgBase}/candidate`,
       cta: 'Open the preview',
+      edit: { href: `${orgBase}/admin/services` },
     },
     {
       name: 'Employer view',
@@ -1256,6 +1261,7 @@ export async function HubPublic({ ctx, base }: Props) {
       status: 'Live',
       href: `${orgBase}/employer`,
       cta: 'Open the preview',
+      edit: { href: `${base}/companies` },
     },
   ]
   return (
@@ -1294,6 +1300,18 @@ export async function HubPublic({ ctx, base }: Props) {
                       </Link>
                     )}
                   </div>
+                  {r.edit && (
+                    <div className="mt-1">
+                      {r.edit.external && !ctx.readOnly ? (
+                        <a href={r.edit.href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:underline">
+                          <Pencil className="size-3" aria-hidden="true" />
+                          Claim and edit
+                        </a>
+                      ) : (
+                        <EditLink href={r.edit.href} what="" readOnly={ctx.readOnly} className="px-0" />
+                      )}
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}

@@ -5,6 +5,7 @@
 // (PRIMARY_FUNCTION_OPTIONS) map to that exact label, so fit scoring compares
 // like with like; the rest keep a plain label of their own. Pure.
 
+import { correctedJobFunction } from '@/lib/jobs/infer-job-function'
 import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
 import { CORP_DEV_FUNDRAISING, CORP_DEV_OTHER_FUNCTION, CORP_DEV_TITLE } from '@/lib/jobs/job-seniority-rules.generated'
 
@@ -64,7 +65,9 @@ export function isCorporateDevelopmentTitle(title: string | null | undefined): b
 
 /** The stored label for a crawler code on this title: a corp-dev / M&A title is Strategy whatever code arrived. */
 export function functionLabelForTitle(code: string | null | undefined, title: string | null | undefined): string | null {
-  return isCorporateDevelopmentTitle(title) ? CRAWLER_FUNCTION_LABEL.strategy : functionLabelFor(code)
+  if (isCorporateDevelopmentTitle(title)) return CRAWLER_FUNCTION_LABEL.strategy
+  // A Finance code that rests only on "Financial Services" (the industry) in the title is read from the role instead.
+  return correctedJobFunction(functionLabelFor(code), title)
 }
 
 /** The `fn` URL parameter -> filter key, or null. */

@@ -142,7 +142,7 @@ export function simpleNote(kind: HomeNoteKind, ctx: { firstName: string; firstWe
         why: noteWhyWithMotivation('A few questions about your best work. It becomes your pitch and the strengths employers see. About 3 minutes', ctx.motivations),
         startLabel: 'Start with my best work',
         startHref: '/dashboard/strengths/discover?area=best_work',
-        whyDetail: 'Most people can’t say what they’re best at until someone asks. You see this in your first two weeks until you finish one area. Weaker spots you mention stay private.',
+        whyDetail: 'Most people can’t say what they’re best at until someone asks. You see this in your first two weeks until you finish one area. Weaker spots you mention are never shown to employers.',
       }
     case 'got_hired':
       return {

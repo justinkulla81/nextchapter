@@ -1,4 +1,5 @@
 import 'server-only'
+import { loadReflectionSummaries } from '@/lib/strengths-interview/load'
 import type { CandidateProfile, Coach } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
@@ -244,7 +245,7 @@ export async function loadPrep(coach: Pick<Coach, 'id'>, candidate: CandidatePro
   const since = lastSessionAt ?? new Date(now.getTime() - 7 * DAY_MS)
 
   // Nothing about the search is read without consent. The coach's own notes (what was agreed) are theirs, so they always load.
-  const [session, agreed, effort, pipeline, grade, market, traits] = await Promise.all([
+  const [session, agreed, effort, pipeline, grade, market, traits, own] = await Promise.all([
     soft('session', () => loadSession(coach.id, candidate.id, now)),
     soft('agreed items', () => loadAgreed(coach.id, candidate.id)),
     consented ? soft('effort', () => loadEffort(candidate.id, now)) : null,
@@ -252,9 +253,10 @@ export async function loadPrep(coach: Pick<Coach, 'id'>, candidate: CandidatePro
     consented ? soft('grade', () => loadGrade(candidate.id)) : null,
     consented ? soft('market', () => loadMarket(candidate)) : null,
     consented ? soft('strengths', () => loadTraits(candidate.id)) : null,
+    consented ? soft('own strengths', () => loadReflectionSummaries(candidate.id)) : null,
   ])
 
-  const input: PrepInput = { now, firstName, consented, confidential, weekNumber, session, lastSessionAt, effort, pipeline, grade, agreed, market, traits }
+  const input: PrepInput = { now, firstName, consented, confidential, weekNumber, session, lastSessionAt, effort, pipeline, grade, agreed, market, traits, ownStrengths: own ? own.map((o) => ({ strength: o.strength, sayIt: o.sayIt })) : null }
   return {
     view: buildPrep(input),
     primary: primaryAction(session?.meetUrl ?? null),

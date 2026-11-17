@@ -20,6 +20,11 @@ vi.mock('@/lib/jobs/board-light-rows', async (orig) => ({
       .slice(0, take)
   },
 }))
+// The internship rule is what is under test, not the member's search breadth: no classifier, so the board is every live job in the window.
+vi.mock('@/lib/jobs/search-breadth-server', async (orig) => ({
+  ...(await orig<typeof import('@/lib/jobs/search-breadth-server')>()),
+  loadBreadthClassifier: async () => null,
+}))
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     exclusiveJobPosting: {

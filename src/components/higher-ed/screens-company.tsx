@@ -6,6 +6,7 @@ import { Building2 } from 'lucide-react'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { companyOverview, memberCompanyFor } from '@/lib/workforce/company-portal'
 import { small } from '@/lib/workforce/hub'
+import { employerCan } from '@/lib/higher-ed/workspaces'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
 import { HiringStatus, SeatRequestForm } from './CompanyForms'
@@ -21,14 +22,18 @@ function NotConnected({ ctx }: Props) {
 export async function CompanyOverview({ ctx }: Props) {
   const c = await memberCompanyFor(ctx)
   if (!c) return <NotConnected ctx={ctx} />
-  const o = await companyOverview(ctx.institution.id, c.id)
   const slug = ctx.institution.slug
+  // Each person sees their part of the company's view: outplacement its people after a layoff, hiring its hiring status.
+  const outplacement = employerCan(ctx.tokens, 'outplacement')
+  const hiring = employerCan(ctx.tokens, 'hiring')
+  const o = outplacement ? await companyOverview(ctx.institution.id, c.id) : null
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold">{c.name}</h2>
         <p className="text-sm text-muted-foreground">A member of {ctx.institution.programBrandName ?? ctx.institution.name}{c.industry ? ` · ${c.industry}` : ''}</p>
       </div>
+      {o && (
       <section aria-labelledby="your-people" className="space-y-2">
         <h3 id="your-people" className="text-base font-semibold">
           Your people after a layoff
@@ -48,9 +53,12 @@ export async function CompanyOverview({ ctx }: Props) {
         )}
         <p className="text-xs text-muted-foreground">Counts only. You never see who joined, how anyone&apos;s search is going, or where any one person landed.</p>
       </section>
+      )}
+      {hiring && (
       <section className="rounded-lg border border-border bg-card p-4">
         <HiringStatus slug={slug} hiring={c.hiring} readOnly={ctx.readOnly} />
       </section>
+      )}
     </div>
   )
 }

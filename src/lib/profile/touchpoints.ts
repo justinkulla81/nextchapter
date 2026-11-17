@@ -4,6 +4,8 @@ import { loadWorkProfile } from './work-profile-load'
 import { loadAddressableMarket } from './addressable-market'
 import { describe, LESS_OPTIONS, MORE_OPTIONS, missingDims, readLikes, WORK_DIMS } from './work-profile'
 import { prisma } from '@/lib/prisma'
+import { loadReflectionSummaries } from '@/lib/strengths-interview/load'
+import { AREAS } from '@/lib/strengths-interview/areas'
 
 // What the personalization layer says in the daily touchpoints (Weekly
 // Sprint, Job Search Daily, coach briefs): one source so they agree. No AI.
@@ -47,17 +49,24 @@ export type CoachProfileContext = {
   less: string[]
   more: string[]
   market: { title: string; detail: string }[]
+  /** Find your strengths, in the client's own words: each finished area's strength, proof and line. Never the weak spots or the raw answers. */
+  ownWords: { areaTitle: string; strength: string; proof: string; sayIt: string }[]
+  /** Areas finished, of AREAS.length. */
+  ownDone: number
+  /** Weak spots to plan for, measured and in the client's own words. Coaches see them (owner, 2026-11-17); employers never do. */
+  weakSpots: { label: string; line: string }[]
 }
 
 // For coaches: what the person is best at, how they like to work, what they
 // want to leave behind and toward, and any market flags. Never their private
 // weak spots.
 export async function coachProfileContext(candidateId: string): Promise<CoachProfileContext> {
-  const [st, wp, row, mkt] = await Promise.all([
+  const [st, wp, row, mkt, own] = await Promise.all([
     loadStrengths(candidateId).catch(() => null),
     loadWorkProfile(candidateId).catch(() => null),
     prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { workStyleAnswers: true } }),
     loadAddressableMarket(candidateId).catch(() => null),
+    loadReflectionSummaries(candidateId),
   ])
   const likes = readLikes(row?.workStyleAnswers)
   return {
@@ -66,5 +75,17 @@ export async function coachProfileContext(candidateId: string): Promise<CoachPro
     less: likes.less.map((k) => LESS_OPTIONS.find((o) => o.key === k)!.label),
     more: likes.more.map((k) => MORE_OPTIONS.find((o) => o.key === k)!.label),
     market: mkt?.flags.map((f) => ({ title: f.title, detail: f.detail })) ?? [],
+    ownWords: AREAS.flatMap((a) => {
+      const r = own.find((x) => x.area === a.key)
+      return r ? [{ areaTitle: a.title, strength: r.strength, proof: r.proof, sayIt: r.sayIt }] : []
+    }),
+    ownDone: own.length,
+    weakSpots: [
+      ...(st?.weakSpots ?? []).map((w) => ({ label: w.label, line: w.line })),
+      ...AREAS.flatMap((a) => {
+        const w = own.find((x) => x.area === a.key)?.watchOut
+        return w ? [{ label: a.title, line: w }] : []
+      }),
+    ],
   }
 }

@@ -14,6 +14,7 @@ import { textSkillIds } from '@/lib/careers/text-skill-ids'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { isEmployerSector } from '@/lib/jobs/employer-sector'
 import { parseRequirementFlags, requirementTagsFor } from '@/lib/jobs/requirements'
+import { notOpenToUsResidents } from '@/lib/jobs/foreign-remote'
 import { importAiSkillFields } from '@/lib/skills/ai-skills'
 import { importPostingSignalFields } from '@/lib/jobs/posting-signals'
 import { statesFromLocation, US_STATE_CODES } from '@/lib/pay/market-pay'
@@ -281,6 +282,8 @@ function rowData({ job, level }: Screened) {
 function requirementFieldsOf(job: ImportJobInput) {
   if (!('requirementFlags' in job) || job.requirementFlags === undefined) return {}
   const flags = parseRequirementFlags(job.requirementFlags)
+  // Ours, not the crawler's: a posting for people outside the US ("Remote from Latin America"; foreign-remote.ts).
+  if (!flags.some((f) => f.flag === 'outside_us') && notOpenToUsResidents(`${job.title} ${job.description ?? ''}`)) flags.push({ flag: 'outside_us' })
   return {
     requirementFlags: flags.length ? (flags as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
     requirementTags: requirementTagsFor(flags),

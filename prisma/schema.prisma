@@ -16049,10 +16049,35 @@ model MemberCompany {
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
-  layoffs RapidResponse[]
-  people  InstitutionMember[]
+  layoffs  RapidResponse[]
+  people   InstitutionMember[]
+  contacts MemberCompanyContact[]
 
   @@unique([institutionId, name])
+}
+
+// A named person at a member company and the part of the company's view they work in (owner, 2026-11-17): HIRING
+// (shared profiles, intros, jobs it posts) or OUTPLACEMENT (layoff seats and how its people are doing). The company's
+// main connected login (MemberCompany.employerProfileId) keeps the whole view. The org invites contacts from
+// Talent Hub > Member companies. Applied by hand: prisma/manual/2026-11-17-member-company-contacts.sql.
+model MemberCompanyContact {
+  id              String        @id @default(cuid())
+  institutionId   String
+  memberCompanyId String
+  memberCompany   MemberCompany @relation(fields: [memberCompanyId], references: [id], onDelete: Cascade)
+  email           String
+  // HIRING | OUTPLACEMENT (validated in code; L&D, partnerships and grants come later)
+  roles           String[]
+  userId          String?
+  inviteToken     String?       @unique
+  invitedAt       DateTime      @default(now())
+  acceptedAt      DateTime?
+  createdBy       String?
+  isSampleData    Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+
+  @@unique([memberCompanyId, email])
+  @@index([institutionId, userId])
 }
 
 // ── Working, networking, learning, giving time, news, data rights, systems ──

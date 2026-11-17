@@ -237,6 +237,24 @@ export const QUESTION_RULES: Rule[] = [
       reason: `Among ${x.title.toLowerCase()}, AI is already used for a large share of the tasks (${x.sourceName}). It gives ${name} a way to talk about what stays human.`,
     }
   },
+  // 10. Find your strengths: practise their own line, or start finding it.
+  (input, name) => {
+    const own = input.ownStrengths
+    if (!own) return null
+    const line = own.find((o) => o.sayIt)
+    if (line) {
+      return {
+        rule: 'own_strength_line',
+        text: `Say your line out loud: “${trim(line.sayIt, 140)}” What would make it land harder in an interview?`,
+        reason: `${name} named “${trim(line.strength, 60)}” as a strength in Find your strengths. Saying it out loud with you is how it becomes their pitch.`,
+      }
+    }
+    return {
+      rule: 'own_strength_missing',
+      text: 'What is the one thing people at work come to you for, because you do it better than most?',
+      reason: `${name} has not finished an area of Find your strengths yet, so they may not have the words for what they are best at.`,
+    }
+  },
 ]
 
 // Used only to fill up to three when the data gives fewer, and they say so.
