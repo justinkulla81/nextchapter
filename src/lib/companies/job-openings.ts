@@ -167,6 +167,34 @@ async function upsertOpeningChunk(rows: OpeningRow[]): Promise<number> {
       "closeReason" = CASE WHEN EXCLUDED."lastSeenAt" >= "CompanyJobOpening"."lastSeenAt" AND EXCLUDED."closedAt" IS NULL THEN NULL ELSE "CompanyJobOpening"."closeReason" END,
       "sourceName" = COALESCE(EXCLUDED."sourceName", "CompanyJobOpening"."sourceName"),
       "updatedAt" = now()
+    -- Skip a row the update would leave as it is. Most of what the crawler imports is a job seen again unchanged, and every such row was
+    -- rewritten anyway: ~10 updates per insert, half of them not HOT (all 7 indexes rewritten), #6 by database time in the 2026-11-17
+    -- statement stats, and the reason the table's visibility map never settles (index-only scans fetched every row). A row now changes
+    -- when a field would, when it closes or reopens, or when its last sighting moves on by more than a day; lastSeenAt can lag a day
+    -- (its readers look back 14 days, or compare it with the archive date), and an unchanged row no longer bumps updatedAt.
+    WHERE EXCLUDED."lastSeenAt" > "CompanyJobOpening"."lastSeenAt" + interval '1 day'
+       OR "CompanyJobOpening"."lastSeenAt" IS NULL
+       OR EXCLUDED."firstSeenAt" < "CompanyJobOpening"."firstSeenAt"
+       OR (EXCLUDED."lastSeenAt" >= "CompanyJobOpening"."lastSeenAt" AND (
+            EXCLUDED."closedAt" IS DISTINCT FROM "CompanyJobOpening"."closedAt"
+            OR (EXCLUDED."closedAt" IS NULL AND "CompanyJobOpening"."closeReason" IS NOT NULL)))
+       OR EXCLUDED."companyId" IS DISTINCT FROM "CompanyJobOpening"."companyId"
+       OR EXCLUDED."title" IS DISTINCT FROM "CompanyJobOpening"."title"
+       OR EXCLUDED."companyName" IS DISTINCT FROM "CompanyJobOpening"."companyName"
+       OR (EXCLUDED."location" IS NOT NULL AND (EXCLUDED."location" IS DISTINCT FROM "CompanyJobOpening"."location"
+            OR EXCLUDED."states" IS DISTINCT FROM "CompanyJobOpening"."states" OR EXCLUDED."isRemote" IS DISTINCT FROM "CompanyJobOpening"."isRemote"))
+       OR (EXCLUDED."level" IS NOT NULL AND EXCLUDED."level" IS DISTINCT FROM "CompanyJobOpening"."level")
+       OR (EXCLUDED."seniorityGroup" IS NOT NULL AND EXCLUDED."seniorityGroup" IS DISTINCT FROM "CompanyJobOpening"."seniorityGroup")
+       OR (EXCLUDED."function" IS NOT NULL AND EXCLUDED."function" IS DISTINCT FROM "CompanyJobOpening"."function")
+       OR (EXCLUDED."industry" IS NOT NULL AND EXCLUDED."industry" IS DISTINCT FROM "CompanyJobOpening"."industry")
+       OR (EXCLUDED."salaryMin" IS NOT NULL AND EXCLUDED."salaryMin" IS DISTINCT FROM "CompanyJobOpening"."salaryMin")
+       OR (EXCLUDED."salaryMax" IS NOT NULL AND EXCLUDED."salaryMax" IS DISTINCT FROM "CompanyJobOpening"."salaryMax")
+       OR (EXCLUDED."salaryCurrency" IS NOT NULL AND EXCLUDED."salaryCurrency" IS DISTINCT FROM "CompanyJobOpening"."salaryCurrency")
+       OR (EXCLUDED."payAnnualMin" IS NOT NULL AND EXCLUDED."payAnnualMin" IS DISTINCT FROM "CompanyJobOpening"."payAnnualMin")
+       OR (EXCLUDED."payAnnualMax" IS NOT NULL AND EXCLUDED."payAnnualMax" IS DISTINCT FROM "CompanyJobOpening"."payAnnualMax")
+       OR (EXCLUDED."payAnnualMid" IS NOT NULL AND EXCLUDED."payAnnualMid" IS DISTINCT FROM "CompanyJobOpening"."payAnnualMid")
+       OR (EXCLUDED."postedAt" IS NOT NULL AND EXCLUDED."postedAt" IS DISTINCT FROM "CompanyJobOpening"."postedAt")
+       OR (EXCLUDED."sourceName" IS NOT NULL AND EXCLUDED."sourceName" IS DISTINCT FROM "CompanyJobOpening"."sourceName")
     `,
     payload
   )

@@ -151,6 +151,8 @@ export interface ActiveAreas {
   roles: string[]
   industries: string[]
   places: string[]
+  /** Cities added one by one (Widen your search), by name. */
+  cities?: string[]
   remote: boolean
 }
 
@@ -188,6 +190,7 @@ export function resolveScope(input: {
   const effective: SearchExpansion = {
     remote: keep?.remote ?? false,
     states,
+    cities: keep?.cities ?? [],
     roles: keep?.roles ?? [],
     industries,
     at: expansion.at,
@@ -197,7 +200,7 @@ export function resolveScope(input: {
     expansion: effective,
     exploredFunctions: unique(of('function')),
     targetIndustries: unique([...homeIndustries, ...industries]),
-    active: { functions: unique(of('function')), roles: effective.roles, industries, places: states, remote: effective.remote },
+    active: { functions: unique(of('function')), roles: effective.roles, industries, places: states, cities: (effective.cities ?? []).map((c) => c.name), remote: effective.remote },
   }
 }
 
@@ -238,7 +241,8 @@ export function outsideHome(active: ActiveAreas, home: Home, roleFunction: (role
   return {
     functions: unique([...active.functions.filter(fnOut), ...fromRoles]),
     industries: active.industries.filter((i) => home.industries.length > 0 && !home.industries.includes(low(i))),
-    places: active.places.filter((s) => home.states.length > 0 && !home.states.includes(s.toUpperCase())),
+    // An added city is outside home unless it is home itself; it reads as a place in the message.
+    places: [...active.places.filter((s) => home.states.length > 0 && !home.states.includes(s.toUpperCase())), ...(active.cities ?? [])],
   }
 }
 

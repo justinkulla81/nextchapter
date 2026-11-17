@@ -131,13 +131,13 @@ export function scoreStrengths(input: StrengthInput): StrengthProfile {
       v: typeof kp === 'number' ? (v + kp) / 2 : v,
       w: 1,
       objective: true,
-      evidence: `${s.expert} expert and ${s.strong} strong skills in your skills matrix${input.yearsExperience ? `, ${input.yearsExperience} years in` : ''}${typeof kp === 'number' && kp >= 0.5 ? `; deeper than ${Math.round(kp * 100)}% of people in your field` : ''}`,
+      evidence: `${s.expert && s.strong ? `${s.expert} skills you rate expert and ${s.strong} strong` : s.expert ? `${s.expert} skills you rate expert` : s.strong ? `${s.strong} skills you rate strong` : `${s.total} skills`} in your skills matrix${input.yearsExperience ? `, over ${input.yearsExperience} years` : ''}${typeof kp === 'number' && kp >= 0.5 ? `; deeper than ${Math.round(kp * 100)}% of people in your field` : ''}`,
     })
   }
 
   for (const p of input.picked ?? []) {
     const k = PICK[p]
-    if (k) sig[k].push({ v: 0.75, w: 0.6, objective: false, evidence: 'You picked it as a top strength' })
+    if (k) sig[k].push({ v: 0.75, w: 0.6, objective: false, evidence: 'You named it as one of your top strengths' })
   }
 
   const all: StrengthScore[] = STRENGTHS.map((d) => {

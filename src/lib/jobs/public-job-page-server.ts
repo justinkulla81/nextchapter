@@ -90,6 +90,28 @@ export async function getPublicJob(id: string): Promise<PublicJobRow | null> {
   return { ...job, companyName: cleanCompanyText(job.companyName) }
 }
 
+/**
+ * "Title at Company" for each id that still has a public page (the same rule as getPublicJob), in one read without the posting text.
+ * The lead lifecycle cron (every 5 minutes) called getPublicJob once per saved job, each with the full description (~5 KB), only to
+ * print this label: ~16,000 full-text reads a day for 57 jobs (2026-11-17).
+ */
+export async function publicJobLabels(ids: string[]): Promise<Map<string, string>> {
+  const valid = [...new Set(ids)].filter((id) => /^[a-z0-9]{10,40}$/i.test(id))
+  const out = new Map<string, string>()
+  if (valid.length === 0) return out
+  const [rows, ghosts] = await Promise.all([
+    retryOnPoolTimeout(() => prisma.exclusiveJobPosting.findMany({ where: { id: { in: valid } }, select: PUBLIC_JOB_LIST_SELECT })).then(withDescriptionStubs),
+    retryOnPoolTimeout(() => getConfirmedGhostIds()),
+  ])
+  const now = Date.now()
+  for (const job of rows) {
+    if (!job.title || !isViewableJob(job, now, ghosts.has(job.id))) continue
+    const company = cleanCompanyText(job.companyName)
+    out.set(job.id, company ? `${job.title} at ${company}` : job.title)
+  }
+  return out
+}
+
 // The allowlist's fixed rules — IDENTICAL to the WHERE of the partial index
 // "ExclusiveJobPosting_public_page_shard_idx" (prisma/manual/2026-10-22-public-job-pages.sql),
 // or the planner won't use it.

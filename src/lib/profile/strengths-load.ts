@@ -199,7 +199,7 @@ In their own words (from a guided interview; strength and proof per area): ${arg
 Return:
 - statement: two sentences, under 45 words, that a hiring manager would remember. Name the strengths and the kind of role they make this person great at.
 - employerNeed: one sentence, under 30 words, from the hiring manager's side: the problem they have that this person solves, starting "You need someone who" (e.g. "You need someone who can take a program that is slipping and get it shipped without burning out the team."). Ground it in the strengths above.
-- proofPoints: up to three short lines, each a concrete piece of the evidence above, written as a fact (e.g. "Led a team of 21–50 and owned a $1M–$10M budget").`,
+- proofPoints: up to three short lines, each a concrete piece of the evidence above, written as a fact (e.g. "Led a team of 21–50 and owned a $1M–$10M budget"). Prefer what others confirmed (references, How I Perform, track record) over self-ratings, and never state a count of zero.`,
         },
       ],
     })
