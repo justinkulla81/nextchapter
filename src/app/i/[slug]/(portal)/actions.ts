@@ -12,7 +12,8 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getInstitutionAccess, requireWorkspace, DEMO_PREVIEW_COOKIE } from '@/lib/higher-ed/access'
 import { institutionEntitlements, lockedReason } from '@/lib/plans/entitlements'
-import { AUDIENCE_LABELS, getService, PRICING_LABELS, type Audience, type Pricing, type ServiceSetting } from '@/lib/higher-ed/services'
+import { AUDIENCE_LABELS, customOfferingsFrom, getService, isTargeted, MOMENT_LABELS, NO_TARGETING, PRICING_LABELS, type Audience, type Moment, type Pricing, type ServiceSetting, type Targeting } from '@/lib/higher-ed/services'
+import { parseMajors } from '@/lib/higher-ed/major-groups-shared'
 import { DEMO_PERSONAS, demoPersonaTokens, getWorkspace, orgBasePath, orgKindOf, workspacesFor } from '@/lib/higher-ed/workspaces'
 import { advanceDemoTime, resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
 import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
@@ -108,10 +109,20 @@ const URL_RE = /^https:\/\/[^\s]+$/
 export async function saveService(
   slug: string,
   key: string,
-  patch: { on?: boolean; audience?: string[]; ownerOffice?: string; ownerName?: string | null; pricing?: string; linkUrl?: string | null; provider?: string },
+  patch: {
+    on?: boolean
+    audience?: string[]
+    ownerOffice?: string
+    ownerName?: string | null
+    pricing?: string
+    linkUrl?: string | null
+    provider?: string
+    partnerName?: string | null
+    targeting?: TargetingInput
+  },
 ): Promise<{ error?: string }> {
-  const inst = await prisma.institution.findUnique({ where: { slug }, select: { orgType: true, plan: true } })
-  const service = getService(key, orgKindOf(inst?.orgType))
+  const inst = await prisma.institution.findUnique({ where: { slug }, select: { orgType: true, plan: true, enabledFeatures: true } })
+  const service = getService(key, orgKindOf(inst?.orgType), inst?.enabledFeatures)
   if (!service) return { error: 'That service no longer exists. Reload the page.' }
   const clean: Partial<ServiceSetting> = {}
   if (patch.on !== undefined) clean.on = patch.on
@@ -123,11 +134,19 @@ export async function saveService(
     clean.pricing = patch.pricing as Pricing
   }
   if (patch.provider !== undefined) {
-    if (!['college', 'nextchapter', 'both'].includes(patch.provider)) return { error: 'Pick who provides it.' }
-    // The free plan lists the organization's own services; NextChapter's coaching and courses are paid.
-    if (patch.provider !== 'college' && !institutionEntitlements({ plan: inst?.plan }).nextchapterServices) return { error: lockedReason('nextchapterServices') }
-    if (!service.builtIn && patch.provider !== 'college') return { error: 'NextChapter doesn’t offer this one; it has to be your own.' }
+    if (!['college', 'nextchapter', 'both', 'partner'].includes(patch.provider)) return { error: 'Pick who provides it.' }
+    // The free plan lists the organization's own services (and its partners'); NextChapter's coaching and courses are paid.
+    if ((patch.provider === 'nextchapter' || patch.provider === 'both') && !institutionEntitlements({ plan: inst?.plan }).nextchapterServices) return { error: lockedReason('nextchapterServices') }
+    if (!service.builtIn && (patch.provider === 'nextchapter' || patch.provider === 'both')) return { error: 'NextChapter doesn’t offer this one; it has to be yours or a partner’s.' }
     clean.provider = patch.provider as ServiceSetting['provider']
+  }
+  if (patch.partnerName !== undefined) clean.partnerName = patch.partnerName?.trim().slice(0, 80) || null
+  if (clean.provider === 'partner' && !clean.partnerName) return { error: 'Name the partner. Members see “From <partner>” on the card.' }
+  if (clean.provider === 'partner' && !(patch.linkUrl ?? '').trim()) return { error: 'Add the partner’s link: that’s where the card sends members.' }
+  if (patch.targeting !== undefined) {
+    const t = cleanTargeting(patch.targeting)
+    if ('error' in t) return { error: t.error }
+    clean.targeting = t.targeting
   }
   if (patch.linkUrl !== undefined) {
     const url = patch.linkUrl?.trim() || null
@@ -142,8 +161,90 @@ export async function saveService(
     institutionId: ctx.institution.id,
     slug,
     service: key,
+    custom: key.startsWith('x_'),
     ...(patch.on !== undefined ? { on: patch.on } : {}),
+    ...(clean.provider ? { provider: clean.provider } : {}),
+    ...(clean.targeting
+      ? {
+          targeted: isTargeted(clean.targeting),
+          majorCount: clean.targeting.majors.length,
+          schoolCount: clean.targeting.schools.length,
+          departmentCount: clean.targeting.departments.length,
+          cityCount: clean.targeting.cities.length,
+          classYears: !!(clean.targeting.classYearFrom || clean.targeting.classYearTo),
+          moments: clean.targeting.moments,
+        }
+      : {}),
   })
+  return {}
+}
+
+// What the settings form sends for "Only for": comma-separated text and years.
+// Text fields arrive as typed (comma-separated) or already split; years as text or numbers.
+export type TargetingInput = {
+  majors?: string | string[]
+  schools?: string | string[]
+  departments?: string | string[]
+  cities?: string | string[]
+  classYearFrom?: string | number | null
+  classYearTo?: string | number | null
+  moments?: string[]
+}
+
+function cleanTargeting(input: TargetingInput): { targeting: Targeting } | { error: string } {
+  const list = (v: string | string[] | undefined) => parseMajors(Array.isArray(v) ? v.join(',') : (v ?? ''))
+  const year = (v: string | number | null | undefined) => {
+    const s = String(v ?? '').trim()
+    if (!s) return null
+    const n = Number(s)
+    return Number.isInteger(n) && n >= 1900 && n <= new Date().getUTCFullYear() + 6 ? n : NaN
+  }
+  const from = year(input.classYearFrom)
+  const to = year(input.classYearTo)
+  if (Number.isNaN(from) || Number.isNaN(to)) return { error: 'Class years must be four-digit years, like 2005.' }
+  if (from && to && from > to) return { error: 'The first class year must come before the last.' }
+  return {
+    targeting: {
+      ...NO_TARGETING,
+      majors: list(input.majors),
+      schools: list(input.schools),
+      departments: list(input.departments),
+      cities: list(input.cities),
+      classYearFrom: from,
+      classYearTo: to,
+      moments: (input.moments ?? []).filter((m): m is Moment => m in MOMENT_LABELS),
+    },
+  }
+}
+
+// Admin › Services › "Your offerings and partners’": a college adds its own
+// program or a partner's product as a card. It starts on, for alumni, with no
+// link, so members don't see it until a link is saved.
+export async function addOffering(slug: string, input: { name: string; pitch: string }): Promise<{ error?: string; key?: string }> {
+  const name = input.name.trim().slice(0, 80)
+  const pitch = input.pitch.trim().slice(0, 200)
+  if (!name) return { error: 'Name the offering, as members should see it.' }
+  if (!pitch) return { error: 'Add one line on what it gives members.' }
+  const key = `x_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+  let count = 0
+  const ctx = await updateEnabledFeatures(slug, (cur) => {
+    const list = customOfferingsFrom(cur)
+    count = list.length
+    return count >= 40 ? cur : { ...cur, customServices: [...list, { key, name, pitch }] }
+  })
+  if (count >= 40) return { error: 'You have 40 offerings. Remove one you no longer use to add another.' }
+  captureServerEvent(ctx.userId, 'he_offering_added', { institutionId: ctx.institution.id, slug, service: key })
+  return { key }
+}
+
+export async function removeOffering(slug: string, key: string): Promise<{ error?: string }> {
+  if (!key.startsWith('x_')) return { error: 'Only offerings you added can be removed. Switch catalog services off instead.' }
+  const ctx = await updateEnabledFeatures(slug, (cur) => {
+    const services = { ...((cur.services as Record<string, unknown>) ?? {}) }
+    delete services[key]
+    return { ...cur, services, customServices: customOfferingsFrom(cur).filter((o) => o.key !== key) }
+  })
+  captureServerEvent(ctx.userId, 'he_offering_removed', { institutionId: ctx.institution.id, slug, service: key })
   return {}
 }
 
