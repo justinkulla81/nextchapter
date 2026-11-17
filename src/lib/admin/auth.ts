@@ -1,7 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { permanentRedirect, redirect } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { adminEmails, isAdminEmail } from './is-admin-email'
@@ -28,7 +28,9 @@ export const requireAdminSession = cache(async function requireAdminSession(): P
   // not the candidate one) from "logged in but not an admin" (send them to
   // wherever their own account actually belongs).
   if (!user) {
-    redirect('/support/admin/login')
+    // Permanent by owner decision (2026-11-17). Next sends it with max-age=0, must-revalidate, so a browser re-checks the
+    // address on the next visit instead of reusing the redirect after sign-in.
+    permanentRedirect('/support/admin/login')
   }
 
   const email = user.email?.toLowerCase()
