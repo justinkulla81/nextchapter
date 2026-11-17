@@ -16,5 +16,9 @@ export function GET(request: NextRequest) {
     step: Number.isInteger(s) ? s : null,
     likelyScanner: looksLikeScanner(request.headers.get('user-agent')),
   })
-  return NextResponse.redirect(BOOKING_URL, 302)
+  // Permanent by owner decision (2026-11-17). no-store keeps browsers from caching the 308, so every click still reaches
+  // this route and is counted, and a new BOOKING_URL takes effect at once.
+  const res = NextResponse.redirect(BOOKING_URL, 308)
+  res.headers.set('Cache-Control', 'no-store')
+  return res
 }
