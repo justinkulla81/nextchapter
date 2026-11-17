@@ -417,11 +417,19 @@ async function loadTopHiringEmployers(state: string, cityNames: string[] | null,
 }
 
 async function loadRecentJobs(state: string, cityNames: string[], limit: number): Promise<PlaceJob[]> {
+  // The newest `limit` per city spelling, each read in the place index's own order (state, city, lastVerifiedAt DESC NULLS LAST, id),
+  // then the newest of those: the same jobs, without reading and sorting every job in the city. One query over all the spellings read
+  // them all: 115 ms on average, up to 26 s for a large city (#44 by database time in the 2026-11-17 statement stats; the organization
+  // pages' area list had the same fix, #1575).
   const rows = await prisma.$queryRaw<{ id: string; title: string; company: string; at: Date | null }[]>`
-    SELECT id, title, "companyName" AS company, "lastVerifiedAt" AS at
-    FROM "ExclusiveJobPosting"
-    ${jobsWhere(Prisma.sql`AND "locationState" = ${state} AND lower("locationCity") = ANY(${cityNames})`)}
-    ORDER BY "lastVerifiedAt" DESC NULLS LAST, id LIMIT ${limit}`
+    SELECT j.id, j.title, j.company, j.at FROM unnest(${cityNames}::text[]) AS s(city)
+    CROSS JOIN LATERAL (
+      SELECT id, title, "companyName" AS company, "lastVerifiedAt" AS at
+      FROM "ExclusiveJobPosting"
+      ${jobsWhere(Prisma.sql`AND "locationState" = ${state} AND lower("locationCity") = s.city`)}
+      ORDER BY "lastVerifiedAt" DESC NULLS LAST, id LIMIT ${limit}
+    ) j
+    ORDER BY j.at DESC NULLS LAST, j.id LIMIT ${limit}`
   return rows.map((r) => ({ id: r.id, title: r.title, company: r.company, verifiedAt: r.at }))
 }
 
