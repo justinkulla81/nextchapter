@@ -308,6 +308,18 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     ],
   })
 
+  // Three open jobs near the anchor city, featured, so the Jobs area and the member's list show what featuring does.
+  const openJobs = !localTowns[0] ? [] : await prisma.exclusiveJobPosting
+    .findMany({
+      where: { status: 'approved', archivedAt: null, institutionScopeId: null, locationState: localTowns[0]?.state, location: { contains: localTowns[0]?.city ?? '', mode: 'insensitive' }, salaryMin: { not: null } },
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+      select: { id: true },
+    })
+    .catch(() => [])
+  const why = ['Hires from our layoff response', 'Pay stated up front', 'Entry point for career changers']
+  if (openJobs.length) await prisma.featuredJob.createMany({ data: openJobs.map((j, i) => ({ institutionId, postingId: j.id, note: why[i], createdBy: 'demo' })), skipDuplicates: true })
+
   // Participants: 150 from the layoffs or signed up directly, then 60 more on other tracks (moving here, new graduates,
   // employed and growing, career pivot).
   const N = 150
@@ -545,6 +557,7 @@ export async function reseedWorkforceDemo(slug: string, now = new Date()) {
   await prisma.fundingApplication.deleteMany({ where: { institutionId: id } })
   await prisma.partnerView.deleteMany({ where: { institutionId: id } })
   await prisma.ecosystemPartner.deleteMany({ where: { institutionId: id } })
+  await prisma.featuredJob.deleteMany({ where: { institutionId: id } })
   await prisma.memberCompany.deleteMany({ where: { institutionId: id } })
   await prisma.program.deleteMany({ where: { institutionId: id } })
   await prisma.candidateProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })

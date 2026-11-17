@@ -131,7 +131,12 @@ site. The organization can feature jobs so the program's people see them first. 
 Built (phase 4): **Jobs in your region** (the newest 200 open jobs for the city, searchable, each linking to the employer's own posting) and **Jobs for your
 group** (add a job, paste a list of title, company, location and link, see each listing's status, take one down). Jobs for the group are exclusive to the
 group's members and **reviewed by NextChapter before anyone sees them**, the same rule as every posting that is not from our own team. Not built yet:
-featuring a job, connecting an employer's job feed, and approving employers' jobs inside the Talent Hub.
+connecting an employer's job feed, and approving employers' jobs inside the Talent Hub.
+
+Built (phase 7): **featuring a job.** On Jobs in your region and Jobs for your group the organization can feature up to 10 jobs at a time, each with an
+optional one-line reason. The group's people see featured jobs first on their "From my groups" page, marked "Featured by <organization>" with the reason.
+A featured job is an open-board job or one of the organization's own live listings; a job that closes or is taken down drops out by itself. Featuring
+changes the order for the organization's own people only: it does not change the public board or anyone else's results.
 
 ## Red zone: long-term unemployment
 

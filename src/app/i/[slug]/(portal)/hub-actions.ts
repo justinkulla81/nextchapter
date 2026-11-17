@@ -17,6 +17,7 @@ import { FUNDING_STATUS_KEYS } from '@/lib/workforce/hub-flow'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { linkPostingToCompany } from '@/lib/companies/posting-company'
 import { parseJobRows } from '@/lib/workforce/group-jobs'
+import { cleanNote, featureBlocked } from '@/lib/workforce/featured-jobs'
 import { PARTNER_KIND_KEYS, normalizeScopes } from '@/lib/workforce/partner-views'
 import { randomBytes } from 'crypto'
 import { ECO_KIND_KEYS, canDecide, canInvite } from '@/lib/workforce/ecosystem'
@@ -339,6 +340,44 @@ export async function archiveGroupJob(slug: string, _prev: HubResult, f: FormDat
   const r = await prisma.exclusiveJobPosting.updateMany({ where: { id, institutionScopeId: ctx.institution.id, archivedAt: null }, data: { archivedAt: new Date() } })
   if (r.count === 0) return { error: 'That job was not found.' }
   captureServerEvent(ctx.userId, 'group_job_archived', { institutionId: ctx.institution.id, postingId: id })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+// ── Phase 7: featured jobs ──────────────────────────────────────────────────
+
+// Feature a job: the group's people see it first. Only an open-board job or one of the organization's own live group listings.
+export async function featureJob(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const postingId = str(f, 'postingId')
+  const posting = await prisma.exclusiveJobPosting.findFirst({
+    where: {
+      id: postingId,
+      status: 'approved',
+      archivedAt: null,
+      OR: [{ institutionScopeId: null }, { institutionScopeId: ctx.institution.id }],
+    },
+    select: { id: true, institutionScopeId: true },
+  })
+  if (!posting) return { error: 'That job is not open any more, so it cannot be featured.' }
+  const [count, existing] = await Promise.all([
+    prisma.featuredJob.count({ where: { institutionId: ctx.institution.id } }),
+    prisma.featuredJob.findUnique({ where: { institutionId_postingId: { institutionId: ctx.institution.id, postingId } }, select: { id: true } }),
+  ])
+  const blocked = featureBlocked(count, !!existing)
+  if (blocked) return { error: blocked }
+  await prisma.featuredJob.create({ data: { institutionId: ctx.institution.id, postingId, note: cleanNote(str(f, 'note')), createdBy: ctx.userId } })
+  captureServerEvent(ctx.userId, 'job_featured', { institutionId: ctx.institution.id, postingId, source: posting.institutionScopeId ? 'group' : 'region', featuredCount: count + 1 })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: 'Featured. Your group sees it first.' }
+}
+
+export async function unfeatureJob(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const postingId = str(f, 'postingId')
+  const r = await prisma.featuredJob.deleteMany({ where: { institutionId: ctx.institution.id, postingId } })
+  if (r.count === 0) return { error: 'That job was not featured.' }
+  captureServerEvent(ctx.userId, 'job_unfeatured', { institutionId: ctx.institution.id, postingId })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true }
 }
