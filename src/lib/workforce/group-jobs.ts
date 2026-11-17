@@ -74,3 +74,31 @@ export function jobStatusLabel(status: string, archived: boolean, expired: boole
   if (status === 'rejected') return 'Not approved'
   return 'Waiting for NextChapter review'
 }
+
+/** A group listing, as stored: waiting for NextChapter review, visible only to the organization's group once approved. */
+export const GROUP_JOB_DAYS = 60
+
+export function groupPostingData(institutionId: string, addedBy: string, p: { title: string; companyName: string; companyId: string | null; location: string | null; url: string; description?: string | null; salaryMin?: number | null; salaryMax?: number | null }) {
+  return {
+    title: p.title,
+    companyName: p.companyName,
+    companyId: p.companyId,
+    location: p.location,
+    url: p.url,
+    description: p.description ?? null,
+    postingType: 'direct',
+    salaryMin: p.salaryMin ?? null,
+    salaryMax: p.salaryMax ?? null,
+    salaryCurrency: 'USD',
+    audienceTier: 'ALL_CANDIDATES',
+    distribution: 'OPEN',
+    disclosure: 'OPEN',
+    // Reviewed by a NextChapter admin before the group sees it, like every posting that is not from our own team.
+    status: 'pending',
+    source: 'institution',
+    addedBy,
+    institutionScopeId: institutionId,
+    expiresAt: new Date(Date.now() + GROUP_JOB_DAYS * 86_400_000),
+  }
+}
+

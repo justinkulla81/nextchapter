@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
-import { addGroupJob, archiveGroupJob, featureJob, unfeatureJob, importGroupJobs, linkResponseFunding, saveFundingApplication, setResponseStep, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
+import { addGroupJob, archiveGroupJob, connectFeed, disconnectFeed, refreshFeed, featureJob, unfeatureJob, importGroupJobs, linkResponseFunding, saveFundingApplication, setResponseStep, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
 import { FUNDING_STATUSES } from '@/lib/workforce/hub-flow'
 
 const sel = 'h-9 w-full rounded-md border border-input bg-background px-2 text-sm'
@@ -209,6 +209,69 @@ export function FeatureJobButton({ slug, postingId, title, featured }: { slug: s
       {!featured && <Input name="note" maxLength={160} placeholder="Why (optional)" aria-label={`Why you feature ${title}`} className="h-8 w-40 text-xs" />}
       <SubmitButton size="sm" variant={featured ? 'ghost' : 'outline'} pendingLabel={featured ? 'Removing…' : 'Featuring…'}>
         {featured ? 'Remove from featured' : 'Feature'}
+      </SubmitButton>
+      <Msg r={state} />
+    </form>
+  )
+}
+
+// Connect an employer's job board (Greenhouse, Lever or Ashby) so the jobs near the region come in and stay current.
+export function ConnectFeedForm({ slug, defaultPlace }: { slug: string; defaultPlace: string }) {
+  const [state, action] = useActionState<HubResult, FormData>(connectFeed.bind(null, slug), undefined)
+  return (
+    <form action={action} className="grid gap-3 sm:grid-cols-2">
+      <div className="space-y-1.5 sm:col-span-2">
+        <Label htmlFor="feed-link">Link to the employer’s job board</Label>
+        <Input id="feed-link" name="link" required placeholder="https://boards.greenhouse.io/acme" />
+        <p className="text-xs text-muted-foreground">Greenhouse, Lever and Ashby boards, such as boards.greenhouse.io/acme, jobs.lever.co/acme or jobs.ashbyhq.com/acme.</p>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="feed-company">Employer name</Label>
+        <Input id="feed-company" name="companyName" required maxLength={160} />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="feed-place">Only jobs in</Label>
+        <Input id="feed-place" name="locationFilter" maxLength={80} defaultValue={defaultPlace} />
+        <p className="text-xs text-muted-foreground">Leave empty to keep every job on the board.</p>
+      </div>
+      <label className="flex items-center gap-2 text-sm sm:col-span-2">
+        <input type="checkbox" name="includeRemote" defaultChecked className="size-4" />
+        Include remote jobs
+      </label>
+      <div className="flex items-center gap-3 sm:col-span-2">
+        <SubmitButton pendingLabel="Reading the board…">Connect this board</SubmitButton>
+        <Msg r={state} />
+      </div>
+    </form>
+  )
+}
+
+export function RefreshFeedButton({ slug, id }: { slug: string; id: string }) {
+  const [state, action] = useActionState<HubResult, FormData>(refreshFeed.bind(null, slug), undefined)
+  return (
+    <form action={action} className="flex flex-wrap items-center gap-2">
+      <input type="hidden" name="id" value={id} />
+      <SubmitButton size="sm" variant="outline" pendingLabel="Refreshing…">
+        Refresh now
+      </SubmitButton>
+      <Msg r={state} />
+    </form>
+  )
+}
+
+export function DisconnectFeedButton({ slug, id, name }: { slug: string; id: string; name: string }) {
+  const [state, action] = useActionState<HubResult, FormData>(disconnectFeed.bind(null, slug), undefined)
+  return (
+    <form
+      action={action}
+      onSubmit={(e) => {
+        if (!window.confirm(`Disconnect ${name}? Its jobs are taken down for your group.`)) e.preventDefault()
+      }}
+      className="flex items-center gap-2"
+    >
+      <input type="hidden" name="id" value={id} />
+      <SubmitButton size="sm" variant="ghost" pendingLabel="Disconnecting…">
+        Disconnect
       </SubmitButton>
       <Msg r={state} />
     </form>
