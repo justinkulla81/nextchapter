@@ -23,6 +23,7 @@ import { NETWORK_COMFORT_VALUES } from '@/lib/onboarding/finish'
 import { loadScanStatus, type ScanStatus } from '@/lib/onboarding/scan-counts'
 import { ARRIVED_FROM_KEY, arrivedFromDetails, arrivedFromForm } from '@/lib/onboarding/arrived-from'
 import { buildRelocation, parseRelocation } from '@/lib/journey/relocation'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 // The server side of the onboarding question bundles (docs/personalization-audit/bundles.md O1 to O5).
 // Each action reads its answers from the form by question id, checks them with the same pure rules the
@@ -249,7 +250,7 @@ export async function finishBundles(formData: FormData): Promise<void> {
   })
   revalidatePath('/onboarding', 'layout')
   // Members who gave a résumé see their starting grade next; everyone else goes on to the welcome.
-  const hasResume = (await prisma.resume.count({ where: { candidateId, looksLikeResume: { not: false } } })) > 0
+  const hasResume = (await prisma.resume.count({ where: { candidateId, ...RESUME_NOT_REJECTED } })) > 0
   redirect(hasResume ? '/onboarding/score' : '/onboarding')
 }
 

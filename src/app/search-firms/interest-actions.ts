@@ -11,6 +11,7 @@ import { firmNameOf, getFirmBriefs, recruiterFirmIdForOrg } from '@/lib/seo/sear
 import { notifyOwnerOfFollow } from '@/lib/notify/follow-alert-server'
 import { shareInterestWithFirm } from '@/lib/recruiter-interest/server'
 import { disconnectIntakeConnection } from '@/lib/recruiter/intake/consent'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 export type InterestSource = 'search_firm_page' | 'directory' | 'recommendation' | 'package'
 export type InterestResult = { ok: true; interested: boolean; next: string | null } | { ok: false; error: string }
@@ -43,7 +44,7 @@ export async function expressInterest(orgId: string, source: InterestSource): Pr
   })
   // Tell the owner only when this press is new: a first interest, or one the member had withdrawn.
   if (!existing || existing.status === 'WITHDRAWN') notifyOwnerOfFollow('recruiter', profile.id, orgName, source)
-  const hasResume = profile.resumeStepComplete || (await prisma.resume.count({ where: { candidateId: profile.id, looksLikeResume: { not: false } } })) > 0
+  const hasResume = profile.resumeStepComplete || (await prisma.resume.count({ where: { candidateId: profile.id, ...RESUME_NOT_REJECTED } })) > 0
   const total = await prisma.recruiterInterest.count({ where: { candidateId: profile.id, status: { not: 'WITHDRAWN' } } })
   // A registered member lands on their recruiter package: the firms they picked and the steps that make it stronger
   // (add or fix the résumé, assessment, references). A visitor still in onboarding with no résumé goes on to that step.
@@ -103,7 +104,7 @@ export async function getFirmInterestState(orgId: string): Promise<FirmInterestS
     if (!profile) return { signedIn: false }
     const [interest, resumes] = await Promise.all([
       prisma.recruiterInterest.findUnique({ where: { candidateId_firmOrgId: { candidateId: profile.id, firmOrgId: orgId } }, select: { status: true, sharedAt: true } }),
-      prisma.resume.count({ where: { candidateId: profile.id, looksLikeResume: { not: false } } }),
+      prisma.resume.count({ where: { candidateId: profile.id, ...RESUME_NOT_REJECTED } }),
     ])
     const hasResume = profile.resumeStepComplete || resumes > 0
     if (!interest || interest.status === 'WITHDRAWN') return { signedIn: true, picked: false, hasResume }

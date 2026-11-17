@@ -9,6 +9,7 @@ import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { flagIfDuplicateAccount } from '@/lib/onboarding/duplicate-check'
 import { readParseState, updateParse, clearParse } from '@/lib/resume/parse-state'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 const NO_CONTACT_REASON =
   "We couldn't find your name and email address on this resume — please upload a version with your contact information at the top."
@@ -45,7 +46,7 @@ export async function runResumeParse(profileId: string, attempt: string): Promis
 
     let resumeId = state.resumeId
     const previousResume = await prisma.resume.findFirst({
-      where: { candidateId: profileId, looksLikeResume: { not: false } },
+      where: { candidateId: profileId, ...RESUME_NOT_REJECTED },
       orderBy: { uploadedAt: 'desc' },
       select: { atsScore: true, resultsScore: true, experienceScore: true },
     })

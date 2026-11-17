@@ -9,6 +9,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { importDocumentFromText } from '@/lib/resume/studio/import'
 import type { StudioActionState } from '@/app/dashboard/resume/studio/actions'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 const MAX_DRAFTS = 20
 // Anything shorter than this is not a resume the import can usefully read.
@@ -27,7 +28,7 @@ export async function importFromUpload(_prev: StudioActionState, formData: FormD
 
   const resumeId = String(formData.get('resumeId') ?? '')
   const resume = await prisma.resume.findFirst({
-    where: { candidateId: profile.id, looksLikeResume: { not: false }, ...(resumeId ? { id: resumeId } : {}) },
+    where: { candidateId: profile.id, ...RESUME_NOT_REJECTED, ...(resumeId ? { id: resumeId } : {}) },
     orderBy: { uploadedAt: 'desc' },
     select: { id: true, fileName: true, label: true, extractedText: true },
   })
