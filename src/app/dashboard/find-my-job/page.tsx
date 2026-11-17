@@ -574,6 +574,9 @@ async function JobRecommendationsSection({
   const shownTypes = new Set<WorkType>([
     ...surfacedJobs.map((j) => memberWorkType(j)).filter((t): t is WorkType => t !== null),
     ...(Object.entries(board.countByWorkType) as [WorkType, number][]).filter(([, n]) => n > 0).map(([t]) => t),
+    // The jobs actually listed count too: the board's chip counts leave out the "worth a look" widening, so 6 interim
+    // roles once showed under "No fractional or independent roles match yet" (2026-11-17).
+    ...board.open.map((p) => memberWorkType(p)).filter((t): t is WorkType => t !== null),
   ])
   // One line when the fractional kinds the member chose have nothing yet (owner, 2026-11-17: one note, not one per kind).
   const independentHref = boardHref(urlParams, { part: 'independent', job: null, tab: 'board' })

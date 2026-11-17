@@ -24,6 +24,8 @@ export const MARKET_TOO_FEW = 30
 export const SHRINKING_BELOW = -0.25
 /** Fewer new postings than this in both windows says nothing about a trend. */
 export const TREND_MIN_SAMPLE = 12
+/** New postings the target needs in the prior window before a trend is read against it. */
+export const TREND_MIN_PRIOR = 4
 
 export interface StatRow {
   fn: string
@@ -109,17 +111,21 @@ export function sumCounts(rows: Iterable<Counts>): Counts {
 }
 
 /**
- * Growth against the board, −1..+∞: the target's share of new postings in the recent window
- * over its share in the prior one, minus 1, with closures netted out the same way. Null when
- * the sample is too small to say.
+ * Growth against the board, −1..+3: the target's share of new postings in the recent window over its share in the
+ * prior one, minus 1. Null when the sample is too small to say, or when the answer is beyond +300%, which no real
+ * market does in a few weeks (it means a tiny prior window, not growth).
+ *
+ * Closures are not netted out (until 2026-11-17 they were): one archiving sweep in the prior window left the target
+ * with almost no net postings there, the share fell to near zero, and the owner's board read "growing 11388294%
+ * faster than the rest of the market".
  */
+export const GROWTH_MAX = 3
 export function relativeGrowth(target: Counts, board: Counts): number | null {
-  if (target.newRecent + target.newPrior < TREND_MIN_SAMPLE || board.newRecent === 0 || board.newPrior === 0) return null
-  // Net new per day in each window, as a share of the board's net new per day.
-  const net = (n: number, c: number) => Math.max(n - c, 0) + 0.5
-  const recent = net(target.newRecent, target.closedRecent) / RECENT_DAYS / (net(board.newRecent, board.closedRecent) / RECENT_DAYS)
-  const prior = net(target.newPrior, target.closedPrior) / PRIOR_DAYS / (net(board.newPrior, board.closedPrior) / PRIOR_DAYS)
-  return prior > 0 ? recent / prior - 1 : null
+  if (target.newRecent + target.newPrior < TREND_MIN_SAMPLE || target.newPrior < TREND_MIN_PRIOR || board.newRecent === 0 || board.newPrior === 0) return null
+  const recent = (target.newRecent + 0.5) / board.newRecent
+  const prior = (target.newPrior + 0.5) / board.newPrior
+  const g = recent / prior - 1
+  return g > GROWTH_MAX ? null : g
 }
 
 export type MarketPrompt = 'too_many' | 'too_few' | 'shrinking' | 'healthy'
