@@ -46,4 +46,8 @@ describe('benefit matching', () => {
     const m = matchBenefits({ laidOffFrom: 'Acme', tracks: ['outplacement'], training: null, needs: { pressures: ['HEALTH_INSURANCE'], barriers: ['skills_gap'] } })
     expect(new Set(m.map((x) => x.name)).size).toBe(m.length)
   })
+  it('does not call it a layoff plan for someone who was not laid off', () => {
+    const m = matchBenefits({ laidOffFrom: null, tracks: ['grad'], training: null, needs: { pressures: ['HEALTH_INSURANCE'], barriers: [] } })
+    expect(m.find((x) => x.category === 'health')?.name).toBe('Health coverage (a marketplace plan or Medicaid)')
+  })
 })
