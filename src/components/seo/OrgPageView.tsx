@@ -157,13 +157,14 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
         </section>
       )}
 
-      {(b.centers.length > 0 || b.boards.length > 0 || b.partners.length > 0 || across.length > 0) && (
+      {(b.centers.length > 0 || b.boards.length > 0 || b.partners.length > 0 || b.community.length > 0 || across.length > 0) && (
         <section aria-labelledby="partners" className="mt-12">
           <h2 id="partners" className={H2}>Other help in the same area</h2>
           <div className="mt-4 grid gap-6 text-sm sm:grid-cols-3">
             {b.boards.length > 0 && <div><p className="font-medium text-navy">Workforce boards</p><ul className="mt-2 space-y-1">{b.boards.map((x) => <li key={x.id}><Link href={orgPagePath('WORKFORCE_BOARD', ss, x.slug)} className={LINK}>{x.name}</Link></li>)}</ul></div>}
             {b.centers.length > 0 && <div><p className="font-medium text-navy">American Job Centers</p><ul className="mt-2 space-y-1">{b.centers.map((x) => <li key={x.id}><Link href={orgPagePath('JOB_CENTER', ss, x.slug)} className={LINK}>{x.name}</Link></li>)}</ul>{b.centerCount > b.centers.length && <p className="mt-1 text-xs text-muted-foreground">and {n0(b.centerCount - b.centers.length)} more</p>}</div>}
             {b.partners.length > 0 && <div><p className="font-medium text-navy">Economic development</p><ul className="mt-2 space-y-1">{b.partners.map((x) => <li key={x.id}><Link href={orgPagePath('ECON_DEV', ss, x.slug)} className={LINK}>{x.name}</Link></li>)}</ul></div>}
+            {b.community.length > 0 && <div><p className="font-medium text-navy">Community job programs</p><ul className="mt-2 space-y-1">{b.community.map((x) => <li key={x.id}>{x.website ? <TrackedLink href={x.website} rel="nofollow" event="org_page_outbound_clicked" properties={{ ...props, target: 'community_program', programId: x.id }} className={LINK}>{x.name}</TrackedLink> : x.name}</li>)}</ul></div>}
           </div>
           {across.map((a) => {
             const os = stateSlug(a.state)

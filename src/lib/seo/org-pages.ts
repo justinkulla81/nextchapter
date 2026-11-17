@@ -84,6 +84,7 @@ export interface OrgBlocks {
   centerCount: number
   boards: { id: string; name: string; slug: string }[]
   partners: { id: string; name: string; kind: string; slug: string }[]
+  community: { id: string; name: string; website: string | null }[]
   labor: BoardLabor | null
   population: number | null
 }
@@ -106,10 +107,15 @@ const EDO_SOURCE: Record<string, string> = {
   RESEARCH: 'the organization’s own public website',
 }
 
+/** A nonprofit that runs job training or placement for the public (a Goodwill affiliate, the Urban League). */
+export interface CommunityProgram { id: string; name: string; website: string | null; countyTokens: string[] }
+
 export interface StateData {
   state: string
   centers: OrgRow[]
   econDev: OrgRow[]
+  /** Community job programs (LocalPartnerOrg kind COMMUNITY_JOBS): listed with a link to their own site, no page of their own. */
+  community: CommunityProgram[]
   boards: OrgRow[]
   places: CityPlace[]
   counties: County[]
@@ -221,7 +227,9 @@ async function loadStateData(state: string): Promise<StateData> {
   }))
   // One page per organization: an EDA district and the state directory's copy of it are folded together, keeping the
   // district's county list, and either record's CRM link finds the page.
-  const merged = groupPartnerDuplicates(partnerRows).map(({ primary, aliases }) => {
+  const community: CommunityProgram[] = partnerRows.filter((r) => r.kind === 'COMMUNITY_JOBS')
+    .map((r) => ({ id: r.id, name: cleanOrgName(r.name), website: absoluteWebUrl(r.website), countyTokens: r.counties.map(keyOf) }))
+  const merged = groupPartnerDuplicates(partnerRows.filter((r) => r.kind !== 'COMMUNITY_JOBS')).map(({ primary, aliases }) => {
     const all = [primary, ...aliases]
     return {
       ...primary,
@@ -254,7 +262,7 @@ async function loadStateData(state: string): Promise<StateData> {
   for (const b of boards) { const x = stamp.get(b.id); if (x) { b.updatedAt = x.updatedAt; b.street = x.address } }
 
   return {
-    state, centers, econDev, boards, places, counties, cityStats, stateStat, collegesByFips,
+    state, centers, econDev, community, boards, places, counties, cityStats, stateStat, collegesByFips,
     laborByToken: new Map(labor.map((l) => [keyOf(l.nameKey), l])),
   }
 }
@@ -308,6 +316,7 @@ export function blocksFor(row: OrgRow, area: Area, sd: StateData): OrgBlocks {
     centers: centers.slice(0, 12).map((c) => ({ id: c.id, name: c.name, city: c.city, slug: c.slug, state: c.state })), centerCount: centers.length,
     boards: boards.slice(0, 6).map((b) => ({ id: b.id, name: b.name, slug: b.slug })),
     partners: partners.slice(0, 10).map((p) => ({ id: p.id, name: p.name, kind: p.label ?? '', slug: p.slug })),
+    community: (area.statewide ? [] : sd.community.filter((c) => c.countyTokens.some((t) => tokens.has(t)))).slice(0, 8).map((c) => ({ id: c.id, name: c.name, website: c.website })),
     labor: boardLabor(laborRows.map((l) => ({ laborForce: l.laborForce, unemployed: l.unemployed, rateYearAgo: l.rateYearAgo, period: l.period }))) as BoardLabor | null,
     population,
   }
@@ -422,12 +431,12 @@ type DirectoryEntry = { id: string; name: string; slug: string }
 const stateDirectory = memoTtl(6 * 60 * 60_000, (state: string) => state, async (state: string) => {
   const [centerRows, partnerRows, boardRows, counties] = await Promise.all([
     prisma.americanJobCenter.findMany({ where: { state }, select: { id: true, name: true, city: true, countyFips: true } }),
-    prisma.localPartnerOrg.findMany({ where: { state }, select: { id: true, name: true, city: true, kind: true, counties: true } }),
+    prisma.localPartnerOrg.findMany({ where: { state }, select: { id: true, name: true, city: true, kind: true, counties: true, website: true } }),
     getStateBoards(state),
     getStateCounties(state),
   ])
   const centerSlugs = orgSlugs(centerRows)
-  const merged = groupPartnerDuplicates(partnerRows).map(({ primary, aliases }) => {
+  const merged = groupPartnerDuplicates(partnerRows.filter((r) => r.kind !== 'COMMUNITY_JOBS')).map(({ primary, aliases }) => {
     const all = [primary, ...aliases]
     return { ...primary, counties: [...new Set(all.flatMap((r) => r.counties))], city: all.map((r) => r.city).find((c) => !!c) ?? null }
   })
@@ -437,8 +446,18 @@ const stateDirectory = memoTtl(6 * 60 * 60_000, (state: string) => state, async 
     boards: boardRows.map((b) => ({ id: b.id, name: b.name, slug: b.slug, tokens: boardCountyKeys(b) })),
     centers: centerRows.map((r) => ({ id: r.id, name: cleanOrgName(r.name), slug: centerSlugs.get(r.id)!, countyFips: r.countyFips })),
     partners: merged.filter((r) => r.kind !== 'STATE_AGENCY').map((r) => ({ id: r.id, name: cleanOrgName(r.name), slug: partnerSlugs.get(r.id)!, tokens: r.counties.map(keyOf) })),
+    community: partnerRows.filter((r) => r.kind === 'COMMUNITY_JOBS').map((r) => ({ id: r.id, name: cleanOrgName(r.name), website: absoluteWebUrl(r.website), tokens: r.counties.map(keyOf) })),
   }
 })
+
+/** Community job programs serving these counties of a state (place pages). From the same narrow, cached directory. */
+export async function communityForCounties(fipsList: string[], state: string): Promise<{ id: string; name: string; website: string | null }[]> {
+  if (fipsList.length === 0) return []
+  const dir = await stateDirectory(state)
+  const want = new Set(fipsList)
+  const tokens = new Set(dir.counties.filter((c) => want.has(c.fips)).map((c) => c.token))
+  return dir.community.filter((c) => c.tokens.some((t) => tokens.has(t))).slice(0, 8).map(({ id, name, website }) => ({ id, name, website }))
+}
 
 /** The help across a state line for a place given by its county FIPS codes (place pages call this directly). */
 export async function acrossStateForCounties(fipsList: string[], state: string): Promise<AcrossStateHelp[]> {

@@ -15,7 +15,8 @@ type Props = { ctx: WorkspaceContext; searchParams: { q?: string; page?: string 
 const PAGE = 25
 const money = (n: number | null) => (n ? `$${Math.round(n / 1000)}k` : null)
 const day = (d: Date) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(d))
-const level = (l: string | null) => (l ? l.replace(/_/g, ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase()) : null)
+const LEVELS: Record<string, string> = { ENTRY_IC: 'Entry level', EARLY_IC: 'Early career', MID_IC: 'Mid-level', SENIOR_IC: 'Senior', STAFF_IC: 'Senior', MANAGER: 'Manager', SENIOR_MANAGER: 'Senior manager', DIRECTOR: 'Director', VP: 'Vice president', EVP_SVP: 'Executive vice president', C_SUITE: 'C-suite' }
+const level = (l: string | null) => (l ? (LEVELS[l] ?? l.replace(/_IC$/, '').replace(/_/g, ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase())) : null)
 
 type RegionJob = { id: string; title: string; companyName: string; location: string | null; url: string; level: string | null; salaryMin: number | null; salaryMax: number | null; createdAt: Date }
 
@@ -99,10 +100,10 @@ export async function HubRegionJobs({ ctx, searchParams, base }: Props) {
                     </a>
                   </td>
                   <td className="px-3 py-2">{j.companyName}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{j.location ?? '—'}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{j.location ? j.location.replace(/,?\s*UNITED STATES$/i, '') : '—'}</td>
                   <td className="px-3 py-2 text-muted-foreground">{level(j.level) ?? '—'}</td>
                   <td className="px-3 py-2 tabular-nums">{j.salaryMin && j.salaryMax ? `${money(j.salaryMin)} to ${money(j.salaryMax)}` : <span className="text-muted-foreground">Not stated</span>}</td>
-                  <td className="px-3 py-2 tabular-nums text-muted-foreground">{day(j.createdAt)}</td>
+                  <td className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground">{day(j.createdAt)}</td>
                 </tr>
               ))}
             </tbody>

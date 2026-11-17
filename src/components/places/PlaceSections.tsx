@@ -133,12 +133,14 @@ export function CollegeTable({ id, title, colleges, showCity = true, more }: { i
 }
 
 /** Workforce boards and American Job Centers serving a place. */
-export function WorkforceSection({ id, state, stateSlugValue, boards, centers, scope, across = [] }: {
+export function WorkforceSection({ id, state, stateSlugValue, boards, centers, scope, across = [], community = [] }: {
   id: string; state: string; stateSlugValue: string; boards: PublicBoard[]; centers: PlaceCenter[]; scope: string
   /** The same metro across a state line (acrossStateForCounties): its boards, job centers and economic development groups. */
   across?: AcrossStateHelp[]
+  /** Nonprofits that run job training or placement here (communityForCounties): a link to their own site. */
+  community?: { id: string; name: string; website: string | null }[]
 }) {
-  if (boards.length === 0 && centers.length === 0 && across.length === 0) return null
+  if (boards.length === 0 && centers.length === 0 && across.length === 0 && community.length === 0) return null
   return (
     <section aria-labelledby={id} className="mt-12">
       <h2 id={id} className={H2}>Workforce development and job centers</h2>
@@ -166,6 +168,19 @@ export function WorkforceSection({ id, state, stateSlugValue, boards, centers, s
             </li>
           ))}
         </ul>
+      )}
+      {community.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-base font-semibold text-navy">Community job programs</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Nonprofits that run job training or placement for the public in {scope}.</p>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+            {community.map((c) => (
+              <li key={c.id} className="rounded-xl border border-border bg-white p-4 text-sm">
+                {c.website ? <TrackedLink href={c.website} rel="nofollow" event="place_community_program_clicked" properties={{ programId: c.id, scope }} className={`${LINK} font-medium`}>{c.name}</TrackedLink> : <span className="font-medium text-navy">{c.name}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       {across.map((a) => {
         const os = stateSlug(a.state)

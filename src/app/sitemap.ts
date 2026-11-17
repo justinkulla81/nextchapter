@@ -200,7 +200,7 @@ async function loadNonprofitPages(entry: (path: string, updated: string, freq: F
     const [counts, orgs, edo] = await Promise.all([
       getStateNonprofitCounts(),
       NONPROFIT_ORG_PAGES_INDEXED ? nonprofitsForSitemap() : Promise.resolve([]),
-      prisma.localPartnerOrg.groupBy({ by: ['state'], where: { OR: [{ confidence: null }, { confidence: { not: 'low' } }] }, _count: { _all: true } }),
+      prisma.localPartnerOrg.groupBy({ by: ['state'], where: { kind: { not: 'COMMUNITY_JOBS' }, OR: [{ confidence: null }, { confidence: { not: 'low' } }] }, _count: { _all: true } }),
     ])
     return [
       ...counts.filter((c) => c.state in STATE_NAMES).map((c) => entry(`/nonprofits/${stateSlug(c.state)}`, DIRECTORY_UPDATED, 'monthly', 0.5)),
