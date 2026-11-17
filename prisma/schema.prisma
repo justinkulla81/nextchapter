@@ -2783,6 +2783,8 @@ model StrengthReflection {
   proof       String?          @db.Text
   watchOut    String?          @db.Text
   sayIt       String?          @db.Text
+  // The member can hide one strength from their Dossier; strengths show to employers by default, weak spots never do.
+  hiddenFromEmployers Boolean @default(false)
   completedAt DateTime?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt

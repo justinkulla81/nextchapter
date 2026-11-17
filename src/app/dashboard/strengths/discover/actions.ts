@@ -92,3 +92,16 @@ export async function finishStrengthArea(areaKey: string): Promise<FinishResult>
   revalidatePath('/dashboard/strengths')
   return { ok: true, summary }
 }
+
+/** Shows or hides one finished strength in the member's Dossier. */
+export async function setStrengthHidden(input: { area: string; hidden: boolean }): Promise<{ ok: boolean; error?: string }> {
+  const candidateId = await profileId()
+  if (!candidateId) return { ok: false, error: 'Your session ended. Sign in again to change this.' }
+  if (!areaOf(input.area)) return { ok: false, error: 'That area does not exist.' }
+  const r = await prisma.strengthReflection.updateMany({ where: { candidateId, area: input.area }, data: { hiddenFromEmployers: input.hidden } })
+  if (r.count === 0) return { ok: false, error: 'Finish this area first.' }
+  captureServerEvent(candidateId, 'strength_dossier_visibility_changed', { area: input.area, hidden: input.hidden })
+  revalidatePath('/dashboard/strengths')
+  revalidatePath('/dashboard/strengths/discover')
+  return { ok: true }
+}

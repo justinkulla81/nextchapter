@@ -12,6 +12,10 @@ const actions: InterviewActions = {
     return { ok: true, answers: [{ questionKey: i.questionKey, question: '', answer: i.text, followUp: i.isFollowUp ? null : 'You said you rebuilt the planning cadence. What did on-time delivery look like before, and after?', followUpAnswer: i.isFollowUp ? i.text : null }] }
   },
   skipFollowUp: async () => ({ ok: true, answers: [] }),
+  setHidden: async () => {
+    await wait()
+    return { ok: true }
+  },
   finish: async () => {
     await wait()
     return { ok: true, summary: DONE[0].summary! }

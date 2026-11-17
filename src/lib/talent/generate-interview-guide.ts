@@ -75,6 +75,7 @@ Target role: ${dossier.candidateTargetTitle ?? 'not specified'}
 Positioning: ${dossier.positioningStatement ?? 'not available'}
 Strengths on file: ${dossier.categoryStrengths.map((s) => `${s.label} — ${s.text}`).join('; ') || 'none yet'}
 How they operate: ${dossier.howIOperateSummaries.join('; ') || 'not available'}
+Strengths in their own words (self-reported; probe for specifics): ${dossier.inTheirWords.map((w) => `${w.strength}${w.proof ? ` (${w.proof})` : ''}`).join('; ') || 'not available'}
 Self-awareness / growth areas: ${dossier.selfAwareness ?? 'not available'}
 Proof points on file: ${dossier.proofPoints.map((p) => `Q: ${p.question} / A: ${p.response}`).join('\n') || 'none yet'}
 

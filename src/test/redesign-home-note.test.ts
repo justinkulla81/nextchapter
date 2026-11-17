@@ -75,4 +75,10 @@ describe('the coach update note', () => {
     expect(n.why.length).toBeGreaterThan(0)
     expect(simpleNote('coach_update', { firstName: 'Dana', firstWeek: null, motivations: [] })!.title).toContain('Your coach')
   })
+
+  it('invites new members to Find your strengths after setup, before the other nudges', () => {
+    expect(pickHomeNote({ ...none, findStrengths: true, stalledSearch: true })).toBe('find_strengths')
+    expect(pickHomeNote({ ...none, findStrengths: true, searchStrategyIncomplete: true })).toBe('setup_strategy')
+    expect(simpleNote('find_strengths', { firstName: 'A', firstWeek: null, motivations: [] })?.startHref).toBe('/dashboard/strengths/discover?area=best_work')
+  })
 })

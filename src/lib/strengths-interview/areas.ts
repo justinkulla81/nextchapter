@@ -203,4 +203,6 @@ export interface ReflectionRow {
   answers: SavedAnswer[]
   summary: AreaSummary | null
   completed: boolean
+  /** The member hid this strength from their Dossier. */
+  hidden?: boolean
 }
