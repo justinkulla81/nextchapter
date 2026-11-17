@@ -221,11 +221,45 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
 
   // Four companies have connected logins (sample employer accounts): the
   // three hiring ones, and one that isn't hiring but just asked for seats.
+  const employerEps: { id: string; name: string }[] = []
   for (const [k, c] of companies.entries()) {
     if (k % 3 !== 1 && k !== 5) continue
     const ep = await prisma.employerProfile.create({ data: { userId: `${demoUserPrefix(slug)}employer-${k}`, companyName: c.name, companyIndustry: COMPANIES[k].industry, contactName: 'Talent team', isSampleData: true }, select: { id: true } })
     await prisma.institutionEmployer.create({ data: { institutionId, employerProfileId: ep.id, status: 'APPROVED', approvedBy: 'member-invite', approvedAt: now, isSampleData: true } })
+    employerEps.push({ id: ep.id, name: c.name })
     await prisma.memberCompany.update({ where: { id: c.id }, data: { employerProfileId: ep.id, connectedAt: now, invitedEmail: `talent@${c.name.toLowerCase().replace(/[^a-z]+/g, '')}.example.com` } })
+  }
+
+  // Jobs the connected employers posted: three waiting for the organization, one declined with a reason, one with NextChapter.
+  const employerJobs = [
+    { k: 0, title: 'Patient Access Supervisor', status: 'org_pending', ago: 1, reason: null },
+    { k: 1, title: 'Operations Analyst', status: 'org_pending', ago: 2, reason: null },
+    { k: 2, title: 'Quality Assurance Coordinator', status: 'org_pending', ago: 4, reason: null },
+    { k: 3, title: 'Branch Operations Manager', status: 'rejected', ago: 9, reason: 'The link goes to a general careers page. Link to the specific posting and post it again.' },
+    { k: 0, title: 'Clinical Scheduler', status: 'pending', ago: 6, reason: null },
+  ].filter((j) => employerEps[j.k])
+  if (employerEps.length) {
+    await prisma.exclusiveJobPosting.createMany({
+      data: employerJobs.map((j, i) => ({
+        title: j.title,
+        companyName: employerEps[j.k].name,
+        location: localTowns[0] ? `${localTowns[0].city}, ${localTowns[0].state}` : null,
+        url: `https://example.com/careers/${slug}/${i + 1}`,
+        postingType: 'direct',
+        salaryCurrency: 'USD',
+        audienceTier: 'ALL_CANDIDATES',
+        distribution: 'OPEN',
+        disclosure: 'OPEN',
+        status: j.status,
+        rejectionReason: j.reason,
+        source: 'institution_employer',
+        addedBy: `employer:${employerEps[j.k].id}`,
+        institutionScopeId: institutionId,
+        createdAt: new Date(now.getTime() - j.ago * DAY),
+        expiresAt: new Date(now.getTime() + 60 * DAY),
+      })),
+      skipDuplicates: true,
+    })
   }
 
   // A seat request waiting for the org's answer.
@@ -571,7 +605,7 @@ export async function reseedWorkforceDemo(slug: string, now = new Date()) {
   await prisma.partnerView.deleteMany({ where: { institutionId: id } })
   await prisma.ecosystemPartner.deleteMany({ where: { institutionId: id } })
   await prisma.featuredJob.deleteMany({ where: { institutionId: id } })
-  await prisma.exclusiveJobPosting.deleteMany({ where: { institutionScopeId: id, addedBy: { startsWith: 'feed:' } } })
+  await prisma.exclusiveJobPosting.deleteMany({ where: { institutionScopeId: id, OR: [{ addedBy: { startsWith: 'feed:' } }, { addedBy: { startsWith: 'employer:' } }] } })
   await prisma.groupJobFeed.deleteMany({ where: { institutionId: id } })
   await prisma.memberCompany.deleteMany({ where: { institutionId: id } })
   await prisma.program.deleteMany({ where: { institutionId: id } })

@@ -26,5 +26,6 @@ describe('parseJobRows', () => {
     expect(jobStatusLabel('approved', false, true)).toBe('Expired')
     expect(jobStatusLabel('rejected', false, false)).toBe('Not approved')
     expect(jobStatusLabel('approved', true, false)).toBe('Removed')
+    expect(jobStatusLabel('org_pending', false, false)).toBe('Waiting for your review')
   })
 })

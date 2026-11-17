@@ -130,8 +130,14 @@ site. The organization can feature jobs so the program's people see them first. 
 
 Built (phase 4): **Jobs in your region** (the newest 200 open jobs for the city, searchable, each linking to the employer's own posting) and **Jobs for your
 group** (add a job, paste a list of title, company, location and link, see each listing's status, take one down). Jobs for the group are exclusive to the
-group's members and **reviewed by NextChapter before anyone sees them**, the same rule as every posting that is not from our own team. Not built yet:
-approving employers' jobs inside the Talent Hub.
+group's members and **reviewed by NextChapter before anyone sees them**, the same rule as every posting that is not from our own team. Everything the Jobs
+area promised is built.
+
+Built (phase 9): **employers' jobs.** Employers the organization has approved post jobs from their own view. For a workforce organization each job waits
+first for the organization (Jobs › Employer jobs): **approve** passes it to NextChapter's review, **decline** needs a reason the employer sees on its own
+page. NextChapter's review stays the second, final check, so nothing is shown to the group on the organization's say alone. The organization's Home lists
+the jobs waiting. Status flow: `org_pending` → `pending` → `approved`, or `rejected` with a reason at either step. Colleges are unchanged (their employer
+jobs go straight to NextChapter). A job nobody reviews waits; there is no automatic approval.
 
 Built (phase 8): **connected job boards.** On Jobs for your group, "Connect an employer's job board": paste the employer's Greenhouse, Lever or Ashby
 link, name the employer, and choose the place to keep (default: the region's anchor city) and whether remote jobs count. We read the board's public

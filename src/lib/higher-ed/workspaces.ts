@@ -285,6 +285,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'funding', label: 'Grants and funding', comingIn: null, demoOnly: true, group: 'Funding' },
       { key: 'regionjobs', label: 'Jobs in your region', comingIn: null, group: 'Jobs' },
       { key: 'groupjobs', label: 'Jobs for your group', comingIn: null, group: 'Jobs' },
+      { key: 'employerjobs', label: 'Employer jobs', comingIn: null, group: 'Jobs' },
       { key: 'region', label: 'Local market', comingIn: null, group: 'Market' },
       { key: 'jobs', label: 'Jobs and skills', comingIn: null, demoOnly: true, group: 'Market' },
       { key: 'skillsgap', label: 'Skills gaps', comingIn: null, group: 'Market' },

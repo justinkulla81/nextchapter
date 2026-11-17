@@ -11,6 +11,7 @@ import { listEmployerDossiers } from '@/lib/higher-ed/views'
 import { alumniAtCompanies, countMentorInvitable } from '@/lib/higher-ed/mentor-network'
 import { MentorStatsScreen } from './MentorStatsScreen'
 import { EmployerCapstones } from './screens-programs'
+import { employerRoleStatusLabel } from '@/lib/workforce/employer-jobs'
 import { collegeJobs, employerProfileFor, employerRoles, introStatusFor, listCollegeEmployers, pendingIntros } from '@/lib/higher-ed/employers'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { inviteStudents, sendMentorInvites } from '@/app/i/[slug]/(portal)/network-actions'
@@ -259,7 +260,6 @@ export async function EmployerDossiersWithIntros({ ctx }: Props) {
   )
 }
 
-const ROLE_STATUS: Record<string, string> = { pending: 'In review', approved: 'Live', rejected: 'Not approved' }
 
 export async function EmployerPage({ ctx }: Props) {
   const employerProfileId = await employerProfileFor(ctx)
@@ -312,7 +312,8 @@ export async function EmployerPage({ ctx }: Props) {
                   {r.location ? ` · ${r.location}` : ''}
                 </span>
                 <span className="text-muted-foreground">
-                  {ROLE_STATUS[r.status] ?? r.status} · {fmt(r.createdAt)}
+                  {employerRoleStatusLabel(r.status, ctx.institution.name)} · {fmt(r.createdAt)}
+                  {r.status === 'rejected' && r.rejectionReason && <span className="block text-xs">{r.rejectionReason}</span>}
                 </span>
               </li>
             ))}

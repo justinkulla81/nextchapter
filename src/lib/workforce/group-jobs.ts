@@ -72,6 +72,7 @@ export function jobStatusLabel(status: string, archived: boolean, expired: boole
   if (archived) return 'Removed'
   if (status === 'approved') return expired ? 'Expired' : 'Live for your group'
   if (status === 'rejected') return 'Not approved'
+  if (status === 'org_pending') return 'Waiting for your review'
   return 'Waiting for NextChapter review'
 }
 

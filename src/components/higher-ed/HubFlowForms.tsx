@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
-import { addGroupJob, archiveGroupJob, connectFeed, disconnectFeed, refreshFeed, featureJob, unfeatureJob, importGroupJobs, linkResponseFunding, saveFundingApplication, setResponseStep, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
+import { addGroupJob, archiveGroupJob, approveEmployerJob, declineEmployerJob, connectFeed, disconnectFeed, refreshFeed, featureJob, unfeatureJob, importGroupJobs, linkResponseFunding, saveFundingApplication, setResponseStep, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
 import { FUNDING_STATUSES } from '@/lib/workforce/hub-flow'
 
 const sel = 'h-9 w-full rounded-md border border-input bg-background px-2 text-sm'
@@ -275,5 +275,30 @@ export function DisconnectFeedButton({ slug, id, name }: { slug: string; id: str
       </SubmitButton>
       <Msg r={state} />
     </form>
+  )
+}
+
+// Approve an employer's job (it then goes to NextChapter's review) or decline it with a reason the employer sees.
+export function EmployerJobDecision({ slug, id, title }: { slug: string; id: string; title: string }) {
+  const [approved, approve] = useActionState<HubResult, FormData>(approveEmployerJob.bind(null, slug), undefined)
+  const [declined, decline] = useActionState<HubResult, FormData>(declineEmployerJob.bind(null, slug), undefined)
+  return (
+    <div className="flex flex-wrap items-start gap-4">
+      <form action={approve} className="flex items-center gap-2">
+        <input type="hidden" name="id" value={id} />
+        <SubmitButton size="sm" pendingLabel="Approving…">
+          Approve
+        </SubmitButton>
+        <Msg r={approved} />
+      </form>
+      <form action={decline} className="flex flex-wrap items-center gap-2">
+        <input type="hidden" name="id" value={id} />
+        <Input name="reason" maxLength={200} placeholder="Why (the employer sees this)" aria-label={`Why you decline ${title}`} className="h-8 w-64 text-xs" />
+        <SubmitButton size="sm" variant="outline" pendingLabel="Declining…">
+          Decline
+        </SubmitButton>
+        <Msg r={declined} />
+      </form>
+    </div>
   )
 }
