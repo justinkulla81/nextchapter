@@ -129,10 +129,39 @@ async function liveFor(companyId: string): Promise<EmployerLive> {
   }
 }
 
+type HistoryRow = { months: { month: string; opened: number }[]; closed: number; first_seen: Date | null; last90: number; prior90: number }
+
+/**
+ * The history the nightly hiring-profile build stored (CompanyHiringProfile.history, src/lib/companies/hiring-index.ts), or null when
+ * it has none yet or it is not in the expected shape.
+ */
+export function storedHistoryRow(stored: unknown): HistoryRow | null {
+  const h = stored as { months?: unknown; closed?: unknown; firstSeen?: unknown; last90?: unknown; prior90?: unknown } | null
+  if (!h || typeof h !== 'object' || !Array.isArray(h.months)) return null
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+  const [closed, last90, prior90] = [num(h.closed), num(h.last90), num(h.prior90)]
+  if (closed === null || last90 === null || prior90 === null) return null
+  const months = h.months.flatMap((m) => {
+    const x = m as { month?: unknown; opened?: unknown }
+    return typeof x?.month === 'string' && num(x.opened) !== null ? [{ month: x.month, opened: x.opened as number }] : []
+  })
+  const first = typeof h.firstSeen === 'string' ? new Date(h.firstSeen) : null
+  return { months, closed, last90, prior90, first_seen: first && !Number.isNaN(first.getTime()) ? first : null }
+}
+
+/**
+ * Read from the employer's hiring profile: one row. The live query below counts every opening the employer ever had, and the openings
+ * are rewritten each crawl, so it fetched each one from the table: up to 14.8 s and ~17,000 rows for a large employer, on 27,103 page
+ * renders in a day and a half (2026-11-17). It now runs only for an employer whose profile has no history yet.
+ */
 async function historyFor(companyId: string): Promise<EmployerHistory> {
-  const [row] = await prisma.$queryRaw<
-    { months: { month: string; opened: number }[]; closed: number; first_seen: Date | null; last90: number; prior90: number }[]
-  >(Prisma.sql`SELECT
+  const stored = await prisma.companyHiringProfile.findUnique({ where: { companyId }, select: { history: true } }).catch(() => null)
+  const row = storedHistoryRow(stored?.history) ?? (await liveHistoryRow(companyId))
+  return historyFromRow(row)
+}
+
+async function liveHistoryRow(companyId: string): Promise<HistoryRow | undefined> {
+  const [row] = await prisma.$queryRaw<HistoryRow[]>(Prisma.sql`SELECT
       (SELECT COALESCE(json_agg(m ORDER BY m.month), '[]'::json) FROM (
         SELECT to_char(date_trunc('month', "firstSeenAt"), 'YYYY-MM') AS month, count(*)::int AS opened
         FROM "CompanyJobOpening" WHERE "companyId" = ${companyId} AND "firstSeenAt" >= date_trunc('month', now()) - interval '11 months'
@@ -142,11 +171,14 @@ async function historyFor(companyId: string): Promise<EmployerHistory> {
       count(*) FILTER (WHERE "firstSeenAt" > now() - interval '90 days')::int AS last90,
       count(*) FILTER (WHERE "firstSeenAt" <= now() - interval '90 days' AND "firstSeenAt" > now() - interval '180 days')::int AS prior90
     FROM "CompanyJobOpening" WHERE "companyId" = ${companyId}`)
+  return row
+}
+
+export function historyFromRow(row: HistoryRow | undefined, now = new Date()): EmployerHistory {
   const trackedSince = row?.first_seen ?? null
-  const trackedDays = trackedSince ? Math.floor((Date.now() - trackedSince.getTime()) / 86_400_000) : 0
+  const trackedDays = trackedSince ? Math.floor((now.getTime() - trackedSince.getTime()) / 86_400_000) : 0
   const byKey = new Map((row?.months ?? []).map((m) => [m.month, m.opened]))
   const startKey = trackedSince ? trackedSince.toISOString().slice(0, 7) : null
-  const now = new Date()
   const filled: { month: string; opened: number }[] = []
   for (let i = 11; i >= 0; i--) {
     const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1))

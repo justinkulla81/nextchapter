@@ -7906,6 +7906,9 @@ model CompanyHiringProfile {
   payLevelSample    Int       @default(0)
   payLevelRatio     Float?
   postedPayShare    Float?
+  // The employer page's hiring history, built with the rest of the profile so the page does not read every opening on each render
+  // (prisma/manual/2026-11-17-hiring-profile-history.sql): { months: [{ month, opened }], closed, firstSeen, last90, prior90 }.
+  history           Json?
   computedAt        DateTime  @default(now())
 
   @@index([payLevel])
