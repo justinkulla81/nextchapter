@@ -13,6 +13,7 @@ import { HubAttract, HubBenefits, HubGrants, HubJobs, HubLearning, HubPipeline, 
 import { HubApplications, HubReport } from './screens-hub-flow'
 import { HubSkillsGaps, HubTalent } from './screens-hub-skills'
 import { HubGroupJobs, HubRegionJobs } from './screens-hub-jobs'
+import { HubPartnerViews } from './screens-hub-partners'
 import { CompanyOverview, CompanySupport } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
@@ -45,6 +46,7 @@ import { ServicesPanel } from './ServicesPanel'
 import { readProfile, type InstitutionProfile } from '@/lib/higher-ed/profile'
 import { checkInMonthFrom, customServices, memberAudiences, memberCards, memberTraits, serviceSettingsFrom } from '@/lib/higher-ed/services'
 import { rosterAutoJoinOptions } from '@/lib/higher-ed/major-groups'
+import { latestCheckInAnswer } from '@/lib/higher-ed/checkins'
 import { serviceUsage30d } from '@/lib/higher-ed/service-usage'
 import { setAnnualCheckInMonth } from '@/app/i/[slug]/(portal)/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -58,6 +60,7 @@ import { LockedFeature } from '@/components/plans/LockedFeature'
 import { institutionEntitlements } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { AlumniData } from './screens-alumni-data'
+import { DevelopmentGrants } from './screens-grants'
 import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
@@ -108,7 +111,7 @@ import { removeStaff, resendStaffInvite } from '@/app/i/[slug]/(portal)/staff-ac
 import { ActionButton } from './CommunityForms'
 import { addEarlyCareerRoleAction, addRecruitingDateAction, archiveEarlyCareerRoleAction, removeRecruitingDateAction, saveCoreRecruiter, archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
-export type ScreenSearchParams = { q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string; track?: string; need?: string } & CommunityParams
+export type ScreenSearchParams = { purpose?: string; q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string; track?: string; need?: string } & CommunityParams
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -221,7 +224,14 @@ async function CandidateHome({ ctx, base }: ScreenProps) {
   const kind = orgKindOf(ctx.institution.orgType)
   const inTransition = !!openFlag && openFlag.state !== 'CLEARED'
   const traits = member
-    ? memberTraits({ ...member, metroArea: member.candidate?.metroArea, currentCity: member.candidate?.currentCity, journey: member.candidate?.journey, inTransition })
+    ? memberTraits({
+        ...member,
+        metroArea: member.candidate?.metroArea,
+        currentCity: member.candidate?.currentCity,
+        journey: member.candidate?.journey,
+        inTransition,
+        checkInAnswer: await latestCheckInAnswer(ctx.memberId!),
+      })
     : null
   const services = memberCards(serviceSettingsFrom(enabledFeatures, kind), member ? memberAudiences(member, new Date(), inTransition) : null, kind, { traits, enabledFeatures })
   const hero = profile.heroImageUrl ? { url: profile.heroImageUrl, alt: `${ctx.institution.name} campus`, credit: null } : profile.photos?.[0]
@@ -1664,6 +1674,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'alumni:outreach': AlumniOutreach,
   'alumni:engagement': AlumniEngagement,
   'alumni:data': AlumniData,
+  'development:grants': DevelopmentGrants,
   'career:checkins': CareerCheckIns,
   'hub:home': HubHome,
   'hub:companies': HubCompanies,
@@ -1694,6 +1705,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:talent': HubTalent,
   'hub:regionjobs': HubRegionJobs,
   'hub:groupjobs': HubGroupJobs,
+  'hub:views': HubPartnerViews,
   'hub:region': Region,
   'employer:overview': CompanyOverview,
   'employer:support': CompanySupport,

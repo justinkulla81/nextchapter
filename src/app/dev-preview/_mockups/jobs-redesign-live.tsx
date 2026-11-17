@@ -11,7 +11,9 @@ import { PayRedesign } from '@/components/market/PayRedesign'
 import { OfferedWagesView } from '@/components/market/OfferedWagesSection'
 import { ResumeRedesign } from '@/components/dashboard/ResumeRedesign'
 import type { ResumeVersionItem } from '@/components/dashboard/ResumeVersionsList'
-import { StrengthsRedesign, WhyHireView } from '@/components/dashboard/StrengthsRedesign'
+import { BestFitSkills, WhyHireStatement, WhyHireView, type WhyHirePart } from '@/components/dashboard/why-hire/WhyHireView'
+import type { WhyHireExtras } from '@/lib/profile/why-hire-load'
+import { standingMarks } from '@/lib/profile/why-hire-standing'
 import { AreaBriefView } from '@/components/workforce/AreaBriefView'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ActionLink } from '@/components/candidate/ActionLink'
@@ -167,29 +169,70 @@ const score = (key: string, label: string, evidence: string[]) => ({ key, label,
 const STRENGTHS = {
   shape: 'peaked',
   peaks: [
-    score('execution', 'Gets things done', ['Your references rate you 4.8 of 5 on follow-through.', 'You led a 40-person program that shipped on time.']),
-    score('leadership', 'Leads people', ['You have managed 41 to 200 people.', 'Two references name team-building as your strength.']),
-    score('scale', 'Operates at scale', ['You owned a budget between $10M and $100M.']),
+    score('execution', 'Gets things done', ['Higher than 86% of people in operations on How I Perform execution', '2 references rated your follow-through 4.8 of 5', 'You picked it as a top strength']),
+    score('leadership', 'Leads people', ['Led a team of 51–200, larger than 78% of people in your field']),
+    score('scale', 'Operates at scale', ['You owned a budget of $10M–$100M, carried a P&L, more than 81% of people in your field']),
   ],
   broad: [],
   weakSpots: [{ key: 'influence', label: 'Influence and communication', line: 'Roles built on persuading skeptical buyers or executives' }],
   all: [],
-  missing: ['One more reference would sharpen this', 'Take How I Perform to add your own read'],
-  headline: 'You stand out for getting hard things done, and for the teams you build.',
+  missing: [],
+  headline: 'You stand out for getting things done, leading people and operating at scale.',
   whyHire: {
-    statement: 'I turn complicated operations into things that run on time, and I build the teams that keep them running.',
-    proofPoints: ['Led a 40-person program that shipped on time and 11% under budget.', 'Two references name team-building as the reason they would work for me again.'],
+    statement: 'I take operations that are slipping and get them running on time, and I build the teams that keep them that way.',
+    employerNeed: 'You need someone who can take a 200-person operation that is missing its numbers and get it back on plan without burning out the team.',
+    proofPoints: ['Ran a $10M–$100M budget with P&L responsibility', 'Led a team of 51–200 through a restructuring', 'Two references rate follow-through 4.8 of 5'],
     generatedAt: NOW.toISOString(),
   },
 } as unknown as Strengths
 
-export function StrengthsLive() {
+const EMERGING = { ...STRENGTHS, shape: 'emerging', peaks: [], weakSpots: [], headline: 'We don’t have enough evidence yet to name your standout strengths.', whyHire: null } as unknown as Strengths
+
+const EXTRAS: WhyHireExtras = {
+  marks: standingMarks({ completedReferences: 2, resumeResultsScore: 54, hasPerformance: true, hasTrackRecord: true, hasPitch: true }),
+  standing: { group: 'people in operations on NextChapter', peers: 212, aheadOf: 0.71, withAll: 0.04 },
+  pitch: {
+    verbal30s: 'I run operations. Most recently I led a 140-person fulfillment network with a $40M budget, and when it was missing its on-time numbers I rebuilt the planning cadence and got it back above 97% in two quarters, without losing the team. I’m looking for a director or VP operations role where something important isn’t working yet.',
+    conversationOpener: 'I fix operations that are slipping. What’s the thing in your world that never quite runs on time?',
+    emailOpening: 'I’m an operations leader who gets slipping programs back on plan, most recently a 140-person network with a $40M budget.',
+    linkedinHeadline: 'Operations leader | Gets slipping programs back on plan | 140-person teams, $40M budgets',
+  },
+  pitchStarted: false,
+}
+const EXTRAS_NEW: WhyHireExtras = {
+  marks: standingMarks({ completedReferences: 0, resumeResultsScore: 41, hasPerformance: false, hasTrackRecord: false, hasPitch: false }),
+  standing: { group: 'people in operations on NextChapter', peers: 212, aheadOf: 0, withAll: 0.04 },
+  pitch: null,
+  pitchStarted: false,
+}
+const SKILLS = {
+  jobsConsidered: 34,
+  jobsWithSkillData: 22,
+  missing: [
+    { term: 'Lean Six Sigma', jobs: 9 },
+    { term: 'SAP', jobs: 7 },
+    { term: 'Vendor negotiation', jobs: 5 },
+  ],
+  have: [
+    { term: 'Budgeting', jobs: 17 },
+    { term: 'Process improvement', jobs: 15 },
+    { term: 'Team leadership', jobs: 14 },
+  ],
+}
+
+function WhyHireMock({ part, st = STRENGTHS, extras = EXTRAS }: { part: WhyHirePart; st?: Strengths; extras?: WhyHireExtras }) {
   return (
     <PreviewShell place="jobs" entry="apply" part="whyhire">
-      <StrengthsRedesign st={STRENGTHS} whyHire={<WhyHireView whyHire={STRENGTHS.whyHire!} />} />
+      <WhyHireView part={part} st={st} extras={extras} statement={st.whyHire ? <WhyHireStatement whyHire={st.whyHire} /> : null} skills={<BestFitSkills gap={SKILLS} />} />
     </PreviewShell>
   )
 }
+
+export const StrengthsLive = () => <WhyHireMock part="edge" />
+export const WhyHireGapsLive = () => <WhyHireMock part="gaps" />
+export const WhyHirePitchLive = () => <WhyHireMock part="pitch" />
+export const WhyHireNewLive = () => <WhyHireMock part="edge" st={EMERGING} extras={EXTRAS_NEW} />
+export const WhyHireNewPitchLive = () => <WhyHireMock part="pitch" st={EMERGING} extras={EXTRAS_NEW} />
 
 // ---- Local market -------------------------------------------------------------------------------------------------
 

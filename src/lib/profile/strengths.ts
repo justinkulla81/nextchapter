@@ -16,16 +16,17 @@
 
 export type StrengthKey = 'expertise' | 'execution' | 'judgment' | 'composure' | 'influence' | 'leadership' | 'scale' | 'collaboration' | 'adaptability'
 
-export const STRENGTHS: { key: StrengthKey; label: string; pitch: string; weakSpot: string }[] = [
-  { key: 'expertise', label: 'Deep expertise', pitch: 'brings deep, proven skill in the work itself', weakSpot: 'Roles that need deep specialist skills you haven’t shown yet' },
-  { key: 'execution', label: 'Gets things done', pitch: 'reliably turns plans into results, on time', weakSpot: 'Roles judged mainly on fast, relentless output' },
-  { key: 'judgment', label: 'Sound judgment', pitch: 'makes good calls with incomplete information', weakSpot: 'Roles where you’d make high-stakes calls alone from day one' },
-  { key: 'composure', label: 'Calm under pressure', pitch: 'stays steady when things go wrong', weakSpot: 'Constant crisis work (incidents, escalations)' },
-  { key: 'influence', label: 'Influence and communication', pitch: 'brings people along: explains clearly and persuades', weakSpot: 'Roles built on persuading skeptical buyers or executives' },
-  { key: 'leadership', label: 'Leads people', pitch: 'builds and leads teams that perform', weakSpot: 'Leading a large team right away' },
-  { key: 'scale', label: 'Operates at scale', pitch: 'has owned large budgets, P&Ls or programs', weakSpot: 'Roles that start with a large budget or P&L' },
-  { key: 'collaboration', label: 'Great to work with', pitch: 'makes the people around them better', weakSpot: 'Roles that are mostly cross-team coordination' },
-  { key: 'adaptability', label: 'Learns fast and adapts', pitch: 'gets good at new things quickly', weakSpot: 'Fast-changing roles with little support' },
+// `phrase` reads inside a sentence ("You stand out for getting things done"); `label` is the row title.
+export const STRENGTHS: { key: StrengthKey; label: string; phrase: string; pitch: string; weakSpot: string }[] = [
+  { key: 'expertise', label: 'Deep expertise', phrase: 'deep expertise', pitch: 'brings deep, proven skill in the work itself', weakSpot: 'Roles that need deep specialist skills you haven’t shown yet' },
+  { key: 'execution', label: 'Gets things done', phrase: 'getting things done', pitch: 'reliably turns plans into results, on time', weakSpot: 'Roles judged mainly on fast, relentless output' },
+  { key: 'judgment', label: 'Sound judgment', phrase: 'sound judgment', pitch: 'makes good calls with incomplete information', weakSpot: 'Roles where you’d make high-stakes calls alone from day one' },
+  { key: 'composure', label: 'Calm under pressure', phrase: 'staying calm under pressure', pitch: 'stays steady when things go wrong', weakSpot: 'Constant crisis work (incidents, escalations)' },
+  { key: 'influence', label: 'Influence and communication', phrase: 'influence and communication', pitch: 'brings people along: explains clearly and persuades', weakSpot: 'Roles built on persuading skeptical buyers or executives' },
+  { key: 'leadership', label: 'Leads people', phrase: 'leading people', pitch: 'builds and leads teams that perform', weakSpot: 'Leading a large team right away' },
+  { key: 'scale', label: 'Operates at scale', phrase: 'operating at scale', pitch: 'has owned large budgets, P&Ls or programs', weakSpot: 'Roles that start with a large budget or P&L' },
+  { key: 'collaboration', label: 'Great to work with', phrase: 'being great to work with', pitch: 'makes the people around them better', weakSpot: 'Roles that are mostly cross-team coordination' },
+  { key: 'adaptability', label: 'Learns fast and adapts', phrase: 'learning fast and adapting', pitch: 'gets good at new things quickly', weakSpot: 'Fast-changing roles with little support' },
 ]
 
 export type StrengthInput = {
@@ -169,9 +170,12 @@ export function scoreStrengths(input: StrengthInput): StrengthProfile {
 }
 
 // A short headline anyone can read, without AI.
+export const strengthPhrase = (key: StrengthKey): string => STRENGTHS.find((d) => d.key === key)?.phrase ?? key
+const andList = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`)
+
 export function strengthHeadline(p: StrengthProfile): string {
-  if (p.shape === 'peaked') return `You stand out for ${p.peaks.map((x) => x.label.toLowerCase()).join(' and ')}.`
-  if (p.shape === 'balanced') return `You’re strong across the board: ${p.broad.slice(0, 4).map((x) => x.label.toLowerCase()).join(', ')}. Sell your range.`
+  if (p.shape === 'peaked') return `You stand out for ${andList(p.peaks.map((x) => strengthPhrase(x.key)))}.`
+  if (p.shape === 'balanced') return `You’re strong across the board: ${andList(p.broad.slice(0, 4).map((x) => strengthPhrase(x.key)))}. Sell your range.`
   return 'We don’t have enough evidence yet to name your standout strengths.'
 }
 
@@ -202,7 +206,7 @@ export const strengthKeys = (p: StrengthProfile): StrengthKeys => ({ peaks: p.pe
 export function strengthNotes(keys: StrengthKeys | null | undefined, roleKey: string): { plays: string | null; exposes: string | null; delta: number } {
   if (!keys) return { plays: null, exposes: null, delta: 0 }
   const leans = roleLeansOn(roleKey)
-  const label = (k: StrengthKey) => STRENGTHS.find((s) => s.key === k)!.label.toLowerCase()
+  const label = (k: StrengthKey) => strengthPhrase(k)
   const plays = leans.filter((k) => keys.peaks.includes(k))
   const exposes = leans.filter((k) => keys.weak.includes(k))
   return {

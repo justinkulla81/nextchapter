@@ -113,7 +113,17 @@ export const CHECKIN_ANSWERS = [
   { key: 'looking', label: "I'm starting to look" },
   { key: 'laid_off', label: 'I was laid off' },
   { key: 'new_job', label: 'New job or promotion' },
+  { key: 'new_manager', label: 'I manage people now' },
+  { key: 'starting_company', label: "I'm starting a company" },
 ] as const
+
+// Good-news answers: who on staff acts on each (Career Services › Check-ins
+// and Alumni Relations › Outreach list them), and what they offer.
+export const GOOD_NEWS: Partial<Record<CollegeCheckInAnswer, { office: string; offer: string }>> = {
+  new_job: { office: 'Alumni Relations and Advancement', offer: 'Congratulate them; a VP-and-up title raises a signal for Advancement.' },
+  new_manager: { office: 'Lifelong Learning', offer: 'Offer management and leadership programs, including from other schools.' },
+  starting_company: { office: 'Entrepreneurship center', offer: 'Introduce founder office hours, programs, investors and alumni customers.' },
+}
 export type CollegeCheckInAnswer = (typeof CHECKIN_ANSWERS)[number]['key']
 
 export function isCheckInAnswer(a: unknown): a is CollegeCheckInAnswer {
@@ -129,6 +139,8 @@ All good: {{link}}&a=good
 I'm starting to look: {{link}}&a=looking
 I was laid off: {{link}}&a=laid_off
 New job or promotion: {{link}}&a=new_job
+I manage people now: {{link}}&a=new_manager
+I'm starting a company: {{link}}&a=starting_company
 
 If you're looking, {{college}} has free help ready: a clear read on your job market, a plan, coaching and alumni who'll take your call.
 
@@ -229,7 +241,11 @@ export async function answerCheckIn(args: { checkInId: string; memberId: string;
           ? { stage: 'APPLYING' as const }
           : args.answer === 'new_job'
             ? { stage: 'LANDED' as const }
-            : {}
+            : args.answer === 'new_manager'
+              ? { journey: 'GROWING' as const }
+              : args.answer === 'starting_company'
+                ? { journey: 'ENTREPRENEUR' as const }
+                : {}
     await applyJourneyChange(c.member.candidateId!, { ...change, source: 'CHECK_IN', isCheckIn: true, note: `College check-in (${c.kind})` }, now)
   }
   captureServerEvent(c.member.candidateId ?? `member:${c.member.id}`, 'he_checkin_answered', {
@@ -272,6 +288,34 @@ export async function checkInOverview(institutionId: string, now = new Date()) {
     .sort((a, b) => (b.respondedAt?.getTime() ?? 0) - (a.respondedAt?.getTime() ?? 0))
     .map((x) => ({ id: x.id, kind: x.kind, respondedAt: x.respondedAt!, answer: (x.responseJson as { answer: CollegeCheckInAnswer }).answer, member: x.member }))
   return { byKind, followUps }
+}
+
+/** Good news to act on (new jobs and promotions, new managers, founders), newest first, bounded. */
+export async function goodNewsCheckIns(institutionId: string, limit = 50) {
+  const keys = Object.keys(GOOD_NEWS)
+  const rows = await prisma.$queryRaw<{ id: string; kind: CheckInKind; respondedAt: Date; answer: string; memberId: string; firstName: string | null; lastName: string | null; classYear: number | null; email: string }[]>`
+    select c.id, c.kind, c."respondedAt", c."responseJson"->>'answer' as answer,
+      m.id as "memberId", m."firstName", m."lastName", m."classYear", m.email
+    from public."CheckIn" c join public."InstitutionMember" m on m.id = c."memberId"
+    where m."institutionId" = ${institutionId} and c.status = 'RESPONDED'
+      and c."respondedAt" >= now() - interval '400 days'
+      and c."responseJson"->>'answer' = any(${keys})
+    order by c."respondedAt" desc
+    limit ${limit}`
+  return rows
+    .filter((r) => isCheckInAnswer(r.answer))
+    .map((r) => ({ id: r.id, kind: r.kind, respondedAt: r.respondedAt, answer: r.answer as CollegeCheckInAnswer, member: { id: r.memberId, firstName: r.firstName, lastName: r.lastName, classYear: r.classYear, email: r.email } }))
+}
+
+/** The member's latest check-in answer in the last 13 months, for targeted service cards. */
+export async function latestCheckInAnswer(memberId: string, now = new Date()): Promise<CollegeCheckInAnswer | null> {
+  const c = await prisma.checkIn.findFirst({
+    where: { memberId, status: 'RESPONDED', respondedAt: { gte: new Date(now.getTime() - 400 * DAY) } },
+    orderBy: { respondedAt: 'desc' },
+    select: { responseJson: true },
+  })
+  const a = (c?.responseJson as { answer?: unknown } | null)?.answer
+  return isCheckInAnswer(a) ? a : null
 }
 
 export const CHECKIN_KIND_LABELS: Record<CheckInKind, string> = {

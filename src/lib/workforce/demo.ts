@@ -9,7 +9,7 @@
 // anyone (sendCampaign skips isDemo), and public demos expire after 30 days.
 
 import 'server-only'
-import { createHash } from 'crypto'
+import { createHash, randomBytes } from 'crypto'
 import type { CurrentJobStatus, InstitutionOrgType, JourneyStage, JourneyType, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { localArea, placeAt, type LocalSettings } from './local'
@@ -41,6 +41,15 @@ const EXTRAS: { kind: ExtraKind; n: number; journey: JourneyType; status: Curren
   { kind: 'growing', n: 14, journey: 'GROWING', status: 'EMPLOYED_CONSIDERING_MOVE' },
   { kind: 'pivot', n: 12, journey: 'CAREER_CHANGE', status: 'CAREER_PIVOT' },
 ]
+// The program's own coaches (Talent Hub › participant view › Coaching). Fictional, isSampleData: coach matching and the
+// coach digest skip sample coaches, so they never reach a real member.
+const DEMO_COACHES = [
+  { fullName: 'Monica Halverson', industries: ['Healthcare', 'Insurance'], seniorityFit: ['Manager', 'Director'] },
+  { fullName: 'Terrence Oyelaran', industries: ['Logistics', 'Manufacturing'], seniorityFit: ['Supervisor', 'Manager'] },
+  { fullName: 'Grace Lindqvist', industries: ['Financial services', 'Technology'], seniorityFit: ['Individual contributor', 'Manager'] },
+]
+const demoCoachEmail = (slug: string, k: number) => `coach${k + 1}@${slug}.example.com`
+
 // What people told NextChapter they need (CandidateProfile.benefitsPressures and biggestBarriers), for benefit matching.
 const PRESSURES = ['RENT_MORTGAGE', 'HEALTH_INSURANCE', 'DEPENDENTS_CHILDCARE', 'DEBT_PAYMENTS', 'NO_EMERGENCY_SAVINGS', 'SUPPORTING_FAMILY']
 const BARRIERS = ['life_logistics', 'skills_gap', 'local_job_market', 'interview_nerves', 'ats_blackhole']
@@ -285,6 +294,11 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     data: [6, 4, 2].flatMap((n, i) => stepKeys.slice(0, n).map((key) => ({ rapidResponseId: layoffs[i].id, key, doneBy: 'demo', isSampleData: true, doneAt: new Date(now.getTime() - (layoffSpecs[i].daysAgo - stepKeys.indexOf(key)) * DAY) }))),
   })
 
+  // A sample partner view, so the Partners area and the public view page have something to open.
+  await prisma.partnerView.create({
+    data: { institutionId, token: randomBytes(24).toString('base64url'), partnerName: ky ? 'Jefferson Community and Technical College' : 'A partner college', partnerKind: 'COLLEGE', scopes: ['SKILLS', 'TALENT', 'JOBS', 'PROGRAMS'], note: 'What employers here ask for, and where our people have the skills: a starting point for program planning.', expiresAt: new Date(now.getTime() + 90 * DAY), createdBy: 'demo', isSampleData: true },
+  })
+
   // Participants: 150 from the layoffs or signed up directly, then 60 more on other tracks (moving here, new graduates,
   // employed and growing, career pivot).
   const N = 150
@@ -414,6 +428,16 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     ),
   })
 
+  // Coaches: upserted by email, so a reset keeps the same three.
+  for (const [k, c] of DEMO_COACHES.entries()) {
+    const workEmail = demoCoachEmail(slug, k)
+    await prisma.coach.upsert({
+      where: { workEmail },
+      create: { ...c, workEmail, focus: 'CAREER', isSampleData: true, institutionId, certifications: ['ICF'], specializationTags: [], languages: ['English'] },
+      update: { ...c, institutionId, isSampleData: true },
+    })
+  }
+
   // An AI retooling program with a running cohort.
   const program = await prisma.program.create({
     data: {
@@ -474,6 +498,7 @@ async function townsNear(anchor: { lat: number; lon: number }, area: Awaited<Ret
 export async function deleteWorkforceDemo(slug: string) {
   const inst = await prisma.institution.findFirst({ where: { slug, isDemo: true, isSampleData: true }, select: { id: true } })
   if (inst) await prisma.institution.delete({ where: { id: inst.id } })
+  await prisma.coach.deleteMany({ where: { workEmail: { in: DEMO_COACHES.map((_, k) => demoCoachEmail(slug, k)) }, isSampleData: true } })
   await prisma.candidateProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })
   await prisma.employerProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })
 }
@@ -509,6 +534,7 @@ export async function reseedWorkforceDemo(slug: string, now = new Date()) {
   await prisma.institutionMember.deleteMany({ where: { institutionId: id } })
   await prisma.rapidResponse.deleteMany({ where: { institutionId: id } })
   await prisma.fundingApplication.deleteMany({ where: { institutionId: id } })
+  await prisma.partnerView.deleteMany({ where: { institutionId: id } })
   await prisma.memberCompany.deleteMany({ where: { institutionId: id } })
   await prisma.program.deleteMany({ where: { institutionId: id } })
   await prisma.candidateProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })

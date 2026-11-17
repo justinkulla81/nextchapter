@@ -10,13 +10,14 @@ import { PremiumShort, PersonalShort } from './leftovers-short'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
 import { FindLookingFor } from './jobs-looking-for'
+import { FindSimple } from './jobs-simple'
 import { QualityGateDirect, QualityGateAll, QualityGateNoDirect } from './jobs-quality-gate'
 import { FindFromPublicSearch } from './jobs-from-public'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
 import { FindUnpostedLive, FindUnpostedEmptyLive, FindUnpostedErrorLive, FindIndependentLive, FindIndependentNewLive, FindIndependentOfferLive, FindResourcesLive, FindResourcesOptedInLive } from './jobs-find-parts-live'
 import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, CompanyProfile, MarketYours, MarketPay, MarketLocal, MarketPivot, Interviews, Offers } from './jobs-more'
 import { PayChartLive, CompanySectionsLive, CompanyCultureEmptyLive, InterviewTabsLive, InWorkLive, FormsLive } from './jobs-leftovers-live'
-import { CompaniesLive, MarketLive, PayLive, ResumeLive, StrengthsLive, LocalLive, InterviewsLive } from './jobs-redesign-live'
+import { CompaniesLive, MarketLive, PayLive, ResumeLive, StrengthsLive, WhyHireGapsLive, WhyHirePitchLive, WhyHireNewLive, WhyHireNewPitchLive, LocalLive, InterviewsLive } from './jobs-redesign-live'
 import { PeopleYouKnow, AlumniGroups, IndustryFunction, RecruitersCircle, NetworkThisWeek, Messages } from './network-more'
 import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, HowIWork, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpScams, HelpQuestions } from './learn-help'
 import { HomeEntrepreneur, HomeTimeOff, HomeCareerChange, HomeFractional, HomeStalled, CheckIn, TailoredForYou } from './personalization'
@@ -192,6 +193,10 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/live/local', place: 'Jobs', title: 'Local market (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: LocalLive },
   { path: 'jobs/live/resume', place: 'Jobs', title: 'Résumé (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: ResumeLive },
   { path: 'jobs/live/whyhire', place: 'Jobs', title: 'Why hire me (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: StrengthsLive },
+  { path: 'jobs/live/whyhire-gaps', place: 'Jobs', title: 'Why hire me: Close the gaps (sample data)', replaces: 'the Show more on /dashboard/strengths', Component: WhyHireGapsLive },
+  { path: 'jobs/live/whyhire-pitch', place: 'Jobs', title: 'Why hire me: Your pitch (sample data)', replaces: 'nothing; new part', Component: WhyHirePitchLive },
+  { path: 'jobs/live/whyhire-new', place: 'Jobs', title: 'Why hire me: a new member (sample data)', replaces: 'the "Not enough evidence yet" state', Component: WhyHireNewLive },
+  { path: 'jobs/live/whyhire-new-pitch', place: 'Jobs', title: 'Why hire me: no pitch yet (sample data)', replaces: 'nothing; new part', Component: WhyHireNewPitchLive },
   { path: 'jobs/live/interviews', place: 'Jobs', title: 'Interviews (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: InterviewsLive },
   { path: 'jobs/live/pay-chart', place: 'Jobs', title: 'Know your worth: the advertised-pay chart (sample data)', replaces: 'the code that ships, fed sample data', Component: PayChartLive },
   { path: 'jobs/live/company-sections', place: 'Jobs', title: 'Company profile: hiring history, culture, how to get hired (sample data)', replaces: 'the code that ships, fed sample data', Component: CompanySectionsLive },
@@ -316,6 +321,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'public/industry-network', place: 'Public site', title: 'Industry page: the one ask is joining the Health care network', replaces: 'the Market Reality Assessment box at the bottom of an industry page', Component: IndustryNetworkAsk },
   { path: 'public/nav', place: 'Public site', title: 'Public header (4 menus) and footer columns', replaces: 'the nine-link top bar in PublicSiteChrome.tsx and the Browse NextChapter text wall', Component: PublicNavPreview },
   { path: 'portals/headers', place: 'Portals', title: 'Portal top bars: employer, higher education, workforce, recruiter, coach', replaces: 'the one navy top bar on every non-candidate portal (PartnerTopBar)', Component: PortalHeaders },
+  { path: 'jobs/simple', place: 'Jobs', title: 'Find a job, simplified: one next move, then the jobs', replaces: '/dashboard/find-my-job (Jobs view)', Component: FindSimple },
   { path: 'jobs/looking-for', place: 'Jobs', title: 'Find a job: full-time or fractional choice', replaces: '/dashboard/find-my-job (Jobs view)', Component: FindLookingFor },
   { path: 'admin/board-bids-live', place: 'Admin', title: 'CRM funding: workforce board bids (live rows)', replaces: 'new', Component: BoardBidsLive as unknown as ComponentType },
   { path: 'admin/competitor-wins-live', place: 'Admin', title: 'CRM funding: competitor federal wins (live rows)', replaces: 'new', Component: CompetitorWinsLive as unknown as ComponentType },

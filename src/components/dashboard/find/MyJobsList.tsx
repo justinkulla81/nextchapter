@@ -3,7 +3,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { Mail } from 'lucide-react'
-import { Avatar, Chip } from '@/components/candidate/ui'
+import { Chip } from '@/components/candidate/ui'
 import { ActionLink } from '@/components/candidate/ActionLink'
 import { JobTrackControls } from '@/components/dashboard/one-board/JobTrackControls'
 import { ApplicationStatusButtons } from '@/components/dashboard/one-board/ApplicationStatusButtons'
@@ -90,7 +90,6 @@ export function MyJobsList({ rows, empty, now = new Date() }: { rows: MyJobRow[]
             <li key={r.key} className="space-y-3 p-5">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex min-w-0 flex-1 gap-4">
-                  <Avatar name={r.companyName ?? r.title} />
                   <div className="min-w-0 space-y-0.5">
                     <p className="text-base font-semibold text-ink">
                       {r.title}
