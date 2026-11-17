@@ -109,6 +109,30 @@ export const PUBLIC_JOB_STATIC_SQL = Prisma.sql`
   AND COALESCE("reopenCount", 0) < 2
   AND COALESCE("repostCount", 0) < 2`
 
+/**
+ * The same fixed rules for a read that checks rows one by one after an index has picked them (the "similar jobs" reads), with the
+ * description test made cheap. length() counts characters, so it fetched and decompressed every candidate's full description from
+ * TOAST storage: ~200 descriptions per occupation read, the largest single source of disk reads in the 2026-11-16 weekly database report.
+ * octet_length() reads the stored size without that, and a description of 800+ bytes has at least 200 characters (UTF-8 is at most 4
+ * bytes a character), so length() now runs only on short descriptions, which are stored inline. Same rows as PUBLIC_JOB_STATIC_SQL
+ * (src/test/public-job-row-rules.test.ts keeps the two in step); not for a WHERE that should use the partial index.
+ */
+export const PUBLIC_JOB_ROW_RULES_SQL = Prisma.sql`
+  status = 'approved'
+  AND "archivedAt" IS NULL
+  AND "closeReason" IS NULL
+  AND disclosure = 'OPEN'
+  AND distribution = 'OPEN'
+  AND "institutionScopeId" IS NULL
+  AND "orgScopeId" IS NULL
+  AND source IN ('ats_feed', 'admin', 'employer', 'recruiter')
+  AND (octet_length(description) >= 800 OR length(description) >= 200)
+  AND ("employmentType" IS NULL OR "employmentType" NOT IN ('internship', 'co_op', 'coop'))
+  AND title !~* '\\m(intern|interns|internships?|student trainee)\\M'
+  AND ("locationCountry" = 'US' OR ("locationCountry" IS NULL AND "locationState" IS NOT NULL))
+  AND COALESCE("reopenCount", 0) < 2
+  AND COALESCE("repostCount", 0) < 2`
+
 // The time-dependent rules, applied on top of the index.
 export const PUBLIC_JOB_LIVE_SQL = Prisma.sql`
   "lastVerifiedAt" > now() - make_interval(days => ${PUBLIC_JOB_VERIFIED_DAYS}::int)
@@ -251,24 +275,25 @@ const employerRoles = memoTtl(SIMILAR_INSTANCE_MS, (companyId: string) => compan
   sharedLoad(`similar-at-company:${companyId}`, SIMILAR_SHARED_SEC, () => loadEmployerRoles(companyId), { reviveDates: false }))
 
 async function loadEmployerRoles(companyId: string): Promise<SimilarJob[]> {
-  // The employer's newest rows by cheap columns first (no description read), then the full public rules on only those.
-  // A large employer has ~10,000 open rows; running the description checks and regexes on all of them took 2-7 s each
-  // view and slowed every member page on the shared database (2026-11-05).
+  // One pass over the employer's newest 150 open rows, read by the (companyId, lastVerifiedAt) partial index; the public rules are
+  // worked out on those rows as they are read, and the read stops once 25 pass. It used to pick the 150 ids first and then look each
+  // one up again by id, with the character count of every description (PUBLIC_JOB_ROW_RULES_SQL): ~330 buffers a call, 79,000 calls a
+  // day (2026-11-17). Single pass: ~45. Never the public rules on all of a large employer's rows (~10,000; 2-7 s a view, 2026-11-05).
   return withStatementTimeout(
     prisma.$queryRaw<SimilarJob[]>`
-      WITH recent AS MATERIALIZED (
-        SELECT id FROM "ExclusiveJobPosting"
+      SELECT id, title, "locationCity", "locationState" FROM (
+        SELECT id, title, "locationCity", "locationState", "lastVerifiedAt",
+          (${PUBLIC_JOB_ROW_RULES_SQL}
+            AND ${PUBLIC_JOB_SEARCH_SQL}
+            AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
+            AND ${PUBLIC_JOB_LIVE_SQL}) AS public
+        FROM "ExclusiveJobPosting"
         WHERE "companyId" = ${companyId}
           AND status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL
         ORDER BY "lastVerifiedAt" DESC
         LIMIT 150
-      )
-      SELECT id, title, "locationCity", "locationState" FROM "ExclusiveJobPosting"
-      WHERE id IN (SELECT id FROM recent)
-        AND ${PUBLIC_JOB_STATIC_SQL}
-        AND ${PUBLIC_JOB_SEARCH_SQL}
-        AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
-        AND ${PUBLIC_JOB_LIVE_SQL}
+      ) recent
+      WHERE public
       ORDER BY "lastVerifiedAt" DESC
       LIMIT ${SIMILAR_CACHED_ROWS}`,
     3_000
@@ -303,32 +328,61 @@ const SIMILAR_LIKE_CACHED_ROWS = 300
  * a key per state and employer is a key a crawl never repeats. Kept on the instance for ten minutes and in the shared data cache for an
  * hour; a failed or slow read throws, so it is never stored.
  */
+/**
+ * The cache key of a job's "similar jobs" read: the occupation code alone when the job has one, because that read uses nothing else.
+ * Function and level were in the key too, so one occupation filled a cache entry per function and level its jobs carried: 460 codes,
+ * yet 29,000 reads a day (2026-11-17).
+ */
+export function likeKey(job: { socCode?: string | null; targetFunction?: string | null; level?: string | null }): LikeKey {
+  return job.socCode
+    ? { socCode: job.socCode, targetFunction: null, level: null }
+    : { socCode: null, targetFunction: job.targetFunction ?? null, level: job.level ?? null }
+}
+
 const likeRoles = memoTtl(SIMILAR_INSTANCE_MS, (k: LikeKey) => JSON.stringify(k), (k: LikeKey) =>
   sharedLoad(`similar-like-v2:${JSON.stringify(k)}`, SIMILAR_SHARED_SEC, () => loadLikeRoles(k), { reviveDates: false }))
 
 async function loadLikeRoles(job: LikeKey): Promise<LikeRow[]> {
+  // With an occupation code: one pass over the occupation's newest 200 open rows, read by the (socCode, lastVerifiedAt) partial index,
+  // the public rules worked out on those rows as they are read (the same shape as loadEmployerRoles). It used to look each of the 200 up
+  // again by id and count every description's characters: ~1,800 buffers and ~1 s a call cold, 29,000 calls a day (2026-11-17). Single
+  // pass: ~210 buffers, 73 ms cold.
+  if (job.socCode) {
+    return withStatementTimeout(
+      prisma.$queryRaw<LikeRow[]>`
+        SELECT id, title, "companyName", "locationCity", "locationState", "companyId", direct FROM (
+          SELECT id, title, "companyName", "locationCity", "locationState", "companyId", "lastVerifiedAt",
+            ("directListing" OR "sourceCategory" = 'employer') AS direct,
+            (${PUBLIC_JOB_ROW_RULES_SQL} AND ${PUBLIC_JOB_LIVE_SQL}) AS public
+          FROM "ExclusiveJobPosting"
+          WHERE "socCode" = ${job.socCode}
+            AND status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL
+          ORDER BY "lastVerifiedAt" DESC NULLS LAST
+          LIMIT 200
+        ) recent
+        WHERE public
+        ORDER BY "lastVerifiedAt" DESC
+        LIMIT ${SIMILAR_LIKE_CACHED_ROWS}`,
+      3_000,
+    )
+  }
   // About 28% of live jobs carry no occupation code (the feed did not send one). Those match on function and level instead, read from the
-  // board's narrow copy (BoardLightRow, ~0.5 s; the wide table has no index on function and took over 8 s), newest first.
-  const byCode = !!job.socCode
-  const recent = byCode
-    ? Prisma.sql`SELECT id FROM "ExclusiveJobPosting"
-        WHERE "socCode" = ${job.socCode}
-          AND status = 'approved' AND "archivedAt" IS NULL AND "closeReason" IS NULL
-        ORDER BY "lastVerifiedAt" DESC NULLS LAST
-        LIMIT 200`
-    : Prisma.sql`SELECT id FROM "BoardLightRow"
+  // board's narrow copy (BoardLightRow, ~0.5 s; the wide table has no index on function and took over 8 s), newest first, then the public
+  // rules on those ids in the wide table.
+  return withStatementTimeout(
+    prisma.$queryRaw<LikeRow[]>`
+      WITH recent AS MATERIALIZED (
+        SELECT id FROM "BoardLightRow"
         WHERE "targetFunction" = ${job.targetFunction}
           ${job.level ? Prisma.sql`AND level = ${job.level}` : Prisma.empty}
           AND status = 'approved' AND "archivedAt" IS NULL
         ORDER BY "postedAt" DESC NULLS LAST
-        LIMIT 300`
-  return withStatementTimeout(
-    prisma.$queryRaw<LikeRow[]>`
-      WITH recent AS MATERIALIZED (${recent})
+        LIMIT 300
+      )
       SELECT id, title, "companyName", "locationCity", "locationState", "companyId",
              ("directListing" OR "sourceCategory" = 'employer') AS direct FROM "ExclusiveJobPosting"
       WHERE id IN (SELECT id FROM recent)
-        AND ${PUBLIC_JOB_STATIC_SQL}
+        AND ${PUBLIC_JOB_ROW_RULES_SQL}
         AND ${PUBLIC_JOB_LIVE_SQL}
       ORDER BY "lastVerifiedAt" DESC
       LIMIT ${SIMILAR_LIKE_CACHED_ROWS}`,
@@ -346,7 +400,7 @@ export async function similarJobsLike(job: { id: string; socCode: string | null 
   const byCode = !!job.socCode
   if (!byCode && !job.targetFunction) return []
   try {
-    const read = await likeRoles({ socCode: job.socCode ?? null, targetFunction: job.targetFunction ?? null, level: job.level ?? null })
+    const read = await likeRoles(likeKey(job))
     // The page's own job and employer are dropped here, after the read, so one read serves every job page with the same occupation.
     const state = job.locationState ?? null
     const sameState = (r: LikeRow) => (r.locationState ?? null) === state
