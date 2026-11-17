@@ -8,6 +8,7 @@
 
 import { AI_EXPOSED_SECTORS, type CountyContextData } from '@/lib/workforce/county-context'
 import { KNOWLEDGE_SECTORS } from '@/lib/workforce/sector'
+import { payAfterLiving } from '@/lib/rankings/living-cost'
 import { percentiles } from '@/lib/rankings/composites'
 import { editionFor, type Spec } from '@/lib/rankings/build-edition'
 import { REGIONS } from '@/lib/rankings/regions'
@@ -16,7 +17,7 @@ import type { RankComponent, RankingEdition, WhitePlacesMeasureId } from '@/lib/
 
 // ---- Inputs ----
 
-export interface MetroDef { cbsa: string; name: string; counties: string[]; rpp: number | null }
+export interface MetroDef { cbsa: string; name: string; counties: string[]; rpp: number | null; housingRpp?: number | null }
 
 /** One county's public figures and the counts we derive for it. */
 export interface CountyFacts {
@@ -185,7 +186,7 @@ export function buildMetroStats(input: MetroInputs): MetroStat[] {
       openingsPer1k: wcWorkers > 0 ? (openings / wcWorkers) * 1000 : null,
       wcGrowth: wcThen >= 1000 ? (wcNow - wcThen) / wcThen : null,
       payMed,
-      payAdj: payMed != null && m.rpp ? payMed / (m.rpp / 100) : null,
+      payAdj: payMed != null && m.rpp ? payAfterLiving(payMed, { rpp: m.rpp, housingRpp: m.housingRpp ?? null, home: housing?.home ?? null, rent: housing?.rent ?? null, basis: 'metro' }) : null,
       homeToPay: payMed && housing?.home ? housing.home / payMed : null,
       rentToPay: payMed && housing?.rent ? (housing.rent * 12) / payMed : null,
       permitsPer1k: permits.some((p) => p != null) ? (sumOf(permits, (p) => p ?? 0) / population) * 1000 : null,
@@ -270,9 +271,9 @@ export const CRITERIA: Criterion[] = [
   {
     id: 'wp_pay', label: 'White-collar pay after cost of living', weight: 11,
     title: 'Metros with the best white-collar pay after cost of living', slug: 'metros-with-the-best-white-collar-pay-after-cost-of-living',
-    what: 'The median salary posted on white-collar openings, divided by the local price level (BEA regional price parity), so it reads as what the pay buys.',
-    parts: [{ label: 'Median white-collar pay, adjusted for prices', weight: 1, value: (m) => m.payAdj, show: usdK }],
-    lead: (n, v, s) => `White-collar pay goes furthest in ${n}: the median posted salary is worth ${v} at national prices, the best in ${s}.`,
+    what: 'The median salary posted on white-collar openings, minus a year of owning the median home, with everything else priced locally (BEA price parity with housing taken out), so it reads as what the pay leaves you.',
+    parts: [{ label: 'Median white-collar pay after housing and local prices', weight: 1, value: (m) => m.payAdj, show: usdK }],
+    lead: (n, v, s) => `White-collar pay goes furthest in ${n}: after a year of owning the median home, the median posted salary leaves what ${v} buys at national prices, the best in ${s}.`,
   },
   {
     id: 'wp_house', label: 'Housing costs against salaries', weight: 7,

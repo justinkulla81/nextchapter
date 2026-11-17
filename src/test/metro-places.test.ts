@@ -1,3 +1,4 @@
+import { payAfterLiving } from '@/lib/rankings/living-cost'
 import { describe, expect, it } from 'vitest'
 import { ALL_ROUND, CRITERIA, allRoundScore, buildMetroStats, criterionScores, eligible, principalCity, rankWhitePlaces, splitMetroName, totalWeight, weightedMedian, whitePlacesSpecs, type CountyFacts, type MetroStat, type WcCounts } from '@/lib/rankings/metro-places'
 import { COUNTY_SECTORS } from '@/lib/workforce/county-context'
@@ -52,7 +53,7 @@ describe('best places for white-collar professionals', () => {
     expect(m.name).toBe('City0-Town0')
     expect(m.states).toBe('NY-SC')
     expect(m.openingsPer1k).toBeCloseTo((800 / (150_000 * 0.4)) * 1000)
-    expect(m.payAdj).toBeCloseTo(90_000 / 0.95)
+    expect(m.payAdj).toBeCloseTo(payAfterLiving(90_000, { rpp: 95, housingRpp: null, home: 400_000, rent: 1500, basis: 'metro' }) as number)
     expect(m.homeToPay).toBeCloseTo(400_000 / 90_000)
     expect(m.wcGrowth).toBeGreaterThan(0)
     expect(m.diversity).toBeGreaterThan(0.9)

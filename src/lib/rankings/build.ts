@@ -2,7 +2,7 @@ import 'server-only'
 import { lookupAreaCode } from '@/lib/market/metro-areas'
 import { costsFor } from '@/lib/market/area-costs'
 import { getStateCities, getStateCityPlaces, getStateCounties, placeUrl } from '@/lib/places/places'
-import { placeKey } from '@/lib/workforce/places'
+import { placeKey, placeKeys } from '@/lib/workforce/places'
 import { loadCountyContext } from '@/lib/workforce/county-context-data'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 import type { JobAggregate } from '@/lib/places/places'
@@ -25,10 +25,11 @@ import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryCityR
 import { awardEntries } from '@/lib/rankings/awards'
 import { addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
 import type { BuildGroup, CityStat, CollegeStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
-import type { Cost } from '@/lib/rankings/measures'
+import type { Cost } from '@/lib/rankings/living-cost'
 import { buildMetroStats, principalCity, rankWhitePlaces, whitePlacesSpecs, type MetroStat } from '@/lib/rankings/metro-places'
 import { loadCountyFacts, loadWhiteCollarByCounty } from '@/lib/rankings/metro-scan'
 import { loadMetros } from '@/lib/workforce/metro-compare-data'
+import type { Metro } from '@/lib/workforce/metro-compare'
 import type { CommunityDoc } from '@/lib/rankings/metro-places'
 
 const titleCase = (s: string) => s.replace(/\b[a-z]/g, (c) => c.toUpperCase())
@@ -51,16 +52,28 @@ async function countyHrefs(states: string[]): Promise<Map<string, string>> {
   return out
 }
 
-/** The local price level for a city: its metro's, else its state's. Null when we have neither. */
-export function costOf(c: CityStat, name: string): Cost | null {
-  const hit = lookupAreaCode(name, c.st)
-  if (hit?.areaType === 'M') {
-    const metro = costsFor({ metroCode: hit.areaCode.slice(0, 5) })
-    if (metro?.rpp && metro.name !== 'United States') return { rpp: metro.rpp, basis: 'metro' }
+/**
+ * A city's prices for the pay-after-cost-of-living lists: its metro's price parity (all items and housing) and median home value,
+ * else its state's. The metro is found through the city's county (place-county.json, CBSA 2023 delineation), so a suburb such as
+ * Foster City gets the San Francisco metro, not the state average; the name lookup is the fallback.
+ */
+export async function makeCostOf(): Promise<(c: CityStat, name: string) => Cost | null> {
+  const [{ placeCounty }, metros] = await Promise.all([loadCountyContext(), loadMetros()])
+  const metroOf = new Map<string, Metro>()
+  for (const m of metros) for (const f of m.counties) metroOf.set(f, m)
+  return (c, name) => {
+    const fips = [c.city, ...placeKeys(c.city), ...placeKeys(name)].map((k) => placeCounty[`${c.st}|${k}`]).find(Boolean)
+    const m = fips ? metroOf.get(fips) : undefined
+    const code = m?.cbsa ?? (() => { const hit = lookupAreaCode(name, c.st); return hit?.areaType === 'M' ? hit.areaCode.slice(0, 5) : null })()
+    if (code) {
+      const area = costsFor({ metroCode: code })
+      const rpp = m?.rpp.all ?? area?.rpp
+      if (rpp && area && area.name !== 'United States') return { rpp, housingRpp: m?.rpp.housing ?? null, home: area.home ?? null, rent: area.rent ?? null, basis: 'metro' }
+    }
+    const sf = STATE_FIPS[c.st]
+    const state = sf ? costsFor({ stateFips: sf }) : null
+    return state?.rpp && state.name !== 'United States' ? { rpp: state.rpp, housingRpp: null, home: state.home ?? null, rent: state.rent ?? null, basis: 'state' } : null
   }
-  const fips = STATE_FIPS[c.st]
-  const state = fips ? costsFor({ stateFips: fips }) : null
-  return state?.rpp && state.name !== 'United States' ? { rpp: state.rpp, basis: 'state' } : null
 }
 
 /** Every college with published earnings and its page address, and the set of cities (state|placekey) that have a college. */
@@ -136,7 +149,7 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     const [metros, { context, placeCounty }, communityDoc] = await Promise.all([loadMetros(), loadCountyContext(), import('@/lib/rankings/data/county-community.json').then((m) => m.default)])
     const [postings, { facts }] = await Promise.all([loadWhiteCollarByCounty(placeCounty), loadCountyFacts(placeCounty)])
     const stats = buildMetroStats({
-      metros: metros.map((m) => ({ cbsa: m.cbsa, name: m.name, counties: m.counties, rpp: m.rpp.all ?? null })),
+      metros: metros.map((m) => ({ cbsa: m.cbsa, name: m.name, counties: m.counties, rpp: m.rpp.all ?? null, housingRpp: m.rpp.housing })),
       counties: facts, postings, context, community: communityDoc as unknown as CommunityDoc,
       housing: (cbsa) => costsFor({ metroCode: cbsa }),
     })
@@ -180,6 +193,7 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     const cities = keyCities(citiesRaw, (k) => info.has(k))
     cityCount = cities.length
     const infoOf = (c: CityStat): PlaceInfo => info.get(`${c.st}|${c.city}`) ?? { name: titleCase(c.city), href: null }
+    const costOf = await makeCostOf()
     const ctx = { costOf: (c: CityStat) => costOf(c, infoOf(c).name) }
     const base = new Map(cities.map((c) => [`${c.st}|${c.city}`, c]))
     specs = industryCitySpecs()
@@ -283,6 +297,7 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     const cities = keyCities(citiesRaw, (k) => info.has(k))
     cityCount = cities.length
     const infoOf = (c: CityStat): PlaceInfo => info.get(`${c.st}|${c.city}`) ?? { name: titleCase(c.city), href: null }
+    const costOf = await makeCostOf()
     const ctx = { costOf: (c: CityStat) => costOf(c, infoOf(c).name) }
     const byState = new Map<string, number>()
     for (const c of cities) byState.set(c.st, (byState.get(c.st) ?? 0) + c.n)

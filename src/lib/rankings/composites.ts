@@ -2,7 +2,7 @@
 // the ranked places (100 is first, 0 is last), so no measure swamps another because of its units, and the weights are
 // published on the page. Pure: no database.
 
-import type { Cost } from '@/lib/rankings/measures'
+import { payAfterLiving, type Cost } from '@/lib/rankings/living-cost'
 import type { CityStat, CountyStat } from '@/lib/rankings/types'
 
 export interface Comp<T> {
@@ -59,7 +59,7 @@ export interface CityComposite {
 
 const adjPay = (costOf: (c: CityStat) => Cost | null) => (c: CityStat): number | null => {
   const cost = costOf(c)
-  return c.paid >= 50 && c.payMed != null && cost ? c.payMed / (cost.rpp / 100) : null
+  return c.paid >= 50 && c.payMed != null && cost ? payAfterLiving(c.payMed, cost) : null
 }
 const payComp = (costOf: (c: CityStat) => Cost | null, weight: number): Comp<CityStat> => ({ label: 'Pay after cost of living', weight, value: adjPay(costOf), show: (c) => (adjPay(costOf)(c) != null ? usdK(adjPay(costOf)(c) as number) : 'n/a') })
 

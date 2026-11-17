@@ -2,6 +2,9 @@
 // method. Pure, so every rule is unit-tested without a database.
 
 import type { CityMeasureId, CityStat, CountyStat, MeasureId, WhitePlacesMeasureId } from '@/lib/rankings/types'
+import { LIVING_COST_METHOD, LIVING_COST_SOURCES, nonHousingParity, ownCostPerYear, payAfterLiving, type Cost } from '@/lib/rankings/living-cost'
+
+export type { Cost }
 
 export const nf = (n: number) => Math.round(n).toLocaleString('en-US')
 export const pct0 = (x: number) => `${Math.round(x * 100)}%`
@@ -12,8 +15,6 @@ const signedN = (n: number) => `${n >= 0 ? '+' : '−'}${nf(Math.abs(n))}`
 
 export type Scope = 'national' | 'region' | 'state'
 
-/** Local price level, United States = 100, and which figure it is. */
-export interface Cost { rpp: number; basis: 'metro' | 'state' }
 export interface CityCtx { costOf: (c: CityStat) => Cost | null }
 
 export interface CityMeasure {
@@ -40,6 +41,8 @@ export interface CityMeasure {
 export const MAX_EMPLOYER_SHARE = 0.5
 export const CONCENTRATION_NOTE = `A city where one employer posts more than ${Math.round(MAX_EMPLOYER_SHARE * 100)}% of its openings is not ranked, so a single company cannot decide a city's score.`
 const diverse = (c: CityStat) => c.topShare <= MAX_EMPLOYER_SHARE
+/** Median posted pay after a year of owning the median home, in national prices (living-cost.ts). */
+const afterLiving = (c: CityStat, ctx: CityCtx) => { const cost = ctx.costOf(c); return c.payMed != null && cost ? payAfterLiving(c.payMed, cost) : null }
 
 const payOf = (c: CityStat) => (c.payMed != null && c.paid >= 8 ? usdK(c.payMed) : 'Not enough pay data')
 const sum = (xs: CityStat[], f: (c: CityStat) => number) => xs.reduce((s, c) => s + f(c), 0)
@@ -84,29 +87,29 @@ const BASE: Record<BaseId, CityMeasure> = {
   paycost: {
     id: 'paycost', kind: 'city', family: 'Pay', unit: 'openings',
     min: { national: 200, region: 100, state: 100 },
-    qualifies: (c, min, ctx) => c.n >= min && diverse(c) && c.paid >= 50 && c.payMed != null && ctx.costOf(c) != null,
-    value: (c, ctx) => (c.payMed as number) / ((ctx.costOf(c) as Cost).rpp / 100),
+    qualifies: (c, min, ctx) => c.n >= min && diverse(c) && c.paid >= 50 && afterLiving(c, ctx) != null,
+    value: (c, ctx) => afterLiving(c, ctx) as number,
     valueLabel: (v) => usdK(v),
     sample: (c) => c.paid,
     stats: (c, ctx) => {
       const cost = ctx.costOf(c)
-      const diff = cost ? cost.rpp / 100 - 1 : 0
+      const diff = cost ? nonHousingParity(cost) / 100 - 1 : 0
       return [
         { label: 'Median posted pay', value: usdK(c.payMed as number) },
-        { label: cost?.basis === 'state' ? 'State prices vs US average' : 'Local prices vs US average', value: `${diff >= 0 ? '+' : '−'}${Math.abs(Math.round(diff * 100))}%` },
-        { label: 'Openings with pay posted', value: nf(c.paid) },
+        { label: cost?.basis === 'state' ? 'A year of owning the median home (state)' : 'A year of owning the median home', value: cost?.home ? usdK(ownCostPerYear(cost.home)) : 'n/a' },
+        { label: 'Other prices vs US average', value: `${diff >= 0 ? '+' : '−'}${Math.abs(Math.round(diff * 100))}%` },
       ]
     },
     baseline: (all, ctx) => {
-      const rows = all.filter((c) => c.paid >= 50 && c.payMed != null && ctx.costOf(c))
-      if (!rows.length) return null
-      const v = rows.reduce((s, c) => s + (c.payMed as number) / ((ctx.costOf(c) as Cost).rpp / 100), 0) / rows.length
+      const vals = all.filter((c) => c.paid >= 50).map((c) => afterLiving(c, ctx)).filter((v): v is number => v != null)
+      if (!vals.length) return null
+      const v = vals.reduce((s, x) => s + x, 0) / vals.length
       return { label: 'the typical city in our data', valueLabel: usdK(v) }
     },
-    lead: (name, v, scope) => `${name} leads ${scope} for pay after the cost of living: its median posted salary buys what ${v} buys at average US prices.`,
+    lead: (name, v, scope) => `${name} leads ${scope} for pay after the cost of living: after a year of owning the median home, its median posted salary leaves what ${v} buys at average US prices.`,
     method: [
-      'The score is a city\'s median posted annual salary (the midpoint of each posted range) divided by its local price level, with the United States at 100.',
-      'Price levels are the Bureau of Economic Analysis regional price parities for the city\'s metro area, or its state where no metro figure exists. Only cities with at least 50 listings that post a salary are ranked.',
+      ...LIVING_COST_METHOD,
+      'Salaries are the midpoint of each posted annual range. Only cities with at least 50 listings that post a salary are ranked.',
     ],
     base: { title: 'Best cities for pay after cost of living', slug: 'best-cities-for-pay-vs-cost-of-living' },
     scoped: (p) => ({ title: `Best cities for pay after cost of living in ${p}`, slug: (id) => `best-cities-for-pay-vs-cost-of-living-in-${id}` }),
@@ -236,11 +239,11 @@ const FNOPEN: CityMeasure = {
 }
 const FNPAY: CityMeasure = {
   ...BASE.paycost, id: 'fnpay', family: 'Job families',
-  qualifies: (c, min, ctx) => c.n >= min && diverse(c) && c.paid >= 20 && c.payMed != null && ctx.costOf(c) != null,
-  lead: (name, v, scope) => `${name} leads ${scope} for pay after the cost of living in this job family: its median posted salary buys what ${v} buys at average US prices.`,
+  qualifies: (c, min, ctx) => c.n >= min && diverse(c) && c.paid >= 20 && afterLiving(c, ctx) != null,
+  lead: (name, v, scope) => `${name} leads ${scope} for pay after the cost of living in this job family: after a year of owning the median home, its median posted salary leaves what ${v} buys at average US prices.`,
   method: [
-    'The score is the median posted annual salary (the midpoint of each posted range) for this job family in a city, divided by its local price level, with the United States at 100.',
-    'Price levels are the Bureau of Economic Analysis regional price parities for the city\'s metro area, or its state where no metro figure exists. Only cities with at least 20 listings in the family that post a salary are ranked.',
+    ...LIVING_COST_METHOD,
+    'Salaries are the midpoint of each posted annual range for this job family. Only cities with at least 20 listings in the family that post a salary are ranked.',
   ],
   min: { national: 30, region: 30, state: 30 },
 }
@@ -255,10 +258,10 @@ const ICOPEN: CityMeasure = {
 }
 const ICPAY: CityMeasure = {
   ...FNPAY, id: 'icpay',
-  lead: (name, v, scope) => `${name} leads ${scope} for pay after the cost of living in this industry: its median posted salary buys what ${v} buys at average US prices.`,
+  lead: (name, v, scope) => `${name} leads ${scope} for pay after the cost of living in this industry: after a year of owning the median home, its median posted salary leaves what ${v} buys at average US prices.`,
   method: [
-    'The score is the median posted annual salary (the midpoint of each posted range) for roles at employers in this industry in a city, divided by its local price level, with the United States at 100.',
-    'Price levels are the Bureau of Economic Analysis regional price parities for the city\'s metro area, or its state where no metro figure exists. Only cities with at least 20 listings in the industry that post a salary are ranked.',
+    ...LIVING_COST_METHOD,
+    'Salaries are the midpoint of each posted annual range for roles at employers in this industry. Only cities with at least 20 listings in the industry that post a salary are ranked.',
   ],
 }
 export const CITY_MEASURES: Record<CityMeasureId, CityMeasure> = { ...BASE, midcareer: MID, leadership: LEAD, fnopen: FNOPEN, fnpay: FNPAY, icopen: ICOPEN, icpay: ICPAY }
@@ -452,11 +455,11 @@ export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
   aiexposed: ['Bureau of Labor Statistics, Quarterly Census of Employment and Wages, 2025 (private-sector jobs by sector)'],
   perunemp: ['NextChapter job data: open professional roles by county', 'Bureau of Labor Statistics, Local Area Unemployment Statistics (not seasonally adjusted)'],
   icopen: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
-  icpay: ['NextChapter job data: posted annual salary ranges', 'Bureau of Economic Analysis regional price parities 2024 (metro areas and states)'],
-  cgrad: ['NextChapter job data: open professional roles and posted pay', 'Bureau of Economic Analysis regional price parities 2024'],
-  cmid: ['NextChapter job data: open professional roles and posted pay', 'Bureau of Economic Analysis regional price parities 2024'],
-  cremote: ['NextChapter job data: open professional roles and posted pay', 'Bureau of Economic Analysis regional price parities 2024'],
-  cai: ['NextChapter job data: open professional roles and posted pay', 'Bureau of Economic Analysis regional price parities 2024'],
+  icpay: ['NextChapter job data: posted annual salary ranges', LIVING_COST_SOURCES],
+  cgrad: ['NextChapter job data: open professional roles and posted pay', LIVING_COST_SOURCES],
+  cmid: ['NextChapter job data: open professional roles and posted pay', LIVING_COST_SOURCES],
+  cremote: ['NextChapter job data: open professional roles and posted pay', LIVING_COST_SOURCES],
+  cai: ['NextChapter job data: open professional roles and posted pay', LIVING_COST_SOURCES],
   claidoff: ['NextChapter job data: open professional roles by county', 'Bureau of Labor Statistics, Local Area Unemployment Statistics and Quarterly Census of Employment and Wages', 'CareerOneStop American Job Center directory'],
   coverall: ['NextChapter job data: open professional roles by county', 'Bureau of Labor Statistics, Local Area Unemployment Statistics and Quarterly Census of Employment and Wages', 'Census Bureau population estimates'],
   pf_entry: POSTINGS, pf_ai: POSTINGS, pf_remote: POSTINGS, pf_hybrid: POSTINGS, pf_mgmt: POSTINGS, pf_lowmgmt: POSTINGS, pf_eq: POSTINGS, pf_noexp: POSTINGS, pf_entryai: POSTINGS, pf_training: POSTINGS,
@@ -483,14 +486,14 @@ export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
   collegepay: ['U.S. Department of Education, College Scorecard (median earnings, completion, net price), as held in our college tables'],
   midcareer: POSTINGS, leadership: POSTINGS, fnopen: POSTINGS, aiskills: POSTINGS, aitools: POSTINGS, aicerts: POSTINGS, skillpay: POSTINGS,
   indpay: ['NextChapter job data: posted annual salary ranges'],
-  fnpay: ['NextChapter job data: posted annual salary ranges', 'Bureau of Economic Analysis regional price parities 2024 (metro areas and states)'],
+  fnpay: ['NextChapter job data: posted annual salary ranges', LIVING_COST_SOURCES],
   junior: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
   ai: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
   remote: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
   swe: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
   largest: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
   transparent: ['NextChapter job data: open professional roles on employer career sites, verified in the last week'],
-  paycost: ['NextChapter job data: posted annual salary ranges', 'Bureau of Economic Analysis regional price parities 2024 (metro areas and states)'],
+  paycost: ['NextChapter job data: posted annual salary ranges', LIVING_COST_SOURCES],
   growth: ['Bureau of Labor Statistics, Quarterly Census of Employment and Wages, 2022 to 2025', 'Census Bureau population estimates, 2020 to 2025'],
   infogrowth: ['Bureau of Labor Statistics, Quarterly Census of Employment and Wages, Information sector, 2022 to 2025'],
 }
