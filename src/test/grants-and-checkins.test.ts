@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { decodeEntities, mergeHits, usDateToIso } from '@/lib/higher-ed/grants'
+import { customGrants, decodeEntities, grantSettingsFrom, mergeHits, usDateToIso } from '@/lib/higher-ed/grants'
+import { directoryGrants, type DirectoryEntry } from '@/lib/higher-ed/grant-directory'
+import { DIRECTORY_ENTRIES } from '@/lib/higher-ed/grant-directory-entries'
 import { CHECKIN_ANSWERS, CHECKIN_BODY, GOOD_NEWS, isCheckInAnswer } from '@/lib/higher-ed/checkins'
 import { matchesTargeting, memberTraits, NO_TARGETING } from '@/lib/higher-ed/services'
 
@@ -59,5 +61,60 @@ describe('check-in answers', () => {
     expect(matchesTargeting({ ...NO_TARGETING, moments: ['new_manager'] }, manager)).toBe(true)
     expect(matchesTargeting({ ...NO_TARGETING, moments: ['founders'] }, founder)).toBe(true)
     expect(matchesTargeting({ ...NO_TARGETING, moments: ['founders'] }, manager)).toBe(false)
+  })
+})
+
+describe('state and foundation directory', () => {
+  const entry = (id: string, x: Partial<DirectoryEntry>): DirectoryEntry => ({
+    id,
+    name: id,
+    funder: 'F',
+    kind: 'state',
+    states: [],
+    purposes: ['retraining'],
+    how: 'rolling',
+    deadline: null,
+    amount: null,
+    url: 'https://example.org',
+    note: 'n',
+    checked: '2026-11-17',
+    ...x,
+  })
+  it('shows entries for the college’s states and national ones, and drops passed deadlines', () => {
+    const entries = [entry('pa', { states: ['PA'] }), entry('fl', { states: ['FL'] }), entry('nat', { kind: 'foundation' }), entry('old', { states: ['PA'], deadline: '2026-01-01' })]
+    expect(directoryGrants(['pa'], '2026-11-17', entries).map((g) => [g.id, g.source])).toEqual([
+      ['pa', 'state'],
+      ['nat', 'foundation'],
+    ])
+  })
+  it('keeps every real entry well formed', () => {
+    const ids = new Set<string>()
+    for (const e of DIRECTORY_ENTRIES) {
+      expect(e.id).toMatch(/^[a-z0-9][a-z0-9-]{0,63}$/)
+      expect(ids.has(e.id)).toBe(false)
+      ids.add(e.id)
+      expect(e.url).toMatch(/^https:\/\//)
+      expect(e.purposes.length).toBeGreaterThan(0)
+      expect(e.checked).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      for (const s of e.states) expect(s).toMatch(/^[A-Z]{2}$/)
+    }
+  })
+})
+
+describe('grants a team adds', () => {
+  it('reads settings safely and drops a passed deadline', () => {
+    const s = grantSettingsFrom({
+      grants: {
+        saved: ['1'],
+        states: ['fl', 'bad'],
+        custom: [
+          { id: 'c-a', title: 'A', funder: 'F', url: 'https://x', deadline: '2027-01-01', purposes: ['research', 'nope'], note: null, addedAt: '2026-11-17T00:00:00Z' },
+          { id: 'c-b', title: 'B', funder: 'F', url: 'https://x', deadline: '2026-01-01', purposes: ['research'], note: null, addedAt: '2026-11-17T00:00:00Z' },
+        ],
+      },
+    })
+    expect(s.states).toEqual(['FL'])
+    expect(s.custom[0].purposes).toEqual(['research'])
+    expect(customGrants(s, '2026-11-17').map((g) => [g.id, g.source])).toEqual([['c-a', 'yours']])
   })
 })
