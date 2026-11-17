@@ -5,6 +5,7 @@ import { requireWorkspace } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { addRelatedOrg, removeRelatedOrg } from '@/lib/org-claims/related-orgs'
+import { MAX_LINK_BATCH } from '@/lib/org-claims/related-suggest-rules'
 
 export type RelatedState = { ok?: boolean; message?: string; error?: string; inviteUrl?: string } | undefined
 
@@ -28,4 +29,29 @@ export async function removeRelatedOrgAction(slug: string, partnerId: string): P
   captureServerEvent(ctx.userId, 'related_org_removed', { institutionId: ctx.institution.id, partnerId })
   revalidatePath(`/i/${slug}`, 'layout')
   return {}
+}
+
+// Talent Hub > Your network: link every organization the person ticked in one go. Each link is an invitation to claim its own page; an
+// organization already on NextChapter is connected at once. Nothing is emailed by NextChapter: the invites come back to copy or open as a draft.
+export async function linkSuggestedOrgs(slug: string, _prev: RelatedState, f: FormData): Promise<RelatedState> {
+  const ctx = await requireWorkspace(slug, 'hub', { write: true })
+  const ids = [...new Set(f.getAll('orgId').map(String))].filter((x) => /^[A-Za-z0-9_-]{8,40}$/.test(x)).slice(0, MAX_LINK_BATCH)
+  if (ids.length === 0) return { error: 'Pick at least one organization.' }
+  const inst = await prisma.institution.findUnique({ where: { id: ctx.institution.id }, select: { crmOrganizationId: true } })
+  let linked = 0
+  let already = 0
+  let failed = 0
+  for (const crmOrgId of ids) {
+    const r = await addRelatedOrg({ institutionId: ctx.institution.id, institutionCrmOrgId: inst?.crmOrganizationId ?? null, crmOrgId, createdBy: ctx.email ?? ctx.userId })
+    if (!r.ok) failed += 1
+    else {
+      linked += 1
+      if (r.alreadyOnNextChapter) already += 1
+    }
+  }
+  captureServerEvent(ctx.userId, 'related_suggestions_linked', { institutionId: ctx.institution.id, selected: ids.length, linked, alreadyOnNextChapter: already, failed })
+  revalidatePath(`/i/${slug}`, 'layout')
+  if (linked === 0) return { error: 'None of those could be linked. They may no longer have a public page.' }
+  const rest = [already ? `${already} already ${already === 1 ? 'has' : 'have'} a portal, so you are connected.` : null, failed ? `${failed} could not be linked.` : null].filter(Boolean).join(' ')
+  return { ok: true, message: `Linked ${linked}. Send each one its invite below: when they claim their page, you are connected. ${rest}`.trim() }
 }

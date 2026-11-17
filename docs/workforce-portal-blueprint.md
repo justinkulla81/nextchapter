@@ -226,6 +226,15 @@ seekers and no other partner. Access ends when the contact is removed or the par
 means see, paid means act on people; a free workspace gives access to 3 partner contacts in all, a paid one has no limit. Nothing else in the Talent Hub is
 plan-gated yet. The workspace key is `partnerview`, because `/i/<slug>/partner/<token>` is the public claim page.
 
+Built (phase 12): **your network** (owner, 2026-11-17: invitations to claim are the growth loop, and they come first). Talent Hub > Home > Your network lists the organizations
+we think the organization knows, in three groups (organizations like yours, employers, colleges and universities), each with the reason: the workforce board and job
+centers for the area, chambers and economic development and community partners that carry the city's name or do that work, its member companies and the employers
+posting the most jobs near it, and the colleges near it. Only organizations with their own public page that can be claimed are offered (the same test as linking by
+name), never the organization itself or one already linked. The person ticks the ones to link (all start ticked; linking sends nothing) and each link is the related-
+organization invite built in PR 1648 (`?via=<token>` on the claim page; approval connects the two). NextChapter still sends no email: the invites come back to copy or
+open as a draft. Someone we missed can be found by name. Until the first link, "Invite the people you work with" is the first item on the Talent Hub Home, and so its
+primary action (on a demo it is listed last, so the demo keeps its own story). Built for the workforce hub; colleges and employers use the same list code next.
+
 ## Public presence
 
 One screen lists **every public page the organization controls**: its claimed page, layoff pages for employers in its region, the relocation page,
