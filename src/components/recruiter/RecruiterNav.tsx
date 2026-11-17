@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useFormStatus } from 'react-dom'
 import { signOutRecruiter as signOut } from '@/app/auth/portal-sign-out'
-import { PartnerTopBar, chromeFor } from '@/components/partners/PartnerTopBar'
+import { PartnerTopBar } from '@/components/partners/PartnerTopBar'
 import type { PartnerBrand } from '@/lib/partners/brand'
 import { SignOutForm } from '@/components/auth/SignOutForm'
 
@@ -17,7 +17,7 @@ function SignOutButton() {
       type="submit"
       disabled={pending}
       className={cn(
-        'text-sm font-medium text-white/50 transition-colors hover:text-white',
+        'text-sm font-medium text-muted-foreground transition-colors hover:text-ink',
         pending && 'cursor-progress'
       )}
     >
@@ -77,14 +77,12 @@ function NavContent({
             key={link.href}
             href={link.href}
             onClick={onNavigate}
-            className={cn(
-              'flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-xs font-medium transition-colors',
-              isActive(link.href) ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'
-            )}
+            aria-current={isActive(link.href) ? 'page' : undefined}
+            className="nc-portal-link"
           >
             <span>{link.label}</span>
             {link.badge && (
-              <span className="rounded-full bg-orange/80 px-1.5 py-0.5 text-[9px] font-semibold text-white">
+              <span className="rounded-full bg-orange px-1.5 py-0.5 text-[11px] font-semibold text-navy">
                 {link.badge}
               </span>
             )}
@@ -138,16 +136,14 @@ export function RecruiterNav({
         </button>
       </PartnerTopBar>
 
-      <aside className="fixed inset-y-0 top-14 left-0 z-30 hidden w-64 lg:block" style={{ backgroundColor: chromeFor('recruiter') }}>
-        <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-recruiter" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
+      <aside className="nc-portal-rail fixed inset-y-0 top-14 left-0 z-30 hidden w-64 lg:block">
         <NavContent pathname={pathname} links={links} />
       </aside>
 
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="fixed inset-y-0 left-0 w-64 shadow-xl" style={{ backgroundColor: chromeFor('recruiter') }}>
-            <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-recruiter" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
+          <div className="nc-portal-rail fixed inset-y-0 left-0 w-64 shadow-xl">
             <NavContent pathname={pathname} links={links} onNavigate={() => setOpen(false)} />
           </div>
         </div>

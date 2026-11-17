@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+
 // The five kinds of portal that are not the candidate site. Each has its own chrome color and a fixed label so a
 // signed-in person always knows which portal they are in. A customer's own brand (logo, color) stays a logo and a thin
 // rule; it never replaces the portal-type color (see PartnerTopBar and docs/candidate-redesign.md).
@@ -13,16 +15,29 @@ export interface PortalTypeInfo {
   label: string
   /** What this kind of portal is for, after the label ("Employer · Outplacement"). One per product inside the portal. */
   uses: string[]
-  /** Chrome (top bar) color, hex. White text on it passes WCAG AA. */
+  /** Chrome (top bar) color, hex. White text on it passes WCAG AA. Also the portal's own color on the page: the squiggle,
+   *  the active menu item, section markers and links. */
   chrome: string
+  /** The portal's signature tint: the active menu item and "needs you" panels. Its chrome color on it passes WCAG AA. */
+  tint: string
 }
 
 export const PORTAL_TYPES: Record<PortalType, PortalTypeInfo> = {
-  employer: { key: 'employer', label: 'Employer', uses: ['Outplacement', 'Retention', 'Learning and development', 'Job retraining', 'Hiring'], chrome: '#0b2545' },
-  higher_ed: { key: 'higher_ed', label: 'Higher education', uses: ['Career services', 'Alumni'], chrome: '#6b1d2a' },
-  workforce: { key: 'workforce', label: 'Workforce', uses: ['Workforce boards', 'Economic development'], chrome: '#1e4d3a' },
-  recruiter: { key: 'recruiter', label: 'Recruiter', uses: [], chrome: '#3a3f7a' },
-  coach: { key: 'coach', label: 'Coach', uses: [], chrome: '#0e6672' },
+  employer: { key: 'employer', label: 'Employer', uses: ['Outplacement', 'Retention', 'Learning and development', 'Job retraining', 'Hiring'], chrome: '#0b2545', tint: '#e7f0fb' },
+  higher_ed: { key: 'higher_ed', label: 'Higher education', uses: ['Career services', 'Alumni'], chrome: '#6b1d2a', tint: '#fff1e0' },
+  workforce: { key: 'workforce', label: 'Workforce', uses: ['Workforce boards', 'Economic development'], chrome: '#1e4d3a', tint: '#e6f4ee' },
+  recruiter: { key: 'recruiter', label: 'Recruiter', uses: [], chrome: '#3a3f7a', tint: '#f1eaf5' },
+  coach: { key: 'coach', label: 'Coach', uses: [], chrome: '#0e6672', tint: '#e2f2f3' },
+}
+
+/**
+ * The portal look (owner decision, 2026-11-17): the page variables a portal layout sets next to `theme-portal`, so the
+ * squiggle, the active menu item and the tints take the portal's own color. The customer's brand is not used here: it
+ * stays a logo, a name and the thin rule under the top bar.
+ */
+export function portalStyle(type: PortalType): CSSProperties {
+  const info = PORTAL_TYPES[type]
+  return { '--portal': info.chrome, '--portal-tint': info.tint } as CSSProperties
 }
 
 export const PORTAL_TYPE_ORDER: PortalType[] = ['employer', 'higher_ed', 'workforce', 'recruiter', 'coach']
