@@ -278,8 +278,8 @@ export interface Criterion {
 }
 
 /** Metros below this many people, or with fewer white-collar openings than MIN_OPENINGS, are not ranked. */
-export const MIN_POPULATION = 250_000
-export const MIN_OPENINGS = 250
+export const MIN_POPULATION = 200_000
+export const MIN_OPENINGS = 200
 /** Openings that post a salary a metro needs before its median pay (and the pay and housing criteria built on it) is shown. */
 export const MIN_PAID = 25
 /** White-collar occupations with a published wage a metro needs for its pay figure. */

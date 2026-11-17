@@ -14,7 +14,8 @@ export const RANKING_METHOD: Record<BuildGroup, string> = {
   // 2026-11-17e: white-collar pay from BLS OEWS wages for every metro; Connecticut growth and county-health figures filled.
   // 2026-11-17f: metros from 350,000 residents and 300 openings; the openings criterion counts market depth as well as per worker.
   // 2026-11-17g: metros from 250,000 residents and 250 openings, so 100 qualify.
-  metro: '2026-11-17g',
+  // 2026-11-17h: 200,000 residents and 200 openings (250,000 and 250 gave 95).
+  metro: '2026-11-17h',
   skills: 'v0',
   workforce: 'v0',
   college: 'v0',
