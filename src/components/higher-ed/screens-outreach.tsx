@@ -4,9 +4,10 @@
 // data are the college's own; anything from the candidate side (engagement)
 // comes through the consent views.
 
+import { PortalNeeds } from '@/components/partners/PortalHome'
 import Link from 'next/link'
 import type { CheckInKind } from '@prisma/client'
-import { ArrowRight, BarChart3, ClipboardCheck, Mail, ShieldAlert } from 'lucide-react'
+import { BarChart3, ClipboardCheck, Mail, ShieldAlert } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { engagementOverview, engagementWeightsFrom, WEIGHT_KEYS } from '@/lib/higher-ed/engagement'
@@ -39,26 +40,14 @@ const pct = (n: number, d: number) => (d ? `${Math.round((n / d) * 100)}%` : 'â€
 
 export async function WaitingForYou({ ctx, office, base }: Props & { office: 'alumni' | 'career' }) {
   const items = await waitingFor(ctx.institution.id, office, base)
+  // The portal Home's "needs you" panel (src/components/partners/PortalHome.tsx), in the portal's tint.
   return (
-    <section aria-labelledby="waiting" className="rounded-lg border border-border bg-card p-4">
-      <h2 id="waiting" className="text-base font-semibold">
-        Waiting for you
-      </h2>
-      {items.length ? (
-        <ul className="mt-2 divide-y divide-border">
-          {items.map((i) => (
-            <li key={i.key}>
-              <Link href={i.href} className="flex items-center justify-between gap-2 py-2 text-sm hover:text-primary">
-                {i.text}
-                <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-1 text-sm text-muted-foreground">Nothing right now. New layoff matches and check-ins show up here, and in your weekly email.</p>
-      )}
-    </section>
+    <PortalNeeds
+      portal="higher_ed"
+      title="Waiting for you"
+      items={items.map((i) => ({ key: `${office}_${i.key.split(':')[0]}`, title: i.text, href: i.href, action: 'Open' }))}
+      empty="Nothing right now. New layoff matches and check-ins show up here, and in your weekly email."
+    />
   )
 }
 

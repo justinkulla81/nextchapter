@@ -4,6 +4,7 @@ import { PortalTypeBar } from '@/components/partners/PortalTypeBar'
 import { Squiggle } from '@/components/ui/squiggle'
 import { Button } from '@/components/ui/button'
 import { portalStyle } from '@/lib/partners/portal-types'
+import { PortalHomeHeader, PortalHomeMore, PortalLinks, PortalNeeds, PortalNumbers, PortalTable } from '@/components/partners/PortalHome'
 
 // The live portal frame (the real nav components and the theme-portal CSS) around page markup written the way the
 // existing portal pages write it: a plain text-2xl headline with its own squiggle, small capital section labels, bordered
@@ -75,6 +76,51 @@ export function PortalLiveWorkforce() {
           <OldStylePage name="Sam" />
         </main>
       </div>
+    </div>
+  )
+}
+
+// The rebuilt portal Home, from the real shared parts (src/components/partners/PortalHome.tsx) with sample data.
+export function PortalLiveCoachHome() {
+  return (
+    <div className="theme-partner theme-portal min-h-screen" style={portalStyle('coach')} data-shot>
+      <PortalTypeBar type="coach" brand={{ name: 'Maya Ortiz Coaching', logoUrl: null, accent: '#8ab17d' }} />
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        <div className="space-y-8">
+          <PortalHomeHeader portal="coach" eyebrow="Maya Ortiz Coaching" title="Welcome back, Maya" intro="14 clients, 9 active this week." action={{ href: '#', label: 'Open your clients' }} />
+          <PortalNeeds
+            portal="coach"
+            title="Before your next sessions"
+            empty="No client needs you right now."
+            items={[
+              { key: 'risk_no_activity', title: 'Rob Alvarez: no search work in 9 days', why: 'His last note said he felt stuck on networking.', href: '#', action: 'Open the client' },
+              { key: 'stalled', title: 'Sara Nunez has gone quiet', why: 'Week 6, grade C. Last active: 8 days ago.', href: '#', action: 'Open the client' },
+              { key: 'unread_messages', title: '2 unread messages', why: 'From your clients.', href: '#', action: 'Open messages' },
+            ]}
+          />
+          <PortalNumbers
+            items={[
+              { value: '14', label: 'Active clients', source: 'Linked to you on NextChapter' },
+              { value: '9', label: 'Active this week', source: 'Did search work this week' },
+              { value: '5', label: 'Improved their grade', source: 'This quarter, of 14 clients; 1 declined', highlight: true },
+            ]}
+          />
+          <PortalTable
+            title="Your clients"
+            link={{ href: '#', label: 'See all 14' }}
+            columns={['Client', 'Search week', 'Grade', 'This week', 'Last active']}
+            rows={[
+              { key: '1', href: '#', cells: ['Dana Whitfield', 'Week 4', 'B', '240 min of search work', 'Today'] },
+              { key: '2', href: '#', cells: ['Rob Alvarez', 'Week 9', 'C', 'Quiet', '9 days ago'] },
+              { key: '3', href: '#', cells: ['Kim Lee', 'Week 3', 'A', '310 min of search work', 'Yesterday'] },
+            ]}
+            empty="No clients yet."
+          />
+          <PortalHomeMore label="More for coaches">
+            <PortalLinks links={[{ href: '#', label: 'Invite a client by email', line: 'They start right away.' }, { href: '#a', label: 'Settings', line: 'Branding and your onboarding form.' }]} />
+          </PortalHomeMore>
+        </div>
+      </main>
     </div>
   )
 }

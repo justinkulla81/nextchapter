@@ -1,14 +1,23 @@
-import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentCoach } from '@/lib/coach/current-coach'
 import { getCoachImpactReport } from '@/lib/coach/impact-report'
 import { getCoachUnreadCount } from '@/lib/messaging/threads'
 import { getCoachCaseload } from '@/lib/coach/caseload'
-import { Squiggle } from '@/components/ui/squiggle'
+import { firstName, PortalHomeHeader, PortalHomeMore, PortalLinks, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem } from '@/components/partners/PortalHome'
 
 const HIGH_NEED_TAG = 'comfort_with_high_need_candidates'
 const SPECIALIST_MIN_CLIENTS = 2
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
+function lastActive(d: Date | null, now: Date): string {
+  if (!d) return 'Not yet'
+  const days = Math.floor((now.getTime() - new Date(d).getTime()) / 86_400_000)
+  if (days <= 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  return `${days} days ago`
+}
+
+// The coach Home (the portal Home pattern, src/components/partners/PortalHome.tsx). Same reads as before: no new query.
 export default async function CoachHomePage() {
   const coach = await getCurrentCoach()
 
@@ -20,145 +29,84 @@ export default async function CoachHomePage() {
     prisma.coachClientInvite.count({ where: { coachId: coach.id, acceptedAt: null } }),
   ])
   const isSpecialist = coach.specializationTags.includes(HIGH_NEED_TAG) && clientCount >= SPECIALIST_MIN_CLIENTS
-  const stalled = caseload.filter((c) => c.isStalled)
+  const clientsHref = `/support/coach/clients/${coach.accessToken}`
+  const clientHref = (id: string) => `${clientsHref}/${id}`
+  const now = new Date()
+  const activeThisWeek = caseload.filter((c) => c.activityThisWeekPoints > 0).length
 
+  // Risk first (a real trigger), then quiet clients, then the inbox.
+  const needs: NeedsItem[] = [
+    ...caseload.flatMap((c) =>
+      c.triggers.filter((t) => t.type === 'RISK').map((t) => ({ key: `risk_${t.key}`, title: `${c.name}: ${t.label}`, why: t.detail, href: clientHref(c.id), action: 'Open the client' })),
+    ),
+    ...caseload
+      .filter((c) => c.isStalled && !c.triggers.some((t) => t.type === 'RISK'))
+      .map((c) => ({
+        key: 'stalled',
+        title: `${c.name} has gone quiet`,
+        why: `${c.weekNumber !== null ? `Week ${c.weekNumber}` : 'Not started yet'}${c.executionGrade ? `, grade ${c.executionGrade}` : ''}. Last active: ${lastActive(c.lastActiveAt, now).toLowerCase()}.`,
+        href: clientHref(c.id),
+        action: 'Open the client',
+      })),
+    ...(unreadMessages > 0 ? [{ key: 'unread_messages', title: plural(unreadMessages, 'unread message'), why: 'From your clients.', href: '/support/coach/messages', action: 'Open messages' }] : []),
+    ...(pendingInvites > 0
+      ? [{ key: 'pending_invites', title: `${plural(pendingInvites, 'invitation')} not accepted yet`, why: 'A short note from you is often what gets someone to join.', href: '/support/coach/invite-client', action: 'See invitations' }]
+      : []),
+  ]
+
+  const name = firstName(coach.fullName)
   return (
-    <div className="space-y-10">
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">NextChapter for Coaches</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome back, {coach.fullName.split(' ')[0]}</h1>
-        <Squiggle className="mt-2" />
-        {coach.firmName && <p className="mt-1 text-muted-foreground">{coach.firmName}</p>}
-        {isSpecialist && (
-          <span className="mt-2 inline-block rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-medium text-brand">
-            High-need specialist
-          </span>
-        )}
-      </div>
+    <div className="space-y-8">
+      <PortalHomeHeader
+        portal="coach"
+        eyebrow={[coach.firmName ?? 'Coach', isSpecialist ? 'High-need specialist' : null].filter(Boolean).join(' · ')}
+        title={name ? `Welcome back, ${name}` : 'Welcome back'}
+        intro={
+          clientCount === 0
+            ? 'Invite someone you already coach. Once they join, their weekly progress, grade and stalls show up here.'
+            : `${plural(clientCount, 'client')}, ${activeThisWeek} active this week.`
+        }
+        action={clientCount === 0 ? { href: '/support/coach/invite-client', label: 'Invite a client' } : { href: clientsHref, label: 'Open your clients' }}
+      />
 
-      {clientCount === 0 && (
-        <section className="space-y-2 rounded-lg border border-primary/40 bg-card p-5">
-          <h2 className="text-base font-semibold">Start with your first client</h2>
-          <p className="max-w-xl text-sm text-muted-foreground">
-            Invite someone you already coach, or share your invite link. Once they join, their weekly progress, grade and stalls show up here.
-          </p>
-          <Link href="/support/coach/invite-client" className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
-            Invite a client
-          </Link>
-        </section>
-      )}
+      <PortalNeeds portal="coach" title="Before your next sessions" items={needs} empty="No client needs you right now: nobody is stalled or at risk." />
 
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Needs your attention</h2>
-        {stalled.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">No clients showing signs of stalling right now.</p>
-        ) : (
-          <div className="mt-3 space-y-2">
-            {stalled.map((client) => (
-              <Link
-                key={client.id}
-                href={`/support/coach/clients/${coach.accessToken}/${client.id}`}
-                className="flex items-center justify-between rounded-lg border border-border p-4 hover:border-primary"
-              >
-                <div>
-                  <p className="font-medium text-foreground">{client.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {client.weekNumber !== null ? `Week ${client.weekNumber}` : 'Not yet started'}
-                    {client.executionGrade ? ` · Grade ${client.executionGrade}` : ''}
-                  </p>
-                </div>
-                <span className="rounded-full bg-orange/20 px-2.5 py-0.5 text-sm font-semibold text-orange">
-                  Stalled
-                </span>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+      <PortalNumbers
+        items={[
+          { value: String(clientCount), label: 'Active clients', source: 'Linked to you on NextChapter' },
+          { value: String(activeThisWeek), label: 'Active this week', source: 'Did search work this week' },
+          { value: String(impact.improved), label: 'Improved their grade', source: `This quarter, of ${plural(impact.clientCount, 'client')}${impact.declined > 0 ? `; ${impact.declined} declined` : ''}`, highlight: true },
+        ]}
+      />
 
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">This quarter</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{clientCount}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Active clients</p>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{impact.improved}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Improved their grade</p>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{impact.declined}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Declined</p>
-          </div>
-        </div>
-        {impact.clientCount > 0 && (
-          <p className="mt-3 text-sm text-muted-foreground">
-            {impact.same} held steady{impact.noData > 0 ? `, ${impact.noData} not enough data yet` : ''}.
-          </p>
-        )}
-      </section>
+      <PortalTable
+        title="Your clients"
+        link={clientCount > 0 ? { href: clientsHref, label: `See all ${clientCount}` } : undefined}
+        columns={['Client', 'Search week', 'Grade', 'This week', 'Last active']}
+        rows={caseload.slice(0, 8).map((c) => ({
+          key: c.id,
+          href: clientHref(c.id),
+          cells: [
+            c.name,
+            c.weekNumber !== null ? `Week ${c.weekNumber}` : 'Not started',
+            c.executionGrade ?? '—',
+            c.isStalled ? 'Quiet' : `${c.activityThisWeekPoints} min of search work`,
+            lastActive(c.lastActiveAt, now),
+          ],
+        }))}
+        empty="No clients yet. Invite someone you coach and they show here."
+      />
 
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Notifications</h2>
-        <div className="mt-3 space-y-2">
-          <Link href="/support/coach/messages" className="flex items-center justify-between rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">Messages</p>
-            {unreadMessages > 0 && (
-              <span className="rounded-full bg-orange/20 px-2.5 py-0.5 text-sm font-semibold text-orange">
-                {unreadMessages} unread
-              </span>
-            )}
-          </Link>
-          {pendingInvites > 0 && (
-            <Link
-              href="/support/coach/invite-client"
-              className="flex items-center justify-between rounded-lg border border-border p-4 hover:border-primary"
-            >
-              <p className="font-medium text-foreground">Invites awaiting response</p>
-              <span className="rounded-full bg-orange/20 px-2.5 py-0.5 text-sm font-semibold text-orange">
-                {pendingInvites}
-              </span>
-            </Link>
-          )}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Quick links</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <Link
-            href={`/support/coach/clients/${coach.accessToken}`}
-            className="rounded-lg border border-border p-4 hover:border-primary"
-          >
-            <p className="font-medium text-foreground">Clients</p>
-            <p className="mt-1 text-sm text-muted-foreground">Who&apos;s stalled, grades and activity at a glance, and pre-session briefs.</p>
-          </Link>
-          <Link href="/support/coach/invite-client" className="rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">Invite a client by email</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Invite someone directly — they skip the confirmation step and start right away.
-            </p>
-          </Link>
-          <Link
-            href={`/support/coach/invite/${coach.accessToken}`}
-            className="rounded-lg border border-border p-4 hover:border-primary"
-          >
-            <p className="font-medium text-foreground">Share invite link</p>
-            <p className="mt-1 text-sm text-muted-foreground">A generic link anyone can sign up through.</p>
-          </Link>
-          <Link href="/support/coach/settings" className="rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">Settings</p>
-            <p className="mt-1 text-sm text-muted-foreground">Branding and your Coaching Onboarding Form.</p>
-          </Link>
-        </div>
-      </section>
-
-      <div className="border-t border-border pt-4">
-        <a href="/auth/forgot-password" className="text-sm text-muted-foreground underline underline-offset-4">
-          Change password
-        </a>
-      </div>
+      <PortalHomeMore label="More for coaches">
+        <PortalLinks
+          links={[
+            { href: '/support/coach/invite-client', label: 'Invite a client by email', line: 'They skip the confirmation step and start right away.' },
+            { href: `/support/coach/invite/${coach.accessToken}`, label: 'Share your invite link', line: 'A link anyone can sign up through.' },
+            { href: '/support/coach/settings', label: 'Settings', line: 'Branding and your coaching onboarding form.' },
+            { href: '/auth/forgot-password', label: 'Change password', line: 'We email you a link.' },
+          ]}
+        />
+      </PortalHomeMore>
     </div>
   )
 }

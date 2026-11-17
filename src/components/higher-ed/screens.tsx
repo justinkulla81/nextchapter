@@ -3,6 +3,7 @@
 // SQL, role checked again there), never Prisma models directly. Tabs with no
 // entry render a "coming in HE-xx" panel from COMING_DESCRIPTIONS.
 
+import { PortalNumbers } from '@/components/partners/PortalHome'
 import { ConnectSections, ConsentHistory, MonthlyEmailPanel, StaffConnect } from './screens-connect'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
@@ -551,6 +552,11 @@ async function CareerCaseload({ ctx, base, searchParams }: ScreenProps) {
   const q = searchParams.q?.trim() ?? ''
   const found = canEdit && q ? await searchRoster(ctx.institution.id, q) : []
   const waiting = ctx.readOnly ? null : <WaitingForYou ctx={ctx} office="career" base={base} />
+  // The portal Home's three numbers, from the caseload rows already read: no new query.
+  const nowMs = new Date().getTime()
+  const sharing = rows.filter((r) => r.shareSearchDetail).length
+  const activeRecently = rows.filter((r) => r.shareSearchDetail && r.lastActivityAt && nowMs - new Date(r.lastActivityAt).getTime() <= 14 * 86_400_000).length
+  const checkInsDue = rows.filter((r) => r.nextCheckInAt && new Date(r.nextCheckInAt).getTime() - nowMs <= 7 * 86_400_000).length
   return (
     <div className="space-y-6">
       {ctx.ownTokens.has('COACH') && (
@@ -562,6 +568,20 @@ async function CareerCaseload({ ctx, base, searchParams }: ScreenProps) {
         </p>
       )}
       {waiting}
+      {rows.length > 0 && (
+        <PortalNumbers
+          items={[
+            { value: rows.length.toLocaleString(), label: 'On the caseload', source: showCounselor ? 'Across career services' : 'Assigned to you' },
+            {
+              value: activeRecently.toLocaleString(),
+              label: 'Active in the last 14 days',
+              source: `Of ${sharing.toLocaleString()} who share their search with career services`,
+              highlight: true,
+            },
+            { value: checkInsDue.toLocaleString(), label: 'Check-ins in the next 7 days', source: 'Scheduled on the caseload' },
+          ]}
+        />
+      )}
       {rows.length === 0 ? (
         <EmptyState icon={Users} title="No one on this caseload" description="Add someone below. Alumni who tell a check-in they're looking or laid off are added automatically." />
       ) : (
