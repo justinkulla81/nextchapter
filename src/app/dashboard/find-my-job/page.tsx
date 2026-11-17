@@ -4,6 +4,7 @@ import { strengthKeys } from '@/lib/profile/strengths'
 import { isLocationInArea, localAreaForCandidate } from '@/lib/workforce/local'
 import { loadWorkProfile } from '@/lib/profile/work-profile-load'
 import { Suspense } from 'react'
+import { timed } from '@/lib/perf/timed'
 import { after } from 'next/server'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import Link from 'next/link'
@@ -1437,8 +1438,10 @@ async function FindMyJobBody({
           urlParams,
         }
       : null
+  // Each read is timed (page_query_slow, route 'find_my_job'), so a slow load names its step.
+  const step = <T,>(label: string, work: Promise<T>) => timed('find_my_job', label, profile.id, work)
   const [board, matchedRoles, watchlistView, myJobs, expertNetworks, passedOnJobs] = await Promise.all([
-    loadBoardShortlist({
+    step('board', loadBoardShortlist({
       candidate: boardProfile,
       isCandidatePlus,
       where: seniorityGroups.length > 0 ? { level: { in: seniorityGroups.flatMap(levelsInGroup) } } : {},
@@ -1480,11 +1483,11 @@ async function FindMyJobBody({
       },
       // The welcome lift: a tie-break within a fit level, after the level gate (board-shortlist.ts).
       lift: (p) => (changerLift && signalMap && isOpenToChangers(signalMap.get(p.id))) || (appliedSourceView === 'all' && isEmployerListed(p)),
-    }),
-    matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
-    getWatchlistView(profile.id),
-    loadMyJobs(profile.id, memberSkillKeywords(profile)),
-    onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([]),
+    })),
+    step('matchedRoles', matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([])),
+    step('watchlist', getWatchlistView(profile.id)),
+    step('myJobs', loadMyJobs(profile.id, memberSkillKeywords(profile))),
+    step('expertNetworks', onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([])),
     // Board jobs they passed on, for "Review" (job-dismiss.ts).
     onBoard
       ? prisma.trackedJob.findMany({
