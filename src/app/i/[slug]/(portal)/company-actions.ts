@@ -9,6 +9,7 @@ import { employerRoleError, requireEmployerRole } from '@/lib/higher-ed/access'
 import type { EmployerRole } from '@/lib/higher-ed/workspaces'
 import { prisma } from '@/lib/prisma'
 import { memberCompanyFor, requestSeats } from '@/lib/workforce/company-portal'
+import { offerGrantSupport, requestTraining } from '@/lib/workforce/company-requests'
 
 type Result = { error?: string; ok?: boolean; message?: string } | undefined
 
@@ -39,4 +40,42 @@ export async function setOwnHiring(slug: string, hiring: boolean): Promise<{ err
   captureServerEvent(r0.ctx.userId, 'company_hiring_set', { institutionId: r0.ctx.institution.id, companyId: r0.c.id, hiring })
   revalidatePath(`/i/${slug}`, 'layout')
   return {}
+}
+
+// Learning and development: ask the organization for training for the company's people.
+export async function requestTrainingAction(slug: string, _prev: Result, f: FormData): Promise<Result> {
+  const r0 = await company(slug, 'learning')
+  if (r0 && 'roleError' in r0) return { error: r0.roleError }
+  if (!r0) return { error: 'Your login isn’t connected to a member company. Ask the organization for an invite.' }
+  const peopleRaw = String(f.get('people') ?? '').trim()
+  const people = peopleRaw ? Number(peopleRaw) : null
+  const r = await requestTraining({ institutionId: r0.ctx.institution.id, companyId: r0.c.id, topic: String(f.get('topic') ?? ''), people, note: String(f.get('note') ?? ''), by: r0.ctx.email ?? r0.ctx.userId })
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(r0.ctx.userId, 'company_training_requested', { institutionId: r0.ctx.institution.id, companyId: r0.c.id, requestId: r.id, people })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: `Sent. ${r0.ctx.institution.name} will answer it here.` }
+}
+
+// Grants and RFPs: offer support for one of the organization's applications, or for a grant the company has in mind.
+export async function offerGrantSupportAction(slug: string, _prev: Result, f: FormData): Promise<Result> {
+  const r0 = await company(slug, 'grants')
+  if (r0 && 'roleError' in r0) return { error: r0.roleError }
+  if (!r0) return { error: 'Your login isn’t connected to a member company. Ask the organization for an invite.' }
+  const matchRaw = String(f.get('matchAmount') ?? '').replace(/[$,\s]/g, '')
+  const fundingApplicationId = String(f.get('fundingApplicationId') ?? '') || null
+  const r = await offerGrantSupport({
+    institutionId: r0.ctx.institution.id,
+    companyId: r0.c.id,
+    companyName: r0.c.name,
+    fundingApplicationId,
+    topic: String(f.get('topic') ?? ''),
+    offers: f.getAll('offers').map(String),
+    matchAmount: matchRaw ? Number(matchRaw) : null,
+    note: String(f.get('note') ?? ''),
+    by: r0.ctx.email ?? r0.ctx.userId,
+  })
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(r0.ctx.userId, 'company_grant_support_offered', { institutionId: r0.ctx.institution.id, companyId: r0.c.id, requestId: r.id, fundingApplicationId, offers: r.offers })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: `Sent. ${r0.ctx.institution.name} will answer it here.` }
 }

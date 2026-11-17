@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
-import { addMemberCompany, addParticipant, answerSeatRequestAction, inviteCompanyContactAction, inviteMemberContact, openLayoffSeats, saveLocalArea, setCompanyHiring, setLayoffOpen, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
+import { CONTACT_ROLES, CONTACT_ROLE_LABELS, CONTACT_ROLE_WHAT } from '@/lib/workforce/contact-roles'
+import { addMemberCompany, addParticipant, answerCompanyRequestAction, answerSeatRequestAction, inviteCompanyContactAction, inviteMemberContact, openLayoffSeats, saveLocalArea, setCompanyHiring, setLayoffOpen, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
 
 const sel = 'h-9 w-full rounded-md border border-input bg-background px-2 text-sm'
 const area = 'min-h-20 w-full rounded-md border border-input bg-background p-2 text-sm'
@@ -314,7 +315,7 @@ export function MemberAccess({
   )
 }
 
-// A person at a member company and what they work on (owner, 2026-11-17). Each role is a toggle button; both can be on.
+// A person at a member company and what they work on (owner, 2026-11-17). Each role is a toggle button; any can be on.
 export function CompanyContactForm({ slug, companies }: { slug: string; companies: { id: string; name: string; connected: boolean }[] }) {
   const [state, action, pending] = useActionState<(HubResult & { path?: string | null }) | undefined, FormData>(
     async (prev, f) => inviteCompanyContactAction(slug, prev, f),
@@ -325,10 +326,7 @@ export function CompanyContactForm({ slug, companies }: { slug: string; companie
   const [roles, setRoles] = useState<string[]>(['OUTPLACEMENT'])
   const company = companies.find((c) => c.id === companyId)
   const toggle = (r: string) => setRoles((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]))
-  const options = [
-    { key: 'OUTPLACEMENT', label: 'Outplacement', what: 'Layoff seats and how its people are doing' },
-    { key: 'HIRING', label: 'Hiring', what: 'Shared profiles, intros and the jobs it posts' },
-  ]
+  const options = CONTACT_ROLES.map((key) => ({ key, label: CONTACT_ROLE_LABELS[key], what: CONTACT_ROLE_WHAT[key] }))
   return (
     <form action={action} className={cn('grid gap-3 sm:grid-cols-2', pending && 'cursor-wait')}>
       <div className="space-y-1.5">
@@ -375,7 +373,7 @@ export function CompanyContactForm({ slug, companies }: { slug: string; companie
         <SubmitButton pendingLabel="Sending…" disabled={!roles.length || !email.trim()}>
           Send invite
         </SubmitButton>
-        {(!roles.length || !email.trim()) && <span className="text-xs text-muted-foreground">{!email.trim() ? 'Add their email' : 'Pick hiring, outplacement or both'} to send the invite.</span>}
+        {(!roles.length || !email.trim()) && <span className="text-xs text-muted-foreground">{!email.trim() ? 'Add their email' : 'Pick at least one thing they work on'} to send the invite.</span>}
         <Msg r={state} />
         {state?.path && !state.error && (
           <a href={state.path} target="_blank" className="text-xs break-all text-primary hover:underline">
@@ -384,6 +382,43 @@ export function CompanyContactForm({ slug, companies }: { slug: string; companie
         )}
       </div>
     </form>
+  )
+}
+
+// A member company's training request or grant-support offer: accept or decline, with a note the company sees.
+export function CompanyRequestAnswer({ slug, id }: { slug: string; id: string }) {
+  const [note, setNote] = useState('')
+  const [done, setDone] = useState<string | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+  const [pending, start] = useTransition()
+  const run = (accept: boolean) =>
+    start(async () => {
+      setErr(null)
+      const r = await answerCompanyRequestAction(slug, id, accept, note)
+      if (r.error) setErr(r.error)
+      else setDone(accept ? 'Accepted. The company sees your answer.' : 'Declined. The company sees your answer.')
+    })
+  if (done) return <p role="status" className="text-xs text-muted-foreground">{done}</p>
+  return (
+    <div className={cn('flex w-full max-w-md flex-col gap-1', pending && 'cursor-wait')}>
+      <label htmlFor={`cra-${id}`} className="text-xs font-medium">
+        Note to the company (optional)
+      </label>
+      <Input id={`cra-${id}`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} className="h-8" placeholder="Next step, who will reach out, why not now" />
+      <div className="flex gap-2">
+        <Button type="button" size="sm" disabled={pending} onClick={() => run(true)}>
+          {pending ? 'Saving…' : 'Accept'}
+        </Button>
+        <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => run(false)}>
+          Decline
+        </Button>
+      </div>
+      {err && (
+        <p role="alert" className="text-xs text-destructive">
+          {err}
+        </p>
+      )}
+    </div>
   )
 }
 

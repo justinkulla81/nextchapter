@@ -314,7 +314,7 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
   const ky = localTowns[0]?.state === 'KY'
   const apps = await Promise.all(
     [
-      { name: ky ? 'Governor’s Reserve Fund' : 'State workforce innovation grant', funder: ky ? 'Kentucky Education and Labor Cabinet' : 'State workforce agency', status: 'DRAFTING', due: 10, req: 250000, aw: null, mreq: 50000, mcom: 30000, partners: ['Workforce board', 'Partner college', 'Member employers'] },
+      { name: ky ? 'Governor’s Reserve Fund' : 'State workforce innovation grant', funder: ky ? 'Kentucky Education and Labor Cabinet' : 'State workforce agency', status: 'DRAFTING', due: 10, req: 250000, aw: null, mreq: 50000, mcom: 30000, partners: ['Workforce board', 'Partner college', ...employerEps.map((e) => e.name)] },
       { name: ky ? 'Talent Recruitment Grant' : 'Talent attraction grant', funder: ky ? 'Kentucky Cabinet for Economic Development' : 'State economic development agency', status: 'CONSIDERING', due: null, req: 500000, aw: null, mreq: 125000, mcom: 0, partners: ['Neighboring counties'] },
       { name: 'National Dislocated Worker Grant', funder: 'U.S. Department of Labor, through the state', status: 'SUBMITTED', due: null, req: 800000, aw: null, mreq: null, mcom: null, partners: ['State workforce agency'] },
     ].map((a) =>
@@ -325,6 +325,20 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     ),
   )
   await prisma.rapidResponse.update({ where: { id: layoffs[0].id }, data: { fundingApplicationId: apps[0].id } })
+
+  // What a connected member company asked for: training (its L&D contact) and support for the first application (its grants
+  // contact), from the company a demo preview acts as (the first connected one by name), so Training and Grants have rows.
+  const firstConnected = [...employerEps].sort((a, b) => a.name.localeCompare(b.name))[0]
+  const firstCompany = firstConnected ? companies.find((c) => c.name === firstConnected.name) : undefined
+  if (firstCompany) {
+    await prisma.memberCompanyRequest.createMany({
+      data: [
+        { institutionId, memberCompanyId: firstCompany.id, kind: 'TRAINING', topic: 'Project management', people: 18, note: 'Team leads first; evenings or online.', status: 'ACCEPTED', answerNote: 'A partner college has a cohort starting next month. We will send the details.', answeredBy: 'demo', answeredAt: new Date(now.getTime() - 3 * DAY), requestedBy: 'demo', isSampleData: true, createdAt: new Date(now.getTime() - 9 * DAY) },
+        { institutionId, memberCompanyId: firstCompany.id, kind: 'TRAINING', topic: 'AI tools for analysts', people: 12, note: null, status: 'REQUESTED', requestedBy: 'demo', isSampleData: true, createdAt: new Date(now.getTime() - 2 * DAY) },
+        { institutionId, memberCompanyId: firstCompany.id, kind: 'GRANT_PARTNER', topic: apps.length ? (ky ? 'Governor’s Reserve Fund' : 'State workforce innovation grant') : 'A state training grant', offers: ['LETTER', 'MATCH'], matchAmount: 15000, fundingApplicationId: apps[0]?.id ?? null, note: 'In-kind: trainer time and a classroom.', status: 'REQUESTED', requestedBy: 'demo', isSampleData: true, createdAt: new Date(now.getTime() - 1 * DAY) },
+      ],
+    })
+  }
   const stepKeys = ['notice', 'employer', 'session', 'seats', 'hiring', 'training']
   await prisma.rapidResponseStep.createMany({
     data: [6, 4, 2].flatMap((n, i) => stepKeys.slice(0, n).map((key) => ({ rapidResponseId: layoffs[i].id, key, doneBy: 'demo', isSampleData: true, doneAt: new Date(now.getTime() - (layoffSpecs[i].daysAgo - stepKeys.indexOf(key)) * DAY) }))),
