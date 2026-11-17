@@ -67,16 +67,19 @@ const { description: _description, ...listSelect } = PUBLIC_JOB_SELECT
 export const PUBLIC_JOB_LIST_SELECT = listSelect
 
 /**
- * Puts back just enough of each posting's text for isPublicJob's length check (the first PUBLIC_JOB_MIN_DESCRIPTION characters),
- * so a list of 60 jobs reads a few KB of text instead of 120 KB.
+ * Marks each row with whether its posting text is long enough for isPublicJob (PUBLIC_JOB_MIN_DESCRIPTION characters), checked in the
+ * database so no text is sent: the ids of the rows that pass, ~25 bytes each. It used to send each row's first 200 characters, ~37k calls
+ * and ~2.2M rows a day (2026-11-17 egress alert). octet_length() first, so a long text is not read from TOAST storage just to count it
+ * (same test as PUBLIC_JOB_ROW_RULES_SQL). `description` is null on these rows: no list shows the posting text.
  */
-export async function withDescriptionStubs<T extends { id: string }>(rows: T[]): Promise<(T & { description: string | null })[]> {
+export async function withDescriptionStubs<T extends { id: string }>(rows: T[]): Promise<(T & { description: null; hasMinDescription: boolean })[]> {
   if (!rows.length) return []
-  const stubs = await prisma.$queryRaw<{ id: string; d: string | null }[]>(
-    Prisma.sql`SELECT id, left(description, ${PUBLIC_JOB_MIN_DESCRIPTION}::int) AS d FROM "ExclusiveJobPosting" WHERE id IN (${Prisma.join(rows.map((r) => r.id))})`
+  const long = await prisma.$queryRaw<{ id: string }[]>(
+    Prisma.sql`SELECT id FROM "ExclusiveJobPosting" WHERE id IN (${Prisma.join(rows.map((r) => r.id))})
+      AND (octet_length(description) >= ${PUBLIC_JOB_MIN_DESCRIPTION * 4}::int OR length(description) >= ${PUBLIC_JOB_MIN_DESCRIPTION}::int)`
   )
-  const byId = new Map(stubs.map((x) => [x.id, x.d]))
-  return rows.map((r) => ({ ...r, description: byId.get(r.id) ?? null }))
+  const ok = new Set(long.map((x) => x.id))
+  return rows.map((r) => ({ ...r, description: null, hasMinDescription: ok.has(r.id) }))
 }
 
 /** The job, or null when it has no public page (closed, private, not verified…). One primary-key read. */

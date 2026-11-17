@@ -1,12 +1,14 @@
-import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { getEmployerUnreadCount } from '@/lib/messaging/threads'
 import { getCandidatesLookingForYourRoles } from '@/lib/talent/candidate-discovery'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CandidateCard } from '@/components/talent/CandidateCard'
-import { Squiggle } from '@/components/ui/squiggle'
+import { firstName, PortalHomeHeader, PortalHomeMore, PortalLinks, PortalNeeds, PortalNumbers, type NeedsItem } from '@/components/partners/PortalHome'
 
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
+
+// The hiring Home (the portal Home pattern, src/components/partners/PortalHome.tsx). Same reads as before: no new query.
 export default async function TalentHomePage() {
   const employer = await getTalentDashboardData()
 
@@ -34,133 +36,79 @@ export default async function TalentHomePage() {
   const rejectedPostings = jobBoardPostings.filter((p) => p.status === 'rejected')
   const pendingPostings = jobBoardPostings.filter((p) => p.status === 'pending')
 
-  return (
-    <div className="space-y-10">
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">NextChapter for Hiring Managers</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome back{employer.companyName ? `, ${employer.companyName}` : ''}</h1>
-        <Squiggle className="mt-2" />
-      </div>
+  const needs: NeedsItem[] = [
+    ...(unreadMessages > 0
+      ? [{ key: 'unread_messages', title: plural(unreadMessages, 'unread message'), why: 'From candidates you contacted.', href: '/talent/messages', action: 'Open messages' }]
+      : []),
+    ...rejectedPostings.map((p) => ({
+      key: 'posting_rejected',
+      title: `${p.title} was not approved for the job board`,
+      why: p.rejectionReason ?? 'Open the posting to see what to change.',
+      href: '/talent/job-board/submissions',
+      action: 'Fix the posting',
+    })),
+    ...(activeRoleCount === 0
+      ? [{ key: 'no_roles', title: 'You have no active role', why: 'Candidates are matched to your roles. Describe one and matches start showing here.', href: '/talent/roles/new', action: 'Describe a role' }]
+      : []),
+  ]
 
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Needs your attention</h2>
-        {rejectedPostings.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Nothing waiting on approval right now.</p>
+  const contact = firstName(employer.contactName)
+  return (
+    <div className="space-y-8">
+      <PortalHomeHeader
+        portal="hiring"
+        eyebrow={employer.companyName}
+        title={contact ? `Welcome back, ${contact}` : 'Welcome back'}
+        intro={
+          candidatesLookingForRoles.length > 0
+            ? `${plural(candidatesLookingForRoles.length, 'candidate')} ${candidatesLookingForRoles.length === 1 ? 'is' : 'are'} looking for roles like your ${plural(activeRoleCount, 'active role')}.`
+            : `You have ${plural(activeRoleCount, 'active role')}.`
+        }
+        action={{ href: '/talent/roles/new', label: 'Post a role' }}
+      />
+
+      <PortalNeeds portal="hiring" title="Waiting on you" items={needs} empty="Nothing is waiting on you right now." />
+
+      <PortalNumbers
+        items={[
+          { value: String(totalInteractions), label: 'Candidates in your pipeline', source: 'Everyone you viewed, saved or contacted' },
+          { value: String(inConversation), label: 'In conversation', source: 'Marked in conversation by your team' },
+          { value: String(hired), label: 'Hired through NextChapter', source: 'Marked hired by your team', highlight: true },
+        ]}
+      />
+
+      <section aria-labelledby="looking-h" className="space-y-3">
+        <h2 id="looking-h" className="font-display text-xl font-semibold text-ink">
+          Candidates looking for roles like yours
+        </h2>
+        {candidatesLookingForRoles.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No new matches right now. Matches come from what candidates say they are looking for, across all your active roles.
+          </p>
         ) : (
-          <div className="mt-3 space-y-2">
-            {rejectedPostings.map((p) => (
-              <Link
-                key={p.id}
-                href="/talent/job-board/submissions"
-                className="flex items-center justify-between rounded-lg border border-border p-4 hover:border-primary"
-              >
-                <div>
-                  <p className="font-medium text-foreground">{p.title} — rejected</p>
-                  {p.rejectionReason && <p className="text-sm text-muted-foreground">{p.rejectionReason}</p>}
-                </div>
-              </Link>
-            ))}
-          </div>
+          <>
+            <p className="text-sm text-muted-foreground">Matched on what they say they are looking for, across all your active roles, not a job-title search.</p>
+            <div className="space-y-3">
+              {candidatesLookingForRoles.map(({ candidate, match, roleId, roleTitle, effortSummary, evidence }) => (
+                <CandidateCard key={candidate.id} candidate={candidate} match={match} roleId={roleId} effortSummary={effortSummary} roleLabel={`Matches: ${roleTitle}`} evidence={evidence} />
+              ))}
+            </div>
+          </>
         )}
       </section>
 
-      {candidatesLookingForRoles.length > 0 && (
-        <section>
-          <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">
-            Candidates looking for roles like yours
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Matched on what they say they&apos;re looking for, across all your active roles — not just a
-            job-title search.
-          </p>
-          <div className="mt-3 space-y-3">
-            {candidatesLookingForRoles.map(({ candidate, match, roleId, roleTitle, effortSummary, evidence }) => (
-              <CandidateCard
-                key={candidate.id}
-                candidate={candidate}
-                match={match}
-                roleId={roleId}
-                effortSummary={effortSummary}
-                roleLabel={`Matches: ${roleTitle}`}
-                evidence={evidence}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">At a glance</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{activeRoleCount}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Active roles</p>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{totalInteractions}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Candidates in pipeline</p>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{inConversation}</p>
-            <p className="mt-1 text-sm text-muted-foreground">In conversation</p>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{hired}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Hired via NextChapter</p>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{pendingPostings.length}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Job Board postings pending review</p>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Notifications</h2>
-        <div className="mt-3">
-          <Link
-            href="/talent/messages"
-            className="flex items-center justify-between rounded-lg border border-border p-4 hover:border-primary"
-          >
-            <p className="font-medium text-foreground">Messages</p>
-            {unreadMessages > 0 && (
-              <span className="rounded-full bg-orange/20 px-2.5 py-0.5 text-sm font-semibold text-orange">
-                {unreadMessages} unread
-              </span>
-            )}
-          </Link>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Quick links</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <Link href="/talent/roles/new" className="rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">Post a Role</p>
-            <p className="mt-1 text-sm text-muted-foreground">Describe a role and get matched candidates.</p>
-          </Link>
-          <Link href="/talent/roles" className="rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">My Roles</p>
-            <p className="mt-1 text-sm text-muted-foreground">Manage roles you&apos;ve posted.</p>
-          </Link>
-          <Link href="/talent/candidates" className="rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">Candidate Inbox</p>
-            <p className="mt-1 text-sm text-muted-foreground">Everyone you&apos;ve viewed or expressed interest in.</p>
-          </Link>
-          <Link href="/talent/saved" className="rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">Saved Candidates</p>
-            <p className="mt-1 text-sm text-muted-foreground">Your shortlist.</p>
-          </Link>
-          <Link href="/talent/job-board/submissions" className="rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">Job Board</p>
-            <p className="mt-1 text-sm text-muted-foreground">Track status of your Job Board submissions.</p>
-          </Link>
-          <Link href="/talent/analytics" className="rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">Hiring Analytics</p>
-            <p className="mt-1 text-sm text-muted-foreground">Outcomes across everyone you&apos;ve hired.</p>
-          </Link>
-        </div>
-      </section>
+      <PortalHomeMore label="More for your hiring team">
+        {pendingPostings.length > 0 && <p className="text-sm text-muted-foreground">{plural(pendingPostings.length, 'job board posting')} waiting for review by NextChapter.</p>}
+        <PortalLinks
+          links={[
+            { href: '/talent/roles', label: 'My roles', line: 'Manage the roles you posted.' },
+            { href: '/talent/candidates', label: 'Candidate inbox', line: 'Everyone you viewed or showed interest in.' },
+            { href: '/talent/saved', label: 'Saved candidates', line: 'Your shortlist.' },
+            { href: '/talent/job-board/submissions', label: 'Job board', line: 'The status of your job board postings.' },
+            { href: '/talent/analytics', label: 'Hiring analytics', line: 'Outcomes across everyone you hired.' },
+          ]}
+        />
+      </PortalHomeMore>
     </div>
   )
 }

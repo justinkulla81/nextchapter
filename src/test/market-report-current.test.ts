@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  searchDetailsChanged,
   REGEN_COOLDOWN_MINUTES,
   REGEN_MAX_PER_DAY,
   buildCurrentRead,
@@ -24,7 +25,7 @@ describe('improvementReasons', () => {
     expect(improvementReasons(last, none)).toEqual([])
     expect(improvementReasons(last, { ...none, resumeUploadedAt: ago(10) })).toEqual(['resume_updated'])
     expect(improvementReasons(last, { ...none, resumeUploadedAt: ago(700) })).toEqual([])
-    expect(improvementReasons(last, { resumeUploadedAt: ago(10), searchStrategyConfirmedAt: ago(5), applicationsSince: 2, referencesSince: 1 })).toEqual([
+    expect(improvementReasons(last, { resumeUploadedAt: ago(10), searchStrategyConfirmedAt: ago(5), applicationsSince: 5, referencesSince: 1 })).toEqual([
       'resume_updated',
       'search_details_updated',
       'applied_to_jobs',
@@ -44,16 +45,17 @@ describe('regenerationDecision', () => {
     const d = regenerationDecision({ ...base, lastGeneratedAt: ago(600), signals: none })
     expect(d.allowed).toBe(false)
     expect(d.blockedBy).toBe('nothing_new')
-    expect(d.message).toMatch(/update your resume/i)
+    expect(d.message).toMatch(/new résumé/i)
+    expect(d.message).toContain('apply to 5 jobs')
   })
   it('allows after an improvement, and records why', () => {
-    const d = regenerationDecision({ ...base, lastGeneratedAt: ago(600), signals: { ...none, applicationsSince: 3 } })
+    const d = regenerationDecision({ ...base, lastGeneratedAt: ago(600), signals: { ...none, applicationsSince: 5 } })
     expect(d.allowed).toBe(true)
     expect(d.reason).toBe('applied_to_jobs')
-    expect(d.message).toContain('you applied to jobs')
+    expect(d.message).toContain('you applied to 5 or more jobs')
   })
   it('holds a cooldown between two refreshes and says when it ends', () => {
-    const d = regenerationDecision({ ...base, lastGeneratedAt: ago(REGEN_COOLDOWN_MINUTES - 10), signals: { ...none, applicationsSince: 3 } })
+    const d = regenerationDecision({ ...base, lastGeneratedAt: ago(REGEN_COOLDOWN_MINUTES - 10), signals: { ...none, applicationsSince: 5 } })
     expect(d.allowed).toBe(false)
     expect(d.blockedBy).toBe('too_soon')
     expect(d.availableAt!.getTime()).toBe(NOW.getTime() + 10 * 60_000)
@@ -124,5 +126,22 @@ describe('buildCurrentRead', () => {
     })
     expect(JSON.stringify(read)).not.toMatch(/likely to pause|advance with reservations|development area|grade/i)
     expect(read.inPlace.concat(read.toBuild).map((r) => r.status)).toEqual(['In place', 'Ready to improve', 'Next to build', 'Answer to count it'])
+  })
+  it('does not count fewer than five applications as new work, and says how far along they are', () => {
+    const d = regenerationDecision({ now: NOW, generatedLast24h: 0, lastGeneratedAt: ago(600), signals: { ...none, applicationsSince: 3 } })
+    expect(d.allowed).toBe(false)
+    expect(d.blockedBy).toBe('nothing_new')
+    expect(d.message).toContain('apply to 2 more jobs (3 of 5 since this report)')
+  })
+})
+
+describe('search details that actually changed', () => {
+  it('is false when the same answers are saved again', () => {
+    expect(searchDetailsChanged({ a: 'x', b: ['1', '2'], c: null }, { a: 'x', b: ['1', '2'], c: null })).toBe(false)
+    expect(searchDetailsChanged({ a: 'x' }, { a: 'x', c: null })).toBe(false)
+  })
+  it('is true when any answer changed', () => {
+    expect(searchDetailsChanged({ a: 'x', b: ['1'] }, { a: 'x', b: ['1', '2'] })).toBe(true)
+    expect(searchDetailsChanged({ a: null }, { a: 'Director' })).toBe(true)
   })
 })

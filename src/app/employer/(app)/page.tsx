@@ -1,134 +1,125 @@
-import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getCurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
 import { getSeatUtilization } from '@/lib/employer/outplacement-reporting'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { PROGRAM_TYPE_LABEL, PROGRAM_TYPE_HOME } from '@/lib/employer/program-type'
-import { PRIVACY_NOTE, PROGRAM_KIND_BLURB, programKindOf } from '@/lib/employer/program-wording'
-import { Squiggle } from '@/components/ui/squiggle'
+import { PRIVACY_NOTE } from '@/lib/employer/program-wording'
+import { firstName, PortalHomeHeader, PortalHomeMore, PortalLinks, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem } from '@/components/partners/PortalHome'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
+const ROLE_LINE: Record<string, string> = {
+  ADMIN: 'You can enroll people, see billing and read the reports.',
+  VIEWER: 'You can read the reports.',
+  LEGAL: 'You can look up compliance records.',
+  FINANCE: 'You can see invoices.',
+}
 
+// The employer Home (the portal Home pattern, src/components/partners/PortalHome.tsx). Same reads as before: no new query.
+// Counts only, with small groups suppressed (getSeatUtilization), as on the reporting page.
 export default async function EmployerOverviewPage() {
   const orgUser = await getCurrentOutplacementOrgUser()
+  const name = firstName(orgUser.fullName)
+  const title = name ? `Welcome back, ${name}` : 'Welcome back'
+
+  if (orgUser.role === 'LEGAL' || orgUser.role === 'FINANCE') {
+    const legal = orgUser.role === 'LEGAL'
+    return (
+      <div className="space-y-8">
+        <PortalHomeHeader
+          portal="employer"
+          eyebrow={orgUser.orgName}
+          title={title}
+          intro={ROLE_LINE[orgUser.role]}
+          action={legal ? { href: '/employer/compliance', label: 'Look up a compliance record' } : { href: '/employer/invoices', label: 'View invoices' }}
+        />
+      </div>
+    )
+  }
 
   const contracts = await prisma.outplacementContract.findMany({
     where: { orgId: orgUser.orgId, status: 'ACTIVE' },
     orderBy: { createdAt: 'desc' },
   })
+  const utilizations = await Promise.all(contracts.map((c) => getSeatUtilization(orgUser, c.id)))
+  const isAdmin = orgUser.role === 'ADMIN'
+  const rows = contracts.map((c, i) => ({ c, util: utilizations[i] }))
+  const reportable = rows.filter((r) => r.util && !r.util.suppressed && r.util.totalSeats !== null && r.util.activatedSeats !== null)
+  const totalSeats = reportable.reduce((s, r) => s + (r.util!.totalSeats ?? 0), 0)
+  const activated = reportable.reduce((s, r) => s + (r.util!.activatedSeats ?? 0), 0)
+  const label = (c: (typeof contracts)[number]) => c.cohortLabel ?? `${PROGRAM_TYPE_LABEL[c.programType]}, ${TIER_LABEL[c.tier]}`
 
-  const utilizations =
-    orgUser.role === 'ADMIN' || orgUser.role === 'VIEWER'
-      ? await Promise.all(contracts.map((c) => getSeatUtilization(orgUser, c.id)))
-      : []
+  const needs: NeedsItem[] = [
+    ...(contracts.length === 0
+      ? [{ key: 'no_contract', title: 'No active contract yet', why: 'Your NextChapter contact sets it up. Once it is in place you can enroll people here.', href: 'mailto:support@launchyournextchapter.com', action: 'Email NextChapter' }]
+      : []),
+    ...reportable
+      .filter((r) => (r.util!.activatedSeats ?? 0) < (r.util!.totalSeats ?? 0))
+      .map((r) => {
+        const waiting = (r.util!.totalSeats ?? 0) - (r.util!.activatedSeats ?? 0)
+        return {
+          key: 'seats_not_activated',
+          title: `${label(r.c)}: ${waiting} ${waiting === 1 ? 'person has' : 'people have'} not activated their seat`,
+          why: isAdmin ? 'Check their email addresses on the roster, or send the invitation again.' : 'Your admin can check the roster and resend invitations.',
+          href: isAdmin ? '/employer/roster' : '/employer/reporting',
+          action: isAdmin ? 'Open the roster' : 'Open reporting',
+        }
+      }),
+  ]
 
   return (
     <div className="space-y-8">
-      <div>
-        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">NextChapter for Employers</p>
-        <h1 className="text-2xl font-semibold tracking-tight">{orgUser.orgName}</h1>
-        <Squiggle className="mt-2" />
-        <p className="mt-1 text-sm text-muted-foreground">
-          Signed in as {orgUser.fullName ?? orgUser.email} —{' '}
-          {orgUser.role === 'ADMIN' && 'admin (enrollment, billing, and reporting).'}
-          {orgUser.role === 'VIEWER' && 'viewer (reporting only).'}
-          {orgUser.role === 'LEGAL' && 'legal (compliance pack only).'}
-          {orgUser.role === 'FINANCE' && 'finance (invoices only).'}
-        </p>
+      <PortalHomeHeader
+        portal="employer"
+        eyebrow={orgUser.orgName}
+        title={title}
+        intro={
+          totalSeats > 0
+            ? `${activated} of ${totalSeats} people have activated their seat. ${needs.length === 0 ? 'Nothing needs you right now.' : ''}`.trim()
+            : ROLE_LINE[orgUser.role]
+        }
+        action={isAdmin && contracts.length > 0 ? { href: '/employer/enroll', label: 'Enroll people' } : { href: '/employer/reporting', label: 'Open reporting' }}
+      />
+
+      <PortalNeeds portal="employer" items={needs} empty="Nothing needs you right now. Everyone with a seat has activated it." />
+
+      <div className="space-y-2">
+        <PortalNumbers
+          items={[
+            { value: totalSeats > 0 ? String(totalSeats) : '—', label: 'Seats', source: totalSeats > 0 ? `Across ${contracts.length === 1 ? 'your contract' : `${contracts.length} contracts`}` : 'Shown once a contract has enough seats to report' },
+            { value: totalSeats > 0 ? String(activated) : '—', label: 'Activated', source: 'People who signed in and started', highlight: true },
+            { value: totalSeats > 0 ? `${Math.round((activated / totalSeats) * 100)}%` : '—', label: 'Activation rate', source: 'Activated seats of all seats' },
+          ]}
+        />
+        <p className="max-w-2xl text-xs text-muted-foreground">{PRIVACY_NOTE}</p>
       </div>
 
-      {orgUser.role === 'ADMIN' && contracts.length > 0 && (
-        <div className="flex flex-wrap items-center gap-3">
-          <Link href="/employer/enroll" className={cn(buttonVariants())}>
-            Enroll people
-          </Link>
-          <Link href="/employer/program" className="text-sm text-muted-foreground underline underline-offset-4">
-            Set up what your program offers
-          </Link>
-        </div>
-      )}
+      <PortalTable
+        title="Your contracts"
+        link={{ href: '/employer/reporting', label: 'Full reporting' }}
+        columns={['Contract', 'Program', 'Seats', 'Activated']}
+        rows={rows.map(({ c, util }) => ({
+          key: c.id,
+          href: c.programType !== 'OUTPLACEMENT' ? PROGRAM_TYPE_HOME[c.programType] : undefined,
+          cells: [
+            label(c),
+            `${PROGRAM_TYPE_LABEL[c.programType]} · ${TIER_LABEL[c.tier]}`,
+            String(c.seatCount),
+            util && !util.suppressed ? `${util.activatedSeats ?? '—'} of ${util.totalSeats}${util.scope.granularity === 'quarterly' ? ' (reported quarterly)' : ''}` : 'Too few to report',
+          ],
+        }))}
+        empty="No active contract yet."
+      />
 
-      {(orgUser.role === 'ADMIN' || orgUser.role === 'VIEWER') && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Contracts</h2>
-          {contracts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No active contract yet. Your NextChapter contact sets it up; once it’s in place you can enroll people here. Questions:{' '}
-              <a className="underline underline-offset-4" href="mailto:support@launchyournextchapter.com">
-                support@launchyournextchapter.com
-              </a>
-            </p>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {contracts.map((c, i) => {
-                const util = utilizations[i]
-                return (
-                  <Card key={c.id}>
-                    <CardHeader>
-                      <CardTitle className="text-base">{c.cohortLabel ?? TIER_LABEL[c.tier]}</CardTitle>
-                      <CardDescription>
-                        {PROGRAM_TYPE_LABEL[c.programType]} · {TIER_LABEL[c.tier]} · {c.seatCount} seats
-                      </CardDescription>
-                      <p className="text-xs text-muted-foreground">{PROGRAM_KIND_BLURB[programKindOf(c.journey)]}</p>
-                    </CardHeader>
-                    <CardContent>
-                      {util && !util.suppressed ? (
-                        <p className="text-2xl font-semibold tabular-nums">
-                          {util.activatedSeats ?? '—'}
-                          <span className="text-sm font-normal text-muted-foreground"> / {util.totalSeats} activated</span>
-                        </p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">Too few seats to report without risking re-identification.</p>
-                      )}
-                      {c.programType !== 'OUTPLACEMENT' && (
-                        <Link href={PROGRAM_TYPE_HOME[c.programType]} className="mt-2 inline-block text-sm underline underline-offset-4">
-                          Open {PROGRAM_TYPE_LABEL[c.programType]} →
-                        </Link>
-                      )}
-                      {util && util.scope.granularity === 'quarterly' && (
-                        <p className="mt-1 text-xs text-muted-foreground">Reports quarterly — under 20 seats.</p>
-                      )}
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          )}
-          <p className="max-w-2xl text-xs text-muted-foreground">{PRIVACY_NOTE}</p>
-          <Link href="/employer/reporting" className="text-sm text-muted-foreground underline underline-offset-4">
-            Full reporting →
-          </Link>
-        </section>
-      )}
-
-      {orgUser.role === 'LEGAL' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Compliance pack</CardTitle>
-            <CardDescription>Look up a specific person&apos;s enrollment record for compliance purposes.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/employer/compliance" className={cn(buttonVariants({ variant: 'default' }))}>
-              Look up a compliance record
-            </Link>
-          </CardContent>
-        </Card>
-      )}
-
-      {orgUser.role === 'FINANCE' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Invoices</CardTitle>
-            <CardDescription>Contract totals, PO references, and invoice references.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/employer/invoices" className={cn(buttonVariants({ variant: 'default' }))}>
-              View invoices
-            </Link>
-          </CardContent>
-        </Card>
+      {isAdmin && (
+        <PortalHomeMore label="More for your program">
+          <PortalLinks
+            links={[
+              { href: '/employer/program', label: 'What your program offers', line: 'Set up the services your people get.' },
+              { href: '/employer/roster', label: 'Roster', line: 'Everyone enrolled, by cohort.' },
+              { href: '/employer/team', label: 'Team', line: 'Who at your company can sign in here.' },
+              { href: '/employer/invoices', label: 'Invoices', line: 'Contract totals and invoice references.' },
+            ]}
+          />
+        </PortalHomeMore>
       )}
     </div>
   )

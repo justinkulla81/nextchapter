@@ -19,14 +19,14 @@ export const modernTokens: ResumeTemplateStyleTokens = {
   nameSizePt: 24,
   targetTitleSizePt: 12.5,
   headingSizePt: 11.5,
-  bodySizePt: 10.5,
+  bodySizePt: 9.5,
   contactSizePt: 9.5,
 
   headingCase: 'none', // title case, as typed ("Experience", not "EXPERIENCE")
   headingBold: true,
   headingUsesAccent: true, // headings pick up the accent color; name does too
 
-  marginInches: 0.85,
+  marginInches: 0.65,
 
   spaceAfterHeadingPt: 6.4, // before = 16pt (2.5x)
   spaceAfterParagraphPt: 6,

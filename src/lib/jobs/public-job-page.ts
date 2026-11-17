@@ -83,6 +83,8 @@ export interface PublicJobRow {
   companyName: string
   location: string | null
   description: string | null
+  /** Set by a list read that checked the text's length in the database instead of reading it (withDescriptionStubs); wins over `description`. */
+  hasMinDescription?: boolean
   url: string
   status: string
   archivedAt: Date | null
@@ -181,7 +183,7 @@ export function isPublicJob(job: PublicJobRow, nowMs: number, confirmedGhost = f
   if (job.status !== 'approved' || job.archivedAt || job.closeReason) return false
   if (job.expiresAt && job.expiresAt.getTime() <= nowMs) return false
   if (!job.lastVerifiedAt || nowMs - job.lastVerifiedAt.getTime() > verifiedDays * DAY_MS) return false
-  if ((job.description?.length ?? 0) < PUBLIC_JOB_MIN_DESCRIPTION) return false
+  if (!(job.hasMinDescription ?? (job.description?.length ?? 0) >= PUBLIC_JOB_MIN_DESCRIPTION)) return false
   if (job.disclosure !== 'OPEN' || job.distribution !== 'OPEN') return false
   if (job.institutionScopeId || job.orgScopeId) return false
   if (!(PUBLIC_JOB_SOURCES as readonly string[]).includes(job.source)) return false

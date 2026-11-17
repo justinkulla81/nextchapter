@@ -32,6 +32,7 @@ import type {
   ReferralRecency,
 } from '@prisma/client'
 import { captureMatchBaseline } from '@/lib/personalization/match-snapshot'
+import { searchDetailsChanged } from '@/lib/reports/market-reality-brief/current-report'
 
 export type FormState = { error?: string } | undefined
 
@@ -142,6 +143,21 @@ export async function updateSearchStrategy(
   const startLowerRationale = (formData.get('startLowerRationale') as string | null)?.trim() || null
   const dealBreakers = (formData.get('dealBreakers') as string | null)?.trim() || null
 
+  // Saving the same answers again is not new work: the confirmed date (which earns a new Market Reality report,
+  // src/lib/reports/market-reality-brief/current-report.ts) moves only when something changed, or on the first save.
+  // Every other reader only asks whether it is set.
+  const openTargets = (ts: { function: string }[]) => ts.map((t) => t.function).sort()
+  const detailsChanged =
+    !profile.searchStrategyConfirmedAt ||
+    searchDetailsChanged(profile as unknown as Record<string, unknown>, {
+      targetRoleType, targetIndustries, primaryFunction, secondaryFunction, gapDuration, highestLevelReached, targetCompanySize, targetCompanyStage,
+      remotePreference, compFlexible, equityImportant, willingToStartLower, startLowerRationale, dealBreakers, applicationVolumeGoal,
+      willingToFollowUpOnApplications, openToRelocation, relocationNotes, interimConsultingInterest,
+      ...(maxTravelPct !== null && { maxTravelPct }), ...(targetCompMin !== null && { targetCompMin }), ...rankValues,
+    }) ||
+    searchDetailsChanged({ relocation: (current?.journeyDetails as { relocation?: unknown } | null)?.relocation }, { relocation }) ||
+    (touchPivot && searchDetailsChanged({ pivot: openTargets((previous?.targets ?? []).filter((t) => stanceOf(t) !== 'SET_ASIDE')) }, { pivot: openTargets(chosen) }))
+
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: {
@@ -174,14 +190,14 @@ export async function updateSearchStrategy(
       // set over there.
       ...(targetCompMin !== null && { targetCompMin }),
       ...rankValues,
-      searchStrategyConfirmedAt: new Date(),
+      ...(detailsChanged && { searchStrategyConfirmedAt: new Date() }),
       // Every input above is a direct input to the Search Strategy Guidance
       // paragraph (search-strategy-guidance.ts) — null it out so the next
       // page load regenerates against the freshly-saved values, never a
       // stale take. Never nulled on a plain page read, only here and via
       // the explicit Regenerate action below.
-      searchStrategyGuidance: null,
-      searchStrategyGuidanceGeneratedAt: null,
+      // Kept when nothing changed: the same answers would only buy the same paragraph again.
+      ...(detailsChanged && { searchStrategyGuidance: null, searchStrategyGuidanceGeneratedAt: null }),
       // They set their function here: it is theirs now, not a résumé guess (resume-prefill.ts).
       resumePrefilledFields: profile.resumePrefilledFields.filter((f) => f !== 'primaryFunction'),
     },

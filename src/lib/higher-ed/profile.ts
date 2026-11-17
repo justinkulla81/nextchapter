@@ -25,6 +25,8 @@ export type InstitutionProfile = {
     colors?: string[]
     websiteUrl?: string
     careerCenter?: { name: string; url?: string | null; email?: string | null; phone?: string | null }
+    // The office that licenses the college's inventions, for the patents link on the Learn tab.
+    techTransfer?: { name: string; url: string }
     // Published numbers (enrollment, living alumni, outcomes), each sourced.
     facts?: Sourced<{ label: string; value: string }>[]
   }

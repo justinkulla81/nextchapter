@@ -13134,6 +13134,7 @@ model InstitutionUser {
   @@unique([institutionId, invitedEmail, role])
   @@index([userId, revokedAt])
   @@index([institutionId, role])
+  groupSeats    AlumniGroupFaculty[]
 }
 
 model InstitutionMember {
@@ -16073,6 +16074,7 @@ model AlumniGroup {
   members AlumniGroupMember[]
   events  CollegeEvent[]
   leaves  AlumniGroupLeave[]
+  faculty AlumniGroupFaculty[]
 
   @@index([institutionId, kind])
 }
@@ -16109,6 +16111,21 @@ model SkillBridgeEvent {
 
   @@unique([memberId, kind, skill, offeringKey])
   @@index([institutionId, kind])
+}
+
+// A professor (an InstitutionUser with the FACULTY role) in an alumni
+// industry or function group, so practice and research meet. Shown on the
+// group to its alumni by name.
+model AlumniGroupFaculty {
+  id                String          @id @default(cuid())
+  groupId           String
+  group             AlumniGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  institutionUserId String
+  institutionUser   InstitutionUser @relation(fields: [institutionUserId], references: [id], onDelete: Cascade)
+  createdAt         DateTime        @default(now())
+
+  @@unique([groupId, institutionUserId])
+  @@index([institutionUserId])
 }
 
 // A member who left a group. Auto-join never adds them back; joining by

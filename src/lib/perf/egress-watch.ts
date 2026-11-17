@@ -26,13 +26,18 @@ const FULL_TEXT_ROW_BYTES = 5_000
 const NARROW_ROW_BYTES = 250
 /** A clipped posting text (left(description, n), n up to ~1,000) plus the narrow columns beside it. */
 const CLIPPED_TEXT_ROW_BYTES = 1_200
+/** A statement that returns only ids (a cuid and the row framing). */
+const ID_ROW_BYTES = 40
 
 /** Bytes a row of this statement sends, roughly: full posting or course text is ~5 KB, anything else a few hundred bytes. */
 export function rowBytes(query: string): number {
   // A statement that clips the text (left(description, n)) sends at most the clip, even when a subquery names the full column: the
   // windowed company-signals read was counted as full text and put a 6-hour estimate at 22 GB a day (2026-11-16).
   if (/left\(\s*"?description"?\s*,/i.test(query)) return CLIPPED_TEXT_ROW_BYTES
-  return /"description"|"descriptionHtml"|"rawText"/i.test(query) ? FULL_TEXT_ROW_BYTES : NARROW_ROW_BYTES
+  if (/"description"|"descriptionHtml"|"rawText"/i.test(query)) return FULL_TEXT_ROW_BYTES
+  // Only ids come back (the AI-skill id set, the board's count read): counting them at 250 B put a ~0.06 GB a day read at 0.6 (2026-11-17).
+  if (/^\s*SELECT\s+(?:DISTINCT\s+)?(?:"?\w+"?\.)?"?id"?\s+FROM\s/i.test(query)) return ID_ROW_BYTES
+  return NARROW_ROW_BYTES
 }
 
 export type WatchRow = { queryid: string; rows: number; calls: number; query: string }

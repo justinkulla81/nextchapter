@@ -3,6 +3,7 @@
 // SQL, role checked again there), never Prisma models directly. Tabs with no
 // entry render a "coming in HE-xx" panel from COMING_DESCRIPTIONS.
 
+import { PortalNumbers } from '@/components/partners/PortalHome'
 import { ConnectSections, ConsentHistory, MonthlyEmailPanel, StaffConnect } from './screens-connect'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
@@ -63,6 +64,7 @@ import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, Waitin
 import { AlumniData } from './screens-alumni-data'
 import { DevelopmentGrants } from './screens-grants'
 import { SkillsBridgeSection, StaffSkillsBridge } from './screens-bridge'
+import { AlumniInNews, ResearchAndPatents, TeachingGroups } from './screens-campus'
 import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
@@ -114,7 +116,7 @@ import { removeStaff, resendStaffInvite } from '@/app/i/[slug]/(portal)/staff-ac
 import { ActionButton } from './CommunityForms'
 import { addEarlyCareerRoleAction, addRecruitingDateAction, archiveEarlyCareerRoleAction, removeRecruitingDateAction, saveCoreRecruiter, archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
-export type ScreenSearchParams = { purpose?: string; q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string; track?: string; need?: string } & CommunityParams
+export type ScreenSearchParams = { field?: string; purpose?: string; q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string; track?: string; need?: string } & CommunityParams
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -194,7 +196,7 @@ function PhotoStrip({ profile, limit = 4 }: { profile: InstitutionProfile; limit
 // ── Candidate ───────────────────────────────────────────────────────────────
 
 const CANDIDATE_TOOLS = [
-  { label: 'Market Reality Grade', href: '/dashboard/market-reality', what: 'Where your search stands against the market, graded weekly.' },
+  { label: 'Market Reality Grade', href: '/dashboard/market-reality', what: 'Where your search stands against the market. A new report comes when you have done new work.' },
   { label: 'Search Action Plan', href: '/dashboard', what: 'The next moves that will change your grade.' },
   { label: 'Weekly Search Sprint', href: '/dashboard/sprint', what: "This week's committed actions." },
   { label: 'Dossier', href: '/dashboard/recruiter-report', what: 'Your verified, reference-backed profile for employers.' },
@@ -554,6 +556,11 @@ async function CareerCaseload({ ctx, base, searchParams }: ScreenProps) {
   const q = searchParams.q?.trim() ?? ''
   const found = canEdit && q ? await searchRoster(ctx.institution.id, q) : []
   const waiting = ctx.readOnly ? null : <WaitingForYou ctx={ctx} office="career" base={base} />
+  // The portal Home's three numbers, from the caseload rows already read: no new query.
+  const nowMs = new Date().getTime()
+  const sharing = rows.filter((r) => r.shareSearchDetail).length
+  const activeRecently = rows.filter((r) => r.shareSearchDetail && r.lastActivityAt && nowMs - new Date(r.lastActivityAt).getTime() <= 14 * 86_400_000).length
+  const checkInsDue = rows.filter((r) => r.nextCheckInAt && new Date(r.nextCheckInAt).getTime() - nowMs <= 7 * 86_400_000).length
   return (
     <div className="space-y-6">
       {ctx.ownTokens.has('COACH') && (
@@ -565,6 +572,20 @@ async function CareerCaseload({ ctx, base, searchParams }: ScreenProps) {
         </p>
       )}
       {waiting}
+      {rows.length > 0 && (
+        <PortalNumbers
+          items={[
+            { value: rows.length.toLocaleString(), label: 'On the caseload', source: showCounselor ? 'Across career services' : 'Assigned to you' },
+            {
+              value: activeRecently.toLocaleString(),
+              label: 'Active in the last 14 days',
+              source: `Of ${sharing.toLocaleString()} who share their search with career services`,
+              highlight: true,
+            },
+            { value: checkInsDue.toLocaleString(), label: 'Check-ins in the next 7 days', source: 'Scheduled on the caseload' },
+          ]}
+        />
+      )}
       {rows.length === 0 ? (
         <EmptyState icon={Users} title="No one on this caseload" description="Add someone below. Alumni who tell a check-in they're looking or laid off are added automatically." />
       ) : (
@@ -1561,12 +1582,21 @@ async function CandidateWork(props: ScreenProps) {
     </div>
   )
 }
+async function AlumniCommunityAll(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <AlumniCommunity {...props} />
+      <AlumniInNews {...props} />
+    </div>
+  )
+}
 async function CandidatePeople(props: ScreenProps) {
   return (
     <div className="space-y-10">
       <PeopleSections {...props} />
       <ConnectSections ctx={props.ctx} />
       <CandidateNetwork {...props} />
+      <AlumniInNews {...props} />
     </div>
   )
 }
@@ -1584,6 +1614,7 @@ async function CandidateLearn(props: ScreenProps) {
   return (
     <div className="space-y-10">
       <SkillsBridgeSection {...props} />
+      <ResearchAndPatents {...props} />
       <LearnSections {...props} />
       {mods.programs && <CandidatePrograms {...props} />}
     </div>
@@ -1634,9 +1665,10 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:mentors': CandidateMentoring,
   'alumni:home': AlumniHome,
   'alumni:mentors': AlumniMentorsAll,
-  'alumni:community': AlumniCommunity,
+  'alumni:community': AlumniCommunityAll,
   'alumni:volunteers': AlumniVolunteers,
   'teaching:auditors': TeachingAuditors,
+  'teaching:groups': TeachingGroups,
   'admin:privacy': AdminPrivacyAll,
   'alumni:connect': StaffConnectScreen,
   'career:circles': StaffConnectScreen,

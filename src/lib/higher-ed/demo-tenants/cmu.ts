@@ -234,6 +234,7 @@ export const CMU_TENANT: DemoTenant = {
       founded: 1900,
       websiteUrl: 'https://www.cmu.edu/',
       careerCenter: { name: 'Career and Professional Development Center', url: 'https://www.cmu.edu/career/' },
+      techTransfer: { name: 'Center for Technology Transfer and Enterprise Creation', url: 'https://www.cmu.edu/cttec/' },
       facts: [
         { label: 'Alumni', value: '146,000+ in 148 countries', asOf: 'Accessed Nov 2026', source: 'CMU Alumni facts', sourceUrl: 'https://www.cmu.edu/engage/about-us/news/alumni/alumni-facts.html' },
         {
