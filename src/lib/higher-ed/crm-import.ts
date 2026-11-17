@@ -73,6 +73,8 @@ export async function importRosterRows(args: { institutionId: string; rows: Rost
         classYear: r.classYear,
         degree: r.degree,
         major: r.major,
+        ...(r.school !== undefined ? { school: r.school } : {}),
+        ...(r.department !== undefined ? { department: r.department } : {}),
         lastKnownEmployer: r.employer,
         lastKnownEmployerNormalized: r.employer ? normalizeOrgName(r.employer) : null,
         lastKnownTitle: r.title,

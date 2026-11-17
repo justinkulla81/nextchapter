@@ -201,13 +201,21 @@ export async function listGroups(institutionId: string, memberId: string | null)
     ...g,
     joined: mine.has(g.id),
     // Joined automatically because of their major: the card says so.
-    autoJoined: mine.get(g.id) === 'AUTO_MAJOR',
+    // Why it was added automatically: 'major', 'school' or 'department'; null when they joined by click.
+    autoJoinedFor: autoReason(mine.get(g.id)),
     leaders: g.members.map((l) => `${full(l.member.firstName, l.member.lastName)}${yr(l.member.classYear)}`),
   }))
 }
 
 // Leaving writes an AlumniGroupLeave row so auto-join by major never adds the
 // member back; joining by click clears it.
+function autoReason(joinedVia: string | undefined): 'major' | 'school' | 'department' | null {
+  if (joinedVia === 'AUTO_MAJOR') return 'major'
+  if (joinedVia === 'AUTO_SCHOOL') return 'school'
+  if (joinedVia === 'AUTO_DEPARTMENT') return 'department'
+  return null
+}
+
 export async function joinGroup(groupId: string, memberId: string, join: boolean) {
   if (join) {
     await prisma.$transaction([

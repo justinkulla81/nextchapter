@@ -29,7 +29,7 @@ import {
   searchDirectory,
   suggestMatches,
 } from '@/lib/higher-ed/community'
-import { rosterMajors } from '@/lib/higher-ed/major-groups'
+import { rosterAutoJoinOptions } from '@/lib/higher-ed/major-groups'
 import { findMembers, listRequests } from '@/lib/higher-ed/data-requests'
 import { collegeTimeZone, formatInZone, zoneLabel } from '@/lib/higher-ed/time-zone'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -43,7 +43,7 @@ import {
   CohortForm,
   CohortSignup,
   GroupForm,
-  GroupMajorsForm,
+  GroupAutoJoinForm,
   LeaderEventForm,
   LeaderForm,
   ListedToggle,
@@ -343,7 +343,7 @@ export async function PeopleSections({ ctx, searchParams, base }: Props) {
                       {g.kind === 'chapter' ? `Chapter${g.metro ? ` · ${g.metro}` : ''}` : 'Affinity group'} · {g._count.members} members
                       {g.leaders.length ? ` · Led by ${g.leaders.join(', ')}` : ''}
                     </p>
-                    {g.autoJoined && <p className="text-xs text-muted-foreground">You were added for your major. Leave any time; we won’t add you back.</p>}
+                    {g.autoJoinedFor && <p className="text-xs text-muted-foreground">You were added for your {g.autoJoinedFor}. Leave any time; we won’t add you back.</p>}
                   </div>
                   {canAct(ctx) && <ActionButton label={g.joined ? 'Leave' : 'Join'} variant={g.joined ? 'ghost' : 'default'} done={g.joined ? 'Left.' : 'Joined.'} run={A.joinGroupAction.bind(null, slug, g.id, !g.joined)} />}
                 </div>
@@ -605,6 +605,16 @@ export async function PrivacyExtras({ ctx }: { ctx: WorkspaceContext }) {
   )
 }
 
+// "majors: Economics; schools: tepper school of business" for the staff list.
+function autoJoinSummary(g: { majors: string[]; schools: string[]; departments: string[] }): string {
+  const parts = [
+    g.majors.length ? `majors ${g.majors.join(', ')}` : '',
+    g.schools.length ? `schools ${g.schools.join(', ')}` : '',
+    g.departments.length ? `departments ${g.departments.join(', ')}` : '',
+  ].filter(Boolean)
+  return parts.join('; ')
+}
+
 // ── Alumni Relations › Community ────────────────────────────────────────────
 
 export async function AlumniCommunity({ ctx }: Props) {
@@ -612,12 +622,12 @@ export async function AlumniCommunity({ ctx }: Props) {
   const id = ctx.institution.id
   const slug = ctx.institution.slug
   const write = !ctx.readOnly
-  const [groups, ops, questions, news, majors] = await Promise.all([
+  const [groups, ops, questions, news, autoOptions] = await Promise.all([
     listGroups(id, null),
     prisma.alumniOpportunity.findMany({ where: { institutionId: id, status: 'OPEN' }, orderBy: { createdAt: 'desc' }, take: 40, include: { postedBy: { select: { firstName: true, lastName: true } }, _count: { select: { interests: true } } } }),
     listQuestions(id),
     prisma.collegeNewsPost.findMany({ where: { institutionId: id }, orderBy: { publishedAt: 'desc' }, take: 20 }),
-    write ? rosterMajors(id) : Promise.resolve([]),
+    write ? rosterAutoJoinOptions(id) : Promise.resolve(undefined),
   ])
   return (
     <div className="space-y-10">
@@ -631,11 +641,13 @@ export async function AlumniCommunity({ ctx }: Props) {
                   <p className="font-medium">
                     {g.name} <span className="text-xs font-normal text-muted-foreground">{g.kind === 'chapter' ? `chapter${g.metro ? `, ${g.metro}` : ''}` : 'affinity'} · {g._count.members} members · leaders: {g.leaders.join(', ') || 'none yet'}</span>
                   </p>
-                  {g.majors.length > 0 && <p className="w-full text-xs text-muted-foreground">Adds alumni automatically for: {g.majors.join(', ')}</p>}
+                  {autoJoinSummary(g) && <p className="w-full text-xs text-muted-foreground">Adds alumni automatically: {autoJoinSummary(g)}</p>}
                   {write && <ConfirmActionButton variant="outline" label="Archive" confirm={`Archive ${g.name}? Alumni stop seeing it; members and events stay on record.`} confirmLabel="Archive group" run={A.archiveGroup.bind(null, slug, g.id)} />}
                 </div>
                 {write && <LeaderForm slug={slug} groupId={g.id} />}
-                {write && g.kind === 'affinity' && <GroupMajorsForm slug={slug} groupId={g.id} current={g.majors.join(', ')} majors={majors} />}
+                {write && g.kind === 'affinity' && (
+                  <GroupAutoJoinForm slug={slug} groupId={g.id} current={{ majors: g.majors.join(', '), schools: g.schools.join(', '), departments: g.departments.join(', ') }} options={autoOptions} />
+                )}
               </li>
             ))}
           </ul>
@@ -646,7 +658,7 @@ export async function AlumniCommunity({ ctx }: Props) {
           <details className={card} open={!groups.length}>
             <summary className="cursor-pointer text-sm font-semibold">Add a group or chapter</summary>
             <div className="mt-3">
-              <GroupForm slug={slug} majors={majors} />
+              <GroupForm slug={slug} options={autoOptions} />
             </div>
           </details>
         )}

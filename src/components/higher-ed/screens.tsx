@@ -1025,7 +1025,7 @@ async function CandidatePrivacy({ ctx }: ScreenProps) {
 
 // ── Admin ───────────────────────────────────────────────────────────────────
 
-const ROSTER_COLUMNS = 'external_id, email, first_name, last_name, affiliation, class_year, degree, major, employer, title, do_not_contact'
+const ROSTER_COLUMNS = 'external_id, email, first_name, last_name, affiliation, class_year, degree, major, school, department, employer, title, do_not_contact'
 const GIFT_COLUMNS = 'external_id, gift_date, amount, fund, appeal'
 
 async function AdminRoster({ ctx }: ScreenProps) {

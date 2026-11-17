@@ -37,6 +37,8 @@ export type AlumniData = {
   founders: number | null
   decade: Breakdown
   major: Breakdown
+  school: Breakdown
+  department: Breakdown
   moves: { newJobs: number | null; promotions: number | null; layoffMatches: number | null }
 }
 
@@ -99,7 +101,7 @@ async function load(institutionId: string, now: Date): Promise<AlumniData> {
   const from = new Date(now.getTime() - 365 * DAY)
   const rows = await prisma.$queryRaw<Row[]>`
     with base as materialized (
-      select m.id, m."candidateId", m."classYear", m.major, m."lastKnownTitle",
+      select m.id, m."candidateId", m."classYear", m.major, m.school, m.department, m."lastKnownTitle",
         (m."candidateId" is not null and m.status in ('CLAIMED', 'ACTIVE')) as joined
       from public."InstitutionMember" m
       where m."institutionId" = ${institutionId} and m.affiliation in ('ALUM', 'STAFF_ALUM')
@@ -135,7 +137,11 @@ async function load(institutionId: string, now: Date): Promise<AlumniData> {
     union all select 'founders', null, count(*)::int from shared where title ~* ${FOUNDER_TITLE} and title !~* ${NOT_FOUNDER}
     union all select 'decade', (("classYear" / 10) * 10)::text, count(*)::int from base where "classYear" is not null group by 2
     union all select 'major', min(btrim(major)), count(*)::int from base where major is not null
-      group by btrim(regexp_replace(regexp_replace(replace(lower(major), '&', ' and '), '[^a-z0-9 ]', ' ', 'g'), '\\s+', ' ', 'g'))`
+      group by btrim(regexp_replace(regexp_replace(replace(lower(major), '&', ' and '), '[^a-z0-9 ]', ' ', 'g'), '\\s+', ' ', 'g'))
+    union all select 'school', min(btrim(school)), count(*)::int from base where school is not null
+      group by btrim(regexp_replace(regexp_replace(replace(lower(school), '&', ' and '), '[^a-z0-9 ]', ' ', 'g'), '\\s+', ' ', 'g'))
+    union all select 'department', min(btrim(department)), count(*)::int from base where department is not null
+      group by btrim(regexp_replace(regexp_replace(replace(lower(department), '&', ' and '), '[^a-z0-9 ]', ' ', 'g'), '\\s+', ' ', 'g'))`
   // Counts only: distinct members, computed in the database.
   const [[moves], promotions] = await Promise.all([
     prisma.$queryRaw<{ newJobs: number; layoffs: number }[]>`
@@ -163,6 +169,8 @@ async function load(institutionId: string, now: Date): Promise<AlumniData> {
       { order: of('decade').map((r) => (r.value ? `${r.value}s` : '')).sort() },
     ),
     major: toBreakdown(of('major'), { limit: 15 }),
+    school: toBreakdown(of('school'), { limit: 15 }),
+    department: toBreakdown(of('department'), { limit: 15 }),
     moves: { newJobs: atLeast(moves?.newJobs ?? 0), promotions: atLeast(promotions), layoffMatches: atLeast(moves?.layoffs ?? 0) },
   }
 }

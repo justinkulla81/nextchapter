@@ -107,6 +107,8 @@ export async function AlumniData({ ctx }: Props) {
         <div className="grid gap-4 lg:grid-cols-2">
           <BreakdownPanel id="ad-decade" title="Class decade" b={d.decade} of={d.roster} ofLabel="alumni on the roster" />
           <BreakdownPanel id="ad-major" title="Major" b={d.major} of={d.roster} ofLabel="alumni on the roster" />
+          {d.school.covered > 0 && <BreakdownPanel id="ad-school" title="School or college" b={d.school} of={d.roster} ofLabel="alumni on the roster" />}
+          {d.department.covered > 0 && <BreakdownPanel id="ad-department" title="Department" b={d.department} of={d.roster} ofLabel="alumni on the roster" />}
         </div>
       </div>
     </div>
