@@ -82,6 +82,14 @@ export async function mergeOrganizations(
     await tx.crmResearchItem.updateMany(move)
     await tx.crmSourceRecord.updateMany(move)
     await tx.crmMeetingPrep.updateMany(move)
+    // Page claims and members' interest in a firm are deleted with the organization, and public org pages link to it by plain id,
+    // so they move too. A member interested in both firms keeps the survivor's row (one per member and firm).
+    await tx.orgClaim.updateMany({ where: { crmOrganizationId: sourceId }, data: { crmOrganizationId: survivorId } })
+    for (const r of await tx.recruiterInterest.findMany({ where: { firmOrgId: survivorId }, select: { candidateId: true } })) {
+      await tx.recruiterInterest.deleteMany({ where: { firmOrgId: sourceId, candidateId: r.candidateId } })
+    }
+    await tx.recruiterInterest.updateMany({ where: { firmOrgId: sourceId }, data: { firmOrgId: survivorId } })
+    await tx.publicOrgPage.updateMany({ where: { crmOrgId: sourceId }, data: { crmOrgId: survivorId } })
     await tx.crmIntroPath.updateMany({ where: { targetOrgId: sourceId }, data: { targetOrgId: survivorId } })
     await tx.searchFirm.updateMany({ where: { crmOrgId: sourceId }, data: { crmOrgId: survivorId } })
     await tx.productCompetitor.updateMany({ where: { crmOrgId: sourceId }, data: { crmOrgId: survivorId } })
