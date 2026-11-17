@@ -218,7 +218,7 @@ export function buildMetroStats(input: MetroInputs): MetroStat[] {
       ajcPer100k: laborForce > 0 ? (sumOf(cs, (x) => x.c.ajc) / laborForce) * 100_000 : null,
       communityCollegesPer100k: (sumOf(cs, (x) => x.c.communityColleges) / population) * 100_000,
       supportOrgsPer100k: (sumOf(cs, (x) => x.c.supportOrgs) / population) * 100_000,
-      statePrograms: input.statePrograms.get(st) ?? null,
+      statePrograms: input.statePrograms.get(st) ?? 0,
       aiPayPremium: (() => {
         const ai = ps.flatMap((p) => p.aiPay)
         const plain = ps.flatMap((p) => p.plainPay)
@@ -260,6 +260,8 @@ export interface Criterion {
   title: string
   slug: string
   weight: number
+  /** A metro without a figure is scored on the other criteria instead of being left out (the AI pay premium: few metros have enough postings). */
+  optional?: boolean
   /** What the criterion measures, in one sentence. */
   what: string
   parts: Part[]
@@ -276,14 +278,14 @@ export const MIN_AI_PAID = 10
 
 export const CRITERIA: Criterion[] = [
   {
-    id: 'wp_open', label: 'White-collar job openings', weight: 12,
+    id: 'wp_open', label: 'White-collar job openings', weight: 11,
     title: 'Metros with the most white-collar job openings per worker', slug: 'metros-with-the-most-white-collar-job-openings',
     what: 'Open white-collar roles per 1,000 white-collar workers who live there, so a small metro with a busy market can beat a big one.',
     parts: [{ label: 'Openings per 1,000 white-collar workers', weight: 1, value: (m) => m.openingsPer1k, show: one }],
     lead: (n, v, s) => `${n} has the most white-collar openings per worker in ${s}: ${v} open roles for every 1,000 white-collar workers.`,
   },
   {
-    id: 'wp_grow', label: 'White-collar job growth', weight: 10,
+    id: 'wp_grow', label: 'White-collar job growth', weight: 9,
     title: 'Metros with the fastest white-collar job growth', slug: 'metros-with-the-fastest-white-collar-job-growth',
     what: 'The change in private-sector jobs in the white-collar sectors (information, finance and insurance, professional and technical services, management of companies) from 2022 to 2025.',
     parts: [{ label: 'White-collar sector jobs, 2022 to 2025', weight: 1, value: (m) => m.wcGrowth, show: signed }],
@@ -297,7 +299,7 @@ export const CRITERIA: Criterion[] = [
     lead: (n, v, s) => `White-collar pay goes furthest in ${n}: after a year of owning the median home, the median posted salary leaves what ${v} buys at national prices, the best in ${s}.`,
   },
   {
-    id: 'wp_house', label: 'Housing costs against salaries', weight: 7,
+    id: 'wp_house', label: 'Housing costs against salaries', weight: 8,
     title: 'Metros where housing is most affordable on a white-collar salary', slug: 'metros-with-the-most-affordable-housing-for-white-collar-salaries',
     what: 'The median home value and a year of median rent, each divided by the median posted white-collar salary.',
     parts: [
@@ -307,7 +309,7 @@ export const CRITERIA: Criterion[] = [
     lead: (n, v, s) => `Housing is most affordable on a white-collar salary in ${n}, with a score of ${v} among metros in ${s}.`,
   },
   {
-    id: 'wp_supply', label: 'Housing supply', weight: 3,
+    id: 'wp_supply', label: 'Housing supply', weight: 2,
     title: 'Metros building the most new housing', slug: 'metros-building-the-most-new-housing',
     what: 'New housing units permitted in the latest year per 1,000 residents: where housing stock is growing, prices are under less pressure.',
     parts: [{ label: 'New homes permitted per 1,000 residents', weight: 1, value: (m) => m.permitsPer1k, show: one }],
@@ -321,14 +323,14 @@ export const CRITERIA: Criterion[] = [
     lead: (n, v, s) => `${n} has the lowest estimated white-collar unemployment in ${s}, at ${v}.`,
   },
   {
-    id: 'wp_layoff', label: 'Fewest white-collar layoffs', weight: 8,
+    id: 'wp_layoff', label: 'Fewest white-collar layoffs', weight: 9,
     title: 'Metros with the fewest white-collar layoffs', slug: 'metros-with-the-fewest-white-collar-layoffs',
     what: 'Workers named in WARN layoff notices over the last 12 months per 1,000 white-collar workers. Notices in blue-collar industries (manufacturing, construction, retail, warehousing, hotels and food) are left out; a notice that names no county or city is shared across its state by white-collar workers.',
     parts: [{ label: 'Workers laid off per 1,000 white-collar workers', weight: 1, value: (m) => m.layoffsPer1k, show: one, lowerIsBetter: true }],
     lead: (n, v, s) => `${n} had the fewest white-collar layoffs in ${s}: ${v} workers in layoff notices per 1,000 white-collar workers over the last year.`,
   },
   {
-    id: 'wp_ai', label: 'Least exposed to AI', weight: 6,
+    id: 'wp_ai', label: 'Least exposed to AI', weight: 10,
     title: 'Metros whose jobs and industries are least exposed to AI', slug: 'metros-least-exposed-to-ai',
     what: 'Half the share of private-sector jobs in the industries most exposed to AI (information, finance, professional services, management of companies, admin and staffing), half the average observed AI exposure of the metro\'s open white-collar jobs by occupation (Anthropic Economic Index).',
     parts: [
@@ -338,14 +340,14 @@ export const CRITERIA: Criterion[] = [
     lead: (n, v, s) => `${n}'s jobs and industries are the least exposed to AI among metros in ${s}, with a score of ${v}.`,
   },
   {
-    id: 'wp_aipay', label: 'Pay premium for AI skills', weight: 5,
+    id: 'wp_aipay', label: 'Pay premium for AI skills', weight: 2, optional: true,
     title: 'Metros where AI skills pay the most', slug: 'metros-where-ai-skills-pay-the-most',
-    what: 'How much higher the median posted salary is for white-collar openings that ask for AI skills than for those that do not, in the same metro.',
+    what: `How much higher the median posted salary is for white-collar openings that ask for AI skills than for those that do not, in the same metro. A metro needs at least ${MIN_AI_PAID} AI-skill openings that post pay; one with fewer is scored on the other criteria, so this one counts for little.`,
     parts: [{ label: 'Posted pay premium for AI skills', weight: 1, value: (m) => m.aiPayPremium, show: (v) => `${v >= 0 ? '+' : '−'}${Math.abs(Math.round(v * 100))}%` }],
     lead: (n, v, s) => `AI skills pay the most in ${n}: white-collar openings that ask for them post a median salary ${v} against those that do not, the highest in ${s}.`,
   },
   {
-    id: 'wp_train', label: 'Retraining and local job support', weight: 8,
+    id: 'wp_train', label: 'Retraining and local job support', weight: 9,
     title: 'Metros with the most retraining and local job support', slug: 'metros-with-the-most-retraining-and-job-help',
     what: 'American Job Centers (the public offices that fund and arrange retraining) per 100,000 workers, public community and technical colleges per 100,000 residents, workforce development, job-training and economic development organizations per 100,000 residents, and the open state retraining, job-seeker support and relocation programs in the metro\'s state.',
     parts: [
@@ -398,7 +400,7 @@ export const CRITERIA: Criterion[] = [
     lead: (n, v, s) => `${n} has the strongest community investment and infrastructure in ${s}, with a score of ${v}.`,
   },
   {
-    id: 'wp_peers', label: 'Professional community', weight: 2,
+    id: 'wp_peers', label: 'Professional community', weight: 1,
     title: 'Metros with the largest share of white-collar workers', slug: 'metros-with-the-largest-share-of-white-collar-workers',
     what: 'The share of workers in white-collar occupations (Census), the size of the professional network you join.',
     parts: [{ label: 'Workers in white-collar occupations', weight: 1, value: (m) => m.wcShare, show: pct0 }],
@@ -453,13 +455,17 @@ export function criterionScores(pool: MetroStat[]): Map<string, Record<string, n
 /** The all-round score: criterion scores averaged by weight. A metro missing more than 20% of the weight is not scored. */
 export function allRoundScore(scores: Record<string, number | null>): number | null {
   // A metro must have every criterion: one it has no figure for leaves it out of the list rather than being guessed.
-  let num = 0
+  let num = 0, w = 0
   for (const c of CRITERIA) {
     const v = scores[c.id]
-    if (v == null) return null
+    if (v == null) {
+      if (c.optional) continue
+      return null
+    }
     num += v * c.weight
+    w += c.weight
   }
-  return num / totalWeight()
+  return num / w
 }
 
 export const totalWeight = () => sumOf(CRITERIA, (c) => c.weight)
@@ -511,7 +517,7 @@ export function rankWhitePlaces(spec: Spec, stats: MetroStat[], link: (m: MetroS
           { label: 'White-collar job growth', value: show('wp_grow') },
           { label: 'Home value ÷ pay', value: show('wp_house') },
           { label: 'Laid off per 1,000 white-collar workers', value: show('wp_layoff') },
-          { label: 'AI pay premium', value: show('wp_aipay') },
+          { label: 'White-collar unemployment', value: show('wp_unemp') },
         ],
       }]
     })
@@ -520,12 +526,21 @@ export function rankWhitePlaces(spec: Spec, stats: MetroStat[], link: (m: MetroS
       lead: (name, v, scope) => `${name} is the best place for white-collar professionals in ${scope}, scoring ${v} across ${CRITERIA.length} measures of jobs, pay, housing, layoffs, AI, retraining, schools and community.`,
       method: [
         `A metro's score is the weighted average of its scores on ${CRITERIA.length} criteria. Each criterion scores a metro by its percentile among the ranked metros nationwide (100 is best), averaging the parts of a criterion that has several. The weights: ${CRITERIA.map((c) => `${c.label.toLowerCase()} ${c.weight}%`).join(', ')}.`,
-        'A metro is ranked only if it has a figure for every criterion. Every criterion has its own ranking, linked from this page.',
+        'A metro is ranked only if it has a figure for every criterion except the AI pay premium; a metro with too few AI-skill postings is scored on the rest. Every criterion has its own ranking, linked from this page.',
         ...METHOD_COMMON,
       ],
     })
     if (!ed) return null
     ed.components = COMPONENTS
+    // Say which large metros are not ranked and what they lack, so a missing city is explained rather than a mystery.
+    const missing = inScope
+      .map((m) => ({ m, lack: CRITERIA.filter((c) => !c.optional && (scores.get(m.cbsa) as Record<string, number | null>)[c.id] == null) }))
+      .filter((x) => x.lack.length)
+      .sort((a, b) => b.m.population - a.m.population)
+    if (missing.length) {
+      const named = missing.slice(0, 6).map((x) => `${x.m.name} (${x.lack.map((c) => c.label.toLowerCase()).join(', ')})`)
+      ed.commentary.push(`${missing.length} more ${missing.length === 1 ? 'metro has' : 'metros have'} the size to qualify but no figure for at least one criterion, so ${missing.length === 1 ? 'it is' : 'they are'} not ranked. The largest: ${named.join('; ')}.`)
+    }
     ed.faq.splice(1, 0,
       { q: 'What makes a place good for white-collar professionals?', a: `We weigh ${CRITERIA.length} things: ${CRITERIA.map((c) => c.label.toLowerCase()).join(', ')}. Jobs, pay, layoffs and AI exposure are measured for white-collar work only.` },
       { q: 'Why metro areas and not cities?', a: 'People live in one county and work in another. A metro area is the market you job-hunt in, and cost of living is published for metros, not for every city.' },
