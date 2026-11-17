@@ -6,7 +6,7 @@ import { Check, Minus } from 'lucide-react'
 import type { ExclusiveJobPosting } from '@prisma/client'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Button } from '@/components/ui/button'
-import { Avatar, Section } from '@/components/candidate/ui'
+import { Section } from '@/components/candidate/ui'
 import { ActionLink } from '@/components/candidate/ActionLink'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { promoteJobBoardListing, recordJobClick } from '@/app/dashboard/find-my-job/actions'
@@ -221,7 +221,6 @@ export function FindJobDetail({
     <article className="space-y-7 rounded-2xl border border-border bg-white p-5 sm:p-7" aria-label={`${posting.title} at ${item.company}`}>
       <header className="space-y-4">
         <div className="flex items-start gap-4">
-          <Avatar name={item.company} size="lg" />
           <div className="min-w-0 space-y-1">
             <h2 className="font-display text-2xl leading-tight font-semibold text-ink">{posting.title}</h2>
             <p className="text-base text-ink">

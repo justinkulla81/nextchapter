@@ -1,6 +1,6 @@
 import { ActionLink } from '@/components/candidate/ActionLink'
 import { ShowMore } from '@/components/candidate/ShowMore'
-import { Avatar, Chip } from '@/components/candidate/ui'
+import { Chip } from '@/components/candidate/ui'
 import { FindPartMessage } from '@/components/dashboard/find/FindPartMessage'
 import { splitFirstView, type UnpostedItem } from '@/lib/jobs/find-unposted'
 
@@ -13,7 +13,6 @@ function OpeningRow({ item }: { item: UnpostedItem }) {
   return (
     <li className="flex flex-wrap items-center justify-between gap-4 p-5">
       <div className="flex min-w-0 flex-1 basis-80 gap-4">
-        <Avatar name={item.companyName} />
         <div className="min-w-0 space-y-1">
           <p className="flex flex-wrap items-center gap-2 text-lg font-semibold text-ink">
             {item.companyName} <Chip tone="warm">{item.signalLabel}</Chip>

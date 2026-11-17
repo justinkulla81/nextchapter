@@ -1,48 +1,20 @@
 import { BoardSearchBar } from '@/components/dashboard/one-board/BoardSearchBar'
 import { LookingForChoice } from '@/components/dashboard/one-board/LookingForChoice'
+import { NextMoveCard } from '@/components/dashboard/NextMoveSection'
+import { nextMove } from '@/lib/market/next-move'
 
 // Find a job, simplified (owner, 2026-11-17): search, one question, one next move with its reason, the jobs.
 // Everything else sits in one fold under the list. Sample data.
+const tune = { pct: 55, asks: [{ ask: 'Add your city.', gain: "We'd check commute distance on 197 matches we can't place today." }, { ask: 'Confirm your tools.', gain: 'A sharper skills match on every job.' }] }
 const MOVES = [
-  {
-    kind: 'Stay the course',
-    text: "You're in a good pool: about 163 advertised roles fit you, and the number is steady.",
-    why: 'At your level most roles are filled through introductions, so reaching people at these companies does more than widening the search.',
-    action: 'See who to contact at these jobs',
-  },
-  {
-    kind: 'Consider a pivot',
-    text: 'Only about 12 roles fit you, and your field is shrinking.',
-    why: 'Operations finance has 3 times the openings for your experience and asks for skills you already have.',
-    action: 'See where to widen',
-  },
-  {
-    kind: 'Add a skill',
-    text: 'Half the roles that fit you ask for SQL or Power BI.',
-    why: 'You have neither on your profile. Either one opens about 40 more roles.',
-    action: 'See the skills to add',
-  },
-  {
-    kind: 'Finish your profile',
-    text: 'Your matches are 55% tuned.',
-    why: "Add your city and confirm your tools: we'll check commute on 197 jobs we can't place and sharpen the skills match.",
-    action: 'Improve my matches',
-  },
+  nextMove({ market: { open: 163, growth: 0, prompt: 'healthy', senior: true }, tune: { ...tune, pct: 90 } })!,
+  nextMove({ market: { open: 12, growth: -0.3, prompt: 'too_few', senior: false }, tune: { ...tune, pct: 90 } })!,
+  nextMove({ market: { open: 80, growth: -0.4, prompt: 'shrinking', senior: false }, tune })!,
+  nextMove({ market: { open: 163, growth: 0, prompt: 'healthy', senior: true }, tune })!,
 ]
 
 function NextMove({ m }: { m: (typeof MOVES)[number] }) {
-  return (
-    <section className="flex flex-wrap items-center justify-between gap-4 rounded-lg bg-muted/50 p-4">
-      <div className="max-w-2xl space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Your next move: {m.kind}</p>
-        <p className="text-base font-medium text-ink">{m.text}</p>
-        <p className="text-sm text-muted-foreground">{m.why}</p>
-      </div>
-      <a href="#" className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-        {m.action}
-      </a>
-    </section>
-  )
+  return <NextMoveCard move={m} track={{}} />
 }
 
 function Job({ title, meta, why }: { title: string; meta: string; why: string }) {
