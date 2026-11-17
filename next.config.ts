@@ -13,6 +13,8 @@ const posthogAssetHost = posthogHost.replace("https://", "https://").replace(/^h
 // or truncated in an email), so none of them 404s.
 const REPORT_NAME = "white-collar-employment-report";
 const REPORT_CUTOFFS = Array.from({ length: REPORT_NAME.length - 4 }, (_, i) => REPORT_NAME.slice(0, i + 5)).join("|");
+// Every cut-off of a published edition's month ("o" ... "october"), for links cut inside the month.
+const MONTH_CUTOFFS = [...new Set(["october", "september"].flatMap((m) => Array.from({ length: m.length }, (_, i) => m.slice(0, i + 1))))].join("|");
 
 const nextConfig: NextConfig = {
   // The email handwriting route reads this font from disk at request time, so the build has to ship it with the function.
@@ -308,13 +310,20 @@ const nextConfig: NextConfig = {
         destination: '/reports/latest',
         permanent: true,
       },
+      // A link cut inside the month or the year ("...-oct", "...-october-2"): the
+      // month names its edition, so send a cut year to that edition, the rest to the newest.
       {
-        source: '/reports/white-collar-employment-report-:month(october|september)-',
+        source: '/reports/white-collar-employment-report-:month(october|september)-:year(2|20|202)',
+        destination: '/reports/white-collar-employment-report-:month-2026',
+        permanent: true,
+      },
+      {
+        source: `/reports/white-collar-employment-report-:cut(${MONTH_CUTOFFS})`,
         destination: '/reports/latest',
         permanent: true,
       },
       {
-        source: '/reports/white-collar-employment-report-:month(october|september)',
+        source: '/reports/white-collar-employment-report-:month(october|september)-',
         destination: '/reports/latest',
         permanent: true,
       },
