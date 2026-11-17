@@ -86,6 +86,41 @@ export const CMU_TENANT: DemoTenant = {
     'Mathematical Sciences': 'Mellon College of Science',
   },
   memberCount: 240,
+  // Fictional groups shaped like CMU's alumni: two chapters, then industry groups that alumni join by major.
+  groups: [
+    { kind: 'chapter', name: 'Pittsburgh Chapter', metro: 'Pittsburgh', description: 'Happy hours, a fall service day and the spring career night.' },
+    { kind: 'chapter', name: 'South Florida Chapter', metro: 'Miami', description: 'Alumni in Miami and South Florida, ahead of CMU Miami.' },
+    { kind: 'affinity', name: 'Data and AI', metro: null, description: 'Alumni building and using AI and data, from research labs to product teams.', majors: ['Computer Science', 'Statistics and Data Science', 'Information Systems', 'Mathematical Sciences'] },
+    { kind: 'affinity', name: 'Robotics and Manufacturing', metro: null, description: 'Robotics, autonomy and advanced manufacturing, Pittsburgh’s home industries.', majors: ['Mechanical Engineering', 'Electrical and Computer Engineering'] },
+    { kind: 'affinity', name: 'Finance and Fintech', metro: null, description: 'Banking, investing, corporate finance and the startups changing them.', majors: ['Business Administration', 'Economics'] },
+  ],
+  // Fictional studies by the fictional professor below (no real CMU faculty, lab or project is named).
+  researchRequests: [
+    {
+      title: 'How plants adopt AI for quality inspection',
+      lab: 'Prof. Quinn Adeyemi, manufacturing systems research',
+      description: 'Thirty-minute interviews with plant, quality and operations managers about where AI vision inspection worked, where it stalled, and what it cost. You get the findings before they are published.',
+      fields: ['Manufacturing', 'Operations', 'Robotics'],
+      durationWeeks: 8,
+      compensation: 'volunteer',
+    },
+    {
+      title: 'Survey: generative AI in financial forecasting',
+      lab: 'Prof. Quinn Adeyemi, with a Tepper doctoral student',
+      description: 'A fifteen-minute anonymous survey for FP&A, treasury and controllership staff on how they use generative AI in forecasts, plus optional follow-up calls. Results shared with everyone who takes part.',
+      fields: ['Finance'],
+      durationWeeks: 6,
+      compensation: 'volunteer',
+    },
+    {
+      title: 'A pilot site for warehouse robot safety',
+      lab: 'Prof. Quinn Adeyemi, human-robot interaction study',
+      description: 'We are looking for one or two warehouses or distribution centers willing to host a four-week observation study of how workers and mobile robots share aisles. Paid site fee; all data anonymized.',
+      fields: ['Logistics', 'Robotics', 'Operations'],
+      durationWeeks: 4,
+      compensation: 'paid',
+    },
+  ],
   annualCheckInMonth: 10,
   services: {
     events: { on: true },

@@ -224,15 +224,22 @@ export async function EmployerDossiersWithIntros({ ctx }: Props) {
     return <EmptyState icon={Users} title="No shared Dossiers yet" description="Members appear here only after they choose to share their Dossier with employers." />
   }
   const status = employerProfileId ? await introStatusFor(employerProfileId, rows.map((r) => r.memberId)) : new Map()
+  const workforce = ctx.institution.orgType !== 'COLLEGE'
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <div className="space-y-4">
+      <p className="max-w-2xl text-sm text-muted-foreground">
+        {rows.length.toLocaleString()} {workforce ? `people in ${ctx.institution.programBrandName ?? ctx.institution.name}` : 'members'} chose to share their profile
+        with hiring employers. Ask for an introduction; each person says yes or no, and you see their email only if they say yes.
+        {ctx.readOnly && employerProfileId && ' This is a read-only preview, so the button to ask is hidden.'}
+      </p>
+      <ul className="grid gap-3 sm:grid-cols-2">
       {rows.map((r) => {
         const s = status.get(r.memberId)
         return (
           <li key={r.memberId} className="space-y-3 rounded-lg border border-border bg-card p-4">
             <div>
               <p className="font-semibold">{[r.firstName, r.lastName].filter(Boolean).join(' ')}</p>
-              <p className="text-xs text-muted-foreground">{[r.classYear && `Class of ${r.classYear}`, r.degree, r.major].filter(Boolean).join(' · ')}</p>
+              {(r.classYear || r.degree || r.major) && <p className="text-xs text-muted-foreground">{[r.classYear && `Class of ${r.classYear}`, r.degree, r.major].filter(Boolean).join(' · ')}</p>}
               {r.dossierSummary && <p className="mt-2 text-sm">{r.dossierSummary}</p>}
             </div>
             {s?.status === 'ACCEPTED' && s.email ? (
@@ -248,7 +255,8 @@ export async function EmployerDossiersWithIntros({ ctx }: Props) {
           </li>
         )
       })}
-    </ul>
+      </ul>
+    </div>
   )
 }
 

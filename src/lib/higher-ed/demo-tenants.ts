@@ -42,6 +42,11 @@ export type DemoTenant = {
   auditCourses?: { title: string; courseCode: string | null; term: string; schedule: string; modality: 'online' | 'in_person' | 'hybrid'; seats: number; description: string; skills: string[] }[]
   // Which school or college each major belongs to, so members get a school (groups and targeting by school).
   majorSchools?: Record<string, string>
+  // Exactly five groups: two chapters first, then three affinity groups (the seed assigns members by position).
+  // An affinity group's majors make alumni with those majors join it automatically.
+  groups?: { kind: 'chapter' | 'affinity'; name: string; metro: string | null; description: string; majors?: string[] }[]
+  // Research requests from the tenant's fictional professor (Teaching › Industry groups); default: the generic ones.
+  researchRequests?: { title: string; lab: string; description: string; fields: string[]; durationWeeks: number | null; compensation: 'volunteer' | 'paid' }[]
 }
 
 export type DemoProgram = {
