@@ -32,7 +32,7 @@ import {
   listMemberDirectory,
   listOpenTransitions,
 } from '@/lib/higher-ed/views'
-import { STAFF_ROLE_LABELS, TIER_LABELS, WORKSPACES, auditPortalOf, getWorkspace, orgKindOf, tierIncludes, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { STAFF_ROLE_LABELS, staffRoleLabel, TIER_LABELS, WORKSPACES, auditPortalOf, getWorkspace, orgKindOf, tierIncludes, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { listPartnerAudit } from '@/lib/partners/audit'
 import { PartnerActivity } from '@/components/partners/PartnerActivity'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -1520,7 +1520,7 @@ async function SettingsStaff({ ctx }: ScreenProps) {
             <td className="px-4 py-2 font-medium">{s.fullName ?? '—'}</td>
             <td className="px-4 py-2">{s.invitedEmail}</td>
             <td className="px-4 py-2">
-              {STAFF_ROLE_LABELS[s.role]}
+              {staffRoleLabel(s.role, orgKindOf(ctx.institution.orgType))}
               {s.workspace ? ` (${getWorkspace(s.workspace)?.label ?? s.workspace}, read-only)` : ''}
             </td>
             <td className="px-4 py-2">{s.revokedAt ? 'Removed' : s.acceptedAt ? 'Active' : 'Invited'}</td>
@@ -1531,7 +1531,7 @@ async function SettingsStaff({ ctx }: ScreenProps) {
                     <ActionButton label={s.revokedAt ? 'Invite again' : 'Resend invite'} done="Sent." run={resendStaffInvite.bind(null, ctx.institution.slug, s.id)} />
                   )}
                   {!s.revokedAt && (
-                    <ConfirmActionButton variant="outline" label="Remove" confirm={`Remove ${s.fullName ?? s.invitedEmail} as ${STAFF_ROLE_LABELS[s.role]}? They lose access right away.`} confirmLabel="Remove" run={removeStaff.bind(null, ctx.institution.slug, s.id)} />
+                    <ConfirmActionButton variant="outline" label="Remove" confirm={`Remove ${s.fullName ?? s.invitedEmail} as ${staffRoleLabel(s.role, orgKindOf(ctx.institution.orgType))}? They lose access right away.`} confirmLabel="Remove" run={removeStaff.bind(null, ctx.institution.slug, s.id)} />
                   )}
                 </span>
               )}
@@ -1543,7 +1543,7 @@ async function SettingsStaff({ ctx }: ScreenProps) {
       {ctx.institution.isDemo ? (
         <p className="text-xs text-muted-foreground">Invites are off on demo colleges: their staff are fictional.</p>
       ) : (
-        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} adminOnly={!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles} />
+        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} adminOnly={!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles} kind={orgKindOf(ctx.institution.orgType)} />
       )}
       {!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles && <LockedFeature feature="staffRoles" slug={ctx.institution.slug} plan={ctx.institution.plan} compact />}
     </div>
