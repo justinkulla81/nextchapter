@@ -6,7 +6,7 @@ vi.mock('@/lib/email/resend-client', () => ({ createResend: () => ({ emails: { s
 const allow = vi.fn(async (_opts: unknown) => true)
 vi.mock('@/lib/security/rate-limit', () => ({ allowRequest: (a: unknown) => allow(a), DAY_MS: 86400000 }))
 
-import { alertNotFound, cleanPath, PROBE } from '@/lib/not-found/alert'
+import { alertNotFound, cleanPath, DEV_ONLY, PROBE } from '@/lib/not-found/alert'
 
 describe('404 alert', () => {
   it('keeps only a plain site path', () => {
@@ -18,6 +18,15 @@ describe('404 alert', () => {
   it('ignores scanner probes', () => {
     for (const p of ['/wp-login.php', '/.env', '/phpmyadmin/', '/xmlrpc.php']) expect(PROBE.test(p)).toBe(true)
     expect(PROBE.test('/jobs/old-listing')).toBe(false)
+  })
+  it('ignores dev-only mockup addresses, which are a 404 in production on purpose', async () => {
+    expect(DEV_ONLY.test('/dev-preview/jobs/apply/whyhire')).toBe(true)
+    expect(DEV_ONLY.test('/dev-preview')).toBe(true)
+    expect(DEV_ONLY.test('/dev-previews')).toBe(false)
+    send.mockClear()
+    process.env.RESEND_API_KEY = 'k'
+    expect(await alertNotFound({ path: '/dev-preview/jobs/apply/whyhire', host: 'launchyournextchapter.com', referrer: '' }, 0)).toBe(false)
+    expect(send).not.toHaveBeenCalled()
   })
   it('emails once for a real missing page on our hosts', async () => {
     process.env.RESEND_API_KEY = 'k'
