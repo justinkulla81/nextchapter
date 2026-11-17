@@ -1,4 +1,5 @@
 import { placeCitySeo } from '@/lib/seo/templates'
+import { acrossStateForCounties } from '@/lib/seo/org-pages'
 import { boardForPlace } from '@/lib/onboarding/arrived-from'
 import { YourState } from '@/components/capture/YourState'
 import type { Metadata } from 'next'
@@ -102,7 +103,7 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
       <PlaceRanks placeKey={`${code}|${p.key}`} scope={p.name} />
       <PlaceSignals scope={p.name} outlookScope={d.county?.name} fips={d.county ? [d.county.fips] : []} boardIds={d.boards.map((b) => b.id)} workforceHref="#workforce" />
 
-      <WorkforceSection id="workforce" state={name} stateSlugValue={state} boards={d.boards} centers={d.centers} scope={p.name} />
+      <WorkforceSection id="workforce" state={name} stateSlugValue={state} boards={d.boards} centers={d.centers} scope={p.name} across={await acrossStateForCounties((d.county?.fips ? [d.county.fips] : []), code).catch(() => [])} />
 
       {d.county && (
         <EconomySection id="economy" title={`${d.county.name} economy`} labor={d.county} scope={d.county.name} />

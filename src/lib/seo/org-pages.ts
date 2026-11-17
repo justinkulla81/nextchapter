@@ -15,11 +15,13 @@ import { getStateBoards } from '@/lib/seo/workforce-pages'
 import { getStateCityPlaces, getStateCounties, type CityPlace, type County } from '@/lib/places/places'
 import { employerSlug } from '@/lib/seo/employer-slug'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
+import { loadMetros } from '@/lib/workforce/metro-compare-data'
+import { metroForCounty } from '@/lib/workforce/metro-compare'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { claimSlug } from '@/lib/org-claims/urls'
 import { uniqueClaimSlugs } from '@/lib/org-claims/org'
 import {
-  type OrgPageFacts, type OrgPageKind, cleanOrgName, groupPartnerDuplicates, meetsOrgPageBar, orgPagePath, orgSlugs,
+  type OrgPageFacts, type OrgPageKind, cleanOrgName, groupPartnerDuplicates, meetsOrgPageBar, orgPagePath, orgSlugs, otherStateCounties,
 } from '@/lib/seo/org-page-rules'
 
 // Public pages for American Job Centers, economic development organizations and (extra sections for) workforce boards.
@@ -379,7 +381,7 @@ export async function claimSlugFor(kind: OrgPageKind, sourceId: string, aliasIds
 // ---------------------------------------------------------------------------------------------
 // Lookups, indexes and the sitemap list
 
-export type OrgPage = { row: OrgRow; area: Area; blocks: OrgBlocks; facts: OrgPageFacts; indexable: boolean; lastModified: Date; stateData: StateData }
+export type OrgPage = { row: OrgRow; area: Area; blocks: OrgBlocks; facts: OrgPageFacts; indexable: boolean; lastModified: Date; stateData: StateData; /** The same metro across a state line (getOrgPage only). */ acrossState?: AcrossStateHelp[] }
 
 const rowsOf = (sd: StateData, kind: OrgPageKind) => (kind === 'JOB_CENTER' ? sd.centers : kind === 'ECON_DEV' ? sd.econDev : sd.boards)
 
@@ -395,8 +397,74 @@ export async function getOrgPage(kind: OrgPageKind, stateSlugParam: string, slug
   if (!code) return null
   const sd = await getStateData(code)
   const row = rowsOf(sd, kind).find((r) => r.slug === slug)
-  return row ? buildOrgPage(row, sd) : null
+  if (!row) return null
+  const page = buildOrgPage(row, sd)
+  return { ...page, acrossState: await acrossStateHelp(page.area, code).catch(() => []) }
 }
+
+/** Help for the same metro on the other side of a state line: the boards, job centers and economic development organizations
+ *  that serve the metro's counties in another state ("Louisville/Jefferson County, KY-IN": Southern Indiana Works, the WorkOne
+ *  centers, One Southern Indiana). Census CBSA delineation (metro-compare.json). Each state's data is the same shared, cached
+ *  load its own pages use. Not part of the page's facts, so it never moves a page across the indexing bar. */
+export interface AcrossStateHelp {
+  state: string
+  stateName: string
+  metro: string
+  boards: { id: string; name: string; slug: string }[]
+  centers: { id: string; name: string; slug: string }[]
+  partners: { id: string; name: string; slug: string }[]
+}
+
+/** One state's boards, job centers and economic development organizations, narrow: names, page addresses and the counties they
+ *  serve. Addresses are built exactly as the state's own pages build them (orgSlugs over every row, partner duplicates folded).
+ *  About 20 KB a state, held six hours on an instance: cheap enough for every page in a metro that crosses a state line. */
+type DirectoryEntry = { id: string; name: string; slug: string }
+const stateDirectory = memoTtl(6 * 60 * 60_000, (state: string) => state, async (state: string) => {
+  const [centerRows, partnerRows, boardRows, counties] = await Promise.all([
+    prisma.americanJobCenter.findMany({ where: { state }, select: { id: true, name: true, city: true, countyFips: true } }),
+    prisma.localPartnerOrg.findMany({ where: { state }, select: { id: true, name: true, city: true, kind: true, counties: true } }),
+    getStateBoards(state),
+    getStateCounties(state),
+  ])
+  const centerSlugs = orgSlugs(centerRows)
+  const merged = groupPartnerDuplicates(partnerRows).map(({ primary, aliases }) => {
+    const all = [primary, ...aliases]
+    return { ...primary, counties: [...new Set(all.flatMap((r) => r.counties))], city: all.map((r) => r.city).find((c) => !!c) ?? null }
+  })
+  const partnerSlugs = orgSlugs(merged)
+  return {
+    counties: counties.map((c) => ({ fips: c.fips, token: countyToken(c.name) })),
+    boards: boardRows.map((b) => ({ id: b.id, name: b.name, slug: b.slug, tokens: boardCountyKeys(b) })),
+    centers: centerRows.map((r) => ({ id: r.id, name: cleanOrgName(r.name), slug: centerSlugs.get(r.id)!, countyFips: r.countyFips })),
+    partners: merged.filter((r) => r.kind !== 'STATE_AGENCY').map((r) => ({ id: r.id, name: cleanOrgName(r.name), slug: partnerSlugs.get(r.id)!, tokens: r.counties.map(keyOf) })),
+  }
+})
+
+/** The help across a state line for a place given by its county FIPS codes (place pages call this directly). */
+export async function acrossStateForCounties(fipsList: string[], state: string): Promise<AcrossStateHelp[]> {
+  if (fipsList.length === 0) return []
+  const metros = await loadMetros()
+  const metro = fipsList.map((f) => metroForCounty(metros, f)).find((m) => !!m)
+  if (!metro) return []
+  const out: AcrossStateHelp[] = []
+  for (const [st, fips] of otherStateCounties(metro.counties, state)) {
+    const dir = await stateDirectory(st)
+    const tokens = new Set(dir.counties.filter((c) => fips.has(c.fips)).map((c) => c.token))
+    if (tokens.size === 0) continue
+    const strip = ({ id, name, slug }: DirectoryEntry) => ({ id, name, slug })
+    const boards = dir.boards.filter((b) => b.tokens !== 'all' && b.tokens.some((t) => tokens.has(t))).map(strip).slice(0, 4)
+    const centers = dir.centers.filter((c) => !!c.countyFips && fips.has(c.countyFips)).map(strip).slice(0, 8)
+    const partners = dir.partners.filter((p) => p.tokens.some((t) => tokens.has(t))).map(strip).slice(0, 6)
+    if (boards.length + centers.length + partners.length > 0) out.push({ state: st, stateName: stateName(st), metro: metro.name, boards, centers, partners })
+  }
+  return out
+}
+
+export async function acrossStateHelp(area: Area, state: string): Promise<AcrossStateHelp[]> {
+  if (area.statewide || area.counties.length === 0) return []
+  return acrossStateForCounties(area.counties.map((c) => c.fips), state)
+}
+
 
 /**
  * The current slug for a page address that no longer resolves because the organization's slug changed (two records were
