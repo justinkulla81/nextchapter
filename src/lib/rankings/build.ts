@@ -28,7 +28,8 @@ import { RANKING_METHOD } from '@/lib/rankings/method-version'
 import { recordRankingMethod, addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
 import type { BuildGroup, CityStat, CollegeStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/living-cost'
-import { buildMetroStats, principalCity, rankWhitePlaces, whitePlacesSpecs, type MetroStat } from '@/lib/rankings/metro-places'
+import { editionFor } from '@/lib/rankings/cadence'
+import { ALL_ROUND, buildMetroStats, principalCity, rankWhitePlaces, whitePlacesSpecs, type MetroStat } from '@/lib/rankings/metro-places'
 import { loadCountyFacts, loadMetroWages, loadStatePrograms, loadWhiteCollarByCounty } from '@/lib/rankings/metro-scan'
 import { loadMetros } from '@/lib/workforce/metro-compare-data'
 import type { Metro } from '@/lib/workforce/metro-compare'
@@ -134,7 +135,9 @@ function keyCities(raw: CityStat[], has: (key: string) => boolean): CityStat[] {
  * time limit: "places" (cities and counties), "functions" (job-family city lists) and "skills" (AI skills, tools, certifications).
  */
 export async function buildRankings(group: BuildGroup = 'places', now = new Date()): Promise<BuildResult> {
-  const edition = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`
+  // A quarterly group (best places) rebuilt between quarters rewrites its current edition rather than starting a monthly one.
+  const current = group === 'metro' ? (await readRankingIndex()).find((x) => x.slug === ALL_ROUND.slug)?.edition ?? null : null
+  const edition = editionFor(group, now, current)
   const builtAt = now.toISOString()
   const prevEd = previousEdition(edition)
   const built: { ed: RankingEdition; spec: Spec }[] = []

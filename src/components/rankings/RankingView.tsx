@@ -3,7 +3,7 @@ import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { MONTH_TINTS } from '@/components/rankings/tones'
-import { editionLabel } from '@/lib/rankings/build-edition'
+import { editionName, isQuarterlyMeasure, nextEditionDate } from '@/lib/rankings/cadence'
 import { editionHref, familyOfRanking, skillSlug } from '@/lib/rankings/awards'
 import { MEASURE_GUIDE } from '@/lib/rankings/guides'
 import { rankingImage } from '@/lib/rankings/art'
@@ -153,15 +153,15 @@ function MonthByMonth({ e, entry }: { e: RankingEdition; entry: RankingIndexEntr
   if (editions.length < 2 && (entry?.edition ?? e.edition) === e.edition) return null
   return (
     <section aria-labelledby="archive" className="mt-12">
-      <h2 id="archive" className={H2}>Month by month</h2>
+      <h2 id="archive" className={H2}>{isQuarterlyMeasure(e.measure) ? 'Edition by edition' : 'Month by month'}</h2>
       <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Every edition of this ranking stays online at its own address, so you can see how the list has moved.</p>
       <ul className="mt-4 flex flex-wrap gap-2 text-sm">
         {editions.map((ed, i) => (
           <li key={ed}>
             {ed === e.edition ? (
-              <span aria-current="page" className="inline-flex rounded-full bg-navy px-3 py-1.5 font-medium text-white">{editionLabel(ed)}</span>
+              <span aria-current="page" className="inline-flex rounded-full bg-navy px-3 py-1.5 font-medium text-white">{editionName(ed, isQuarterlyMeasure(e.measure))}</span>
             ) : (
-              <TrackedLink href={editionHref(e.slug, ed, entry?.edition)} event="ranking_edition_link_clicked" properties={{ slug: e.slug, from: e.edition, to: ed }} className={`inline-flex rounded-full px-3 py-1.5 font-medium text-navy hover:underline ${MONTH_TINTS[i % MONTH_TINTS.length]}`}>{editionLabel(ed)}</TrackedLink>
+              <TrackedLink href={editionHref(e.slug, ed, entry?.edition)} event="ranking_edition_link_clicked" properties={{ slug: e.slug, from: e.edition, to: ed }} className={`inline-flex rounded-full px-3 py-1.5 font-medium text-navy hover:underline ${MONTH_TINTS[i % MONTH_TINTS.length]}`}>{editionName(ed, isQuarterlyMeasure(e.measure))}</TrackedLink>
             )}
           </li>
         ))}
@@ -194,17 +194,12 @@ function Components({ e }: { e: RankingEdition }) {
   )
 }
 
-/** The 2nd of the month after an edition ("December 2"): the monthly rankings job runs on the 2nd. */
-function nextEditionDate(edition: string): string {
-  const [y, m] = edition.split('-').map(Number)
-  return new Date(Date.UTC(y, m, 2)).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' })
-}
-
 export async function RankingView({ e, index, latest }: { e: RankingEdition; index: RankingIndexEntry[]; latest: boolean }) {
   const path = `/rankings/${e.slug}`
   // The day this edition was last built: an edition is rebuilt within its month only when the method changes, then frozen.
   const published = new Date(e.builtAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
-  const label = editionLabel(e.edition)
+  const quarterly = isQuarterlyMeasure(e.measure)
+  const label = editionName(e.edition, quarterly)
   const unit = e.measure.startsWith('wp_') ? 'white-collar openings' : e.measure === 'swe' ? 'engineering openings' : e.measure === 'paycost' ? 'openings with pay posted' : e.measure === 'collegepay' ? 'students enrolled' : e.measure === 'lowunemp' || e.measure === 'unempdrop' || e.measure === 'whitecollar' ? 'people in the labor force' : e.unit
   const entry = index.find((x) => x.slug === e.slug)
   const sameScope = index.filter((x) => x.slug !== e.slug && x.scopeKind === e.scope.kind && x.scopeId === e.scope.id).slice(0, 6)
@@ -233,7 +228,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
       trail={[{ name: 'Rankings', path: '/rankings' }, { name: e.title, path }]}
       h1={e.h1}
       jsonLd={ld}
-      lede={<><span className="block text-base font-medium text-navy">{e.lead}</span><span className="mt-2 block text-sm">Monthly ranking, {label} edition, published {published}{latest && <>; the next edition is published {nextEditionDate(e.edition)}</>}. <Link href="/rankings/archive" className={LINK}>Past editions</Link> stay online. Built from {e.placeNoun === 'counties' ? 'public Bureau of Labor Statistics and Census data' : e.placeNoun === 'metro areas' ? 'open white-collar jobs we verified on employer career sites and public federal data' : 'open jobs we verified on employer career sites'}.{!latest && entry && <> This is an earlier edition: <Link href={path} className={LINK}>see the latest</Link>.</>}</span></>}
+      lede={<><span className="block text-base font-medium text-navy">{e.lead}</span><span className="mt-2 block text-sm">{quarterly ? 'Quarterly' : 'Monthly'} ranking, {label} edition, published {published}{latest && <>; the next edition is published {nextEditionDate(e.edition, quarterly)}</>}. <Link href="/rankings/archive" className={LINK}>Past editions</Link> stay online. Built from {e.placeNoun === 'counties' ? 'public Bureau of Labor Statistics and Census data' : e.placeNoun === 'metro areas' ? 'open white-collar jobs we verified on employer career sites and public federal data' : 'open jobs we verified on employer career sites'}.{!latest && entry && <> This is an earlier edition: <Link href={path} className={LINK}>see the latest</Link>.</>}</span></>}
     >
       {/* The leaders appear once, in the top 25 below: the key facts keep only what the list does not already show. */}
       <p className="text-sm text-muted-foreground" aria-label="Key facts">
