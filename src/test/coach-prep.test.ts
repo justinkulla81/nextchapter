@@ -321,4 +321,13 @@ describe('header and the one primary action', () => {
     expect(primaryAction('https://meet.google.com/abc')).toMatchObject({ label: 'Join Meet and open notes', meetUrl: 'https://meet.google.com/abc' })
     expect(primaryAction(null)).toMatchObject({ label: 'Open notes', meetUrl: null })
   })
+
+  it('asks the client to say their own strength line, or to find one', () => {
+    const qs = (own: PrepInput['ownStrengths']) => buildQuestions(base({ ownStrengths: own }), 'Dana', 'America/New_York')
+    const said = qs([{ strength: 'Fixing broken forecasts', sayIt: 'People bring me the forecast nobody trusts.' }]).find((q) => q.rule === 'own_strength_line')
+    expect(said?.text).toContain('People bring me the forecast nobody trusts.')
+    expect(qs([]).some((q) => q.rule === 'own_strength_missing')).toBe(true)
+    expect(qs(null).some((q) => q.rule.startsWith('own_strength'))).toBe(false)
+  })
 })
+

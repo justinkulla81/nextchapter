@@ -1,11 +1,12 @@
 import { coachProfileContext } from '@/lib/profile/touchpoints'
+import { AREAS } from '@/lib/strengths-interview/areas'
 
-// For the pre-session brief: where the client stands out, how they like to
+// For the pre-session brief: where the client stands out (measured, and in their own words from Find your strengths), how they like to
 // work, what they want to leave behind and toward, and market flags. Their
 // private weak spots are never shown here.
 export async function CoachProfileContextCard({ candidateId }: { candidateId: string }) {
   const c = await coachProfileContext(candidateId).catch(() => null)
-  if (!c || (!c.strengths && !c.workStyle.length && !c.less.length && !c.more.length && !c.market.length)) return null
+  if (!c) return null
   return (
     <div className="space-y-3 rounded-lg border border-border p-4">
       <p className="text-sm font-medium text-muted-foreground">What they bring and what they want</p>
@@ -21,6 +22,22 @@ export async function CoachProfileContextCard({ candidateId }: { candidateId: st
           </ul>
         </div>
       )}
+      <div className="space-y-1">
+        <p className="text-sm">
+          <span className="text-muted-foreground">In their own words (Find your strengths, {c.ownDone} of {AREAS.length} areas done):</span>
+          {c.ownWords.length === 0 && ' not started yet.'}
+        </p>
+        {c.ownWords.length > 0 && (
+          <ul className="space-y-1.5 text-sm">
+            {c.ownWords.map((w) => (
+              <li key={w.areaTitle}>
+                <span className="font-medium text-foreground">{w.strength}</span> <span className="text-muted-foreground">({w.areaTitle}). {w.proof}</span>
+                {w.sayIt && <span className="block italic text-muted-foreground">&ldquo;{w.sayIt}&rdquo;</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       {c.workStyle.length > 0 && (
         <p className="text-sm">
           <span className="text-muted-foreground">How they like to work: </span>
@@ -52,7 +69,11 @@ export async function CoachProfileContextCard({ candidateId }: { candidateId: st
           ))}
         </ul>
       )}
-      <p className="text-xs text-muted-foreground">Good openers: ask which strength they want to lead with this week, and whether the market flags change where they’re looking.</p>
+      <p className="text-xs text-muted-foreground">
+        Good openers: ask which strength they want to lead with this week, and whether the market flags change where they’re looking.
+        {c.ownDone < AREAS.length && ' If they are stuck on how to say what they are best at, have them answer the next Find your strengths area before you meet, or do one together.'}
+        {c.ownWords.some((w) => w.sayIt) && ' Have them say one of their own lines out loud and tighten it with them.'}
+      </p>
     </div>
   )
 }
