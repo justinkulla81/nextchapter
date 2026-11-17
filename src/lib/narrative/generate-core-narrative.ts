@@ -1,4 +1,5 @@
 import 'server-only'
+import { loadReflectionSummaries } from '@/lib/strengths-interview/load'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
@@ -11,12 +12,13 @@ Candidate profile:
 `
 
 async function draftCoreStatement(candidateId: string, scenarioContext?: string): Promise<string | null> {
-  const [candidate, levelRank] = await Promise.all([
+  const [candidate, levelRank, own] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       include: { workHistory: true },
     }),
     getCandidateLevelRank(candidateId),
+    loadReflectionSummaries(candidateId),
   ])
 
   const summary = `
@@ -29,6 +31,7 @@ Primary function: ${candidate.primaryFunction ?? 'not specified'}
 Target function: ${candidate.targetFunction ?? 'not specified'}
 Considering a pivot to a different function/industry: ${candidate.isPivoting ? 'yes' : 'no'}
 Known for: ${candidate.knownFor ?? 'not specified'}
+In their own words (Find your strengths; lead with these where they fit): ${own.map((o) => `${o.strength}: ${o.proof}`).join(' | ') || 'not answered'}
 Work history: ${candidate.workHistory.map((w) => `${w.roleTitle} at ${w.companyName}${w.keyAchievement ? ` — ${w.keyAchievement}` : ''}`).join('; ') || 'not specified'}
 ${candidate.activeJobDescription ? `Job posting they're preparing for: ${candidate.activeJobDescription}` : ''}
 ${scenarioContext ? `\nThis particular narrative should be framed specifically around: ${scenarioContext}` : ''}

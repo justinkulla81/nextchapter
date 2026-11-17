@@ -190,9 +190,13 @@ const STRENGTHS = {
     proofPoints: ['Ran a $10M–$100M budget with P&L responsibility', 'Led a team of 51–200 through a restructuring', 'Two references rate follow-through 4.8 of 5'],
     generatedAt: NOW.toISOString(),
   },
+  own: [
+    { area: 'best_work', areaTitle: 'Your best work', strength: 'Getting a slipping operation back on plan', proof: '81% to 97% on time in two quarters', watchOut: null },
+    { area: 'skills', areaTitle: 'The work itself', strength: 'Turning messy data into a plan people follow', proof: 'Colleagues bring you their forecasts', watchOut: 'You put off vendor negotiations. Prepare one example, or pick roles where procurement owns it.' },
+  ],
 } as unknown as Strengths
 
-const EMERGING = { ...STRENGTHS, shape: 'emerging', peaks: [], weakSpots: [], headline: 'We don’t have enough evidence yet to name your standout strengths.', whyHire: null } as unknown as Strengths
+const EMERGING = { ...STRENGTHS, shape: 'emerging', peaks: [], weakSpots: [], headline: 'We don’t have enough evidence yet to name your standout strengths.', whyHire: null, own: [] } as unknown as Strengths
 
 const EXTRAS: WhyHireExtras = {
   marks: standingMarks({ completedReferences: 2, resumeResultsScore: 54, hasPerformance: true, hasTrackRecord: true, hasPitch: true }),

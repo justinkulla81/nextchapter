@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
 import { skillDepth, topSkills } from './skill-matrix'
 import { scoreStrengths, strengthHeadline, type StrengthProfile } from './strengths'
+import { loadReflectionSummaries } from '@/lib/strengths-interview/load'
+import { AREAS, type AreaKey } from '@/lib/strengths-interview/areas'
 
 // Peers must be at least this many before "higher than N% of people in your field" shows.
 const MIN_PEERS = 20
@@ -13,7 +15,10 @@ const MODEL = 'claude-haiku-5-5'
 
 // employerNeed: the hiring manager's problem this person solves, said from their side (absent on write-ups made before it existed).
 export type WhyHire = { statement: string; proofPoints: string[]; employerNeed?: string; generatedAt: string }
-export type Strengths = StrengthProfile & { headline: string; whyHire: WhyHire | null }
+// own: what the member said in Find your strengths, one per finished area. watchOut is private to the member and never
+// goes into the write-up.
+export type OwnStrength = { area: AreaKey; areaTitle: string; strength: string; proof: string; watchOut: string | null }
+export type Strengths = StrengthProfile & { headline: string; whyHire: WhyHire | null; own: OwnStrength[] }
 
 async function perfPercentile(candidateId: string, primaryFunction: string | null, mine: { execution: number; judgment: number; composure: number; influence: number }) {
   if (!primaryFunction) return null
@@ -74,7 +79,7 @@ export async function loadStrengths(candidateId: string, opts: { writeUp?: boole
       return null
     }
   }
-  const [profile, perf, refs, track] = await Promise.all([
+  const [profile, perf, refs, track, reflections] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -100,7 +105,12 @@ export async function loadStrengths(candidateId: string, opts: { writeUp?: boole
       }),
     ),
     safe(prisma.trackRecordResponse.findUnique({ where: { candidateId }, select: { largestTeamManaged: true, largestOrgIndirect: true, budgetOwned: true, pnlAccountability: true, largestInitiativeScope: true } })),
+    loadReflectionSummaries(candidateId),
   ])
+  const own: OwnStrength[] = AREAS.flatMap((a) => {
+    const r = reflections.find((x) => x.area === a.key)
+    return r ? [{ area: a.key, areaTitle: a.title, strength: r.strength, proof: r.proof, watchOut: r.watchOut }] : []
+  })
   const p = perf ? { execution: perf.executionScore, judgment: perf.judgmentScore, composure: perf.composureScore, influence: perf.influenceScore } : null
   const result = scoreStrengths({
     perf: p,
@@ -134,22 +144,22 @@ export async function loadStrengths(candidateId: string, opts: { writeUp?: boole
   })
   const headline = strengthHeadline(result)
   const cached = (profile.strengthCache as { whyHire?: WhyHire } | null)?.whyHire ?? null
-  if (result.shape === 'emerging') return { ...result, headline, whyHire: null }
+  if (result.shape === 'emerging' && own.length === 0) return { ...result, headline, whyHire: null, own }
 
   const superpowers = refs?.map((r) => r.superpowerText).filter((x): x is string => !!x?.trim()) ?? []
   const skills = topSkills(profile, 8)
   const key = createHash('sha256')
-    .update(JSON.stringify({ v: 2, f: profile.primaryFunction, t: profile.targetRoleType, l: profile.highestLevelReached, peaks: result.peaks.map((x) => [x.key, x.evidence]), broad: result.broad.map((x) => x.key), skills, superpowers }))
+    .update(JSON.stringify({ v: 2, f: profile.primaryFunction, t: profile.targetRoleType, l: profile.highestLevelReached, peaks: result.peaks.map((x) => [x.key, x.evidence]), broad: result.broad.map((x) => x.key), skills, superpowers, own: own.map((o) => [o.strength, o.proof]) }))
     .digest('hex')
     .slice(0, 32)
-  if (profile.strengthCacheKey === key && cached) return { ...result, headline, whyHire: cached }
-  if (!opts.writeUp) return { ...result, headline, whyHire: cached }
+  if (profile.strengthCacheKey === key && cached) return { ...result, headline, whyHire: cached, own }
+  if (!opts.writeUp) return { ...result, headline, whyHire: cached, own }
 
-  const whyHire = await writeWhyHire({ profile, result, skills, superpowers })
+  const whyHire = await writeWhyHire({ profile, result, skills, superpowers, own })
   if (whyHire) {
     await prisma.candidateProfile.update({ where: { id: candidateId }, data: { strengthCache: { whyHire }, strengthCacheKey: key } })
   }
-  return { ...result, headline, whyHire: whyHire ?? cached }
+  return { ...result, headline, whyHire: whyHire ?? cached, own }
 }
 
 const schema = z.object({
@@ -163,6 +173,7 @@ async function writeWhyHire(args: {
   result: StrengthProfile
   skills: string[]
   superpowers: string[]
+  own: OwnStrength[]
 }): Promise<WhyHire | null> {
   const { profile, result } = args
   const lead = result.shape === 'peaked' ? result.peaks : result.broad.slice(0, 4)
@@ -178,11 +189,12 @@ async function writeWhyHire(args: {
           content: `Write the "why hire me" for a job seeker, in first person, plain and confident, no clichés ("results-driven", "passionate", "proven track record"), no claims beyond the evidence below.
 
 Function: ${profile.primaryFunction ?? 'unknown'}; level: ${profile.highestLevelReached ?? 'unknown'}; years: ${profile.yearsExperience ?? 'unknown'}; targeting: ${profile.targetRoleType ?? 'not set'}
-Shape: ${result.shape === 'peaked' ? 'clear standout strengths; lead with them' : 'no single standout, strong across several; sell range and reliability'}
+Shape: ${result.shape === 'peaked' ? 'clear standout strengths; lead with them' : result.shape === 'balanced' ? 'no single standout, strong across several; sell range and reliability' : 'little measured evidence yet; lean on what they said in their own words below'}
 Strengths with evidence:
 ${lead.map((s) => `- ${s.label}: ${s.evidence.join('; ')}`).join('\n')}
 Strongest skills: ${args.skills.join(', ') || 'none listed'}
 What references said they're best at: ${args.superpowers.slice(0, 3).join(' | ') || 'none yet'}
+In their own words (from a guided interview; strength and proof per area): ${args.own.map((o) => `${o.areaTitle}: ${o.strength} (${o.proof})`).join(' | ') || 'none yet'}
 
 Return:
 - statement: two sentences, under 45 words, that a hiring manager would remember. Name the strengths and the kind of role they make this person great at.

@@ -1598,6 +1598,7 @@ model CandidateProfile {
   assessmentResponses            CandidateAssessmentResponse[]
   performanceAssessmentResponses PerformanceAssessmentResponse[]
   trackRecordResponse            TrackRecordResponse?
+  strengthReflections            StrengthReflection[]
   performanceAssessmentDraft     PerformanceAssessmentDraft?
   whatINeedResponse              WhatINeedResponse?
   resumeWalkthroughSession       ResumeWalkthroughSession?
@@ -2766,6 +2767,27 @@ model PerformanceAssessmentDraft {
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   answers     Json
   updatedAt   DateTime         @updatedAt
+}
+
+// Find your strengths (/dashboard/strengths/discover): the member's own free-form answers, one row per area (best work,
+// the work itself, industry knowledge, how you work, people, motivation), with an AI follow-up per question and a
+// summary when the area is finished. Private to the member: watchOut (a weakness) never goes to employers or into the
+// "why hire me" statement. See src/lib/strengths-interview/.
+model StrengthReflection {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  area        String
+  answers     Json             @default("[]") // [{ questionKey, question, answer, followUp?, followUpAnswer? }]
+  strength    String?          @db.Text
+  proof       String?          @db.Text
+  watchOut    String?          @db.Text
+  sayIt       String?          @db.Text
+  completedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([candidateId, area])
 }
 
 model TrackRecordResponse {
