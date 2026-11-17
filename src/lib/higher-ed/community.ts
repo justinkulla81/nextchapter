@@ -23,6 +23,8 @@ export const OPPORTUNITY_KINDS = [
   { key: 'fractional', label: 'Fractional role' },
   { key: 'board', label: 'Board seat' },
   { key: 'advisory', label: 'Advisory role' },
+  // Posted by faculty from Teaching › Industry groups: interviews, a survey, data, a sponsor, a site for a study.
+  { key: 'research', label: 'Research study' },
 ] as const
 export const COMPENSATION = [
   { key: 'paid', label: 'Paid' },
@@ -44,7 +46,7 @@ export async function listOpportunities(institutionId: string, opts: { kind?: st
   })
   return rows.map(({ interests, ...r }) => ({
     ...r,
-    poster: r.postedBy ? `${full(r.postedBy.firstName, r.postedBy.lastName)}${yr(r.postedBy.classYear)}` : 'The college',
+    poster: r.postedBy ? `${full(r.postedBy.firstName, r.postedBy.lastName)}${yr(r.postedBy.classYear)}` : r.kind === 'research' ? r.organization : 'The college',
     mine: r.postedByMemberId === opts.viewerMemberId,
     myInterest: (interests as { status: string }[] | undefined)?.[0]?.status ?? null,
   }))
@@ -183,6 +185,13 @@ export async function searchDirectory(institutionId: string, f: { q?: string; cl
   return rows.map(({ firstName, lastName, ...r }) => ({ ...r, name: full(firstName, lastName), groups: groups.filter((g) => g.memberId === r.memberId).map((g) => g.group.name) }))
 }
 
+// ── Faculty in groups ────────────────────────────────────────────────────────
+
+export async function setFacultyInGroup(groupId: string, institutionUserId: string, join: boolean) {
+  if (join) await prisma.alumniGroupFaculty.upsert({ where: { groupId_institutionUserId: { groupId, institutionUserId } }, create: { groupId, institutionUserId }, update: {} })
+  else await prisma.alumniGroupFaculty.deleteMany({ where: { groupId, institutionUserId } })
+}
+
 // ── Affinity groups and chapters ─────────────────────────────────────────────
 
 export async function listGroups(institutionId: string, memberId: string | null) {
@@ -192,6 +201,7 @@ export async function listGroups(institutionId: string, memberId: string | null)
     include: {
       _count: { select: { members: true } },
       members: { where: { role: 'LEADER' }, select: { member: { select: { firstName: true, lastName: true, classYear: true } } } },
+      faculty: { where: { institutionUser: { revokedAt: null } }, select: { institutionUserId: true, institutionUser: { select: { fullName: true, invitedEmail: true } } } },
       events: { where: { cancelledAt: null, startsAt: { gte: new Date() } }, orderBy: { startsAt: 'asc' }, take: 2, select: { id: true, title: true, startsAt: true } },
     },
   })
@@ -204,6 +214,9 @@ export async function listGroups(institutionId: string, memberId: string | null)
     // Why it was added automatically: 'major', 'school' or 'department'; null when they joined by click.
     autoJoinedFor: autoReason(mine.get(g.id)),
     leaders: g.members.map((l) => `${full(l.member.firstName, l.member.lastName)}${yr(l.member.classYear)}`),
+    // Professors in the group, by name (their staff name, else the part of their email before the @).
+    facultyNames: g.faculty.map((f) => f.institutionUser.fullName ?? f.institutionUser.invitedEmail.split('@')[0]),
+    facultyIds: g.faculty.map((f) => f.institutionUserId),
   }))
 }
 

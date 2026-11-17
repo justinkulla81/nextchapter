@@ -345,6 +345,7 @@ export async function PeopleSections({ ctx, searchParams, base }: Props) {
                     <p className="text-xs text-muted-foreground">
                       {g.kind === 'chapter' ? `Chapter${g.metro ? ` · ${g.metro}` : ''}` : 'Affinity group'} · {g._count.members} members
                       {g.leaders.length ? ` · Led by ${g.leaders.join(', ')}` : ''}
+                      {g.facultyNames.length ? ` · Faculty: ${g.facultyNames.join(', ')}` : ''}
                     </p>
                     {g.autoJoinedFor && <p className="text-xs text-muted-foreground">You were added for your {g.autoJoinedFor}. Leave any time; we won’t add you back.</p>}
                   </div>
@@ -644,7 +645,7 @@ export async function AlumniCommunity({ ctx }: Props) {
               <li key={g.id} className="space-y-2 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium">
-                    {g.name} <span className="text-xs font-normal text-muted-foreground">{g.kind === 'chapter' ? `chapter${g.metro ? `, ${g.metro}` : ''}` : 'affinity'} · {g._count.members} members · leaders: {g.leaders.join(', ') || 'none yet'}</span>
+                    {g.name} <span className="text-xs font-normal text-muted-foreground">{g.kind === 'chapter' ? `chapter${g.metro ? `, ${g.metro}` : ''}` : 'affinity'} · {g._count.members} members · leaders: {g.leaders.join(', ') || 'none yet'}{g.facultyNames.length ? ` · faculty: ${g.facultyNames.join(', ')}` : ''}</span>
                   </p>
                   {autoJoinSummary(g) && <p className="w-full text-xs text-muted-foreground">Adds alumni automatically: {autoJoinSummary(g)}</p>}
                   {write && <ConfirmActionButton variant="outline" label="Archive" confirm={`Archive ${g.name}? Alumni stop seeing it; members and events stay on record.`} confirmLabel="Archive group" run={A.archiveGroup.bind(null, slug, g.id)} />}

@@ -213,6 +213,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'faculty', label: 'Faculty', comingIn: null },
       { key: 'capstones', label: 'Employer capstones', comingIn: null },
       { key: 'auditors', label: 'Alumni auditors', comingIn: null },
+      { key: 'groups', label: 'Industry groups', comingIn: null },
     ],
   },
   {

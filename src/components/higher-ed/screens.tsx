@@ -64,6 +64,7 @@ import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, Waitin
 import { AlumniData } from './screens-alumni-data'
 import { DevelopmentGrants } from './screens-grants'
 import { SkillsBridgeSection, StaffSkillsBridge } from './screens-bridge'
+import { AlumniInNews, ResearchAndPatents, TeachingGroups } from './screens-campus'
 import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
@@ -115,7 +116,7 @@ import { removeStaff, resendStaffInvite } from '@/app/i/[slug]/(portal)/staff-ac
 import { ActionButton } from './CommunityForms'
 import { addEarlyCareerRoleAction, addRecruitingDateAction, archiveEarlyCareerRoleAction, removeRecruitingDateAction, saveCoreRecruiter, archiveAlumniJob, addTargetCompany, inviteStaff, postAlumniJob, removeTargetCompany, saveBranding, saveCollegeSettings, uploadCrmFile } from '@/app/i/[slug]/(portal)/staff-actions'
 
-export type ScreenSearchParams = { purpose?: string; q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string; track?: string; need?: string } & CommunityParams
+export type ScreenSearchParams = { field?: string; purpose?: string; q?: string; page?: string; status?: string; transition?: string; industry?: string; fn?: string; edit?: string; group?: string; company?: string; track?: string; need?: string } & CommunityParams
 type ScreenProps = { ctx: WorkspaceContext; searchParams: ScreenSearchParams; base: string }
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -1581,12 +1582,21 @@ async function CandidateWork(props: ScreenProps) {
     </div>
   )
 }
+async function AlumniCommunityAll(props: ScreenProps) {
+  return (
+    <div className="space-y-10">
+      <AlumniCommunity {...props} />
+      <AlumniInNews {...props} />
+    </div>
+  )
+}
 async function CandidatePeople(props: ScreenProps) {
   return (
     <div className="space-y-10">
       <PeopleSections {...props} />
       <ConnectSections ctx={props.ctx} />
       <CandidateNetwork {...props} />
+      <AlumniInNews {...props} />
     </div>
   )
 }
@@ -1604,6 +1614,7 @@ async function CandidateLearn(props: ScreenProps) {
   return (
     <div className="space-y-10">
       <SkillsBridgeSection {...props} />
+      <ResearchAndPatents {...props} />
       <LearnSections {...props} />
       {mods.programs && <CandidatePrograms {...props} />}
     </div>
@@ -1654,9 +1665,10 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:mentors': CandidateMentoring,
   'alumni:home': AlumniHome,
   'alumni:mentors': AlumniMentorsAll,
-  'alumni:community': AlumniCommunity,
+  'alumni:community': AlumniCommunityAll,
   'alumni:volunteers': AlumniVolunteers,
   'teaching:auditors': TeachingAuditors,
+  'teaching:groups': TeachingGroups,
   'admin:privacy': AdminPrivacyAll,
   'alumni:connect': StaffConnectScreen,
   'career:circles': StaffConnectScreen,
