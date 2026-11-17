@@ -202,6 +202,8 @@ function nextEditionDate(edition: string): string {
 
 export async function RankingView({ e, index, latest }: { e: RankingEdition; index: RankingIndexEntry[]; latest: boolean }) {
   const path = `/rankings/${e.slug}`
+  // The day this edition was last built: an edition is rebuilt within its month only when the method changes, then frozen.
+  const published = new Date(e.builtAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
   const label = editionLabel(e.edition)
   const unit = e.measure.startsWith('wp_') ? 'white-collar openings' : e.measure === 'swe' ? 'engineering openings' : e.measure === 'paycost' ? 'openings with pay posted' : e.measure === 'collegepay' ? 'students enrolled' : e.measure === 'lowunemp' || e.measure === 'unempdrop' || e.measure === 'whitecollar' ? 'people in the labor force' : e.unit
   const entry = index.find((x) => x.slug === e.slug)
@@ -231,7 +233,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
       trail={[{ name: 'Rankings', path: '/rankings' }, { name: e.title, path }]}
       h1={e.h1}
       jsonLd={ld}
-      lede={<><span className="block text-base font-medium text-navy">{e.lead}</span><span className="mt-2 block text-sm">Monthly ranking, {label} edition{latest && <>; the next edition is published {nextEditionDate(e.edition)}</>}. <Link href="/rankings/archive" className={LINK}>Past editions</Link> stay online. Built from {e.placeNoun === 'counties' ? 'public Bureau of Labor Statistics and Census data' : e.placeNoun === 'metro areas' ? 'open white-collar jobs we verified on employer career sites and public federal data' : 'open jobs we verified on employer career sites'}.{!latest && entry && <> This is an earlier edition: <Link href={path} className={LINK}>see the latest</Link>.</>}</span></>}
+      lede={<><span className="block text-base font-medium text-navy">{e.lead}</span><span className="mt-2 block text-sm">Monthly ranking, {label} edition, published {published}{latest && <>; the next edition is published {nextEditionDate(e.edition)}</>}. <Link href="/rankings/archive" className={LINK}>Past editions</Link> stay online. Built from {e.placeNoun === 'counties' ? 'public Bureau of Labor Statistics and Census data' : e.placeNoun === 'metro areas' ? 'open white-collar jobs we verified on employer career sites and public federal data' : 'open jobs we verified on employer career sites'}.{!latest && entry && <> This is an earlier edition: <Link href={path} className={LINK}>see the latest</Link>.</>}</span></>}
     >
       {/* The leaders appear once, in the top 25 below: the key facts keep only what the list does not already show. */}
       <p className="text-sm text-muted-foreground" aria-label="Key facts">
@@ -322,7 +324,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
 
       <section aria-labelledby="cite" className="[overflow-wrap:anywhere]">
         <h2 id="cite" className={H2}>Cite this ranking</h2>
-        <p className={`${CARD} mt-3 max-w-3xl p-4 text-sm text-foreground`}>NextChapter, “{e.title},” {label} edition. {url}</p>
+        <p className={`${CARD} mt-3 max-w-3xl p-4 text-sm text-foreground`}>NextChapter, “{e.title},” {label} edition, published {published}. {url}</p>
         <p className="mt-3 text-sm text-muted-foreground">Link to it: <code className="rounded bg-muted px-1.5 py-0.5 text-xs text-foreground">{`<a href="${SITE_URL}${path}">${e.title} (NextChapter, ${label})</a>`}</code></p>
         <p className="mt-3 text-sm">Download the data: <a href={`${path}/latest.csv`} className={LINK}>CSV</a> · <a href={`${path}/latest.json`} className={LINK}>JSON</a>. Free to use with a link back.</p>
       </section>

@@ -192,24 +192,34 @@ async function loadCountyJobRows(state: string, county: County): Promise<CountyJ
   const spellings = [...new Set(places.flatMap((p) => citySpellings(p.name, p.key)))]
   if (spellings.length === 0) return null
   const where = Prisma.sql`WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} AND "locationState" = ${state} AND lower("locationCity") = ANY(${spellings})`
-  const [[tot], fns, emps] = await heavy(() => Promise.all([
-    prisma.$queryRaw<{ n: number; entry: number; noexp: number; ai: number }[]>`
-      SELECT count(*)::int AS n,
-             count(*) FILTER (WHERE level = 'ENTRY_IC')::int AS entry,
-             count(*) FILTER (WHERE 'no_experience_ok' = ANY("postingSignals"))::int AS noexp,
-             count(*) FILTER (WHERE cardinality("aiSkillItems") > 0)::int AS ai
-      FROM "ExclusiveJobPosting" ${where}`,
-    prisma.$queryRaw<{ f: string; n: number }[]>`
-      SELECT "targetFunction" AS f, count(*)::int AS n FROM "ExclusiveJobPosting" ${where} AND "targetFunction" IS NOT NULL
-      GROUP BY 1 ORDER BY n DESC, f`,
-    prisma.$queryRaw<{ name: string; n: number; cn: string | null; cid: string | null; linkable: boolean | null }[]>`
-      SELECT g.name, g.n, c."canonicalNameNormalized" AS cn, c.id AS cid, (p."openNow" >= 3) AS linkable
-      FROM (SELECT "companyName" AS name, "companyId" AS cid, count(*)::int AS n FROM "ExclusiveJobPosting" ${where} AND "companyName" !~* '^(confidential|undisclosed|stealth)'
-            GROUP BY 1, 2 ORDER BY n DESC, name LIMIT 8) g
-      LEFT JOIN "Company" c ON c.id = g.cid
-      LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
-      ORDER BY g.n DESC, g.name`,
-  ]))
+  // One statement: the county's public jobs are read once (the few columns the figures need) and the totals, functions and employers all
+  // come from that. They were three statements, each scanning the same jobs: ~310 ms on average and up to 25 s each (#23-#25 by database
+  // time in the 2026-11-17 statement stats).
+  const [row] = await heavy(() =>
+    prisma.$queryRaw<{ tot: CountyJobRows['tot'] | null; fns: CountyJobRows['fns'] | null; emps: CountyJobRows['emps'] | null }[]>`
+      WITH c AS MATERIALIZED (
+        SELECT level, "postingSignals", "aiSkillItems", "targetFunction", "companyName", "companyId" FROM "ExclusiveJobPosting" ${where}
+      )
+      SELECT
+        (SELECT json_build_object(
+          'n', count(*)::int,
+          'entry', count(*) FILTER (WHERE level = 'ENTRY_IC')::int,
+          'noexp', count(*) FILTER (WHERE 'no_experience_ok' = ANY("postingSignals"))::int,
+          'ai', count(*) FILTER (WHERE cardinality("aiSkillItems") > 0)::int
+        ) FROM c) AS tot,
+        (SELECT json_agg(t ORDER BY t.n DESC, t.f) FROM (
+          SELECT "targetFunction" AS f, count(*)::int AS n FROM c WHERE "targetFunction" IS NOT NULL GROUP BY 1
+        ) t) AS fns,
+        (SELECT json_agg(t ORDER BY t.n DESC, t.name) FROM (
+          SELECT g.name, g.n, co."canonicalNameNormalized" AS cn, co.id AS cid, (p."openNow" >= 3) AS linkable
+          FROM (SELECT "companyName" AS name, "companyId" AS cid, count(*)::int AS n FROM c WHERE "companyName" !~* '^(confidential|undisclosed|stealth)'
+                GROUP BY 1, 2 ORDER BY n DESC, name LIMIT 8) g
+          LEFT JOIN "Company" co ON co.id = g.cid
+          LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = co.id
+        ) t) AS emps`)
+  const tot = row?.tot ?? undefined
+  const fns = row?.fns ?? []
+  const emps = row?.emps ?? []
   return { tot, fns, emps }
 }
 
