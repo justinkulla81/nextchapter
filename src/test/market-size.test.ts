@@ -26,6 +26,16 @@ describe('market-size stats', () => {
     expect(relativeGrowth({ openNow: 50, newRecent: 10, newPrior: 80, closedRecent: 0, closedPrior: 0 }, board)!).toBeLessThan(-0.25)
     expect(relativeGrowth({ openNow: 5, newRecent: 2, newPrior: 3, closedRecent: 0, closedPrior: 0 }, board)).toBeNull()
   })
+  it('never reads an archiving sweep or a tiny prior window as runaway growth', () => {
+    const board = { openNow: 600000, newRecent: 120000, newPrior: 90000, closedRecent: 5000, closedPrior: 200000 }
+    // Closures in the prior window no longer zero it out.
+    const g = relativeGrowth({ openNow: 163, newRecent: 40, newPrior: 30, closedRecent: 2, closedPrior: 60 }, board)!
+    expect(g).toBeGreaterThan(-0.5)
+    expect(g).toBeLessThan(1)
+    // Almost nothing before: no trend, rather than thousands of percent.
+    expect(relativeGrowth({ openNow: 163, newRecent: 160, newPrior: 2, closedRecent: 0, closedPrior: 0 }, board)).toBeNull()
+    expect(relativeGrowth({ openNow: 163, newRecent: 400, newPrior: 5, closedRecent: 0, closedPrior: 0 }, board)).toBeNull()
+  })
   it('prompts: too few, shrinking, too many, healthy', () => {
     expect(marketPrompt(MARKET_TOO_FEW - 1, 0.5)).toBe('too_few')
     expect(marketPrompt(100, -0.4)).toBe('shrinking')
