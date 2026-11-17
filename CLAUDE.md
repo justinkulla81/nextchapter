@@ -64,7 +64,11 @@ in the title: production deploys go out in the batch at 01:05 and 13:05 UTC (`de
 About 750 one-at-a-time production deploys in the first half of November 2026 ran up the Vercel bill, and each one emptied the page
 caches and sent every server back to the database (part of the Supabase egress overrun that cut the site off on 2026-11-13).
 `[deploy-now]` is only for a fix to a site that is down or broken for users, or when the owner asks for it. When the owner asks for a deploy
-with nothing new to merge, create a production deployment of `main` through the Vercel API with the build variable `NC_DEPLOY_NOW=1`. After the batch deploy,
+with nothing new to merge, create a production deployment of `main` through the Vercel API with the build variable `NC_DEPLOY_NOW=1`.
+`NC_DEPLOY_NOW=1` is the same as `[deploy-now]`: only when the owner asked for a deploy in so many words in this session, or the site is
+down. Merging, "ship it", "fix X" or wanting to test the live page are not a request for one: wait for the batch. On 2026-11-17 sessions
+made 38 production deploys this way after their merges; each emptied the page caches, and crawlers re-rendering job pages read ~440k
+full job rows that day (~2 GB). After the batch deploy,
 test the live page and say what shipped. Do not stop at a branch, a draft or a question. The "ask first" cases under Vercel and
 Supabase (destructive or hard to undo) still apply. Preview deployments are not used: non-main branches never build.
 
