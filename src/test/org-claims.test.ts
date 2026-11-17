@@ -222,7 +222,7 @@ describe('confirmOrgClaim', () => {
 
   it('verifies once: looks up by hash, records the claimant, notifies the team', async () => {
     db.orgClaim.findUnique.mockResolvedValue(row())
-    expect(await confirmOrgClaim(token)).toEqual({ status: 'verified', orgName: 'Example College', slug: 'example-college', provisioned: true })
+    expect(await confirmOrgClaim(token)).toEqual({ status: 'verified', orgName: 'Example College', slug: 'example-college', provisioned: false, awaitingApproval: true })
     expect(db.orgClaim.findUnique.mock.calls[0][0].where).toEqual({ tokenHash: hashClaimToken(token) })
     expect(db.orgClaim.updateMany.mock.calls[0][0].where).toMatchObject({ id: 'c1', verifiedAt: null })
     expect(crm.addContactToCrm).toHaveBeenCalledOnce()
@@ -271,21 +271,14 @@ describe('onClaimVerified hook', () => {
     expect(provision.provisionFreeWorkspace).not.toHaveBeenCalled()
   })
 
-  it('sets up the free workspace when the domain matched and the type has one', async () => {
-    const r = await onClaimVerified({ ...claim, orgTypes: ['UNIVERSITY'], needsReview: false })
-    expect(r).toEqual({ provisioned: true })
-    expect(provision.provisionFreeWorkspace).toHaveBeenCalledWith({ crmOrganizationId: 'o1', name: 'Example College', orgType: 'UNIVERSITY', claimantEmail: 'pat@college.edu' })
-  })
-  it('waits for a person when the domain was not known, and skips types with no free workspace', async () => {
-    expect((await onClaimVerified({ ...claim, orgTypes: ['UNIVERSITY'], needsReview: true })).provisioned).toBe(false)
-    expect((await onClaimVerified({ ...claim, orgTypes: ['EMPLOYER'], needsReview: false })).provisioned).toBe(false)
+  it('never opens a workspace by itself: a free-workspace type waits for approval, with the approval link in the team email', async () => {
+    const r = await onClaimVerified({ ...claim, orgTypes: ['GOVERNMENT'], needsReview: false })
+    expect(r).toEqual({ provisioned: false, awaitingApproval: true })
     expect(provision.provisionFreeWorkspace).not.toHaveBeenCalled()
+    expect(mail.admin).toHaveBeenCalledWith(expect.objectContaining({ approveUrl: expect.stringContaining('/support/admin/organizations/claims') }))
   })
-  it('never fails the claim if setting up the workspace fails', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
-    provision.provisionFreeWorkspace.mockRejectedValueOnce(new Error('db down'))
-    expect((await onClaimVerified({ ...claim, orgTypes: ['NONPROFIT'], needsReview: false })).provisioned).toBe(false)
-    provision.provisionFreeWorkspace.mockResolvedValueOnce({ ok: false, error: 'no' })
-    expect((await onClaimVerified({ ...claim, orgTypes: ['NONPROFIT'], needsReview: false })).provisioned).toBe(false)
+  it('types with no free workspace have nothing to approve', async () => {
+    expect(await onClaimVerified({ ...claim, orgTypes: ['EMPLOYER'], needsReview: false })).toEqual({ provisioned: false, awaitingApproval: false })
+    expect(provision.provisionFreeWorkspace).not.toHaveBeenCalled()
   })
 })

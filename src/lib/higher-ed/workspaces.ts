@@ -516,3 +516,10 @@ export const STAFF_ROLE_LABELS: Record<InstitutionUserRole, string> = {
   WORKFORCE_PARTNER: 'Workforce board partner',
   VIEWER: 'Viewer',
 }
+
+// Where the Home splash picture, logo and line are changed (Admin › Branding), or null for someone who cannot change them:
+// it needs the Admin workspace, and a demo guest pass is read-only.
+export function brandingEditPath(ctx: { institution: { slug: string; orgType: InstitutionOrgType | null }; workspaces: readonly string[]; mode: string }): string | null {
+  if (!ctx.workspaces.includes('admin') || ctx.mode === 'demo-guest') return null
+  return `${orgBasePath(ctx.institution.slug, ctx.institution.orgType)}/admin/branding`
+}

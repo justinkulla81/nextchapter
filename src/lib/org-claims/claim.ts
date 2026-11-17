@@ -5,13 +5,13 @@ import { goalsForRoles } from '@/lib/crm/goals'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { sendOrgClaimAdminEmail, sendOrgClaimLinkEmail } from '@/lib/email/send-org-claim-email'
 import { orgSlug } from '@/lib/crm/org-slug'
-import { provisionFreeWorkspace } from '@/lib/plans/provision'
 import { employerSection, isEmployerSectionKey, type EmployerSectionKey } from '@/lib/employer/sections'
 import { applySectionClaim, type SectionClaimOutcome } from './section-claim'
 import { resolveClaimableOrg } from './org'
 import { checkClaimEmail, cleanDomain } from './rules'
 import { CLAIM_TOKEN_DAYS, hashClaimToken, hashIp, newClaimToken, tokenState } from './token'
 import { SITE_URL } from './urls'
+import { urlForAppPath } from '@/lib/portal-hosts'
 
 /** At most this many claim requests per IP and per email address in an hour. */
 export const MAX_REQUESTS_PER_IP_PER_HOUR = 5
@@ -107,11 +107,12 @@ export interface VerifiedClaim {
 /**
  * ── HOOK: runs once, right after a claim is verified. ──
  * Today it only records the claimant in the CRM (a P0 lead due today) and emails the team.
- * Then, when the claimant's email matched the organization's known domain, it sets up the organization's free workspace
- * with the claimant as its administrator (owner decision 2026-10-24). It must stay safe to fail: the claim is already
- * verified when this runs.
+ * A claim for a type with a free workspace then waits for NextChapter to approve it (owner decision 2026-11-17, replacing the
+ * 2026-10-24 rule that set the workspace up at once on a domain match): the owner approves each one at
+ * /support/admin/organizations/claims, and only then is the workspace created (approval.ts). It must stay safe to fail:
+ * the claim is already verified when this runs.
  */
-export async function onClaimVerified(claim: VerifiedClaim): Promise<{ provisioned: boolean; section?: { key: EmployerSectionKey; outcome: SectionClaimOutcome } }> {
+export async function onClaimVerified(claim: VerifiedClaim): Promise<{ provisioned: boolean; awaitingApproval: boolean; section?: { key: EmployerSectionKey; outcome: SectionClaimOutcome } }> {
   const roles = claim.orgTypes.includes('EMPLOYER') ? (['HIRING_MANAGER', 'OUTPLACEMENT_BUYER'] as const) : (['BD_PARTNER'] as const)
   const pageUrl = claim.slug ? `${SITE_URL}/prepared/${claim.slug}` : SITE_URL
   const r = await addContactToCrm({
@@ -135,37 +136,27 @@ export async function onClaimVerified(claim: VerifiedClaim): Promise<{ provision
       console.error('applySectionClaim failed for claim', claim.id, e)
     }
   }
+  const awaitingApproval = hasFreeWorkspace(claim.orgTypes)
   await sendOrgClaimAdminEmail({
     orgName: claim.orgName, name: claim.name, title: claim.title, email: claim.email, needsReview: claim.needsReview, pageUrl,
+    ...(awaitingApproval ? { approveUrl: urlForAppPath('/support/admin/organizations/claims') } : {}),
     ...(sectionResult ? { section: { label: employerSection(sectionResult.key).label, outcome: sectionResult.outcome } } : {}),
   })
-  return { provisioned: await provisionIfEligible(claim), ...(sectionResult ? { section: sectionResult } : {}) }
+  return { provisioned: false, awaitingApproval, ...(sectionResult ? { section: sectionResult } : {}) }
 }
 
 // Organization types that get a free higher education or workforce workspace (src/lib/plans/provision.ts maps them to an
 // Institution). Employers, coaches and recruiter firms have no free workspace yet, so their claims stay a CRM lead.
 export const FREE_WORKSPACE_TYPES = ['UNIVERSITY', 'GOVERNMENT', 'WORKFORCE_PROVIDER', 'NONPROFIT', 'FOUNDATION']
 
-/**
- * A claim whose email domain matched the organization's known domain gets a free workspace straight away. A claim with no
- * known domain (needsReview) waits for a person to confirm it. Never throws.
- */
-export async function provisionIfEligible(claim: VerifiedClaim): Promise<boolean> {
-  if (claim.needsReview) return false
-  const type = FREE_WORKSPACE_TYPES.find((t) => claim.orgTypes.includes(t))
-  if (!type) return false
-  try {
-    const r = await provisionFreeWorkspace({ crmOrganizationId: claim.crmOrganizationId, name: claim.orgName, orgType: type, claimantEmail: claim.email })
-    if (!r.ok) console.error('Free workspace not created for claim', claim.id, r.error)
-    return r.ok
-  } catch (e) {
-    console.error('provisionFreeWorkspace failed for claim', claim.id, e)
-    return false
-  }
+/** The organization type whose free workspace a claim would open, or null when it has none. */
+export function freeWorkspaceType(orgTypes: string[]): string | null {
+  return FREE_WORKSPACE_TYPES.find((t) => orgTypes.includes(t)) ?? null
 }
+export const hasFreeWorkspace = (orgTypes: string[]) => freeWorkspaceType(orgTypes) !== null
 
 export type ConfirmResult =
-  | { status: 'verified'; orgName: string; slug: string | null; provisioned: boolean; section?: { key: EmployerSectionKey; outcome: SectionClaimOutcome } }
+  | { status: 'verified'; orgName: string; slug: string | null; provisioned: boolean; awaitingApproval: boolean; section?: { key: EmployerSectionKey; outcome: SectionClaimOutcome } }
   | { status: 'already'; orgName: string; slug: string | null }
   | { status: 'expired' | 'invalid' }
 
@@ -207,6 +198,7 @@ export async function confirmOrgClaim(token: string): Promise<ConfirmResult> {
     section = null
   }
   let provisioned = false
+  let awaitingApproval = false
   let sectionResult: { key: EmployerSectionKey; outcome: SectionClaimOutcome } | undefined
   try {
     const hook = await onClaimVerified({
@@ -215,9 +207,10 @@ export async function confirmOrgClaim(token: string): Promise<ConfirmResult> {
       orgDomain: found.crmOrganization.emailDomain ?? null, section,
     })
     provisioned = hook.provisioned
+    awaitingApproval = hook.awaitingApproval
     sectionResult = hook.section
   } catch (e) {
     console.error('onClaimVerified failed', found.id, e)
   }
-  return { status: 'verified', orgName: found.crmOrganization.name, slug, provisioned, ...(sectionResult ? { section: sectionResult } : {}) }
+  return { status: 'verified', orgName: found.crmOrganization.name, slug, provisioned, awaitingApproval, ...(sectionResult ? { section: sectionResult } : {}) }
 }
