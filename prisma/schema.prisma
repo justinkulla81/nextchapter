@@ -10725,6 +10725,8 @@ model OrgClaim {
   section           String?
   /// What the verified claim did: ADMIN | REQUESTED | REVIEW | SKIPPED. Null = not a section claim.
   outcome           String?
+  /// The related-organization link (EcosystemPartner.id) the claimant came from, when another organization invited them.
+  referredByPartnerId String?
   /// A verified claim for a type with a free workspace waits for NextChapter to approve it (owner decision 2026-11-17).
   /// Applied by hand: prisma/manual/2026-11-17-org-claim-approval.sql.
   approvedAt        DateTime?
@@ -15938,12 +15940,18 @@ model EcosystemPartner {
   isSampleData     Boolean     @default(false)
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
+  /// A related organization with its own public page (owner decision 2026-11-17): the CRM organization whose page it can
+  /// claim, and the portal it opened once that claim was approved. Applied by hand: prisma/manual/2026-11-17-related-orgs.sql.
+  crmOrganizationId   String?
+  linkedInstitutionId String?
 
   contacts         EcosystemPartnerContact[]
   partnerViews     PartnerView[]
 
   @@unique([institutionId, source, refId])
   @@index([institutionId, status])
+  @@index([crmOrganizationId])
+  @@index([linkedInstitutionId])
 }
 
 // A person at a confirmed ecosystem partner who signs in to the organization's portal (Partner view): the steward gives access to an

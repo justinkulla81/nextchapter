@@ -36,6 +36,7 @@ import {
 import { STAFF_ROLE_LABELS, staffRoleLabel, TIER_LABELS, WORKSPACES, auditPortalOf, brandingEditPath, getWorkspace, orgKindOf, tierIncludes, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
+import { AdminRelatedOrgs } from './screens-related'
 import { listPartnerAudit } from '@/lib/partners/audit'
 import { PartnerActivity } from '@/components/partners/PartnerActivity'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -1750,6 +1751,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'alumni:data': AlumniData,
   'development:grants': DevelopmentGrants,
   'admin:grants': DevelopmentGrants,
+  'admin:related': AdminRelatedOrgs,
   'execed:bridge': StaffSkillsBridge,
   'career:bridge': StaffSkillsBridge,
   'career:checkins': CareerCheckIns,

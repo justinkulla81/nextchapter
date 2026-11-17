@@ -43,6 +43,7 @@ export default async function ClaimsToApprovePage() {
                 <p className="text-sm">
                   <span className="font-medium">{c.name}</span>, {c.title} · {c.email}
                 </p>
+                {c.invitedBy && <p className="text-sm text-muted-foreground">Invited by {c.invitedBy}. Approving connects the two.</p>}
                 <p className={c.needsReview ? 'text-sm text-amber-900' : 'text-sm text-muted-foreground'}>
                   {c.needsReview
                     ? `Check this one: we have no email domain on file for ${c.orgName}, so ${c.emailDomain} could not be matched to it.`

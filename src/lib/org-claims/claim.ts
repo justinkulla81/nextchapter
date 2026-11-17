@@ -11,6 +11,7 @@ import { resolveClaimableOrg } from './org'
 import { checkClaimEmail, cleanDomain } from './rules'
 import { CLAIM_TOKEN_DAYS, hashClaimToken, hashIp, newClaimToken, tokenState } from './token'
 import { SITE_URL } from './urls'
+import { referralFor } from './related-orgs'
 import { urlForAppPath } from '@/lib/portal-hosts'
 
 /** At most this many claim requests per IP and per email address in an hour. */
@@ -25,6 +26,8 @@ export interface RequestClaimInput {
   ip: string | null
   /** Hiring, Employees or Outplacement (employer organizations only). Left out, the claim is for the page as a whole, as before. */
   section?: string | null
+  /** The related-organization invite token the claimant arrived with (/prepared/<slug>?via=...). */
+  via?: string | null
 }
 export type RequestClaimResult = { ok: true; email: string; needsReview: boolean } | { ok: false; error: string }
 
@@ -65,7 +68,9 @@ export async function requestOrgClaim(input: RequestClaimInput): Promise<Request
   const { token, tokenHash, expiresAt } = newClaimToken()
   // An older unconfirmed link for the same person and organization stops working; the newest one is the only live link.
   await prisma.orgClaim.updateMany({ where: { crmOrganizationId: org.id, email: check.email, verifiedAt: null, expiresAt: { gt: new Date() } }, data: { expiresAt: new Date() } })
-  const base = { crmOrganizationId: org.id, name, title, email: check.email, emailDomain: check.domain, tokenHash, expiresAt, needsReview: check.needsReview, ipHash }
+  // Invited by a related organization: kept on the claim so approval connects the two (related-orgs.ts).
+  const referral = await referralFor(input.via, org.id).catch(() => null)
+  const base = { crmOrganizationId: org.id, name, title, email: check.email, emailDomain: check.domain, tokenHash, expiresAt, needsReview: check.needsReview, ipHash, ...(referral ? { referredByPartnerId: referral.partnerId } : {}) }
   let claim: { id: string }
   let sectionSaved = !!section
   try {
@@ -80,7 +85,7 @@ export async function requestOrgClaim(input: RequestClaimInput): Promise<Request
   }
   if (section) captureServerEvent(`org-claim:${org.id}`, 'employer_section_claim_requested', { orgId: org.id, section, claimId: claim.id, emailDomain: check.domain, needsReview: check.needsReview, sectionSaved })
   const sent = await sendOrgClaimLinkEmail({ to: check.email, name, orgName: org.name, verifyUrl: `${siteUrl()}/prepared/${org.slug}/verify/${token}`, days: CLAIM_TOKEN_DAYS })
-  captureServerEvent(`org-claim:${org.id}`, 'org_claim_requested', { orgId: org.id, slug: org.slug, claimId: claim.id, emailDomain: check.domain, needsReview: check.needsReview, emailSent: sent })
+  captureServerEvent(`org-claim:${org.id}`, 'org_claim_requested', { orgId: org.id, slug: org.slug, claimId: claim.id, emailDomain: check.domain, needsReview: check.needsReview, emailSent: sent, referredByPartnerId: referral?.partnerId ?? null })
   if (!sent) return { ok: false, error: 'We could not send the confirmation email. Try again in a few minutes.' }
   return { ok: true, email: check.email, needsReview: check.needsReview }
 }

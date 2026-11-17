@@ -370,6 +370,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'activity', label: 'Activity', comingIn: null },
       { key: 'branding', label: 'Branding', comingIn: null },
       { key: 'grants', label: 'Grants', comingIn: null, orgKind: 'college', hideWhenWorkspace: 'development' },
+      { key: 'related', label: 'Related organizations', comingIn: null },
       { key: 'roster', label: 'Roster', comingIn: null },
       { key: 'board', label: 'Board report', comingIn: null },
       { key: 'privacy', label: 'Privacy requests', comingIn: null },
