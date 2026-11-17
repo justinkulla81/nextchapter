@@ -46,7 +46,6 @@ import { GoodMatchesMore } from '@/components/dashboard/GoodMatchesMore'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import { PassedOnPanel } from '@/components/dashboard/PassedOnPanel'
 import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
-import { MarketLine } from '@/components/dashboard/MarketLine'
 import { SEARCH_TOO_FEW, SEARCH_TOO_MANY } from '@/components/dashboard/MarketSizeBlock'
 import { becauseLine, DISMISS_REASONS, shouldAskToHide } from '@/lib/jobs/job-dismiss'
 import { breadthReasonsFor } from '@/lib/jobs/search-breadth-server'
@@ -147,7 +146,7 @@ import { lookingForOf, showsFractional } from '@/lib/jobs/looking-for'
 import { type BoardTab } from '@/components/dashboard/one-board/BoardTabs'
 import { ExpertNetworkRow } from '@/components/dashboard/one-board/ExpertNetworkRow'
 import { earlyCareerAudience, featureVisible } from '@/lib/early-career/audience'
-import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
+import { NextMoveSection } from '@/components/dashboard/NextMoveSection'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { SavedSearchesStrip } from '@/components/dashboard/SavedSearchesStrip'
 import { ShowMore } from '@/components/candidate/ShowMore'
@@ -159,7 +158,6 @@ import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { MyJobsRedesign } from '@/components/dashboard/find/MyJobsRedesign'
 import { AddJobAction } from '@/components/dashboard/find/AddJobAction'
 import { NeedsYou } from '@/components/candidate/NeedsYou'
-import { HomeFold } from '@/components/candidate/HomeFold'
 import { FindParts, parseFindPart, type FindPart } from '@/components/dashboard/FindParts'
 import { FIND_PART_HEADER } from '@/lib/jobs/find-part-copy'
 import { FindUnpostedSection } from '@/components/dashboard/find/FindUnpostedSection'
@@ -885,12 +883,6 @@ async function JobRecommendationsSection({
           <MarketSizeSection member={profile} surface="board_search" searchCount={searchResultCount} searchQuery={search.params.q} />
         </Suspense>
       )}
-      {/* Everyone sees their market in one line. The fuller block above already says it when a search is too wide or too narrow, so the line steps aside then. */}
-      {!(search && search.active && (searchResultCount >= SEARCH_TOO_MANY || searchResultCount < SEARCH_TOO_FEW)) && (
-        <Suspense fallback={null}>
-          <MarketLine member={profile} surface="board" />
-        </Suspense>
-      )}
       {search && search.active && searchResultCount > 0 && (
         <p className="text-sm text-muted-foreground" aria-live="polite">
           <span className="font-medium text-foreground">
@@ -1610,6 +1602,10 @@ async function FindMyJobBody({
         <div id="apply-new-jobs" className="scroll-mt-4 space-y-6">
           <BoardSearchBar />
           <LookingForChoice selected={lookingForOf(workTypes)} />
+          {/* One recommendation with its reason (owner, 2026-11-17): stay, pivot, add a skill or finish the profile. Streams on its own. */}
+          <Suspense fallback={null}>
+            <NextMoveSection profile={profile} />
+          </Suspense>
           {pivotFilter && (
             <PivotBoardBanner
               target={pivotFilter.target}
@@ -1618,7 +1614,6 @@ async function FindMyJobBody({
               clearHref={boardHrefWithout(urlParams, ['pivot'], { pathname: '/dashboard/find-my-job', hash: 'job-recommendations' })}
             />
           )}
-          <ScopeToggle surface="find_my_job" current={scopeCtx.scope} />
           {prompts}
           <div id="job-recommendations" className="scroll-mt-4">
             <Suspense fallback={<JobRecommendationsSkeleton />}>
@@ -1646,9 +1641,11 @@ async function FindMyJobBody({
               />
             </Suspense>
           </div>
-          {showsFractional(workTypes) && <ExpertNetworkRow networks={expertNetworks} />}
-          {(scopeCtx.message || scopeCtx.question || scopeCtx.options.length > 0) && (
-            <HomeFold title="Where we are looking" event="jobs_scope_fold_toggled">
+          {/* Everything else, in one fold under the list (owner, 2026-11-17: the page had too much on it). */}
+          <details className="group rounded-lg border border-border px-4 py-3" id="more-options">
+            <summary className="cursor-pointer text-sm font-medium text-ink">More filters and options</summary>
+            <div className="mt-4 space-y-6">
+              <ScopeToggle surface="find_my_job" current={scopeCtx.scope} />
               {scopeCtx.message && (
                 <PivotMessageCard
                   message={scopeCtx.message}
@@ -1657,11 +1654,6 @@ async function FindMyJobBody({
               )}
               {scopeCtx.question && <ExploreQuestionCard question={scopeCtx.question} />}
               <ExploredOptionsList options={scopeCtx.options} />
-            </HomeFold>
-          )}
-          <details className="rounded-lg border border-border px-3 py-2">
-            <summary className="cursor-pointer text-sm font-medium text-ink">Filters and views</summary>
-            <div className="mt-3 space-y-3">
               <div className="flex flex-wrap items-center gap-3">
                 <PastJobsToggle />
               </div>
@@ -1702,15 +1694,7 @@ async function FindMyJobBody({
                   })}
                 </p>
               )}
-            </div>
-          </details>
-          {board.breadth.classifier && (
-            <Suspense fallback={null}>
-              <TuneStripSection profile={profile} />
-            </Suspense>
-          )}
-          {(board.dismiss.rules && (board.dismiss.rules.preferences.length > 0 || passedOnJobs.length > 0)) || !pivotFilter ? (
-            <ShowMore event="find_more_options_opened" properties={{ part: 'jobs' }} label="Jobs you passed on and other ways to search">
+                          {showsFractional(workTypes) && <ExpertNetworkRow networks={expertNetworks} />}
               {board.dismiss.rules && (board.dismiss.rules.preferences.length > 0 || passedOnJobs.length > 0) && (
                 <PassedOnPanel
                   because={becauseLine(board.dismiss.rules.preferences)}
@@ -1737,8 +1721,17 @@ async function FindMyJobBody({
                   <PivotBoardPrompt profile={profile} />
                 </Suspense>
               )}
-            </ShowMore>
-          ) : null}
+              <div id="employer-matched-roles" className="scroll-mt-4 space-y-3">
+                {/* Old Interim Work anchor (role-match emails link here). */}
+                <span id="board-advisory-work" className="block scroll-mt-4" aria-hidden />
+                <h2 className="text-sm font-semibold text-ink">Roles posted directly by employers</h2>
+                <MatchedRoleList
+                  roles={matchedRoles.filter((r) => workTypes.includes(roleProfileWorkType(r.type)))}
+                  emptyMessage="No employer-posted roles match your background yet."
+                />
+              </div>
+            </div>
+          </details>
         </div>
       )}
 
@@ -1754,25 +1747,6 @@ async function FindMyJobBody({
         <Suspense fallback={<FindPartLoading label="Looking through filings and news for your background…" />}>
           <FindUnpostedSection profile={profile} types={workTypes} urlParams={urlParams} />
         </Suspense>
-      )}
-      {onBoard && show('jobs') && (
-      <ShowMore label="Roles posted directly by employers" event="find_more_options_opened" properties={{ part: 'jobs', section: 'employer_matched_roles' }}>
-      <div id="employer-matched-roles" className="scroll-mt-4 space-y-3">
-        {/* Old Interim Work anchor (role-match emails link here). */}
-        <span id="board-advisory-work" className="block scroll-mt-4" aria-hidden />
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Employer-matched roles</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Roles posted directly by employers on NextChapter and matched to your background:{' '}
-            {workTypes.map((t) => WORK_TYPE_LABEL[t].toLowerCase()).join(', ')}.
-          </p>
-        </div>
-        <MatchedRoleList
-          roles={matchedRoles.filter((r) => workTypes.includes(roleProfileWorkType(r.type)))}
-          emptyMessage="No employer-posted roles match your background yet — check back soon."
-        />
-      </div>
-      </ShowMore>
       )}
 
       {onBoard && show('independent') && showIndependentToolkit && (
