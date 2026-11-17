@@ -245,8 +245,6 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
         <ol className="mt-4 space-y-3">{e.rows.slice(0, 25).map((r) => <RowCard key={r.key} row={r} unit={unit} noun={e.placeNoun} slug={e.slug} edition={e.edition} links={employers} />)}</ol>
       </section>
 
-      {e.components && <Components e={e} />}
-
       {e.rows.length > 25 && <section aria-labelledby="full">
         <h2 id="full" className={H2}>Ranks 26 to {e.rows.length}</h2>
         <p className="mt-2 text-sm text-muted-foreground">The rest of the {e.rows.length} {e.placeNoun} that qualified, with the figure each is ranked on. The CSV below has every row.</p>
@@ -268,6 +266,8 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
           </table>
         </div>
       </section>}
+
+      {e.components && <Components e={e} />}
 
       <section aria-labelledby="stands-out">
         <h2 id="stands-out" className={H2}>What stands out</h2>
