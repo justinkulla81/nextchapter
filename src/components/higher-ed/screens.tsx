@@ -928,7 +928,7 @@ async function CandidateCoaching({ ctx }: ScreenProps) {
     <div className="max-w-2xl space-y-4">
       <p className="text-sm text-muted-foreground">
         One-to-one coaching from {ctx.institution.name}&apos;s own coaches and NextChapter&apos;s. Answer a few questions and we&apos;ll suggest
-        the best fit, with your college&apos;s coaches first.
+        the best fit, with {ctx.institution.name}&apos;s coaches first.
       </p>
       {award?.status === 'AWARDED' && (
         <p className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm" role="status">
