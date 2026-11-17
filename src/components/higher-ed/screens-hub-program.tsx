@@ -1316,11 +1316,11 @@ export async function HubPublic({ ctx, base }: Props) {
                   <span className="text-xs font-medium">{r.status}</span>
                   <div className="mt-1">
                     {r.external ? (
-                      <a href={r.href} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                      <a href={r.href} target="_blank" rel="noreferrer" className="text-[color:var(--accent-text,var(--primary))] hover:underline">
                         {r.cta}
                       </a>
                     ) : (
-                      <Link href={r.href} className="text-primary hover:underline">
+                      <Link href={r.href} className="text-[color:var(--accent-text,var(--primary))] hover:underline">
                         {r.cta}
                       </Link>
                     )}
