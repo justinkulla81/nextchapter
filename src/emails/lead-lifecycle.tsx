@@ -1,4 +1,4 @@
-import { Body, Card, CardEmail, Headline, LinkButton, MUTED, Signoff, Wordmark } from '@/lib/email/card-layout'
+import { BRAND, Body, Card, CardEmail, Headline, LinkButton, MUTED, Signoff, Wordmark } from '@/lib/email/card-layout'
 import type { LeadEmailContent } from '@/lib/leads/lifecycle/content'
 
 interface LeadLifecycleEmailProps {
@@ -23,6 +23,8 @@ const choiceButton: React.CSSProperties = {
   color: '#0b2545',
 }
 
+const jobRow: React.CSSProperties = { padding: '14px 0', borderTop: '1px solid #e5e7eb' }
+
 // The follow-up to a public signup (see src/lib/leads/lifecycle). One message,
 // one button; the wording lives in content.ts.
 export default function LeadLifecycleEmail({ content, ctaUrl, unsubscribeUrl, postalAddress, pixelUrl, audience }: LeadLifecycleEmailProps) {
@@ -39,7 +41,7 @@ export default function LeadLifecycleEmail({ content, ctaUrl, unsubscribeUrl, po
       }
     >
       <Card pad="28px 32px 36px">
-        <Wordmark label="Lead lifecycle" />
+        <Wordmark />
         <Headline>{content.headline}</Headline>
         {content.paragraphs.map((p, i) => (
           <Body key={i}>{p}</Body>
@@ -51,6 +53,23 @@ export default function LeadLifecycleEmail({ content, ctaUrl, unsubscribeUrl, po
             ))}
           </ul>
         )}
+        {content.jobs && content.jobs.length > 0 && (
+          <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} style={{ margin: '0 0 20px', borderBottom: '1px solid #e5e7eb' }}>
+            <tbody>
+              {content.jobs.map((j) => (
+                <tr key={j.url}>
+                  <td style={jobRow}>
+                    <a href={j.url} style={{ fontSize: '17px', fontWeight: 600, color: BRAND, textDecoration: 'underline' }}>
+                      {j.title}
+                    </a>
+                    <p style={{ margin: '4px 0 0', fontSize: '15px', color: MUTED }}>{[j.company, j.place].filter(Boolean).join(' · ')}</p>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {content.afterJobs && <Body>{content.afterJobs}</Body>}
         {content.choices && content.choices.length > 0 && (
           <>
             <Body>
