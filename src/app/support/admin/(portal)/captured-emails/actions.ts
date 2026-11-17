@@ -29,14 +29,14 @@ export async function sendLifecycleTests() {
   const to = getAccountActivityAdminEmail()
   let sent = 0
   if (to) {
-    // The application welcome shows three jobs like the one applied for, so its test uses the latest real application's job.
+    // The application and saved-job welcomes show three jobs like that job, so their tests use the latest real application's job.
     const latest = await prisma.homepageLead
       .findFirst({ where: { kind: 'apply_save', followup: { in: ['apply_click', 'apply_gate'] }, searchQ: { not: '' } }, orderBy: { createdAt: 'desc' }, select: { searchQ: true } })
       .catch(() => null)
     const jobId = latest?.searchQ ?? null
     const label = jobId ? (await publicJobLabels([jobId]).catch(() => new Map<string, string>())).get(jobId) ?? null : null
     for (const t of TESTS) {
-      const applied = t.variant === 'applied_job' && t.step === 'welcome' && jobId
+      const applied = (t.variant === 'applied_job' || t.variant === 'saved_job') && t.step === 'welcome' && jobId
       const detail = applied && label ? label : t.detail
       if (await sendLifecycleEmail({ email: to, variant: t.variant, step: t.step, context: { firstName: 'Justin', detail }, jobId: applied ? jobId : null, test: true })) sent++
     }

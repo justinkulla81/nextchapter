@@ -65,4 +65,12 @@ describe('lifecycle email journey question', () => {
     expect(c.jobs).toBeUndefined()
     expect(c.choices).toEqual(choices)
   })
+
+  it('leads the saved-job welcome with three jobs like it too', () => {
+    const jobs = [1, 2, 3].map((i) => ({ title: `Job ${i}`, company: `Co ${i}`, place: null, url: `https://x.test/j${i}` }))
+    const c = leadEmailContent('saved_job', 'welcome', { firstName: null, detail: 'PM at Acme', choices: [], jobs })
+    expect(c.headline).toBe('Three more jobs like this one')
+    expect(c.paragraphs[1]).toBe('You saved PM at Acme. These are open now and look like it:')
+    expect(c.choices).toBeUndefined()
+  })
 })
