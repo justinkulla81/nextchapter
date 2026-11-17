@@ -61,6 +61,7 @@ export function OrgHomeHero({
   stats,
   placeholder = 'skyline',
   logoUrl,
+  inset,
   edit,
 }: {
   name: string
@@ -73,6 +74,8 @@ export function OrgHomeHero({
   stats: HeroStat[]
   placeholder?: HeroPlaceholder
   logoUrl?: string | null
+  /** A second, smaller picture in the corner: an employer's product. */
+  inset?: { url: string; label: string } | null
   /** Pencil links for whoever can see the editor: the picture and tagline (Branding) and, when there is one, the region. */
   edit?: { brandingHref: string; regionHref?: string; readOnly: boolean } | null
 }) {
@@ -84,14 +87,14 @@ export function OrgHomeHero({
           // eslint-disable-next-line @next/next/no-img-element -- the organization's own uploaded or licensed picture
           <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover object-[center_30%]" />
         ) : (
-          <svg viewBox="0 0 800 220" preserveAspectRatio="xMidYMax slice" role="img" aria-label={`${drawing.label}: upload your own picture in Admin, Branding`} className="absolute inset-0 size-full text-primary">
+          <svg viewBox="0 0 800 220" preserveAspectRatio="xMidYMax slice" role="img" aria-label={`${drawing.label}: upload your own picture`} className="absolute inset-0 size-full text-primary">
             <rect width="800" height="220" fill="currentColor" opacity="0.08" />
             <g fill="currentColor" opacity="0.28">
               {drawing.shapes}
             </g>
           </svg>
         )}
-        <div className="absolute inset-x-0 bottom-0 flex items-end gap-3 bg-gradient-to-t from-black/80 via-black/55 to-transparent p-4 pt-10 sm:p-6 sm:pt-12">
+        <div className={`absolute inset-x-0 bottom-0 flex items-end gap-3 bg-gradient-to-t from-black/80 via-black/55 to-transparent p-4 pt-10 sm:p-6 sm:pt-12${inset ? ' sm:pr-44' : ''}`}>
           {logoUrl && (
             // eslint-disable-next-line @next/next/no-img-element -- the organization's uploaded logo
             <img src={logoUrl} alt={`${name} logo`} className="size-12 shrink-0 rounded-lg bg-white object-contain p-1 sm:size-14" />
@@ -101,6 +104,13 @@ export function OrgHomeHero({
             {tagline && <p className="text-lg font-semibold text-white sm:text-xl">{tagline}</p>}
           </div>
         </div>
+        {inset && (
+          <figure className="absolute right-3 bottom-3 hidden w-28 overflow-hidden rounded-lg border border-white/40 bg-white shadow-md sm:block sm:w-36">
+            {/* eslint-disable-next-line @next/next/no-img-element -- the employer's uploaded product picture */}
+            <img src={inset.url} alt={inset.label} className="aspect-[4/3] w-full object-cover" />
+            <figcaption className="truncate px-1.5 py-0.5 text-[11px] font-medium text-ink">{inset.label}</figcaption>
+          </figure>
+        )}
         {/* The license (CC BY or BY-SA) asks for the credit; small, in the corner. */}
         {imageUrl && credit && (
           <a href={creditUrl ?? undefined} target="_blank" rel="noreferrer" className="absolute top-2 right-2 max-w-[70%] truncate rounded bg-black/45 px-1.5 py-0.5 text-[10px] text-white/90 hover:underline">

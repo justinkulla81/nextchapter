@@ -3,7 +3,10 @@ import { getCurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
 import { getSeatUtilization } from '@/lib/employer/outplacement-reporting'
 import { PROGRAM_TYPE_LABEL, PROGRAM_TYPE_HOME } from '@/lib/employer/program-type'
 import { PRIVACY_NOTE } from '@/lib/employer/program-wording'
-import { firstName, PortalHomeHeader, PortalHomeMore, PortalLinks, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem } from '@/components/partners/PortalHome'
+import { firstName, PortalHomeHeader, PortalHomeMore, PortalLinks, PortalNeeds, PortalTable, type NeedsItem } from '@/components/partners/PortalHome'
+import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
+import { brandOwnerKey, readEmployerBrand } from '@/lib/employer/brand'
+import { readProgramSettings } from '@/lib/employer/program-settings'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
 const ROLE_LINE: Record<string, string> = {
@@ -13,7 +16,8 @@ const ROLE_LINE: Record<string, string> = {
   FINANCE: 'You can see invoices.',
 }
 
-// The employer Home (the portal Home pattern, src/components/partners/PortalHome.tsx). Same reads as before: no new query.
+// The employer Home (the portal Home pattern, src/components/partners/PortalHome.tsx). Two small reads added for the splash:
+// the org's company link and program logo, and its EmployerBrand row.
 // Counts only, with small groups suppressed (getSeatUtilization), as on the reporting page.
 export default async function EmployerOverviewPage() {
   const orgUser = await getCurrentOutplacementOrgUser()
@@ -39,7 +43,12 @@ export default async function EmployerOverviewPage() {
     where: { orgId: orgUser.orgId, status: 'ACTIVE' },
     orderBy: { createdAt: 'desc' },
   })
-  const utilizations = await Promise.all(contracts.map((c) => getSeatUtilization(orgUser, c.id)))
+  const [utilizations, org] = await Promise.all([
+    Promise.all(contracts.map((c) => getSeatUtilization(orgUser, c.id))),
+    prisma.outplacementEmployerOrg.findUnique({ where: { id: orgUser.orgId }, select: { companyId: true, programSettings: true } }),
+  ])
+  const brand = await readEmployerBrand(brandOwnerKey({ companyId: org?.companyId ?? null, outplacementOrgId: orgUser.orgId })!)
+  const programLogo = readProgramSettings(org?.programSettings).brand.logoUrl ?? null
   const isAdmin = orgUser.role === 'ADMIN'
   const rows = contracts.map((c, i) => ({ c, util: utilizations[i] }))
   const reportable = rows.filter((r) => r.util && !r.util.suppressed && r.util.totalSeats !== null && r.util.activatedSeats !== null)
@@ -79,18 +88,28 @@ export default async function EmployerOverviewPage() {
         action={isAdmin && contracts.length > 0 ? { href: '/employer/enroll', label: 'Enroll people' } : { href: '/employer/reporting', label: 'Open reporting' }}
       />
 
-      <PortalNeeds portal="employer" items={needs} empty="Nothing needs you right now. Everyone with a seat has activated it." />
-
+      {/* The company's splash (owner decision 2026-11-17): its office, logo and product, with the three seat numbers that used
+          to sit in their own row. Admins edit it on the Program page. */}
       <div className="space-y-2">
-        <PortalNumbers
-          items={[
-            { value: totalSeats > 0 ? String(totalSeats) : '—', label: 'Seats', source: totalSeats > 0 ? `Across ${contracts.length === 1 ? 'your contract' : `${contracts.length} contracts`}` : 'Shown once a contract has enough seats to report' },
-            { value: totalSeats > 0 ? String(activated) : '—', label: 'Activated', source: 'People who signed in and started', highlight: true },
-            { value: totalSeats > 0 ? `${Math.round((activated / totalSeats) * 100)}%` : '—', label: 'Activation rate', source: 'Activated seats of all seats' },
+        <OrgHomeHero
+          name={orgUser.orgName}
+          line={brand?.productName ? `${orgUser.orgName} · ${brand.productName}` : orgUser.orgName}
+          tagline={brand?.tagline ?? null}
+          imageUrl={brand?.officeImageUrl ?? null}
+          logoUrl={brand?.logoUrl ?? programLogo}
+          inset={brand?.productImageUrl ? { url: brand.productImageUrl, label: brand.productName ?? 'Our product' } : null}
+          placeholder="office"
+          edit={isAdmin ? { brandingHref: '/employer/program#home-picture', readOnly: false } : null}
+          stats={[
+            { value: totalSeats > 0 ? String(totalSeats) : '—', label: 'Seats', note: totalSeats > 0 ? `Across ${contracts.length === 1 ? 'your contract' : `${contracts.length} contracts`}` : 'Shown once a contract has enough seats to report' },
+            { value: totalSeats > 0 ? String(activated) : '—', label: 'Activated', note: 'People who signed in and started' },
+            { value: totalSeats > 0 ? `${Math.round((activated / totalSeats) * 100)}%` : '—', label: 'Activation rate', note: 'Activated seats of all seats' },
           ]}
         />
         <p className="max-w-2xl text-xs text-muted-foreground">{PRIVACY_NOTE}</p>
       </div>
+
+      <PortalNeeds portal="employer" items={needs} empty="Nothing needs you right now. Everyone with a seat has activated it." />
 
       <PortalTable
         title="Your contracts"

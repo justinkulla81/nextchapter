@@ -3,6 +3,10 @@ import { orgProgram } from '@/lib/employer/program-server'
 import { PROGRAM_AREAS, PROGRAM_FEATURES, tierIncludes } from '@/lib/employer/program-settings'
 import { PackagesEditor, ProgramDetailsForm, ProgramLookForm, ServiceMenuRow } from '@/components/employer/ProgramForms'
 import { Squiggle } from '@/components/ui/squiggle'
+import { prisma } from '@/lib/prisma'
+import { brandOwnerKey, readEmployerBrand } from '@/lib/employer/brand'
+import { EmployerBrandForm } from '@/components/employer/EmployerBrandForm'
+import { saveOutplacementBrandAction } from './actions'
 
 const TIER_LABEL = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' } as const
 
@@ -12,6 +16,8 @@ const TIER_LABEL = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' } as const
 export default async function EmployerProgramPage() {
   const orgUser = await requireOutplacementRole(['ADMIN'])
   const p = await orgProgram(orgUser.orgId)
+  const org = await prisma.outplacementEmployerOrg.findUnique({ where: { id: orgUser.orgId }, select: { companyId: true } })
+  const brand = await readEmployerBrand(brandOwnerKey({ companyId: org?.companyId ?? null, outplacementOrgId: orgUser.orgId })!)
   return (
     <div className="space-y-10">
       <div>
@@ -31,6 +37,10 @@ export default async function EmployerProgramPage() {
       <section className="space-y-3 rounded-lg border border-border bg-card p-4">
         <h2 className="text-lg font-semibold">Logo and color</h2>
         <ProgramLookForm logoUrl={p.settings.brand.logoUrl} accentColor={p.settings.brand.accentColor} />
+      </section>
+
+      <section id="home-picture" className="scroll-mt-6">
+        <EmployerBrandForm action={saveOutplacementBrandAction} brand={brand} companyName={orgUser.orgName} logoElsewhere />
       </section>
 
       <section className="space-y-3">

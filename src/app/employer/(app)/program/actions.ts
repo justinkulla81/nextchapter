@@ -7,6 +7,8 @@ import { requireOutplacementRoleForAction } from '@/lib/employer/outplacement-au
 import { uploadEmployerLogo } from '@/lib/employer/brand-upload'
 import { cleanBrandColor, EVERYONE, PROGRAM_FEATURES, readProgramSettings, type ProgramFeatureKey, type ProgramPackage, type ServiceChoice } from '@/lib/employer/program-settings'
 import { grantSeatAccess } from '@/lib/access/grants'
+import { brandOwnerKey, saveEmployerBrand } from '@/lib/employer/brand'
+import type { BrandFormState } from '@/components/employer/EmployerBrandForm'
 
 export type ProgramFormState = { error?: string; ok?: string } | undefined
 type Result = { error?: string; ok?: boolean; message?: string }
@@ -102,4 +104,19 @@ export async function setSeatPackage(seatId: string, packageKey: string): Promis
   captureServerEvent(orgUser.userId, 'outplacement_seat_package_set', { orgId: orgUser.orgId, seatId, packageKey })
   revalidatePath('/employer/roster')
   return r.count ? { ok: true } : { error: 'That seat is gone.' }
+}
+
+// The Home picture (owner decision 2026-11-17): the office building, the product and a tagline at the top of the employer
+// Home. Admins set it here; the logo comes from "Logo and color" above unless one is stored with the brand.
+export async function saveOutplacementBrandAction(_prev: BrandFormState, formData: FormData): Promise<BrandFormState> {
+  const orgUser = await admin()
+  if (!orgUser) return { error: 'Only an admin can change the Home picture. Ask your admin, or log in again.' }
+  const org = await prisma.outplacementEmployerOrg.findUnique({ where: { id: orgUser.orgId }, select: { companyId: true } })
+  const ownerKey = brandOwnerKey({ companyId: org?.companyId ?? null, outplacementOrgId: orgUser.orgId })!
+  const r = await saveEmployerBrand(ownerKey, formData, orgUser.email ?? orgUser.userId)
+  if (!r.ok) return { error: r.error }
+  captureServerEvent(orgUser.userId, 'employer_brand_saved', { portal: 'outplacement', orgId: orgUser.orgId, ownerKey, ...r.changed })
+  revalidatePath('/employer/program')
+  revalidatePath('/employer')
+  return { ok: true, message: 'Saved. Your Home shows the new look now.' }
 }
