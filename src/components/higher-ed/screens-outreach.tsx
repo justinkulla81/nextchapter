@@ -4,6 +4,7 @@
 // data are the college's own; anything from the candidate side (engagement)
 // comes through the consent views.
 
+import { visibleMemberWhere } from '@/lib/plans/visible-members'
 import { PortalNeeds } from '@/components/partners/PortalHome'
 import Link from 'next/link'
 import type { CheckInKind } from '@prisma/client'
@@ -58,9 +59,10 @@ const daysAgo = (n: number) => new Date(new Date().getTime() - n * DAY)
 
 export async function AlumniLayoffs({ ctx }: Props) {
   const id = ctx.institution.id
+  const visible = await visibleMemberWhere(ctx, 'memberId')
   const [fresh, recent] = await Promise.all([
     prisma.layoffMatch.findMany({
-      where: { institutionId: id, outreachStatus: 'NEW' },
+      where: { institutionId: id, outreachStatus: 'NEW', ...visible },
       select: {
         id: true,
         member: { select: { firstName: true, lastName: true, classYear: true } },

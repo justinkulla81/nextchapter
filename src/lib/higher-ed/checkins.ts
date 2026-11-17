@@ -10,7 +10,8 @@
 // confirms before recording, so link scanners can't answer for anyone.
 
 import 'server-only'
-import type { CheckInKind, Prisma } from '@prisma/client'
+import { visibleIdsForInstitution, visibleMemberSqlFor } from '@/lib/plans/visible-members'
+import { Prisma, type CheckInKind } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { applyJourneyChange } from '@/lib/journey/apply'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -283,7 +284,10 @@ export async function checkInOverview(institutionId: string, now = new Date()) {
     const responded = r.filter((x) => x.status === 'RESPONDED').length
     return { kind: k, scheduled: r.filter((x) => x.status === 'SCHEDULED').length, sent, responded }
   })
+  // Counts cover everyone; the named follow-ups only people the plan lets staff see.
+  const visible = await visibleIdsForInstitution(institutionId)
   const followUps = rows
+    .filter((x) => !visible || visible.includes(x.member.id))
     .filter((x) => x.status === 'RESPONDED' && ['looking', 'laid_off'].includes((x.responseJson as { answer?: string } | null)?.answer ?? ''))
     .sort((a, b) => (b.respondedAt?.getTime() ?? 0) - (a.respondedAt?.getTime() ?? 0))
     .map((x) => ({ id: x.id, kind: x.kind, respondedAt: x.respondedAt!, answer: (x.responseJson as { answer: CollegeCheckInAnswer }).answer, member: x.member }))
@@ -297,7 +301,7 @@ export async function goodNewsCheckIns(institutionId: string, limit = 50) {
     select c.id, c.kind, c."respondedAt", c."responseJson"->>'answer' as answer,
       m.id as "memberId", m."firstName", m."lastName", m."classYear", m.email
     from public."CheckIn" c join public."InstitutionMember" m on m.id = c."memberId"
-    where m."institutionId" = ${institutionId} and c.status = 'RESPONDED'
+    where m."institutionId" = ${institutionId} and c.status = 'RESPONDED' ${await visibleMemberSqlFor(institutionId, Prisma.sql`m.id`)}
       and c."respondedAt" >= now() - interval '400 days'
       and c."responseJson"->>'answer' = any(${keys})
     order by c."respondedAt" desc

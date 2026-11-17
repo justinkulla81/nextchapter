@@ -3,6 +3,7 @@
 // Program workspace (workforce customers): member companies, layoff seat
 // offers, participants and the stay-local region.
 
+import { seatPoolLeft } from '@/lib/workforce/seat-pool'
 import { revalidatePath } from 'next/cache'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { requireWorkspace } from '@/lib/higher-ed/access'
@@ -38,13 +39,6 @@ async function hub(slug: string) {
   return requireWorkspace(slug, 'hub', { write: true })
 }
 
-async function seatsLeft(institutionId: string) {
-  const [inst, given] = await Promise.all([
-    prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { includedSeats: true } }),
-    prisma.rapidResponse.aggregate({ where: { institutionId, isActive: true, memberCompanyId: { not: null } }, _sum: { seats: true } }),
-  ])
-  return inst.includedSeats - (given._sum.seats ?? 0)
-}
 
 export async function addMemberCompany(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
   const ctx = await hub(slug)
@@ -94,8 +88,8 @@ export async function openLayoffSeats(slug: string, _prev: HubResult, f: FormDat
   const company = await prisma.memberCompany.findFirst({ where: { id: companyId, institutionId: ctx.institution.id }, select: { id: true, name: true } })
   if (!company) return { error: 'Pick the company.' }
   if (!Number.isInteger(seats) || seats < 1 || seats > 5000) return { error: 'Seats must be a whole number from 1 to 5,000.' }
-  const left = await seatsLeft(ctx.institution.id)
-  if (seats > left) return { error: left > 0 ? `Only ${left.toLocaleString()} seats are left in your pool. Lower the number, or ask NextChapter to add seats.` : 'Your seat pool is used up. Ask NextChapter to add seats.' }
+  const left = await seatPoolLeft(ctx.institution.id)
+  if (left !== null && seats > left) return { error: left > 0 ? `Only ${left.toLocaleString()} seats are left in your pool. Lower the number, or ask NextChapter to add seats.` : 'Your seat pool is used up. Ask NextChapter to add seats.' }
   const warnNoticeId = str(f, 'warnNoticeId') || null
   const brand = ctx.institution.programBrandName ?? ctx.institution.name
   const title = str(f, 'title').slice(0, 140) || `Free career support for ${company.name} employees`

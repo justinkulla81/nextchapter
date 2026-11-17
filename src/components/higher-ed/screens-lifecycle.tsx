@@ -549,7 +549,7 @@ export async function AlumniEvents({ ctx }: Props) {
 }
 
 export async function MilestonesFeed({ ctx }: { ctx: WorkspaceContext }) {
-  const items = await listMilestones(ctx.institution.id, { limit: 6 })
+  const items = await listMilestones(ctx.institution.id, { limit: 6, staffView: ctx.workspace !== 'candidate' })
   if (!items.length) return null
   return (
     <section aria-labelledby="ms-staff" className="space-y-2">

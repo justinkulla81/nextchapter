@@ -1,3 +1,4 @@
+import { visibleIdsForInstitution } from '@/lib/plans/visible-members'
 import type { ProgramPayer } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { benefitsPressureLabel } from '@/lib/benefits/pressure-options'
@@ -108,9 +109,11 @@ export function tracksFor(p: { memberCompanyId: string | null; journey: string |
 export type CrmPerson = Awaited<ReturnType<typeof peopleCrm>>[number]
 
 export async function peopleCrm(institutionId: string, opts: { q?: string } = {}) {
+  const visible = await visibleIdsForInstitution(institutionId)
   const rows = await prisma.institutionMember.findMany({
     where: {
       institutionId,
+      ...(visible ? { id: { in: visible } } : {}),
       affiliation: 'PARTICIPANT',
       status: { not: 'OPTED_OUT' },
       ...(opts.q ? { OR: [{ email: { contains: opts.q, mode: 'insensitive' as const } }, { lastName: { contains: opts.q, mode: 'insensitive' as const } }, { firstName: { contains: opts.q, mode: 'insensitive' as const } }] } : {}),

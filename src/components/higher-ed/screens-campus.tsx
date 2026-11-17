@@ -108,7 +108,7 @@ export async function ResearchAndPatents({ ctx, searchParams }: Props) {
 export async function AlumniInNews({ ctx }: Props) {
   const slug = ctx.institution.slug
   const inst = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { name: true, profile: true } })
-  const [news, milestones] = await Promise.all([alumniNews(inst.name), listMilestones(ctx.institution.id, { limit: 6 })])
+  const [news, milestones] = await Promise.all([alumniNews(inst.name), listMilestones(ctx.institution.id, { limit: 6, staffView: ctx.workspace !== 'candidate' })])
   return (
     <section aria-labelledby="news-h" className="space-y-3">
       <h2 id="news-h" className="text-base font-semibold">

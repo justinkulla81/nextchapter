@@ -13,15 +13,9 @@ beforeEach(() => {
 })
 
 describe('heldMemberRoom', () => {
-  it('FREE at 49, 50 and 51 held when adding one', async () => {
-    state.held = 49
+  it('FREE no longer caps who joins (owner decision 2026-11-17: staff see only the first 5)', async () => {
+    state.held = 100000
     expect((await heldMemberRoom('i', 'FREE', 1)).allowed).toBe(true)
-    state.held = 50
-    expect((await heldMemberRoom('i', 'FREE', 1)).allowed).toBe(false)
-    state.held = 51
-    const r = await heldMemberRoom('i', 'FREE', 1)
-    expect(r.allowed).toBe(false)
-    expect(r.left).toBe(0)
   })
   it('PAID never counts and never blocks', async () => {
     state.held = 100000

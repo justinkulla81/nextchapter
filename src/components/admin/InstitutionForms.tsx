@@ -213,7 +213,7 @@ const TIERS = [
 
 const PLANS = [
   ['PAID', 'Paid', 'Everything the tier opens, no member cap'],
-  ['FREE', 'Free', 'Up to 50 members; no reporting, exports, CRM exchange, extra staff roles, activity log or NextChapter services'],
+  ['FREE', 'Free', 'Anyone can join; staff see the first 5 members by name. One administrator, 2 grants shown. No reporting, exports, CRM exchange, extra staff roles, activity log or NextChapter services'],
 ] as const
 
 // The license: which workspaces open (tier), seats, term, priced-on alumni count.

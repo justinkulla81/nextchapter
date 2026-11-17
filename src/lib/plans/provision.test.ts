@@ -47,7 +47,7 @@ describe('provisionFreeWorkspace', () => {
   it('creates a FREE, CAREER-tier workspace with 50 seats and an administrator seat for the claimant', async () => {
     const r = await provisionFreeWorkspace(input)
     expect(r).toMatchObject({ ok: true, created: true, slug: 'riverside-workforce-board' })
-    expect(db.institutions[0].data).toMatchObject({ plan: 'FREE', tier: 'CAREER', includedSeats: 50, orgType: 'WORKFORCE_BOARD', crmOrganizationId: 'crm_1' })
+    expect(db.institutions[0].data).toMatchObject({ plan: 'FREE', tier: 'CAREER', includedSeats: 0, orgType: 'WORKFORCE_BOARD', crmOrganizationId: 'crm_1' })
     expect(db.staff).toEqual([{ institutionId: 'inst_1', invitedEmail: 'ana@riverside.org', role: 'INSTITUTION_ADMIN' }])
   })
 
