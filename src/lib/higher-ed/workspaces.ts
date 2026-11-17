@@ -170,6 +170,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'transition', label: 'In transition', comingIn: null },
       { key: 'signals', label: 'Signals', comingIn: null },
       { key: 'fund', label: 'Resilience Fund', comingIn: null },
+      { key: 'grants', label: 'Grants and RFPs', comingIn: null },
       { key: 'crm', label: 'CRM exchange', comingIn: null },
     ],
   },

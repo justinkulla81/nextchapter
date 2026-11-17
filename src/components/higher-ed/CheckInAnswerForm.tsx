@@ -35,6 +35,14 @@ export function CheckInAnswerForm(props: {
           </p>
         ) : done === 'new_job' ? (
           <p className="text-sm text-muted-foreground">Congratulations. If you want to share where you landed, you can from your {props.college} page.</p>
+        ) : done === 'new_manager' ? (
+          <p className="text-sm text-muted-foreground">
+            Congratulations on the new team. {props.college} has management and leadership programs for alumni; your page shows the ones that fit.
+          </p>
+        ) : done === 'starting_company' ? (
+          <p className="text-sm text-muted-foreground">
+            Good luck with it. {props.college} helps alumni founders with office hours, programs, investors and alumni who could be your first customers.
+          </p>
         ) : (
           <p className="text-sm text-muted-foreground">Good to hear. We&apos;ll check in again next year.</p>
         )}

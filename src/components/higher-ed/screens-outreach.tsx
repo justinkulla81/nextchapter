@@ -12,7 +12,7 @@ import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { engagementOverview, engagementWeightsFrom, WEIGHT_KEYS } from '@/lib/higher-ed/engagement'
 import { WeightsForm } from './WeightsForm'
 import { waitingFor } from '@/lib/higher-ed/inbox'
-import { CHECKIN_ANSWERS, CHECKIN_KIND_LABELS, checkInOverview, pendingCheckIns } from '@/lib/higher-ed/checkins'
+import { CHECKIN_ANSWERS, CHECKIN_KIND_LABELS, GOOD_NEWS, checkInOverview, goodNewsCheckIns, pendingCheckIns } from '@/lib/higher-ed/checkins'
 import { checkInMonthFrom, serviceSettingsFrom } from '@/lib/higher-ed/services'
 import { approveCheckIns, sendOutreachBatch } from '@/app/i/[slug]/(portal)/outreach-actions'
 import { AUDIENCES, BATCH, MERGE_FIELDS, audienceCount, listComposed, previewValues } from '@/lib/higher-ed/composer'
@@ -307,6 +307,7 @@ export async function AlumniOutreach({ ctx, base, searchParams }: Props) {
         )}
         {ctx.institution.isDemo && <p className="text-xs text-muted-foreground">Demo college: sends are recorded here, never emailed.</p>}
       </section>
+      {annualOn && <CheckInGoodNews ctx={ctx} />}
     </div>
   )
 }
@@ -460,6 +461,61 @@ export async function CareerCheckIns({ ctx }: Props) {
           <EmptyState icon={ClipboardCheck} title="No one waiting" description="Alumni who answer “starting to look” or “laid off” show up here." />
         )}
       </section>
+      <CheckInGoodNews ctx={ctx} />
     </div>
+  )
+}
+
+// Good news from check-ins: a new job or promotion, a first management role,
+// a company started. Each says which office acts and what it offers.
+async function CheckInGoodNews({ ctx }: { ctx: WorkspaceContext }) {
+  const rows = await goodNewsCheckIns(ctx.institution.id)
+  const answerLabel = (a: string) => CHECKIN_ANSWERS.find((x) => x.key === a)?.label ?? a
+  return (
+    <section aria-labelledby="goodnews" className="space-y-2">
+      <h2 id="goodnews" className="text-base font-semibold">
+        Good news to act on
+      </h2>
+      <ul className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
+        {Object.entries(GOOD_NEWS).map(([k, v]) => (
+          <li key={k}>
+            <span className="font-medium text-foreground">{answerLabel(k)}</span> · {v.office}: {v.offer}
+          </li>
+        ))}
+      </ul>
+      {rows.length ? (
+        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+          <table className="w-full text-left text-sm">
+            <caption className="sr-only">Alumni who shared good news in a check-in, newest 50</caption>
+            <thead className="border-b border-border text-xs text-muted-foreground">
+              <tr>
+                {['Name', 'Class', 'Answer', 'Answered', 'Email'].map((h) => (
+                  <th key={h} scope="col" className="px-4 py-2 font-medium">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {rows.map((r) => (
+                <tr key={r.id}>
+                  <td className="px-4 py-2">{name(r.member)}</td>
+                  <td className="px-4 py-2">{r.member.classYear ?? '—'}</td>
+                  <td className="px-4 py-2">{answerLabel(r.answer)}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{fmt(r.respondedAt)}</td>
+                  <td className="px-4 py-2">
+                    <a href={`mailto:${r.member.email}`} className="text-primary hover:underline">
+                      {r.member.email}
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <EmptyState icon={ClipboardCheck} title="No good news yet" description="Alumni who report a new job, a first management role or a new company show up here." />
+      )}
+    </section>
   )
 }

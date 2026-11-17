@@ -3,12 +3,13 @@
 // Development (HE-10): signals, the gratitude ask, and the Resilience Fund.
 
 import { revalidatePath } from 'next/cache'
-import type { FundAwardType } from '@prisma/client'
+import type { FundAwardType, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { requireWorkspace, type WorkspaceContext } from '@/lib/higher-ed/access'
 import { sendGratitude } from '@/lib/higher-ed/gratitude'
 import { awardFromFund, revokeAward, saveFund } from '@/lib/higher-ed/fund'
+import { grantSettingsFrom } from '@/lib/higher-ed/grants'
 
 type Result = { error?: string; message?: string; ok?: boolean }
 
@@ -92,4 +93,33 @@ export async function revokeFundAward(slug: string, awardId: string): Promise<Re
   captureServerEvent(ctx.userId, 'he_fund_award_revoked', { institutionId: ctx.institution.id, awardId })
   revalidatePath(`/i/${slug}`, 'layout')
   return r.count ? { message: 'Award revoked.' } : { error: 'Only an unused award can be revoked.' }
+}
+
+// Development › Grants and RFPs: keep a grant on the shortlist, or hide one
+// that doesn't fit. Stored as ids in enabledFeatures.grants; undo reverses.
+export async function markGrant(slug: string, grantId: string, action: 'save' | 'unsave' | 'dismiss' | 'undismiss', purposes: string[] = []): Promise<Result> {
+  const ctx = await gate(slug)
+  if ('error' in ctx) return ctx
+  if (!/^\d{1,12}$/.test(grantId)) return { error: 'That grant id isn’t valid. Reload the page.' }
+  const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
+  const cur = (row.enabledFeatures ?? {}) as Record<string, unknown>
+  const g = grantSettingsFrom(cur)
+  const without = (xs: string[]) => xs.filter((x) => x !== grantId)
+  const next =
+    action === 'save'
+      ? { saved: [...without(g.saved), grantId], dismissed: without(g.dismissed) }
+      : action === 'unsave'
+        ? { ...g, saved: without(g.saved) }
+        : action === 'dismiss'
+          ? { saved: without(g.saved), dismissed: [...without(g.dismissed), grantId] }
+          : { ...g, dismissed: without(g.dismissed) }
+  await prisma.institution.update({ where: { id: ctx.institution.id }, data: { enabledFeatures: { ...cur, grants: next } as Prisma.InputJsonValue } })
+  captureServerEvent(ctx.userId, action === 'save' || action === 'unsave' ? 'he_grant_saved' : 'he_grant_dismissed', {
+    institutionId: ctx.institution.id,
+    grantId,
+    on: action === 'save' || action === 'dismiss',
+    purposes,
+  })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: action === 'save' ? 'On your shortlist.' : action === 'dismiss' ? 'Hidden.' : 'Done.' }
 }

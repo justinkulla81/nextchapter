@@ -130,11 +130,12 @@ export const PROVIDER_LABELS: Record<Provider, string> = { college: 'Your colleg
 
 // Career moments a card can be aimed at, from the member's NextChapter
 // journey (and, for "between jobs", the transition flag they opened).
-export type Moment = 'between_jobs' | 'exploring' | 'growing' | 'career_change' | 'founders' | 'next_act'
+export type Moment = 'between_jobs' | 'exploring' | 'growing' | 'new_manager' | 'career_change' | 'founders' | 'next_act'
 export const MOMENT_LABELS: Record<Moment, string> = {
   between_jobs: 'Laid off or between jobs',
   exploring: 'Thinking about a move',
   growing: 'Growing or going for a promotion',
+  new_manager: 'New manager',
   career_change: 'Changing careers',
   founders: 'Starting or buying a business',
   next_act: 'Planning a next act (55+)',
@@ -148,6 +149,13 @@ const JOURNEY_MOMENT: Record<string, Moment> = {
   ENTREPRENEUR: 'founders',
   BUY_BUSINESS: 'founders',
   NEXT_ACT: 'next_act',
+}
+
+const CHECKIN_MOMENT: Record<string, Moment> = {
+  new_manager: 'new_manager',
+  starting_company: 'founders',
+  looking: 'exploring',
+  laid_off: 'between_jobs',
 }
 
 // Narrows a card within its audiences. Every dimension that is set must
@@ -184,10 +192,13 @@ export function memberTraits(m: {
   currentCity?: string | null
   journey?: string | null
   inTransition?: boolean
+  // Their latest college check-in answer (last 13 months): works for alumni who have not joined too.
+  checkInAnswer?: string | null
 }): MemberTraits {
   const moments = new Set<Moment>()
   if (m.journey && JOURNEY_MOMENT[m.journey]) moments.add(JOURNEY_MOMENT[m.journey])
   if (m.inTransition) moments.add('between_jobs')
+  if (m.checkInAnswer && CHECKIN_MOMENT[m.checkInAnswer]) moments.add(CHECKIN_MOMENT[m.checkInAnswer])
   return {
     major: m.major ? normalizeMajor(m.major) : null,
     school: m.school ? normalizeMajor(m.school) : null,
