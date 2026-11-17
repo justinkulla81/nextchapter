@@ -146,7 +146,11 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
   const [counted, rows] = await Promise.all([
     query.skipTotal
       ? Promise.resolve([] as { id: string }[])
-      : withStatementTimeout(prisma.boardLightRow.findMany({ where: { AND: [where, noIntern] }, orderBy: order, take: COUNT_CAP + 1, select: { id: true } }), BOARD_STATEMENT_MS),
+      : // The count needs no order, and with one the planner walked the board's date index and fetched each row at random to test the
+        // location or words: ~45,000 buffers and ~2 s for "Chicago", up to 10 s; #12 by database time in the 2026-11-17 statement stats.
+        // Unordered, with plain index scans off for this statement, it reads the table in order (or a trigram index) and stops at the cap:
+        // 6,081 buffers, 155 ms for "Chicago"; "Boise" and word searches keep their trigram indexes.
+        withStatementTimeout(prisma.boardLightRow.findMany({ where: { AND: [where, noIntern] }, take: COUNT_CAP + 1, select: { id: true } }), BOARD_STATEMENT_MS, { noIndexScan: true }),
     withStatementTimeout(
       prisma.boardLightRow.findMany({
         where: { AND: [where, noIntern] },
