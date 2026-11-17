@@ -10,13 +10,14 @@ import Link from 'next/link'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
 import { regionNotices } from '@/lib/higher-ed/rapid-response'
-import { readLocal, localArea, isInArea } from '@/lib/workforce/local'
+import { readLocal } from '@/lib/workforce/local'
 import { hubLayoffs, memberCompanies, small } from '@/lib/workforce/hub'
 import { marketJobs } from '@/lib/workforce/market-jobs'
 import { BENEFITS, DEMAND_SKILLS, FUNNEL, LANES, ORIGINS, RESPONSE_STEPS, rand01, randInt } from '@/lib/workforce/program-content'
 import { StatTile } from './StatTile'
 import { NEED_CATEGORIES, peopleCrm } from '@/lib/workforce/people-crm'
 import { PrintButton } from './PrintButton'
+import { nearbyColleges } from '@/lib/workforce/colleges-near'
 import { ResponseFlow, loadFlowData } from './screens-hub-flow'
 import { stateSlug } from '@/lib/seo/states'
 import { FutureSkillsTool } from './FutureSkillsTool'
@@ -52,25 +53,6 @@ function Th({ children }: { children?: React.ReactNode }) {
 
 // Real colleges near the region (IPEDS), largest first. One bounded read of
 // the state's rows with a few columns, filtered to the demo's area.
-const NARROW = /seminary|theological|nursing|medical|beauty|barber|cosmetology|massage|bible/i
-
-async function nearbyColleges(institutionId: string) {
-  const inst = await prisma.institution.findUniqueOrThrow({ where: { id: institutionId }, select: { enabledFeatures: true, profile: true } })
-  const local = readLocal(inst.enabledFeatures)
-  if (!local) return []
-  const area = await localArea(local)
-  if (!area) return []
-  // Both sides of a border: every state the region covers.
-  const states = [...new Set([local.anchorState, ...((inst.profile as { region?: { areas?: { state: string }[] } } | null)?.region?.areas ?? []).map((a) => a.state)])]
-  const rows = await prisma.collegeProfile.findMany({
-    where: { state: { in: states }, enrollment: { gt: 400 } },
-    orderBy: { enrollment: 'desc' },
-    take: 300,
-    select: { unitid: true, name: true, city: true, state: true, control: true, level: true, enrollment: true, hasExecEd: true, hasRetraining: true, aiPrograms: true, website: true },
-  })
-  return rows.filter((c) => isInArea(area, c.city, c.state) && !NARROW.test(c.name)).slice(0, 10)
-}
-
 function aiAwards(ai: unknown): number {
   const programs = (ai as { programs?: { awards?: number }[] } | null)?.programs
   return Array.isArray(programs) ? programs.reduce((n, p) => n + (p.awards ?? 0), 0) : 0

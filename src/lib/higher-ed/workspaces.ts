@@ -275,6 +275,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'system', label: 'Board and job centers', comingIn: null, demoOnly: true, group: 'Partners' },
       { key: 'programs', label: 'Programs', comingIn: null, group: 'Partners', from: { workspace: 'execed', tab: 'home' } },
       { key: 'enrollments', label: 'Enrollments', comingIn: null, group: 'Partners', from: { workspace: 'execed', tab: 'enrollments' } },
+      { key: 'ecosystem', label: 'Ecosystem', comingIn: null, group: 'Partners' },
       { key: 'views', label: 'Partner views', comingIn: null, group: 'Partners' },
       { key: 'etpl', label: 'Eligible training list', comingIn: null, group: 'Partners', from: { workspace: 'workforce', tab: 'etpl' } },
       { key: 'applications', label: 'Applications', comingIn: null, group: 'Funding' },
