@@ -37,8 +37,8 @@ export function LookingForChoice({ selected }: { selected: LookingFor }) {
 
   return (
     <div className={cn('flex flex-wrap items-center gap-2', pending && 'cursor-wait')}>
-      <span id="looking-for-label" className="text-sm font-medium text-ink">
-        What are you looking for?
+      <span id="looking-for-label" className="text-sm text-muted-foreground">
+        Looking for
       </span>
       <div role="group" aria-labelledby="looking-for-label" className="flex flex-wrap gap-1">
         {LOOKING_FOR.map((c) => {

@@ -141,7 +141,6 @@ import { memberSkillKeywords } from '@/lib/jobs/skill-gap-data'
 import { memberWorkType, defaultWorkTypes, parseWorkTypesParam, pathWorkTypes, roleProfileWorkType, WORK_TYPE_LABEL, type WorkType } from '@/lib/jobs/work-type'
 import { loadMyJobs, trackKey, type MyJobsView } from '@/lib/jobs/my-jobs-data'
 import { loadExpertNetworks } from '@/lib/jobs/expert-networks'
-import { LookingForChoice } from '@/components/dashboard/one-board/LookingForChoice'
 import { lookingForOf, showsFractional } from '@/lib/jobs/looking-for'
 import { type BoardTab } from '@/components/dashboard/one-board/BoardTabs'
 import { ExpertNetworkRow } from '@/components/dashboard/one-board/ExpertNetworkRow'
@@ -1600,8 +1599,7 @@ async function FindMyJobBody({
 
       {onBoard && show('jobs') && (
         <div id="apply-new-jobs" className="scroll-mt-4 space-y-6">
-          <BoardSearchBar />
-          <LookingForChoice selected={lookingForOf(workTypes)} />
+          <BoardSearchBar lookingFor={lookingForOf(workTypes)} />
           {/* One recommendation with its reason (owner, 2026-11-17): stay, pivot, add a skill or finish the profile. Streams on its own. */}
           <Suspense fallback={null}>
             <NextMoveSection profile={profile} />
@@ -2400,6 +2398,15 @@ async function FindMyJobBody({
       )}
 
       {onBoard && show('resources') && <FindResourcesSection profile={profile} />}
+      {/* Resources is a link here, not a tab (owner, 2026-11-17). */}
+      {onBoard && !show('resources') && (
+        <p className="border-t border-border pt-6 text-sm text-muted-foreground">
+          Looking for guides, templates and job sites?{' '}
+          <TrackedLink href={boardHref(urlParams, { part: 'resources', job: null, tab: 'board' })} event="find_resources_link_clicked" properties={{ from: part }} className="text-primary underline underline-offset-4">
+            See resources
+          </TrackedLink>
+        </p>
+      )}
 
       {/* The guides sit in Resources, so the other parts do not repeat them below. */}
       {!(onBoard && (part === 'resources' || part === 'unposted' || part === 'independent')) && (

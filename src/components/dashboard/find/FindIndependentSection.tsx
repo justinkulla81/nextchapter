@@ -6,6 +6,7 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { loadIndependentWork } from '@/lib/interim-work/independent-work-data'
 import { boardHref } from '@/lib/jobs/board-url'
 import { workTypesParam, type WorkType } from '@/lib/jobs/work-type'
+import { suggestedDayRate } from '@/lib/jobs/find-independent'
 
 // Loads the independent-work data on the server and shows the redesigned part (FindIndependent). A failed load shows
 // a message and a way to retry instead of an empty page; a search that leaves out part-time, contract and advisory
@@ -48,7 +49,9 @@ export async function FindIndependentSection({
   return (
     <FindIndependent
       data={data}
-      unlocked={!!profile.gigDirectoryUnlockAnswer}
+      // The directories are open to everyone: no rate to type first (owner, 2026-11-17).
+      unlocked
+      dayRate={suggestedDayRate(profile.lastSalary)}
       boardAdvisoryWillingness={profile.boardAdvisoryWillingness}
       boardDiversityOptIn={profile.boardDiversityListingsOptIn}
       workHistory={profile.workHistory}

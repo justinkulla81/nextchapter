@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
+import { CollapsedOptions } from '@/components/candidate/CollapsedOptions'
 
 // Filters for the events page. Two long lists (function, industry) are dropdowns; level and "how to get in" have
 // four options or fewer, so they are adjacent buttons. State lives in the URL so a filtered view can be shared.
@@ -47,6 +48,18 @@ export function EventFilters({ functions, industries }: { functions: string[]; i
         <input id="ev-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by job, topic or event, such as school principal or claims" className="h-10 min-w-0 flex-1 rounded-full border border-border bg-background px-4 text-sm text-ink" />
         <button type="submit" className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted">Search</button>
       </form>
+      {/* The current filters in one line; the options open on Change (owner, 2026-11-17). */}
+      <CollapsedOptions
+        surface="events"
+        summary={[
+          sp.get('function') ?? 'Any function',
+          sp.get('industry') ?? 'Any industry',
+          LEVELS.find(([v]) => v === sp.get('level'))?.[1] ?? 'Any level',
+          WAYS.find(([v]) => v === sp.get('way'))?.[1] ?? null,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      >
       <div className="flex flex-wrap gap-2">
         <label className="sr-only" htmlFor="ev-fn">Function</label>
         <select id="ev-fn" className={sel} value={sp.get('function') ?? ''} onChange={(e) => set('function', e.target.value || null)}>
@@ -65,6 +78,7 @@ export function EventFilters({ functions, industries }: { functions: string[]; i
       <div className="flex flex-wrap gap-2" role="group" aria-label="How to get in">
         {WAYS.map(([v, l]) => <button key={v} type="button" className={btn(sp.get('way') === v)} aria-pressed={sp.get('way') === v} onClick={() => set('way', v)}>{l}</button>)}
       </div>
+      </CollapsedOptions>
     </div>
   )
 }

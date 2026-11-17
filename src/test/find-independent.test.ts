@@ -59,3 +59,16 @@ describe('summarizeSignups', () => {
     expect(summarizeSignups([], [])).toEqual({ count: 0, names: [], emailNotes: [] })
   })
 })
+
+describe('suggestedDayRate', () => {
+  it('is 1.5 to 2 times the salary per working day, rounded to $50', async () => {
+    const { suggestedDayRate } = await import('@/lib/jobs/find-independent')
+    expect(suggestedDayRate(260_000)).toEqual({ low: 1500, high: 2000 })
+    expect(suggestedDayRate(180_000)).toEqual({ low: 1050, high: 1400 })
+  })
+  it('says nothing without a real salary', async () => {
+    const { suggestedDayRate } = await import('@/lib/jobs/find-independent')
+    expect(suggestedDayRate(null)).toBeNull()
+    expect(suggestedDayRate(500)).toBeNull()
+  })
+})
