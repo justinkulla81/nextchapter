@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound, redirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { SegmentCutView, SegmentHubView } from '@/components/segments/SegmentViews'
 import { canonical } from '@/lib/seo/canonical'
 import { titleMeta } from '@/lib/seo/title'
@@ -45,7 +45,7 @@ export default async function SegmentCutPage({ params }: P) {
   const data = await loadSegmentPage(segment).catch(() => null)
   if (!c || !data || !publishedCuts(data.e).includes(c.id)) {
     // A real segment whose list is not published (too little stated pay, say) goes to the segment's page, not a 404.
-    if (data || (await loadSoonSegment(segment).catch(() => null))) redirect(segmentPath(segment))
+    if (data || (await loadSoonSegment(segment).catch(() => null))) permanentRedirect(segmentPath(segment))
     notFound()
   }
   return <SegmentCutView data={data} cut={c.id} index={index} />

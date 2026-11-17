@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { Chips, JoinBand, LINK, Section, TopicShell } from '@/components/topics/blocks'
 import { SkillTable } from '@/components/skills/SkillTable'
 import { canonical } from '@/lib/seo/canonical'
@@ -41,7 +41,7 @@ export default async function SkillsByPage({ params }: { params: Promise<{ dim: 
   const dim = asDimension(d)
   const m = await loadSkillsMarket()
   const label = dim && m ? m.labels[dim]?.[key] : null
-  if (!dim || !m || !label) redirect('/skills')
+  if (!dim || !m || !label) permanentRedirect('/skills')
 
   const path = `/skills/by/${dim}/${key}`
   const base = m.totals[dim][key] ?? 0

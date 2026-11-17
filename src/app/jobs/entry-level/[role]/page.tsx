@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Chips, FactGrid, JobList, JoinBand, LINK, RankList, Section, TopicShell } from '@/components/topics/blocks'
 import { StateUnemploymentLinks } from '@/components/topics/StateUnemploymentLinks'
 import { FitCheck } from '@/components/capture/FitCheck'
@@ -43,7 +43,7 @@ export default async function EntryRolePage({ params }: { params: Promise<{ role
   const role = entryRole(slug)
   if (!role) {
     if (!/^[a-z0-9-]{2,80}$/.test(slug)) notFound()
-    redirect('/jobs/entry-level')
+    permanentRedirect('/jobs/entry-level')
   }
   const path = `/jobs/entry-level/${slug}`
   const label = roleLabel(role)

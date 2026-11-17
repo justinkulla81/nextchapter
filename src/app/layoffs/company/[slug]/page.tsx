@@ -5,7 +5,7 @@ import { announcedStatus, layoffsAnnouncedDescription, layoffsAnnouncedTitle, la
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FeedLine } from '@/components/seo/FeedLine'
-import { permanentRedirect, redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { CompanyLayoffGuide } from '@/components/layoffs/CompanyLayoffGuide'
 import { buildLayoffGuide } from '@/lib/warn/layoff-guide'
@@ -196,7 +196,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
     // An employer we know with no filing or announcement gets a plain "nothing on record" page (noindex, see NoFilingPage).
     const known = await getKnownEmployer(slug)
     // Anything else (a typo, a word that is not a company) goes to the hub, not a 404.
-    if (!known) redirect('/layoffs')
+    if (!known) permanentRedirect('/layoffs')
     const offered = await offeredCompanyIds([known.id]).catch(() => new Set<string>())
     const asOf = noticeDay(new Date())
     return <NoFilingPage name={known.name} slug={slug} asOf={asOf} employerPageHref={offered.has(known.id) ? `/employers/${slug}` : null} />

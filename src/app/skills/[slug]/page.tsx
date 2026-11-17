@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { Chips, JoinBand, LINK, Section, TopicShell } from '@/components/topics/blocks'
 import { WatchSkillButton } from '@/components/skills/WatchSkillButton'
 import { ClaimSkills } from '@/components/skills/ClaimSkills'
@@ -37,7 +37,7 @@ export default async function SkillPage({ params }: { params: Promise<{ slug: st
   const m = await loadSkillsMarket()
   const s = m ? findSkill(m, slug) : null
   // An unknown or too-small skill goes to the list, it does not 404.
-  if (!m || !s) redirect('/skills')
+  if (!m || !s) permanentRedirect('/skills')
 
   const path = `/skills/${slug}`
   const rank = [...m.skills].sort((a, b) => b.n - a.n).findIndex((x) => x.slug === slug) + 1

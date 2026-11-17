@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { JoinBand, Section, TopicShell } from '@/components/topics/blocks'
 import { CatalogNote, CourseGrid } from '@/components/ai-courses/blocks'
 import { LevelFinder } from '@/components/ai-courses/LevelFinder'
@@ -32,8 +32,8 @@ export default async function FunctionLevelPage({ params, searchParams }: { para
   const { function: fs, level: ls } = await params
   const f = catalogFunctionBySlug(fs)
   const l = levelBySlug(ls)
-  if (!f) redirect('/ai-courses')
-  if (!l) redirect(functionPath(f))
+  if (!f) permanentRedirect('/ai-courses')
+  if (!l) permanentRedirect(functionPath(f))
   const confirmed = (await searchParams).confirmed === '1'
   const catalog = await getPublicCatalog()
   const specific = coursesForFunction(catalog, f.name, { level: l.level })

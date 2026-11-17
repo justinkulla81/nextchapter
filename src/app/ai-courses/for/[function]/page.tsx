@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { Chips, JoinBand, Section, TopicShell } from '@/components/topics/blocks'
 import { CatalogNote, CourseGrid } from '@/components/ai-courses/blocks'
 import { LevelFinder } from '@/components/ai-courses/LevelFinder'
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ function:
 
 export default async function FunctionCoursesPage({ params }: { params: Promise<{ function: string }> }) {
   const f = catalogFunctionBySlug((await params).function)
-  if (!f) redirect('/ai-courses')
+  if (!f) permanentRedirect('/ai-courses')
   const catalog = await getPublicCatalog()
   const specific = coursesForFunction(catalog, f.name)
   const general = sortByLevel(catalog.filter((c) => c.functions.length === 0 && c.category === 'AI_TRAINING'))

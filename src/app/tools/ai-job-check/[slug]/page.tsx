@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { permanentRedirect, redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { AiJobCheckEmployer } from '@/components/tools/AiJobCheckEmployer'
@@ -47,7 +47,7 @@ export default async function AiJobCheckResultPage({ params }: { params: Promise
   const { slug } = await params
   const soc6 = socFromSlug(slug)
   const check = soc6 ? await loadOccupationCheck(soc6) : null
-  if (!soc6 || !check) redirect('/tools/ai-job-check')
+  if (!soc6 || !check) permanentRedirect('/tools/ai-job-check')
   const { exposure: e } = check
   const path = checkPath(e.title, soc6)
   if (slug !== checkSlug(e.title, soc6)) permanentRedirect(path)

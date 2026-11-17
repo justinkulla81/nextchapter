@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { permanentRedirect, redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { comparePath, listedPair, pairFromSlug, pairsWith, readingOf, titleOf, type Figures } from '@/lib/ai-check/compare'
@@ -57,11 +57,11 @@ export default async function ComparePage({ params }: { params: Promise<{ pair: 
   const { pair } = await params
   const codes = pairFromSlug(pair)
   const listed = codes && listedPair(codes[0], codes[1])
-  if (!listed) redirect('/tools/ai-job-check')
+  if (!listed) permanentRedirect('/tools/ai-job-check')
   const path = comparePath(listed[0], listed[1])!
   if (`/tools/ai-job-check/compare/${pair}` !== path) permanentRedirect(path)
   const [a, b] = await Promise.all(listed.map(loadFigures))
-  if (!a || !b) redirect('/tools/ai-job-check')
+  if (!a || !b) permanentRedirect('/tools/ai-job-check')
 
   const reading = readingOf(a, b)
   const allRows: { label: string; cell: (f: Figures) => string; has: (f: Figures) => boolean }[] = [

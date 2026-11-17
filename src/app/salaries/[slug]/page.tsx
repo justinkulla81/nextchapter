@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Chips, JobList, JoinBand, LINK, Section, TopicShell } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
@@ -34,7 +34,7 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
   const d = await getTitleDetail(slug)
   if (!d || !hasSalaryPage(d.stat)) {
     if (!/^[a-z0-9-]{3,80}$/.test(slug)) notFound()
-    redirect(d ? `/jobs/title/${slug}` : `/jobs?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`)
+    permanentRedirect(d ? `/jobs/title/${slug}` : `/jobs?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`)
   }
   const { stat } = d
   const path = `/salaries/${slug}`

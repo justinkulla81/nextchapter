@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { JoinBand, Section, TopicShell } from '@/components/topics/blocks'
 import { CatalogNote, CourseGrid } from '@/components/ai-courses/blocks'
 import { canonical } from '@/lib/seo/canonical'
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ sponsor: 
 export default async function SponsorPage({ params }: { params: Promise<{ sponsor: string }> }) {
   const slug = (await params).sponsor
   const courses = sponsorCourses(await getPublicCatalog(), slug)
-  if (courses.length === 0) redirect('/ai-courses')
+  if (courses.length === 0) permanentRedirect('/ai-courses')
   const name = courses[0].sponsor
   const path = `/ai-courses/from/${slug}`
   return (

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Chips, JobList, JoinBand, LINK, RankList, Section, TopicShell } from '@/components/topics/blocks'
 import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -35,9 +35,9 @@ export default async function EntryRolePlacePage({ params }: { params: Promise<{
   const { role: slug, place } = await params
   if (!/^[a-z0-9-]{3,80}$/.test(slug) || !parsePlace(place)) notFound()
   const role = entryRole(slug)
-  if (!role) redirect('/jobs/entry-level')
+  if (!role) permanentRedirect('/jobs/entry-level')
   const d = await getEntryPlaceLive(slug, place)
-  if (!d) redirect(`/jobs/entry-level/${slug}`)
+  if (!d) permanentRedirect(`/jobs/entry-level/${slug}`)
   const { place: p, jobs } = d
   const path = `/jobs/entry-level/${slug}/${place}`
   const label = roleLabel(role)

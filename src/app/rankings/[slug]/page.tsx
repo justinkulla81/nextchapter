@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { RankingView } from '@/components/rankings/RankingView'
 import { editionLabel } from '@/lib/rankings/build-edition'
 import { readRanking, readRankingIndex } from '@/lib/rankings/store'
@@ -31,6 +31,6 @@ export default async function RankingPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params
   const d = await load(slug)
   // A list that has no edition yet (or an old address) goes to the rankings index, not a 404.
-  if (!d) redirect('/rankings')
+  if (!d) permanentRedirect('/rankings')
   return <RankingView e={d.e} index={d.index} latest />
 }

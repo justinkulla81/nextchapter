@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { JoinBand, Section, TopicShell } from '@/components/topics/blocks'
 import { CourseGrid, Disclosure, providerInfo } from '@/components/ai-courses/blocks'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -30,7 +30,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
   const slug = (await params).slug
   const catalog = await getPublicCatalog()
   const c = catalog.find((x) => x.slug === slug)
-  if (!c) redirect('/ai-courses')
+  if (!c) permanentRedirect('/ai-courses')
   const l = levelInfo(c.level)
   const p = providerInfo(c.provider)
   const fns = c.functions.map(catalogFunctionByName).filter((f): f is NonNullable<typeof f> => !!f)
