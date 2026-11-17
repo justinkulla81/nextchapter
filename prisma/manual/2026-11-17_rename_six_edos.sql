@@ -1,0 +1,8 @@
+-- Six economic development organizations that renamed themselves, each confirmed on its own site (2026-11-17). Their page addresses
+-- follow the name; next.config.ts redirects the old addresses. Applied 2026-11-17 right after the deploy that carries the redirects.
+UPDATE "LocalPartnerOrg" SET name = 'Mobile Chamber', website = 'https://mobilechamber.com/', "sourceUrl" = 'https://mobilechamber.com/', "updatedAt" = now() WHERE id = 'edo-AL-mobileareachamberofcommerce';
+UPDATE "LocalPartnerOrg" SET name = 'JAXUSA Partnership', website = 'https://www.jaxusa.org/', "sourceUrl" = 'https://www.jaxusa.org/', "updatedAt" = now() WHERE id = 'edo-FL-jacksonvillearearegionaldevelopmentpartn';
+UPDATE "LocalPartnerOrg" SET name = 'Bradenton Area Economic Development Corporation', website = 'https://bradentonareaedc.com/', "sourceUrl" = 'https://bradentonareaedc.com/', "updatedAt" = now() WHERE id = 'edo-FL-manateecountyeconomicdevelopmentcouncil';
+UPDATE "LocalPartnerOrg" SET name = 'Ocala Metro Chamber & Economic Partnership', website = 'https://ocalacep.com/', "sourceUrl" = 'https://ocalacep.com/', "updatedAt" = now() WHERE id = 'edo-FL-ocalamarioncountyeconomicdevelopmentcoun';
+UPDATE "LocalPartnerOrg" SET name = 'Orlando Economic Partnership', website = 'https://orlando.org/', "sourceUrl" = 'https://orlando.org/', "updatedAt" = now() WHERE id = 'edo-FL-orlandoareaeconomicdevelopmentcommission';
+UPDATE "LocalPartnerOrg" SET name = 'Greater Iowa City, Inc.', website = 'https://greateriowacity.com/', "sourceUrl" = 'https://greateriowacity.com/about-us/', "updatedAt" = now() WHERE id = 'edo-IA-iowacityareadevelopmentgroup';
