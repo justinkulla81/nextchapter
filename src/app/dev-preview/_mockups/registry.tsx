@@ -40,6 +40,7 @@ import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureL
 import { HomeSeniorCoachOffer, HomeNetworkingCoachOffer, HomePivotCoachOffer } from './coach-offer'
 import { ScopeBroaderFirst, ScopeEverythingQuestion, ScopeNarrow } from './search-scope'
 import { PortalHeaders } from './portal-headers'
+import { PortalLiveRecruiter, PortalLiveWorkforce } from './portal-live-frame'
 import { PortalLookEmployer, PortalLookHigherEd, PortalLookWorkforce, PortalLookRecruiter, PortalLookCoach } from './portal-look'
 import { PublicNavPreview } from './public-nav'
 import { BoardBidsLive, CompetitorWinsLive } from './bids-live'
@@ -315,6 +316,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'public/function-network', place: 'Public site', title: 'Function page: the one ask is joining the Sales network', replaces: 'the Market Reality Assessment box at the bottom of a function page', Component: FunctionNetworkAsk },
   { path: 'public/industry-network', place: 'Public site', title: 'Industry page: the one ask is joining the Health care network', replaces: 'the Market Reality Assessment box at the bottom of an industry page', Component: IndustryNetworkAsk },
   { path: 'public/nav', place: 'Public site', title: 'Public header (4 menus) and footer columns', replaces: 'the nine-link top bar in PublicSiteChrome.tsx and the Browse NextChapter text wall', Component: PublicNavPreview },
+  { path: 'portals/live/recruiter', place: 'Portals', title: 'Portal look on the live frame: recruiter nav around an old-style page (sample data)', replaces: 'check for the live portal layouts', Component: PortalLiveRecruiter },
+  { path: 'portals/live/workforce', place: 'Portals', title: 'Portal look on the live frame: workforce rail around an old-style page (sample data)', replaces: 'check for the live portal layouts', Component: PortalLiveWorkforce },
   { path: 'portals/look/employer', place: 'Portals', title: 'Portal look: employer Home (sample data)', replaces: 'the grey partner look (theme-partner) on the employer portal', Component: PortalLookEmployer },
   { path: 'portals/look/higher-education', place: 'Portals', title: 'Portal look: higher education Home (sample data)', replaces: 'the grey partner look on the higher education portal', Component: PortalLookHigherEd },
   { path: 'portals/look/workforce', place: 'Portals', title: 'Portal look: workforce Home (sample data)', replaces: 'the grey partner look on the workforce portal', Component: PortalLookWorkforce },

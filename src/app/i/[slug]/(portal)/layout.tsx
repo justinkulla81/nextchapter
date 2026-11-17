@@ -11,8 +11,7 @@ import { WorkspaceRail, type RailItem } from '@/components/higher-ed/WorkspaceRa
 import { DemoBar } from '@/components/higher-ed/DemoBar'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
 import { signOut } from '@/app/dashboard/actions'
-import { readableTextOn, accentTextOnWhite } from '@/lib/higher-ed/branding'
-import { brandStyle } from '@/lib/partners/brand'
+import { PORTAL_TYPES, portalStyle } from '@/lib/partners/portal-types'
 import { prisma } from '@/lib/prisma'
 import { readProfile } from '@/lib/higher-ed/profile'
 import { organizationBrandFor } from '@/lib/organizations/service'
@@ -60,13 +59,12 @@ export default async function InstitutionPortalLayout({
   const accent = orgBrand?.accent ?? institution.accentColor ?? '#2e7d5b'
   const logoUrl = orgBrand?.logoUrl ?? institution.logoUrl
   const programName = orgBrand?.name ?? institution.programBrandName
-  // Primary comes from the organization or the college; secondary and background only from the organization.
+  // The portal look (owner decision, 2026-11-17): the portal's own color and tint on a white page, orange actions. The
+  // organization's or college's brand stays the logo and name in the header; it no longer colors buttons or the page.
+  const portalType = orgKindOf(institution.orgType) === 'workforce' ? 'workforce' : 'higher_ed'
   const theme = {
-    ...(brandStyle({ name: null, logoUrl: null, accent: null, secondary: orgBrand?.secondary, background: orgBrand?.background ?? (orgKindOf(institution.orgType) === 'workforce' ? '#ffffff' : null) }) ?? {}),
-    '--primary': accent,
-    '--primary-foreground': readableTextOn(accent),
-    '--ring': accent,
-    '--accent-text': accentTextOnWhite(accent),
+    ...portalStyle(portalType),
+    '--accent-text': PORTAL_TYPES[portalType].chrome,
   } as CSSProperties
 
   // Admins also see what a higher tier adds (the upgrade path, product
@@ -94,10 +92,10 @@ export default async function InstitutionPortalLayout({
     : rail
 
   return (
-    <div className="theme-partner flex min-h-screen flex-col bg-background" style={theme}>
+    <div className="theme-partner theme-portal flex min-h-screen flex-col bg-background" style={theme}>
       <CanonicalOrgUrl slug={slug} base={orgBasePath(slug, institution.orgType)} />
       <PortalTypeBar
-        type={orgKindOf(institution.orgType) === 'workforce' ? 'workforce' : 'higher_ed'}
+        type={portalType}
         chrome={institution.isDemo ? (chromeColor && /^#[0-9a-fA-F]{6}$/.test(chromeColor) ? chromeColor : institution.accentColor ? accent : null) : null}
         use={institution.orgType === 'WORKFORCE_BOARD' ? 'Workforce boards' : institution.orgType === 'ECONOMIC_DEVELOPMENT' ? 'Economic development' : null}
       />
