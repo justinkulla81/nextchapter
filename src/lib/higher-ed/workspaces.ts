@@ -300,6 +300,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
     orgKind: 'workforce',
     tabs: [
       { key: 'home', label: 'Home', comingIn: null, group: 'Home' },
+      // The first thing a new organization does: link the organizations it knows, each link an invitation to claim a free page.
+      { key: 'network', label: 'Your network', comingIn: null, group: 'Home' },
       // Everyone the organization helps, by track, with the benefits matched to each person (src/lib/workforce/people-crm.ts).
       { key: 'participants', label: 'People', comingIn: null, group: 'People' },
       { key: 'pipeline', label: 'Pipeline', comingIn: null, demoOnly: true, group: 'People' },
@@ -371,6 +373,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'branding', label: 'Branding', comingIn: null },
       { key: 'grants', label: 'Grants', comingIn: null, orgKind: 'college', hideWhenWorkspace: 'development' },
       { key: 'related', label: 'Related organizations', comingIn: null },
+      { key: 'publicpage', label: 'Public page', comingIn: null },
       { key: 'roster', label: 'Roster', comingIn: null },
       { key: 'board', label: 'Board report', comingIn: null },
       { key: 'privacy', label: 'Privacy requests', comingIn: null },

@@ -13,6 +13,7 @@ import { HubCompanies, HubHome, HubLayoffs, HubLocal, WorkforceOverview } from '
 import { HubAttract, HubBenefits, HubGrants, HubJobs, HubLearning, HubPipeline, HubRapid, HubSkills, HubFunding, HubPublic, HubSystem, HubUpskill } from './screens-hub-program'
 import { HubApplications, HubReport } from './screens-hub-flow'
 import { HubSkillsGaps, HubTalent } from './screens-hub-skills'
+import { HubNetwork } from './screens-hub-network'
 import { PartnerOverview, PartnerShared } from './screens-partner'
 import { HubEmployerJobs, HubGroupJobs, HubRegionJobs } from './screens-hub-jobs'
 import { HubPartnerViews } from './screens-hub-partners'
@@ -37,6 +38,7 @@ import { STAFF_ROLE_LABELS, staffRoleLabel, TIER_LABELS, WORKSPACES, auditPortal
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
 import { AdminRelatedOrgs } from './screens-related'
+import { AdminPublicPage } from '@/components/public-page/screens-public-page'
 import { listPartnerAudit } from '@/lib/partners/audit'
 import { PartnerActivity } from '@/components/partners/PartnerActivity'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -1752,6 +1754,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'development:grants': DevelopmentGrants,
   'admin:grants': DevelopmentGrants,
   'admin:related': AdminRelatedOrgs,
+  'admin:publicpage': AdminPublicPage,
   'execed:bridge': StaffSkillsBridge,
   'career:bridge': StaffSkillsBridge,
   'career:checkins': CareerCheckIns,
@@ -1794,6 +1797,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:employerjobs': HubEmployerJobs,
   'hub:views': HubPartnerViews,
   'hub:ecosystem': HubEcosystem,
+  'hub:network': HubNetwork,
   'partnerview:overview': PartnerOverview,
   'partnerview:shared': PartnerShared,
   'hub:region': Region,

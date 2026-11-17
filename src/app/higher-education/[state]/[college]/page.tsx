@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { publishedContentFor } from '@/lib/public-page/store'
+import { OrgOwnSection } from '@/components/public-page/OrgOwnSection'
 import { getOrgBrand } from '@/lib/branding/store'
 import { OrgBrandScope } from '@/components/branding/OrgBrandScope'
 import { OrgCandidateBand } from '@/components/seo/OrgCandidateBand'
@@ -18,7 +20,7 @@ import { layoffAndRapidLinks } from '@/lib/seo/layoff-links'
 import { AI_LEVELS, AI_TRACK_LABEL, aiProgramSentence, collegePath, territoryFromSlug } from '@/lib/seo/college-bar'
 import { AreaNotices } from '@/components/seo/AreaNotices'
 import { noticesForCollege } from '@/lib/seo/org-notices'
-import { areaName, getCollegePage, type CollegePageData } from '@/lib/seo/college-pages'
+import { areaName, crmOrgForCollege, getCollegePage, type CollegePageData } from '@/lib/seo/college-pages'
 import { functionByName, functionPath } from '@/lib/seo/topics'
 import { campusImage } from '@/lib/places/place-image'
 import { MAJORS_PATH, collegeFamilyPath } from '@/lib/rankings/majors'
@@ -87,6 +89,8 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
   const where = c.city ? `${c.city}, ${st}` : st
   // The college's own colors, read from its website (src/lib/branding), when we have them.
   const brand = await getOrgBrand('COLLEGE', c.unitid)
+  // What the college wrote on its own page (paid plan, src/lib/public-page), read through the shared cache.
+  const own = await publishedContentFor((await crmOrgForCollege(c).catch(() => null))?.id)
 
   const faq: { q: string; a: string }[] = []
   if (c.enrollment) faq.push({ q: `How big is ${c.name}?`, a: `${c.name} enrolls about ${n0(c.enrollment)} students and is a ${kind(c)} institution in ${where}${c.annualAwards ? `. It awards about ${n0(c.annualAwards)} degrees and certificates a year` : ''}.` })
@@ -147,6 +151,7 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
         independent={`Independent page. Not from or affiliated with ${c.name}.`}
         properties={{ kind: 'COLLEGE', unitid: c.unitid }}
       />
+      {own && <OrgOwnSection orgName={c.name} kind="COLLEGE" content={own} headingClass={H2} />}
       <section aria-labelledby="facts" className="mt-10">
         <h2 id="facts" className={H2}>{c.name} at a glance</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

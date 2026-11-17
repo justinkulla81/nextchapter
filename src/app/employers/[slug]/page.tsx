@@ -1,4 +1,6 @@
 import { CompanyOutlookSection } from '@/components/seo/CompanyOutlookSection'
+import { publishedContentFor } from '@/lib/public-page/store'
+import { OrgOwnSection } from '@/components/public-page/OrgOwnSection'
 import { shownInSearch } from '@/lib/seo/shown-in-search'
 import { RankingContext } from '@/components/rankings/RankingContext'
 import { BestCompanyNote } from '@/components/rankings/BestCompanyNote'
@@ -118,6 +120,8 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   const seenAt = await conferencesForEmployer(e.name)
   const layoffs = await noticesForEmployer(e.name).catch(() => null)
   const secEvents = await eventsForCompanyIds([e.id], 12, 8).catch(() => [])
+  // What the company wrote on its own page (paid plan, src/lib/public-page), read through the shared cache.
+  const own = await publishedContentFor(e.crmOrgId)
   // Soonest first: events with upcoming confirmed dates, then the rest by name. The whole list is shown (an employer rarely appears at more than a few dozen).
   const seenAll = seenAt.length ? await prisma.conferenceEvent.findMany({ where: { id: { in: seenAt.map((x) => x.id) }, published: true }, select: { id: true, name: true, startDate: true, endDate: true, datesConfirmed: true, importance: true } }).catch(() => []) : []
   const seenConfs = sortConferences(seenAll)
@@ -189,6 +193,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         independent={`Independent page. Not from or affiliated with ${e.name}.`}
         properties={{ kind: 'EMPLOYER', slug: e.slug }}
       />
+      {own && <OrgOwnSection orgName={e.name} kind="EMPLOYER" content={own} headingClass={H2} />}
       <div className="mt-10">
         <SituationFlow variant="neither" company={e.name} slug={e.slug} state={null} action={submitJourneyLead} searchSchools={searchSchools} source={`employer:${e.slug}`} />
       </div>
