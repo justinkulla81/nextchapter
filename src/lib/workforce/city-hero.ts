@@ -50,7 +50,8 @@ export function pickHero(results: (Page & { index?: number })[]): CityHero | nul
     if (ii.width < 1600 || ii.width / ii.height < 1.4) continue
     if (AVOID.test(p.title)) continue
     const artist = stripHtml(ii.extmetadata?.Artist?.value ?? '') || 'Wikimedia Commons contributor'
-    return { url: ii.thumburl, credit: `Photo: ${artist.slice(0, 80)}, ${license}, via Wikimedia Commons`, sourceUrl: ii.descriptionurl }
+    // Commons adds tracking parameters to thumbnail links; the image loads the same without them.
+    return { url: ii.thumburl.split('?')[0], credit: `Photo: ${artist.slice(0, 80)}, ${license}, via Wikimedia Commons`, sourceUrl: ii.descriptionurl }
   }
   return null
 }

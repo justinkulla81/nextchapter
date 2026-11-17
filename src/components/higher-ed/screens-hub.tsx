@@ -50,7 +50,7 @@ function HomeHero({ name, region, tagline, imageUrl, credit, creditUrl, stats }:
       <div className="relative h-44 w-full bg-primary/10 sm:h-56">
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
+          <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover object-[center_30%]" />
         ) : (
           <svg viewBox="0 0 800 220" preserveAspectRatio="xMidYMax slice" role="img" aria-label="Placeholder skyline: upload your own picture in Admin, Branding" className="absolute inset-0 size-full text-primary">
             <rect width="800" height="220" fill="currentColor" opacity="0.08" />
