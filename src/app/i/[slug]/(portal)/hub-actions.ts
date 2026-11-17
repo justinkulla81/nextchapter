@@ -11,6 +11,7 @@ import { placeAt } from '@/lib/workforce/local'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { mainOrigin } from '@/lib/org-hosts'
 import { inviteMemberCompany, syncMemberAccess } from '@/lib/workforce/member-access'
+import { answerCompanyRequest } from '@/lib/workforce/company-requests'
 import { CONTACT_ROLE_LABELS, inviteCompanyContact, parseContactRoles, removeCompanyContact } from '@/lib/workforce/member-contacts'
 import { answerSeatRequest } from '@/lib/workforce/company-portal'
 import { RESPONSE_STEPS } from '@/lib/workforce/program-content'
@@ -183,6 +184,16 @@ export async function removeCompanyContactAction(slug: string, id: string): Prom
   const r = await removeCompanyContact(ctx.institution.id, id)
   if ('error' in r) return { error: r.error }
   captureServerEvent(ctx.userId, 'hub_company_contact_removed', { institutionId: ctx.institution.id, contactId: id })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+// A member company's training request or grant-support offer: accept or decline, with an optional note.
+export async function answerCompanyRequestAction(slug: string, id: string, accept: boolean, note: string): Promise<Result> {
+  const ctx = await hub(slug)
+  const r = await answerCompanyRequest({ institutionId: ctx.institution.id, id, accept, note, by: ctx.email ?? ctx.userId })
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(ctx.userId, accept ? 'hub_company_request_accepted' : 'hub_company_request_declined', { institutionId: ctx.institution.id, requestId: id })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true }
 }

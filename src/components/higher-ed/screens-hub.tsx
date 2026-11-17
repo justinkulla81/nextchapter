@@ -10,10 +10,12 @@ import { regionNotices } from '@/lib/higher-ed/rapid-response'
 import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, seatRequests, small, type LocalSplit } from '@/lib/workforce/hub'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
-import { CompanyContactForm, HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
+import { CompanyContactForm, CompanyRequestAnswer, HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
 import { ConfirmActionButton } from './ConfirmActionButton'
 import { removeCompanyContactAction } from '@/app/i/[slug]/(portal)/hub-actions'
 import { CONTACT_ROLE_LABELS, companyContacts, parseContactRoles } from '@/lib/workforce/member-contacts'
+import { openCompanyRequests } from '@/lib/workforce/company-requests'
+import { GRANT_OFFER_LABELS, type GrantOffer } from '@/lib/workforce/contact-roles'
 import { BriefCard } from './BriefCard'
 import { EditLink } from './EditLink'
 import { readLocal } from '@/lib/workforce/local'
@@ -287,11 +289,39 @@ export async function HubHome({ ctx, base }: Props) {
 }
 
 export async function HubCompanies({ ctx }: Props) {
-  const [rows, contacts] = await Promise.all([memberCompanies(ctx.institution.id), companyContacts(ctx.institution.id)])
+  const [rows, contacts, requests] = await Promise.all([memberCompanies(ctx.institution.id), companyContacts(ctx.institution.id), openCompanyRequests(ctx.institution.id)])
   const slug = ctx.institution.slug
   const companyName = new Map(rows.map((c) => [c.id, c.name]))
   return (
     <div className="space-y-6">
+      {requests.length > 0 && (
+        <section aria-labelledby="company-requests" className="space-y-2">
+          <h2 id="company-requests" className="text-base font-semibold">
+            Requests from member companies
+          </h2>
+          <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+            {requests.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 p-3">
+                <div className="space-y-0.5">
+                  <p className="font-medium">
+                    {r.memberCompany.name} · {r.kind === 'TRAINING' ? 'Training' : 'Grant support'}: {r.topic}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {r.kind === 'TRAINING'
+                      ? r.people
+                        ? `${r.people.toLocaleString()} people`
+                        : 'Number of people not given'
+                      : r.offers.map((x) => GRANT_OFFER_LABELS[x as GrantOffer] ?? x).join(', ') + (r.matchAmount ? ` · $${r.matchAmount.toLocaleString()} match` : '')}
+                    {` · sent ${r.createdAt.toLocaleDateString('en-US', { timeZone: 'UTC' })}`}
+                  </p>
+                  {r.note && <p className="text-xs text-muted-foreground">“{r.note}”</p>}
+                </div>
+                {!ctx.readOnly && <CompanyRequestAnswer slug={slug} id={r.id} />}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {!ctx.readOnly && (
         <details className="rounded-lg border border-border bg-card p-4" open={rows.length === 0}>
           <summary className="cursor-pointer text-sm font-medium text-primary">Add a member company</summary>
@@ -357,7 +387,7 @@ export async function HubCompanies({ ctx }: Props) {
               People at member companies
             </h2>
             <p className="text-sm text-muted-foreground">
-              Each person sees their part of the company&apos;s view: outplacement sees layoff seats and how its people are doing; hiring sees shared profiles and the jobs it posts. The main contact sees all of it.
+              Each person sees their part of the company&apos;s view: outplacement, hiring, learning and development, or grants and RFPs. The main contact sees all of it.
             </p>
           </div>
           {contacts.length === 0 ? (
