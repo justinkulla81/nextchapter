@@ -16,6 +16,7 @@ import { dossierLineFor } from './demo-dossier-lines'
 import { findCityHero } from './city-hero'
 import { localArea, placeAt, type LocalSettings } from './local'
 import { countyKey, STATE_NAMES } from './places'
+import { skillsForTitle } from '@/lib/learning/plan'
 
 const DAY = 86_400_000
 export const PUBLIC_DEMO_DAYS = 30
@@ -440,6 +441,36 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
         isSampleData: true,
       } satisfies Prisma.CandidateProfileCreateManyInput
     }),
+  })
+  // Learning plans: about half the group has added a course or two, mostly for the skills local employers ask for most.
+  const PLAN_COURSES = [
+    { title: 'Negotiation and sales skills for managers', provider: 'Coursera', w: 3 },
+    { title: 'Leadership for managers', provider: 'Coursera', w: 2 },
+    { title: 'Recruiting and talent acquisition basics', provider: 'LinkedIn Learning', w: 1 },
+    { title: 'Lean Six Sigma green belt', provider: 'ASQ', w: 1 },
+    { title: 'Customer experience fundamentals', provider: 'Coursera', w: 1 },
+    { title: 'Python for operations', provider: 'Coursera', w: 1 },
+  ]
+  const weighted = PLAN_COURSES.flatMap((c) => Array.from({ length: c.w }, () => c))
+  const planStatuses = ['PLANNED', 'STARTED', 'PLANNED', 'DONE']
+  await prisma.learningPlanEntry.createMany({
+    data: joined.flatMap((p) => {
+      if (rand(seed, p.i, 61) > 0.5) return []
+      const first = pick(weighted, seed, p.i, 62)
+      const second = rand(seed, p.i, 63) < 0.3 ? pick(weighted, seed, p.i, 64) : null
+      return [first, ...(second && second.title !== first.title ? [second] : [])].map((c, n) => ({
+        id: `lp_${candId(p.i)}_${n}`,
+        candidateId: candId(p.i),
+        title: c.title,
+        provider: c.provider,
+        url: 'https://example.com/course',
+        skills: skillsForTitle(c.title),
+        status: planStatuses[Math.floor(rand(seed, p.i, 65 + n) * planStatuses.length)],
+        slot: 'more',
+        isSampleData: true,
+      }))
+    }),
+    skipDuplicates: true,
   })
   await prisma.institutionMember.createMany({
     data: people.map((p) => ({

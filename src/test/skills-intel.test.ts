@@ -47,3 +47,19 @@ describe('skills intelligence', () => {
     expect(anonymizeCandidates(group, 'seed2').profiles.map((p) => p.skills.join()).join()).toBe(anonymizeCandidates(group, 'seed1').profiles.map((p) => p.skills.join()).join())
   })
 })
+
+describe('planning to learn', () => {
+  const p = (planning: string[]) => ({ function: 'Finance', industry: 'Insurance', level: 'Manager', years: 10, weeksOut: 30, keywords: ['SQL'], planning, dossier: true })
+  it('counts people once per skill and hides one to four', async () => {
+    const { planningCounts } = await import('@/lib/workforce/skills-intel')
+    const people = [...Array.from({ length: 6 }, () => p(['Python', 'Python'])), p(['SQL']), p([]), p([]), p([])]
+    const m = planningCounts(people)
+    expect(m.get('Python')).toBe(6)
+    expect(m.get('SQL')).toBeNull()
+    expect(m.has('Excel')).toBe(false)
+  })
+  it('shows nothing for a group under five', async () => {
+    const { planningCounts } = await import('@/lib/workforce/skills-intel')
+    expect(planningCounts([p(['Python']), p(['Python'])]).size).toBe(0)
+  })
+})

@@ -171,6 +171,14 @@ Who uses it: the organization (where to put money and cohorts), colleges and tra
 and each person (what to learn next). It needs one skills vocabulary applied the same way to postings and résumés; the current keyword list is a
 starting point, not the final method.
 
+
+Built (phase 10): **the learning plan.** On the participant's own Learn page, each course has "Add to my plan"; the plan is a short list (12 at most)
+with three adjacent buttons per course (Planned, Started, Done) and Remove. "Done" is the person's own word: it never goes on the profile or dossier, which
+still come from the completion email. The Skills gaps screen gets a "Planning to learn" column: the number of people in the group whose own plan has a
+planned or started course that teaches the skill (the skill is read from the course title against the skills dictionary), counted without names, one to
+four hidden. The person sees a line on their plan saying which group counts it. Not built: matching a course to a person's funding (which funding the region
+uses, and which case-management system, are still open), adding a partner's program to the plan, and counting verified completions.
+
 ## Anonymous candidate profiles (**Decided**: go with anonymous totals, and show candidates as A, B, C)
 
 For employers, colleges and the organization itself, a list of de-identified candidates ("Candidate A", "Candidate B"...), each showing industry,
