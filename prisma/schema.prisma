@@ -5460,6 +5460,10 @@ model BoardLightRow {
   expiresAt          DateTime?
   employerSector     String?
   requirementTags    String?
+  /// Set by a trigger when the row last changed (prisma/manual/2026-11-17-board-light-row-changed-at.sql).
+  changedAt          DateTime? @db.Timestamptz(6)
+
+  @@index([changedAt])
 }
 
 // The "Request intro" action on a confidential recruiter listing (Discover

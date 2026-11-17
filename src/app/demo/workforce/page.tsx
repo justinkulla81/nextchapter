@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { WorkforceDemoForm } from '@/components/demo/WorkforceDemoForm'
+import { getOrgUser, getSessionAal } from '@/lib/supabase/get-current-user'
+import { isNcAdmin } from '@/lib/higher-ed/resolve'
 
 export const metadata: Metadata = {
   title: 'See NextChapter for your region',
@@ -15,6 +17,9 @@ const one = (v: string | string[] | undefined, max: number) => (Array.isArray(v)
 // trusted: each value is cut to length and only ever lands in a form field the visitor can change.
 export default async function WorkforceDemoPage({ searchParams }: { searchParams: Promise<Query> }) {
   const q = await searchParams
+  // A NextChapter admin sees demos already built for an organization and does not give an email (the action checks again).
+  const user = await getOrgUser().catch(() => null)
+  const admin = user ? await isNcAdmin(user.id, user.email ?? null, undefined, await getSessionAal('org')).catch(() => false) : false
   const state = one(q.state, 2).toUpperCase()
   const from = one(q.from, 40)
   const defaults = {
@@ -28,7 +33,7 @@ export default async function WorkforceDemoPage({ searchParams }: { searchParams
       <div className="space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight">See NextChapter for your region</h1>
         <p className="text-muted-foreground">
-          For workforce boards, economic development organizations and chambers. Tell us your city and we build a working demo: your region&apos;s real layoff notices,
+          For workforce boards, economic development organizations and chambers. Find your organization and we build a working demo: your region&apos;s real layoff notices,
           unemployment and workforce board, with sample member companies and job seekers, so you can see how many people you&apos;d keep working locally.
         </p>
         <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
@@ -37,7 +42,7 @@ export default async function WorkforceDemoPage({ searchParams }: { searchParams
           <li>See how many landed and how many stayed in your region.</li>
         </ul>
       </div>
-      <WorkforceDemoForm defaults={defaults} />
+      <WorkforceDemoForm defaults={defaults} admin={admin} />
       <p className="text-xs text-muted-foreground">The demo is read-only and lasts 30 days. Sample people and companies are fictional; regional figures are public data with their sources.</p>
     </main>
   )

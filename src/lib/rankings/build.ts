@@ -365,7 +365,11 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
   await writeRankingIndex([...index, ...entries])
   // Pages are cached for hours; a list built for the first time would otherwise keep showing the redirect it cached while empty.
   try {
-    for (const e of entries) revalidatePath(`/rankings/${e.slug}`)
+    for (const e of entries) {
+      revalidatePath(`/rankings/${e.slug}`)
+      revalidatePath(`/rankings/${e.slug}/latest.json`)
+      revalidatePath(`/rankings/${e.slug}/latest.csv`)
+    }
     revalidatePath('/rankings')
     revalidatePath('/rankings/topic/[family]', 'page')
   } catch (err) {

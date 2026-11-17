@@ -103,14 +103,16 @@ describe('the sweep for smaller layoffs', async () => {
   const { sweepWhere, OUTREACH_MIN_EMPLOYEES, OUTREACH_MIN_AGE_HOURS } = await import('@/lib/warn/outreach/sweep')
   it('takes US layoffs of 50+ jobs filed 3 hours to 5 days ago, once, and leaves held alerts to the alert path', () => {
     const now = new Date('2026-11-13T12:00:00Z')
-    const w = sweepWhere(now) as unknown as { employees: unknown; outreachCheckedAt: unknown; dismissedAt: unknown; fetchedAt: { lte: Date; gte: Date }; OR: unknown; NOT: unknown }
+    const w = sweepWhere(now) as unknown as { employees: unknown; outreachCheckedAt: unknown; dismissedAt: unknown; fetchedAt: { lte: Date; gte: Date }; AND: unknown[]; NOT: unknown }
     expect(OUTREACH_MIN_EMPLOYEES).toBe(50)
     expect(w.employees).toEqual({ gte: 50 })
     expect(w.outreachCheckedAt).toBeNull()
     expect(w.dismissedAt).toBeNull()
     expect(w.fetchedAt.lte.getTime()).toBe(now.getTime() - OUTREACH_MIN_AGE_HOURS * 3_600_000)
     expect(w.fetchedAt.gte.getTime()).toBe(now.getTime() - 5 * 86_400_000)
-    expect(w.OR).toEqual([{ country: null }, { country: 'US' }])
+    expect(w.AND[0]).toEqual({ OR: [{ country: null }, { country: 'US' }] })
+    // Filed in the last 30 days, not only loaded: a state's WARN archive loaded today is history (2026-11-17).
+    expect(w.AND[1]).toEqual({ OR: [{ noticeDate: null }, { noticeDate: { gte: new Date(now.getTime() - 30 * 86_400_000) } }] })
     expect(w.NOT).toEqual({ alertHeldAt: { not: null }, alertSentAt: null, alertGaveUpAt: null })
   })
 })
@@ -382,5 +384,24 @@ describe('board first (owner, 2026-11-17)', async () => {
     expect(outreachCopy({ ...base, audience: 'workforce_board', partners: [] }).body).not.toContain('serve them too')
     expect(listNames(['A'])).toBe('A')
     expect(listNames(['A', 'B'])).toBe('A and B')
+  })
+})
+
+describe('board directors and accept-all (owner, 2026-11-17)', async () => {
+  const { addressQuality } = await import('@/lib/warn/outreach/quality')
+  const now = new Date('2026-11-17T12:00:00Z')
+  const checked = new Date('2026-11-16T00:00:00Z')
+  const dir = { email: 'jdoe@maricopa.gov', personId: null, hunterStatus: null, hunterScore: null, hunterAt: null, primaryMatches: false, warmth: null, replied: false, domainDelivered: 0, domainBounced: 0, mx: true, directory: { status: 'risky', hunterStatus: 'accept_all', score: 80, at: checked } }
+  it('emails a listed board director whose address Hunter calls accept-all', () => {
+    expect(addressQuality({ ...dir, boardDirector: true }, now).ok).toBe(true)
+  })
+  it('still refuses accept-all for anyone who is not a listed board director, and any director address Hunter calls invalid or unknown', () => {
+    expect(addressQuality({ ...dir, boardDirector: false }, now).ok).toBe(false)
+    expect(addressQuality({ ...dir, boardDirector: true, directory: { ...dir.directory, status: 'invalid', hunterStatus: 'invalid' } }, now).ok).toBe(false)
+    expect(addressQuality({ ...dir, boardDirector: true, directory: { ...dir.directory, hunterStatus: 'unknown' } }, now).ok).toBe(false)
+  })
+  it('keeps the hard stops for a director: a domain that bounced us recently, a role address', () => {
+    expect(addressQuality({ ...dir, boardDirector: true, domainBounced: 1, domainLastBounceAt: new Date('2026-11-15T00:00:00Z') }, now).ok).toBe(false)
+    expect(addressQuality({ ...dir, email: 'info@maricopa.gov', boardDirector: true }, now).ok).toBe(false)
   })
 })

@@ -21,7 +21,7 @@ import { ALL_STAGES_WINDOW, CAREER_STAGES, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, 
 import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-type'
 import { notInternshipWhere } from '@/lib/internships/exclude'
 import { emailLevelFit } from '@/lib/jobs/email-level-fit'
-import { findLightRowsPage, logBoardMemory, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
+import { boardLightRowsReady, findLightRowsPage, logBoardMemory, LIGHT_SELECT, mirrorCanAnswer, type LightRow } from '@/lib/jobs/board-light-rows'
 import { boardFingerprint, claimSnapshotRefresh, inBackground, readManifest, readParts, REFRESH_GRACE_MS, snapshotsDisabled, snapshotUsable, writeSnapshot, type SnapshotKind } from '@/lib/jobs/board-snapshot'
 import { decodeBoardPart, encodeBoardPart } from '@/lib/jobs/board-snapshot-codec'
 import { annualPayForSort, type BoardSort } from '@/lib/jobs/board-search'
@@ -193,6 +193,8 @@ interface HeldBoard {
   fingerprint: string | null
   /** When the rows were read (ms). */
   readAt: number
+  /** When the last whole-board read behind these rows was (ms): readAt for a whole read, the base's for one built from changed rows. */
+  fullAt: number
 }
 
 /**
@@ -234,7 +236,7 @@ async function readSharedRows(
   closedCounts: Map<string, number>,
   listed: Map<string, number>,
   previous: Map<string, LightRow>
-): Promise<Omit<HeldBoard, 'fingerprint' | 'readAt'>> {
+): Promise<Omit<HeldBoard, 'fingerprint' | 'readAt' | 'fullAt'>> {
   const pool = new Map<string, string>()
   const rows: LightRow[] = []
   const expiresAt: number[] = []
@@ -269,6 +271,101 @@ async function readSharedRows(
     priors: Uint32Array.from(order, (i) => priors[i]),
     byId: kept,
   }
+}
+
+/**
+ * How long a board may be carried forward by reading only the rows changed since (readSharedDelta) before it is read whole again.
+ * The whole read re-applies what a row's own changes don't: its prior closures (ghost risk) as the nightly counts move, and a direct
+ * listing that came back into the still-listed set.
+ */
+const BOARD_FULL_READ_MS = 12 * 60 * 60_000
+/** Changed rows are read from this long before the base was read, so a write that committed late (a long import) is not missed. */
+const DELTA_OVERLAP_MS = 10 * 60_000
+/** More changed rows than this and the whole board is read instead (a full re-import): the delta would not be much smaller. */
+const DELTA_MAX_ROWS = 200_000
+
+/**
+ * The board `base` carried forward to now: its rows with every row changed since it was read (BoardLightRow."changedAt", set by a
+ * trigger on each real change, prisma/manual/2026-11-17-board-light-row-changed-at.sql) taken out, and those that are still on the
+ * board read again and put back. ~17k rows change an hour against a ~700k-row board, so a refresh reads a few percent of what a whole
+ * read does (2026-11-17 egress alert: the whole board was read 6-10 times a day, ~1.4 GB). Null when the copy table can't answer `where`
+ * or too many rows changed: the caller reads the whole board.
+ */
+async function readSharedDelta(
+  base: HeldBoard,
+  where: Prisma.ExclusiveJobPostingWhereInput,
+  closedCounts: Map<string, number>,
+  listed: Map<string, number>
+): Promise<Omit<HeldBoard, 'fingerprint' | 'readAt' | 'fullAt'> | null> {
+  if (!mirrorCanAnswer(where) || !(await boardLightRowsReady())) return null
+  const since = new Date(base.readAt - DELTA_OVERLAP_MS)
+  // Every changed id, on the board or not: a job that closed or moved to the other board leaves this one.
+  const changedIds = await prisma.boardLightRow.findMany({ where: { changedAt: { gt: since } }, select: { id: true }, take: DELTA_MAX_ROWS + 1 })
+  if (changedIds.length > DELTA_MAX_ROWS) return null
+  const changed = new Set(changedIds.map((r) => r.id))
+  // The changed rows still on this board, a page at a time.
+  const pool = new Map<string, string>()
+  const fresh: { row: LightRow; expires: number; prior: number }[] = []
+  const live = { AND: [where, { changedAt: { gt: since } }] } as Prisma.BoardLightRowWhereInput
+  let afterId: string | null = null
+  for (;;) {
+    const read: (LightRow & { expiresAt: Date | null })[] = await prisma.boardLightRow.findMany({
+      where: afterId === null ? live : { AND: [live, { id: { gt: afterId } }] },
+      select: { ...LIGHT_SELECT, expiresAt: true },
+      orderBy: { id: 'asc' },
+      take: PAGE_ROWS,
+    })
+    if (read.length === 0) break
+    afterId = read[read.length - 1].id
+    const expiry = new Map<string, number>()
+    const page = read.map(({ expiresAt: at, ...row }) => {
+      if (at) expiry.set(row.id, at.getTime())
+      return row as LightRow
+    })
+    internRepeated(page, pool)
+    for (const r of keepRelevant(page, closedCounts, listed)) {
+      const before = base.byId.get(r.id)
+      fresh.push({ row: before && sameRow(before, r) ? before : r, expires: expiry.get(r.id) ?? NaN, prior: priorClosures(r, closedCounts) })
+    }
+    if (read.length < PAGE_ROWS) break
+  }
+  return mergeChangedRows(base, changed, fresh)
+}
+
+/**
+ * `base` (id-ordered) with every `changed` id taken out and the `fresh` rows (re-read changed rows still on the board, any order) put
+ * back, in id order. Exported for tests.
+ */
+export function mergeChangedRows(
+  base: Pick<HeldBoard, 'rows' | 'expires' | 'priors'>,
+  changed: Set<string>,
+  fresh: { row: LightRow; expires: number; prior: number }[]
+): Omit<HeldBoard, 'fingerprint' | 'readAt' | 'fullAt'> {
+  const sorted = [...fresh].sort((a, b) => byId(a.row, b.row))
+  const n = base.rows.length
+  const rows: LightRow[] = []
+  const expires: number[] = []
+  const priors: number[] = []
+  let i = 0
+  let j = 0
+  while (i < n || j < sorted.length) {
+    if (i < n && changed.has(base.rows[i].id)) {
+      i++
+      continue
+    }
+    if (j >= sorted.length || (i < n && byId(base.rows[i], sorted[j].row) < 0)) {
+      rows.push(base.rows[i])
+      expires.push(base.expires[i])
+      priors.push(base.priors[i])
+      i++
+    } else {
+      rows.push(sorted[j].row)
+      expires.push(sorted[j].expires)
+      priors.push(sorted[j].prior)
+      j++
+    }
+  }
+  return { rows, expires: Float64Array.from(expires), priors: Uint32Array.from(priors), byId: new Map(rows.map((r) => [r.id, r])) }
 }
 
 const SNAPSHOT_PART_ROWS = 50_000
@@ -308,7 +405,7 @@ function publishBoard(kind: SnapshotKind, board: HeldBoard, fingerprint: string 
         })
       )
     }
-    await writeSnapshot(kind, fingerprint, board.readAt, parts, board.rows.length)
+    await writeSnapshot(kind, fingerprint, board.readAt, parts, board.rows.length, { fullAt: board.fullAt })
   })
 }
 
@@ -347,6 +444,7 @@ async function readBoardSnapshot(kind: SnapshotKind, fingerprint: Promise<string
     byId: new Map(rows.map((r) => [r.id, r])),
     fingerprint: manifest.fingerprint,
     readAt: manifest.at,
+    fullAt: manifest.fullAt ?? manifest.at,
   }
 }
 
@@ -386,11 +484,26 @@ function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, kind: Snapshot
       }
     }
     const before = await fingerprint
-    const out = await readSharedRows(liveBoardWhere(extra), await getClosedPostingCounts(), await listed, held?.byId ?? new Map())
+    const where = liveBoardWhere(extra)
+    const [closedCounts, listedNow] = await Promise.all([getClosedPostingCounts(), listed])
+    // A board read whole within BOARD_FULL_READ_MS (the held copy, else the last snapshot) is carried forward with only the rows changed
+    // since; otherwise, or when that can't be done, the whole board is read.
+    let base = held && started - held.fullAt < BOARD_FULL_READ_MS ? held : null
+    if (!base && !snapshotsDisabled()) {
+      const last = await readBoardSnapshot(kind, fingerprint, null, BOARD_FULL_READ_MS).catch(() => null)
+      if (last && started - last.fullAt < BOARD_FULL_READ_MS) base = last
+    }
+    const delta = base ? await readSharedDelta(base, where, closedCounts, listedNow).catch((error) => {
+      console.error(`Board light rows (${name}): changed-rows read failed, reading the whole board`, error)
+      return null
+    }) : null
+    const out = delta ?? (await readSharedRows(where, closedCounts, listedNow, held?.byId ?? new Map()))
     // Version unchanged across the whole read: these rows are that version, and can be reused / shared.
     const after = before ? await boardFingerprint() : null
-    const board: HeldBoard = { ...out, fingerprint: before && before === after ? before : null, readAt: started }
-    logBoardMemory(`shared board (${name})`, { rows: board.rows.length, ms: Date.now() - started })
+    const read: HeldBoard = { ...out, fingerprint: before && before === after ? before : null, readAt: started, fullAt: delta && base ? base.fullAt : started }
+    // Rows carried from the base may have expired or aged into ghost risk since it was read; a whole read leaves those out itself.
+    const board = delta ? stillLive(read, Date.now(), listedNow) : read
+    logBoardMemory(`shared board (${name})${delta ? ' from changed rows' : ''}`, { rows: board.rows.length, ms: Date.now() - started })
     publishBoard(kind, board, snapshotVersion(before, after))
     return board
   }

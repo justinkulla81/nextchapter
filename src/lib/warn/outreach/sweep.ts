@@ -10,6 +10,8 @@ export const OUTREACH_MIN_EMPLOYEES = 50
 /** Wait this long after a notice is filed so the contact lookups (HR, board, centers) have had time to fill in. */
 export const OUTREACH_MIN_AGE_HOURS = 3
 const MAX_AGE_DAYS = 5
+/** A notice filed longer ago than this is history, however recently we loaded it. */
+export const MAX_FILED_AGE_DAYS = 30
 const READ_LIMIT = 60
 const QUEUE_LIMIT = 12
 
@@ -23,7 +25,9 @@ export function sweepWhere(now: Date): Prisma.WarnNoticeWhereInput {
     dismissedAt: null,
     employees: { gte: OUTREACH_MIN_EMPLOYEES },
     fetchedAt: { gte: new Date(now.getTime() - MAX_AGE_DAYS * 86_400_000), lte: new Date(now.getTime() - OUTREACH_MIN_AGE_HOURS * 3_600_000) },
-    OR: [{ country: null }, { country: 'US' }],
+    // Filed recently, not just loaded recently: a historical backfill (a state's WARN archive) is loaded today but filed years ago, and
+    // must never reach a board as news (2026-11-17: 176 Kentucky filings from 2020 to October were in this window).
+    AND: [{ OR: [{ country: null }, { country: 'US' }] }, { OR: [{ noticeDate: null }, { noticeDate: { gte: new Date(now.getTime() - MAX_FILED_AGE_DAYS * 86_400_000) } }] }],
     NOT: { alertHeldAt: { not: null }, alertSentAt: null, alertGaveUpAt: null },
   }
 }

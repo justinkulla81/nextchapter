@@ -131,3 +131,7 @@ export function needsStrategy(journeyDetails: unknown, picks: StrategyPicks, exp
 export function widenPicks(e: { remote: boolean; states: string[]; cities?: { name: string }[]; industries: string[]; roles: string[] }): StrategyPicks {
   return { remote: e.remote, states: e.states, cities: (e.cities ?? []).map((c) => c.name), industries: e.industries, roles: e.roles }
 }
+
+// A skill name inside a sentence: "Financial statements" → "financial statements"; acronyms ("ERP") and product names ("Excel") keep their capitals.
+const PROPER_SKILL = /^(excel|salesforce|sap|oracle|netsuite|python|sql|power bi|tableau|workday|hubspot|gaap)\b/i
+export const inSentence = (name: string) => (/^[A-Z]{2}/.test(name) || PROPER_SKILL.test(name) ? name : name.charAt(0).toLowerCase() + name.slice(1))

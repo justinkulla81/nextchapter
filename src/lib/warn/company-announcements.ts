@@ -1,6 +1,6 @@
 import 'server-only'
 import { cache } from 'react'
-import { heavy, memoTtl } from '@/lib/db/heavy'
+import { heavy, memoTtl, sharedLoad } from '@/lib/db/heavy'
 import { prisma } from '@/lib/prisma'
 import { cleanEmployer, readableType } from './public-tracker'
 import { employerSlug, TWELVE_MONTHS_MS } from './layoff-pages'
@@ -35,8 +35,10 @@ const BUYOUT = /buy-?out|voluntary (separation|departure|exit|retirement)|early 
 
 export const announcementKind = (summary: string | null): AnnouncementKind => (summary && BUYOUT.test(summary) ? 'buyout' : 'layoff')
 
+// The rows are kept six hours in the shared data cache (2026-11-17 egress: each instance re-read them every five minutes, ~450 reads in
+// three hours). publishLayoffsNow clears it whenever an announcement is filed or published.
 async function load(): Promise<Map<string, CompanyAnnouncements>> {
-  const rows = await prisma.warnNotice.findMany({
+  const rows = await sharedLoad('company-announcements-v1', 6 * 3600, () => prisma.warnNotice.findMany({
     where: {
       dismissedAt: null,
       source: 'MANUAL_ANNOUNCEMENT',
@@ -46,7 +48,7 @@ async function load(): Promise<Map<string, CompanyAnnouncements>> {
     },
     select: { id: true, employer: true, employees: true, division: true, noticeDate: true, layoffType: true, sourceUrl: true, rssPublishedAt: true, companyMatchStatus: true, company: { select: { name: true } } },
     orderBy: { noticeDate: 'desc' },
-  })
+  }))
   const by = new Map<string, CompanyAnnouncements>()
   for (const r of rows) {
     const matched = r.companyMatchStatus === 'MATCHED' ? r.company?.name ?? null : null

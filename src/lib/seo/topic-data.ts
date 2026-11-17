@@ -3,6 +3,7 @@ import { pagesShownInSearch } from '@/lib/seo/shown-in-search'
 import { createHash } from 'node:crypto'
 import { cache } from 'react'
 import { heavy, memoTtl, sharedLoad } from '@/lib/db/heavy'
+import { TOPIC_NOTICES_TAG } from '@/lib/warn/layoff-cache-tags'
 import { readSnapshot } from '@/lib/seo/topic-snapshot'
 import { unstable_cache } from 'next/cache'
 import { Prisma } from '@prisma/client'
@@ -187,7 +188,9 @@ async function loadNotices(): Promise<TopicNotice[]> {
   })
 }
 
-const cachedNotices = unstable_cache(() => heavy(loadNotices), ['topic-notices-v1'], { revalidate: 3600 })
+// Six hours (2026-11-17 egress: an hourly entry was refilled ~34 times an hour, each instance revalidating it), cleared by
+// publishLayoffsNow when a filing lands; and held on the instance so a crawl's renders share one copy.
+const cachedNotices = memoTtl(30 * 60_000, () => '*', unstable_cache(() => heavy(loadNotices), ['topic-notices-v1'], { revalidate: 6 * 3600, tags: [TOPIC_NOTICES_TAG] }))
 export const getRecentNotices = cache(() => cachedNotices().catch(() => [] as TopicNotice[]))
 
 export async function getIndustryNotices(bucket: string): Promise<TopicNotice[]> {
