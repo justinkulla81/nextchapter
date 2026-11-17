@@ -36,7 +36,7 @@ def _paused():
     if not f or not os.path.exists(f): return set()
     d=json.load(open(f)); ks=d.keys() if isinstance(d,dict) else d
     return {str(k).lower() for k in ks}
-PAUSED=_paused(); STOPPED=set()
+PAUSED=_paused(); STOPPED=set(); SKIPPED_PAUSED=[]
 _rl=__import__('threading').Lock(); _last=[0.0]
 def _pace(url):
     if 'myworkdayjobs' not in url: return
@@ -45,6 +45,7 @@ def _pace(url):
         if w>0: time.sleep(w)
         _last[0]=time.time()
 def get(url, data=None, headers=None, timeout=40):
+    if 'myworkdayjobs' in url and url.split('/')[2].lower() in STOPPED: return None  # a host that challenged us stays left alone
     _pace(url)
     for a in range(6):
         try:
@@ -84,7 +85,8 @@ def ashby(s):
     for j in (d or {}).get("jobs",[]):
         yield J(j["title"],s["employer"],j.get("location") or ("Remote" if j.get("isRemote") else None),j["jobUrl"],j.get("descriptionHtml") or j.get("descriptionPlain"),j.get("publishedAt"),"Ashby")
 def workday(s):
-    if f"{s['tenant']}.{s['wd']}.myworkdayjobs.com".lower() in PAUSED: return
+    if f"{s['tenant']}.{s['wd']}.myworkdayjobs.com".lower() in PAUSED:
+        SKIPPED_PAUSED.append(s['tenant']); return
     base=f"https://{s['tenant']}.{s['wd']}.myworkdayjobs.com"; api=f"{base}/wday/cxs/{s['tenant']}/{s['site']}"
     off=0; tot=None
     while True:
@@ -191,3 +193,4 @@ def work(s):
     if tot["sources"]%5==0: print(tot,flush=True)
 with cf.ThreadPoolExecutor(int(os.environ.get("T","12"))) as ex: list(ex.map(work,srcs))
 print("DONE",tot,flush=True)
+print("skipped as paused:",len(SKIPPED_PAUSED),"sites; stopped this run (429/403):",sorted(STOPPED),flush=True)
