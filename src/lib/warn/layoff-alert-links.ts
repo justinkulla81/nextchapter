@@ -1,5 +1,7 @@
 import 'server-only'
 import { localPartnerNames } from '@/lib/seo/org-pages'
+import { prisma } from '@/lib/prisma'
+import { boardCountyKeys } from '@/lib/workforce/board-area'
 import type { LocalPicture } from './layoff-picture'
 import type { DraftContext } from './layoff-alert-drafts'
 import { employerSlug, getCompanies } from './layoff-pages'
@@ -26,6 +28,10 @@ export async function draftContext(picture: LocalPicture, employer: string, stat
   const localPage = url && (await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(4000) }).then((r) => r.status === 200, () => false)) ? url : null
   // A click on a Write email button is counted (layoff_alert_compose_clicked) and then opens Gmail; with no signing secret the plain link is used.
   const track = (href: string, meta: { group: string; variant: string | undefined; personId: string | undefined }) => buildEmailClickUrl(SITE, 'admin', composeKey(meta.group, meta.variant, noticeId, meta.personId), href)
-  const partners = await localPartnerNames(state, county).catch(() => [])
+  // With no county, the counties of the notice's own workforce board (not a statewide board, which would name the whole state).
+  const boardId = county ? null : await prisma.warnNotice.findUnique({ where: { id: noticeId }, select: { workforceBoardId: true } }).then((n) => n?.workforceBoardId ?? null).catch(() => null)
+  const board = boardId ? await prisma.workforceBoard.findUnique({ where: { id: boardId }, select: { counties: true, placeCounties: true, statewide: true } }).catch(() => null) : null
+  const boardKeys = board ? boardCountyKeys(board) : []
+  const partners = await localPartnerNames(state, county, boardKeys === 'all' ? [] : boardKeys).catch(() => [])
   return { picture, peoplePage, localPage, track, partners }
 }

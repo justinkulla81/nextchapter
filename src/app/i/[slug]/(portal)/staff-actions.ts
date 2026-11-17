@@ -227,7 +227,7 @@ export async function inviteStaff(slug: string, _prev: FormState, formData: Form
   return { ok: true, message: 'Invite sent.' }
 }
 
-const VIEWER_WORKSPACES: WorkspaceKey[] = ['alumni', 'development', 'career', 'teaching', 'execed', 'workforce']
+const VIEWER_WORKSPACES: WorkspaceKey[] = ['alumni', 'development', 'career', 'teaching', 'execed', 'workforce', 'hub']
 
 // Admin › Staff: remove someone's seat (they lose this role at once), or
 // resend an invite nobody has accepted yet.

@@ -384,6 +384,8 @@ describe('board first (owner, 2026-11-17)', async () => {
     expect(outreachCopy({ ...base, audience: 'workforce_board', partners: [] }).body).not.toContain('serve them too')
     expect(listNames(['A'])).toBe('A')
     expect(listNames(['A', 'B'])).toBe('A and B')
+    expect(outreachCopy({ ...base, audience: 'workforce_board', partners: ['Northeastern Nevada Regional Development Authority'] }).body).toContain('Northeastern Nevada Regional Development Authority serves them too')
+    expect(outreachCopy({ ...base, audience: 'workforce_board', partners: ['Clallam County ADO (clallam.org)', 'X'] }).body).toContain('Clallam County ADO and X serve them too')
   })
 })
 

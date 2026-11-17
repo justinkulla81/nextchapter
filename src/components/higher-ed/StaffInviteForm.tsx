@@ -4,7 +4,8 @@ import { useActionState, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { STAFF_ROLE_LABELS as ROLE_LABEL } from '@/lib/higher-ed/workspaces'
+import type { InstitutionUserRole } from '@prisma/client'
+import { staffRoleLabel, WORKFORCE_STAFF_ROLES, type OrgKind } from '@/lib/higher-ed/workspaces'
 
 type State = { error?: string; ok?: boolean; message?: string } | undefined
 
@@ -24,12 +25,12 @@ const VIEWER_WORKSPACES = [
 // keeps what was typed. `lockedRoles` = roles whose workspace the license
 // tier doesn't include (role → the tier that adds it), warned before sending.
 // `adminOnly` (the free plan) offers the administrator role alone.
-export function StaffInviteForm({ inviteAction, lockedRoles = {}, adminOnly = false }: { inviteAction: (prev: State, formData: FormData) => Promise<State>; lockedRoles?: Partial<Record<string, string>>; adminOnly?: boolean }) {
+export function StaffInviteForm({ inviteAction, lockedRoles = {}, adminOnly = false, kind = 'college' }: { inviteAction: (prev: State, formData: FormData) => Promise<State>; lockedRoles?: Partial<Record<string, string>>; adminOnly?: boolean; kind?: OrgKind }) {
   const [state, action] = useActionState(inviteAction, undefined)
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
-  const [role, setRole] = useState<string>(adminOnly ? 'INSTITUTION_ADMIN' : 'CAREER_SERVICES')
-  const [workspace, setWorkspace] = useState<string>('alumni')
+  const [role, setRole] = useState<string>(adminOnly ? 'INSTITUTION_ADMIN' : kind === 'workforce' ? 'WORKFORCE_PARTNER' : 'CAREER_SERVICES')
+  const [workspace, setWorkspace] = useState<string>(kind === 'workforce' ? 'hub' : 'alumni')
 
   return (
     <form action={action} className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
@@ -51,9 +52,9 @@ export function StaffInviteForm({ inviteAction, lockedRoles = {}, adminOnly = fa
           onChange={(e) => setRole(e.target.value)}
           className="h-9 rounded-md border border-input bg-background px-2 text-sm"
         >
-          {ROLES.filter((r) => !adminOnly || r === 'INSTITUTION_ADMIN').map((r) => (
+          {(kind === 'workforce' ? WORKFORCE_STAFF_ROLES : ROLES).filter((r) => !adminOnly || r === 'INSTITUTION_ADMIN').map((r) => (
             <option key={r} value={r}>
-              {ROLE_LABEL[r]}
+              {staffRoleLabel(r, kind)}
             </option>
           ))}
         </select>
@@ -62,7 +63,7 @@ export function StaffInviteForm({ inviteAction, lockedRoles = {}, adminOnly = fa
         <div className="space-y-1.5">
           <Label htmlFor="invite-ws">Can see (read-only)</Label>
           <select id="invite-ws" name="workspace" value={workspace} onChange={(e) => setWorkspace(e.target.value)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
-            {VIEWER_WORKSPACES.map((w) => (
+            {(kind === 'workforce' ? [{ key: 'hub', label: 'Talent Hub' }] : VIEWER_WORKSPACES).map((w) => (
               <option key={w.key} value={w.key}>
                 {w.label}
               </option>
@@ -75,7 +76,7 @@ export function StaffInviteForm({ inviteAction, lockedRoles = {}, adminOnly = fa
       </SubmitButton>
       {lockedRoles[role] && (
         <p className="w-full text-sm text-amber-700 dark:text-amber-400">
-          {ROLE_LABEL[role as keyof typeof ROLE_LABEL]} needs the {lockedRoles[role]} license. They can accept the invite, but they won’t see a workspace until the license is upgraded.
+          {staffRoleLabel(role as InstitutionUserRole, kind)} needs the {lockedRoles[role]} license. They can accept the invite, but they won’t see a workspace until the license is upgraded.
         </p>
       )}
       {state?.error && (

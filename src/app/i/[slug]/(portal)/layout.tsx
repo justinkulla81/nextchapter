@@ -81,15 +81,13 @@ export default async function InstitutionPortalLayout({
     badge: w.release === 'V2' ? 'Coming' : locked.has(w.key) && w.minTier ? `${TIER_LABELS[w.minTier]} tier` : null,
   }))
 
-  // A workforce customer's Program holds what Exec Ed and the WIOA workspace hold for a college (their screens are tabs there),
-  // and the person-facing views are previews, not places to work. Anyone who cannot open Program keeps those rail items.
+  // A workforce customer's Talent Hub holds what Exec Ed and the WIOA workspace hold for a college (their screens are tabs
+  // there), and the participant and member-company views are previews, not places to work. The rail keeps only the places
+  // staff work (owner, 2026-11-17: a "See it as" rail section read as demo scaffolding). On a demo, "Preview as" in the demo
+  // bar opens those views; on a real portal they are two links in the header. Anyone who cannot open the hub keeps them.
   const folded = orgKindOf(institution.orgType) === 'workforce' && access.workspaces.includes('hub')
-  const railItems: RailItem[] = folded
-    ? [
-        ...rail.filter((r) => !['execed', 'workforce', 'candidate', 'employer'].includes(r.key)),
-        ...rail.filter((r) => ['candidate', 'employer'].includes(r.key)).map((r, i) => ({ ...r, section: i === 0 ? 'See it as' : undefined })),
-      ]
-    : rail
+  const previews = folded ? rail.filter((r) => ['candidate', 'employer'].includes(r.key) && !r.badge) : []
+  const railItems: RailItem[] = folded ? rail.filter((r) => !['execed', 'workforce', 'candidate', 'employer'].includes(r.key)) : rail
 
   return (
     <div className="theme-partner theme-portal flex min-h-screen flex-col bg-background" style={theme}>
@@ -126,6 +124,16 @@ export default async function InstitutionPortalLayout({
             </p>
           </div>
           <div className="ml-auto flex items-center gap-4 text-sm">
+            {!institution.isDemo && previews.length > 0 && (
+              <span className="hidden items-center gap-3 md:flex">
+                <span className="text-muted-foreground">Preview</span>
+                {previews.map((p) => (
+                  <a key={p.key} href={p.href} className="font-medium text-muted-foreground hover:text-foreground">
+                    {p.label}
+                  </a>
+                ))}
+              </span>
+            )}
             {access.mode === 'demo-guest' ? (
               <a href="/demo/workforce" className="font-medium text-muted-foreground hover:text-foreground">
                 Make another demo

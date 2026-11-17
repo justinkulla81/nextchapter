@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ALL_TOKENS,
   DEMO_PERSONAS,
+  demoPersonasFor,
   demoPersonaTokens,
   isReadOnlyIn,
   tabsFor,
@@ -85,6 +86,13 @@ describe('demo personas', () => {
     for (const p of DEMO_PERSONAS.filter((p) => p.key !== 'all')) {
       expect([...demoPersonaTokens(p.key)]).toEqual([p.key])
     }
+  })
+  it('a workforce portal offers workforce roles, not college ones', () => {
+    const keys = demoPersonasFor('workforce', 'INSTITUTION').map((p) => p.key)
+    expect(keys).toEqual(['all', 'INSTITUTION_ADMIN', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'WORKFORCE_PARTNER', 'MEMBER', 'EMPLOYER'])
+    expect(keys).not.toContain('EXEC_ED')
+    expect(keys).not.toContain('FACULTY')
+    expect(demoPersonasFor('college', 'INSTITUTION').map((p) => p.key)).toContain('EXEC_ED')
   })
   it('an unknown persona falls back to everything', () => {
     expect(demoPersonaTokens('nope')).toEqual(demoPersonaTokens('all'))

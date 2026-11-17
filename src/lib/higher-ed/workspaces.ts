@@ -430,13 +430,33 @@ export const DEMO_PERSONAS = [
 
 export type DemoPersonaKey = (typeof DEMO_PERSONAS)[number]['key']
 
+// A workforce organization's staff roles, by the offices it has (services.ts: program team, business services,
+// career center). Faculty, Exec Ed, Alumni Relations, Development and Coach are college roles: a workforce org's
+// programs, enrollments and corporate clients are Talent Hub tabs, not an Exec Ed office.
+export const WORKFORCE_STAFF_ROLES = ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'EMPLOYER_RELATIONS', 'CAREER_SERVICES', 'VIEWER'] as const satisfies readonly InstitutionUserRole[]
+const WORKFORCE_ROLE_LABELS: Partial<Record<InstitutionUserRole, string>> = {
+  INSTITUTION_ADMIN: 'Director (admin)',
+  WORKFORCE_PARTNER: 'Program team',
+  EMPLOYER_RELATIONS: 'Business services',
+  CAREER_SERVICES: 'Career center',
+}
+export const staffRoleLabel = (role: InstitutionUserRole, kind: OrgKind): string =>
+  (kind === 'workforce' ? WORKFORCE_ROLE_LABELS[role] : undefined) ?? STAFF_ROLE_LABELS[role]
+
 // The personas that open at least one workspace for this kind of org, with
-// workforce wording (a member there is a participant, not an alum).
-export function demoPersonasFor(kind: OrgKind, tier: InstitutionTier): { key: string; label: string }[] {
-  return DEMO_PERSONAS.filter((p) => workspacesFor(new Set<AccessToken>(p.tokens), tier, { wioa: true }, kind).length > 0).map((p) => ({
+// workforce wording (a member there is a participant, not an alum). `group`
+// splits staff roles from the outside views (the people and companies served).
+export function demoPersonasFor(kind: OrgKind, tier: InstitutionTier): { key: string; label: string; group: 'all' | 'staff' | 'outside' }[] {
+  const workforceKeys: string[] = ['all', ...WORKFORCE_STAFF_ROLES, 'MEMBER', 'EMPLOYER']
+  return DEMO_PERSONAS.filter((p) => (kind !== 'workforce' || workforceKeys.includes(p.key)) && workspacesFor(new Set<AccessToken>(p.tokens), tier, { wioa: true }, kind).length > 0).map((p) => ({
     key: p.key,
+    group: p.key === 'all' ? 'all' : p.key === 'MEMBER' || p.key === 'EMPLOYER' ? 'outside' : 'staff',
     label:
-      ({ all: 'Everything', ...(kind === 'workforce' ? { MEMBER: 'Participant (job seeker)', WORKFORCE_PARTNER: 'Program staff', EMPLOYER: 'Member company' } : {}) } as Record<string, string>)[p.key] ?? p.label,
+      kind === 'workforce'
+        ? ({ all: 'Everything (all roles)', MEMBER: 'Participant (job seeker)', EMPLOYER: 'Member company' } as Record<string, string>)[p.key] ?? staffRoleLabel(p.key as InstitutionUserRole, kind)
+        : p.key === 'all'
+          ? 'Everything (all roles)'
+          : p.label,
   }))
 }
 
