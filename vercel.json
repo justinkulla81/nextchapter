@@ -70,6 +70,10 @@
       "schedule": "0 7 2 * *"
     },
     {
+      "path": "/api/cron/rankings-refresh",
+      "schedule": "50 * * * *"
+    },
+    {
       "path": "/api/cron/page-warmup",
       "schedule": "40 8 * * *"
     },

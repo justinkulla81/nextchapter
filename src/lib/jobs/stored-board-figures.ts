@@ -16,6 +16,7 @@ export type BoardFigureKey =
   | `job-title:${string}`
   | 'ranking-index'
   | 'ranking-places'
+  | 'ranking-method'
   | `ranking-awards:${number}`
   | `ranking:${string}`
   | 'segment-index'

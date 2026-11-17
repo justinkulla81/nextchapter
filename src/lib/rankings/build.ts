@@ -24,7 +24,8 @@ import { loadDegreeCityRows, loadDegreeEntities, loadGroupStats, loadSocStats } 
 import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
 import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
 import { awardEntries } from '@/lib/rankings/awards'
-import { addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
+import { RANKING_METHOD } from '@/lib/rankings/method-version'
+import { recordRankingMethod, addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
 import type { BuildGroup, CityStat, CollegeStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/living-cost'
 import { buildMetroStats, principalCity, rankWhitePlaces, whitePlacesSpecs, type MetroStat } from '@/lib/rankings/metro-places'
@@ -382,5 +383,6 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     for (const k of Object.keys(merged)) merged[k].sort((a, b) => a.rank - b.rank)
     await writePlaceRanks(merged)
   }
+  await recordRankingMethod(group, RANKING_METHOD[group])
   return { group, edition, built: entries.length, skipped, cities: cityCount, counties: countyCount }
 }
