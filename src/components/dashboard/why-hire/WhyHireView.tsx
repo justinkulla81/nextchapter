@@ -4,6 +4,7 @@ import type { WhyHireExtras } from '@/lib/profile/why-hire-load'
 import type { AggregatedSkillGap } from '@/lib/jobs/job-skill-gap'
 import { oneIn, type Mark } from '@/lib/profile/why-hire-standing'
 import { strengthPhrase } from '@/lib/profile/strengths'
+import { AREAS } from '@/lib/strengths-interview/areas'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { SectionPills } from '@/components/candidate/SectionPills'
 import { ActionLink } from '@/components/candidate/ActionLink'
@@ -21,15 +22,23 @@ import { WritePitchButton } from './WritePitchButton'
 export type WhyHirePart = 'edge' | 'gaps' | 'pitch'
 export const WHY_HIRE_PARTS: WhyHirePart[] = ['edge', 'gaps', 'pitch']
 const BASE = '/dashboard/strengths'
+const DISCOVER = '/dashboard/strengths/discover'
 const partHref = (p: WhyHirePart) => (p === 'edge' ? BASE : `${BASE}?part=${p}`)
 
 export function WhyHireView({ part, st, extras, statement, skills }: { part: WhyHirePart; st: Strengths; extras: WhyHireExtras; statement: ReactNode; skills: ReactNode }) {
   const next = extras.marks.find((m) => !m.done)
-  const open = extras.marks.filter((m) => !m.done).length + st.weakSpots.length
+  const ownLeft = st.own.length < AREAS.length
+  const open = extras.marks.filter((m) => !m.done).length + (ownLeft ? 1 : 0)
   const have = extras.marks.length - extras.marks.filter((m) => !m.done).length
   // The one primary action, with the reason next to it: a button alone says what, not why this one or why now.
   const action =
-    part === 'pitch' && !extras.pitch ? null : next ? (
+    part === 'pitch' && !extras.pitch ? null : st.own.length === 0 ? (
+      <NextStep why="Most people can’t say what they’re best at until someone asks. A few questions in your own words, and we put it into words with you.">
+        <ActionLink href={DISCOVER} kind="primary" event="why_hire_step_clicked" props={{ mark: 'discover', part, place: 'header' }}>
+          Find your strengths
+        </ActionLink>
+      </NextStep>
+    ) : next ? (
       <NextStep why={`${next.why} It takes you to ${have + 1} of ${extras.marks.length} proofs.`}>
         <ActionLink href={next.href} kind="primary" event="why_hire_step_clicked" props={{ mark: next.key, part, place: 'header' }}>
           {next.step}
@@ -114,21 +123,36 @@ function EdgePart({ st, extras, statement }: { st: Strengths; extras: WhyHireExt
     <>
       <VerdictPanel
         id="edge-h"
-        title={st.shape === 'emerging' ? 'Your standout strengths are next' : st.headline}
-        because={st.shape === 'emerging' ? 'We name them from evidence, not from what you say about yourself, so an employer can believe them. Earn one proof below and this fills in.' : undefined}
+        title={st.shape !== 'emerging' ? st.headline : st.own[0] ? `You stand out for ${st.own[0].strength.replace(/^./, (c) => c.toLowerCase()).replace(/\.$/, '')}.` : 'Let’s find what you’re best at'}
+        because={
+          st.shape === 'emerging' && st.own.length === 0
+            ? 'Most people can’t say it off the top of their head. Answer a few questions about your best work, your skills and how you work, in your own words, and we’ll put it into words with you.'
+            : undefined
+        }
       >
         {statement}
       </VerdictPanel>
-      {lead.length > 0 && (
-        <SectionBlock id="best-h" title={st.shape === 'peaked' ? 'What you are best at' : 'Where you are strong'} why="What backs each one is under it. Lead with the first in every application and conversation.">
-          <RowList
+      {(lead.length > 0 || st.own.length > 0) && (
+        <SectionBlock id="best-h" title={st.shape === 'balanced' ? 'Where you are strong' : 'What you are best at'} why="What backs each one is under it. Lead with the first in every application and conversation.">
+          {lead.length > 0 && <RowList
             label="Strengths"
             items={lead.map((x) => ({
               key: x.key,
               title: x.label,
               why: `${x.evidence.join('. ')}.`,
             }))}
-          />
+          />}
+          {st.own.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-ink">In your own words</p>
+              <FactList label="In your own words" items={st.own.map((o) => ({ key: o.area, name: <span className="font-semibold">{o.strength}</span>, fact: o.areaTitle }))} />
+              {st.own.length < AREAS.length && (
+                <ActionLink href={DISCOVER} variant="text" event="why_hire_step_clicked" props={{ mark: 'discover', part: 'edge', place: 'own' }}>
+                  Answer the other {AREAS.length - st.own.length} areas
+                </ActionLink>
+              )}
+            </div>
+          )}
           {st.shape === 'balanced' && (
             <SourceLine>No single peak is not a weakness. Teams need people they can hand anything to; say so plainly and back it with one example for each.</SourceLine>
           )}
@@ -198,13 +222,33 @@ function MarkRow({ m }: { m: Mark }) {
 
 function GapsPart({ st, extras, skills }: { st: Strengths; extras: WhyHireExtras; skills: ReactNode }) {
   const todo = extras.marks.filter((m) => !m.done)
+  const ownLeft = AREAS.length - st.own.length
+  const plan = [
+    ...st.weakSpots.map((w) => ({ key: w.key, name: <span className="font-semibold">{w.label}</span>, fact: w.line })),
+    ...st.own.filter((o) => o.watchOut).map((o) => ({ key: `own-${o.area}`, name: <span className="font-semibold">{o.areaTitle}</span>, fact: o.watchOut })),
+  ]
   return (
     <>
       <SectionBlock id="prove-h" title="Prove what you already have" why="An employer can check each of these. Together they are what moves you from a résumé in the pile to the person they call.">
-        {todo.length ? (
+        {todo.length || ownLeft ? (
           <RowList
             label="Proofs to add"
-            items={todo.map((m) => ({
+            items={[
+              ...(ownLeft
+                ? [
+                    {
+                      key: 'discover',
+                      title: st.own.length ? `Find your strengths: ${ownLeft} of ${AREAS.length} areas left` : 'Find your strengths in your own words',
+                      why: 'Short questions about your best work, skills, industry, how you work, people and what drives you. It is how most people find the words, and the weaker spots to plan for.',
+                      actions: (
+                        <ActionLink href={DISCOVER} event="why_hire_step_clicked" props={{ mark: 'discover', part: 'gaps', place: 'gaps' }}>
+                          {st.own.length ? 'Continue' : 'Start'}
+                        </ActionLink>
+                      ),
+                    },
+                  ]
+                : []),
+              ...todo.map((m) => ({
               key: m.key,
               title: m.step,
               why: m.why,
@@ -213,16 +257,17 @@ function GapsPart({ st, extras, skills }: { st: Strengths; extras: WhyHireExtras
                   Do it now
                 </ActionLink>
               ),
-            }))}
+            })),
+            ]}
           />
         ) : (
           <EmptyNote>Every proof is in place. Keep your references warm and refresh your résumé numbers when you finish something new.</EmptyNote>
         )}
       </SectionBlock>
       {skills}
-      {st.weakSpots.length > 0 && (
+      {plan.length > 0 && (
         <SectionBlock id="plan-h" title="Go in with a plan (only you see this)" why="These are not strengths yet. Pick roles that don't start with them, or prepare one example for each before the interview.">
-          <FactList label="Roles to go into with a plan" items={st.weakSpots.map((w) => ({ key: w.key, name: <span className="font-semibold">{w.label}</span>, fact: w.line }))} />
+          <FactList label="Weaker spots to plan for" items={plan} />
         </SectionBlock>
       )}
     </>

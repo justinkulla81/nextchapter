@@ -28,7 +28,7 @@ export const minimalTokens: ResumeTemplateStyleTokens = {
   headingBold: true,
   headingUsesAccent: false, // stays monochrome even when an accent color is chosen, except the name
 
-  marginInches: 1,
+  marginInches: 0.75,
 
   spaceAfterHeadingPt: 5.6, // before = 14pt (2.5x)
   spaceAfterParagraphPt: 4,

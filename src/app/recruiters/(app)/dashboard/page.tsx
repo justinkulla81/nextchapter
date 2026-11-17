@@ -1,11 +1,13 @@
-import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { Button } from '@/components/ui/button'
 import { getCurrentRecruiter } from '@/lib/recruiter/current-recruiter'
 import { getRecruiterUnreadCount } from '@/lib/messaging/threads'
 import { getLateSubmissions, STAGE_LABEL } from '@/lib/recruiter/submissions'
-import { Squiggle } from '@/components/ui/squiggle'
+import { firstName, PortalHomeHeader, PortalHomeMore, PortalLinks, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem } from '@/components/partners/PortalHome'
 
+const POSTING_STATUS: Record<string, string> = { approved: 'Live', pending: 'Waiting for review', rejected: 'Not approved' }
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
+
+// The recruiter Home (the portal Home pattern, src/components/partners/PortalHome.tsx). Same reads as before: no new query.
 export default async function RecruiterDashboardPage() {
   const recruiter = await getCurrentRecruiter()
 
@@ -25,152 +27,71 @@ export default async function RecruiterDashboardPage() {
   const totalSourced = sourcedByStatus.reduce((sum, s) => sum + s._count, 0)
   const rejectedPostings = postings.filter((p) => p.status === 'rejected')
   const pendingPostings = postings.filter((p) => p.status === 'pending')
+  const submissionsHref = `/recruiters/job-board/submissions/${recruiter.accessToken}`
 
+  const needs: NeedsItem[] = [
+    ...lateSubmissions.map((s) => ({
+      key: 'late_feedback',
+      title: `${s.roleTitle} at ${s.companyName}: feedback is overdue`,
+      why: `Still "${STAGE_LABEL[s.stage]}" ${s.hoursSinceUpdate} hours after the last update. The agreed time is ${s.slaHours} hours.`,
+      href: `/recruiters/search/${s.candidateId}`,
+      action: 'Update the candidate',
+    })),
+    ...(unreadMessages > 0
+      ? [{ key: 'unread_messages', title: `${plural(unreadMessages, 'unread message')}`, why: 'From candidates in your searches.', href: '/recruiters/messages', action: 'Open messages' }]
+      : []),
+    ...(addedNotYetInvited > 0
+      ? [{ key: 'not_invited', title: `${plural(addedNotYetInvited, 'candidate')} you added ${addedNotYetInvited === 1 ? 'is' : 'are'} not invited yet`, why: 'They cannot see your search until you invite them.', href: '/recruiters/candidates', action: 'Invite them' }]
+      : []),
+    ...rejectedPostings.map((p) => ({
+      key: 'posting_rejected',
+      title: `${p.title} at ${p.companyName} was not approved for the job board`,
+      why: p.rejectionReason ?? 'Open the posting to see what to change.',
+      href: submissionsHref,
+      action: 'Fix the posting',
+    })),
+  ]
+
+  const name = firstName(recruiter.fullName)
   return (
-    <div className="space-y-10">
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">NextChapter for Recruiters</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome back, {recruiter.fullName.split(' ')[0]}</h1>
-        <Squiggle className="mt-2" />
-        {recruiter.firmName && <p className="mt-1 text-muted-foreground">{recruiter.firmName}</p>}
-      </div>
+    <div className="space-y-8">
+      <PortalHomeHeader
+        portal="recruiter"
+        eyebrow={recruiter.firmName ?? 'Recruiter'}
+        title={name ? `Welcome back, ${name}` : 'Welcome back'}
+        intro={needs.length === 0 ? 'Nothing is waiting on you right now.' : `${plural(needs.length, 'thing')} ${needs.length === 1 ? 'is' : 'are'} waiting on you.`}
+        action={{ href: '/recruiters/search', label: 'Search candidates' }}
+      />
 
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Needs your attention</h2>
-        {addedNotYetInvited === 0 && rejectedPostings.length === 0 && lateSubmissions.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Nothing waiting on you right now.</p>
-        ) : (
-          <div className="mt-3 space-y-2">
-            {lateSubmissions.map((s) => (
-              <Link
-                key={s.submissionId}
-                href={`/recruiters/search/${s.candidateId}`}
-                className="flex items-center justify-between rounded-lg border border-destructive/30 bg-destructive/5 p-4 hover:border-destructive"
-              >
-                <div>
-                  <p className="font-medium text-foreground">
-                    {s.roleTitle} at {s.companyName} — feedback overdue
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Still &ldquo;{STAGE_LABEL[s.stage]}&rdquo; {s.hoursSinceUpdate}h since the last update (SLA is {s.slaHours}h)
-                  </p>
-                </div>
-              </Link>
-            ))}
-            {addedNotYetInvited > 0 && (
-              <Link
-                href="/recruiters/candidates"
-                className="flex items-center justify-between rounded-lg border border-border p-4 hover:border-primary"
-              >
-                <p className="font-medium text-foreground">Candidates added but not yet invited</p>
-                <span className="rounded-full bg-orange/20 px-2.5 py-0.5 text-sm font-semibold text-orange">
-                  {addedNotYetInvited}
-                </span>
-              </Link>
-            )}
-            {rejectedPostings.map((p) => (
-              <Link
-                key={p.id}
-                href={`/recruiters/job-board/submissions/${recruiter.accessToken}`}
-                className="flex items-center justify-between rounded-lg border border-border p-4 hover:border-primary"
-              >
-                <div>
-                  <p className="font-medium text-foreground">
-                    {p.title} at {p.companyName} — rejected
-                  </p>
-                  {p.rejectionReason && <p className="text-sm text-muted-foreground">{p.rejectionReason}</p>}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+      <PortalNeeds portal="recruiter" title="Waiting on you" items={needs} empty="Nothing is waiting on you right now." />
 
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">At a glance</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{totalSourced}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Candidates sourced</p>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{invitedCount}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Invited, awaiting signup</p>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{signedUpCount}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Signed up</p>
-          </div>
-          <div className="rounded-lg border border-border p-4">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{pendingPostings.length}</p>
-            <p className="mt-1 text-sm text-muted-foreground">Job Board postings pending review</p>
-          </div>
-        </div>
-      </section>
+      <PortalNumbers
+        items={[
+          { value: String(signedUpCount), label: 'Signed up', source: `Of the ${totalSourced} candidates you added`, highlight: true },
+          { value: String(invitedCount), label: 'Invited, not joined yet', source: 'From your invitations' },
+          { value: String(pendingPostings.length), label: 'Postings waiting for review', source: 'Job board, reviewed by NextChapter' },
+        ]}
+      />
 
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Notifications</h2>
-        <div className="mt-3">
-          <Link
-            href="/recruiters/messages"
-            className="flex items-center justify-between rounded-lg border border-border p-4 hover:border-primary"
-          >
-            <p className="font-medium text-foreground">Messages</p>
-            {unreadMessages > 0 && (
-              <span className="rounded-full bg-orange/20 px-2.5 py-0.5 text-sm font-semibold text-orange">
-                {unreadMessages} unread
-              </span>
-            )}
-          </Link>
-        </div>
-      </section>
+      <PortalTable
+        title="Your job board postings"
+        link={{ href: submissionsHref, label: 'See all postings' }}
+        columns={['Role', 'Company', 'Status']}
+        rows={postings.slice(0, 8).map((p) => ({ key: p.id, href: submissionsHref, cells: [p.title, p.companyName, POSTING_STATUS[p.status] ?? p.status] }))}
+        empty="No postings yet. Post a search to the job board and it shows here."
+      />
 
-      <section>
-        <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Quick links</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <Link href="/recruiters/search" className="rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">Candidate search</p>
-            <p className="mt-1 text-sm text-muted-foreground">Search the opted-in candidate pool and view briefs.</p>
-          </Link>
-          <Link href="/recruiters/candidates" className="rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">My candidates</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Add people from your own network and invite them to NextChapter.
-            </p>
-          </Link>
-          <Link
-            href={`/recruiters/job-board/submit/${recruiter.accessToken}`}
-            className="rounded-lg border border-border p-4 hover:border-primary"
-          >
-            <p className="font-medium text-foreground">Post to the Job Board</p>
-            <p className="mt-1 text-sm text-muted-foreground">Submit a new confidential or open search.</p>
-          </Link>
-          <Link
-            href={`/recruiters/job-board/submissions/${recruiter.accessToken}`}
-            className="rounded-lg border border-border p-4 hover:border-primary"
-          >
-            <p className="font-medium text-foreground">My postings</p>
-            <p className="mt-1 text-sm text-muted-foreground">Track status and reconfirm active listings.</p>
-          </Link>
-          <Link
-            href={`/recruiters/calibrate/${recruiter.accessToken}`}
-            className="rounded-lg border border-border p-4 hover:border-primary"
-          >
-            <p className="font-medium text-foreground">Search Calibration Memo</p>
-            <p className="mt-1 text-sm text-muted-foreground">Paste a client brief for an instant read.</p>
-          </Link>
-          <Link href="/recruiters/settings" className="rounded-lg border border-border p-4 hover:border-primary">
-            <p className="font-medium text-foreground">Settings</p>
-            <p className="mt-1 text-sm text-muted-foreground">Update your name, firm, and specialty.</p>
-          </Link>
-        </div>
-      </section>
-
-      <div className="border-t border-border pt-4">
-        <Button nativeButton={false} render={<Link href="/auth/forgot-password" />} variant="outline" size="sm">
-          Change password
-        </Button>
-      </div>
+      <PortalHomeMore label="More for recruiters">
+        <PortalLinks
+          links={[
+            { href: '/recruiters/candidates', label: 'My candidates', line: 'Add people from your own network and invite them.' },
+            { href: `/recruiters/job-board/submit/${recruiter.accessToken}`, label: 'Post to the job board', line: 'Submit a new confidential or open search.' },
+            { href: `/recruiters/calibrate/${recruiter.accessToken}`, label: 'Search calibration memo', line: 'Paste a client brief for an instant read.' },
+            { href: '/recruiters/settings', label: 'Settings', line: 'Your name, firm and specialty.' },
+            { href: '/auth/forgot-password', label: 'Change password', line: 'We email you a link.' },
+          ]}
+        />
+      </PortalHomeMore>
     </div>
   )
 }

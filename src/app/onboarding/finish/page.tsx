@@ -12,6 +12,7 @@ import { computeMatchState } from '@/lib/personalization/match-compute'
 import { loadScanStatus } from '@/lib/onboarding/scan-counts'
 import { prisma } from '@/lib/prisma'
 import { ScanFound } from '@/components/onboarding/bundles/ScanFound'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 // The finish screen of the short question bundles: what the member gained, and one optional next question.
 // The one navy block on the page is the reveal; everything else is plain.
@@ -25,7 +26,7 @@ export default async function FinishPage({ searchParams }: { searchParams: Promi
   const { tracking } = await searchParams
   const [scan, hasResume] = await Promise.all([
     loadScanStatus(profile.id),
-    prisma.resume.count({ where: { candidateId: profile.id, looksLikeResume: { not: false } } }).then((n) => n > 0),
+    prisma.resume.count({ where: { candidateId: profile.id, ...RESUME_NOT_REJECTED } }).then((n) => n > 0),
   ])
 
   const journey = effectiveJourney(profile)

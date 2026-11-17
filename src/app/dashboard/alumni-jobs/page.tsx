@@ -15,7 +15,7 @@ export default async function AlumniJobsPage() {
     <div className="space-y-8">
       <PageHeader
         title="Alumni jobs"
-        intro="Roles employers posted just for your school’s alumni. They are not on the open board, so fewer people see them."
+        intro="Roles chosen for you by your groups, and roles employers posted just for your school’s alumni. Featured roles come first."
         action={
           jobs.length === 0 ? (
             <ActionLink href="/dashboard/find-my-job" kind="primary" event="alumni_jobs_find_job_clicked" props={{ source: 'alumni_jobs_empty' }}>
@@ -35,10 +35,16 @@ export default async function AlumniJobsPage() {
             <li key={j.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="min-w-0 flex-1 basis-64">
                 <p className="text-base font-semibold text-ink">{j.title}</p>
-                <p className="text-sm text-ink">Posted for {j.institutionName ? `${j.institutionName} alumni` : 'alumni of your school'}, so you are in a smaller group of applicants.</p>
+                {j.featuredBy && (
+                  <p className="text-sm text-ink">
+                    Featured by {j.featuredBy}
+                    {j.featuredNote ? `: “${j.featuredNote}”` : ''}
+                  </p>
+                )}
+                {j.institutionScopeId && <p className="text-sm text-ink">Posted for {j.institutionName ? `${j.institutionName} alumni` : 'alumni of your school'}, so you are in a smaller group of applicants.</p>}
                 <p className="text-sm text-muted-foreground">{[j.companyName, j.location].filter(Boolean).join(' · ')}</p>
               </div>
-              <ActionLink href={j.url} external event="alumni_job_opened" props={{ jobId: j.id, institution: j.institutionName }}>
+              <ActionLink href={j.url} external event="alumni_job_opened" props={{ jobId: j.id, institution: j.institutionName, featured: !!j.featuredAt }}>
                 See the role
               </ActionLink>
             </li>

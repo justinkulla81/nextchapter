@@ -26,7 +26,7 @@ export default async function StrengthsPage({ searchParams }: { searchParams: Pr
         st={st}
         extras={extras}
         statement={
-          part !== 'edge' || st.shape === 'emerging' ? null : (
+          part !== 'edge' || (st.shape === 'emerging' && st.own.length === 0) ? null : (
             <Suspense fallback={<Loading>Writing your “why hire me”</Loading>}>
               <Statement candidateId={profile.id} />
             </Suspense>

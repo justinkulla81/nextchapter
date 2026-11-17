@@ -17,6 +17,7 @@ import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
 import { FindUnpostedLive, FindUnpostedEmptyLive, FindUnpostedErrorLive, FindIndependentLive, FindIndependentNewLive, FindIndependentOfferLive, FindResourcesLive, FindResourcesOptedInLive } from './jobs-find-parts-live'
 import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, CompanyProfile, MarketYours, MarketPay, MarketLocal, MarketPivot, Interviews, Offers } from './jobs-more'
 import { PayChartLive, CompanySectionsLive, CompanyCultureEmptyLive, InterviewTabsLive, InWorkLive, FormsLive } from './jobs-leftovers-live'
+import { InterviewHub, InterviewHubNew, InterviewQuestion, InterviewFollowUp, InterviewReveal } from './strength-interview'
 import { CompaniesLive, MarketLive, PayLive, ResumeLive, StrengthsLive, WhyHireGapsLive, WhyHirePitchLive, WhyHireNewLive, WhyHireNewPitchLive, LocalLive, InterviewsLive } from './jobs-redesign-live'
 import { PeopleYouKnow, AlumniGroups, IndustryFunction, RecruitersCircle, NetworkThisWeek, Messages } from './network-more'
 import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, HowIWork, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpScams, HelpQuestions } from './learn-help'
@@ -41,7 +42,7 @@ import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureL
 import { HomeSeniorCoachOffer, HomeNetworkingCoachOffer, HomePivotCoachOffer } from './coach-offer'
 import { ScopeBroaderFirst, ScopeEverythingQuestion, ScopeNarrow } from './search-scope'
 import { PortalHeaders } from './portal-headers'
-import { PortalLiveRecruiter, PortalLiveWorkforce } from './portal-live-frame'
+import { PortalLiveRecruiter, PortalLiveWorkforce, PortalLiveCoachHome } from './portal-live-frame'
 import { PortalLookEmployer, PortalLookHigherEd, PortalLookWorkforce, PortalLookRecruiter, PortalLookCoach } from './portal-look'
 import { PublicNavPreview } from './public-nav'
 import { BoardBidsLive, CompetitorWinsLive } from './bids-live'
@@ -195,6 +196,11 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/live/local', place: 'Jobs', title: 'Local market (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: LocalLive },
   { path: 'jobs/live/resume', place: 'Jobs', title: 'Résumé (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: ResumeLive },
   { path: 'jobs/live/whyhire', place: 'Jobs', title: 'Why hire me (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: StrengthsLive },
+  { path: 'jobs/live/strengths-discover', place: 'Jobs', title: 'Find your strengths: the six areas', replaces: 'nothing; new', Component: InterviewHub },
+  { path: 'jobs/live/strengths-discover-new', place: 'Jobs', title: 'Find your strengths: not started', replaces: 'nothing; new', Component: InterviewHubNew },
+  { path: 'jobs/live/strengths-question', place: 'Jobs', title: 'Find your strengths: a question', replaces: 'nothing; new', Component: InterviewQuestion },
+  { path: 'jobs/live/strengths-followup', place: 'Jobs', title: 'Find your strengths: the follow-up', replaces: 'nothing; new', Component: InterviewFollowUp },
+  { path: 'jobs/live/strengths-reveal', place: 'Jobs', title: 'Find your strengths: an area done', replaces: 'nothing; new', Component: InterviewReveal },
   { path: 'jobs/live/whyhire-gaps', place: 'Jobs', title: 'Why hire me: Close the gaps (sample data)', replaces: 'the Show more on /dashboard/strengths', Component: WhyHireGapsLive },
   { path: 'jobs/live/whyhire-pitch', place: 'Jobs', title: 'Why hire me: Your pitch (sample data)', replaces: 'nothing; new part', Component: WhyHirePitchLive },
   { path: 'jobs/live/whyhire-new', place: 'Jobs', title: 'Why hire me: a new member (sample data)', replaces: 'the "Not enough evidence yet" state', Component: WhyHireNewLive },
@@ -322,6 +328,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'public/function-network', place: 'Public site', title: 'Function page: the one ask is joining the Sales network', replaces: 'the Market Reality Assessment box at the bottom of a function page', Component: FunctionNetworkAsk },
   { path: 'public/industry-network', place: 'Public site', title: 'Industry page: the one ask is joining the Health care network', replaces: 'the Market Reality Assessment box at the bottom of an industry page', Component: IndustryNetworkAsk },
   { path: 'public/nav', place: 'Public site', title: 'Public header (4 menus) and footer columns', replaces: 'the nine-link top bar in PublicSiteChrome.tsx and the Browse NextChapter text wall', Component: PublicNavPreview },
+  { path: 'portals/live/coach-home', place: 'Portals', title: 'Portal Home from the shared parts: coach (sample data)', replaces: 'check for the rebuilt portal Homes', Component: PortalLiveCoachHome },
   { path: 'portals/live/recruiter', place: 'Portals', title: 'Portal look on the live frame: recruiter nav around an old-style page (sample data)', replaces: 'check for the live portal layouts', Component: PortalLiveRecruiter },
   { path: 'portals/live/workforce', place: 'Portals', title: 'Portal look on the live frame: workforce rail around an old-style page (sample data)', replaces: 'check for the live portal layouts', Component: PortalLiveWorkforce },
   { path: 'portals/look/employer', place: 'Portals', title: 'Portal look: employer Home (sample data)', replaces: 'the grey partner look (theme-partner) on the employer portal', Component: PortalLookEmployer },

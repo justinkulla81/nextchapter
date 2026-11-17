@@ -3,6 +3,7 @@
 // SQL, role checked again there), never Prisma models directly. Tabs with no
 // entry render a "coming in HE-xx" panel from COMING_DESCRIPTIONS.
 
+import { PortalNumbers } from '@/components/partners/PortalHome'
 import { ConnectSections, ConsentHistory, MonthlyEmailPanel, StaffConnect } from './screens-connect'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
 import { getJourney, getStage, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
@@ -95,6 +96,7 @@ import {
 } from './screens-community'
 import { CareerStatusCard } from './CareerStatusCard'
 import { CandidateGroups } from './screens-groups'
+import { WorkforcePreviewHome } from './WorkforcePreviewHome'
 import { HubPeople } from './screens-people'
 import { PrivacyPanel } from './PrivacyPanel'
 import { CrmUploadForm } from './CrmUploadForm'
@@ -194,7 +196,7 @@ function PhotoStrip({ profile, limit = 4 }: { profile: InstitutionProfile; limit
 // ── Candidate ───────────────────────────────────────────────────────────────
 
 const CANDIDATE_TOOLS = [
-  { label: 'Market Reality Grade', href: '/dashboard/market-reality', what: 'Where your search stands against the market, graded weekly.' },
+  { label: 'Market Reality Grade', href: '/dashboard/market-reality', what: 'Where your search stands against the market. A new report comes when you have done new work.' },
   { label: 'Search Action Plan', href: '/dashboard', what: 'The next moves that will change your grade.' },
   { label: 'Weekly Search Sprint', href: '/dashboard/sprint', what: "This week's committed actions." },
   { label: 'Dossier', href: '/dashboard/recruiter-report', what: 'Your verified, reference-backed profile for employers.' },
@@ -202,6 +204,8 @@ const CANDIDATE_TOOLS = [
 ]
 
 async function CandidateHome({ ctx, base }: ScreenProps) {
+  // A workforce program's staff preview: the candidate-site Home (src/components/higher-ed/WorkforcePreviewHome.tsx).
+  if (orgKindOf(ctx.institution.orgType) === 'workforce' && ctx.workspaces.includes('hub')) return <WorkforcePreviewHome ctx={ctx} base={base} />
   const member = ctx.memberId
     ? await prisma.institutionMember.findUnique({
         where: { id: ctx.memberId },
@@ -552,6 +556,11 @@ async function CareerCaseload({ ctx, base, searchParams }: ScreenProps) {
   const q = searchParams.q?.trim() ?? ''
   const found = canEdit && q ? await searchRoster(ctx.institution.id, q) : []
   const waiting = ctx.readOnly ? null : <WaitingForYou ctx={ctx} office="career" base={base} />
+  // The portal Home's three numbers, from the caseload rows already read: no new query.
+  const nowMs = new Date().getTime()
+  const sharing = rows.filter((r) => r.shareSearchDetail).length
+  const activeRecently = rows.filter((r) => r.shareSearchDetail && r.lastActivityAt && nowMs - new Date(r.lastActivityAt).getTime() <= 14 * 86_400_000).length
+  const checkInsDue = rows.filter((r) => r.nextCheckInAt && new Date(r.nextCheckInAt).getTime() - nowMs <= 7 * 86_400_000).length
   return (
     <div className="space-y-6">
       {ctx.ownTokens.has('COACH') && (
@@ -563,6 +572,20 @@ async function CareerCaseload({ ctx, base, searchParams }: ScreenProps) {
         </p>
       )}
       {waiting}
+      {rows.length > 0 && (
+        <PortalNumbers
+          items={[
+            { value: rows.length.toLocaleString(), label: 'On the caseload', source: showCounselor ? 'Across career services' : 'Assigned to you' },
+            {
+              value: activeRecently.toLocaleString(),
+              label: 'Active in the last 14 days',
+              source: `Of ${sharing.toLocaleString()} who share their search with career services`,
+              highlight: true,
+            },
+            { value: checkInsDue.toLocaleString(), label: 'Check-ins in the next 7 days', source: 'Scheduled on the caseload' },
+          ]}
+        />
+      )}
       {rows.length === 0 ? (
         <EmptyState icon={Users} title="No one on this caseload" description="Add someone below. Alumni who tell a check-in they're looking or laid off are added automatically." />
       ) : (

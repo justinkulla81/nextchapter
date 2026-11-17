@@ -14,6 +14,8 @@ import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberA
 import { BriefCard } from './BriefCard'
 import { nextReserveDeadline } from './screens-hub-program'
 import { ResponseFlow, loadFlowData } from './screens-hub-flow'
+import { PortalHomeMore, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem } from '@/components/partners/PortalHome'
+import { PortalHomeLink } from '@/components/partners/PortalHomeLink'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
@@ -114,87 +116,108 @@ export async function HubHome({ ctx, base }: Props) {
   for (const f of dueFunding) needs.push({ label: `${f.name}: due ${periodDay(f.dueDate)}`, detail: `${f.status === 'DRAFTING' ? 'Drafting' : 'Considering'}${f.funder ? ` · ${f.funder}` : ''}`, href: `${base}/applications`, cta: 'Open application' })
   if (isDemo && dueFunding.length === 0) needs.push({ label: `Governor’s Reserve Fund: next deadline ${nextReserveDeadline(now)}`, detail: 'Monthly, first Wednesday. Check fit and partners.', href: `${base}/funding`, cta: 'See funding' })
   const verbs = VERBS.filter((v) => (!v.demoOnly || isDemo) && (!v.from || ctx.workspaces.includes(v.from)))
+  // The portal Home pattern (src/components/partners/PortalHome.tsx): one line and one primary action, what needs you, three
+  // numbers with their sources, the region's layoffs as a dense table. The picture, the seven verbs, the brief and the full
+  // participation tiles sit under "More". Same reads as before: no new query.
+  // The primary action is the top item's own action; the item stays in the list with its reason.
+  const primary = needs[0]
+  const items: NeedsItem[] = needs.map((n) => ({ key: n.cta.toLowerCase().replace(/\W+/g, '_'), title: n.label, why: n.detail, href: n.href, action: n.cta }))
+  const action = primary ? { href: primary.href, label: primary.cta } : { href: `${base}/participants`, label: 'See your people' }
   return (
     <div className="space-y-8">
-      {demo?.preparedFor && (
-        <p className="text-sm text-muted-foreground">
-          Prepared for <span className="font-medium text-foreground">{demo.preparedFor}</span>, {ctx.institution.name}. Sample people and companies; regional data is real.
-        </p>
-      )}
-      <HomeHero
-        name={ctx.institution.name}
-        region={profile?.region?.name ?? ctx.institution.name}
-        tagline={profile?.tagline ?? null}
-        imageUrl={profile?.heroImageUrl ?? null}
-        stats={[
-          { label: un ? `Unemployment, ${un.area}` : 'Unemployment', value: un ? `${un.rate}%` : '—', note: un ? `${periodLabel(un.period)}, U.S. Bureau of Labor Statistics` : 'Set your region to show it' },
-          { label: 'Labor force', value: un?.laborForce ? un.laborForce.toLocaleString() : '—', note: un?.laborForce ? un.area : undefined },
-          { label: 'People helped', value: d.participants.toLocaleString(), note: activation === null ? undefined : `${activation}% have joined` },
-          { label: 'Member companies', value: String(d.companies), note: `${d.layoffs} layoff${d.layoffs === 1 ? '' : 's'} with seats` },
-        ]}
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <div className="max-w-2xl space-y-1">
+          {demo?.preparedFor && (
+            <p className="text-sm text-muted-foreground">
+              Prepared for <span className="font-medium text-foreground">{demo.preparedFor}</span>, {ctx.institution.name}. Sample people and companies; regional data is real.
+            </p>
+          )}
+          <p className="text-base text-muted-foreground">
+            {needs.length === 0 ? 'Nothing needs you this week.' : `${needs.length} ${needs.length === 1 ? 'thing needs' : 'things need'} you this week.`}{' '}
+            {d.participants > 0 && `${d.participants.toLocaleString()} people helped, ${small(d.landed)} landed.`}
+          </p>
+        </div>
+        <PortalHomeLink
+          href={action.href}
+          portal="workforce"
+          item="primary_action"
+          className="nc-action inline-flex h-11 shrink-0 items-center rounded-lg px-5 text-sm font-semibold shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        >
+          {action.label}
+        </PortalHomeLink>
+      </div>
+
+      <PortalNeeds portal="workforce" items={items} empty="Nothing needs you this week." />
+
+      <div className="space-y-2">
+        <PortalNumbers
+          items={[
+            { value: d.participants.toLocaleString(), label: 'People helped', source: activation === null ? 'Signed up through your pages and partners' : `${activation}% have joined NextChapter`, highlight: true },
+            { value: small(d.landed), label: 'Landed new roles', source: 'Of people who share their outcome' },
+            { value: pct(d.kept), label: `Kept in ${d.local?.label ?? 'region'}`, source: d.local ? 'Local or remote, of hires with a known place' : 'Set your region to count who stays' },
+          ]}
+        />
+        <p className="max-w-2xl text-xs text-muted-foreground">Counts only. Where someone is in their search shows only for people who chose to share it, and any group under five shows as &lt;5.</p>
+      </div>
+
+      <PortalTable
+        title="Layoffs in your region"
+        link={{ href: `${base}/${isDemo ? 'rapid' : 'layoffs'}`, label: 'See all layoffs' }}
+        columns={['Employer', 'Jobs', 'Filed', 'Where', 'Response']}
+        rows={notices.slice(0, 6).map((n) => ({
+          key: n.id,
+          cells: [n.employer, n.employees ? n.employees.toLocaleString() : '—', periodDay(n.noticeDate), [n.county, n.state].filter(Boolean).join(', ') || '—', n.responseId ? 'Response planned' : 'Not started'],
+        }))}
+        empty={un ? 'No layoff filings in your region in the last 120 days.' : 'Set your region to see layoff filings there.'}
       />
 
-      <section aria-labelledby="needs-h" className="space-y-3">
-        <h2 id="needs-h" className="text-base font-semibold">
-          Needs you this week
-        </h2>
-        {needs.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Nothing needs you this week.</p>
-        ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border">
-            {needs.map((n, i) => (
-              <li key={n.label} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                <div>
-                  <p className="text-sm font-medium">{n.label}</p>
-                  <p className="text-xs text-muted-foreground">{n.detail}</p>
-                </div>
-                <Link href={n.href} className={i === 0 ? 'inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90' : 'text-sm font-medium text-[color:var(--accent-text,var(--primary))] hover:underline'}>
-                  {n.cta}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section aria-labelledby="verbs-h" className="space-y-3">
-        <h2 id="verbs-h" className="text-base font-semibold">
-          What your team does
-        </h2>
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {verbs.map((v) => (
-            <li key={v.verb}>
-              <Link href={`${base}/${v.tab}`} className="block h-full rounded-lg border border-border p-4 transition-colors hover:border-primary">
-                <p className="font-semibold text-[color:var(--accent-text,var(--primary))]">{v.verb}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{v.line}</p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <BriefCard institutionId={id} agent="workforce_dev" />
       {!d.local && (
         <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
           Set your region in <Link href={`/i/${slug}/hub/local`} className="font-medium text-primary hover:underline">Kept in region</Link> so local jobs rank first for your participants and we can count who stays.
         </p>
       )}
-      <section aria-labelledby="part-h" className="space-y-3">
-        <h2 id="part-h" className="text-base font-semibold">
-          Participation
-        </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatTile label="Joined NextChapter" value={small(d.joined)} note={activation === null ? undefined : `${activation}% activation`} />
-          <StatTile label="Active this week" value={small(d.activeThisWeek)} />
-          <StatTile label="Applying or interviewing" value={small(d.searching)} note={`${small(d.interviewing)} interviewing`} />
-          <StatTile label="Landed new roles" value={small(d.landed)} note="Of people who share their outcome" />
-          <StatTile label={`Kept in ${d.local?.label ?? 'region'}`} value={pct(d.kept)} note="Local or remote, of hires with a known place" href={`/i/${slug}/hub/local`} />
-          <StatTile label="Seats used" value={`${d.seats.used.toLocaleString()} of ${d.seats.pool.toLocaleString()}`} />
-        </div>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          Counts only. Where someone is in their search shows only for people who chose to share it, and any group under five shows as &lt;5.
-        </p>
-      </section>
+
+      <PortalHomeMore label="More: your region, your team's work and participation">
+        <HomeHero
+          name={ctx.institution.name}
+          region={profile?.region?.name ?? ctx.institution.name}
+          tagline={profile?.tagline ?? null}
+          imageUrl={profile?.heroImageUrl ?? null}
+          stats={[
+            { label: un ? `Unemployment, ${un.area}` : 'Unemployment', value: un ? `${un.rate}%` : '—', note: un ? `${periodLabel(un.period)}, U.S. Bureau of Labor Statistics` : 'Set your region to show it' },
+            { label: 'Labor force', value: un?.laborForce ? un.laborForce.toLocaleString() : '—', note: un?.laborForce ? un.area : undefined },
+            { label: 'People helped', value: d.participants.toLocaleString(), note: activation === null ? undefined : `${activation}% have joined` },
+            { label: 'Member companies', value: String(d.companies), note: `${d.layoffs} layoff${d.layoffs === 1 ? '' : 's'} with seats` },
+          ]}
+        />
+        <section aria-labelledby="verbs-h" className="space-y-3">
+          <h3 id="verbs-h" className="font-semibold text-ink">
+            What your team does
+          </h3>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {verbs.map((v) => (
+              <li key={v.verb}>
+                <Link href={`${base}/${v.tab}`} className="block h-full rounded-lg border border-border p-4 transition-colors hover:border-[var(--portal,var(--ink))]">
+                  <p className="font-semibold text-[color:var(--accent-text,var(--primary))]">{v.verb}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{v.line}</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <BriefCard institutionId={id} agent="workforce_dev" />
+        <section aria-labelledby="part-h" className="space-y-3">
+          <h3 id="part-h" className="font-semibold text-ink">
+            Participation
+          </h3>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <StatTile label="Joined NextChapter" value={small(d.joined)} note={activation === null ? undefined : `${activation}% activation`} />
+            <StatTile label="Active this week" value={small(d.activeThisWeek)} />
+            <StatTile label="Applying or interviewing" value={small(d.searching)} note={`${small(d.interviewing)} interviewing`} />
+            <StatTile label="Seats used" value={`${d.seats.used.toLocaleString()} of ${d.seats.pool.toLocaleString()}`} />
+          </div>
+        </section>
+      </PortalHomeMore>
     </div>
   )
 }

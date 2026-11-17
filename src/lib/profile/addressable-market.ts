@@ -6,7 +6,7 @@ import { ROLES, detectSourceRole, roleForTitle } from '@/lib/pivots/pivot-map'
 import { BANDS, StatIndex, bestTrend, memberBand, stateName, wantsRemote, type MarketStatRow, type PivotSuggestion } from '@/lib/pivots/scoring'
 import { loadPivotPaths, stateCode, PIVOT_PROFILE_SELECT } from '@/lib/pivots/load'
 import { aiOutlookForRole, aiOutlookForFunction, type AiOutlook } from './ai-outlook'
-import { readSearchExpansion, STATE_NEIGHBORS, type SearchExpansion } from './search-expansion'
+import { readSearchExpansion, type SearchExpansion } from './search-expansion'
 
 // The addressable job market: how many jobs a person could realistically get
 // given what they're searching for (role and level), where (their state, plus
@@ -25,6 +25,7 @@ const GEO_SHARE_BELOW = 0.02 // their place holds under 2% of the national marke
 export type MarketFlag = { key: 'narrow' | 'geo' | 'shrinking' | 'ai'; title: string; detail: string }
 export type Expansion =
   | { kind: 'remote'; open: number; label: string }
+  /** No longer produced (neighbouring states are offered as cities); kept so older code paths still type-check. */
   | { kind: 'state'; state: string; open: number; label: string }
   | { kind: 'relocate'; open: number; label: string }
   | { kind: 'role'; role: string; label: string; open: number | null; fitLabel: string; carry: string[]; toAdd: string[]; ai: AiOutlook | null }
@@ -78,7 +79,6 @@ export async function loadAddressableMarket(candidateId: string): Promise<Addres
   // What they're searching for: the role they named, else where they come from.
   const roleKey = (profile.targetRoleType ? roleForTitle(profile.targetRoleType) : null) ?? detectSourceRole({ title: profile.resumeLatestJobTitle, primaryFunction: profile.primaryFunction })
   const role = roleKey ? ROLES.get(roleKey)! : null
-  const neighbors = state ? (STATE_NEIGHBORS[state] ?? []) : []
   const band = memberBand(profile.highestLevelReached)
   const bands = band ? [band, BANDS[Math.max(0, BANDS.indexOf(band) - 1)]] : (['IC', 'MANAGER'] as const)
   const remoteOk = wantsRemote(profile.remotePreference)
@@ -87,7 +87,7 @@ export async function loadAddressableMarket(candidateId: string): Promise<Addres
     role
       ? prisma.pivotMarketStat
           .findMany({
-            where: { roleKey: { in: [role.key, '*'] }, geo: { in: ['US', 'REMOTE', ...(state ? [state] : []), ...neighbors, ...optedIn.states] } },
+            where: { roleKey: { in: [role.key, '*'] }, geo: { in: ['US', 'REMOTE', ...(state ? [state] : []), ...optedIn.states] } },
             select: { roleKey: true, geo: true, band: true, openNow: true, lowCompetitionOpen: true, new30: true, prior30: true, new90: true, prior90: true, payP50: true, paySample: true },
           })
           .catch(() => [] as MarketStatRow[])
@@ -132,10 +132,8 @@ export async function loadAddressableMarket(candidateId: string): Promise<Addres
   const expansions: Expansion[] = []
   if (role && marketReady) {
     if (!remoteOk && !optedIn.remote && remote > 0) expansions.push({ kind: 'remote', open: remote, label: `Include remote ${role.label.toLowerCase()} roles` })
-    for (const s of neighbors) {
-      const n = idx.sum(role.key, s, b, 'openNow')
-      if (n >= 5) expansions.push({ kind: 'state', state: s, open: n, label: `Jobs in ${stateName(s)}` })
-    }
+    // Neighbouring states are no longer offered whole: the market page offers their top cities instead
+    // (loadNearbyCities, widen-strategy-server.ts), each added on its own (added-cities.ts).
     if (!profile.openToRelocation && national > (local ?? 0) * 3) expansions.push({ kind: 'relocate', open: national, label: 'Open to a move for the right role' })
   }
   const pivotList: PivotSuggestion[] = pivots ? [...pivots.suggestions, ...pivots.more] : []

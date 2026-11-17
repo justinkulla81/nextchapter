@@ -125,8 +125,9 @@ const collegeLinks = memoTtl(6 * 3600_000, () => 'all', () => sharedLoad('colleg
 /** All colleges in a state, one per IPEDS id (the Scorecard table first, the ranked table fills the rest). */
 export const getStateCollegeListings = memoTtl(3600_000, (state: string) => state, (state: string): Promise<CollegeListing[]> => retryOnPoolTimeout(async () => {
   const [profiles, locals, orgs, links] = await Promise.all([
-    prisma.collegeProfile.findMany({ where: { state } }),
-    prisma.localCollege.findMany({ where: { state } }),
+    // Kept a day in the shared data cache (owner decision 2026-11-17, Supabase egress): ~4 KB a college row, re-read by every cold instance.
+    sharedLoad(`state-college-profiles-v1:${state}`, 24 * 3600, () => prisma.collegeProfile.findMany({ where: { state } })),
+    sharedLoad(`state-local-colleges-v1:${state}`, 24 * 3600, () => prisma.localCollege.findMany({ where: { state } })),
     universityOrgs(),
     collegeLinks(),
   ])

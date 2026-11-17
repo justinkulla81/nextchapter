@@ -9,6 +9,15 @@ import { BodyText, BulletText, LabelWithRightDate, PDF_PAGE_SIZE, SectionHeading
 // docx and PDF disagree about what's on the page. See that file's comment
 // for why a single generic renderer (driven by tokens) is used instead of
 // per-template duplication.
+// Inline layout: "Title — Company, City, ST". When that will not fit beside the dates, the employer and place start
+// their own line together, so a line never ends in the middle of a place ("San / Francisco"). Widths are estimated
+// at half an em per character, generous for the standard serif and sans fonts; a miss only means a normal wrap.
+function inlineRoleSplits(title: string, rest: string, tokens: ResumeTemplateStyleTokens, dateLabel: string): boolean {
+  const lineWidthPt = 612 - 2 * tokens.marginInches * 72 - 8 - dateLabel.length * tokens.bodySizePt * 0.5
+  const charsPerLine = lineWidthPt / (tokens.bodySizePt * 0.5)
+  return title.length * 1.08 + 5 + rest.length > charsPerLine
+}
+
 export function buildResumePdfDocument(
   data: ResumeDocumentData,
   tokens: ResumeTemplateStyleTokens,
@@ -28,9 +37,10 @@ export function buildResumePdfDocument(
 
   // One role. Inline: "Title — Company, Location" with the dates opposite. Stacked: the employer with its
   // location opposite, then the title with its dates opposite, then any further titles the same way.
+  // A role header is never split, and never left at the bottom of a page without a line of the role under it.
   const roleHeader = (role: ResumeWorkHistoryItem) =>
     stacked ? (
-      <View>
+      <View wrap={false} minPresenceAhead={24}>
         <LabelWithRightDate tokens={tokens} dateLabel={role.location ?? ''} left={<Text style={{ ...body, fontWeight: 700 }}>{role.companyName}</Text>} />
         {(role.roleTitle || role.dateRangeLabel) && (
           <LabelWithRightDate tokens={tokens} dateLabel={role.dateRangeLabel} italicRight left={<Text style={{ ...body, fontStyle: 'italic' }}>{role.roleTitle}</Text>} />
@@ -40,14 +50,17 @@ export function buildResumePdfDocument(
         ))}
       </View>
     ) : (
-      <View>
+      <View wrap={false} minPresenceAhead={24}>
         <LabelWithRightDate
           tokens={tokens}
           dateLabel={role.dateRangeLabel}
           left={
             <Text style={body}>
               <Text style={{ fontFamily: font, fontWeight: 700 }}>{role.roleTitle}</Text>
-              {`  —  ${role.companyName}${role.location ? `, ${role.location}` : ''}`}
+              {(() => {
+                const rest = `${role.companyName}${role.location ? `, ${role.location}` : ''}`
+                return inlineRoleSplits(role.roleTitle, rest, tokens, role.dateRangeLabel) ? `  —\n${rest}` : `  —  ${rest}`
+              })()}
             </Text>
           }
         />

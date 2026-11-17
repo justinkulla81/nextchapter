@@ -1,6 +1,10 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { memoTtl, retryOnPoolTimeout } from '@/lib/db/heavy'
+import { memoTtl, retryOnPoolTimeout, sharedLoad } from '@/lib/db/heavy'
+
+// Per-state rows are kept a day in the shared data cache: every instance re-read them on each cold start (~67k board reads and ~120k
+// center reads in five days, the local pages being the largest egress source on 2026-11-17). They change when the importers run.
+const SHARED_DAY = 24 * 3600
 import { boardCountyKeys, visibleBoards } from '@/lib/workforce/board-area'
 import { boardLabor, type BoardLabor } from '@/lib/workforce/labor'
 import { orgSlug } from '@/lib/crm/org-slug'
@@ -66,22 +70,22 @@ export function boardSlugs(boards: { id: string; name: string }[]): Map<string, 
 const TTL = 5 * 60_000
 
 export const getStateBoards = memoTtl(TTL, (state: string) => state, (state: string) => retryOnPoolTimeout(async (): Promise<PublicBoard[]> => {
-  const rows = await prisma.workforceBoard.findMany({
+  const rows = await sharedLoad(`state-boards-v1:${state}`, SHARED_DAY, () => prisma.workforceBoard.findMany({
     where: { state },
     select: { id: true, state: true, name: true, knownAs: true, website: true, zip: true, serviceArea: true, statewide: true, counties: true, placeCounties: true },
     orderBy: { name: 'asc' },
-  })
+  }), { reviveDates: false })
   const shown = visibleBoards(rows)
   const slugs = boardSlugs(shown)
   return shown.map((b) => ({ ...b, slug: slugs.get(b.id)! }))
 }))
 
 export const getStateCenters = memoTtl(TTL, (state: string) => state, (state: string) => retryOnPoolTimeout(async (): Promise<PublicCenter[]> => {
-  const rows = await prisma.americanJobCenter.findMany({
+  const rows = await sharedLoad(`state-centers-v1:${state}`, SHARED_DAY, () => prisma.americanJobCenter.findMany({
     where: { state },
     select: { id: true, name: true, centerType: true, city: true, phone: true, hours: true, detailsUrl: true, workforceBoardId: true },
     orderBy: [{ city: 'asc' }, { name: 'asc' }],
-  })
+  }), { reviveDates: false })
   return rows.map((r) => ({ id: r.id, name: r.name, kind: r.centerType, city: r.city, phone: r.phone, hours: r.hours, detailsUrl: r.detailsUrl, boardId: r.workforceBoardId }))
 }))
 

@@ -65,7 +65,9 @@ export function headingParagraph(
   tokens: ResumeTemplateStyleTokens,
   accentColor: string | null
 ): Paragraph {
-  const label = tokens.headingCase === 'uppercase' ? text.toUpperCase() : text
+  // A heading copied from an upload in capitals ("CORE COMPETENCIES") follows the template's case, like the standard ones.
+  const allCaps = text === text.toUpperCase() && /[A-Z]{2}/.test(text)
+  const label = tokens.headingCase === 'uppercase' ? text.toUpperCase() : allCaps ? text.charAt(0) + text.slice(1).toLowerCase() : text
   return new Paragraph({
     spacing: { before: pt(spaceBeforeHeadingPt(tokens)), after: pt(tokens.spaceAfterHeadingPt) },
     // A thin rule under the heading, for the templates that set it. A paragraph border, not a table or a drawn line.
