@@ -102,7 +102,7 @@ describe('export and screen gates', () => {
   })
 })
 
-import { LOCK_PITCH, TRIAL_DAYS, effectivePlan, trialEndDate, trialForLock, trialState, LOCKED_TITLES } from './entitlements'
+import { featureOn, LOCK_PITCH, TRIAL_DAYS, effectivePlan, trialEndDate, trialForLock, trialState, LOCKED_TITLES } from './entitlements'
 
 describe('free trial', () => {
   const now = new Date('2026-11-17T12:00:00Z')
@@ -136,5 +136,14 @@ describe('free trial', () => {
   it('partner views are a paid feature', () => {
     expect(institutionEntitlements({ plan: 'FREE' }).partnerViews).toBe(false)
     expect(institutionEntitlements({ plan: 'PAID' }).partnerViews).toBe(true)
+  })
+})
+
+describe('skills gaps preview', () => {
+  it('a free organization sees the first three skills; paid sees all', () => {
+    expect(institutionEntitlements({ plan: 'FREE' }).visibleSkillRows).toBe(3)
+    expect(institutionEntitlements({ plan: 'PAID' }).visibleSkillRows).toBeNull()
+    expect(featureOn(institutionEntitlements({ plan: 'FREE' }), 'skillsGaps')).toBe(false)
+    expect(featureOn(institutionEntitlements({ plan: 'PAID' }), 'skillsGaps')).toBe(true)
   })
 })
