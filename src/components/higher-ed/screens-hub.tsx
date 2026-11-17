@@ -10,7 +10,10 @@ import { regionNotices } from '@/lib/higher-ed/rapid-response'
 import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, seatRequests, small, type LocalSplit } from '@/lib/workforce/hub'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
-import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
+import { CompanyContactForm, HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
+import { ConfirmActionButton } from './ConfirmActionButton'
+import { removeCompanyContactAction } from '@/app/i/[slug]/(portal)/hub-actions'
+import { CONTACT_ROLE_LABELS, companyContacts, parseContactRoles } from '@/lib/workforce/member-contacts'
 import { BriefCard } from './BriefCard'
 import { nextReserveDeadline } from './screens-hub-program'
 import { ResponseFlow, loadFlowData } from './screens-hub-flow'
@@ -235,8 +238,9 @@ export async function HubHome({ ctx, base }: Props) {
 }
 
 export async function HubCompanies({ ctx }: Props) {
-  const rows = await memberCompanies(ctx.institution.id)
+  const [rows, contacts] = await Promise.all([memberCompanies(ctx.institution.id), companyContacts(ctx.institution.id)])
   const slug = ctx.institution.slug
+  const companyName = new Map(rows.map((c) => [c.id, c.name]))
   return (
     <div className="space-y-6">
       {!ctx.readOnly && (
@@ -296,6 +300,52 @@ export async function HubCompanies({ ctx }: Props) {
             </tbody>
           </table>
         </div>
+      )}
+      {rows.length > 0 && (
+        <section aria-labelledby="company-people" className="space-y-3">
+          <div>
+            <h2 id="company-people" className="text-base font-semibold">
+              People at member companies
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Each person sees their part of the company&apos;s view: outplacement sees layoff seats and how its people are doing; hiring sees shared profiles and the jobs it posts. The main contact sees all of it.
+            </p>
+          </div>
+          {contacts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No one added yet.</p>
+          ) : (
+            <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+              {contacts.map((p) => (
+                <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
+                  <div>
+                    <p className="font-medium">{p.email}</p>
+                    <p className="text-muted-foreground">
+                      {companyName.get(p.memberCompanyId) ?? 'Company'} · {parseContactRoles(p.roles).map((r) => CONTACT_ROLE_LABELS[r]).join(' and ')} ·{' '}
+                      {p.acceptedAt ? 'Active' : `Invited ${p.invitedAt.toLocaleDateString('en-US', { timeZone: 'UTC' })}`}
+                    </p>
+                  </div>
+                  {!ctx.readOnly && (
+                    <ConfirmActionButton
+                      variant="outline"
+                      label="Remove"
+                      confirm={`Remove ${p.email}? They stop seeing ${companyName.get(p.memberCompanyId) ?? 'the company'}'s view right away.`}
+                      confirmLabel="Remove access"
+                      run={removeCompanyContactAction.bind(null, slug, p.id)}
+                    />
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {!ctx.readOnly && (
+            <details className="rounded-lg border border-border bg-card p-4" open={contacts.length === 0}>
+              <summary className="cursor-pointer text-sm font-medium text-primary">Add a person at a member company</summary>
+              <div className="pt-3">
+                <CompanyContactForm slug={slug} companies={rows.map((c) => ({ id: c.id, name: c.name, connected: !!c.employerProfileId }))} />
+              </div>
+            </details>
+          )}
+        </section>
       )}
     </div>
   )

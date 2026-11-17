@@ -5,7 +5,7 @@
 import { revalidatePath } from 'next/cache'
 import type { InstitutionEmployerPackageTier } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { requireWorkspace } from '@/lib/higher-ed/access'
+import { requireWorkspace, employerRoleError, requireEmployerRole } from '@/lib/higher-ed/access'
 import { inviteMentors } from '@/lib/higher-ed/mentor-network'
 import { sendStudentInvites } from '@/lib/higher-ed/students'
 import { ORG_PENDING } from '@/lib/workforce/employer-jobs'
@@ -71,7 +71,8 @@ export async function saveEmployerPackage(slug: string, id: string, tier: Instit
 // ── Employer ───────────────────────────────────────────────────────────────
 
 export async function postRoleForCollege(slug: string, _prev: Result | undefined, formData: FormData): Promise<Result> {
-  const ctx = await requireWorkspace(slug, 'employer', { write: true })
+  const ctx = await requireEmployerRole(slug, 'hiring')
+  if (!ctx) return { error: employerRoleError('hiring') }
   const employerProfileId = await employerProfileFor(ctx)
   if (!employerProfileId) return { error: 'Your company isn’t approved at this college.' }
   const get = (k: string) => String(formData.get(k) ?? '').trim()
@@ -92,7 +93,8 @@ export async function postRoleForCollege(slug: string, _prev: Result | undefined
 }
 
 export async function askForIntro(slug: string, memberId: string, note: string): Promise<Result> {
-  const ctx = await requireWorkspace(slug, 'employer', { write: true })
+  const ctx = await requireEmployerRole(slug, 'hiring')
+  if (!ctx) return { error: employerRoleError('hiring') }
   const employerProfileId = await employerProfileFor(ctx)
   if (!employerProfileId) return { error: 'Your company isn’t approved at this college.' }
   const r = await requestIntro({ institutionId: ctx.institution.id, employerProfileId, memberId, requestedBy: ctx.userId, note: note.trim() })

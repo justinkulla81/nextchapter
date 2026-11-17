@@ -6,7 +6,7 @@
 import { revalidatePath } from 'next/cache'
 import type { CapstoneStatus, EnrollmentStatus, ProgramPayer } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { requireWorkspace, type WorkspaceContext } from '@/lib/higher-ed/access'
+import { requireWorkspace, type WorkspaceContext, employerRoleError, requireEmployerRole } from '@/lib/higher-ed/access'
 import type { AccessToken, WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { employerProfileFor } from '@/lib/higher-ed/employers'
 import { prisma } from '@/lib/prisma'
@@ -121,8 +121,8 @@ export async function setCapstone(slug: string, id: string, status: string, facu
 
 // From the Employer workspace (their own company) or Teaching (any employer).
 export async function proposeCapstoneForm(slug: string, from: 'employer' | 'teaching', _prev: FormResult, f: FormData): Promise<FormResult> {
-  const ctx = from === 'employer' ? await requireWorkspace(slug, 'employer', { write: true }) : await staff(slug, 'teaching', TEACH)
-  if (!ctx) return { error: 'Only faculty, Exec Ed or a college admin can add capstones here.' }
+  const ctx = from === 'employer' ? await requireEmployerRole(slug, 'hiring') : await staff(slug, 'teaching', TEACH)
+  if (!ctx) return { error: from === 'employer' ? employerRoleError('hiring') : 'Only faculty, Exec Ed or a college admin can add capstones here.' }
   const title = str(f, 'title')
   const brief = str(f, 'brief')
   if (!title) return { error: 'Give the project a title.' }
