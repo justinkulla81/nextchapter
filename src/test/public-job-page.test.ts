@@ -68,6 +68,10 @@ describe('isPublicJob', () => {
   it('keeps an old direct listing the employer still lists', () =>
     expect(isPublicJob(job({ createdAt: new Date(NOW - 100 * DAY), directListing: true }), NOW)).toBe(true))
   it('rejects an admin-confirmed ghost job', () => expect(isPublicJob(job(), NOW, true)).toBe(false))
+  it('takes a list read\'s length check in place of the text', () => {
+    expect(isPublicJob(job({ description: null, hasMinDescription: true }), NOW)).toBe(true)
+    expect(isPublicJob(job({ description: null, hasMinDescription: false }), NOW)).toBe(false)
+  })
   it('does not reject "International" or "Internal"', () =>
     expect(isPublicJob(job({ title: 'Internal Audit Director, International' }), NOW)).toBe(true))
 })
