@@ -44,7 +44,7 @@ const VERBS: Verb[] = [
 ]
 
 // The splash picture: the organization's own, or a generic placeholder until it uploads one.
-function HomeHero({ name, region, tagline, imageUrl, stats }: { name: string; region: string; tagline: string | null; imageUrl: string | null; stats: { label: string; value: string; note?: string }[] }) {
+function HomeHero({ name, region, tagline, imageUrl, credit, creditUrl, stats }: { name: string; region: string; tagline: string | null; imageUrl: string | null; credit?: string | null; creditUrl?: string | null; stats: { label: string; value: string; note?: string }[] }) {
   return (
     <section aria-label={`${name} overview`} className="overflow-hidden rounded-xl border border-border">
       <div className="relative h-44 w-full bg-primary/10 sm:h-56">
@@ -72,6 +72,12 @@ function HomeHero({ name, region, tagline, imageUrl, stats }: { name: string; re
           <p className="text-sm font-medium text-white/90">{region}</p>
           {tagline && <p className="text-lg font-semibold text-white sm:text-xl">{tagline}</p>}
         </div>
+        {/* The license (CC BY or BY-SA) asks for the credit; small, in the corner. */}
+        {imageUrl && credit && (
+          <a href={creditUrl ?? undefined} target="_blank" rel="noreferrer" className="absolute top-2 right-2 max-w-[70%] truncate rounded bg-black/45 px-1.5 py-0.5 text-[10px] text-white/90 hover:underline">
+            {credit}
+          </a>
+        )}
       </div>
       <dl className="grid grid-cols-1 gap-px bg-border sm:grid-cols-3">
         {stats.map((x) => (
@@ -103,7 +109,7 @@ export async function HubHome({ ctx, base }: Props) {
     prisma.ecosystemPartner.count({ where: { institutionId: id, status: 'CLAIMED' } }).catch(() => 0),
     prisma.exclusiveJobPosting.count({ where: { institutionScopeId: id, status: 'org_pending', archivedAt: null } }).catch(() => 0),
   ])
-  const profile = inst.profile as { heroImageUrl?: string; tagline?: string; region?: { name?: string; unemployment?: { area: string; rate: number; period: string; laborForce?: number | null }[] } } | null
+  const profile = inst.profile as { heroImageUrl?: string; heroCredit?: string; heroSourceUrl?: string; tagline?: string; region?: { name?: string; unemployment?: { area: string; rate: number; period: string; laborForce?: number | null }[] } } | null
   const demo = (inst.enabledFeatures as { demo?: { preparedFor?: string | null } } | null)?.demo
   const un = profile?.region?.unemployment?.[0]
   const activation = d.participants ? Math.round((d.joined / d.participants) * 100) : null
@@ -156,6 +162,8 @@ export async function HubHome({ ctx, base }: Props) {
         region={profile?.region?.name ?? ctx.institution.name}
         tagline={profile?.tagline ?? null}
         imageUrl={profile?.heroImageUrl ?? null}
+        credit={profile?.heroCredit ?? null}
+        creditUrl={profile?.heroSourceUrl ?? null}
         stats={[
           { label: un ? `Unemployment, ${un.area}` : 'Unemployment', value: un ? `${un.rate}%` : '—', note: un ? `${periodLabel(un.period)}, U.S. Bureau of Labor Statistics` : 'Set your region to show it' },
           { label: 'Labor force', value: un?.laborForce ? un.laborForce.toLocaleString() : '—', note: un?.laborForce ? un.area : undefined },
