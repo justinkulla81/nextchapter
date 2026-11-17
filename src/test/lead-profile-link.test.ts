@@ -62,6 +62,10 @@ describe('GET /api/lead-job/<token>', () => {
     expect(location.searchParams.get('utm_content')).toBe('similar_job')
     expect(res.cookies.get(LEAD_COOKIE)?.value).toBe(token)
   })
+  it('tags a saved-job email click as such', async () => {
+    const res = await job(makeUnsubscribeToken('a@example.org', null), '?job=cmvpdmxyt006zkz081f6gvn3s&step=welcome&v=saved_job&pos=1')
+    expect(new URL(res.headers.get('location')!).searchParams.get('utm_campaign')).toBe('saved_job_welcome')
+  })
   it('never redirects anywhere but a job page', async () => {
     const res = await job('garbage', '?job=https://evil.example')
     expect(new URL(res.headers.get('location')!).pathname).toBe('/jobs')

@@ -7,7 +7,7 @@ import { scheduleCheckIns } from '@/lib/higher-ed/checkins'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
 import { runMonthlyEmails } from '@/lib/higher-ed/monthly'
-import { cleanupExpiredDemos } from '@/lib/workforce/demo'
+import { cleanupExpiredDemos, reseedWorkforceDemo } from '@/lib/workforce/demo'
 import { autoJoinMajorGroups } from '@/lib/higher-ed/major-groups'
 import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
 import { resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
@@ -75,6 +75,20 @@ async function fillEmptyDemoPlaceholders(): Promise<string[]> {
     await seedDemoContent(result.institutionId, 'demo-placeholder')
     captureServerEvent('cron', 'institution_demo_reset', { institutionId: result.institutionId, slug, members: result.members, source: 'nightly_placeholder' })
     filled.push(slug)
+  }
+  // A workforce or economic development demo row with a region and no people yet (one NextChapter set up by hand): seed it
+  // the way the demo generator does, keeping its name, region and address. At most a few a night.
+  const workforce = await prisma.institution.findMany({
+    where: { isDemo: true, isSampleData: true, orgType: { not: 'COLLEGE' }, members: { none: {} } },
+    select: { slug: true },
+    take: 5,
+  })
+  for (const { slug } of workforce) {
+    const r = await reseedWorkforceDemo(slug)
+    if ('ok' in r) {
+      captureServerEvent('cron', 'institution_demo_reset', { slug, source: 'nightly_placeholder', kind: 'workforce' })
+      filled.push(slug)
+    } else console.error('[higher-ed-nightly] workforce demo placeholder', slug, r.error)
   }
   return filled
 }

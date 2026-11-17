@@ -58,15 +58,17 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
   const followUp = variant === 'applied_job' && step === 'nudge1'
   const persona = c.journey ? getPersona(c.journey) : null
 
-  // Someone who just went to apply wants jobs, so the welcome shows three open ones like it and makes one ask under them. Without
-  // three to show it falls through to the situation question below. (2026-11-17: 57 welcomes with the question, 3 taps, 0 signups.)
-  if (variant === 'applied_job' && step === 'welcome' && (c.jobs?.length ?? 0) >= 3) {
+  // Someone who just went to apply for a job, or saved one, wants jobs, so the welcome shows three open ones like it and makes one ask
+  // under them. Without three to show it falls through to the situation question below. (2026-11-17: 57 application welcomes with the
+  // question, 3 taps, 0 signups.)
+  if ((variant === 'applied_job' || variant === 'saved_job') && step === 'welcome' && (c.jobs?.length ?? 0) >= 3) {
+    const did = variant === 'applied_job' ? 'went to apply for' : 'saved'
     return {
       ...base,
       headline: 'Three more jobs like this one',
       paragraphs: [
         hello(c),
-        c.detail ? `You went to apply for ${c.detail}. These are open now and look like it:` : 'You went to apply for a job. These are open now and look like it:',
+        c.detail ? `You ${did} ${c.detail}. These are open now and look like it:` : `You ${did} a job. These are open now and look like it:`,
       ],
       jobs: c.jobs!.slice(0, 3),
       benefits: [],
