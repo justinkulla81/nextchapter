@@ -14,6 +14,8 @@
 // raise the fit bar when even the strict set is large. Pure (no I/O): src/test/relevance.test.ts.
 
 import { statesFromLocation } from '@/lib/pay/market-pay'
+import { addedCityNear, cityLabel } from '@/lib/jobs/added-cities'
+import type { AddedCity } from '@/lib/profile/search-expansion'
 
 // ── Criteria ───────────────────────────────────────────────────────────────────
 
@@ -216,6 +218,8 @@ export interface MemberGeo {
   acceptsRemote: boolean
   /** States they'd move to (openToRelocation + their notes). */
   relocation: ReadonlySet<string>
+  /** Cities they added (Widen your search): a job within COMMUTE_MILES of one counts like home. */
+  addedCities: readonly AddedCity[]
   /** Nothing to go on (no home, onsite only): the criterion isn't applied. */
   unknown: boolean
 }
@@ -226,12 +230,14 @@ export function memberGeo(m: {
   remotePreference?: string | null
   openToRelocation?: boolean | null
   relocationNotes?: string | null
+  addedCities?: readonly AddedCity[]
 }): MemberGeo {
   const state = m.currentState?.trim().toUpperCase()
   const homeState = state && /^[A-Z]{2}$/.test(state) ? state : null
   const acceptsRemote = (m.remotePreference ?? '').toLowerCase() !== 'onsite'
   const relocation = new Set(m.openToRelocation ? relocationStates(m.relocationNotes) : [])
-  return { anchor: m.anchor, homeState, acceptsRemote, relocation, unknown: !m.anchor && !homeState && !acceptsRemote && relocation.size === 0 }
+  const addedCities = m.addedCities ?? []
+  return { anchor: m.anchor, homeState, acceptsRemote, relocation, addedCities, unknown: !m.anchor && !homeState && !acceptsRemote && relocation.size === 0 && addedCities.length === 0 }
 }
 
 export interface JobPlace {
@@ -262,6 +268,9 @@ export function geoRing(g: MemberGeo, job: JobPlace): { ring: GeoRing; note: str
     if (d <= COMMUTE_MILES) return { ring: 0, note: null }
     if (d <= NEAR_MILES) return { ring: 1, note: `${Math.round(d)} mi away` }
   }
+  // A city they added counts like home, within the same commute distance. Only that city: not the rest of its state.
+  const added = addedCityNear(job.coords, g.addedCities, COMMUTE_MILES)
+  if (added) return { ring: 0, note: `in ${cityLabel(added.name)}, a city you added` }
   if (g.homeState && job.states.includes(g.homeState)) return g.anchor ? { ring: 2, note: `elsewhere in ${g.homeState}` } : { ring: 0, note: null }
   const moveTo = job.states.find((s) => g.relocation.has(s))
   if (moveTo) return { ring: 3, note: `in ${moveTo}, where you'd move` }

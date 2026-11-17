@@ -55,7 +55,7 @@ export interface WidenStrategyView {
   skills: SkillsIntel | null
   industrySkills: SkillsIntel | null
   /** What is already switched on (search-expansion.ts). */
-  on: { remote: boolean; states: string[]; industries: string[]; roles: string[] }
+  on: { remote: boolean; states: string[]; cities: string[]; industries: string[]; roles: string[] }
   /** When they last finished the strategy (journeyDetails.widenStrategy.at). */
   savedAt: string | null
 }
@@ -89,14 +89,16 @@ export const functionKeyFor = (fn: string) => fn.toLowerCase().replace(/&/g, ' a
 export interface StrategyPicks {
   remote: boolean
   states: string[]
+  /** Added cities, by name ("Austin, TX", "Dallas-Fort Worth Metro"). */
+  cities: string[]
   industries: string[]
   roles: string[]
 }
 
 /** The one-line summary of what the member has picked, which updates as they pick. Null when nothing is picked. */
-export function strategySummary(p: StrategyPicks, names: { state: (s: string) => string; role: (r: string) => string }): string | null {
+export function strategySummary(p: StrategyPicks, names: { state: (s: string) => string; city: (c: string) => string; role: (r: string) => string }): string | null {
   const bits: string[] = []
-  const places = [...p.states.map(names.state), ...(p.remote ? ['remote'] : [])]
+  const places = [...p.cities.map(names.city), ...p.states.map(names.state), ...(p.remote ? ['remote'] : [])]
   if (places.length > 0) bits.push(`jobs in ${joinList(places)}`)
   if (p.industries.length > 0) bits.push(`${joinList(p.industries)} employers`)
   if (p.roles.length > 0) bits.push(`${joinList(p.roles.map(names.role))} roles`)
@@ -122,5 +124,10 @@ export function readWidenStrategy(journeyDetails: unknown): { at: string } | nul
  */
 export function needsStrategy(journeyDetails: unknown, picks: StrategyPicks, exploredOn: number): boolean {
   if (readWidenStrategy(journeyDetails)) return false
-  return !picks.remote && picks.states.length === 0 && picks.industries.length === 0 && picks.roles.length === 0 && exploredOn === 0
+  return !picks.remote && picks.states.length === 0 && picks.cities.length === 0 && picks.industries.length === 0 && picks.roles.length === 0 && exploredOn === 0
+}
+
+/** The picks a stored expansion holds, in the page's terms. */
+export function widenPicks(e: { remote: boolean; states: string[]; cities?: { name: string }[]; industries: string[]; roles: string[] }): StrategyPicks {
+  return { remote: e.remote, states: e.states, cities: (e.cities ?? []).map((c) => c.name), industries: e.industries, roles: e.roles }
 }

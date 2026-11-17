@@ -33,7 +33,7 @@ import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
 import { ScopeToggle } from '@/components/dashboard/ScopeToggle'
-import { needsStrategy } from '@/lib/jobs/widen-strategy'
+import { needsStrategy, widenPicks } from '@/lib/jobs/widen-strategy'
 import { readSearchExpansion } from '@/lib/profile/search-expansion'
 import { ExploreQuestionCard, ExploredOptionsList, PivotMessageCard } from '@/components/dashboard/PivotScopeCards'
 import { applyScope, widenedFitNote } from '@/lib/jobs/search-scope'
@@ -1648,7 +1648,7 @@ async function FindMyJobBody({
               <ScopeToggle
                 surface="find_my_job"
                 current={scopeCtx.scope}
-                needsStrategy={needsStrategy(profile.journeyDetails, readSearchExpansion(profile.searchExpansion), scopeCtx.options.filter((o) => o.on).length)}
+                needsStrategy={needsStrategy(profile.journeyDetails, widenPicks(readSearchExpansion(profile.searchExpansion)), scopeCtx.options.filter((o) => o.on).length)}
               />
               {scopeCtx.message && (
                 <PivotMessageCard

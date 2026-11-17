@@ -80,7 +80,7 @@ export async function loadWidenStrategy(p: WidenMember): Promise<WidenStrategyVi
     roles,
     skills: target ? skillsIntel(skillsMarket, terms, { dim: 'function', key: functionKeyFor(target.fn) }, target.fn.toLowerCase()) : null,
     industrySkills: topIndustry && topIndustryKey ? skillsIntel(skillsMarket, terms, { dim: 'industry', key: topIndustryKey }, topIndustry) : null,
-    on: { remote: exp.remote, states: exp.states, industries: exp.industries, roles: exp.roles },
+    on: { remote: exp.remote, states: exp.states, cities: (exp.cities ?? []).map((c) => c.name), industries: exp.industries, roles: exp.roles },
     savedAt: readWidenStrategy(p.journeyDetails)?.at ?? null,
   }
 }
