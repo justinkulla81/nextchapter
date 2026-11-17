@@ -1,5 +1,7 @@
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
-import { updateCompanyInfo, uploadMyProfilePicture, removeMyProfilePicture } from './actions'
+import { updateCompanyInfo, uploadMyProfilePicture, removeMyProfilePicture, saveHiringBrandAction } from './actions'
+import { EmployerBrandForm } from '@/components/employer/EmployerBrandForm'
+import { brandOwnerKey, readEmployerBrand } from '@/lib/employer/brand'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
@@ -16,6 +18,7 @@ import { Squiggle } from '@/components/ui/squiggle'
 
 export default async function TalentSettingsPage() {
   const employer = await getTalentDashboardData()
+  const brand = await readEmployerBrand(brandOwnerKey({ companyId: employer.companyId, employerProfileId: employer.id })!)
 
   return (
     <div className="space-y-8">
@@ -72,6 +75,10 @@ export default async function TalentSettingsPage() {
         </div>
         <SubmitButton>Save changes</SubmitButton>
       </form>
+
+      <div id="home-picture" className="max-w-3xl scroll-mt-6">
+        <EmployerBrandForm action={saveHiringBrandAction} brand={brand} companyName={employer.companyName} />
+      </div>
 
       <div className="max-w-md space-y-3 rounded-lg border border-border p-4">
         <div>
