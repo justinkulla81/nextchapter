@@ -1,5 +1,7 @@
 import 'server-only'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { sharedPartsLoad } from '@/lib/db/heavy'
 import type { AiView } from '@/lib/jobs/ai-view'
 
 // The ids of postings that ask for a specific AI skill (aiSkillGroups non-empty), for the board's
@@ -8,13 +10,22 @@ import type { AiView } from '@/lib/jobs/ai-view'
 // (ExclusiveJobPosting_ai_ids_idx, ~80 ms, ~28k ids), held per server instance for a minute and
 // served stale for up to ten while a fresh copy loads.
 
-const TTL_MS = 60_000
-const STALE_MS = 10 * 60_000
+// Owner decision 2026-11-17 (Supabase egress): the ids (~120k) come from the shared data cache, refreshed every two hours like the board,
+// and each instance asks that cache every ten minutes. At a minute per instance the whole set was re-read all day (~1.4 GB a day).
+const TTL_MS = 10 * 60_000
+const STALE_MS = 2 * 60 * 60_000
+const SHARED_SEC = 2 * 3600
+const PARTS = 6
 let cache: { at: number; ids: Promise<Set<string>> } | null = null
 
 async function readAiIds(): Promise<Set<string>> {
-  const rows = await prisma.$queryRaw<{ id: string }[]>`SELECT id FROM "ExclusiveJobPosting" WHERE cardinality("aiSkillGroups") > 0`
-  return new Set(rows.map((r) => r.id))
+  const ids = await sharedPartsLoad('ai-posting-ids-v1', PARTS, SHARED_SEC, async (part) => {
+    const rows = await prisma.$queryRaw<{ id: string }[]>(
+      Prisma.sql`SELECT id FROM "ExclusiveJobPosting" WHERE cardinality("aiSkillGroups") > 0 AND (hashtext(id) & 2147483647) % ${PARTS}::int = ${part}::int`
+    )
+    return rows.map((r) => r.id)
+  })
+  return new Set(ids)
 }
 
 export function loadAiPostingIds(now = Date.now()): Promise<Set<string>> {

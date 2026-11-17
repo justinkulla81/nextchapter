@@ -103,3 +103,15 @@ export async function sharedLoad<T>(key: string, revalidateSec: number, load: ()
   }
   return JSON.parse(gunzipSync(Buffer.from(packed, 'base64')).toString(), (_k, v) => (opts.reviveDates !== false && typeof v === 'string' && ISO_DATE.test(v) ? new Date(v) : v)) as T
 }
+
+/**
+ * A whole-table read kept in the shared data cache in `parts` pieces (each entry is capped at 2 MB gzipped), joined back in order.
+ * `loadPart(k)` reads rows whose key hashes to part k: `(hashtext(<key>) & 2147483647) % parts = k` (partSql). Every server
+ * instance used to re-read these tables itself on a short timer, which kept the site over its Supabase egress budget (2026-11-17).
+ */
+export async function sharedPartsLoad<T>(key: string, parts: number, revalidateSec: number, loadPart: (part: number) => Promise<T[]>): Promise<T[]> {
+  const pieces = await Promise.all(
+    Array.from({ length: parts }, (_, k) => sharedLoad(`${key}:${k}/${parts}`, revalidateSec, () => loadPart(k), { reviveDates: false }))
+  )
+  return pieces.flat()
+}

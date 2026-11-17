@@ -1,5 +1,7 @@
 import 'server-only'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { sharedPartsLoad } from '@/lib/db/heavy'
 import { heapBlockCount, heapRangeSql, heapRanges } from '@/lib/db/heap-ranges'
 import { logBoardMemory } from '@/lib/jobs/board-light-rows'
 import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, snapshotUsable, writeSnapshot } from '@/lib/jobs/board-snapshot'
@@ -81,8 +83,13 @@ let similarityMemo: { at: number; value: Promise<SimilarityIndex> } | null = nul
 export function loadSimilarityIndex(): Promise<SimilarityIndex> {
   const now = Date.now()
   if (!similarityMemo || now - similarityMemo.at > SIMILARITY_TTL_MS) {
-    const value = prisma.occupationSimilarity
-      .findMany({ select: { socCode: true, similarSocCode: true, score: true, related: true, sharedSkills: true, similarTitle: true } })
+    // From the shared data cache, kept a day (the table changes only when the importers run); every cold instance used to read all
+    // ~30k rows itself (owner decision 2026-11-17, Supabase egress).
+    const value = sharedPartsLoad('occupation-similarity-v1', 8, 24 * 3600, (part) =>
+      prisma.$queryRaw<{ socCode: string; similarSocCode: string; score: number; related: boolean; sharedSkills: string[]; similarTitle: string }[]>(
+        Prisma.sql`SELECT "socCode", "similarSocCode", score, related, "sharedSkills", "similarTitle" FROM "OccupationSimilarity" WHERE (hashtext("socCode") & 2147483647) % 8 = ${part}::int`
+      )
+    )
       .then((rows) => {
         const index: SimilarityIndex = new Map()
         for (const r of rows) {

@@ -1,5 +1,7 @@
 import 'server-only'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { sharedLoad, sharedPartsLoad } from '@/lib/db/heavy'
 import type { ElementKind, OccupationProfile } from '@/lib/careers/types'
 import { buildVectorSpace, type VectorSpace } from '@/lib/careers/vectors'
 import { buildTitleIndex, type TitleIndex } from '@/lib/careers/title-match'
@@ -13,6 +15,7 @@ export interface Taxonomy {
 // Holding it in memory for an hour avoids re-reading ~60k rows on every Pivot
 // Tool visit; a stale copy for up to an hour after an import is harmless.
 const TTL_MS = 60 * 60 * 1000
+const TAXONOMY_SHARED_SEC = 24 * 3600
 
 let taxonomyMemo: { at: number; value: Promise<Taxonomy | null> } | null = null
 let titleMemo: { at: number; value: Promise<TitleIndex | null> } | null = null
@@ -20,10 +23,17 @@ let titleMemo: { at: number; value: Promise<TitleIndex | null> } | null = null
 async function loadTaxonomy(): Promise<Taxonomy | null> {
   try {
     const [occupations, skillRows, links, related] = await Promise.all([
-      prisma.occupation.findMany(),
-      prisma.skill.findMany({ select: { id: true, name: true, kind: true } }),
-      prisma.occupationSkill.findMany({ select: { socCode: true, skillId: true, importance: true, level: true, hotTech: true } }),
-      prisma.occupationRelated.findMany({ orderBy: [{ socCode: 'asc' }, { rank: 'asc' }], select: { socCode: true, relatedSocCode: true } }),
+      // The rows come from the shared data cache, kept a day (they change only when someone runs the importers): every cold instance
+      // used to read ~42k rows itself (owner decision 2026-11-17, Supabase egress).
+      sharedLoad('taxonomy-occupations-v1', TAXONOMY_SHARED_SEC, () =>
+        prisma.occupation.findMany({ select: { socCode: true, title: true, jobZone: true, medianWage: true, employment: true, growthPct: true, annualOpenings: true, typicalEducation: true } }), { reviveDates: false }),
+      sharedLoad('taxonomy-skills-v1', TAXONOMY_SHARED_SEC, () => prisma.skill.findMany({ select: { id: true, name: true, kind: true } }), { reviveDates: false }),
+      sharedPartsLoad('taxonomy-occupation-skills-v1', 3, TAXONOMY_SHARED_SEC, (part) =>
+        prisma.$queryRaw<{ socCode: string; skillId: string; importance: number; level: number | null; hotTech: boolean }[]>(
+          Prisma.sql`SELECT "socCode", "skillId", importance, level, "hotTech" FROM "OccupationSkill" WHERE (hashtext("socCode") & 2147483647) % 3 = ${part}::int`
+        )),
+      sharedLoad('taxonomy-related-v1', TAXONOMY_SHARED_SEC, () =>
+        prisma.occupationRelated.findMany({ orderBy: [{ socCode: 'asc' }, { rank: 'asc' }], select: { socCode: true, relatedSocCode: true } }), { reviveDates: false }),
     ])
     if (occupations.length === 0 || links.length === 0) return null
 
