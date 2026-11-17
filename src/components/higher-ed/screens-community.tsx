@@ -101,8 +101,11 @@ export function OffNote({ ctx, what }: { ctx: WorkspaceContext; what: string }) 
 }
 
 const canAct = (ctx: WorkspaceContext) => !!ctx.memberId && !ctx.readOnly
+// Why the member's buttons are missing: no member record behind a preview, or a read-only seat (a demo).
 const previewNote = (ctx: WorkspaceContext) =>
-  !ctx.memberId ? <p className="text-xs text-muted-foreground">You’re previewing: buttons that act as an alum are hidden.</p> : null
+  !ctx.memberId || ctx.readOnly ? (
+    <p className="text-xs text-muted-foreground">You’re previewing: buttons that act as {orgKindOf(ctx.institution.orgType) === 'workforce' ? 'a participant' : 'an alum'} are hidden.</p>
+  ) : null
 
 // ── Candidate › Home: college news ──────────────────────────────────────────
 
@@ -580,6 +583,8 @@ export async function PrivacyExtras({ ctx }: { ctx: WorkspaceContext }) {
   const slug = ctx.institution.slug
   const listed = ctx.memberId && mods.directory ? await isListed(ctx.memberId) : false
   const open = ctx.memberId ? await prisma.dataRequest.findMany({ where: { memberId: ctx.memberId, status: 'OPEN' }, select: { kind: true, createdAt: true } }) : []
+  // A workforce program is named, not called "the college".
+  const org = orgKindOf(ctx.institution.orgType) === 'workforce' ? ctx.institution.name : 'the college'
   return (
     <div className="space-y-6">
       {mods.directory && canAct(ctx) && (
@@ -587,14 +592,14 @@ export async function PrivacyExtras({ ctx }: { ctx: WorkspaceContext }) {
           <ListedToggle slug={slug} listed={listed} />
         </Section>
       )}
-      <Section id="pv-data" title="Your data at the college" intro={`See everything ${ctx.institution.name} holds about you in this portal, ask for a correction, or ask the college to delete its record. Your own NextChapter account stays yours either way.`}>
+      <Section id="pv-data" title={`Your data at ${org}`} intro={`See everything ${ctx.institution.name} holds about you in this portal, ask for a correction, or ask ${org} to delete its record. Your own NextChapter account stays yours either way.`}>
         {canAct(ctx) ? (
           <div className="flex flex-wrap items-start gap-3">
             <a href={`/i/${slug}/export/my-data`} className="inline-flex h-8 items-center rounded-md border border-input px-3 text-sm font-medium hover:bg-muted">
               Download my data (JSON)
             </a>
-            <NoteAction label="Ask for a correction" sendLabel="Send to the college" placeholder="What’s wrong, and what it should say" run={A.memberDataRequest.bind(null, slug, 'CORRECT')} />
-            <NoteAction label="Ask the college to delete my record" sendLabel="Send deletion request" placeholder="Optional: anything the college should know" run={A.memberDataRequest.bind(null, slug, 'DELETE')} />
+            <NoteAction label="Ask for a correction" sendLabel={`Send to ${org}`} placeholder="What’s wrong, and what it should say" run={A.memberDataRequest.bind(null, slug, 'CORRECT')} />
+            <NoteAction label={`Ask ${org} to delete my record`} sendLabel="Send deletion request" placeholder={`Optional: anything ${org} should know`} run={A.memberDataRequest.bind(null, slug, 'DELETE')} />
           </div>
         ) : (
           previewNote(ctx)
