@@ -13060,6 +13060,7 @@ model Institution {
   rapidResponses       RapidResponse[]
   fundingApplications FundingApplication[]
   partnerViews        PartnerView[]
+  ecosystemPartners   EcosystemPartner[]
   memberCompanies      MemberCompany[]
   alumniOpportunities  AlumniOpportunity[]
   alumniGroups         AlumniGroup[]
@@ -15838,6 +15839,39 @@ model RapidResponseStep {
   isSampleData    Boolean       @default(false)
 
   @@unique([rapidResponseId, key])
+}
+
+// An organization in a workforce org's ecosystem (a college, an employer, a training provider, a community group): invited, claims a
+// place in the talent network, and is confirmed by the steward. A claim is only a request: it grants no access.
+// status: UNINVITED | INVITED | CLAIMED | CONFIRMED | DECLINED. source: COLLEGE_DATA | MEMBER_COMPANY | MANUAL (refId: IPEDS unitid or member company id).
+model EcosystemPartner {
+  id               String      @id @default(cuid())
+  institutionId    String
+  institution      Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name             String
+  kind             String      @default("OTHER") // COLLEGE | EMPLOYER | PROVIDER | COMMUNITY | OTHER
+  website          String?
+  source           String      @default("MANUAL")
+  refId            String?
+  status           String      @default("UNINVITED")
+  inviteToken      String?     @unique
+  invitedAt        DateTime?
+  claimName        String?
+  claimTitle       String?
+  claimEmail       String?
+  claimNote        String?
+  emailDomainMatch Boolean?
+  commitments      String[]    @default([])
+  claimedAt        DateTime?
+  decidedAt        DateTime?
+  decidedBy        String?
+  createdBy        String
+  isSampleData     Boolean     @default(false)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@unique([institutionId, source, refId])
+  @@index([institutionId, status])
 }
 
 // A read-only view of an organization's regional data for one partner (a college, an employer, anyone), opened by an unlisted link.

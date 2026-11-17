@@ -299,6 +299,15 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     data: { institutionId, token: randomBytes(24).toString('base64url'), partnerName: ky ? 'Jefferson Community and Technical College' : 'A partner college', partnerKind: 'COLLEGE', scopes: ['SKILLS', 'TALENT', 'JOBS', 'PROGRAMS'], note: 'What employers here ask for, and where our people have the skills: a starting point for program planning.', expiresAt: new Date(now.getTime() + 90 * DAY), createdBy: 'demo', isSampleData: true },
   })
 
+  // A sample ecosystem: member companies at different stages, and two partner colleges.
+  await prisma.ecosystemPartner.createMany({
+    data: [
+      ...companies.slice(0, 5).map((c, i) => ({ institutionId, name: c.name, kind: 'EMPLOYER', source: 'MEMBER_COMPANY', refId: c.id, status: i === 0 ? 'CONFIRMED' : i === 1 ? 'INVITED' : 'UNINVITED', inviteToken: i <= 1 ? randomBytes(24).toString('base64url') : null, invitedAt: i <= 1 ? new Date(now.getTime() - 12 * DAY) : null, commitments: i === 0 ? ['HIRING', 'OPENINGS', 'MENTORS'] : [], claimedAt: i === 0 ? new Date(now.getTime() - 6 * DAY) : null, claimName: i === 0 ? 'HR team' : null, claimEmail: i === 0 ? 'talent@example.com' : null, createdBy: 'demo', isSampleData: true })),
+      { institutionId, name: 'A partner college', kind: 'COLLEGE', source: 'MANUAL', refId: null, status: 'CLAIMED', inviteToken: randomBytes(24).toString('base64url'), invitedAt: new Date(now.getTime() - 9 * DAY), claimName: 'Dana Whitfield', claimTitle: 'Director of Workforce Partnerships', claimEmail: 'dwhitfield@example.edu', claimNote: 'We can open cohort seats each term.', commitments: ['SEATS', 'SPACE'], claimedAt: new Date(now.getTime() - 3 * DAY), createdBy: 'demo', isSampleData: true },
+      { institutionId, name: 'A second college', kind: 'COLLEGE', source: 'MANUAL', refId: null, status: 'UNINVITED', createdBy: 'demo', isSampleData: true },
+    ],
+  })
+
   // Participants: 150 from the layoffs or signed up directly, then 60 more on other tracks (moving here, new graduates,
   // employed and growing, career pivot).
   const N = 150
@@ -535,6 +544,7 @@ export async function reseedWorkforceDemo(slug: string, now = new Date()) {
   await prisma.rapidResponse.deleteMany({ where: { institutionId: id } })
   await prisma.fundingApplication.deleteMany({ where: { institutionId: id } })
   await prisma.partnerView.deleteMany({ where: { institutionId: id } })
+  await prisma.ecosystemPartner.deleteMany({ where: { institutionId: id } })
   await prisma.memberCompany.deleteMany({ where: { institutionId: id } })
   await prisma.program.deleteMany({ where: { institutionId: id } })
   await prisma.candidateProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })

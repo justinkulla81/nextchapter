@@ -89,7 +89,7 @@ export async function HubHome({ ctx, base }: Props) {
   const id = ctx.institution.id
   const now = new Date()
   const redZoneCutoff = new Date(now.getTime() - 26 * 7 * 86_400_000)
-  const [d, inst, notices, requests, redZone, dueFunding] = await Promise.all([
+  const [d, inst, notices, requests, redZone, dueFunding, claimsWaiting] = await Promise.all([
     hubDashboard(id),
     prisma.institution.findUniqueOrThrow({ where: { id }, select: { profile: true, enabledFeatures: true } }),
     regionNotices(id).catch(() => [] as Notice[]),
@@ -98,6 +98,7 @@ export async function HubHome({ ctx, base }: Props) {
     prisma.institutionMember.count({ where: { institutionId: id, candidate: { journey: 'LAID_OFF', journeyStage: { not: 'LANDED' }, journeyChangedAt: { lte: redZoneCutoff } } } }),
     // Funding still being considered or drafted with a deadline in the next three weeks.
     prisma.fundingApplication.findMany({ where: { institutionId: id, status: { in: ['CONSIDERING', 'DRAFTING'] }, dueDate: { lte: new Date(now.getTime() + 21 * 86_400_000) } }, orderBy: { dueDate: 'asc' }, take: 3, select: { name: true, funder: true, status: true, dueDate: true } }).catch(() => []),
+    prisma.ecosystemPartner.count({ where: { institutionId: id, status: 'CLAIMED' } }).catch(() => 0),
   ])
   const profile = inst.profile as { heroImageUrl?: string; tagline?: string; region?: { name?: string; unemployment?: { area: string; rate: number; period: string; laborForce?: number | null }[] } } | null
   const demo = (inst.enabledFeatures as { demo?: { preparedFor?: string | null } } | null)?.demo
@@ -109,6 +110,7 @@ export async function HubHome({ ctx, base }: Props) {
   if (unanswered > 0) needs.push({ label: `${unanswered} layoff${unanswered === 1 ? '' : 's'} filed in your region with no response yet`, detail: 'Real filings from the last 120 days.', href: `${base}/${isDemo ? 'rapid' : 'layoffs'}`, cta: 'Plan the response' })
   if (requests.length > 0) needs.push({ label: `${requests.length} seat request${requests.length === 1 ? '' : 's'} from member companies waiting`, detail: 'A company asked for free access for its people.', href: `${base}/layoffs`, cta: 'Answer the request' })
   if (redZone > 0) needs.push({ label: `${small(redZone)} people out of work 26 weeks or more`, detail: 'The longest searches, where outreach matters most.', href: `${base}/participants`, cta: 'See who' })
+  if (claimsWaiting > 0) needs.push({ label: `${claimsWaiting} organization${claimsWaiting === 1 ? '' : 's'} asked to join your talent network`, detail: 'Check who they are, then confirm or decline.', href: `${base}/ecosystem`, cta: 'Review requests' })
   for (const f of dueFunding) needs.push({ label: `${f.name}: due ${periodDay(f.dueDate)}`, detail: `${f.status === 'DRAFTING' ? 'Drafting' : 'Considering'}${f.funder ? ` · ${f.funder}` : ''}`, href: `${base}/applications`, cta: 'Open application' })
   if (isDemo && dueFunding.length === 0) needs.push({ label: `Governor’s Reserve Fund: next deadline ${nextReserveDeadline(now)}`, detail: 'Monthly, first Wednesday. Check fit and partners.', href: `${base}/funding`, cta: 'See funding' })
   const verbs = VERBS.filter((v) => (!v.demoOnly || isDemo) && (!v.from || ctx.workspaces.includes(v.from)))

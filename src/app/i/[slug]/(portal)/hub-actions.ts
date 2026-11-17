@@ -19,6 +19,8 @@ import { linkPostingToCompany } from '@/lib/companies/posting-company'
 import { parseJobRows } from '@/lib/workforce/group-jobs'
 import { PARTNER_KIND_KEYS, normalizeScopes } from '@/lib/workforce/partner-views'
 import { randomBytes } from 'crypto'
+import { ECO_KIND_KEYS, canDecide, canInvite } from '@/lib/workforce/ecosystem'
+import { nearbyColleges } from '@/lib/workforce/colleges-near'
 
 type Result = { error?: string; ok?: boolean; message?: string }
 export type HubResult = Result | undefined
@@ -370,6 +372,73 @@ export async function revokePartnerView(slug: string, _prev: HubResult, f: FormD
   const r = await prisma.partnerView.updateMany({ where: { id, institutionId: ctx.institution.id, revokedAt: null }, data: { revokedAt: new Date() } })
   if (r.count === 0) return { error: 'That view was not found, or is already switched off.' }
   captureServerEvent(ctx.userId, 'partner_view_revoked', { institutionId: ctx.institution.id, viewId: id })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+// ── Phase 6: the ecosystem directory, invitations and claims ────────────────
+
+const eco = (ctx: { institution: { id: string } }, id: string) => prisma.ecosystemPartner.findFirst({ where: { id, institutionId: ctx.institution.id } })
+
+// Add an organization to the directory by hand.
+export async function addEcosystemPartner(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const name = str(f, 'name').slice(0, 160)
+  if (!name) return { error: 'Add the organization’s name.' }
+  const kind = ECO_KIND_KEYS.includes(str(f, 'kind')) ? str(f, 'kind') : 'OTHER'
+  const website = str(f, 'website').slice(0, 200) || null
+  const p = await prisma.ecosystemPartner.create({ data: { institutionId: ctx.institution.id, name, kind, website, source: 'MANUAL', createdBy: ctx.userId }, select: { id: true } })
+  captureServerEvent(ctx.userId, 'ecosystem_partner_added', { institutionId: ctx.institution.id, partnerId: p.id, kind, how: 'manual' })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: 'Added to the directory.' }
+}
+
+// Fill the directory from data we already have: the colleges in your region (federal data) and your member companies.
+export async function seedEcosystem(slug: string, _prev: HubResult, _f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const id = ctx.institution.id
+  const [colleges, companies] = await Promise.all([nearbyColleges(id).catch(() => []), prisma.memberCompany.findMany({ where: { institutionId: id }, take: 200, select: { id: true, name: true } })])
+  const data = [
+    ...colleges.map((c) => ({ institutionId: id, name: c.name, kind: 'COLLEGE', website: c.website ?? null, source: 'COLLEGE_DATA', refId: c.unitid, createdBy: ctx.userId })),
+    ...companies.map((c) => ({ institutionId: id, name: c.name, kind: 'EMPLOYER', website: null, source: 'MEMBER_COMPANY', refId: c.id, createdBy: ctx.userId })),
+  ]
+  const r = data.length ? await prisma.ecosystemPartner.createMany({ data, skipDuplicates: true }) : { count: 0 }
+  captureServerEvent(ctx.userId, 'ecosystem_seeded', { institutionId: id, added: r.count, colleges: colleges.length, companies: companies.length })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: r.count ? `Added ${r.count} organizations from public data and your member companies.` : 'Nothing new to add: they are all in the directory.' }
+}
+
+// Make (or remake) the invitation link for one partner.
+export async function createInvite(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const p = await eco(ctx, str(f, 'id'))
+  if (!p) return { error: 'That organization was not found.' }
+  if (!canInvite(p.status)) return { error: 'This organization is already confirmed.' }
+  await prisma.ecosystemPartner.update({ where: { id: p.id }, data: { inviteToken: p.inviteToken ?? randomBytes(24).toString('base64url'), status: 'INVITED', invitedAt: new Date() } })
+  captureServerEvent(ctx.userId, 'ecosystem_invite_created', { institutionId: ctx.institution.id, partnerId: p.id, kind: p.kind })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: 'Link made. Copy the message or the link below and send it yourself.' }
+}
+
+// Confirm or decline a partner that asked to join.
+export async function decideClaim(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const p = await eco(ctx, str(f, 'id'))
+  if (!p) return { error: 'That organization was not found.' }
+  if (!canDecide(p.status)) return { error: 'Nothing to decide here.' }
+  const confirm = str(f, 'decision') === 'confirm'
+  await prisma.ecosystemPartner.update({ where: { id: p.id }, data: { status: confirm ? 'CONFIRMED' : 'DECLINED', decidedAt: new Date(), decidedBy: ctx.userId } })
+  captureServerEvent(ctx.userId, confirm ? 'ecosystem_claim_confirmed' : 'ecosystem_claim_declined', { institutionId: ctx.institution.id, partnerId: p.id, kind: p.kind, commitments: p.commitments, domainMatch: p.emailDomainMatch })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+// Remove an organization from the directory.
+export async function removeEcosystemPartner(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const r = await prisma.ecosystemPartner.deleteMany({ where: { id: str(f, 'id'), institutionId: ctx.institution.id } })
+  if (r.count === 0) return { error: 'That organization was not found.' }
+  captureServerEvent(ctx.userId, 'ecosystem_partner_removed', { institutionId: ctx.institution.id })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true }
 }

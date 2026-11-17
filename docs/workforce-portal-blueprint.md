@@ -181,6 +181,14 @@ programs), a 30 or 90 day expiry and an optional note. Everything is counts or c
 organization sees how many times each link was opened and can switch it off at once. Not built yet: partner accounts (a claimed college or employer signing in),
 the employer's own pipeline view, and an alert when a link is opened.
 
+Built (phase 6): **Ecosystem** (Partners area), flow F. A directory of colleges, employers, providers and community groups: filled from public data (the
+colleges in the region and the member companies) or by hand. The steward makes an **invitation link** for each and copies a ready message to send from their
+own email or text; **nothing is emailed from the Talent Hub** (the question of platform-sent invitations is still open). The partner opens an unlisted page, says
+who they are (name, title, work email) and what they can offer (seats, mentors, hiring, openings, match, space) and asks to join. That is only a request:
+it gives no access. The steward sees it under "Waiting for you" (and on Home) with a hint whether the email is at the organization's own domain, and
+confirms or declines. Rate limited by network and by email; a hidden field catches bots. Not built yet: a partner signing in to keep its own profile, tying a
+confirmed partner to its public page claim, and platform-sent invitations.
+
 ## Public presence
 
 One screen lists **every public page the organization controls**: its claimed page, layoff pages for employers in its region, the relocation page,
