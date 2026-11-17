@@ -48,14 +48,15 @@ export async function sendLifecycleEmail(input: LifecycleSend): Promise<boolean>
   const email = input.email.trim().toLowerCase()
   if (isUndeliverableAddress(email)) return false
 
-  // The application welcome leads with three open jobs like the one they went to apply for (job links are made tracked below).
+  // The application and saved-job welcomes lead with three open jobs like that job (job links are made tracked below).
   const token = makeUnsubscribeToken(email, null)
-  const similar = input.variant === 'applied_job' && input.step === 'welcome' ? await similarJobsForLead(input.jobId) : []
+  const jobWelcome = (input.variant === 'applied_job' || input.variant === 'saved_job') && input.step === 'welcome'
+  const similar = jobWelcome ? await similarJobsForLead(input.jobId) : []
   const jobs: LeadEmailJob[] = similar.map((j, i) => ({
     title: j.title,
     company: j.companyName,
     place: placeOf(j),
-    url: `${appUrl()}/api/lead-job/${token}?job=${j.id}&step=${input.step}&pos=${i + 1}`,
+    url: `${appUrl()}/api/lead-job/${token}?job=${j.id}&step=${input.step}&v=${input.variant}&pos=${i + 1}`,
   }))
   const choices = input.context.journey || input.variant === 'waitlist_b2b' || jobs.length >= 3 ? [] : journeyButtons(email, input.step, input.context.detail)
   const content = leadEmailContent(input.variant, input.step, { ...input.context, choices, jobs })

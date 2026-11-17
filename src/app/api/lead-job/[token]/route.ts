@@ -6,7 +6,7 @@ import { isMailScanner, setLeadCookie } from '@/lib/leads/lifecycle/prefill'
 const JOB_ID = /^[a-z0-9]{10,40}$/i
 
 /**
- * A job in a lifecycle email ("Three more jobs like this one"). Counts the click for the address in the signed token, remembers
+ * A job in a lifecycle email ("Three more jobs like this one", the application and saved-job welcomes). Counts the click for the address in the signed token, remembers
  * the address so a sign-up from the job page has it filled in, then opens the job's page. A bad token still opens the job.
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ token: string }> }) {
@@ -16,9 +16,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (!JOB_ID.test(jobId)) return NextResponse.redirect(new URL('/jobs', request.url))
   const step = (search.get('step') ?? 'welcome').slice(0, 20)
   const position = Number(search.get('pos')) || null
+  const variant = search.get('v') === 'saved_job' ? 'saved_job' : 'applied_job'
 
   const dest = new URL(`/jobs/${jobId}`, request.url)
-  dest.search = new URLSearchParams({ from: 'lead_email', utm_source: 'lead_email', utm_campaign: `applied_job_${step}`, utm_content: 'similar_job' }).toString()
+  dest.search = new URLSearchParams({ from: 'lead_email', utm_source: 'lead_email', utm_campaign: `${variant}_${step}`, utm_content: 'similar_job' }).toString()
   const response = NextResponse.redirect(dest)
 
   let who: ReturnType<typeof readUnsubscribeToken> = null
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
   if (who) {
     setLeadCookie(response, token)
-    if (!isMailScanner(request.headers.get('user-agent'))) captureServerEvent(who.email, 'lead_email_job_clicked', { jobId, step, position, variant: 'applied_job' })
+    if (!isMailScanner(request.headers.get('user-agent'))) captureServerEvent(who.email, 'lead_email_job_clicked', { jobId, step, position, variant })
   }
   return response
 }

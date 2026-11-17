@@ -4,8 +4,11 @@ import { loadReconcileResumePoint, reconcileBoardLightRows } from '@/lib/jobs/bo
 
 export const maxDuration = 800
 
-// The reconcile alone has taken up to 730 s, so it gets a budget that leaves the function time to finish.
-const RECONCILE_BUDGET_MS = 600_000
+// A night's share of the check: about a third of the table at today's page times, picked up the next night where it stopped
+// (loadReconcileResumePoint), so the whole table is checked every five or six nights. It was 600 s a night re-checking the same first
+// pages and never reaching the rest; every run since 2026-11-08 found nothing to repair (#33 by database time in the 2026-11-17 statement
+// stats: ~7 s and ~196,000 buffers a page). The triggers keep the copy in step between checks.
+const RECONCILE_BUDGET_MS = 200_000
 /** More skipped pages than this fails the run (and alerts): a few are normal under imports, many mean something is wrong. */
 const MAX_FAILED_PAGES = 5
 
@@ -22,7 +25,7 @@ const MAX_FAILED_PAGES = 5
 export const GET = withCronRun(
   'board-light-rows',
   async (request, ctx) => {
-    const resumedFrom = request.nextUrl.searchParams.get('trigger') === 'retry' ? await loadReconcileResumePoint().catch(() => null) : null
+    const resumedFrom = await loadReconcileResumePoint().catch(() => null)
     await ctx.progress({ step: 'reconcile started', resumedFrom })
     const result = await reconcileBoardLightRows({
       budgetMs: RECONCILE_BUDGET_MS,

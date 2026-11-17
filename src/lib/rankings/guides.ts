@@ -223,6 +223,30 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     why: "Some cities hire for a bigger share of occupations that need no four-year degree. The share shows where a job seeker without a bachelor's has the largest part of the market to aim at.",
     use: 'Use it to compare cities for a search without a four-year degree, and read it beside the count so you do not chase a small market with a high share.',
   },
+  dg_major: {
+    why: 'Some majors turn out hundreds of thousands of graduates a year and others a few hundred. The number of degrees awarded shows how crowded each route into work is before you look at the jobs.',
+    use: 'Read a major with its degree field: the open jobs, pay and jobs-per-graduate lists for that field show whether the market can absorb its graduates. A big major is not a bad choice if the field it leads to is hiring.',
+  },
+  dg_majorschools: {
+    why: 'A major taught at a thousand colleges is easy to find near home; one taught at a few dozen may mean moving or studying online. The count of colleges awarding it shows how available each major is.',
+    use: 'If a major you want is offered at few colleges, open its page to see which colleges award the most of its degrees.',
+  },
+  dg_majorgrow: {
+    why: 'Students move toward some majors and away from others, and those shifts reach the job market a few years later. The change in degrees awarded over three years shows which majors are filling up and which are emptying.',
+    use: 'A fast-growing major means more graduates competing for the same roles soon. Pair it with the jobs-per-graduate list for its field before you choose it.',
+  },
+  dg_fieldratio: {
+    why: 'Openings alone do not say how hard a field is to enter: a field with many jobs can still be crowded if even more people graduate into it. Open jobs for every 100 new graduates puts demand and supply side by side.',
+    use: 'Use it to compare fields, not as the odds of being hired. A high figure means employers are hiring for more roles than new graduates arrive to fill; a low one means more competition for each opening.',
+  },
+  dg_stage: {
+    why: 'A field that hires many people early in their careers is not always the one that hires them later. Counting open jobs at one career stage shows where the openings are for someone at that point.',
+    use: 'Read the early, mid and late lists together for your field: a field with many early-career jobs and few late ones has a narrow top, and the reverse means few ways in.',
+  },
+  dg_stagepay: {
+    why: 'Pay grows with experience at a different rate in each field. The median posted pay at one career stage shows what a field pays at the start, in the middle and near the top.',
+    use: 'Compare the early-career and late-career lists for the same field to see how far pay climbs. Posted pay is the range employers advertise, so treat it as a guide.',
+  },
   em_all: {
     why: 'Some employers are hiring in large numbers right now and others are hiring a handful of people. The count of open roles shows who is doing the most hiring, and where a search is most likely to reach a real opening.',
     use: 'Check the employers near the top that match your field, then read their open roles. A large count also means more competition and more roles you are not a fit for, so read it with the lists for your level and job family.',

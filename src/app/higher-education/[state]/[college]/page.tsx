@@ -23,6 +23,7 @@ import { noticesForCollege } from '@/lib/seo/org-notices'
 import { areaName, crmOrgForCollege, getCollegePage, type CollegePageData } from '@/lib/seo/college-pages'
 import { functionByName, functionPath } from '@/lib/seo/topics'
 import { campusImage } from '@/lib/places/place-image'
+import { MAJORS_PATH, collegeFamilyPath } from '@/lib/rankings/majors'
 
 // One page per college: IPEDS and College Scorecard facts, the job market in its county, the workforce board and
 // American Job Centers that serve it, and peer colleges. Built on first visit, refreshed daily. A college below the
@@ -181,12 +182,13 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
               <tbody>
                 {c.topMajors.map((x) => (
                   <tr key={x.field} className="border-b border-border last:border-0">
-                    <td className="p-3">{x.field}</td><td className="p-3 tabular-nums">{pct(x.share)}</td><td className="p-3 tabular-nums">{n0(x.awards)}</td>
+                    <td className="p-3">{((href) => href ? <TrackedLink href={href} event="majors_link_clicked" properties={{ from: 'college_page', to: href, unitid: c.unitid }} className={LINK}>{x.field}</TrackedLink> : x.field)(collegeFamilyPath(x.field))}</td><td className="p-3 tabular-nums">{pct(x.share)}</td><td className="p-3 tabular-nums">{n0(x.awards)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          <p className="mt-3 text-sm"><TrackedLink href={MAJORS_PATH} event="majors_link_clicked" properties={{ from: 'college_page', to: MAJORS_PATH, unitid: c.unitid }} className={LINK}>Graduates, open jobs and pay for every major</TrackedLink></p>
         </section>
       )}
 

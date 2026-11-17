@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { OCCUPATIONS, degreeSpecs, fieldOf, rankDegreeCities, rankDegreeShare, rankDegrees, rankFields, rankLevels, rankOccupations, type GroupStat, type SocStat } from '@/lib/rankings/degrees-specs'
+import { OCCUPATIONS, STAGE_LEVELS, degreeFieldFigures, degreeSpecs, fieldOf, rankFieldRatio, rankFieldStage, rankMajors, rankDegreeCities, rankDegreeShare, rankDegrees, rankFields, rankLevels, rankOccupations, type GroupStat, type SocStat } from '@/lib/rankings/degrees-specs'
 import { profileSpecs } from '@/lib/rankings/wave5-specs'
 import { supportSpecs } from '@/lib/rankings/wave6-specs'
 import { collegeSpecs, compositeSpecs, functionSpecs, industryCitySpecs, industrySpecs, skillSpecs, wave1Specs, wave2PlaceSpecs, workforceSpecs } from '@/lib/rankings/build-edition'
@@ -19,7 +19,7 @@ describe('degree lists', () => {
     const all = [...wave1Specs(['TX']), ...wave2PlaceSpecs(), ...functionSpecs(), ...skillSpecs(), ...industrySpecs(), ...workforceSpecs(), ...collegeSpecs([]), ...industryCitySpecs(), ...compositeSpecs(), ...profileSpecs(), ...supportSpecs(), ...specs]
     expect(new Set(all.map((s) => s.slug)).size).toBe(all.length)
     for (const s of specs) { expect(MEASURE_GUIDE[s.measure]).toBeDefined(); expect(MEASURE_SOURCES[s.measure].length).toBeGreaterThan(0) }
-    expect(specs.length).toBe(5 + 3 + 11 + 4 + 22)
+    expect(specs.length).toBe(5 + 3 + 11 + 4 + 22 + 6 + 2 + 6)
   })
   it('knows the education of real occupations and assigns fields only to four-year-degree ones', () => {
     expect(OCCUPATIONS['11-1011'].e).toBe('bach')
@@ -67,5 +67,44 @@ describe('degree lists', () => {
     expect(e.rows).toHaveLength(11)
     expect(e.rows[0].name).toBe('c10')
     expect(rankDegrees(spec, { socs: [], groups: [], entities: [], cityRows: rows, base, info: (c) => ({ name: c.city, href: null }) }, E, 'x', null)!.rows).toHaveLength(11)
+  })
+
+  it('ranks majors by graduates, colleges and change, and links each to its page', () => {
+    const s = (slug: string) => degreeSpecs().find((x) => x.slug === slug)!
+    const most = rankMajors(s('college-majors-with-the-most-graduates'), groups, E, 'x', null)!
+    expect(most.placeNoun).toBe('majors')
+    expect(most.rows[0].name).toMatch(/Business Administration/)
+    expect(most.rows[0].href).toMatch(/^\/higher-education\/majors\/[a-z0-9-]+$/)
+    expect(new Set(most.rows.map((r) => r.href)).size).toBe(most.rows.length)
+    const fewest = rankMajors(s('college-majors-with-the-fewest-graduates'), groups, E, 'x', null)!
+    expect(fewest.rows[0].value).toBeGreaterThanOrEqual(300)
+    expect(fewest.rows[0].value).toBeLessThanOrEqual(fewest.rows[1].value)
+    const shrink = rankMajors(s('college-majors-with-the-fastest-shrinking-number-of-graduates'), groups, E, 'x', null)!
+    expect(shrink.rows[0].value).toBeLessThan(0)
+    expect(rankMajors(s('college-majors-offered-at-the-most-colleges'), groups, E, 'x', null)!.rows[0].valueLabel).toMatch(/colleges$/)
+  })
+  it('ranks fields by open jobs per 100 graduates against the same field grouping', () => {
+    const big = groups.map((g) => (g.kind === 'field' ? { ...g, n: g.n * 20 } : g))
+    const spec = degreeSpecs().find((x) => x.slug === 'degree-fields-with-the-most-open-jobs-per-graduate')!
+    const e = rankFieldRatio(spec, big, E, 'x', null)!
+    expect(e.rows[0].valueLabel).toMatch(/per 100$/)
+    expect(e.rows[0].href).toMatch(/^\/higher-education\/majors#field-/)
+    expect(e.baseline?.label).toBe('all fields')
+    const lo = rankFieldRatio(degreeSpecs().find((x) => x.slug === 'degree-fields-with-the-fewest-open-jobs-per-graduate')!, big, E, 'x', null)!
+    expect(lo.rows[0].name).toBe(e.rows[e.rows.length - 1].name)
+  })
+  it('ranks fields at one career stage and writes the figures the majors pages read', () => {
+    const stages = fields.flatMap((f, i) => (Object.keys(STAGE_LEVELS) as (keyof typeof STAGE_LEVELS)[]).map((st, j) => ({ kind: 'stage' as const, key: `${f}|${st}`, n: 150 + i * 40 + j, paid: 60, payMed: 60_000 + j * 40_000 + i * 1000 })))
+    const all = [...groups, ...stages]
+    const pay = rankFieldStage(degreeSpecs().find((x) => x.slug === 'degree-fields-with-the-highest-late-career-pay')!, all, E, 'x', null)!
+    expect(pay.rows[0].name).toBe('Finance and economics')
+    expect(pay.rows[0].valueLabel).toBe('$146k')
+    const early = rankFieldStage(degreeSpecs().find((x) => x.slug === 'degree-fields-with-the-most-early-career-jobs')!, all, E, 'x', null)!
+    expect(early.rows[0].value).toBe(150 + 6 * 40)
+    const fig = degreeFieldFigures(all, E)
+    const nursing = fig.fields.find((f) => f.field === 'Nursing')!
+    expect(nursing.grads).toBeGreaterThan(100_000)
+    expect(nursing.stages.late.pay).toBe(140_000)
+    expect(nursing.perHundred).toBeCloseTo((400 / nursing.grads) * 100, 1)
   })
 })

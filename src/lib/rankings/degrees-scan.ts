@@ -2,7 +2,7 @@ import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
-import { educationRows, type DegreeCityRow, type DegreeEntityStat, type GroupStat, type SocStat } from '@/lib/rankings/degrees-specs'
+import { STAGE_LEVELS, educationRows, type DegreeCityRow, type DegreeEntityStat, type GroupStat, type SocStat } from '@/lib/rankings/degrees-specs'
 
 // The reads behind the degree lists. Whole-board work, so they run only in the monthly build (the "profile" group), never on a page
 // view. Postings are joined to the BLS occupation table on the first seven characters of the SOC code.
@@ -35,16 +35,23 @@ export async function loadSocStats(): Promise<SocStat[]> {
   return rows.map((r) => ({ soc: r.soc, n: r.n, paid: r.paid, payMed: r.pay_med }))
 }
 
-/** Openings and posted pay by education level and by field of study. */
+/** The career stage of a posting from its seniority level: early, mid or late, or null when the level is not known. */
+function stageSql() {
+  const when = (Object.entries(STAGE_LEVELS) as [string, readonly string[]][]).map(([stage, levels]) => Prisma.sql`WHEN level IN (${Prisma.join([...levels])}) THEN ${stage}`)
+  return Prisma.sql`(CASE ${Prisma.join(when, ' ')} END)`
+}
+
+/** Openings and posted pay by education level, by field of study, and by field of study and career stage. One pass over the board. */
 export async function loadGroupStats(): Promise<GroupStat[]> {
-  const rows = await longRead((tx) => tx.$queryRaw<{ gl: number; lvl: string | null; fld: string | null; n: number; paid: number; pay_med: number | null }[]>`
-    SELECT GROUPING(m.lvl)::int AS gl, m.lvl, m.fld, count(*)::int AS n, count(*) FILTER (WHERE ${PAID})::int AS paid,
+  const rows = await longRead((tx) => tx.$queryRaw<{ gl: number; gs: number; lvl: string | null; fld: string | null; stage: string | null; n: number; paid: number; pay_med: number | null }[]>`
+    SELECT GROUPING(m.lvl)::int AS gl, GROUPING(s.stage)::int AS gs, m.lvl, m.fld, s.stage, count(*)::int AS n, count(*) FILTER (WHERE ${PAID})::int AS paid,
       (percentile_cont(0.5) WITHIN GROUP (ORDER BY ${MID_PAY}) FILTER (WHERE ${PAID}))::float AS pay_med
-    FROM "ExclusiveJobPosting" ${mapping()} ${LIVE}
-    GROUP BY GROUPING SETS ((m.lvl), (m.fld))`)
+    FROM "ExclusiveJobPosting" ${mapping()} CROSS JOIN LATERAL (SELECT ${stageSql()}::text AS stage) s ${LIVE}
+    GROUP BY GROUPING SETS ((m.lvl), (m.fld), (m.fld, s.stage))`)
   return rows.flatMap((r): GroupStat[] => {
     if (r.gl === 0 && r.lvl) return [{ kind: 'level', key: r.lvl, n: r.n, paid: r.paid, payMed: r.pay_med }]
-    if (r.gl === 1 && r.fld) return [{ kind: 'field', key: r.fld, n: r.n, paid: r.paid, payMed: r.pay_med }]
+    if (r.gl === 1 && r.gs === 1 && r.fld) return [{ kind: 'field', key: r.fld, n: r.n, paid: r.paid, payMed: r.pay_med }]
+    if (r.gl === 1 && r.gs === 0 && r.fld && r.stage) return [{ kind: 'stage', key: `${r.fld}|${r.stage}`, n: r.n, paid: r.paid, payMed: r.pay_med }]
     return []
   })
 }

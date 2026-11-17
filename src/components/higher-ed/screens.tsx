@@ -13,6 +13,7 @@ import { HubCompanies, HubHome, HubLayoffs, HubLocal, WorkforceOverview } from '
 import { HubAttract, HubBenefits, HubGrants, HubJobs, HubLearning, HubPipeline, HubRapid, HubSkills, HubFunding, HubPublic, HubSystem, HubUpskill } from './screens-hub-program'
 import { HubApplications, HubReport } from './screens-hub-flow'
 import { HubSkillsGaps, HubTalent } from './screens-hub-skills'
+import { HubNetwork } from './screens-hub-network'
 import { PartnerOverview, PartnerShared } from './screens-partner'
 import { HubEmployerJobs, HubGroupJobs, HubRegionJobs } from './screens-hub-jobs'
 import { HubPartnerViews } from './screens-hub-partners'
@@ -1796,6 +1797,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:employerjobs': HubEmployerJobs,
   'hub:views': HubPartnerViews,
   'hub:ecosystem': HubEcosystem,
+  'hub:network': HubNetwork,
   'partnerview:overview': PartnerOverview,
   'partnerview:shared': PartnerShared,
   'hub:region': Region,
