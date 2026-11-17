@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 
 import { areaPlaces, cityFromAddress, countyKey, placeKey, placeKeys, trailingStreetAddress } from '@/lib/workforce/places'
-import { parseBoardDetails } from '@/lib/workforce/directory'
+import { boardCountyKeyFor, parseBoardDetails } from '@/lib/workforce/directory'
 import { addressParts, boardFromNamedArea, pickBoard } from '@/lib/workforce/match'
 
 describe('placeKey / countyKey', () => {
@@ -183,5 +183,13 @@ describe('addressParts', () => {
     expect(addressParts('Worcester and Leominster, MA')).toEqual(['Worcester', 'Leominster'])
     expect(addressParts('Rural Alliance: Pueblo')).toEqual(['Rural Alliance', 'Pueblo'])
     expect(addressParts('ADW (Littleton)')).toEqual(['Littleton'])
+  })
+})
+
+describe('Virginia independent cities on a board', () => {
+  it('keys a city the way the county tables do, and leaves names that are also counties', () => {
+    expect(boardCountyKeyFor('VA', 'alexandria')).toBe('alexandriacity')
+    expect(boardCountyKeyFor('VA', 'richmond')).toBe('richmond')
+    expect(boardCountyKeyFor('MD', 'alexandria')).toBe('alexandria')
   })
 })

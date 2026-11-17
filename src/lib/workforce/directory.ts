@@ -86,6 +86,19 @@ export function parseBoardDetails(id: string, html: string): BoardDetails | null
   }
 }
 
+/**
+ * Virginia's independent cities are county-level areas, and the county tables key them as "<name>city" ("Alexandria city" ->
+ * "alexandriacity"). CareerOneStop lists them by the bare name ("Alexandria"), so a board's list would never match them. Only cities
+ * that share no name with a county are mapped; Fairfax, Franklin, Richmond and Roanoke are both and stay as written.
+ */
+const VA_INDEPENDENT_CITIES = new Set([
+  'alexandria', 'bristol', 'buenavista', 'charlottesville', 'chesapeake', 'colonialheights', 'covington', 'danville', 'emporia',
+  'fallschurch', 'fredericksburg', 'galax', 'hampton', 'harrisonburg', 'hopewell', 'lexington', 'lynchburg', 'manassas', 'manassaspark',
+  'martinsville', 'newportnews', 'norfolk', 'norton', 'petersburg', 'poquoson', 'portsmouth', 'radford', 'salem', 'staunton', 'suffolk',
+  'virginiabeach', 'waynesboro', 'williamsburg', 'winchester',
+])
+export const boardCountyKeyFor = (state: string, key: string) => (state === 'VA' && VA_INDEPENDENT_CITIES.has(key) ? `${key}city` : key)
+
 /** Every board in one state, with each board's own page read for its contacts. */
 export async function syncBoardsForState(state: string): Promise<number> {
   const list = await getHtml(`${BASE}/find-workforce-development-boards.aspx?location=${state}&curPage=1&pagesize=500`)
@@ -101,7 +114,7 @@ export async function syncBoardsForState(state: string): Promise<number> {
       const b = parseBoardDetails(id, await getHtml(detailsUrl))
       if (!b) continue
       const statewide = !!stateName && (b.serviceArea ?? '').trim().toLowerCase() === stateName.toLowerCase()
-      const data = { ...b, state, statewide, detailsUrl, updatedAt: new Date() }
+      const data = { ...b, counties: b.counties.map((k) => boardCountyKeyFor(state, k)), state, statewide, detailsUrl, updatedAt: new Date() }
       await prisma.workforceBoard.upsert({ where: { id: `${state}-${id}` }, create: { ...data, id: `${state}-${id}` }, update: { ...data, id: undefined } })
       saved++
     } catch (e) {
