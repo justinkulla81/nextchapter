@@ -15,7 +15,8 @@ export const RANKING_METHOD: Record<BuildGroup, string> = {
   // 2026-11-17f: metros from 350,000 residents and 300 openings; the openings criterion counts market depth as well as per worker.
   // 2026-11-17g: metros from 250,000 residents and 250 openings, so 100 qualify.
   // 2026-11-17h: 200,000 residents and 200 openings (250,000 and 250 gave 95).
-  metro: '2026-11-17h',
+  // 2026-11-17i: openings 15% (70% market depth); growth 8, family 4, community 3, diversity 4. Waco led at 200,000.
+  metro: '2026-11-17i',
   skills: 'v0',
   workforce: 'v0',
   college: 'v0',
