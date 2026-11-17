@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { heapBlockCount, heapRangeSql, heapRanges } from '@/lib/db/heap-ranges'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { isInternshipJob } from '@/lib/jobs/work-type'
 import { jobIndustryBucket } from '@/lib/profile/industry-reading'
@@ -7,13 +8,16 @@ import { subFunctionFor } from '@/lib/jobs/sub-functions'
 import { aggregateStats, PRIOR_DAYS, RECENT_DAYS, type StatInput } from '@/lib/market/market-size'
 import { aggregateCityStats, cityOf, type CityStatInput } from '@/lib/market/city-stats'
 
-const PAGE = 10_000
 const WRITE_CHUNK = 2_000
 
 /**
  * Rebuilds MarketTargetStat (market-size.ts) from the board: live jobs plus jobs archived in
- * the trend windows, read in id-ordered pages of narrow columns, aggregated in memory, then
+ * the trend windows, read a block range of the table at a time (heap-ranges.ts) in narrow columns, aggregated in memory, then
  * swapped in one transaction. Deterministic; no API call. Nightly (cron market-size).
+ *
+ * The ranges replace id-ordered pages of 10,000, which walked the primary key and fetched each row at random: ~1.9 s a page and the whole
+ * table read several times over each pass (#41 by database time in the 2026-11-17 statement stats; the same fix as the search index and
+ * job occupations, #1481). A job updated mid-pass can come back twice; only its first copy is counted.
  */
 export async function rebuildMarketTargetStats(now = new Date()): Promise<{ rowsRead: number; statsWritten: number; cityStatsWritten: number; ms: number }> {
   const started = Date.now()
@@ -22,9 +26,9 @@ export async function rebuildMarketTargetStats(now = new Date()): Promise<{ rows
   // Live jobs only, for the cities (city-stats.ts): same pass, one more narrow column.
   const cityInputs: CityStatInput[] = []
   const buckets = new Map<string, string | null>()
-  let lo = ''
   let read = 0
-  for (;;) {
+  const seen = new Set<string>()
+  for (const range of heapRanges(await heapBlockCount('ExclusiveJobPosting'))) {
     const rows = await prisma.$queryRaw<
       {
         id: string
@@ -47,13 +51,12 @@ export async function rebuildMarketTargetStats(now = new Date()): Promise<{ rows
       SELECT "id", "title", "targetFunction", "subFunction", "level", "industry", "location", "locationCity", "locationState",
              "workArrangement", "employmentType", "postedAt", "createdAt", "archivedAt", "closeReason"
       FROM "ExclusiveJobPosting"
-      WHERE "id" > ${lo} AND "status" = 'approved' AND "institutionScopeId" IS NULL
-        AND ("archivedAt" IS NULL OR "archivedAt" >= ${since})
-      ORDER BY "id" LIMIT ${PAGE}`
-    if (rows.length === 0) break
-    lo = rows[rows.length - 1].id
+      WHERE ${heapRangeSql(range)} AND "status" = 'approved' AND "institutionScopeId" IS NULL
+        AND ("archivedAt" IS NULL OR "archivedAt" >= ${since})`
     read += rows.length
     for (const r of rows) {
+      if (seen.has(r.id)) continue
+      seen.add(r.id)
       if (isInternshipJob(r)) continue
       const fn = r.targetFunction ?? inferFunctionFromTitle(r.title)
       let bucket = r.industry ? buckets.get(r.industry) : null
