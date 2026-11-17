@@ -39,7 +39,12 @@ export interface CopyInput {
   /** The long-term unemployment line, e.g. "27.6% of unemployed Americans have been looking for 27 weeks or longer (BLS, October)". */
   bls: string
   signOff: string
+  /** Other organizations serving the same people (workforce board only): the board, not us, brings them in (owner, 2026-11-17). */
+  partners?: string[]
 }
+
+/** "A", "A and B", "A, B and C". */
+export const listNames = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`)
 
 const n = (x: number) => x.toLocaleString('en-US')
 
@@ -81,7 +86,9 @@ export function outreachCopy(i: CopyInput): { subject: string; body: string } {
       : `This is a free page for them. Each person adds their email and gets${older && open ? ` the ${n(p.openInState!)} professional roles open in ${state}` : ' roles'} matched to the work they did at ${org}: ${i.link}. Hand it out as is.`
   }
   const ask = ASK[i.arm][hr ? 'hr' : 'partner']
-  return { subject, body: [hello, first, second, ask, i.signOff].join('\n\n') }
+  // The board hears first and convenes the rest: name who else serves these people, so the board can bring them in.
+  const others = i.audience === 'workforce_board' && i.partners?.length ? `${listNames(i.partners.slice(0, 3))} serve them too; the same page works for all of you.` : null
+  return { subject, body: [hello, first, others ? `${second} ${others}` : second, ask, i.signOff].join('\n\n') }
 }
 
 /** The page link with the campaign tags: PostHog reads utm_* on its own, and the landing page reads them to show the HR or partner block. */
