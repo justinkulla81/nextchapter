@@ -1,5 +1,7 @@
 import 'server-only'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { sharedPartsLoad } from '@/lib/db/heavy'
 
 // Posting id -> posting signals (posting-signals.ts) for every job that carries one, for the board's
 // "Open to career changers / AI-upskilled" filter and the welcome lift. BoardLightRow (the board's
@@ -8,13 +10,20 @@ import { prisma } from '@/lib/prisma'
 // a few thousand rows), held per server instance for a minute and served stale for up to ten while
 // a fresh copy loads.
 
-const TTL_MS = 60_000
-const STALE_MS = 10 * 60_000
+// Owner decision 2026-11-17 (Supabase egress): from the shared data cache, refreshed every two hours like the board; each instance asks
+// that cache every ten minutes. At a minute per instance the whole set (~36k rows) was re-read all day.
+const TTL_MS = 10 * 60_000
+const STALE_MS = 2 * 60 * 60_000
+const SHARED_SEC = 2 * 3600
+const PARTS = 2
 let cache: { at: number; map: Promise<Map<string, string[]>> } | null = null
 
 async function readSignals(): Promise<Map<string, string[]>> {
-  const rows = await prisma.$queryRaw<{ id: string; s: string[] }[]>`
-    SELECT id, "postingSignals" AS s FROM "ExclusiveJobPosting" WHERE cardinality("postingSignals") > 0`
+  const rows = await sharedPartsLoad('posting-signals-v1', PARTS, SHARED_SEC, (part) =>
+    prisma.$queryRaw<{ id: string; s: string[] }[]>(
+      Prisma.sql`SELECT id, "postingSignals" AS s FROM "ExclusiveJobPosting" WHERE cardinality("postingSignals") > 0 AND (hashtext(id) & 2147483647) % ${PARTS}::int = ${part}::int`
+    )
+  )
   return new Map(rows.map((r) => [r.id, r.s]))
 }
 
