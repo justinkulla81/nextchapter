@@ -25,12 +25,14 @@ export const FREE_VISIBLE_MEMBERS = 5
 export const FREE_ADMIN_LIMIT = 1
 // How many grants a free organization sees in full; the rest are blurred.
 export const FREE_VISIBLE_GRANTS = 2
+// How many skills a free organization sees in full on Market › Skills gaps; the rest are a preview.
+export const FREE_VISIBLE_SKILL_GAPS = 3
 
 // Where a free organization asks for the paid plan: the support address the
 // portal already shows (RegionScreen). There is no self-serve billing.
 export const PLAN_CONTACT_EMAIL = 'support@launchyournextchapter.com'
 
-export type EntitlementFeature = 'reporting' | 'exports' | 'crmExchange' | 'staffRoles' | 'auditLog' | 'sso' | 'nextchapterServices' | 'wioa' | 'members' | 'grants' | 'publicPage' | 'partnerViews'
+export type EntitlementFeature = 'reporting' | 'exports' | 'crmExchange' | 'staffRoles' | 'auditLog' | 'sso' | 'nextchapterServices' | 'wioa' | 'members' | 'grants' | 'publicPage' | 'partnerViews' | 'skillsGaps'
 
 export type Entitlements = {
   // Most members the organization can hold; null = no cap.
@@ -41,6 +43,8 @@ export type Entitlements = {
   adminLimit: number | null
   // How many grants it sees in full; null = all.
   visibleGrants: number | null
+  // How many skills it sees in full on the skills-gaps table; null = all.
+  visibleSkillRows: number | null
   reporting: boolean
   exports: boolean
   crmExchange: boolean
@@ -68,9 +72,9 @@ export function institutionEntitlements(input: { plan: string | null | undefined
   // the wioa switch). Accepted so callers can pass one institution row; unused
   // here on purpose, so the plan can only restrict, never grant.
   if (planOf(input.plan) === 'PAID') {
-    return { memberCap: null, visibleMembers: null, adminLimit: null, visibleGrants: null, reporting: true, exports: true, crmExchange: true, staffRoles: true, auditLog: true, sso: true, nextchapterServices: true, wioa: true, publicPage: true, partnerViews: true }
+    return { memberCap: null, visibleMembers: null, adminLimit: null, visibleGrants: null, visibleSkillRows: null, reporting: true, exports: true, crmExchange: true, staffRoles: true, auditLog: true, sso: true, nextchapterServices: true, wioa: true, publicPage: true, partnerViews: true }
   }
-  return { memberCap: FREE_MEMBER_CAP, visibleMembers: FREE_VISIBLE_MEMBERS, adminLimit: FREE_ADMIN_LIMIT, visibleGrants: FREE_VISIBLE_GRANTS, reporting: false, exports: false, crmExchange: false, staffRoles: false, auditLog: false, sso: false, nextchapterServices: false, wioa: false, publicPage: false, partnerViews: false }
+  return { memberCap: FREE_MEMBER_CAP, visibleMembers: FREE_VISIBLE_MEMBERS, adminLimit: FREE_ADMIN_LIMIT, visibleGrants: FREE_VISIBLE_GRANTS, visibleSkillRows: FREE_VISIBLE_SKILL_GAPS, reporting: false, exports: false, crmExchange: false, staffRoles: false, auditLog: false, sso: false, nextchapterServices: false, wioa: false, publicPage: false, partnerViews: false }
 }
 
 const WHAT: Record<EntitlementFeature, string> = {
@@ -84,6 +88,7 @@ const WHAT: Record<EntitlementFeature, string> = {
   wioa: 'Workforce (WIOA) reporting is',
   members: `Seeing more than ${FREE_VISIBLE_MEMBERS} of your members is`,
   grants: `Every grant that fits you, with a shortlist, is`,
+  skillsGaps: `Every skill gap, with the retraining that closes it, is`,
   publicPage: 'Writing your own section on your public page is',
   partnerViews: 'Sharing a live view of your region’s data with a partner is',
 }
@@ -99,6 +104,7 @@ export const LOCKED_TITLES: Record<EntitlementFeature, string> = {
   wioa: 'Workforce (WIOA) reporting',
   members: 'See all your members',
   grants: 'Every grant that fits you',
+  skillsGaps: 'The full skills-gap picture',
   publicPage: 'Your public page',
   partnerViews: 'Partner views',
 }
@@ -161,6 +167,7 @@ export const GATED_EXPORTS: Record<string, EntitlementFeature> = {
 export function featureOn(e: Entitlements, feature: EntitlementFeature): boolean {
   if (feature === 'members') return e.visibleMembers === null
   if (feature === 'grants') return e.visibleGrants === null
+  if (feature === 'skillsGaps') return e.visibleSkillRows === null
   return e[feature]
 }
 
@@ -269,6 +276,12 @@ export const LOCK_PITCH: Record<EntitlementFeature, LockPitch> = {
     bullets: ['Every grant that fits, with our read on why', 'Deadlines, partners to bring in and the next move', 'A shortlist your team shares'],
     sampleTitle: 'Grants (sample)',
     sample: [['Best fit', 'Rolling, next close Dec 2'], ['Good fit', 'Closes Jan 15']],
+  },
+  skillsGaps: {
+    headline: 'See every skill your region is short of, and how to close it',
+    bullets: ['Demand from real postings against the skills your people show, skill by skill', 'The retraining that teaches each gap, and the gaps no program teaches yet', 'The evidence colleges and funders need to build the next cohort'],
+    sampleTitle: 'Skills gaps (sample)',
+    sample: [['Sales and negotiation', '14 points short'], ['People management', '6 points short'], ['Recruiting', '3 points short']],
   },
   publicPage: {
     headline: 'Tell your story on your own public page',

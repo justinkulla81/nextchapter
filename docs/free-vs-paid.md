@@ -19,6 +19,7 @@ Owner request 2026-11-17: gated items must be attractive enough that a free orga
 | Partner views | Give a college or employer a live view of your region; they plan programs around what employers ask for |
 | Reporting and outcomes | Show funders what happened, in one page |
 | Grants | Every grant that fits you, with our read, partners and next move |
+| Skills gaps | See every skill your region is short of and the retraining that closes it (free sees the first three, the rest are a blurred preview) |
 | Members | See everyone who joined, not the first five |
 | Exports, CRM exchange, WIOA | Take your data with you; no double entry; reporting without the spreadsheet |
 | Staff roles, activity log, SSO | Right access for each colleague; know who did what |
@@ -29,4 +30,4 @@ PostHog: `entitlement_locked_viewed` (feature, trial), `plan_trial_started` (fro
 
 ## Still open
 - Whether the trial should ask for a card (it does not today).
-- Whether anything in the Talent Hub's Market area (the skills-gaps table beyond its first rows, the "Planning to learn" column) should be a preview-only teaser on the free plan. Not gated today.
+- The skills-gaps table is gated as a preview (owner decision 2026-11-17): free sees the first 3 skills in full, the rest blurred without numbers, and the "Retraining to close the gaps" section is paid. The talent snapshot is not gated.

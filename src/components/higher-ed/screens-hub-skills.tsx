@@ -8,6 +8,8 @@ import { marketJobs } from '@/lib/workforce/market-jobs'
 import { loadSupply } from '@/lib/workforce/skills-supply'
 import { MIN_GROUP, anonymizeCandidates, countBy, gapRows, planningCounts, seniorityBand, weeksBand } from '@/lib/workforce/skills-intel'
 import { StatTile } from './StatTile'
+import { LockedFeature } from '@/components/plans/LockedFeature'
+import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 
 type Props = { ctx: WorkspaceContext; searchParams: object; base: string }
 
@@ -39,6 +41,8 @@ export async function HubSkillsGaps({ ctx, base }: Props) {
       select: { id: true, name: true, skills: true, wioaEligible: true, priceCents: true, cohorts: { where: { startsAt: { gte: new Date() } }, orderBy: { startsAt: 'asc' }, take: 1, select: { startsAt: true } } },
     }),
   ])
+  // The free plan sees the first few skills in full; the rest, and the retraining plan, are a preview (owner decision 2026-11-17).
+  const freeRows = institutionEntitlements({ plan: ctx.institution.plan }).visibleSkillRows
   const withSkills = people.filter((p) => p.keywords.length > 0)
   const rows = market ? gapRows(market.skills, withSkills) : []
   const planning = planningCounts(people)
@@ -95,7 +99,7 @@ export async function HubSkillsGaps({ ctx, base }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
+                {(freeRows === null ? rows : rows.slice(0, freeRows)).map((r) => (
                   <tr key={r.skill} className="border-t border-border">
                     <td className="px-3 py-2 font-medium">{r.skill}</td>
                     <td className="px-3 py-2 tabular-nums">
@@ -110,8 +114,24 @@ export async function HubSkillsGaps({ ctx, base }: Props) {
             </table>
           </div>
         )}
+        {freeRows !== null && rows.length > freeRows && (
+          <div className="relative">
+            <ul aria-hidden="true" className="pointer-events-none divide-y divide-border rounded-lg border border-border bg-card blur-sm select-none">
+              {rows.slice(freeRows, freeRows + 4).map((r) => (
+                <li key={r.skill} className="flex items-center justify-between gap-4 px-3 py-2 text-sm">
+                  <span className="font-medium">{r.skill}</span>
+                  <span className="tabular-nums text-muted-foreground">00% · 00% · 00 points short</span>
+                </li>
+              ))}
+            </ul>
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+              <LockedFeature feature="skillsGaps" slug={ctx.institution.slug} plan={ctx.institution.plan} trial={trialForLock(ctx.institution)} compact />
+            </div>
+          </div>
+        )}
+        {freeRows !== null && rows.length > freeRows && <p className="text-sm font-medium">{(rows.length - freeRows).toLocaleString()} more skills compared, and the retraining that closes each gap.</p>}
       </Section>
-      {enough && retrain.length > 0 && (
+      {freeRows === null && enough && retrain.length > 0 && (
         <Section title="Retraining to close the gaps" intro="The largest shortfalls, how many people in your group lack each skill, and which of your programs teach it. A skill no program teaches is the gap to fund next.">
           <ul className="divide-y divide-border rounded-lg border border-border bg-card">
             {retrain.map((r) => (
