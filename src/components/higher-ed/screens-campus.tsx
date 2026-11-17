@@ -160,7 +160,8 @@ export async function TeachingGroups({ ctx }: Props) {
   const [groups, requests] = await Promise.all([
     listGroups(ctx.institution.id, null),
     prisma.alumniOpportunity.findMany({
-      where: { institutionId: ctx.institution.id, kind: 'research', ...(ctx.email ? { postedByStaff: ctx.email } : { id: '__none__' }) },
+      // A demo shows every professor's requests: the person previewing is not the fictional professor.
+      where: { institutionId: ctx.institution.id, kind: 'research', ...(ctx.institution.isDemo ? {} : ctx.email ? { postedByStaff: ctx.email } : { id: '__none__' }) },
       orderBy: { createdAt: 'desc' },
       take: 20,
       select: {

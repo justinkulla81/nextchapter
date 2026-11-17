@@ -7,6 +7,7 @@
 import 'server-only'
 import type { Prisma, PrismaClient } from '@prisma/client'
 import type { DemoTenant } from './demo-tenants'
+import { normalizeMajor } from './major-groups-shared'
 
 type Db = PrismaClient | Prisma.TransactionClient
 const DAY = 86_400_000
@@ -57,20 +58,51 @@ export async function seedCommunity(
   })
 
   // Groups and chapters. The featured alum leads the Pittsburgh chapter.
-  const groupDefs = [
+  const groupDefs: { kind: string; name: string; metro: string | null; description: string; majors?: string[] }[] = tenant.groups?.length === 5 ? tenant.groups : [
     { kind: 'chapter', name: 'Pittsburgh Chapter', metro: 'Pittsburgh', description: 'Happy hours, a fall service day and the spring career night.' },
     { kind: 'chapter', name: 'Washington, DC Chapter', metro: 'Washington, DC', description: 'Policy breakfasts and an annual networking reception on the Hill.' },
     { kind: 'affinity', name: 'Women in Business', metro: null, description: 'Mentoring circles and a speaker series for alumnae in business.' },
     { kind: 'affinity', name: 'First-Generation Alumni', metro: null, description: 'For alumni who were the first in their family to go to college.' },
     { kind: 'affinity', name: 'Health Professions Network', metro: null, description: 'Physicians, nurses, researchers and administrators, plus pre-health students.' },
   ]
-  const groups = await Promise.all(groupDefs.map((g) => db.alumniGroup.create({ data: { ...g, institutionId, createdBy: 'demo-seed', ...S }, select: { id: true } })))
+  const groups = await Promise.all(
+    groupDefs.map(({ majors, ...g }) =>
+      db.alumniGroup.create({ data: { ...g, majors: (majors ?? []).map(normalizeMajor), institutionId, createdBy: 'demo-seed', ...S }, select: { id: true } }),
+    ),
+  )
   const gm: Prisma.AlumniGroupMemberCreateManyInput[] = [{ groupId: groups[0].id, memberId: featured, role: 'LEADER', ...S }, { groupId: groups[3].id, memberId: featured, ...S }]
   others.forEach((m, k) => {
     gm.push({ groupId: groups[k % 5].id, memberId: m, role: k < 5 && k % 5 !== 0 ? 'LEADER' : 'MEMBER', ...S })
     if (k % 4 === 0) gm.push({ groupId: groups[(k + 2) % 5].id, memberId: m, ...S })
   })
   await db.alumniGroupMember.createMany({ data: gm, skipDuplicates: true })
+
+  // Faculty in groups, and research requests alumni can raise a hand for (Teaching › Industry groups).
+  if (a.facultyUserId) {
+    await db.alumniGroupFaculty.createMany({ data: [groups[2], groups[3]].map((g) => ({ groupId: g.id, institutionUserId: a.facultyUserId! })), skipDuplicates: true })
+  }
+  const professor = tenant.staff.find(([role]) => role === 'FACULTY')?.[1] ?? 'A professor'
+  const facultyEmail = `${professor.toLowerCase().replace(/^prof\.\s*/, '').replace(/[^a-z]+/g, '.')}@${tenant.staffEmailDomain}`
+  const requestDefs = tenant.researchRequests ?? [
+    { title: 'How small manufacturers adopt AI for quality inspection', lab: `${professor}, operations research`, description: 'Thirty-minute interviews with plant and operations managers about where AI inspection worked, where it stalled, and what it cost. You get the summary report before it is published.', fields: ['Manufacturing', 'Operations'], durationWeeks: 8, compensation: 'volunteer' as const },
+    { title: 'Survey: how finance teams use generative AI in forecasting', lab: `${professor}, accounting and finance`, description: 'A fifteen-minute anonymous survey for FP&A and controllership staff, plus optional follow-up calls. Results shared with everyone who takes part.', fields: ['Finance'], durationWeeks: 6, compensation: 'volunteer' as const },
+  ]
+  const research = await Promise.all(
+    requestDefs.map((r, k) =>
+      db.alumniOpportunity.create({
+        data: { institutionId, postedByMemberId: null, postedByStaff: facultyEmail, kind: 'research', title: r.title, organization: r.lab, description: r.description, skills: r.fields, durationWeeks: r.durationWeeks, compensation: r.compensation, location: 'Remote', createdAt: ago(3 + k * 4), expiresAt: new Date(ago(3 + k * 4).getTime() + 60 * DAY), ...S },
+        select: { id: true },
+      }),
+    ),
+  )
+  await db.opportunityInterest.createMany({
+    data: [
+      { opportunityId: research[0].id, memberId: o(15), note: 'I run quality at a 300-person plant; we piloted vision inspection last year.', ...S },
+      { opportunityId: research[0].id, memberId: o(16), ...S },
+      ...(research[1] ? [{ opportunityId: research[1].id, memberId: featured, note: 'Happy to take the survey and a follow-up call.', ...S }] : []),
+    ],
+    skipDuplicates: true,
+  })
   await db.collegeEvent.create({
     data: { institutionId, groupId: groups[0].id, title: 'Pittsburgh Chapter fall happy hour', kind: 'networking', startsAt: new Date(Math.floor((now.getTime() + 16 * DAY) / DAY) * DAY + 22 * 3600_000), location: 'Market Square, Pittsburgh', createdBy: 'demo-seed', ...S },
   })
