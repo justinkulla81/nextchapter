@@ -274,3 +274,31 @@ export function inBackground(task: () => Promise<void>): void {
     .then(({ after }) => after(run))
     .catch(() => undefined)
 }
+
+/** This instance's name on a refresh lease. */
+const LEASE_HOLDER = `${process.pid}-${Math.random().toString(36).slice(2, 10)}`
+/** How long a claimed refresh is left to its instance: a whole-board read and its snapshot write take about a minute. */
+export const REFRESH_LEASE_MS = 5 * 60_000
+/** How far past its usual age a snapshot is still served while another instance is reading its replacement. */
+export const REFRESH_GRACE_MS = 15 * 60_000
+
+/**
+ * Claims the database read that replaces a stale snapshot of `kind`, so one instance reads and the rest wait for its snapshot. When a
+ * snapshot went stale, every instance that refreshed before the new one was stored read the whole table itself: two instances wrote the
+ * same search-facts snapshot in the same second, and the board was read ~32 times a day where ~12 were due (2026-11-17, egress alert).
+ * true = this instance holds the lease (or the lease table can't be read: read as before); false = another instance is reading now.
+ * Table: prisma/manual/2026-11-17-snapshot-refresh-lease.sql.
+ */
+export async function claimSnapshotRefresh(kind: SnapshotKind, leaseMs = REFRESH_LEASE_MS): Promise<boolean> {
+  try {
+    const rows = await prisma.$queryRaw<{ kind: string }[]>`
+      INSERT INTO "SnapshotRefreshLease" (kind, "until", holder) VALUES (${kind}, now() + make_interval(secs => ${leaseMs / 1000}::float8), ${LEASE_HOLDER})
+      ON CONFLICT (kind) DO UPDATE SET "until" = EXCLUDED."until", holder = EXCLUDED.holder
+        WHERE "SnapshotRefreshLease"."until" < now() OR "SnapshotRefreshLease".holder = EXCLUDED.holder
+      RETURNING kind`
+    return rows.length > 0
+  } catch (error) {
+    console.error(`Board snapshot (${kind}): refresh lease unreadable, reading the database`, error)
+    return true
+  }
+}
