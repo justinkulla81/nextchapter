@@ -1171,6 +1171,12 @@ function placePhrase(profile: { currentCity: string | null }, m: MemberBreadthVe
 
 const DISMISS_REASON_LABEL = new Map<string, string>(DISMISS_REASONS.map((r) => [r.key, r.label.toLowerCase()]))
 
+/** The Company Tracker's list, streamed after the rest of the page (timed as page_query_slow, route find_my_job, label watchlist). */
+async function CompanyWatchlistSection({ candidateId }: { candidateId: string }) {
+  const entries = await timed('find_my_job', 'watchlist', candidateId, getWatchlistView(candidateId))
+  return <CompanyWatchlist entries={entries} />
+}
+
 function FindMyJobBodySkeleton() {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
@@ -1440,7 +1446,7 @@ async function FindMyJobBody({
       : null
   // Each read is timed (page_query_slow, route 'find_my_job'), so a slow load names its step.
   const step = <T,>(label: string, work: Promise<T>) => timed('find_my_job', label, profile.id, work)
-  const [board, matchedRoles, watchlistView, myJobs, expertNetworks, passedOnJobs] = await Promise.all([
+  const [board, matchedRoles, myJobs, expertNetworks, passedOnJobs] = await Promise.all([
     step('board', loadBoardShortlist({
       candidate: boardProfile,
       isCandidatePlus,
@@ -1485,7 +1491,6 @@ async function FindMyJobBody({
       lift: (p) => (changerLift && signalMap && isOpenToChangers(signalMap.get(p.id))) || (appliedSourceView === 'all' && isEmployerListed(p)),
     })),
     step('matchedRoles', matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([])),
-    step('watchlist', getWatchlistView(profile.id)),
     step('myJobs', loadMyJobs(profile.id, memberSkillKeywords(profile))),
     step('expertNetworks', onBoard && showIndependentToolkit && workTypes.includes('contract') ? loadExpertNetworks(profile.id) : Promise.resolve([])),
     // Board jobs they passed on, for "Review" (job-dismiss.ts).
@@ -2414,7 +2419,10 @@ async function FindMyJobBody({
         <Card>
           <CardContent className="space-y-4 pt-6">
             <CompanyWatchlistForm />
-            <CompanyWatchlist entries={watchlistView} />
+            {/* Its own boundary: the job list above never waits for the tracker. */}
+            <Suspense fallback={<p className="text-sm text-muted-foreground">Loading your companies…</p>}>
+              <CompanyWatchlistSection candidateId={profile.id} />
+            </Suspense>
           </CardContent>
         </Card>
       </div>
