@@ -89,6 +89,7 @@ export function MailingEditor({
         <button type="button" className={button} onMouseDown={(e) => e.preventDefault()} onClick={() => exec('insertText', '{{orgName}}')} disabled={disabled}>Organization</button>
         <button type="button" className={button} onMouseDown={(e) => e.preventDefault()} onClick={() => exec('insertText', '{{claimUrl}}')} disabled={disabled}>Their page link</button>
         <button type="button" className={button} onMouseDown={(e) => e.preventDefault()} onClick={() => exec('insertText', '{{communityStat}}')} disabled={disabled}>Community figure</button>
+        <button type="button" className={button} onMouseDown={(e) => e.preventDefault()} onClick={() => exec('insertText', '{{rankingLine}}')} disabled={disabled}>Area ranking</button>
       </div>
       {linking && (
         <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/40 px-2 py-1.5">
