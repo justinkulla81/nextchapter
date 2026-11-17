@@ -25,7 +25,7 @@ const FUNCTION_KEYWORDS: { function: (typeof PRIMARY_FUNCTION_OPTIONS)[number]; 
   { function: 'Design', keywords: ['designer', 'ux', 'ui/ux', 'product design', 'creative director'] },
   { function: 'Product', keywords: ['product manager', 'product owner', 'product lead'] },
   { function: 'Marketing', keywords: ['marketing', 'growth marketer', 'brand manager', 'demand generation', 'seo specialist', 'content strategist'] },
-  { function: 'Sales', keywords: ['account executive', 'business development', 'sales representative', 'sales manager', 'sdr', 'bdr', 'sales director'] },
+  { function: 'Sales', keywords: ['account executive', 'business development', 'sales representative', 'sales manager', 'sdr', 'bdr', 'sales director', 'director of sales', 'head of sales', 'vp of sales', 'vp, sales', 'vp sales', 'vice president of sales', 'vice president, sales', 'sales executive', 'sales leader'] },
   { function: 'Customer Success', keywords: ['customer success', 'customer support', 'client success', 'implementation manager'] },
   // 'finance' / 'financial' were missing, so "Head of Finance", "Director of Finance" and
   // "VP of Finance" had NO function (~1,600 live jobs). Safe here because every more
@@ -364,4 +364,33 @@ export function inferLevelFromTitle(title: string): string {
 // for the calibration math.
 export function inferCalibratedLevelRank(title: string, companySizeBand: CompanySizeBand | null): number | null {
   return calibratedLevelRank(inferLevelFromTitle(title), companySizeBand)
+}
+
+// ── A finance label that only names the industry ──────────────────────────────
+//
+// The crawler files "Senior Director of Sales, Financial Services" and "Director Growth & Distribution - Optum
+// Financial Provider Products" under Finance: the title says "financial", but about the industry the job serves, not
+// the work. A finance member then saw sales jobs as Strong fits in their own function. correctedJobFunction reads
+// such a title again without the industry words. A finance department called "Financial Services" ("Director of
+// Financial Services") stays Finance: the phrase right after "of" / "for" names the department.
+
+/** "financial services" and the like used as an industry qualifier, not a department. */
+const FINANCIAL_INDUSTRY = /(?<!\b(?:of|for) )\bfinancial (?:services|products?|provider products|institutions?|industry|sector|technology|wellness)\b/g
+/** Words that say the work itself is finance, whatever industry is named. */
+const FINANCE_WORK = /\b(?:finance|accounting|accountant|controller|comptroller|fp&a|treasury|treasurer|tax|audit|auditor|payroll|billing|investor relations|financial (?:analyst|analysis|planning|reporting|controller|operations|systems|accounting))\b/
+
+/**
+ * A job's function, correcting a stored Finance label that rests only on a financial-industry phrase in the title:
+ * the title is read without the phrase (Sales, Marketing… or null when nothing is left to read). Every other value
+ * passes through. Pure.
+ */
+export function correctedJobFunction(stored: string | null | undefined, title: string | null | undefined): string | null {
+  if (!stored) return stored ?? null
+  if (stored.trim().toLowerCase() !== 'finance' || !title) return stored
+  const lower = title.toLowerCase()
+  FINANCIAL_INDUSTRY.lastIndex = 0
+  if (!FINANCIAL_INDUSTRY.test(lower)) return stored
+  const withoutIndustry = lower.replace(FINANCIAL_INDUSTRY, ' ').replace(/\s+/g, ' ').trim()
+  if (FINANCE_WORK.test(withoutIndustry)) return stored
+  return inferFunctionFromTitle(withoutIndustry)
 }

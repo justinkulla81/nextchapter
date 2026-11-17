@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { displayJobTitle } from '@/lib/jobs/display-title'
 import type { ExclusiveJobPosting, SurfacedJob } from '@prisma/client'
 import { cardMetaParts, cardVerdict } from '@/lib/jobs/job-card'
 import { fewerApplicantsHint, isFresh, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
@@ -64,7 +65,8 @@ export function boardEntry(a: {
   /** The skills this posting names that have a skills page, loaded from one shared snapshot (skillsForPosting). */
   jobSkills?: JobSkill[]
 }): FindEntry {
-  const { posting } = a
+  // The card and the detail show the title without requisition numbers and location tails (display-title.ts).
+  const posting = { ...a.posting, title: displayJobTitle(a.posting.title) }
   const exposure = a.exposureMap ? exposureFor(posting.socCode, a.exposureMap) : null
   const signal = postingSignalTag(posting.postingSignals, { lift: !!a.signalLift })
   const confidential = posting.disclosure === 'CONFIDENTIAL'
