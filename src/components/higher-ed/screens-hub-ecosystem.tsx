@@ -8,7 +8,9 @@ import { mainOrigin } from '@/lib/org-hosts'
 import { readProfile } from '@/lib/higher-ed/profile'
 import { COMMITMENTS, ECO_STATUSES, commitmentLabel, ecoKindLabel, ecoStatusLabel, inviteMessage, inviteUrl } from '@/lib/workforce/ecosystem'
 import { StatTile } from './StatTile'
-import { AddPartnerForm, CopyText, DecideButtons, InviteButton, RemovePartnerButton, SeedButton } from './HubEcosystemForms'
+import { AddPartnerForm, CopyText, DecideButtons, GiveAccessForm, InviteButton, RemoveAccessButton, RemovePartnerButton, SeedButton } from './HubEcosystemForms'
+import { FREE_PARTNER_CONTACTS } from '@/lib/workforce/partner-access-rules'
+import { planOf } from '@/lib/plans/entitlements'
 
 type Props = { ctx: WorkspaceContext; searchParams: object; base: string }
 
@@ -16,8 +18,9 @@ const day = (d: Date | null) => (d ? new Intl.DateTimeFormat('en-US', { month: '
 
 export async function HubEcosystem({ ctx }: Props) {
   const slug = ctx.institution.slug
-  const [rows, inst] = await Promise.all([
+  const [rows, contacts, inst] = await Promise.all([
     prisma.ecosystemPartner.findMany({ where: { institutionId: ctx.institution.id }, orderBy: [{ status: 'asc' }, { name: 'asc' }], take: 300 }).catch(() => []),
+    prisma.ecosystemPartnerContact.findMany({ where: { institutionId: ctx.institution.id }, orderBy: { createdAt: 'asc' }, take: 300, select: { id: true, partnerId: true, email: true, acceptedAt: true } }).catch(() => []),
     prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { name: true, programBrandName: true, profile: true } }),
   ])
   const origin = mainOrigin()
@@ -25,6 +28,8 @@ export async function HubEcosystem({ ctx }: Props) {
   const region = readProfile(inst.profile).region?.name ?? null
   const count = (s: string) => rows.filter((r) => r.status === s).length
   const waiting = rows.filter((r) => r.status === 'CLAIMED')
+  const confirmed = rows.filter((r) => r.status === 'CONFIRMED')
+  const free = planOf(ctx.institution.plan) === 'FREE'
   const commitments = rows.filter((r) => r.status === 'CONFIRMED').reduce((n, r) => n + r.commitments.length, 0)
   return (
     <div className="space-y-8">
@@ -143,6 +148,36 @@ export async function HubEcosystem({ ctx }: Props) {
           </div>
         )}
       </section>
+      {confirmed.length > 0 && (
+        <section className="space-y-3" aria-labelledby="pages-h">
+          <h2 id="pages-h" className="text-base font-semibold">
+            Partner pages
+          </h2>
+          <p className="max-w-3xl text-sm text-muted-foreground">
+            Give a confirmed partner’s contact their own page: what they offered, a way to update it, and anything you share with them. It shows nothing about individual job seekers.
+            {free ? ` Your free workspace gives access to ${FREE_PARTNER_CONTACTS} people (${contacts.length} used).` : ''}
+          </p>
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {confirmed.map((r) => {
+              const mine = contacts.filter((c) => c.partnerId === r.id)
+              return (
+                <li key={r.id} className="space-y-2 p-3 text-sm">
+                  <p className="font-medium">{r.name}</p>
+                  {mine.map((c) => (
+                    <div key={c.id} className="flex flex-wrap items-center justify-between gap-2">
+                      <span>
+                        {c.email} <span className="text-xs text-muted-foreground">· {c.acceptedAt ? 'Signed in' : 'Invited'}</span>
+                      </span>
+                      {!ctx.readOnly && <RemoveAccessButton slug={slug} id={c.id} email={c.email} />}
+                    </div>
+                  ))}
+                  {!ctx.readOnly && <GiveAccessForm slug={slug} partnerId={r.id} name={r.name} defaultEmail={r.claimEmail ?? ''} />}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
       <p className="max-w-3xl text-xs text-muted-foreground">What a partner can offer when it asks to join: {COMMITMENTS.map((c) => c.label.toLowerCase()).join('; ')}.</p>
     </div>
   )

@@ -16,7 +16,7 @@ export type WorkspaceKey =
   | 'execed'
   | 'employer'
   // A person at a confirmed ecosystem partner (college, provider, employer, group): only their own partner's page.
-  | 'partner'
+  | 'partnerview'
   | 'admin'
   | 'workforce'
   // Workforce customers (boards, economic development orgs, chambers):
@@ -267,14 +267,14 @@ export const WORKSPACES: WorkspaceConfig[] = [
   },
   {
     // A person at a confirmed ecosystem partner (a college, training provider, employer or community group the organization
-    // confirmed in Partners > Ecosystem). They see their own partner's page and what the organization shared with it, nothing else.
-    key: 'partner',
+    // confirmed in Partners > Ecosystem). Its own key, not 'partner': /i/<slug>/partner/<token> is the public claim page. They see their own partner's page and what the organization shared with it, nothing else.
+    key: 'partnerview',
     label: 'Partner',
     workforceLabel: 'Partner view',
     icon: 'Landmark',
     release: 'V1',
     requiredRoles: ['PARTNER'],
-    homePath: 'partner',
+    homePath: 'partnerview',
     orgKind: 'workforce',
     tabs: [
       { key: 'overview', label: 'Your partnership', comingIn: null },

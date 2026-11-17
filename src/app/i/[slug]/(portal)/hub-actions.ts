@@ -27,6 +27,8 @@ import { PARTNER_KIND_KEYS, normalizeScopes } from '@/lib/workforce/partner-view
 import { randomBytes } from 'crypto'
 import { ECO_KIND_KEYS, canDecide, canInvite } from '@/lib/workforce/ecosystem'
 import { nearbyColleges } from '@/lib/workforce/colleges-near'
+import { giveAccess, removeAccess } from '@/lib/workforce/partner-access'
+import { orgCallbackOrigin } from '@/lib/org-hosts'
 
 type Result = { error?: string; ok?: boolean; message?: string }
 export type HubResult = Result | undefined
@@ -477,6 +479,31 @@ export async function declineEmployerJob(slug: string, _prev: HubResult, f: Form
   return decideEmployerJob(slug, f, 'decline')
 }
 
+// ── Phase 11: partner accounts ──────────────────────────────────────────────
+
+// Give a confirmed partner's contact their own page. A real organization emails a one-time sign-in link to the address the steward
+// names; a demo never emails, so the link comes back to copy.
+export async function giveEcosystemAccess(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const partnerId = str(f, 'partnerId')
+  const r = await giveAccess({ institutionId: ctx.institution.id, partnerId, email: str(f, 'email'), by: ctx.userId })
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(ctx.userId, 'partner_access_given', { institutionId: ctx.institution.id, partnerId, sent: r.sent, alreadyHadAccess: r.already })
+  revalidatePath(`/i/${slug}`, 'layout')
+  if (r.already) return { ok: true, message: 'They already have access.' }
+  if (r.sent) return { ok: true, message: 'Sent. They get a one-time sign-in link at that address.' }
+  return { ok: true, message: `Demo: nothing is emailed. Copy this link and send it yourself: ${orgCallbackOrigin('workforce')}${r.path}` }
+}
+
+export async function removeEcosystemAccess(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const r = await removeAccess(ctx.institution.id, str(f, 'id'))
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(ctx.userId, 'partner_access_removed', { institutionId: ctx.institution.id, contactId: str(f, 'id') })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
 // ── Phase 5: partner views ──────────────────────────────────────────────────
 
 // Make a read-only view of the organization's regional data for one partner, opened by an unlisted link.
@@ -489,12 +516,15 @@ export async function createPartnerView(slug: string, _prev: HubResult, f: FormD
   const scopes = normalizeScopes(f.getAll('scopes').map(String))
   if (scopes.length === 0) return { error: 'Pick at least one thing to include.' }
   const days = Number(str(f, 'days')) === 90 ? 90 : 30
+  // For a confirmed partner with its own page: the view also shows on that partner's page (Shared with you).
+  const ecoId = str(f, 'ecosystemPartnerId')
+  if (ecoId && !(await prisma.ecosystemPartner.findFirst({ where: { id: ecoId, institutionId: ctx.institution.id, status: 'CONFIRMED' }, select: { id: true } }))) return { error: 'That partner is no longer confirmed.' }
   const token = randomBytes(24).toString('base64url')
   const v = await prisma.partnerView.create({
-    data: { institutionId: ctx.institution.id, token, partnerName, partnerKind: kind, scopes, note: str(f, 'note').slice(0, 500) || null, expiresAt: new Date(Date.now() + days * 86_400_000), createdBy: ctx.userId },
+    data: { institutionId: ctx.institution.id, token, partnerName, partnerKind: kind, scopes, note: str(f, 'note').slice(0, 500) || null, ecosystemPartnerId: ecoId || null, expiresAt: new Date(Date.now() + days * 86_400_000), createdBy: ctx.userId },
     select: { id: true },
   })
-  captureServerEvent(ctx.userId, 'partner_view_created', { institutionId: ctx.institution.id, viewId: v.id, partnerKind: kind, scopes, days })
+  captureServerEvent(ctx.userId, 'partner_view_created', { institutionId: ctx.institution.id, viewId: v.id, partnerKind: kind, scopes, days, forPartnerWithPage: !!ecoId })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: `Made. Copy the link from the list below and send it to ${partnerName}.`, token }
 }

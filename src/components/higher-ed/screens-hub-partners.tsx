@@ -14,9 +14,10 @@ const scopeShort: Record<string, string> = { SKILLS: 'Skills', TALENT: 'Talent c
 
 export async function HubPartnerViews({ ctx }: Props) {
   const slug = ctx.institution.slug
-  const rows = await prisma.partnerView
-    .findMany({ where: { institutionId: ctx.institution.id }, orderBy: { createdAt: 'desc' }, take: 100 })
-    .catch(() => [])
+  const [rows, partners] = await Promise.all([
+    prisma.partnerView.findMany({ where: { institutionId: ctx.institution.id }, orderBy: { createdAt: 'desc' }, take: 100 }).catch(() => []),
+    prisma.ecosystemPartner.findMany({ where: { institutionId: ctx.institution.id, status: 'CONFIRMED' }, orderBy: { name: 'asc' }, take: 100, select: { id: true, name: true } }).catch(() => []),
+  ])
   const origin = mainOrigin()
   const withStatus = rows.map((r) => ({ ...r, status: viewStatus(r) }))
   const active = withStatus.filter((r) => r.status === 'Active')
@@ -36,7 +37,7 @@ export async function HubPartnerViews({ ctx }: Props) {
         <details className="rounded-lg border border-border bg-card p-4" open={rows.length === 0}>
           <summary className="cursor-pointer text-sm font-medium text-[color:var(--accent-text,var(--primary))]">Make a partner view</summary>
           <div className="pt-3">
-            <PartnerViewForm slug={slug} />
+            <PartnerViewForm slug={slug} partners={partners} />
           </div>
         </details>
       ) : (
