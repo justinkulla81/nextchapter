@@ -33,25 +33,6 @@ function PlaceName({ row, noun, className }: { row: RankRow; noun: Noun; classNa
   return href ? <Link href={href} className={className ?? LINK}>{row.name}</Link> : <span className={className}>{row.name}</span>
 }
 
-/** The bar chart of the top ten, in CSS: no script, readable by any browser. The longest bar is the leader. */
-function TopChart({ rows, noun }: { rows: RankRow[]; noun: Noun }) {
-  const top = rows.slice(0, 10)
-  const max = Math.max(...top.map((r) => Math.abs(r.value)), 1e-9)
-  const barOf = (r: RankRow) => r.bar ?? Math.abs(r.value) / max
-  return (
-    <ol className={`${CARD} space-y-2 p-5`} aria-label="Top ten at a glance">
-      {top.map((r) => (
-        <li key={r.key} className="grid grid-cols-[1.5rem_minmax(0,9rem)_1fr_auto] items-center gap-3 text-sm sm:grid-cols-[1.5rem_12rem_1fr_auto]">
-          <span className="tabular-nums text-muted-foreground">{r.rank}</span>
-          <span className="truncate font-medium text-navy"><PlaceName row={r} noun={noun} className="hover:underline" /> <span className="font-normal text-muted-foreground">{r.sub}</span></span>
-          <span className="h-3 rounded-full bg-muted" aria-hidden><span className="block h-3 rounded-full bg-brand" style={{ width: `${Math.max(3, barOf(r) * 100)}%` }} /></span>
-          <span className="tabular-nums font-semibold text-navy">{r.valueLabel}</span>
-        </li>
-      ))}
-    </ol>
-  )
-}
-
 const JUMP_LABEL: Record<Noun, (name: string) => string> = {
   'metro areas': (n) => `Jobs and employers in the ${n} area`,
   cities: (n) => `Jobs and employers in ${n}`,
@@ -246,22 +227,47 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
       jsonLd={ld}
       lede={<><span className="block text-base font-medium text-navy">{e.lead}</span><span className="mt-2 block text-sm">{label} edition. Updated monthly, from {e.placeNoun === 'counties' ? 'public Bureau of Labor Statistics and Census data' : e.placeNoun === 'metro areas' ? 'open white-collar jobs we verified on employer career sites and public federal data' : 'open jobs we verified on employer career sites'}.{!latest && entry && <> This is an earlier edition: <Link href={path} className={LINK}>see the latest</Link>.</>}</span></>}
     >
-      <section aria-labelledby="facts" className="grid gap-4 lg:grid-cols-[1fr_1.6fr]">
-        <div className={`${CARD} p-5`}>
-          <h2 id="facts" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Key facts</h2>
-          <ul className="mt-3 space-y-2 text-sm text-foreground">{e.keyFacts.map((f) => <li key={f}>{f}</li>)}</ul>
-          {e.baseline && <p className="mt-3 text-xs text-muted-foreground">For comparison: {e.baseline.valueLabel} across {e.baseline.label}.</p>}
-        </div>
-        <TopChart rows={e.rows} noun={e.placeNoun} />
-      </section>
+      {/* The leaders appear once, in the top 25 below: the key facts keep only what the list does not already show. */}
+      <p className="text-sm text-muted-foreground" aria-label="Key facts">
+        {e.keyFacts.filter((f) => !f.startsWith('#')).join(' · ')}
+        {e.baseline && <> · For comparison: {e.baseline.valueLabel} across {e.baseline.label}.</>}
+      </p>
 
-      {e.components && <Components e={e} />}
       {e.partOf && (
         <p className="max-w-3xl rounded-xl bg-off-white p-4 text-sm text-foreground">
           This is one of the {e.partOf.criteria} criteria in{' '}
           <TrackedLink href={`/rankings/${e.partOf.slug}`} event="ranking_criterion_link_clicked" properties={{ slug: e.slug, edition: e.edition, to: e.partOf.slug, direction: 'to_overall' }} className={LINK}>{e.partOf.title.toLowerCase()}</TrackedLink>, where it carries {e.partOf.weight}% of the score.
         </p>
       )}
+
+      <section aria-labelledby="top">
+        <h2 id="top" className={H2}>{e.rows.length > 25 ? 'The top 25' : 'The ranking'}</h2>
+        <ol className="mt-4 space-y-3">{e.rows.slice(0, 25).map((r) => <RowCard key={r.key} row={r} unit={unit} noun={e.placeNoun} slug={e.slug} edition={e.edition} links={employers} />)}</ol>
+      </section>
+
+      {e.components && <Components e={e} />}
+
+      {e.rows.length > 25 && <section aria-labelledby="full">
+        <h2 id="full" className={H2}>Ranks 26 to {e.rows.length}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">The rest of the {e.rows.length} {e.placeNoun} that qualified, with the figure each is ranked on. The CSV below has every row.</p>
+        <div className={`${CARD} mt-4 overflow-x-auto`}>
+          <table className="w-full min-w-[32rem] text-left text-sm">
+            <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ 'metro areas': 'Metro area', cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', 'job families': 'Job family', states: 'State', colleges: 'College', degrees: 'Field or level', occupations: 'Occupation', employers: 'Employer' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {e.rows.slice(25).map((r) => (
+                <tr key={r.key}>
+                  <td className="px-4 py-2 tabular-nums">{r.rank}</td>
+                  <td className="px-4 py-2"><PlaceName row={r} noun={e.placeNoun} /> <span className="text-muted-foreground">{r.sub}</span></td>
+                  <td className="px-4 py-2 text-right font-medium tabular-nums">{r.valueLabel}</td>
+                  <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">{r.n > 0 ? r.n.toLocaleString('en-US') : '–'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>}
 
       <section aria-labelledby="stands-out">
         <h2 id="stands-out" className={H2}>What stands out</h2>
@@ -278,33 +284,6 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
           </div>
         </section>
       )}
-
-      <section aria-labelledby="top">
-        <h2 id="top" className={H2}>The top 25</h2>
-        <ol className="mt-4 space-y-3">{e.rows.slice(0, 25).map((r) => <RowCard key={r.key} row={r} unit={unit} noun={e.placeNoun} slug={e.slug} edition={e.edition} links={employers} />)}</ol>
-      </section>
-
-      <section aria-labelledby="full">
-        <h2 id="full" className={H2}>Full ranking</h2>
-        <p className="mt-2 text-sm text-muted-foreground">All {e.rows.length} {e.placeNoun} that qualified, with the figure each is ranked on.</p>
-        <div className={`${CARD} mt-4 overflow-x-auto`}>
-          <table className="w-full min-w-[32rem] text-left text-sm">
-            <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-              <tr><th className="px-4 py-3">Rank</th><th className="px-4 py-3">{{ 'metro areas': 'Metro area', cities: 'City', counties: 'County', skills: 'Skill', tools: 'Tool', certifications: 'Certification', industries: 'Industry', 'job families': 'Job family', states: 'State', colleges: 'College', degrees: 'Field or level', occupations: 'Occupation', employers: 'Employer' }[e.placeNoun]}</th><th className="px-4 py-3 text-right">Score</th><th className="px-4 py-3 text-right">Sample</th></tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {e.rows.map((r) => (
-                <tr key={r.key}>
-                  <td className="px-4 py-2 tabular-nums">{r.rank}</td>
-                  <td className="px-4 py-2"><PlaceName row={r} noun={e.placeNoun} /> <span className="text-muted-foreground">{r.sub}</span></td>
-                  <td className="px-4 py-2 text-right font-medium tabular-nums">{r.valueLabel}</td>
-                  <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">{r.n > 0 ? r.n.toLocaleString('en-US') : '–'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
 
       {fn && <FamilyLinks fn={fn} slug={e.slug} edition={e.edition} />}
 

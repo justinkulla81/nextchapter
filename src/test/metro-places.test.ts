@@ -7,10 +7,10 @@ const sectors = COUNTY_SECTORS.map((s) => s.code)
 const FIELDS = ['homicides', 'childCareCost', 'childCareCenters', 'reading', 'math', 'broadband', 'schoolFunding', 'libraries', 'parks', 'longCommute', 'permitUnits']
 
 function county(i: number): CountyFacts {
-  return { population: 300_000 + i * 50_000, laborForce: 150_000 + i * 20_000, whiteCollarShare: 0.4 + i * 0.01, wcUnemp: 2 + i * 0.1, colleges: 3 + i, enrollment: 10_000 + i * 1000, ajc: 1 + (i % 3), communityColleges: 1 + (i % 2), layoffWorkers: 100 * i }
+  return { population: 300_000 + i * 50_000, laborForce: 150_000 + i * 20_000, whiteCollarShare: 0.4 + i * 0.01, wcUnemp: 2 + i * 0.1, colleges: 3 + i, enrollment: 10_000 + i * 1000, ajc: 1 + (i % 3), communityColleges: 1 + (i % 2), supportOrgs: 5 + i, layoffWorkers: 100 * i }
 }
 function posting(i: number): WcCounts {
-  return { n: 800 + i * 100, paid: 300 + i * 10, pay: [[90_000 + i * 2000, 300 + i * 10]], flex: 100 + i * 5, socN: 500, aiSum: 500 * (0.15 + i * 0.005) }
+  return { n: 800 + i * 100, paid: 300 + i * 10, pay: [[90_000 + i * 2000, 300 + i * 10]], flex: 100 + i * 5, aiPay: [[100_000 + i * 3000, 40]], plainPay: [[90_000 + i * 2000, 300]], socN: 500, aiSum: 500 * (0.15 + i * 0.005) }
 }
 
 function fixture(count = 12) {
@@ -27,7 +27,7 @@ function fixture(count = 12) {
     community[fips] = [3 + i * 0.2, 0.2, 7, 2.8, 2.9, 0.9, 1000 * i - 3000, 2, 0.6, 0.35, 1000 + i * 100]
     metros.push({ cbsa: String(20000 + i), name: `City${i}-Town${i}, ${i % 2 ? 'NC' : 'NY'}-SC Metro Area`, counties: [fips], rpp: 95 + i })
   }
-  return { metros, counties, postings, context: { sectors, counties: ctx }, community: { fields: FIELDS, counties: community }, housing: () => ({ rent: 1500, home: 400_000 }) }
+  return { metros, counties, postings, context: { sectors, counties: ctx }, community: { fields: FIELDS, counties: community }, housing: () => ({ rent: 1500, home: 400_000 }), statePrograms: new Map([['NY', 12], ['NC', 20]]) }
 }
 
 describe('best places for white-collar professionals', () => {
@@ -65,8 +65,8 @@ describe('best places for white-collar professionals', () => {
     expect(stats.every(eligible)).toBe(true)
     const scores = criterionScores(stats)
     for (const m of stats) expect(allRoundScore(scores.get(m.cbsa) as Record<string, number | null>)).not.toBeNull()
-    const safe = whitePlacesSpecs().find((s) => s.measure === 'wp_safe')!
-    const ed = rankWhitePlaces(safe, stats, () => '/places/x', '2026-11', '2026-11-16T00:00:00Z', null)!
+    const lay = whitePlacesSpecs().find((s) => s.measure === 'wp_layoff')!
+    const ed = rankWhitePlaces(lay, stats, () => '/places/x', '2026-11', '2026-11-16T00:00:00Z', null)!
     expect(ed.rows[0].name).toBe('City0-Town0')
     expect(ed.partOf?.slug).toBe(ALL_ROUND.slug)
     expect(ed.placeNoun).toBe('metro areas')
@@ -81,11 +81,10 @@ describe('best places for white-collar professionals', () => {
     expect(ed.rows[0].stats.length).toBe(6)
   })
 
-  it('counts a missing criterion as the middle, not as a pass', () => {
+  it('leaves out a metro missing any criterion', () => {
     const full = Object.fromEntries(CRITERIA.map((c) => [c.id, 90]))
-    const missingLayoffs = { ...full, wp_layoff: null }
-    expect(allRoundScore(missingLayoffs) as number).toBeLessThan(allRoundScore(full) as number)
-    expect(allRoundScore(Object.fromEntries(CRITERIA.map((c) => [c.id, c.weight >= 6 ? null : 90])))).toBeNull()
+    expect(allRoundScore(full)).toBeCloseTo(90)
+    expect(allRoundScore({ ...full, wp_layoff: null })).toBeNull()
   })
 
   it('leaves out small metros', () => {

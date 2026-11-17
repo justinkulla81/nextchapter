@@ -428,7 +428,7 @@ const PERUNEMP: CountyMeasure = {
 }
 export const COUNTY_MEASURES: Record<CountyMeasure['id'], CountyMeasure> = { ...COUNTY_BASE, lowunemp: LOWUNEMP, unempdrop: UNEMPDROP, whitecollar: WHITECOLLAR, aiexposed: AIEXPOSED, perunemp: PERUNEMP }
 
-const WHITE_PLACES_IDS: WhitePlacesMeasureId[] = ['wp_all', 'wp_open', 'wp_grow', 'wp_pay', 'wp_house', 'wp_supply', 'wp_unemp', 'wp_layoff', 'wp_ai', 'wp_train', 'wp_edu', 'wp_safe', 'wp_family', 'wp_diverse', 'wp_invest', 'wp_peers', 'wp_flex']
+const WHITE_PLACES_IDS: WhitePlacesMeasureId[] = ['wp_all', 'wp_open', 'wp_grow', 'wp_pay', 'wp_house', 'wp_supply', 'wp_unemp', 'wp_layoff', 'wp_ai', 'wp_aipay', 'wp_train', 'wp_edu', 'wp_family', 'wp_diverse', 'wp_invest', 'wp_peers', 'wp_flex']
 /** Every best-places list cites the same sources (metro-places.ts keeps the list beside the criteria; this copy avoids an import cycle). */
 const WHITE_PLACES_SOURCES = [
   'NextChapter job data: open white-collar roles on employer career sites, verified in the last week, with posted pay and work arrangement',
@@ -436,8 +436,8 @@ const WHITE_PLACES_SOURCES = [
   'Census Bureau: American Community Survey (occupations, rent, home value), population estimates, Building Permits Survey, CBSA delineation 2023',
   'Bureau of Economic Analysis regional price parities 2024',
   'State WARN layoff notices, last 12 months',
-  'CareerOneStop American Job Center directory; NCES college directory',
-  'County Health Rankings & Roadmaps 2025 (CDC homicide deaths, child care cost and centers, Stanford Education Data Archive test scores, broadband, school funding adequacy, libraries, parks, commuting)',
+  'CareerOneStop American Job Center directory; NCES college directory; IRS exempt-organization records (workforce, job-training and economic development organizations); NextChapter benefits catalog (open state programs)',
+  'County Health Rankings & Roadmaps 2025 (child care cost and centers, Stanford Education Data Archive test scores, broadband, school funding adequacy, libraries, parks, commuting)',
   'Anthropic Economic Index, labor market impacts (March 2026): observed AI exposure by occupation group',
 ]
 

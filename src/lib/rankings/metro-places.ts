@@ -32,6 +32,8 @@ export interface CountyFacts {
   ajc: number
   /** Public two-year (community and technical) colleges. */
   communityColleges: number
+  /** Economic development, workforce and job-training organizations based in the county (IRS nonprofit records). */
+  supportOrgs: number
   /** Workers in WARN notices of the last 12 months, blue-collar industries left out; null where the state publishes none. */
   layoffWorkers: number | null
 }
@@ -43,6 +45,9 @@ export interface WcCounts {
   /** Each city's median posted pay with the number of openings that post pay, for a weighted median. */
   pay: [number, number][]
   flex: number
+  /** Median posted pay of openings that ask for AI skills, and of those that do not, by city, with the openings behind each. */
+  aiPay: [number, number][]
+  plainPay: [number, number][]
   /** Openings with an occupation code, and the sum of their occupation group's observed AI exposure. */
   socN: number
   aiSum: number
@@ -57,6 +62,8 @@ export interface MetroInputs {
   context: CountyContextData
   community: CommunityDoc
   housing: (cbsa: string) => { rent?: number; home?: number } | null
+  /** Open state retraining, job-seeker support and relocation programs, by state code. */
+  statePrograms: Map<string, number>
 }
 
 // ---- The metro figures ----
@@ -85,9 +92,11 @@ export interface MetroStat {
   aiOpeningExposure: number | null
   ajcPer100k: number | null
   communityCollegesPer100k: number | null
+  supportOrgsPer100k: number | null
+  statePrograms: number | null
+  aiPayPremium: number | null
   enrollPer1k: number | null
   colleges: number
-  homicides: number | null
   childCareCost: number | null
   testScore: number | null
   childCareCenters: number | null
@@ -205,12 +214,20 @@ export function buildMetroStats(input: MetroInputs): MetroStat[] {
         return w > 0 && w >= wcWorkers / 2 ? (sumOf(known, (x) => x.c.layoffWorkers as number) / w) * 1000 : null
       })(),
       aiSectorShare: total > 0 ? exposed / total : null,
-      aiOpeningExposure: socN >= 100 ? sumOf(ps, (p) => p.aiSum) / socN : null,
+      aiOpeningExposure: socN >= 50 ? sumOf(ps, (p) => p.aiSum) / socN : null,
       ajcPer100k: laborForce > 0 ? (sumOf(cs, (x) => x.c.ajc) / laborForce) * 100_000 : null,
       communityCollegesPer100k: (sumOf(cs, (x) => x.c.communityColleges) / population) * 100_000,
+      supportOrgsPer100k: (sumOf(cs, (x) => x.c.supportOrgs) / population) * 100_000,
+      statePrograms: input.statePrograms.get(st) ?? null,
+      aiPayPremium: (() => {
+        const ai = ps.flatMap((p) => p.aiPay)
+        const plain = ps.flatMap((p) => p.plainPay)
+        if (sumOf(ai, ([, n]) => n) < MIN_AI_PAID || sumOf(plain, ([, n]) => n) < MIN_PAID) return null
+        const a = weightedMedian(ai), b = weightedMedian(plain)
+        return a != null && b ? a / b - 1 : null
+      })(),
       enrollPer1k: (sumOf(cs, (x) => x.c.enrollment) / population) * 1000,
       colleges: sumOf(cs, (x) => x.c.colleges),
-      homicides: popMean((f) => comm('homicides')(f)),
       childCareCost: popMean((f) => comm('childCareCost')(f)),
       testScore: reading != null && math != null ? (reading + math) / 2 : reading ?? math,
       childCareCenters: popMean((f) => comm('childCareCenters')(f)),
@@ -250,10 +267,12 @@ export interface Criterion {
 }
 
 /** Metros below this many people, or with fewer white-collar openings than MIN_OPENINGS, are not ranked. */
-export const MIN_POPULATION = 200_000
+export const MIN_POPULATION = 150_000
 export const MIN_OPENINGS = 100
 /** Openings that post a salary a metro needs before its median pay (and the pay and housing criteria built on it) is shown. */
 export const MIN_PAID = 25
+/** Openings that ask for AI skills and post a salary a metro needs for its AI pay premium. */
+export const MIN_AI_PAID = 10
 
 export const CRITERIA: Criterion[] = [
   {
@@ -319,14 +338,23 @@ export const CRITERIA: Criterion[] = [
     lead: (n, v, s) => `${n}'s jobs and industries are the least exposed to AI among metros in ${s}, with a score of ${v}.`,
   },
   {
-    id: 'wp_train', label: 'Retraining and job help', weight: 5,
-    title: 'Metros with the most retraining and job help', slug: 'metros-with-the-most-retraining-and-job-help',
-    what: 'American Job Centers (the public offices that fund and arrange retraining) per 100,000 workers, and public community and technical colleges per 100,000 residents, where most short retraining courses are taught.',
+    id: 'wp_aipay', label: 'Pay premium for AI skills', weight: 5,
+    title: 'Metros where AI skills pay the most', slug: 'metros-where-ai-skills-pay-the-most',
+    what: 'How much higher the median posted salary is for white-collar openings that ask for AI skills than for those that do not, in the same metro.',
+    parts: [{ label: 'Posted pay premium for AI skills', weight: 1, value: (m) => m.aiPayPremium, show: (v) => `${v >= 0 ? '+' : '−'}${Math.abs(Math.round(v * 100))}%` }],
+    lead: (n, v, s) => `AI skills pay the most in ${n}: white-collar openings that ask for them post a median salary ${v} against those that do not, the highest in ${s}.`,
+  },
+  {
+    id: 'wp_train', label: 'Retraining and local job support', weight: 8,
+    title: 'Metros with the most retraining and local job support', slug: 'metros-with-the-most-retraining-and-job-help',
+    what: 'American Job Centers (the public offices that fund and arrange retraining) per 100,000 workers, public community and technical colleges per 100,000 residents, workforce development, job-training and economic development organizations per 100,000 residents, and the open state retraining, job-seeker support and relocation programs in the metro\'s state.',
     parts: [
-      { label: 'American Job Centers per 100,000 workers', weight: 50, value: (m) => m.ajcPer100k, show: one },
-      { label: 'Community and technical colleges per 100,000 residents', weight: 50, value: (m) => m.communityCollegesPer100k, show: two },
+      { label: 'American Job Centers per 100,000 workers', weight: 25, value: (m) => m.ajcPer100k, show: one },
+      { label: 'Community and technical colleges per 100,000 residents', weight: 25, value: (m) => m.communityCollegesPer100k, show: two },
+      { label: 'Workforce and economic development organizations per 100,000 residents', weight: 25, value: (m) => m.supportOrgsPer100k, show: one },
+      { label: 'Open state retraining and support programs', weight: 25, value: (m) => m.statePrograms, show: nf },
     ],
-    lead: (n, v, s) => `${n} offers the most retraining and job help in ${s}, with a score of ${v}.`,
+    lead: (n, v, s) => `${n} offers the most retraining and local job support in ${s}, with a score of ${v}.`,
   },
   {
     id: 'wp_edu', label: 'Higher education for upskilling', weight: 5,
@@ -339,14 +367,7 @@ export const CRITERIA: Criterion[] = [
     lead: (n, v, s) => `${n} has the most higher education within reach in ${s}, with a score of ${v}.`,
   },
   {
-    id: 'wp_safe', label: 'Safety', weight: 7,
-    title: 'Safest metros for professionals (lowest homicide rate)', slug: 'safest-metros-for-white-collar-professionals',
-    what: 'Homicide deaths per 100,000 people (CDC death records, seven-year average), the violence measure published for every county. FBI violent-crime counts are not complete by county, so they are not used.',
-    parts: [{ label: 'Homicides per 100,000 people', weight: 1, value: (m) => m.homicides, show: one, lowerIsBetter: true }],
-    lead: (n, v, s) => `${n} is the safest metro in ${s} on this measure, with ${v} homicide deaths per 100,000 people a year.`,
-  },
-  {
-    id: 'wp_family', label: 'Family friendly', weight: 6,
+    id: 'wp_family', label: 'Family friendly', weight: 5,
     title: 'Best metros for professionals with families', slug: 'best-metros-for-professionals-with-families',
     what: 'The cost of child care for two children as a share of household income, third-grade reading and math scores against the national grade level, and child care centers per 1,000 young children.',
     parts: [
@@ -422,7 +443,8 @@ export function criterionScores(pool: MetroStat[]): Map<string, Record<string, n
         const v = partPct[i].get(m.cbsa)
         if (v != null) { num += v * p.weight; w += p.weight }
       })
-      ;(out.get(m.cbsa) as Record<string, number | null>)[c.id] = w >= totalW / 2 ? num / w : null
+      // Every part is needed: a metro missing one has no score on the criterion (and is left out of its list).
+      ;(out.get(m.cbsa) as Record<string, number | null>)[c.id] = w === totalW ? num / w : null
     }
   }
   return out
@@ -430,14 +452,14 @@ export function criterionScores(pool: MetroStat[]): Map<string, Record<string, n
 
 /** The all-round score: criterion scores averaged by weight. A metro missing more than 20% of the weight is not scored. */
 export function allRoundScore(scores: Record<string, number | null>): number | null {
-  let num = 0, w = 0
+  // A metro must have every criterion: one it has no figure for leaves it out of the list rather than being guessed.
+  let num = 0
   for (const c of CRITERIA) {
     const v = scores[c.id]
-    if (v != null) w += c.weight
-    // A criterion the metro has no figure for counts as the middle (50), so missing data neither lifts nor sinks it.
-    num += (v ?? 50) * c.weight
+    if (v == null) return null
+    num += v * c.weight
   }
-  return w >= 80 ? num / totalWeight() : null
+  return num / totalWeight()
 }
 
 export const totalWeight = () => sumOf(CRITERIA, (c) => c.weight)
@@ -489,16 +511,16 @@ export function rankWhitePlaces(spec: Spec, stats: MetroStat[], link: (m: MetroS
           { label: 'White-collar job growth', value: show('wp_grow') },
           { label: 'Home value ÷ pay', value: show('wp_house') },
           { label: 'Laid off per 1,000 white-collar workers', value: show('wp_layoff') },
-          { label: 'Homicides per 100,000', value: show('wp_safe') },
+          { label: 'AI pay premium', value: show('wp_aipay') },
         ],
       }]
     })
     const ed = editionFor(spec, ranked, null, edition, builtAt, prev, {
       ...def,
-      lead: (name, v, scope) => `${name} is the best place for white-collar professionals in ${scope}, scoring ${v} across ${CRITERIA.length} measures of jobs, pay, housing, layoffs, AI exposure, schools, safety and community.`,
+      lead: (name, v, scope) => `${name} is the best place for white-collar professionals in ${scope}, scoring ${v} across ${CRITERIA.length} measures of jobs, pay, housing, layoffs, AI, retraining, schools and community.`,
       method: [
         `A metro's score is the weighted average of its scores on ${CRITERIA.length} criteria. Each criterion scores a metro by its percentile among the ranked metros nationwide (100 is best), averaging the parts of a criterion that has several. The weights: ${CRITERIA.map((c) => `${c.label.toLowerCase()} ${c.weight}%`).join(', ')}.`,
-        'A metro missing criteria worth more than 20% of the weight is not ranked; a criterion it has no figure for counts as the middle score, 50. Every criterion has its own ranking, linked from this page.',
+        'A metro is ranked only if it has a figure for every criterion. Every criterion has its own ranking, linked from this page.',
         ...METHOD_COMMON,
       ],
     })

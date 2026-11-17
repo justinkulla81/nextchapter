@@ -89,7 +89,7 @@ export type MeasureId =
 /** The best-places-for-white-collar-professionals lists (metro-places.ts): the all-round list and one per criterion. */
 export type WhitePlacesMeasureId =
   | 'wp_all' | 'wp_open' | 'wp_grow' | 'wp_pay' | 'wp_house' | 'wp_supply' | 'wp_unemp' | 'wp_layoff' | 'wp_ai'
-  | 'wp_train' | 'wp_edu' | 'wp_safe' | 'wp_family' | 'wp_diverse' | 'wp_invest' | 'wp_peers' | 'wp_flex'
+  | 'wp_aipay' | 'wp_train' | 'wp_edu' | 'wp_family' | 'wp_diverse' | 'wp_invest' | 'wp_peers' | 'wp_flex'
 
 /** The measures a single city is ranked on by one value. Composite lists score a whole pool at once and are not in this set. */
 export type CityMeasureId = 'junior' | 'ai' | 'paycost' | 'remote' | 'swe' | 'largest' | 'transparent' | 'midcareer' | 'leadership' | 'fnopen' | 'fnpay' | 'icopen' | 'icpay'

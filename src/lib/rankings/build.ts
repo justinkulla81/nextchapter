@@ -28,7 +28,7 @@ import { addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, rea
 import type { BuildGroup, CityStat, CollegeStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/living-cost'
 import { buildMetroStats, principalCity, rankWhitePlaces, whitePlacesSpecs, type MetroStat } from '@/lib/rankings/metro-places'
-import { loadCountyFacts, loadWhiteCollarByCounty } from '@/lib/rankings/metro-scan'
+import { loadCountyFacts, loadStatePrograms, loadWhiteCollarByCounty } from '@/lib/rankings/metro-scan'
 import { loadMetros } from '@/lib/workforce/metro-compare-data'
 import type { Metro } from '@/lib/workforce/metro-compare'
 import type { CommunityDoc } from '@/lib/rankings/metro-places'
@@ -148,11 +148,12 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
 
   if (group === 'metro') {
     const [metros, { context, placeCounty }, communityDoc] = await Promise.all([loadMetros(), loadCountyContext(), import('@/lib/rankings/data/county-community.json').then((m) => m.default)])
-    const [postings, { facts }] = await Promise.all([loadWhiteCollarByCounty(placeCounty), loadCountyFacts(placeCounty)])
+    const [postings, { facts }, statePrograms] = await Promise.all([loadWhiteCollarByCounty(placeCounty), loadCountyFacts(placeCounty), loadStatePrograms()])
     const stats = buildMetroStats({
       metros: metros.map((m) => ({ cbsa: m.cbsa, name: m.name, counties: m.counties, rpp: m.rpp.all ?? null, housingRpp: m.rpp.housing })),
       counties: facts, postings, context, community: communityDoc as unknown as CommunityDoc,
       housing: (cbsa) => costsFor({ metroCode: cbsa }),
+      statePrograms,
     })
     // A metro links to its first-named city's place page, else to its most populous county's page.
     const states = [...new Set(stats.map((m) => m.st).filter(Boolean))]
