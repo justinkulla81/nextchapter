@@ -15,7 +15,7 @@ import { ConfirmActionButton } from './ConfirmActionButton'
 import { removeCompanyContactAction } from '@/app/i/[slug]/(portal)/hub-actions'
 import { CONTACT_ROLE_LABELS, companyContacts, parseContactRoles } from '@/lib/workforce/member-contacts'
 import { openCompanyRequests } from '@/lib/workforce/company-requests'
-import { GRANT_OFFER_LABELS, type GrantOffer } from '@/lib/workforce/contact-roles'
+import { REQUEST_KIND_LABELS, offerLabel } from '@/lib/workforce/contact-roles'
 import { BriefCard } from './BriefCard'
 import { EditLink } from './EditLink'
 import { readLocal } from '@/lib/workforce/local'
@@ -304,14 +304,14 @@ export async function HubCompanies({ ctx }: Props) {
               <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 p-3">
                 <div className="space-y-0.5">
                   <p className="font-medium">
-                    {r.memberCompany.name} · {r.kind === 'TRAINING' ? 'Training' : 'Grant support'}: {r.topic}
+                    {r.memberCompany.name} · {REQUEST_KIND_LABELS[r.kind] ?? r.kind}: {r.topic}
                   </p>
                   <p className="text-muted-foreground">
                     {r.kind === 'TRAINING'
                       ? r.people
                         ? `${r.people.toLocaleString()} people`
                         : 'Number of people not given'
-                      : r.offers.map((x) => GRANT_OFFER_LABELS[x as GrantOffer] ?? x).join(', ') + (r.matchAmount ? ` · $${r.matchAmount.toLocaleString()} match` : '')}
+                      : r.offers.map(offerLabel).join(', ') + (r.matchAmount ? ` · $${r.matchAmount.toLocaleString()} match` : '') + (r.people ? ` · ${r.people.toLocaleString()} spots` : '')}
                     {` · sent ${r.createdAt.toLocaleDateString('en-US', { timeZone: 'UTC' })}`}
                   </p>
                   {r.note && <p className="text-xs text-muted-foreground">“{r.note}”</p>}

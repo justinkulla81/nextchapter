@@ -16066,12 +16066,12 @@ model MemberCompanyRequest {
   institutionId        String
   memberCompanyId      String
   memberCompany        MemberCompany @relation(fields: [memberCompanyId], references: [id], onDelete: Cascade)
-  // TRAINING | GRANT_PARTNER
+  // TRAINING | GRANT_PARTNER | WORKFORCE_COLLAB | COLLEGE_COLLAB
   kind                 String
   // The skill or course (TRAINING), or the grant or RFP (GRANT_PARTNER).
   topic                String
   people               Int?
-  // GRANT_PARTNER: LETTER | MATCH | HIRING | TRAINING_SITE | JOB_SPECS
+  // GRANT_PARTNER: LETTER | MATCH | HIRING | TRAINING_SITE | JOB_SPECS; WORKFORCE_COLLAB and COLLEGE_COLLAB: contact-roles.ts
   offers               String[]      @default([])
   matchAmount          Int?
   fundingApplicationId String?
@@ -16099,7 +16099,7 @@ model MemberCompanyContact {
   memberCompanyId String
   memberCompany   MemberCompany @relation(fields: [memberCompanyId], references: [id], onDelete: Cascade)
   email           String
-  // HIRING | OUTPLACEMENT | LEARNING | GRANTS (validated in code)
+  // HIRING | OUTPLACEMENT | LEARNING | GRANTS | WORKFORCE | COLLEGES (validated in code)
   roles           String[]
   userId          String?
   inviteToken     String?       @unique

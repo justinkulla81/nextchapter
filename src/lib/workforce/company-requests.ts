@@ -4,7 +4,7 @@
 
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { GRANT_OFFERS, type GrantOffer } from './contact-roles'
+import { COLLEGE_OFFERS, GRANT_OFFERS, WORKFORCE_OFFERS, type GrantOffer } from './contact-roles'
 
 const REQUEST_SELECT = {
   id: true,
@@ -23,7 +23,9 @@ const REQUEST_SELECT = {
 
 const clean = (v: string, max: number) => v.trim().replace(/\s+/g, ' ').slice(0, max)
 
-export async function companyRequests(institutionId: string, companyId: string, kind: 'TRAINING' | 'GRANT_PARTNER') {
+export type RequestKind = 'TRAINING' | 'GRANT_PARTNER' | 'WORKFORCE_COLLAB' | 'COLLEGE_COLLAB'
+
+export async function companyRequests(institutionId: string, companyId: string, kind: RequestKind) {
   return prisma.memberCompanyRequest.findMany({ where: { institutionId, memberCompanyId: companyId, kind }, orderBy: { createdAt: 'desc' }, take: 50, select: REQUEST_SELECT })
 }
 
@@ -105,4 +107,29 @@ export async function answerCompanyRequest(args: { institutionId: string; id: st
     data: { status: args.accept ? 'ACCEPTED' : 'DECLINED', answerNote: clean(args.note, 1000) || null, answeredBy: args.by, answeredAt: new Date() },
   })
   return r.count ? { ok: true as const } : { error: 'Someone already answered this one. Reload the page.' }
+}
+
+// A workforce-development or college-partnerships contact offers what the company will do: apprenticeships, on-the-job
+// training, work experience, hiring events, a sector partnership; or internships, projects, advisory seats, curriculum
+// review, speakers with a college. `topic` is the college's name (or "Any college near us") or the roles involved.
+export async function offerCollaboration(args: {
+  kind: 'WORKFORCE_COLLAB' | 'COLLEGE_COLLAB'
+  institutionId: string
+  companyId: string
+  offers: string[]
+  topic: string
+  people: number | null
+  note: string
+  by: string
+}) {
+  const allowed: readonly string[] = args.kind === 'WORKFORCE_COLLAB' ? WORKFORCE_OFFERS : COLLEGE_OFFERS
+  const offers = allowed.filter((o) => args.offers.includes(o))
+  if (!offers.length) return { error: 'Pick at least one thing your company would do.' }
+  if (args.people !== null && (!Number.isInteger(args.people) || args.people < 1 || args.people > 5000)) return { error: 'Spots must be 1 to 5,000, or leave it blank.' }
+  const topic = clean(args.topic, 160) || (args.kind === 'COLLEGE_COLLAB' ? 'Any college near us' : 'Any roles')
+  const r = await prisma.memberCompanyRequest.create({
+    data: { institutionId: args.institutionId, memberCompanyId: args.companyId, kind: args.kind, topic, offers, people: args.people, note: clean(args.note, 1000) || null, requestedBy: args.by },
+    select: { id: true },
+  })
+  return { ok: true as const, id: r.id, offers }
 }
