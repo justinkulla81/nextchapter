@@ -167,12 +167,16 @@ export const PUBLIC_JOB_ROW_RULES_SQL = Prisma.sql`
   AND COALESCE("reopenCount", 0) < 2
   AND COALESCE("repostCount", 0) < 2`
 
-// The time-dependent rules, applied on top of the index.
-export const PUBLIC_JOB_LIVE_SQL = Prisma.sql`
+/** The time-dependent rules without the confirmed-ghost check, for a read that drops confirmed ghosts itself (publicJobsInShard). */
+export const PUBLIC_JOB_LIVE_DATES_SQL = Prisma.sql`
   "lastVerifiedAt" > now() - make_interval(days => ${PUBLIC_JOB_VERIFIED_DAYS}::int)
   AND ("expiresAt" IS NULL OR "expiresAt" > now())
   AND ("createdAt" > now() - make_interval(days => ${PUBLIC_JOB_GHOST_AGE_DAYS}::int)
-       OR ("directListing" AND COALESCE("reopenCount", 0) = 0 AND COALESCE("repostCount", 0) = 0))
+       OR ("directListing" AND COALESCE("reopenCount", 0) = 0 AND COALESCE("repostCount", 0) = 0))`
+
+// The time-dependent rules, applied on top of the index.
+export const PUBLIC_JOB_LIVE_SQL = Prisma.sql`
+  ${PUBLIC_JOB_LIVE_DATES_SQL}
   AND NOT EXISTS (
     SELECT 1 FROM "JobPostingFlag" f WHERE f."postingId" = "ExclusiveJobPosting".id AND f."adminDecision" = 'confirmed_ghost'
   )`
@@ -223,15 +227,24 @@ export async function feedJobIdsInShard(shard: number): Promise<{ id: string }[]
  */
 export async function publicJobsInShard(shard: number): Promise<{ id: string; lastVerifiedAt: Date }[]> {
   if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
-  return prisma.$queryRaw<{ id: string; lastVerifiedAt: Date }[]>`
-    SELECT id, "lastVerifiedAt" FROM "ExclusiveJobPosting"
-    WHERE ${PUBLIC_JOB_STATIC_SQL}
-      AND (hashtext(id) & 15) = ${shard}::int
-      AND ${PUBLIC_JOB_SEARCH_SQL}
-      AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
-      AND ${PUBLIC_JOB_LIVE_SQL}
-    ORDER BY id
-    LIMIT 50000`
+  // The confirmed ghosts are read once and dropped here, not checked per row in SQL: the NOT EXISTS probed the flag table's index once for
+  // each of a file's ~16,000 jobs, ~32,000 of the ~56,000 buffers a file took (#22 by database time in the 2026-11-17 statement stats).
+  // Read directly, not through getConfirmedGhostIds, so a failed read fails the file (never cached; the last good file stays served)
+  // instead of letting a ghost in. Same URLs as before.
+  const [rows, ghosts] = await Promise.all([
+    prisma.$queryRaw<{ id: string; lastVerifiedAt: Date }[]>`
+      SELECT id, "lastVerifiedAt" FROM "ExclusiveJobPosting"
+      WHERE ${PUBLIC_JOB_STATIC_SQL}
+        AND (hashtext(id) & 15) = ${shard}::int
+        AND ${PUBLIC_JOB_SEARCH_SQL}
+        AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
+        AND ${PUBLIC_JOB_LIVE_DATES_SQL}
+      ORDER BY id
+      LIMIT 50000`,
+    prisma.jobPostingFlag.findMany({ where: { adminDecision: 'confirmed_ghost' }, select: { postingId: true }, distinct: ['postingId'] }),
+  ])
+  const ghost = new Set(ghosts.map((g) => g.postingId))
+  return ghost.size ? rows.filter((r) => !ghost.has(r.id)) : rows
 }
 
 /**
