@@ -194,6 +194,12 @@ function Components({ e }: { e: RankingEdition }) {
   )
 }
 
+/** The 2nd of the month after an edition ("December 2"): the monthly rankings job runs on the 2nd. */
+function nextEditionDate(edition: string): string {
+  const [y, m] = edition.split('-').map(Number)
+  return new Date(Date.UTC(y, m, 2)).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' })
+}
+
 export async function RankingView({ e, index, latest }: { e: RankingEdition; index: RankingIndexEntry[]; latest: boolean }) {
   const path = `/rankings/${e.slug}`
   const label = editionLabel(e.edition)
@@ -225,7 +231,7 @@ export async function RankingView({ e, index, latest }: { e: RankingEdition; ind
       trail={[{ name: 'Rankings', path: '/rankings' }, { name: e.title, path }]}
       h1={e.h1}
       jsonLd={ld}
-      lede={<><span className="block text-base font-medium text-navy">{e.lead}</span><span className="mt-2 block text-sm">{label} edition. Updated monthly, from {e.placeNoun === 'counties' ? 'public Bureau of Labor Statistics and Census data' : e.placeNoun === 'metro areas' ? 'open white-collar jobs we verified on employer career sites and public federal data' : 'open jobs we verified on employer career sites'}.{!latest && entry && <> This is an earlier edition: <Link href={path} className={LINK}>see the latest</Link>.</>}</span></>}
+      lede={<><span className="block text-base font-medium text-navy">{e.lead}</span><span className="mt-2 block text-sm">Monthly ranking, {label} edition{latest && <>; the next edition is published {nextEditionDate(e.edition)}</>}. <Link href="/rankings/archive" className={LINK}>Past editions</Link> stay online. Built from {e.placeNoun === 'counties' ? 'public Bureau of Labor Statistics and Census data' : e.placeNoun === 'metro areas' ? 'open white-collar jobs we verified on employer career sites and public federal data' : 'open jobs we verified on employer career sites'}.{!latest && entry && <> This is an earlier edition: <Link href={path} className={LINK}>see the latest</Link>.</>}</span></>}
     >
       {/* The leaders appear once, in the top 25 below: the key facts keep only what the list does not already show. */}
       <p className="text-sm text-muted-foreground" aria-label="Key facts">
