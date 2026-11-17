@@ -6,9 +6,18 @@
 
 import { readCareerHighPointStore, type CareerHighPointStore } from '@/lib/profile/career-high-point'
 
+/**
+ * A city the member added (Widen your search). `name` is how it reads ("Austin, TX", or a metro such as "Dallas-Fort
+ * Worth Metro"); `state` is its main state; lat/lon are its centre (Census places), so the board counts jobs within
+ * commuting distance of it, the same test it uses for home. Added-city matching: src/lib/jobs/added-cities.ts.
+ */
+export type AddedCity = { name: string; state: string; lat: number; lon: number }
+
 export type SearchExpansion = {
   remote: boolean
   states: string[]
+  /** Cities added one by one: only jobs in or near them, not the whole state. Absent in older rows (read as []). */
+  cities?: AddedCity[]
   roles: string[]
   industries: string[]
   at: string | null
@@ -21,9 +30,20 @@ export function readSearchExpansion(json: unknown): SearchExpansion {
   const o = (json ?? {}) as Partial<Record<keyof SearchExpansion, unknown>>
   const list = (x: unknown, re?: RegExp) => (Array.isArray(x) ? [...new Set(x.filter((v): v is string => typeof v === 'string' && (!re || re.test(v))))].slice(0, 12) : [])
   const careerHighPoint = readCareerHighPointStore(o.careerHighPoint)
+  const cities: AddedCity[] = []
+  if (Array.isArray(o.cities)) {
+    for (const c of o.cities as Partial<AddedCity>[]) {
+      if (!c || typeof c.name !== 'string' || typeof c.state !== 'string' || !/^[A-Z]{2}$/.test(c.state)) continue
+      if (typeof c.lat !== 'number' || typeof c.lon !== 'number' || !Number.isFinite(c.lat) || !Number.isFinite(c.lon)) continue
+      if (cities.some((x) => x.name === c.name)) continue
+      cities.push({ name: c.name.slice(0, 80), state: c.state, lat: c.lat, lon: c.lon })
+      if (cities.length >= 12) break
+    }
+  }
   return {
     remote: o.remote === true,
     states: list(o.states, /^[A-Z]{2}$/),
+    cities,
     roles: list(o.roles, /^[a-z_]+$/),
     industries: list(o.industries),
     at: typeof o.at === 'string' ? o.at : null,
