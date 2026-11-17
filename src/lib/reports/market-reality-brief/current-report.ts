@@ -14,13 +14,18 @@ import type { Objection } from './evaluators'
 export const REGEN_COOLDOWN_MINUTES = 30
 /** And never more than this many in a rolling day. */
 export const REGEN_MAX_PER_DAY = 3
+/**
+ * A new report is earned by real work (owner rule, 2026-11-17): a new résumé, search details that actually changed,
+ * a completed reference, or at least this many applications since the last report. One application is not enough.
+ */
+export const MIN_APPLICATIONS_FOR_NEW_REPORT = 5
 
 export type RegenReason = 'first_report' | 'resume_updated' | 'search_details_updated' | 'applied_to_jobs' | 'references_added'
 
 export interface ImprovementSignals {
   /** When the newest resume was uploaded. */
   resumeUploadedAt: Date | null
-  /** When the member last confirmed their search details. */
+  /** When the member last changed their search details (saving the same answers again does not move it). */
   searchStrategyConfirmedAt: Date | null
   /** Applications logged since the last report. */
   applicationsSince: number
@@ -34,7 +39,7 @@ export function improvementReasons(lastGeneratedAt: Date | null, s: ImprovementS
   const out: RegenReason[] = []
   if (s.resumeUploadedAt && s.resumeUploadedAt > lastGeneratedAt) out.push('resume_updated')
   if (s.searchStrategyConfirmedAt && s.searchStrategyConfirmedAt > lastGeneratedAt) out.push('search_details_updated')
-  if (s.applicationsSince > 0) out.push('applied_to_jobs')
+  if (s.applicationsSince >= MIN_APPLICATIONS_FOR_NEW_REPORT) out.push('applied_to_jobs')
   if (s.referencesSince > 0) out.push('references_added')
   return out
 }
@@ -42,8 +47,8 @@ export function improvementReasons(lastGeneratedAt: Date | null, s: ImprovementS
 export const REGEN_REASON_TEXT: Record<RegenReason, string> = {
   first_report: 'You have not generated a report yet.',
   resume_updated: 'you updated your resume',
-  search_details_updated: 'you updated your search details',
-  applied_to_jobs: 'you applied to jobs',
+  search_details_updated: 'you changed your search details',
+  applied_to_jobs: `you applied to ${MIN_APPLICATIONS_FOR_NEW_REPORT} or more jobs`,
   references_added: 'you completed references',
 }
 
@@ -59,6 +64,18 @@ export interface RegenDecision {
   availableAt: Date | null
   /** Plain words for the member: what is ready, or why not and what to do. */
   message: string
+}
+
+// What earns the next report, with how far along the applications are.
+export function nothingNewMessage(applicationsSince: number): string {
+  const left = MIN_APPLICATIONS_FOR_NEW_REPORT - Math.max(0, applicationsSince)
+  const apps = applicationsSince > 0 ? `apply to ${left} more ${left === 1 ? 'job' : 'jobs'} (${applicationsSince} of ${MIN_APPLICATIONS_FOR_NEW_REPORT} since this report)` : `apply to ${MIN_APPLICATIONS_FOR_NEW_REPORT} jobs`
+  return `This report already reflects your work so far. A new one comes after you upload a new résumé, change your search details, complete a reference, or ${apps}.`
+}
+
+/** True when the saved search details differ from what was on file. Values compare as JSON, so arrays and nulls count. */
+export function searchDetailsChanged(before: Record<string, unknown>, after: Record<string, unknown>): boolean {
+  return Object.keys(after).some((k) => JSON.stringify(after[k] ?? null) !== JSON.stringify(before[k] ?? null))
 }
 
 export function regenerationDecision(input: {
@@ -82,7 +99,7 @@ export function regenerationDecision(input: {
       reasons,
       reason,
       availableAt: null,
-      message: 'This report already reflects everything on file. Update your resume, your search details or your references, then regenerate.',
+      message: nothingNewMessage(input.signals.applicationsSince),
     }
   }
   const cooldownEnds = new Date(input.lastGeneratedAt.getTime() + REGEN_COOLDOWN_MINUTES * 60_000)
