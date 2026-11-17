@@ -68,16 +68,17 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events
       lede={lede}
       jsonLd={orgJsonLd(page, path, hiring.jobs)}
     >
-      {row.kind === 'WORKFORCE_BOARD' ? (
-        // Owner decision 2026-11-16: a board's page makes two asks. The box above is for the board ("Claim your page"); this band is
-        // for the job seekers it serves, who say where they are and start onboarding with this board carried along. The band carries
-        // the independence line and the connected-people count.
+      {row.kind === 'WORKFORCE_BOARD' || row.kind === 'JOB_CENTER' ? (
+        // Owner decisions 2026-11-16 (boards) and 2026-11-17 (job centers): these pages make two asks. The box above is for the
+        // organization ("Claim your page"); this band is for the job seekers it serves, who say where they are and start onboarding
+        // with the area's workforce board carried along (a job center's own board). The band carries the independence line and the
+        // connected-people count.
         <OrgCandidateBand
           orgName={row.name}
           branded={!!brand}
           peopleCount={peopleCount}
           properties={props}
-          situations={{ state: row.state, area: row.city ?? st, boardId: row.id, slug: `board_${row.slug}`.slice(0, 70), page: 'board' }}
+          situations={{ state: row.state, area: row.city ?? st, boardId: row.kind === 'WORKFORCE_BOARD' ? row.id : row.boardId, slug: `${row.kind === 'WORKFORCE_BOARD' ? 'board' : 'center'}_${row.slug}`.slice(0, 70), page: 'board' }}
         />
       ) : (
         <p className="mt-3 text-xs text-muted-foreground">

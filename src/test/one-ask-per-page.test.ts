@@ -42,13 +42,14 @@ describe('box above the tool', () => {
 })
 
 describe('directory pages (workforce boards, job centers, economic development)', () => {
-  it('open with the organization box; only a workforce board page adds the job seeker band (owner decision 2026-11-16)', () => {
+  it('open with the organization box; board and job center pages add the job seeker band (owner decisions 2026-11-16, 2026-11-17)', () => {
     const src = read('src/components/seo/OrgPageView.tsx')
     expect(src).toMatch(/look="audience"\s+boxFirst/)
-    // Exactly one band, inside the workforce-board branch, carrying the situation choice. Job centers and economic development keep
-    // the organization box alone.
+    // Exactly one band, inside the board and job center branch, carrying the situation choice. Economic development keeps the
+    // organization box alone.
     expect(src.match(/<OrgCandidateBand/g)?.length).toBe(1)
-    expect(src).toMatch(/row\.kind === 'WORKFORCE_BOARD' \? \([\s\S]*?<OrgCandidateBand[\s\S]*?situations=/)
+    expect(src).toMatch(/row\.kind === 'WORKFORCE_BOARD' \|\| row\.kind === 'JOB_CENTER' \? \([\s\S]*?<OrgCandidateBand[\s\S]*?situations=/)
+    expect(src).not.toMatch(/row\.kind === 'ECON_DEV' \? \([\s\S]*?<OrgCandidateBand/)
     expect(src).toContain('Independent page. Not run by or affiliated with')
   })
 })
