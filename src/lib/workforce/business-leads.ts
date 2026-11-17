@@ -14,27 +14,27 @@ import { searchGoogleNews } from '@/lib/news/discover'
 export type ExpansionStory = { title: string; url: string; source: string | null; publishedAt: string | null }
 export type GrowingCompany = { name: string; openRoles: number; added12wk: number; topFunctions: string[] }
 
-const QUERIES = [
-  '"opening new office"',
-  '"new headquarters" company',
-  '"expanding operations" jobs',
-  '"to open new facility"',
-  '"relocating headquarters to"',
-  '"new regional office"',
-  '"will create" jobs expansion',
-]
-// Headlines about cutting or closing are layoffs, not leads.
-const NOT_A_LEAD = /\b(layoffs?|lay off|cuts?|cutting|clos(e|es|ing|ure)|shut(s|ting)? down|bankrupt\w*|exits?|leaving|leaves|lawsuit|sued)\b/i
+// Unquoted, the way such headlines read (tested 2026-11-17: quoted phrases returned almost nothing).
+const QUERIES = ['opens new headquarters', 'company expansion new jobs', 'announces expansion jobs', 'relocating headquarters', 'moving headquarters to', 'to open office hire', 'selects site new facility jobs']
+// A lead names growth or a move; a story that only cuts or closes is a layoff, not a lead.
+const GROWTH = /\b(opens?|opening|expan\w*|headquarters|hq|relocat\w*|mov(e|es|ing)|new (office|facility|plant|campus|location)|jobs|hir(e|es|ing)|invest\w*|selects?)\b/i
+const CUT = /\b(layoffs?|lay(s)? off|cuts?|cutting|shut(s|ting)? down|bankrupt\w*|lawsuit|sued)\b/i
+const CLOSE_ONLY = /\bclos(e|es|ing|ure)\b/i
+const MOVE = /\b(mov(e|es|ing)|relocat\w*|headquarters|hq)\b/i
+export function isExpansionLead(title: string): boolean {
+  if (!GROWTH.test(title) || CUT.test(title)) return false
+  return !CLOSE_ONLY.test(title) || MOVE.test(title)
+}
 
 export async function expansionNews(): Promise<ExpansionStory[]> {
-  return sharedLoad('business-expansion-news-v1', 12 * 3600, async () => {
+  return sharedLoad('business-expansion-news-v2', 12 * 3600, async () => {
     const seen = new Set<string>()
     const out: ExpansionStory[] = []
     for (const q of QUERIES) {
       const found = await searchGoogleNews(q, { days: 14 }).catch(() => [])
       for (const a of found) {
         const key = a.title.toLowerCase().replace(/\W+/g, ' ').trim().slice(0, 80)
-        if (seen.has(key) || NOT_A_LEAD.test(a.title)) continue
+        if (seen.has(key) || !isExpansionLead(a.title)) continue
         seen.add(key)
         out.push({ title: a.title, url: a.url, source: a.source, publishedAt: a.publishedAt ? new Date(a.publishedAt).toISOString() : null })
       }
