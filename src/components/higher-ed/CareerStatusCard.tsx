@@ -12,7 +12,8 @@ type FlagState = 'IN_TRANSITION' | 'PLACED_GRACE' | null
 
 // "I'm in transition" / "I got a job" (spec §5.1). In transition switches on
 // do-not-solicit, so the college won't ask for money mid-search.
-export function CareerStatusCard({ slug, collegeName, flag }: { slug: string; collegeName: string; flag: FlagState }) {
+// `quiet`: secondary buttons, for a page whose one primary action is elsewhere. `bare`: no card of its own, to sit inside another.
+export function CareerStatusCard({ slug, collegeName, flag, quiet = false, bare = false }: { slug: string; collegeName: string; flag: FlagState; quiet?: boolean; bare?: boolean }) {
   const [showJob, setShowJob] = useState(false)
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -24,7 +25,7 @@ export function CareerStatusCard({ slug, collegeName, flag }: { slug: string; co
     })
 
   return (
-    <section aria-labelledby="career-status" className={cn('space-y-3 rounded-lg border border-border bg-card p-4', pending && 'cursor-wait')}>
+    <section aria-labelledby="career-status" className={cn('space-y-3', !bare && 'rounded-lg border border-border bg-card p-4', pending && 'cursor-wait')}>
       <h2 id="career-status" className="text-base font-semibold">
         Your status
       </h2>
@@ -39,7 +40,7 @@ export function CareerStatusCard({ slug, collegeName, flag }: { slug: string; co
       )}
       <div className="flex flex-wrap gap-2">
         {flag !== 'PLACED_GRACE' && (
-          <Button onClick={() => setShowJob(!showJob)} aria-expanded={showJob}>
+          <Button variant={quiet ? 'outline' : 'default'} onClick={() => setShowJob(!showJob)} aria-expanded={showJob}>
             I got a job
           </Button>
         )}
