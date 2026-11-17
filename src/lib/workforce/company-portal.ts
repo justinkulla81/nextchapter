@@ -10,13 +10,19 @@ import type { InstitutionAccess } from '@/lib/higher-ed/resolve'
 import { localArea, readLocal } from './local'
 import { keptShare, splitByPlace } from './hub'
 
-type Ctx = Pick<InstitutionAccess, 'employerProfileIds' | 'isNcAdmin' | 'institution'> & { mode?: InstitutionAccess['mode'] }
+type Ctx = Pick<InstitutionAccess, 'employerProfileIds' | 'isNcAdmin' | 'institution' | 'memberCompanyIds'> & { mode?: InstitutionAccess['mode'] }
 
 // The member company this request acts as (a demo preview: the first connected one).
 export async function memberCompanyFor(ctx: Ctx) {
+  const select = { id: true, name: true, hiring: true, industry: true, city: true, state: true } as const
+  // A contact with a role (hiring, outplacement) works for the company that invited them in.
+  const contactCompany = ctx.memberCompanyIds?.[0]
+  if (contactCompany) {
+    const c = await prisma.memberCompany.findFirst({ where: { id: contactCompany, institutionId: ctx.institution.id }, select })
+    if (c) return c
+  }
   const employerProfileId = await employerProfileFor(ctx)
   const where = employerProfileId ? { institutionId: ctx.institution.id, employerProfileId } : null
-  const select = { id: true, name: true, hiring: true, industry: true, city: true, state: true } as const
   const c = where ? await prisma.memberCompany.findFirst({ where, select }) : null
   if (c || !ctx.institution.isDemo || !(ctx.isNcAdmin || ctx.mode === 'demo-guest')) return c
   return prisma.memberCompany.findFirst({ where: { institutionId: ctx.institution.id, employerProfileId: { not: null } }, orderBy: { name: 'asc' }, select })

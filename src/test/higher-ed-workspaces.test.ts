@@ -3,6 +3,7 @@ import {
   ALL_TOKENS,
   DEMO_PERSONAS,
   demoPersonasFor,
+  employerCan,
   demoPersonaTokens,
   isReadOnlyIn,
   tabsFor,
@@ -89,10 +90,20 @@ describe('demo personas', () => {
   })
   it('a workforce portal offers workforce roles, not college ones', () => {
     const keys = demoPersonasFor('workforce', 'INSTITUTION').map((p) => p.key)
-    expect(keys).toEqual(['all', 'INSTITUTION_ADMIN', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'WORKFORCE_PARTNER', 'MEMBER', 'EMPLOYER'])
+    expect(keys).toEqual(['all', 'INSTITUTION_ADMIN', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'WORKFORCE_PARTNER', 'MEMBER', 'EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement'])
     expect(keys).not.toContain('EXEC_ED')
     expect(keys).not.toContain('FACULTY')
     expect(demoPersonasFor('college', 'INSTITUTION').map((p) => p.key)).toContain('EXEC_ED')
+    expect(demoPersonasFor('college', 'INSTITUTION').map((p) => p.key)).not.toContain('EMPLOYER:hiring')
+  })
+  it('a member company contact sees only the tabs for their role', () => {
+    const tabs = (t: AccessToken[]) => tabsFor(new Set<AccessToken>(t), 'employer', undefined, 'workforce').map((x) => x.key)
+    expect(tabs(['EMPLOYER'])).toEqual(['overview', 'home', 'page', 'support'])
+    expect(tabs(['EMPLOYER:hiring'])).toEqual(['overview', 'home', 'page'])
+    expect(tabs(['EMPLOYER:outplacement'])).toEqual(['overview', 'support'])
+    expect(workspacesFor(new Set<AccessToken>(['EMPLOYER:outplacement']), undefined, {}, 'workforce')).toEqual(['employer'])
+    expect(employerCan(new Set<AccessToken>(['EMPLOYER:outplacement']), 'hiring')).toBe(false)
+    expect(employerCan(new Set<AccessToken>(['EMPLOYER']), 'hiring')).toBe(true)
   })
   it('an unknown persona falls back to everything', () => {
     expect(demoPersonaTokens('nope')).toEqual(demoPersonaTokens('all'))

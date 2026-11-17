@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getOrgUser } from '@/lib/supabase/get-current-user'
 import { readableTextOn } from '@/lib/higher-ed/branding'
 import { memberInvite } from '@/lib/workforce/member-access'
+import { contactInvite } from '@/lib/workforce/member-contacts'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
 import { AcceptMemberInvite } from '@/components/higher-ed/AcceptMemberInvite'
 
@@ -15,7 +16,10 @@ export default async function MemberInvitePage({ params }: { params: Promise<{ s
   const { slug, token } = await params
   const inst = await prisma.institution.findUnique({ where: { slug }, select: { name: true, programBrandName: true, logoUrl: true, accentColor: true } })
   if (!inst) notFound()
-  const [invite, user] = await Promise.all([memberInvite(slug, token), getOrgUser()])
+  const [companyInvite, contact, user] = await Promise.all([memberInvite(slug, token), contactInvite(slug, token), getOrgUser()])
+  // The main contact sees the whole company view; a contact sees the parts the organization gave them.
+  const invite = companyInvite ? { name: companyInvite.name, invitedEmail: companyInvite.invitedEmail } : contact ? { name: contact.memberCompany.name, invitedEmail: contact.email } : null
+  const can = { outplacement: !contact || contact.roles.includes('OUTPLACEMENT'), hiring: !contact || contact.roles.includes('HIRING') }
   const accent = inst.accentColor ?? '#2e7d5b'
   const brand = inst.programBrandName ?? inst.name
   return (
@@ -29,9 +33,9 @@ export default async function MemberInvitePage({ params }: { params: Promise<{ s
           <>
             <h1 className="text-2xl font-semibold tracking-tight">{invite.name} in {brand}</h1>
             <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
-              <li>When you have a layoff, ask {inst.name} for free career-support seats and get a sign-up page for your people.</li>
-              <li>See how your people are doing: how many joined, are interviewing and landed, and how many stayed local. Counts only.</li>
-              <li>When you&apos;re hiring, see verified profiles people chose to share and ask for an introduction. They say yes or no.</li>
+              {can.outplacement && <li>When you have a layoff, ask {inst.name} for free career-support seats and get a sign-up page for your people.</li>}
+              {can.outplacement && <li>See how your people are doing: how many joined, are interviewing and landed, and how many stayed local. Counts only.</li>}
+              {can.hiring && <li>When you&apos;re hiring, see verified profiles people chose to share and ask for an introduction. They say yes or no.</li>}
             </ul>
             {user ? (
               <AcceptMemberInvite slug={slug} token={token} email={user.email ?? ''} />

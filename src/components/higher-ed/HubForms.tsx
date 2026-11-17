@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
-import { addMemberCompany, addParticipant, answerSeatRequestAction, inviteMemberContact, openLayoffSeats, saveLocalArea, setCompanyHiring, setLayoffOpen, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
+import { addMemberCompany, addParticipant, answerSeatRequestAction, inviteCompanyContactAction, inviteMemberContact, openLayoffSeats, saveLocalArea, setCompanyHiring, setLayoffOpen, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
 
 const sel = 'h-9 w-full rounded-md border border-input bg-background px-2 text-sm'
 const area = 'min-h-20 w-full rounded-md border border-input bg-background p-2 text-sm'
@@ -311,6 +311,79 @@ export function MemberAccess({
         </a>
       )}
     </span>
+  )
+}
+
+// A person at a member company and what they work on (owner, 2026-11-17). Each role is a toggle button; both can be on.
+export function CompanyContactForm({ slug, companies }: { slug: string; companies: { id: string; name: string; connected: boolean }[] }) {
+  const [state, action, pending] = useActionState<(HubResult & { path?: string | null }) | undefined, FormData>(
+    async (prev, f) => inviteCompanyContactAction(slug, prev, f),
+    undefined,
+  )
+  const [companyId, setCompanyId] = useState(companies[0]?.id ?? '')
+  const [email, setEmail] = useState('')
+  const [roles, setRoles] = useState<string[]>(['OUTPLACEMENT'])
+  const company = companies.find((c) => c.id === companyId)
+  const toggle = (r: string) => setRoles((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]))
+  const options = [
+    { key: 'OUTPLACEMENT', label: 'Outplacement', what: 'Layoff seats and how its people are doing' },
+    { key: 'HIRING', label: 'Hiring', what: 'Shared profiles, intros and the jobs it posts' },
+  ]
+  return (
+    <form action={action} className={cn('grid gap-3 sm:grid-cols-2', pending && 'cursor-wait')}>
+      <div className="space-y-1.5">
+        <Label htmlFor="cc-company">Company</Label>
+        <select id="cc-company" name="companyId" value={companyId} onChange={(e) => setCompanyId(e.target.value)} className={sel}>
+          {companies.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="cc-email">Their work email</Label>
+        <Input id="cc-email" name="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+      </div>
+      <fieldset className="space-y-1.5 sm:col-span-2">
+        <legend className="text-sm font-medium">What they work on</legend>
+        <div className="flex flex-wrap gap-2">
+          {options.map((o) => {
+            const on = roles.includes(o.key)
+            return (
+              <button
+                key={o.key}
+                type="button"
+                aria-pressed={on}
+                onClick={() => toggle(o.key)}
+                className={cn('rounded-md border px-3 py-2 text-left text-sm transition-colors', on ? 'border-[color:var(--portal,var(--ink))] bg-[var(--portal-tint,var(--muted))] font-medium' : 'border-border hover:bg-muted')}
+              >
+                <span className="block">{o.label}</span>
+                <span className="block text-xs font-normal text-muted-foreground">{o.what}</span>
+              </button>
+            )
+          })}
+        </div>
+        {roles.map((r) => (
+          <input key={r} type="hidden" name="roles" value={r} />
+        ))}
+        {roles.includes('HIRING') && company && !company.connected && (
+          <p className="text-xs text-amber-800">Hiring works through {company.name}&apos;s main login. Connect its main contact first (Portal access in the table).</p>
+        )}
+      </fieldset>
+      <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
+        <SubmitButton pendingLabel="Sending…" disabled={!roles.length || !email.trim()}>
+          Send invite
+        </SubmitButton>
+        {(!roles.length || !email.trim()) && <span className="text-xs text-muted-foreground">{!email.trim() ? 'Add their email' : 'Pick hiring, outplacement or both'} to send the invite.</span>}
+        <Msg r={state} />
+        {state?.path && !state.error && (
+          <a href={state.path} target="_blank" className="text-xs break-all text-primary hover:underline">
+            {state.path}
+          </a>
+        )}
+      </div>
+    </form>
   )
 }
 
