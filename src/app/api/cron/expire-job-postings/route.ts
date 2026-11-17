@@ -15,8 +15,8 @@ import { withCronRun } from '@/lib/cron/run'
 // URL still live — never a bare "bump."
 export const maxDuration = 300
 
-const TRIM_BATCH = 2_000
-const TRIM_MAX_BATCHES = 25
+const TRIM_BATCH = 500
+const TRIM_MAX_BATCHES = 100
 
 export const GET = withCronRun('expire-job-postings', async () => {
   const result = await prisma.exclusiveJobPosting.updateMany({
@@ -29,22 +29,33 @@ export const GET = withCronRun('expire-job-postings', async () => {
   // over 30 days ago goes back to the ~1,000-character excerpt, so closed rows don't grow the
   // database without bound; if it is listed again the next import stores the full text.
   // Bounded batches with a short statement timeout, so the cron never holds long locks.
+  // Batches of 500 (2,000 hit the 20 s timeout on 2026-11-17). A batch that still times out stops the
+  // trim for today without failing the run: the expiry above has already committed, and tomorrow's
+  // run picks the rest up.
   let trimmed = 0
+  let trimStopped: string | null = null
   for (let i = 0; i < TRIM_MAX_BATCHES; i++) {
-    const n = await prisma.$transaction(async (tx) => {
-      await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = '20s'`)
-      await tx.$executeRawUnsafe(`SET LOCAL lock_timeout = '5s'`)
-      return tx.$executeRaw`
-        UPDATE public."ExclusiveJobPosting" SET "description" = left("description", 1000) || '…'
-        WHERE id IN (
-          SELECT id FROM public."ExclusiveJobPosting"
-          WHERE "archivedAt" < now() - interval '30 days' AND octet_length("description") > 4000
-          LIMIT ${TRIM_BATCH}
-        )`
-    }, { timeout: 30_000 })
+    let n: number
+    try {
+      n = await prisma.$transaction(async (tx) => {
+        await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = '20s'`)
+        await tx.$executeRawUnsafe(`SET LOCAL lock_timeout = '5s'`)
+        return tx.$executeRaw`
+          UPDATE public."ExclusiveJobPosting" SET "description" = left("description", 1000) || '…'
+          WHERE id IN (
+            SELECT id FROM public."ExclusiveJobPosting"
+            WHERE "archivedAt" < now() - interval '30 days' AND octet_length("description") > 4000
+            LIMIT ${TRIM_BATCH}
+          )`
+      }, { timeout: 30_000 })
+    } catch (err) {
+      trimStopped = err instanceof Error ? err.message.slice(-200) : String(err).slice(0, 200)
+      console.error('expire-job-postings: description trim stopped', err)
+      break
+    }
     trimmed += n
     if (n < TRIM_BATCH) break
   }
 
-  return NextResponse.json({ expired: result.count, trimmedClosedDescriptions: trimmed })
+  return NextResponse.json({ expired: result.count, trimmedClosedDescriptions: trimmed, trimStopped })
 })

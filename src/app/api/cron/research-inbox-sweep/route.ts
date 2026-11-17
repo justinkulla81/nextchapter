@@ -16,7 +16,7 @@ export const GET = withCronRun('research-inbox-sweep', async () => {
     return NextResponse.json({ swept: 0, ingested: 0, reason: 'no_connection' })
   }
 
-  const accessToken = await getValidAccessToken()
+  let accessToken = await getValidAccessToken()
   if (!accessToken) {
     return NextResponse.json({ swept: 0, ingested: 0, reason: 'no_token' })
   }
@@ -25,7 +25,17 @@ export const GET = withCronRun('research-inbox-sweep', async () => {
   let ingested = 0
 
   try {
-    const messages = await listAlertMessages(accessToken)
+    let messages
+    try {
+      messages = await listAlertMessages(accessToken)
+    } catch (err) {
+      // A stored token Google no longer accepts (revoked or replaced before its expiry): refresh once and retry.
+      if (!(err instanceof Error && / 401 /.test(err.message))) throw err
+      const fresh = await getValidAccessToken({ force: true })
+      if (!fresh) throw err
+      accessToken = fresh
+      messages = await listAlertMessages(accessToken)
+    }
 
     for (const message of messages) {
       try {
@@ -53,7 +63,9 @@ export const GET = withCronRun('research-inbox-sweep', async () => {
     })
   } catch (err) {
     console.error('Research inbox sweep failed:', err)
-    return NextResponse.json({ error: 'Sweep failed' }, { status: 500 })
+    // The reason goes in the answer so the cron ledger (and the failure email) says what broke.
+    const reason = err instanceof Error ? err.message.slice(0, 300) : String(err).slice(0, 300)
+    return NextResponse.json({ error: 'Sweep failed', reason }, { status: 500 })
   }
 
   // Newsletters are a separate pass: a failure here must not hide the alert sweep above.

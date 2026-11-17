@@ -45,11 +45,12 @@ export async function getValidAccessTokenFor(connection: GoogleInboxConnection):
 // the refreshed token) if the stored one is expired or about to expire.
 // Returns null if no inbox is connected — callers should treat that as
 // "nothing to sweep," not an error.
-export async function getValidAccessToken(): Promise<string | null> {
+// `force` refreshes even when the stored token looks unexpired (Gmail answered 401 to it).
+export async function getValidAccessToken(opts: { force?: boolean } = {}): Promise<string | null> {
   const connection = await getActiveGoogleConnection()
   if (!connection) return null
 
-  if (connection.expiresAt.getTime() > Date.now() + 60_000) {
+  if (!opts.force && connection.expiresAt.getTime() > Date.now() + 60_000) {
     return connection.accessToken
   }
 
