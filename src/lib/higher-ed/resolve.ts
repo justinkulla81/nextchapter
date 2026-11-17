@@ -54,6 +54,15 @@ export type InstitutionAccess = {
   employerProfileIds: string[]
   // The member company a contact works for (MemberCompanyContact), when they hold a role there and not the whole company.
   memberCompanyIds?: string[]
+  // The ecosystem partner(s) a person at a partner works for. On a demo, the preview acts as its first confirmed partner.
+  partnerIds?: string[]
+}
+
+// A demo preview as a partner acts as the demo's first confirmed partner. Never used for a real tenant: only a demo's seeded partners.
+async function demoConfirmedPartners(db: Db, institution: { id: string; isDemo: boolean }): Promise<string[]> {
+  if (!institution.isDemo) return []
+  const p = await db.ecosystemPartner.findFirst({ where: { institutionId: institution.id, status: 'CONFIRMED' }, orderBy: { createdAt: 'asc' }, select: { id: true } })
+  return p ? [p.id] : []
 }
 
 async function demoFeaturedMember(db: Db, institution: { id: string; slug: string }): Promise<string | null> {
@@ -103,7 +112,7 @@ export async function resolveInstitutionAccess(
   const features = workspaceFeaturesOf(enabledFeatures)
 
   const memberOnly = !!args.memberOnly
-  const [staffUsers, member, employerLinks, ncAdmin, contacts] = await Promise.all([
+  const [staffUsers, member, employerLinks, ncAdmin, contacts, partnerContacts] = await Promise.all([
     memberOnly ? [] : db.institutionUser.findMany({
       where: { institutionId: institution.id, userId: args.userId, revokedAt: null, acceptedAt: { not: null } },
       select: { id: true, role: true, workspace: true },
@@ -131,6 +140,14 @@ export async function resolveInstitutionAccess(
           select: { roles: true, memberCompanyId: true, memberCompany: { select: { employerProfileId: true } } },
           take: 5,
         }),
+    // A person at a confirmed ecosystem partner. One indexed lookup; access ends when the partner is no longer confirmed.
+    memberOnly
+      ? []
+      : db.ecosystemPartnerContact.findMany({
+          where: { institutionId: institution.id, userId: args.userId, acceptedAt: { not: null }, partner: { status: 'CONFIRMED' } },
+          select: { partnerId: true },
+          take: 5,
+        }),
   ])
 
   const own = new Set<AccessToken>()
@@ -143,6 +160,7 @@ export async function resolveInstitutionAccess(
   }
   if (member) own.add('MEMBER')
   if (employerLinks.length) own.add('EMPLOYER')
+  if (partnerContacts.length) own.add('PARTNER')
   for (const c of contacts) for (const r of c.roles) if ((EMPLOYER_ROLES as readonly string[]).includes(r.toLowerCase())) own.add(`EMPLOYER:${r.toLowerCase() as EmployerRole}`)
   // A hiring contact acts through the company's connected hiring login (intros, jobs it posts).
   const contactProfiles = contacts.filter((c) => c.roles.includes('HIRING') && c.memberCompany.employerProfileId).map((c) => c.memberCompany.employerProfileId!)
@@ -190,6 +208,7 @@ export async function resolveInstitutionAccess(
     memberId: member?.id ?? (mode === 'demo-admin' ? await demoFeaturedMember(db, institution) : null),
     employerProfileIds: [...new Set([...employerLinks.map((l) => l.employerProfileId), ...contactProfiles])],
     memberCompanyIds: contacts.map((c) => c.memberCompanyId),
+    partnerIds: tokens.has('PARTNER') && partnerContacts.length === 0 ? await demoConfirmedPartners(db, institution) : partnerContacts.map((c) => c.partnerId),
   }
 }
 
@@ -224,5 +243,6 @@ export async function resolveDemoGuestAccess(args: { slug: string; demoPersona?:
     staffUsers: [],
     memberId: tokens.has('MEMBER') ? await demoFeaturedMember(db, institution) : null,
     employerProfileIds: [],
+    partnerIds: tokens.has('PARTNER') ? await demoConfirmedPartners(db, institution) : [],
   }
 }

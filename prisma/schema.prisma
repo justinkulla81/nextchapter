@@ -13126,6 +13126,7 @@ model Institution {
   fundingApplications FundingApplication[]
   partnerViews        PartnerView[]
   ecosystemPartners   EcosystemPartner[]
+  ecosystemContacts   EcosystemPartnerContact[]
   featuredJobs        FeaturedJob[]
   groupJobFeeds       GroupJobFeed[]
   memberCompanies      MemberCompany[]
@@ -15938,8 +15939,34 @@ model EcosystemPartner {
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
+  contacts         EcosystemPartnerContact[]
+  partnerViews     PartnerView[]
+
   @@unique([institutionId, source, refId])
   @@index([institutionId, status])
+}
+
+// A person at a confirmed ecosystem partner who signs in to the organization's portal (Partner view): the steward gives access to an
+// email, the person signs in from a one-time link, and sees only their own partner's page. userId is set when they accept; access ends
+// when the contact is removed or the partner is no longer CONFIRMED.
+model EcosystemPartnerContact {
+  id            String           @id @default(cuid())
+  institutionId String
+  institution   Institution      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  partnerId     String
+  partner       EcosystemPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  email         String
+  userId        String? // Supabase auth.users id, set on accept
+  inviteToken   String?          @unique
+  invitedAt     DateTime         @default(now())
+  acceptedAt    DateTime?
+  createdBy     String
+  isSampleData  Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+
+  @@unique([partnerId, email])
+  @@index([userId])
+  @@index([institutionId])
 }
 
 // A read-only view of an organization's regional data for one partner (a college, an employer, anyone), opened by an unlisted link.
@@ -15960,9 +15987,12 @@ model PartnerView {
   lastOpenedAt      DateTime?
   createdBy         String
   isSampleData      Boolean     @default(false)
+  ecosystemPartnerId String?
+  ecosystemPartner  EcosystemPartner? @relation(fields: [ecosystemPartnerId], references: [id], onDelete: SetNull)
   createdAt         DateTime    @default(now())
 
   @@index([institutionId, createdAt])
+  @@index([ecosystemPartnerId])
 }
 
 // A job an organization features: its group's people see it first. postingId points at an ExclusiveJobPosting (open board or the
