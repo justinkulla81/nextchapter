@@ -13,6 +13,7 @@ import { effectiveJourney, JOURNEYS, type JourneyStage, type JourneyType } from 
 import { holds, WorkspaceAccessError, type InstitutionAccess } from './resolve'
 import type { AccessToken } from './workspaces'
 import { logMemberView } from './audit'
+import { visibleMemberSql } from '@/lib/plans/visible-members'
 
 type Db = PrismaClient | Prisma.TransactionClient
 type Ctx = Pick<InstitutionAccess, 'tokens' | 'institution' | 'staffUsers' | 'mode' | 'email' | 'userId'> & { workspace?: string }
@@ -83,7 +84,9 @@ export async function listMemberDirectory(
   }
   if (opts.classYear) where.push(Prisma.sql`"classYear" = ${opts.classYear}`)
   if (opts.status) where.push(Prisma.sql`status = ${opts.status}::"InstitutionMemberStatus"`)
-  const filter = Prisma.join(where, ' and ')
+  // The free plan shows staff its first few members only (src/lib/plans/visible-members.ts).
+  const visible = await visibleMemberSql(ctx)
+  const filter = Prisma.sql`${Prisma.join(where, ' and ')} ${visible}`
 
   const [rows, count] = await Promise.all([
     db.$queryRaw<DirectoryRow[]>`
@@ -106,7 +109,7 @@ export async function getMemberForStaff(ctx: Ctx & { workspace: string }, member
     select "memberId", "firstName", "lastName", "classYear", affiliation, status, "doNotContact",
            "shareOutcome", "shareEngagement", employer, title, "engagementPoints12mo", "engagementTier"
     from private.v_member_directory
-    where "institutionId" = ${ctx.institution.id} and "memberId" = ${memberId}`
+    where "institutionId" = ${ctx.institution.id} and "memberId" = ${memberId} ${await visibleMemberSql(ctx)}`
   if (!rows[0]) return null
   await logMemberView(ctx, memberId, db)
   return rows[0]
@@ -131,7 +134,7 @@ export async function listOpenTransitions(ctx: Ctx, db: Db = prisma): Promise<Tr
   return db.$queryRaw<TransitionRow[]>`
     select "flagId", "memberId", "firstName", "lastName", "classYear", state, "doNotSolicit", since, "graceEndsAt"
     from private.v_member_transition
-    where "institutionId" = ${ctx.institution.id}
+    where "institutionId" = ${ctx.institution.id} ${await visibleMemberSql(ctx)}
     order by since desc`
 }
 
@@ -181,7 +184,7 @@ export async function listCaseloadActivity(ctx: Ctx, db: Db = prisma): Promise<C
            "shareSearchDetail", "lastActivityAt", "sprintWeekStart", "sprintActionsTotal", "sprintActionsDone",
            "lastCoachingAt", journey, "journeyStage", "nextCheckInAt", "nextCheckInKind"
     from private.v_caseload_activity
-    where "institutionId" = ${ctx.institution.id} ${counselorFilter}
+    where "institutionId" = ${ctx.institution.id} ${counselorFilter} ${await visibleMemberSql(ctx)}
     order by "lastName" nulls last, "firstName" nulls last`
 }
 
@@ -202,7 +205,7 @@ export async function listEmployerDossiers(ctx: Ctx, db: Db = prisma): Promise<D
   return db.$queryRaw<DossierRow[]>`
     select "memberId", "firstName", "lastName", "classYear", degree, major, "dossierSummary"
     from private.v_employer_dossiers
-    where "institutionId" = ${ctx.institution.id}
+    where "institutionId" = ${ctx.institution.id} ${await visibleMemberSql(ctx)}
     order by "lastName" nulls last, "firstName" nulls last`
 }
 
@@ -387,14 +390,14 @@ export async function listSignals(ctx: Ctx, db: Db = prisma): Promise<SignalRow[
       from public."ProspectFlag" f
       join private.v_member_directory d on d."memberId" = f."memberId"
       left join private.v_member_transition t on t."memberId" = f."memberId"
-      where f."institutionId" = ${id} and f."dismissedAt" is null and f."exportedAt" is null
+      where f."institutionId" = ${id} and f."dismissedAt" is null and f."exportedAt" is null ${await visibleMemberSql(ctx, Prisma.sql`f."memberId"`)}
       union all
       select o.id, 'GRATITUDE' as kind, o."memberId", d."firstName", d."lastName", d."classYear", d.employer, d.title,
              o."reportedAt" as "detectedAt", null as "approvedAt", (t."flagId" is not null and t."doNotSolicit") as "doNotSolicit"
       from public."OutcomeReport" o
       join private.v_member_directory d on d."memberId" = o."memberId"
       left join private.v_member_transition t on t."memberId" = o."memberId"
-      where d."institutionId" = ${id} and o."gratitudeStatus" = 'PENDING'
+      where d."institutionId" = ${id} and o."gratitudeStatus" = 'PENDING' ${await visibleMemberSql(ctx, Prisma.sql`o."memberId"`)}
     ) s
     order by "detectedAt" desc`
 }
@@ -436,7 +439,7 @@ export async function updatesExportRows(ctx: Ctx, db: Db = prisma): Promise<Upda
     from public."InstitutionMember" m
     join private.v_member_directory d on d."memberId" = m.id
     left join private.v_member_transition t on t."memberId" = m.id
-    where m."institutionId" = ${id} and m."externalId" is not null
+    where m."institutionId" = ${id} and m."externalId" is not null ${await visibleMemberSql(ctx, Prisma.sql`m.id`)}
     order by m."externalId"`
 }
 

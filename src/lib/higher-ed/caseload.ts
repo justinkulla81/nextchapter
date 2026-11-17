@@ -5,6 +5,7 @@
 // person, not a queue. One open assignment per member.
 
 import 'server-only'
+import { visibleIdsForInstitution } from '@/lib/plans/visible-members'
 import { prisma } from '@/lib/prisma'
 
 export const CASELOAD_ROLES = ['CAREER_SERVICES', 'COACH'] as const
@@ -66,10 +67,12 @@ export async function searchRoster(institutionId: string, q: string) {
   const term = q.trim()
   if (term.length < 2) return []
   const parts = term.split(/\s+/)
+  const visible = await visibleIdsForInstitution(institutionId)
   return prisma.institutionMember.findMany({
     where: {
       institutionId,
       status: { not: 'OPTED_OUT' },
+      ...(visible ? { id: { in: visible } } : {}),
       AND: parts.map((p) => ({ OR: [{ firstName: { contains: p, mode: 'insensitive' as const } }, { lastName: { contains: p, mode: 'insensitive' as const } }, { email: { contains: p, mode: 'insensitive' as const } }] })),
     },
     orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],

@@ -3,9 +3,11 @@
 //
 // Two plans. PAID is every institution that existed before plans (the column
 // defaults to 'PAID', so nothing already set up loses anything) and anyone
-// NextChapter staff switch on. FREE is a verified, claimed workspace: members
-// are always free; the organization holds up to FREE_MEMBER_CAP of them, sees
-// basic counts, lists its own services and has its page.
+// NextChapter staff switch on. FREE is a verified, claimed workspace (owner
+// decisions 2026-11-17): members are always free and anyone can join, but
+// staff see only the first FREE_VISIBLE_MEMBERS of them (the rest show as a
+// count; src/lib/plans/visible-members.ts); one administrator; unlimited member
+// companies and invites; basic counts, its own services and its page.
 //
 // The plan is an extra gate that only restricts FREE. The license tier still
 // decides which workspaces open (src/lib/higher-ed/workspaces.ts); PAID
@@ -14,17 +16,31 @@
 
 export type InstitutionPlan = 'FREE' | 'PAID'
 
-export const FREE_MEMBER_CAP = 50
+// No limit on how many people join a free organization (owner decision 2026-11-17). Kept as a named value so older
+// readers compile; null means no cap.
+export const FREE_MEMBER_CAP: number | null = null
+// How many of its members a free organization's staff can see.
+export const FREE_VISIBLE_MEMBERS = 5
+// How many administrators a free organization has.
+export const FREE_ADMIN_LIMIT = 1
+// How many grants a free organization sees in full; the rest are blurred.
+export const FREE_VISIBLE_GRANTS = 2
 
 // Where a free organization asks for the paid plan: the support address the
 // portal already shows (RegionScreen). There is no self-serve billing.
 export const PLAN_CONTACT_EMAIL = 'support@launchyournextchapter.com'
 
-export type EntitlementFeature = 'reporting' | 'exports' | 'crmExchange' | 'staffRoles' | 'auditLog' | 'sso' | 'nextchapterServices' | 'wioa' | 'members'
+export type EntitlementFeature = 'reporting' | 'exports' | 'crmExchange' | 'staffRoles' | 'auditLog' | 'sso' | 'nextchapterServices' | 'wioa' | 'members' | 'grants'
 
 export type Entitlements = {
   // Most members the organization can hold; null = no cap.
   memberCap: number | null
+  // How many members its staff can see by name; null = all.
+  visibleMembers: number | null
+  // How many administrators it can have; null = no limit.
+  adminLimit: number | null
+  // How many grants it sees in full; null = all.
+  visibleGrants: number | null
   reporting: boolean
   exports: boolean
   crmExchange: boolean
@@ -48,9 +64,9 @@ export function institutionEntitlements(input: { plan: string | null | undefined
   // the wioa switch). Accepted so callers can pass one institution row; unused
   // here on purpose, so the plan can only restrict, never grant.
   if (planOf(input.plan) === 'PAID') {
-    return { memberCap: null, reporting: true, exports: true, crmExchange: true, staffRoles: true, auditLog: true, sso: true, nextchapterServices: true, wioa: true }
+    return { memberCap: null, visibleMembers: null, adminLimit: null, visibleGrants: null, reporting: true, exports: true, crmExchange: true, staffRoles: true, auditLog: true, sso: true, nextchapterServices: true, wioa: true }
   }
-  return { memberCap: FREE_MEMBER_CAP, reporting: false, exports: false, crmExchange: false, staffRoles: false, auditLog: false, sso: false, nextchapterServices: false, wioa: false }
+  return { memberCap: FREE_MEMBER_CAP, visibleMembers: FREE_VISIBLE_MEMBERS, adminLimit: FREE_ADMIN_LIMIT, visibleGrants: FREE_VISIBLE_GRANTS, reporting: false, exports: false, crmExchange: false, staffRoles: false, auditLog: false, sso: false, nextchapterServices: false, wioa: false }
 }
 
 const WHAT: Record<EntitlementFeature, string> = {
@@ -62,7 +78,8 @@ const WHAT: Record<EntitlementFeature, string> = {
   sso: 'Single sign-on is',
   nextchapterServices: 'Using NextChapter’s coaching and courses is',
   wioa: 'Workforce (WIOA) reporting is',
-  members: `More than ${FREE_MEMBER_CAP} members are`,
+  members: `Seeing more than ${FREE_VISIBLE_MEMBERS} of your members is`,
+  grants: `Every grant that fits you, with a shortlist, is`,
 }
 
 export const LOCKED_TITLES: Record<EntitlementFeature, string> = {
@@ -74,7 +91,8 @@ export const LOCKED_TITLES: Record<EntitlementFeature, string> = {
   sso: 'Single sign-on',
   nextchapterServices: 'NextChapter coaching and courses',
   wioa: 'Workforce (WIOA) reporting',
-  members: 'More members',
+  members: 'See all your members',
+  grants: 'Every grant that fits you',
 }
 
 // Plain words: what is locked, and the one thing to do about it.
@@ -132,7 +150,9 @@ export const GATED_EXPORTS: Record<string, EntitlementFeature> = {
 }
 
 export function featureOn(e: Entitlements, feature: EntitlementFeature): boolean {
-  return feature === 'members' ? e.memberCap === null : e[feature]
+  if (feature === 'members') return e.visibleMembers === null
+  if (feature === 'grants') return e.visibleGrants === null
+  return e[feature]
 }
 
 // The feature that blocks this export kind on this plan, or null when it may be downloaded.

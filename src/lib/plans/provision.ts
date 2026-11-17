@@ -5,7 +5,6 @@ import { uniqueSlug } from '@/lib/organizations/slug'
 import { isReservedSlug } from '@/lib/organizations/front-door'
 import { inviteInstitutionUser } from '@/lib/institution/invite'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { FREE_MEMBER_CAP } from './entitlements'
 
 // Creates the free workspace for a verified claim (the claim flow calls this;
 // nothing else does). One Institution per CrmOrganization, so it is idempotent:
@@ -62,7 +61,7 @@ export async function provisionFreeWorkspace(input: ProvisionInput): Promise<Pro
     const slug = uniqueSlug(name, (s) => taken.has(s) || isReservedSlug(s) || s.length < 3)
     try {
       institution = await prisma.institution.create({
-        data: { name, slug, orgType: institutionOrgTypeFor(input.orgType), tier: 'CAREER', plan: 'FREE', includedSeats: FREE_MEMBER_CAP, crmOrganizationId },
+        data: { name, slug, orgType: institutionOrgTypeFor(input.orgType), tier: 'CAREER', plan: 'FREE', includedSeats: 0, crmOrganizationId },
         select: { id: true, slug: true },
       })
       created = true

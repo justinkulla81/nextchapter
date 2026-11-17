@@ -211,6 +211,15 @@ export async function inviteStaff(slug: string, _prev: FormState, formData: Form
     captureServerEvent(ctx.userId, 'entitlement_locked_attempted', { feature: 'staffRoles', plan: ctx.institution.plan, slug, role })
     return { error: lockedReason('staffRoles') }
   }
+  // The free plan has one administrator (owner decision 2026-11-17): active or still invited.
+  const adminLimit = institutionEntitlements({ plan: ctx.institution.plan }).adminLimit
+  if (role === 'INSTITUTION_ADMIN' && adminLimit !== null) {
+    const admins = await prisma.institutionUser.count({ where: { institutionId: ctx.institution.id, role: 'INSTITUTION_ADMIN', revokedAt: null } })
+    if (admins >= adminLimit) {
+      captureServerEvent(ctx.userId, 'entitlement_locked_attempted', { feature: 'staffRoles', plan: ctx.institution.plan, slug, role, reason: 'admin_limit' })
+      return { error: `The free plan has ${adminLimit === 1 ? 'one administrator' : `${adminLimit} administrators`}, and that place is taken. ${lockedReason('staffRoles')}` }
+    }
+  }
   const workspace = role === 'VIEWER' ? String(formData.get('workspace') ?? '') : null
   if (role === 'VIEWER' && !VIEWER_WORKSPACES.includes(workspace as WorkspaceKey)) return { error: 'Pick which workspace this viewer can see.' }
   const result = await inviteInstitutionUser({

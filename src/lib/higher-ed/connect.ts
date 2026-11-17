@@ -3,6 +3,7 @@
 // employers see a fair visitor's Dossier only when the alum shared it.
 
 import 'server-only'
+import { visibleIdsForInstitution } from '@/lib/plans/visible-members'
 import { prisma } from '@/lib/prisma'
 
 const DAY = 86_400_000
@@ -92,8 +93,10 @@ export async function visitBooth(boothId: string, memberId: string, note: string
 
 // For staff and the booth's employer: who stopped by.
 export async function boothVisitors(boothId: string) {
+  const booth = await prisma.fairBooth.findUnique({ where: { id: boothId }, select: { event: { select: { institutionId: true } } } })
+  const visible = booth ? await visibleIdsForInstitution(booth.event.institutionId) : null
   const rows = await prisma.fairBoothVisit.findMany({
-    where: { boothId },
+    where: { boothId, ...(visible ? { memberId: { in: visible } } : {}) },
     orderBy: { createdAt: 'asc' },
     include: { member: { select: { firstName: true, lastName: true, classYear: true, email: true, candidateId: true } } },
   })
