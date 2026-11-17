@@ -194,7 +194,7 @@ function PhotoStrip({ profile, limit = 4 }: { profile: InstitutionProfile; limit
 // ── Candidate ───────────────────────────────────────────────────────────────
 
 const CANDIDATE_TOOLS = [
-  { label: 'Market Reality Grade', href: '/dashboard/market-reality', what: 'Where your search stands against the market, graded weekly.' },
+  { label: 'Market Reality Grade', href: '/dashboard/market-reality', what: 'Where your search stands against the market. A new report comes when you have done new work.' },
   { label: 'Search Action Plan', href: '/dashboard', what: 'The next moves that will change your grade.' },
   { label: 'Weekly Search Sprint', href: '/dashboard/sprint', what: "This week's committed actions." },
   { label: 'Dossier', href: '/dashboard/recruiter-report', what: 'Your verified, reference-backed profile for employers.' },
