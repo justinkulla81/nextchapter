@@ -7,7 +7,7 @@ import { SituationForm } from '@/components/onboarding/SituationForm'
 import { BundleShell } from '@/components/onboarding/bundles/BundleShell'
 import { BundleForm } from '@/components/onboarding/bundles/BundleForm'
 import { submitWhereYouAre } from '@/app/onboarding/bundle-actions'
-import { JOURNEY_TO_SITUATION } from '@/lib/constants/onboarding'
+import { JOURNEY_TO_SITUATION, SITUATION_TO_JOURNEY, type SituationKey } from '@/lib/constants/onboarding'
 import { effectiveJourney } from '@/lib/journey/journey'
 import { flowOfProfile } from '@/lib/onboarding/flag'
 import { storedAnswers } from '@/lib/onboarding/answers'
@@ -33,6 +33,11 @@ export default async function SituationPickerPage({ searchParams }: { searchPara
     if (!board) arrived = { ...arrived, boardId: null }
   }
   const entryGoal = entryFromGoalParam(goal) ? goal : undefined
+  // A situation already picked before onboarding (a /start page's button, an email's situation button), carried on the link because
+  // session storage does not cross from the main site to the candidate host. A place or board link carries its own (`arrived`).
+  const linkedSituation = typeof sp.situation === 'string' && sp.situation in SITUATION_TO_JOURNEY ? (sp.situation as SituationKey) : null
+  // Picked in an email: they have answered twice already (the email, and before that the job page's own ask), so it is sent on.
+  const answeredInEmail = !!linkedSituation && from === 'lead_email'
   const user = await getCurrentUser()
 
   // Arrived from the /after-a-layoff form (its source rides on the link): recorded here, on the server, so it is not lost to the browser.
@@ -75,12 +80,15 @@ export default async function SituationPickerPage({ searchParams }: { searchPara
     // here" also answers what is behind the move.
     const fromPlace = !answeredOnLanding && !stored.situation && arrived?.situation
       ? { situation: arrived.situation, ...(arrived.situation === 'relocating' ? { moveDriver: 'relocating' } : {}) }
-      : {}
+      : !answeredOnLanding && !stored.situation && linkedSituation
+        ? { situation: linkedSituation }
+        : {}
     const initial = answeredOnLanding ? { ...stored, situation: getPersona('laid-off')?.situation ?? 'just_laid_off' } : { ...stored, ...fromPlace }
+    const sendOn = answeredOnLanding || (answeredInEmail && !profile?.desireComplete && !stored.situation)
     const hidden = { ...(entryGoal ? { entry: entryGoal } : {}), ...(arrived ? arrivedHiddenFields(arrived) : {}) }
     return (
       <BundleShell id="where_you_are" title={profile?.firstName ? `Hi ${profile.firstName}, which of these sounds most like you?` : 'Which of these sounds most like you?'}>
-        <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} hidden={Object.keys(hidden).length > 0 ? hidden : undefined} autoSubmit={answeredOnLanding} />
+        <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} hidden={Object.keys(hidden).length > 0 ? hidden : undefined} autoSubmit={sendOn} />
       </BundleShell>
     )
   }
@@ -92,7 +100,7 @@ export default async function SituationPickerPage({ searchParams }: { searchPara
   // own action already redirects on to /onboarding/resume after a (first or
   // changed) submit, so nothing forward-flow depends on this page
   // self-redirecting on load.
-  const initialSituation = journey ? JOURNEY_TO_SITUATION[journey] : null
+  const initialSituation = journey ? JOURNEY_TO_SITUATION[journey] : linkedSituation
 
   return (
     <div className="space-y-6">

@@ -25,6 +25,8 @@ interface Lead {
   welcomeSentAt: Date | null
   /** The journey (persona slug) already on the address's row, e.g. chosen after confirming a job alert. */
   journey?: string | null
+  /** The job saved or applied for (a saved or applied job). */
+  jobId?: string | null
 }
 
 const clean = (email: string) => email.trim().toLowerCase()
@@ -54,7 +56,7 @@ async function gatherLeads(now: Date): Promise<{ leads: Lead[]; unsubscribed: Se
   for (const s of saved) {
     // Went on to the employer (Apply click, or the prompt before it) versus only saving the job.
     const applied = s.followup === 'apply_click' || s.followup === 'apply_gate'
-    leads.push({ email: clean(s.email), name: null, variant: applied ? 'applied_job' : 'saved_job', channel: applied ? 'Applied job' : 'Saved job', detail: jobLabel.get(s.searchQ) ?? null, capturedAt: s.createdAt, welcomeSentAt: null, journey: s.journeySlug || null })
+    leads.push({ email: clean(s.email), name: null, variant: applied ? 'applied_job' : 'saved_job', channel: applied ? 'Applied job' : 'Saved job', detail: jobLabel.get(s.searchQ) ?? null, capturedAt: s.createdAt, welcomeSentAt: null, journey: s.journeySlug || null, jobId: s.searchQ || null })
   }
   for (const a of alerts) {
     if (!a.confirmedAt) continue
@@ -199,6 +201,7 @@ export async function runLeadLifecycle(now = new Date()): Promise<LifecycleSumma
       variant: lead.variant,
       step,
       context: { firstName: lead.name?.split(' ')[0] ?? null, detail: lead.detail, journey: picked.get(email) ?? lead.journey ?? null },
+      jobId: lead.jobId ?? null,
       personId,
     })
     if (ok) summary.steps[step]++

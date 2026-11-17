@@ -11,6 +11,10 @@ export interface LeadEmailContent {
   /** The one-tap "which sounds most like you" buttons, when we do not know their journey yet. The profile button becomes a plain link beneath. */
   choicesPrompt?: string
   choices?: { label: string; url: string }[]
+  /** Open jobs like the one they applied for, each a tracked link. Shown under the paragraphs, above the profile button. */
+  jobs?: LeadEmailJob[]
+  /** The one line between the jobs and the profile button. */
+  afterJobs?: string
   /** The line above the unsubscribe link: says what else we will and will not send. */
   footerNote: string
 }
@@ -23,6 +27,15 @@ export interface LeadEmailContext {
   journey?: string | null
   /** The journey buttons to show when `journey` is unknown. */
   choices?: { label: string; url: string }[]
+  /** Open jobs like the one they applied for (the application welcome), each with its tracked link. */
+  jobs?: LeadEmailJob[]
+}
+
+export interface LeadEmailJob {
+  title: string
+  company: string
+  place: string | null
+  url: string
 }
 
 const BENEFITS = [
@@ -44,6 +57,23 @@ export function leadEmailContent(variant: LeadVariant, step: LeadStep, c: LeadEm
   if (variant === 'waitlist_b2b' || !base.ctaLabel) return base
   const followUp = variant === 'applied_job' && step === 'nudge1'
   const persona = c.journey ? getPersona(c.journey) : null
+
+  // Someone who just went to apply wants jobs, so the welcome shows three open ones like it and makes one ask under them. Without
+  // three to show it falls through to the situation question below. (2026-11-17: 57 welcomes with the question, 3 taps, 0 signups.)
+  if (variant === 'applied_job' && step === 'welcome' && (c.jobs?.length ?? 0) >= 3) {
+    return {
+      ...base,
+      headline: 'Three more jobs like this one',
+      paragraphs: [
+        hello(c),
+        c.detail ? `You went to apply for ${c.detail}. These are open now and look like it:` : 'You went to apply for a job. These are open now and look like it:',
+      ],
+      jobs: c.jobs!.slice(0, 3),
+      benefits: [],
+      ctaLabel: 'Create my free profile',
+      afterJobs: 'Make a free profile and we send you jobs like these, ranked by how well you fit. No résumé needed to start.',
+    }
+  }
 
   if (persona && step === 'nudge1' && !followUp) {
     const plan = planFor(persona.slug)
@@ -249,6 +279,7 @@ export function leadEmailText(content: LeadEmailContent, ctaUrl: string | null):
     content.headline,
     '',
     ...content.paragraphs,
+    ...(content.jobs?.length ? ['', ...content.jobs.map((j) => `- ${j.title}, ${[j.company, j.place].filter(Boolean).join(', ')}: ${j.url}`), '', content.afterJobs ?? ''] : []),
     ...(content.choices?.length ? ['', content.choicesPrompt ?? '', ...content.choices.map((o) => `- ${o.label}: ${o.url}`)] : []),
     ...(content.benefits.length ? ['', ...content.benefits.map((b) => `- ${b}`)] : []),
     ...(content.ctaLabel && ctaUrl ? ['', `${content.ctaLabel}: ${ctaUrl}`] : []),

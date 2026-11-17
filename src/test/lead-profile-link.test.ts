@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 
 beforeAll(() => {
   process.env.MAILING_UNSUBSCRIBE_SECRET = 'test-secret'
+  process.env.NEXT_PUBLIC_APP_URL = 'https://launchyournextchapter.com'
 })
 
 import { LEAD_COOKIE, emailFromLeadCookie, profileDestination } from '@/lib/leads/lifecycle/prefill'
@@ -12,9 +13,9 @@ import { NextRequest } from 'next/server'
 const call = (token: string, query = '') => GET(new NextRequest(`https://launchyournextchapter.com/api/lead-profile/${token}${query}`), { params: Promise.resolve({ token }) })
 
 describe('profileDestination', () => {
-  it('goes to the journey page when the journey is real, else the situation question', () => {
+  it('goes to the first question with the picked situation filled in, else the question as it is', () => {
     const params = new URLSearchParams('from=lead_email&utm_source=lead_email&utm_campaign=saved_job_nudge1')
-    expect(profileDestination('laid-off', params)).toBe('/start/laid-off?from=lead_email&utm_source=lead_email&utm_campaign=saved_job_nudge1')
+    expect(profileDestination('laid-off', params)).toBe('/onboarding/desire?goal=market-reality&situation=just_laid_off&from=lead_email&utm_source=lead_email&utm_campaign=saved_job_nudge1')
     expect(profileDestination('not-a-journey', params).startsWith('/onboarding/desire?')).toBe(true)
     expect(profileDestination(null, new URLSearchParams())).toBe('/onboarding/desire')
   })
@@ -36,12 +37,34 @@ describe('GET /api/lead-profile/<token>', () => {
   it('sets the cookie for a signed token and redirects to the journey page', async () => {
     const token = makeUnsubscribeToken('a@example.org', null)
     const res = await call(token, '?j=laid-off&from=lead_email')
-    expect(res.headers.get('location')).toContain('/start/laid-off?from=lead_email')
+    expect(res.headers.get('location')).toContain('/onboarding/desire?goal=market-reality&situation=just_laid_off&from=lead_email')
     expect(res.cookies.get(LEAD_COOKIE)?.value).toBe(token)
+    // On the whole site, so the details step on the candidate host can read it.
+    expect(res.headers.get('set-cookie')).toMatch(/Domain=launchyournextchapter\.com/i)
   })
   it('redirects without a cookie for a bad token', async () => {
     const res = await call('garbage')
     expect(res.headers.get('location')).toContain('/onboarding/desire')
+    expect(res.cookies.get(LEAD_COOKIE)).toBeUndefined()
+  })
+})
+
+describe('GET /api/lead-job/<token>', () => {
+  const job = (token: string, query: string) =>
+    import('@/app/api/lead-job/[token]/route').then(({ GET: jobGet }) =>
+      jobGet(new NextRequest(`https://launchyournextchapter.com/api/lead-job/${token}${query}`, { headers: { 'user-agent': 'Mozilla/5.0' } }), { params: Promise.resolve({ token }) }),
+    )
+  it('opens the job page with the email attribution and remembers the address', async () => {
+    const token = makeUnsubscribeToken('a@example.org', null)
+    const res = await job(token, '?job=cmvpdmxyt006zkz081f6gvn3s&step=welcome&pos=2')
+    const location = new URL(res.headers.get('location')!)
+    expect(location.pathname).toBe('/jobs/cmvpdmxyt006zkz081f6gvn3s')
+    expect(location.searchParams.get('utm_content')).toBe('similar_job')
+    expect(res.cookies.get(LEAD_COOKIE)?.value).toBe(token)
+  })
+  it('never redirects anywhere but a job page', async () => {
+    const res = await job('garbage', '?job=https://evil.example')
+    expect(new URL(res.headers.get('location')!).pathname).toBe('/jobs')
     expect(res.cookies.get(LEAD_COOKIE)).toBeUndefined()
   })
 })
