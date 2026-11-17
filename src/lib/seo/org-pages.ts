@@ -482,7 +482,7 @@ type DirectoryEntry = { id: string; name: string; slug: string }
 const stateDirectory = memoTtl(6 * 60 * 60_000, (state: string) => state, async (state: string) => {
   const [centerRows, partnerRows, boardRows, counties] = await Promise.all([
     prisma.americanJobCenter.findMany({ where: { state }, select: { id: true, name: true, city: true, countyFips: true } }),
-    prisma.localPartnerOrg.findMany({ where: { state }, select: { id: true, name: true, city: true, kind: true, counties: true, website: true } }),
+    prisma.localPartnerOrg.findMany({ where: { state }, select: { id: true, name: true, city: true, kind: true, source: true, counties: true, website: true } }),
     getStateBoards(state),
     getStateCounties(state),
   ])
@@ -496,7 +496,7 @@ const stateDirectory = memoTtl(6 * 60 * 60_000, (state: string) => state, async 
     counties: counties.map((c) => ({ fips: c.fips, token: countyToken(c.name) })),
     boards: boardRows.map((b) => ({ id: b.id, name: b.name, slug: b.slug, tokens: boardCountyKeys(b) })),
     centers: centerRows.map((r) => ({ id: r.id, name: cleanOrgName(r.name), slug: centerSlugs.get(r.id)!, countyFips: r.countyFips })),
-    partners: merged.filter((r) => r.kind !== 'STATE_AGENCY').map((r) => ({ id: r.id, name: cleanOrgName(r.name), slug: partnerSlugs.get(r.id)!, tokens: r.counties.map(keyOf) })),
+    partners: merged.filter((r) => r.kind !== 'STATE_AGENCY').map((r) => ({ id: r.id, name: cleanOrgName(r.name), slug: partnerSlugs.get(r.id)!, tokens: r.counties.map(keyOf), kind: r.kind, source: r.source })),
     community: partnerRows.filter((r) => r.kind === 'COMMUNITY_JOBS').map((r) => ({ id: r.id, name: cleanOrgName(r.name), website: absoluteWebUrl(r.website), tokens: r.counties.map(keyOf) })),
   }
 })
@@ -508,6 +508,23 @@ export async function communityForCounties(fipsList: string[], state: string): P
   const want = new Set(fipsList)
   const tokens = new Set(dir.counties.filter((c) => want.has(c.fips)).map((c) => c.token))
   return dir.community.filter((c) => c.tokens.some((t) => tokens.has(t))).slice(0, 8).map(({ id, name, website }) => ({ id, name, website }))
+}
+
+/**
+ * Up to three organizations, besides the workforce board, that serve the people of one county: the local economic development
+ * organization or chamber first (the directory and research ones, not a multi-county planning district), then a community job
+ * program. For the board's layoff email, which names them ("One Louisville, Goodwill Kentucky ... serve them too"). Narrow, cached.
+ */
+export async function localPartnerNames(state: string | null, county: string | null): Promise<string[]> {
+  if (!state || !county) return []
+  const dir = await stateDirectory(state)
+  const token = countyToken(county.replace(/\s+county$/i, ''))
+  const serves = (tokens: string[]) => tokens.includes(token)
+  const local = dir.partners.filter((p) => p.kind === 'LOCAL_EDO' && serves(p.tokens))
+  // Organizations found on their own sites (chambers, city offices) are the ones people know by name; directory ones next.
+  local.sort((a, b) => (a.source === 'RESEARCH' ? 0 : 1) - (b.source === 'RESEARCH' ? 0 : 1) || a.tokens.length - b.tokens.length)
+  const community = dir.community.filter((c) => serves(c.tokens))
+  return [...new Set([...local.slice(0, 2).map((p) => p.name), ...community.slice(0, 1).map((c) => c.name), ...local.slice(2).map((p) => p.name)])].slice(0, 3)
 }
 
 /** The help across a state line for a place given by its county FIPS codes (place pages call this directly). */

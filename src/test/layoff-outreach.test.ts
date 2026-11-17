@@ -356,3 +356,31 @@ describe('when Hunter cannot be asked', async () => {
     for (const s of ['done', 'cap', 'time']) expect(isVerifyBlocked(s), s).toBe(false)
   })
 })
+
+describe('board first (owner, 2026-11-17)', async () => {
+  const { outreachCopy, listNames } = await import('@/lib/warn/outreach/copy')
+  const board = group('workforce_board', [card({ name: 'Bo Ard', email: 'bo@board.org', greet: 'Bo', personId: 'b1', title: 'Director' })])
+  const centers = group('job_centers', [card({ name: 'Center', email: 'c@center.org', greet: 'team', personId: undefined, title: null })])
+  const edo = group('economic_development', [card({ name: 'Ed', email: 'ed@chamber.org', greet: 'Ed', personId: undefined, title: null })])
+  const withPartners = { ...ctx, partners: ['One Louisville', 'Goodwill Kentucky', 'Louisville Urban League'] }
+
+  it('emails the board and leaves the job centers and economic development to it', () => {
+    const plans = planOutreach([board, centers, edo, group('head_hr', [card()])], withPartners, none)
+    expect(plans.map((p) => p.audience).sort()).toEqual(['outplacement', 'workforce_board'])
+  })
+  it('still emails the job centers and economic development when there is no board address to email', () => {
+    const plans = planOutreach([group('workforce_board', [card({ name: 'Guess', email: 'g@board.org', guessed: true })]), centers, edo], withPartners, none)
+    expect(plans.map((p) => p.audience).sort()).toEqual(['economic_development', 'job_center'])
+  })
+  it('names the other organizations in the board note only, and keeps it short with one link', () => {
+    const base = { greet: 'Bo', link: 'https://launchyournextchapter.com/network/company/acme', picture, bls: 'x', signOff: SIGN_OFF, mode: 'new' as const, arm: 'B' as const, partners: withPartners.partners }
+    const b = outreachCopy({ ...base, audience: 'workforce_board' }).body
+    expect(b).toContain('One Louisville, Goodwill Kentucky and Louisville Urban League serve them too; the same page works for all of you.')
+    expect(b.split('\n\n').slice(0, -1).join(' ').split(/\s+/).length).toBeLessThan(110)
+    expect(b.match(/https:\/\//g)?.length).toBe(1)
+    expect(outreachCopy({ ...base, audience: 'job_center' }).body).not.toContain('serve them too')
+    expect(outreachCopy({ ...base, audience: 'workforce_board', partners: [] }).body).not.toContain('serve them too')
+    expect(listNames(['A'])).toBe('A')
+    expect(listNames(['A', 'B'])).toBe('A and B')
+  })
+})

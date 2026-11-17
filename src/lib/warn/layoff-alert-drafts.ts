@@ -10,6 +10,7 @@ import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { stateSlug } from '@/lib/seo/states'
 import { INDUSTRY_NAME, type LocalPicture } from './layoff-picture'
+import { listNames } from './outreach/copy'
 import type { ContactCard, ContactGroup } from './layoff-alert-rules'
 
 /** The key a tracked compose click carries through /api/e/go, and the read of it back. */
@@ -53,6 +54,8 @@ export interface DraftContext {
   peoplePage: string | null
   /** The layoff's county page (/places/<state>/county/<county>), when it exists; the partner notes fall back to the state page. */
   localPage?: string | null
+  /** Other organizations that serve the same people (localPartnerNames), named in the workforce board's note. */
+  partners?: string[]
   /** Wraps a compose link so a click is counted (src/app/api/e/go) before it opens Gmail. Absent: the plain link. */
   track?: (href: string, meta: { group: string; variant: string | undefined; personId: string | undefined }) => string
 }
@@ -173,6 +176,7 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
       const share = x.peoplePage ? `I put together a page for the ${who} leaving ${org}, matched to the work they did. It's free for ${kind === 'job_centers' ? 'them' : kind === 'economic_development' ? 'the people affected' : 'the people you refer'}: ${x.peoplePage} ${second}` : `I put together a page that shows where the roles are. It's free for the people you refer: ${local}`
       const pageLine: Record<string, string> = { rapid_response: share, workforce_board: share, job_centers: share, economic_development: share }
       const unemployment = kind === 'workforce_board' && p.unemploymentRate != null && p.areaLabel ? `${p.areaLabel} unemployment is ${p.unemploymentRate}%.` : ''
+      const others = kind === 'workforce_board' && x.partners?.length ? `${listNames(x.partners.slice(0, 3))} serve them too; the same page works for all of you.` : ''
       const subjects: Record<string, string[]> = {
         rapid_response: [`before your ${org} meeting`, ...(emp ? [`where ${org}'s ${emp} can land in ${state ?? 'the state'}`] : [])],
         workforce_board: [emp ? `${org}'s ${emp}, in ${place ?? 'your region'}` : `${org}, in ${place ?? 'your region'}`, `a page for your ${org} layoff`],
@@ -183,7 +187,7 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
         ...pickSubject(subjects[kind], c.email ?? c.name),
         body: [hello,
           `I'm Justin Kulla, founder of NextChapter, the leading job transition platform built for laid-off professionals.`,
-          [lead[kind], market, hiring(p) ?? '', unemployment, pageLine[kind]].filter(Boolean).join(' '),
+          [lead[kind], market, hiring(p) ?? '', unemployment, pageLine[kind], others].filter(Boolean).join(' '),
           ALONGSIDE,
           CLOSE,
           SIGN_OFF].join('\n\n'),
