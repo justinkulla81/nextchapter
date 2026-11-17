@@ -218,18 +218,29 @@ function payText(min: number | null, max: number | null, period: string | null):
 
 /** The newest listings, re-checked against the full public-page rule so every one listed has a page. */
 export async function newestJobs(ids: string[], limit: number): Promise<TitleJob[]> {
-  const [wide, ghosts] = await Promise.all([
-    // The list never shows the posting text: read only the first characters isPublicJob checks (a full row is ~5 KB).
-    prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids } }, select: PUBLIC_JOB_LIST_SELECT }).then(withDescriptionStubs),
-    getConfirmedGhostIds(),
-  ])
-  const byId = new Map(wide.map((w) => [w.id, w]))
+  // The stored lists hold up to 60 ids, newest first, and nearly all are still public when a page is built (the first 20 gave 20 on
+  // every title checked, 2026-11-17), but the page shows 15 or 20. Read the first limit + 5 and the rest only when too few pass: a third
+  // of the rows (#13 by database time in the 2026-11-17 statement stats: 60 rows a call, 83,453 calls).
+  const read = (part: string[]) =>
+    part.length
+      ? prisma.exclusiveJobPosting.findMany({ where: { id: { in: part } }, select: PUBLIC_JOB_LIST_SELECT }).then(withDescriptionStubs)
+      : Promise.resolve([])
+  const first = ids.slice(0, limit + 5)
+  const [firstRows, ghosts] = await Promise.all([read(first), getConfirmedGhostIds()])
   const now = Date.now()
-  return ids
-    .flatMap((id) => {
+  const pass = (rows: Awaited<ReturnType<typeof read>>, part: string[]) => {
+    const byId = new Map(rows.map((w) => [w.id, w]))
+    return part.flatMap((id) => {
       const w = byId.get(id)
       return w && isPublicJob(w, now, ghosts.has(w.id)) ? [w] : []
     })
+  }
+  let kept = pass(firstRows, first)
+  if (kept.length < limit && ids.length > first.length) {
+    const rest = ids.slice(first.length)
+    kept = [...kept, ...pass(await read(rest), rest)]
+  }
+  return kept
     .slice(0, limit)
     .map((r) => ({ id: r.id, title: r.title, company: r.companyName, location: r.location, postedAt: (r.postedAt ?? r.createdAt).toISOString(), pay: payText(r.salaryMin, r.salaryMax, r.payPeriod) }))
 }
@@ -283,6 +294,15 @@ const cachedPlaceIndex = unstable_cache(async () => (await readBoardFigure<Place
 export async function getTitlePlaceIndex(): Promise<PlaceIndexRow[]> {
   return cachedPlaceIndex()
 }
+
+/**
+ * The same pairs as "title:place" keys, held on the instance for ten minutes. A job page links to its title's page for its city or state
+ * when there is one, and it looked up both keys in BoardFigure on every render: ~357,000 lookups a day, almost all for pairs with no page
+ * (#14 by database time in the 2026-11-17 statement stats). It now asks this set first and reads only a pair that exists. The index and
+ * the pages are written by the same board-figures step (refreshTitleFigures), so the two agree.
+ */
+export const titlePlaceKeys = memoTtl(10 * 60_000, () => 'all', async (): Promise<Set<string>> =>
+  new Set((await getTitlePlaceIndex()).map(([title, key]) => `${title}:${key}`)))
 
 export interface TitlePlaceDetail {
   stat: TitleStat
