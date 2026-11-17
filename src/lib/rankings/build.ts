@@ -17,7 +17,7 @@ import { profileSpecs, rankProfile } from '@/lib/rankings/wave5-specs'
 import { rankSupport, supportSpecs } from '@/lib/rankings/wave6-specs'
 import { loadAjcByCounty, loadConferenceEvents, loadFlexStats, loadStateFacts } from '@/lib/rankings/wave6-scan'
 import { loadEntityStats, loadProfileCityRows, loadSocGroups } from '@/lib/rankings/wave5-scan'
-import { degreeSpecs, rankDegrees } from '@/lib/rankings/degrees-specs'
+import { degreeFieldFigures, degreeSpecs, rankDegrees } from '@/lib/rankings/degrees-specs'
 import { employerSpecs, rankEmployers } from '@/lib/rankings/employers-specs'
 import { employerHrefs, loadEmployerGrowth, loadEmployerStats } from '@/lib/rankings/employers-scan'
 import { loadDegreeCityRows, loadDegreeEntities, loadGroupStats, loadSocStats } from '@/lib/rankings/degrees-scan'
@@ -25,10 +25,11 @@ import { loadAiPayPremium } from '@/lib/market/ai-pay-premium-data'
 import { loadCityStats, loadCountyStats, loadFunctionCityRows, loadIndustryCityRows, loadIndustryStats, loadSkillStats } from '@/lib/rankings/scan'
 import { awardEntries } from '@/lib/rankings/awards'
 import { RANKING_METHOD } from '@/lib/rankings/method-version'
-import { recordRankingMethod, addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
+import { recordRankingMethod, addToAwardBook, awardBookExists, previousEdition, rebuildAwardBook, readPlaceRanksRaw, readRanking, readRankingIndex, writeDegreeFields, writePlaceRanks, writeRanking, writeRankingIndex } from '@/lib/rankings/store'
 import type { BuildGroup, CityStat, CollegeStat, CountyStat, PlaceInfo, PlaceRanks, RankingEdition, RankingIndexEntry } from '@/lib/rankings/types'
 import type { Cost } from '@/lib/rankings/living-cost'
-import { buildMetroStats, principalCity, rankWhitePlaces, whitePlacesSpecs, type MetroStat } from '@/lib/rankings/metro-places'
+import { editionFor } from '@/lib/rankings/cadence'
+import { ALL_ROUND, buildMetroStats, principalCity, rankWhitePlaces, whitePlacesSpecs, type MetroStat } from '@/lib/rankings/metro-places'
 import { loadCountyFacts, loadMetroWages, loadStatePrograms, loadWhiteCollarByCounty } from '@/lib/rankings/metro-scan'
 import { loadMetros } from '@/lib/workforce/metro-compare-data'
 import type { Metro } from '@/lib/workforce/metro-compare'
@@ -134,7 +135,9 @@ function keyCities(raw: CityStat[], has: (key: string) => boolean): CityStat[] {
  * time limit: "places" (cities and counties), "functions" (job-family city lists) and "skills" (AI skills, tools, certifications).
  */
 export async function buildRankings(group: BuildGroup = 'places', now = new Date()): Promise<BuildResult> {
-  const edition = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`
+  // A quarterly group (best places) rebuilt between quarters rewrites its current edition rather than starting a monthly one.
+  const current = group === 'metro' ? (await readRankingIndex()).find((x) => x.slug === ALL_ROUND.slug)?.edition ?? null : null
+  const edition = editionFor(group, now, current)
   const builtAt = now.toISOString()
   const prevEd = previousEdition(edition)
   const built: { ed: RankingEdition; spec: Spec }[] = []
@@ -232,6 +235,8 @@ export async function buildRankings(group: BuildGroup = 'places', now = new Date
     const degreeData = { socs, groups, entities: degreeEntities, cityRows: degreeCityRows, base: data.base, info: infoOf }
     const degrees = degreeSpecs()
     specs = [...specs, ...degrees]
+    // The majors pages read this one small row, not the editions.
+    await writeDegreeFields(degreeFieldFigures(groups, edition))
     for (const spec of degrees) {
       const ed = rankDegrees(spec, degreeData, edition, builtAt, await prevRanksOf(spec.slug))
       if (ed) built.push({ ed, spec })

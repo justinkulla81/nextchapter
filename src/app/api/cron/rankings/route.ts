@@ -3,6 +3,7 @@ import { withCronRun } from '@/lib/cron/run'
 import { buildRankings, type BuildResult } from '@/lib/rankings/build'
 import { rebuildAwardBook } from '@/lib/rankings/store'
 import type { BuildGroup } from '@/lib/rankings/types'
+import { builtThisMonth } from '@/lib/rankings/cadence'
 
 export const maxDuration = 800
 
@@ -19,7 +20,8 @@ export const GET = withCronRun('rankings', async (request: NextRequest) => {
   // ?group=awards rebuilds every month's placings (the awards on place, job and employer pages) from the stored editions.
   if (param === 'awards') return NextResponse.json(await rebuildAwardBook())
   const asked = param as BuildGroup | null
-  const groups = asked && GROUPS.includes(asked) ? [asked] : RUNS[request.nextUrl.searchParams.get('run') ?? 'a'] ?? RUNS.a
+  // A scheduled run skips a quarterly group (best places) outside January, April, July and October; ?group= builds it any time.
+  const groups = asked && GROUPS.includes(asked) ? [asked] : (RUNS[request.nextUrl.searchParams.get('run') ?? 'a'] ?? RUNS.a).filter((g) => builtThisMonth(g, new Date()))
   const results: BuildResult[] = []
   const failed: string[] = []
   for (const g of groups) {

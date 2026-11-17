@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { permanentRedirect } from 'next/navigation'
 import { RankingView } from '@/components/rankings/RankingView'
-import { editionLabel } from '@/lib/rankings/build-edition'
+import { editionName, isQuarterlyMeasure } from '@/lib/rankings/cadence'
 import { readRanking, readRankingIndex } from '@/lib/rankings/store'
 import { canonical } from '@/lib/seo/canonical'
 import { fitDescription } from '@/lib/seo/templates'
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const d = await load(slug)
   if (!d) return { robots: { index: false, follow: true } }
-  return { title: titleMeta(`${d.e.title}, ${editionLabel(d.e.edition)}`), description: fitDescription(d.e.lead, 165), ...canonical(`/rankings/${slug}`) }
+  return { title: titleMeta(`${d.e.title}, ${editionName(d.e.edition, isQuarterlyMeasure(d.e.measure))}`), description: fitDescription(d.e.lead, 165), ...canonical(`/rankings/${slug}`) }
 }
 
 export default async function RankingPage({ params }: { params: Promise<{ slug: string }> }) {

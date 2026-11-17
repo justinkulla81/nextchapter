@@ -296,10 +296,18 @@ export async function reconcileBoardLightRows(
  * the run left on its ledger row (CronRun.detail). null for a run that finished, is old (the retry window is six hours) or left no note.
  */
 export function resumePointFrom(prev: { status: string; startedAt: Date; detail: string | null } | null, now: Date = new Date()): string | null {
-  if (!prev || (prev.status !== 'TIMED_OUT' && prev.status !== 'FAILED') || !prev.detail) return null
-  if (now.getTime() - prev.startedAt.getTime() > 6 * 3_600_000) return null
+  if (!prev || !prev.detail) return null
+  const age = now.getTime() - prev.startedAt.getTime()
+  // A run that stopped at its time budget (status OK, complete false) is picked up by the next night's run, so the nightly check walks the
+  // whole table over a few nights instead of re-checking its first pages every night and never reaching the rest (2026-11-16 and 11-17
+  // stopped after 73 and 43 of ~80 pages; every run since 11-08 found nothing to repair). A cut-off or failed run is resumed by the
+  // watchdog's retry within six hours, as before.
+  const budgetStop = prev.status === 'OK' && age <= 3 * 24 * 3_600_000
+  const cutOff = (prev.status === 'TIMED_OUT' || prev.status === 'FAILED') && age <= 6 * 3_600_000
+  if (!budgetStop && !cutOff) return null
   try {
-    const note = JSON.parse(prev.detail) as { nextId?: unknown }
+    const note = JSON.parse(prev.detail) as { nextId?: unknown; complete?: unknown }
+    if (budgetStop && note.complete !== false) return null
     return typeof note.nextId === 'string' && note.nextId !== '' ? note.nextId : null
   } catch {
     // The note is cut at 2,000 characters; ours is far shorter, so anything unreadable is not ours.
@@ -307,7 +315,7 @@ export function resumePointFrom(prev: { status: string; startedAt: Date; detail:
   }
 }
 
-/** The resume point left by the latest finished run of the nightly job, for its watchdog retry. */
+/** The resume point left by the latest finished run of the nightly job: for its watchdog retry, and for the next night when it stopped at its budget. */
 export async function loadReconcileResumePoint(now: Date = new Date()): Promise<string | null> {
   const prev = await prisma.cronRun.findFirst({
     where: { job: 'board-light-rows', status: { not: 'RUNNING' } },

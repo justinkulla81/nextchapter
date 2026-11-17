@@ -292,7 +292,7 @@ export const MIN_PART_SHARE = 0.6
 export const CRITERIA: Criterion[] = [
   {
     id: 'wp_open', label: 'White-collar job openings', weight: 15,
-    title: 'Metros with the most white-collar job openings', slug: 'metros-with-the-most-white-collar-job-openings',
+    title: 'Best cities for professional jobs', slug: 'metros-with-the-most-white-collar-job-openings',
     what: 'Mostly the number of open white-collar roles (the depth of the market: how many jobs there are to apply for, 70%), and the open roles per 1,000 white-collar workers who live there (how many chances each one has, 30%).',
     parts: [
       { label: 'Open white-collar roles', weight: 70, value: (m) => m.openings, show: nf },
@@ -302,21 +302,21 @@ export const CRITERIA: Criterion[] = [
   },
   {
     id: 'wp_grow', label: 'White-collar job growth', weight: 8,
-    title: 'Metros with the fastest white-collar job growth', slug: 'metros-with-the-fastest-white-collar-job-growth',
+    title: 'Cities where professional jobs are growing fastest', slug: 'metros-with-the-fastest-white-collar-job-growth',
     what: 'The change in private-sector jobs in the white-collar sectors (information, finance and insurance, professional and technical services, management of companies) from 2022 to 2025. Connecticut\'s metros use 2022 to 2024 metro-wide figures, because BLS publishes the state\'s new planning regions only from 2024; New Haven and Waterbury-Shelton have no comparable figure since the 2023 boundaries split them.',
     parts: [{ label: 'White-collar sector jobs, 2022 to 2025', weight: 1, value: (m) => m.wcGrowth, show: signed }],
     lead: (n, v, s) => `${n} grew its white-collar sector jobs fastest in ${s}: ${v} from 2022 to 2025.`,
   },
   {
     id: 'wp_pay', label: 'White-collar pay after cost of living', weight: 11,
-    title: 'Metros with the best white-collar pay after cost of living', slug: 'metros-with-the-best-white-collar-pay-after-cost-of-living',
+    title: 'Cities where professional salaries go furthest after cost of living', slug: 'metros-with-the-best-white-collar-pay-after-cost-of-living',
     what: 'The median annual wage of the metro\'s white-collar occupations (BLS Occupational Employment and Wage Statistics, weighted by employment), minus a year of owning the median home, with everything else priced locally (BEA price parity with housing taken out), so it reads as what the pay leaves you.',
     parts: [{ label: 'Median white-collar pay after housing and local prices', weight: 1, value: (m) => m.payAdj, show: usdK }],
     lead: (n, v, s) => `White-collar pay goes furthest in ${n}: after a year of owning the median home, the median white-collar wage leaves what ${v} buys at national prices, the best in ${s}.`,
   },
   {
     id: 'wp_house', label: 'Housing costs against salaries', weight: 8,
-    title: 'Metros where housing is most affordable on a white-collar salary', slug: 'metros-with-the-most-affordable-housing-for-white-collar-salaries',
+    title: 'Most affordable cities for professionals: home prices and rent against salaries', slug: 'metros-with-the-most-affordable-housing-for-white-collar-salaries',
     what: 'The median home value and a year of median rent, each divided by the median white-collar wage (BLS Occupational Employment and Wage Statistics).',
     parts: [
       { label: 'Median home value ÷ median white-collar pay', weight: 60, value: (m) => m.homeToPay, show: (v) => `${one(v)}×`, lowerIsBetter: true },
@@ -326,28 +326,28 @@ export const CRITERIA: Criterion[] = [
   },
   {
     id: 'wp_supply', label: 'Housing supply', weight: 2,
-    title: 'Metros building the most new housing', slug: 'metros-building-the-most-new-housing',
+    title: 'Cities building the most new housing', slug: 'metros-building-the-most-new-housing',
     what: 'New housing units permitted in the latest year per 1,000 residents: where housing stock is growing, prices are under less pressure.',
     parts: [{ label: 'New homes permitted per 1,000 residents', weight: 1, value: (m) => m.permitsPer1k, show: one }],
     lead: (n, v, s) => `${n} is adding housing fastest in ${s}: ${v} new homes permitted for every 1,000 residents in a year.`,
   },
   {
     id: 'wp_unemp', label: 'White-collar unemployment', weight: 6,
-    title: 'Metros with the lowest white-collar unemployment', slug: 'metros-with-the-lowest-white-collar-unemployment',
+    title: 'Cities with the lowest unemployment for professionals', slug: 'metros-with-the-lowest-white-collar-unemployment',
     what: 'The estimated unemployment rate of white-collar workers: each county\'s BLS rate, split by its white-collar share and the national white- to blue-collar unemployment ratio from the Current Population Survey.',
     parts: [{ label: 'White-collar unemployment (estimated)', weight: 1, value: (m) => m.wcUnemp, show: (v) => `${one(v)}%`, lowerIsBetter: true }],
     lead: (n, v, s) => `${n} has the lowest estimated white-collar unemployment in ${s}, at ${v}.`,
   },
   {
     id: 'wp_layoff', label: 'Fewest white-collar layoffs', weight: 9,
-    title: 'Metros with the fewest white-collar layoffs', slug: 'metros-with-the-fewest-white-collar-layoffs',
+    title: 'Cities with the fewest layoffs of professionals', slug: 'metros-with-the-fewest-white-collar-layoffs',
     what: 'Workers named in WARN layoff notices over the last 12 months per 1,000 white-collar workers. Notices in blue-collar industries (manufacturing, construction, retail, warehousing, hotels and food) are left out; a notice that names no county or city is shared across its state by white-collar workers.',
     parts: [{ label: 'Workers laid off per 1,000 white-collar workers', weight: 1, value: (m) => m.layoffsPer1k, show: one, lowerIsBetter: true }],
     lead: (n, v, s) => `${n} had the fewest white-collar layoffs in ${s}: ${v} workers in layoff notices per 1,000 white-collar workers over the last year.`,
   },
   {
     id: 'wp_ai', label: 'Least exposed to AI', weight: 10,
-    title: 'Metros whose jobs and industries are least exposed to AI', slug: 'metros-least-exposed-to-ai',
+    title: 'Cities where jobs are least exposed to AI', slug: 'metros-least-exposed-to-ai',
     what: 'Half the share of private-sector jobs in the industries most exposed to AI (information, finance, professional services, management of companies, admin and staffing), half the average observed AI exposure of the metro\'s open white-collar jobs by occupation (Anthropic Economic Index).',
     parts: [
       { label: 'Jobs in AI-exposed industries', weight: 50, value: (m) => m.aiSectorShare, show: pct0, lowerIsBetter: true },
@@ -357,14 +357,14 @@ export const CRITERIA: Criterion[] = [
   },
   {
     id: 'wp_aipay', label: 'Pay premium for AI skills', weight: 2, optional: true,
-    title: 'Metros where AI skills pay the most', slug: 'metros-where-ai-skills-pay-the-most',
+    title: 'Cities where AI skills pay the most', slug: 'metros-where-ai-skills-pay-the-most',
     what: `How much higher the median posted salary is for white-collar openings that ask for AI skills than for those that do not, in the same metro. A metro needs at least ${MIN_AI_PAID} AI-skill openings that post pay; one with fewer is scored on the other criteria, so this one counts for little.`,
     parts: [{ label: 'Posted pay premium for AI skills', weight: 1, value: (m) => m.aiPayPremium, show: (v) => `${v >= 0 ? '+' : '−'}${Math.abs(Math.round(v * 100))}%` }],
     lead: (n, v, s) => `AI skills pay the most in ${n}: white-collar openings that ask for them post a median salary ${v} against those that do not, the highest in ${s}.`,
   },
   {
     id: 'wp_train', label: 'Retraining and local job support', weight: 9,
-    title: 'Metros with the most retraining and local job support', slug: 'metros-with-the-most-retraining-and-job-help',
+    title: 'Best cities for job retraining and career help', slug: 'metros-with-the-most-retraining-and-job-help',
     what: 'American Job Centers (the public offices that fund and arrange retraining) per 100,000 workers, public community and technical colleges per 100,000 residents, workforce development, job-training and economic development organizations per 100,000 residents, and the open state retraining, job-seeker support and relocation programs in the metro\'s state.',
     parts: [
       { label: 'American Job Centers per 100,000 workers', weight: 25, value: (m) => m.ajcPer100k, show: one },
@@ -376,7 +376,7 @@ export const CRITERIA: Criterion[] = [
   },
   {
     id: 'wp_edu', label: 'Higher education for upskilling', weight: 5,
-    title: 'Metros with the most higher education for upskilling', slug: 'metros-with-the-most-higher-education-for-upskilling',
+    title: 'Best cities for going back to school and upskilling', slug: 'metros-with-the-most-higher-education-for-upskilling',
     what: 'College enrollment per 1,000 residents and the number of colleges and universities in the metro, a measure of the courses and degrees within reach.',
     parts: [
       { label: 'College students per 1,000 residents', weight: 50, value: (m) => m.enrollPer1k, show: (v) => nf(v) },
@@ -386,7 +386,7 @@ export const CRITERIA: Criterion[] = [
   },
   {
     id: 'wp_family', label: 'Family friendly', weight: 4,
-    title: 'Best metros for professionals with families', slug: 'best-metros-for-professionals-with-families',
+    title: 'Best cities for working professionals with families', slug: 'best-metros-for-professionals-with-families',
     what: 'The cost of child care for two children as a share of household income, third-grade reading and math scores against the national grade level, and child care centers per 1,000 young children.',
     parts: [
       { label: 'Child care cost, share of income', weight: 40, value: (m) => m.childCareCost, show: pct0, lowerIsBetter: true },
@@ -397,14 +397,14 @@ export const CRITERIA: Criterion[] = [
   },
   {
     id: 'wp_diverse', label: 'Diverse industries', weight: 4,
-    title: 'Metros with the most diverse economies', slug: 'metros-with-the-most-diverse-economies',
+    title: 'Cities with the most diverse economies', slug: 'metros-with-the-most-diverse-economies',
     what: 'How evenly private-sector jobs are spread across 19 industry sectors (one minus the sum of squared sector shares). A metro that leans on one industry is more exposed when that industry cuts.',
     parts: [{ label: 'Industry diversity (0 to 1)', weight: 1, value: (m) => m.diversity, show: (v) => v.toFixed(3) }],
     lead: (n, v, s) => `${n} has the most diverse economy in ${s}, scoring ${v} on industry diversity.`,
   },
   {
     id: 'wp_invest', label: 'Community investment and infrastructure', weight: 3,
-    title: 'Metros with the strongest community investment and infrastructure', slug: 'metros-with-the-strongest-community-investment',
+    title: 'Cities with the strongest community investment and infrastructure', slug: 'metros-with-the-strongest-community-investment',
     what: 'Household broadband, school funding against what the schools need, the share of commuters who drive more than 30 minutes alone, libraries per resident and access to parks.',
     parts: [
       { label: 'Households with broadband', weight: 30, value: (m) => m.broadband, show: pct0 },
@@ -417,14 +417,14 @@ export const CRITERIA: Criterion[] = [
   },
   {
     id: 'wp_peers', label: 'Professional community', weight: 1,
-    title: 'Metros with the largest share of white-collar workers', slug: 'metros-with-the-largest-share-of-white-collar-workers',
+    title: 'Cities with the largest share of professionals', slug: 'metros-with-the-largest-share-of-white-collar-workers',
     what: 'The share of workers in white-collar occupations (Census), the size of the professional network you join.',
     parts: [{ label: 'Workers in white-collar occupations', weight: 1, value: (m) => m.wcShare, show: pct0 }],
     lead: (n, v, s) => `${n} has the largest professional community in ${s}: ${v} of its workers are in white-collar occupations.`,
   },
   {
     id: 'wp_flex', label: 'Remote and hybrid options', weight: 3,
-    title: 'Metros with the most remote and hybrid white-collar jobs', slug: 'metros-with-the-most-remote-and-hybrid-white-collar-jobs',
+    title: 'Cities with the most remote and hybrid jobs', slug: 'metros-with-the-most-remote-and-hybrid-white-collar-jobs',
     what: 'The share of white-collar openings in the metro that are remote or hybrid.',
     parts: [{ label: 'White-collar openings that are remote or hybrid', weight: 1, value: (m) => m.flexShare, show: pct0 }],
     lead: (n, v, s) => `${n} has the most flexible white-collar jobs in ${s}: ${v} of its openings are remote or hybrid.`,
@@ -433,8 +433,8 @@ export const CRITERIA: Criterion[] = [
 
 export const ALL_ROUND = {
   slug: 'best-places-for-white-collar-professionals',
-  title: 'Best places for white-collar professionals',
-  scopedTitle: (phrase: string) => `Best places for white-collar professionals in ${phrase}`,
+  title: 'Best places to live and work for professionals',
+  scopedTitle: (phrase: string) => `Best places to live and work for professionals in ${phrase}`,
   scopedSlug: (id: string) => `best-places-for-white-collar-professionals-in-${id}`,
 }
 
@@ -541,7 +541,7 @@ export function rankWhitePlaces(spec: Spec, stats: MetroStat[], link: (m: MetroS
     })
     const ed = editionFor(spec, ranked, null, edition, builtAt, prev, {
       ...def,
-      lead: (name, v, scope) => `${name} is the best place for white-collar professionals in ${scope}, scoring ${v} across ${CRITERIA.length} measures of jobs, pay, housing, layoffs, AI, retraining, schools and community.`,
+      lead: (name, v, scope) => `${name} is the best place to live and work for professionals in ${scope}, scoring ${v} across ${CRITERIA.length} measures of jobs, pay, housing, layoffs, AI, retraining, schools and community.`,
       method: [
         `A metro's score is the weighted average of its scores on ${CRITERIA.length} criteria. Each criterion scores a metro by its percentile among the ranked metros nationwide (100 is best), averaging the parts of a criterion that has several. The weights: ${CRITERIA.map((c) => `${c.label.toLowerCase()} ${c.weight}%`).join(', ')}.`,
         'A metro is ranked only if it has a figure for every criterion except the AI pay premium; a metro with too few AI-skill postings is scored on the rest. Every criterion has its own ranking, linked from this page.',
@@ -560,6 +560,8 @@ export function rankWhitePlaces(spec: Spec, stats: MetroStat[], link: (m: MetroS
       ed.commentary.push(`${missing.length} more ${missing.length === 1 ? 'metro has' : 'metros have'} the size to qualify but no figure for at least one criterion, so ${missing.length === 1 ? 'it is' : 'they are'} not ranked. The largest: ${named.join('; ')}.`)
     }
     ed.faq.splice(1, 0,
+      { q: 'What are the best cities for professionals to live and work in?', a: `The top five this edition: ${ed.rows.slice(0, 5).map((r) => `${r.name}, ${r.sub}`).join('; ')}. All ${ed.rows.length} ranked metro areas are on this page.` },
+      { q: 'What counts as a professional (white-collar) job here?', a: 'Management, business and financial, and professional occupations: Census major occupation groups 1 and 2, which cover jobs such as managers, accountants, analysts, engineers, software developers, lawyers, teachers, nurses and other healthcare practitioners.' },
       { q: 'What makes a place good for white-collar professionals?', a: `We weigh ${CRITERIA.length} things: ${CRITERIA.map((c) => c.label.toLowerCase()).join(', ')}. Jobs, pay, layoffs and AI exposure are measured for white-collar work only.` },
       { q: 'Why metro areas and not cities?', a: 'People live in one county and work in another. A metro area is the market you job-hunt in, and cost of living is published for metros, not for every city.' },
     )

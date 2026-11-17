@@ -16,11 +16,13 @@ export const RANKING_METHOD: Record<BuildGroup, string> = {
   // 2026-11-17g: metros from 250,000 residents and 250 openings, so 100 qualify.
   // 2026-11-17h: 200,000 residents and 200 openings (250,000 and 250 gave 95).
   // 2026-11-17i: openings 15% (70% market depth); growth 8, family 4, community 3, diversity 4. Waco led at 200,000.
-  metro: '2026-11-17i',
+  // 2026-11-17j: titles in searchers' words ("best places to live and work for professionals", "best cities for ...").
+  metro: '2026-11-17j',
   skills: 'v0',
   workforce: 'v0',
   college: 'v0',
-  profile: 'v0',
+  // 2026-11-17: degree lists add majors (graduates, colleges, change), open jobs per graduate and career stage.
+  profile: '2026-11-17',
   support: 'v0',
 }
 

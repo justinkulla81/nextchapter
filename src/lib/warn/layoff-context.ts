@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { memoTtl, sharedLoad } from '@/lib/db/heavy'
 import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { resolveCompanyIndustry } from '@/lib/market/company-industry'
 import { industryFromSicDescription, jobBoardIndustryFor, type LocalPicture } from './layoff-picture'
@@ -33,6 +34,32 @@ export async function classifyLayoffIndustry(o: { employer: string; companyIndus
   }
 }
 
+const SENIOR_GROUPS = ['EXECUTIVE', 'VP', 'DIRECTOR', 'SENIOR_MANAGER', 'MANAGER']
+type StateOpenings = { industry: string | null; n: number; senior: number }[]
+
+/**
+ * A state's open roles by industry, with the senior ones counted alongside: one pass over the state's open openings that every figure in
+ * the local picture is read from. They were four scans of the same openings per layoff (all open, senior, the layoff's industry, the top
+ * industries): ~2.4 s and ~104,000 buffers each, #34 #37 #38 #39 by database time in the 2026-11-17 statement stats. Kept 30 minutes on
+ * the instance and six hours in the shared data cache, so the alerts, outreach and views for one state's layoffs share one read.
+ */
+const stateOpenings = memoTtl(30 * 60_000, (state: string) => state, (state: string) =>
+  sharedLoad(`layoff-state-openings:${state}`, 6 * 60 * 60, () =>
+    prisma.$queryRaw<StateOpenings>`
+      SELECT industry, count(*)::int AS n, count(*) FILTER (WHERE "seniorityGroup" = ANY(${SENIOR_GROUPS}::text[]))::int AS senior
+      FROM "CompanyJobOpening"
+      WHERE "closedAt" IS NULL AND ${state} = ANY(states)
+      GROUP BY industry`))
+
+/** The four local-picture figures from a state's openings by industry (the same numbers the four counts gave). */
+export function pictureFigures(rows: StateOpenings, industryKey: string | null) {
+  const openInState = rows.reduce((sum, r) => sum + r.n, 0)
+  const openSeniorInState = rows.reduce((sum, r) => sum + r.senior, 0)
+  const openInIndustry = industryKey ? rows.find((r) => r.industry === industryKey)?.n ?? 0 : null
+  const byIndustry = rows.filter((r): r is { industry: string; n: number; senior: number } => r.industry !== null).sort((a, b) => b.n - a.n).slice(0, 8)
+  return { openInState, openSeniorInState, openInIndustry, byIndustry }
+}
+
 /**
  * The local picture for one layoff: the open white-collar roles on our board in
  * its state and in its own industry, the industries hiring most there, and the
@@ -48,20 +75,15 @@ export async function buildLocalPicture(o: { employer: string; employees: number
   const state = o.state
   const county = o.county?.replace(/\s+county$/i, '').trim() || null
   try {
-    const [openInState, openSenior, openInIndustry, byIndustry, area] = await Promise.all([
-      prisma.companyJobOpening.count({ where: { closedAt: null, states: { has: state } } }),
-      prisma.companyJobOpening.count({ where: { closedAt: null, states: { has: state }, seniorityGroup: { in: ['EXECUTIVE', 'VP', 'DIRECTOR', 'SENIOR_MANAGER', 'MANAGER'] } } }),
-      o.industryKey ? prisma.companyJobOpening.count({ where: { closedAt: null, states: { has: state }, industry: o.industryKey } }) : Promise.resolve(null),
-      prisma.$queryRaw<{ industry: string; n: number }[]>`
-        SELECT industry, count(*)::int AS n FROM "CompanyJobOpening"
-        WHERE "closedAt" IS NULL AND ${state} = ANY(states) AND industry IS NOT NULL
-        GROUP BY industry ORDER BY n DESC LIMIT 8`,
+    const [openings, area] = await Promise.all([
+      stateOpenings(state),
       (async () => {
         const pick = { name: true, unemploymentRate: true, layoffs12mo: true, layoffEvents12mo: true } as const
         const c = county ? await prisma.geoArea.findFirst({ where: { level: 'COUNTY', state, name: { startsWith: county, mode: 'insensitive' } }, select: pick }) : null
         return c ?? (await prisma.geoArea.findFirst({ where: { level: 'STATE', state }, select: pick }))
       })(),
     ])
+    const { openInState, openSeniorInState: openSenior, openInIndustry, byIndustry } = pictureFigures(openings, o.industryKey)
     return {
       ...empty,
       openInState, openSeniorInState: openSenior, openInIndustry,
