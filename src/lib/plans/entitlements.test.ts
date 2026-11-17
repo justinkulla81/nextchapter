@@ -12,10 +12,11 @@ import {
 } from './entitlements'
 
 describe('institutionEntitlements', () => {
-  it('FREE caps members at 50 and locks the paid features', () => {
+  it('FREE lets anyone join, shows 5 members, 1 admin and 2 grants, and locks the paid features', () => {
     const e = institutionEntitlements({ plan: 'FREE', tier: 'CAREER', enabledFeatures: {} })
     expect(e.memberCap).toBe(FREE_MEMBER_CAP)
-    expect(FREE_MEMBER_CAP).toBe(50)
+    expect(FREE_MEMBER_CAP).toBeNull()
+    expect([e.visibleMembers, e.adminLimit, e.visibleGrants]).toEqual([5, 1, 2])
     expect([e.reporting, e.exports, e['crmExchange'], e.staffRoles, e.auditLog, e.sso, e.nextchapterServices, e.wioa]).toEqual(Array(8).fill(false))
   })
 
@@ -23,7 +24,8 @@ describe('institutionEntitlements', () => {
     for (const tier of ['CAREER', 'ADVANCEMENT', 'INSTITUTION']) {
       const e = institutionEntitlements({ plan: 'PAID', tier, enabledFeatures: { wioa: false } })
       expect(e.memberCap).toBeNull()
-      expect(Object.entries(e).filter(([k]) => k !== 'memberCap').every(([, v]) => v === true)).toBe(true)
+      expect([e.visibleMembers, e.adminLimit, e.visibleGrants]).toEqual([null, null, null])
+      expect(Object.entries(e).filter(([k]) => !['memberCap', 'visibleMembers', 'adminLimit', 'visibleGrants'].includes(k)).every(([, v]) => v === true)).toBe(true)
     }
   })
 

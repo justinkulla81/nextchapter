@@ -90,8 +90,9 @@ export function getTaxonomy(): Promise<Taxonomy | null> {
 async function loadTitleIndex(): Promise<TitleIndex | null> {
   try {
     const [occupations, altTitles] = await Promise.all([
-      prisma.occupation.findMany({ select: { socCode: true, title: true } }),
-      prisma.occupationAltTitle.findMany({ select: { socCode: true, title: true } }),
+      // Shared across instances for a day, like the taxonomy rows above (2026-11-17 egress: every cold instance read ~8k titles).
+      sharedLoad('title-index-occupations-v1', TAXONOMY_SHARED_SEC, () => prisma.occupation.findMany({ select: { socCode: true, title: true } }), { reviveDates: false }),
+      sharedLoad('title-index-alt-titles-v1', TAXONOMY_SHARED_SEC, () => prisma.occupationAltTitle.findMany({ select: { socCode: true, title: true } }), { reviveDates: false }),
     ])
     return occupations.length === 0 ? null : buildTitleIndex(occupations, altTitles)
   } catch (error) {

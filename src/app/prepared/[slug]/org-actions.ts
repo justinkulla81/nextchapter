@@ -11,9 +11,10 @@ const text = (f: FormData, k: string) => ((f.get(k) as string | null) ?? '').tri
 export async function requestClaimAction(slug: string, _prev: OrgClaimState, formData: FormData): Promise<OrgClaimState> {
   if (text(formData, 'website')) return { sent: { email: text(formData, 'email'), needsReview: false } } // bots fill the hidden field
   const section = text(formData, 'section')
+  const via = text(formData, 'via') || null
   const values = { name: text(formData, 'name'), title: text(formData, 'title'), email: text(formData, 'email'), ...(section ? { section } : {}) }
   try {
-    const r = await requestOrgClaim({ slug, ...values, ip: await getClientIp() })
+    const r = await requestOrgClaim({ slug, ...values, via, ip: await getClientIp() })
     return r.ok ? { sent: { email: r.email, needsReview: r.needsReview } } : { error: r.error, values }
   } catch (e) {
     console.error('Organization claim request failed', slug, e)

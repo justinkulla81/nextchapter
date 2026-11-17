@@ -58,6 +58,9 @@ export type WorkspaceTab = {
   // Only on demo workspaces (isDemo): screens built on sample data that a real
   // customer should not see until they hold real data.
   demoOnly?: boolean
+  // Hidden when the person can open this workspace, which already holds the same screen (a free college's Admin ›
+  // Grants, which Development holds on the paid tiers).
+  hideWhenWorkspace?: WorkspaceKey
   // The section of a long tab list it sits under (a second row of navigation).
   group?: string
   // The screen belongs to another workspace and is shown here too (a workforce customer's Program holds what Exec Ed and the
@@ -319,6 +322,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'views', label: 'Partner views', comingIn: null, group: 'Partners' },
       { key: 'etpl', label: 'Eligible training list', comingIn: null, group: 'Partners', from: { workspace: 'workforce', tab: 'etpl' } },
       { key: 'applications', label: 'Applications', comingIn: null, group: 'Funding' },
+      { key: 'grantlist', label: 'Grants to apply for', comingIn: null, group: 'Funding' },
       { key: 'funding', label: 'Grants and funding', comingIn: null, demoOnly: true, group: 'Funding' },
       { key: 'regionjobs', label: 'Jobs in your region', comingIn: null, group: 'Jobs' },
       { key: 'groupjobs', label: 'Jobs for your group', comingIn: null, group: 'Jobs' },
@@ -365,6 +369,8 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'users', label: 'Staff', comingIn: null },
       { key: 'activity', label: 'Activity', comingIn: null },
       { key: 'branding', label: 'Branding', comingIn: null },
+      { key: 'grants', label: 'Grants', comingIn: null, orgKind: 'college', hideWhenWorkspace: 'development' },
+      { key: 'related', label: 'Related organizations', comingIn: null },
       { key: 'roster', label: 'Roster', comingIn: null },
       { key: 'board', label: 'Board report', comingIn: null },
       { key: 'privacy', label: 'Privacy requests', comingIn: null },

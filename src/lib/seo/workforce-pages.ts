@@ -91,9 +91,10 @@ export const getStateCenters = memoTtl(TTL, (state: string) => state, (state: st
 
 const keyOf = (k: string) => k.replace(/\s+/g, '')
 
-const countyRowsFor = memoTtl(TTL, (state: string) => state, (state: string) => retryOnPoolTimeout(() =>
+// A day in the shared data cache (2026-11-17 egress: ~3,300 reads in six hours, one per cold instance and state).
+const countyRowsFor = memoTtl(TTL, (state: string) => state, (state: string) => sharedLoad(`state-county-labor-v1:${state}`, SHARED_DAY, () => retryOnPoolTimeout(() =>
   prisma.countyLabor.findMany({ where: { state }, select: { nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true } }),
-))
+), { reviveDates: false }))
 
 export async function getBoardLabor(b: PublicBoard): Promise<BoardLabor | null> {
   const keys = boardCountyKeys(b)

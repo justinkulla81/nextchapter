@@ -7,6 +7,7 @@
 
 import { buildSkillMatrix } from '@/lib/profile/skill-matrix'
 import 'server-only'
+import { visibleIdsForInstitution, visibleMemberSqlFor } from '@/lib/plans/visible-members'
 import { Prisma, type JourneyStage, type JourneyType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
@@ -154,7 +155,10 @@ export async function companiesWithAlumni(institutionId: string, viewerMemberId:
 export type Milestone = { id: string; name: string; classYear: number | null; title: string | null; employer: string | null; reportedAt: Date }
 
 // New jobs alumni chose to share as a milestone, with their outcome shared.
-export async function listMilestones(institutionId: string, opts: { limit?: number; classYear?: number; major?: string } = {}): Promise<Milestone[]> {
+// `staffView`: the organization's own staff are reading it, so the free plan's visible-member limit applies. Fellow
+// alumni see every milestone shared with them.
+export async function listMilestones(institutionId: string, opts: { limit?: number; classYear?: number; major?: string; staffView?: boolean } = {}): Promise<Milestone[]> {
+  const visible = opts.staffView ? await visibleMemberSqlFor(institutionId, Prisma.sql`o."memberId"`) : Prisma.empty
   const rows = await prisma.$queryRaw<(Milestone & { firstName: string | null; lastName: string | null })[]>`
     select o.id, d."firstName", d."lastName", d."classYear", d.title, d.employer, o."reportedAt"
     from public."OutcomeReport" o
@@ -163,6 +167,7 @@ export async function listMilestones(institutionId: string, opts: { limit?: numb
     where d."institutionId" = ${institutionId} and o."shareMilestone" and d."shareOutcome"
       ${opts.classYear ? Prisma.sql`and d."classYear" = ${opts.classYear}` : Prisma.sql``}
       ${opts.major ? Prisma.sql`and m.major = ${opts.major}` : Prisma.sql``}
+      ${visible}
     order by o."reportedAt" desc
     limit ${opts.limit ?? 20}`
   return rows.map(({ firstName, lastName, ...r }) => ({ ...r, name: [firstName, lastName].filter(Boolean).join(' ') || 'An alum' }))
@@ -285,11 +290,12 @@ export async function rsvp(eventId: string, memberId: string, going: boolean) {
 }
 
 export async function eventsForStaff(institutionId: string) {
+  const visible = await visibleIdsForInstitution(institutionId)
   return prisma.collegeEvent.findMany({
     where: { institutionId },
     orderBy: { startsAt: 'desc' },
     take: 40,
-    include: { rsvps: { where: { status: 'GOING' }, select: { id: true, checkedInAt: true, member: { select: { firstName: true, lastName: true, classYear: true } } } } },
+    include: { rsvps: { where: { status: 'GOING', ...(visible ? { memberId: { in: visible } } : {}) }, select: { id: true, checkedInAt: true, member: { select: { firstName: true, lastName: true, classYear: true } } } } },
   })
 }
 

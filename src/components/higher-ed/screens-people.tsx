@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
 import { ChevronDown, Users } from 'lucide-react'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
@@ -29,7 +30,12 @@ export async function HubPeople({ ctx, searchParams, base }: Props) {
   ])
   const shown = people.filter((p) => (!track || p.tracks.includes(track)) && (!need || p.matches.some((m) => m.category === need)))
   captureServerEvent(ctx.userId, 'people_crm_viewed', { institutionId: ctx.institution.id, track, need, searched: !!q, shown: shown.length })
-  return <PeopleView orgName={ctx.institution.name} slug={slug} base={base} readOnly={ctx.readOnly} people={people} shown={shown} companies={companies} track={track} need={need} q={q} />
+  return (
+    <div className="space-y-4">
+      <HiddenMembersNote ctx={ctx} />
+      <PeopleView orgName={ctx.institution.name} slug={slug} base={base} readOnly={ctx.readOnly} people={people} shown={shown} companies={companies} track={track} need={need} q={q} />
+    </div>
+  )
 }
 
 // The page itself, from rows already loaded (also rendered with sample rows for screenshots).

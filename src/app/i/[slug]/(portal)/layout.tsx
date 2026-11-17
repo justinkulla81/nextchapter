@@ -3,13 +3,15 @@ import type { CSSProperties } from 'react'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
-import { demoPersonasFor, labelFor, lockedWorkspacesFor, orgBasePath, orgKindOf, tabsFor, TIER_LABELS, workspaceFeaturesOf, WORKSPACES } from '@/lib/higher-ed/workspaces'
+import { demoPersonasFor, orgHostKindOf, labelFor, lockedWorkspacesFor, orgBasePath, orgKindOf, tabsFor, TIER_LABELS, workspaceFeaturesOf, WORKSPACES } from '@/lib/higher-ed/workspaces'
 import { modulesFrom } from '@/lib/higher-ed/modules'
 import { signOutOrg } from './session-actions'
 import { CanonicalOrgUrl } from '@/components/higher-ed/CanonicalOrgUrl'
 import { orgKindForHost } from '@/lib/org-hosts'
 import { WorkspaceRail, type RailItem } from '@/components/higher-ed/WorkspaceRail'
 import { DemoBar } from '@/components/higher-ed/DemoBar'
+import { guestLinkToken } from '@/lib/higher-ed/demo-guest'
+import { orgAppUrl } from '@/lib/org-hosts'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
 import { signOut } from '@/app/dashboard/actions'
 import { PORTAL_TYPES, portalStyle } from '@/lib/partners/portal-types'
@@ -96,7 +98,7 @@ export default async function InstitutionPortalLayout({
     for (const key of ['hub', 'business'] as const) {
       const item = railItems.find((r) => r.key === key)
       if (!item) continue
-      const tabs = tabsFor(access.tokens, key, modules, 'workforce').filter((t) => (!t.demoOnly || institution.isDemo) && (!t.from || access.workspaces.includes(t.from.workspace)))
+      const tabs = tabsFor(access.tokens, key, modules, 'workforce').filter((t) => (!t.demoOnly || institution.isDemo) && (!t.from || access.workspaces.includes(t.from.workspace)) && (!t.hideWhenWorkspace || !access.workspaces.includes(t.hideWhenWorkspace)))
       const href = (k: string) => (k === tabs[0]?.key ? item.href : `${item.href}/${k}`)
       const groups = [...new Set(tabs.map((t) => t.group).filter((g): g is string => !!g))]
       item.children = groups.length
@@ -116,6 +118,7 @@ export default async function InstitutionPortalLayout({
       {institution.isDemo && (
         <DemoBar
           slug={slug}
+          guestLink={(access.isNcAdmin || access.mode === 'demo-guest') ? orgAppUrl(slug, orgHostKindOf(institution.orgType), `/guest/${guestLinkToken(slug)}`) : null}
           isNcAdmin={access.isNcAdmin}
           guest={access.mode === 'demo-guest'}
           persona={access.demoPersona}

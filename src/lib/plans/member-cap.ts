@@ -7,7 +7,7 @@ import { capRoom, institutionEntitlements, planOf, type CapRoom } from './entitl
 //
 // "Held" members = every InstitutionMember row that has not opted out
 // (IMPORTED, INVITED, CLAIMED, ACTIVE). Imported-only rows count: the free
-// organization holds up to 50 people on its roster, whether or not they have
+// organization once held up to 50 people on its roster (no cap since 2026-11-17; staff see the first 5), whether or not they have
 // joined yet, so an import cannot park 5,000 rows. OPTED_OUT rows are people
 // who left; they do not count. (`includedSeats` is a different thing: the pool
 // of seats an organization gives to its member companies. It is not a member

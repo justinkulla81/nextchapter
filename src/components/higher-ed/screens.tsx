@@ -35,6 +35,8 @@ import {
 } from '@/lib/higher-ed/views'
 import { STAFF_ROLE_LABELS, staffRoleLabel, TIER_LABELS, WORKSPACES, auditPortalOf, brandingEditPath, getWorkspace, orgKindOf, tierIncludes, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
+import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
+import { AdminRelatedOrgs } from './screens-related'
 import { listPartnerAudit } from '@/lib/partners/audit'
 import { PartnerActivity } from '@/components/partners/PartnerActivity'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -449,6 +451,7 @@ async function AlumniMembers({ ctx, searchParams, base }: ScreenProps) {
 
   return (
     <div className="space-y-4">
+      <HiddenMembersNote ctx={ctx} noun="alumni" />
       <form method="get" className="flex flex-wrap items-end gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="member-q">Search by name</Label>
@@ -1525,6 +1528,9 @@ async function SettingsStaff({ ctx }: ScreenProps) {
     select: { id: true, fullName: true, invitedEmail: true, role: true, workspace: true, acceptedAt: true, revokedAt: true },
   })
   const canManage = ctx.tokens.has('INSTITUTION_ADMIN') && !ctx.readOnly && !ctx.institution.isDemo
+  // The free plan has one administrator (owner decision 2026-11-17), so the invite form goes once that place is taken.
+  const adminLimit = institutionEntitlements({ plan: ctx.institution.plan }).adminLimit
+  const adminSeatTaken = adminLimit !== null && staff.filter((s) => s.role === 'INSTITUTION_ADMIN' && !s.revokedAt).length >= adminLimit
   // A role is "locked" when every workspace it would open needs a higher tier.
   const tier = (await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { tier: true } })).tier
   const lockedRoles: Record<string, string> = {}
@@ -1563,6 +1569,8 @@ async function SettingsStaff({ ctx }: ScreenProps) {
       <p className="text-xs text-muted-foreground">To change someone’s role, invite them with the new role, then remove the old one.</p>
       {ctx.institution.isDemo ? (
         <p className="text-xs text-muted-foreground">Invites are off on demo colleges: their staff are fictional.</p>
+      ) : adminSeatTaken ? (
+        <p className="text-sm text-muted-foreground">The free plan has one administrator, and that place is taken.</p>
       ) : (
         <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} adminOnly={!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles} kind={orgKindOf(ctx.institution.orgType)} />
       )}
@@ -1742,6 +1750,8 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'alumni:engagement': AlumniEngagement,
   'alumni:data': AlumniData,
   'development:grants': DevelopmentGrants,
+  'admin:grants': DevelopmentGrants,
+  'admin:related': AdminRelatedOrgs,
   'execed:bridge': StaffSkillsBridge,
   'career:bridge': StaffSkillsBridge,
   'career:checkins': CareerCheckIns,
@@ -1777,6 +1787,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:applications': HubApplications,
   'hub:report': HubReport,
   'hub:skillsgap': HubSkillsGaps,
+  'hub:grantlist': DevelopmentGrants,
   'hub:talent': HubTalent,
   'hub:regionjobs': HubRegionJobs,
   'hub:groupjobs': HubGroupJobs,

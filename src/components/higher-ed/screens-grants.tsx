@@ -16,6 +16,9 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { ActionButton } from './CommunityForms'
 import { AddGrantForm, GrantStatesForm } from './GrantForms'
 import { cn } from '@/lib/utils'
+import { institutionEntitlements } from '@/lib/plans/entitlements'
+import { orgKindOf } from '@/lib/higher-ed/workspaces'
+import { LockedFeature } from '@/components/plans/LockedFeature'
 
 type Props = { ctx: WorkspaceContext; base: string; searchParams?: { purpose?: string } }
 
@@ -68,7 +71,10 @@ function GrantRow({ g, slug, saved, canWrite, soonBefore }: { g: Grant; slug: st
 
 export async function DevelopmentGrants({ ctx, searchParams }: Props) {
   const slug = ctx.institution.slug
-  const canWrite = !ctx.readOnly && (ctx.tokens.has('DEVELOPMENT') || ctx.tokens.has('INSTITUTION_ADMIN'))
+  // The shortlist and settings save through Development's actions, so they show only to someone who can open it.
+  const canWrite = !ctx.readOnly && ctx.workspaces.includes('development') && (ctx.tokens.has('DEVELOPMENT') || ctx.tokens.has('INSTITUTION_ADMIN'))
+  const isCollege = orgKindOf(ctx.institution.orgType) === 'college'
+  const freeShown = institutionEntitlements({ plan: ctx.institution.plan }).visibleGrants
   const purpose = GRANT_PURPOSES.find((p) => p.key === searchParams?.purpose)?.key as GrantPurpose | undefined
   const row = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true, profile: true } })
   const settings = grantSettingsFrom(row.enabledFeatures)
@@ -93,10 +99,54 @@ export async function DevelopmentGrants({ ctx, searchParams }: Props) {
   const href = (p?: GrantPurpose) => (p ? `?purpose=${p}` : '?')
   const sources: GrantSource[] = ['federal', 'state', 'foundation', 'yours']
 
+  // The free plan (owner decision 2026-11-17): the first two grants in full, a few more blurred, and the count of the rest.
+  if (freeShown !== null) {
+    const open = visible.slice(0, freeShown)
+    const blurred = visible.slice(freeShown, freeShown + 4)
+    const more = Math.max(0, visible.length - open.length)
+    return (
+      <div className="space-y-6">
+        <p className="max-w-3xl text-sm text-muted-foreground">
+          Funding {ctx.institution.name} can apply for{isCollege ? ' as a college or university' : ''}, matched to retraining, entrepreneurship and research.
+          Federal notices are live from Grants.gov; state and foundation programs are checked by hand. Confirm details in the official notice before you apply.
+        </p>
+        {open.length ? (
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+            {open.map((g) => (
+              <GrantRow key={g.id} g={g} slug={slug} saved={false} canWrite={false} soonBefore={soonBefore} />
+            ))}
+          </ul>
+        ) : (
+          <EmptyState icon={HandCoins} title="No grants to show right now" description={federal ? 'Nothing current matches yet. New notices arrive every day.' : 'Grants.gov isn’t answering right now. Try again in a few minutes.'} />
+        )}
+        {more > 0 && (
+          <section aria-label="More grants" className="space-y-3">
+            <p className="text-sm font-medium">
+              {more.toLocaleString()} more {more === 1 ? 'grant fits' : 'grants fit'} {ctx.institution.name}.
+            </p>
+            <div className="relative">
+              <ul aria-hidden="true" className="pointer-events-none divide-y divide-border rounded-lg border border-border bg-card blur-sm select-none">
+                {blurred.map((g) => (
+                  <li key={g.id} className="space-y-1 p-4">
+                    <p className="font-medium">{g.title}</p>
+                    <p className="text-xs text-muted-foreground">{SOURCE_LABELS[g.source]} · {g.agency}</p>
+                  </li>
+                ))}
+              </ul>
+              <div className="absolute inset-0 flex items-center justify-center p-4">
+                <LockedFeature feature="grants" slug={slug} plan={ctx.institution.plan} compact />
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       <p className="max-w-3xl text-sm text-muted-foreground">
-        Funding {ctx.institution.name} can apply for as a college or university, matched to retraining, entrepreneurship and research. Federal notices are live
+        Funding {ctx.institution.name} can apply for{isCollege ? ' as a college or university' : ''}, matched to retraining, entrepreneurship and research. Federal notices are live
         from Grants.gov, checked every 12 hours. State and foundation programs are a directory NextChapter checks by hand on each funder’s own page, for{' '}
         {states.length ? states.join(', ') : 'your state'} and national foundations; each shows when it was checked. Confirm details in the official notice
         before you apply.

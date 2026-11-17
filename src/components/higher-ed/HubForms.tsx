@@ -95,7 +95,7 @@ export function LayoffSeatsForm({
   slug: string
   companies: { id: string; name: string }[]
   notices: { id: string; label: string }[]
-  seatsLeft: number
+  seatsLeft: number | null
   defaultCompanyId?: string
 }) {
   const [state, action] = useActionState<HubResult, FormData>(openLayoffSeats.bind(null, slug), undefined)
@@ -114,8 +114,8 @@ export function LayoffSeatsForm({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="lo-seats">Seats to give</Label>
-        <Input id="lo-seats" name="seats" type="number" min={1} max={5000} required defaultValue={Math.min(25, Math.max(seatsLeft, 1))} />
-        <p className="text-xs text-muted-foreground">{seatsLeft.toLocaleString()} left in your pool</p>
+        <Input id="lo-seats" name="seats" type="number" min={1} max={5000} required defaultValue={seatsLeft === null ? 25 : Math.min(25, Math.max(seatsLeft, 1))} />
+        {seatsLeft !== null && <p className="text-xs text-muted-foreground">{seatsLeft.toLocaleString()} left in your pool</p>}
       </div>
       {notices.length > 0 && (
         <div className="space-y-1.5 sm:col-span-3">

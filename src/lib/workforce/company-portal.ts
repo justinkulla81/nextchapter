@@ -5,6 +5,7 @@
 
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { seatPoolLeft } from './seat-pool'
 import { employerProfileFor } from '@/lib/higher-ed/employers'
 import type { InstitutionAccess } from '@/lib/higher-ed/resolve'
 import { localArea, readLocal } from './local'
@@ -97,12 +98,8 @@ export async function answerSeatRequest(args: { institutionId: string; id: strin
   }
   const seats = args.seats ?? r.seats ?? 0
   if (!Number.isInteger(seats) || seats < 1) return { error: 'Give at least one seat.' }
-  const [inst, given] = await Promise.all([
-    prisma.institution.findUniqueOrThrow({ where: { id: args.institutionId }, select: { includedSeats: true } }),
-    prisma.rapidResponse.aggregate({ where: { institutionId: args.institutionId, isActive: true, memberCompanyId: { not: null } }, _sum: { seats: true } }),
-  ])
-  const left = inst.includedSeats - (given._sum.seats ?? 0)
-  if (seats > left) return { error: `Only ${Math.max(left, 0).toLocaleString()} seats are left in your pool.` }
+  const left = await seatPoolLeft(args.institutionId)
+  if (left !== null && seats > left) return { error: `Only ${Math.max(left, 0).toLocaleString()} seats are left in your pool.` }
   await prisma.rapidResponse.update({
     where: { id: r.id },
     data: {

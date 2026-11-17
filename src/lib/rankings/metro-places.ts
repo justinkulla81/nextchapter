@@ -291,17 +291,17 @@ export const MIN_PART_SHARE = 0.6
 
 export const CRITERIA: Criterion[] = [
   {
-    id: 'wp_open', label: 'White-collar job openings', weight: 11,
+    id: 'wp_open', label: 'White-collar job openings', weight: 15,
     title: 'Metros with the most white-collar job openings', slug: 'metros-with-the-most-white-collar-job-openings',
-    what: 'Half the number of open white-collar roles (the depth of the market: how many jobs there are to apply for), half the open roles per 1,000 white-collar workers who live there (how many chances each one has).',
+    what: 'Mostly the number of open white-collar roles (the depth of the market: how many jobs there are to apply for, 70%), and the open roles per 1,000 white-collar workers who live there (how many chances each one has, 30%).',
     parts: [
-      { label: 'Open white-collar roles', weight: 50, value: (m) => m.openings, show: nf },
-      { label: 'Openings per 1,000 white-collar workers', weight: 50, value: (m) => m.openingsPer1k, show: one },
+      { label: 'Open white-collar roles', weight: 70, value: (m) => m.openings, show: nf },
+      { label: 'Openings per 1,000 white-collar workers', weight: 30, value: (m) => m.openingsPer1k, show: one },
     ],
     lead: (n, v, s) => `${n} has the strongest white-collar job market by openings in ${s}, with a score of ${v}.`,
   },
   {
-    id: 'wp_grow', label: 'White-collar job growth', weight: 9,
+    id: 'wp_grow', label: 'White-collar job growth', weight: 8,
     title: 'Metros with the fastest white-collar job growth', slug: 'metros-with-the-fastest-white-collar-job-growth',
     what: 'The change in private-sector jobs in the white-collar sectors (information, finance and insurance, professional and technical services, management of companies) from 2022 to 2025. Connecticut\'s metros use 2022 to 2024 metro-wide figures, because BLS publishes the state\'s new planning regions only from 2024; New Haven and Waterbury-Shelton have no comparable figure since the 2023 boundaries split them.',
     parts: [{ label: 'White-collar sector jobs, 2022 to 2025', weight: 1, value: (m) => m.wcGrowth, show: signed }],
@@ -385,7 +385,7 @@ export const CRITERIA: Criterion[] = [
     lead: (n, v, s) => `${n} has the most higher education within reach in ${s}, with a score of ${v}.`,
   },
   {
-    id: 'wp_family', label: 'Family friendly', weight: 5,
+    id: 'wp_family', label: 'Family friendly', weight: 4,
     title: 'Best metros for professionals with families', slug: 'best-metros-for-professionals-with-families',
     what: 'The cost of child care for two children as a share of household income, third-grade reading and math scores against the national grade level, and child care centers per 1,000 young children.',
     parts: [
@@ -396,14 +396,14 @@ export const CRITERIA: Criterion[] = [
     lead: (n, v, s) => `${n} is the best metro for professionals with families in ${s}, with a score of ${v}.`,
   },
   {
-    id: 'wp_diverse', label: 'Diverse industries', weight: 5,
+    id: 'wp_diverse', label: 'Diverse industries', weight: 4,
     title: 'Metros with the most diverse economies', slug: 'metros-with-the-most-diverse-economies',
     what: 'How evenly private-sector jobs are spread across 19 industry sectors (one minus the sum of squared sector shares). A metro that leans on one industry is more exposed when that industry cuts.',
     parts: [{ label: 'Industry diversity (0 to 1)', weight: 1, value: (m) => m.diversity, show: (v) => v.toFixed(3) }],
     lead: (n, v, s) => `${n} has the most diverse economy in ${s}, scoring ${v} on industry diversity.`,
   },
   {
-    id: 'wp_invest', label: 'Community investment and infrastructure', weight: 4,
+    id: 'wp_invest', label: 'Community investment and infrastructure', weight: 3,
     title: 'Metros with the strongest community investment and infrastructure', slug: 'metros-with-the-strongest-community-investment',
     what: 'Household broadband, school funding against what the schools need, the share of commuters who drive more than 30 minutes alone, libraries per resident and access to parks.',
     parts: [

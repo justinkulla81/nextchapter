@@ -15,7 +15,9 @@ export function ConfirmClaimButton({ token, slug, orgName }: { token: string; sl
         <p className="text-sm text-muted-foreground">
           {state.status === 'verified' && state.section?.outcome === 'requested'
             ? `${employerSection(state.section.key).label} at ${orgName} already has an administrator. We sent them your request, and nothing has been granted yet.`
-            : state.status === 'verified' && state.section?.outcome === 'admin'
+            : state.status === 'verified' && state.section && (state.section.outcome === 'admin' || state.section.outcome === 'review') && state.section.key === 'hiring'
+              ? `Thanks. We check every claim. Once we approve it, you will get an email to set up the free hiring workspace for ${orgName}, with you as its administrator.`
+              : state.status === 'verified' && state.section?.outcome === 'admin'
               ? `You are the first person to claim ${employerSection(state.section.key).label} at ${orgName}. A person on our team will follow up with you.`
               : state.status === 'verified' && state.awaitingApproval
                 ? `Thanks. We check every claim before we open the free ${orgName} workspace. Once we approve it, you will get an email with your link to sign in as its administrator.`

@@ -26,6 +26,7 @@ import { ResponseFlow, loadFlowData } from './screens-hub-flow'
 import { PortalHomeMore, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem } from '@/components/partners/PortalHome'
 import { PortalHomeLink } from '@/components/partners/PortalHomeLink'
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
+import { seatPoolLeft } from '@/lib/workforce/seat-pool'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
@@ -377,15 +378,13 @@ export async function HubCompanies({ ctx }: Props) {
 
 export async function HubLayoffs({ ctx, searchParams }: Props) {
   const slug = ctx.institution.slug
-  const [rows, companies, notices, inst, given, requests] = await Promise.all([
+  const [rows, companies, notices, seatsLeft, requests] = await Promise.all([
     hubLayoffs(ctx.institution.id),
     prisma.memberCompany.findMany({ where: { institutionId: ctx.institution.id }, orderBy: { name: 'asc' }, select: { id: true, name: true } }),
     regionNotices(ctx.institution.id).catch(() => []),
-    prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { includedSeats: true } }),
-    prisma.rapidResponse.aggregate({ where: { institutionId: ctx.institution.id, isActive: true, memberCompanyId: { not: null } }, _sum: { seats: true } }),
+    seatPoolLeft(ctx.institution.id),
     seatRequests(ctx.institution.id),
   ])
-  const seatsLeft = inst.includedSeats - (given._sum.seats ?? 0)
   const flow = await loadFlowData(ctx.institution.id, rows.map((r) => r.id))
   return (
     <div className="space-y-6">

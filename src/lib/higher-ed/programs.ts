@@ -5,6 +5,7 @@
 // "Placed" is never typed in: it's an OutcomeReport after completion.
 
 import 'server-only'
+import { visibleIdsForInstitution } from '@/lib/plans/visible-members'
 import type { CapstoneStatus, EnrollmentStatus, ProgramPayer } from '@prisma/client'
 import { randomUUID } from 'crypto'
 import { prisma } from '@/lib/prisma'
@@ -138,8 +139,9 @@ export async function applyToCohort(args: { institutionId: string; memberId: str
 }
 
 export async function listEnrollments(institutionId: string, filter: { status?: EnrollmentStatus; payer?: ProgramPayer } = {}) {
+  const visible = await visibleIdsForInstitution(institutionId)
   return prisma.enrollment.findMany({
-    where: { cohort: { program: { institutionId } }, ...(filter.status ? { status: filter.status } : {}), ...(filter.payer ? { payer: filter.payer } : {}) },
+    where: { cohort: { program: { institutionId } }, ...(visible ? { memberId: { in: visible } } : {}), ...(filter.status ? { status: filter.status } : {}), ...(filter.payer ? { payer: filter.payer } : {}) },
     orderBy: [{ status: 'asc' }, { appliedAt: 'desc' }],
     take: 300,
     include: {

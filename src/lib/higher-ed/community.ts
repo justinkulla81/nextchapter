@@ -7,6 +7,7 @@
 
 import { peopleWhoWorkLikeYou } from '@/lib/profile/people-like-you'
 import 'server-only'
+import { visibleIdsForInstitution } from '@/lib/plans/visible-members'
 import { Prisma, type JourneyType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { MIN_CELL_SIZE } from '@/lib/admin/cell-suppression'
@@ -379,8 +380,10 @@ export async function signUpForCohort(cohortId: string, memberId: string, role: 
 // Staff matching: a suggested mentor for each unmatched mentee (shared
 // industry first, then the mentor with the fewest mentees).
 export async function suggestMatches(cohortId: string) {
+  const cohort = await prisma.mentoringCohort.findUnique({ where: { id: cohortId }, select: { institutionId: true } })
+  const visible = cohort ? await visibleIdsForInstitution(cohort.institutionId) : null
   const [signups, pairs] = await Promise.all([
-    prisma.mentoringSignup.findMany({ where: { cohortId }, include: { member: { select: { id: true, firstName: true, lastName: true, classYear: true } } } }),
+    prisma.mentoringSignup.findMany({ where: { cohortId, ...(visible ? { memberId: { in: visible } } : {}) }, include: { member: { select: { id: true, firstName: true, lastName: true, classYear: true } } } }),
     prisma.mentoringPair.findMany({ where: { cohortId }, select: { mentorMemberId: true, menteeMemberId: true } }),
   ])
   const mentors = signups.filter((s) => s.role === 'mentor')

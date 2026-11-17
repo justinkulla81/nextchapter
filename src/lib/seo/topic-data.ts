@@ -2,7 +2,7 @@ import 'server-only'
 import { pagesShownInSearch } from '@/lib/seo/shown-in-search'
 import { createHash } from 'node:crypto'
 import { cache } from 'react'
-import { heavy, memoTtl, sharedLoad } from '@/lib/db/heavy'
+import { heavy, memoTtl, sharedLoad, sharedPartsLoad } from '@/lib/db/heavy'
 import { TOPIC_NOTICES_TAG } from '@/lib/warn/layoff-cache-tags'
 import { readSnapshot } from '@/lib/seo/topic-snapshot'
 import { unstable_cache } from 'next/cache'
@@ -258,9 +258,9 @@ export async function conferencesForFunction(fn: string, take?: number): Promise
 export const conferencesForOrganizer = (organizers: string[]) => listConferences({ organizer: { in: organizers } }, 100)
 
 /** Every published conference's slug inputs, for the sitemap, the hub and association grouping. */
-async function loadCatalogIndex() {
+async function loadCatalogIndex(part: Prisma.ConferenceEventWhereInput = {}) {
   const rows = await prisma.conferenceEvent.findMany({
-    where: { published: true },
+    where: { published: true, ...part },
     select: {
       id: true, name: true, organizer: true, updatedAt: true, industries: true, functions: true, importance: true,
       datesConfirmed: true, startDate: true, typicalMonth: true, format: true, city: true, state: true, access: true, costLow: true, costHigh: true,
@@ -270,9 +270,20 @@ async function loadCatalogIndex() {
   })
   return rows.map((r) => ({ ...r, ownFunctions: r.functions, functions: effectiveFunctions(r), updatedAt: r.updatedAt.toISOString(), startDate: r.startDate?.toISOString() ?? null, endDate: r.endDate?.toISOString() ?? null, speakingDeadline: r.speakingDeadline?.toISOString() ?? null, checkedAt: r.checkedAt?.toISOString() ?? null }))
 }
-// About 2.7 MB raw, over the 2 MB limit of the Next data cache, so it used to miss it on every call and each cold instance re-read the whole
-// catalog (about two reads a minute). sharedLoad compresses it well under the limit. Its dates are already strings: they stay strings.
-const cachedCatalog = memoTtl(10 * 60_000, () => 'catalog', () => sharedLoad('conference-catalog', 3600, loadCatalogIndex, { reviveDates: false }))
+// About 2.7 MB raw, over the 2 MB limit of the Next data cache. Compressed whole it still did not fit (Vercel logged a 4.97 MB entry
+// refused on every call, 2026-11-17, and the catalog was read ~28 times an hour), so it is kept in parts, split by the last character of
+// the id: each part is an eighth of the catalog. The last part takes every id the others do not, so no row can fall through.
+// Its dates are already strings: they stay strings.
+const CATALOG_PARTS = 8
+const ID_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz'.split('')
+const catalogPartWhere = (k: number): Prisma.ConferenceEventWhereInput => {
+  const mine = ID_CHARS.filter((_, i) => i % CATALOG_PARTS === k)
+  if (k < CATALOG_PARTS - 1) return { OR: mine.map((c) => ({ id: { endsWith: c } })) }
+  const others = ID_CHARS.filter((_, i) => i % CATALOG_PARTS !== k)
+  return { NOT: { OR: others.map((c) => ({ id: { endsWith: c } })) } }
+}
+const cachedCatalog = memoTtl(10 * 60_000, () => 'catalog', () =>
+  sharedPartsLoad('conference-catalog-v2', CATALOG_PARTS, 3600, (k) => loadCatalogIndex(catalogPartWhere(k))))
 export const getCatalogIndex = cache(() => cachedCatalog())
 
 export type CatalogRow = Awaited<ReturnType<typeof loadCatalogIndex>>[number]

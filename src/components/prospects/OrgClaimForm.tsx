@@ -1,13 +1,26 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect, useSyncExternalStore } from 'react'
+import { posthog } from '@/lib/posthog/client'
 import { requestClaimAction, type OrgClaimState } from '@/app/prepared/[slug]/org-actions'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { EMPLOYER_SECTIONS } from '@/lib/employer/sections'
 
+const noSubscribe = () => () => {}
+function readVia(): string | null {
+  const t = new URLSearchParams(window.location.search).get('via')
+  return t && /^[A-Za-z0-9_-]{24,64}$/.test(t) ? t : null
+}
+
 export function OrgClaimForm({ slug, orgName, domain, sections = false }: { slug: string; orgName: string; domain: string | null; sections?: boolean }) {
+  // A related organization's invite arrives as ?via=<token>. Read in the browser so the claim page stays cached; the server
+  // checks the token belongs to this organization before keeping it (related-orgs.ts).
+  const via = useSyncExternalStore(noSubscribe, readVia, () => null)
+  useEffect(() => {
+    if (via) posthog.capture('related_org_invite_opened', { slug })
+  }, [via, slug])
   const [state, action] = useActionState<OrgClaimState, FormData>(requestClaimAction.bind(null, slug), undefined)
   if (state?.sent) {
     return (
@@ -20,6 +33,12 @@ export function OrgClaimForm({ slug, orgName, domain, sections = false }: { slug
   const v = state?.values
   return (
     <form action={action} className="space-y-4">
+      {via && (
+        <>
+          <input type="hidden" name="via" value={via} />
+          <p className="text-sm font-medium text-navy">An organization you work with linked {orgName} on NextChapter. Claim the page and the two of you are connected.</p>
+        </>
+      )}
       {sections && (
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium">What do you want to claim?</legend>
@@ -27,7 +46,7 @@ export function OrgClaimForm({ slug, orgName, domain, sections = false }: { slug
             {EMPLOYER_SECTIONS.map((s) => (
               <label key={s.key} className="flex cursor-pointer flex-col gap-0.5 rounded-lg border border-border bg-white p-3 text-sm has-[:checked]:border-navy has-[:checked]:ring-1 has-[:checked]:ring-navy has-[:focus-visible]:ring-2">
                 <span className="flex items-center gap-2 font-medium">
-                  <input type="radio" name="section" value={s.key} defaultChecked={(v?.section ?? 'outplacement') === s.key} />
+                  <input type="radio" name="section" value={s.key} defaultChecked={(v?.section ?? 'hiring') === s.key} />
                   {s.label}
                 </span>
                 <span className="text-xs text-muted-foreground">{s.employees}</span>
