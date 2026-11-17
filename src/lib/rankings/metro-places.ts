@@ -275,6 +275,8 @@ export const MIN_OPENINGS = 100
 export const MIN_PAID = 25
 /** Openings that ask for AI skills and post a salary a metro needs for its AI pay premium. */
 export const MIN_AI_PAID = 10
+/** The share of a several-part criterion's weight a metro's published figures must cover for it to be scored. */
+export const MIN_PART_SHARE = 0.6
 
 export const CRITERIA: Criterion[] = [
   {
@@ -445,8 +447,10 @@ export function criterionScores(pool: MetroStat[]): Map<string, Record<string, n
         const v = partPct[i].get(m.cbsa)
         if (v != null) { num += v * p.weight; w += p.weight }
       })
-      // Every part is needed: a metro missing one has no score on the criterion (and is left out of its list).
-      ;(out.get(m.cbsa) as Record<string, number | null>)[c.id] = w === totalW ? num / w : null
+      // A one-figure criterion needs its figure. One built from several parts is scored on the parts the public sources publish
+      // for the metro when they make up at least MIN_PART_SHARE of it (school test scores are not published for New York State,
+      // school funding is not for Memphis or Honolulu); otherwise the metro has no score on it.
+      ;(out.get(m.cbsa) as Record<string, number | null>)[c.id] = w === totalW || (c.parts.length > 1 && w >= totalW * MIN_PART_SHARE) ? num / w : null
     }
   }
   return out
@@ -556,7 +560,7 @@ export function rankWhitePlaces(spec: Spec, stats: MetroStat[], link: (m: MetroS
     const raw = c.parts[0].value(m)
     const value = single ? raw : score
     if (value == null) return []
-    const partStats = c.parts.map((p) => { const v = p.value(m); return { label: p.label, value: v == null ? 'n/a' : p.show(v) } })
+    const partStats = c.parts.map((p) => { const v = p.value(m); return { label: p.label, value: v == null ? 'Not published' : p.show(v) } })
     return [{
       ...base(m), value, valueLabel: single ? c.parts[0].show(value) : `${Math.round(value)} / 100`,
       stats: [...partStats, { label: 'White-collar openings', value: nf(m.openings) }, { label: 'Residents', value: nf(m.population) }].slice(0, single ? 3 : Math.max(3, partStats.length)),
@@ -570,7 +574,7 @@ export function rankWhitePlaces(spec: Spec, stats: MetroStat[], link: (m: MetroS
     lead: (name, v, scope) => c.lead(name, v, scope),
     method: [
       c.what,
-      ...(single ? [] : [`The score averages each part's percentile among the ranked metros (100 is best), weighted: ${c.parts.map((p) => `${p.label.toLowerCase()} ${p.weight}%`).join(', ')}.`]),
+      ...(single ? [] : [`The score averages each part's percentile among the ranked metros (100 is best), weighted: ${c.parts.map((p) => `${p.label.toLowerCase()} ${p.weight}%`).join(', ')}. Where a public source does not publish a part for a metro (shown as "Not published"), the metro is scored on the parts it has, if they make up at least ${Math.round(MIN_PART_SHARE * 100)}% of the weight.`]),
       `This is one of the ${CRITERIA.length} criteria in the ranking of the best places for white-collar professionals, where it carries ${c.weight}% of the score.`,
       ...METHOD_COMMON,
     ],
