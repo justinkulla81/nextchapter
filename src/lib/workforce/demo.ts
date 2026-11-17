@@ -320,6 +320,19 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
   const why = ['Hires from our layoff response', 'Pay stated up front', 'Entry point for career changers']
   if (openJobs.length) await prisma.featuredJob.createMany({ data: openJobs.map((j, i) => ({ institutionId, postingId: j.id, note: why[i], createdBy: 'demo' })), skipDuplicates: true })
 
+  // Two real Louisville employers' public job boards, connected, so the Jobs area shows what a connection brings in. A failed read
+  // (board down, no network) just leaves the connection without jobs; the demo still builds.
+  if (localTowns[0]?.city.toLowerCase() === 'louisville') {
+    const { syncFeed } = await import('@/lib/workforce/job-feeds-sync')
+    for (const b of [
+      { provider: 'LEVER', token: 'germanamerican', companyName: 'German American Bank' },
+      { provider: 'GREENHOUSE', token: 'ecoatmgazelle', companyName: 'ecoATM | Gazelle' },
+    ]) {
+      const feed = await prisma.groupJobFeed.create({ data: { institutionId, ...b, locationFilter: localTowns[0].city, includeRemote: false, createdBy: 'demo', isSampleData: true }, select: { id: true } }).catch(() => null)
+      if (feed) await syncFeed(feed.id).catch(() => null)
+    }
+  }
+
   // Participants: 150 from the layoffs or signed up directly, then 60 more on other tracks (moving here, new graduates,
   // employed and growing, career pivot).
   const N = 150
@@ -558,6 +571,8 @@ export async function reseedWorkforceDemo(slug: string, now = new Date()) {
   await prisma.partnerView.deleteMany({ where: { institutionId: id } })
   await prisma.ecosystemPartner.deleteMany({ where: { institutionId: id } })
   await prisma.featuredJob.deleteMany({ where: { institutionId: id } })
+  await prisma.exclusiveJobPosting.deleteMany({ where: { institutionScopeId: id, addedBy: { startsWith: 'feed:' } } })
+  await prisma.groupJobFeed.deleteMany({ where: { institutionId: id } })
   await prisma.memberCompany.deleteMany({ where: { institutionId: id } })
   await prisma.program.deleteMany({ where: { institutionId: id } })
   await prisma.candidateProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })

@@ -8,8 +8,9 @@ import { memoTtl } from '@/lib/db/heavy'
 import { readLocal } from '@/lib/workforce/local'
 import { jobStatusLabel } from '@/lib/workforce/group-jobs'
 import { StatTile } from './StatTile'
-import { ArchiveJobButton, FeatureJobButton, GroupJobForm, ImportJobsForm } from './HubFlowForms'
+import { ArchiveJobButton, ConnectFeedForm, DisconnectFeedButton, FeatureJobButton, RefreshFeedButton, GroupJobForm, ImportJobsForm } from './HubFlowForms'
 import { MAX_FEATURED } from '@/lib/workforce/featured-jobs'
+import { providerLabel } from '@/lib/workforce/job-feeds'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; page?: string }; base: string }
 
@@ -162,13 +163,18 @@ export async function HubGroupJobs({ ctx }: Props) {
     return p ? [{ ...p, note: f.note }] : []
   })
   const featuredIds = new Set(featuredRows.map((f) => f.postingId))
+  const [feeds, inst] = await Promise.all([
+    prisma.groupJobFeed.findMany({ where: { institutionId: ctx.institution.id }, orderBy: { createdAt: 'asc' }, take: 25 }).catch(() => []),
+    prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } }),
+  ])
+  const place = readLocal(inst.enabledFeatures)?.anchorCity ?? ''
   const label = (r: (typeof rows)[number]) => jobStatusLabel(r.status, false, !!r.expiresAt && r.expiresAt <= now)
   const live = rows.filter((r) => label(r) === 'Live for your group').length
   const waiting = rows.filter((r) => label(r) === 'Waiting for NextChapter review').length
   return (
     <div className="space-y-8">
       <p className="max-w-3xl text-sm text-muted-foreground">
-        Jobs you add here are shown to the people in your group, ahead of the open board. NextChapter reviews each one first, so nothing goes out unchecked. Employers can also post their own jobs from the Employer view.
+        Jobs you add here, or bring in from an employer’s job board, are shown to the people in your group, ahead of the open board. NextChapter reviews each one first, so nothing goes out unchecked. Employers can also post their own jobs from the Employer view.
       </p>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile label="Live for your group" value={live} />
@@ -217,9 +223,44 @@ export async function HubGroupJobs({ ctx }: Props) {
               <ImportJobsForm slug={slug} />
             </div>
           </details>
+          <details className="rounded-lg border border-border bg-card p-4 lg:col-span-2" open={feeds.length === 0}>
+            <summary className="cursor-pointer text-sm font-medium text-[color:var(--accent-text,var(--primary))]">Connect an employer’s job board</summary>
+            <div className="pt-3">
+              <ConnectFeedForm slug={slug} defaultPlace={place} />
+            </div>
+          </details>
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">Adding jobs is off in this read-only preview. In your own account, a staff member adds a job or pastes a list here.</p>
+      )}
+
+      {feeds.length > 0 && (
+        <section className="space-y-3" aria-labelledby="feeds">
+          <h2 id="feeds" className="text-base font-semibold">
+            Connected job boards
+          </h2>
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {feeds.map((fd) => (
+              <li key={fd.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm">
+                <div className="min-w-0 flex-1 basis-64">
+                  <p className="font-medium">{fd.companyName}</p>
+                  <p className="text-muted-foreground">
+                    {providerLabel(fd.provider)} · {fd.locationFilter ? `jobs in ${fd.locationFilter}${fd.includeRemote ? ' and remote' : ''}` : 'every job on the board'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {fd.lastError ? fd.lastError : fd.lastSyncedAt ? `Refreshed ${day(fd.lastSyncedAt)}: ${fd.lastSeen} near you, ${fd.lastAdded} new. Refreshes every day.` : 'Not read yet.'}
+                  </p>
+                </div>
+                {!ctx.readOnly && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <RefreshFeedButton slug={slug} id={fd.id} />
+                    <DisconnectFeedButton slug={slug} id={fd.id} name={fd.companyName} />
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <section className="space-y-3" aria-labelledby="mine">
