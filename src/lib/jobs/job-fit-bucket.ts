@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma'
 import { priorityMultiplier } from '@/lib/matching/compute-match-score'
 import { correctedJobFunction, inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { notOpenToUsResidents } from '@/lib/jobs/foreign-remote'
+import { jobIndustryBucket, memberIndustryBuckets } from '@/lib/profile/industry-reading'
 import { classifyTitleRung, type RungName } from '@/lib/jobs/job-seniority'
 import { flexRungRange, jobLevelFlex, rangeGap, type EmployerScale, type LevelFlex } from '@/lib/jobs/level-flex'
 import { memberPeakWindow, peakForMatching, peakScale } from '@/lib/profile/career-high-point'
@@ -126,6 +127,8 @@ type FitCandidate = Pick<
   searchExpansion?: unknown
   // Functions the member explored and switched on (search-scope.ts): counted like a secondary function.
   exploredFunctions?: string[]
+  // Their industry groups as confirmed (industry-reading.ts); absent: read from their industry fields.
+  industryBuckets?: string[] | null
 }
 
 // id/firstName/lastName/email are only needed by admin-side display and the
@@ -160,6 +163,10 @@ interface FitPostingLike {
   sourceCategory?: string | null
   // The requirement tags (requirements.ts), when the caller has them: 'outside_us' marks a job for people outside the US.
   requirementTags?: string | null
+  // The employer's industry as the crawler recorded it (ExclusiveJobPosting.industry, a key such as 'healthcare'),
+  // when the caller has it: a job in one of the member's industries counts as an industry match even when the text
+  // says "health care" or "telehealth" instead of "healthcare". The board's light rows don't carry it.
+  industry?: string | null
 }
 
 // ── Level ────────────────────────────────────────────────────────────────────
@@ -559,6 +566,8 @@ interface FitCandidateContext {
   myStates: string[]
   // Cities they added (added-cities.ts): a job whose location names one counts as local.
   cityMatchers: CityMatcher[]
+  // Their industry groups, lowercased ("healthcare & hospital systems"), for the job's recorded industry.
+  industryBuckets: Set<string>
   // Title patterns of pivot roles they opted into (searchExpansion.roles).
   expansionRoles: RegExp[]
 }
@@ -593,6 +602,7 @@ function candidateContext(c: FitCandidate): FitCandidateContext {
         : null,
     myStates: [...homeStates, ...homeStates.flatMap((st) => SHARED_METRO_STATES[st] ?? []), ...expansion.states],
     cityMatchers: cityMatchers(expansion.cities ?? []),
+    industryBuckets: new Set(memberIndustryBuckets(c).map((b) => b.toLowerCase())),
     expansionRoles: expansion.roles.map((k) => ROLES.get(k)?.titles).filter((re): re is RegExp => !!re),
   }
 }
@@ -611,6 +621,8 @@ interface FitPostingContext {
   remote: boolean
   // The posting says it is for people outside the US (foreign-remote.ts).
   abroad: boolean
+  // The employer's recorded industry as a group, lowercased; null when the row has none.
+  industryBucket: string | null
   // The posting's description was there to read: the skills and industry tests below need it (the board's light rows
   // have none, so the "Strong needs a specific reason" rule only applies where the card's label is worked out).
   hasText: boolean
@@ -660,6 +672,7 @@ function postingContext(posting: FitPostingInput): FitPostingContext {
     levelRange: postingLevelRange(posting),
     remote: postingIsRemote({ ...posting, description: posting.description ?? null }),
     hasText: !!posting.description?.trim(),
+    industryBucket: jobIndustryBucket(posting.industry)?.toLowerCase() ?? null,
     // From the text when the row carries it, else from the import's requirement tag (the board's light rows have no text).
     abroad: notOpenToUsResidents(postingText) || /(?:^|,)outside_us(?:,|$)/.test(posting.requirementTags ?? ''),
     placeLocation,
@@ -691,7 +704,8 @@ function assessFit(
   // A role they opted into from pivot paths counts as on-target.
   const expansionHit = m.expansionRoles.length > 0 && m.expansionRoles.some((re) => re.test(posting.title.toLowerCase()))
   const titleBonus = Math.max(titleSimilarityBonus(m, j), expansionHit ? 16 : 0)
-  const industryMatch = matchesTargetIndustry(m, j.industryTextLower)
+  // Their industry named in the posting, or the employer's recorded industry is one of theirs.
+  const industryMatch = matchesTargetIndustry(m, j.industryTextLower) || (j.industryBucket !== null && m.industryBuckets.has(j.industryBucket))
   const base = { functionFit: fn, level, place, titleBonus, industryMatch }
 
   // A law-firm attorney or hospital physician posting is not a fit without

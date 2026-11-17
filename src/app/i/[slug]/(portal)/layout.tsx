@@ -91,13 +91,17 @@ export default async function InstitutionPortalLayout({
   const railItems: RailItem[] = folded ? rail.filter((r) => !['execed', 'workforce', 'candidate', 'employer'].includes(r.key)) : rail
   // Talent Hub opens in the rail into its areas and their pages (owner, 2026-11-17), instead of rows of pills on the page.
   // Same tabs and filters the page uses ([workspace]/[[...tab]]/page.tsx); phones keep the pills.
+  // The Business Hub (no areas) lists its pages the same way, one per line.
   if (folded) {
-    const hub = railItems.find((r) => r.key === 'hub')
-    if (hub) {
-      const tabs = tabsFor(access.tokens, 'hub', modules, 'workforce').filter((t) => (!t.demoOnly || institution.isDemo) && (!t.from || access.workspaces.includes(t.from.workspace)))
-      const href = (k: string) => (k === tabs[0]?.key ? hub.href : `${hub.href}/${k}`)
+    for (const key of ['hub', 'business'] as const) {
+      const item = railItems.find((r) => r.key === key)
+      if (!item) continue
+      const tabs = tabsFor(access.tokens, key, modules, 'workforce').filter((t) => (!t.demoOnly || institution.isDemo) && (!t.from || access.workspaces.includes(t.from.workspace)))
+      const href = (k: string) => (k === tabs[0]?.key ? item.href : `${item.href}/${k}`)
       const groups = [...new Set(tabs.map((t) => t.group).filter((g): g is string => !!g))]
-      hub.children = groups.map((g) => ({ label: g, pages: tabs.filter((t) => t.group === g).map((t) => ({ label: labelFor(t, 'workforce'), href: href(t.key) })) }))
+      item.children = groups.length
+        ? groups.map((g) => ({ label: g, pages: tabs.filter((t) => t.group === g).map((t) => ({ label: labelFor(t, 'workforce'), href: href(t.key) })) }))
+        : tabs.map((t) => ({ label: labelFor(t, 'workforce'), pages: [{ label: labelFor(t, 'workforce'), href: href(t.key) }] }))
     }
   }
 

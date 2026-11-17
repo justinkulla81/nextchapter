@@ -10725,6 +10725,12 @@ model OrgClaim {
   section           String?
   /// What the verified claim did: ADMIN | REQUESTED | REVIEW | SKIPPED. Null = not a section claim.
   outcome           String?
+  /// A verified claim for a type with a free workspace waits for NextChapter to approve it (owner decision 2026-11-17).
+  /// Applied by hand: prisma/manual/2026-11-17-org-claim-approval.sql.
+  approvedAt        DateTime?
+  approvedBy        String?
+  declinedAt        DateTime?
+  declinedBy        String?
 
   @@index([crmOrganizationId])
   @@index([crmOrganizationId, section])
@@ -16052,8 +16058,41 @@ model MemberCompany {
   layoffs  RapidResponse[]
   people   InstitutionMember[]
   contacts MemberCompanyContact[]
+  requests MemberCompanyRequest[]
 
   @@unique([institutionId, name])
+}
+
+// What a member company asks its workforce org for, outside layoff seats (owner, 2026-11-17): TRAINING (an L&D contact
+// asks for a course or cohort for its people) or GRANT_PARTNER (a grants contact offers support for a grant or RFP:
+// a letter, a match, a hiring commitment, a training site). The org accepts or declines from Member companies.
+// Applied by hand: prisma/manual/2026-11-17-member-company-requests.sql.
+model MemberCompanyRequest {
+  id                   String        @id @default(cuid())
+  institutionId        String
+  memberCompanyId      String
+  memberCompany        MemberCompany @relation(fields: [memberCompanyId], references: [id], onDelete: Cascade)
+  // TRAINING | GRANT_PARTNER
+  kind                 String
+  // The skill or course (TRAINING), or the grant or RFP (GRANT_PARTNER).
+  topic                String
+  people               Int?
+  // GRANT_PARTNER: LETTER | MATCH | HIRING | TRAINING_SITE | JOB_SPECS
+  offers               String[]      @default([])
+  matchAmount          Int?
+  fundingApplicationId String?
+  note                 String?       @db.Text
+  // REQUESTED | ACCEPTED | DECLINED
+  status               String        @default("REQUESTED")
+  answerNote           String?       @db.Text
+  requestedBy          String
+  answeredBy           String?
+  answeredAt           DateTime?
+  isSampleData         Boolean       @default(false)
+  createdAt            DateTime      @default(now())
+
+  @@index([institutionId, status])
+  @@index([memberCompanyId, kind])
 }
 
 // A named person at a member company and the part of the company's view they work in (owner, 2026-11-17): HIRING
@@ -16066,7 +16105,7 @@ model MemberCompanyContact {
   memberCompanyId String
   memberCompany   MemberCompany @relation(fields: [memberCompanyId], references: [id], onDelete: Cascade)
   email           String
-  // HIRING | OUTPLACEMENT (validated in code; L&D, partnerships and grants come later)
+  // HIRING | OUTPLACEMENT | LEARNING | GRANTS (validated in code)
   roles           String[]
   userId          String?
   inviteToken     String?       @unique

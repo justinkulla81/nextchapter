@@ -1,5 +1,6 @@
 // People at a member company, each with the part of the company's view they work in (owner, 2026-11-17): HIRING sees
-// shared profiles, intros and the jobs it posts; OUTPLACEMENT sees layoff seats and how its people are doing. The
+// shared profiles, intros and the jobs it posts; OUTPLACEMENT sees layoff seats and how its people are doing; LEARNING
+// asks for training; GRANTS sees the org's applications that name the company and offers support. The
 // company's main connected login (member-access.ts) keeps the whole view. The org invites contacts from Talent Hub >
 // Member companies; each gets a one-time sign-in link to /i/<slug>/member/<token>, the same page as the main invite.
 
@@ -11,13 +12,8 @@ import { sendMemberCompanyInviteEmail } from '@/lib/email/send-member-company-in
 import { orgCallbackOrigin } from '@/lib/org-hosts'
 import { memberInvitePath } from './member-access'
 
-export const CONTACT_ROLES = ['HIRING', 'OUTPLACEMENT'] as const
-export type ContactRole = (typeof CONTACT_ROLES)[number]
-export const CONTACT_ROLE_LABELS: Record<ContactRole, string> = { HIRING: 'Hiring', OUTPLACEMENT: 'Outplacement' }
-
-export function parseContactRoles(values: string[]): ContactRole[] {
-  return CONTACT_ROLES.filter((r) => values.includes(r))
-}
+export { CONTACT_ROLES, CONTACT_ROLE_LABELS, CONTACT_ROLE_WHAT, parseContactRoles, type ContactRole } from './contact-roles'
+import { type ContactRole } from './contact-roles'
 
 // The contacts at an org's member companies, for the Member companies screen. A handful of narrow rows per company.
 export async function companyContacts(institutionId: string) {
@@ -34,7 +30,7 @@ export async function companyContacts(institutionId: string) {
 export async function inviteCompanyContact(args: { institutionId: string; companyId: string; email: string; roles: ContactRole[]; by: string }) {
   const email = args.email.trim().toLowerCase()
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Add the person’s work email.' }
-  if (!args.roles.length) return { error: 'Pick what they work on: hiring, outplacement, or both.' }
+  if (!args.roles.length) return { error: 'Pick at least one thing they work on.' }
   const company = await prisma.memberCompany.findFirst({
     where: { id: args.companyId, institutionId: args.institutionId },
     select: { id: true, name: true, employerProfileId: true, institution: { select: { slug: true, name: true, programBrandName: true, isDemo: true } } },

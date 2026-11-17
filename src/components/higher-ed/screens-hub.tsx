@@ -10,12 +10,13 @@ import { regionNotices } from '@/lib/higher-ed/rapid-response'
 import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, seatRequests, small, type LocalSplit } from '@/lib/workforce/hub'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
-import { CompanyContactForm, HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
+import { CompanyContactForm, CompanyRequestAnswer, HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, SeatRequestAnswer } from './HubForms'
 import { ConfirmActionButton } from './ConfirmActionButton'
 import { removeCompanyContactAction } from '@/app/i/[slug]/(portal)/hub-actions'
 import { CONTACT_ROLE_LABELS, companyContacts, parseContactRoles } from '@/lib/workforce/member-contacts'
+import { openCompanyRequests } from '@/lib/workforce/company-requests'
+import { GRANT_OFFER_LABELS, type GrantOffer } from '@/lib/workforce/contact-roles'
 import { BriefCard } from './BriefCard'
-import { EditLink } from './EditLink'
 import { readLocal } from '@/lib/workforce/local'
 import { getAwards, readRankingIndex } from '@/lib/rankings/store'
 import { groupByMonth, viewAwards } from '@/lib/rankings/awards'
@@ -24,6 +25,7 @@ import { nextReserveDeadline } from './screens-hub-program'
 import { ResponseFlow, loadFlowData } from './screens-hub-flow'
 import { PortalHomeMore, PortalNeeds, PortalNumbers, PortalTable, type NeedsItem } from '@/components/partners/PortalHome'
 import { PortalHomeLink } from '@/components/partners/PortalHomeLink'
+import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
@@ -50,61 +52,6 @@ const VERBS: Verb[] = [
   { verb: 'Understand', line: 'Jobs, skills, pay and unemployment in your region.', tab: 'region' },
   { verb: 'Coordinate', line: 'Employers, colleges and the public system in one picture.', tab: 'companies' },
 ]
-
-// The splash picture: the organization's own, or a generic placeholder until it uploads one.
-function HomeHero({ name, region, tagline, imageUrl, credit, creditUrl, stats, edit }: { name: string; region: string; tagline: string | null; imageUrl: string | null; credit?: string | null; creditUrl?: string | null; stats: { label: string; value: string; note?: string }[]; edit?: { brandingHref: string; regionHref: string; readOnly: boolean } }) {
-  return (
-    <section aria-label={`${name} overview`} className="overflow-hidden rounded-xl border border-border">
-      <div className="relative h-44 w-full bg-primary/10 sm:h-56">
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt="" className="absolute inset-0 size-full object-cover object-[center_30%]" />
-        ) : (
-          <svg viewBox="0 0 800 220" preserveAspectRatio="xMidYMax slice" role="img" aria-label="Placeholder skyline: upload your own picture in Admin, Branding" className="absolute inset-0 size-full text-primary">
-            <rect width="800" height="220" fill="currentColor" opacity="0.08" />
-            <g fill="currentColor" opacity="0.28">
-              <rect x="40" y="110" width="60" height="110" />
-              <rect x="110" y="70" width="50" height="150" />
-              <rect x="170" y="130" width="70" height="90" />
-              <rect x="250" y="40" width="56" height="180" />
-              <rect x="316" y="95" width="64" height="125" />
-              <rect x="390" y="120" width="48" height="100" />
-              <rect x="448" y="60" width="62" height="160" />
-              <rect x="520" y="105" width="70" height="115" />
-              <rect x="600" y="80" width="52" height="140" />
-              <rect x="662" y="125" width="80" height="95" />
-            </g>
-          </svg>
-        )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/55 to-transparent p-4 pt-10 sm:p-6 sm:pt-12">
-          <p className="text-sm font-medium text-white/90">{region}</p>
-          {tagline && <p className="text-lg font-semibold text-white sm:text-xl">{tagline}</p>}
-        </div>
-        {edit && <EditLink href={edit.brandingHref} what="picture and tagline" readOnly={edit.readOnly} onDark className="absolute top-2 left-2" />}
-        {/* The license (CC BY or BY-SA) asks for the credit; small, in the corner. */}
-        {imageUrl && credit && (
-          <a href={creditUrl ?? undefined} target="_blank" rel="noreferrer" className="absolute top-2 right-2 max-w-[70%] truncate rounded bg-black/45 px-1.5 py-0.5 text-[10px] text-white/90 hover:underline">
-            {credit}
-          </a>
-        )}
-      </div>
-      <dl className="grid grid-cols-1 gap-px bg-border sm:grid-cols-3">
-        {stats.map((x) => (
-          <div key={x.label} className="bg-card p-4">
-            <dt className="text-xs font-medium text-muted-foreground">{x.label}</dt>
-            <dd className="mt-1 text-2xl font-semibold tabular-nums">{x.value}</dd>
-            {x.note && <p className="mt-0.5 text-xs text-muted-foreground">{x.note}</p>}
-          </div>
-        ))}
-      </dl>
-      {edit && (
-        <div className="flex justify-end border-t border-border bg-card px-4 py-1.5">
-          <EditLink href={edit.regionHref} what="region" readOnly={edit.readOnly} />
-        </div>
-      )}
-    </section>
-  )
-}
 
 // Where the region's main city places in our monthly rankings, the newest month (blueprint: "Best-of rankings and awards").
 // One shared, cached read of the city's award bucket and the ranking index; nothing when the city has no top-25 placing.
@@ -206,9 +153,9 @@ export async function HubHome({ ctx, base }: Props) {
       </div>
 
       {/* The organization's region picture stays on the Home (owner decision, 2026-11-17), under the primary action. */}
-      <HomeHero
+      <OrgHomeHero
         name={ctx.institution.name}
-        region={profile?.region?.name ?? ctx.institution.name}
+        line={profile?.region?.name ?? ctx.institution.name}
         tagline={profile?.tagline ?? null}
         imageUrl={profile?.heroImageUrl ?? null}
         credit={profile?.heroCredit ?? null}
@@ -287,11 +234,39 @@ export async function HubHome({ ctx, base }: Props) {
 }
 
 export async function HubCompanies({ ctx }: Props) {
-  const [rows, contacts] = await Promise.all([memberCompanies(ctx.institution.id), companyContacts(ctx.institution.id)])
+  const [rows, contacts, requests] = await Promise.all([memberCompanies(ctx.institution.id), companyContacts(ctx.institution.id), openCompanyRequests(ctx.institution.id)])
   const slug = ctx.institution.slug
   const companyName = new Map(rows.map((c) => [c.id, c.name]))
   return (
     <div className="space-y-6">
+      {requests.length > 0 && (
+        <section aria-labelledby="company-requests" className="space-y-2">
+          <h2 id="company-requests" className="text-base font-semibold">
+            Requests from member companies
+          </h2>
+          <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+            {requests.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 p-3">
+                <div className="space-y-0.5">
+                  <p className="font-medium">
+                    {r.memberCompany.name} · {r.kind === 'TRAINING' ? 'Training' : 'Grant support'}: {r.topic}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {r.kind === 'TRAINING'
+                      ? r.people
+                        ? `${r.people.toLocaleString()} people`
+                        : 'Number of people not given'
+                      : r.offers.map((x) => GRANT_OFFER_LABELS[x as GrantOffer] ?? x).join(', ') + (r.matchAmount ? ` · $${r.matchAmount.toLocaleString()} match` : '')}
+                    {` · sent ${r.createdAt.toLocaleDateString('en-US', { timeZone: 'UTC' })}`}
+                  </p>
+                  {r.note && <p className="text-xs text-muted-foreground">“{r.note}”</p>}
+                </div>
+                {!ctx.readOnly && <CompanyRequestAnswer slug={slug} id={r.id} />}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {!ctx.readOnly && (
         <details className="rounded-lg border border-border bg-card p-4" open={rows.length === 0}>
           <summary className="cursor-pointer text-sm font-medium text-primary">Add a member company</summary>
@@ -357,7 +332,7 @@ export async function HubCompanies({ ctx }: Props) {
               People at member companies
             </h2>
             <p className="text-sm text-muted-foreground">
-              Each person sees their part of the company&apos;s view: outplacement sees layoff seats and how its people are doing; hiring sees shared profiles and the jobs it posts. The main contact sees all of it.
+              Each person sees their part of the company&apos;s view: outplacement, hiring, learning and development, or grants and RFPs. The main contact sees all of it.
             </p>
           </div>
           {contacts.length === 0 ? (

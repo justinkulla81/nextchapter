@@ -20,6 +20,8 @@ export type WorkspaceKey =
   // Workforce customers (boards, economic development orgs, chambers):
   // member companies, participants, layoffs, kept-in-region.
   | 'hub'
+  // Their business side (owner, 2026-11-17): bringing employers to the region, and the businesses already here.
+  | 'business'
 
 // What a person holds at one institution. Staff roles come straight from
 // InstitutionUser; a VIEWER seat is scoped to one workspace ("VIEWER:alumni");
@@ -29,9 +31,9 @@ export type AccessToken = InstitutionUserRole | `VIEWER:${string}` | 'MEMBER' | 
 
 // The part of a member company's view one of its people works in (MemberCompanyContact.roles, owner 2026-11-17).
 // EMPLOYER alone is the company's main login and sees all of it.
-export const EMPLOYER_ROLES = ['hiring', 'outplacement'] as const
+export const EMPLOYER_ROLES = ['hiring', 'outplacement', 'learning', 'grants'] as const
 export type EmployerRole = (typeof EMPLOYER_ROLES)[number]
-export const EMPLOYER_ROLE_LABELS: Record<EmployerRole, string> = { hiring: 'Hiring', outplacement: 'Outplacement' }
+export const EMPLOYER_ROLE_LABELS: Record<EmployerRole, string> = { hiring: 'Hiring', outplacement: 'Outplacement', learning: 'Learning and development', grants: 'Grants and RFPs' }
 /** Whole-company access, or this role. */
 export const employerCan = (tokens: ReadonlySet<AccessToken>, role: EmployerRole) => tokens.has('EMPLOYER') || tokens.has(`EMPLOYER:${role}`)
 
@@ -247,7 +249,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     icon: 'Building2',
     release: 'V1',
     // A member company's people each see their part (hiring or outplacement); its main login sees all of it.
-    requiredRoles: ['EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement'],
+    requiredRoles: ['EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement', 'EMPLOYER:learning', 'EMPLOYER:grants'],
     homePath: 'employer',
     tabs: [
       { key: 'overview', label: 'Overview', comingIn: null, orgKind: 'workforce' },
@@ -255,6 +257,10 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'page', label: 'Employer page and roles', workforceLabel: 'Jobs you post', comingIn: null, requiredRoles: ['EMPLOYER', 'EMPLOYER:hiring'] },
       // Layoff support comes last: the workspace starts with hiring and jobs.
       { key: 'support', label: 'Layoff support', comingIn: null, orgKind: 'workforce', requiredRoles: ['EMPLOYER', 'EMPLOYER:outplacement'] },
+      // L&D: ask the organization for training, against what local jobs ask for.
+      { key: 'training', label: 'Training', comingIn: null, orgKind: 'workforce', requiredRoles: ['EMPLOYER', 'EMPLOYER:learning'] },
+      // Grants and RFPs: the organization's applications that name the company, and support it offers.
+      { key: 'grants', label: 'Grants and RFPs', comingIn: null, orgKind: 'workforce', requiredRoles: ['EMPLOYER', 'EMPLOYER:grants'] },
     ],
   },
   {
@@ -303,6 +309,25 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'local', label: 'Kept in region', comingIn: null, group: 'Reports' },
       { key: 'grants', label: 'Grant reporting', comingIn: null, demoOnly: true, group: 'Reports' },
       { key: 'public', label: 'Public pages and previews', comingIn: null, group: 'Public presence' },
+    ],
+  },
+  {
+    // A workforce customer's business side (owner, 2026-11-17), next to Talent Hub: companies that could move or expand here,
+    // a pitch built from the region's own data, and the employers and small businesses already here.
+    key: 'business',
+    label: 'Business Hub',
+    icon: 'Building2',
+    release: 'V1',
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'EMPLOYER_RELATIONS', 'VIEWER:business'],
+    homePath: 'business',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'home', label: 'Overview', comingIn: null },
+      { key: 'leads', label: 'Expansion leads', comingIn: null },
+      { key: 'pitch', label: 'Pitch builder', comingIn: null },
+      { key: 'incentives', label: 'Incentives and costs', comingIn: null },
+      { key: 'employers', label: 'Big employers', comingIn: null },
+      { key: 'small', label: 'Startups and small business', comingIn: null },
     ],
   },
   {
@@ -438,6 +463,8 @@ export const DEMO_PERSONAS = [
   // Workforce only: one person at a member company, by the part of its view they work in.
   { key: 'EMPLOYER:hiring', label: 'Employer: hiring', tokens: ['EMPLOYER:hiring'] },
   { key: 'EMPLOYER:outplacement', label: 'Employer: outplacement', tokens: ['EMPLOYER:outplacement'] },
+  { key: 'EMPLOYER:learning', label: 'Employer: learning and development', tokens: ['EMPLOYER:learning'] },
+  { key: 'EMPLOYER:grants', label: 'Employer: grants and RFPs', tokens: ['EMPLOYER:grants'] },
 ] as const satisfies readonly { key: string; label: string; tokens: readonly AccessToken[] }[]
 
 export type DemoPersonaKey = (typeof DEMO_PERSONAS)[number]['key']
@@ -459,13 +486,13 @@ export const staffRoleLabel = (role: InstitutionUserRole, kind: OrgKind): string
 // workforce wording (a member there is a participant, not an alum). `group`
 // splits staff roles from the outside views (the people and companies served).
 export function demoPersonasFor(kind: OrgKind, tier: InstitutionTier): { key: string; label: string; group: 'all' | 'staff' | 'outside' }[] {
-  const workforceKeys: string[] = ['all', ...WORKFORCE_STAFF_ROLES, 'MEMBER', 'EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement']
+  const workforceKeys: string[] = ['all', ...WORKFORCE_STAFF_ROLES, 'MEMBER', 'EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement', 'EMPLOYER:learning', 'EMPLOYER:grants']
   return DEMO_PERSONAS.filter((p) => (kind === 'workforce' ? workforceKeys.includes(p.key) : !p.key.startsWith('EMPLOYER:')) && workspacesFor(new Set<AccessToken>(p.tokens), tier, { wioa: true }, kind).length > 0).map((p) => ({
     key: p.key,
     group: p.key === 'all' ? 'all' : p.key === 'MEMBER' || p.key.startsWith('EMPLOYER') ? 'outside' : 'staff',
     label:
       kind === 'workforce'
-        ? ({ all: 'Everything (all roles)', MEMBER: 'Participant (job seeker)', EMPLOYER: 'Member company: whole company', 'EMPLOYER:hiring': 'Member company: hiring', 'EMPLOYER:outplacement': 'Member company: outplacement' } as Record<string, string>)[p.key] ?? staffRoleLabel(p.key as InstitutionUserRole, kind)
+        ? ({ all: 'Everything (all roles)', MEMBER: 'Participant (job seeker)', EMPLOYER: 'Member company: whole company', 'EMPLOYER:hiring': 'Member company: hiring', 'EMPLOYER:outplacement': 'Member company: outplacement', 'EMPLOYER:learning': 'Member company: learning and development', 'EMPLOYER:grants': 'Member company: grants and RFPs' } as Record<string, string>)[p.key] ?? staffRoleLabel(p.key as InstitutionUserRole, kind)
         : p.key === 'all'
           ? 'Everything (all roles)'
           : p.label,
@@ -488,4 +515,11 @@ export const STAFF_ROLE_LABELS: Record<InstitutionUserRole, string> = {
   EXEC_ED: 'Exec Ed',
   WORKFORCE_PARTNER: 'Workforce board partner',
   VIEWER: 'Viewer',
+}
+
+// Where the Home splash picture, logo and line are changed (Admin › Branding), or null for someone who cannot change them:
+// it needs the Admin workspace, and a demo guest pass is read-only.
+export function brandingEditPath(ctx: { institution: { slug: string; orgType: InstitutionOrgType | null }; workspaces: readonly string[]; mode: string }): string | null {
+  if (!ctx.workspaces.includes('admin') || ctx.mode === 'demo-guest') return null
+  return `${orgBasePath(ctx.institution.slug, ctx.institution.orgType)}/admin/branding`
 }

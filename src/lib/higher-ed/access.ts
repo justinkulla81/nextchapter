@@ -8,7 +8,7 @@ import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getCurrentUser, getOrgUser, getSessionAal } from '@/lib/supabase/get-current-user'
-import { employerCan, isReadOnlyIn, orgBasePath, type EmployerRole, type WorkspaceKey } from './workspaces'
+import { EMPLOYER_ROLE_LABELS, employerCan, isReadOnlyIn, orgBasePath, type EmployerRole, type WorkspaceKey } from './workspaces'
 import { DEMO_PREVIEW_COOKIE, resolveDemoGuestAccess, resolveInstitutionAccess, WorkspaceAccessError, type InstitutionAccess } from './resolve'
 import { DEMO_GUEST_COOKIE, guestSlugs } from './demo-guest'
 
@@ -81,4 +81,4 @@ export async function requireEmployerRole(slug: string, role: EmployerRole): Pro
 }
 
 export const employerRoleError = (role: EmployerRole) =>
-  `This is for your company's ${role === 'hiring' ? 'hiring' : 'outplacement'} contact. Ask the organization to add the ${role} role to your login.`
+  `This is for your company's ${EMPLOYER_ROLE_LABELS[role].toLowerCase()} contact. Ask the organization to add that role to your login.`

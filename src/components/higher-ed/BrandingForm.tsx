@@ -42,9 +42,9 @@ export function BrandingForm({
         <p className="text-xs text-muted-foreground">{defaults.logoUrl ? 'Upload to replace the current logo.' : 'PNG or SVG, under 3MB.'}</p>
       </div>
       <div className="space-y-1.5 sm:col-span-2">
-        <Label htmlFor="brand-hero">Hero photo</Label>
+        <Label htmlFor="brand-hero">Home picture</Label>
         <Input id="brand-hero" name="hero" type="file" accept="image/*" />
-        <p className="text-xs text-muted-foreground">Shown at the top of every member&apos;s home. A wide campus photo works best.</p>
+        <p className="text-xs text-muted-foreground">Shown at the top of your Home and every member&apos;s home. A wide photo of your campus or city works best.</p>
       </div>
       <div className="space-y-2 sm:col-span-2">
         {state?.error && (

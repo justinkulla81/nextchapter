@@ -110,3 +110,19 @@ describe('2b. what is not a job for people outside the US', () => {
     expect(notOpenToUsResidents('LATAM-based professionals only')).toBe(true)
   })
 })
+
+describe('4b. the job’s recorded industry counts as an industry match', () => {
+  // OpenLoop Health and Banner Health say "telehealth" / "health care", never "healthcare"; the crawler recorded both as healthcare.
+  const text = 'Our telehealth support solutions bring care anywhere. Lead accounting projects and integrations.'
+  it('a healthcare employer is Strong for a finance director from healthcare', () => {
+    expect(computeBoardListingFitBucket(financeDirector(), job({ description: text, industry: 'healthcare' } as Partial<Posting>))).toBe('strong')
+  })
+  it('another industry stays Good, and so does a job with no recorded industry', () => {
+    expect(computeBoardListingFitBucket(financeDirector(), job({ description: text, industry: 'energy' } as Partial<Posting>))).toBe('good')
+    expect(computeBoardListingFitBucket(financeDirector(), job({ description: text }))).toBe('good')
+  })
+  it('reads the member’s confirmed industry groups when they have them', () => {
+    const m = financeDirector({ industryContext: null, industryBuckets: ['Energy & Utilities'] } as Partial<Candidate>)
+    expect(computeBoardListingFitBucket(m, job({ description: text, industry: 'energy' } as Partial<Posting>))).toBe('strong')
+  })
+})
