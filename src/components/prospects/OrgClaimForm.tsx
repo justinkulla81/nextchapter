@@ -27,7 +27,7 @@ export function OrgClaimForm({ slug, orgName, domain, sections = false }: { slug
             {EMPLOYER_SECTIONS.map((s) => (
               <label key={s.key} className="flex cursor-pointer flex-col gap-0.5 rounded-lg border border-border bg-white p-3 text-sm has-[:checked]:border-navy has-[:checked]:ring-1 has-[:checked]:ring-navy has-[:focus-visible]:ring-2">
                 <span className="flex items-center gap-2 font-medium">
-                  <input type="radio" name="section" value={s.key} defaultChecked={(v?.section ?? 'outplacement') === s.key} />
+                  <input type="radio" name="section" value={s.key} defaultChecked={(v?.section ?? 'hiring') === s.key} />
                   {s.label}
                 </span>
                 <span className="text-xs text-muted-foreground">{s.employees}</span>

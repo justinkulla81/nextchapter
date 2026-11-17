@@ -106,9 +106,12 @@ describe('applySectionClaim', () => {
     expect(db.orgWorkspace.create.mock.calls[0][0].data.orgId).toBe('org-new')
   })
 
-  it('records the claimant as the hiring invite so signing up at /talent/signup activates the workspace', async () => {
-    await applySectionClaim(input)
-    expect(db.orgWorkspace.create.mock.calls[0][0].data).toMatchObject({ type: 'HIRING', inviteEmail: 'pat@acme.com', status: 'PENDING' })
+  it('makes the hiring claimant its admin but waits for approval before inviting them (owner decision 2026-11-17)', async () => {
+    const r = await applySectionClaim(input)
+    expect(r.outcome).toBe('admin')
+    const data = db.orgWorkspace.create.mock.calls[0][0].data
+    expect(data).toMatchObject({ type: 'HIRING', status: 'PENDING' })
+    expect('inviteEmail' in data).toBe(false)
   })
 
   it('never creates seats, a contract or an active outplacement workspace: a record and a staff lead only', async () => {

@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import { approveClaimAction, declineClaimAction, type ClaimDecisionState } from '@/app/support/admin/(portal)/organizations/claims/actions'
 
 // Approve (the primary action) and Decline (asks first) for one claim, with the result shown in place.
-export function ClaimDecisionButtons({ claimId, orgName, claimant }: { claimId: string; orgName: string; claimant: string }) {
+export function ClaimDecisionButtons({ claimId, orgName, claimant, approveLabel = 'Approve and open the workspace' }: { claimId: string; orgName: string; claimant: string; approveLabel?: string }) {
   const [approved, approve, approving] = useActionState<ClaimDecisionState, FormData>(approveClaimAction.bind(null, claimId), undefined)
   const [declined, decline, declining] = useActionState<ClaimDecisionState, FormData>(declineClaimAction.bind(null, claimId), undefined)
   const busy = approving || declining
@@ -15,7 +15,7 @@ export function ClaimDecisionButtons({ claimId, orgName, claimant }: { claimId: 
       <div className="flex flex-wrap gap-2">
         <form action={approve}>
           <button type="submit" disabled={busy} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:cursor-wait disabled:opacity-70">
-            {approving ? 'Opening the workspace…' : 'Approve and open the workspace'}
+            {approving ? 'Approving…' : approveLabel}
           </button>
         </form>
         <form
