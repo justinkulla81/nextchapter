@@ -1,4 +1,5 @@
 import 'server-only'
+import { readSearchExpansion } from '@/lib/profile/search-expansion'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { sharedPartsLoad } from '@/lib/db/heavy'
@@ -278,6 +279,8 @@ export type BreadthCandidate = StageMember & {
   relocationNotes?: string | null
   /** Use this occupation instead of resolving one (a past profile: personalization/match-compute.ts). */
   socOverride?: string | null
+  /** Read for the cities they added (search-expansion.ts): jobs near one count like home (relevance.ts geoRing). */
+  searchExpansion?: unknown
 } & SkillMatrixInput
 
 const memberSocMemo = new Map<string, { at: number; soc: string | null }>()
@@ -309,11 +312,14 @@ export async function memberBreadthVector(candidate: BreadthCandidate): Promise<
     const role = ROLES.get(e.to)
     if (role) pivotTargets.set(role.key, role.label)
   }
+  const addedCities = readSearchExpansion(candidate.searchExpansion).cities ?? []
   const [soc, similarity, anchor, skills] = await Promise.all([
     candidate.socOverride !== undefined ? Promise.resolve(candidate.socOverride) : memberSoc(candidate, sourceRole),
     loadSimilarityIndex(),
     homeAnchor(candidate),
     memberSkills(candidate),
+    // Jobs are measured against an added city by their coordinates, so the place table is needed even with no home city.
+    addedCities.length > 0 ? loadPlaceCoords() : null,
   ])
   // Their current and target industries, read carefully (industry-reading.ts) or as they confirmed.
   const industries = new Set(memberIndustryBuckets(candidate))
@@ -343,7 +349,7 @@ export async function memberBreadthVector(candidate: BreadthCandidate): Promise<
     similar: (soc && similarity.get(soc)) || new Map(),
     functionLabel: candidate.primaryFunction && functions.has(candidate.primaryFunction.trim().toLowerCase()) ? candidate.primaryFunction.trim() : null,
     industries,
-    geo: memberGeo({ anchor, currentState: candidate.currentState, remotePreference: candidate.remotePreference, openToRelocation: candidate.openToRelocation, relocationNotes: candidate.relocationNotes }),
+    geo: memberGeo({ anchor, currentState: candidate.currentState, remotePreference: candidate.remotePreference, openToRelocation: candidate.openToRelocation, relocationNotes: candidate.relocationNotes, addedCities }),
     vocab: skills.vocab,
     skillIds: skills.ids,
     ...(await occupationBander(soc && hasTitle ? soc : null, skills.keywords)),
@@ -621,7 +627,7 @@ const placementMemos = new Map<string, { occupations: JobOccupations; memo: Weak
 function placementMemo(m: MemberBreadthVector, occupations: JobOccupations): WeakMap<object, BreadthPlacement | null> {
   const key = JSON.stringify([
     [...m.functions], m.targetFunction, m.soc, m.subFunction, [...m.pivotTargets.keys()], m.similar.size, [...m.industries], m.stage,
-    m.geo ? [m.geo.anchor, m.geo.homeState, m.geo.acceptsRemote, [...m.geo.relocation], m.geo.unknown] : null,
+    m.geo ? [m.geo.anchor, m.geo.homeState, m.geo.acceptsRemote, [...m.geo.relocation], m.geo.unknown, m.geo.addedCities.map((c) => c.name)] : null,
     [...(m.vocab ?? [])],
   ])
   const hit = placementMemos.get(key)

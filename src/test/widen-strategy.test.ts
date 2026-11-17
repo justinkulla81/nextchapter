@@ -2,16 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { functionKeyFor, industryKeyFor, needsStrategy, skillsIntel, strategySummary } from '@/lib/jobs/widen-strategy'
 import type { SkillMarket } from '@/lib/skills/market'
 
-const none = { remote: false, states: [], industries: [], roles: [] }
+const none = { remote: false, states: [], cities: [], industries: [], roles: [] }
 
 describe('strategySummary', () => {
-  const names = { state: (s: string) => ({ TX: 'Texas', GA: 'Georgia' })[s] ?? s, role: (r: string) => r.replace(/_/g, ' ') }
+  const names = { state: (s: string) => ({ TX: 'Texas', GA: 'Georgia' })[s] ?? s, city: (c: string) => c.replace(/,\s*[A-Z]{2}$/, ''), role: (r: string) => r.replace(/_/g, ' ') }
   it('is null until something is picked', () => {
     expect(strategySummary(none, names)).toBeNull()
   })
   it('says what the search adds, in words', () => {
-    expect(strategySummary({ remote: true, states: ['TX', 'GA'], industries: ['Insurance'], roles: ['fpa_manager'] }, names)).toBe(
-      'Your search adds jobs in Texas, Georgia and remote, Insurance employers and fpa manager roles.'
+    expect(strategySummary({ remote: true, states: ['GA'], cities: ['Austin, TX'], industries: ['Insurance'], roles: ['fpa_manager'] }, names)).toBe(
+      'Your search adds jobs in Austin, Georgia and remote, Insurance employers and fpa manager roles.'
     )
   })
 })
@@ -24,6 +24,7 @@ describe('needsStrategy', () => {
     expect(needsStrategy({ widenStrategy: { at: '2026-11-17T00:00:00Z' } }, none, 0)).toBe(false)
     expect(needsStrategy({}, { ...none, states: ['TX'] }, 0)).toBe(false)
     expect(needsStrategy({}, none, 1)).toBe(false)
+    expect(needsStrategy({}, { ...none, cities: ['Austin, TX'] }, 0)).toBe(false)
   })
 })
 

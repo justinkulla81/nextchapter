@@ -4,10 +4,11 @@ import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker
 import { TalentNav } from '@/components/talent/TalentNav'
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { getEmployerUnreadCount } from '@/lib/messaging/threads'
-import { brandStyle, type PartnerBrand } from '@/lib/partners/brand'
+import { type PartnerBrand } from '@/lib/partners/brand'
 import { talentBrand } from '@/lib/partners/resolve-brand'
 import { createClient } from '@/lib/supabase/server'
 import { employerSwitcherLinks, type SwitcherLink } from '@/lib/employer/switcher'
+import { portalStyle } from '@/lib/partners/portal-types'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -37,7 +38,7 @@ export default async function TalentLayout({ children }: { children: React.React
   const brand = await talentBrand(employer)
 
   return (
-    <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
+    <div className="theme-partner theme-portal min-h-screen" style={portalStyle('employer')}>
       <PortalActivityTracker portal="TALENT" />
       <Suspense fallback={<TalentNav brand={brand} />}>
         <TalentNavWithBadges employerId={employer.id} brand={brand} />

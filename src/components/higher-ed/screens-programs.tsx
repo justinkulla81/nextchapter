@@ -37,6 +37,8 @@ type Props = { ctx: WorkspaceContext; base: string; searchParams?: { status?: st
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 const fmt = (d: Date | null | undefined) => (d ? dateFmt.format(new Date(d)) : '—')
+// "starts Nov 20" ahead of the start date, "started Nov 6" after it.
+const startWord = (d: Date) => `${new Date(d).getTime() > Date.now() ? 'starts' : 'started'} ${fmt(d)}`
 const usd = (cents: number) => (cents ? (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }) : 'Free')
 const name = (m: { firstName: string | null; lastName: string | null }) => [m.firstName, m.lastName].filter(Boolean).join(' ') || 'Unnamed'
 const MODALITY: Record<string, string> = { online: 'Online', in_person: 'In person', hybrid: 'Hybrid' }
@@ -439,7 +441,7 @@ export async function CandidatePrograms({ ctx }: Props) {
                   {e.cohort.program.name} · {e.cohort.name}
                 </span>
                 <span className="text-muted-foreground">
-                  {e.status === 'COMPLETED' ? `Completed${e.credentialName ? `: ${e.credentialName}` : ''}` : `${STATUS_LABELS[e.status]} · starts ${fmt(e.cohort.startsAt)}`}
+                  {e.status === 'COMPLETED' ? `Completed${e.credentialName ? `: ${e.credentialName}` : ''}` : `${STATUS_LABELS[e.status]} · ${startWord(e.cohort.startsAt)}`}
                   {e.credentialId && (
                     <>
                       {' · '}
@@ -465,7 +467,7 @@ export async function CandidatePrograms({ ctx }: Props) {
                 <div>
                   <p className="font-semibold">{c.program.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {[c.name, `starts ${fmt(c.startsAt)}`, c.modality && (MODALITY[c.modality] ?? c.modality), usd(c.program.priceCents), c.seatsLeft !== null && `${c.seatsLeft} seats left`]
+                    {[c.name, startWord(c.startsAt), c.modality && (MODALITY[c.modality] ?? c.modality), usd(c.program.priceCents), c.seatsLeft !== null && `${c.seatsLeft} seats left`]
                       .filter(Boolean)
                       .join(' · ')}
                   </p>
@@ -484,7 +486,7 @@ export async function CandidatePrograms({ ctx }: Props) {
             ))}
           </ul>
         ) : (
-          <EmptyState icon={GraduationCap} title="Nothing open right now" description="New cohorts show up here as your college adds them." />
+          <EmptyState icon={GraduationCap} title="Nothing open right now" description={`New cohorts show up here as ${ctx.institution.name} adds them.`} />
         )}
       </section>
     </div>
@@ -500,7 +502,7 @@ export async function MyProgramCard({ ctx }: { ctx: WorkspaceContext }) {
       <GraduationCap className="size-5 text-primary" aria-hidden="true" />
       <span className="text-sm">
         <span className="font-medium">My program:</span> {current.cohort.program.name} · {current.cohort.name} ·{' '}
-        {current.status === 'APPLIED' ? 'application in review' : `starts ${fmt(current.cohort.startsAt)}`}
+        {current.status === 'APPLIED' ? 'application in review' : startWord(current.cohort.startsAt)}
       </span>
     </Link>
   )

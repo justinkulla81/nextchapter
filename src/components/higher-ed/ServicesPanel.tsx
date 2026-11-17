@@ -298,6 +298,7 @@ function ServiceSettingsForm({
     classYearTo: t.classYearTo ? String(t.classYearTo) : '',
   })
   const [moments, setMoments] = useState<Moment[]>(t.moments)
+  const [skills, setSkills] = useState(setting.skills.join(', '))
   // Who can provide it: NextChapter's options only for its built-in screens; a partner for anything.
   const providers: Provider[] = s.builtIn && !ownOnly ? ['college', 'nextchapter', 'both', 'partner'] : ['college', 'partner']
 
@@ -317,7 +318,7 @@ function ServiceSettingsForm({
           classYearTo: year(target.classYearTo),
           moments,
         }
-        onSave({ audience, ownerOffice, ownerName: ownerName || null, pricing, linkUrl: linkUrl || null, provider, partnerName: partnerName || null, targeting })
+        onSave({ audience, ownerOffice, ownerName: ownerName || null, pricing, linkUrl: linkUrl || null, provider, partnerName: partnerName || null, targeting, skills: parseMajors(skills) })
       }}
     >
       {s.memberCard && (
@@ -423,6 +424,15 @@ function ServiceSettingsForm({
             </div>
           </fieldset>
         </fieldset>
+      )}
+      {s.memberCard && (
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label htmlFor={`${id}-skills`}>Skills it teaches (optional)</Label>
+          <Input id={`${id}-skills`} value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="Python, project management, financial modeling" aria-describedby={`${id}-skills-help`} />
+          <p id={`${id}-skills-help`} className="text-xs text-muted-foreground">
+            For the skills bridge: an alum whose target jobs ask for one of these skills, and who doesn’t show it yet, is pointed to this offering. Use the words job postings use.
+          </p>
+        </div>
       )}
       <div className="space-y-1.5">
         <Label htmlFor={`${id}-office`}>Owning office</Label>

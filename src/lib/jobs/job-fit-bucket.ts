@@ -1,4 +1,5 @@
 import 'server-only'
+import { addedCityFor, cityMatchers, type CityMatcher } from '@/lib/jobs/added-cities'
 import { readSearchExpansion } from '@/lib/profile/search-expansion'
 import { ROLES } from '@/lib/pivots/pivot-map'
 import { skillTerms } from '@/lib/profile/skill-matrix'
@@ -434,6 +435,8 @@ function postingIsRemote(posting: Pick<FitPostingLike, 'targetRemotePolicy' | 'l
 function placeFit(m: FitCandidateContext, j: FitPostingContext): PlaceFit {
   if (j.remote) return 'remote'
   const cityHit = m.cityWord !== null && m.cityWord.test(j.placeLocation)
+  // A city they added: only that city, not the rest of its state (added-cities.ts).
+  if (addedCityFor(j.placeLocation, j.jobStates, m.cityMatchers)) return 'local'
   if (j.jobStates.length === 0 && !cityHit) return 'unknown'
   const myStates = m.myStates
   if (cityHit || j.jobStates.some((s) => myStates.includes(s))) return 'local'
@@ -543,6 +546,8 @@ interface FitCandidateContext {
   // Whole-word match on the member's city, null when there's no usable city.
   cityWord: RegExp | null
   myStates: string[]
+  // Cities they added (added-cities.ts): a job whose location names one counts as local.
+  cityMatchers: CityMatcher[]
   // Title patterns of pivot roles they opted into (searchExpansion.roles).
   expansionRoles: RegExp[]
 }
@@ -576,6 +581,7 @@ function candidateContext(c: FitCandidate): FitCandidateContext {
         ? new RegExp(`(^|[^a-z])${city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`, 'i')
         : null,
     myStates: [...homeStates, ...homeStates.flatMap((st) => SHARED_METRO_STATES[st] ?? []), ...expansion.states],
+    cityMatchers: cityMatchers(expansion.cities ?? []),
     expansionRoles: expansion.roles.map((k) => ROLES.get(k)?.titles).filter((re): re is RegExp => !!re),
   }
 }

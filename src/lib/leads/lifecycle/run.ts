@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { getPublicJob } from '@/lib/jobs/public-job-page-server'
+import { publicJobLabels } from '@/lib/jobs/public-job-page-server'
 import { LEAD_LIST_KEY, MIN_NUDGE_GAP_MS, NUDGE_DAYS, WELCOME_WINDOW_MS, lifecycleEmailsOn, waitlistVariant, type LeadStep, type LeadVariant } from './config'
 import { fileLeadInCrm, isInternalAddress } from './file-lead'
 import { pickedJourneys } from './journey'
@@ -47,14 +47,8 @@ async function gatherLeads(now: Date): Promise<{ leads: Lead[]; unsubscribed: Se
     prisma.newsletterSubscriber.findMany({ where: { unsubscribedAt: { not: null } }, select: { email: true } }),
   ])
 
-  const jobIds = [...new Set(saved.map((s) => s.searchQ))]
-  const jobLabel = new Map<string, string>()
-  await Promise.all(
-    jobIds.map(async (id) => {
-      const job = await getPublicJob(id).catch(() => null)
-      if (job?.title) jobLabel.set(id, job.companyName ? `${job.title} at ${job.companyName}` : job.title)
-    }),
-  )
+  // One read of the saved jobs' labels, without their posting text (it used to be one full-text read per job, every 5 minutes).
+  const jobLabel = await publicJobLabels(saved.map((s) => s.searchQ).filter((q): q is string => !!q)).catch(() => new Map<string, string>())
 
   const leads: Lead[] = []
   for (const s of saved) {

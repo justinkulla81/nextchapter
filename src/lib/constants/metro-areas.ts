@@ -75,3 +75,8 @@ export function normalizeMetroArea(city: string | null): string | null {
 }
 
 export const METRO_AREA_NAMES = Array.from(new Set(METRO_ALIASES.map((m) => m.metro)))
+
+/** The towns a metro groups ("Austin Metro" → austin, round rock, cedar park), lowercased; [] for an unknown name. */
+export function metroTowns(metro: string): string[] {
+  return METRO_ALIASES.find((m) => m.metro === metro)?.cities ?? []
+}

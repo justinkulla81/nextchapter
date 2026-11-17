@@ -6,6 +6,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { ingestIntake, processIntakeResume } from '@/lib/recruiter/intake/pipeline'
 import { getFirmListings, verifiedRecruiterFirmForOrg, type CachedFirmListing } from '@/lib/seo/search-firm-pages'
 import { recommend, type FirmFit, type MemberSignals } from '@/lib/recruiter-interest/fit'
+import { RESUME_NOT_REJECTED } from '@/lib/resume/not-rejected'
 
 // A member's interest in a search firm lives on RecruiterInterest (prisma/manual/recruiter-interest.sql), against the
 // firm's CRM organization, so it exists before the firm has joined. HELD: nothing went to the firm. SHARED: the member
@@ -46,7 +47,7 @@ export async function shareInterestWithFirm(candidateId: string, orgId: string):
 
   const [profile, resume] = await Promise.all([
     prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { firstName: true, lastName: true, email: true, linkedInUrl: true } }),
-    prisma.resume.findFirst({ where: { candidateId, looksLikeResume: { not: false } }, orderBy: { uploadedAt: 'desc' }, select: { filePath: true, fileName: true } }),
+    prisma.resume.findFirst({ where: { candidateId, ...RESUME_NOT_REJECTED }, orderBy: { uploadedAt: 'desc' }, select: { filePath: true, fileName: true } }),
   ])
   if (!resume) return { ok: false, error: 'Add your résumé first. It is what the firm receives.' }
   const download = await createAdminClient().storage.from('resumes').download(resume.filePath)

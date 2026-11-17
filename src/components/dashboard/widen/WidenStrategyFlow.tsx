@@ -10,6 +10,7 @@ import { RowList, type RowItem } from '@/components/candidate/RowList'
 import { EmptyNote, PlainNote, SectionBlock } from '@/components/candidate/Blocks'
 import { ExpansionToggle } from '@/components/dashboard/ExpansionToggle'
 import { stateName } from '@/lib/pivots/scoring'
+import { cityLabel } from '@/lib/jobs/added-cities'
 import { strategySummary, joinList, type SkillsIntel, type StrategyPicks, type WidenCity, type WidenStrategyView } from '@/lib/jobs/widen-strategy'
 import { finishWidenStrategy } from '@/app/dashboard/find-my-job/widen/actions'
 
@@ -29,14 +30,14 @@ type Round = (typeof ROUNDS)[number]['key']
 export function WidenStrategyFlow({ view, from = 'direct', preview = false }: { view: WidenStrategyView; from?: string; preview?: boolean }) {
   const router = useRouter()
   const [round, setRound] = useState<Round>('where')
-  const [picks, setPicks] = useState<StrategyPicks>({ remote: view.on.remote, states: view.on.states, industries: view.on.industries, roles: view.on.roles })
+  const [picks, setPicks] = useState<StrategyPicks>({ remote: view.on.remote, states: view.on.states, cities: view.on.cities, industries: view.on.industries, roles: view.on.roles })
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const roleLabel = useMemo(() => new Map(view.roles.map((r) => [r.role, r.label])), [view.roles])
-  const summary = strategySummary(picks, { state: stateName, role: (r) => roleLabel.get(r) ?? r.replace(/_/g, ' ') })
+  const summary = strategySummary(picks, { state: stateName, city: cityLabel, role: (r) => roleLabel.get(r) ?? r.replace(/_/g, ' ') })
   const fn = view.fnLabel ?? 'your kind of work'
 
-  const setList = (k: 'states' | 'industries' | 'roles', v: string, on: boolean) =>
+  const setList = (k: 'states' | 'cities' | 'industries' | 'roles', v: string, on: boolean) =>
     setPicks((p) => ({ ...p, [k]: on ? [...new Set([...p[k], v])] : p[k].filter((x) => x.toLowerCase() !== v.toLowerCase()) }))
   const hasIndustry = (i: string) => picks.industries.some((x) => x.toLowerCase() === i.toLowerCase())
 
@@ -46,7 +47,7 @@ export function WidenStrategyFlow({ view, from = 'direct', preview = false }: { 
   }
 
   function finish() {
-    const props = { from, places: picks.states.length + (picks.remote ? 1 : 0), industries: picks.industries.length, roles: picks.roles.length, round }
+    const props = { from, places: picks.states.length + picks.cities.length + (picks.remote ? 1 : 0), cities: picks.cities.length, industries: picks.industries.length, roles: picks.roles.length, round }
     posthog.capture('search_strategy_applied', props)
     if (preview) return
     start(async () => {
@@ -63,19 +64,19 @@ export function WidenStrategyFlow({ view, from = 'direct', preview = false }: { 
     key: `${list}-${c.city}`,
     title: c.city,
     why: `${n(c.openNow)} open ${fn.toLowerCase()} roles${list === 'industry' && view.citiesForIndustry ? ` in ${view.citiesForIndustry.industry}` : ''}.`,
-    fact: c.home ? `In ${c.stateName}, already in your search.` : `Adding it adds every ${c.stateName} job like yours.`,
+    fact: c.home ? `In ${c.stateName}, already in your search.` : `Adds the jobs within about 40 miles of ${cityLabel(c.city)}.`,
     actions: c.home ? undefined : (
       <ExpansionToggle
         quiet
         preview={preview}
         surface="widen_strategy"
-        kind="state"
-        value={c.state}
-        on={picks.states.includes(c.state)}
-        onChange={(on) => setList('states', c.state, on)}
-        label={`Jobs in ${c.stateName}`}
-        addLabel={`Add ${c.stateName}`}
-        onLabel={`✓ ${c.stateName} added`}
+        kind="city"
+        value={`${c.city}|${c.state}`}
+        on={picks.cities.includes(c.city)}
+        onChange={(on) => setList('cities', c.city, on)}
+        label={`Jobs in and around ${cityLabel(c.city)}`}
+        addLabel={`Add ${cityLabel(c.city)}`}
+        onLabel={`✓ ${cityLabel(c.city)} added`}
       />
     ),
   })
@@ -173,7 +174,7 @@ export function WidenStrategyFlow({ view, from = 'direct', preview = false }: { 
               </EmptyNote>
             )
           ) : (
-            <SectionBlock id="cities-fn-h" title={`Cities with the most ${fn.toLowerCase()} jobs`} why="Open roles at your level on the board today. Adding a city adds its state's jobs to Find a job and your daily email.">
+            <SectionBlock id="cities-fn-h" title={`Cities with the most ${fn.toLowerCase()} jobs`} why="Open roles at your level on the board today. A city you add goes into Find a job and your daily email on its own, not its whole state.">
               <RowList label={`Cities with the most ${fn} jobs`} items={view.citiesForFunction.map((c) => cityRow(c, 'function'))} />
             </SectionBlock>
           )}

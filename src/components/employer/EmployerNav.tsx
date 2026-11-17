@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useFormStatus } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { signOutEmployer as signOut } from '@/app/auth/portal-sign-out'
-import { PartnerTopBar, chromeFor } from '@/components/partners/PartnerTopBar'
+import { PartnerTopBar } from '@/components/partners/PartnerTopBar'
 import { employerUseForPath } from '@/lib/partners/portal-types'
 import type { PartnerBrand } from '@/lib/partners/brand'
 import type { OutplacementProgramType, OutplacementRole } from '@prisma/client'
@@ -20,7 +20,7 @@ function SignOutButton() {
       type="submit"
       disabled={pending}
       className={cn(
-        'text-sm font-medium text-white/50 transition-colors hover:text-white',
+        'text-sm font-medium text-muted-foreground transition-colors hover:text-ink',
         pending && 'cursor-progress'
       )}
     >
@@ -80,17 +80,15 @@ function NavContent({ pathname, links, onNavigate, sections = [] }: { pathname: 
   return (
     <nav className="flex h-full flex-col gap-2 overflow-y-auto px-4 py-6">
       {/* The top bar carries the switcher from md up; the drawer carries it below that. */}
-      <SectionSwitcher items={sections} className="flex-wrap px-2 pb-3 md:hidden" />
+      <SectionSwitcher items={sections} onDark={false} className="flex-wrap px-2 pb-3 md:hidden" />
       <div className="space-y-0.5">
         {links.map((link) => (
           <Link
             key={link.href}
             href={link.href}
             onClick={onNavigate}
-            className={cn(
-              'flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-xs font-medium transition-colors',
-              isActive(link.href) ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'
-            )}
+            aria-current={isActive(link.href) ? 'page' : undefined}
+            className="nc-portal-link"
           >
             <span>{link.label}</span>
           </Link>
@@ -126,16 +124,14 @@ export function EmployerNav({ role, brand, programs = [], sections = [], employe
         </button>
       </PartnerTopBar>
 
-      <aside className="fixed inset-y-0 top-14 left-0 z-30 hidden w-64 lg:block" style={{ backgroundColor: chromeFor('employer') }}>
-        <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
+      <aside className="nc-portal-rail fixed inset-y-0 top-14 left-0 z-30 hidden w-64 lg:block">
         <NavContent pathname={pathname} links={links} sections={sections} />
       </aside>
 
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="fixed inset-y-0 left-0 w-64 shadow-xl" style={{ backgroundColor: chromeFor('employer') }}>
-            <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
+          <div className="nc-portal-rail fixed inset-y-0 left-0 w-64 shadow-xl">
             <NavContent pathname={pathname} links={links} sections={sections} onNavigate={() => setOpen(false)} />
           </div>
         </div>

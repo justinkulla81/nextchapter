@@ -7,10 +7,10 @@ import type { RoleGrantRole } from '@prisma/client'
 import { EmployerNav } from '@/components/employer/EmployerNav'
 import { getCurrentEmployerPortalMember } from '@/lib/employer/outplacement-auth'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
-import { brandStyle } from '@/lib/partners/brand'
 import { outplacementBrand } from '@/lib/partners/resolve-brand'
 import { orgProgramTypes } from '@/lib/employer/staff-programs'
 import { employerSwitcherLinks } from '@/lib/employer/switcher'
+import { portalStyle } from '@/lib/partners/portal-types'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -31,7 +31,7 @@ export default async function EmployerAppLayout({ children }: { children: React.
   const [brand, programs, sections] = await Promise.all([outplacementBrand(orgUser.orgId), orgProgramTypes(orgUser.orgId), employerSwitcherLinks(orgUser.userId, orgUser.email)])
 
   return (
-    <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
+    <div className="theme-partner theme-portal min-h-screen" style={portalStyle('employer')}>
       <PortalActivityTracker portal="EMPLOYER" />
       <PortalHelpLauncher portal="EMPLOYER" />
       <Suspense fallback={null}>

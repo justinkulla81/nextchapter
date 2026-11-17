@@ -119,6 +119,7 @@ export async function saveService(
     provider?: string
     partnerName?: string | null
     targeting?: TargetingInput
+    skills?: string | string[]
   },
 ): Promise<{ error?: string }> {
   const inst = await prisma.institution.findUnique({ where: { slug }, select: { orgType: true, plan: true, enabledFeatures: true } })
@@ -143,6 +144,7 @@ export async function saveService(
   if (patch.partnerName !== undefined) clean.partnerName = patch.partnerName?.trim().slice(0, 80) || null
   if (clean.provider === 'partner' && !clean.partnerName) return { error: 'Name the partner. Members see “From <partner>” on the card.' }
   if (clean.provider === 'partner' && !(patch.linkUrl ?? '').trim()) return { error: 'Add the partner’s link: that’s where the card sends members.' }
+  if (patch.skills !== undefined) clean.skills = parseMajors(Array.isArray(patch.skills) ? patch.skills.join(',') : patch.skills)
   if (patch.targeting !== undefined) {
     const t = cleanTargeting(patch.targeting)
     if ('error' in t) return { error: t.error }
@@ -164,6 +166,7 @@ export async function saveService(
     custom: key.startsWith('x_'),
     ...(patch.on !== undefined ? { on: patch.on } : {}),
     ...(clean.provider ? { provider: clean.provider } : {}),
+    ...(clean.skills ? { skillCount: clean.skills.length } : {}),
     ...(clean.targeting
       ? {
           targeted: isTargeted(clean.targeting),

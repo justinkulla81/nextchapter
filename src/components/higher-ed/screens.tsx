@@ -62,6 +62,7 @@ import { institutionEntitlements } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { AlumniData } from './screens-alumni-data'
 import { DevelopmentGrants } from './screens-grants'
+import { SkillsBridgeSection, StaffSkillsBridge } from './screens-bridge'
 import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
 import { counselors, searchRoster } from '@/lib/higher-ed/caseload'
@@ -93,6 +94,7 @@ import {
 } from './screens-community'
 import { CareerStatusCard } from './CareerStatusCard'
 import { CandidateGroups } from './screens-groups'
+import { WorkforcePreviewHome } from './WorkforcePreviewHome'
 import { HubPeople } from './screens-people'
 import { PrivacyPanel } from './PrivacyPanel'
 import { CrmUploadForm } from './CrmUploadForm'
@@ -200,6 +202,8 @@ const CANDIDATE_TOOLS = [
 ]
 
 async function CandidateHome({ ctx, base }: ScreenProps) {
+  // A workforce program's staff preview: the candidate-site Home (src/components/higher-ed/WorkforcePreviewHome.tsx).
+  if (orgKindOf(ctx.institution.orgType) === 'workforce' && ctx.workspaces.includes('hub')) return <WorkforcePreviewHome ctx={ctx} base={base} />
   const member = ctx.memberId
     ? await prisma.institutionMember.findUnique({
         where: { id: ctx.memberId },
@@ -1579,6 +1583,7 @@ async function CandidateLearn(props: ScreenProps) {
   const mods = await loadModules(props.ctx.institution.id)
   return (
     <div className="space-y-10">
+      <SkillsBridgeSection {...props} />
       <LearnSections {...props} />
       {mods.programs && <CandidatePrograms {...props} />}
     </div>
@@ -1684,6 +1689,8 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'alumni:engagement': AlumniEngagement,
   'alumni:data': AlumniData,
   'development:grants': DevelopmentGrants,
+  'execed:bridge': StaffSkillsBridge,
+  'career:bridge': StaffSkillsBridge,
   'career:checkins': CareerCheckIns,
   'hub:home': HubHome,
   'hub:companies': HubCompanies,

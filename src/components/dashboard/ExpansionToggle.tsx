@@ -14,7 +14,7 @@ import { setSearchExpansion } from '@/app/dashboard/market/actions'
 export function ExpansionToggle({
   kind, value, on: initial, label, quiet = false, onChange, addLabel, onLabel, surface = 'market', preview = false,
 }: {
-  kind: 'remote' | 'state' | 'relocate' | 'role' | 'industry'
+  kind: 'remote' | 'state' | 'city' | 'relocate' | 'role' | 'industry'
   value: string
   on: boolean
   label: string
