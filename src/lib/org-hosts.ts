@@ -33,7 +33,7 @@ export function orgKindForHost(host: string | null | undefined): OrgHostKind | n
 // Public pages under /i/<slug>/ that belong to the main (job-seeker) site:
 // joining, signing up for a layoff offer, unsubscribing, giving. They create
 // or use a NextChapter account and land on the main dashboard.
-export const MAIN_SITE_SEGMENTS = new Set(['join', 'welcome', 'rapid', 'for-alumni', 'checkin', 'unsubscribe', 'give', 'outcomes', 'report', 'mentor'])
+export const MAIN_SITE_SEGMENTS = new Set(['join', 'welcome', 'rapid', 'for-alumni', 'checkin', 'unsubscribe', 'give', 'outcomes', 'report', 'mentor', 'view'])
 
 // A path inside the portal, for links on the portal itself.
 export function orgAppPath(slug: string, kind: OrgHostKind, rest = ''): string {

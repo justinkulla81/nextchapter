@@ -17,6 +17,8 @@ import { FUNDING_STATUS_KEYS } from '@/lib/workforce/hub-flow'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { linkPostingToCompany } from '@/lib/companies/posting-company'
 import { parseJobRows } from '@/lib/workforce/group-jobs'
+import { PARTNER_KIND_KEYS, normalizeScopes } from '@/lib/workforce/partner-views'
+import { randomBytes } from 'crypto'
 
 type Result = { error?: string; ok?: boolean; message?: string }
 export type HubResult = Result | undefined
@@ -335,6 +337,39 @@ export async function archiveGroupJob(slug: string, _prev: HubResult, f: FormDat
   const r = await prisma.exclusiveJobPosting.updateMany({ where: { id, institutionScopeId: ctx.institution.id, archivedAt: null }, data: { archivedAt: new Date() } })
   if (r.count === 0) return { error: 'That job was not found.' }
   captureServerEvent(ctx.userId, 'group_job_archived', { institutionId: ctx.institution.id, postingId: id })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+// ── Phase 5: partner views ──────────────────────────────────────────────────
+
+// Make a read-only view of the organization's regional data for one partner, opened by an unlisted link.
+export async function createPartnerView(slug: string, _prev: HubResult, f: FormData): Promise<HubResult & { token?: string }> {
+  const ctx = await hub(slug)
+  const partnerName = str(f, 'partnerName').slice(0, 120)
+  if (!partnerName) return { error: 'Add the name of the college, employer or group this is for.' }
+  const kind = str(f, 'partnerKind') || 'OTHER'
+  if (!PARTNER_KIND_KEYS.includes(kind)) return { error: 'Pick who this is for.' }
+  const scopes = normalizeScopes(f.getAll('scopes').map(String))
+  if (scopes.length === 0) return { error: 'Pick at least one thing to include.' }
+  const days = Number(str(f, 'days')) === 90 ? 90 : 30
+  const token = randomBytes(24).toString('base64url')
+  const v = await prisma.partnerView.create({
+    data: { institutionId: ctx.institution.id, token, partnerName, partnerKind: kind, scopes, note: str(f, 'note').slice(0, 500) || null, expiresAt: new Date(Date.now() + days * 86_400_000), createdBy: ctx.userId },
+    select: { id: true },
+  })
+  captureServerEvent(ctx.userId, 'partner_view_created', { institutionId: ctx.institution.id, viewId: v.id, partnerKind: kind, scopes, days })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: `Made. Copy the link from the list below and send it to ${partnerName}.`, token }
+}
+
+// Switch a partner view off. The link stops working at once.
+export async function revokePartnerView(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const id = str(f, 'id')
+  const r = await prisma.partnerView.updateMany({ where: { id, institutionId: ctx.institution.id, revokedAt: null }, data: { revokedAt: new Date() } })
+  if (r.count === 0) return { error: 'That view was not found, or is already switched off.' }
+  captureServerEvent(ctx.userId, 'partner_view_revoked', { institutionId: ctx.institution.id, viewId: id })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true }
 }

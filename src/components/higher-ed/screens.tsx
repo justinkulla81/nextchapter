@@ -13,6 +13,7 @@ import { HubAttract, HubBenefits, HubGrants, HubJobs, HubLearning, HubPipeline, 
 import { HubApplications, HubReport } from './screens-hub-flow'
 import { HubSkillsGaps, HubTalent } from './screens-hub-skills'
 import { HubGroupJobs, HubRegionJobs } from './screens-hub-jobs'
+import { HubPartnerViews } from './screens-hub-partners'
 import { CompanyOverview, CompanySupport } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
@@ -1704,6 +1705,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:talent': HubTalent,
   'hub:regionjobs': HubRegionJobs,
   'hub:groupjobs': HubGroupJobs,
+  'hub:views': HubPartnerViews,
   'hub:region': Region,
   'employer:overview': CompanyOverview,
   'employer:support': CompanySupport,

@@ -22,7 +22,7 @@ type RegionJob = { id: string; title: string; companyName: string; location: str
 
 // One bounded read per city: the newest 200 open listings in the state that name the city, narrow rows (no description),
 // about 60 KB, shared for 30 minutes. Scoped (group-only) postings are never in it.
-const loadRegionJobs = memoTtl(
+export const loadRegionJobs = memoTtl(
   30 * 60_000,
   (city: string, state: string) => `${city}|${state}`,
   async (city: string, state: string): Promise<RegionJob[]> =>
