@@ -13,6 +13,7 @@ import { createHash, randomBytes } from 'crypto'
 import type { CurrentJobStatus, InstitutionOrgType, JourneyStage, JourneyType, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { dossierLineFor } from './demo-dossier-lines'
+import { findCityHero } from './city-hero'
 import { localArea, placeAt, type LocalSettings } from './local'
 import { countyKey, STATE_NAMES } from './places'
 import { skillsForTitle } from '@/lib/learning/plan'
@@ -123,6 +124,8 @@ export async function generateWorkforceDemo(input: WorkforceDemoInput, now = new
   if (!STATE_NAMES[anchorState]) return { error: 'Use the two-letter state, like KY.' }
   const anchor = await placeAt(anchorCity, anchorState)
   if (!anchor) return { error: `We can’t find ${anchorCity}, ${anchorState} in the Census place list. Check the spelling, or use the nearest larger city.` }
+  // The splash picture: an iconic view of the city, looked up while the rest of the region loads (src/lib/workforce/city-hero.ts).
+  const heroLookup = findCityHero(anchorCity, STATE_NAMES[anchorState])
   const radiusMiles = Math.min(Math.max(Math.round(input.radiusMiles ?? 40), 10), 100)
   const local: LocalSettings = { anchorCity, anchorState, radiusMiles, label: `the ${anchorCity} region` }
   const area = await localArea(local)
@@ -146,8 +149,10 @@ export async function generateWorkforceDemo(input: WorkforceDemoInput, now = new
   const seed = slug
   const expiresAt = input.source === 'public' ? new Date(now.getTime() + PUBLIC_DEMO_DAYS * DAY) : null
 
+  const hero = await heroLookup
   const profile = {
     tagline: `Keeping ${anchorCity}'s talent working in ${anchorCity}.`,
+    ...(hero ? { heroImageUrl: hero.url, heroCredit: hero.credit, heroSourceUrl: hero.sourceUrl } : {}),
     region: {
       name: `${anchorCity} region`,
       state: anchorState,

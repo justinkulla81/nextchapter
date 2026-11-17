@@ -111,6 +111,9 @@ export async function updateInstitutionBranding(
     const url = cleanImageUrl(input.heroImageUrl)
     if (url) profile.heroImageUrl = url
     else delete profile.heroImageUrl
+    // A demo's Wikimedia photo carries its credit (src/lib/workforce/city-hero.ts); the organization's own picture does not.
+    delete profile.heroCredit
+    delete profile.heroSourceUrl
   }
   if (input.tagline !== undefined) {
     if (input.tagline?.trim()) profile.tagline = input.tagline.trim().slice(0, 160)

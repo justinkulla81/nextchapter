@@ -58,7 +58,7 @@ export function SubmissionPacketPdfDocument(data: SubmissionPacketData) {
           </Section>
         )}
 
-        {(data.howIOperateSummaries.length > 0 || data.superpowers.length > 0) && (
+        {(data.howIOperateSummaries.length > 0 || data.superpowers.length > 0 || data.inTheirWords.length > 0) && (
           <Section title="How they operate">
             {data.howIOperateSummaries.map((s, i) => (
               <Text key={i} style={BODY_STYLE}>
@@ -69,6 +69,12 @@ export function SubmissionPacketPdfDocument(data: SubmissionPacketData) {
               <Text key={`sp-${i}`} style={BODY_STYLE}>
                 • {s.label}
                 {s.referenceConfirmed ? ' (independently confirmed by references)' : ''}
+              </Text>
+            ))}
+            {data.inTheirWords.map((w, i) => (
+              <Text key={`own-${i}`} style={BODY_STYLE}>
+                • {w.strength}
+                {w.proof ? `: ${w.proof}` : ''} (in their own words)
               </Text>
             ))}
           </Section>

@@ -1,4 +1,5 @@
 import 'server-only'
+import { loadDossierStrengths, type DossierStrength } from '@/lib/strengths-interview/load'
 import { loadStrengths } from '@/lib/profile/strengths-load'
 import { cache } from 'react'
 import type { Prisma } from '@prisma/client'
@@ -169,7 +170,9 @@ export interface DossierData {
   // gritStatText is the one thing the deleted "What Drives Me" section got
   // right — verified, hard-to-fake sustained effort — moved here to sit
   // right next to Superpowers, framed explicitly as evidence of persistence.
-  howIOperate: { dimensionSummaries: string[]; superpowers: DossierSuperpower[]; gritStatText: string | null }
+  // inTheirWords: Find your strengths (src/lib/strengths-interview/), the member's own strengths with proof and their line, unless
+  // hidden. Self-reported, so labeled as such where shown; never the weak spots.
+  howIOperate: { dimensionSummaries: string[]; superpowers: DossierSuperpower[]; inTheirWords: DossierStrength[]; gritStatText: string | null }
   aiFluencyExample: string | null
   impactOnPeople: {
     quotes: { theme: string; quoteText: string; refereeName: string }[]
@@ -355,7 +358,7 @@ ${await strengthsLine(candidate.id)}`
 export async function getHowIOperate(
   candidateId: string,
   candidateTopStrengths: string[]
-): Promise<{ dimensionSummaries: string[]; superpowers: DossierSuperpower[]; gritStatText: string | null }> {
+): Promise<{ dimensionSummaries: string[]; superpowers: DossierSuperpower[]; inTheirWords: DossierStrength[]; gritStatText: string | null }> {
   const latestAssessment = await prisma.candidateAssessmentResponse.findFirst({
     where: { candidateId },
     orderBy: { completedAt: 'desc' },
@@ -407,16 +410,17 @@ export async function getHowIOperate(
   // count comes from MarketRealitySnapshot (one row per closed-out week);
   // over-delivering count comes from the same full-history per-week
   // computation the OVER_DELIVERING_STREAK milestone badge already builds.
-  const [aGradeWeeks, overDeliveringWeeks] = await Promise.all([
+  const [aGradeWeeks, overDeliveringWeeks, inTheirWords] = await Promise.all([
     countAGradeWeeks(candidateId),
     countOverDeliveringWeeks(candidateId),
+    loadDossierStrengths(candidateId),
   ])
   const gritStatText =
     aGradeWeeks.totalWeeks > 0
       ? `${aGradeWeeks.aWeeks} of ${aGradeWeeks.totalWeeks} weeks at an A${overDeliveringWeeks > 0 ? `, ${overDeliveringWeeks} week${overDeliveringWeeks === 1 ? '' : 's'} Over-Delivering` : ''}. This level of sustained, self-directed effort — without external accountability — is itself a signal of persistence.`
       : null
 
-  return { dimensionSummaries, superpowers, gritStatText }
+  return { dimensionSummaries, superpowers, inTheirWords, gritStatText }
 }
 
 async function getGapAreasAndLearningItems(candidateId: string) {
@@ -713,7 +717,7 @@ export function getDossierSectionCompleteness(
         hasContent = !!dossier.positioning.approvedText
         break
       case 'howIOperate':
-        hasContent = dossier.howIOperate.dimensionSummaries.length > 0 || dossier.howIOperate.superpowers.length > 0
+        hasContent = dossier.howIOperate.dimensionSummaries.length > 0 || dossier.howIOperate.superpowers.length > 0 || dossier.howIOperate.inTheirWords.length > 0
         break
       case 'aiFluency':
         hasContent = !!dossier.aiFluencyExample

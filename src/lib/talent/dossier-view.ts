@@ -19,6 +19,7 @@ export interface HiringDossierView {
   categoryStrengths: { label: string; text: string }[]
   howIOperateSummaries: string[]
   superpowers: { label: string; referenceConfirmed: boolean }[]
+  inTheirWords: { strength: string; proof: string; sayIt: string }[]
   impactQuotes: { theme: string; quoteText: string; refereeName: string }[]
   selfAwareness: string | null
   learningGrowthItems: string[]
@@ -56,6 +57,7 @@ export async function buildHiringDossierView(candidateId: string): Promise<Hirin
     categoryStrengths: dossier.categoryStrengths.map((s) => ({ label: s.label, text: s.text })),
     howIOperateSummaries: dossier.howIOperate.dimensionSummaries,
     superpowers: dossier.howIOperate.superpowers.map((s) => ({ label: s.label, referenceConfirmed: s.referenceConfirmed })),
+    inTheirWords: dossier.howIOperate.inTheirWords.map((w) => ({ strength: w.strength, proof: w.proof, sayIt: w.sayIt })),
     impactQuotes: dossier.impactOnPeople.quotes,
     selfAwareness: dossier.selfAwareness.approvedText,
     learningGrowthItems: dossier.learningGrowth.items.map((i) => i.title),
