@@ -27,7 +27,7 @@ export function DemoBar({
   canReset?: boolean
   // "Skip ahead 60 days" moves a college's quiet periods; workforce demos have none.
   canSkip?: boolean
-  personas: { key: string; label: string }[]
+  personas: { key: string; label: string; group?: 'all' | 'staff' | 'outside' }[]
 }) {
   const [confirming, setConfirming] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -70,11 +70,27 @@ export function DemoBar({
                 defaultValue={persona ?? 'all'}
                 className="h-8 rounded-md border border-amber-300 bg-white px-2 text-sm"
               >
-                {personas.map((p) => (
+                {personas.filter((p) => !p.group || p.group === 'all').map((p) => (
                   <option key={p.key} value={p.key}>
                     {p.label}
                   </option>
                 ))}
+                {(
+                  [
+                    ['staff', 'Staff roles'],
+                    ['outside', 'The people and companies you serve'],
+                  ] as const
+                ).map(([group, label]) =>
+                  personas.some((p) => p.group === group) ? (
+                    <optgroup key={group} label={label}>
+                      {personas.filter((p) => p.group === group).map((p) => (
+                        <option key={p.key} value={p.key}>
+                          {p.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : null,
+                )}
               </select>
               <SubmitButton size="sm" variant="outline" pendingLabel="Switching…" savedLabel="Switched">
                 Switch view
