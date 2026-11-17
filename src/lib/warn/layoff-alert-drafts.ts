@@ -10,7 +10,7 @@ import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { stateSlug } from '@/lib/seo/states'
 import { INDUSTRY_NAME, type LocalPicture } from './layoff-picture'
-import { listNames } from './outreach/copy'
+import { othersLine } from './outreach/copy'
 import type { ContactCard, ContactGroup } from './layoff-alert-rules'
 
 /** The key a tracked compose click carries through /api/e/go, and the read of it back. */
@@ -176,7 +176,7 @@ export function draftFor(kind: Kind, c: ContactCard, x: DraftContext): Draft {
       const share = x.peoplePage ? `I put together a page for the ${who} leaving ${org}, matched to the work they did. It's free for ${kind === 'job_centers' ? 'them' : kind === 'economic_development' ? 'the people affected' : 'the people you refer'}: ${x.peoplePage} ${second}` : `I put together a page that shows where the roles are. It's free for the people you refer: ${local}`
       const pageLine: Record<string, string> = { rapid_response: share, workforce_board: share, job_centers: share, economic_development: share }
       const unemployment = kind === 'workforce_board' && p.unemploymentRate != null && p.areaLabel ? `${p.areaLabel} unemployment is ${p.unemploymentRate}%.` : ''
-      const others = kind === 'workforce_board' && x.partners?.length ? `${listNames(x.partners.slice(0, 3))} serve them too; the same page works for all of you.` : ''
+      const others = kind === 'workforce_board' && x.partners?.length ? othersLine(x.partners) ?? '' : ''
       const subjects: Record<string, string[]> = {
         rapid_response: [`before your ${org} meeting`, ...(emp ? [`where ${org}'s ${emp} can land in ${state ?? 'the state'}`] : [])],
         workforce_board: [emp ? `${org}'s ${emp}, in ${place ?? 'your region'}` : `${org}, in ${place ?? 'your region'}`, `a page for your ${org} layoff`],

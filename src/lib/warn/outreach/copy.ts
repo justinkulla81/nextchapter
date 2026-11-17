@@ -46,6 +46,12 @@ export interface CopyInput {
 /** "A", "A and B", "A, B and C". */
 export const listNames = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`)
 
+/** The board note's sentence naming the others: "A serves them too", "A and B serve them too". */
+export const othersLine = (xs: string[]) => {
+  const names = xs.slice(0, 3).map((n) => n.replace(/\s*\([^)]*\.[a-z]{2,}\)\s*$/i, '').trim()).filter(Boolean)
+  return names.length ? `${listNames(names)} ${names.length === 1 ? 'serves' : 'serve'} them too; the same page works for all of you.` : null
+}
+
 const n = (x: number) => x.toLocaleString('en-US')
 
 export function outreachCopy(i: CopyInput): { subject: string; body: string } {
@@ -87,7 +93,7 @@ export function outreachCopy(i: CopyInput): { subject: string; body: string } {
   }
   const ask = ASK[i.arm][hr ? 'hr' : 'partner']
   // The board hears first and convenes the rest: name who else serves these people, so the board can bring them in.
-  const others = i.audience === 'workforce_board' && i.partners?.length ? `${listNames(i.partners.slice(0, 3))} serve them too; the same page works for all of you.` : null
+  const others = i.audience === 'workforce_board' && i.partners?.length ? othersLine(i.partners) : null
   return { subject, body: [hello, first, others ? `${second} ${others}` : second, ask, i.signOff].join('\n\n') }
 }
 
