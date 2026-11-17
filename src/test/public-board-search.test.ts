@@ -6,6 +6,7 @@ vi.mock('next/cache', () => ({ unstable_cache: (fn: unknown) => fn }))
 const findLight = vi.fn()
 const findWide = vi.fn()
 const limits: number[] = []
+const scanOpts: ({ noIndexScan?: boolean } | undefined)[] = []
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     boardLightRow: { findMany: (...a: unknown[]) => findLight(...a) },
@@ -13,8 +14,9 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 vi.mock('@/lib/db/statement-timeout', () => ({
-  withStatementTimeout: (q: Promise<unknown>, ms?: number) => {
+  withStatementTimeout: (q: Promise<unknown>, ms?: number, opts?: { noIndexScan?: boolean }) => {
     limits.push(ms ?? -1)
+    scanOpts.push(opts)
     return q
   },
 }))
@@ -33,6 +35,7 @@ beforeEach(() => {
   findLight.mockReset()
   findWide.mockReset()
   limits.length = 0
+  scanOpts.length = 0
   findWide.mockImplementation(async ({ where }: { where: { id: { in: string[] } } }) => where.id.in.map((id) => ({ id, url: `https://x/${id}`, lastVerifiedAt: new Date(), disclosure: 'OPEN' })))
 })
 
@@ -52,6 +55,11 @@ describe('public board search', () => {
     expect(countCall.take).toBe(COUNT_CAP + 1)
     expect(countCall.select).toEqual({ id: true })
     expect(countCall.skip).toBeUndefined()
+    // No order on the count, and plain index scans off for it: ordered, it walked the date index row by row (#12, 2026-11-17).
+    expect(countCall.orderBy).toBeUndefined()
+    expect(scanOpts[0]).toEqual({ noIndexScan: true })
+    expect(findLight.mock.calls[1][0].orderBy).toBeDefined()
+    expect(scanOpts[1]?.noIndexScan).toBeUndefined()
     expect(result.total).toBe(COUNT_CAP)
     expect(result.totalCapped).toBe(true)
   })

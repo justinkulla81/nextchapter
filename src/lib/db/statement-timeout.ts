@@ -15,7 +15,12 @@ export const MEMBER_STATEMENT_TIMEOUT_MS = 8_000
  * never leaks onto the shared connection. Costs one extra statement; use it on the few queries that scan
  * the job board, not on every read.
  */
-export async function withStatementTimeout<T>(query: PrismaPromise<T>, ms: number = MEMBER_STATEMENT_TIMEOUT_MS): Promise<T> {
-  const [, result] = await prisma.$transaction([prisma.$queryRaw`SELECT set_config('statement_timeout', ${String(Math.round(ms))}, true)`, query])
+export async function withStatementTimeout<T>(query: PrismaPromise<T>, ms: number = MEMBER_STATEMENT_TIMEOUT_MS, opts: { noIndexScan?: boolean } = {}): Promise<T> {
+  // noIndexScan turns plain index scans off for this one statement (bitmap scans stay on), the same transaction-local way: for a query
+  // whose LIMIT tempts the planner to walk an ordered index and fetch each row at random when reading the table in order is cheaper.
+  const setting = opts.noIndexScan
+    ? prisma.$queryRaw`SELECT set_config('statement_timeout', ${String(Math.round(ms))}, true), set_config('enable_indexscan', 'off', true)`
+    : prisma.$queryRaw`SELECT set_config('statement_timeout', ${String(Math.round(ms))}, true)`
+  const [, result] = await prisma.$transaction([setting, query])
   return result as T
 }
