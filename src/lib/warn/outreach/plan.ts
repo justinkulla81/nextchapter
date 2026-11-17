@@ -32,6 +32,9 @@ const AUDIENCE_OF_GROUP: Record<string, OutreachAudience> = {
 /** The order a layoff's emails are claimed in when one address sits in two groups. */
 const GROUP_ORDER = ['head_hr', 'hr_team', 'rapid_response', 'workforce_board', 'job_centers', 'economic_development']
 
+/** Groups the workforce board convenes: not emailed when the board is. */
+const BOARD_BRINGS_IN = new Set(['job_centers', 'economic_development'])
+
 /** An address that got a layoff email in this many days gets no other (a state coordinator hears about many layoffs a week). */
 export const CONTACT_COOLDOWN_DAYS = 7
 
@@ -111,7 +114,10 @@ const validEmail = (e: string | null | undefined) => (e && /^[^\s@<>]+@[^\s@<>]+
  */
 export function planOutreach(groups: ContactGroup[], ctx: DraftContext, opts: PlanOptions): PlannedEmail[] {
   const seen = new Set<string>([...opts.blocked, ...(opts.ownAddresses ?? [])])
-  const ordered = [...groups].sort((a, b) => GROUP_ORDER.indexOf(a.key) - GROUP_ORDER.indexOf(b.key))
+  // Board first (owner, 2026-11-17): when the layoff's workforce board will get the email, the job centers and economic development
+  // groups are not emailed too. The board's note names them, and the board brings them in. With no board address, they are emailed.
+  const boardEmailed = groups.some((g) => g.key === 'workforce_board' && g.cards.some((c) => { const e = validEmail(c.email); return !!e && !c.guessed && !seen.has(e) }))
+  const ordered = [...groups].filter((g) => !(boardEmailed && BOARD_BRINGS_IN.has(g.key))).sort((a, b) => GROUP_ORDER.indexOf(a.key) - GROUP_ORDER.indexOf(b.key))
   const out = new Map<string, PlannedEmail>()
   for (const g of ordered) {
     const audience = AUDIENCE_OF_GROUP[g.key]
@@ -127,7 +133,7 @@ export function planOutreach(groups: ContactGroup[], ctx: DraftContext, opts: Pl
       if (copyAudience) {
         const arm = askArm(email, copyAudience)
         const base = ctx.peoplePage ?? 'https://launchyournextchapter.com'
-        const v = outreachCopy({ audience: copyAudience, mode: opts.mode ?? 'new', arm, greet: c.greet ?? 'team', link: taggedLink(base, { audience: copyAudience, arm, noticeId: opts.noticeId }), picture: ctx.picture, bls: BLS_LINE, signOff: SIGN_OFF })
+        const v = outreachCopy({ audience: copyAudience, mode: opts.mode ?? 'new', arm, greet: c.greet ?? 'team', link: taggedLink(base, { audience: copyAudience, arm, noticeId: opts.noticeId }), picture: ctx.picture, bls: BLS_LINE, signOff: SIGN_OFF, partners: ctx.partners })
         draft = { subject: v.subject, body: v.body, variant: arm }
         body = withGreetingMerge(v.body, c.greet)
       } else {

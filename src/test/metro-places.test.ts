@@ -27,7 +27,7 @@ function fixture(count = 12) {
     community[fips] = [3 + i * 0.2, 0.2, 7, 2.8, 2.9, 0.9, 1000 * i - 3000, 2, 0.6, 0.35, 1000 + i * 100]
     metros.push({ cbsa: String(20000 + i), name: `City${i}-Town${i}, ${i % 2 ? 'NC' : 'NY'}-SC Metro Area`, counties: [fips], rpp: 95 + i })
   }
-  return { metros, counties, postings, context: { sectors, counties: ctx }, community: { fields: FIELDS, counties: community }, housing: () => ({ rent: 1500, home: 400_000 }), statePrograms: new Map([['NY', 12], ['NC', 20]]) }
+  return { metros, counties, postings, context: { sectors, counties: ctx }, community: { fields: FIELDS, counties: community }, housing: () => ({ rent: 1500, home: 400_000 }), statePrograms: new Map([['NY', 12], ['NC', 20]]), wages: new Map(Array.from({ length: count }, (_, i) => [String(20000 + i), Array.from({ length: 30 }, (_, j) => [90_000 + i * 2000 + j * 0, 100] as [number, number])])) }
 }
 
 describe('best places for white-collar professionals', () => {
@@ -85,6 +85,13 @@ describe('best places for white-collar professionals', () => {
     const full = Object.fromEntries(CRITERIA.map((c) => [c.id, 90]))
     expect(allRoundScore(full)).toBeCloseTo(90)
     expect(allRoundScore({ ...full, wp_layoff: null })).toBeNull()
+  })
+
+  it('uses the growth override where the county figures have no earlier year (Connecticut)', () => {
+    const f = fixture(1)
+    f.context.counties['10000'].e = f.context.counties['10000'].e.map((v, k) => (k % 2 === 0 ? -1 : v))
+    expect(buildMetroStats(f)[0].wcGrowth).toBeNull()
+    expect(buildMetroStats({ ...f, growthOverride: new Map([['20000', [10_000, 11_000]]]) })[0].wcGrowth).toBeCloseTo(0.1)
   })
 
   it('leaves out small metros', () => {

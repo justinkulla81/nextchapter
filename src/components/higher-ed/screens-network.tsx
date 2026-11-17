@@ -17,6 +17,8 @@ import { inviteStudents, sendMentorInvites } from '@/app/i/[slug]/(portal)/netwo
 import { studentCounts } from '@/lib/higher-ed/students'
 import { memberCompanyFor } from '@/lib/workforce/company-portal'
 import { EmptyState } from '@/components/ui/empty-state'
+import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { campusJobs } from '@/lib/higher-ed/campus-jobs'
 import { StatTile } from './StatTile'
 import { ConfirmActionButton } from './ConfirmActionButton'
 import { EmployerDecision, EmployerRoleForm, IntroAnswerButtons, IntroAskButton } from './NetworkControls'
@@ -34,8 +36,29 @@ export async function CandidateJobs({ ctx }: Props) {
     ctx.institution.id,
     jobs.map((j) => ({ companyId: j.companyId, normalized: j.normalized })),
   )
+  const own = await campusJobs(ctx.institution.id)
   return (
     <div className="space-y-4">
+      {own.length > 0 && (
+        <section aria-labelledby="work-at" className="space-y-2">
+          <h2 id="work-at" className="text-base font-semibold">
+            Work at {ctx.institution.name}
+          </h2>
+          <p className="max-w-2xl text-sm text-muted-foreground">Open jobs at {ctx.institution.name} itself, from its own career site, checked daily.</p>
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+            {own.map((j) => (
+              <li key={j.id} className="flex flex-wrap items-center justify-between gap-2 p-4">
+                <div>
+                  <TrackedLink href={`/jobs/${j.id}`} event="he_campus_job_opened" properties={{ institutionId: ctx.institution.id, jobId: j.id }} className="font-medium text-primary hover:underline">
+                    {j.title}
+                  </TrackedLink>
+                  <p className="text-sm text-muted-foreground">{[j.employer, [j.locationCity, j.locationState].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <p className="max-w-2xl text-sm text-muted-foreground">
         Roles posted only for {ctx.institution.name} alumni. They aren&apos;t on any public job board.
       </p>

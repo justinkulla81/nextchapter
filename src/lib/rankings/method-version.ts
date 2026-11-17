@@ -11,7 +11,8 @@ export const RANKING_METHOD: Record<BuildGroup, string> = {
   // 2026-11-17b: complete metros only, no homicide criterion, AI pay premium and local job support added.
   // 2026-11-17c: AI pay premium optional and weighted 2%; unranked large metros named with what they lack.
   // 2026-11-17d: a several-part criterion is scored on the parts published for a metro (60%+ of its weight).
-  metro: '2026-11-17d',
+  // 2026-11-17e: white-collar pay from BLS OEWS wages for every metro; Connecticut growth and county-health figures filled.
+  metro: '2026-11-17e',
   skills: 'v0',
   workforce: 'v0',
   college: 'v0',

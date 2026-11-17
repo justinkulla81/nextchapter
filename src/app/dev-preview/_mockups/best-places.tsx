@@ -20,7 +20,7 @@ function sample() {
     community[f] = [2.5 + (k % 5), 0.18 + (k % 4) * 0.02, 6 + (k % 3), 2.7 + (k % 5) * 0.08, 2.8 + (k % 4) * 0.07, 0.88 + (k % 4) * 0.02, 2000 - k * 400, 1.5 + (k % 3) * 0.4, 0.6 + (k % 4) * 0.08, 0.3 + (k % 5) * 0.03, 4000 + k * 700]
     return { cbsa: String(20000 + i), name: `${name} Metro Area`, counties: [f], rpp: 92 + (k % 7) * 2 }
   })
-  return buildMetroStats({ metros, counties, postings, context: { sectors, counties: ctx }, community: { fields: ['homicides', 'childCareCost', 'childCareCenters', 'reading', 'math', 'broadband', 'schoolFunding', 'libraries', 'parks', 'longCommute', 'permitUnits'], counties: community }, housing: () => ({ rent: 1450, home: 390_000 }), statePrograms: new Map(['NC', 'WI', 'MN', 'TX', 'OH', 'CO', 'MA', 'UT', 'IA', 'PA', 'VA', 'NE'].map((st, i) => [st, 8 + i * 2])) })
+  return buildMetroStats({ metros, counties, postings, context: { sectors, counties: ctx }, community: { fields: ['homicides', 'childCareCost', 'childCareCenters', 'reading', 'math', 'broadband', 'schoolFunding', 'libraries', 'parks', 'longCommute', 'permitUnits'], counties: community }, housing: () => ({ rent: 1450, home: 390_000 }), statePrograms: new Map(['NC', 'WI', 'MN', 'TX', 'OH', 'CO', 'MA', 'UT', 'IA', 'PA', 'VA', 'NE'].map((st, i) => [st, 8 + i * 2])), wages: new Map(NAMES.map((_, i) => [String(20000 + i), Array.from({ length: 30 }, (_, j) => [95_000 + ((i * 5) % 8) * 4000 + j * 100, 100] as [number, number])])) })
 }
 
 function edition(measure: string) {

@@ -82,14 +82,23 @@ export async function withDescriptionStubs<T extends { id: string }>(rows: T[]):
   return rows.map((r) => ({ ...r, description: null, hasMinDescription: ok.has(r.id) }))
 }
 
-/** The job, or null when it has no public page (closed, private, not verified…). One primary-key read. */
+/**
+ * The job, or null when it has no public page (closed, private, not verified…). The row is read without its posting text first, and the
+ * text (~4.4 KB on average) only when everything else says the page shows the job: about one job-page render in eight is a closed or
+ * private job, and each read the whole text only to drop it (~55k a day, 2026-11-17). Two primary-key reads for a live job.
+ */
 export async function getPublicJob(id: string): Promise<PublicJobRow | null> {
   if (!/^[a-z0-9]{10,40}$/i.test(id)) return null
-  const [job, ghosts] = await Promise.all([
-    retryOnPoolTimeout(() => prisma.exclusiveJobPosting.findUnique({ where: { id }, select: PUBLIC_JOB_SELECT })),
+  const [row, ghosts] = await Promise.all([
+    retryOnPoolTimeout(() => prisma.exclusiveJobPosting.findUnique({ where: { id }, select: PUBLIC_JOB_LIST_SELECT })),
     retryOnPoolTimeout(() => getConfirmedGhostIds()),
   ])
-  if (!job || !isViewableJob(job, Date.now(), ghosts.has(job.id))) return null
+  const now = Date.now()
+  // Every rule but the text's length; that one is checked on the text itself below.
+  if (!row || !isViewableJob({ ...row, description: null, hasMinDescription: true }, now, ghosts.has(row.id))) return null
+  const text = await retryOnPoolTimeout(() => prisma.exclusiveJobPosting.findUnique({ where: { id }, select: { description: true } }))
+  const job = { ...row, description: text?.description ?? null }
+  if (!isViewableJob(job, now, ghosts.has(job.id))) return null
   return { ...job, companyName: cleanCompanyText(job.companyName) }
 }
 
