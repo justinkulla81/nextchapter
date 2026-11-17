@@ -12,6 +12,7 @@ import 'server-only'
 import { createHash, randomBytes } from 'crypto'
 import type { CurrentJobStatus, InstitutionOrgType, JourneyStage, JourneyType, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { dossierLineFor } from './demo-dossier-lines'
 import { localArea, placeAt, type LocalSettings } from './local'
 import { countyKey, STATE_NAMES } from './places'
 
@@ -54,14 +55,6 @@ const demoCoachEmail = (slug: string, k: number) => `coach${k + 1}@${slug}.examp
 const PRESSURES = ['RENT_MORTGAGE', 'HEALTH_INSURANCE', 'DEPENDENTS_CHILDCARE', 'DEBT_PAYMENTS', 'NO_EMERGENCY_SAVINGS', 'SUPPORTING_FAMILY']
 const BARRIERS = ['life_logistics', 'skills_gap', 'local_job_market', 'interview_nerves', 'ats_blackhole']
 const STAGES: JourneyStage[] = ['EXPLORING', 'PREPARING', 'APPLYING', 'APPLYING', 'INTERVIEWING', 'INTERVIEWING', 'OFFER']
-const DOSSIER_LINES = [
-  'Operations manager who ran a 200-person distribution center; strongest at cutting cost without cutting service.',
-  'Customer experience director who rebuilt a contact center around one number: first-call resolution.',
-  'Financial analyst moving into FP&A; turns messy data into a budget people trust.',
-  'Logistics supervisor who cut late shipments by a third; ready for a site lead role.',
-  'HR business partner who led two reorganizations without losing a top performer.',
-  'Software engineer with eight years in claims systems; wants a local product team.',
-]
 // Coarse résumé fields for the sample candidates, by title (function, level, industry bucket, years, keywords).
 const PROFILES: Record<string, { fn: string; level: string; industry: string; years: number; kw: string[] }> = {
   'Operations Manager': { fn: 'Operations', level: 'Manager', industry: 'Transportation & Logistics', years: 14, kw: ['Process improvement', 'Lean six sigma', 'Supply chain', 'Project management', 'Excel', 'Budgeting', 'SAP'] },
@@ -354,6 +347,15 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
       .filter((p) => p.i !== featured && !p.extra)
       .map((p) => p.i),
   )
+  // A distinct line per person who shares, fitted to their title (src/lib/workforce/demo-dossier-lines.ts).
+  const sharedByTitle = new Map<string, number>()
+  const dossierLine = new Map<number, string>()
+  for (const p of joined) {
+    if (!sharesDossier(p.i)) continue
+    const n = sharedByTitle.get(p.title) ?? 0
+    sharedByTitle.set(p.title, n + 1)
+    dossierLine.set(p.i, dossierLineFor(p.title, n))
+  }
   await prisma.candidateProfile.createMany({
     data: joined.map((p, k) => {
       const landed = landedOf.has(p.i)
@@ -379,7 +381,7 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
         industryBucket: PROFILES[p.title]?.industry ?? null,
         yearsExperience: PROFILES[p.title]?.years ?? null,
         resumeKeywords: PROFILES[p.title]?.kw ?? [],
-        positioningStatementText: sharesDossier(p.i) ? pick(DOSSIER_LINES, seed, p.i, 22) : null,
+        positioningStatementText: dossierLine.get(p.i) ?? null,
         isSampleData: true,
       } satisfies Prisma.CandidateProfileCreateManyInput
     }),
