@@ -8,6 +8,10 @@ const ADMIN_TO = process.env.HELP_FORWARD_TO || process.env.CONTACT_FORWARD_TO |
 const FROM = 'NextChapter <support@launchyournextchapter.com>'
 const MAIN_HOSTS = ['launchyournextchapter.com', 'www.launchyournextchapter.com', 'admin.launchyournextchapter.com']
 
+// Mockups under /dev-preview render only in local development and are a 404 in production on purpose
+// (src/app/dev-preview/layout.tsx), so opening one on the live site is not a broken link.
+export const DEV_ONLY = /^\/dev-preview(\/|$)/
+
 // Scanners hit these constantly; they are not a broken link on our site.
 export const PROBE = /(\.(php|asp|aspx|jsp|env|git|sql|bak|zip|ini|xml)(\/|$))|wp-|xmlrpc|phpmyadmin|cgi-bin|\.well-known|\/\./i
 
@@ -43,7 +47,7 @@ export function cleanPath(raw: unknown): string | null {
 export async function alertNotFound(input: { path: unknown; host: unknown; referrer: unknown }, recheckAfterMs = RECHECK_AFTER_MS): Promise<boolean> {
   const path = cleanPath(input.path)
   const host = typeof input.host === 'string' ? input.host.toLowerCase() : ''
-  if (!path || !MAIN_HOSTS.includes(host) || PROBE.test(path)) return false
+  if (!path || !MAIN_HOSTS.includes(host) || PROBE.test(path) || DEV_ONLY.test(path)) return false
   if (!process.env.RESEND_API_KEY) return false
 
   const key = createHash('sha256').update(`${host}${path}`).digest('hex').slice(0, 32)
