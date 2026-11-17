@@ -443,6 +443,7 @@ const WHITE_PLACES_SOURCES = [
 ]
 
 const POSTINGS = ['NextChapter job data: open professional roles on employer career sites, verified in the last week']
+const MAJOR_SOURCES = ['U.S. Department of Education, IPEDS Completions survey: degrees awarded by program (CIP) at bachelor\'s level and above, 2020-21 and 2023-24']
 const DEGREE_SOURCES = ['NextChapter job data: open professional roles, matched to standard occupation (SOC) codes', 'Bureau of Labor Statistics, Employment Projections 2025-35: typical entry-level education and projected employment change by occupation']
 
 const BEST_SOURCES = ['Fortune and Great Place To Work, 100 Best Companies to Work For, 2026', 'NextChapter job data: open professional roles on employer career sites, verified in the last 14 days']
@@ -482,6 +483,8 @@ export const MEASURE_SOURCES: Record<MeasureId, string[]> = {
   ef_flex: POSTINGS, ef_contract: POSTINGS,
   dg_field: DEGREE_SOURCES, dg_fieldpay: DEGREE_SOURCES, dg_fieldgrow: DEGREE_SOURCES, dg_level: DEGREE_SOURCES, dg_levelpay: DEGREE_SOURCES, dg_occ: DEGREE_SOURCES,
   dg_occpay: DEGREE_SOURCES, dg_occgrow: DEGREE_SOURCES, dg_share: DEGREE_SOURCES, dg_city: DEGREE_SOURCES, dg_cityshare: DEGREE_SOURCES,
+  dg_major: MAJOR_SOURCES, dg_majorschools: MAJOR_SOURCES, dg_majorgrow: MAJOR_SOURCES, dg_fieldratio: [...DEGREE_SOURCES, MAJOR_SOURCES[0]],
+  dg_stage: [...DEGREE_SOURCES, 'NextChapter seniority level of each posting, from its title and text'], dg_stagepay: [...DEGREE_SOURCES, 'NextChapter seniority level of each posting, from its title and text'],
   em_all: EMPLOYER_SOURCES, em_junior: EMPLOYER_SOURCES, em_mid: EMPLOYER_SOURCES, em_senior: EMPLOYER_SOURCES, em_lead: EMPLOYER_SOURCES, em_fn: EMPLOYER_SOURCES, em_growth: EMPLOYER_SOURCES,
   em_best: BEST_SOURCES, em_bestjr: BEST_SOURCES,
   collegepay: ['U.S. Department of Education, College Scorecard (median earnings, completion, net price), as held in our college tables'],

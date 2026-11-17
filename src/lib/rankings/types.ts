@@ -84,6 +84,7 @@ export type MeasureId =
   | 'sx_ui' | 'sx_weeks' | 'sx_programs' | 'sx_training' | 'sx_relocate' | 'sx_ajc' | 'sx_hire' | 'sx_need' | 'kx_ajc' | 'cf_all' | 'cf_ind' | 'cf_fn' | 'ef_flex' | 'ef_contract'
   | 'em_all' | 'em_junior' | 'em_mid' | 'em_senior' | 'em_lead' | 'em_fn' | 'em_growth' | 'em_best' | 'em_bestjr'
   | 'dg_field' | 'dg_fieldpay' | 'dg_fieldgrow' | 'dg_level' | 'dg_levelpay' | 'dg_occ' | 'dg_occpay' | 'dg_occgrow' | 'dg_share' | 'dg_city' | 'dg_cityshare'
+  | 'dg_major' | 'dg_majorschools' | 'dg_majorgrow' | 'dg_fieldratio' | 'dg_stage' | 'dg_stagepay'
   | WhitePlacesMeasureId
 
 /** The best-places-for-white-collar-professionals lists (metro-places.ts): the all-round list and one per criterion. */
@@ -108,8 +109,8 @@ export interface RankingEdition {
   builtAt: string
   /** What a place needs to be ranked, in the measure's own unit ("openings" or "jobs"). */
   minN: number
-  unit: 'openings' | 'jobs' | 'students'
-  placeNoun: 'metro areas' | 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'colleges' | 'industries' | 'job families' | 'states' | 'degrees' | 'occupations' | 'employers'
+  unit: 'openings' | 'jobs' | 'students' | 'degrees'
+  placeNoun: 'metro areas' | 'cities' | 'counties' | 'skills' | 'tools' | 'certifications' | 'colleges' | 'industries' | 'job families' | 'states' | 'degrees' | 'occupations' | 'employers' | 'majors'
   baseline: { label: string; valueLabel: string } | null
   lead: string
   keyFacts: string[]

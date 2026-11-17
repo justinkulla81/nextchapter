@@ -20,7 +20,8 @@ export const RANKING_METHOD: Record<BuildGroup, string> = {
   skills: 'v0',
   workforce: 'v0',
   college: 'v0',
-  profile: 'v0',
+  // 2026-11-17: degree lists add majors (graduates, colleges, change), open jobs per graduate and career stage.
+  profile: '2026-11-17',
   support: 'v0',
 }
 
