@@ -96,6 +96,14 @@ describe('resume point', () => {
     expect(resumePointFrom(run({ status: 'FAILED' }), now)).toBe('cmwabc')
   })
 
+  it('picks up where the last night stopped at its budget, for three days', () => {
+    const stopped = run({ status: 'OK', detail: JSON.stringify({ pages: 43, nextId: 'cmwmid', complete: false }) })
+    expect(resumePointFrom(stopped, now)).toBe('cmwmid')
+    expect(resumePointFrom({ ...stopped, startedAt: new Date('2026-11-04T04:40:00Z') }, now)).toBeNull()
+    // A night that reached the end starts the next from the top.
+    expect(resumePointFrom(run({ status: 'OK', detail: JSON.stringify({ pages: 80, nextId: null, complete: true }) }), now)).toBeNull()
+  })
+
   it('does not resume a finished run, an old one, or one with no usable note', () => {
     expect(resumePointFrom(run({ status: 'OK' }), now)).toBeNull()
     expect(resumePointFrom(run({ startedAt: new Date('2026-11-08T04:40:00Z') }), new Date('2026-11-08T12:00:00Z'))).toBeNull()
