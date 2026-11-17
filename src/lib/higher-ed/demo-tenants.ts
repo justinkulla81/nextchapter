@@ -11,6 +11,7 @@ import type { InstitutionUserRole } from '@prisma/client'
 import type { InstitutionProfile } from './profile'
 import type { ServiceSetting } from './services'
 import { WASHJEFF_TENANT } from './demo-tenants/washjeff'
+import { CMU_TENANT } from './demo-tenants/cmu'
 
 export type DemoTenant = {
   slug: string
@@ -32,6 +33,29 @@ export type DemoTenant = {
   services?: Record<string, Partial<ServiceSetting>>
   annualCheckInMonth?: number
   profile?: InstitutionProfile
+  // License tier; INSTITUTION opens Lifelong Learning (Exec Ed) and Teaching. Default ADVANCEMENT.
+  tier?: 'CAREER' | 'ADVANCEMENT' | 'INSTITUTION'
+  // The college's own programs (at least three: the seed builds cohorts and capstones on the first three).
+  // Real programs carry their public name, price and the skills they teach (the skills bridge reads them).
+  programs?: DemoProgram[]
+  // Courses faculty open to auditors (at least two). Default: two generic ones.
+  auditCourses?: { title: string; courseCode: string | null; term: string; schedule: string; modality: 'online' | 'in_person' | 'hybrid'; seats: number; description: string; skills: string[] }[]
+  // Which school or college each major belongs to, so members get a school (groups and targeting by school).
+  majorSchools?: Record<string, string>
+}
+
+export type DemoProgram = {
+  name: string
+  summary: string
+  audience: string
+  credential: string | null
+  priceCents: number
+  wioaEligible: boolean
+  skills: string[]
+  cipCode?: string | null
+  hours?: number | null
+  credentialType?: string | null
+  prerequisites?: string | null
 }
 
 const DEMO_COLLEGE: DemoTenant = {
@@ -61,4 +85,5 @@ const DEMO_COLLEGE: DemoTenant = {
 export const DEMO_TENANTS: Record<string, DemoTenant> = {
   [DEMO_COLLEGE.slug]: DEMO_COLLEGE,
   [WASHJEFF_TENANT.slug]: WASHJEFF_TENANT,
+  [CMU_TENANT.slug]: CMU_TENANT,
 }
