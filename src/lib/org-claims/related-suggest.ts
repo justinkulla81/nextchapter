@@ -39,14 +39,14 @@ const loadOrdered = memoTtl(30 * 60_000, (institutionId: string) => institutionI
       const centers = await prisma.americanJobCenter.findMany({ where: { workforceBoardId: { in: boards.map((b) => b.id) } }, take: 12, select: { name: true, city: true } })
       for (const c of centers) candidates.push({ group: 'PEERS', keys: keyOf(c.name), reason: `Job center${c.city ? ` in ${c.city}` : ''}` })
     }
-    // Chambers, economic development and community partners in the state that carry the city's name or do that work (indexed by state;
-    // the name filter runs on the few rows returned, in name order).
+    // Chambers, economic development and community partners that carry the city's name (indexed by state; the kind-of-work filter runs on
+    // the few rows returned, in name order). A chamber in another city of the state is not a peer.
     const found = await prisma.crmOrganization.findMany({
       where: {
         usState: local.anchorState,
         NOT: { orgTypes: { has: 'UNIVERSITY' } },
         orgTypes: { hasSome: ['GOVERNMENT', 'NONPROFIT', 'FOUNDATION', 'WORKFORCE_PROVIDER', 'OTHER', 'FUNDER_GRANT'] },
-        OR: [{ name: { contains: local.anchorCity, mode: 'insensitive' } }, { name: { contains: 'chamber', mode: 'insensitive' } }, { name: { contains: 'economic development', mode: 'insensitive' } }],
+        name: { contains: local.anchorCity, mode: 'insensitive' },
       },
       orderBy: { canonicalNameNormalized: 'asc' },
       take: 40,
