@@ -16,3 +16,12 @@ Run any script with `REFRESH=1`. Each batch first sends its urls as `confirmUrls
 brings back ones it had archived as removed) with one narrow UPDATE that reads no posting text, and answers with the urls it held. Only the
 rest are posted in full. Jobs the employer no longer lists are simply not confirmed, and the hourly `direct-reverify` cron archives them
 once they are 14 to 30 days old. Do not run the scripts without `REFRESH=1` again for a refresh: every batch reads each existing row with its description.
+
+## Workday refresh from another machine
+
+Workday rate-limits one address hard (HTTP 429 after a few requests), so a refresh of all 1,718 sites needs a machine that has not been
+throttled. `REFRESH=1` lists each site, confirms the job links with one narrow call, and fetches a job's full text only when the server did not
+hold it. `WD_GAP` (default 0.9 s) is the pause between Workday requests; `T` is the number of sites in parallel.
+
+    K=<import key> REFRESH=1 T=4 WD_GAP=0.9 python3 scripts/jobsreport/import/ats3_import.py \
+      workday-all-unique.json,workday-sec.json,workday-universities.json,workday-hospitals.json,workday-nonprofits-top8000.json,workday-nonprofits-next8000.json,workday-company-sized.json,workday-jooble-top-employers.json workday
