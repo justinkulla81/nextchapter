@@ -128,6 +128,11 @@ The organization sees all jobs in its region, and can **add a job** (a form), **
 an employer's job feed), and review a queue before anything is published. Each listing shows where it came from and links to the employer's own career
 site. The organization can feature jobs so the program's people see them first. Employers can submit their own jobs through the Employer view.
 
+Built (phase 4): **Jobs in your region** (the newest 200 open jobs for the city, searchable, each linking to the employer's own posting) and **Jobs for your
+group** (add a job, paste a list of title, company, location and link, see each listing's status, take one down). Jobs for the group are exclusive to the
+group's members and **reviewed by NextChapter before anyone sees them**, the same rule as every posting that is not from our own team. Not built yet:
+featuring a job, connecting an employer's job feed, and approving employers' jobs inside the Talent Hub.
+
 ## Red zone: long-term unemployment
 
 People in the program who have been out of work **26 weeks or more** (BLS counts 27 and over as long-term; we use 26 as the owner chose) are a segment in

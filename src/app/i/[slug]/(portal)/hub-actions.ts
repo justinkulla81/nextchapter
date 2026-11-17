@@ -14,6 +14,9 @@ import { inviteMemberCompany, syncMemberAccess } from '@/lib/workforce/member-ac
 import { answerSeatRequest } from '@/lib/workforce/company-portal'
 import { RESPONSE_STEPS } from '@/lib/workforce/program-content'
 import { FUNDING_STATUS_KEYS } from '@/lib/workforce/hub-flow'
+import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
+import { linkPostingToCompany } from '@/lib/companies/posting-company'
+import { parseJobRows } from '@/lib/workforce/group-jobs'
 
 type Result = { error?: string; ok?: boolean; message?: string }
 export type HubResult = Result | undefined
@@ -241,6 +244,97 @@ export async function linkResponseFunding(slug: string, _prev: HubResult, f: For
   }
   await prisma.rapidResponse.update({ where: { id: r.id }, data: { fundingApplicationId: fundingId || null } })
   captureServerEvent(ctx.userId, 'layoff_response_funding_linked', { institutionId: ctx.institution.id, rapidResponseId: r.id, applicationId: fundingId || null })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+// ── Phase 4: jobs for the organization's group ──────────────────────────────
+
+const GROUP_JOB_DAYS = 60
+
+function groupPostingData(institutionId: string, addedBy: string, p: { title: string; companyName: string; companyId: string | null; location: string | null; url: string; description?: string | null; salaryMin?: number | null; salaryMax?: number | null }) {
+  return {
+    title: p.title,
+    companyName: p.companyName,
+    companyId: p.companyId,
+    location: p.location,
+    url: p.url,
+    description: p.description ?? null,
+    postingType: 'direct',
+    salaryMin: p.salaryMin ?? null,
+    salaryMax: p.salaryMax ?? null,
+    salaryCurrency: 'USD',
+    audienceTier: 'ALL_CANDIDATES',
+    distribution: 'OPEN',
+    disclosure: 'OPEN',
+    // Reviewed by a NextChapter admin before the group sees it, like every posting that is not from our own team.
+    status: 'pending',
+    source: 'institution',
+    addedBy,
+    institutionScopeId: institutionId,
+    expiresAt: new Date(Date.now() + GROUP_JOB_DAYS * 86_400_000),
+  }
+}
+
+// Add one job for the group.
+export async function addGroupJob(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const title = str(f, 'title').slice(0, 160)
+  const companyName = fixAllCapsCompanyName(str(f, 'companyName')).slice(0, 160)
+  const url = str(f, 'url')
+  if (!title) return { error: 'Add the job title.' }
+  if (!companyName) return { error: 'Add the company name.' }
+  try {
+    const u = new URL(url)
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') throw new Error('protocol')
+  } catch {
+    return { error: 'Add a real link to the posting, starting with https://.' }
+  }
+  const salaryMin = str(f, 'salaryMin') ? Number(str(f, 'salaryMin').replace(/[$,]/g, '')) : null
+  const salaryMax = str(f, 'salaryMax') ? Number(str(f, 'salaryMax').replace(/[$,]/g, '')) : null
+  if ((salaryMin !== null && !Number.isFinite(salaryMin)) || (salaryMax !== null && !Number.isFinite(salaryMax))) return { error: 'Pay is a number, such as 95000.' }
+  if (salaryMin !== null && salaryMax !== null && salaryMin > salaryMax) return { error: 'The pay minimum cannot be higher than the maximum.' }
+  if (await prisma.exclusiveJobPosting.findFirst({ where: { url }, select: { id: true } })) return { error: 'That posting is already on NextChapter.' }
+  const p = await prisma.exclusiveJobPosting.create({
+    data: groupPostingData(ctx.institution.id, ctx.email ?? 'institution', { title, companyName, companyId: await linkPostingToCompany(companyName), location: str(f, 'location').slice(0, 160) || null, url, description: str(f, 'description').slice(0, 20000) || null, salaryMin, salaryMax }),
+    select: { id: true },
+  })
+  captureServerEvent(ctx.userId, 'group_job_added', { institutionId: ctx.institution.id, postingId: p.id, hasPay: salaryMin !== null || salaryMax !== null })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: 'Added. A NextChapter admin reviews it before your group sees it.' }
+}
+
+// Add many jobs from a pasted list: title, company, location, link.
+export async function importGroupJobs(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const { rows, errors, truncated } = parseJobRows(str(f, 'rows').slice(0, 60_000))
+  if (rows.length === 0) return { error: errors[0] ? `Line ${errors[0].line}: ${errors[0].reason}` : 'Paste at least one job: title, company, location, link.' }
+  const existing = new Set((await prisma.exclusiveJobPosting.findMany({ where: { url: { in: rows.map((r) => r.url) } }, select: { url: true } })).map((r) => r.url))
+  const fresh = rows.filter((r) => !existing.has(r.url))
+  const links = new Map<string, string | null>()
+  for (const name of new Set(fresh.map((r) => fixAllCapsCompanyName(r.company)))) links.set(name, await linkPostingToCompany(name))
+  if (fresh.length > 0) {
+    await prisma.exclusiveJobPosting.createMany({
+      data: fresh.map((r) => {
+        const name = fixAllCapsCompanyName(r.company)
+        return groupPostingData(ctx.institution.id, ctx.email ?? 'institution', { title: r.title, companyName: name, companyId: links.get(name) ?? null, location: r.location, url: r.url })
+      }),
+      skipDuplicates: true,
+    })
+  }
+  captureServerEvent(ctx.userId, 'group_jobs_imported', { institutionId: ctx.institution.id, added: fresh.length, alreadyThere: existing.size, refused: errors.length, truncated })
+  revalidatePath(`/i/${slug}`, 'layout')
+  const notes = [existing.size ? `${existing.size} already on NextChapter` : null, errors.length ? `${errors.length} line${errors.length === 1 ? '' : 's'} skipped (first: line ${errors[0].line}, ${errors[0].reason.toLowerCase()})` : null, truncated ? 'only the first 100 were read' : null].filter(Boolean)
+  return { ok: true, message: `Added ${fresh.length} job${fresh.length === 1 ? '' : 's'} for review.${notes.length ? ` ${notes.join('; ')}.` : ''}` }
+}
+
+// Take one of the group's jobs down.
+export async function archiveGroupJob(slug: string, _prev: HubResult, f: FormData): Promise<HubResult> {
+  const ctx = await hub(slug)
+  const id = str(f, 'id')
+  const r = await prisma.exclusiveJobPosting.updateMany({ where: { id, institutionScopeId: ctx.institution.id, archivedAt: null }, data: { archivedAt: new Date() } })
+  if (r.count === 0) return { error: 'That job was not found.' }
+  captureServerEvent(ctx.userId, 'group_job_archived', { institutionId: ctx.institution.id, postingId: id })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true }
 }

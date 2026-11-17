@@ -17,7 +17,7 @@ describe('Program workspace tabs', () => {
   })
   it('areas follow the blueprint, in order', () => {
     const areas = [...new Set(hub.tabs.map((t) => t.group))]
-    expect(areas).toEqual(['Home', 'People', 'Employers', 'Partners', 'Funding', 'Market', 'Reports', 'Public presence'])
+    expect(areas).toEqual(['Home', 'People', 'Employers', 'Partners', 'Funding', 'Jobs', 'Market', 'Reports', 'Public presence'])
   })
   it('the first tab is the workspace home', () => {
     expect(hub.tabs[0].key).toBe('home')
