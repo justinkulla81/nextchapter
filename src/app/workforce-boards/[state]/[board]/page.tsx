@@ -2,6 +2,7 @@ import { workforceBoardSeo } from '@/lib/seo/templates'
 
 /** The official name with the name the board goes by, when it has one: "Greater Louisville Workforce Development Board (KentuckianaWorks)". */
 const boardDisplayName = (r: { name: string; knownAs?: string | null }) => (r.knownAs ? `${r.name} (${r.knownAs})` : r.name)
+import { publishedContentForSource } from '@/lib/public-page/store'
 import type { Metadata } from 'next'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { eventsForEmployerNames } from '@/lib/events/sec-events'
@@ -47,13 +48,14 @@ export default async function WorkforceBoardPage({ params }: { params: Params })
     if (current) permanentRedirect(`/workforce-boards/${state}/${current}`)
     notFound()
   }
-  const [hiring, claim, notices, brand, peopleCount] = await Promise.all([
+  const [hiring, claim, notices, brand, peopleCount, own] = await Promise.all([
     areaHiring(p.row.state, p.area),
     claimSlugFor('WORKFORCE_BOARD', p.row.id),
     noticesForOrgPage(p),
     getOrgBrand('WORKFORCE_BOARD', p.row.id),
     boardConnectionCount([p.row.id, ...(p.row.aliasIds ?? [])]),
+    publishedContentForSource('WORKFORCE_BOARD', p.row.id),
   ])
   const events = await eventsForEmployerNames(hiring.employers.map((e) => e.name)).catch(() => [])
-  return <OrgPageView h1={workforceBoardSeo(boardDisplayName(p.row), p.row.state).h1} page={p} path={`/workforce-boards/${state}/${board}`} hiring={hiring} claimSlug={claim} notices={notices} events={events} brand={brand?.pair ?? null} peopleCount={peopleCount} />
+  return <OrgPageView h1={workforceBoardSeo(boardDisplayName(p.row), p.row.state).h1} page={p} path={`/workforce-boards/${state}/${board}`} hiring={hiring} claimSlug={claim} notices={notices} events={events} brand={brand?.pair ?? null} peopleCount={peopleCount} own={own} />
 }

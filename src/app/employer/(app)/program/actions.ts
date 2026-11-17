@@ -7,7 +7,11 @@ import { requireOutplacementRoleForAction } from '@/lib/employer/outplacement-au
 import { uploadEmployerLogo } from '@/lib/employer/brand-upload'
 import { cleanBrandColor, EVERYONE, PROGRAM_FEATURES, readProgramSettings, type ProgramFeatureKey, type ProgramPackage, type ServiceChoice } from '@/lib/employer/program-settings'
 import { grantSeatAccess } from '@/lib/access/grants'
-import { brandOwnerKey, saveEmployerBrand } from '@/lib/employer/brand'
+import { brandOwnerKey, readEmployerBrand, saveEmployerBrand } from '@/lib/employer/brand'
+import type { PublicPageFormState } from '@/components/public-page/PublicPageEditor'
+import { formValues, parsePublicPageForm } from '@/lib/public-page/content'
+import { savePublicPage } from '@/lib/public-page/store'
+import { outplacementPageAccess } from '@/lib/public-page/employer'
 import type { BrandFormState } from '@/components/employer/EmployerBrandForm'
 
 export type ProgramFormState = { error?: string; ok?: string } | undefined
@@ -119,4 +123,27 @@ export async function saveOutplacementBrandAction(_prev: BrandFormState, formDat
   revalidatePath('/employer/program')
   revalidatePath('/employer')
   return { ok: true, message: 'Saved. Your Home shows the new look now.' }
+}
+
+// Program › Your public page (owner decision 2026-11-17): an admin of a company with an active contract writes its own
+// section on the company's public page, with the Home picture's office, product and tagline and the program logo.
+export async function saveOutplacementPublicPageAction(_prev: PublicPageFormState, formData: FormData): Promise<PublicPageFormState> {
+  const values = formValues(formData)
+  const orgUser = await admin()
+  if (!orgUser) return { error: 'Only an admin can change your public page. Ask your admin, or log in again.', values }
+  const access = await outplacementPageAccess(orgUser.orgId)
+  if (!access.crmOrgId) return { error: 'Your account is not linked to your company page yet. Email support@launchyournextchapter.com and we will link it.', values }
+  if (!access.paid) return { error: 'Writing your section on your company page needs an active contract. Email support@launchyournextchapter.com.', values }
+  const parsed = parsePublicPageForm(formData)
+  if (!parsed.ok) return { error: parsed.error, values }
+  const org = await prisma.outplacementEmployerOrg.findUnique({ where: { id: orgUser.orgId }, select: { companyId: true, programSettings: true } })
+  const brand = await readEmployerBrand(brandOwnerKey({ companyId: org?.companyId ?? null, outplacementOrgId: orgUser.orgId })!)
+  const content = {
+    ...parsed.content,
+    imageUrl: brand?.officeImageUrl ?? null, logoUrl: brand?.logoUrl ?? readProgramSettings(org?.programSettings).brand.logoUrl ?? null,
+    tagline: brand?.tagline ?? null, productImageUrl: brand?.productImageUrl ?? null, productName: brand?.productName ?? null,
+  }
+  const r = await savePublicPage({ crmOrgId: access.crmOrgId, kind: 'EMPLOYER', content, by: orgUser.email ?? orgUser.userId, distinctId: orgUser.userId })
+  revalidatePath('/employer/program')
+  return { ok: true, message: r.status === 'PUBLISHED' ? 'Saved and published. Your company page shows it now.' : 'Saved. NextChapter reviews your first version, usually within a business day, and it shows on your page once approved.' }
 }

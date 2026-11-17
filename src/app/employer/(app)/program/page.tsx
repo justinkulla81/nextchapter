@@ -6,7 +6,9 @@ import { Squiggle } from '@/components/ui/squiggle'
 import { prisma } from '@/lib/prisma'
 import { brandOwnerKey, readEmployerBrand } from '@/lib/employer/brand'
 import { EmployerBrandForm } from '@/components/employer/EmployerBrandForm'
-import { saveOutplacementBrandAction } from './actions'
+import { saveOutplacementBrandAction, saveOutplacementPublicPageAction } from './actions'
+import { EmployerPublicPageSection } from '@/components/public-page/EmployerPublicPageSection'
+import { outplacementPageAccess } from '@/lib/public-page/employer'
 
 const TIER_LABEL = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' } as const
 
@@ -42,6 +44,8 @@ export default async function EmployerProgramPage() {
       <section id="home-picture" className="scroll-mt-6">
         <EmployerBrandForm action={saveOutplacementBrandAction} brand={brand} companyName={orgUser.orgName} logoElsewhere />
       </section>
+
+      <EmployerPublicPageSection access={await outplacementPageAccess(orgUser.orgId)} picturesHref="#home-picture" action={saveOutplacementPublicPageAction} />
 
       <section className="space-y-3">
         <div>

@@ -37,6 +37,7 @@ import { STAFF_ROLE_LABELS, staffRoleLabel, TIER_LABELS, WORKSPACES, auditPortal
 import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
 import { HiddenMembersNote } from '@/components/plans/HiddenMembersNote'
 import { AdminRelatedOrgs } from './screens-related'
+import { AdminPublicPage } from '@/components/public-page/screens-public-page'
 import { listPartnerAudit } from '@/lib/partners/audit'
 import { PartnerActivity } from '@/components/partners/PartnerActivity'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -1752,6 +1753,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'development:grants': DevelopmentGrants,
   'admin:grants': DevelopmentGrants,
   'admin:related': AdminRelatedOrgs,
+  'admin:publicpage': AdminPublicPage,
   'execed:bridge': StaffSkillsBridge,
   'career:bridge': StaffSkillsBridge,
   'career:checkins': CareerCheckIns,

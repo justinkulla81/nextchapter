@@ -7,7 +7,11 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { uploadAvatarFile } from '@/lib/avatar/avatar'
 import type { AvatarUploadState } from '@/components/ui/avatar-upload-form'
 import type { BrandFormState } from '@/components/employer/EmployerBrandForm'
-import { brandOwnerKey, saveEmployerBrand } from '@/lib/employer/brand'
+import { brandOwnerKey, readEmployerBrand, saveEmployerBrand } from '@/lib/employer/brand'
+import type { PublicPageFormState } from '@/components/public-page/PublicPageEditor'
+import { formValues, parsePublicPageForm } from '@/lib/public-page/content'
+import { savePublicPage } from '@/lib/public-page/store'
+import { hiringPageAccess } from '@/lib/public-page/employer'
 import { resolveEmployerForUserId } from '@/lib/talent/get-employer-for-user'
 
 export async function updateCompanyInfo(formData: FormData) {
@@ -87,4 +91,27 @@ export async function saveHiringBrandAction(_prev: BrandFormState, formData: For
   revalidatePath('/talent/settings')
   revalidatePath('/talent/dashboard')
   return { ok: true, message: 'Saved. Your Home shows the new look now.' }
+}
+
+// Settings › Your public page (owner decision 2026-11-17): a hiring team on a paid plan writes its own section on the
+// company's public page, with the Home picture's office, logo, product and tagline.
+export async function saveHiringPublicPageAction(_prev: PublicPageFormState, formData: FormData): Promise<PublicPageFormState> {
+  const values = formValues(formData)
+  const supabase = await createClient('talent')
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Your session ended. Log in again, then save.', values }
+  const employer = await resolveEmployerForUserId(user.id)
+  if (!employer) return { error: 'We could not find your company account. Log in again, then save.', values }
+  const access = await hiringPageAccess(employer)
+  if (!access.crmOrgId) return { error: 'Your account is not linked to your company page yet. Claim the page first, or email support@launchyournextchapter.com.', values }
+  if (!access.paid) return { error: 'Writing your section on your company page is part of the paid hiring plan. Email support@launchyournextchapter.com to switch it on.', values }
+  const parsed = parsePublicPageForm(formData)
+  if (!parsed.ok) return { error: parsed.error, values }
+  const brand = await readEmployerBrand(brandOwnerKey({ companyId: employer.companyId, employerProfileId: employer.id })!)
+  const content = { ...parsed.content, imageUrl: brand?.officeImageUrl ?? null, logoUrl: brand?.logoUrl ?? null, tagline: brand?.tagline ?? null, productImageUrl: brand?.productImageUrl ?? null, productName: brand?.productName ?? null }
+  const r = await savePublicPage({ crmOrgId: access.crmOrgId, kind: 'EMPLOYER', content, by: user.email ?? user.id, distinctId: user.id })
+  revalidatePath('/talent/settings')
+  return { ok: true, message: r.status === 'PUBLISHED' ? 'Saved and published. Your company page shows it now.' : 'Saved. NextChapter reviews your first version, usually within a business day, and it shows on your page once approved.' }
 }

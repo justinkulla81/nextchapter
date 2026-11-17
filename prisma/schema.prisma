@@ -18772,3 +18772,29 @@ model EmployerBrand {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+/// What an organization on a paid plan writes on its own public page (owner decision 2026-11-17): an intro, highlights,
+/// events and contact details, plus its own pictures copied from its portal branding. Sourced data on the page (federal
+/// college data, layoff filings, labor statistics, job counts, pay) is never editable. The first version waits for
+/// NextChapter's review; once one version is approved, later saves publish straight away. One row per CRM organization.
+/// Applied by hand: prisma/manual/2026-11-17-public-page-content.sql.
+model PublicPageContent {
+  id                String    @id @default(cuid())
+  crmOrganizationId String    @unique
+  /// COLLEGE | WORKFORCE | EMPLOYER
+  kind              String
+  draft             Json
+  published         Json?
+  /// DRAFT | PENDING | PUBLISHED | DECLINED
+  status            String    @default("DRAFT")
+  firstApprovedAt   DateTime?
+  submittedAt       DateTime?
+  publishedAt       DateTime?
+  reviewNote        String?
+  reviewedBy        String?
+  updatedBy         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status])
+}

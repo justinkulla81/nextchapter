@@ -1,5 +1,7 @@
 import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
-import { updateCompanyInfo, uploadMyProfilePicture, removeMyProfilePicture, saveHiringBrandAction } from './actions'
+import { updateCompanyInfo, uploadMyProfilePicture, removeMyProfilePicture, saveHiringBrandAction, saveHiringPublicPageAction } from './actions'
+import { EmployerPublicPageSection } from '@/components/public-page/EmployerPublicPageSection'
+import { hiringPageAccess } from '@/lib/public-page/employer'
 import { EmployerBrandForm } from '@/components/employer/EmployerBrandForm'
 import { brandOwnerKey, readEmployerBrand } from '@/lib/employer/brand'
 import { AvatarUploadForm } from '@/components/ui/avatar-upload-form'
@@ -78,6 +80,10 @@ export default async function TalentSettingsPage() {
 
       <div id="home-picture" className="max-w-3xl scroll-mt-6">
         <EmployerBrandForm action={saveHiringBrandAction} brand={brand} companyName={employer.companyName} />
+      </div>
+
+      <div className="max-w-3xl">
+        <EmployerPublicPageSection access={await hiringPageAccess(employer)} picturesHref="#home-picture" action={saveHiringPublicPageAction} />
       </div>
 
       <div className="max-w-md space-y-3 rounded-lg border border-border p-4">

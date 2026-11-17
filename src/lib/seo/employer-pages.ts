@@ -72,6 +72,8 @@ export interface EmployerPage {
   jobs: EmployerJob[]
   pay: PayGroup[]
   claimSlug: string | null
+  /** The CRM organization behind the company, for what it wrote on its own page (src/lib/public-page). */
+  crmOrgId: string | null
   /** True when the page has enough of its own content to be offered to search engines. */
   indexable: boolean
 }
@@ -104,7 +106,7 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
   const select = {
     id: true, name: true, canonicalNameNormalized: true, website: true, industry: true, sizeBand: true, hqMetro: true,
     hiringProfile: true,
-    crmOrganizations: { select: { canonicalNameNormalized: true }, take: 1 },
+    crmOrganizations: { select: { id: true, canonicalNameNormalized: true }, take: 1 },
   } as const
   let company = await prisma.company.findUnique({ where: { canonicalNameNormalized: canonicalFromEmployerSlug(slug) }, select })
   const suffix = idSuffixFromSlug(slug)
@@ -169,6 +171,7 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
     // The claim link goes only to an address that resolves to exactly one organization (as on college pages), so it never
     // lands on a 404 or the wrong record.
     claimSlug: crmClaimSlug && (await uniqueClaimSlugs([crmClaimSlug])).has(crmClaimSlug) ? crmClaimSlug : null,
+    crmOrgId: crm?.id ?? null,
     indexable: isEmployerIndexable(p, company.industry ?? p?.industry ?? null, { layoffNotice: hasLayoffNotice, secEvent: secEvents > 0, hqConfirmed: hq?.confidence === 'high', higherEd: isHigherEdName(company.name) }),
   }
 })
