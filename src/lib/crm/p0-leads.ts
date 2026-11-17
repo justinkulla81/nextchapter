@@ -4,6 +4,7 @@ import type { CrmOrgType, CrmPersonRole } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { strictOrgKey, isRealOrgName } from '@/lib/crm/normalize'
+import { findOrgByStrictKey } from '@/lib/crm/org-lookup'
 import { slugOf } from '@/lib/crm/linkedin'
 import { normalizeEmail } from '@/lib/crm/sync-matching'
 import { goalsForOrgTypes, goalsForRoles } from '@/lib/crm/goals'
@@ -66,14 +67,14 @@ function day(d: Date | null): string {
 }
 
 export async function importP0Leads(leads: P0Lead[], dryRun = false): Promise<P0LeadResult[]> {
-  const orgs = await prisma.crmOrganization.findMany({ select: { id: true, name: true, orgTypes: true, goals: true } })
   const results: P0LeadResult[] = []
 
   for (const lead of leads) {
     const { trigger } = lead
     const strict = strictOrgKey(lead.org.name, normalizeOrgName)
     const canonical = normalizeOrgName(lead.org.name)
-    const match = orgs.find((o) => strictOrgKey(o.name, normalizeOrgName) === strict)
+    // This name's organization only (it used to read all ~107k to find one); it also sees one created earlier in this run.
+    const match = await findOrgByStrictKey(lead.org.name)
     const sourceRef = `p0lead:${createHash('sha1').update(`${trigger.sourceUrl}|${strict}|${lead.person?.fullName ?? ''}`).digest('hex').slice(0, 24)}`
     const alreadyLogged = Boolean(await prisma.crmActivity.findUnique({ where: { type_sourceRef: { type: 'NOTE', sourceRef } } }))
 
@@ -112,7 +113,6 @@ export async function importP0Leads(leads: P0Lead[], dryRun = false): Promise<P0
           },
           update: {},
         })
-    if (!match) orgs.push({ id: org.id, name: org.name, orgTypes: org.orgTypes, goals: org.goals })
 
     const headline = `${trigger.kind.replace('_', ' ').toLowerCase()}: ${trigger.headline}`
     const label = lead.p0 ? 'P0 rapid response' : 'CRM update'

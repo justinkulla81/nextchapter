@@ -435,23 +435,33 @@ async function loadJobStats(f: JobFilter): Promise<JobStats | null> {
   const sample = Prisma.sql`SELECT level, "postingSignals", "aiSkillGroups", "aiExposed", "workArrangement", "locationState", "salaryMin", "salaryMax", "payPeriod", skills
     FROM "ExclusiveJobPosting" WHERE ${where} ORDER BY "postedAt" DESC NULLS LAST LIMIT 5000`
   const paidOk = Prisma.sql`"payPeriod" = 'year' AND "salaryMin" BETWEEN 20000 AND 2000000 AND "salaryMax" >= "salaryMin" AND "salaryMax" <= 2000000`
-  const [agg, skills, states] = await Promise.all([
-    prisma.$queryRaw<{ n: number; entry: number; noexp: number; aiskill: number; aiexp: number; remote: number; paid: number; p25: number | null; p50: number | null; p75: number | null }[]>`
-      WITH s AS (${sample})
-      SELECT count(*)::int AS n,
-        count(*) FILTER (WHERE level IN ('ENTRY_IC','EARLY_IC'))::int AS entry,
-        count(*) FILTER (WHERE 'no_experience_ok' = ANY("postingSignals"))::int AS noexp,
-        count(*) FILTER (WHERE cardinality("aiSkillGroups") > 0)::int AS aiskill,
-        count(*) FILTER (WHERE "aiExposed")::int AS aiexp,
-        count(*) FILTER (WHERE "workArrangement" = 'remote')::int AS remote,
-        count(*) FILTER (WHERE ${paidOk})::int AS paid,
-        (percentile_cont(0.25) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${paidOk}))::float AS p25,
-        (percentile_cont(0.5) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${paidOk}))::float AS p50,
-        (percentile_cont(0.75) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${paidOk}))::float AS p75
-      FROM s`,
-    prisma.$queryRaw<{ name: string; n: number }[]>`WITH s AS (${sample}) SELECT sk AS name, count(*)::int AS n FROM s, unnest(skills) sk GROUP BY 1 ORDER BY 2 DESC LIMIT 10`,
-    prisma.$queryRaw<{ name: string; n: number }[]>`WITH s AS (${sample}) SELECT "locationState" AS name, count(*)::int AS n FROM s WHERE "locationState" IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 5`,
-  ])
+  // One statement: the sample is picked once and the figures, skills and states all read it. They were three statements, each picking
+  // the same newest 5,000 again: three scans of ~40-47 s and ~176,000 buffers per filter (#23-#25 by database time in the 2026-11-17
+  // statement stats).
+  const [row] = await prisma.$queryRaw<{
+    agg: { n: number; entry: number; noexp: number; aiskill: number; aiexp: number; remote: number; paid: number; p25: number | null; p50: number | null; p75: number | null }
+    skills: { name: string; n: number }[] | null
+    states: { name: string; n: number }[] | null
+  }[]>`
+    WITH s AS MATERIALIZED (${sample})
+    SELECT
+      (SELECT json_build_object(
+        'n', count(*)::int,
+        'entry', count(*) FILTER (WHERE level IN ('ENTRY_IC','EARLY_IC'))::int,
+        'noexp', count(*) FILTER (WHERE 'no_experience_ok' = ANY("postingSignals"))::int,
+        'aiskill', count(*) FILTER (WHERE cardinality("aiSkillGroups") > 0)::int,
+        'aiexp', count(*) FILTER (WHERE "aiExposed")::int,
+        'remote', count(*) FILTER (WHERE "workArrangement" = 'remote')::int,
+        'paid', count(*) FILTER (WHERE ${paidOk})::int,
+        'p25', (percentile_cont(0.25) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${paidOk}))::float,
+        'p50', (percentile_cont(0.5) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${paidOk}))::float,
+        'p75', (percentile_cont(0.75) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${paidOk}))::float
+      ) FROM s) AS agg,
+      (SELECT json_agg(t ORDER BY t.n DESC, t.name) FROM (SELECT sk AS name, count(*)::int AS n FROM s, unnest(skills) sk GROUP BY 1 ORDER BY 2 DESC LIMIT 10) t) AS skills,
+      (SELECT json_agg(t ORDER BY t.n DESC, t.name) FROM (SELECT "locationState" AS name, count(*)::int AS n FROM s WHERE "locationState" IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 5) t) AS states`
+  const agg = row ? [row.agg] : []
+  const skills = row?.skills ?? []
+  const states = row?.states ?? []
   const a = agg[0]
   if (!a || a.n < 30) return null
   const pct = (x: number) => Math.round((x / a.n) * 100)

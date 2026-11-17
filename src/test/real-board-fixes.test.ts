@@ -7,6 +7,7 @@ import { correctedJobFunction, inferFunctionFromTitle } from '@/lib/jobs/infer-j
 import { functionLabelForTitle } from '@/lib/jobs/job-functions'
 import { notOpenToUsResidents } from '@/lib/jobs/foreign-remote'
 import { displayJobTitle } from '@/lib/jobs/display-title'
+import { scoreCompetition, workSetting } from '@/lib/jobs/competition'
 import { flagsFromTags, parseRequirementFlags, requirementTagsFor, checkRequirement } from '@/lib/jobs/requirements'
 
 // The four problems real postings showed on Find a job (2026-11-17), each pinned to a real title or text.
@@ -124,5 +125,22 @@ describe('4b. the job’s recorded industry counts as an industry match', () => 
   it('reads the member’s confirmed industry groups when they have them', () => {
     const m = financeDirector({ industryContext: null, industryBuckets: ['Energy & Utilities'] } as Partial<Candidate>)
     expect(computeBoardListingFitBucket(m, job({ description: text, industry: 'energy' } as Partial<Posting>))).toBe('strong')
+  })
+})
+
+describe('5. the competition hint reads the recorded work arrangement', () => {
+  const at = new Date('2026-11-17T12:00:00Z')
+  const base = { sourceCategory: 'employer', postedAt: new Date('2026-11-16T16:26:04Z'), createdAt: new Date('2026-11-17T03:47:20Z'), sourceCount: 1 }
+  it('a remote job whose location names only the country is not "on-site" (Precisely, 2026-11-17)', () => {
+    const c = scoreCompetition({ ...base, location: 'United States', workArrangement: 'remote' } as never, 5, at)
+    expect(c.fewer ?? []).not.toContain('on-site')
+    expect(c.reasons).toContain('Remote — draws the most applicants')
+  })
+  it('a country-only location with no arrangement says nothing about on-site', () => {
+    expect(workSetting({ location: 'United States' })).toBeNull()
+    expect(workSetting({ location: 'Columbus, OH', workArrangement: 'onsite' })).toBe('local')
+    expect(workSetting({ location: 'Columbus, OH' })).toBe('local')
+    expect(workSetting({ location: 'Remote, Arizona' })).toBe('remote')
+    expect(workSetting({ location: 'Boston, MA', targetRemotePolicy: 'remote' })).toBe('remote')
   })
 })

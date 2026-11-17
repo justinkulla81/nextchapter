@@ -46,7 +46,9 @@ async function refreshRoleFigures() {
 /** Open-job counts per state and city for the job-center, workforce-board and economic-development pages: one scan, one row per state. */
 async function refreshOrgJobStats() {
   const stats = await buildOrgJobStats()
-  await replaceBoardFigures('org-job-stats:', [...stats].map(([state, v]) => [`org-job-stats:${state}`, v] as [BoardFigureKey, unknown]))
+  // The big cities' top employers go in their own row per state (org-city-top:<state>), so the state row every organization page reads stays small.
+  await replaceBoardFigures('org-job-stats:', [...stats].map(([state, { cityTop: _cityTop, ...v }]) => [`org-job-stats:${state}`, v] as [BoardFigureKey, unknown]))
+  await replaceBoardFigures('org-city-top:', [...stats].map(([state, v]) => [`org-city-top:${state}`, v.cityTop] as [BoardFigureKey, unknown]))
 }
 
 /** New jobs per function in the last 72 hours, for the dashboard nav badge and the Home prompt: one grouped count, one row. */

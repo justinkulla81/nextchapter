@@ -13,8 +13,20 @@ import {
   type LiveJob,
 } from '@/lib/syndication/syndication'
 
-/** Every job with a public page now, from the sitemap's shards (one partial-index scan each). */
-export async function loadLiveJobs(): Promise<LiveJob[]> {
+/**
+ * Every job with a public page now, from the sitemap's shards (one partial-index scan each). Held 30 minutes on the instance: the
+ * daily search-pings bundle runs the Google Indexing and IndexNow jobs one after the other, and each read all 16 shards (~270k rows).
+ */
+let liveJobsHeld: { at: number; value: Promise<LiveJob[]> } | null = null
+export function loadLiveJobs(): Promise<LiveJob[]> {
+  if (liveJobsHeld && Date.now() - liveJobsHeld.at < 30 * 60_000) return liveJobsHeld.value
+  const value = readLiveJobs()
+  liveJobsHeld = { at: Date.now(), value }
+  value.catch(() => { if (liveJobsHeld?.value === value) liveJobsHeld = null })
+  return value
+}
+
+async function readLiveJobs(): Promise<LiveJob[]> {
   const out: LiveJob[] = []
   for (let shard = 0; shard < PUBLIC_JOB_SITEMAP_SHARDS; shard++) {
     for (const r of await publicJobIdsInShard(shard)) out.push({ id: r.id, at: (r.postedAt ?? r.createdAt).getTime(), offered: r.offered, value: r.value })

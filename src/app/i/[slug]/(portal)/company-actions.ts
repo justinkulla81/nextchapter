@@ -9,7 +9,7 @@ import { employerRoleError, requireEmployerRole } from '@/lib/higher-ed/access'
 import type { EmployerRole } from '@/lib/higher-ed/workspaces'
 import { prisma } from '@/lib/prisma'
 import { memberCompanyFor, requestSeats } from '@/lib/workforce/company-portal'
-import { offerGrantSupport, requestTraining } from '@/lib/workforce/company-requests'
+import { offerCollaboration, offerGrantSupport, requestTraining } from '@/lib/workforce/company-requests'
 
 type Result = { error?: string; ok?: boolean; message?: string } | undefined
 
@@ -76,6 +76,21 @@ export async function offerGrantSupportAction(slug: string, _prev: Result, f: Fo
   })
   if ('error' in r) return { error: r.error }
   captureServerEvent(r0.ctx.userId, 'company_grant_support_offered', { institutionId: r0.ctx.institution.id, companyId: r0.c.id, requestId: r.id, fundingApplicationId, offers: r.offers })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, message: `Sent. ${r0.ctx.institution.name} will answer it here.` }
+}
+
+// Workforce development (role "workforce") or college partnerships (role "colleges"): what the company offers to do.
+export async function offerCollaborationAction(slug: string, kind: 'WORKFORCE_COLLAB' | 'COLLEGE_COLLAB', _prev: Result, f: FormData): Promise<Result> {
+  const role = kind === 'WORKFORCE_COLLAB' ? 'workforce' : 'colleges'
+  const r0 = await company(slug, role)
+  if (r0 && 'roleError' in r0) return { error: r0.roleError }
+  if (!r0) return { error: 'Your login isn’t connected to a member company. Ask the organization for an invite.' }
+  const peopleRaw = String(f.get('people') ?? '').trim()
+  const people = peopleRaw ? Number(peopleRaw) : null
+  const r = await offerCollaboration({ kind, institutionId: r0.ctx.institution.id, companyId: r0.c.id, offers: f.getAll('offers').map(String), topic: String(f.get('topic') ?? ''), people, note: String(f.get('note') ?? ''), by: r0.ctx.email ?? r0.ctx.userId })
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(r0.ctx.userId, kind === 'WORKFORCE_COLLAB' ? 'company_workforce_partnership_offered' : 'company_college_partnership_offered', { institutionId: r0.ctx.institution.id, companyId: r0.c.id, requestId: r.id, offers: r.offers, people })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: `Sent. ${r0.ctx.institution.name} will answer it here.` }
 }

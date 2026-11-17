@@ -16102,12 +16102,12 @@ model MemberCompanyRequest {
   institutionId        String
   memberCompanyId      String
   memberCompany        MemberCompany @relation(fields: [memberCompanyId], references: [id], onDelete: Cascade)
-  // TRAINING | GRANT_PARTNER
+  // TRAINING | GRANT_PARTNER | WORKFORCE_COLLAB | COLLEGE_COLLAB
   kind                 String
   // The skill or course (TRAINING), or the grant or RFP (GRANT_PARTNER).
   topic                String
   people               Int?
-  // GRANT_PARTNER: LETTER | MATCH | HIRING | TRAINING_SITE | JOB_SPECS
+  // GRANT_PARTNER: LETTER | MATCH | HIRING | TRAINING_SITE | JOB_SPECS; WORKFORCE_COLLAB and COLLEGE_COLLAB: contact-roles.ts
   offers               String[]      @default([])
   matchAmount          Int?
   fundingApplicationId String?
@@ -16135,7 +16135,7 @@ model MemberCompanyContact {
   memberCompanyId String
   memberCompany   MemberCompany @relation(fields: [memberCompanyId], references: [id], onDelete: Cascade)
   email           String
-  // HIRING | OUTPLACEMENT | LEARNING | GRANTS (validated in code)
+  // HIRING | OUTPLACEMENT | LEARNING | GRANTS | WORKFORCE | COLLEGES (validated in code)
   roles           String[]
   userId          String?
   inviteToken     String?       @unique
@@ -18745,4 +18745,22 @@ model AddressVerification {
   source       String   @default("layoff-outreach")
 
   @@index([checkedAt])
+}
+
+/// An employer's own look for its portal Home splash (owner decision 2026-11-17): logo, a picture of its office building,
+/// a picture of its product, the product's name and a tagline. One row per owner: `company:<Company.id>` when the hiring
+/// profile or outplacement org is linked to a directory Company (so every section of that company shares it), otherwise
+/// `employer:<EmployerProfile.id>` or `outplacement:<OutplacementEmployerOrg.id>`. Edited by the employer in its own portal.
+/// Applied by hand: prisma/manual/2026-11-17-employer-brand.sql.
+model EmployerBrand {
+  id              String   @id @default(cuid())
+  ownerKey        String   @unique
+  logoUrl         String?
+  officeImageUrl  String?
+  productImageUrl String?
+  productName     String?
+  tagline         String?
+  updatedBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

@@ -33,9 +33,9 @@ export type AccessToken = InstitutionUserRole | `VIEWER:${string}` | 'MEMBER' | 
 
 // The part of a member company's view one of its people works in (MemberCompanyContact.roles, owner 2026-11-17).
 // EMPLOYER alone is the company's main login and sees all of it.
-export const EMPLOYER_ROLES = ['hiring', 'outplacement', 'learning', 'grants'] as const
+export const EMPLOYER_ROLES = ['hiring', 'outplacement', 'learning', 'grants', 'workforce', 'colleges'] as const
 export type EmployerRole = (typeof EMPLOYER_ROLES)[number]
-export const EMPLOYER_ROLE_LABELS: Record<EmployerRole, string> = { hiring: 'Hiring', outplacement: 'Outplacement', learning: 'Learning and development', grants: 'Grants and RFPs' }
+export const EMPLOYER_ROLE_LABELS: Record<EmployerRole, string> = { hiring: 'Hiring', outplacement: 'Outplacement', learning: 'Learning and development', grants: 'Grants and RFPs', workforce: 'Workforce development partnerships', colleges: 'College partnerships' }
 /** Whole-company access, or this role. */
 export const employerCan = (tokens: ReadonlySet<AccessToken>, role: EmployerRole) => tokens.has('EMPLOYER') || tokens.has(`EMPLOYER:${role}`)
 
@@ -251,7 +251,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     icon: 'Building2',
     release: 'V1',
     // A member company's people each see their part (hiring or outplacement); its main login sees all of it.
-    requiredRoles: ['EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement', 'EMPLOYER:learning', 'EMPLOYER:grants'],
+    requiredRoles: ['EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement', 'EMPLOYER:learning', 'EMPLOYER:grants', 'EMPLOYER:workforce', 'EMPLOYER:colleges'],
     homePath: 'employer',
     tabs: [
       { key: 'overview', label: 'Overview', comingIn: null, orgKind: 'workforce' },
@@ -263,6 +263,10 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'training', label: 'Training', comingIn: null, orgKind: 'workforce', requiredRoles: ['EMPLOYER', 'EMPLOYER:learning'] },
       // Grants and RFPs: the organization's applications that name the company, and support it offers.
       { key: 'grants', label: 'Grants and RFPs', comingIn: null, orgKind: 'workforce', requiredRoles: ['EMPLOYER', 'EMPLOYER:grants'] },
+      // Workforce development: apprenticeships, on-the-job training, work experience, job-center hiring events, sector partnerships.
+      { key: 'workforce', label: 'Workforce partnerships', comingIn: null, orgKind: 'workforce', requiredRoles: ['EMPLOYER', 'EMPLOYER:workforce'] },
+      // Higher ed: internships, student projects, advisory boards, curriculum review, speakers, with colleges near the region.
+      { key: 'colleges', label: 'College partnerships', comingIn: null, orgKind: 'workforce', requiredRoles: ['EMPLOYER', 'EMPLOYER:colleges'] },
     ],
   },
   {
@@ -484,6 +488,8 @@ export const DEMO_PERSONAS = [
   { key: 'EMPLOYER:outplacement', label: 'Employer: outplacement', tokens: ['EMPLOYER:outplacement'] },
   { key: 'EMPLOYER:learning', label: 'Employer: learning and development', tokens: ['EMPLOYER:learning'] },
   { key: 'EMPLOYER:grants', label: 'Employer: grants and RFPs', tokens: ['EMPLOYER:grants'] },
+  { key: 'EMPLOYER:workforce', label: 'Employer: workforce development partnerships', tokens: ['EMPLOYER:workforce'] },
+  { key: 'EMPLOYER:colleges', label: 'Employer: college partnerships', tokens: ['EMPLOYER:colleges'] },
   // Workforce only: a person at a confirmed ecosystem partner (a college, provider or group).
   { key: 'PARTNER', label: 'Partner', tokens: ['PARTNER'] },
 ] as const satisfies readonly { key: string; label: string; tokens: readonly AccessToken[] }[]
@@ -507,13 +513,13 @@ export const staffRoleLabel = (role: InstitutionUserRole, kind: OrgKind): string
 // workforce wording (a member there is a participant, not an alum). `group`
 // splits staff roles from the outside views (the people and companies served).
 export function demoPersonasFor(kind: OrgKind, tier: InstitutionTier): { key: string; label: string; group: 'all' | 'staff' | 'outside' }[] {
-  const workforceKeys: string[] = ['all', ...WORKFORCE_STAFF_ROLES, 'MEMBER', 'EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement', 'EMPLOYER:learning', 'EMPLOYER:grants']
+  const workforceKeys: string[] = ['all', ...WORKFORCE_STAFF_ROLES, 'MEMBER', 'EMPLOYER', 'EMPLOYER:hiring', 'EMPLOYER:outplacement', 'EMPLOYER:learning', 'EMPLOYER:grants', 'EMPLOYER:workforce', 'EMPLOYER:colleges']
   return DEMO_PERSONAS.filter((p) => (kind === 'workforce' ? workforceKeys.includes(p.key) : !p.key.startsWith('EMPLOYER:')) && workspacesFor(new Set<AccessToken>(p.tokens), tier, { wioa: true }, kind).length > 0).map((p) => ({
     key: p.key,
     group: p.key === 'all' ? 'all' : p.key === 'MEMBER' || p.key.startsWith('EMPLOYER') ? 'outside' : 'staff',
     label:
       kind === 'workforce'
-        ? ({ all: 'Everything (all roles)', MEMBER: 'Participant (job seeker)', EMPLOYER: 'Member company: whole company', 'EMPLOYER:hiring': 'Member company: hiring', 'EMPLOYER:outplacement': 'Member company: outplacement', 'EMPLOYER:learning': 'Member company: learning and development', 'EMPLOYER:grants': 'Member company: grants and RFPs' } as Record<string, string>)[p.key] ?? staffRoleLabel(p.key as InstitutionUserRole, kind)
+        ? ({ all: 'Everything (all roles)', MEMBER: 'Participant (job seeker)', EMPLOYER: 'Member company: whole company', 'EMPLOYER:hiring': 'Member company: hiring', 'EMPLOYER:outplacement': 'Member company: outplacement', 'EMPLOYER:learning': 'Member company: learning and development', 'EMPLOYER:grants': 'Member company: grants and RFPs', 'EMPLOYER:workforce': 'Member company: workforce development', 'EMPLOYER:colleges': 'Member company: college partnerships' } as Record<string, string>)[p.key] ?? staffRoleLabel(p.key as InstitutionUserRole, kind)
         : p.key === 'all'
           ? 'Everything (all roles)'
           : p.label,

@@ -4,15 +4,18 @@ import { getEmployerUnreadCount } from '@/lib/messaging/threads'
 import { getCandidatesLookingForYourRoles } from '@/lib/talent/candidate-discovery'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CandidateCard } from '@/components/talent/CandidateCard'
-import { firstName, PortalHomeHeader, PortalHomeMore, PortalLinks, PortalNeeds, PortalNumbers, type NeedsItem } from '@/components/partners/PortalHome'
+import { firstName, PortalHomeHeader, PortalHomeMore, PortalLinks, PortalNeeds, type NeedsItem } from '@/components/partners/PortalHome'
+import { OrgHomeHero } from '@/components/partners/OrgHomeHero'
+import { brandOwnerKey, readEmployerBrand } from '@/lib/employer/brand'
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
-// The hiring Home (the portal Home pattern, src/components/partners/PortalHome.tsx). Same reads as before: no new query.
+// The hiring Home (the portal Home pattern, src/components/partners/PortalHome.tsx). One read added: the company's Home
+// picture (one small EmployerBrand row).
 export default async function TalentHomePage() {
   const employer = await getTalentDashboardData()
 
-  const [activeRoleCount, interactionsByStatus, jobBoardPostings, unreadMessages, candidatesLookingForRoles] = await Promise.all([
+  const [activeRoleCount, interactionsByStatus, jobBoardPostings, unreadMessages, candidatesLookingForRoles, brand] = await Promise.all([
     prisma.roleProfile.count({ where: { employerId: employer.id, isActive: true } }),
     prisma.candidateInteraction.groupBy({ by: ['status'], where: { employerId: employer.id }, _count: true }),
     prisma.exclusiveJobPosting.findMany({
@@ -21,6 +24,7 @@ export default async function TalentHomePage() {
     }),
     getEmployerUnreadCount(employer.id),
     getCandidatesLookingForYourRoles(employer.id),
+    readEmployerBrand(brandOwnerKey({ companyId: employer.companyId, employerProfileId: employer.id })!),
   ])
 
   if (candidatesLookingForRoles.length > 0) {
@@ -67,15 +71,25 @@ export default async function TalentHomePage() {
         action={{ href: '/talent/roles/new', label: 'Post a role' }}
       />
 
-      <PortalNeeds portal="hiring" title="Waiting on you" items={needs} empty="Nothing is waiting on you right now." />
-
-      <PortalNumbers
-        items={[
-          { value: String(totalInteractions), label: 'Candidates in your pipeline', source: 'Everyone you viewed, saved or contacted' },
-          { value: String(inConversation), label: 'In conversation', source: 'Marked in conversation by your team' },
-          { value: String(hired), label: 'Hired through NextChapter', source: 'Marked hired by your team', highlight: true },
+      {/* The company's splash (owner decision 2026-11-17): its office, logo and product, with the three pipeline numbers that
+          used to sit in their own row. Edited by anyone on the team in Settings. */}
+      <OrgHomeHero
+        name={employer.companyName}
+        line={brand?.productName ? `${employer.companyName} · ${brand.productName}` : employer.companyName}
+        tagline={brand?.tagline ?? null}
+        imageUrl={brand?.officeImageUrl ?? null}
+        logoUrl={brand?.logoUrl ?? null}
+        inset={brand?.productImageUrl ? { url: brand.productImageUrl, label: brand.productName ?? 'Our product' } : null}
+        placeholder="office"
+        edit={{ brandingHref: '/talent/settings#home-picture', readOnly: false }}
+        stats={[
+          { value: String(totalInteractions), label: 'Candidates in your pipeline', note: 'Everyone you viewed, saved or contacted' },
+          { value: String(inConversation), label: 'In conversation', note: 'Marked in conversation by your team' },
+          { value: String(hired), label: 'Hired through NextChapter', note: 'Marked hired by your team' },
         ]}
       />
+
+      <PortalNeeds portal="hiring" title="Waiting on you" items={needs} empty="Nothing is waiting on you right now." />
 
       <section aria-labelledby="looking-h" className="space-y-3">
         <h2 id="looking-h" className="font-display text-xl font-semibold text-ink">

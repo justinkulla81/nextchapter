@@ -1,9 +1,9 @@
 import json, os, sys, time, re, html, urllib.request, urllib.error, concurrent.futures as cf, datetime, threading
-R="/home/user/nextchapter/scripts/jobsreport/sources/"
+R=os.path.join(os.path.dirname(os.path.abspath(__file__)),"..","sources")+os.sep
 KEY=os.environ["K"]; URL="https://launchyournextchapter.com/api/admin/jobs/import"
 
 def _confirm(urls):
-    body=json.dumps({"confirmUrls":urls}).encode()
+    body=json.dumps({"confirmUrls":urls,"dryRun":os.environ.get("DRY")=="1"}).encode()
     for a in range(4):
         try:
             r=urllib.request.Request(URL,data=body,method="POST",headers={"Authorization":"Bearer "+KEY,"Content-Type":"application/json"})
@@ -12,6 +12,8 @@ def _confirm(urls):
     return {}
 def post(jobs,*a):
     # REFRESH=1: confirm the jobs we already hold with one narrow update; send only the rest in full.
+    if os.environ.get("DRY")=="1":
+        got=_confirm([j["url"] for j in jobs]).get("confirmedUrls",[]); out={"updated":len(got)}; out["skipped"]=[]; return out
     if os.environ.get("REFRESH")=="1" and not (a and a[0]):
         got=set(_confirm([j["url"] for j in jobs]).get("confirmedUrls",[]))
         rest=[j for j in jobs if j["url"] not in got]
@@ -29,6 +31,12 @@ def post(jobs,*a):
     return _post(jobs,*a)
 
 UA="Mozilla/5.0 (compatible; NextChapterJobs/1.0)"
+def _paused():
+    f=os.environ.get("BACKOFF_FILE")
+    if not f or not os.path.exists(f): return set()
+    d=json.load(open(f)); ks=d.keys() if isinstance(d,dict) else d
+    return {str(k).lower() for k in ks}
+PAUSED=_paused(); STOPPED=set(); SKIPPED_PAUSED=[]
 _rl=__import__('threading').Lock(); _last=[0.0]
 def _pace(url):
     if 'myworkdayjobs' not in url: return
@@ -37,6 +45,7 @@ def _pace(url):
         if w>0: time.sleep(w)
         _last[0]=time.time()
 def get(url, data=None, headers=None, timeout=40):
+    if 'myworkdayjobs' in url and url.split('/')[2].lower() in STOPPED: return None  # a host that challenged us stays left alone
     _pace(url)
     for a in range(6):
         try:
@@ -44,6 +53,8 @@ def get(url, data=None, headers=None, timeout=40):
             r=urllib.request.Request(url,data=data,headers=h,method="POST" if data is not None else "GET")
             return json.load(urllib.request.urlopen(r,timeout=timeout))
         except urllib.error.HTTPError as e:
+            if e.code in (429,403) and 'myworkdayjobs' in url:
+                STOPPED.add(url.split('/')[2].lower()); return None  # a host that challenges us is left alone, not retried
             if e.code in (429,503): time.sleep(10*(a+1)); _pace(url); continue
             return None
         except Exception: time.sleep(2)
@@ -74,6 +85,8 @@ def ashby(s):
     for j in (d or {}).get("jobs",[]):
         yield J(j["title"],s["employer"],j.get("location") or ("Remote" if j.get("isRemote") else None),j["jobUrl"],j.get("descriptionHtml") or j.get("descriptionPlain"),j.get("publishedAt"),"Ashby")
 def workday(s):
+    if f"{s['tenant']}.{s['wd']}.myworkdayjobs.com".lower() in PAUSED:
+        SKIPPED_PAUSED.append(s['tenant']); return
     base=f"https://{s['tenant']}.{s['wd']}.myworkdayjobs.com"; api=f"{base}/wday/cxs/{s['tenant']}/{s['site']}"
     off=0; tot=None
     while True:
@@ -180,3 +193,4 @@ def work(s):
     if tot["sources"]%5==0: print(tot,flush=True)
 with cf.ThreadPoolExecutor(int(os.environ.get("T","12"))) as ex: list(ex.map(work,srcs))
 print("DONE",tot,flush=True)
+print("skipped as paused:",len(SKIPPED_PAUSED),"sites; stopped this run (429/403):",sorted(STOPPED),flush=True)
