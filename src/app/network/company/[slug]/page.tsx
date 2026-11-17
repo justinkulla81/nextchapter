@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { permanentRedirect, redirect } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -60,7 +60,8 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
     // No WARN filings under this slug: another spelling of an employer that has them, else the layoffs hub. Never a dead end.
     const alias = resolveCompanySlug(slug, companies.keys())
     if (alias) permanentRedirect(`/network/company/${alias}`)
-    redirect('/layoffs')
+    // Permanent by owner decision (2026-11-17).
+    permanentRedirect('/layoffs')
   }
   const data = await getNetworkCompany(slug)
   if (!data) permanentRedirect(`/layoffs/company/${slug}`)

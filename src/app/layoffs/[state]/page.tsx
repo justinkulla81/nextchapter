@@ -62,7 +62,7 @@ const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export default async function StateLayoffsPage({ params }: { params: Promise<{ state: string }> }) {
   const { state } = await params
   const d = await load(state)
-  if (!d) emptyStateOrNotFound(state, '/layoffs')
+  if (!d) emptyStateOrNotFound(state, '/layoffs', { permanent: true })
 
   const [linkPlace, counties, helpLinks] = await Promise.all([getPlaceLinker(d.code), getStateCounties(d.code), stateHelpLinks(d.code)])
   const placesWithPages = [...new Set(d.recent.map((n) => n.place))]

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, permanentRedirect, redirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Chips, FactGrid, JobList, JoinBand, LINK, RankList, Section, TopicShell } from '@/components/topics/blocks'
 import { FitCheck } from '@/components/capture/FitCheck'
 import { RankingContext } from '@/components/rankings/RankingContext'
@@ -36,12 +36,13 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
   const { slug } = await params
   const d = await getTitleDetail(slug)
   if (!d) {
-    // A title with too few open jobs has no page; send the visitor to a search for it instead of a 404.
+    // A title with too few open jobs has no page; send the visitor to a search for it instead of a 404. Permanent by owner
+    // decision (2026-11-17).
     if (!/^[a-z0-9-]{3,80}$/.test(slug)) notFound()
     // An abbreviation (cfo, coo) goes to the hub for the spelled-out title.
     const full = slugForAbbreviation(slug)
     if (full) permanentRedirect(`/jobs/title/${full}`)
-    redirect(`/jobs?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`)
+    permanentRedirect(`/jobs?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`)
   }
   const { stat } = d
   const path = `/jobs/title/${slug}`
