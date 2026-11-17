@@ -31,7 +31,7 @@ import { ClosedJobView } from '@/components/jobs/ClosedJobView'
 import { getClosedJobContext, getPublicJob, similarJobsAtCompany, similarJobsLike } from '@/lib/jobs/public-job-page-server'
 import { employerPath, isCompanyOfferedToSearch } from '@/lib/seo/employer-pages'
 import { prisma } from '@/lib/prisma'
-import { getTitleIndex } from '@/lib/seo/job-titles'
+import { getTitleIndex, titlePlaceKeys } from '@/lib/seo/job-titles'
 import { baseTitle, titleSlug } from '@/lib/seo/job-title-rules'
 import { placeKey, type TitlePlace } from '@/lib/seo/job-title-places'
 import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
@@ -93,7 +93,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 async function titlePlaceFor(slug: string | undefined, state: string | null, city: string | null): Promise<TitlePlace | null> {
   if (!slug || !state) return null
-  const keys = [placeKey('city', state, city), placeKey('state', state)].filter((k): k is string => !!k)
+  // Only pairs that have a page: most title-and-place pairs have none, and each was a BoardFigure lookup on every render (titlePlaceKeys).
+  // An empty or unreadable index (before the cron's first run) looks both up, as before.
+  const exists = await titlePlaceKeys().catch(() => null)
+  const keys = [placeKey('city', state, city), placeKey('state', state)].filter((k): k is string => !!k && (!exists?.size || exists.has(`${slug}:${k}`)))
   const found = await Promise.all(keys.map((k) => readBoardFigure<TitlePlace>(`job-title-place:${slug}:${k}`).catch(() => null)))
   return found.find((f) => f && f.jobs > 0) ?? null
 }
