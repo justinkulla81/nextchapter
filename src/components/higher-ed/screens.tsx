@@ -12,6 +12,7 @@ import { HubCompanies, HubHome, HubLayoffs, HubLocal, WorkforceOverview } from '
 import { HubAttract, HubBenefits, HubGrants, HubJobs, HubLearning, HubPipeline, HubRapid, HubSkills, HubFunding, HubPublic, HubSystem, HubUpskill } from './screens-hub-program'
 import { HubApplications, HubReport } from './screens-hub-flow'
 import { HubSkillsGaps, HubTalent } from './screens-hub-skills'
+import { HubGroupJobs, HubRegionJobs } from './screens-hub-jobs'
 import { CompanyOverview, CompanySupport } from './screens-company'
 import { readComms } from '@/lib/census/comms-settings'
 import { CommsToggles, OrgKeysPanel } from '@/components/census/OrgKeysPanel'
@@ -1664,6 +1665,8 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'hub:report': HubReport,
   'hub:skillsgap': HubSkillsGaps,
   'hub:talent': HubTalent,
+  'hub:regionjobs': HubRegionJobs,
+  'hub:groupjobs': HubGroupJobs,
   'hub:region': Region,
   'employer:overview': CompanyOverview,
   'employer:support': CompanySupport,

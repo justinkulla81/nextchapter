@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
-import { linkResponseFunding, saveFundingApplication, setResponseStep, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
+import { addGroupJob, archiveGroupJob, importGroupJobs, linkResponseFunding, saveFundingApplication, setResponseStep, type HubResult } from '@/app/i/[slug]/(portal)/hub-actions'
 import { FUNDING_STATUSES } from '@/lib/workforce/hub-flow'
 
 const sel = 'h-9 w-full rounded-md border border-input bg-background px-2 text-sm'
@@ -121,6 +121,81 @@ export function FundingForm({ slug, initial = {} }: { slug: string; initial?: In
         <SubmitButton pendingLabel="Saving…">{initial.id ? 'Save changes' : 'Add application'}</SubmitButton>
         <Msg r={state} />
       </div>
+    </form>
+  )
+}
+
+// Add one job for the group.
+export function GroupJobForm({ slug }: { slug: string }) {
+  const [state, action] = useActionState<HubResult, FormData>(addGroupJob.bind(null, slug), undefined)
+  return (
+    <form action={action} className="grid gap-3 sm:grid-cols-3">
+      <div className="space-y-1.5 sm:col-span-2">
+        <Label htmlFor="gj-title">Job title</Label>
+        <Input id="gj-title" name="title" required maxLength={160} />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="gj-company">Company</Label>
+        <Input id="gj-company" name="companyName" required maxLength={160} />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="gj-location">Location</Label>
+        <Input id="gj-location" name="location" maxLength={160} placeholder="Louisville, KY" />
+      </div>
+      <div className="space-y-1.5 sm:col-span-2">
+        <Label htmlFor="gj-url">Link to the posting</Label>
+        <Input id="gj-url" name="url" type="url" required placeholder="https://" />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="gj-min">Pay minimum ($, a year)</Label>
+        <Input id="gj-min" name="salaryMin" inputMode="numeric" />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="gj-max">Pay maximum ($, a year)</Label>
+        <Input id="gj-max" name="salaryMax" inputMode="numeric" />
+      </div>
+      <div className="flex items-end gap-3 sm:col-span-3">
+        <SubmitButton pendingLabel="Adding…">Add job</SubmitButton>
+        <Msg r={state} />
+      </div>
+    </form>
+  )
+}
+
+// Add many jobs from a pasted list.
+export function ImportJobsForm({ slug }: { slug: string }) {
+  const [state, action] = useActionState<HubResult, FormData>(importGroupJobs.bind(null, slug), undefined)
+  return (
+    <form action={action} className="space-y-3">
+      <div className="space-y-1.5">
+        <Label htmlFor="gj-rows">One job a line: title, company, location, link</Label>
+        <textarea id="gj-rows" name="rows" rows={6} required className="w-full rounded-md border border-input bg-background p-2 font-mono text-xs" placeholder={'Controller | Acme Co | Louisville, KY | https://acme.example/jobs/1\nSenior Analyst | Beta Inc | Louisville, KY | https://beta.example/jobs/2'} />
+        <p className="text-xs text-muted-foreground">Separate the parts with a pipe, a tab or a comma. Paste straight from a spreadsheet. Up to 100 jobs at a time.</p>
+      </div>
+      <div className="flex items-center gap-3">
+        <SubmitButton pendingLabel="Adding…">Add these jobs</SubmitButton>
+        <Msg r={state} />
+      </div>
+    </form>
+  )
+}
+
+// Take a job down. Reversible only by adding it again, so it asks first.
+export function ArchiveJobButton({ slug, id, title }: { slug: string; id: string; title: string }) {
+  const [state, action] = useActionState<HubResult, FormData>(archiveGroupJob.bind(null, slug), undefined)
+  return (
+    <form
+      action={action}
+      onSubmit={(e) => {
+        if (!window.confirm(`Take down “${title}”? People in your group will no longer see it.`)) e.preventDefault()
+      }}
+      className="flex items-center gap-2"
+    >
+      <input type="hidden" name="id" value={id} />
+      <SubmitButton size="sm" variant="ghost" pendingLabel="Removing…">
+        Take down
+      </SubmitButton>
+      <Msg r={state} />
     </form>
   )
 }
