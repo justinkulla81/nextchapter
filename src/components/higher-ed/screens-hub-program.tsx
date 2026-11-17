@@ -17,6 +17,7 @@ import { BENEFITS, DEMAND_SKILLS, FUNNEL, LANES, ORIGINS, RESPONSE_STEPS, rand01
 import { StatTile } from './StatTile'
 import { NEED_CATEGORIES, peopleCrm } from '@/lib/workforce/people-crm'
 import { PrintButton } from './PrintButton'
+import { stateSlug } from '@/lib/seo/states'
 import { FutureSkillsTool } from './FutureSkillsTool'
 
 type Props = { ctx: WorkspaceContext; searchParams: object; base: string }
@@ -1000,7 +1001,7 @@ function firstWednesday(y: number, m: number) {
   d.setUTCDate(1 + ((3 - d.getUTCDay() + 7) % 7))
   return d
 }
-function nextReserveDeadline(now = new Date()) {
+export function nextReserveDeadline(now = new Date()) {
   let d = firstWednesday(now.getUTCFullYear(), now.getUTCMonth())
   if (d.getTime() + 86_400_000 <= now.getTime()) d = firstWednesday(now.getUTCFullYear() + (now.getUTCMonth() === 11 ? 1 : 0), (now.getUTCMonth() + 1) % 12)
   return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(d)
@@ -1219,6 +1220,117 @@ export async function HubFunding({ ctx }: Props) {
       <Section title="Contests and challenges" intro="Hiring challenges, pitch contests and employer competitions sit here beside grants, so one calendar shows what is open.">
         <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">None found for this region on November 16, 2026.</p>
       </Section>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+
+export async function HubPublic({ ctx, base }: Props) {
+  const inst = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { profile: true } })
+  const state = (inst.profile as { region?: { state?: string } } | null)?.region?.state ?? null
+  const orgBase = base.replace(/\/hub$/, '')
+  const site = 'https://launchyournextchapter.com'
+  const rows: { name: string; what: string; feeds: string; control: string; status: 'Live' | 'Planned'; href: string; cta: string; external?: boolean }[] = [
+    {
+      name: 'Your organization’s page',
+      what: 'The page people find in search: jobs open across your area, employers hiring, colleges, events and how to reach you.',
+      feeds: 'People and Partners',
+      control: 'Claim it to edit content, contact details and branding, and to publish or unpublish.',
+      status: 'Live',
+      href: state ? `${site}/workforce-boards/${stateSlug(state)}` : `${site}/government-workforce#claim`,
+      cta: 'Find your page',
+      external: true,
+    },
+    {
+      name: 'Layoff pages',
+      what: 'A page for each employer in your region with a layoff filing: “Were you affected?” and a first-week plan.',
+      feeds: 'Employers (rapid response and layoff seats)',
+      control: 'Your own sign-up link and seat pool decide who gets free access, and what they are told.',
+      status: 'Live',
+      href: `${site}/layoffs`,
+      cta: 'See the layoff tracker',
+      external: true,
+    },
+    {
+      name: 'Moving here page',
+      what: 'A short, consent-based form for people thinking of moving to your region, with the jobs, benefits and cost of living beside it.',
+      feeds: 'People (Attract)',
+      control: 'The consent text, who follows up, and where leads go.',
+      status: 'Planned',
+      href: `${base}/attract`,
+      cta: 'See Attract',
+    },
+    {
+      name: 'Employer pledge page',
+      what: 'Employers say how they will hire local, share openings and fund upskilling.',
+      feeds: 'Employers',
+      control: 'What is public, and who may pledge.',
+      status: 'Planned',
+      href: `${base}/upskill`,
+      cta: 'See Upskilling',
+    },
+    {
+      name: 'Participant view',
+      what: 'What a person sees in their own account: your group, jobs, learning, community and coaching.',
+      feeds: 'People',
+      control: 'Which services show, and what the person chooses to share with you.',
+      status: 'Live',
+      href: `${orgBase}/candidate`,
+      cta: 'Open the preview',
+    },
+    {
+      name: 'Employer view',
+      what: 'What a member company sees: its layoffs, its hiring and the jobs it posts.',
+      feeds: 'Employers',
+      control: 'Which companies have access, and what they can request.',
+      status: 'Live',
+      href: `${orgBase}/employer`,
+      cta: 'Open the preview',
+    },
+  ]
+  return (
+    <div className="space-y-6">
+      <p className="max-w-3xl text-sm text-muted-foreground">
+        Every public page and preview your organization controls, what each one feeds in the Talent Hub, and what you decide. A page that is planned is shown so you can see where it will connect.
+      </p>
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full min-w-[56rem] text-sm">
+          <thead className="bg-muted/50">
+            <tr>
+              <Th>Page</Th>
+              <Th>What it does</Th>
+              <Th>Feeds</Th>
+              <Th>You control</Th>
+              <Th>Status</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.name} className="border-t border-border align-top">
+                <td className="min-w-40 px-3 py-3 font-medium">{r.name}</td>
+                <td className="px-3 py-3 text-muted-foreground">{r.what}</td>
+                <td className="px-3 py-3 text-muted-foreground">{r.feeds}</td>
+                <td className="px-3 py-3 text-muted-foreground">{r.control}</td>
+                <td className="px-3 py-3">
+                  <span className="text-xs font-medium">{r.status}</span>
+                  <div className="mt-1">
+                    {r.external ? (
+                      <a href={r.href} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                        {r.cta}
+                      </a>
+                    ) : (
+                      <Link href={r.href} className="text-primary hover:underline">
+                        {r.cta}
+                      </Link>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

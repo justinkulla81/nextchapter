@@ -62,7 +62,7 @@ export default async function InstitutionPortalLayout({
   const programName = orgBrand?.name ?? institution.programBrandName
   // Primary comes from the organization or the college; secondary and background only from the organization.
   const theme = {
-    ...(brandStyle({ name: null, logoUrl: null, accent: null, secondary: orgBrand?.secondary, background: orgBrand?.background }) ?? {}),
+    ...(brandStyle({ name: null, logoUrl: null, accent: null, secondary: orgBrand?.secondary, background: orgBrand?.background ?? (orgKindOf(institution.orgType) === 'workforce' ? '#ffffff' : null) }) ?? {}),
     '--primary': accent,
     '--primary-foreground': readableTextOn(accent),
     '--ring': accent,
