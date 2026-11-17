@@ -122,7 +122,7 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
       accentColor: tenant.accentColor,
       logoUrl: tenant.logoUrl ?? null,
       domains: tenant.domains,
-      tier: 'ADVANCEMENT',
+      tier: tenant.tier ?? 'ADVANCEMENT',
       alumniCount: tenant.alumniCount,
       includedSeats: tenant.includedSeats,
       licenseStartAt: new Date(Date.UTC(now.getUTCFullYear(), 6, 1)),
@@ -229,6 +229,7 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
       classYear,
       degree: pick(DEGREES, i, 2),
       major: pick(tenant.majors, i, 4),
+      school: tenant.majorSchools?.[pick(tenant.majors, i, 4)] ?? null,
       matchMethod: 'ROSTER_EMAIL',
       status,
       claimedAt: joined ? new Date(now.getTime() - (40 + ((i * 13) % 300)) * DAY) : null,
@@ -600,8 +601,10 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
     { name: 'Data analytics certificate', summary: 'SQL, spreadsheets and dashboards, with a capstone on a local employer’s data.', audience: 'Alumni and adult learners', credential: 'Data Analytics Certificate', priceCents: 249_500, wioaEligible: true, skills: ['SQL', 'data analysis', 'dashboards', 'Excel'], cipCode: '11.0802', hours: 90, credentialType: 'certificate', prerequisites: null },
     { name: 'Leading teams through AI', summary: 'For managers and executives: choosing use cases, redesigning roles, governance.', audience: 'Senior alumni', credential: null, priceCents: 0, wioaEligible: false, skills: ['leadership', 'strategy'] },
   ]
+  // A tenant's own programs replace the generic three (the cohorts and capstones below use the first three).
+  const programList = tenant.programs && tenant.programs.length >= 3 ? tenant.programs : programDefs
   const programs = await Promise.all(
-    programDefs.map((p) => db.program.create({ data: { ...p, institutionId, createdBy: 'demo-seed', isSampleData: true }, select: { id: true, name: true, credential: true } })),
+    programList.map((p) => db.program.create({ data: { ...p, institutionId, createdBy: 'demo-seed', isSampleData: true }, select: { id: true, name: true, credential: true } })),
   )
   const cohortDefs = [
     { p: 0, name: 'Spring 2026, online', start: -210, end: -168 },

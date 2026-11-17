@@ -77,10 +77,10 @@ export async function seedCommunity(
 
   // Course auditing.
   const courses = await Promise.all(
-    [
+    (tenant.auditCourses && tenant.auditCourses.length >= 2 ? tenant.auditCourses : [
       { title: 'Behavioral Economics', courseCode: 'ECO 340', term: 'Spring 2027', schedule: 'Tue/Thu 2:00–3:15', modality: 'in_person', seats: 4, description: 'Why people don’t do what models predict, and what that means for policy and product design.', skills: ['Economics', 'Decision making'] },
       { title: 'Data Visualization', courseCode: 'CIS 255', term: 'Spring 2027', schedule: 'Online, weekly', modality: 'online', seats: 6, description: 'Turning data into charts people understand. Tableau and Python.', skills: ['Data visualization', 'Python', 'Tableau'] },
-    ].map((c) => db.auditCourse.create({ data: { ...c, institutionId, facultyUserId: a.facultyUserId, ...S }, select: { id: true } })),
+    ]).map((c) => db.auditCourse.create({ data: { ...c, institutionId, facultyUserId: a.facultyUserId, ...S }, select: { id: true } })),
   )
   await db.auditRequest.createMany({
     data: [
