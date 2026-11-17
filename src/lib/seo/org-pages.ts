@@ -167,6 +167,12 @@ async function loadStateJobStats(state: string): Promise<StateJobStats> {
 type StoredEmployer = { name: string; n: number; cn: string | null; cid: string | null; linkable: boolean | null }
 /** topCap: how many employers the cron kept per state (the place pages need it to tell a short list from a capped one). */
 export const STATE_TOP_EMPLOYERS = 12
+/** Cities with at least this many open public jobs get their top employers stored (the live count is cheap below it). */
+export const CITY_TOP_MIN_OPEN = 150
+/** How many employers are stored per big city: more than a page shows, so merging a city's spellings stays right at the top. */
+export const CITY_TOP_KEEP = 30
+/** A state's big cities' top employers (lowercase city -> employers, newest count first) and every city's open-job count. */
+export type CityTopFigure = { minOpen: number; keep: number; tops: Record<string, StoredEmployer[]>; counts: Record<string, number> }
 type StateFigure = { cityJobs: CityJobRow[]; stateJob: JobStatRow | null; topEmployers: StoredEmployer[]; topCap: number; newestJobs: AreaJob[] }
 
 /**
@@ -175,8 +181,8 @@ type StateFigure = { cityJobs: CityJobRow[]; stateJob: JobStatRow | null; topEmp
  * every figure is read from it. A statewide organization page used to count the whole state's jobs itself (loadAreaHiring): ~25 s and
  * ~48,000 blocks from disk for California, 63 s at worst, #9 and #10 by database time in the 2026-11-17 statement stats.
  */
-export async function buildOrgJobStats(): Promise<Map<string, StateFigure>> {
-  const { rows, employers, newest } = await prisma.$transaction(async (tx) => {
+export async function buildOrgJobStats(): Promise<Map<string, StateFigure & { cityTop: CityTopFigure }>> {
+  const { rows, employers, newest, cityTops } = await prisma.$transaction(async (tx) => {
     await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = '600s'`)
     await tx.$executeRaw`
       CREATE TEMP TABLE org_jobs ON COMMIT DROP AS
@@ -208,10 +214,26 @@ export async function buildOrgJobStats(): Promise<Map<string, StateFigure>> {
           row_number() OVER (PARTITION BY st ORDER BY "lastVerifiedAt" DESC NULLS LAST, id) AS rk
         FROM org_jobs
       ) x WHERE rk <= 8 ORDER BY st, rk`
-    return { rows, employers, newest }
+    // The big cities' top employers, for the place pages (places.ts topHiringEmployers): a city's live count was a scan of its public
+    // jobs on every refresh, 93 ms on average but up to 26 s for a large one (#21 by database time in the 2026-11-17 statement stats).
+    const cityTops = await tx.$queryRaw<(StoredEmployer & { st: string; city: string })[]>`
+      WITH big AS (SELECT st, city FROM org_jobs WHERE city IS NOT NULL GROUP BY 1, 2 HAVING count(*) >= ${CITY_TOP_MIN_OPEN}),
+      g AS (
+        SELECT j.st, j.city, j."companyName" AS name, j."companyId" AS cid, count(*)::int AS n,
+          row_number() OVER (PARTITION BY j.st, j.city ORDER BY count(*) DESC, j."companyName") AS rk
+        FROM org_jobs j JOIN big USING (st, city)
+        GROUP BY 1, 2, 3, 4
+      )
+      SELECT g.st, g.city, g.name, g.n, c."canonicalNameNormalized" AS cn, c.id AS cid, (p."openNow" >= 3) AS linkable
+      FROM g
+      LEFT JOIN "Company" c ON c.id = g.cid
+      LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
+      WHERE g.rk <= ${CITY_TOP_KEEP}
+      ORDER BY g.st, g.city, g.n DESC, g.name`
+    return { rows, employers, newest, cityTops }
   }, { timeout: 620_000, maxWait: 30_000 })
-  const out = new Map<string, StateFigure>()
-  for (const code of ALL_STATE_CODES) out.set(code, { cityJobs: [], stateJob: null, topEmployers: [], topCap: STATE_TOP_EMPLOYERS, newestJobs: [] })
+  const out = new Map<string, StateFigure & { cityTop: CityTopFigure }>()
+  for (const code of ALL_STATE_CODES) out.set(code, { cityJobs: [], stateJob: null, topEmployers: [], topCap: STATE_TOP_EMPLOYERS, newestJobs: [], cityTop: { minOpen: CITY_TOP_MIN_OPEN, keep: CITY_TOP_KEEP, tops: {}, counts: {} } })
   for (const r of rows) {
     const entry = out.get(r.st)
     if (!entry) continue
@@ -221,6 +243,11 @@ export async function buildOrgJobStats(): Promise<Map<string, StateFigure>> {
   }
   for (const { st, ...e } of employers) out.get(st)?.topEmployers.push(e)
   for (const { st, ...j } of newest) out.get(st)?.newestJobs.push(j)
+  for (const { st, city, ...e } of cityTops) {
+    const top = out.get(st)?.cityTop
+    if (top) (top.tops[city] ??= []).push(e)
+  }
+  for (const [, v] of out) for (const c of v.cityJobs) v.cityTop.counts[c.city] = c.open
   return out
 }
 
