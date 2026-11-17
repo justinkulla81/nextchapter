@@ -103,14 +103,16 @@ describe('the sweep for smaller layoffs', async () => {
   const { sweepWhere, OUTREACH_MIN_EMPLOYEES, OUTREACH_MIN_AGE_HOURS } = await import('@/lib/warn/outreach/sweep')
   it('takes US layoffs of 50+ jobs filed 3 hours to 5 days ago, once, and leaves held alerts to the alert path', () => {
     const now = new Date('2026-11-13T12:00:00Z')
-    const w = sweepWhere(now) as unknown as { employees: unknown; outreachCheckedAt: unknown; dismissedAt: unknown; fetchedAt: { lte: Date; gte: Date }; OR: unknown; NOT: unknown }
+    const w = sweepWhere(now) as unknown as { employees: unknown; outreachCheckedAt: unknown; dismissedAt: unknown; fetchedAt: { lte: Date; gte: Date }; AND: unknown[]; NOT: unknown }
     expect(OUTREACH_MIN_EMPLOYEES).toBe(50)
     expect(w.employees).toEqual({ gte: 50 })
     expect(w.outreachCheckedAt).toBeNull()
     expect(w.dismissedAt).toBeNull()
     expect(w.fetchedAt.lte.getTime()).toBe(now.getTime() - OUTREACH_MIN_AGE_HOURS * 3_600_000)
     expect(w.fetchedAt.gte.getTime()).toBe(now.getTime() - 5 * 86_400_000)
-    expect(w.OR).toEqual([{ country: null }, { country: 'US' }])
+    expect(w.AND[0]).toEqual({ OR: [{ country: null }, { country: 'US' }] })
+    // Filed in the last 30 days, not only loaded: a state's WARN archive loaded today is history (2026-11-17).
+    expect(w.AND[1]).toEqual({ OR: [{ noticeDate: null }, { noticeDate: { gte: new Date(now.getTime() - 30 * 86_400_000) } }] })
     expect(w.NOT).toEqual({ alertHeldAt: { not: null }, alertSentAt: null, alertGaveUpAt: null })
   })
 })
