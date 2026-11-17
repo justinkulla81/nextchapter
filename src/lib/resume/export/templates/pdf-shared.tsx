@@ -43,8 +43,15 @@ export function SectionHeading({
   tokens: ResumeTemplateStyleTokens
   accentColor: string | null
 }) {
-  const label = tokens.headingCase === 'uppercase' ? text.toUpperCase() : text
-  return <Text style={pdfHeadingStyle(tokens, accentColor)}>{label}</Text>
+  // A heading copied from an upload in capitals ("CORE COMPETENCIES") follows the template's case, like the standard ones.
+  const allCaps = text === text.toUpperCase() && /[A-Z]{2}/.test(text)
+  const label = tokens.headingCase === 'uppercase' ? text.toUpperCase() : allCaps ? text.charAt(0) + text.slice(1).toLowerCase() : text
+  // minPresenceAhead: a heading with no room for a line of its section under it starts the next page instead.
+  return (
+    <Text minPresenceAhead={36} style={pdfHeadingStyle(tokens, accentColor)}>
+      {label}
+    </Text>
+  )
 }
 
 // Left label + right-aligned date. A flex row with space-between is the
@@ -118,7 +125,8 @@ export function BodyText({
 // text extraction reads it as a plain character either way).
 export function BulletText({ text, tokens }: { text: string; tokens: ResumeTemplateStyleTokens }) {
   return (
-    <View style={{ flexDirection: 'row', marginBottom: 2 }}>
+    // wrap={false}: a bullet moves to the next page whole, so its dot is never left behind at the bottom of a page.
+    <View wrap={false} style={{ flexDirection: 'row', marginBottom: 2 }}>
       <Text style={{ fontFamily: tokens.pdfFontFamily, fontSize: tokens.bodySizePt, width: 12 }}>•</Text>
       <Text style={{ fontFamily: tokens.pdfFontFamily, fontSize: tokens.bodySizePt, flex: 1, lineHeight: 1.35 }}>
         {text}
