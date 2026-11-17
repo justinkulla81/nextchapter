@@ -6,7 +6,7 @@ import { requireWorkspace } from '@/lib/higher-ed/access'
 import { getWorkspace, labelFor, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { loadModules } from '@/components/higher-ed/screens-community'
 import { LockedFeature } from '@/components/plans/LockedFeature'
-import { blockedScreen } from '@/lib/plans/entitlements'
+import { PLAN_CONTACT_EMAIL, blockedScreen, trialForLock, trialState } from '@/lib/plans/entitlements'
 import { ComingIn } from '@/components/higher-ed/ComingIn'
 import { COMING_DESCRIPTIONS, WORKSPACE_SCREENS, type ScreenSearchParams } from '@/components/higher-ed/screens'
 import { EmployerSiteFrame, ParticipantSiteFrame } from '@/components/higher-ed/SiteFrames'
@@ -45,16 +45,25 @@ export default async function WorkspacePage({
   const base = `${orgBasePath(slug, ctx.institution.orgType)}/${config.homePath}`
 
   const screen = locked ? (
-    <LockedFeature feature={locked} slug={slug} plan={ctx.institution.plan} />
+    <LockedFeature feature={locked} slug={slug} plan={ctx.institution.plan} trial={trialForLock(ctx.institution)} />
   ) : Screen ? (
     <Screen ctx={ctx} searchParams={await searchParams} base={base} />
   ) : (
     <ComingIn step={active.comingIn ?? 'a later step'} what={COMING_DESCRIPTIONS[`${config.key}:${active.key}`] ?? active.label} />
   )
   const groupName = ctx.institution.programBrandName ?? ctx.institution.name
+  const trial = trialState(ctx.institution.storedPlan ?? ctx.institution.plan, ctx.institution.trialStartedAt, ctx.institution.trialEndsAt)
   const header = (
     <div className="flex flex-wrap items-center gap-3">
       <h1 className="text-2xl font-semibold tracking-tight">{labelFor(config, kind)}</h1>
+      {trial.state === 'active' && (
+        <a
+          href={`mailto:${PLAN_CONTACT_EMAIL}?subject=${encodeURIComponent(`Keep the paid plan for ${slug}`)}`}
+          className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary hover:bg-primary/15"
+        >
+          Free trial: {trial.daysLeft} {trial.daysLeft === 1 ? 'day' : 'days'} left. Keep everything
+        </a>
+      )}
       {ctx.readOnly && (
         <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
           <Eye className="size-3" aria-hidden="true" />

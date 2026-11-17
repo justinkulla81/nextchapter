@@ -67,7 +67,7 @@ import { listRecruitingDates, listEarlyCareerRoles } from '@/lib/higher-ed/recru
 import { RECRUITING_DATE_LABELS, EARLY_CAREER_LABELS, splitUpcoming, deadlinePassed, safeHttpUrl } from '@/lib/higher-ed/recruiting-rules'
 import { StaffInviteForm } from './StaffInviteForm'
 import { LockedFeature } from '@/components/plans/LockedFeature'
-import { institutionEntitlements } from '@/lib/plans/entitlements'
+import { institutionEntitlements, trialForLock } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { AlumniData } from './screens-alumni-data'
 import { DevelopmentGrants } from './screens-grants'
@@ -1588,7 +1588,7 @@ async function SettingsStaff({ ctx }: ScreenProps) {
       ) : (
         <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} adminOnly={!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles} kind={orgKindOf(ctx.institution.orgType)} />
       )}
-      {!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles && <LockedFeature feature="staffRoles" slug={ctx.institution.slug} plan={ctx.institution.plan} compact />}
+      {!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles && <LockedFeature feature="staffRoles" slug={ctx.institution.slug} plan={ctx.institution.plan} trial={trialForLock(ctx.institution)} compact />}
     </div>
   )
 }

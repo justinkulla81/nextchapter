@@ -13069,6 +13069,9 @@ model Institution {
   tier              InstitutionTier    @default(CAREER)
   // FREE (a verified, claimed workspace) or PAID. Default PAID so every institution that existed before plans keeps everything. See src/lib/plans/entitlements.ts.
   plan              String             @default("PAID")
+  // A one-time free trial of the paid plan for a FREE organization (src/lib/plans/entitlements.ts: trialState). Not self-billing.
+  trialStartedAt    DateTime?
+  trialEndsAt       DateTime?
   alumniCount       Int?
   includedSeats     Int                @default(0)
   licenseStartAt    DateTime?
