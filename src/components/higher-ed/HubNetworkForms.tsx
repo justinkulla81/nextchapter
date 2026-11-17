@@ -8,10 +8,11 @@ import { linkSuggestedOrgs, type RelatedState } from '@/app/i/[slug]/(portal)/re
 export type PickerGroup = { key: string; label: string; items: { orgId: string; name: string; reason: string; onNextChapter: boolean }[] }
 
 // The organizations we think you know, grouped. Everything starts ticked: linking sends nothing, and you review the invites afterwards.
-export function NetworkPicker({ slug, groups, disabled }: { slug: string; groups: PickerGroup[]; disabled: boolean }) {
+// `link` is the action that links the ticked ones; the portal's own by default, an employer's from the hiring portal.
+export function NetworkPicker({ slug, groups, disabled, link }: { slug: string; groups: PickerGroup[]; disabled: boolean; link?: (prev: RelatedState, f: FormData) => Promise<RelatedState> }) {
   const all = groups.flatMap((g) => g.items.map((i) => i.orgId))
   const [chosen, setChosen] = useState<Set<string>>(new Set(all))
-  const [state, action] = useActionState<RelatedState, FormData>(linkSuggestedOrgs.bind(null, slug), undefined)
+  const [state, action] = useActionState<RelatedState, FormData>(link ?? linkSuggestedOrgs.bind(null, slug), undefined)
   const toggle = (id: string, on: boolean) =>
     setChosen((cur) => {
       const n = new Set(cur)

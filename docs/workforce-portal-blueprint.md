@@ -321,3 +321,10 @@ Open (see also the open questions under "Organizations working together"):
 1. Look and structure: white background, areas, Home as "what needs you", previews.
 2. Flows A and B end to end, ending in a real report from the ledger.
 3. Market and Reports; then flows C to F.
+
+## Phase 13: colleges and employers get "Your network"
+
+Same loop as the workforce hub (phase 12), so every kind of organization brings in the next.
+- **Colleges:** Admin › Related organizations shows "We think you know" (workforce board and career centers from the college's profile, peers carrying its city's name, top and hiring employers, other colleges in its city) and the launch checklist's first step is "Invite the people you work with".
+- **Employers:** the hiring portal has `/talent/network`. Suggestions come from the city and state of the company's own CRM record (one list per city, cached 30 minutes): job centers, peers, employers hiring nearby, colleges. Links live on `EmployerRelatedOrg`; the invite is the same claim link (`?via=<token>`). Approval connects both kinds of link (`connectRelated`) and shows the inviter in the approval queue. The hiring Home asks for it first ("Invite the people you work with") until the employer has linked someone.
+- NextChapter sends nothing: invites are copied or opened as an email draft.
