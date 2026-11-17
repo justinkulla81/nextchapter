@@ -324,8 +324,8 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     use: 'Use it when you are choosing between industries, or deciding whether to take your skills to another one. Pay reflects the roles each industry posts, so compare within your job family too.',
   },
   wp_all: {
-    why: 'Where to build a white-collar career depends on more than the job count: what the pay buys, what a house costs, how often employers cut, how exposed the work is to AI, and whether the schools, streets and services suit the life around the job. This list weighs all of them, and every criterion has its own ranking.',
-    use: 'Start with the overall list, then open the criteria that matter most to you. If you have children, the family and safety lists may count for more than the weights here; if you work remotely, pay and openings may count for less.',
+    why: 'Where to build a white-collar career depends on more than the job count: what the pay buys, what a house costs, how often employers cut, how exposed the work is to AI, what AI skills pay, what help there is to retrain, and whether the schools and services suit the life around the job. This list weighs all of them, and every criterion has its own ranking.',
+    use: 'Start with the overall list, then open the criteria that matter most to you. If you have children, the family list may count for more than the weights here; if you work remotely, pay and openings may count for less.',
   },
   wp_open: {
     why: 'Openings per white-collar worker show how many chances there are for each professional already there, which matters more than the raw count when you are one of many applicants.',
@@ -360,16 +360,16 @@ export const MEASURE_GUIDE: Record<MeasureId, Guide> = {
     use: 'Exposure is not job loss: exposed work often changes rather than disappears. If you live in a highly exposed metro, build AI skills; if you are choosing a place, this is one measure of stability.',
   },
   wp_train: {
-    why: 'Retraining is easier where public job centers, which fund and arrange training, and community and technical colleges, which teach most short courses, are close by.',
-    use: 'If you plan to change fields, a metro high on this list gives you more public ways to retrain. Ask your local American Job Center about training funds.',
+    why: 'Changing fields is easier where help is close by: job centers that fund training, community and technical colleges that teach short courses, local workforce and economic development organizations, and state programs for retraining, job-seeker support and relocation.',
+    use: 'If you plan to retrain, a metro high on this list gives you more public and nonprofit ways to do it. Ask the local American Job Center about training funds first.',
   },
   wp_edu: {
     why: 'Colleges and universities nearby make it easier to take a course, earn a certificate or finish a degree while you work.',
     use: 'Use it if you expect to upskill. A metro with many colleges usually has evening and part-time programs too.',
   },
-  wp_safe: {
-    why: 'Safety shapes where people want to live. Homicide deaths are the violence measure published consistently for every county.',
-    use: 'Homicide rates vary within a metro more than between metros, so look at the neighbourhood as well as the metro figure.',
+  wp_aipay: {
+    why: 'Employers pay more for AI skills in some places than in others. The gap between the median posted salary for white-collar roles that ask for AI skills and those that do not shows where learning them is rewarded most.',
+    use: 'If you are building AI skills, a high premium means local employers pay for them. The roles that ask for AI skills are often more senior, so treat the premium as a signal, not a promise.',
   },
   wp_family: {
     why: 'For professionals with children, the cost of child care, the strength of the schools and the number of child care places can matter as much as pay.',
