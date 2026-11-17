@@ -82,6 +82,8 @@ export interface SnapshotManifest {
   rows: number
   /** For a build-independent kind: the SNAPSHOT_SHAPES value it was written as. */
   shape?: string
+  /** A board built from an earlier one plus the rows changed since: when its last whole-board read was (ms). Absent = `at`. */
+  fullAt?: number
 }
 
 export function snapshotsDisabled(env: Record<string, string | undefined> = process.env): boolean {
@@ -233,7 +235,7 @@ const lastWrite = new Map<SnapshotKind, string>()
  * Best effort and in the background — a failure only means the next cold instance reads
  * the database. Skipped when this instance already wrote that version.
  */
-export async function writeSnapshot(kind: SnapshotKind, fingerprint: string, at: number, parts: SnapshotPart[], rows: number): Promise<void> {
+export async function writeSnapshot(kind: SnapshotKind, fingerprint: string, at: number, parts: SnapshotPart[], rows: number, extra: { fullAt?: number } = {}): Promise<void> {
   if (snapshotsDisabled() || lastWrite.get(kind) === fingerprint) return
   const started = Date.now()
   lastWrite.set(kind, fingerprint)
@@ -251,7 +253,7 @@ export async function writeSnapshot(kind: SnapshotKind, fingerprint: string, at:
       paths.push(path)
     }
     const shape = SNAPSHOT_SHAPES[kind]
-    const manifest: SnapshotManifest = { v: FORMAT, build: snapshotBuild(), kind, fingerprint, at, parts: paths, rows, ...(shape ? { shape } : {}) }
+    const manifest: SnapshotManifest = { v: FORMAT, build: snapshotBuild(), kind, fingerprint, at, parts: paths, rows, ...(shape ? { shape } : {}), ...(extra.fullAt !== undefined && extra.fullAt < at ? { fullAt: extra.fullAt } : {}) }
     await putObject(`${folder(kind)}/manifest.json`, Buffer.from(JSON.stringify(manifest)), 'application/json')
     console.log(`[board-snapshot] wrote ${kind}`, JSON.stringify({ rows, parts: paths.length, fingerprint, ms: Date.now() - started }))
     await removeOrphans(kind, new Set(paths)).catch(() => undefined)
