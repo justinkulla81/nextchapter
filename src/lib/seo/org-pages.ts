@@ -192,8 +192,9 @@ export async function buildOrgJobStats(): Promise<Map<string, { cityJobs: CityJo
 
 async function loadStateData(state: string): Promise<StateData> {
   const [centerRows, partnerRows, boardRows, places, counties, jobStats, colleges, labor] = await Promise.all([
-    prisma.americanJobCenter.findMany({ where: { state }, orderBy: [{ city: 'asc' }, { name: 'asc' }] }),
-    prisma.localPartnerOrg.findMany({ where: { state }, orderBy: { name: 'asc' } }),
+    // Kept a day in the shared data cache (owner decision 2026-11-17, Supabase egress): every cold instance re-read the state's rows.
+    sharedLoad(`state-center-rows-v1:${state}`, 24 * 3600, () => prisma.americanJobCenter.findMany({ where: { state }, orderBy: [{ city: 'asc' }, { name: 'asc' }] })),
+    sharedLoad(`state-partner-rows-v1:${state}`, 24 * 3600, () => prisma.localPartnerOrg.findMany({ where: { state }, orderBy: { name: 'asc' } })),
     getStateBoards(state),
     getStateCityPlaces(state),
     getStateCounties(state),
@@ -257,7 +258,7 @@ async function loadStateData(state: string): Promise<StateData> {
     }
   })
   // Boards carry no updatedAt in the public shape; read it once for lastmod.
-  const stamps = await prisma.workforceBoard.findMany({ where: { state }, select: { id: true, updatedAt: true, address: true } })
+  const stamps = await sharedLoad(`state-board-stamps-v1:${state}`, 24 * 3600, () => prisma.workforceBoard.findMany({ where: { state }, select: { id: true, updatedAt: true, address: true } }))
   const stamp = new Map(stamps.map((x) => [x.id, x]))
   for (const b of boards) { const x = stamp.get(b.id); if (x) { b.updatedAt = x.updatedAt; b.street = x.address } }
 

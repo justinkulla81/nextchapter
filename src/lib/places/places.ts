@@ -246,20 +246,21 @@ export interface PlaceCenter { id: string; name: string; kind: string | null; ci
 export interface PlaceCollege { id: string; name: string; city: string | null; sector: number | null; size: number | null; website: string | null; countyFips: string | null; state: string; href: string | null }
 
 const loadCenters = cache(async (state: string | null): Promise<PlaceCenter[]> => {
-  const rows = await prisma.americanJobCenter.findMany({
+  // Kept a day in the shared data cache (owner decision 2026-11-17, Supabase egress): every cold instance re-read the state's centers.
+  const rows = await sharedLoad(`place-centers-v1:${state ?? 'all'}`, 24 * 3600, () => prisma.americanJobCenter.findMany({
     where: state ? { state } : {},
     select: { id: true, name: true, centerType: true, city: true, phone: true, hours: true, detailsUrl: true, workforceBoardId: true, countyFips: true, state: true },
     orderBy: [{ city: 'asc' }, { name: 'asc' }],
-  })
+  }), { reviveDates: false })
   return rows.map((r) => ({ id: r.id, name: r.name, kind: r.centerType, city: r.city, phone: r.phone, hours: r.hours, detailsUrl: r.detailsUrl, boardId: r.workforceBoardId, countyFips: r.countyFips, state: r.state }))
 })
 
 const loadColleges = cache(async (state: string | null): Promise<PlaceCollege[]> => {
-  const rows = await prisma.localCollege.findMany({
+  const rows = await sharedLoad(`place-colleges-v1:${state ?? 'all'}`, 24 * 3600, () => prisma.localCollege.findMany({
     where: { ...(state ? { state } : {}), sector: { in: [1, 2, 4, 5] } },
     select: { id: true, name: true, city: true, sector: true, size: true, website: true, countyFips: true, state: true },
     orderBy: [{ size: { sort: 'desc', nulls: 'last' } }, { name: 'asc' }],
-  })
+  }), { reviveDates: false })
   // The college's own page; the listing module imports this one, so it loads lazily.
   let slugs = new Map<string, string>()
   if (state) {

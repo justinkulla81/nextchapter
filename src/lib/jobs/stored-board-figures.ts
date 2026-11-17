@@ -1,6 +1,7 @@
 import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { memoTtl, sharedLoad } from '@/lib/db/heavy'
 
 // Figures that take a pass over the whole open board are computed by the cron /api/cron/board-figures and stored in
 // BoardFigure. Pages read the stored row (a primary-key lookup) instead of running the scan themselves.
@@ -35,9 +36,20 @@ export type BoardFigureKey =
   | `role:${string}`
   | `pay-data-snapshot:${string}`
 
+/**
+ * A figure is read from the shared data cache (30 minutes) through a five-minute copy on the instance: pages read these on every
+ * render (~1.9M reads of ~4.5 KB payloads in five days, owner decision 2026-11-17, Supabase egress). The crons that write them run
+ * hourly or daily, so a page shows a new figure within half an hour.
+ */
+const readFigurePayload = memoTtl(5 * 60_000, (key: string) => key, (key: string) =>
+  sharedLoad(`board-figure-v1:${key}`, 30 * 60, async () => {
+    const row = await prisma.boardFigure.findUnique({ where: { key }, select: { payload: true } })
+    return row ? row.payload : null
+  }, { reviveDates: false }))
+
 export async function readBoardFigure<T>(key: BoardFigureKey): Promise<T | null> {
-  const row = await prisma.boardFigure.findUnique({ where: { key }, select: { payload: true } })
-  return row ? (row.payload as unknown as T) : null
+  const payload = await readFigurePayload(key)
+  return payload == null ? null : (payload as unknown as T)
 }
 
 export async function writeBoardFigure(key: BoardFigureKey, payload: unknown): Promise<void> {
