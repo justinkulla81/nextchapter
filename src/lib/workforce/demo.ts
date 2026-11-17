@@ -9,7 +9,7 @@
 // anyone (sendCampaign skips isDemo), and public demos expire after 30 days.
 
 import 'server-only'
-import { createHash } from 'crypto'
+import { createHash, randomBytes } from 'crypto'
 import type { CurrentJobStatus, InstitutionOrgType, JourneyStage, JourneyType, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { localArea, placeAt, type LocalSettings } from './local'
@@ -285,6 +285,11 @@ async function seedWorkforceDemo(args: { institutionId: string; slug: string; se
     data: [6, 4, 2].flatMap((n, i) => stepKeys.slice(0, n).map((key) => ({ rapidResponseId: layoffs[i].id, key, doneBy: 'demo', isSampleData: true, doneAt: new Date(now.getTime() - (layoffSpecs[i].daysAgo - stepKeys.indexOf(key)) * DAY) }))),
   })
 
+  // A sample partner view, so the Partners area and the public view page have something to open.
+  await prisma.partnerView.create({
+    data: { institutionId, token: randomBytes(24).toString('base64url'), partnerName: ky ? 'Jefferson Community and Technical College' : 'A partner college', partnerKind: 'COLLEGE', scopes: ['SKILLS', 'TALENT', 'JOBS', 'PROGRAMS'], note: 'What employers here ask for, and where our people have the skills: a starting point for program planning.', expiresAt: new Date(now.getTime() + 90 * DAY), createdBy: 'demo', isSampleData: true },
+  })
+
   // Participants: 150 from the layoffs or signed up directly, then 60 more on other tracks (moving here, new graduates,
   // employed and growing, career pivot).
   const N = 150
@@ -509,6 +514,7 @@ export async function reseedWorkforceDemo(slug: string, now = new Date()) {
   await prisma.institutionMember.deleteMany({ where: { institutionId: id } })
   await prisma.rapidResponse.deleteMany({ where: { institutionId: id } })
   await prisma.fundingApplication.deleteMany({ where: { institutionId: id } })
+  await prisma.partnerView.deleteMany({ where: { institutionId: id } })
   await prisma.memberCompany.deleteMany({ where: { institutionId: id } })
   await prisma.program.deleteMany({ where: { institutionId: id } })
   await prisma.candidateProfile.deleteMany({ where: { userId: { startsWith: demoUserPrefix(slug) }, isSampleData: true } })
